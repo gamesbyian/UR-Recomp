@@ -9,7 +9,7 @@ sources:
     url: "https://ximwix.net/mirrors/rhdn/index.php@topic=6940.0.html"
     continuation_url: "https://ximwix.net/mirrors/rhdn-old/index.php@topic=6940.15.html"
     authors_or_participants: ["spinal", "ROMhacking.net community", "Mike Dailly (reported correspondence)"]
-    rights: "Forum posts; reuse rights not established. Indexed and summarized, not copied wholesale."
+    rights: "Forum posts; reuse rights not established. Preserve available artifacts for research when technically practical; provenance required."
     local: "references/notes/course-reverse-engineering-history.md"
     relevance: "Palette/tile discovery, VRAM/DMA tracing, RNC compression lead, reported 256-tile course width, block structure, validation against hand-made maps."
 
@@ -21,7 +21,7 @@ sources:
     files:
       - "dma.cpp@e1ad324c6e94149a777b69054bda5e09337631a6"
       - "memmap.cpp@04ce87e7362b8dda8cb7a79abfa226e13d3568f4"
-    rights: "Upstream Snes9x licensing applies. Relevant behavior summarized rather than vendoring whole source files."
+    rights: "Upstream Snes9x licensing applies. Relevant source files may be mirrored under references/imported/ with pinned provenance."
     local: "references/notes/oam-active-display.md"
     relevance: "Game-specific OAM address handling during HDMA and internal-ROM-name detection."
 
@@ -31,7 +31,7 @@ sources:
     url: "https://github.com/mamedev/mame/blob/dcca0e9b281be806813848db869d9ee54b4ad92e/src/devices/video/snes_ppu.cpp"
     revision: "dcca0e9b281be806813848db869d9ee54b4ad92e"
     file_sha: "525911c9cf3015b27676bcc0aebfecd6e6dd3b64"
-    rights: "Upstream MAME licensing applies. Relevant behavior summarized rather than vendoring whole source file."
+    rights: "Upstream MAME licensing applies. Relevant source files may be mirrored under references/imported/ with pinned provenance."
     local: "references/notes/oam-active-display.md"
     relevance: "Independent emulator implementation documents Uniracers as the known active-display OAM-access case and routes accesses to offset 0x0218."
 
@@ -39,7 +39,7 @@ sources:
     title: "SNES OAM behavior discussion"
     type: technical_discussion
     url: "https://forums.nesdev.org/"
-    rights: "Forum material; indexed/summarized only."
+    rights: "Forum material; rights unclear. Preserve available artifacts for research when technically practical; provenance required."
     local: "references/notes/oam-active-display.md"
     relevance: "Later hardware-level discussion of internal vs external OAM addressing and Uniracers."
 
@@ -47,7 +47,7 @@ sources:
     title: "Mike Dailly technical recollection of Uniracers sprite ripping"
     type: developer_history
     url: "https://lemmings.info/"
-    rights: "Article; indexed/summarized only."
+    rights: "Article; rights unclear. Preserve available artifact for research when technically practical; provenance required."
     local: "references/notes/oam-active-display.md"
     relevance: "Developer recollection that Uniracers moved sprite positions during active raster for split-screen and was tested by Nintendo on older hardware."
 
@@ -69,7 +69,7 @@ sources:
     submitted: "2017-02-13"
     format: "PNG"
     dimensions: "1104x3928"
-    rights: "Reuse license not established in this survey. Indexed only."
+    rights: "Reuse license not established in this survey. Public reference artifact should be mirrored for research when technically practical; keep quarantined from project-owned assets."
     local: "references/notes/graphics-assets.md"
 
   - id: spriters-resource-track-backgrounds
@@ -80,14 +80,14 @@ sources:
     submitted: "2021-01-06"
     format: "PNG"
     dimensions: "1028x4124"
-    rights: "Reuse license not established in this survey. Indexed only."
+    rights: "Reuse license not established in this survey. Public reference artifact should be mirrored for research when technically practical; keep quarantined from project-owned assets."
     local: "references/notes/graphics-assets.md"
 
   - id: spriters-resource-game-page
     title: "Uniracers / Unirally sprite index"
     type: graphics_reference
     url: "https://www.spriters-resource.com/snes/uniracersunirally/"
-    rights: "Reuse license not established in this survey. Indexed only."
+    rights: "Reuse license not established in this survey. Public reference artifact should be mirrored for research when technically practical; keep quarantined from project-owned assets."
     local: "references/notes/graphics-assets.md"
     relevance: "Indexes Unicycles, Menu Arrow, and Track Backgrounds rips."
 
@@ -97,21 +97,21 @@ sources:
     url: "https://romhackplaza.org/"
     author: "_Q_"
     release_date: "2018-09-30"
-    rights: "Patch availability/status must be checked upstream; no ROM copied."
+    rights: "Patch should be mirrored if publicly downloadable. Treat as third-party research reference; do not infer ownership of underlying game data."
     relevance: "Reportedly overwrites the banned-name list, making it a lead for locating name-validation data/code."
 
   - id: snes-central-hardware
     title: "Uniracers cartridge/PCB documentation"
     type: hardware_metadata
     url: "https://snescentral.com/"
-    rights: "Indexed/summarized only."
+    rights: "Rights unclear. Preserve available public artifact for research when technically practical; provenance required."
     relevance: "Cartridge PCB, ROM/SRAM and mapper/reference metadata."
 
   - id: original-manual-transcription
     title: "Uniracers instruction manual transcription"
     type: documentation
     url: "https://www.world-of-nintendo.com/"
-    rights: "Manual copyright retained by its rightsholders; indexed only."
+    rights: "Manual copyright retained by its rightsholders. Preserve available copy/transcription for research when technically practical; keep clearly attributed."
     relevance: "Canonical player-facing terminology, mechanics and controls."
 
   - id: dorando-compatibility

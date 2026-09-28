@@ -35,3 +35,9 @@ If a source disappears, use an archived copy and record both original and archiv
 | OD-016 | https://www.retrovideogamer.co.uk/rvg-interviews-steve-hammond/ | Steve Hammond, first-hand | Confirms survival of personal DMA graphics/photos/design/proposal-document archive | Archival lead; Uniracers holdings unknown |
 | OD-017 | https://mdf200.itch.io/snasm | Mike Dailly, modern tool | Modern SNasm supports 65816; useful descendant/context, not assumed identical to 1993 assembler | Downloadable; optional reference |
 | OD-018 | https://github.com/mikedailly/SNES-Disassembler | Mike Dailly public GitHub fork | Later 65816/SNES disassembler used/retained by Dailly; analysis context, not original DMA tool | Public source |
+
+| OD-019 | https://www.lemon64.com/forum/viewtopic.php?sid=36bb321ef89b54d4d24309d3388276a0&start=30&t=27153 | Mike Dailly, first-hand forum post | Explicitly says Uniracers changed SNES state on a scanline basis and required Nintendo R&D verification | Strong technical evidence |
+| OD-020 | https://dailly.blogspot.com/2008/09/ | Mike Dailly, first-hand | Names Uniracers split technique as C64-style sprite ripping used for perfect splits | Strong technical evidence |
+| OD-021 | https://lemmings.info/creating-a-commodore-64-emulator-in-gamemaker-part-6/ | Mike Dailly, first-hand technical retrospective | Explains sprite ripping mechanism, says Uniracers used it on SNES, black separator lines were aesthetic | Strong technical evidence |
+| OD-022 | https://www.lemon64.com/forum/viewtopic.php?p=325237 | Mike Dailly, first-hand | General SNES sprite/VRAM timing comments from an experienced DMA SNES coder | Context |
+| OD-023 | https://dmadesign.wordpress.com/ | Steve Hammond, first-hand archive/blog | Points to Dailly's historical DMA site as a detailed technical record; useful dead-site/Wayback lead | Archival lead |

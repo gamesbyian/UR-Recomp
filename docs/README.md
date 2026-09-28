@@ -5,6 +5,7 @@ Task routing lives in [`../AGENTS.md`](../AGENTS.md). This file inventories owne
 | Document | Owns |
 |---|---|
 | [`WORK-QUEUE.md`](WORK-QUEUE.md) | Current execution milestones, completion state, and dependency order |
+| [`WIDESCREEN-HD-REMASTER-PLAN.md`](WIDESCREEN-HD-REMASTER-PLAN.md) | Canonical product/engineering path from faithful stock execution to true widescreen and HD presentation |
 | [`RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md`](RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md) | Current combined research/execution strategy and next discriminating work |
 | [`BRINGUP.md`](BRINGUP.md) | Chronological native build/runtime attempts and empirical outcomes |
 | [`VALIDATION.md`](VALIDATION.md) | Fidelity hierarchy, deterministic comparison strategy, and finish-line validation principles |
@@ -13,7 +14,7 @@ Task routing lives in [`../AGENTS.md`](../AGENTS.md). This file inventories owne
 | [`SYMBOLS.md`](SYMBOLS.md) | Reconstructed code/data/RAM symbols |
 | [`FRAMEWORK-PIN.md`](FRAMEWORK-PIN.md) | SNESRecomp revision and pin rationale |
 | [`ROM-SAFETY.md`](ROM-SAFETY.md) | Private-ROM handling and public-release boundary |
-| [`WIDESCREEN.md`](WIDESCREEN.md) | Widescreen constraints and future presentation invariants |
+| [`WIDESCREEN.md`](WIDESCREEN.md) | Focused Uniracers widescreen implementation notes and invariants; subordinate to the remaster plan |
 | [`TOOLCHAIN.md`](TOOLCHAIN.md) | Research/development tool roles, installation policy, and selection guidance |
 | [`PERIODIC-REPOSITORY-HYGIENE.md`](PERIODIC-REPOSITORY-HYGIENE.md) | Recurring repository entropy-control procedure |
 | [`original-development/DEVELOPER-TECHNICAL-HISTORY.md`](original-development/DEVELOPER-TECHNICAL-HISTORY.md) | Confidence-labelled history of original DMA development |

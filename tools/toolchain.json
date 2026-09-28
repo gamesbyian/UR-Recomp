@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "install_root": ".tools",
+  "system_packages_ubuntu": [
+    "build-essential",
+    "cmake",
+    "ninja-build",
+    "git",
+    "python3",
+    "python3-venv",
+    "pkg-config",
+    "libsdl2-dev",
+    "ffmpeg",
+    "imagemagick",
+    "jq",
+    "ripgrep",
+    "file"
+  ],
+  "tools": [
+    {
+      "id": "snes9x-libretro",
+      "group": "core",
+      "url": "https://github.com/snes9xgit/snes9x.git",
+      "revision": "1bcc369e89f08243e0a462882fb1f3e42e51de3a",
+      "purpose": "Default interpreting reference core for SNESRecomp snesref differential traces.",
+      "build": ["make -C libretro -j{jobs}"],
+      "artifacts": ["libretro/snes9x_libretro.so"]
+    },
+    {
+      "id": "superfamiconv",
+      "group": "core",
+      "url": "https://github.com/Optiroc/SuperFamiconv.git",
+      "revision": "566522204e271885fb771b56f1f85d62f3f41430",
+      "purpose": "Scriptable SNES palette, tile, map and image conversion/inspection.",
+      "build": [
+        "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release",
+        "cmake --build build -j{jobs}"
+      ],
+      "artifacts": ["build"]
+    },
+    {
+      "id": "wla-dx",
+      "group": "core",
+      "url": "https://github.com/vhelin/wla-dx.git",
+      "revision": "91c52b1f4ef3cc8ba3c0638f7536539579af6a9f",
+      "purpose": "65816/SPC700 assembler-linker required by snes2asm reconstruction workflows.",
+      "build": [
+        "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release",
+        "cmake --build build -j{jobs}"
+      ],
+      "artifacts": ["build", "binaries"]
+    },
+    {
+      "id": "snes2asm",
+      "group": "core",
+      "url": "https://github.com/nathancassano/snes2asm.git",
+      "revision": "04023b0b589042b212f30c92ec7acf6e6bd010e4",
+      "purpose": "Configurable LoROM/HiROM disassembly plus graphics, tilemap, palette and SPC700 extraction.",
+      "build": ["{python} -m pip install ."],
+      "artifacts": []
+    },
+    {
+      "id": "cc65",
+      "group": "analysis",
+      "url": "https://github.com/cc65/cc65.git",
+      "revision": "d8a486acdef93ea1ba432a6a35b96cf1b797bda5",
+      "purpose": "da65 command-line 65816 disassembler and complementary 65xx analysis utilities.",
+      "build": ["make -j{jobs}"],
+      "artifacts": ["bin/da65"]
+    },
+    {
+      "id": "ghidra-snes",
+      "group": "workbench",
+      "url": "https://github.com/joshleaves/ghidra-snes.git",
+      "revision": "d33ce5dbfbc3645f00449be1c7ca1c1c65e81756",
+      "purpose": "SNES-aware Ghidra loader, 24-bit 65816 language, memory-map helpers and vector/register labels.",
+      "requires": ["Ghidra 12.0.4", "GHIDRA_INSTALL_DIR"],
+      "build": [],
+      "artifacts": []
+    },
+    {
+      "id": "bsnes-libretro",
+      "group": "oracle-extra",
+      "url": "https://github.com/libretro/bsnes-libretro.git",
+      "revision": "05439f96121d2b9d7ad7a5fc1f29d7eebdcc8c43",
+      "purpose": "Independent high-accuracy libretro oracle for cross-checking emulator-sensitive behavior.",
+      "build": [],
+      "artifacts": []
+    },
+    {
+      "id": "flips",
+      "group": "patching",
+      "url": "https://github.com/bates64/flips.git",
+      "revision": "6caac470f7fc096b0c5fdc374b65954f8bac5b16",
+      "purpose": "CLI-capable IPS/BPS patch application and creation for preserving/replaying ROM modifications.",
+      "build": [],
+      "artifacts": []
+    },
+    {
+      "id": "ares",
+      "group": "workbench",
+      "url": "https://github.com/ares-emulator/ares.git",
+      "revision": "4cb8d92b441557cb6bcaf133c4cbc7f6819b1122",
+      "purpose": "Independent accuracy/preservation-focused emulator for manual behavioral cross-checks.",
+      "build": [],
+      "artifacts": []
+    }
+  ]
+}

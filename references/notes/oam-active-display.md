@@ -78,3 +78,18 @@ The mirrored ZSNES history records “Uniracers works in 2 player mode” in v1.
 
 Mirrored history:
 `references/imported/emulators/zsnes/history.html`
+
+
+## Earlier Snes9x compatibility history
+
+The preserved 1.43-era changelog shows that Uniracers was historically sensitive to more than the active-display OAM issue:
+
+- a LoROM SRAM mapping fix was specifically noted as making Uniracers work;
+- an XOR window logic/area inversion fix was noted as making Uniracers render correctly;
+- an experiment switched empty-subscreen color addition from fixed color to backdrop color because “Uniracers seems to need it,” but that change was disabled again because it caused regressions, including later Uniracers screens;
+- a later entry explicitly announces a “Working Uniracers hack (dma.cpp),” corresponding to the OAM/HDMA workaround preserved beside the changelog.
+
+This history is useful as a regression-test inventory: SRAM mapping, window-combination logic, color math/subscreen semantics, and active-display OAM should all be tested independently rather than treating every visual problem as the same quirk.
+
+Mirrored file:
+`references/imported/emulators/snes9x-1.43/changes.txt`

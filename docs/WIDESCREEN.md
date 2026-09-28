@@ -1,6 +1,6 @@
 # Widescreen Architecture
 
-The canonical end-to-end remaster strategy is `docs/WIDESCREEN-HD-REMASTER-PLAN.md`. This document owns focused Uniracers widescreen implementation notes as they are discovered.
+The canonical end-to-end project strategy is `docs/PROJECT-PLAN.md`. This document owns the **Widescreen** feature specifically: implementation notes for expanding the logical horizontal view beyond the original 4:3 presentation.
 
 ## Principle
 
@@ -46,7 +46,7 @@ Authentic mode must preserve the original raster/OAM behavior. Current evidence 
 - sprites 96-99;
 - original ROM hook neighborhoods around offsets `0x01534C` and `0x015714`.
 
-The final HD compositor may render equivalent logical per-viewport sprite state without relying on the physical SNES trick for final pixels, but only after the authentic path is understood and remains available for validation.
+The HD Presentation compositor may render equivalent logical per-viewport sprite state without relying on the physical SNES trick for final pixels, but only after the authentic path is understood and remains available for validation.
 
 ## Non-goals
 

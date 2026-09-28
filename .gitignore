@@ -69,3 +69,7 @@ Thumbs.db
 # Local scratch
 scratch/
 notes/private/
+
+# Reproducible local research toolchain / workbenches
+.tools/
+workbench/

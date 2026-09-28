@@ -61,3 +61,33 @@ All 45 USA decoded outputs are unique. Their unpacked sizes range from roughly 3
 The canonical USA ROM's Method 1 unpacker begins at ROM offset `0x00B8F1` / LoROM `01:B8F1`. The legacy beta uses the same location. PAL builds move the routine slightly earlier: Europe retail to `01:B8E2`, and the November prototype to `01:B8D1`.
 
 This is now a useful bridge between packed data and code archaeology. The immediate course-loader task is to find callers of this routine and the pointer/index structure that selects one of the 45 packed streams, then follow the destination buffer into the historical `7E:2080` tilemap breadcrumb or another verified runtime consumer.
+
+
+## First decoded course-header field identified
+
+The 45-stream corpus now aligns strongly with the shipped 45-track/tour structure.
+
+External gameplay documentation gives a fixed five-track order for every tour: Race, Circuit, Stunt, Race, Circuit. The nine decoded streams at ordinal positions 3, 8, 13, 18, 23, 28, 33, 38 and 43 are exactly the nine streams whose decoded byte offset 2 is `0x2D`; all remaining 36 streams have `0x00` there. Independent gameplay documentation also describes stunt courses as 45-second events, and `0x2D` is decimal 45.
+
+Current interpretation, with confidence separated:
+
+- **Observed:** exactly 45 validated Method 1 payloads.
+- **Observed:** byte 2 is 45 on exactly every third track position in each five-stream group and zero elsewhere.
+- **External fact:** the game has 45 tracks grouped as nine tours of five in the order Race, Circuit, Stunt, Race, Circuit.
+- **External fact:** stunt courses use a 45-second timer.
+- **Supported interpretation:** one RNC payload corresponds to one shipped track, ordered by tour/slot.
+- **Strong field identification:** decoded byte offset 2 is the stunt-course time limit in seconds, or a field whose shipped value directly supplies that 45-second limit. Runtime tracing can distinguish direct timer use from a semantically equivalent mode parameter.
+
+The provisional stream-to-name mapping is recorded in `references/notes/course-order-and-stunt-timer.md`. Under that mapping, the seven PAL-retail content changes correspond to stream candidates:
+
+- 4 Crawler / Switcher
+- 16 Hopper / Wario Paint
+- 20 Hopper / Hairpin Hill
+- 26 Bounder / Last One
+- 27 Bounder / Marathon
+- 35 Runner / Fire Escape
+- 36 Sprinter / Vertical
+
+Those names remain provisional until a runtime course-load trace or an in-ROM selector independently confirms stream ordinal identity.
+
+Generated structural evidence: `analysis/generated/course-header-cadence.md`.

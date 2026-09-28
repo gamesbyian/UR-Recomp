@@ -1,0 +1,438 @@
+# RNC Loader Trace Seeds
+
+Canonical USA ROM only. This report identifies raw code/data references useful for the next disassembly/trace pass; semantic labels beyond the already identified RNC unpacker remain provisional.
+
+## Tiny wrapper around RNC1_Unpack
+
+- wrapper candidate starts at `0x013320` (LoROM 02:B320).
+- direct JSL to the identified unpacker occurs at `0x013322` (LoROM 02:B322).
+
+Bytes from `0x0132E0` (LoROM 02:B2E0):
+
+`84 04 20 ad b2 48 a5 4d f0 10 68 5a a8 5a a4 02 5a a4 04 5a a5 4d c9 80 f0 26 8b 68 ab 48 a5 02 8f 81 21 00 a5 03 8f 82 21 00 a5 04 29 01 8f 83 21 00 a6 4b 20 93 b2 8f 80 21 00 ca d0 f6 ab 6b c2 20 22 f1 b8 81 68 68 68 68 e2 20 c2 10 6b 04 00 80 e0 00 04 e0 80 20 00 04 00 81 20 00 04 20 81 20 00 04 40 81 20 00 04 60 81 20 00 04 80 81 20 00 04 a0 81 20 00 04 c0 81 20 00 04 e0 81 20 00 04 00 82 20 00 04 20 82 20 00 04 40 82 20 00 04 60 82 20 00 04 80 82 20 00 04 a0 82 20 00 04 c0 82 20 00 04 e0 82 20 00 04 00 83 20 00 04 20 83 20 00 04 40 83 20 00 04 60 83 20 00 04 80 83`
+
+### References to wrapper address
+
+- none
+
+## References to RNC corpus base 18:8000 / 98:8000
+
+- pointer bytes for bank 18 at `0x001D34` (LoROM 00:9D34); context from `0x001CF4` (LoROM 00:9CF4): `0c a2 30 07 8e 6a 0c 20 1d e2 a9 3e 8d df 0b a9 2a 8d ff 0b 20 25 96 a9 07 85 9b 64 8f a2 01 00 86 10 a2 00 00 86 76 a6 aa 86 5a 20 b2 cb 20 af b8 f0 03 82 78 00 c2 20 a5 9b 29 0f 00 85 0c a9 00 80 18 6a c6 0c 10 fb 2a 48 a0 07 00 b9 0f 9e 99 dc 00 88 10 f7 a3 01 24 d2 f0 2d 68 49 ff ff 25 d2 85 d2 e2 20 20 00 b1 a5 9b 29 0f 85 9b 20 3c 9e a9 5f 85 e1 85 e2 a2 dc 00 20 ab c3 a5 10 09 01 85 10 20 b2 cb 80 a5 68 05 d2 85 d2 e2 20 20 00 b1 a5 9b 29 0f 85 9b 20 3c 9e a2 dc 00 20 ab c3 a5 10 09 01 85 10 20 b2 cb 82 80 ff c2 20 a5 d2 85 16 a9 00 00 18 a0 0f 00 66 16 69 00 00`
+- pointer bytes for bank 18 at `0x1DBD32` (LoROM 3B:BD32); context from `0x1DBCF2` (LoROM 3B:BCF2): `00 00 00 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 3e 00 ff 7c ff f9 fd fa fb f4 ff f2 00 00 00 00 3e 00 83 00 06 00 05 02 0b 04 0c 00 03 01 87 07 ff a0 f8 6d 8c f8 20 c2 c0 80 00 00 02 00 00 80 18 f8 0e f3 c6 02 a0 02 40 00 00 00 fd e0 f4 44 f8 c0 60 80 00 00 00 00 00 00 00 00 01 02 80 08 08 00 60 80 00 00 00 00 00 00 00 00 03 01 83 03 ff bd fb dc 01 fe 20 c0 c0 00 00 00 02 00 00 80 04 f8 66 b8 c1 02 22 02 c0 00 00 00 ff 7f ff 20 f7 20 f8 80 00 80 00 00 00 00 00 00 00 00 c0 00 c3 08 08 00 00 80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 07 00 1f 0f 3f 1e fe 39 00 00`
+- pointer bytes for bank 18 at `0x1EB893` (LoROM 3D:B893); context from `0x1EB853` (LoROM 3D:B853): `00 00 00 00 00 00 00 00 00 00 00 0b 00 0f 03 07 05 03 00 01 00 00 00 00 00 00 00 00 00 08 00 00 00 00 00 01 00 00 00 00 00 00 00 00 00 fc e0 fe 24 e6 40 b0 e0 1a 80 2b 61 30 48 30 18 1c 00 02 00 80 18 80 ce f0 c4 10 64 48 37 48 37 22 53 37 66 53 69 1c 1d 04 1e 36 2e 79 02 73 6e 50 2c 60 19 26 15 3a 05 1f 01 4f 01 0f 00 01 00 10 0a 00 00 0c 04 0a 03 04 00 02 00 01 00 00 00 14 02 06 0e 03 03 08 05 00 03 00 01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 07 03 07 01 00 00 00 00 00 00 00 00 00 00 00 00 04 00 06 00 07 03 02 02 01 00 00 01 00 00 00 01 00 00 01 01 04 00 00`
+- pointer bytes for bank 18 at `0x1EDDF7` (LoROM 3D:DDF7); context from `0x1EDDB7` (LoROM 3D:DDB7): `00 04 00 04 00 04 02 04 02 da 10 a5 0e 47 06 83 84 8f 01 9f 19 09 8d 8d 0c 0f 24 24 4f 4c 8f 04 07 81 0e 9d 06 1f 86 9a 17 d8 68 fc 64 9c c0 5e 80 06 92 8e 12 8e 92 0e a2 60 80 40 80 c0 00 d2 00 80 18 00 90 40 d0 70 f0 03 00 02 02 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 01 00 00 00 00 00 00 00 00 00 80 83 c2 01 c1 29 70 30 9f 0f 60 20 1f 09 00 00 74 73 62 21 12 38 0f 8f 80 60 40 1f 10 00 00 00 1a 20 98 00 b4 20 e8 48 d0 10 60 40 80 00 00 00 12 24 a0 24 c4 48 80 10 00 20 20 80 80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 fe 0e fc e4 00 00 00 00 00 00 00`
+- pointer bytes for bank 18 at `0x1F5443` (LoROM 3E:D443); context from `0x1F5403` (LoROM 3E:D403): `30 20 18 22 1a 0b 00 40 00 40 40 00 00 10 80 00 d0 20 d8 25 da 0f c0 00 80 00 80 00 80 02 79 4a 39 0c 08 14 01 11 1a 19 03 06 02 08 08 5e 61 7e 01 25 11 0c 09 05 0e 16 06 00 09 00 07 c0 08 a8 00 80 18 29 10 29 20 20 20 00 00 40 40 10 28 18 40 00 78 0f d0 0f c0 00 c0 00 c0 00 80 04 3c 0f 1c 04 15 10 00 18 13 11 06 0f 00 08 00 7f 63 3f 00 20 09 09 09 0c 07 13 0e 02 00 08 07 20 98 88 10 90 18 97 08 96 86 00 00 20 00 20 00 00 c8 88 60 80 68 97 68 15 62 00 e0 00 c0 20 c0 0c 2e 01 1c 0e 11 18 02 10 01 1e 03 0b 09 08 00 3d 23 3f 00 02 01 1d 07 16 0f 16 03 02 04 08 07 60 80 40`
+- pointer bytes for bank 18 at `0x1FA30B` (LoROM 3F:A30B); context from `0x1FA2CB` (LoROM 3F:A2CB): `00 01 00 00 00 00 00 00 00 00 00 70 f8 e6 18 01 fe 00 fe 00 ff 81 01 01 00 40 00 00 00 21 00 21 00 01 00 61 00 00 7e 01 7e 40 3f 00 3f 00 1e 01 1e 01 3e 41 1e 00 00 00 00 40 00 00 00 20 00 10 00 80 18 8b 14 00 00 c0 c0 c0 00 00 c0 20 c0 10 e0 18 60 07 e8 78 10 43 00 20 00 00 00 00 00 00 00 00 00 00 00 41 06 41 3c 00 1c 00 00 00 00 00 00 00 00 00 00 00 b8 00 00 80 80 01 00 84 04 84 80 80 00 00 00 90 47 00 ff 00 7f 00 7e 80 7b 00 7b 00 7f 00 ff 40 00 20 00 00 00 90 00 90 80 00 c0 00 00 20 00 40 80 20 c0 00 e0 10 60 00 60 40 30 00 f0 60 d0 04 00 8d 01 8a 80 8d 00 46 06 40`
+
+## Nearby 24-bit ROM-address tables in low ROM
+
+Searches low ROM for runs of >=3 consecutive little-endian LoROM pointers into file region 0x0C0000-0x0FC000. This can expose an index even when pointers do not land exactly on RNC headers.
+
+- run length 6 starting `0x00125B` (LoROM 00:925B)
+  - +0x0000: bank byte 1B -> file `0x0D8D01`
+  - +0x0003: bank byte 1C -> file `0x0E1C21`
+  - +0x0006: bank byte 1C -> file `0x0E1C21`
+  - +0x0009: bank byte 1D -> file `0x0E9C21`
+  - +0x000C: bank byte 1D -> file `0x0E9C21`
+  - +0x000F: bank byte 1E -> file `0x0F1C21`
+- run length 3 starting `0x00126F` (LoROM 00:926F)
+  - +0x0000: bank byte 1E -> file `0x0F0D01`
+  - +0x0003: bank byte 1F -> file `0x0F9C21`
+  - +0x0006: bank byte 1F -> file `0x0F9C21`
+- run length 3 starting `0x003189` (LoROM 00:B189)
+  - +0x0000: bank byte 1C -> file `0x0E0D55`
+  - +0x0003: bank byte 18 -> file `0x0C0D0C`
+  - +0x0006: bank byte 19 -> file `0x0C8D0C`
+- run length 3 starting `0x00475B` (LoROM 00:C75B)
+  - +0x0000: bank byte 98 -> file `0x0C1796`
+  - +0x0003: bank byte 9B -> file `0x0D9A99`
+  - +0x0006: bank byte 9E -> file `0x0F1D9C`
+- run length 3 starting `0x00475C` (LoROM 00:C75C)
+  - +0x0000: bank byte 99 -> file `0x0C9897`
+  - +0x0003: bank byte 9C -> file `0x0E1B9A`
+  - +0x0006: bank byte 9F -> file `0x0F9E9D`
+- run length 4 starting `0x0068D2` (LoROM 00:E8D2)
+  - +0x0000: bank byte 1A -> file `0x0D3285`
+  - +0x0003: bank byte 1A -> file `0x0D3485`
+  - +0x0006: bank byte 1A -> file `0x0D3685`
+  - +0x0009: bank byte 1A -> file `0x0D3885`
+- run length 6 starting `0x0074A6` (LoROM 00:F4A6)
+  - +0x0000: bank byte 18 -> file `0x0C0D55`
+  - +0x0003: bank byte 19 -> file `0x0C8D0C`
+  - +0x0006: bank byte 1A -> file `0x0D0D0C`
+  - +0x0009: bank byte 1B -> file `0x0D8D0C`
+  - +0x000C: bank byte 1C -> file `0x0E0D0C`
+  - +0x000F: bank byte 1E -> file `0x0F0D0C`
+- run length 3 starting `0x00B6CF` (LoROM 01:B6CF)
+  - +0x0000: bank byte 1B -> file `0x0D8C00`
+  - +0x0003: bank byte 1B -> file `0x0D8D21`
+  - +0x0006: bank byte 1C -> file `0x0E0E21`
+- run length 4 starting `0x00CD20` (LoROM 01:CD20)
+  - +0x0000: bank byte 19 -> file `0x0C8D0E`
+  - +0x0003: bank byte 1B -> file `0x0D9C0E`
+  - +0x0006: bank byte 1D -> file `0x0E9C0E`
+  - +0x0009: bank byte 1F -> file `0x0F9C0E`
+- run length 3 starting `0x00D8B5` (LoROM 01:D8B5)
+  - +0x0000: bank byte 18 -> file `0x0C0C21`
+  - +0x0003: bank byte 18 -> file `0x0C0C21`
+  - +0x0006: bank byte 18 -> file `0x0C0C21`
+- run length 3 starting `0x00D8C4` (LoROM 01:D8C4)
+  - +0x0000: bank byte 18 -> file `0x0C0C21`
+  - +0x0003: bank byte 18 -> file `0x0C0C21`
+  - +0x0006: bank byte 18 -> file `0x0C0C21`
+- run length 3 starting `0x00D8D9` (LoROM 01:D8D9)
+  - +0x0000: bank byte 18 -> file `0x0C0C21`
+  - +0x0003: bank byte 18 -> file `0x0C0C21`
+  - +0x0006: bank byte 18 -> file `0x0C0C21`
+- run length 3 starting `0x00D8E8` (LoROM 01:D8E8)
+  - +0x0000: bank byte 18 -> file `0x0C0C21`
+  - +0x0003: bank byte 18 -> file `0x0C0C21`
+  - +0x0006: bank byte 18 -> file `0x0C0C21`
+- run length 3 starting `0x00DB4B` (LoROM 01:DB4B)
+  - +0x0000: bank byte 18 -> file `0x0C0C21`
+  - +0x0003: bank byte 18 -> file `0x0C0C21`
+  - +0x0006: bank byte 18 -> file `0x0C0C21`
+- run length 3 starting `0x00DB5A` (LoROM 01:DB5A)
+  - +0x0000: bank byte 18 -> file `0x0C0C21`
+  - +0x0003: bank byte 18 -> file `0x0C0C21`
+  - +0x0006: bank byte 18 -> file `0x0C0C21`
+- run length 3 starting `0x00DB6F` (LoROM 01:DB6F)
+  - +0x0000: bank byte 18 -> file `0x0C0C21`
+  - +0x0003: bank byte 18 -> file `0x0C0C21`
+  - +0x0006: bank byte 18 -> file `0x0C0C21`
+- run length 3 starting `0x00DB7E` (LoROM 01:DB7E)
+  - +0x0000: bank byte 18 -> file `0x0C0C21`
+  - +0x0003: bank byte 18 -> file `0x0C0C21`
+  - +0x0006: bank byte 18 -> file `0x0C0C21`
+- run length 3 starting `0x00E920` (LoROM 01:E920)
+  - +0x0000: bank byte 18 -> file `0x0C0C21`
+  - +0x0003: bank byte 18 -> file `0x0C0C21`
+  - +0x0006: bank byte 18 -> file `0x0C0C21`
+- run length 3 starting `0x00E92F` (LoROM 01:E92F)
+  - +0x0000: bank byte 18 -> file `0x0C0C21`
+  - +0x0003: bank byte 18 -> file `0x0C0C21`
+  - +0x0006: bank byte 18 -> file `0x0C0C21`
+- run length 3 starting `0x00E944` (LoROM 01:E944)
+  - +0x0000: bank byte 18 -> file `0x0C0C21`
+  - +0x0003: bank byte 18 -> file `0x0C0C21`
+  - +0x0006: bank byte 18 -> file `0x0C0C21`
+- run length 3 starting `0x00E953` (LoROM 01:E953)
+  - +0x0000: bank byte 18 -> file `0x0C0C21`
+  - +0x0003: bank byte 18 -> file `0x0C0C21`
+  - +0x0006: bank byte 18 -> file `0x0C0C21`
+- run length 4 starting `0x01C64B` (LoROM 03:C64B)
+  - +0x0000: bank byte 18 -> file `0x0C0E00`
+  - +0x0003: bank byte 18 -> file `0x0C0E21`
+  - +0x0006: bank byte 18 -> file `0x0C0E21`
+  - +0x0009: bank byte 18 -> file `0x0C0E21`
+- run length 4 starting `0x01C660` (LoROM 03:C660)
+  - +0x0000: bank byte 18 -> file `0x0C0E00`
+  - +0x0003: bank byte 18 -> file `0x0C0E21`
+  - +0x0006: bank byte 18 -> file `0x0C0E21`
+  - +0x0009: bank byte 18 -> file `0x0C0E21`
+- run length 3 starting `0x01D532` (LoROM 03:D532)
+  - +0x0000: bank byte 1F -> file `0x0F8D12`
+  - +0x0003: bank byte 19 -> file `0x0C8D13`
+  - +0x0006: bank byte 1F -> file `0x0F8013`
+- run length 4 starting `0x01E797` (LoROM 03:E797)
+  - +0x0000: bank byte 1D -> file `0x0E8D03`
+  - +0x0003: bank byte 1F -> file `0x0F8D03`
+  - +0x0006: bank byte 19 -> file `0x0C8D03`
+  - +0x0009: bank byte 1B -> file `0x0D8D03`
+- run length 6 starting `0x01F9AC` (LoROM 03:F9AC)
+  - +0x0000: bank byte 1B -> file `0x0D8D01`
+  - +0x0003: bank byte 1C -> file `0x0E1C21`
+  - +0x0006: bank byte 1C -> file `0x0E1C21`
+  - +0x0009: bank byte 1D -> file `0x0E9C21`
+  - +0x000C: bank byte 1D -> file `0x0E9C21`
+  - +0x000F: bank byte 1E -> file `0x0F1C21`
+- run length 3 starting `0x01F9C0` (LoROM 03:F9C0)
+  - +0x0000: bank byte 1E -> file `0x0F0D01`
+  - +0x0003: bank byte 1F -> file `0x0F9C21`
+  - +0x0006: bank byte 1F -> file `0x0F9C21`
+- run length 3 starting `0x04B6B7` (LoROM 09:B6B7)
+  - +0x0000: bank byte 9F -> file `0x0FBFE6`
+  - +0x0003: bank byte 1F -> file `0x0F9F3F`
+  - +0x0006: bank byte 1F -> file `0x0F8F9F`
+- run length 3 starting `0x04B6C7` (LoROM 09:B6C7)
+  - +0x0000: bank byte 9F -> file `0x0FBF4E`
+  - +0x0003: bank byte 1F -> file `0x0F9F3F`
+  - +0x0006: bank byte 1F -> file `0x0F8F9F`
+- run length 3 starting `0x04C677` (LoROM 09:C677)
+  - +0x0000: bank byte 99 -> file `0x0C99FF`
+  - +0x0003: bank byte 9F -> file `0x0F8181`
+  - +0x0006: bank byte 99 -> file `0x0C999F`
+- run length 3 starting `0x04C687` (LoROM 09:C687)
+  - +0x0000: bank byte 99 -> file `0x0C99FF`
+  - +0x0003: bank byte 9F -> file `0x0F8181`
+  - +0x0006: bank byte 99 -> file `0x0C999F`
+- run length 3 starting `0x04C8B7` (LoROM 09:C8B7)
+  - +0x0000: bank byte 9F -> file `0x0F9FFF`
+  - +0x0003: bank byte 9F -> file `0x0F9F9F`
+  - +0x0006: bank byte 9F -> file `0x0F9F9F`
+- run length 3 starting `0x04C8B8` (LoROM 09:C8B8)
+  - +0x0000: bank byte 9F -> file `0x0F9F9F`
+  - +0x0003: bank byte 9F -> file `0x0F9F9F`
+  - +0x0006: bank byte 9F -> file `0x0F9F9F`
+- run length 3 starting `0x04C8B9` (LoROM 09:C8B9)
+  - +0x0000: bank byte 9F -> file `0x0F9F9F`
+  - +0x0003: bank byte 9F -> file `0x0F9F9F`
+  - +0x0006: bank byte 9F -> file `0x0F9F9F`
+- run length 3 starting `0x04C8C7` (LoROM 09:C8C7)
+  - +0x0000: bank byte 9F -> file `0x0F9FFF`
+  - +0x0003: bank byte 9F -> file `0x0F9F9F`
+  - +0x0006: bank byte 9F -> file `0x0F9F9F`
+- run length 3 starting `0x04C8C8` (LoROM 09:C8C8)
+  - +0x0000: bank byte 9F -> file `0x0F9F9F`
+  - +0x0003: bank byte 9F -> file `0x0F9F9F`
+  - +0x0006: bank byte 9F -> file `0x0F9F9F`
+- run length 3 starting `0x04C8C9` (LoROM 09:C8C9)
+  - +0x0000: bank byte 9F -> file `0x0F9F9F`
+  - +0x0003: bank byte 9F -> file `0x0F9F9F`
+  - +0x0006: bank byte 9F -> file `0x0F9F9F`
+- run length 3 starting `0x04E797` (LoROM 09:E797)
+  - +0x0000: bank byte 9F -> file `0x0FBFE6`
+  - +0x0003: bank byte 1F -> file `0x0F9F3F`
+  - +0x0006: bank byte 1F -> file `0x0F8F9F`
+- run length 3 starting `0x04E7A7` (LoROM 09:E7A7)
+  - +0x0000: bank byte 9F -> file `0x0FBF4E`
+  - +0x0003: bank byte 1F -> file `0x0F9F3F`
+  - +0x0006: bank byte 1F -> file `0x0F8F9F`
+- run length 4 starting `0x04FA78` (LoROM 09:FA78)
+  - +0x0000: bank byte 99 -> file `0x0C8989`
+  - +0x0003: bank byte 99 -> file `0x0C9999`
+  - +0x0006: bank byte 99 -> file `0x0C9999`
+  - +0x0009: bank byte 99 -> file `0x0C9999`
+- run length 3 starting `0x04FA79` (LoROM 09:FA79)
+  - +0x0000: bank byte 99 -> file `0x0C9989`
+  - +0x0003: bank byte 99 -> file `0x0C9999`
+  - +0x0006: bank byte 99 -> file `0x0C9999`
+- run length 3 starting `0x04FA7A` (LoROM 09:FA7A)
+  - +0x0000: bank byte 99 -> file `0x0C9999`
+  - +0x0003: bank byte 99 -> file `0x0C9999`
+  - +0x0006: bank byte 99 -> file `0x0C9999`
+- run length 4 starting `0x04FA88` (LoROM 09:FA88)
+  - +0x0000: bank byte 99 -> file `0x0C8989`
+  - +0x0003: bank byte 99 -> file `0x0C9999`
+  - +0x0006: bank byte 99 -> file `0x0C9999`
+  - +0x0009: bank byte 99 -> file `0x0C9999`
+- run length 3 starting `0x04FA89` (LoROM 09:FA89)
+  - +0x0000: bank byte 99 -> file `0x0C9989`
+  - +0x0003: bank byte 99 -> file `0x0C9999`
+  - +0x0006: bank byte 99 -> file `0x0C9999`
+- run length 3 starting `0x04FA8A` (LoROM 09:FA8A)
+  - +0x0000: bank byte 99 -> file `0x0C9999`
+  - +0x0003: bank byte 99 -> file `0x0C9999`
+  - +0x0006: bank byte 99 -> file `0x0C9999`
+- run length 4 starting `0x04FAD6` (LoROM 09:FAD6)
+  - +0x0000: bank byte 99 -> file `0x0CFFFF`
+  - +0x0003: bank byte 99 -> file `0x0C9999`
+  - +0x0006: bank byte 9F -> file `0x0F8181`
+  - +0x0009: bank byte 99 -> file `0x0C999F`
+- run length 4 starting `0x04FAE6` (LoROM 09:FAE6)
+  - +0x0000: bank byte 99 -> file `0x0CFFFF`
+  - +0x0003: bank byte 99 -> file `0x0C9999`
+  - +0x0006: bank byte 9F -> file `0x0F8181`
+  - +0x0009: bank byte 99 -> file `0x0C999F`
+- run length 4 starting `0x04FC36` (LoROM 09:FC36)
+  - +0x0000: bank byte 99 -> file `0x0CFFFF`
+  - +0x0003: bank byte 9F -> file `0x0F9F99`
+  - +0x0006: bank byte 9F -> file `0x0F9F9F`
+  - +0x0009: bank byte 99 -> file `0x0C999F`
+- run length 3 starting `0x04FC37` (LoROM 09:FC37)
+  - +0x0000: bank byte 99 -> file `0x0C99FF`
+  - +0x0003: bank byte 9F -> file `0x0F9F9F`
+  - +0x0006: bank byte 9F -> file `0x0F9F9F`
+- run length 3 starting `0x04FC38` (LoROM 09:FC38)
+  - +0x0000: bank byte 9F -> file `0x0F9999`
+  - +0x0003: bank byte 9F -> file `0x0F9F9F`
+  - +0x0006: bank byte 99 -> file `0x0C9F9F`
+- run length 4 starting `0x04FC46` (LoROM 09:FC46)
+  - +0x0000: bank byte 99 -> file `0x0CFFFF`
+  - +0x0003: bank byte 9F -> file `0x0F9F99`
+  - +0x0006: bank byte 9F -> file `0x0F9F9F`
+  - +0x0009: bank byte 99 -> file `0x0C999F`
+- run length 3 starting `0x04FC47` (LoROM 09:FC47)
+  - +0x0000: bank byte 99 -> file `0x0C99FF`
+  - +0x0003: bank byte 9F -> file `0x0F9F9F`
+  - +0x0006: bank byte 9F -> file `0x0F9F9F`
+- run length 3 starting `0x04FC48` (LoROM 09:FC48)
+  - +0x0000: bank byte 9F -> file `0x0F9999`
+  - +0x0003: bank byte 9F -> file `0x0F9F9F`
+  - +0x0006: bank byte 99 -> file `0x0C9F9F`
+- run length 4 starting `0x05180C` (LoROM 0A:980C)
+  - +0x0000: bank byte 9F -> file `0x0F8F8F`
+  - +0x0003: bank byte 99 -> file `0x0C999F`
+  - +0x0006: bank byte 99 -> file `0x0C9999`
+  - +0x0009: bank byte 99 -> file `0x0C9999`
+- run length 3 starting `0x05180D` (LoROM 0A:980D)
+  - +0x0000: bank byte 9F -> file `0x0F9F8F`
+  - +0x0003: bank byte 99 -> file `0x0C9999`
+  - +0x0006: bank byte 99 -> file `0x0C9999`
+- run length 3 starting `0x05180E` (LoROM 0A:980E)
+  - +0x0000: bank byte 99 -> file `0x0C9F9F`
+  - +0x0003: bank byte 99 -> file `0x0C9999`
+  - +0x0006: bank byte 99 -> file `0x0C9999`
+- run length 4 starting `0x051E88` (LoROM 0A:9E88)
+  - +0x0000: bank byte 9F -> file `0x0F8F8F`
+  - +0x0003: bank byte 9F -> file `0x0F9F9F`
+  - +0x0006: bank byte 9F -> file `0x0F9F9F`
+  - +0x0009: bank byte 9F -> file `0x0F9F9F`
+- run length 4 starting `0x051E89` (LoROM 0A:9E89)
+  - +0x0000: bank byte 9F -> file `0x0F9F8F`
+  - +0x0003: bank byte 9F -> file `0x0F9F9F`
+  - +0x0006: bank byte 9F -> file `0x0F9F9F`
+  - +0x0009: bank byte 9F -> file `0x0F9F9F`
+- run length 4 starting `0x051E8A` (LoROM 0A:9E8A)
+  - +0x0000: bank byte 9F -> file `0x0F9F9F`
+  - +0x0003: bank byte 9F -> file `0x0F9F9F`
+  - +0x0006: bank byte 9F -> file `0x0F9F9F`
+  - +0x0009: bank byte 9F -> file `0x0F9F9F`
+- run length 4 starting `0x053F1C` (LoROM 0A:BF1C)
+  - +0x0000: bank byte 99 -> file `0x0CFFFF`
+  - +0x0003: bank byte 99 -> file `0x0C9999`
+  - +0x0006: bank byte 99 -> file `0x0C9999`
+  - +0x0009: bank byte 99 -> file `0x0C9999`
+- run length 3 starting `0x053F1D` (LoROM 0A:BF1D)
+  - +0x0000: bank byte 99 -> file `0x0C99FF`
+  - +0x0003: bank byte 99 -> file `0x0C9999`
+  - +0x0006: bank byte 99 -> file `0x0C9999`
+- run length 3 starting `0x053F1E` (LoROM 0A:BF1E)
+  - +0x0000: bank byte 99 -> file `0x0C9999`
+  - +0x0003: bank byte 99 -> file `0x0C9999`
+  - +0x0006: bank byte 99 -> file `0x0C9999`
+- run length 4 starting `0x053F2C` (LoROM 0A:BF2C)
+  - +0x0000: bank byte 99 -> file `0x0CFFFF`
+  - +0x0003: bank byte 99 -> file `0x0C9999`
+  - +0x0006: bank byte 99 -> file `0x0C9999`
+  - +0x0009: bank byte 99 -> file `0x0C9999`
+- run length 3 starting `0x053F2D` (LoROM 0A:BF2D)
+  - +0x0000: bank byte 99 -> file `0x0C99FF`
+  - +0x0003: bank byte 99 -> file `0x0C9999`
+  - +0x0006: bank byte 99 -> file `0x0C9999`
+- run length 3 starting `0x053F2E` (LoROM 0A:BF2E)
+  - +0x0000: bank byte 99 -> file `0x0C9999`
+  - +0x0003: bank byte 99 -> file `0x0C9999`
+  - +0x0006: bank byte 99 -> file `0x0C9999`
+- run length 3 starting `0x0920F9` (LoROM 12:A0F9)
+  - +0x0000: bank byte 1E -> file `0x0F7F64`
+  - +0x0003: bank byte 1B -> file `0x0DED2D`
+  - +0x0006: bank byte 9E -> file `0x0F531B`
+- run length 3 starting `0x09A9E2` (LoROM 13:A9E2)
+  - +0x0000: bank byte 99 -> file `0x0CA898`
+  - +0x0003: bank byte 98 -> file `0x0C0989`
+  - +0x0006: bank byte 99 -> file `0x0C98C0`
+- run length 4 starting `0x09AC0C` (LoROM 13:AC0C)
+  - +0x0000: bank byte 99 -> file `0x0CC089`
+  - +0x0003: bank byte 99 -> file `0x0C9899`
+  - +0x0006: bank byte 9A -> file `0x0D2999`
+  - +0x0009: bank byte 9B -> file `0x0DC09A`
+- run length 3 starting `0x09AC0D` (LoROM 13:AC0D)
+  - +0x0000: bank byte 99 -> file `0x0C99C0`
+  - +0x0003: bank byte 99 -> file `0x0C9998`
+  - +0x0006: bank byte 9A -> file `0x0D1AA9`
+- run length 3 starting `0x09B64E` (LoROM 13:B64E)
+  - +0x0000: bank byte 99 -> file `0x0C8854`
+  - +0x0003: bank byte 98 -> file `0x0C2A99`
+  - +0x0006: bank byte 98 -> file `0x0C0899`
+- run length 3 starting `0x09B780` (LoROM 13:B780)
+  - +0x0000: bank byte 99 -> file `0x0C9944`
+  - +0x0003: bank byte 99 -> file `0x0C999A`
+  - +0x0006: bank byte 99 -> file `0x0CA9A9`
+- run length 3 starting `0x09B9A2` (LoROM 13:B9A2)
+  - +0x0000: bank byte 99 -> file `0x0CAABB`
+  - +0x0003: bank byte 99 -> file `0x0C9944`
+  - +0x0006: bank byte 99 -> file `0x0C9998`
+- run length 4 starting `0x09C5A1` (LoROM 13:C5A1)
+  - +0x0000: bank byte 9E -> file `0x0F0413`
+  - +0x0003: bank byte 1F -> file `0x0FB027`
+  - +0x0006: bank byte 1D -> file `0x0EC5D4`
+  - +0x0009: bank byte 1F -> file `0x0F943A`
+- run length 3 starting `0x09C8F8` (LoROM 13:C8F8)
+  - +0x0000: bank byte 1C -> file `0x0E62CB`
+  - +0x0003: bank byte 1C -> file `0x0E622B`
+  - +0x0006: bank byte 1C -> file `0x0E622B`
+- run length 3 starting `0x09DA55` (LoROM 13:DA55)
+  - +0x0000: bank byte 1C -> file `0x0E62CB`
+  - +0x0003: bank byte 1C -> file `0x0E622B`
+  - +0x0006: bank byte 1C -> file `0x0E622B`
+- run length 4 starting `0x09F7F3` (LoROM 13:F7F3)
+  - +0x0000: bank byte 1E -> file `0x0F4182`
+  - +0x0003: bank byte 1E -> file `0x0F5282`
+  - +0x0006: bank byte 1E -> file `0x0F4182`
+  - +0x0009: bank byte 1E -> file `0x0F6582`
+- run length 5 starting `0x09F8C3` (LoROM 13:F8C3)
+  - +0x0000: bank byte 1E -> file `0x0F5282`
+  - +0x0003: bank byte 1E -> file `0x0F5282`
+  - +0x0006: bank byte 1E -> file `0x0F6582`
+  - +0x0009: bank byte 1E -> file `0x0F7A82`
+  - +0x000C: bank byte 1D -> file `0x0ED381`
+- run length 3 starting `0x0A026B` (LoROM 14:826B)
+  - +0x0000: bank byte 1D -> file `0x0E8981`
+  - +0x0003: bank byte 1E -> file `0x0F7B81`
+  - +0x0006: bank byte 1F -> file `0x0FA881`
+- run length 3 starting `0x0A0325` (LoROM 14:8325)
+  - +0x0000: bank byte 1D -> file `0x0EDD82`
+  - +0x0003: bank byte 1D -> file `0x0EF082`
+  - +0x0006: bank byte 1D -> file `0x0EDD82`
+- run length 4 starting `0x0A0331` (LoROM 14:8331)
+  - +0x0000: bank byte 1E -> file `0x0F4E1E`
+  - +0x0003: bank byte 1D -> file `0x0EDD82`
+  - +0x0006: bank byte 1D -> file `0x0EF082`
+  - +0x0009: bank byte 1D -> file `0x0EDD82`
+- run length 3 starting `0x0A05CF` (LoROM 14:85CF)
+  - +0x0000: bank byte 1E -> file `0x0F281E`
+  - +0x0003: bank byte 9C -> file `0x0E1F18`
+  - +0x0006: bank byte 9E -> file `0x0F281E`
+- run length 3 starting `0x0A1147` (LoROM 14:9147)
+  - +0x0000: bank byte 1D -> file `0x0E8281`
+  - +0x0003: bank byte 1D -> file `0x0EB381`
+  - +0x0006: bank byte 1D -> file `0x0EE281`
+- run length 4 starting `0x0A11FD` (LoROM 14:91FD)
+  - +0x0000: bank byte 1D -> file `0x0EC082`
+  - +0x0003: bank byte 1D -> file `0x0ED182`
+  - +0x0006: bank byte 1D -> file `0x0EB681`
+  - +0x0009: bank byte 1D -> file `0x0E8980`
+- run length 3 starting `0x0A1361` (LoROM 14:9361)
+  - +0x0000: bank byte 1D -> file `0x0E8281`
+  - +0x0003: bank byte 1D -> file `0x0EB381`
+  - +0x0006: bank byte 1D -> file `0x0EE281`
+- run length 3 starting `0x0A1417` (LoROM 14:9417)
+  - +0x0000: bank byte 1D -> file `0x0EC082`
+  - +0x0003: bank byte 1D -> file `0x0ED182`
+  - +0x0006: bank byte 1D -> file `0x0EB681`
+- run length 5 starting `0x0A2F6A` (LoROM 14:AF6A)
+  - +0x0000: bank byte 1C -> file `0x0E0023`
+  - +0x0003: bank byte 1E -> file `0x0F1F18`
+  - +0x0006: bank byte 1E -> file `0x0F1E0C`
+  - +0x0009: bank byte 1C -> file `0x0E1F0C`
+  - +0x000C: bank byte 1E -> file `0x0F1E0C`
+- run length 6 starting `0x0A2F7B` (LoROM 14:AF7B)
+  - +0x0000: bank byte 1C -> file `0x0E1F0C`
+  - +0x0003: bank byte 1C -> file `0x0E1E0C`
+  - +0x0006: bank byte 1E -> file `0x0F1F18`
+  - +0x0009: bank byte 1E -> file `0x0F1E0C`
+  - +0x000C: bank byte 1C -> file `0x0E1F0C`
+  - +0x000F: bank byte 1E -> file `0x0F1E0C`
+- run length 4 starting `0x0A2F8F` (LoROM 14:AF8F)
+  - +0x0000: bank byte 1E -> file `0x0F1F18`
+  - +0x0003: bank byte 1E -> file `0x0F1E0C`
+  - +0x0006: bank byte 1C -> file `0x0E1F0C`
+  - +0x0009: bank byte 1E -> file `0x0F1E0C`
+- run length 3 starting `0x0A9B6D` (LoROM 15:9B6D)
+  - +0x0000: bank byte 9B -> file `0x0D9AA2`
+  - +0x0003: bank byte 9A -> file `0x0D22A1`
+  - +0x0006: bank byte 9E -> file `0x0F1D9C`
+
+## Raw function-pointer-word candidates for wrapper 02:B320
+
+The wrapper has no direct JSL/JSR callsite. Search the pre-RNC ROM for the 16-bit address word B320, then show bounded context. These are candidates only because 16-bit words are noisy.
+
+- occurrences before packed corpus: 7
+  - word at `0x003C4C` (LoROM 00:BC4C); context from `0x003C2C` (LoROM 00:BC2C): `07 77 e2 20 20 7e b1 20 35 b7 f0 06 a9 02 85 ac 80 c7 20 85 98 20 a4 99 20 dd 88 d0 d8 20 1c 95 20 b3 98 22 72 99 83 20 05 98 20 a2 f4 20 75 c7 a9 03 8f 73 10 77 22 9a 87 83 20 49 a8 20 38 e8 20 35 b7 f0 b0 22 b4 9e 83 bf 9c 06 77 cf d1 10`
+  - word at `0x003D73` (LoROM 00:BD73); context from `0x003D53` (LoROM 00:BD53): `ac 80 ea c2 20 af 42 07 77 29 fb ff 8f 42 07 77 e2 20 20 85 98 20 a4 99 20 dd 88 d0 d8 20 1c 95 20 b3 98 22 72 99 83 20 05 98 20 a2 f4 20 75 c7 20 d4 ad a5 00 f0 cc a9 01 85 a7 64 a6 60 20 d3 f4 a9 01 85 a7 64 a6 60 fc 01 50 49 43 4b 5f 5f`
+  - word at `0x003F0D` (LoROM 00:BF0D); context from `0x003EED` (LoROM 00:BEED): `b7 f0 07 a9 02 85 ac 82 49 ff 20 85 98 20 a4 99 20 dd 88 d0 e6 22 ca 95 83 22 00 97 83 20 1c 95 20 b3 98 22 72 99 83 20 05 98 20 a2 f4 20 75 c7 20 45 af 82 1d ff e2 20 20 99 a8 20 68 a8 a9 01 85 a7 64 a6 a9 ff 60 e2 20 20 05 f5 22 43 95 83`
+  - word at `0x004004` (LoROM 00:C004); context from `0x003FE4` (LoROM 00:BFE4): `22 8c 95 83 20 35 b7 f0 05 a9 01 82 4d ff 20 85 98 20 a4 99 20 dd 88 d0 ce 22 ca 95 83 20 1c 95 20 b3 98 22 72 99 83 20 05 98 20 a2 f4 22 c2 99 83 d0 1e a9 04 22 51 8b 83 a2 0b c1 20 ab c3 20 c9 fa a6 aa 86 5a 20 a5 93 20 3b c2 20 f5 c1 80`
+  - word at `0x0081C8` (LoROM 01:81C8); context from `0x0081A8` (LoROM 01:81A8): `38 f9 f1 0e c9 01 00 d0 03 4c 82 82 b9 f1 0e c9 01 00 d0 17 af 4b 07 77 29 ff 00 f0 06 a9 0f 00 20 b3 c5 c2 20 ac ef 0f b9 f1 0e ac ef 0f f0 04 18 69 08 00 aa c9 08 00 f0 05 c9 00 00 d0 16 a2 00 00 a5 02 c0 00 00 d0 06 8f 69 07 77 80 0b 8f`
+  - word at `0x00C5AF` (LoROM 01:C5AF); context from `0x00C58F` (LoROM 01:C58F): `0c af 50 07 77 89 08 f0 16 ac 0b 0d cc 0d 0d f0 0e a5 00 99 e5 0c ad 0b 0d 3a 29 1f 8d 0b 0d 60 20 b3 c5 6b e2 20 c2 10 c0 00 00 d0 25 ac e3 0c cc e1 0c f0 1b 99 bb 0c c9 16 10 0b ad d9 12 f0 06 9c 9f 0c 9c d9 12 ad e3 0c 1a 29 1f 8d e3 0c`
+  - word at `0x0961F3` (LoROM 12:E1F3); context from `0x0961D3` (LoROM 12:E1D3): `a6 e2 b2 42 92 1d 51 ea 51 b6 00 ff 1f 5b 11 d4 fe 2d b6 5f d2 0d 40 d3 c4 e2 0b a6 57 cf 1a 7e 20 b3 e1 6a a6 f0 06 cf c6 f0 3a 20 30 b6 e1 1c 5f e1 e2 2d 3b 40 a6 f0 b5 fe 7a e6 97 d0 0a b6 41 b5 de 5c 20 e3 fe 3f b6 f0 11 e1 0f f4 c1 1f`

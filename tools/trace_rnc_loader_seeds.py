@@ -84,6 +84,16 @@ def main():
             lines.append(f"- run length {len(run)} starting {label(off)}")
             for ro,fo,b in run[:64]:
                 lines.append(f"  - +0x{ro-off:04X}: bank byte {b:02X} -> file `0x{fo:06X}`")
+
+    lines += ["","## Raw function-pointer-word candidates for wrapper 02:B320","",
+              "The wrapper has no direct JSL/JSR callsite. Search the pre-RNC ROM for the 16-bit address word B320, then show bounded context. These are candidates only because 16-bit words are noisy.",""]
+    word=bytes((wa&0xff,(wa>>8)&0xff))
+    word_hits=[x for x in find_all(data[:0x0C0000],word) if x not in (wrapper,jsl_call)]
+    lines.append(f"- occurrences before packed corpus: {len(word_hits)}")
+    for off in word_hits[:64]:
+        s,h=context(data,off,32,48)
+        lines.append(f"  - word at {label(off)}; context from {label(s)}: `{h}`")
+
     OUT.parent.mkdir(parents=True,exist_ok=True)
     OUT.write_text("\n".join(lines)+"\n",encoding="utf-8")
     print(OUT)

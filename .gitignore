@@ -4,6 +4,10 @@
 *.fig
 *.swc
 *.rom
+
+# Intentional private-project exception: canonical project input
+!Uniracers (USA).sfc
+
 rom/
 roms/
 private/

@@ -1,17 +1,27 @@
-# ROM and Copyright Safety
+# ROM and Copyright Policy
 
-## Do not commit
+## Current private-research policy
 
-- commercial game ROMs;
-- ROM fragments used as disguised redistribution;
-- extracted graphics, music, sound samples, maps or other copyrighted assets;
-- saves/states containing substantial proprietary data;
+This repository intentionally tracks one canonical project input:
+
+- `Uniracers (USA).sfc`
+
+The reason is operational: GitHub Actions and repository-based tooling can analyze the exact same input without an out-of-band ROM handoff.
+
+This differs from SNESRecomp's recommended public-distribution model, which expects users to supply their own ROM.
+
+## Still keep out of Git by default
+
+- duplicate or alternate ROM dumps unless deliberately admitted;
+- bulk extracted graphics, music, sound samples, maps or other copyrighted assets;
+- saves/states containing substantial proprietary data unless needed for a specific experiment;
 - bulk generated source that effectively reproduces proprietary ROM code;
-- builds that embed the ROM.
+- distributable builds that embed the ROM;
+- temporary dumps and analyzer output that can be regenerated cheaply.
 
 ## Appropriate project material
 
-- hashes identifying supported revisions;
+- hashes and cartridge metadata;
 - verification/build scripts;
 - reverse-engineering notes;
 - symbols and addresses;
@@ -19,17 +29,19 @@
 - independently authored runtime/integration code;
 - tests expressed as inputs, addresses, assertions or small factual state values;
 - structural format documentation;
-- transformation logic rather than bundled original content.
+- transformation logic;
+- concise generated evidence needed to reproduce a finding.
 
-## Local layout
+## Visibility gate
 
-```text
-private/
-  Uniracers-USA.sfc
-generated/
-build/
-```
+**Do not make this repository public while the ROM remains in current or historical Git objects.**
 
-These paths are ignored.
+Deleting the file in a later commit is not sufficient. Before any public release or visibility change:
 
-Before making the repo public, audit the full Git history, not merely the current tree.
+1. remove proprietary ROM/game-derived material from the working tree;
+2. audit the entire Git history;
+3. rewrite history where necessary;
+4. verify release artifacts do not embed the ROM;
+5. re-check generated source/assets for redistributable game content.
+
+Private-repo storage is a deliberate convenience for this research project, not a claim about redistribution rights.

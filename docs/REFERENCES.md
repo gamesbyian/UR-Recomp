@@ -32,3 +32,7 @@ External references are leads. Concrete project claims should be reproduced loca
 - Regional/search vocabulary: `references/notes/regional-search-vocabulary.md`.
 - Mirrored emulator evidence: `references/imported/emulators/`.
 - Hidden Palace prototype and DMA press-material leads are tracked in `references/catalog.yml`.
+
+
+- Recovered Canoe patch and byte-level analysis: `references/imported/patches/uniracers_canoe.md`.
+- TAS/SRAM/bot/course-map archaeology: `references/notes/tas-and-sram-research.md`.

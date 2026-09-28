@@ -120,3 +120,12 @@ Evidence:
 Interpretation: basic native CPU/PPU/DMA/audio bring-up reaches recognizable stock presentation. This does not yet establish pixel-accuracy against a reference emulator, controller/menu progression, race simulation, or the two-player active-display OAM path.
 
 Next milestone: add deterministic input and/or reference-frame comparison to reach title/menu selection and actual race gameplay without guest-state edits.
+
+
+## 2026-09-28 — Screenshot smoke timing hardened after branch reconciliation
+
+While reconciling the repository-hygiene/tooling branch, native run 36493652126 again built and launched the correct `UniracersSNESRecomp` executable, but the 12-second wall-clock timeout expired before simulated frame 300 on the slower CI run, so the screenshot validator found no file. The boot step itself remained alive and successful.
+
+The smoke timeout was increased to 20 seconds without changing the requested capture frame or validation criteria. Run 36495039455 then completed successfully.
+
+Interpretation: the branch run exposed harness timing sensitivity rather than a game/runtime regression. Frame 300 remains the visual assertion; the extra wall-clock budget only gives CI enough time to reach it reliably.

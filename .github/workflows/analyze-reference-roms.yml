@@ -4,6 +4,7 @@ on:
     paths:
       - "tools/analyze_reference_roms.py"
       - "tools/inventory_reference_roms.py"
+      - "tools/compare_reference_roms.py"
       - "reference/roms/**"
       - ".github/workflows/analyze-reference-roms.yml"
   workflow_dispatch:
@@ -18,11 +19,13 @@ jobs:
       - run: |
           python tools/inventory_reference_roms.py
           python tools/analyze_reference_roms.py
+          python tools/compare_reference_roms.py
       - name: Commit reports
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -f analysis/generated/reference-rom-inventory.md
           git add -f analysis/generated/retail-vs-prototype-structure.md
+          git add -f analysis/generated/reference-rom-comparison.md
           git commit -m "Generate reference ROM analysis" || exit 0
           git push

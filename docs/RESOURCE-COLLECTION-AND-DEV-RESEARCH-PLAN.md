@@ -6,6 +6,8 @@ This document is the canonical plan for combining external-resource collection, 
 
 ## Objective
 
+The end-to-end widescreen/HD product architecture is owned by `docs/WIDESCREEN-HD-REMASTER-PLAN.md`. This document owns the research and evidence program that unlocks that plan.
+
 Reach a trustworthy native execution of Uniracers while progressively converting external evidence into reproducible knowledge of the ROM, especially course data, renderer/OAM behavior, player-state addresses, protection paths, and original DMA tooling conventions.
 
 The project has crossed an important threshold: several former historical leads are now binary-confirmed facts. Research should increasingly be driven by discriminating experiments rather than broad searching.
@@ -32,24 +34,26 @@ The following are considered established unless contradicted by stronger evidenc
 - The recovered Canoe patch hooks original ROM code at offsets `0x01534C` and `0x015714`.
 - TAS and RetroAchievements sources provide useful WRAM/SRAM anchors for speed, boost, position, stunt state, medal state, and progression.
 - Historical SNasm 1.7.1 is preserved locally, and Dailly's documented 65816 syntax/conventions provide lineage evidence for future reconstructed assembly.
-- The strict native smoke harness now builds and launches the actual `UniracersSNESRecomp` target. Run 36491383506 loaded the canonical ROM, completed `SnesInit`, created the SDL/X11 window and renderer, entered the main loop, simulated the first frame, serviced audio, and remained alive for the intentional 12-second timeout.
+- The strict native smoke harness builds and launches the actual `UniracersSNESRecomp` target. Run 36493358927 also captured and visually verified a coherent stock Uniracers title screen from the native executable. The next native milestone is deterministic input through menus into a playable race.
 
 ## Operating priorities
 
-### 1. Extend native bring-up from first simulated frame to visible title/menu evidence
+### 1. Extend native bring-up from verified title screen to deterministic menu/race execution
 
-The build/executable-discovery blocker is cleared. The next execution task is to establish what the generated frames actually contain and then drive deterministic input far enough to reach title/menu/race milestones.
+The build/executable-discovery and visible-title gates are cleared. The next execution task is deterministic controller input through the frontend into a representative one-player race, followed by independent reference comparison.
 
 Actions:
 - keep `.github/workflows/native-build-smoke.yml` strict about the exact generated Uniracers target;
-- capture or otherwise verify rendered output from the real native process;
+- retain deterministic screenshot/frame evidence from the real native process;
+- add deterministic input and reach menu selection and a stock one-player race;
+- run the same route through `snesref` and compare bounded state/frame evidence;
 - characterize the first deterministic runtime/visual/input failure only after it is observed;
 - classify it as configuration, runtime/framework behavior, unsupported SNES hardware behavior, generated-code problem, or project integration;
 - record the first failing observable state in `docs/BRINGUP.md`;
 - prefer the smallest correct framework/configuration fix over game-specific patches;
 - keep stock 4:3 behavior as the oracle.
 
-Exit condition: title/menu behavior is visibly or deterministically verified, or its first genuine failure is reduced to a specific unsupported behavior with a reproducible test.
+Exit condition: deterministic menu navigation reaches a stock one-player race and either executes correctly against the reference route or its first genuine divergence is reduced to a reproducible state.
 
 ### 2. Decode and inventory all 45 RNC streams
 

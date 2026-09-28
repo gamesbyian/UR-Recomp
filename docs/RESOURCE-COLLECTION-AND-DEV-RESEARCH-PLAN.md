@@ -32,23 +32,24 @@ The following are considered established unless contradicted by stronger evidenc
 - The recovered Canoe patch hooks original ROM code at offsets `0x01534C` and `0x015714`.
 - TAS and RetroAchievements sources provide useful WRAM/SRAM anchors for speed, boost, position, stunt state, medal state, and progression.
 - Historical SNasm 1.7.1 is preserved locally, and Dailly's documented 65816 syntax/conventions provide lineage evidence for future reconstructed assembly.
-- The SNESRecomp pipeline can scaffold, generate, and complete its build step. However, the current smoke workflow did **not** prove that the game executable was launched: its executable-discovery fallback selected CMake's `CompilerIdCXX/a.out`. The apparent exit status 164 is therefore a harness bug, not evidence of a Uniracers runtime crash.
+- The strict native smoke harness now builds and launches the actual `UniracersSNESRecomp` target. Run 36491383506 loaded the canonical ROM, completed `SnesInit`, created the SDL/X11 window and renderer, entered the main loop, simulated the first frame, serviced audio, and remained alive for the intentional 12-second timeout.
 
 ## Operating priorities
 
-### 1. Fix the native boot-smoke harness, then reduce the first real runtime failure
+### 1. Extend native bring-up from first simulated frame to visible title/menu evidence
 
-This is the highest-value execution task because scaffolding/generation/build already complete, but the existing smoke test selected the wrong executable.
+The build/executable-discovery blocker is cleared. The next execution task is to establish what the generated frames actually contain and then drive deterministic input far enough to reach title/menu/race milestones.
 
 Actions:
-- fix `.github/workflows/native-build-smoke.yml` so executable discovery selects the actual generated Uniracers target and fails loudly if no game target exists;
-- rerun the workflow and only then characterize the first deterministic runtime failure;
+- keep `.github/workflows/native-build-smoke.yml` strict about the exact generated Uniracers target;
+- capture or otherwise verify rendered output from the real native process;
+- characterize the first deterministic runtime/visual/input failure only after it is observed;
 - classify it as configuration, runtime/framework behavior, unsupported SNES hardware behavior, generated-code problem, or project integration;
 - record the first failing observable state in `docs/BRINGUP.md`;
 - prefer the smallest correct framework/configuration fix over game-specific patches;
 - keep stock 4:3 behavior as the oracle.
 
-Exit condition: the actual game target is launched deterministically, then either reaches a stable title/menu milestone or its first genuine failure is reduced to a specific unsupported behavior with a reproducible test.
+Exit condition: title/menu behavior is visibly or deterministically verified, or its first genuine failure is reduced to a specific unsupported behavior with a reproducible test.
 
 ### 2. Decode and inventory all 45 RNC streams
 
@@ -62,7 +63,7 @@ Actions:
 - preserve generated outputs outside Git when bulky, but commit compact manifests/reports and reproducible tooling;
 - compare decoded outputs across streams for common headers, dimensions, dictionaries, repeated blocks, and record structure.
 
-Exit condition: all 45 streams decompress reproducibly with verified metadata.
+Exit condition: **met 2026-09-28**. All 45 streams in each of four preserved builds decode reproducibly with packed/unpacked CRC verification; compact manifests are generated in CI.
 
 ### 3. Identify the semantic course format
 

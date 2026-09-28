@@ -4,12 +4,12 @@ Goal: produce a ROM-free technical description of Uniracers/Unirally course data
 
 ## Historical leads
 
-Prior community reverse-engineering reportedly identified Rob Northen Compression for level/course data and successfully decompressed blocks. Treat those reports as leads until reproduced.
+Historical reports identified Rob Northen Compression for level/course data. Local analysis has now confirmed 45 valid RNC Method 1 streams in both the canonical USA retail ROM and the 1994-11-29 PAL prototype, at identical offsets with matching packed/unpacked sizes and CRCs. The remaining question is what each decoded stream contains and how it maps to course semantics.
 
 ## Questions
 
 1. Where is the course index/table?
-2. Which RNC method/version is used?
+2. How exactly does the game invoke RNC Method 1, and does its decoder structurally match the preserved ProPack SNES routine?
 3. What constitutes a course record?
 4. What are the dimensions and coordinate units?
 5. How are track geometry and visuals related?
@@ -35,13 +35,11 @@ Most useful files for this investigation:
 
 The manual describes Method 1 as prioritizing compressed size and Method 2 as prioritizing unpack speed, with Method 1 the packer's default.
 
-### Immediate reproduction plan
+### Current reproduction plan
 
-1. Search the supported ROM for RNC packed-data headers/signatures and enumerate plausible records.
-2. Identify the game's decompression routine(s) from callers, constants, bit-reading structure and output behavior.
-3. Compare that routine structurally against both supplied SNES decoders rather than assuming a method.
-4. Run candidate records through an independent decoder and verify packed/unpacked sizes and CRCs where present.
-5. Associate decoded records with course loads by tracing their ROM source addresses into RAM/VRAM.
-6. Only then assign semantic names such as course geometry, block dictionary or tilemap data.
-
-This turns R-SEED-001 into a directly reproducible experiment instead of relying on the historical report.
+1. Extract and independently decompress all 45 confirmed Method 1 streams; verify unpacked sizes and CRCs.
+2. Generate a compact manifest with offsets, hashes, byte statistics and structural signatures.
+3. Identify the game's decompression routine and compare it structurally with the preserved SNES `RNC_1.S` implementation.
+4. Test the historical 256-tile-width and 64x64-block claims against decoded bytes.
+5. Associate decoded records with course loads and Halamantariel/VGMaps maps.
+6. Identify course index/pointer tables and only then assign semantic names such as geometry, block dictionary, tilemap or metadata.

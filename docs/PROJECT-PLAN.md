@@ -149,6 +149,10 @@ The shipped Rob Northen Method 1 unpacker has also been identified in ROM code:
 - Europe retail: `01:B8E2`;
 - PAL prototype: `01:B8D1`.
 
+### Autonomous player source recovered
+
+Dessyreqt's public 2014 **Uniracers Tabletop bot** source has been located at Pastebin ID `A0XpKw9v`, via TASVideos submission #4250. The submission states that the bot completes the game without savestate search and can be adjusted for a human to race against it. The script contains frontend navigation, course-specific driving regions and a large labeled RAM map. It should be treated as a major input/fidelity/reverse-engineering resource and adapted into the project's deterministic harness after its addresses are locally verified.
+
 ### Runtime state anchors
 
 Historical TAS work and RetroAchievements provide strong runtime probes for:
@@ -227,7 +231,7 @@ Reach and complete a normal one-player race in the native executable with no pre
 ### Work
 
 1. Make the title-screen smoke deterministic and non-flaky.
-2. Add deterministic controller input.
+2. Add deterministic controller input, using the recovered 2014 Dessyreqt full-game bot's menu-state policy as a primary accelerator rather than rediscovering frontend navigation from scratch.
 3. Navigate:
    - boot;
    - title;

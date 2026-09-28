@@ -40,7 +40,7 @@ The end-state should support:
 
 - native desktop execution;
 - authentic 4:3 presentation as a permanent regression/reference mode;
-- true widescreen, not stretched 4:3;
+- the **Widescreen** feature, providing true additional horizontal view rather than stretched 4:3;
 - modern window sizes including 4K output;
 - high-resolution replacement art while preserving original animation/state timing;
 - original courses and simulation behavior;
@@ -71,7 +71,7 @@ authentic PPU path          enhancement policy
     |                        |            |
     v                        v            v
 stock framebuffer      true-wide PPU   overlay extraction
-                       rendering       / HD substitution
+                       rendering       / HD Presentation
                             |            |
                             +-----+------+
                                   |
@@ -190,7 +190,7 @@ The pinned SNESRecomp framework supplies several pieces directly relevant to the
 - hybrid native execution with interpreter fallback;
 - `snesref` for deterministic independent-emulator comparison;
 - raw frame, memory and audio capture;
-- true-widescreen support patterns developed across existing ports;
+- reusable support patterns for the Widescreen feature developed across existing ports;
 - PPU layer policies and margin rendering;
 - host-overlay extraction for BG and OBJ content;
 - host-side substitution of higher-resolution art;
@@ -442,7 +442,7 @@ Correlate:
 
 The desired output is a stable semantic asset key such as an original animation/state identifier, not a screenshot hash.
 
-### Why this matters for HD
+### Why this matters for HD Presentation
 
 A high-resolution unicycle should be chosen by the same original state that chose the low-resolution sprite. That preserves exact animation cadence, stunt poses and gameplay timing while allowing the host to substitute a higher-resolution render.
 
@@ -460,9 +460,9 @@ This separates geometry/camera problems from asset-resolution problems.
 
 ### First rule
 
-Establish the 4:3 release gate before any widescreen hook. With widescreen disabled, enhancement work must leave the authentic path bit-identical on defined deterministic captures.
+Establish the 4:3 release gate before any Widescreen hook. With the Widescreen feature disabled, enhancement work must leave the authentic path bit-identical on defined deterministic captures.
 
-### Apply SNESRecomp's proven widescreen patterns deliberately
+### Apply SNESRecomp's proven Widescreen patterns deliberately
 
 For Uniracers, investigate each applicable pattern rather than copying another game's addresses:
 
@@ -480,7 +480,7 @@ For Uniracers, investigate each applicable pattern rather than copying another g
 
 ### Course/world boundaries
 
-Uniracers courses can be extremely long and sometimes highly vertical. Widescreen policy must distinguish:
+Uniracers courses can be extremely long and sometimes highly vertical. The Widescreen feature must distinguish:
 
 - continuous track world;
 - course boundary;
@@ -499,7 +499,7 @@ Possible policies include:
 - keep original HUD centered initially;
 - anchor rigid HUD groups to widened edges;
 - use SNESRecomp elastic-band handling only for legitimately stretchable chrome/gauges;
-- move to host-overlay composition once HD UI replacement begins.
+- move to host-overlay composition once HD Presentation UI replacement begins.
 
 ### Two-player and Vs. mode
 
@@ -513,7 +513,7 @@ Authentic mode must reproduce the original scanline/OAM trick. Trace and validat
 - high-OAM byte `$18`;
 - the Canoe hook regions.
 
-For widescreen stock presentation, first determine whether the PPU path can extend both viewports correctly while retaining original sprite-ripping semantics.
+For the Widescreen feature with stock presentation, first determine whether the PPU path can extend both viewports correctly while retaining original sprite-ripping semantics.
 
 For the final HD Presentation path, host composition may be cleaner: preserve the original logical sprite state and split-screen timing, but render the two viewport sprite sets directly instead of depending on the physical OAM side effect for final pixels. This is acceptable only if simulation state remains unchanged and authentic mode still proves the original path.
 
@@ -713,7 +713,7 @@ Replacement presentation must preserve:
 - palette/color semantics;
 - screen/world anchoring.
 
-Disabling the HD pack must return to the stock renderer with no simulation change.
+Disabling the HD Presentation pack must return to the stock renderer with no simulation change.
 
 ---
 
@@ -736,7 +736,7 @@ Disabling the HD pack must return to the stock renderer with no simulation chang
 | Frame/audio/image conversion | ffmpeg + ImageMagick |
 | Asset provenance/capture | SNESRecomp assetdump/debug surfaces |
 | HD Presentation layer extraction | SNESRecomp host-overlay extraction |
-| Optional HD audio | SNESRecomp MSU-1 support |
+| Optional audio modernization | SNESRecomp MSU-1 support |
 | Historical syntax/tool lineage | preserved SNasm builds |
 
 ---
@@ -751,7 +751,7 @@ Developer history describes a high-detail 3D source model and a compressed multi
 
 ## Track graphics and collision are separable
 
-Historical destructive tests reportedly changed visual and physical course behavior independently. The remaster must not derive authoritative collision from an HD Presentation visual mesh. Visual reconstruction can be semantic and modern while collision remains original.
+Historical destructive tests reportedly changed visual and physical course behavior independently. The modern port must not derive authoritative collision from an HD Presentation visual mesh. Visual reconstruction can be semantic and modern while collision remains original.
 
 ## The 45 RNC payloads are probably the central course asset unit
 
@@ -792,7 +792,7 @@ The next work should be:
 8. disassemble/trace the Canoe hook regions and validate the two-player OAM path;
 9. build deterministic ROM asset extraction for unicycles/backgrounds/UI;
 10. establish a permanent 4:3 fidelity gate;
-11. only then begin stock-art true-widescreen work using the transferable SNESRecomp patterns;
+11. only then begin stock-art Widescreen feature work using the transferable SNESRecomp patterns;
 12. after wide stock presentation is stable, integrate host-overlay extraction and the first HD Presentation replacement asset.
 
 ## First useful HD Presentation prototype
@@ -837,7 +837,7 @@ The project reaches its intended goal when a player can supply the supported ori
 
 - demonstrably original simulation behavior;
 - authentic 4:3 fallback;
-- true widescreen gameplay;
+- the Widescreen feature;
 - modern-resolution output;
 - high-resolution presentation assets;
 - correct one-player and split-screen behavior;

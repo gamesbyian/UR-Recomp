@@ -136,7 +136,7 @@ The download is behind itch.io's "No thanks, just take me to the downloads" hand
 ## A-009 — Historical SNasm 1.7.x builds
 
 Priority: high  
-Status: public preservation copies located; automated acquisition in progress
+Status: SNasm 1.7.1 acquired and committed; 1.7.2 remains an external preservation lead
 
 SNasm 1.7.1:
 - preservation page: https://csdb.dk/release/?id=57677
@@ -148,6 +148,13 @@ SNasm 1.7.2:
 - preservation index: https://plus4world.powweb.com/tools/all/Windows/3
 - recorded date: 2008-05-10
 
-A one-shot GitHub Actions acquisition workflow was added at .github/workflows/acquire-snasm-171.yml to fetch the 1.7.1 preservation copy into reference/tools/snasm/historical/ and record SHA-256.
+SNasm 1.7.1 is now preserved at:
+- reference/tools/snasm/historical/snasm-1.7.1-2007-11-30.zip
+- reference/tools/snasm/historical/snasm-1.7.1-2007-11-30.sha256
+
+SHA-256:
+0c5f1ccfbe82d893fe5cc1b638c01343f414898a8f571786f098238151d7ed1b
+
+Acquisition date: 2026-09-28. The one-shot acquisition workflow was removed after successful capture.
 
 Why important: these builds are only ~13-14 years newer than the Uniracers assembler and come from the same author/tool lineage, while explicitly retaining 65816 support. Compare them with the modern SNasm package and with any future reconstructed source, but do not assume syntax identity with the 1993 Amiga version.

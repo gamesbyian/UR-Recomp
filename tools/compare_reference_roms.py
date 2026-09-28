@@ -105,6 +105,24 @@ def main():
         xs=rncs[name]
         lines.append(f"| {name} | `0x{xs[0]['off']:06X}` | `0x{xs[-1]['off']:06X}` | {len(xs)} |")
     lines.append("")
+
+    lines += ["## PAL-retail RNC changes by stream order", "",
+              "The 45 streams are also compared by ordinal position. This is an observation aid, not yet proof that a stream ordinal equals a course identifier.",
+              "",
+              "| # | USA/prototype offset | PAL retail offset | USA packed/unpacked | PAL packed/unpacked | USA CRCs (P/U) | PAL CRCs (P/U) | Identical |",
+              "|---:|---:|---:|---:|---:|---|---|:---:|"]
+    usa=rncs["USA retail"]; pal=rncs["Europe retail"]
+    for idx,(u,p) in enumerate(zip(usa,pal),1):
+        if u["sha256"] != p["sha256"]:
+            identical="no"
+        else:
+            identical="yes"
+        lines.append(
+            f"| {idx} | `0x{u['off']:06X}` | `0x{p['off']:06X}` | {u['packed']:,}/{u['unpacked']:,} | "
+            f"{p['packed']:,}/{p['unpacked']:,} | `{u['pcrc']:04X}/{u['ucrc']:04X}` | "
+            f"`{p['pcrc']:04X}/{p['ucrc']:04X}` | {identical} |"
+        )
+    lines.append("")
     OUT.parent.mkdir(parents=True,exist_ok=True)
     OUT.write_text("\n".join(lines),encoding="utf-8")
     print(OUT)

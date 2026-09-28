@@ -1,0 +1,87 @@
+name: Native build and boot smoke
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "Uniracers (USA).sfc"
+      - "rom_identity.txt"
+      - "snesrecomp"
+      - ".github/workflows/native-build-smoke.yml"
+
+jobs:
+  build-and-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install desktop build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y             cmake ninja-build pkg-config xvfb             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev             libwayland-dev libasound2-dev libpulse-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "Uniracers (USA).sfc"
+
+      - name: Scaffold, generate and build
+        shell: bash
+        run: |
+          set -euo pipefail
+          TMP="$RUNNER_TEMP/ur-recomp-build"
+          mkdir -p "$TMP"
+          sh snesrecomp/tools/new_project/setup_project.sh             --rom "$GITHUB_WORKSPACE/Uniracers (USA).sfc"             --dir "$TMP"             --name "Uniracers"             --players 2             --yes             --no-ci             --no-fetch-boxart             --no-recomp-ui             --no-netplay             --no-github             --generate             --build             --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+
+      - name: Locate executable
+        id: exe
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp"
+          echo "== candidate executables =="
+          find "$ROOT/build" -maxdepth 4 -type f -perm -111 -print || true
+          EXE="$(find "$ROOT/build" -maxdepth 4 -type f -perm -111             ! -name '*.sh' ! -name '*.py'             | grep -E '/Uniracers(SNESRecomp)?$|/Uniracers[^/]*$'             | head -n 1 || true)"
+          if [ -z "$EXE" ]; then
+            EXE="$(find "$ROOT/build" -maxdepth 4 -type f -perm -111 | head -n 1 || true)"
+          fi
+          test -n "$EXE"
+          echo "exe=$EXE" >> "$GITHUB_OUTPUT"
+          echo "Selected: $EXE"
+
+      - name: Native boot smoke
+        shell: bash
+        run: |
+          set +e
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/Uniracers (USA).sfc"
+          echo "== starting native executable =="
+          echo "$EXE"
+          SDL_AUDIODRIVER=dummy timeout 12s xvfb-run -a "$EXE" "$ROM"             >"$RUNNER_TEMP/boot.log" 2>&1
+          STATUS=$?
+          cat "$RUNNER_TEMP/boot.log"
+          echo "boot_exit_status=$STATUS"
+          if [ "$STATUS" -eq 124 ]; then
+            echo "SMOKE_RESULT=alive_after_12s"
+            exit 0
+          fi
+          if [ "$STATUS" -eq 0 ]; then
+            echo "SMOKE_RESULT=clean_exit"
+            exit 0
+          fi
+          echo "SMOKE_RESULT=failed_status_$STATUS"
+          exit "$STATUS"
+
+      - name: Build summary
+        if: always()
+        shell: bash
+        run: |
+          ROOT="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp"
+          echo "== generated source files =="
+          find "$ROOT/src/gen" -maxdepth 1 -type f -printf '%f\n' 2>/dev/null | sort || true
+          echo
+          echo "== binary metadata =="
+          find "$ROOT/build" -maxdepth 4 -type f -perm -111 -exec file {} \; 2>/dev/null || true

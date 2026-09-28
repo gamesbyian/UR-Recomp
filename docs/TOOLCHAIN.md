@@ -44,7 +44,7 @@ Use it for deterministic reference execution, scripted-input traces, WRAM compar
 
 ### SuperFamiconv
 
-Command-line SNES graphics converter for palettes, planar tile graphics, maps, and image round trips. It can emit native binary and JSON/image forms, making it useful both for discovering graphics structure and later for a custom-course/asset pipeline.
+Command-line SNES graphics converter for palettes, planar tile graphics, maps, and image round trips. The pinned v0.12 line is the upstream Rust rewrite. It can emit native binary and JSON/image forms, making it useful both for discovering graphics structure and later for a custom-course/asset pipeline.
 
 Use it before writing bespoke tile/palette conversion unless Uniracers data demonstrably needs a custom layer.
 
@@ -106,7 +106,7 @@ The recommended system package set includes:
 - ImageMagick for deterministic image conversion/cropping/compositing;
 - `jq` for compact JSON analysis;
 - `ripgrep` for cheap repository/source discovery;
-- `file`, binutils/compiler/build essentials, CMake/Ninja, Python venv, SDL2 development files.
+- `file`, compiler/build essentials, CMake/Ninja, Rust/Cargo, Python venv, and SDL2 development files.
 
 These solve a surprising amount of archaeology without adding bespoke code.
 

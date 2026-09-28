@@ -4,6 +4,7 @@ on:
     paths:
       - "tools/analyze_reference_roms.py"
       - "reference/roms/**"
+      - ".github/workflows/analyze-reference-roms.yml"
   workflow_dispatch:
 permissions:
   contents: write

@@ -1,0 +1,61 @@
+# ROMs and cartridge images
+*.sfc
+*.smc
+*.fig
+*.swc
+*.rom
+rom/
+roms/
+private/
+local/
+proprietary/
+
+# Game-derived generated output
+src/gen/
+generated/
+gen/
+extracted/
+assets/extracted/
+assets/generated/
+dump/
+dumps/
+
+# Saves, states, traces and captures
+*.srm
+*.state
+*.sav
+saves/
+states/
+captures/
+trace-output/
+
+# Build output
+build/
+build-*/
+out/
+dist/
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+*.obj
+*.o
+*.pdb
+
+# Tool/cache/editor
+__pycache__/
+*.pyc
+.pytest_cache/
+.cache/
+.venv/
+venv/
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local scratch
+scratch/
+notes/private/

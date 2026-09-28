@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "Uniracers (USA).sfc"
+      - "reference/roms/retail/Uniracers_USA.sfc"
       - "rom_identity.txt"
       - "snesrecomp"
       - ".github/workflows/native-build-smoke.yml"
@@ -26,7 +26,7 @@ jobs:
           sudo apt-get install -y             cmake ninja-build pkg-config xvfb             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev             libwayland-dev libasound2-dev libpulse-dev
 
       - name: Verify canonical ROM
-        run: python3 tools/verify_rom.py "Uniracers (USA).sfc"
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
       - name: Scaffold, generate and build
         shell: bash
@@ -34,7 +34,7 @@ jobs:
           set -euo pipefail
           TMP="$RUNNER_TEMP/ur-recomp-build"
           mkdir -p "$TMP"
-          sh snesrecomp/tools/new_project/setup_project.sh             --rom "$GITHUB_WORKSPACE/Uniracers (USA).sfc"             --dir "$TMP"             --name "Uniracers"             --players 2             --yes             --no-ci             --no-fetch-boxart             --no-recomp-ui             --no-netplay             --no-github             --generate             --build             --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+          sh snesrecomp/tools/new_project/setup_project.sh             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"             --dir "$TMP"             --name "Uniracers"             --players 2             --yes             --no-ci             --no-fetch-boxart             --no-recomp-ui             --no-netplay             --no-github             --generate             --build             --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
 
       - name: Locate executable
         id: exe
@@ -57,7 +57,7 @@ jobs:
         run: |
           set +e
           EXE="${{ steps.exe.outputs.exe }}"
-          ROM="$GITHUB_WORKSPACE/Uniracers (USA).sfc"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           echo "== starting native executable =="
           echo "$EXE"
           SDL_AUDIODRIVER=dummy timeout 12s xvfb-run -a "$EXE" "$ROM"             >"$RUNNER_TEMP/boot.log" 2>&1

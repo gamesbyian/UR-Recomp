@@ -14,11 +14,11 @@ No widescreen, asset replacement, or gameplay changes should begin until that ba
 
 ## ROM policy
 
-This is currently a **private research repository** and intentionally contains the canonical project ROM, `Uniracers (USA).sfc`, so repository-hosted analysis and CI can operate on the same input.
+This is currently a **private research repository** and intentionally contains the canonical project ROM, `reference/roms/retail/Uniracers_USA.sfc`, so repository-hosted analysis and CI can operate on the same input.
 
 That is an explicit project choice, not an assumption inherited from SNESRecomp's public-release model. Before any public release or visibility change, the ROM and any other proprietary game-derived material must be removed and the full Git history audited/re-written as needed.
 
-See `docs/ROM-SAFETY.md`.
+Preserved development builds and source archives live under `reference/roms/` and are never aliases for the canonical retail input.\n\nSee `docs/ROM-SAFETY.md`.
 
 ## Framework
 

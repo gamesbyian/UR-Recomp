@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "Uniracers (USA).sfc"
+      - "reference/roms/retail/Uniracers_USA.sfc"
       - "snesrecomp"
       - ".github/workflows/rom-baseline.yml"
 
@@ -21,7 +21,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ROM='Uniracers (USA).sfc'
+          ROM='reference/roms/retail/Uniracers_USA.sfc'
           echo "== file =="
           ls -l "$ROM"
           echo

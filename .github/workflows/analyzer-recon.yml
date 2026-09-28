@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "Uniracers (USA).sfc"
+      - "reference/roms/retail/Uniracers_USA.sfc"
       - "rom_identity.txt"
       - "snesrecomp"
       - ".github/workflows/analyzer-recon.yml"
@@ -20,7 +20,7 @@ jobs:
           submodules: recursive
 
       - name: Verify canonical ROM
-        run: python3 tools/verify_rom.py "Uniracers (USA).sfc"
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
       - name: Scaffold temporary Uniracers project and generate code
         shell: bash
@@ -28,7 +28,7 @@ jobs:
           set -euo pipefail
           TMP="$RUNNER_TEMP/ur-recomp-probe"
           mkdir -p "$TMP"
-          sh snesrecomp/tools/new_project/setup_project.sh             --rom "$GITHUB_WORKSPACE/Uniracers (USA).sfc"             --dir "$TMP"             --name "Uniracers"             --players 2             --yes             --no-ci             --no-fetch-boxart             --no-recomp-ui             --no-netplay             --no-github             --generate             --no-build             --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+          sh snesrecomp/tools/new_project/setup_project.sh             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"             --dir "$TMP"             --name "Uniracers"             --players 2             --yes             --no-ci             --no-fetch-boxart             --no-recomp-ui             --no-netplay             --no-github             --generate             --no-build             --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
 
       - name: Summarize generated project
         if: always()

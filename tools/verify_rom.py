@@ -12,7 +12,7 @@ EXPECTED = {
 
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument("rom", nargs="?", default="Uniracers (USA).sfc", type=Path)
+    p.add_argument("rom", nargs="?", default="reference/roms/retail/Uniracers_USA.sfc", type=Path)
     args=p.parse_args()
     data=args.rom.read_bytes()
     got={

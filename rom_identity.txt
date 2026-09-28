@@ -1,6 +1,6 @@
 display_name=Uniracers
 project_name=UR-Recomp
-rom_file=Uniracers (USA).sfc
+rom_file=reference/roms/retail/Uniracers_USA.sfc
 region=USA
 mapping=lorom
 coprocessor=none

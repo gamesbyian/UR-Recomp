@@ -95,13 +95,13 @@ jobs:
           SNESRECOMP_SCREENSHOT="$SHOT" \
           SNESRECOMP_SCREENSHOT_FRAME=300 \
           SNESRECOMP_PRESENT_LOG="$PRESENTS" \
-          timeout 12s xvfb-run -a "$EXE" "$ROM" \
+          timeout 20s xvfb-run -a "$EXE" "$ROM" \
             >"$RUNNER_TEMP/boot.log" 2>&1
           STATUS=$?
           cat "$RUNNER_TEMP/boot.log"
           echo "boot_exit_status=$STATUS"
           if [ "$STATUS" -eq 124 ]; then
-            echo "SMOKE_RESULT=alive_after_12s"
+            echo "SMOKE_RESULT=alive_after_20s"
             exit 0
           fi
           if [ "$STATUS" -eq 0 ]; then

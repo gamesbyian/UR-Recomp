@@ -7,6 +7,7 @@ Compact router for coding and research agents. Load the smallest current authori
 | Task | Read first |
 |---|---|
 | Current priority / continue work | `docs/WORK-QUEUE.md`, then the owning specialist doc |
+| Overall widescreen/HD remaster architecture | `docs/WIDESCREEN-HD-REMASTER-PLAN.md` |
 | Research strategy / external-resource work | `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md` |
 | Native build / boot / runtime failure | `docs/BRINGUP.md`, `docs/VALIDATION.md`, then the changed workflow/runtime files |
 | ROM identity / preserved build comparison | `analysis/generated/reference-rom-inventory.md`, `analysis/generated/reference-rom-comparison.md` |

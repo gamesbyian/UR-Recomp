@@ -28,22 +28,23 @@ The following are considered established unless contradicted by stronger evidenc
 - The recovered Canoe patch hooks original ROM code at offsets `0x01534C` and `0x015714`.
 - TAS and RetroAchievements sources provide useful WRAM/SRAM anchors for speed, boost, position, stunt state, medal state, and progression.
 - Historical SNasm 1.7.1 is preserved locally, and Dailly's documented 65816 syntax/conventions provide lineage evidence for future reconstructed assembly.
-- The SNESRecomp pipeline has progressed beyond analyzer feasibility: the project can scaffold/generate/build a native executable, with failure now concentrated in the final boot/runtime stage.
+- The SNESRecomp pipeline can scaffold, generate, and complete its build step. However, the current smoke workflow did **not** prove that the game executable was launched: its executable-discovery fallback selected CMake's `CompilerIdCXX/a.out`. The apparent exit status 164 is therefore a harness bug, not evidence of a Uniracers runtime crash.
 
 ## Operating priorities
 
-### 1. Reduce the native boot failure
+### 1. Fix the native boot-smoke harness, then reduce the first real runtime failure
 
-This is the highest-value execution task because the compiler/recompilation pipeline already works.
+This is the highest-value execution task because scaffolding/generation/build already complete, but the existing smoke test selected the wrong executable.
 
 Actions:
-- inspect the current native-build-smoke failure and identify the earliest deterministic runtime failure;
+- fix `.github/workflows/native-build-smoke.yml` so executable discovery selects the actual generated Uniracers target and fails loudly if no game target exists;
+- rerun the workflow and only then characterize the first deterministic runtime failure;
 - classify it as configuration, runtime/framework behavior, unsupported SNES hardware behavior, generated-code problem, or project integration;
 - record the first failing observable state in `docs/BRINGUP.md`;
 - prefer the smallest correct framework/configuration fix over game-specific patches;
 - keep stock 4:3 behavior as the oracle.
 
-Exit condition: the executable reaches a stable title/menu milestone, or the failure is reduced to a specific unsupported behavior with a reproducible test.
+Exit condition: the actual game target is launched deterministically, then either reaches a stable title/menu milestone or its first genuine failure is reduced to a specific unsupported behavior with a reproducible test.
 
 ### 2. Decode and inventory all 45 RNC streams
 

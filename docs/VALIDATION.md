@@ -20,3 +20,13 @@ Useful comparison surfaces include WRAM writes, CPU state around first divergenc
 ## Widescreen invariant
 
 Same initial state + same inputs + same elapsed frames should produce the same simulation state in 4:3 and widescreen unless a narrow, documented exception is intentional.
+
+## Differential oracle
+
+Use SNESRecomp's `tools/snesref` as the default interpreter-vs-recomp harness once deterministic comparison is needed. The repository toolchain pins a Snes9x libretro core as the default interpreter and can install it with:
+
+```bash
+python3 tools/bootstrap_toolchain.py
+```
+
+Prefer scripted inputs and bounded frame/WRAM/audio captures over manual replay. When the result may depend on emulator-specific PPU/OAM/timing behavior, confirm the observation with an independent high-accuracy implementation such as the pinned bsnes libretro source or ares before treating emulator behavior as hardware truth.

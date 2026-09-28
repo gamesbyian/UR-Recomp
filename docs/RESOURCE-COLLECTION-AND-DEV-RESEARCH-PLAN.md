@@ -181,7 +181,7 @@ Wayback, old forum archives, preserved personal sites, source mirrors, and exact
 - Do not treat modern SNasm syntax as proven identical to the 1993 assembler.
 - Do not infer semantic meaning from RNC block count alone.
 - Do not assume prototype differences are gameplay changes until classified.
-- Do not introduce widescreen or presentation changes before stock execution is trustworthy.
+- Do not introduce the Widescreen feature or other presentation changes before stock execution is trustworthy.
 - Keep generated C disposable; durable knowledge belongs in configs, hand-authored tooling, symbols, tests, and documentation.
 
 ## Current execution loop

@@ -39,7 +39,7 @@ The manual describes Method 1 as prioritizing compressed size and Method 2 as pr
 
 1. [done] Extract and independently decompress all 45 confirmed Method 1 streams; all 180 streams across four preserved builds pass packed and unpacked CRC16 validation. Paired USA/PAL decoded differences are confirmed at streams 4, 16, 20, 26, 27, 35 and 36.
 2. Generate a compact manifest with offsets, hashes, byte statistics and structural signatures.
-3. Identify the game's decompression routine and compare it structurally with the preserved SNES `RNC_1.S` implementation.
+3. [done] Identify the game's decompression routine and compare it structurally with preserved SNES `RNC_1.S`: USA/legacy-beta `01:B8F1`, Europe retail `01:B8E2`, 1994-11-29 PAL prototype `01:B8D1`. The distinctive entry and Huffman/bit-reader structure survives directly in the shipped code.
 4. Test the historical 256-tile-width and 64x64-block claims against decoded bytes.
 5. Associate decoded records with course loads and Halamantariel/VGMaps maps.
 6. Identify course index/pointer tables and only then assign semantic names such as geometry, block dictionary, tilemap or metadata.
@@ -54,3 +54,10 @@ Generated outputs:
 - `tools/analyze_rnc_streams.py` — deterministic corpus verifier/manifest generator.
 
 All 45 USA decoded outputs are unique. Their unpacked sizes range from roughly 33.8 KiB to 65.4 KiB. None has a total size divisible by 256 or 4096, so the historical “256 wide” and “64×64 block” claims cannot be interpreted naively as the entire decoded stream being a raw rectangular byte array. A header, variable-length records, multiple planes/tables, or non-byte-sized units remain plausible and require direct structural testing.
+
+
+## Shipped decompressor landmark
+
+The canonical USA ROM's Method 1 unpacker begins at ROM offset `0x00B8F1` / LoROM `01:B8F1`. The legacy beta uses the same location. PAL builds move the routine slightly earlier: Europe retail to `01:B8E2`, and the November prototype to `01:B8D1`.
+
+This is now a useful bridge between packed data and code archaeology. The immediate course-loader task is to find callers of this routine and the pointer/index structure that selects one of the 45 packed streams, then follow the destination buffer into the historical `7E:2080` tilemap breadcrumb or another verified runtime consumer.

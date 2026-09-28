@@ -33,7 +33,7 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 - [x] Native main loop enters and first frame simulates; treat this as execution bring-up cleared, while exact reset-vector tracing remains available if needed.
 - [x] First simulated frame and audio callback complete without a reported DMA/HDMA initialization failure.
 - [x] Title/logo sequence appears and frame 300 has been visually verified from the actual native target.
-- [ ] Input reaches menus.
+- [ ] Input reaches menus. Historical 2014 full-game bot source now provides concrete menu-state addresses and an existing state-driven navigation policy to port.
 - [ ] A mode can be selected.
 
 **Exit:** title/menu operation is reproducible.
@@ -57,6 +57,14 @@ Investigate the historical Snes9x game-specific OAM/HDMA behavior.
 - [ ] Determine affected modes.
 - [ ] Reduce to smallest deterministic case.
 - [ ] Prefer a correct general SNES behavior fix to a game-specific hack.
+
+## Recovered autonomous-player accelerator
+
+- [x] Locate public source for Dessyreqt's 2014 full-game real-time Uniracers bot (Pastebin `A0XpKw9v`).
+- [ ] Preserve the source and submitted #4250 SMV in the repository with hashes/provenance.
+- [ ] Verify the bot's key RAM labels against the canonical ROM/runtime.
+- [ ] Port or translate its menu-driving policy into the native/snesref deterministic input harness.
+- [ ] Evaluate its race-driving policy as an autonomous regression workload.
 
 ## Phase 5 — Differential validation
 

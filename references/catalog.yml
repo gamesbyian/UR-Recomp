@@ -1,0 +1,380 @@
+schema_version: 1
+retrieved: 2026-09-28
+project: UR-Recomp
+
+sources:
+  - id: rhdn-uniracers-level-viewer
+    title: "Unirally/Uniracers level viewer"
+    type: forum_research
+    url: "https://ximwix.net/mirrors/rhdn/index.php@topic=6940.0.html"
+    continuation_url: "https://ximwix.net/mirrors/rhdn-old/index.php@topic=6940.15.html"
+    authors_or_participants: ["spinal", "ROMhacking.net community", "Mike Dailly (reported correspondence)"]
+    rights: "Forum posts; reuse rights not established. Preserve available artifacts for research when technically practical; provenance required."
+    local: "references/notes/course-reverse-engineering-history.md"
+    relevance: "Palette/tile discovery, VRAM/DMA tracing, RNC compression lead, reported 256-tile course width, block structure, validation against hand-made maps."
+
+  - id: snes9x-uniracers-oam
+    title: "Snes9x Uniracers OAM/HDMA game-specific handling"
+    type: emulator_source
+    url: "https://github.com/snes9xgit/snes9x"
+    revision: "1bcc369e89f08243e0a462882fb1f3e42e51de3a"
+    files:
+      - "dma.cpp@e1ad324c6e94149a777b69054bda5e09337631a6"
+      - "memmap.cpp@04ce87e7362b8dda8cb7a79abfa226e13d3568f4"
+    rights: "Upstream Snes9x licensing applies. Relevant source files may be mirrored under references/imported/ with pinned provenance."
+    local: "references/notes/oam-active-display.md"
+    relevance: "Game-specific OAM address handling during HDMA and internal-ROM-name detection."
+
+  - id: mame-uniracers-oam
+    title: "MAME SNES PPU active-display OAM handling"
+    type: emulator_source
+    url: "https://github.com/mamedev/mame/blob/dcca0e9b281be806813848db869d9ee54b4ad92e/src/devices/video/snes_ppu.cpp"
+    revision: "dcca0e9b281be806813848db869d9ee54b4ad92e"
+    file_sha: "525911c9cf3015b27676bcc0aebfecd6e6dd3b64"
+    rights: "Upstream MAME licensing applies. Relevant source files may be mirrored under references/imported/ with pinned provenance."
+    local: "references/notes/oam-active-display.md"
+    relevance: "Independent emulator implementation documents Uniracers as the known active-display OAM-access case and routes accesses to offset 0x0218."
+
+  - id: nesdev-oam-2016
+    title: "SNES OAM behavior discussion"
+    type: technical_discussion
+    url: "https://forums.nesdev.org/"
+    rights: "Forum material; rights unclear. Preserve available artifacts for research when technically practical; provenance required."
+    local: "references/notes/oam-active-display.md"
+    relevance: "Later hardware-level discussion of internal vs external OAM addressing and Uniracers."
+
+  - id: mike-dailly-sprite-ripping
+    title: "Mike Dailly technical recollection of Uniracers sprite ripping"
+    type: developer_history
+    url: "https://lemmings.info/"
+    rights: "Article; rights unclear. Preserve available artifact for research when technically practical; provenance required."
+    local: "references/notes/oam-active-display.md"
+    relevance: "Developer recollection that Uniracers moved sprite positions during active raster for split-screen and was tested by Nintendo on older hardware."
+
+  - id: libretro-uniracers-cheats
+    title: "libretro-database Uniracers (USA) cheats"
+    type: data
+    url: "https://github.com/libretro/libretro-database/blob/d5bae90b22018ce3c9c5a8eff4141a4768c8dd5f/cht/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Uniracers%20(USA).cht"
+    revision: "d5bae90b22018ce3c9c5a8eff4141a4768c8dd5f"
+    source_blob_sha: "c7cc8c948b105aef6db8af18188b56b6fcd43bf8"
+    rights: "CC BY-SA 4.0 per upstream LICENSE; attribution and upstream license retained."
+    imported: "references/imported/libretro/Uniracers (USA).cht"
+    relevance: "24 patch/RAM cheats provide high-value behavioral anchors for timer, racer speed, CPU braking, stunt scoring, colors, race selection and qualification/lap logic."
+
+  - id: spriters-resource-unicycles
+    title: "Unicycles sprite rip"
+    type: graphics_reference
+    url: "https://www.spriters-resource.com/snes/uniracersunirally/asset/88399/"
+    author_or_uploader: "Locke_gb7"
+    submitted: "2017-02-13"
+    format: "PNG"
+    dimensions: "1104x3928"
+    rights: "Reuse license not established in this survey. Public reference artifact should be mirrored for research when technically practical; keep quarantined from project-owned assets."
+    local: "references/notes/graphics-assets.md"
+
+  - id: spriters-resource-track-backgrounds
+    title: "Track Backgrounds sprite rip"
+    type: graphics_reference
+    url: "https://www.spriters-resource.com/snes/uniracersunirally/asset/146430/"
+    author_or_uploader: "Peardian"
+    submitted: "2021-01-06"
+    format: "PNG"
+    dimensions: "1028x4124"
+    rights: "Reuse license not established in this survey. Public reference artifact should be mirrored for research when technically practical; keep quarantined from project-owned assets."
+    local: "references/notes/graphics-assets.md"
+
+  - id: spriters-resource-game-page
+    title: "Uniracers / Unirally sprite index"
+    type: graphics_reference
+    url: "https://www.spriters-resource.com/snes/uniracersunirally/"
+    rights: "Reuse license not established in this survey. Public reference artifact should be mirrored for research when technically practical; keep quarantined from project-owned assets."
+    local: "references/notes/graphics-assets.md"
+    relevance: "Indexes Unicycles, Menu Arrow, and Track Backgrounds rips."
+
+  - id: romhack-uncensored
+    title: "Uniracers Uncensored"
+    type: rom_hack
+    url: "https://romhackplaza.org/"
+    author: "_Q_"
+    release_date: "2018-09-30"
+    rights: "Patch should be mirrored if publicly downloadable. Treat as third-party research reference; do not infer ownership of underlying game data."
+    relevance: "Reportedly overwrites the banned-name list, making it a lead for locating name-validation data/code."
+
+  - id: snes-central-hardware
+    title: "Uniracers cartridge/PCB documentation"
+    type: hardware_metadata
+    url: "https://snescentral.com/"
+    rights: "Rights unclear. Preserve available public artifact for research when technically practical; provenance required."
+    relevance: "Cartridge PCB, ROM/SRAM and mapper/reference metadata."
+
+  - id: original-manual-transcription
+    title: "Uniracers instruction manual transcription"
+    type: documentation
+    url: "https://www.world-of-nintendo.com/"
+    rights: "Manual copyright retained by its rightsholders. Preserve available copy/transcription for research when technically practical; keep clearly attributed."
+    relevance: "Canonical player-facing terminology, mechanics and controls."
+
+  - id: dorando-compatibility
+    title: "Historical SNES emulator compatibility matrix"
+    type: emulator_history
+    url: "https://www.dorando.at/"
+    rights: "Indexed/summarized only."
+    relevance: "Historical cross-emulator behavior can identify subsystems that were unusually difficult to emulate."
+
+  - id: jgenesis-uniracers-oam
+    title: "jgenesis Uniracers active-display OAM implementation"
+    type: emulator_source_and_issue
+    url: "https://github.com/jsgroth/jgenesis/issues/164"
+    source_url: "https://github.com/jsgroth/jgenesis/blob/d19ee94f64798946e30d8be7a3dc6f1f9f8732c8/backend/snes-core/src/ppu/sprites.rs"
+    revision: "d19ee94f64798946e30d8be7a3dc6f1f9f8732c8"
+    source_blob_sha: "f14736bc0e809dfef7223988194309c4ab78fcbb"
+    rights: "GPL-3.0-or-later upstream; source file mirrored verbatim for research."
+    imported: "references/imported/emulators/jgenesis/sprites.rs"
+    relevance: "Provides a modern hardware-model implementation and unusually precise observations of Uniracers' HBlank OAMDATA writes in Vs. mode."
+
+  - id: zsnes-uniracers-history
+    title: "ZSNES compatibility history"
+    type: emulator_history
+    url: "https://github.com/xyproto/zsnes/blob/35aad96d8e8a286d9999f9a8f44cfeff61237d34/doc/history.html"
+    revision: "35aad96d8e8a286d9999f9a8f44cfeff61237d34"
+    source_blob_sha: "1c42ca9b6c5ac577051595e31ef8544f4afffdac"
+    rights: "Upstream ZSNES project terms apply; mirrored for research."
+    imported: "references/imported/emulators/zsnes/history.html"
+    relevance: "Historical changelog records that Uniracers 2-player mode became functional in ZSNES v1.337."
+
+  - id: canoe-uniracers-fix-research
+    title: "SNES Classic / Canoe Uniracers compatibility investigation"
+    type: emulator_patch_history
+    url: "https://www.resetera.com/threads/snes-mini-classic-hacking-more-games-more-borders-more-gooder.625/page-66"
+    continuation_url: "https://www.resetera.com/threads/snes-mini-classic-hacking-more-games-more-borders-more-gooder.625/page-87"
+    authors_or_participants: ["sluffy", "Robin64", "ReyVGM", "SNES Classic hacking community"]
+    rights: "Forum material; rights unclear. Preserve any patch artifact if a surviving direct file is found."
+    relevance: "Independent reverse engineering of the same OAM-grid behavior; a working Canoe patch reportedly existed and fixed disappearing/ghost racer sprites."
+
+  - id: hidden-palace-uniracers-prototype
+    title: "Uniracers Nov 29 1994 European prototype"
+    type: prototype
+    url: "https://hiddenpalace.org/Uniracers_%28Nov_29%2C_1994_prototype%29"
+    build_date: "1994-11-29"
+    released_by: "Forest of Illusion"
+    dumped_by: "Zoda-Y13"
+    board: "SHVC-4PV5B-01"
+    labels: "UNIRALLY PAL"
+    rights: "Prototype ROM; ownership/redistribution status unclear. Publicly released research artifact. Mirror if direct artifact retrieval becomes technically available."
+    relevance: "Pre-release PAL build suitable for binary diffing against retail US and PAL releases."
+
+  - id: hidden-palace-dma-press-material
+    title: "DMA Design Miscellaneous Press Material"
+    type: archival_assets
+    url: "https://hiddenpalace.org/Assets/DMA_Design_Miscellaneous_Press_Material"
+    released_by: "Frank Cifaldi"
+    release_date: "2021-12-28"
+    rights: "Mixed archival press material; ownership varies. Preserve useful Uniracers subset if external mirror retrieval becomes technically available."
+    relevance: "Contains Uniracers/Unirally PR material sourced from DMA-era press kits and scans."
+
+  - id: regional-title-identities
+    title: "Regional ROM identity and title variants"
+    type: metadata
+    url: "https://dorando.emuverse.com/html/uniracers.html"
+    secondary_url: "https://superfamicom.org/info/uniracers"
+    rights: "Database metadata."
+    relevance: "USA internal title UNIRACERS; Europe internal title UNIRALLY; Europe retail hash and beta/prototype identities broaden search terms and binary comparison targets."
+
+  - id: sluffy-canoe-patch
+    title: "uniracers_canoe.ips"
+    type: emulator_compatibility_patch
+    url: "https://drive.google.com/file/d/1LXMcLucVMd5VOHVy_G3ucJhuBFLI18IS/view"
+    author: "sluffy"
+    created: "2018-03-30T22:04:19.933Z"
+    modified: "2018-03-30T22:04:36.874Z"
+    size_bytes: 295
+    sha256: "35b695d9cc0667d09f950a05cb3066ada5f0078a50818bc04d348f5ef4f852cf"
+    sha1: "9320fecbbf6dadf55c6632c00ead2c599cf7f972"
+    md5: "5ac0d418e3eac532f1c06659762922a1"
+    imported: "references/imported/patches/uniracers_canoe.ips"
+    analysis: "references/imported/patches/uniracers_canoe.md"
+    rights: "Publicly shared third-party IPS patch; ownership/redistribution status not independently established. Preserved as research evidence."
+    relevance: "Actual surviving Canoe compatibility patch implementing a software workaround for Uniracers' active-display OAM behavior."
+
+  - id: tasvideos-uniracers-topic
+    title: "TASVideos Uniracers research thread"
+    type: tas_reverse_engineering
+    url: "https://tasvideos.org/Forum/Topics/979"
+    authors_or_participants: ["Halamantariel", "Spider-Waffle", "Dessyreqt", "Nitrodon", "TASVideos community"]
+    rights: "Forum material; summarized with provenance."
+    local: "references/notes/tas-and-sram-research.md"
+    relevance: "SRAM offsets, movie/TAS methodology, glitch savestates, bot history, deterministic-control research."
+
+  - id: tasvideos-usjo
+    title: "Dessyreqt Uniracers submission documenting USJO"
+    type: bot_history
+    url: "https://tasvideos.org/3072S"
+    rights: "Submission text; summarized with provenance."
+    local: "references/notes/tas-and-sram-research.md"
+    relevance: "Documents Halamantariel/Nitrodon Lua stunt bot USJO, reportedly capable of playing Uniracers autonomously."
+
+  - id: vgmaps-uniracers
+    title: "Halamantariel Uniracers course maps"
+    type: course_map_corpus
+    url: "https://vgmaps.de/maps/snes/uniracers"
+    author: "Halamantariel"
+    map_count: 44
+    rights: "Public contributed game maps; preserve for research when direct downloadable artifacts are resolved."
+    local: "references/notes/tas-and-sram-research.md"
+    relevance: "Complete stitched course-map corpus useful as geometric ground truth for course extraction and rendering."
+
+  - id: dscarroll-fallthrough
+    title: "Jumpover FallThrough savestate demonstration"
+    type: savestate_research
+    url: "http://dscarroll.com/uniracerstas/FallThrough.ashx"
+    status: "historical URL; files not yet recovered"
+    rights: "Unknown."
+    local: "references/notes/tas-and-sram-research.md"
+    relevance: "Reportedly contained before/during savestates for a fall-through/corner glitch."
+
+  - id: forestillusion-unirally-prototype-archive
+    title: "Unirally.6216.rar"
+    type: prototype_archive
+    url: "https://forestillusion.com/dumps/Super%20Nintendo%20Entertainment%20System/Unirally%20%28Europe%29%20%28Prototype%29/Unirally.6216.rar"
+    release_page: "https://forestillusion.com/2022/unirally-europe-prototype"
+    filename: "Unirally.6216.rar"
+    status: "exact public archive URL recovered; binary transfer not yet successful"
+    local: "references/notes/pal-prototype-acquisition.md"
+    relevance: "Released Nov 29 1994 PAL prototype for structured binary comparison."
+
+  - id: mame-0247-unirally-prototype
+    title: "MAME 0.247 Unirally prototype software-list addition"
+    type: emulator_metadata
+    url: "https://www.mamedev.org/?p=516"
+    rights: "MAME release metadata."
+    local: "references/notes/pal-prototype-acquisition.md"
+    relevance: "Independent record of Unirally (Euro, prototype) credited to Zoda-Y13 and Forest of Illusion; potential route to canonical ROM hashes."
+
+  - id: retroachievements-uniracers-1295
+    title: "Uniracers RetroAchievements definition snapshot"
+    type: reverse_engineered_ram_conditions
+    url: "https://retroachievements.org/game/1295"
+    mirror_url: "https://github.com/hoanghdtv/achievements/blob/b5e0e0f1e880dcb367abb08b9ea3b583ab846f10/1295.json"
+    revision: "b5e0e0f1e880dcb367abb08b9ea3b583ab846f10"
+    source_blob_sha: "a4df9eb523048143deb790c84b9e31a460d0e90e"
+    imported: "references/imported/retroachievements/1295.json"
+    analysis: "references/notes/retroachievements-ram.md"
+    rights: "Public third-party achievement metadata; preserve as research evidence with source provenance."
+    relevance: "24 achievement rules expose independently tested RAM addresses for medals, tour state, stunt counters, race state and forbidden-name handling."
+
+  - id: snes9x-143-historical-uniracers
+    title: "Historical Snes9x 1.43-era Uniracers implementation and problem notes"
+    type: emulator_source_history
+    url: "https://github.com/Rakashazi/emu-ex-plus-alpha/tree/1c12fac5ce49badaadff2e2f210dcc30b89f4943/Snes9x/1.43/src/snes9x-1.43"
+    revision: "1c12fac5ce49badaadff2e2f210dcc30b89f4943"
+    files:
+      - "dma.cpp@01450e775259fe39393b626c88b560f660a7442d"
+      - "problems.txt@293df5968984b49e5b753e3470826fabdb42c242"
+    imported:
+      - "references/imported/emulators/snes9x-1.43/dma.cpp"
+      - "references/imported/emulators/snes9x-1.43/problems.txt"
+    rights: "Historical Snes9x source mirror; upstream licensing applies."
+    relevance: "Preserves an older form of the exact Uniracers OAM hack and contemporary emulator notes about sub-screen addition behavior."
+
+  - id: uniracers-us-manual-pdf
+    title: "Uniracers USA instruction manual scan"
+    type: manual_scan
+    url: "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf"
+    pages: 40
+    status: "public PDF located; binary not yet mirrored"
+    rights: "Copyrighted manual scan; research reference."
+    relevance: "Primary player-facing documentation including controls, stunts, tracks, tours, hints and a Techie Notes section."
+
+  - id: mobygames-pal-course-maps
+    title: "PAL packaging course-map scans"
+    type: packaging_scan
+    urls:
+      - "https://www.mobygames.com/game/8085/uniracers/cover/group-92978/cover-338725/"
+      - "https://www.mobygames.com/game/8085/uniracers/cover/group-92978/cover-338728/"
+    dimensions:
+      - "Walker/Hopper map: 3898x5916"
+      - "Crawler/Shuffler map: 3898x6019"
+    contributor: "Kam1Kaz3NL77"
+    added: "2016-06-03"
+    status: "high-resolution originals indexed; MobyPlus download gate prevented direct acquisition in this pass"
+    rights: "Packaging scans; research reference."
+    relevance: "Official/semi-official printed course-map material that can be compared against ROM-extracted geometry and fan-stitched VGMaps."
+
+  - id: rnc-propack-214
+    title: "RNC ProPack 2.14"
+    type: compression_toolchain
+    url: "https://github.com/tobiasvl/rnc_propack"
+    revision: "08406a33e700aa33936e4c4800cd0887a468a31b"
+    imported: "references/imported/tools/rnc_propack-2.14/"
+    notable_files:
+      - "PPIBM.EXE@7f713d2df0ee67bcf5cb0f7c3aa695c8d119fe39"
+      - "PPAMI.EXE@6c7871675d983685c87460c5942759645aed302e"
+      - "SOURCE/SUPERNES/RNC_1.S@ad4f5c58590dcc1357fb01c138084ff78ad22d75"
+      - "SOURCE/SUPERNES/RNC_2.S@0055f7fad678ef226757b3b7fa9fb06e48fc8929"
+    rights: "Original manual: Copyright (c) 1991,92 Rob Northen Computing, All Rights Reserved. Public mirror preserved as historical research evidence."
+    relevance: "Official ProPack 2.14 package with period SNES Method 1/2 decompressor source; directly testable against the RNC course-compression lead from Mike Dailly/Spinal."
+
+  - id: usjo13
+    title: "Uniracers Stunts & Jump Optimizer v13"
+    type: lua_tas_bot
+    url: "http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/usjo13.lua"
+    author: "Halamantariel"
+    public_date: "2008-02-14"
+    status: "exact historical filename/path recovered; file bytes not yet recovered"
+    local: "references/notes/tas-and-sram-research.md"
+    relevance: "Frame-perfect stunt-search bot; likely encodes physics/timing/RAM knowledge."
+
+  - id: halamantariel-boost-table
+    title: "Halamantariel Uniracers boost/mechanics table"
+    type: gameplay_reverse_engineering
+    url: "http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/Uniracers.html"
+    author: "Halamantariel"
+    status: "exact historical URL recovered; page bytes not yet recovered"
+    local: "references/notes/tas-and-sram-research.md"
+    relevance: "Reported boost table including head-bounce values and stunt-order optimization."
+
+  - id: halamantariel-wip-smv-1674584940
+    title: "Uniracers (U) [!].smv TAS WIP"
+    type: emulator_movie
+    url: "http://dehacked.2y.net/microstorage.php/info/1674584940/Uniracers%20%28U%29%20%5B%21%5D.smv"
+    author: "Halamantariel"
+    public_date: "2008-03-12"
+    status: "exact historical Microstorage ID/path recovered; file bytes not yet recovered"
+    local: "references/notes/tas-and-sram-research.md"
+    relevance: "Historical optimized SMV reportedly containing 23.56 Dragster and additional WIP input."
+
+  - id: libretro-unirally-prototype-logo
+    title: "Unirally (Europe) (Beta) (1994-11-29) logo"
+    type: graphics_reference
+    url: "https://github.com/libretro-thumbnails/Nintendo_-_Super_Nintendo_Entertainment_System/blob/cdd8f1d44612976cc9d422b0ace53a8542667688/Named_Logos/Unirally%20%28Europe%29%20%28Beta%29%20%281994-11-29%29.png"
+    revision: "cdd8f1d44612976cc9d422b0ace53a8542667688"
+    source_blob_sha: "b60e7d3c370eb881cef568d4eb462729eb582d20"
+    imported: "references/imported/graphics/libretro-thumbnails/Unirally (Europe) (Beta) (1994-11-29).png"
+    rights: "Upstream libretro-thumbnails terms and underlying game-art rights apply; preserved as research reference."
+    relevance: "Build-specific visual reference tied to the released 1994-11-29 PAL prototype identity."
+
+  - id: snes9x-143-changelog
+    title: "Historical Snes9x 1.43-era changelog"
+    type: emulator_history
+    url: "https://github.com/Rakashazi/emu-ex-plus-alpha/blob/1c12fac5ce49badaadff2e2f210dcc30b89f4943/Snes9x/1.43/src/snes9x-1.43/changes.txt"
+    revision: "1c12fac5ce49badaadff2e2f210dcc30b89f4943"
+    source_blob_sha: "18e4bfdc6e619a1a5dfecc0116b108a3a11858af"
+    imported: "references/imported/emulators/snes9x-1.43/changes.txt"
+    rights: "Historical Snes9x source mirror; upstream licensing applies."
+    relevance: "Documents Uniracers-specific LoROM SRAM, XOR window, color-addition experiments, and the later working DMA/OAM hack."
+
+  - id: gamedb-snes-unirally-beta-c362c7b1
+    title: "GameDB-SNES metadata for Unirally Europe beta 1994-11-29"
+    type: rom_metadata_snapshot
+    url: "https://github.com/niemasd/GameDB-SNES/tree/733422f2505b5a8fb04665b2af8558ba57f039a5/games/c362c7b1"
+    revision: "733422f2505b5a8fb04665b2af8558ba57f039a5"
+    crc32: "C362C7B1"
+    header_checksum: "6216"
+    internal_title: "UNIRALLY"
+    region: "PAL"
+    mapper: "LoROM"
+    speed: "FastROM"
+    hardware: "ROM + RAM + Battery"
+    imported: "references/imported/metadata/GameDB-SNES/c362c7b1/"
+    rights: "Public ROM metadata; mirrored as research evidence."
+    relevance: "Independent build identity for the 1994-11-29 PAL prototype and verification target for Unirally.6216.rar."

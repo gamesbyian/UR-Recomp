@@ -25,3 +25,10 @@ The maintained external-source corpus lives under `references/`.
 ## Rule
 
 External references are leads. Concrete project claims should be reproduced locally where practical and entered in the research ledger with evidence. A source being copied into this repository does not by itself make its claims canonical.
+
+
+## Harvest expansion
+
+- Regional/search vocabulary: `references/notes/regional-search-vocabulary.md`.
+- Mirrored emulator evidence: `references/imported/emulators/`.
+- Hidden Palace prototype and DMA press-material leads are tracked in `references/catalog.yml`.

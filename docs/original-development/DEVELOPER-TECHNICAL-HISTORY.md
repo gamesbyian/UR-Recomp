@@ -298,3 +298,29 @@ Source:
 - https://dmadesign.wordpress.com/
 
 The old site and javalemmings mirrors should be treated as archival search surfaces even where modern indexing is poor. Historic paths referenced elsewhere include chapter-style pages such as javalemmings.com/DMA/DMA4_1.htm.
+
+
+## Historical SNasm lineage located
+
+A preserved public release of SNasm 1.7.1 dated 2007-11-30 has been located in CSDb. The preserved record gives both the original javalemmings/minus4 download URL and a CSDb-hosted mirror.
+
+Source:
+- https://csdb.dk/release/?id=57677
+
+Dailly's own blog from the same period says the release had substantial 65816 support and emitted symbol files for his Minus4 debugger. His July 2007 posts document 65816-specific syntax and assembler-state directives including:
+- opt A65816
+- LongA on/off
+- LongI on/off
+- 65816 long/direct-page/stack-relative addressing modes
+
+Sources:
+- https://dailly.blogspot.com/2007/
+- https://dailly.blogspot.com/2007/07/snasm-65816-support.html
+- https://dailly.blogspot.com/2008/05/
+
+A Plus/4 World preservation index also records SNasm 1.7.2 dated 2008-05-10, matching Dailly's May 9 post that he had fixed incorrectly spelled 65816 opcodes and released an updated SNasm.
+
+Source:
+- https://plus4world.powweb.com/tools/all/Windows/3
+
+Importance: this does not prove source compatibility with the 1993 Amiga SNasm used during Uniracers, but it gives us a much nearer descendant than the modern C# build and concrete syntax/assembler-state behavior to compare against reconstructed code.

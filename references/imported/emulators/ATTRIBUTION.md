@@ -36,3 +36,13 @@ These files are preserved as research references because they contain Uniracers-
 - Upstream project terms apply.
 
 These mirrors are evidence snapshots. They are not part of UR-Recomp's implementation unless separately adopted with appropriate license review.
+
+## Historical Snes9x 1.43-era mirror
+
+Source mirror: https://github.com/Rakashazi/emu-ex-plus-alpha
+Revision: `1c12fac5ce49badaadff2e2f210dcc30b89f4943`
+
+- `snes9x-1.43/dma.cpp`, source blob `01450e775259fe39393b626c88b560f660a7442d`
+- `snes9x-1.43/problems.txt`, source blob `293df5968984b49e5b753e3470826fabdb42c242`
+
+These snapshots preserve the older Uniracers-specific HDMA/OAM hack and contemporary emulator-development notes.

@@ -179,3 +179,55 @@ sources:
     secondary_url: "https://superfamicom.org/info/uniracers"
     rights: "Database metadata."
     relevance: "USA internal title UNIRACERS; Europe internal title UNIRALLY; Europe retail hash and beta/prototype identities broaden search terms and binary comparison targets."
+
+  - id: sluffy-canoe-patch
+    title: "uniracers_canoe.ips"
+    type: emulator_compatibility_patch
+    url: "https://drive.google.com/file/d/1LXMcLucVMd5VOHVy_G3ucJhuBFLI18IS/view"
+    author: "sluffy"
+    created: "2018-03-30T22:04:19.933Z"
+    modified: "2018-03-30T22:04:36.874Z"
+    size_bytes: 295
+    sha256: "35b695d9cc0667d09f950a05cb3066ada5f0078a50818bc04d348f5ef4f852cf"
+    sha1: "9320fecbbf6dadf55c6632c00ead2c599cf7f972"
+    md5: "5ac0d418e3eac532f1c06659762922a1"
+    imported: "references/imported/patches/uniracers_canoe.ips"
+    analysis: "references/imported/patches/uniracers_canoe.md"
+    rights: "Publicly shared third-party IPS patch; ownership/redistribution status not independently established. Preserved as research evidence."
+    relevance: "Actual surviving Canoe compatibility patch implementing a software workaround for Uniracers' active-display OAM behavior."
+
+  - id: tasvideos-uniracers-topic
+    title: "TASVideos Uniracers research thread"
+    type: tas_reverse_engineering
+    url: "https://tasvideos.org/Forum/Topics/979"
+    authors_or_participants: ["Halamantariel", "Spider-Waffle", "Dessyreqt", "Nitrodon", "TASVideos community"]
+    rights: "Forum material; summarized with provenance."
+    local: "references/notes/tas-and-sram-research.md"
+    relevance: "SRAM offsets, movie/TAS methodology, glitch savestates, bot history, deterministic-control research."
+
+  - id: tasvideos-usjo
+    title: "Dessyreqt Uniracers submission documenting USJO"
+    type: bot_history
+    url: "https://tasvideos.org/3072S"
+    rights: "Submission text; summarized with provenance."
+    local: "references/notes/tas-and-sram-research.md"
+    relevance: "Documents Halamantariel/Nitrodon Lua stunt bot USJO, reportedly capable of playing Uniracers autonomously."
+
+  - id: vgmaps-uniracers
+    title: "Halamantariel Uniracers course maps"
+    type: course_map_corpus
+    url: "https://vgmaps.de/maps/snes/uniracers"
+    author: "Halamantariel"
+    map_count: 44
+    rights: "Public contributed game maps; preserve for research when direct downloadable artifacts are resolved."
+    local: "references/notes/tas-and-sram-research.md"
+    relevance: "Complete stitched course-map corpus useful as geometric ground truth for course extraction and rendering."
+
+  - id: dscarroll-fallthrough
+    title: "Jumpover FallThrough savestate demonstration"
+    type: savestate_research
+    url: "http://dscarroll.com/uniracerstas/FallThrough.ashx"
+    status: "historical URL; files not yet recovered"
+    rights: "Unknown."
+    local: "references/notes/tas-and-sram-research.md"
+    relevance: "Reportedly contained before/during savestates for a fall-through/corner glitch."

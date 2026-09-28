@@ -160,3 +160,35 @@ A contemporary November 2007 NeoGAF thread describes the issue's retro section a
 - https://www.neogaf.com/threads/gamestm-issue-64-review-scores-ac-ouch.210737/
 
 The Nintendo Life 2010 feature appears to be a republication of this interview, but the physical issue may contain omitted captions, sidebars, images, layout annotations, or wording. Acquire/inspect only if it becomes useful; current web text already preserves the main interview content.
+
+
+## A-011 — Unirally Europe retail ROM
+
+Priority: high  
+Status: acquired, verified, organized  
+Repository path: `reference/roms/retail/Unirally_Europe.sfc`  
+Original uploaded filename: `Unirally (Europe).sfc`  
+Exact size: 2,097,152 bytes  
+CRC32: `d8583ed7`  
+SHA-1: `d39ec113ef153ec9b7bacf12ed4a47f1a6d63a06`  
+SHA-256: `a1105819d48c04d680c8292bbfa9abbce05224f1bc231afd66af43b7e0a1fd4e`  
+Acquired: 2026-09-28
+
+Intake result: the supplied bytes match the catalogued European retail identity. Internal title is `UNIRALLY`, region byte is PAL (`0x02`), version is 0, and reset vector is `$8858`. It contains 45 plausible RNC Method 1 streams. Use as the final-PAL side of prototype-vs-retail and NTSC-vs-PAL differential analysis.
+
+## A-012 — Historical GoodSNES “Uniracers (Beta)” image
+
+Priority: critical for differential archaeology  
+Status: acquired, verified against historical catalog identity; build provenance unresolved  
+Repository path: `reference/roms/prototypes/Uniracers_Beta_legacy.sfc`  
+Original uploaded filename: `Uniracers (Beta).smc`  
+Exact size: 2,097,152 bytes  
+CRC32: `7ca23359`  
+MD5: `577f330153f90906efa13e7810412642`  
+SHA-1: `c19a9239f56b0ccaaf0673d1fa9999c7727829d6`  
+SHA-256: `450719206b1928287ac3bddbcacbba1907e38c0a1541825899d61df1a328c22d`  
+Acquired: 2026-09-28
+
+Observation: the bytes exactly match the historical GoodSNES-listed beta fingerprint. The image is 2 MiB, has internal title `UNIRACERS`, USA/NTSC region byte `0x01`, version 0, reset vector `$8858`, header checksum/complement `0x039B/0xFC64`, and 45 plausible RNC Method 1 streams. The matching header fields with USA retail are observations only and do not establish whether this is a genuine prerelease, a modified retail image, or another historical dump category.
+
+Next action: perform byte/run/RNC comparison against USA retail and seek distinguishing build/provenance evidence only if the binary differences make that materially useful.

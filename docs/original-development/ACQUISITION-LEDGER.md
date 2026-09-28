@@ -158,3 +158,18 @@ SHA-256:
 Acquisition date: 2026-09-28. The one-shot acquisition workflow was removed after successful capture.
 
 Why important: these builds are only ~13-14 years newer than the Uniracers assembler and come from the same author/tool lineage, while explicitly retaining 65816 support. Compare them with the modern SNasm package and with any future reconstructed source, but do not assume syntax identity with the 1993 Amiga version.
+
+
+## A-010 — gamesTM issue 64 (December 2007)
+
+Priority: medium-high  
+Status: physical copy catalogued by Video Game History Foundation; no digital scan located
+
+Catalog:
+- https://library.gamehistory.org/subjects/14?filter_fields%5B%5D=primary_type&filter_values%5B%5D=archival_object&page=96
+- identifier: MAG-GAMESTM.064
+
+A contemporary November 2007 NeoGAF thread describes the issue's retro section as containing an interview with the Unirally SNES makers:
+- https://www.neogaf.com/threads/gamestm-issue-64-review-scores-ac-ouch.210737/
+
+The Nintendo Life 2010 feature appears to be a republication of this interview, but the physical issue may contain omitted captions, sidebars, images, layout annotations, or wording. Acquire/inspect only if it becomes useful; current web text already preserves the main interview content.

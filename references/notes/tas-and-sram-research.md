@@ -192,3 +192,90 @@ Later TASVideos submission text says USJO was subsequently improved with Nitrodo
 2. any later private or renamed descendant used by Halamantariel/Nitrodon/Dessyreqt that added full autonomous play.
 
 Do not assume the 80.12 Kb v13 file is itself the later fully autonomous revision until code or provenance proves that.
+
+
+## 2014 full-game realtime bot source recovered publicly
+
+A much stronger artifact than the older USJO v13 stunt optimizer has been located.
+
+TASVideos submission #4250, **Dessyreqt's SNES Uniracers "100%, Tabletops"**, submitted 2014-04-01, states that the run was crafted entirely by a bot. The submission specifically says the bot:
+
+- does not abuse savestates to complete the game;
+- plays through the game to completion on all difficulty modes;
+- can, with minor script adjustments, be raced against by a human;
+- had public source at Pastebin ID `A0XpKw9v`.
+
+The Pastebin is still live in 2026 under the title **Uniracers Tabletop bot**, by Dessyreqt, dated 2014-04-01. It is a 29.34 KB Lua script.
+
+Public source:
+`https://pastebin.com/raw/A0XpKw9v`
+
+TASVideos submission:
+`https://tasvideos.org/4250S`
+
+This is likely closely related to the separately documented February 2014 Twitch stream **AI plays Uniracers**, which Dessyreqt described as playing the game start-to-finish in real time and restarting with the next character. Do not assume byte-for-byte identity between the Twitch bot and the April submission script until provenance proves it.
+
+### High-value state map exposed by the bot
+
+The script labels and actively uses:
+
+- `7E:04B7` P1 X speed, signed word;
+- `7E:04BB` P1 Y speed;
+- `7E:0411` P1 X position;
+- `7E:0415` P1 Y position;
+- `7E:11BA` countdown timer;
+- `7E:0BA1` P1 facing direction;
+- `7E:0545/0547` air-state values (the source contains duplicate/variant labels that require local verification);
+- `7E:0FCC/0FCE` directional-arrow visibility;
+- `7E:0FCB/0FCD` directional-arrow direction;
+- `7E:00CE` current track;
+- `7E:0313` in-race flag;
+- `7E:132B` reverse-controls flag;
+- `7E:0F49/04C9` pitch-related values (player/source variant requires verification);
+- `7E:042F/0431` tabletop counters;
+- `7E:009F` current menu state;
+- `7E:000E` selected menu row;
+- `7E:0C63` selected menu column;
+- `7E:009B` selected menu/tour option;
+- tour/progression bytes `7E:0A03` through `7E:0A23`.
+
+The script also gives P2 counterparts for position/speed/facing.
+
+Treat these semantic labels as strong historical working evidence, not yet locally verified symbols.
+
+### Internal track-ID structure
+
+The bot's `jumpAreas` / course logic names current-track IDs across the full 0-44 domain. Race/circuit entries occupy the expected four non-stunt positions in each five-track group. The omitted IDs are exactly:
+
+`2, 7, 12, 17, 22, 27, 32, 37, 42`
+
+Those are every fifth group's third slot, independently matching the nine stunt slots already inferred from the 45 decoded RNC payloads.
+
+This is an important independent bridge between:
+
+- runtime byte `7E:00CE` current track;
+- the game's 0-44 internal track indexing;
+- the nine stunt positions;
+- the RNC stream cadence where ordinals 3, 8, 13, 18, 23, 28, 33, 38 and 43 alone carry decoded byte 2 = decimal 45.
+
+A runtime course-load trace can now test whether RNC stream ordinal is simply `currentTrack + 1`.
+
+### Course-control geometry embedded in the bot
+
+The source contains hundreds of hand-authored rectangular regions keyed by internal track ID:
+
+- `jumpAreas`;
+- `brakeAreas`;
+- `noStuntAreas`.
+
+These are not authoritative course geometry, but they are valuable semantic landmarks in the game's native X/Y coordinate system and can be cross-checked against decoded course data and VGMaps.
+
+### Frontend automation
+
+The bot already automates menus by reading `7E:009F` and related selection/progression bytes and issuing controller input. It recognizes many concrete menu-state values, including main menu, player selection, tour screens, track screen, now-playing screen, race/circuit/stunt results and ending states.
+
+This may substantially shorten the path to deterministic native menu/race automation: port the bot's state-driven policy to the project's input harness rather than discovering the entire frontend blindly.
+
+### Current recovery action
+
+A temporary GitHub Actions recovery job is fetching the live Pastebin source and TASVideos #4250 submitted SMV into a provenance-marked recovery area, while separately probing Wayback/CDX for the older USJO/obellemare artifacts.

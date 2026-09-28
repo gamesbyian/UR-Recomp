@@ -23,7 +23,11 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get install -y             cmake ninja-build pkg-config xvfb             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev             libwayland-dev libasound2-dev libpulse-dev
+          sudo apt-get install -y \
+            cmake ninja-build pkg-config xvfb \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev
 
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
@@ -34,23 +38,48 @@ jobs:
           set -euo pipefail
           TMP="$RUNNER_TEMP/ur-recomp-build"
           mkdir -p "$TMP"
-          sh snesrecomp/tools/new_project/setup_project.sh             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"             --dir "$TMP"             --name "Uniracers"             --players 2             --yes             --no-ci             --no-fetch-boxart             --no-recomp-ui             --no-netplay             --no-github             --generate             --build             --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+          sh snesrecomp/tools/new_project/setup_project.sh \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$TMP" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --generate \
+            --build \
+            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
 
-      - name: Locate executable
+      - name: Locate game executable
         id: exe
         shell: bash
         run: |
           set -euo pipefail
           ROOT="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp"
-          echo "== candidate executables =="
+          EXE="$ROOT/build/UniracersSNESRecomp"
+
+          echo "== executable files under build/ =="
           find "$ROOT/build" -maxdepth 4 -type f -perm -111 -print || true
-          EXE="$(find "$ROOT/build" -maxdepth 4 -type f -perm -111             ! -name '*.sh' ! -name '*.py'             | grep -E '/Uniracers(SNESRecomp)?$|/Uniracers[^/]*$'             | head -n 1 || true)"
-          if [ -z "$EXE" ]; then
-            EXE="$(find "$ROOT/build" -maxdepth 4 -type f -perm -111 | head -n 1 || true)"
+
+          if [ ! -f "$EXE" ] || [ ! -x "$EXE" ]; then
+            echo "::error::Expected generated game target is missing or not executable: $EXE"
+            echo "The scaffold contract names the CMake target UniracersSNESRecomp; do not fall back to arbitrary build-tree executables."
+            exit 1
           fi
-          test -n "$EXE"
+
+          case "$EXE" in
+            */CMakeFiles/*|*/CompilerId*|*/a.out)
+              echo "::error::Refusing non-game build helper executable: $EXE"
+              exit 1
+              ;;
+          esac
+
+          file "$EXE"
           echo "exe=$EXE" >> "$GITHUB_OUTPUT"
-          echo "Selected: $EXE"
+          echo "Selected game target: $EXE"
 
       - name: Native boot smoke
         shell: bash
@@ -60,7 +89,8 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           echo "== starting native executable =="
           echo "$EXE"
-          SDL_AUDIODRIVER=dummy timeout 12s xvfb-run -a "$EXE" "$ROM"             >"$RUNNER_TEMP/boot.log" 2>&1
+          SDL_AUDIODRIVER=dummy timeout 12s xvfb-run -a "$EXE" "$ROM" \
+            >"$RUNNER_TEMP/boot.log" 2>&1
           STATUS=$?
           cat "$RUNNER_TEMP/boot.log"
           echo "boot_exit_status=$STATUS"

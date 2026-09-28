@@ -4,13 +4,13 @@ Experimental static recompilation and modern-port project for **Uniracers / Unir
 
 ## Project goal
 
-Preserve the original game's simulation and behavior as the source of truth while building toward a modern native port with deterministic fidelity, true widescreen presentation, modern-resolution rendering, documented course/asset formats, and eventually a level editor and custom-course pipeline.
+Preserve the original game's simulation and behavior as the source of truth while building toward a modern native port with deterministic fidelity, a true-view **Widescreen** feature, an **HD Presentation** feature, documented course/asset formats, and eventually a level editor and custom-course pipeline.
 
 The first milestone is deliberately smaller:
 
 > **Boot the canonical Uniracers ROM through the pinned SNESRecomp stack and reach a playable race with stock presentation.**
 
-No widescreen, asset replacement, or gameplay changes should begin until that baseline is trustworthy.
+No Widescreen-feature, HD Presentation, or gameplay changes should begin until that baseline is trustworthy.
 
 ## ROM policy
 
@@ -32,7 +32,7 @@ The framework revision is pinned by the repository rather than floating on upstr
 
 1. Original behavior is the oracle.
 2. Fix configuration/runtime behavior rather than hand-editing generated C as a permanent solution.
-3. Stock 4:3 behavior comes before widescreen.
+3. Stock 4:3 behavior comes before the Widescreen feature.
 4. Recomp correctness comes before prettiness.
 5. Every reverse-engineering claim should be traceable to evidence.
 6. Keep generated bulk code/assets out of Git unless there is a specific reason to version them.

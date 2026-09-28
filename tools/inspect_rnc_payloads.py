@@ -67,7 +67,7 @@ def main():
               "|---:|---:|---:|---:|---:|---|---|"]
     for i,((uo,u),(po,p)) in enumerate(zip(us,ps),1):
         if u==p: continue
-        sm=SequenceMatcher(None,u,p,autojunk=False)
+        sm=SequenceMatcher(None,u,p,autojunk=True)
         ops=sm.get_opcodes()
         counts=Counter(tag for tag,*_ in ops)
         matching=sum(i2-i1 for tag,i1,i2,j1,j2 in ops if tag=="equal")

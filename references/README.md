@@ -1,5 +1,14 @@
 # External reference corpus
 
+## `reference/` versus `references/`
+
+These names are intentionally distinct:
+
+- `reference/` holds project-input/project-local reference material needed to reproduce work, including preserved ROM builds and historical tool packages.
+- `references/` is the provenance-managed external research corpus: mirrored third-party evidence under `references/imported/`, project summaries under `references/notes/`, and this source catalogue.
+
+Do not merge the directories merely because their names are similar.
+
 This directory records public Uniracers / Unirally material that may help reverse engineering, validation, reimplementation, graphics study, or historical reconstruction.
 
 This is a private computer-science research archive. Material stored here is reference evidence, not automatically project-owned code or art and not automatically intended for redistribution in any eventual release.

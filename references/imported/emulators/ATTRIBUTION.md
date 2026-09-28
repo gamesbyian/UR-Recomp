@@ -46,3 +46,10 @@ Revision: `1c12fac5ce49badaadff2e2f210dcc30b89f4943`
 - `snes9x-1.43/problems.txt`, source blob `293df5968984b49e5b753e3470826fabdb42c242`
 
 These snapshots preserve the older Uniracers-specific HDMA/OAM hack and contemporary emulator-development notes.
+
+
+Additional historical file at the same Snes9x 1.43-era mirror/revision:
+
+- `snes9x-1.43/changes.txt`, source blob `18e4bfdc6e619a1a5dfecc0116b108a3a11858af`
+
+This changelog preserves several Uniracers-specific compatibility milestones, including LoROM SRAM, XOR-window/color-math notes and the working DMA/OAM hack.

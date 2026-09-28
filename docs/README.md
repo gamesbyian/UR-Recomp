@@ -14,7 +14,7 @@ Task routing lives in [`../AGENTS.md`](../AGENTS.md). This file inventories owne
 | [`SYMBOLS.md`](SYMBOLS.md) | Reconstructed code/data/RAM symbols |
 | [`FRAMEWORK-PIN.md`](FRAMEWORK-PIN.md) | SNESRecomp revision and pin rationale |
 | [`ROM-SAFETY.md`](ROM-SAFETY.md) | Private-ROM handling and public-release boundary |
-| [`WIDESCREEN.md`](WIDESCREEN.md) | Focused Uniracers widescreen implementation notes and invariants; subordinate to the remaster plan |
+| [`WIDESCREEN.md`](WIDESCREEN.md) | Focused implementation notes and invariants for the Widescreen feature; subordinate to the project plan |
 | [`TOOLCHAIN.md`](TOOLCHAIN.md) | Research/development tool roles, installation policy, and selection guidance |
 | [`PERIODIC-REPOSITORY-HYGIENE.md`](PERIODIC-REPOSITORY-HYGIENE.md) | Recurring repository entropy-control procedure |
 | [`original-development/DEVELOPER-TECHNICAL-HISTORY.md`](original-development/DEVELOPER-TECHNICAL-HISTORY.md) | Confidence-labelled history of original DMA development |

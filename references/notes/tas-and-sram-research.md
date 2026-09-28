@@ -137,3 +137,58 @@ A later 2008 post exposed an exact Microstorage URL for the work-in-progress SMV
 `http://dehacked.2y.net/microstorage.php/info/1674584940/Uniracers%20%28U%29%20%5B%21%5D.smv`
 
 The WIP reportedly included the 23.56 Dragster run and other optimized work. The historical host is currently inaccessible, but the exact microstorage ID, filename and URL are now preserved.
+
+
+## Internet Archive directory snapshot fingerprint
+
+A Wayback/Internet Archive snapshot of Halamantariel's historical Uniracers directory exposes the following directory inventory even though the payload files themselves are not archived:
+
+| Filename | Listed size | Listed modified time |
+|---|---:|---|
+| `01 - Dragster in 23.46.avi` | 2.54 Mb | 2008-09-08 11:58:46 |
+| `02 - Zoom Zoo 1st lap in 23.97.avi` | 1.70 Mb | 2008-09-08 11:59:14 |
+| `Uniracers (U) [!] (Clean).srm` | 8.00 Kb | 2008-09-08 11:59:14 |
+| `Uniracers (U) [!] (Hacked).srm` | 8.00 Kb | 2008-09-08 11:59:14 |
+| `Uniracers.html` | 2.33 Kb | 2008-09-08 11:59:14 |
+| `WRs.txt` | 1.28 Kb | 2008-09-08 11:59:16 |
+| `ZZZ - Realtime Play.smv` | 611.75 Kb | 2008-09-08 11:59:26 |
+| `usjo13.lua` | 80.12 Kb | 2008-09-08 11:59:16 |
+
+These names and sizes are valuable archival fingerprints. Search exact filenames, URL-encoded filenames, filenames without punctuation, and likely mirrors/backup archives.
+
+### Relationship between the SMV artifacts
+
+TASVideos forum posts clarify that Halamantariel had at least two SMVs available in early 2008: one realtime-play movie and one actual TAS WIP containing the 23.56 Dragster work. The directory entry `ZZZ - Realtime Play.smv` strongly matches the former by name.
+
+The TAS WIP was later posted publicly at Microstorage as:
+
+`Uniracers (U) [!].smv`
+
+with Microstorage ID:
+
+`1674584940`
+
+Historical URL:
+
+`http://dehacked.2y.net/microstorage.php/info/1674584940/Uniracers%20%28U%29%20%5B%21%5D.smv`
+
+This means the directory listing and the Microstorage WIP are complementary search targets, not duplicate names for the same file.
+
+### USJO v13 fingerprint
+
+The same directory snapshot independently pins the original public artifact as:
+
+- filename: `usjo13.lua`
+- listed size: 80.12 Kb
+- directory modified timestamp: 2008-09-08 11:59:16
+- historical direct path:
+  `http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/usjo13.lua`
+
+TASVideos independently records the public link on 2008-02-14 under the title **Uniracers Stunts & Jump Optimizer v13**, describing it as a savestate-driven Lua bot that searches stunt combinations, optimizes for speed and replays the best input sequence.
+
+Later TASVideos submission text says USJO was subsequently improved with Nitrodon's help until it could play/beat Uniracers autonomously. Therefore two acquisition targets should be distinguished:
+
+1. the original public `usjo13.lua` v13 artifact;
+2. any later private or renamed descendant used by Halamantariel/Nitrodon/Dessyreqt that added full autonomous play.
+
+Do not assume the 80.12 Kb v13 file is itself the later fully autonomous revision until code or provenance proves that.

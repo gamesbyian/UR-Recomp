@@ -29,3 +29,9 @@ When a claim is promoted into RESEARCH-LEDGER.md, cite the source ID and exact U
 Do not silently copy entire third-party sites or interviews into the repository. Preserve the URL/title, author or speaker, date when known, concise paraphrase, short quotation only when wording matters, retrieval date, hashes for downloaded artifacts, and license/redistribution notes when known.
 
 If a source disappears, use an archived copy and record both original and archive URLs.
+
+| OD-014 | https://dailly.blogspot.com/2007/09/?m=0 | Mike Dailly, first-hand | Says he was uploading old DMA images/videos and still had a stack of level-building graphics; specifically mentions hunting Uniracers pictures | Archival lead |
+| OD-015 | https://www.flickr.com/photos/mikedailly/ | Mike Dailly historical media archive | Old DMA photos, scans and design material; set/image IDs may survive in citations even where UI indexing is weak | Needs systematic archive pass |
+| OD-016 | https://www.retrovideogamer.co.uk/rvg-interviews-steve-hammond/ | Steve Hammond, first-hand | Confirms survival of personal DMA graphics/photos/design/proposal-document archive | Archival lead; Uniracers holdings unknown |
+| OD-017 | https://mdf200.itch.io/snasm | Mike Dailly, modern tool | Modern SNasm supports 65816; useful descendant/context, not assumed identical to 1993 assembler | Downloadable; optional reference |
+| OD-018 | https://github.com/mikedailly/SNES-Disassembler | Mike Dailly public GitHub fork | Later 65816/SNES disassembler used/retained by Dailly; analysis context, not original DMA tool | Public source |

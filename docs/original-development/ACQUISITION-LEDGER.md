@@ -2,7 +2,7 @@
 
 Last updated: 2026-09-28
 
-This tracks valuable artifacts not yet part of the repository. "Not acquired" means no verified local copy has been committed.
+This tracks both acquired and still-missing external artifacts, with provenance and next actions.
 
 ## A-001 — Uniracers / Unirally PAL prototype, 1994-11-29
 
@@ -27,31 +27,18 @@ Intake status:
 - ROM preserved under a descriptive prototype path.
 - Canonical USA retail ROM remains separate under reference/roms/retail/.
 - The accidentally uploaded RAR container was removed after the SFC was supplied directly.
-- Exact cryptographic ROM fingerprints beyond the Git blob SHA remain to be recorded by the prototype-diff/fingerprint step.
-- Next action: generate header/mapping/vector metadata and retail-vs-prototype diffs.
+- SHA-256 and header/mapping metadata are recorded by `analysis/generated/retail-vs-prototype-structure.md`.
+- The first retail-vs-prototype structural diff is complete; future work should classify meaningful non-RNC differences.
 
 ## A-002 — DMA Design Miscellaneous Press Material
 
-Priority: high  
-Status: manual acquisition recommended  
+Priority: low for further acquisition  
+Status: archive inspected by the user; Uniracers PDF uploaded; no additional useful files identified  
 Hidden Palace: https://hiddenpalace.org/Assets/DMA_Design_Miscellaneous_Press_Material  
 Internet Archive: https://archive.org/details/dma_press_material  
 Archive size: about 638.6 MB.
 
-Why we want it: electronic press-kit material and scans explicitly include Uniracers/Unirally. Potentially useful files include high-resolution renders, development screenshots, filenames/metadata, early UI, alternate artwork, and internal terminology.
-
-Do not commit the entire 638 MB archive to GitHub by default. Download it locally, inventory it, then commit only relevant files after checking individual sizes and provenance.
-
-Requested local intake:
-1. Download dma_press_material.zip from Internet Archive.
-2. Hash the original archive.
-3. List archive paths, sizes, timestamps and file types.
-4. Extract only Uniracers/Unirally-related material to staging.
-5. Preserve original filenames.
-6. Hash retained files.
-7. Record each retained file here before committing.
-
-Why manual: direct archive download failed from the current execution environment.
+Outcome: the archive was manually inspected and the Uniracers PDF was uploaded to the repository. The user judged the remaining archive contents not useful for this project. Reopen only if a later clue points to a specific file or asset class.
 
 ## A-003 — Mike Dailly historical SNES framework source
 
@@ -124,7 +111,7 @@ Hammond says he retained old DMA graphics, photos, design/proposal documents, an
 ## A-008 — Modern SNasm reference build
 
 Priority: medium  
-Status: downloadable but not yet imported  
+Status: uploaded to repository as `SNasm.zip`; organization/inspection may still be useful  
 Source: https://mdf200.itch.io/snasm  
 File advertised: SNasm.zip, approximately 62 kB.
 

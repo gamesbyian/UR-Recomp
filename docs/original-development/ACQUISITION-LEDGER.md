@@ -131,3 +131,23 @@ File advertised: SNasm.zip, approximately 62 kB.
 Purpose: compare syntax, macro behavior and assembler conventions with any reconstructed 65816 source. Treat only as a descendant/reference unless historical continuity is demonstrated.
 
 The download is behind itch.io's "No thanks, just take me to the downloads" handoff, which the current non-interactive fetch path does not expose as a stable direct file URL.
+
+
+## A-009 — Historical SNasm 1.7.x builds
+
+Priority: high  
+Status: public preservation copies located; automated acquisition in progress
+
+SNasm 1.7.1:
+- preservation page: https://csdb.dk/release/?id=57677
+- release date: 2007-11-30
+- original URL preserved by CSDb: http://www.javalemmings.com/minus4/files/snasm1.7.1.zip
+- CSDb mirror: http://csdb.dk/getinternalfile.php/49921/snasm1.7.1.zip
+
+SNasm 1.7.2:
+- preservation index: https://plus4world.powweb.com/tools/all/Windows/3
+- recorded date: 2008-05-10
+
+A one-shot GitHub Actions acquisition workflow was added at .github/workflows/acquire-snasm-171.yml to fetch the 1.7.1 preservation copy into reference/tools/snasm/historical/ and record SHA-256.
+
+Why important: these builds are only ~13-14 years newer than the Uniracers assembler and come from the same author/tool lineage, while explicitly retaining 65816 support. Compare them with the modern SNasm package and with any future reconstructed source, but do not assume syntax identity with the 1993 Amiga version.

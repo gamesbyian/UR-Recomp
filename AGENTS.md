@@ -7,7 +7,8 @@ Compact router for coding and research agents. Load the smallest current authori
 | Task | Read first |
 |---|---|
 | Current priority / continue work | `docs/WORK-QUEUE.md`, then the owning specialist doc |
-| Overall widescreen/HD remaster architecture | `docs/WIDESCREEN-HD-REMASTER-PLAN.md` |
+| Overall project architecture / product plan | `docs/PROJECT-PLAN.md` |
+| Widescreen feature implementation | `docs/WIDESCREEN.md`, then `docs/PROJECT-PLAN.md` |
 | Research strategy / external-resource work | `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md` |
 | Native build / boot / runtime failure | `docs/BRINGUP.md`, `docs/VALIDATION.md`, then the changed workflow/runtime files |
 | ROM identity / preserved build comparison | `analysis/generated/reference-rom-inventory.md`, `analysis/generated/reference-rom-comparison.md` |
@@ -37,6 +38,7 @@ Compact router for coding and research agents. Load the smallest current authori
 12. Do not add a recurring workflow merely because a one-off experiment used CI. Durable checks need a durable repository invariant.
 13. Keep provider-specific instruction files thin. Shared rules live here.
 14. Keep mandatory reading small. Repository growth is acceptable; mandatory-context growth is expensive.
+15. Terminology: `Widescreen` and `HD Presentation` name specific features only. Never use `widescreen`, `HD`, or combinations such as `widescreen/HD` as shorthand for the project, its architecture, or its overall goal.
 
 ## Repository boundaries
 

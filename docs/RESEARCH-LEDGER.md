@@ -37,3 +37,48 @@ Historical work reported block/tile-based course representations and very wide l
 Snes9x has historically carried Uniracers-specific handling related to OAM address behavior during HDMA.
 
 **Action:** test the current SNESRecomp runtime before designing a workaround.
+
+
+### R-SEED-004 — Copier-sensitive anti-piracy path
+
+**Status:** supported historical lead  
+**Date:** 2026-09-28  
+**Area:** CPU | other
+
+Andrew Innes states that DMA discovered a behavioral difference between a proper cartridge and their fast copy-device development image and deliberately used it for anti-piracy protection. Mike Dailly independently confirms Magicom/devkit use during Unirally development.
+
+**Evidence:** docs/original-development/SOURCE-INDEX.md entries OD-004 and OD-005.  
+**Action:** identify cartridge/copier-sensitive code paths and validate them against a trustworthy reference emulator or hardware model.
+
+### R-SEED-005 — Bespoke DMA SNES framework and SNasm conventions
+
+**Status:** supported historical lead  
+**Date:** 2026-09-28  
+**Area:** CPU | DMA/HDMA | other
+
+Mike Dailly credits himself with the Uniracers SNES framework/tools, lists SNasm as a bespoke 65816 macro assembler, and stated in 2008 that he had found his old SNES framework source.
+
+**Evidence:** OD-001 through OD-004 in docs/original-development/SOURCE-INDEX.md.  
+**Action:** search for surviving framework/tool source and compare recovered code idioms against the ROM before imposing modern assembler conventions.
+
+### R-SEED-006 — Multidimensional unicycle animation corpus
+
+**Status:** supported historical lead  
+**Date:** 2026-09-28  
+**Area:** PPU | other
+
+Developer recollections describe rendered unicycle graphics with multiple pose dimensions, while Dailly lists dedicated Unicycle Compression and A0-plotter tools.
+
+**Evidence:** OD-001, OD-003, OD-005.  
+**Action:** correlate controlled animation states with ROM source ranges and sprite uploads; seek stride/table dimensions rather than assuming a simple linear frame strip.
+
+### R-SEED-007 — 1994-11-29 PAL prototype as differential oracle
+
+**Status:** external artifact identified  
+**Date:** 2026-09-28  
+**Area:** other
+
+Hidden Palace documents a European prototype from a four-EPROM SHVC-4PV5B-01 development cartridge.
+
+**Evidence:** OD-007.  
+**Action:** acquire, hash, normalize, and diff against canonical USA retail at byte, block, pointer-table and disassembly levels.

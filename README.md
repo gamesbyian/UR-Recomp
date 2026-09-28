@@ -40,8 +40,8 @@ The framework revision is pinned by the repository rather than floating on upstr
 
 ## Current work
 
-Start with `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md`, then `docs/WORK-QUEUE.md`. Important discoveries belong in `docs/RESEARCH-LEDGER.md`; chronological execution attempts belong in `docs/BRINGUP.md`.
+Agents should start with `AGENTS.md`, which routes tasks to the smallest current authority. For human project orientation, start with `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md` and `docs/WORK-QUEUE.md`. Tool selection/bootstrap is documented in `docs/TOOLCHAIN.md`.
 
 ## Status
 
-**Reverse-engineering / bring-up in progress.** ROM identity, prototype comparison, and the 45-stream RNC Method 1 corpus are established. Native scaffolding/generation/build completes, but the current boot-smoke harness has not yet launched the actual game executable, so no runtime compatibility claim is made yet.
+**Reverse-engineering / bring-up in progress.** ROM identity, four-build comparison, and the 45-stream RNC Method 1 corpus are established. The strict native smoke harness now builds and launches the actual `UniracersSNESRecomp` target, which initializes SDL/X11/audio, enters the main loop, simulates the first frame, and survives the intentional smoke timeout. Visible title/menu correctness and deterministic input/race milestones remain to be established.

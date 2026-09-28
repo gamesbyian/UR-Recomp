@@ -8,17 +8,17 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 - [x] Select a pinned SNESRecomp revision.
 - [x] Add SNESRecomp gitlink/submodule at the pinned revision.
 - [x] Place canonical project ROM in the private repository for repository-hosted tooling.
-- [ ] Fingerprint exact ROM revision: SHA-256, CRC32, size, header/mapping, region and vectors.
-- [ ] Record ROM identity in project-readable form.
-- [ ] Make verification tooling accept only the canonical fingerprint.
+- [x] Fingerprint exact ROM revision: SHA-256, CRC32, size, header/mapping, region and vectors.
+- [x] Record ROM identity in project-readable form.
+- [x] Make verification tooling accept only the canonical fingerprint.
 - [ ] Record baseline behavior in trusted emulators where useful.
 
 **Exit:** the canonical input is fingerprinted and machine-verifiable.
 
 ## Phase 1 — Analyzer reconnaissance
 
-- [ ] Run the pinned SNESRecomp cartridge probe against the canonical ROM.
-- [ ] Run analyzer/code-discovery reconnaissance.
+- [x] Run the pinned SNESRecomp cartridge probe against the canonical ROM.
+- [x] Run analyzer/code-discovery reconnaissance.
 - [ ] Record cartridge mapping, banks, AOT/static coverage, unresolved indirect dispatch, interpreter fallback, warnings, crashes and likely framework gaps.
 - [ ] Classify blockers as configuration, analyzer limitation, runtime/hardware, or unknown.
 - [ ] Keep human-authored summaries and configs; avoid committing giant generated code dumps without a reason.
@@ -101,14 +101,16 @@ Design only after the real course representation is understood. Prefer a documen
 
 ## Original-development archaeology workstream
 
+Canonical combined plan: `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md`
+
 See docs/original-development/.
 
 - [x] Establish confidence-labelled developer technical history.
 - [x] Create source index and acquisition ledger.
 - [x] Acquire and place the 1994-11-29 PAL prototype in `reference/roms/prototypes/`.
-- [ ] Fingerprint the PAL prototype and record header/mapping/vector metadata.
-- [ ] Diff PAL prototype against canonical USA retail.
-- [ ] Acquire DMA press-material archive locally; inventory and extract only Uniracers-relevant assets.
+- [x] Fingerprint the PAL prototype and record header/mapping metadata; extend vector reporting if useful.
+- [x] Generate first structural PAL-prototype vs USA-retail diff report.
+- [x] Inspect DMA press-material archive; retain/upload the Uniracers PDF judged relevant.
 - [ ] Continue hunt for Mike Dailly's historical SNES framework source.
 - [ ] Search for binaries/source/screenshots of SNasm, Unicycle Compression, level editor, A0 plotter, graphics/MIDI converters and Amiga/SNES link.
-- [ ] Convert historical predictions into local ROM tests: RNC streams, 256-wide course interpretation, OAM/raster behavior, copier protection, animation indexing and audio-driver identity.
+- [ ] Convert remaining historical predictions into local ROM tests: 256-wide course interpretation, copier protection, animation indexing and audio-driver identity. RNC Method 1 and OAM/raster behavior now have strong local/external evidence.

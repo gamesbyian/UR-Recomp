@@ -103,3 +103,52 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Interpretation:** Binary-diffing this build against retail PAL and US versions could reveal late changes to physics, content, censoring, region logic, compression tables or rendering workarounds.  
 **Discriminating test:** acquire the prototype artifact, hash it, identify header/version differences and perform structured binary/behavioral diffs.  
 **Dependencies:** exact public prototype file retrieval.
+
+
+### R-EXT-006 — Recovered Canoe compatibility patch
+
+**Status:** confirmed external artifact  
+**Date:** 2026-09-28  
+**Area:** PPU | DMA/HDMA | other
+
+**Observation:** The surviving public Google Drive file `uniracers_canoe.ips` was recovered byte-for-byte. It is a 295-byte IPS file created/modified on 2018-03-30. It contains seven records, including JSL hooks at ROM offsets `0x01534C` and `0x015714` into code installed at `0x1FFF00`, plus several smaller patches.  
+**Evidence:** `references/imported/patches/uniracers_canoe.ips` and `references/imported/patches/uniracers_canoe.md`; SHA-256 `35b695d9cc0667d09f950a05cb3066ada5f0078a50818bc04d348f5ef4f852cf`.  
+**Interpretation:** This preserves an independent software workaround for the same active-display OAM behavior documented by Snes9x, MAME and jgenesis. Disassembling it may reveal exactly which game routines Canoe needed redirected and what state the patch synthesizes.  
+**Discriminating test:** apply to the verified US baseline, disassemble changed routines, and compare runtime OAM writes with unpatched hardware-faithful behavior.  
+**Dependencies:** exact patch revision chronology is inferred from public 2018 discussion and Drive timestamps.
+
+### R-EXT-007 — SRAM tour/progression layout
+
+**Status:** historical lead  
+**Date:** 2026-09-28  
+**Area:** RAM | other
+
+**Observation:** TASVideos research attributes medal state to nine 16-byte tour blocks spanning SRAM `0x069C–0x072B`, with one byte per unicycle and values 00/01/02/03 for none/bronze/silver/gold. Tour unlock count is reported at `0x10D3–0x10E2`.  
+**Evidence:** `references/notes/tas-and-sram-research.md` and TASVideos Uniracers topic 979.  
+**Interpretation:** This is a useful starting map for decoding save structure and can rapidly expose per-unicycle progression fields.  
+**Discriminating test:** compare clean SRAM, controlled medal changes and unlock transitions byte-for-byte.  
+**Dependencies:** historical emulator SRAM format and ROM revision must be matched.
+
+### R-EXT-008 — USJO autonomous stunt bot
+
+**Status:** supported historical lead; artifact missing  
+**Date:** 2026-09-28  
+**Area:** physics | RAM | other
+
+**Observation:** TASVideos submission #3072 describes a Lua script named USJO, originating with Halamantariel and improved with Nitrodon, that automated frame-precise stunt behavior and reportedly evolved to play Uniracers autonomously.  
+**Evidence:** `references/notes/tas-and-sram-research.md`; TASVideos submission #3072.  
+**Interpretation:** The script likely encodes practical RAM addresses, timing rules and control-state knowledge directly useful for behavioral reconstruction.  
+**Discriminating test:** recover any USJO version or derivative and validate its memory accesses/actions against the supported ROM.  
+**Dependencies:** recovery of the script or sufficiently detailed contemporary discussion.
+
+### R-EXT-009 — Halamantariel course-map corpus
+
+**Status:** confirmed external reference corpus  
+**Date:** 2026-09-28  
+**Area:** course | UI
+
+**Observation:** VGMaps currently indexes 44 complete Uniracers course maps credited to Halamantariel. Several are extremely large stitched images, including a 28,128×152 Dragster map and a 36,864×16,111 Downer map.  
+**Evidence:** `references/notes/tas-and-sram-research.md`; VGMaps Uniracers index.  
+**Interpretation:** These maps can serve as independent geometric ground truth for a ROM course extractor and may connect directly to the hand-made maps mentioned in the historical level-viewer investigation.  
+**Discriminating test:** reproduce a course from ROM data and align its topology/segment ordering against the corresponding map.  
+**Dependencies:** obtain direct image files or sufficient map access for pixel-level comparison.

@@ -105,7 +105,8 @@ See docs/original-development/.
 
 - [x] Establish confidence-labelled developer technical history.
 - [x] Create source index and acquisition ledger.
-- [ ] Acquire and fingerprint the 1994-11-29 PAL prototype.
+- [x] Acquire and place the 1994-11-29 PAL prototype in `reference/roms/prototypes/`.
+- [ ] Fingerprint the PAL prototype and record header/mapping/vector metadata.
 - [ ] Diff PAL prototype against canonical USA retail.
 - [ ] Acquire DMA press-material archive locally; inventory and extract only Uniracers-relevant assets.
 - [ ] Continue hunt for Mike Dailly's historical SNES framework source.

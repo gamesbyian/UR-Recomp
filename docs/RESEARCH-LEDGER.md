@@ -22,9 +22,17 @@ Use this for claims about the ROM, formats, routines, RAM, graphics or hardware 
 
 ### R-SEED-001 — Rob Northen Compression
 
-Historical reverse-engineering reports that original DMA developer Mike Dailly identified course/level data as Rob Northen Compression (RNC), and that investigators decompressed course data.
+**Status:** confirmed at packed-data level  
+**Date:** 2026-09-28  
+**Area:** compression | course
 
-**Action:** independently locate and verify the decompression path in the supported ROM.
+**Observation:** both canonical USA retail and 1994-11-29 PAL prototype ROMs contain exactly 45 valid RNC headers, all Method 1, at identical offsets with matching packed/unpacked sizes and CRCs.
+
+**Evidence:** `analysis/generated/retail-vs-prototype-structure.md`; preserved ProPack sources under `references/imported/tools/rnc_propack-2.14/`.
+
+**Interpretation:** RNC Method 1 is established binary fact for this 45-stream corpus. Whether every stream is course data remains to be established.
+
+**Action:** independently decompress all 45 streams, verify CRCs, locate the game decoder, and identify semantics.
 
 ### R-SEED-002 — Course structure
 
@@ -243,7 +251,7 @@ Developer recollections describe rendered unicycle graphics with multiple pose d
 
 ### R-SEED-007 — 1994-11-29 PAL prototype as differential oracle
 
-**Status:** external artifact identified  
+**Status:** acquired, fingerprinted, and structurally diffed  
 **Date:** 2026-09-28  
 **Area:** other
 

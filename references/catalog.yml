@@ -1,0 +1,122 @@
+schema_version: 1
+retrieved: 2026-09-28
+project: UR-Recomp
+
+sources:
+  - id: rhdn-uniracers-level-viewer
+    title: "Unirally/Uniracers level viewer"
+    type: forum_research
+    url: "https://ximwix.net/mirrors/rhdn/index.php@topic=6940.0.html"
+    continuation_url: "https://ximwix.net/mirrors/rhdn-old/index.php@topic=6940.15.html"
+    authors_or_participants: ["spinal", "ROMhacking.net community", "Mike Dailly (reported correspondence)"]
+    rights: "Forum posts; reuse rights not established. Indexed and summarized, not copied wholesale."
+    local: "references/notes/course-reverse-engineering-history.md"
+    relevance: "Palette/tile discovery, VRAM/DMA tracing, RNC compression lead, reported 256-tile course width, block structure, validation against hand-made maps."
+
+  - id: snes9x-uniracers-oam
+    title: "Snes9x Uniracers OAM/HDMA game-specific handling"
+    type: emulator_source
+    url: "https://github.com/snes9xgit/snes9x"
+    revision: "1bcc369e89f08243e0a462882fb1f3e42e51de3a"
+    files:
+      - "dma.cpp@e1ad324c6e94149a777b69054bda5e09337631a6"
+      - "memmap.cpp@04ce87e7362b8dda8cb7a79abfa226e13d3568f4"
+    rights: "Upstream Snes9x licensing applies. Relevant behavior summarized rather than vendoring whole source files."
+    local: "references/notes/oam-active-display.md"
+    relevance: "Game-specific OAM address handling during HDMA and internal-ROM-name detection."
+
+  - id: mame-uniracers-oam
+    title: "MAME SNES PPU active-display OAM handling"
+    type: emulator_source
+    url: "https://github.com/mamedev/mame/blob/dcca0e9b281be806813848db869d9ee54b4ad92e/src/devices/video/snes_ppu.cpp"
+    revision: "dcca0e9b281be806813848db869d9ee54b4ad92e"
+    file_sha: "525911c9cf3015b27676bcc0aebfecd6e6dd3b64"
+    rights: "Upstream MAME licensing applies. Relevant behavior summarized rather than vendoring whole source file."
+    local: "references/notes/oam-active-display.md"
+    relevance: "Independent emulator implementation documents Uniracers as the known active-display OAM-access case and routes accesses to offset 0x0218."
+
+  - id: nesdev-oam-2016
+    title: "SNES OAM behavior discussion"
+    type: technical_discussion
+    url: "https://forums.nesdev.org/"
+    rights: "Forum material; indexed/summarized only."
+    local: "references/notes/oam-active-display.md"
+    relevance: "Later hardware-level discussion of internal vs external OAM addressing and Uniracers."
+
+  - id: mike-dailly-sprite-ripping
+    title: "Mike Dailly technical recollection of Uniracers sprite ripping"
+    type: developer_history
+    url: "https://lemmings.info/"
+    rights: "Article; indexed/summarized only."
+    local: "references/notes/oam-active-display.md"
+    relevance: "Developer recollection that Uniracers moved sprite positions during active raster for split-screen and was tested by Nintendo on older hardware."
+
+  - id: libretro-uniracers-cheats
+    title: "libretro-database Uniracers (USA) cheats"
+    type: data
+    url: "https://github.com/libretro/libretro-database/blob/d5bae90b22018ce3c9c5a8eff4141a4768c8dd5f/cht/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System/Uniracers%20(USA).cht"
+    revision: "d5bae90b22018ce3c9c5a8eff4141a4768c8dd5f"
+    source_blob_sha: "c7cc8c948b105aef6db8af18188b56b6fcd43bf8"
+    rights: "CC BY-SA 4.0 per upstream LICENSE; attribution and upstream license retained."
+    imported: "references/imported/libretro/Uniracers (USA).cht"
+    relevance: "24 patch/RAM cheats provide high-value behavioral anchors for timer, racer speed, CPU braking, stunt scoring, colors, race selection and qualification/lap logic."
+
+  - id: spriters-resource-unicycles
+    title: "Unicycles sprite rip"
+    type: graphics_reference
+    url: "https://www.spriters-resource.com/snes/uniracersunirally/asset/88399/"
+    author_or_uploader: "Locke_gb7"
+    submitted: "2017-02-13"
+    format: "PNG"
+    dimensions: "1104x3928"
+    rights: "Reuse license not established in this survey. Indexed only."
+    local: "references/notes/graphics-assets.md"
+
+  - id: spriters-resource-track-backgrounds
+    title: "Track Backgrounds sprite rip"
+    type: graphics_reference
+    url: "https://www.spriters-resource.com/snes/uniracersunirally/asset/146430/"
+    author_or_uploader: "Peardian"
+    submitted: "2021-01-06"
+    format: "PNG"
+    dimensions: "1028x4124"
+    rights: "Reuse license not established in this survey. Indexed only."
+    local: "references/notes/graphics-assets.md"
+
+  - id: spriters-resource-game-page
+    title: "Uniracers / Unirally sprite index"
+    type: graphics_reference
+    url: "https://www.spriters-resource.com/snes/uniracersunirally/"
+    rights: "Reuse license not established in this survey. Indexed only."
+    local: "references/notes/graphics-assets.md"
+    relevance: "Indexes Unicycles, Menu Arrow, and Track Backgrounds rips."
+
+  - id: romhack-uncensored
+    title: "Uniracers Uncensored"
+    type: rom_hack
+    url: "https://romhackplaza.org/"
+    author: "_Q_"
+    release_date: "2018-09-30"
+    rights: "Patch availability/status must be checked upstream; no ROM copied."
+    relevance: "Reportedly overwrites the banned-name list, making it a lead for locating name-validation data/code."
+
+  - id: snes-central-hardware
+    title: "Uniracers cartridge/PCB documentation"
+    type: hardware_metadata
+    url: "https://snescentral.com/"
+    rights: "Indexed/summarized only."
+    relevance: "Cartridge PCB, ROM/SRAM and mapper/reference metadata."
+
+  - id: original-manual-transcription
+    title: "Uniracers instruction manual transcription"
+    type: documentation
+    url: "https://www.world-of-nintendo.com/"
+    rights: "Manual copyright retained by its rightsholders; indexed only."
+    relevance: "Canonical player-facing terminology, mechanics and controls."
+
+  - id: dorando-compatibility
+    title: "Historical SNES emulator compatibility matrix"
+    type: emulator_history
+    url: "https://www.dorando.at/"
+    rights: "Indexed/summarized only."
+    relevance: "Historical cross-emulator behavior can identify subsystems that were unusually difficult to emulate."

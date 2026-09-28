@@ -7,6 +7,7 @@ Compact router for coding and research agents. Load the smallest current authori
 | Task | Read first |
 |---|---|
 | Current priority / continue work | `docs/WORK-QUEUE.md`, then the owning specialist doc |
+| Understand how the game currently appears to work / orient to a subsystem | `docs/knowledge/README.md`, then the relevant concept page |
 | Overall project architecture / product plan | `docs/PROJECT-PLAN.md` |
 | Widescreen feature implementation | `docs/WIDESCREEN.md`, then `docs/PROJECT-PLAN.md` |
 | Research strategy / external-resource work | `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md` |
@@ -29,7 +30,7 @@ Compact router for coding and research agents. Load the smallest current authori
 3. Keep current truth separate from chronology. Replace stale state in current authorities; put dated attempts and failures in `BRINGUP.md`, the research ledger, reports, or preserved evidence.
 4. A mutable fact should have one owner. Other documents should link rather than maintain competing copies.
 5. Close the loop. If code, tooling, or evidence changes a current conclusion, rerun the invalidated check and update the owning authority.
-6. Prefer cheap discovery before broad reading. Query filenames, symbols, generated manifests, and the source catalog before opening large histories or imported corpora.
+6. Prefer cheap discovery before broad reading. For conceptual orientation, read the relevant `docs/knowledge/` page before opening large histories or imported corpora. Query filenames, symbols, generated manifests, and the source catalog for exact evidence.
 7. Generated bulk output is disposable unless a compact artifact has durable evidence value. Commit reproducible tooling and compact manifests/reports, not giant generated C, traces, dumps, extracted assets, or Ghidra workspaces.
 8. External claims are leads until reproduced locally. Record observation, evidence, interpretation, and uncertainty separately.
 9. Preserve exact provenance for imported artifacts: source, retrieval date, original filename, hashes/revision, container relationship, and rights/licensing status where known.
@@ -39,6 +40,7 @@ Compact router for coding and research agents. Load the smallest current authori
 13. Keep provider-specific instruction files thin. Shared rules live here.
 14. Keep mandatory reading small. Repository growth is acceptable; mandatory-context growth is expensive.
 15. Terminology: `Widescreen` and `HD Presentation` name specific features only. Never use `widescreen`, `HD`, or combinations such as `widescreen/HD` as shorthand for the project, its architecture, or its overall goal.
+16. `docs/knowledge/` is a synthesis layer, not an evidence ledger. Rewrite it when the current model changes; keep chronology, provenance, raw observations and rejected alternatives in their owning evidence documents.
 
 ## Repository boundaries
 

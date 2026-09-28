@@ -1,0 +1,14 @@
+display_name=Uniracers
+project_name=UR-Recomp
+rom_file=Uniracers (USA).sfc
+region=USA
+mapping=lorom
+coprocessor=none
+rom_size_kb=2048
+sram_size_kb=8
+crc32=383858c7
+sha1=cb249cf7301bdd985e6fe4bc4c942bf4f86d7d83
+sha256=859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478
+md5=1066cfd0c6be4dbdfede796751e801c5
+reset_vector=8858
+checksum_valid=true

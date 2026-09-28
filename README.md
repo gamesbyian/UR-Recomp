@@ -18,7 +18,9 @@ This is currently a **private research repository** and intentionally contains t
 
 That is an explicit project choice, not an assumption inherited from SNESRecomp's public-release model. Before any public release or visibility change, the ROM and any other proprietary game-derived material must be removed and the full Git history audited/re-written as needed.
 
-Preserved development builds and source archives live under `reference/roms/` and are never aliases for the canonical retail input.\n\nSee `docs/ROM-SAFETY.md`.
+Preserved development builds and source archives live under `reference/roms/` and are never aliases for the canonical retail input.
+
+See `docs/ROM-SAFETY.md`.
 
 ## Framework
 
@@ -40,8 +42,8 @@ The framework revision is pinned by the repository rather than floating on upstr
 
 ## Current work
 
-Agents should start with `AGENTS.md`, which routes tasks to the smallest current authority. For human project orientation, start with `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md` and `docs/WORK-QUEUE.md`. Tool selection/bootstrap is documented in `docs/TOOLCHAIN.md`.
+Agents should start with `AGENTS.md`, which routes tasks to the smallest current authority. For human project orientation, start with `docs/WIDESCREEN-HD-REMASTER-PLAN.md`, `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md`, and `docs/WORK-QUEUE.md`. Tool selection/bootstrap is documented in `docs/TOOLCHAIN.md`.
 
 ## Status
 
-**Reverse-engineering / bring-up in progress.** ROM identity, four-build comparison, and the 45-stream RNC Method 1 corpus are established. The strict native smoke harness now builds and launches the actual `UniracersSNESRecomp` target, which initializes SDL/X11/audio, enters the main loop, simulates the first frame, and survives the intentional smoke timeout. Visible title/menu correctness and deterministic input/race milestones remain to be established.
+**Reverse-engineering / bring-up in progress.** ROM identity, four-build comparison, and the 45-stream RNC Method 1 corpus are established. The strict native smoke harness builds and launches the actual `UniracersSNESRecomp` target and has captured a coherent stock Uniracers title screen from native execution. Deterministic controller/menu navigation, a playable race, and differential fidelity remain the next execution milestones.

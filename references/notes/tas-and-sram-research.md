@@ -89,3 +89,51 @@ The index exposes 44 course maps credited to Halamantariel, covering the eight m
 The actual PNG files should be mirrored when their direct binary endpoints can be resolved. Until then, the index itself is preserved in the source catalogue.
 
 The maps are especially interesting in combination with the 2008–09 ROMhacking.net level-viewer work: a future extractor should be able to render courses and compare them geometrically against Halamantariel's atlas.
+
+
+## USJO v13 exact historical artifact path
+
+The 2008 Snes9x Lua development thread preserves the original hyperlink for Halamantariel's script:
+
+- Display name: **Uniracers Stunts & Jump Optimizer v13**
+- Historical direct URL: `http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/usjo13.lua`
+- First linked publicly: 2008-02-14
+
+The live file is currently unavailable from this environment, but the exact filename and path are now known. The contemporary description says v13 starts from a pre-jump emulator state, searches stunt combinations, optimizes for speed, then replays the best input sequence. Halamantariel said it could optimize in seconds what took a person hours.
+
+The same Lua-development discussion is useful context because Halamantariel specifically requested signed memory-read support for Uniracers speed values. This strongly suggests USJO or adjacent tooling consumed signed game-state variables directly from WRAM.
+
+## Native WRAM watch list used for TASing
+
+On 2008-03-12 Halamantariel published the following memory-watch list, including width/signedness:
+
+| WRAM address | Format | Reported meaning |
+| --- | --- | --- |
+| `7E:04B7` | 2-byte signed | Speed |
+| `7E:11CD` | 2-byte unsigned | Booster Meter |
+| `7E:0411` | 2-byte unsigned | X Position |
+| `7E:0415` | 2-byte unsigned | Y Position |
+| `7E:1509` | 1-byte unsigned | Screen X Position |
+| `7E:11FD` | 1-byte unsigned | # of Flips |
+| `7E:11F9` | 1-byte unsigned | # of Rolls |
+| `7E:0F61` | 1-byte unsigned | # of Twists |
+| `7E:042B` | 1-byte unsigned | # of Z-Flips |
+| `7E:042F` | 1-byte unsigned | # of Tabletops |
+
+These are higher-confidence semantic labels than most cheat-derived addresses because they were explicitly used as memory watches during manual TAS optimization. They should still be reproduced locally.
+
+## Historical boost table
+
+Halamantariel linked a dedicated boost/mechanics page:
+
+`http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/Uniracers.html`
+
+The page reportedly contained a boost table including head-bounce values and was used to reason about optimal stunt ordering. The live page has not yet been recovered.
+
+## Public 2008 TAS WIP
+
+A later 2008 post exposed an exact Microstorage URL for the work-in-progress SMV:
+
+`http://dehacked.2y.net/microstorage.php/info/1674584940/Uniracers%20%28U%29%20%5B%21%5D.smv`
+
+The WIP reportedly included the 23.56 Dragster run and other optimized work. The historical host is currently inaccessible, but the exact microstorage ID, filename and URL are now preserved.

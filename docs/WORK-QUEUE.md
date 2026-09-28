@@ -97,3 +97,17 @@ Optional authentic scaling, arbitrary windows, 16:9/ultrawide, high-resolution U
 ## Phase 10 — Editor/custom courses
 
 Design only after the real course representation is understood. Prefer a documented custom-course format loaded without altering core physics.
+
+
+## Original-development archaeology workstream
+
+See docs/original-development/.
+
+- [x] Establish confidence-labelled developer technical history.
+- [x] Create source index and acquisition ledger.
+- [ ] Acquire and fingerprint the 1994-11-29 PAL prototype.
+- [ ] Diff PAL prototype against canonical USA retail.
+- [ ] Acquire DMA press-material archive locally; inventory and extract only Uniracers-relevant assets.
+- [ ] Continue hunt for Mike Dailly's historical SNES framework source.
+- [ ] Search for binaries/source/screenshots of SNasm, Unicycle Compression, level editor, A0 plotter, graphics/MIDI converters and Amiga/SNES link.
+- [ ] Convert historical predictions into local ROM tests: RNC streams, 256-wide course interpretation, OAM/raster behavior, copier protection, animation indexing and audio-driver identity.

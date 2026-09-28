@@ -423,3 +423,16 @@ Searches low ROM for runs of >=3 consecutive little-endian LoROM pointers into f
   - +0x0000: bank byte 9B -> file `0x0D9AA2`
   - +0x0003: bank byte 9A -> file `0x0D22A1`
   - +0x0006: bank byte 9E -> file `0x0F1D9C`
+
+## Raw function-pointer-word candidates for wrapper 02:B320
+
+The wrapper has no direct JSL/JSR callsite. Search the pre-RNC ROM for the 16-bit address word B320, then show bounded context. These are candidates only because 16-bit words are noisy.
+
+- occurrences before packed corpus: 7
+  - word at `0x003C4C` (LoROM 00:BC4C); context from `0x003C2C` (LoROM 00:BC2C): `07 77 e2 20 20 7e b1 20 35 b7 f0 06 a9 02 85 ac 80 c7 20 85 98 20 a4 99 20 dd 88 d0 d8 20 1c 95 20 b3 98 22 72 99 83 20 05 98 20 a2 f4 20 75 c7 a9 03 8f 73 10 77 22 9a 87 83 20 49 a8 20 38 e8 20 35 b7 f0 b0 22 b4 9e 83 bf 9c 06 77 cf d1 10`
+  - word at `0x003D73` (LoROM 00:BD73); context from `0x003D53` (LoROM 00:BD53): `ac 80 ea c2 20 af 42 07 77 29 fb ff 8f 42 07 77 e2 20 20 85 98 20 a4 99 20 dd 88 d0 d8 20 1c 95 20 b3 98 22 72 99 83 20 05 98 20 a2 f4 20 75 c7 20 d4 ad a5 00 f0 cc a9 01 85 a7 64 a6 60 20 d3 f4 a9 01 85 a7 64 a6 60 fc 01 50 49 43 4b 5f 5f`
+  - word at `0x003F0D` (LoROM 00:BF0D); context from `0x003EED` (LoROM 00:BEED): `b7 f0 07 a9 02 85 ac 82 49 ff 20 85 98 20 a4 99 20 dd 88 d0 e6 22 ca 95 83 22 00 97 83 20 1c 95 20 b3 98 22 72 99 83 20 05 98 20 a2 f4 20 75 c7 20 45 af 82 1d ff e2 20 20 99 a8 20 68 a8 a9 01 85 a7 64 a6 a9 ff 60 e2 20 20 05 f5 22 43 95 83`
+  - word at `0x004004` (LoROM 00:C004); context from `0x003FE4` (LoROM 00:BFE4): `22 8c 95 83 20 35 b7 f0 05 a9 01 82 4d ff 20 85 98 20 a4 99 20 dd 88 d0 ce 22 ca 95 83 20 1c 95 20 b3 98 22 72 99 83 20 05 98 20 a2 f4 22 c2 99 83 d0 1e a9 04 22 51 8b 83 a2 0b c1 20 ab c3 20 c9 fa a6 aa 86 5a 20 a5 93 20 3b c2 20 f5 c1 80`
+  - word at `0x0081C8` (LoROM 01:81C8); context from `0x0081A8` (LoROM 01:81A8): `38 f9 f1 0e c9 01 00 d0 03 4c 82 82 b9 f1 0e c9 01 00 d0 17 af 4b 07 77 29 ff 00 f0 06 a9 0f 00 20 b3 c5 c2 20 ac ef 0f b9 f1 0e ac ef 0f f0 04 18 69 08 00 aa c9 08 00 f0 05 c9 00 00 d0 16 a2 00 00 a5 02 c0 00 00 d0 06 8f 69 07 77 80 0b 8f`
+  - word at `0x00C5AF` (LoROM 01:C5AF); context from `0x00C58F` (LoROM 01:C58F): `0c af 50 07 77 89 08 f0 16 ac 0b 0d cc 0d 0d f0 0e a5 00 99 e5 0c ad 0b 0d 3a 29 1f 8d 0b 0d 60 20 b3 c5 6b e2 20 c2 10 c0 00 00 d0 25 ac e3 0c cc e1 0c f0 1b 99 bb 0c c9 16 10 0b ad d9 12 f0 06 9c 9f 0c 9c d9 12 ad e3 0c 1a 29 1f 8d e3 0c`
+  - word at `0x0961F3` (LoROM 12:E1F3); context from `0x0961D3` (LoROM 12:E1D3): `a6 e2 b2 42 92 1d 51 ea 51 b6 00 ff 1f 5b 11 d4 fe 2d b6 5f d2 0d 40 d3 c4 e2 0b a6 57 cf 1a 7e 20 b3 e1 6a a6 f0 06 cf c6 f0 3a 20 30 b6 e1 1c 5f e1 e2 2d 3b 40 a6 f0 b5 fe 7a e6 97 d0 0a b6 41 b5 de 5c 20 e3 fe 3f b6 f0 11 e1 0f f4 c1 1f`

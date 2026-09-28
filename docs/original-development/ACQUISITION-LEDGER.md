@@ -94,3 +94,40 @@ For every binary artifact record:
 - license or preservation/redistribution note if known;
 - whether committed, ignored, or retained only locally;
 - technical reason for keeping it.
+
+
+## A-006 — Mike Dailly Flickr / historical DMA media corpus
+
+Priority: high  
+Status: systematic archival capture not yet done  
+Sources:
+- https://www.flickr.com/photos/mikedailly/
+- https://dailly.blogspot.com/2007/09/?m=0
+
+Dailly specifically wrote while searching for Uniracers pictures that he had a very large store of old DMA imagery and later said he still had a stack of level-building graphics.
+
+Acquisition strategy:
+1. enumerate surviving Flickr sets/items and descriptions;
+2. search Wayback for historical set pages and original-size asset URLs;
+3. preserve Uniracers/1x1-attributable images with original IDs, captions and dates;
+4. record ambiguous DMA assets separately rather than assigning them to Uniracers;
+5. inspect YouTube descriptions/thumbnails for matching archived development material.
+
+## A-007 — Steve Hammond personal DMA archive traces
+
+Priority: medium-high  
+Status: holdings known generally; Uniracers-specific material unconfirmed  
+Source: https://www.retrovideogamer.co.uk/rvg-interviews-steve-hammond/
+
+Hammond says he retained old DMA graphics, photos, design/proposal documents, and complete source/assets for at least one unfinished project. Search published Hammond material and mirrors for Uniracers-era documents and scans. No outreach is assumed or required.
+
+## A-008 — Modern SNasm reference build
+
+Priority: medium  
+Status: downloadable but not yet imported  
+Source: https://mdf200.itch.io/snasm  
+File advertised: SNasm.zip, approximately 62 kB.
+
+Purpose: compare syntax, macro behavior and assembler conventions with any reconstructed 65816 source. Treat only as a descendant/reference unless historical continuity is demonstrated.
+
+The download is behind itch.io's "No thanks, just take me to the downloads" handoff, which the current non-interactive fetch path does not expose as a stable direct file URL.

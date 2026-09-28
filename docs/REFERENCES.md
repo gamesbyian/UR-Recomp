@@ -42,3 +42,6 @@ External references are leads. Concrete project claims should be reproduced loca
 - Manual and PAL course-map scan sources are tracked in `references/catalog.yml`.
 
 - RNC ProPack 2.14 historical toolchain, including original DOS packers and SNES Method 1/2 decoders: `references/imported/tools/rnc_propack-2.14/`.
+
+- Stalled-session recovery/state note: `references/notes/recovery-2026-09-28.md`.
+- Complete GameDB-SNES prototype metadata snapshot: `references/imported/metadata/GameDB-SNES/c362c7b1/`.

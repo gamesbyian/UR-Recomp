@@ -333,3 +333,22 @@ The same search also finds the expected Huffman-builder-shaped code later in the
 **Discriminating test:** map direct callers and packed-stream pointer references, then trace one course-load path from a caller through `RNC1_Unpack` into the decoded WRAM buffer.
 
 **Dependencies:** LoROM address notation uses the low-bank mirror; equivalent high-bank mirrors may appear in call operands.
+
+
+### R-SEED-012 — 45 RNC payloads align with track order; stunt timer field identified
+
+**Status:** supported, with byte-level observation confirmed  
+**Date:** 2026-09-28  
+**Area:** course | compression
+
+**Observation:** the canonical USA ROM has 45 validated decoded RNC Method 1 payloads. When grouped into nine sets of five, decoded byte offset 2 equals `0x2D` only at ordinals 3, 8, 13, 18, 23, 28, 33, 38 and 43. It is `0x00` for the other 36 payloads. No exception occurs.
+
+External gameplay documentation states that each tour's five tracks occur in the fixed order Race, Circuit, Stunt, Race, Circuit, and independently describes stunt courses as 45-second events. Decimal 45 is `0x2D`.
+
+**Evidence:** `analysis/generated/course-header-cadence.md`; generator `tools/analyze_course_header_cadence.py`; `references/notes/course-order-and-stunt-timer.md`.
+
+**Interpretation:** the simplest explanation is one RNC payload per shipped track, ordered by tour and slot. Decoded byte 2 is very likely the stunt-course time limit in seconds, or a directly equivalent stunt-only parameter. This is the first semantically identified field in the decompressed course record.
+
+**Discriminating test:** trace selection/loading of one known stunt track and one race track, then trace decoded byte 2 into the gameplay timer initialization. Independently verify the stream ordinal through the course selector.
+
+**Dependencies:** external track-order/timer descriptions are used only for semantic interpretation; the 45-stream count and byte cadence are local binary observations.

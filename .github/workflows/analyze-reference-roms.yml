@@ -9,6 +9,7 @@ on:
       - "tools/analyze_rnc_streams.py"
       - "tools/inspect_rnc_payloads.py"
       - "tools/find_rnc_decoder_signature.py"
+      - "tools/map_rnc_code_refs.py"
       - "reference/roms/**"
       - ".github/workflows/analyze-reference-roms.yml"
   workflow_dispatch:
@@ -27,6 +28,7 @@ jobs:
           python tools/analyze_rnc_streams.py
           python tools/inspect_rnc_payloads.py
           python tools/find_rnc_decoder_signature.py
+          python tools/map_rnc_code_refs.py
       - name: Commit reports
         run: |
           git config user.name "github-actions[bot]"
@@ -38,5 +40,6 @@ jobs:
           git add -f analysis/generated/rnc-stream-manifest.md
           git add -f analysis/generated/rnc-payload-structure.md
           git add -f analysis/generated/rnc-decoder-signature-search.md
+          git add -f analysis/generated/rnc-code-reference-map.md
           git commit -m "Generate reference ROM analysis" || exit 0
           git push

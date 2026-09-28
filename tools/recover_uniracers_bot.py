@@ -16,6 +16,11 @@ from urllib.error import HTTPError, URLError
 OUT = Path("references/recovered/tas-bot")
 OUT.mkdir(parents=True, exist_ok=True)
 
+DIRECT_DOWNLOADS = [
+    ("https://pastebin.com/raw/A0XpKw9v", "uniracers-tabletop-bot-2014.lua"),
+    ("https://tasvideos.org/4250S?handler=Download", "tasvideos-4250-submission.smv"),
+]
+
 TARGETS = [
     "http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/usjo13.lua",
     "http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/Uniracers.html",
@@ -83,8 +88,21 @@ def looks_like_archive_wrapper(body: bytes, ctype: str) -> bool:
     head = body[:1000].lower()
     return ("text/html" in ctype.lower() and (b"wayback machine" in head or b"web.archive.org" in head))
 
-report = {"targets": [], "wildcards": {}, "recovered": [], "generated_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+report = {"targets": [], "wildcards": {}, "direct_downloads": [], "recovered": [], "generated_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
 seen_payload_sha = set()
+
+for url, filename in DIRECT_DOWNLOADS:
+    status, ctype, body = get(url, 60)
+    sha = hashlib.sha256(body).hexdigest() if body else None
+    item = {"url": url, "status": status, "content_type": ctype, "bytes": len(body), "sha256": sha}
+    report["direct_downloads"].append(item)
+    if status == 200 and body and not looks_like_archive_wrapper(body, ctype):
+        dest = OUT / filename
+        dest.write_bytes(body)
+        item["path"] = str(dest)
+        report["recovered"].append({**item, "original": url, "timestamp": "live"})
+        seen_payload_sha.add(sha)
+        print(f"RECOVERED DIRECT {dest} {len(body)} bytes {sha}")
 
 for target in TARGETS:
     rec = {"url": target, "cdx": []}
@@ -133,7 +151,7 @@ for target in TARGETS:
 (OUT / "recovery-report.json").write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
 
 md = ["# Historical Uniracers bot/TAS recovery report", "", f"Generated: {report['generated_utc']}", ""]
-md += [f"- Targets probed: {len(TARGETS)}", f"- Payloads recovered: {len(report['recovered'])}", ""]
+md += [f"- Direct downloads probed: {len(DIRECT_DOWNLOADS)}", f"- Archive targets probed: {len(TARGETS)}", f"- Payloads recovered: {len(report['recovered'])}", ""]
 if report["recovered"]:
     md += ["## Recovered payloads", ""]
     for x in report["recovered"]:

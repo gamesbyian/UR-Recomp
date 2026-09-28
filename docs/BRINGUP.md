@@ -37,3 +37,25 @@ Observed:
 - SNES header checksum: valid
 
 This clears the basic cartridge-compatibility gate for SNESRecomp's documented standard LoROM support. It does not yet establish game execution compatibility.
+
+
+## 2026-09-28 — Native smoke result reclassified as harness error
+
+The latest native-build-smoke run successfully completed ROM verification, project scaffolding/generation, and the build step. However, inspection of the workflow log shows the "Locate executable" fallback selected:
+
+`build/CMakeFiles/3.31.6/CompilerIdCXX/a.out`
+
+That is CMake's compiler-identification test binary, not the generated Uniracers executable. The subsequent exit status 164 therefore does **not** establish a game-runtime failure.
+
+Evidence:
+- workflow run 36484477962;
+- steps "Scaffold, generate and build" and "Locate executable" succeeded;
+- the log explicitly prints the selected CompilerId binary before the smoke step.
+
+Immediate correction:
+1. make executable discovery target the actual project output;
+2. remove the permissive "first executable in build tree" fallback;
+3. fail the workflow if the expected game executable cannot be found;
+4. rerun the smoke test before drawing any runtime conclusions.
+
+Current interpretation: build viability is promising, but first boot has not yet genuinely been tested.

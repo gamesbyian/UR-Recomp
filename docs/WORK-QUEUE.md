@@ -6,21 +6,22 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 
 - [x] Create private GitHub repository.
 - [x] Select a pinned SNESRecomp revision.
-- [ ] Add SNESRecomp gitlink/submodule at the pinned revision.
-- [ ] Identify exact ROM revision(s) to support first.
-- [ ] Record ROM identity only as hashes, size, mapping/header facts and version metadata.
-- [ ] Add local ROM verification.
-- [ ] Confirm no proprietary blobs are tracked.
+- [x] Add SNESRecomp gitlink/submodule at the pinned revision.
+- [x] Place canonical project ROM in the private repository for repository-hosted tooling.
+- [ ] Fingerprint exact ROM revision: SHA-256, CRC32, size, header/mapping, region and vectors.
+- [ ] Record ROM identity in project-readable form.
+- [ ] Make verification tooling accept only the canonical fingerprint.
 - [ ] Record baseline behavior in trusted emulators where useful.
 
-**Exit:** target ROM can be reproducibly identified without storing it.
+**Exit:** the canonical input is fingerprinted and machine-verifiable.
 
 ## Phase 1 — Analyzer reconnaissance
 
-- [ ] Run current SNESRecomp analyzer against target ROM.
+- [ ] Run the pinned SNESRecomp cartridge probe against the canonical ROM.
+- [ ] Run analyzer/code-discovery reconnaissance.
 - [ ] Record cartridge mapping, banks, AOT/static coverage, unresolved indirect dispatch, interpreter fallback, warnings, crashes and likely framework gaps.
-- [ ] Classify blockers as configuration, analyzer, runtime/hardware, or unknown.
-- [ ] Keep human-authored summaries and configs; do not commit giant generated code dumps.
+- [ ] Classify blockers as configuration, analyzer limitation, runtime/hardware, or unknown.
+- [ ] Keep human-authored summaries and configs; avoid committing giant generated code dumps without a reason.
 
 **Exit:** we know what blocks or permits execution.
 
@@ -77,8 +78,8 @@ Maintain `SYMBOLS.md` and `RESEARCH-LEDGER.md`.
 - [ ] Locate compressed blocks and pointer/index tables.
 - [ ] Verify RNC variant/path.
 - [ ] Reconstruct dimensions and primitives.
-- [ ] Produce ROM-free structural documentation.
-- [ ] Build local parser from a user-supplied ROM.
+- [ ] Produce structural documentation.
+- [ ] Build parser/tooling around the canonical ROM.
 
 ## Phase 8 — Widescreen
 

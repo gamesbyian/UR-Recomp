@@ -11,6 +11,7 @@ on:
       - "tools/find_rnc_decoder_signature.py"
       - "tools/map_rnc_code_refs.py"
       - "tools/trace_rnc_loader_seeds.py"
+      - "tools/analyze_course_header_cadence.py"
       - "reference/roms/**"
       - ".github/workflows/analyze-reference-roms.yml"
   workflow_dispatch:
@@ -34,6 +35,7 @@ jobs:
           python tools/find_rnc_decoder_signature.py
           python tools/map_rnc_code_refs.py
           python tools/trace_rnc_loader_seeds.py
+          python tools/analyze_course_header_cadence.py
       - name: Commit reports
         run: |
           git config user.name "github-actions[bot]"
@@ -47,6 +49,7 @@ jobs:
           git add -f analysis/generated/rnc-decoder-signature-search.md
           git add -f analysis/generated/rnc-code-reference-map.md
           git add -f analysis/generated/rnc-loader-trace-seeds.md
+          git add -f analysis/generated/course-header-cadence.md
           git commit -m "Generate reference ROM analysis" || exit 0
           git pull --rebase origin main
           git push

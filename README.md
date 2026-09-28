@@ -1,6 +1,6 @@
 # UR-Recomp
 
-Experimental ROM-free static recompilation and modern-port project for **Uniracers / Unirally** (SNES, 1994).
+Experimental static recompilation and modern-port project for **Uniracers / Unirally** (SNES, 1994).
 
 ## Project goal
 
@@ -8,13 +8,15 @@ Preserve the original game's simulation and behavior as the source of truth whil
 
 The first milestone is deliberately smaller:
 
-> **Boot a verified stock ROM through the current SNESRecomp stack and reach a playable race with stock presentation.**
+> **Boot the canonical Uniracers ROM through the pinned SNESRecomp stack and reach a playable race with stock presentation.**
 
 No widescreen, asset replacement, or gameplay changes should begin until that baseline is trustworthy.
 
-## Copyright / ROM boundary
+## ROM policy
 
-This repository must not contain copyrighted game ROMs or extracted game assets. Users supply their own legally obtained ROM locally. Generated outputs that substantially reproduce game code or assets stay local unless their redistribution status is deliberately reviewed.
+This is currently a **private research repository** and intentionally contains the canonical project ROM, `Uniracers (USA).sfc`, so repository-hosted analysis and CI can operate on the same input.
+
+That is an explicit project choice, not an assumption inherited from SNESRecomp's public-release model. Before any public release or visibility change, the ROM and any other proprietary game-derived material must be removed and the full Git history audited/re-written as needed.
 
 See `docs/ROM-SAFETY.md`.
 
@@ -31,9 +33,10 @@ The framework revision is pinned by the repository rather than floating on upstr
 3. Stock 4:3 behavior comes before widescreen.
 4. Recomp correctness comes before prettiness.
 5. Every reverse-engineering claim should be traceable to evidence.
-6. Do not commit ROMs, saves, extracted copyrighted assets, or generated game-derived output.
+6. Keep generated bulk code/assets out of Git unless there is a specific reason to version them.
 7. Prefer deterministic tests over subjective "feels right" judgments.
 8. Document unknowns explicitly.
+9. Treat public-release hygiene as a separate gate from private research convenience.
 
 ## Current work
 
@@ -41,4 +44,4 @@ Start with `docs/WORK-QUEUE.md`. Important discoveries belong in `docs/RESEARCH-
 
 ## Status
 
-**Pre-bring-up scaffold.** No compatibility claim is made yet.
+**Analyzer bring-up in progress.** No compatibility claim is made yet.

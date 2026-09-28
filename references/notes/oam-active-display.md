@@ -41,3 +41,40 @@ Mike Dailly has also described DMA-era “sprite ripping” / raster manipulatio
 Before adding a compatibility hack to SNESRecomp, capture the game's HDMA writes to $2104 and the runtime's OAM behavior. The target should be a hardware-faithful explanation if practical, with a narrowly scoped compatibility path only if necessary.
 
 This is a particularly high-value early validation case because an incorrect implementation can look like a game/rendering bug while actually being a PPU timing/addressing mismatch.
+
+
+## jgenesis: precise Vs.-mode behavior
+
+jgenesis issue #164 and the corresponding modern sprite implementation substantially sharpen the model.
+
+The issue author reports that Uniracers writes OAMDATA during HBlank on scanlines 0 and 112 every frame, around H=282–284 in that emulator. The values are 0xA5 on line 0 and 0x5A on line 112, and both are expected to affect byte $18 of high OAM, which contains high-X and size/tile-selection bits for sprites 96–99.
+
+The intended display trick is very specific:
+
+- sprites 98–99 are visible only in the top half;
+- sprites 96–97 are visible only in the bottom half;
+- the line-0 write moves 96–97 offscreen and 98–99 onscreen;
+- the line-112 write reverses that arrangement.
+
+jgenesis models the relevant PPU behavior by retaining the OAM index of the last fetched sprite tile and using that index for mid-scanline OAM writes when no sprites were scanned in range. The source explicitly notes that Uniracers depends on this in Vs. mode.
+
+Mirrored source:
+`references/imported/emulators/jgenesis/sprites.rs`
+
+Issue:
+https://github.com/jsgroth/jgenesis/issues/164
+
+This is much more actionable than the older emulator hacks because it gives us expected scanlines, write values, affected sprite indices and the rendering intent.
+
+## Canoe / SNES Classic investigation
+
+A separate 2018 reverse-engineering effort by sluffy for Nintendo's Canoe emulator reportedly diagnosed essentially the same behavior. Contemporary discussion describes Uniracers as relying on four sprites arranged so that the last sprite accessed lands on the required OAM location. A later patch reportedly fixed the disappearing/ghost-racer behavior in 1P, 2P and Vs. modes.
+
+The surviving forum trail is useful even before the patch itself is recovered because it independently corroborates that the game's split-screen trick depends on the PPU's internal OAM-access state, not merely on ordinary OAM register semantics.
+
+## ZSNES history
+
+The mirrored ZSNES history records “Uniracers works in 2 player mode” in v1.337. That gives us a historical lower bound for when another emulator first corrected enough of the relevant behavior to make multiplayer functional.
+
+Mirrored history:
+`references/imported/emulators/zsnes/history.html`

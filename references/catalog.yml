@@ -231,3 +231,21 @@ sources:
     rights: "Unknown."
     local: "references/notes/tas-and-sram-research.md"
     relevance: "Reportedly contained before/during savestates for a fall-through/corner glitch."
+
+  - id: forestillusion-unirally-prototype-archive
+    title: "Unirally.6216.rar"
+    type: prototype_archive
+    url: "https://forestillusion.com/dumps/Super%20Nintendo%20Entertainment%20System/Unirally%20%28Europe%29%20%28Prototype%29/Unirally.6216.rar"
+    release_page: "https://forestillusion.com/2022/unirally-europe-prototype"
+    filename: "Unirally.6216.rar"
+    status: "exact public archive URL recovered; binary transfer not yet successful"
+    local: "references/notes/pal-prototype-acquisition.md"
+    relevance: "Released Nov 29 1994 PAL prototype for structured binary comparison."
+
+  - id: mame-0247-unirally-prototype
+    title: "MAME 0.247 Unirally prototype software-list addition"
+    type: emulator_metadata
+    url: "https://www.mamedev.org/?p=516"
+    rights: "MAME release metadata."
+    local: "references/notes/pal-prototype-acquisition.md"
+    relevance: "Independent record of Unirally (Euro, prototype) credited to Zoda-Y13 and Forest of Illusion; potential route to canonical ROM hashes."

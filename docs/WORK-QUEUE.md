@@ -27,6 +27,8 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 
 ## Phase 2 — First boot
 
+- [ ] Fix native-smoke executable discovery: current fallback selects CMake `CompilerIdCXX/a.out`, so the reported exit 164 is not a game-runtime result.
+- [ ] Launch the actual generated Uniracers native target under the smoke workflow.
 - [ ] Native window opens.
 - [ ] Reset vector executes.
 - [ ] DMA/HDMA initialization survives.

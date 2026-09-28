@@ -61,8 +61,8 @@ Investigate the historical Snes9x game-specific OAM/HDMA behavior.
 ## Recovered autonomous-player accelerator
 
 - [x] Locate public source for Dessyreqt's 2014 full-game real-time Uniracers bot (Pastebin `A0XpKw9v`).
-- [ ] Preserve the source and submitted #4250 SMV in the repository with hashes/provenance.
-- [ ] Verify the bot's key RAM labels against the canonical ROM/runtime.
+- [x] Preserve the source and submitted #4250 SMV in the repository with hashes/provenance.
+- [ ] Verify the bot's key RAM labels against the canonical ROM/runtime. The historical 2008 Microstorage WIP SMV has also been recovered and should be used as a second deterministic input corpus.
 - [ ] Port or translate its menu-driving policy into the native/snesref deterministic input harness.
 - [ ] Evaluate its race-driving policy as an autonomous regression workload.
 

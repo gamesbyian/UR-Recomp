@@ -59,3 +59,18 @@ Immediate correction:
 4. rerun the smoke test before drawing any runtime conclusions.
 
 Current interpretation: build viability is promising, but first boot has not yet genuinely been tested.
+
+
+## 2026-09-28 — Strict executable discovery exposes an earlier build dependency failure
+
+Workflow run 36490913616 removed the permissive executable fallback and required the scaffold's expected game target, `build/UniracersSNESRecomp`.
+
+Observed:
+- ROM verification succeeded.
+- Code generation succeeded and emitted eight generated C files.
+- the scaffold's internal build wrapper reported a warning rather than propagating configure failure;
+- CMake failed while configuring SDL3 because the Ubuntu runner lacked the XScreenSaver development package: `Couldn't find dependency package for XSCRNSAVER`;
+- consequently no game executable existed, and strict discovery failed as designed;
+- no native Uniracers code was launched, so there is still no genuine runtime result.
+
+Interpretation: this is a CI/toolchain dependency failure, not a game or SNESRecomp compatibility failure. The workflow now installs `libxss-dev` and has been rerun. Keep strict target discovery in place.

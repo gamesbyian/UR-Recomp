@@ -1,5 +1,31 @@
 {
-  "generated_utc": "2026-09-28T23:15:55Z",
+  "direct_downloads": [
+    {
+      "bytes": 30047,
+      "content_type": "text/plain; charset=utf-8",
+      "path": "references/recovered/tas-bot/uniracers-tabletop-bot-2014.lua",
+      "sha256": "9183b89f27e153b5db450134c00fb98f47d67c47e979a189ae51bcd8c06629c6",
+      "status": 200,
+      "url": "https://pastebin.com/raw/A0XpKw9v"
+    },
+    {
+      "bytes": 507032,
+      "content_type": "application/octet-stream",
+      "path": "references/recovered/tas-bot/tasvideos-4250-submission.smv",
+      "sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+      "status": 200,
+      "url": "https://tasvideos.org/4250S?handler=Download"
+    },
+    {
+      "bytes": 10542,
+      "content_type": "application/octet-stream",
+      "path": "references/recovered/tas-bot/uniracers-2008-wip-microstorage.smv",
+      "sha256": "61cafb40a32d13bc691e93034449f31c6537736aa6caa0e7d933450e2df269a0",
+      "status": 200,
+      "url": "http://dehacked.2y.net/microstorage.php/get/1674584940/Uniracers%20%28U%29%20%5B%21%5D.smv"
+    }
+  ],
+  "generated_utc": "2026-09-28T23:22:02Z",
   "live_probes": [
     {
       "bytes": 52,
@@ -82,7 +108,38 @@
       "url": "http://dscarroll.com/uniracerstas/FallThrough.ashx"
     }
   ],
-  "recovered": [],
+  "recovered": [
+    {
+      "bytes": 30047,
+      "content_type": "text/plain; charset=utf-8",
+      "original": "https://pastebin.com/raw/A0XpKw9v",
+      "path": "references/recovered/tas-bot/uniracers-tabletop-bot-2014.lua",
+      "sha256": "9183b89f27e153b5db450134c00fb98f47d67c47e979a189ae51bcd8c06629c6",
+      "status": 200,
+      "timestamp": "live",
+      "url": "https://pastebin.com/raw/A0XpKw9v"
+    },
+    {
+      "bytes": 507032,
+      "content_type": "application/octet-stream",
+      "original": "https://tasvideos.org/4250S?handler=Download",
+      "path": "references/recovered/tas-bot/tasvideos-4250-submission.smv",
+      "sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+      "status": 200,
+      "timestamp": "live",
+      "url": "https://tasvideos.org/4250S?handler=Download"
+    },
+    {
+      "bytes": 10542,
+      "content_type": "application/octet-stream",
+      "original": "http://dehacked.2y.net/microstorage.php/get/1674584940/Uniracers%20%28U%29%20%5B%21%5D.smv",
+      "path": "references/recovered/tas-bot/uniracers-2008-wip-microstorage.smv",
+      "sha256": "61cafb40a32d13bc691e93034449f31c6537736aa6caa0e7d933450e2df269a0",
+      "status": 200,
+      "timestamp": "live",
+      "url": "http://dehacked.2y.net/microstorage.php/get/1674584940/Uniracers%20%28U%29%20%5B%21%5D.smv"
+    }
+  ],
   "targets": [
     {
       "cdx": [],
@@ -93,18 +150,13 @@
       "url": "http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/Uniracers.html"
     },
     {
-      "cdx": [
-        {
-          "_body": "<urlopen error [Errno 111] Connection refused>",
-          "_error": "CDX HTTP 0"
-        }
-      ],
+      "cdx": [],
       "url": "http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/WRs.txt"
     },
     {
       "cdx": [
         {
-          "_body": "<urlopen error [Errno 111] Connection refused>",
+          "_body": "<urlopen error timed out>",
           "_error": "CDX HTTP 0"
         }
       ],
@@ -113,43 +165,28 @@
     {
       "cdx": [
         {
-          "_body": "<urlopen error [Errno 111] Connection refused>",
+          "_body": "<urlopen error timed out>",
           "_error": "CDX HTTP 0"
         }
       ],
       "url": "http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/Uniracers%20%28U%29%20%5B%21%5D%20%28Clean%29.srm"
     },
     {
-      "cdx": [
-        {
-          "_body": "<urlopen error [Errno 111] Connection refused>",
-          "_error": "CDX HTTP 0"
-        }
-      ],
+      "cdx": [],
       "url": "http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/Uniracers%20%28U%29%20%5B%21%5D%20%28Hacked%29.srm"
     },
     {
-      "cdx": [
-        {
-          "_body": "<urlopen error [Errno 111] Connection refused>",
-          "_error": "CDX HTTP 0"
-        }
-      ],
+      "cdx": [],
       "url": "http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/01%20-%20Dragster%20in%2023.46.avi"
     },
     {
-      "cdx": [
-        {
-          "_body": "<urlopen error [Errno 111] Connection refused>",
-          "_error": "CDX HTTP 0"
-        }
-      ],
+      "cdx": [],
       "url": "http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/02%20-%20Zoom%20Zoo%201st%20lap%20in%2023.97.avi"
     },
     {
       "cdx": [
         {
-          "_body": "<urlopen error _ssl.c:993: The handshake operation timed out>",
+          "_body": "<urlopen error timed out>",
           "_error": "CDX HTTP 0"
         }
       ],
@@ -161,21 +198,11 @@
     }
   ],
   "wildcards": {
-    "dehacked.2y.net/microstorage.php*1674584940*": [
-      {
-        "_body": "<urlopen error [Errno 111] Connection refused>",
-        "_error": "CDX HTTP 0"
-      }
-    ],
-    "dscarroll.com/uniracerstas/*": [
-      {
-        "_body": "<urlopen error [Errno 111] Connection refused>",
-        "_error": "CDX HTTP 0"
-      }
-    ],
+    "dehacked.2y.net/microstorage.php*1674584940*": [],
+    "dscarroll.com/uniracerstas/*": [],
     "halamantariel.homeip.net/speedruns/*": [
       {
-        "_body": "<urlopen error [Errno 111] Connection refused>",
+        "_body": "<urlopen error timed out>",
         "_error": "CDX HTTP 0"
       }
     ],

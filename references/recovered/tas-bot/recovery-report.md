@@ -1,12 +1,16 @@
 # Historical Uniracers bot/TAS recovery report
 
-Generated: 2026-09-28T23:15:55Z
+Generated: 2026-09-28T23:22:02Z
 
-- Targets probed: 10
-- Payloads recovered: 0
+- Direct downloads probed: 3
+- Archive targets probed: 10
+- Payloads recovered: 3
 
-No payload bytes were recovered in this run.
+## Recovered payloads
 
+- `references/recovered/tas-bot/uniracers-tabletop-bot-2014.lua` — 30047 bytes — SHA-256 `9183b89f27e153b5db450134c00fb98f47d67c47e979a189ae51bcd8c06629c6` — https://pastebin.com/raw/A0XpKw9v (live)
+- `references/recovered/tas-bot/tasvideos-4250-submission.smv` — 507032 bytes — SHA-256 `06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442` — https://tasvideos.org/4250S?handler=Download (live)
+- `references/recovered/tas-bot/uniracers-2008-wip-microstorage.smv` — 10542 bytes — SHA-256 `61cafb40a32d13bc691e93034449f31c6537736aa6caa0e7d933450e2df269a0` — http://dehacked.2y.net/microstorage.php/get/1674584940/Uniracers%20%28U%29%20%5B%21%5D.smv (live)
 ## Archive-index summary
 
 - `http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/usjo13.lua`: 0 unique successful CDX captures

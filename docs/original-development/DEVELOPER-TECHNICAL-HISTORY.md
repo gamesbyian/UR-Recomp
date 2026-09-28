@@ -220,3 +220,38 @@ These are tests, not assumed facts:
 8. Identify the audio driver and distinguish used from unused music.
 9. Compare the 1994-11-29 PAL prototype against USA retail at function/data-block granularity.
 10. Compare reconstructed startup/framework patterns with any recovered Dailly SNES framework source.
+
+
+## Second-pass archival leads
+
+### Dailly Flickr / YouTube preservation corpus
+
+Developer-confirmed. In September 2007 Mike Dailly said he had been looking out Uniracers pictures for an article, that he had far too much old DMA material for his planned DMA website, and that he was uploading old images to Flickr and DMA videos to YouTube. A later post says he still had "a stack of level building graphics" even after uploading much of the material.
+
+Sources:
+- https://dailly.blogspot.com/2007/
+- https://dailly.blogspot.com/2007/09/?m=0
+- historical Flickr account: https://www.flickr.com/photos/mikedailly/
+
+Implication: archived Flickr set IDs, image descriptions, original filenames, comments, and Wayback captures are a high-value search surface. "Level building graphics" may refer to multiple DMA games, so attribution must be verified per asset.
+
+### Steve Hammond as a second preservation node
+
+Developer-confirmed general DMA archive, not yet Uniracers-specific. In a 2016 interview Steve Hammond says he still has old graphics and photos, a number of game design/proposal documents, and complete source/assets for an unfinished DMA project. This demonstrates that his personal archive survived long after DMA.
+
+Source:
+- https://www.retrovideogamer.co.uk/rvg-interviews-steve-hammond/
+- Spanish mirror/transcription: https://www.elotrolado.net/hilo_entrevista-a-steve-hammond-programador-en-dma-design-lemmings-unirally-body-harvest_2184097
+
+Implication: search Hammond's published archive/blog material for Uniracers-era scans, filenames, faxes, design paperwork, or photos. Do not assume possession of Uniracers source.
+
+### Modern SNasm and SNES archaeology tools
+
+Mike Dailly currently distributes a modern SNasm supporting 65816. He describes it as his personal macro cross-assembler and elsewhere says the modern assembler descends from his older work. This is useful syntax/convention evidence but is not assumed source-compatible with the 1993 tool.
+
+- https://mdf200.itch.io/snasm
+
+Dailly also has a public fork of the DisPel 65816/SNES disassembler:
+- https://github.com/mikedailly/SNES-Disassembler
+
+This is not original DMA tooling, but may reveal his later preferred SNES-analysis workflow and is worth keeping as a reference rather than treating it as historical evidence about the 1994 build.

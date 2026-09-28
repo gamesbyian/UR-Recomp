@@ -313,3 +313,32 @@ sources:
       - "SOURCE/SUPERNES/RNC_2.S@0055f7fad678ef226757b3b7fa9fb06e48fc8929"
     rights: "Original manual: Copyright (c) 1991,92 Rob Northen Computing, All Rights Reserved. Public mirror preserved as historical research evidence."
     relevance: "Official ProPack 2.14 package with period SNES Method 1/2 decompressor source; directly testable against the RNC course-compression lead from Mike Dailly/Spinal."
+
+  - id: usjo13
+    title: "Uniracers Stunts & Jump Optimizer v13"
+    type: lua_tas_bot
+    url: "http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/usjo13.lua"
+    author: "Halamantariel"
+    public_date: "2008-02-14"
+    status: "exact historical filename/path recovered; file bytes not yet recovered"
+    local: "references/notes/tas-and-sram-research.md"
+    relevance: "Frame-perfect stunt-search bot; likely encodes physics/timing/RAM knowledge."
+
+  - id: halamantariel-boost-table
+    title: "Halamantariel Uniracers boost/mechanics table"
+    type: gameplay_reverse_engineering
+    url: "http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/Uniracers.html"
+    author: "Halamantariel"
+    status: "exact historical URL recovered; page bytes not yet recovered"
+    local: "references/notes/tas-and-sram-research.md"
+    relevance: "Reported boost table including head-bounce values and stunt-order optimization."
+
+  - id: halamantariel-wip-smv-1674584940
+    title: "Uniracers (U) [!].smv TAS WIP"
+    type: emulator_movie
+    url: "http://dehacked.2y.net/microstorage.php/info/1674584940/Uniracers%20%28U%29%20%5B%21%5D.smv"
+    author: "Halamantariel"
+    public_date: "2008-03-12"
+    status: "exact historical Microstorage ID/path recovered; file bytes not yet recovered"
+    local: "references/notes/tas-and-sram-research.md"
+    relevance: "Historical optimized SMV reportedly containing 23.56 Dragster and additional WIP input."

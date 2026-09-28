@@ -299,3 +299,17 @@ sources:
     status: "high-resolution originals indexed; MobyPlus download gate prevented direct acquisition in this pass"
     rights: "Packaging scans; research reference."
     relevance: "Official/semi-official printed course-map material that can be compared against ROM-extracted geometry and fan-stitched VGMaps."
+
+  - id: rnc-propack-214
+    title: "RNC ProPack 2.14"
+    type: compression_toolchain
+    url: "https://github.com/tobiasvl/rnc_propack"
+    revision: "08406a33e700aa33936e4c4800cd0887a468a31b"
+    imported: "references/imported/tools/rnc_propack-2.14/"
+    notable_files:
+      - "PPIBM.EXE@7f713d2df0ee67bcf5cb0f7c3aa695c8d119fe39"
+      - "PPAMI.EXE@6c7871675d983685c87460c5942759645aed302e"
+      - "SOURCE/SUPERNES/RNC_1.S@ad4f5c58590dcc1357fb01c138084ff78ad22d75"
+      - "SOURCE/SUPERNES/RNC_2.S@0055f7fad678ef226757b3b7fa9fb06e48fc8929"
+    rights: "Original manual: Copyright (c) 1991,92 Rob Northen Computing, All Rights Reserved. Public mirror preserved as historical research evidence."
+    relevance: "Official ProPack 2.14 package with period SNES Method 1/2 decompressor source; directly testable against the RNC course-compression lead from Mike Dailly/Spinal."

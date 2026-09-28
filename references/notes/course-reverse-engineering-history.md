@@ -39,3 +39,15 @@ This is not just historical trivia. It gives us several concrete hypotheses to r
 Until reproduced locally, these remain historical leads rather than canonical facts.
 
 See also: `docs/COURSE-FORMAT.md` and `docs/RESEARCH-LEDGER.md`.
+
+
+## Additional exact breadcrumbs from the archived thread
+
+The first page preserves several concrete addresses and observations worth testing directly:
+
+- ROM offset `0x108000` was called out because it contains repeated 8-byte structures such as `0F 04 1E 04 17 1E 00 00`, `10 04 1F 04 16 1E 00 00`, etc. Spinal initially suspected these might encode tile composition or palette-related structure. That interpretation was not established, but the address itself is a useful landmark.
+- During emulator tracing, a DMA source around `7E:2080` was observed in connection with the level/background tilemap path. The original discussion identifies the destination/register context as BG tilemap-related. This is RAM, not a direct ROM address, so the recommended technique was to trace the writes that populate that RAM region back to ROM/decompression code.
+- vSNES showed the level/background layer using an extended `64×64` tilemap in at least the inspected state.
+- The thread explicitly distinguishes rendered tile graphics from collision/physics information after destructive ROM corruption produced visual and physics changes independently.
+
+These are historical debugger breadcrumbs, not yet verified addresses for our supported ROM revision. They are good candidates for early trace labels once the recomp/disassembly environment is operational.

@@ -17,3 +17,23 @@ Uniracers has historically required special emulator handling around OAM/HDMA be
 ### Working rule
 
 Generated C is disposable. Permanent fixes belong in configuration, hand-authored integration code, or the underlying runtime/framework.
+
+## 2026-09-28 — ROM baseline established
+
+GitHub Actions run 36479306630 fingerprinted the tracked canonical ROM and ran the pinned framework's cartridge probe.
+
+Observed:
+
+- file size: 2,097,152 bytes (2 MiB)
+- CRC32: `383858c7`
+- SHA-1: `cb249cf7301bdd985e6fe4bc4c942bf4f86d7d83`
+- SHA-256: `859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478`
+- MD5: `1066cfd0c6be4dbdfede796751e801c5`
+- mapping: LoROM
+- region: USA
+- coprocessor: none
+- SRAM: 8 KiB
+- reset vector: `$8858`
+- SNES header checksum: valid
+
+This clears the basic cartridge-compatibility gate for SNESRecomp's documented standard LoROM support. It does not yet establish game execution compatibility.

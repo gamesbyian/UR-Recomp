@@ -120,3 +120,62 @@ sources:
     url: "https://www.dorando.at/"
     rights: "Indexed/summarized only."
     relevance: "Historical cross-emulator behavior can identify subsystems that were unusually difficult to emulate."
+
+  - id: jgenesis-uniracers-oam
+    title: "jgenesis Uniracers active-display OAM implementation"
+    type: emulator_source_and_issue
+    url: "https://github.com/jsgroth/jgenesis/issues/164"
+    source_url: "https://github.com/jsgroth/jgenesis/blob/d19ee94f64798946e30d8be7a3dc6f1f9f8732c8/backend/snes-core/src/ppu/sprites.rs"
+    revision: "d19ee94f64798946e30d8be7a3dc6f1f9f8732c8"
+    source_blob_sha: "f14736bc0e809dfef7223988194309c4ab78fcbb"
+    rights: "GPL-3.0-or-later upstream; source file mirrored verbatim for research."
+    imported: "references/imported/emulators/jgenesis/sprites.rs"
+    relevance: "Provides a modern hardware-model implementation and unusually precise observations of Uniracers' HBlank OAMDATA writes in Vs. mode."
+
+  - id: zsnes-uniracers-history
+    title: "ZSNES compatibility history"
+    type: emulator_history
+    url: "https://github.com/xyproto/zsnes/blob/35aad96d8e8a286d9999f9a8f44cfeff61237d34/doc/history.html"
+    revision: "35aad96d8e8a286d9999f9a8f44cfeff61237d34"
+    source_blob_sha: "1c42ca9b6c5ac577051595e31ef8544f4afffdac"
+    rights: "Upstream ZSNES project terms apply; mirrored for research."
+    imported: "references/imported/emulators/zsnes/history.html"
+    relevance: "Historical changelog records that Uniracers 2-player mode became functional in ZSNES v1.337."
+
+  - id: canoe-uniracers-fix-research
+    title: "SNES Classic / Canoe Uniracers compatibility investigation"
+    type: emulator_patch_history
+    url: "https://www.resetera.com/threads/snes-mini-classic-hacking-more-games-more-borders-more-gooder.625/page-66"
+    continuation_url: "https://www.resetera.com/threads/snes-mini-classic-hacking-more-games-more-borders-more-gooder.625/page-87"
+    authors_or_participants: ["sluffy", "Robin64", "ReyVGM", "SNES Classic hacking community"]
+    rights: "Forum material; rights unclear. Preserve any patch artifact if a surviving direct file is found."
+    relevance: "Independent reverse engineering of the same OAM-grid behavior; a working Canoe patch reportedly existed and fixed disappearing/ghost racer sprites."
+
+  - id: hidden-palace-uniracers-prototype
+    title: "Uniracers Nov 29 1994 European prototype"
+    type: prototype
+    url: "https://hiddenpalace.org/Uniracers_%28Nov_29%2C_1994_prototype%29"
+    build_date: "1994-11-29"
+    released_by: "Forest of Illusion"
+    dumped_by: "Zoda-Y13"
+    board: "SHVC-4PV5B-01"
+    labels: "UNIRALLY PAL"
+    rights: "Prototype ROM; ownership/redistribution status unclear. Publicly released research artifact. Mirror if direct artifact retrieval becomes technically available."
+    relevance: "Pre-release PAL build suitable for binary diffing against retail US and PAL releases."
+
+  - id: hidden-palace-dma-press-material
+    title: "DMA Design Miscellaneous Press Material"
+    type: archival_assets
+    url: "https://hiddenpalace.org/Assets/DMA_Design_Miscellaneous_Press_Material"
+    released_by: "Frank Cifaldi"
+    release_date: "2021-12-28"
+    rights: "Mixed archival press material; ownership varies. Preserve useful Uniracers subset if external mirror retrieval becomes technically available."
+    relevance: "Contains Uniracers/Unirally PR material sourced from DMA-era press kits and scans."
+
+  - id: regional-title-identities
+    title: "Regional ROM identity and title variants"
+    type: metadata
+    url: "https://dorando.emuverse.com/html/uniracers.html"
+    secondary_url: "https://superfamicom.org/info/uniracers"
+    rights: "Database metadata."
+    relevance: "USA internal title UNIRACERS; Europe internal title UNIRALLY; Europe retail hash and beta/prototype identities broaden search terms and binary comparison targets."

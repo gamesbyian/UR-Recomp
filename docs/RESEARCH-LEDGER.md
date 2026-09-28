@@ -78,3 +78,28 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Interpretation:** Even without trusting cheat descriptions blindly, these codes are a compact set of candidate ROM/RAM locations for quickly locating important gameplay systems.  
 **Discriminating test:** decode each Game Genie code to ROM addresses where applicable, classify RAM-vs-ROM effects, and verify each behavior against the supported ROM.  
 **Dependencies:** cheat-code format/version compatibility with the supported US ROM.
+
+
+### R-EXT-004 — Exact HBlank OAM writes in Vs. mode
+
+**Status:** supported  
+**Date:** 2026-09-28  
+**Area:** PPU | DMA/HDMA
+
+**Observation:** jgenesis issue #164 reports OAMDATA writes on scanlines 0 and 112 every frame, with values 0xA5 and 0x5A respectively. Both writes are expected to affect high-OAM byte $18, controlling sprites 96–99. The top-half/bottom-half split is implemented by alternately moving sprite pairs 96–97 and 98–99 on/off screen.  
+**Evidence:** jgenesis issue #164 and mirrored `references/imported/emulators/jgenesis/sprites.rs`.  
+**Interpretation:** This specifies the exact raster-time mechanism behind the long-known Uniracers OAM quirk and gives us concrete trace assertions for SNESRecomp.  
+**Discriminating test:** trace $2104 writes during Vs. mode and verify scanlines, values and resulting high-OAM location against these expectations.  
+**Dependencies:** supported ROM behaves equivalently to the version tested by jgenesis.
+
+### R-EXT-005 — Released PAL prototype exists
+
+**Status:** confirmed external artifact  
+**Date:** 2026-09-28  
+**Area:** other
+
+**Observation:** Hidden Palace lists a publicly released European prototype built 1994-11-29 from a 4-EPROM SHVC-4PV5B-01 board labelled UNIRALLY PAL.  
+**Evidence:** `references/catalog.yml` entry `hidden-palace-uniracers-prototype`.  
+**Interpretation:** Binary-diffing this build against retail PAL and US versions could reveal late changes to physics, content, censoring, region logic, compression tables or rendering workarounds.  
+**Discriminating test:** acquire the prototype artifact, hash it, identify header/version differences and perform structured binary/behavioral diffs.  
+**Dependencies:** exact public prototype file retrieval.

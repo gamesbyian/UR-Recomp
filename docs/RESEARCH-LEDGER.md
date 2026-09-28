@@ -314,3 +314,22 @@ USA retail, the legacy beta, and the 1994-11-29 PAL prototype have identical dec
 **Discriminating test:** characterize record structure in decoded bytes and map at least one stream to an independently known course; compare the seven PAL deltas structurally after the record format is understood.
 
 **Dependencies:** semantic mapping of stream ordinal to course/content identity remains unresolved.
+
+
+### R-SEED-011 — Shipped RNC1 unpacker identified in ROM code
+
+**Status:** confirmed  
+**Date:** 2026-09-28  
+**Area:** CPU | compression | course
+
+**Observation:** a masked opcode signature derived from the preserved 1992 Super NES ProPack Method 1 source, `references/imported/tools/rnc_propack-2.14/SOURCE/SUPERNES/RNC_1.S`, produces one unpacker-entry hit per preserved build. The USA retail and legacy beta entry is ROM offset `0x00B8F1` (LoROM `01:B8F1`); Europe retail is `0x00B8E2` (`01:B8E2`); the 1994-11-29 PAL prototype is `0x00B8D1` (`01:B8D1`). Surrounding instructions reproduce the period routine's distinctive entry sequence: `REP $39`, stack-relative source/destination argument loads, direct-page stores, `PHB/XBA/PHA/PLB/PLB`, input pointer adjustment by 17 bytes, block-count read, bit-buffer initialization, and calls into the Huffman/bit-reader machinery.
+
+The same search also finds the expected Huffman-builder-shaped code later in the routine region, with build-relative address shifts consistent with the unpacker entry shifts.
+
+**Evidence:** `analysis/generated/rnc-decoder-signature-search.md`; generator `tools/find_rnc_decoder_signature.py`; preserved period source `references/imported/tools/rnc_propack-2.14/SOURCE/SUPERNES/RNC_1.S`.
+
+**Interpretation:** Uniracers/Unirally contains a directly recognizable integration of Rob Northen's SNES Method 1 unpacker, rather than merely a format-compatible independent decoder. Build-to-build movement of the routine provides an additional code-alignment landmark.
+
+**Discriminating test:** map direct callers and packed-stream pointer references, then trace one course-load path from a caller through `RNC1_Unpack` into the decoded WRAM buffer.
+
+**Dependencies:** LoROM address notation uses the low-bank mirror; equivalent high-bank mirrors may appear in call operands.

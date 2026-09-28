@@ -40,3 +40,5 @@ External references are leads. Concrete project claims should be reproduced loca
 - RetroAchievements RAM-address evidence: `references/notes/retroachievements-ram.md` and mirrored `references/imported/retroachievements/1295.json`.
 - Historical Snes9x 1.43-era source/problem snapshots: `references/imported/emulators/snes9x-1.43/`.
 - Manual and PAL course-map scan sources are tracked in `references/catalog.yml`.
+
+- RNC ProPack 2.14 historical toolchain, including original DOS packers and SNES Method 1/2 decoders: `references/imported/tools/rnc_propack-2.14/`.

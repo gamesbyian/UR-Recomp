@@ -41,3 +41,9 @@ If a source disappears, use an archived copy and record both original and archiv
 | OD-021 | https://lemmings.info/creating-a-commodore-64-emulator-in-gamemaker-part-6/ | Mike Dailly, first-hand technical retrospective | Explains sprite ripping mechanism, says Uniracers used it on SNES, black separator lines were aesthetic | Strong technical evidence |
 | OD-022 | https://www.lemon64.com/forum/viewtopic.php?p=325237 | Mike Dailly, first-hand | General SNES sprite/VRAM timing comments from an experienced DMA SNES coder | Context |
 | OD-023 | https://dmadesign.wordpress.com/ | Steve Hammond, first-hand archive/blog | Points to Dailly's historical DMA site as a detailed technical record; useful dead-site/Wayback lead | Archival lead |
+
+| OD-024 | https://csdb.dk/release/?id=57677 | Preservation record | SNasm 1.7.1, 2007-11-30; preserves original javalemmings download URL and CSDb mirror | Historical binary acquisition attempted |
+| OD-025 | https://dailly.blogspot.com/2007/07/snasm-65816-support.html | Mike Dailly, first-hand | Documents 65816 syntax/state directives including LongA/LongI and opt A65816 | Strong assembler-lineage evidence |
+| OD-026 | https://dailly.blogspot.com/2007/ | Mike Dailly, first-hand | Says SNasm release has substantial 65816 support and debugger symbol output | Strong assembler-lineage evidence |
+| OD-027 | https://dailly.blogspot.com/2008/05/ | Mike Dailly, first-hand | Announces 2008 SNasm release fixing misspelled 65816 opcodes | Strong release evidence |
+| OD-028 | https://plus4world.powweb.com/tools/all/Windows/3 | Preservation index | Records SNasm 1.7.2 dated 2008-05-10 | Historical binary lead |

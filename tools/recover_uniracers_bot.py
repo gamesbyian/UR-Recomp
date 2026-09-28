@@ -19,6 +19,7 @@ OUT.mkdir(parents=True, exist_ok=True)
 DIRECT_DOWNLOADS = [
     ("https://pastebin.com/raw/A0XpKw9v", "uniracers-tabletop-bot-2014.lua"),
     ("https://tasvideos.org/4250S?handler=Download", "tasvideos-4250-submission.smv"),
+    ("http://dehacked.2y.net/microstorage.php/get/1674584940/Uniracers%20%28U%29%20%5B%21%5D.smv", "uniracers-2008-wip-microstorage.smv"),
 ]
 
 TARGETS = [

@@ -255,3 +255,46 @@ Dailly also has a public fork of the DisPel 65816/SNES disassembler:
 - https://github.com/mikedailly/SNES-Disassembler
 
 This is not original DMA tooling, but may reveal his later preferred SNES-analysis workflow and is worth keeping as a reference rather than treating it as historical evidence about the 1994 build.
+
+
+## Third-pass technical evidence
+
+### Direct 2008 scanline statement from Dailly
+
+In a 2008 Lemon64 discussion, Mike Dailly explicitly says that on SNES Nintendo was not keen on developers changing things "on a scanline basis", that DMA did exactly that for Uniracers, and that the technique had to be verified by Nintendo R&D.
+
+Source:
+- https://www.lemon64.com/forum/viewtopic.php?sid=36bb321ef89b54d4d24309d3388276a0&start=30&t=27153
+
+This is stronger than a later emulator inference because it directly establishes intentional per-scanline state changes in the shipped technique.
+
+### Dailly identifies the technique as sprite ripping
+
+In a September 2008 blog post, Dailly says the Uniracers split-screen system used an old C64 trick of "ripping sprites" to achieve perfect splits and that Nintendo R&D had to verify it.
+
+Source:
+- https://dailly.blogspot.com/2008/09/
+
+In a later technical article about C64 emulation, Dailly explains sprite ripping more concretely: change a sprite's position while the raster is drawing it so different portions of the sprite are effectively rendered at different positions. He says Uniracers used the same trick on SNES, that Nintendo had not seen it before, and that the two black separator lines were aesthetic rather than required.
+
+Source:
+- https://lemmings.info/creating-a-commodore-64-emulator-in-gamemaker-part-6/
+
+Implication for reverse engineering: the target is not merely generic HDMA usage. Instrument scanline-timed writes to OAM-related state / sprite positions and correlate them with viewport boundaries.
+
+### Dailly's own SNES hardware comments
+
+In the same Lemon64 discussion family, Dailly describes SNES sprite limits and notes that sprite positions can be changed on the fly despite hardware sprite multiplexing. These comments are general SNES-development context rather than Uniracers-specific implementation detail, but they reinforce the plausibility of the split-screen method.
+
+Sources:
+- https://www.lemon64.com/forum/viewtopic.php?p=325237
+- https://www.lemon64.com/forum/viewtopic.php?p=325840
+
+### Historical DMA archive sites
+
+Steve Hammond described Mike Dailly's old dmadesign.org site as a detailed and unusually technical record of DMA development history.
+
+Source:
+- https://dmadesign.wordpress.com/
+
+The old site and javalemmings mirrors should be treated as archival search surfaces even where modern indexing is poor. Historic paths referenced elsewhere include chapter-style pages such as javalemmings.com/DMA/DMA4_1.htm.

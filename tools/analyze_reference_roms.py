@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Static archaeological baseline; safe to rerun whenever reference ROMs change.
 from pathlib import Path
 import hashlib
 

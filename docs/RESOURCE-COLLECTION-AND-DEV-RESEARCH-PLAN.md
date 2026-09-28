@@ -6,7 +6,7 @@ This document is the canonical plan for combining external-resource collection, 
 
 ## Objective
 
-The end-to-end widescreen/HD product architecture is owned by `docs/WIDESCREEN-HD-REMASTER-PLAN.md`. This document owns the research and evidence program that unlocks that plan.
+The end-to-end product architecture is owned by `docs/PROJECT-PLAN.md`. This document owns the research and evidence program that unlocks that plan.
 
 Reach a trustworthy native execution of Uniracers while progressively converting external evidence into reproducible knowledge of the ROM, especially course data, renderer/OAM behavior, player-state addresses, protection paths, and original DMA tooling conventions.
 

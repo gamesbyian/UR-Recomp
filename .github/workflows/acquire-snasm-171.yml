@@ -1,0 +1,45 @@
+name: Acquire historical SNasm 1.7.1
+
+on:
+  push:
+    paths:
+      - ".github/workflows/acquire-snasm-171.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  acquire:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download preserved SNasm 1.7.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reference/tools/snasm/historical
+          DEST="reference/tools/snasm/historical/snasm-1.7.1-2007-11-30.zip"
+          URL1="https://csdb.dk/getinternalfile.php/49921/snasm1.7.1.zip"
+          URL2="http://www.javalemmings.com/minus4/files/snasm1.7.1.zip"
+          if ! curl -fL --retry 2 --connect-timeout 20 --max-time 120 "$URL1" -o "$DEST"; then
+            curl -fL --retry 2 --connect-timeout 20 --max-time 120 "$URL2" -o "$DEST"
+          fi
+          test -s "$DEST"
+          file "$DEST"
+          unzip -t "$DEST"
+          sha256sum "$DEST" | tee reference/tools/snasm/historical/snasm-1.7.1-2007-11-30.sha256
+          echo "== contents =="
+          unzip -l "$DEST"
+
+      - name: Commit preserved tool
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f reference/tools/snasm/historical/
+          git commit -m "Archive preserved SNasm 1.7.1 (2007)" || exit 0
+          git push

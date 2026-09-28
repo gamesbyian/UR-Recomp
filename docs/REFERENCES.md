@@ -36,3 +36,7 @@ External references are leads. Concrete project claims should be reproduced loca
 
 - Recovered Canoe patch and byte-level analysis: `references/imported/patches/uniracers_canoe.md`.
 - TAS/SRAM/bot/course-map archaeology: `references/notes/tas-and-sram-research.md`.
+
+- RetroAchievements RAM-address evidence: `references/notes/retroachievements-ram.md` and mirrored `references/imported/retroachievements/1295.json`.
+- Historical Snes9x 1.43-era source/problem snapshots: `references/imported/emulators/snes9x-1.43/`.
+- Manual and PAL course-map scan sources are tracked in `references/catalog.yml`.

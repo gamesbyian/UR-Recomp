@@ -32,7 +32,7 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 - [x] Native window opens under Xvfb (960×720 reported by host).
 - [x] Native main loop enters and first frame simulates; treat this as execution bring-up cleared, while exact reset-vector tracing remains available if needed.
 - [x] First simulated frame and audio callback complete without a reported DMA/HDMA initialization failure.
-- [ ] Title/logo sequence appears.
+- [x] Title/logo sequence appears and frame 300 has been visually verified from the actual native target.
 - [ ] Input reaches menus.
 - [ ] A mode can be selected.
 
@@ -113,7 +113,7 @@ See docs/original-development/.
 - [x] Fingerprint the PAL prototype and record header/mapping metadata; extend vector reporting if useful.
 - [x] Generate first structural PAL-prototype vs USA-retail diff report.
 - [x] Acquire, organize and fingerprint PAL retail and the historical GoodSNES-listed beta image.
-- [ ] Generate four-build differential comparison, prioritizing USA retail vs legacy beta and PAL retail vs 1994-11-29 prototype.
+- [x] Generate four-build differential comparison, including USA retail vs legacy beta and PAL retail vs 1994-11-29 prototype.
 - [x] Inspect DMA press-material archive; retain/upload the Uniracers PDF judged relevant.
 - [ ] Continue hunt for Mike Dailly's historical SNES framework source.
 - [ ] Search for binaries/source/screenshots of SNasm, Unicycle Compression, level editor, A0 plotter, graphics/MIDI converters and Amiga/SNES link.

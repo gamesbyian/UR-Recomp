@@ -82,3 +82,20 @@ Hidden Palace documents a European prototype from a four-EPROM SHVC-4PV5B-01 dev
 
 **Evidence:** OD-007.  
 **Action:** acquire, hash, normalize, and diff against canonical USA retail at byte, block, pointer-table and disassembly levels.
+
+
+### R-SEED-008 — Intentional per-scanline sprite-state changes
+
+**Status:** strong developer-confirmed historical behavior  
+**Date:** 2026-09-28  
+**Area:** PPU | DMA/HDMA
+
+**Observation:** Mike Dailly explicitly states that Uniracers changed SNES state on a scanline basis, and separately identifies the split-screen method as C64-style sprite ripping. His later technical explanation describes changing sprite position while the raster is drawing it and says the Uniracers implementation required Nintendo R&D hardware verification.
+
+**Evidence:** OD-019 through OD-021 in docs/original-development/SOURCE-INDEX.md.
+
+**Interpretation:** the two-player renderer deliberately changes sprite/OAM-related state within the visible frame to obtain a clean viewport split.
+
+**Discriminating test:** trace writes to OAM address/data and any DMA/HDMA or sprite-position state around the split scanlines; compare one-player and two-player modes; correlate exact scanlines with visible sprite discontinuities.
+
+**Dependencies:** the later explanatory article accurately describes the same shipped implementation Dailly referenced in 2008.

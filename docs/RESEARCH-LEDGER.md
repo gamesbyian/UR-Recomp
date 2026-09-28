@@ -178,3 +178,28 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Interpretation:** We now have period reference implementations suitable for structural comparison with the Uniracers ROM. This can independently test the historical claim that course data uses RNC and determine the exact method/variant.  
 **Discriminating test:** locate candidate RNC records and the ROM decompressor, compare against both supplied SNES implementations, then decompress one candidate and connect it to a known course load.  
 **Dependencies:** The public 2.14 package may not be the exact ProPack revision used by DMA Design, so algorithmic agreement matters more than byte-identical source.
+
+
+### R-EXT-012 — TAS-native WRAM watch addresses
+
+**Status:** supported historical lead  
+**Date:** 2026-09-28  
+**Area:** RAM | physics | camera
+
+**Observation:** Halamantariel published an explicit Snes9x memory-watch list used during Uniracers TAS work: `7E:04B7` signed 16-bit speed, `7E:11CD` unsigned 16-bit boost meter, `7E:0411`/ `7E:0415` unsigned 16-bit X/Y position, `7E:1509` screen-X, plus one-byte stunt counters at `7E:11FD`, `7E:11F9`, `7E:0F61`, `7E:042B`, and `7E:042F`.  
+**Evidence:** `references/notes/tas-and-sram-research.md`; TASVideos Uniracers topic post dated 2008-03-12.  
+**Interpretation:** These provide directly named native WRAM watchpoints for core movement/boost/stunt state and are prime anchors for symbol reconstruction.  
+**Discriminating test:** watch each address during controlled gameplay and verify direction, units, signedness and reset/update behavior.  
+**Dependencies:** Snes9x memory-domain notation is interpreted as native banks `7E/7F`; exact supported US ROM should be verified.
+
+### R-EXT-013 — USJO v13 exact filename and behavioral role
+
+**Status:** supported historical lead; artifact missing  
+**Date:** 2026-09-28  
+**Area:** physics | RAM | other
+
+**Observation:** The 2008 Snes9x Lua-development thread links `usjo13.lua` under the title “Uniracers Stunts & Jump Optimizer v13.” Its author describes it as starting before a jump, intelligently trying stunt combinations, optimizing for speed and replaying the best input.  
+**Evidence:** `references/notes/tas-and-sram-research.md`; historical direct URL preserved in `references/catalog.yml`.  
+**Interpretation:** Recovering this exact script could expose the evaluator, search strategy, RAM accesses, stunt grammar and timing assumptions used by an expert TASer.  
+**Discriminating test:** recover the byte-identical script from an archive/mirror and inspect all memory reads and scoring rules.  
+**Dependencies:** surviving archive of the former obellemare.com speedruns directory.

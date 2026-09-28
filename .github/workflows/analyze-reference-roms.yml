@@ -7,6 +7,7 @@ on:
       - "tools/compare_reference_roms.py"
       - "tools/rnc_method1.py"
       - "tools/analyze_rnc_streams.py"
+      - "tools/inspect_rnc_payloads.py"
       - "reference/roms/**"
       - ".github/workflows/analyze-reference-roms.yml"
   workflow_dispatch:
@@ -23,6 +24,7 @@ jobs:
           python tools/analyze_reference_roms.py
           python tools/compare_reference_roms.py
           python tools/analyze_rnc_streams.py
+          python tools/inspect_rnc_payloads.py
       - name: Commit reports
         run: |
           git config user.name "github-actions[bot]"
@@ -32,5 +34,6 @@ jobs:
           git add -f analysis/generated/reference-rom-comparison.md
           git add -f analysis/generated/rnc-stream-manifest.json
           git add -f analysis/generated/rnc-stream-manifest.md
+          git add -f analysis/generated/rnc-payload-structure.md
           git commit -m "Generate reference ROM analysis" || exit 0
           git push

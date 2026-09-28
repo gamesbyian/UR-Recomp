@@ -42,7 +42,7 @@ The framework revision is pinned by the repository rather than floating on upstr
 
 ## Current work
 
-Agents should start with `AGENTS.md`, which routes tasks to the smallest current authority. For human project orientation, start with `docs/WIDESCREEN-HD-REMASTER-PLAN.md`, `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md`, and `docs/WORK-QUEUE.md`. Tool selection/bootstrap is documented in `docs/TOOLCHAIN.md`.
+Agents should start with `AGENTS.md`, which routes tasks to the smallest current authority. For human project orientation, start with `docs/PROJECT-PLAN.md`, `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md`, and `docs/WORK-QUEUE.md`. Tool selection/bootstrap is documented in `docs/TOOLCHAIN.md`.
 
 ## Status
 

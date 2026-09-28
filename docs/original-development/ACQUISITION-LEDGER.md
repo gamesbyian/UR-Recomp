@@ -192,3 +192,51 @@ Acquired: 2026-09-28
 Observation: the bytes exactly match the historical GoodSNES-listed beta fingerprint. The image is 2 MiB, has internal title `UNIRACERS`, USA/NTSC region byte `0x01`, version 0, reset vector `$8858`, header checksum/complement `0x039B/0xFC64`, and 45 plausible RNC Method 1 streams. The matching header fields with USA retail are observations only and do not establish whether this is a genuine prerelease, a modified retail image, or another historical dump category.
 
 Next action: perform byte/run/RNC comparison against USA retail and seek distinguishing build/provenance evidence only if the binary differences make that materially useful.
+
+
+## A-013 — Dessyreqt 2014 autonomous Uniracers bot and submitted movie
+
+Priority: critical for deterministic bring-up and validation  
+Status: acquired and committed  
+Retrieved: 2026-09-28
+
+Public bot source:
+- title: `Uniracers Tabletop bot`
+- author: Dessyreqt
+- source: https://pastebin.com/A0XpKw9v
+- associated TASVideos submission: https://tasvideos.org/4250S
+- repository path: `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`
+- exact size: 30,047 bytes
+- SHA-256: `9183b89f27e153b5db450134c00fb98f47d67c47e979a189ae51bcd8c06629c6`
+
+Submitted SMV:
+- source: https://tasvideos.org/4250S?handler=Download
+- repository path: `references/imported/tas-bots/dessyreqt-4250-submission.smv`
+- exact size: 507,032 bytes
+- SHA-256: `06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442`
+
+TASVideos describes the Lua as a bot capable of completing the game without savestate search and adjustable for human-vs-bot play. The recovered source contains frontend automation, labeled RAM addresses, internal track IDs, and course-specific control regions. Treat labels as historical working evidence until locally reproduced.
+
+Rights: explicit redistribution license not identified; retained as third-party evidence in this private research repository.
+
+## A-014 — Halamantariel 2008 Uniracers TAS WIP SMV
+
+Priority: high  
+Status: acquired and committed  
+Retrieved: 2026-09-28
+
+Historical info URL:
+`http://dehacked.2y.net/microstorage.php/info/1674584940/Uniracers%20%28U%29%20%5B%21%5D.smv`
+
+Recovered from the still-live Microstorage direct-download form:
+`http://dehacked.2y.net/microstorage.php/get/1674584940/Uniracers%20%28U%29%20%5B%21%5D.smv`
+
+Repository path:
+`references/imported/tas-bots/uniracers-2008-wip-microstorage.smv`
+
+Exact size: 10,542 bytes  
+SHA-256: `61cafb40a32d13bc691e93034449f31c6537736aa6caa0e7d933450e2df269a0`
+
+Historical discussion identifies this as an optimized WIP containing the 23.56 Dragster work and additional progress. It is valuable as an independent deterministic input corpus and a bridge to the earlier USJO/TAS workflow.
+
+Rights: explicit redistribution license not identified; retained as third-party evidence in this private research repository.

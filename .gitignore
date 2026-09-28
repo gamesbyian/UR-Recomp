@@ -5,8 +5,14 @@
 *.swc
 *.rom
 
-# Intentional private-project exception: canonical project input
-!Uniracers (USA).sfc
+# Intentional private-project exceptions: preserved project inputs
+!reference/
+!reference/roms/
+!reference/roms/retail/
+!reference/roms/prototypes/
+!reference/roms/source-archives/
+!reference/roms/retail/Uniracers_USA.sfc
+!reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc
 
 rom/
 roms/

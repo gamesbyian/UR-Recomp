@@ -16,11 +16,15 @@ The following are considered established unless contradicted by stronger evidenc
 
 - Canonical USA retail ROM is fingerprinted and machine-verifiable.
 - November 29, 1994 PAL prototype is preserved and fingerprinted.
+- Europe retail and the historical GoodSNES-listed `Uniracers (Beta)` images are also preserved, fingerprinted, and organized under `reference/roms/`.
+- A deterministic four-build comparison is generated at `analysis/generated/reference-rom-comparison.md`.
+- USA retail vs the legacy beta differs in only 486 isolated one-byte positions; all 45 RNC streams are byte-identical at the same offsets.
+- Europe retail retains 38 of the 45 RNC streams byte-for-byte but changes seven ordinal streams: 4, 16, 20, 26, 27, 35 and 36.
 - The retail and prototype ROMs are both 2 MiB LoROM builds.
 - Structural comparison is generated at `analysis/generated/retail-vs-prototype-structure.md`.
 - Both ROMs contain exactly 45 valid RNC streams.
 - All 45 streams use RNC Method 1.
-- All 45 streams occur at identical offsets and have matching packed/unpacked sizes and CRCs across the two builds.
+- All 45 streams occur at identical offsets and have matching packed/unpacked sizes and CRCs across USA retail and the 1994-11-29 PAL prototype. Europe retail relocates most streams after seven content/size changes, so cross-build RNC matching must use content fingerprints rather than offsets alone.
 - The RNC corpus begins at `0x0C0000` and extends through the last stream beginning at `0x0FB9D7`.
 - Period RNC ProPack 2.14 source, including SNES Method 1 and Method 2 unpackers, is preserved under `references/imported/tools/rnc_propack-2.14/`.
 - The active-display OAM / split-screen behavior is supported by independent emulator implementations and first-hand Mike Dailly testimony describing scanline-based C64-style sprite ripping.
@@ -74,12 +78,14 @@ Actions:
 
 Exit condition: a parser can turn one or more ROM course records into a documented structural representation that matches gameplay/reference maps.
 
-### 4. Use the PAL prototype as a targeted differential oracle
+### 4. Use all preserved builds as targeted differential oracles
 
-Do not treat the prototype as an alternate course corpus: the 45 RNC streams are invariant.
+USA retail and the 1994-11-29 PAL prototype share the complete 45-stream packed corpus, while Europe retail changes seven streams and the legacy beta differs from USA retail only outside that corpus.
 
 Actions:
-- classify the largest diff runs outside the RNC region;
+- classify the 486 isolated USA-retail vs legacy-beta byte changes;
+- independently decode and compare PAL retail streams 4, 16, 20, 26, 27, 35 and 36 against their USA/prototype counterparts;
+- classify the largest executable/data diff runs outside the RNC region;
 - prioritize code-shaped differences and regions near known hooks/entry points;
 - identify regional timing, frontend/text, protection, late fixes, graphics/audio, and table changes;
 - use shared code blocks to align functions and changed blocks to expose boundaries;
@@ -199,4 +205,6 @@ The agent should move between these tracks based on evidence and blockers rather
 - `docs/original-development/SOURCE-INDEX.md` — source provenance.
 - `docs/original-development/ACQUISITION-LEDGER.md` — missing/acquired artifacts.
 - `references/catalog.yml` and `references/notes/` — external-source corpus.
-- `analysis/generated/retail-vs-prototype-structure.md` — current structural ROM comparison.
+- `analysis/generated/retail-vs-prototype-structure.md` — original USA-retail vs PAL-prototype structural comparison.
+- `analysis/generated/reference-rom-inventory.md` — exact local identities for all preserved ROMs.
+- `analysis/generated/reference-rom-comparison.md` — current four-build pairwise and RNC comparison.

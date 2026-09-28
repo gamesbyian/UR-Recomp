@@ -1,0 +1,70 @@
+name: Extract preserved prototype ROM
+
+on:
+  push:
+    paths:
+      - "reference/roms/source-archives/Unirally_1994-11-29_PAL_prototype.rar"
+      - ".github/workflows/extract-prototype-rom.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install RAR extraction support
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y p7zip-full
+
+      - name: Extract prototype
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARCHIVE="reference/roms/source-archives/Unirally_1994-11-29_PAL_prototype.rar"
+          OUT="$RUNNER_TEMP/unirally-prototype"
+          mkdir -p "$OUT"
+          7z x -y "$ARCHIVE" -o"$OUT"
+          echo "== archive contents =="
+          find "$OUT" -type f -printf '%P\t%s bytes\n' | sort
+
+          ROM="$(find "$OUT" -type f \( -iname '*.sfc' -o -iname '*.smc' -o -iname '*.bin' \) -size +1M -size -4M | head -n 1)"
+          test -n "$ROM"
+
+          DEST="reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc"
+          mkdir -p "$(dirname "$DEST")"
+          cp "$ROM" "$DEST"
+
+          echo "== extracted ROM =="
+          ls -l "$DEST"
+          sha256sum "$DEST"
+          sha1sum "$DEST"
+          md5sum "$DEST"
+          python3 - "$DEST" <<'PY'
+          import sys,zlib
+          from pathlib import Path
+          p=Path(sys.argv[1]); d=p.read_bytes()
+          print(f"crc32={zlib.crc32(d)&0xffffffff:08x}")
+          print(f"size={len(d)}")
+          PY
+
+      - name: Commit extracted prototype
+        shell: bash
+        run: |
+          set -euo pipefail
+          DEST="reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc"
+          if git diff --quiet -- "$DEST" && git ls-files --error-unmatch "$DEST" >/dev/null 2>&1; then
+            echo "Prototype already tracked with no changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST"
+          git commit -m "Extract preserved 1994-11-29 PAL prototype"
+          git push

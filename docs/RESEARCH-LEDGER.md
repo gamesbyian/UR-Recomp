@@ -152,3 +152,16 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Interpretation:** These maps can serve as independent geometric ground truth for a ROM course extractor and may connect directly to the hand-made maps mentioned in the historical level-viewer investigation.  
 **Discriminating test:** reproduce a course from ROM data and align its topology/segment ordering against the corresponding map.  
 **Dependencies:** obtain direct image files or sufficient map access for pixel-level comparison.
+
+
+### R-EXT-010 — RetroAchievements independently corroborates progression RAM and exposes stunt-state RAM
+
+**Status:** supported  
+**Date:** 2026-09-28  
+**Area:** RAM | physics | other
+
+**Observation:** A public snapshot of the Uniracers RetroAchievements set contains 24 raw memory-condition definitions. Its medal addresses at `0x02069C`, `0x0206AC`, ... `0x02071C` independently match Halamantariel's historical per-tour medal offsets. It additionally exposes a dense stunt-state block from `0x02076B` through `0x0207AF` and per-tour five-byte state groups from `0x021075` through `0x0210A1`.  
+**Evidence:** `references/imported/retroachievements/1295.json` and `references/notes/retroachievements-ram.md`.  
+**Interpretation:** These are high-value watchpoints for reconstructing stunt and race state because they were used in live achievement conditions, not merely guessed from static inspection.  
+**Discriminating test:** instrument the supported ROM while deliberately triggering one stunt/result at a time and map exact transition semantics.  
+**Dependencies:** RetroAchievements' SNES address-domain mapping must be translated correctly to native WRAM/SRAM addresses.

@@ -1,4 +1,4 @@
-# Widescreen Architecture
+# Widescreen Feature Architecture
 
 The canonical end-to-end project strategy is `docs/PROJECT-PLAN.md`. This document owns the **Widescreen** feature specifically: implementation notes for expanding the logical horizontal view beyond the original 4:3 presentation.
 
@@ -6,7 +6,7 @@ The canonical end-to-end project strategy is `docs/PROJECT-PLAN.md`. This docume
 
 Increase presentation width while keeping original simulation semantics.
 
-Original 4:3 remains the canonical regression mode. With widescreen disabled, defined deterministic routes must remain equivalent to the stock native/reference path.
+Original 4:3 remains the canonical regression mode. With the Widescreen feature disabled, defined deterministic routes must remain equivalent to the stock native/reference path.
 
 ## Systems to map before widening
 
@@ -56,10 +56,10 @@ Do not:
 - alter race timing, RNG or AI as a side effect of presentation;
 - activate progression records early;
 - infer collision from replacement artwork;
-- stretch a 4:3 framebuffer and call it widescreen;
+- stretch a 4:3 framebuffer and call it the Widescreen feature;
 - replace the whole renderer before stock world/camera/sprite boundaries are mapped.
 
-## First widescreen gate
+## First Widescreen feature gate
 
 Before implementation, establish:
 

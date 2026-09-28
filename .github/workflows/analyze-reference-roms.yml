@@ -15,6 +15,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: analyze-reference-roms
+  cancel-in-progress: true
 jobs:
   analyze:
     if: github.actor != 'github-actions[bot]'
@@ -42,4 +45,5 @@ jobs:
           git add -f analysis/generated/rnc-decoder-signature-search.md
           git add -f analysis/generated/rnc-code-reference-map.md
           git commit -m "Generate reference ROM analysis" || exit 0
+          git pull --rebase origin main
           git push

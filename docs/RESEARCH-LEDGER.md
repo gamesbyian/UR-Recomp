@@ -276,3 +276,22 @@ Hidden Palace documents a European prototype from a four-EPROM SHVC-4PV5B-01 dev
 **Discriminating test:** trace writes to OAM address/data and any DMA/HDMA or sprite-position state around the split scanlines; compare one-player and two-player modes; correlate exact scanlines with visible sprite discontinuities.
 
 **Dependencies:** the later explanatory article accurately describes the same shipped implementation Dailly referenced in 2008.
+
+
+### R-SEED-009 — Four-build differential ROM corpus
+
+**Status:** confirmed at byte-identity level  
+**Date:** 2026-09-28  
+**Area:** other | compression
+
+**Observation:** the local reference set now contains four verified 2 MiB images: USA retail, Europe retail, the historical GoodSNES-listed `Uniracers (Beta)`, and the 1994-11-29 PAL prototype. USA retail vs the legacy beta differs in exactly 486 bytes across 486 one-byte runs; all 45 RNC streams are byte-identical and remain at identical offsets. The legacy beta also shares the USA retail reset vector and header checksum/complement.
+
+Europe retail contains 45 Method 1 streams, but only 38 are byte-identical by content with the other three builds. By ordinal stream position, the differing PAL-retail streams are 4, 16, 20, 26, 27, 35 and 36. The other 38 move after size-changing streams but preserve exact packed bytes.
+
+**Evidence:** `analysis/generated/reference-rom-inventory.md`; `analysis/generated/reference-rom-comparison.md`; deterministic generators `tools/inventory_reference_roms.py` and `tools/compare_reference_roms.py`.
+
+**Interpretation:** the legacy beta is extraordinarily close to USA retail and is a high-sensitivity oracle for isolated late byte changes, but its historical “beta” label does not by itself establish build chronology or authenticity. PAL retail contains seven genuine decoded-content candidates that changed after the 1994-11-29 prototype/USA content corpus; these are unusually strong candidates for region-specific or late content edits.
+
+**Discriminating test:** independently decompress the seven changed PAL streams and their USA/prototype counterparts, then characterize the exact decoded deltas before assigning course or localization semantics.
+
+**Dependencies:** stream ordinal is used only as a stable comparison index, not yet as a semantic course ID.

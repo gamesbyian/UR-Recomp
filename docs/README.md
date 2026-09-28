@@ -5,7 +5,7 @@ Task routing lives in [`../AGENTS.md`](../AGENTS.md). This file inventories owne
 | Document | Owns |
 |---|---|
 | [`WORK-QUEUE.md`](WORK-QUEUE.md) | Current execution milestones, completion state, and dependency order |
-| [`WIDESCREEN-HD-REMASTER-PLAN.md`](WIDESCREEN-HD-REMASTER-PLAN.md) | Canonical product/engineering path from faithful stock execution to true widescreen and HD presentation |
+| [`PROJECT-PLAN.md`](PROJECT-PLAN.md) | Canonical product/engineering plan for the Uniracers modern port; defines Widescreen and HD Presentation as separate features |
 | [`RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md`](RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md) | Current combined research/execution strategy and next discriminating work |
 | [`BRINGUP.md`](BRINGUP.md) | Chronological native build/runtime attempts and empirical outcomes |
 | [`VALIDATION.md`](VALIDATION.md) | Fidelity hierarchy, deterministic comparison strategy, and finish-line validation principles |

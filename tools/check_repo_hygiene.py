@@ -1,25 +1,83 @@
 #!/usr/bin/env python3
-"""Cheap guard against accidentally tracking obvious ROM-derived files."""
+"""Cheap repository-boundary checks for common agent-generated entropy."""
 from __future__ import annotations
-import subprocess
+
 from pathlib import Path
+import subprocess
 
-BAD_EXT={".sfc",".smc",".fig",".swc",".rom",".srm",".state",".sav"}
-BAD_PREFIX=("private/","generated/","src/gen/","assets/extracted/","assets/generated/")
+ROM_EXTENSIONS = {".sfc", ".smc", ".fig", ".swc", ".rom"}
+SAVE_TRACE_EXTENSIONS = {".srm", ".state", ".sav"}
+ROM_PREFIX = "reference/roms/"
+FORBIDDEN_PREFIXES = (
+    "private/",
+    "generated/",
+    "src/gen/",
+    "assets/extracted/",
+    "assets/generated/",
+    "dump/",
+    "dumps/",
+    "captures/",
+    "trace-output/",
+    ".tools/",
+    "workbench/",
+)
+ROOT_BINARY_EXTENSIONS = {".zip", ".rar", ".7z", ".pdf"}
+ROOT_TEXT_EXCEPTIONS = {"rom_identity.txt"}
+REQUIRED_ENTRYPOINTS = {
+    "AGENTS.md",
+    "docs/README.md",
+    "docs/PERIODIC-REPOSITORY-HYGIENE.md",
+    "docs/TOOLCHAIN.md",
+    "tools/toolchain.json",
+    "tools/bootstrap_toolchain.py",
+}
 
-def main():
-    out=subprocess.check_output(["git","ls-files"],text=True,encoding="utf-8")
-    bad=[]
-    for raw in out.splitlines():
-        path=raw.replace("\\","/")
-        if Path(path).suffix.lower() in BAD_EXT or path.startswith(BAD_PREFIX):
-            bad.append(path)
-    if bad:
-        print("Potentially unsafe tracked files:")
-        for p in bad: print(" ",p)
+
+def tracked_files() -> list[str]:
+    out = subprocess.check_output(["git", "ls-files"], text=True, encoding="utf-8")
+    return [line.replace("\\", "/") for line in out.splitlines() if line]
+
+
+def main() -> int:
+    bad: list[tuple[str, str]] = []
+    tracked = tracked_files()
+
+    for path in tracked:
+        p = Path(path)
+        suffix = p.suffix.lower()
+
+        if suffix in ROM_EXTENSIONS and not path.startswith(ROM_PREFIX):
+            bad.append((path, "ROM/cartridge image outside intentional reference/roms boundary"))
+
+        if suffix in SAVE_TRACE_EXTENSIONS:
+            bad.append((path, "save/state artifact should not be tracked"))
+
+        if path.startswith(FORBIDDEN_PREFIXES):
+            bad.append((path, "generated/scratch/workbench path should not be tracked"))
+
+        if "/" not in path and suffix in ROOT_BINARY_EXTENSIONS:
+            bad.append((path, "downloaded binary/reference artifact should not live at repository root"))
+
+        if "/" not in path and suffix == ".txt" and path not in ROOT_TEXT_EXCEPTIONS:
+            bad.append((path, "unclassified root text file; move into an owning doc/reference path or delete"))
+
+    missing = [path for path in sorted(REQUIRED_ENTRYPOINTS) if not Path(path).exists()]
+
+    if bad or missing:
+        if bad:
+            print("Repository hygiene violations:")
+            for path, reason in bad:
+                print(f"  {path}: {reason}")
+        if missing:
+            print("Missing repository entry points:")
+            for path in missing:
+                print(f"  {path}")
         return 1
-    print("Tracked-file hygiene check passed.")
+
+    roms = [p for p in tracked if Path(p).suffix.lower() in ROM_EXTENSIONS]
+    print(f"Tracked-file hygiene check passed ({len(roms)} intentional ROM image(s) under {ROM_PREFIX}).")
     return 0
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     raise SystemExit(main())

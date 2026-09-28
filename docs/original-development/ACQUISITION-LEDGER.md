@@ -38,7 +38,7 @@ Hidden Palace: https://hiddenpalace.org/Assets/DMA_Design_Miscellaneous_Press_Ma
 Internet Archive: https://archive.org/details/dma_press_material  
 Archive size: about 638.6 MB.
 
-Outcome: the archive was manually inspected and the Uniracers PDF was uploaded to the repository. The user judged the remaining archive contents not useful for this project. Reopen only if a later clue points to a specific file or asset class.
+Outcome: the archive was manually inspected and the Uniracers PDF was uploaded and organized at `references/imported/press/dma-design/uniracers_01.pdf`. The user judged the remaining archive contents not useful for this project. Reopen only if a later clue points to a specific file or asset class.
 
 ## A-003 — Mike Dailly historical SNES framework source
 
@@ -111,7 +111,7 @@ Hammond says he retained old DMA graphics, photos, design/proposal documents, an
 ## A-008 — Modern SNasm reference build
 
 Priority: medium  
-Status: uploaded to repository as `SNasm.zip`; organization/inspection may still be useful  
+Status: uploaded and organized at `reference/tools/snasm/modern/SNasm.zip`; inspection may still be useful  
 Source: https://mdf200.itch.io/snasm  
 File advertised: SNasm.zip, approximately 62 kB.
 

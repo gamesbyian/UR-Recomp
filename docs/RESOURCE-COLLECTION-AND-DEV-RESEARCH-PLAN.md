@@ -209,3 +209,4 @@ The agent should move between these tracks based on evidence and blockers rather
 - `analysis/generated/retail-vs-prototype-structure.md` — original USA-retail vs PAL-prototype structural comparison.
 - `analysis/generated/reference-rom-inventory.md` — exact local identities for all preserved ROMs.
 - `analysis/generated/reference-rom-comparison.md` — current four-build pairwise and RNC comparison.
+- `docs/TOOLCHAIN.md` — pinned external research/development tools and bootstrap policy.

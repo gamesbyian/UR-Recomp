@@ -11,8 +11,7 @@
 !reference/roms/retail/
 !reference/roms/prototypes/
 !reference/roms/source-archives/
-!reference/roms/retail/Uniracers_USA.sfc
-!reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc
+!reference/roms/**/*.sfc
 
 rom/
 roms/
@@ -69,3 +68,7 @@ Thumbs.db
 # Local scratch
 scratch/
 notes/private/
+
+# Reproducible local research toolchain / workbenches
+.tools/
+workbench/

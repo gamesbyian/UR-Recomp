@@ -1,0 +1,1 @@
+Read the repository-root `AGENTS.md` first. It is the canonical compact coding/research-agent guide. Use its task router and load only the current authority relevant to the change; do not maintain separate project truth in this adapter.

@@ -27,7 +27,7 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 
 ## Phase 2 — First boot
 
-- [ ] Fix native-smoke executable discovery: current fallback selects CMake `CompilerIdCXX/a.out`, so the reported exit 164 is not a game-runtime result.
+- [x] Fix native-smoke executable discovery: exact generated game target is required; arbitrary CMake helper fallback removed.
 - [ ] Launch the actual generated Uniracers native target under the smoke workflow.
 - [ ] Native window opens.
 - [ ] Reset vector executes.
@@ -112,6 +112,8 @@ See docs/original-development/.
 - [x] Acquire and place the 1994-11-29 PAL prototype in `reference/roms/prototypes/`.
 - [x] Fingerprint the PAL prototype and record header/mapping metadata; extend vector reporting if useful.
 - [x] Generate first structural PAL-prototype vs USA-retail diff report.
+- [x] Acquire, organize and fingerprint PAL retail and the historical GoodSNES-listed beta image.
+- [ ] Generate four-build differential comparison, prioritizing USA retail vs legacy beta and PAL retail vs 1994-11-29 prototype.
 - [x] Inspect DMA press-material archive; retain/upload the Uniracers PDF judged relevant.
 - [ ] Continue hunt for Mike Dailly's historical SNES framework source.
 - [ ] Search for binaries/source/screenshots of SNasm, Unicycle Compression, level editor, A0 plotter, graphics/MIDI converters and Amiga/SNES link.

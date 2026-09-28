@@ -97,3 +97,26 @@ No crash or unsupported-hardware failure was observed in this smoke interval. Th
 Evidence: GitHub Actions run 36491383506.
 
 Interpretation: native execution is now real and stable enough to advance from “can the game target launch?” to visible-frame and input milestones. The first observable failure, if any, lies after initialization/first-frame execution rather than in build/scaffold startup.
+
+
+## 2026-09-28 — Native title screen visually verified
+
+Workflow run 36493358927 extended the strict native smoke with the pinned runtime's diagnostic presented-frame capture.
+
+Observed:
+- the exact generated `UniracersSNESRecomp` executable again remained alive for the intentional 12-second timeout;
+- the host produced 477 presents spanning simulated frames 1–477;
+- presented output is black through frame 123, then begins a visible transition at frame 124;
+- a diagnostic capture at simulated frame 300 is a 256×224 RGB frame with 250 distinct RGB colors and 57,193/57,344 non-black pixels;
+- the captured PPM SHA-256 is `d5c5afd0259d632773bb33c6106d377d2ce1f6a6bf140140b6e1e13e1cd5424b`;
+- direct visual inspection shows a coherent stock Uniracers title screen: UNIRACERS logo, rendered unicycle/rider artwork, rainbow track, trademark and Nintendo copyright are all present rather than corrupted or blank.
+
+Evidence:
+- GitHub Actions run 36493358927;
+- temporary workflow artifact `uniracers-native-frame` (artifact 11001868327, seven-day retention);
+- artifact archive digest `sha256:e2d066e765dce16f420df3b31044dd3c4dcb5fd4965ce9739d2dcb5c70a196bc`;
+- deterministic screenshot capture is encoded in `.github/workflows/native-build-smoke.yml`.
+
+Interpretation: basic native CPU/PPU/DMA/audio bring-up reaches recognizable stock presentation. This does not yet establish pixel-accuracy against a reference emulator, controller/menu progression, race simulation, or the two-player active-display OAM path.
+
+Next milestone: add deterministic input and/or reference-frame comparison to reach title/menu selection and actual race gameplay without guest-state edits.

@@ -7,7 +7,7 @@ This tracks valuable artifacts not yet part of the repository. "Not acquired" me
 ## A-001 — Uniracers / Unirally PAL prototype, 1994-11-29
 
 Priority: critical  
-Status: manual acquisition required  
+Status: acquired and committed  
 Preservation record: https://hiddenpalace.org/Uniracers_%28Nov_29%2C_1994_prototype%29  
 External mirror: linked there to Forest of Illusion.
 
@@ -15,18 +15,20 @@ Known provenance: four EPROMs, SHVC-4PV5B-01 board, label "UNIRALLY PAL", dumped
 
 Why we want it: a second executable snapshot can reveal late code/data changes and make function/table boundaries much easier to infer.
 
-Suggested repository destination after acquisition:
-reference/roms/Uniracers_1994-11-29_PAL_prototype.sfc
+Repository path:
+reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc
 
-Required intake:
-1. Preserve the downloaded archive unchanged.
-2. Hash archive and ROM with SHA-256.
-3. Record byte size, copier-header status, mapping, region/header fields and vectors.
-4. Never overwrite the canonical USA retail ROM.
-5. Generate retail-vs-prototype byte/block and disassembly-aware diffs.
-6. Record provenance here.
+Original uploaded filename: Unirally.6216.sfc
+Exact size: 2,097,152 bytes
+Git blob SHA: 53c4446921ca716d195533de3e0843e464704394
+Acquired: 2026-09-28
 
-Why manual: the available external mirror timed out from the current tool environment, and the GitHub connector cannot pull arbitrary external binary URLs.
+Intake status:
+- ROM preserved under a descriptive prototype path.
+- Canonical USA retail ROM remains separate under reference/roms/retail/.
+- The accidentally uploaded RAR container was removed after the SFC was supplied directly.
+- Exact cryptographic ROM fingerprints beyond the Git blob SHA remain to be recorded by the prototype-diff/fingerprint step.
+- Next action: generate header/mapping/vector metadata and retail-vs-prototype diffs.
 
 ## A-002 — DMA Design Miscellaneous Press Material
 

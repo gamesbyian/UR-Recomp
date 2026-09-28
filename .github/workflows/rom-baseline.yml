@@ -1,0 +1,43 @@
+name: ROM baseline
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "Uniracers (USA).sfc"
+      - "snesrecomp"
+      - ".github/workflows/rom-baseline.yml"
+
+jobs:
+  fingerprint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Fingerprint canonical ROM
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROM='Uniracers (USA).sfc'
+          echo "== file =="
+          ls -l "$ROM"
+          echo
+          echo "== standard digests =="
+          sha256sum "$ROM"
+          sha1sum "$ROM"
+          md5sum "$ROM"
+          echo
+          echo "== crc32 =="
+          python3 - "$ROM" <<'PY'
+          import sys, zlib
+          from pathlib import Path
+          p=Path(sys.argv[1])
+          data=p.read_bytes()
+          print(f"{zlib.crc32(data) & 0xffffffff:08x}  {p}")
+          PY
+          echo
+          echo "== SNESRecomp cartridge probe =="
+          python3 snesrecomp/tools/new_project/probe_rom.py "$ROM"

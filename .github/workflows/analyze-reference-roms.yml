@@ -1,0 +1,23 @@
+name: Analyze reference ROMs
+on:
+  push:
+    paths:
+      - "tools/analyze_reference_roms.py"
+      - "reference/roms/**"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  analyze:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python tools/analyze_reference_roms.py
+      - name: Commit report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add analysis/generated/retail-vs-prototype-structure.md
+          git commit -m "Generate retail/prototype structural analysis" || exit 0
+          git push

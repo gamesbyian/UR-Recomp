@@ -74,3 +74,26 @@ Observed:
 - no native Uniracers code was launched, so there is still no genuine runtime result.
 
 Interpretation: this is a CI/toolchain dependency failure, not a game or SNESRecomp compatibility failure. The workflow now installs `libxss-dev` and has been rerun. Keep strict target discovery in place.
+
+
+## 2026-09-28 — First genuine native execution
+
+Workflow run 36491383506 installed the remaining SDL/X11 build dependencies (`libxss-dev` and `libxtst-dev`), built the generated native target, selected the exact executable `build/UniracersSNESRecomp`, and launched it against the canonical USA ROM under Xvfb.
+
+Observed host milestones:
+- canonical 2 MiB ROM resolved and loaded;
+- internal cartridge name reported as `UNIRACERS`;
+- `SnesInit: ok`;
+- SDL/X11 window created at 960×720;
+- renderer initialized;
+- 32 kHz stereo audio device opened;
+- main loop entered;
+- first frame simulated;
+- first audio callback serviced;
+- process remained alive until the intentional 12-second timeout, yielding `SMOKE_RESULT=alive_after_12s`.
+
+No crash or unsupported-hardware failure was observed in this smoke interval. The workflow does not yet prove that the title/logo is visually correct because Xvfb output was not captured or compared.
+
+Evidence: GitHub Actions run 36491383506.
+
+Interpretation: native execution is now real and stable enough to advance from “can the game target launch?” to visible-frame and input milestones. The first observable failure, if any, lies after initialization/first-frame execution rather than in build/scaffold startup.

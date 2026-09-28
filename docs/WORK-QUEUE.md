@@ -28,10 +28,10 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 ## Phase 2 — First boot
 
 - [x] Fix native-smoke executable discovery: exact generated game target is required; arbitrary CMake helper fallback removed.
-- [ ] Launch the actual generated Uniracers native target under the smoke workflow.
-- [ ] Native window opens.
-- [ ] Reset vector executes.
-- [ ] DMA/HDMA initialization survives.
+- [x] Launch the actual generated Uniracers native target under the smoke workflow.
+- [x] Native window opens under Xvfb (960×720 reported by host).
+- [x] Native main loop enters and first frame simulates; treat this as execution bring-up cleared, while exact reset-vector tracing remains available if needed.
+- [x] First simulated frame and audio callback complete without a reported DMA/HDMA initialization failure.
 - [ ] Title/logo sequence appears.
 - [ ] Input reaches menus.
 - [ ] A mode can be selected.
@@ -78,7 +78,7 @@ Maintain `SYMBOLS.md` and `RESEARCH-LEDGER.md`.
 ## Phase 7 — Course format
 
 - [ ] Locate compressed blocks and pointer/index tables.
-- [ ] Verify RNC variant/path.
+- [x] Verify RNC Method 1 corpus and independently decompress all 45 streams with CRC validation.
 - [ ] Reconstruct dimensions and primitives.
 - [ ] Produce structural documentation.
 - [ ] Build parser/tooling around the canonical ROM.

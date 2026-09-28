@@ -46,12 +46,25 @@ jobs:
           sha256sum "$DEST"
           sha1sum "$DEST"
           md5sum "$DEST"
-          python3 - "$DEST" <<'PY'
-          import sys,zlib
+
+          META="reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.identity.txt"
+          python3 - "$DEST" "$META" <<'PY'
+          import hashlib, sys, zlib
           from pathlib import Path
-          p=Path(sys.argv[1]); d=p.read_bytes()
-          print(f"crc32={zlib.crc32(d)&0xffffffff:08x}")
-          print(f"size={len(d)}")
+          rom=Path(sys.argv[1]); meta=Path(sys.argv[2]); d=rom.read_bytes()
+          lines = [
+              "display_name=Unirally 1994-11-29 PAL prototype",
+              f"rom_file={rom}",
+              "source_archive=reference/roms/source-archives/Unirally_1994-11-29_PAL_prototype.rar",
+              "preservation_record=https://hiddenpalace.org/Uniracers_%28Nov_29%2C_1994_prototype%29",
+              f"size={len(d)}",
+              f"crc32={zlib.crc32(d)&0xffffffff:08x}",
+              f"md5={hashlib.md5(d).hexdigest()}",
+              f"sha1={hashlib.sha1(d).hexdigest()}",
+              f"sha256={hashlib.sha256(d).hexdigest()}",
+          ]
+          meta.write_text("\n".join(lines) + "\n")
+          print(meta.read_text())
           PY
 
       - name: Commit extracted prototype
@@ -59,12 +72,13 @@ jobs:
         run: |
           set -euo pipefail
           DEST="reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc"
-          if git diff --quiet -- "$DEST" && git ls-files --error-unmatch "$DEST" >/dev/null 2>&1; then
+          META="reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.identity.txt"
+          if git diff --quiet -- "$DEST" "$META" && git ls-files --error-unmatch "$DEST" >/dev/null 2>&1 && git ls-files --error-unmatch "$META" >/dev/null 2>&1; then
             echo "Prototype already tracked with no changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f "$DEST"
+          git add -f "$DEST" "$META"
           git commit -m "Extract preserved 1994-11-29 PAL prototype"
           git push

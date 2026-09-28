@@ -4,7 +4,7 @@ Goal: produce a ROM-free technical description of Uniracers/Unirally course data
 
 ## Historical leads
 
-Historical reports identified Rob Northen Compression for level/course data. Local analysis has now confirmed 45 valid RNC Method 1 streams in both the canonical USA retail ROM and the 1994-11-29 PAL prototype, at identical offsets with matching packed/unpacked sizes and CRCs. The remaining question is what each decoded stream contains and how it maps to course semantics.
+Historical reports identified Rob Northen Compression for level/course data. Local analysis confirmed 45 valid RNC Method 1 streams in the canonical USA retail ROM and 1994-11-29 PAL prototype, byte-identical at identical offsets. The newly acquired historical GoodSNES beta shares all 45 byte-for-byte as well. Europe retail also contains 45 streams, of which 38 are byte-identical by content; ordinal streams 4, 16, 20, 26, 27, 35 and 36 have changed packed/unpacked sizes and CRCs. The remaining question is what each decoded stream contains and how these seven final-PAL changes map to course or other semantics.
 
 ## Questions
 
@@ -37,7 +37,7 @@ The manual describes Method 1 as prioritizing compressed size and Method 2 as pr
 
 ### Current reproduction plan
 
-1. Extract and independently decompress all 45 confirmed Method 1 streams; verify unpacked sizes and CRCs.
+1. Extract and independently decompress all 45 confirmed Method 1 streams; verify unpacked sizes and CRCs, with paired USA/PAL comparison for changed streams 4, 16, 20, 26, 27, 35 and 36.
 2. Generate a compact manifest with offsets, hashes, byte statistics and structural signatures.
 3. Identify the game's decompression routine and compare it structurally with the preserved SNES `RNC_1.S` implementation.
 4. Test the historical 256-tile-width and 64x64-block claims against decoded bytes.

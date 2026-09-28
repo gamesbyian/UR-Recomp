@@ -362,3 +362,19 @@ sources:
     imported: "references/imported/emulators/snes9x-1.43/changes.txt"
     rights: "Historical Snes9x source mirror; upstream licensing applies."
     relevance: "Documents Uniracers-specific LoROM SRAM, XOR window, color-addition experiments, and the later working DMA/OAM hack."
+
+  - id: gamedb-snes-unirally-beta-c362c7b1
+    title: "GameDB-SNES metadata for Unirally Europe beta 1994-11-29"
+    type: rom_metadata_snapshot
+    url: "https://github.com/niemasd/GameDB-SNES/tree/733422f2505b5a8fb04665b2af8558ba57f039a5/games/c362c7b1"
+    revision: "733422f2505b5a8fb04665b2af8558ba57f039a5"
+    crc32: "C362C7B1"
+    header_checksum: "6216"
+    internal_title: "UNIRALLY"
+    region: "PAL"
+    mapper: "LoROM"
+    speed: "FastROM"
+    hardware: "ROM + RAM + Battery"
+    imported: "references/imported/metadata/GameDB-SNES/c362c7b1/"
+    rights: "Public ROM metadata; mirrored as research evidence."
+    relevance: "Independent build identity for the 1994-11-29 PAL prototype and verification target for Unirally.6216.rar."

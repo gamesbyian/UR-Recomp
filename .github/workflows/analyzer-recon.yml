@@ -1,0 +1,44 @@
+name: SNESRecomp analyzer reconnaissance
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "Uniracers (USA).sfc"
+      - "rom_identity.txt"
+      - "snesrecomp"
+      - ".github/workflows/analyzer-recon.yml"
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "Uniracers (USA).sfc"
+
+      - name: Scaffold temporary Uniracers project and generate code
+        shell: bash
+        run: |
+          set -euo pipefail
+          TMP="$RUNNER_TEMP/ur-recomp-probe"
+          mkdir -p "$TMP"
+          sh snesrecomp/tools/new_project/setup_project.sh             --rom "$GITHUB_WORKSPACE/Uniracers (USA).sfc"             --dir "$TMP"             --name "Uniracers"             --players 2             --yes             --no-ci             --no-fetch-boxart             --no-recomp-ui             --no-netplay             --no-github             --generate             --no-build             --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+
+      - name: Summarize generated project
+        if: always()
+        shell: bash
+        run: |
+          echo "== temp project tree =="
+          find "$RUNNER_TEMP/ur-recomp-probe" -maxdepth 3 -type f | sort | sed -n '1,240p'
+          echo
+          echo "== generated C count =="
+          find "$RUNNER_TEMP/ur-recomp-probe" -path '*/src/gen/*' -type f | wc -l || true
+          echo
+          echo "== analysis config =="
+          find "$RUNNER_TEMP/ur-recomp-probe" -path '*/recomp/*' -type f -maxdepth 5 -print || true

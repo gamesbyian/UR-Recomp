@@ -295,3 +295,22 @@ Europe retail contains 45 Method 1 streams, but only 38 are byte-identical by co
 **Discriminating test:** independently decompress the seven changed PAL streams and their USA/prototype counterparts, then characterize the exact decoded deltas before assigning course or localization semantics.
 
 **Dependencies:** stream ordinal is used only as a stable comparison index, not yet as a semantic course ID.
+
+
+### R-SEED-010 — Independent RNC1 decompression verified across preserved builds
+
+**Status:** confirmed  
+**Date:** 2026-09-28  
+**Area:** compression | course
+
+**Observation:** project-owned `tools/rnc_method1.py` independently decoded every detected Method 1 stream in all four preserved ROMs. All 180 decode operations (45 per build) passed both the packed CRC16 in the RNC header and the unpacked CRC16 after decompression. Each build contains 45 unique decoded outputs.
+
+USA retail, the legacy beta, and the 1994-11-29 PAL prototype have identical decoded content for all 45 stream positions. Europe retail differs after decompression at exactly seven ordinal positions: 4, 16, 20, 26, 27, 35 and 36.
+
+**Evidence:** `analysis/generated/rnc-stream-manifest.json`; `analysis/generated/rnc-stream-manifest.md`; CI run 36491695742; decoder `tools/rnc_method1.py`; generator `tools/analyze_rnc_streams.py`.
+
+**Interpretation:** RNC extraction/decompression is no longer a blocker. The seven PAL-retail deltas are real content changes rather than merely recompression or relocation, because their unpacked CRCs, lengths and SHA-256 hashes differ.
+
+**Discriminating test:** characterize record structure in decoded bytes and map at least one stream to an independently known course; compare the seven PAL deltas structurally after the record format is understood.
+
+**Dependencies:** semantic mapping of stream ordinal to course/content identity remains unresolved.

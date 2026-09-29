@@ -93,6 +93,7 @@ def validate() -> tuple[list[str], list[str]]:
         digest = comp.get("source_sha256")
         license_spdx = comp.get("license_spdx")
         license_path = comp.get("license_path")
+        provenance_path = comp.get("provenance_path")
 
         if mode == "pending":
             if source_path or archive_path or digest:
@@ -114,6 +115,12 @@ def validate() -> tuple[list[str], list[str]]:
             lp = ROOT / license_path
             if not lp.is_file():
                 errors.append(f"{cid}: missing license file {license_path}")
+        if not isinstance(provenance_path, str) or not provenance_path:
+            errors.append(f"{cid}: islanded component needs provenance_path")
+        else:
+            pp = ROOT / provenance_path
+            if not pp.is_file():
+                errors.append(f"{cid}: missing provenance file {provenance_path}")
 
         if mode == "vendored":
             if not isinstance(source_path, str) or not source_path:

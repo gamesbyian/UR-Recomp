@@ -39,7 +39,7 @@ Use SNESRecomp's `tools/snesref` as the default interpreter-vs-recomp harness on
 python3 tools/bootstrap_toolchain.py
 ```
 
-Prefer scripted inputs and bounded frame/WRAM/audio captures over manual replay. When the result may depend on emulator-specific PPU/OAM/timing behavior, confirm the observation with an independent high-accuracy implementation such as the pinned bsnes libretro source or ares before treating emulator behavior as hardware truth.
+Prefer scripted inputs and bounded frame/WRAM/audio captures over manual replay. Snes9x is a convenient default interpreter, not hardware truth: the pinned source still contains an explicit Uniracers OAM workaround. Therefore Snes9x cannot independently validate the exact active-display OAM behavior it special-cases.\n\n`.github/workflows/independent-reference-route.yml` runs the same durable first-race fixture through pinned Snes9x and pinned bsnes via `snesref` and compares their WRAM checkpoints. Use that route as the cheap second-oracle floor. For claims that specifically depend on PPU/OAM/timing behavior, add the relevant PPU/OAM/frame capture and, where practical, corroborate with ares or hardware-level evidence before promoting a rule as SNES behavior.
 
 
 ## Native trace / CI failure classification

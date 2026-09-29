@@ -407,3 +407,31 @@ The final seven are `0x00C6`, `0x00C8`, `0x00C9`, and contiguous `0x01D1–0x01D
 **Dynamic resolution:** trace run 36511207129 reaches `inRace = 1` at native frame 984 with the 65C816 in native mode (`E = false`) and `SP = $01FF`. The four bytes remain `90 13 20 80` at `$01D1–$01D4`, far below the live top of stack. Reverse-debug writer history records zero ordinary WRAM writes to all four addresses across the captured run, while explicit semantic/timing variables such as `$00C6/$00C8/$00C9` produce abundant attributed writes. Together with the broader transient `$01xx` churn seen at earlier checkpoints, this identifies the four-byte block as stale stack history rather than live gameplay state. Its exact historical push sequence is not needed for fidelity gating.
 
 **Dependencies:** the stack interpretation depends on actual Uniracers stack-pointer behavior at the relevant frames; address location alone is insufficient.
+
+
+### R-SEED-016 — Player-1 X position and signed X speed validated cross-runtime
+
+**Status:** confirmed  
+**Date:** 2026-09-28  
+**Area:** RAM | physics | input
+
+**Observation:** Dessyreqt's effective player-1 word table labels `7E:0411` as X position and `7E:04B7` as X speed. In deterministic run 36512546762, native and Snes9x begin at `xPos=1088`, `xSpeed=0`, receive the same staged Right input, and match exactly at every semantic checkpoint. At `accel-180`, both report `xPos=1655` and `xSpeed=+447`.
+
+**Evidence:** workflow run 36512546762; artifact 11009592846; recovered bot source; `tests/input/race-acceleration.script`.
+
+**Interpretation:** `7E:0411` and signed `7E:04B7` are confirmed player-1 horizontal position/velocity anchors for the observed stock race. Positive speed corresponds to rightward movement.
+
+**Next discriminator:** use the moving state as the baseline for B-jump and L/R rotation while validating Y speed, effective air state and pitch.
+
+
+### R-SEED-017 — Recovered race countdown field advances in 8.8-style frame quanta
+
+**Status:** supported  
+**Date:** 2026-09-28  
+**Area:** RAM | timing
+
+**Observation:** the recovered bot labels `7E:11BA` as `countdownTimer`. Across the event-relative checkpoints in run 36512546762, both engines produce the same sequence: 54528, 46592, 38656, 30720, 22784, 7168. Each 31-frame staged interval decreases the word by 7936 = 31 × 256, and the final 61-frame interval decreases it by 15616 = 61 × 256.
+
+**Interpretation:** the field decrements by exactly `0x0100` per guest frame during this race-start window, strongly supporting a fixed-point/frame-countdown interpretation. The precise player-visible thresholds and meaning of the low byte remain to be characterized.
+
+**Evidence:** workflow run 36512546762 and its native/reference player-state reports.

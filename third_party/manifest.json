@@ -77,16 +77,16 @@
     },
     {
       "id": "beetle-bsnes-libretro",
-      "mode": "pending",
+      "mode": "vendored",
       "upstream_url": "https://github.com/libretro/beetle-bsnes-libretro.git",
       "revision": "5f05e4c785e936c928ac468e129c55b6f08592cb",
-      "source_path": null,
+      "source_path": "third_party/src/beetle-bsnes-libretro",
       "archive_path": null,
-      "source_sha256": null,
-      "license_spdx": null,
-      "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
-      "provenance_path": null
+      "source_sha256": "ab571a0e09cc53a7c85aa583d0aab0a7ffe6fea78e49a3e71b71680fff0fb26b",
+      "license_spdx": "GPL-2.0-or-later",
+      "license_path": "third_party/src/beetle-bsnes-libretro/COPYING",
+      "notes": "Repository-owned pinned Beetle/bsnes libretro source tree. Only upstream CI metadata and Android packaging are omitted; emulator/libretro implementation, embedded license material and build files remain intact.",
+      "provenance_path": "third_party/provenance/beetle-bsnes-libretro.json"
     },
     {
       "id": "wla-dx",

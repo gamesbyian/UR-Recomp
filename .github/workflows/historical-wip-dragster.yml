@@ -7,6 +7,8 @@ on:
       - "references/imported/tas-bots/uniracers-2008-wip-microstorage.smv"
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "tools/extract_smv_input.py"
+      - "tools/replay_input_via_lua.py"
+      - "tests/input/historical-2008-wip.input"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain.json"
       - "snesrecomp"
@@ -47,6 +49,8 @@ jobs:
             --input-out "$RUNNER_TEMP/wip-2008.input" \
             --json-out "$RUNNER_TEMP/wip-2008.json"
           cat "$RUNNER_TEMP/wip-2008.json"
+          cmp "$RUNNER_TEMP/wip-2008.input" tests/input/historical-2008-wip.input
+          echo "historical SMV extraction matches frozen fixture"
 
       - name: Build pinned Snes9x and snesref
         shell: bash
@@ -89,7 +93,7 @@ jobs:
           EXE="$RUNNER_TEMP/snesref-build/snesref"
           CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          INPUT="$RUNNER_TEMP/wip-2008.input"
+          INPUT="$GITHUB_WORKSPACE/tests/input/historical-2008-wip.input"
           : > "$RUNNER_TEMP/dragster-state.tsv"
 
           for frames in 900 1000 1100 1160 1180 1200 1400 1600 1800 2000 2200 2400 2550 2600 2640 2660 2680 2700 2800 3000 3200 3400 3480; do
@@ -125,7 +129,7 @@ jobs:
           set -euo pipefail
           EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          INPUT="$RUNNER_TEMP/wip-2008.input"
+          INPUT="$GITHUB_WORKSPACE/tests/input/historical-2008-wip.input"
           LOG="$RUNNER_TEMP/native-lua.log"
 
           SNESRECOMP_LUA_PORT=4380 \

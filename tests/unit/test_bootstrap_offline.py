@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import importlib.util
 from pathlib import Path
 import tempfile
@@ -45,6 +46,41 @@ class BootstrapOfflineTests(unittest.TestCase):
                 actual = bootstrap.ensure_source(tool, Path(td), island, offline=False)
         self.assertEqual(actual, sentinel)
         checkout.assert_called_once()
+
+    def test_vendored_patch_targets_staged_copy_without_git_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            dest = root / ".tools" / "src" / "example"
+            dest.mkdir(parents=True)
+            target = dest / "value.txt"
+            target.write_text("old\n", encoding="utf-8")
+
+            patch_rel = Path("patches") / "example.patch"
+            patch_path = root / patch_rel
+            patch_path.parent.mkdir(parents=True)
+            patch_data = (
+                "diff --git a/value.txt b/value.txt\n"
+                "--- a/value.txt\n"
+                "+++ b/value.txt\n"
+                "@@ -1 +1 @@\n"
+                "-old\n"
+                "+new\n"
+            )
+            patch_path.write_text(patch_data, encoding="utf-8")
+            tool = {
+                "id": "example",
+                "patches": [
+                    {
+                        "path": patch_rel.as_posix(),
+                        "sha256": hashlib.sha256(patch_data.encode("utf-8")).hexdigest(),
+                    }
+                ],
+            }
+
+            with mock.patch.object(bootstrap, "ROOT", root):
+                bootstrap.apply_patches(tool, dest)
+
+            self.assertEqual(target.read_text(encoding="utf-8"), "new\n")
 
 
 if __name__ == "__main__":

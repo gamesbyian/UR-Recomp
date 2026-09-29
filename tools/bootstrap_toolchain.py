@@ -285,8 +285,31 @@ def apply_patches(tool: dict, dest: Path) -> None:
                 f"{tool['id']}: patch hash mismatch for {spec['path']}: "
                 f"{actual} != {spec['sha256']}"
             )
-        run(["git", "apply", "--check", str(patch_path)], cwd=dest)
-        run(["git", "apply", str(patch_path)], cwd=dest)
+
+        # External sources are real Git checkouts, so applying from their root is
+        # unambiguous. Vendored sources are copied into ignored .tools/ staging
+        # without .git metadata; running git apply there lets Git discover the
+        # parent UR-Recomp worktree and can report success while touching no
+        # staged files. Anchor those patches at the repository root and prefix
+        # the staged destination explicitly.
+        if (dest / ".git").exists():
+            apply_cwd = dest
+            directory_args: list[str] = []
+        else:
+            try:
+                staged_rel = dest.resolve().relative_to(ROOT.resolve())
+            except ValueError as exc:
+                raise SystemExit(
+                    f"{tool['id']}: non-git staged source must stay inside repository: {dest}"
+                ) from exc
+            apply_cwd = ROOT
+            directory_args = [f"--directory={staged_rel.as_posix()}"]
+
+        run(
+            ["git", "apply", "--check", *directory_args, str(patch_path)],
+            cwd=apply_cwd,
+        )
+        run(["git", "apply", *directory_args, str(patch_path)], cwd=apply_cwd)
 
 
 def verify_artifacts(tool: dict, dest: Path, python: Path | None = None) -> None:

@@ -31,9 +31,11 @@ python3 tools/validate_island.py --status
 
 When a component is marked `vendored`, bootstrap prefers that repository-owned source over the external Git pin. `--offline` is fail-closed: it permits only repository-owned buildable sources and exits before any GitHub fetch for pending/unclassified tools. This is intentionally strict so an "offline" run can never succeed by quietly touching the network.
 
-`mesen-for-ai` and the in-progress `snes2asm` tranche use `tools/install_pure_python_tool.py` instead of pip/build isolation. The helper copies a repository-owned pure-Python package into the isolated venv from an explicit source directory and can generate declared console launchers. `snes2asm` installs repository-owned PyYAML 6.0.3 first, then its patched CLI package. Do not replace these paths with `pip install` unless a measured reason justifies restoring a registry/build-backend closure.
+`mesen-for-ai` and the islanded `snes2asm` source tranche use `tools/install_pure_python_tool.py` instead of pip/build isolation. The helper copies a repository-owned pure-Python package into the isolated venv from an explicit source directory and can generate declared console launchers. `snes2asm` installs repository-owned PyYAML 6.0.3 first, then its patched CLI package. Do not replace these paths with `pip install` unless a measured reason justifies restoring a registry/build-backend closure.
 
-Vendor provenance lives outside the hashed source tree under `third_party/provenance/`; for `mesen-for-ai`, that record documents the exact upstream commit/tree, retained subset, exclusions, license and install contract.
+Project patches are applied differently depending on source ownership. External bootstrap sources are real nested Git checkouts and are patched from their checkout root. Repository-owned vendored sources are staged under ignored `.tools/` without nested Git metadata, so bootstrap applies their patches from the UR-Recomp root with an explicit `--directory` prefix; otherwise Git can discover the parent worktree and accept a patch without touching the staged source.
+
+Vendor provenance lives outside the hashed source tree under `third_party/provenance/`; records for `mesen-for-ai`, `snes2asm`, and its PyYAML closure document the exact upstream revision/tree, retained subset, exclusions, license and install contract.
 
 
 ## Already in the repository

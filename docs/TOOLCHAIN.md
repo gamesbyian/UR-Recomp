@@ -94,15 +94,15 @@ python3 tools/bootstrap_toolchain.py --tool diztinguish --tool bsnes-plus --clon
 
 Treat workbench databases and bulk trace logs as ignored scratch products. Promote only reproducible scripts, compact exports, symbols, and evidence.
 
-### mesen-for-ai
+### MesenCE + mesen-for-ai
 
-Pinned under the `agent-debug` group. It exposes Mesen debugger operations to an AI agent headlessly: frame stepping, memory/register inspection, breakpoints, traces, and SNES code/data logging. It expects a compatible external Mesen/MesenCE binary, so the repository pins the bridge separately from the emulator executable.
+Both are pinned under the `agent-debug` group. MesenCE is the community-maintained continuation of Mesen and supplies the SNES debugger/emulator host. `mesen-for-ai` exposes compatible debugger operations to an AI agent headlessly: frame stepping, memory/register inspection, breakpoints, traces, and SNES code/data logging.
 
 ```bash
 python3 tools/bootstrap_toolchain.py --group agent-debug
 ```
 
-This is the preferred future route for agent-driven dynamic archaeology when `snesref` cannot answer the question directly. Mesen 2's original upstream repository is archived, so select and pin the compatible emulator build separately before making this a CI dependency.
+This is the preferred future route for agent-driven dynamic archaeology when `snesref` cannot answer the question directly. The pinned MesenCE source is intentionally clone-only for now; building/packaging it should be added only when the first headless experiment proves the exact Linux build contract we need.
 
 ## Patching
 

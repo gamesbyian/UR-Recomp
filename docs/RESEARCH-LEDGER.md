@@ -499,3 +499,18 @@ The final seven are `0x00C6`, `0x00C8`, `0x00C9`, and contiguous `0x01D1–0x01D
 **Caution:** because the matched sustained Right-only control did not run in this failed workflow instance, causality is not yet formally closed. The repaired workflow runs the control before its paired-slot analysis.
 
 **Next discriminator:** require the timing-identical sustained Right-only control to remain grounded at the corresponding table-[1] checkpoints; then promote Y speed and air state and proceed to controlled rotation.
+
+
+### R-SEED-022 — Dragster payload is installed after Now Playing confirm, before active race
+
+**Status:** confirmed timing window  
+**Date:** 2026-09-28  
+**Area:** course | compression | RAM
+
+**Observation:** run 36515555816 compares decoded stream 1 with live `7F:0000` at `tracks-ready`, `after-track-confirm`, `now-playing-ready`, and `race-entered`. Stream 1 is not installed at the first three checkpoints. At `race-entered` it matches 33,814 / 33,815 decoded bytes, with only offset `0x000B` changed from `0x0F` to `0x16`.
+
+**Interpretation:** Dragster decompression/copy into `7F:0000` occurs after the final A confirm on the Now Playing screen and before the race-active state. In the deterministic reference route this is a roughly 151-frame transition window.
+
+**Caution:** pre-load "best stream" scores are not semantic evidence because sparse decoded streams can coincidentally match zero-heavy live WRAM. The focused expected-stream full-length match is the useful test.
+
+**Discriminating test:** add dense post-confirm checkpoints to locate the first full stream-1 residency frame and observe byte 11 before/after its runtime mutation.

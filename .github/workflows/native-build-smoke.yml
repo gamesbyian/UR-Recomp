@@ -247,6 +247,19 @@ jobs:
           print(f"UI_OPTIONS_OBSERVED_SELECTED_OPTION=0x{w[0x009B]:02X}")
           PY
 
+      - name: Build UI atlas report
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/build_ui_atlas.py \
+            --manifest analysis/ui-capture-manifest.json \
+            --dump-dir "$RUNNER_TEMP/race-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-dumps" \
+            --out-json "$RUNNER_TEMP/ui-atlas.json" \
+            --out-md "$RUNNER_TEMP/ui-atlas.md" \
+            --strict
+          cat "$RUNNER_TEMP/ui-atlas.md"
+
       - name: Upload native frame evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -260,6 +273,8 @@ jobs:
             ${{ runner.temp }}/race-dumps/
             ${{ runner.temp }}/ui-options-route.log
             ${{ runner.temp }}/ui-dumps/
+            ${{ runner.temp }}/ui-atlas.json
+            ${{ runner.temp }}/ui-atlas.md
           if-no-files-found: warn
           retention-days: 7
 

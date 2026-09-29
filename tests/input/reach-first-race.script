@@ -1,53 +1,30 @@
-# Deterministic first-race route derived from Dessyreqt's 2014 state-driven bot.
-# Addresses are WRAM offsets (7E:xxxx -> xxxx) because the SNESRecomp script
-# harness indexes its 128 KiB WRAM buffer directly.
+# Deterministic native menu-input probe derived from Dessyreqt's 2014 bot.
+# Addresses are WRAM offsets (7E:xxxx -> xxxx).
 #
-# This intentionally uses guest-observed menu state rather than wall-clock waits.
-# It does not poke game state.
+# This diagnostic deliberately stops at the main menu. It establishes whether
+# SNESRecomp's scripted controller pulses are sampled by Uniracers before the
+# full race route is restored.
 
 turbo on
 
-# Main menu: Dessyreqt menu.mainMenu = 215 = 0xD7.
+# Dessyreqt: menu.mainMenu = 215 = 0xD7.
 until 009F == D7 3600
 dump main-menu
 
-# The recovered bot pulses A every other frame for as long as mainMenu remains
-# active. A one-frame press at the first 0xD7 frame was too early even though
-# it reached guest input. Give the menu one second of guest time to settle,
-# then test a clean confirm edge.
-wait 60
-dump main-menu-ready
-press a
-
-# Capture the immediate post-A state while diagnosing the first transition.
+# The recovered bot treats selectedOption 0 as the desired 1P entry and uses
+# Up/Down to navigate this menu. Probe directions first so A is not ambiguous.
+press down 2
 wait 30
+dump after-main-down
+
+press up 2
+wait 30
+dump after-main-up
+
+# Try confirmation with a two-frame pulse. If this changes currentMenu, the
+# earlier one-frame pulse was too narrow for this native sampling path.
+press a 2
+wait 60
 dump after-main-a
 
-# One-player rider select: 60 = 0x3C.
-until 009F == 3C 1200
-press a
-
-# Do not assume which tours/menu state follows rider confirmation.
-# The recovered bot handles both onePlayerTours1=0x6D and onePlayerTours2=0x10.
-# First prove that the selector actually leaves 0x3C, then capture the state.
-until 009F != 3C 1200
-wait 30
-dump after-rider-a
-
-# Stop this diagnostic route here until the observed next state is classified.
-quit
-
-# One-player track select: 246 = 0xF6.
-until 009F == F6 1200
-press a
-
-# "Now playing": 22 = 0x16.
-until 009F == 16 1200
-press a
-
-# Race-state byte from the recovered bot: 7E:0313 == 1 while racing.
-until 0313 == 01 1800
-
-# Keep moving long enough to prove controller input reaches gameplay.
-press right 300
 quit

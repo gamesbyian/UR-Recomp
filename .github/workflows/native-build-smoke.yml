@@ -180,10 +180,10 @@ jobs:
           STATUS=$?
           cat "$LOG"
 
-          for state in main-menu-ready rider-select-ready tours-ready after-tour-confirm; do
+          for state in main-menu-ready rider-select-ready tours-ready tracks-ready after-track-confirm now-playing-ready race-entered; do
             WRAM="$DUMPS/$state.wram.bin"
             if [ -s "$WRAM" ]; then
-              python3 -c 'import pathlib,sys; name=sys.argv[1]; w=pathlib.Path(sys.argv[2]).read_bytes(); print(f"{name}: menu[009F]=0x{w[0x009F]:02X} selectedOption[009B]=0x{w[0x009B]:02X} row[000E]=0x{w[0x000E]:02X} col[0C63]=0x{w[0x0C63]:02X}")' "$state" "$WRAM"
+              python3 -c 'import pathlib,sys; name=sys.argv[1]; w=pathlib.Path(sys.argv[2]).read_bytes(); print(f"{name}: menu[009F]=0x{w[0x009F]:02X} selectedOption[009B]=0x{w[0x009B]:02X} row[000E]=0x{w[0x000E]:02X} col[0C63]=0x{w[0x0C63]:02X} track[00CE]=0x{w[0x00CE]:02X} inRace[0313]=0x{w[0x0313]:02X}")' "$state" "$WRAM"
             fi
           done
 
@@ -191,11 +191,11 @@ jobs:
             echo "::error::Scripted native route exited with status $STATUS"
             exit "$STATUS"
           fi
-          if [ ! -s "$DUMPS/tours-ready.wram.bin" ] || [ ! -s "$DUMPS/after-tour-confirm.wram.bin" ]; then
-            echo "::error::Route did not prove tours entry and exit"
+          if [ ! -s "$DUMPS/now-playing-ready.wram.bin" ] || [ ! -s "$DUMPS/race-entered.wram.bin" ]; then
+            echo "::error::Route did not prove now-playing and race entry"
             exit 1
           fi
-          echo "INPUT_ROUTE_RESULT=through_first_tour"
+          echo "INPUT_ROUTE_RESULT=reached_race"
 
       - name: Upload native frame evidence
         if: always()

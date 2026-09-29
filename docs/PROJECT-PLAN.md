@@ -1,10 +1,10 @@
 # Uniracers Modern Port Plan
 
-Last updated: 2026-09-28
+Last updated: 2026-09-29
 
 This is the canonical product-development plan for turning the original SNES Uniracers / Unirally into a faithful modern native port.
 
-For current reverse-engineering priorities, evidence collection and archival work, see `RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md`. For day-to-day milestone status, see `WORK-QUEUE.md`. This document owns the longer path from stock native execution to the intended modern port.
+For current reverse-engineering priorities, evidence collection and archival work, see `RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md`. For day-to-day milestone status, see `WORK-QUEUE.md`. Remaining global tooling-audit work is bounded by `TOOLING-AUDIT-CLOSEOUT.md`; experiments transferred from that audit are owned by the relevant phases below. This document owns the longer path from stock native execution to the intended modern port.
 
 ## Terminology
 
@@ -263,7 +263,7 @@ Make simulation fidelity continuously falsifiable before widening or replacing p
 
 ### Core oracle
 
-Use `snesref` with the pinned Snes9x core by default. Cross-check PPU/OAM-sensitive findings with bsnes/ares and, where necessary, documented hardware behavior.
+Use `snesref` with the pinned Snes9x core by default. Cross-check PPU/OAM-sensitive findings with bsnes/ares and, where necessary, documented hardware behavior. Once the pinned MesenCE route is proven against the shared fixture grammar, use it as a third deterministic execution engine rather than inventing a separate replay language.
 
 ### Build canonical scripts
 
@@ -363,7 +363,7 @@ Use:
 - SNESRecomp analyzer and runtime trace surfaces first;
 - `snesref` WRAM traces;
 - snes2asm/da65 for bounded static regions;
-- Ghidra only where cross-reference work earns its setup cost;
+- Ghidra only where cross-reference work earns its setup cost, with canonical project symbols imported from the same generated symbol authority used by snes2asm/da65/Mesen;
 - four-ROM diffs to align unchanged functions and expose late changes;
 - historical SNasm syntax only as lineage evidence, not as an assumed source language.
 
@@ -443,6 +443,8 @@ Build deterministic extraction for:
 - effects.
 
 Use SuperFamiconv where possible. Write custom extraction only for genuinely game-specific packing/indexing.
+
+Before SuperFamiconv output becomes an authoritative replacement path, prove an exact real-asset round trip through snes2asm native bytes → SuperFamiconv → the generated reconstruction worktree → WLA-DX. Fixtures must catch palette/tile order, flips, dimensions, deduplication, base offsets and padding/unused-byte changes.
 
 Public sprite/background sheets are comparison references, not authority. Our extractor should reproduce their content from the canonical ROM.
 

@@ -161,3 +161,6 @@ The bootstrap validates before network or build work:
 - argv-vector build commands with only known placeholders.
 
 This is intentionally stricter than upstream build documentation. The manifest is an execution contract for this repository, not a bag of shell snippets.
+
+
+Python-packaged third-party tools are installed into separate virtual environments under `.tools/venvs/<tool-id>/`. This avoids dependency coupling between unrelated research tools while keeping the entire installation disposable.

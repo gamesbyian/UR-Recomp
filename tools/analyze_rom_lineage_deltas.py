@@ -30,6 +30,59 @@ DEFAULTS = {
 }
 
 
+
+LONG_OPS = {
+    0x0F: "ORA long", 0x1F: "ORA long,X",
+    0x2F: "AND long", 0x3F: "AND long,X",
+    0x4F: "EOR long", 0x5F: "EOR long,X",
+    0x6F: "ADC long", 0x7F: "ADC long,X",
+    0x8F: "STA long", 0x9F: "STA long,X",
+    0xAF: "LDA long", 0xBF: "LDA long,X",
+    0xCF: "CMP long", 0xDF: "CMP long,X",
+    0xEF: "SBC long", 0xFF: "SBC long,X",
+}
+
+
+def file_to_cpu(offset: int) -> int:
+    bank = offset // 0x8000
+    addr = 0x8000 + (offset % 0x8000)
+    return (bank << 16) | addr
+
+
+def beta_77_to_70_sites(blobs: dict[str, bytes], mask: bytearray) -> list[dict]:
+    """Classify beta-only 0x77 -> 0x70 changes as possible long-address bank bytes."""
+    out = []
+    n = min(map(len, blobs.values()))
+    for off in range(n):
+        if mask[off]:
+            continue
+        if not (
+            blobs["usa"][off] == 0x77
+            and blobs["europe"][off] == 0x77
+            and blobs["prototype"][off] == 0x77
+            and blobs["beta"][off] == 0x70
+        ):
+            continue
+        opcode = blobs["usa"][off - 3] if off >= 3 else None
+        addr16 = (
+            blobs["usa"][off - 2] | (blobs["usa"][off - 1] << 8)
+            if off >= 2 else None
+        )
+        instruction_off = off - 3 if off >= 3 else off
+        out.append({
+            "bank_byte_offset": off,
+            "bank_byte_offset_hex": f"0x{off:06X}",
+            "instruction_offset_hex": f"0x{instruction_off:06X}",
+            "instruction_cpu": f"{(file_to_cpu(instruction_off) >> 16) & 0xFF:02X}:{file_to_cpu(instruction_off) & 0xFFFF:04X}",
+            "opcode_hex": None if opcode is None else f"0x{opcode:02X}",
+            "opcode_name": LONG_OPS.get(opcode),
+            "address16_hex": None if addr16 is None else f"0x{addr16:04X}",
+            "usa_target": None if addr16 is None else f"77:{addr16:04X}",
+            "beta_target": None if addr16 is None else f"70:{addr16:04X}",
+            "is_long_address_bank_byte": opcode in LONG_OPS,
+        })
+    return out
+
 def rnc_ranges(data: bytes) -> list[tuple[int, int]]:
     out = []
     pos = 0
@@ -228,6 +281,7 @@ def build_report(paths: dict[str, Path]) -> dict:
         "rare_signature_contexts": rare_contexts(rows, blobs, sig_counts),
         "largest_runs": largest,
         "usa_beta_delta_classes": beta_delta_classes(blobs, mask),
+        "beta_77_to_70_sites": beta_77_to_70_sites(blobs, mask),
     }
 
 

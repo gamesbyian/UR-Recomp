@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "components": [
+    {
+      "id": "mesen-for-ai",
+      "mode": "pending",
+      "upstream_url": "https://github.com/paulomanrique/mesen-for-ai.git",
+      "revision": "a4bda6285eadf69c871135637df29e9c9a8f6f7a",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": null,
+      "license_path": null,
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+    },
+    {
+      "id": "snes2asm",
+      "mode": "pending",
+      "upstream_url": "https://github.com/nathancassano/snes2asm.git",
+      "revision": "04023b0b589042b212f30c92ec7acf6e6bd010e4",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": null,
+      "license_path": null,
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+    },
+    {
+      "id": "superfamiconv",
+      "mode": "pending",
+      "upstream_url": "https://github.com/Optiroc/SuperFamiconv.git",
+      "revision": "566522204e271885fb771b56f1f85d62f3f41430",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": null,
+      "license_path": null,
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+    },
+    {
+      "id": "ghidra-snes",
+      "mode": "pending",
+      "upstream_url": "https://github.com/joshleaves/ghidra-snes.git",
+      "revision": "d33ce5dbfbc3645f00449be1c7ca1c1c65e81756",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": null,
+      "license_path": null,
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+    },
+    {
+      "id": "flips",
+      "mode": "pending",
+      "upstream_url": "https://github.com/bates64/flips.git",
+      "revision": "6caac470f7fc096b0c5fdc374b65954f8bac5b16",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": null,
+      "license_path": null,
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+    },
+    {
+      "id": "beetle-bsnes-libretro",
+      "mode": "pending",
+      "upstream_url": "https://github.com/libretro/beetle-bsnes-libretro.git",
+      "revision": "5f05e4c785e936c928ac468e129c55b6f08592cb",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": null,
+      "license_path": null,
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+    },
+    {
+      "id": "wla-dx",
+      "mode": "pending",
+      "upstream_url": "https://github.com/vhelin/wla-dx.git",
+      "revision": "91c52b1f4ef3cc8ba3c0638f7536539579af6a9f",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": null,
+      "license_path": null,
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+    },
+    {
+      "id": "cc65",
+      "mode": "pending",
+      "upstream_url": "https://github.com/cc65/cc65.git",
+      "revision": "d8a486acdef93ea1ba432a6a35b96cf1b797bda5",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": null,
+      "license_path": null,
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+    },
+    {
+      "id": "snes9x-libretro",
+      "mode": "pending",
+      "upstream_url": "https://github.com/snes9xgit/snes9x.git",
+      "revision": "1bcc369e89f08243e0a462882fb1f3e42e51de3a",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": null,
+      "license_path": null,
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+    },
+    {
+      "id": "bsnes-libretro",
+      "mode": "pending",
+      "upstream_url": "https://github.com/libretro/bsnes-libretro.git",
+      "revision": "05439f96121d2b9d7ad7a5fc1f29d7eebdcc8c43",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": null,
+      "license_path": null,
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+    },
+    {
+      "id": "mesence",
+      "mode": "pending",
+      "upstream_url": "https://github.com/nesdev-org/MesenCE.git",
+      "revision": "a60e79feb4d6dcced5922d636f9211837d01e381",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": null,
+      "license_path": null,
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+    },
+    {
+      "id": "retroarch",
+      "mode": "pending",
+      "upstream_url": "https://github.com/libretro/RetroArch.git",
+      "revision": "6e8ab65c17058fb9431582c8af688759422743dc",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": null,
+      "license_path": null,
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+    },
+    {
+      "id": "slang-shaders",
+      "mode": "pending",
+      "upstream_url": "https://github.com/libretro/slang-shaders.git",
+      "revision": "84bcd19a854348c0e6a1d3db814a76f11fb6f011",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": null,
+      "license_path": null,
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+    },
+    {
+      "id": "bsnes-hd",
+      "mode": "pending",
+      "upstream_url": "https://github.com/DerKoun/bsnes-hd.git",
+      "revision": "fc26b25ea236f0f877f0265d2a2c37dfd93dfde9",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": null,
+      "license_path": null,
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+    }
+  ]
+}

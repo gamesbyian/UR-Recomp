@@ -96,7 +96,32 @@ def main():
             )
         else:
             lines.append(f"- {name}: unresolved helper hits={hits}.")
-    lines += ["", "This helper performs a 16-bit packed-stream read with LoROM bank-boundary repair and restores `IN` before returning. It is a read adapter, not a course-buffer writer.", ""]
+    lines += ["", "This helper performs a 16-bit packed-stream read with LoROM bank-boundary repair and restores `IN` before returning. It is a read adapter, not a course-buffer writer.", "", "### Direct JSR call sites", ""]
+    for name,path in ROMS.items():
+        data=path.read_bytes()
+        hits=allhits[name]["readword-lorom-safe"]
+        entry=allhits[name]["entry-loose"][0] if allhits[name]["entry-loose"] else None
+        tail=allhits[name]["makehuff-tail"]
+        if len(hits)!=1:
+            lines.append(f"- {name}: helper unresolved.")
+            continue
+        helper=hits[0]
+        helper_addr=0x8000+(helper%0x8000)
+        pat=bytes([0x20, helper_addr & 0xFF, (helper_addr >> 8) & 0xFF])
+        calls=[]
+        pos=0
+        while True:
+            off=data.find(pat,pos)
+            if off<0:
+                break
+            calls.append(off)
+            pos=off+1
+        rendered=[]
+        for off in calls:
+            within="inside-RNC1" if entry is not None and tail and entry <= off <= tail[0]+len(PATTERNS["makehuff-tail"])-1 else "outside-RNC1"
+            rendered.append(f"`{snes_lorom(off)}` ({within})")
+        lines.append(f"- {name}: {len(calls)} direct calls: " + (", ".join(rendered) if rendered else "none"))
+    lines.append("")
     lines.append("")
     lines += ["## Traced writer-site context","",
               "Dynamic trace run 36517696016 identified USA interpreter attribution-scope entries 01:BA96 and 01:BB73. "

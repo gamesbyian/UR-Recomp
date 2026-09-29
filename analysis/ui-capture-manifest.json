@@ -1006,7 +1006,7 @@
       "tag": "ui-records-high-selected",
       "state_id": "RECORDS",
       "variant": "high-selected",
-      "source_fixture": "ui-records-submenus",
+      "source_fixture": "ui-record-high",
       "required": false,
       "discover": [
         "current_menu",
@@ -1018,7 +1018,7 @@
     {
       "tag": "ui-record-high-entry",
       "state_id": "RECORD_HIGH_SCORES",
-      "source_fixture": "ui-records-submenus",
+      "source_fixture": "ui-record-high",
       "required": false,
       "discover": [
         "current_menu",
@@ -1031,7 +1031,7 @@
       "tag": "ui-records-player-selected",
       "state_id": "RECORDS",
       "variant": "player-selected",
-      "source_fixture": "ui-records-submenus",
+      "source_fixture": "ui-record-player",
       "required": false,
       "discover": [
         "current_menu",
@@ -1043,7 +1043,7 @@
     {
       "tag": "ui-record-player-entry",
       "state_id": "RECORD_PLAYER_SCORES",
-      "source_fixture": "ui-records-submenus",
+      "source_fixture": "ui-record-player",
       "required": false,
       "discover": [
         "current_menu",
@@ -1056,7 +1056,7 @@
       "tag": "ui-records-group-selected",
       "state_id": "RECORDS",
       "variant": "group-selected",
-      "source_fixture": "ui-records-submenus",
+      "source_fixture": "ui-record-group",
       "required": false,
       "discover": [
         "current_menu",
@@ -1068,7 +1068,7 @@
     {
       "tag": "ui-record-group-entry",
       "state_id": "RECORD_GROUP_TABLES",
-      "source_fixture": "ui-records-submenus",
+      "source_fixture": "ui-record-group",
       "required": false,
       "discover": [
         "current_menu",

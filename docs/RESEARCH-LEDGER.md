@@ -649,7 +649,7 @@ Dynamic run 36515746538 independently shows airborne L input changing `$04C7` fr
 
 ### R-SEED-032 — Recovered 2008 WIP controller stream is directly parseable
 
-**Status:** confirmed container/input facts; race-boundary interpretation pending replay  
+**Status:** confirmed container/input facts; modern-reference replay desynchronization confirmed  
 **Date:** 2026-09-28  
 **Area:** input | TAS | autonomous play
 
@@ -657,7 +657,9 @@ Dynamic run 36515746538 independently shows airborne L input changing `$04C7` fr
 
 **Interpretation:** this is a high-value candidate source for an exact known-working Dragster controller sequence, potentially preferable to approximating the 2014 Lua policy. The apparent race boundaries are not yet promoted because they are inferred from input shape alone.
 
-**Discriminating test:** replay the exact translated SMV stream against the canonical USA ROM in pinned Snes9x/snesref and sample `7E:0313`, `7E:009F`, track ID and player-state anchors around the candidate boundaries. Workflow: `.github/workflows/historical-wip-dragster.yml`.
+**Replay result:** the repaired evidence-persistence path has now promoted `analysis/generated/historical-2008-dragster-reference.json`. The full 4,975-sample reference replay completes, but under the current pinned modern Snes9x/snesref route it never reaches the project's `inRace` or race-results states: `first_in_race_frame=null`, `first_race_results_frame=null`, `reference_reached_race=false`, `reference_reached_results=false`. The trace does record frontend/menu transitions, so this is a synchronization/timing failure rather than a parser/no-input failure.
+
+**Interpretation:** do not use the 2008 WIP as a modern reference oracle until WIP1 timing compatibility is reproduced or otherwise explained. The 2014 movie is now the preferred exact historical reference corpus for race/finish work.
 
 
 ### R-SEED-033 — 2008 WIP requires no mid-movie reset emulation
@@ -720,7 +722,9 @@ Direct inspection of all 4,975 controller samples in the reset-anchored 2008 WIP
 
 **Movie-specific observation:** the 2008 WIP is SMV v1 with sync-data-present and `MOVIE_SYNC_WIP1TIMING` set; all other legacy behavioral sync flags except ROM-info are clear. Modern Snes9x no longer uses WIP1 timing.
 
-**Interpretation:** do not introduce an input-frame offset to make the movie sync. If modern pinned-Snes9x replay diverges, first reproduce or characterize the old 1.43 WIP1 timing mode and test whether Uniracers is sensitive to it.
+**Observed modern behavior:** the durable reference result in `analysis/generated/historical-2008-dragster-reference.json` confirms that current pinned Snes9x/snesref does diverge before race: no `inRace` or results transition is reached across the full movie stream.
+
+**Interpretation:** do not introduce an arbitrary input-frame offset to force synchronization. The next meaningful discriminator is reproducing/characterizing Snes9x 1.43 WIP1 timing semantics, or demonstrating another exact legacy-state difference that explains the desync.
 
 
 ### R-SEED-038 — 2008 WIP embeds the canonical USA ROM identity

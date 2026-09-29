@@ -25,6 +25,7 @@ def main():
     transition_data=json.loads((root/"analysis/ui-transition-contract.json").read_text())
     edges=transition_data["edges"]
     capture_exempt=set(transition_data.get("capture_exempt_states", []))
+    transition_exempt=set(transition_data.get("transition_exempt_states", []))
     completion_tiers=transition_data.get("completion_tiers", {})
     tier_by_state={}
     for tier_id,tier in completion_tiers.items():
@@ -65,7 +66,7 @@ def main():
         if not cs and s not in capture_exempt: gaps.append((s,"no capture contract"))
         if not cs and not rb.get(s) and s not in capture_exempt: gaps.append((s,"no local capture or public visual lead"))
         if ms and not any(m.get("status")=="verified" for m in ms): gaps.append((s,"menu id remains historical/unverified"))
-        if not out.get(s) and s!="ENDING": gaps.append((s,"no outgoing transition in executable contract"))
+        if not out.get(s) and s!="ENDING" and s not in transition_exempt: gaps.append((s,"no outgoing transition in executable contract"))
         for blocker in sorted(blockers.get(s,set())):
             if transition_data.get("capability_dependencies",{}).get(blocker,{}).get("status")!="complete":
                 gaps.append((s,f"blocked by open capability {blocker}"))

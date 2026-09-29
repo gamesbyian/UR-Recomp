@@ -52,9 +52,16 @@ A project-owned `mesen-cdl-adapter` should map Mesen's SNES code/data flags into
 
 The existing `tests/input/*.script` grammar already drives native recompilation and `snesref`. `mesen-for-ai` has frame stepping and latched input, so an adapter can replay the same project fixture in Mesen. This is preferable to creating a third hand-authored input format. The adapter should preserve exact frame-boundary semantics and named checkpoints.
 
-### SMV movies → project fixture scripts
+### Historical SMV → neutral replay → multiple engines
 
-The preserved Snes9x SMV movies are deterministic input corpora, but they are currently archaeological files rather than first-class workloads. A converter should extract controller/reset/SRAM semantics into a neutral event stream and then emit the project fixture grammar. Verify the conversion by replaying a bounded segment in Snes9x and comparing checkpoints before using it as a regression corpus.
+This chain is already **verified**, not aspirational. `tools/extract_smv_input.py` converts Snes9x SMV movies into the project-neutral `start:duration:mask` controller stream, emits provenance metadata, and recovers embedded reset-anchored SRAM where present. `tools/compare_input_runs.py` compares parsed intervals rather than comments.
+
+The historical replay workflows then reuse that one neutral stream in two directions:
+
+- `snesref`/Snes9x consumes it through `SNESREF_INPUT_FILE`, with extracted SRAM through `SNESREF_SRAM_IN`, and can emit a WRAM trace;
+- the native runtime consumes the same stream through `tools/replay_input_via_lua.py`, with the same extracted SRAM staged into the native save path.
+
+The reference WRAM trace is normalized by `tools/summarize_wram_trace_checkpoints.py`, while native snapshots use the project-owned state model. The 2008 Dragster workflow already compares both semantics from the same historical input corpus. This is the template for future external input formats: convert once to a neutral project artifact, then replay everywhere.
 
 ### Dynamic trace → canonical symbols
 
@@ -70,6 +77,6 @@ Do not write an adapter merely because two files can be coerced into similar sha
 
 ## Next interoperability work
 
-The highest-return additions are, in order: replay the shared fixture grammar through Mesen; validate a Mesen-CDL compatibility adapter for DiztinGUIsh/da65; import SMV controller streams into the fixture corpus; add Ghidra/Mesen symbol exporters; and create exact native-graphics round-trip fixtures once the relevant Uniracers asset regions are identified.
+The highest-return additions are, in order: complete an end-to-end shared-fixture run through Mesen; validate a Mesen-CDL compatibility adapter for DiztinGUIsh/da65; add Ghidra/Mesen symbol exporters; and create exact native-graphics round-trip fixtures once the relevant Uniracers asset regions are identified. SMV controller/SRAM extraction is already a verified neutral-input chain and should be extended rather than reinvented.
 
 Keep those as adapters around project-owned canonical artifacts. Avoid converting the repository into a chain of opaque third-party databases.

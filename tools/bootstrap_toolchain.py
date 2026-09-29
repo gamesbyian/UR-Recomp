@@ -24,7 +24,7 @@ ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 def run(cmd: list[str], *, cwd: Path | None = None) -> None:
     if not cmd or not all(isinstance(x, str) and x for x in cmd):
         raise ValueError(f"invalid command vector: {cmd!r}")
-    print("+ " + " ".join(cmd))
+    print("+ " + " ".join(cmd), flush=True)
     subprocess.run(cmd, cwd=cwd, check=True)
 
 

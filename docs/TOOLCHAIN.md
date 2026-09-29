@@ -31,7 +31,7 @@ python3 tools/validate_island.py --status
 
 When a component is marked `vendored`, bootstrap prefers that repository-owned source over the external Git pin. `--offline` is fail-closed: it permits only repository-owned buildable sources and exits before any GitHub fetch for pending/unclassified tools. This is intentionally strict so an "offline" run can never succeed by quietly touching the network.
 
-The first direct vendor is `mesen-for-ai`. Its runtime package has no Python dependencies, so UR-Recomp deliberately installs it without pip/build isolation via `tools/install_pure_python_tool.py`. That helper is for dependency-free src-layout tools only: it copies the package into the isolated venv and writes the declared console launcher. Do not replace this with `pip install -e .` unless there is a measured reason and an offline wheel/build-backend closure is added at the same time.
+`mesen-for-ai` and the in-progress `snes2asm` tranche use `tools/install_pure_python_tool.py` instead of pip/build isolation. The helper copies a repository-owned pure-Python package into the isolated venv from an explicit source directory and can generate declared console launchers. `snes2asm` installs repository-owned PyYAML 6.0.3 first, then its patched CLI package. Do not replace these paths with `pip install` unless a measured reason justifies restoring a registry/build-backend closure.
 
 Vendor provenance lives outside the hashed source tree under `third_party/provenance/`; for `mesen-for-ai`, that record documents the exact upstream commit/tree, retained subset, exclusions, license and install contract.
 

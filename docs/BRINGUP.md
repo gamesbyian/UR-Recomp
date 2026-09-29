@@ -179,3 +179,37 @@ Evidence:
 - recovered bot source `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`.
 
 Next milestone: settle at `0xF6`, confirm the default first track, and capture the resulting state before treating the bot's `onePlayerNowPlaying = 0x16` label as locally verified.
+
+
+### Follow-up — native race entry and reference replay are green
+
+Run 36506120930 completed the full native deterministic route with controller input only.
+
+Native checkpoints:
+- frame 506: main menu settled, `7E:009F = 0xD7`;
+- frame 569: rider select settled, `0x3C`;
+- frame 639: first tours page settled, `0x6D`;
+- frame 703: track select settled, `0xF6`;
+- frame 769: post-track screen is `0x16`, confirming Dessyreqt's `onePlayerNowPlaying` label;
+- frame 984: `7E:0313 = 0x01`, confirming active race state;
+- frame 1044: settled `race-entered` dump produced and the route exited cleanly.
+
+The same script was then replayed unmodified through `snesref` using the pinned Snes9x libretro core in run 36506281320. That reference run also reached every checkpoint and race state successfully:
+
+- main menu settled at frame 500;
+- rider select at 563;
+- tours at 633;
+- tracks at 696;
+- now-playing at 761;
+- `inRace = 1` at frame 975;
+- settled race dump at frame 1035.
+
+All checkpoint fields printed by the workflows agree across native and reference execution: current menu, selected option, row, column, track byte and race-active byte. The reference path reports Snes9x's existing `Applied Uniracers hack.`, so this successful replay establishes a useful oracle path but does not by itself prove the native runtime reproduces the historical active-display OAM behavior correctly.
+
+Interpretation:
+- Phase 2's title/menu operation gate is cleared;
+- Phase 3's "reach one-player race" milestone is cleared;
+- Dessyreqt's `onePlayerNowPlaying = 0x16` and `inRace = 1` labels are now locally verified;
+- native/reference frontend timing differs by several frames while the observed state sequence agrees.
+
+Next milestone: compare the complete WRAM checkpoint dumps byte-for-byte in one differential job, record the first differing offsets at each scene, and then extend deterministic control into actual race movement/physics.

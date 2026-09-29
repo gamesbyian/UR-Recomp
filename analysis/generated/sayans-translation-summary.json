@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "source_patch": "references/imported/patches/sayans-uniracers-2002/Uniraceresp.ips",
+  "canonical_base": "reference/roms/retail/Uniracers_USA.sfc",
+  "patch_sha256": "db68d50f647db678c31ee2d1ac84d9108292684d444d3b899abbbca88664bdd7",
+  "base_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "patched_result_sha256": "02901ab98e46df05d457ea1dac8bd62957e55cb5f6817fffbea1d724cae9f720",
+  "record_count": 83,
+  "encoded_write_bytes": 1255,
+  "actual_changed_bytes": 1187,
+  "records_with_ascii_letters": 83,
+  "records_all_printable": 65,
+  "records_with_control_bytes": 18,
+  "control_bytes": 121,
+  "records_with_some_unchanged_bytes": 14,
+  "heuristic_classification_counts": {
+    "text-like": 74,
+    "mixed/text-like": 8,
+    "binary/unknown": 1
+  },
+  "heuristic_note": "The lone binary/unknown heuristic result is itself mostly readable translated text plus control bytes. Payload inspection found no record without ASCII letters.",
+  "banks": {
+    "80": {
+      "records": 48,
+      "encoded_bytes": 903,
+      "actual_changed_bytes": 900
+    },
+    "83": {
+      "records": 7,
+      "encoded_bytes": 25,
+      "actual_changed_bytes": 25
+    },
+    "97": {
+      "records": 28,
+      "encoded_bytes": 327,
+      "actual_changed_bytes": 262
+    }
+  },
+  "observations": [
+    "All 83 patch records contain at least one ASCII letter.",
+    "Most records are directly readable Spanish player-facing strings; the remainder mix readable text with control/non-printable bytes.",
+    "No pure binary-only patch record was identified in this 85% release.",
+    "This evidence strongly supports three text/control-data clusters in LoROM banks $80, $83, and $97; it does not by itself prove the reader routines or the meaning of each control byte.",
+    "No separate font-graphics, pointer-table, checksum/header, or executable-code-only edit is evidenced by the patch payloads."
+  ]
+}

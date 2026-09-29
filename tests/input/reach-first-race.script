@@ -19,11 +19,16 @@ wait 60
 dump rider-select-ready
 press a 2
 
-# Do not assume whether clean SRAM enters onePlayerTours1=0x6D or
-# onePlayerTours2=0x10. First prove that rider confirmation leaves 0x3C,
-# let the new scene settle, and capture its actual state.
-until 009F != 3C 1200
+# Clean native route enters onePlayerTours1 = 0x6D.
+until 009F == 6D 1200
 wait 60
-dump after-rider-confirm
+dump tours-ready
+press a 2
+
+# The recovered bot predicts onePlayerTracks = 0xF6 next, but capture the
+# actual destination rather than assuming it.
+until 009F != 6D 1200
+wait 60
+dump after-tour-confirm
 
 quit

@@ -77,7 +77,7 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 
 - [x] Locate public source for Dessyreqt's 2014 full-game real-time Uniracers bot (Pastebin `A0XpKw9v`).
 - [x] Preserve the source and submitted #4250 SMV in the repository with hashes/provenance.
-- [~] Verify the bot's key RAM labels against the canonical ROM/runtime. Frontend `7E:009F` values through now-playing and `7E:0313 = 1` race state are now verified in both native and Snes9x/snesref runs; remaining race-control labels still need validation. The historical 2008 Microstorage WIP SMV remains a second deterministic input corpus.
+- [~] Verify the bot's key RAM labels against the canonical ROM/runtime. Frontend/race-entry state is verified; the active race-acceleration fixture is now testing the effective Lua player-1 X position/speed fields (`7E:0411`, `7E:04B7`) and related recovered state. Duplicate player-1 Lua keys have been resolved by actual Lua overwrite semantics. The historical 2008 Microstorage WIP SMV remains a second deterministic input corpus.
 - [x] Port the clean menu-driving route into the shared native/snesref deterministic input harness through race entry.
 - [ ] Evaluate its race-driving policy as an autonomous regression workload.
 
@@ -88,7 +88,7 @@ Use `snesref` or another trustworthy reference route.
 - [x] Deterministic input sequence to first race, shared verbatim by native and snesref.
 - [x] Full-WRAM/state checkpoint comparison across native and Snes9x/snesref. The first-race fixture compares all 128 KiB at seven checkpoints and reduces the settled-race difference to seven bytes.
 - [x] First-divergence workflow for the settled first-race checkpoint. Run 36511207129 resolves `$01D1–$01D4` as stale stack residue (`SP=$01FF`, `E=false`, no ordinary WRAM writers) and `$00C6/$00C8/$00C9` as free-running timing/phase counters. There is no remaining unexplained persistent gameplay-state divergence in this checkpoint.
-- [ ] Regression cases for race start, acceleration, jump, rotation, landing, stunt, collision, finish and two-player.
+- [~] Regression cases for race start, acceleration, jump, rotation, landing, stunt, collision, finish and two-player. Race start is covered; straight-line acceleration is the active first movement fixture.
 
 **Exit:** fidelity is objectively testable.
 

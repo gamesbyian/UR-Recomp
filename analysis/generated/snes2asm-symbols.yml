@@ -4,6 +4,7 @@ labels:
   RNC1_Unpack: 0xB8F1
   RNC1_MakeHuffTail: 0xBB60
   RNC1_ReadWordLoROMSafe: 0xBB6F
+  APU_ResolveBlockPointer: 0x1012A
   APU_TransferStateInit: 0x10298
   APU_StreamTransfer_Wrapper: 0x102A5
   APU_StreamTransfer: 0x102A9

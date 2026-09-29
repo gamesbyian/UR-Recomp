@@ -85,6 +85,10 @@
     {
       "id": "mesen-debug-api",
       "description": "Mesen/MesenCE debugger/Lua/testrunner surface consumed by mesen-for-ai."
+    },
+    {
+      "id": "da65-info",
+      "description": "cc65 da65 info-file seed containing labels and later RANGE/ADDRMODE annotations."
     }
   ],
   "components": [
@@ -144,7 +148,8 @@
         "symbols-json"
       ],
       "produces": [
-        "snes2asm-yaml"
+        "snes2asm-yaml",
+        "da65-info"
       ]
     },
     {
@@ -237,7 +242,8 @@
       "kind": "external",
       "consumes": [
         "sfc-rom",
-        "bsnes-trace-cdl"
+        "bsnes-trace-cdl",
+        "da65-info"
       ],
       "produces": [
         "asm-source"
@@ -439,6 +445,13 @@
       "format": "bsnes-trace-cdl",
       "status": "candidate",
       "evidence": "Could feed cc65 parse-bsnes-log/da65 RANGE+ADDRMODE generation after the compatibility mapping is proven."
+    },
+    {
+      "from": "symbol-adapters",
+      "to": "cc65",
+      "format": "da65-info",
+      "status": "supported",
+      "evidence": "analysis/generated/da65-symbols-bank-01.info; generated labels are valid da65 info syntax, dynamic RANGE/ADDRMODE remains separate."
     }
   ],
   "chains": [
@@ -537,6 +550,16 @@
         "rnc-analysis"
       ],
       "purpose": "Locate/decode period RNC data with CRC validation and feed decoded payloads into structural/course analysis."
+    },
+    {
+      "id": "da65-symbol-seeded-bank",
+      "status": "supported",
+      "steps": [
+        "symbol-export",
+        "symbol-adapters",
+        "cc65"
+      ],
+      "purpose": "Project canonical labels seed bank-local da65 info files; trace/CDL RANGE and M/X state can be layered on without retyping names."
     }
   ]
 }

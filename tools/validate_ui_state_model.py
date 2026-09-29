@@ -80,6 +80,11 @@ def validate(root: Path) -> list[str]:
         if state not in states:
             failures.append(f"capture_exempt_states: unknown state {state!r}")
 
+    transition_exempt = transitions.get("transition_exempt_states", [])
+    for state in transition_exempt:
+        if state not in states:
+            failures.append(f"transition_exempt_states: unknown state {state!r}")
+
     completion_tiers = transitions.get("completion_tiers", {})
     tier_states: list[str] = []
     for tier_id, tier in completion_tiers.items():

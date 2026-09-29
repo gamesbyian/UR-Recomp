@@ -638,13 +638,13 @@ Dynamic run 36515746538 independently shows airborne L input changing `$04C7` fr
 **Date:** 2026-09-28  
 **Area:** CPU | RAM | course | compression
 
-**Observation:** trace run 36517696016 records `interp@$81BB73` writing the decoded Dragster output buffer at frame 867, including `7F:000B: 0x00→0x0F`. At frame 879, `interp@$81BA96` performs seven successive writes to `7F:000B`, incrementing `0x0F→0x10→0x11→0x12→0x13→0x14→0x15→0x16` within one guest frame.
+**Observation:** trace run 36517696016 records `interp@$81BB73` writing the decoded Dragster output buffer at frame 867, including `7F:000B: 0x00→0x0F`. At frame 879, `interp@$81BA96` performs seven successive writes to `7F:000B`, incrementing `0x0F→0x10→0x11→0x12→0x13→0x14→0x15→0x16` within one guest frame. Attempt-2 run 36538122650 then captured exact interpreted PCs: the decoded `0x0F` write occurs at IPC `81:B9C8`, while every `0x10..0x16` mutation write occurs at IPC `82:E1E1`. The durable capture is `analysis/generated/course-byte11-exact-writes.json`.
 
-**Interpretation:** the settled `0x16` value is not an unexplained differential or copy artifact. It is produced explicitly after the decoded `0x0F` has been written. `81BB73` is on the decoded-output path; `81BA96` owns the seven-step mutation.
+**Interpretation:** the settled `0x16` value is not an unexplained differential or copy artifact. It is produced explicitly after the decoded `0x0F` has been written. The exact-IPC capture also resolves the tooling ambiguity: `81BB73` and `81BA96` are interpreter bridge scope entries, while the literal mutation store is at `82:E1E1`.
 
-**Caution:** both PCs lie near the known Method-1 unpacker entry `01:B8F1`. Do not yet classify `81BA96` as game-specific postprocessing or generic RNC internals from address proximity alone.
+**Consequence:** do not attribute course-buffer stores to bridge scope labels. Static RNC classification and dynamic store-PC attribution are now separate, reconciled evidence surfaces.
 
-**Discriminating test:** disassemble the shipped code around `01:BA96` and `01:BB73`, align it to preserved `RNC_1.S`, and identify the exact algorithmic blocks/callers.
+**Next discriminator:** disassemble/label the code around exact IPC `82:E1E1` and connect that store to the course-loader control path; retain `81:B9C8` as the exact decoded-output write site for comparison.
 
 
 ### R-SEED-032 — Recovered 2008 WIP controller stream is directly parseable
@@ -736,13 +736,17 @@ This closes ROM-revision mismatch as a possible cause of historical replay desyn
 
 ### R-SEED-039 — 2014 full-game movie provides a post-WIP1 timing oracle
 
-**Status:** external provenance confirmed; local first-race replay active  
-**Date:** 2026-09-28  
+**Status:** reference-side first-race replay confirmed; native comparison open  
+**Date:** 2026-09-29  
 **Area:** TAS | input | emulator compatibility
 
 TASVideos submission #4250 identifies Dessyreqt's full-game Uniracers movie as Snes9x 1.51 v17 and describes a blank-SRAM start. Its sync notes record successful verification using the movie's embedded settings. Unlike the 2008 SMV-v1 WIP, this movie therefore does not depend on the obsolete WIP1 timing flag.
 
-**Discriminating test:** extract the wrapped submission SMV, require reset/SRAM anchoring, replay the first 5,000 frames on the pinned Snes9x core in one trace pass, and persist exact `inRace` / `raceResults` transition frames. Agreement with the 2008 corpus would validate the neutral historical-input path from two independently authored timing eras; disagreement isolates the old WIP1 timing mode as a first-class suspect.
+**Local replay evidence:** attempt-2 run 36538122590 successfully extracts the reset-anchored movie, verifies the canonical ROM identity, replays the first historical race window on pinned Snes9x/snesref, and composes the durable result `analysis/generated/historical-2014-first-race-reference.json`. The trace reaches `inRace` at frame 794 and the first race-results state at frame 2874. The emitted canonical 8 KiB SRAM hash is recorded alongside the source/movie metadata in `analysis/generated/historical-2014-smv-metadata.json`.
+
+**Interpretation:** a post-WIP1 historical movie now supplies a deterministic reference-side race-and-finish oracle independent of the 2008 WIP timing regime. This does not yet prove native replay fidelity.
+
+**Next discriminator:** drive the same extracted frame masks and starting SRAM through the native bridge and compare the same transition/state checkpoints. Keep the 2008 WIP as a separate old-timing corpus rather than conflating a failure there with generic SMV playback.
 
 
 ### R-SEED-040 — Shipped RNC1 body ends at BB6E; BB73 is following helper code
@@ -753,7 +757,7 @@ TASVideos submission #4250 identifies Dessyreqt's full-game Uniracers movie as S
 
 The preserved Method-1 `MAKEHUFF` tail aligns at USA `01:BB60`; its source-final `RTS` is exactly `01:BB6E`. This establishes the USA/legacy-beta RNC1 body boundary as `01:B8F1..01:BB6E`. The next helper starts at `01:BB6F`; `01:BB71` increments the input pointer and `01:BB73` is its following `BNE`.
 
-Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribution scopes are now statically separated: BA96 is generic RNC bit-reader code; BB73 is integration/helper code after RNC. Exact memory-store opcode attribution remains pending the dedicated `SNESRECOMP_WLOG_STATE` IPC probe.
+Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribution scopes are statically separated: BA96 is generic RNC bit-reader code; BB73 is integration/helper code after RNC. Attempt-2 exact-IPC capture in run 36538122650 closes the remaining attribution gap: the `0x10..0x16` mutation stores execute at `82:E1E1`, not at BA96.
 
 
 ### R-SEED-041 — BB6F is the LoROM-safe RNC packed-word reader
@@ -766,12 +770,12 @@ Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribut
 
 **Interpretation:** name the helper `RNC1_ReadWordLoROMSafe`. It adapts the preserved linear RNC decoder to LoROM bank-boundary semantics. `01:BB73` is the helper's `BNE` wrap test, so the earlier `interp@$81BB73` write attribution is conclusively a bridge-scope label rather than a literal store PC.
 
-**Next discriminator:** use the existing exact-IPC WRAM logger for `7F:000B` to identify the actual install and seven increment store instructions; do not infer them from interpreter scope entry addresses.
+**Exact-IPC follow-up:** run 36538122650 identifies the decoded `0x0F` write at `81:B9C8` and all seven increment writes at `82:E1E1`. Future analysis should explain those literal store sites and their callers rather than infer store ownership from interpreter scope labels.
 
 
-### R-SEED-042 — LE16@11 is a 16-byte-aligned pre-trailer cursor candidate
+### R-SEED-042 — LE16@11 is a 16-byte-aligned pre-trailer cursor
 
-**Status:** corpus relationship confirmed; cursor interpretation under test  
+**Status:** runtime behavior confirmed on two courses; exact trailer semantics open  
 **Date:** 2026-09-29  
 **Area:** course format | runtime mutation | loader
 
@@ -779,9 +783,11 @@ Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribut
 
 **Rejected stronger claim:** `LE16@11 + 8 == decoded_size` is **not** a corpus invariant; it holds only for stream 1. The other 44 gaps range from 11 through 37 bytes.
 
-**Hypothesis:** the field is a mutable cursor initialized to the inclusive end of an aligned main-data region, immediately before a variable trailing structure, and advanced during course setup until it reaches EOF−1.
+**Second-course runtime confirmation:** attempt-2 run 36538122823 loads the first event of tour index 2. The best decoded match is the expected stream 11 (`best_equal_fraction=0.9999842263829519`). Its decoded cursor is 63375, 21 bytes remain after it, and the live cursor settles at 63396: an advance of exactly 21 to `decoded_size - 1` for decoded size 63397. The durable result is `analysis/generated/course-runtime-tour2-tail-cursor.json`.
 
-**Discriminating test:** load the first event of tour index 2 (expected stream 11, with 21 bytes after the aligned cursor). If the model is correct, runtime should advance `LE16@11` by 21 and settle at `decoded_size - 1`. The second-tour course-runtime workflow now records this directly.
+**Interpretation:** Dragster's seven-step mutation was not a one-course coincidence. On two courses with different trailer lengths, the field starts immediately before the variable trailing region and advances by exactly that region's length to the final decoded byte. Treat `LE16@11` as a mutable pre-trailer/setup cursor. The meaning and grammar of the bytes it traverses remain open.
+
+**Next discriminator:** decode the trailer grammar and trace the exact `82:E1E1` store consumer/loop. A third course is useful as regression coverage but is no longer required to justify the cursor model.
 
 
 ### R-SEED-043 — Cursor boundary is 16-byte aligned, not generally 1024-byte aligned
@@ -807,4 +813,6 @@ Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribut
 
 **Interpretation:** the trailing region is unlikely to be arbitrary alignment padding alone. Its length distribution is associated with the fixed Race/Circuit/Stunt track-order role, with stunt courses systematically shorter. This does not yet identify the records or prove the trailer is track-type metadata; geometry complexity or another correlated property could produce the same pattern.
 
-**Discriminating tests:** inspect the trailer-byte grammar once the generated trailer corpus lands; compare Europe-retail variants; and use runtime cursor progression on one non-Dragster course to determine whether setup walks the entire region byte-for-byte.
+**Evidence update:** attempt-2 run 36538122757 regenerated the full trailer corpus; the durable human-readable report is `analysis/generated/course-trailer-structure.md`. Attempt-2 run 36538122823 independently confirms that the non-Dragster stream-11 runtime advances through all 21 trailer bytes to EOF−1.
+
+**Discriminating tests:** classify the trailer byte grammar and compare Europe-retail variants. The former runtime question, whether a non-Dragster course walks the entire region, is now closed positively.

@@ -56,7 +56,7 @@ jobs:
             --sram-size 8192 \
             --json-out "$RUNNER_TEMP/wip-2008.json"
           cat "$RUNNER_TEMP/wip-2008.json"
-          cmp "$RUNNER_TEMP/wip-2008.input" tests/input/historical-2008-wip.input
+          python3 tools/compare_input_runs.py "$RUNNER_TEMP/wip-2008.input" tests/input/historical-2008-wip.input
           echo "historical SMV extraction matches frozen fixture"
 
       - name: Build pinned Snes9x and snesref

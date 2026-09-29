@@ -26,6 +26,13 @@
     },
     {
       "kind": "function",
+      "address": "`02:812A` (USA)",
+      "name": "APU_ResolveBlockPointer",
+      "confidence": 5,
+      "evidence_/_notes": "Exact static routine maps block ID X onto the packed audio-record pool beginning at `10:8000`. It walks X length-prefixed records, performing LoROM bank-wrap arithmetic, and returns the selected record pointer in DP `$63-$65`. The 50 valid selector IDs `$00-$31` therefore address 50 consecutive records."
+    },
+    {
+      "kind": "function",
       "address": "`02:8298` (USA)",
       "name": "APU_TransferStateInit",
       "confidence": 5,

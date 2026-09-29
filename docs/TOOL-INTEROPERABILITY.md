@@ -17,6 +17,14 @@ The machine-readable authority is `tools/tool_interop.json`. Its handoffs use th
 | Patch experiment loop | original ROM + IPS/BPS ↔ Flips → derived ROM → ROM verifier → deterministic execution/differential | Makes ROM mutations reproducible and keeps the patch separate from the canonical input. |
 | RNC archaeology | ROM → project RNC scanner/Method-1 decoder → CRC-verified decoded bytes → payload/course analyzers | The period compression format, game corpus and project analyzers already form a working pipeline. |
 
+## UI state atlas chain
+
+The frontend mapping work uses the same fixture-first interoperability rule as gameplay validation. Controller-only scripts drive the native runtime; SNESRecomp's existing `dump <tag>` facility emits framebuffer BMPs alongside WRAM, VRAM, CGRAM, OAM, registers and metadata; `analysis/ui-capture-manifest.json` states which tags correspond to conceptual UI states; and `tools/build_ui_atlas.py` reduces those raw bundles to compact JSON/Markdown evidence.
+
+This chain is **verified** at the producer/consumer seam: the native smoke invokes the atlas builder over the generated dump directories, while unit coverage checks successful discovery, strict mismatch handling and optional missing captures. `analysis/ui-menu-index.json` plus `tools/query_ui_state.py` provide the reverse lookup path from an observed `7E:009F` menu byte back to the conceptual state model without loading the full UI documentation.
+
+Keep raw screenshot/state bundles ephemeral unless a particular capture has durable evidence value. The compact manifest, state graph, reverse index, fixtures and reports are the reusable interfaces.
+
 ## Canonical symbol fan-out
 
 `docs/SYMBOLS.md` remains human-owned. `tools/export_symbols.py` generates `analysis/generated/symbols.json`, and `tools/export_symbol_adapters.py` now projects that authority into tool-specific seeds:

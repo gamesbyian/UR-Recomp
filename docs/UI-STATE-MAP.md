@@ -45,7 +45,11 @@ The manual also makes a useful terminology distinction: a **Menu** contains sele
 
 ```mermaid
 flowchart TD
-    BOOT[BOOT_STARTUP] --> MM[MAIN_MENU]
+    BOOT[BOOT_STARTUP] --> SPLASH[SPLASH]
+    SPLASH --> MM[MAIN_MENU]
+    SPLASH -. ending shortcut lead .-> END[ENDING]
+    MM -. idle .-> DEMO[DEMO]
+    DEMO --> MM
 
     MM -->|1P| P1[PLAYER_SELECT_P1]
     MM -->|2P| P2[TWO_PLAYER_SELECT]
@@ -83,6 +87,8 @@ flowchart TD
     OPT --> REC[RECORDS]
     OPT --> DP[DEFINE_PLAYER]
     OPT --> RP[RENAME_PLAYER]
+    RP -->|forbidden name| BADNAME[FORBIDDEN_NAME_REJECTION]
+    BADNAME --> RP
     OPT --> DL[DEFINE_LEAGUE]
     OPT --> MM
 ```
@@ -206,6 +212,17 @@ Useful public reference:
 - Demented Ferrets review screenshot: https://dementedferrets.com/2021/02/24/uniracers-review-bombastic-fun/
 
 The screenshot itself should not be copied into project-owned art unless rights are established. For now the repo records the source and the state it helps identify.
+
+### Exceptional and startup states
+
+The wider public corpus and recovered bot labels add a few branches that are easy to miss if the model only follows the happy path:
+
+- `SPLASH`: recovered bot value `0x84`; public galleries independently show an Intro Screen.
+- `DEMO`: recovered bot value `0x00`; the exact Main Menu idle timeout and return behavior are still unknown.
+- `ENDING`: recovered bot value `0x5B`; a secondary cheat reference describes a title/splash shortcut using Down+L+R+B, which is useful as a cheap local verification route.
+- `FORBIDDEN_NAME_REJECTION`: public screenshot sets include the "No Sonic Allowed" rejection/Easter-egg screen. This belongs in the graph because name validation is already an identified technical seam elsewhere in the project.
+
+These stay explicitly lower-confidence until a local controller/input route captures them.
 
 ## Manual-backed states that still need screenshots/runtime capture
 

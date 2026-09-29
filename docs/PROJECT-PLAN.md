@@ -301,6 +301,30 @@ Prefer machine-readable comparison over screenshots alone:
 
 The original developers reportedly reduced feel/fairness testing to a flat straight race. Recreate that idea as a canonical deterministic test using the published speed/position/boost WRAM anchors.
 
+### Emulator-compatibility seam program
+
+Treat historical Uniracers-specific emulator fixes as a source of concrete fidelity requirements, not as folklore or patches to copy blindly.
+
+Build a compatibility matrix with at least these independent seams:
+
+| Seam | Existing evidence | Required project test |
+| --- | --- | --- |
+| Active-display OAM / sprite ripping | Snes9x title-specific workaround, MAME active-display OAM handling, jgenesis hardware model, Mike Dailly testimony, recovered Canoe patch | Trace writes to `$2104`, scanlines, values, effective high-OAM byte and sprites 96-99; compare native/reference behavior in affected one-player, two-player and Vs. paths |
+| LoROM SRAM mapping | historical Snes9x fixes explicitly mentioning Uniracers | Deterministic clean/save/load round trip with byte-level SRAM comparison |
+| XOR/window-area logic | historical Snes9x fixes explicitly mentioning Uniracers | Capture affected scenes with PPU/window state and deterministic frame comparison |
+| Color math / empty-subscreen behavior | historical Snes9x experiments and regressions involving Uniracers | Capture affected scenes with color-math/subscreen state and deterministic frame comparison |
+
+For the active-display OAM seam specifically:
+
+1. disassemble the recovered Canoe patch hooks at ROM offsets `0x01534C` and `0x015714` and its injected handler at `0x1FFF00`;
+2. identify the original routines those hooks replace or bypass;
+3. reproduce the canonical ROM's `$2104` behavior under a trusted reference runtime;
+4. test the jgenesis observations of scanlines 0/112 and values `0xA5`/`0x5A`;
+5. compare Snes9x, bsnes/ares, jgenesis's documented model, the Canoe workaround and SNESRecomp;
+6. prefer a correct general SNES PPU/OAM implementation when practical, with game-specific compatibility only as a narrowly justified fallback.
+
+The emulator-history findings are complete only when converted into project-owned regression tests or explicitly rejected as irrelevant to the canonical ROM.
+
 ### Gate
 
 4:3 native mode has a repeatable regression suite capable of identifying the first meaningful divergence.

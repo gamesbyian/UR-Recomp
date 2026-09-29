@@ -196,15 +196,16 @@
         "tpp-musiclibrary-uniracers"
       ],
       "question": "Can the preserved SPC set fingerprint the audio driver, song table, sample/instrument layout, and reachability of the two tagged unused songs?",
-      "next_discriminator": "Decode the measured first-race ROM source at 03:FB55 (file 0x01FB55) and sibling caller seeds 03:FAD5, 03:FB15, 03:FBD5, and 03:FC15. Correlate their serialization with the established $2143 payload chunks and audio_events chains, then map package/song selectors and test unused-song reachability.",
+      "next_discriminator": "Characterize ROM audio blocks $07, $15 and $29, the exact three blocks present in called table 03:FAD5 but omitted by dormant/unreferenced subset 03:FB95. Correlate their payload effects against the Demo Race / Unused Song 1 and numbered-race / Unused Song 2 SPC-family differences; also retain the three non-call raw FB95 word occurrences as weak indirect-reference candidates unless control-flow evidence promotes them.",
       "deliverables": [
         "SPC archive provenance, archive hash and ten per-track hashes (landed)",
         "shared APU driver/sample fingerprint and reusable analyzer (landed)",
         "Unused Song 1 classified with Demo Race; Unused Song 2 classified with numbered-race family (landed)",
         "CPU-side APU transfer boundaries corrected: initializer 02:8298, wrapper 02:82A5, body 02:82A9; exact first-race APU block $B0E0-$BDE0 mapping (landed)",
         "first-race ROM source seed 03:FB55 plus clustered sibling seeds identified and runtime-corroborated (landed)",
-        "ROM-side audio block table/song selector mapping (next)",
-        "unused-song retail reachability result (next)"
+        "six selector tables mapped to 12 exact direct callers; FB95 has no direct caller and is FAD5 minus blocks 07/15/29 (landed)",
+        "unused-song retail reachability result (next)",
+        "blocks 07/15/29 package contribution and unused-song attribution (next)"
       ],
       "tags": [
         "audio",

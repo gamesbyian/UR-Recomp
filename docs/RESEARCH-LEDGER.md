@@ -653,7 +653,7 @@ Dynamic run 36515746538 independently shows airborne L input changing `$04C7` fr
 **Date:** 2026-09-28  
 **Area:** input | TAS | autonomous play
 
-**Observation:** `references/imported/tas-bots/uniracers-2008-wip-microstorage.smv` is a raw SMV v1 file, 10,542 bytes, reset-anchored, with one recorded controller and 4,974 header frames. Controller data starts at offset 592. Direct bit translation into the project/snesref 12-bit mask exposes a long regular control block around frames 1184–2655, including repeated `B+Right+R`, periodic `X`, short left corrections, and a final 359-frame Right interval. A later complex block begins around frame 3472.
+**Observation:** `references/imported/tas-bots/uniracers-2008-wip-microstorage.smv` is a raw SMV v1 file, 10,542 bytes, reset-anchored, with one recorded controller and 4,974 header frames. Controller data starts at offset 592. Per the SMV v1 reset-movie format, the block from the savestate offset to controller data is a gzip-compressed 128 KiB SRAM snapshot; the replay tooling now extracts it and emits the canonical game's 8 KiB cartridge SRAM for both reference and native preload. Direct bit translation into the project/snesref 12-bit mask exposes a long regular control block around frames 1184–2655, including repeated `B+Right+R`, periodic `X`, short left corrections, and a final 359-frame Right interval. A later complex block begins around frame 3472.
 
 **Interpretation:** this is a high-value candidate source for an exact known-working Dragster controller sequence, potentially preferable to approximating the 2014 Lua policy. The apparent race boundaries are not yet promoted because they are inferred from input shape alone.
 

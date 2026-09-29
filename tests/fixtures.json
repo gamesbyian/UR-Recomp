@@ -455,6 +455,16 @@
       "promotion_rule": "Promote SPLASH=0x84 and ENDING=0x5B only if the canonical runtime reaches them with the expected visible states."
     },
     {
+      "id": "ui-vs-handoff",
+      "checkpoints": [
+        "ui-vs-entry",
+        "ui-vs-player-two",
+        "ui-vs-after-p1-x"
+      ],
+      "purpose": "Reset-free VS selection probe: enter verified VS_SELECT=0x3E with guarded Main Menu movement, capture P1->P2 visual handoff and raw SRAM ownership discriminator, then record a P1 X attempt while Player Two owns the selector. P2-only causality remains for the neutral dual-pad acceptance route.",
+      "status": "reconnaissance"
+    },
+    {
       "id": "ui-main-branches",
       "input_script": "tests/input/ui-main-branches.script",
       "purpose": "Controller-only reconnaissance of the 2P, VS, and League branches from clean Main Menu resets, capturing each first destination and testing X-back to Main Menu.",

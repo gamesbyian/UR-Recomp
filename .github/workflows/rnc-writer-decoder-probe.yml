@@ -1,0 +1,53 @@
+name: RNC writer decoder probe
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "snesrecomp"
+      - "tools/probe_rnc_writer_decode.py"
+      - ".github/workflows/rnc-writer-decoder-probe.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rnc-writer-decoder-probe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    if: github.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          ref: ${{ github.ref_name }}
+
+      - name: Decode RNC writer PCs
+        run: |
+          python3 tools/probe_rnc_writer_decode.py \
+            reference/roms/retail/Uniracers_USA.sfc \
+            --json-out analysis/generated/rnc-writer-decode.json
+          cat analysis/generated/rnc-writer-decode.json
+
+      - name: Persist generated report
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- analysis/generated/rnc-writer-decode.json && \
+             ! git ls-files --error-unmatch analysis/generated/rnc-writer-decode.json >/dev/null 2>&1; then
+            echo "no report change"
+            exit 0
+          fi
+          git add analysis/generated/rnc-writer-decode.json
+          if git diff --cached --quiet; then
+            echo "report already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Record RNC writer decoder probe"
+          git push origin HEAD:${{ github.ref_name }}

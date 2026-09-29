@@ -204,17 +204,18 @@
       "group": "workbench",
       "url": "https://github.com/joshleaves/ghidra-snes.git",
       "revision": "d33ce5dbfbc3645f00449be1c7ca1c1c65e81756",
-      "purpose": "SNES-aware Ghidra loader, 24-bit 65816 language, memory-map helpers and vector/register labels.",
+      "purpose": "Repository-owned SNES-aware Ghidra extension source: ROM loader, 24-bit 65816 language, memory-map helpers and vector/register labels.",
       "requires": [
         "Ghidra 12.0.4",
-        "GHIDRA_INSTALL_DIR"
+        "GHIDRA_INSTALL_DIR",
+        "Gradle/Maven resolution when building the extension"
       ],
       "build": [],
       "artifacts": [],
       "install_mode": "manual",
       "headless": {
         "status": "manual",
-        "note": "Interactive/heavy workbench. Keep off default CI; use only when a task requires its GUI/debugger workspace."
+        "note": "Interactive/heavy workbench. UR-Recomp stages the extension source offline, but Ghidra plus Gradle/Maven build dependencies remain manual host requirements and are not default CI dependencies."
       }
     },
     {

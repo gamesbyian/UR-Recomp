@@ -331,3 +331,16 @@ The successful experiment portion is still informative. Native and Snes9x match 
 - `jump-hold-048`: `yPos=858`, `ySpeed=0`, `airValue=0`, `pitch=4`.
 
 This is the first coherent player-1 airborne transition in the deterministic corpus. It occurs only after replacing the ineffective two-frame B pulse with sustained B input matching the recovered bot's policy. The repaired workflow still requires a timing-identical sustained Right-only control before promoting the fields from supported to confirmed.
+
+
+### Follow-up — sustained B causally launches player 1
+
+Race-behavior run 36514981164 resolves the ambiguity left by the failed two-frame B pulse. The corrected fixture holds `Right+B` for 48 frames from the validated moving Dragster state and compares it with timing-identical `Right`-only control.
+
+At `jump-hold-024`:
+- sustained B: player 1 `x=2005, y=797, vx=447, vy=-21, air=9, pitch=27`;
+- no-B control: player 1 `x=2005, y=859, vx=448, vy=0, air=0, pitch=27`.
+
+The same semantic values are reproduced in native SNESRecomp and pinned Snes9x/snesref. By `jump-hold-048`, player 1 has returned to `y=858, vy=0, air=0`, so the fixture spans a complete launch/airborne/return cycle even though the exact landing transition has not yet been bracketed.
+
+This confirms the effective player-1 recovered fields `7E:0415` (Y), signed `7E:04BB` (Y speed) and `7E:0545` (air state). The unchanged `pitch=27` between intervention and control at the airborne checkpoint means pitch semantics should be tested separately with L/R input.

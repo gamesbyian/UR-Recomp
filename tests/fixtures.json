@@ -190,6 +190,40 @@
       ],
       "validation": "Run 36517502791: all semantic checkpoints match; air clears at landing-034 and ySpeed settles to zero by landing-036 under the deterministic press/idle cadence.",
       "status": "validated"
+    },
+    {
+      "id": "race-collision-overrotate",
+      "input_script": "tests/input/race-collision-overrotate.script",
+      "control_script": "tests/input/race-collision-control.script",
+      "purpose": "Deliberately over-rotate player 1 for 16 airborne L frames before impact and compare against an otherwise identical clean landing to identify collision/crash response.",
+      "engines": [
+        "native-recomp",
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "accel-180",
+        "collision-pre",
+        "collision-overrotate-016",
+        "collision-release-004",
+        "collision-release-012",
+        "collision-release-028",
+        "collision-settle"
+      ],
+      "compare_surfaces": [
+        "paired-player-state",
+        "full-wram",
+        "framebuffer"
+      ],
+      "semantic_fields": [
+        "7E:0411 xPos",
+        "7E:0415 yPos",
+        "7E:04B7 xSpeed",
+        "7E:04BB ySpeed",
+        "7E:0545 airValue",
+        "7E:04C7 pitch angle"
+      ],
+      "status": "candidate",
+      "promotion_rule": "Require a causal impact/collision response relative to matched clean landing and exact native/reference semantic agreement."
     }
   ]
 }

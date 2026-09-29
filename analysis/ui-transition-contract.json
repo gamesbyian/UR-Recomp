@@ -94,8 +94,9 @@
       "from": "MAIN_MENU",
       "to": "VS_SELECT",
       "trigger": "select VS; A/B",
-      "status": "documented",
-      "probe": "ui-main-branches"
+      "status": "verified",
+      "fixture": "ui-league-table",
+      "source_note": "A nominal League probe accidentally landed in VS after swallowed rapid menu input; the destination frame is visibly PICK PLAYER ONE at currentMenu 0x3E. Harvest note preserves the misrouting context."
     },
     {
       "id": "main-league",
@@ -168,12 +169,22 @@
       "status": "documented"
     },
     {
+      "id": "vs-participant-handoff",
+      "from": "VS_SELECT",
+      "to": "VS_SELECT",
+      "trigger": "P1 confirms initial VS rider; selector hands to Player Two",
+      "status": "verified",
+      "fixture": "ui-league-table",
+      "source_note": "Accidental native VS route changes the visible header PICK PLAYER ONE -> PICK PLAYER TWO while currentMenu stays 0x3E; raw SRAM offset 0x0743 changes 0x04 -> 0x02."
+    },
+    {
       "id": "vs-challenger",
       "from": "VS_SELECT",
       "to": "VS_CHALLENGER",
-      "trigger": "participant confirm",
+      "trigger": "all initial VS riders confirmed",
       "status": "historical",
-      "blocked_by": "multiplayer_behavioral_verification"
+      "blocked_by": "multiplayer_behavioral_verification",
+      "source_note": "First P1 confirm is now locally observed to remain in VS_SELECT and hand presentation to PICK PLAYER TWO; transition to VS_CHALLENGER remains historical until P2 confirmation is reproduced."
     },
     {
       "id": "vs-track",
@@ -491,8 +502,6 @@
       "phase": "behavioral_verification",
       "plan": "docs/TWO-PLAYER-FIXTURE-PLAN.md",
       "blocks_states": [
-        "TWO_PLAYER_SELECT",
-        "VS_SELECT",
         "VS_CHALLENGER",
         "VS_CHALLENGE_TRACK"
       ],
@@ -507,7 +516,7 @@
       "transport_format": "start:duration:p1-mask[:p2-mask]",
       "transport_status": "complete",
       "integration_note": "PR #31 already provides the shared P1/P2 transport across native, snesref, and Mesen. This dependency now tracks only behavioral proof: P2-only causality, P1->P2 rider-selection handoff, stable multiplayer checkpoints, and deeper VS navigation.",
-      "note": "Do not treat controller syntax as the blocker. Keep deeper 2P/VS edges blocked until the behavioral acceptance route proves assignment/handoff and captures the multiplayer states."
+      "note": "2P entry/back and VS_SELECT plus the visual P1->P2 VS handoff are locally reproduced. Remaining acceptance work is P2-only causality/confirmation, 2P handoff through TOUR_SELECT, deeper VS challenger/track checkpoints, and multiplayer gameplay/split-screen evidence."
     }
   },
   "completion_tiers": {

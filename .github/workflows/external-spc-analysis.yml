@@ -6,12 +6,9 @@ on:
       - chatgpt/spc-audio-archaeology-2026-09-29
     paths:
       - .github/workflows/external-spc-analysis.yml
-  pull_request:
-    paths:
-      - .github/workflows/external-spc-analysis.yml
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   acquire-and-analyze:
@@ -162,11 +159,24 @@ jobs:
           }, indent=2, sort_keys=True))
           PY
 
-      - name: Upload transient research artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: uniracers-spc-archaeology
-          path: |
-            evidence/spc/uniracers-zophar.zip
-            evidence/spc/uniracers-spc-analysis.json
-          retention-days: 1
+      - name: Stage durable evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p references/imported/audio/uniracers analysis/generated
+          cp evidence/spc/uniracers-zophar.zip references/imported/audio/uniracers/Uniracers-EMU-zophar.zip
+          cp evidence/spc/uniracers-spc-analysis.json analysis/generated/uniracers-spc-workflow-analysis.json
+
+      - name: Commit acquired evidence to branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add references/imported/audio/uniracers/Uniracers-EMU-zophar.zip analysis/generated/uniracers-spc-workflow-analysis.json
+          if git diff --cached --quiet; then
+            echo "No evidence changes to commit"
+            exit 0
+          fi
+          git commit -m "research: preserve Uniracers SPC corpus"
+          git push origin HEAD:chatgpt/spc-audio-archaeology-2026-09-29

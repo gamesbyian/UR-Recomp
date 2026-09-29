@@ -26,6 +26,7 @@ Task routing lives in [`../AGENTS.md`](../AGENTS.md). This file inventories owne
 
 External research sources are owned by `references/catalog.yml`; see `references/README.md`. Compact machine-generated ROM analyses live in `analysis/generated/`.
 
+- `HD-VISUAL-REFERENCE-PIPELINE.md` — controlled emulator/shader/upscaler reference strategy for Phase E and 4K replacement art, including provenance and headless-capture requirements.
 ## Documentation hygiene
 
 Current authorities say what is true now. Replace stale claims instead of appending corrections beneath them. Chronology belongs in `BRINGUP.md`, dated evidence, or the research ledger as appropriate.

@@ -8,6 +8,7 @@ on:
       - "rom_identity.txt"
       - "snesrecomp"
       - ".github/workflows/native-build-smoke.yml"
+      - "tests/input/reach-first-race.script"
 
 jobs:
   build-and-smoke:
@@ -156,6 +157,32 @@ jobs:
             tail -n 12 "$PRESENTS"
           fi
 
+      - name: Deterministic first-race input smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
+          LOG="$RUNNER_TEMP/race-smoke.log"
+
+          echo "== scripted native route to first race =="
+          SDL_AUDIODRIVER=dummy \
+          timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::error::Scripted race route exited with status $STATUS"
+            exit "$STATUS"
+          fi
+          if ! grep -q "until 00313 ok" "$LOG"; then
+            echo "::error::Script completed without proving WRAM 7E:0313 entered race state"
+            exit 1
+          fi
+          echo "RACE_SMOKE_RESULT=reached_race"
+
       - name: Upload native frame evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -165,6 +192,7 @@ jobs:
             ${{ runner.temp }}/native-frame-300.ppm
             ${{ runner.temp }}/native-presents.csv
             ${{ runner.temp }}/boot.log
+            ${{ runner.temp }}/race-smoke.log
           if-no-files-found: warn
           retention-days: 7
 

@@ -73,9 +73,12 @@ def main() -> int:
         "slot2_x":u16le(wram,0x0413),
         "slot2_y":u16le(wram,0x0417),
     }
+    by_stream={x["stream"]:x for x in results}
+    focus=by_stream.get(args.focus_stream)
     report={
         "wram_course_base":"7F:0000",
         "best_match":best,
+        "focus_stream":focus,
         "top_matches":results[:5],
         "runtime_racer_state":racer_state,
     }
@@ -87,6 +90,13 @@ def main() -> int:
         f"diffs={best['diff_count']}"
     )
     print(f"header: {best['header_first_16']}")
+    if focus is not None:
+        print(
+            f"focus stream #{args.focus_stream}: "
+            f"equal={focus['equal_bytes']}/{focus['live_compared']} "
+            f"({focus['equal_fraction']:.6f}) prefix={focus['common_prefix']} "
+            f"diffs={focus['diff_count']} live_b11=0x{live[11]:02X}"
+        )
     print(f"pair1={best['pair1']} pair2={best['pair2']}")
     print(
         "runtime racers: "

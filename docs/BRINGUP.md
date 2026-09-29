@@ -297,3 +297,25 @@ Evidence:
 - workflow run 36508095522;
 - artifact 11007769197;
 - `race-entered.fb.bmp` from native and Snes9x/snesref dumps.
+
+
+### Follow-up — straight-line acceleration semantics match exactly
+
+Race-behavior differential run 36512546762 replays staged Right input in native SNESRecomp and pinned Snes9x/snesref from the verified first-race checkpoint.
+
+Recovered player-state checkpoints match exactly between engines at every sampled point. Key observations:
+- race entry: `xPos=1088`, `xSpeed=0`;
+- through the first 120 staged input frames, X movement remains locked while the start countdown continues;
+- by `accel-180`: `xPos=1655`, `xSpeed=+447` in both engines;
+- `ySpeed=0` and effective `airValue=0` throughout this straight-ground probe;
+- `7E:11BA` decreases by exactly `0x0100` per guest frame between event-relative checkpoints in both engines.
+
+This directly validates `7E:0411` as player-1 X position and `7E:04B7` as signed player-1 X speed for the observed race state, while adding cadence evidence for `7E:11BA` as the recovered countdown/timer field.
+
+The full-WRAM diff remains confined to the previously classified free-running phase counters and stack residue/churn; no recovered player semantic field diverges.
+
+Evidence:
+- workflow run 36512546762;
+- artifact 11009592846;
+- `tests/input/race-acceleration.script`;
+- `tools/summarize_player_checkpoints.py`.

@@ -68,16 +68,21 @@ jobs:
           cat "$LOG"
           test -s "$DUMPS/race-entered.wram.bin"
 
-      - name: Match decoded payloads against live 7F bank
+      - name: Match decoded payloads across frontend-to-race timeline
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/probe_runtime_course_payload.py \
-            "reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/course-runtime-dumps/race-entered.wram.bin" \
-            --limit 80 \
-            --json-out "$RUNNER_TEMP/course-runtime-payload.json" \
-            | tee "$RUNNER_TEMP/course-runtime-payload.txt"
+          : >"$RUNNER_TEMP/course-runtime-timeline.txt"
+          for checkpoint in tracks-ready after-track-confirm now-playing-ready race-entered; do
+            echo "== $checkpoint ==" | tee -a "$RUNNER_TEMP/course-runtime-timeline.txt"
+            python3 tools/probe_runtime_course_payload.py \
+              "reference/roms/retail/Uniracers_USA.sfc" \
+              "$RUNNER_TEMP/course-runtime-dumps/$checkpoint.wram.bin" \
+              --focus-stream 1 \
+              --limit 40 \
+              --json-out "$RUNNER_TEMP/course-runtime-$checkpoint.json" \
+              | tee -a "$RUNNER_TEMP/course-runtime-timeline.txt"
+          done
 
       - name: Upload course runtime evidence
         uses: actions/upload-artifact@v4
@@ -85,8 +90,11 @@ jobs:
           name: uniracers-course-runtime-payload
           path: |
             ${{ runner.temp }}/course-runtime.log
-            ${{ runner.temp }}/course-runtime-payload.json
-            ${{ runner.temp }}/course-runtime-payload.txt
+            ${{ runner.temp }}/course-runtime-timeline.txt
+            ${{ runner.temp }}/course-runtime-*.json
+            ${{ runner.temp }}/course-runtime-dumps/tracks-ready.wram.bin
+            ${{ runner.temp }}/course-runtime-dumps/after-track-confirm.wram.bin
+            ${{ runner.temp }}/course-runtime-dumps/now-playing-ready.wram.bin
             ${{ runner.temp }}/course-runtime-dumps/race-entered.wram.bin
           if-no-files-found: error
           retention-days: 7

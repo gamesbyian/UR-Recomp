@@ -82,6 +82,10 @@ The surrounding ROM contains a contiguous six-table ladder at 64-byte spacing:
 
 `03:FB95` is therefore a concrete dormant/unreferenced **audio package selector-table candidate** in retail data. It is not yet identified with either tagged unused song; that requires mapping selector IDs through the block resolver and associating the table callers with song/package states.
 
+Across all six tables, the populated IDs have an exact union of **50 values, `$00-$31`**, with no gaps and no values outside that range. Within each table every populated ID is unique. This establishes a 50-block selector namespace. The 64-byte table controls an ordered/subset package selection over those 50 blocks, with `$FF` meaning “skip this slot.”
+
+The uncalled `03:FB95` table is particularly structured: it preserves the order/positions of `03:FAD5` and differs only by replacing three IDs, `$07`, `$15`, and `$29`, with `$FF`. That is strong evidence that it is an intentional package variant rather than unused padding, though its game-facing meaning remains unassigned.
+
 ## SPC byte-for-byte correlation
 
 The traced `$2143` payload contains 3,344 bytes. Three `$2142`-only transitions split it into four chunks.

@@ -81,9 +81,17 @@ def validate_manifest(manifest: dict) -> None:
         if not isinstance(purpose, str) or not purpose:
             raise ValueError(f"{tool_id}: purpose must be a non-empty string")
 
+        mode = tool.get("install_mode")
+        if mode not in {"build", "manual"}:
+            raise ValueError(f"{tool_id}: install_mode must be 'build' or 'manual'")
+
         build = tool.get("build", [])
         if not isinstance(build, list):
             raise ValueError(f"{tool_id}: build must be a list")
+        if mode == "build" and not build:
+            raise ValueError(f"{tool_id}: build-mode tool has no build commands")
+        if mode == "manual" and build:
+            raise ValueError(f"{tool_id}: manual tool must not declare build commands")
         for cmd_index, cmd in enumerate(build):
             if (
                 not isinstance(cmd, list)
@@ -122,6 +130,18 @@ def ensure_checkout(tool: dict, src_root: Path) -> Path:
     if actual != revision:
         raise SystemExit(f"{tool['id']}: expected {revision}, got {actual}")
     return dest
+
+
+def verify_artifacts(tool: dict, dest: Path) -> None:
+    missing = []
+    for rel in tool.get("artifacts", []):
+        if not isinstance(rel, str) or not rel:
+            raise ValueError(f"{tool['id']}: artifact paths must be non-empty strings")
+        path = dest / rel
+        if not path.exists():
+            missing.append(rel)
+    if missing:
+        raise SystemExit(f"{tool['id']}: expected build artifact(s) missing: {', '.join(missing)}")
 
 
 def ensure_venv(root: Path) -> Path:
@@ -181,11 +201,15 @@ def main() -> int:
         dest = ensure_checkout(tool, src_root)
         if args.clone_only:
             continue
+        if tool["install_mode"] == "manual":
+            print(f"{tool['id']}: source checkout pinned; manual build/install required")
+            continue
         for command in tool.get("build", []):
             if any("{python}" in arg for arg in command) and python is None:
                 python = ensure_venv(install_root)
             expanded = expand_command(command, jobs=args.jobs, python=python)
             run(expanded, cwd=dest)
+        verify_artifacts(tool, dest)
 
     print("\nPinned toolchain operation complete.")
     return 0

@@ -86,6 +86,20 @@ def validate_manifest(manifest: dict) -> None:
         if mode not in {"build", "manual"}:
             raise ValueError(f"{tool_id}: install_mode must be 'build' or 'manual'")
 
+        headless = tool.get("headless")
+        if not isinstance(headless, dict):
+            raise ValueError(f"{tool_id}: headless must be an object")
+        headless_status = headless.get("status")
+        if headless_status not in {"native", "wrapped", "manual"}:
+            raise ValueError(
+                f"{tool_id}: headless.status must be native, wrapped or manual"
+            )
+        headless_note = headless.get("note")
+        if not isinstance(headless_note, str) or not headless_note:
+            raise ValueError(f"{tool_id}: headless.note must be a non-empty string")
+        if mode == "build" and headless_status == "manual":
+            raise ValueError(f"{tool_id}: build-mode tool cannot be headless.manual")
+
         build = tool.get("build", [])
         if not isinstance(build, list):
             raise ValueError(f"{tool_id}: build must be a list")
@@ -168,7 +182,12 @@ def canonical_git_url(url: str) -> str:
 def ensure_checkout(tool: dict, src_root: Path) -> Path:
     dest = src_root / tool["id"]
     if not dest.exists():
-        run(["git", "clone", "--filter=blob:none", "--no-checkout", tool["url"], str(dest)])
+        # Fetch only the pinned commit instead of cloning the repository's default
+        # branch and then fetching the pin. This matters for large emulator repos
+        # and makes fresh CI bootstrap cost proportional to what UR-Recomp uses.
+        dest.mkdir(parents=True)
+        run(["git", "init"], cwd=dest)
+        run(["git", "remote", "add", "origin", tool["url"]], cwd=dest)
     if not (dest / ".git").exists():
         raise SystemExit(f"{dest} exists but is not a git checkout")
 
@@ -181,7 +200,7 @@ def ensure_checkout(tool: dict, src_root: Path) -> Path:
         )
 
     revision = tool["revision"]
-    run(["git", "fetch", "--depth", "1", "origin", revision], cwd=dest)
+    run(["git", "fetch", "--depth", "1", "--filter=blob:none", "origin", revision], cwd=dest)
     run(["git", "checkout", "--detach", "--force", revision], cwd=dest)
     run(["git", "reset", "--hard", revision], cwd=dest)
     # .tools/ is disposable. Remove both ordinary and ignored build residue so a
@@ -260,8 +279,9 @@ def ensure_venv(root: Path, tool_id: str) -> Path:
     venv = root / "venvs" / tool_id
     python = venv / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
     if not python.exists():
+        # The stdlib-created pip is sufficient for our pinned packages. Avoid an
+        # unconditional network upgrade on every fresh CI venv.
         run([sys.executable, "-m", "venv", str(venv)])
-        run([str(python), "-m", "pip", "install", "--upgrade", "pip"])
     return python
 
 
@@ -291,7 +311,11 @@ def main() -> int:
     tools = manifest["tools"]
     if args.list:
         for tool in tools:
-            print(f"{tool['id']:20} {tool['group']:12} {tool['revision']}  {tool['purpose']}")
+            headless = tool["headless"]["status"]
+            print(
+                f"{tool['id']:20} {tool['group']:12} {headless:8} "
+                f"{tool['revision']}  {tool['purpose']}"
+            )
         return 0
 
     wanted_ids = set(args.tool)

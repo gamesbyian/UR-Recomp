@@ -529,3 +529,31 @@ The full-WRAM causal differential, however, shows `7E:04C7` changing from `0x07`
 **Interpretation:** `7E:0F49` may still be a useful derived/display/stunt-facing quantity used by the historical bot, but it is not the direct player-1 rotation accumulator for this intervention. `7E:04C7` is a much stronger candidate for player-1 physical rotation/orientation state, with `7E:04C9` plausibly the paired player-2 slot.
 
 **Discriminating test:** run the mirrored eight-frame R intervention against the same jump-only control. If `7E:04C7` responds in the opposite direction while native/reference agree, promote the paired `04C7/04C9` rotation interpretation.
+
+
+### R-SEED-024 — Course payload installs progressively between +16 and +64 frames
+
+**Status:** confirmed  
+**Date:** 2026-09-28  
+**Area:** course | compression | RAM
+
+**Observation:** run 36516395510 samples `7F:0000` after final Now Playing confirm. Through +16 frames, stream 1 is not installed. At +32 frames, the live buffer has an exact 10,307-byte prefix of decoded Dragster and byte 11 is still `0x0F`. At +64 frames, the full 33,815-byte payload is resident with only byte 11 changed to `0x16`; that state persists thereafter.
+
+**Interpretation:** the active RNC payload is written progressively during the transition, not atomically at race activation. The byte-11 mutation occurs sometime after its decoded value has been written and by the time the full payload is resident.
+
+**Discriminating test:** sample every 4 frames from +32 through +64 to bracket decompression completion and byte-11 mutation separately.
+
+
+### R-SEED-025 — Dragster header coordinates map exactly to racer initialization at ×16
+
+**Status:** confirmed for Dragster initialization; pair ownership unresolved  
+**Date:** 2026-09-28  
+**Area:** course | physics | RAM
+
+**Observation:** decoded stream 1 contains two identical LE16 pairs `(68,50)`. At +64 frames after Now Playing confirm, when the full course payload is resident, both runtime racer slots are exactly `(1088,800)`. These are exact ×16 mappings: `68×16=1088`, `50×16=800`.
+
+**Interpretation:** the header pairs are coordinate fields in 1/16 runtime racer units and supply or coincide with racer initialization/spawn positions. The later settled race Y≈858/857 reflects subsequent state evolution.
+
+**Limitation:** Dragster cannot identify pair1→slot1 vs pair2→slot2 because both encoded pairs and both initial runtime positions are identical.
+
+**Discriminating test:** load a course whose two header pairs differ, or causally mutate one pair, and observe which racer slot moves.

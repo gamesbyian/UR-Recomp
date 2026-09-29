@@ -243,3 +243,33 @@ Evidence:
 - artifact 11007769197;
 - `tools/compare_wram_checkpoints.py`;
 - `.github/workflows/deterministic-differential.yml`.
+
+
+### Follow-up — seven-byte race-entry differential explained
+
+Trace workflow run 36511207129 completed successfully and reached `7E:0313 = 1` at native frame 984 while preserving the shared controller-only route.
+
+At that point:
+- CPU native mode: `E = false`;
+- stack pointer: `SP = $01FF`;
+- `$01D1–$01D4 = 90 13 20 80`;
+- reverse-debug writer history reports zero ordinary WRAM writes to `$01D1–$01D4`.
+
+The four-byte block sits far below the live top of the native-mode stack. Earlier full-WRAM checkpoints also showed many transient differences elsewhere in page `$01xx` that disappeared once race entry settled. This combination resolves `$01D1–$01D4` as stale stack history rather than live game state.
+
+The other three final differences are active timing/phase counters:
+- `$00C6` is decremented once per frame by `bank_80_FADF_M1X0`; the trace records 253 writes before race entry.
+- `$00C8` cycles through a short per-frame countdown in interpreted code at `$00:8588`; 286 writes are recorded.
+- `$00C9` advances on a seven-frame cadence through the same interpreted routine; 45 writes are recorded.
+
+Their differing values at the settled checkpoint are consistent with the previously measured native/reference route timing offset, not a semantic gameplay-state split.
+
+Interpretation: the first-race native/reference comparison now has no unexplained persistent gameplay-state divergence in WRAM. Full-WRAM equality should not be required across runtimes for stack residue and free-running phase counters; future regression assertions should target confirmed semantic invariants and event-relative behavior.
+
+Evidence:
+- GitHub Actions run 36511207129;
+- artifact 11009305157;
+- `tools/trace_native_wram_writers.py`;
+- `docs/RESEARCH-LEDGER.md` entries R-SEED-014 and R-SEED-015.
+
+Next milestone: extend the shared fixture into controlled race behavior and validate the recovered player-state labels for acceleration, jump, rotation, landing, collision and finish.

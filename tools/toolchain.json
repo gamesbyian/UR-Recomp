@@ -152,6 +152,15 @@
         "{python} -m pip install -e ."
       ],
       "artifacts": []
+    },
+    {
+      "id": "mesence",
+      "group": "agent-debug",
+      "url": "https://github.com/nesdev-org/MesenCE.git",
+      "revision": "20ba206cef5ba207c21203176d02cb9f43dda9fb",
+      "purpose": "Community-maintained Mesen continuation and compatible SNES debugger/emulator host for mesen-for-ai experiments.",
+      "build": [],
+      "artifacts": []
     }
   ]
 }

@@ -149,7 +149,7 @@
     },
     {
       "tag": "ui-two-player-entry",
-      "state_id": "PLAYER_SELECT_P2",
+      "state_id": "TWO_PLAYER_SELECT",
       "variant": "2P-entry",
       "source_fixture": "ui-main-branches",
       "discover": [
@@ -169,7 +169,7 @@
     },
     {
       "tag": "ui-vs-entry",
-      "state_id": "PLAYER_SELECT_P2",
+      "state_id": "VS_SELECT",
       "variant": "VS-entry",
       "source_fixture": "ui-main-branches",
       "discover": [

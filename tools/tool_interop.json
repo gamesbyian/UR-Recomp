@@ -89,6 +89,10 @@
     {
       "id": "da65-info",
       "description": "cc65 da65 info-file seed containing labels and later RANGE/ADDRMODE annotations."
+    },
+    {
+      "id": "mesen-mcp-client",
+      "description": "mesen-for-ai Python/MCP client surface used by project adapters."
     }
   ],
   "components": [
@@ -270,7 +274,8 @@
       ],
       "produces": [
         "mesen-cdl",
-        "png-image"
+        "png-image",
+        "mesen-mcp-client"
       ]
     },
     {
@@ -342,7 +347,7 @@
       "consumes": [
         "sfc-rom",
         "fixture-script",
-        "mesen-debug-api"
+        "mesen-mcp-client"
       ],
       "produces": [
         "wram-checkpoints"
@@ -491,18 +496,18 @@
       "evidence": "Generated project Makefile/source/assets are WLA-DX-oriented."
     },
     {
-      "from": "mesence",
-      "to": "mesen-fixture-adapter",
-      "format": "mesen-debug-api",
-      "status": "supported",
-      "evidence": "tools/run_fixture_mesen.py imports the pinned mesen-for-ai client, which launches Mesen/MesenCE."
-    },
-    {
       "from": "mesen-fixture-adapter",
       "to": "compare-wram",
       "format": "wram-checkpoints",
       "status": "supported",
       "evidence": "Adapter emits the same named *.wram.bin full-WRAM checkpoint shape consumed by compare_wram_checkpoints.py."
+    },
+    {
+      "from": "mesen-for-ai",
+      "to": "mesen-fixture-adapter",
+      "format": "mesen-mcp-client",
+      "status": "supported",
+      "evidence": "tools/run_fixture_mesen.py imports the pinned mesen-for-ai Mesen client instead of reimplementing JSON-RPC framing."
     }
   ],
   "chains": [

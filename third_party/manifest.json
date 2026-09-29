@@ -29,16 +29,16 @@
     },
     {
       "id": "superfamiconv",
-      "mode": "pending",
+      "mode": "vendored",
       "upstream_url": "https://github.com/Optiroc/SuperFamiconv.git",
       "revision": "566522204e271885fb771b56f1f85d62f3f41430",
-      "source_path": null,
+      "source_path": "third_party/src/superfamiconv",
       "archive_path": null,
-      "source_sha256": null,
-      "license_spdx": null,
-      "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
-      "provenance_path": null
+      "source_sha256": "4fbab584145e91a39642edad19784115e0d3137307c0255179d0dc1da775b620",
+      "license_spdx": "MIT",
+      "license_path": "third_party/src/superfamiconv/LICENSE",
+      "notes": "Pruned pinned upstream Rust CLI source plus cargo vendor dependency closure. Upstream tests, test data, Python tooling, CI/editor metadata and image assets are omitted from the executable dependency surface.",
+      "provenance_path": "third_party/provenance/superfamiconv.json"
     },
     {
       "id": "ghidra-snes",

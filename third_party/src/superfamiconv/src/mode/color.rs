@@ -1,0 +1,513 @@
+//! Mode-specific color transformations and palette conversion.
+
+use clap::ValueEnum;
+
+use super::{Mode, Mode::*};
+use crate::color::{NormalizedColor, ReducedColor};
+
+/// How a full precision color is mapped to mode-native range.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+#[value(rename_all = "snake_case")]
+pub enum ColorRounding {
+    /// Truncate keeping only the top bits.
+    Truncate,
+    /// Round to nearest value.
+    Nearest,
+}
+
+impl ColorRounding {
+    pub fn from(cli_arg: bool) -> ColorRounding {
+        if cli_arg {
+            ColorRounding::Nearest
+        } else {
+            ColorRounding::Truncate
+        }
+    }
+}
+
+pub trait ModeColor {
+    /// The shift amount when reducing a color to mode-native range.
+    fn channel_shift(&self) -> u8;
+
+    /// Reduces a normalized color down to mode-native range.
+    /// - Colors with alpha below 0x80 become fully transparent for modes that support it.
+    fn reduce_color(
+        &self,
+        color: NormalizedColor,
+        rounding: ColorRounding,
+    ) -> ReducedColor;
+
+    /// Scales a mode-native color up to normalized range.
+    fn normalize_color(
+        &self,
+        color: ReducedColor,
+    ) -> NormalizedColor;
+
+    /// Reduces `color` to mode-native range and back, snapping it to the nearest
+    /// value `mode` can represent.
+    fn quantize_color(
+        &self,
+        color: NormalizedColor,
+        rounding: ColorRounding,
+    ) -> NormalizedColor;
+
+    /// Packs `color` into mode-native representation.
+    fn pack_color(
+        &self,
+        color: ReducedColor,
+    ) -> Vec<u8>;
+
+    /// Packs `colors` into mode-native representation.
+    fn pack_colors(
+        &self,
+        colors: &[ReducedColor],
+    ) -> Result<Vec<u8>, String>;
+
+    /// Unpacks native format palette to reduced-space colors.
+    fn unpack_colors(
+        &self,
+        data: &[u8],
+    ) -> Result<Vec<ReducedColor>, String>;
+}
+
+impl ModeColor for Mode {
+    fn channel_shift(&self) -> u8 {
+        match self {
+            Snes | SnesMode7 | Gbc | Gba | GbaAffine => 3,
+            Gg | Ngpc | Wsc | WscPacked => 4,
+            Md | Pce | PceSprite | Ngp | Ws => 5,
+            Gb | Sms => 6,
+        }
+    }
+
+    fn reduce_color(
+        &self,
+        color: NormalizedColor,
+        rounding: ColorRounding,
+    ) -> ReducedColor {
+        let shift = u32::from(self.channel_shift());
+        match self {
+            Snes | SnesMode7 | Gbc | Gba | GbaAffine => match color.a {
+                0x00..0x80 => ReducedColor::TRANSPARENT,
+                _ => ReducedColor::new(
+                    reduce_channel(color.r, shift, rounding),
+                    reduce_channel(color.g, shift, rounding),
+                    reduce_channel(color.b, shift, rounding),
+                    0xff,
+                ),
+            },
+            Gb => {
+                let c = opaque_threshold(color);
+                let gray = reduce_channel(c.luma_u8(), shift, rounding);
+                ReducedColor::new(gray, gray, gray, 0xff)
+            }
+            Ngp | Ws => {
+                // WonderSwan technically supports 8 out of 16 gray shades with
+                // it's palette indirection, but we just treat it as NGP.
+                let c = opaque_threshold(color);
+                let gray = reduce_channel(c.luma_u8(), shift, rounding);
+                ReducedColor::new(gray, gray, gray, 0xff)
+            }
+            Md | Pce | PceSprite => {
+                if color.a < 0x80 {
+                    ReducedColor::TRANSPARENT
+                } else {
+                    ReducedColor::new(
+                        reduce_channel(color.r, shift, rounding),
+                        reduce_channel(color.g, shift, rounding),
+                        reduce_channel(color.b, shift, rounding),
+                        0xff,
+                    )
+                }
+            }
+            Sms => {
+                let c = opaque_threshold(color);
+                ReducedColor::new(
+                    reduce_channel(c.r, shift, rounding),
+                    reduce_channel(c.g, shift, rounding),
+                    reduce_channel(c.b, shift, rounding),
+                    0xff,
+                )
+            }
+            Gg | Ngpc | Wsc | WscPacked => {
+                if color.a < 0x80 {
+                    ReducedColor::TRANSPARENT
+                } else {
+                    ReducedColor::new(
+                        reduce_channel(color.r, shift, rounding),
+                        reduce_channel(color.g, shift, rounding),
+                        reduce_channel(color.b, shift, rounding),
+                        0xff,
+                    )
+                }
+            }
+        }
+    }
+
+    fn normalize_color(
+        &self,
+        color: ReducedColor,
+    ) -> NormalizedColor {
+        let shift = u32::from(self.channel_shift());
+        NormalizedColor::new(
+            scale_up(color.r, shift),
+            scale_up(color.g, shift),
+            scale_up(color.b, shift),
+            scale_up(color.a, shift),
+        )
+    }
+
+    fn quantize_color(
+        &self,
+        color: NormalizedColor,
+        rounding: ColorRounding,
+    ) -> NormalizedColor {
+        self.normalize_color(self.reduce_color(color, rounding))
+    }
+
+    fn pack_color(
+        &self,
+        color: ReducedColor,
+    ) -> Vec<u8> {
+        let color = u32::from_le_bytes(color.to_bytes());
+        match self {
+            Snes | SnesMode7 | Gbc | Gba | GbaAffine => {
+                vec![
+                    ((color & 0x1f) | ((color >> 3) & 0xe0)) as u8,
+                    (((color >> 11) & 0x03) | ((color >> 14) & 0x7c)) as u8,
+                ]
+            }
+            Gb => vec![((0xffu32.wrapping_sub(color & 0x3)) & 0x3) as u8],
+            Md => vec![
+                ((color >> 15) & 0x0e) as u8,
+                (((color << 1) & 0x0e) | ((color >> 3) & 0xe0)) as u8,
+            ],
+            Pce | PceSprite => {
+                vec![
+                    (((color >> 16) & 0x07) | ((color << 3) & 0x38) | ((color >> 2) & 0xc0)) as u8,
+                    ((color >> 10) & 0x01) as u8,
+                ]
+            }
+            Ws | Ngp => vec![(color ^ 0x07) as u8],
+            Wsc | Gg | WscPacked => vec![
+                (((color >> 16) & 0x0f) | ((color >> 4) & 0xf0)) as u8,
+                (color & 0x0f) as u8,
+            ],
+            Ngpc => vec![
+                ((color & 0x0f) | ((color >> 4) & 0xf0)) as u8,
+                ((color >> 16) & 0x0f) as u8,
+            ],
+            Sms => vec![(((color >> 12) & 0x30) | ((color >> 6) & 0x0c) | (color & 3)) as u8],
+        }
+    }
+
+    fn pack_colors(
+        &self,
+        colors: &[ReducedColor],
+    ) -> Result<Vec<u8>, String> {
+        match self {
+            Mode::Gb => {
+                let [c0, c1, c2, c3] = *colors else {
+                    return Err("gb palette size not equal to 4".into());
+                };
+                let packed = self.pack_color(c0)[0]
+                    | (self.pack_color(c1)[0] << 2)
+                    | (self.pack_color(c2)[0] << 4)
+                    | (self.pack_color(c3)[0] << 6);
+                Ok(vec![packed])
+            }
+            Mode::Ws => {
+                let [c0, c1, c2, c3] = *colors else {
+                    return Err("ws palette size not equal to 4".into());
+                };
+                let packed: u16 = u16::from(self.pack_color(c0)[0])
+                    | (u16::from(self.pack_color(c1)[0]) << 4)
+                    | (u16::from(self.pack_color(c2)[0]) << 8)
+                    | (u16::from(self.pack_color(c3)[0]) << 12);
+                Ok(vec![(packed & 0xff) as u8, (packed >> 8) as u8])
+            }
+            _ => Ok(colors.iter().flat_map(|&c| self.pack_color(c)).collect()),
+        }
+    }
+
+    fn unpack_colors(
+        &self,
+        data: &[u8],
+    ) -> Result<Vec<ReducedColor>, String> {
+        let mut v = Vec::new();
+        match self {
+            Snes | SnesMode7 | Gbc | Gba | GbaAffine => {
+                if !data.len().is_multiple_of(2) {
+                    return Err("Native palette size not a multiple of 2".into());
+                }
+                for chunk in data.chunks_exact(2) {
+                    let cw = u16::from_le_bytes([chunk[0], chunk[1]]);
+                    let (r, g, b) = ((cw & 0x1f) as u8, ((cw >> 5) & 0x1f) as u8, ((cw >> 10) & 0x1f) as u8);
+                    v.push(ReducedColor::new(r, g, b, 0xff));
+                }
+            }
+            Sms => {
+                for &byte in data {
+                    let (r, g, b) = (byte & 0x3, (byte >> 2) & 0x3, (byte >> 4) & 0x3);
+                    v.push(ReducedColor::new(r, g, b, 0xff));
+                }
+            }
+            Gb => {
+                if data.len() != 1 {
+                    return Err("Native palette size not 1 byte".into());
+                }
+                for i in 0..4u32 {
+                    let gray = 3 - ((data[0] >> (i * 2)) & 0x3);
+                    v.push(ReducedColor::new(gray, gray, gray, 0xff));
+                }
+            }
+            Gg | Wsc | WscPacked => {
+                if !data.len().is_multiple_of(2) {
+                    return Err("Native palette size not a multiple of 2".into());
+                }
+                for chunk in data.chunks_exact(2) {
+                    let cw = u16::from_le_bytes([chunk[0], chunk[1]]);
+                    let (r, g, b) = (((cw >> 8) & 0xf) as u8, ((cw >> 4) & 0xf) as u8, (cw & 0xf) as u8);
+                    v.push(ReducedColor::new(r, g, b, 0xff));
+                }
+            }
+            Md => {
+                if !data.len().is_multiple_of(2) {
+                    return Err("Native palette size not a multiple of 2".into());
+                }
+                for chunk in data.chunks_exact(2) {
+                    let cw = u16::from_be_bytes([chunk[0], chunk[1]]);
+                    let (r, g, b) = (
+                        ((cw >> 1) & 0x7) as u8,
+                        ((cw >> 5) & 0x7) as u8,
+                        ((cw >> 9) & 0x7) as u8,
+                    );
+                    v.push(ReducedColor::new(r, g, b, 0xff));
+                }
+            }
+            Pce | PceSprite => {
+                if !data.len().is_multiple_of(2) {
+                    return Err("Native palette size not a multiple of 2".into());
+                }
+                for chunk in data.chunks_exact(2) {
+                    let cw = u16::from_le_bytes([chunk[0], chunk[1]]);
+                    let (r, g, b) = (((cw >> 3) & 0x7) as u8, ((cw >> 6) & 0x7) as u8, (cw & 0x7) as u8);
+                    v.push(ReducedColor::new(r, g, b, 0xff));
+                }
+            }
+            Ws => {
+                if data.len() != 2 {
+                    return Err("Native palette size not 2 bytes".into());
+                }
+                for i in 0..4usize {
+                    let gray = ((data[i >> 1] >> ((i & 1) * 4)) & 0x7) ^ 0x7;
+                    v.push(ReducedColor::new(gray, gray, gray, 0xff));
+                }
+            }
+            Ngp => {
+                if data.len() != 4 {
+                    return Err("Native palette size not 4 bytes".into());
+                }
+                for &byte in data {
+                    let gray = (byte & 0x7) ^ 0x7;
+                    v.push(ReducedColor::new(gray, gray, gray, 0xff));
+                }
+            }
+            Ngpc => {
+                if !data.len().is_multiple_of(2) {
+                    return Err("Native palette size not a multiple of 2".into());
+                }
+                for chunk in data.chunks_exact(2) {
+                    let cw = u16::from_le_bytes([chunk[0], chunk[1]]);
+                    let (r, g, b) = ((cw & 0xf) as u8, ((cw >> 4) & 0xf) as u8, ((cw >> 8) & 0xf) as u8);
+                    v.push(ReducedColor::new(r, g, b, 0xff));
+                }
+            }
+        }
+        Ok(v)
+    }
+}
+
+fn opaque_threshold(color: NormalizedColor) -> NormalizedColor {
+    if color.a < 0x80 {
+        NormalizedColor::TRANSPARENT
+    } else {
+        color
+    }
+}
+
+/// Reduces a value to `shift` bits narrower range.
+fn reduce_channel(
+    value: u8,
+    shift: u32,
+    rounding: ColorRounding,
+) -> u8 {
+    match rounding {
+        ColorRounding::Truncate => value >> shift,
+        ColorRounding::Nearest => {
+            let max = u32::from(0xffu8 >> shift);
+            ((u32::from(value) * max + 127) / 255) as u8
+        }
+    }
+}
+
+/// Scales up a value by `shift` bits using left-bit replication.
+const fn scale_up(
+    value: u8,
+    shift: u32,
+) -> u8 {
+    let bits = 8 - shift;
+    let mut v = value as u32;
+    let mut n = bits;
+    while n < 8 {
+        v |= v << n;
+        n *= 2;
+    }
+    (v >> (n - 8)) as u8
+}
+
+#[cfg(test)]
+mod tests {
+    use clap::ValueEnum;
+
+    use super::*;
+    use ColorRounding::*;
+
+    fn n(
+        r: u8,
+        g: u8,
+        b: u8,
+        a: u8,
+    ) -> NormalizedColor {
+        NormalizedColor::new(r, g, b, a)
+    }
+
+    fn r(
+        r: u8,
+        g: u8,
+        b: u8,
+        a: u8,
+    ) -> ReducedColor {
+        ReducedColor::new(r, g, b, a)
+    }
+
+    #[test]
+    fn left_bit_replication() {
+        assert_eq!(scale_up(0b0_0000001, 1), 0b0000001_0);
+        assert_eq!(scale_up(0b0_1000001, 1), 0b1000001_1);
+        assert_eq!(scale_up(0b00_100001, 2), 0b100001_10);
+        assert_eq!(scale_up(0b000_00001, 3), 0b00001_000);
+        assert_eq!(scale_up(0b000_11011, 3), 0b11011_110);
+        assert_eq!(scale_up(0b000_10111, 3), 0b10111_101);
+        assert_eq!(scale_up(0b0000_0001, 4), 0b0001_0001);
+        assert_eq!(scale_up(0b00000_001, 5), 0b001_00100);
+        assert_eq!(scale_up(0b000000_01, 6), 0b01_010101);
+        assert_eq!(scale_up(0b0000000_1, 7), 0b1_1111111);
+        assert_eq!(scale_up(0b0000000_0, 7), 0b0_0000000);
+    }
+
+    #[test]
+    fn reduce_snes_white_roundtrip() {
+        let white = n(255, 255, 255, 255);
+        let reduced = Mode::Snes.reduce_color(white, Truncate);
+        assert_eq!(reduced, r(31, 31, 31, 0xff));
+        assert_eq!(Mode::Snes.normalize_color(reduced), white);
+    }
+
+    #[test]
+    fn reduce_white_black_roundtrip() {
+        for mode in Mode::value_variants() {
+            for rounding in ColorRounding::value_variants() {
+                let white = n(255, 255, 255, 255);
+                let black = n(0, 0, 0, 255);
+                assert_eq!(
+                    mode.normalize_color(mode.reduce_color(white, *rounding)),
+                    white,
+                    "reduce_white_black_roundtrip white failed for mode '{mode}', rounding {rounding:?}"
+                );
+                assert_eq!(
+                    mode.normalize_color(mode.reduce_color(black, *rounding)),
+                    black,
+                    "reduce_white_black_roundtrip black failed for mode '{mode}', rounding {rounding:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn reduce_transparent() {
+        assert!(
+            Mode::Snes
+                .reduce_color(n(255, 255, 255, 0x7f), Truncate)
+                .is_transparent()
+        );
+        assert!(Mode::Md.reduce_color(n(255, 255, 255, 0x7f), Truncate).is_transparent());
+        assert!(
+            Mode::Wsc
+                .reduce_color(n(255, 255, 255, 0x7f), Truncate)
+                .is_transparent()
+        );
+        // gb has no shared transparent index; low-alpha pixels become opaque black
+        assert_eq!(
+            Mode::Gb.reduce_color(n(255, 255, 255, 0x7f), Truncate),
+            r(0, 0, 0, 0xff)
+        );
+    }
+
+    #[test]
+    fn reduce_gb_levels() {
+        assert_eq!(Mode::Gb.reduce_color(n(0, 0, 0, 255), Truncate), r(0, 0, 0, 0xff));
+        assert_eq!(Mode::Gb.reduce_color(n(255, 255, 255, 255), Truncate), r(3, 3, 3, 0xff));
+    }
+
+    #[test]
+    fn truncate_vs_nearest() {
+        let color = n(250, 250, 250, 255);
+        assert_eq!(Mode::Snes.reduce_color(color, Truncate), r(31, 31, 31, 0xff));
+        assert_eq!(Mode::Snes.reduce_color(color, Nearest), r(30, 30, 30, 0xff));
+    }
+
+    #[test]
+    fn pack_color_snes_white() {
+        let packed = Mode::Snes.pack_color(Mode::Snes.reduce_color(n(255, 255, 255, 255), Truncate));
+        assert_eq!(packed.len(), 2);
+        assert_eq!(u16::from_le_bytes([packed[0], packed[1]]), 0x7fff);
+    }
+
+    #[test]
+    fn pack_colors_gb() {
+        let colors = [r(0, 0, 0, 0xff), r(1, 1, 1, 0xff), r(2, 2, 2, 0xff), r(3, 3, 3, 0xff)];
+        let packed = Mode::Gb.pack_colors(&colors).unwrap();
+        assert_eq!(packed.len(), 1);
+        assert_eq!(packed[0], 0b00011011);
+    }
+
+    #[test]
+    fn pack_colors_ws() {
+        let colors = [r(0, 0, 0, 0xff), r(1, 1, 1, 0xff), r(2, 2, 2, 0xff), r(3, 3, 3, 0xff)];
+        let packed = Mode::Ws.pack_colors(&colors).unwrap();
+        assert_eq!(packed.len(), 2);
+        assert_eq!(u16::from_le_bytes([packed[0], packed[1]]), 0x4567);
+    }
+
+    #[test]
+    fn pack_colors_roundtrip() {
+        use Mode::*;
+        for mode in Mode::value_variants() {
+            let colors: Vec<ReducedColor> = match mode {
+                Gb => vec![r(0, 0, 0, 0xff), r(1, 1, 1, 0xff), r(2, 2, 2, 0xff), r(3, 3, 3, 0xff)],
+                Ws => vec![r(0, 0, 0, 0xff), r(2, 2, 2, 0xff), r(4, 4, 4, 0xff), r(7, 7, 7, 0xff)],
+                Ngp => vec![r(0, 0, 0, 0xff), r(2, 2, 2, 0xff), r(4, 4, 4, 0xff), r(7, 7, 7, 0xff)],
+                Snes | SnesMode7 | Gbc | Gba | GbaAffine => {
+                    vec![r(3, 17, 29, 0xff), r(31, 0, 12, 0xff)]
+                }
+                Sms => vec![r(1, 2, 3, 0xff), r(3, 0, 2, 0xff)],
+                Md | Pce | PceSprite => vec![r(1, 5, 6, 0xff), r(7, 2, 0, 0xff)],
+                Gg | Wsc | WscPacked | Ngpc => vec![r(1, 9, 14, 0xff), r(15, 0, 5, 0xff)],
+            };
+            let packed = mode.pack_colors(&colors).unwrap();
+            let unpacked = mode.unpack_colors(&packed).unwrap();
+            assert_eq!(unpacked, colors, "pack_colors_roundtrip failed for {mode}");
+        }
+    }
+}

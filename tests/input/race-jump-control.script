@@ -65,26 +65,26 @@ press right 60
 dump accel-180
 
 
-# Matched control for the moving jump probe.
-# Identical timing and Right input, but omit B so jump-vs-control differences
-# can be attributed causally to the jump button rather than track progression.
-
-press right 2
-dump jump-trigger
-
-press right 4
-dump jump-early
-
-press right 6
-dump jump-rise
-
-press right 12
-dump jump-mid
+# Matched sustained-input control: identical Right timing, no B.
+# The bot would keep ShouldJump() true throughout this Dragster region.
+# Split the 48-frame hold only to observe the state during the intervention.
 
 press right 24
-dump jump-late
+dump jump-hold-024
 
-press right 36
+press right 24
+dump jump-hold-048
+
+press right 4
+dump jump-release-004
+
+press right 8
+dump jump-release-012
+
+press right 16
+dump jump-release-028
+
+press right 32
 dump jump-settle
 
 quit

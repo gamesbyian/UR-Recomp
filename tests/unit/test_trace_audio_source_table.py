@@ -17,6 +17,12 @@ class AudioSourceTableTraceTests(unittest.TestCase):
             "bank_82_8298_M1X0",
         )
 
+    def test_generated_variant_name_low_mirror(self) -> None:
+        self.assertEqual(
+            ast.generated_variant_name(0x028298, 1, 0),
+            "bank_02_8298_M1X0",
+        )
+
     def test_lorom_file_offset_high_half(self) -> None:
         self.assertEqual(ast.lorom_file_offset(0x828298), 0x010298)
         self.assertEqual(ast.lorom_file_offset(0x028298), 0x010298)

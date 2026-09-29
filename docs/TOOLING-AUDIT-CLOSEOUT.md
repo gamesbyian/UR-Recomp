@@ -21,7 +21,7 @@ Do not keep the audit alive merely to read more upstream source. Prefer small di
 
 ### P0 - repository-island acquisition
 
-Owned by the repository-island workstream in `docs/ISLAND-TOOLCHAIN-PLAN.md`. P0-A infrastructure is now underway: the repository has a machine-readable island manifest, hash/license validation wired into repository hygiene, local-source preference in bootstrap, and an explicit fail-closed `--offline` mode. `mesen-for-ai` is the first direct vendor in progress: its pinned source subset and license are repository-owned and its Python install path is registry-free. Other components remain pending until their source/archive and dependency closure land.
+Owned by the repository-island workstream in `docs/ISLAND-TOOLCHAIN-PLAN.md`. P0-A infrastructure is now underway: the repository has a machine-readable island manifest, hash/license validation wired into repository hygiene, local-source preference in bootstrap, and an explicit fail-closed `--offline` mode. `mesen-for-ai` is the first completed direct vendor: its pinned source subset, provenance and license are repository-owned; its Python install path is registry-free; and run 36543649163 proves the offline bootstrap, vendored tests, and launcher. Other components remain pending until their source/archive and dependency closure land.
 
 Do not duplicate acquisition work here. The tooling audit should consume the islanded tools once available, especially MesenCE/mesen-for-ai, rather than maintaining a second acquisition path.
 

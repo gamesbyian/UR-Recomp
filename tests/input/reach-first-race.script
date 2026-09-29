@@ -1,26 +1,29 @@
-# Deterministic native menu route derived from Dessyreqt's 2014 bot.
+# Deterministic first-race route derived from Dessyreqt's 2014 state-driven bot.
 # Addresses are WRAM offsets (7E:xxxx -> xxxx).
 #
-# The native harness has established that Uniracers samples a two-frame
-# scripted button pulse reliably; the earlier one-frame A pulse was too narrow.
+# Native observation: a menu-state byte can become visible before that menu
+# accepts a confirm edge. Give each newly reached menu 60 guest frames to settle
+# before its first A pulse. Do not poke guest state.
 
 turbo on
 
 # Main menu: Dessyreqt menu.mainMenu = 215 = 0xD7.
 until 009F == D7 3600
-dump main-menu
-press a 2
+wait 60
+dump main-menu-ready
+press a
 
 # One-player rider select: 60 = 0x3C.
 until 009F == 3C 1200
-dump rider-select
-press a 2
+wait 60
+dump rider-select-ready
+press a
 
-# Do not assume the next tours-page label yet. The historical bot knows both
-# onePlayerTours1=0x6D and onePlayerTours2=0x10. Prove the rider screen exits,
-# then record the actual clean-boot destination.
+# Do not assume whether clean SRAM enters onePlayerTours1=0x6D or
+# onePlayerTours2=0x10. First prove that rider confirmation leaves 0x3C,
+# let the new scene settle, and capture its actual state.
 until 009F != 3C 1200
 wait 60
-dump after-rider
+dump after-rider-confirm
 
 quit

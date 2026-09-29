@@ -530,5 +530,8 @@
         "FORBIDDEN_NAME_REJECTION"
       ]
     }
-  }
+  },
+  "transition_exempt_states": [
+    "RESULT_BY_TRACK_TYPE"
+  ]
 }

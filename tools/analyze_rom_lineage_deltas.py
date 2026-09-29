@@ -191,6 +191,13 @@ def build_report(paths: dict[str, Path]) -> dict:
         "signature_byte_counts": dict(sorted(sig_counts.items(), key=lambda kv: (-kv[1], kv[0]))),
         "run_count": len(runs),
         "compact_runs_le_32": compact[:1000],
+        "rare_signature_rows": {
+            sig: [
+                row for row in rows if row["signature"] == sig
+            ]
+            for sig, count in sig_counts.items()
+            if count <= 512
+        },
         "largest_runs": largest,
         "usa_beta_delta_classes": beta_delta_classes(blobs, mask),
     }

@@ -14,15 +14,15 @@
       "kind": "function",
       "address": "01:BB60",
       "name": "RNC1_MakeHuffTail",
-      "confidence": "source-aligned code",
-      "evidence_/_notes": "5"
+      "confidence": 5,
+      "evidence_/_notes": "Preserved Method-1 MAKEHUFF tail begins here; final RTS at `01:BB6E`, establishing the shipped generic RNC1 body end."
     },
     {
       "kind": "function",
       "address": "01:BB6F",
       "name": "RNC1_PostHelper",
-      "confidence": "code",
-      "evidence_/_notes": "4"
+      "confidence": 4,
+      "evidence_/_notes": "First helper immediately after preserved RNC1 body; `01:BB71` increments input-pointer low word and `01:BB73` is the following BNE. Exact semantic name remains provisional."
     },
     {
       "kind": "ram",

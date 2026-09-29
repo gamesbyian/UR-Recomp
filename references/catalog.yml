@@ -417,3 +417,28 @@ sources:
     imported: "references/imported/metadata/GameDB-SNES/c362c7b1/"
     rights: "Public ROM metadata; mirrored as research evidence."
     relevance: "Independent build identity for the 1994-11-29 PAL prototype and verification target for Unirally.6216.rar."
+
+
+  - id: mobygames-uniracers-screenshots
+    title: "MobyGames Uniracers SNES screenshot gallery"
+    type: screenshot_gallery
+    url: "https://www.mobygames.com/game/8085/uniracers/screenshots/"
+    rights: "Screenshot reuse license not established; index as external research evidence and prefer locally captured canonical-ROM frames for durable fixtures."
+    local: "references/notes/ui-screen-corpus.md"
+    relevance: "Labels and depicts Intro, Main Menu, Select your Unicycle, Select Your Tour, and gameplay states; useful visual anchors for the UI state map."
+
+  - id: gamestar-uniracers-screenshots
+    title: "GameStar Uniracers SNES screenshot gallery"
+    type: screenshot_gallery
+    url: "https://www.gamestar.de/galerien/uniracers_snes,48628.html"
+    rights: "Screenshot reuse license not established; indexed only."
+    local: "references/notes/ui-screen-corpus.md"
+    relevance: "Independent visual corroboration for early frontend states including Main Menu, rider select, and tour select."
+
+  - id: demented-ferrets-hunter-track-select
+    title: "Demented Ferrets Uniracers review / Hunter Track Select screenshot"
+    type: screenshot_reference
+    url: "https://dementedferrets.com/2021/02/24/uniracers-review-bombastic-fun/"
+    rights: "Screenshot reuse license not established; indexed only."
+    local: "references/notes/ui-screen-corpus.md"
+    relevance: "Public screenshot anchors the Hunter tour Track Select presentation, five-track list, type icons, selection arrow, and GOLD status."

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "tool": "mesen-for-ai",
+  "upstream_url": "https://github.com/paulomanrique/mesen-for-ai.git",
+  "upstream_revision": "a4bda6285eadf69c871135637df29e9c9a8f6f7a",
+  "upstream_tree_sha": "18f631a31c30924e95696531620b3c308e8f4a94",
+  "vendored_source_path": "third_party/src/mesen-for-ai",
+  "vendored_tree_sha256": "00195521cb746782beaa93e08712d25b8308e5d2c01c946520ee1017c0068ae8",
+  "license_spdx": "GPL-3.0-only",
+  "license_path": "third_party/src/mesen-for-ai/LICENSE",
+  "inclusion_policy": "Retain executable bridge/daemon code, scripts, upstream patches, tests, packaging metadata, README and license required to run, validate, and understand the tool.",
+  "excluded": [
+    ".gitignore",
+    "AGENTS.md",
+    "skills/mesen-codedata/**",
+    "skills/mesen-debug/**",
+    "skills/mesen-emulator/**"
+  ],
+  "exclusion_reason": "Repository/agent instruction metadata and optional skill wrappers are not runtime dependencies of the Mesen bridge and would create a second agent-instruction surface inside UR-Recomp.",
+  "install_contract": "tools/bootstrap_toolchain.py stages this source locally and tools/install_pure_python_tool.py installs the dependency-free src-layout package using only the Python standard library. No PyPI/build isolation is required."
+}

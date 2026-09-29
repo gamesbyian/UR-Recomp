@@ -117,9 +117,10 @@ sources:
   - id: dorando-compatibility
     title: "Historical SNES emulator compatibility matrix"
     type: emulator_history
-    url: "https://www.dorando.at/"
+    url: "https://dorando.emuverse.com/html/uniracers.html"
     rights: "Indexed/summarized only."
-    relevance: "Historical cross-emulator behavior can identify subsystems that were unusually difficult to emulate."
+    local: "references/notes/emulator-compatibility-seams.md"
+    relevance: "Historical cross-emulator behavior identifies independently failing sound, two-player, border/effect, screen-transition and race-rendering seams for local fidelity tests."
 
   - id: jgenesis-uniracers-oam
     title: "jgenesis Uniracers active-display OAM implementation"
@@ -471,3 +472,96 @@ sources:
     rights: "GPL-3.0 upstream. Indexed and summarized for architectural research."
     local: "references/notes/widescreen-and-modern-presentation-prior-art.md"
     relevance: "Static-recompilation precedent for arbitrary aspect ratios, independent HUD placement, preservation of legacy effects, and modern-renderer presentation layered over authoritative game execution."
+
+  - id: dorando-uniracers-translations
+    title: "Dorando Uniracers translation metadata"
+    type: translation_metadata
+    url: "https://dorando.emuverse.com/html/uniracers.html"
+    authors_or_groups: ["Sinister Translations", "Sayans Traductions"]
+    observed_versions:
+      - "Sinister: Español v1.00 (100%)"
+      - "Sayans: Español v1.0b (?%)"
+    rights: "Translation index metadata; patch redistribution rights not established."
+    relevance: "Confirms two independent Spanish translation efforts whose patch diffs can expose text/font/pointer/menu structures."
+
+  - id: nesninja-uniracers-translation-metadata
+    title: "GoodSNES-style Uniracers translation filename metadata"
+    type: translation_metadata
+    url: "https://nesninja.com/game/snes/uniracers?rom=Uniracers+%28Beta%29+%5Bh2C%5D.smc"
+    observed_names:
+      - "Uniracers (U) [T+Spa085_Sayans].smc"
+      - "Uniracers (U) [T+Spa100%_Sinister].smc"
+    rights: "Index only. Do not acquire or redistribute prepatched ROM images from this source."
+    relevance: "Preserves scene-style translation identifiers and exposes a Sayans 0.85 versus Dorando 1.0b version discrepancy worth resolving through original patch archives."
+
+  - id: romhackhispano-sayans-uniracers
+    title: "Sayans Traductions Uni Racers translation release"
+    type: translation_archive_lead
+    url: "https://sayans.romhackhispano.org/old/antiguas/version3/antigua11.htm"
+    index_url: "https://www.romhackhispano.org/"
+    mirror_repo: "https://github.com/romhackhispano/sayans.romhackhispano.org"
+    mirror_revision: "442d2f97bcf5e5d2e37af0ab303c367d96b9b2a7"
+    historical_patch_url: "https://sayans.romhackhispano.org/old/antiguas/version3/traducciones/snes/uniracers/uniracers_esp.zip"
+    mirror_patch_path: "old/traducciones/snes/uniracers/uniracers_esp.zip"
+    mirror_patch_blob_sha: "b3a25f6e3f00f2314b4ce83804c0d2902ca3c2dc"
+    group: "Sayans Traductions"
+    translator: "alias"
+    public_date: "2002-03-28"
+    observed_version: "85% complete"
+    later_index_version: "1.0b"
+    status: "original ZIP recovered from archived site repository; patch analysis pending canonical-ROM classification"
+    rights: "Translation-site metadata and third-party patch; patch redistribution rights not established."
+    relevance: "Primary release post plus archived site repository recover the original patch and translator identity, enabling direct touched-ROM analysis."
+
+  - id: snesmusic-uniracers-spc
+    title: "SNESmusic.org Uniracers SPC set"
+    type: audio_dump
+    url: "https://www.snesmusic.org/v2/profile.php?profile=set&selected=3149"
+    project: "unir"
+    version: "1.03"
+    release_date: "2012-04-19"
+    track_count: 10
+    dumper: "KungFuFurby"
+    tagger: "Datschge"
+    notable_tracks: ["b01 Unused Song 1", "b02 Unused Song 2"]
+    rights: "Public SPC research archive; underlying game audio rights remain with rightsholders."
+    relevance: "Public SPC set can fingerprint the audio driver/sample state and preserves two tracks explicitly tagged unused."
+
+  - id: zophar-uniracers-spc
+    title: "Zophar's Domain Uniracers SPC mirror"
+    type: audio_dump_mirror
+    url: "https://www.zophar.net/music/nintendo-snes-spc/uniracers"
+    rights: "Public SPC mirror; underlying game audio rights remain with rightsholders."
+    relevance: "Independent surviving mirror of the Uniracers/Unirally SPC set and unused-song tags."
+
+  - id: tamoketh-ue4-uniracers-spiritual-successor
+    title: "Tamoketh UE4 Uniracers spiritual-successor progress"
+    type: fan_recreation
+    url: "https://www.reddit.com/r/u_Tamoketh/comments/o5n5x0"
+    author: "Tamoketh"
+    public_date: "2021-06-22"
+    engine: "Unreal Engine 4"
+    status: "prototype / hobby project; source availability not yet established"
+    rights: "Author-owned fan-project material; index and summarize unless explicit reuse terms are found."
+    relevance: "Reports a recreated Crock track, track-sticking, quarter/half-pipe behavior, roll/flip stunt handling, and direct movement-speed comparisons against the original."
+
+  - id: epic-forum-tamoketh-uniracers-physics
+    title: "TamokethMB Unreal Engine Uniracers physics discussion"
+    type: fan_recreation_technical_discussion
+    url: "https://forums.unrealengine.com/t/how-to-make-a-character-stick-to-objects-meshes-to-rotate-around-a-cylinder-or-go-through-a-loop/484937"
+    related_url: "https://forums.unrealengine.com/t/sonic-unreal-worlds-open-source-ue4-sonic-engine/19923?page=2"
+    author: "TamokethMB"
+    public_date: "2021-06-15"
+    rights: "Forum posts; reuse rights not established."
+    relevance: "Technical breadcrumb trail for the same UE4 recreation, including loop/ceiling sticking and Sonic-engine implementation questions."
+
+  - id: ringracer-steam
+    title: "RingRaceR"
+    type: spiritual_successor
+    url: "https://store.steampowered.com/app/1626100"
+    developer: "Figmenthol"
+    publisher: "Figmenthol"
+    status: "to be announced"
+    rights: "Commercial product metadata; index only."
+    relevance: "Current commercial project explicitly describes itself as a spiritual successor to Uniracers among other high-speed racing influences; context only unless technical material becomes available."
+

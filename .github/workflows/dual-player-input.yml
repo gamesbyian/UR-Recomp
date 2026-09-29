@@ -1,0 +1,44 @@
+name: dual-player deterministic input
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/controller_input.py"
+      - "tools/replay_input_via_lua.py"
+      - "tools/replay_input_mesen.py"
+      - "tools/patches/snesrecomp-dual-controller-input.patch"
+      - "tests/unit/test_controller_input.py"
+      - "tests/unit/test_replay_input_via_lua.py"
+      - "tests/unit/test_replay_input_mesen.py"
+      - ".github/workflows/dual-player-input.yml"
+      - "snesrecomp"
+
+jobs:
+  neutral-input:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Run controller adapter unit tests
+        run: |
+          python3 -m unittest             tests.unit.test_controller_input             tests.unit.test_replay_input_via_lua             tests.unit.test_replay_input_mesen
+
+      - name: Verify pinned snesref patch applies
+        run: |
+          git -C snesrecomp apply --check "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
+          git -C snesrecomp apply "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
+
+      - name: Install snesref build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+
+      - name: Build patched snesref
+        run: |
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+          file "$RUNNER_TEMP/snesref-build/snesref"

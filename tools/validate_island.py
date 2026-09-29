@@ -133,6 +133,59 @@ def validate() -> tuple[list[str], list[str]]:
                 actual = tree_sha256(src)
                 if actual != digest:
                     errors.append(f"{cid}: source tree hash drift {actual} != {digest}")
+
+            closure = comp.get("dependency_closure")
+            if closure is not None:
+                if not isinstance(closure, dict):
+                    errors.append(f"{cid}: dependency_closure must be an object")
+                elif closure.get("type") != "cargo-vendor":
+                    errors.append(
+                        f"{cid}: unsupported dependency_closure type "
+                        f"{closure.get('type')!r}"
+                    )
+                else:
+                    vendor_path = closure.get("vendor_path")
+                    config_path = closure.get("config_path")
+                    if not isinstance(vendor_path, str) or not vendor_path:
+                        errors.append(f"{cid}: cargo-vendor closure needs vendor_path")
+                    elif not (ROOT / vendor_path).is_dir():
+                        errors.append(f"{cid}: missing cargo vendor directory {vendor_path}")
+                    if not isinstance(config_path, str) or not config_path:
+                        errors.append(f"{cid}: cargo-vendor closure needs config_path")
+                    else:
+                        config = ROOT / config_path
+                        if not config.is_file():
+                            errors.append(f"{cid}: missing cargo config {config_path}")
+                        else:
+                            config_text = config.read_text(encoding="utf-8")
+                            required = (
+                                "[source.crates-io]",
+                                'replace-with = "vendored-sources"',
+                                "[source.vendored-sources]",
+                                'directory = "vendor"',
+                            )
+                            for marker in required:
+                                if marker not in config_text:
+                                    errors.append(
+                                        f"{cid}: cargo config missing required marker {marker!r}"
+                                    )
+                    if tool is None:
+                        errors.append(f"{cid}: cargo-vendor closure needs toolchain entry")
+                    else:
+                        cargo_builds = [
+                            cmd
+                            for cmd in tool.get("build", [])
+                            if isinstance(cmd, list) and cmd and cmd[0] == "cargo"
+                        ]
+                        if not cargo_builds:
+                            errors.append(f"{cid}: cargo-vendor closure needs cargo build command")
+                        elif not any(
+                            "--locked" in cmd and "--offline" in cmd
+                            for cmd in cargo_builds
+                        ):
+                            errors.append(
+                                f"{cid}: cargo build must require --locked and --offline"
+                            )
         elif mode == "archive":
             if not isinstance(archive_path, str) or not archive_path:
                 errors.append(f"{cid}: archive component needs archive_path")

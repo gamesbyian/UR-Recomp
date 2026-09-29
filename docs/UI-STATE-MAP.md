@@ -66,7 +66,8 @@ The strongest current candidates for **modern product-layer simplification** are
 - unfinished-tour/session persistence should be modernized unless testing shows a deliberate gameplay purpose;
 - destructive controller chords should become explicit UI actions with confirmation in modern mode;
 - Records/score silos may be unified behind a modern records surface while retaining original table/indicator presentations as views;
-- basic control/status information should not depend on an instruction manual, while secrets and advanced discoveries can remain intentionally opaque.
+- basic control/status information should not depend on an instruction manual, while secrets and advanced discoveries can remain intentionally opaque;
+- preserve the original forbidden-name detection as a modern Easter egg: entering one of those names should show a special **"COOL NAME!"** acknowledgement and then accept the name rather than reject it.
 
 This classification should eventually be encoded per state/edge in `analysis/ui-state-map.yml` once the original flow is sufficiently verified, rather than guessed ahead of evidence.
 

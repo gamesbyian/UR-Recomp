@@ -146,14 +146,48 @@ def analyze_capture(
     return result
 
 
+
+def discover_unclassified_captures(
+    declared_tags: set[str],
+    fields: dict[str, dict[str, Any]],
+    roots: list[Path],
+) -> list[dict[str, Any]]:
+    """Surface dump tags that exist on disk but are not yet in the capture manifest."""
+    tags: set[str] = set()
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for bmp in root.glob("*.fb.bmp"):
+            tags.add(bmp.name[:-len(".fb.bmp")])
+        for wram in root.glob("*.wram.bin"):
+            tags.add(wram.name[:-len(".wram.bin")])
+
+    out = []
+    for tag in sorted(tags - declared_tags):
+        synthetic = {
+            "tag": tag,
+            "state_id": "UNCLASSIFIED",
+            "variant": "raw-evidence",
+            "required": False,
+            "discover": [
+                name for name in (
+                    "current_menu", "selected_option", "menu_row", "menu_col", "in_race"
+                ) if name in fields
+            ],
+        }
+        item = analyze_capture(synthetic, fields, roots)
+        item["classification_status"] = "unclassified"
+        out.append(item)
+    return out
+
 def render_markdown(report: dict[str, Any]) -> str:
     lines = [
         "# UI Atlas Capture Report",
         "",
         f"Manifest: `{report['manifest']}`",
         "",
-        "| State | Variant | Tag | Required | Frame | Menu | Selected | In race | Framebuffer | Status |",
-        "|---|---|---|---|---:|---:|---:|---:|---|---|",
+        "| State | Variant | Tag | Required | Frame | Menu | Selected | In race | Visual leads | Blockers | Framebuffer | Status |",
+        "|---|---|---|---|---:|---:|---:|---:|---:|---|---|---|",
     ]
     for item in report["captures"]:
         obs = item.get("observed", {})
@@ -165,7 +199,7 @@ def render_markdown(report: dict[str, Any]) -> str:
                 dims = f"{fb['width']}x{fb['height']} "
             fb_text = f"{dims}`{fb.get('sha256', '')[:12]}`"
         lines.append(
-            "| {state} | {variant} | `{tag}` | {required} | {frame} | {menu} | {sel} | {race} | {fb} | {status} |".format(
+            "| {state} | {variant} | `{tag}` | {required} | {frame} | {menu} | {sel} | {race} | {refs} | {blockers} | {fb} | {status} |".format(
                 state=item["state_id"],
                 variant=item.get("variant") or "",
                 tag=item["tag"],
@@ -174,12 +208,14 @@ def render_markdown(report: dict[str, Any]) -> str:
                 menu=obs.get("current_menu", ""),
                 sel=obs.get("selected_option", ""),
                 race=obs.get("in_race", ""),
+                refs=len(item.get("visual_references", [])),
+                blockers=", ".join(item.get("blockers", [])),
                 fb=fb_text,
                 status=item["status"],
             )
         )
         for mismatch in item.get("mismatches", []):
-            lines.append(f"|  |  |  |  |  |  |  |  | ↳ {mismatch} |  |")
+            lines.append(f"|  |  |  |  |  |  |  |  |  |  | ↳ {mismatch} |  |")
 
     discoveries = []
     for item in report["captures"]:
@@ -197,6 +233,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         "## Summary",
         "",
         f"- captures declared: {report['summary']['declared']}",
+        f"- unclassified raw captures: {report['summary'].get('unclassified', 0)}",
+        f"- total atlas cards: {report['summary'].get('total_cards', report['summary']['declared'])}",
         f"- complete/ok: {report['summary']['ok']}",
         f"- partial: {report['summary']['partial']}",
         f"- mismatched: {report['summary']['mismatch']}",
@@ -212,6 +250,12 @@ def main() -> int:
     ap.add_argument("--manifest", type=Path, default=Path("analysis/ui-capture-manifest.json"))
     ap.add_argument("--dump-dir", action="append", type=Path, required=True,
                     help="Directory containing <tag>.wram.bin / <tag>.fb.bmp dumps; repeatable")
+    ap.add_argument("--reference-index", type=Path,
+                    help="Optional analysis/ui-reference-index.json")
+    ap.add_argument("--transition-contract", type=Path,
+                    help="Optional analysis/ui-transition-contract.json")
+    ap.add_argument("--include-unclassified", action="store_true",
+                    help="include dump tags not declared in the capture manifest as UNCLASSIFIED cards")
     ap.add_argument("--out-json", type=Path)
     ap.add_argument("--out-md", type=Path)
     ap.add_argument("--strict", action="store_true",
@@ -222,6 +266,44 @@ def main() -> int:
     fields = manifest["fields"]
     roots = args.dump_dir
     captures = [analyze_capture(c, fields, roots) for c in manifest["captures"]]
+    if args.include_unclassified:
+        declared_tags = {c["tag"] for c in manifest["captures"]}
+        captures.extend(discover_unclassified_captures(declared_tags, fields, roots))
+
+    refs_by_state: dict[str, list[dict[str, Any]]] = {}
+    if args.reference_index:
+        reference_index = json.loads(args.reference_index.read_text())
+        for entry in reference_index.get("entries", []):
+            refs_by_state.setdefault(entry["state_id"], []).extend(
+                entry.get("references", [])
+            )
+
+    blockers_by_state: dict[str, set[str]] = {}
+    capability_dependencies: dict[str, Any] = {}
+    if args.transition_contract:
+        transition_contract = json.loads(args.transition_contract.read_text())
+        capability_dependencies = transition_contract.get("capability_dependencies", {})
+        incoming: dict[str, list[dict[str, Any]]] = {}
+        for edge in transition_contract.get("edges", []):
+            incoming.setdefault(edge["to"], []).append(edge)
+        for state, edges in incoming.items():
+            open_blocked = [
+                e for e in edges
+                if e.get("blocked_by")
+                and capability_dependencies.get(e["blocked_by"], {}).get("status") != "complete"
+            ]
+            unblocked = [
+                e for e in edges
+                if not e.get("blocked_by")
+                or capability_dependencies.get(e.get("blocked_by"), {}).get("status") == "complete"
+            ]
+            if edges and open_blocked and not unblocked:
+                blockers_by_state[state] = {e["blocked_by"] for e in open_blocked}
+
+    for item in captures:
+        state = item["state_id"]
+        item["visual_references"] = refs_by_state.get(state, [])
+        item["blockers"] = sorted(blockers_by_state.get(state, set()))
     counts = {k: sum(1 for c in captures if c["status"] == k)
               for k in ("ok", "partial", "mismatch", "missing", "invalid")}
     report = {
@@ -229,7 +311,17 @@ def main() -> int:
         "manifest": str(args.manifest),
         "dump_dirs": [str(p) for p in roots],
         "captures": captures,
-        "summary": {"declared": len(captures), **counts},
+        "summary": {
+            "declared": len(manifest["captures"]),
+            "unclassified": sum(1 for c in captures if c.get("classification_status") == "unclassified"),
+            "total_cards": len(captures),
+            "states_with_visual_references": len(refs_by_state),
+            "open_capability_dependencies": sum(
+                1 for dep in capability_dependencies.values()
+                if dep.get("status") != "complete"
+            ),
+            **counts,
+        },
     }
 
     encoded = json.dumps(report, indent=2) + "\n"

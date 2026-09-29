@@ -154,3 +154,28 @@ The final Now Playing A pulse occurs after `now-playing-ready`; the race-active 
 Caution: before the course is installed, the generic "best matching stream" metric can favor very sparse/zero-heavy decoded payloads (stream 23 scored about 97.4% against largely zero/unrelated live data). That is not evidence that stream 23 is loaded. The meaningful discriminator is the focused expected stream becoming essentially byte-identical across its full decoded length.
 
 Next discriminator: sample `7F:0000` densely after the final Now Playing confirm to find the first frame where stream 1 appears, and track decoded byte 11 separately to determine whether `0x0F → 0x16` happens during decompression/load or in a later initialization pass.
+
+
+### Dense transition trace: progressive install and exact spawn-coordinate scale
+
+Run 36516395510 samples the course buffer after the final Now Playing confirm.
+
+Key checkpoints:
+
+- +0 through +16 frames: stream 1 is not installed; `7F:0000` still contains unrelated/mostly zero state and byte 11 is `0x00`.
+- +32 frames: stream 1 has a **10,307-byte exact common prefix** at `7F:0000`; decoded byte 11 is present unchanged as `0x0F`. The rest of the stream is not yet fully installed.
+- +64 frames: all 33,815 bytes are installed, with 33,814 exact matches; byte 11 has changed to `0x16`.
+- +96/+128/+144/race-active: the same full-payload state persists.
+
+This shows the course buffer being populated progressively during the transition rather than appearing only at race activation.
+
+The same trace resolves the earlier Y-coordinate ambiguity. At +64 frames, when the decoded payload is fully resident, both racer slots are exactly `(1088, 800)`. Stream 1's two header pairs are both `(68, 50)`, and:
+
+- `68 × 16 = 1088`;
+- `50 × 16 = 800`.
+
+Therefore the header coordinate-like fields use a ×16 scale into the runtime racer coordinate system at initialization. The later settled-race Y values around 858/857 are subsequent game/track state, not evidence against the header Y coordinate.
+
+What remains unresolved is the assignment of the two identical Dragster pairs to racer slot 1 vs slot 2, because both pairs and both initial positions are identical on this course. A second course with unequal pairs or a controlled field mutation can separate them.
+
+The next loader-timing discriminator is now narrow: sample densely from +32 to +64 frames to find (a) the first frame where all 33,815 bytes are resident and (b) the first frame where byte 11 changes `0x0F → 0x16`.

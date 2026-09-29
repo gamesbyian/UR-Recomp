@@ -44,7 +44,7 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 - [x] Track/player/background render plausibly. Native and Snes9x race-entry framebuffers show the same coherent stock race scene; exact pixel/color fidelity remains a separate compatibility question.
 - [~] Audio pipeline runs through the native race fixture: 32 kHz stereo device opens and callbacks begin under SDL dummy audio with no runtime error. Audible/content fidelity still needs capture or listening evidence.
 - [x] Start race deterministically and accelerate under controlled Right input with matching native/reference X position/speed semantics.
-- [~] Jump under controlled B input from the validated moving state; current fixture captures Y speed, effective air state and pitch.
+- [~] Jump under sustained B input from the validated moving state. The initial two-frame pulse was a confirmed negative intervention; current fixture compares sustained Right+B against matched Right-only control and reports both racer-state slots.
 - [ ] Rotate intentionally with L/R while airborne.
 - [ ] Land with event-relative state validation.
 - [ ] Finish a stock race deterministically.
@@ -92,7 +92,7 @@ Use `snesref` or another trustworthy reference route.
 - [x] Deterministic input sequence to first race, shared verbatim by native and snesref.
 - [x] Full-WRAM/state checkpoint comparison across native and Snes9x/snesref. The first-race fixture compares all 128 KiB at seven checkpoints and reduces the settled-race difference to seven bytes.
 - [x] First-divergence workflow for the settled first-race checkpoint. Run 36511207129 resolves `$01D1–$01D4` as stale stack residue (`SP=$01FF`, `E=false`, no ordinary WRAM writers) and `$00C6/$00C8/$00C9` as free-running timing/phase counters. There is no remaining unexplained persistent gameplay-state divergence in this checkpoint.
-- [~] Regression cases for race start, acceleration, jump, rotation, landing, stunt, collision, finish and two-player. Race start and straight-line acceleration are covered; moving B-jump is the active next fixture.
+- [~] Regression cases for race start, acceleration, jump, rotation, landing, stunt, collision, finish and two-player. Race start and straight-line acceleration are covered; sustained moving B-jump with matched causal control is the active next fixture.
 
 **Exit:** fidelity is objectively testable.
 

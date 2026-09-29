@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Replay a snesref-style frame-mask input file through SNESRecomp's Lua TCP bridge.
-
-The input format is start-frame:duration:hex-mask. All 12 controller buttons are
-explicitly set true/false every simulated frame so transitions are exact.
-"""
+"""Replay deterministic P1/P2 controller input through SNESRecomp's Lua bridge."""
 
 from __future__ import annotations
 
@@ -13,6 +9,7 @@ import socket
 import time
 from pathlib import Path
 
+from controller_input import ControllerRun, load_controller_runs
 from uniracers_state import PLAYER1_FIELDS
 
 BUTTONS = [
@@ -22,26 +19,11 @@ BUTTONS = [
 ]
 
 
-def load_runs(path: Path) -> list[tuple[int, int, int]]:
-    out = []
-    for raw in path.read_text(encoding="utf-8").splitlines():
-        line = raw.split("#", 1)[0].strip()
-        if not line:
-            continue
-        parts = line.split(":")
-        if len(parts) != 3:
-            raise SystemExit(f"bad input line: {raw}")
-        start, duration, mask = int(parts[0]), int(parts[1]), int(parts[2], 16)
-        if start < 0 or duration < 1 or mask & ~0xFFF:
-            raise SystemExit(f"bad input interval: {raw}")
-        out.append((start, duration, mask))
-    out.sort()
-    prev_end = 0
-    for start, duration, _ in out:
-        if start < prev_end:
-            raise SystemExit("overlapping input intervals are not supported")
-        prev_end = start + duration
-    return out
+def load_runs(path: Path) -> list[ControllerRun]:
+    try:
+        return load_controller_runs(path)
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
 
 
 def connect(host: str, port: int, timeout: float):
@@ -68,26 +50,29 @@ def command(sock, reader, line: str) -> dict:
     return json.loads(raw)
 
 
-def build_lua(runs: list[tuple[int,int,int]], frames: int, checkpoints: list[int]) -> str:
-    run_rows = ",".join(f"{{{s},{d},{m}}}" for s,d,m in runs)
+def build_lua(runs: list[ControllerRun], frames: int, checkpoints: list[int]) -> str:
+    run_rows = ",".join(
+        f"{{{run.start},{run.duration},{run.p1_mask},{run.p2_mask}}}" for run in runs
+    )
     cp_rows = ",".join(str(x) for x in sorted(set(checkpoints)))
     addr = {name: field.addr for name, field in PLAYER1_FIELDS.items()}
-    # Read compact semantic state directly in the running bridge. print() output
-    # is collected by the TCP response stream and consumed by the Python client.
     return f"""
 local runs={{{run_rows}}}
 local cps={{{cp_rows}}}
 local cp={{}}
 for _,v in ipairs(cps) do cp[v]=true end
-local ri=1
-local function mask_at(f)
-  while ri <= #runs and f >= runs[ri][1] + runs[ri][2] do ri=ri+1 end
-  if ri <= #runs and f >= runs[ri][1] and f < runs[ri][1]+runs[ri][2] then
-    return runs[ri][3]
+local function masks_at(f)
+  local p1=0
+  local p2=0
+  for _,r in ipairs(runs) do
+    if f >= r[1] and f < r[1]+r[2] then
+      p1 = p1 | r[3]
+      p2 = p2 | r[4]
+    end
   end
-  return 0
+  return p1,p2
 end
-local function put(m)
+local function put(m,controller)
   joypad.set({{
     B=(m & 0x001) ~= 0, Y=(m & 0x002) ~= 0,
     Select=(m & 0x004) ~= 0, Start=(m & 0x008) ~= 0,
@@ -95,7 +80,7 @@ local function put(m)
     Left=(m & 0x040) ~= 0, Right=(m & 0x080) ~= 0,
     A=(m & 0x100) ~= 0, X=(m & 0x200) ~= 0,
     L=(m & 0x400) ~= 0, R=(m & 0x800) ~= 0
-  }},1)
+  }},controller)
 end
 local function s16(a)
   local v=mainmemory.read_u16_le(a)
@@ -112,15 +97,24 @@ local function snap(f)
 end
 for f=0,{frames-1} do
   if cp[f] then snap(f) end
-  put(mask_at(f))
+  local p1,p2=masks_at(f)
+  put(p1,1)
+  put(p2,2)
   emu.frameadvance()
 end
+put(0,1)
+put(0,2)
 snap({frames})
 """
 
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("input_file", type=Path)
+    ap.add_argument(
+        "input_file",
+        type=Path,
+        help="start:duration:p1-mask[:p2-mask] deterministic input stream",
+    )
     ap.add_argument("--frames", type=int, required=True)
     ap.add_argument("--checkpoint", action="append", type=int, default=[])
     ap.add_argument("--host", default="127.0.0.1")
@@ -144,9 +138,9 @@ def main() -> int:
         while time.monotonic() < deadline:
             time.sleep(0.05)
             status = command(sock, reader, "status")
-            text = status.get("output", "")
-            if text:
-                output.extend(x for x in text.splitlines() if x)
+            text_output = status.get("output", "")
+            if text_output:
+                output.extend(x for x in text_output.splitlines() if x)
             if status.get("error"):
                 raise RuntimeError(status["error"])
             if not status.get("running", False):
@@ -157,6 +151,7 @@ def main() -> int:
         record = {
             "frames": args.frames,
             "runs": len(runs),
+            "players": 2 if any(run.p2_mask for run in runs) else 1,
             "checkpoints": sorted(set(args.checkpoint)),
             "snapshots": [x for x in output if x.startswith("SNAP ")],
             "status": final,

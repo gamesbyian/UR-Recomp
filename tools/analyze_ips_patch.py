@@ -34,6 +34,17 @@ def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def ascii_preview(data: bytes) -> str:
+    return "".join(chr(value) if 32 <= value < 127 else "." for value in data)
+
+
+def printable_ratio(data: bytes) -> float:
+    if not data:
+        return 0.0
+    printable = sum(32 <= value < 127 for value in data)
+    return round(printable / len(data), 4)
+
+
 def _read_u24(data: bytes, offset: int) -> int:
     if offset + 3 > len(data):
         raise ValueError("truncated IPS 24-bit field")
@@ -203,6 +214,27 @@ def analyze_patch(patch: bytes, base: bytes | None = None, header_size: int | No
             after = output[i] if i < len(output) else None
             if before != after:
                 actual_changed += 1
+
+        for record, record_summary in zip(records, summary["records"]):
+            before = base[record.offset : min(record.end, len(base))]
+            extension_bytes = max(0, record.end - len(base))
+            effective_before = before + (b"\x00" * extension_bytes)
+            record_summary.update(
+                {
+                    "actual_changed_bytes": sum(
+                        old != new
+                        for old, new in zip(effective_before, record.data)
+                    ),
+                    "base_extension_bytes": extension_bytes,
+                    "before_hex": effective_before.hex(),
+                    "after_hex": record.data.hex(),
+                    "before_ascii": ascii_preview(effective_before),
+                    "after_ascii": ascii_preview(record.data),
+                    "before_printable_ratio": printable_ratio(effective_before),
+                    "after_printable_ratio": printable_ratio(record.data),
+                }
+            )
+
         summary["base"] = {
             "size": len(base),
             "sha256": sha256(base),

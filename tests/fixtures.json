@@ -187,7 +187,9 @@
         "single-frame landing bracket",
         "collision",
         "finish"
-      ]
+      ],
+      "validation": "Run 36517502791: all semantic checkpoints match; air clears at landing-034 and ySpeed settles to zero by landing-036 under the deterministic press/idle cadence.",
+      "status": "validated"
     }
   ]
 }

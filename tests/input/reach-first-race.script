@@ -1,0 +1,37 @@
+# Deterministic first-race route derived from Dessyreqt's 2014 state-driven bot.
+# Addresses are WRAM offsets (7E:xxxx -> xxxx) because the SNESRecomp script
+# harness indexes its 128 KiB WRAM buffer directly.
+#
+# This intentionally uses guest-observed menu state rather than wall-clock waits.
+# It does not poke game state.
+
+turbo on
+
+# Main menu: Dessyreqt menu.mainMenu = 215 = 0xD7.
+until 009F == D7 3600
+press a
+
+# One-player rider select: 60 = 0x3C.
+until 009F == 3C 1200
+press a
+
+# First page of one-player tours: 109 = 0x6D.
+# Fresh SRAM defaults to the first rider/tour, so accepting the current
+# selection should choose Crawler without navigation.
+until 009F == 6D 1200
+press a
+
+# One-player track select: 246 = 0xF6.
+until 009F == F6 1200
+press a
+
+# "Now playing": 22 = 0x16.
+until 009F == 16 1200
+press a
+
+# Race-state byte from the recovered bot: 7E:0313 == 1 while racing.
+until 0313 == 01 1800
+
+# Keep moving long enough to prove controller input reaches gameplay.
+press right 300
+quit

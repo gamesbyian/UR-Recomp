@@ -23,16 +23,22 @@
     "interpretation": "The first-race transition uses $2142 as a rolling echoed sequence/handshake byte and $2143 as the payload byte. Three $2142-only transitions split the payload into four transfer chunks."
   },
   "static_transfer_routine": {
-    "function_address": "02:8298",
+    "function_address": "02:82A9",
     "function_name": "APU_StreamTransfer",
+    "wrapper_address": "02:82A5",
+    "wrapper_name": "APU_StreamTransfer_Wrapper",
+    "initializer_address": "02:8298",
+    "initializer_name": "APU_TransferStateInit",
     "confidence": 4,
     "evidence": [
+      "02:8298-02:82A4 is a self-contained initializer that clears DP $68/$6C/$6A and returns; the previous transfer label at $8298 was too broad.",
+      "02:82A5 is exactly JSR $82A9 / RTL and has 12 direct long-call sites.",
+      "02:82A9 initializes $6F, stores caller X at DP $83, reads LDA $030000,X, and flows into the proven $2142/$2143 transport loop.",
       "02:82F0 executes LDA [$63],Y and 02:82F2 writes that byte to $2143.",
       "02:82F5 XBA / 02:82F6 STA $2142 writes the sequence/handshake byte.",
       "02:8301 CMP $2142 / BNE waits for the echoed handshake before advancing.",
-      "Y increments per payload byte; when Y wraps, 02:82FC INC $65 advances the 24-bit source pointer rooted at direct-page $63.",
-      "02:831C LDA #$80, 02:831E STA $2142 and the echo loop at 02:8321 terminate the observed transfer phase.",
-      "The routine has a JSR/RTL long-call wrapper immediately before it at 02:8294."
+      "Y increments per payload byte; when Y wraps, 02:82FC INC $65 advances the 24-bit working source pointer rooted at direct-page $63.",
+      "02:831C LDA #$80, 02:831E STA $2142 and the echo loop at 02:8321 terminate the observed transfer phase."
     ],
     "helper": {
       "address": "02:8328",
@@ -128,10 +134,87 @@
     ]
   },
   "interpretation": [
-    "The CPU-side upload primitive is now localized to executable-looking bank-02 code rather than an inferred raw ROM blob.",
+    "The CPU-side transfer body is 02:82A9, not 02:8298; 02:8298 is a short transfer-state initializer.",
     "The observed first-race transition copies a large race-family APU data block through $2143 while synchronizing each byte through $2142.",
+    "The first-race ROM-side source seed is directly measured as 03:FB55, one member of a compact family of caller-supplied bank-03 seeds.",
     "The matched high-APU-RAM region is distinct from the previously identified shared BRR sample-bank prefix at $3000-$5F87, so it is more plausibly driver-side tables/sequence/state data than the common sample payload itself.",
-    "This result does not yet identify the ROM-side source block table, individual song selector values, or why the two unused compositions are unreachable."
+    "The ROM serialization and mapping from source seeds to songs/packages are not yet decoded, so unused-song reachability remains open."
   ],
-  "next_discriminator": "Trace the caller and source-pointer/table setup feeding 02:8298, and capture the generic SNESRecomp audio_events ring immediately around the transfer to distinguish control/header bytes from applied payload. Use that to map ROM-side audio blocks and song selectors, then test whether the two unused compositions have reachable or dormant selector entries."
+  "next_discriminator": "Decode helper 02:812A, which APU_StreamTransfer calls after every non-FF selector ID, to map IDs 0x00-0x31 to ROM blocks/APU destinations. Then associate the six 64-byte selector tables and their callers with song/package states; in particular test the uncalled 03:FB95 table against Unused Song 1/2 evidence.",
+  "rom_source": {
+    "static_x_seeds": [
+      "0xFAD5",
+      "0xFB15",
+      "0xFB55",
+      "0xFBD5",
+      "0xFC15"
+    ],
+    "first_race_x_seed": "0xFB55",
+    "first_race_source_cpu": "03:FB55",
+    "first_race_source_file_offset": "0x01FB55",
+    "runtime_corroboration": "At frame 906 the first paired WRAM writes to DP $83/$84 are $55/$FB, reconstructing X=$FB55; subsequent pairs advance $FB56, $FB57, and onward. Six static long-call sites load X=$FB55 immediately before JSL $82:82A5.",
+    "interpretation": "The retail transfer body has a directly observed bank-03 selector/cursor path. DP $63-$65 is a working pointer inside the transport; generic D+$00 upload-stream semantics must not be projected onto this routine without decoding the ROM serialization.",
+    "selector_table_format": {
+      "entry_count": 64,
+      "entry_width_bytes": 1,
+      "sentinel": "0xFF",
+      "interpretation": "Each table is a 64-slot package/block selector list. The live first-race cursor visits exactly FB55-FB94 while $6F counts down from $40; FF slots are skipped quickly and populated IDs invoke block-transfer work.",
+      "generic_spc_stream_parser_applies": false,
+      "generic_parse_rejection": "At FB55 the generic length16/target16 grammar yields length 0x1800,target 0x0627 followed by a second header whose declared payload runs far beyond the bounded source window; this conflicts with the directly observed 64-iteration selector loop.",
+      "block_id_universe": {
+        "min": "0x00",
+        "max": "0x31",
+        "count": 50,
+        "complete_union_across_six_tables": true,
+        "duplicates_within_each_table": false
+      }
+    },
+    "selector_tables": [
+      {
+        "cpu": "03:FAD5",
+        "file_offset": "0x01FAD5",
+        "direct_caller": true,
+        "non_ff_ids": 25,
+        "sha256": "8d4e4bfa27d9e3471fabdce635dfd21ff8ce39ae7aea9a8dc9180533d5e0e4c3"
+      },
+      {
+        "cpu": "03:FB15",
+        "file_offset": "0x01FB15",
+        "direct_caller": true,
+        "non_ff_ids": 19,
+        "sha256": "960fd76d62a9b985ca50c1d1504aa98e8ec746ebfec7dd6cd71039bef6e32d2f"
+      },
+      {
+        "cpu": "03:FB55",
+        "file_offset": "0x01FB55",
+        "direct_caller": true,
+        "first_race_live": true,
+        "non_ff_ids": 24,
+        "sha256": "85c0973c8e26803e411b6e87cf350ea1c56300427097ff7cd5009296ca52febf"
+      },
+      {
+        "cpu": "03:FB95",
+        "file_offset": "0x01FB95",
+        "direct_caller": false,
+        "non_ff_ids": 22,
+        "sha256": "ba06845292e028a708c216703526c0d30c4a0ada66cf7eab332035c025408b74",
+        "interpretation": "Dormant/unreferenced package selector-table candidate; not yet attributable to either unused song.",
+        "relationship_to_fad5": "Same positional ordering as 03:FAD5 with only block IDs 0x07, 0x15, and 0x29 replaced by 0xFF; supports intentional dormant package-variant interpretation."
+      },
+      {
+        "cpu": "03:FBD5",
+        "file_offset": "0x01FBD5",
+        "direct_caller": true,
+        "non_ff_ids": 21,
+        "sha256": "12dd26f1219b3688b75139b8e349ae328395741a3dc2e713f98683d0f87a44f1"
+      },
+      {
+        "cpu": "03:FC15",
+        "file_offset": "0x01FC15",
+        "direct_caller": true,
+        "non_ff_ids": 23,
+        "sha256": "e4479b21aad06acd4f26749ab30842f5ae2bc746fcc5fc8ce60f1866c06a2ba0"
+      }
+    ]
+  }
 }

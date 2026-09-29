@@ -137,10 +137,28 @@
       "comment": "Integration helper used by the shipped Method-1 decoder for a 16-bit packed-stream read through `IN`. Normal path returns `LDA [IN]` while restoring the pointer; when `IN=$FFFF`, it fetches the high byte from next-bank `$8000`, matching LoROM linear-stream continuity across a bank boundary. `01:BB73` is the helper's wrap-test `BNE`, not a store."
     },
     {
+      "address": "82812A",
+      "name": "APU_ResolveBlockPointer",
+      "kind": "function",
+      "comment": "Exact static routine maps block ID X onto the packed audio-record pool beginning at `10:8000`. It walks X length-prefixed records, performing LoROM bank-wrap arithmetic, and returns the selected record pointer in DP `$63-$65`. The 50 valid selector IDs `$00-$31` therefore address 50 consecutive records."
+    },
+    {
       "address": "828298",
+      "name": "APU_TransferStateInit",
+      "kind": "function",
+      "comment": "Exact retail bytes `PHP; SEP #$20; STZ $68; REP #$20; STZ $6C; STZ $6A; PLP; RTS` end at `02:82A4`. `02:8294` is a `JSR $8298; RTL` long-call wrapper. This corrects the earlier over-broad transfer label at `$8298`."
+    },
+    {
+      "address": "8282A5",
+      "name": "APU_StreamTransfer_Wrapper",
+      "kind": "function",
+      "comment": "Exact retail bytes are `JSR $82A9; RTL`. Twelve direct long-call sites target this wrapper; several load X immediately beforehand with clustered bank-03 source seeds including `$FAD5`, `$FB15`, `$FB55`, `$FBD5`, and `$FC15`."
+    },
+    {
+      "address": "8282A9",
       "name": "APU_StreamTransfer",
       "kind": "function",
-      "comment": "Confidence 4. First-race MMIO trace uses $2143 as payload and $2142 as echoed sequence/handshake. Static loop at 02:82F0-02:8327 loads [$63],Y, writes $2143, writes/waits on $2142, advances the 24-bit source pointer on Y wrap, and terminates with $80 on $2142. Traced payload reconstructs race-family SPC APU RAM $B0E0-$BDE0 after transfer-control bytes/overlap are accounted for."
+      "comment": "The body initializes `$6F`, stores X at DP `$83`, reads `LDA $030000,X`, and flows into the runtime-proven `$2142/$2143` transport loop at `02:82F0-02:8327`. First-race WRAM traces begin with paired `$83/$84 = $55/$FB` at frame 906, exactly corroborating the static `$FB55` caller seed. The earlier port trace reconstructs APU RAM `$B0E0-$BDE0` exactly."
     }
   ]
 }

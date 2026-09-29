@@ -26,10 +26,31 @@
     },
     {
       "kind": "function",
+      "address": "`02:812A` (USA)",
+      "name": "APU_ResolveBlockPointer",
+      "confidence": 5,
+      "evidence_/_notes": "Exact static routine maps block ID X onto the packed audio-record pool beginning at `10:8000`. It walks X length-prefixed records, performing LoROM bank-wrap arithmetic, and returns the selected record pointer in DP `$63-$65`. The 50 valid selector IDs `$00-$31` therefore address 50 consecutive records."
+    },
+    {
+      "kind": "function",
       "address": "`02:8298` (USA)",
+      "name": "APU_TransferStateInit",
+      "confidence": 5,
+      "evidence_/_notes": "Exact retail bytes `PHP; SEP #$20; STZ $68; REP #$20; STZ $6C; STZ $6A; PLP; RTS` end at `02:82A4`. `02:8294` is a `JSR $8298; RTL` long-call wrapper. This corrects the earlier over-broad transfer label at `$8298`."
+    },
+    {
+      "kind": "function",
+      "address": "`02:82A5` (USA)",
+      "name": "APU_StreamTransfer_Wrapper",
+      "confidence": 5,
+      "evidence_/_notes": "Exact retail bytes are `JSR $82A9; RTL`. Twelve direct long-call sites target this wrapper; several load X immediately beforehand with clustered bank-03 source seeds including `$FAD5`, `$FB15`, `$FB55`, `$FBD5`, and `$FC15`."
+    },
+    {
+      "kind": "function",
+      "address": "`02:82A9` (USA)",
       "name": "APU_StreamTransfer",
       "confidence": 4,
-      "evidence_/_notes": "First-race MMIO trace records 6,691 writes over frames 957-962 using `$2143` as payload and `$2142` as echoed sequence/handshake. Static loop at `02:82F0-02:8327` loads `[$63],Y`, writes `$2143`, writes/waits on `$2142`, advances the 24-bit source pointer on Y wrap, and terminates the phase with `$80` on `$2142`. The traced payload reconstructs race-family SPC APU RAM `$B0E0-$BDE0` exactly after control bytes/overlap are accounted for."
+      "evidence_/_notes": "The body initializes `$6F`, stores X at DP `$83`, reads `LDA $030000,X`, and flows into the runtime-proven `$2142/$2143` transport loop at `02:82F0-02:8327`. First-race WRAM traces begin with paired `$83/$84 = $55/$FB` at frame 906, exactly corroborating the static `$FB55` caller seed. The earlier port trace reconstructs APU RAM `$B0E0-$BDE0` exactly."
     },
     {
       "kind": "ram",

@@ -157,49 +157,25 @@ Evidence:
 Next milestone: classify the post-rider menu state, then extend the settled state-driven route through tour, track and now-playing selection to `7E:0313 == 1` race state.
 
 
-### Follow-up — rider confirmation reaches one-player tours
+### Follow-up — native frontend chain reaches track selection
 
-Workflow run 36505156490 validated the current settled two-frame-confirm route end to end through rider selection.
+Run 36505156490 extended the settled route through rider confirmation. Run 36505588585 then extended it through the first tour selection. Both completed the deterministic route step successfully.
 
-Observed:
+Observed settled chain on the canonical USA ROM:
+
 - `main-menu-ready`: `currentMenu = 0xD7`, `selectedOption = 0x00`;
-- the settled A pulse reaches `onePlayerSelect = 0x3C`;
-- `rider-select-ready`: row `0x00`, column `0x06`;
-- after the settled rider-confirm A pulse, the route leaves `0x3C` after seven checked frames;
-- `after-rider-confirm`: `currentMenu = 0x6D`, `selectedOption = 0x00`, row `0x00`, column `0x07`.
+- `rider-select-ready`: `currentMenu = 0x3C`, row `0x00`, column `0x06`;
+- `tours-ready`: `currentMenu = 0x6D`, `selectedOption = 0x00`, row `0x00`, column `0x07`;
+- after confirming the current first tour and allowing the destination to settle: `currentMenu = 0xF6`, `selectedOption = 0x00`, row `0x00`, column `0x01`.
 
-This independently reproduces Dessyreqt's `onePlayerTours1 = 109 / 0x6D` label on a clean native run. With `selectedOption = 0`, the recovered bot's tour policy chooses target tour 0 (Crawler) and issues A without directional navigation.
+These independently reproduce four Dessyreqt frontend labels under native execution: `mainMenu = 0xD7`, `onePlayerSelect = 0x3C`, `onePlayerTours1 = 0x6D`, and `onePlayerTracks = 0xF6`.
 
-Evidence: GitHub Actions run 36505156490; artifact 11006149797.
+The route uses only controller input plus guest-observed WRAM conditions. No menu/game state is poked. The conservative 60-guest-frame settle remains in place before the first confirm in a newly reached scene because first visibility of the menu byte is not equivalent to input readiness.
 
-Next test: settle at `0x6D`, confirm the current Crawler selection, and capture the actual following menu state before assuming the historical `onePlayerTracks = 0xF6` label.
+Evidence:
+- GitHub Actions run 36505156490, artifact 11006149797;
+- GitHub Actions run 36505588585, artifact 11007410671;
+- `tests/input/reach-first-race.script`;
+- recovered bot source `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`.
 
-
-### Follow-up — clean boot reaches first tour page
-
-Workflow run 36505156490 completed green through the deterministic input route.
-
-Observed checkpoints:
-- `main-menu-ready`: `currentMenu = 0xD7`, `selectedOption = 0x00`;
-- `rider-select-ready`: `currentMenu = 0x3C`, `selectedOption = 0x00`;
-- after confirming the default rider and allowing the next scene to settle, `currentMenu = 0x6D`, `selectedOption = 0x00`.
-
-This independently reproduces Dessyreqt's `onePlayerTours1 = 109 / 0x6D` label and establishes the clean-SRAM path `mainMenu -> onePlayerSelect -> onePlayerTours1` without guest-state edits.
-
-The bot's tour policy treats `selectedOption = 0` as the first tour candidate (Crawler) when that tour still needs progress, so the next deterministic milestone is to confirm that default selection after the same settle interval and require `onePlayerTracks = 0xF6`.
-
-
-### Follow-up — Crawler confirmation reaches track select
-
-Workflow run 36505588585 completed green through first-tour confirmation.
-
-Observed:
-- `tours-ready`: `currentMenu = 0x6D`, `selectedOption = 0x00`;
-- after the settled Crawler-confirm A pulse, the route leaves `0x6D` after one checked frame;
-- `after-tour-confirm`: `currentMenu = 0xF6`, `selectedOption = 0x00`, row `0x00`, column `0x01`.
-
-This independently reproduces Dessyreqt's `onePlayerTracks = 246 / 0xF6` label. The bot's policy for this state is simply to confirm the current track with A.
-
-Evidence: GitHub Actions run 36505588585; artifact 11007410671.
-
-Next test: use the now-confirmed `0xF6` state to prospectively test the bot's `onePlayerNowPlaying = 0x16` label and then its `7E:0313 == 1` race-state label in the same prediction-gated route.
+Next milestone: settle at `0xF6`, confirm the default first track, and capture the resulting state before treating the bot's `onePlayerNowPlaying = 0x16` label as locally verified.

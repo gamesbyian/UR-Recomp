@@ -42,7 +42,8 @@ Evaluate in the same pass:
 - cc65/da65 source closure;
 - Snes9x libretro-oriented source closure;
 - ordinary bsnes-libretro source/archive;
-- package-registry dependencies required by the vendored tools.
+- package-registry dependencies required by the vendored tools;
+- any visual-reference dependencies that land from the active HD tooling lane, including RetroArch, Libretro Slang shaders and bsnes-hd. Apply the same island criteria: vendor only useful source/preset closure, preserve provenance, and keep heavyweight presentation tools off default CI unless measured workflows justify promotion.
 
 ### Prefer immutable archives or targeted snapshots for large workbenches
 
@@ -292,3 +293,48 @@ Likely opportunities include:
 - instrument RNC, OAM, PPU, input and state paths at the exact seams this project studies.
 
 Any such optimization should retain a reproducible upstream baseline so behavior can still be compared against the unmodified source.
+
+
+## Tool update policy
+
+Islandization must not turn pinned tools into abandoned fossils. It should make updates safer and more selective.
+
+For every vendored or archived tool:
+
+1. record the upstream revision currently incorporated;
+2. periodically check upstream when a concrete workflow depends on that tool, when a relevant bug is suspected, or when upstream publishes changes that affect SNES accuracy, headless execution, debugger behavior, build compatibility, security, or performance;
+3. do **not** churn pins merely because a newer commit exists;
+4. review the upstream diff from the current incorporated revision to the candidate revision and identify project-relevant fixes/regressions;
+5. rebase or remove UR-Recomp patches where upstream has absorbed them;
+6. rebuild the tool from the repository-owned source/dependency closure;
+7. run the same contract/smoke/differential tests used by the existing version;
+8. compare important outputs against the previous incorporated version before promotion;
+9. update provenance, hashes, licenses and the island manifest in the same change;
+10. preserve the prior known-good revision long enough to diagnose regressions when the update materially changes behavior.
+
+Prefer updates that buy one or more of:
+
+- correctness at an SNES behavior seam we care about;
+- deterministic/headless reliability;
+- removal of a project-owned patch;
+- materially lower runtime/build cost;
+- improved machine-readable output or automation APIs;
+- dependency/security compatibility needed by supported hosts.
+
+Avoid updates whose only rationale is version freshness.
+
+For emulator/reference tools, version changes may alter the oracle itself. Treat those updates as research changes, not routine dependency bumps: run matched fixtures before/after and record any changed state/frame behavior.
+
+## P0 interaction with newly added tools
+
+Any tool added by another active workstream while P0 is in progress enters the island review automatically. Do not require that workstream to stop or vendor it first.
+
+After the tool lands:
+
+- classify it as direct-vendor, curated subset, exact archive, or optional external/manual;
+- close any package-registry dependencies if it becomes part of core automation;
+- add provenance/license metadata;
+- add it to offline verification only if the core workflow actually depends on it;
+- leave heavyweight/manual presentation workbenches outside default offline smoke unless their use becomes routine.
+
+This applies in particular to the HD-reference lane's RetroArch, Libretro Slang shader corpus and bsnes-hd if they land before or during islandization.

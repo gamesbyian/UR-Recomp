@@ -149,6 +149,46 @@ jobs:
               )
           PY
 
+      - name: Persist second-tour cursor result
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          src="$RUNNER_TEMP/course-runtime-tour2-race-active.json"
+          out="analysis/generated/course-runtime-tour2-tail-cursor.json"
+          if [ ! -s "$src" ]; then
+            echo "no second-tour race-active result available"
+            exit 0
+          fi
+          mkdir -p analysis/generated
+          python3 - "$src" "$out" <<'PY'
+          import json, pathlib, sys
+          src=pathlib.Path(sys.argv[1])
+          out=pathlib.Path(sys.argv[2])
+          d=json.loads(src.read_text())
+          payload={
+              "expected_stream": 11,
+              "best_stream": d["best_match"]["stream"],
+              "best_equal_fraction": d["best_match"]["equal_fraction"],
+              "focus_cursor": d.get("focus_cursor"),
+              "live_header_first_16": d.get("live_header_first_16"),
+              "runtime_racer_state": d.get("runtime_racer_state"),
+          }
+          out.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+          print(json.dumps(payload, indent=2))
+          PY
+          git add "$out"
+          if git diff --cached --quiet; then
+            echo "second-tour cursor result already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Record second-tour course tail cursor"
+          git fetch origin "${{ github.ref_name }}"
+          git rebase "origin/${{ github.ref_name }}"
+          git push origin HEAD:${{ github.ref_name }}
+
       - name: Upload course runtime evidence
         uses: actions/upload-artifact@v4
         with:
@@ -162,5 +202,6 @@ jobs:
             ${{ runner.temp }}/course-runtime-tour2-timeline.txt
             ${{ runner.temp }}/course-runtime-tour2-*.json
             ${{ runner.temp }}/course-runtime-tour2-dumps/*.wram.bin
+            analysis/generated/course-runtime-tour2-tail-cursor.json
           if-no-files-found: error
           retention-days: 7

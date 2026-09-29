@@ -1,0 +1,15 @@
+# Repository-owned third-party tool sources
+
+This directory is the boundary for UR-Recomp's offline/island toolchain.
+
+The canonical plan is `docs/ISLAND-TOOLCHAIN-PLAN.md`. `manifest.json` records provenance and migration state. Research evidence remains under `references/`; do not mix evidence imports with executable dependencies.
+
+Layout as components land:
+
+- `src/` — active vendored/pruned source trees;
+- `archives/` — exact immutable upstream source archives used on demand;
+- `cargo/` — vendored Rust crate closure;
+- `python-wheels/` — offline Python package cache;
+- `patches/` — project-owned patches that are part of the islanded source contract.
+
+A component stays in `mode: "pending"` until its repository-owned copy has provenance, licensing, hash validation, and the same smoke/contract behavior as the external pin. Bootstrap must never silently claim an offline path for a pending component.

@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+"""Analyze decoded course payload tails referenced by header LE16@11."""
+
+from __future__ import annotations
+
+from collections import Counter, defaultdict
+from pathlib import Path
+import json
+
+from analyze_rnc_streams import find_streams
+from rnc_method1 import unpack_method1
+
+ROM = Path("reference/roms/retail/Uniracers_USA.sfc")
+JSON_OUT = Path("analysis/generated/course-trailer-structure.json")
+MD_OUT = Path("analysis/generated/course-trailer-structure.md")
+
+
+def u16le(data: bytes, off: int) -> int:
+    return data[off] | (data[off + 1] << 8)
+
+
+def main() -> int:
+    rom = ROM.read_bytes()
+    rows = []
+    for index, (_off, packed, _header) in enumerate(find_streams(rom), 1):
+        decoded = unpack_method1(packed)
+        cursor = u16le(decoded, 11)
+        if cursor >= len(decoded):
+            raise SystemExit(f"stream {index}: LE16@11 0x{cursor:04X} outside decoded size {len(decoded)}")
+        trailer = decoded[cursor:]
+        rows.append({
+            "stream": index,
+            "tour_slot": ((index - 1) % 5) + 1,
+            "decoded_size": len(decoded),
+            "cursor": cursor,
+            "trailer_length": len(trailer),
+            "trailer_hex": trailer.hex(" "),
+            "first_byte": trailer[0],
+            "last_byte": trailer[-1],
+            "distinct_bytes": len(set(trailer)),
+            "zero_count": trailer.count(0),
+        })
+
+    lengths = Counter(r["trailer_length"] for r in rows)
+    firsts = Counter(r["first_byte"] for r in rows)
+    lasts = Counter(r["last_byte"] for r in rows)
+    by_slot = defaultdict(list)
+    for r in rows:
+        by_slot[r["tour_slot"]].append(r["trailer_length"])
+
+    report = {
+        "schema_version": 1,
+        "field": "LE16@11",
+        "stream_count": len(rows),
+        "trailer_length_min": min(lengths),
+        "trailer_length_max": max(lengths),
+        "trailer_length_counts": {str(k): v for k, v in sorted(lengths.items())},
+        "first_byte_counts": {f"0x{k:02X}": v for k, v in sorted(firsts.items())},
+        "last_byte_counts": {f"0x{k:02X}": v for k, v in sorted(lasts.items())},
+        "slot_lengths": {str(k): v for k, v in sorted(by_slot.items())},
+        "streams": rows,
+    }
+    JSON_OUT.parent.mkdir(parents=True, exist_ok=True)
+    JSON_OUT.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+
+    md = [
+        "# Course Trailer Structure",
+        "",
+        "Mechanical analysis of the decoded byte range beginning at the little-endian header field LE16@11 and ending at decoded EOF. No semantic record names are assumed.",
+        "",
+        f"- streams: {len(rows)}",
+        f"- trailer length range: {min(lengths)}–{max(lengths)} bytes",
+        "- length histogram: " + ", ".join(f"{k}x{v}" for k, v in sorted(lengths.items())),
+        "- first-byte histogram: " + ", ".join(f"0x{k:02X}x{v}" for k, v in sorted(firsts.items())),
+        "- last-byte histogram: " + ", ".join(f"0x{k:02X}x{v}" for k, v in sorted(lasts.items())),
+        "",
+        "| Stream | Slot | Cursor | Decoded size | Tail bytes | First | Last | Distinct | Zeros | Trailer hex |",
+        "|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|",
+    ]
+    for r in rows:
+        md.append(
+            f"| {r['stream']} | {r['tour_slot']} | 0x{r['cursor']:04X} | "
+            f"{r['decoded_size']} | {r['trailer_length']} | 0x{r['first_byte']:02X} | "
+            f"0x{r['last_byte']:02X} | {r['distinct_bytes']} | {r['zero_count']} | {r['trailer_hex']} |"
+        )
+
+    md += ["", "## Slot length ranges", ""]
+    for slot in range(1, 6):
+        vals = by_slot[slot]
+        md.append(
+            f"- slot {slot}: min {min(vals)}, max {max(vals)}, values "
+            + ", ".join(str(v) for v in vals)
+        )
+
+    MD_OUT.write_text("\n".join(md) + "\n", encoding="utf-8")
+    print(JSON_OUT)
+    print(MD_OUT)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

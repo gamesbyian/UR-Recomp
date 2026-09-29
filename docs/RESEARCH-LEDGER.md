@@ -388,3 +388,20 @@ The final seven are `0x00C6`, `0x00C8`, `0x00C9`, and contiguous `0x01D1–0x01D
 **Discriminating test:** trace writes/reads to `0x01D1–0x01D4` in native/reference execution and identify the responsible guest routine; separately characterize whether the three low bytes advance as counters or affect gameplay-visible state.
 
 **Dependencies:** both engines execute the same script and zero-filled initial WRAM; Snes9x reports its existing Uniracers-specific compatibility hack as active.
+
+
+### R-SEED-015 — Persistent 0x01D1–0x01D4 divergence may be stack residue
+
+**Status:** hypothesis  
+**Date:** 2026-09-28  
+**Area:** CPU | RAM | timing
+
+**Observation:** the settled native/reference race-entry differential leaves four contiguous differing bytes at WRAM `0x01D1–0x01D4`: native `90 13 20 80`, Snes9x `00 00 00 00`. This block appears by rider-select and persists through later captured frontend states into race entry. It lies in WRAM page `$01`, the conventional 65C816 stack page, and SNESRecomp's own low-WRAM differential tooling explicitly treats this region as containing stack state as well as game logic.
+
+**Evidence:** combined differential run 36508095522; `tools/compare_wram_checkpoints.py`; SNESRecomp low-WRAM trace/debug infrastructure and stack model.
+
+**Interpretation:** one plausible explanation is differing residual stack contents caused by different call/interrupt execution paths or stack depth, rather than a durable gameplay variable. This is not yet established: Uniracers could also use page `$01` for ordinary RAM while in native mode.
+
+**Discriminating test:** use the trace build to identify writers to `0x01D1–0x01D4`, capture guest SP when race state becomes active, and determine whether the differing bytes sit below/within the live stack range and are written by push/interrupt/call machinery or by ordinary game routines.
+
+**Dependencies:** the stack interpretation depends on actual Uniracers stack-pointer behavior at the relevant frames; address location alone is insufficient.

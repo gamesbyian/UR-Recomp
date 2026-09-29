@@ -64,7 +64,8 @@ def main() -> int:
             "pair1":[u16le(decoded,3),u16le(decoded,5)],
             "pair2":[u16le(decoded,7),u16le(decoded,9)],
             "decoded_le16_11":u16le(decoded,11),
-            "decoded_tail_bytes_after_le16_11":len(decoded)-u16le(decoded,11),
+            "decoded_bytes_after_le16_11":len(decoded)-(u16le(decoded,11)+1),
+            "decoded_le16_11_plus_1_aligned_16":((u16le(decoded,11)+1) % 16 == 0),
         })
         results.append(result)
 
@@ -87,7 +88,7 @@ def main() -> int:
             "live_value":live_le16_11,
             "advance":live_le16_11-decoded_cursor,
             "decoded_size":focus["decoded_size"],
-            "trailer_length":focus["decoded_tail_bytes_after_le16_11"],
+            "bytes_after_cursor":focus["decoded_bytes_after_le16_11"],
             "advance_needed_for_last_byte":focus["decoded_size"]-1-decoded_cursor,
             "live_equals_last_byte_offset":live_le16_11==focus["decoded_size"]-1,
         }
@@ -116,7 +117,7 @@ def main() -> int:
             f"({focus['equal_fraction']:.6f}) prefix={focus['common_prefix']} "
             f"diffs={focus['diff_count']} "
             f"decoded_le16_11=0x{focus['decoded_le16_11']:04X} "
-            f"tail={focus['decoded_tail_bytes_after_le16_11']} "
+            f"bytes_after={focus['decoded_bytes_after_le16_11']} "
             f"live_le16_11=0x{live_le16_11:04X}"
         )
         if focus_cursor is not None:

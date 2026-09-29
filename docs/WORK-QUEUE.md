@@ -146,3 +146,17 @@ See docs/original-development/.
 - [ ] Continue hunt for Mike Dailly's historical SNES framework source.
 - [ ] Search for binaries/source/screenshots of SNasm, Unicycle Compression, level editor, A0 plotter, graphics/MIDI converters and Amiga/SNES link.
 - [ ] Convert remaining historical predictions into local ROM tests: 256-wide course interpretation, copier protection, animation indexing and audio-driver identity. RNC Method 1 and OAM/raster behavior now have strong local/external evidence.
+
+
+## Third-party code audit and adaptation
+
+- [x] Establish an explicit imported-code review/adaptation policy.
+- [x] Audit the recovered 2014 Lua bot for silent language/runtime hazards; duplicate table keys and the signed `0x8000` edge bug are recorded.
+- [x] Centralize promoted player-state addresses and signed conversion in `tools/uniracers_state.py`.
+- [x] Add unit coverage for promoted state semantics, duplicate-Lua-key detection and RNC packed-payload bounds.
+- [x] Classify the Snes9x 1.43 Uniracers branch as historical workaround evidence rather than an implementation template.
+- [~] Audit imported emulator/source snapshots for assumptions worth converting into deterministic compatibility tests. Active-display OAM is the first concrete seam.
+- [~] Port useful autonomous-player behavior into neutral state/policy/input layers. Exact historical SMV replay is preferred where prerecorded input suffices.
+- [ ] Review any newly imported executable/script before promoting it into a project-owned dependency.
+
+Canonical audit: `docs/THIRD-PARTY-CODE-AUDIT.md`.

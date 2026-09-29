@@ -327,19 +327,20 @@ This also sharpens the dynamic-attribution interpretation: `interp@$81BB73` name
 The dedicated exact-IPC write probe remains the correct discriminator for the literal instructions that write `7F:000B`.
 
 
-### Near-end field and variable trailer-cursor hypothesis
+### Near-end field and aligned pre-trailer cursor hypothesis
 
-Treating decoded header bytes 11–12 as little-endian produces a field close to the end of every USA decoded course payload. Across all 45 streams, `decoded_size - LE16@11` ranges from **8 to 37 bytes** rather than being a fixed constant.
+Treating decoded header bytes 11–12 as little-endian produces a field close to the end of every USA decoded course payload. Across all 45 streams, **`LE16@11 + 1` is 16-byte aligned**. The bytes after that cursor, `decoded_size - (LE16@11 + 1)`, range from **7 to 36 bytes**.
 
 Dragster is the smallest-gap case:
 
 - decoded size: `0x8417` (33,815 bytes);
 - decoded `LE16@11`: `0x840F`;
-- decoded tail after that offset: 8 bytes;
+- next offset: `0x8410`, exactly 16-byte aligned;
+- bytes after the cursor through EOF: 7;
 - observed runtime mutation: seven increments, `0x840F → 0x8416`;
 - `0x8416` is exactly `decoded_size - 1`, the final valid payload byte offset.
 
-This falsifies the tempting corpus-wide “size minus eight” interpretation, but suggests a stronger runtime model: **LE16@11 may be a mutable cursor initialized to the start of a variable-length trailer and advanced while setup consumes that trailer**. Under that model, a course with a 22-byte trailer would need 21 increments to settle at EOF−1.
+This falsifies the tempting corpus-wide “size minus eight” interpretation, but suggests a stronger runtime model: **LE16@11 may be a mutable cursor initialized to the inclusive byte immediately before a 16-byte-aligned variable trailing region, then advanced while setup consumes that region**. Under that model, stream 11 has 21 bytes after its cursor and would need 21 increments to settle at EOF−1.
 
 A deterministic second-tour route is now encoded in `tests/input/course-load-timeline-tour2.script`. It selects tour index 2 by moving the recovered tour-menu selection from `selectedOption=0` to `selectedOption=2`, then reuses the proven course-load timeline. The corresponding runtime workflow focuses stream 11 and persists `analysis/generated/course-runtime-tour2-tail-cursor.json` with the decoded cursor, live cursor, trailer length and whether the live cursor reaches EOF−1.
 

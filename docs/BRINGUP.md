@@ -131,40 +131,27 @@ The smoke timeout was increased to 20 seconds without changing the requested cap
 Interpretation: the branch run exposed harness timing sensitivity rather than a game/runtime regression. Frame 300 remains the visual assertion; the extra wall-clock budget only gives CI enough time to reach it reliably.
 
 
-## 2026-09-28 — Deterministic input harness reaches recovered main-menu state
+## 2026-09-28 — Deterministic menu input reaches one-player rider select
 
 The native smoke has been extended with a separate frame-synchronous `--script` route derived from Dessyreqt's recovered 2014 full-game bot rather than wall-clock key injection.
 
-Observed so far:
+Verified observations:
 - existing native build, boot and frame-300 visual validation remain green before the new input assertion;
-- WRAM `7E:009F` reaches `0xD7` at simulated frame 446, independently reproducing the bot's historical `mainMenu = 215` label on the canonical USA ROM/runtime;
-- run 36504420741 captured `7E:009B = 0x00` at that state, so the bot's own main-menu policy would attempt confirmation rather than first moving the selection Up;
-- after a one-frame scripted A pulse plus 30 guest frames, `7E:009F` remained `0xD7` and `7E:009B` remained `0x00`;
-- the selected-column byte `7E:0C63` changed from `0xFD` to `0x04` across that interval, but this has not yet been causally attributed to the A pulse;
-- earlier experiments that inserted an explicit title/splash Start press are not part of the canonical route: the clean scripted run reaches `0xD7` without guest-state edits.
+- WRAM `7E:009F` reaches `0xD7` at simulated frame 446, reproducing the bot's historical `mainMenu = 215` label on the canonical USA ROM/runtime;
+- run 36504420741 captured `7E:009B = 0x00` at that state, matching the bot's condition for selecting the one-player entry;
+- a one-frame A pulse sent immediately on first observing `0xD7` was ignored: 30 frames later the menu remained `0xD7`;
+- run 36504768959 instead waited 60 guest frames after first observing `0xD7`, then sent the same one-frame A pulse;
+- that delayed pulse succeeded: after the pulse `7E:009F = 0x3C`, reproducing the bot's `onePlayerSelect = 60` state.
 
-Interpretation: the recovered main-menu and selected-option labels are reproduced, but confirmation input has not yet been shown to move the game into `onePlayerSelect = 0x3C`. The smallest remaining question is whether the native scripted pad pulse is sampled by this menu as expected.
+Interpretation: SNESRecomp scripted controller delivery works. The important nuance is that the historical menu-state byte becomes visible before the corresponding scene is ready to accept its first confirmation edge. The recovered bot tolerated this naturally because it reevaluated state and retried inputs every frame; a linear deterministic script needs an explicit readiness delay or equivalent stateful retry policy.
 
-The current committed diagnostic therefore stops at `0xD7` and applies two-frame Down, Up and A pulses, capturing WRAM after each. A direction-driven change in `selectedOption` would prove general scripted controller delivery and isolate the issue to confirmation semantics/timing; no change would instead point at the scripted-input sampling path.
+The current committed route applies the same 60-frame settle after reaching `0x3C`, confirms the default rider, then waits only for `currentMenu != 0x3C` and captures the resulting state. This deliberately avoids assuming whether a clean SRAM route next enters the bot's `onePlayerTours1 = 0x6D` or `onePlayerTours2 = 0x10`.
 
 Evidence:
 - workflow run 36504420741;
+- workflow run 36504768959;
 - `tests/input/reach-first-race.script`;
 - `.github/workflows/native-build-smoke.yml`;
 - recovered bot source `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`.
 
-Next milestone: classify the three input-probe captures, then restore only the menu transitions that are empirically demonstrated.
-
-
-### Follow-up — two-frame pulse accepted
-
-Workflow run 36504773752 tested a two-frame A pulse after entering `mainMenu = 0xD7`.
-
-Observed:
-- the route again reached `0xD7` at frame 446;
-- after directional/A probing, a two-frame A pulse moved `currentMenu` to `0x57` by frame 575;
-- the process exited cleanly via the diagnostic script; the workflow failure was only the then-stale assertion demanding race-state `7E:0313 == 1`.
-
-Interpretation: scripted controller delivery is working. The earlier one-frame confirm was too narrow for reliable sampling on this path. The harness now uses two-frame button pulses and validates incremental navigation milestones explicitly rather than reporting a diagnostic `quit` as a race failure.
-
-Next test: enter the historical `onePlayerSelect = 0x3C` state, confirm the default rider, and capture the actual tours-page state reached from clean boot before extending the route further.
+Next milestone: classify the post-rider menu state, then extend the settled state-driven route through tour, track and now-playing selection to `7E:0313 == 1` race state.

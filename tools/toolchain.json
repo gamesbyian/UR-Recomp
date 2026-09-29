@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "install_root": ".tools",
   "system_packages_ubuntu": [
     "build-essential",
@@ -26,11 +26,24 @@
       "revision": "1bcc369e89f08243e0a462882fb1f3e42e51de3a",
       "purpose": "Default interpreting reference core for SNESRecomp snesref differential traces.",
       "build": [
-        "make -C libretro -j{jobs}"
+        [
+          "make",
+          "-C",
+          "libretro",
+          "-j{jobs}"
+        ]
       ],
       "artifacts": [
-        "libretro/snes9x_libretro.so"
-      ]
+        {
+          "path": "libretro/snes9x_libretro.so",
+          "kind": "shared-library"
+        }
+      ],
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
+      }
     },
     {
       "id": "superfamiconv",
@@ -39,50 +52,133 @@
       "revision": "566522204e271885fb771b56f1f85d62f3f41430",
       "purpose": "Scriptable SNES palette, tile, map and image conversion/inspection.",
       "build": [
-        "cargo build --release"
+        [
+          "cargo",
+          "build",
+          "--release"
+        ]
       ],
       "artifacts": [
-        "target/release/superfamiconv"
-      ]
+        {
+          "path": "target/release/superfamiconv",
+          "kind": "executable"
+        }
+      ],
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
+      }
     },
     {
       "id": "wla-dx",
       "group": "core",
       "url": "https://github.com/vhelin/wla-dx.git",
       "revision": "91c52b1f4ef3cc8ba3c0638f7536539579af6a9f",
-      "purpose": "65816/SPC700 assembler-linker required by snes2asm reconstruction workflows.",
+      "purpose": "65816 assembler and linker required by snes2asm reconstruction workflows; build is restricted to the two targets UR-Recomp actually consumes.",
       "build": [
-        "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release",
-        "cmake --build build -j{jobs}"
+        [
+          "cmake",
+          "-S",
+          ".",
+          "-B",
+          "build",
+          "-DCMAKE_BUILD_TYPE=Release"
+        ],
+        [
+          "cmake",
+          "--build",
+          "build",
+          "--target",
+          "wla-65816",
+          "wlalink",
+          "-j{jobs}"
+        ]
       ],
       "artifacts": [
-        "build",
-        "binaries"
-      ]
+        {
+          "path": "build/binaries/wla-65816",
+          "kind": "executable"
+        },
+        {
+          "path": "build/binaries/wlalink",
+          "kind": "executable"
+        }
+      ],
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
+      }
     },
     {
       "id": "snes2asm",
       "group": "core",
       "url": "https://github.com/nathancassano/snes2asm.git",
       "revision": "04023b0b589042b212f30c92ec7acf6e6bd010e4",
-      "purpose": "Configurable LoROM/HiROM disassembly plus graphics, tilemap, palette and SPC700 extraction.",
+      "purpose": "SNES disassembler/project generator, installed into an isolated venv and patched narrowly for UR-Recomp: numeric --empty-fill parsing and robust unknown/missing decoder-type validation.",
       "build": [
-        "{python} -m pip install ."
+        [
+          "{python}",
+          "-m",
+          "pip",
+          "install",
+          "."
+        ]
       ],
-      "artifacts": []
+      "artifacts": [
+        {
+          "path": "bin/snes2asm",
+          "kind": "executable",
+          "root": "venv"
+        },
+        {
+          "path": "bin/bmp2chr",
+          "kind": "executable",
+          "root": "venv"
+        },
+        {
+          "path": "bin/brr",
+          "kind": "executable",
+          "root": "venv"
+        }
+      ],
+      "install_mode": "build",
+      "patches": [
+        {
+          "path": "tools/patches/snes2asm-ur-recomp.patch",
+          "sha256": "8d75f8314750e8b7e81ac880e2df2e94a48911fa9f1d7a6841f6e678d10f876f"
+        }
+      ],
+      "headless": {
+        "status": "native",
+        "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
+      }
     },
     {
       "id": "cc65",
       "group": "analysis",
       "url": "https://github.com/cc65/cc65.git",
       "revision": "d8a486acdef93ea1ba432a6a35b96cf1b797bda5",
-      "purpose": "da65 command-line 65816 disassembler and complementary 65xx analysis utilities.",
+      "purpose": "da65 command-line 65816 disassembler; build is restricted to da65 rather than the full cc65 compiler/library/docs/sample suite.",
       "build": [
-        "make -j{jobs}"
+        [
+          "make",
+          "da65",
+          "-j{jobs}"
+        ]
       ],
       "artifacts": [
-        "bin/da65"
-      ]
+        {
+          "path": "bin/da65",
+          "kind": "executable"
+        }
+      ],
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
+      }
     },
     {
       "id": "ghidra-snes",
@@ -95,7 +191,12 @@
         "GHIDRA_INSTALL_DIR"
       ],
       "build": [],
-      "artifacts": []
+      "artifacts": [],
+      "install_mode": "manual",
+      "headless": {
+        "status": "manual",
+        "note": "Interactive/heavy workbench. Keep off default CI; use only when a task requires its GUI/debugger workspace."
+      }
     },
     {
       "id": "bsnes-libretro",
@@ -103,8 +204,50 @@
       "url": "https://github.com/libretro/bsnes-libretro.git",
       "revision": "05439f96121d2b9d7ad7a5fc1f29d7eebdcc8c43",
       "purpose": "Independent high-accuracy libretro oracle for cross-checking emulator-sensitive behavior.",
-      "build": [],
-      "artifacts": []
+      "build": [
+        [
+          "make",
+          "-j{jobs}"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "bsnes_libretro.so",
+          "kind": "shared-library"
+        }
+      ],
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
+      }
+    },
+    {
+      "id": "beetle-bsnes-libretro",
+      "group": "oracle-extra",
+      "url": "https://github.com/libretro/beetle-bsnes-libretro.git",
+      "revision": "5f05e4c785e936c928ac468e129c55b6f08592cb",
+      "purpose": "Independent Mednafen/bsnes-derived SNES libretro oracle that exposes RETRO_MEMORY_SYSTEM_RAM for snesref state/dump workflows. Build disables glibc fortify wrappers to avoid a modern-glibc collision with the bundled historical nall strlcpy/strlcat.",
+      "build": [
+        [
+          "env",
+          "CXXFLAGS=-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0",
+          "CFLAGS=-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0",
+          "make",
+          "-j{jobs}"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "mednafen_snes_libretro.so",
+          "kind": "shared-library"
+        }
+      ],
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
+      }
     },
     {
       "id": "flips",
@@ -112,8 +255,24 @@
       "url": "https://github.com/bates64/flips.git",
       "revision": "6caac470f7fc096b0c5fdc374b65954f8bac5b16",
       "purpose": "CLI-capable IPS/BPS patch application and creation for preserving/replaying ROM modifications.",
-      "build": [],
-      "artifacts": []
+      "build": [
+        [
+          "make",
+          "TARGET=cli",
+          "-j{jobs}"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "flips",
+          "kind": "executable"
+        }
+      ],
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
+      }
     },
     {
       "id": "ares",
@@ -122,7 +281,12 @@
       "revision": "4cb8d92b441557cb6bcaf133c4cbc7f6819b1122",
       "purpose": "Independent accuracy/preservation-focused emulator for manual behavioral cross-checks.",
       "build": [],
-      "artifacts": []
+      "artifacts": [],
+      "install_mode": "manual",
+      "headless": {
+        "status": "manual",
+        "note": "Interactive/heavy workbench. Keep off default CI; use only when a task requires its GUI/debugger workspace."
+      }
     },
     {
       "id": "diztinguish",
@@ -131,7 +295,12 @@
       "revision": "7484b87c3bd36f4e1a1e9e3c6075dd103855cbfd",
       "purpose": "Trace-assisted collaborative 65816 disassembly; integrates with a patched bsnes+ live trace stream and exports reassemblable source.",
       "build": [],
-      "artifacts": []
+      "artifacts": [],
+      "install_mode": "manual",
+      "headless": {
+        "status": "manual",
+        "note": "Interactive/heavy workbench. Keep off default CI; use only when a task requires its GUI/debugger workspace."
+      }
     },
     {
       "id": "bsnes-plus",
@@ -140,7 +309,12 @@
       "revision": "a9789fab9a26859153c2963defe186fcaaa80ca2",
       "purpose": "Debugger-oriented bsnes fork with tracing, breakpoints, ROM/RAM views, code/data highlighting, and VRAM/OAM/tilemap inspection.",
       "build": [],
-      "artifacts": []
+      "artifacts": [],
+      "install_mode": "manual",
+      "headless": {
+        "status": "manual",
+        "note": "Interactive/heavy workbench. Keep off default CI; use only when a task requires its GUI/debugger workspace."
+      }
     },
     {
       "id": "mesen-for-ai",
@@ -149,18 +323,41 @@
       "revision": "a4bda6285eadf69c871135637df29e9c9a8f6f7a",
       "purpose": "Headless AI-facing Mesen bridge for frame stepping, memory/register inspection, breakpoints, traces, and SNES code/data logging.",
       "build": [
-        "{python} -m pip install -e ."
+        [
+          "{python}",
+          "-m",
+          "pip",
+          "install",
+          "-e",
+          "."
+        ]
       ],
-      "artifacts": []
+      "artifacts": [
+        {
+          "path": "bin/mesen-mcpd",
+          "kind": "executable",
+          "root": "venv"
+        }
+      ],
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "The bridge/daemon is headless; actual Mesen hosting uses upstream's Xvfb-backed testrunner path when a Mesen binary is attached."
+      }
     },
     {
       "id": "mesence",
       "group": "agent-debug",
       "url": "https://github.com/nesdev-org/MesenCE.git",
-      "revision": "20ba206cef5ba207c21203176d02cb9f43dda9fb",
-      "purpose": "Community-maintained Mesen continuation and compatible SNES debugger/emulator host for mesen-for-ai experiments.",
+      "revision": "a60e79feb4d6dcced5922d636f9211837d01e381",
+      "purpose": "Community-maintained Mesen continuation, pinned to the 2026-09-26 head because post-2.2.1 changes include SNES mid-scanline PPU fixes plus debugger/Lua fixes directly relevant to UR-Recomp validation.",
       "build": [],
-      "artifacts": []
+      "artifacts": [],
+      "install_mode": "manual",
+      "headless": {
+        "status": "wrapped",
+        "note": "Pinned source remains manual; mesen-for-ai's supported Linux automation path launches Mesen/MesenCE under xvfb-run --testrunner. Do not promote a custom GUI-stripped build without measured benefit."
+      }
     }
   ]
 }

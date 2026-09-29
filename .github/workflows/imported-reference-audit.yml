@@ -1,0 +1,30 @@
+name: Imported reference audit
+
+on:
+  pull_request:
+    paths:
+      - "references/imported/**"
+      - "tools/audit_imported_references.py"
+      - "tools/audit_imported_code.py"
+      - "analysis/generated/third-party-code-audit.md"
+      - "tests/test_imported_reference_audit.py"
+      - ".github/workflows/imported-reference-audit.yml"
+  push:
+    paths:
+      - "references/imported/**"
+      - "tools/audit_imported_references.py"
+      - "tools/audit_imported_code.py"
+      - "analysis/generated/third-party-code-audit.md"
+      - "tests/test_imported_reference_audit.py"
+      - ".github/workflows/imported-reference-audit.yml"
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify imported corpus classification and integrity
+        run: python3 tests/test_imported_reference_audit.py
+      - name: Verify generated source-quality audit
+        run: python3 tools/audit_imported_code.py --check

@@ -1,0 +1,409 @@
+{
+  "schema_version": 1,
+  "policy": "Every tracked file under references/imported/ except this manifest must be classified here. git_blob_sha1 pins repository bytes; upstream_git_blob_sha1 additionally proves byte identity with a known upstream Git blob; external_sha256 records source-distribution hashes where known. review_status records whether an artifact is audited, a lead, immutable input, or archive-only; it is not a license statement.",
+  "entries": [
+    {
+      "path": "references/imported/emulators/ATTRIBUTION.md",
+      "category": "emulator-history",
+      "size": 2133,
+      "git_blob_sha1": "bd84baa7b650a0c4f0d882be6597deba2770d499",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/emulators/jgenesis/sprites.rs",
+      "category": "emulator-source",
+      "size": 19890,
+      "git_blob_sha1": "f14736bc0e809dfef7223988194309c4ab78fcbb",
+      "upstream_git_blob_sha1": "f14736bc0e809dfef7223988194309c4ab78fcbb",
+      "review_status": "audited-reference"
+    },
+    {
+      "path": "references/imported/emulators/mame/snes_ppu.cpp",
+      "category": "emulator-source",
+      "size": 85538,
+      "git_blob_sha1": "525911c9cf3015b27676bcc0aebfecd6e6dd3b64",
+      "upstream_git_blob_sha1": "525911c9cf3015b27676bcc0aebfecd6e6dd3b64",
+      "review_status": "audited-reference"
+    },
+    {
+      "path": "references/imported/emulators/snes9x-1.43/changes.txt",
+      "category": "emulator-history",
+      "size": 132370,
+      "git_blob_sha1": "18e4bfdc6e619a1a5dfecc0116b108a3a11858af",
+      "upstream_git_blob_sha1": "18e4bfdc6e619a1a5dfecc0116b108a3a11858af",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/emulators/snes9x-1.43/dma.cpp",
+      "category": "emulator-source",
+      "size": 32711,
+      "git_blob_sha1": "01450e775259fe39393b626c88b560f660a7442d",
+      "upstream_git_blob_sha1": "01450e775259fe39393b626c88b560f660a7442d",
+      "review_status": "audited-reference"
+    },
+    {
+      "path": "references/imported/emulators/snes9x-1.43/problems.txt",
+      "category": "emulator-history",
+      "size": 27943,
+      "git_blob_sha1": "293df5968984b49e5b753e3470826fabdb42c242",
+      "upstream_git_blob_sha1": "293df5968984b49e5b753e3470826fabdb42c242",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/emulators/snes9x/changes.txt",
+      "category": "emulator-history",
+      "size": 173763,
+      "git_blob_sha1": "c78f8e2f5b55ade8c383ee758843b28212e95b8f",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/emulators/snes9x/dma.cpp",
+      "category": "emulator-source",
+      "size": 39694,
+      "git_blob_sha1": "e1ad324c6e94149a777b69054bda5e09337631a6",
+      "upstream_git_blob_sha1": "e1ad324c6e94149a777b69054bda5e09337631a6",
+      "review_status": "audited-reference"
+    },
+    {
+      "path": "references/imported/emulators/snes9x/memmap.cpp",
+      "category": "emulator-source",
+      "size": 100193,
+      "git_blob_sha1": "04ce87e7362b8dda8cb7a79abfa226e13d3568f4",
+      "upstream_git_blob_sha1": "04ce87e7362b8dda8cb7a79abfa226e13d3568f4",
+      "review_status": "audited-reference"
+    },
+    {
+      "path": "references/imported/emulators/zsnes/history.html",
+      "category": "emulator-history",
+      "size": 188188,
+      "git_blob_sha1": "1c42ca9b6c5ac577051595e31ef8544f4afffdac",
+      "upstream_git_blob_sha1": "1c42ca9b6c5ac577051595e31ef8544f4afffdac",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/graphics/libretro-thumbnails/Unirally (Europe) (Beta) (1994-11-29).png",
+      "category": "graphics-reference",
+      "size": 14006,
+      "git_blob_sha1": "821605809a5e03c6077949f022ff8210b6c67fc7",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/libretro/ATTRIBUTION.md",
+      "category": "provenance",
+      "size": 760,
+      "git_blob_sha1": "f7676b0f7401c589a2c849bebdb72dba7b715553",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/libretro/Uniracers (USA).cht",
+      "category": "cheat-data",
+      "size": 2699,
+      "git_blob_sha1": "c7cc8c948b105aef6db8af18188b56b6fcd43bf8",
+      "upstream_git_blob_sha1": "c7cc8c948b105aef6db8af18188b56b6fcd43bf8",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/checksum.txt",
+      "category": "metadata",
+      "size": 7,
+      "git_blob_sha1": "9505f1ff67392717054be420f8e151c855ad55a7",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/crc32.txt",
+      "category": "metadata",
+      "size": 11,
+      "git_blob_sha1": "b3cda8a0a838563f6e6082c0ae75edbd6271ec31",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/crc32_128kb.txt",
+      "category": "metadata",
+      "size": 11,
+      "git_blob_sha1": "428627438c97dc4d1a48dc109e27129878b5ee1b",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/developer_ID.txt",
+      "category": "metadata",
+      "size": 5,
+      "git_blob_sha1": "2d29c61b030c51a5f9a430bd4ded4c151a5f1b7f",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/fast_slow_rom.txt",
+      "category": "metadata",
+      "size": 8,
+      "git_blob_sha1": "29a3e0b2f769e3da99237fcab72c89dc837a8e32",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/hardware.txt",
+      "category": "metadata",
+      "size": 20,
+      "git_blob_sha1": "0974b3ab5f6087b23209adbf71d6f965f3f2a0d9",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/internal_title.txt",
+      "category": "metadata",
+      "size": 45,
+      "git_blob_sha1": "febdf060089fcb43d74bd3b63e546f966880e7db",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/region.txt",
+      "category": "metadata",
+      "size": 4,
+      "git_blob_sha1": "4c7de76410ca54a5e0a65636f561a0a443705da2",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/release_name.txt",
+      "category": "metadata",
+      "size": 38,
+      "git_blob_sha1": "3fc5cad9024ad809004c7c82c8c737db317866a1",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/rom_type.txt",
+      "category": "metadata",
+      "size": 6,
+      "git_blob_sha1": "7a93e079830b6937032e92711ee538b29b09c971",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/rom_version.txt",
+      "category": "metadata",
+      "size": 2,
+      "git_blob_sha1": "573541ac9702dd3969c9bc859d2b91ec1f7e6e56",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/title.txt",
+      "category": "metadata",
+      "size": 22,
+      "git_blob_sha1": "e2165e40e88f1134ea73b81985c31c690e0ede68",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/patches/uniracers_canoe.ips",
+      "category": "compatibility-patch",
+      "size": 295,
+      "git_blob_sha1": "29115366b88185ee9ac2bbb189d397770e66e789",
+      "external_sha256": "35b695d9cc0667d09f950a05cb3066ada5f0078a50818bc04d348f5ef4f852cf",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "references/imported/patches/uniracers_canoe.md",
+      "category": "patch-analysis",
+      "size": 2828,
+      "git_blob_sha1": "645af41bbb65d690f01daa8b44b305fef17eae7d",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/press/dma-design/uniracers_01.pdf",
+      "category": "archival-document",
+      "size": 2928411,
+      "git_blob_sha1": "75f2b30ed3ef159085b638fc6a787edd08927d37",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/retroachievements/1295.json",
+      "category": "reverse-engineered-data",
+      "size": 13140,
+      "git_blob_sha1": "a4df9eb523048143deb790c84b9e31a460d0e90e",
+      "upstream_git_blob_sha1": "a4df9eb523048143deb790c84b9e31a460d0e90e",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "references/imported/tas-bots/README.md",
+      "category": "provenance",
+      "size": 1489,
+      "git_blob_sha1": "3caad301a02e95f272a29fa2516ec8998829cf62",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/tas-bots/SHA256SUMS",
+      "category": "provenance",
+      "size": 383,
+      "git_blob_sha1": "72a7c9091e1400f79ad0082c7f0d046bc45a7033",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/tas-bots/dessyreqt-4250-submission.smv",
+      "category": "emulator-movie",
+      "size": 507032,
+      "git_blob_sha1": "100be190913ca5aa5fe7eca49cdc329fd8448a3e",
+      "external_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+      "review_status": "immutable-input-corpus"
+    },
+    {
+      "path": "references/imported/tas-bots/uniracers-2008-wip-microstorage.smv",
+      "category": "emulator-movie",
+      "size": 10542,
+      "git_blob_sha1": "f7a538082eb09fd9210e6870102e34d944e8ca2b",
+      "external_sha256": "61cafb40a32d13bc691e93034449f31c6537736aa6caa0e7d933450e2df269a0",
+      "review_status": "immutable-input-corpus"
+    },
+    {
+      "path": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua",
+      "category": "bot-source",
+      "size": 30047,
+      "git_blob_sha1": "6afa5490b4947f170f2731c950e7363c4df56159",
+      "external_sha256": "9183b89f27e153b5db450134c00fb98f47d67c47e979a189ae51bcd8c06629c6",
+      "review_status": "audited-known-defects"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/LIST",
+      "category": "tool-documentation",
+      "size": 1051,
+      "git_blob_sha1": "f550d40e10953a2c3616cfa6349e5d16a92aa556",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/PPAMI.EXE",
+      "category": "historical-executable",
+      "size": 28820,
+      "git_blob_sha1": "6c7871675d983685c87460c5942759645aed302e",
+      "upstream_git_blob_sha1": "6c7871675d983685c87460c5942759645aed302e",
+      "review_status": "archive-only-never-execute"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/PPIBM.EXE",
+      "category": "historical-executable",
+      "size": 35193,
+      "git_blob_sha1": "7f713d2df0ee67bcf5cb0f7c3aa695c8d119fe39",
+      "upstream_git_blob_sha1": "7f713d2df0ee67bcf5cb0f7c3aa695c8d119fe39",
+      "review_status": "archive-only-never-execute"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/PROPACK.DOC",
+      "category": "tool-documentation",
+      "size": 16688,
+      "git_blob_sha1": "a832bbbdae344b6befc28263a75cc1f5eec298e4",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/PROPACK.TXT",
+      "category": "tool-documentation",
+      "size": 16688,
+      "git_blob_sha1": "a832bbbdae344b6befc28263a75cc1f5eec298e4",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/GAMEBOY/RNC_1.ASM",
+      "category": "historical-source",
+      "size": 14706,
+      "git_blob_sha1": "b3a085204a7a1bfd4662516b50071ea997823a83",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/GAMEBOY/RNC_2.S",
+      "category": "historical-source",
+      "size": 4879,
+      "git_blob_sha1": "8ac47b00a47b45aed8b7c0e8b681052876fa4cec",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/IBMPC/RNC_1.ASM",
+      "category": "historical-source",
+      "size": 17362,
+      "git_blob_sha1": "e6d7d664fe8e91a39b934a8f6ef836a4b851d06a",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/IBMPC/RNC_2.ASM",
+      "category": "historical-source",
+      "size": 14391,
+      "git_blob_sha1": "df60b41870e752818805c8e5f04b371b09e50c6c",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC.MAC",
+      "category": "historical-source",
+      "size": 1001,
+      "git_blob_sha1": "971920b9bffe4254563cfeddfaa89b17ee6047dd",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC_1.BAK",
+      "category": "historical-source",
+      "size": 11874,
+      "git_blob_sha1": "431bb5b2edd8038e767fd3341d17338ca0d10f9b",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC_1.SRC",
+      "category": "historical-source",
+      "size": 11876,
+      "git_blob_sha1": "ac80d8c27e728db38835eed108309eebc022e70a",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC_2.SRC",
+      "category": "historical-source",
+      "size": 10465,
+      "git_blob_sha1": "fa8464debccee77062643b3d66cf1b77d2f0fd02",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_1.S",
+      "category": "historical-source",
+      "size": 8063,
+      "git_blob_sha1": "77c3ce2ca02d55b48a09f2c83615abe1e68adf2d",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_1C.S",
+      "category": "historical-source",
+      "size": 4876,
+      "git_blob_sha1": "ea813b85d4af30a06b00172ca1d547f86afebbd0",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_2.S",
+      "category": "historical-source",
+      "size": 7627,
+      "git_blob_sha1": "a5e85e2035ef1c803c0dba8c8506c2f190402714",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_2C.S",
+      "category": "historical-source",
+      "size": 4393,
+      "git_blob_sha1": "b7776608c7b3d5e0bff44558092373cfded238e9",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/MIPS/RNC_1.ASM",
+      "category": "historical-source",
+      "size": 8477,
+      "git_blob_sha1": "b1d2bc46dd6d7a3650d8f6bfbcbc6da8a059dec7",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/SUPERNES/RNC_1.S",
+      "category": "historical-source",
+      "size": 8465,
+      "git_blob_sha1": "ad4f5c58590dcc1357fb01c138084ff78ad22d75",
+      "upstream_git_blob_sha1": "ad4f5c58590dcc1357fb01c138084ff78ad22d75",
+      "review_status": "audited-reference"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/SUPERNES/RNC_2.S",
+      "category": "historical-source",
+      "size": 7081,
+      "git_blob_sha1": "0055f7fad678ef226757b3b7fa9fb06e48fc8929",
+      "upstream_git_blob_sha1": "0055f7fad678ef226757b3b7fa9fb06e48fc8929",
+      "review_status": "audited-reference"
+    },
+    {
+      "path": "references/imported/tools/rnc_propack-2.14/UR-RECOMP-PROVENANCE.md",
+      "category": "tool-documentation",
+      "size": 1356,
+      "git_blob_sha1": "960849df2b8419a10280d5dbbfc84e360ccdf6ac",
+      "review_status": "preservation-only"
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+name: Toolchain bootstrap regression
+
+on:
+  pull_request:
+    paths:
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - "tools/tool_interop.json"
+      - "tools/validate_tool_interop.py"
+      - "tools/export_symbol_adapters.py"
+      - "tools/run_fixture_mesen.py"
+      - "tests/test_mesen_fixture_adapter.py"
+      - "analysis/generated/symbols.json"
+      - "analysis/generated/snes2asm-symbols.yml"
+      - "analysis/generated/da65-symbols-bank-*.info"
+      - "tests/test_bootstrap_toolchain.py"
+      - ".github/workflows/toolchain-bootstrap.yml"
+  push:
+    paths:
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - "tools/tool_interop.json"
+      - "tools/validate_tool_interop.py"
+      - "tools/export_symbol_adapters.py"
+      - "tools/run_fixture_mesen.py"
+      - "tests/test_mesen_fixture_adapter.py"
+      - "analysis/generated/symbols.json"
+      - "analysis/generated/snes2asm-symbols.yml"
+      - "analysis/generated/da65-symbols-bank-*.info"
+      - "tests/test_bootstrap_toolchain.py"
+      - ".github/workflows/toolchain-bootstrap.yml"
+  workflow_dispatch:
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate bootstrapper without fetching tools
+        run: python3 tests/test_bootstrap_toolchain.py
+      - name: Validate tool interoperability graph
+        run: python3 tools/validate_tool_interop.py
+      - name: Check symbol adapter outputs
+        run: python3 tools/export_symbol_adapters.py --check
+      - name: Test shared fixture Mesen adapter
+        run: python3 tests/test_mesen_fixture_adapter.py
+
+  build-smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tool:
+          - snes9x-libretro
+          - superfamiconv
+          - wla-dx
+          - snes2asm
+          - cc65
+          - flips
+          - bsnes-libretro
+          - beetle-bsnes-libretro
+          - mesen-for-ai
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build pinned tool through project bootstrap
+        run: python3 tools/bootstrap_toolchain.py --tool "${{ matrix.tool }}" --jobs 2
+      - name: Smoke adapted snes2asm behavior
+        if: matrix.tool == 'snes2asm'
+        run: .tools/venvs/snes2asm/bin/python tests/smoke_snes2asm_patch.py

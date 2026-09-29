@@ -10,6 +10,18 @@ identity matters. Do not preserve defects, emulator-specific APIs, awkward data
 models or obsolete constraints in project-owned tools merely because an imported
 artifact had them.
 
+For implementation decisions, prefer evidence in roughly this order:
+
+1. canonical-ROM behavior reproduced in the project's deterministic harness;
+2. hardware-oriented behavior independently corroborated by modern implementations or hardware research;
+3. period source that directly matches bytes/algorithms in the ROM;
+4. modern emulator source with a generic hardware model;
+5. emulator source with game-specific handling;
+6. historical scripts, cheats, achievements and labels;
+7. comments, filenames and folklore.
+
+Agreement between multiple emulators is not automatically independent evidence if they share the same historical workaround.
+
 Before an imported executable/script/algorithm becomes infrastructure:
 
 1. inspect it for ordinary software defects and silent language/runtime traps;
@@ -75,12 +87,17 @@ Project response:
 
 Source: `references/imported/emulators/snes9x/`.
 
-Status: independent implementation evidence.
+Status: useful reference interpreter, but **not independent evidence at the Uniracers OAM seam**.
 
-This snapshot has substantially different DMA/HDMA machinery and no equivalent
-reason to treat old 1.43 internals as authoritative. Use it comparatively,
-especially when a historical game-specific fix disappeared after more accurate
-general emulation.
+The pinned newer snapshot still detects the internal title and sets
+`SNESGameFixes.Uniracers`; its DMA/HDMA path then applies a named OAM-address
+workaround and comments that OAM invalidation is not fully understood. The generated
+`analysis/generated/third-party-code-audit.md` pins the exact current source lines.
+
+Consequence: Snes9x 1.43 and the pinned newer Snes9x are two generations of the
+same acknowledged game-specific strategy, not two independent votes for the hardware
+rule. Use Snes9x as the cheap deterministic interpreter, but corroborate this seam
+with generic models, independent cores, and ROM evidence.
 
 ### jgenesis sprite implementation
 
@@ -97,10 +114,11 @@ and target behavior remain evidence to test, not assumptions to clone blindly.
 
 Source: `references/imported/emulators/mame/snes_ppu.cpp`.
 
-Status: independent PPU implementation reference.
+Status: independent PPU implementation reference, explicitly approximate at this seam.
 
-Use as another vote when reducing an observed hardware seam. Do not use source
-agreement between emulators as a substitute for a deterministic ROM/runtime test.
+MAME routes the active-display OAM case specially and its source itself calls the
+treatment a hack. Use it as an independent discriminator and candidate hardware
+model, not as proof that its chosen target is exact hardware behavior.
 
 ### RNC ProPack 2.14
 
@@ -140,6 +158,62 @@ state across backwards time jumps. The historical replay workflow formerly used
 raw `cmp` on generated versus frozen controller files, making harmless comment
 header differences look like input divergence; `tools/compare_input_runs.py` now
 compares parsed controller intervals instead.
+
+## Toolchain and provenance hardening
+
+The imported evidence corpus and the executable research toolchain have different
+policies:
+
+- `references/imported/` preserves evidence bytes. `references/imported/MANIFEST.json`
+  classifies every tracked import, pins repository bytes, verifies known upstream
+  Git blobs/source hashes, and records review status. CI rejects unclassified additions,
+  silent edits and executable-bit drift.
+- `.tools/` is disposable build/install space. `tools/toolchain.json` pins exact
+  upstream commits and `tools/bootstrap_toolchain.py` validates, resets and cleans
+  checkouts before applying any project-owned adaptation and building them.
+- build commands are argv vectors, never shell snippets; Python tools use isolated
+  per-tool virtual environments; declared executables/shared libraries are verified
+  after build.
+- small UR-Recomp-specific source adaptations live under `tools/patches/`, are
+  SHA-256 pinned, and must pass `git apply --check`.
+
+Concrete adaptations:
+
+- **Flips** builds the CLI target directly instead of dragging GTK into headless CI.
+- **Beetle bsnes libretro** is used as a WRAM-capable second libretro oracle; its build
+  disables modern glibc fortify wrappers that collide with bundled historical nall
+  declarations, without modifying emulator logic.
+- **snes2asm** receives a narrow project patch for numeric `--empty-fill` parsing and
+  robust malformed/unknown decoder diagnostics.
+- **MesenCE** was advanced from the older 2.2.1 pin because later upstream changes
+  include SNES mid-scanline PPU behavior and debugger/Lua fixes directly relevant to
+  this project.
+
+The integrity audit also caught a real preservation error: the mirrored libretro cheat
+file had normalized upstream's literal `&gt;` into `>`. The mirror is restored to
+the exact upstream Git blob and now guarded mechanically.
+
+## Tool interoperability
+
+`docs/TOOL-INTEROPERABILITY.md` and `tools/tool_interop.json` own the producer/
+consumer graph. The rule is to make durable project artifacts fan out to tools rather
+than maintain parallel hand-entered worlds: one fixture grammar, one symbol authority,
+one RNC decoder, and explicit adapters where formats differ.
+
+Current high-value chains include:
+
+- shared fixture -> native recomp / Snes9x / independent libretro core -> named WRAM
+  checkpoints -> one comparison tool;
+- canonical symbols -> snes2asm YAML and da65 info seeds;
+- snes2asm -> generated WLA-DX reconstruction project;
+- bsnes trace/CDL -> DiztinGUIsh or da65 range/address-mode evidence;
+- Mesen/mesen-for-ai -> the same project fixture grammar through
+  `tools/run_fixture_mesen.py`;
+- RNC packed streams -> project-owned CRC-validated decoder -> structural analyzers.
+
+Do not call two formats compatible merely because they look similar. Mesen CDL to
+BSNES/BizHawk-style CDL remains an explicit candidate adapter until its flag semantics
+are validated.
 
 ## Promotion checklist
 

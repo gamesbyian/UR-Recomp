@@ -115,6 +115,33 @@
       "promotion_rule": "Promote NAME_LEAGUE runtime identity only when the captured frame matches the primary-manual naming editor and no membership/name mutation has been committed."
     },
     {
+      "id": "ui-record-high",
+      "checkpoints": [
+        "ui-records-high-selected",
+        "ui-record-high-entry"
+      ],
+      "purpose": "Reset-free High Scores probe from the verified Options/Records route. Isolates this branch from the native scripted-reset crash.",
+      "status": "reconnaissance"
+    },
+    {
+      "id": "ui-record-player",
+      "checkpoints": [
+        "ui-records-player-selected",
+        "ui-record-player-entry"
+      ],
+      "purpose": "Reset-free Player Scores probe from the verified Options/Records route. Isolates this branch from the native scripted-reset crash.",
+      "status": "reconnaissance"
+    },
+    {
+      "id": "ui-record-group",
+      "checkpoints": [
+        "ui-records-group-selected",
+        "ui-record-group-entry"
+      ],
+      "purpose": "Reset-free Group Tables probe from the verified Options/Records route. Isolates this branch from the native scripted-reset crash.",
+      "status": "reconnaissance"
+    },
+    {
       "id": "ui-records-submenus",
       "input_script": "tests/input/ui-records-submenus.script",
       "purpose": "Manual-backed Records fan-out from clean resets: capture Track Records, High Scores, Player Scores, and Group Tables from the proven five-item Records menu.",

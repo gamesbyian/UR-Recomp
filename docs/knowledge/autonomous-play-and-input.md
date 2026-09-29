@@ -117,3 +117,16 @@ Both reproduce the clean sequence:
 The native run reaches `inRace = 1` at frame 984; the reference run reaches it at frame 975. That timing difference is now a measurement target, not a reason to maintain separate input fixtures.
 
 The next adapter step is full checkpoint comparison: compare complete WRAM dumps, not only selected known fields. Once the first-race state agrees closely enough to trust, extend the fixture with movement inputs and begin validating the recovered race-driving RAM labels/policy.
+
+
+## Duplicate-key caution in recovered bot RAM table
+
+Dessyreqt's preserved Lua source declares several player-1 byte-table keys twice. Standard Lua table-constructor semantics keep the **later** value for duplicate keys. Therefore the values actually read by the bot are:
+
+- `airValue = 7E:0545`, not the earlier `7E:0547`;
+- `pitch = 7E:0F49`, not the earlier `7E:04C9`;
+- `showingArrows = 7E:0FCC`, not the earlier `7E:0FCE`;
+- `arrowDirection = 7E:0FCB`, not the earlier `7E:0FCD`;
+- `tabletops = 7E:042F`, not the earlier `7E:0431`.
+
+The earlier addresses are still useful archaeological leads and line up suggestively with the player-2 table, but they must not be described as the player-1 values used by the running bot without independent validation.

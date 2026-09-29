@@ -4,7 +4,7 @@
   "upstream_url": "https://github.com/nathancassano/snes2asm.git",
   "upstream_revision": "04023b0b589042b212f30c92ec7acf6e6bd010e4",
   "vendored_source_path": "third_party/src/snes2asm",
-  "vendored_tree_sha256": "pending-ci",
+  "vendored_tree_sha256": "0d33fd012f6fcf273b47a6fbd9a55fbc6403b3e5fcf16f7e4d84daf651e166e4",
   "license_spdx": "Apache-2.0",
   "license_path": "third_party/src/snes2asm/LICENSE",
   "retained": [

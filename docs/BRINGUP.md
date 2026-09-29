@@ -155,3 +155,21 @@ Evidence:
 - recovered bot source `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`.
 
 Next milestone: classify the post-rider menu state, then extend the settled state-driven route through tour, track and now-playing selection to `7E:0313 == 1` race state.
+
+
+### Follow-up — rider confirmation reaches one-player tours
+
+Workflow run 36505156490 validated the current settled two-frame-confirm route end to end through rider selection.
+
+Observed:
+- `main-menu-ready`: `currentMenu = 0xD7`, `selectedOption = 0x00`;
+- the settled A pulse reaches `onePlayerSelect = 0x3C`;
+- `rider-select-ready`: row `0x00`, column `0x06`;
+- after the settled rider-confirm A pulse, the route leaves `0x3C` after seven checked frames;
+- `after-rider-confirm`: `currentMenu = 0x6D`, `selectedOption = 0x00`, row `0x00`, column `0x07`.
+
+This independently reproduces Dessyreqt's `onePlayerTours1 = 109 / 0x6D` label on a clean native run. With `selectedOption = 0`, the recovered bot's tour policy chooses target tour 0 (Crawler) and issues A without directional navigation.
+
+Evidence: GitHub Actions run 36505156490; artifact 11006149797.
+
+Next test: settle at `0x6D`, confirm the current Crawler selection, and capture the actual following menu state before assuming the historical `onePlayerTracks = 0xF6` label.

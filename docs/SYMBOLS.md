@@ -22,7 +22,7 @@ Human-maintained map of understood ROM functions, RAM, tables and hardware-facin
 | TBD | rotation | TBD | 0 | |
 | TBD | camera | TBD | 0 | |
 | TBD | race timer | TBD | 0 | |
-| `7E:009F` | `Frontend_CurrentMenu` | 8-bit | 5 | Recovered from Dessyreqt bot and reproduced under native execution: `0xD7` main menu, `0x3C` one-player rider select, `0x6D` first one-player tours page. |
+| `7E:009F` | `Frontend_CurrentMenu` | 8-bit | 5 | Recovered from Dessyreqt bot and reproduced under native execution: `0xD7` main menu, `0x3C` one-player rider select, `0x6D` first one-player tours page, `0xF6` one-player track select. |
 | `7E:009B` | `Frontend_SelectedOption` | 8-bit | 4 | Recovered bot uses it for main-menu/tour selection. Native captures show `0x00` at clean main menu and first tours page, consistent with bot policy. |
 | `7E:000E` | `Frontend_SelectedRow` | 8-bit | 3 | Recovered bot label; native route captures row `0x00` through the verified clean frontend route. Exact semantics outside these menus not yet tested. |
 | `7E:0C63` | `Frontend_SelectedColumn` | 8-bit | 3 | Recovered bot label; native captures change with frontend scene/selection. Rider-select ready state captures `0x06`, matching the bot's left-column target value. |

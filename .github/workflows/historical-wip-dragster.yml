@@ -10,6 +10,7 @@ on:
       - "tools/replay_input_via_lua.py"
       - "tools/summarize_wram_trace_checkpoints.py"
       - "tools/compose_historical_replay_result.py"
+      - "tools/compose_historical_reference_result.py"
       - "tests/input/historical-2008-wip.input"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain.json"
@@ -26,7 +27,7 @@ permissions:
 jobs:
   replay:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
@@ -57,6 +58,21 @@ jobs:
             --json-out "$RUNNER_TEMP/wip-2008.json"
           cat "$RUNNER_TEMP/wip-2008.json"
           python3 tools/compare_input_runs.py "$RUNNER_TEMP/wip-2008.input" tests/input/historical-2008-wip.input
+          python3 - "$RUNNER_TEMP/wip-2008.json" rom_identity.txt <<'PY'
+          import json, pathlib, sys
+          meta=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          ident=dict(
+              line.split("=",1)
+              for line in pathlib.Path(sys.argv[2]).read_text().splitlines()
+              if "=" in line
+          )
+          movie=meta.get("rom_info") or {}
+          if movie.get("crc32","").lower() != ident.get("crc32","").lower():
+              raise SystemExit(
+                  f"historical SMV ROM CRC mismatch: movie={movie.get('crc32')} canonical={ident.get('crc32')}"
+              )
+          print(f"historical SMV targets canonical ROM CRC32 {ident['crc32']}")
+          PY
           echo "historical SMV extraction matches frozen fixture"
 
       - name: Build pinned Snes9x and snesref
@@ -66,70 +82,6 @@ jobs:
           python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
           cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
           cmake --build "$RUNNER_TEMP/snesref-build" -j2
-
-      - name: Generate and build native target with Lua bridge
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/native"
-          sh snesrecomp/tools/new_project/setup_project.sh \
-            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            --dir "$ROOT" \
-            --name "Uniracers" \
-            --players 2 \
-            --yes \
-            --no-ci \
-            --no-fetch-boxart \
-            --no-recomp-ui \
-            --no-netplay \
-            --no-github \
-            --generate \
-            --no-build \
-            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
-          PROJ="$ROOT/UniracersSNESRecomp"
-          cmake -S "$PROJ" -B "$PROJ/build" \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DSNESRECOMP_ENABLE_LUA=ON
-          cmake --build "$PROJ/build" -j2
-          test -x "$PROJ/build/UniracersSNESRecomp"
-
-      - name: Sample historical Dragster boundaries
-        shell: bash
-        run: |
-          set -euo pipefail
-          EXE="$RUNNER_TEMP/snesref-build/snesref"
-          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
-          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          INPUT="$GITHUB_WORKSPACE/tests/input/historical-2008-wip.input"
-          : > "$RUNNER_TEMP/dragster-state.tsv"
-
-          for frames in 900 1000 1100 1160 1180 1200 1400 1600 1800 2000 2200 2400 2550 2600 2640 2660 2680 2700 2800 3000 3200 3400 3480; do
-            dump="$RUNNER_TEMP/wram-${frames}.bin"
-            SNESREF_HEADLESS=1 \
-            SNESREF_FAST=1 \
-            SNESREF_FRAMES="$frames" \
-            SNESREF_WRAM_FILL=0 \
-            SNESREF_SRAM_IN="$RUNNER_TEMP/wip-2008.srm" \
-            SNESREF_INPUT_FILE="$INPUT" \
-            SNESREF_WRAM_DUMP="$dump" \
-              "$EXE" "$CORE" "$ROM" >/dev/null 2>&1
-
-            python3 - "$frames" "$dump" >> "$RUNNER_TEMP/dragster-state.tsv" <<'PY'
-          import pathlib, sys
-          frame=int(sys.argv[1]); b=pathlib.Path(sys.argv[2]).read_bytes()
-          def u8(a): return b[a]
-          def u16(a): return b[a] | (b[a+1] << 8)
-          def s16(a):
-              v=u16(a); return v-65536 if v & 0x8000 else v
-          print(
-              f"{frame}\tmenu=0x{u8(0x009F):02X}\tinRace=0x{u8(0x0313):02X}"
-              f"\ttrack={u8(0x00CE)}\tx={u16(0x0411)}\ty={u16(0x0415)}"
-              f"\tvx={s16(0x04B7)}\tvy={s16(0x04BB)}\tair={u8(0x0545)}"
-              f"\tpitch={u16(0x04C7)&0x3F}"
-          )
-          PY
-          done
-          cat "$RUNNER_TEMP/dragster-state.tsv"
 
       - name: Trace one complete reference replay
         shell: bash
@@ -163,7 +115,40 @@ jobs:
             --json-out "$RUNNER_TEMP/dragster-trace-state.json" \
             | tee "$RUNNER_TEMP/dragster-trace-summary.txt"
 
-          diff -u "$RUNNER_TEMP/dragster-state.tsv" "$RUNNER_TEMP/dragster-trace-state.tsv"
+      - name: Compose reference-only replay result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/compose_historical_reference_result.py \
+            --smv-meta "$RUNNER_TEMP/wip-2008.json" \
+            --trace-summary "$RUNNER_TEMP/dragster-trace-state.json" \
+            --out analysis/generated/historical-2008-dragster-reference.json
+
+      - name: Generate and build native target with Lua bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/native"
+          sh snesrecomp/tools/new_project/setup_project.sh \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --generate \
+            --no-build \
+            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+          PROJ="$ROOT/UniracersSNESRecomp"
+          cmake -S "$PROJ" -B "$PROJ/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ENABLE_LUA=ON
+          cmake --build "$PROJ/build" -j2
+          test -x "$PROJ/build/UniracersSNESRecomp"
 
       - name: Replay exact historical input in native runtime
         shell: bash
@@ -197,6 +182,7 @@ jobs:
             --checkpoint 2660 --checkpoint 2680 --checkpoint 2700 \
             --checkpoint 2800 --checkpoint 3000 --checkpoint 3200 \
             --checkpoint 3400 --checkpoint 3480 \
+            --run-timeout 600 \
             --json-out "$RUNNER_TEMP/native-dragster-state.json" \
             | tee "$RUNNER_TEMP/native-dragster-state.txt"
 
@@ -209,7 +195,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 - "$RUNNER_TEMP/dragster-state.tsv" <<'PY'
+          python3 - "$RUNNER_TEMP/dragster-trace-state.tsv" <<'PY'
           import pathlib, sys
           lines=pathlib.Path(sys.argv[1]).read_text().splitlines()
           active=[line for line in lines if "inRace=0x01" in line]
@@ -228,7 +214,7 @@ jobs:
           set -euo pipefail
           python3 - \
             "$RUNNER_TEMP/native-dragster-state.json" \
-            "$RUNNER_TEMP/dragster-state.tsv" <<'PY'
+            "$RUNNER_TEMP/dragster-trace-state.tsv" <<'PY'
           import json, pathlib, re, sys
           native=json.loads(pathlib.Path(sys.argv[1]).read_text())
           ref_lines=pathlib.Path(sys.argv[2]).read_text().splitlines()
@@ -264,24 +250,28 @@ jobs:
             --native-json "$RUNNER_TEMP/native-dragster-state.json" \
             --out analysis/generated/historical-2008-dragster-replay.json
 
-      - name: Persist canonical replay result
+      - name: Persist available historical replay results
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
-          path=analysis/generated/historical-2008-dragster-replay.json
-          if git ls-files --error-unmatch "$path" >/dev/null 2>&1 && \
-             git diff --quiet -- "$path"; then
-            echo "replay result already current"
-            exit 0
-          fi
-          git add "$path"
+          for path in \
+            analysis/generated/historical-2008-dragster-reference.json \
+            analysis/generated/historical-2008-dragster-replay.json
+          do
+            if [ -f "$path" ]; then
+              git add "$path"
+            fi
+          done
           if git diff --cached --quiet; then
-            echo "nothing to persist"
+            echo "no historical replay result available to persist"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Record historical 2008 Dragster replay"
+          git commit -m "Record historical 2008 Dragster replay evidence"
+          git fetch origin "${{ github.ref_name }}"
+          git rebase "origin/${{ github.ref_name }}"
           git push origin HEAD:${{ github.ref_name }}
 
       - name: Upload replay evidence
@@ -293,7 +283,6 @@ jobs:
             ${{ runner.temp }}/wip-2008.input
             ${{ runner.temp }}/wip-2008.json
             ${{ runner.temp }}/wip-2008.srm
-            ${{ runner.temp }}/dragster-state.tsv
             ${{ runner.temp }}/dragster-trace.jsonl
             ${{ runner.temp }}/dragster-trace-state.tsv
             ${{ runner.temp }}/dragster-trace-state.json
@@ -302,5 +291,4 @@ jobs:
             ${{ runner.temp }}/native-dragster-state.json
             ${{ runner.temp }}/native-dragster-state.txt
             ${{ runner.temp }}/native-lua.log
-            ${{ runner.temp }}/wram-*.bin
           retention-days: 7

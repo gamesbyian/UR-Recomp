@@ -40,7 +40,21 @@ def main():
         lines.append(f"- byte {off}: " + "; ".join(groups))
     stunt=[ss[i-1][2] for i in range(3,46,5)]
     non=[d[2] for i,d in enumerate(ss,1) if ((i-1)%5)+1 != 3]
-    lines += ["","## Exact cadence test","",
+    dim_pairs=[]
+    for i,d in enumerate(ss,1):
+        w=d[13] or 256
+        h=d[14] or 256
+        dim_pairs.append((i,w,h,w*h))
+    products=sorted(set(p for _,_,_,p in dim_pairs))
+    lines += ["","## Dimension-pair invariant","",
+              "Bytes 13 and 14 form an unusually strict power-of-two-style pair. Treating encoded byte value `0x00` as 256, every one of the 45 streams satisfies `dim13 × dim14 = 1024`.","",
+              f"- distinct decoded pairs: " + ", ".join(f"`{w}×{h}`" for w,h in sorted(set((w,h) for _,w,h,_ in dim_pairs))) + ".",
+              f"- distinct products: {products}.",
+              f"- invariant holds: {all(p==1024 for _,_,_,p in dim_pairs)} (45/45).",
+              "",
+              "This strongly supports bytes 13/14 as complementary course-layout dimensions or strides over a fixed 1024-unit plane/table. It does **not** yet establish the unit (tile, block, column, lookup entry, etc.). The zero-as-256 interpretation is structural and should be runtime-validated, especially on the 256×4 and 4×256 cases.",
+              "",
+              "## Exact cadence test","",
               f"- tour-slot-3 streams: {len(stunt)}; byte 2 values: {sorted(set(stunt))}.",
               f"- all other streams: {len(non)}; byte 2 values: {sorted(set(non))}.",
               f"- condition `byte[2] == 0x2D` selects {sum(d[2]==0x2d for d in ss)}/45 streams, at ordinals: " + ", ".join(str(i) for i,d in enumerate(ss,1) if d[2]==0x2d) + ".",

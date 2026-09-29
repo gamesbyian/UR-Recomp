@@ -293,7 +293,7 @@ Current P0-A implementation lives in `third_party/manifest.json`, `tools/validat
 
 ### P0-B — Small/high-value direct vendors
 
-- [ ] mesen-for-ai.
+- [~] mesen-for-ai. Repository-owned pruned source and GPL-3.0-only license are present; bootstrap uses a stdlib-only installer with no PyPI/build-isolation dependency. Final tree digest and offline CI smoke are being validated in the active tranche.
 - [ ] snes2asm, incorporating the existing UR-Recomp patch cleanly.
 - [ ] SuperFamiconv plus Cargo dependency closure.
 - [ ] ghidra-snes.

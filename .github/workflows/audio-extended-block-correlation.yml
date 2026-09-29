@@ -1,0 +1,34 @@
+name: One-shot extended audio block correlation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/correlate_audio_blocks_spc.py"
+      - ".github/workflows/audio-extended-block-correlation.yml"
+
+jobs:
+  correlate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Acquire verified SPC archive transiently
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://fi.zophar.net/soundfiles/nintendo-snes-spc/uniracers/Uniracers%20%28EMU%29.zophar.zip'
+          curl -fL --retry 3 --retry-delay 2 "$URL" -o "$RUNNER_TEMP/uniracers-spc.zip"
+          echo '85a3f00cfe46cddd18caa714374ef54da6835f0d293557ce499de352b8d4fdb0  '"$RUNNER_TEMP/uniracers-spc.zip" | sha256sum -c -
+      - name: Correlate direct-upload block range
+        shell: bash
+        run: |
+          ARGS=""
+          for id in $(seq 50 66); do ARGS="$ARGS --block $id"; done
+          python3 tools/correlate_audio_blocks_spc.py             "reference/roms/retail/Uniracers_USA.sfc"             "$RUNNER_TEMP/uniracers-spc.zip"             $ARGS             --json-out audio-extended-block-correlation.json
+          cat audio-extended-block-correlation.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audio-extended-block-correlation
+          path: audio-extended-block-correlation.json

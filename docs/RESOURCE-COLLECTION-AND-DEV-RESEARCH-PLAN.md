@@ -223,7 +223,7 @@ The preferred continuation loop is:
 
 1. inspect the latest race-behavior fixture/run and preserve the last verified semantic checkpoint before extending the workload;
 2. treat straight-line acceleration as established: `7E:0411` X position and signed `7E:04B7` X speed are confirmed cross-runtime, with `7E:11BA` decrementing by `0x0100` per guest frame during the sampled start window;
-3. treat jump and rotation as established: `7E:0415` Y position, signed `7E:04BB` Y speed, `7E:0545` air state and modulo-64 `7E:04C7` player-1 pitch angle are causally validated cross-runtime; isolate the exact landing transition next, then collision and finish;
+3. treat jump, rotation and event-relative landing as established: `7E:0415` Y position, signed `7E:04BB` Y speed, `7E:0545` air state and modulo-64 `7E:04C7` pitch angle are validated cross-runtime; isolate one reproducible collision/contact behavior next, then finish a stock race deterministically;
 4. resolve recovered-source ambiguities before promoting symbols; in particular, respect Lua duplicate-key semantics and distinguish effective bot addresses from earlier overwritten candidates;
 5. promote confirmed race-state fields/routines into `docs/SYMBOLS.md`, regenerate `analysis/generated/symbols.json`, and record evidence-backed conclusions in the research ledger/knowledge base;
 6. promote durable replay cases into `tests/fixtures.json` and compare semantic/event-relative state rather than stale stack or free-running presentation counters;

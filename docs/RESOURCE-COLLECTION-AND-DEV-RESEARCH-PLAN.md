@@ -222,8 +222,8 @@ The goal is a closed evidence loop: ROM bytes → static hypothesis → dynamic 
 The preferred continuation loop is:
 
 1. inspect the latest race-behavior fixture/run and preserve the last verified semantic checkpoint before extending the workload;
-2. validate straight-line acceleration first: confirm effective recovered-bot addresses for X position/speed and compare native/reference event-relative checkpoints;
-3. extend the same shared fixture one behavior at a time through jump, rotation, landing, collision and finish, keeping each new action independently attributable;
+2. treat straight-line acceleration as established: `7E:0411` X position and signed `7E:04B7` X speed are confirmed cross-runtime, with `7E:11BA` decrementing by `0x0100` per guest frame during the sampled start window;
+3. validate B-jump next from the bot's own Dragster jump area, using Y speed, effective `7E:0545` air state and `7E:0F49` pitch as the active discriminators; then extend one behavior at a time through rotation, landing, collision and finish;
 4. resolve recovered-source ambiguities before promoting symbols; in particular, respect Lua duplicate-key semantics and distinguish effective bot addresses from earlier overwritten candidates;
 5. promote confirmed race-state fields/routines into `docs/SYMBOLS.md`, regenerate `analysis/generated/symbols.json`, and record evidence-backed conclusions in the research ledger/knowledge base;
 6. promote durable replay cases into `tests/fixtures.json` and compare semantic/event-relative state rather than stale stack or free-running presentation counters;

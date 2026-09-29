@@ -200,6 +200,7 @@ jobs:
           echo "INPUT_ROUTE_RESULT=reached_race"
 
       - name: UI state reconnaissance
+        continue-on-error: true
         shell: bash
         run: |
           set +e
@@ -249,6 +250,7 @@ jobs:
           PY
 
       - name: UI top-level branch reconnaissance
+        continue-on-error: true
         shell: bash
         run: |
           set +e

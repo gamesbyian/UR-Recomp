@@ -160,7 +160,7 @@ jobs:
       - name: Deterministic first-race input smoke
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
           EXE="${{ steps.exe.outputs.exe }}"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"

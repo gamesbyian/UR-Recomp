@@ -1,0 +1,168 @@
+name: One-shot island SuperFamiconv
+
+on:
+  push:
+    branches:
+      - chatgpt/island-superfamiconv-2026-09-29
+    paths:
+      - .github/workflows/island-superfamiconv-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  vendor:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Stage pinned upstream source and Cargo closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          upstream="$RUNNER_TEMP/SuperFamiconv"
+          git init "$upstream"
+          git -C "$upstream" remote add origin https://github.com/Optiroc/SuperFamiconv.git
+          git -C "$upstream" fetch --depth 1 --filter=blob:none origin 566522204e271885fb771b56f1f85d62f3f41430
+          git -C "$upstream" checkout --detach --force 566522204e271885fb771b56f1f85d62f3f41430
+          test "$(git -C "$upstream" rev-parse HEAD)" = "566522204e271885fb771b56f1f85d62f3f41430"
+
+          rm -rf third_party/src/superfamiconv
+          mkdir -p third_party/src/superfamiconv
+          cp "$upstream"/Cargo.toml third_party/src/superfamiconv/
+          cp "$upstream"/Cargo.lock third_party/src/superfamiconv/
+          cp "$upstream"/LICENSE third_party/src/superfamiconv/
+          cp "$upstream"/README.md third_party/src/superfamiconv/
+          cp -R "$upstream"/src third_party/src/superfamiconv/
+
+          mkdir -p third_party/src/superfamiconv/.cargo
+          (
+            cd third_party/src/superfamiconv
+            cargo vendor --locked vendor > .cargo/config.toml
+          )
+
+      - name: Prove repository-owned Cargo closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          export CARGO_HOME="$RUNNER_TEMP/cargo-home-superfamiconv"
+          mkdir -p "$CARGO_HOME"
+          cargo build             --manifest-path third_party/src/superfamiconv/Cargo.toml             --release             --locked             --offline
+          rm -rf third_party/src/superfamiconv/target
+
+      - name: Record manifest and provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path.cwd()
+          source = root / "third_party/src/superfamiconv"
+
+          def file_sha256(path):
+              h = hashlib.sha256()
+              with path.open("rb") as f:
+                  for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                      h.update(chunk)
+              return h.hexdigest()
+
+          def tree_sha256(path):
+              h = hashlib.sha256()
+              for item in sorted(p for p in path.rglob("*") if p.is_file()):
+                  rel = item.relative_to(path)
+                  if any(part in {".git", "__pycache__"} for part in rel.parts):
+                      continue
+                  h.update(rel.as_posix().encode("utf-8"))
+                  h.update(b"\0")
+                  h.update(file_sha256(item).encode("ascii"))
+                  h.update(b"\n")
+              return h.hexdigest()
+
+          tree_hash = tree_sha256(source)
+          lock_hash = file_sha256(source / "Cargo.lock")
+
+          manifest_path = root / "third_party/manifest.json"
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          component = next(c for c in manifest["components"] if c["id"] == "superfamiconv")
+          component.update({
+              "mode": "vendored",
+              "source_path": "third_party/src/superfamiconv",
+              "archive_path": None,
+              "source_sha256": tree_hash,
+              "license_spdx": "MIT",
+              "license_path": "third_party/src/superfamiconv/LICENSE",
+              "notes": "Pruned pinned upstream Rust CLI source plus cargo vendor dependency closure. Upstream tests, test data, Python tooling, CI/editor metadata and image assets are omitted from the executable dependency surface.",
+              "provenance_path": "third_party/provenance/superfamiconv.json",
+          })
+          manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+          cargo_lock = (source / "Cargo.lock").read_text(encoding="utf-8")
+          registry_packages = sum(
+              1 for block in cargo_lock.split("[[package]]")[1:]
+              if 'source = "registry+https://github.com/rust-lang/crates.io-index"' in block
+          )
+
+          provenance = {
+              "schema_version": 1,
+              "tool": "superfamiconv",
+              "upstream_url": "https://github.com/Optiroc/SuperFamiconv.git",
+              "upstream_revision": "566522204e271885fb771b56f1f85d62f3f41430",
+              "upstream_version": "0.12.0",
+              "vendored_source_path": "third_party/src/superfamiconv",
+              "vendored_tree_sha256": tree_hash,
+              "cargo_lock_sha256": lock_hash,
+              "cargo_registry_packages": registry_packages,
+              "cargo_vendor_path": "third_party/src/superfamiconv/vendor",
+              "cargo_config_path": "third_party/src/superfamiconv/.cargo/config.toml",
+              "license_spdx": "MIT",
+              "license_path": "third_party/src/superfamiconv/LICENSE",
+              "retained": [
+                  "Cargo.toml",
+                  "Cargo.lock",
+                  "LICENSE",
+                  "README.md",
+                  "src/**",
+                  ".cargo/config.toml",
+                  "vendor/**"
+              ],
+              "excluded": [
+                  ".github/**",
+                  ".vscode/**",
+                  ".gitignore",
+                  ".clippy.toml",
+                  ".rustfmt.toml",
+                  "img/**",
+                  "scripts/**",
+                  "tests/**",
+                  "test_data/**",
+                  "pyproject.toml",
+                  "uv.lock"
+              ],
+              "exclusion_reason": "UR-Recomp consumes the native Rust CLI. The excluded material is upstream development, test, editor, documentation-image or Python-wrapper support and is not needed to build or run the CLI.",
+              "dependency_closure": "cargo vendor --locked from the pinned upstream Cargo.lock; isolated CARGO_HOME release build passes with --locked --offline."
+          }
+          prov_path = root / "third_party/provenance/superfamiconv.json"
+          prov_path.parent.mkdir(parents=True, exist_ok=True)
+          prov_path.write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
+          print("tree_sha256", tree_hash)
+          print("cargo_lock_sha256", lock_hash)
+          print("registry_packages", registry_packages)
+          PY
+
+          python3 tools/validate_island.py
+
+      - name: Commit repository-owned closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f third_party/src/superfamiconv third_party/provenance/superfamiconv.json third_party/manifest.json
+          git commit -m "toolchain: vendor SuperFamiconv cargo closure"
+          git push origin "HEAD:${{ github.ref_name }}"

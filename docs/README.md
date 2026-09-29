@@ -16,7 +16,7 @@ Task routing lives in [`../AGENTS.md`](../AGENTS.md). This file inventories owne
 | [`FRAMEWORK-PIN.md`](FRAMEWORK-PIN.md) | SNESRecomp revision and pin rationale |
 | [`ROM-SAFETY.md`](ROM-SAFETY.md) | Private-ROM handling and public-release boundary |
 | [`WIDESCREEN.md`](WIDESCREEN.md) | Focused implementation notes and invariants for the Widescreen feature; subordinate to the project plan |
-| [`TOOLCHAIN.md`](TOOLCHAIN.md) | Research/development tool roles, installation policy, and selection guidance |
+| [`TOOLCHAIN.md`](TOOLCHAIN.md) | Research/development tool roles, installation policy, and selection guidance |\n| [`THIRD-PARTY-SOURCE-AUDIT.md`](THIRD-PARTY-SOURCE-AUDIT.md) | Engineering trust review and promotion rules for imported scripts, tools, bots and emulator source |
 | [`PERIODIC-REPOSITORY-HYGIENE.md`](PERIODIC-REPOSITORY-HYGIENE.md) | Recurring repository entropy-control procedure |
 | [`original-development/DEVELOPER-TECHNICAL-HISTORY.md`](original-development/DEVELOPER-TECHNICAL-HISTORY.md) | Confidence-labelled history of original DMA development |
 | [`original-development/ACQUISITION-LEDGER.md`](original-development/ACQUISITION-LEDGER.md) | Acquired/missing external artifacts and intake status |

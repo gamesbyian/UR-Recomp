@@ -404,6 +404,23 @@
       "size": 1356,
       "git_blob_sha1": "960849df2b8419a10280d5dbbfc84e360ccdf6ac",
       "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/patches/sayans-uniracers-2002/uniracers_esp.zip",
+      "category": "translation-patch-archive",
+      "size": 1261,
+      "git_blob_sha1": "b3a25f6e3f00f2314b4ce83804c0d2902ca3c2dc",
+      "upstream_git_blob_sha1": "b3a25f6e3f00f2314b4ce83804c0d2902ca3c2dc",
+      "external_sha256": "828f65e6c0362f0050fbcf54925fa51c4ad43fb4750dbf2ce849b6c48b20f6c2",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "references/imported/patches/sayans-uniracers-2002/Uniraceresp.ips",
+      "category": "translation-patch",
+      "size": 1678,
+      "git_blob_sha1": "0c6b89d94c8e1b06f940c14f70a9ea952315c4c3",
+      "external_sha256": "db68d50f647db678c31ee2d1ac84d9108292684d444d3b899abbbca88664bdd7",
+      "review_status": "analyzed-reference"
     }
   ]
 }

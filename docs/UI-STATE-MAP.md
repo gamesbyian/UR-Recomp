@@ -1,6 +1,6 @@
 # UI / Screen State Map
 
-Status: seed skeleton, 2026-09-29.
+Status: executable research model in active expansion, 2026-09-29.
 
 This document is the human-readable companion to `analysis/ui-state-map.yml`. The YAML is the machine-readable graph; this page explains how to use it and what is actually known.
 
@@ -71,6 +71,7 @@ The strongest current candidates for **modern product-layer simplification** are
 
 This classification should eventually be encoded per state/edge in `analysis/ui-state-map.yml` once the original flow is sufficiently verified, rather than guessed ahead of evidence.
 
+
 ## Current high-level graph
 
 ```mermaid
@@ -115,9 +116,18 @@ flowchart TD
     LT -->|RACE| PRE
 
     OPT --> REC[RECORDS]
+    REC --> RTRACK[RECORD_TRACK]
+    REC --> RHIGH[RECORD_HIGH_SCORES]
+    REC --> RPLAYER[RECORD_PLAYER_SCORES]
+    REC --> RGROUP[RECORD_GROUP_TABLES]
     OPT --> DP[DEFINE_PLAYER]
     OPT --> RP[RENAME_PLAYER]
+    RP -->|forbidden name| BADNAME[FORBIDDEN_NAME_REJECTION]
+    BADNAME --> RP
     OPT --> DL[DEFINE_LEAGUE]
+    DL -->|Start| NL[NAME_LEAGUE]
+    NL -->|blacklisted name lead| BADNAME
+    BADNAME -. League naming context .-> NL
     OPT --> MM
 ```
 
@@ -142,7 +152,7 @@ That gives the following locally reproduced state anchors:
 
 So the basic screenshot atlas does not need a new rendering subsystem. It already falls out of a route the project trusts.
 
-This branch also adds `tests/input/ui-options-route.script`, a narrow reconnaissance fixture that:
+The repository includes `tests/input/ui-options-route.script`, a narrow reconnaissance fixture that:
 
 1. starts from verified `MAIN_MENU`;
 2. moves the arrow through 1P, 2P, VS, LEAGUE, and OPTIONS one item at a time;
@@ -154,6 +164,61 @@ This branch also adds `tests/input/ui-options-route.script`, a narrow reconnaiss
 8. requires return to `7E:009F = D7`.
 
 The native smoke workflow now runs that fixture and uploads its BMP/state dumps alongside the existing race-route evidence. It prints the newly observed Options menu ID from WRAM when the route succeeds.
+
+## Executable transition contract and coverage
+
+The conceptual YAML remains the human-facing semantic authority, but Phase 2 adds a narrower machine-execution layer:
+
+- `analysis/ui-transition-contract.json` records conservative state-to-state edges with explicit evidence status.
+- `tools/query_ui_route.py` finds the shortest known route between conceptual states while allowing callers to cap the weakest evidence they are willing to trust.
+- `tools/validate_ui_state_model.py` checks that transition endpoints, capture states, menu-index states, fixture references, and capture tags remain mutually consistent.
+- `tools/report_ui_coverage.py` summarizes which states have menu IDs, capture contracts, and executable edges.
+- `analysis/generated/ui-state-coverage.md` is the compact generated gap report.
+
+Examples:
+
+```bash
+python3 tools/query_ui_route.py --from MAIN_MENU --to GAMEPLAY --max-status verified
+python3 tools/query_ui_route.py --from MAIN_MENU --to RECORDS --max-status documented
+python3 tools/query_ui_route.py --from SPLASH --to ENDING --max-status hypothesis
+python3 tools/validate_ui_state_model.py
+python3 tools/report_ui_coverage.py --out analysis/generated/ui-state-coverage.md
+```
+
+Evidence ceilings are cumulative:
+
+```text
+verified < documented < historical < hypothesis
+```
+
+A route requested with `--max-status documented` may use verified or manual-documented edges, but it will refuse a path that depends on a historical bot label or an untested hypothesis.
+
+The first generated baseline exposed several bookkeeping gaps that were already known semantically. Those have now been encoded, including multiplayer-to-tour progression, all three result-to-post-result transitions, post-result next/back paths, Options submenu returns, ending return, and erase-confirmation cancel.
+
+The same pass added fresh capture contracts for Pause and Race Results and a controller-only Options fan-out covering Records, Define Player, Rename Player, and Define League. A separate safe probe enters the manual-documented erase-all confirmation, captures it, and cancels without ever confirming destructive state deletion.
+
+After expanding Records and League naming into distinct visible states, the current generated baseline has **34 conceptual states, 57 executable transitions, 63 capture contracts, and 23 states with at least one capture contract**. Eight states also have indexed public visual leads, two nonvisual/unstable graph nodes are explicitly capture-exempt, and one named capability dependency tracks the missing shared player-2 input surface. The larger gap count reflects finer modeling plus a separate “visually dark” check rather than lost coverage: the newly explicit Records screens and League naming state now appear honestly as uncaptured until evidence classifies them.
+
+## Records and naming substate expansion
+
+The original `RECORDS` node was too coarse for an atlas. The manual explicitly describes four visibly distinct score screens:
+
+- `RECORD_TRACK`: all-time per-track Gold/Silver/Bronze records with player-color star markers;
+- `RECORD_HIGH_SCORES`: category highs such as time, wins, and points;
+- `RECORD_PLAYER_SCORES`: individual player statistics; Up/Down cycles players;
+- `RECORD_GROUP_TABLES`: League performance comparison; Up/Down cycles Leagues.
+
+The exact entry order and next/previous behavior are intentionally still unresolved. `ui-records-explore.script` enters Records from a clean reset and independently probes Down, Up, Left, Right, A, and B, capturing before/after frames and state for classification instead of guessing.
+
+The League editor is also split more faithfully:
+
+```text
+DEFINE_LEAGUE
+   -- A/B, X/Y --> mutate membership
+   -- Start --> NAME_LEAGUE
+```
+
+The manual confirms that `NAME_LEAGUE` uses an on-screen alphabet and supports names up to 19 characters. A historical secondary source says the same blacklist used for racer names can reject team names too, so `FORBIDDEN_NAME_REJECTION` is now modeled as a context-sensitive rejection screen rather than a child of `RENAME_PLAYER` only. That team-name edge remains a hypothesis until reproduced locally.
 
 ## Fast menu-ID lookup
 
@@ -169,6 +234,42 @@ python3 tools/query_ui_state.py --all
 ```
 
 This is intended for exactly the reverse-engineering moment where a trace or WRAM dump exposes a menu byte and the agent needs a cheap semantic orientation before deciding what to inspect next.
+
+## Visual contact sheet
+
+`tools/build_ui_contact_sheet.py` turns the machine atlas into a single self-contained `ui-atlas.html` artifact. Each card embeds the canonical framebuffer BMP and labels it with:
+
+- conceptual state ID and variant;
+- capture tag and source fixture;
+- guest frame where available;
+- observed menu byte, selected option, row/column, and race state;
+- capture status and mismatches.
+
+`--include-missing` renders uncaptured states/tags as placeholders instead of silently omitting them. This makes the HTML useful both as a screenshot atlas and as a visual research queue.
+
+The native smoke artifact therefore has three complementary atlas surfaces:
+
+```text
+ui-atlas.json                machine-readable capture/state facts
+ui-atlas.md                  compact text table
+ui-atlas.html                embedded visual contact sheet
+ui-frame-comparisons.*       before/after pixel-delta summaries
+```
+
+## Framebuffer transition deltas
+
+`analysis/ui-frame-comparisons.json` declares useful before/after framebuffer pairs across pause, erase confirmation, Records exploration, League table entry, and result-screen advancement.
+
+`tools/compare_ui_frames.py` reads the generated BMPs and reports:
+
+- changed-pixel count and fraction;
+- the bounding box containing all changed pixels;
+- mean absolute RGB-channel delta over changed pixels;
+- dimension mismatches or missing captures without making optional probes fatal.
+
+This is a triage aid, not an automatic semantic classifier. A tiny localized bounding box is a strong hint that only a cursor/indicator moved; a broad delta suggests a screen or major presentation transition. Animation can still confound either case, so visual/runtime evidence remains authoritative.
+
+The native UI evidence artifact now contains both `ui-atlas.*` and `ui-frame-comparisons.*`.
 
 ## Headless atlas builder
 
@@ -197,6 +298,12 @@ derived atlas            ui-atlas.json + ui-atlas.md
 ```
 
 The conceptual graph should stay concise. The capture manifest owns reproducible visual/runtime anchors. Raw images remain generated evidence rather than bloating the repository.
+
+### Current multiplayer automation boundary
+
+The project-owned fixture grammar currently exposes the controller surface used by the one-player scripts, but no established player-2 input syntax is present in the repository. Phase 2 therefore stops the 2P/VS probes at states reachable with player-one navigation rather than inventing a second-controller convention.
+
+That is a tooling boundary, not evidence that the game flow is inaccessible. `docs/TWO-PLAYER-FIXTURE-PLAN.md` makes it a required fidelity dependency with an acceptance route and downstream obligations. Deeper `TWO_PLAYER_SELECT`, `VS_CHALLENGER`, and `VS_CHALLENGE_TRACK` automation should resume when a shared fixture path can express player-two input consistently across the relevant engines.
 
 ## Top-level branch probes
 
@@ -263,7 +370,7 @@ The wider public corpus and recovered bot labels add a few branches that are eas
 - `SPLASH`: recovered bot value `0x84`; public galleries independently show an Intro Screen.
 - `DEMO`: recovered bot value `0x00`; the exact Main Menu idle timeout and return behavior are still unknown.
 - `ENDING`: recovered bot value `0x5B`; a secondary cheat reference describes a title/splash shortcut using Down+L+R+B, which is useful as a cheap local verification route.
-- `FORBIDDEN_NAME_REJECTION`: public screenshot sets include the historical "No Sonic Allowed" rejection/Easter-egg screen. Preserve this only as documented original behavior/reference evidence. The modern product must not implement a forbidden-name system or equivalent name blacklist.
+- `FORBIDDEN_NAME_REJECTION`: public screenshot sets include the "No Sonic Allowed" rejection/Easter-egg screen. This belongs in the graph because name validation is already an identified technical seam elsewhere in the project.
 
 These stay explicitly lower-confidence until a local controller/input route captures them.
 

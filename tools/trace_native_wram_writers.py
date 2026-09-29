@@ -67,8 +67,19 @@ def main() -> int:
         if reached is None:
             raise RuntimeError(f"inRace did not become 1 within {args.max_frames} stepped frames")
 
-        report = {"in_race_step": reached, "addresses": {}}
+        cpu_state = command(sock, reader, "get_cpu_state")
+        report = {
+            "in_race_step": reached,
+            "cpu_state_at_in_race": cpu_state,
+            "addresses": {},
+        }
         print(f"inRace=1 after {reached} stepped frames")
+        print(
+            "cpu-at-inRace: "
+            f"SP={cpu_state.get('sp')} PC={cpu_state.get('k')}:{cpu_state.get('pc')} "
+            f"DP={cpu_state.get('dp')} DB={cpu_state.get('db')} "
+            f"func={cpu_state.get('func')}"
+        )
 
         for addr in addrs:
             result = command(sock, reader, f"wram_writes_at {addr:x} 0 999999 4096")

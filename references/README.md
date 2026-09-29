@@ -11,6 +11,8 @@ Do not merge the directories merely because their names are similar.
 
 This directory records public Uniracers / Unirally material that may help reverse engineering, validation, reimplementation, graphics study, or historical reconstruction.
 
+`catalog.yml` is the provenance registry. `evidence-worklist.json` is the actionable queue: it records each live uncertainty, next discriminator, acquisition state, expected deliverables, and whether user download assistance is genuinely required. The operating procedure is `docs/EXTERNAL-EVIDENCE-INTAKE.md`.
+
 This is a private computer-science research archive. Material stored here is reference evidence, not automatically project-owned code or art and not automatically intended for redistribution in any eventual release.
 
 ## Rules

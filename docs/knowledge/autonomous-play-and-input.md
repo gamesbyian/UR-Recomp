@@ -84,8 +84,18 @@ Its value is now specialized: evaluator/search logic, stunt grammar, timing assu
 
 The pinned SNESRecomp desktop host already provides a frame-synchronous `--script` grammar with controller presses, WRAM `until` conditions and state dumps. That is the cheapest current bridge for frontend bring-up; no SDL keystroke injector is needed.
 
-The first project-owned script is `tests/input/reach-first-race.script`. On the canonical USA ROM it has independently reproduced Dessyreqt's historical `currentMenu` label `mainMenu = 0xD7` at simulated frame 446.
+The first project-owned route is `tests/input/reach-first-race.script`. On the canonical USA ROM it has reproduced two historical labels from Dessyreqt's bot under native execution:
 
-The bot's menu policy is stateful rather than a fixed button movie. In particular, at the main menu it reads `7E:009B` (`selectedOption`): while the value is nonzero it pulses Up, and only when it reaches zero does it pulse A. The current native diagnostic is preserving that distinction instead of treating a single failed A press as evidence that controller injection is broken.
+- `7E:009F = 0xD7` for `mainMenu`;
+- `7E:009F = 0x3C` for `onePlayerSelect`.
 
-SNESRecomp also has an opt-in local Lua/TCP bridge with WRAM reads and per-frame joypad control. If the compact static script becomes awkward for conditional navigation, that bridge is the natural next adapter for porting the 2014 bot policy nearly directly.
+The main-menu capture also reproduces `7E:009B = 0x00`, the bot's selected one-player option.
+
+A useful native-specific timing fact is now established: the menu-state byte can change before the scene accepts its first confirm edge. A one-frame A pulse sent immediately on first observing `0xD7` was ignored, while the same pulse after 60 guest frames moved the game to `0x3C`. Dessyreqt's original policy naturally tolerated this because it reevaluated state and retried inputs every frame.
+
+Therefore:
+- short deterministic routes can use guest-state `until` conditions plus a conservative scene-settle before confirmation;
+- do not interpret first visibility of a menu-state byte as proof that the menu is already input-ready;
+- if repeated conditional retries or branching become cumbersome, use SNESRecomp's opt-in Lua/TCP bridge instead of growing a large timing script. It exposes WRAM reads and per-frame joypad writes and is the natural adapter for porting the original policy nearly directly.
+
+Once a complete route to race entry is stable, run the exact same script through `snesref` before freezing it as a long-term regression fixture.

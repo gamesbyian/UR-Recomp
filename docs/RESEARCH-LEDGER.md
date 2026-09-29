@@ -695,3 +695,116 @@ Direct inspection of all 4,975 controller samples in the reset-anchored 2008 WIP
 **Hypothesis:** one immediate 1024-byte decoded region is a one-byte-per-64×64-block course-layout plane whose width/height are encoded by bytes 13/14. Provisional name alignment is suggestive rather than decisive: Dragster maps to `256×4`, Vertical to `16×64`, and Little Dipper to `4×256`.
 
 **Discriminating test:** mechanically characterize the first several 1024-byte post-header regions across all 45 payloads, then trace whichever region exhibits map/index-like structure into a runtime course consumer. A mutation/viewer round trip should follow only after that consumer relationship is identified.
+
+
+### R-SEED-036 — Interpreter writer labels are scope entries, not store PCs
+
+**Status:** confirmed tooling-semantics correction  
+**Date:** 2026-09-28  
+**Area:** tracing | course | RNC
+
+**Observation:** SNESRecomp synthesizes `interp@$XXXXXX` from the entry PC of an interpreter bridge run and uses that string as the write-attribution scope for all still-interpreted writes during the run. Therefore run 36517696016 proves that the Dragster install and byte-11 mutation write groups occur under scopes entered at `81BB73` and `81BA96`, but does not identify those addresses as the literal store instructions.
+
+**Static cross-check:** `01:BA96` is inside generic RNC Method-1 `GTBITS2`; the shipped bytes align with preserved source `LSR A / ROR BITBUFL / DEY / BEQ / DEX / ...`. That makes a literal “course-byte store at BA96” interpretation impossible and validates the scope-entry reading.
+
+**Discriminating test:** capture exact interpreted opcode PC at WRAM-write time, or narrow the interpreter bridge scope enough to isolate the true store instruction. Keep the established write values/timing unchanged.
+
+
+### R-SEED-037 — 2008 WIP sample zero is correctly aligned; legacy WIP1 timing remains a compatibility variable
+
+**Status:** sample alignment confirmed; legacy timing compatibility open  
+**Date:** 2026-09-28  
+**Area:** TAS | input | emulator compatibility
+
+**Source-level observation:** Snes9x movie playback reads sample 0 as baseline controller data before starting movie playback, then sets movie frame/sample counters to zero. The next movie update advances to later samples. The project's `start-frame:duration:mask` conversion therefore has the correct frame-zero convention.
+
+**Movie-specific observation:** the 2008 WIP is SMV v1 with sync-data-present and `MOVIE_SYNC_WIP1TIMING` set; all other legacy behavioral sync flags except ROM-info are clear. Modern Snes9x no longer uses WIP1 timing.
+
+**Interpretation:** do not introduce an input-frame offset to make the movie sync. If modern pinned-Snes9x replay diverges, first reproduce or characterize the old 1.43 WIP1 timing mode and test whether Uniracers is sensitive to it.
+
+
+### R-SEED-038 — 2008 WIP embeds the canonical USA ROM identity
+
+**Status:** confirmed  
+**Date:** 2026-09-28  
+**Area:** TAS | provenance | replay fidelity
+
+The SMV v1 ROM-info record embedded in `references/imported/tas-bots/uniracers-2008-wip-microstorage.smv` identifies internal ROM name `UNIRACERS` and CRC32 `383858c7`. That CRC exactly matches the canonical project's USA ROM in `rom_identity.txt`. The movie metadata names its author as `Olivier Bellemare aka Halamantariel`.
+
+This closes ROM-revision mismatch as a possible cause of historical replay desynchronization. The extractor now preserves author/ROM metadata and the historical replay workflow refuses to proceed when an embedded movie CRC disagrees with the canonical ROM.
+
+
+### R-SEED-039 — 2014 full-game movie provides a post-WIP1 timing oracle
+
+**Status:** external provenance confirmed; local first-race replay active  
+**Date:** 2026-09-28  
+**Area:** TAS | input | emulator compatibility
+
+TASVideos submission #4250 identifies Dessyreqt's full-game Uniracers movie as Snes9x 1.51 v17 and describes a blank-SRAM start. Its sync notes record successful verification using the movie's embedded settings. Unlike the 2008 SMV-v1 WIP, this movie therefore does not depend on the obsolete WIP1 timing flag.
+
+**Discriminating test:** extract the wrapped submission SMV, require reset/SRAM anchoring, replay the first 5,000 frames on the pinned Snes9x core in one trace pass, and persist exact `inRace` / `raceResults` transition frames. Agreement with the 2008 corpus would validate the neutral historical-input path from two independently authored timing eras; disagreement isolates the old WIP1 timing mode as a first-class suspect.
+
+
+### R-SEED-040 — Shipped RNC1 body ends at BB6E; BB73 is following helper code
+
+**Status:** confirmed static source alignment  
+**Date:** 2026-09-28  
+**Area:** RNC | course loader | code archaeology
+
+The preserved Method-1 `MAKEHUFF` tail aligns at USA `01:BB60`; its source-final `RTS` is exactly `01:BB6E`. This establishes the USA/legacy-beta RNC1 body boundary as `01:B8F1..01:BB6E`. The next helper starts at `01:BB6F`; `01:BB71` increments the input pointer and `01:BB73` is its following `BNE`.
+
+Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribution scopes are now statically separated: BA96 is generic RNC bit-reader code; BB73 is integration/helper code after RNC. Exact memory-store opcode attribution remains pending the dedicated `SNESRECOMP_WLOG_STATE` IPC probe.
+
+
+### R-SEED-041 — BB6F is the LoROM-safe RNC packed-word reader
+
+**Status:** confirmed static behavior  
+**Date:** 2026-09-29  
+**Area:** RNC | LoROM | course loader | code archaeology
+
+**Observation:** USA `01:BB6F` starts with a 16-bit `LDA [IN]`, probes whether `INC IN` wrapped, and on the wrap path reconstructs the high byte from next-bank `$8000` before restoring the original packed-stream pointer. On the normal path it simply restores `IN` and returns. The helper is called from the shipped RNC integration where preserved source performs direct `LDA [IN]` packed-word reads.
+
+**Interpretation:** name the helper `RNC1_ReadWordLoROMSafe`. It adapts the preserved linear RNC decoder to LoROM bank-boundary semantics. `01:BB73` is the helper's `BNE` wrap test, so the earlier `interp@$81BB73` write attribution is conclusively a bridge-scope label rather than a literal store PC.
+
+**Next discriminator:** use the existing exact-IPC WRAM logger for `7F:000B` to identify the actual install and seven increment store instructions; do not infer them from interpreter scope entry addresses.
+
+
+### R-SEED-042 — LE16@11 is a 16-byte-aligned pre-trailer cursor candidate
+
+**Status:** corpus relationship confirmed; cursor interpretation under test  
+**Date:** 2026-09-29  
+**Area:** course format | runtime mutation | loader
+
+**Observation:** across all 45 USA decoded streams, `LE16@11 + 1` is 16-byte aligned. Between 7 and 36 decoded bytes remain after that cursor. Dragster has `LE16@11=0x840F`, so its trailing region starts at aligned offset `0x8410` and contains exactly seven bytes through EOF at `0x8416`. The already observed seven runtime increments produce `0x8416`, exactly the final valid decoded offset.
+
+**Rejected stronger claim:** `LE16@11 + 8 == decoded_size` is **not** a corpus invariant; it holds only for stream 1. The other 44 gaps range from 11 through 37 bytes.
+
+**Hypothesis:** the field is a mutable cursor initialized to the inclusive end of an aligned main-data region, immediately before a variable trailing structure, and advanced during course setup until it reaches EOF−1.
+
+**Discriminating test:** load the first event of tour index 2 (expected stream 11, with 21 bytes after the aligned cursor). If the model is correct, runtime should advance `LE16@11` by 21 and settle at `decoded_size - 1`. The second-tour course-runtime workflow now records this directly.
+
+
+### R-SEED-043 — Cursor boundary is 16-byte aligned, not generally 1024-byte aligned
+
+**Status:** stronger interpretation rejected  
+**Date:** 2026-09-29  
+**Area:** course format | layout | negative evidence
+
+**Observation:** `LE16@11 + 1` is 16-byte aligned for all 45 USA decoded streams. Dragster additionally happens to satisfy `LE16@11 + 1 = 16 + 33×1024`, which superficially meshes with the independent header-dimension product of 1024.
+
+**Falsification:** only 4/45 USA streams satisfy `LE16@11 + 1 = 16 + N×1024` (streams 1, 7, 9 and 16). The other 41 boundaries land on smaller 16-byte subdivisions.
+
+**Conclusion:** retain the 16-byte boundary invariant. Do **not** interpret the cursor as the end of a stack containing only whole 1024-byte planes, and do not merge this fact with the separate 1024-unit dimension invariant without new runtime/structural evidence.
+
+
+### R-SEED-044 — Post-cursor region length varies by track-order role
+
+**Status:** confirmed corpus association; semantics open  
+**Date:** 2026-09-29  
+**Area:** course format | track type | structural statistics
+
+**Observation:** using `LE16@11 + 1` as the aligned start of the decoded trailing region, the nine known stunt-slot streams (tour slot 3) have lengths 10–21 bytes, median 17 and mean 17.0. The other fixed tour slots have medians 26 (slot 1 Race), 27 (slot 2 Circuit), 23 (slot 4 Race) and 27 (slot 5 Circuit); their means are approximately 23.89, 27.22, 23.78 and 26.78 respectively.
+
+**Interpretation:** the trailing region is unlikely to be arbitrary alignment padding alone. Its length distribution is associated with the fixed Race/Circuit/Stunt track-order role, with stunt courses systematically shorter. This does not yet identify the records or prove the trailer is track-type metadata; geometry complexity or another correlated property could produce the same pattern.
+
+**Discriminating tests:** inspect the trailer-byte grammar once the generated trailer corpus lands; compare Europe-retail variants; and use runtime cursor progression on one non-Dragster course to determine whether setup walks the entire region byte-for-byte.

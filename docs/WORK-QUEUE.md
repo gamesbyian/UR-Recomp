@@ -2,6 +2,23 @@
 
 Work in dependency order. Later visual work is intentionally gated on a trustworthy stock baseline.
 
+## Priority 0 — Island / offline toolchain
+
+**This workstream preempts new infrastructure expansion, but must not interrupt or overwrite active research already in flight.**
+
+Canonical execution plan: `docs/ISLAND-TOOLCHAIN-PLAN.md` (currently being prepared in the separate P0 island workstream).
+
+Goal: make the core automated research/build toolchain runnable from a clean checkout without GitHub, PyPI or crates.io after ordinary host/compiler prerequisites are present.
+
+- [ ] Add the `third_party/` provenance/licensing/manifest infrastructure and offline validation first.
+- [ ] Vendor the small/high-value tool tranche and package-registry closures.
+- [ ] Migrate SNESRecomp and core reconstruction/build dependencies incrementally.
+- [ ] Preserve large/manual workbenches as exact archives or optional external tools where direct vendoring has poor value.
+- [ ] Prove a network-disabled core workflow before removing old fetch paths.
+- [ ] Use repository ownership to customize/optimize tools for UR-Recomp where measured value justifies divergence from upstream.
+
+**Concurrent-work rule:** islandization must be implemented in isolated tranches and reconciled with current `main` plus still-active overlapping PRs before merge. Do not merge a mechanically conflict-free result if it would discard or stale active work.
+
 ## Phase 0 — Evidence floor
 
 - [x] Create private GitHub repository.

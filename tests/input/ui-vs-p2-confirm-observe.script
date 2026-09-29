@@ -1,0 +1,10 @@
+# Observation checkpoints; controller input comes from SNESREF_INPUT_FILE.
+wait 655
+dump vs-p2-before-confirm
+wait 10
+dump vs-p2-after-confirm
+wait 60
+dump vs-p2-after-060
+wait 120
+dump vs-p2-after-180
+quit

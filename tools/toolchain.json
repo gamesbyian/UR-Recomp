@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "install_root": ".tools",
   "system_packages_ubuntu": [
     "build-essential",
@@ -26,7 +26,12 @@
       "revision": "1bcc369e89f08243e0a462882fb1f3e42e51de3a",
       "purpose": "Default interpreting reference core for SNESRecomp snesref differential traces.",
       "build": [
-        "make -C libretro -j{jobs}"
+        [
+          "make",
+          "-C",
+          "libretro",
+          "-j{jobs}"
+        ]
       ],
       "artifacts": [
         "libretro/snes9x_libretro.so"
@@ -39,7 +44,11 @@
       "revision": "566522204e271885fb771b56f1f85d62f3f41430",
       "purpose": "Scriptable SNES palette, tile, map and image conversion/inspection.",
       "build": [
-        "cargo build --release"
+        [
+          "cargo",
+          "build",
+          "--release"
+        ]
       ],
       "artifacts": [
         "target/release/superfamiconv"
@@ -52,8 +61,20 @@
       "revision": "91c52b1f4ef3cc8ba3c0638f7536539579af6a9f",
       "purpose": "65816/SPC700 assembler-linker required by snes2asm reconstruction workflows.",
       "build": [
-        "cmake -S . -B build -DCMAKE_BUILD_TYPE=Release",
-        "cmake --build build -j{jobs}"
+        [
+          "cmake",
+          "-S",
+          ".",
+          "-B",
+          "build",
+          "-DCMAKE_BUILD_TYPE=Release"
+        ],
+        [
+          "cmake",
+          "--build",
+          "build",
+          "-j{jobs}"
+        ]
       ],
       "artifacts": [
         "build",
@@ -67,7 +88,13 @@
       "revision": "04023b0b589042b212f30c92ec7acf6e6bd010e4",
       "purpose": "Configurable LoROM/HiROM disassembly plus graphics, tilemap, palette and SPC700 extraction.",
       "build": [
-        "{python} -m pip install ."
+        [
+          "{python}",
+          "-m",
+          "pip",
+          "install",
+          "."
+        ]
       ],
       "artifacts": []
     },
@@ -78,7 +105,10 @@
       "revision": "d8a486acdef93ea1ba432a6a35b96cf1b797bda5",
       "purpose": "da65 command-line 65816 disassembler and complementary 65xx analysis utilities.",
       "build": [
-        "make -j{jobs}"
+        [
+          "make",
+          "-j{jobs}"
+        ]
       ],
       "artifacts": [
         "bin/da65"
@@ -149,7 +179,14 @@
       "revision": "a4bda6285eadf69c871135637df29e9c9a8f6f7a",
       "purpose": "Headless AI-facing Mesen bridge for frame stepping, memory/register inspection, breakpoints, traces, and SNES code/data logging.",
       "build": [
-        "{python} -m pip install -e ."
+        [
+          "{python}",
+          "-m",
+          "pip",
+          "install",
+          "-e",
+          "."
+        ]
       ],
       "artifacts": []
     },

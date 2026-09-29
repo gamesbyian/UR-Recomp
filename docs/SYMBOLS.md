@@ -28,6 +28,7 @@ Human-maintained map of understood ROM functions, RAM, tables and hardware-facin
 | `7E:0C63` | `Frontend_SelectedColumn` | 8-bit | 3 | Recovered bot label; native captures change with frontend scene/selection. Rider-select ready state captures `0x06`, matching the bot's left-column target value. |
 
 | `7E:0313` | `Race_ActiveState` | 8-bit | 5 | Recovered bot label `inRace`; verified as `0x01` after deterministic race entry in both native and Snes9x/snesref runs. Non-race screens can contain other transient values, so only `0x01 = active race` is currently asserted. |
+| `7F:0000` | `Course_ActiveDecodedPayload` | variable / stream-sized | 5 | Confirmed by run 36514985916: active Dragster decoded stream 1 matches 33,814/33,815 bytes from this address; only decoded byte 11 is runtime-mutated. |
 | `7E:0411` | `Player1_XPosition` | 16-bit | 5 | Effective recovered-bot word key `xPos`. Race-acceleration run 36512546762 moves it identically in native/reference from 1088 at rest to 1655 under staged Right input, alongside positive X speed. |
 | `7E:0415` | `Player1_YPosition` | 16-bit | 2 | Effective recovered-bot word key `yPos`. Native/reference race-entry dumps agree at 858; vertical-motion semantics not yet validated. |
 | `7E:04B7` | `Player1_XSpeed` | signed 16-bit | 5 | Effective recovered-bot word key `xSpeed`; bot explicitly sign-converts it. Race-acceleration run 36512546762 changes it identically from 0 to +447 under Right input while X position increases. |

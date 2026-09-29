@@ -29,7 +29,8 @@ DEFAULT_BLOCK_IDS = (0x07, 0x15, 0x29)
 
 
 def extract_block_payloads(rom: bytes, block_ids=DEFAULT_BLOCK_IDS) -> list[dict]:
-    pool = parse_block_pool(rom)
+    block_ids = tuple(block_ids)
+    pool = parse_block_pool(rom, count=max(block_ids) + 1)
     by_id = {row["id"]: row for row in pool["blocks"]}
     rows = []
     for block_id in block_ids:

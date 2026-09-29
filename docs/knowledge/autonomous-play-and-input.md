@@ -142,3 +142,12 @@ The first clean one-player race selects bot track 0, labelled `Dragster` in the 
 The validated `accel-180` checkpoint from run 36512546762 is `xPos=1655`, `yPos=858`, which lies inside that rectangle. Therefore the branch's next `right+b` probe is not an arbitrary human-style jump test: it exercises a location where the recovered autonomous policy itself would return `ShouldJump() = true`.
 
 This is useful for interpreting `ySpeed`, effective `airValue` and `pitch` changes and for later adapting the original race-driving policy into a deterministic regression workload.
+
+
+## Short B pulse was a negative jump experiment
+
+Run 36513805265 compared the original two-frame `Right+B` intervention with a timing-identical `Right`-only control. The pulse produced no causal change in the recovered player-1 semantic block. The second racer reproduced its airborne arc without B.
+
+This matters operationally: do not use the visually changing `7E:0547` byte as evidence that player 1 jumped. It belongs structurally with the second-racer block and changed independently of the controlled B pulse.
+
+The preserved bot's policy would keep B asserted every frame while table-[1] remains in Dragster's jump area. Subsequent controlled-jump fixtures should therefore use sustained B input and demand a causal change in table-[1] state before promoting air/Y semantics.

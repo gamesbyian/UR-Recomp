@@ -160,7 +160,14 @@
       "sentinel": "0xFF",
       "interpretation": "Each table is a 64-slot package/block selector list. The live first-race cursor visits exactly FB55-FB94 while $6F counts down from $40; FF slots are skipped quickly and populated IDs invoke block-transfer work.",
       "generic_spc_stream_parser_applies": false,
-      "generic_parse_rejection": "At FB55 the generic length16/target16 grammar yields length 0x1800,target 0x0627 followed by a second header whose declared payload runs far beyond the bounded source window; this conflicts with the directly observed 64-iteration selector loop."
+      "generic_parse_rejection": "At FB55 the generic length16/target16 grammar yields length 0x1800,target 0x0627 followed by a second header whose declared payload runs far beyond the bounded source window; this conflicts with the directly observed 64-iteration selector loop.",
+      "block_id_universe": {
+        "min": "0x00",
+        "max": "0x31",
+        "count": 50,
+        "complete_union_across_six_tables": true,
+        "duplicates_within_each_table": false
+      }
     },
     "selector_tables": [
       {
@@ -191,7 +198,8 @@
         "direct_caller": false,
         "non_ff_ids": 22,
         "sha256": "ba06845292e028a708c216703526c0d30c4a0ada66cf7eab332035c025408b74",
-        "interpretation": "Dormant/unreferenced package selector-table candidate; not yet attributable to either unused song."
+        "interpretation": "Dormant/unreferenced package selector-table candidate; not yet attributable to either unused song.",
+        "relationship_to_fad5": "Same positional ordering as 03:FAD5 with only block IDs 0x07, 0x15, and 0x29 replaced by 0xFF; supports intentional dormant package-variant interpretation."
       },
       {
         "cpu": "03:FBD5",

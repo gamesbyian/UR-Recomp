@@ -20,7 +20,7 @@ Print the recommended Ubuntu packages first if needed:
 python3 tools/bootstrap_toolchain.py --system-packages
 ```
 
-The bootstrap script never runs `sudo`.
+The bootstrap script never runs `sudo` or build commands through a shell. Manifest build steps are argument vectors, pinned revisions must be full commit IDs, and declared build artifacts are checked after successful builds. Run `python3 tools/bootstrap_toolchain.py --validate` for a no-network schema/integrity check.
 
 ## Already in the repository
 
@@ -76,7 +76,7 @@ This is a heavyweight interactive workbench, so the bootstrap only pins/checks o
 
 ### bsnes libretro
 
-Pinned as a secondary libretro oracle. Use it to cross-check emulator-sensitive behavior when Snes9x and recomp disagree, especially PPU/OAM/timing questions. It is intentionally not part of default bootstrap/build cost.
+Pinned as a secondary libretro oracle. Use it to cross-check emulator-sensitive behavior when Snes9x and recomp disagree, especially PPU/OAM/timing questions. It is intentionally not part of default bootstrap cost, but `python3 tools/bootstrap_toolchain.py --tool bsnes-libretro` now builds the pinned Unix libretro core and verifies `bsnes_libretro.so` exists.
 
 ### ares
 
@@ -110,11 +110,13 @@ This is the preferred future route for agent-driven dynamic archaeology when `sn
 
 Pinned as an on-demand IPS/BPS CLI-capable patcher. Use patches rather than duplicate modified ROMs when preserving third-party fixes, controlled experiments, or reproducible ROM modifications. The original bytes and patch provenance remain separate evidence.
 
-Install sources with:
+Build the pinned CLI-capable binary with:
 
 ```bash
-python3 tools/bootstrap_toolchain.py --group patching --clone-only
+python3 tools/bootstrap_toolchain.py --group patching
 ```
+
+The bootstrap uses the pinned upstream Linux build script and verifies that the `flips` artifact exists. Use `--clone-only` only when source inspection, rather than a usable patcher, is the goal.
 
 ## Generic conversion/inspection utilities
 
@@ -143,3 +145,19 @@ A tool earns a permanent default slot when it is:
 4. not redundant with an existing project or SNESRecomp facility.
 
 Everything else can remain an on-demand pinned workbench.
+
+
+## Bootstrap trust model
+
+`tools/toolchain.json` distinguishes tools with a reproducible project-owned build recipe from tools whose source is merely pinned for manual use. A successful checkout of a heavyweight emulator or debugger is not described as an installation.
+
+The bootstrap validates before network or build work:
+
+- repository-local installation root;
+- unique conservative tool IDs;
+- HTTPS GitHub source;
+- full lowercase 40-hex revision;
+- explicit `build` or `manual` install mode;
+- argv-vector build commands with only known placeholders.
+
+This is intentionally stricter than upstream build documentation. The manifest is an execution contract for this repository, not a bag of shell snippets.

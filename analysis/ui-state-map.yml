@@ -300,7 +300,7 @@ states:
     family: results
     kind: screen
     confidence: high
-    evidence: [primary_manual]
+    evidence: [primary_manual, observed_screenshot]
     recovered_menu_labels:
       raceResults_currentMenu_7E009F: "0x99"
     transitions:
@@ -312,7 +312,7 @@ states:
     family: results
     kind: screen
     confidence: high
-    evidence: [primary_manual]
+    evidence: [primary_manual, observed_screenshot]
     recovered_menu_labels:
       circuitResults_currentMenu_7E009F: "0xBC"
     transitions:
@@ -324,7 +324,7 @@ states:
     family: results
     kind: screen
     confidence: high
-    evidence: [primary_manual]
+    evidence: [primary_manual, observed_screenshot]
     recovered_menu_labels:
       stuntResults_currentMenu_7E009F: "0x18"
       summing_states: ["0x2F", "0xAD", "0xAF", "0xB3", "0xD3", "0xD8", "0xED", "0xF3"]
@@ -410,23 +410,89 @@ states:
 
   - id: RECORDS
     family: records
-    kind: screen_set
+    kind: menu
     confidence: high
-    evidence: [primary_manual]
-    screens: ["TRACK RECORDS", "HIGH SCORES", "PLAYER SCORES", "GROUP TABLES"]
-    notes:
-      - "Manual says Up/Down cycles players on PLAYER SCORES and leagues on GROUP TABLES."
-      - "Exact screen-to-screen sequencing is not yet pinned down."
+    evidence: [primary_manual, observed_screenshot]
+    visible_known_items: ["TRACK RECORDS", "HIGH SCORES", "PLAYER SCORES", "GROUP TABLES", "MAIN MENU"]
+    description: "Manual page 20 contains an in-game screenshot proving a distinct Records selection menu."
     transitions:
+      - selection: "TRACK RECORDS"
+        input: "A or B"
+        to: RECORD_TRACK
+        confidence: high
+      - selection: "HIGH SCORES"
+        input: "A or B"
+        to: RECORD_HIGH_SCORES
+        confidence: high
+      - selection: "PLAYER SCORES"
+        input: "A or B"
+        to: RECORD_PLAYER_SCORES
+        confidence: high
+      - selection: "GROUP TABLES"
+        input: "A or B"
+        to: RECORD_GROUP_TABLES
+        confidence: high
+      - selection: "MAIN MENU"
+        input: "A or B"
+        to: MAIN_MENU
+        confidence: high
+      - input: "Y or X"
+        to: OPTIONS_MENU
+        confidence: medium
+        note: "Manual prose supports returning to Options from the score-screen family; exact Records-menu back behavior still needs runtime capture."
+
+  - id: RECORD_TRACK
+    family: records
+    kind: screen
+    confidence: high
+    evidence: [primary_manual, observed_screenshot]
+    description: "Track Records screen: all-time track bests with Gold/Silver/Bronze records and player-color star markers."
+    notes:
+      - "Return destination is not yet pinned down; do not assume X/Y returns to RECORDS merely because RECORDS launched this screen."
+
+  - id: RECORD_HIGH_SCORES
+    family: records
+    kind: screen
+    confidence: high
+    evidence: [primary_manual, observed_screenshot]
+    description: "High Scores screen covering categories such as fastest time, wins and points."
+    notes:
+      - "Return destination is not yet pinned down."
+
+  - id: RECORD_PLAYER_SCORES
+    family: records
+    kind: screen
+    confidence: high
+    evidence: [primary_manual, observed_screenshot]
+    description: "Player Scores screen. Manual explicitly says Up/Down cycles through players."
+    transitions:
+      - input: "Up/Down"
+        to: RECORD_PLAYER_SCORES
+        side_effect: "cycle displayed player"
+        confidence: high
       - input: "Y or X"
         to: OPTIONS_MENU
         confidence: high
+
+  - id: RECORD_GROUP_TABLES
+    family: records
+    kind: screen
+    confidence: high
+    evidence: [primary_manual, observed_screenshot]
+    description: "Group Tables screen. Manual explicitly says Up/Down compares League performances."
+    transitions:
+      - input: "Up/Down"
+        to: RECORD_GROUP_TABLES
+        side_effect: "cycle displayed League"
+        confidence: high
+    notes:
+      - "Return destination is not yet pinned down."
 
   - id: DEFINE_PLAYER
     family: options
     kind: menu
     confidence: high
-    evidence: [primary_manual]
+    evidence: [primary_manual, observed_screenshot]
     transitions:
       - input: "Y or X"
         to: OPTIONS_MENU
@@ -434,13 +500,31 @@ states:
 
   - id: RENAME_PLAYER
     family: options
-    kind: editor
+    kind: menu
     confidence: high
-    evidence: [primary_manual]
+    evidence: [primary_manual, observed_screenshot]
+    description: "Manual shows a distinct WHICH ONE? Uni-selection screen before text editing."
     transitions:
-      - input: "Y or X / completion"
+      - input: "A or B on highlighted Uni"
+        to: PLAYER_NAME_EDITOR
+        confidence: high
+      - input: "Y or X"
         to: OPTIONS_MENU
         confidence: medium
+
+  - id: PLAYER_NAME_EDITOR
+    family: options
+    kind: text_entry
+    confidence: high
+    evidence: [primary_manual, observed_screenshot]
+    description: "Manual page 26 shows WHAT IS YOUR PLAYER CALLED with alphabet, digits, punctuation and OK control."
+    transitions:
+      - input: "text-entry navigation / OK"
+        to: OPTIONS_MENU
+        confidence: inferred
+      - input: "cancel/back"
+        to: RENAME_PLAYER
+        confidence: inferred
       - event: "forbidden name accepted"
         to: FORBIDDEN_NAME_REJECTION
         confidence: medium
@@ -450,24 +534,55 @@ states:
     kind: screen
     confidence: medium
     evidence: [observed_screenshot]
-    description: "Player-facing rejection/Easter-egg screen for forbidden names; public gallery includes the 'No Sonic Allowed' example."
+    description: "Player-facing rejection/Easter-egg screen for forbidden names. Public references confirm SONIC/SEGA and other blacklist terms; at least one historical writeup says the filter applies to both individual and team names."
+    context_note: "Return target may depend on the text-entry context that triggered rejection."
     transitions:
-      - input: "advance/back"
-        to: RENAME_PLAYER
+      - input: "advance/back after player-name rejection"
+        to: PLAYER_NAME_EDITOR
+        confidence: inferred
+      - input: "advance/back after League-name rejection"
+        to: NAME_LEAGUE
         confidence: inferred
 
   - id: DEFINE_LEAGUE
     family: options
     kind: editor
     confidence: high
-    evidence: [primary_manual]
+    evidence: [primary_manual, observed_screenshot]
     notes:
       - "Manual documents SELECT + Y + A as guarded destructive/redefinition action."
       - "League supports up to eight unicycles; up to six leagues."
+      - "A/B adds the highlighted Unicycle; X/Y removes it; Start confirms."
     transitions:
-      - input: "Y or X / completion"
+      - input: "A or B"
+        to: DEFINE_LEAGUE
+        side_effect: "add highlighted Unicycle to League"
+        confidence: high
+      - input: "X or Y"
+        to: DEFINE_LEAGUE
+        side_effect: "remove highlighted Unicycle from League"
+        confidence: high
+      - input: "Start"
+        to: NAME_LEAGUE
+        confidence: high
+      - input: "back/cancel before confirmation"
         to: OPTIONS_MENU
-        confidence: medium
+        confidence: inferred
+
+  - id: NAME_LEAGUE
+    family: options
+    kind: text_entry
+    confidence: high
+    evidence: [primary_manual, observed_screenshot]
+    description: "League naming screen with an on-screen alphabet; manual says names can be up to 19 characters."
+    transitions:
+      - input: "text-entry navigation / confirm"
+        to: OPTIONS_MENU
+        confidence: inferred
+      - event: "blacklisted name accepted"
+        to: FORBIDDEN_NAME_REJECTION
+        confidence: low
+        note: "Secondary historical source says the name filter also applies to team names; locally unverified."
 
   - id: ENDING
     family: ending
@@ -503,7 +618,7 @@ open_questions:
   - id: UIQ-002
     question: "Exact input mapping on every menu: whether A/B are equivalent everywhere and whether Start advances anywhere beyond MAIN_MENU quick-start."
   - id: UIQ-003
-    question: "Reproduce TWO_PLAYER_SELECT=0x3D, VS_SELECT=0x3E, VS_CHALLENGER=0x3F and VS_CHALLENGE_TRACK=0x5A; determine participant handoff and exact back-stack."
+    question: "Implement the shared player-2 fixture capability in docs/TWO-PLAYER-FIXTURE-PLAN.md, then reproduce TWO_PLAYER_SELECT=0x3D, VS_SELECT=0x3E, VS_CHALLENGER=0x3F and VS_CHALLENGE_TRACK=0x5A; determine participant handoff and exact back-stack."
   - id: UIQ-004
     question: "Exact PRE_RACE_CARD duration and whether input can skip it."
   - id: UIQ-005
@@ -511,7 +626,7 @@ open_questions:
   - id: UIQ-006
     question: "Exact OPTIONS_MENU layout and any settings omitted by the terse manual transcription."
   - id: UIQ-007
-    question: "Exact RECORDS screen ordering/navigation."
+    question: "Manual page 20 proves RECORDS is a five-item selection menu; capture exact cursor ordering, menu ID, sub-screen return behavior, and runtime IDs for TRACK RECORDS / HIGH SCORES / PLAYER SCORES / GROUP TABLES."
   - id: UIQ-008
     question: "Pause presentation and any pause-menu actions beyond resume."
   - id: UIQ-009

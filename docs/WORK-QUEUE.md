@@ -86,8 +86,8 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 Use `snesref` or another trustworthy reference route.
 
 - [x] Deterministic input sequence to first race, shared verbatim by native and snesref.
-- [~] WRAM/state comparison. Printed checkpoint fields agree across native and Snes9x/snesref; next step is full bytewise checkpoint comparison.
-- [ ] First-divergence workflow.
+- [x] Full-WRAM/state checkpoint comparison across native and Snes9x/snesref. The first-race fixture compares all 128 KiB at seven checkpoints and reduces the settled-race difference to seven bytes.
+- [~] First-divergence workflow. Native WRAM writer history is now queried for the seven persistent race-entry differences; next reduce the earliest meaningful writer/state divergence against the reference path.
 - [ ] Regression cases for race start, acceleration, jump, rotation, landing, stunt, collision, finish and two-player.
 
 **Exit:** fidelity is objectively testable.
@@ -96,7 +96,7 @@ Use `snesref` or another trustworthy reference route.
 
 Prioritize: main loop, input, race state, player physics, camera, course loader, RNC decompression, course representation, sprite/OAM construction, culling, HUD and audio hooks.
 
-Maintain `SYMBOLS.md` and `RESEARCH-LEDGER.md`.
+Maintain `SYMBOLS.md` and `RESEARCH-LEDGER.md`. `tools/export_symbols.py` generates `analysis/generated/symbols.json`; repository hygiene fails if the machine-readable export is stale.
 
 ## Phase 7 — Course format
 

@@ -159,3 +159,23 @@ Preferred order:
 5. add narrow new fixtures only for uncovered branches.
 
 This keeps the visual atlas legally cleaner, more reproducible, and far more useful to reverse engineering than a folder of anonymous web images.
+
+### Vizzed screenshot / cheat pages
+
+Screenshot page: https://www.vizzed.com/games/uniracers-snes-super-nintendo-8767-user-screenshots
+
+Cheat/reference page: https://www.vizzed.com/games/uniracers-snes-super-nintendo-8767-cheats-codes
+
+Indexed screenshot labels include:
+- Menus
+- Cut-Scene: Victory!
+- character/menu examples
+
+The wider public screenshot set also reproduces the well-known "No Sonic Allowed" forbidden-name screen, which makes the name-rejection path worth representing explicitly in the UI graph even before its local menu ID is known.
+
+The cheat page describes a title-screen ending shortcut using Down+L+R+B. This is a useful low-cost route to the ending state, but it is secondary-source evidence and should be tested against the canonical ROM before promotion.
+
+Rights posture:
+- screenshot reuse license not established;
+- index only; prefer local canonical-ROM framebuffer captures.
+

@@ -154,3 +154,17 @@ Evidence:
 - recovered bot source `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`.
 
 Next milestone: classify the three input-probe captures, then restore only the menu transitions that are empirically demonstrated.
+
+
+### Follow-up — two-frame pulse accepted
+
+Workflow run 36504773752 tested a two-frame A pulse after entering `mainMenu = 0xD7`.
+
+Observed:
+- the route again reached `0xD7` at frame 446;
+- after directional/A probing, a two-frame A pulse moved `currentMenu` to `0x57` by frame 575;
+- the process exited cleanly via the diagnostic script; the workflow failure was only the then-stale assertion demanding race-state `7E:0313 == 1`.
+
+Interpretation: scripted controller delivery is working. The earlier one-frame confirm was too narrow for reliable sampling on this path. The harness now uses two-frame button pulses and validates incremental navigation milestones explicitly rather than reporting a diagnostic `quit` as a race failure.
+
+Next test: enter the historical `onePlayerSelect = 0x3C` state, confirm the default rider, and capture the actual tours-page state reached from clean boot before extending the route further.

@@ -49,6 +49,94 @@
       "width": "8-bit",
       "confidence": 5,
       "notes": "Recovered bot label `inRace`; verified as `0x01` after deterministic race entry in both native and Snes9x/snesref runs. Non-race screens can contain other transient values, so only `0x01 = active race` is currently asserted."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0411",
+      "name": "Player1_XPosition",
+      "width": "16-bit",
+      "confidence": 2,
+      "notes": "Effective recovered-bot word key `xPos`. Native/reference race-entry dumps agree at 1088; semantic movement validation is active in the race-acceleration fixture."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0415",
+      "name": "Player1_YPosition",
+      "width": "16-bit",
+      "confidence": 2,
+      "notes": "Effective recovered-bot word key `yPos`. Native/reference race-entry dumps agree at 858; vertical-motion semantics not yet validated."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:04B7",
+      "name": "Player1_XSpeed",
+      "width": "signed 16-bit",
+      "confidence": 2,
+      "notes": "Effective recovered-bot word key `xSpeed`; bot explicitly sign-converts it. Native/reference race-entry dumps agree at 0; acceleration validation is active."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:04BB",
+      "name": "Player1_YSpeed",
+      "width": "signed 16-bit",
+      "confidence": 2,
+      "notes": "Effective recovered-bot word key `ySpeed`; bot sign-converts it for jump decisions. Native/reference race-entry dumps agree at 0."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0545",
+      "name": "Player1_AirState",
+      "width": "8-bit",
+      "confidence": 2,
+      "notes": "Effective player-1 Lua key `airValue`; later duplicate overrides earlier `7E:0547`. Bot treats value 9 specially for jump/tabletop logic."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0F49",
+      "name": "Player1_Pitch",
+      "width": "8-bit",
+      "confidence": 2,
+      "notes": "Effective player-1 Lua key `pitch`; later duplicate overrides earlier `7E:04C9`. Bot uses ranges around 14/24/32/40/50 to choose rotation input."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0BA1",
+      "name": "Player1_FacedDirection",
+      "width": "8-bit",
+      "confidence": 2,
+      "notes": "Recovered bot: 1 = right, 0 = left. Not yet independently validated."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0FCC",
+      "name": "Player1_ArrowsVisible",
+      "width": "8-bit",
+      "confidence": 2,
+      "notes": "Effective duplicate-key address used by recovered bot; 0 means direction arrows showing."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0FCB",
+      "name": "Player1_ArrowDirection",
+      "width": "8-bit",
+      "confidence": 2,
+      "notes": "Effective duplicate-key address used by recovered bot; 0 = right, 1 = left."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:11BA",
+      "name": "Race_CountdownTimer",
+      "width": "16-bit",
+      "confidence": 2,
+      "notes": "Recovered bot word key shared by players. Used by braking policy in a numeric interval; exact units/phase semantics remain to be established."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:132B",
+      "name": "Race_ReverseControls",
+      "width": "8-bit",
+      "confidence": 2,
+      "notes": "Recovered bot: 2 = controls reversed, 0 = normal. Not yet independently validated."
     }
   ]
 }

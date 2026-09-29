@@ -83,7 +83,9 @@ The eventual HD-art process should be able to construct a compact dossier contai
 - semantic asset/state identifier;
 - native indexed/tile representation where available;
 - exact palette;
+- original pivot/contact/bounding geometry where meaningful;
 - neighboring animation states/frames;
+- replacement-sequence temporal-coherence evidence for animated assets;
 - raw nearest-neighbor enlargement;
 - selected structurally distinct scaler outputs;
 - representative in-game isolated/composited captures;

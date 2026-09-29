@@ -77,6 +77,17 @@ def main() -> int:
     bad["tools"][0]["build"] = [["make", "-j{mystery}"]]
     expect_invalid(bad, "unsupported build placeholder")
 
+    build_tool = next(t for t in manifest["tools"] if t.get("artifacts"))
+    bad = copy.deepcopy(manifest)
+    target = next(t for t in bad["tools"] if t["id"] == build_tool["id"])
+    target["artifacts"] = [{"path": "../escape", "kind": "executable"}]
+    expect_invalid(bad, "must stay inside checkout")
+
+    bad = copy.deepcopy(manifest)
+    target = next(t for t in bad["tools"] if t["id"] == build_tool["id"])
+    target["artifacts"] = [{"path": "thing", "kind": "mystery"}]
+    expect_invalid(bad, "invalid kind")
+
     with __import__("tempfile").TemporaryDirectory() as td:
         td = Path(td)
         fake_python = td / "venvs" / "alpha" / ("Scripts/python.exe" if __import__("os").name == "nt" else "bin/python")
@@ -85,14 +96,38 @@ def main() -> int:
         assert mod.ensure_venv(td, "alpha") == fake_python
         assert (td / "venvs" / "beta") != fake_python.parent.parent
 
-        (td / "present.bin").write_bytes(b"x")
-        mod.verify_artifacts({"id": "x", "artifacts": ["present.bin"]}, td)
-        try:
-            mod.verify_artifacts({"id": "x", "artifacts": ["missing.bin"]}, td)
-        except SystemExit as exc:
-            assert "missing.bin" in str(exc)
+        exe = td / "tool"
+        exe.write_bytes(b"#!/bin/sh\nexit 0\n")
+        exe.chmod(0o755)
+        mod.verify_artifacts(
+            {"id": "x", "artifacts": [{"path": "tool", "kind": "executable"}]},
+            td,
+        )
+
+        lib = td / "tool.so"
+        if __import__("os").name == "nt":
+            lib.write_bytes(b"MZxx")
+        elif sys.platform == "darwin":
+            lib.write_bytes(b"\xcf\xfa\xed\xfex")
         else:
-            raise AssertionError("missing artifact was not rejected")
+            lib.write_bytes(b"\x7fELFx")
+        mod.verify_artifacts(
+            {"id": "x", "artifacts": [{"path": "tool.so", "kind": "shared-library"}]},
+            td,
+        )
+
+        for spec, needle in [
+            ({"path": "missing.bin", "kind": "executable"}, "missing.bin"),
+            ({"path": "bad.so", "kind": "shared-library"}, "bad.so"),
+        ]:
+            if spec["path"] == "bad.so":
+                (td / "bad.so").write_bytes(b"text")
+            try:
+                mod.verify_artifacts({"id": "x", "artifacts": [spec]}, td)
+            except SystemExit as exc:
+                assert needle in str(exc)
+            else:
+                raise AssertionError(f"invalid artifact was not rejected: {spec}")
 
     print("PASS: toolchain manifest schema, argv expansion, artifact checks and safety guards")
     return 0

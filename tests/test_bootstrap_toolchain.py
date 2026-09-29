@@ -79,6 +79,12 @@ def main() -> int:
 
     with __import__("tempfile").TemporaryDirectory() as td:
         td = Path(td)
+        fake_python = td / "venvs" / "alpha" / ("Scripts/python.exe" if __import__("os").name == "nt" else "bin/python")
+        fake_python.parent.mkdir(parents=True)
+        fake_python.write_bytes(b"")
+        assert mod.ensure_venv(td, "alpha") == fake_python
+        assert (td / "venvs" / "beta") != fake_python.parent.parent
+
         (td / "present.bin").write_bytes(b"x")
         mod.verify_artifacts({"id": "x", "artifacts": ["present.bin"]}, td)
         try:

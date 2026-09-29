@@ -302,3 +302,29 @@ The agent should move between these tracks based on evidence and blockers rather
 - `analysis/generated/reference-rom-inventory.md` — exact local identities for all preserved ROMs.
 - `analysis/generated/reference-rom-comparison.md` — current four-build pairwise and RNC comparison.
 - `docs/TOOLCHAIN.md` — pinned external research/development tools and bootstrap policy.
+
+
+## External-practice archaeology
+
+Use outside decompilation, disassembly, recompilation, emulator and ROM-hacking work as a source of tested workflow ideas, especially when a new reverse-engineering phase begins or a recurring manual bottleneck appears.
+
+Canonical notes and source list: `references/notes/external-reverse-engineering-practices.md`.
+
+Operating rules:
+
+- search in native-language vocabulary as well as English;
+- prefer first-hand project docs, issue/PR history, dev blogs, talks and debugger/tool documentation;
+- translate useful practice into a concrete local experiment, tool change or planning rule rather than accumulating a reading list;
+- keep static and dynamic evidence distinct, particularly for 65816 code/data boundaries and M/X-dependent instruction widths;
+- treat code/data logging as corpus-scoped observation, never proof that unseen bytes are non-code;
+- preserve evidence strength on semantic names and symbols instead of allowing a plausible name to become an unqualified fact;
+- continue the current selective-reverse-engineering strategy: understand deeply where the product needs hooks, validation or modification, and let generated recompilation carry unrelated code.
+
+Immediate integration targets:
+
+- [ ] Finish the canonical Mesen first-race route and validate the Mesen CDL adapter with per-fixture provenance.
+- [ ] Preserve code/data/unknown and individual-vs-union coverage semantics when CDL feeds static tooling.
+- [ ] Record relevant 65816 M/X entry-state evidence for canonical static regions where immediate-width ambiguity can affect decoding.
+- [ ] Pilot deterministic extract -> semantic artifact -> unchanged reconstruction validation on the first suitable graphics/course asset family.
+- [ ] Add evidence strength/class metadata to promoted symbols when the symbol schema is next extended.
+- [ ] Add compact failure-capsule generation only if repeated first-divergence investigations show manual artifact bundling is recurring work.

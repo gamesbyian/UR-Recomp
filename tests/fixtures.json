@@ -2,6 +2,50 @@
   "schema_version": 1,
   "fixtures": [
     {
+      "id": "ui-attract-route",
+      "input_script": "tests/input/ui-attract-route.script",
+      "purpose": "Optional idle-path probe from the verified Main Menu into attract/demo behavior, using turbo to keep the discriminator cheap.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-attract-main-start",
+        "ui-attract-departure"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Promote DEMO=0x00 and the idle transition only after the natural no-input route reproduces them."
+    },
+    {
+      "id": "ui-ending-shortcut",
+      "input_script": "tests/input/ui-ending-shortcut.script",
+      "purpose": "Optional controller-only probe for the recovered splash menu state and the public title-screen ending shortcut.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-splash-observed",
+        "ui-ending-shortcut"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Promote SPLASH=0x84 and ENDING=0x5B only if the canonical runtime reaches them with the expected visible states."
+    },
+    {
       "id": "ui-main-branches",
       "input_script": "tests/input/ui-main-branches.script",
       "purpose": "Controller-only reconnaissance of the 2P, VS, and League branches from clean Main Menu resets, capturing each first destination and testing X-back to Main Menu.",

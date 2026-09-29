@@ -281,11 +281,15 @@ If an active PR owns the same files and its work has not landed yet, keep the is
 
 ### P0-A — Island infrastructure
 
-- [ ] Add `third_party/` structure and machine-readable manifest.
-- [ ] Add repository hygiene/validation for provenance, licenses and hashes.
-- [ ] Teach bootstrap to select local vendored source/archive before network.
-- [ ] Add an explicit offline/no-network verification mode.
-- [ ] Add an offline smoke workflow or test harness that fails on unexpected dependency fetches.
+- [x] Add `third_party/` structure and machine-readable manifest.
+- [x] Add repository hygiene/validation for provenance, licenses and hashes.
+- [x] Teach bootstrap to select local vendored source before network.
+- [x] Add an explicit offline/no-network verification mode.
+- [x] Add a unit-level offline fail-closed test so a pending component cannot silently fall back to GitHub.
+- [ ] Extend local bootstrap to exact source archives when the first archive-mode component lands.
+- [ ] Add a true network-disabled build smoke once at least one core component is islanded; before that, a successful offline core build would be a false claim.
+
+Current P0-A implementation lives in `third_party/manifest.json`, `tools/validate_island.py`, `tools/bootstrap_toolchain.py`, repository hygiene, and focused unit coverage. Components remain `pending` until their local source/archive, hash and license are present and validated.
 
 ### P0-B — Small/high-value direct vendors
 

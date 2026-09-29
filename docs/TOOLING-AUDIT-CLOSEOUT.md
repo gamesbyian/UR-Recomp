@@ -21,9 +21,9 @@ Do not keep the audit alive merely to read more upstream source. Prefer small di
 
 ### P0 - repository-island acquisition
 
-Owned by the separate repository-island workstream/PR. Vendor or otherwise preserve the externally fetched source/resources needed for routine operation so the repository can work with minimal dependence on live upstream services.
+Owned by the repository-island workstream in `docs/ISLAND-TOOLCHAIN-PLAN.md`. P0-A infrastructure is now underway: the repository has a machine-readable island manifest, hash/license validation wired into repository hygiene, local-source preference in bootstrap, and an explicit fail-closed `--offline` mode. Actual tools are still marked pending until their source/archive and dependency closure land.
 
-Merge this work carefully around active branches. Do not duplicate it here.
+Do not duplicate acquisition work here. The tooling audit should consume the islanded tools once available, especially MesenCE/mesen-for-ai, rather than maintaining a second acquisition path.
 
 ### P1 - prove Mesen as the third deterministic execution engine
 

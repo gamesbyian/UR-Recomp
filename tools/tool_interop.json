@@ -93,6 +93,26 @@
     {
       "id": "mesen-mcp-client",
       "description": "mesen-for-ai Python/MCP client surface used by project adapters."
+    },
+    {
+      "id": "neutral-input-runs",
+      "description": "Project neutral controller intervals in start:duration:hex-mask form."
+    },
+    {
+      "id": "sram-image",
+      "description": "Cartridge SRAM image used to reproduce reset-anchored historical state."
+    },
+    {
+      "id": "smv-metadata",
+      "description": "Machine-readable metadata/provenance extracted from an SMV container."
+    },
+    {
+      "id": "wram-trace",
+      "description": "Frame-address-value WRAM trace emitted by the reference harness."
+    },
+    {
+      "id": "normalized-player-state",
+      "description": "Project-owned normalized gameplay-state snapshots derived through tools/uniracers_state.py."
     }
   ],
   "components": [
@@ -121,10 +141,13 @@
       "consumes": [
         "sfc-rom",
         "fixture-script",
-        "libretro-core"
+        "libretro-core",
+        "neutral-input-runs",
+        "sram-image"
       ],
       "produces": [
-        "wram-checkpoints"
+        "wram-checkpoints",
+        "wram-trace"
       ]
     },
     {
@@ -352,6 +375,58 @@
       "produces": [
         "wram-checkpoints"
       ]
+    },
+    {
+      "id": "smv-extractor",
+      "kind": "project",
+      "consumes": [
+        "smv-movie"
+      ],
+      "produces": [
+        "neutral-input-runs",
+        "sram-image",
+        "smv-metadata"
+      ]
+    },
+    {
+      "id": "native-lua-replay",
+      "kind": "project",
+      "consumes": [
+        "sfc-rom",
+        "neutral-input-runs",
+        "sram-image"
+      ],
+      "produces": [
+        "normalized-player-state"
+      ]
+    },
+    {
+      "id": "wram-trace-summarizer",
+      "kind": "project",
+      "consumes": [
+        "wram-trace"
+      ],
+      "produces": [
+        "normalized-player-state"
+      ]
+    },
+    {
+      "id": "player-checkpoint-summarizer",
+      "kind": "project",
+      "consumes": [
+        "wram-checkpoints"
+      ],
+      "produces": [
+        "normalized-player-state"
+      ]
+    },
+    {
+      "id": "input-run-compare",
+      "kind": "project",
+      "consumes": [
+        "neutral-input-runs"
+      ],
+      "produces": []
     }
   ],
   "handoffs": [
@@ -508,6 +583,55 @@
       "format": "mesen-mcp-client",
       "status": "supported",
       "evidence": "tools/run_fixture_mesen.py imports the pinned mesen-for-ai Mesen client instead of reimplementing JSON-RPC framing."
+    },
+    {
+      "from": "smv-extractor",
+      "to": "snesref",
+      "format": "neutral-input-runs",
+      "status": "verified",
+      "evidence": ".github/workflows/historical-smv-first-race.yml and historical-wip-dragster.yml replay extracted SMV input through SNESREF_INPUT_FILE."
+    },
+    {
+      "from": "smv-extractor",
+      "to": "snesref",
+      "format": "sram-image",
+      "status": "verified",
+      "evidence": ".github/workflows/historical-wip-dragster.yml replays embedded reset-movie SRAM through SNESREF_SRAM_IN."
+    },
+    {
+      "from": "smv-extractor",
+      "to": "native-lua-replay",
+      "format": "neutral-input-runs",
+      "status": "verified",
+      "evidence": ".github/workflows/historical-wip-dragster.yml replays the frozen neutral input through tools/replay_input_via_lua.py."
+    },
+    {
+      "from": "smv-extractor",
+      "to": "native-lua-replay",
+      "format": "sram-image",
+      "status": "verified",
+      "evidence": ".github/workflows/historical-wip-dragster.yml installs extracted SRAM before native replay."
+    },
+    {
+      "from": "snesref",
+      "to": "wram-trace-summarizer",
+      "format": "wram-trace",
+      "status": "verified",
+      "evidence": ".github/workflows/historical-wip-dragster.yml emits SNESREF_TRACE_FILE and summarizes it with tools/summarize_wram_trace_checkpoints.py."
+    },
+    {
+      "from": "native-recomp",
+      "to": "player-checkpoint-summarizer",
+      "format": "wram-checkpoints",
+      "status": "supported",
+      "evidence": "tools/summarize_player_checkpoints.py consumes named full-WRAM dump directories using tools/uniracers_state.py."
+    },
+    {
+      "from": "snesref",
+      "to": "player-checkpoint-summarizer",
+      "format": "wram-checkpoints",
+      "status": "supported",
+      "evidence": "tools/summarize_player_checkpoints.py consumes the same named full-WRAM dump shape."
     }
   ],
   "chains": [
@@ -628,6 +752,17 @@
         "compare-wram"
       ],
       "purpose": "Replay one project-owned fixture through native recompilation, libretro reference cores, and Mesen while preserving the same named full-WRAM comparison surface."
+    },
+    {
+      "id": "historical-smv-replay",
+      "status": "verified",
+      "steps": [
+        "smv-extractor",
+        "snesref",
+        "wram-trace-summarizer",
+        "native-lua-replay"
+      ],
+      "purpose": "Translate historical SMV input and embedded SRAM once, replay the same neutral stream in reference and native runtimes, and compare normalized gameplay-state evidence."
     }
   ]
 }

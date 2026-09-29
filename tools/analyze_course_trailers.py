@@ -27,12 +27,13 @@ def main() -> int:
         cursor = u16le(decoded, 11)
         if cursor >= len(decoded):
             raise SystemExit(f"stream {index}: LE16@11 0x{cursor:04X} outside decoded size {len(decoded)}")
-        trailer = decoded[cursor:]
+        trailer = decoded[cursor + 1:]
         rows.append({
             "stream": index,
             "tour_slot": ((index - 1) % 5) + 1,
             "decoded_size": len(decoded),
             "cursor": cursor,
+            "cursor_plus_1_aligned_16": ((cursor + 1) % 16 == 0),
             "trailer_length": len(trailer),
             "trailer_hex": trailer.hex(" "),
             "first_byte": trailer[0],
@@ -66,7 +67,7 @@ def main() -> int:
     md = [
         "# Course Trailer Structure",
         "",
-        "Mechanical analysis of the decoded byte range beginning at the little-endian header field LE16@11 and ending at decoded EOF. No semantic record names are assumed.",
+        "Mechanical analysis of bytes after the little-endian header field LE16@11. The field itself is treated as an inclusive cursor; the analyzed trailing region begins at LE16@11 + 1. No semantic record names are assumed.",
         "",
         f"- streams: {len(rows)}",
         f"- trailer length range: {min(lengths)}–{max(lengths)} bytes",

@@ -88,6 +88,11 @@ def main() -> int:
     target["artifacts"] = [{"path": "thing", "kind": "mystery"}]
     expect_invalid(bad, "invalid kind")
 
+    bad = copy.deepcopy(manifest)
+    target = next(t for t in bad["tools"] if t["id"] == build_tool["id"])
+    target["artifacts"] = [{"path": "thing", "kind": "executable", "root": "mystery"}]
+    expect_invalid(bad, "invalid root")
+
     with __import__("tempfile").TemporaryDirectory() as td:
         td = Path(td)
         fake_python = td / "venvs" / "alpha" / ("Scripts/python.exe" if __import__("os").name == "nt" else "bin/python")
@@ -114,6 +119,15 @@ def main() -> int:
         mod.verify_artifacts(
             {"id": "x", "artifacts": [{"path": "tool.so", "kind": "shared-library"}]},
             td,
+        )
+
+        venv_cli = fake_python.parent / "demo-cli"
+        venv_cli.write_bytes(b"#!/bin/sh\nexit 0\n")
+        venv_cli.chmod(0o755)
+        mod.verify_artifacts(
+            {"id": "x", "artifacts": [{"path": "bin/demo-cli", "kind": "executable", "root": "venv"}]},
+            td,
+            fake_python,
         )
 
         for spec, needle in [

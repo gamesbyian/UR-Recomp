@@ -117,9 +117,10 @@ sources:
   - id: dorando-compatibility
     title: "Historical SNES emulator compatibility matrix"
     type: emulator_history
-    url: "https://www.dorando.at/"
+    url: "https://dorando.emuverse.com/html/uniracers.html"
     rights: "Indexed/summarized only."
-    relevance: "Historical cross-emulator behavior can identify subsystems that were unusually difficult to emulate."
+    local: "references/notes/emulator-compatibility-seams.md"
+    relevance: "Historical cross-emulator behavior identifies independently failing sound, two-player, border/effect, screen-transition and race-rendering seams for local fidelity tests."
 
   - id: jgenesis-uniracers-oam
     title: "jgenesis Uniracers active-display OAM implementation"

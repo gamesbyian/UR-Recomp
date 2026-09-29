@@ -1,0 +1,315 @@
+{
+  "schema_version": 1,
+  "description": "State-indexed visual-reference leads for Uniracers UI atlas work. Public material is recognition/bootstrap evidence only; prefer local canonical-ROM captures when available.",
+  "rights_policy": "Do not vendor public screenshots unless reuse rights are established. Store URLs, labels, timestamps, and observations; replace with canonical local framebuffer captures when practical.",
+  "entries": [
+    {
+      "state_id": "MAIN_MENU",
+      "references": [
+        {
+          "url": "https://www.mobygames.com/game/8085/uniracers/screenshots/",
+          "kind": "screenshot_gallery",
+          "observation": "Main menu screenshot showing 1P / 2P / VS / LEAGUE / OPTIONS and selection arrow."
+        },
+        {
+          "url": "https://www.gamestar.de/galerien/uniracers_snes,48628.html",
+          "kind": "screenshot_gallery",
+          "observation": "Additional menu/frontend visual reference."
+        }
+      ]
+    },
+    {
+      "state_id": "PLAYER_SELECT_P1",
+      "references": [
+        {
+          "url": "https://www.mobygames.com/game/8085/uniracers/screenshots/",
+          "kind": "screenshot_gallery",
+          "observation": "Unicycle roster/selection visual reference."
+        },
+        {
+          "url": "https://www.gamestar.de/galerien/uniracers_snes,48628.html",
+          "kind": "screenshot_gallery",
+          "observation": "Player-select visual lead."
+        },
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 19,
+          "observation": "Manual page 19 contains an in-game Player Select screenshot with the Uni roster and selection arrow."
+        }
+      ]
+    },
+    {
+      "state_id": "TOUR_SELECT",
+      "references": [
+        {
+          "url": "https://www.mobygames.com/game/8085/uniracers/screenshots/",
+          "kind": "screenshot_gallery",
+          "observation": "Tour-selector visual lead with animal-icon progression."
+        },
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 19,
+          "observation": "Manual page 19 contains an in-game Tour Select screenshot with animal icons and progression layout."
+        }
+      ]
+    },
+    {
+      "state_id": "TRACK_SELECT",
+      "references": [
+        {
+          "url": "https://dementedferrets.com/2021/02/24/uniracers-review-bombastic-fun/",
+          "kind": "review_screenshot",
+          "observation": "Hunter-tour track-selection screenshot with five tracks, type icons, and medal display."
+        },
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 20,
+          "observation": "Manual page 20 contains an in-game Track Select screenshot with five track rows and type/medal indicators."
+        }
+      ]
+    },
+    {
+      "state_id": "FORBIDDEN_NAME_REJECTION",
+      "references": [
+        {
+          "url": "https://protipoftheday.com/blog/19683.html?page=18",
+          "kind": "historical_writeup_with_images",
+          "observation": "Shows ordinary naming and rejected-name presentation; author reports blacklist matching within individual and team names."
+        },
+        {
+          "url": "https://www.mobygames.com/game/8085/uniracers/",
+          "kind": "trivia_reference",
+          "observation": "Confirms SONIC/SEGA/SATAN naming rejection."
+        }
+      ]
+    },
+    {
+      "state_id": "ENDING",
+      "references": [
+        {
+          "url": "https://viciogameblog.com/2025/01/25/uniracers-super-nintendo-complete-gameplay/",
+          "kind": "complete_gameplay_video_index",
+          "timestamp": "02:45:13",
+          "observation": "Indexed complete-playthrough ending timestamp; useful recognition lead, not canonical timing evidence."
+        }
+      ]
+    },
+    {
+      "state_id": "RECORDS",
+      "references": [
+        {
+          "url": "https://www.vizzed.com/play/uniracers-snes-online-super-nintendo-8767-user-highscores",
+          "kind": "page_with_screenshot_gallery",
+          "observation": "Page exposes several user screenshot leads and confirms public interest in score/menu screens; use only as visual lead."
+        },
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 20,
+          "observation": "Manual page 20 includes the Records selection menu: TRACK RECORDS / HIGH SCORES / PLAYER SCORES / GROUP TABLES / MAIN MENU."
+        }
+      ]
+    },
+    {
+      "state_id": "RESULT_RACE",
+      "references": [
+        {
+          "url": "https://www.vizzed.com/play/uniracers-snes-online-super-nintendo-8767-user-highscores",
+          "kind": "page_with_screenshot_gallery",
+          "observation": "Gallery includes a user-labeled Victory cut-scene/result lead."
+        },
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 23,
+          "observation": "Manual page 23 includes an in-game Dragster Complete race-result screenshot with player/time/medal rows."
+        }
+      ]
+    },
+    {
+      "state_id": "OPTIONS_MENU",
+      "references": [
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 20,
+          "observation": "Manual page 20 includes an in-game Options Menu screenshot showing RECORDS / DEFINE PLAYER / RENAME PLAYER / DEFINE LEAGUE / MAIN MENU."
+        }
+      ]
+    },
+    {
+      "state_id": "RECORD_TRACK",
+      "references": [
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 21,
+          "observation": "Manual page 21 includes an in-game Track Records screenshot with Tour/Medal rows, track-type columns, player-color stars and record-holder text."
+        }
+      ]
+    },
+    {
+      "state_id": "RECORD_HIGH_SCORES",
+      "references": [
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 22,
+          "observation": "Manual page 22 includes an in-game High Scores table screenshot."
+        }
+      ]
+    },
+    {
+      "state_id": "RECORD_PLAYER_SCORES",
+      "references": [
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 22,
+          "observation": "Manual page 22 includes an in-game Player Scores bar/table screenshot."
+        }
+      ]
+    },
+    {
+      "state_id": "RECORD_GROUP_TABLES",
+      "references": [
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 22,
+          "observation": "Manual page 22 includes an in-game Group Scores/Group Tables screenshot."
+        }
+      ]
+    },
+    {
+      "state_id": "RESULT_CIRCUIT",
+      "references": [
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 23,
+          "observation": "Manual page 23 includes an in-game Circuit Result screenshot with lap-performance plot and total/best-lap values."
+        }
+      ]
+    },
+    {
+      "state_id": "RESULT_STUNT",
+      "references": [
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 23,
+          "observation": "Manual page 23 includes an in-game Bowl Stunt Result tally screenshot."
+        }
+      ]
+    },
+    {
+      "state_id": "DEFINE_LEAGUE",
+      "references": [
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 25,
+          "observation": "Manual page 25 includes an in-game Pick Your League membership screen with per-Uni membership crosses."
+        }
+      ]
+    },
+    {
+      "state_id": "NAME_LEAGUE",
+      "references": [
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 25,
+          "observation": "Manual page 25 includes the League naming screen with alphabet, digits, punctuation, OK control and current name."
+        }
+      ]
+    },
+    {
+      "state_id": "DEFINE_PLAYER",
+      "references": [
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 20,
+          "observation": "Manual page 20 includes the Define Player 'Which One' Uni-selection screen."
+        }
+      ]
+    },
+    {
+      "state_id": "RENAME_PLAYER",
+      "references": [
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 21,
+          "observation": "Manual page 21 includes the Rename Player 'Which One' Uni-selection screen."
+        }
+      ]
+    },
+    {
+      "state_id": "LEAGUE_SELECT",
+      "references": [
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 24,
+          "observation": "Manual page 24 contains in-game League warning/list screenshots showing League selection presentation."
+        }
+      ]
+    },
+    {
+      "state_id": "PLAYER_NAME_EDITOR",
+      "references": [
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_in_game_screenshot",
+          "pdf_page": 26,
+          "observation": "Manual page 26 contains the Player naming editor with alphabet, digits, punctuation, typed name and OK control."
+        }
+      ]
+    },
+    {
+      "state_id": "GAMEPLAY",
+      "references": [
+        {
+          "url": "https://www.gamegrin.com/articles/oddities-uniracers/",
+          "kind": "multiplayer_gameplay_visual",
+          "variant": "2P-split-screen",
+          "observation": "Public article includes an animated split-screen two-player race visual with both horizontal lanes visible."
+        },
+        {
+          "url": "https://github.com/MiSTer-devel/SNES_MiSTer/issues/26",
+          "kind": "multiplayer_compatibility_visual",
+          "variant": "2P-split-screen",
+          "observation": "Historical MiSTer issue includes a photographed two-player race demonstrating a second-player vertical-position/rendering bug; useful compatibility recognition evidence."
+        }
+      ]
+    },
+    {
+      "state_id": "TWO_PLAYER_SELECT",
+      "references": [
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_shared_visual_family",
+          "pdf_page": 19,
+          "observation": "Manual page 19 shows the Player Select layout and explicitly states that for 2P or VS the selection process is repeated. This anchors the shared visual family, not the exact runtime handoff/indicator state."
+        }
+      ]
+    },
+    {
+      "state_id": "VS_SELECT",
+      "references": [
+        {
+          "url": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+          "kind": "primary_manual_shared_visual_family",
+          "pdf_page": 19,
+          "observation": "Manual page 19 shows the Player Select layout and explicitly states that for 2P or VS the selection process is repeated. This anchors the shared visual family, not the exact runtime handoff/indicator state."
+        }
+      ]
+    }
+  ]
+}

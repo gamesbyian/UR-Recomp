@@ -97,6 +97,26 @@ jobs:
             exit "$status"
           fi
 
+      - name: Persist any captured writer evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          path=analysis/generated/course-byte11-exact-writes.json
+          if [ ! -s "$path" ]; then
+            echo "no parsed exact-writer result available"
+            exit 0
+          fi
+          git add "$path"
+          if git diff --cached --quiet; then
+            echo "exact writer result already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Record course byte11 writer evidence"
+          git push origin HEAD:${{ github.ref_name }}
+
       - name: Require observed 0F through 16 sequence
         shell: bash
         run: |
@@ -116,21 +136,6 @@ jobs:
               raise SystemExit("exact interpreted IPC was not captured")
           print("course byte11 write sequence and exact IPC capture confirmed")
           PY
-
-      - name: Persist exact writer result
-        shell: bash
-        run: |
-          set -euo pipefail
-          path=analysis/generated/course-byte11-exact-writes.json
-          git add "$path"
-          if git diff --cached --quiet; then
-            echo "exact writer result already current"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Record exact course byte11 writer PCs"
-          git push origin HEAD:${{ github.ref_name }}
 
       - name: Upload exact writer evidence
         if: always()

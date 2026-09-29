@@ -55,8 +55,8 @@
       "address": "7E:0411",
       "name": "Player1_XPosition",
       "width": "16-bit",
-      "confidence": 2,
-      "notes": "Effective recovered-bot word key `xPos`. Native/reference race-entry dumps agree at 1088; semantic movement validation is active in the race-acceleration fixture."
+      "confidence": 5,
+      "notes": "Effective recovered-bot word key `xPos`. Race-acceleration run 36512546762 moves it identically in native/reference from 1088 at rest to 1655 under staged Right input, alongside positive X speed."
     },
     {
       "kind": "ram",
@@ -71,8 +71,8 @@
       "address": "7E:04B7",
       "name": "Player1_XSpeed",
       "width": "signed 16-bit",
-      "confidence": 2,
-      "notes": "Effective recovered-bot word key `xSpeed`; bot explicitly sign-converts it. Native/reference race-entry dumps agree at 0; acceleration validation is active."
+      "confidence": 5,
+      "notes": "Effective recovered-bot word key `xSpeed`; bot explicitly sign-converts it. Race-acceleration run 36512546762 changes it identically from 0 to +447 under Right input while X position increases."
     },
     {
       "kind": "ram",
@@ -127,8 +127,8 @@
       "address": "7E:11BA",
       "name": "Race_CountdownTimer",
       "width": "16-bit",
-      "confidence": 2,
-      "notes": "Recovered bot word key shared by players. Used by braking policy in a numeric interval; exact units/phase semantics remain to be established."
+      "confidence": 4,
+      "notes": "Recovered bot word key shared by players. In run 36512546762 it decreases identically in native/reference by exactly `0x0100` per guest frame across the staged pre-start/acceleration checkpoints. Exact game-facing units/threshold meanings remain to be named."
     },
     {
       "kind": "ram",

@@ -77,6 +77,14 @@
     {
       "id": "smv-movie",
       "description": "Snes9x movie/input corpus."
+    },
+    {
+      "id": "libretro-core",
+      "description": "Built libretro shared-library core consumed by snesref."
+    },
+    {
+      "id": "mesen-debug-api",
+      "description": "Mesen/MesenCE debugger/Lua/testrunner surface consumed by mesen-for-ai."
     }
   ],
   "components": [
@@ -104,7 +112,8 @@
       "kind": "project",
       "consumes": [
         "sfc-rom",
-        "fixture-script"
+        "fixture-script",
+        "libretro-core"
       ],
       "produces": [
         "wram-checkpoints"
@@ -163,7 +172,9 @@
       "consumes": [
         "sfc-rom"
       ],
-      "produces": []
+      "produces": [
+        "libretro-core"
+      ]
     },
     {
       "id": "beetle-bsnes-libretro",
@@ -171,7 +182,9 @@
       "consumes": [
         "sfc-rom"
       ],
-      "produces": []
+      "produces": [
+        "libretro-core"
+      ]
     },
     {
       "id": "bsnes-libretro",
@@ -179,7 +192,9 @@
       "consumes": [
         "sfc-rom"
       ],
-      "produces": []
+      "produces": [
+        "libretro-core"
+      ]
     },
     {
       "id": "snes2asm",
@@ -244,7 +259,8 @@
       "id": "mesen-for-ai",
       "kind": "external",
       "consumes": [
-        "sfc-rom"
+        "sfc-rom",
+        "mesen-debug-api"
       ],
       "produces": [
         "mesen-cdl",
@@ -259,7 +275,8 @@
       ],
       "produces": [
         "mesen-cdl",
-        "png-image"
+        "png-image",
+        "mesen-debug-api"
       ]
     },
     {
@@ -311,14 +328,14 @@
     {
       "from": "snes9x-libretro",
       "to": "snesref",
-      "format": "sfc-rom",
+      "format": "libretro-core",
       "status": "verified",
       "evidence": ".github/workflows/deterministic-differential.yml"
     },
     {
       "from": "beetle-bsnes-libretro",
       "to": "snesref",
-      "format": "sfc-rom",
+      "format": "libretro-core",
       "status": "supported",
       "evidence": ".github/workflows/independent-reference-route.yml"
     },
@@ -391,6 +408,13 @@
       "format": "rnc-decoded-bytes",
       "status": "verified",
       "evidence": "tools/analyze_rnc_streams.py and related project analyzers."
+    },
+    {
+      "from": "mesence",
+      "to": "mesen-for-ai",
+      "format": "mesen-debug-api",
+      "status": "supported",
+      "evidence": "mesen-for-ai launches a user-supplied Mesen/MesenCE binary and drives its Lua debugger bridge."
     }
   ],
   "chains": [

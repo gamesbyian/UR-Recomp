@@ -58,6 +58,21 @@ jobs:
             --json-out "$RUNNER_TEMP/wip-2008.json"
           cat "$RUNNER_TEMP/wip-2008.json"
           python3 tools/compare_input_runs.py "$RUNNER_TEMP/wip-2008.input" tests/input/historical-2008-wip.input
+          python3 - "$RUNNER_TEMP/wip-2008.json" rom_identity.txt <<'PY'
+          import json, pathlib, sys
+          meta=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          ident=dict(
+              line.split("=",1)
+              for line in pathlib.Path(sys.argv[2]).read_text().splitlines()
+              if "=" in line
+          )
+          movie=meta.get("rom_info") or {}
+          if movie.get("crc32","").lower() != ident.get("crc32","").lower():
+              raise SystemExit(
+                  f"historical SMV ROM CRC mismatch: movie={movie.get('crc32')} canonical={ident.get('crc32')}"
+              )
+          print(f"historical SMV targets canonical ROM CRC32 {ident['crc32']}")
+          PY
           echo "historical SMV extraction matches frozen fixture"
 
       - name: Build pinned Snes9x and snesref

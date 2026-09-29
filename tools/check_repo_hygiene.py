@@ -33,7 +33,7 @@ REQUIRED_ENTRYPOINTS = {
     "tools/bootstrap_toolchain.py",
     "tools/audit_imported_references.py",
     "references/imported/MANIFEST.json",
-    "docs/THIRD-PARTY-SOURCE-AUDIT.md",
+    "docs/THIRD-PARTY-CODE-AUDIT.md",
     "docs/TOOL-INTEROPERABILITY.md",
     "tools/tool_interop.json",
     "tools/validate_tool_interop.py",

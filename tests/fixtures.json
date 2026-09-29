@@ -195,7 +195,7 @@
       "id": "race-collision-overrotate",
       "input_script": "tests/input/race-collision-overrotate.script",
       "control_script": "tests/input/race-collision-control.script",
-      "purpose": "Deliberately over-rotate player 1 for 16 airborne L frames before impact and compare against an otherwise identical clean landing to identify collision/crash response.",
+      "purpose": "Deliberately over-rotate player 1 for 16 airborne L frames before impact and compare against an otherwise identical clean landing, with dense checkpoints across the previously established contact window, to identify collision/crash response.",
       "engines": [
         "native-recomp",
         "snesref-snes9x"
@@ -203,6 +203,9 @@
       "checkpoints": [
         "accel-180",
         "collision-pre",
+        "collision-overrotate-008",
+        "collision-overrotate-010",
+        "collision-overrotate-012",
         "collision-overrotate-016",
         "collision-release-004",
         "collision-release-012",

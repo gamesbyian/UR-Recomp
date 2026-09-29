@@ -1,0 +1,245 @@
+// Builds a Ghidra Extension for a given Ghidra installation.
+//
+// Set GHIDRA_INSTALL_DIR to your Ghidra install path, then run:
+//   gradle buildExtension
+
+plugins {
+  id 'java'
+
+  id 'com.opencastsoftware.gradle.buildinfo' version '0.3.0'
+  id 'com.diffplug.spotless' version "8.4.0"
+  id 'com.adarshr.test-logger' version '4.0.0'
+  id 'jacoco'
+}
+
+repositories {
+  mavenCentral()
+}
+
+sourceSets { main { java { srcDir(layout.buildDirectory.dir('generated/sources/buildinfo/java/main')) } } }
+
+// Resolve the current Git commit for reproducible support/debug information.
+def gitCommit = "unknown"
+try {
+  def detectedCommit = "git rev-parse --short HEAD".execute([], rootDir).text.trim()
+  if (!detectedCommit.isEmpty()) {
+    gitCommit = detectedCommit
+  }
+} catch (Exception ignored) {}
+
+// UTC timestamp embedded into generated build metadata.
+def buildDate = new Date().format("yyyy-MM-dd HH:mm 'UTC'", TimeZone.getTimeZone('UTC'))
+
+// Build-time metadata embedded into the extension.
+//
+// Values are exposed through ghidra_snes.BuildInfo and used by:
+//   - the About dialog
+//   - support/debug information
+//   - CI/release tracking
+//
+// Stable metadata values live in gradle.properties so releases do not require
+// editing build logic.
+buildInfo {
+  packageName = property('plugin.packageName')
+  className = 'BuildInfo'
+  properties = [
+    PLUGIN_VERSION: property('plugin.version'),
+    PLUGIN_GHIDRA_COMPATIBILITY: property('plugin.ghidraCompatibility'),
+    PLUGIN_BUILD_DATE: buildDate,
+    PLUGIN_BUILD_COMMIT: gitCommit,
+  ]
+}
+
+dependencies {
+  testImplementation 'org.junit.jupiter:junit-jupiter:6.0.3'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher:6.0.3'
+}
+
+// Harness tests policy.
+//
+// Local runs: harness tests are excluded.
+// CI runs (CI=true): harness tests are enabled and use a temporary module
+// generated from local data/languages.
+def ciEnvironment = 'true'.equalsIgnoreCase(System.getenv('CI'))
+
+test {
+  outputs.upToDateWhen { false }
+
+  useJUnitPlatform {
+    if (!ciEnvironment) {
+      excludeTags 'harness'
+    }
+  }
+  failFast = true
+
+  testlogger {
+    theme = 'mocha'
+    showPassed = true
+    showSkipped = true
+    showFailed = true
+    showExceptions = true
+    showCauses = true
+    showStackTraces = true
+    showStandardStreams = false
+  }
+
+  testLogging {
+    // set options for log level LIFECYCLE
+    events "failed"
+  }
+}
+
+jacocoTestReport {
+  dependsOn test
+  reports {
+    html.required = true
+    xml.required = true
+  }
+
+  afterEvaluate {
+    classDirectories.setFrom(
+      files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: [
+          '**/BuildInfo.class',
+          '**/generated/**'
+        ])
+      })
+    )
+  }
+}
+
+spotless {
+  // Generic text-file cleanup.
+  // This does NOT format Groovy/YAML semantically; it only trims whitespace,
+  // converts literal tab characters, and enforces a final newline.
+  format 'misc', {
+    target '*.gradle', '**/*.gradle', '.gitattributes', '.gitignore', '.github/**/*.yml', '.github/**/*.yaml'
+
+    trimTrailingWhitespace()
+    leadingTabsToSpaces(2)
+    endWithNewline()
+  }
+
+  // Java source formatting.
+  // google-java-format owns the actual Java layout; indentation width is not configurable here.
+  // leadingTabsToSpaces(2) only converts literal tab characters before formatting.
+  java {
+    target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
+
+    trimTrailingWhitespace()
+    leadingTabsToSpaces(2)
+    endWithNewline()
+
+    // googleJavaFormat('1.35.0').reflowLongStrings().skipJavadocFormatting()
+    formatAnnotations()
+
+    licenseHeader('/* (C) Arnaud \'red\' Rouyer 2026 */')
+  }
+}
+
+
+// Resolve the active Ghidra installation.
+//
+// Priority order:
+//   1. GHIDRA_INSTALL_DIR environment variable
+//   2. -PGHIDRA_INSTALL_DIR Gradle project property
+//
+// The project property allows CI/local builds to compile against Ghidra
+// without exporting a persistent shell environment variable.
+def ghidraInstallDir
+
+if (System.env.GHIDRA_INSTALL_DIR) {
+  ghidraInstallDir = System.env.GHIDRA_INSTALL_DIR
+}
+else if (project.hasProperty("GHIDRA_INSTALL_DIR")) {
+  ghidraInstallDir = project.getProperty("GHIDRA_INSTALL_DIR")
+}
+
+if (ghidraInstallDir) {
+  apply from: new File(ghidraInstallDir).getCanonicalPath() + "/support/buildExtension.gradle"
+}
+else {
+  throw new GradleException("GHIDRA_INSTALL_DIR is not defined!")
+}
+
+// Keep generated extension archives deterministic and clean.
+tasks.withType(Zip).configureEach {
+  exclude '.github/**'
+  exclude 'gradle/**'
+  exclude 'gradle.properties'
+}
+
+// Temporary external module used by the Ghidra harness.
+//
+// Harness tests load the project's local language definitions through
+// ghidra.external.modules instead of requiring the extension to be installed
+// into the user's real Ghidra environment.
+def harnessModulesRoot = layout.buildDirectory.dir('harness-modules')
+def harnessModuleDir = layout.buildDirectory.dir('harness-modules/ghidra-snes-harness')
+
+// Builds a minimal external module exposing only local language specs.
+tasks.register('prepareHarnessLanguages', Sync) {
+  group = 'Ghidra Private'
+  description = 'Builds a temporary external module with local language specs for harness tests.'
+
+  from('Module.manifest') {
+    into 'ghidra-snes-harness'
+  }
+  from('data/languages') {
+    into 'ghidra-snes-harness/data/languages'
+  }
+
+  into(harnessModulesRoot)
+}
+
+// Inject local language definitions into the Ghidra harness during tests.
+tasks.named('test', Test) {
+  if (ciEnvironment) {
+    dependsOn tasks.named('prepareHarnessLanguages')
+  }
+
+  doFirst {
+    if (!ciEnvironment) {
+      return
+    }
+
+    systemProperty 'ghidra.external.modules', harnessModuleDir.get().asFile.absolutePath
+  }
+}
+
+// Convenience task for local development.
+//
+// Installs the latest built extension into a user-managed extensions directory.
+tasks.register('installLocalExtension') {
+  group = 'Ghidra Private'
+  description = 'Builds and installs the extension into the configured local Ghidra installation.'
+  dependsOn tasks.named('buildExtension')
+
+  doLast {
+    def extensionDirEnv = System.env.GHIDRA_EXTENSION_DIR
+    if (!extensionDirEnv) {
+      throw new GradleException("GHIDRA_EXTENSION_DIR is not defined!")
+    }
+
+    def extensionsDir = new File(extensionDirEnv).getCanonicalFile()
+    def extensionName = 'ghidra-tblstring'
+    def extensionInstallDir = new File(extensionsDir, extensionName)
+
+    def extensionZips = fileTree('dist') {
+      include '*.zip'
+    }.files.sort { a, b -> b.lastModified() <=> a.lastModified() }
+
+    if (extensionZips.isEmpty()) {
+      throw new GradleException("No extension zip found in dist/. buildExtension did not produce a zip.")
+    }
+
+    if (extensionInstallDir.exists()) {
+      delete extensionInstallDir
+    }
+
+    copy {
+      from zipTree(extensionZips.first())
+      into extensionsDir
+    }
+  }
+}

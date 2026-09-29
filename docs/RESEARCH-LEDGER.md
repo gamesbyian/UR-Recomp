@@ -630,3 +630,18 @@ Dynamic run 36515746538 independently shows airborne L input changing `$04C7` fr
 **Harness caveat:** each scripted `press` entry is followed by one idle frame in the pinned runner/snesref grammar. These are event-relative checkpoints under a deterministic 2-held/1-idle input cadence, not claims about an uninterrupted B-held guest-frame number.
 
 **Consequence:** the landing milestone is cleared for functional native/reference validation. A continuous-hold microtrace is optional future archaeology, not required before moving to collision/finish coverage.
+
+
+### R-SEED-031 — Course decode and header mutation writers identified dynamically
+
+**Status:** confirmed writers; routine roles under static classification  
+**Date:** 2026-09-28  
+**Area:** CPU | RAM | course | compression
+
+**Observation:** trace run 36517696016 records `interp@$81BB73` writing the decoded Dragster output buffer at frame 867, including `7F:000B: 0x00→0x0F`. At frame 879, `interp@$81BA96` performs seven successive writes to `7F:000B`, incrementing `0x0F→0x10→0x11→0x12→0x13→0x14→0x15→0x16` within one guest frame.
+
+**Interpretation:** the settled `0x16` value is not an unexplained differential or copy artifact. It is produced explicitly after the decoded `0x0F` has been written. `81BB73` is on the decoded-output path; `81BA96` owns the seven-step mutation.
+
+**Caution:** both PCs lie near the known Method-1 unpacker entry `01:B8F1`. Do not yet classify `81BA96` as game-specific postprocessing or generic RNC internals from address proximity alone.
+
+**Discriminating test:** disassemble the shipped code around `01:BA96` and `01:BB73`, align it to preserved `RNC_1.S`, and identify the exact algorithmic blocks/callers.

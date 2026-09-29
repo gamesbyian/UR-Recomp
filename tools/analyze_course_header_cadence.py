@@ -48,13 +48,15 @@ def main():
     products=sorted(set(p for _,_,_,p in dim_pairs))
     end_fields=[(i,u16le(d,11),len(d),len(d)-u16le(d,11)) for i,d in enumerate(ss,1)]
     end_deltas=sorted(set(delta for _,_,_,delta in end_fields))
-    lines += ["","## Near-end header field relationship","",
-              "Treating bytes 11–12 as little-endian places the field near the end of every decoded payload, but the gap is variable rather than a single corpus-wide constant.","",
-              f"- distinct values of `decoded_size - LE16@11`: {end_deltas}.",
-              f"- minimum/maximum gap: {min(end_deltas)}..{max(end_deltas)} bytes.",
-              f"- exact `LE16@11 + 8 == decoded_size` matches: {sum(v+8==n for _,v,n,_ in end_fields)}/45 streams.",
+    trailing_after=[(i,v,n,n-(v+1)) for i,v,n,_ in end_fields]
+    trailing_lengths=sorted(set(t for _,_,_,t in trailing_after))
+    lines += ["","## Near-end aligned cursor relationship","",
+              "Treating bytes 11–12 as little-endian places the field near decoded EOF and reveals a stronger corpus-wide alignment property.","",
+              f"- `(LE16@11 + 1) % 16 == 0`: {sum((v+1)%16==0 for _,v,_,_ in end_fields)}/45 streams.",
+              f"- bytes remaining after the cursor (`decoded_size - (LE16@11 + 1)`): {trailing_lengths}.",
+              f"- minimum/maximum bytes after cursor: {min(trailing_lengths)}..{max(trailing_lengths)}.",
               "",
-              "Dragster is that one 8-byte-tail case: decoded `LE16@11 = 0x840F` and decoded size is `0x8417`. Its observed seven runtime increments therefore move the field to `0x8416`, exactly the final valid byte offset. This motivates a **variable-length trailer cursor** hypothesis: `LE16@11` may point to the start of a trailer that setup consumes in place, with the number of increments depending on trailer length. A second-course runtime capture is required before promoting that interpretation.",
+              "Dragster has `LE16@11 = 0x840F`, so the next byte is the 16-byte-aligned offset `0x8410`; exactly seven bytes remain through decoded EOF at `0x8416`. The observed runtime seven-step increment walks the field from `0x840F` to `0x8416`, consuming that entire trailing region and stopping on the final valid byte. This motivates a **pre-trailer cursor** hypothesis: the field may be initialized to the inclusive end of an aligned main-data region and advanced through a variable trailing structure during setup. A second-course runtime capture is required before promoting that interpretation.",
               "",
               "## Dimension-pair invariant","",
               "Bytes 13 and 14 form an unusually strict power-of-two-style pair. Treating encoded byte value `0x00` as 256, every one of the 45 streams satisfies `dim13 × dim14 = 1024`.","",

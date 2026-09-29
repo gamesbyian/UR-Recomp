@@ -2,6 +2,33 @@
   "schema_version": 1,
   "fixtures": [
     {
+      "id": "ui-main-branches",
+      "input_script": "tests/input/ui-main-branches.script",
+      "purpose": "Controller-only reconnaissance of the 2P, VS, and League branches from clean Main Menu resets, capturing each first destination and testing X-back to Main Menu.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-two-player-entry",
+        "ui-two-player-back-main",
+        "ui-vs-entry",
+        "ui-vs-back-main",
+        "ui-league-entry",
+        "ui-league-back-main"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:009B selectedOption"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Promote discovered 2P/VS/League menu IDs after the controller-only entry/back routes succeed and the captured frames are classified."
+    },
+    {
       "id": "ui-options-route",
       "input_script": "tests/input/ui-options-route.script",
       "purpose": "Controller-only UI reconnaissance from the verified Main Menu through each top-level selection to Options and back, with framebuffer/state dumps at each stable stop.",

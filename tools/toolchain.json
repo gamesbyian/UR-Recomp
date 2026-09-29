@@ -34,7 +34,10 @@
         ]
       ],
       "artifacts": [
-        "libretro/snes9x_libretro.so"
+        {
+          "path": "libretro/snes9x_libretro.so",
+          "kind": "shared-library"
+        }
       ],
       "install_mode": "build"
     },
@@ -52,7 +55,10 @@
         ]
       ],
       "artifacts": [
-        "target/release/superfamiconv"
+        {
+          "path": "target/release/superfamiconv",
+          "kind": "executable"
+        }
       ],
       "install_mode": "build"
     },
@@ -79,8 +85,14 @@
         ]
       ],
       "artifacts": [
-        "build",
-        "binaries"
+        {
+          "path": "build",
+          "kind": "executable"
+        },
+        {
+          "path": "binaries",
+          "kind": "executable"
+        }
       ],
       "install_mode": "build"
     },
@@ -115,7 +127,10 @@
         ]
       ],
       "artifacts": [
-        "bin/da65"
+        {
+          "path": "bin/da65",
+          "kind": "executable"
+        }
       ],
       "install_mode": "build"
     },
@@ -146,7 +161,10 @@
         ]
       ],
       "artifacts": [
-        "bsnes_libretro.so"
+        {
+          "path": "bsnes_libretro.so",
+          "kind": "shared-library"
+        }
       ],
       "install_mode": "build"
     },
@@ -163,7 +181,10 @@
         ]
       ],
       "artifacts": [
-        "mednafen_snes_libretro.so"
+        {
+          "path": "mednafen_snes_libretro.so",
+          "kind": "shared-library"
+        }
       ],
       "install_mode": "build"
     },
@@ -181,7 +202,10 @@
         ]
       ],
       "artifacts": [
-        "flips"
+        {
+          "path": "flips",
+          "kind": "executable"
+        }
       ],
       "install_mode": "build"
     },

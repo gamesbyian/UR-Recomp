@@ -141,3 +141,17 @@ See docs/original-development/.
 - [ ] Continue hunt for Mike Dailly's historical SNES framework source.
 - [ ] Search for binaries/source/screenshots of SNasm, Unicycle Compression, level editor, A0 plotter, graphics/MIDI converters and Amiga/SNES link.
 - [ ] Convert remaining historical predictions into local ROM tests: 256-wide course interpretation, copier protection, animation indexing and audio-driver identity. RNC Method 1 and OAM/raster behavior now have strong local/external evidence.
+
+
+## Third-party tool/source hardening
+
+Canonical review: `docs/THIRD-PARTY-SOURCE-AUDIT.md`.
+
+- [x] Make the pinned toolchain manifest non-shell-executable and strictly validated.
+- [x] Reset/clean reused tool checkouts before build and verify declared artifacts.
+- [x] Make Flips and bsnes-libretro genuinely buildable through the project bootstrap.
+- [x] Classify and byte-pin the full imported reference corpus; fail on unclassified additions or altered mirrors.
+- [x] Restore the libretro cheat mirror to its exact recorded upstream Git blob.
+- [x] Generate a reproducible source audit distinguishing named emulator hacks from generic models and recording known bot-source hazards.
+- [~] Continue targeted freshness/build review of external tools when a concrete workflow needs them; do not churn pins merely to follow upstream.
+- [ ] Before promoting any newly imported executable/source behavior, add it to the integrity manifest and record its trust/adaptation status.

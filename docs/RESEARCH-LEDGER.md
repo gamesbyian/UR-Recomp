@@ -354,18 +354,35 @@ External gameplay documentation states that each tour's five tracks occur in the
 **Dependencies:** external track-order/timer descriptions are used only for semantic interpretation; the 45-stream count and byte cadence are local binary observations.
 
 
-### R-SEED-013 — Recovered frontend RAM state reproduced natively
+### R-SEED-013 — Recovered frontend and race-state RAM reproduced in native and reference runs
 
-**Status:** confirmed for observed frontend states  
+**Status:** confirmed for observed states  
 **Date:** 2026-09-28  
-**Area:** RAM | UI
+**Area:** RAM | UI | race
 
-**Observation:** Dessyreqt's 2014 bot labels WRAM `7E:009F` as the current frontend menu. Project-owned frame-synchronous native input runs reproduce three of its historical values in sequence: `0xD7` at the main menu, `0x3C` at one-player rider selection, and `0x6D` at the first one-player tours page. Native captures also reproduce `7E:009B = 0x00` at the clean main menu and first tours page, consistent with the bot's selected-option policy.
+**Observation:** Dessyreqt's 2014 bot labels WRAM `7E:009F` as the current frontend menu and `7E:0313` as `inRace`. The project-owned shared deterministic input fixture reproduces, in both native SNESRecomp execution and Snes9x through `snesref`, the sequence `0xD7` main menu, `0x3C` one-player rider selection, `0x6D` first one-player tours page, `0xF6` track selection, `0x16` now-playing, then `7E:0313 = 0x01` after race entry.
 
-**Evidence:** `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`; GitHub Actions runs 36504420741, 36504768959 and 36505156490; `tests/input/reach-first-race.script`; `docs/BRINGUP.md`.
+**Evidence:** `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`; GitHub Actions runs 36506120930 and 36506281320; `tests/input/reach-first-race.script`; `docs/BRINGUP.md`.
 
-**Interpretation:** the bot's frontend state model is directly usable as a native bring-up oracle rather than merely historical documentation. The exact menu-state byte can become visible before a newly entered menu accepts its first confirmation edge, so state visibility and input readiness must remain distinct concepts in deterministic scripts.
+**Interpretation:** the recovered frontend state model and active-race flag are now locally validated cross-runtime rather than merely inherited historical labels. A newly visible menu-state byte can precede input readiness; the deterministic fixture therefore retains a conservative scene-settle period before confirmation.
 
-**Discriminating test:** continue the same controller-only route through the predicted track-select and now-playing states, then assert race-state `7E:0313 == 1`; replay the identical script through `snesref`.
+**Discriminating test:** compare complete WRAM dumps at each shared checkpoint byte-for-byte, then extend the same fixture into controlled movement and validate the bot's race-driving RAM labels.
 
-**Dependencies:** meanings are confirmed only for the values/scenes actually reproduced; other bot labels remain historical leads until observed locally.
+**Dependencies:** only values/scenes actually reproduced are promoted; other recovered bot fields remain historical leads until independently observed.
+
+
+### R-SEED-014 — Native and Snes9x race-entry timing differ while checkpoint state sequence agrees
+
+**Status:** supported  
+**Date:** 2026-09-28  
+**Area:** timing | RAM | other
+
+**Observation:** the shared race-entry script reaches `7E:0313 = 1` at native frame 984 and Snes9x/snesref frame 975. The settled final race dumps occur at frames 1044 and 1035 respectively. Known checkpoint fields printed from WRAM agree at every captured scene despite this nine-frame end-to-end offset.
+
+**Evidence:** GitHub Actions run 36506120930 (native) and 36506281320 (Snes9x/snesref).
+
+**Interpretation:** frontend/race-entry behavior is semantically aligned at the currently observed fields, but execution timing is not frame-identical. The offset may come from transition timing, emulator scheduling, or a genuine behavioral divergence; no cause is assigned yet.
+
+**Discriminating test:** perform full bytewise WRAM comparison at the named checkpoints and report first differing offsets/counts. Add frame/PPU comparison only after state-level differences are characterized.
+
+**Dependencies:** the two engines execute the same script and start from zero-filled WRAM; Snes9x reports its existing Uniracers-specific compatibility hack as active.

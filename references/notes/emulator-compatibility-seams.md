@@ -42,3 +42,17 @@ The matrix is useful only if it prevents broad, expensive tracing.
 A modern emulator running the game correctly does not erase these seams. The value of old compatibility reports is that different incomplete implementations accidentally performed perturbation experiments on the game. Conversely, an old emulator failure is not evidence that the original game is doing something undocumented in every affected subsystem; several failures may simply be ordinary emulator bugs that Uniracers happened to expose.
 
 The project should promote only locally reproduced behavior into fidelity requirements.
+
+
+### Active-display OAM local capture status
+
+The project now has a locally reproducible detailed OAM/PPU observation path rather than relying only on historical emulator reports.
+
+- The upstream `snesref` Snes9x debug-export patch was preserved verbatim as `tools/patches/snes9x-snesref-debug-exports.patch`.
+- It applies cleanly to UR-Recomp's pinned Snes9x revision `1bcc369e89f08243e0a462882fb1f3e42e51de3a`.
+- The patch is now part of the normal Snes9x toolchain build contract and exposes 544-byte OAM snapshots, decoded PPU register state, and an always-on per-write journal with frame/V/H/address/value/source.
+- A deterministic VS-selector smoke successfully produced `.oam.bin`, `.regs.json`, and `.ppuw.tsv` artifacts through the repository-built patched core.
+
+The selector-screen capture is a useful **negative discriminator**: its observed `$2104` traffic is ordinary DMA around V=229-230, not the historically reported active-display split-screen seam around scanlines 0/112. Therefore frontend VS selection is too early to reproduce the compatibility bug. The next fixture must advance through a P2-causal route into actual two-player/VS gameplay before judging the historical OAM behavior.
+
+This closes the observability blocker. Remaining work is now scene reachability and cross-oracle comparison, not missing instrumentation.

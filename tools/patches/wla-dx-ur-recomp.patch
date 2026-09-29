@@ -1,17 +1,15 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 6f2ee44..9c5ce2e 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -8,27 +8,8 @@ project(WLA-DX C)
- 
- set(ARCHS
-     # wla-NAME:compile-def
+@@ -11,22 +11,4 @@
+-set(ARCHS
+-    # wla-NAME:compile-def
 -    "gb:GB"
 -    "cx4:CX4"
 -    "65c02:WDC65C02"
 -    "65ce02:CSG65CE02"
 -    "6502:MCS6502"
-     "65816:W65816"
+-    "65816:W65816"
 -    "huc6280:HUC6280"
 -    "spc700:SPC700"
 -    "z80:Z80"
@@ -25,15 +23,14 @@ index 6f2ee44..9c5ce2e 100644
 -    "8080:I8080"
 -    "superfx:SUPERFX"
 -    "sh2:SH2"
-     )
-@@ -85,10 +66,7 @@ endif()
- 
- include_directories("${PROJECT_SOURCE_DIR}")
- 
+-    )
++set(ARCHS
++    # wla-NAME:compile-def
++    "65816:W65816"
++    )
+@@ -121,4 +121,1 @@
 -add_subdirectory(wlab)
- add_subdirectory(wlalink)
+-add_subdirectory(wlalink)
 -add_subdirectory(byte_tester)
 -add_subdirectory(doc)
- 
- add_custom_target(generators)
- add_custom_target(gens DEPENDS generators)
++add_subdirectory(wlalink)

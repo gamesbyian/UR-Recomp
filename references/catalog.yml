@@ -494,13 +494,19 @@ sources:
     relevance: "Preserves scene-style translation identifiers and exposes a Sayans 0.85 versus Dorando 1.0b version discrepancy worth resolving through original patch archives."
 
   - id: romhackhispano-sayans-uniracers
-    title: "Romhack Hispano Sayans Traductions Uniracers index"
+    title: "Sayans Traductions Uni Racers translation release"
     type: translation_archive_lead
-    url: "https://www.romhackhispano.org/"
+    url: "https://sayans.romhackhispano.org/old/antiguas/version3/antigua11.htm"
+    index_url: "https://www.romhackhispano.org/"
+    historical_patch_url: "https://sayans.romhackhispano.org/old/antiguas/version3/traducciones/snes/uniracers/uniracers_esp.zip"
     group: "Sayans Traductions"
-    status: "site index confirms a Super NES Uniracers entry; exact patch page/download not yet resolved"
-    rights: "Translation-site metadata; patch redistribution rights not established."
-    relevance: "Potential first-party/community route to the original Sayans translation patch rather than a prepatched ROM."
+    translator: "alias"
+    public_date: "2002-03-28"
+    observed_version: "85% complete"
+    later_index_version: "1.0b"
+    status: "release post survives; original ZIP URL currently returns 404 and needs archive recovery"
+    rights: "Translation-site metadata and third-party patch; patch redistribution rights not established."
+    relevance: "Primary release post identifies the original translator and exact ZIP path. The 85% release predates later 1.0b metadata, providing a concrete version-history and archive-recovery trail."
 
   - id: snesmusic-uniracers-spc
     title: "SNESmusic.org Uniracers SPC set"

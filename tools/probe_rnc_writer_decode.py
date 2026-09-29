@@ -2,9 +2,11 @@
 """Decode the shipped USA RNC1 routine with snesrecomp's authoritative v2 decoder.
 
 This is deliberately a probe, not a home-grown disassembler. It asks the same
-decoder used for recompilation whether the two dynamically traced writer PCs
-belong to the control-flow graph rooted at the known RNC1 entry and prints the
-nearby decoded instructions when they do.
+decoder used for recompilation whether two dynamically observed interpreter
+scope-entry PCs belong to the control-flow graph rooted at the known RNC1 entry
+and prints the nearby decoded instructions when they do. These scope-entry PCs
+are attribution landmarks, not necessarily the instructions that performed the
+WRAM stores.
 """
 
 from __future__ import annotations
@@ -24,10 +26,45 @@ from decoder import decode_function  # type: ignore  # noqa: E402
 
 ENTRY_BANK = 0x01
 ENTRY_PC = 0xB8F1
-WRITERS = {
-    "course-byte-increment": 0x01BA96,
-    "decoded-output-write": 0x01BB73,
+SCOPE_ENTRIES = {
+    "byte11-mutation-scope-entry": 0x01BA96,
+    "payload-install-scope-entry": 0x01BB73,
 }
+
+
+
+def find_direct_calls(rom: bytes, target_bank: int, target_pc: int) -> list[dict]:
+    patterns = [
+        ("JSR", bytes([0x20, target_pc & 0xFF, (target_pc >> 8) & 0xFF])),
+        (
+            "JSL",
+            bytes([
+                0x22,
+                target_pc & 0xFF,
+                (target_pc >> 8) & 0xFF,
+                target_bank & 0xFF,
+            ]),
+        ),
+    ]
+    out = []
+    for mnem, pat in patterns:
+        pos = 0
+        while True:
+            off = rom.find(pat, pos)
+            if off < 0:
+                break
+            bank = off // 0x8000
+            pc = 0x8000 + (off % 0x8000)
+            out.append(
+                {
+                    "mnemonic": mnem,
+                    "rom_offset": off,
+                    "snes_address": f"{bank:02X}:{pc:04X}",
+                    "context_hex": rom[max(0, off - 16):off + len(pat) + 24].hex(" "),
+                }
+            )
+            pos = off + 1
+    return sorted(out, key=lambda x: x["rom_offset"])
 
 
 def fmt(di) -> str:
@@ -86,8 +123,8 @@ def main() -> int:
         })
 
         # Direct local JSR keeps M/X state. Follow those callees recursively so
-        # helper routines such as GTBITS/MAKEHUFF can own a traced writer even
-        # when the top-level function graph treats them as separate calls.
+        # helper routines such as GTBITS/MAKEHUFF can contain a traced scope
+        # entry even when the top-level function graph treats them separately.
         for di in graph.insns.values():
             ins = di.insn
             if ins.mnem == "JSR" and ins.length == 3:
@@ -103,6 +140,7 @@ def main() -> int:
 
     report = {
         "entry": f"{ENTRY_BANK:02X}:{ENTRY_PC:04X}",
+        "direct_entry_call_sites": find_direct_calls(rom, ENTRY_BANK, ENTRY_PC),
         "decoded_roots": [
             {
                 "bank": bank,
@@ -118,10 +156,10 @@ def main() -> int:
             for item in graphs
             for bank, start, em, ex in [item["root"]]
         ],
-        "writer_sites": {},
+        "scope_entries": {},
     }
 
-    for label, target in WRITERS.items():
+    for label, target in SCOPE_ENTRIES.items():
         owners = []
         for item in graphs:
             graph = item["graph"]
@@ -151,7 +189,7 @@ def main() -> int:
                         "context": [fmt(x) for x in context],
                     }
                 )
-        report["writer_sites"][label] = {
+        report["scope_entries"][label] = {
             "reachable_from_rnc_call_tree": bool(owners),
             "owners": owners,
         }

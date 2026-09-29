@@ -42,7 +42,7 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 
 - [x] Reach one-player race.
 - [x] Track/player/background render plausibly. Native and Snes9x race-entry framebuffers show the same coherent stock race scene; exact pixel/color fidelity remains a separate compatibility question.
-- [ ] Audio runs.
+- [~] Audio pipeline runs through the native race fixture: 32 kHz stereo device opens and callbacks begin under SDL dummy audio with no runtime error. Audible/content fidelity still needs capture or listening evidence.
 - [x] Start race deterministically and accelerate under controlled Right input with matching native/reference X position/speed semantics.
 - [~] Jump under controlled B input from the validated moving state; current fixture captures Y speed, effective air state and pitch.
 - [ ] Rotate intentionally with L/R while airborne.

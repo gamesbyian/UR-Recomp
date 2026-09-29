@@ -46,6 +46,14 @@ jobs:
         run: python3 tests/test_bootstrap_toolchain.py
       - name: Validate repository-island manifest
         run: python3 tools/validate_island.py --status
+      - name: Stage vendored manual workbench offline
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool ghidra-snes --clone-only
+          test -f .tools/src/ghidra-snes/gradle.properties
+          test -d .tools/src/ghidra-snes/data/languages
+          test -d .tools/src/ghidra-snes/src/main
       - name: Validate tool interoperability graph
         run: python3 tools/validate_tool_interop.py
       - name: Check symbol adapter outputs

@@ -87,7 +87,7 @@ Use `snesref` or another trustworthy reference route.
 
 - [x] Deterministic input sequence to first race, shared verbatim by native and snesref.
 - [x] Full-WRAM/state checkpoint comparison across native and Snes9x/snesref. The first-race fixture compares all 128 KiB at seven checkpoints and reduces the settled-race difference to seven bytes.
-- [~] First-divergence workflow. Native WRAM writer history is now queried for the seven persistent race-entry differences; next reduce the earliest meaningful writer/state divergence against the reference path.
+- [x] First-divergence workflow for the settled first-race checkpoint. Run 36511207129 resolves `$01D1–$01D4` as stale stack residue (`SP=$01FF`, `E=false`, no ordinary WRAM writers) and `$00C6/$00C8/$00C9` as free-running timing/phase counters. There is no remaining unexplained persistent gameplay-state divergence in this checkpoint.
 - [ ] Regression cases for race start, acceleration, jump, rotation, landing, stunt, collision, finish and two-player.
 
 **Exit:** fidelity is objectively testable.

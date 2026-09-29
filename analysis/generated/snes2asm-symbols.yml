@@ -7,4 +7,18 @@ memory:
   Frontend_SelectedOption: 0x7E009B
   Frontend_CurrentMenu: 0x7E009F
   Race_ActiveState: 0x7E0313
+  Player1_XPosition: 0x7E0411
+  Player1_YPosition: 0x7E0415
+  Player1_XSpeed: 0x7E04B7
+  Player1_YSpeed: 0x7E04BB
+  Player1_PitchAngle: 0x7E04C7
+  Player2_PitchAngle: 0x7E04C9
+  Player1_AirState: 0x7E0545
+  Player1_FacedDirection: 0x7E0BA1
   Frontend_SelectedColumn: 0x7E0C63
+  CurrentPlayer_PitchScratch: 0x7E0F49
+  Player1_ArrowDirection: 0x7E0FCB
+  Player1_ArrowsVisible: 0x7E0FCC
+  Race_CountdownTimer: 0x7E11BA
+  Race_ReverseControls: 0x7E132B
+  Course_ActiveDecodedPayload: 0x7F0000

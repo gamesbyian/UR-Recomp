@@ -754,3 +754,16 @@ TASVideos submission #4250 identifies Dessyreqt's full-game Uniracers movie as S
 The preserved Method-1 `MAKEHUFF` tail aligns at USA `01:BB60`; its source-final `RTS` is exactly `01:BB6E`. This establishes the USA/legacy-beta RNC1 body boundary as `01:B8F1..01:BB6E`. The next helper starts at `01:BB6F`; `01:BB71` increments the input pointer and `01:BB73` is its following `BNE`.
 
 Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribution scopes are now statically separated: BA96 is generic RNC bit-reader code; BB73 is integration/helper code after RNC. Exact memory-store opcode attribution remains pending the dedicated `SNESRECOMP_WLOG_STATE` IPC probe.
+
+
+### R-SEED-041 — BB6F is the LoROM-safe RNC packed-word reader
+
+**Status:** confirmed static behavior  
+**Date:** 2026-09-29  
+**Area:** RNC | LoROM | course loader | code archaeology
+
+**Observation:** USA `01:BB6F` starts with a 16-bit `LDA [IN]`, probes whether `INC IN` wrapped, and on the wrap path reconstructs the high byte from next-bank `$8000` before restoring the original packed-stream pointer. On the normal path it simply restores `IN` and returns. The helper is called from the shipped RNC integration where preserved source performs direct `LDA [IN]` packed-word reads.
+
+**Interpretation:** name the helper `RNC1_ReadWordLoROMSafe`. It adapts the preserved linear RNC decoder to LoROM bank-boundary semantics. `01:BB73` is the helper's `BNE` wrap test, so the earlier `interp@$81BB73` write attribution is conclusively a bridge-scope label rather than a literal store PC.
+
+**Next discriminator:** use the existing exact-IPC WRAM logger for `7F:000B` to identify the actual install and seven increment store instructions; do not infer them from interpreter scope entry addresses.

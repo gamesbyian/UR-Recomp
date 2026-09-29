@@ -14,7 +14,7 @@ on:
 
 concurrency:
   group: historical-smv-first-race-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   replay:

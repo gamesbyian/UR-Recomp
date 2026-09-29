@@ -175,19 +175,20 @@ See docs/original-development/.
 - [x] Centralize promoted player-state addresses and signed conversion in `tools/uniracers_state.py`.
 - [x] Add unit coverage for promoted state semantics, duplicate-Lua-key detection and RNC packed-payload bounds.
 - [x] Classify the Snes9x 1.43 Uniracers branch as historical workaround evidence rather than an implementation template.
-- [~] Audit imported emulator/source snapshots for assumptions worth converting into deterministic compatibility tests. Active-display OAM is the first concrete seam.
-- [~] Port useful autonomous-player behavior into neutral state/policy/input layers. Exact historical SMV replay is preferred where prerecorded input suffices.
+- [x] Audit imported emulator/source snapshots far enough to identify assumptions worth testing. Remaining work is now Phase 4 runtime discrimination, not open-ended source auditing; active-display OAM is the first concrete seam.
+- [~] Make an explicit port/defer decision for autonomous race-driving policy. Exact historical SMV replay is preferred wherever prerecorded input suffices; port policy only if state-responsive whole-race coverage adds a capability movies cannot.
 - [ ] Review any newly imported executable/script before promoting it into a project-owned dependency.
 - [x] Classify and byte-pin the full `references/imported/` corpus; fail CI on unclassified additions, altered mirrors or executable-bit drift.
 - [x] Harden `tools/toolchain.json` / `bootstrap_toolchain.py`: argv-only builds, exact pins/origins, clean disposable checkouts, per-tool Python environments, typed artifact verification and hash-pinned project patches.
 - [x] Make every automatic toolchain entry smoke-buildable in CI; keep heavyweight GUI/debugger workbenches explicitly manual until a real workflow needs them.
 - [x] Establish `tools/tool_interop.json` and `docs/TOOL-INTEROPERABILITY.md` as the producer/consumer and multi-tool-chain authority.
-- [x] Fan canonical symbols into generated snes2asm YAML and da65 info seeds instead of maintaining tool-specific label lists.
+- [~] Fan canonical symbols into every analysis/debugger surface instead of maintaining tool-specific label lists. snes2asm YAML and da65 info seeds are generated; Mesen and Ghidra import remain.
 - [x] Add an independent Snes9x vs Beetle/bsnes-derived first-race state route; first successful run establishes a checkpoint-by-checkpoint emulator-variance baseline.
-- [~] Reuse the shared fixture grammar through Mesen/mesen-for-ai. The adapter and ROM-free semantics tests exist; execute it against the pinned MesenCE binary when the Linux build/runtime path is promoted.
-- [ ] Validate a Mesen-CDL compatibility adapter before feeding Mesen coverage into DiztinGUIsh or da65.
+- [~] Prove the shared fixture grammar end-to-end through Mesen/mesen-for-ai. The adapter and ROM-free semantics tests exist; promote the pinned MesenCE Linux runtime, execute the canonical first-race fixture, emit the same named full-WRAM checkpoints, and compare them with the existing tool.
+- [ ] Validate a Mesen-CDL compatibility adapter against a small known execution corpus before feeding Mesen coverage into DiztinGUIsh or da65; preserve any non-equivalent flags explicitly.
+- [ ] Prove an exact Uniracers graphics round trip through snes2asm → SuperFamiconv → generated reconstruction worktree → WLA-DX before treating SuperFamiconv output as authoritative replacement bytes. This is owned by the main asset-extraction/modern-presentation plan rather than the general audit.
 - [x] Audit headless execution/build posture: keep GUI workbenches off default CI, preserve Mesen's upstream Xvfb-backed testrunner route, and restrict automatic builds to CLI/libretro surfaces.
 - [x] Trim automatic build scope: cc65 now builds only da65; WLA-DX now builds only wla-65816 + wlalink; Python venv setup no longer upgrades pip unconditionally; fresh Git bootstrap fetches only the pinned commit.
 - [ ] Add a fingerprinted safe-reuse/cache mode for repeated same-checkout tool bootstraps only if agent sessions show rebuild time is materially recurring; keep strict clean rebuilds as the CI/default evidence path.
 
-Canonical audit: `docs/THIRD-PARTY-CODE-AUDIT.md`.
+Audit policy: `docs/THIRD-PARTY-CODE-AUDIT.md`. Remaining closeout scope and explicit defer/transfer rules: `docs/TOOLING-AUDIT-CLOSEOUT.md`.

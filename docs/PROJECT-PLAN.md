@@ -212,6 +212,8 @@ The project toolchain additionally pins:
 - ghidra-snes;
 - Floating IPS;
 - ares;
+- RetroArch plus the pinned Libretro Slang shader corpus for controlled visual-reference/upscaling experiments;
+- bsnes-hd as an on-demand high-resolution/layer-isolation specialist;
 - ffmpeg, ImageMagick, jq, ripgrep and standard build tools.
 
 Use these before inventing parallel infrastructure.
@@ -251,6 +253,37 @@ Reach and complete a normal one-player race in the native executable with no pre
 6. Record analyzer/AOT/interpreter coverage and unresolved dynamic dispatch encountered by the route.
 7. Turn any actual failure into the smallest reproducible test.
 
+### Build a multi-interpretation visual reference corpus
+
+Do not ask one upscaler to invent the final art. Build a reproducible ensemble of processed references from the same native source and treat them as competing hypotheses about contour/edge structure and period display appearance.
+
+The initial matrix should include:
+
+- raw/native pixels and nearest-neighbor integer scaling as factual controls;
+- Scale2x/ScaleNx-style conservative edge continuation;
+- HQx;
+- xBR/xBRZ;
+- SABR;
+- ScaleFX;
+- Super-xBR;
+- simple bilinear/bicubic/Lanczos controls where informative;
+- representative NTSC RGB/S-Video/composite treatments;
+- a deliberately small CRT reference set;
+- bsnes-hd captures only where its higher-resolution rendering or layer/sprite isolation answers a concrete question.
+
+Use RetroArch plus the pinned Slang shader corpus as the main batch visual-reference frontend. Use existing Snes9x/bsnes/Beetle routes, ares and bsnes-hd when an independent renderer or specialist capability adds information. Prefer offline CPU/image-domain implementations for bulk extracted-asset processing whenever they reproduce the same scaler result more cheaply and deterministically.
+
+Run the matrix at two levels:
+
+1. **matched deterministic framebuffer captures** for composited PPU/display behavior;
+2. **isolated extracted assets** once ROM graphics, palettes and semantic animation keys are known.
+
+The second route is preferred for eventual 4K reconstruction because it avoids asking a scaler to disentangle already-composited backgrounds, transparency and neighboring sprites.
+
+For each semantic asset, eventually generate a compact reference dossier containing the native data/palette, animation neighbors, selected scaler outputs, representative in-game captures, optional NTSC/CRT references and exact provenance/tool revisions. Agreement across unrelated algorithms is useful evidence; disagreement marks ambiguity for explicit design review.
+
+Canonical implementation details and the capture/reproducibility contract live in `HD-VISUAL-REFERENCE-PIPELINE.md`.
+
 ### Gate
 
 A scripted stock route reaches and completes a race, with no known simulation divergence on the compared state surfaces.
@@ -264,6 +297,8 @@ Make simulation fidelity continuously falsifiable before widening or replacing p
 ### Core oracle
 
 Use `snesref` with the pinned Snes9x core by default. Cross-check PPU/OAM-sensitive findings with bsnes/ares and, where necessary, documented hardware behavior. Once the pinned MesenCE route is proven against the shared fixture grammar, use it as a third deterministic execution engine rather than inventing a separate replay language.
+
+For rendering investigations, keep the fidelity oracle raw. RetroArch/Slang, NTSC/CRT filters and other presentation processing may be used as diagnostic/reference views only after an unprocessed capture is preserved. This separation can help determine whether a discrepancy belongs to SNES/core rendering, frontend presentation, or the recomp runtime without contaminating the actual regression evidence.
 
 ### Build canonical scripts
 

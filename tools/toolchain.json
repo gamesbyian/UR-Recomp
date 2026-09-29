@@ -358,6 +358,48 @@
         "status": "wrapped",
         "note": "Pinned source remains manual; mesen-for-ai's supported Linux automation path launches Mesen/MesenCE under xvfb-run --testrunner. Do not promote a custom GUI-stripped build without measured benefit."
       }
+    },
+    {
+      "id": "retroarch",
+      "group": "visual-reference",
+      "url": "https://github.com/libretro/RetroArch.git",
+      "revision": "6e8ab65c17058fb9431582c8af688759422743dc",
+      "purpose": "Presentation/reference frontend for deterministic matched-frame capture through libretro cores and Slang shader presets. Use for comparative upscale/filter/NTSC/CRT evidence, not as an authoritative gameplay oracle.",
+      "build": [],
+      "artifacts": [],
+      "install_mode": "manual",
+      "headless": {
+        "status": "wrapped",
+        "note": "Keep off default CI initially. Promote only a measured capture path, likely Xvfb plus a software/GPU backend, once a deterministic screenshot experiment proves the runtime contract."
+      }
+    },
+    {
+      "id": "slang-shaders",
+      "group": "visual-reference",
+      "url": "https://github.com/libretro/slang-shaders.git",
+      "revision": "84bcd19a854348c0e6a1d3db814a76f11fb6f011",
+      "purpose": "Pinned Libretro Slang shader corpus for comparative pixel-art reconstruction, scaling, NTSC and CRT reference captures. Curate a small project-owned preset matrix rather than treating every shader as equally useful.",
+      "build": [],
+      "artifacts": [],
+      "install_mode": "manual",
+      "headless": {
+        "status": "native",
+        "note": "Data-only shader checkout. Runtime headlessness depends on the frontend used to execute the presets."
+      }
+    },
+    {
+      "id": "bsnes-hd",
+      "group": "visual-reference",
+      "url": "https://github.com/DerKoun/bsnes-hd.git",
+      "revision": "fc26b25ea236f0f877f0265d2a2c37dfd93dfde9",
+      "purpose": "Specialist visual-reference workbench for HD Mode 7/high-resolution rendering experiments and clean layer/sprite isolation where its controls provide evidence unavailable from ordinary framebuffer scaling.",
+      "build": [],
+      "artifacts": [],
+      "install_mode": "manual",
+      "headless": {
+        "status": "manual",
+        "note": "Optional specialist workbench, not a default CI dependency. Use only when its higher-resolution/layer-isolation features materially answer a graphics question."
+      }
     }
   ]
 }

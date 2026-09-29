@@ -72,6 +72,48 @@ The pinned `ghidra-snes` extension supplies an SNES ROM loader, SNES-oriented 24
 
 This is a heavyweight interactive workbench, so the bootstrap only pins/checks out the extension source. Install Ghidra separately when a task benefits from cross-references, function/data annotation, or collaborative long-lived static analysis. Keep Ghidra project databases out of Git; export compact symbols/scripts/findings instead.
 
+## Visual-reference and upscaling workbenches
+
+### RetroArch + Slang shaders
+
+RetroArch is pinned as an on-demand presentation/reference frontend, and the Libretro Slang shader corpus is pinned separately as data. Their project role is **comparative visual evidence**, not gameplay authority.
+
+Use a small curated preset matrix against identical source frames and, later, isolated extracted assets. The initial families should include:
+
+- nearest-neighbor integer scaling as the factual control;
+- Scale2x/ScaleNx-style conservative edge continuation;
+- HQx;
+- xBR/xBRZ;
+- SABR;
+- ScaleFX;
+- Super-xBR;
+- simple bilinear/bicubic/Lanczos controls where available;
+- representative NTSC RGB/S-Video/composite treatments;
+- a deliberately small set of CRT reconstructions.
+
+The output is an ensemble of hypotheses about high-resolution contour/edge structure and period display appearance. No filtered result becomes canonical art by itself. Agreement across unrelated algorithms is evidence; disagreement identifies ambiguous source pixels that deserve explicit design review.
+
+Prefer offline/image-domain implementations for bulk processing of extracted PNG assets when equivalent output is available. Launch an emulator/frontend only when the result depends on PPU composition, shader passes, aspect/display behavior, NTSC simulation, or another emulator-specific surface.
+
+### bsnes-hd
+
+bsnes-hd is pinned as a specialist workbench. Use it selectively for higher-resolution rendering and layer/sprite-isolation experiments where those capabilities answer a concrete graphics question. Do not treat HD Mode 7 as a generic sprite upscaler, and do not make bsnes-hd part of routine CI unless a measured workflow demonstrates unique value.
+
+### Capture reproducibility
+
+Any promoted visual-reference capture must record at least:
+
+- canonical ROM/build identity or extracted asset hash;
+- emulator/core/frontend revision;
+- shader/preset identity and parameters;
+- source frame or semantic asset key;
+- source and output dimensions;
+- aspect/pixel-aspect handling;
+- color-space/NTSC/CRT assumptions;
+- whether the input was a composited framebuffer or isolated asset/layer.
+
+The planned capture harness should make the same semantic source fan out into multiple deterministic reference outputs so future asset-generation work receives a compact reference dossier rather than one arbitrary upscale.
+
 ## Headless execution posture
 
 Repository automation should prefer tools that are natively command-line, library-style, or explicitly designed for headless control. `tools/toolchain.json` records one of three statuses for every pinned tool:
@@ -92,7 +134,9 @@ Current posture:
 | WLA-DX | native | Build only `wla-65816` and `wlalink`, not every CPU assembler and ancillary target. |
 | mesen-for-ai | native bridge | MCP/JSON-RPC daemon is headless. |
 | MesenCE | wrapped | Upstream automation still launches the actual Mesen binary through `xvfb-run -a ... --testrunner`; isolated HOME/settings disable random power-on state and permit Lua I/O/network access. |
-| Ghidra, ares, DiztinGUIsh, bsnes-plus | manual | Source pins/workbenches only; never default CI dependencies. |
+| Ghidra, ares, DiztinGUIsh, bsnes-plus, bsnes-hd | manual | Source pins/workbenches only; never default CI dependencies. |
+| Slang shaders | native data | Data-only pinned shader corpus; runtime posture depends on the chosen frontend. |
+| RetroArch visual-reference route | wrapped | Keep off default CI until a deterministic Xvfb/software-or-GPU capture experiment establishes the cheapest stable runtime contract. |
 
 Do not patch a GUI-heavy workbench merely to call it "headless." The criterion is wall-clock/resource value. For MesenCE in particular, the supported `mesen-for-ai` path still requires Xvfb, but it does not require a visible desktop or human interaction. A custom GUI-stripped Mesen fork would be justified only by measured startup/runtime savings large enough to outweigh carrying that fork.
 

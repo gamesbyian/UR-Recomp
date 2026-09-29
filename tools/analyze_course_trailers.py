@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 from pathlib import Path
+import hashlib
 import json
 
 from analyze_rnc_streams import ROMS, find_streams
@@ -33,6 +34,7 @@ def analyze_build(path: Path) -> list[dict]:
             "stream": index,
             "tour_slot": ((index - 1) % 5) + 1,
             "decoded_size": len(decoded),
+            "decoded_sha256": hashlib.sha256(decoded).hexdigest(),
             "cursor": cursor,
             "cursor_plus_1_aligned_16": ((cursor + 1) % 16 == 0),
             "trailer_length": len(trailer),
@@ -71,9 +73,16 @@ def main() -> int:
         builds[name] = {"summary": summarize(rows), "streams": rows}
 
     usa = builds["usa-retail"]
+    usa_hashes={r["decoded_sha256"] for r in builds["usa-retail"]["streams"]}
+    all_hashes={
+        r["decoded_sha256"]
+        for payload in builds.values()
+        for r in payload["streams"]
+    }
     report = {
         "schema_version": 2,
         "field": "LE16@11",
+        "unique_decoded_payloads_across_builds": len(all_hashes),
         "builds": builds,
     }
     JSON_OUT.parent.mkdir(parents=True, exist_ok=True)
@@ -86,13 +95,20 @@ def main() -> int:
         "",
         "## Cross-build summary",
         "",
-        "| Build | Streams | (cursor+1) aligned / total | Tail min | Tail max |",
-        "|---|---:|---:|---:|---:|",
+        f"- unique decoded payloads across all builds: {len(all_hashes)}",
+        "",
+        "| Build | Streams | Novel decoded vs USA | (cursor+1) aligned / total | Tail min | Tail max |",
+        "|---|---:|---:|---:|---:|---:|",
     ]
     for name, payload in builds.items():
         s = payload["summary"]
+        novel=sum(
+            r["decoded_sha256"] not in usa_hashes
+            for r in payload["streams"]
+        )
         md.append(
-            f"| {name} | {s['stream_count']} | {s['aligned_16_count']}/{s['stream_count']} | "
+            f"| {name} | {s['stream_count']} | {novel} | "
+            f"{s['aligned_16_count']}/{s['stream_count']} | "
             f"{s['trailer_length_min']} | {s['trailer_length_max']} |"
         )
 

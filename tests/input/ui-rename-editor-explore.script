@@ -1,0 +1,125 @@
+# Read-only UI reconnaissance for Rename Player text entry.
+# The manual proves RENAME PLAYER first asks WHICH ONE, then shows the naming
+# alphabet. Each discriminator starts from a clean reset, chooses the default
+# Uni, captures the initial editor, applies one cursor input, captures again,
+# then resets. No OK/confirmation input is sent.
+
+# Helper route repeated explicitly to stay inside the tiny shared fixture grammar.
+
+# LEFT
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+dump ui-rename-which-one-left
+press a 2
+wait 60
+dump ui-rename-editor-left-before
+press left 1
+wait 30
+dump ui-rename-editor-left-after
+
+# RIGHT
+reset
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press a 2
+wait 60
+dump ui-rename-editor-right-before
+press right 1
+wait 30
+dump ui-rename-editor-right-after
+
+# UP
+reset
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press a 2
+wait 60
+dump ui-rename-editor-up-before
+press up 1
+wait 30
+dump ui-rename-editor-up-after
+
+# DOWN
+reset
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press a 2
+wait 60
+dump ui-rename-editor-down-before
+press down 1
+wait 30
+dump ui-rename-editor-down-after
+
+# B is probed because the general menu convention uses A/B to advance.
+# We immediately reset after observing the effect, so no subsequent OK action occurs.
+reset
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press a 2
+wait 60
+dump ui-rename-editor-b-before
+press b 1
+wait 30
+dump ui-rename-editor-b-after
+
+quit

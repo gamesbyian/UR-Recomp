@@ -308,6 +308,16 @@
         "sfc-rom"
       ],
       "produces": []
+    },
+    {
+      "id": "mesen-cdl-adapter",
+      "kind": "project",
+      "consumes": [
+        "mesen-cdl"
+      ],
+      "produces": [
+        "bsnes-trace-cdl"
+      ]
     }
   ],
   "handoffs": [
@@ -375,13 +385,6 @@
       "evidence": "Use for visual inspection/edit round trips after exact layout is classified."
     },
     {
-      "from": "mesen-for-ai",
-      "to": "diztinguish",
-      "format": "mesen-cdl",
-      "status": "candidate",
-      "evidence": "Diz imports BSNES/BizHawk CDL; Mesen flag mapping adapter must be validated first."
-    },
-    {
       "from": "bsnes-plus",
       "to": "diztinguish",
       "format": "bsnes-trace-cdl",
@@ -415,6 +418,27 @@
       "format": "mesen-debug-api",
       "status": "supported",
       "evidence": "mesen-for-ai launches a user-supplied Mesen/MesenCE binary and drives its Lua debugger bridge."
+    },
+    {
+      "from": "mesen-for-ai",
+      "to": "mesen-cdl-adapter",
+      "format": "mesen-cdl",
+      "status": "candidate",
+      "evidence": "Adapter must preserve SNES per-byte code/data semantics and verify flag mapping against a known execution corpus."
+    },
+    {
+      "from": "mesen-cdl-adapter",
+      "to": "diztinguish",
+      "format": "bsnes-trace-cdl",
+      "status": "candidate",
+      "evidence": "DiztinGUIsh accepts BSNES/BizHawk usage/CDL-style imports; emitted compatibility format still needs a fixture."
+    },
+    {
+      "from": "mesen-cdl-adapter",
+      "to": "cc65",
+      "format": "bsnes-trace-cdl",
+      "status": "candidate",
+      "evidence": "Could feed cc65 parse-bsnes-log/da65 RANGE+ADDRMODE generation after the compatibility mapping is proven."
     }
   ],
   "chains": [
@@ -487,6 +511,7 @@
       "steps": [
         "mesence",
         "mesen-for-ai",
+        "mesen-cdl-adapter",
         "diztinguish"
       ],
       "purpose": "Drive deterministic scenes headlessly, accumulate code/data coverage, then import that evidence into a collaborative disassembly after a validated CDL adapter."

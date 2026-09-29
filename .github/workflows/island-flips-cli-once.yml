@@ -1,0 +1,168 @@
+name: One-shot island Flips CLI
+
+on:
+  push:
+    branches:
+      - chatgpt/island-flips-cli-2026-09-29
+    paths:
+      - .github/workflows/island-flips-cli-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  vendor:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Stage pinned CLI source
+        shell: bash
+        run: |
+          set -euo pipefail
+          upstream="$RUNNER_TEMP/flips"
+          git init "$upstream"
+          git -C "$upstream" remote add origin https://github.com/bates64/flips.git
+          git -C "$upstream" fetch --depth 1 --filter=blob:none origin 6caac470f7fc096b0c5fdc374b65954f8bac5b16
+          git -C "$upstream" checkout --detach --force 6caac470f7fc096b0c5fdc374b65954f8bac5b16
+          test "$(git -C "$upstream" rev-parse HEAD)" = "6caac470f7fc096b0c5fdc374b65954f8bac5b16"
+
+          dest="third_party/src/flips"
+          rm -rf "$dest"
+          mkdir -p "$dest/libdivsufsort-2.0.1/include" "$dest/libdivsufsort-2.0.1/lib"
+
+          for file in             COPYING COPYING.gpl3 README.md bps_spec.md Makefile             crc32.cpp crc32.h flips-cli.cpp flips.cpp flips.h global.h             libbps-suf.cpp libbps.cpp libbps.h libips.cpp libips.h libups.cpp libups.h
+          do
+            cp "$upstream/$file" "$dest/$file"
+          done
+
+          cp "$upstream/libdivsufsort-2.0.1/COPYING" "$dest/libdivsufsort-2.0.1/COPYING"
+          cp "$upstream/libdivsufsort-2.0.1/AUTHORS" "$dest/libdivsufsort-2.0.1/AUTHORS"
+          cp "$upstream/libdivsufsort-2.0.1/README" "$dest/libdivsufsort-2.0.1/README"
+          cp "$upstream/libdivsufsort-2.0.1/VERSION" "$dest/libdivsufsort-2.0.1/VERSION"
+          cp "$upstream/libdivsufsort-2.0.1/include/config.h" "$dest/libdivsufsort-2.0.1/include/"
+          cp "$upstream/libdivsufsort-2.0.1/include/divsufsort.h" "$dest/libdivsufsort-2.0.1/include/"
+          cp "$upstream/libdivsufsort-2.0.1/include/divsufsort_private.h" "$dest/libdivsufsort-2.0.1/include/"
+          cp "$upstream/libdivsufsort-2.0.1/lib/divsufsort.c" "$dest/libdivsufsort-2.0.1/lib/"
+          cp "$upstream/libdivsufsort-2.0.1/lib/sssort.c" "$dest/libdivsufsort-2.0.1/lib/"
+          cp "$upstream/libdivsufsort-2.0.1/lib/trsort.c" "$dest/libdivsufsort-2.0.1/lib/"
+
+      - name: Prove pruned CLI build
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd third_party/src/flips
+          make TARGET=cli -j2
+          ./flips --version
+          ./flips --help >/dev/null
+          rm -f flips
+          rm -rf obj
+
+      - name: Record manifest and provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path.cwd()
+          source = root / "third_party/src/flips"
+
+          def file_sha256(path):
+              h = hashlib.sha256()
+              with path.open("rb") as f:
+                  for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                      h.update(chunk)
+              return h.hexdigest()
+
+          def tree_sha256(path):
+              h = hashlib.sha256()
+              for item in sorted(p for p in path.rglob("*") if p.is_file()):
+                  rel = item.relative_to(path)
+                  if any(part in {".git", "__pycache__"} for part in rel.parts):
+                      continue
+                  h.update(rel.as_posix().encode("utf-8"))
+                  h.update(b"\0")
+                  h.update(file_sha256(item).encode("ascii"))
+                  h.update(b"\n")
+              return h.hexdigest()
+
+          tree_hash = tree_sha256(source)
+
+          manifest_path = root / "third_party/manifest.json"
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          component = next(c for c in manifest["components"] if c["id"] == "flips")
+          component.update({
+              "mode": "vendored",
+              "source_path": "third_party/src/flips",
+              "archive_path": None,
+              "source_sha256": tree_hash,
+              "license_spdx": "GPL-3.0-or-later",
+              "license_path": "third_party/src/flips/COPYING.gpl3",
+              "notes": "Pruned repository-owned Floating IPS command-line source. GTK/Windows frontends, icons, packaging and release/profile scripts are omitted; bundled libdivsufsort build sources and its license are retained.",
+              "provenance_path": "third_party/provenance/flips.json",
+          })
+          manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+          provenance = {
+              "schema_version": 1,
+              "tool": "flips",
+              "upstream_url": "https://github.com/bates64/flips.git",
+              "upstream_revision": "6caac470f7fc096b0c5fdc374b65954f8bac5b16",
+              "vendored_source_path": "third_party/src/flips",
+              "vendored_tree_sha256": tree_hash,
+              "license_spdx": "GPL-3.0-or-later",
+              "license_path": "third_party/src/flips/COPYING.gpl3",
+              "bundled_component": {
+                  "name": "libdivsufsort 2.0.1",
+                  "license_path": "third_party/src/flips/libdivsufsort-2.0.1/COPYING",
+                  "purpose": "Suffix-array implementation used by BPS delta creation."
+              },
+              "retained": [
+                  "COPYING",
+                  "COPYING.gpl3",
+                  "README.md",
+                  "bps_spec.md",
+                  "Makefile",
+                  "CLI/core patch source and headers",
+                  "libdivsufsort-2.0.1/{COPYING,AUTHORS,README,VERSION,include/**,lib/*.c}"
+              ],
+              "excluded": [
+                  ".github/**",
+                  ".vscode/**",
+                  ".gitattributes",
+                  ".gitignore",
+                  "flips-gtk.cpp",
+                  "flips-w32.cpp",
+                  "GUI icons/resources/data",
+                  "flatpak/**",
+                  "profile/**",
+                  "platform/release helper scripts",
+                  "root legacy divsufsort.c/.h"
+              ],
+              "exclusion_reason": "UR-Recomp uses only the CLI patch apply/create surface. GUI/platform integration and packaging assets are not execution dependencies.",
+              "dependency_closure": "No package registry. The CLI builds from the system C++ compiler plus the libdivsufsort source already bundled in the pinned upstream tree.",
+              "build_contract": "make TARGET=cli -jN; resulting ./flips --version and --help smoke successfully."
+          }
+          prov = root / "third_party/provenance/flips.json"
+          prov.parent.mkdir(parents=True, exist_ok=True)
+          prov.write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
+          print("tree_sha256", tree_hash)
+          PY
+
+          python3 tools/validate_island.py
+
+      - name: Commit repository-owned CLI source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f third_party/src/flips third_party/provenance/flips.json third_party/manifest.json
+          git commit -m "toolchain: vendor Flips CLI source"
+          git push origin "HEAD:${{ github.ref_name }}"

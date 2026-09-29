@@ -15,6 +15,16 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 IMPORTED = ROOT / "references" / "imported"
 MANIFEST = IMPORTED / "MANIFEST.json"
+ALLOWED_REVIEW_STATUS = {
+    "audited-reference",
+    "audited-known-defects",
+    "archive-only-never-execute",
+    "reference-only",
+    "analyzed-reference",
+    "unverified-leads",
+    "immutable-input-corpus",
+    "preservation-only",
+}
 
 
 def git_blob_sha1(data: bytes) -> str:
@@ -87,6 +97,13 @@ def verify() -> list[str]:
         category = entry.get("category")
         if not isinstance(category, str) or not category:
             failures.append(f"{path}: missing category")
+        review_status = entry.get("review_status")
+        if review_status not in ALLOWED_REVIEW_STATUS:
+            failures.append(f"{path}: invalid or missing review_status {review_status!r}")
+        if path.lower().endswith(".exe") and review_status != "archive-only-never-execute":
+            failures.append(f"{path}: historical executable must be archive-only-never-execute")
+        if category == "bot-source" and review_status != "audited-known-defects":
+            failures.append(f"{path}: imported bot source must carry audited-known-defects status")
 
         disk = ROOT / path
         data = disk.read_bytes()

@@ -31,6 +31,246 @@
         "audio-state",
         "screenshot"
       ]
+    },
+    {
+      "id": "race-acceleration",
+      "input_script": "tests/input/race-acceleration.script",
+      "purpose": "From the verified first-race state, hold Right in staged intervals and validate recovered player position/speed semantics across native recompilation and Snes9x/snesref.",
+      "engines": [
+        "native-recomp",
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "race-entered",
+        "accel-030",
+        "accel-060",
+        "accel-090",
+        "accel-120",
+        "accel-180"
+      ],
+      "compare_surfaces": [
+        "player-state-fields",
+        "full-wram",
+        "frame-timing"
+      ],
+      "semantic_fields": [
+        "7E:0411 xPos",
+        "7E:0415 yPos",
+        "7E:04B7 xSpeed",
+        "7E:04BB ySpeed",
+        "7E:0F49 pitch (effective player-1 Lua key)",
+        "7E:0545 airValue (effective player-1 Lua key)",
+        "7E:11BA countdownTimer"
+      ],
+      "future_extensions": [
+        "jump",
+        "rotation",
+        "landing",
+        "collision",
+        "finish"
+      ]
+    },
+    {
+      "id": "race-jump",
+      "input_script": "tests/input/race-jump.script",
+      "purpose": "Continue from the validated moving first-race state, compare sustained Right+B input against timing-identical Right-only control, and identify causal player-1 jump state across native and Snes9x/snesref.",
+      "engines": [
+        "native-recomp",
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "race-entered",
+        "accel-180",
+        "jump-hold-024",
+        "jump-hold-048",
+        "jump-release-004",
+        "jump-release-012",
+        "jump-release-028",
+        "jump-settle"
+      ],
+      "compare_surfaces": [
+        "player-state-fields",
+        "full-wram",
+        "frame-timing"
+      ],
+      "semantic_fields": [
+        "7E:0411 xPos",
+        "7E:0415 yPos",
+        "7E:04B7 xSpeed",
+        "7E:04BB ySpeed",
+        "7E:0F49 pitch",
+        "7E:0545 airValue",
+        "7E:11BA countdownTimer"
+      ],
+      "future_extensions": [
+        "rotation",
+        "landing-classification",
+        "collision",
+        "finish"
+      ],
+      "control_script": "tests/input/race-jump-control.script"
+    },
+    {
+      "id": "race-rotation-left",
+      "input_script": "tests/input/race-rotation-left.script",
+      "control_script": "tests/input/race-rotation-control.script",
+      "purpose": "Apply eight frames of L during the causally validated player-1 airborne window and compare against timing-identical jump-only control to identify rotation/orientation state.",
+      "engines": [
+        "native-recomp",
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "accel-180",
+        "rotation-pre",
+        "rotation-l-008",
+        "rotation-post-008",
+        "rotation-post-016",
+        "rotation-release-016",
+        "rotation-settle"
+      ],
+      "compare_surfaces": [
+        "player-state-fields",
+        "full-wram"
+      ],
+      "semantic_fields": [
+        "7E:0411 xPos",
+        "7E:0415 yPos",
+        "7E:04B7 xSpeed",
+        "7E:04BB ySpeed",
+        "7E:0545 airValue",
+        "7E:04C7 player1 pitch angle (mod 64)"
+      ],
+      "future_extensions": [
+        "right-rotation",
+        "landing-transition",
+        "stunt-input",
+        "collision",
+        "finish"
+      ],
+      "mirror_script": "tests/input/race-rotation-right.script",
+      "validation": "L and R direction convention confirmed in run 36516524308"
+    },
+    {
+      "id": "race-landing-timeline",
+      "input_script": "tests/input/race-landing-timeline.script",
+      "purpose": "Sample the validated sustained-B jump every two frames from airborne +24 through +48 and identify the first event-relative grounded transition in native and Snes9x.",
+      "engines": [
+        "native-recomp",
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "landing-airborne-024",
+        "landing-026",
+        "landing-028",
+        "landing-030",
+        "landing-032",
+        "landing-034",
+        "landing-036",
+        "landing-038",
+        "landing-040",
+        "landing-042",
+        "landing-044",
+        "landing-046",
+        "landing-048"
+      ],
+      "compare_surfaces": [
+        "player-state-fields",
+        "full-wram"
+      ],
+      "semantic_fields": [
+        "7E:0415 yPos",
+        "7E:04BB signed ySpeed",
+        "7E:0545 airValue",
+        "7E:04C7 pitch angle"
+      ],
+      "future_extensions": [
+        "single-frame landing bracket",
+        "collision",
+        "finish"
+      ],
+      "validation": "Run 36517502791: all semantic checkpoints match; air clears at landing-034 and ySpeed settles to zero by landing-036 under the deterministic press/idle cadence.",
+      "status": "validated"
+    },
+    {
+      "id": "race-collision-overrotate",
+      "input_script": "tests/input/race-collision-overrotate.script",
+      "control_script": "tests/input/race-collision-control.script",
+      "purpose": "Deliberately over-rotate player 1 for 16 airborne L frames before impact and compare against an otherwise identical clean landing, with dense checkpoints across the previously established contact window, to identify collision/crash response.",
+      "engines": [
+        "native-recomp",
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "accel-180",
+        "collision-pre",
+        "collision-overrotate-008",
+        "collision-overrotate-010",
+        "collision-overrotate-012",
+        "collision-overrotate-016",
+        "collision-release-004",
+        "collision-release-012",
+        "collision-release-028",
+        "collision-settle"
+      ],
+      "compare_surfaces": [
+        "paired-player-state",
+        "full-wram",
+        "framebuffer"
+      ],
+      "semantic_fields": [
+        "7E:0411 xPos",
+        "7E:0415 yPos",
+        "7E:04B7 xSpeed",
+        "7E:04BB ySpeed",
+        "7E:0545 airValue",
+        "7E:04C7 pitch angle"
+      ],
+      "status": "validated",
+      "promotion_rule": "Require a causal impact/collision response relative to matched clean landing and exact native/reference semantic agreement.",
+      "validation": "Run 36518208740: native and Snes9x match at every tracked semantic checkpoint; the 16-frame airborne L intervention causes a reproducible failed-landing/contact trajectory relative to the timing-identical clean-jump control, including ySpeed=-187 and xSpeed=389 while control is grounded at ySpeed=0 and xSpeed=448."
+    },
+    {
+      "id": "race-finish-dragster",
+      "input_script": "tests/input/race-finish-dragster.script",
+      "purpose": "First bounded whole-race Dragster probe: reuse verified race entry/acceleration, then repeat the validated 24-frame sustained-B / 24-frame release rhythm while holding Right until the stock race-results menu is observed.",
+      "engines": [
+        "native-recomp",
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "finish-probe-start",
+        "finish-probe-05",
+        "finish-probe-10",
+        "finish-probe-15",
+        "finish-probe-20",
+        "finish-probe-25",
+        "finish-probe-30",
+        "finish-probe-terminal",
+        "race-results"
+      ],
+      "compare_surfaces": [
+        "paired-player-state",
+        "results-menu-state",
+        "full-wram-artifacts"
+      ],
+      "status": "candidate",
+      "promotion_rule": "Require stock raceResults menu 0x99 in both engines and matching tracked player semantics at all shared checkpoints. If it fails, use the preserved progress/terminal dumps to identify the smallest missing steering, pitch or jump-policy behavior."
+    },
+    {
+      "id": "historical-2008-wip-input",
+      "input_file": "tests/input/historical-2008-wip.input",
+      "source_movie": "references/imported/tas-bots/uniracers-2008-wip-microstorage.smv",
+      "purpose": "Frozen exact controller stream extracted from Halamantariel's reset-anchored 2008 SMV WIP, used as a historical autonomous/optimized replay corpus and candidate exact Dragster finish workload.",
+      "engines": [
+        "snesref-snes9x",
+        "native-recomp-lua-bridge"
+      ],
+      "format": "start-frame:duration:12-bit-mask",
+      "sample_count": 4975,
+      "nonzero_runs": 307,
+      "validation": "historical-wip-dragster workflow re-extracts the SMV and requires byte-for-byte identity with this frozen fixture before replay.",
+      "status": "candidate",
+      "promotion_rule": "Promote the first-race/Dragster slice only after pinned Snes9x replay identifies active-race and race-results boundaries and native exact-mask replay characterizes cross-runtime agreement."
     }
   ]
 }

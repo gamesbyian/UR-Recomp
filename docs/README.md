@@ -33,3 +33,4 @@ The knowledge base is intentionally cross-cutting: it may summarize conclusions 
 A mutable fact gets one owner. Do not copy milestone state, hashes, tool pins, or current conclusions into several live documents unless duplication is required for a machine contract.
 
 Large histories and imported sources are drill-down material, not required orientation. If a current authority starts becoming an append-only diary, move dated detail to the appropriate evidence surface and keep the current contract compact.
+\n- `THIRD-PARTY-CODE-AUDIT.md` — review status, defects, adaptation rules and promotion checklist for imported executable/source artifacts.\n

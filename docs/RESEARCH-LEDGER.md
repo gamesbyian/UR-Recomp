@@ -407,3 +407,291 @@ The final seven are `0x00C6`, `0x00C8`, `0x00C9`, and contiguous `0x01D1–0x01D
 **Dynamic resolution:** trace run 36511207129 reaches `inRace = 1` at native frame 984 with the 65C816 in native mode (`E = false`) and `SP = $01FF`. The four bytes remain `90 13 20 80` at `$01D1–$01D4`, far below the live top of stack. Reverse-debug writer history records zero ordinary WRAM writes to all four addresses across the captured run, while explicit semantic/timing variables such as `$00C6/$00C8/$00C9` produce abundant attributed writes. Together with the broader transient `$01xx` churn seen at earlier checkpoints, this identifies the four-byte block as stale stack history rather than live gameplay state. Its exact historical push sequence is not needed for fidelity gating.
 
 **Dependencies:** the stack interpretation depends on actual Uniracers stack-pointer behavior at the relevant frames; address location alone is insufficient.
+
+
+### R-SEED-016 — Player-1 X position and signed X speed validated cross-runtime
+
+**Status:** confirmed  
+**Date:** 2026-09-28  
+**Area:** RAM | physics | input
+
+**Observation:** Dessyreqt's effective player-1 word table labels `7E:0411` as X position and `7E:04B7` as X speed. In deterministic run 36512546762, native and Snes9x begin at `xPos=1088`, `xSpeed=0`, receive the same staged Right input, and match exactly at every semantic checkpoint. At `accel-180`, both report `xPos=1655` and `xSpeed=+447`.
+
+**Evidence:** workflow run 36512546762; artifact 11009592846; recovered bot source; `tests/input/race-acceleration.script`.
+
+**Interpretation:** `7E:0411` and signed `7E:04B7` are confirmed player-1 horizontal position/velocity anchors for the observed stock race. Positive speed corresponds to rightward movement.
+
+**Next discriminator:** use the moving state as the baseline for B-jump and L/R rotation while validating Y speed, effective air state and pitch.
+
+
+### R-SEED-017 — Recovered race countdown field advances in 8.8-style frame quanta
+
+**Status:** supported  
+**Date:** 2026-09-28  
+**Area:** RAM | timing
+
+**Observation:** the recovered bot labels `7E:11BA` as `countdownTimer`. Across the event-relative checkpoints in run 36512546762, both engines produce the same sequence: 54528, 46592, 38656, 30720, 22784, 7168. Each 31-frame staged interval decreases the word by 7936 = 31 × 256, and the final 61-frame interval decreases it by 15616 = 61 × 256.
+
+**Interpretation:** the field decrements by exactly `0x0100` per guest frame during this race-start window, strongly supporting a fixed-point/frame-countdown interpretation. The precise player-visible thresholds and meaning of the low byte remain to be characterized.
+
+**Evidence:** workflow run 36512546762 and its native/reference player-state reports.
+
+
+### R-SEED-018 — B-jump execution matches cross-runtime; airborne-state address requires causal control
+
+**Status:** supported / active discriminator  
+**Date:** 2026-09-28  
+**Area:** input | physics | RAM
+
+**Observation:** run 36513247475 applies a two-frame `Right+B` pulse from the validated moving Dragster state and samples through `jump-settle`. Native and Snes9x match exactly at every recovered semantic field checkpoint. X motion continues identically, `pitch` reaches 33 at `jump-mid`, and the earlier duplicate `7E:0547` follows 0 → 3 → 9 → 9 → 0 while the Lua-effective `7E:0545` remains 0.
+
+**Complication:** the recovered bot source contains duplicate player-1 keys, with later Lua semantics selecting `7E:0545` as `airValue`, but the observed B-window response is at `7E:0547`. The race framebuffer contains two unicycles/ghost-like sprites, so visual correlation alone cannot safely assign the changing byte to the controlled player.
+
+**Paired-slot clue:** the same dumps show the table-[2] block changing coherently with the apparent airborne event: at `jump-mid`, `7E:0417=796`, signed `7E:04BD=-21`, and `7E:0547=9`, while table-[1] remains `7E:0415=859`, `7E:04BB=0`, `7E:0545=0`. The preserved bot runs `singlePlayer=true`, `controller=1`, and reads table [1], so this strongly suggests the visually obvious arc belongs to the second racer rather than the intended controlled-player block.
+
+**Recovered-policy timing:** on Dragster, `jumpAreas[0]` spans X 1090–25278 and Y 790–870. At the validated moving checkpoint (X 1655, Y 858), `ShouldJump()` would continue returning true every bot frame until its own air/Y-speed conditions changed. The original policy therefore behaves like a sustained B hold in this region, not a two-frame pulse.
+
+**Matched-control result:** run 36513805265 replays the same route/timing with Right-only instead of the two-frame Right+B pulse. A paired-slot reinspection of the artifact confirms that every sampled table-[1] and table-[2] field is numerically identical between B and no-B at every checkpoint, including the second racer's full arc (`ySpeed=-154`, `air=9` at `jump-rise`). The short B pulse therefore produces no semantic player-state change. In native, the only persistent full-WRAM difference is `$0069`, but it already differs at `accel-180` before B is pressed and therefore is not B-causal. In Snes9x, jump-vs-control differences are limited to transient stack bytes. The second-slot airborne arc therefore occurs independently of the two-frame B pulse.
+
+**Interpretation:** the initial "jump" fixture was a negative intervention. It did not launch the intended table-[1] player. The visually obvious airborne motion belonged to the second racer. This validates the duplicate-key/paired-slot caution and prevents falsely promoting `$0547` as player-1 air state.
+
+**Next discriminator:** replace the short pulse with sustained Right+B input across the Dragster jump area, matching the recovered bot's actual per-frame `ShouldJump()` policy, and require a causal change in table-[1] Y/air/related state before calling the controlled player airborne.
+
+**Evidence:** workflow run 36513247475; `tests/input/race-jump.script`; matched control `tests/input/race-jump-control.script`.
+
+
+### R-SEED-019 — Active Dragster payload is resident at 7F:0000
+
+**Status:** confirmed  
+**Date:** 2026-09-28  
+**Area:** course | RAM | decompression
+
+**Observation:** run 36514985916 independently decodes all 45 USA streams and scores them against live WRAM `7F:0000`. Stream 1 matches 33,814 of 33,815 decoded bytes across its entire 33,815-byte payload. The sole mismatch is decoded offset `0x000B`, which changes from `0x0F` to live `0x16`.
+
+**Interpretation:** decoded stream 1 is the active Dragster course payload and is loaded directly at `7F:0000`; at least byte 11 is subsequently mutable in place. This supersedes the older `7E:2080` breadcrumb as the primary decoded-course runtime landmark.
+
+**Evidence:** decoded stream-1 structural report and native race-entry WRAM artifact from run 36508095522.
+
+
+### R-SEED-020 — Dragster header X coordinate maps exactly to runtime start X at ×16
+
+**Status:** strongly supported single-course field hypothesis  
+**Date:** 2026-09-28  
+**Area:** course | RAM | physics
+
+**Observation:** decoded stream 1 has LE16 pairs `(68,50)` at offsets 3/5 and again at 7/9. At settled Dragster race entry, both racer slots have X position 1088; `68 × 16 = 1088` exactly. Runtime Y is 858/857, not `50 × 16 = 800`.
+
+**Interpretation:** the header pairs are coordinate-like and may encode the two racer spawn/start locations in 16-unit X coordinates. Y either uses an additional object-anchor offset or has different semantics.
+
+**Discriminating test:** load a second known course and compare its header pairs with runtime racer positions, or mutate one decoded coordinate causally and observe the predicted runtime displacement.
+
+
+### R-SEED-021 — Sustained B input produces coherent player-1 airborne state cross-runtime
+
+**Status:** supported; matched sustained control pending  
+**Date:** 2026-09-28  
+**Area:** input | physics | RAM
+
+**Observation:** run 36514394117 advances the validated moving Dragster state with sustained `Right+B` input. Before an unrelated workflow-ordering failure, both native and Snes9x completed and summarized the sustained intervention identically. At `accel-180`, player 1 is grounded: `x=1655`, `y=858`, `xSpeed=447`, `ySpeed=0`, effective `airValue(0545)=0`, effective `pitch(0F49)=7`. At `jump-hold-024`, both engines report `x=2005`, `y=797`, `xSpeed=447`, signed `ySpeed=-21`, `airValue=9`, `pitch=27`. By `jump-hold-048`, both are back at `y=858`, `ySpeed=0`, `airValue=0`.
+
+**Interpretation:** unlike the earlier two-frame negative intervention, sustained B produces a coherent airborne transition in the intended table-[1] player block, and the recovered effective addresses `7E:04BB` and `7E:0545` now move in the expected direction together. Native and reference semantics match exactly at every sampled sustained-jump checkpoint.
+
+**Caution:** because the matched sustained Right-only control did not run in this failed workflow instance, causality is not yet formally closed. The repaired workflow runs the control before its paired-slot analysis.
+
+**Next discriminator:** require the timing-identical sustained Right-only control to remain grounded at the corresponding table-[1] checkpoints; then promote Y speed and air state and proceed to controlled rotation.
+
+
+### R-SEED-022 — Dragster payload is installed after Now Playing confirm, before active race
+
+**Status:** confirmed timing window  
+**Date:** 2026-09-28  
+**Area:** course | compression | RAM
+
+**Observation:** run 36515555816 compares decoded stream 1 with live `7F:0000` at `tracks-ready`, `after-track-confirm`, `now-playing-ready`, and `race-entered`. Stream 1 is not installed at the first three checkpoints. At `race-entered` it matches 33,814 / 33,815 decoded bytes, with only offset `0x000B` changed from `0x0F` to `0x16`.
+
+**Interpretation:** Dragster decompression/copy into `7F:0000` occurs after the final A confirm on the Now Playing screen and before the race-active state. In the deterministic reference route this is a roughly 151-frame transition window.
+
+**Caution:** pre-load "best stream" scores are not semantic evidence because sparse decoded streams can coincidentally match zero-heavy live WRAM. The focused expected-stream full-length match is the useful test.
+
+**Discriminating test:** add dense post-confirm checkpoints to locate the first full stream-1 residency frame and observe byte 11 before/after its runtime mutation.
+
+
+### R-SEED-023 — L input rejects 0F49 as the direct rotation accumulator and implicates 04C7
+
+**Status:** supported; mirror-R discriminator active  
+**Date:** 2026-09-28  
+**Area:** input | physics | RAM
+
+**Observation:** airborne-rotation run 36515746538 applies eight frames of L during the causally validated player-1 airborne interval and compares against a timing-identical jump-only control. Native and Snes9x agree on every sampled recovered semantic field. The recovered bot field `7E:0F49` is identical between L and control at the intervention checkpoint (`45` in both) and throughout the sampled window.
+
+The full-WRAM causal differential, however, shows `7E:04C7` changing from `0x07` in jump-only control to `0x37` under L at the eight-frame intervention checkpoint, then `0x3C` vs `0x07` at the next checkpoint before relaxing toward baseline. The adjacent paired-racer byte `7E:04C9` follows the second-racer trajectory and does not show this player-1 L-causal response.
+
+**Interpretation:** `7E:0F49` may still be a useful derived/display/stunt-facing quantity used by the historical bot, but it is not the direct player-1 rotation accumulator for this intervention. `7E:04C7` is a much stronger candidate for player-1 physical rotation/orientation state, with `7E:04C9` plausibly the paired player-2 slot.
+
+**Discriminating test:** run the mirrored eight-frame R intervention against the same jump-only control. If `7E:04C7` responds in the opposite direction while native/reference agree, promote the paired `04C7/04C9` rotation interpretation.
+
+
+### R-SEED-024 — Course payload installs progressively between +16 and +64 frames
+
+**Status:** confirmed  
+**Date:** 2026-09-28  
+**Area:** course | compression | RAM
+
+**Observation:** run 36516395510 samples `7F:0000` after final Now Playing confirm. Through +16 frames, stream 1 is not installed. At +32 frames, the live buffer has an exact 10,307-byte prefix of decoded Dragster and byte 11 is still `0x0F`. At +64 frames, the full 33,815-byte payload is resident with only byte 11 changed to `0x16`; that state persists thereafter.
+
+**Interpretation:** the active RNC payload is written progressively during the transition, not atomically at race activation. The byte-11 mutation occurs sometime after its decoded value has been written and by the time the full payload is resident.
+
+**Discriminating test:** sample every 4 frames from +32 through +64 to bracket decompression completion and byte-11 mutation separately.
+
+
+### R-SEED-025 — Dragster header coordinates map exactly to racer initialization at ×16
+
+**Status:** confirmed for Dragster initialization; pair ownership unresolved  
+**Date:** 2026-09-28  
+**Area:** course | physics | RAM
+
+**Observation:** decoded stream 1 contains two identical LE16 pairs `(68,50)`. At +64 frames after Now Playing confirm, when the full course payload is resident, both runtime racer slots are exactly `(1088,800)`. These are exact ×16 mappings: `68×16=1088`, `50×16=800`.
+
+**Interpretation:** the header pairs are coordinate fields in 1/16 runtime racer units and supply or coincide with racer initialization/spawn positions. The later settled race Y≈858/857 reflects subsequent state evolution.
+
+**Limitation:** Dragster cannot identify pair1→slot1 vs pair2→slot2 because both encoded pairs and both initial runtime positions are identical.
+
+**Discriminating test:** load a course whose two header pairs differ, or causally mutate one pair, and observe which racer slot moves.
+
+
+### R-SEED-026 — 04C7/04C9 are paired persistent pitch slots; 0F49 is shared working state
+
+**Status:** confirmed structural pairing; direction convention still under mirror test  
+**Date:** 2026-09-28  
+**Area:** CPU | RAM | physics
+
+**Observation:** targeted store scan run 36516801647 finds exactly one direct absolute writer candidate for `7E:04C7`: `STY $04C7` at LoROM `02:8D84`. Its surrounding shipped bytes decode to a player-copy sequence including `LDY $0F49; STY $04C7`, plus stores to player-1-shaped destinations `$0BA1/$0BAD/$0BB1`.
+
+A sibling sequence at `02:9272` performs `LDY $0F49; STY $04C9`, with the neighboring destinations shifted coherently to `$0BA3/$0BAF/$0BB3`. The same source scratch values `$0F49/$0F4B/$0F4D` feed both sibling routines.
+
+Dynamic run 36515746538 independently shows airborne L input changing `$04C7` from `0x07` in jump-only control to `0x37` at the intervention checkpoint, while the historical bot-read `$0F49` is unchanged between intervention and control at sampled checkpoints.
+
+**Interpretation:** `$04C7/$04C9` are persistent paired per-racer pitch/rotation state slots. `$0F49` is a shared current-player working/scratch value copied into whichever racer slot is being updated, explaining why the historical bot could use it operationally while it is not stable player-1 storage.
+
+**Discriminating test:** mirrored R input should drive player-1 `$04C7` complementarily to L, establishing the input-direction convention.
+
+
+### R-SEED-027 — Player pitch is a modulo-64 persistent angle with L/R direction confirmed
+
+**Status:** confirmed  
+**Date:** 2026-09-28  
+**Area:** input | physics | RAM
+
+**Observation:** mirrored rotation run 36516524308 applies eight frames of L or R during the same validated airborne state, with jump-only control. Native and Snes9x produce identical persistent slot values. At the intervention checkpoint, control is `7E:04C7 = 0x07`; L gives `0x37`; R gives `0x17`. The paired player-2 `7E:04C9` and scratch `7E:0F49` follow the second/current-player update path rather than the controlled player-1 intervention.
+
+**Interpretation:** the observed player-1 pitch/orientation domain is circular modulo 64. From 7, L changes the angle by −16 modulo 64 (`7−16 ≡ 55 = 0x37`), while R changes it by +16 (`7+16 = 23 = 0x17`). This matches the historical bot's threshold bands around 14/24/32/40/50 much better than treating the value as an unconstrained linear byte.
+
+**Evidence:** run 36516524308; artifact 11011037312; direct WRAM dumps; sibling shipped-code stores at `02:8D84` and `02:9272`.
+
+**Consequence:** `7E:04C7` is confirmed persistent player-1 pitch angle; `7E:04C9` is the paired player-2 slot; `7E:0F49` remains shared current-player working state. Rotation milestone is cleared.
+
+
+### R-SEED-028 — Course completion, header mutation and racer initialization are distinct setup phases
+
+**Status:** confirmed sequencing windows  
+**Date:** 2026-09-28  
+**Area:** course | compression | RAM | physics
+
+**Observation:** run 36516675672 samples the Dragster setup transition every four frames. At +40, stream 1 has a 29,289-byte exact prefix and byte 11 is still decoded value `0x0F`; racer slots are `(0,0)`. At +44, the full 33,815-byte payload is resident and byte 11 is already `0x16`, but racer slots remain `(0,0)`. At +48, the course remains complete and both racer slots have become `(1088,800)`.
+
+**Interpretation:** progressive decompression/copy, byte-11 postprocessing, and racer-coordinate initialization are separable phases. Course completion/header mutation occur in +40→+44; racer initialization occurs later in +44→+48.
+
+**Discriminating test:** sample individual frames +41 through +48 to split these windows further.
+
+
+### R-SEED-029 — Dragster setup sequence is frame-exact: complete +43, header settles +44, spawns +45
+
+**Status:** confirmed  
+**Date:** 2026-09-28  
+**Area:** course | compression | RAM | physics
+
+**Observation:** run 36517460851 samples every guest frame around setup completion. At +42, stream 1 is incomplete with a 33,359-byte exact prefix and byte 11=`0x0F`. At +43, all 33,815 bytes are resident (33,814 exact) and byte 11=`0x12`, while racer slots remain zero. At +44, byte 11=`0x16`, racers remain zero. At +45, both racers become `(1088,800)`.
+
+**Interpretation:** course decompression/copy completes on guest frame +43; header byte 11 is postprocessed across +43/+44; racer spawn initialization occurs on +45. These are ordered, separable setup phases.
+
+**Next discriminator:** dynamic writer history for `7F:000B` and nearby course-buffer bytes to identify the responsible guest routines and distinguish decompressor output from header postprocessing.
+
+
+### R-SEED-030 — Landing transition matches cross-runtime and exposes two-stage contact settling
+
+**Status:** confirmed event-relative landing behavior  
+**Date:** 2026-09-28  
+**Area:** physics | RAM | input
+
+**Observation:** landing run 36517502791 samples the validated player-1 jump trajectory in both native SNESRecomp and pinned Snes9x. Every tracked semantic checkpoint matches exactly. At `landing-032`, player 1 is still airborne (`Y=843`, `YSpeed=182`, `air=9`). At `landing-034`, position has reached track height `Y=859` and `air=0`, while `YSpeed=222` remains non-zero. At `landing-036`, `Y=859`, `YSpeed=0`, `air=0` in both engines.
+
+**Interpretation:** the sampled update sequence clears airborne/contact state when the racer reaches the track surface, then settles/resets vertical velocity by the next observed checkpoint. Native/reference simulation agrees through this transition.
+
+**Harness caveat:** each scripted `press` entry is followed by one idle frame in the pinned runner/snesref grammar. These are event-relative checkpoints under a deterministic 2-held/1-idle input cadence, not claims about an uninterrupted B-held guest-frame number.
+
+**Consequence:** the landing milestone is cleared for functional native/reference validation. A continuous-hold microtrace is optional future archaeology, not required before moving to collision/finish coverage.
+
+
+### R-SEED-031 — Course decode and header mutation writers identified dynamically
+
+**Status:** confirmed writers; routine roles under static classification  
+**Date:** 2026-09-28  
+**Area:** CPU | RAM | course | compression
+
+**Observation:** trace run 36517696016 records `interp@$81BB73` writing the decoded Dragster output buffer at frame 867, including `7F:000B: 0x00→0x0F`. At frame 879, `interp@$81BA96` performs seven successive writes to `7F:000B`, incrementing `0x0F→0x10→0x11→0x12→0x13→0x14→0x15→0x16` within one guest frame.
+
+**Interpretation:** the settled `0x16` value is not an unexplained differential or copy artifact. It is produced explicitly after the decoded `0x0F` has been written. `81BB73` is on the decoded-output path; `81BA96` owns the seven-step mutation.
+
+**Caution:** both PCs lie near the known Method-1 unpacker entry `01:B8F1`. Do not yet classify `81BA96` as game-specific postprocessing or generic RNC internals from address proximity alone.
+
+**Discriminating test:** disassemble the shipped code around `01:BA96` and `01:BB73`, align it to preserved `RNC_1.S`, and identify the exact algorithmic blocks/callers.
+
+
+### R-SEED-032 — Recovered 2008 WIP controller stream is directly parseable
+
+**Status:** confirmed container/input facts; race-boundary interpretation pending replay  
+**Date:** 2026-09-28  
+**Area:** input | TAS | autonomous play
+
+**Observation:** `references/imported/tas-bots/uniracers-2008-wip-microstorage.smv` is a raw SMV v1 file, 10,542 bytes, reset-anchored, with one recorded controller and 4,974 header frames. Controller data starts at offset 592. Per the SMV v1 reset-movie format, the block from the savestate offset to controller data is a gzip-compressed 128 KiB SRAM snapshot; the replay tooling now extracts it and emits the canonical game's 8 KiB cartridge SRAM for both reference and native preload. Direct bit translation into the project/snesref 12-bit mask exposes a long regular control block around frames 1184–2655, including repeated `B+Right+R`, periodic `X`, short left corrections, and a final 359-frame Right interval. A later complex block begins around frame 3472.
+
+**Interpretation:** this is a high-value candidate source for an exact known-working Dragster controller sequence, potentially preferable to approximating the 2014 Lua policy. The apparent race boundaries are not yet promoted because they are inferred from input shape alone.
+
+**Discriminating test:** replay the exact translated SMV stream against the canonical USA ROM in pinned Snes9x/snesref and sample `7E:0313`, `7E:009F`, track ID and player-state anchors around the candidate boundaries. Workflow: `.github/workflows/historical-wip-dragster.yml`.
+
+
+### R-SEED-033 — 2008 WIP requires no mid-movie reset emulation
+
+**Status:** confirmed  
+**Date:** 2026-09-28  
+**Area:** input | TAS | replay fidelity
+
+Direct inspection of all 4,975 controller samples in the reset-anchored 2008 WIP finds no `0xFFFF` SMV reset markers. The historical replay therefore needs the movie's reset-anchored initial machine state and embedded SRAM, but no later reset event. Treating reset markers as neutral input is harmless for this specific corpus; generic SMV tooling should still preserve/report marker positions.
+
+
+### R-SEED-034 — Header bytes 13/14 form a fixed-area dimension pair
+
+**Status:** strong structural evidence  
+**Date:** 2026-09-28  
+**Area:** course | format | dimensions
+
+**Observation:** across all 45 decoded USA course payloads, header bytes 13 and 14 are restricted to complementary power-of-two-style pairs. Interpreting encoded byte value `0x00` as 256, every pair multiplies to exactly 1024. Observed pairs span `256×4`, `128×8`, `64×16`, `32×32`, `16×64`, `8×128` and `4×256`.
+
+**Interpretation:** bytes 13/14 very likely encode complementary dimensions or strides for a fixed 1024-unit course-layout structure. This is compatible with, but does not yet prove, historical descriptions involving 256-wide course data.
+
+**Discriminating test:** compare decoded structure and runtime traversal for courses at the extreme `256×4` / `4×256` encodings versus `32×32`; identify which subsequent region length/stride changes with the header pair and trace one consumer of either byte.
+
+
+### R-SEED-035 — 1024-byte block-map hypothesis
+
+**Status:** strong combined local/historical hypothesis; not yet runtime-confirmed  
+**Date:** 2026-09-28  
+**Area:** course | format | geometry
+
+**Local evidence:** decoded header bytes 13/14 reshape to 45/45 complementary dimension pairs with constant area 1024 when zero is interpreted as 256.
+
+**Historical evidence:** OD-006 preserves Spinal's report that Mike Dailly described levels as 256 tiles wide; after RNC decompression and map-overlay work, Spinal reported that one byte in the decompressed level corresponds to a 64×64 block.
+
+**Hypothesis:** one immediate 1024-byte decoded region is a one-byte-per-64×64-block course-layout plane whose width/height are encoded by bytes 13/14. Provisional name alignment is suggestive rather than decisive: Dragster maps to `256×4`, Vertical to `16×64`, and Little Dipper to `4×256`.
+
+**Discriminating test:** mechanically characterize the first several 1024-byte post-header regions across all 45 payloads, then trace whichever region exhibits map/index-like structure into a runtime course consumer. A mutation/viewer round trip should follow only after that consumer relationship is identified.

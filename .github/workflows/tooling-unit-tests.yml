@@ -1,0 +1,22 @@
+name: Project tooling unit tests
+
+on:
+  push:
+    paths:
+      - "tools/**"
+      - "tests/unit/**"
+      - ".github/workflows/tooling-unit-tests.yml"
+  pull_request:
+    paths:
+      - "tools/**"
+      - "tests/unit/**"
+      - ".github/workflows/tooling-unit-tests.yml"
+  workflow_dispatch:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run dependency-free Python unit tests
+        run: python3 -m unittest discover -s tests/unit -p 'test_*.py' -v

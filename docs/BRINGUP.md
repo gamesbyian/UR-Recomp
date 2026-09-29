@@ -283,3 +283,76 @@ The race-entry writer investigation exposed two repeatable harness hazards befor
 2. **Wall-clock budgeting under trace instrumentation.** After the handshake fix, the traced game followed the deterministic route correctly through frame 829 but the workflow's 90-second outer timeout killed the healthy host before race entry. The final probe batches early stepping, respects the server's bounded synchronous `step N` wait, and gives the host 240 seconds of wall-clock headroom.
 
 These are harness/tooling failure modes, not game-runtime failures. Agent-facing guardrails are now in `AGENTS.md`; operational guidance is in `docs/VALIDATION.md`.
+
+
+### Follow-up — first-race scene is visually coherent in native and reference captures
+
+The preserved native/reference race-entry artifact from run 36508095522 contains framebuffer captures for the same settled first-race checkpoint.
+
+Both captures show the same coherent stock scene: unicycle, horizontal track, race HUD, large direction arrow and background geometry are all present and spatially aligned. This is enough to clear the Phase 3 "track/player/background render plausibly" milestone.
+
+The captures are not byte-identical. A direct RGB comparison reports an RMSE of about 7 on a 0–255 channel scale, so exact color/pixel equivalence remains part of later rendering/compatibility validation rather than this coarse plausibility gate.
+
+Evidence:
+- workflow run 36508095522;
+- artifact 11007769197;
+- `race-entered.fb.bmp` from native and Snes9x/snesref dumps.
+
+
+### Follow-up — straight-line acceleration semantics match exactly
+
+Race-behavior differential run 36512546762 replays staged Right input in native SNESRecomp and pinned Snes9x/snesref from the verified first-race checkpoint.
+
+Recovered player-state checkpoints match exactly between engines at every sampled point. Key observations:
+- race entry: `xPos=1088`, `xSpeed=0`;
+- through the first 120 staged input frames, X movement remains locked while the start countdown continues;
+- by `accel-180`: `xPos=1655`, `xSpeed=+447` in both engines;
+- `ySpeed=0` and effective `airValue=0` throughout this straight-ground probe;
+- `7E:11BA` decreases by exactly `0x0100` per guest frame between event-relative checkpoints in both engines.
+
+This directly validates `7E:0411` as player-1 X position and `7E:04B7` as signed player-1 X speed for the observed race state, while adding cadence evidence for `7E:11BA` as the recovered countdown/timer field.
+
+The full-WRAM diff remains confined to the previously classified free-running phase counters and stack residue/churn; no recovered player semantic field diverges.
+
+Evidence:
+- workflow run 36512546762;
+- artifact 11009592846;
+- `tests/input/race-acceleration.script`;
+- `tools/summarize_player_checkpoints.py`.
+
+
+### Follow-up — sustained B reaches coherent player-1 airborne state
+
+Race-behavior run 36514394117 failed only after the native/reference sustained-jump runs and semantic summaries had completed, because a later analysis step attempted to read the no-jump control dumps before those control steps had run.
+
+The successful experiment portion is still informative. Native and Snes9x match exactly:
+- `accel-180`: player 1 `yPos=858`, `ySpeed=0`, effective `airValue=0`, effective `pitch=7`;
+- `jump-hold-024`: `yPos=797`, signed `ySpeed=-21`, `airValue=9`, `pitch=27`;
+- `jump-hold-048`: `yPos=858`, `ySpeed=0`, `airValue=0`, `pitch=4`.
+
+This is the first coherent player-1 airborne transition in the deterministic corpus. It occurs only after replacing the ineffective two-frame B pulse with sustained B input matching the recovered bot's policy. The repaired workflow still requires a timing-identical sustained Right-only control before promoting the fields from supported to confirmed.
+
+
+### Follow-up — sustained B causally launches player 1
+
+Race-behavior run 36514981164 resolves the ambiguity left by the failed two-frame B pulse. The corrected fixture holds `Right+B` for 48 frames from the validated moving Dragster state and compares it with timing-identical `Right`-only control.
+
+At `jump-hold-024`:
+- sustained B: player 1 `x=2005, y=797, vx=447, vy=-21, air=9, pitch=27`;
+- no-B control: player 1 `x=2005, y=859, vx=448, vy=0, air=0, pitch=27`.
+
+The same semantic values are reproduced in native SNESRecomp and pinned Snes9x/snesref. By `jump-hold-048`, player 1 has returned to `y=858, vy=0, air=0`, so the fixture spans a complete launch/airborne/return cycle even though the exact landing transition has not yet been bracketed.
+
+This confirms the effective player-1 recovered fields `7E:0415` (Y), signed `7E:04BB` (Y speed) and `7E:0545` (air state). The unchanged `pitch=27` between intervention and control at the airborne checkpoint means pitch semantics should be tested separately with L/R input.
+
+
+### Follow-up — event-relative landing transition matches exactly
+
+Landing workflow run 36517502791 samples the controlled jump from the confirmed airborne state through contact and settling. Native and Snes9x match on every tracked semantic checkpoint.
+
+Representative transition:
+- `landing-032`: `Y=843`, `YSpeed=182`, `air=9`;
+- `landing-034`: `Y=859`, `YSpeed=222`, `air=0`;
+- `landing-036`: `Y=859`, `YSpeed=0`, `air=0`.
+
+This demonstrates matching contact/landing behavior and suggests airborne-state clearing precedes the sampled vertical-velocity reset. The script grammar adds one idle frame after each press entry, so checkpoint suffixes are experiment labels rather than uninterrupted held-input guest-frame counts.

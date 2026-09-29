@@ -1,0 +1,52 @@
+name: Course stream pointer search
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "analysis/generated/rnc-stream-manifest.json"
+      - "tools/find_course_stream_pointer_tables.py"
+      - ".github/workflows/course-stream-pointer-search.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: course-stream-pointer-search-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    if: github.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Search pointer encodings
+        run: |
+          python3 tools/find_course_stream_pointer_tables.py \
+            --json-out analysis/generated/course-stream-pointer-search.json
+          cat analysis/generated/course-stream-pointer-search.json
+
+      - name: Persist result
+        shell: bash
+        run: |
+          set -euo pipefail
+          path=analysis/generated/course-stream-pointer-search.json
+          if git ls-files --error-unmatch "$path" >/dev/null 2>&1 && \
+             git diff --quiet -- "$path"; then
+            echo "pointer search already current"
+            exit 0
+          fi
+          git add "$path"
+          if git diff --cached --quiet; then
+            echo "nothing to persist"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Record course stream pointer search"
+          git push origin HEAD:${{ github.ref_name }}

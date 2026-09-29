@@ -1,0 +1,28 @@
+name: SMV tooling regression
+
+on:
+  pull_request:
+    paths:
+      - "tools/extract_smv_input.py"
+      - "tests/test_extract_smv_input.py"
+      - "tools/summarize_wram_trace_checkpoints.py"
+      - "tests/test_summarize_wram_trace_checkpoints.py"
+      - ".github/workflows/smv-tools.yml"
+  push:
+    paths:
+      - "tools/extract_smv_input.py"
+      - "tests/test_extract_smv_input.py"
+      - "tools/summarize_wram_trace_checkpoints.py"
+      - "tests/test_summarize_wram_trace_checkpoints.py"
+      - ".github/workflows/smv-tools.yml"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test historical replay tooling
+        run: |
+          python3 tests/test_extract_smv_input.py
+          python3 tests/test_summarize_wram_trace_checkpoints.py

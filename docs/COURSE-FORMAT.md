@@ -4,7 +4,7 @@ Goal: produce a ROM-free technical description of Uniracers/Unirally course data
 
 ## Historical leads
 
-Historical reports identified Rob Northen Compression for level/course data. Local analysis confirmed 45 valid RNC Method 1 streams in the canonical USA retail ROM and 1994-11-29 PAL prototype, byte-identical at identical offsets. The newly acquired historical GoodSNES beta shares all 45 byte-for-byte as well. Europe retail also contains 45 streams, of which 38 are byte-identical by content; ordinal streams 4, 16, 20, 26, 27, 35 and 36 have changed packed/unpacked sizes and CRCs. The remaining question is what each decoded stream contains and how these seven final-PAL changes map to course or other semantics.
+Historical reports identified Rob Northen Compression for level/course data. The most useful historical course-layout observations are normalized in `references/notes/course-layout-history.md`. Local analysis confirmed 45 valid RNC Method 1 streams in the canonical USA retail ROM and 1994-11-29 PAL prototype, byte-identical at identical offsets. The newly acquired historical GoodSNES beta shares all 45 byte-for-byte as well. Europe retail also contains 45 streams, of which 38 are byte-identical by content; ordinal streams 4, 16, 20, 26, 27, 35 and 36 have changed packed/unpacked sizes and CRCs. The remaining question is what each decoded stream contains and how these seven final-PAL changes map to course or other semantics.
 
 ## Questions
 
@@ -91,3 +91,196 @@ The provisional stream-to-name mapping is recorded in `references/notes/course-o
 Those names remain provisional until a runtime course-load trace or an in-ROM selector independently confirms stream ordinal identity.
 
 Generated structural evidence: `analysis/generated/course-header-cadence.md`.
+
+
+## Runtime bridge: active decoded payload appears at 7F:0000
+
+The deterministic Dragster race-entry WRAM dump provides the first direct bridge from decoded RNC bytes into live game memory.
+
+Decoded stream 1 begins:
+
+`00 00 00 44 00 32 00 44 00 32 00 0F 84 00 04 00 ...`
+
+At settled first-race entry, WRAM `7F:0000` begins:
+
+`00 00 00 44 00 32 00 44 00 32 00 16 84 00 04 00 ...`
+
+The first 48 bytes otherwise match the decoded header pattern; byte offset 11 has changed from `0x0F` to `0x16` by the sampled runtime point. This strongly supports the active track payload being decompressed or copied directly into bank `7F` at offset `0000`, with at least some fields subsequently mutable in place.
+
+A second correlation is especially suggestive. Stream 1's first 16-bit coordinate-like pair is `(68, 50)`, and the second pair is also `(68, 50)`. The verified race-entry player-1 and player-2 X positions are both 1088, exactly `68 × 16`. Their Y positions are 858/857 rather than `50 × 16`, so the Y mapping clearly has an additional anchor/offset or the field is not a direct center coordinate.
+
+Current confidence separation:
+
+- **Confirmed:** decoded stream 1 is resident at `7F:0000` during Dragster. Run 36514985916 compares all 33,815 decoded bytes and finds 33,814 exact matches; only decoded offset `0x000B` differs (`0x0F` decoded, `0x16` live).
+- **Observed:** header X value 68 maps exactly to runtime start X 1088 at ×16.
+- **Strongly supported hypothesis:** LE16 fields at decoded offsets 3/5 and 7/9 are two course-coordinate pairs, plausibly start/spawn positions for the two racer slots. On confirmed Dragster, both X values are 68 and both runtime racer X positions are exactly `68 × 16 = 1088`.
+- **Open:** the meaning of decoded byte 11 and why it mutates `0x0F → 0x16`; the Y-coordinate anchor; whether the two pairs are racer starts, start/finish, or another paired course landmark.
+
+Next discriminator: capture a different known stream/course at race entry, or causally perturb one decoded coordinate field, and test whether the corresponding runtime position moves by the predicted 16-unit scale.
+
+
+### Whole-payload runtime match
+
+Workflow run 36514985916 decodes all 45 USA RNC streams and scores each against the 64 KiB live WRAM region beginning at `7F:0000` from the deterministic settled Dragster checkpoint.
+
+Stream 1 is unambiguously the best match:
+
+- stream: 1;
+- packed ROM offset: `0x0C0000`;
+- decoded size: 33,815 bytes;
+- equal live bytes: 33,814 / 33,815;
+- equal fraction: 0.999970;
+- only mismatch: decoded offset `0x000B`, `0x0F → 0x16`.
+
+No other decoded stream approaches this relationship. This directly confirms stream 1 as the active Dragster payload and `7F:0000` as its runtime decoded buffer.
+
+The next format question is no longer "where does the course go?" It is:
+1. when during frontend/race transition is the payload installed at `7F:0000`;
+2. what writes decoded byte 11 from `0x0F` to `0x16`;
+3. what the coordinate-like header pairs represent precisely.
+
+
+### Course-load timing narrowed to Now Playing → race transition
+
+Workflow run 36515555816 scores the decoded corpus against `7F:0000` at four deterministic frontend/race checkpoints:
+
+- `tracks-ready`: stream 1 is not present as an installed payload;
+- `after-track-confirm`: stream 1 is not present;
+- `now-playing-ready`: stream 1 is still not present;
+- `race-entered`: stream 1 is present at 33,814 / 33,815 exact bytes, with only offset `0x000B` changed to `0x16`.
+
+The final Now Playing A pulse occurs after `now-playing-ready`; the race-active checkpoint is reached 151 guest frames later in the reference route. Therefore the active course payload is installed during that transition window, not while the track-select or settled Now Playing screens are displayed.
+
+Caution: before the course is installed, the generic "best matching stream" metric can favor very sparse/zero-heavy decoded payloads (stream 23 scored about 97.4% against largely zero/unrelated live data). That is not evidence that stream 23 is loaded. The meaningful discriminator is the focused expected stream becoming essentially byte-identical across its full decoded length.
+
+Next discriminator: sample `7F:0000` densely after the final Now Playing confirm to find the first frame where stream 1 appears, and track decoded byte 11 separately to determine whether `0x0F → 0x16` happens during decompression/load or in a later initialization pass.
+
+
+### Dense transition trace: progressive install and exact spawn-coordinate scale
+
+Run 36516395510 samples the course buffer after the final Now Playing confirm.
+
+Key checkpoints:
+
+- +0 through +16 frames: stream 1 is not installed; `7F:0000` still contains unrelated/mostly zero state and byte 11 is `0x00`.
+- +32 frames: stream 1 has a **10,307-byte exact common prefix** at `7F:0000`; decoded byte 11 is present unchanged as `0x0F`. The rest of the stream is not yet fully installed.
+- +64 frames: all 33,815 bytes are installed, with 33,814 exact matches; byte 11 has changed to `0x16`.
+- +96/+128/+144/race-active: the same full-payload state persists.
+
+This shows the course buffer being populated progressively during the transition rather than appearing only at race activation.
+
+The same trace resolves the earlier Y-coordinate ambiguity. At +64 frames, when the decoded payload is fully resident, both racer slots are exactly `(1088, 800)`. Stream 1's two header pairs are both `(68, 50)`, and:
+
+- `68 × 16 = 1088`;
+- `50 × 16 = 800`.
+
+Therefore the header coordinate-like fields use a ×16 scale into the runtime racer coordinate system at initialization. The later settled-race Y values around 858/857 are subsequent game/track state, not evidence against the header Y coordinate.
+
+What remains unresolved is the assignment of the two identical Dragster pairs to racer slot 1 vs slot 2, because both pairs and both initial positions are identical on this course. A second course with unequal pairs or a controlled field mutation can separate them.
+
+The next loader-timing discriminator is now narrow: sample densely from +32 to +64 frames to find (a) the first frame where all 33,815 bytes are resident and (b) the first frame where byte 11 changes `0x0F → 0x16`.
+
+
+### Four-frame refinement: payload completion/mutation and racer initialization are separate phases
+
+Run 36516675672 refines the critical post-confirm window:
+
+- **+36 frames:** exact stream-1 prefix = 18,869 bytes; byte 11 still `0x0F`; racer slots `(0,0)`.
+- **+40 frames:** exact prefix = 29,289 bytes; 33,220 / 33,815 bytes already equal; byte 11 still `0x0F`; racer slots still `(0,0)`.
+- **+44 frames:** full payload is resident at 33,814 / 33,815 exact; byte 11 is already `0x16`; racer slots still `(0,0)`.
+- **+48 frames:** payload remains complete and both racer slots have been initialized to `(1088,800)`.
+
+So the transition has at least three observable phases:
+
+1. progressive RNC output/copy through +40;
+2. payload completion **and** header-byte-11 mutation sometime in +40→+44;
+3. racer spawn-state initialization sometime in +44→+48.
+
+This sequencing is especially useful for code archaeology: the course unpack/copy path can be distinguished from the later player initialization path rather than treating race setup as one monolithic routine.
+
+Next discriminator: sample +41/+42/+43/+44, then +45/+46/+47/+48 if needed, to identify the first full-payload frame, first byte-11 mutation frame, and first spawn-state frame separately.
+
+
+### Frame-exact Dragster setup chronology
+
+Run 36517460851 resolves the critical setup sequence at one-guest-frame resolution:
+
+| Frames after final Now Playing confirm | Stream-1 state at `7F:0000` | Header byte 11 | Racer slots |
+|---:|---|---:|---|
+| +42 | incomplete; exact prefix 33,359 / 33,815 | `0x0F` | `(0,0)`, `(0,0)` |
+| +43 | **full payload complete**; 33,814 / 33,815 exact | `0x12` | `(0,0)`, `(0,0)` |
+| +44 | full payload complete | `0x16` | `(0,0)`, `(0,0)` |
+| +45 | full payload complete | `0x16` | **`(1088,800)`, `(1088,800)`** |
+
+This gives a frame-exact ordering:
+
+1. progressive decompression/copy is still underway at +42;
+2. by +43 the complete decoded payload exists, and byte 11 has already been postprocessed from `0x0F` to `0x12`;
+3. on the next guest frame (+44), byte 11 reaches `0x16`;
+4. on +45, player/racer initialization consumes the course-space spawn coordinates and installs `(68,50) × 16 = (1088,800)` into both racer slots.
+
+No finer frame sampling is needed for this chronology. The remaining question is **which guest routines perform the decompression write and the +43/+44 byte-11 updates**; the dedicated trace-course-buffer-writers workflow targets that next.
+
+
+### Dynamic course-buffer writers identified
+
+Trace run 36517696016 records writer history for the live Dragster buffer at `7F:0000` through race setup.
+
+Observed writes:
+
+- frame 867, `interp@$81BB73` writes the decoded stream bytes into the destination buffer, including:
+  - `7F:0000 = 0x00`;
+  - `7F:0003 = 0x44`;
+  - `7F:0005 = 0x32`;
+  - `7F:000B: 0x00 → 0x0F`.
+- frame 879, `interp@$81BA96` writes the same byte seven times in succession:
+  - `0x0F → 0x10 → 0x11 → 0x12 → 0x13 → 0x14 → 0x15 → 0x16`.
+
+This directly explains the single runtime-mutated course byte. The first writer places the decoded `0x0F`; the second writer is responsible for the final `0x16` value.
+
+Both PCs are in bank 81 near the already identified shipped RNC Method-1 unpacker region (entry `01:B8F1`). That proximity is not, by itself, enough to label `81BA96` as either part of the generic RNC algorithm or game-specific postprocessing. The next static step is to disassemble/map the exact shipped instructions at `01:BA96` and `01:BB73` against preserved `RNC_1.S` before naming either routine semantically.
+
+Evidence:
+- workflow run 36517696016;
+- artifact 11011622806;
+- `.github/workflows/trace-course-buffer-writers.yml`;
+- `tools/trace_native_wram_writers.py`.
+
+
+### Active writer static-classification probe
+
+The existing RNC signature finder now includes a longer source-derived `MAKEHUFF` prologue signature and explicit build-relative byte context for the two dynamically observed USA writer PCs `01:BA96` and `01:BB73`. Workflow `.github/workflows/rnc-writer-static-classification.yml` regenerates the report from the preserved ROMs.
+
+The classification rule is deliberately structural: compare each writer at the same displacement from that build's mechanically identified Method-1 entry, and only call a writer part of the generic RNC routine if the surrounding instruction sequence aligns with a specific preserved `RNC_1.S` block. Short-signature proximity alone is insufficient because the prior loose `MAKEHUFF` shape has two hits in the USA image.
+
+
+### Authoritative decoder probe
+
+A second static-classification path now uses the pinned framework's own v2 65816 decoder rather than a project-local partial disassembler. `tools/probe_rnc_writer_decode.py` decodes the known USA RNC1 entry at `01:B8F1` with M/X state tracking and asks whether traced writer PCs `01:BA96` and `01:BB73` are members of that control-flow graph. If reachable, it records the exact decoded instruction and nearby M/X-qualified context. `.github/workflows/rnc-writer-decoder-probe.yml` persists the machine-readable result to `analysis/generated/rnc-writer-decode.json`; that generated path does not retrigger the workflow.
+
+This probe is intentionally complementary to the source-signature report. A positive graph-membership result identifies the writer as part of the decoded RNC1 function under the recompiler's own control-flow model; a negative result means the writer requires a separately rooted helper/game-code decode and must not be classified from address proximity.
+
+
+### Course stream pointer-table search
+
+The 45 confirmed USA RNC payload offsets are now also searched mechanically as potential course-selection targets. `tools/find_course_stream_pointer_tables.py` scans the canonical ROM for consecutive runs of:
+
+- 24-bit little-endian LoROM addresses;
+- 24-bit little-endian file offsets;
+- 16-bit LoROM addresses;
+- common padded fixed-width records containing the 24-bit forms.
+
+The scanner scores only consecutive stream-order runs of length three or greater, reducing isolated pointer-like byte coincidences. Workflow `.github/workflows/course-stream-pointer-search.yml` persists the result to `analysis/generated/course-stream-pointer-search.json`. A positive long run would expose a direct course pointer/index table; a negative result narrows the selector toward split-bank tables, relative offsets, transformed indices, or code-generated addresses.
+
+
+## Header dimension-pair invariant
+
+A corpus-wide invariant in decoded header bytes 13 and 14 strongly narrows the course-layout question. Across all 45 USA streams, interpreting encoded `0x00` as 256 gives a product of exactly **1024** for every pair. Observed forms include `256×4`, `128×8`, `64×16`, `32×32`, `16×64`, `8×128` and `4×256`.
+
+This is too rigid to treat as incidental metadata. The leading interpretation is that bytes 13/14 are complementary dimensions or strides over a fixed 1024-unit course plane/table. The unit remains unresolved: it could be tiles, blocks, columns, lookup entries or another layout primitive. This also gives a concrete way to test the historical “256 wide” claim: streams encoded `00 04` or `04 00` are the natural first cases for runtime/memory-layout validation rather than assuming every course is literally 256 raw bytes wide.
+
+The invariant is now generated mechanically by `tools/analyze_course_header_cadence.py`; `.github/workflows/course-header-cadence.yml` refreshes and persists the report.
+
+Historical evidence now gives this a more specific, still provisional interpretation. OD-006 preserves Spinal's report that Mike Dailly said levels were 256 tiles wide; after decompressing the RNC data and overlaying hand-made maps, Spinal further reported that one byte in a level file corresponds to a 64×64 block. Combined with the local 45/45 product-1024 invariant, the smallest testable model is therefore a **1024-byte one-byte-per-64×64-block layout plane**, reshaped according to bytes 13/14. The provisional course-name alignment is suggestive: Dragster is `256×4`, Vertical is `16×64`, Little Dipper is `4×256`, while many circuit-like layouts are `64×16` or `32×32`. These names remain external/provisional until selector identity is closed.
+
+`tools/analyze_course_layout_planes.py` now tests the first four 1024-byte regions after the header without assigning semantics, so the map-plane hypothesis can be accepted or rejected from corpus statistics rather than visual wishful thinking.

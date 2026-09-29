@@ -221,15 +221,16 @@ The goal is a closed evidence loop: ROM bytes → static hypothesis → dynamic 
 
 The preferred continuation loop is:
 
-1. inspect PR #5 and the latest differential/trace runs; preserve or update the current first-divergence evidence before starting a new lane;
-2. reduce the seven settled-race WRAM differences to the earliest meaningful guest-side divergence, using the existing shared first-race fixture and native write history before adding heavier instrumentation;
-3. extend the same deterministic input corpus into acceleration, jump, rotation, landing, collision and finish, validating the recovered race-control RAM labels as each action becomes observable;
-4. promote durable replay cases into `tests/fixtures.json` and keep comparison surfaces as narrow as the question permits;
-5. when WRAM/write-history evidence is insufficient, add the smallest useful CPU/PPU/OAM/VRAM/audio capture or use the pinned MesenCE/mesen-for-ai or DiztinGUIsh/bsnes+ workbench for code/data coverage;
-6. feed confirmed readers, writers, routines and tables back into `docs/SYMBOLS.md`, regenerate `analysis/generated/symbols.json`, and record evidence-backed conclusions in the research ledger/knowledge base;
-7. use `tools/mutate_rom.py` for specific causal hypotheses and score mutations through deterministic replay; use asset round-trip experiments when a resource format is sufficiently understood;
-8. continue course-format, emulator-compatibility and archival work opportunistically when the active execution evidence exposes a discriminating question or a missing artifact can materially accelerate it;
-9. update canonical docs and the active PR description at coherent checkpoints.
+1. inspect the latest race-behavior fixture/run and preserve the last verified semantic checkpoint before extending the workload; the active whole-race candidate is `tests/input/race-finish-dragster.script`, gated on stock race-results state in both native and Snes9x;
+2. treat straight-line acceleration as established: `7E:0411` X position and signed `7E:04B7` X speed are confirmed cross-runtime, with `7E:11BA` decrementing by `0x0100` per guest frame during the sampled start window;
+3. treat jump, rotation, event-relative landing and one failed-landing/contact case as established: `7E:0415` Y position, signed `7E:04BB` Y speed, `7E:0545` air state and modulo-64 `7E:04C7` pitch angle are validated cross-runtime; deterministic stock-race finish is now the active race-behavior milestone;
+4. resolve recovered-source ambiguities before promoting symbols; in particular, respect Lua duplicate-key semantics and distinguish effective bot addresses from earlier overwritten candidates;
+5. promote confirmed race-state fields/routines into `docs/SYMBOLS.md`, regenerate `analysis/generated/symbols.json`, and record evidence-backed conclusions in the research ledger/knowledge base;
+6. promote durable replay cases into `tests/fixtures.json` and compare semantic/event-relative state rather than stale stack or free-running presentation counters;
+7. when WRAM/write-history evidence is insufficient, add the smallest useful CPU/PPU/OAM/VRAM/audio capture or use the pinned MesenCE/mesen-for-ai or DiztinGUIsh/bsnes+ workbench for code/data coverage;
+8. use `tools/mutate_rom.py` only for specific causal hypotheses and score mutations through deterministic replay; use asset round-trip experiments when a resource format is sufficiently understood;
+9. continue course-format, emulator-compatibility and archival work opportunistically when the active execution evidence exposes a discriminating question or a missing artifact can materially accelerate it;
+10. update canonical docs and the active PR description at coherent checkpoints.
 
 The agent should move between these tracks based on evidence and blockers rather than completing them as rigid phases. Repository state is authoritative over conversational summaries.
 

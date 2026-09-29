@@ -1,0 +1,306 @@
+name: Historical 2008 Dragster replay
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "references/imported/tas-bots/uniracers-2008-wip-microstorage.smv"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "tools/extract_smv_input.py"
+      - "tools/replay_input_via_lua.py"
+      - "tools/summarize_wram_trace_checkpoints.py"
+      - "tools/compose_historical_replay_result.py"
+      - "tests/input/historical-2008-wip.input"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - "snesrecomp"
+      - ".github/workflows/historical-wip-dragster.yml"
+
+concurrency:
+  group: historical-wip-dragster-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Extract 2008 WIP controller stream
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/extract_smv_input.py \
+            references/imported/tas-bots/uniracers-2008-wip-microstorage.smv \
+            --input-out "$RUNNER_TEMP/wip-2008.input" \
+            --sram-out "$RUNNER_TEMP/wip-2008.srm" \
+            --sram-size 8192 \
+            --json-out "$RUNNER_TEMP/wip-2008.json"
+          cat "$RUNNER_TEMP/wip-2008.json"
+          python3 tools/compare_input_runs.py "$RUNNER_TEMP/wip-2008.input" tests/input/historical-2008-wip.input
+          echo "historical SMV extraction matches frozen fixture"
+
+      - name: Build pinned Snes9x and snesref
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+
+      - name: Generate and build native target with Lua bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/native"
+          sh snesrecomp/tools/new_project/setup_project.sh \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --generate \
+            --no-build \
+            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+          PROJ="$ROOT/UniracersSNESRecomp"
+          cmake -S "$PROJ" -B "$PROJ/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ENABLE_LUA=ON
+          cmake --build "$PROJ/build" -j2
+          test -x "$PROJ/build/UniracersSNESRecomp"
+
+      - name: Sample historical Dragster boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          INPUT="$GITHUB_WORKSPACE/tests/input/historical-2008-wip.input"
+          : > "$RUNNER_TEMP/dragster-state.tsv"
+
+          for frames in 900 1000 1100 1160 1180 1200 1400 1600 1800 2000 2200 2400 2550 2600 2640 2660 2680 2700 2800 3000 3200 3400 3480; do
+            dump="$RUNNER_TEMP/wram-${frames}.bin"
+            SNESREF_HEADLESS=1 \
+            SNESREF_FAST=1 \
+            SNESREF_FRAMES="$frames" \
+            SNESREF_WRAM_FILL=0 \
+            SNESREF_SRAM_IN="$RUNNER_TEMP/wip-2008.srm" \
+            SNESREF_INPUT_FILE="$INPUT" \
+            SNESREF_WRAM_DUMP="$dump" \
+              "$EXE" "$CORE" "$ROM" >/dev/null 2>&1
+
+            python3 - "$frames" "$dump" >> "$RUNNER_TEMP/dragster-state.tsv" <<'PY'
+          import pathlib, sys
+          frame=int(sys.argv[1]); b=pathlib.Path(sys.argv[2]).read_bytes()
+          def u8(a): return b[a]
+          def u16(a): return b[a] | (b[a+1] << 8)
+          def s16(a):
+              v=u16(a); return v-65536 if v & 0x8000 else v
+          print(
+              f"{frame}\tmenu=0x{u8(0x009F):02X}\tinRace=0x{u8(0x0313):02X}"
+              f"\ttrack={u8(0x00CE)}\tx={u16(0x0411)}\ty={u16(0x0415)}"
+              f"\tvx={s16(0x04B7)}\tvy={s16(0x04BB)}\tair={u8(0x0545)}"
+              f"\tpitch={u16(0x04C7)&0x3F}"
+          )
+          PY
+          done
+          cat "$RUNNER_TEMP/dragster-state.tsv"
+
+      - name: Trace one complete reference replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          INPUT="$GITHUB_WORKSPACE/tests/input/historical-2008-wip.input"
+          TRACE="$RUNNER_TEMP/dragster-trace.jsonl"
+
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_FRAMES=3480 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SRAM_IN="$RUNNER_TEMP/wip-2008.srm" \
+          SNESREF_INPUT_FILE="$INPUT" \
+          SNESREF_TRACE_FILE="$TRACE" \
+            "$EXE" "$CORE" "$ROM" >/dev/null 2>&1
+
+          python3 tools/summarize_wram_trace_checkpoints.py "$TRACE" \
+            --checkpoint 900 --checkpoint 1000 --checkpoint 1100 \
+            --checkpoint 1160 --checkpoint 1180 --checkpoint 1200 \
+            --checkpoint 1400 --checkpoint 1600 --checkpoint 1800 \
+            --checkpoint 2000 --checkpoint 2200 --checkpoint 2400 \
+            --checkpoint 2550 --checkpoint 2600 --checkpoint 2640 \
+            --checkpoint 2660 --checkpoint 2680 --checkpoint 2700 \
+            --checkpoint 2800 --checkpoint 3000 --checkpoint 3200 \
+            --checkpoint 3400 --checkpoint 3480 \
+            --tsv-out "$RUNNER_TEMP/dragster-trace-state.tsv" \
+            --json-out "$RUNNER_TEMP/dragster-trace-state.json" \
+            | tee "$RUNNER_TEMP/dragster-trace-summary.txt"
+
+          diff -u "$RUNNER_TEMP/dragster-state.tsv" "$RUNNER_TEMP/dragster-trace-state.tsv"
+
+      - name: Replay exact historical input in native runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          INPUT="$GITHUB_WORKSPACE/tests/input/historical-2008-wip.input"
+          LOG="$RUNNER_TEMP/native-lua.log"
+          PROJ="$RUNNER_TEMP/native/UniracersSNESRecomp"
+          mkdir -p "$PROJ/build/saves"
+          cp "$RUNNER_TEMP/wip-2008.srm" "$PROJ/build/saves/save.srm"
+
+          (
+            cd "$PROJ/build"
+            SNESRECOMP_LUA_PORT=4380 \
+            SNESRECOMP_LUA_PAUSED=1 \
+            SDL_AUDIODRIVER=dummy \
+              xvfb-run -a "$EXE" "$ROM"
+          ) >"$LOG" 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+
+          python3 tools/replay_input_via_lua.py "$INPUT" \
+            --frames 3480 \
+            --checkpoint 900 --checkpoint 1000 --checkpoint 1100 \
+            --checkpoint 1160 --checkpoint 1180 --checkpoint 1200 \
+            --checkpoint 1400 --checkpoint 1600 --checkpoint 1800 \
+            --checkpoint 2000 --checkpoint 2200 --checkpoint 2400 \
+            --checkpoint 2550 --checkpoint 2600 --checkpoint 2640 \
+            --checkpoint 2660 --checkpoint 2680 --checkpoint 2700 \
+            --checkpoint 2800 --checkpoint 3000 --checkpoint 3200 \
+            --checkpoint 3400 --checkpoint 3480 \
+            --json-out "$RUNNER_TEMP/native-dragster-state.json" \
+            | tee "$RUNNER_TEMP/native-dragster-state.txt"
+
+          kill "$PID" 2>/dev/null || true
+          wait "$PID" 2>/dev/null || true
+          trap - EXIT
+          cat "$LOG"
+
+      - name: Validate first-race evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "$RUNNER_TEMP/dragster-state.tsv" <<'PY'
+          import pathlib, sys
+          lines=pathlib.Path(sys.argv[1]).read_text().splitlines()
+          active=[line for line in lines if "inRace=0x01" in line]
+          if not active:
+              raise SystemExit("historical WIP never reached active race at sampled cutoffs")
+          print("active-race samples:")
+          print("\n".join(active))
+          results=[line for line in lines if "menu=0x99" in line]
+          print("race-results samples:")
+          print("\n".join(results) if results else "(none at sampled cutoffs)")
+          PY
+
+      - name: Compare native and reference sampled semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - \
+            "$RUNNER_TEMP/native-dragster-state.json" \
+            "$RUNNER_TEMP/dragster-state.tsv" <<'PY'
+          import json, pathlib, re, sys
+          native=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          ref_lines=pathlib.Path(sys.argv[2]).read_text().splitlines()
+          pat=re.compile(r"^(\d+)\tmenu=0x([0-9A-F]+)\tinRace=0x([0-9A-F]+)\ttrack=(\d+)\tx=(-?\d+)\ty=(-?\d+)\tvx=(-?\d+)\tvy=(-?\d+)\tair=(\d+)\tpitch=(\d+)$")
+          ref={}
+          for line in ref_lines:
+              m=pat.match(line)
+              if m:
+                  ref[int(m.group(1))]=tuple(int(x,16) if i in (2,3) else int(x) for i,x in enumerate(m.groups(),1))[1:]
+          npat=re.compile(r"^SNAP (\d+) menu=([0-9A-F]+) inRace=([0-9A-F]+) track=(\d+) x=(-?\d+) y=(-?\d+) vx=(-?\d+) vy=(-?\d+) air=(\d+) pitch=(\d+)$")
+          mismatches=[]
+          for line in native["snapshots"]:
+              m=npat.match(line)
+              if not m:
+                  continue
+              frame=int(m.group(1))
+              vals=(int(m.group(2),16),int(m.group(3),16))+tuple(int(x) for x in m.groups()[3:])
+              if frame in ref:
+                  ok=vals==ref[frame]
+                  print(frame, "MATCH" if ok else f"native={vals} reference={ref[frame]}")
+                  if not ok: mismatches.append(frame)
+          print("first sampled mismatch:", mismatches[0] if mismatches else "none")
+          PY
+
+      - name: Compose canonical replay result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/compose_historical_replay_result.py \
+            --smv-meta "$RUNNER_TEMP/wip-2008.json" \
+            --trace-summary "$RUNNER_TEMP/dragster-trace-state.json" \
+            --reference-tsv "$RUNNER_TEMP/dragster-trace-state.tsv" \
+            --native-json "$RUNNER_TEMP/native-dragster-state.json" \
+            --out analysis/generated/historical-2008-dragster-replay.json
+
+      - name: Persist canonical replay result
+        shell: bash
+        run: |
+          set -euo pipefail
+          path=analysis/generated/historical-2008-dragster-replay.json
+          if git ls-files --error-unmatch "$path" >/dev/null 2>&1 && \
+             git diff --quiet -- "$path"; then
+            echo "replay result already current"
+            exit 0
+          fi
+          git add "$path"
+          if git diff --cached --quiet; then
+            echo "nothing to persist"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Record historical 2008 Dragster replay"
+          git push origin HEAD:${{ github.ref_name }}
+
+      - name: Upload replay evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-2008-wip-dragster-replay
+          path: |
+            ${{ runner.temp }}/wip-2008.input
+            ${{ runner.temp }}/wip-2008.json
+            ${{ runner.temp }}/wip-2008.srm
+            ${{ runner.temp }}/dragster-state.tsv
+            ${{ runner.temp }}/dragster-trace.jsonl
+            ${{ runner.temp }}/dragster-trace-state.tsv
+            ${{ runner.temp }}/dragster-trace-state.json
+            ${{ runner.temp }}/dragster-trace-summary.txt
+            analysis/generated/historical-2008-dragster-replay.json
+            ${{ runner.temp }}/native-dragster-state.json
+            ${{ runner.temp }}/native-dragster-state.txt
+            ${{ runner.temp }}/native-lua.log
+            ${{ runner.temp }}/wram-*.bin
+          retention-days: 7

@@ -1,0 +1,188 @@
+name: landing transition native/reference differential
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "rom_identity.txt"
+      - "snesrecomp"
+      - "tests/input/race-landing-timeline.script"
+      - "tools/summarize_player_checkpoints.py"
+      - "tools/compare_wram_checkpoints.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - ".github/workflows/race-landing-differential.yml"
+
+concurrency:
+  group: race-landing-differential-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  landing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Build native target
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/native"
+          mkdir -p "$ROOT"
+          sh snesrecomp/tools/new_project/setup_project.sh \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --generate \
+            --build \
+            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+          test -x "$ROOT/UniracersSNESRecomp/build/UniracersSNESRecomp"
+
+      - name: Build pinned Snes9x and snesref
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+          test -x "$RUNNER_TEMP/snesref-build/snesref"
+
+      - name: Run landing timeline in native
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/race-landing-timeline.script"
+          DUMPS="$RUNNER_TEMP/native-landing-dumps"
+          mkdir -p "$DUMPS"
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$RUNNER_TEMP/native-landing.log" 2>&1
+          cat "$RUNNER_TEMP/native-landing.log"
+          test -s "$DUMPS/landing-048.wram.bin"
+
+      - name: Run landing timeline in reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/race-landing-timeline.script"
+          DUMPS="$RUNNER_TEMP/reference-landing-dumps"
+          mkdir -p "$DUMPS"
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$SCRIPT" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" >"$RUNNER_TEMP/reference-landing.log" 2>&1
+          cat "$RUNNER_TEMP/reference-landing.log"
+          test -s "$DUMPS/landing-048.wram.bin"
+
+      - name: Summarize and locate landing transition
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHECKPOINTS=(--checkpoint landing-airborne-024)
+          for n in 026 028 030 032 034 036 038 040 042 044 046 048; do
+            CHECKPOINTS+=(--checkpoint "landing-$n")
+          done
+
+          for engine in native reference; do
+            python3 tools/summarize_player_checkpoints.py \
+              "$RUNNER_TEMP/${engine}-landing-dumps" \
+              "${CHECKPOINTS[@]}" \
+              --json-out "$RUNNER_TEMP/${engine}-landing-state.json" \
+              | tee "$RUNNER_TEMP/${engine}-landing-state.txt"
+          done
+
+          python3 - "$RUNNER_TEMP/native-landing-state.json" "$RUNNER_TEMP/reference-landing-state.json" <<'PY'
+          import json, pathlib, sys
+          native=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          ref=json.loads(pathlib.Path(sys.argv[2]).read_text())
+          fields=["x_pos","y_pos","x_speed","y_speed","air_effective","pitch_effective"]
+          print("== cross-engine landing semantics ==")
+          for cp in native:
+              diff={k:(native[cp][k],ref[cp][k]) for k in fields if native[cp][k]!=ref[cp][k]}
+              print(cp, "MATCH" if not diff else diff)
+              if diff:
+                  raise SystemExit(1)
+
+          def first_grounded(states):
+              seen_air=False
+              for cp,s in states.items():
+                  if s["air_effective"] != 0 or s["y_speed"] != 0:
+                      seen_air=True
+                  elif seen_air:
+                      return cp,s
+              return None,None
+
+          ncp,ns=first_grounded(native)
+          rcp,rs=first_grounded(ref)
+          print("native first grounded:",ncp,ns)
+          print("reference first grounded:",rcp,rs)
+          if not ncp or not rcp or ncp != rcp:
+              raise SystemExit("landing transition did not align cross-engine")
+          PY
+
+      - name: Compare full WRAM around landing
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/compare_wram_checkpoints.py \
+            "$RUNNER_TEMP/native-landing-dumps" "$RUNNER_TEMP/reference-landing-dumps" \
+            --label-a native --label-b snesref --limit 32 \
+            --checkpoint landing-airborne-024 \
+            --checkpoint landing-032 \
+            --checkpoint landing-036 \
+            --checkpoint landing-040 \
+            --checkpoint landing-044 \
+            --checkpoint landing-048 \
+            --json-out "$RUNNER_TEMP/landing-wram-diff.json" \
+            | tee "$RUNNER_TEMP/landing-wram-diff.txt"
+
+      - name: Upload landing evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-landing-transition
+          path: |
+            ${{ runner.temp }}/native-landing.log
+            ${{ runner.temp }}/reference-landing.log
+            ${{ runner.temp }}/native-landing-state.json
+            ${{ runner.temp }}/reference-landing-state.json
+            ${{ runner.temp }}/native-landing-state.txt
+            ${{ runner.temp }}/reference-landing-state.txt
+            ${{ runner.temp }}/landing-wram-diff.json
+            ${{ runner.temp }}/landing-wram-diff.txt
+            ${{ runner.temp }}/native-landing-dumps/
+            ${{ runner.temp }}/reference-landing-dumps/
+          if-no-files-found: warn
+          retention-days: 7

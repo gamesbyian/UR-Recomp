@@ -22,15 +22,18 @@ def crc16(data: bytes) -> int:
 
 class BitReader:
     """RNC1's little-endian 16-bit bit reservoir with interleaved raw bytes."""
-    def __init__(self, data: bytes, offset: int = 0):
+    def __init__(self, data: bytes, offset: int = 0, limit: int | None = None):
         self.data = data
         self.pos = offset
+        self.limit = len(data) if limit is None else limit
+        if not 0 <= offset <= self.limit <= len(data):
+            raise RNCError("invalid bit-reader bounds")
         self.bits = 0
         self.nbits = 0
 
     def _byte(self) -> int:
-        if self.pos >= len(self.data):
-            return 0
+        if self.pos >= self.limit:
+            raise RNCError("unexpected end of packed RNC payload")
         b = self.data[self.pos]
         self.pos += 1
         return b
@@ -44,8 +47,8 @@ class BitReader:
             if self.nbits == 0:
                 lo = self._byte()
                 hi = self._byte()
-                look0 = self.data[self.pos] if self.pos < len(self.data) else 0
-                look1 = self.data[self.pos + 1] if self.pos + 1 < len(self.data) else 0
+                look0 = self.data[self.pos] if self.pos < self.limit else 0
+                look1 = self.data[self.pos + 1] if self.pos + 1 < self.limit else 0
                 self.bits = lo | (hi << 8) | (look0 << 16) | (look1 << 24)
                 self.nbits = 16
             if self.bits & 1:
@@ -59,9 +62,9 @@ class BitReader:
         return self._byte()
 
     def resync_after_raw(self) -> None:
-        look0 = self.data[self.pos] if self.pos < len(self.data) else 0
-        look1 = self.data[self.pos + 1] if self.pos + 1 < len(self.data) else 0
-        look2 = self.data[self.pos + 2] if self.pos + 2 < len(self.data) else 0
+        look0 = self.data[self.pos] if self.pos < self.limit else 0
+        look1 = self.data[self.pos + 1] if self.pos + 1 < self.limit else 0
+        look2 = self.data[self.pos + 2] if self.pos + 2 < self.limit else 0
         incoming = look0 | (look1 << 8) | (look2 << 16)
         keep_mask = (1 << self.nbits) - 1 if self.nbits else 0
         self.bits = ((incoming << self.nbits) | (self.bits & keep_mask)) & 0xFFFFFFFF
@@ -147,7 +150,7 @@ def unpack_method1(stream: bytes) -> bytes:
     if actual_packed_crc != h.packed_crc:
         raise RNCError(f"packed CRC mismatch: {actual_packed_crc:04X} != {h.packed_crc:04X}")
 
-    br = BitReader(stream, 18)
+    br = BitReader(stream, 18, end)
     br.read_bits(2)
     out = bytearray()
 

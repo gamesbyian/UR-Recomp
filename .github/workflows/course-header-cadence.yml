@@ -1,0 +1,46 @@
+name: Course header cadence
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "tools/rnc_method1.py"
+      - "tools/analyze_course_header_cadence.py"
+      - ".github/workflows/course-header-cadence.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: course-header-cadence-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    if: github.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Rebuild course header cadence report
+        run: |
+          python3 tools/analyze_course_header_cadence.py
+          cat analysis/generated/course-header-cadence.md
+
+      - name: Persist generated report
+        shell: bash
+        run: |
+          set -euo pipefail
+          path=analysis/generated/course-header-cadence.md
+          if git diff --quiet -- "$path"; then
+            echo "course header report already current"
+            exit 0
+          fi
+          git add "$path"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Refresh course header cadence report"
+          git push origin HEAD:${{ github.ref_name }}

@@ -1,0 +1,202 @@
+name: collision candidate native/reference differential
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "rom_identity.txt"
+      - "snesrecomp"
+      - "tests/input/race-collision-overrotate.script"
+      - "tests/input/race-collision-control.script"
+      - "tools/summarize_paired_player_slots.py"
+      - "tools/compare_wram_checkpoints.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - ".github/workflows/race-collision-differential.yml"
+
+concurrency:
+  group: race-collision-differential-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  collision:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Build native target
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/native"
+          mkdir -p "$ROOT"
+          sh snesrecomp/tools/new_project/setup_project.sh \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --generate \
+            --build \
+            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+          test -x "$ROOT/UniracersSNESRecomp/build/UniracersSNESRecomp"
+
+      - name: Build pinned Snes9x and snesref
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+          test -x "$RUNNER_TEMP/snesref-build/snesref"
+
+      - name: Run native intervention and control
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          for kind in overrotate control; do
+            SCRIPT="$GITHUB_WORKSPACE/tests/input/race-collision-${kind}.script"
+            DUMPS="$RUNNER_TEMP/native-collision-${kind}-dumps"
+            mkdir -p "$DUMPS"
+            SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+              timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+              >"$RUNNER_TEMP/native-collision-${kind}.log" 2>&1
+            cat "$RUNNER_TEMP/native-collision-${kind}.log"
+            test -s "$DUMPS/collision-settle.wram.bin"
+          done
+
+      - name: Run reference intervention and control
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          for kind in overrotate control; do
+            SCRIPT="$GITHUB_WORKSPACE/tests/input/race-collision-${kind}.script"
+            DUMPS="$RUNNER_TEMP/reference-collision-${kind}-dumps"
+            mkdir -p "$DUMPS"
+            SNESREF_HEADLESS=1 \
+            SNESREF_FAST=1 \
+            SNESREF_WRAM_FILL=0 \
+            SNESREF_SCRIPT="$SCRIPT" \
+            SNESREF_DUMP_DIR="$DUMPS" \
+              "$EXE" "$CORE" "$ROM" >"$RUNNER_TEMP/reference-collision-${kind}.log" 2>&1
+            cat "$RUNNER_TEMP/reference-collision-${kind}.log"
+            test -s "$DUMPS/collision-settle.wram.bin"
+          done
+
+      - name: Summarize paired racer collision state
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHECKPOINTS=(
+            --checkpoint accel-180
+            --checkpoint collision-pre
+            --checkpoint collision-overrotate-008
+            --checkpoint collision-overrotate-010
+            --checkpoint collision-overrotate-012
+            --checkpoint collision-overrotate-016
+            --checkpoint collision-release-004
+            --checkpoint collision-release-012
+            --checkpoint collision-release-028
+            --checkpoint collision-settle
+          )
+          for engine in native reference; do
+            for kind in overrotate control; do
+              python3 tools/summarize_paired_player_slots.py \
+                "$RUNNER_TEMP/${engine}-collision-${kind}-dumps" \
+                "${CHECKPOINTS[@]}" \
+                --json-out "$RUNNER_TEMP/${engine}-collision-${kind}-state.json" \
+                | tee "$RUNNER_TEMP/${engine}-collision-${kind}-state.txt"
+            done
+          done
+
+          python3 - \
+            "$RUNNER_TEMP/native-collision-overrotate-state.json" "$RUNNER_TEMP/reference-collision-overrotate-state.json" \
+            "$RUNNER_TEMP/native-collision-control-state.json" "$RUNNER_TEMP/reference-collision-control-state.json" <<'PY'
+          import json, pathlib, sys
+          no, ro, nc, rc=[json.loads(pathlib.Path(p).read_text()) for p in sys.argv[1:]]
+          fields=["x_pos","y_pos","x_speed","y_speed","air_effective","rotation_candidate"]
+          for label,a,b in (("overrotate native/reference",no,ro),("control native/reference",nc,rc)):
+              print("==",label,"==")
+              for cp in a:
+                  aa=a[cp]["slot1"]; bb=b[cp]["slot1"]
+                  diff={k:(aa[k],bb[k]) for k in fields if aa[k]!=bb[k]}
+                  print(cp, "MATCH" if not diff else diff)
+                  if diff:
+                      raise SystemExit(1)
+
+          print("== native overrotate causal deltas ==")
+          for cp in no:
+              a=no[cp]["slot1"]; b=nc[cp]["slot1"]
+              diff={k:(a[k],b[k]) for k in fields if a[k]!=b[k]}
+              print(cp, diff or "IDENTICAL")
+          PY
+
+      - name: Compare over-rotation against clean landing
+        shell: bash
+        run: |
+          set -euo pipefail
+          for engine in native reference; do
+            python3 tools/compare_wram_checkpoints.py \
+              "$RUNNER_TEMP/${engine}-collision-overrotate-dumps" "$RUNNER_TEMP/${engine}-collision-control-dumps" \
+              --label-a overrotate --label-b clean --limit 100 \
+              --checkpoint collision-pre \
+              --checkpoint collision-overrotate-008 \
+              --checkpoint collision-overrotate-010 \
+              --checkpoint collision-overrotate-012 \
+              --checkpoint collision-overrotate-016 \
+              --checkpoint collision-release-004 \
+              --checkpoint collision-release-012 \
+              --checkpoint collision-release-028 \
+              --checkpoint collision-settle \
+              --json-out "$RUNNER_TEMP/${engine}-collision-effect.json" \
+              | tee "$RUNNER_TEMP/${engine}-collision-effect.txt"
+          done
+
+      - name: Upload collision evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-overrotation-collision
+          path: |
+            ${{ runner.temp }}/native-collision-*.log
+            ${{ runner.temp }}/reference-collision-*.log
+            ${{ runner.temp }}/native-collision-*-state.json
+            ${{ runner.temp }}/reference-collision-*-state.json
+            ${{ runner.temp }}/native-collision-*-state.txt
+            ${{ runner.temp }}/reference-collision-*-state.txt
+            ${{ runner.temp }}/native-collision-effect.json
+            ${{ runner.temp }}/reference-collision-effect.json
+            ${{ runner.temp }}/native-collision-effect.txt
+            ${{ runner.temp }}/reference-collision-effect.txt
+            ${{ runner.temp }}/native-collision-*-dumps/
+            ${{ runner.temp }}/reference-collision-*-dumps/
+          if-no-files-found: warn
+          retention-days: 7

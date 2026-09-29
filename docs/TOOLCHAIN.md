@@ -62,6 +62,8 @@ Use it for deterministic reference execution, scripted-input traces, WRAM compar
 
 Command-line SNES graphics converter for palettes, planar tile graphics, maps, and image round trips. The pinned v0.12 line is the upstream Rust rewrite. It can emit native binary and JSON/image forms, making it useful both for discovering graphics structure and later for a custom-course/asset pipeline.
 
+UR-Recomp now owns a pruned copy of the pinned Rust CLI source plus its exact Cargo dependency closure under `third_party/src/superfamiconv/`. The source-local `.cargo/config.toml` redirects crates.io to the committed `vendor/` tree, and the toolchain contract requires `cargo build --release --locked --offline`. The acquisition proof used an empty `CARGO_HOME`, so a successful build cannot be attributed to a hosted-runner registry cache.
+
 Use it before writing bespoke tile/palette conversion unless Uniracers data demonstrably needs a custom layer.
 
 ### snes2asm + WLA-DX

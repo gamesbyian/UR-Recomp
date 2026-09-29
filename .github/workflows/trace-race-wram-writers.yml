@@ -59,6 +59,28 @@ jobs:
             --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
 
           PROJECT="$ROOT/UniracersSNESRecomp"
+
+          # Pinned scaffold revision emits production no-op debug hooks
+          # unconditionally in host_contract.c. Trace mode supplies the real
+          # definitions from debug_server.c, so guard the generated stubs for
+          # this trace-only build to avoid duplicate symbols at link time.
+          python3 - "$PROJECT/src/host_contract.c" <<'PY'
+          from pathlib import Path
+          import sys
+          p = Path(sys.argv[1])
+          s = p.read_text()
+          marker = "#include <stdint.h>\n"
+          if marker not in s:
+              raise SystemExit("host_contract.c include marker not found")
+          s = s.replace(
+              marker,
+              marker + "\n#if !defined(SNESRECOMP_TRACE) || !SNESRECOMP_TRACE\n",
+              1,
+          )
+          s += "\n#endif /* production debug-hook stubs */\n"
+          p.write_text(s)
+          PY
+
           cmake -S "$PROJECT" -B "$PROJECT/build-trace" \
             -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_ENABLE_TRACE=ON

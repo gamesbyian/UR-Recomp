@@ -283,3 +283,17 @@ The race-entry writer investigation exposed two repeatable harness hazards befor
 2. **Wall-clock budgeting under trace instrumentation.** After the handshake fix, the traced game followed the deterministic route correctly through frame 829 but the workflow's 90-second outer timeout killed the healthy host before race entry. The final probe batches early stepping, respects the server's bounded synchronous `step N` wait, and gives the host 240 seconds of wall-clock headroom.
 
 These are harness/tooling failure modes, not game-runtime failures. Agent-facing guardrails are now in `AGENTS.md`; operational guidance is in `docs/VALIDATION.md`.
+
+
+### Follow-up — first-race scene is visually coherent in native and reference captures
+
+The preserved native/reference race-entry artifact from run 36508095522 contains framebuffer captures for the same settled first-race checkpoint.
+
+Both captures show the same coherent stock scene: unicycle, horizontal track, race HUD, large direction arrow and background geometry are all present and spatially aligned. This is enough to clear the Phase 3 "track/player/background render plausibly" milestone.
+
+The captures are not byte-identical. A direct RGB comparison reports an RMSE of about 7 on a 0–255 channel scale, so exact color/pixel equivalence remains part of later rendering/compatibility validation rather than this coarse plausibility gate.
+
+Evidence:
+- workflow run 36508095522;
+- artifact 11007769197;
+- `race-entered.fb.bmp` from native and Snes9x/snesref dumps.

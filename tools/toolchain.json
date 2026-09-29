@@ -43,7 +43,13 @@
       "headless": {
         "status": "native",
         "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
-      }
+      },
+      "patches": [
+        {
+          "path": "tools/patches/snes9x-snesref-debug-exports.patch",
+          "sha256": "9de7146247ee0592ce22073362fbd23d51f541bfa84dcf5d44068b5582c62eab"
+        }
+      ]
     },
     {
       "id": "superfamiconv",

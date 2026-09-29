@@ -9,6 +9,7 @@ on:
       - "tools/extract_smv_input.py"
       - "tools/replay_input_via_lua.py"
       - "tools/summarize_wram_trace_checkpoints.py"
+      - "tools/compose_historical_replay_result.py"
       - "tests/input/historical-2008-wip.input"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain.json"
@@ -18,6 +19,9 @@ on:
 concurrency:
   group: historical-wip-dragster-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: write
 
 jobs:
   replay:
@@ -249,6 +253,37 @@ jobs:
           print("first sampled mismatch:", mismatches[0] if mismatches else "none")
           PY
 
+      - name: Compose canonical replay result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/compose_historical_replay_result.py \
+            --smv-meta "$RUNNER_TEMP/wip-2008.json" \
+            --trace-summary "$RUNNER_TEMP/dragster-trace-state.json" \
+            --reference-tsv "$RUNNER_TEMP/dragster-trace-state.tsv" \
+            --native-json "$RUNNER_TEMP/native-dragster-state.json" \
+            --out analysis/generated/historical-2008-dragster-replay.json
+
+      - name: Persist canonical replay result
+        shell: bash
+        run: |
+          set -euo pipefail
+          path=analysis/generated/historical-2008-dragster-replay.json
+          if git ls-files --error-unmatch "$path" >/dev/null 2>&1 && \
+             git diff --quiet -- "$path"; then
+            echo "replay result already current"
+            exit 0
+          fi
+          git add "$path"
+          if git diff --cached --quiet; then
+            echo "nothing to persist"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Record historical 2008 Dragster replay"
+          git push origin HEAD:${{ github.ref_name }}
+
       - name: Upload replay evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -263,6 +298,7 @@ jobs:
             ${{ runner.temp }}/dragster-trace-state.tsv
             ${{ runner.temp }}/dragster-trace-state.json
             ${{ runner.temp }}/dragster-trace-summary.txt
+            analysis/generated/historical-2008-dragster-replay.json
             ${{ runner.temp }}/native-dragster-state.json
             ${{ runner.temp }}/native-dragster-state.txt
             ${{ runner.temp }}/native-lua.log

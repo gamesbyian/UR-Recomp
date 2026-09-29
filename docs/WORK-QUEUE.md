@@ -84,7 +84,7 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 - [x] Preserve the source and submitted #4250 SMV in the repository with hashes/provenance.
 - [~] Verify the bot's key RAM labels against the canonical ROM/runtime. Frontend/race-entry state is verified; the active race-acceleration fixture is now testing the effective Lua player-1 X position/speed fields (`7E:0411`, `7E:04B7`) and related recovered state. Duplicate player-1 Lua keys have been resolved by actual Lua overwrite semantics. The historical 2008 Microstorage WIP SMV remains a second deterministic input corpus.
 - [x] Port the clean menu-driving route into the shared native/snesref deterministic input harness through race entry.
-- [ ] Evaluate its race-driving policy as an autonomous regression workload.
+- [~] Evaluate its race-driving policy as an autonomous regression workload. A first bounded whole-race script is active, and the preserved 2014 SMV now has a deterministic extractor plus coarse pinned-Snes9x replay workflow so exact historical first-race input can be recovered before porting more policy logic.
 
 ## Phase 5 — Differential validation
 

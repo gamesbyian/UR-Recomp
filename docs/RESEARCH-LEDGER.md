@@ -451,6 +451,10 @@ The final seven are `0x00C6`, `0x00C8`, `0x00C9`, and contiguous `0x01D1–0x01D
 
 **Recovered-policy timing:** on Dragster, `jumpAreas[0]` spans X 1090–25278 and Y 790–870. At the validated moving checkpoint (X 1655, Y 858), `ShouldJump()` would continue returning true every bot frame until its own air/Y-speed conditions changed. The original policy therefore behaves like a sustained B hold in this region, not a two-frame pulse.
 
-**Discriminating test:** replay a timing-identical Right-only control and compare jump vs no-jump within each engine. Treat only B-causal state differences as evidence for jump semantics. If the second-slot arc reproduces without B while table [1] stays grounded, replace the short pulse with a sustained B hold matching the recovered policy.
+**Matched-control result:** run 36513805265 replays the same route/timing with Right-only instead of the two-frame Right+B pulse. The short B pulse produces no semantic player-state change. In native, the only persistent full-WRAM difference is `$0069`, but it already differs at `accel-180` before B is pressed and therefore is not B-causal. In Snes9x, jump-vs-control differences are limited to transient stack bytes. The second-slot airborne arc therefore occurs independently of the two-frame B pulse.
+
+**Interpretation:** the initial "jump" fixture was a negative intervention. It did not launch the intended table-[1] player. The visually obvious airborne motion belonged to the second racer. This validates the duplicate-key/paired-slot caution and prevents falsely promoting `$0547` as player-1 air state.
+
+**Next discriminator:** replace the short pulse with sustained Right+B input across the Dragster jump area, matching the recovered bot's actual per-frame `ShouldJump()` policy, and require a causal change in table-[1] Y/air/related state before calling the controlled player airborne.
 
 **Evidence:** workflow run 36513247475; `tests/input/race-jump.script`; matched control `tests/input/race-jump-control.script`.

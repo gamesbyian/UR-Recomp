@@ -107,7 +107,7 @@ Maintain `SYMBOLS.md` and `RESEARCH-LEDGER.md`. `tools/export_symbols.py` genera
 
 - [ ] Locate compressed blocks and pointer/index tables.
 - [x] Verify RNC Method 1 corpus and independently decompress all 45 streams with CRC validation.
-- [ ] Reconstruct dimensions and primitives.
+- [~] Reconstruct dimensions and primitives. Header bytes 13/14 now form a confirmed 45/45 fixed-area structural invariant: zero-as-256 yields complementary pairs whose product is 1024; exact unit/consumer and geometry primitives remain open.
 - [ ] Produce structural documentation.
 - [ ] Build parser/tooling around the canonical ROM.
 

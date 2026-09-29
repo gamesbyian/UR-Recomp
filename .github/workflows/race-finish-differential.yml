@@ -1,0 +1,180 @@
+name: Dragster deterministic finish differential
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "rom_identity.txt"
+      - "snesrecomp"
+      - "tests/input/race-finish-dragster.script"
+      - "tools/summarize_paired_player_slots.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - ".github/workflows/race-finish-differential.yml"
+
+concurrency:
+  group: race-finish-differential-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  finish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Build native target
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/native"
+          mkdir -p "$ROOT"
+          sh snesrecomp/tools/new_project/setup_project.sh \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --generate \
+            --build \
+            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+          test -x "$ROOT/UniracersSNESRecomp/build/UniracersSNESRecomp"
+
+      - name: Build pinned Snes9x and snesref
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+          test -x "$RUNNER_TEMP/snesref-build/snesref"
+
+      - name: Run native finish probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script"
+          DUMPS="$RUNNER_TEMP/native-finish-dumps"
+          mkdir -p "$DUMPS"
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$RUNNER_TEMP/native-finish.log" 2>&1
+          cat "$RUNNER_TEMP/native-finish.log"
+          test -s "$DUMPS/race-results.wram.bin"
+
+      - name: Run reference finish probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script"
+          DUMPS="$RUNNER_TEMP/reference-finish-dumps"
+          mkdir -p "$DUMPS"
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$SCRIPT" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" >"$RUNNER_TEMP/reference-finish.log" 2>&1
+          cat "$RUNNER_TEMP/reference-finish.log"
+          test -s "$DUMPS/race-results.wram.bin"
+
+      - name: Summarize whole-race semantic checkpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHECKPOINTS=(
+            --checkpoint finish-probe-start
+            --checkpoint finish-probe-05
+            --checkpoint finish-probe-10
+            --checkpoint finish-probe-15
+            --checkpoint finish-probe-20
+            --checkpoint finish-probe-25
+            --checkpoint finish-probe-30
+            --checkpoint finish-probe-terminal
+            --checkpoint race-results
+          )
+          for engine in native reference; do
+            python3 tools/summarize_paired_player_slots.py \
+              "$RUNNER_TEMP/${engine}-finish-dumps" \
+              "${CHECKPOINTS[@]}" \
+              --json-out "$RUNNER_TEMP/${engine}-finish-state.json" \
+              | tee "$RUNNER_TEMP/${engine}-finish-state.txt"
+          done
+
+      - name: Verify results state and cross-runtime semantic agreement
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - \
+            "$RUNNER_TEMP/native-finish-dumps/race-results.wram.bin" \
+            "$RUNNER_TEMP/reference-finish-dumps/race-results.wram.bin" \
+            "$RUNNER_TEMP/native-finish-state.json" \
+            "$RUNNER_TEMP/reference-finish-state.json" <<'PY'
+          import json, pathlib, sys
+          nd = pathlib.Path(sys.argv[1]).read_bytes()
+          rd = pathlib.Path(sys.argv[2]).read_bytes()
+          ns = json.loads(pathlib.Path(sys.argv[3]).read_text())
+          rs = json.loads(pathlib.Path(sys.argv[4]).read_text())
+
+          for label, blob in (("native", nd), ("reference", rd)):
+              menu = blob[0x009F]
+              in_race = blob[0x0313]
+              print(label, f"results menu=0x{menu:02X} inRace=0x{in_race:02X}")
+              if menu != 0x99:
+                  raise SystemExit(f"{label}: expected raceResults menu 0x99")
+
+          fields = ["x_pos", "y_pos", "x_speed", "y_speed", "air_effective", "rotation_candidate"]
+          for cp in ns:
+              if cp not in rs:
+                  raise SystemExit(f"missing reference checkpoint {cp}")
+              a = ns[cp]["slot1"]
+              b = rs[cp]["slot1"]
+              diff = {k:(a[k],b[k]) for k in fields if a[k] != b[k]}
+              print(cp, "MATCH" if not diff else diff)
+              if diff:
+                  raise SystemExit(1)
+          PY
+
+      - name: Upload finish evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-dragster-finish
+          path: |
+            ${{ runner.temp }}/native-finish.log
+            ${{ runner.temp }}/reference-finish.log
+            ${{ runner.temp }}/native-finish-state.json
+            ${{ runner.temp }}/reference-finish-state.json
+            ${{ runner.temp }}/native-finish-state.txt
+            ${{ runner.temp }}/reference-finish-state.txt
+            ${{ runner.temp }}/native-finish-dumps/
+            ${{ runner.temp }}/reference-finish-dumps/
+          if-no-files-found: warn
+          retention-days: 7

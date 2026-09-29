@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "fixtures": [
+    {
+      "id": "reach-first-race",
+      "input_script": "tests/input/reach-first-race.script",
+      "purpose": "Clean boot through the one-player frontend into the first active race using controller input only.",
+      "engines": [
+        "native-recomp",
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "main-menu-settled",
+        "rider-select",
+        "tours",
+        "track-select",
+        "now-playing",
+        "race-active",
+        "race-settled"
+      ],
+      "compare_surfaces": [
+        "full-wram",
+        "named-state-fields",
+        "frame-timing"
+      ],
+      "future_extensions": [
+        "cpu-first-divergence",
+        "ppu-state",
+        "oam",
+        "vram",
+        "audio-state",
+        "screenshot"
+      ]
+    }
+  ]
+}

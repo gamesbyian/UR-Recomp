@@ -132,7 +132,7 @@
       "patches": [
         {
           "path": "tools/patches/snes2asm-ur-recomp.patch",
-          "sha256": "704ada50eaa4b8e65b7d84ecea461f0bc11866a56766708c89fe2773221c3b2a"
+          "sha256": "43b9ca9a74d1f59ccec655547d41bb909ccfd99ec68f063047d72733e08ae530"
         }
       ]
     },

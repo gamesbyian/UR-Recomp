@@ -658,3 +658,12 @@ Dynamic run 36515746538 independently shows airborne L input changing `$04C7` fr
 **Interpretation:** this is a high-value candidate source for an exact known-working Dragster controller sequence, potentially preferable to approximating the 2014 Lua policy. The apparent race boundaries are not yet promoted because they are inferred from input shape alone.
 
 **Discriminating test:** replay the exact translated SMV stream against the canonical USA ROM in pinned Snes9x/snesref and sample `7E:0313`, `7E:009F`, track ID and player-state anchors around the candidate boundaries. Workflow: `.github/workflows/historical-wip-dragster.yml`.
+
+
+### R-SEED-033 — 2008 WIP requires no mid-movie reset emulation
+
+**Status:** confirmed  
+**Date:** 2026-09-28  
+**Area:** input | TAS | replay fidelity
+
+Direct inspection of all 4,975 controller samples in the reset-anchored 2008 WIP finds no `0xFFFF` SMV reset markers. The historical replay therefore needs the movie's reset-anchored initial machine state and embedded SRAM, but no later reset event. Treating reset markers as neutral input is harmless for this specific corpus; generic SMV tooling should still preserve/report marker positions.

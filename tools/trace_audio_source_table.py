@@ -17,7 +17,7 @@ import socket
 import time
 from pathlib import Path
 
-TARGET_PC24 = 0x828298
+DEFAULT_TARGET_PC24 = 0x028298
 RACE_ACTIVE_WRAM = 0x0313
 TRACE_PAGE = 4096
 AUDIO_PAGE = 8000
@@ -243,6 +243,7 @@ def run_probe(
     reader,
     *,
     snapshot_function: str,
+    target_pc24: int,
     coarse_until: int,
     coarse_step: int,
     max_frames: int,
@@ -268,16 +269,16 @@ def run_probe(
             race_active_frame = stepped
             break
 
-    cpu_window = fetch_cpu_window(sock, reader, TARGET_PC24)
+    cpu_window = fetch_cpu_window(sock, reader, target_pc24)
     if not cpu_window["neighborhoods"]:
         raise RuntimeError(
-            f"target PC 0x{TARGET_PC24:06X} not found in retained CPU block trace"
+            f"target PC 0x{target_pc24:06X} not found in retained CPU block trace"
         )
 
     entry = cpu_window["neighborhoods"][-1]["entry"]
     d_register = parse_hex(entry["D"])
     observed_variant = generated_variant_name(
-        TARGET_PC24,
+        target_pc24,
         int(entry["m_flag"]),
         int(entry["x_flag"]),
     )
@@ -330,7 +331,7 @@ def run_probe(
 
     return {
         "schema_version": 1,
-        "target_pc24": f"0x{TARGET_PC24:06X}",
+        "target_pc24": f"0x{target_pc24:06X}",
         "requested_snapshot_function": snapshot_function,
         "observed_variant": observed_variant,
         "snapshot_function_matches_observed": (
@@ -354,6 +355,12 @@ def run_probe(
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--snapshot-function", required=True)
+    ap.add_argument(
+        "--target-pc24",
+        type=lambda value: int(value, 0),
+        default=DEFAULT_TARGET_PC24,
+        help="generated/runtime PC for the transfer entry; workflow derives this from emitted bank name",
+    )
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=4377)
     ap.add_argument("--connect-timeout", type=float, default=20.0)
@@ -371,6 +378,7 @@ def main() -> int:
             sock,
             reader,
             snapshot_function=args.snapshot_function,
+            target_pc24=args.target_pc24,
             coarse_until=args.coarse_until,
             coarse_step=args.coarse_step,
             max_frames=args.max_frames,

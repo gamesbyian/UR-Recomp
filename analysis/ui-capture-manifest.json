@@ -139,6 +139,59 @@
       "expect": {
         "current_menu": "0xD7"
       }
+    },
+    {
+      "tag": "ui-two-player-entry",
+      "state_id": "PLAYER_SELECT_P2",
+      "variant": "2P-entry",
+      "source_fixture": "ui-main-branches",
+      "discover": [
+        "current_menu"
+      ]
+    },
+    {
+      "tag": "ui-two-player-back-main",
+      "state_id": "MAIN_MENU",
+      "variant": "returned-from-2P",
+      "source_fixture": "ui-main-branches",
+      "expect": {
+        "current_menu": "0xD7"
+      }
+    },
+    {
+      "tag": "ui-vs-entry",
+      "state_id": "PLAYER_SELECT_P2",
+      "variant": "VS-entry",
+      "source_fixture": "ui-main-branches",
+      "discover": [
+        "current_menu"
+      ]
+    },
+    {
+      "tag": "ui-vs-back-main",
+      "state_id": "MAIN_MENU",
+      "variant": "returned-from-VS",
+      "source_fixture": "ui-main-branches",
+      "expect": {
+        "current_menu": "0xD7"
+      }
+    },
+    {
+      "tag": "ui-league-entry",
+      "state_id": "LEAGUE_SELECT",
+      "source_fixture": "ui-main-branches",
+      "discover": [
+        "current_menu"
+      ]
+    },
+    {
+      "tag": "ui-league-back-main",
+      "state_id": "MAIN_MENU",
+      "variant": "returned-from-league",
+      "source_fixture": "ui-main-branches",
+      "expect": {
+        "current_menu": "0xD7"
+      }
     }
   ]
 }

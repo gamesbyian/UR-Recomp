@@ -58,8 +58,8 @@
         "7E:0415 yPos",
         "7E:04B7 xSpeed",
         "7E:04BB ySpeed",
-        "7E:04C9 pitch",
-        "7E:0545/0547 airValue",
+        "7E:0F49 pitch (effective player-1 Lua key)",
+        "7E:0545 airValue (effective player-1 Lua key)",
         "7E:11BA countdownTimer"
       ],
       "future_extensions": [

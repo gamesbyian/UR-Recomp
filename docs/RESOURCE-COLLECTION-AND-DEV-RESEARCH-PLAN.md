@@ -34,26 +34,25 @@ The following are considered established unless contradicted by stronger evidenc
 - The recovered Canoe patch hooks original ROM code at offsets `0x01534C` and `0x015714`.
 - TAS and RetroAchievements sources provide useful WRAM/SRAM anchors for speed, boost, position, stunt state, medal state, and progression.
 - Historical SNasm 1.7.1 is preserved locally, and Dailly's documented 65816 syntax/conventions provide lineage evidence for future reconstructed assembly.
-- The strict native smoke harness builds and launches the actual `UniracersSNESRecomp` target. Deterministic controller-only input now reaches the first one-player race in both native SNESRecomp and Snes9x/snesref. Full-WRAM comparison reduces the settled race-entry mismatch to seven bytes.
+- The strict native smoke harness builds and launches the actual `UniracersSNESRecomp` target. Deterministic controller-only input reaches the first one-player race in both native SNESRecomp and Snes9x/snesref. The former seven-byte settled race-entry WRAM mismatch is now explained: four bytes are stale stack residue and three are free-running timing/phase counters.
 
 ## Operating priorities
 
-### 1. Reduce the first native/reference race-entry divergence
+### 1. Extend deterministic differential coverage into race behavior
 
-The build, title, deterministic frontend, race-entry and initial reference-replay gates are cleared. The active execution question is now the seven-byte settled-race WRAM difference found by the combined native/Snes9x differential.
+The build, title, deterministic frontend, race-entry, reference replay and first settled-race WRAM-divergence gates are cleared. Run 36511207129 resolves the former seven-byte race-entry mismatch as non-semantic residue: `$01D1–$01D4` is stale stack history, while `$00C6/$00C8/$00C9` are free-running phase counters.
 
 Actions:
 - keep `.github/workflows/native-build-smoke.yml` strict about the exact generated Uniracers target;
-- keep `tests/input/reach-first-race.script` shared verbatim across native and reference runs;
-- preserve full-WRAM checkpoint comparison as the default first-divergence surface;
-- trace the earliest meaningful writes to `0x01D1–0x01D4` and characterize `0x00C6`, `0x00C8`, `0x00C9`;
-- distinguish harmless timing/animation residue from a genuine simulation-state mismatch;
-- only add CPU/PPU/OAM/VRAM/audio instrumentation when WRAM/write-history evidence is insufficient;
-- record each narrowed divergence in `docs/BRINGUP.md` and `docs/RESEARCH-LEDGER.md`;
-- prefer the smallest correct framework/configuration fix over game-specific patches;
-- keep stock 4:3 behavior as the oracle.
+- preserve `tests/input/reach-first-race.script` and its native/reference checkpoint corpus as the baseline;
+- extend the shared deterministic fixture into race start, acceleration, jump, rotation, landing, collision and finish;
+- validate Dessyreqt's recovered player-state labels, especially X/Y position, X/Y speed, pitch, air state and countdown timer, against both runtimes;
+- compare event-relative semantic state instead of requiring equality of stale stack bytes or free-running presentation counters;
+- promote stable race behaviors into durable fixtures and assertions;
+- trace the earliest meaningful writer/state divergence only if a semantic invariant actually disagrees;
+- keep stock 4:3 behavior as the oracle while race simulation coverage expands.
 
-Exit condition: the seven settled-race differences are explained or reduced to the first reproducible guest/runtime cause, with a permanent regression assertion for any true invariant.
+Exit condition: the first-race fixture exercises representative movement/physics events with confirmed player-state semantics and objective native/reference assertions, leaving no unexplained simulation-state mismatch in those cases.
 
 ### 2. Decode and inventory all 45 RNC streams
 

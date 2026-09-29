@@ -301,9 +301,9 @@ The conceptual graph should stay concise. The capture manifest owns reproducible
 
 ### Current multiplayer automation boundary
 
-The project-owned fixture grammar currently exposes the controller surface used by the one-player scripts, but no established player-2 input syntax is present in the repository. Phase 2 therefore stops the 2P/VS probes at states reachable with player-one navigation rather than inventing a second-controller convention.
+The shared deterministic controller transport is now present on `main`. Its neutral stream is `start:duration:p1-mask[:p2-mask]`, with independent P1/P2 masks consumed by the native Lua adapter, patched `snesref`, and Mesen adapter.
 
-That is a tooling boundary, not evidence that the game flow is inaccessible. `docs/TWO-PLAYER-FIXTURE-PLAN.md` makes it a required fidelity dependency with an acceptance route and downstream obligations. Deeper `TWO_PLAYER_SELECT`, `VS_CHALLENGER`, and `VS_CHALLENGE_TRACK` automation should resume when a shared fixture path can express player-two input consistently across the relevant engines.
+The remaining boundary is behavioral verification and capture synchronization, not input syntax. `docs/TWO-PLAYER-FIXTURE-PLAN.md` owns the acceptance route: prove P2-only causality and P1→P2 rider-selection handoff, then attach stable named checkpoints/framebuffers to the deeper 2P/VS states. Until that route is reproduced, `VS_CHALLENGER` and `VS_CHALLENGE_TRACK` remain intentionally blocked in route planning even though the transport underneath them exists.
 
 ## Top-level branch probes
 

@@ -89,7 +89,98 @@ Implementation requirements:
 5. add `--check` coverage so generated files cannot silently drift;
 6. update `tool_interop.json` with explicit formats/handoffs.
 
-Mesen supports imported label files and SNES-specific ROM/WRAM memory spaces. Confirm the exact pinned MesenCE import syntax before committing an exporter. Ghidra should use a project-owned importer/script or other deterministic format rather than relying on manual GUI entry.
+Pinned MesenCE source now fixes the import target precisely: `MesenLabelFile` delegates each UTF-8 line to `CodeLabel.FromString`, whose native form is `MemoryType:HEX_ADDRESS:Label[:Comment]` (or an address range), with SNES memory types such as `SnesPrgRom` and `SnesWorkRam`. Comments encode embedded newlines as `\\n`; labels must match `^[@_a-zA-Z]+[@_a-zA-Z0-9]*# Tooling Audit Closeout Plan
+
+Last updated: 2026-09-29
+
+This document defines the remaining work needed to close the repository-wide tooling audit. It exists to prevent settled audit questions from being repeatedly reopened and to separate genuine tool-integration work from experiments that now belong to the main reverse-engineering plan.
+
+The audit is substantially complete. The repository has a pinned and provenance-checked toolchain, explicit imported-code policy, deterministic shared-fixture infrastructure, a machine-readable producer/consumer graph, headless execution policy, independent reference cores, symbol fan-out into snes2asm/da65, and documented boundaries between project infrastructure and historical evidence.
+
+## Closeout rule
+
+A tooling-audit item is complete when one of these is true:
+
+1. the tool or handoff is exercised by a deterministic repository test or fixture;
+2. the interface is documented and deliberately classified as manual/supported rather than automated;
+3. the item is explicitly transferred into a main-plan phase because the remaining work is a game-behavior experiment rather than a tooling question;
+4. the item is explicitly deferred because measured cost does not justify implementation.
+
+Do not keep the audit alive merely to read more upstream source. Prefer small discriminating fixtures.
+
+## Priority order
+
+### P0 - repository-island acquisition
+
+Owned by the repository-island workstream in `docs/ISLAND-TOOLCHAIN-PLAN.md`. P0-A infrastructure is now underway: the repository has a machine-readable island manifest, hash/license validation wired into repository hygiene, local-source preference in bootstrap, and an explicit fail-closed `--offline` mode. `mesen-for-ai` is the first direct vendor in progress: its pinned source subset and license are repository-owned and its Python install path is registry-free. Other components remain pending until their source/archive and dependency closure land.
+
+Do not duplicate acquisition work here. The tooling audit should consume the islanded tools once available, especially MesenCE/mesen-for-ai, rather than maintaining a second acquisition path.
+
+### P1 - prove Mesen as the third deterministic execution engine
+
+Current state:
+
+- `tools/run_fixture_mesen.py` already maps the shared `wait / press / until / dump / quit` grammar onto mesen-for-ai;
+- ROM-free parser/input/frame/dump semantics are tested;
+- MesenCE is deliberately pinned;
+- the intended Linux route is `Mesen --testrunner` under Xvfb with isolated settings.
+
+Remaining proof:
+
+1. make the pinned MesenCE Linux executable available through the reproducible bootstrap path;
+2. run `tests/input/reach-first-race.script` unchanged;
+3. emit the same named full-WRAM checkpoints used by native and snesref;
+4. compare every checkpoint with the existing comparison tool;
+5. record expected emulator variance rather than silently tolerating it;
+6. only then upgrade the Mesen handoffs/chains in `tools/tool_interop.json` from supported to verified.
+
+This is the highest-value remaining pure tooling item because it turns a designed adapter into a proven independent engine.
+
+### P1 - validate the Mesen CDL bridge
+
+Goal: one Mesen execution should be able to produce dynamic code/data evidence usable by the static-analysis workbenches.
+
+Do not assume Mesen CDL and bsnes/BizHawk-style usage data are byte-compatible. Build the adapter from evidence.
+
+Required sequence:
+
+1. capture a deliberately tiny known execution corpus in Mesen;
+2. inspect Mesen's exact SNES CDL byte flags and ROM-address mapping;
+3. capture or synthesize the equivalent known corpus in the target bsnes/DiztinGUIsh/da65 workflow;
+4. map only semantics that are proven equivalent;
+5. preserve unknown or lossy flags explicitly;
+6. write ROM-free unit fixtures for the transformation;
+7. verify at least one emitted artifact is accepted by the intended consumer and produces the expected code/data classification;
+8. document whether DiztinGUIsh and da65 require one shared compatibility representation or two narrow adapters.
+
+Until this is proven, the interop graph must continue to classify the Mesen-CDL handoffs as candidate.
+
+### P1 - complete canonical symbol fan-out
+
+Current canonical authority:
+
+`docs/SYMBOLS.md -> analysis/generated/symbols.json -> tools/export_symbol_adapters.py`
+
+Already generated:
+
+- snes2asm label/memory YAML;
+- da65 label info files.
+
+Still needed:
+
+- Mesen label import;
+- Ghidra symbol import.
+
+Implementation requirements:
+
+1. generate both from `analysis/generated/symbols.json`; never create parallel hand-maintained symbol lists;
+2. keep address-space conversion explicit and tested, especially LoROM CPU address vs ROM-file offset vs WRAM offset;
+3. emit only names/addresses the canonical symbol schema can justify;
+4. keep comments/confidence/provenance where the target format can safely carry them;
+5. add `--check` coverage so generated files cannot silently drift;
+6. update `tool_interop.json` with explicit formats/handoffs.
+
+. The exporter should target that native syntax directly and unit-test ROM/WRAM address-space mapping. Ghidra should use a project-owned importer/script or other deterministic format rather than relying on manual GUI entry.
 
 ### P2 - exact graphics round-trip fixtures
 

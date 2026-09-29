@@ -109,6 +109,44 @@
         "finish"
       ],
       "control_script": "tests/input/race-jump-control.script"
+    },
+    {
+      "id": "race-rotation-left",
+      "input_script": "tests/input/race-rotation-left.script",
+      "control_script": "tests/input/race-rotation-control.script",
+      "purpose": "Apply eight frames of L during the causally validated player-1 airborne window and compare against timing-identical jump-only control to identify rotation/orientation state.",
+      "engines": [
+        "native-recomp",
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "accel-180",
+        "rotation-pre",
+        "rotation-l-008",
+        "rotation-post-008",
+        "rotation-post-016",
+        "rotation-release-016",
+        "rotation-settle"
+      ],
+      "compare_surfaces": [
+        "player-state-fields",
+        "full-wram"
+      ],
+      "semantic_fields": [
+        "7E:0411 xPos",
+        "7E:0415 yPos",
+        "7E:04B7 xSpeed",
+        "7E:04BB ySpeed",
+        "7E:0545 airValue",
+        "7E:0F49 pitch"
+      ],
+      "future_extensions": [
+        "right-rotation",
+        "landing-transition",
+        "stunt-input",
+        "collision",
+        "finish"
+      ]
     }
   ]
 }

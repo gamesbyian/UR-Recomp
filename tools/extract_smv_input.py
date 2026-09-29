@@ -94,6 +94,16 @@ def main() -> int:
     controller_mask = data[0x14]
     movie_options = data[0x15]
     sync_options = data[0x16] | (data[0x17] << 8)
+    sync_data_exists = bool(data[0x17] & 0x01)
+    legacy_sync = {
+        "init_fastrom": bool(data[0x16] & 0x01),
+        "wip1_timing": bool(data[0x17] & 0x02),
+        "leftright": bool(data[0x17] & 0x04),
+        "volumeenvx": bool(data[0x17] & 0x08),
+        "fakemute": bool(data[0x17] & 0x10),
+        "syncsound": bool(data[0x17] & 0x20),
+        "has_rom_info": bool(data[0x17] & 0x40),
+    }
     savestate_offset = u32(data, 0x18)
     controller_data_offset = u32(data, 0x1C)
     active_ids = [i for i in range(5) if controller_mask & (1 << i)]
@@ -185,6 +195,11 @@ def main() -> int:
         "reset_anchored": reset_anchored,
         "pal": pal,
         "sync_options": sync_options,
+        "sync_data_exists": sync_data_exists,
+        "legacy_sync_flags": legacy_sync if sync_data_exists else None,
+        "legacy_timing_review_required": bool(
+            version == 1 and sync_data_exists and legacy_sync["wip1_timing"]
+        ),
         "savestate_offset": savestate_offset,
         "controller_data_offset": controller_data_offset,
         "port_types": port_types,

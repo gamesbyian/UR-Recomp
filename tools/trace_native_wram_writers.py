@@ -28,12 +28,13 @@ def connect(host: str, port: int, timeout: float) -> tuple[socket.socket, object
         s.settimeout(2.0)
         try:
             s.connect((host, port))
+            # The SNESRecomp debug server is command/response only: it does
+            # not emit a greeting banner on connect. Waiting for one caused
+            # each probe to time out, reconnect, and make the server drop the
+            # previous client before any command could be sent.
             reader = s.makefile("r", encoding="utf-8", newline="\n")
-            greeting = reader.readline()
-            if not greeting:
-                raise RuntimeError("debug server closed before greeting")
             return s, reader
-        except (OSError, RuntimeError) as exc:
+        except OSError as exc:
             last_error = exc
             s.close()
             time.sleep(0.1)

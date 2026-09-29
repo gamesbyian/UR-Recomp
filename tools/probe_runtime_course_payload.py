@@ -63,6 +63,9 @@ def main() -> int:
             "header_first_16":decoded[:16].hex(" "),
             "pair1":[u16le(decoded,3),u16le(decoded,5)],
             "pair2":[u16le(decoded,7),u16le(decoded,9)],
+            "decoded_le16_11":u16le(decoded,11),
+            "decoded_bytes_after_le16_11":len(decoded)-(u16le(decoded,11)+1),
+            "decoded_le16_11_plus_1_aligned_16":((u16le(decoded,11)+1) % 16 == 0),
         })
         results.append(result)
 
@@ -76,10 +79,26 @@ def main() -> int:
     }
     by_stream={x["stream"]:x for x in results}
     focus=by_stream.get(args.focus_stream)
+    live_le16_11=u16le(live,11)
+    focus_cursor=None
+    if focus is not None:
+        decoded_cursor=focus["decoded_le16_11"]
+        focus_cursor={
+            "decoded_value":decoded_cursor,
+            "live_value":live_le16_11,
+            "advance":live_le16_11-decoded_cursor,
+            "decoded_size":focus["decoded_size"],
+            "bytes_after_cursor":focus["decoded_bytes_after_le16_11"],
+            "advance_needed_for_last_byte":focus["decoded_size"]-1-decoded_cursor,
+            "live_equals_last_byte_offset":live_le16_11==focus["decoded_size"]-1,
+        }
     report={
         "wram_course_base":"7F:0000",
+        "live_header_first_16":live[:16].hex(" "),
+        "live_le16_11":live_le16_11,
         "best_match":best,
         "focus_stream":focus,
+        "focus_cursor":focus_cursor,
         "top_matches":results[:5],
         "runtime_racer_state":racer_state,
     }
@@ -96,8 +115,18 @@ def main() -> int:
             f"focus stream #{args.focus_stream}: "
             f"equal={focus['equal_bytes']}/{focus['live_compared']} "
             f"({focus['equal_fraction']:.6f}) prefix={focus['common_prefix']} "
-            f"diffs={focus['diff_count']} live_b11=0x{live[11]:02X}"
+            f"diffs={focus['diff_count']} "
+            f"decoded_le16_11=0x{focus['decoded_le16_11']:04X} "
+            f"bytes_after={focus['decoded_bytes_after_le16_11']} "
+            f"live_le16_11=0x{live_le16_11:04X}"
         )
+        if focus_cursor is not None:
+            print(
+                "focus cursor: "
+                f"advance={focus_cursor['advance']} "
+                f"needed_to_last={focus_cursor['advance_needed_for_last_byte']} "
+                f"at_last={focus_cursor['live_equals_last_byte_offset']}"
+            )
     print(f"pair1={best['pair1']} pair2={best['pair2']}")
     print(
         "runtime racers: "

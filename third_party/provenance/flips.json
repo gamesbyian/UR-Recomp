@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "tool": "flips",
+  "upstream_url": "https://github.com/bates64/flips.git",
+  "upstream_revision": "6caac470f7fc096b0c5fdc374b65954f8bac5b16",
+  "vendored_source_path": "third_party/src/flips",
+  "vendored_tree_sha256": "c1182506e7803de122839c7eb167385876993bda770366c6ea74bbbfe5b00caf",
+  "license_spdx": "GPL-3.0-or-later",
+  "license_path": "third_party/src/flips/COPYING.gpl3",
+  "bundled_component": {
+    "name": "libdivsufsort 2.0.1",
+    "license_path": "third_party/src/flips/libdivsufsort-2.0.1/COPYING",
+    "purpose": "Suffix-array implementation used by BPS delta creation."
+  },
+  "retained": [
+    "COPYING",
+    "COPYING.gpl3",
+    "README.md",
+    "bps_spec.md",
+    "Makefile",
+    "CLI/core patch source and headers",
+    "libdivsufsort-2.0.1/{COPYING,AUTHORS,README,VERSION,include/**,lib/*.c}"
+  ],
+  "excluded": [
+    ".github/**",
+    ".vscode/**",
+    ".gitattributes",
+    ".gitignore",
+    "flips-gtk.cpp",
+    "flips-w32.cpp",
+    "GUI icons/resources/data",
+    "flatpak/**",
+    "profile/**",
+    "platform/release helper scripts",
+    "root legacy divsufsort.c/.h"
+  ],
+  "exclusion_reason": "UR-Recomp uses only the CLI patch apply/create surface. GUI/platform integration and packaging assets are not execution dependencies.",
+  "dependency_closure": "No package registry. The CLI builds from the system C++ compiler plus the libdivsufsort source already bundled in the pinned upstream tree.",
+  "build_contract": "make TARGET=cli -jN; resulting ./flips --version and --help smoke successfully."
+}

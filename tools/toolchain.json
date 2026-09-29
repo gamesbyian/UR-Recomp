@@ -111,7 +111,13 @@
       "headless": {
         "status": "native",
         "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
-      }
+      },
+      "patches": [
+        {
+          "path": "tools/patches/wla-dx-ur-recomp.patch",
+          "strip": 1
+        }
+      ]
     },
     {
       "id": "snes2asm",

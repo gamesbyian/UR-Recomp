@@ -212,6 +212,14 @@ Preferred search keys:
 
 Wayback, old forum archives, preserved personal sites, source mirrors, and exact historical URLs should take precedence over generic modern search results.
 
+## Frontend / screen-flow mapping
+
+Maintain a machine-readable UI state graph in `analysis/ui-state-map.yml` and the corresponding human guide in `docs/UI-STATE-MAP.md`.
+
+This is a cross-cutting research aid, not a presentation-only task. Use it to connect player-visible screens to controller inputs, WRAM/menu-state IDs, local framebuffer dumps, runtime routines, deterministic fixtures, and later frontend replacement work. Public screenshots and manual descriptions are valid bootstrap evidence; important behavior should migrate toward locally reproduced controller-only routes.
+
+Do not spend compute deriving obvious button behavior from assembly when a screenshot plus the documented menu convention gives a strong candidate. Run the cheap candidate first, capture the resulting state, and only instrument deeper if the observation is ambiguous or fails.
+
 ## Experimental apparatus
 
 The research program should attack important unknowns from multiple independent directions rather than treating disassembly as the final product.

@@ -1,4 +1,4 @@
-name: One-shot VS P2 timing sweep
+name: One-shot VS rider move-confirm matrix
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
       - ".github/workflows/vs-p2-oam-recon.yml"
 
 jobs:
-  sweep:
+  recon:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -29,7 +29,7 @@ jobs:
           python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
           cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
           cmake --build "$RUNNER_TEMP/snesref-build" -j2
-      - name: Sweep delayed P2 A pulses
+      - name: Test rider movement plus confirmation
         shell: bash
         run: |
           set -euo pipefail
@@ -38,56 +38,54 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           OBS="$RUNNER_TEMP/observe.script"
           cat >"$OBS" <<'EOF'
-          wait 650
+          wait 655
           dump before
-          wait 50
-          dump t700
-          wait 50
-          dump t750
-          wait 50
-          dump t800
-          wait 50
-          dump t850
-          wait 50
-          dump t900
-          wait 50
-          dump t950
-          wait 50
-          dump t1000
-          wait 80
-          dump t1080
+          wait 25
+          dump moved
+          wait 30
+          dump confirmed
+          wait 90
+          dump later
           quit
           EOF
-          INPUT="$RUNNER_TEMP/sweep.input"
-          cat >"$INPUT" <<'EOF'
+
+          run_variant() {
+            local name="$1" move_p1="$2" move_p2="$3" confirm_p1="$4" confirm_p2="$5"
+            local input="$RUNNER_TEMP/$name.input"
+            cat >"$input" <<EOF
           500:1:020:000
           502:1:020:000
           534:2:100:000
           597:2:100:000
-          670:2:000:100
-          720:2:000:100
-          770:2:000:100
-          820:2:000:100
-          870:2:000:100
-          920:2:000:100
-          970:2:000:100
-          1020:2:000:100
+          665:2:$move_p1:$move_p2
+          685:2:$confirm_p1:$confirm_p2
           EOF
-          DUMPS="$RUNNER_TEMP/dumps"
-          mkdir -p "$DUMPS"
-          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
-          SNESREF_INPUT_FILE="$INPUT" SNESREF_SCRIPT="$OBS" SNESREF_DUMP_DIR="$DUMPS" \
-            "$EXE" "$CORE" "$ROM" 2>&1 | tee "$RUNNER_TEMP/route.log"
-          for tag in before t700 t750 t800 t850 t900 t950 t1000 t1080; do
-            python3 -c 'import pathlib,sys; w=pathlib.Path(sys.argv[1]).read_bytes(); s=pathlib.Path(sys.argv[2]).read_bytes(); print(f"{sys.argv[3]} menu=0x{w[0x009F]:02X} sel=0x{w[0x009B]:02X} race=0x{w[0x0313]:02X} owner=0x{s[0x0743]:02X}")' "$DUMPS/$tag.wram.bin" "$DUMPS/$tag.sram.bin" "$tag"
-          done
-          echo "== active-display OAM writes =="
-          awk '($4=="2102" || $4=="2103" || $4=="2104") && $2 < 225 {print}' "$DUMPS"/*.ppuw.tsv | head -n 200 || true
+            local dumps="$RUNNER_TEMP/$name"
+            mkdir -p "$dumps"
+            echo "===== $name ====="
+            SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+            SNESREF_INPUT_FILE="$input" SNESREF_SCRIPT="$OBS" SNESREF_DUMP_DIR="$dumps" \
+              "$EXE" "$CORE" "$ROM" 2>&1 | tee "$RUNNER_TEMP/$name.log"
+            for tag in before moved confirmed later; do
+              python3 -c 'import pathlib,sys; w=pathlib.Path(sys.argv[1]).read_bytes(); s=pathlib.Path(sys.argv[2]).read_bytes(); print(f"{sys.argv[3]} menu=0x{w[0x009F]:02X} sel=0x{w[0x009B]:02X} row=0x{w[0x000E]:02X} col=0x{w[0x0C63]:02X} race=0x{w[0x0313]:02X} owner=0x{s[0x0743]:02X}")' "$dumps/$tag.wram.bin" "$dumps/$tag.sram.bin" "$tag"
+            done
+            echo "-- active-display OAM writes --"
+            awk '($4=="2102" || $4=="2103" || $4=="2104") && $2 < 225 {print}' "$dumps"/*.ppuw.tsv | head -n 120 || true
+          }
+
+          # SNES masks: Left=040, Right=080, A=100.
+          run_variant p1-left-a  040 000 100 000
+          run_variant p1-right-a 080 000 100 000
+          run_variant p2-left-a  000 040 000 100
+          run_variant p2-right-a 000 080 000 100
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: vs-p2-timing-sweep
+          name: vs-rider-move-confirm-matrix
           path: |
-            ${{ runner.temp }}/route.log
-            ${{ runner.temp }}/dumps/
+            ${{ runner.temp }}/p1-left-a/
+            ${{ runner.temp }}/p1-right-a/
+            ${{ runner.temp }}/p2-left-a/
+            ${{ runner.temp }}/p2-right-a/
+            ${{ runner.temp }}/*.log
           retention-days: 7

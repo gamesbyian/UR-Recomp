@@ -74,6 +74,7 @@ def analyze_capture(
         "state_id": capture["state_id"],
         "variant": capture.get("variant"),
         "source_fixture": capture.get("source_fixture"),
+        "required": capture.get("required", True),
         "status": "missing",
         "expected": capture.get("expect", {}),
         "discover": capture.get("discover", []),
@@ -151,8 +152,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         f"Manifest: `{report['manifest']}`",
         "",
-        "| State | Variant | Tag | Frame | Menu | Selected | In race | Framebuffer | Status |",
-        "|---|---|---|---:|---:|---:|---:|---|---|",
+        "| State | Variant | Tag | Required | Frame | Menu | Selected | In race | Framebuffer | Status |",
+        "|---|---|---|---|---:|---:|---:|---:|---|---|",
     ]
     for item in report["captures"]:
         obs = item.get("observed", {})
@@ -168,6 +169,7 @@ def render_markdown(report: dict[str, Any]) -> str:
                 state=item["state_id"],
                 variant=item.get("variant") or "",
                 tag=item["tag"],
+                required="yes" if item.get("required", True) else "no",
                 frame=item.get("frame", ""),
                 menu=obs.get("current_menu", ""),
                 sel=obs.get("selected_option", ""),
@@ -177,7 +179,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             )
         )
         for mismatch in item.get("mismatches", []):
-            lines.append(f"|  |  |  |  |  |  |  | ↳ {mismatch} |  |")
+            lines.append(f"|  |  |  |  |  |  |  |  | ↳ {mismatch} |  |")
 
     discoveries = []
     for item in report["captures"]:
@@ -243,7 +245,10 @@ def main() -> int:
         args.out_md.parent.mkdir(parents=True, exist_ok=True)
         args.out_md.write_text(md + "\n")
 
-    if args.strict and any(c["status"] in {"mismatch", "missing", "invalid"} for c in captures):
+    if args.strict and any(
+        c.get("required", True) and c["status"] in {"mismatch", "missing", "invalid"}
+        for c in captures
+    ):
         return 2
     return 0
 

@@ -1,0 +1,24 @@
+name: One-shot audio selector setup scan
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/scan_audio_setup_selectors.py"
+      - ".github/workflows/audio-selector-setup-scan.yml"
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Scan setup selectors
+        run: |
+          python3 tools/scan_audio_setup_selectors.py             "reference/roms/retail/Uniracers_USA.sfc"             --json-out audio-selector-setup.json
+          cat audio-selector-setup.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audio-selector-setup-scan
+          path: audio-selector-setup.json

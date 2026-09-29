@@ -185,13 +185,50 @@
     {
       "tag": "ui-vs-entry",
       "state_id": "VS_SELECT",
-      "variant": "VS-entry",
-      "source_fixture": "ui-main-branches",
+      "variant": "player-one",
+      "source_fixture": "ui-vs-handoff",
       "discover": [
-        "current_menu",
-        "participant_owner_raw"
+        "selected_option",
+        "menu_row",
+        "menu_col"
       ],
-      "required": false
+      "required": false,
+      "expect": {
+        "current_menu": "0x3E",
+        "participant_owner_raw": "0x04"
+      }
+    },
+    {
+      "tag": "ui-vs-after-p1-x",
+      "state_id": "VS_SELECT",
+      "variant": "player-two-after-p1-x",
+      "source_fixture": "ui-vs-handoff",
+      "required": false,
+      "expect": {
+        "current_menu": "0x3E",
+        "participant_owner_raw": "0x02"
+      },
+      "discover": [
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-vs-player-two",
+      "state_id": "VS_SELECT",
+      "variant": "player-two",
+      "source_fixture": "ui-vs-handoff",
+      "required": false,
+      "expect": {
+        "current_menu": "0x3E",
+        "participant_owner_raw": "0x02"
+      },
+      "discover": [
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
     },
     {
       "tag": "ui-vs-back-main",

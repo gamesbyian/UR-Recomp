@@ -78,8 +78,9 @@ jobs:
             tracks-ready after-track-confirm now-playing-ready \
             post-confirm-000 post-confirm-001 post-confirm-002 post-confirm-004 \
             post-confirm-008 post-confirm-016 post-confirm-032 post-confirm-036 \
-            post-confirm-040 post-confirm-044 post-confirm-048 post-confirm-052 \
-            post-confirm-056 post-confirm-060 post-confirm-064 \
+            post-confirm-040 post-confirm-041 post-confirm-042 post-confirm-043 \
+            post-confirm-044 post-confirm-045 post-confirm-046 post-confirm-047 \
+            post-confirm-048 post-confirm-052 post-confirm-056 post-confirm-060 post-confirm-064 \
             post-confirm-096 post-confirm-128 post-confirm-144 race-active
           do
             echo "== $checkpoint ==" | tee -a "$RUNNER_TEMP/course-runtime-timeline.txt"

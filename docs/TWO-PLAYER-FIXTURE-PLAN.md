@@ -128,3 +128,23 @@ Do not allow completion of general fidelity work to imply multiplayer fidelity i
 Any agent modifying the shared fixture grammar, native scripted-input harness, `snesref` input adapter, Mesen fixture adapter, or multiplayer UI code should check this plan and either advance this capability or explicitly preserve its requirements.
 
 Conversely, UI-atlas work should continue on single-controller-reachable states while behavioral multiplayer verification remains open rather than waiting idle.
+
+
+## OAM seam instrumentation
+
+Detailed Snes9x reference capture is now available through the project-pinned debug-export patch:
+
+- OAM: 544-byte snapshot per named dump;
+- PPU register state: decoded JSON;
+- PPU write journal: frame/V/H/address/value/source;
+- ordinary VS-selector capture is proven and shows only vblank-era OAM DMA, so it is not the target seam.
+
+The active-display compatibility fixture should therefore:
+
+1. use the shared four-field neutral controller stream and the existing project-owned dual-controller `snesref` patch;
+2. prove P2-only causality after the verified P1->P2 handoff;
+3. continue until the first actual 2P/VS race frame;
+4. dump OAM/PPU evidence around that transition and search specifically for active-display `$2102-$2104` behavior, especially the historically reported scanline-0/112 split;
+5. compare stable gameplay state against the independent Beetle oracle, using patched Snes9x only for the richer PPU/OAM instrumentation surface.
+
+Do not promote the historical OAM workaround itself as expected behavior; the captured game/hardware-facing behavior is the oracle.

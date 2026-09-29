@@ -113,6 +113,22 @@
     {
       "id": "normalized-player-state",
       "description": "Project-owned normalized gameplay-state snapshots derived through tools/uniracers_state.py."
+    },
+    {
+      "id": "ui-state-dumps",
+      "description": "Named SNESRecomp UI checkpoint bundle containing framebuffer BMP plus WRAM/PPU/state-dump companions."
+    },
+    {
+      "id": "ui-capture-manifest",
+      "description": "Project UI capture contract mapping dump tags to conceptual states, expected runtime fields, and optional discoveries."
+    },
+    {
+      "id": "ui-atlas-report",
+      "description": "JSON/Markdown UI atlas report with state IDs, menu bytes, framebuffer hashes/dimensions, frames, and expectation status."
+    },
+    {
+      "id": "ui-menu-index",
+      "description": "Compact reverse index from Uniracers currentMenu byte at 7E:009F to conceptual UI states with evidence status."
     }
   ],
   "components": [
@@ -132,7 +148,8 @@
         "fixture-script"
       ],
       "produces": [
-        "wram-checkpoints"
+        "wram-checkpoints",
+        "ui-state-dumps"
       ]
     },
     {
@@ -427,6 +444,25 @@
         "neutral-input-runs"
       ],
       "produces": []
+    },
+    {
+      "id": "ui-atlas-builder",
+      "kind": "project",
+      "consumes": [
+        "ui-state-dumps",
+        "ui-capture-manifest"
+      ],
+      "produces": [
+        "ui-atlas-report"
+      ]
+    },
+    {
+      "id": "ui-state-query",
+      "kind": "project",
+      "consumes": [
+        "ui-menu-index"
+      ],
+      "produces": []
     }
   ],
   "handoffs": [
@@ -632,6 +668,13 @@
       "format": "wram-checkpoints",
       "status": "supported",
       "evidence": "tools/summarize_player_checkpoints.py consumes the same named full-WRAM dump shape."
+    },
+    {
+      "from": "native-recomp",
+      "to": "ui-atlas-builder",
+      "format": "ui-state-dumps",
+      "status": "verified",
+      "evidence": ".github/workflows/native-build-smoke.yml uses SNESRECOMP_DUMP_DIR and tools/build_ui_atlas.py over controller-only UI fixtures."
     }
   ],
   "chains": [
@@ -763,6 +806,15 @@
         "native-lua-replay"
       ],
       "purpose": "Translate historical SMV input and embedded SRAM once, replay the same neutral stream in reference and native runtimes, and compare normalized gameplay-state evidence."
+    },
+    {
+      "id": "ui-state-atlas",
+      "status": "verified",
+      "steps": [
+        "native-recomp",
+        "ui-atlas-builder"
+      ],
+      "purpose": "Drive player-visible states with shared controller fixtures, capture framebuffer plus machine state headlessly, and summarize them into a queryable evidence-labelled UI atlas."
     }
   ]
 }

@@ -273,3 +273,13 @@ Evidence:
 - `docs/RESEARCH-LEDGER.md` entries R-SEED-014 and R-SEED-015.
 
 Next milestone: extend the shared fixture into controlled race behavior and validate the recovered player-state labels for acceleration, jump, rotation, landing, collision and finish.
+
+
+## 2026-09-28 — Trace harness failure lessons promoted
+
+The race-entry writer investigation exposed two repeatable harness hazards before succeeding in run 36511207129.
+
+1. **Debug-server handshake assumption.** The Python probe initially waited for a greeting line after TCP connect. SNESRecomp's trace server sends no greeting; it is command/response only. The wait caused repeated client timeouts/reconnects and made the server repeatedly drop the previous connection.
+2. **Wall-clock budgeting under trace instrumentation.** After the handshake fix, the traced game followed the deterministic route correctly through frame 829 but the workflow's 90-second outer timeout killed the healthy host before race entry. The final probe batches early stepping, respects the server's bounded synchronous `step N` wait, and gives the host 240 seconds of wall-clock headroom.
+
+These are harness/tooling failure modes, not game-runtime failures. Agent-facing guardrails are now in `AGENTS.md`; operational guidance is in `docs/VALIDATION.md`.

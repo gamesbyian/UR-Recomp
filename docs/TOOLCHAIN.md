@@ -100,7 +100,7 @@ Treat workbench databases and bulk trace logs as ignored scratch products. Promo
 
 ### MesenCE + mesen-for-ai
 
-Both are pinned under the `agent-debug` group. MesenCE is the community-maintained continuation of Mesen and supplies the SNES debugger/emulator host. `mesen-for-ai` exposes compatible debugger operations to an AI agent headlessly: frame stepping, memory/register inspection, breakpoints, traces, and SNES code/data logging.
+Both are pinned under the `agent-debug` group. MesenCE is the community-maintained continuation of Mesen and supplies the SNES debugger/emulator host. Its pin was deliberately advanced from the June 2.2.1 release to the 2026-09-26 head because intervening upstream work includes a SNES mid-scanline PPU register fix, corrected Lua callback addresses for non-default memory types, and debugger fixes that directly overlap UR-Recomp's raster and agent-debug use cases. `mesen-for-ai` exposes compatible debugger operations to an AI agent headlessly: frame stepping, memory/register inspection, breakpoints, traces, and SNES code/data logging.
 
 ```bash
 python3 tools/bootstrap_toolchain.py --group agent-debug

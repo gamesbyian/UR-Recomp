@@ -25,7 +25,7 @@ A historical MiSTer SNES issue specifically reports a Uniracers 2P/VS problem wh
 
 https://github.com/MiSTer-devel/SNES_MiSTer/issues/26
 
-The project already tracks broader Uniracers OAM/rendering compatibility history. Once shared player-2 input exists, include a deterministic split-screen framebuffer/OAM checkpoint so a one-player-perfect runtime cannot silently retain a player-2-only rendering defect.
+The project already tracks broader Uniracers OAM/rendering compatibility history. Shared player-2 input now exists, so the behavioral acceptance route must include a deterministic split-screen framebuffer/OAM checkpoint; a one-player-perfect runtime must not silently retain a player-2-only rendering defect.
 
 ## Required capability
 

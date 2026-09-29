@@ -2,6 +2,415 @@
   "schema_version": 1,
   "fixtures": [
     {
+      "id": "ui-pre-race-timing",
+      "input_script": "tests/input/ui-pre-race-timing.script",
+      "purpose": "Observe PRE_RACE_CARD persistence without input and compare it with an immediate-A branch; later samples remain intentionally unclassified until runtime evidence shows whether the card persists or gameplay begins.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-pre-race-passive-t000",
+        "ui-pre-race-passive-t015",
+        "ui-pre-race-passive-t030",
+        "ui-pre-race-passive-t045",
+        "ui-pre-race-passive-t060",
+        "ui-pre-race-skip-before",
+        "ui-pre-race-skip-after-015",
+        "ui-pre-race-skip-after-060"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:0313 inRace"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Determine passive duration and A-skip behavior from observed menu/inRace/framebuffer changes; do not assign later samples to GAMEPLAY merely from elapsed time."
+    },
+    {
+      "id": "ui-define-player-explore",
+      "input_script": "tests/input/ui-define-player-explore.script",
+      "purpose": "Safe Define Player exploration: capture the manual-proven WHICH ONE entry and first forward step only, stopping before any destructive confirmation.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-define-player-selected",
+        "ui-define-player-entry",
+        "ui-define-player-after-first-confirm"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:009B selectedOption",
+        "7E:000E menuSelectedRow",
+        "7E:0C63 menuSelectedCol"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Classify the first forward-step screen visually/runtime-first. If it is a warning or Uni selector, add a distinct state only after the capture proves it. Never continue through a destructive confirmation in this fixture."
+    },
+    {
+      "id": "ui-startup-timeline",
+      "input_script": "tests/input/ui-startup-timeline.script",
+      "purpose": "Frame-timed visual sampling of the early startup/title sequence without assuming recovered menu IDs, followed by the verified Main Menu anchor.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-startup-t030",
+        "ui-startup-t060",
+        "ui-startup-t090",
+        "ui-startup-t120",
+        "ui-startup-t150",
+        "ui-startup-t180",
+        "ui-startup-t210",
+        "ui-startup-t240",
+        "ui-startup-t270",
+        "ui-startup-t300",
+        "ui-startup-main-menu"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:009B selectedOption"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Use visual/runtime clustering to split BOOT_STARTUP into additional named states only when stable distinct phases are actually observed; do not assign SPLASH/DEMO labels from timing alone."
+    },
+    {
+      "id": "ui-name-league-route",
+      "input_script": "tests/input/ui-name-league-route.script",
+      "purpose": "Safe frontend route from Options through Define League into the manual-proven League naming editor without modifying membership or confirming a name.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-define-league-selected",
+        "ui-define-league-entry",
+        "ui-name-league-entry"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:009B selectedOption",
+        "7E:000E menuSelectedRow",
+        "7E:0C63 menuSelectedCol"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Promote NAME_LEAGUE runtime identity only when the captured frame matches the primary-manual naming editor and no membership/name mutation has been committed."
+    },
+    {
+      "id": "ui-records-submenus",
+      "input_script": "tests/input/ui-records-submenus.script",
+      "purpose": "Manual-backed Records fan-out from clean resets: capture Track Records, High Scores, Player Scores, and Group Tables from the proven five-item Records menu.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-records-track-selected",
+        "ui-record-track-entry",
+        "ui-record-track-back",
+        "ui-records-high-selected",
+        "ui-record-high-entry",
+        "ui-record-high-back",
+        "ui-records-player-selected",
+        "ui-record-player-entry",
+        "ui-record-player-back",
+        "ui-records-group-selected",
+        "ui-record-group-entry",
+        "ui-record-group-back"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:009B selectedOption",
+        "7E:000E menuSelectedRow",
+        "7E:0C63 menuSelectedCol"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Promote each Records sub-screen runtime ID and back edge only when its captured framebuffer matches the corresponding primary-manual screenshot."
+    },
+    {
+      "id": "ui-circuit-result-route",
+      "input_script": "tests/input/ui-circuit-result-route.script",
+      "purpose": "Optional Crawler Circuit result discriminator: select documented Circuit slot 2, reuse the validated simple jump rhythm for a bounded drive, and capture progress/result evidence without assuming the policy succeeds.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-circuit-track-selected",
+        "ui-circuit-now-playing",
+        "ui-circuit-entered",
+        "ui-circuit-drive-start",
+        "ui-circuit-drive-10",
+        "ui-circuit-drive-20",
+        "ui-circuit-drive-30",
+        "ui-circuit-drive-40",
+        "ui-circuit-drive-50",
+        "ui-circuit-drive-60",
+        "ui-circuit-terminal",
+        "ui-circuit-results",
+        "ui-circuit-result-after-advance"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:009B selectedOption",
+        "7E:0313 inRace"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Promote RESULT_CIRCUIT=0xBC only if natural gameplay reaches the manual-matching Circuit Result screen; otherwise retain progress dumps as evidence about the missing driving policy."
+    },
+    {
+      "id": "ui-rename-editor-explore",
+      "input_script": "tests/input/ui-rename-editor-explore.script",
+      "purpose": "Read-only Rename Player exploration: choose the default Uni, capture the proven alphabet editor, probe cursor directions and B from clean resets, and never navigate to/confirm OK.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-rename-which-one-left",
+        "ui-rename-editor-left-before",
+        "ui-rename-editor-left-after",
+        "ui-rename-editor-right-before",
+        "ui-rename-editor-right-after",
+        "ui-rename-editor-up-before",
+        "ui-rename-editor-up-after",
+        "ui-rename-editor-down-before",
+        "ui-rename-editor-down-after",
+        "ui-rename-editor-b-before",
+        "ui-rename-editor-b-after"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:009B selectedOption",
+        "7E:000E menuSelectedRow",
+        "7E:0C63 menuSelectedCol"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Classify editor cursor geometry and character-entry semantics from framebuffer/runtime deltas before scripting any blacklisted name or final confirmation."
+    },
+    {
+      "id": "ui-records-explore",
+      "input_script": "tests/input/ui-records-explore.script",
+      "purpose": "Read-only Records-family exploration: from clean resets enter Options -> Records, apply one common navigation input, and capture before/after without pre-classifying the destination score screen.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-records-probe-down-before",
+        "ui-records-probe-down-after",
+        "ui-records-probe-up-before",
+        "ui-records-probe-up-after",
+        "ui-records-probe-left-before",
+        "ui-records-probe-left-after",
+        "ui-records-probe-right-before",
+        "ui-records-probe-right-after",
+        "ui-records-probe-a-before",
+        "ui-records-probe-a-after",
+        "ui-records-probe-b-before",
+        "ui-records-probe-b-after"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:009B selectedOption",
+        "7E:000E menuSelectedRow",
+        "7E:0C63 menuSelectedCol"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Use framebuffer/runtime deltas to classify the manual-backed Track Records, High Scores, Player Scores, and Group Tables states; only then add state-specific menu IDs/transitions."
+    },
+    {
+      "id": "ui-stunt-result-route",
+      "input_script": "tests/input/ui-stunt-result-route.script",
+      "purpose": "Use the documented tour ordering to select Crawler's Stunt slot, then turbo through the event timer and capture the recovered stunt-results target plus one A-advance destination.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-stunt-track-selected",
+        "ui-stunt-now-playing",
+        "ui-stunt-entered",
+        "ui-stunt-results",
+        "ui-stunt-result-after-advance"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:009B selectedOption",
+        "7E:0313 inRace"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Promote RESULT_STUNT=0x18 and its post-result edge only after the Stunt event expires naturally and the captured frame/runtime state matches the expected result family."
+    },
+    {
+      "id": "ui-race-result-route",
+      "input_script": "tests/input/ui-race-result-route.script",
+      "purpose": "Continue the bounded Dragster finish candidate through the observed race-results screen, then capture one A advance and one X back discriminator without pre-naming the destination state.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "race-results",
+        "ui-race-result-after-advance",
+        "ui-race-result-after-back"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:009B selectedOption",
+        "7E:0313 inRace"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Promote RESULT_RACE -> POST_RESULT_DECISION and any back edge only after the result screen and following captures are visually/runtime classified."
+    },
+    {
+      "id": "ui-league-table",
+      "input_script": "tests/input/ui-league-table.script",
+      "purpose": "Controller-only League navigation probe from Main Menu through League selection into the default league/table and back, without assuming destination menu IDs.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-league-select-entry",
+        "ui-league-table-entry",
+        "ui-league-table-back"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:009B selectedOption"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Promote LEAGUE_TABLE navigation only after captured frames identify the league table/standings state and X returns to the preceding League screen."
+    },
+    {
+      "id": "ui-erase-confirm",
+      "input_script": "tests/input/ui-erase-confirm.script",
+      "purpose": "Safely enter the manual-documented erase-all confirmation from Main Menu, capture it, then attempt cancellation without confirming destructive state deletion.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-erase-main-before",
+        "ui-erase-confirm-entry",
+        "ui-erase-confirm-cancel"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:009B selectedOption"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Promote ERASE_ALL_CONFIRM only after the captured frame is visibly the confirmation state and the cancel input returns without modifying SRAM."
+    },
+    {
+      "id": "ui-options-submenus",
+      "input_script": "tests/input/ui-options-submenus.script",
+      "purpose": "Controller-only fan-out through the documented Options menu to Records, Define Player, Rename Player, and Define League, with clean-reset isolation and before/after/back captures.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-options-menu-records-selected",
+        "ui-records-entry",
+        "ui-records-back-options",
+        "ui-options-menu-define-player-selected",
+        "ui-define-player-entry",
+        "ui-define-player-back-options",
+        "ui-options-menu-rename-player-selected",
+        "ui-rename-player-entry",
+        "ui-rename-player-back-options",
+        "ui-options-menu-define-league-selected",
+        "ui-define-league-entry",
+        "ui-define-league-back-options"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:009B selectedOption"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Promote submenu destination IDs and Options cursor semantics only after captured frames identify the expected documented submenu and X returns to Options."
+    },
+    {
+      "id": "ui-pause-route",
+      "input_script": "tests/input/ui-pause-route.script",
+      "purpose": "Controller-only pause/unpause reconnaissance from the verified first race, capturing framebuffer and WRAM before Start, while paused, and after resume without assuming pause has a distinct currentMenu value.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-pause-before",
+        "ui-pause-after-start",
+        "ui-pause-after-resume"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:0313 inRace"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Promote PAUSE presentation/state semantics only after the post-Start framebuffer/runtime delta is classified and the second Start restores gameplay."
+    },
+    {
       "id": "ui-attract-route",
       "input_script": "tests/input/ui-attract-route.script",
       "purpose": "Optional idle-path probe from the verified Main Menu into attract/demo behavior, using turbo to keep the discriminator cheap.",

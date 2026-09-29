@@ -352,3 +352,20 @@ External gameplay documentation states that each tour's five tracks occur in the
 **Discriminating test:** trace selection/loading of one known stunt track and one race track, then trace decoded byte 2 into the gameplay timer initialization. Independently verify the stream ordinal through the course selector.
 
 **Dependencies:** external track-order/timer descriptions are used only for semantic interpretation; the 45-stream count and byte cadence are local binary observations.
+
+
+### R-SEED-013 — Recovered frontend RAM state reproduced natively
+
+**Status:** confirmed for observed frontend states  
+**Date:** 2026-09-28  
+**Area:** RAM | UI
+
+**Observation:** Dessyreqt's 2014 bot labels WRAM `7E:009F` as the current frontend menu. Project-owned frame-synchronous native input runs reproduce three of its historical values in sequence: `0xD7` at the main menu, `0x3C` at one-player rider selection, and `0x6D` at the first one-player tours page. Native captures also reproduce `7E:009B = 0x00` at the clean main menu and first tours page, consistent with the bot's selected-option policy.
+
+**Evidence:** `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`; GitHub Actions runs 36504420741, 36504768959 and 36505156490; `tests/input/reach-first-race.script`; `docs/BRINGUP.md`.
+
+**Interpretation:** the bot's frontend state model is directly usable as a native bring-up oracle rather than merely historical documentation. The exact menu-state byte can become visible before a newly entered menu accepts its first confirmation edge, so state visibility and input readiness must remain distinct concepts in deterministic scripts.
+
+**Discriminating test:** continue the same controller-only route through the predicted track-select and now-playing states, then assert race-state `7E:0313 == 1`; replay the identical script through `snesref`.
+
+**Dependencies:** meanings are confirmed only for the values/scenes actually reproduced; other bot labels remain historical leads until observed locally.

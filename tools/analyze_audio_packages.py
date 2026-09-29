@@ -18,7 +18,10 @@ import argparse
 import json
 from pathlib import Path
 
-from inspect_audio_block_pool import DEFAULT_TABLES, build_report, lorom_file_offset
+try:
+    from tools.inspect_audio_block_pool import DEFAULT_TABLES, build_report
+except ModuleNotFoundError:
+    from inspect_audio_block_pool import DEFAULT_TABLES, build_report
 
 
 TRANSFER_WRAPPER = bytes((0x22, 0xA5, 0x82, 0x82))

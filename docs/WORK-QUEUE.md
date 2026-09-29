@@ -33,14 +33,14 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 - [x] Native main loop enters and first frame simulates; treat this as execution bring-up cleared, while exact reset-vector tracing remains available if needed.
 - [x] First simulated frame and audio callback complete without a reported DMA/HDMA initialization failure.
 - [x] Title/logo sequence appears and frame 300 has been visually verified from the actual native target.
-- [~] Input reaches menus. The native scripted harness now proves `mainMenu = 0xD7` → `onePlayerSelect = 0x3C` → `onePlayerTours1 = 0x6D` → `onePlayerTracks = 0xF6` under real controller input. The route is advancing one observed menu state at a time toward race entry.
-- [ ] A mode can be selected.
+- [x] Input reaches menus. The native scripted harness proves the full clean frontend chain `0xD7 → 0x3C → 0x6D → 0xF6 → 0x16` under real controller input and then enters race state `7E:0313 = 1`.
+- [x] A one-player mode/track can be selected and started deterministically.
 
 **Exit:** title/menu operation is reproducible.
 
 ## Phase 3 — First playable race
 
-- [ ] Reach one-player race.
+- [x] Reach one-player race.
 - [ ] Track/player/background render plausibly.
 - [ ] Audio runs.
 - [ ] Start, accelerate, jump, rotate, land and finish.
@@ -77,16 +77,16 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 
 - [x] Locate public source for Dessyreqt's 2014 full-game real-time Uniracers bot (Pastebin `A0XpKw9v`).
 - [x] Preserve the source and submitted #4250 SMV in the repository with hashes/provenance.
-- [ ] Verify the bot's key RAM labels against the canonical ROM/runtime. The historical 2008 Microstorage WIP SMV has also been recovered and should be used as a second deterministic input corpus.
-- [~] Port or translate its menu-driving policy into the native/snesref deterministic input harness. Main-menu, rider-select, first-tour and track-select states are verified under real scripted controller input; current work is confirming the default track and discovering the following now-playing state.
+- [~] Verify the bot's key RAM labels against the canonical ROM/runtime. Frontend `7E:009F` values through now-playing and `7E:0313 = 1` race state are now verified in both native and Snes9x/snesref runs; remaining race-control labels still need validation. The historical 2008 Microstorage WIP SMV remains a second deterministic input corpus.
+- [x] Port the clean menu-driving route into the shared native/snesref deterministic input harness through race entry.
 - [ ] Evaluate its race-driving policy as an autonomous regression workload.
 
 ## Phase 5 — Differential validation
 
 Use `snesref` or another trustworthy reference route.
 
-- [ ] Deterministic input sequences.
-- [ ] WRAM/state comparison.
+- [x] Deterministic input sequence to first race, shared verbatim by native and snesref.
+- [~] WRAM/state comparison. Printed checkpoint fields agree across native and Snes9x/snesref; next step is full bytewise checkpoint comparison.
 - [ ] First-divergence workflow.
 - [ ] Regression cases for race start, acceleration, jump, rotation, landing, stunt, collision, finish and two-player.
 

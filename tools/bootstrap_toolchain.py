@@ -173,6 +173,7 @@ def expand_command(command: list[str], *, jobs: int, python: Path | None) -> lis
     values = {
         "jobs": str(jobs),
         "python": str(python) if python is not None else sys.executable,
+        "root": str(ROOT),
     }
     return [arg.format(**values) for arg in command]
 

@@ -72,7 +72,7 @@ press right+b 24
 dump rotation-pre
 
 press right+b 8
-dump rotation-l-008
+dump rotation-input-008
 
 press right+b 8
 dump rotation-post-008

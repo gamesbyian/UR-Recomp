@@ -1,0 +1,68 @@
+name: One-shot VS P2 OAM reconnaissance
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tests/input/ui-vs-p2-confirm.input"
+      - "tests/input/ui-vs-p2-confirm-observe.script"
+      - "tools/patches/snesrecomp-dual-controller-input.patch"
+      - "tools/patches/snes9x-snesref-debug-exports.patch"
+      - "tools/toolchain.json"
+      - ".github/workflows/vs-p2-oam-recon.yml"
+
+jobs:
+  recon:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Patch snesref for dual-controller input
+        run: |
+          git -C snesrecomp apply --check "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
+          git -C snesrecomp apply "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
+      - name: Build patched Snes9x and snesref
+        run: |
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+      - name: Run P2-causal VS route
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DUMPS="$RUNNER_TEMP/vs-p2-dumps"
+          mkdir -p "$DUMPS"
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/ui-vs-p2-confirm.input" \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-vs-p2-confirm-observe.script" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" | tee "$RUNNER_TEMP/vs-p2-route.log"
+          for tag in vs-p2-before-confirm vs-p2-after-confirm vs-p2-after-060 vs-p2-after-180; do
+            test -s "$DUMPS/$tag.wram.bin"
+            test -s "$DUMPS/$tag.sram.bin"
+            test -s "$DUMPS/$tag.regs.json"
+            test -s "$DUMPS/$tag.ppuw.tsv"
+            test "$(stat -c%s "$DUMPS/$tag.oam.bin")" -eq 544
+            python3 -c 'import pathlib,sys; w=pathlib.Path(sys.argv[1]).read_bytes(); s=pathlib.Path(sys.argv[2]).read_bytes(); print(f"{sys.argv[3]}: menu=0x{w[0x009F]:02X} selected=0x{w[0x009B]:02X} inRace=0x{w[0x0313]:02X} owner_raw=0x{s[0x0743]:02X}")' "$DUMPS/$tag.wram.bin" "$DUMPS/$tag.sram.bin" "$tag"
+          done
+          echo "== active-display OAM writes =="
+          awk '($4=="2102" || $4=="2103" || $4=="2104") && $2 < 225 {print}' "$DUMPS"/*.ppuw.tsv | head -n 300 || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vs-p2-oam-recon
+          path: |
+            ${{ runner.temp }}/vs-p2-route.log
+            ${{ runner.temp }}/vs-p2-dumps/
+          retention-days: 7

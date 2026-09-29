@@ -166,13 +166,27 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
           LOG="$RUNNER_TEMP/race-smoke.log"
+          DUMPS="$RUNNER_TEMP/race-dumps"
+          mkdir -p "$DUMPS"
 
           echo "== scripted native route to first race =="
-          SDL_AUDIODRIVER=dummy \
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
           timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
             >"$LOG" 2>&1
           STATUS=$?
           cat "$LOG"
+
+          for state in main-menu after-main-a; do
+            WRAM="$DUMPS/$state.wram.bin"
+            if [ -s "$WRAM" ]; then
+              python3 - "$state" "$WRAM" <<'PY'
+import pathlib, sys
+name, path = sys.argv[1], pathlib.Path(sys.argv[2])
+w = path.read_bytes()
+print(f"{name}: menu[009F]=0x{w[0x009F]:02X} selectedOption[009B]=0x{w[0x009B]:02X} row[000E]=0x{w[0x000E]:02X} col[0C63]=0x{w[0x0C63]:02X}")
+PY
+            fi
+          done
 
           if [ "$STATUS" -ne 0 ]; then
             echo "::error::Scripted race route exited with status $STATUS"
@@ -194,6 +208,7 @@ jobs:
             ${{ runner.temp }}/native-presents.csv
             ${{ runner.temp }}/boot.log
             ${{ runner.temp }}/race-smoke.log
+            ${{ runner.temp }}/race-dumps/
           if-no-files-found: warn
           retention-days: 7
 

@@ -74,9 +74,65 @@ def scan_setup_package_pairs(rom: bytes, table_cpus=DEFAULT_TABLES) -> list[dict
     return rows
 
 
+
+def scan_all_setup_wrapper_calls(rom: bytes, context: int = 8) -> list[dict]:
+    """Find every direct JSL $82:807E regardless of how X is prepared."""
+    rows = []
+    needle = SETUP_WRAPPER
+    start = 0
+    while True:
+        pos = rom.find(needle, start)
+        if pos < 0:
+            break
+        call_pos = pos
+        a = max(0, call_pos - context)
+        b = min(len(rom), call_pos + 4 + context)
+        immediate = None
+        if call_pos >= 3 and rom[call_pos - 3] == 0xA2:
+            immediate = int.from_bytes(rom[call_pos - 2:call_pos], "little")
+        rows.append({
+            "rom_offset": call_pos,
+            "rom_offset_hex": f"0x{call_pos:06X}",
+            "caller_cpu": fmt_cpu(file_to_cpu(call_pos)),
+            "preceding_ldx_immediate": immediate,
+            "preceding_ldx_immediate_hex": (
+                f"0x{immediate:04X}" if immediate is not None else None
+            ),
+            "context_start_hex": f"0x{a:06X}",
+            "context_hex": rom[a:b].hex(" "),
+        })
+        start = pos + 1
+    return rows
+
+
+def scan_immediate_ldx_values(rom: bytes, values=(0x3B, 0x3D), context: int = 8) -> list[dict]:
+    """Find every raw LDX #imm16 byte pattern for targeted values."""
+    rows = []
+    wanted = set(values)
+    for pos in range(max(0, len(rom) - 3)):
+        if rom[pos] != 0xA2:
+            continue
+        value = int.from_bytes(rom[pos + 1:pos + 3], "little")
+        if value not in wanted:
+            continue
+        a = max(0, pos - context)
+        b = min(len(rom), pos + 3 + context)
+        rows.append({
+            "rom_offset": pos,
+            "rom_offset_hex": f"0x{pos:06X}",
+            "cpu_near": fmt_cpu(file_to_cpu(pos)),
+            "value": value,
+            "value_hex": f"0x{value:04X}",
+            "context_start_hex": f"0x{a:06X}",
+            "context_hex": rom[a:b].hex(" "),
+        })
+    return rows
+
 def build_report(rom: bytes) -> dict:
     calls = scan_setup_calls(rom)
     pairs = scan_setup_package_pairs(rom)
+    wrapper_calls = scan_all_setup_wrapper_calls(rom)
+    targeted_ldx = scan_immediate_ldx_values(rom)
     values = sorted({r["selector"] for r in calls})
     paired_values = sorted({r["selector"] for r in pairs})
     interesting = list(range(0x38, 0x43))
@@ -84,6 +140,9 @@ def build_report(rom: bytes) -> dict:
         "schema_version": 1,
         "setup_calls": calls,
         "setup_package_pairs": pairs,
+        "all_setup_wrapper_calls": wrapper_calls,
+        "targeted_immediate_ldx": targeted_ldx,
+        "unbound_setup_wrapper_calls": [r for r in wrapper_calls if r["preceding_ldx_immediate"] is None],
         "selector_values": values,
         "selector_values_hex": [f"0x{x:04X}" for x in values],
         "paired_selector_values": paired_values,

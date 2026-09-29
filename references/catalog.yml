@@ -571,3 +571,16 @@ sources:
     rights: "Commercial product metadata; index only."
     relevance: "Current commercial project explicitly describes itself as a spiritual successor to Uniracers among other high-speed racing influences; context only unless technical material becomes available."
 
+  - id: tpp-musiclibrary-uniracers
+    title: "TwitchPlaysPokemon musicLibrary Uniracers manifest"
+    type: audio_manifest
+    url: "https://github.com/TwitchPlaysPokemon/musicLibrary/tree/94a0442692e2a2f5a79733ed58a622d7cad24707/Uniracers"
+    revision: "94a0442692e2a2f5a79733ed58a622d7cad24707"
+    manifest_blob_sha: "97fdf44afc8d96eacba79c175386e4efe056694a"
+    file: "Uniracers/metadata.yaml"
+    track_count: 10
+    notable_paths: ["91 Unused Song 1.spc", "91 Unused Song 2.spc"]
+    status: "metadata-only; repository README explicitly says actual music files are stored separately and not hosted there"
+    rights: "Repository manifest metadata indexed only; no license file found at the pinned revision."
+    relevance: "Independent filename/title manifest corroborates the ten-track Uniracers SPC corpus and both unused-song identities without redistributing audio dumps."
+

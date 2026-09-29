@@ -148,3 +148,17 @@ The active-display compatibility fixture should therefore:
 5. compare stable gameplay state against the independent Beetle oracle, using patched Snes9x only for the richer PPU/OAM instrumentation surface.
 
 Do not promote the historical OAM workaround itself as expected behavior; the captured game/hardware-facing behavior is the oracle.
+
+
+### VS handoff controller-causality result
+
+A four-way controller matrix was run at the first proven `PICK PLAYER TWO` state (menu `0x3E`, raw SRAM ownership discriminator `0x02`) using the patched two-pad `snesref` path:
+
+- P1 A
+- P2 A
+- P1 Down
+- P2 Down
+
+Each pulse began at guest frame 660 after the deterministic P1 -> P2 handoff. All four variants remained at menu `0x3E`, selected option `0x00`, raw ownership `0x02`, and the same non-race state through the +190-frame checkpoint. No active-display OAM writes appeared.
+
+This means the raw `0x02` discriminator identifies the UI's Player Two subject/phase but does not, by itself, establish that controller 2 is immediately live. The next discriminator is a bounded timing sweep of P2 inputs after the handoff. If no delayed pulse is accepted, instrument/reference-check whether the libretro core is polling port 1 before inferring game semantics.

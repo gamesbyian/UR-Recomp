@@ -1,0 +1,258 @@
+name: One-shot audio selector map
+
+on:
+  push:
+    branches:
+      - chatgpt/audio-selector-map-2026-09-29
+    paths:
+      - .github/workflows/audio-selector-map.yml
+      - tools/find_65816_call_sites.py
+      - tools/capture_audio_events.py
+      - tools/trace_native_wram_writers.py
+      - tools/analyze_audio_port_events.py
+      - tests/input/reach-first-race.script
+
+permissions:
+  contents: read
+
+jobs:
+  map-selector:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config xvfb \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Scan uploader call sites
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/audio-selector"
+          mkdir -p "$OUT"
+          ROM="reference/roms/retail/Uniracers_USA.sfc"
+          python3 tools/find_65816_call_sites.py "$ROM" 02:8294 \
+            --json-out "$OUT/calls-wrapper-02-8294.json"
+          python3 tools/find_65816_call_sites.py "$ROM" 02:8298 \
+            --json-out "$OUT/calls-transfer-02-8298.json"
+          python3 tools/find_65816_call_sites.py "$ROM" 02:8328 \
+            --json-out "$OUT/calls-helper-02-8328.json"
+
+      - name: Generate project and build trace target
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/trace-project"
+          mkdir -p "$ROOT"
+          sh snesrecomp/tools/new_project/setup_project.sh \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --generate \
+            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+
+          PROJECT="$ROOT/UniracersSNESRecomp"
+
+          python3 - "$PROJECT/src/host_contract.c" <<'PY'
+          from pathlib import Path
+          import sys
+          p = Path(sys.argv[1])
+          s = p.read_text()
+          marker = "#include <stdint.h>\n"
+          if marker not in s:
+              raise SystemExit("host_contract.c include marker not found")
+          s = s.replace(
+              marker,
+              marker + "\n#if !defined(SNESRECOMP_TRACE) || !SNESRECOMP_TRACE\n",
+              1,
+          )
+          s += "\n#endif /* production debug-hook stubs */\n"
+          p.write_text(s)
+          PY
+
+          cmake -S "$PROJECT" -B "$PROJECT/build-trace" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ENABLE_TRACE=ON
+          cmake --build "$PROJECT/build-trace" -j2
+          test -x "$PROJECT/build-trace/UniracersSNESRecomp"
+
+      - name: Start held deterministic first-race route
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/audio-selector"
+          PROJECT="$RUNNER_TEMP/trace-project/UniracersSNESRecomp"
+          EXE="$PROJECT/build-trace/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$RUNNER_TEMP/reach-first-race-hold.script"
+          LOG="$OUT/native-audio-selector-host.log"
+
+          sed '/^[[:space:]]*quit[[:space:]]*$/d' \
+            "$GITHUB_WORKSPACE/tests/input/reach-first-race.script" > "$SCRIPT"
+
+          SNESRECOMP_DEBUG_PORT=4377 SDL_AUDIODRIVER=dummy \
+            timeout 300s xvfb-run -a "$EXE" "$ROM" --paused --script "$SCRIPT" \
+            >"$LOG" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/audio-selector-host.pid"
+
+      - name: Trace uploader source-state writers
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/audio-selector"
+          python3 tools/trace_native_wram_writers.py \
+            --port 4377 \
+            --command-timeout 45 \
+            --coarse-until 900 \
+            --coarse-step 25 \
+            --max-frames 1400 \
+            --address 0x63 \
+            --address 0x64 \
+            --address 0x65 \
+            --address 0x6f \
+            --json-out "$OUT/uploader-source-writers.json"
+
+      - name: Capture audio handoff ring
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/audio-selector"
+          python3 tools/capture_audio_events.py \
+            --port 4377 \
+            --command-timeout 45 \
+            --page-size 8000 \
+            --filter 0 \
+            --json-out "$OUT/audio-events.json"
+          python3 tools/analyze_audio_port_events.py \
+            "$OUT/audio-events.json" \
+            --json-out "$OUT/audio-port-chains.json"
+
+      - name: Compose compact selector evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "audio-selector"
+          writers = json.loads((root / "uploader-source-writers.json").read_text())
+          events = json.loads((root / "audio-events.json").read_text())
+          chains = json.loads((root / "audio-port-chains.json").read_text())
+
+          calls = {}
+          for key, name in [
+              ("wrapper", "calls-wrapper-02-8294.json"),
+              ("transfer", "calls-transfer-02-8298.json"),
+              ("helper", "calls-helper-02-8328.json"),
+          ]:
+              calls[key] = json.loads((root / name).read_text())
+
+          near_transfer = {}
+          for address, row in writers["addresses"].items():
+              selected = []
+              for w in row.get("writes", []):
+                  try:
+                      frame = int(str(w.get("f", "0")), 0)
+                  except ValueError:
+                      frame = int(str(w.get("f", "0")))
+                  if 930 <= frame <= 970:
+                      selected.append(w)
+              near_transfer[address] = selected
+
+          report = {
+              "schema_version": 1,
+              "canonical_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+              "in_race_step": writers.get("in_race_step"),
+              "call_sites": {
+                  key: value.get("hits", []) for key, value in calls.items()
+              },
+              "source_state_writers_near_transfer": near_transfer,
+              "source_state_final_values": {
+                  address: row.get("current")
+                  for address, row in writers["addresses"].items()
+              },
+              "audio_event_capture": {
+                  "event_head": events.get("event_head"),
+                  "oldest_available": events.get("oldest_available"),
+                  "events_returned": events.get("events_returned"),
+                  "stats": events.get("stats"),
+              },
+              "audio_port_chains": {
+                  "has_apply_events": chains.get("has_apply_events"),
+                  "event_type_counts": chains.get("event_type_counts"),
+                  "candidate_command_count": chains.get("candidate_command_count"),
+                  "fates": chains.get("fates"),
+                  "ports": chains.get("ports"),
+                  "commands_near_transfer": [
+                      row for row in chains.get("commands", [])
+                      if 930 <= int(row.get("frame", -1)) <= 970
+                  ],
+              },
+          }
+          (root / "audio-selector-summary.json").write_text(
+              json.dumps(report, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps({
+              "in_race_step": report["in_race_step"],
+              "call_counts": {
+                  k: len(v) for k, v in report["call_sites"].items()
+              },
+              "writer_counts_near_transfer": {
+                  k: len(v) for k, v in near_transfer.items()
+              },
+              "event_head": report["audio_event_capture"]["event_head"],
+              "events_returned": report["audio_event_capture"]["events_returned"],
+              "chain_fates": report["audio_port_chains"]["fates"],
+          }, indent=2, sort_keys=True))
+          PY
+
+      - name: Stop trace host
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/audio-selector-host.pid" ]; then
+            kill "$(cat "$RUNNER_TEMP/audio-selector-host.pid")" 2>/dev/null || true
+          fi
+          echo "== host log tail =="
+          tail -n 160 "$RUNNER_TEMP/audio-selector/native-audio-selector-host.log" 2>/dev/null || true
+
+      - name: Upload selector evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-audio-selector-map
+          path: |
+            ${{ runner.temp }}/audio-selector/calls-wrapper-02-8294.json
+            ${{ runner.temp }}/audio-selector/calls-transfer-02-8298.json
+            ${{ runner.temp }}/audio-selector/calls-helper-02-8328.json
+            ${{ runner.temp }}/audio-selector/uploader-source-writers.json
+            ${{ runner.temp }}/audio-selector/audio-events.json
+            ${{ runner.temp }}/audio-selector/audio-port-chains.json
+            ${{ runner.temp }}/audio-selector/audio-selector-summary.json
+            ${{ runner.temp }}/audio-selector/native-audio-selector-host.log
+          if-no-files-found: warn
+          retention-days: 2

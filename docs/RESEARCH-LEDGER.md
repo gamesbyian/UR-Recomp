@@ -589,3 +589,16 @@ Dynamic run 36515746538 independently shows airborne L input changing `$04C7` fr
 **Evidence:** run 36516524308; artifact 11011037312; direct WRAM dumps; sibling shipped-code stores at `02:8D84` and `02:9272`.
 
 **Consequence:** `7E:04C7` is confirmed persistent player-1 pitch angle; `7E:04C9` is the paired player-2 slot; `7E:0F49` remains shared current-player working state. Rotation milestone is cleared.
+
+
+### R-SEED-028 — Course completion, header mutation and racer initialization are distinct setup phases
+
+**Status:** confirmed sequencing windows  
+**Date:** 2026-09-28  
+**Area:** course | compression | RAM | physics
+
+**Observation:** run 36516675672 samples the Dragster setup transition every four frames. At +40, stream 1 has a 29,289-byte exact prefix and byte 11 is still decoded value `0x0F`; racer slots are `(0,0)`. At +44, the full 33,815-byte payload is resident and byte 11 is already `0x16`, but racer slots remain `(0,0)`. At +48, the course remains complete and both racer slots have become `(1088,800)`.
+
+**Interpretation:** progressive decompression/copy, byte-11 postprocessing, and racer-coordinate initialization are separable phases. Course completion/header mutation occur in +40→+44; racer initialization occurs later in +44→+48.
+
+**Discriminating test:** sample individual frames +41 through +48 to split these windows further.

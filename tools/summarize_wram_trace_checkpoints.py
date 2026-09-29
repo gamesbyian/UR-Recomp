@@ -67,6 +67,10 @@ def main() -> int:
         f = int(rec["f"])
         if current_frame is None:
             current_frame = f
+        elif f < current_frame:
+            raise SystemExit(
+                f"trace frames are not monotonic: frame {f} after {current_frame}"
+            )
         if f != current_frame:
             emit_checkpoint(current_frame)
             # Any requested checkpoint between changed frames sees the same

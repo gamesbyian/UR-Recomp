@@ -134,6 +134,10 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           INPUT="$GITHUB_WORKSPACE/tests/input/historical-2008-wip.input"
           LOG="$RUNNER_TEMP/native-lua.log"
+          PROJ="$RUNNER_TEMP/native/UniracersSNESRecomp"
+          mkdir -p "$PROJ/build/saves"
+          cp "$RUNNER_TEMP/wip-2008.srm" "$PROJ/build/saves/save.srm"
+          cd "$PROJ/build"
 
           SNESRECOMP_LUA_PORT=4380 \
           SNESRECOMP_LUA_PAUSED=1 \

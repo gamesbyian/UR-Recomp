@@ -34,6 +34,10 @@ REQUIRED_ENTRYPOINTS = {
     "tools/audit_imported_references.py",
     "references/imported/MANIFEST.json",
     "docs/THIRD-PARTY-CODE-AUDIT.md",
+    "docs/EXTERNAL-EVIDENCE-INTAKE.md",
+    "references/evidence-worklist.json",
+    "tools/analyze_ips_patch.py",
+    "tools/validate_external_evidence.py",
     "docs/TOOL-INTEROPERABILITY.md",
     "tools/tool_interop.json",
     "tools/validate_tool_interop.py",
@@ -89,6 +93,7 @@ def main() -> int:
     subprocess.run([sys.executable, str(Path(__file__).with_name("bootstrap_toolchain.py")), "--validate"], check=True)
     subprocess.run([sys.executable, str(Path(__file__).with_name("validate_island.py"))], check=True)
     subprocess.run([sys.executable, str(Path(__file__).with_name("audit_imported_references.py"))], check=True)
+    subprocess.run([sys.executable, str(Path(__file__).with_name("validate_external_evidence.py"))], check=True)
     subprocess.run([sys.executable, str(Path(__file__).with_name("audit_imported_code.py")), "--check"], check=True)
     subprocess.run([sys.executable, str(Path(__file__).with_name("validate_tool_interop.py"))], check=True)
     subprocess.run([sys.executable, str(Path(__file__).with_name("export_symbol_adapters.py")), "--check"], check=True)

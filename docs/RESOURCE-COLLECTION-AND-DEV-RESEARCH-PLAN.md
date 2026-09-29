@@ -164,6 +164,18 @@ For every recovered artifact:
 - commit only when useful and appropriate;
 - add the source to `references/catalog.yml` and/or the acquisition ledger.
 
+### External-evidence intake and preservation
+
+The source registry and active acquisition/reproduction queue have distinct owners:
+
+- `references/catalog.yml` records source identity, provenance, rights status and relevance;
+- `references/evidence-worklist.json` records live uncertainty, value/cost, acquisition state, next discriminator, expected deliverables and any genuinely necessary user action;
+- `docs/EXTERNAL-EVIDENCE-INTAKE.md` defines the intake pipeline from public lead through local reproduction and promotion into durable project knowledge.
+
+Do not leave actionable findings trapped in a conversational research report. Convert useful leads into the worklist, then close them by producing a local test, report, symbol, fixture, format description or explicit dead-end record. Independent translation patches and SPC dumps are first-class reverse-engineering evidence when their transformations can be mapped back to canonical ROM/runtime behavior. Social remake/rerelease discussions are lower-priority breadcrumb graphs unless their replies expose a project, author, artifact or technical measurement.
+
+Prefer automated acquisition and one-shot workflows before asking for manual downloads. One-shot acquisition workflows are temporary and should be removed after evidence is harvested; they are not recurring CI.
+
 ### 8. Establish visual-reference capture tooling without stealing the critical path
 
 RetroArch, the Libretro Slang shader corpus and bsnes-hd are now pinned as on-demand resources. Their primary value belongs to Phase E/HD Presentation, but they may be pulled forward when a concrete rendering investigation benefits from matched presentation variants or layer/sprite isolation.

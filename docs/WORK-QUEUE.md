@@ -133,12 +133,19 @@ Maintain `SYMBOLS.md` and `RESEARCH-LEDGER.md`. `tools/export_symbols.py` genera
 
 ## Phase 8 — Widescreen
 
-Only after deterministic stock behavior is established.
+Only after deterministic stock behavior is established. Canonical reconnaissance contract: `docs/WIDESCREEN-RECONNAISSANCE.md`.
 
-- [ ] Separate viewport width from gameplay/collision semantics.
-- [ ] Widen render/culling paths deliberately.
-- [ ] Test object activation and opponent behavior.
-- [ ] Preserve 4:3 regression mode.
+- [x] Pin and summarize concrete widescreen/recomp prior art without turning it into implementation authority.
+- [x] Seed machine-readable widescreen domain/scene/probe vocabulary in `analysis/widescreen-policy.yml`.
+- [ ] Prove a deterministic bsnes-hd diagnostic invocation and commit a small project-owned preset matrix for BG/sprite/window/PAR exposure experiments.
+- [ ] Implement `tools/widescreen_probe.py` on the shared fixture grammar once the capture route is proven; sweep staged margins and emit first-failure reports.
+- [ ] Classify representative title/frontend, one-player, results, two-player and Vs. scenes by explicit presentation policy.
+- [ ] Separate simulation/activation, preparation/streaming, render/culling, camera/composition and UI-composition widths.
+- [ ] Define viewport/PAR/overscan policy without hard-coding 16:9 source widths into game logic.
+- [ ] Widen render/culling paths deliberately while keeping stock simulation timing unchanged.
+- [ ] Measure object/opponent/event information exposure between matched 4:3 and 16:9 runs.
+- [ ] Exercise player-1/player-2 split-screen and Vs. behavior independently, including the authentic sprite-ripping path.
+- [ ] Preserve bit-identical 4:3 regression mode.
 
 ## Phase 9 — Modern presentation
 
@@ -146,11 +153,14 @@ Optional authentic scaling, arbitrary windows, 16:9/ultrawide, high-resolution U
 
 - [x] Pin RetroArch, Libretro Slang shaders and bsnes-hd as visual-reference dependencies without adding them to default CI.
 - [x] Define the canonical multi-interpretation upscale/reference strategy in `docs/HD-VISUAL-REFERENCE-PIPELINE.md`.
+- [x] Establish the initial coherent-art decision authority in `docs/HD-ART-DIRECTION.md`.
 - [ ] Curate the minimal project-owned shader/scaler preset matrix: raw/nearest, ScaleNx, HQx, xBR/xBRZ, SABR, ScaleFX, Super-xBR, selected NTSC and selected CRT references.
 - [ ] Prove one deterministic matched-frame RetroArch capture under Linux/headless automation; record exact runtime/backend requirements and cost.
 - [ ] Identify offline equivalents for bulk extracted-asset scaling so emulator/frontend startup is avoided where unnecessary.
 - [ ] Test bsnes-hd layer/sprite isolation on a concrete Uniracers scene; keep it specialist-only unless the evidence gain is real.
-- [ ] When Phase E extraction is ready, generate semantic-asset reference dossiers containing raw data/palette, animation neighbors and selected processed interpretations.
+- [ ] When Phase E extraction is ready, generate semantic-asset reference dossiers containing raw data/palette, animation neighbors, geometry anchors/contact points and selected processed interpretations.
+- [ ] Add temporal-coherence checks for animated replacement sequences: contour/scale/pivot/contact drift, flicker and inconsistent invented detail.
+- [ ] Define deterministic sampling/render policy per presentation class rather than one global host texture filter.
 - [ ] Keep all processed images provenance-labelled and subordinate to native ROM/framebuffer evidence.
 
 ## Phase 10 — Editor/custom courses

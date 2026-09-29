@@ -18,7 +18,8 @@ Compact router for coding and research agents. Load the smallest current authori
 | Recovered code/data symbol | `docs/SYMBOLS.md` |
 | Original DMA development history / missing artifacts | `docs/original-development/DEVELOPER-TECHNICAL-HISTORY.md`, `docs/original-development/ACQUISITION-LEDGER.md` |
 | External source or imported research artifact | `references/README.md`, `references/catalog.yml` |
-| Tool choice / installing research software | `docs/TOOLCHAIN.md`, `tools/toolchain.json` |\n| Adopting or adapting imported scripts/source | `docs/THIRD-PARTY-CODE-AUDIT.md`, then the imported source |
+| Tool choice / installing research software | `docs/TOOLCHAIN.md`, `tools/toolchain.json` |
+| Adopting or adapting imported scripts/source | `docs/THIRD-PARTY-CODE-AUDIT.md`, then the imported source |
 | Periodic repository hygiene | Execute `docs/PERIODIC-REPOSITORY-HYGIENE.md` from current `main` |
 
 `docs/README.md` inventories document ownership. It is not a second agent guide.
@@ -45,7 +46,28 @@ Compact router for coding and research agents. Load the smallest current authori
 18. SNESRecomp's trace TCP server is command/response, not greeting-based. Reuse the established trace client/workflow rather than inventing a new handshake. Trace builds are much slower than ordinary runs, so batch early stepping within the server's synchronous step deadline and give the outer host timeout generous headroom.
 19. A full-WRAM differential is a discovery surface, not automatically a fidelity verdict. Classify differences by writer/history and semantics first; stale stack bytes and free-running timing/presentation counters are not simulation mismatches unless they affect a proven invariant.
 
-20. Imported executable code is raw material, not a trusted dependency. Preserve provenance, but normalize useful behavior into project-owned tools and add regression coverage before depending on it.\n\n## Repository boundaries
+20. Imported executable code is raw material, not a trusted dependency. Preserve provenance, but normalize useful behavior into project-owned tools and add regression coverage before depending on it.
+
+## Research before reinvention
+
+When a task exposes unfamiliar behavior, a stubborn failure, or a technique the repository does not already own, search the broader retro-development ecosystem before building a bespoke answer.
+
+This is a standing problem-solving rule, not a separate archival workstream:
+
+- search externally for analogous failures, techniques, tools, patches, issue threads, postmortems, test ROMs and implementation patterns;
+- do not require an exact Uniracers precedent. Relevant ideas may come from other SNES games or from NES, Genesis/Mega Drive, N64, PS1 and other decompilation, recompilation, source-port, emulator, ROM-hacking, randomizer, TAS/debugging, restoration and enhancement projects;
+- search the upstream histories and issue trackers of the actual tools involved, especially SNESRecomp/N64Recomp-family projects, emulator cores, debuggers, disassemblers and asset tools;
+- favor technical terms that describe the observed failure over generic game-name searches;
+- after two or three materially different local attempts fail to reduce uncertainty, broaden the search before adding another custom probe, workaround or instrumentation layer;
+- treat discovered solutions as leads, not authority. Reproduce the relevant behavior locally and preserve the smallest useful citation/provenance trail;
+- adopt concepts rather than blindly copying historical quirks. Anything promoted into project infrastructure should become a project-owned reproducible tool, fixture, assertion or documented invariant;
+- if the search finds nothing useful, record that briefly only when the negative result materially informs the next approach. Do not create ceremonial search logs.
+
+Useful hunting grounds include emulator source/history and issue trackers, consoledev documentation, decomp/recomp repositories, ROM-hacking archives, TAS and randomizer tooling, debugger/test-ROM projects, restoration/enhancement hacks, and technical writeups from native-port projects.
+
+The goal is to make outside knowledge an automatic escape hatch from local tunnel vision without weakening the project's evidence standard.
+
+## Repository boundaries
 
 - `reference/` contains project-input and project-local reference material needed to reproduce work, including preserved ROM builds and historical tool packages.
 - `references/` is the provenance-managed external research corpus: imported third-party evidence under `references/imported/`, project summaries under `references/notes/`, and the source registry in `references/catalog.yml`.

@@ -199,3 +199,24 @@ So the transition has at least three observable phases:
 This sequencing is especially useful for code archaeology: the course unpack/copy path can be distinguished from the later player initialization path rather than treating race setup as one monolithic routine.
 
 Next discriminator: sample +41/+42/+43/+44, then +45/+46/+47/+48 if needed, to identify the first full-payload frame, first byte-11 mutation frame, and first spawn-state frame separately.
+
+
+### Frame-exact Dragster setup chronology
+
+Run 36517460851 resolves the critical setup sequence at one-guest-frame resolution:
+
+| Frames after final Now Playing confirm | Stream-1 state at `7F:0000` | Header byte 11 | Racer slots |
+|---:|---|---:|---|
+| +42 | incomplete; exact prefix 33,359 / 33,815 | `0x0F` | `(0,0)`, `(0,0)` |
+| +43 | **full payload complete**; 33,814 / 33,815 exact | `0x12` | `(0,0)`, `(0,0)` |
+| +44 | full payload complete | `0x16` | `(0,0)`, `(0,0)` |
+| +45 | full payload complete | `0x16` | **`(1088,800)`, `(1088,800)`** |
+
+This gives a frame-exact ordering:
+
+1. progressive decompression/copy is still underway at +42;
+2. by +43 the complete decoded payload exists, and byte 11 has already been postprocessed from `0x0F` to `0x12`;
+3. on the next guest frame (+44), byte 11 reaches `0x16`;
+4. on +45, player/racer initialization consumes the course-space spawn coordinates and installs `(68,50) × 16 = (1088,800)` into both racer slots.
+
+No finer frame sampling is needed for this chronology. The remaining question is **which guest routines perform the decompression write and the +43/+44 byte-11 updates**; the dedicated trace-course-buffer-writers workflow targets that next.

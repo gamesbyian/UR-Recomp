@@ -35,7 +35,7 @@ def make_v1(path: Path) -> tuple[bytes, list[int]]:
     hdr[20] = 0x01
     hdr[21] = 0x01  # reset anchored, NTSC
     hdr[22] = 0x00
-    hdr[23] = 0x00
+    hdr[23] = 0x03  # sync data exists + legacy WIP1 timing
     struct.pack_into("<I", hdr, 24, save_off)
     struct.pack_into("<I", hdr, 28, ctrl_off)
 
@@ -77,6 +77,9 @@ def run_case(movie: Path, expected_sram: bytes, container: str | None) -> None:
         assert m["sample_count"] == 4
         assert m["reset_anchored"] is True
         assert m["reset_markers"] == [2]
+        assert m["sync_data_exists"] is True
+        assert m["legacy_sync_flags"]["wip1_timing"] is True
+        assert m["legacy_timing_review_required"] is True
         assert m["embedded_sram_size"] == 0x20000
         assert m["emitted_sram_size"] == 8192
         assert m["event_runs"] == 3

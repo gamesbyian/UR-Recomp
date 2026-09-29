@@ -1,0 +1,111 @@
+name: One-shot external SPC acquisition
+
+on:
+  push:
+    branches:
+      - chatgpt/external-evidence-intake-2026-09-29
+    paths:
+      - .github/workflows/external-spc-acquisition.yml
+
+permissions:
+  contents: read
+
+jobs:
+  acquire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download public SNESmusic archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/spc
+          curl --fail --location --retry 3 --retry-delay 2 \
+            'https://www.snesmusic.org/v2/download.php?spcNow=unir' \
+            --output evidence/spc/unir.rar
+          file evidence/spc/unir.rar
+          sha256sum evidence/spc/unir.rar | tee evidence/spc/archive.sha256
+
+      - name: Extract archive without adding it to the repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          if command -v 7z >/dev/null 2>&1; then
+            7z x -y evidence/spc/unir.rar -oevidence/spc/extracted >/dev/null
+          else
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq p7zip-full
+            7z x -y evidence/spc/unir.rar -oevidence/spc/extracted >/dev/null
+          fi
+
+      - name: Inventory SPCs and fingerprint stable regions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path("evidence/spc/extracted")
+          files = sorted(p for p in root.rglob("*") if p.is_file())
+          rows = []
+          apu_groups = {}
+          for path in files:
+              data = path.read_bytes()
+              row = {
+                  "path": str(path.relative_to(root)),
+                  "size": len(data),
+                  "sha256": hashlib.sha256(data).hexdigest(),
+              }
+              if data.startswith(b"SNES-SPC700 Sound File Data"):
+                  row["format"] = "SPC"
+                  # Standard SPC layout: 0x100-byte header followed by 64 KiB RAM.
+                  if len(data) >= 0x10100:
+                      ram = data[0x100:0x10100]
+                      row["apu_ram_sha256"] = hashlib.sha256(ram).hexdigest()
+                      # Cheap cross-track fingerprints. Shared regions often expose
+                      # driver/sample payloads even before semantic driver analysis.
+                      for start in range(0, 0x10000, 0x1000):
+                          chunk = ram[start:start+0x1000]
+                          key = f"{start:04X}-{start+len(chunk)-1:04X}"
+                          row.setdefault("apu_4k_sha256", {})[key] = hashlib.sha256(chunk).hexdigest()
+                          apu_groups.setdefault(key, {}).setdefault(hashlib.sha256(chunk).hexdigest(), []).append(row["path"])
+                  else:
+                      row["format"] = "SPC-truncated"
+              else:
+                  row["format"] = "other"
+              rows.append(row)
+
+          shared = {}
+          for region, groups in apu_groups.items():
+              common = [
+                  {"sha256": digest, "files": names}
+                  for digest, names in groups.items()
+                  if len(names) > 1
+              ]
+              if common:
+                  shared[region] = common
+
+          report = {
+              "schema_version": 1,
+              "source_url": "https://www.snesmusic.org/v2/download.php?spcNow=unir",
+              "archive_sha256": hashlib.sha256(Path("evidence/spc/unir.rar").read_bytes()).hexdigest(),
+              "files": rows,
+              "shared_apu_regions": shared,
+          }
+          out = Path("evidence/spc/spc-inventory.json")
+          out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          print(out.read_text(encoding="utf-8"))
+          PY
+
+      - name: Upload transient research artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-spc-research
+          path: |
+            evidence/spc/archive.sha256
+            evidence/spc/spc-inventory.json
+            evidence/spc/unir.rar
+          retention-days: 1

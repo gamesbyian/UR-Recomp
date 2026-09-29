@@ -17,6 +17,16 @@ PATTERNS={
  "entry-dp-sta":[0xC2,0x39,0xA3,0x06,0x85,None,0xA3,0x08,0x85,None,0xA3,0x0A,0x85,None,0xA3,0x04,0x8B,0xEB,0x48,0xAB,0xAB],
  # MAKEHUFF begins STY TEMP4; LDA #5; JSR GTBITS; BEQ...
  "makehuff-shape":[0x84,None,0xA9,0x05,0x00,0x20,None,None,0xF0,None],
+ # Longer MAKEHUFF prologue from RNC_1.S:
+ # STY TEMP4; LDA #5; JSR GTBITS; BEQ...; STA TEMP1; STA TEMP2;
+ # LDY #0; PHY; LDA #4; JSR GTBITS; PLY; STA [WRKBUF],Y;
+ # INY; INY; DEC TEMP2; BNE...
+ "makehuff-prologue":[
+   0x84,None,0xA9,0x05,0x00,0x20,None,None,0xF0,None,
+   0x85,None,0x85,None,0xA0,0x00,0x00,0x5A,
+   0xA9,0x04,0x00,0x20,None,None,0x7A,0x97,None,
+   0xC8,0xC8,0xC6,None,0xD0,None
+ ],
 }
 
 def find(data,pat):
@@ -42,6 +52,24 @@ def main():
             hits=find(data,pat); allhits[name][pname]=hits
             rendered=", ".join(f"`0x{x:06X}` (LoROM {snes_lorom(x)})" for x in hits) or "none"
             lines.append(f"- {pname}: {rendered}")
+        lines.append("")
+    lines += ["## Traced writer-site context","",
+              "Dynamic trace run 36517696016 identified USA writer PCs 01:BA96 and 01:BB73. "
+              "For the other builds, contexts below use the unpacker-entry displacement so structurally corresponding code can be compared without assuming absolute addresses.",""]
+    usa_entry=allhits["usa-retail"]["entry-loose"][0]
+    traced={"course-byte-increment":0x00BA96,"decoded-output-write":0x00BB73}
+    for label,usa_off in traced.items():
+        delta=usa_off-usa_entry
+        lines += [f"### {label}: USA offset `0x{usa_off:06X}`, entry-relative +`0x{delta:X}`",""]
+        for name,path in ROMS.items():
+            data=path.read_bytes()
+            entries=allhits[name]["entry-loose"]
+            if not entries:
+                lines.append(f"- {name}: no unpacker entry")
+                continue
+            off=entries[0]+delta
+            chunk=data[max(0,off-24):min(len(data),off+48)]
+            lines.append(f"- {name}: `0x{off:06X}` (LoROM {snes_lorom(off)}): `{chunk.hex(' ')}`")
         lines.append("")
     lines += ["## Cross-build exact bytes around candidate entry hits",""]
     offsets=sorted(set(x for d in allhits.values() for x in d["entry-loose"]))

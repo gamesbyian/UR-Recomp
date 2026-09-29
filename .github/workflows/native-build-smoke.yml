@@ -11,6 +11,7 @@ on:
       - "tests/input/reach-first-race.script"
       - "tests/input/ui-options-route.script"
       - "tests/input/ui-main-branches.script"
+      - "tests/input/ui-vs-handoff.script"
       - "tests/input/ui-ending-shortcut.script"
       - "tests/input/ui-attract-route.script"
       - "tests/input/ui-pause-route.script"
@@ -301,6 +302,27 @@ jobs:
               w = p.read_bytes()
               print(f"{tag}: currentMenu=0x{w[0x009F]:02X} selectedOption=0x{w[0x009B]:02X}")
           PY
+
+      - name: UI isolated VS handoff reconnaissance
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-vs-handoff.script"
+          LOG="$RUNNER_TEMP/ui-vs-handoff.log"
+          DUMPS="$RUNNER_TEMP/ui-vs-handoff-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted reset-free VS handoff reconnaissance =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_VS_HANDOFF_STATUS=$STATUS"
 
       - name: UI ending-shortcut reconnaissance
         continue-on-error: true
@@ -638,6 +660,7 @@ jobs:
             --dump-dir "$RUNNER_TEMP/race-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-branch-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-vs-handoff-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-ending-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-attract-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-pause-dumps" \
@@ -678,6 +701,7 @@ jobs:
             --dump-dir "$RUNNER_TEMP/race-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-branch-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-vs-handoff-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-ending-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-attract-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-pause-dumps" \
@@ -713,6 +737,8 @@ jobs:
             ${{ runner.temp }}/ui-dumps/
             ${{ runner.temp }}/ui-main-branches.log
             ${{ runner.temp }}/ui-branch-dumps/
+            ${{ runner.temp }}/ui-vs-handoff.log
+            ${{ runner.temp }}/ui-vs-handoff-dumps/
             ${{ runner.temp }}/ui-ending-shortcut.log
             ${{ runner.temp }}/ui-ending-dumps/
             ${{ runner.temp }}/ui-attract-route.log

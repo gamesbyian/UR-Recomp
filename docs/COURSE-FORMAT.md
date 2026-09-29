@@ -111,9 +111,30 @@ A second correlation is especially suggestive. Stream 1's first 16-bit coordinat
 
 Current confidence separation:
 
-- **Observed:** the stream-1 header pattern is resident at `7F:0000` during Dragster.
+- **Confirmed:** decoded stream 1 is resident at `7F:0000` during Dragster. Run 36514985916 compares all 33,815 decoded bytes and finds 33,814 exact matches; only decoded offset `0x000B` differs (`0x0F` decoded, `0x16` live).
 - **Observed:** header X value 68 maps exactly to runtime start X 1088 at ×16.
-- **Supported hypothesis:** LE16 fields at decoded offsets 3/5 and 7/9 are two course-coordinate pairs, plausibly start/spawn positions for the two racer slots.
+- **Strongly supported hypothesis:** LE16 fields at decoded offsets 3/5 and 7/9 are two course-coordinate pairs, plausibly start/spawn positions for the two racer slots. On confirmed Dragster, both X values are 68 and both runtime racer X positions are exactly `68 × 16 = 1088`.
 - **Open:** the meaning of decoded byte 11 and why it mutates `0x0F → 0x16`; the Y-coordinate anchor; whether the two pairs are racer starts, start/finish, or another paired course landmark.
 
 Next discriminator: capture a different known stream/course at race entry, or causally perturb one decoded coordinate field, and test whether the corresponding runtime position moves by the predicted 16-unit scale.
+
+
+### Whole-payload runtime match
+
+Workflow run 36514985916 decodes all 45 USA RNC streams and scores each against the 64 KiB live WRAM region beginning at `7F:0000` from the deterministic settled Dragster checkpoint.
+
+Stream 1 is unambiguously the best match:
+
+- stream: 1;
+- packed ROM offset: `0x0C0000`;
+- decoded size: 33,815 bytes;
+- equal live bytes: 33,814 / 33,815;
+- equal fraction: 0.999970;
+- only mismatch: decoded offset `0x000B`, `0x0F → 0x16`.
+
+No other decoded stream approaches this relationship. This directly confirms stream 1 as the active Dragster payload and `7F:0000` as its runtime decoded buffer.
+
+The next format question is no longer "where does the course go?" It is:
+1. when during frontend/race transition is the payload installed at `7F:0000`;
+2. what writes decoded byte 11 from `0x0F` to `0x16`;
+3. what the coordinate-like header pairs represent precisely.

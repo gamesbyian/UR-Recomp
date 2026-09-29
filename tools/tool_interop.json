@@ -1,0 +1,633 @@
+{
+  "schema_version": 1,
+  "status_meanings": {
+    "verified": "Exercised in this repository by a deterministic workflow or regression test.",
+    "supported": "Native producer/consumer formats line up and the handoff is documented, but the complete chain is not yet a repository regression.",
+    "candidate": "Promising adapter or workflow; format/semantic validation remains before routine use."
+  },
+  "formats": [
+    {
+      "id": "sfc-rom",
+      "description": "Headerless SNES ROM image (.sfc)."
+    },
+    {
+      "id": "fixture-script",
+      "description": "Shared frame/input/checkpoint script used by SNESRecomp host and snesref."
+    },
+    {
+      "id": "wram-checkpoints",
+      "description": "Directory of named *.wram.bin checkpoint dumps."
+    },
+    {
+      "id": "wram-diff-json",
+      "description": "JSON report emitted by compare_wram_checkpoints.py."
+    },
+    {
+      "id": "symbols-json",
+      "description": "Generated machine-readable projection of docs/SYMBOLS.md."
+    },
+    {
+      "id": "snes2asm-yaml",
+      "description": "snes2asm decoder/label/memory YAML configuration."
+    },
+    {
+      "id": "snes2asm-project",
+      "description": "Reassemblable project emitted by snes2asm, including WLA-DX-oriented Makefile/source/assets."
+    },
+    {
+      "id": "wla-object-rom",
+      "description": "WLA-DX assembled/linkable outputs or rebuilt ROM."
+    },
+    {
+      "id": "snes-native-graphics",
+      "description": "SNES palette/tile/map binary data."
+    },
+    {
+      "id": "png-image",
+      "description": "PNG visual/asset representation."
+    },
+    {
+      "id": "ips-bps-patch",
+      "description": "IPS/BPS ROM patch."
+    },
+    {
+      "id": "mesen-cdl",
+      "description": "Mesen Code/Data Logger export with per-ROM-byte code/data flags."
+    },
+    {
+      "id": "bsnes-trace-cdl",
+      "description": "BSNES/BizHawk trace or usage/CDL data accepted by DiztinGUIsh/da65 helper tooling."
+    },
+    {
+      "id": "diz-project",
+      "description": "DiztinGUIsh XML/raw project with code/data/M-X/DB/DP annotations."
+    },
+    {
+      "id": "asm-source",
+      "description": "65816/SPC700 assembly source."
+    },
+    {
+      "id": "rnc-packed-stream",
+      "description": "RNC Method 1 packed stream from ROM."
+    },
+    {
+      "id": "rnc-decoded-bytes",
+      "description": "CRC-verified decoded RNC Method 1 payload."
+    },
+    {
+      "id": "smv-movie",
+      "description": "Snes9x movie/input corpus."
+    },
+    {
+      "id": "libretro-core",
+      "description": "Built libretro shared-library core consumed by snesref."
+    },
+    {
+      "id": "mesen-debug-api",
+      "description": "Mesen/MesenCE debugger/Lua/testrunner surface consumed by mesen-for-ai."
+    },
+    {
+      "id": "da65-info",
+      "description": "cc65 da65 info-file seed containing labels and later RANGE/ADDRMODE annotations."
+    },
+    {
+      "id": "mesen-mcp-client",
+      "description": "mesen-for-ai Python/MCP client surface used by project adapters."
+    }
+  ],
+  "components": [
+    {
+      "id": "verify-rom",
+      "kind": "project",
+      "consumes": [
+        "sfc-rom"
+      ],
+      "produces": []
+    },
+    {
+      "id": "native-recomp",
+      "kind": "project",
+      "consumes": [
+        "sfc-rom",
+        "fixture-script"
+      ],
+      "produces": [
+        "wram-checkpoints"
+      ]
+    },
+    {
+      "id": "snesref",
+      "kind": "project",
+      "consumes": [
+        "sfc-rom",
+        "fixture-script",
+        "libretro-core"
+      ],
+      "produces": [
+        "wram-checkpoints"
+      ]
+    },
+    {
+      "id": "compare-wram",
+      "kind": "project",
+      "consumes": [
+        "wram-checkpoints"
+      ],
+      "produces": [
+        "wram-diff-json"
+      ]
+    },
+    {
+      "id": "symbol-export",
+      "kind": "project",
+      "consumes": [],
+      "produces": [
+        "symbols-json"
+      ]
+    },
+    {
+      "id": "symbol-adapters",
+      "kind": "project",
+      "consumes": [
+        "symbols-json"
+      ],
+      "produces": [
+        "snes2asm-yaml",
+        "da65-info"
+      ]
+    },
+    {
+      "id": "rnc-method1",
+      "kind": "project",
+      "consumes": [
+        "rnc-packed-stream"
+      ],
+      "produces": [
+        "rnc-decoded-bytes"
+      ]
+    },
+    {
+      "id": "rnc-analysis",
+      "kind": "project",
+      "consumes": [
+        "sfc-rom",
+        "rnc-decoded-bytes"
+      ],
+      "produces": []
+    },
+    {
+      "id": "snes9x-libretro",
+      "kind": "external",
+      "consumes": [
+        "sfc-rom"
+      ],
+      "produces": [
+        "libretro-core"
+      ]
+    },
+    {
+      "id": "beetle-bsnes-libretro",
+      "kind": "external",
+      "consumes": [
+        "sfc-rom"
+      ],
+      "produces": [
+        "libretro-core"
+      ]
+    },
+    {
+      "id": "bsnes-libretro",
+      "kind": "external",
+      "consumes": [
+        "sfc-rom"
+      ],
+      "produces": [
+        "libretro-core"
+      ]
+    },
+    {
+      "id": "snes2asm",
+      "kind": "external",
+      "consumes": [
+        "sfc-rom",
+        "snes2asm-yaml"
+      ],
+      "produces": [
+        "snes2asm-project",
+        "asm-source",
+        "snes-native-graphics"
+      ]
+    },
+    {
+      "id": "wla-dx",
+      "kind": "external",
+      "consumes": [
+        "snes2asm-project",
+        "asm-source"
+      ],
+      "produces": [
+        "wla-object-rom"
+      ]
+    },
+    {
+      "id": "superfamiconv",
+      "kind": "external",
+      "consumes": [
+        "png-image",
+        "snes-native-graphics"
+      ],
+      "produces": [
+        "png-image",
+        "snes-native-graphics"
+      ]
+    },
+    {
+      "id": "cc65",
+      "kind": "external",
+      "consumes": [
+        "sfc-rom",
+        "bsnes-trace-cdl",
+        "da65-info"
+      ],
+      "produces": [
+        "asm-source"
+      ]
+    },
+    {
+      "id": "flips",
+      "kind": "external",
+      "consumes": [
+        "sfc-rom",
+        "ips-bps-patch"
+      ],
+      "produces": [
+        "sfc-rom",
+        "ips-bps-patch"
+      ]
+    },
+    {
+      "id": "mesen-for-ai",
+      "kind": "external",
+      "consumes": [
+        "sfc-rom",
+        "mesen-debug-api"
+      ],
+      "produces": [
+        "mesen-cdl",
+        "png-image",
+        "mesen-mcp-client"
+      ]
+    },
+    {
+      "id": "mesence",
+      "kind": "external",
+      "consumes": [
+        "sfc-rom"
+      ],
+      "produces": [
+        "mesen-cdl",
+        "png-image",
+        "mesen-debug-api"
+      ]
+    },
+    {
+      "id": "diztinguish",
+      "kind": "external",
+      "consumes": [
+        "sfc-rom",
+        "bsnes-trace-cdl"
+      ],
+      "produces": [
+        "diz-project",
+        "asm-source"
+      ]
+    },
+    {
+      "id": "bsnes-plus",
+      "kind": "external",
+      "consumes": [
+        "sfc-rom"
+      ],
+      "produces": [
+        "bsnes-trace-cdl"
+      ]
+    },
+    {
+      "id": "ghidra-snes",
+      "kind": "external",
+      "consumes": [
+        "sfc-rom"
+      ],
+      "produces": []
+    },
+    {
+      "id": "mesen-cdl-adapter",
+      "kind": "project",
+      "consumes": [
+        "mesen-cdl"
+      ],
+      "produces": [
+        "bsnes-trace-cdl"
+      ]
+    },
+    {
+      "id": "reconstruction-worktree",
+      "kind": "project",
+      "consumes": [
+        "snes2asm-project",
+        "snes-native-graphics"
+      ],
+      "produces": [
+        "snes2asm-project"
+      ]
+    },
+    {
+      "id": "mesen-fixture-adapter",
+      "kind": "project",
+      "consumes": [
+        "sfc-rom",
+        "fixture-script",
+        "mesen-mcp-client"
+      ],
+      "produces": [
+        "wram-checkpoints"
+      ]
+    }
+  ],
+  "handoffs": [
+    {
+      "from": "native-recomp",
+      "to": "compare-wram",
+      "format": "wram-checkpoints",
+      "status": "verified",
+      "evidence": ".github/workflows/deterministic-differential.yml"
+    },
+    {
+      "from": "snesref",
+      "to": "compare-wram",
+      "format": "wram-checkpoints",
+      "status": "verified",
+      "evidence": ".github/workflows/deterministic-differential.yml"
+    },
+    {
+      "from": "snes9x-libretro",
+      "to": "snesref",
+      "format": "libretro-core",
+      "status": "verified",
+      "evidence": ".github/workflows/deterministic-differential.yml"
+    },
+    {
+      "from": "beetle-bsnes-libretro",
+      "to": "snesref",
+      "format": "libretro-core",
+      "status": "supported",
+      "evidence": ".github/workflows/independent-reference-route.yml"
+    },
+    {
+      "from": "symbol-export",
+      "to": "symbol-adapters",
+      "format": "symbols-json",
+      "status": "verified",
+      "evidence": "analysis/generated/symbols.json"
+    },
+    {
+      "from": "symbol-adapters",
+      "to": "snes2asm",
+      "format": "snes2asm-yaml",
+      "status": "supported",
+      "evidence": "tools/export_symbol_adapters.py"
+    },
+    {
+      "from": "snes2asm",
+      "to": "wla-dx",
+      "format": "snes2asm-project",
+      "status": "supported",
+      "evidence": "snes2asm generated Makefile/project contract"
+    },
+    {
+      "from": "snes2asm",
+      "to": "superfamiconv",
+      "format": "snes-native-graphics",
+      "status": "candidate",
+      "evidence": "Both operate on native SNES palette/tile/map bytes; round-trip fixture still needed."
+    },
+    {
+      "from": "bsnes-plus",
+      "to": "diztinguish",
+      "format": "bsnes-trace-cdl",
+      "status": "supported",
+      "evidence": "DiztinGUIsh upstream trace/CDL import workflow."
+    },
+    {
+      "from": "bsnes-plus",
+      "to": "cc65",
+      "format": "bsnes-trace-cdl",
+      "status": "supported",
+      "evidence": "cc65 ships util/parse-bsnes-log.awk for 65816 RANGE/ADDRMODE info."
+    },
+    {
+      "from": "flips",
+      "to": "verify-rom",
+      "format": "sfc-rom",
+      "status": "supported",
+      "evidence": "Patched ROMs should be fingerprinted before analysis."
+    },
+    {
+      "from": "rnc-method1",
+      "to": "rnc-analysis",
+      "format": "rnc-decoded-bytes",
+      "status": "verified",
+      "evidence": "tools/analyze_rnc_streams.py and related project analyzers."
+    },
+    {
+      "from": "mesence",
+      "to": "mesen-for-ai",
+      "format": "mesen-debug-api",
+      "status": "supported",
+      "evidence": "mesen-for-ai launches a user-supplied Mesen/MesenCE binary and drives its Lua debugger bridge."
+    },
+    {
+      "from": "mesen-for-ai",
+      "to": "mesen-cdl-adapter",
+      "format": "mesen-cdl",
+      "status": "candidate",
+      "evidence": "Adapter must preserve SNES per-byte code/data semantics and verify flag mapping against a known execution corpus."
+    },
+    {
+      "from": "mesen-cdl-adapter",
+      "to": "diztinguish",
+      "format": "bsnes-trace-cdl",
+      "status": "candidate",
+      "evidence": "DiztinGUIsh accepts BSNES/BizHawk usage/CDL-style imports; emitted compatibility format still needs a fixture."
+    },
+    {
+      "from": "mesen-cdl-adapter",
+      "to": "cc65",
+      "format": "bsnes-trace-cdl",
+      "status": "candidate",
+      "evidence": "Could feed cc65 parse-bsnes-log/da65 RANGE+ADDRMODE generation after the compatibility mapping is proven."
+    },
+    {
+      "from": "symbol-adapters",
+      "to": "cc65",
+      "format": "da65-info",
+      "status": "supported",
+      "evidence": "analysis/generated/da65-symbols-bank-01.info; generated labels are valid da65 info syntax, dynamic RANGE/ADDRMODE remains separate."
+    },
+    {
+      "from": "snes2asm",
+      "to": "reconstruction-worktree",
+      "format": "snes2asm-project",
+      "status": "supported",
+      "evidence": "snes2asm emits the reassemblable project/worktree that owns extracted assets."
+    },
+    {
+      "from": "superfamiconv",
+      "to": "reconstruction-worktree",
+      "format": "snes-native-graphics",
+      "status": "candidate",
+      "evidence": "Replacement native bytes can be staged into the generated project only after an exact asset-layout round-trip fixture proves the conversion."
+    },
+    {
+      "from": "reconstruction-worktree",
+      "to": "wla-dx",
+      "format": "snes2asm-project",
+      "status": "supported",
+      "evidence": "Generated project Makefile/source/assets are WLA-DX-oriented."
+    },
+    {
+      "from": "mesen-fixture-adapter",
+      "to": "compare-wram",
+      "format": "wram-checkpoints",
+      "status": "supported",
+      "evidence": "Adapter emits the same named *.wram.bin full-WRAM checkpoint shape consumed by compare_wram_checkpoints.py."
+    },
+    {
+      "from": "mesen-for-ai",
+      "to": "mesen-fixture-adapter",
+      "format": "mesen-mcp-client",
+      "status": "supported",
+      "evidence": "tools/run_fixture_mesen.py imports the pinned mesen-for-ai Mesen client instead of reimplementing JSON-RPC framing."
+    }
+  ],
+  "chains": [
+    {
+      "id": "deterministic-differential",
+      "status": "verified",
+      "steps": [
+        "verify-rom",
+        "native-recomp",
+        "snesref",
+        "compare-wram"
+      ],
+      "purpose": "Run one fixture through recompilation and an interpreter, then compare named full-WRAM checkpoints."
+    },
+    {
+      "id": "independent-emulator-crosscheck",
+      "status": "supported",
+      "steps": [
+        "verify-rom",
+        "snes9x-libretro",
+        "beetle-bsnes-libretro",
+        "snesref",
+        "compare-wram"
+      ],
+      "purpose": "Use the same fixture/harness to separate recomp bugs from emulator-specific behavior."
+    },
+    {
+      "id": "trace-assisted-disassembly",
+      "status": "supported",
+      "steps": [
+        "bsnes-plus",
+        "diztinguish"
+      ],
+      "purpose": "Capture dynamic 65816 execution context, classify code/data and M/X state, then export reassemblable source."
+    },
+    {
+      "id": "da65-trace-assisted-bank",
+      "status": "supported",
+      "steps": [
+        "bsnes-plus",
+        "cc65"
+      ],
+      "purpose": "Feed BSNES trace/CDL through cc65's helper into da65 RANGE/ADDRMODE information for bank-by-bank 65816 disassembly."
+    },
+    {
+      "id": "reassemblable-static-project",
+      "status": "supported",
+      "steps": [
+        "symbol-export",
+        "symbol-adapters",
+        "snes2asm",
+        "reconstruction-worktree",
+        "wla-dx"
+      ],
+      "purpose": "Seed labels/memory knowledge, generate a structured disassembly/assets project, and reassemble it."
+    },
+    {
+      "id": "graphics-roundtrip",
+      "status": "candidate",
+      "steps": [
+        "snes2asm",
+        "superfamiconv",
+        "reconstruction-worktree",
+        "wla-dx"
+      ],
+      "purpose": "Extract native graphics, render/edit/validate with SuperFamiconv, then return exact SNES bytes to a reassemblable project."
+    },
+    {
+      "id": "agent-cdl-to-disassembly",
+      "status": "candidate",
+      "steps": [
+        "mesence",
+        "mesen-for-ai",
+        "mesen-cdl-adapter",
+        "diztinguish"
+      ],
+      "purpose": "Drive deterministic scenes headlessly, accumulate code/data coverage, then import that evidence into a collaborative disassembly after a validated CDL adapter."
+    },
+    {
+      "id": "patch-experiment-loop",
+      "status": "supported",
+      "steps": [
+        "flips",
+        "verify-rom",
+        "native-recomp",
+        "snesref",
+        "compare-wram"
+      ],
+      "purpose": "Create/apply a controlled ROM patch, fingerprint the derived ROM, then run the same deterministic differential evidence loop."
+    },
+    {
+      "id": "rnc-archaeology",
+      "status": "verified",
+      "steps": [
+        "verify-rom",
+        "rnc-method1",
+        "rnc-analysis"
+      ],
+      "purpose": "Locate/decode period RNC data with CRC validation and feed decoded payloads into structural/course analysis."
+    },
+    {
+      "id": "da65-symbol-seeded-bank",
+      "status": "supported",
+      "steps": [
+        "symbol-export",
+        "symbol-adapters",
+        "cc65"
+      ],
+      "purpose": "Project canonical labels seed bank-local da65 info files; trace/CDL RANGE and M/X state can be layered on without retyping names."
+    },
+    {
+      "id": "three-engine-fixture",
+      "status": "supported",
+      "steps": [
+        "native-recomp",
+        "snesref",
+        "mesen-fixture-adapter",
+        "compare-wram"
+      ],
+      "purpose": "Replay one project-owned fixture through native recompilation, libretro reference cores, and Mesen while preserving the same named full-WRAM comparison surface."
+    }
+  ]
+}

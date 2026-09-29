@@ -20,7 +20,7 @@ Print the recommended Ubuntu packages first if needed:
 python3 tools/bootstrap_toolchain.py --system-packages
 ```
 
-The bootstrap script never runs `sudo`.
+The bootstrap script never runs `sudo` or build commands through a shell. Manifest build steps are argument vectors, pinned revisions must be full commit IDs, and declared build artifacts are checked after successful builds. Run `python3 tools/bootstrap_toolchain.py --validate` for a no-network schema/integrity check.
 
 ## Already in the repository
 
@@ -76,7 +76,11 @@ This is a heavyweight interactive workbench, so the bootstrap only pins/checks o
 
 ### bsnes libretro
 
-Pinned as a secondary libretro oracle. Use it to cross-check emulator-sensitive behavior when Snes9x and recomp disagree, especially PPU/OAM/timing questions. It is intentionally not part of default bootstrap/build cost.
+Pinned as a secondary implementation reference and manual/frame-level oracle. It builds reproducibly through `python3 tools/bootstrap_toolchain.py --tool bsnes-libretro`, but this libretro frontend does not expose `RETRO_MEMORY_SYSTEM_RAM`, so it cannot directly support `snesref`'s WRAM-keyed `until`/dump fixtures.
+
+### Beetle bsnes libretro
+
+Pinned separately as the automated independent state oracle. Its libretro frontend exposes SNES WRAM as `RETRO_MEMORY_SYSTEM_RAM`, which makes it compatible with the existing `snesref` fixture and checkpoint machinery. Build it with `python3 tools/bootstrap_toolchain.py --tool beetle-bsnes-libretro`; CI smoke-builds the core and the independent-reference workflow drives the same first-race fixture through it and Snes9x.
 
 ### ares
 
@@ -96,7 +100,7 @@ Treat workbench databases and bulk trace logs as ignored scratch products. Promo
 
 ### MesenCE + mesen-for-ai
 
-Both are pinned under the `agent-debug` group. MesenCE is the community-maintained continuation of Mesen and supplies the SNES debugger/emulator host. `mesen-for-ai` exposes compatible debugger operations to an AI agent headlessly: frame stepping, memory/register inspection, breakpoints, traces, and SNES code/data logging.
+Both are pinned under the `agent-debug` group. MesenCE is the community-maintained continuation of Mesen and supplies the SNES debugger/emulator host. Its pin was deliberately advanced from the June 2.2.1 release to the 2026-09-26 head because intervening upstream work includes a SNES mid-scanline PPU register fix, corrected Lua callback addresses for non-default memory types, and debugger fixes that directly overlap UR-Recomp's raster and agent-debug use cases. `mesen-for-ai` exposes compatible debugger operations to an AI agent headlessly: frame stepping, memory/register inspection, breakpoints, traces, and SNES code/data logging.
 
 ```bash
 python3 tools/bootstrap_toolchain.py --group agent-debug
@@ -110,11 +114,13 @@ This is the preferred future route for agent-driven dynamic archaeology when `sn
 
 Pinned as an on-demand IPS/BPS CLI-capable patcher. Use patches rather than duplicate modified ROMs when preserving third-party fixes, controlled experiments, or reproducible ROM modifications. The original bytes and patch provenance remain separate evidence.
 
-Install sources with:
+Build the pinned CLI-capable binary with:
 
 ```bash
-python3 tools/bootstrap_toolchain.py --group patching --clone-only
+python3 tools/bootstrap_toolchain.py --group patching
 ```
+
+The bootstrap deliberately builds the CLI target with `make TARGET=cli`, avoiding GTK entirely, and verifies that the `flips` artifact exists. Use `--clone-only` only when source inspection, rather than a usable patcher, is the goal.
 
 ## Generic conversion/inspection utilities
 
@@ -143,3 +149,36 @@ A tool earns a permanent default slot when it is:
 4. not redundant with an existing project or SNESRecomp facility.
 
 Everything else can remain an on-demand pinned workbench.
+
+
+## Bootstrap trust model
+
+`tools/toolchain.json` distinguishes tools with a reproducible project-owned build recipe from tools whose source is merely pinned for manual use. A successful checkout of a heavyweight emulator or debugger is not described as an installation.
+
+The bootstrap validates before network or build work:
+
+- repository-local installation root;
+- unique conservative tool IDs;
+- HTTPS GitHub source;
+- full lowercase 40-hex revision;
+- explicit `build` or `manual` install mode;
+- argv-vector build commands with only known placeholders.
+
+This is intentionally stricter than upstream build documentation. The manifest is an execution contract for this repository, not a bag of shell snippets.
+
+
+Python-packaged third-party tools are installed into separate virtual environments under `.tools/venvs/<tool-id>/`. This avoids dependency coupling between unrelated research tools while keeping the entire installation disposable.
+
+
+## Project-owned patches
+
+A build-mode tool may declare hash-pinned patches under `tools/patches/`. Bootstrap order is deliberately strict:
+
+1. verify the manifest and exact upstream commit;
+2. reset and clean the disposable checkout;
+3. verify each patch SHA-256;
+4. require `git apply --check`;
+5. apply the patch;
+6. build and verify typed artifacts.
+
+`--clone-only` stops before patching, so it always leaves an exact upstream source checkout for comparison. Keep patches small and purpose-specific; when an upstream pin changes, reconcile or remove them explicitly.

@@ -9,7 +9,6 @@ Key commands:
 ```bash
 python3 tools/check_repo_hygiene.py
 python3 tools/bootstrap_toolchain.py --list
-python3 tools/bootstrap_toolchain.py
-```
+python3 tools/bootstrap_toolchain.py\npython3 tools/validate_tool_interop.py\npython3 tools/export_symbol_adapters.py --check\n```
 
-See `docs/TOOLCHAIN.md` for selection guidance and `AGENTS.md` for task routing.
+See `docs/TOOLCHAIN.md` for selection guidance, `docs/TOOL-INTEROPERABILITY.md` for producer/consumer chains, and `AGENTS.md` for task routing.

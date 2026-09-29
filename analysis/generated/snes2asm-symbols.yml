@@ -1,0 +1,10 @@
+# Generated from analysis/generated/symbols.json.
+# Add structural decoders separately; this file only seeds known labels/memory.
+labels:
+  RNC1_Unpack: 0xB8F1
+memory:
+  Frontend_SelectedRow: 0x7E000E
+  Frontend_SelectedOption: 0x7E009B
+  Frontend_CurrentMenu: 0x7E009F
+  Race_ActiveState: 0x7E0313
+  Frontend_SelectedColumn: 0x7E0C63

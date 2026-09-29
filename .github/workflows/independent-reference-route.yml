@@ -1,0 +1,112 @@
+name: independent libretro reference route
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "rom_identity.txt"
+      - "snesrecomp"
+      - "tests/input/reach-first-race.script"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - "tools/compare_wram_checkpoints.py"
+      - ".github/workflows/independent-reference-route.yml"
+
+concurrency:
+  group: independent-reference-route-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compare-reference-cores:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Build pinned reference cores
+        run: |
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          python3 tools/bootstrap_toolchain.py --tool beetle-bsnes-libretro --jobs 2
+
+      - name: Build snesref
+        run: |
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+          test -x "$RUNNER_TEMP/snesref-build/snesref"
+
+      - name: Run identical fixture through Snes9x and Beetle bsnes
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
+
+          run_core() {
+            local label="$1"
+            local core="$2"
+            local allow_teardown_abort="${3:-0}"
+            local dumps="$RUNNER_TEMP/${label}-dumps"
+            local log="$RUNNER_TEMP/${label}-route.log"
+            mkdir -p "$dumps"
+
+            set +e
+            SNESREF_HEADLESS=1 \
+            SNESREF_FAST=1 \
+            SNESREF_WRAM_FILL=0 \
+            SNESREF_SCRIPT="$SCRIPT" \
+            SNESREF_DUMP_DIR="$dumps" \
+              "$EXE" "$core" "$ROM" >"$log" 2>&1
+            local status=$?
+            set -e
+            cat "$log"
+
+            # A usable oracle run must complete the scripted race-entered dump.
+            # The pinned Beetle core currently aborts during libretro teardown
+            # after scripted quit; preserve that as a known adapter defect
+            # rather than discarding already-complete deterministic evidence.
+            test -s "$dumps/race-entered.wram.bin"
+            if [ "$status" -eq 0 ]; then
+              return 0
+            fi
+            if [ "$allow_teardown_abort" -eq 1 ] && [ "$status" -eq 134 ]; then
+              echo "::warning::${label} completed the fixture and then aborted during teardown (exit 134)"
+              return 0
+            fi
+            echo "::error::${label} exited with status $status"
+            return "$status"
+          }
+
+          run_core snes9x "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          run_core beetle-bsnes "$GITHUB_WORKSPACE/.tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so" 1
+
+      - name: Compare reference-core WRAM checkpoints
+        run: |
+          python3 tools/compare_wram_checkpoints.py             "$RUNNER_TEMP/snes9x-dumps"             "$RUNNER_TEMP/beetle-bsnes-dumps"             --label-a snes9x             --label-b beetle-bsnes             --limit 80             --json-out "$RUNNER_TEMP/reference-core-differential.json"             | tee "$RUNNER_TEMP/reference-core-differential.txt"
+
+      - name: Upload independent-oracle evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-reference-core-differential
+          path: |
+            ${{ runner.temp }}/snes9x-route.log
+            ${{ runner.temp }}/beetle-bsnes-route.log
+            ${{ runner.temp }}/reference-core-differential.json
+            ${{ runner.temp }}/reference-core-differential.txt
+            ${{ runner.temp }}/snes9x-dumps/
+            ${{ runner.temp }}/beetle-bsnes-dumps/
+          if-no-files-found: warn
+          retention-days: 7

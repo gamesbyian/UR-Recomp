@@ -18,10 +18,10 @@ This is a private computer-science research archive. Material stored here is ref
 1. Every item gets a source URL, retrieval date, and rights/licensing note in `catalog.yml`.
 2. Pin GitHub sources to a commit where practical.
 3. **Preservation is the default.** When an actually downloadable public artifact is useful to the research, mirror the artifact into this repository where technically practical even when ownership or redistribution status is unclear. Record that uncertainty instead of converting it into an artificial absence.
-4. Keep mirrored third-party material under `references/imported/`; keep our summaries and technical observations under `references/notes/`.
+4. Keep mirrored third-party material under `references/imported/`; keep our summaries and technical observations under `references/notes/`. Every tracked imported artifact must also be classified in `references/imported/MANIFEST.json`; CI verifies its exact bytes and known upstream/source hashes.
 5. Never silently promote imported material into project-owned implementation assets. If something is later reused in shipping code/art, evaluate that use separately.
 6. Preserve original filenames when useful, plus hashes/revisions where practical, so provenance survives source-site disappearance or mutation.
-7. External claims remain leads until reproduced against the project's supported ROM. Confirmed local findings belong in `docs/RESEARCH-LEDGER.md`.
+7. External claims remain leads until reproduced against the project's supported ROM. Confirmed local findings belong in `docs/RESEARCH-LEDGER.md`. For executable/source imports, read `docs/THIRD-PARTY-SOURCE-AUDIT.md` before reusing implementation behavior.
 8. Avoid duplicate ROM imports. The project's supported ROM baseline is handled separately at repository root.
 
 ## Provenance posture

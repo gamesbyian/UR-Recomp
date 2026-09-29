@@ -221,7 +221,7 @@ The goal is a closed evidence loop: ROM bytes → static hypothesis → dynamic 
 
 The preferred continuation loop is:
 
-1. inspect the latest race-behavior fixture/run and preserve the last verified semantic checkpoint before extending the workload;
+1. inspect the latest race-behavior fixture/run and preserve the last verified semantic checkpoint before extending the workload; the active whole-race candidate is `tests/input/race-finish-dragster.script`, gated on stock race-results state in both native and Snes9x;
 2. treat straight-line acceleration as established: `7E:0411` X position and signed `7E:04B7` X speed are confirmed cross-runtime, with `7E:11BA` decrementing by `0x0100` per guest frame during the sampled start window;
 3. treat jump, rotation, event-relative landing and one failed-landing/contact case as established: `7E:0415` Y position, signed `7E:04BB` Y speed, `7E:0545` air state and modulo-64 `7E:04C7` pitch angle are validated cross-runtime; deterministic stock-race finish is now the active race-behavior milestone;
 4. resolve recovered-source ambiguities before promoting symbols; in particular, respect Lua duplicate-key semantics and distinguish effective bot addresses from earlier overwritten candidates;

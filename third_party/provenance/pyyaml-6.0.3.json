@@ -5,7 +5,7 @@
   "upstream_revision": "49790e73684bebad1df05ef8d828fa12f685bffb",
   "upstream_tag": "6.0.3",
   "vendored_source_path": "third_party/src/pyyaml-6.0.3",
-  "vendored_tree_sha256": "pending-ci",
+  "vendored_tree_sha256": "0acdfb632a1efbb58c16adf98ff3484a4a317a3b5760f28f805ec76ee7b1bccd",
   "license_spdx": "MIT",
   "license_path": "third_party/src/pyyaml-6.0.3/LICENSE",
   "retained": [

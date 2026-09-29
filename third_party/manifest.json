@@ -11,7 +11,8 @@
       "source_sha256": "00195521cb746782beaa93e08712d25b8308e5d2c01c946520ee1017c0068ae8",
       "license_spdx": "GPL-3.0-only",
       "license_path": "third_party/src/mesen-for-ai/LICENSE",
-      "notes": "Pruned repository-owned source subset from the pinned upstream revision. AGENTS.md and optional agent-skill metadata are excluded; bridge, daemon, scripts, tests, patches, packaging metadata, README and license are retained."
+      "notes": "Pruned repository-owned source subset from the pinned upstream revision. AGENTS.md and optional agent-skill metadata are excluded; bridge, daemon, scripts, tests, patches, packaging metadata, README and license are retained.",
+      "provenance_path": "third_party/provenance/mesen-for-ai.json"
     },
     {
       "id": "snes2asm",
@@ -23,7 +24,8 @@
       "source_sha256": null,
       "license_spdx": null,
       "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
+      "provenance_path": null
     },
     {
       "id": "superfamiconv",
@@ -35,7 +37,8 @@
       "source_sha256": null,
       "license_spdx": null,
       "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
+      "provenance_path": null
     },
     {
       "id": "ghidra-snes",
@@ -47,7 +50,8 @@
       "source_sha256": null,
       "license_spdx": null,
       "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
+      "provenance_path": null
     },
     {
       "id": "flips",
@@ -59,7 +63,8 @@
       "source_sha256": null,
       "license_spdx": null,
       "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
+      "provenance_path": null
     },
     {
       "id": "beetle-bsnes-libretro",
@@ -71,7 +76,8 @@
       "source_sha256": null,
       "license_spdx": null,
       "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
+      "provenance_path": null
     },
     {
       "id": "wla-dx",
@@ -83,7 +89,8 @@
       "source_sha256": null,
       "license_spdx": null,
       "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
+      "provenance_path": null
     },
     {
       "id": "cc65",
@@ -95,7 +102,8 @@
       "source_sha256": null,
       "license_spdx": null,
       "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
+      "provenance_path": null
     },
     {
       "id": "snes9x-libretro",
@@ -107,7 +115,8 @@
       "source_sha256": null,
       "license_spdx": null,
       "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
+      "provenance_path": null
     },
     {
       "id": "bsnes-libretro",
@@ -119,7 +128,8 @@
       "source_sha256": null,
       "license_spdx": null,
       "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
+      "provenance_path": null
     },
     {
       "id": "mesence",
@@ -131,7 +141,8 @@
       "source_sha256": null,
       "license_spdx": null,
       "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
+      "provenance_path": null
     },
     {
       "id": "retroarch",
@@ -143,7 +154,8 @@
       "source_sha256": null,
       "license_spdx": null,
       "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
+      "provenance_path": null
     },
     {
       "id": "slang-shaders",
@@ -155,7 +167,8 @@
       "source_sha256": null,
       "license_spdx": null,
       "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
+      "provenance_path": null
     },
     {
       "id": "bsnes-hd",
@@ -167,7 +180,8 @@
       "source_sha256": null,
       "license_spdx": null,
       "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
+      "provenance_path": null
     }
   ]
 }

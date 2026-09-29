@@ -1,0 +1,45 @@
+# UI-state reconnaissance: reach Crawler's Stunt track (track slot 3) and
+# let the event timer expire under turbo. The manual defines every tour order as:
+# Race, Circuit, Stunt, Race, Circuit.
+# Dessyreqt recovered stuntResults currentMenu = 0x18. Treat that as a target
+# discriminator, not a promoted fact until captured locally.
+
+until 009F == D7 3600
+wait 60
+press a 2
+until 009F == 3C 1200
+wait 60
+press a 2
+until 009F == 6D 1200
+wait 60
+press a 2
+until 009F == F6 1200
+wait 60
+
+# Move from default track 1 (Race) to track 3 (Stunt).
+press down 1
+wait 10
+press down 1
+wait 30
+dump ui-stunt-track-selected
+press a 2
+
+until 009F == 16 1200
+wait 60
+dump ui-stunt-now-playing
+press a 2
+until 0313 == 01 1800
+wait 60
+dump ui-stunt-entered
+
+turbo on
+until 009F == 18 20000
+turbo off
+wait 60
+dump ui-stunt-results
+
+press a 2
+wait 60
+dump ui-stunt-result-after-advance
+
+quit

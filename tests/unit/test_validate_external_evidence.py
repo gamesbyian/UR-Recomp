@@ -52,6 +52,27 @@ class ValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "request required"):
             vee.validate({"schema_version": 1, "leads": [item]})
 
+    def test_unknown_source_id_rejected(self) -> None:
+        with self.assertRaisesRegex(ValueError, "unknown catalog id"):
+            vee.validate(
+                {"schema_version": 1, "leads": [lead()]},
+                {"different-source"},
+            )
+
+    def test_catalog_source_ids_parses_catalog_shape(self) -> None:
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "catalog.yml"
+            path.write_text(
+                'sources:\n  - id: first-source\n  - id: "second-source"\n',
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                vee.catalog_source_ids(path),
+                {"first-source", "second-source"},
+            )
+
     def test_summary_surfaces_manual_actions(self) -> None:
         manual = lead(
             id="manual",

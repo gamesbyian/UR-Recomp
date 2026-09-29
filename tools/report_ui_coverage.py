@@ -73,7 +73,7 @@ def main():
       f"- locally verified menu-index entries: {sum(1 for m in menus if m.get('status')=='verified')}",
       f"- states with at least one capture contract: {len(cb)}",
       f"- states with at least one public visual lead: {len(rb)}",
-      f"- open capability dependencies: {sum(1 for d in transition_data.get('capability_dependencies',{}).values() if d.get('status')=='open')}",
+      f"- incomplete capability dependencies: {sum(1 for d in transition_data.get('capability_dependencies',{}).values() if d.get('status')!='complete')}",
       f"- raw gap observations: {len(gaps)}",""]
     output="\n".join(lines)
     if a.out: a.out.parent.mkdir(parents=True,exist_ok=True); a.out.write_text(output)

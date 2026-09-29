@@ -204,3 +204,10 @@ Direct parsing exposes a conspicuous first long race-like control block beginnin
 Near frame 2296 the pattern collapses into 359 frames of plain Right input, ending around frame 2655, followed by a long quiet/menu-like interval. A second complex race-like block begins around frame 3472.
 
 These are **controller-stream observations only** until `.github/workflows/historical-wip-dragster.yml` confirms the corresponding WRAM race/results states under pinned Snes9x. Do not yet name 1184 or 2655 as exact game-state boundaries.
+
+
+### SMV frame-zero and legacy timing semantics
+
+The historical 2008 WIP's controller indexing is now source-checked rather than inferred from the file format alone. Snes9x movie playback reads controller sample 0 as **baseline controller data before playback starts**, then initializes `CurrentFrame=0` / `CurrentSample=0`; subsequent movie updates consume later samples. This matches the project's neutral replay model in which sample 0 supplies the controller state for the first emulated frame. The extra `frames + 1` sample is therefore intentional and not evidence of a one-frame shift.
+
+This specific SMV has authoritative legacy sync flags (`sync_data_exists=1`) and sets only the old `WIP1TIMING` compatibility bit in addition to `HASROMINFO`; initial FastROM, Left+Right, volume-envelope, fake-mute and sync-sound flags are clear. Snes9x's SMV documentation states that WIP1 timing ceased to have meaning with SMV version 4 / Snes9x 1.51. Therefore a modern-core raw-input replay should keep controller timing unchanged, but a desync must be checked against the old 1.43 WIP1 timing behavior before blaming the movie or game logic.

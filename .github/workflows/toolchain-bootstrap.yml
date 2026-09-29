@@ -42,3 +42,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build pinned tool through project bootstrap
         run: python3 tools/bootstrap_toolchain.py --tool "${{ matrix.tool }}" --jobs 2
+      - name: Smoke adapted snes2asm behavior
+        if: matrix.tool == 'snes2asm'
+        run: .tools/venvs/snes2asm/bin/python tests/smoke_snes2asm_patch.py

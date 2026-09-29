@@ -1,0 +1,152 @@
+name: One-shot island Beetle bsnes
+
+on:
+  push:
+    branches:
+      - chatgpt/island-beetle-bsnes-2026-09-29
+    paths:
+      - .github/workflows/island-beetle-bsnes-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  vendor:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Stage pinned upstream source
+        shell: bash
+        run: |
+          set -euo pipefail
+          upstream="$RUNNER_TEMP/beetle-bsnes-libretro"
+          git init "$upstream"
+          git -C "$upstream" remote add origin https://github.com/libretro/beetle-bsnes-libretro.git
+          git -C "$upstream" fetch --depth 1 --filter=blob:none origin 5f05e4c785e936c928ac468e129c55b6f08592cb
+          git -C "$upstream" checkout --detach --force 5f05e4c785e936c928ac468e129c55b6f08592cb
+          test "$(git -C "$upstream" rev-parse HEAD)" = "5f05e4c785e936c928ac468e129c55b6f08592cb"
+
+          dest="third_party/src/beetle-bsnes-libretro"
+          rm -rf "$dest"
+          mkdir -p "$dest"
+          cp -a "$upstream/." "$dest/"
+          rm -rf             "$dest/.git"             "$dest/.gitignore"             "$dest/.gitlab-ci.yml"             "$dest/.travis.yml"             "$dest/jni"
+
+      - name: Prove vendored build surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd third_party/src/beetle-bsnes-libretro
+          env             CXXFLAGS='-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0'             CFLAGS='-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0'             make -j2
+          test -s mednafen_snes_libretro.so
+          file mednafen_snes_libretro.so | grep -q 'ELF'
+          nm -D --defined-only mednafen_snes_libretro.so | grep -q ' retro_init$'
+          nm -D --defined-only mednafen_snes_libretro.so | grep -q ' retro_get_memory_data$'
+          make clean
+          test ! -e mednafen_snes_libretro.so
+
+      - name: Record manifest and provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path.cwd()
+          source = root / "third_party/src/beetle-bsnes-libretro"
+
+          def file_sha256(path):
+              h = hashlib.sha256()
+              with path.open("rb") as f:
+                  for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                      h.update(chunk)
+              return h.hexdigest()
+
+          def tree_sha256(path):
+              h = hashlib.sha256()
+              for item in sorted(p for p in path.rglob("*") if p.is_file()):
+                  rel = item.relative_to(path)
+                  if any(part in {".git", "__pycache__"} for part in rel.parts):
+                      continue
+                  h.update(rel.as_posix().encode("utf-8"))
+                  h.update(b"\0")
+                  h.update(file_sha256(item).encode("ascii"))
+                  h.update(b"\n")
+              return h.hexdigest()
+
+          tree_hash = tree_sha256(source)
+
+          manifest_path = root / "third_party/manifest.json"
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          component = next(c for c in manifest["components"] if c["id"] == "beetle-bsnes-libretro")
+          component.update({
+              "mode": "vendored",
+              "source_path": "third_party/src/beetle-bsnes-libretro",
+              "archive_path": None,
+              "source_sha256": tree_hash,
+              "license_spdx": "GPL-2.0-or-later",
+              "license_path": "third_party/src/beetle-bsnes-libretro/COPYING",
+              "notes": "Repository-owned pinned Beetle/bsnes libretro source tree. Only upstream CI metadata and Android packaging are omitted; emulator/libretro implementation, embedded license material and build files remain intact.",
+              "provenance_path": "third_party/provenance/beetle-bsnes-libretro.json",
+          })
+          manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+          provenance = {
+              "schema_version": 1,
+              "tool": "beetle-bsnes-libretro",
+              "upstream_url": "https://github.com/libretro/beetle-bsnes-libretro.git",
+              "upstream_revision": "5f05e4c785e936c928ac468e129c55b6f08592cb",
+              "vendored_source_path": "third_party/src/beetle-bsnes-libretro",
+              "vendored_tree_sha256": tree_hash,
+              "license_spdx": "GPL-2.0-or-later",
+              "license_path": "third_party/src/beetle-bsnes-libretro/COPYING",
+              "embedded_license_path": "third_party/src/beetle-bsnes-libretro/mednafen/snes/src/data/license.html",
+              "retained": [
+                  "complete upstream emulator/libretro build tree",
+                  "COPYING",
+                  "Makefile",
+                  "Makefile.common",
+                  "libretro.cpp/libretro.h",
+                  "libretro-common/**",
+                  "mednafen/**",
+                  "link.T"
+              ],
+              "excluded": [
+                  ".git/**",
+                  ".gitignore",
+                  ".gitlab-ci.yml",
+                  ".travis.yml",
+                  "jni/**"
+              ],
+              "exclusion_reason": "The complete Linux/libretro source and headers are inexpensive (~2.25 MB upstream) and fidelity-sensitive, so they are preserved intact. Only repository metadata, upstream CI, and Android packaging are omitted.",
+              "dependency_closure": "No package registry. Linux build uses the host C/C++ toolchain plus source already present in the pinned tree.",
+              "project_build_flags": [
+                  "CXXFLAGS=-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0",
+                  "CFLAGS=-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0"
+              ],
+              "build_flag_reason": "Modern glibc fortify wrappers collide with historical nall strlcpy/strlcat declarations; this preserves the already-green project build contract without changing emulator source.",
+              "validation_contract": "Build shared libretro core, verify ELF and exported retro_init/retro_get_memory_data symbols, then run the project's independent first-race reference route before promotion."
+          }
+          prov = root / "third_party/provenance/beetle-bsnes-libretro.json"
+          prov.parent.mkdir(parents=True, exist_ok=True)
+          prov.write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
+          print("tree_sha256", tree_hash)
+          PY
+
+          python3 tools/validate_island.py
+
+      - name: Commit repository-owned source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f third_party/src/beetle-bsnes-libretro third_party/provenance/beetle-bsnes-libretro.json third_party/manifest.json
+          git commit -m "toolchain: vendor Beetle bsnes libretro source"
+          git push origin "HEAD:${{ github.ref_name }}"

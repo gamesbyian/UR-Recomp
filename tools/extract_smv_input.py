@@ -70,10 +70,10 @@ def main() -> int:
     ap.add_argument("--json-out", type=Path, required=True)
     args = ap.parse_args()
 
-    raw = args.smv.read_bytes()
+    container_bytes = args.smv.read_bytes()
     container = None
     contained_name = None
-    if raw[:4] == b"PK\x03\x04":
+    if container_bytes[:4] == b"PK\x03\x04":
         container = "zip"
         with zipfile.ZipFile(args.smv) as zf:
             candidates = [n for n in zf.namelist() if n.lower().endswith(".smv")]
@@ -82,7 +82,7 @@ def main() -> int:
             contained_name = candidates[0]
             data = zf.read(contained_name)
     else:
-        data = raw
+        data = container_bytes
     if len(data) < 32 or data[:4] != b"SMV\x1a":
         raise SystemExit("not an SMV file or ZIP containing one SMV")
 
@@ -151,13 +151,13 @@ def main() -> int:
     raw_values: list[int] = []
     for frame in range(sample_count):
         off = controller_data_offset + frame * stride + slot * 2
-        raw = struct.unpack_from("<H", data, off)[0]
-        raw_values.append(raw)
-        if raw == 0xFFFF:
+        sample_raw = struct.unpack_from("<H", data, off)[0]
+        raw_values.append(sample_raw)
+        if sample_raw == 0xFFFF:
             reset_markers.append(frame)
             values.append(0)
         else:
-            values.append(translate_mask(raw))
+            values.append(translate_mask(sample_raw))
 
     event_runs = runs(values)
     args.input_out.parent.mkdir(parents=True, exist_ok=True)
@@ -171,7 +171,7 @@ def main() -> int:
         "path": args.smv.as_posix(),
         "container": container,
         "contained_name": contained_name,
-        "container_size_bytes": len(raw),
+        "container_size_bytes": len(container_bytes),
         "smv_size_bytes": len(data),
         "version": version,
         "uid": u32(data, 8),

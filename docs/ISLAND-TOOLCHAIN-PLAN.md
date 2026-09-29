@@ -294,7 +294,7 @@ Current P0-A implementation lives in `third_party/manifest.json`, `tools/validat
 ### P0-B — Small/high-value direct vendors
 
 - [x] mesen-for-ai. Repository-owned pruned source and GPL-3.0-only license are present; deterministic tree SHA-256 is locked; bootstrap uses a stdlib-only installer with no PyPI/build-isolation dependency; run 36543649163 proves the `--offline` build, vendored tests, and launcher smoke.
-- [~] snes2asm. Pristine upstream runtime source is repository-owned; the existing UR-Recomp patch remains separate and hash-checked; PyYAML 6.0.3 is preserved as a pure-Python repository-owned dependency closure; offline bootstrap validation is in progress.
+- [~] snes2asm. Pristine upstream runtime source and PyYAML 6.0.3 pure-Python dependency closure are repository-owned, with deterministic tree SHA-256 values now locked from completed CI. Historical offline smoke exposed a bootstrap boundary bug: `git apply` could discover the parent UR-Recomp worktree and report success without modifying a staged vendored copy that had no `.git`. Bootstrap now anchors such patches at the repository root with an explicit staged-source directory and has regression coverage for the no-op failure mode; current-branch offline smoke remains the final promotion gate.
 - [ ] SuperFamiconv plus Cargo dependency closure.
 - [ ] ghidra-snes.
 - [ ] pruned Flips CLI.

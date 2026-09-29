@@ -1,8 +1,7 @@
 diff --git a/tools/snesref/frontend.cpp b/tools/snesref/frontend.cpp
-index 0000000..1111111 100644
 --- a/tools/snesref/frontend.cpp
 +++ b/tools/snesref/frontend.cpp
-@@
+@@ -170,32 +170,34 @@
  struct InputEvent {
      uint64_t start;
      uint64_t duration;
@@ -13,7 +12,20 @@ index 0000000..1111111 100644
  static bool g_scripted_input = false;
 -static uint16_t g_scripted_mask = 0;
 +static uint16_t g_scripted_mask[2] = {0, 0};
-@@
+ 
+ static bool load_input_file(const char* path) {
+     FILE* f = fopen(path, "r");
+     if (!f) {
+         fprintf(stderr, "cannot open input file %s\n", path);
+         return false;
+     }
+     char line[256];
+     unsigned line_number = 0;
+     while (fgets(line, sizeof(line), f)) {
+         line_number++;
+         char* comment = strchr(line, '#');
+         if (comment) *comment = '\0';
+         unsigned long long start = 0, duration = 0;
 -        unsigned mask = 0;
 -        if (sscanf(line, " %llu:%llu:%x", &start, &duration, &mask) == 3) {
 -            if (!duration || mask > 0x0fffu) {
@@ -30,7 +42,7 @@ index 0000000..1111111 100644
 +                {start, duration, {(uint16_t)p1, (uint16_t)(fields == 4 ? p2 : 0)}});
              continue;
          }
-@@
+@@ -260,12 +262,16 @@
  static void update_scripted_input() {
      if (!g_scripted_input) return;
 -    uint16_t next = g_script_frame_mask;
@@ -53,18 +65,35 @@ index 0000000..1111111 100644
 +        g_scripted_mask[1] = next[1];
      }
  }
-@@
+@@ -693,23 +699,24 @@
  static int16_t cb_input_state(unsigned port, unsigned device, unsigned index, unsigned id) {
      (void)index;
 -    if (port!=0 || device!=RETRO_DEVICE_JOYPAD) return 0;
 +    if (port > 1 || device!=RETRO_DEVICE_JOYPAD) return 0;
      if (g_scripted_input) {
-@@
+         uint16_t bit = 0;
+         switch (id) {
+             case RETRO_DEVICE_ID_JOYPAD_B:      bit=0x0001; break;
+             case RETRO_DEVICE_ID_JOYPAD_Y:      bit=0x0002; break;
+             case RETRO_DEVICE_ID_JOYPAD_SELECT: bit=0x0004; break;
+             case RETRO_DEVICE_ID_JOYPAD_START:  bit=0x0008; break;
+             case RETRO_DEVICE_ID_JOYPAD_UP:     bit=0x0010; break;
+             case RETRO_DEVICE_ID_JOYPAD_DOWN:   bit=0x0020; break;
+             case RETRO_DEVICE_ID_JOYPAD_LEFT:   bit=0x0040; break;
+             case RETRO_DEVICE_ID_JOYPAD_RIGHT:  bit=0x0080; break;
+             case RETRO_DEVICE_ID_JOYPAD_A:      bit=0x0100; break;
+             case RETRO_DEVICE_ID_JOYPAD_X:      bit=0x0200; break;
+             case RETRO_DEVICE_ID_JOYPAD_L:      bit=0x0400; break;
+             case RETRO_DEVICE_ID_JOYPAD_R:      bit=0x0800; break;
+             default: return 0;
+         }
 -        return (g_scripted_mask & bit) != 0;
 +        return (g_scripted_mask[port] & bit) != 0;
      }
 +    if (port != 0) return 0;
      if (g_headless) return 0;
-@@
+@@ -1292,3 +1299,4 @@
+              p_retro_get_memory_size(RETRO_MEMORY_SYSTEM_RAM),
+              p_retro_get_memory_size(RETRO_MEMORY_VIDEO_RAM), sn); }
      p_retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
 +    p_retro_set_controller_port_device(1, RETRO_DEVICE_JOYPAD);

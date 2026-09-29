@@ -49,10 +49,11 @@ def main() -> int:
     shutil.copytree(src, target, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
 
     script, module, func = args.entry
-    bin_dir = Path(sys.executable).resolve().parent
+    python_path = Path(sys.executable).absolute()
+    bin_dir = python_path.parent
     launcher = bin_dir / script
     launcher.write_text(
-        "#!" + str(Path(sys.executable).resolve()) + "\n"
+        "#!" + str(python_path) + "\n"
         f"from {module} import {func} as _entry\n"
         "raise SystemExit(_entry())\n",
         encoding="utf-8",

@@ -242,7 +242,6 @@ jobs:
           set -euo pipefail
           for path in \
             analysis/generated/historical-2008-dragster-reference.json \
-            analysis/generated/historical-2008-dragster-reference.json
             analysis/generated/historical-2008-dragster-replay.json
           do
             if [ -f "$path" ]; then

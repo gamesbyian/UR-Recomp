@@ -8,6 +8,7 @@ on:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "tools/extract_smv_input.py"
       - "tools/replay_input_via_lua.py"
+      - "tools/summarize_wram_trace_checkpoints.py"
       - "tests/input/historical-2008-wip.input"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain.json"
@@ -126,6 +127,40 @@ jobs:
           done
           cat "$RUNNER_TEMP/dragster-state.tsv"
 
+      - name: Trace one complete reference replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          INPUT="$GITHUB_WORKSPACE/tests/input/historical-2008-wip.input"
+          TRACE="$RUNNER_TEMP/dragster-trace.jsonl"
+
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_FRAMES=3480 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SRAM_IN="$RUNNER_TEMP/wip-2008.srm" \
+          SNESREF_INPUT_FILE="$INPUT" \
+          SNESREF_TRACE_FILE="$TRACE" \
+            "$EXE" "$CORE" "$ROM" >/dev/null 2>&1
+
+          python3 tools/summarize_wram_trace_checkpoints.py "$TRACE" \
+            --checkpoint 900 --checkpoint 1000 --checkpoint 1100 \
+            --checkpoint 1160 --checkpoint 1180 --checkpoint 1200 \
+            --checkpoint 1400 --checkpoint 1600 --checkpoint 1800 \
+            --checkpoint 2000 --checkpoint 2200 --checkpoint 2400 \
+            --checkpoint 2550 --checkpoint 2600 --checkpoint 2640 \
+            --checkpoint 2660 --checkpoint 2680 --checkpoint 2700 \
+            --checkpoint 2800 --checkpoint 3000 --checkpoint 3200 \
+            --checkpoint 3400 --checkpoint 3480 \
+            --tsv-out "$RUNNER_TEMP/dragster-trace-state.tsv" \
+            --json-out "$RUNNER_TEMP/dragster-trace-state.json" \
+            | tee "$RUNNER_TEMP/dragster-trace-summary.txt"
+
+          diff -u "$RUNNER_TEMP/dragster-state.tsv" "$RUNNER_TEMP/dragster-trace-state.tsv"
+
       - name: Replay exact historical input in native runtime
         shell: bash
         run: |
@@ -224,6 +259,10 @@ jobs:
             ${{ runner.temp }}/wip-2008.json
             ${{ runner.temp }}/wip-2008.srm
             ${{ runner.temp }}/dragster-state.tsv
+            ${{ runner.temp }}/dragster-trace.jsonl
+            ${{ runner.temp }}/dragster-trace-state.tsv
+            ${{ runner.temp }}/dragster-trace-state.json
+            ${{ runner.temp }}/dragster-trace-summary.txt
             ${{ runner.temp }}/native-dragster-state.json
             ${{ runner.temp }}/native-dragster-state.txt
             ${{ runner.temp }}/native-lua.log

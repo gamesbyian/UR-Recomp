@@ -1,0 +1,66 @@
+schema_version: 1
+status: seed
+authority: docs/WIDESCREEN-RECONNAISSANCE.md
+
+horizontal_domains:
+  - simulation_activation
+  - preparation_streaming
+  - render_culling
+  - camera_composition
+  - ui_composition
+
+scene_classes:
+  - world-expand
+  - fixed-4:3
+  - fixed-center
+  - edge-anchored-ui
+  - mixed
+  - special-scripted
+
+probe:
+  source_pixel_margins: [0, 8, 16, 24, 32, 48, 64]
+  artifact_classes:
+    - bg-stale
+    - bg-wrap
+    - world-end
+    - sprite-cull
+    - sprite-wrap
+    - hidden-object
+    - late-prepare
+    - window-boundary
+    - offstage-art
+    - script-reveal
+    - ui-policy
+    - unknown
+
+aspect_policies:
+  - id: stock-4x3
+    target_display_aspect: "4:3"
+    pixel_aspect: stock
+    overscan: stock
+    status: control
+  - id: first-16x9
+    target_display_aspect: "16:9"
+    pixel_aspect: unresolved
+    overscan: unresolved
+    status: planned
+
+scenes:
+  - id: title-frontend
+    class: unresolved
+    fixture: unresolved
+  - id: representative-one-player-race
+    class: unresolved
+    fixture: unresolved
+  - id: results
+    class: unresolved
+    fixture: unresolved
+  - id: two-player-race
+    class: unresolved
+    fixture: unresolved
+  - id: vs-mode
+    class: unresolved
+    fixture: unresolved
+
+notes:
+  - "This file seeds vocabulary and probe defaults only. Do not promote unresolved scene/aspect policies without deterministic evidence."

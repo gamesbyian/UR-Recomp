@@ -101,18 +101,19 @@
       "id": "spanish-translation-sayans",
       "value": "high",
       "cost": "low",
-      "status": "local-reproduction-pending",
+      "status": "ready",
       "source_ids": [
         "dorando-uniracers-translations",
         "nesninja-uniracers-translation-metadata",
         "romhackhispano-sayans-uniracers"
       ],
       "question": "Which text, font, pointer, menu-layout, checksum, or compression regions did the Sayans translation team identify?",
-      "next_discriminator": "Run tools/analyze_ips_patch.py against the canonical USA ROM, capture actual before/after bytes for all 83 records, and classify each touched region as text/string data, pointers/indexes, font/graphics, header/checksum, or executable code before promoting any structure.",
+      "next_discriminator": "Treat the recovered 85% patch as a confirmed text/control-data map across LoROM banks $80, $83 and $97. Next, either identify the reader/renderer routines and control-byte semantics for those clusters or recover the later Sayans 1.0b / independent Sinister patch to test whether additional font, pointer or code changes were required.",
       "deliverables": [
         "patch provenance and hashes (landed)",
-        "ROM-offset/LoROM-address touch map",
-        "candidate text/font/pointer regions for local confirmation"
+        "canonical-ROM touch summary at analysis/generated/sayans-translation-summary.json (landed)",
+        "three text/control-data clusters in banks $80, $83 and $97 (confirmed)",
+        "reader/control-byte semantics or later-version cross-check (next)"
       ],
       "tags": [
         "translation",

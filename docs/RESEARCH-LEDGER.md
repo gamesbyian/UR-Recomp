@@ -484,3 +484,18 @@ The final seven are `0x00C6`, `0x00C8`, `0x00C9`, and contiguous `0x01D1–0x01D
 **Interpretation:** the header pairs are coordinate-like and may encode the two racer spawn/start locations in 16-unit X coordinates. Y either uses an additional object-anchor offset or has different semantics.
 
 **Discriminating test:** load a second known course and compare its header pairs with runtime racer positions, or mutate one decoded coordinate causally and observe the predicted runtime displacement.
+
+
+### R-SEED-021 — Sustained B input produces coherent player-1 airborne state cross-runtime
+
+**Status:** supported; matched sustained control pending  
+**Date:** 2026-09-28  
+**Area:** input | physics | RAM
+
+**Observation:** run 36514394117 advances the validated moving Dragster state with sustained `Right+B` input. Before an unrelated workflow-ordering failure, both native and Snes9x completed and summarized the sustained intervention identically. At `accel-180`, player 1 is grounded: `x=1655`, `y=858`, `xSpeed=447`, `ySpeed=0`, effective `airValue(0545)=0`, effective `pitch(0F49)=7`. At `jump-hold-024`, both engines report `x=2005`, `y=797`, `xSpeed=447`, signed `ySpeed=-21`, `airValue=9`, `pitch=27`. By `jump-hold-048`, both are back at `y=858`, `ySpeed=0`, `airValue=0`.
+
+**Interpretation:** unlike the earlier two-frame negative intervention, sustained B produces a coherent airborne transition in the intended table-[1] player block, and the recovered effective addresses `7E:04BB` and `7E:0545` now move in the expected direction together. Native and reference semantics match exactly at every sampled sustained-jump checkpoint.
+
+**Caution:** because the matched sustained Right-only control did not run in this failed workflow instance, causality is not yet formally closed. The repaired workflow runs the control before its paired-slot analysis.
+
+**Next discriminator:** require the timing-identical sustained Right-only control to remain grounded at the corresponding table-[1] checkpoints; then promote Y speed and air state and proceed to controlled rotation.

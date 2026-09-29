@@ -67,3 +67,38 @@ Run the project-owned IPS analyzer against `reference/roms/retail/Uniracers_USA.
 5. overlap with existing symbols, known RNC streams, and other mapped data.
 
 Only after that comparison should any range be promoted into `docs/SYMBOLS.md` or another subsystem authority.
+
+## Canonical USA comparison
+
+The one-shot canonical-ROM analysis completed successfully against the verified USA retail baseline.
+
+Durable compact result:
+`analysis/generated/sayans-translation-summary.json`
+
+Exact identities:
+
+- canonical USA SHA-256: `859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478`
+- patched-result SHA-256: `02901ab98e46df05d457ea1dac8bd62957e55cb5f6817fffbea1d724cae9f720`
+- patch records: 83
+- encoded write bytes: 1,255
+- actual bytes changed against the canonical ROM: 1,187
+
+Bank-level result:
+
+| LoROM bank | Records | Encoded bytes | Actual changed bytes |
+| --- | ---: | ---: | ---: |
+| `$80` | 48 | 903 | 900 |
+| `$83` | 7 | 25 | 25 |
+| `$97` | 28 | 327 | 262 |
+
+Payload inspection materially sharpens the interpretation:
+
+- all 83 records contain at least one ASCII letter;
+- 65 records are entirely printable;
+- 18 mix readable text with 121 control/non-printable bytes;
+- 14 records intentionally retain one or more bytes already present in the canonical ROM;
+- the heuristic's lone `binary/unknown` record is still visibly translated text interspersed with control bytes.
+
+This is strong evidence that the recovered 85% patch is overwhelmingly a text/control-data edit across three ROM clusters. No pure binary-only record was found, so this patch does **not currently provide evidence** for a separate font-graphics edit, pointer-table rewrite, header/checksum update, or executable-code-only patch. That is an evidence statement about this patch, not proof those structures do not exist elsewhere.
+
+The next useful local question is therefore narrower: identify the reader/renderer routines and control-byte semantics for these three text clusters, or recover the later Sayans 1.0b / independent Sinister patch to see whether either translation had to modify additional structures.

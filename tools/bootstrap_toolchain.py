@@ -92,6 +92,22 @@ def validate_manifest(manifest: dict) -> None:
             raise ValueError(f"{tool_id}: build-mode tool has no build commands")
         if mode == "manual" and build:
             raise ValueError(f"{tool_id}: manual tool must not declare build commands")
+        artifacts = tool.get("artifacts", [])
+        if not isinstance(artifacts, list):
+            raise ValueError(f"{tool_id}: artifacts must be a list")
+        for artifact_index, artifact in enumerate(artifacts):
+            if not isinstance(artifact, dict):
+                raise ValueError(f"{tool_id}: artifact {artifact_index} must be an object")
+            rel = artifact.get("path")
+            kind = artifact.get("kind")
+            if not isinstance(rel, str) or not rel:
+                raise ValueError(f"{tool_id}: artifact {artifact_index} path must be non-empty")
+            rel_path = Path(rel)
+            if rel_path.is_absolute() or ".." in rel_path.parts:
+                raise ValueError(f"{tool_id}: artifact {rel!r} must stay inside checkout")
+            if kind not in {"executable", "shared-library"}:
+                raise ValueError(f"{tool_id}: artifact {rel!r} has invalid kind {kind!r}")
+
         for cmd_index, cmd in enumerate(build):
             if (
                 not isinstance(cmd, list)
@@ -156,15 +172,35 @@ def ensure_checkout(tool: dict, src_root: Path) -> Path:
 
 
 def verify_artifacts(tool: dict, dest: Path) -> None:
-    missing = []
-    for rel in tool.get("artifacts", []):
-        if not isinstance(rel, str) or not rel:
-            raise ValueError(f"{tool['id']}: artifact paths must be non-empty strings")
+    problems: list[str] = []
+    for spec in tool.get("artifacts", []):
+        rel = spec["path"]
+        kind = spec["kind"]
         path = dest / rel
-        if not path.exists():
-            missing.append(rel)
-    if missing:
-        raise SystemExit(f"{tool['id']}: expected build artifact(s) missing: {', '.join(missing)}")
+        if not path.is_file():
+            problems.append(f"{rel}: missing")
+            continue
+        if path.stat().st_size == 0:
+            problems.append(f"{rel}: empty")
+            continue
+        if kind == "executable" and not os.access(path, os.X_OK):
+            problems.append(f"{rel}: not executable")
+            continue
+        if kind == "shared-library":
+            head = path.read_bytes()[:4]
+            if os.name == "nt":
+                ok = head[:2] == b"MZ"
+            elif sys.platform == "darwin":
+                ok = head in {
+                    b"\xfe\xed\xfa\xce", b"\xfe\xed\xfa\xcf",
+                    b"\xce\xfa\xed\xfe", b"\xcf\xfa\xed\xfe",
+                }
+            else:
+                ok = head == b"\x7fELF"
+            if not ok:
+                problems.append(f"{rel}: does not look like a native shared library")
+    if problems:
+        raise SystemExit(f"{tool['id']}: invalid build artifact(s): " + "; ".join(problems))
 
 
 def ensure_venv(root: Path, tool_id: str) -> Path:

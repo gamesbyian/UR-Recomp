@@ -138,16 +138,19 @@ The native smoke has been extended with a separate frame-synchronous `--script` 
 Observed so far:
 - existing native build, boot and frame-300 visual validation remain green before the new input assertion;
 - WRAM `7E:009F` reaches `0xD7` at simulated frame 446, independently reproducing the bot's historical `mainMenu = 215` label on the canonical USA ROM/runtime;
-- the first simplified script then pressed A immediately, but did not reach the bot's `onePlayerSelect = 0x3C` state within the timeout;
-- re-reading the bot shows that simplification omitted a real branch: on the main menu the bot reads `7E:009B` (`selectedOption`), pulses Up while it is nonzero, and presses A only after option 0 is selected.
+- run 36504420741 captured `7E:009B = 0x00` at that state, so the bot's own main-menu policy would attempt confirmation rather than first moving the selection Up;
+- after a one-frame scripted A pulse plus 30 guest frames, `7E:009F` remained `0xD7` and `7E:009B` remained `0x00`;
+- the selected-column byte `7E:0C63` changed from `0xFD` to `0x04` across that interval, but this has not yet been causally attributed to the A pulse;
+- earlier experiments that inserted an explicit title/splash Start press are not part of the canonical route: the clean scripted run reaches `0xD7` without guest-state edits.
 
-Run 36504420741 resolved that diagnostic:
+Interpretation: the recovered main-menu and selected-option labels are reproduced, but confirmation input has not yet been shown to move the game into `onePlayerSelect = 0x3C`. The smallest remaining question is whether the native scripted pad pulse is sampled by this menu as expected.
 
-- at frame 446, `currentMenu = 0xD7`, `selectedOption = 0x00`, row `0x00`, column `0xFD`;
-- after the one-frame A press plus 30 guest frames, `currentMenu` is still `0xD7` and `selectedOption` is still `0x00`, but the menu column byte has changed to `0x04`.
+The current committed diagnostic therefore stops at `0xD7` and applies two-frame Down, Up and A pulses, capturing WRAM after each. A direction-driven change in `selectedOption` would prove general scripted controller delivery and isolate the issue to confirmation semantics/timing; no change would instead point at the scripted-input sampling path.
 
-This rules out the bot's "move Up until option zero" branch for this clean boot and shows that the injected A reaches live guest/menu state. The remaining seam is acceptance timing: the historical bot continues to pulse A every other frame for as long as `mainMenu` remains active, whereas the first native test pressed it exactly once on the first frame where `0xD7` appeared.
+Evidence:
+- workflow run 36504420741;
+- `tests/input/reach-first-race.script`;
+- `.github/workflows/native-build-smoke.yml`;
+- recovered bot source `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`.
 
-The next committed test therefore leaves one second (60 guest frames) after first observing `0xD7`, captures a settled-menu snapshot, then sends a fresh one-frame A edge.
-
-Interpretation: deterministic guest-observed menu navigation is now partly reproduced. The current blocker is one concrete input-ready transition, not generic controller delivery, wrong main-menu selection, or native execution.
+Next milestone: classify the three input-probe captures, then restore only the menu transitions that are empirically demonstrated.

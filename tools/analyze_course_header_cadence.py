@@ -50,11 +50,18 @@ def main():
     end_deltas=sorted(set(delta for _,_,_,delta in end_fields))
     trailing_after=[(i,v,n,n-(v+1)) for i,v,n,_ in end_fields]
     trailing_lengths=sorted(set(t for _,_,_,t in trailing_after))
+    whole_1024=[
+        i for i,v,_,_ in end_fields
+        if ((v + 1) - 16) >= 0 and ((v + 1) - 16) % 1024 == 0
+    ]
     lines += ["","## Near-end aligned cursor relationship","",
               "Treating bytes 11–12 as little-endian places the field near decoded EOF and reveals a stronger corpus-wide alignment property.","",
               f"- `(LE16@11 + 1) % 16 == 0`: {sum((v+1)%16==0 for _,v,_,_ in end_fields)}/45 streams.",
               f"- bytes remaining after the cursor (`decoded_size - (LE16@11 + 1)`): {trailing_lengths}.",
               f"- minimum/maximum bytes after cursor: {min(trailing_lengths)}..{max(trailing_lengths)}.",
+              f"- stronger candidate `LE16@11 + 1 = 16 + N×1024`: {len(whole_1024)}/45 streams (ordinals {whole_1024}).",
+              "",
+              "The 16-byte alignment is therefore the corpus-wide fact. The tempting interpretation as a 16-byte header followed by only whole 1024-byte planes is rejected; the separate 1024-unit dimension invariant should not be conflated with this cursor boundary.",
               "",
               "Dragster has `LE16@11 = 0x840F`, so the next byte is the 16-byte-aligned offset `0x8410`; exactly seven bytes remain through decoded EOF at `0x8416`. The observed runtime seven-step increment walks the field from `0x840F` to `0x8416`, consuming that entire trailing region and stopping on the final valid byte. This motivates a **pre-trailer cursor** hypothesis: the field may be initialized to the inclusive end of an aligned main-data region and advanced through a variable trailing structure during setup. A second-course runtime capture is required before promoting that interpretation.",
               "",

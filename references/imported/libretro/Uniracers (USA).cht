@@ -60,7 +60,7 @@ cheat14_desc = "Grandma Speed"
 cheat14_code = "DD2D-4D08"
 cheat14_enable = false
 
-cheat15_desc = "There Is No > To Tell You Who's In The Lead"
+cheat15_desc = "There Is No &gt; To Tell You Who's In The Lead"
 cheat15_code = "BBBB-3DDB"
 cheat15_enable = false
 

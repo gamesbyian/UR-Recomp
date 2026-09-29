@@ -1,0 +1,45 @@
+name: targeted WRAM store-site scan
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "rom_identity.txt"
+      - "tools/find_wram_store_sites.py"
+      - ".github/workflows/targeted-wram-store-scan.yml"
+
+concurrency:
+  group: targeted-wram-store-scan-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Scan candidate writer encodings
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/find_wram_store_sites.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            0x00C6 0x00C8 0x00C9 0x01D1 0x01D2 0x01D3 0x01D4 \
+            --json-out "$RUNNER_TEMP/wram-store-sites.json" \
+            | tee "$RUNNER_TEMP/wram-store-sites.txt"
+
+      - name: Upload scan evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-targeted-wram-store-sites
+          path: |
+            ${{ runner.temp }}/wram-store-sites.json
+            ${{ runner.temp }}/wram-store-sites.txt
+          if-no-files-found: error
+          retention-days: 7

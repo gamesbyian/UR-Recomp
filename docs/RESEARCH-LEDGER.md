@@ -373,7 +373,7 @@ External gameplay documentation states that each tour's five tracks occur in the
 
 ### R-SEED-014 — Native and Snes9x race-entry timing/state differential
 
-**Status:** supported  
+**Status:** confirmed as timing/residual-state differential  
 **Date:** 2026-09-28  
 **Area:** timing | RAM | other
 
@@ -383,8 +383,27 @@ The final seven are `0x00C6`, `0x00C8`, `0x00C9`, and contiguous `0x01D1–0x01D
 
 **Evidence:** GitHub Actions runs 36506120930, 36506281320 and combined differential run 36508095522; artifact 11007769197; `tools/compare_wram_checkpoints.py`.
 
-**Interpretation:** much of the frontend mismatch is compatible with the known several-frame timing offset inside animated scenes, because the difference set collapses drastically after race entry settles. The persistent `0x01D1–0x01D4` block is a sharper candidate for a genuine runtime/state divergence. The three `0x00C6/0x00C8/0x00C9` differences may be timing/counter state but remain unclassified.
+**Interpretation:** much of the frontend mismatch is compatible with the known several-frame timing offset inside animated scenes, because the difference set collapses drastically after race entry settles. The persistent `0x01D1–0x01D4` block is a sharper candidate for a genuine runtime/state divergence. The three `0x00C6/0x00C8/0x00C9` differences remain unclassified, but all three take changing small values across every captured frontend/race checkpoint rather than preserving a fixed native-only payload. That temporal pattern makes timing/phase counters a stronger working explanation than a stable semantic-state split.
 
-**Discriminating test:** trace writes/reads to `0x01D1–0x01D4` in native/reference execution and identify the responsible guest routine; separately characterize whether the three low bytes advance as counters or affect gameplay-visible state.
+**Resolution:** trace run 36511207129 shows `0x00C6` is decremented once per frame by `bank_80_FADF_M1X0`, while `0x00C8` and `0x00C9` are periodic countdown/phase values written by interpreted code at `$00:8588` (`0x00C8` changing every frame within its cycle and `0x00C9` on a seven-frame cadence). Their different race-entry values therefore reflect the already-observed native/reference phase offset rather than a stable semantic race-state mismatch. The remaining four bytes are resolved separately in R-SEED-015.
 
 **Dependencies:** both engines execute the same script and zero-filled initial WRAM; Snes9x reports its existing Uniracers-specific compatibility hack as active.
+
+
+### R-SEED-015 — Persistent 0x01D1–0x01D4 divergence is stale stack residue
+
+**Status:** confirmed  
+**Date:** 2026-09-28  
+**Area:** CPU | RAM | timing
+
+**Observation:** the settled native/reference race-entry differential leaves four contiguous differing bytes at WRAM `0x01D1–0x01D4`: native `90 13 20 80`, Snes9x `00 00 00 00`. This block appears by rider-select and persists through later captured frontend states into race entry. A checkpoint-by-checkpoint reinspection of the full-WRAM artifact shows many other transient native/reference differences throughout page `$01` before race entry (13 at main menu, 13 at rider select, 20 at tours, 13 at tracks, 18 after confirmation, 18 at now-playing), but all of those other page-$01 differences disappear at the settled race checkpoint, leaving only `0x01D1–0x01D4`. The block lies in the conventional 65C816 stack page, and SNESRecomp's own low-WRAM differential tooling explicitly treats this region as containing stack state as well as game logic.
+
+**Evidence:** combined differential run 36508095522; `tools/compare_wram_checkpoints.py`; SNESRecomp low-WRAM trace/debug infrastructure and stack model.
+
+**Interpretation:** one plausible explanation is differing residual stack contents caused by different call/interrupt execution paths or stack depth, rather than a durable gameplay variable. The broader page-$01 pattern strengthens that hypothesis: the region behaves like a churned scratch/stack area whose cross-runtime differences mostly evaporate once the race settles, while this four-byte residue survives. This is still not proof: Uniracers could also use page `$01` for ordinary RAM while in native mode.
+
+**Static candidate scan:** run 36509923408 scanned raw 65816 store/RMW encodings for all seven divergent offsets. For `0x01D1–0x01D4` it found only a small set of instruction-shaped byte patterns, dominated by RMW/STZ forms; it did not expose an obvious direct semantic store sequence. Because this is a raw-byte candidate scan rather than control-flow-aware disassembly, hits may be data and absence of a direct store does not cover stack pushes, JSR/JSL return frames, interrupts or indirect/indexed effects. The result is therefore weakly consistent with, but does not establish, the stack-residue interpretation.
+
+**Dynamic resolution:** trace run 36511207129 reaches `inRace = 1` at native frame 984 with the 65C816 in native mode (`E = false`) and `SP = $01FF`. The four bytes remain `90 13 20 80` at `$01D1–$01D4`, far below the live top of stack. Reverse-debug writer history records zero ordinary WRAM writes to all four addresses across the captured run, while explicit semantic/timing variables such as `$00C6/$00C8/$00C9` produce abundant attributed writes. Together with the broader transient `$01xx` churn seen at earlier checkpoints, this identifies the four-byte block as stale stack history rather than live gameplay state. Its exact historical push sequence is not needed for fidelity gating.
+
+**Dependencies:** the stack interpretation depends on actual Uniracers stack-pointer behavior at the relevant frames; address location alone is insufficient.

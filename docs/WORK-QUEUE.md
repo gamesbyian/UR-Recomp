@@ -151,7 +151,7 @@ Do this from the verified original UI state map, not from memory or generic mode
 - [ ] Classify original frontend states/features as presentation artifact, gameplay mechanic, or administrative/hardware-era system.
 - [ ] Preserve every original audiovisual indicator by default; add clearer labels, values, deltas or expanded views alongside it rather than deleting it.
 - [ ] Define the reusable menu visual-language contract from captured evidence: composition, typography, palette, animation/motion, cursor behavior, sounds and transitions.
-- [ ] Design a modern racer/profile model that separates save/profile storage from racer identity and supports create/name/customize, with no forbidden-name blacklist or legacy name-rejection system in modern mode.
+- [ ] Design a modern racer/profile model that separates save/profile storage from racer identity and supports create/name/customize. Preserve the original forbidden-name detection list only as an Easter egg: show **"COOL NAME!"** and then accept the entered name normally.
 - [ ] Preserve every classic named/color racer as an exact preset; decide which also become AI opponents, ghosts or tournament cast.
 - [ ] Preserve Bronsen, Silverton and Goldwyn as named opponents independently of any Bronze/Silver/Gold progression redesign.
 - [ ] Prototype a simplified modern League/tournament path while keeping the original League flow reproducible in authentic/reference mode.

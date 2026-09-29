@@ -9,6 +9,7 @@ on:
       - "snesrecomp"
       - ".github/workflows/native-build-smoke.yml"
       - "tests/input/reach-first-race.script"
+      - "tests/input/ui-options-route.script"
 
 concurrency:
   group: native-build-smoke-${{ github.ref }}
@@ -197,6 +198,55 @@ jobs:
           fi
           echo "INPUT_ROUTE_RESULT=reached_race"
 
+      - name: UI state reconnaissance
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-options-route.script"
+          LOG="$RUNNER_TEMP/ui-options-route.log"
+          DUMPS="$RUNNER_TEMP/ui-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted UI Options round-trip =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+
+          echo "== UI dump inventory =="
+          find "$DUMPS" -maxdepth 1 -type f -printf '%f\n' | sort || true
+
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::error::UI Options reconnaissance exited with status $STATUS"
+            exit "$STATUS"
+          fi
+
+          for required in \
+            ui-main-menu-1p.fb.bmp \
+            ui-main-menu-2p.fb.bmp \
+            ui-main-menu-vs.fb.bmp \
+            ui-main-menu-league.fb.bmp \
+            ui-main-menu-options.fb.bmp \
+            ui-options-entry.fb.bmp \
+            ui-options-back-main.fb.bmp; do
+            if [ ! -s "$DUMPS/$required" ]; then
+              echo "::error::Missing UI framebuffer dump: $required"
+              exit 1
+            fi
+          done
+
+          python3 - "$DUMPS/ui-options-entry.wram.bin" <<'PY'
+          import pathlib
+          import sys
+          w = pathlib.Path(sys.argv[1]).read_bytes()
+          print(f"UI_OPTIONS_OBSERVED_MENU_ID=0x{w[0x009F]:02X}")
+          print(f"UI_OPTIONS_OBSERVED_SELECTED_OPTION=0x{w[0x009B]:02X}")
+          PY
+
       - name: Upload native frame evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -208,6 +258,8 @@ jobs:
             ${{ runner.temp }}/boot.log
             ${{ runner.temp }}/race-smoke.log
             ${{ runner.temp }}/race-dumps/
+            ${{ runner.temp }}/ui-options-route.log
+            ${{ runner.temp }}/ui-dumps/
           if-no-files-found: warn
           retention-days: 7
 

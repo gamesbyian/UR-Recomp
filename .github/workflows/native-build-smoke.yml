@@ -24,6 +24,9 @@ on:
       - "tests/input/ui-rename-editor-explore.script"
       - "tests/input/ui-circuit-result-route.script"
       - "tests/input/ui-records-submenus.script"
+      - "tests/input/ui-record-high.script"
+      - "tests/input/ui-record-player.script"
+      - "tests/input/ui-record-group.script"
       - "tests/input/ui-startup-timeline.script"
       - "tests/input/ui-define-player-explore.script"
       - "tests/input/ui-pre-race-timing.script"
@@ -576,6 +579,33 @@ jobs:
           cat "$LOG"
           echo "UI_RECORDS_SUBMENU_STATUS=$STATUS"
 
+      - name: UI isolated Records score captures
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DUMPS="$RUNNER_TEMP/ui-records-isolated-dumps"
+          mkdir -p "$DUMPS"
+          OVERALL=0
+
+          for NAME in high player group; do
+            SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-record-$NAME.script"
+            LOG="$RUNNER_TEMP/ui-record-$NAME.log"
+            echo "== scripted reset-free Records $NAME probe =="
+            SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+              timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+              >"$LOG" 2>&1
+            STATUS=$?
+            cat "$LOG"
+            echo "UI_RECORD_${NAME^^}_STATUS=$STATUS"
+            if [ "$STATUS" -ne 0 ]; then OVERALL=1; fi
+          done
+
+          exit "$OVERALL"
+
       - name: UI League naming capture
         continue-on-error: true
         shell: bash
@@ -673,6 +703,7 @@ jobs:
             --dump-dir "$RUNNER_TEMP/ui-rename-editor-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-circuit-result-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-records-submenu-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-records-isolated-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-name-league-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-startup-timeline-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-define-player-dumps" \
@@ -714,6 +745,7 @@ jobs:
             --dump-dir "$RUNNER_TEMP/ui-rename-editor-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-circuit-result-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-records-submenu-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-records-isolated-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-name-league-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-startup-timeline-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-define-player-dumps" \
@@ -763,6 +795,10 @@ jobs:
             ${{ runner.temp }}/ui-circuit-result-dumps/
             ${{ runner.temp }}/ui-records-submenus.log
             ${{ runner.temp }}/ui-records-submenu-dumps/
+            ${{ runner.temp }}/ui-record-high.log
+            ${{ runner.temp }}/ui-record-player.log
+            ${{ runner.temp }}/ui-record-group.log
+            ${{ runner.temp }}/ui-records-isolated-dumps/
             ${{ runner.temp }}/ui-name-league-route.log
             ${{ runner.temp }}/ui-name-league-dumps/
             ${{ runner.temp }}/ui-startup-timeline.log

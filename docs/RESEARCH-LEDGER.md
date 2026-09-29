@@ -557,3 +557,20 @@ The full-WRAM causal differential, however, shows `7E:04C7` changing from `0x07`
 **Limitation:** Dragster cannot identify pair1→slot1 vs pair2→slot2 because both encoded pairs and both initial runtime positions are identical.
 
 **Discriminating test:** load a course whose two header pairs differ, or causally mutate one pair, and observe which racer slot moves.
+
+
+### R-SEED-026 — 04C7/04C9 are paired persistent pitch slots; 0F49 is shared working state
+
+**Status:** confirmed structural pairing; direction convention still under mirror test  
+**Date:** 2026-09-28  
+**Area:** CPU | RAM | physics
+
+**Observation:** targeted store scan run 36516801647 finds exactly one direct absolute writer candidate for `7E:04C7`: `STY $04C7` at LoROM `02:8D84`. Its surrounding shipped bytes decode to a player-copy sequence including `LDY $0F49; STY $04C7`, plus stores to player-1-shaped destinations `$0BA1/$0BAD/$0BB1`.
+
+A sibling sequence at `02:9272` performs `LDY $0F49; STY $04C9`, with the neighboring destinations shifted coherently to `$0BA3/$0BAF/$0BB3`. The same source scratch values `$0F49/$0F4B/$0F4D` feed both sibling routines.
+
+Dynamic run 36515746538 independently shows airborne L input changing `$04C7` from `0x07` in jump-only control to `0x37` at the intervention checkpoint, while the historical bot-read `$0F49` is unchanged between intervention and control at sampled checkpoints.
+
+**Interpretation:** `$04C7/$04C9` are persistent paired per-racer pitch/rotation state slots. `$0F49` is a shared current-player working/scratch value copied into whichever racer slot is being updated, explaining why the historical bot could use it operationally while it is not stable player-1 storage.
+
+**Discriminating test:** mirrored R input should drive player-1 `$04C7` complementarily to L, establishing the input-direction convention.

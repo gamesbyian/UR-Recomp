@@ -14,12 +14,18 @@ def lorom24(off: int) -> int:
     return (bank << 16) | addr
 
 
-def encodings(off: int) -> dict[str, bytes]:
+def le(value: int, width: int) -> bytes:
+    return value.to_bytes(width, "little")
+
+
+def encodings(off: int, corpus_base: int) -> dict[str, bytes]:
     lo = lorom24(off)
     return {
-        "lorom24_le": bytes((lo & 0xFF, (lo >> 8) & 0xFF, (lo >> 16) & 0xFF)),
-        "file24_le": bytes((off & 0xFF, (off >> 8) & 0xFF, (off >> 16) & 0xFF)),
-        "lorom16_le": bytes((lo & 0xFF, (lo >> 8) & 0xFF)),
+        "lorom24_le": le(lo, 3),
+        "file24_le": le(off, 3),
+        "file32_le": le(off, 4),
+        "lorom16_le": le(lo & 0xFFFF, 2),
+        "corpus_rel24_le": le(off - corpus_base, 3),
     }
 
 
@@ -75,6 +81,7 @@ def main() -> int:
     manifest = json.loads(args.manifest.read_text())
     streams = manifest["roms"]["usa-retail"]["streams"]
     offsets = [int(x["offset"]) for x in streams]
+    corpus_base = min(offsets)
 
     report = {
         "rom": str(args.rom),
@@ -83,8 +90,8 @@ def main() -> int:
         "modes": {},
     }
 
-    for mode in ("lorom24_le", "file24_le", "lorom16_le"):
-        needles = [encodings(off)[mode] for off in offsets]
+    for mode in ("lorom24_le", "file24_le", "file32_le", "lorom16_le", "corpus_rel24_le"):
+        needles = [encodings(off, corpus_base)[mode] for off in offsets]
         per = [occurrences(data, n) for n in needles]
         stride = len(needles[0])
         runs = find_runs(per, stride)
@@ -98,12 +105,43 @@ def main() -> int:
 
     # Also inspect common fixed-width table strides where each pointer may have
     # a one-byte tag/padding field beside it.
-    for mode in ("lorom24_le", "file24_le"):
-        needles = [encodings(off)[mode] for off in offsets]
+    for mode in ("lorom24_le", "file24_le", "file32_le", "corpus_rel24_le"):
+        needles = [encodings(off, corpus_base)[mode] for off in offsets]
         per = [occurrences(data, n) for n in needles]
-        for stride in (4, 5, 6, 8):
+        width = len(needles[0])
+        for stride in range(width + 1, 13):
             report["modes"][f"{mode}_stride_{stride}"] = {
-                "pointer_width": len(needles[0]),
+                "pointer_width": width,
+                "record_stride": stride,
+                "runs_length_3_plus": find_runs(per, stride)[:50],
+            }
+
+    # Split address/bank layouts are common on 65816: one table holds 16-bit
+    # addresses while a parallel table holds banks. The address-only scan
+    # above already catches the former. Search the bank sequence separately,
+    # with a higher minimum run length because individual bank bytes are noisy.
+    bank_needles = [bytes([(lorom24(off) >> 16) & 0xFF]) for off in offsets]
+    bank_per = [occurrences(data, n) for n in bank_needles]
+    report["modes"]["lorom_bank_bytes"] = {
+        "pointer_width": 1,
+        "runs_length_8_plus": find_runs(bank_per, 1, min_len=8)[:50],
+    }
+
+    # Descriptor/index tables may carry sizes rather than pointers. Search
+    # packed and unpacked 16-bit values in stream order, both tightly packed
+    # and inside small fixed-width records.
+    for field in ("packed_size", "unpacked_size"):
+        vals = [int(x[field]) for x in streams]
+        needles = [le(v, 2) for v in vals]
+        per = [occurrences(data, n) for n in needles]
+        report["modes"][f"{field}_16_le"] = {
+            "value_width": 2,
+            "total_occurrences": sum(len(x) for x in per),
+            "runs_length_3_plus": find_runs(per, 2)[:50],
+        }
+        for stride in range(3, 13):
+            report["modes"][f"{field}_16_le_stride_{stride}"] = {
+                "value_width": 2,
                 "record_stride": stride,
                 "runs_length_3_plus": find_runs(per, stride)[:50],
             }

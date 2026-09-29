@@ -10,7 +10,7 @@ Canonical execution plan: `docs/ISLAND-TOOLCHAIN-PLAN.md`.
 
 Goal: make the core automated research/build toolchain runnable from a clean checkout without GitHub, PyPI or crates.io after ordinary host/compiler prerequisites are present.
 
-- [ ] Add the `third_party/` provenance/licensing/manifest infrastructure and offline validation first.
+- [x] Add the `third_party/` provenance/licensing/manifest infrastructure, repository-hygiene validation, local-source bootstrap preference, and fail-closed offline mode. A true network-disabled build smoke follows the first islanded core component.
 - [ ] Vendor the small/high-value tool tranche and package-registry closures.
 - [ ] Migrate SNESRecomp and core reconstruction/build dependencies incrementally.
 - [ ] Preserve large/manual workbenches as exact archives or optional external tools where direct vendoring has poor value.

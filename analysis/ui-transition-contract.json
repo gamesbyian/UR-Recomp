@@ -150,7 +150,7 @@
       "to": "VS_CHALLENGER",
       "trigger": "participant confirm",
       "status": "historical",
-      "blocked_by": "multiplayer_controller_2"
+      "blocked_by": "multiplayer_behavioral_verification"
     },
     {
       "id": "vs-track",
@@ -158,7 +158,7 @@
       "to": "VS_CHALLENGE_TRACK",
       "trigger": "challenger confirm",
       "status": "historical",
-      "blocked_by": "multiplayer_controller_2"
+      "blocked_by": "multiplayer_behavioral_verification"
     },
     {
       "id": "vs-prerace",
@@ -238,7 +238,7 @@
       "to": "TOUR_SELECT",
       "trigger": "both riders confirmed",
       "status": "historical",
-      "blocked_by": "multiplayer_controller_2"
+      "blocked_by": "multiplayer_behavioral_verification"
     },
     {
       "id": "race-result-post",
@@ -443,8 +443,18 @@
     "RESULT_BY_TRACK_TYPE"
   ],
   "capability_dependencies": {
-    "multiplayer_controller_2": {
-      "status": "behavioral_verification_pending",
+    "name_entry_cursor_mapping": {
+      "status": "open",
+      "plan": "analysis/ui-text-entry-layout.json",
+      "blocks_states": [
+        "FORBIDDEN_NAME_REJECTION"
+      ],
+      "acceptance_fixture": "ui-rename-editor-explore",
+      "acceptance": "Bind runtime row/column/cursor deltas to the manual-proven alphanumeric grid, then generate and reproduce a blacklisted-name route without guessing cursor geometry."
+    },
+    "multiplayer_behavioral_verification": {
+      "status": "open",
+      "phase": "behavioral_verification",
       "plan": "docs/TWO-PLAYER-FIXTURE-PLAN.md",
       "blocks_states": [
         "TWO_PLAYER_SELECT",
@@ -461,18 +471,9 @@
       "planned_fixture_id": "ui-two-player-handoff.input",
       "provider_pr": 31,
       "transport_format": "start:duration:p1-mask[:p2-mask]",
-      "integration_note": "Use PR31 neutral controller transport across native/snesref/Mesen; retain scene-keyed scripts for waits/dumps rather than inventing a second multiplayer grammar.",
-      "transport_status": "merged_on_main",
-      "note": "Shared deterministic P1/P2 transport is merged on main. Keep deeper 2P/VS edges blocked until the behavioral acceptance route proves P2-only causality, handoff, and multiplayer state checkpoints."
-    },
-    "name_entry_cursor_mapping": {
-      "status": "open",
-      "plan": "analysis/ui-text-entry-layout.json",
-      "blocks_states": [
-        "FORBIDDEN_NAME_REJECTION"
-      ],
-      "acceptance_fixture": "ui-rename-editor-explore",
-      "acceptance": "Bind runtime row/column/cursor deltas to the manual-proven alphanumeric grid, then generate and reproduce a blacklisted-name route without guessing cursor geometry."
+      "transport_status": "complete",
+      "integration_note": "PR #31 already provides the shared P1/P2 transport across native, snesref, and Mesen. This dependency now tracks only behavioral proof: P2-only causality, P1->P2 rider-selection handoff, stable multiplayer checkpoints, and deeper VS navigation.",
+      "note": "Do not treat controller syntax as the blocker. Keep deeper 2P/VS edges blocked until the behavioral acceptance route proves assignment/handoff and captures the multiplayer states."
     }
   }
 }

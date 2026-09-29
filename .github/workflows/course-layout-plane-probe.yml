@@ -1,0 +1,47 @@
+name: Course layout plane probe
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "tools/rnc_method1.py"
+      - "tools/analyze_course_layout_planes.py"
+      - ".github/workflows/course-layout-plane-probe.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: course-layout-plane-probe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    if: github.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Analyze fixed-size decoded regions
+        run: |
+          python3 tools/analyze_course_layout_planes.py \
+            --json-out analysis/generated/course-layout-plane-probe.json \
+            --md-out analysis/generated/course-layout-plane-probe.md
+          cat analysis/generated/course-layout-plane-probe.md
+
+      - name: Persist reports
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add analysis/generated/course-layout-plane-probe.json analysis/generated/course-layout-plane-probe.md
+          if git diff --cached --quiet; then
+            echo "course layout plane reports already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Record course layout plane probe"
+          git push origin HEAD:${{ github.ref_name }}

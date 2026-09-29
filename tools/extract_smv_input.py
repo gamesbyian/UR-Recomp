@@ -8,9 +8,11 @@ machine-readable metadata. This intentionally does not interpret game state.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import struct
 import zipfile
+import zlib
 from pathlib import Path
 
 SMV_TO_SNESREF = {
@@ -63,6 +65,8 @@ def main() -> int:
     ap.add_argument("smv", type=Path)
     ap.add_argument("--controller", type=int, default=1, help="1-based recorded controller index")
     ap.add_argument("--input-out", type=Path, required=True)
+    ap.add_argument("--sram-out", type=Path)
+    ap.add_argument("--sram-size", type=int, default=0, help="optional cartridge SRAM size to emit")
     ap.add_argument("--json-out", type=Path, required=True)
     args = ap.parse_args()
 
@@ -100,6 +104,25 @@ def main() -> int:
 
     reset_anchored = bool(movie_options & 0x01)
     pal = bool(movie_options & 0x02)
+
+    embedded_sram = None
+    if reset_anchored:
+        packed = data[savestate_offset:controller_data_offset]
+        try:
+            dec = zlib.decompressobj(16 + zlib.MAX_WBITS)
+            embedded_sram = dec.decompress(packed) + dec.flush()
+        except zlib.error as exc:
+            raise SystemExit(f"could not decompress reset-movie SRAM block: {exc}")
+        if len(embedded_sram) != 0x20000:
+            raise SystemExit(
+                f"reset-movie SRAM block decoded to {len(embedded_sram)} bytes, expected 131072"
+            )
+        if args.sram_out:
+            emit = embedded_sram[: args.sram_size or len(embedded_sram)]
+            if args.sram_size and len(emit) != args.sram_size:
+                raise SystemExit("requested SRAM size exceeds embedded snapshot")
+            args.sram_out.parent.mkdir(parents=True, exist_ok=True)
+            args.sram_out.write_bytes(emit)
 
     if version == 1:
         sample_count = frame_count + 1
@@ -167,6 +190,10 @@ def main() -> int:
         "port_types": port_types,
         "stride": stride,
         "reset_markers": reset_markers,
+        "embedded_sram_size": len(embedded_sram) if embedded_sram is not None else None,
+        "embedded_sram_sha256": hashlib.sha256(embedded_sram).hexdigest() if embedded_sram is not None else None,
+        "emitted_sram_size": args.sram_size if args.sram_out and args.sram_size else (len(embedded_sram) if args.sram_out and embedded_sram is not None else None),
+        "emitted_sram_sha256": hashlib.sha256(args.sram_out.read_bytes()).hexdigest() if args.sram_out else None,
         "nonzero_frames": sum(v != 0 for v in values),
         "event_runs": len(event_runs),
         "first_nonzero_frame": next((i for i, v in enumerate(values) if v), None),

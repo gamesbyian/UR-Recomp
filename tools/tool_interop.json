@@ -335,6 +335,18 @@
       "produces": [
         "snes2asm-project"
       ]
+    },
+    {
+      "id": "mesen-fixture-adapter",
+      "kind": "project",
+      "consumes": [
+        "sfc-rom",
+        "fixture-script",
+        "mesen-debug-api"
+      ],
+      "produces": [
+        "wram-checkpoints"
+      ]
     }
   ],
   "handoffs": [
@@ -477,6 +489,20 @@
       "format": "snes2asm-project",
       "status": "supported",
       "evidence": "Generated project Makefile/source/assets are WLA-DX-oriented."
+    },
+    {
+      "from": "mesence",
+      "to": "mesen-fixture-adapter",
+      "format": "mesen-debug-api",
+      "status": "supported",
+      "evidence": "tools/run_fixture_mesen.py imports the pinned mesen-for-ai client, which launches Mesen/MesenCE."
+    },
+    {
+      "from": "mesen-fixture-adapter",
+      "to": "compare-wram",
+      "format": "wram-checkpoints",
+      "status": "supported",
+      "evidence": "Adapter emits the same named *.wram.bin full-WRAM checkpoint shape consumed by compare_wram_checkpoints.py."
     }
   ],
   "chains": [
@@ -586,6 +612,17 @@
         "cc65"
       ],
       "purpose": "Project canonical labels seed bank-local da65 info files; trace/CDL RANGE and M/X state can be layered on without retyping names."
+    },
+    {
+      "id": "three-engine-fixture",
+      "status": "supported",
+      "steps": [
+        "native-recomp",
+        "snesref",
+        "mesen-fixture-adapter",
+        "compare-wram"
+      ],
+      "purpose": "Replay one project-owned fixture through native recompilation, libretro reference cores, and Mesen while preserving the same named full-WRAM comparison surface."
     }
   ]
 }

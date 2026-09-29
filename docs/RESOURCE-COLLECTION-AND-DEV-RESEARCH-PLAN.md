@@ -185,6 +185,28 @@ Preferred search keys:
 
 Wayback, old forum archives, preserved personal sites, source mirrors, and exact historical URLs should take precedence over generic modern search results.
 
+## Experimental apparatus
+
+The research program should attack important unknowns from multiple independent directions rather than treating disassembly as the final product.
+
+Already implemented:
+- deterministic controller fixtures shared by native recompilation and `snesref`, cataloged in `tests/fixtures.json`;
+- full-WRAM checkpoint comparison and native write-history tracing on the first-race fixture;
+- machine-readable symbol export at `analysis/generated/symbols.json`, generated from the human authority `docs/SYMBOLS.md`;
+- controlled byte mutation with `tools/mutate_rom.py`, including before/after bytes and ROM hashes;
+- pinned on-demand DiztinGUIsh, bsnes-plus, and mesen-for-ai source checkouts in the toolchain manifest.
+
+Next apparatus work, in dependency order:
+1. Extend the replay corpus through acceleration, jump, rotation, landing, collision, finish, two-player, save/load, and known emulator-sensitive scenes.
+2. Extend checkpoint capture from WRAM into relevant CPU, PPU, OAM, VRAM and audio state only when a discrepancy requires it.
+3. Add code/data coverage capture using Mesen CDL or DiztinGUIsh/bsnes+ traces; merge repeated runs into a compact ROM coverage map and feed mode/bank knowledge back into static disassembly.
+4. Build a smallest-first first-divergence reducer: checkpoint mismatch → last matching frame → first differing frame → first differing write/register event → owning guest routine.
+5. Use controlled ROM mutation only against specific hypotheses and classify effects by deterministic replay, never by undocumented manual observation alone.
+6. Build reproducible asset extract → decode → inspect → modify → repack/patch → replay loops for graphics/course/resource formats as they become understood.
+7. Introduce a secondary high-accuracy oracle for hardware-sensitive findings and, where practical, compare against real-hardware captures before declaring an emulator-specific behavior to be hardware truth.
+
+The goal is a closed evidence loop: ROM bytes → static hypothesis → dynamic observation → controlled perturbation → deterministic differential → promoted symbol/format knowledge.
+
 ## Research discipline
 
 - Separate observation, interpretation, and hypothesis.

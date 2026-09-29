@@ -104,7 +104,7 @@
     },
     {
       "id": "neutral-input-runs",
-      "description": "Project neutral controller intervals in start:duration:hex-mask form."
+      "description": "Project-neutral controller intervals in backward-compatible start:duration:p1-mask[:p2-mask] form; omitted P2 means idle."
     },
     {
       "id": "sram-image",
@@ -430,6 +430,16 @@
       ]
     },
     {
+      "id": "mesen-input-replay",
+      "kind": "project",
+      "consumes": [
+        "sfc-rom",
+        "neutral-input-runs",
+        "mesen-mcp-client"
+      ],
+      "produces": []
+    },
+    {
       "id": "wram-trace-summarizer",
       "kind": "project",
       "consumes": [
@@ -701,6 +711,13 @@
       "format": "ui-state-dumps",
       "status": "verified",
       "evidence": ".github/workflows/native-build-smoke.yml uses SNESRECOMP_DUMP_DIR and tools/build_ui_atlas.py over controller-only UI fixtures."
+    },
+    {
+      "from": "smv-extractor",
+      "to": "mesen-input-replay",
+      "format": "neutral-input-runs",
+      "status": "supported",
+      "evidence": "tools/replay_input_mesen.py and tests/unit/test_replay_input_mesen.py exercise the shared P1/P2 transport; canonical-ROM replay remains to be promoted."
     }
   ],
   "chains": [
@@ -841,6 +858,16 @@
         "ui-atlas-builder"
       ],
       "purpose": "Drive player-visible states with shared controller fixtures, capture framebuffer plus machine state headlessly, and summarize them into a queryable evidence-labelled UI atlas."
+    },
+    {
+      "id": "dual-controller-neutral-replay",
+      "status": "supported",
+      "steps": [
+        "native-lua-replay",
+        "snesref",
+        "mesen-input-replay"
+      ],
+      "purpose": "Drive the same backward-compatible P1/P2 frame-mask stream through native Lua, patched snesref/libretro, and Mesen without emulator-specific controller scripts."
     }
   ]
 }

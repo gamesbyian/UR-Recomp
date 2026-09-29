@@ -1,0 +1,99 @@
+diff --git a/tools/snesref/frontend.cpp b/tools/snesref/frontend.cpp
+--- a/tools/snesref/frontend.cpp
++++ b/tools/snesref/frontend.cpp
+@@ -170,32 +170,34 @@
+ struct InputEvent {
+     uint64_t start;
+     uint64_t duration;
+-    uint16_t mask;
++    uint16_t mask[2];
+ };
+ static std::vector<InputEvent> g_input_events;
+ static bool g_scripted_input = false;
+-static uint16_t g_scripted_mask = 0;
++static uint16_t g_scripted_mask[2] = {0, 0};
+ 
+ static bool load_input_file(const char* path) {
+     FILE* f = fopen(path, "r");
+     if (!f) {
+         fprintf(stderr, "cannot open input file %s\n", path);
+         return false;
+     }
+     char line[256];
+     unsigned line_number = 0;
+     while (fgets(line, sizeof(line), f)) {
+         line_number++;
+         char* comment = strchr(line, '#');
+         if (comment) *comment = '\0';
+         unsigned long long start = 0, duration = 0;
+-        unsigned mask = 0;
+-        if (sscanf(line, " %llu:%llu:%x", &start, &duration, &mask) == 3) {
+-            if (!duration || mask > 0x0fffu) {
++        unsigned p1 = 0, p2 = 0;
++        int fields = sscanf(line, " %llu:%llu:%x:%x", &start, &duration, &p1, &p2);
++        if (fields == 3 || fields == 4) {
++            if (!duration || p1 > 0x0fffu || p2 > 0x0fffu) {
+                 fprintf(stderr, "invalid input event at %s:%u\n", path, line_number);
+                 fclose(f);
+                 return false;
+             }
+-            g_input_events.push_back({start, duration, (uint16_t)mask});
++            g_input_events.push_back(
++                {start, duration, {(uint16_t)p1, (uint16_t)(fields == 4 ? p2 : 0)}});
+             continue;
+         }
+@@ -260,12 +262,16 @@
+ static void update_scripted_input() {
+     if (!g_scripted_input) return;
+-    uint16_t next = g_script_frame_mask;
++    uint16_t next[2] = {g_script_frame_mask, 0};
+     for (const InputEvent& event : g_input_events) {
+-        if (g_frame >= event.start && g_frame - event.start < event.duration)
+-            next |= event.mask;
++        if (g_frame >= event.start && g_frame - event.start < event.duration) {
++            next[0] |= event.mask[0];
++            next[1] |= event.mask[1];
++        }
+     }
+-    if (next != g_scripted_mask) {
+-        fprintf(stderr, "[input] frame=%u mask=%03x\n", g_frame, next);
+-        g_scripted_mask = next;
++    if (next[0] != g_scripted_mask[0] || next[1] != g_scripted_mask[1]) {
++        fprintf(stderr, "[input] frame=%u p1=%03x p2=%03x\n",
++                g_frame, next[0], next[1]);
++        g_scripted_mask[0] = next[0];
++        g_scripted_mask[1] = next[1];
+     }
+ }
+@@ -693,23 +699,24 @@
+ static int16_t cb_input_state(unsigned port, unsigned device, unsigned index, unsigned id) {
+     (void)index;
+-    if (port!=0 || device!=RETRO_DEVICE_JOYPAD) return 0;
++    if (port > 1 || device!=RETRO_DEVICE_JOYPAD) return 0;
+     if (g_scripted_input) {
+         uint16_t bit = 0;
+         switch (id) {
+             case RETRO_DEVICE_ID_JOYPAD_B:      bit=0x0001; break;
+             case RETRO_DEVICE_ID_JOYPAD_Y:      bit=0x0002; break;
+             case RETRO_DEVICE_ID_JOYPAD_SELECT: bit=0x0004; break;
+             case RETRO_DEVICE_ID_JOYPAD_START:  bit=0x0008; break;
+             case RETRO_DEVICE_ID_JOYPAD_UP:     bit=0x0010; break;
+             case RETRO_DEVICE_ID_JOYPAD_DOWN:   bit=0x0020; break;
+             case RETRO_DEVICE_ID_JOYPAD_LEFT:   bit=0x0040; break;
+             case RETRO_DEVICE_ID_JOYPAD_RIGHT:  bit=0x0080; break;
+             case RETRO_DEVICE_ID_JOYPAD_A:      bit=0x0100; break;
+             case RETRO_DEVICE_ID_JOYPAD_X:      bit=0x0200; break;
+             case RETRO_DEVICE_ID_JOYPAD_L:      bit=0x0400; break;
+             case RETRO_DEVICE_ID_JOYPAD_R:      bit=0x0800; break;
+             default: return 0;
+         }
+-        return (g_scripted_mask & bit) != 0;
++        return (g_scripted_mask[port] & bit) != 0;
+     }
++    if (port != 0) return 0;
+     if (g_headless) return 0;
+@@ -1292,3 +1299,4 @@
+              p_retro_get_memory_size(RETRO_MEMORY_SYSTEM_RAM),
+              p_retro_get_memory_size(RETRO_MEMORY_VIDEO_RAM), sn); }
+     p_retro_set_controller_port_device(0, RETRO_DEVICE_JOYPAD);
++    p_retro_set_controller_port_device(1, RETRO_DEVICE_JOYPAD);

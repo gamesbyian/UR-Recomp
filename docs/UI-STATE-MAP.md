@@ -342,6 +342,15 @@ At every stable stop, capture one screenshot/frame fingerprint and, if useful, a
 
 A separate short fixture should cover OPTIONS and RECORDS. Another should exercise 2P/VS second-player selection. League, destructive confirmations, progression unlocks, and Hunter can remain isolated fixtures because they have more setup or risk.
 
+## Startup / attract probes
+
+Two optional controller-only fixtures now attack the startup fringe without weakening the core smoke:
+
+- `ui-ending-shortcut.script` waits for recovered `SPLASH = 0x84`, captures it, then tries the secondary-source Down+L+R+B ending shortcut and looks for recovered `ENDING = 0x5B`.
+- `ui-attract-route.script` waits for verified `MAIN_MENU = 0xD7`, enables turbo, then waits for a natural no-input departure and captures the destination instead of assuming it is `DEMO = 0x00`.
+
+Both are optional atlas captures. Failure means "the cheap hypothesis did not reproduce yet," not "the native runtime is broken." Their logs and any partial dumps are still uploaded.
+
 ## Current unresolved questions
 
 The machine-readable file tracks these as `UIQ-001` onward. The new Options fixture should cheaply close part of item 6 once its artifact is available. Highest-value ones are:

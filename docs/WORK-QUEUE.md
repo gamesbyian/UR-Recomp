@@ -45,7 +45,7 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 - [~] Audio pipeline runs through the native race fixture: 32 kHz stereo device opens and callbacks begin under SDL dummy audio with no runtime error. Audible/content fidelity still needs capture or listening evidence.
 - [x] Start race deterministically and accelerate under controlled Right input with matching native/reference X position/speed semantics.
 - [x] Jump under sustained B input from the validated moving state. Run 36514981164 causally validates player-1 Y position, signed Y speed and air state against a matched Right-only control in both native and Snes9x.
-- [~] Rotate intentionally with L/R while airborne. This is the active next behavior fixture; use the confirmed sustained-B airborne window and a jump-only matched control.
+- [~] Rotate intentionally with L/R while airborne. L is verified cross-runtime but does not causally change recovered bot field `7E:0F49`; it strongly moves candidate `7E:04C7`. Mirrored R vs the same jump-only control is the active discriminator.
 - [~] Land with event-relative state validation. Sustained-B probe returns player 1 to `air=0`, `ySpeed=0` by the 48-frame hold checkpoint; exact landing transition timing remains to be isolated.
 - [ ] Finish a stock race deterministically.
 - [ ] No simulation modifications.

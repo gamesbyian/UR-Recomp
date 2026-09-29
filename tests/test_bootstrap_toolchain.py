@@ -36,6 +36,9 @@ def main() -> int:
     subprocess.run([sys.executable, str(TOOL), "--validate"], check=True)
     subprocess.run([sys.executable, str(TOOL), "--list"], check=True)
 
+    assert mod.canonical_git_url("https://github.com/example/repo.git") == "https://github.com/example/repo"
+    assert mod.canonical_git_url("https://github.com/example/repo/") == "https://github.com/example/repo"
+
     expanded = mod.expand_command(
         ["cmake", "--build", "build", "-j{jobs}", "{python}", "literal;not-shell"],
         jobs=7,

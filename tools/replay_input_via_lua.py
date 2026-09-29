@@ -108,7 +108,7 @@ local function snap(f)
     f, mainmemory.read_u8(0x009F), mainmemory.read_u8(0x{addr["in_race"]:04X}),
     mainmemory.read_u8(0x{addr["track"]:04X}), mainmemory.read_u16_le(0x{addr["x_pos"]:04X}),
     mainmemory.read_u16_le(0x{addr["y_pos"]:04X}), s16(0x{addr["x_speed"]:04X}), s16(0x{addr["y_speed"]:04X}),
-    mainmemory.read_u8(0x{addr["air"]:04X}), mainmemory.read_u16_le(0x{addr["pitch"]:04X}) & 0x3F))
+    mainmemory.read_u8(0x{addr["air"]:04X}), mainmemory.read_u8(0x{addr["pitch"]:04X}) & 0x3F))
 end
 for f=0,{frames-1} do
   if cp[f] then snap(f) end

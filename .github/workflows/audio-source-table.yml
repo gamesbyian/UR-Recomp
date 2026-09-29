@@ -173,6 +173,7 @@ jobs:
           OUT="$RUNNER_TEMP/audio-source"
           python3 tools/trace_audio_source_table.py \
             --writers-json "$OUT/audio-source-writers.json" \
+            --callsites-json "$OUT/apu-transfer-callsites.json" \
             --port 4377 --command-timeout 60 \
             --json-out "$OUT/audio-source-table-trace.json"
 
@@ -182,7 +183,10 @@ jobs:
           d = json.load(open(sys.argv[1]))
           print(json.dumps({
               "static_interpretation": d["static_interpretation"],
-              "transfer_seed_events": d["transfer_seed_events"],
+              "first_live_x": d["first_live_x"],
+              "nearest_static_seed": d["nearest_static_seed"],
+              "static_source_candidates": d["static_source_candidates"],
+              "live_x_head": d["live_x_progression"][:12],
               "source_windows": [
                   {k: r.get(k) for k in ("source_pointer", "source_file_offset", "cart_len")}
                   for r in d["source_cart_windows"]

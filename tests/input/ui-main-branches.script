@@ -1,0 +1,61 @@
+# UI-state reconnaissance: top-level 2P, VS, and LEAGUE branches.
+# Each branch starts from a clean reset so Main Menu selection state is known.
+# The first destination menu ID is deliberately discovered rather than assumed.
+
+# ---- 2P ----
+until 009F == D7 3600
+wait 60
+until 009B == 00 240
+press down 1
+until 009B == 01 240
+wait 20
+press a 2
+until 009F != D7 1200
+wait 60
+dump ui-two-player-entry
+press x 2
+until 009F == D7 1200
+wait 30
+dump ui-two-player-back-main
+
+# ---- VS ----
+reset
+until 009F == D7 3600
+wait 60
+until 009B == 00 240
+press down 1
+until 009B == 01 240
+press down 1
+until 009B == 02 240
+wait 20
+press a 2
+until 009F != D7 1200
+wait 60
+dump ui-vs-entry
+press x 2
+until 009F == D7 1200
+wait 30
+dump ui-vs-back-main
+
+# ---- LEAGUE ----
+reset
+until 009F == D7 3600
+wait 60
+until 009B == 00 240
+press down 1
+until 009B == 01 240
+press down 1
+until 009B == 02 240
+press down 1
+until 009B == 03 240
+wait 20
+press a 2
+until 009F != D7 1200
+wait 60
+dump ui-league-entry
+press x 2
+until 009F == D7 1200
+wait 30
+dump ui-league-back-main
+
+quit

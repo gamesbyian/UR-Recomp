@@ -1,0 +1,116 @@
+name: Historical 2008 Dragster replay
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "references/imported/tas-bots/uniracers-2008-wip-microstorage.smv"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "tools/extract_smv_input.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - "snesrecomp"
+      - ".github/workflows/historical-wip-dragster.yml"
+
+concurrency:
+  group: historical-wip-dragster-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install reference build dependencies
+        run: sudo apt-get update && sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Extract 2008 WIP controller stream
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/extract_smv_input.py \
+            references/imported/tas-bots/uniracers-2008-wip-microstorage.smv \
+            --input-out "$RUNNER_TEMP/wip-2008.input" \
+            --json-out "$RUNNER_TEMP/wip-2008.json"
+          cat "$RUNNER_TEMP/wip-2008.json"
+
+      - name: Build pinned Snes9x and snesref
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+
+      - name: Sample historical Dragster boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          INPUT="$RUNNER_TEMP/wip-2008.input"
+          : > "$RUNNER_TEMP/dragster-state.tsv"
+
+          for frames in 900 1000 1100 1160 1180 1200 1400 1600 1800 2000 2200 2400 2550 2600 2640 2660 2680 2700 2800 3000 3200 3400 3480; do
+            dump="$RUNNER_TEMP/wram-${frames}.bin"
+            SNESREF_HEADLESS=1 \
+            SNESREF_FAST=1 \
+            SNESREF_FRAMES="$frames" \
+            SNESREF_WRAM_FILL=0 \
+            SNESREF_INPUT_FILE="$INPUT" \
+            SNESREF_WRAM_DUMP="$dump" \
+              "$EXE" "$CORE" "$ROM" >/dev/null 2>&1
+
+            python3 - "$frames" "$dump" >> "$RUNNER_TEMP/dragster-state.tsv" <<'PY'
+          import pathlib, sys
+          frame=int(sys.argv[1]); b=pathlib.Path(sys.argv[2]).read_bytes()
+          def u8(a): return b[a]
+          def u16(a): return b[a] | (b[a+1] << 8)
+          def s16(a):
+              v=u16(a); return v-65536 if v & 0x8000 else v
+          print(
+              f"{frame}\tmenu=0x{u8(0x009F):02X}\tinRace=0x{u8(0x0313):02X}"
+              f"\ttrack={u8(0x00CE)}\tx={u16(0x0411)}\ty={u16(0x0415)}"
+              f"\tvx={s16(0x04B7)}\tvy={s16(0x04BB)}\tair={u8(0x0545)}"
+              f"\tpitch={u16(0x04C7)&0x3F}"
+          )
+          PY
+          done
+          cat "$RUNNER_TEMP/dragster-state.tsv"
+
+      - name: Validate first-race evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "$RUNNER_TEMP/dragster-state.tsv" <<'PY'
+          import pathlib, sys
+          lines=pathlib.Path(sys.argv[1]).read_text().splitlines()
+          active=[line for line in lines if "inRace=0x01" in line]
+          if not active:
+              raise SystemExit("historical WIP never reached active race at sampled cutoffs")
+          print("active-race samples:")
+          print("\n".join(active))
+          results=[line for line in lines if "menu=0x99" in line]
+          print("race-results samples:")
+          print("\n".join(results) if results else "(none at sampled cutoffs)")
+          PY
+
+      - name: Upload replay evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-2008-wip-dragster-replay
+          path: |
+            ${{ runner.temp }}/wip-2008.input
+            ${{ runner.temp }}/wip-2008.json
+            ${{ runner.temp }}/dragster-state.tsv
+            ${{ runner.temp }}/wram-*.bin
+          retention-days: 7

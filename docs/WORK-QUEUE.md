@@ -11,7 +11,7 @@ Canonical execution plan: `docs/ISLAND-TOOLCHAIN-PLAN.md`.
 Goal: make the core automated research/build toolchain runnable from a clean checkout without GitHub, PyPI or crates.io after ordinary host/compiler prerequisites are present.
 
 - [x] Add the `third_party/` provenance/licensing/manifest infrastructure, repository-hygiene validation, local-source bootstrap preference, and fail-closed offline mode. A true network-disabled build smoke follows the first islanded core component.
-- [ ] Vendor the small/high-value tool tranche and package-registry closures. `mesen-for-ai`, `snes2asm` plus its PyYAML 6.0.3 closure, and SuperFamiconv plus its 78-package Cargo vendor closure are complete. `ghidra-snes` is the next unlanded small/vendor target.
+- [ ] Vendor the small/high-value tool tranche and package-registry closures. `mesen-for-ai`, `snes2asm` plus its PyYAML 6.0.3 closure, and SuperFamiconv plus its 78-package Cargo vendor closure are complete. `ghidra-snes` source/language data are landed with normal offline-staging validation pending; pruned Flips CLI is the next unlanded direct-vendor target after that closeout.
 - [ ] Migrate SNESRecomp and core reconstruction/build dependencies incrementally.
 - [ ] Preserve large/manual workbenches as exact archives or optional external tools where direct vendoring has poor value.
 - [ ] Prove a network-disabled core workflow before removing the old fetch paths.

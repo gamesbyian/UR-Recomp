@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Query SNESRecomp's trace debug server for writers to selected WRAM bytes."""
+"""Query SNESRecomp's trace debug server for writes to selected WRAM bytes.
+
+The returned ``func`` field is an attribution scope, not necessarily the exact
+guest instruction that performed the store. In particular ``interp@$XXXXXX``
+means the entry PC of an interpreter bridge run; any still-interpreted write
+during that run inherits the same scope name.
+"""
 
 from __future__ import annotations
 
@@ -127,7 +133,7 @@ def main() -> int:
                     "  "
                     f"f={w.get('f')} val={w.get('val')} "
                     f"old={w.get('old', w.get('before'))} "
-                    f"func={w.get('func')} parent={w.get('parent')}"
+                    f"scope={w.get('func')} parent={w.get('parent')}"
                 )
 
         if args.json_out:

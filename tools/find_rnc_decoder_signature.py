@@ -27,6 +27,18 @@ PATTERNS={
    0xA9,0x04,0x00,0x20,None,None,0x7A,0x97,None,
    0xC8,0xC8,0xC6,None,0xD0,None
  ],
+ # MAKEHUFF tail:
+ # INY; INY; DEX; BNE MAKEHUFF4; LSR HUFBSE; INC BITLEN;
+ # CMP #16; BNE MAKEHUFF3; RTS
+ "makehuff-tail":[
+   0xC8,0xC8,0xCA,0xD0,None,0x46,None,0xE6,None,
+   0xC9,0x10,0x00,0xD0,None,0x60
+ ],
+ "readword-lorom-safe":[
+   0xA7,0x82,0xE6,0x82,0xD0,0x11,0x38,0x66,0x82,0xE6,0x84,
+   0xE2,0x20,0xEB,0xA7,0x82,0xEB,0xC2,0x20,0xC6,0x84,
+   0x64,0x82,0xC6,0x82,0x60
+ ],
 }
 
 def find(data,pat):
@@ -53,11 +65,69 @@ def main():
             rendered=", ".join(f"`0x{x:06X}` (LoROM {snes_lorom(x)})" for x in hits) or "none"
             lines.append(f"- {pname}: {rendered}")
         lines.append("")
+    lines += ["## Preserved RNC routine bounds",""]
+    tail_len=len(PATTERNS["makehuff-tail"])
+    for name,path in ROMS.items():
+        pro=allhits[name]["makehuff-prologue"]
+        tail=allhits[name]["makehuff-tail"]
+        if len(pro)==1 and len(tail)==1 and tail[0] >= pro[0]:
+            end=tail[0]+tail_len
+            entry=allhits[name]["entry-loose"][0] if allhits[name]["entry-loose"] else None
+            rel=(end-entry) if entry is not None else None
+            lines.append(
+                f"- {name}: MAKEHUFF `0x{pro[0]:06X}`..`0x{end-1:06X}` "
+                f"(tail RTS at `0x{end-1:06X}`"
+                + (f", RNC entry-relative end +`0x{rel:X}`" if rel is not None else "")
+                + ")."
+            )
+        else:
+            lines.append(f"- {name}: routine bounds unresolved (prologue hits={pro}, tail hits={tail}).")
+    lines.append("")
+    lines += ["## LoROM packed-word integration helper",""]
+    for name in ROMS:
+        hits=allhits[name]["readword-lorom-safe"]
+        entry=allhits[name]["entry-loose"][0] if allhits[name]["entry-loose"] else None
+        if len(hits)==1:
+            rel=(hits[0]-entry) if entry is not None else None
+            lines.append(
+                f"- {name}: `{snes_lorom(hits[0])}` at ROM `0x{hits[0]:06X}`"
+                + (f", RNC-entry relative +`0x{rel:X}`" if rel is not None else "")
+                + "."
+            )
+        else:
+            lines.append(f"- {name}: unresolved helper hits={hits}.")
+    lines += ["", "This helper performs a 16-bit packed-stream read with LoROM bank-boundary repair and restores `IN` before returning. It is a read adapter, not a course-buffer writer.", "", "### Direct JSR call sites", ""]
+    for name,path in ROMS.items():
+        data=path.read_bytes()
+        hits=allhits[name]["readword-lorom-safe"]
+        entry=allhits[name]["entry-loose"][0] if allhits[name]["entry-loose"] else None
+        tail=allhits[name]["makehuff-tail"]
+        if len(hits)!=1:
+            lines.append(f"- {name}: helper unresolved.")
+            continue
+        helper=hits[0]
+        helper_addr=0x8000+(helper%0x8000)
+        pat=bytes([0x20, helper_addr & 0xFF, (helper_addr >> 8) & 0xFF])
+        calls=[]
+        pos=0
+        while True:
+            off=data.find(pat,pos)
+            if off<0:
+                break
+            calls.append(off)
+            pos=off+1
+        rendered=[]
+        for off in calls:
+            within="inside-RNC1" if entry is not None and tail and entry <= off <= tail[0]+len(PATTERNS["makehuff-tail"])-1 else "outside-RNC1"
+            rendered.append(f"`{snes_lorom(off)}` ({within})")
+        lines.append(f"- {name}: {len(calls)} direct calls: " + (", ".join(rendered) if rendered else "none"))
+    lines.append("")
+    lines.append("")
     lines += ["## Traced writer-site context","",
-              "Dynamic trace run 36517696016 identified USA writer PCs 01:BA96 and 01:BB73. "
+              "Dynamic trace run 36517696016 identified USA interpreter attribution-scope entries 01:BA96 and 01:BB73. "
               "For the other builds, contexts below use the unpacker-entry displacement so structurally corresponding code can be compared without assuming absolute addresses.",""]
     usa_entry=allhits["usa-retail"]["entry-loose"][0]
-    traced={"course-byte-increment":0x00BA96,"decoded-output-write":0x00BB73}
+    traced={"byte11-mutation-scope":0x00BA96,"payload-install-scope":0x00BB73}
     for label,usa_off in traced.items():
         delta=usa_off-usa_entry
         lines += [f"### {label}: USA offset `0x{usa_off:06X}`, entry-relative +`0x{delta:X}`",""]

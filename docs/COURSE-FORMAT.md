@@ -222,23 +222,18 @@ This gives a frame-exact ordering:
 No finer frame sampling is needed for this chronology. The remaining question is **which guest routines perform the decompression write and the +43/+44 byte-11 updates**; the dedicated trace-course-buffer-writers workflow targets that next.
 
 
-### Dynamic course-buffer writers identified
+### Dynamic course-buffer write scopes identified
 
-Trace run 36517696016 records writer history for the live Dragster buffer at `7F:0000` through race setup.
+Trace run 36517696016 records write history for the live Dragster buffer at `7F:0000` through race setup.
 
-Observed writes:
+Observed write groups:
 
-- frame 867, `interp@$81BB73` writes the decoded stream bytes into the destination buffer, including:
-  - `7F:0000 = 0x00`;
-  - `7F:0003 = 0x44`;
-  - `7F:0005 = 0x32`;
-  - `7F:000B: 0x00 → 0x0F`.
-- frame 879, `interp@$81BA96` writes the same byte seven times in succession:
-  - `0x0F → 0x10 → 0x11 → 0x12 → 0x13 → 0x14 → 0x15 → 0x16`.
+- frame 867, writes attributed to interpreter scope `interp@$81BB73` install decoded stream bytes, including `7F:000B: 0x00 → 0x0F`;
+- frame 879, writes attributed to interpreter scope `interp@$81BA96` update that byte seven times: `0x0F → 0x10 → ... → 0x16`.
 
-This directly explains the single runtime-mutated course byte. The first writer places the decoded `0x0F`; the second writer is responsible for the final `0x16` value.
+SNESRecomp's `interp@$XXXXXX` label is the **entry PC of an interpreter bridge run**, not the exact opcode responsible for every write in that scope. Static classification now resolves both landmarks: `01:BA96` is inside generic RNC `GTBITS2`, and `01:BB73` is the wrap-test `BNE` inside `RNC1_ReadWordLoROMSafe`. Neither is the literal course-buffer store instruction.
 
-Both PCs are in bank 81 near the already identified shipped RNC Method-1 unpacker region (entry `01:B8F1`). That proximity is not, by itself, enough to label `81BA96` as either part of the generic RNC algorithm or game-specific postprocessing. The next static step is to disassemble/map the exact shipped instructions at `01:BA96` and `01:BB73` against preserved `RNC_1.S` before naming either routine semantically.
+The trace therefore proves two distinct interpreted execution scopes own the payload-install and later mutation write groups, while the exact WRAM store PCs remain the target of the dedicated `SNESRECOMP_WLOG_STATE` exact-IPC probe.
 
 Evidence:
 - workflow run 36517696016;
@@ -247,18 +242,18 @@ Evidence:
 - `tools/trace_native_wram_writers.py`.
 
 
-### Active writer static-classification probe
+### Active RNC scope static-classification probe
 
-The existing RNC signature finder now includes a longer source-derived `MAKEHUFF` prologue signature and explicit build-relative byte context for the two dynamically observed USA writer PCs `01:BA96` and `01:BB73`. Workflow `.github/workflows/rnc-writer-static-classification.yml` regenerates the report from the preserved ROMs.
+The RNC signature finder includes source-derived entry/`MAKEHUFF` signatures, explicit context for the two dynamically observed USA interpreter-scope entries `01:BA96` and `01:BB73`, the exact generic-RNC end, and the LoROM-safe word-reader helper. Workflow `.github/workflows/rnc-writer-static-classification.yml` regenerates and now persists the report from the preserved ROMs.
 
-The classification rule is deliberately structural: compare each writer at the same displacement from that build's mechanically identified Method-1 entry, and only call a writer part of the generic RNC routine if the surrounding instruction sequence aligns with a specific preserved `RNC_1.S` block. Short-signature proximity alone is insufficient because the prior loose `MAKEHUFF` shape has two hits in the USA image.
+The classification rule is deliberately structural: compare each scope landmark at the same displacement from that build's mechanically identified Method-1 entry, and only classify code as generic RNC when the surrounding instruction sequence aligns with a specific preserved `RNC_1.S` block. Short-signature proximity alone is insufficient because the loose `MAKEHUFF` shape has two hits in the USA image.
 
 
 ### Authoritative decoder probe
 
-A second static-classification path now uses the pinned framework's own v2 65816 decoder rather than a project-local partial disassembler. `tools/probe_rnc_writer_decode.py` decodes the known USA RNC1 entry at `01:B8F1` with M/X state tracking and asks whether traced writer PCs `01:BA96` and `01:BB73` are members of that control-flow graph. If reachable, it records the exact decoded instruction and nearby M/X-qualified context. `.github/workflows/rnc-writer-decoder-probe.yml` persists the machine-readable result to `analysis/generated/rnc-writer-decode.json`; that generated path does not retrigger the workflow.
+A second static-classification path uses the pinned framework's own v2 65816 decoder rather than a project-local partial disassembler. `tools/probe_rnc_writer_decode.py` decodes the known USA RNC1 entry at `01:B8F1` with M/X state tracking, follows local JSR callees, and asks whether scope-entry PCs `01:BA96` and `01:BB73` belong to that decoded call tree. It also mechanically scans direct JSR/JSL callers of the shipped RNC entry. `.github/workflows/rnc-writer-decoder-probe.yml` persists the machine-readable result to `analysis/generated/rnc-writer-decode.json`.
 
-This probe is intentionally complementary to the source-signature report. A positive graph-membership result identifies the writer as part of the decoded RNC1 function under the recompiler's own control-flow model; a negative result means the writer requires a separately rooted helper/game-code decode and must not be classified from address proximity.
+This probe is complementary to the source-signature report: graph membership classifies the **code containing the attribution landmark**, not the exact WRAM store responsible for a write observed under that scope. Literal store ownership remains an instruction-level tracing question.
 
 
 ### Course stream pointer-table search
@@ -284,3 +279,64 @@ The invariant is now generated mechanically by `tools/analyze_course_header_cade
 Historical evidence now gives this a more specific, still provisional interpretation. OD-006 preserves Spinal's report that Mike Dailly said levels were 256 tiles wide; after decompressing the RNC data and overlaying hand-made maps, Spinal further reported that one byte in a level file corresponds to a 64×64 block. Combined with the local 45/45 product-1024 invariant, the smallest testable model is therefore a **1024-byte one-byte-per-64×64-block layout plane**, reshaped according to bytes 13/14. The provisional course-name alignment is suggestive: Dragster is `256×4`, Vertical is `16×64`, Little Dipper is `4×256`, while many circuit-like layouts are `64×16` or `32×32`. These names remain external/provisional until selector identity is closed.
 
 `tools/analyze_course_layout_planes.py` now tests the first four 1024-byte regions after the header without assigning semantics, so the map-plane hypothesis can be accepted or rejected from corpus statistics rather than visual wishful thinking.
+
+
+### Attribution correction: interpreter scope entries, not literal store PCs
+
+Run 36517696016 remains valid evidence for the **timing, values, and attribution scopes** of the Dragster course-buffer writes, but its `interp@$...` labels were previously described too literally.
+
+SNESRecomp's interpreter bridge documents `interp@$XXXXXX` as the **entry PC of an interpreter bridge run**. That synthesized name is pushed as the attribution scope for all still-interpreted writes during that run. It is not necessarily the guest instruction that performs each store.
+
+Accordingly:
+
+- the frame-867 payload-install writes occur under interpreter scope `interp@$81BB73`;
+- the frame-879 seven-step `7F:000B` mutation `0x0F→...→0x16` occurs under interpreter scope `interp@$81BA96`;
+- neither address should be named as the literal store opcode without narrower instruction-level evidence.
+
+The static ROM context now independently confirms the distinction. `01:BA96` lies inside the preserved RNC Method-1 `GTBITS2` loop, with the surrounding byte sequence matching `LSR A / ROR BITBUFL / DEY / BEQ / DEX / ...` instruction-for-instruction. Thus `81BA96` is a genuine RNC bit-reader continuation/bridge entry, not itself the course-byte store instruction.
+
+The next tracing task is therefore narrower: preserve the proven write timeline, but isolate the **actual interpreted instruction PC** responsible for the `7F:000B` stores rather than inferring it from the bridge-scope label.
+
+
+### Preserved RNC body ends at 01:BB6E
+
+The source-derived `MAKEHUFF` tail can be aligned directly in the already captured USA ROM context. The exact sequence `INY / INY / DEX / BNE / LSR HUFBSE / INC BITLEN / CMP #$0010 / BNE / RTS` begins at `01:BB60` and its final `RTS` is at `01:BB6E`. This establishes the preserved RNC Method-1 body as `01:B8F1..01:BB6E` in USA retail/legacy beta.
+
+The byte stream immediately after that return begins a separate helper at `01:BB6F`. In that helper, `01:BB71` increments the input-pointer low word and `01:BB73` is the following conditional branch. Therefore the historical trace scope `interp@$81BB73` is **outside** the preserved RNC routine, while `interp@$81BA96` is **inside** generic RNC `GTBITS2`.
+
+This gives the course-load write trace a cleaner interpretation: one write group is attributed to an interpreter bridge entered in game/integration helper code immediately following RNC, while the later mutation group is attributed to a bridge entered inside the RNC bit-reader. Neither scope entry is itself the literal store. The exact `IPC=` address-log probe remains the authority for store-opcode ownership.
+
+
+### Static classification of the post-RNC helper
+
+The helper immediately after the preserved generic RNC1 body is now understood well enough to name structurally. USA `01:BB6F` begins:
+
+`LDA [IN]; INC IN; BNE ...`
+
+and only takes its longer path when incrementing the low 16-bit input pointer wraps through zero. That path temporarily maps the pointer to the next LoROM bank at `$8000`, reads the replacement high byte, restores the original bank/pointer representation, and returns the assembled 16-bit word. The ordinary path simply restores the incremented pointer before returning.
+
+This is therefore a **LoROM-safe packed-stream word reader** used by the shipped RNC integration, not a course-header mutation routine. The symbol is promoted to `RNC1_ReadWordLoROMSafe` at `01:BB6F`.
+
+This also sharpens the dynamic-attribution interpretation: `interp@$81BB73` names an interpreter run that entered at the helper's wrap-test `BNE`. Writes attributed to that scope may happen later after control returns into the decoder/caller. The scope label cannot be read as “BB73 wrote this byte.” The same principle applies to the `interp@$81BA96` scope inside `GTBITS2`.
+
+The dedicated exact-IPC write probe remains the correct discriminator for the literal instructions that write `7F:000B`.
+
+
+### Near-end field and aligned pre-trailer cursor hypothesis
+
+Treating decoded header bytes 11–12 as little-endian produces a field close to the end of every USA decoded course payload. Across all 45 streams, **`LE16@11 + 1` is 16-byte aligned**. The bytes after that cursor, `decoded_size - (LE16@11 + 1)`, range from **7 to 36 bytes**.
+
+Dragster is the smallest-gap case:
+
+- decoded size: `0x8417` (33,815 bytes);
+- decoded `LE16@11`: `0x840F`;
+- next offset: `0x8410`, exactly 16-byte aligned;
+- bytes after the cursor through EOF: 7;
+- observed runtime mutation: seven increments, `0x840F → 0x8416`;
+- `0x8416` is exactly `decoded_size - 1`, the final valid payload byte offset.
+
+This falsifies the tempting corpus-wide “size minus eight” interpretation, but suggests a stronger runtime model: **LE16@11 may be a mutable cursor initialized to the inclusive byte immediately before a 16-byte-aligned variable trailing region, then advanced while setup consumes that region**. Under that model, stream 11 has 21 bytes after its cursor and would need 21 increments to settle at EOF−1.
+
+A deterministic second-tour route is now encoded in `tests/input/course-load-timeline-tour2.script`. It selects tour index 2 by moving the recovered tour-menu selection from `selectedOption=0` to `selectedOption=2`, then reuses the proven course-load timeline. The corresponding runtime workflow focuses stream 11 and persists `analysis/generated/course-runtime-tour2-tail-cursor.json` with the decoded cursor, live cursor, trailer length and whether the live cursor reaches EOF−1.
+
+Until that capture lands, “variable trailer cursor” remains a testable hypothesis rather than a field name.

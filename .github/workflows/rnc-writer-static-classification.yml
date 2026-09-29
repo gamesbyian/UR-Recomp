@@ -1,4 +1,4 @@
-name: RNC writer static classification
+name: RNC static integration classification
 
 on:
   workflow_dispatch:
@@ -12,23 +12,46 @@ on:
       - ".github/workflows/rnc-writer-static-classification.yml"
 
 concurrency:
-  group: rnc-writer-static-classification-${{ github.ref }}
+  group: rnc-static-integration-${{ github.ref }}
   cancel-in-progress: false
+
+permissions:
+  contents: write
 
 jobs:
   classify:
+    if: github.ref_type == 'branch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
 
       - name: Rebuild RNC decoder signature report
         run: python3 tools/find_rnc_decoder_signature.py
 
-      - name: Show writer-site classification context
+      - name: Show RNC integration classification context
         shell: bash
         run: |
           set -euo pipefail
           cat analysis/generated/rnc-decoder-signature-search.md
+
+      - name: Persist generated classification
+        shell: bash
+        run: |
+          set -euo pipefail
+          path=analysis/generated/rnc-decoder-signature-search.md
+          git add "$path"
+          if git diff --cached --quiet; then
+            echo "classification report already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Refresh RNC integration classification"
+          git fetch origin "${{ github.ref_name }}"
+          git rebase "origin/${{ github.ref_name }}"
+          git push origin HEAD:${{ github.ref_name }}
 
       - name: Upload report
         uses: actions/upload-artifact@v4

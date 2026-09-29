@@ -7,6 +7,8 @@ on:
       - "references/imported/tas-bots/dessyreqt-4250-submission.smv"
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "tools/extract_smv_input.py"
+      - "tools/summarize_wram_trace_checkpoints.py"
+      - "tools/compose_historical_reference_result.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain.json"
       - "snesrecomp"
@@ -16,10 +18,13 @@ concurrency:
   group: historical-smv-first-race-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 jobs:
   replay:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,8 +43,22 @@ jobs:
           python3 tools/extract_smv_input.py \
             references/imported/tas-bots/dessyreqt-4250-submission.smv \
             --input-out "$RUNNER_TEMP/dessyreqt-4250.input" \
+            --sram-out "$RUNNER_TEMP/dessyreqt-4250.srm" \
+            --sram-size 8192 \
             --json-out "$RUNNER_TEMP/dessyreqt-4250.json"
           cat "$RUNNER_TEMP/dessyreqt-4250.json"
+          mkdir -p analysis/generated
+          cp "$RUNNER_TEMP/dessyreqt-4250.json" analysis/generated/historical-2014-smv-metadata.json
+          python3 - "$RUNNER_TEMP/dessyreqt-4250.json" "$RUNNER_TEMP/dessyreqt-4250.srm" <<'PY'
+          import json, pathlib, sys
+          meta=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          if not meta.get("reset_anchored"):
+              raise SystemExit("2014 historical movie is snapshot-anchored; raw-input replay needs a state adapter")
+          sram=pathlib.Path(sys.argv[2])
+          if not sram.exists() or sram.stat().st_size != 8192:
+              raise SystemExit("2014 reset movie did not yield canonical-size 8 KiB SRAM")
+          print("2014 movie is reset/SRAM anchored")
+          PY
           head -80 "$RUNNER_TEMP/dessyreqt-4250.input"
 
       - name: Build pinned Snes9x and snesref
@@ -50,7 +69,7 @@ jobs:
           cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
           cmake --build "$RUNNER_TEMP/snesref-build" -j2
 
-      - name: Replay historical movie at coarse cutoffs
+      - name: Trace first historical race window
         shell: bash
         run: |
           set -euo pipefail
@@ -58,48 +77,70 @@ jobs:
           CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           INPUT="$RUNNER_TEMP/dessyreqt-4250.input"
-          : > "$RUNNER_TEMP/coarse-state.tsv"
+          TRACE="$RUNNER_TEMP/dessyreqt-first-race-trace.jsonl"
 
-          for frames in 800 1000 1200 1400 1600 1800 2000 2200 2400 2600 2800 3000 3400 3800 4200; do
-            dump="$RUNNER_TEMP/wram-${frames}.bin"
-            SNESREF_HEADLESS=1 \
-            SNESREF_FAST=1 \
-            SNESREF_FRAMES="$frames" \
-            SNESREF_WRAM_FILL=0 \
-            SNESREF_INPUT_FILE="$INPUT" \
-            SNESREF_WRAM_DUMP="$dump" \
-              "$EXE" "$CORE" "$ROM" >/dev/null 2>&1
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_FRAMES=5000 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SRAM_IN="$RUNNER_TEMP/dessyreqt-4250.srm" \
+          SNESREF_INPUT_FILE="$INPUT" \
+          SNESREF_TRACE_FILE="$TRACE" \
+            "$EXE" "$CORE" "$ROM" >/dev/null 2>&1
 
-            python3 - "$frames" "$dump" >> "$RUNNER_TEMP/coarse-state.tsv" <<'PY'
-          import pathlib, sys
-          frame=int(sys.argv[1])
-          b=pathlib.Path(sys.argv[2]).read_bytes()
-          def u8(a): return b[a]
-          def u16(a): return b[a] | (b[a+1] << 8)
-          def s16(a):
-              v=u16(a)
-              return v-65536 if v & 0x8000 else v
-          print(
-              f"{frame}\tmenu=0x{u8(0x009F):02X}\tinRace=0x{u8(0x0313):02X}"
-              f"\ttrack={u8(0x00CE)}\tx={u16(0x0411)}\ty={u16(0x0415)}"
-              f"\tvx={s16(0x04B7)}\tvy={s16(0x04BB)}\tair={u8(0x0545)}"
-          )
-          PY
-          done
+          python3 tools/summarize_wram_trace_checkpoints.py "$TRACE" \
+            --checkpoint 800 --checkpoint 1000 --checkpoint 1200 \
+            --checkpoint 1400 --checkpoint 1600 --checkpoint 1800 \
+            --checkpoint 2000 --checkpoint 2200 --checkpoint 2400 \
+            --checkpoint 2600 --checkpoint 2800 --checkpoint 3000 \
+            --checkpoint 3400 --checkpoint 3800 --checkpoint 4200 \
+            --checkpoint 4600 --checkpoint 5000 \
+            --tsv-out "$RUNNER_TEMP/dessyreqt-first-race-state.tsv" \
+            --json-out "$RUNNER_TEMP/dessyreqt-first-race-state.json" \
+            | tee "$RUNNER_TEMP/dessyreqt-first-race-summary.txt"
 
-          cat "$RUNNER_TEMP/coarse-state.tsv"
-
-      - name: Require useful historical replay signal
+      - name: Compose and validate 2014 reference result
         shell: bash
         run: |
           set -euo pipefail
-          python3 - "$RUNNER_TEMP/coarse-state.tsv" <<'PY'
-          import pathlib, sys
-          lines=pathlib.Path(sys.argv[1]).read_text().splitlines()
-          print("\n".join(lines))
-          if not any("inRace=0x01" in line for line in lines):
-              raise SystemExit("historical input never reached active race at sampled cutoffs")
+          python3 tools/compose_historical_reference_result.py \
+            --smv-meta "$RUNNER_TEMP/dessyreqt-4250.json" \
+            --trace-summary "$RUNNER_TEMP/dessyreqt-first-race-state.json" \
+            --out analysis/generated/historical-2014-first-race-reference.json
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("analysis/generated/historical-2014-first-race-reference.json").read_text())
+          if not d["reference_reached_race"]:
+              raise SystemExit("2014 historical movie did not reach an active race by frame 5000")
+          print("first active race frame:", d["first_in_race_frame"])
+          print("first race-results frame:", d["first_race_results_frame"])
           PY
+
+      - name: Persist available 2014 historical evidence
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in \
+            analysis/generated/historical-2014-smv-metadata.json \
+            analysis/generated/historical-2014-first-race-reference.json
+          do
+            if [ -f "$path" ]; then
+              git add "$path"
+            fi
+          done
+          if git diff --cached --quiet; then
+            echo "no new 2014 historical evidence to persist"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Record historical 2014 replay evidence"
+          git fetch origin "${{ github.ref_name }}"
+          git rebase "origin/${{ github.ref_name }}"
+          git push origin HEAD:${{ github.ref_name }}
 
       - name: Upload historical replay evidence
         if: always()
@@ -109,6 +150,11 @@ jobs:
           path: |
             ${{ runner.temp }}/dessyreqt-4250.input
             ${{ runner.temp }}/dessyreqt-4250.json
-            ${{ runner.temp }}/coarse-state.tsv
-            ${{ runner.temp }}/wram-*.bin
+            ${{ runner.temp }}/dessyreqt-4250.srm
+            ${{ runner.temp }}/dessyreqt-first-race-trace.jsonl
+            ${{ runner.temp }}/dessyreqt-first-race-state.tsv
+            ${{ runner.temp }}/dessyreqt-first-race-state.json
+            ${{ runner.temp }}/dessyreqt-first-race-summary.txt
+            analysis/generated/historical-2014-smv-metadata.json
+            analysis/generated/historical-2014-first-race-reference.json
           retention-days: 7

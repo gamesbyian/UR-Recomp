@@ -1,4 +1,4 @@
-name: RNC writer decoder probe
+name: RNC scope-entry decoder probe
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: rnc-writer-decoder-probe-${{ github.ref }}
+  group: rnc-scope-decoder-probe-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
           submodules: recursive
           ref: ${{ github.ref_name }}
 
-      - name: Decode RNC writer PCs
+      - name: Decode RNC attribution scope entries
         run: |
           python3 tools/probe_rnc_writer_decode.py \
             reference/roms/retail/Uniracers_USA.sfc \
@@ -49,5 +49,7 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Record RNC writer decoder probe"
+          git commit -m "Record RNC scope decoder probe"
+          git fetch origin "${{ github.ref_name }}"
+          git rebase "origin/${{ github.ref_name }}"
           git push origin HEAD:${{ github.ref_name }}

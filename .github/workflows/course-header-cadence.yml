@@ -7,6 +7,7 @@ on:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "tools/rnc_method1.py"
       - "tools/analyze_course_header_cadence.py"
+      - "tools/analyze_course_trailers.py"
       - ".github/workflows/course-header-cadence.yml"
 
 permissions:
@@ -25,22 +26,25 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
 
-      - name: Rebuild course header cadence report
+      - name: Rebuild course header and trailer reports
         run: |
           python3 tools/analyze_course_header_cadence.py
+          python3 tools/analyze_course_trailers.py
           cat analysis/generated/course-header-cadence.md
+          cat analysis/generated/course-trailer-structure.md
 
-      - name: Persist generated report
+      - name: Persist generated reports
         shell: bash
         run: |
           set -euo pipefail
-          path=analysis/generated/course-header-cadence.md
-          if git diff --quiet -- "$path"; then
-            echo "course header report already current"
+          git add             analysis/generated/course-header-cadence.md             analysis/generated/course-trailer-structure.json             analysis/generated/course-trailer-structure.md
+          if git diff --cached --quiet; then
+            echo "course header/trailer reports already current"
             exit 0
           fi
-          git add "$path"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Refresh course header cadence report"
+          git commit -m "Refresh course header and trailer analysis"
+          git fetch origin "${{ github.ref_name }}"
+          git rebase "origin/${{ github.ref_name }}"
           git push origin HEAD:${{ github.ref_name }}

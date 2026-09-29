@@ -6,3 +6,5 @@ GLOBAL {
 SEGMENT { START $8000; END $FFFF; NAME "bank_01"; };
 
 LABEL { NAME "RNC1_Unpack"; ADDR $B8F1; };
+LABEL { NAME "RNC1_MakeHuffTail"; ADDR $BB60; };
+LABEL { NAME "RNC1_ReadWordLoROMSafe"; ADDR $BB6F; };

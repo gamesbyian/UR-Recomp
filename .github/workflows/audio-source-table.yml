@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/audio-source-table.yml
       - tools/trace_audio_source_table.py
+      - tools/trace_native_wram_writers.py
       - tests/input/reach-first-race.script
 
 permissions:
@@ -133,100 +134,74 @@ jobs:
           cmake --build "$PROJECT/build-trace" -j2
           test -x "$PROJECT/build-trace/UniracersSNESRecomp"
 
-          mapfile -t FUNCS < <(
-            grep -RhoE 'bank_[0-9A-Fa-f]{2}_8298_M[01]X[01]' "$PROJECT/src" |
-              sort -u
-          )
-          printf 'generated variants at ??:8298:\n'
-          printf '  %s\n' "${FUNCS[@]:-}"
-          if [ "${#FUNCS[@]}" -ne 1 ]; then
-            echo "expected exactly one generated variant at ??:8298" >&2
-            exit 1
-          fi
-          APU_FUNC="${FUNCS[0]}"
-          BANK_HEX="$(printf '%s\n' "$APU_FUNC" | sed -E 's/^bank_([0-9A-Fa-f]{2})_8298_.*/\1/')"
-          if ! [[ "$BANK_HEX" =~ ^[0-9A-Fa-f]{2}$ ]]; then
-            echo "could not derive bank from generated function: $APU_FUNC" >&2
-            exit 1
-          fi
-          APU_PC24="${BANK_HEX}8298"
-          echo "APU_FUNC=$APU_FUNC" >> "$GITHUB_ENV"
-          echo "APU_PC24=$APU_PC24" >> "$GITHUB_ENV"
-          grep -R -n -B8 -A180 "$APU_FUNC" "$PROJECT/src" \
-            > "$RUNNER_TEMP/audio-source/generated-apu-transfer.txt" || true
-
-      - name: Trace source table and transport
+      - name: Start held deterministic first-race route
         shell: bash
         run: |
           set -euo pipefail
+          OUT="$RUNNER_TEMP/audio-source"
           PROJECT="$RUNNER_TEMP/trace-project/UniracersSNESRecomp"
-          EXE="$PROJECT/build-trace/UniracersSNESRecomp"
-          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
-          LOG="$RUNNER_TEMP/audio-source/native-audio-source-host.log"
-          OUT="$RUNNER_TEMP/audio-source/audio-source-table-trace.json"
-
+          SCRIPT="$RUNNER_TEMP/reach-first-race-hold.script"
+          sed '/^[[:space:]]*quit[[:space:]]*$/d' "$GITHUB_WORKSPACE/tests/input/reach-first-race.script" > "$SCRIPT"
           SNESRECOMP_DEBUG_PORT=4377 SDL_AUDIODRIVER=dummy \
-            timeout 240s xvfb-run -a "$EXE" "$ROM" --paused --script "$SCRIPT" \
-            >"$LOG" 2>&1 &
-          HOST_PID=$!
-          trap 'kill "$HOST_PID" 2>/dev/null || true' EXIT
+            timeout 300s xvfb-run -a "$PROJECT/build-trace/UniracersSNESRecomp" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" --paused --script "$SCRIPT" \
+            >"$OUT/native-audio-source-host.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/audio-source-host.pid"
 
-          set +e
+      - name: Capture direct-page pointer writers
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/audio-source"
+          python3 tools/trace_native_wram_writers.py \
+            --port 4377 --command-timeout 45 --coarse-until 900 --coarse-step 25 --max-frames 1400 \
+            --address 0x00 --address 0x01 --address 0x02 \
+            --address 0x63 --address 0x64 --address 0x65 --address 0x6f \
+            --json-out "$OUT/audio-source-writers.json"
+
+      - name: Resolve transfer PC and ROM source windows
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/audio-source"
           python3 tools/trace_audio_source_table.py \
-            --snapshot-function "$APU_FUNC" \
-            --target-pc24 "0x$APU_PC24" \
-            --port 4377 \
-            --command-timeout 60 \
-            --coarse-until 900 \
-            --coarse-step 25 \
-            --max-frames 1800 \
-            --json-out "$OUT"
-          TRACE_STATUS=$?
-          set -e
+            --writers-json "$OUT/audio-source-writers.json" \
+            --port 4377 --command-timeout 60 \
+            --json-out "$OUT/audio-source-table-trace.json"
 
-          kill "$HOST_PID" 2>/dev/null || true
-          wait "$HOST_PID" 2>/dev/null || true
-          trap - EXIT
-
-          echo "== host log tail =="
-          tail -n 140 "$LOG"
-          if [ "$TRACE_STATUS" -ne 0 ]; then
-            exit "$TRACE_STATUS"
-          fi
-          test -s "$OUT"
-
-          python3 - "$OUT" <<'PY'
+          python3 - "$OUT/audio-source-table-trace.json" <<'PY'
           import json
           import sys
-          from pathlib import Path
-          p = Path(sys.argv[1])
-          d = json.loads(p.read_text())
-          if not d["snapshot_function_matches_observed"]:
-              raise SystemExit(
-                  f"snapshot variant mismatch: requested={d['requested_snapshot_function']} "
-                  f"observed={d['observed_variant']}"
-              )
-          if d["snapshot_count"] < 1:
-              raise SystemExit("target function executed but no function snapshot was captured")
-          pointers = [
-              {
-                  "entry": s.get("entry_stream_pointer"),
-                  "entry_file": s.get("entry_stream_file_offset"),
-                  "working_63": s.get("working_pointer_63"),
-                  "working_63_file": s.get("working_pointer_63_file_offset"),
-              }
-              for s in d["snapshots"]
-              if s.get("entry_stream_pointer") or s.get("working_pointer_63")
-          ]
+          d = json.load(open(sys.argv[1]))
           print(json.dumps({
-              "race_active_frame": d["race_active_frame"],
+              "runtime_pcs": d["runtime_pcs"],
+              "observed_D_values": d["observed_D_values"],
               "target_hits": d["cpu_trace"]["target_hits"],
-              "snapshot_count": d["snapshot_count"],
-              "source_pointers": pointers,
-              "audio_events": d["audio_event_range"]["events_returned"],
+              "captures": [
+                  {k: r.get(k) for k in (
+                      "block_index", "frame", "pc24",
+                      "entry_stream_pointer", "entry_stream_file_offset",
+                      "working_pointer_63", "working_63_file_offset"
+                  )}
+                  for r in d["captures"]
+              ],
+              "source_windows": [
+                  {k: r.get(k) for k in ("roles", "source_pointer", "source_file_offset", "cart_len")}
+                  for r in d["source_cart_windows"]
+              ],
+              "audio_events": len(d["audio_events"]),
           }, indent=2))
           PY
+
+      - name: Stop trace host
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$RUNNER_TEMP/audio-source-host.pid" ]; then
+            kill "$(cat "$RUNNER_TEMP/audio-source-host.pid")" 2>/dev/null || true
+          fi
+          echo "== host log tail =="
+          tail -n 140 "$RUNNER_TEMP/audio-source/native-audio-source-host.log" 2>/dev/null || true
 
       - name: Upload source-table evidence
         if: always()
@@ -235,8 +210,8 @@ jobs:
           name: uniracers-audio-source-table
           path: |
             ${{ runner.temp }}/audio-source/audio-source-table-trace.json
+            ${{ runner.temp }}/audio-source/audio-source-writers.json
             ${{ runner.temp }}/audio-source/apu-transfer-callsites.json
-            ${{ runner.temp }}/audio-source/generated-apu-transfer.txt
             ${{ runner.temp }}/audio-source/native-audio-source-host.log
           if-no-files-found: warn
           retention-days: 2

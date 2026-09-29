@@ -271,3 +271,12 @@ The 45 confirmed USA RNC payload offsets are now also searched mechanically as p
 - common padded fixed-width records containing the 24-bit forms.
 
 The scanner scores only consecutive stream-order runs of length three or greater, reducing isolated pointer-like byte coincidences. Workflow `.github/workflows/course-stream-pointer-search.yml` persists the result to `analysis/generated/course-stream-pointer-search.json`. A positive long run would expose a direct course pointer/index table; a negative result narrows the selector toward split-bank tables, relative offsets, transformed indices, or code-generated addresses.
+
+
+## Header dimension-pair invariant
+
+A corpus-wide invariant in decoded header bytes 13 and 14 strongly narrows the course-layout question. Across all 45 USA streams, interpreting encoded `0x00` as 256 gives a product of exactly **1024** for every pair. Observed forms include `256×4`, `128×8`, `64×16`, `32×32`, `16×64`, `8×128` and `4×256`.
+
+This is too rigid to treat as incidental metadata. The leading interpretation is that bytes 13/14 are complementary dimensions or strides over a fixed 1024-unit course plane/table. The unit remains unresolved: it could be tiles, blocks, columns, lookup entries or another layout primitive. This also gives a concrete way to test the historical “256 wide” claim: streams encoded `00 04` or `04 00` are the natural first cases for runtime/memory-layout validation rather than assuming every course is literally 256 raw bytes wide.
+
+The invariant is now generated mechanically by `tools/analyze_course_header_cadence.py`; `.github/workflows/course-header-cadence.yml` refreshes and persists the report.

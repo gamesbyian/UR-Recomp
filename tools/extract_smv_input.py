@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import struct
+import zipfile
 from pathlib import Path
 
 SMV_TO_SNESREF = {
@@ -65,9 +66,21 @@ def main() -> int:
     ap.add_argument("--json-out", type=Path, required=True)
     args = ap.parse_args()
 
-    data = args.smv.read_bytes()
+    raw = args.smv.read_bytes()
+    container = None
+    contained_name = None
+    if raw[:4] == b"PK\x03\x04":
+        container = "zip"
+        with zipfile.ZipFile(args.smv) as zf:
+            candidates = [n for n in zf.namelist() if n.lower().endswith(".smv")]
+            if len(candidates) != 1:
+                raise SystemExit(f"expected exactly one SMV in ZIP, found {candidates}")
+            contained_name = candidates[0]
+            data = zf.read(contained_name)
+    else:
+        data = raw
     if len(data) < 32 or data[:4] != b"SMV\x1a":
-        raise SystemExit("not an SMV file")
+        raise SystemExit("not an SMV file or ZIP containing one SMV")
 
     version = u32(data, 4)
     if version not in (1, 4, 5):
@@ -133,6 +146,10 @@ def main() -> int:
 
     meta = {
         "path": args.smv.as_posix(),
+        "container": container,
+        "contained_name": contained_name,
+        "container_size_bytes": len(raw),
+        "smv_size_bytes": len(data),
         "version": version,
         "uid": u32(data, 8),
         "rerecord_count": u32(data, 0x0C),

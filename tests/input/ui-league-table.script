@@ -1,0 +1,22 @@
+# UI-state reconnaissance: Main Menu -> League -> default league/table -> back.
+# No destination menu IDs are assumed.
+
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+dump ui-league-select-entry
+
+press a 2
+wait 60
+dump ui-league-table-entry
+
+press x 2
+wait 60
+dump ui-league-table-back
+
+quit

@@ -196,6 +196,57 @@ Do not preserve upstream awkwardness merely for museum accuracy.
 
 Keep the upstream snapshot/revision reconstructible and make every project modification reviewable.
 
+### Customization decision rule
+
+Use the least invasive ownership level that solves the measured problem:
+
+1. **Configuration/build recipe first** when flags, target selection or packaging can remove the cost.
+2. **Project-owned wrapper/adapter** when the upstream tool is correct but speaks the wrong input/output protocol.
+3. **Small vendored patch** when a narrow defect, missing batch mode or instrumentation seam is best fixed in place.
+4. **Maintained UR-Recomp fork/derivative** only when repeated patches or architectural changes make the upstream shape a persistent drag.
+5. **Project-native replacement** when the useful behavior is small, well understood and cheaper to own than the inherited dependency.
+
+Do not fork simply because source is local. Do not keep an awkward wrapper merely to avoid admitting that the project now owns the implementation.
+
+For every meaningful customization, record:
+
+- the problem/cost being removed;
+- baseline upstream behavior/version;
+- chosen ownership level and why;
+- tests or fixtures protecting required behavior;
+- expected maintenance burden;
+- rollback/comparison path.
+
+### Optimization/equivalence gate
+
+Performance or workflow optimization must be measurable where practical.
+
+Before promotion:
+
+1. capture a representative baseline for runtime, startup, build time, artifact size, memory or manual steps;
+2. implement the smallest candidate change;
+3. rerun the same workload;
+4. verify semantic/artifact equivalence where equivalence is expected;
+5. explicitly document intended behavior changes where equivalence is not expected;
+6. keep the optimization only when the gain is meaningful relative to maintenance cost.
+
+For emulator/reference tools, never trade away oracle independence merely for speed. A project-specific fast path may coexist with the unmodified reference implementation, but must not silently replace the independent baseline used for fidelity claims.
+
+### Preferred project-native seams
+
+As islandization proceeds, favor a small number of durable UR-Recomp contracts over tool-specific glue:
+
+- canonical ROM identity/provenance;
+- shared fixture/input event streams;
+- named WRAM/state checkpoints;
+- canonical symbols;
+- normalized player/game state;
+- trace/CDL events with explicit address-space identity;
+- native graphics/palette/tile/map buffers with declared layout;
+- machine-readable JSON/JSONL reports.
+
+When several vendored tools touch the same concept, adapt them toward these seams instead of multiplying pairwise converters.
+
 ## Safety around work in progress
 
 At the time this P0 item was created, active work exists on:

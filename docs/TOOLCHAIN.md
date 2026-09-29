@@ -116,7 +116,7 @@ Build the pinned CLI-capable binary with:
 python3 tools/bootstrap_toolchain.py --group patching
 ```
 
-The bootstrap uses the pinned upstream Linux build script and verifies that the `flips` artifact exists. Use `--clone-only` only when source inspection, rather than a usable patcher, is the goal.
+The bootstrap deliberately builds the CLI target with `make TARGET=cli`, avoiding GTK entirely, and verifies that the `flips` artifact exists. Use `--clone-only` only when source inspection, rather than a usable patcher, is the goal.
 
 ## Generic conversion/inspection utilities
 

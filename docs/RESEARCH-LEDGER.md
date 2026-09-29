@@ -721,3 +721,14 @@ Direct inspection of all 4,975 controller samples in the reset-anchored 2008 WIP
 **Movie-specific observation:** the 2008 WIP is SMV v1 with sync-data-present and `MOVIE_SYNC_WIP1TIMING` set; all other legacy behavioral sync flags except ROM-info are clear. Modern Snes9x no longer uses WIP1 timing.
 
 **Interpretation:** do not introduce an input-frame offset to make the movie sync. If modern pinned-Snes9x replay diverges, first reproduce or characterize the old 1.43 WIP1 timing mode and test whether Uniracers is sensitive to it.
+
+
+### R-SEED-038 — 2008 WIP embeds the canonical USA ROM identity
+
+**Status:** confirmed  
+**Date:** 2026-09-28  
+**Area:** TAS | provenance | replay fidelity
+
+The SMV v1 ROM-info record embedded in `references/imported/tas-bots/uniracers-2008-wip-microstorage.smv` identifies internal ROM name `UNIRACERS` and CRC32 `383858c7`. That CRC exactly matches the canonical project's USA ROM in `rom_identity.txt`. The movie metadata names its author as `Olivier Bellemare aka Halamantariel`.
+
+This closes ROM-revision mismatch as a possible cause of historical replay desynchronization. The extractor now preserves author/ROM metadata and the historical replay workflow refuses to proceed when an embedded movie CRC disagrees with the canonical ROM.

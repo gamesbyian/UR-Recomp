@@ -225,8 +225,9 @@
         "7E:0545 airValue",
         "7E:04C7 pitch angle"
       ],
-      "status": "candidate",
-      "promotion_rule": "Require a causal impact/collision response relative to matched clean landing and exact native/reference semantic agreement."
+      "status": "validated",
+      "promotion_rule": "Require a causal impact/collision response relative to matched clean landing and exact native/reference semantic agreement.",
+      "validation": "Run 36518208740: native and Snes9x match at every tracked semantic checkpoint; the 16-frame airborne L intervention causes a reproducible failed-landing/contact trajectory relative to the timing-identical clean-jump control, including ySpeed=-187 and xSpeed=389 while control is grounded at ySpeed=0 and xSpeed=448."
     },
     {
       "id": "race-finish-dragster",

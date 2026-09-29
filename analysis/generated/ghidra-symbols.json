@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "target": "ghidra-snes",
+  "target_revision": "d33ce5dbfbc3645f00449be1c7ca1c1c65e81756",
+  "address_model": "ghidra-snes canonical 24-bit SNES CPU space; LoROM ROM banks canonicalized to 80-FF; WRAM remains 7E-7F",
+  "entries": [
+    {
+      "address": "7E000E",
+      "name": "Frontend_SelectedRow",
+      "kind": "ram",
+      "comment": "Recovered bot label; native route captures row `0x00` through the verified clean frontend route. Exact semantics outside these menus not yet tested."
+    },
+    {
+      "address": "7E009B",
+      "name": "Frontend_SelectedOption",
+      "kind": "ram",
+      "comment": "Recovered bot uses it for main-menu/tour selection. Native captures show `0x00` at clean main menu and first tours page, consistent with bot policy."
+    },
+    {
+      "address": "7E009F",
+      "name": "Frontend_CurrentMenu",
+      "kind": "ram",
+      "comment": "Verified in both native and Snes9x/snesref deterministic runs: `0xD7` main menu, `0x3C` one-player rider select, `0x6D` first one-player tours page, `0xF6` one-player track select, `0x16` now-playing screen, then `0x00` after race entry."
+    },
+    {
+      "address": "7E0313",
+      "name": "Race_ActiveState",
+      "kind": "ram",
+      "comment": "Recovered bot label `inRace`; verified as `0x01` after deterministic race entry in both native and Snes9x/snesref runs. Non-race screens can contain other transient values, so only `0x01 = active race` is currently asserted."
+    },
+    {
+      "address": "7E0411",
+      "name": "Player1_XPosition",
+      "kind": "ram",
+      "comment": "Effective recovered-bot word key `xPos`. Race-acceleration run 36512546762 moves it identically in native/reference from 1088 at rest to 1655 under staged Right input, alongside positive X speed."
+    },
+    {
+      "address": "7E0415",
+      "name": "Player1_YPosition",
+      "kind": "ram",
+      "comment": "Effective recovered-bot word key `yPos`. Sustained-B run 36514981164 causally changes player 1 from ground Y=859 in the matched no-B control to Y=797 while airborne; native and Snes9x match exactly."
+    },
+    {
+      "address": "7E04B7",
+      "name": "Player1_XSpeed",
+      "kind": "ram",
+      "comment": "Effective recovered-bot word key `xSpeed`; bot explicitly sign-converts it. Race-acceleration run 36512546762 changes it identically from 0 to +447 under Right input while X position increases."
+    },
+    {
+      "address": "7E04BB",
+      "name": "Player1_YSpeed",
+      "kind": "ram",
+      "comment": "Effective recovered-bot word key `ySpeed`; bot sign-converts it. In run 36514981164 sustained B changes it causally from 0 in the matched control to -21 while player 1 is airborne; native and Snes9x match exactly."
+    },
+    {
+      "address": "7E04C7",
+      "name": "Player1_PitchAngle",
+      "kind": "ram",
+      "comment": "Persistent player-1 pitch/orientation. From control angle `0x07`, eight L frames produce `0x37` (= 7−16 mod 64) and eight R frames produce `0x17` (= 7+16 mod 64), identically native/reference. ROM `02:8D84` copies working `$0F49` into this slot."
+    },
+    {
+      "address": "7E04C9",
+      "name": "Player2_PitchAngle",
+      "kind": "ram",
+      "comment": "Paired player-2 pitch/orientation slot. Sibling ROM routine at `02:9272` executes `LDY $0F49; STY $04C9`; surrounding destinations shift coherently to player-2 fields."
+    },
+    {
+      "address": "7E0545",
+      "name": "Player1_AirState",
+      "kind": "ram",
+      "comment": "Effective player-1 Lua key `airValue`; later duplicate overrides second-racer `7E:0547`. In run 36514981164 sustained B causally changes player 1 from 0 to 9 while Y position/speed enter the airborne trajectory; matched no-B control remains 0."
+    },
+    {
+      "address": "7E0BA1",
+      "name": "Player1_FacedDirection",
+      "kind": "ram",
+      "comment": "Recovered bot: 1 = right, 0 = left. Not yet independently validated."
+    },
+    {
+      "address": "7E0C63",
+      "name": "Frontend_SelectedColumn",
+      "kind": "ram",
+      "comment": "Recovered bot label; native captures change with frontend scene/selection. Rider-select ready state captures `0x06`, matching the bot's left-column target value."
+    },
+    {
+      "address": "7E0F49",
+      "name": "CurrentPlayer_PitchScratch",
+      "kind": "ram",
+      "comment": "Historical bot reads this as `pitch`, but static sibling routines copy the same working value into persistent player-1 `$04C7` or player-2 `$04C9` slots. L-vs-control checkpoints leave `$0F49` unchanged while `$04C7` changes causally, so it should not be treated as stable player-1 storage."
+    },
+    {
+      "address": "7E0FCB",
+      "name": "Player1_ArrowDirection",
+      "kind": "ram",
+      "comment": "Effective duplicate-key address used by recovered bot; 0 = right, 1 = left."
+    },
+    {
+      "address": "7E0FCC",
+      "name": "Player1_ArrowsVisible",
+      "kind": "ram",
+      "comment": "Effective duplicate-key address used by recovered bot; 0 means direction arrows showing."
+    },
+    {
+      "address": "7E11BA",
+      "name": "Race_CountdownTimer",
+      "kind": "ram",
+      "comment": "Recovered bot word key shared by players. In run 36512546762 it decreases identically in native/reference by exactly `0x0100` per guest frame across the staged pre-start/acceleration checkpoints. Exact game-facing units/threshold meanings remain to be named."
+    },
+    {
+      "address": "7E132B",
+      "name": "Race_ReverseControls",
+      "kind": "ram",
+      "comment": "Recovered bot: 2 = controls reversed, 0 = normal. Not yet independently validated."
+    },
+    {
+      "address": "7F0000",
+      "name": "Course_ActiveDecodedPayload",
+      "kind": "ram",
+      "comment": "Confirmed by run 36514985916: active Dragster decoded stream 1 matches 33,814/33,815 bytes from this address; only decoded byte 11 is runtime-mutated."
+    },
+    {
+      "address": "81B8F1",
+      "name": "RNC1_Unpack",
+      "kind": "function",
+      "comment": "Identified by unique opcode-structure match to preserved 1992 SNES `RNC_1.S`; ROM offset `0x00B8F1`. Regional/build equivalents: Europe retail `01:B8E2` (`0x00B8E2`), 1994-11-29 PAL prototype `01:B8D1` (`0x00B8D1`), legacy beta identical to USA."
+    },
+    {
+      "address": "81BB60",
+      "name": "RNC1_MakeHuffTail",
+      "kind": "function",
+      "comment": "Preserved Method-1 MAKEHUFF tail begins here; final RTS at `01:BB6E`, establishing the shipped generic RNC1 body end."
+    },
+    {
+      "address": "81BB6F",
+      "name": "RNC1_ReadWordLoROMSafe",
+      "kind": "function",
+      "comment": "Integration helper used by the shipped Method-1 decoder for a 16-bit packed-stream read through `IN`. Normal path returns `LDA [IN]` while restoring the pointer; when `IN=$FFFF`, it fetches the high byte from next-bank `$8000`, matching LoROM linear-stream continuity across a bank boundary. `01:BB73` is the helper's wrap-test `BNE`, not a store."
+    }
+  ]
+}

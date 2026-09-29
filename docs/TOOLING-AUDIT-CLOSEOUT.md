@@ -70,15 +70,14 @@ Current canonical authority:
 
 `docs/SYMBOLS.md -> analysis/generated/symbols.json -> tools/export_symbol_adapters.py`
 
-Already generated:
+Generated from the canonical symbol authority:
 
 - snes2asm label/memory YAML;
-- da65 label info files.
+- da65 label info files;
+- MesenCE native `.mlb` label import, with explicit LoROM PRG-ROM and WRAM address-space mapping;
+- Ghidra symbol JSON plus `tools/ghidra_import_symbols.py`, with LoROM canonical-bank mapping derived from the pinned `ghidra-snes` loader.
 
-Still needed:
-
-- Mesen label import;
-- Ghidra symbol import.
+The fan-out implementation is complete. Mesen and Ghidra handoffs remain `supported` rather than `verified` until the generated artifacts are exercised by the actual consumers.
 
 Implementation requirements:
 
@@ -89,7 +88,9 @@ Implementation requirements:
 5. add `--check` coverage so generated files cannot silently drift;
 6. update `tool_interop.json` with explicit formats/handoffs.
 
-Pinned MesenCE source fixes the import target precisely: `MesenLabelFile` delegates each UTF-8 line to `CodeLabel.FromString`, whose native form is `MemoryType:HEX_ADDRESS:Label[:Comment]` (or an address range), with SNES memory types such as `SnesPrgRom` and `SnesWorkRam`. Comments encode embedded newlines as `\\n`; labels must match `^[@_a-zA-Z]+[@_a-zA-Z0-9]*$`. The exporter should target that native syntax directly and unit-test ROM/WRAM address-space mapping. Ghidra should use a project-owned importer/script or other deterministic format rather than relying on manual GUI entry.
+Pinned MesenCE source fixes the import target precisely: `MesenLabelFile` delegates each UTF-8 line to `CodeLabel.FromString`, whose native form is `MemoryType:HEX_ADDRESS:Label[:Comment]` (or an address range), with SNES memory types such as `SnesPrgRom` and `SnesWorkRam`. `tools/export_symbol_adapters.py` emits `analysis/generated/mesen-symbols.mlb` directly in that syntax. Functions map from canonical LoROM CPU addresses to `SnesPrgRom` file offsets; `7E`/`7F` RAM maps to contiguous `SnesWorkRam` offsets. Comments preserve canonical notes with embedded newlines escaped as `\\n`.
+
+Pinned `ghidra-snes` source uses a different model: the loader maps LoROM canonically into CPU banks `$80-$FF` and WRAM directly at `$7E0000-$7FFFFF`. The exporter therefore emits `analysis/generated/ghidra-symbols.json` with CPU-space addresses, canonicalizing a symbol such as `01:B8F1` to `81:B8F1` while preserving `7E`/`7F` RAM addresses. `tools/ghidra_import_symbols.py` is a headless GhidraScript importer that creates only labels/comments at already mapped addresses. Focused unit tests protect both Mesen and Ghidra address-space transformations.
 
 ### P2 - exact graphics round-trip fixtures
 

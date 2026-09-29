@@ -91,6 +91,14 @@
       "description": "cc65 da65 info-file seed containing labels and later RANGE/ADDRMODE annotations."
     },
     {
+      "id": "mesen-labels",
+      "description": "Pinned MesenCE native label import file (.mlb): MemoryType:HEX_ADDRESS:Label[:Comment]."
+    },
+    {
+      "id": "ghidra-symbols",
+      "description": "Generated UR-Recomp symbol JSON for the pinned ghidra-snes canonical 24-bit SNES CPU address model."
+    },
+    {
       "id": "mesen-mcp-client",
       "description": "mesen-for-ai Python/MCP client surface used by project adapters."
     },
@@ -193,7 +201,9 @@
       ],
       "produces": [
         "snes2asm-yaml",
-        "da65-info"
+        "da65-info",
+        "mesen-labels",
+        "ghidra-symbols"
       ]
     },
     {
@@ -322,7 +332,8 @@
       "id": "mesence",
       "kind": "external",
       "consumes": [
-        "sfc-rom"
+        "sfc-rom",
+        "mesen-labels"
       ],
       "produces": [
         "mesen-cdl",
@@ -356,7 +367,8 @@
       "id": "ghidra-snes",
       "kind": "external",
       "consumes": [
-        "sfc-rom"
+        "sfc-rom",
+        "ghidra-symbols"
       ],
       "produces": []
     },
@@ -584,6 +596,20 @@
       "format": "da65-info",
       "status": "supported",
       "evidence": "analysis/generated/da65-symbols-bank-01.info; generated labels are valid da65 info syntax, dynamic RANGE/ADDRMODE remains separate."
+    },
+    {
+      "from": "symbol-adapters",
+      "to": "mesence",
+      "format": "mesen-labels",
+      "status": "supported",
+      "evidence": "analysis/generated/mesen-symbols.mlb; syntax/address-space mapping derived from pinned MesenCE MesenLabelFile/CodeLabel source and covered by tests/unit/test_symbol_adapters.py."
+    },
+    {
+      "from": "symbol-adapters",
+      "to": "ghidra-snes",
+      "format": "ghidra-symbols",
+      "status": "supported",
+      "evidence": "analysis/generated/ghidra-symbols.json + tools/ghidra_import_symbols.py; canonical LoROM/WRAM mapping derived from pinned ghidra-snes loader and covered by tests/unit/test_symbol_adapters.py."
     },
     {
       "from": "snes2asm",

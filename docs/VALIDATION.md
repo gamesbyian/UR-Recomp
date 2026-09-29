@@ -17,6 +17,8 @@ The machine-readable fixture catalog is `tests/fixtures.json`. Each fixture name
 
 Build short scripted cases covering boot, menus, race start, acceleration, jumping, rotation, landing, failed landing, stunt recognition, collision, finish, AI interaction and two-player behavior.
 
+For two-player cases, use the shared neutral controller stream `start:duration:p1-mask[:p2-mask]`. The three-field legacy form remains P1-only. Native Lua and Mesen adapters consume the same format directly; the pinned `snesref` source is patched at build time by `tools/patches/snesrecomp-dual-controller-input.patch` until equivalent support is upstream. Do not validate 2P merely by observing the second racer: require at least one P2-only causal input, one simultaneous-input case, and paired player-state checkpoints.
+
 Useful comparison surfaces include full WRAM, WRAM write history, CPU state around first divergence, player position/velocity/orientation, camera, timer, RNG, active objects, PPU registers, OAM, VRAM, audio state and rendered frames.
 
 The current `reach-first-race` fixture already runs unchanged through native recompilation and Snes9x/snesref and compares full 128 KiB WRAM checkpoints. Expand that same harness before creating parallel replay machinery.

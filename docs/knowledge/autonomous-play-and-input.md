@@ -102,6 +102,39 @@ Therefore:
 
 Once a complete route to race entry is stable, run the exact same script through `snesref` before freezing it as a long-term regression fixture.
 
+## Dual-controller deterministic input
+
+Two-player automation now has a project-owned neutral controller stream rather than an emulator-specific convention.
+
+The canonical row format is:
+
+```text
+start:duration:p1-mask[:p2-mask]
+```
+
+The existing three-field files remain valid and mean "P1 only; P2 idle." The optional fourth field is an independent 12-bit P2 mask using the same button layout. Per-player intervals may not overlap, while P1 and P2 intervals may overlap freely. This preserves every historical one-player corpus while allowing deterministic simultaneous input.
+
+Project adapters are:
+
+- `tools/controller_input.py`: parser and frame-state authority;
+- `tools/replay_input_via_lua.py`: writes both controller 1 and controller 2 through the native SNESRecomp Lua bridge;
+- `tools/replay_input_mesen.py`: writes libretro-style ports 0 and 1 through the Mesen bridge;
+- `tools/patches/snesrecomp-dual-controller-input.patch`: minimal pinned `snesref` patch adding P2 to `SNESREF_INPUT_FILE` while preserving three-field compatibility;
+- `.github/workflows/dual-player-input.yml`: ROM-free adapter tests plus a build check proving the pinned `snesref` patch still applies and compiles.
+
+Do not fork a second fixture grammar for multiplayer. Scene-keyed `.script` files remain useful for state waits, dumps and P1 menu-driving; the neutral frame-mask stream is the controller transport when independent P2 input is required. A later upstream SNESRecomp grammar extension may collapse these layers, but the project format should remain stable.
+
+The recovered 2014 bot is already a strong seed for the next stage: it contains distinct RAM tables for both racers and explicit two-player/VS frontend states. The intended progression is therefore:
+
+1. verify a controller-2-only causal probe while P1 is idle;
+2. capture a deterministic 2P frontend route and race entry;
+3. compare both racer-state slots across native, `snesref` and Mesen;
+4. freeze asymmetric and simultaneous interaction fixtures;
+5. adapt the recovered policy so either player can be autonomous;
+6. run bot-vs-bot and human-vs-bot soak workloads without changing simulation code.
+
+Priority 2P regression cases are asymmetric acceleration, mirrored rotation, simultaneous jump/landing, collision/contact, split-screen camera/OAM behavior, menu ownership/handoff, finish ordering and pause/results flow.
+
 
 ## Verified shared race-entry fixture
 

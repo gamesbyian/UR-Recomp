@@ -192,7 +192,7 @@ This gives the project two complementary autonomous inputs: the recovered Lua po
 
 ## 2008 WIP Dragster input structure
 
-The recovered Halamantariel Microstorage WIP is a raw SMV v1 movie, reset-anchored, with one recorded controller and 4,974 movie frames. Its controller data begins at file offset 592.
+The recovered Halamantariel Microstorage WIP is a raw SMV v1 movie, reset-anchored, with one recorded controller and 4,974 header frames (4,975 controller samples including frame 0). Its controller data begins at file offset 592. The translated stream is frozen at `tests/input/historical-2008-wip.input`; CI re-extracts the SMV and requires byte-for-byte identity before replay.
 
 Direct parsing exposes a conspicuous first long race-like control block beginning around movie frame 1184. After a 31-frame `Y+Right` interval, the input settles into a repeating approximately 40-frame stunt/drive cycle dominated by:
 

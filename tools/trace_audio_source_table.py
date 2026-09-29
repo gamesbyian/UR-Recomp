@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
-"""Capture the live CPU-side source feeding Uniracers' APU stream transfer.
+"""Recover the live ROM-side source feeding Uniracers' APU upload loop.
 
-Uses only existing SNESRecomp trace-build observability:
-- function-boundary low-WRAM snapshots,
-- the always-on CPU block trace ring,
-- the always-on audio port-event ring,
-- live cartridge reads.
+The transfer body at CPU $xx:8298 is currently interpreter-backed in the pinned
+SNESRecomp project, so this probe deliberately does not require a generated
+`bank_*_8298_*` function. It combines existing observability instead:
 
-The host should be launched paused with tests/input/reach-first-race.script.
+- `trace_get_v2` to find retained CPU block entries whose low PC is $8298;
+- `wram_writes_at` evidence, captured by `trace_native_wram_writers.py`,
+  to reconstruct direct-page pointer bytes immediately before each hit;
+- `dump_cart` to preserve bounded ROM windows for recovered LoROM pointers;
+- the always-on `audio_events` ring for CPU-write/apply/SPC-read correlation.
+
+The host should already have been driven through the deterministic first-race
+fixture and left running/paused for this observer to reconnect.
 """
 from __future__ import annotations
 
@@ -17,10 +22,10 @@ import socket
 import time
 from pathlib import Path
 
-DEFAULT_TARGET_PC24 = 0x028298
-RACE_ACTIVE_WRAM = 0x0313
+TARGET_ADDR16 = 0x8298
 TRACE_PAGE = 4096
 AUDIO_PAGE = 8000
+AUDIO_RETAIN = 524288
 
 
 def command(sock: socket.socket, reader, line: str) -> dict:
@@ -56,19 +61,7 @@ def parse_hex(value) -> int:
     return int(str(value), 16)
 
 
-def parse_blob_hex(text: str) -> bytes:
-    return bytes.fromhex(text.replace(" ", "").strip())
-
-
-def generated_variant_name(pc24: int, m_flag: int, x_flag: int) -> str:
-    return (
-        f"bank_{(pc24 >> 16) & 0xFF:02X}_{pc24 & 0xFFFF:04X}"
-        f"_M{int(m_flag)}X{int(x_flag)}"
-    )
-
-
 def lorom_file_offset(cpu_addr: int) -> int | None:
-    """Map a conventional LoROM high-half CPU address to file offset."""
     bank = (cpu_addr >> 16) & 0xFF
     addr = cpu_addr & 0xFFFF
     if addr < 0x8000:
@@ -79,25 +72,73 @@ def lorom_file_offset(cpu_addr: int) -> int | None:
     return bank * 0x8000 + (addr - 0x8000)
 
 
-def direct_page_pointer_from_snapshot(
-    snapshot: bytes,
-    snapshot_start: int,
-    d_register: int,
-    operand: int,
-) -> int | None:
-    """Read a 24-bit direct-page pointer from a captured WRAM snapshot."""
-    ptr_addr = (d_register + operand) & 0xFFFF
-    rel = ptr_addr - snapshot_start
-    if rel < 0 or rel + 3 > len(snapshot):
+def fetch_cpu_window(sock, reader, target_addr16: int = TARGET_ADDR16, *, max_pages: int = 128) -> dict:
+    collected: dict[int, dict] = {}
+    before_idx: int | None = None
+    found_page: int | None = None
+    for page in range(max_pages):
+        line = f"trace_get_v2 count={TRACE_PAGE} event=0"
+        if before_idx is not None:
+            line += f" before_idx={before_idx}"
+        result = command(sock, reader, line)
+        rows = result.get("events", [])
+        if not rows:
+            break
+        for row in rows:
+            collected[int(row["idx"])] = row
+        if any((parse_hex(row["pc24"]) & 0xFFFF) == target_addr16 for row in rows):
+            found_page = page
+        oldest_idx = min(int(row["idx"]) for row in rows)
+        before_idx = oldest_idx
+        if found_page is not None and page > found_page:
+            break
+        if oldest_idx == 0:
+            break
+
+    ordered = [collected[i] for i in sorted(collected)]
+    hits = [row for row in ordered if (parse_hex(row["pc24"]) & 0xFFFF) == target_addr16]
+    neighborhoods = []
+    pos_by_idx = {int(row["idx"]): i for i, row in enumerate(ordered)}
+    for hit in hits:
+        pos = pos_by_idx[int(hit["idx"])]
+        lo, hi = max(0, pos - 24), min(len(ordered), pos + 49)
+        neighborhoods.append({"entry": hit, "events": ordered[lo:hi]})
+    return {"events_collected": len(ordered), "target_hits": len(hits), "hits": hits, "neighborhoods": neighborhoods}
+
+
+def _write_value_for_byte(row: dict) -> int:
+    value = parse_hex(row["val"])
+    return value & 0xFF
+
+
+def byte_before_block(writes: list[dict], block_idx: int) -> int | None:
+    eligible = [w for w in writes if int(w.get("bi", -1)) <= block_idx]
+    if not eligible:
         return None
-    lo, hi, bank = snapshot[rel : rel + 3]
-    return lo | (hi << 8) | (bank << 16)
+    eligible.sort(key=lambda w: int(w.get("bi", -1)))
+    return _write_value_for_byte(eligible[-1])
 
 
-def fetch_audio_events(sock, reader, first: int, end: int) -> list[dict]:
+def pointer_before_block(writers: dict, base_addr: int, block_idx: int) -> int | None:
+    parts = []
+    for off in range(3):
+        key = f"0x{base_addr + off:04X}"
+        row = writers.get("addresses", {}).get(key)
+        if not row:
+            return None
+        value = byte_before_block(row.get("writes", []), block_idx)
+        if value is None:
+            return None
+        parts.append(value)
+    return parts[0] | (parts[1] << 8) | (parts[2] << 16)
+
+
+def fetch_audio_events(sock, reader) -> tuple[dict, list[dict]]:
+    stats = command(sock, reader, "audio_stats 0")
+    head = int(stats.get("event_count", 0))
+    cursor = max(0, head - AUDIO_RETAIN)
     events: list[dict] = []
-    cursor = first
-    while cursor < end:
+    while cursor < head:
         result = command(sock, reader, f"audio_events {cursor} {AUDIO_PAGE} 2")
         scanned = int(result.get("scanned", 0))
         actual_first = int(result.get("first", cursor))
@@ -107,309 +148,91 @@ def fetch_audio_events(sock, reader, first: int, end: int) -> list[dict]:
         cursor = max(cursor, actual_first) + scanned
         if scanned < AUDIO_PAGE:
             break
-    return events
+    return stats, events
 
 
-def fetch_cpu_window(
-    sock,
-    reader,
-    target_pc24: int,
-    *,
-    max_pages: int = 96,
-    context_before: int = 24,
-    context_after: int = 48,
-) -> dict:
-    """Walk the block ring backward until target entry plus older context exists."""
-    collected: dict[int, dict] = {}
-    before_idx: int | None = None
-    found_page: int | None = None
-    pages_scanned = 0
+def run_probe(sock, reader, writers: dict) -> dict:
+    cpu = fetch_cpu_window(sock, reader)
+    if not cpu["hits"]:
+        raise RuntimeError("no retained CPU trace hit with low PC $8298")
 
-    for page in range(max_pages):
-        line = f"trace_get_v2 count={TRACE_PAGE} event=0"
-        if before_idx is not None:
-            line += f" before_idx={before_idx}"
-        result = command(sock, reader, line)
-        rows = result.get("events", [])
-        pages_scanned += 1
-        if not rows:
-            break
-        for row in rows:
-            collected[int(row["idx"])] = row
-        if any(parse_hex(row["pc24"]) == target_pc24 for row in rows):
-            found_page = page
-        oldest_idx = min(int(row["idx"]) for row in rows)
-        before_idx = oldest_idx
-        # Once target was found, scan one additional older page so the
-        # chronological neighborhood includes caller-side blocks.
-        if found_page is not None and page > found_page:
-            break
-        if oldest_idx == 0:
-            break
+    d_values = sorted({parse_hex(row["D"]) for row in cpu["hits"]})
+    if d_values != [0]:
+        raise RuntimeError(f"expected observed transfer hits to use D=0; saw {[hex(v) for v in d_values]}")
 
-    ordered = [collected[i] for i in sorted(collected)]
-    target_positions = [
-        i for i, row in enumerate(ordered)
-        if parse_hex(row["pc24"]) == target_pc24
-    ]
-    neighborhoods = []
-    for pos in target_positions:
-        lo = max(0, pos - context_before)
-        hi = min(len(ordered), pos + context_after + 1)
-        neighborhoods.append(
-            {
-                "target_index": int(ordered[pos]["idx"]),
-                "entry": ordered[pos],
-                "events": ordered[lo:hi],
-            }
-        )
-    return {
-        "pages_scanned": pages_scanned,
-        "events_collected": len(ordered),
-        "target_hits": len(target_positions),
-        "neighborhoods": neighborhoods,
-    }
-
-
-def read_wram_byte(sock, reader, address: int) -> int:
-    result = command(sock, reader, f"dump_ram {address:x} 1")
-    raw = result.get("hex", "")
-    if not raw:
-        raise RuntimeError(f"empty WRAM read at 0x{address:04X}")
-    return int(raw, 16)
-
-
-def fetch_snapshot(
-    sock,
-    reader,
-    call_idx: int,
-    d_register: int,
-    *,
-    flank: int = 0x00,
-    length: int = 0x100,
-) -> dict:
-    dp_start = (d_register + flank) & 0xFFFF
-    if dp_start + length > 0x2000:
-        # Snapshot storage is the low 8KB only; keep the failure explicit.
-        return {
-            "call_idx": call_idx,
-            "available": False,
-            "reason": "direct-page window lies outside function snapshot slice",
-            "D": f"0x{d_register:04X}",
+    runtime_pcs = sorted({parse_hex(row["pc24"]) for row in cpu["hits"]})
+    captures = []
+    unique_ptrs: dict[int, dict] = {}
+    for row in cpu["hits"]:
+        idx = int(row["idx"])
+        entry = pointer_before_block(writers, 0x0000, idx)
+        work = pointer_before_block(writers, 0x0063, idx)
+        cap = {
+            "block_index": idx,
+            "frame": row.get("f"),
+            "pc24": f"0x{parse_hex(row['pc24']):06X}",
+            "D": f"0x{parse_hex(row['D']):04X}",
+            "entry_stream_pointer": f"0x{entry:06X}" if entry is not None else None,
+            "working_pointer_63": f"0x{work:06X}" if work is not None else None,
         }
-    result = command(
-        sock,
-        reader,
-        f"func_snap_get_n {call_idx} {dp_start:x} {length}",
-    )
-    blob = parse_blob_hex(result["hex"])
-    entry_pointer = direct_page_pointer_from_snapshot(
-        blob, dp_start, d_register, 0x00
-    )
-    working_pointer = direct_page_pointer_from_snapshot(
-        blob, dp_start, d_register, 0x63
-    )
-    return {
-        "call_idx": call_idx,
-        "frame": result.get("frame"),
-        "available": True,
-        "D": f"0x{d_register:04X}",
-        "snapshot_start": f"0x{dp_start:04X}",
-        "snapshot_len": len(blob),
-        "snapshot_hex": blob.hex(),
-        "entry_stream_pointer": (
-            f"0x{entry_pointer:06X}" if entry_pointer is not None else None
-        ),
-        "entry_stream_file_offset": (
-            f"0x{lorom_file_offset(entry_pointer):06X}"
-            if entry_pointer is not None
-            and lorom_file_offset(entry_pointer) is not None
-            else None
-        ),
-        "working_pointer_63": (
-            f"0x{working_pointer:06X}" if working_pointer is not None else None
-        ),
-        "working_pointer_63_file_offset": (
-            f"0x{lorom_file_offset(working_pointer):06X}"
-            if working_pointer is not None
-            and lorom_file_offset(working_pointer) is not None
-            else None
-        ),
-    }
-
-
-def run_probe(
-    sock,
-    reader,
-    *,
-    snapshot_function: str,
-    target_pc24: int,
-    coarse_until: int,
-    coarse_step: int,
-    max_frames: int,
-) -> dict:
-    initial_audio = command(sock, reader, "audio_stats 0")
-    initial_audio_head = int(initial_audio.get("event_count", 0))
-    command(sock, reader, f"func_snap_set {snapshot_function}")
-
-    stepped = 0
-    coarse_target = min(coarse_until, max_frames)
-    while stepped < coarse_target:
-        batch = min(coarse_step, coarse_target - stepped)
-        command(sock, reader, f"step {batch}")
-        stepped += batch
-
-    race_active_frame: int | None = None
-    if read_wram_byte(sock, reader, RACE_ACTIVE_WRAM) == 1:
-        race_active_frame = stepped
-    while race_active_frame is None and stepped < max_frames:
-        command(sock, reader, "step 1")
-        stepped += 1
-        if read_wram_byte(sock, reader, RACE_ACTIVE_WRAM) == 1:
-            race_active_frame = stepped
-            break
-
-    cpu_window = fetch_cpu_window(sock, reader, target_pc24)
-    if not cpu_window["neighborhoods"]:
-        raise RuntimeError(
-            f"target PC 0x{target_pc24:06X} not found in retained CPU block trace"
-        )
-
-    entry = cpu_window["neighborhoods"][-1]["entry"]
-    d_register = parse_hex(entry["D"])
-    observed_variant = generated_variant_name(
-        target_pc24,
-        int(entry["m_flag"]),
-        int(entry["x_flag"]),
-    )
-
-    snap_count = command(sock, reader, "func_snap_count")
-    count = int(snap_count.get("count", 0))
-    snapshots = []
-    for call_idx in range(max(1, count - 15), count + 1):
-        snapshots.append(fetch_snapshot(sock, reader, call_idx, d_register))
-
-    final_audio = command(sock, reader, "audio_stats 0")
-    final_audio_head = int(final_audio.get("event_count", 0))
-    audio_events = fetch_audio_events(
-        sock, reader, initial_audio_head, final_audio_head
-    )
-
-    unique_pointers: dict[int, dict] = {}
-    for snap in snapshots:
-        for role, ptr_key, off_key in (
-            (
-                "entry_stream",
-                "entry_stream_pointer",
-                "entry_stream_file_offset",
-            ),
-            (
-                "working_63",
-                "working_pointer_63",
-                "working_pointer_63_file_offset",
-            ),
-        ):
-            ptr_text = snap.get(ptr_key)
-            off_text = snap.get(off_key)
-            if not ptr_text or not off_text:
+        for role, ptr in (("entry_stream", entry), ("working_63", work)):
+            if ptr is None:
                 continue
-            pointer = int(ptr_text, 16)
-            offset = int(off_text, 16)
-            if pointer in unique_pointers:
-                unique_pointers[pointer]["roles"].append(role)
-                continue
-            # Keep this bounded. The source may be a packet stream; 512 bytes
-            # is enough to identify headers and cross-correlate with transfer.
-            cart = command(sock, reader, f"dump_cart {offset:x} 512")
-            unique_pointers[pointer] = {
-                "roles": [role],
-                "source_pointer": ptr_text,
-                "source_file_offset": off_text,
-                "cart_len": int(cart.get("len", 0)),
-                "cart_hex": cart.get("hex", ""),
-            }
+            off = lorom_file_offset(ptr)
+            cap[role + "_file_offset"] = f"0x{off:06X}" if off is not None else None
+            if off is not None and ptr not in unique_ptrs:
+                cart = command(sock, reader, f"dump_cart {off:x} 1024")
+                unique_ptrs[ptr] = {
+                    "roles": [role],
+                    "source_pointer": f"0x{ptr:06X}",
+                    "source_file_offset": f"0x{off:06X}",
+                    "cart_len": int(cart.get("len", 0)),
+                    "cart_hex": cart.get("hex", ""),
+                }
+            elif ptr in unique_ptrs and role not in unique_ptrs[ptr]["roles"]:
+                unique_ptrs[ptr]["roles"].append(role)
+        captures.append(cap)
 
+    audio_stats, audio_events = fetch_audio_events(sock, reader)
     return {
-        "schema_version": 1,
-        "target_pc24": f"0x{target_pc24:06X}",
-        "requested_snapshot_function": snapshot_function,
-        "observed_variant": observed_variant,
-        "snapshot_function_matches_observed": (
-            snapshot_function == observed_variant
-        ),
-        "stepped_frames": stepped,
-        "race_active_frame": race_active_frame,
-        "cpu_trace": cpu_window,
-        "snapshot_count": count,
-        "snapshots": snapshots,
-        "audio_event_range": {
-            "first": initial_audio_head,
-            "end": final_audio_head,
-            "events_returned": len(audio_events),
-        },
+        "schema_version": 2,
+        "target_addr16": "0x8298",
+        "runtime_pcs": [f"0x{x:06X}" for x in runtime_pcs],
+        "observed_D_values": [f"0x{x:04X}" for x in d_values],
+        "cpu_trace": cpu,
+        "captures": captures,
+        "source_cart_windows": list(unique_ptrs.values()),
+        "audio_stats": audio_stats,
         "audio_events": audio_events,
-        "source_cart_windows": list(unique_pointers.values()),
     }
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--snapshot-function", required=True)
-    ap.add_argument(
-        "--target-pc24",
-        type=lambda value: int(value, 0),
-        default=DEFAULT_TARGET_PC24,
-        help="generated/runtime PC for the transfer entry; workflow derives this from emitted bank name",
-    )
+    ap.add_argument("--writers-json", type=Path, required=True)
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=4377)
     ap.add_argument("--connect-timeout", type=float, default=20.0)
     ap.add_argument("--command-timeout", type=float, default=60.0)
-    ap.add_argument("--coarse-until", type=int, default=900)
-    ap.add_argument("--coarse-step", type=int, default=25)
-    ap.add_argument("--max-frames", type=int, default=1800)
     ap.add_argument("--json-out", type=Path)
     args = ap.parse_args()
+    writers = json.loads(args.writers_json.read_text())
 
     sock, reader = connect(args.host, args.port, args.connect_timeout)
     sock.settimeout(args.command_timeout)
     try:
-        report = run_probe(
-            sock,
-            reader,
-            snapshot_function=args.snapshot_function,
-            target_pc24=args.target_pc24,
-            coarse_until=args.coarse_until,
-            coarse_step=args.coarse_step,
-            max_frames=args.max_frames,
-        )
+        report = run_probe(sock, reader, writers)
     finally:
         reader.close()
         sock.close()
 
-    print(
-        f"target={report['target_pc24']} "
-        f"variant={report['observed_variant']} "
-        f"snapshot_calls={report['snapshot_count']} "
-        f"audio_events={report['audio_event_range']['events_returned']} "
-        f"race_active_frame={report['race_active_frame']}"
-    )
-    for snap in report["snapshots"]:
-        if snap.get("entry_stream_pointer") or snap.get("working_pointer_63"):
-            print(
-                f"  call={snap['call_idx']} frame={snap.get('frame')} "
-                f"entry={snap.get('entry_stream_pointer')} "
-                f"entry_file={snap.get('entry_stream_file_offset')} "
-                f"work63={snap.get('working_pointer_63')} "
-                f"work63_file={snap.get('working_pointer_63_file_offset')}"
-            )
-
+    print(f"runtime_pcs={report['runtime_pcs']} D={report['observed_D_values']} hits={len(report['captures'])}")
+    for row in report["captures"]:
+        if row.get("entry_stream_pointer") or row.get("working_pointer_63"):
+            print(f"  idx={row['block_index']} frame={row.get('frame')} entry={row.get('entry_stream_pointer')} work63={row.get('working_pointer_63')}")
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)
-        args.json_out.write_text(
-            json.dumps(report, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
+        args.json_out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
     return 0
 
 

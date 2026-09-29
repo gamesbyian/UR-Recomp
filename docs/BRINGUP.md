@@ -39,6 +39,22 @@ Observed:
 This clears the basic cartridge-compatibility gate for SNESRecomp's documented standard LoROM support. It does not yet establish game execution compatibility.
 
 
+## 2026-09-29 — Analyzer reconnaissance made durable
+
+GitHub Actions run 36575810121 regenerated the canonical ROM through the pinned SNESRecomp analyzer and summarized its manifest-v3 whole-program analysis with `tools/summarize_analyzer_recon.py`. The compact evidence is preserved in `analysis/generated/analyzer-reconnaissance.md`.
+
+Observed static analysis:
+
+- 9 roots expand to 54 exact M/X variants;
+- 52 variants are AOT-eligible and 2 are LLE-only (96.2963% AOT-capable by exact variant count);
+- the manifest contains 121 transfer edges: 110 direct calls, 2 direct tail calls and 9 unresolved-indirect variant edges;
+- those 9 variant edges collapse to three guest sites: `00:8584`, `00:8599` and `80:C3C8`;
+- every unresolved edge is explicitly classified `lle_dynamic`;
+- the two LLE-only variants are explained by truncated call continuations and unproven callee exits rather than an analyzer crash or malformed decode.
+
+Classification: bounded analyzer-proof gaps remain, but they are covered by the interpreter tier and are not current execution blockers. Subsequent native bring-up already reaches menus and stock race execution through the same pinned framework. Do not interpret the 96.2963% figure as runtime instruction coverage; it is a compile-time exact-variant ratio only.
+
+
 ## 2026-09-28 — Native smoke result reclassified as harness error
 
 The latest native-build-smoke run successfully completed ROM verification, project scaffolding/generation, and the build step. However, inspection of the workflow log shows the "Locate executable" fallback selected:

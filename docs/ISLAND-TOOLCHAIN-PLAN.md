@@ -302,7 +302,7 @@ Current P0-A implementation lives in `third_party/manifest.json`, `tools/validat
 
 ### P0-C — Core reconstruction/build tools
 
-- [ ] WLA-DX.
+- [x] WLA-DX. The exact v10.7 pin (`91c52b1f4ef3cc8ba3c0638f7536539579af6a9f`) is repository-owned as a pruned 65816/linker closure under `third_party/src/wla-dx/`, with GPL-2.0-or-later provenance and deterministic tree hash `8427742e0a299db184a2ed416a997cc360f36f8117c3fdf524c836c9325d6a9e`. `tools/patches/wla-dx-ur-recomp.patch` narrows upstream CMake to `wla-65816` and `wlalink`; acquisition run 36581411375 proves the pruned source configures, builds both binaries and passes the island manifest validator without a package registry.
 - [ ] SNESRecomp.
 - [ ] Evaluate cc65/da65 reduced closure and vendor it if practical.
 

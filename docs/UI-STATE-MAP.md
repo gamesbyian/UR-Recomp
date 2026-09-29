@@ -41,6 +41,33 @@ The same manual's quick-start section says that from the initial 1P selection, A
 
 The manual also makes a useful terminology distinction: a **Menu** contains selectable items; a **Screen** is informational. That distinction is preserved in the state graph.
 
+## Modern frontend contract
+
+This map describes the original frontend faithfully. It is also the evidence base for deciding which original states survive unchanged, which become optional authentic/reference states, and which can be collapsed or replaced in the modern product layer.
+
+Do **not** interpret "modernize the frontend" as permission to discard original presentation. The project policy is:
+
+- preserve existing audiovisual indicators, result rituals, icons, animations, menu art, characteristic motion, typography, color language and sounds;
+- when clarity is needed, add information around an original indicator rather than silently replacing it;
+- preserve the recognizable overall menu look and interaction character even when choices are added, removed, regrouped or flattened;
+- separate fidelity questions ("what did the original do?") from product questions ("should modern mode still require it?");
+- keep enough original behavior reachable in authentic/reference mode to validate the source game.
+
+The strongest current candidates for **modern product-layer simplification** are administrative rather than mechanical:
+
+- named/color-coded racers should no longer double as save slots;
+- modern players should be able to create/name/customize a racer independently of profile/save storage;
+- all original named/color combinations remain faithful presets and may also be promoted into AI/ghost/tournament cast roles;
+- Bronsen, Silverton and Goldwyn remain named legacy opponents even if medal-tier progression changes;
+- League setup/player-management should be evaluated for a much simpler modern tournament path while preserving the original League flow as reference behavior;
+- Bronze/Silver/Gold repeated-tour requirements should be evaluated for performance-based medal awarding or selectable challenge tiers rather than mandatory replay;
+- unfinished-tour/session persistence should be modernized unless testing shows a deliberate gameplay purpose;
+- destructive controller chords should become explicit UI actions with confirmation in modern mode;
+- Records/score silos may be unified behind a modern records surface while retaining original table/indicator presentations as views;
+- basic control/status information should not depend on an instruction manual, while secrets and advanced discoveries can remain intentionally opaque.
+
+This classification should eventually be encoded per state/edge in `analysis/ui-state-map.yml` once the original flow is sufficiently verified, rather than guessed ahead of evidence.
+
 ## Current high-level graph
 
 ```mermaid

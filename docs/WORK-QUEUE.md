@@ -47,7 +47,8 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 - [x] Jump under sustained B input from the validated moving state. Run 36514981164 causally validates player-1 Y position, signed Y speed and air state against a matched Right-only control in both native and Snes9x.
 - [x] Rotate intentionally with L/R while airborne. Run 36516524308 confirms persistent player-1 `7E:04C7` as a modulo-64 pitch angle: eight L frames move 7→55 (−16 mod 64), eight R frames move 7→23 (+16), identically native/reference.
 - [x] Land with event-relative state validation. Run 36517502791 matches native/reference throughout: track-height contact clears `air` by `landing-034`, and vertical velocity is fully reset by `landing-036`. Script labels include the runner's mandatory idle frames and are treated as event-relative.
-- [~] Collision behavior is the active next race-physics milestone; identify a reproducible obstacle/contact intervention and compare semantic state cross-runtime before broadening to a whole-race bot.\n- [ ] Finish a stock race deterministically.
+- [~] Collision behavior is the active next race-physics milestone. The over-rotation intervention now samples the known clean-contact window densely at event-relative +32/+34/+36/+40, with a timing-identical clean-jump control, so the next run can classify the contact transition rather than only its aftermath. Promote only a reproducible causal response with exact native/reference semantic agreement.
+- [ ] Finish a stock race deterministically.
 - [ ] No simulation modifications.
 
 **Exit:** complete a stock race in 4:3.

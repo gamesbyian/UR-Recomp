@@ -1,0 +1,93 @@
+# Deterministic Records submenu reconnaissance from the manual-proven five-item menu.
+# Clean reset per branch. Assumes the Records menu opens with TRACK RECORDS selected;
+# if that assumption is wrong, captures remain optional evidence and the exploratory fixture diagnoses it.
+
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press a 2
+wait 60
+dump ui-records-track-selected
+press a 2
+wait 60
+dump ui-record-track-entry
+press x 2
+wait 60
+dump ui-record-track-back
+reset
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press a 2
+wait 60
+press down 1
+wait 10
+dump ui-records-high-selected
+press a 2
+wait 60
+dump ui-record-high-entry
+press x 2
+wait 60
+dump ui-record-high-back
+reset
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press a 2
+wait 60
+press down 1
+wait 10
+press down 1
+wait 10
+dump ui-records-player-selected
+press a 2
+wait 60
+dump ui-record-player-entry
+press x 2
+wait 60
+dump ui-record-player-back
+reset
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press a 2
+wait 60
+press down 1
+wait 10
+press down 1
+wait 10
+press down 1
+wait 10
+dump ui-records-group-selected
+press a 2
+wait 60
+dump ui-record-group-entry
+press x 2
+wait 60
+dump ui-record-group-back
+
+quit

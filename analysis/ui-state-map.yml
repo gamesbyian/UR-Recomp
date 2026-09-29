@@ -1,0 +1,520 @@
+schema_version: 1
+game: "Uniracers (USA)"
+purpose: "Seed UI/navigation state machine for research agents, deterministic input work, and future frontend reconstruction."
+status: "skeleton"
+evidence_classes:
+  observed_screenshot: "Visible in a public screenshot or locally captured frame."
+  primary_manual: "Described by the original USA instruction manual."
+  reproduced_runtime: "Locally reproduced in the canonical ROM/runtime."
+  inferred: "Reasonable structural inference; must not be treated as confirmed."
+  unknown: "Placeholder awaiting evidence."
+global_menu_controls:
+  evidence: [primary_manual]
+  cursor: "D-pad moves the menu arrow."
+  forward: ["B", "A"]
+  backward: ["Y", "X"]
+  note: "The manual documents this as the general menu convention. Individual screens may add or override controls."
+sources:
+  manual_transcription:
+    url: "https://www.world-of-nintendo.com/manuals/super_nes/uniracers.shtml"
+    kind: "primary_manual_transcription"
+  manual_scan:
+    url: "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf"
+    kind: "primary_manual_scan"
+  mobygames_gallery:
+    url: "https://www.mobygames.com/game/8085/uniracers/screenshots/"
+    kind: "public_screenshot_gallery"
+  gamestar_gallery:
+    url: "https://www.gamestar.de/galerien/uniracers_snes,48628.html"
+    kind: "public_screenshot_gallery"
+  demented_ferrets_review:
+    url: "https://dementedferrets.com/2021/02/24/uniracers-review-bombastic-fun/"
+    kind: "public_screenshot_reference"
+  vizzed_gallery:
+    url: "https://www.vizzed.com/games/uniracers-snes-super-nintendo-8767-user-screenshots"
+    kind: "public_screenshot_gallery"
+  vizzed_cheats:
+    url: "https://www.vizzed.com/games/uniracers-snes-super-nintendo-8767-cheats-codes"
+    kind: "secondary_cheat_reference"
+
+states:
+  - id: BOOT_STARTUP
+    family: startup
+    kind: sequence
+    confidence: medium
+    evidence: [primary_manual]
+    description: "Power-on/reset sequence before the first player-visible intro state."
+    transitions:
+      - event: "startup advances"
+        to: SPLASH
+        confidence: inferred
+
+  - id: SPLASH
+    family: startup
+    kind: screen
+    confidence: medium
+    evidence: [observed_screenshot]
+    recovered_menu_labels:
+      currentMenu_7E009F: "0x84"
+    description: "Intro/splash state. Public galleries label an Intro Screen; recovered 2014 bot calls menu value 0x84 splash."
+    transitions:
+      - input: "automatic advance or accepted skip input"
+        to: MAIN_MENU
+        confidence: inferred
+      - input: "hold Down + L + R, press B"
+        to: ENDING
+        confidence: low
+        note: "Public cheat references describe a title-screen ending shortcut; locally unverified."
+
+  - id: DEMO
+    family: startup
+    kind: runtime
+    confidence: low
+    evidence: []
+    recovered_menu_labels:
+      currentMenu_7E009F: "0x00"
+    description: "Recovered 2014 bot label for demo/attract behavior; trigger and return timing are not yet locally reproduced."
+    transitions:
+      - event: "demo ends or player exits"
+        to: MAIN_MENU
+        confidence: inferred
+
+  - id: MAIN_MENU
+    family: frontend
+    kind: menu
+    confidence: high
+    evidence: [observed_screenshot, primary_manual, reproduced_runtime]
+    runtime_signatures:
+      currentMenu_7E009F: "0xD7"
+      selectedOption_7E009B: "0x00 for 1P on the verified default route"
+      local_fixture: "tests/input/reach-first-race.script"
+    visible_items: ["1P", "2P", "VS", "LEAGUE", "OPTIONS"]
+    default_selection: "1P"
+    notes:
+      - "Public screenshots show the five items and arrow cursor."
+      - "Manual quick-start says A, B, or Start can advance from 1P; general menu convention says A/B advance."
+      - "Holding Left+A+L+R invokes erase-all confirmation according to the manual."
+    transitions:
+      - selection: "1P"
+        input: "A or B; Start also documented by quick-start"
+        to: PLAYER_SELECT_P1
+        confidence: high
+      - selection: "2P"
+        input: "A or B"
+        to: TWO_PLAYER_SELECT
+        confidence: high
+      - selection: "VS"
+        input: "A or B"
+        to: VS_SELECT
+        confidence: high
+      - selection: "LEAGUE"
+        input: "A or B"
+        to: LEAGUE_SELECT
+        confidence: high
+      - selection: "OPTIONS"
+        input: "A or B"
+        to: OPTIONS_MENU
+        confidence: high
+      - input: "hold Left + A + L + R"
+        to: ERASE_ALL_CONFIRM
+        confidence: high
+      - event: "idle timeout"
+        to: DEMO
+        confidence: low
+
+  - id: PLAYER_SELECT_P1
+    family: race_setup
+    kind: menu
+    confidence: high
+    evidence: [observed_screenshot, primary_manual, reproduced_runtime]
+    runtime_signatures:
+      currentMenu_7E009F: "0x3C"
+      local_fixture: "tests/input/reach-first-race.script"
+    description: "Choose player-one unicycle from named/color-coded roster."
+    transitions:
+      - input: "A or B"
+        to: TOUR_SELECT
+        confidence: high
+      - input: "Y or X"
+        to: MAIN_MENU
+        confidence: high
+
+  - id: TWO_PLAYER_SELECT
+    family: race_setup
+    kind: menu
+    confidence: medium
+    evidence: [primary_manual]
+    recovered_menu_labels:
+      currentMenu_7E009F: "0x3D"
+    description: "2P unicycle-selection state. Historical bot keeps the same menu ID while playerInput determines which participant is currently choosing."
+    runtime_fields:
+      playerInput_700743: "Recovered bot says 5 = player one, 3 = player two, 1 = both players; locally unverified."
+    transitions:
+      - input: "A or B by active participant"
+        to: "TWO_PLAYER_SELECT or TOUR_SELECT depending whether another participant must choose"
+        confidence: inferred
+      - input: "Y or X"
+        to: MAIN_MENU
+        confidence: medium
+
+  - id: VS_SELECT
+    family: race_setup
+    kind: menu
+    confidence: medium
+    evidence: [primary_manual]
+    recovered_menu_labels:
+      currentMenu_7E009F: "0x3E"
+    description: "Initial VS unicycle-selection state; exact participant handoff remains to be reproduced locally."
+    transitions:
+      - input: "A or B by active participant"
+        to: VS_CHALLENGER
+        confidence: inferred
+      - input: "Y or X"
+        to: MAIN_MENU
+        confidence: medium
+
+  - id: VS_CHALLENGER
+    family: race_setup
+    kind: menu
+    confidence: low
+    evidence: []
+    recovered_menu_labels:
+      currentMenu_7E009F: "0x3F"
+    description: "Recovered 2014 bot label for the VS challenger-selection phase."
+    transitions:
+      - input: "A or B by active participant"
+        to: VS_CHALLENGE_TRACK
+        confidence: inferred
+      - input: "Y or X"
+        to: VS_SELECT
+        confidence: inferred
+
+  - id: VS_CHALLENGE_TRACK
+    family: race_setup
+    kind: menu
+    confidence: low
+    evidence: []
+    recovered_menu_labels:
+      currentMenu_7E009F: "0x5A"
+    description: "Recovered 2014 bot label for the VS challenge-track phase."
+    transitions:
+      - input: "selection/confirm"
+        to: PRE_RACE_CARD
+        confidence: inferred
+      - input: "Y or X"
+        to: VS_CHALLENGER
+        confidence: inferred
+
+  - id: TOUR_SELECT
+    family: race_setup
+    kind: menu
+    confidence: high
+    evidence: [observed_screenshot, primary_manual, reproduced_runtime]
+    runtime_signatures:
+      onePlayerTours1_currentMenu_7E009F: "0x6D"
+      alternate_or_two_player_tours_7E009F: "0x10 (recovered bot label; context-dependent and not yet locally promoted)"
+      local_fixture: "tests/input/reach-first-race.script"
+    visible_known_tours: ["CRAWLER", "SHUFFLER", "WALKER", "HOPPER", "JUMPER", "BOUNDER", "RUNNER", "SPRINTER", "HUNTER"]
+    notes:
+      - "Manual presents eight normal tours; Hunter is the hidden ninth tour after progression."
+      - "Public screenshot directly confirms the animal-icon tour-selection presentation."
+    transitions:
+      - input: "D-pad then A or B"
+        to: TRACK_SELECT
+        confidence: high
+      - input: "Y or X"
+        to: "PLAYER_SELECT_P1 or TWO_PLAYER_SELECT depending mode/history"
+        confidence: medium
+
+  - id: TRACK_SELECT
+    family: race_setup
+    kind: menu
+    confidence: high
+    evidence: [observed_screenshot, primary_manual, reproduced_runtime]
+    runtime_signatures:
+      onePlayerTracks_currentMenu_7E009F: "0xF6"
+      twoPlayerTracksLow: "0x91 (recovered bot label)"
+      twoPlayerTracksHigh: "0x96 (recovered bot label)"
+      local_fixture: "tests/input/reach-first-race.script"
+    description: "Five tracks for the selected tour; track type icons are visible."
+    transitions:
+      - input: "D-pad then A or B"
+        to: PRE_RACE_CARD
+        confidence: medium
+      - input: "Y or X"
+        to: TOUR_SELECT
+        confidence: high
+
+  - id: PRE_RACE_CARD
+    family: race_setup
+    kind: screen
+    confidence: high
+    evidence: [primary_manual, reproduced_runtime]
+    runtime_signatures:
+      onePlayerNowPlaying_currentMenu_7E009F: "0x16"
+      local_fixture: "tests/input/reach-first-race.script"
+    description: "Brief informational screen identifying matchup/track before play. The local deterministic route reaches and dumps this state."
+    transitions:
+      - input: "automatic or confirm input"
+        to: GAMEPLAY
+        confidence: inferred
+
+  - id: GAMEPLAY
+    family: gameplay
+    kind: runtime
+    confidence: high
+    evidence: [observed_screenshot, reproduced_runtime]
+    runtime_signatures:
+      inRace_7E0313: "0x01"
+      local_fixture: "tests/input/reach-first-race.script"
+    variants: ["RACE", "CIRCUIT", "STUNT", "1P", "2P", "VS", "LEAGUE"]
+    transitions:
+      - event: "finish/timeout/scoring complete"
+        to: RESULT_BY_TRACK_TYPE
+        confidence: high
+      - input: "Start"
+        to: PAUSE
+        confidence: medium
+
+  - id: PAUSE
+    family: gameplay
+    kind: overlay_or_state
+    confidence: medium
+    evidence: [primary_manual]
+    transitions:
+      - input: "Start"
+        to: GAMEPLAY
+        confidence: inferred
+
+  - id: RESULT_BY_TRACK_TYPE
+    family: results
+    kind: branch
+    confidence: high
+    evidence: [primary_manual]
+    branches:
+      RACE: RESULT_RACE
+      CIRCUIT: RESULT_CIRCUIT
+      STUNT: RESULT_STUNT
+
+  - id: RESULT_RACE
+    family: results
+    kind: screen
+    confidence: high
+    evidence: [primary_manual]
+    recovered_menu_labels:
+      raceResults_currentMenu_7E009F: "0x99"
+    transitions:
+      - input: "advance/next"
+        to: POST_RESULT_DECISION
+        confidence: medium
+
+  - id: RESULT_CIRCUIT
+    family: results
+    kind: screen
+    confidence: high
+    evidence: [primary_manual]
+    recovered_menu_labels:
+      circuitResults_currentMenu_7E009F: "0xBC"
+    transitions:
+      - input: "advance/next"
+        to: POST_RESULT_DECISION
+        confidence: medium
+
+  - id: RESULT_STUNT
+    family: results
+    kind: screen
+    confidence: high
+    evidence: [primary_manual]
+    recovered_menu_labels:
+      stuntResults_currentMenu_7E009F: "0x18"
+      summing_states: ["0x2F", "0xAD", "0xAF", "0xB3", "0xD3", "0xD8", "0xED", "0xF3"]
+    transitions:
+      - input: "advance/next"
+        to: POST_RESULT_DECISION
+        confidence: medium
+
+  - id: POST_RESULT_DECISION
+    family: results
+    kind: menu_or_prompt
+    confidence: medium
+    evidence: [primary_manual]
+    description: "Prompt after a completed event allowing progression to the next track or another path."
+    transitions:
+      - selection: "next track"
+        input: "confirm"
+        to: PRE_RACE_CARD
+        confidence: medium
+      - selection: "do not advance"
+        input: "confirm/back"
+        to: TRACK_SELECT
+        confidence: inferred
+
+  - id: LEAGUE_SELECT
+    family: league
+    kind: menu
+    confidence: high
+    evidence: [primary_manual]
+    description: "List of active leagues."
+    transitions:
+      - input: "select league"
+        to: LEAGUE_TABLE
+        confidence: high
+      - input: "Y or X"
+        to: MAIN_MENU
+        confidence: high
+
+  - id: LEAGUE_TABLE
+    family: league
+    kind: menu
+    confidence: high
+    evidence: [primary_manual]
+    description: "League standings/player list with a RACE action."
+    transitions:
+      - selection: "RACE"
+        input: "A or B"
+        to: PRE_RACE_CARD
+        confidence: medium
+      - input: "Y or X"
+        to: LEAGUE_SELECT
+        confidence: medium
+
+  - id: OPTIONS_MENU
+    family: options
+    kind: menu
+    confidence: high
+    evidence: [primary_manual]
+    visible_known_items: ["RECORDS", "DEFINE PLAYER", "RENAME PLAYER", "DEFINE LEAGUE", "MAIN MENU"]
+    notes:
+      - "Other adjustable settings may exist; do not invent them until captured or located in code/manual detail."
+    transitions:
+      - selection: "RECORDS"
+        input: "A or B"
+        to: RECORDS
+        confidence: high
+      - selection: "DEFINE PLAYER"
+        input: "A or B"
+        to: DEFINE_PLAYER
+        confidence: high
+      - selection: "RENAME PLAYER"
+        input: "A or B"
+        to: RENAME_PLAYER
+        confidence: high
+      - selection: "DEFINE LEAGUE"
+        input: "A or B"
+        to: DEFINE_LEAGUE
+        confidence: high
+      - selection: "MAIN MENU"
+        input: "A or B"
+        to: MAIN_MENU
+        confidence: high
+
+  - id: RECORDS
+    family: records
+    kind: screen_set
+    confidence: high
+    evidence: [primary_manual]
+    screens: ["TRACK RECORDS", "HIGH SCORES", "PLAYER SCORES", "GROUP TABLES"]
+    notes:
+      - "Manual says Up/Down cycles players on PLAYER SCORES and leagues on GROUP TABLES."
+      - "Exact screen-to-screen sequencing is not yet pinned down."
+    transitions:
+      - input: "Y or X"
+        to: OPTIONS_MENU
+        confidence: high
+
+  - id: DEFINE_PLAYER
+    family: options
+    kind: menu
+    confidence: high
+    evidence: [primary_manual]
+    transitions:
+      - input: "Y or X"
+        to: OPTIONS_MENU
+        confidence: medium
+
+  - id: RENAME_PLAYER
+    family: options
+    kind: editor
+    confidence: high
+    evidence: [primary_manual]
+    transitions:
+      - input: "Y or X / completion"
+        to: OPTIONS_MENU
+        confidence: medium
+      - event: "forbidden name accepted"
+        to: FORBIDDEN_NAME_REJECTION
+        confidence: medium
+
+  - id: FORBIDDEN_NAME_REJECTION
+    family: options
+    kind: screen
+    confidence: medium
+    evidence: [observed_screenshot]
+    description: "Player-facing rejection/Easter-egg screen for forbidden names; public gallery includes the 'No Sonic Allowed' example."
+    transitions:
+      - input: "advance/back"
+        to: RENAME_PLAYER
+        confidence: inferred
+
+  - id: DEFINE_LEAGUE
+    family: options
+    kind: editor
+    confidence: high
+    evidence: [primary_manual]
+    notes:
+      - "Manual documents SELECT + Y + A as guarded destructive/redefinition action."
+      - "League supports up to eight unicycles; up to six leagues."
+    transitions:
+      - input: "Y or X / completion"
+        to: OPTIONS_MENU
+        confidence: medium
+
+  - id: ENDING
+    family: ending
+    kind: sequence
+    confidence: medium
+    evidence: []
+    recovered_menu_labels:
+      currentMenu_7E009F: "0x5B"
+    description: "Ending sequence/state. Recovered 2014 bot labels 0x5B as ending and advances it with A; public cheat references expose a shortcut from the title/splash."
+    transitions:
+      - input: "A / sequence completion"
+        to: MAIN_MENU
+        confidence: inferred
+
+  - id: ERASE_ALL_CONFIRM
+    family: destructive
+    kind: confirmation
+    confidence: high
+    evidence: [primary_manual]
+    description: "Confirmation reached from MAIN_MENU via Left+A+L+R; erases battery-backed records if accepted."
+    transitions:
+      - input: "confirm"
+        to: MAIN_MENU
+        side_effect: "erase battery-backed records"
+        confidence: high
+      - input: "cancel"
+        to: MAIN_MENU
+        confidence: high
+
+open_questions:
+  - id: UIQ-001
+    question: "Promote/reject SPLASH=0x84 and DEMO=0x00 by local capture; determine splash skip inputs, attract timeout, and demo return behavior."
+  - id: UIQ-002
+    question: "Exact input mapping on every menu: whether A/B are equivalent everywhere and whether Start advances anywhere beyond MAIN_MENU quick-start."
+  - id: UIQ-003
+    question: "Reproduce TWO_PLAYER_SELECT=0x3D, VS_SELECT=0x3E, VS_CHALLENGER=0x3F and VS_CHALLENGE_TRACK=0x5A; determine participant handoff and exact back-stack."
+  - id: UIQ-004
+    question: "Exact PRE_RACE_CARD duration and whether input can skip it."
+  - id: UIQ-005
+    question: "Exact post-result prompt contents and transitions for 1P, 2P, VS, League, and progression unlocks."
+  - id: UIQ-006
+    question: "Exact OPTIONS_MENU layout and any settings omitted by the terse manual transcription."
+  - id: UIQ-007
+    question: "Exact RECORDS screen ordering/navigation."
+  - id: UIQ-008
+    question: "Pause presentation and any pause-menu actions beyond resume."
+  - id: UIQ-009
+    question: "Attract/demo behavior and idle timeout from MAIN_MENU; verify public ending-shortcut chord and ENDING=0x5B without treating cheat-site text as canonical."
+  - id: UIQ-010
+    question: "Hunter unlock transition and any Anti-Uni-specific frontend/results states."

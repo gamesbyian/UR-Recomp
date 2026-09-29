@@ -227,6 +227,33 @@
       ],
       "status": "candidate",
       "promotion_rule": "Require a causal impact/collision response relative to matched clean landing and exact native/reference semantic agreement."
+    },
+    {
+      "id": "race-finish-dragster",
+      "input_script": "tests/input/race-finish-dragster.script",
+      "purpose": "First bounded whole-race Dragster probe: reuse verified race entry/acceleration, then repeat the validated 24-frame sustained-B / 24-frame release rhythm while holding Right until the stock race-results menu is observed.",
+      "engines": [
+        "native-recomp",
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "finish-probe-start",
+        "finish-probe-05",
+        "finish-probe-10",
+        "finish-probe-15",
+        "finish-probe-20",
+        "finish-probe-25",
+        "finish-probe-30",
+        "finish-probe-terminal",
+        "race-results"
+      ],
+      "compare_surfaces": [
+        "paired-player-state",
+        "results-menu-state",
+        "full-wram-artifacts"
+      ],
+      "status": "candidate",
+      "promotion_rule": "Require stock raceResults menu 0x99 in both engines and matching tracked player semantics at all shared checkpoints. If it fails, use the preserved progress/terminal dumps to identify the smallest missing steering, pitch or jump-policy behavior."
     }
   ]
 }

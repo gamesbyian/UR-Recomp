@@ -39,9 +39,9 @@ Goal: make the core automated research/build toolchain runnable from a clean che
 
 - [x] Run the pinned SNESRecomp cartridge probe against the canonical ROM.
 - [x] Run analyzer/code-discovery reconnaissance.
-- [ ] Record cartridge mapping, banks, AOT/static coverage, unresolved indirect dispatch, interpreter fallback, warnings, crashes and likely framework gaps.
-- [ ] Classify blockers as configuration, analyzer limitation, runtime/hardware, or unknown.
-- [ ] Keep human-authored summaries and configs; avoid committing giant generated code dumps without a reason.
+- [x] Record cartridge mapping, banks, AOT/static coverage, unresolved indirect dispatch, interpreter fallback, warnings, crashes and likely framework gaps. Run 36575810121 records a standard 2 MiB LoROM / 8 KiB SRAM cartridge, 9 analysis roots expanding to 54 exact variants, 52 AOT-eligible variants, 2 bounded LLE-only variants, and three unique unresolved indirect guest sites explicitly routed as `lle_dynamic`; see `analysis/generated/analyzer-reconnaissance.md`.
+- [x] Classify blockers as configuration, analyzer limitation, runtime/hardware, or unknown. No Phase-1 configuration or runtime blocker remains; the two LLE-only variants and three unresolved indirect sites are bounded analyzer-proof gaps covered by the interpreter tier, and later deterministic native bring-up reaches menus and a stock race through the same pinned framework.
+- [x] Keep human-authored summaries and configs; avoid committing giant generated code dumps without a reason. The project preserves a compact manifest-derived report plus its deterministic summarizer and does not retain generated C.
 
 **Exit:** we know what blocks or permits execution.
 

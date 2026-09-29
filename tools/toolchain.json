@@ -120,10 +120,27 @@
       "build": [
         [
           "{python}",
-          "-m",
-          "pip",
-          "install",
-          "."
+          "{root}/tools/install_pure_python_tool.py",
+          "--source-root",
+          "{root}/third_party/src/pyyaml-6.0.3",
+          "--source-dir",
+          "lib/yaml",
+          "--package",
+          "yaml"
+        ],
+        [
+          "{python}",
+          "{root}/tools/install_pure_python_tool.py",
+          "--source-dir",
+          "snes2asm",
+          "--package",
+          "snes2asm",
+          "--entry",
+          "snes2asm=snes2asm:main",
+          "--entry",
+          "bmp2chr=snes2asm:bmp2chr",
+          "--entry",
+          "brr=snes2asm:brr_cli"
         ]
       ],
       "artifacts": [

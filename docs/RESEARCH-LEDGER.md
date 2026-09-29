@@ -695,3 +695,16 @@ Direct inspection of all 4,975 controller samples in the reset-anchored 2008 WIP
 **Hypothesis:** one immediate 1024-byte decoded region is a one-byte-per-64×64-block course-layout plane whose width/height are encoded by bytes 13/14. Provisional name alignment is suggestive rather than decisive: Dragster maps to `256×4`, Vertical to `16×64`, and Little Dipper to `4×256`.
 
 **Discriminating test:** mechanically characterize the first several 1024-byte post-header regions across all 45 payloads, then trace whichever region exhibits map/index-like structure into a runtime course consumer. A mutation/viewer round trip should follow only after that consumer relationship is identified.
+
+
+### R-SEED-036 — Interpreter writer labels are scope entries, not store PCs
+
+**Status:** confirmed tooling-semantics correction  
+**Date:** 2026-09-28  
+**Area:** tracing | course | RNC
+
+**Observation:** SNESRecomp synthesizes `interp@$XXXXXX` from the entry PC of an interpreter bridge run and uses that string as the write-attribution scope for all still-interpreted writes during the run. Therefore run 36517696016 proves that the Dragster install and byte-11 mutation write groups occur under scopes entered at `81BB73` and `81BA96`, but does not identify those addresses as the literal store instructions.
+
+**Static cross-check:** `01:BA96` is inside generic RNC Method-1 `GTBITS2`; the shipped bytes align with preserved source `LSR A / ROR BITBUFL / DEY / BEQ / DEX / ...`. That makes a literal “course-byte store at BA96” interpretation impossible and validates the scope-entry reading.
+
+**Discriminating test:** capture exact interpreted opcode PC at WRAM-write time, or narrow the interpreter bridge scope enough to isolate the true store instruction. Keep the established write values/timing unchanged.

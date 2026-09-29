@@ -69,13 +69,11 @@ states:
         confidence: high
       - selection: "2P"
         input: "A or B"
-        to: PLAYER_SELECT_P1
-        set: {mode: "2P"}
+        to: TWO_PLAYER_SELECT
         confidence: high
       - selection: "VS"
         input: "A or B"
-        to: PLAYER_SELECT_P1
-        set: {mode: "VS"}
+        to: VS_SELECT
         confidence: high
       - selection: "LEAGUE"
         input: "A or B"
@@ -100,34 +98,77 @@ states:
     description: "Choose player-one unicycle from named/color-coded roster."
     transitions:
       - input: "A or B"
-        condition: "mode == 1P"
         to: TOUR_SELECT
-        confidence: high
-      - input: "A or B"
-        condition: "mode in [2P, VS]"
-        to: PLAYER_SELECT_P2
         confidence: high
       - input: "Y or X"
         to: MAIN_MENU
         confidence: high
 
-  - id: PLAYER_SELECT_P2
+  - id: TWO_PLAYER_SELECT
     family: race_setup
     kind: menu
     confidence: medium
     evidence: [primary_manual]
     recovered_menu_labels:
-      twoPlayerSelect: "0x3D"
-      vsSelect: "0x3E"
-      vsChallenger: "0x3F"
-    description: "Second unicycle selection / challenger flow in 2P/VS. Recovered labels are historical-bot evidence until locally reproduced."
+      currentMenu_7E009F: "0x3D"
+    description: "2P unicycle-selection state. Historical bot keeps the same menu ID while playerInput determines which participant is currently choosing."
+    runtime_fields:
+      playerInput_700743: "Recovered bot says 5 = player one, 3 = player two, 1 = both players; locally unverified."
     transitions:
-      - input: "A or B"
-        to: TOUR_SELECT
-        confidence: high
+      - input: "A or B by active participant"
+        to: "TWO_PLAYER_SELECT or TOUR_SELECT depending whether another participant must choose"
+        confidence: inferred
       - input: "Y or X"
-        to: PLAYER_SELECT_P1
+        to: MAIN_MENU
         confidence: medium
+
+  - id: VS_SELECT
+    family: race_setup
+    kind: menu
+    confidence: medium
+    evidence: [primary_manual]
+    recovered_menu_labels:
+      currentMenu_7E009F: "0x3E"
+    description: "Initial VS unicycle-selection state; exact participant handoff remains to be reproduced locally."
+    transitions:
+      - input: "A or B by active participant"
+        to: VS_CHALLENGER
+        confidence: inferred
+      - input: "Y or X"
+        to: MAIN_MENU
+        confidence: medium
+
+  - id: VS_CHALLENGER
+    family: race_setup
+    kind: menu
+    confidence: low
+    evidence: []
+    recovered_menu_labels:
+      currentMenu_7E009F: "0x3F"
+    description: "Recovered 2014 bot label for the VS challenger-selection phase."
+    transitions:
+      - input: "A or B by active participant"
+        to: VS_CHALLENGE_TRACK
+        confidence: inferred
+      - input: "Y or X"
+        to: VS_SELECT
+        confidence: inferred
+
+  - id: VS_CHALLENGE_TRACK
+    family: race_setup
+    kind: menu
+    confidence: low
+    evidence: []
+    recovered_menu_labels:
+      currentMenu_7E009F: "0x5A"
+    description: "Recovered 2014 bot label for the VS challenge-track phase."
+    transitions:
+      - input: "selection/confirm"
+        to: PRE_RACE_CARD
+        confidence: inferred
+      - input: "Y or X"
+        to: VS_CHALLENGER
+        confidence: inferred
 
   - id: TOUR_SELECT
     family: race_setup
@@ -147,7 +188,7 @@ states:
         to: TRACK_SELECT
         confidence: high
       - input: "Y or X"
-        to: "PLAYER_SELECT_P2 or PLAYER_SELECT_P1 depending mode/history"
+        to: "PLAYER_SELECT_P1 or TWO_PLAYER_SELECT depending mode/history"
         confidence: medium
 
   - id: TRACK_SELECT
@@ -400,7 +441,7 @@ open_questions:
   - id: UIQ-002
     question: "Exact input mapping on every menu: whether A/B are equivalent everywhere and whether Start advances anywhere beyond MAIN_MENU quick-start."
   - id: UIQ-003
-    question: "Exact back-stack behavior for 2P/VS player selection."
+    question: "Reproduce TWO_PLAYER_SELECT=0x3D, VS_SELECT=0x3E, VS_CHALLENGER=0x3F and VS_CHALLENGE_TRACK=0x5A; determine participant handoff and exact back-stack."
   - id: UIQ-004
     question: "Exact PRE_RACE_CARD duration and whether input can skip it."
   - id: UIQ-005

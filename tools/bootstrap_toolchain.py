@@ -12,12 +12,14 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = Path(__file__).with_name("toolchain.json")
+ISLAND_MANIFEST = ROOT / "third_party" / "manifest.json"
 REVISION_RE = re.compile(r"^[0-9a-f]{40}$")
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 
@@ -179,6 +181,58 @@ def canonical_git_url(url: str) -> str:
     return url.rstrip("/").removesuffix(".git")
 
 
+def load_island_manifest() -> dict[str, dict]:
+    if not ISLAND_MANIFEST.is_file():
+        return {}
+    with ISLAND_MANIFEST.open("r", encoding="utf-8") as f:
+        raw = json.load(f)
+    if raw.get("schema_version") != 1 or not isinstance(raw.get("components"), list):
+        raise SystemExit("third_party/manifest.json has an unsupported schema")
+    return {
+        item["id"]: item
+        for item in raw["components"]
+        if isinstance(item, dict) and isinstance(item.get("id"), str)
+    }
+
+
+def stage_local_source(tool: dict, component: dict, src_root: Path) -> Path:
+    mode = component.get("mode")
+    if mode != "vendored":
+        raise SystemExit(
+            f"{tool['id']}: island manifest mode {mode!r} is not yet a buildable local source"
+        )
+    rel = component.get("source_path")
+    if not isinstance(rel, str) or not rel:
+        raise SystemExit(f"{tool['id']}: vendored island entry has no source_path")
+    source = ROOT / rel
+    if not source.is_dir():
+        raise SystemExit(f"{tool['id']}: local island source is missing: {source}")
+    dest = src_root / tool["id"]
+    if dest.exists():
+        shutil.rmtree(dest)
+    shutil.copytree(source, dest, ignore=shutil.ignore_patterns(".git", "__pycache__"))
+    print(f"{tool['id']}: using repository-owned source {rel}", flush=True)
+    return dest
+
+
+def ensure_source(
+    tool: dict,
+    src_root: Path,
+    island: dict[str, dict],
+    *,
+    offline: bool,
+) -> Path:
+    component = island.get(tool["id"])
+    if component and component.get("mode") == "vendored":
+        return stage_local_source(tool, component, src_root)
+    if offline:
+        mode = component.get("mode") if component else "unclassified"
+        raise SystemExit(
+            f"{tool['id']}: --offline forbids GitHub fetch; island mode is {mode!r}"
+        )
+    return ensure_checkout(tool, src_root)
+
+
 def ensure_checkout(tool: dict, src_root: Path) -> Path:
     dest = src_root / tool["id"]
     if not dest.exists():
@@ -287,6 +341,7 @@ def ensure_venv(root: Path, tool_id: str) -> Path:
 
 def main() -> int:
     manifest = load_manifest()
+    island = load_island_manifest()
     parser = argparse.ArgumentParser()
     parser.add_argument("--list", action="store_true", help="List pinned tools and exit")
     parser.add_argument("--group", action="append", default=[], help="Install a named group (default: core)")
@@ -295,6 +350,16 @@ def main() -> int:
     parser.add_argument("--jobs", type=int, default=max(1, os.cpu_count() or 1))
     parser.add_argument("--system-packages", action="store_true", help="Print recommended Ubuntu packages and exit")
     parser.add_argument("--validate", action="store_true", help="Validate manifest and exit")
+    parser.add_argument(
+        "--offline",
+        action="store_true",
+        help="Forbid network source fetches; only repository-owned vendored sources may be used",
+    )
+    parser.add_argument(
+        "--island-status",
+        action="store_true",
+        help="Show repository-owned source status alongside each tool and exit",
+    )
     args = parser.parse_args()
 
     if args.jobs < 1:
@@ -302,6 +367,15 @@ def main() -> int:
 
     if args.validate:
         print(f"toolchain manifest valid ({len(manifest['tools'])} tools)")
+        if ISLAND_MANIFEST.is_file():
+            print(f"island manifest classified ({len(island)} components)")
+        return 0
+
+    if args.island_status:
+        for tool in manifest["tools"]:
+            component = island.get(tool["id"])
+            mode = component.get("mode", "unclassified") if component else "unclassified"
+            print(f"{tool['id']:20} {mode}")
         return 0
 
     if args.system_packages:
@@ -334,7 +408,7 @@ def main() -> int:
     for tool in selected:
         python: Path | None = None
         print(f"\n== {tool['id']} ==")
-        dest = ensure_checkout(tool, src_root)
+        dest = ensure_source(tool, src_root, island, offline=args.offline)
         if args.clone_only:
             continue
         apply_patches(tool, dest)

@@ -255,6 +255,22 @@
       ],
       "status": "candidate",
       "promotion_rule": "Require stock raceResults menu 0x99 in both engines and matching tracked player semantics at all shared checkpoints. If it fails, use the preserved progress/terminal dumps to identify the smallest missing steering, pitch or jump-policy behavior."
+    },
+    {
+      "id": "historical-2008-wip-input",
+      "input_file": "tests/input/historical-2008-wip.input",
+      "source_movie": "references/imported/tas-bots/uniracers-2008-wip-microstorage.smv",
+      "purpose": "Frozen exact controller stream extracted from Halamantariel's reset-anchored 2008 SMV WIP, used as a historical autonomous/optimized replay corpus and candidate exact Dragster finish workload.",
+      "engines": [
+        "snesref-snes9x",
+        "native-recomp-lua-bridge"
+      ],
+      "format": "start-frame:duration:12-bit-mask",
+      "sample_count": 4975,
+      "nonzero_runs": 307,
+      "validation": "historical-wip-dragster workflow re-extracts the SMV and requires byte-for-byte identity with this frozen fixture before replay.",
+      "status": "candidate",
+      "promotion_rule": "Promote the first-race/Dragster slice only after pinned Snes9x replay identifies active-race and race-results boundaries and native exact-mask replay characterizes cross-runtime agreement."
     }
   ]
 }

@@ -57,16 +57,40 @@ jobs:
           run_core() {
             local label="$1"
             local core="$2"
+            local allow_teardown_abort="${3:-0}"
             local dumps="$RUNNER_TEMP/${label}-dumps"
             local log="$RUNNER_TEMP/${label}-route.log"
             mkdir -p "$dumps"
-            SNESREF_HEADLESS=1             SNESREF_FAST=1             SNESREF_WRAM_FILL=0             SNESREF_SCRIPT="$SCRIPT"             SNESREF_DUMP_DIR="$dumps"               "$EXE" "$core" "$ROM" >"$log" 2>&1
+
+            set +e
+            SNESREF_HEADLESS=1 \
+            SNESREF_FAST=1 \
+            SNESREF_WRAM_FILL=0 \
+            SNESREF_SCRIPT="$SCRIPT" \
+            SNESREF_DUMP_DIR="$dumps" \
+              "$EXE" "$core" "$ROM" >"$log" 2>&1
+            local status=$?
+            set -e
             cat "$log"
+
+            # A usable oracle run must complete the scripted race-entered dump.
+            # The pinned Beetle core currently aborts during libretro teardown
+            # after scripted quit; preserve that as a known adapter defect
+            # rather than discarding already-complete deterministic evidence.
             test -s "$dumps/race-entered.wram.bin"
+            if [ "$status" -eq 0 ]; then
+              return 0
+            fi
+            if [ "$allow_teardown_abort" -eq 1 ] && [ "$status" -eq 134 ]; then
+              echo "::warning::${label} completed the fixture and then aborted during teardown (exit 134)"
+              return 0
+            fi
+            echo "::error::${label} exited with status $status"
+            return "$status"
           }
 
           run_core snes9x "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
-          run_core beetle-bsnes "$GITHUB_WORKSPACE/.tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so"
+          run_core beetle-bsnes "$GITHUB_WORKSPACE/.tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so" 1
 
       - name: Compare reference-core WRAM checkpoints
         run: |

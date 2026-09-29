@@ -136,7 +136,10 @@ movie byte buffer name was reused for each integer controller sample; metadata
 then called `len()` on the integer. The regression test exposed this and the
 buffer/sample variables are now distinct. The associated WRAM trace summarizer
 also now rejects non-monotonic frame records instead of silently reconstructing
-state across backwards time jumps.
+state across backwards time jumps. The historical replay workflow formerly used
+raw `cmp` on generated versus frozen controller files, making harmless comment
+header differences look like input divergence; `tools/compare_input_runs.py` now
+compares parsed controller intervals instead.
 
 ## Promotion checklist
 

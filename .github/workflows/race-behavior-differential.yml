@@ -8,7 +8,9 @@ on:
       - "rom_identity.txt"
       - "snesrecomp"
       - "tests/input/race-acceleration.script"
+      - "tests/input/race-jump.script"
       - "tools/summarize_player_checkpoints.py"
+      - "tools/validate_player_semantics.py"
       - "tools/compare_wram_checkpoints.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain.json"
@@ -140,6 +142,17 @@ jobs:
           print(f"semantic_differences={any_diff}")
           PY
 
+      - name: Validate acceleration semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/validate_player_semantics.py \
+            "$RUNNER_TEMP/native-player-state.json" \
+            "$RUNNER_TEMP/reference-player-state.json" \
+            --require-movement \
+            --require-cross-engine-match \
+            --json-out "$RUNNER_TEMP/acceleration-semantic-validation.json"
+
       - name: Compare full WRAM acceleration checkpoints
         shell: bash
         run: |
@@ -156,6 +169,92 @@ jobs:
             --json-out "$RUNNER_TEMP/acceleration-wram-diff.json" \
             | tee "$RUNNER_TEMP/acceleration-wram-diff.txt"
 
+      - name: Run native jump fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/race-jump.script"
+          DUMPS="$RUNNER_TEMP/native-jump-dumps"
+          LOG="$RUNNER_TEMP/native-jump.log"
+          mkdir -p "$DUMPS"
+
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          cat "$LOG"
+          test -s "$DUMPS/jump-settle.wram.bin"
+
+      - name: Run reference jump fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/race-jump.script"
+          DUMPS="$RUNNER_TEMP/reference-jump-dumps"
+          LOG="$RUNNER_TEMP/reference-jump.log"
+          mkdir -p "$DUMPS"
+
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$SCRIPT" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" >"$LOG" 2>&1
+          cat "$LOG"
+          test -s "$DUMPS/jump-settle.wram.bin"
+
+      - name: Summarize and compare jump semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHECKPOINTS=(
+            --checkpoint race-entered
+            --checkpoint accel-180
+            --checkpoint jump-trigger
+            --checkpoint jump-early
+            --checkpoint jump-rise
+            --checkpoint jump-mid
+            --checkpoint jump-late
+            --checkpoint jump-settle
+          )
+          python3 tools/summarize_player_checkpoints.py \
+            "$RUNNER_TEMP/native-jump-dumps" \
+            "${CHECKPOINTS[@]}" \
+            --json-out "$RUNNER_TEMP/native-jump-state.json" \
+            | tee "$RUNNER_TEMP/native-jump-state.txt"
+          python3 tools/summarize_player_checkpoints.py \
+            "$RUNNER_TEMP/reference-jump-dumps" \
+            "${CHECKPOINTS[@]}" \
+            --json-out "$RUNNER_TEMP/reference-jump-state.json" \
+            | tee "$RUNNER_TEMP/reference-jump-state.txt"
+
+          python3 tools/validate_player_semantics.py \
+            "$RUNNER_TEMP/native-jump-state.json" \
+            "$RUNNER_TEMP/reference-jump-state.json" \
+            --require-cross-engine-match \
+            --json-out "$RUNNER_TEMP/jump-semantic-validation.json"
+
+      - name: Compare full WRAM jump checkpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/compare_wram_checkpoints.py \
+            "$RUNNER_TEMP/native-jump-dumps" "$RUNNER_TEMP/reference-jump-dumps" \
+            --label-a native --label-b snesref --limit 24 \
+            --checkpoint accel-180 \
+            --checkpoint jump-trigger \
+            --checkpoint jump-early \
+            --checkpoint jump-rise \
+            --checkpoint jump-mid \
+            --checkpoint jump-late \
+            --checkpoint jump-settle \
+            --json-out "$RUNNER_TEMP/jump-wram-diff.json" \
+            | tee "$RUNNER_TEMP/jump-wram-diff.txt"
+
       - name: Upload race-behavior evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -170,7 +269,19 @@ jobs:
             ${{ runner.temp }}/reference-player-state.txt
             ${{ runner.temp }}/acceleration-wram-diff.json
             ${{ runner.temp }}/acceleration-wram-diff.txt
+            ${{ runner.temp }}/acceleration-semantic-validation.json
             ${{ runner.temp }}/native-dumps/
             ${{ runner.temp }}/reference-dumps/
+            ${{ runner.temp }}/native-jump.log
+            ${{ runner.temp }}/reference-jump.log
+            ${{ runner.temp }}/native-jump-state.json
+            ${{ runner.temp }}/reference-jump-state.json
+            ${{ runner.temp }}/native-jump-state.txt
+            ${{ runner.temp }}/reference-jump-state.txt
+            ${{ runner.temp }}/jump-semantic-validation.json
+            ${{ runner.temp }}/jump-wram-diff.json
+            ${{ runner.temp }}/jump-wram-diff.txt
+            ${{ runner.temp }}/native-jump-dumps/
+            ${{ runner.temp }}/reference-jump-dumps/
           if-no-files-found: warn
           retention-days: 7

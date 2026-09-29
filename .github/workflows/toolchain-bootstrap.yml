@@ -8,6 +8,8 @@ on:
       - "tools/tool_interop.json"
       - "tools/validate_tool_interop.py"
       - "tools/export_symbol_adapters.py"
+      - "tools/run_fixture_mesen.py"
+      - "tests/test_mesen_fixture_adapter.py"
       - "analysis/generated/symbols.json"
       - "analysis/generated/snes2asm-symbols.yml"
       - "analysis/generated/da65-symbols-bank-*.info"
@@ -20,6 +22,8 @@ on:
       - "tools/tool_interop.json"
       - "tools/validate_tool_interop.py"
       - "tools/export_symbol_adapters.py"
+      - "tools/run_fixture_mesen.py"
+      - "tests/test_mesen_fixture_adapter.py"
       - "analysis/generated/symbols.json"
       - "analysis/generated/snes2asm-symbols.yml"
       - "analysis/generated/da65-symbols-bank-*.info"
@@ -38,6 +42,8 @@ jobs:
         run: python3 tools/validate_tool_interop.py
       - name: Check symbol adapter outputs
         run: python3 tools/export_symbol_adapters.py --check
+      - name: Test shared fixture Mesen adapter
+        run: python3 tests/test_mesen_fixture_adapter.py
 
   build-smoke:
     runs-on: ubuntu-latest

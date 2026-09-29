@@ -211,3 +211,10 @@ These are **controller-stream observations only** until `.github/workflows/histo
 The historical 2008 WIP's controller indexing is now source-checked rather than inferred from the file format alone. Snes9x movie playback reads controller sample 0 as **baseline controller data before playback starts**, then initializes `CurrentFrame=0` / `CurrentSample=0`; subsequent movie updates consume later samples. This matches the project's neutral replay model in which sample 0 supplies the controller state for the first emulated frame. The extra `frames + 1` sample is therefore intentional and not evidence of a one-frame shift.
 
 This specific SMV has authoritative legacy sync flags (`sync_data_exists=1`) and sets only the old `WIP1TIMING` compatibility bit in addition to `HASROMINFO`; initial FastROM, Left+Right, volume-envelope, fake-mute and sync-sound flags are clear. Snes9x's SMV documentation states that WIP1 timing ceased to have meaning with SMV version 4 / Snes9x 1.51. Therefore a modern-core raw-input replay should keep controller timing unchanged, but a desync must be checked against the old 1.43 WIP1 timing behavior before blaming the movie or game logic.
+
+
+### 2014 movie as independent timing oracle
+
+Dessyreqt's submission #4250 is a useful independent replay corpus because TASVideos records it as Snes9x 1.51 v17, substantially later than the 2008 WIP's SMV-v1/WIP1-timing environment. The submission states it starts from blank SRAM and was sync-verified with its embedded movie settings. The repository's 2014 workflow now extracts the wrapped SMV, requires a reset/SRAM anchor, replays the first 5,000 frames through pinned Snes9x in one trace pass, detects exact race/results transitions, and persists `analysis/generated/historical-2014-first-race-reference.json`.
+
+Use this corpus as a timing-independent cross-check on the 2008 WIP. If both historical streams reach the expected first Dragster race under the pinned modern core, confidence in the extracted-input route rises sharply. If only the 2014 movie works, investigate the 2008 WIP's legacy `WIP1TIMING` mode before modifying controller alignment or game logic.

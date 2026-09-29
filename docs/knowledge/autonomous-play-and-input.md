@@ -78,3 +78,14 @@ After that, the race-driving policy can become an autonomous soak workload.
 The original 2008 `Uniracers Stunts & Jump Optimizer v13` remains worth recovering because it appears to use savestate search to optimize stunt combinations and speed.
 
 Its value is now specialized: evaluator/search logic, stunt grammar, timing assumptions and additional RAM knowledge. It is no longer a prerequisite for obtaining an autonomous player.
+
+
+## Native harness status
+
+The pinned SNESRecomp desktop host already provides a frame-synchronous `--script` grammar with controller presses, WRAM `until` conditions and state dumps. That is the cheapest current bridge for frontend bring-up; no SDL keystroke injector is needed.
+
+The first project-owned script is `tests/input/reach-first-race.script`. On the canonical USA ROM it has independently reproduced Dessyreqt's historical `currentMenu` label `mainMenu = 0xD7` at simulated frame 446.
+
+The bot's menu policy is stateful rather than a fixed button movie. In particular, at the main menu it reads `7E:009B` (`selectedOption`): while the value is nonzero it pulses Up, and only when it reaches zero does it pulse A. The current native diagnostic is preserving that distinction instead of treating a single failed A press as evidence that controller injection is broken.
+
+SNESRecomp also has an opt-in local Lua/TCP bridge with WRAM reads and per-frame joypad control. If the compact static script becomes awkward for conditional navigation, that bridge is the natural next adapter for porting the 2014 bot policy nearly directly.

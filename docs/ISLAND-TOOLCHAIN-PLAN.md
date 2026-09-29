@@ -295,7 +295,7 @@ Current P0-A implementation lives in `third_party/manifest.json`, `tools/validat
 
 - [x] mesen-for-ai. Repository-owned pruned source and GPL-3.0-only license are present; deterministic tree SHA-256 is locked; bootstrap uses a stdlib-only installer with no PyPI/build-isolation dependency; run 36543649163 proves the `--offline` build, vendored tests, and launcher smoke.
 - [x] snes2asm. Pristine upstream runtime source and PyYAML 6.0.3 pure-Python dependency closure are repository-owned with locked deterministic tree SHA-256 values. Historical offline smoke exposed a bootstrap boundary bug: `git apply` could discover the parent UR-Recomp worktree and report success without modifying a staged vendored copy that had no `.git`. Bootstrap now anchors such patches at the repository root with an explicit staged-source directory and has regression coverage for the no-op failure mode. Run 36559605681 proves the island manifest contract, offline bootstrap, repository-owned PyYAML closure and adapted snes2asm functional smoke.
-- [ ] SuperFamiconv plus Cargo dependency closure.
+- [x] SuperFamiconv plus Cargo dependency closure. The pinned v0.12.0 Rust CLI source is pruned into `third_party/src/superfamiconv/` with its exact `Cargo.lock`, MIT license, deterministic tree hash and a 78-package `cargo vendor --locked` registry closure. Acquisition run 36561241568 proves an isolated-`CARGO_HOME` `--release --locked --offline` build; ordinary toolchain run 36561456234 independently proves the island manifest contract and the normal repository bootstrap/build-smoke path.
 - [ ] ghidra-snes.
 - [ ] pruned Flips CLI.
 - [ ] Beetle/bsnes libretro.

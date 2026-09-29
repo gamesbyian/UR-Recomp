@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "tool": "superfamiconv",
+  "upstream_url": "https://github.com/Optiroc/SuperFamiconv.git",
+  "upstream_revision": "566522204e271885fb771b56f1f85d62f3f41430",
+  "upstream_version": "0.12.0",
+  "vendored_source_path": "third_party/src/superfamiconv",
+  "vendored_tree_sha256": "4fbab584145e91a39642edad19784115e0d3137307c0255179d0dc1da775b620",
+  "cargo_lock_sha256": "7af5600b5dac1853681a15b6f86e069d11cb52552d532a5701fc8fdd156fd975",
+  "cargo_registry_packages": 78,
+  "cargo_vendor_path": "third_party/src/superfamiconv/vendor",
+  "cargo_config_path": "third_party/src/superfamiconv/.cargo/config.toml",
+  "license_spdx": "MIT",
+  "license_path": "third_party/src/superfamiconv/LICENSE",
+  "retained": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "LICENSE",
+    "README.md",
+    "src/**",
+    ".cargo/config.toml",
+    "vendor/**"
+  ],
+  "excluded": [
+    ".github/**",
+    ".vscode/**",
+    ".gitignore",
+    ".clippy.toml",
+    ".rustfmt.toml",
+    "img/**",
+    "scripts/**",
+    "tests/**",
+    "test_data/**",
+    "pyproject.toml",
+    "uv.lock"
+  ],
+  "exclusion_reason": "UR-Recomp consumes the native Rust CLI. The excluded material is upstream development, test, editor, documentation-image or Python-wrapper support and is not needed to build or run the CLI.",
+  "dependency_closure": "cargo vendor --locked from the pinned upstream Cargo.lock; isolated CARGO_HOME release build passes with --locked --offline."
+}

@@ -74,17 +74,29 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ "${{ matrix.tool }}" = "mesen-for-ai" ]; then
-            python3 tools/bootstrap_toolchain.py --offline --tool mesen-for-ai --jobs 2
-          else
-            python3 tools/bootstrap_toolchain.py --tool "${{ matrix.tool }}" --jobs 2
-          fi
+          case "${{ matrix.tool }}" in
+            mesen-for-ai|snes2asm)
+              python3 tools/bootstrap_toolchain.py --offline --tool "${{ matrix.tool }}" --jobs 2
+              ;;
+            *)
+              python3 tools/bootstrap_toolchain.py --tool "${{ matrix.tool }}" --jobs 2
+              ;;
+          esac
       - name: Test vendored mesen-for-ai
         if: matrix.tool == 'mesen-for-ai'
         run: .tools/venvs/mesen-for-ai/bin/python -m unittest discover -s third_party/src/mesen-for-ai/tests -v
       - name: Smoke mesen-for-ai launcher
         if: matrix.tool == 'mesen-for-ai'
         run: </dev/null .tools/venvs/mesen-for-ai/bin/mesen-mcpd
+      - name: Verify vendored PyYAML closure
+        if: matrix.tool == 'snes2asm'
+        run: |
+          .tools/venvs/snes2asm/bin/python - <<'PY'
+          import yaml
+          assert yaml.__version__ == "6.0.3", yaml.__version__
+          assert not yaml.__with_libyaml__
+          print("PyYAML", yaml.__version__, "pure-python")
+          PY
       - name: Smoke adapted snes2asm behavior
         if: matrix.tool == 'snes2asm'
         run: .tools/venvs/snes2asm/bin/python tests/smoke_snes2asm_patch.py

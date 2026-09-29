@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Install a dependency-free src-layout Python tool into the active venv.
+"""Install a repository-owned pure-Python package into the active venv.
 
-This deliberately avoids pip/build isolation so repository-island tools with no
-runtime dependencies can be installed with zero registry/network access.
+This deliberately avoids pip/build isolation so islanded packages can be
+installed with zero registry/network access. It supports arbitrary source
+directories and zero or more console-script launchers.
 """
 from __future__ import annotations
 
@@ -31,12 +32,24 @@ def parse_entry(value: str) -> tuple[str, str, str]:
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--package", required=True)
-    p.add_argument("--entry", required=True, type=parse_entry)
+    p.add_argument(
+        "--source-root",
+        default=".",
+        help="root used to resolve --source-dir (default: current directory)",
+    )
+    p.add_argument(
+        "--source-dir",
+        default=None,
+        help="package source directory relative to --source-root (default: src/PACKAGE)",
+    )
+    p.add_argument("--entry", action="append", default=[], type=parse_entry)
     args = p.parse_args()
 
-    src = Path("src") / args.package
+    source_root = Path(args.source_root)
+    source_dir = Path(args.source_dir) if args.source_dir else Path("src") / args.package
+    src = source_root / source_dir
     if not src.is_dir():
-        raise SystemExit(f"missing src-layout package: {src}")
+        raise SystemExit(f"missing pure-Python package source: {src}")
 
     candidates = [Path(x) for x in site.getsitepackages()]
     if not candidates:
@@ -48,23 +61,28 @@ def main() -> int:
         shutil.rmtree(target)
     shutil.copytree(src, target, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
 
-    script, module, func = args.entry
     python_path = Path(sys.executable).absolute()
     bin_dir = python_path.parent
-    launcher = bin_dir / script
-    launcher.write_text(
-        "#!" + str(python_path) + "\n"
-        f"from {module} import {func} as _entry\n"
-        "raise SystemExit(_entry())\n",
-        encoding="utf-8",
-    )
-    launcher.chmod(launcher.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    installed_launchers: list[Path] = []
+    for script, module, func in args.entry:
+        launcher = bin_dir / script
+        launcher.write_text(
+            "#!" + str(python_path) + "\n"
+            f"from {module} import {func} as _entry\n"
+            "raise SystemExit(_entry())\n",
+            encoding="utf-8",
+        )
+        launcher.chmod(
+            launcher.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+        )
+        installed_launchers.append(launcher)
 
     spec = importlib.util.find_spec(args.package)
     if spec is None:
         raise SystemExit(f"installed package is not importable: {args.package}")
     print(f"installed {args.package} -> {target}")
-    print(f"installed launcher -> {launcher}")
+    for launcher in installed_launchers:
+        print(f"installed launcher -> {launcher}")
     return 0
 
 

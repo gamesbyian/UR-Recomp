@@ -52,6 +52,14 @@
     },
     {
       "kind": "ram",
+      "address": "7F:0000",
+      "name": "Course_ActiveDecodedPayload",
+      "width": "variable / stream-sized",
+      "confidence": 5,
+      "notes": "Confirmed by run 36514985916: active Dragster decoded stream 1 matches 33,814/33,815 bytes from this address; only decoded byte 11 is runtime-mutated."
+    },
+    {
+      "kind": "ram",
       "address": "7E:0411",
       "name": "Player1_XPosition",
       "width": "16-bit",

@@ -615,3 +615,18 @@ Dynamic run 36515746538 independently shows airborne L input changing `$04C7` fr
 **Interpretation:** course decompression/copy completes on guest frame +43; header byte 11 is postprocessed across +43/+44; racer spawn initialization occurs on +45. These are ordered, separable setup phases.
 
 **Next discriminator:** dynamic writer history for `7F:000B` and nearby course-buffer bytes to identify the responsible guest routines and distinguish decompressor output from header postprocessing.
+
+
+### R-SEED-030 — Landing transition matches cross-runtime and exposes two-stage contact settling
+
+**Status:** confirmed event-relative landing behavior  
+**Date:** 2026-09-28  
+**Area:** physics | RAM | input
+
+**Observation:** landing run 36517502791 samples the validated player-1 jump trajectory in both native SNESRecomp and pinned Snes9x. Every tracked semantic checkpoint matches exactly. At `landing-032`, player 1 is still airborne (`Y=843`, `YSpeed=182`, `air=9`). At `landing-034`, position has reached track height `Y=859` and `air=0`, while `YSpeed=222` remains non-zero. At `landing-036`, `Y=859`, `YSpeed=0`, `air=0` in both engines.
+
+**Interpretation:** the sampled update sequence clears airborne/contact state when the racer reaches the track surface, then settles/resets vertical velocity by the next observed checkpoint. Native/reference simulation agrees through this transition.
+
+**Harness caveat:** each scripted `press` entry is followed by one idle frame in the pinned runner/snesref grammar. These are event-relative checkpoints under a deterministic 2-held/1-idle input cadence, not claims about an uninterrupted B-held guest-frame number.
+
+**Consequence:** the landing milestone is cleared for functional native/reference validation. A continuous-hold microtrace is optional future archaeology, not required before moving to collision/finish coverage.

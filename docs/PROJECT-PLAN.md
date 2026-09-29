@@ -153,6 +153,14 @@ The shipped Rob Northen Method 1 unpacker has also been identified in ROM code:
 
 Dessyreqt's public 2014 **Uniracers Tabletop bot** source has been located at Pastebin ID `A0XpKw9v`, via TASVideos submission #4250. The submission states that the bot completes the game without savestate search and can be adjusted for a human to race against it. The script contains frontend navigation, course-specific driving regions and a large labeled RAM map. It should be treated as a major input/fidelity/reverse-engineering resource and adapted into the project's deterministic harness after its addresses are locally verified.
 
+### Frontend/UI state model
+
+The frontend should be treated as a state machine rather than a loose screenshot collection. The seed model lives in `analysis/ui-state-map.yml` with human guidance in `docs/UI-STATE-MAP.md`.
+
+Use public screenshots and the original manual to bootstrap recognition and candidate controls, then promote important edges to local evidence with controller-only fixtures. Existing `dump <tag>` checkpoints already emit framebuffer BMPs plus machine state, so the same deterministic routes can serve UI archaeology, regression testing, future frontend/HD Presentation work, and symbol discovery without inventing a parallel capture system.
+
+Prefer cheap visual/menu inference before code archaeology when the UI is self-explanatory; escalate to tracing/disassembly when timing, hidden conditions, visually identical states, or progression-sensitive behavior make observation ambiguous.
+
 ### Runtime state anchors
 
 Historical TAS work and RetroAchievements provide strong runtime probes for:

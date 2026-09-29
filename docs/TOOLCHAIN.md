@@ -172,7 +172,7 @@ Pinned as a secondary implementation reference and manual/frame-level oracle. It
 
 ### Beetle bsnes libretro
 
-Pinned separately as the automated independent state oracle. Its libretro frontend exposes SNES WRAM as `RETRO_MEMORY_SYSTEM_RAM`, which makes it compatible with the existing `snesref` fixture and checkpoint machinery. Build it with `python3 tools/bootstrap_toolchain.py --tool beetle-bsnes-libretro`; CI smoke-builds the core and the independent-reference workflow drives the same first-race fixture through it and Snes9x.
+Pinned separately as the automated independent state oracle. Its libretro frontend exposes SNES WRAM as `RETRO_MEMORY_SYSTEM_RAM`, which makes it compatible with the existing `snesref` fixture and checkpoint machinery. UR-Recomp owns the complete pinned Linux/libretro source tree under `third_party/src/beetle-bsnes-libretro/`, omitting only upstream CI metadata and Android packaging because the entire fidelity-sensitive source closure is small enough that deeper pruning would add risk for little value. Build it with `python3 tools/bootstrap_toolchain.py --offline --tool beetle-bsnes-libretro`; CI smoke-builds the repository-owned core and source changes trigger the independent-reference workflow, which drives the same first-race fixture through it and Snes9x.
 
 ### ares
 

@@ -23,7 +23,9 @@ def make_v1(path: Path) -> tuple[bytes, list[int]]:
     # Four controller samples (header frame_count is sample_count - 1).
     # Raw Snes9x bits: B, Right+R, reset marker, A+Left+L.
     samples = [0x8000, 0x0110, 0xFFFF, 0x02A0]
-    save_off = 32
+    metadata = "Synthetic Tester".encode("utf-16le")
+    rominfo = b"\x00\x00\x00" + struct.pack("<I", 0x383858C7) + b"UNIRACERS".ljust(23, b"\x00")
+    save_off = 32 + len(metadata) + len(rominfo)
     ctrl_off = save_off + len(packed)
 
     hdr = bytearray(32)
@@ -35,11 +37,11 @@ def make_v1(path: Path) -> tuple[bytes, list[int]]:
     hdr[20] = 0x01
     hdr[21] = 0x01  # reset anchored, NTSC
     hdr[22] = 0x00
-    hdr[23] = 0x03  # sync data exists + legacy WIP1 timing
+    hdr[23] = 0x43  # sync data + legacy WIP1 timing + ROM info
     struct.pack_into("<I", hdr, 24, save_off)
     struct.pack_into("<I", hdr, 28, ctrl_off)
 
-    body = bytes(hdr) + packed + b"".join(struct.pack("<H", x) for x in samples)
+    body = bytes(hdr) + metadata + rominfo + packed + b"".join(struct.pack("<H", x) for x in samples)
     path.write_bytes(body)
     return sram, samples
 
@@ -80,6 +82,8 @@ def run_case(movie: Path, expected_sram: bytes, container: str | None) -> None:
         assert m["sync_data_exists"] is True
         assert m["legacy_sync_flags"]["wip1_timing"] is True
         assert m["legacy_timing_review_required"] is True
+        assert m["metadata"] == "Synthetic Tester"
+        assert m["rom_info"] == {"crc32": "383858c7", "name": "UNIRACERS"}
         assert m["embedded_sram_size"] == 0x20000
         assert m["emitted_sram_size"] == 8192
         assert m["event_runs"] == 3

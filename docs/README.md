@@ -30,6 +30,7 @@ External research sources are owned by `references/catalog.yml`; see `references
 
 - `HD-VISUAL-REFERENCE-PIPELINE.md` — controlled emulator/shader/upscaler reference strategy for Phase E and 4K replacement art, including provenance and headless-capture requirements.
 - `HD-ART-DIRECTION.md` — visual-language and asset-approval rules for coherent HD Presentation reconstruction.
+- `ASSET-RESTORATION-PIPELINE.md` — production graphics/audio restoration hierarchy, tool families, provenance rules, model-handling policy, and approval workflow.
 ## Documentation hygiene
 
 Current authorities say what is true now. Replace stale claims instead of appending corrections beneath them. Chronology belongs in `BRINGUP.md`, dated evidence, or the research ledger as appropriate.

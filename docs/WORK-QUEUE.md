@@ -45,8 +45,8 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 - [~] Audio pipeline runs through the native race fixture: 32 kHz stereo device opens and callbacks begin under SDL dummy audio with no runtime error. Audible/content fidelity still needs capture or listening evidence.
 - [x] Start race deterministically and accelerate under controlled Right input with matching native/reference X position/speed semantics.
 - [x] Jump under sustained B input from the validated moving state. Run 36514981164 causally validates player-1 Y position, signed Y speed and air state against a matched Right-only control in both native and Snes9x.
-- [~] Rotate intentionally with L/R while airborne. L is verified cross-runtime but does not causally change recovered bot field `7E:0F49`; it strongly moves candidate `7E:04C7`. Mirrored R vs the same jump-only control is the active discriminator.
-- [~] Land with event-relative state validation. Sustained-B probe returns player 1 to `air=0`, `ySpeed=0` by the 48-frame hold checkpoint. `tests/input/race-landing-timeline.script` is prepared to sample every two frames from +24 through +48, but is intentionally not wired into CI until mirrored rotation evidence is consumed.
+- [x] Rotate intentionally with L/R while airborne. Run 36516524308 confirms persistent player-1 `7E:04C7` as a modulo-64 pitch angle: eight L frames move 7→55 (−16 mod 64), eight R frames move 7→23 (+16), identically native/reference.
+- [~] Land with event-relative state validation. Rotation is now closed, so `tests/input/race-landing-timeline.script` becomes the active next fixture; sample every two frames from +24 through +48 and identify the first causal `air→0` / ground-contact transition cross-runtime.
 - [ ] Finish a stock race deterministically.
 - [ ] No simulation modifications.
 

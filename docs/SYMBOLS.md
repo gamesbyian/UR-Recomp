@@ -28,14 +28,14 @@ Human-maintained map of understood ROM functions, RAM, tables and hardware-facin
 | `7E:0C63` | `Frontend_SelectedColumn` | 8-bit | 3 | Recovered bot label; native captures change with frontend scene/selection. Rider-select ready state captures `0x06`, matching the bot's left-column target value. |
 
 | `7E:0313` | `Race_ActiveState` | 8-bit | 5 | Recovered bot label `inRace`; verified as `0x01` after deterministic race entry in both native and Snes9x/snesref runs. Non-race screens can contain other transient values, so only `0x01 = active race` is currently asserted. |
-| `7E:0411` | `Player1_XPosition` | 16-bit | 2 | Effective recovered-bot word key `xPos`. Native/reference race-entry dumps agree at 1088; semantic movement validation is active in the race-acceleration fixture. |
+| `7E:0411` | `Player1_XPosition` | 16-bit | 5 | Effective recovered-bot word key `xPos`. Race-acceleration run 36512546762 moves it identically in native/reference from 1088 at rest to 1655 under staged Right input, alongside positive X speed. |
 | `7E:0415` | `Player1_YPosition` | 16-bit | 2 | Effective recovered-bot word key `yPos`. Native/reference race-entry dumps agree at 858; vertical-motion semantics not yet validated. |
-| `7E:04B7` | `Player1_XSpeed` | signed 16-bit | 2 | Effective recovered-bot word key `xSpeed`; bot explicitly sign-converts it. Native/reference race-entry dumps agree at 0; acceleration validation is active. |
+| `7E:04B7` | `Player1_XSpeed` | signed 16-bit | 5 | Effective recovered-bot word key `xSpeed`; bot explicitly sign-converts it. Race-acceleration run 36512546762 changes it identically from 0 to +447 under Right input while X position increases. |
 | `7E:04BB` | `Player1_YSpeed` | signed 16-bit | 2 | Effective recovered-bot word key `ySpeed`; bot sign-converts it for jump decisions. Native/reference race-entry dumps agree at 0. |
 | `7E:0545` | `Player1_AirState` | 8-bit | 2 | Effective player-1 Lua key `airValue`; later duplicate overrides earlier `7E:0547`. Bot treats value 9 specially for jump/tabletop logic. |
 | `7E:0F49` | `Player1_Pitch` | 8-bit | 2 | Effective player-1 Lua key `pitch`; later duplicate overrides earlier `7E:04C9`. Bot uses ranges around 14/24/32/40/50 to choose rotation input. |
 | `7E:0BA1` | `Player1_FacedDirection` | 8-bit | 2 | Recovered bot: 1 = right, 0 = left. Not yet independently validated. |
 | `7E:0FCC` | `Player1_ArrowsVisible` | 8-bit | 2 | Effective duplicate-key address used by recovered bot; 0 means direction arrows showing. |
 | `7E:0FCB` | `Player1_ArrowDirection` | 8-bit | 2 | Effective duplicate-key address used by recovered bot; 0 = right, 1 = left. |
-| `7E:11BA` | `Race_CountdownTimer` | 16-bit | 2 | Recovered bot word key shared by players. Used by braking policy in a numeric interval; exact units/phase semantics remain to be established. |
+| `7E:11BA` | `Race_CountdownTimer` | 16-bit | 4 | Recovered bot word key shared by players. In run 36512546762 it decreases identically in native/reference by exactly `0x0100` per guest frame across the staged pre-start/acceleration checkpoints. Exact game-facing units/threshold meanings remain to be named. |
 | `7E:132B` | `Race_ReverseControls` | 8-bit | 2 | Recovered bot: 2 = controls reversed, 0 = normal. Not yet independently validated. |

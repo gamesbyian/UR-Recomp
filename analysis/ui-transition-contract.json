@@ -444,7 +444,7 @@
   ],
   "capability_dependencies": {
     "multiplayer_controller_2": {
-      "status": "open",
+      "status": "behavioral_verification_pending",
       "plan": "docs/TWO-PLAYER-FIXTURE-PLAN.md",
       "blocks_states": [
         "TWO_PLAYER_SELECT",
@@ -461,7 +461,9 @@
       "planned_fixture_id": "ui-two-player-handoff.input",
       "provider_pr": 31,
       "transport_format": "start:duration:p1-mask[:p2-mask]",
-      "integration_note": "Use PR31 neutral controller transport across native/snesref/Mesen; retain scene-keyed scripts for waits/dumps rather than inventing a second multiplayer grammar."
+      "integration_note": "Use PR31 neutral controller transport across native/snesref/Mesen; retain scene-keyed scripts for waits/dumps rather than inventing a second multiplayer grammar.",
+      "transport_status": "merged_on_main",
+      "note": "Shared deterministic P1/P2 transport is merged on main. Keep deeper 2P/VS edges blocked until the behavioral acceptance route proves P2-only causality, handoff, and multiplayer state checkpoints."
     },
     "name_entry_cursor_mapping": {
       "status": "open",

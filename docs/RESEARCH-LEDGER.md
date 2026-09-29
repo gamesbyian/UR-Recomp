@@ -574,3 +574,18 @@ Dynamic run 36515746538 independently shows airborne L input changing `$04C7` fr
 **Interpretation:** `$04C7/$04C9` are persistent paired per-racer pitch/rotation state slots. `$0F49` is a shared current-player working/scratch value copied into whichever racer slot is being updated, explaining why the historical bot could use it operationally while it is not stable player-1 storage.
 
 **Discriminating test:** mirrored R input should drive player-1 `$04C7` complementarily to L, establishing the input-direction convention.
+
+
+### R-SEED-027 — Player pitch is a modulo-64 persistent angle with L/R direction confirmed
+
+**Status:** confirmed  
+**Date:** 2026-09-28  
+**Area:** input | physics | RAM
+
+**Observation:** mirrored rotation run 36516524308 applies eight frames of L or R during the same validated airborne state, with jump-only control. Native and Snes9x produce identical persistent slot values. At the intervention checkpoint, control is `7E:04C7 = 0x07`; L gives `0x37`; R gives `0x17`. The paired player-2 `7E:04C9` and scratch `7E:0F49` follow the second/current-player update path rather than the controlled player-1 intervention.
+
+**Interpretation:** the observed player-1 pitch/orientation domain is circular modulo 64. From 7, L changes the angle by −16 modulo 64 (`7−16 ≡ 55 = 0x37`), while R changes it by +16 (`7+16 = 23 = 0x17`). This matches the historical bot's threshold bands around 14/24/32/40/50 much better than treating the value as an unconstrained linear byte.
+
+**Evidence:** run 36516524308; artifact 11011037312; direct WRAM dumps; sibling shipped-code stores at `02:8D84` and `02:9272`.
+
+**Consequence:** `7E:04C7` is confirmed persistent player-1 pitch angle; `7E:04C9` is the paired player-2 slot; `7E:0F49` remains shared current-player working state. Rotation milestone is cleared.

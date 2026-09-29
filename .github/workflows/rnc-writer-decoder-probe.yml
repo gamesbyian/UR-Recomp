@@ -37,9 +37,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- analysis/generated/rnc-writer-decode.json && \
-             ! git ls-files --error-unmatch analysis/generated/rnc-writer-decode.json >/dev/null 2>&1; then
-            echo "no report change"
+          if git ls-files --error-unmatch analysis/generated/rnc-writer-decode.json >/dev/null 2>&1 && \
+             git diff --quiet -- analysis/generated/rnc-writer-decode.json; then
+            echo "report already current"
             exit 0
           fi
           git add analysis/generated/rnc-writer-decode.json

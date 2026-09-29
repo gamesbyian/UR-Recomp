@@ -708,3 +708,16 @@ Direct inspection of all 4,975 controller samples in the reset-anchored 2008 WIP
 **Static cross-check:** `01:BA96` is inside generic RNC Method-1 `GTBITS2`; the shipped bytes align with preserved source `LSR A / ROR BITBUFL / DEY / BEQ / DEX / ...`. That makes a literal “course-byte store at BA96” interpretation impossible and validates the scope-entry reading.
 
 **Discriminating test:** capture exact interpreted opcode PC at WRAM-write time, or narrow the interpreter bridge scope enough to isolate the true store instruction. Keep the established write values/timing unchanged.
+
+
+### R-SEED-037 — 2008 WIP sample zero is correctly aligned; legacy WIP1 timing remains a compatibility variable
+
+**Status:** sample alignment confirmed; legacy timing compatibility open  
+**Date:** 2026-09-28  
+**Area:** TAS | input | emulator compatibility
+
+**Source-level observation:** Snes9x movie playback reads sample 0 as baseline controller data before starting movie playback, then sets movie frame/sample counters to zero. The next movie update advances to later samples. The project's `start-frame:duration:mask` conversion therefore has the correct frame-zero convention.
+
+**Movie-specific observation:** the 2008 WIP is SMV v1 with sync-data-present and `MOVIE_SYNC_WIP1TIMING` set; all other legacy behavioral sync flags except ROM-info are clear. Modern Snes9x no longer uses WIP1 timing.
+
+**Interpretation:** do not introduce an input-frame offset to make the movie sync. If modern pinned-Snes9x replay diverges, first reproduce or characterize the old 1.43 WIP1 timing mode and test whether Uniracers is sensitive to it.

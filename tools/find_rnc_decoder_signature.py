@@ -60,6 +60,24 @@ def main():
             rendered=", ".join(f"`0x{x:06X}` (LoROM {snes_lorom(x)})" for x in hits) or "none"
             lines.append(f"- {pname}: {rendered}")
         lines.append("")
+    lines += ["## Preserved RNC routine bounds",""]
+    tail_len=len(PATTERNS["makehuff-tail"])
+    for name,path in ROMS.items():
+        pro=allhits[name]["makehuff-prologue"]
+        tail=allhits[name]["makehuff-tail"]
+        if len(pro)==1 and len(tail)==1 and tail[0] >= pro[0]:
+            end=tail[0]+tail_len
+            entry=allhits[name]["entry-loose"][0] if allhits[name]["entry-loose"] else None
+            rel=(end-entry) if entry is not None else None
+            lines.append(
+                f"- {name}: MAKEHUFF \`0x{pro[0]:06X}\`..\`0x{end-1:06X}\` "
+                f"(tail RTS at \`0x{end-1:06X}\`"
+                + (f", RNC entry-relative end +\`0x{rel:X}\`" if rel is not None else "")
+                + ")."
+            )
+        else:
+            lines.append(f"- {name}: routine bounds unresolved (prologue hits={pro}, tail hits={tail}).")
+    lines.append("")
     lines += ["## Traced writer-site context","",
               "Dynamic trace run 36517696016 identified USA interpreter attribution-scope entries 01:BA96 and 01:BB73. "
               "For the other builds, contexts below use the unpacker-entry displacement so structurally corresponding code can be compared without assuming absolute addresses.",""]

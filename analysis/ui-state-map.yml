@@ -37,13 +37,39 @@ states:
     kind: sequence
     confidence: medium
     evidence: [primary_manual]
-    runtime_signatures:
-      currentMenu_7E009F:
-        demo: "0x00 (recovered 2014 bot label; not yet locally promoted)"
-        splash: "0x84 (recovered 2014 bot label; not yet locally promoted)"
-    description: "Power-on/logo/intro sequence before the main menu."
+    description: "Power-on/reset sequence before the first player-visible intro state."
     transitions:
-      - input: "sequence completes or accepted skip input"
+      - event: "startup advances"
+        to: SPLASH
+        confidence: inferred
+
+  - id: SPLASH
+    family: startup
+    kind: screen
+    confidence: medium
+    evidence: [observed_screenshot]
+    recovered_menu_labels:
+      currentMenu_7E009F: "0x84"
+    description: "Intro/splash state. Public galleries label an Intro Screen; recovered 2014 bot calls menu value 0x84 splash."
+    transitions:
+      - input: "automatic advance or accepted skip input"
+        to: MAIN_MENU
+        confidence: inferred
+      - input: "hold Down + L + R, press B"
+        to: ENDING
+        confidence: low
+        note: "Public cheat references describe a title-screen ending shortcut; locally unverified."
+
+  - id: DEMO
+    family: startup
+    kind: runtime
+    confidence: low
+    evidence: []
+    recovered_menu_labels:
+      currentMenu_7E009F: "0x00"
+    description: "Recovered 2014 bot label for demo/attract behavior; trigger and return timing are not yet locally reproduced."
+    transitions:
+      - event: "demo ends or player exits"
         to: MAIN_MENU
         confidence: inferred
 
@@ -86,6 +112,9 @@ states:
       - input: "hold Left + A + L + R"
         to: ERASE_ALL_CONFIRM
         confidence: high
+      - event: "idle timeout"
+        to: DEMO
+        confidence: low
 
   - id: PLAYER_SELECT_P1
     family: race_setup
@@ -406,6 +435,20 @@ states:
       - input: "Y or X / completion"
         to: OPTIONS_MENU
         confidence: medium
+      - event: "forbidden name accepted"
+        to: FORBIDDEN_NAME_REJECTION
+        confidence: medium
+
+  - id: FORBIDDEN_NAME_REJECTION
+    family: options
+    kind: screen
+    confidence: medium
+    evidence: [observed_screenshot]
+    description: "Player-facing rejection/Easter-egg screen for forbidden names; public gallery includes the 'No Sonic Allowed' example."
+    transitions:
+      - input: "advance/back"
+        to: RENAME_PLAYER
+        confidence: inferred
 
   - id: DEFINE_LEAGUE
     family: options
@@ -419,6 +462,19 @@ states:
       - input: "Y or X / completion"
         to: OPTIONS_MENU
         confidence: medium
+
+  - id: ENDING
+    family: ending
+    kind: sequence
+    confidence: medium
+    evidence: []
+    recovered_menu_labels:
+      currentMenu_7E009F: "0x5B"
+    description: "Ending sequence/state. Recovered 2014 bot labels 0x5B as ending and advances it with A; public cheat references expose a shortcut from the title/splash."
+    transitions:
+      - input: "A / sequence completion"
+        to: MAIN_MENU
+        confidence: inferred
 
   - id: ERASE_ALL_CONFIRM
     family: destructive
@@ -437,7 +493,7 @@ states:
 
 open_questions:
   - id: UIQ-001
-    question: "Promote/reject recovered demo=0x00 and splash=0x84 labels by local capture; determine skip inputs and timing."
+    question: "Promote/reject SPLASH=0x84 and DEMO=0x00 by local capture; determine splash skip inputs, attract timeout, and demo return behavior."
   - id: UIQ-002
     question: "Exact input mapping on every menu: whether A/B are equivalent everywhere and whether Start advances anywhere beyond MAIN_MENU quick-start."
   - id: UIQ-003
@@ -453,6 +509,6 @@ open_questions:
   - id: UIQ-008
     question: "Pause presentation and any pause-menu actions beyond resume."
   - id: UIQ-009
-    question: "Attract/demo behavior and idle timeout from MAIN_MENU/title."
+    question: "Attract/demo behavior and idle timeout from MAIN_MENU; verify public ending-shortcut chord and ENDING=0x5B without treating cheat-site text as canonical."
   - id: UIQ-010
     question: "Hunter unlock transition and any Anti-Uni-specific frontend/results states."

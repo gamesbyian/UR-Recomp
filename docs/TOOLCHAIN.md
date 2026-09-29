@@ -22,6 +22,16 @@ python3 tools/bootstrap_toolchain.py --system-packages
 
 The bootstrap script never runs `sudo` or build commands through a shell. Manifest build steps are argument vectors, pinned revisions must be full commit IDs, and declared build artifacts are checked after successful builds. Run `python3 tools/bootstrap_toolchain.py --validate` for a no-network schema/integrity check.
 
+Repository-owned third-party migration state is tracked separately in `third_party/manifest.json`. Inspect it through:
+
+```bash
+python3 tools/bootstrap_toolchain.py --island-status
+python3 tools/validate_island.py --status
+```
+
+When a component is marked `vendored`, bootstrap prefers that repository-owned source over the external Git pin. `--offline` is fail-closed: it permits only repository-owned buildable sources and exits before any GitHub fetch for pending/unclassified tools. This is intentionally strict so an "offline" run can never succeed by quietly touching the network.
+
+
 ## Already in the repository
 
 ### SNESRecomp and snesref

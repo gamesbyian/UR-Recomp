@@ -73,7 +73,7 @@
     {
       "id": "race-jump",
       "input_script": "tests/input/race-jump.script",
-      "purpose": "Continue from the validated moving first-race state, compare a two-frame Right+B intervention against a timing-identical Right-only control, and identify causal jump-state fields across native and Snes9x/snesref.",
+      "purpose": "Continue from the validated moving first-race state, compare sustained Right+B input against timing-identical Right-only control, and identify causal player-1 jump state across native and Snes9x/snesref.",
       "engines": [
         "native-recomp",
         "snesref-snes9x"
@@ -81,11 +81,11 @@
       "checkpoints": [
         "race-entered",
         "accel-180",
-        "jump-trigger",
-        "jump-early",
-        "jump-rise",
-        "jump-mid",
-        "jump-late",
+        "jump-hold-024",
+        "jump-hold-048",
+        "jump-release-004",
+        "jump-release-012",
+        "jump-release-028",
         "jump-settle"
       ],
       "compare_surfaces": [

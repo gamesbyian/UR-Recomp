@@ -11,6 +11,20 @@
       "evidence_/_notes": "Identified by unique opcode-structure match to preserved 1992 SNES `RNC_1.S`; ROM offset `0x00B8F1`. Regional/build equivalents: Europe retail `01:B8E2` (`0x00B8E2`), 1994-11-29 PAL prototype `01:B8D1` (`0x00B8D1`), legacy beta identical to USA."
     },
     {
+      "kind": "function",
+      "address": "01:BB60",
+      "name": "RNC1_MakeHuffTail",
+      "confidence": "source-aligned code",
+      "evidence_/_notes": "5"
+    },
+    {
+      "kind": "function",
+      "address": "01:BB6F",
+      "name": "RNC1_PostHelper",
+      "confidence": "code",
+      "evidence_/_notes": "4"
+    },
+    {
       "kind": "ram",
       "address": "7E:009F",
       "name": "Frontend_CurrentMenu",

@@ -222,6 +222,7 @@ jobs:
           path: |
             ${{ runner.temp }}/wip-2008.input
             ${{ runner.temp }}/wip-2008.json
+            ${{ runner.temp }}/wip-2008.srm
             ${{ runner.temp }}/dragster-state.tsv
             ${{ runner.temp }}/native-dragster-state.json
             ${{ runner.temp }}/native-dragster-state.txt

@@ -23,6 +23,10 @@ Useful comparison surfaces include full WRAM, WRAM write history, CPU state arou
 
 The current `reach-first-race` fixture already runs unchanged through native recompilation and Snes9x/snesref and compares full 128 KiB WRAM checkpoints. Expand that same harness before creating parallel replay machinery.
 
+### Two-player atlas/fidelity completion gate
+
+`docs/TWO-PLAYER-FIXTURE-PLAN.md` owns the behavioral acceptance route for the shared P2 transport. Before menu/gameplay/OAM/split-screen fidelity is considered complete, preserve deterministic evidence for P1-to-P2 rider-selection handoff, VS challenger/challenge-track progression, first two-player race entry, simultaneous P1/P2 input, paired player-state checkpoints, and split-screen framebuffer/OAM behavior. One-player coverage must not silently stand in for multiplayer coverage.
+
 ## Controlled mutation
 
 Use `tools/mutate_rom.py` for byte-level hypothesis experiments. It refuses in-place edits, bounds-checks and overlap-checks patches, writes a separate ROM copy, and emits a JSON record containing the original/output SHA-256 hashes and every before/after byte range.

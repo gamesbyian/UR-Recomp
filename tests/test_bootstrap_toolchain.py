@@ -63,6 +63,10 @@ def main() -> int:
     expect_invalid(bad, "duplicate tool id")
 
     bad = copy.deepcopy(manifest)
+    bad["tools"][0]["install_mode"] = "mystery"
+    expect_invalid(bad, "install_mode")
+
+    bad = copy.deepcopy(manifest)
     bad["tools"][0]["build"] = ["make -j8"]
     expect_invalid(bad, "argv list")
 
@@ -70,7 +74,18 @@ def main() -> int:
     bad["tools"][0]["build"] = [["make", "-j{mystery}"]]
     expect_invalid(bad, "unsupported build placeholder")
 
-    print("PASS: toolchain manifest schema, argv expansion and safety guards")
+    with __import__("tempfile").TemporaryDirectory() as td:
+        td = Path(td)
+        (td / "present.bin").write_bytes(b"x")
+        mod.verify_artifacts({"id": "x", "artifacts": ["present.bin"]}, td)
+        try:
+            mod.verify_artifacts({"id": "x", "artifacts": ["missing.bin"]}, td)
+        except SystemExit as exc:
+            assert "missing.bin" in str(exc)
+        else:
+            raise AssertionError("missing artifact was not rejected")
+
+    print("PASS: toolchain manifest schema, argv expansion, artifact checks and safety guards")
     return 0
 
 

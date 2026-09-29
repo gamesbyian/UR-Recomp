@@ -18,7 +18,7 @@ Compact router for coding and research agents. Load the smallest current authori
 | Recovered code/data symbol | `docs/SYMBOLS.md` |
 | Original DMA development history / missing artifacts | `docs/original-development/DEVELOPER-TECHNICAL-HISTORY.md`, `docs/original-development/ACQUISITION-LEDGER.md` |
 | External source or imported research artifact | `references/README.md`, `references/catalog.yml` |
-| Tool choice / installing research software | `docs/TOOLCHAIN.md`, `tools/toolchain.json` |
+| Tool choice / installing research software | `docs/TOOLCHAIN.md`, `tools/toolchain.json` |\n| Adopting or adapting imported scripts/source | `docs/THIRD-PARTY-CODE-AUDIT.md`, then the imported source |
 | Periodic repository hygiene | Execute `docs/PERIODIC-REPOSITORY-HYGIENE.md` from current `main` |
 
 `docs/README.md` inventories document ownership. It is not a second agent guide.
@@ -45,7 +45,7 @@ Compact router for coding and research agents. Load the smallest current authori
 18. SNESRecomp's trace TCP server is command/response, not greeting-based. Reuse the established trace client/workflow rather than inventing a new handshake. Trace builds are much slower than ordinary runs, so batch early stepping within the server's synchronous step deadline and give the outer host timeout generous headroom.
 19. A full-WRAM differential is a discovery surface, not automatically a fidelity verdict. Classify differences by writer/history and semantics first; stale stack bytes and free-running timing/presentation counters are not simulation mismatches unless they affect a proven invariant.
 
-## Repository boundaries
+20. Imported executable code is raw material, not a trusted dependency. Preserve provenance, but normalize useful behavior into project-owned tools and add regression coverage before depending on it.\n\n## Repository boundaries
 
 - `reference/` contains project-input and project-local reference material needed to reproduce work, including preserved ROM builds and historical tool packages.
 - `references/` is the provenance-managed external research corpus: imported third-party evidence under `references/imported/`, project summaries under `references/notes/`, and the source registry in `references/catalog.yml`.

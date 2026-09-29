@@ -402,6 +402,8 @@ The final seven are `0x00C6`, `0x00C8`, `0x00C9`, and contiguous `0x01D1–0x01D
 
 **Interpretation:** one plausible explanation is differing residual stack contents caused by different call/interrupt execution paths or stack depth, rather than a durable gameplay variable. This is not yet established: Uniracers could also use page `$01` for ordinary RAM while in native mode.
 
+**Static candidate scan:** run 36509923408 scanned raw 65816 store/RMW encodings for all seven divergent offsets. For `0x01D1–0x01D4` it found only a small set of instruction-shaped byte patterns, dominated by RMW/STZ forms; it did not expose an obvious direct semantic store sequence. Because this is a raw-byte candidate scan rather than control-flow-aware disassembly, hits may be data and absence of a direct store does not cover stack pushes, JSR/JSL return frames, interrupts or indirect/indexed effects. The result is therefore weakly consistent with, but does not establish, the stack-residue interpretation.
+
 **Discriminating test:** use the trace build to identify writers to `0x01D1–0x01D4`, capture guest SP when race state becomes active, and determine whether the differing bytes sit below/within the live stack range and are written by push/interrupt/call machinery or by ordinary game routines.
 
 **Dependencies:** the stack interpretation depends on actual Uniracers stack-pointer behavior at the relevant frames; address location alone is insufficient.

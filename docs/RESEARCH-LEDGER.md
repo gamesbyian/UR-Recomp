@@ -645,3 +645,16 @@ Dynamic run 36515746538 independently shows airborne L input changing `$04C7` fr
 **Caution:** both PCs lie near the known Method-1 unpacker entry `01:B8F1`. Do not yet classify `81BA96` as game-specific postprocessing or generic RNC internals from address proximity alone.
 
 **Discriminating test:** disassemble the shipped code around `01:BA96` and `01:BB73`, align it to preserved `RNC_1.S`, and identify the exact algorithmic blocks/callers.
+
+
+### R-SEED-032 — Recovered 2008 WIP controller stream is directly parseable
+
+**Status:** confirmed container/input facts; race-boundary interpretation pending replay  
+**Date:** 2026-09-28  
+**Area:** input | TAS | autonomous play
+
+**Observation:** `references/imported/tas-bots/uniracers-2008-wip-microstorage.smv` is a raw SMV v1 file, 10,542 bytes, reset-anchored, with one recorded controller and 4,974 header frames. Controller data starts at offset 592. Direct bit translation into the project/snesref 12-bit mask exposes a long regular control block around frames 1184–2655, including repeated `B+Right+R`, periodic `X`, short left corrections, and a final 359-frame Right interval. A later complex block begins around frame 3472.
+
+**Interpretation:** this is a high-value candidate source for an exact known-working Dragster controller sequence, potentially preferable to approximating the 2014 Lua policy. The apparent race boundaries are not yet promoted because they are inferred from input shape alone.
+
+**Discriminating test:** replay the exact translated SMV stream against the canonical USA ROM in pinned Snes9x/snesref and sample `7E:0313`, `7E:009F`, track ID and player-state anchors around the candidate boundaries. Workflow: `.github/workflows/historical-wip-dragster.yml`.

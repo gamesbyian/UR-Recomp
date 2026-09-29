@@ -54,7 +54,7 @@ def main() -> int:
         default=900,
         help="step in batches until this many frames have been requested, then probe every frame",
     )
-    ap.add_argument("--coarse-step", type=int, default=100)
+    ap.add_argument("--coarse-step", type=int, default=25)
     ap.add_argument("--address", action="append", type=lambda x: int(x, 0))
     ap.add_argument("--json-out", type=Path)
     args = ap.parse_args()

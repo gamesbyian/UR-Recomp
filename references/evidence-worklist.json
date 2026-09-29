@@ -189,18 +189,20 @@
       "id": "spc-audio-driver-and-unused-music",
       "value": "high",
       "cost": "low",
-      "status": "acquisition-needed",
+      "status": "ready",
       "source_ids": [
         "snesmusic-uniracers-spc",
         "zophar-uniracers-spc",
         "tpp-musiclibrary-uniracers"
       ],
       "question": "Can the preserved SPC set fingerprint the audio driver, song table, sample/instrument layout, and reachability of the two tagged unused songs?",
-      "next_discriminator": "Acquire the public SNESmusic/Zophar SPC set itself; the pinned TwitchPlaysPokemon manifest independently confirms ten filenames and both unused songs but deliberately omits binaries. Preserve per-track hashes and fingerprint shared APU RAM/driver/sample regions before comparing them to ROM data or runtime APU uploads.",
+      "next_discriminator": "Use analysis/generated/uniracers-spc-summary.json as the APU-state fingerprint. Locate the CPU-side APU upload/decompression path and ROM-side song/sample selectors by matching runtime transfers or reconstruction behavior rather than expecting the 0x03D5-0x1527 driver candidate or 0x3000-0x5F87 sample-bank prefix to appear verbatim in ROM. Then test whether either unused-song selector is referenced by dormant retail code/data.",
       "deliverables": [
-        "SPC-set provenance and per-file hashes",
-        "audio-driver/sample fingerprint",
-        "unused-song reachability hypothesis"
+        "SPC archive provenance, archive hash and ten per-track hashes (landed)",
+        "shared APU driver/sample fingerprint and reusable analyzer (landed)",
+        "Unused Song 1 classified with Demo Race; Unused Song 2 classified with numbered-race family (landed)",
+        "CPU-side upload/decompression path and ROM-side song selector mapping (next)",
+        "unused-song retail reachability result (next)"
       ],
       "tags": [
         "audio",

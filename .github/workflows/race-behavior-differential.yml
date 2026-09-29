@@ -256,10 +256,6 @@ jobs:
             "$RUNNER_TEMP/native-jump-dumps" "${CHECKPOINTS[@]}" \
             --json-out "$RUNNER_TEMP/native-jump-paired-slots.json" \
             | tee "$RUNNER_TEMP/native-jump-paired-slots.txt"
-          python3 tools/summarize_paired_player_slots.py \
-            "$RUNNER_TEMP/native-jump-control-dumps" "${CHECKPOINTS[@]}" \
-            --json-out "$RUNNER_TEMP/native-control-paired-slots.json" \
-            | tee "$RUNNER_TEMP/native-control-paired-slots.txt"
 
       - name: Compare full WRAM jump checkpoints
         shell: bash
@@ -346,6 +342,24 @@ jobs:
             "$RUNNER_TEMP/reference-jump-control-state.json" \
             --require-cross-engine-match \
             --json-out "$RUNNER_TEMP/jump-control-semantic-validation.json"
+
+      - name: Summarize paired racer slots for no-jump control
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHECKPOINTS=(
+            --checkpoint accel-180
+            --checkpoint jump-hold-024
+            --checkpoint jump-hold-048
+            --checkpoint jump-release-004
+            --checkpoint jump-release-012
+            --checkpoint jump-release-028
+            --checkpoint jump-settle
+          )
+          python3 tools/summarize_paired_player_slots.py \
+            "$RUNNER_TEMP/native-jump-control-dumps" "${CHECKPOINTS[@]}" \
+            --json-out "$RUNNER_TEMP/native-control-paired-slots.json" \
+            | tee "$RUNNER_TEMP/native-control-paired-slots.txt"
 
       - name: Compare B-jump against matched control
         shell: bash

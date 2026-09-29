@@ -350,3 +350,21 @@ Immediate integration targets:
 - [ ] Pilot deterministic extract -> semantic artifact -> unchanged reconstruction validation on the first suitable graphics/course asset family.
 - [ ] Add evidence strength/class metadata to promoted symbols when the symbol schema is next extended.
 - [ ] Add compact failure-capsule generation only if repeated first-divergence investigations show manual artifact bundling is recurring work.
+
+
+## Recovery ownership: evidence-to-executable backlog (2026-09-29)
+
+The project has largely solved *evidence intake*; current research should emphasize conversion of evidence into executable knowledge. The canonical product plan's **Evidence-to-executable recovery backlog (2026-09-29)** is binding. This research plan owns the investigative side of that backlog.
+
+Priority research lanes, in current order of opportunity rather than permanent importance:
+
+1. Finish CPU-side audio package archaeology, including helper `02:812A`, selector-ID -> block/APU mapping, six selector-table attribution, and direct testing of uncalled table `03:FB95` against unused-song evidence. Reconcile #47 and #48 rather than running parallel incompatible interpretations.
+2. Convert known emulator compatibility seams into deterministic fixtures, especially active-display OAM/two-player behavior. The Beetle/bsnes island must retain independent-reference value and fail-closed offline reproducibility when #40 is recovered.
+3. Resume four-ROM differential archaeology outside RNC streams, classifying executable/table/frontend/localization/timing/protection deltas and promoting verified semantics.
+4. Trace readers/control bytes for the recovered Sayans translation regions and continue recovery of later Sayans and Sinister patches.
+5. Continue TAS/cheat/RetroAchievements/speedrun promotion to verified symbols, including the targeted archival hunt for `usjo13.lua`; preserve replay-version incompatibilities as evidence rather than papering them over with arbitrary timing offsets.
+6. Continue archival reconstruction of DMA's original authoring pipeline opportunistically: editor/framework source, asset/compression tooling, plotter material and development media are high-leverage if found but are not gating dependencies.
+7. Keep weak/dead-project breadcrumbs and author pivots in the provenance system without treating them as authoritative.
+8. Finish Tier-1 UI atlas evidence needed by fidelity, 2P/VS behavior, emulator seams and product decisions; do not spend disproportionate effort on archaeological-tail minutiae.
+
+For every lane, the preferred end product is a fixture, verified symbol, parser, generated report, regression, implementation constraint or durable negative result. A link alone is intake, not completion.

@@ -5,6 +5,7 @@ GLOBAL {
 };
 SEGMENT { START $8000; END $FFFF; NAME "bank_02"; };
 
+LABEL { NAME "APU_ResolveBlockPointer"; ADDR $812A; };
 LABEL { NAME "APU_TransferStateInit"; ADDR $8298; };
 LABEL { NAME "APU_StreamTransfer_Wrapper"; ADDR $82A5; };
 LABEL { NAME "APU_StreamTransfer"; ADDR $82A9; };

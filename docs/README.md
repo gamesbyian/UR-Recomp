@@ -16,7 +16,7 @@ Task routing lives in [`../AGENTS.md`](../AGENTS.md). This file inventories owne
 | [`SYMBOLS.md`](SYMBOLS.md) | Reconstructed code/data/RAM symbols |
 | [`FRAMEWORK-PIN.md`](FRAMEWORK-PIN.md) | SNESRecomp revision and pin rationale |
 | [`ROM-SAFETY.md`](ROM-SAFETY.md) | Private-ROM handling and public-release boundary |
-| [`WIDESCREEN.md`](WIDESCREEN.md) | Focused implementation notes and invariants for the Widescreen feature; subordinate to the project plan |
+| [`WIDESCREEN-RECONNAISSANCE.md`](WIDESCREEN-RECONNAISSANCE.md) | Phase F staged-exposure harness, horizontal-domain model, aspect policy, scene classification, and split-screen widening evidence contract |
 | [`TOOLCHAIN.md`](TOOLCHAIN.md) | Research/development tool roles, installation policy, and selection guidance |
 | [`TOOL-INTEROPERABILITY.md`](TOOL-INTEROPERABILITY.md) | Tool input/output formats, verified handoffs, adapter seams, and efficient multi-tool chains |
 | [`TOOLING-AUDIT-CLOSEOUT.md`](TOOLING-AUDIT-CLOSEOUT.md) | Remaining tooling-audit scope, priority order, transfer/defer rules, and closure condition |
@@ -29,6 +29,7 @@ Task routing lives in [`../AGENTS.md`](../AGENTS.md). This file inventories owne
 External research sources are owned by `references/catalog.yml`; see `references/README.md`. Compact machine-generated ROM analyses live in `analysis/generated/`.
 
 - `HD-VISUAL-REFERENCE-PIPELINE.md` — controlled emulator/shader/upscaler reference strategy for Phase E and 4K replacement art, including provenance and headless-capture requirements.
+- `HD-ART-DIRECTION.md` — visual-language and asset-approval rules for coherent HD Presentation reconstruction.
 ## Documentation hygiene
 
 Current authorities say what is true now. Replace stale claims instead of appending corrections beneath them. Chronology belongs in `BRINGUP.md`, dated evidence, or the research ledger as appropriate.

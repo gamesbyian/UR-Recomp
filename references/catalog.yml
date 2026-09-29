@@ -452,3 +452,22 @@ sources:
     rights: "Screenshot reuse license not established; indexed only. Cheat text is secondary-source evidence."
     local: "references/notes/ui-screen-corpus.md"
     relevance: "Provides additional menu/victory screenshot leads, forbidden-name-screen context, and a cheap title-screen ending shortcut suitable for local verification."
+
+
+  - id: wide-snes
+    title: "Super Mario World Widescreen / wide-snes"
+    type: widescreen_reference_implementation
+    url: "https://github.com/VitorVilela7/wide-snes"
+    revision: "b988c0afdb98ec778ce4cd140abc1ae3b5828fab"
+    rights: "Third-party source; upstream licensing/rights apply. Indexed and summarized for research rather than vendored here."
+    local: "references/notes/widescreen-and-modern-presentation-prior-art.md"
+    relevance: "Concrete SNES widescreen prior art: 352x224/384x224 modes, ROM-side widening fixes, bsnes-hd configuration, and explicit pixel-aspect variants. Useful for classifying viewport, culling, object, HUD, boundary and PAR assumptions before Uniracers Phase F."
+
+  - id: zelda64recomp-presentation
+    title: "Zelda64Recomp modern renderer and widescreen architecture"
+    type: recompilation_presentation_reference
+    url: "https://github.com/Zelda64Recomp/Zelda64Recomp"
+    revision: "b65c482ed672258eb684ab94a4e8c8aa662615ee"
+    rights: "GPL-3.0 upstream. Indexed and summarized for architectural research."
+    local: "references/notes/widescreen-and-modern-presentation-prior-art.md"
+    relevance: "Static-recompilation precedent for arbitrary aspect ratios, independent HUD placement, preservation of legacy effects, and modern-renderer presentation layered over authoritative game execution."

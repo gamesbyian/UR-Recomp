@@ -38,6 +38,7 @@ External references are leads. Concrete project claims should be reproduced loca
 - TAS/SRAM/bot/course-map archaeology: `references/notes/tas-and-sram-research.md`.
 
 - RetroAchievements RAM-address evidence: `references/notes/retroachievements-ram.md` and mirrored `references/imported/retroachievements/1295.json`.
+- Widescreen/modern-renderer prior art: `references/notes/widescreen-and-modern-presentation-prior-art.md` (pinned wide-snes and Zelda64Recomp references; bsnes-hd diagnostic taxonomy).
 - Historical Snes9x 1.43-era source/problem snapshots: `references/imported/emulators/snes9x-1.43/`.
 - Manual and PAL course-map scan sources are tracked in `references/catalog.yml`.
 

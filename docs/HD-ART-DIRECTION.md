@@ -1,0 +1,125 @@
+# HD Presentation visual-language specification
+
+Status: Phase G design authority. This document starts conservative and should become more specific as original assets, animation indexing and historical source evidence are recovered.
+
+The job is to reconstruct Uniracers' presentation coherently at modern resolution without changing authoritative game behavior or turning every ambiguous source pixel into permission to invent detail.
+
+## Non-negotiable rules
+
+1. Original simulation/state selects presentation state and timing.
+2. Original silhouette, pose, contact and composition outrank decorative detail.
+3. Replacement art must remain coherent across an animation sequence, not merely attractive frame-by-frame.
+4. Where source evidence is ambiguous, retain the ambiguity in the asset dossier until a deliberate design decision is recorded.
+5. Authentic stock presentation remains available as fallback and comparison.
+
+## Evidence order
+
+Prefer:
+
+1. original ROM graphics/palette/state identity;
+2. deterministic raw framebuffer and isolated layers;
+3. neighboring animation states and repeated motifs;
+4. documented original-development pipeline/history;
+5. independent scaler/display reconstructions as interpretations;
+6. external sprite sheets/screenshots as comparison references;
+7. newly invented detail only after the above are exhausted.
+
+No single upscaler or model output is evidence of authorial intent by itself.
+
+## Geometry
+
+For moving gameplay art, preserve:
+
+- semantic pivot;
+- track/contact point;
+- apparent size across frames;
+- silhouette envelope;
+- relative attachment geometry;
+- state-to-state pose identity.
+
+For the unicycle in particular, wheel-ground contact and stable frame-to-frame geometry are release criteria, not polish.
+
+## Material and lighting
+
+The final material model is intentionally not fixed yet.
+
+Before production replacement art begins, choose and document:
+
+- wheel/frame/saddle/pedal material interpretation;
+- light direction/environment assumptions;
+- specular/highlight behavior;
+- outline/edge treatment;
+- shadow behavior;
+- maximum micro-detail appropriate to the game's scale and speed.
+
+Use original rendered frames and developer-history evidence to constrain these choices.
+
+## Palette relationship
+
+HD Presentation does not need to remain limited to SNES palette precision, but colors should preserve recognizable relationships among:
+
+- player colors;
+- track/world families;
+- HUD states;
+- highlights/shadows;
+- gameplay-significant contrast.
+
+Any expanded color model should be checked against representative raw and CRT/NTSC references so "cleaner" does not accidentally mean "different graphic language."
+
+## Texture/detail budget
+
+Avoid detail that flickers, aliases or becomes visual noise at racing speed.
+
+A replacement should survive:
+
+- native 4K output;
+- common downscales such as 1440p and 1080p;
+- motion;
+- split-screen;
+- different host sampling policies.
+
+Prefer stable large-form cues over ornamental microtexture.
+
+## Dithering and CRT-era effects
+
+Classify each source pattern before translating it.
+
+A checker/dither may represent:
+
+- intended texture;
+- transparency approximation;
+- shade interpolation;
+- palette limitation;
+- display-dependent blending.
+
+Do not blindly reproduce the source pixels at HD and do not blindly smooth them away. Use raw source plus controlled NTSC/CRT reconstruction to infer the likely visual role.
+
+## UI and typography
+
+Reconstruct glyph identity and layout deliberately.
+
+Prefer semantic glyph/font reconstruction over substituting a convenient modern typeface. Preserve characteristic widths, baselines, spacing and unusual letterforms where they contribute to the game's identity.
+
+HUD and menu chrome may use cleaner host-resolution geometry, but should remain compositionally traceable to the stock layout.
+
+## Asset approval packet
+
+A replacement candidate should be reviewable with:
+
+- semantic ID;
+- raw source;
+- palette;
+- geometry anchors;
+- animation neighbors;
+- representative stock in-game capture;
+- selected scaler/display interpretations;
+- replacement still;
+- replacement animation strip/clip when animated;
+- sampling/render policy;
+- documented intentional deviations.
+
+## Change discipline
+
+This file is allowed to become opinionated as evidence accumulates.
+
+When a design decision changes, record why. Avoid silently changing the visual language asset-by-asset.

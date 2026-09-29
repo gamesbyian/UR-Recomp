@@ -83,7 +83,9 @@ The eventual HD-art process should be able to construct a compact dossier contai
 - semantic asset/state identifier;
 - native indexed/tile representation where available;
 - exact palette;
+- original pivot/contact/bounding geometry where meaningful;
 - neighboring animation states/frames;
+- replacement-sequence temporal-coherence evidence for animated assets;
 - raw nearest-neighbor enlargement;
 - selected structurally distinct scaler outputs;
 - representative in-game isolated/composited captures;
@@ -91,6 +93,75 @@ The eventual HD-art process should be able to construct a compact dossier contai
 - provenance and exact tool revisions.
 
 This dossier is suitable for human redraw, procedural reconstruction, model-assisted generation, or combinations of those approaches.
+
+## Reconstruction decision policy
+
+Reference generation and final-art selection are different jobs.
+
+Before bulk replacement art begins, maintain a project-owned visual-language specification that defines, at minimum:
+
+- silhouette fidelity expectations;
+- acceptable invented detail;
+- material interpretation;
+- outline/edge treatment;
+- palette and saturation relationship to the stock game;
+- lighting direction and contrast model;
+- texture-frequency/detail limits;
+- transparency/blend treatment;
+- rules for translating CRT-era dithering or hand-authored pixel shading into clean HD presentation;
+- when a replacement should remain deliberately pixel-like versus become native-resolution/vector/procedural/3D-derived.
+
+A plausible image is not automatically a canonical reconstruction. When evidence permits multiple readings, record the design choice and its rationale.
+
+## Geometry anchors
+
+A semantic asset dossier should carry geometry, not only imagery.
+
+Where meaningful, record:
+
+- original pivot;
+- HD pivot;
+- contact points such as wheel/track contact;
+- logical center;
+- original and HD bounding boxes;
+- attachment points;
+- expected per-frame scale;
+- source-state coordinates used to position the stock sprite.
+
+For the unicycle, pivot/contact stability is a correctness property. A beautiful frame that drifts against the track is a failed replacement.
+
+## Temporal-coherence validation
+
+Never approve animated replacement art only as independent still frames.
+
+Generate deterministic animation strips/sequences and check for:
+
+- contour breathing;
+- scale drift;
+- pivot/contact drift;
+- changing wheel/part thickness;
+- highlight/material flicker;
+- inconsistent invented detail;
+- frame-to-frame palette instability;
+- accidental cadence changes.
+
+The authoritative game state still selects frames and owns timing. Temporal validation asks whether the replacement sequence remains visually coherent under that original cadence.
+
+## Sampling policy by asset class
+
+Do not apply one global host texture filter.
+
+Define an explicit rendering/sampling policy for each major presentation class, including:
+
+- untouched stock pixel assets;
+- reconstructed sprites;
+- HD backgrounds/tiles;
+- semantic/procedural track geometry;
+- UI/chrome;
+- fonts/glyphs;
+- diagnostic CRT/NTSC presentation.
+
+Policies may choose nearest/integer-aware sampling, linear or mipmapped texture sampling, native vector/procedural rendering, or curated shader treatment as appropriate. The policy must be deterministic and versioned alongside the presentation pack.
 
 ## Automation contract
 

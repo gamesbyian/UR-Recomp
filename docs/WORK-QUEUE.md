@@ -41,7 +41,7 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 ## Phase 3 — First playable race
 
 - [x] Reach one-player race.
-- [ ] Track/player/background render plausibly.
+- [x] Track/player/background render plausibly. Native and Snes9x race-entry framebuffers show the same coherent stock race scene; exact pixel/color fidelity remains a separate compatibility question.
 - [ ] Audio runs.
 - [ ] Start, accelerate, jump, rotate, land and finish.
 - [ ] No simulation modifications.

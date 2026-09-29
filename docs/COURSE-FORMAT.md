@@ -245,3 +245,10 @@ Evidence:
 - artifact 11011622806;
 - `.github/workflows/trace-course-buffer-writers.yml`;
 - `tools/trace_native_wram_writers.py`.
+
+
+### Active writer static-classification probe
+
+The existing RNC signature finder now includes a longer source-derived `MAKEHUFF` prologue signature and explicit build-relative byte context for the two dynamically observed USA writer PCs `01:BA96` and `01:BB73`. Workflow `.github/workflows/rnc-writer-static-classification.yml` regenerates the report from the preserved ROMs.
+
+The classification rule is deliberately structural: compare each writer at the same displacement from that build's mechanically identified Method-1 entry, and only call a writer part of the generic RNC routine if the surrounding instruction sequence aligns with a specific preserved `RNC_1.S` block. Short-signature proximity alone is insufficient because the prior loose `MAKEHUFF` shape has two hits in the USA image.

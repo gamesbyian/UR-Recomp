@@ -64,16 +64,16 @@
     },
     {
       "id": "flips",
-      "mode": "pending",
+      "mode": "vendored",
       "upstream_url": "https://github.com/bates64/flips.git",
       "revision": "6caac470f7fc096b0c5fdc374b65954f8bac5b16",
-      "source_path": null,
+      "source_path": "third_party/src/flips",
       "archive_path": null,
-      "source_sha256": null,
-      "license_spdx": null,
-      "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
-      "provenance_path": null
+      "source_sha256": "c1182506e7803de122839c7eb167385876993bda770366c6ea74bbbfe5b00caf",
+      "license_spdx": "GPL-3.0-or-later",
+      "license_path": "third_party/src/flips/COPYING.gpl3",
+      "notes": "Pruned repository-owned Floating IPS command-line source. GTK/Windows frontends, icons, packaging and release/profile scripts are omitted; bundled libdivsufsort build sources and its license are retained.",
+      "provenance_path": "third_party/provenance/flips.json"
     },
     {
       "id": "beetle-bsnes-libretro",

@@ -204,13 +204,15 @@ This is the preferred future route for agent-driven dynamic archaeology when `sn
 
 Pinned as an on-demand IPS/BPS CLI-capable patcher. Use patches rather than duplicate modified ROMs when preserving third-party fixes, controlled experiments, or reproducible ROM modifications. The original bytes and patch provenance remain separate evidence.
 
-Build the pinned CLI-capable binary with:
+UR-Recomp owns a pruned copy of the exact CLI/core source plus the upstream-bundled libdivsufsort implementation under `third_party/src/flips/`. It has no package-registry dependency: the only build boundary is the host C++ toolchain.
+
+Build the repository-owned CLI binary with:
 
 ```bash
-python3 tools/bootstrap_toolchain.py --group patching
+python3 tools/bootstrap_toolchain.py --offline --group patching
 ```
 
-The bootstrap deliberately builds the CLI target with `make TARGET=cli`, avoiding GTK entirely, and verifies that the `flips` artifact exists. Use `--clone-only` only when source inspection, rather than a usable patcher, is the goal.
+The bootstrap deliberately builds `make TARGET=cli`, avoiding GTK and Windows frontends entirely, and verifies that the `flips` artifact exists. Use `--clone-only` only when source inspection, rather than a usable patcher, is the goal.
 
 ## Generic conversion/inspection utilities
 

@@ -16,9 +16,22 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  contract:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Validate bootstrapper without fetching tools
         run: python3 tests/test_bootstrap_toolchain.py
+
+  build-smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tool:
+          - flips
+          - bsnes-libretro
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build pinned tool through project bootstrap
+        run: python3 tools/bootstrap_toolchain.py --tool "${{ matrix.tool }}" --jobs 2

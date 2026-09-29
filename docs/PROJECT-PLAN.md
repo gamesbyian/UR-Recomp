@@ -24,17 +24,66 @@ The original game simulation remains authoritative for:
 
 - physics;
 - collision and track contact;
-- player and opponent state;
+- player and opponent race state;
 - stunt recognition;
 - acceleration, boost and braking;
 - RNG;
-- race rules and progression;
-- timing;
+- in-race rules and timing;
 - AI;
-- course semantics;
-- save/progression behavior.
+- course semantics.
 
-The modern port may replace or extend presentation, input plumbing, display aspect, windowing, asset resolution, UI composition and optional audio presentation, but stock gameplay must remain reproducible from the original logic.
+The project must also preserve the original frontend, progression, save behavior, indicators and administrative flows well enough to reproduce them in an authentic/reference mode. That requirement does **not** make every cartridge-era frontend or persistence convention mandatory in the modern product layer.
+
+The modern port may deliberately replace or extend presentation, input plumbing, display aspect, windowing, asset resolution, UI composition, player/profile management, campaign/progression UX and optional audio presentation, provided that:
+
+- stock behavior remains reproducible in the authentic/reference path;
+- modernized frontend/progression policy does not silently alter authoritative race simulation;
+- an original audiovisual indicator is not removed merely because a clearer modern indicator exists;
+- recognizable original menu presentation and interaction character are preserved even when choices are reorganized, removed or added;
+- any deliberate behavioral change is documented as product policy rather than mistaken for a fidelity fix.
+
+### Modernization and subtraction policy
+
+Modernization begins with subtraction, not feature accumulation. Before adding a new system, classify the original feature being touched as one of:
+
+1. **Presentation artifact:** preserve it by default. Original indicators, animations, icons, result rituals, menu visual grammar, sounds and other player-visible communication remain part of the fidelity target. Additional labels, numbers, deltas, tooltips, overlays or expanded views may elaborate on them; they should not casually replace them.
+2. **Gameplay mechanic:** preserve it unless there is a specific, evidence-backed product decision to change it. Mechanics that appear strange should be tested against expert/high-level play before being called obsolete.
+3. **Administrative or hardware-era system:** eligible for redesign or removal in the modern product layer when its main purpose came from shared-cartridge saves, limited storage, 1994 menu conventions, content-padding repetition or other platform constraints. Preserve an authentic/reference implementation where needed for fidelity.
+
+Apply this rule especially to the frontend:
+
+- retain the overall Uniracers menu look, motion, typography, color language, sounds and recognizable screen character;
+- allow menu choices, grouping and navigation depth to change when doing so removes obsolete administration or exposes modern features;
+- keep original result/score indicators even when clearer modern data is shown alongside them;
+- treat manual-dependent opacity in basic controls or status as friction to explain, while preserving genuine secrets, advanced discoveries and game-world mystery.
+
+### Racer identity and legacy cast
+
+The original named/color-coded unicycles must be preserved as recognizable legacy content, but the modern product should not require a racer choice to double as a save slot.
+
+Plan for a modern racer/profile model in which:
+
+- players can create and name their own racer independently of save/profile storage;
+- body color and any later-supported cosmetic dimensions are chosen independently;
+- every original named/color combination is available as a faithful preset;
+- original racers may also appear as AI opponents, ghosts, tournament entrants or other appropriate legacy cast roles;
+- Bronsen, Silverton and Goldwyn remain preserved as named opponents even if Bronze/Silver/Gold progression is redesigned.
+
+The exact customization surface should wait for Phase E asset/animation understanding so cosmetic freedom does not accidentally invalidate sprite-state fidelity.
+
+### Progression and frontend candidates for deliberate simplification
+
+The modern product layer should evaluate, rather than automatically inherit:
+
+- unicycles as save/profile slots;
+- persistent multi-league/player-management bureaucracy;
+- mandatory repeat clears of the same tour for Bronze, Silver and Gold tiers;
+- loss of unfinished tour/session progress where no gameplay purpose depends on it;
+- destructive/administrative controller chords;
+- redundant score/record menu silos;
+- menu states that exist only to compensate for storage or controller-era constraints.
+
+Where these systems have recognizable presentation, preserve that presentation language or expose an authentic mode rather than deleting the historical evidence wholesale. The target is a cleaner route into Uniracers, not a generic replacement frontend.
 
 The end-state should support:
 
@@ -673,16 +722,32 @@ This is potentially the strongest final presentation path because it avoids magn
 
 Menus/HUD are good early HD Presentation candidates because their screen-space regions are easier to isolate and do not alter simulation.
 
-Use host overlays to replace:
+The modern frontend must preserve the **overall original look and vibe** rather than replacing it with generic contemporary UI. Treat the existing frontend as a visual/interaction design language that can host a cleaner information architecture.
+
+Use host overlays to replace or elaborate at higher resolution:
 
 - logos;
 - menu art;
 - fonts/text panels where practical;
 - HUD chrome;
 - icons;
-- static frontend elements.
+- static frontend elements;
+- supplementary labels, values, deltas or explanations around original indicators.
 
-Keep original layout available as fallback and regression reference.
+When modernizing an existing indicator, keep the original indicator visible and meaningful unless a specific fidelity exception is documented. For example, an original graphical result indicator may remain while exact times/deltas are added beside it.
+
+Frontend restructuring may:
+
+- collapse obsolete administrative steps;
+- add create/customize-racer flows;
+- add modern profile/save management;
+- reorganize records and statistics;
+- add explicit confirmations for destructive actions;
+- expose new options and accessibility/help surfaces.
+
+But it should preserve recognizable screen composition, animation/motion language, color, typography, sound and other characteristic Uniracers cues wherever practical.
+
+Keep original layout/behavior available as fallback and regression reference, and maintain the UI state map as the evidence source for what the original actually did.
 
 ### 4K
 

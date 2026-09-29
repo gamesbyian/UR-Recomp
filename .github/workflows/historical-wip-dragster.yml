@@ -10,6 +10,7 @@ on:
       - "tools/replay_input_via_lua.py"
       - "tools/summarize_wram_trace_checkpoints.py"
       - "tools/compose_historical_replay_result.py"
+      - "tools/compose_historical_reference_result.py"
       - "tests/input/historical-2008-wip.input"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain.json"
@@ -125,6 +126,15 @@ jobs:
             --json-out "$RUNNER_TEMP/dragster-trace-state.json" \
             | tee "$RUNNER_TEMP/dragster-trace-summary.txt"
 
+      - name: Compose reference-only replay result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/compose_historical_reference_result.py \
+            --smv-meta "$RUNNER_TEMP/wip-2008.json" \
+            --trace-summary "$RUNNER_TEMP/dragster-trace-state.json" \
+            --out analysis/generated/historical-2008-dragster-reference.json
+
       - name: Replay exact historical input in native runtime
         shell: bash
         run: |
@@ -157,6 +167,7 @@ jobs:
             --checkpoint 2660 --checkpoint 2680 --checkpoint 2700 \
             --checkpoint 2800 --checkpoint 3000 --checkpoint 3200 \
             --checkpoint 3400 --checkpoint 3480 \
+            --run-timeout 600 \
             --json-out "$RUNNER_TEMP/native-dragster-state.json" \
             | tee "$RUNNER_TEMP/native-dragster-state.txt"
 
@@ -224,24 +235,27 @@ jobs:
             --native-json "$RUNNER_TEMP/native-dragster-state.json" \
             --out analysis/generated/historical-2008-dragster-replay.json
 
-      - name: Persist canonical replay result
+      - name: Persist available historical replay results
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
-          path=analysis/generated/historical-2008-dragster-replay.json
-          if git ls-files --error-unmatch "$path" >/dev/null 2>&1 && \
-             git diff --quiet -- "$path"; then
-            echo "replay result already current"
-            exit 0
-          fi
-          git add "$path"
+          for path in \
+            analysis/generated/historical-2008-dragster-reference.json \
+            analysis/generated/historical-2008-dragster-reference.json
+            analysis/generated/historical-2008-dragster-replay.json
+          do
+            if [ -f "$path" ]; then
+              git add "$path"
+            fi
+          done
           if git diff --cached --quiet; then
-            echo "nothing to persist"
+            echo "no historical replay result available to persist"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Record historical 2008 Dragster replay"
+          git commit -m "Record historical 2008 Dragster replay evidence"
           git push origin HEAD:${{ github.ref_name }}
 
       - name: Upload replay evidence

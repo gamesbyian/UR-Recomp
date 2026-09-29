@@ -458,3 +458,29 @@ The final seven are `0x00C6`, `0x00C8`, `0x00C9`, and contiguous `0x01D1–0x01D
 **Next discriminator:** replace the short pulse with sustained Right+B input across the Dragster jump area, matching the recovered bot's actual per-frame `ShouldJump()` policy, and require a causal change in table-[1] Y/air/related state before calling the controlled player airborne.
 
 **Evidence:** workflow run 36513247475; `tests/input/race-jump.script`; matched control `tests/input/race-jump-control.script`.
+
+
+### R-SEED-019 — Active Dragster payload header is resident at 7F:0000
+
+**Status:** supported  
+**Date:** 2026-09-28  
+**Area:** course | RAM | decompression
+
+**Observation:** decoded RNC stream 1 starts `00 00 00 44 00 32 00 44 00 32 00 0F 84 00 04 00`. The settled deterministic Dragster race-entry dump starts at WRAM `7F:0000` with `00 00 00 44 00 32 00 44 00 32 00 16 84 00 04 00`; the first 48 bytes otherwise follow the decoded header pattern. Decoded offset 11 has changed from `0x0F` to `0x16`.
+
+**Interpretation:** the active decoded track payload is very likely loaded directly at `7F:0000` and then partially mutated in place. This is a stronger runtime consumer landmark than the older `7E:2080` breadcrumb.
+
+**Evidence:** decoded stream-1 structural report and native race-entry WRAM artifact from run 36508095522.
+
+
+### R-SEED-020 — Dragster header X coordinate maps exactly to runtime start X at ×16
+
+**Status:** hypothesis with exact single-course correlation  
+**Date:** 2026-09-28  
+**Area:** course | RAM | physics
+
+**Observation:** decoded stream 1 has LE16 pairs `(68,50)` at offsets 3/5 and again at 7/9. At settled Dragster race entry, both racer slots have X position 1088; `68 × 16 = 1088` exactly. Runtime Y is 858/857, not `50 × 16 = 800`.
+
+**Interpretation:** the header pairs are coordinate-like and may encode the two racer spawn/start locations in 16-unit X coordinates. Y either uses an additional object-anchor offset or has different semantics.
+
+**Discriminating test:** load a second known course and compare its header pairs with runtime racer positions, or mutate one decoded coordinate causally and observe the predicted runtime displacement.

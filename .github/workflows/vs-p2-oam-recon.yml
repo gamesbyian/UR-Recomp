@@ -1,4 +1,4 @@
-name: One-shot VS rider move-confirm matrix
+name: One-shot VS route state stepping
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
       - ".github/workflows/vs-p2-oam-recon.yml"
 
 jobs:
-  recon:
+  route:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -29,63 +29,66 @@ jobs:
           python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
           cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
           cmake --build "$RUNNER_TEMP/snesref-build" -j2
-      - name: Test rider movement plus confirmation
+      - name: Step through VS states after verified P2 confirmation
         shell: bash
         run: |
           set -euo pipefail
           EXE="$RUNNER_TEMP/snesref-build/snesref"
           CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          OBS="$RUNNER_TEMP/observe.script"
-          cat >"$OBS" <<'EOF'
-          wait 655
-          dump before
-          wait 25
-          dump moved
-          wait 30
-          dump confirmed
-          wait 90
-          dump later
-          quit
-          EOF
-
-          run_variant() {
-            local name="$1" move_p1="$2" move_p2="$3" confirm_p1="$4" confirm_p2="$5"
-            local input="$RUNNER_TEMP/$name.input"
-            cat >"$input" <<EOF
+          INPUT="$RUNNER_TEMP/vs-route.input"
+          cat >"$INPUT" <<'EOF'
           500:1:020:000
           502:1:020:000
           534:2:100:000
           597:2:100:000
-          665:2:$move_p1:$move_p2
-          685:2:$confirm_p1:$confirm_p2
+          665:2:000:080
+          685:2:000:100
+          780:2:100:000
+          880:2:100:000
+          980:2:100:000
+          1080:2:100:000
+          1180:2:100:000
+          1280:2:100:000
+          1380:2:100:000
           EOF
-            local dumps="$RUNNER_TEMP/$name"
-            mkdir -p "$dumps"
-            echo "===== $name ====="
-            SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
-            SNESREF_INPUT_FILE="$input" SNESREF_SCRIPT="$OBS" SNESREF_DUMP_DIR="$dumps" \
-              "$EXE" "$CORE" "$ROM" 2>&1 | tee "$RUNNER_TEMP/$name.log"
-            for tag in before moved confirmed later; do
-              python3 -c 'import pathlib,sys; w=pathlib.Path(sys.argv[1]).read_bytes(); s=pathlib.Path(sys.argv[2]).read_bytes(); print(f"{sys.argv[3]} menu=0x{w[0x009F]:02X} sel=0x{w[0x009B]:02X} row=0x{w[0x000E]:02X} col=0x{w[0x0C63]:02X} race=0x{w[0x0313]:02X} owner=0x{s[0x0743]:02X}")' "$dumps/$tag.wram.bin" "$dumps/$tag.sram.bin" "$tag"
-            done
-            echo "-- active-display OAM writes --"
-            awk '($4=="2102" || $4=="2103" || $4=="2104") && $2 < 225 {print}' "$dumps"/*.ppuw.tsv | head -n 120 || true
-          }
-
-          # SNES masks: Left=040, Right=080, A=100.
-          run_variant p1-left-a  040 000 100 000
-          run_variant p1-right-a 080 000 100 000
-          run_variant p2-left-a  000 040 000 100
-          run_variant p2-right-a 000 080 000 100
+          OBS="$RUNNER_TEMP/observe.script"
+          cat >"$OBS" <<'EOF'
+          wait 740
+          dump t740
+          wait 100
+          dump t840
+          wait 100
+          dump t940
+          wait 100
+          dump t1040
+          wait 100
+          dump t1140
+          wait 100
+          dump t1240
+          wait 100
+          dump t1340
+          wait 100
+          dump t1440
+          wait 180
+          dump t1620
+          quit
+          EOF
+          DUMPS="$RUNNER_TEMP/dumps"
+          mkdir -p "$DUMPS"
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_INPUT_FILE="$INPUT" SNESREF_SCRIPT="$OBS" SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" 2>&1 | tee "$RUNNER_TEMP/route.log"
+          for tag in t740 t840 t940 t1040 t1140 t1240 t1340 t1440 t1620; do
+            python3 -c 'import pathlib,sys; w=pathlib.Path(sys.argv[1]).read_bytes(); s=pathlib.Path(sys.argv[2]).read_bytes(); print(f"{sys.argv[3]} menu=0x{w[0x009F]:02X} sel=0x{w[0x009B]:02X} row=0x{w[0x000E]:02X} col=0x{w[0x0C63]:02X} race=0x{w[0x0313]:02X} owner=0x{s[0x0743]:02X}")' "$DUMPS/$tag.wram.bin" "$DUMPS/$tag.sram.bin" "$tag"
+          done
+          echo "== active-display OAM writes =="
+          awk '($4=="2102" || $4=="2103" || $4=="2104") && $2 < 225 {print}' "$DUMPS"/*.ppuw.tsv | head -n 300 || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: vs-rider-move-confirm-matrix
+          name: vs-route-state-stepping
           path: |
-            ${{ runner.temp }}/p1-left-a/
-            ${{ runner.temp }}/p1-right-a/
-            ${{ runner.temp }}/p2-left-a/
-            ${{ runner.temp }}/p2-right-a/
-            ${{ runner.temp }}/*.log
+            ${{ runner.temp }}/route.log
+            ${{ runner.temp }}/dumps/
           retention-days: 7

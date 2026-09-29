@@ -319,3 +319,15 @@ Evidence:
 - artifact 11009592846;
 - `tests/input/race-acceleration.script`;
 - `tools/summarize_player_checkpoints.py`.
+
+
+### Follow-up — sustained B reaches coherent player-1 airborne state
+
+Race-behavior run 36514394117 failed only after the native/reference sustained-jump runs and semantic summaries had completed, because a later analysis step attempted to read the no-jump control dumps before those control steps had run.
+
+The successful experiment portion is still informative. Native and Snes9x match exactly:
+- `accel-180`: player 1 `yPos=858`, `ySpeed=0`, effective `airValue=0`, effective `pitch=7`;
+- `jump-hold-024`: `yPos=797`, signed `ySpeed=-21`, `airValue=9`, `pitch=27`;
+- `jump-hold-048`: `yPos=858`, `ySpeed=0`, `airValue=0`, `pitch=4`.
+
+This is the first coherent player-1 airborne transition in the deterministic corpus. It occurs only after replacing the ineffective two-frame B pulse with sustained B input matching the recovered bot's policy. The repaired workflow still requires a timing-identical sustained Right-only control before promoting the fields from supported to confirmed.

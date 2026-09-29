@@ -144,6 +144,24 @@ Only after deterministic stock behavior is established.
 
 Optional authentic scaling, arbitrary windows, 16:9/ultrawide, high-resolution UI and replacement presentation layers.
 
+### Frontend modernization / subtraction
+
+Do this from the verified original UI state map, not from memory or generic modern-UI assumptions.
+
+- [ ] Classify original frontend states/features as presentation artifact, gameplay mechanic, or administrative/hardware-era system.
+- [ ] Preserve every original audiovisual indicator by default; add clearer labels, values, deltas or expanded views alongside it rather than deleting it.
+- [ ] Define the reusable menu visual-language contract from captured evidence: composition, typography, palette, animation/motion, cursor behavior, sounds and transitions.
+- [ ] Design a modern racer/profile model that separates save/profile storage from racer identity and supports create/name/customize.
+- [ ] Preserve every classic named/color racer as an exact preset; decide which also become AI opponents, ghosts or tournament cast.
+- [ ] Preserve Bronsen, Silverton and Goldwyn as named opponents independently of any Bronze/Silver/Gold progression redesign.
+- [ ] Prototype a simplified modern League/tournament path while keeping the original League flow reproducible in authentic/reference mode.
+- [ ] Evaluate performance-based medal awarding or selectable challenge tiers as alternatives to mandatory Bronze → Silver → Gold replay.
+- [ ] Add modern per-event/tour persistence unless evidence shows the original session constraint is mechanically meaningful.
+- [ ] Replace destructive controller-chord administration with explicit confirmed actions in modern mode while preserving the original behavior for reference.
+- [ ] Design a unified records/statistics surface that can embed or reproduce the original score/result presentations rather than erasing them.
+- [ ] Make basic controls/status self-explanatory in-game without exposing secrets or advanced discoveries that are intentionally hidden.
+- [ ] Record each intentional modern behavior change as product policy and keep it distinct from fidelity fixes/regressions.
+
 - [x] Pin RetroArch, Libretro Slang shaders and bsnes-hd as visual-reference dependencies without adding them to default CI.
 - [x] Define the canonical multi-interpretation upscale/reference strategy in `docs/HD-VISUAL-REFERENCE-PIPELINE.md`.
 - [ ] Curate the minimal project-owned shader/scaler preset matrix: raw/nearest, ScaleNx, HQx, xBR/xBRZ, SABR, ScaleFX, Super-xBR, selected NTSC and selected CRT references.

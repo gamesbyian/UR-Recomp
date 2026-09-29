@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "tool": "beetle-bsnes-libretro",
+  "upstream_url": "https://github.com/libretro/beetle-bsnes-libretro.git",
+  "upstream_revision": "5f05e4c785e936c928ac468e129c55b6f08592cb",
+  "vendored_source_path": "third_party/src/beetle-bsnes-libretro",
+  "vendored_tree_sha256": "ab571a0e09cc53a7c85aa583d0aab0a7ffe6fea78e49a3e71b71680fff0fb26b",
+  "license_spdx": "GPL-2.0-or-later",
+  "license_path": "third_party/src/beetle-bsnes-libretro/COPYING",
+  "embedded_license_path": "third_party/src/beetle-bsnes-libretro/mednafen/snes/src/data/license.html",
+  "retained": [
+    "complete upstream emulator/libretro build tree",
+    "COPYING",
+    "Makefile",
+    "Makefile.common",
+    "libretro.cpp/libretro.h",
+    "libretro-common/**",
+    "mednafen/**",
+    "link.T"
+  ],
+  "excluded": [
+    ".git/**",
+    ".gitignore",
+    ".gitlab-ci.yml",
+    ".travis.yml",
+    "jni/**"
+  ],
+  "exclusion_reason": "The complete Linux/libretro source and headers are inexpensive (~2.25 MB upstream) and fidelity-sensitive, so they are preserved intact. Only repository metadata, upstream CI, and Android packaging are omitted.",
+  "dependency_closure": "No package registry. Linux build uses the host C/C++ toolchain plus source already present in the pinned tree.",
+  "project_build_flags": [
+    "CXXFLAGS=-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0",
+    "CFLAGS=-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0"
+  ],
+  "build_flag_reason": "Modern glibc fortify wrappers collide with historical nall strlcpy/strlcat declarations; this preserves the already-green project build contract without changing emulator source.",
+  "validation_contract": "Build shared libretro core, verify ELF and exported retro_init/retro_get_memory_data symbols, then run the project's independent first-race reference route before promotion."
+}

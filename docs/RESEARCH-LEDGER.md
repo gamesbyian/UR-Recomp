@@ -680,3 +680,18 @@ Direct inspection of all 4,975 controller samples in the reset-anchored 2008 WIP
 **Interpretation:** bytes 13/14 very likely encode complementary dimensions or strides for a fixed 1024-unit course-layout structure. This is compatible with, but does not yet prove, historical descriptions involving 256-wide course data.
 
 **Discriminating test:** compare decoded structure and runtime traversal for courses at the extreme `256×4` / `4×256` encodings versus `32×32`; identify which subsequent region length/stride changes with the header pair and trace one consumer of either byte.
+
+
+### R-SEED-035 — 1024-byte block-map hypothesis
+
+**Status:** strong combined local/historical hypothesis; not yet runtime-confirmed  
+**Date:** 2026-09-28  
+**Area:** course | format | geometry
+
+**Local evidence:** decoded header bytes 13/14 reshape to 45/45 complementary dimension pairs with constant area 1024 when zero is interpreted as 256.
+
+**Historical evidence:** OD-006 preserves Spinal's report that Mike Dailly described levels as 256 tiles wide; after RNC decompression and map-overlay work, Spinal reported that one byte in the decompressed level corresponds to a 64×64 block.
+
+**Hypothesis:** one immediate 1024-byte decoded region is a one-byte-per-64×64-block course-layout plane whose width/height are encoded by bytes 13/14. Provisional name alignment is suggestive rather than decisive: Dragster maps to `256×4`, Vertical to `16×64`, and Little Dipper to `4×256`.
+
+**Discriminating test:** mechanically characterize the first several 1024-byte post-header regions across all 45 payloads, then trace whichever region exhibits map/index-like structure into a runtime course consumer. A mutation/viewer round trip should follow only after that consumer relationship is identified.

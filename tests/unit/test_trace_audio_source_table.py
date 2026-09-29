@@ -1,8 +1,9 @@
 from tools.trace_audio_source_table import (
     byte_before_block,
     lorom_file_offset,
+    paired_dp83_values,
     pointer_before_block,
-    transfer_seed_events,
+    static_ldx_seeds,
 )
 
 
@@ -38,20 +39,30 @@ def test_pointer_before_block_reconstructs_three_bytes():
     assert pointer_before_block(writers, 0, 11) is None
 
 
-def test_transfer_seed_events_require_exact_word_write_at_83():
+def test_paired_dp83_values_joins_byte_writes_by_block():
     writers = {
         "addresses": {
-            "0x0083": {
-                "writes": [
-                    {"f": 920, "adr": "0x00083", "val": "0x00C123", "w": 2, "bi": 44, "func": "interp@$8282A9", "parent": ""},
-                    {"f": 921, "adr": "0x00082", "val": "0x001234", "w": 2, "bi": 45, "func": "other", "parent": ""},
-                    {"f": 850, "adr": "0x00083", "val": "0x00D000", "w": 2, "bi": 46, "func": "old", "parent": ""},
-                ]
-            }
+            "0x0083": {"writes": [{"f": 906, "bi": 100, "val": "0x55", "func": "lo"}]},
+            "0x0084": {"writes": [{"f": 906, "bi": 100, "val": "0xFB", "func": "hi"}]},
         }
     }
-    rows = transfer_seed_events(writers)
-    assert len(rows) == 1
-    assert rows[0]["x_value"] == "0xC123"
-    assert rows[0]["source_pointer_03x"] == "0x03C123"
-    assert rows[0]["source_file_offset"] == "0x01C123"
+    rows = paired_dp83_values(writers)
+    assert rows[0]["x_value"] == "0xFB55"
+    assert rows[0]["source_pointer_03x"] == "0x03FB55"
+
+
+def test_static_ldx_seeds_reads_immediate_before_jsl():
+    calls = {
+        "patterns": {
+            "JSL_8282A5": [{
+                "rom_offset_hex": "0x00145C",
+                "cpu_pc24": "0x80945C",
+                "context_start_hex": "0x001450",
+                "context_hex": "00 00 00 00 00 00 00 00 00 a2 55 fb 22 a5 82 82",
+            }]
+        }
+    }
+    rows = static_ldx_seeds(calls)
+    assert rows[0]["x_seed"] == "0xFB55"
+    assert rows[0]["source_pointer_03x"] == "0x03FB55"
+    assert rows[0]["source_file_offset"] == "0x01FB55"

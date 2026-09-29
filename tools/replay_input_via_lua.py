@@ -13,6 +13,8 @@ import socket
 import time
 from pathlib import Path
 
+from uniracers_state import PLAYER1_FIELDS
+
 BUTTONS = [
     ("B", 0x001), ("Y", 0x002), ("Select", 0x004), ("Start", 0x008),
     ("Up", 0x010), ("Down", 0x020), ("Left", 0x040), ("Right", 0x080),
@@ -69,9 +71,7 @@ def command(sock, reader, line: str) -> dict:
 def build_lua(runs: list[tuple[int,int,int]], frames: int, checkpoints: list[int]) -> str:
     run_rows = ",".join(f"{{{s},{d},{m}}}" for s,d,m in runs)
     cp_rows = ",".join(str(x) for x in sorted(set(checkpoints)))
-    fields = ",".join(
-        f'{name}={( "true" if bit else "false" )}' for name, bit in []
-    )
+    addr = {name: field.addr for name, field in PLAYER1_FIELDS.items()}
     # Read compact semantic state directly in the running bridge. print() output
     # is collected by the TCP response stream and consumed by the Python client.
     return f"""
@@ -105,10 +105,10 @@ end
 local function snap(f)
   print(string.format(
     "SNAP %d menu=%02X inRace=%02X track=%d x=%d y=%d vx=%d vy=%d air=%d pitch=%d",
-    f, mainmemory.read_u8(0x009F), mainmemory.read_u8(0x0313),
-    mainmemory.read_u8(0x00CE), mainmemory.read_u16_le(0x0411),
-    mainmemory.read_u16_le(0x0415), s16(0x04B7), s16(0x04BB),
-    mainmemory.read_u8(0x0545), mainmemory.read_u16_le(0x04C7) & 0x3F))
+    f, mainmemory.read_u8(0x009F), mainmemory.read_u8(0x{addr["in_race"]:04X}),
+    mainmemory.read_u8(0x{addr["track"]:04X}), mainmemory.read_u16_le(0x{addr["x_pos"]:04X}),
+    mainmemory.read_u16_le(0x{addr["y_pos"]:04X}), s16(0x{addr["x_speed"]:04X}), s16(0x{addr["y_speed"]:04X}),
+    mainmemory.read_u8(0x{addr["air"]:04X}), mainmemory.read_u16_le(0x{addr["pitch"]:04X}) & 0x3F))
 end
 for f=0,{frames-1} do
   if cp[f] then snap(f) end

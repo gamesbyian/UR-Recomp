@@ -257,3 +257,26 @@ Durable result:
 
 - `analysis/generated/audio-extended-block-correlation.json`
 - `tools/correlate_audio_blocks_spc.py`
+
+
+### Unused-song direct reachability closeout
+
+A complete direct-call accounting was run after identifying blocks `$3B` and `$3D` as the retail records for Unused Song 1 and Unused Song 2.
+
+Results:
+
+- there are **36** direct `JSL $82:807E` calls in the complete retail ROM;
+- **all 36** are immediately preceded by an `LDX #imm16` block ID;
+- there are **zero** unbound direct wrapper calls;
+- there are **zero** raw `LDX #$003B` or `LDX #$003D` instruction byte patterns anywhere in the ROM;
+- the only direct call to inner upload body `02:8082` is the wrapper's own `JSR $8082` at `02:807E`;
+- no direct `JSL $82:8082` bypass exists.
+
+Within the direct static call graph, the two unused-song records therefore have no selection path. This is strong retail unreachability evidence for ordinary direct invocation. It does not mathematically exclude a computed X value followed by an indirect/code-generated transfer path, but no such path is currently evidenced and the normal block-upload primitive is exhaustively accounted for.
+
+The two unused songs can now be described precisely as **retained retail audio records with their ordinary direct selection callsites absent**.
+
+Durable result:
+
+- `analysis/generated/audio-unused-reachability.json`
+- `tools/scan_audio_setup_selectors.py`

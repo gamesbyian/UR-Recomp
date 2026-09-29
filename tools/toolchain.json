@@ -115,7 +115,7 @@
       "patches": [
         {
           "path": "tools/patches/wla-dx-ur-recomp.patch",
-          "strip": 1
+          "sha256": "fccb79f9e62654ca46580ad372fad0fc9c8836468f2e2f582623149dda31fd5b"
         }
       ]
     },

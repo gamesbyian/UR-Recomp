@@ -68,7 +68,20 @@ jobs:
               addr = 0x8000 + (offset % 0x8000)
               return (bank << 16) | addr
 
-          out = {"schema_version": 1, "patterns": {}}
+          out = {"schema_version": 2, "patterns": {}, "code_windows": {}}
+          for name, cpu, size in (
+              ("helper_02_812A", 0x02812A, 0x100),
+              ("transfer_02_82A9", 0x0282A9, 0x100),
+              ("helper_02_8328", 0x028328, 0x80),
+          ):
+              bank = (cpu >> 16) & 0x7F
+              addr = cpu & 0xFFFF
+              off = bank * 0x8000 + (addr - 0x8000)
+              out["code_windows"][name] = {
+                  "cpu_start": f"0x{cpu:06X}",
+                  "rom_offset": f"0x{off:06X}",
+                  "hex": data[off:off + size].hex(" "),
+              }
           for name, pat in patterns.items():
               rows = []
               start = 0

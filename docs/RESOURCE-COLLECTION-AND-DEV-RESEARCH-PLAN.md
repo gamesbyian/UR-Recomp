@@ -164,6 +164,34 @@ For every recovered artifact:
 - commit only when useful and appropriate;
 - add the source to `references/catalog.yml` and/or the acquisition ledger.
 
+## Research before reinvention
+
+External research is also an escalation mechanism for technical work, not only a way to collect Uniracers artifacts.
+
+When an experiment exposes unexplained emulator behavior, a recompilation/analyzer limitation, an unfamiliar ROM/data pattern, a rendering or timing quirk, a difficult reverse-engineering problem, or a retro-porting problem with no established local technique, search the wider ecosystem before inventing another bespoke layer.
+
+The search should be problem-shaped rather than game-shaped. In addition to Uniracers-specific evidence, look for analogous techniques and failure modes in:
+
+- SNESRecomp and related static/dynamic recompilation projects, including N64 recompilation work where the engineering pattern transfers;
+- game decompilation and native source-port projects;
+- bsnes/higan/ares, Mesen, Snes9x, jgenesis, MAME and other emulator implementation histories, tests and issue discussions;
+- consoledev documentation and hardware test ROMs;
+- ROM-hacking, restoration, widescreen/enhancement and randomizer projects;
+- TAS, botting and debugger automation;
+- asset extraction, tile/sprite conversion, compression/decompression and reassembly tooling;
+- Ghidra/IDA/disassembler processor modules and reverse-engineering workflows for old consoles.
+
+Do not wait for complete blockage. If two or three materially different local attempts have failed without reducing the uncertainty around a problem, broaden the search before building more custom instrumentation or accepting a workaround.
+
+Search results remain leads. Before adopting a technique:
+1. identify which part of the external solution actually transfers;
+2. test that claim against the canonical ROM/runtime;
+3. prefer a general explanation over a title-specific workaround when evidence supports one;
+4. capture provenance for code, patches, technical claims and important issue discussions;
+5. promote the useful result into a project-owned test, tool, symbol, fixture or documented invariant.
+
+This rule is intended to prevent local tunnel vision and repeated reinvention, not to encourage open-ended browsing. Stop searching when the current uncertainty has a good discriminator and return to local evidence.
+
 ## Resource-search strategy
 
 Searches should now begin from exact names, filenames, URLs, people, or technical behaviors rather than generic Uniracers terms.
@@ -229,8 +257,9 @@ The preferred continuation loop is:
 6. promote durable replay cases into `tests/fixtures.json` and compare semantic/event-relative state rather than stale stack or free-running presentation counters;
 7. when WRAM/write-history evidence is insufficient, add the smallest useful CPU/PPU/OAM/VRAM/audio capture or use the pinned MesenCE/mesen-for-ai or DiztinGUIsh/bsnes+ workbench for code/data coverage;
 8. use `tools/mutate_rom.py` only for specific causal hypotheses and score mutations through deterministic replay; use asset round-trip experiments when a resource format is sufficiently understood;
-9. continue course-format, emulator-compatibility and archival work opportunistically when the active execution evidence exposes a discriminating question or a missing artifact can materially accelerate it;
-10. update canonical docs and the active PR description at coherent checkpoints.
+9. when a technical problem stays weird after two or three materially different local attempts, search the broader decomp/recomp/emulation/ROM-hacking/retro-porting ecosystem for analogous techniques before adding another bespoke layer;
+10. continue course-format, emulator-compatibility and archival work opportunistically when the active execution evidence exposes a discriminating question or a missing artifact can materially accelerate it;
+11. update canonical docs and the active PR description at coherent checkpoints.
 
 The agent should move between these tracks based on evidence and blockers rather than completing them as rigid phases. Repository state is authoritative over conversational summaries.
 

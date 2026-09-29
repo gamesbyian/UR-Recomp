@@ -168,3 +168,17 @@ This is intentionally stricter than upstream build documentation. The manifest i
 
 
 Python-packaged third-party tools are installed into separate virtual environments under `.tools/venvs/<tool-id>/`. This avoids dependency coupling between unrelated research tools while keeping the entire installation disposable.
+
+
+## Project-owned patches
+
+A build-mode tool may declare hash-pinned patches under `tools/patches/`. Bootstrap order is deliberately strict:
+
+1. verify the manifest and exact upstream commit;
+2. reset and clean the disposable checkout;
+3. verify each patch SHA-256;
+4. require `git apply --check`;
+5. apply the patch;
+6. build and verify typed artifacts.
+
+`--clone-only` stops before patching, so it always leaves an exact upstream source checkout for comparison. Keep patches small and purpose-specific; when an upstream pin changes, reconcile or remove them explicitly.

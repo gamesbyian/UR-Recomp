@@ -1,0 +1,144 @@
+name: Course byte11 exact writer PC
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "rom_identity.txt"
+      - "snesrecomp"
+      - "tests/input/reach-first-race.script"
+      - "tools/summarize_course_byte11_wlog.py"
+      - ".github/workflows/course-byte11-exact-writer.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: course-byte11-exact-writer-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  trace:
+    if: github.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          ref: ${{ github.ref_name }}
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config xvfb \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Generate and build native target
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/course-byte11-project"
+          sh snesrecomp/tools/new_project/setup_project.sh \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --generate \
+            --no-build \
+            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+
+          PROJ="$ROOT/UniracersSNESRecomp"
+          cmake -S "$PROJ" -B "$PROJ/build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$PROJ/build" -j2
+          test -x "$PROJ/build/UniracersSNESRecomp"
+
+      - name: Capture exact PC for course byte11 writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJ="$RUNNER_TEMP/course-byte11-project/UniracersSNESRecomp"
+          EXE="$PROJ/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
+          WLOG="$RUNNER_TEMP/course-byte11-wlog.txt"
+          HOSTLOG="$RUNNER_TEMP/course-byte11-host.log"
+
+          (
+            cd "$PROJ/build"
+            SNESRECOMP_WLOG_ADDR="000B:000B:$WLOG" \
+            SNESRECOMP_WLOG_STATE=1 \
+            SDL_AUDIODRIVER=dummy \
+              timeout 240s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT"
+          ) >"$HOSTLOG" 2>&1 || status=$?
+
+          status=${status:-0}
+          cat "$HOSTLOG"
+          test -s "$WLOG"
+          python3 "$GITHUB_WORKSPACE/tools/summarize_course_byte11_wlog.py" "$WLOG" \
+            --json-out "$GITHUB_WORKSPACE/analysis/generated/course-byte11-exact-writes.json"
+
+          if [ "$status" -ne 0 ] && [ "$status" -ne 124 ]; then
+            exit "$status"
+          fi
+
+      - name: Require observed 0F through 16 sequence
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("analysis/generated/course-byte11-exact-writes.json")
+          d=json.loads(p.read_text())
+          vals=d["values"]
+          if 0x0F not in vals:
+              raise SystemExit("decoded 0x0F installation write not observed")
+          tail=[0x10,0x11,0x12,0x13,0x14,0x15,0x16]
+          ok=any(vals[i:i+len(tail)]==tail for i in range(len(vals)-len(tail)+1))
+          if not ok:
+              raise SystemExit(f"expected 10..16 mutation sequence not observed: {vals}")
+          if not any(x is not None for x in (w["ipc"] for w in d["writes"])):
+              raise SystemExit("exact interpreted IPC was not captured")
+          print("course byte11 write sequence and exact IPC capture confirmed")
+          PY
+
+      - name: Persist exact writer result
+        shell: bash
+        run: |
+          set -euo pipefail
+          path=analysis/generated/course-byte11-exact-writes.json
+          git add "$path"
+          if git diff --cached --quiet; then
+            echo "exact writer result already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Record exact course byte11 writer PCs"
+          git push origin HEAD:${{ github.ref_name }}
+
+      - name: Upload exact writer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: course-byte11-exact-writer
+          path: |
+            ${{ runner.temp }}/course-byte11-wlog.txt
+            ${{ runner.temp }}/course-byte11-host.log
+            analysis/generated/course-byte11-exact-writes.json
+          retention-days: 7

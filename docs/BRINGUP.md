@@ -344,3 +344,15 @@ At `jump-hold-024`:
 The same semantic values are reproduced in native SNESRecomp and pinned Snes9x/snesref. By `jump-hold-048`, player 1 has returned to `y=858, vy=0, air=0`, so the fixture spans a complete launch/airborne/return cycle even though the exact landing transition has not yet been bracketed.
 
 This confirms the effective player-1 recovered fields `7E:0415` (Y), signed `7E:04BB` (Y speed) and `7E:0545` (air state). The unchanged `pitch=27` between intervention and control at the airborne checkpoint means pitch semantics should be tested separately with L/R input.
+
+
+### Follow-up — event-relative landing transition matches exactly
+
+Landing workflow run 36517502791 samples the controlled jump from the confirmed airborne state through contact and settling. Native and Snes9x match on every tracked semantic checkpoint.
+
+Representative transition:
+- `landing-032`: `Y=843`, `YSpeed=182`, `air=9`;
+- `landing-034`: `Y=859`, `YSpeed=222`, `air=0`;
+- `landing-036`: `Y=859`, `YSpeed=0`, `air=0`.
+
+This demonstrates matching contact/landing behavior and suggests airborne-state clearing precedes the sampled vertical-velocity reset. The script grammar adds one idle frame after each press entry, so checkpoint suffixes are experiment labels rather than uninterrupted held-input guest-frame counts.

@@ -91,3 +91,29 @@ The provisional stream-to-name mapping is recorded in `references/notes/course-o
 Those names remain provisional until a runtime course-load trace or an in-ROM selector independently confirms stream ordinal identity.
 
 Generated structural evidence: `analysis/generated/course-header-cadence.md`.
+
+
+## Runtime bridge: active decoded payload appears at 7F:0000
+
+The deterministic Dragster race-entry WRAM dump provides the first direct bridge from decoded RNC bytes into live game memory.
+
+Decoded stream 1 begins:
+
+`00 00 00 44 00 32 00 44 00 32 00 0F 84 00 04 00 ...`
+
+At settled first-race entry, WRAM `7F:0000` begins:
+
+`00 00 00 44 00 32 00 44 00 32 00 16 84 00 04 00 ...`
+
+The first 48 bytes otherwise match the decoded header pattern; byte offset 11 has changed from `0x0F` to `0x16` by the sampled runtime point. This strongly supports the active track payload being decompressed or copied directly into bank `7F` at offset `0000`, with at least some fields subsequently mutable in place.
+
+A second correlation is especially suggestive. Stream 1's first 16-bit coordinate-like pair is `(68, 50)`, and the second pair is also `(68, 50)`. The verified race-entry player-1 and player-2 X positions are both 1088, exactly `68 × 16`. Their Y positions are 858/857 rather than `50 × 16`, so the Y mapping clearly has an additional anchor/offset or the field is not a direct center coordinate.
+
+Current confidence separation:
+
+- **Observed:** the stream-1 header pattern is resident at `7F:0000` during Dragster.
+- **Observed:** header X value 68 maps exactly to runtime start X 1088 at ×16.
+- **Supported hypothesis:** LE16 fields at decoded offsets 3/5 and 7/9 are two course-coordinate pairs, plausibly start/spawn positions for the two racer slots.
+- **Open:** the meaning of decoded byte 11 and why it mutates `0x0F → 0x16`; the Y-coordinate anchor; whether the two pairs are racer starts, start/finish, or another paired course landmark.
+
+Next discriminator: capture a different known stream/course at race entry, or causally perturb one decoded coordinate field, and test whether the corresponding runtime position moves by the predicted 16-unit scale.

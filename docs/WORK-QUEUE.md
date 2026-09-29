@@ -12,7 +12,7 @@ Goal: make the core automated research/build toolchain runnable from a clean che
 
 - [x] Add the `third_party/` provenance/licensing/manifest infrastructure, repository-hygiene validation, local-source bootstrap preference, and fail-closed offline mode. A true network-disabled build smoke follows the first islanded core component.
 - [ ] Vendor the small/high-value tool tranche and package-registry closures. `mesen-for-ai`, `snes2asm` plus its PyYAML 6.0.3 closure, SuperFamiconv plus its 78-package Cargo vendor closure, `ghidra-snes` source/language data, and pruned Flips CLI are complete. Beetle/bsnes libretro is the next unlanded direct-vendor target.
-- [ ] Migrate SNESRecomp and core reconstruction/build dependencies incrementally.
+- [ ] Migrate SNESRecomp and core reconstruction/build dependencies incrementally. WLA-DX is complete as the first P0-C core-build tranche: the repository owns the exact pinned 65816/linker source closure plus the narrow build patch; ordinary `bootstrap_toolchain.py --offline` proof is green.
 - [ ] Preserve large/manual workbenches as exact archives or optional external tools where direct vendoring has poor value.
 - [ ] Prove a network-disabled core workflow before removing the old fetch paths.
 - [ ] Use repository ownership to customize/optimize tools for UR-Recomp where measured value justifies divergence from upstream.

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "tool": "wla-dx",
+  "upstream_url": "https://github.com/vhelin/wla-dx.git",
+  "upstream_revision": "91c52b1f4ef3cc8ba3c0638f7536539579af6a9f",
+  "vendored_source_path": "third_party/src/wla-dx",
+  "vendored_tree_sha256": "8427742e0a299db184a2ed416a997cc360f36f8117c3fdf524c836c9325d6a9e",
+  "license_spdx": "GPL-2.0-or-later",
+  "license_path": "third_party/src/wla-dx/LICENSE",
+  "project_patch": "tools/patches/wla-dx-ur-recomp.patch",
+  "retained": [
+    "top-level common assembler source/headers and upstream metadata",
+    "i65816.c",
+    "instruction_table_generator/**",
+    "wlalink/**"
+  ],
+  "excluded": [
+    "non-65816 i*.c CPU backends",
+    "tests/**",
+    "doc/**",
+    "examples/**",
+    "historical/**",
+    "windows/**",
+    "binaries/**",
+    "wlab/**",
+    "byte_tester/**",
+    "display_statistics/**",
+    "print_instructions/**",
+    "memorymaps/**",
+    "CI/pipeline metadata"
+  ],
+  "exclusion_reason": "UR-Recomp consumes only wla-65816 and wlalink for reconstruction workflows. The retained common sources plus one CPU backend and linker form the complete build closure after the narrow CMake patch.",
+  "dependency_closure": "No package registry. Build requires only CMake, a C compiler and ordinary host libc/libm.",
+  "build_contract": "Apply tools/patches/wla-dx-ur-recomp.patch, then CMake Release configure and build targets wla-65816 and wlalink."
+}

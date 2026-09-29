@@ -68,7 +68,9 @@ Use it before writing bespoke tile/palette conversion unless Uniracers data demo
 
 ### snes2asm + WLA-DX
 
-`snes2asm` can produce configurable LoROM/HiROM disassemblies, trace code paths, extract graphics/tilemaps/palettes/text, and disassemble SPC700 material. WLA-DX supplies the 65816/SPC700 assembler/linker needed for reassemblable projects.
+`snes2asm` can produce configurable LoROM/HiROM disassemblies, trace code paths, extract graphics/tilemaps/palettes/text, and disassemble SPC700 material. UR-Recomp now owns the exact pinned WLA-DX v10.7 source closure needed for reconstruction under `third_party/src/wla-dx/`: common assembler/linker code, the 65816 backend, instruction-table generator and `wlalink`. Other CPU backends and upstream test/documentation/platform material are intentionally excluded.
+
+The project patch `tools/patches/wla-dx-ur-recomp.patch` restricts upstream CMake to `wla-65816` and `wlalink`, matching the artifacts declared in `tools/toolchain.json`. The closure has no package-registry dependency; it requires only ordinary host CMake/C compiler/libc/libm prerequisites.
 
 Treat generated disassemblies as working products, not automatically canonical source. Promote symbols and structural findings into project-owned authorities only after validation.
 

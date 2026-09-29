@@ -83,7 +83,7 @@ jobs:
         run: |
           set -euo pipefail
           case "${{ matrix.tool }}" in
-            mesen-for-ai|snes2asm|superfamiconv|flips)
+            mesen-for-ai|snes2asm|superfamiconv|flips|wla-dx)
               python3 tools/bootstrap_toolchain.py --offline --tool "${{ matrix.tool }}" --jobs 2
               ;;
             *)

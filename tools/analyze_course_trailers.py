@@ -152,8 +152,8 @@ def main() -> int:
         "",
         "Slot 3 is the independently identified stunt slot. The table reports trailer length only; it does not assume trailer semantics.",
         "",
-        "| Slot | Track-order role | Min | Median | Mean | Max |",
-        "|---:|---|---:|---:|---:|---:|",
+        "| Slot | Track-order role | Min | Median | Mean | Max | Values |",
+        "|---:|---|---:|---:|---:|---:|---|",
     ]
     for slot in range(1, 6):
         vals = s["slot_lengths"][str(slot)]
@@ -161,10 +161,9 @@ def main() -> int:
         role = "Stunt" if slot == 3 else ("Race" if slot in (1, 4) else "Circuit")
         md.append(
             f"| {slot} | {role} | {st['min']} | {st['median']} | "
-            f"{st['mean']:.3f} | {st['max']} |"
-        )
-        md.append(
-            f"  - values: " + ", ".join(str(v) for v in vals)
+            f"{st['mean']:.3f} | {st['max']} | "
+            + ", ".join(str(v) for v in vals)
+            + " |"
         )
 
     MD_OUT.write_text("\n".join(md) + "\n", encoding="utf-8")

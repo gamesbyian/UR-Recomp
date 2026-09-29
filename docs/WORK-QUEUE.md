@@ -33,7 +33,7 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 - [x] Native main loop enters and first frame simulates; treat this as execution bring-up cleared, while exact reset-vector tracing remains available if needed.
 - [x] First simulated frame and audio callback complete without a reported DMA/HDMA initialization failure.
 - [x] Title/logo sequence appears and frame 300 has been visually verified from the actual native target.
-- [~] Input reaches menus. The native scripted harness now proves `mainMenu = 0xD7` → `onePlayerSelect = 0x3C` → `onePlayerTours1 = 0x6D` under real controller input. The route is advancing one observed menu state at a time toward race entry.
+- [~] Input reaches menus. The native scripted harness now proves `mainMenu = 0xD7` → `onePlayerSelect = 0x3C` → `onePlayerTours1 = 0x6D` → `onePlayerTracks = 0xF6` under real controller input. The route is advancing one observed menu state at a time toward race entry.
 - [ ] A mode can be selected.
 
 **Exit:** title/menu operation is reproducible.
@@ -78,7 +78,7 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 - [x] Locate public source for Dessyreqt's 2014 full-game real-time Uniracers bot (Pastebin `A0XpKw9v`).
 - [x] Preserve the source and submitted #4250 SMV in the repository with hashes/provenance.
 - [ ] Verify the bot's key RAM labels against the canonical ROM/runtime. The historical 2008 Microstorage WIP SMV has also been recovered and should be used as a second deterministic input corpus.
-- [~] Port or translate its menu-driving policy into the native/snesref deterministic input harness. Main-menu, rider-select and first one-player tours states are verified under real scripted controller input; current work is confirming the first tour and discovering the following track-select state.
+- [~] Port or translate its menu-driving policy into the native/snesref deterministic input harness. Main-menu, rider-select, first-tour and track-select states are verified under real scripted controller input; current work is confirming the default track and discovering the following now-playing state.
 - [ ] Evaluate its race-driving policy as an autonomous regression workload.
 
 ## Phase 5 — Differential validation

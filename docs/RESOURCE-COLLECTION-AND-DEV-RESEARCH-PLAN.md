@@ -236,6 +236,8 @@ This is a cross-cutting research aid, not a presentation-only task. Use it to co
 
 Do not spend compute deriving obvious button behavior from assembly when a screenshot plus the documented menu convention gives a strong candidate. Run the cheap candidate first, capture the resulting state, and only instrument deeper if the observation is ambiguous or fails.
 
+Two-player and VS coverage is a required part of this workstream, not a deferred nicety. The shared neutral P1/P2 transport now exists; `docs/TWO-PLAYER-FIXTURE-PLAN.md` owns the behavioral acceptance route and downstream atlas/fidelity obligations. Continue single-controller atlas work in parallel, but do not treat frontend/fidelity coverage as complete while 2P/VS handoff, split-screen race entry, and cross-runtime multiplayer checkpoints remain unverified.
+
 ## Experimental apparatus
 
 The research program should attack important unknowns from multiple independent directions rather than treating disassembly as the final product.
@@ -248,7 +250,7 @@ Already implemented:
 - pinned on-demand DiztinGUIsh, bsnes-plus, MesenCE, and mesen-for-ai source checkouts in the toolchain manifest.
 
 Next apparatus work, in dependency order:
-1. Extend the replay corpus through acceleration, jump, rotation, landing, collision, finish, two-player, save/load, and known emulator-sensitive scenes.
+1. Extend the replay corpus through acceleration, jump, rotation, landing, collision, finish, two-player, save/load, and known emulator-sensitive scenes. Use the shared neutral P1/P2 stream for multiplayer transport and the acceptance/checkpoint requirements in `docs/TWO-PLAYER-FIXTURE-PLAN.md` for the first durable 2P/VS atlas route.
 2. Extend checkpoint capture from WRAM into relevant CPU, PPU, OAM, VRAM and audio state only when a discrepancy requires it.
 3. Add code/data coverage capture using Mesen CDL or DiztinGUIsh/bsnes+ traces; merge repeated runs into a compact ROM coverage map and feed mode/bank knowledge back into static disassembly.
 4. Build a smallest-first first-divergence reducer: checkpoint mismatch → last matching frame → first differing frame → first differing write/register event → owning guest routine.

@@ -27,6 +27,13 @@ PATTERNS={
    0xA9,0x04,0x00,0x20,None,None,0x7A,0x97,None,
    0xC8,0xC8,0xC6,None,0xD0,None
  ],
+ # MAKEHUFF tail:
+ # INY; INY; DEX; BNE MAKEHUFF4; LSR HUFBSE; INC BITLEN;
+ # CMP #16; BNE MAKEHUFF3; RTS
+ "makehuff-tail":[
+   0xC8,0xC8,0xCA,0xD0,None,0x46,None,0xE6,None,
+   0xC9,0x10,0x00,0xD0,None,0x60
+ ],
 }
 
 def find(data,pat):
@@ -54,10 +61,10 @@ def main():
             lines.append(f"- {pname}: {rendered}")
         lines.append("")
     lines += ["## Traced writer-site context","",
-              "Dynamic trace run 36517696016 identified USA writer PCs 01:BA96 and 01:BB73. "
+              "Dynamic trace run 36517696016 identified USA interpreter attribution-scope entries 01:BA96 and 01:BB73. "
               "For the other builds, contexts below use the unpacker-entry displacement so structurally corresponding code can be compared without assuming absolute addresses.",""]
     usa_entry=allhits["usa-retail"]["entry-loose"][0]
-    traced={"course-byte-increment":0x00BA96,"decoded-output-write":0x00BB73}
+    traced={"byte11-mutation-scope":0x00BA96,"payload-install-scope":0x00BB73}
     for label,usa_off in traced.items():
         delta=usa_off-usa_entry
         lines += [f"### {label}: USA offset `0x{usa_off:06X}`, entry-relative +`0x{delta:X}`",""]

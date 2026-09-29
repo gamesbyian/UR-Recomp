@@ -79,6 +79,12 @@ class AnalysisTests(unittest.TestCase):
         self.assertEqual(report["result"]["actual_changed_bytes"], 4)
         self.assertEqual(report["ranges"][0]["start_hex"], "0x000010")
         self.assertEqual(report["ranges"][0]["lorom_start"], "80:8010")
+        self.assertEqual(report["records"][0]["actual_changed_bytes"], 1)
+        self.assertEqual(report["records"][0]["before_hex"], "0000")
+        self.assertEqual(report["records"][0]["after_hex"], "0001")
+        self.assertEqual(report["records"][1]["before_ascii"], "...")
+        self.assertEqual(report["records"][1]["after_ascii"], "...")
+        self.assertEqual(report["records"][1]["after_printable_ratio"], 0.0)
 
     def test_apply_can_extend_and_truncate(self) -> None:
         patch = make_patch(literal(6, b"xy"), truncate_to=7)

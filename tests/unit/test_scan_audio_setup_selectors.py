@@ -1,0 +1,57 @@
+from tools.scan_audio_setup_selectors import (
+    scan_setup_calls,
+    scan_setup_package_pairs,
+    scan_all_setup_wrapper_calls,
+    scan_immediate_ldx_values,
+    scan_inner_upload_entries,
+)
+
+
+def test_setup_call_scanner_finds_exact_807e_pattern():
+    rom = bytearray(bytes([0]) * 0x100)
+    rom[0x20:0x27] = bytes.fromhex("A2 3B 00 22 7E 80 82")
+    rom[0x40:0x47] = bytes.fromhex("A2 3D 00 22 A5 82 82")
+    rows = scan_setup_calls(bytes(rom))
+    assert [(r["caller_cpu"], r["selector_hex"]) for r in rows] == [
+        ("00:8020", "0x003B")
+    ]
+
+
+def test_setup_package_pair_binds_selector_to_known_table():
+    rom = bytearray(bytes([0]) * 0x100)
+    rom[0x20:0x2E] = bytes.fromhex(
+        "A2 3B 00 22 7E 80 82 A2 95 FB 22 A5 82 82"
+    )
+    rows = scan_setup_package_pairs(bytes(rom), table_cpus=(0x03FB95,))
+    assert len(rows) == 1
+    assert rows[0]["selector_hex"] == "0x003B"
+    assert rows[0]["table_cpu"] == "0x03FB95"
+
+
+def test_all_wrapper_calls_includes_non_immediate_call():
+    rom = bytearray(bytes([0]) * 0x100)
+    rom[0x20:0x24] = bytes.fromhex("22 7E 80 82")
+    rom[0x40:0x47] = bytes.fromhex("A2 3B 00 22 7E 80 82")
+    rows = scan_all_setup_wrapper_calls(bytes(rom))
+    assert len(rows) == 2
+    assert rows[0]["preceding_ldx_immediate"] is None
+    assert rows[1]["preceding_ldx_immediate_hex"] == "0x003B"
+
+
+def test_targeted_ldx_scan_finds_3b_and_3d_anywhere():
+    rom = bytearray(bytes([0]) * 0x80)
+    rom[0x10:0x13] = bytes.fromhex("A2 3B 00")
+    rom[0x30:0x33] = bytes.fromhex("A2 3D 00")
+    rows = scan_immediate_ldx_values(bytes(rom))
+    assert [r["value_hex"] for r in rows] == ["0x003B", "0x003D"]
+
+
+def test_inner_entry_scan_distinguishes_bank02_jsr_and_long_call():
+    rom = bytearray(bytes([0]) * 0x11000)
+    rom[0x10010:0x10013] = bytes.fromhex("20 82 80")
+    rom[0x40:0x44] = bytes.fromhex("22 82 80 82")
+    rows = scan_inner_upload_entries(bytes(rom))
+    assert {(r["kind"], r["caller_cpu"]) for r in rows} == {
+        ("JSL_828082", "00:8040"),
+        ("JSR_8082_bank02", "02:8010"),
+    }

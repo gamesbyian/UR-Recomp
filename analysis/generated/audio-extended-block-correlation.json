@@ -1,0 +1,1483 @@
+{
+  "block_ids": [
+    "0x32",
+    "0x33",
+    "0x34",
+    "0x35",
+    "0x36",
+    "0x37",
+    "0x38",
+    "0x39",
+    "0x3A",
+    "0x3B",
+    "0x3C",
+    "0x3D",
+    "0x3E",
+    "0x3F",
+    "0x40",
+    "0x41",
+    "0x42"
+  ],
+  "blocks": [
+    {
+      "cpu_address": "0x13C6B0",
+      "file_offset": "0x09C6B0",
+      "id": 50,
+      "id_hex": "0x32",
+      "matches": [
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 4443,
+      "payload_sha256": "076168c4c6ad65506c2a76344790e9a11633dc5120f9461ebff2c5302da901c3",
+      "total_length": 4445
+    },
+    {
+      "cpu_address": "0x13D80D",
+      "file_offset": "0x09D80D",
+      "id": 51,
+      "id_hex": "0x33",
+      "matches": [
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 4443,
+      "payload_sha256": "a76aa88af3fe5229dfbed2a65dc13c17bd58baad925dc632cb22e7c3cfab2528",
+      "total_length": 4445
+    },
+    {
+      "cpu_address": "0x13E96A",
+      "file_offset": "0x09E96A",
+      "id": 52,
+      "id_hex": "0x34",
+      "matches": [
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 302,
+      "payload_sha256": "52d24284cc9ad970ec74a9d5c6fdcb7d8631b941c4172831969eb7db72f2fac0",
+      "total_length": 304
+    },
+    {
+      "cpu_address": "0x13EA9A",
+      "file_offset": "0x09EA9A",
+      "id": 53,
+      "id_hex": "0x35",
+      "matches": [
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 625,
+      "payload_sha256": "99ecc76020e51a0436677ace8ffb63f49ae6c10af2609d878f4b66acf2a12571",
+      "total_length": 627
+    },
+    {
+      "cpu_address": "0x13ED0D",
+      "file_offset": "0x09ED0D",
+      "id": 54,
+      "id_hex": "0x36",
+      "matches": [
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 1587,
+      "payload_sha256": "7006933bde1e35ef1f75414edafb3a54f453cdfea81b89e63b2e6c8d848e1f14",
+      "total_length": 1589
+    },
+    {
+      "cpu_address": "0x13F342",
+      "file_offset": "0x09F342",
+      "id": 55,
+      "id_hex": "0x37",
+      "matches": [
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 968,
+      "payload_sha256": "87f2b0068cc03d3df59e41d6e76ad30faa829b393dae01ae82fbe1af070db72f",
+      "total_length": 970
+    },
+    {
+      "cpu_address": "0x13F70C",
+      "file_offset": "0x09F70C",
+      "id": 56,
+      "id_hex": "0x38",
+      "matches": [
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": {
+            "apu_offset": 7424,
+            "apu_offset_hex": "0x1D00",
+            "leading_trim": 4,
+            "matched_length": 2899,
+            "matched_sha256": "e98ab242349e8dce9b18b138db8eebc59bb17f85e2ea0b3a519ccf5df1d18c6b",
+            "trailing_trim": 0
+          },
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 2903,
+      "payload_sha256": "b73b75557e6869273bbce07e7b151587d482644551912e5fc0258e94c62ee643",
+      "total_length": 2905
+    },
+    {
+      "cpu_address": "0x148265",
+      "file_offset": "0x0A0265",
+      "id": 57,
+      "id_hex": "0x39",
+      "matches": [
+        {
+          "best_trimmed_match": {
+            "apu_offset": 7424,
+            "apu_offset_hex": "0x1D00",
+            "leading_trim": 4,
+            "matched_length": 2200,
+            "matched_sha256": "b4e402d0d05207e0ceadc32e8b4ebd4d052677c42f0e36f4ab5883c74ff1eb6b",
+            "trailing_trim": 0
+          },
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 2204,
+      "payload_sha256": "16c36c11d20dfbbcc2c2db1563e257e7e6686e8605cdd1b95595d47982905a0f",
+      "total_length": 2206
+    },
+    {
+      "cpu_address": "0x148B03",
+      "file_offset": "0x0A0B03",
+      "id": 58,
+      "id_hex": "0x3A",
+      "matches": [
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": {
+            "apu_offset": 7424,
+            "apu_offset_hex": "0x1D00",
+            "leading_trim": 4,
+            "matched_length": 1592,
+            "matched_sha256": "9b83bdba0143019422b21ea9fe54e70ea68159f5b12e0af7d4dfd60518801e2c",
+            "trailing_trim": 0
+          },
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 1596,
+      "payload_sha256": "5ac0705553e002818f673cc59e312ad3b6aa2fc6841932f656ad30484ca0651c",
+      "total_length": 1598
+    },
+    {
+      "cpu_address": "0x149141",
+      "file_offset": "0x0A1141",
+      "id": 59,
+      "id_hex": "0x3B",
+      "matches": [
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": {
+            "apu_offset": 7424,
+            "apu_offset_hex": "0x1D00",
+            "leading_trim": 4,
+            "matched_length": 532,
+            "matched_sha256": "bbeb87e949a14cbf188434fdb7f6716e64cac59dd2635113393f7ca2017dc028",
+            "trailing_trim": 0
+          },
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 536,
+      "payload_sha256": "76228c7939f4b27fcb3c930b7f194a1b2d574c028c878a6a93e976dc2e241cdd",
+      "total_length": 538
+    },
+    {
+      "cpu_address": "0x14935B",
+      "file_offset": "0x0A135B",
+      "id": 60,
+      "id_hex": "0x3C",
+      "matches": [
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 536,
+      "payload_sha256": "01d9a3b42dd2c0317a053492842031fd1e6c49073b9eb034ab3850adb9160de2",
+      "total_length": 538
+    },
+    {
+      "cpu_address": "0x149575",
+      "file_offset": "0x0A1575",
+      "id": 61,
+      "id_hex": "0x3D",
+      "matches": [
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": {
+            "apu_offset": 7424,
+            "apu_offset_hex": "0x1D00",
+            "leading_trim": 4,
+            "matched_length": 2532,
+            "matched_sha256": "36400ca88adcfac03cb4dd0391ff4bce3a1688364f64394dcf84c3361704ae15",
+            "trailing_trim": 0
+          },
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 2536,
+      "payload_sha256": "8c28b93d0f51aae758d93030bf493c362b98d2bc052f09f7e2ab299ab452461a",
+      "total_length": 2538
+    },
+    {
+      "cpu_address": "0x149F5F",
+      "file_offset": "0x0A1F5F",
+      "id": 62,
+      "id_hex": "0x3E",
+      "matches": [
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": {
+            "apu_offset": 7424,
+            "apu_offset_hex": "0x1D00",
+            "leading_trim": 4,
+            "matched_length": 2457,
+            "matched_sha256": "b01c450c706b78785c48bfb2e6b70737cb4f04e77ffdb5a0542306df653cdb3c",
+            "trailing_trim": 0
+          },
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 2461,
+      "payload_sha256": "efa2cb565d1b2b116a1c664af0bd3300d06cfc72d87c60ad9f1363e23f7f18c6",
+      "total_length": 2463
+    },
+    {
+      "cpu_address": "0x14A8FE",
+      "file_offset": "0x0A28FE",
+      "id": 63,
+      "id_hex": "0x3F",
+      "matches": [
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": {
+            "apu_offset": 7424,
+            "apu_offset_hex": "0x1D00",
+            "leading_trim": 4,
+            "matched_length": 1853,
+            "matched_sha256": "0bf293d0ee3eb1c4f4257a049513ebbb71b6e72066ece8a3331e9f49df39f21d",
+            "trailing_trim": 0
+          },
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 1857,
+      "payload_sha256": "2a8ff4fb9c77df88bdd2ccf2e46a9d193a6fd9e28f333cc4c5c8fb0ad71f410e",
+      "total_length": 1859
+    },
+    {
+      "cpu_address": "0x14B041",
+      "file_offset": "0x0A3041",
+      "id": 64,
+      "id_hex": "0x40",
+      "matches": [
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": {
+            "apu_offset": 7424,
+            "apu_offset_hex": "0x1D00",
+            "leading_trim": 4,
+            "matched_length": 1981,
+            "matched_sha256": "cbb3ddace071913dba0eeb0ed00fdf0fd8659a75b8215c8a2f095020f18e4325",
+            "trailing_trim": 0
+          },
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 1985,
+      "payload_sha256": "ade8fb3bce90631c33ee56bc3d22074d17c515ad16a75753f801c98cc60979ec",
+      "total_length": 1987
+    },
+    {
+      "cpu_address": "0x14B804",
+      "file_offset": "0x0A3804",
+      "id": 65,
+      "id_hex": "0x41",
+      "matches": [
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": {
+            "apu_offset": 7424,
+            "apu_offset_hex": "0x1D00",
+            "leading_trim": 4,
+            "matched_length": 2623,
+            "matched_sha256": "0a90f83b85038a549283ba5ae027565730ab6a09851e740f89713518c9165448",
+            "trailing_trim": 0
+          },
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 2627,
+      "payload_sha256": "7e9435aaf73ceb533a6f8d197edf71235a1cf46b46b77db3c16d3e3d3c760b19",
+      "total_length": 2629
+    },
+    {
+      "cpu_address": "0x14C249",
+      "file_offset": "0x0A4249",
+      "id": 66,
+      "id_hex": "0x42",
+      "matches": [
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "01 Title Screen.spc",
+          "track": "Title Screen"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "02 Demo Race.spc",
+          "track": "Demo Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "03 1st Race.spc",
+          "track": "1st Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "04 2nd Race.spc",
+          "track": "2nd Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "05 3rd Race.spc",
+          "track": "3rd Race"
+        },
+        {
+          "best_trimmed_match": {
+            "apu_offset": 7424,
+            "apu_offset_hex": "0x1D00",
+            "leading_trim": 4,
+            "matched_length": 1649,
+            "matched_sha256": "44415f8535834ba892c5bc4f7b65480bd1040c83a3fd960128d5f5c1f7e6e359",
+            "trailing_trim": 0
+          },
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "06 4th Race.spc",
+          "track": "4th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "07 5th Race.spc",
+          "track": "5th Race"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "08 Celebration.spc",
+          "track": "Celebration"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 1.spc",
+          "track": "Unused Song 1"
+        },
+        {
+          "best_trimmed_match": null,
+          "exact_apu_offset": null,
+          "exact_apu_offset_hex": null,
+          "path": "91 Unused Song 2.spc",
+          "track": "Unused Song 2"
+        }
+      ],
+      "payload_length": 1653,
+      "payload_sha256": "a1df60e7650dd95a41fc07b2c35939a6632e8208fc1bdf0e70193d4f9831b69a",
+      "total_length": 1655
+    }
+  ],
+  "canonical_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "interpretation_guardrails": [
+    "exact or trimmed byte identity shows shared loaded APU bytes only",
+    "absence of a match does not prove a block is never used",
+    "song/package attribution requires combining this with selector-table and reachability evidence"
+  ],
+  "schema_version": 1,
+  "spc_source": {
+    "archive_sha256": "85a3f00cfe46cddd18caa714374ef54da6835f0d293557ce499de352b8d4fdb0",
+    "archive_size": 491821,
+    "kind": "zip",
+    "source": "/home/runner/work/_temp/uniracers-spc.zip"
+  }
+}

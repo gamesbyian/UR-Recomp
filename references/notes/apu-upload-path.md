@@ -136,3 +136,147 @@ That target is now narrower still: the first-race caller/source seed is `03:FB55
 2. Correlate the ROM serialization with the already-established `$2143` chunks and the retained SNESRecomp `audio_events` request/apply/SPC-read chains.
 3. Map the higher-level package/song selector relationships represented by the clustered seeds and their callers.
 4. Test whether selectors/data for `Unused Song 1` and `Unused Song 2` are referenced by dormant retail code/data or are otherwise unreachable.
+
+
+## Package caller and dormant-table reachability
+
+A reusable canonical-ROM analysis now maps exact direct package callers by requiring the byte pattern `LDX #imm16 ; JSL $82:82A5`, and separately scans raw 16-bit table-seed occurrences as weak candidates.
+
+Direct callers recovered:
+
+| table | exact direct callers |
+| --- | --- |
+| `03:FAD5` | `02:E0CC`, `03:A63D` |
+| `03:FB15` | `00:9459` |
+| `03:FB55` | `03:CA22`, `03:CA67`, `03:CAAC`, `03:CAF1`, `03:CB36`, `03:CB7B` |
+| `03:FB95` | **none** |
+| `03:FBD5` | `00:A103`, `03:A757` |
+| `03:FC15` | `03:A530` |
+
+This reproduces the twelve direct callers while making their table ownership explicit.
+
+A whole-ROM raw-word scan finds only three other occurrences of the `FB95` low-word seed, near `05:9C05`, `18:B111`, and `18:D84F`. Their surrounding bytes do not match the direct load/call form and are retained only as weak candidates. Therefore no obvious static code reference to `03:FB95` is currently known. This materially strengthens the dormant/unreferenced interpretation, but does **not** prove runtime unreachability: an address could still be computed indirectly.
+
+The table relationship is exact and especially informative: `03:FB95` is a slot-preserving subset of `03:FAD5`, differing at exactly three positions. It replaces block IDs `$15`, `$29`, and `$07` with `$FF` at one-based selector slots 29, 33, and 49 respectively. It adds no blocks of its own.
+
+That turns the next discriminator into a bounded question: determine what blocks `$07`, `$15`, and `$29` contribute to the loaded APU image/package, and compare those contributions with the Demo Race / Unused Song 1 and numbered-race / Unused Song 2 SPC-family differences. If one family is explained by exactly those omissions, `FB95` can be attributed much more strongly. If not, retain it as a dormant package variant without overclaiming song identity.
+
+Durable machine-readable result:
+
+- `analysis/generated/audio-package-map.json`
+- `tools/analyze_audio_packages.py`
+
+
+### Omitted-block SPC correlation
+
+The three blocks omitted by `03:FB95` have now been compared directly against all ten preserved SPC APU-RAM snapshots. The SPC archive is acquired transiently and fingerprint-verified; only derived measurements are retained.
+
+- **Block `$15`**: payload length 2,578. After four framing bytes, the remaining **2,574 bytes occur in every one of the ten SPC snapshots**. The numbered races and Unused Song 2 place that body at `$CA29`; Demo Race and Unused Song 1 place it at `$B9B5`; Title and Celebration use shifted locations. This is broadly shared package material, not a song-family discriminator by itself.
+- **Block `$29`**: payload length 256. After one framing byte, **255 bytes occur at `$E3A3` in Demo Race and Unused Song 1**. Celebration has a related 252-byte suffix at `$CA83`. No corresponding substantial match was found in Title, any numbered race, or Unused Song 2. This is strong additional evidence tying block `$29` to the Demo/Unused Song 1 family.
+- **Block `$07`**: payload length 10,894. After one framing byte, **10,893 bytes occur at `$CB7C` only in Celebration** among the ten snapshots. This gives block `$07` a strong Celebration-specific signature in the current corpus.
+
+Therefore the dormant `FB95` variant removes three qualitatively different contributions from `FAD5`: one ubiquitous block (`$15`), one Demo/Unused Song 1-family block (`$29`), and one Celebration-specific block (`$07`). That makes it unlikely that `FB95` is simply a complete package for either currently tagged unused song. A more plausible interpretation is a deliberately reduced package variant whose game-facing selector/caller was removed or became unreachable. This remains provisional until caller-side selector semantics are decoded.
+
+Durable result:
+
+- `analysis/generated/audio-block-spc-correlation.json`
+- `tools/correlate_audio_blocks_spc.py`
+
+
+### Caller-side setup selector gaps
+
+The repeated call immediately before each known package transfer has now been scanned independently. The exact form is `LDX #imm16 ; JSL $82:807E`.
+
+Across the complete retail ROM, the observed setup-selector values are:
+
+`$32, $33, $34, $35, $36, $37, $38, $39, $3A, $3C, $3E, $3F, $40, $41, $42`.
+
+Within the dense range `$38-$42`, **only `$3B` and `$3D` are absent entirely** from exact setup calls. Every other value in that range is present and pairs directly with a known package table:
+
+- `$38 -> FB15`
+- `$39 -> FBD5`
+- `$3A -> FAD5`
+- `$3C -> FC15`
+- `$3E/$3F/$40/$41/$42 -> FB55`
+
+No `$3B` or `$3D` setup call survives elsewhere in the ROM, so neither merely lost its immediately adjacent package transfer.
+
+This is structurally interesting because the preserved SPC set contains exactly two tagged unused songs, but **that numerical coincidence is not yet evidence that selectors $3B/$3D are those songs**. The next discriminator is the semantics of routine `02:807E` and the surrounding selector sequences. If `$82:807E` is a song/program-selection primitive, the two holes become a strong unused-content lead; if it configures an unrelated resource type, the coincidence should be discarded.
+
+Durable result:
+
+- `analysis/generated/audio-setup-selector-map.json`
+- `tools/scan_audio_setup_selectors.py`
+
+
+### Setup routine decoded: direct block uploads
+
+The bounded static extraction resolves the semantic class of the repeated `JSL $82:807E` setup calls.
+
+- `02:807E` is a long-call wrapper: `JSR $8082; RTL`.
+- `02:8082` saves caller state, begins the SPC handshake, calls `02:812A APU_ResolveBlockPointer` with the caller's X value, and transfers the resolved record through the APU ports.
+- Therefore the observed immediates `$32-$42` are **audio block IDs**, continuing beyond the first 50 records (`$00-$31`) referenced by the six 64-byte package tables.
+
+This materially changes the interpretation of the `$3B/$3D` gaps. They are not merely missing high-level selector numbers. They are missing direct calls to two block IDs inside a dense run of directly uploaded audio records. The next discriminator is to parse the physical block pool through `$42` and test whether records `$3B` and `$3D` exist and, if so, whether their payloads fingerprint either tagged unused-song SPC family.
+
+The routine is promoted as `APU_UploadBlockById_Wrapper` at `02:807E`. The inner body at `02:8082` remains available for a later finer symbol split if useful.
+
+
+### Retail unused-song blocks recovered
+
+Extending the physical audio-record pool beyond the 50 package-table IDs (`$00-$31`) resolves the two tagged unused compositions directly.
+
+The dense direct-upload family `$38-$42` maps as follows. In each matched record, the first four bytes are transfer framing and the remaining payload appears at APU RAM `$1D00`:
+
+| block ID | retail exact setup call | SPC payload identity |
+| --- | --- | --- |
+| `$38` | yes | Demo Race, 2,899 bytes |
+| `$39` | yes | Title Screen, 2,200 bytes |
+| `$3A` | yes | Celebration, 1,592 bytes |
+| **`$3B`** | **no** | **Unused Song 1, 532 bytes** |
+| `$3C` | yes | no substantial match in the ten preserved snapshots |
+| **`$3D`** | **no** | **Unused Song 2, 2,532 bytes** |
+| `$3E` | yes | 1st Race, 2,457 bytes |
+| `$3F` | yes | 2nd Race, 1,853 bytes |
+| `$40` | yes | 5th Race, 1,981 bytes |
+| `$41` | yes | 3rd Race, 2,623 bytes |
+| `$42` | yes | 4th Race, 1,649 bytes |
+
+The two holes previously observed in the exact `LDX #block ; JSL $82:807E` call sequence are therefore the two unused-song records themselves:
+
+- **block `$3B` = Unused Song 1 program block**
+- **block `$3D` = Unused Song 2 program block**
+
+This establishes that both unused songs are physically present as ordinary members of the same retail audio-block family as the used title/demo/celebration/race programs. Their immediate upload callsites are absent from the exact retail setup-call corpus.
+
+This is stronger than the earlier SPC-family clustering: it identifies the actual ROM-side records. It still does not by itself prove absolute runtime unreachability, because a computed/indirect invocation could theoretically select either ID. The next reachability check is therefore exhaustive direct-call accounting for `02:807E` plus targeted searches for non-immediate/computed selectors `$3B/$3D`.
+
+The dormant `03:FB95` 64-byte package table should now be treated as a separate question. It is no longer needed to explain the existence of either unused song.
+
+Durable result:
+
+- `analysis/generated/audio-extended-block-correlation.json`
+- `tools/correlate_audio_blocks_spc.py`
+
+
+### Unused-song direct reachability closeout
+
+A complete direct-call accounting was run after identifying blocks `$3B` and `$3D` as the retail records for Unused Song 1 and Unused Song 2.
+
+Results:
+
+- there are **36** direct `JSL $82:807E` calls in the complete retail ROM;
+- **all 36** are immediately preceded by an `LDX #imm16` block ID;
+- there are **zero** unbound direct wrapper calls;
+- there are **zero** raw `LDX #$003B` or `LDX #$003D` instruction byte patterns anywhere in the ROM;
+- the only direct call to inner upload body `02:8082` is the wrapper's own `JSR $8082` at `02:807E`;
+- no direct `JSL $82:8082` bypass exists.
+
+Within the direct static call graph, the two unused-song records therefore have no selection path. This is strong retail unreachability evidence for ordinary direct invocation. It does not mathematically exclude a computed X value followed by an indirect/code-generated transfer path, but no such path is currently evidenced and the normal block-upload primitive is exhaustively accounted for.
+
+The two unused songs can now be described precisely as **retained retail audio records with their ordinary direct selection callsites absent**.
+
+Durable result:
+
+- `analysis/generated/audio-unused-reachability.json`
+- `tools/scan_audio_setup_selectors.py`

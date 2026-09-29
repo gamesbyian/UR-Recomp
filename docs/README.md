@@ -11,6 +11,7 @@ Task routing lives in [`../AGENTS.md`](../AGENTS.md). This file inventories owne
 | [`BRINGUP.md`](BRINGUP.md) | Chronological native build/runtime attempts and empirical outcomes |
 | [`VALIDATION.md`](VALIDATION.md) | Fidelity hierarchy, deterministic comparison strategy, and finish-line validation principles |
 | [`COURSE-FORMAT.md`](COURSE-FORMAT.md) | RNC/course-format investigation and current structural understanding |
+| [`UI-STATE-MAP.md`](UI-STATE-MAP.md) | Frontend/menu state graph, navigation evidence, screenshot-atlas workflow, and unresolved UI transitions |
 | [`RESEARCH-LEDGER.md`](RESEARCH-LEDGER.md) | Evidence-backed ROM/hardware/runtime claims, including hypotheses and rejected interpretations |
 | [`SYMBOLS.md`](SYMBOLS.md) | Reconstructed code/data/RAM symbols |
 | [`FRAMEWORK-PIN.md`](FRAMEWORK-PIN.md) | SNESRecomp revision and pin rationale |

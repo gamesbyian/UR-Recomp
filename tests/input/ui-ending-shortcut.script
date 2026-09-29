@@ -1,0 +1,14 @@
+# Optional startup probe: recovered splash state and public ending shortcut.
+# Both menu IDs are historical/secondary leads until this succeeds locally.
+
+until 009F == 84 3600
+dump ui-splash-observed
+
+# Public references describe: hold Down+L+R and press B at the title screen.
+# A simultaneous two-frame chord is the cheapest first discriminator.
+press down+l+r+b 2
+until 009F == 5B 1800
+wait 30
+dump ui-ending-shortcut
+
+quit

@@ -14,6 +14,7 @@ Compact router for coding and research agents. Load the smallest current authori
 | Native build / boot / runtime failure | `docs/BRINGUP.md`, `docs/VALIDATION.md`, then the changed workflow/runtime files |
 | ROM identity / preserved build comparison | `analysis/generated/reference-rom-inventory.md`, `analysis/generated/reference-rom-comparison.md` |
 | RNC / course-format work | `docs/COURSE-FORMAT.md`, then relevant generated analyses/tools |
+| Frontend / menu / screen-flow / UI-state work | `docs/UI-STATE-MAP.md`, `analysis/ui-state-map.yml`, then `analysis/ui-capture-manifest.json` |
 | Established reverse-engineering claim | `docs/RESEARCH-LEDGER.md` |
 | Recovered code/data symbol | `docs/SYMBOLS.md` |
 | Original DMA development history / missing artifacts | `docs/original-development/DEVELOPER-TECHNICAL-HISTORY.md`, `docs/original-development/ACQUISITION-LEDGER.md` |

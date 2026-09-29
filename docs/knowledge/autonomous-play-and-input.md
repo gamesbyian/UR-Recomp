@@ -130,3 +130,15 @@ Dessyreqt's preserved Lua source declares several player-1 byte-table keys twice
 - `tabletops = 7E:042F`, not the earlier `7E:0431`.
 
 The earlier addresses are still useful archaeological leads and line up suggestively with the player-2 table, but they must not be described as the player-1 values used by the running bot without independent validation.
+
+
+## First-course jump probe alignment
+
+The first clean one-player race selects bot track 0, labelled `Dragster` in the recovered source. Dessyreqt's `jumpAreas[0]` contains one large rectangle:
+
+- X: 1090–25278
+- Y: 790–870
+
+The validated `accel-180` checkpoint from run 36512546762 is `xPos=1655`, `yPos=858`, which lies inside that rectangle. Therefore the branch's next `right+b` probe is not an arbitrary human-style jump test: it exercises a location where the recovered autonomous policy itself would return `ShouldJump() = true`.
+
+This is useful for interpreting `ySpeed`, effective `airValue` and `pitch` changes and for later adapting the original race-driving policy into a deterministic regression workload.

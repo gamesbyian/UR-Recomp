@@ -743,3 +743,14 @@ This closes ROM-revision mismatch as a possible cause of historical replay desyn
 TASVideos submission #4250 identifies Dessyreqt's full-game Uniracers movie as Snes9x 1.51 v17 and describes a blank-SRAM start. Its sync notes record successful verification using the movie's embedded settings. Unlike the 2008 SMV-v1 WIP, this movie therefore does not depend on the obsolete WIP1 timing flag.
 
 **Discriminating test:** extract the wrapped submission SMV, require reset/SRAM anchoring, replay the first 5,000 frames on the pinned Snes9x core in one trace pass, and persist exact `inRace` / `raceResults` transition frames. Agreement with the 2008 corpus would validate the neutral historical-input path from two independently authored timing eras; disagreement isolates the old WIP1 timing mode as a first-class suspect.
+
+
+### R-SEED-040 — Shipped RNC1 body ends at BB6E; BB73 is following helper code
+
+**Status:** confirmed static source alignment  
+**Date:** 2026-09-28  
+**Area:** RNC | course loader | code archaeology
+
+The preserved Method-1 `MAKEHUFF` tail aligns at USA `01:BB60`; its source-final `RTS` is exactly `01:BB6E`. This establishes the USA/legacy-beta RNC1 body boundary as `01:B8F1..01:BB6E`. The next helper starts at `01:BB6F`; `01:BB71` increments the input pointer and `01:BB73` is its following `BNE`.
+
+Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribution scopes are now statically separated: BA96 is generic RNC bit-reader code; BB73 is integration/helper code after RNC. Exact memory-store opcode attribution remains pending the dedicated `SNESRECOMP_WLOG_STATE` IPC probe.

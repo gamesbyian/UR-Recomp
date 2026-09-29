@@ -220,3 +220,28 @@ This gives a frame-exact ordering:
 4. on +45, player/racer initialization consumes the course-space spawn coordinates and installs `(68,50) × 16 = (1088,800)` into both racer slots.
 
 No finer frame sampling is needed for this chronology. The remaining question is **which guest routines perform the decompression write and the +43/+44 byte-11 updates**; the dedicated trace-course-buffer-writers workflow targets that next.
+
+
+### Dynamic course-buffer writers identified
+
+Trace run 36517696016 records writer history for the live Dragster buffer at `7F:0000` through race setup.
+
+Observed writes:
+
+- frame 867, `interp@$81BB73` writes the decoded stream bytes into the destination buffer, including:
+  - `7F:0000 = 0x00`;
+  - `7F:0003 = 0x44`;
+  - `7F:0005 = 0x32`;
+  - `7F:000B: 0x00 → 0x0F`.
+- frame 879, `interp@$81BA96` writes the same byte seven times in succession:
+  - `0x0F → 0x10 → 0x11 → 0x12 → 0x13 → 0x14 → 0x15 → 0x16`.
+
+This directly explains the single runtime-mutated course byte. The first writer places the decoded `0x0F`; the second writer is responsible for the final `0x16` value.
+
+Both PCs are in bank 81 near the already identified shipped RNC Method-1 unpacker region (entry `01:B8F1`). That proximity is not, by itself, enough to label `81BA96` as either part of the generic RNC algorithm or game-specific postprocessing. The next static step is to disassemble/map the exact shipped instructions at `01:BA96` and `01:BB73` against preserved `RNC_1.S` before naming either routine semantically.
+
+Evidence:
+- workflow run 36517696016;
+- artifact 11011622806;
+- `.github/workflows/trace-course-buffer-writers.yml`;
+- `tools/trace_native_wram_writers.py`.

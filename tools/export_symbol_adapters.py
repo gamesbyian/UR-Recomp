@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "analysis" / "generated" / "symbols.json"
 SNES2ASM_OUT = ROOT / "analysis" / "generated" / "snes2asm-symbols.yml"
 MESEN_OUT = ROOT / "analysis" / "generated" / "mesen-symbols.mlb"
+GHIDRA_OUT = ROOT / "analysis" / "generated" / "ghidra-symbols.json"
 DA65_DIR = ROOT / "analysis" / "generated"
 CPU_RE = re.compile(r"([0-9A-Fa-f]{2}):([0-9A-Fa-f]{4})")
 SAFE_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -113,6 +114,46 @@ def render_mesen(entries: list[dict]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def ghidra_lorom_address(bank: int, addr: int) -> int | None:
+    if addr < 0x8000:
+        return None
+    if bank <= 0x7D:
+        bank |= 0x80
+    return (bank << 16) | addr
+
+
+def render_ghidra(entries: list[dict]) -> str:
+    labels: list[dict] = []
+    for entry in entries:
+        name = name_of(entry)
+        parsed = cpu_address(str(entry.get("address", "")))
+        if not name or parsed is None:
+            continue
+        bank, addr = parsed
+        if entry.get("kind") == "function":
+            target = ghidra_lorom_address(bank, addr)
+            if target is None:
+                continue
+        elif entry.get("kind") == "ram" and bank in {0x7E, 0x7F}:
+            target = (bank << 16) | addr
+        else:
+            continue
+        labels.append({
+            "address": f"{target:06X}",
+            "name": name,
+            "kind": entry.get("kind"),
+            "comment": comment_of(entry),
+        })
+    labels.sort(key=lambda row: (row["address"], row["name"]))
+    return json.dumps({
+        "schema_version": 1,
+        "target": "ghidra-snes",
+        "target_revision": "d33ce5dbfbc3645f00449be1c7ca1c1c65e81756",
+        "address_model": "ghidra-snes canonical 24-bit SNES CPU space; LoROM ROM banks canonicalized to 80-FF; WRAM remains 7E-7F",
+        "entries": labels,
+    }, indent=2) + "\n"
+
+
 def render_da65(entries: list[dict]) -> dict[int, str]:
     by_bank: dict[int, list[tuple[int, str]]] = {}
     for entry in entries:
@@ -149,6 +190,7 @@ def expected_outputs() -> dict[Path, str]:
     outputs = {
         SNES2ASM_OUT: render_snes2asm(entries),
         MESEN_OUT: render_mesen(entries),
+        GHIDRA_OUT: render_ghidra(entries),
     }
     for bank, content in render_da65(entries).items():
         outputs[DA65_DIR / f"da65-symbols-bank-{bank:02X}.info"] = content

@@ -20,11 +20,15 @@ dump after-main-a
 until 009F == 3C 1200
 press a
 
-# First page of one-player tours: 109 = 0x6D.
-# Fresh SRAM defaults to the first rider/tour, so accepting the current
-# selection should choose Crawler without navigation.
-until 009F == 6D 1200
-press a
+# Do not assume which tours/menu state follows rider confirmation.
+# The recovered bot handles both onePlayerTours1=0x6D and onePlayerTours2=0x10.
+# First prove that the selector actually leaves 0x3C, then capture the state.
+until 009F != 3C 1200
+wait 30
+dump after-rider-a
+
+# Stop this diagnostic route here until the observed next state is classified.
+quit
 
 # One-player track select: 246 = 0xF6.
 until 009F == F6 1200

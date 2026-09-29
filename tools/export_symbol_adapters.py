@@ -12,6 +12,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "analysis" / "generated" / "symbols.json"
 SNES2ASM_OUT = ROOT / "analysis" / "generated" / "snes2asm-symbols.yml"
+MESEN_OUT = ROOT / "analysis" / "generated" / "mesen-symbols.mlb"
 DA65_DIR = ROOT / "analysis" / "generated"
 CPU_RE = re.compile(r"([0-9A-Fa-f]{2}):([0-9A-Fa-f]{4})")
 SAFE_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -72,6 +73,46 @@ def render_snes2asm(entries: list[dict]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def comment_of(entry: dict) -> str:
+    raw = entry.get("notes")
+    if raw is None:
+        raw = entry.get("evidence_/_notes")
+    if raw is None:
+        return ""
+    return str(raw).replace("\\r\\n", "\\n").replace("\\r", "\\n").replace("\\n", "\\\\n").strip()
+
+
+def render_mesen(entries: list[dict]) -> str:
+    labels: list[tuple[str, int, str, str]] = []
+    for entry in entries:
+        name = name_of(entry)
+        parsed = cpu_address(str(entry.get("address", "")))
+        if not name or parsed is None:
+            continue
+        bank, addr = parsed
+        comment = comment_of(entry)
+        if entry.get("kind") == "function":
+            off = lorom_offset(bank, addr)
+            if off is not None:
+                labels.append(("SnesPrgRom", off, name, comment))
+        elif entry.get("kind") == "ram" and bank in {0x7E, 0x7F}:
+            wram = (bank - 0x7E) * 0x10000 + addr
+            labels.append(("SnesWorkRam", wram, name, comment))
+
+    lines = [
+        "# Generated from analysis/generated/symbols.json for pinned MesenCE.",
+        "# Native syntax: MemoryType:HEX_ADDRESS:Label[:Comment].",
+    ]
+    for memory_type, address, name, comment in sorted(
+        labels, key=lambda x: (x[0], x[1], x[2])
+    ):
+        line = f"{memory_type}:{address:04X}:{name}"
+        if comment:
+            line += ":" + comment
+        lines.append(line)
+    return "\n".join(lines) + "\n"
+
+
 def render_da65(entries: list[dict]) -> dict[int, str]:
     by_bank: dict[int, list[tuple[int, str]]] = {}
     for entry in entries:
@@ -105,7 +146,10 @@ def render_da65(entries: list[dict]) -> dict[int, str]:
 
 def expected_outputs() -> dict[Path, str]:
     entries = load_symbols()
-    outputs = {SNES2ASM_OUT: render_snes2asm(entries)}
+    outputs = {
+        SNES2ASM_OUT: render_snes2asm(entries),
+        MESEN_OUT: render_mesen(entries),
+    }
     for bank, content in render_da65(entries).items():
         outputs[DA65_DIR / f"da65-symbols-bank-{bank:02X}.info"] = content
     return outputs

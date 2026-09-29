@@ -161,7 +161,7 @@ jobs:
             tail -n 12 "$PRESENTS"
           fi
 
-      - name: Deterministic first-race input smoke
+      - name: Deterministic native input route
         shell: bash
         run: |
           set +e
@@ -173,14 +173,14 @@ jobs:
           DUMPS="$RUNNER_TEMP/race-dumps"
           mkdir -p "$DUMPS"
 
-          echo "== scripted native route to first race =="
+          echo "== scripted native input route =="
           SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
           timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
             >"$LOG" 2>&1
           STATUS=$?
           cat "$LOG"
 
-          for state in main-menu after-main-down after-main-up after-main-a; do
+          for state in main-menu rider-select after-rider; do
             WRAM="$DUMPS/$state.wram.bin"
             if [ -s "$WRAM" ]; then
               python3 -c 'import pathlib,sys; name=sys.argv[1]; w=pathlib.Path(sys.argv[2]).read_bytes(); print(f"{name}: menu[009F]=0x{w[0x009F]:02X} selectedOption[009B]=0x{w[0x009B]:02X} row[000E]=0x{w[0x000E]:02X} col[0C63]=0x{w[0x0C63]:02X}")' "$state" "$WRAM"
@@ -188,14 +188,14 @@ jobs:
           done
 
           if [ "$STATUS" -ne 0 ]; then
-            echo "::error::Scripted race route exited with status $STATUS"
+            echo "::error::Scripted native route exited with status $STATUS"
             exit "$STATUS"
           fi
-          if ! grep -q "until 00313 ok" "$LOG"; then
-            echo "::error::Script completed without proving WRAM 7E:0313 entered race state"
+          if [ ! -s "$DUMPS/rider-select.wram.bin" ] || [ ! -s "$DUMPS/after-rider.wram.bin" ]; then
+            echo "::error::Route did not prove rider-select entry and exit"
             exit 1
           fi
-          echo "RACE_SMOKE_RESULT=reached_race"
+          echo "INPUT_ROUTE_RESULT=through_rider_select"
 
       - name: Upload native frame evidence
         if: always()

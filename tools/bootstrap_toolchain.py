@@ -117,18 +117,41 @@ def expand_command(command: list[str], *, jobs: int, python: Path | None) -> lis
     return [arg.format(**values) for arg in command]
 
 
+def canonical_git_url(url: str) -> str:
+    return url.rstrip("/").removesuffix(".git")
+
+
 def ensure_checkout(tool: dict, src_root: Path) -> Path:
     dest = src_root / tool["id"]
     if not dest.exists():
         run(["git", "clone", "--filter=blob:none", "--no-checkout", tool["url"], str(dest)])
     if not (dest / ".git").exists():
         raise SystemExit(f"{dest} exists but is not a git checkout")
+
+    origin = subprocess.check_output(
+        ["git", "remote", "get-url", "origin"], cwd=dest, text=True
+    ).strip()
+    if canonical_git_url(origin) != canonical_git_url(tool["url"]):
+        raise SystemExit(
+            f"{tool['id']}: existing checkout origin {origin!r} != manifest {tool['url']!r}"
+        )
+
     revision = tool["revision"]
     run(["git", "fetch", "--depth", "1", "origin", revision], cwd=dest)
-    run(["git", "checkout", "--detach", revision], cwd=dest)
+    run(["git", "checkout", "--detach", "--force", revision], cwd=dest)
+    run(["git", "reset", "--hard", revision], cwd=dest)
+    # .tools/ is disposable. Remove both ordinary and ignored build residue so a
+    # previous local build cannot contaminate a supposedly pinned rebuild.
+    run(["git", "clean", "-ffdqx"], cwd=dest)
+
     actual = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=dest, text=True).strip()
     if actual != revision:
         raise SystemExit(f"{tool['id']}: expected {revision}, got {actual}")
+    dirty = subprocess.check_output(
+        ["git", "status", "--porcelain", "--untracked-files=all"], cwd=dest, text=True
+    ).strip()
+    if dirty:
+        raise SystemExit(f"{tool['id']}: checkout is dirty after reset/clean")
     return dest
 
 

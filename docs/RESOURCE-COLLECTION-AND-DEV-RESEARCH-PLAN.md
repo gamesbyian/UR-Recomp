@@ -194,7 +194,7 @@ Already implemented:
 - full-WRAM checkpoint comparison and native write-history tracing on the first-race fixture;
 - machine-readable symbol export at `analysis/generated/symbols.json`, generated from the human authority `docs/SYMBOLS.md`;
 - controlled byte mutation with `tools/mutate_rom.py`, including before/after bytes and ROM hashes;
-- pinned on-demand DiztinGUIsh, bsnes-plus, and mesen-for-ai source checkouts in the toolchain manifest.
+- pinned on-demand DiztinGUIsh, bsnes-plus, MesenCE, and mesen-for-ai source checkouts in the toolchain manifest.
 
 Next apparatus work, in dependency order:
 1. Extend the replay corpus through acceleration, jump, rotation, landing, collision, finish, two-player, save/load, and known emulator-sensitive scenes.
@@ -220,18 +220,19 @@ The goal is a closed evidence loop: ROM bytes → static hypothesis → dynamic 
 
 ## Current execution loop
 
-The preferred single-agent loop is:
+The preferred continuation loop is:
 
-1. inspect current CI/bring-up state;
-2. reduce the native boot failure;
-3. while blocked or once a clean checkpoint is reached, build RNC extraction/decompression tooling;
-4. characterize decoded streams and begin course-format identification;
-5. classify prototype/retail diff regions using emerging symbols;
-6. map OAM/Canoe hooks and known WRAM anchors;
-7. perform narrowly targeted archival recovery when a missing artifact can materially accelerate one of the above;
-8. update canonical docs and commit coherent checkpoints.
+1. inspect PR #5 and the latest differential/trace runs; preserve or update the current first-divergence evidence before starting a new lane;
+2. reduce the seven settled-race WRAM differences to the earliest meaningful guest-side divergence, using the existing shared first-race fixture and native write history before adding heavier instrumentation;
+3. extend the same deterministic input corpus into acceleration, jump, rotation, landing, collision and finish, validating the recovered race-control RAM labels as each action becomes observable;
+4. promote durable replay cases into `tests/fixtures.json` and keep comparison surfaces as narrow as the question permits;
+5. when WRAM/write-history evidence is insufficient, add the smallest useful CPU/PPU/OAM/VRAM/audio capture or use the pinned MesenCE/mesen-for-ai or DiztinGUIsh/bsnes+ workbench for code/data coverage;
+6. feed confirmed readers, writers, routines and tables back into `docs/SYMBOLS.md`, regenerate `analysis/generated/symbols.json`, and record evidence-backed conclusions in the research ledger/knowledge base;
+7. use `tools/mutate_rom.py` for specific causal hypotheses and score mutations through deterministic replay; use asset round-trip experiments when a resource format is sufficiently understood;
+8. continue course-format, emulator-compatibility and archival work opportunistically when the active execution evidence exposes a discriminating question or a missing artifact can materially accelerate it;
+9. update canonical docs and the active PR description at coherent checkpoints.
 
-The agent should move between these tracks based on evidence and blockers rather than completing them as rigid phases.
+The agent should move between these tracks based on evidence and blockers rather than completing them as rigid phases. Repository state is authoritative over conversational summaries.
 
 ## Canonical supporting documents
 

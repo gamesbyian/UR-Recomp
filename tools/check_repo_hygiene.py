@@ -38,6 +38,9 @@ REQUIRED_ENTRYPOINTS = {
     "tools/tool_interop.json",
     "tools/validate_tool_interop.py",
     "tools/export_symbol_adapters.py",
+    "third_party/README.md",
+    "third_party/manifest.json",
+    "tools/validate_island.py",
 }
 
 
@@ -84,6 +87,7 @@ def main() -> int:
 
     subprocess.run([sys.executable, str(Path(__file__).with_name("export_symbols.py")), "--check"], check=True)
     subprocess.run([sys.executable, str(Path(__file__).with_name("bootstrap_toolchain.py")), "--validate"], check=True)
+    subprocess.run([sys.executable, str(Path(__file__).with_name("validate_island.py"))], check=True)
     subprocess.run([sys.executable, str(Path(__file__).with_name("audit_imported_references.py"))], check=True)
     subprocess.run([sys.executable, str(Path(__file__).with_name("audit_imported_code.py")), "--check"], check=True)
     subprocess.run([sys.executable, str(Path(__file__).with_name("validate_tool_interop.py"))], check=True)

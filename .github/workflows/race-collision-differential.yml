@@ -118,6 +118,9 @@ jobs:
           CHECKPOINTS=(
             --checkpoint accel-180
             --checkpoint collision-pre
+            --checkpoint collision-overrotate-008
+            --checkpoint collision-overrotate-010
+            --checkpoint collision-overrotate-012
             --checkpoint collision-overrotate-016
             --checkpoint collision-release-004
             --checkpoint collision-release-012
@@ -165,6 +168,9 @@ jobs:
               "$RUNNER_TEMP/${engine}-collision-overrotate-dumps" "$RUNNER_TEMP/${engine}-collision-control-dumps" \
               --label-a overrotate --label-b clean --limit 100 \
               --checkpoint collision-pre \
+              --checkpoint collision-overrotate-008 \
+              --checkpoint collision-overrotate-010 \
+              --checkpoint collision-overrotate-012 \
               --checkpoint collision-overrotate-016 \
               --checkpoint collision-release-004 \
               --checkpoint collision-release-012 \

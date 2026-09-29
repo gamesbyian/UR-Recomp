@@ -51,10 +51,16 @@ jobs:
           patterns = {
               "JSR_8298": bytes.fromhex("20 98 82"),
               "JSR_8294": bytes.fromhex("20 94 82"),
+              "JSR_82A9": bytes.fromhex("20 A9 82"),
+              "JSR_82A5": bytes.fromhex("20 A5 82"),
               "JSL_828298": bytes.fromhex("22 98 82 82"),
               "JSL_028298": bytes.fromhex("22 98 82 02"),
               "JSL_828294": bytes.fromhex("22 94 82 82"),
               "JSL_028294": bytes.fromhex("22 94 82 02"),
+              "JSL_8282A5": bytes.fromhex("22 A5 82 82"),
+              "JSL_0282A5": bytes.fromhex("22 A5 82 02"),
+              "JSL_8282A9": bytes.fromhex("22 A9 82 82"),
+              "JSL_0282A9": bytes.fromhex("22 A9 82 02"),
           }
 
           def cpu_addr(offset):
@@ -157,6 +163,7 @@ jobs:
             --port 4377 --command-timeout 45 --coarse-until 900 --coarse-step 25 --max-frames 1400 \
             --address 0x00 --address 0x01 --address 0x02 \
             --address 0x63 --address 0x64 --address 0x65 --address 0x6f \
+            --address 0x83 --address 0x84 \
             --json-out "$OUT/audio-source-writers.json"
 
       - name: Resolve transfer PC and ROM source windows
@@ -174,19 +181,10 @@ jobs:
           import sys
           d = json.load(open(sys.argv[1]))
           print(json.dumps({
-              "runtime_pcs": d["runtime_pcs"],
-              "observed_D_values": d["observed_D_values"],
-              "target_hits": d["cpu_trace"]["target_hits"],
-              "captures": [
-                  {k: r.get(k) for k in (
-                      "block_index", "frame", "pc24",
-                      "entry_stream_pointer", "entry_stream_file_offset",
-                      "working_pointer_63", "working_63_file_offset"
-                  )}
-                  for r in d["captures"]
-              ],
+              "static_interpretation": d["static_interpretation"],
+              "transfer_seed_events": d["transfer_seed_events"],
               "source_windows": [
-                  {k: r.get(k) for k in ("roles", "source_pointer", "source_file_offset", "cart_len")}
+                  {k: r.get(k) for k in ("source_pointer", "source_file_offset", "cart_len")}
                   for r in d["source_cart_windows"]
               ],
               "audio_events": len(d["audio_events"]),

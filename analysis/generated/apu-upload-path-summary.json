@@ -23,16 +23,22 @@
     "interpretation": "The first-race transition uses $2142 as a rolling echoed sequence/handshake byte and $2143 as the payload byte. Three $2142-only transitions split the payload into four transfer chunks."
   },
   "static_transfer_routine": {
-    "function_address": "02:8298",
+    "function_address": "02:82A9",
     "function_name": "APU_StreamTransfer",
+    "wrapper_address": "02:82A5",
+    "wrapper_name": "APU_StreamTransfer_Wrapper",
+    "initializer_address": "02:8298",
+    "initializer_name": "APU_TransferStateInit",
     "confidence": 4,
     "evidence": [
+      "02:8298-02:82A4 is a self-contained initializer that clears DP $68/$6C/$6A and returns; the previous transfer label at $8298 was too broad.",
+      "02:82A5 is exactly JSR $82A9 / RTL and has 12 direct long-call sites.",
+      "02:82A9 initializes $6F, stores caller X at DP $83, reads LDA $030000,X, and flows into the proven $2142/$2143 transport loop.",
       "02:82F0 executes LDA [$63],Y and 02:82F2 writes that byte to $2143.",
       "02:82F5 XBA / 02:82F6 STA $2142 writes the sequence/handshake byte.",
       "02:8301 CMP $2142 / BNE waits for the echoed handshake before advancing.",
-      "Y increments per payload byte; when Y wraps, 02:82FC INC $65 advances the 24-bit source pointer rooted at direct-page $63.",
-      "02:831C LDA #$80, 02:831E STA $2142 and the echo loop at 02:8321 terminate the observed transfer phase.",
-      "The routine has a JSR/RTL long-call wrapper immediately before it at 02:8294."
+      "Y increments per payload byte; when Y wraps, 02:82FC INC $65 advances the 24-bit working source pointer rooted at direct-page $63.",
+      "02:831C LDA #$80, 02:831E STA $2142 and the echo loop at 02:8321 terminate the observed transfer phase."
     ],
     "helper": {
       "address": "02:8328",
@@ -128,10 +134,25 @@
     ]
   },
   "interpretation": [
-    "The CPU-side upload primitive is now localized to executable-looking bank-02 code rather than an inferred raw ROM blob.",
+    "The CPU-side transfer body is 02:82A9, not 02:8298; 02:8298 is a short transfer-state initializer.",
     "The observed first-race transition copies a large race-family APU data block through $2143 while synchronizing each byte through $2142.",
+    "The first-race ROM-side source seed is directly measured as 03:FB55, one member of a compact family of caller-supplied bank-03 seeds.",
     "The matched high-APU-RAM region is distinct from the previously identified shared BRR sample-bank prefix at $3000-$5F87, so it is more plausibly driver-side tables/sequence/state data than the common sample payload itself.",
-    "This result does not yet identify the ROM-side source block table, individual song selector values, or why the two unused compositions are unreachable."
+    "The ROM serialization and mapping from source seeds to songs/packages are not yet decoded, so unused-song reachability remains open."
   ],
-  "next_discriminator": "Trace the caller and source-pointer/table setup feeding 02:8298, and capture the generic SNESRecomp audio_events ring immediately around the transfer to distinguish control/header bytes from applied payload. Use that to map ROM-side audio blocks and song selectors, then test whether the two unused compositions have reachable or dormant selector entries."
+  "next_discriminator": "Decode the ROM bytes at first-race source 03:FB55 and sibling seeds FAD5/FB15/FBD5/FC15, then correlate that serialization with the established $2143 chunks and audio_events chains to map package/song selectors and test unused-song retail reachability.",
+  "rom_source": {
+    "static_x_seeds": [
+      "0xFAD5",
+      "0xFB15",
+      "0xFB55",
+      "0xFBD5",
+      "0xFC15"
+    ],
+    "first_race_x_seed": "0xFB55",
+    "first_race_source_cpu": "03:FB55",
+    "first_race_source_file_offset": "0x01FB55",
+    "runtime_corroboration": "At frame 906 the first paired WRAM writes to DP $83/$84 are $55/$FB, reconstructing X=$FB55; subsequent pairs advance $FB56, $FB57, and onward. Six static long-call sites load X=$FB55 immediately before JSL $82:82A5.",
+    "interpretation": "The retail transfer body has a directly observed bank-03 selector/cursor path. DP $63-$65 is a working pointer inside the transport; generic D+$00 upload-stream semantics must not be projected onto this routine without decoding the ROM serialization."
+  }
 }

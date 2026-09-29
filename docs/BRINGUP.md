@@ -213,3 +213,33 @@ Interpretation:
 - native/reference frontend timing differs by several frames while the observed state sequence agrees.
 
 Next milestone: compare the complete WRAM checkpoint dumps byte-for-byte in one differential job, record the first differing offsets at each scene, and then extend deterministic control into actual race movement/physics.
+
+
+### Follow-up — first full WRAM differential narrows race-entry mismatch to seven bytes
+
+Combined differential workflow run 36508095522 built both native SNESRecomp and pinned Snes9x/snesref, ran the same `reach-first-race.script`, and compared all seven complete 128 KiB WRAM dumps.
+
+Differing-byte counts:
+- `main-menu-ready`: 19 / 131072;
+- `rider-select-ready`: 252;
+- `tours-ready`: 250;
+- `tracks-ready`: 254;
+- `after-track-confirm`: 258;
+- `now-playing-ready`: 255;
+- `race-entered`: **7**.
+
+The settled race-entry differences are:
+- `0x00C6`: native `04`, Snes9x `1D`;
+- `0x00C8`: native `03`, Snes9x `01`;
+- `0x00C9`: native `02`, Snes9x `03`;
+- `0x01D1–0x01D4`: native `90 13 20 80`, Snes9x `00 00 00 00`.
+
+The contiguous `0x01D1–0x01D4` block first becomes visibly divergent by rider-select and remains present through later captured frontend states and race entry. The three `0x00C6/0x00C8/0x00C9` bytes vary across checkpoints and are plausible timing/animation state, but their semantics are not yet assigned.
+
+Interpretation: native/reference semantic race entry is extremely close in WRAM after the 60-frame race settle despite the nine-frame route timing offset. The next high-value discriminator is the origin and meaning of writes to `0x01D1–0x01D4`, followed by characterization of the three remaining low-WRAM differences.
+
+Evidence:
+- workflow run 36508095522;
+- artifact 11007769197;
+- `tools/compare_wram_checkpoints.py`;
+- `.github/workflows/deterministic-differential.yml`.

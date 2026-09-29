@@ -141,6 +141,13 @@ Observed so far:
 - the first simplified script then pressed A immediately, but did not reach the bot's `onePlayerSelect = 0x3C` state within the timeout;
 - re-reading the bot shows that simplification omitted a real branch: on the main menu the bot reads `7E:009B` (`selectedOption`), pulses Up while it is nonzero, and presses A only after option 0 is selected.
 
-Current diagnostic captures WRAM immediately at `mainMenu` and again after the first attempted selection, printing `currentMenu`, `selectedOption`, selected row and selected column. This is intended to distinguish an input-path problem from simply selecting the wrong main-menu entry.
+Run 36504420741 resolved that diagnostic:
 
-Interpretation: deterministic guest-observed menu navigation is now partly reproduced. The current blocker is one concrete main-menu transition, not generic controller delivery or native execution.
+- at frame 446, `currentMenu = 0xD7`, `selectedOption = 0x00`, row `0x00`, column `0xFD`;
+- after the one-frame A press plus 30 guest frames, `currentMenu` is still `0xD7` and `selectedOption` is still `0x00`, but the menu column byte has changed to `0x04`.
+
+This rules out the bot's "move Up until option zero" branch for this clean boot and shows that the injected A reaches live guest/menu state. The remaining seam is acceptance timing: the historical bot continues to pulse A every other frame for as long as `mainMenu` remains active, whereas the first native test pressed it exactly once on the first frame where `0xD7` appeared.
+
+The next committed test therefore leaves one second (60 guest frames) after first observing `0xD7`, captures a settled-menu snapshot, then sends a fresh one-frame A edge.
+
+Interpretation: deterministic guest-observed menu navigation is now partly reproduced. The current blocker is one concrete input-ready transition, not generic controller delivery, wrong main-menu selection, or native execution.

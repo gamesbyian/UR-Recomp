@@ -1,0 +1,14 @@
+# Optional attract-mode probe.
+# Start from the locally verified Main Menu, then accelerate idle simulation.
+# The recovered 2014 bot predicts currentMenu 0x00 for demo mode.
+
+until 009F == D7 3600
+wait 60
+dump ui-attract-main-start
+turbo on
+until 009F != D7 10000
+turbo off
+wait 20
+dump ui-attract-departure
+
+quit

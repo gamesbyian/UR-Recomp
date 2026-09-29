@@ -179,3 +179,23 @@ Therefore the header coordinate-like fields use a ×16 scale into the runtime ra
 What remains unresolved is the assignment of the two identical Dragster pairs to racer slot 1 vs slot 2, because both pairs and both initial positions are identical on this course. A second course with unequal pairs or a controlled field mutation can separate them.
 
 The next loader-timing discriminator is now narrow: sample densely from +32 to +64 frames to find (a) the first frame where all 33,815 bytes are resident and (b) the first frame where byte 11 changes `0x0F → 0x16`.
+
+
+### Four-frame refinement: payload completion/mutation and racer initialization are separate phases
+
+Run 36516675672 refines the critical post-confirm window:
+
+- **+36 frames:** exact stream-1 prefix = 18,869 bytes; byte 11 still `0x0F`; racer slots `(0,0)`.
+- **+40 frames:** exact prefix = 29,289 bytes; 33,220 / 33,815 bytes already equal; byte 11 still `0x0F`; racer slots still `(0,0)`.
+- **+44 frames:** full payload is resident at 33,814 / 33,815 exact; byte 11 is already `0x16`; racer slots still `(0,0)`.
+- **+48 frames:** payload remains complete and both racer slots have been initialized to `(1088,800)`.
+
+So the transition has at least three observable phases:
+
+1. progressive RNC output/copy through +40;
+2. payload completion **and** header-byte-11 mutation sometime in +40→+44;
+3. racer spawn-state initialization sometime in +44→+48.
+
+This sequencing is especially useful for code archaeology: the course unpack/copy path can be distinguished from the later player initialization path rather than treating race setup as one monolithic routine.
+
+Next discriminator: sample +41/+42/+43/+44, then +45/+46/+47/+48 if needed, to identify the first full-payload frame, first byte-11 mutation frame, and first spawn-state frame separately.

@@ -241,8 +241,9 @@ Reach and complete a normal one-player race in the native executable with no pre
 ### Work
 
 1. Make the title-screen smoke deterministic and non-flaky.
-2. Add deterministic controller input, using the recovered 2014 Dessyreqt full-game bot's menu-state policy as a primary accelerator rather than rediscovering frontend navigation from scratch.
-3. Navigate:
+2. Add deterministic controller input, using the recovered 2014 Dessyreqt full-game bot's menu-state policy as a primary accelerator rather than rediscovering frontend navigation from scratch. The project-owned neutral stream must support independent P1/P2 masks without invalidating historical P1-only files.
+3. Prove controller-2 causality early: P1 idle/P2 moving, then one simultaneous-input case, before treating any apparent second-racer motion as trustworthy 2P evidence.
+4. Navigate:
    - boot;
    - title;
    - player/name/front-end flow as required;

@@ -10,13 +10,13 @@
         "snesref-snes9x"
       ],
       "checkpoints": [
-        "main-menu-settled",
-        "rider-select",
-        "tours",
-        "track-select",
-        "now-playing",
-        "race-active",
-        "race-settled"
+        "main-menu-ready",
+        "rider-select-ready",
+        "tours-ready",
+        "tracks-ready",
+        "after-track-confirm",
+        "now-playing-ready",
+        "race-entered"
       ],
       "compare_surfaces": [
         "full-wram",

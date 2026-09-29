@@ -3,6 +3,7 @@ from tools.scan_audio_setup_selectors import (
     scan_setup_package_pairs,
     scan_all_setup_wrapper_calls,
     scan_immediate_ldx_values,
+    scan_inner_upload_entries,
 )
 
 
@@ -43,3 +44,14 @@ def test_targeted_ldx_scan_finds_3b_and_3d_anywhere():
     rom[0x30:0x33] = bytes.fromhex("A2 3D 00")
     rows = scan_immediate_ldx_values(bytes(rom))
     assert [r["value_hex"] for r in rows] == ["0x003B", "0x003D"]
+
+
+def test_inner_entry_scan_distinguishes_bank02_jsr_and_long_call():
+    rom = bytearray(bytes([0]) * 0x11000)
+    rom[0x10010:0x10013] = bytes.fromhex("20 82 80")
+    rom[0x40:0x44] = bytes.fromhex("22 82 80 82")
+    rows = scan_inner_upload_entries(bytes(rom))
+    assert {(r["kind"], r["caller_cpu"]) for r in rows} == {
+        ("JSL_828082", "00:8040"),
+        ("JSR_8082_bank02", "02:8010"),
+    }

@@ -242,6 +242,929 @@
       "discover": [
         "current_menu"
       ]
+    },
+    {
+      "tag": "ui-pause-before",
+      "state_id": "GAMEPLAY",
+      "variant": "before-pause",
+      "source_fixture": "ui-pause-route",
+      "required": false,
+      "expect": {
+        "in_race": "0x01"
+      }
+    },
+    {
+      "tag": "ui-pause-after-start",
+      "state_id": "PAUSE",
+      "source_fixture": "ui-pause-route",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "in_race"
+      ]
+    },
+    {
+      "tag": "ui-pause-after-resume",
+      "state_id": "GAMEPLAY",
+      "variant": "after-resume",
+      "source_fixture": "ui-pause-route",
+      "required": false,
+      "expect": {
+        "in_race": "0x01"
+      }
+    },
+    {
+      "tag": "race-results",
+      "state_id": "RESULT_RACE",
+      "source_fixture": "ui-race-result-route",
+      "required": false,
+      "expect": {
+        "current_menu": "0x99"
+      }
+    },
+    {
+      "tag": "ui-options-menu-records-selected",
+      "state_id": "OPTIONS_MENU",
+      "variant": "records-selected",
+      "source_fixture": "ui-options-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-records-entry",
+      "state_id": "RECORDS",
+      "source_fixture": "ui-options-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-records-back-options",
+      "state_id": "OPTIONS_MENU",
+      "variant": "returned-from-records",
+      "source_fixture": "ui-options-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-options-menu-define-player-selected",
+      "state_id": "OPTIONS_MENU",
+      "variant": "define-player-selected",
+      "source_fixture": "ui-options-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-define-player-entry",
+      "state_id": "DEFINE_PLAYER",
+      "source_fixture": "ui-options-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-define-player-back-options",
+      "state_id": "OPTIONS_MENU",
+      "variant": "returned-from-define-player",
+      "source_fixture": "ui-options-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-options-menu-rename-player-selected",
+      "state_id": "OPTIONS_MENU",
+      "variant": "rename-player-selected",
+      "source_fixture": "ui-options-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-rename-player-entry",
+      "state_id": "RENAME_PLAYER",
+      "source_fixture": "ui-options-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-rename-player-back-options",
+      "state_id": "OPTIONS_MENU",
+      "variant": "returned-from-rename-player",
+      "source_fixture": "ui-options-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-options-menu-define-league-selected",
+      "state_id": "OPTIONS_MENU",
+      "variant": "define-league-selected",
+      "source_fixture": "ui-options-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-define-league-entry",
+      "state_id": "DEFINE_LEAGUE",
+      "source_fixture": "ui-options-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-define-league-back-options",
+      "state_id": "OPTIONS_MENU",
+      "variant": "returned-from-define-league",
+      "source_fixture": "ui-options-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-erase-main-before",
+      "state_id": "MAIN_MENU",
+      "variant": "before-erase-confirm",
+      "source_fixture": "ui-erase-confirm",
+      "required": false,
+      "expect": {
+        "current_menu": "0xD7"
+      }
+    },
+    {
+      "tag": "ui-erase-confirm-entry",
+      "state_id": "ERASE_ALL_CONFIRM",
+      "source_fixture": "ui-erase-confirm",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-erase-confirm-cancel",
+      "state_id": "MAIN_MENU",
+      "variant": "after-erase-cancel",
+      "source_fixture": "ui-erase-confirm",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-league-select-entry",
+      "state_id": "LEAGUE_SELECT",
+      "source_fixture": "ui-league-table",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-league-table-entry",
+      "state_id": "LEAGUE_TABLE",
+      "source_fixture": "ui-league-table",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-league-table-back",
+      "state_id": "LEAGUE_SELECT",
+      "variant": "returned-from-table",
+      "source_fixture": "ui-league-table",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-race-result-after-advance",
+      "state_id": "POST_RESULT_DECISION",
+      "source_fixture": "ui-race-result-route",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "in_race"
+      ]
+    },
+    {
+      "tag": "ui-stunt-track-selected",
+      "state_id": "TRACK_SELECT",
+      "variant": "crawler-stunt-selected",
+      "source_fixture": "ui-stunt-result-route",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-stunt-now-playing",
+      "state_id": "PRE_RACE_CARD",
+      "variant": "stunt",
+      "source_fixture": "ui-stunt-result-route",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-stunt-entered",
+      "state_id": "GAMEPLAY",
+      "variant": "stunt",
+      "source_fixture": "ui-stunt-result-route",
+      "required": false,
+      "expect": {
+        "in_race": "0x01"
+      }
+    },
+    {
+      "tag": "ui-stunt-results",
+      "state_id": "RESULT_STUNT",
+      "source_fixture": "ui-stunt-result-route",
+      "required": false,
+      "expect": {
+        "current_menu": "0x18"
+      }
+    },
+    {
+      "tag": "ui-stunt-result-after-advance",
+      "state_id": "POST_RESULT_DECISION",
+      "variant": "after-stunt-result",
+      "source_fixture": "ui-stunt-result-route",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "in_race"
+      ]
+    },
+    {
+      "tag": "ui-records-probe-down-before",
+      "state_id": "RECORDS",
+      "variant": "explore-down-before",
+      "source_fixture": "ui-records-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-records-probe-down-after",
+      "state_id": "RECORDS",
+      "variant": "explore-down-after",
+      "source_fixture": "ui-records-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-records-probe-up-before",
+      "state_id": "RECORDS",
+      "variant": "explore-up-before",
+      "source_fixture": "ui-records-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-records-probe-up-after",
+      "state_id": "RECORDS",
+      "variant": "explore-up-after",
+      "source_fixture": "ui-records-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-records-probe-left-before",
+      "state_id": "RECORDS",
+      "variant": "explore-left-before",
+      "source_fixture": "ui-records-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-records-probe-left-after",
+      "state_id": "RECORDS",
+      "variant": "explore-left-after",
+      "source_fixture": "ui-records-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-records-probe-right-before",
+      "state_id": "RECORDS",
+      "variant": "explore-right-before",
+      "source_fixture": "ui-records-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-records-probe-right-after",
+      "state_id": "RECORDS",
+      "variant": "explore-right-after",
+      "source_fixture": "ui-records-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-records-probe-a-before",
+      "state_id": "RECORDS",
+      "variant": "explore-a-before",
+      "source_fixture": "ui-records-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-records-probe-a-after",
+      "state_id": "RECORDS",
+      "variant": "explore-a-after",
+      "source_fixture": "ui-records-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-records-probe-b-before",
+      "state_id": "RECORDS",
+      "variant": "explore-b-before",
+      "source_fixture": "ui-records-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-records-probe-b-after",
+      "state_id": "RECORDS",
+      "variant": "explore-b-after",
+      "source_fixture": "ui-records-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-rename-which-one-left",
+      "state_id": "RENAME_PLAYER",
+      "variant": "which-one",
+      "source_fixture": "ui-rename-editor-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-rename-editor-left-before",
+      "state_id": "PLAYER_NAME_EDITOR",
+      "variant": "editor-left-before",
+      "source_fixture": "ui-rename-editor-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-rename-editor-left-after",
+      "state_id": "PLAYER_NAME_EDITOR",
+      "variant": "editor-left-after",
+      "source_fixture": "ui-rename-editor-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-rename-editor-right-before",
+      "state_id": "PLAYER_NAME_EDITOR",
+      "variant": "editor-right-before",
+      "source_fixture": "ui-rename-editor-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-rename-editor-right-after",
+      "state_id": "PLAYER_NAME_EDITOR",
+      "variant": "editor-right-after",
+      "source_fixture": "ui-rename-editor-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-rename-editor-up-before",
+      "state_id": "PLAYER_NAME_EDITOR",
+      "variant": "editor-up-before",
+      "source_fixture": "ui-rename-editor-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-rename-editor-up-after",
+      "state_id": "PLAYER_NAME_EDITOR",
+      "variant": "editor-up-after",
+      "source_fixture": "ui-rename-editor-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-rename-editor-down-before",
+      "state_id": "PLAYER_NAME_EDITOR",
+      "variant": "editor-down-before",
+      "source_fixture": "ui-rename-editor-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-rename-editor-down-after",
+      "state_id": "PLAYER_NAME_EDITOR",
+      "variant": "editor-down-after",
+      "source_fixture": "ui-rename-editor-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-rename-editor-b-before",
+      "state_id": "PLAYER_NAME_EDITOR",
+      "variant": "editor-b-before",
+      "source_fixture": "ui-rename-editor-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-rename-editor-b-after",
+      "state_id": "PLAYER_NAME_EDITOR",
+      "variant": "editor-b-after",
+      "source_fixture": "ui-rename-editor-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-circuit-track-selected",
+      "state_id": "TRACK_SELECT",
+      "variant": "crawler-circuit-selected",
+      "source_fixture": "ui-circuit-result-route",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-circuit-now-playing",
+      "state_id": "PRE_RACE_CARD",
+      "variant": "circuit",
+      "source_fixture": "ui-circuit-result-route",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-circuit-entered",
+      "state_id": "GAMEPLAY",
+      "variant": "circuit",
+      "source_fixture": "ui-circuit-result-route",
+      "required": false,
+      "expect": {
+        "in_race": "0x01"
+      }
+    },
+    {
+      "tag": "ui-circuit-results",
+      "state_id": "RESULT_CIRCUIT",
+      "source_fixture": "ui-circuit-result-route",
+      "required": false,
+      "expect": {
+        "current_menu": "0xBC"
+      }
+    },
+    {
+      "tag": "ui-circuit-result-after-advance",
+      "state_id": "POST_RESULT_DECISION",
+      "variant": "after-circuit-result",
+      "source_fixture": "ui-circuit-result-route",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "in_race"
+      ]
+    },
+    {
+      "tag": "ui-records-track-selected",
+      "state_id": "RECORDS",
+      "variant": "track-selected",
+      "source_fixture": "ui-records-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-record-track-entry",
+      "state_id": "RECORD_TRACK",
+      "source_fixture": "ui-records-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-records-high-selected",
+      "state_id": "RECORDS",
+      "variant": "high-selected",
+      "source_fixture": "ui-records-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-record-high-entry",
+      "state_id": "RECORD_HIGH_SCORES",
+      "source_fixture": "ui-records-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-records-player-selected",
+      "state_id": "RECORDS",
+      "variant": "player-selected",
+      "source_fixture": "ui-records-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-record-player-entry",
+      "state_id": "RECORD_PLAYER_SCORES",
+      "source_fixture": "ui-records-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-records-group-selected",
+      "state_id": "RECORDS",
+      "variant": "group-selected",
+      "source_fixture": "ui-records-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-record-group-entry",
+      "state_id": "RECORD_GROUP_TABLES",
+      "source_fixture": "ui-records-submenus",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-define-league-selected",
+      "state_id": "OPTIONS_MENU",
+      "variant": "define-league-selected-name-route",
+      "source_fixture": "ui-name-league-route",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-name-league-entry",
+      "state_id": "NAME_LEAGUE",
+      "source_fixture": "ui-name-league-route",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-startup-t030",
+      "state_id": "BOOT_STARTUP",
+      "variant": "t+30",
+      "source_fixture": "ui-startup-timeline",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-startup-t060",
+      "state_id": "BOOT_STARTUP",
+      "variant": "t+60",
+      "source_fixture": "ui-startup-timeline",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-startup-t090",
+      "state_id": "BOOT_STARTUP",
+      "variant": "t+90",
+      "source_fixture": "ui-startup-timeline",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-startup-t120",
+      "state_id": "BOOT_STARTUP",
+      "variant": "t+120",
+      "source_fixture": "ui-startup-timeline",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-startup-t150",
+      "state_id": "BOOT_STARTUP",
+      "variant": "t+150",
+      "source_fixture": "ui-startup-timeline",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-startup-t180",
+      "state_id": "BOOT_STARTUP",
+      "variant": "t+180",
+      "source_fixture": "ui-startup-timeline",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-startup-t210",
+      "state_id": "BOOT_STARTUP",
+      "variant": "t+210",
+      "source_fixture": "ui-startup-timeline",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-startup-t240",
+      "state_id": "BOOT_STARTUP",
+      "variant": "t+240",
+      "source_fixture": "ui-startup-timeline",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-startup-t270",
+      "state_id": "BOOT_STARTUP",
+      "variant": "t+270",
+      "source_fixture": "ui-startup-timeline",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-startup-t300",
+      "state_id": "BOOT_STARTUP",
+      "variant": "t+300",
+      "source_fixture": "ui-startup-timeline",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option"
+      ]
+    },
+    {
+      "tag": "ui-startup-main-menu",
+      "state_id": "MAIN_MENU",
+      "variant": "startup-anchor",
+      "source_fixture": "ui-startup-timeline",
+      "required": false,
+      "expect": {
+        "current_menu": "0xD7"
+      }
+    },
+    {
+      "tag": "ui-define-player-selected",
+      "state_id": "OPTIONS_MENU",
+      "variant": "define-player-selected-explore",
+      "source_fixture": "ui-define-player-explore",
+      "required": false,
+      "discover": [
+        "current_menu",
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-pre-race-passive-t000",
+      "state_id": "PRE_RACE_CARD",
+      "variant": "passive-t0",
+      "source_fixture": "ui-pre-race-timing",
+      "required": false,
+      "expect": {
+        "current_menu": "0x16"
+      }
+    },
+    {
+      "tag": "ui-pre-race-skip-before",
+      "state_id": "PRE_RACE_CARD",
+      "variant": "skip-before",
+      "source_fixture": "ui-pre-race-timing",
+      "required": false,
+      "expect": {
+        "current_menu": "0x16"
+      }
     }
   ]
 }

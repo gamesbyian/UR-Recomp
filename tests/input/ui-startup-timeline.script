@@ -1,0 +1,30 @@
+# Startup visual timeline.
+# Sample early boot every 30 guest frames without assuming menu/state IDs,
+# then capture the eventually verified Main Menu anchor.
+
+wait 30
+dump ui-startup-t030
+wait 30
+dump ui-startup-t060
+wait 30
+dump ui-startup-t090
+wait 30
+dump ui-startup-t120
+wait 30
+dump ui-startup-t150
+wait 30
+dump ui-startup-t180
+wait 30
+dump ui-startup-t210
+wait 30
+dump ui-startup-t240
+wait 30
+dump ui-startup-t270
+wait 30
+dump ui-startup-t300
+
+until 009F == D7 3600
+wait 60
+dump ui-startup-main-menu
+
+quit

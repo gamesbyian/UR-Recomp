@@ -1,0 +1,478 @@
+{
+  "schema_version": 1,
+  "description": "Executable navigation contract layered over analysis/ui-state-map.yml. Edges are deliberately conservative: 'verified' means reproduced locally; 'documented' means primary-manual behavior; 'historical' means recovered automation evidence; 'hypothesis' is a probe target.",
+  "status_meanings": {
+    "verified": "Locally reproduced in a deterministic fixture/runtime.",
+    "documented": "Stated by primary manual but not yet locally promoted.",
+    "historical": "Recovered from historical automation/source and not yet locally promoted.",
+    "hypothesis": "Cheap candidate transition awaiting runtime evidence."
+  },
+  "edges": [
+    {
+      "id": "boot-splash",
+      "from": "BOOT_STARTUP",
+      "to": "SPLASH",
+      "trigger": "startup",
+      "status": "hypothesis"
+    },
+    {
+      "id": "splash-main",
+      "from": "SPLASH",
+      "to": "MAIN_MENU",
+      "trigger": "automatic/skip",
+      "status": "documented"
+    },
+    {
+      "id": "main-1p",
+      "from": "MAIN_MENU",
+      "to": "PLAYER_SELECT_P1",
+      "trigger": "select 1P; A/B",
+      "status": "verified",
+      "fixture": "reach-first-race"
+    },
+    {
+      "id": "p1-tour",
+      "from": "PLAYER_SELECT_P1",
+      "to": "TOUR_SELECT",
+      "trigger": "confirm rider",
+      "status": "verified",
+      "fixture": "reach-first-race"
+    },
+    {
+      "id": "tour-track",
+      "from": "TOUR_SELECT",
+      "to": "TRACK_SELECT",
+      "trigger": "confirm tour",
+      "status": "verified",
+      "fixture": "reach-first-race"
+    },
+    {
+      "id": "track-prerace",
+      "from": "TRACK_SELECT",
+      "to": "PRE_RACE_CARD",
+      "trigger": "confirm track",
+      "status": "verified",
+      "fixture": "reach-first-race"
+    },
+    {
+      "id": "prerace-gameplay",
+      "from": "PRE_RACE_CARD",
+      "to": "GAMEPLAY",
+      "trigger": "advance/start event",
+      "status": "verified",
+      "fixture": "reach-first-race"
+    },
+    {
+      "id": "main-2p",
+      "from": "MAIN_MENU",
+      "to": "TWO_PLAYER_SELECT",
+      "trigger": "select 2P; A/B",
+      "status": "documented",
+      "probe": "ui-main-branches"
+    },
+    {
+      "id": "main-vs",
+      "from": "MAIN_MENU",
+      "to": "VS_SELECT",
+      "trigger": "select VS; A/B",
+      "status": "documented",
+      "probe": "ui-main-branches"
+    },
+    {
+      "id": "main-league",
+      "from": "MAIN_MENU",
+      "to": "LEAGUE_SELECT",
+      "trigger": "select LEAGUE; A/B",
+      "status": "documented",
+      "probe": "ui-main-branches"
+    },
+    {
+      "id": "main-options",
+      "from": "MAIN_MENU",
+      "to": "OPTIONS_MENU",
+      "trigger": "select OPTIONS; A/B",
+      "status": "documented",
+      "probe": "ui-options-route"
+    },
+    {
+      "id": "options-records",
+      "from": "OPTIONS_MENU",
+      "to": "RECORDS",
+      "trigger": "select RECORDS; A/B",
+      "status": "documented"
+    },
+    {
+      "id": "options-define-player",
+      "from": "OPTIONS_MENU",
+      "to": "DEFINE_PLAYER",
+      "trigger": "select DEFINE PLAYER; A/B",
+      "status": "documented"
+    },
+    {
+      "id": "options-rename-player",
+      "from": "OPTIONS_MENU",
+      "to": "RENAME_PLAYER",
+      "trigger": "select RENAME PLAYER; A/B",
+      "status": "documented"
+    },
+    {
+      "id": "options-define-league",
+      "from": "OPTIONS_MENU",
+      "to": "DEFINE_LEAGUE",
+      "trigger": "select DEFINE LEAGUE; A/B",
+      "status": "documented"
+    },
+    {
+      "id": "options-main",
+      "from": "OPTIONS_MENU",
+      "to": "MAIN_MENU",
+      "trigger": "select MAIN MENU or X/Y back",
+      "status": "documented",
+      "probe": "ui-options-route"
+    },
+    {
+      "id": "league-table",
+      "from": "LEAGUE_SELECT",
+      "to": "LEAGUE_TABLE",
+      "trigger": "select league",
+      "status": "documented"
+    },
+    {
+      "id": "league-race",
+      "from": "LEAGUE_TABLE",
+      "to": "PRE_RACE_CARD",
+      "trigger": "select RACE; A/B",
+      "status": "documented"
+    },
+    {
+      "id": "vs-challenger",
+      "from": "VS_SELECT",
+      "to": "VS_CHALLENGER",
+      "trigger": "participant confirm",
+      "status": "historical",
+      "blocked_by": "multiplayer_controller_2"
+    },
+    {
+      "id": "vs-track",
+      "from": "VS_CHALLENGER",
+      "to": "VS_CHALLENGE_TRACK",
+      "trigger": "challenger confirm",
+      "status": "historical",
+      "blocked_by": "multiplayer_controller_2"
+    },
+    {
+      "id": "vs-prerace",
+      "from": "VS_CHALLENGE_TRACK",
+      "to": "PRE_RACE_CARD",
+      "trigger": "track confirm",
+      "status": "historical"
+    },
+    {
+      "id": "game-race-result",
+      "from": "GAMEPLAY",
+      "to": "RESULT_RACE",
+      "trigger": "race finish",
+      "status": "historical"
+    },
+    {
+      "id": "game-circuit-result",
+      "from": "GAMEPLAY",
+      "to": "RESULT_CIRCUIT",
+      "trigger": "circuit finish",
+      "status": "historical"
+    },
+    {
+      "id": "game-stunt-result",
+      "from": "GAMEPLAY",
+      "to": "RESULT_STUNT",
+      "trigger": "stunt finish",
+      "status": "historical"
+    },
+    {
+      "id": "game-pause",
+      "from": "GAMEPLAY",
+      "to": "PAUSE",
+      "trigger": "Start",
+      "status": "documented"
+    },
+    {
+      "id": "pause-game",
+      "from": "PAUSE",
+      "to": "GAMEPLAY",
+      "trigger": "Start",
+      "status": "hypothesis"
+    },
+    {
+      "id": "main-demo",
+      "from": "MAIN_MENU",
+      "to": "DEMO",
+      "trigger": "idle timeout",
+      "status": "hypothesis",
+      "probe": "ui-attract-route"
+    },
+    {
+      "id": "demo-main",
+      "from": "DEMO",
+      "to": "MAIN_MENU",
+      "trigger": "demo ends/player exits",
+      "status": "hypothesis"
+    },
+    {
+      "id": "splash-ending",
+      "from": "SPLASH",
+      "to": "ENDING",
+      "trigger": "Down+L+R+B shortcut lead",
+      "status": "hypothesis",
+      "probe": "ui-ending-shortcut"
+    },
+    {
+      "id": "main-erase",
+      "from": "MAIN_MENU",
+      "to": "ERASE_ALL_CONFIRM",
+      "trigger": "hold Left+A+L+R",
+      "status": "documented"
+    },
+    {
+      "id": "two-player-tour",
+      "from": "TWO_PLAYER_SELECT",
+      "to": "TOUR_SELECT",
+      "trigger": "both riders confirmed",
+      "status": "historical",
+      "blocked_by": "multiplayer_controller_2"
+    },
+    {
+      "id": "race-result-post",
+      "from": "RESULT_RACE",
+      "to": "POST_RESULT_DECISION",
+      "trigger": "advance/next",
+      "status": "documented"
+    },
+    {
+      "id": "circuit-result-post",
+      "from": "RESULT_CIRCUIT",
+      "to": "POST_RESULT_DECISION",
+      "trigger": "advance/next",
+      "status": "documented"
+    },
+    {
+      "id": "stunt-result-post",
+      "from": "RESULT_STUNT",
+      "to": "POST_RESULT_DECISION",
+      "trigger": "advance/next",
+      "status": "documented"
+    },
+    {
+      "id": "post-next",
+      "from": "POST_RESULT_DECISION",
+      "to": "PRE_RACE_CARD",
+      "trigger": "choose next track",
+      "status": "documented"
+    },
+    {
+      "id": "post-track-select",
+      "from": "POST_RESULT_DECISION",
+      "to": "TRACK_SELECT",
+      "trigger": "leave/back",
+      "status": "hypothesis"
+    },
+    {
+      "id": "records-options",
+      "from": "RECORDS",
+      "to": "OPTIONS_MENU",
+      "trigger": "X/Y back",
+      "status": "documented"
+    },
+    {
+      "id": "define-player-options",
+      "from": "DEFINE_PLAYER",
+      "to": "OPTIONS_MENU",
+      "trigger": "X/Y back",
+      "status": "documented"
+    },
+    {
+      "id": "ending-main",
+      "from": "ENDING",
+      "to": "MAIN_MENU",
+      "trigger": "sequence completion/advance",
+      "status": "hypothesis"
+    },
+    {
+      "id": "erase-cancel-main",
+      "from": "ERASE_ALL_CONFIRM",
+      "to": "MAIN_MENU",
+      "trigger": "cancel",
+      "status": "documented"
+    },
+    {
+      "id": "records-track",
+      "from": "RECORDS",
+      "to": "RECORD_TRACK",
+      "trigger": "records family navigation",
+      "status": "documented",
+      "source_note": "USA manual page 20 visibly proves the Records menu item and target screen family."
+    },
+    {
+      "id": "records-high",
+      "from": "RECORDS",
+      "to": "RECORD_HIGH_SCORES",
+      "trigger": "records family navigation",
+      "status": "documented",
+      "source_note": "USA manual page 20 visibly proves the Records menu item and target screen family."
+    },
+    {
+      "id": "records-player",
+      "from": "RECORDS",
+      "to": "RECORD_PLAYER_SCORES",
+      "trigger": "records family navigation",
+      "status": "documented",
+      "source_note": "USA manual page 20 visibly proves the Records menu item and target screen family."
+    },
+    {
+      "id": "records-groups",
+      "from": "RECORDS",
+      "to": "RECORD_GROUP_TABLES",
+      "trigger": "records family navigation",
+      "status": "documented",
+      "source_note": "USA manual page 20 visibly proves the Records menu item and target screen family."
+    },
+    {
+      "id": "record-player-cycle",
+      "from": "RECORD_PLAYER_SCORES",
+      "to": "RECORD_PLAYER_SCORES",
+      "trigger": "Up/Down cycles displayed player",
+      "status": "documented"
+    },
+    {
+      "id": "record-player-options",
+      "from": "RECORD_PLAYER_SCORES",
+      "to": "OPTIONS_MENU",
+      "trigger": "usual next/previous buttons",
+      "status": "documented",
+      "source_note": "USA manual page 22 explicitly says Player Scores returns to the previous screen, 'in this case the Options Menu.'"
+    },
+    {
+      "id": "record-groups-cycle",
+      "from": "RECORD_GROUP_TABLES",
+      "to": "RECORD_GROUP_TABLES",
+      "trigger": "Up/Down cycles displayed League",
+      "status": "documented"
+    },
+    {
+      "id": "define-league-name",
+      "from": "DEFINE_LEAGUE",
+      "to": "NAME_LEAGUE",
+      "trigger": "Start confirms membership selection",
+      "status": "documented"
+    },
+    {
+      "id": "name-league-options",
+      "from": "NAME_LEAGUE",
+      "to": "OPTIONS_MENU",
+      "trigger": "complete/cancel text entry",
+      "status": "hypothesis"
+    },
+    {
+      "id": "name-league-rejection",
+      "from": "NAME_LEAGUE",
+      "to": "FORBIDDEN_NAME_REJECTION",
+      "trigger": "accept blacklisted team/League name",
+      "status": "hypothesis",
+      "blocked_by": "name_entry_cursor_mapping"
+    },
+    {
+      "id": "rejection-name-league",
+      "from": "FORBIDDEN_NAME_REJECTION",
+      "to": "NAME_LEAGUE",
+      "trigger": "advance/back when rejection came from League naming",
+      "status": "hypothesis"
+    },
+    {
+      "id": "records-main",
+      "from": "RECORDS",
+      "to": "MAIN_MENU",
+      "trigger": "select MAIN MENU; A/B",
+      "status": "documented",
+      "source_note": "USA manual page 20 visibly shows MAIN MENU as the fifth Records-menu item."
+    },
+    {
+      "id": "rename-player-editor",
+      "from": "RENAME_PLAYER",
+      "to": "PLAYER_NAME_EDITOR",
+      "trigger": "select highlighted Uni; A/B",
+      "status": "documented"
+    },
+    {
+      "id": "rename-player-back",
+      "from": "RENAME_PLAYER",
+      "to": "OPTIONS_MENU",
+      "trigger": "X/Y back",
+      "status": "documented"
+    },
+    {
+      "id": "rename-editor-options",
+      "from": "PLAYER_NAME_EDITOR",
+      "to": "OPTIONS_MENU",
+      "trigger": "complete/OK text entry",
+      "status": "hypothesis"
+    },
+    {
+      "id": "rename-editor-back",
+      "from": "PLAYER_NAME_EDITOR",
+      "to": "RENAME_PLAYER",
+      "trigger": "cancel/back",
+      "status": "hypothesis"
+    },
+    {
+      "id": "rename-editor-rejection",
+      "from": "PLAYER_NAME_EDITOR",
+      "to": "FORBIDDEN_NAME_REJECTION",
+      "trigger": "accept blacklisted player name",
+      "status": "documented",
+      "blocked_by": "name_entry_cursor_mapping"
+    },
+    {
+      "id": "rejection-rename-editor",
+      "from": "FORBIDDEN_NAME_REJECTION",
+      "to": "PLAYER_NAME_EDITOR",
+      "trigger": "advance/back when rejection came from player naming",
+      "status": "hypothesis"
+    }
+  ],
+  "capture_exempt_states": [
+    "BOOT_STARTUP",
+    "RESULT_BY_TRACK_TYPE"
+  ],
+  "capability_dependencies": {
+    "multiplayer_controller_2": {
+      "status": "behavioral_verification_pending",
+      "plan": "docs/TWO-PLAYER-FIXTURE-PLAN.md",
+      "blocks_states": [
+        "TWO_PLAYER_SELECT",
+        "VS_SELECT",
+        "VS_CHALLENGER",
+        "VS_CHALLENGE_TRACK"
+      ],
+      "required_engines": [
+        "native-recomp",
+        "snesref/libretro",
+        "mesen-adapter"
+      ],
+      "acceptance_route": "P1 selects 2P -> P1 rider confirm -> P2 active -> P2 rider confirm -> next multiplayer setup state",
+      "planned_fixture_id": "ui-two-player-handoff.input",
+      "provider_pr": 31,
+      "transport_format": "start:duration:p1-mask[:p2-mask]",
+      "integration_note": "Use PR31 neutral controller transport across native/snesref/Mesen; retain scene-keyed scripts for waits/dumps rather than inventing a second multiplayer grammar.",
+      "transport_status": "merged_on_main",
+      "note": "Shared deterministic P1/P2 transport is merged on main. Keep deeper 2P/VS edges blocked until the behavioral acceptance route proves P2-only causality, handoff, and multiplayer state checkpoints."
+    },
+    "name_entry_cursor_mapping": {
+      "status": "open",
+      "plan": "analysis/ui-text-entry-layout.json",
+      "blocks_states": [
+        "FORBIDDEN_NAME_REJECTION"
+      ],
+      "acceptance_fixture": "ui-rename-editor-explore",
+      "acceptance": "Bind runtime row/column/cursor deltas to the manual-proven alphanumeric grid, then generate and reproduce a blacklisted-name route without guessing cursor geometry."
+    }
+  }
+}

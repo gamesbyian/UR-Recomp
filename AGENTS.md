@@ -14,7 +14,7 @@ Compact router for coding and research agents. Load the smallest current authori
 | Native build / boot / runtime failure | `docs/BRINGUP.md`, `docs/VALIDATION.md`, then the changed workflow/runtime files |
 | ROM identity / preserved build comparison | `analysis/generated/reference-rom-inventory.md`, `analysis/generated/reference-rom-comparison.md` |
 | RNC / course-format work | `docs/COURSE-FORMAT.md`, then relevant generated analyses/tools |
-| Frontend / menu / screen-flow / UI-state work | `docs/UI-STATE-MAP.md`, `analysis/ui-state-map.yml`, then `analysis/ui-capture-manifest.json` |
+| Frontend / menu / screen-flow / UI-state work | `docs/UI-STATE-MAP.md`, `analysis/ui-state-map.yml`, then `analysis/ui-capture-manifest.json`; for 2P/VS input coverage also read `docs/TWO-PLAYER-FIXTURE-PLAN.md` |
 | Established reverse-engineering claim | `docs/RESEARCH-LEDGER.md` |
 | Recovered code/data symbol | `docs/SYMBOLS.md` |
 | Original DMA development history / missing artifacts | `docs/original-development/DEVELOPER-TECHNICAL-HISTORY.md`, `docs/original-development/ACQUISITION-LEDGER.md` |
@@ -48,6 +48,7 @@ Compact router for coding and research agents. Load the smallest current authori
 19. A full-WRAM differential is a discovery surface, not automatically a fidelity verdict. Classify differences by writer/history and semantics first; stale stack bytes and free-running timing/presentation counters are not simulation mismatches unless they affect a proven invariant.
 
 20. Imported executable code is raw material, not a trusted dependency. Preserve provenance, but normalize useful behavior into project-owned tools and add regression coverage before depending on it.
+21. Two-player fixture work is a required fidelity dependency. If touching shared input grammar or engine adapters, preserve or advance `docs/TWO-PLAYER-FIXTURE-PLAN.md`; do not let one-player coverage silently stand in for multiplayer coverage.
 
 ## Research before reinvention
 

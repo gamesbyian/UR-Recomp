@@ -1,0 +1,17 @@
+# UI-state reconnaissance: enter erase-all confirmation without confirming.
+# The original manual documents Left+A+L+R from Main Menu.
+# This route captures the confirmation and attempts a documented back/cancel input.
+
+until 009F == D7 3600
+wait 60
+dump ui-erase-main-before
+
+press left+a+l+r 2
+wait 60
+dump ui-erase-confirm-entry
+
+press x 2
+wait 60
+dump ui-erase-confirm-cancel
+
+quit

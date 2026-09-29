@@ -1,0 +1,114 @@
+# Read-only UI reconnaissance for the Records family.
+# Each discriminator begins from a clean reset, enters Options -> Records, captures
+# the entry state, applies one common navigation input, then captures again.
+# The destination is deliberately NOT pre-classified as Track Records, High Scores,
+# Player Scores, or Group Tables. Visual/runtime evidence should decide that.
+
+# DOWN
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press a 2
+wait 60
+dump ui-records-probe-down-before
+press down 1
+wait 60
+dump ui-records-probe-down-after
+
+# UP
+reset
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press a 2
+wait 60
+dump ui-records-probe-up-before
+press up 1
+wait 60
+dump ui-records-probe-up-after
+
+# LEFT
+reset
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press a 2
+wait 60
+dump ui-records-probe-left-before
+press left 1
+wait 60
+dump ui-records-probe-left-after
+
+# RIGHT
+reset
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press a 2
+wait 60
+dump ui-records-probe-right-before
+press right 1
+wait 60
+dump ui-records-probe-right-after
+
+# A
+reset
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press a 2
+wait 60
+dump ui-records-probe-a-before
+press a 2
+wait 60
+dump ui-records-probe-a-after
+
+# B
+reset
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press a 2
+wait 60
+dump ui-records-probe-b-before
+press b 2
+wait 60
+dump ui-records-probe-b-after
+
+quit

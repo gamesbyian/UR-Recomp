@@ -1,0 +1,32 @@
+# Safe DEFINE PLAYER reconnaissance.
+# The manual says redefining a player's associated Uni produces a warning before
+# previous data is irretrievably lost. This probe captures the entry and first
+# forward step only; it never confirms a destructive warning.
+
+until 009F == D7 3600
+wait 60
+
+# Main Menu -> OPTIONS
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+
+# Options -> DEFINE PLAYER (second item)
+press down 1
+wait 30
+dump ui-define-player-selected
+press a 2
+wait 60
+dump ui-define-player-entry
+
+# First forward step from the default highlighted player.
+# Destination deliberately remains unclassified until visual/runtime evidence.
+press a 2
+wait 60
+dump ui-define-player-after-first-confirm
+
+quit

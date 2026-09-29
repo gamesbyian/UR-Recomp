@@ -310,3 +310,18 @@ The source-derived `MAKEHUFF` tail can be aligned directly in the already captur
 The byte stream immediately after that return begins a separate helper at `01:BB6F`. In that helper, `01:BB71` increments the input-pointer low word and `01:BB73` is the following conditional branch. Therefore the historical trace scope `interp@$81BB73` is **outside** the preserved RNC routine, while `interp@$81BA96` is **inside** generic RNC `GTBITS2`.
 
 This gives the course-load write trace a cleaner interpretation: one write group is attributed to an interpreter bridge entered in game/integration helper code immediately following RNC, while the later mutation group is attributed to a bridge entered inside the RNC bit-reader. Neither scope entry is itself the literal store. The exact `IPC=` address-log probe remains the authority for store-opcode ownership.
+
+
+### Static classification of the post-RNC helper
+
+The helper immediately after the preserved generic RNC1 body is now understood well enough to name structurally. USA `01:BB6F` begins:
+
+`LDA [IN]; INC IN; BNE ...`
+
+and only takes its longer path when incrementing the low 16-bit input pointer wraps through zero. That path temporarily maps the pointer to the next LoROM bank at `$8000`, reads the replacement high byte, restores the original bank/pointer representation, and returns the assembled 16-bit word. The ordinary path simply restores the incremented pointer before returning.
+
+This is therefore a **LoROM-safe packed-stream word reader** used by the shipped RNC integration, not a course-header mutation routine. The symbol is promoted to `RNC1_ReadWordLoROMSafe` at `01:BB6F`.
+
+This also sharpens the dynamic-attribution interpretation: `interp@$81BB73` names an interpreter run that entered at the helper's wrap-test `BNE`. Writes attributed to that scope may happen later after control returns into the decoder/caller. The scope label cannot be read as “BB73 wrote this byte.” The same principle applies to the `interp@$81BA96` scope inside `GTBITS2`.
+
+The dedicated exact-IPC write probe remains the correct discriminator for the literal instructions that write `7F:000B`.

@@ -29,7 +29,7 @@ class AudioSourceTableTraceTests(unittest.TestCase):
         rel = ptr_addr - start
         blob[rel:rel + 3] = bytes([0x34, 0x92, 0x8A])
         self.assertEqual(
-            ast.source_pointer_from_snapshot(bytes(blob), start, 0),
+            ast.direct_page_pointer_from_snapshot(bytes(blob), start, 0, 0x63),
             0x8A9234,
         )
 
@@ -40,13 +40,21 @@ class AudioSourceTableTraceTests(unittest.TestCase):
         rel = ptr_addr - start
         blob[rel:rel + 3] = bytes([0x00, 0x80, 0x83])
         self.assertEqual(
-            ast.source_pointer_from_snapshot(bytes(blob), start, 0x100),
+            ast.direct_page_pointer_from_snapshot(bytes(blob), start, 0x100, 0x63),
             0x838000,
         )
 
     def test_source_pointer_returns_none_outside_snapshot(self) -> None:
         self.assertIsNone(
-            ast.source_pointer_from_snapshot(bytes(16), 0x100, 0)
+            ast.direct_page_pointer_from_snapshot(bytes(16), 0x100, 0, 0x63)
+        )
+
+    def test_entry_pointer_reads_direct_page_zero(self) -> None:
+        blob = bytearray(0x100)
+        blob[0:3] = bytes([0x00, 0x80, 0x8C])
+        self.assertEqual(
+            ast.direct_page_pointer_from_snapshot(bytes(blob), 0, 0, 0x00),
+            0x8C8000,
         )
 
     def test_parse_blob_hex_accepts_compact_or_spaced(self) -> None:

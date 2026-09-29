@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "description": "Named framebuffer comparisons for UI reconnaissance. Pairs are evaluated only when both BMP captures exist.",
+  "pairs": [
+    {
+      "id": "pause-enter",
+      "before": "ui-pause-before",
+      "after": "ui-pause-after-start",
+      "purpose": "Measure pause presentation delta."
+    },
+    {
+      "id": "pause-resume",
+      "before": "ui-pause-after-start",
+      "after": "ui-pause-after-resume",
+      "purpose": "Confirm resume restores gameplay presentation."
+    },
+    {
+      "id": "erase-confirm-enter",
+      "before": "ui-erase-main-before",
+      "after": "ui-erase-confirm-entry",
+      "purpose": "Measure hidden erase-confirmation presentation."
+    },
+    {
+      "id": "records-down",
+      "before": "ui-records-probe-down-before",
+      "after": "ui-records-probe-down-after",
+      "purpose": "Classify Records Down behavior."
+    },
+    {
+      "id": "records-up",
+      "before": "ui-records-probe-up-before",
+      "after": "ui-records-probe-up-after",
+      "purpose": "Classify Records Up behavior."
+    },
+    {
+      "id": "records-left",
+      "before": "ui-records-probe-left-before",
+      "after": "ui-records-probe-left-after",
+      "purpose": "Classify Records Left behavior."
+    },
+    {
+      "id": "records-right",
+      "before": "ui-records-probe-right-before",
+      "after": "ui-records-probe-right-after",
+      "purpose": "Classify Records Right behavior."
+    },
+    {
+      "id": "records-a",
+      "before": "ui-records-probe-a-before",
+      "after": "ui-records-probe-a-after",
+      "purpose": "Classify Records A behavior."
+    },
+    {
+      "id": "records-b",
+      "before": "ui-records-probe-b-before",
+      "after": "ui-records-probe-b-after",
+      "purpose": "Classify Records B behavior."
+    },
+    {
+      "id": "league-table-enter",
+      "before": "ui-league-select-entry",
+      "after": "ui-league-table-entry",
+      "purpose": "Measure League selection -> table transition."
+    },
+    {
+      "id": "race-result-advance",
+      "before": "race-results",
+      "after": "ui-race-result-after-advance",
+      "purpose": "Measure Race Result -> post-result transition."
+    },
+    {
+      "id": "stunt-result-advance",
+      "before": "ui-stunt-results",
+      "after": "ui-stunt-result-after-advance",
+      "purpose": "Measure Stunt Result -> post-result transition."
+    },
+    {
+      "id": "rename-editor-left",
+      "before": "ui-rename-editor-left-before",
+      "after": "ui-rename-editor-left-after",
+      "purpose": "Classify Rename Player editor LEFT behavior."
+    },
+    {
+      "id": "rename-editor-right",
+      "before": "ui-rename-editor-right-before",
+      "after": "ui-rename-editor-right-after",
+      "purpose": "Classify Rename Player editor RIGHT behavior."
+    },
+    {
+      "id": "rename-editor-up",
+      "before": "ui-rename-editor-up-before",
+      "after": "ui-rename-editor-up-after",
+      "purpose": "Classify Rename Player editor UP behavior."
+    },
+    {
+      "id": "rename-editor-down",
+      "before": "ui-rename-editor-down-before",
+      "after": "ui-rename-editor-down-after",
+      "purpose": "Classify Rename Player editor DOWN behavior."
+    },
+    {
+      "id": "rename-editor-b",
+      "before": "ui-rename-editor-b-before",
+      "after": "ui-rename-editor-b-after",
+      "purpose": "Classify Rename Player editor B behavior."
+    },
+    {
+      "id": "circuit-result-advance",
+      "before": "ui-circuit-results",
+      "after": "ui-circuit-result-after-advance",
+      "purpose": "Measure Circuit Result -> post-result transition."
+    },
+    {
+      "id": "records-open-track",
+      "before": "ui-records-track-selected",
+      "after": "ui-record-track-entry",
+      "purpose": "Measure Records menu -> track score-screen transition."
+    },
+    {
+      "id": "records-open-high",
+      "before": "ui-records-high-selected",
+      "after": "ui-record-high-entry",
+      "purpose": "Measure Records menu -> high score-screen transition."
+    },
+    {
+      "id": "records-open-player",
+      "before": "ui-records-player-selected",
+      "after": "ui-record-player-entry",
+      "purpose": "Measure Records menu -> player score-screen transition."
+    },
+    {
+      "id": "records-open-group",
+      "before": "ui-records-group-selected",
+      "after": "ui-record-group-entry",
+      "purpose": "Measure Records menu -> group score-screen transition."
+    },
+    {
+      "id": "define-league-to-name",
+      "before": "ui-define-league-entry",
+      "after": "ui-name-league-entry",
+      "purpose": "Measure Define League -> League naming transition."
+    },
+    {
+      "id": "startup-030-060",
+      "before": "ui-startup-t030",
+      "after": "ui-startup-t060",
+      "purpose": "Measure startup visual change from guest frame 30 to 60."
+    },
+    {
+      "id": "startup-060-090",
+      "before": "ui-startup-t060",
+      "after": "ui-startup-t090",
+      "purpose": "Measure startup visual change from guest frame 60 to 90."
+    },
+    {
+      "id": "startup-090-120",
+      "before": "ui-startup-t090",
+      "after": "ui-startup-t120",
+      "purpose": "Measure startup visual change from guest frame 90 to 120."
+    },
+    {
+      "id": "startup-120-150",
+      "before": "ui-startup-t120",
+      "after": "ui-startup-t150",
+      "purpose": "Measure startup visual change from guest frame 120 to 150."
+    },
+    {
+      "id": "startup-150-180",
+      "before": "ui-startup-t150",
+      "after": "ui-startup-t180",
+      "purpose": "Measure startup visual change from guest frame 150 to 180."
+    },
+    {
+      "id": "startup-180-210",
+      "before": "ui-startup-t180",
+      "after": "ui-startup-t210",
+      "purpose": "Measure startup visual change from guest frame 180 to 210."
+    },
+    {
+      "id": "startup-210-240",
+      "before": "ui-startup-t210",
+      "after": "ui-startup-t240",
+      "purpose": "Measure startup visual change from guest frame 210 to 240."
+    },
+    {
+      "id": "startup-240-270",
+      "before": "ui-startup-t240",
+      "after": "ui-startup-t270",
+      "purpose": "Measure startup visual change from guest frame 240 to 270."
+    },
+    {
+      "id": "startup-270-300",
+      "before": "ui-startup-t270",
+      "after": "ui-startup-t300",
+      "purpose": "Measure startup visual change from guest frame 270 to 300."
+    }
+  ]
+}

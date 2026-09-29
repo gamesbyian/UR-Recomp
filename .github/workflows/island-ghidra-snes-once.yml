@@ -1,0 +1,167 @@
+name: One-shot island ghidra-snes
+
+on:
+  push:
+    branches:
+      - chatgpt/island-ghidra-snes-2026-09-29
+    paths:
+      - .github/workflows/island-ghidra-snes-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  vendor:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Stage pinned extension source
+        shell: bash
+        run: |
+          set -euo pipefail
+          upstream="$RUNNER_TEMP/ghidra-snes"
+          git init "$upstream"
+          git -C "$upstream" remote add origin https://github.com/joshleaves/ghidra-snes.git
+          git -C "$upstream" fetch --depth 1 --filter=blob:none origin d33ce5dbfbc3645f00449be1c7ca1c1c65e81756
+          git -C "$upstream" checkout --detach --force d33ce5dbfbc3645f00449be1c7ca1c1c65e81756
+          test "$(git -C "$upstream" rev-parse HEAD)" = "d33ce5dbfbc3645f00449be1c7ca1c1c65e81756"
+
+          dest="third_party/src/ghidra-snes"
+          rm -rf "$dest"
+          mkdir -p "$dest/src"
+
+          for file in             LICENSE             README.md             FEATURES.md             FUNCTIONAL.md             ROADMAP.md             Module.manifest             build.gradle             extension.properties             gradle.properties
+          do
+            cp "$upstream/$file" "$dest/$file"
+          done
+
+          cp -R "$upstream/data" "$dest/data"
+          cp -R "$upstream/src/main" "$dest/src/main"
+
+      - name: Verify retained manual-workbench surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          dest="third_party/src/ghidra-snes"
+          test -f "$dest/LICENSE"
+          test -f "$dest/build.gradle"
+          test -f "$dest/Module.manifest"
+          test -d "$dest/data/languages"
+          test -d "$dest/src/main/java"
+          grep -Fx 'plugin.ghidraCompatibility=12.0.4' "$dest/gradle.properties"
+          grep -Fx 'plugin.version=1.3.2' "$dest/gradle.properties"
+          test ! -e "$dest/src/test"
+          test ! -e "$dest/.github"
+          test ! -e "$dest/gradle"
+
+      - name: Record manifest and provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path.cwd()
+          source = root / "third_party/src/ghidra-snes"
+
+          def file_sha256(path):
+              h = hashlib.sha256()
+              with path.open("rb") as f:
+                  for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                      h.update(chunk)
+              return h.hexdigest()
+
+          def tree_sha256(path):
+              h = hashlib.sha256()
+              for item in sorted(p for p in path.rglob("*") if p.is_file()):
+                  rel = item.relative_to(path)
+                  if any(part in {".git", "__pycache__"} for part in rel.parts):
+                      continue
+                  h.update(rel.as_posix().encode("utf-8"))
+                  h.update(b"\0")
+                  h.update(file_sha256(item).encode("ascii"))
+                  h.update(b"\n")
+              return h.hexdigest()
+
+          tree_hash = tree_sha256(source)
+
+          manifest_path = root / "third_party/manifest.json"
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          component = next(c for c in manifest["components"] if c["id"] == "ghidra-snes")
+          component.update({
+              "mode": "vendored",
+              "source_path": "third_party/src/ghidra-snes",
+              "archive_path": None,
+              "source_sha256": tree_hash,
+              "license_spdx": "MIT",
+              "license_path": "third_party/src/ghidra-snes/LICENSE",
+              "notes": "Pruned repository-owned Ghidra SNES extension source/data. Ghidra 12.0.4, Gradle execution and Maven/plugin resolution remain manual-workbench host dependencies outside the core offline guarantee.",
+              "provenance_path": "third_party/provenance/ghidra-snes.json",
+          })
+          manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+          provenance = {
+              "schema_version": 1,
+              "tool": "ghidra-snes",
+              "upstream_url": "https://github.com/joshleaves/ghidra-snes.git",
+              "upstream_revision": "d33ce5dbfbc3645f00449be1c7ca1c1c65e81756",
+              "plugin_version": "1.3.2",
+              "ghidra_compatibility": "12.0.4",
+              "vendored_source_path": "third_party/src/ghidra-snes",
+              "vendored_tree_sha256": tree_hash,
+              "license_spdx": "MIT",
+              "license_path": "third_party/src/ghidra-snes/LICENSE",
+              "retained": [
+                  "LICENSE",
+                  "README.md",
+                  "FEATURES.md",
+                  "FUNCTIONAL.md",
+                  "ROADMAP.md",
+                  "Module.manifest",
+                  "build.gradle",
+                  "extension.properties",
+                  "gradle.properties",
+                  "data/**",
+                  "src/main/**"
+              ],
+              "excluded": [
+                  ".github/**",
+                  ".vscode/**",
+                  ".gitignore",
+                  "gradle/**",
+                  "gradlew",
+                  "gradlew.bat",
+                  "src/test/**"
+              ],
+              "exclusion_reason": "UR-Recomp retains the extension implementation, Ghidra language/data definitions and build metadata. Upstream CI/editor files, tests and Gradle wrapper machinery are development conveniences rather than runtime analysis content.",
+              "host_boundary": [
+                  "Ghidra 12.0.4 installation",
+                  "GHIDRA_INSTALL_DIR",
+                  "Gradle execution environment",
+                  "Maven/plugin resolution used by build.gradle"
+              ],
+              "build_policy": "manual workbench only; source is preserved locally but no offline Ghidra/Gradle/Maven build is claimed."
+          }
+          prov_path = root / "third_party/provenance/ghidra-snes.json"
+          prov_path.parent.mkdir(parents=True, exist_ok=True)
+          prov_path.write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
+          print("tree_sha256", tree_hash)
+          PY
+
+          python3 tools/validate_island.py
+
+      - name: Commit repository-owned extension source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f third_party/src/ghidra-snes third_party/provenance/ghidra-snes.json third_party/manifest.json
+          git commit -m "toolchain: vendor ghidra-snes extension source"
+          git push origin "HEAD:${{ github.ref_name }}"

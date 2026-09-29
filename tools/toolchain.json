@@ -86,11 +86,11 @@
       ],
       "artifacts": [
         {
-          "path": "build",
+          "path": "build/binaries/wla-65816",
           "kind": "executable"
         },
         {
-          "path": "binaries",
+          "path": "build/binaries/wlalink",
           "kind": "executable"
         }
       ],

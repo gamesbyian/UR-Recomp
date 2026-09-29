@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
-"""Recover the live ROM-side source feeding Uniracers' APU upload loop.
+"""Recover the ROM-side source candidates feeding Uniracers' APU upload code.
 
-The transfer body at CPU $xx:8298 is currently interpreter-backed in the pinned
-SNESRecomp project, so this probe deliberately does not require a generated
-`bank_*_8298_*` function. It combines existing observability instead:
+Static bytes establish two adjacent routines:
+- $02:8298-$02:82A4 is a short initializer (clears DP $68/$6A/$6C).
+- $02:82A5 is a JSR/RTL wrapper for the longer body at $02:82A9.
+  That body stores X to DP $83, then reads `LDA $030000,X` before entering
+  the known $2142/$2143 transport loop.
 
-- `trace_get_v2` to find retained CPU block entries whose low PC is $8298;
-- `wram_writes_at` evidence, captured by `trace_native_wram_writers.py`,
-  to reconstruct direct-page pointer bytes immediately before each hit;
-- `dump_cart` to preserve bounded ROM windows for recovered LoROM pointers;
-- the always-on `audio_events` ring for CPU-write/apply/SPC-read correlation.
-
-The host should already have been driven through the deterministic first-race
-fixture and left running/paused for this observer to reconnect.
+The $8298 body is interpreter-backed in the pinned generated project and does
+not appear as its own cpu-trace block, so this probe uses WRAM write evidence
+instead of inventing a generated-function boundary.  It treats live 16-bit
+writes to DP $83 as candidate upload-entry X values, derives $03:XXXX source
+addresses from them, preserves ROM windows with dump_cart, and also records
+the older DP+$00 and DP+$63 state for comparison rather than assuming either
+is the original source pointer.
 """
 from __future__ import annotations
 
@@ -22,10 +23,10 @@ import socket
 import time
 from pathlib import Path
 
-TARGET_ADDR16 = 0x8298
-TRACE_PAGE = 4096
 AUDIO_PAGE = 8000
 AUDIO_RETAIN = 524288
+TRANSFER_FRAME_LO = 900
+TRANSFER_FRAME_HI = 983
 
 
 def command(sock: socket.socket, reader, line: str) -> dict:
@@ -72,43 +73,8 @@ def lorom_file_offset(cpu_addr: int) -> int | None:
     return bank * 0x8000 + (addr - 0x8000)
 
 
-def fetch_cpu_window(sock, reader, target_addr16: int = TARGET_ADDR16, *, max_pages: int = 128) -> dict:
-    collected: dict[int, dict] = {}
-    before_idx: int | None = None
-    found_page: int | None = None
-    for page in range(max_pages):
-        line = f"trace_get_v2 count={TRACE_PAGE} event=0"
-        if before_idx is not None:
-            line += f" before_idx={before_idx}"
-        result = command(sock, reader, line)
-        rows = result.get("events", [])
-        if not rows:
-            break
-        for row in rows:
-            collected[int(row["idx"])] = row
-        if any((parse_hex(row["pc24"]) & 0xFFFF) == target_addr16 for row in rows):
-            found_page = page
-        oldest_idx = min(int(row["idx"]) for row in rows)
-        before_idx = oldest_idx
-        if found_page is not None and page > found_page:
-            break
-        if oldest_idx == 0:
-            break
-
-    ordered = [collected[i] for i in sorted(collected)]
-    hits = [row for row in ordered if (parse_hex(row["pc24"]) & 0xFFFF) == target_addr16]
-    neighborhoods = []
-    pos_by_idx = {int(row["idx"]): i for i, row in enumerate(ordered)}
-    for hit in hits:
-        pos = pos_by_idx[int(hit["idx"])]
-        lo, hi = max(0, pos - 24), min(len(ordered), pos + 49)
-        neighborhoods.append({"entry": hit, "events": ordered[lo:hi]})
-    return {"events_collected": len(ordered), "target_hits": len(hits), "hits": hits, "neighborhoods": neighborhoods}
-
-
 def _write_value_for_byte(row: dict) -> int:
-    value = parse_hex(row["val"])
-    return value & 0xFF
+    return parse_hex(row["val"]) & 0xFF
 
 
 def byte_before_block(writes: list[dict], block_idx: int) -> int | None:
@@ -133,6 +99,44 @@ def pointer_before_block(writers: dict, base_addr: int, block_idx: int) -> int |
     return parts[0] | (parts[1] << 8) | (parts[2] << 16)
 
 
+def transfer_seed_events(
+    writers: dict,
+    *,
+    frame_lo: int = TRANSFER_FRAME_LO,
+    frame_hi: int = TRANSFER_FRAME_HI,
+) -> list[dict]:
+    """Return exact 16-bit writes to DP $83 in the first-race upload window."""
+    row = writers.get("addresses", {}).get("0x0083", {})
+    out = []
+    for w in row.get("writes", []):
+        if str(w.get("adr", "")).lower() not in {"0x00083", "0x0083", "0x83"}:
+            continue
+        if int(w.get("w", 0)) != 2:
+            continue
+        frame = int(str(w.get("f", "0")), 0)
+        if not (frame_lo <= frame <= frame_hi):
+            continue
+        x_value = parse_hex(w["val"]) & 0xFFFF
+        source = 0x030000 | x_value
+        out.append(
+            {
+                "frame": frame,
+                "block_index": int(w.get("bi", -1)),
+                "x_value": f"0x{x_value:04X}",
+                "source_pointer_03x": f"0x{source:06X}",
+                "source_file_offset": (
+                    f"0x{lorom_file_offset(source):06X}"
+                    if lorom_file_offset(source) is not None
+                    else None
+                ),
+                "scope": w.get("func"),
+                "parent": w.get("parent"),
+                "raw_write": w,
+            }
+        )
+    return out
+
+
 def fetch_audio_events(sock, reader) -> tuple[dict, list[dict]]:
     stats = command(sock, reader, "audio_stats 0")
     head = int(stats.get("event_count", 0))
@@ -152,56 +156,53 @@ def fetch_audio_events(sock, reader) -> tuple[dict, list[dict]]:
 
 
 def run_probe(sock, reader, writers: dict) -> dict:
-    cpu = fetch_cpu_window(sock, reader)
-    if not cpu["hits"]:
-        raise RuntimeError("no retained CPU trace hit with low PC $8298")
+    seeds = transfer_seed_events(writers)
+    if not seeds:
+        raise RuntimeError("no 16-bit DP $83 writes found in first-race upload window")
 
-    d_values = sorted({parse_hex(row["D"]) for row in cpu["hits"]})
-    if d_values != [0]:
-        raise RuntimeError(f"expected observed transfer hits to use D=0; saw {[hex(v) for v in d_values]}")
-
-    runtime_pcs = sorted({parse_hex(row["pc24"]) for row in cpu["hits"]})
-    captures = []
-    unique_ptrs: dict[int, dict] = {}
-    for row in cpu["hits"]:
-        idx = int(row["idx"])
-        entry = pointer_before_block(writers, 0x0000, idx)
-        work = pointer_before_block(writers, 0x0063, idx)
-        cap = {
-            "block_index": idx,
-            "frame": row.get("f"),
-            "pc24": f"0x{parse_hex(row['pc24']):06X}",
-            "D": f"0x{parse_hex(row['D']):04X}",
-            "entry_stream_pointer": f"0x{entry:06X}" if entry is not None else None,
-            "working_pointer_63": f"0x{work:06X}" if work is not None else None,
+    unique_sources: dict[int, dict] = {}
+    for row in seeds:
+        source = int(row["source_pointer_03x"], 16)
+        off = lorom_file_offset(source)
+        if off is None or source in unique_sources:
+            continue
+        cart = command(sock, reader, f"dump_cart {off:x} 8192")
+        unique_sources[source] = {
+            "source_pointer": f"0x{source:06X}",
+            "source_file_offset": f"0x{off:06X}",
+            "cart_len": int(cart.get("len", 0)),
+            "cart_hex": cart.get("hex", ""),
         }
-        for role, ptr in (("entry_stream", entry), ("working_63", work)):
-            if ptr is None:
-                continue
-            off = lorom_file_offset(ptr)
-            cap[role + "_file_offset"] = f"0x{off:06X}" if off is not None else None
-            if off is not None and ptr not in unique_ptrs:
-                cart = command(sock, reader, f"dump_cart {off:x} 1024")
-                unique_ptrs[ptr] = {
-                    "roles": [role],
-                    "source_pointer": f"0x{ptr:06X}",
-                    "source_file_offset": f"0x{off:06X}",
-                    "cart_len": int(cart.get("len", 0)),
-                    "cart_hex": cart.get("hex", ""),
-                }
-            elif ptr in unique_ptrs and role not in unique_ptrs[ptr]["roles"]:
-                unique_ptrs[ptr]["roles"].append(role)
-        captures.append(cap)
+
+    comparisons = []
+    for row in seeds:
+        idx = row["block_index"]
+        comparisons.append(
+            {
+                **{k: row[k] for k in (
+                    "frame", "block_index", "x_value", "source_pointer_03x",
+                    "source_file_offset", "scope", "parent"
+                )},
+                "dp00_pointer_before": (
+                    f"0x{p:06X}" if (p := pointer_before_block(writers, 0x0000, idx)) is not None else None
+                ),
+                "dp63_pointer_before": (
+                    f"0x{p:06X}" if (p := pointer_before_block(writers, 0x0063, idx)) is not None else None
+                ),
+            }
+        )
 
     audio_stats, audio_events = fetch_audio_events(sock, reader)
     return {
-        "schema_version": 2,
-        "target_addr16": "0x8298",
-        "runtime_pcs": [f"0x{x:06X}" for x in runtime_pcs],
-        "observed_D_values": [f"0x{x:04X}" for x in d_values],
-        "cpu_trace": cpu,
-        "captures": captures,
-        "source_cart_windows": list(unique_ptrs.values()),
+        "schema_version": 3,
+        "static_interpretation": {
+            "initializer": "02:8298-02:82A4",
+            "transfer_wrapper": "02:82A5",
+            "transfer_body": "02:82A9",
+            "source_expression": "LDA $030000,X after STX $83",
+        },
+        "transfer_seed_events": comparisons,
+        "source_cart_windows": list(unique_sources.values()),
         "audio_stats": audio_stats,
         "audio_events": audio_events,
     }
@@ -226,10 +227,13 @@ def main() -> int:
         reader.close()
         sock.close()
 
-    print(f"runtime_pcs={report['runtime_pcs']} D={report['observed_D_values']} hits={len(report['captures'])}")
-    for row in report["captures"]:
-        if row.get("entry_stream_pointer") or row.get("working_pointer_63"):
-            print(f"  idx={row['block_index']} frame={row.get('frame')} entry={row.get('entry_stream_pointer')} work63={row.get('working_pointer_63')}")
+    print(f"transfer_seed_events={len(report['transfer_seed_events'])}")
+    for row in report["transfer_seed_events"]:
+        print(
+            f"  f={row['frame']} bi={row['block_index']} X={row['x_value']} "
+            f"source={row['source_pointer_03x']} file={row['source_file_offset']} "
+            f"scope={row['scope']} parent={row['parent']}"
+        )
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)
         args.json_out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")

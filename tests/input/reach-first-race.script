@@ -10,6 +10,13 @@ turbo on
 # Main menu: Dessyreqt menu.mainMenu = 215 = 0xD7.
 until 009F == D7 3600
 dump main-menu
+
+# The recovered bot pulses A every other frame for as long as mainMenu remains
+# active. A one-frame press at the first 0xD7 frame was too early even though
+# it reached guest input. Give the menu one second of guest time to settle,
+# then test a clean confirm edge.
+wait 60
+dump main-menu-ready
 press a
 
 # Capture the immediate post-A state while diagnosing the first transition.

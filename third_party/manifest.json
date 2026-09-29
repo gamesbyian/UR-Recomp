@@ -90,16 +90,16 @@
     },
     {
       "id": "wla-dx",
-      "mode": "pending",
+      "mode": "vendored",
       "upstream_url": "https://github.com/vhelin/wla-dx.git",
       "revision": "91c52b1f4ef3cc8ba3c0638f7536539579af6a9f",
-      "source_path": null,
+      "source_path": "third_party/src/wla-dx",
       "archive_path": null,
-      "source_sha256": null,
-      "license_spdx": null,
-      "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
-      "provenance_path": null
+      "source_sha256": "8427742e0a299db184a2ed416a997cc360f36f8117c3fdf524c836c9325d6a9e",
+      "license_spdx": "GPL-2.0-or-later",
+      "license_path": "third_party/src/wla-dx/LICENSE",
+      "notes": "Pruned repository-owned WLA-DX source for the 65816 assembler and wlalink only. Other CPU backends, tests, docs, examples, platform packaging and auxiliary binaries are omitted; a project patch narrows upstream CMake to the retained build graph.",
+      "provenance_path": "third_party/provenance/wla-dx.json"
     },
     {
       "id": "cc65",

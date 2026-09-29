@@ -7,6 +7,7 @@ interpreter, or system package mutation. Use --list before installing a group.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -92,6 +93,24 @@ def validate_manifest(manifest: dict) -> None:
             raise ValueError(f"{tool_id}: build-mode tool has no build commands")
         if mode == "manual" and build:
             raise ValueError(f"{tool_id}: manual tool must not declare build commands")
+        patches = tool.get("patches", [])
+        if not isinstance(patches, list):
+            raise ValueError(f"{tool_id}: patches must be a list")
+        for patch_index, patch in enumerate(patches):
+            if not isinstance(patch, dict):
+                raise ValueError(f"{tool_id}: patch {patch_index} must be an object")
+            patch_path = patch.get("path")
+            patch_sha = patch.get("sha256")
+            if not isinstance(patch_path, str) or not patch_path.startswith("tools/patches/"):
+                raise ValueError(
+                    f"{tool_id}: patch {patch_index} must live under tools/patches/"
+                )
+            pp = Path(patch_path)
+            if pp.is_absolute() or ".." in pp.parts:
+                raise ValueError(f"{tool_id}: invalid patch path {patch_path!r}")
+            if not isinstance(patch_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", patch_sha):
+                raise ValueError(f"{tool_id}: patch {patch_path!r} needs lowercase SHA-256")
+
         artifacts = tool.get("artifacts", [])
         if not isinstance(artifacts, list):
             raise ValueError(f"{tool_id}: artifacts must be a list")
@@ -178,6 +197,22 @@ def ensure_checkout(tool: dict, src_root: Path) -> Path:
     if dirty:
         raise SystemExit(f"{tool['id']}: checkout is dirty after reset/clean")
     return dest
+
+
+def apply_patches(tool: dict, dest: Path) -> None:
+    for spec in tool.get("patches", []):
+        patch_path = ROOT / spec["path"]
+        if not patch_path.is_file():
+            raise SystemExit(f"{tool['id']}: missing project patch {patch_path}")
+        data = patch_path.read_bytes()
+        actual = hashlib.sha256(data).hexdigest()
+        if actual != spec["sha256"]:
+            raise SystemExit(
+                f"{tool['id']}: patch hash mismatch for {spec['path']}: "
+                f"{actual} != {spec['sha256']}"
+            )
+        run(["git", "apply", "--check", str(patch_path)], cwd=dest)
+        run(["git", "apply", str(patch_path)], cwd=dest)
 
 
 def verify_artifacts(tool: dict, dest: Path, python: Path | None = None) -> None:
@@ -278,6 +313,7 @@ def main() -> int:
         dest = ensure_checkout(tool, src_root)
         if args.clone_only:
             continue
+        apply_patches(tool, dest)
         if tool["install_mode"] == "manual":
             print(f"{tool['id']}: source checkout pinned; manual build/install required")
             continue

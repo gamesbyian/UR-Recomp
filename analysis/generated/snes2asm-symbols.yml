@@ -2,6 +2,8 @@
 # Add structural decoders separately; this file only seeds known labels/memory.
 labels:
   RNC1_Unpack: 0xB8F1
+  RNC1_MakeHuffTail: 0xBB60
+  RNC1_ReadWordLoROMSafe: 0xBB6F
 memory:
   Frontend_SelectedRow: 0x7E000E
   Frontend_SelectedOption: 0x7E009B

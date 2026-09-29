@@ -72,7 +72,7 @@ class UiContactSheetTests(unittest.TestCase):
                 capture_output=True, text=True, check=False,
             )
             self.assertEqual(proc.returncode, 0, proc.stderr)
-            self.assertIn("no framebuffer", out.read_text())
+            self.assertIn("no canonical framebuffer yet", out.read_text())
 
     def test_reference_only_state_is_rendered(self) -> None:
         with tempfile.TemporaryDirectory() as td:

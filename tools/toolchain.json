@@ -158,7 +158,9 @@
       "purpose": "CLI-capable IPS/BPS patch application and creation for preserving/replaying ROM modifications.",
       "build": [
         [
-          "./make-linux.sh"
+          "make",
+          "TARGET=cli",
+          "-j{jobs}"
         ]
       ],
       "artifacts": [

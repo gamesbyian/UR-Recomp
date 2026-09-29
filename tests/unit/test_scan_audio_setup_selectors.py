@@ -1,6 +1,8 @@
 from tools.scan_audio_setup_selectors import (
     scan_setup_calls,
     scan_setup_package_pairs,
+    scan_all_setup_wrapper_calls,
+    scan_immediate_ldx_values,
 )
 
 
@@ -23,3 +25,21 @@ def test_setup_package_pair_binds_selector_to_known_table():
     assert len(rows) == 1
     assert rows[0]["selector_hex"] == "0x003B"
     assert rows[0]["table_cpu"] == "0x03FB95"
+
+
+def test_all_wrapper_calls_includes_non_immediate_call():
+    rom = bytearray(bytes([0]) * 0x100)
+    rom[0x20:0x24] = bytes.fromhex("22 7E 80 82")
+    rom[0x40:0x47] = bytes.fromhex("A2 3B 00 22 7E 80 82")
+    rows = scan_all_setup_wrapper_calls(bytes(rom))
+    assert len(rows) == 2
+    assert rows[0]["preceding_ldx_immediate"] is None
+    assert rows[1]["preceding_ldx_immediate_hex"] == "0x003B"
+
+
+def test_targeted_ldx_scan_finds_3b_and_3d_anywhere():
+    rom = bytearray(bytes([0]) * 0x80)
+    rom[0x10:0x13] = bytes.fromhex("A2 3B 00")
+    rom[0x30:0x33] = bytes.fromhex("A2 3D 00")
+    rows = scan_immediate_ldx_values(bytes(rom))
+    assert [r["value_hex"] for r in rows] == ["0x003B", "0x003D"]

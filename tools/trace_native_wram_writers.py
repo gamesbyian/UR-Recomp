@@ -95,15 +95,18 @@ def main() -> int:
             raise RuntimeError(f"inRace did not become 1 within {args.max_frames} stepped frames")
 
         cpu_state = command(sock, reader, "get_cpu_state")
+        stack_page = command(sock, reader, "dump_ram 0x100 256")
         report = {
             "in_race_step": reached,
             "cpu_state_at_in_race": cpu_state,
+            "stack_page_0x0100_0x01ff": stack_page.get("hex", ""),
             "addresses": {},
         }
         print(f"inRace=1 after {reached} stepped frames")
         print(
             "cpu-at-inRace: "
-            f"SP={cpu_state.get('sp')} PC={cpu_state.get('k')}:{cpu_state.get('pc')} "
+            f"SP={cpu_state.get('sp')} E={cpu_state.get('e')} "
+            f"PC={cpu_state.get('k')}:{cpu_state.get('pc')} "
             f"DP={cpu_state.get('dp')} DB={cpu_state.get('db')} "
             f"func={cpu_state.get('func')}"
         )

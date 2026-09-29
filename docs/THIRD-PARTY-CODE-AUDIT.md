@@ -131,6 +131,13 @@ Use project-owned `tools/extract_smv_input.py` to translate input and embedded
 SRAM into neutral deterministic fixtures. Interpret state only after replay
 against the canonical ROM and current runtime/reference harnesses.
 
+Audit note: the extractor had a variable-shadowing defect where the original
+movie byte buffer name was reused for each integer controller sample; metadata
+then called `len()` on the integer. The regression test exposed this and the
+buffer/sample variables are now distinct. The associated WRAM trace summarizer
+also now rejects non-monotonic frame records instead of silently reconstructing
+state across backwards time jumps.
+
 ## Promotion checklist
 
 When code moves from "interesting import" to "project dependency", record:

@@ -181,3 +181,29 @@ Durable result:
 
 - `analysis/generated/audio-block-spc-correlation.json`
 - `tools/correlate_audio_blocks_spc.py`
+
+
+### Caller-side setup selector gaps
+
+The repeated call immediately before each known package transfer has now been scanned independently. The exact form is `LDX #imm16 ; JSL $82:807E`.
+
+Across the complete retail ROM, the observed setup-selector values are:
+
+`$32, $33, $34, $35, $36, $37, $38, $39, $3A, $3C, $3E, $3F, $40, $41, $42`.
+
+Within the dense range `$38-$42`, **only `$3B` and `$3D` are absent entirely** from exact setup calls. Every other value in that range is present and pairs directly with a known package table:
+
+- `$38 -> FB15`
+- `$39 -> FBD5`
+- `$3A -> FAD5`
+- `$3C -> FC15`
+- `$3E/$3F/$40/$41/$42 -> FB55`
+
+No `$3B` or `$3D` setup call survives elsewhere in the ROM, so neither merely lost its immediately adjacent package transfer.
+
+This is structurally interesting because the preserved SPC set contains exactly two tagged unused songs, but **that numerical coincidence is not yet evidence that selectors $3B/$3D are those songs**. The next discriminator is the semantics of routine `02:807E` and the surrounding selector sequences. If `$82:807E` is a song/program-selection primitive, the two holes become a strong unused-content lead; if it configures an unrelated resource type, the coincidence should be discarded.
+
+Durable result:
+
+- `analysis/generated/audio-setup-selector-map.json`
+- `tools/scan_audio_setup_selectors.py`

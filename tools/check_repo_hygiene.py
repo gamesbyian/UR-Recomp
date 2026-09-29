@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 import subprocess
+import sys
 
 ROM_EXTENSIONS = {".sfc", ".smc", ".fig", ".swc", ".rom"}
 SAVE_TRACE_EXTENSIONS = {".srm", ".state", ".sav"}
@@ -73,6 +74,8 @@ def main() -> int:
             for path in missing:
                 print(f"  {path}")
         return 1
+
+    subprocess.run([sys.executable, str(Path(__file__).with_name("export_symbols.py")), "--check"], check=True)
 
     roms = [p for p in tracked if Path(p).suffix.lower() in ROM_EXTENSIONS]
     print(f"Tracked-file hygiene check passed ({len(roms)} intentional ROM image(s) under {ROM_PREFIX}).")

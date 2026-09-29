@@ -43,6 +43,7 @@ def main() -> int:
     ap.add_argument("rom",type=Path)
     ap.add_argument("wram",type=Path)
     ap.add_argument("--limit",type=int,default=64)
+    ap.add_argument("--focus-stream",type=int)
     ap.add_argument("--json-out",type=Path)
     args=ap.parse_args()
 

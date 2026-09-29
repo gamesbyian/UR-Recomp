@@ -125,6 +125,35 @@ def make_run(start: int, end: int, signature: str, rows: list[dict]) -> dict:
     }
 
 
+
+def rare_contexts(
+    rows: list[dict],
+    blobs: dict[str, bytes],
+    sig_counts: dict[str, int],
+    radius: int = 8,
+) -> dict[str, list[dict]]:
+    out: dict[str, list[dict]] = {}
+    for row in rows:
+        sig = row["signature"]
+        if sig_counts[sig] > 512:
+            continue
+        off = row["offset"]
+        item = {
+            **row,
+            "contexts": {},
+        }
+        for name in NAMES:
+            data = blobs[name]
+            a = max(0, off - radius)
+            b = min(len(data), off + radius + 1)
+            item["contexts"][name] = {
+                "start_hex": f"0x{a:06X}",
+                "focus_index": off - a,
+                "hex": data[a:b].hex(" "),
+            }
+        out.setdefault(sig, []).append(item)
+    return out
+
 def beta_delta_classes(blobs: dict[str, bytes], mask: bytearray) -> dict:
     usa, beta = blobs["usa"], blobs["beta"]
     n = min(len(usa), len(beta))
@@ -192,12 +221,11 @@ def build_report(paths: dict[str, Path]) -> dict:
         "run_count": len(runs),
         "compact_runs_le_32": compact[:1000],
         "rare_signature_rows": {
-            sig: [
-                row for row in rows if row["signature"] == sig
-            ]
+            sig: [row for row in rows if row["signature"] == sig]
             for sig, count in sig_counts.items()
             if count <= 512
         },
+        "rare_signature_contexts": rare_contexts(rows, blobs, sig_counts),
         "largest_runs": largest,
         "usa_beta_delta_classes": beta_delta_classes(blobs, mask),
     }

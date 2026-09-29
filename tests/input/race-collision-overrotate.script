@@ -66,12 +66,23 @@ dump accel-180
 
 
 # Collision candidate: deliberately over-rotate roughly half a turn before impact.
-# Matched control omits only L.
+# Matched control omits only L. Preserve the same total 16-frame intervention
+# while splitting checkpoints around the already-known clean landing window
+# (event-relative +34/+36) so contact can be classified rather than skipped.
 
 press right+b 24
 dump collision-pre
 
-press right+b+l 16
+press right+b+l 8
+dump collision-overrotate-008
+
+press right+b+l 2
+dump collision-overrotate-010
+
+press right+b+l 2
+dump collision-overrotate-012
+
+press right+b+l 4
 dump collision-overrotate-016
 
 press right 4

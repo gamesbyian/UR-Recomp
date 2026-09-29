@@ -1,0 +1,88 @@
+name: independent libretro reference route
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "rom_identity.txt"
+      - "snesrecomp"
+      - "tests/input/reach-first-race.script"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - "tools/compare_wram_checkpoints.py"
+      - ".github/workflows/independent-reference-route.yml"
+
+concurrency:
+  group: independent-reference-route-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compare-reference-cores:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Build pinned reference cores
+        run: |
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          python3 tools/bootstrap_toolchain.py --tool bsnes-libretro --jobs 2
+
+      - name: Build snesref
+        run: |
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+          test -x "$RUNNER_TEMP/snesref-build/snesref"
+
+      - name: Run identical fixture through Snes9x and bsnes
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
+
+          run_core() {
+            local label="$1"
+            local core="$2"
+            local dumps="$RUNNER_TEMP/${label}-dumps"
+            local log="$RUNNER_TEMP/${label}-route.log"
+            mkdir -p "$dumps"
+            SNESREF_HEADLESS=1             SNESREF_FAST=1             SNESREF_WRAM_FILL=0             SNESREF_SCRIPT="$SCRIPT"             SNESREF_DUMP_DIR="$dumps"               "$EXE" "$core" "$ROM" >"$log" 2>&1
+            cat "$log"
+            test -s "$dumps/race-entered.wram.bin"
+          }
+
+          run_core snes9x "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          run_core bsnes "$GITHUB_WORKSPACE/.tools/src/bsnes-libretro/bsnes_libretro.so"
+
+      - name: Compare reference-core WRAM checkpoints
+        run: |
+          python3 tools/compare_wram_checkpoints.py             "$RUNNER_TEMP/snes9x-dumps"             "$RUNNER_TEMP/bsnes-dumps"             --label-a snes9x             --label-b bsnes             --limit 80             --json-out "$RUNNER_TEMP/reference-core-differential.json"             | tee "$RUNNER_TEMP/reference-core-differential.txt"
+
+      - name: Upload independent-oracle evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-reference-core-differential
+          path: |
+            ${{ runner.temp }}/snes9x-route.log
+            ${{ runner.temp }}/bsnes-route.log
+            ${{ runner.temp }}/reference-core-differential.json
+            ${{ runner.temp }}/reference-core-differential.txt
+            ${{ runner.temp }}/snes9x-dumps/
+            ${{ runner.temp }}/bsnes-dumps/
+          if-no-files-found: warn
+          retention-days: 7

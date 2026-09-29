@@ -602,3 +602,16 @@ Dynamic run 36515746538 independently shows airborne L input changing `$04C7` fr
 **Interpretation:** progressive decompression/copy, byte-11 postprocessing, and racer-coordinate initialization are separable phases. Course completion/header mutation occur in +40→+44; racer initialization occurs later in +44→+48.
 
 **Discriminating test:** sample individual frames +41 through +48 to split these windows further.
+
+
+### R-SEED-029 — Dragster setup sequence is frame-exact: complete +43, header settles +44, spawns +45
+
+**Status:** confirmed  
+**Date:** 2026-09-28  
+**Area:** course | compression | RAM | physics
+
+**Observation:** run 36517460851 samples every guest frame around setup completion. At +42, stream 1 is incomplete with a 33,359-byte exact prefix and byte 11=`0x0F`. At +43, all 33,815 bytes are resident (33,814 exact) and byte 11=`0x12`, while racer slots remain zero. At +44, byte 11=`0x16`, racers remain zero. At +45, both racers become `(1088,800)`.
+
+**Interpretation:** course decompression/copy completes on guest frame +43; header byte 11 is postprocessed across +43/+44; racer spawn initialization occurs on +45. These are ordered, separable setup phases.
+
+**Next discriminator:** dynamic writer history for `7F:000B` and nearby course-buffer bytes to identify the responsible guest routines and distinguish decompressor output from header postprocessing.

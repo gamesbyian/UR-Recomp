@@ -9,8 +9,8 @@ Human-maintained map of understood ROM functions, RAM, tables and hardware-facin
 | TBD | `TBD_Reset` | 0 | Not analyzed |
 | TBD | `TBD_MainLoop` | 0 | Not analyzed |
 | `01:B8F1` (USA) | `RNC1_Unpack` | 5 | Identified by unique opcode-structure match to preserved 1992 SNES `RNC_1.S`; ROM offset `0x00B8F1`. Regional/build equivalents: Europe retail `01:B8E2` (`0x00B8E2`), 1994-11-29 PAL prototype `01:B8D1` (`0x00B8D1`), legacy beta identical to USA. |
-| `01:BB60` | `RNC1_MakeHuffTail` | source-aligned code | 5 | Preserved Method-1 MAKEHUFF tail begins here; final RTS at `01:BB6E`, establishing the shipped generic RNC1 body end. |
-| `01:BB6F` | `RNC1_PostHelper` | code | 4 | First helper immediately after preserved RNC1 body; `01:BB71` increments input-pointer low word and `01:BB73` is the following BNE. Exact semantic name remains provisional. |
+| `01:BB60` | `RNC1_MakeHuffTail` | 5 | Preserved Method-1 MAKEHUFF tail begins here; final RTS at `01:BB6E`, establishing the shipped generic RNC1 body end. |
+| `01:BB6F` | `RNC1_PostHelper` | 4 | First helper immediately after preserved RNC1 body; `01:BB71` increments input-pointer low word and `01:BB73` is the following BNE. Exact semantic name remains provisional. |
 | TBD | `TBD_LoadCourse` | 0 | Not analyzed |
 | TBD | `TBD_UpdatePlayer` | 0 | Not analyzed |
 | TBD | `TBD_BuildOAM` | 0 | Not analyzed |

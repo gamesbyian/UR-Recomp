@@ -42,3 +42,25 @@ jobs:
           echo
           echo "== analysis config =="
           find "$RUNNER_TEMP/ur-recomp-probe" -path '*/recomp/*' -type f -maxdepth 5 -print || true
+
+      - name: Emit compact analyzer reconnaissance
+        shell: bash
+        run: |
+          set -euo pipefail
+          TMP="$RUNNER_TEMP/ur-recomp-probe"
+          MANIFEST=$(find "$TMP" -name program_manifest.json -type f -print -quit)
+          if [ -z "$MANIFEST" ]; then
+            echo "program_manifest.json was not generated" >&2
+            exit 1
+          fi
+          python3 tools/summarize_analyzer_recon.py \
+            "$MANIFEST" \
+            --output "$RUNNER_TEMP/analyzer-recon.json"
+
+      - name: Preserve analyzer reconnaissance
+        uses: actions/upload-artifact@v4
+        with:
+          name: analyzer-recon
+          path: ${{ runner.temp }}/analyzer-recon.json
+          if-no-files-found: error
+          retention-days: 7

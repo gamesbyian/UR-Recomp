@@ -1,0 +1,380 @@
+schema_version: 1
+game: "Uniracers (USA)"
+purpose: "Seed UI/navigation state machine for research agents, deterministic input work, and future frontend reconstruction."
+status: "skeleton"
+evidence_classes:
+  observed_screenshot: "Visible in a public screenshot or locally captured frame."
+  primary_manual: "Described by the original USA instruction manual."
+  reproduced_runtime: "Locally reproduced in the canonical ROM/runtime."
+  inferred: "Reasonable structural inference; must not be treated as confirmed."
+  unknown: "Placeholder awaiting evidence."
+global_menu_controls:
+  evidence: [primary_manual]
+  cursor: "D-pad moves the menu arrow."
+  forward: ["B", "A"]
+  backward: ["Y", "X"]
+  note: "The manual documents this as the general menu convention. Individual screens may add or override controls."
+sources:
+  manual_transcription:
+    url: "https://www.world-of-nintendo.com/manuals/super_nes/uniracers.shtml"
+    kind: "primary_manual_transcription"
+  manual_scan:
+    url: "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf"
+    kind: "primary_manual_scan"
+  mobygames_gallery:
+    url: "https://www.mobygames.com/game/8085/uniracers/screenshots/"
+    kind: "public_screenshot_gallery"
+  gamestar_gallery:
+    url: "https://www.gamestar.de/galerien/uniracers_snes,48628.html"
+    kind: "public_screenshot_gallery"
+  demented_ferrets_review:
+    url: "https://dementedferrets.com/2021/02/24/uniracers-review-bombastic-fun/"
+    kind: "public_screenshot_reference"
+
+states:
+  - id: BOOT_STARTUP
+    family: startup
+    kind: sequence
+    confidence: unknown
+    evidence: []
+    description: "Power-on/logo/intro sequence before the main menu."
+    transitions:
+      - input: "sequence completes or accepted skip input"
+        to: MAIN_MENU
+        confidence: inferred
+
+  - id: MAIN_MENU
+    family: frontend
+    kind: menu
+    confidence: high
+    evidence: [observed_screenshot, primary_manual]
+    visible_items: ["1P", "2P", "VS", "LEAGUE", "OPTIONS"]
+    default_selection: "1P"
+    notes:
+      - "Public screenshots show the five items and arrow cursor."
+      - "Manual quick-start says A, B, or Start can advance from 1P; general menu convention says A/B advance."
+      - "Holding Left+A+L+R invokes erase-all confirmation according to the manual."
+    transitions:
+      - selection: "1P"
+        input: "A or B; Start also documented by quick-start"
+        to: PLAYER_SELECT_P1
+        confidence: high
+      - selection: "2P"
+        input: "A or B"
+        to: PLAYER_SELECT_P1
+        set: {mode: "2P"}
+        confidence: high
+      - selection: "VS"
+        input: "A or B"
+        to: PLAYER_SELECT_P1
+        set: {mode: "VS"}
+        confidence: high
+      - selection: "LEAGUE"
+        input: "A or B"
+        to: LEAGUE_SELECT
+        confidence: high
+      - selection: "OPTIONS"
+        input: "A or B"
+        to: OPTIONS_MENU
+        confidence: high
+      - input: "hold Left + A + L + R"
+        to: ERASE_ALL_CONFIRM
+        confidence: high
+
+  - id: PLAYER_SELECT_P1
+    family: race_setup
+    kind: menu
+    confidence: high
+    evidence: [observed_screenshot, primary_manual]
+    description: "Choose player-one unicycle from named/color-coded roster."
+    transitions:
+      - input: "A or B"
+        condition: "mode == 1P"
+        to: TOUR_SELECT
+        confidence: high
+      - input: "A or B"
+        condition: "mode in [2P, VS]"
+        to: PLAYER_SELECT_P2
+        confidence: high
+      - input: "Y or X"
+        to: MAIN_MENU
+        confidence: high
+
+  - id: PLAYER_SELECT_P2
+    family: race_setup
+    kind: menu
+    confidence: medium
+    evidence: [primary_manual]
+    description: "Second unicycle selection pass in 2P/VS."
+    transitions:
+      - input: "A or B"
+        to: TOUR_SELECT
+        confidence: high
+      - input: "Y or X"
+        to: PLAYER_SELECT_P1
+        confidence: medium
+
+  - id: TOUR_SELECT
+    family: race_setup
+    kind: menu
+    confidence: high
+    evidence: [observed_screenshot, primary_manual]
+    visible_known_tours: ["CRAWLER", "SHUFFLER", "WALKER", "HOPPER", "JUMPER", "BOUNDER", "RUNNER", "SPRINTER", "HUNTER"]
+    notes:
+      - "Manual presents eight normal tours; Hunter is the hidden ninth tour after progression."
+      - "Public screenshot directly confirms the animal-icon tour-selection presentation."
+    transitions:
+      - input: "D-pad then A or B"
+        to: TRACK_SELECT
+        confidence: high
+      - input: "Y or X"
+        to: "PLAYER_SELECT_P2 or PLAYER_SELECT_P1 depending mode/history"
+        confidence: medium
+
+  - id: TRACK_SELECT
+    family: race_setup
+    kind: menu
+    confidence: high
+    evidence: [observed_screenshot, primary_manual]
+    description: "Five tracks for the selected tour; track type icons are visible."
+    transitions:
+      - input: "D-pad then A or B"
+        to: PRE_RACE_CARD
+        confidence: medium
+      - input: "Y or X"
+        to: TOUR_SELECT
+        confidence: high
+
+  - id: PRE_RACE_CARD
+    family: race_setup
+    kind: screen
+    confidence: medium
+    evidence: [primary_manual]
+    description: "Brief informational screen identifying matchup/track before play."
+    transitions:
+      - input: "automatic or confirm input"
+        to: GAMEPLAY
+        confidence: inferred
+
+  - id: GAMEPLAY
+    family: gameplay
+    kind: runtime
+    confidence: high
+    evidence: [observed_screenshot, reproduced_runtime]
+    variants: ["RACE", "CIRCUIT", "STUNT", "1P", "2P", "VS", "LEAGUE"]
+    transitions:
+      - event: "finish/timeout/scoring complete"
+        to: RESULT_BY_TRACK_TYPE
+        confidence: high
+      - input: "Start"
+        to: PAUSE
+        confidence: medium
+
+  - id: PAUSE
+    family: gameplay
+    kind: overlay_or_state
+    confidence: medium
+    evidence: [primary_manual]
+    transitions:
+      - input: "Start"
+        to: GAMEPLAY
+        confidence: inferred
+
+  - id: RESULT_BY_TRACK_TYPE
+    family: results
+    kind: branch
+    confidence: high
+    evidence: [primary_manual]
+    branches:
+      RACE: RESULT_RACE
+      CIRCUIT: RESULT_CIRCUIT
+      STUNT: RESULT_STUNT
+
+  - id: RESULT_RACE
+    family: results
+    kind: screen
+    confidence: high
+    evidence: [primary_manual]
+    transitions:
+      - input: "advance/next"
+        to: POST_RESULT_DECISION
+        confidence: medium
+
+  - id: RESULT_CIRCUIT
+    family: results
+    kind: screen
+    confidence: high
+    evidence: [primary_manual]
+    transitions:
+      - input: "advance/next"
+        to: POST_RESULT_DECISION
+        confidence: medium
+
+  - id: RESULT_STUNT
+    family: results
+    kind: screen
+    confidence: high
+    evidence: [primary_manual]
+    transitions:
+      - input: "advance/next"
+        to: POST_RESULT_DECISION
+        confidence: medium
+
+  - id: POST_RESULT_DECISION
+    family: results
+    kind: menu_or_prompt
+    confidence: medium
+    evidence: [primary_manual]
+    description: "Prompt after a completed event allowing progression to the next track or another path."
+    transitions:
+      - selection: "next track"
+        input: "confirm"
+        to: PRE_RACE_CARD
+        confidence: medium
+      - selection: "do not advance"
+        input: "confirm/back"
+        to: TRACK_SELECT
+        confidence: inferred
+
+  - id: LEAGUE_SELECT
+    family: league
+    kind: menu
+    confidence: high
+    evidence: [primary_manual]
+    description: "List of active leagues."
+    transitions:
+      - input: "select league"
+        to: LEAGUE_TABLE
+        confidence: high
+      - input: "Y or X"
+        to: MAIN_MENU
+        confidence: high
+
+  - id: LEAGUE_TABLE
+    family: league
+    kind: menu
+    confidence: high
+    evidence: [primary_manual]
+    description: "League standings/player list with a RACE action."
+    transitions:
+      - selection: "RACE"
+        input: "A or B"
+        to: PRE_RACE_CARD
+        confidence: medium
+      - input: "Y or X"
+        to: LEAGUE_SELECT
+        confidence: medium
+
+  - id: OPTIONS_MENU
+    family: options
+    kind: menu
+    confidence: high
+    evidence: [primary_manual]
+    visible_known_items: ["RECORDS", "DEFINE PLAYER", "RENAME PLAYER", "DEFINE LEAGUE", "MAIN MENU"]
+    notes:
+      - "Other adjustable settings may exist; do not invent them until captured or located in code/manual detail."
+    transitions:
+      - selection: "RECORDS"
+        input: "A or B"
+        to: RECORDS
+        confidence: high
+      - selection: "DEFINE PLAYER"
+        input: "A or B"
+        to: DEFINE_PLAYER
+        confidence: high
+      - selection: "RENAME PLAYER"
+        input: "A or B"
+        to: RENAME_PLAYER
+        confidence: high
+      - selection: "DEFINE LEAGUE"
+        input: "A or B"
+        to: DEFINE_LEAGUE
+        confidence: high
+      - selection: "MAIN MENU"
+        input: "A or B"
+        to: MAIN_MENU
+        confidence: high
+
+  - id: RECORDS
+    family: records
+    kind: screen_set
+    confidence: high
+    evidence: [primary_manual]
+    screens: ["TRACK RECORDS", "HIGH SCORES", "PLAYER SCORES", "GROUP TABLES"]
+    notes:
+      - "Manual says Up/Down cycles players on PLAYER SCORES and leagues on GROUP TABLES."
+      - "Exact screen-to-screen sequencing is not yet pinned down."
+    transitions:
+      - input: "Y or X"
+        to: OPTIONS_MENU
+        confidence: high
+
+  - id: DEFINE_PLAYER
+    family: options
+    kind: menu
+    confidence: high
+    evidence: [primary_manual]
+    transitions:
+      - input: "Y or X"
+        to: OPTIONS_MENU
+        confidence: medium
+
+  - id: RENAME_PLAYER
+    family: options
+    kind: editor
+    confidence: high
+    evidence: [primary_manual]
+    transitions:
+      - input: "Y or X / completion"
+        to: OPTIONS_MENU
+        confidence: medium
+
+  - id: DEFINE_LEAGUE
+    family: options
+    kind: editor
+    confidence: high
+    evidence: [primary_manual]
+    notes:
+      - "Manual documents SELECT + Y + A as guarded destructive/redefinition action."
+      - "League supports up to eight unicycles; up to six leagues."
+    transitions:
+      - input: "Y or X / completion"
+        to: OPTIONS_MENU
+        confidence: medium
+
+  - id: ERASE_ALL_CONFIRM
+    family: destructive
+    kind: confirmation
+    confidence: high
+    evidence: [primary_manual]
+    description: "Confirmation reached from MAIN_MENU via Left+A+L+R; erases battery-backed records if accepted."
+    transitions:
+      - input: "confirm"
+        to: MAIN_MENU
+        side_effect: "erase battery-backed records"
+        confidence: high
+      - input: "cancel"
+        to: MAIN_MENU
+        confidence: high
+
+open_questions:
+  - id: UIQ-001
+    question: "Exact boot/logo/intro states, skip inputs, and timing."
+  - id: UIQ-002
+    question: "Exact input mapping on every menu: whether A/B are equivalent everywhere and whether Start advances anywhere beyond MAIN_MENU quick-start."
+  - id: UIQ-003
+    question: "Exact back-stack behavior for 2P/VS player selection."
+  - id: UIQ-004
+    question: "Exact PRE_RACE_CARD duration and whether input can skip it."
+  - id: UIQ-005
+    question: "Exact post-result prompt contents and transitions for 1P, 2P, VS, League, and progression unlocks."
+  - id: UIQ-006
+    question: "Exact OPTIONS_MENU layout and any settings omitted by the terse manual transcription."
+  - id: UIQ-007
+    question: "Exact RECORDS screen ordering/navigation."
+  - id: UIQ-008
+    question: "Pause presentation and any pause-menu actions beyond resume."
+  - id: UIQ-009
+    question: "Attract/demo behavior and idle timeout from MAIN_MENU/title."
+  - id: UIQ-010
+    question: "Hunter unlock transition and any Anti-Uni-specific frontend/results states."

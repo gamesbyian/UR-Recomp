@@ -324,6 +324,17 @@
       "produces": [
         "bsnes-trace-cdl"
       ]
+    },
+    {
+      "id": "reconstruction-worktree",
+      "kind": "project",
+      "consumes": [
+        "snes2asm-project",
+        "snes-native-graphics"
+      ],
+      "produces": [
+        "snes2asm-project"
+      ]
     }
   ],
   "handoffs": [
@@ -382,13 +393,6 @@
       "format": "snes-native-graphics",
       "status": "candidate",
       "evidence": "Both operate on native SNES palette/tile/map bytes; round-trip fixture still needed."
-    },
-    {
-      "from": "superfamiconv",
-      "to": "snes2asm",
-      "format": "snes-native-graphics",
-      "status": "candidate",
-      "evidence": "Use for visual inspection/edit round trips after exact layout is classified."
     },
     {
       "from": "bsnes-plus",
@@ -452,6 +456,27 @@
       "format": "da65-info",
       "status": "supported",
       "evidence": "analysis/generated/da65-symbols-bank-01.info; generated labels are valid da65 info syntax, dynamic RANGE/ADDRMODE remains separate."
+    },
+    {
+      "from": "snes2asm",
+      "to": "reconstruction-worktree",
+      "format": "snes2asm-project",
+      "status": "supported",
+      "evidence": "snes2asm emits the reassemblable project/worktree that owns extracted assets."
+    },
+    {
+      "from": "superfamiconv",
+      "to": "reconstruction-worktree",
+      "format": "snes-native-graphics",
+      "status": "candidate",
+      "evidence": "Replacement native bytes can be staged into the generated project only after an exact asset-layout round-trip fixture proves the conversion."
+    },
+    {
+      "from": "reconstruction-worktree",
+      "to": "wla-dx",
+      "format": "snes2asm-project",
+      "status": "supported",
+      "evidence": "Generated project Makefile/source/assets are WLA-DX-oriented."
     }
   ],
   "chains": [
@@ -503,6 +528,7 @@
         "symbol-export",
         "symbol-adapters",
         "snes2asm",
+        "reconstruction-worktree",
         "wla-dx"
       ],
       "purpose": "Seed labels/memory knowledge, generate a structured disassembly/assets project, and reassemble it."
@@ -513,7 +539,7 @@
       "steps": [
         "snes2asm",
         "superfamiconv",
-        "snes2asm",
+        "reconstruction-worktree",
         "wla-dx"
       ],
       "purpose": "Extract native graphics, render/edit/validate with SuperFamiconv, then return exact SNES bytes to a reassemblable project."

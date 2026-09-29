@@ -40,13 +40,13 @@ def main() -> int:
     assert mod.canonical_git_url("https://github.com/example/repo/") == "https://github.com/example/repo"
 
     expanded = mod.expand_command(
-        ["cmake", "--build", "build", "-j{jobs}", "{python}", "literal;not-shell"],
+        ["cmake", "--build", "build", "-j{jobs}", "{python}", "{root}/tools/helper.py", "literal;not-shell"],
         jobs=7,
         python=Path("/tmp/python with spaces"),
     )
     assert expanded == [
         "cmake", "--build", "build", "-j7",
-        "/tmp/python with spaces", "literal;not-shell",
+        "/tmp/python with spaces", str(ROOT / "tools/helper.py"), "literal;not-shell",
     ]
 
     bad = copy.deepcopy(manifest)

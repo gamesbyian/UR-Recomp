@@ -53,6 +53,8 @@ Do **not** interpret "modernize the frontend" as permission to discard original 
 - separate fidelity questions ("what did the original do?") from product questions ("should modern mode still require it?");
 - keep enough original behavior reachable in authentic/reference mode to validate the source game.
 
+The modern naming policy is deliberately simple: player-created racer names are not subject to the original forbidden-name/Easter-egg rejection system. That system may remain documented and reproducible only in authentic/reference archaeology where useful; it is not a shipping modern-mode feature.
+
 The strongest current candidates for **modern product-layer simplification** are administrative rather than mechanical:
 
 - named/color-coded racers should no longer double as save slots;
@@ -114,8 +116,6 @@ flowchart TD
     OPT --> REC[RECORDS]
     OPT --> DP[DEFINE_PLAYER]
     OPT --> RP[RENAME_PLAYER]
-    RP -->|forbidden name| BADNAME[FORBIDDEN_NAME_REJECTION]
-    BADNAME --> RP
     OPT --> DL[DEFINE_LEAGUE]
     OPT --> MM
 ```
@@ -262,7 +262,7 @@ The wider public corpus and recovered bot labels add a few branches that are eas
 - `SPLASH`: recovered bot value `0x84`; public galleries independently show an Intro Screen.
 - `DEMO`: recovered bot value `0x00`; the exact Main Menu idle timeout and return behavior are still unknown.
 - `ENDING`: recovered bot value `0x5B`; a secondary cheat reference describes a title/splash shortcut using Down+L+R+B, which is useful as a cheap local verification route.
-- `FORBIDDEN_NAME_REJECTION`: public screenshot sets include the "No Sonic Allowed" rejection/Easter-egg screen. This belongs in the graph because name validation is already an identified technical seam elsewhere in the project.
+- `FORBIDDEN_NAME_REJECTION`: public screenshot sets include the historical "No Sonic Allowed" rejection/Easter-egg screen. Preserve this only as documented original behavior/reference evidence. The modern product must not implement a forbidden-name system or equivalent name blacklist.
 
 These stay explicitly lower-confidence until a local controller/input route captures them.
 

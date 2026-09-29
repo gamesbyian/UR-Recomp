@@ -9,6 +9,7 @@ on:
       - "snesrecomp"
       - "tests/input/reach-first-race.script"
       - "tests/input/course-load-timeline.script"
+      - "tests/input/course-load-timeline-tour2.script"
       - "tools/rnc_method1.py"
       - "tools/analyze_rnc_streams.py"
       - "tools/probe_runtime_course_payload.py"
@@ -93,6 +94,61 @@ jobs:
               | tee -a "$RUNNER_TEMP/course-runtime-timeline.txt"
           done
 
+      - name: Capture second-tour first-event WRAM
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/course-load-timeline-tour2.script"
+          DUMPS="$RUNNER_TEMP/course-runtime-tour2-dumps"
+          LOG="$RUNNER_TEMP/course-runtime-tour2.log"
+          mkdir -p "$DUMPS"
+
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$SCRIPT" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" >"$LOG" 2>&1
+          cat "$LOG"
+          test -s "$DUMPS/race-active.wram.bin"
+
+      - name: Compare second-tour tail cursor
+        shell: bash
+        run: |
+          set -euo pipefail
+          : >"$RUNNER_TEMP/course-runtime-tour2-timeline.txt"
+          for checkpoint in \
+            tours-ready tour2-selected tracks-ready now-playing-ready \
+            post-confirm-040 post-confirm-041 post-confirm-042 post-confirm-043 \
+            post-confirm-044 post-confirm-045 post-confirm-046 post-confirm-047 \
+            post-confirm-048 race-active
+          do
+            echo "== $checkpoint ==" | tee -a "$RUNNER_TEMP/course-runtime-tour2-timeline.txt"
+            python3 tools/probe_runtime_course_payload.py \
+              "reference/roms/retail/Uniracers_USA.sfc" \
+              "$RUNNER_TEMP/course-runtime-tour2-dumps/$checkpoint.wram.bin" \
+              --focus-stream 11 \
+              --limit 40 \
+              --json-out "$RUNNER_TEMP/course-runtime-tour2-$checkpoint.json" \
+              | tee -a "$RUNNER_TEMP/course-runtime-tour2-timeline.txt"
+          done
+
+          python3 - "$RUNNER_TEMP/course-runtime-tour2-race-active.json" <<'PY'
+          import json, pathlib, sys
+          d=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          best=d["best_match"]
+          cur=d["focus_cursor"]
+          print("best stream:", best["stream"], "equal fraction:", best["equal_fraction"])
+          print("focus cursor:", cur)
+          if best["stream"] != 11:
+              raise SystemExit(
+                  f"second-tour route did not load expected stream 11; best={best['stream']}"
+              )
+          PY
+
       - name: Upload course runtime evidence
         uses: actions/upload-artifact@v4
         with:
@@ -102,5 +158,9 @@ jobs:
             ${{ runner.temp }}/course-runtime-timeline.txt
             ${{ runner.temp }}/course-runtime-*.json
             ${{ runner.temp }}/course-runtime-dumps/*.wram.bin
+            ${{ runner.temp }}/course-runtime-tour2.log
+            ${{ runner.temp }}/course-runtime-tour2-timeline.txt
+            ${{ runner.temp }}/course-runtime-tour2-*.json
+            ${{ runner.temp }}/course-runtime-tour2-dumps/*.wram.bin
           if-no-files-found: error
           retention-days: 7

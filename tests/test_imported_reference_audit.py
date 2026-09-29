@@ -34,12 +34,14 @@ def main() -> int:
 
     bot = by_path["references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"]
     assert bot["category"] == "bot-source"
+    assert bot["review_status"] == "audited-known-defects"
     assert bot["external_sha256"] == (
         "9183b89f27e153b5db450134c00fb98f47d67c47e979a189ae51bcd8c06629c6"
     )
 
     dos = by_path["references/imported/tools/rnc_propack-2.14/PPIBM.EXE"]
     assert dos["category"] == "historical-executable"
+    assert dos["review_status"] == "archive-only-never-execute"
     assert dos["upstream_git_blob_sha1"] == dos["git_blob_sha1"]
 
     print("PASS: imported corpus is exhaustive, byte-pinned and non-executable")

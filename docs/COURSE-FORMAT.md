@@ -138,3 +138,19 @@ The next format question is no longer "where does the course go?" It is:
 1. when during frontend/race transition is the payload installed at `7F:0000`;
 2. what writes decoded byte 11 from `0x0F` to `0x16`;
 3. what the coordinate-like header pairs represent precisely.
+
+
+### Course-load timing narrowed to Now Playing → race transition
+
+Workflow run 36515555816 scores the decoded corpus against `7F:0000` at four deterministic frontend/race checkpoints:
+
+- `tracks-ready`: stream 1 is not present as an installed payload;
+- `after-track-confirm`: stream 1 is not present;
+- `now-playing-ready`: stream 1 is still not present;
+- `race-entered`: stream 1 is present at 33,814 / 33,815 exact bytes, with only offset `0x000B` changed to `0x16`.
+
+The final Now Playing A pulse occurs after `now-playing-ready`; the race-active checkpoint is reached 151 guest frames later in the reference route. Therefore the active course payload is installed during that transition window, not while the track-select or settled Now Playing screens are displayed.
+
+Caution: before the course is installed, the generic "best matching stream" metric can favor very sparse/zero-heavy decoded payloads (stream 23 scored about 97.4% against largely zero/unrelated live data). That is not evidence that stream 23 is loaded. The meaningful discriminator is the focused expected stream becoming essentially byte-identical across its full decoded length.
+
+Next discriminator: sample `7F:0000` densely after the final Now Playing confirm to find the first frame where stream 1 appears, and track decoded byte 11 separately to determine whether `0x0F → 0x16` happens during decompression/load or in a later initialization pass.

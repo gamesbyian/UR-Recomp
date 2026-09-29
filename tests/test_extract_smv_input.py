@@ -69,7 +69,7 @@ def run_case(movie: Path, expected_sram: bytes, container: str | None) -> None:
         assert lines == [
             "0:1:001",   # B
             "1:1:880",   # Right+R
-            "3:1:440",   # Left+L
+            "3:1:540",   # A+Left+L
         ], lines
         assert srm.read_bytes() == expected_sram[:8192]
         m = json.loads(meta.read_text())

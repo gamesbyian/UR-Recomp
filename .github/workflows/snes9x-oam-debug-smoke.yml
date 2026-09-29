@@ -1,0 +1,66 @@
+name: Snes9x OAM debug smoke
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/toolchain.json"
+      - "tools/patches/snes9x-snesref-debug-exports.patch"
+      - "tests/input/ui-vs-handoff.script"
+      - ".github/workflows/snes9x-oam-debug-smoke.yml"
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Build patched pinned Snes9x
+        run: python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+      - name: Verify debug exports
+        shell: bash
+        run: |
+          set -euo pipefail
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          nm -D "$CORE" | grep -E 'snesref_dbg_(version|oam|ppuw_head|ppuw_read|regs_json)'
+      - name: Build snesref
+        run: |
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+      - name: Capture VS selector OAM/PPU evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DUMPS="$RUNNER_TEMP/vs-dumps"
+          mkdir -p "$DUMPS"
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-vs-handoff.script" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" | tee "$RUNNER_TEMP/vs-route.log"
+          for tag in ui-vs-entry ui-vs-player-two ui-vs-after-p1-x; do
+            test -s "$DUMPS/$tag.oam.bin"
+            test "$(stat -c%s "$DUMPS/$tag.oam.bin")" -eq 544
+            test -s "$DUMPS/$tag.regs.json"
+            test -s "$DUMPS/$tag.ppuw.tsv"
+          done
+          echo "== OAM-sensitive writes in captured VS selector frames =="
+          grep -h -E '[[:space:]]2102[[:space:]]|[[:space:]]2103[[:space:]]|[[:space:]]2104[[:space:]]' "$DUMPS"/*.ppuw.tsv || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: snes9x-vs-oam-debug-smoke
+          path: |
+            ${{ runner.temp }}/vs-route.log
+            ${{ runner.temp }}/vs-dumps/
+          retention-days: 7

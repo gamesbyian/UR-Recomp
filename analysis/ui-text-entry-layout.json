@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "id": "shared-name-entry",
+  "applies_to": [
+    "PLAYER_NAME_EDITOR",
+    "NAME_LEAGUE"
+  ],
+  "evidence": {
+    "source": "USA instruction manual in-game screenshots",
+    "player_editor_pdf_page": 26,
+    "league_editor_pdf_page": 25,
+    "confidence": "primary-manual-visual"
+  },
+  "visible_grid": {
+    "row_0": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "E",
+      "F",
+      "G",
+      "H",
+      "I",
+      "J",
+      "K",
+      "L",
+      "M"
+    ],
+    "row_1": [
+      "N",
+      "O",
+      "P",
+      "Q",
+      "R",
+      "S",
+      "T",
+      "U",
+      "V",
+      "W",
+      "X",
+      "Y",
+      "Z"
+    ],
+    "row_2": {
+      "observed_structure": "left-arrow/control followed by digits 0 through 9",
+      "confident_tokens": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "unresolved_prefix_control": true
+    },
+    "row_3": {
+      "observed_structure": "punctuation/symbol controls ending with OK",
+      "confident_tokens": [
+        "OK"
+      ],
+      "exact_intermediate_symbols": "unresolved from current visual evidence"
+    }
+  },
+  "unresolved_runtime_semantics": [
+    "initial cursor cell for each editor",
+    "cursor wrap/clamp behavior at row/column boundaries",
+    "mapping from 7E:000E / 7E:0C63 to visible text-entry cells",
+    "whether A and B are equivalent character-entry inputs",
+    "delete/backspace control identity and behavior",
+    "exact punctuation/control row token sequence",
+    "OK confirmation semantics and return path"
+  ],
+  "next_probe": "tests/input/ui-rename-editor-explore.script",
+  "promotion_rule": "Use local framebuffer plus menu row/column deltas to bind runtime coordinates to visible cells before generating a scripted blacklist-name route."
+}

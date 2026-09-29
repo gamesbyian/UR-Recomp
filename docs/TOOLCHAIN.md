@@ -76,7 +76,11 @@ This is a heavyweight interactive workbench, so the bootstrap only pins/checks o
 
 ### bsnes libretro
 
-Pinned as a secondary libretro oracle. Use it to cross-check emulator-sensitive behavior when Snes9x and recomp disagree, especially PPU/OAM/timing questions. It is intentionally not part of default bootstrap cost, but `python3 tools/bootstrap_toolchain.py --tool bsnes-libretro` now builds the pinned Unix libretro core and verifies `bsnes_libretro.so` exists.
+Pinned as a secondary implementation reference and manual/frame-level oracle. It builds reproducibly through `python3 tools/bootstrap_toolchain.py --tool bsnes-libretro`, but this libretro frontend does not expose `RETRO_MEMORY_SYSTEM_RAM`, so it cannot directly support `snesref`'s WRAM-keyed `until`/dump fixtures.
+
+### Beetle bsnes libretro
+
+Pinned separately as the automated independent state oracle. Its libretro frontend exposes SNES WRAM as `RETRO_MEMORY_SYSTEM_RAM`, which makes it compatible with the existing `snesref` fixture and checkpoint machinery. Build it with `python3 tools/bootstrap_toolchain.py --tool beetle-bsnes-libretro`; CI smoke-builds the core and the independent-reference workflow drives the same first-race fixture through it and Snes9x.
 
 ### ares
 

@@ -205,6 +205,43 @@
         "current_menu": "0xD7"
       },
       "required": false
+    },
+    {
+      "tag": "ui-splash-observed",
+      "state_id": "SPLASH",
+      "source_fixture": "ui-ending-shortcut",
+      "required": false,
+      "expect": {
+        "current_menu": "0x84"
+      }
+    },
+    {
+      "tag": "ui-ending-shortcut",
+      "state_id": "ENDING",
+      "source_fixture": "ui-ending-shortcut",
+      "required": false,
+      "expect": {
+        "current_menu": "0x5B"
+      }
+    },
+    {
+      "tag": "ui-attract-main-start",
+      "state_id": "MAIN_MENU",
+      "variant": "attract-idle-start",
+      "source_fixture": "ui-attract-route",
+      "required": false,
+      "expect": {
+        "current_menu": "0xD7"
+      }
+    },
+    {
+      "tag": "ui-attract-departure",
+      "state_id": "DEMO",
+      "source_fixture": "ui-attract-route",
+      "required": false,
+      "discover": [
+        "current_menu"
+      ]
     }
   ]
 }

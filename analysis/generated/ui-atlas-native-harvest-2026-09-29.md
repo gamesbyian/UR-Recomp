@@ -51,6 +51,22 @@ After the fixture's following X press:
 
 Therefore the tested ordinary 1P Race result flow is locally `RESULT_RACE -> TRACK_SELECT -> TOUR_SELECT`. The prior manifest label `POST_RESULT_DECISION` on the first post-result capture was incorrect and should not be retained as evidence.
 
+### Pre-race / Now Playing card
+
+`ui-pre-race-timing` reached `PRE_RACE_CARD = 0x16` and passively sampled the transition for 60 guest frames without any input.
+
+| Sample | currentMenu | inRace | Framebuffer SHA-256 | Visual state |
+|---|---:|---:|---|---|
+| `t000` | `0x16` | `0x00` | `0efe68630792f1b179c2cbe5b1e9916695a3bbeac3d55af8265b29556e250a3b` | outgoing PICK TRACK frame still visible |
+| `t015` | `0x16` | `0x00` | `44a33c6851427734d498fdc17a97101b74369e7859fa811b5c3f85ed916f661e` | slide transition between Track Select and Now Playing |
+| `t030` | `0x16` | `0x00` | `1e42f0fbe172035127dcb7cc3dffa65ae1c91918bdb83fea3d78a37e44795ae2` | Now Playing mostly entered |
+| `t045` | `0x16` | `0x00` | `fdd5e07f802d25178908114fb42e11f93aba46d1ae888738cc2b19e9c260f874` | settled Now Playing screen |
+| `t060` | `0x16` | `0x00` | `006333c40c3d9d74ef57600426bf8f20df6d9ff401d10a118ff0ba363e73ab41` | still on settled Now Playing screen |
+
+The settled screen visibly includes `RACE` and `EXIT`, so this is an interactive pre-race choice/card rather than a purely automatic splash. The trusted `reach-first-race` route already proves that A from the settled card enters gameplay. The passive probe proves there is no automatic departure within its first 60 sampled frames.
+
+The fixture's planned immediate-A branch never ran because the scripted reset after the passive branch hit the native reset crash. Isolate immediate-confirm and EXIT behavior into one-route-per-process probes rather than treating the missing second branch as game evidence.
+
 ### Pause
 
 `ui-pause-route` completed normally.

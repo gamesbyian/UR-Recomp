@@ -50,12 +50,14 @@
       "group": "core",
       "url": "https://github.com/Optiroc/SuperFamiconv.git",
       "revision": "566522204e271885fb771b56f1f85d62f3f41430",
-      "purpose": "Scriptable SNES palette, tile, map and image conversion/inspection.",
+      "purpose": "Scriptable SNES palette, tile, map and image conversion/inspection, built from the repository-owned source and Cargo vendor closure.",
       "build": [
         [
           "cargo",
           "build",
-          "--release"
+          "--release",
+          "--locked",
+          "--offline"
         ]
       ],
       "artifacts": [

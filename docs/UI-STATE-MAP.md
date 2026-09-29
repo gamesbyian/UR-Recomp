@@ -29,6 +29,25 @@ A screenshot can prove layout, labels, selection state, visible affordances, and
 
 The eventual target is to convert important edges to `reproduced_runtime` using cheap deterministic controller scripts, not to leave the frontend as folklore.
 
+## Completion tiers and stopping rule
+
+The atlas is a project resource, not a collection challenge. Missing evidence does not have equal priority.
+
+Classify unresolved states/edges into three tiers before spending effort:
+
+- **Tier 1 — critical fidelity.** Required for ordinary play, progression, implementation, deterministic validation, 2P/VS behavior, split-screen/HUD presentation, emulator-compatibility seams, or an active product decision. These should be reproduced or understood well enough to serve as an implementation/validation oracle.
+- **Tier 2 — cheap completeness.** Evidence available from the original manual, public screenshots, the recovered 2014 bot, existing local dumps/artifacts, or a trivial bounded controller probe. Harvest it because it is cheap, but do not let it displace Tier 1 work.
+- **Tier 3 — archaeological tail.** Quirks with little or no implementation consequence, including exact forbidden-name rejection details, exhaustive blacklist contents, destructive-secret chord minutiae, exact attract timing, every transient score/tally substate, punctuation-editor wrapping, or similarly obscure administrative behavior. Keep any evidence already found; do not pursue missing details unless another task makes them relevant.
+
+A gap report is therefore **not** a completion checklist. A Tier 3 gap may remain open indefinitely without making the atlas incomplete for project purposes. If a Tier 3 question becomes relevant to implementation, validation, compatibility, or a deliberate authentic-mode promise, promote it explicitly rather than silently spending research time on it.
+
+Use this order when the atlas informs another task:
+
+1. consume already-promoted local evidence;
+2. check indexed manual/public/historical evidence;
+3. run the smallest deterministic observation that can answer the question;
+4. trace/disassemble only if the answer materially matters and remains ambiguous.
+
 ## Core menu convention
 
 The USA manual explicitly describes a global menu convention:

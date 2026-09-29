@@ -11,13 +11,13 @@ turbo on
 until 009F == D7 3600
 wait 60
 dump main-menu-ready
-press a
+press a 2
 
 # One-player rider select: 60 = 0x3C.
 until 009F == 3C 1200
 wait 60
 dump rider-select-ready
-press a
+press a 2
 
 # Do not assume whether clean SRAM enters onePlayerTours1=0x6D or
 # onePlayerTours2=0x10. First prove that rider confirmation leaves 0x3C,

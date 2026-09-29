@@ -25,9 +25,43 @@ def entropy(data: bytes) -> float:
     return -sum((v/n) * math.log2(v/n) for v in c.values())
 
 
-def stats(data: bytes) -> dict:
-    c = Counter(data)
+def neighbor_stats(data: bytes, width: int, height: int) -> dict:
+    if width * height != len(data):
+        return {
+            "horizontal_equal_fraction": None,
+            "vertical_equal_fraction": None,
+            "horizontal_mean_abs_delta": None,
+            "vertical_mean_abs_delta": None,
+        }
+    h_pairs = []
+    v_pairs = []
+    for y in range(height):
+        row = y * width
+        for x in range(width - 1):
+            h_pairs.append((data[row + x], data[row + x + 1]))
+    for y in range(height - 1):
+        row = y * width
+        nxt = (y + 1) * width
+        for x in range(width):
+            v_pairs.append((data[row + x], data[nxt + x]))
+
+    def eqfrac(pairs):
+        return round(sum(a == b for a, b in pairs) / len(pairs), 6) if pairs else None
+
+    def meandelta(pairs):
+        return round(sum(abs(a - b) for a, b in pairs) / len(pairs), 6) if pairs else None
+
     return {
+        "horizontal_equal_fraction": eqfrac(h_pairs),
+        "vertical_equal_fraction": eqfrac(v_pairs),
+        "horizontal_mean_abs_delta": meandelta(h_pairs),
+        "vertical_mean_abs_delta": meandelta(v_pairs),
+    }
+
+
+def stats(data: bytes, width: int | None = None, height: int | None = None) -> dict:
+    c = Counter(data)
+    out = {
         "length": len(data),
         "zero_fraction": round(c.get(0, 0) / len(data), 6) if data else 0.0,
         "distinct_bytes": len(c),
@@ -38,6 +72,9 @@ def stats(data: bytes) -> dict:
         "fraction_lt_64": round(sum(v < 64 for v in data) / len(data), 6) if data else 0.0,
         "top_values": [[k, v] for k, v in c.most_common(12)],
     }
+    if width is not None and height is not None:
+        out.update(neighbor_stats(data, width, height))
+    return out
 
 
 def streams(data: bytes) -> list[tuple[int, bytes]]:
@@ -73,7 +110,7 @@ def main() -> int:
             regions.append({
                 "index": plane,
                 "offset": start,
-                **stats(d[start:end]),
+                **stats(d[start:end], dim_a, dim_b),
             })
         result["streams"].append({
             "index": i,
@@ -95,6 +132,8 @@ def main() -> int:
             "mean_distinct_bytes": round(sum(r["distinct_bytes"] for r in rows) / len(rows), 3),
             "mean_entropy_bits_per_byte": round(sum(r["entropy_bits_per_byte"] for r in rows) / len(rows), 6),
             "mean_fraction_lt_64": round(sum(r["fraction_lt_64"] for r in rows) / len(rows), 6),
+            "mean_horizontal_equal_fraction": round(sum(r["horizontal_equal_fraction"] for r in rows if r["horizontal_equal_fraction"] is not None) / len([r for r in rows if r["horizontal_equal_fraction"] is not None]), 6),
+            "mean_vertical_equal_fraction": round(sum(r["vertical_equal_fraction"] for r in rows if r["vertical_equal_fraction"] is not None) / len([r for r in rows if r["vertical_equal_fraction"] is not None]), 6),
         }
     result["region_summary"] = summary
 
@@ -108,24 +147,26 @@ def main() -> int:
             "",
             "Mechanical statistics for the first four 1024-byte regions after the 16-byte decoded header. No region is assigned a semantic meaning by this report.",
             "",
-            "| region | mean zero fraction | mean distinct bytes | mean entropy | mean byte<64 |",
-            "|---:|---:|---:|---:|---:|",
+            "| region | mean zero fraction | mean distinct bytes | mean entropy | mean byte<64 | mean H equal | mean V equal |",
+            "|---:|---:|---:|---:|---:|---:|---:|",
         ]
         for plane in range(4):
             s = summary[str(plane)]
             lines.append(
                 f'| {plane} | {s["mean_zero_fraction"]:.6f} | {s["mean_distinct_bytes"]:.3f} | '
-                f'{s["mean_entropy_bits_per_byte"]:.6f} | {s["mean_fraction_lt_64"]:.6f} |'
+                f'{s["mean_entropy_bits_per_byte"]:.6f} | {s["mean_fraction_lt_64"]:.6f} | '
+                f'{s["mean_horizontal_equal_fraction"]:.6f} | {s["mean_vertical_equal_fraction"]:.6f} |'
             )
         lines += ["", "## Per-stream first-region statistics", "",
-                  "| # | dims | decoded bytes | rem mod 1024 | zero | distinct | entropy | <64 |",
-                  "|---:|---:|---:|---:|---:|---:|---:|---:|"]
+                  "| # | dims | decoded bytes | rem mod 1024 | zero | distinct | entropy | <64 | H equal | V equal |",
+                  "|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
         for s in result["streams"]:
             r = s["regions"][0]
             lines.append(
                 f'| {s["index"]} | {s["dim13"]}×{s["dim14"]} | {s["decoded_size"]} | '
                 f'{s["post_header_remainder_mod_1024"]} | {r["zero_fraction"]:.6f} | '
-                f'{r["distinct_bytes"]} | {r["entropy_bits_per_byte"]:.6f} | {r["fraction_lt_64"]:.6f} |'
+                f'{r["distinct_bytes"]} | {r["entropy_bits_per_byte"]:.6f} | {r["fraction_lt_64"]:.6f} | '
+                f'{r["horizontal_equal_fraction"]:.6f} | {r["vertical_equal_fraction"]:.6f} |'
             )
         args.md_out.parent.mkdir(parents=True, exist_ok=True)
         args.md_out.write_text("\n".join(lines) + "\n", encoding="utf-8")

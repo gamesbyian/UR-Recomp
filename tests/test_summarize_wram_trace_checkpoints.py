@@ -21,6 +21,9 @@ def main() -> int:
     rows = [
         # Initial state at frame 0.
         rec(0, 0x009F, 0, 0x16),
+        # A pre-race transient 0x99 must not be mistaken for race completion.
+        rec(5, 0x009F, 0x16, 0x99),
+        rec(6, 0x009F, 0x99, 0x16),
         rec(0, 0x0313, 0, 0x00),
         rec(0, 0x00CE, 0, 0x03),
         rec(0, 0x0411, 0, 0x40),

@@ -44,9 +44,9 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 - [x] Track/player/background render plausibly. Native and Snes9x race-entry framebuffers show the same coherent stock race scene; exact pixel/color fidelity remains a separate compatibility question.
 - [~] Audio pipeline runs through the native race fixture: 32 kHz stereo device opens and callbacks begin under SDL dummy audio with no runtime error. Audible/content fidelity still needs capture or listening evidence.
 - [x] Start race deterministically and accelerate under controlled Right input with matching native/reference X position/speed semantics.
-- [~] Jump under sustained B input from the validated moving state. The initial two-frame pulse was a confirmed negative intervention; current fixture compares sustained Right+B against matched Right-only control and reports both racer-state slots.
-- [ ] Rotate intentionally with L/R while airborne.
-- [ ] Land with event-relative state validation.
+- [x] Jump under sustained B input from the validated moving state. Run 36514981164 causally validates player-1 Y position, signed Y speed and air state against a matched Right-only control in both native and Snes9x.
+- [~] Rotate intentionally with L/R while airborne. This is the active next behavior fixture; use the confirmed sustained-B airborne window and a jump-only matched control.
+- [~] Land with event-relative state validation. Sustained-B probe returns player 1 to `air=0`, `ySpeed=0` by the 48-frame hold checkpoint; exact landing transition timing remains to be isolated.
 - [ ] Finish a stock race deterministically.
 - [ ] No simulation modifications.
 

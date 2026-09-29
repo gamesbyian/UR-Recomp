@@ -144,6 +144,15 @@ Only after deterministic stock behavior is established.
 
 Optional authentic scaling, arbitrary windows, 16:9/ultrawide, high-resolution UI and replacement presentation layers.
 
+- [x] Pin RetroArch, Libretro Slang shaders and bsnes-hd as visual-reference dependencies without adding them to default CI.
+- [x] Define the canonical multi-interpretation upscale/reference strategy in `docs/HD-VISUAL-REFERENCE-PIPELINE.md`.
+- [ ] Curate the minimal project-owned shader/scaler preset matrix: raw/nearest, ScaleNx, HQx, xBR/xBRZ, SABR, ScaleFX, Super-xBR, selected NTSC and selected CRT references.
+- [ ] Prove one deterministic matched-frame RetroArch capture under Linux/headless automation; record exact runtime/backend requirements and cost.
+- [ ] Identify offline equivalents for bulk extracted-asset scaling so emulator/frontend startup is avoided where unnecessary.
+- [ ] Test bsnes-hd layer/sprite isolation on a concrete Uniracers scene; keep it specialist-only unless the evidence gain is real.
+- [ ] When Phase E extraction is ready, generate semantic-asset reference dossiers containing raw data/palette, animation neighbors and selected processed interpretations.
+- [ ] Keep all processed images provenance-labelled and subordinate to native ROM/framebuffer evidence.
+
 ## Phase 10 — Editor/custom courses
 
 Design only after the real course representation is understood. Prefer a documented custom-course format loaded without altering core physics.
@@ -190,5 +199,8 @@ See docs/original-development/.
 - [x] Audit headless execution/build posture: keep GUI workbenches off default CI, preserve Mesen's upstream Xvfb-backed testrunner route, and restrict automatic builds to CLI/libretro surfaces.
 - [x] Trim automatic build scope: cc65 now builds only da65; WLA-DX now builds only wla-65816 + wlalink; Python venv setup no longer upgrades pip unconditionally; fresh Git bootstrap fetches only the pinned commit.
 - [ ] Add a fingerprinted safe-reuse/cache mode for repeated same-checkout tool bootstraps only if agent sessions show rebuild time is materially recurring; keep strict clean rebuilds as the CI/default evidence path.
+
+- [x] Pin visual-reference workbenches (RetroArch, Slang shaders, bsnes-hd) as manual/wrapped dependencies so future graphics work does not depend on rediscovering or floating upstream versions.
+- [ ] Promote a RetroArch or bsnes-hd command/output contract into `tools/tool_interop.json` only after a real deterministic capture experiment establishes what another project tool can consume.
 
 Audit policy: `docs/THIRD-PARTY-CODE-AUDIT.md`. Remaining closeout scope and explicit defer/transfer rules: `docs/TOOLING-AUDIT-CLOSEOUT.md`.

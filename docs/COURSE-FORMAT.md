@@ -222,23 +222,18 @@ This gives a frame-exact ordering:
 No finer frame sampling is needed for this chronology. The remaining question is **which guest routines perform the decompression write and the +43/+44 byte-11 updates**; the dedicated trace-course-buffer-writers workflow targets that next.
 
 
-### Dynamic course-buffer writers identified
+### Dynamic course-buffer write scopes identified
 
-Trace run 36517696016 records writer history for the live Dragster buffer at `7F:0000` through race setup.
+Trace run 36517696016 records write history for the live Dragster buffer at `7F:0000` through race setup.
 
-Observed writes:
+Observed write groups:
 
-- frame 867, `interp@$81BB73` writes the decoded stream bytes into the destination buffer, including:
-  - `7F:0000 = 0x00`;
-  - `7F:0003 = 0x44`;
-  - `7F:0005 = 0x32`;
-  - `7F:000B: 0x00 → 0x0F`.
-- frame 879, `interp@$81BA96` writes the same byte seven times in succession:
-  - `0x0F → 0x10 → 0x11 → 0x12 → 0x13 → 0x14 → 0x15 → 0x16`.
+- frame 867, writes attributed to interpreter scope `interp@$81BB73` install decoded stream bytes, including `7F:000B: 0x00 → 0x0F`;
+- frame 879, writes attributed to interpreter scope `interp@$81BA96` update that byte seven times: `0x0F → 0x10 → ... → 0x16`.
 
-This directly explains the single runtime-mutated course byte. The first writer places the decoded `0x0F`; the second writer is responsible for the final `0x16` value.
+SNESRecomp's `interp@$XXXXXX` label is the **entry PC of an interpreter bridge run**, not the exact opcode responsible for every write in that scope. Static classification now resolves both landmarks: `01:BA96` is inside generic RNC `GTBITS2`, and `01:BB73` is the wrap-test `BNE` inside `RNC1_ReadWordLoROMSafe`. Neither is the literal course-buffer store instruction.
 
-Both PCs are in bank 81 near the already identified shipped RNC Method-1 unpacker region (entry `01:B8F1`). That proximity is not, by itself, enough to label `81BA96` as either part of the generic RNC algorithm or game-specific postprocessing. The next static step is to disassemble/map the exact shipped instructions at `01:BA96` and `01:BB73` against preserved `RNC_1.S` before naming either routine semantically.
+The trace therefore proves two distinct interpreted execution scopes own the payload-install and later mutation write groups, while the exact WRAM store PCs remain the target of the dedicated `SNESRECOMP_WLOG_STATE` exact-IPC probe.
 
 Evidence:
 - workflow run 36517696016;
@@ -247,18 +242,18 @@ Evidence:
 - `tools/trace_native_wram_writers.py`.
 
 
-### Active writer static-classification probe
+### Active RNC scope static-classification probe
 
-The existing RNC signature finder now includes a longer source-derived `MAKEHUFF` prologue signature and explicit build-relative byte context for the two dynamically observed USA writer PCs `01:BA96` and `01:BB73`. Workflow `.github/workflows/rnc-writer-static-classification.yml` regenerates the report from the preserved ROMs.
+The RNC signature finder includes source-derived entry/`MAKEHUFF` signatures, explicit context for the two dynamically observed USA interpreter-scope entries `01:BA96` and `01:BB73`, the exact generic-RNC end, and the LoROM-safe word-reader helper. Workflow `.github/workflows/rnc-writer-static-classification.yml` regenerates and now persists the report from the preserved ROMs.
 
-The classification rule is deliberately structural: compare each writer at the same displacement from that build's mechanically identified Method-1 entry, and only call a writer part of the generic RNC routine if the surrounding instruction sequence aligns with a specific preserved `RNC_1.S` block. Short-signature proximity alone is insufficient because the prior loose `MAKEHUFF` shape has two hits in the USA image.
+The classification rule is deliberately structural: compare each scope landmark at the same displacement from that build's mechanically identified Method-1 entry, and only classify code as generic RNC when the surrounding instruction sequence aligns with a specific preserved `RNC_1.S` block. Short-signature proximity alone is insufficient because the loose `MAKEHUFF` shape has two hits in the USA image.
 
 
 ### Authoritative decoder probe
 
-A second static-classification path now uses the pinned framework's own v2 65816 decoder rather than a project-local partial disassembler. `tools/probe_rnc_writer_decode.py` decodes the known USA RNC1 entry at `01:B8F1` with M/X state tracking and asks whether traced writer PCs `01:BA96` and `01:BB73` are members of that control-flow graph. If reachable, it records the exact decoded instruction and nearby M/X-qualified context. `.github/workflows/rnc-writer-decoder-probe.yml` persists the machine-readable result to `analysis/generated/rnc-writer-decode.json`; that generated path does not retrigger the workflow.
+A second static-classification path uses the pinned framework's own v2 65816 decoder rather than a project-local partial disassembler. `tools/probe_rnc_writer_decode.py` decodes the known USA RNC1 entry at `01:B8F1` with M/X state tracking, follows local JSR callees, and asks whether scope-entry PCs `01:BA96` and `01:BB73` belong to that decoded call tree. It also mechanically scans direct JSR/JSL callers of the shipped RNC entry. `.github/workflows/rnc-writer-decoder-probe.yml` persists the machine-readable result to `analysis/generated/rnc-writer-decode.json`.
 
-This probe is intentionally complementary to the source-signature report. A positive graph-membership result identifies the writer as part of the decoded RNC1 function under the recompiler's own control-flow model; a negative result means the writer requires a separately rooted helper/game-code decode and must not be classified from address proximity.
+This probe is complementary to the source-signature report: graph membership classifies the **code containing the attribution landmark**, not the exact WRAM store responsible for a write observed under that scope. Literal store ownership remains an instruction-level tracing question.
 
 
 ### Course stream pointer-table search

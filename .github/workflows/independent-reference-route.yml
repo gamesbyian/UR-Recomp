@@ -38,7 +38,7 @@ jobs:
       - name: Build pinned reference cores
         run: |
           python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
-          python3 tools/bootstrap_toolchain.py --tool bsnes-libretro --jobs 2
+          python3 tools/bootstrap_toolchain.py --tool beetle-bsnes-libretro --jobs 2
 
       - name: Build snesref
         run: |
@@ -46,7 +46,7 @@ jobs:
           cmake --build "$RUNNER_TEMP/snesref-build" -j2
           test -x "$RUNNER_TEMP/snesref-build/snesref"
 
-      - name: Run identical fixture through Snes9x and bsnes
+      - name: Run identical fixture through Snes9x and Beetle bsnes
         shell: bash
         run: |
           set -euo pipefail
@@ -66,11 +66,11 @@ jobs:
           }
 
           run_core snes9x "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
-          run_core bsnes "$GITHUB_WORKSPACE/.tools/src/bsnes-libretro/bsnes_libretro.so"
+          run_core beetle-bsnes "$GITHUB_WORKSPACE/.tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so"
 
       - name: Compare reference-core WRAM checkpoints
         run: |
-          python3 tools/compare_wram_checkpoints.py             "$RUNNER_TEMP/snes9x-dumps"             "$RUNNER_TEMP/bsnes-dumps"             --label-a snes9x             --label-b bsnes             --limit 80             --json-out "$RUNNER_TEMP/reference-core-differential.json"             | tee "$RUNNER_TEMP/reference-core-differential.txt"
+          python3 tools/compare_wram_checkpoints.py             "$RUNNER_TEMP/snes9x-dumps"             "$RUNNER_TEMP/beetle-bsnes-dumps"             --label-a snes9x             --label-b beetle-bsnes             --limit 80             --json-out "$RUNNER_TEMP/reference-core-differential.json"             | tee "$RUNNER_TEMP/reference-core-differential.txt"
 
       - name: Upload independent-oracle evidence
         if: always()
@@ -79,10 +79,10 @@ jobs:
           name: uniracers-reference-core-differential
           path: |
             ${{ runner.temp }}/snes9x-route.log
-            ${{ runner.temp }}/bsnes-route.log
+            ${{ runner.temp }}/beetle-bsnes-route.log
             ${{ runner.temp }}/reference-core-differential.json
             ${{ runner.temp }}/reference-core-differential.txt
             ${{ runner.temp }}/snes9x-dumps/
-            ${{ runner.temp }}/bsnes-dumps/
+            ${{ runner.temp }}/beetle-bsnes-dumps/
           if-no-files-found: warn
           retention-days: 7

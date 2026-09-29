@@ -173,3 +173,17 @@ This independently reproduces Dessyreqt's `onePlayerTours1 = 109 / 0x6D` label o
 Evidence: GitHub Actions run 36505156490; artifact 11006149797.
 
 Next test: settle at `0x6D`, confirm the current Crawler selection, and capture the actual following menu state before assuming the historical `onePlayerTracks = 0xF6` label.
+
+
+### Follow-up — clean boot reaches first tour page
+
+Workflow run 36505156490 completed green through the deterministic input route.
+
+Observed checkpoints:
+- `main-menu-ready`: `currentMenu = 0xD7`, `selectedOption = 0x00`;
+- `rider-select-ready`: `currentMenu = 0x3C`, `selectedOption = 0x00`;
+- after confirming the default rider and allowing the next scene to settle, `currentMenu = 0x6D`, `selectedOption = 0x00`.
+
+This independently reproduces Dessyreqt's `onePlayerTours1 = 109 / 0x6D` label and establishes the clean-SRAM path `mainMenu -> onePlayerSelect -> onePlayerTours1` without guest-state edits.
+
+The bot's tour policy treats `selectedOption = 0` as the first tour candidate (Crawler) when that tour still needs progress, so the next deterministic milestone is to confirm that default selection after the same settle interval and require `onePlayerTracks = 0xF6`.

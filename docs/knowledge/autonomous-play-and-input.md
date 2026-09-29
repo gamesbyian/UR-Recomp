@@ -171,3 +171,10 @@ Operational rule for future bot adaptation:
 - treat `0F49` as current-player working/scratch pitch unless a specific routine/frame context says otherwise.
 
 Do not rewrite the historical source; preserve it as evidence of what the 2014 bot actually sampled.
+
+
+## Confirmed pitch-angle encoding
+
+Mirrored airborne rotation establishes the persistent player-1 slot at `7E:04C7` as a circular 6-bit-style pitch/orientation angle. From a control value of 7, eight L frames produce 55 (`7−16 mod 64`) and eight R frames produce 23 (`7+16`). Native and Snes9x agree exactly.
+
+This makes the 2014 bot's threshold policy around 14, 24, 32, 40 and 50 structurally sensible: those are sectors of a 0–63 orientation circle. For autonomous-player work, read persistent player 1 from `04C7`; use `0F49` only as the historical/current-player scratch value when reproducing the old bot literally.

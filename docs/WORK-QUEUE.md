@@ -158,5 +158,13 @@ See docs/original-development/.
 - [~] Audit imported emulator/source snapshots for assumptions worth converting into deterministic compatibility tests. Active-display OAM is the first concrete seam.
 - [~] Port useful autonomous-player behavior into neutral state/policy/input layers. Exact historical SMV replay is preferred where prerecorded input suffices.
 - [ ] Review any newly imported executable/script before promoting it into a project-owned dependency.
+- [x] Classify and byte-pin the full `references/imported/` corpus; fail CI on unclassified additions, altered mirrors or executable-bit drift.
+- [x] Harden `tools/toolchain.json` / `bootstrap_toolchain.py`: argv-only builds, exact pins/origins, clean disposable checkouts, per-tool Python environments, typed artifact verification and hash-pinned project patches.
+- [x] Make every automatic toolchain entry smoke-buildable in CI; keep heavyweight GUI/debugger workbenches explicitly manual until a real workflow needs them.
+- [x] Establish `tools/tool_interop.json` and `docs/TOOL-INTEROPERABILITY.md` as the producer/consumer and multi-tool-chain authority.
+- [x] Fan canonical symbols into generated snes2asm YAML and da65 info seeds instead of maintaining tool-specific label lists.
+- [x] Add an independent Snes9x vs Beetle/bsnes-derived first-race state route; first successful run establishes a checkpoint-by-checkpoint emulator-variance baseline.
+- [~] Reuse the shared fixture grammar through Mesen/mesen-for-ai. The adapter and ROM-free semantics tests exist; execute it against the pinned MesenCE binary when the Linux build/runtime path is promoted.
+- [ ] Validate a Mesen-CDL compatibility adapter before feeding Mesen coverage into DiztinGUIsh or da65.
 
 Canonical audit: `docs/THIRD-PARTY-CODE-AUDIT.md`.

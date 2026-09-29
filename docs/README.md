@@ -17,6 +17,8 @@ Task routing lives in [`../AGENTS.md`](../AGENTS.md). This file inventories owne
 | [`ROM-SAFETY.md`](ROM-SAFETY.md) | Private-ROM handling and public-release boundary |
 | [`WIDESCREEN.md`](WIDESCREEN.md) | Focused implementation notes and invariants for the Widescreen feature; subordinate to the project plan |
 | [`TOOLCHAIN.md`](TOOLCHAIN.md) | Research/development tool roles, installation policy, and selection guidance |
+| [`TOOL-INTEROPERABILITY.md`](TOOL-INTEROPERABILITY.md) | Tool input/output formats, verified handoffs, adapter seams, and efficient multi-tool chains |
+| [`THIRD-PARTY-CODE-AUDIT.md`](THIRD-PARTY-CODE-AUDIT.md) | Review status, defects, adaptation rules and promotion checklist for imported executable/source artifacts |
 | [`PERIODIC-REPOSITORY-HYGIENE.md`](PERIODIC-REPOSITORY-HYGIENE.md) | Recurring repository entropy-control procedure |
 | [`original-development/DEVELOPER-TECHNICAL-HISTORY.md`](original-development/DEVELOPER-TECHNICAL-HISTORY.md) | Confidence-labelled history of original DMA development |
 | [`original-development/ACQUISITION-LEDGER.md`](original-development/ACQUISITION-LEDGER.md) | Acquired/missing external artifacts and intake status |
@@ -33,4 +35,3 @@ The knowledge base is intentionally cross-cutting: it may summarize conclusions 
 A mutable fact gets one owner. Do not copy milestone state, hashes, tool pins, or current conclusions into several live documents unless duplication is required for a machine contract.
 
 Large histories and imported sources are drill-down material, not required orientation. If a current authority starts becoming an append-only diary, move dated detail to the appropriate evidence surface and keep the current contract compact.
-\n- `THIRD-PARTY-CODE-AUDIT.md` — review status, defects, adaptation rules and promotion checklist for imported executable/source artifacts.\n

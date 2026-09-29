@@ -1,0 +1,29 @@
+diff --git a/snes2asm/__init__.py b/snes2asm/__init__.py
+--- a/snes2asm/__init__.py
++++ b/snes2asm/__init__.py
+@@ -31,7 +31,7 @@ def main(argv=None):
+ 	parser.add_argument('-f', '--fastrom', action='store_true', default=None, help="Force fast ROM addressing")
+ 	parser.add_argument('-s', '--slowrom', action='store_true', default=None, help="Force slow ROM addressing")
+ 	parser.add_argument('-nl', '--nolabel', action='store_true', default=None, help="Use addresses instead of labels")
+-	parser.add_argument('-e', '--empty-fill', default=255, help="Default byte value for fill empty ROM space")
++	parser.add_argument('-e', '--empty-fill', default=255, type=lambda value: int(value, 0), help="Default byte value for fill empty ROM space")
+ 	parser.add_argument('-x', '--hex', action='store_true', default=None, help="Comments show instruction hex")
+ 
+ 	args = parser.parse_args(argv[1:] if argv else None)
+diff --git a/snes2asm/configurator.py b/snes2asm/configurator.py
+--- a/snes2asm/configurator.py
++++ b/snes2asm/configurator.py
+@@ -66,10 +66,12 @@ class Configurator:
+ 		Returns:
+ 			The decoder instance
+ 		"""
+-		decoder_class = self.decoders_enabled[decode_conf['type']]
+ 		if 'type' not in decode_conf:
+ 			raise ValueError("Decoder missing type")
+ 		decoder_type = decode_conf['type']  # Save type before deleting
++		if decoder_type not in self.decoders_enabled:
++			raise ValueError("Unknown decoder type %s" % decoder_type)
++		decoder_class = self.decoders_enabled[decoder_type]
+ 		del(decode_conf['type'])
+ 
+ 		if 'label' not in decode_conf:

@@ -70,9 +70,9 @@ def main():
             entry=allhits[name]["entry-loose"][0] if allhits[name]["entry-loose"] else None
             rel=(end-entry) if entry is not None else None
             lines.append(
-                f"- {name}: MAKEHUFF \`0x{pro[0]:06X}\`..\`0x{end-1:06X}\` "
-                f"(tail RTS at \`0x{end-1:06X}\`"
-                + (f", RNC entry-relative end +\`0x{rel:X}\`" if rel is not None else "")
+                f"- {name}: MAKEHUFF `0x{pro[0]:06X}`..`0x{end-1:06X}` "
+                f"(tail RTS at `0x{end-1:06X}`"
+                + (f", RNC entry-relative end +`0x{rel:X}`" if rel is not None else "")
                 + ")."
             )
         else:

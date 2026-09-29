@@ -20,6 +20,15 @@ class IslandManifestTests(unittest.TestCase):
         self.assertEqual(errors, [])
         self.assertTrue(notes)
 
+    def test_vendored_components_link_provenance(self) -> None:
+        manifest = validate_island.load(ROOT / "third_party" / "manifest.json")
+        vendored = [c for c in manifest["components"] if c["mode"] == "vendored"]
+        self.assertTrue(vendored)
+        for component in vendored:
+            provenance = component.get("provenance_path")
+            self.assertIsInstance(provenance, str)
+            self.assertTrue((ROOT / provenance).is_file())
+
     def test_pending_components_do_not_claim_local_sources(self) -> None:
         manifest = validate_island.load(ROOT / "third_party" / "manifest.json")
         pending = [c for c in manifest["components"] if c["mode"] == "pending"]

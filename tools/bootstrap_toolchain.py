@@ -163,7 +163,7 @@ def validate_manifest(manifest: dict) -> None:
                 )
             for arg in cmd:
                 unknown = re.findall(r"{([^{}]+)}", arg)
-                if any(name not in {"jobs", "python"} for name in unknown):
+                if any(name not in {"jobs", "python", "root"} for name in unknown):
                     raise ValueError(
                         f"{tool_id}: unsupported build placeholder(s) in {arg!r}: {unknown}"
                     )
@@ -173,6 +173,7 @@ def expand_command(command: list[str], *, jobs: int, python: Path | None) -> lis
     values = {
         "jobs": str(jobs),
         "python": str(python) if python is not None else sys.executable,
+        "root": str(ROOT),
     }
     return [arg.format(**values) for arg in command]
 

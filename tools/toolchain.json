@@ -325,11 +325,11 @@
       "build": [
         [
           "{python}",
-          "-m",
-          "pip",
-          "install",
-          "-e",
-          "."
+          "{root}/tools/install_pure_python_tool.py",
+          "--package",
+          "mesen_mcp",
+          "--entry",
+          "mesen-mcpd=mesen_mcp.daemon:main"
         ]
       ],
       "artifacts": [

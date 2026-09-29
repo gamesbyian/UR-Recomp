@@ -21,7 +21,7 @@ Do not keep the audit alive merely to read more upstream source. Prefer small di
 
 ### P0 - repository-island acquisition
 
-Owned by the repository-island workstream in `docs/ISLAND-TOOLCHAIN-PLAN.md`. P0-A infrastructure is now underway: the repository has a machine-readable island manifest, hash/license validation wired into repository hygiene, local-source preference in bootstrap, and an explicit fail-closed `--offline` mode. Actual tools are still marked pending until their source/archive and dependency closure land.
+Owned by the repository-island workstream in `docs/ISLAND-TOOLCHAIN-PLAN.md`. P0-A infrastructure is established. `mesen-for-ai` is the first completed direct vendor: its pinned source subset, provenance and license are repository-owned; its Python install path is registry-free; and run 36543649163 proves the offline bootstrap, vendored tests, and launcher. Other components remain pending until their source/archive and dependency closure land.
 
 Do not duplicate acquisition work here. The tooling audit should consume the islanded tools once available, especially MesenCE/mesen-for-ai, rather than maintaining a second acquisition path.
 
@@ -89,7 +89,7 @@ Implementation requirements:
 5. add `--check` coverage so generated files cannot silently drift;
 6. update `tool_interop.json` with explicit formats/handoffs.
 
-Mesen supports imported label files and SNES-specific ROM/WRAM memory spaces. Confirm the exact pinned MesenCE import syntax before committing an exporter. Ghidra should use a project-owned importer/script or other deterministic format rather than relying on manual GUI entry.
+Pinned MesenCE source fixes the import target precisely: `MesenLabelFile` delegates each UTF-8 line to `CodeLabel.FromString`, whose native form is `MemoryType:HEX_ADDRESS:Label[:Comment]` (or an address range), with SNES memory types such as `SnesPrgRom` and `SnesWorkRam`. Comments encode embedded newlines as `\\n`; labels must match `^[@_a-zA-Z]+[@_a-zA-Z0-9]*$`. The exporter should target that native syntax directly and unit-test ROM/WRAM address-space mapping. Ghidra should use a project-owned importer/script or other deterministic format rather than relying on manual GUI entry.
 
 ### P2 - exact graphics round-trip fixtures
 

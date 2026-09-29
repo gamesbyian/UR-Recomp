@@ -145,6 +145,52 @@ class BuildUiAtlasTests(unittest.TestCase):
             report = json.loads(proc.stdout)
             self.assertEqual(report["captures"][0]["status"], "mismatch")
 
+    def test_optional_missing_capture_does_not_fail_strict_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            dumps = root / "dumps"
+            dumps.mkdir()
+
+            manifest = {
+                "schema_version": 1,
+                "fields": {
+                    "current_menu": {"wram_offset": "0x009F", "width": 1},
+                    "selected_option": {"wram_offset": "0x009B", "width": 1},
+                    "menu_row": {"wram_offset": "0x000E", "width": 1},
+                    "menu_col": {"wram_offset": "0x0C63", "width": 1},
+                    "in_race": {"wram_offset": "0x0313", "width": 1},
+                },
+                "captures": [
+                    {
+                        "tag": "future-screen",
+                        "state_id": "FUTURE_SCREEN",
+                        "required": False,
+                        "discover": ["current_menu"],
+                    }
+                ],
+            }
+            manifest_path = root / "manifest.json"
+            manifest_path.write_text(json.dumps(manifest))
+
+            proc = subprocess.run(
+                [
+                    sys.executable,
+                    str(TOOL),
+                    "--manifest",
+                    str(manifest_path),
+                    "--dump-dir",
+                    str(dumps),
+                    "--strict",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            report = json.loads(proc.stdout)
+            self.assertEqual(report["captures"][0]["status"], "missing")
+            self.assertFalse(report["captures"][0]["required"])
+
 
 if __name__ == "__main__":
     unittest.main()

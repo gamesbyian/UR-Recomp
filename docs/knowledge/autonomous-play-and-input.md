@@ -178,3 +178,13 @@ Do not rewrite the historical source; preserve it as evidence of what the 2014 b
 Mirrored airborne rotation establishes the persistent player-1 slot at `7E:04C7` as a circular 6-bit-style pitch/orientation angle. From a control value of 7, eight L frames produce 55 (`7−16 mod 64`) and eight R frames produce 23 (`7+16`). Native and Snes9x agree exactly.
 
 This makes the 2014 bot's threshold policy around 14, 24, 32, 40 and 50 structurally sensible: those are sectors of a 0–63 orientation circle. For autonomous-player work, read persistent player 1 from `04C7`; use `0F49` only as the historical/current-player scratch value when reproducing the old bot literally.
+
+
+## Historical SMV extraction path
+
+The preserved 2014 submission movie is now directly consumable as controller evidence rather than only as an opaque emulator artifact.
+
+- `tools/extract_smv_input.py` parses standard-controller SMV versions 1/4/5, records reset/movie metadata, translates Snes9x button bits into the neutral 12-bit `snesref` mask layout, and run-length encodes exact nonzero controller intervals as `start-frame:duration:hex-mask`.
+- `.github/workflows/historical-smv-first-race.yml` replays that extracted stream through pinned Snes9x/snesref from the canonical ROM at bounded frame cutoffs and records menu/race/player state from WRAM.
+
+This gives the project two complementary autonomous inputs: the recovered Lua policy explains why inputs are chosen, while the SMV records what the historical run actually pressed. Prefer the SMV when an exact known-working controller sequence can answer the question; prefer the policy when state feedback or adaptation is required.

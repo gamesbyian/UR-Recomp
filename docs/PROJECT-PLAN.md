@@ -63,6 +63,7 @@ The original named/color-coded unicycles must be preserved as recognizable legac
 
 Plan for a modern racer/profile model in which:
 
+- player-created names are accepted without the original forbidden-name/Easter-egg rejection rules;
 - players can create and name their own racer independently of save/profile storage;
 - body color and any later-supported cosmetic dimensions are chosen independently;
 - every original named/color combination is available as a faithful preset;
@@ -80,6 +81,7 @@ The modern product layer should evaluate, rather than automatically inherit:
 - mandatory repeat clears of the same tour for Bronze, Silver and Gold tiers;
 - loss of unfinished tour/session progress where no gameplay purpose depends on it;
 - destructive/administrative controller chords;
+- the original forbidden-name/name-rejection system;
 - redundant score/record menu silos;
 - menu states that exist only to compensate for storage or controller-era constraints.
 

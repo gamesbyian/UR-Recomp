@@ -167,8 +167,8 @@ def verify_artifacts(tool: dict, dest: Path) -> None:
         raise SystemExit(f"{tool['id']}: expected build artifact(s) missing: {', '.join(missing)}")
 
 
-def ensure_venv(root: Path) -> Path:
-    venv = root / "venv"
+def ensure_venv(root: Path, tool_id: str) -> Path:
+    venv = root / "venvs" / tool_id
     python = venv / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
     if not python.exists():
         run([sys.executable, "-m", "venv", str(venv)])
@@ -218,8 +218,8 @@ def main() -> int:
     src_root = install_root / "src"
     src_root.mkdir(parents=True, exist_ok=True)
 
-    python: Path | None = None
     for tool in selected:
+        python: Path | None = None
         print(f"\n== {tool['id']} ==")
         dest = ensure_checkout(tool, src_root)
         if args.clone_only:
@@ -229,7 +229,7 @@ def main() -> int:
             continue
         for command in tool.get("build", []):
             if any("{python}" in arg for arg in command) and python is None:
-                python = ensure_venv(install_root)
+                python = ensure_venv(install_root, tool["id"])
             expanded = expand_command(command, jobs=args.jobs, python=python)
             run(expanded, cwd=dest)
         verify_artifacts(tool, dest)

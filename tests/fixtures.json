@@ -115,6 +115,33 @@
       "promotion_rule": "Promote NAME_LEAGUE runtime identity only when the captured frame matches the primary-manual naming editor and no membership/name mutation has been committed."
     },
     {
+      "id": "ui-record-high",
+      "checkpoints": [
+        "ui-records-high-selected",
+        "ui-record-high-entry"
+      ],
+      "purpose": "Reset-free High Scores probe from the verified Options/Records route. Isolates this branch from the native scripted-reset crash.",
+      "status": "reconnaissance"
+    },
+    {
+      "id": "ui-record-player",
+      "checkpoints": [
+        "ui-records-player-selected",
+        "ui-record-player-entry"
+      ],
+      "purpose": "Reset-free Player Scores probe from the verified Options/Records route. Isolates this branch from the native scripted-reset crash.",
+      "status": "reconnaissance"
+    },
+    {
+      "id": "ui-record-group",
+      "checkpoints": [
+        "ui-records-group-selected",
+        "ui-record-group-entry"
+      ],
+      "purpose": "Reset-free Group Tables probe from the verified Options/Records route. Isolates this branch from the native scripted-reset crash.",
+      "status": "reconnaissance"
+    },
+    {
       "id": "ui-records-submenus",
       "input_script": "tests/input/ui-records-submenus.script",
       "purpose": "Manual-backed Records fan-out from clean resets: capture Track Records, High Scores, Player Scores, and Group Tables from the proven five-item Records menu.",
@@ -453,6 +480,16 @@
       ],
       "status": "reconnaissance",
       "promotion_rule": "Promote SPLASH=0x84 and ENDING=0x5B only if the canonical runtime reaches them with the expected visible states."
+    },
+    {
+      "id": "ui-vs-handoff",
+      "checkpoints": [
+        "ui-vs-entry",
+        "ui-vs-player-two",
+        "ui-vs-after-p1-x"
+      ],
+      "purpose": "Reset-free VS selection probe: enter verified VS_SELECT=0x3E with guarded Main Menu movement, capture P1->P2 visual handoff and raw SRAM ownership discriminator, then record a P1 X attempt while Player Two owns the selector. P2-only causality remains for the neutral dual-pad acceptance route.",
+      "status": "reconnaissance"
     },
     {
       "id": "ui-main-branches",

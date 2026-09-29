@@ -96,6 +96,69 @@ class BuildUiAtlasTests(unittest.TestCase):
             self.assertIn("OPTIONS_MENU", md)
             self.assertIn("current_menu = `0xAA`", md)
 
+    def test_reads_sram_backed_field(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            dumps = root / "dumps"
+            dumps.mkdir()
+
+            manifest = {
+                "schema_version": 1,
+                "fields": {
+                    "current_menu": {"wram_offset": "0x009F", "width": 1},
+                    "selected_option": {"wram_offset": "0x009B", "width": 1},
+                    "menu_row": {"wram_offset": "0x000E", "width": 1},
+                    "menu_col": {"wram_offset": "0x0C63", "width": 1},
+                    "in_race": {"wram_offset": "0x0313", "width": 1},
+                    "participant_owner_raw": {
+                        "source": "sram",
+                        "sram_offset": "0x0743",
+                        "width": 1,
+                    },
+                },
+                "captures": [
+                    {
+                        "tag": "vs-p1",
+                        "state_id": "VS_SELECT",
+                        "discover": ["participant_owner_raw"],
+                    }
+                ],
+            }
+            manifest_path = root / "manifest.json"
+            manifest_path.write_text(json.dumps(manifest))
+
+            wram = bytearray(0x20000)
+            wram[0x009F] = 0x3E
+            (dumps / "vs-p1.wram.bin").write_bytes(wram)
+            sram = bytearray(0x2000)
+            sram[0x0743] = 0x04
+            (dumps / "vs-p1.sram.bin").write_bytes(sram)
+            _write_bmp(dumps / "vs-p1.fb.bmp")
+
+            out_json = root / "atlas.json"
+            proc = subprocess.run(
+                [
+                    sys.executable,
+                    str(TOOL),
+                    "--manifest",
+                    str(manifest_path),
+                    "--dump-dir",
+                    str(dumps),
+                    "--out-json",
+                    str(out_json),
+                    "--strict",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            report = json.loads(out_json.read_text())
+            capture = report["captures"][0]
+            self.assertEqual(capture["status"], "ok")
+            self.assertEqual(capture["observed"]["participant_owner_raw"], "0x04")
+            self.assertIn("sram", capture["files"])
+
     def test_strict_rejects_mismatch(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

@@ -52,14 +52,18 @@
     {
       "value": "0x3D",
       "state_id": "TWO_PLAYER_SELECT",
-      "status": "historical",
-      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "analysis/generated/ui-atlas-native-harvest-2026-09-29.md",
+      "fixture": "ui-main-branches",
+      "capture": "ui-two-player-entry"
     },
     {
       "value": "0x3E",
       "state_id": "VS_SELECT",
-      "status": "historical",
-      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "analysis/generated/ui-atlas-native-harvest-2026-09-29.md",
+      "fixture": "ui-league-table",
+      "capture_note": "Nominal League probe accidentally lands in VS; frames visibly show PICK PLAYER ONE then PICK PLAYER TWO while currentMenu remains 0x3E."
     },
     {
       "value": "0x3F",
@@ -97,8 +101,10 @@
     {
       "value": "0x99",
       "state_id": "RESULT_RACE",
-      "status": "historical",
-      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "analysis/generated/ui-atlas-native-harvest-2026-09-29.md",
+      "fixture": "ui-race-result-route",
+      "capture": "race-results"
     },
     {
       "value": "0xBC",
@@ -173,6 +179,30 @@
       "state_id": "ENDING",
       "status": "historical",
       "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0x57",
+      "state_id": "OPTIONS_MENU",
+      "status": "verified",
+      "source": "analysis/generated/ui-atlas-native-harvest-2026-09-29.md",
+      "fixture": "ui-options-route",
+      "capture": "ui-options-entry"
+    },
+    {
+      "value": "0x5D",
+      "state_id": "RECORDS",
+      "status": "verified",
+      "source": "analysis/generated/ui-atlas-native-harvest-2026-09-29.md",
+      "fixture": "ui-options-submenus",
+      "capture": "ui-records-entry"
+    },
+    {
+      "value": "0xCC",
+      "state_id": "RECORD_TRACK",
+      "status": "verified",
+      "source": "analysis/generated/ui-atlas-native-harvest-2026-09-29.md",
+      "fixture": "ui-records-submenus",
+      "capture": "ui-record-track-entry"
     }
   ]
 }

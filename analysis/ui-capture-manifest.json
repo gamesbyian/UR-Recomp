@@ -22,6 +22,12 @@
     "in_race": {
       "wram_offset": "0x0313",
       "width": 1
+    },
+    "participant_owner_raw": {
+      "source": "sram",
+      "sram_offset": "0x0743",
+      "width": 1,
+      "note": "Raw physical SRAM byte observed in harvested multiplayer captures: 0x04 on VS PICK PLAYER ONE and 0x02 on PICK PLAYER TWO. Interpretation versus historical bot 5/3/1 values remains open."
     }
   },
   "captures": [
@@ -133,9 +139,12 @@
       "state_id": "OPTIONS_MENU",
       "source_fixture": "ui-options-route",
       "discover": [
-        "current_menu"
+        "selected_option"
       ],
-      "required": false
+      "required": false,
+      "expect": {
+        "current_menu": "0x57"
+      }
     },
     {
       "tag": "ui-options-back-main",
@@ -153,9 +162,15 @@
       "variant": "2P-entry",
       "source_fixture": "ui-main-branches",
       "discover": [
-        "current_menu"
+        "selected_option",
+        "menu_row",
+        "menu_col",
+        "participant_owner_raw"
       ],
-      "required": false
+      "required": false,
+      "expect": {
+        "current_menu": "0x3D"
+      }
     },
     {
       "tag": "ui-two-player-back-main",
@@ -170,12 +185,50 @@
     {
       "tag": "ui-vs-entry",
       "state_id": "VS_SELECT",
-      "variant": "VS-entry",
-      "source_fixture": "ui-main-branches",
+      "variant": "player-one",
+      "source_fixture": "ui-vs-handoff",
       "discover": [
-        "current_menu"
+        "selected_option",
+        "menu_row",
+        "menu_col"
       ],
-      "required": false
+      "required": false,
+      "expect": {
+        "current_menu": "0x3E",
+        "participant_owner_raw": "0x04"
+      }
+    },
+    {
+      "tag": "ui-vs-after-p1-x",
+      "state_id": "VS_SELECT",
+      "variant": "player-two-after-p1-x",
+      "source_fixture": "ui-vs-handoff",
+      "required": false,
+      "expect": {
+        "current_menu": "0x3E",
+        "participant_owner_raw": "0x02"
+      },
+      "discover": [
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
+    },
+    {
+      "tag": "ui-vs-player-two",
+      "state_id": "VS_SELECT",
+      "variant": "player-two",
+      "source_fixture": "ui-vs-handoff",
+      "required": false,
+      "expect": {
+        "current_menu": "0x3E",
+        "participant_owner_raw": "0x02"
+      },
+      "discover": [
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ]
     },
     {
       "tag": "ui-vs-back-main",
@@ -259,9 +312,14 @@
       "source_fixture": "ui-pause-route",
       "required": false,
       "discover": [
-        "current_menu",
-        "in_race"
-      ]
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ],
+      "expect": {
+        "current_menu": "0x00",
+        "in_race": "0x01"
+      }
     },
     {
       "tag": "ui-pause-after-resume",
@@ -299,9 +357,13 @@
       "source_fixture": "ui-options-submenus",
       "required": false,
       "discover": [
-        "current_menu",
-        "selected_option"
-      ]
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ],
+      "expect": {
+        "current_menu": "0x5D"
+      }
     },
     {
       "tag": "ui-records-back-options",
@@ -310,9 +372,13 @@
       "source_fixture": "ui-options-submenus",
       "required": false,
       "discover": [
-        "current_menu",
-        "selected_option"
-      ]
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ],
+      "expect": {
+        "current_menu": "0x57"
+      }
     },
     {
       "tag": "ui-options-menu-define-player-selected",
@@ -474,12 +540,33 @@
     },
     {
       "tag": "ui-race-result-after-advance",
-      "state_id": "POST_RESULT_DECISION",
+      "state_id": "TRACK_SELECT",
       "source_fixture": "ui-race-result-route",
       "required": false,
       "discover": [
-        "current_menu",
         "selected_option",
+        "menu_row",
+        "menu_col",
+        "in_race"
+      ],
+      "variant": "returned-after-race-result",
+      "expect": {
+        "current_menu": "0xF6"
+      }
+    },
+    {
+      "tag": "ui-race-result-after-back",
+      "state_id": "TOUR_SELECT",
+      "variant": "returned-after-race-result-track-back",
+      "source_fixture": "ui-race-result-route",
+      "required": false,
+      "expect": {
+        "current_menu": "0x6D"
+      },
+      "discover": [
+        "selected_option",
+        "menu_row",
+        "menu_col",
         "in_race"
       ]
     },
@@ -907,17 +994,19 @@
       "source_fixture": "ui-records-submenus",
       "required": false,
       "discover": [
-        "current_menu",
         "selected_option",
         "menu_row",
         "menu_col"
-      ]
+      ],
+      "expect": {
+        "current_menu": "0xCC"
+      }
     },
     {
       "tag": "ui-records-high-selected",
       "state_id": "RECORDS",
       "variant": "high-selected",
-      "source_fixture": "ui-records-submenus",
+      "source_fixture": "ui-record-high",
       "required": false,
       "discover": [
         "current_menu",
@@ -929,7 +1018,7 @@
     {
       "tag": "ui-record-high-entry",
       "state_id": "RECORD_HIGH_SCORES",
-      "source_fixture": "ui-records-submenus",
+      "source_fixture": "ui-record-high",
       "required": false,
       "discover": [
         "current_menu",
@@ -942,7 +1031,7 @@
       "tag": "ui-records-player-selected",
       "state_id": "RECORDS",
       "variant": "player-selected",
-      "source_fixture": "ui-records-submenus",
+      "source_fixture": "ui-record-player",
       "required": false,
       "discover": [
         "current_menu",
@@ -954,7 +1043,7 @@
     {
       "tag": "ui-record-player-entry",
       "state_id": "RECORD_PLAYER_SCORES",
-      "source_fixture": "ui-records-submenus",
+      "source_fixture": "ui-record-player",
       "required": false,
       "discover": [
         "current_menu",
@@ -967,7 +1056,7 @@
       "tag": "ui-records-group-selected",
       "state_id": "RECORDS",
       "variant": "group-selected",
-      "source_fixture": "ui-records-submenus",
+      "source_fixture": "ui-record-group",
       "required": false,
       "discover": [
         "current_menu",
@@ -979,7 +1068,7 @@
     {
       "tag": "ui-record-group-entry",
       "state_id": "RECORD_GROUP_TABLES",
-      "source_fixture": "ui-records-submenus",
+      "source_fixture": "ui-record-group",
       "required": false,
       "discover": [
         "current_menu",

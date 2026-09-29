@@ -79,6 +79,34 @@ def validate(root: Path) -> list[str]:
     for state in capture_exempt:
         if state not in states:
             failures.append(f"capture_exempt_states: unknown state {state!r}")
+
+    transition_exempt = transitions.get("transition_exempt_states", [])
+    for state in transition_exempt:
+        if state not in states:
+            failures.append(f"transition_exempt_states: unknown state {state!r}")
+
+    completion_tiers = transitions.get("completion_tiers", {})
+    tier_states: list[str] = []
+    for tier_id, tier in completion_tiers.items():
+        if tier_id not in {"1", "2", "3"}:
+            failures.append(f"completion_tiers: unknown tier {tier_id!r}")
+        listed = tier.get("states", [])
+        if not isinstance(listed, list):
+            failures.append(f"completion_tiers[{tier_id!r}]: states must be a list")
+            continue
+        for state in listed:
+            tier_states.append(state)
+            if state not in states:
+                failures.append(
+                    f"completion_tiers[{tier_id!r}]: unknown state {state!r}"
+                )
+    for dup in sorted(duplicates(tier_states)):
+        failures.append(f"completion_tiers: state appears in multiple tiers: {dup}")
+    unclassified = sorted(states - set(tier_states))
+    if completion_tiers and unclassified:
+        failures.append(
+            "completion_tiers: unclassified states: " + ", ".join(unclassified)
+        )
     edge_ids = [e.get("id") for e in edges]
     for dup in sorted(duplicates([x for x in edge_ids if isinstance(x, str)])):
         failures.append(f"duplicate transition id: {dup}")
@@ -104,6 +132,20 @@ def validate(root: Path) -> list[str]:
         if not edge.get("trigger"):
             failures.append(f"{label}: missing trigger")
 
+    field_specs = captures.get("fields", {})
+    for field_name, spec in field_specs.items():
+        source = spec.get("source", "wram")
+        if source not in {"wram", "sram"}:
+            failures.append(
+                f"capture field {field_name}: unsupported source {source!r}"
+            )
+            continue
+        offset_key = f"{source}_offset"
+        if offset_key not in spec:
+            failures.append(
+                f"capture field {field_name}: source {source!r} requires {offset_key}"
+            )
+
     capture_tags = [c.get("tag") for c in captures.get("captures", [])]
     for dup in sorted(duplicates([x for x in capture_tags if isinstance(x, str)])):
         failures.append(f"duplicate capture tag: {dup}")
@@ -116,6 +158,11 @@ def validate(root: Path) -> list[str]:
         source_fixture = capture.get("source_fixture")
         if source_fixture and source_fixture not in fixture_ids:
             failures.append(f"capture {tag}: unknown source fixture {source_fixture!r}")
+        for field_name in set(capture.get("discover", [])) | set(capture.get("expect", {})):
+            if field_name not in field_specs:
+                failures.append(
+                    f"capture {tag}: unknown field {field_name!r}"
+                )
 
     menu_values: dict[str, list[dict]] = {}
     for entry in menu.get("entries", []):

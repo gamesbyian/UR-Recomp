@@ -1,0 +1,31 @@
+# Isolated VS rider-selection probe.
+# Avoids the native scripted-reset crash seen in ui-main-branches by using one
+# branch per process and guards Main Menu movement with selectedOption.
+
+until 009F == D7 3600
+wait 60
+
+press down 1
+until 009B == 01 300
+press down 1
+until 009B == 02 300
+wait 30
+
+press a 2
+until 009F == 3E 1200
+wait 60
+dump ui-vs-entry
+
+# The harvested accidental VS route showed P1 confirm hands the same 0x3E
+# state to a visible PICK PLAYER TWO phase.
+press a 2
+wait 60
+dump ui-vs-player-two
+
+# P1 X was previously observed not to move the P2-owned selector. Keep the
+# attempt observational; P2 causality belongs to the neutral dual-pad route.
+press x 2
+wait 60
+dump ui-vs-after-p1-x
+
+quit

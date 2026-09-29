@@ -47,6 +47,15 @@
       "fixture": "reach-first-race"
     },
     {
+      "id": "track-tour-back",
+      "from": "TRACK_SELECT",
+      "to": "TOUR_SELECT",
+      "trigger": "X/Y back",
+      "status": "verified",
+      "fixture": "ui-race-result-route",
+      "source_note": "After Race Results -> Track Select, the fixture's X discriminator visibly returns to PICK TOUR at currentMenu 0x6D."
+    },
+    {
       "id": "track-prerace",
       "from": "TRACK_SELECT",
       "to": "PRE_RACE_CARD",
@@ -67,16 +76,27 @@
       "from": "MAIN_MENU",
       "to": "TWO_PLAYER_SELECT",
       "trigger": "select 2P; A/B",
-      "status": "documented",
-      "probe": "ui-main-branches"
+      "status": "verified",
+      "fixture": "ui-main-branches",
+      "source_note": "Native artifact reaches PICK A PLAYER at currentMenu 0x3D, then X returns to Main Menu."
+    },
+    {
+      "id": "two-player-main",
+      "from": "TWO_PLAYER_SELECT",
+      "to": "MAIN_MENU",
+      "trigger": "X back before rider confirmation",
+      "status": "verified",
+      "fixture": "ui-main-branches",
+      "source_note": "Native artifact captures ui-two-player-back-main at currentMenu 0xD7."
     },
     {
       "id": "main-vs",
       "from": "MAIN_MENU",
       "to": "VS_SELECT",
       "trigger": "select VS; A/B",
-      "status": "documented",
-      "probe": "ui-main-branches"
+      "status": "verified",
+      "fixture": "ui-league-table",
+      "source_note": "A nominal League probe accidentally landed in VS after swallowed rapid menu input; the destination frame is visibly PICK PLAYER ONE at currentMenu 0x3E. Harvest note preserves the misrouting context."
     },
     {
       "id": "main-league",
@@ -91,15 +111,18 @@
       "from": "MAIN_MENU",
       "to": "OPTIONS_MENU",
       "trigger": "select OPTIONS; A/B",
-      "status": "documented",
-      "probe": "ui-options-route"
+      "status": "verified",
+      "fixture": "ui-options-route",
+      "source_note": "Native artifact reaches Options at currentMenu 0x57."
     },
     {
       "id": "options-records",
       "from": "OPTIONS_MENU",
       "to": "RECORDS",
       "trigger": "select RECORDS; A/B",
-      "status": "documented"
+      "status": "verified",
+      "fixture": "ui-options-submenus",
+      "source_note": "Native artifact reaches Records at currentMenu 0x5D."
     },
     {
       "id": "options-define-player",
@@ -127,8 +150,9 @@
       "from": "OPTIONS_MENU",
       "to": "MAIN_MENU",
       "trigger": "select MAIN MENU or X/Y back",
-      "status": "documented",
-      "probe": "ui-options-route"
+      "status": "verified",
+      "fixture": "ui-options-route",
+      "source_note": "Native artifact reproduces Options -> Main Menu."
     },
     {
       "id": "league-table",
@@ -145,12 +169,22 @@
       "status": "documented"
     },
     {
+      "id": "vs-participant-handoff",
+      "from": "VS_SELECT",
+      "to": "VS_SELECT",
+      "trigger": "P1 confirms initial VS rider; selector hands to Player Two",
+      "status": "verified",
+      "fixture": "ui-league-table",
+      "source_note": "Accidental native VS route changes the visible header PICK PLAYER ONE -> PICK PLAYER TWO while currentMenu stays 0x3E; raw SRAM offset 0x0743 changes 0x04 -> 0x02."
+    },
+    {
       "id": "vs-challenger",
       "from": "VS_SELECT",
       "to": "VS_CHALLENGER",
-      "trigger": "participant confirm",
+      "trigger": "all initial VS riders confirmed",
       "status": "historical",
-      "blocked_by": "multiplayer_controller_2"
+      "blocked_by": "multiplayer_behavioral_verification",
+      "source_note": "First P1 confirm is now locally observed to remain in VS_SELECT and hand presentation to PICK PLAYER TWO; transition to VS_CHALLENGER remains historical until P2 confirmation is reproduced."
     },
     {
       "id": "vs-track",
@@ -158,7 +192,7 @@
       "to": "VS_CHALLENGE_TRACK",
       "trigger": "challenger confirm",
       "status": "historical",
-      "blocked_by": "multiplayer_controller_2"
+      "blocked_by": "multiplayer_behavioral_verification"
     },
     {
       "id": "vs-prerace",
@@ -172,7 +206,9 @@
       "from": "GAMEPLAY",
       "to": "RESULT_RACE",
       "trigger": "race finish",
-      "status": "historical"
+      "status": "verified",
+      "fixture": "ui-race-result-route",
+      "source_note": "Natural Dragster completion reaches the visible DRAGSTER COMPLETE result at currentMenu 0x99."
     },
     {
       "id": "game-circuit-result",
@@ -193,14 +229,18 @@
       "from": "GAMEPLAY",
       "to": "PAUSE",
       "trigger": "Start",
-      "status": "documented"
+      "status": "verified",
+      "fixture": "ui-pause-route",
+      "source_note": "Native artifact shows the pause overlay while currentMenu stays 0x00 and inRace stays 0x01."
     },
     {
       "id": "pause-game",
       "from": "PAUSE",
       "to": "GAMEPLAY",
       "trigger": "Start",
-      "status": "hypothesis"
+      "status": "verified",
+      "fixture": "ui-pause-route",
+      "source_note": "Second Start in the native pause fixture returns to gameplay."
     },
     {
       "id": "main-demo",
@@ -238,14 +278,16 @@
       "to": "TOUR_SELECT",
       "trigger": "both riders confirmed",
       "status": "historical",
-      "blocked_by": "multiplayer_controller_2"
+      "blocked_by": "multiplayer_behavioral_verification"
     },
     {
-      "id": "race-result-post",
+      "id": "race-result-track",
       "from": "RESULT_RACE",
-      "to": "POST_RESULT_DECISION",
-      "trigger": "advance/next",
-      "status": "documented"
+      "to": "TRACK_SELECT",
+      "trigger": "A/B advance after ordinary 1P Race result",
+      "status": "verified",
+      "fixture": "ui-race-result-route",
+      "source_note": "Harvested native frame after A is the Crawler PICK TRACK screen at currentMenu 0xF6; prior POST_RESULT_DECISION label was disproven for this route."
     },
     {
       "id": "circuit-result-post",
@@ -280,7 +322,9 @@
       "from": "RECORDS",
       "to": "OPTIONS_MENU",
       "trigger": "X/Y back",
-      "status": "documented"
+      "status": "verified",
+      "fixture": "ui-options-submenus",
+      "source_note": "Native artifact reproduces X from Records back to Options 0x57."
     },
     {
       "id": "define-player-options",
@@ -308,8 +352,9 @@
       "from": "RECORDS",
       "to": "RECORD_TRACK",
       "trigger": "records family navigation",
-      "status": "documented",
-      "source_note": "USA manual page 20 visibly proves the Records menu item and target screen family."
+      "status": "verified",
+      "source_note": "Native artifact visibly reaches Track Records at currentMenu 0xCC.",
+      "fixture": "ui-records-submenus"
     },
     {
       "id": "records-high",
@@ -443,12 +488,20 @@
     "RESULT_BY_TRACK_TYPE"
   ],
   "capability_dependencies": {
-    "multiplayer_controller_2": {
-      "status": "behavioral_verification_pending",
+    "name_entry_cursor_mapping": {
+      "status": "open",
+      "plan": "analysis/ui-text-entry-layout.json",
+      "blocks_states": [
+        "FORBIDDEN_NAME_REJECTION"
+      ],
+      "acceptance_fixture": "ui-rename-editor-explore",
+      "acceptance": "Bind runtime row/column/cursor deltas to the manual-proven alphanumeric grid, then generate and reproduce a blacklisted-name route without guessing cursor geometry."
+    },
+    "multiplayer_behavioral_verification": {
+      "status": "open",
+      "phase": "behavioral_verification",
       "plan": "docs/TWO-PLAYER-FIXTURE-PLAN.md",
       "blocks_states": [
-        "TWO_PLAYER_SELECT",
-        "VS_SELECT",
         "VS_CHALLENGER",
         "VS_CHALLENGE_TRACK"
       ],
@@ -461,18 +514,67 @@
       "planned_fixture_id": "ui-two-player-handoff.input",
       "provider_pr": 31,
       "transport_format": "start:duration:p1-mask[:p2-mask]",
-      "integration_note": "Use PR31 neutral controller transport across native/snesref/Mesen; retain scene-keyed scripts for waits/dumps rather than inventing a second multiplayer grammar.",
-      "transport_status": "merged_on_main",
-      "note": "Shared deterministic P1/P2 transport is merged on main. Keep deeper 2P/VS edges blocked until the behavioral acceptance route proves P2-only causality, handoff, and multiplayer state checkpoints."
-    },
-    "name_entry_cursor_mapping": {
-      "status": "open",
-      "plan": "analysis/ui-text-entry-layout.json",
-      "blocks_states": [
-        "FORBIDDEN_NAME_REJECTION"
-      ],
-      "acceptance_fixture": "ui-rename-editor-explore",
-      "acceptance": "Bind runtime row/column/cursor deltas to the manual-proven alphanumeric grid, then generate and reproduce a blacklisted-name route without guessing cursor geometry."
+      "transport_status": "complete",
+      "integration_note": "PR #31 already provides the shared P1/P2 transport across native, snesref, and Mesen. This dependency now tracks only behavioral proof: P2-only causality, P1->P2 rider-selection handoff, stable multiplayer checkpoints, and deeper VS navigation.",
+      "note": "2P entry/back and VS_SELECT plus the visual P1->P2 VS handoff are locally reproduced. Remaining acceptance work is P2-only causality/confirmation, 2P handoff through TOUR_SELECT, deeper VS challenger/track checkpoints, and multiplayer gameplay/split-screen evidence."
     }
-  }
+  },
+  "completion_tiers": {
+    "1": {
+      "label": "critical_fidelity",
+      "description": "Ordinary play/progression, pause/results, Options/Records, multiplayer/VS, and completion states that must be reproduced or understood well enough to serve as implementation and validation oracles.",
+      "states": [
+        "MAIN_MENU",
+        "PLAYER_SELECT_P1",
+        "TWO_PLAYER_SELECT",
+        "VS_SELECT",
+        "VS_CHALLENGER",
+        "VS_CHALLENGE_TRACK",
+        "TOUR_SELECT",
+        "TRACK_SELECT",
+        "PRE_RACE_CARD",
+        "GAMEPLAY",
+        "PAUSE",
+        "RESULT_BY_TRACK_TYPE",
+        "RESULT_RACE",
+        "RESULT_CIRCUIT",
+        "RESULT_STUNT",
+        "POST_RESULT_DECISION",
+        "OPTIONS_MENU",
+        "RECORDS",
+        "RECORD_TRACK",
+        "RECORD_HIGH_SCORES",
+        "RECORD_PLAYER_SCORES",
+        "RECORD_GROUP_TABLES",
+        "ENDING"
+      ]
+    },
+    "2": {
+      "label": "cheap_completeness",
+      "description": "Useful supporting frontend states whose evidence should be harvested when cheap but which should not displace Tier 1 closure.",
+      "states": [
+        "BOOT_STARTUP",
+        "SPLASH",
+        "LEAGUE_SELECT",
+        "LEAGUE_TABLE",
+        "DEFINE_PLAYER",
+        "RENAME_PLAYER",
+        "PLAYER_NAME_EDITOR",
+        "DEFINE_LEAGUE",
+        "NAME_LEAGUE",
+        "ERASE_ALL_CONFIRM"
+      ]
+    },
+    "3": {
+      "label": "archaeological_tail",
+      "description": "Low-consequence quirks that may remain open indefinitely unless another task promotes them.",
+      "states": [
+        "DEMO",
+        "FORBIDDEN_NAME_REJECTION"
+      ]
+    }
+  },
+  "transition_exempt_states": [
+    "RESULT_BY_TRACK_TYPE"
+  ]
 }

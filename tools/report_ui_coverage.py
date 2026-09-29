@@ -25,6 +25,12 @@ def main():
     transition_data=json.loads((root/"analysis/ui-transition-contract.json").read_text())
     edges=transition_data["edges"]
     capture_exempt=set(transition_data.get("capture_exempt_states", []))
+    transition_exempt=set(transition_data.get("transition_exempt_states", []))
+    completion_tiers=transition_data.get("completion_tiers", {})
+    tier_by_state={}
+    for tier_id,tier in completion_tiers.items():
+        for state in tier.get("states", []):
+            tier_by_state[state]=tier_id
     caps=json.loads((root/"analysis/ui-capture-manifest.json").read_text())["captures"]
     menus=json.loads((root/"analysis/ui-menu-index.json").read_text())["entries"]
     refs=json.loads((root/"analysis/ui-reference-index.json").read_text())["entries"]
@@ -44,8 +50,8 @@ def main():
     for m in menus: mb.setdefault(m["state_id"],[]).append(m)
     for r in refs: rb.setdefault(r["state_id"],[]).extend(r.get("references",[]))
     lines=["# UI State Coverage","",
-      "| State | Menu byte(s) | Required captures | Optional captures | Public visual leads | Blockers | In | Out | Strongest edge evidence |",
-      "|---|---|---:|---:|---:|---|---:|---:|---|"]
+      "| State | Tier | Menu byte(s) | Required captures | Optional captures | Public visual leads | Blockers | In | Out | Strongest edge evidence |",
+      "|---|---:|---|---:|---:|---:|---|---:|---:|---|"]
     gaps=[]
     for s in states:
         cs=cb.get(s,[]); ms=mb.get(s,[])
@@ -55,15 +61,19 @@ def main():
         req=sum(1 for c in cs if c.get("required",True)); opt=len(cs)-req
         leads=len(rb.get(s,[]))
         blocker_text=", ".join(sorted(blockers.get(s,set())))
-        lines.append(f"| {s} | {menu} | {req} | {opt} | {leads} | {blocker_text} | {len(inc.get(s,[]))} | {len(out.get(s,[]))} | {strongest} |")
+        tier=tier_by_state.get(s,"")
+        lines.append(f"| {s} | {tier} | {menu} | {req} | {opt} | {leads} | {blocker_text} | {len(inc.get(s,[]))} | {len(out.get(s,[]))} | {strongest} |")
         if not cs and s not in capture_exempt: gaps.append((s,"no capture contract"))
         if not cs and not rb.get(s) and s not in capture_exempt: gaps.append((s,"no local capture or public visual lead"))
         if ms and not any(m.get("status")=="verified" for m in ms): gaps.append((s,"menu id remains historical/unverified"))
-        if not out.get(s) and s!="ENDING": gaps.append((s,"no outgoing transition in executable contract"))
+        if not out.get(s) and s!="ENDING" and s not in transition_exempt: gaps.append((s,"no outgoing transition in executable contract"))
         for blocker in sorted(blockers.get(s,set())):
             if transition_data.get("capability_dependencies",{}).get(blocker,{}).get("status")!="complete":
                 gaps.append((s,f"blocked by open capability {blocker}"))
-    lines += ["","## Evidence gaps",""]
+    tier1_gaps=[(s,reason) for s,reason in gaps if tier_by_state.get(s)=="1"]
+    lines += ["","## Tier 1 gaps",""]
+    lines += [f"- {s}: {reason}" for s,reason in tier1_gaps] or ["- none"]
+    lines += ["","## All evidence gaps",""]
     lines += [f"- {s}: {reason}" for s,reason in gaps]
     lines += ["","## Summary","",
       f"- conceptual states: {len(states)}",
@@ -73,7 +83,9 @@ def main():
       f"- locally verified menu-index entries: {sum(1 for m in menus if m.get('status')=='verified')}",
       f"- states with at least one capture contract: {len(cb)}",
       f"- states with at least one public visual lead: {len(rb)}",
-      f"- open capability dependencies: {sum(1 for d in transition_data.get('capability_dependencies',{}).values() if d.get('status')=='open')}",
+      f"- Tier 1 states: {sum(1 for s in states if tier_by_state.get(s)=='1')}",
+      f"- Tier 1 gap observations: {len(tier1_gaps)}",
+      f"- incomplete capability dependencies: {sum(1 for d in transition_data.get('capability_dependencies',{}).values() if d.get('status')!='complete')}",
       f"- raw gap observations: {len(gaps)}",""]
     output="\n".join(lines)
     if a.out: a.out.parent.mkdir(parents=True,exist_ok=True); a.out.write_text(output)

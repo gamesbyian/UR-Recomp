@@ -1,0 +1,29 @@
+# Reset-free Group Tables probe from Main Menu -> Options -> Records.
+until 009F == D7 3600
+wait 60
+press down 1
+until 009B == 01 300
+press down 1
+until 009B == 02 300
+press down 1
+until 009B == 03 300
+press down 1
+until 009B == 04 300
+press a 2
+until 009F == 57 1200
+wait 60
+press a 2
+until 009F == 5D 1200
+wait 60
+press down 1
+until 009B == 01 300
+press down 1
+until 009B == 02 300
+press down 1
+until 009B == 03 300
+wait 30
+dump ui-records-group-selected
+press a 2
+wait 60
+dump ui-record-group-entry
+quit

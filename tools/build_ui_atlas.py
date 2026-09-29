@@ -37,22 +37,32 @@ def bmp_dimensions(path: Path) -> tuple[int | None, int | None]:
     return abs(w), abs(h)
 
 
-def load_wram(path: Path) -> bytes:
+def load_memory(path: Path, source: str) -> bytes:
     raw = path.read_bytes()
-    if len(raw) < 0x20000:
+    if source == "wram" and len(raw) < 0x20000:
         raise ValueError(f"{path}: WRAM dump is only {len(raw)} bytes")
+    if not raw:
+        raise ValueError(f"{path}: {source.upper()} dump is empty")
     return raw
 
 
-def field_value(wram: bytes, spec: dict[str, Any]) -> int:
-    offset = parse_int(spec["wram_offset"])
+def field_value(memory: bytes, spec: dict[str, Any]) -> int:
+    source = spec.get("source", "wram")
+    if source not in {"wram", "sram"}:
+        raise ValueError(f"unsupported field source {source!r}")
+    offset_key = f"{source}_offset"
+    if offset_key not in spec:
+        raise ValueError(f"field source {source!r} requires {offset_key}")
+    offset = parse_int(spec[offset_key])
     width = int(spec.get("width", 1))
     if width not in (1, 2, 4):
         raise ValueError(f"unsupported field width {width}")
     end = offset + width
-    if end > len(wram):
-        raise ValueError(f"field at 0x{offset:X} width {width} exceeds WRAM dump")
-    return int.from_bytes(wram[offset:end], "little")
+    if end > len(memory):
+        raise ValueError(
+            f"field at 0x{offset:X} width {width} exceeds {source.upper()} dump"
+        )
+    return int.from_bytes(memory[offset:end], "little")
 
 
 def discover_file(tag: str, suffix: str, roots: list[Path]) -> Path | None:
@@ -84,11 +94,14 @@ def analyze_capture(
     }
 
     wram_path = discover_file(tag, ".wram.bin", roots)
+    sram_path = discover_file(tag, ".sram.bin", roots)
     bmp_path = discover_file(tag, ".fb.bmp", roots)
     info_path = discover_file(tag, ".info.json", roots)
 
     if wram_path:
         result["files"]["wram"] = str(wram_path)
+    if sram_path:
+        result["files"]["sram"] = str(sram_path)
     if bmp_path:
         result["files"]["framebuffer"] = str(bmp_path)
         width, height = bmp_dimensions(bmp_path)
@@ -111,7 +124,9 @@ def analyze_capture(
         return result
 
     try:
-        wram = load_wram(wram_path)
+        memories = {"wram": load_memory(wram_path, "wram")}
+        if sram_path:
+            memories["sram"] = load_memory(sram_path, "sram")
     except (OSError, ValueError) as exc:
         result["status"] = "invalid"
         result["error"] = str(exc)
@@ -126,7 +141,18 @@ def analyze_capture(
         if spec is None:
             result["mismatches"].append(f"manifest references unknown field {name}")
             continue
-        value = field_value(wram, spec)
+        source = spec.get("source", "wram")
+        memory = memories.get(source)
+        if memory is None:
+            result["mismatches"].append(
+                f"{name}: {source.upper()} dump missing for requested field"
+            )
+            continue
+        try:
+            value = field_value(memory, spec)
+        except ValueError as exc:
+            result["mismatches"].append(f"{name}: {exc}")
+            continue
         result["observed"][name] = f"0x{value:0{int(spec.get('width', 1))*2}X}"
 
     for name, expected in capture.get("expect", {}).items():

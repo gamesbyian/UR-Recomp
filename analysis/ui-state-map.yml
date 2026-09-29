@@ -142,13 +142,14 @@ states:
   - id: TWO_PLAYER_SELECT
     family: race_setup
     kind: menu
-    confidence: medium
-    evidence: [primary_manual]
-    recovered_menu_labels:
+    confidence: high
+    evidence: [primary_manual, reproduced_runtime]
+    runtime_signatures:
       currentMenu_7E009F: "0x3D"
-    description: "2P unicycle-selection state. Historical bot keeps the same menu ID while playerInput determines which participant is currently choosing."
+      local_fixture: "tests/input/ui-main-branches.script"
+    description: "2P unicycle-selection state. A harvested native run visibly reaches the PICK A PLAYER roster at 0x3D and X returns to Main Menu. Participant ownership/handoff inside the state remains to be reproduced."
     runtime_fields:
-      playerInput_700743: "Recovered bot says 5 = player one, 3 = player two, 1 = both players; locally unverified."
+      playerInput_700743: "Recovered bot says 5 = player one, 3 = player two, 1 = both players. This address is in bank 0x70 rather than the WRAM-only atlas field set, so ownership remains historical until a suitable checkpoint path records it."
     transitions:
       - input: "A or B by active participant"
         to: "TWO_PLAYER_SELECT or TOUR_SELECT depending whether another participant must choose"
@@ -160,13 +161,19 @@ states:
   - id: VS_SELECT
     family: race_setup
     kind: menu
-    confidence: medium
-    evidence: [primary_manual]
-    recovered_menu_labels:
+    confidence: high
+    evidence: [primary_manual, reproduced_runtime]
+    runtime_signatures:
       currentMenu_7E009F: "0x3E"
-    description: "Initial VS unicycle-selection state; exact participant handoff remains to be reproduced locally."
+      harvested_route: "tests/input/ui-league-table.script accidentally lands here after rapid menu input is swallowed"
+      participant_owner_raw_sram_0x0743: "0x04 on PICK PLAYER ONE; 0x02 on PICK PLAYER TWO"
+    description: "Initial VS rider-selection state. A harvested accidental VS route visibly changes PICK PLAYER ONE to PICK PLAYER TWO after P1 confirms while currentMenu remains 0x3E. The raw SRAM ownership discriminator changes 0x04 -> 0x02; exact relation to the recovered bot's historical 5/3/1 comment remains unresolved."
     transitions:
-      - input: "A or B by active participant"
+      - input: "P1 A/B confirm"
+        to: VS_SELECT
+        side_effect: "visible selector handoff to Player Two"
+        confidence: high
+      - event: "all initial VS riders confirmed"
         to: VS_CHALLENGER
         confidence: inferred
       - input: "Y or X"
@@ -247,17 +254,23 @@ states:
 
   - id: PRE_RACE_CARD
     family: race_setup
-    kind: screen
+    kind: menu_or_card
     confidence: high
     evidence: [primary_manual, reproduced_runtime]
     runtime_signatures:
       onePlayerNowPlaying_currentMenu_7E009F: "0x16"
+      inRace_7E0313: "0x00 while the card is active"
       local_fixture: "tests/input/reach-first-race.script"
-    description: "Brief informational screen identifying matchup/track before play. The local deterministic route reaches and dumps this state."
+      passive_timing_fixture: "tests/input/ui-pre-race-timing.script"
+    visible_known_items: ["RACE", "EXIT"]
+    description: "Interactive NOW PLAYING card identifying matchup/track before play. The harvested passive route shows a sliding entrance over roughly the first 45 sampled frames and remains on the settled RACE/EXIT card through at least 60 frames with no input."
     transitions:
-      - input: "automatic or confirm input"
+      - input: "A/B on RACE"
         to: GAMEPLAY
-        confidence: inferred
+        confidence: high
+      - input: "choose EXIT"
+        to: "unknown until isolated exit probe is classified"
+        confidence: unknown
 
   - id: GAMEPLAY
     family: gameplay
@@ -279,12 +292,17 @@ states:
   - id: PAUSE
     family: gameplay
     kind: overlay_or_state
-    confidence: medium
-    evidence: [primary_manual]
+    confidence: high
+    evidence: [primary_manual, reproduced_runtime]
+    runtime_signatures:
+      currentMenu_7E009F: "0x00 on the verified first-race pause route"
+      inRace_7E0313: "0x01 while paused"
+      local_fixture: "tests/input/ui-pause-route.script"
+    description: "Pause is a visible overlay with RACE, timer, CONTINUE GAME and QUIT. The tested route retains gameplay currentMenu/inRace values rather than exposing a distinct menu byte."
     transitions:
       - input: "Start"
         to: GAMEPLAY
-        confidence: inferred
+        confidence: high
 
   - id: RESULT_BY_TRACK_TYPE
     family: results
@@ -300,13 +318,15 @@ states:
     family: results
     kind: screen
     confidence: high
-    evidence: [primary_manual, observed_screenshot]
-    recovered_menu_labels:
+    evidence: [primary_manual, observed_screenshot, reproduced_runtime]
+    runtime_signatures:
       raceResults_currentMenu_7E009F: "0x99"
+      local_fixture: "tests/input/ui-race-result-route.script"
     transitions:
-      - input: "advance/next"
-        to: POST_RESULT_DECISION
-        confidence: medium
+      - input: "A/B advance after the verified ordinary 1P Dragster result"
+        to: TRACK_SELECT
+        confidence: high
+        note: "Harvested native frame after A is visibly PICK TRACK at 0xF6; the following X returns to PICK TOUR at 0x6D."
 
   - id: RESULT_CIRCUIT
     family: results
@@ -338,7 +358,7 @@ states:
     kind: menu_or_prompt
     confidence: medium
     evidence: [primary_manual]
-    description: "Prompt after a completed event allowing progression to the next track or another path."
+    description: "Conceptual post-result choice/prompt retained for result families or progression contexts that still need reproduction. It is not present on the verified ordinary 1P Dragster path, which goes directly from RESULT_RACE to TRACK_SELECT."
     transitions:
       - selection: "next track"
         input: "confirm"
@@ -382,7 +402,10 @@ states:
     family: options
     kind: menu
     confidence: high
-    evidence: [primary_manual]
+    evidence: [primary_manual, reproduced_runtime]
+    runtime_signatures:
+      currentMenu_7E009F: "0x57"
+      local_fixture: "tests/input/ui-options-route.script"
     visible_known_items: ["RECORDS", "DEFINE PLAYER", "RENAME PLAYER", "DEFINE LEAGUE", "MAIN MENU"]
     notes:
       - "Other adjustable settings may exist; do not invent them until captured or located in code/manual detail."
@@ -412,7 +435,10 @@ states:
     family: records
     kind: menu
     confidence: high
-    evidence: [primary_manual, observed_screenshot]
+    evidence: [primary_manual, observed_screenshot, reproduced_runtime]
+    runtime_signatures:
+      currentMenu_7E009F: "0x5D"
+      local_fixture: "tests/input/ui-options-submenus.script"
     visible_known_items: ["TRACK RECORDS", "HIGH SCORES", "PLAYER SCORES", "GROUP TABLES", "MAIN MENU"]
     description: "Manual page 20 contains an in-game screenshot proving a distinct Records selection menu."
     transitions:
@@ -445,10 +471,13 @@ states:
     family: records
     kind: screen
     confidence: high
-    evidence: [primary_manual, observed_screenshot]
+    evidence: [primary_manual, observed_screenshot, reproduced_runtime]
+    runtime_signatures:
+      entry_currentMenu_7E009F: "0xCC"
+      local_fixture: "tests/input/ui-records-submenus.script"
     description: "Track Records screen: all-time track bests with Gold/Silver/Bronze records and player-color star markers."
     notes:
-      - "Return destination is not yet pinned down; do not assume X/Y returns to RECORDS merely because RECORDS launched this screen."
+      - "The harvested X discriminator did not return to Records: the next frame remains visibly in Track Records while currentMenu changes to 0x5A. Treat this as internal score-screen behavior until classified."
 
   - id: RECORD_HIGH_SCORES
     family: records
@@ -618,11 +647,11 @@ open_questions:
   - id: UIQ-002
     question: "Exact input mapping on every menu: whether A/B are equivalent everywhere and whether Start advances anywhere beyond MAIN_MENU quick-start."
   - id: UIQ-003
-    question: "Implement the shared player-2 fixture capability in docs/TWO-PLAYER-FIXTURE-PLAN.md, then reproduce TWO_PLAYER_SELECT=0x3D, VS_SELECT=0x3E, VS_CHALLENGER=0x3F and VS_CHALLENGE_TRACK=0x5A; determine participant handoff and exact back-stack."
+    question: "TWO_PLAYER_SELECT=0x3D, VS_SELECT=0x3E, the 2P X-back edge, and a visual VS P1->P2 handoff are locally reproduced. Use the merged neutral P1/P2 transport to prove P2-only causality/confirmation, classify raw SRAM ownership 0x04/0x02 versus the historical 5/3/1 comment, then reproduce VS_CHALLENGER=0x3F and VS_CHALLENGE_TRACK=0x5A plus their exact back-stack."
   - id: UIQ-004
     question: "Exact PRE_RACE_CARD duration and whether input can skip it."
   - id: UIQ-005
-    question: "Exact post-result prompt contents and transitions for 1P, 2P, VS, League, and progression unlocks."
+    question: "Ordinary 1P Race is now verified as RESULT_RACE=0x99 -> TRACK_SELECT=0xF6 on A, with X then returning to TOUR_SELECT=0x6D. Reproduce post-result contents/transitions for Circuit, Stunt, 2P, VS, League, and progression/unlock contexts."
   - id: UIQ-006
     question: "Exact OPTIONS_MENU layout and any settings omitted by the terse manual transcription."
   - id: UIQ-007

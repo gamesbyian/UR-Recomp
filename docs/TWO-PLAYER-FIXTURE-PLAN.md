@@ -4,7 +4,7 @@ Status: required supporting capability for UI-state coverage, multiplayer fideli
 
 ## Why this exists
 
-The project now has an established engine-neutral player-2 controller transport. What remains open is behavioral verification and checkpoint/capture integration for multiplayer frontend and gameplay states.
+The project now has an established engine-neutral player-2 controller transport. What remains open is behavioral verification and checkpoint/capture integration for multiplayer frontend and gameplay states. A harvested successful native atlas run has now locally reproduced `TWO_PLAYER_SELECT = 0x3D` and its X-back edge; the unresolved seam begins at participant ownership/handoff and continues into deeper 2P/VS setup.
 
 Until that evidence exists, durable local promotion remains blocked for several known multiplayer frontend states:
 
@@ -25,7 +25,7 @@ A historical MiSTer SNES issue specifically reports a Uniracers 2P/VS problem wh
 
 https://github.com/MiSTer-devel/SNES_MiSTer/issues/26
 
-The project already tracks broader Uniracers OAM/rendering compatibility history. Once shared player-2 input exists, include a deterministic split-screen framebuffer/OAM checkpoint so a one-player-perfect runtime cannot silently retain a player-2-only rendering defect.
+The project already tracks broader Uniracers OAM/rendering compatibility history. Shared player-2 input now exists, so the behavioral acceptance route must include a deterministic split-screen framebuffer/OAM checkpoint; a one-player-perfect runtime must not silently retain a player-2-only rendering defect.
 
 ## Required capability
 
@@ -92,6 +92,10 @@ Capture at minimum:
 - `7E:0C63 menuSelectedCol`;
 - recovered `playerInput` field where applicable.
 
+The recovered bot places `playerInput` at `0x70:0743`, with historical values `5=P1`, `3=P2`, `1=both`, and gates menu input using `playerInput == 7 - controller * 2`. This bank maps into the dumped SRAM surface, not the ordinary `7E` WRAM fields. A harvested native VS route now gives a local raw discriminator at physical SRAM offset `0x0743`: `0x04` while the screen says PICK PLAYER ONE, then `0x02` after P1 confirms and the screen says PICK PLAYER TWO. A subsequent P1 X leaves both the P2 screen and raw byte unchanged. The numeric mismatch against the historical 5/3/1 comment is intentionally unresolved; retain both observations until the mapping/emulator semantic is explained.
+
+`tools/build_ui_atlas.py` therefore supports SRAM-backed field specs and the capture manifest exposes this byte as `participant_owner_raw`. The reset-free `ui-vs-handoff` probe makes `0x3E + owner raw 0x04/0x02` a regression target without pretending the old labels and raw dump are already reconciled.
+
 Then add the corresponding VS acceptance route through `VS_SELECT -> VS_CHALLENGER -> VS_CHALLENGE_TRACK`.
 
 ## Promotion gates
@@ -109,8 +113,8 @@ Do not mark the capability complete until:
 
 With the grammar now available, implement and verify:
 
-1. 2P rider-selection handoff and back-stack capture;
-2. VS challenger and challenge-track capture;
+1. P2-only causality/confirmation in the initial 2P/VS selectors, building from the verified `0x3D` 2P anchor and verified `0x3E` VS P1→P2 presentation handoff;
+2. VS challenger and challenge-track capture after the P2 confirm;
 3. first 2P race entry;
 4. split-screen/HUD atlas states;
 5. two-player OAM compatibility coverage;

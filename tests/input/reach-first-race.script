@@ -7,14 +7,14 @@
 
 turbo on
 
-# Clean boot begins at the title/splash rather than at the bot's normal
-# entry point. Dessyreqt labels this state 132 = 0x84.
-until 009F == 84 3600
-press start
-
 # Main menu: Dessyreqt menu.mainMenu = 215 = 0xD7.
-until 009F == D7 1200
+until 009F == D7 3600
+dump main-menu
 press a
+
+# Capture the immediate post-A state while diagnosing the first transition.
+wait 30
+dump after-main-a
 
 # One-player rider select: 60 = 0x3C.
 until 009F == 3C 1200

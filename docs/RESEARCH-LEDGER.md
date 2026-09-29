@@ -435,3 +435,18 @@ The final seven are `0x00C6`, `0x00C8`, `0x00C9`, and contiguous `0x01D1–0x01D
 **Interpretation:** the field decrements by exactly `0x0100` per guest frame during this race-start window, strongly supporting a fixed-point/frame-countdown interpretation. The precise player-visible thresholds and meaning of the low byte remain to be characterized.
 
 **Evidence:** workflow run 36512546762 and its native/reference player-state reports.
+
+
+### R-SEED-018 — B-jump execution matches cross-runtime; airborne-state address requires causal control
+
+**Status:** supported / active discriminator  
+**Date:** 2026-09-28  
+**Area:** input | physics | RAM
+
+**Observation:** run 36513247475 applies a two-frame `Right+B` pulse from the validated moving Dragster state and samples through `jump-settle`. Native and Snes9x match exactly at every recovered semantic field checkpoint. X motion continues identically, `pitch` reaches 33 at `jump-mid`, and the earlier duplicate `7E:0547` follows 0 → 3 → 9 → 9 → 0 while the Lua-effective `7E:0545` remains 0.
+
+**Complication:** the recovered bot source contains duplicate player-1 keys, with later Lua semantics selecting `7E:0545` as `airValue`, but the observed B-window response is at `7E:0547`. The race framebuffer contains two unicycles/ghost-like sprites, so visual correlation alone cannot safely assign the changing byte to the controlled player.
+
+**Discriminating test:** replay a timing-identical Right-only control and compare jump vs no-jump within each engine. Treat only B-causal state differences as evidence for jump semantics.
+
+**Evidence:** workflow run 36513247475; `tests/input/race-jump.script`; matched control `tests/input/race-jump-control.script`.

@@ -149,6 +149,45 @@
       ],
       "mirror_script": "tests/input/race-rotation-right.script",
       "validation": "L and R direction convention confirmed in run 36516524308"
+    },
+    {
+      "id": "race-landing-timeline",
+      "input_script": "tests/input/race-landing-timeline.script",
+      "purpose": "Sample the validated sustained-B jump every two frames from airborne +24 through +48 and identify the first event-relative grounded transition in native and Snes9x.",
+      "engines": [
+        "native-recomp",
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "landing-airborne-024",
+        "landing-026",
+        "landing-028",
+        "landing-030",
+        "landing-032",
+        "landing-034",
+        "landing-036",
+        "landing-038",
+        "landing-040",
+        "landing-042",
+        "landing-044",
+        "landing-046",
+        "landing-048"
+      ],
+      "compare_surfaces": [
+        "player-state-fields",
+        "full-wram"
+      ],
+      "semantic_fields": [
+        "7E:0415 yPos",
+        "7E:04BB signed ySpeed",
+        "7E:0545 airValue",
+        "7E:04C7 pitch angle"
+      ],
+      "future_extensions": [
+        "single-frame landing bracket",
+        "collision",
+        "finish"
+      ]
     }
   ]
 }

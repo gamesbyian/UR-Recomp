@@ -460,22 +460,22 @@ The final seven are `0x00C6`, `0x00C8`, `0x00C9`, and contiguous `0x01D1–0x01D
 **Evidence:** workflow run 36513247475; `tests/input/race-jump.script`; matched control `tests/input/race-jump-control.script`.
 
 
-### R-SEED-019 — Active Dragster payload header is resident at 7F:0000
+### R-SEED-019 — Active Dragster payload is resident at 7F:0000
 
-**Status:** supported  
+**Status:** confirmed  
 **Date:** 2026-09-28  
 **Area:** course | RAM | decompression
 
-**Observation:** decoded RNC stream 1 starts `00 00 00 44 00 32 00 44 00 32 00 0F 84 00 04 00`. The settled deterministic Dragster race-entry dump starts at WRAM `7F:0000` with `00 00 00 44 00 32 00 44 00 32 00 16 84 00 04 00`; the first 48 bytes otherwise follow the decoded header pattern. Decoded offset 11 has changed from `0x0F` to `0x16`.
+**Observation:** run 36514985916 independently decodes all 45 USA streams and scores them against live WRAM `7F:0000`. Stream 1 matches 33,814 of 33,815 decoded bytes across its entire 33,815-byte payload. The sole mismatch is decoded offset `0x000B`, which changes from `0x0F` to live `0x16`.
 
-**Interpretation:** the active decoded track payload is very likely loaded directly at `7F:0000` and then partially mutated in place. This is a stronger runtime consumer landmark than the older `7E:2080` breadcrumb.
+**Interpretation:** decoded stream 1 is the active Dragster course payload and is loaded directly at `7F:0000`; at least byte 11 is subsequently mutable in place. This supersedes the older `7E:2080` breadcrumb as the primary decoded-course runtime landmark.
 
 **Evidence:** decoded stream-1 structural report and native race-entry WRAM artifact from run 36508095522.
 
 
 ### R-SEED-020 — Dragster header X coordinate maps exactly to runtime start X at ×16
 
-**Status:** hypothesis with exact single-course correlation  
+**Status:** strongly supported single-course field hypothesis  
 **Date:** 2026-09-28  
 **Area:** course | RAM | physics
 

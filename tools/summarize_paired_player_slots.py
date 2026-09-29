@@ -18,7 +18,8 @@ SLOTS = {
         "x_speed": ("s16", 0x04B7),
         "y_speed": ("s16", 0x04BB),
         "air_effective": ("u8", 0x0545),
-        "pitch_effective": ("u8", 0x0F49),
+        "rotation_candidate": ("u8", 0x04C7),
+        "bot_pitch_derived": ("u8", 0x0F49),
     },
     "slot2": {
         "x_pos": ("u16", 0x0413),
@@ -26,7 +27,7 @@ SLOTS = {
         "x_speed": ("s16", 0x04B9),
         "y_speed": ("s16", 0x04BD),
         "air": ("u8", 0x0547),
-        "pitch": ("u8", 0x04C9),
+        "rotation_candidate": ("u8", 0x04C9),
     },
 }
 
@@ -68,10 +69,11 @@ def main() -> int:
             f"{tag}: "
             f"slot1 x={a['x_pos']} y={a['y_pos']} "
             f"vx={a['x_speed']} vy={a['y_speed']} "
-            f"air={a['air_effective']} pitch={a['pitch_effective']} | "
+            f"air={a['air_effective']} rot={a['rotation_candidate']} "
+            f"botPitch={a['bot_pitch_derived']} | "
             f"slot2 x={b['x_pos']} y={b['y_pos']} "
             f"vx={b['x_speed']} vy={b['y_speed']} "
-            f"air={b['air']} pitch={b['pitch']}"
+            f"air={b['air']} rot={b['rotation_candidate']}"
         )
 
     if args.json_out:

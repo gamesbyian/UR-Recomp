@@ -11,7 +11,7 @@ Canonical execution plan: `docs/ISLAND-TOOLCHAIN-PLAN.md`.
 Goal: make the core automated research/build toolchain runnable from a clean checkout without GitHub, PyPI or crates.io after ordinary host/compiler prerequisites are present.
 
 - [x] Add the `third_party/` provenance/licensing/manifest infrastructure, repository-hygiene validation, local-source bootstrap preference, and fail-closed offline mode. A true network-disabled build smoke follows the first islanded core component.
-- [ ] Vendor the small/high-value tool tranche and package-registry closures. `mesen-for-ai`, `snes2asm` plus its PyYAML 6.0.3 closure, SuperFamiconv plus its 78-package Cargo vendor closure, `ghidra-snes` source/language data, and pruned Flips CLI are complete. Beetle/bsnes libretro is the next unlanded direct-vendor target.
+- [ ] Vendor the small/high-value tool tranche and package-registry closures. `mesen-for-ai`, `snes2asm` plus its PyYAML 6.0.3 closure, SuperFamiconv plus its 78-package Cargo vendor closure, `ghidra-snes` source/language data, and pruned Flips CLI are complete. Beetle/bsnes libretro is landed on the active tranche with offline build plus independent first-race validation pending; once that closes, P0-B is complete and work moves to P0-C.
 - [ ] Migrate SNESRecomp and core reconstruction/build dependencies incrementally. WLA-DX is complete as the first P0-C core-build tranche: the repository owns the exact pinned 65816/linker source closure plus the narrow build patch; ordinary `bootstrap_toolchain.py --offline` proof is green.
 - [ ] Preserve large/manual workbenches as exact archives or optional external tools where direct vendoring has poor value.
 - [ ] Prove a network-disabled core workflow before removing the old fetch paths.

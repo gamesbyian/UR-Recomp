@@ -84,12 +84,14 @@ Its value is now specialized: evaluator/search logic, stunt grammar, timing assu
 
 The pinned SNESRecomp desktop host already provides a frame-synchronous `--script` grammar with controller presses, WRAM `until` conditions and state dumps. That is the cheapest current bridge for frontend bring-up; no SDL keystroke injector is needed.
 
-The first project-owned route is `tests/input/reach-first-race.script`. On the canonical USA ROM it has reproduced two historical labels from Dessyreqt's bot under native execution:
+The first project-owned route is `tests/input/reach-first-race.script`. On the canonical USA ROM it has reproduced four historical labels from Dessyreqt's bot under native execution:
 
 - `7E:009F = 0xD7` for `mainMenu`;
-- `7E:009F = 0x3C` for `onePlayerSelect`.
+- `7E:009F = 0x3C` for `onePlayerSelect`;
+- `7E:009F = 0x6D` for `onePlayerTours1`;
+- `7E:009F = 0xF6` for `onePlayerTracks`.
 
-The main-menu capture also reproduces `7E:009B = 0x00`, the bot's selected one-player option.
+The settled captures also reproduce `7E:009B = 0x00` on the clean path, matching the bot's default one-player / first-tour selections.
 
 A useful native-specific timing fact is now established: the menu-state byte can change before the scene accepts its first confirm edge. A one-frame A pulse sent immediately on first observing `0xD7` was ignored, while the same pulse after 60 guest frames moved the game to `0x3C`. Dessyreqt's original policy naturally tolerated this because it reevaluated state and retried inputs every frame.
 

@@ -267,6 +267,14 @@ Use public screenshots and the original manual to bootstrap recognition and cand
 
 Prefer cheap visual/menu inference before code archaeology when the UI is self-explanatory; escalate to tracing/disassembly when timing, hidden conditions, visually identical states, or progression-sensitive behavior make observation ambiguous.
 
+Treat atlas completion as tiered rather than absolute:
+
+1. **Critical fidelity:** ordinary 1P flow, progression-relevant screens, pause, race setup/results, materially used Options/Records states, 2P/VS setup and split-screen behavior, and any frontend state that participates in a known emulator/compatibility seam or modern implementation decision. These must be understood well enough to implement and validate.
+2. **Cheap completeness:** states or transitions that fall out from the manual, public screenshots, recovered bot, existing dumps, or a trivial deterministic probe. Harvest these when the marginal cost is small.
+3. **Archaeological tail:** obsolete administrative minutiae, secret/destructive chords, exact blacklist behavior, transient tally substates, punctuation-editor edge cases, exact attract timing, and similar quirks with no implementation or validation consequence. Record existing evidence, but do not spend serious reverse-engineering effort closing these solely to make the atlas numerically complete.
+
+A red atlas/gap cell is therefore a research prompt, not automatically a project blocker. Promote it to critical only when it affects fidelity, implementation, testing, compatibility, or a deliberate product decision.
+
 ### Runtime state anchors
 
 Historical TAS work and RetroAchievements provide strong runtime probes for:

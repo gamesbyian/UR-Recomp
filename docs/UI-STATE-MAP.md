@@ -85,6 +85,38 @@ flowchart TD
 
 This is intentionally a skeleton. It is more valuable to have an incomplete graph with explicit unknowns than a polished diagram that silently invents behavior.
 
+## Existing deterministic evidence
+
+The repository already had more frontend instrumentation than the initial screen-map idea assumed.
+
+`tests/input/reach-first-race.script` is a controller-only route through the 1P spine. It waits for stable WRAM states, pauses 60 guest frames after newly reached menus, and emits `dump` checkpoints before every confirm. Those dumps are not just memory snapshots: the pinned SNESRecomp `dump <tag>` path writes a `<tag>.fb.bmp` framebuffer plus WRAM, VRAM, CGRAM, OAM, SRAM, PPU/register metadata, write logs, and frame metadata.
+
+That gives the following locally reproduced state anchors:
+
+| UI state | Local signature | Existing dump tag |
+|---|---|---|
+| MAIN_MENU | `7E:009F = D7` | `main-menu-ready` |
+| PLAYER_SELECT_P1 | `7E:009F = 3C` | `rider-select-ready` |
+| TOUR_SELECT | `7E:009F = 6D` | `tours-ready` |
+| TRACK_SELECT | `7E:009F = F6` | `tracks-ready` |
+| PRE_RACE_CARD / Now Playing | `7E:009F = 16` | `now-playing-ready` |
+| GAMEPLAY | `7E:0313 = 01` | `race-entered` |
+
+So the basic screenshot atlas does not need a new rendering subsystem. It already falls out of a route the project trusts.
+
+This branch also adds `tests/input/ui-options-route.script`, a narrow reconnaissance fixture that:
+
+1. starts from verified `MAIN_MENU`;
+2. moves the arrow through 1P, 2P, VS, LEAGUE, and OPTIONS one item at a time;
+3. requires `7E:009B` to advance from 0 through 4, guarding against swallowed inputs;
+4. captures a framebuffer/state dump at every selection;
+5. enters Options without pre-assuming its menu ID;
+6. captures the observed Options state;
+7. presses X per the manual's back-navigation convention;
+8. requires return to `7E:009F = D7`.
+
+The native smoke workflow now runs that fixture and uploads its BMP/state dumps alongside the existing race-route evidence. It prints the newly observed Options menu ID from WRAM when the route succeeds.
+
 ## Screenshot-backed states already found online
 
 Public screenshot galleries already give enough to anchor several states without spending compute on discovery:
@@ -251,7 +283,7 @@ A separate short fixture should cover OPTIONS and RECORDS. Another should exerci
 
 ## Current unresolved questions
 
-The machine-readable file tracks these as `UIQ-001` onward. Highest-value ones are:
+The machine-readable file tracks these as `UIQ-001` onward. The new Options fixture should cheaply close part of item 6 once its artifact is available. Highest-value ones are:
 
 1. Exact boot/logo/intro sequence and skip behavior.
 2. Whether A/B equivalence and X/Y-back are genuinely universal.

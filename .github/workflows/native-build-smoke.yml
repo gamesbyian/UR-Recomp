@@ -176,7 +176,7 @@ jobs:
           STATUS=$?
           cat "$LOG"
 
-          for state in main-menu after-main-a; do
+          for state in main-menu after-main-a after-rider-a; do
             WRAM="$DUMPS/$state.wram.bin"
             if [ -s "$WRAM" ]; then
               python3 -c 'import pathlib,sys; name=sys.argv[1]; w=pathlib.Path(sys.argv[2]).read_bytes(); print(f"{name}: menu[009F]=0x{w[0x009F]:02X} selectedOption[009B]=0x{w[0x009B]:02X} row[000E]=0x{w[0x000E]:02X} col[0C63]=0x{w[0x0C63]:02X}")' "$state" "$WRAM"

@@ -1,0 +1,92 @@
+name: course runtime payload probe
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "rom_identity.txt"
+      - "snesrecomp"
+      - "tests/input/reach-first-race.script"
+      - "tools/rnc_method1.py"
+      - "tools/analyze_rnc_streams.py"
+      - "tools/probe_runtime_course_payload.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - ".github/workflows/course-runtime-payload.yml"
+
+concurrency:
+  group: course-runtime-payload-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Build pinned Snes9x and snesref
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+          test -x "$RUNNER_TEMP/snesref-build/snesref"
+
+      - name: Capture settled Dragster WRAM
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
+          DUMPS="$RUNNER_TEMP/course-runtime-dumps"
+          LOG="$RUNNER_TEMP/course-runtime.log"
+          mkdir -p "$DUMPS"
+
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$SCRIPT" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" >"$LOG" 2>&1
+          cat "$LOG"
+          test -s "$DUMPS/race-entered.wram.bin"
+
+      - name: Match decoded payloads against live 7F bank
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/probe_runtime_course_payload.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            "$RUNNER_TEMP/course-runtime-dumps/race-entered.wram.bin" \
+            --limit 80 \
+            --json-out "$RUNNER_TEMP/course-runtime-payload.json" \
+            | tee "$RUNNER_TEMP/course-runtime-payload.txt"
+
+      - name: Upload course runtime evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-course-runtime-payload
+          path: |
+            ${{ runner.temp }}/course-runtime.log
+            ${{ runner.temp }}/course-runtime-payload.json
+            ${{ runner.temp }}/course-runtime-payload.txt
+            ${{ runner.temp }}/course-runtime-dumps/race-entered.wram.bin
+          if-no-files-found: error
+          retention-days: 7

@@ -100,6 +100,7 @@ def validate_manifest(manifest: dict) -> None:
                 raise ValueError(f"{tool_id}: artifact {artifact_index} must be an object")
             rel = artifact.get("path")
             kind = artifact.get("kind")
+            root_kind = artifact.get("root", "checkout")
             if not isinstance(rel, str) or not rel:
                 raise ValueError(f"{tool_id}: artifact {artifact_index} path must be non-empty")
             rel_path = Path(rel)
@@ -107,6 +108,14 @@ def validate_manifest(manifest: dict) -> None:
                 raise ValueError(f"{tool_id}: artifact {rel!r} must stay inside checkout")
             if kind not in {"executable", "shared-library"}:
                 raise ValueError(f"{tool_id}: artifact {rel!r} has invalid kind {kind!r}")
+            if root_kind not in {"checkout", "venv"}:
+                raise ValueError(f"{tool_id}: artifact {rel!r} has invalid root {root_kind!r}")
+            if root_kind == "venv" and not any(
+                "{python}" in arg for cmd in build for arg in cmd
+            ):
+                raise ValueError(
+                    f"{tool_id}: venv artifact {rel!r} requires a build command using {{python}}"
+                )
 
         for cmd_index, cmd in enumerate(build):
             if (
@@ -171,12 +180,21 @@ def ensure_checkout(tool: dict, src_root: Path) -> Path:
     return dest
 
 
-def verify_artifacts(tool: dict, dest: Path) -> None:
+def verify_artifacts(tool: dict, dest: Path, python: Path | None = None) -> None:
     problems: list[str] = []
+    venv_root = python.parent.parent if python is not None else None
     for spec in tool.get("artifacts", []):
         rel = spec["path"]
         kind = spec["kind"]
-        path = dest / rel
+        root_kind = spec.get("root", "checkout")
+        if root_kind == "venv":
+            if venv_root is None:
+                problems.append(f"{rel}: venv was not created")
+                continue
+            root = venv_root
+        else:
+            root = dest
+        path = root / rel
         if not path.is_file():
             problems.append(f"{rel}: missing")
             continue
@@ -268,7 +286,7 @@ def main() -> int:
                 python = ensure_venv(install_root, tool["id"])
             expanded = expand_command(command, jobs=args.jobs, python=python)
             run(expanded, cwd=dest)
-        verify_artifacts(tool, dest)
+        verify_artifacts(tool, dest, python)
 
     print("\nPinned toolchain operation complete.")
     return 0

@@ -21,7 +21,7 @@ This is a private computer-science research archive. Material stored here is ref
 4. Keep mirrored third-party material under `references/imported/`; keep our summaries and technical observations under `references/notes/`. Every tracked imported artifact must also be classified in `references/imported/MANIFEST.json`; CI verifies its exact bytes and known upstream/source hashes.
 5. Never silently promote imported material into project-owned implementation assets. If something is later reused in shipping code/art, evaluate that use separately.
 6. Preserve original filenames when useful, plus hashes/revisions where practical, so provenance survives source-site disappearance or mutation.
-7. External claims remain leads until reproduced against the project's supported ROM. Confirmed local findings belong in `docs/RESEARCH-LEDGER.md`. For executable/source imports, read `docs/THIRD-PARTY-SOURCE-AUDIT.md` before reusing implementation behavior.
+7. External claims remain leads until reproduced against the project's supported ROM. Confirmed local findings belong in `docs/RESEARCH-LEDGER.md`. For executable/source imports, read `docs/THIRD-PARTY-CODE-AUDIT.md` before reusing implementation behavior.
 8. Avoid duplicate ROM imports. The project's supported ROM baseline is handled separately at repository root.
 
 ## Provenance posture

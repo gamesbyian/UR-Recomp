@@ -79,13 +79,14 @@ def lorom_file_offset(cpu_addr: int) -> int | None:
     return bank * 0x8000 + (addr - 0x8000)
 
 
-def source_pointer_from_snapshot(
+def direct_page_pointer_from_snapshot(
     snapshot: bytes,
     snapshot_start: int,
     d_register: int,
+    operand: int,
 ) -> int | None:
-    """Read the 24-bit pointer addressed by [$63] with the captured D value."""
-    ptr_addr = (d_register + 0x63) & 0xFFFF
+    """Read a 24-bit direct-page pointer from a captured WRAM snapshot."""
+    ptr_addr = (d_register + operand) & 0xFFFF
     rel = ptr_addr - snapshot_start
     if rel < 0 or rel + 3 > len(snapshot):
         return None
@@ -184,8 +185,8 @@ def fetch_snapshot(
     call_idx: int,
     d_register: int,
     *,
-    flank: int = 0x40,
-    length: int = 0x80,
+    flank: int = 0x00,
+    length: int = 0x100,
 ) -> dict:
     dp_start = (d_register + flank) & 0xFFFF
     if dp_start + length > 0x2000:
@@ -202,7 +203,12 @@ def fetch_snapshot(
         f"func_snap_get_n {call_idx} {dp_start:x} {length}",
     )
     blob = parse_blob_hex(result["hex"])
-    pointer = source_pointer_from_snapshot(blob, dp_start, d_register)
+    entry_pointer = direct_page_pointer_from_snapshot(
+        blob, dp_start, d_register, 0x00
+    )
+    working_pointer = direct_page_pointer_from_snapshot(
+        blob, dp_start, d_register, 0x63
+    )
     return {
         "call_idx": call_idx,
         "frame": result.get("frame"),
@@ -211,10 +217,22 @@ def fetch_snapshot(
         "snapshot_start": f"0x{dp_start:04X}",
         "snapshot_len": len(blob),
         "snapshot_hex": blob.hex(),
-        "source_pointer": f"0x{pointer:06X}" if pointer is not None else None,
-        "source_file_offset": (
-            f"0x{lorom_file_offset(pointer):06X}"
-            if pointer is not None and lorom_file_offset(pointer) is not None
+        "entry_stream_pointer": (
+            f"0x{entry_pointer:06X}" if entry_pointer is not None else None
+        ),
+        "entry_stream_file_offset": (
+            f"0x{lorom_file_offset(entry_pointer):06X}"
+            if entry_pointer is not None
+            and lorom_file_offset(entry_pointer) is not None
+            else None
+        ),
+        "working_pointer_63": (
+            f"0x{working_pointer:06X}" if working_pointer is not None else None
+        ),
+        "working_pointer_63_file_offset": (
+            f"0x{lorom_file_offset(working_pointer):06X}"
+            if working_pointer is not None
+            and lorom_file_offset(working_pointer) is not None
             else None
         ),
     }
@@ -278,23 +296,37 @@ def run_probe(
 
     unique_pointers: dict[int, dict] = {}
     for snap in snapshots:
-        ptr_text = snap.get("source_pointer")
-        off_text = snap.get("source_file_offset")
-        if not ptr_text or not off_text:
-            continue
-        pointer = int(ptr_text, 16)
-        offset = int(off_text, 16)
-        if pointer in unique_pointers:
-            continue
-        # Keep this bounded. The source may be a packet stream; 512 bytes is
-        # enough to identify headers and cross-correlate with the transfer.
-        cart = command(sock, reader, f"dump_cart {offset:x} 512")
-        unique_pointers[pointer] = {
-            "source_pointer": ptr_text,
-            "source_file_offset": off_text,
-            "cart_len": int(cart.get("len", 0)),
-            "cart_hex": cart.get("hex", ""),
-        }
+        for role, ptr_key, off_key in (
+            (
+                "entry_stream",
+                "entry_stream_pointer",
+                "entry_stream_file_offset",
+            ),
+            (
+                "working_63",
+                "working_pointer_63",
+                "working_pointer_63_file_offset",
+            ),
+        ):
+            ptr_text = snap.get(ptr_key)
+            off_text = snap.get(off_key)
+            if not ptr_text or not off_text:
+                continue
+            pointer = int(ptr_text, 16)
+            offset = int(off_text, 16)
+            if pointer in unique_pointers:
+                unique_pointers[pointer]["roles"].append(role)
+                continue
+            # Keep this bounded. The source may be a packet stream; 512 bytes
+            # is enough to identify headers and cross-correlate with transfer.
+            cart = command(sock, reader, f"dump_cart {offset:x} 512")
+            unique_pointers[pointer] = {
+                "roles": [role],
+                "source_pointer": ptr_text,
+                "source_file_offset": off_text,
+                "cart_len": int(cart.get("len", 0)),
+                "cart_hex": cart.get("hex", ""),
+            }
 
     return {
         "schema_version": 1,
@@ -355,11 +387,13 @@ def main() -> int:
         f"race_active_frame={report['race_active_frame']}"
     )
     for snap in report["snapshots"]:
-        if snap.get("source_pointer"):
+        if snap.get("entry_stream_pointer") or snap.get("working_pointer_63"):
             print(
                 f"  call={snap['call_idx']} frame={snap.get('frame')} "
-                f"source={snap['source_pointer']} "
-                f"file={snap.get('source_file_offset')}"
+                f"entry={snap.get('entry_stream_pointer')} "
+                f"entry_file={snap.get('entry_stream_file_offset')} "
+                f"work63={snap.get('working_pointer_63')} "
+                f"work63_file={snap.get('working_pointer_63_file_offset')}"
             )
 
     if args.json_out:

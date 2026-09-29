@@ -769,16 +769,16 @@ Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribut
 **Next discriminator:** use the existing exact-IPC WRAM logger for `7F:000B` to identify the actual install and seven increment store instructions; do not infer them from interpreter scope entry addresses.
 
 
-### R-SEED-042 — LE16@11 points near EOF; Dragster consumes its 8-byte tail
+### R-SEED-042 — LE16@11 is a 16-byte-aligned pre-trailer cursor candidate
 
 **Status:** corpus relationship confirmed; cursor interpretation under test  
 **Date:** 2026-09-29  
 **Area:** course format | runtime mutation | loader
 
-**Observation:** across all 45 USA decoded streams, the little-endian field at bytes 11–12 lies 8–37 bytes before decoded EOF. Dragster is the unique 8-byte-gap case: `LE16@11=0x840F`, decoded size `0x8417`. The already observed seven runtime increments produce `0x8416`, exactly the final valid decoded offset.
+**Observation:** across all 45 USA decoded streams, `LE16@11 + 1` is 16-byte aligned. Between 7 and 36 decoded bytes remain after that cursor. Dragster has `LE16@11=0x840F`, so its trailing region starts at aligned offset `0x8410` and contains exactly seven bytes through EOF at `0x8416`. The already observed seven runtime increments produce `0x8416`, exactly the final valid decoded offset.
 
 **Rejected stronger claim:** `LE16@11 + 8 == decoded_size` is **not** a corpus invariant; it holds only for stream 1. The other 44 gaps range from 11 through 37 bytes.
 
-**Hypothesis:** the field is a mutable cursor into a variable-length trailer, initialized to the trailer start and advanced during course setup until it reaches EOF−1.
+**Hypothesis:** the field is a mutable cursor initialized to the inclusive end of an aligned main-data region, immediately before a variable trailing structure, and advanced during course setup until it reaches EOF−1.
 
-**Discriminating test:** load the first event of tour index 2 (expected stream 11, whose decoded gap is 22 bytes). If the model is correct, runtime should advance `LE16@11` by 21 and settle at `decoded_size - 1`. The second-tour course-runtime workflow now records this directly.
+**Discriminating test:** load the first event of tour index 2 (expected stream 11, with 21 bytes after the aligned cursor). If the model is correct, runtime should advance `LE16@11` by 21 and settle at `decoded_size - 1`. The second-tour course-runtime workflow now records this directly.

@@ -101,16 +101,16 @@
       "id": "spanish-translation-sayans",
       "value": "high",
       "cost": "low",
-      "status": "archival-hunt",
+      "status": "local-reproduction-pending",
       "source_ids": [
         "dorando-uniracers-translations",
         "nesninja-uniracers-translation-metadata",
         "romhackhispano-sayans-uniracers"
       ],
       "question": "Which text, font, pointer, menu-layout, checksum, or compression regions did the Sayans translation team identify?",
-      "next_discriminator": "Query archive indexes and exact-filename mirrors for the original 2002 URL https://sayans.romhackhispano.org/old/antiguas/version3/traducciones/snes/uniracers/uniracers_esp.zip, then fingerprint any recovered patch and compare its touched ranges to the later 1.0b/GoodSNES evidence.",
+      "next_discriminator": "Run tools/analyze_ips_patch.py against the canonical USA ROM, capture actual before/after bytes for all 83 records, and classify each touched region as text/string data, pointers/indexes, font/graphics, header/checksum, or executable code before promoting any structure.",
       "deliverables": [
-        "patch provenance and hashes",
+        "patch provenance and hashes (landed)",
         "ROM-offset/LoROM-address touch map",
         "candidate text/font/pointer regions for local confirmation"
       ],
@@ -123,7 +123,7 @@
       ],
       "artifact_need": {
         "kind": "translation patch archive",
-        "state": "dead-link",
+        "state": "mirrored",
         "user_action_required": false,
         "request": ""
       }

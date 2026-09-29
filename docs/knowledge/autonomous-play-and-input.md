@@ -188,3 +188,19 @@ The preserved 2014 submission movie is now directly consumable as controller evi
 - `.github/workflows/historical-smv-first-race.yml` replays that extracted stream through pinned Snes9x/snesref from the canonical ROM at bounded frame cutoffs and records menu/race/player state from WRAM.
 
 This gives the project two complementary autonomous inputs: the recovered Lua policy explains why inputs are chosen, while the SMV records what the historical run actually pressed. Prefer the SMV when an exact known-working controller sequence can answer the question; prefer the policy when state feedback or adaptation is required.
+
+
+## 2008 WIP Dragster input structure
+
+The recovered Halamantariel Microstorage WIP is a raw SMV v1 movie, reset-anchored, with one recorded controller and 4,974 movie frames. Its controller data begins at file offset 592.
+
+Direct parsing exposes a conspicuous first long race-like control block beginning around movie frame 1184. After a 31-frame `Y+Right` interval, the input settles into a repeating approximately 40-frame stunt/drive cycle dominated by:
+
+- `B+Right+R` airborne drive;
+- one-frame `X` additions at regular positions;
+- `Right+R` release intervals;
+- short `B+Left+R` corrections.
+
+Near frame 2296 the pattern collapses into 359 frames of plain Right input, ending around frame 2655, followed by a long quiet/menu-like interval. A second complex race-like block begins around frame 3472.
+
+These are **controller-stream observations only** until `.github/workflows/historical-wip-dragster.yml` confirms the corresponding WRAM race/results states under pinned Snes9x. Do not yet name 1184 or 2655 as exact game-state boundaries.

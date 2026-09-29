@@ -667,3 +667,16 @@ Dynamic run 36515746538 independently shows airborne L input changing `$04C7` fr
 **Area:** input | TAS | replay fidelity
 
 Direct inspection of all 4,975 controller samples in the reset-anchored 2008 WIP finds no `0xFFFF` SMV reset markers. The historical replay therefore needs the movie's reset-anchored initial machine state and embedded SRAM, but no later reset event. Treating reset markers as neutral input is harmless for this specific corpus; generic SMV tooling should still preserve/report marker positions.
+
+
+### R-SEED-034 — Header bytes 13/14 form a fixed-area dimension pair
+
+**Status:** strong structural evidence  
+**Date:** 2026-09-28  
+**Area:** course | format | dimensions
+
+**Observation:** across all 45 decoded USA course payloads, header bytes 13 and 14 are restricted to complementary power-of-two-style pairs. Interpreting encoded byte value `0x00` as 256, every pair multiplies to exactly 1024. Observed pairs span `256×4`, `128×8`, `64×16`, `32×32`, `16×64`, `8×128` and `4×256`.
+
+**Interpretation:** bytes 13/14 very likely encode complementary dimensions or strides for a fixed 1024-unit course-layout structure. This is compatible with, but does not yet prove, historical descriptions involving 256-wide course data.
+
+**Discriminating test:** compare decoded structure and runtime traversal for courses at the extreme `256×4` / `4×256` encodings versus `32×32`; identify which subsequent region length/stride changes with the header pair and trace one consumer of either byte.

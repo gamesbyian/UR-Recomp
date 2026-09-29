@@ -732,3 +732,14 @@ Direct inspection of all 4,975 controller samples in the reset-anchored 2008 WIP
 The SMV v1 ROM-info record embedded in `references/imported/tas-bots/uniracers-2008-wip-microstorage.smv` identifies internal ROM name `UNIRACERS` and CRC32 `383858c7`. That CRC exactly matches the canonical project's USA ROM in `rom_identity.txt`. The movie metadata names its author as `Olivier Bellemare aka Halamantariel`.
 
 This closes ROM-revision mismatch as a possible cause of historical replay desynchronization. The extractor now preserves author/ROM metadata and the historical replay workflow refuses to proceed when an embedded movie CRC disagrees with the canonical ROM.
+
+
+### R-SEED-039 — 2014 full-game movie provides a post-WIP1 timing oracle
+
+**Status:** external provenance confirmed; local first-race replay active  
+**Date:** 2026-09-28  
+**Area:** TAS | input | emulator compatibility
+
+TASVideos submission #4250 identifies Dessyreqt's full-game Uniracers movie as Snes9x 1.51 v17 and describes a blank-SRAM start. Its sync notes record successful verification using the movie's embedded settings. Unlike the 2008 SMV-v1 WIP, this movie therefore does not depend on the obsolete WIP1 timing flag.
+
+**Discriminating test:** extract the wrapped submission SMV, require reset/SRAM anchoring, replay the first 5,000 frames on the pinned Snes9x core in one trace pass, and persist exact `inRace` / `raceResults` transition frames. Agreement with the 2008 corpus would validate the neutral historical-input path from two independently authored timing eras; disagreement isolates the old WIP1 timing mode as a first-class suspect.

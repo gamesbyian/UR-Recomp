@@ -14,11 +14,12 @@ Compact router for coding and research agents. Load the smallest current authori
 | Native build / boot / runtime failure | `docs/BRINGUP.md`, `docs/VALIDATION.md`, then the changed workflow/runtime files |
 | ROM identity / preserved build comparison | `analysis/generated/reference-rom-inventory.md`, `analysis/generated/reference-rom-comparison.md` |
 | RNC / course-format work | `docs/COURSE-FORMAT.md`, then relevant generated analyses/tools |
+| Frontend / menu / screen-flow / UI-state work | `docs/UI-STATE-MAP.md`, `analysis/ui-state-map.yml`, then `analysis/ui-capture-manifest.json` |
 | Established reverse-engineering claim | `docs/RESEARCH-LEDGER.md` |
 | Recovered code/data symbol | `docs/SYMBOLS.md` |
 | Original DMA development history / missing artifacts | `docs/original-development/DEVELOPER-TECHNICAL-HISTORY.md`, `docs/original-development/ACQUISITION-LEDGER.md` |
-| External source or imported research artifact | `references/README.md`, `references/catalog.yml` |
-| Tool choice / installing research software | `docs/TOOLCHAIN.md`, `tools/toolchain.json` |
+| External source or imported research artifact | `references/README.md`, `references/catalog.yml`, `docs/THIRD-PARTY-CODE-AUDIT.md` |
+| Tool choice / installing research software | `docs/TOOLCHAIN.md`, `tools/toolchain.json`; for producer/consumer chains and adapters, `docs/TOOL-INTEROPERABILITY.md` |
 | Adopting or adapting imported scripts/source | `docs/THIRD-PARTY-CODE-AUDIT.md`, then the imported source |
 | Periodic repository hygiene | Execute `docs/PERIODIC-REPOSITORY-HYGIENE.md` from current `main` |
 

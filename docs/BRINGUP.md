@@ -129,3 +129,18 @@ While reconciling the repository-hygiene/tooling branch, native run 36493652126 
 The smoke timeout was increased to 20 seconds without changing the requested capture frame or validation criteria. Run 36495039455 then completed successfully.
 
 Interpretation: the branch run exposed harness timing sensitivity rather than a game/runtime regression. Frame 300 remains the visual assertion; the extra wall-clock budget only gives CI enough time to reach it reliably.
+
+
+## 2026-09-28 — Deterministic input harness reaches recovered main-menu state
+
+The native smoke has been extended with a separate frame-synchronous `--script` route derived from Dessyreqt's recovered 2014 full-game bot rather than wall-clock key injection.
+
+Observed so far:
+- existing native build, boot and frame-300 visual validation remain green before the new input assertion;
+- WRAM `7E:009F` reaches `0xD7` at simulated frame 446, independently reproducing the bot's historical `mainMenu = 215` label on the canonical USA ROM/runtime;
+- the first simplified script then pressed A immediately, but did not reach the bot's `onePlayerSelect = 0x3C` state within the timeout;
+- re-reading the bot shows that simplification omitted a real branch: on the main menu the bot reads `7E:009B` (`selectedOption`), pulses Up while it is nonzero, and presses A only after option 0 is selected.
+
+Current diagnostic captures WRAM immediately at `mainMenu` and again after the first attempted selection, printing `currentMenu`, `selectedOption`, selected row and selected column. This is intended to distinguish an input-path problem from simply selecting the wrong main-menu entry.
+
+Interpretation: deterministic guest-observed menu navigation is now partly reproduced. The current blocker is one concrete main-menu transition, not generic controller delivery or native execution.

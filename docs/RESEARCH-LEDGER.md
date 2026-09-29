@@ -514,3 +514,18 @@ The final seven are `0x00C6`, `0x00C8`, `0x00C9`, and contiguous `0x01D1–0x01D
 **Caution:** pre-load "best stream" scores are not semantic evidence because sparse decoded streams can coincidentally match zero-heavy live WRAM. The focused expected-stream full-length match is the useful test.
 
 **Discriminating test:** add dense post-confirm checkpoints to locate the first full stream-1 residency frame and observe byte 11 before/after its runtime mutation.
+
+
+### R-SEED-023 — L input rejects 0F49 as the direct rotation accumulator and implicates 04C7
+
+**Status:** supported; mirror-R discriminator active  
+**Date:** 2026-09-28  
+**Area:** input | physics | RAM
+
+**Observation:** airborne-rotation run 36515746538 applies eight frames of L during the causally validated player-1 airborne interval and compares against a timing-identical jump-only control. Native and Snes9x agree on every sampled recovered semantic field. The recovered bot field `7E:0F49` is identical between L and control at the intervention checkpoint (`45` in both) and throughout the sampled window.
+
+The full-WRAM causal differential, however, shows `7E:04C7` changing from `0x07` in jump-only control to `0x37` under L at the eight-frame intervention checkpoint, then `0x3C` vs `0x07` at the next checkpoint before relaxing toward baseline. The adjacent paired-racer byte `7E:04C9` follows the second-racer trajectory and does not show this player-1 L-causal response.
+
+**Interpretation:** `7E:0F49` may still be a useful derived/display/stunt-facing quantity used by the historical bot, but it is not the direct player-1 rotation accumulator for this intervention. `7E:04C7` is a much stronger candidate for player-1 physical rotation/orientation state, with `7E:04C9` plausibly the paired player-2 slot.
+
+**Discriminating test:** run the mirrored eight-frame R intervention against the same jump-only control. If `7E:04C7` responds in the opposite direction while native/reference agree, promote the paired `04C7/04C9` rotation interpretation.

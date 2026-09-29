@@ -447,6 +447,10 @@ The final seven are `0x00C6`, `0x00C8`, `0x00C9`, and contiguous `0x01D1–0x01D
 
 **Complication:** the recovered bot source contains duplicate player-1 keys, with later Lua semantics selecting `7E:0545` as `airValue`, but the observed B-window response is at `7E:0547`. The race framebuffer contains two unicycles/ghost-like sprites, so visual correlation alone cannot safely assign the changing byte to the controlled player.
 
-**Discriminating test:** replay a timing-identical Right-only control and compare jump vs no-jump within each engine. Treat only B-causal state differences as evidence for jump semantics.
+**Paired-slot clue:** the same dumps show the table-[2] block changing coherently with the apparent airborne event: at `jump-mid`, `7E:0417=796`, signed `7E:04BD=-21`, and `7E:0547=9`, while table-[1] remains `7E:0415=859`, `7E:04BB=0`, `7E:0545=0`. The preserved bot runs `singlePlayer=true`, `controller=1`, and reads table [1], so this strongly suggests the visually obvious arc belongs to the second racer rather than the intended controlled-player block.
+
+**Recovered-policy timing:** on Dragster, `jumpAreas[0]` spans X 1090–25278 and Y 790–870. At the validated moving checkpoint (X 1655, Y 858), `ShouldJump()` would continue returning true every bot frame until its own air/Y-speed conditions changed. The original policy therefore behaves like a sustained B hold in this region, not a two-frame pulse.
+
+**Discriminating test:** replay a timing-identical Right-only control and compare jump vs no-jump within each engine. Treat only B-causal state differences as evidence for jump semantics. If the second-slot arc reproduces without B while table [1] stays grounded, replace the short pulse with a sustained B hold matching the recovered policy.
 
 **Evidence:** workflow run 36513247475; `tests/input/race-jump.script`; matched control `tests/input/race-jump-control.script`.

@@ -161,13 +161,19 @@ states:
   - id: VS_SELECT
     family: race_setup
     kind: menu
-    confidence: medium
-    evidence: [primary_manual]
-    recovered_menu_labels:
+    confidence: high
+    evidence: [primary_manual, reproduced_runtime]
+    runtime_signatures:
       currentMenu_7E009F: "0x3E"
-    description: "Initial VS unicycle-selection state; exact participant handoff remains to be reproduced locally."
+      harvested_route: "tests/input/ui-league-table.script accidentally lands here after rapid menu input is swallowed"
+      participant_owner_raw_sram_0x0743: "0x04 on PICK PLAYER ONE; 0x02 on PICK PLAYER TWO"
+    description: "Initial VS rider-selection state. A harvested accidental VS route visibly changes PICK PLAYER ONE to PICK PLAYER TWO after P1 confirms while currentMenu remains 0x3E. The raw SRAM ownership discriminator changes 0x04 -> 0x02; exact relation to the recovered bot's historical 5/3/1 comment remains unresolved."
     transitions:
-      - input: "A or B by active participant"
+      - input: "P1 A/B confirm"
+        to: VS_SELECT
+        side_effect: "visible selector handoff to Player Two"
+        confidence: high
+      - event: "all initial VS riders confirmed"
         to: VS_CHALLENGER
         confidence: inferred
       - input: "Y or X"
@@ -635,7 +641,7 @@ open_questions:
   - id: UIQ-002
     question: "Exact input mapping on every menu: whether A/B are equivalent everywhere and whether Start advances anywhere beyond MAIN_MENU quick-start."
   - id: UIQ-003
-    question: "TWO_PLAYER_SELECT=0x3D and its X-back edge are locally reproduced. Use the merged neutral P1/P2 transport to prove participant ownership/handoff and then reproduce VS_SELECT=0x3E, VS_CHALLENGER=0x3F and VS_CHALLENGE_TRACK=0x5A plus their exact back-stack."
+    question: "TWO_PLAYER_SELECT=0x3D, VS_SELECT=0x3E, the 2P X-back edge, and a visual VS P1->P2 handoff are locally reproduced. Use the merged neutral P1/P2 transport to prove P2-only causality/confirmation, classify raw SRAM ownership 0x04/0x02 versus the historical 5/3/1 comment, then reproduce VS_CHALLENGER=0x3F and VS_CHALLENGE_TRACK=0x5A plus their exact back-stack."
   - id: UIQ-004
     question: "Exact PRE_RACE_CARD duration and whether input can skip it."
   - id: UIQ-005

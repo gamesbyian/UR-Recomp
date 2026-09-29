@@ -69,6 +69,45 @@
         "collision",
         "finish"
       ]
+    },
+    {
+      "id": "race-jump",
+      "input_script": "tests/input/race-jump.script",
+      "purpose": "Continue from the validated moving first-race state, trigger B-jump while holding Right, and characterize Y speed, air state and pitch across native and Snes9x/snesref.",
+      "engines": [
+        "native-recomp",
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "race-entered",
+        "accel-180",
+        "jump-trigger",
+        "jump-early",
+        "jump-rise",
+        "jump-mid",
+        "jump-late",
+        "jump-settle"
+      ],
+      "compare_surfaces": [
+        "player-state-fields",
+        "full-wram",
+        "frame-timing"
+      ],
+      "semantic_fields": [
+        "7E:0411 xPos",
+        "7E:0415 yPos",
+        "7E:04B7 xSpeed",
+        "7E:04BB ySpeed",
+        "7E:0F49 pitch",
+        "7E:0545 airValue",
+        "7E:11BA countdownTimer"
+      ],
+      "future_extensions": [
+        "rotation",
+        "landing-classification",
+        "collision",
+        "finish"
+      ]
     }
   ]
 }

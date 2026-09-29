@@ -111,7 +111,23 @@
           "."
         ]
       ],
-      "artifacts": [],
+      "artifacts": [
+        {
+          "path": "bin/snes2asm",
+          "kind": "executable",
+          "root": "venv"
+        },
+        {
+          "path": "bin/bmp2chr",
+          "kind": "executable",
+          "root": "venv"
+        },
+        {
+          "path": "bin/brr",
+          "kind": "executable",
+          "root": "venv"
+        }
+      ],
       "install_mode": "build"
     },
     {
@@ -258,7 +274,13 @@
           "."
         ]
       ],
-      "artifacts": [],
+      "artifacts": [
+        {
+          "path": "bin/mesen-mcpd",
+          "kind": "executable",
+          "root": "venv"
+        }
+      ],
       "install_mode": "build"
     },
     {

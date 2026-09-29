@@ -71,6 +71,19 @@ For each header byte, this lists the distinct values observed in each of the fiv
 - byte 14: 1:04/08/10/20/40; 2:10/20; 3:00/10/20/40; 4:04/08/10/20; 5:10/20
 - byte 15: 1:00; 2:00; 3:00; 4:00; 5:00
 
+## Near-end aligned cursor relationship
+
+Treating bytes 11–12 as little-endian places the field near decoded EOF and reveals a stronger corpus-wide alignment property.
+
+- `(LE16@11 + 1) % 16 == 0`: 45/45 streams.
+- bytes remaining after the cursor (`decoded_size - (LE16@11 + 1)`): [7, 10, 14, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36].
+- minimum/maximum bytes after cursor: 7..36.
+- stronger candidate `LE16@11 + 1 = 16 + N×1024`: 4/45 streams (ordinals [1, 7, 9, 16]).
+
+The 16-byte alignment is therefore the corpus-wide fact. The tempting interpretation as a 16-byte header followed by only whole 1024-byte planes is rejected; the separate 1024-unit dimension invariant should not be conflated with this cursor boundary.
+
+Dragster has `LE16@11 = 0x840F`, so the next byte is the 16-byte-aligned offset `0x8410`; exactly seven bytes remain through decoded EOF at `0x8416`. The observed runtime seven-step increment walks the field from `0x840F` to `0x8416`, consuming that entire trailing region and stopping on the final valid byte. This motivates a **pre-trailer cursor** hypothesis: the field may be initialized to the inclusive end of an aligned main-data region and advanced through a variable trailing structure during setup. A second-course runtime capture is required before promoting that interpretation.
+
 ## Dimension-pair invariant
 
 Bytes 13 and 14 form an unusually strict power-of-two-style pair. Treating encoded byte value `0x00` as 256, every one of the 45 streams satisfies `dim13 × dim14 = 1024`.

@@ -8,6 +8,8 @@ Mechanical search for opcode shapes derived from the preserved period `SOURCE/SU
 - entry-dp-sta: `0x00B8F1` (LoROM 01:B8F1)
 - makehuff-shape: `0x00BADC` (LoROM 01:BADC), `0x00BE01` (LoROM 01:BE01)
 - makehuff-prologue: `0x00BADC` (LoROM 01:BADC)
+- makehuff-tail: `0x00BB60` (LoROM 01:BB60), `0x00BE8A` (LoROM 01:BE8A)
+- readword-lorom-safe: `0x00BB6F` (LoROM 01:BB6F), `0x00BE99` (LoROM 01:BE99)
 
 ## europe-retail
 
@@ -15,6 +17,8 @@ Mechanical search for opcode shapes derived from the preserved period `SOURCE/SU
 - entry-dp-sta: `0x00B8E2` (LoROM 01:B8E2)
 - makehuff-shape: `0x00BACD` (LoROM 01:BACD), `0x00BDF2` (LoROM 01:BDF2)
 - makehuff-prologue: `0x00BACD` (LoROM 01:BACD)
+- makehuff-tail: `0x00BB51` (LoROM 01:BB51), `0x00BE7B` (LoROM 01:BE7B)
+- readword-lorom-safe: `0x00BB60` (LoROM 01:BB60), `0x00BE8A` (LoROM 01:BE8A)
 
 ## legacy-beta
 
@@ -22,6 +26,8 @@ Mechanical search for opcode shapes derived from the preserved period `SOURCE/SU
 - entry-dp-sta: `0x00B8F1` (LoROM 01:B8F1)
 - makehuff-shape: `0x00BADC` (LoROM 01:BADC), `0x00BE01` (LoROM 01:BE01)
 - makehuff-prologue: `0x00BADC` (LoROM 01:BADC)
+- makehuff-tail: `0x00BB60` (LoROM 01:BB60), `0x00BE8A` (LoROM 01:BE8A)
+- readword-lorom-safe: `0x00BB6F` (LoROM 01:BB6F), `0x00BE99` (LoROM 01:BE99)
 
 ## pal-prototype
 
@@ -29,19 +35,45 @@ Mechanical search for opcode shapes derived from the preserved period `SOURCE/SU
 - entry-dp-sta: `0x00B8D1` (LoROM 01:B8D1)
 - makehuff-shape: `0x00BABC` (LoROM 01:BABC), `0x00BDE1` (LoROM 01:BDE1)
 - makehuff-prologue: `0x00BABC` (LoROM 01:BABC)
+- makehuff-tail: `0x00BB40` (LoROM 01:BB40), `0x00BE6A` (LoROM 01:BE6A)
+- readword-lorom-safe: `0x00BB4F` (LoROM 01:BB4F), `0x00BE79` (LoROM 01:BE79)
+
+## Preserved RNC routine bounds
+
+- usa-retail: routine bounds unresolved (prologue hits=[47836], tail hits=[47968, 48778]).
+- europe-retail: routine bounds unresolved (prologue hits=[47821], tail hits=[47953, 48763]).
+- legacy-beta: routine bounds unresolved (prologue hits=[47836], tail hits=[47968, 48778]).
+- pal-prototype: routine bounds unresolved (prologue hits=[47804], tail hits=[47936, 48746]).
+
+## LoROM packed-word integration helper
+
+- usa-retail: unresolved helper hits=[47983, 48793].
+- europe-retail: unresolved helper hits=[47968, 48778].
+- legacy-beta: unresolved helper hits=[47983, 48793].
+- pal-prototype: unresolved helper hits=[47951, 48761].
+
+This helper performs a 16-bit packed-stream read with LoROM bank-boundary repair and restores `IN` before returning. It is a read adapter, not a course-buffer writer.
+
+### Direct JSR call sites
+
+- usa-retail: helper unresolved.
+- europe-retail: helper unresolved.
+- legacy-beta: helper unresolved.
+- pal-prototype: helper unresolved.
+
 
 ## Traced writer-site context
 
-Dynamic trace run 36517696016 identified USA writer PCs 01:BA96 and 01:BB73. For the other builds, contexts below use the unpacker-entry displacement so structurally corresponding code can be compared without assuming absolute addresses.
+Dynamic trace run 36517696016 identified USA interpreter attribution-scope entries 01:BA96 and 01:BB73. For the other builds, contexts below use the unpacker-entry displacement so structurally corresponding code can be compared without assuming absolute addresses.
 
-### course-byte-increment: USA offset `0x00BA96`, entry-relative +`0x1A5`
+### byte11-mutation-scope: USA offset `0x00BA96`, entry-relative +`0x1A5`
 
 - usa-retail: `0x00BA96` (LoROM 01:BA96): `ba ba 81 25 8f 48 a5 91 a6 93 f0 12 4a 66 8f 88 f0 23 ca f0 09 4a 66 8f 88 f0 1a ca d0 ee 18 a5 82 69 02 00 90 05 09 00 80 e6 84 85 82 20 6f bb a2 10 00 80 d7 ca 86 93 85 91 68 60 00 00 01 00 03 00 07 00 0f 00 1f 00`
 - europe-retail: `0x00BA87` (LoROM 01:BA87): `ab ba 81 25 8f 48 a5 91 a6 93 f0 12 4a 66 8f 88 f0 23 ca f0 09 4a 66 8f 88 f0 1a ca d0 ee 18 a5 82 69 02 00 90 05 09 00 80 e6 84 85 82 20 60 bb a2 10 00 80 d7 ca 86 93 85 91 68 60 00 00 01 00 03 00 07 00 0f 00 1f 00`
 - legacy-beta: `0x00BA96` (LoROM 01:BA96): `ba ba 81 25 8f 48 a5 91 a6 93 f0 12 4a 66 8f 88 f0 23 ca f0 09 4a 66 8f 88 f0 1a ca d0 ee 18 a5 82 69 02 00 90 05 09 00 80 e6 84 85 82 20 6f bb a2 10 00 80 d7 ca 86 93 85 91 68 60 00 00 01 00 03 00 07 00 0f 00 1f 00`
 - pal-prototype: `0x00BA76` (LoROM 01:BA76): `9a ba 81 25 8f 48 a5 91 a6 93 f0 12 4a 66 8f 88 f0 23 ca f0 09 4a 66 8f 88 f0 1a ca d0 ee 18 a5 82 69 02 00 90 05 09 00 80 e6 84 85 82 20 4f bb a2 10 00 80 d7 ca 86 93 85 91 68 60 00 00 01 00 03 00 07 00 0f 00 1f 00`
 
-### decoded-output-write: USA offset `0x00BB73`, entry-relative +`0x282`
+### payload-install-scope: USA offset `0x00BB73`, entry-relative +`0x282`
 
 - usa-retail: `0x00BB73` (LoROM 01:BB73): `a5 95 a4 9f fa c8 c8 ca d0 ab 46 99 e6 95 c9 10 00 d0 9b 60 a7 82 e6 82 d0 11 38 66 82 e6 84 e2 20 eb a7 82 eb c2 20 c6 84 64 82 c6 82 60 c2 39 a3 04 85 84 a3 06 85 82 8b f4 00 00 ab ab a5 82 69 11 00 90 05 09 00 80`
 - europe-retail: `0x00BB64` (LoROM 01:BB64): `a5 95 a4 9f fa c8 c8 ca d0 ab 46 99 e6 95 c9 10 00 d0 9b 60 a7 82 e6 82 d0 11 38 66 82 e6 84 e2 20 eb a7 82 eb c2 20 c6 84 64 82 c6 82 60 c2 39 a3 04 85 84 a3 06 85 82 8b f4 00 00 ab ab a5 82 69 11 00 90 05 09 00 80`

@@ -4,9 +4,9 @@ Status: required supporting capability for UI-state coverage, multiplayer fideli
 
 ## Why this exists
 
-The current project-owned input-fixture grammar is sufficient for the one-player frontend and gameplay routes, but the repository does not yet expose an established, engine-neutral way to express player-2 controller input.
+The project now has an established engine-neutral player-2 controller transport. What remains open is behavioral verification and checkpoint/capture integration for multiplayer frontend and gameplay states.
 
-That blocks durable local promotion of several known multiplayer frontend states:
+Until that evidence exists, durable local promotion remains blocked for several known multiplayer frontend states:
 
 - `TWO_PLAYER_SELECT`
 - `VS_SELECT` beyond first entry
@@ -29,37 +29,19 @@ The project already tracks broader Uniracers OAM/rendering compatibility history
 
 ## Required capability
 
-Extend the shared deterministic fixture model so one script can address at least controller ports 1 and 2 without becoming engine-specific.
-
-The surface should satisfy these requirements:
-
-1. **Explicit controller identity.** A script action must say which SNES controller receives the input.
-2. **Backward compatibility.** Existing one-player scripts retain their current meaning without edits.
-3. **Cross-engine semantics.** Native recompilation, `snesref`/libretro routes, and Mesen adapters must interpret the same controller actions equivalently.
-4. **Simultaneous input.** It must be possible to hold buttons on P1 and P2 during the same guest frames.
-5. **Deterministic duration.** Controller-specific presses/holds use the same frame-count semantics as current `press` commands.
-6. **No hidden mode assumptions.** The fixture should express controller input, not special-case Uniracers menus.
-7. **Observable checkpoints.** Existing `until`, `wait`, `dump`, reset, and turbo behavior must remain usable around multiplayer actions.
-
-A reasonable grammar shape could be either:
+The shared neutral controller stream is now the authoritative transport:
 
 ```text
-press p1:a 2
-press p2:right+a 2
+start:duration:p1-mask[:p2-mask]
 ```
 
-or:
+The three-field form remains P1-only. The optional fourth field is an independent P2 mask using the same 12-bit SNES layout. Same-player intervals may not overlap; cross-player overlap is allowed so simultaneous input is representable.
 
-```text
-p1 press a 2
-p2 press right+a 2
-```
-
-The exact syntax is not yet authoritative. Choose the smallest extension that fits all engines and preserves old scripts.
+Do not add a competing `p2 press ...` dialect to the scene-keyed `.script` grammar merely to unblock the atlas. Keep the neutral stream as the cross-engine controller artifact. State-aware tooling may decide when to emit/freeze that stream and when to record named checkpoints, but it must preserve the shared transport semantics.
 
 ## Integration with dual-controller transport PR #31
 
-PR #31 supplies the transport layer this plan was waiting for rather than a competing scene-script grammar.
+PR #31 has merged the transport layer this plan was waiting for rather than a competing scene-script grammar.
 
 Its neutral stream format is:
 
@@ -67,9 +49,9 @@ Its neutral stream format is:
 start:duration:p1-mask[:p2-mask]
 ```
 
-The three-field form remains P1-only. The optional fourth field is an independent P2 mask using the same 12-bit SNES layout. The same stream is being wired through native Lua replay, patched `snesref`, and Mesen.
+The three-field form remains P1-only. The optional fourth field is an independent P2 mask using the same 12-bit SNES layout. The same stream is wired through native Lua replay, patched `snesref`, and Mesen.
 
-Once #31 lands, keep the layers separate by responsibility:
+Keep the layers separate by responsibility:
 
 ```text
 scene-keyed .script fixture
@@ -125,7 +107,7 @@ Do not mark the capability complete until:
 
 ## Downstream obligations
 
-Once the grammar is available, immediately schedule/implement:
+With the grammar now available, implement and verify:
 
 1. 2P rider-selection handoff and back-stack capture;
 2. VS challenger and challenge-track capture;
@@ -141,4 +123,4 @@ Do not allow completion of general fidelity work to imply multiplayer fidelity i
 
 Any agent modifying the shared fixture grammar, native scripted-input harness, `snesref` input adapter, Mesen fixture adapter, or multiplayer UI code should check this plan and either advance this capability or explicitly preserve its requirements.
 
-Conversely, UI-atlas work should continue on single-controller-reachable states while this dependency is open rather than waiting idle.
+Conversely, UI-atlas work should continue on single-controller-reachable states while behavioral multiplayer verification remains open rather than waiting idle.

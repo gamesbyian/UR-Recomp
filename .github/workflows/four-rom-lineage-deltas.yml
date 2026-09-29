@@ -1,0 +1,28 @@
+name: One-shot four-ROM lineage deltas
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/analyze_rom_lineage_deltas.py"
+      - ".github/workflows/four-rom-lineage-deltas.yml"
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify reference ROM identities
+        run: |
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          test -s "reference/roms/retail/Unirally_Europe.sfc"
+          test -s "reference/roms/prototypes/Uniracers_Beta_legacy.sfc"
+          test -s "reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc"
+      - name: Analyze non-RNC lineage deltas
+        run: |
+          python3 tools/analyze_rom_lineage_deltas.py             --json-out four-rom-lineage-deltas.json
+          cat four-rom-lineage-deltas.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: four-rom-lineage-deltas
+          path: four-rom-lineage-deltas.json

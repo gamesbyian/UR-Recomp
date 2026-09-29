@@ -48,15 +48,30 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 
 **Exit:** complete a stock race in 4:3.
 
-## Phase 4 — Uniracers hardware oddity
+## Phase 4 — Emulator-compatibility seams
 
-Investigate the historical Snes9x game-specific OAM/HDMA behavior.
+Convert known historical Uniracers emulator fixes into local understanding and permanent regression coverage. Keep the seams separate rather than treating every problem as the OAM quirk.
 
-- [ ] Test whether current runtime already handles it.
+### Active-display OAM / sprite ripping
+
+- [ ] Test whether current runtime already handles the behavior correctly.
 - [ ] Reproduce the failure if not.
-- [ ] Determine affected modes.
-- [ ] Reduce to smallest deterministic case.
+- [ ] Determine affected one-player, two-player and Vs. modes.
+- [ ] Trace writes to `$2104` and verify expected scanline/value behavior, including the jgenesis 0/112 and `0xA5`/`0x5A` observations.
+- [ ] Verify the effective high-OAM target and sprites 96-99.
+- [ ] Disassemble the recovered Canoe patch hooks at `0x01534C` and `0x015714` plus injected handler at `0x1FFF00`.
+- [ ] Compare unpatched behavior, Canoe workaround, Snes9x special case, MAME/jgenesis models and bsnes/ares reference behavior.
+- [ ] Reduce any mismatch to the smallest deterministic case.
 - [ ] Prefer a correct general SNES behavior fix to a game-specific hack.
+
+### Other historically exposed seams
+
+- [ ] LoROM SRAM mapping: build deterministic save/load byte-roundtrip coverage.
+- [ ] XOR/window-area logic: identify an affected screen and add PPU/window-state plus frame regression coverage.
+- [ ] Color math / empty-subscreen behavior: identify an affected screen and add PPU/color-math plus frame regression coverage.
+- [ ] Record each seam's final explanation in the research ledger / knowledge base and link its permanent test.
+
+**Exit:** the known historical Uniracers emulator compatibility problems are either reproduced and covered by deterministic tests or explicitly shown not to apply to the canonical runtime.
 
 ## Recovered autonomous-player accelerator
 

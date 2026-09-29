@@ -782,3 +782,16 @@ Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribut
 **Hypothesis:** the field is a mutable cursor initialized to the inclusive end of an aligned main-data region, immediately before a variable trailing structure, and advanced during course setup until it reaches EOF−1.
 
 **Discriminating test:** load the first event of tour index 2 (expected stream 11, with 21 bytes after the aligned cursor). If the model is correct, runtime should advance `LE16@11` by 21 and settle at `decoded_size - 1`. The second-tour course-runtime workflow now records this directly.
+
+
+### R-SEED-043 — Cursor boundary is 16-byte aligned, not generally 1024-byte aligned
+
+**Status:** stronger interpretation rejected  
+**Date:** 2026-09-29  
+**Area:** course format | layout | negative evidence
+
+**Observation:** `LE16@11 + 1` is 16-byte aligned for all 45 USA decoded streams. Dragster additionally happens to satisfy `LE16@11 + 1 = 16 + 33×1024`, which superficially meshes with the independent header-dimension product of 1024.
+
+**Falsification:** only 4/45 USA streams satisfy `LE16@11 + 1 = 16 + N×1024` (streams 1, 7, 9 and 16). The other 41 boundaries land on smaller 16-byte subdivisions.
+
+**Conclusion:** retain the 16-byte boundary invariant. Do **not** interpret the cursor as the end of a stack containing only whole 1024-byte planes, and do not merge this fact with the separate 1024-unit dimension invariant without new runtime/structural evidence.

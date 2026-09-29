@@ -99,22 +99,31 @@ jobs:
           OUT="$RUNNER_TEMP/native-wram-writers.json"
 
           SNESRECOMP_DEBUG_PORT=4377 SDL_AUDIODRIVER=dummy \
-            timeout 90s xvfb-run -a "$EXE" "$ROM" --paused --script "$SCRIPT" \
+            timeout 240s xvfb-run -a "$EXE" "$ROM" --paused --script "$SCRIPT" \
             >"$LOG" 2>&1 &
           HOST_PID=$!
           trap 'kill "$HOST_PID" 2>/dev/null || true' EXIT
 
+          set +e
           python3 tools/trace_native_wram_writers.py \
             --port 4377 \
+            --command-timeout 45 \
+            --coarse-until 900 \
+            --coarse-step 100 \
             --max-frames 1400 \
             --json-out "$OUT"
+          TRACE_STATUS=$?
+          set -e
 
           kill "$HOST_PID" 2>/dev/null || true
           wait "$HOST_PID" 2>/dev/null || true
           trap - EXIT
 
           echo "== host log tail =="
-          tail -n 100 "$LOG"
+          tail -n 120 "$LOG"
+          if [ "$TRACE_STATUS" -ne 0 ]; then
+            exit "$TRACE_STATUS"
+          fi
           test -s "$OUT"
 
       - name: Upload writer evidence

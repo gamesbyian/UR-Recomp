@@ -30,6 +30,12 @@ sources:
   demented_ferrets_review:
     url: "https://dementedferrets.com/2021/02/24/uniracers-review-bombastic-fun/"
     kind: "public_screenshot_reference"
+  vizzed_gallery:
+    url: "https://www.vizzed.com/games/uniracers-snes-super-nintendo-8767-user-screenshots"
+    kind: "public_screenshot_gallery"
+  vizzed_cheats:
+    url: "https://www.vizzed.com/games/uniracers-snes-super-nintendo-8767-cheats-codes"
+    kind: "secondary_cheat_reference"
 
 states:
   - id: BOOT_STARTUP

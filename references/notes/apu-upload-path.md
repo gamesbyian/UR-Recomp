@@ -136,3 +136,32 @@ That target is now narrower still: the first-race caller/source seed is `03:FB55
 2. Correlate the ROM serialization with the already-established `$2143` chunks and the retained SNESRecomp `audio_events` request/apply/SPC-read chains.
 3. Map the higher-level package/song selector relationships represented by the clustered seeds and their callers.
 4. Test whether selectors/data for `Unused Song 1` and `Unused Song 2` are referenced by dormant retail code/data or are otherwise unreachable.
+
+
+## Package caller and dormant-table reachability
+
+A reusable canonical-ROM analysis now maps exact direct package callers by requiring the byte pattern `LDX #imm16 ; JSL $82:82A5`, and separately scans raw 16-bit table-seed occurrences as weak candidates.
+
+Direct callers recovered:
+
+| table | exact direct callers |
+| --- | --- |
+| `03:FAD5` | `02:E0CC`, `03:A63D` |
+| `03:FB15` | `00:9459` |
+| `03:FB55` | `03:CA22`, `03:CA67`, `03:CAAC`, `03:CAF1`, `03:CB36`, `03:CB7B` |
+| `03:FB95` | **none** |
+| `03:FBD5` | `00:A103`, `03:A757` |
+| `03:FC15` | `03:A530` |
+
+This reproduces the twelve direct callers while making their table ownership explicit.
+
+A whole-ROM raw-word scan finds only three other occurrences of the `FB95` low-word seed, near `05:9C05`, `18:B111`, and `18:D84F`. Their surrounding bytes do not match the direct load/call form and are retained only as weak candidates. Therefore no obvious static code reference to `03:FB95` is currently known. This materially strengthens the dormant/unreferenced interpretation, but does **not** prove runtime unreachability: an address could still be computed indirectly.
+
+The table relationship is exact and especially informative: `03:FB95` is a slot-preserving subset of `03:FAD5`, differing at exactly three positions. It replaces block IDs `$15`, `$29`, and `$07` with `$FF` at one-based selector slots 29, 33, and 49 respectively. It adds no blocks of its own.
+
+That turns the next discriminator into a bounded question: determine what blocks `$07`, `$15`, and `$29` contribute to the loaded APU image/package, and compare those contributions with the Demo Race / Unused Song 1 and numbered-race / Unused Song 2 SPC-family differences. If one family is explained by exactly those omissions, `FB95` can be attributed much more strongly. If not, retain it as a dormant package variant without overclaiming song identity.
+
+Durable machine-readable result:
+
+- `analysis/generated/audio-package-map.json`
+- `tools/analyze_audio_packages.py`

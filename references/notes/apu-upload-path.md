@@ -165,3 +165,19 @@ Durable machine-readable result:
 
 - `analysis/generated/audio-package-map.json`
 - `tools/analyze_audio_packages.py`
+
+
+### Omitted-block SPC correlation
+
+The three blocks omitted by `03:FB95` have now been compared directly against all ten preserved SPC APU-RAM snapshots. The SPC archive is acquired transiently and fingerprint-verified; only derived measurements are retained.
+
+- **Block `$15`**: payload length 2,578. After four framing bytes, the remaining **2,574 bytes occur in every one of the ten SPC snapshots**. The numbered races and Unused Song 2 place that body at `$CA29`; Demo Race and Unused Song 1 place it at `$B9B5`; Title and Celebration use shifted locations. This is broadly shared package material, not a song-family discriminator by itself.
+- **Block `$29`**: payload length 256. After one framing byte, **255 bytes occur at `$E3A3` in Demo Race and Unused Song 1**. Celebration has a related 252-byte suffix at `$CA83`. No corresponding substantial match was found in Title, any numbered race, or Unused Song 2. This is strong additional evidence tying block `$29` to the Demo/Unused Song 1 family.
+- **Block `$07`**: payload length 10,894. After one framing byte, **10,893 bytes occur at `$CB7C` only in Celebration** among the ten snapshots. This gives block `$07` a strong Celebration-specific signature in the current corpus.
+
+Therefore the dormant `FB95` variant removes three qualitatively different contributions from `FAD5`: one ubiquitous block (`$15`), one Demo/Unused Song 1-family block (`$29`), and one Celebration-specific block (`$07`). That makes it unlikely that `FB95` is simply a complete package for either currently tagged unused song. A more plausible interpretation is a deliberately reduced package variant whose game-facing selector/caller was removed or became unreachable. This remains provisional until caller-side selector semantics are decoded.
+
+Durable result:
+
+- `analysis/generated/audio-block-spc-correlation.json`
+- `tools/correlate_audio_blocks_spc.py`

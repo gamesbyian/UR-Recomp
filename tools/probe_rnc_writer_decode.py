@@ -32,6 +32,41 @@ SCOPE_ENTRIES = {
 }
 
 
+
+def find_direct_calls(rom: bytes, target_bank: int, target_pc: int) -> list[dict]:
+    patterns = [
+        ("JSR", bytes([0x20, target_pc & 0xFF, (target_pc >> 8) & 0xFF])),
+        (
+            "JSL",
+            bytes([
+                0x22,
+                target_pc & 0xFF,
+                (target_pc >> 8) & 0xFF,
+                target_bank & 0xFF,
+            ]),
+        ),
+    ]
+    out = []
+    for mnem, pat in patterns:
+        pos = 0
+        while True:
+            off = rom.find(pat, pos)
+            if off < 0:
+                break
+            bank = off // 0x8000
+            pc = 0x8000 + (off % 0x8000)
+            out.append(
+                {
+                    "mnemonic": mnem,
+                    "rom_offset": off,
+                    "snes_address": f"{bank:02X}:{pc:04X}",
+                    "context_hex": rom[max(0, off - 16):off + len(pat) + 24].hex(" "),
+                }
+            )
+            pos = off + 1
+    return sorted(out, key=lambda x: x["rom_offset"])
+
+
 def fmt(di) -> str:
     pc = di.key.pc
     return (
@@ -105,6 +140,7 @@ def main() -> int:
 
     report = {
         "entry": f"{ENTRY_BANK:02X}:{ENTRY_PC:04X}",
+        "direct_entry_call_sites": find_direct_calls(rom, ENTRY_BANK, ENTRY_PC),
         "decoded_roots": [
             {
                 "bank": bank,

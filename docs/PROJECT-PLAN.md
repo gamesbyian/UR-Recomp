@@ -249,7 +249,7 @@ Reach and complete a normal one-player race in the native executable with no pre
    - player/name/front-end flow as required;
    - mode/course selection;
    - race start.
-4. Exercise:
+5. Exercise:
    - acceleration;
    - braking;
    - jumping;
@@ -258,9 +258,9 @@ Reach and complete a normal one-player race in the native executable with no pre
    - stunt recognition;
    - boost;
    - finish.
-5. Capture bounded evidence from both recomp and `snesref`.
-6. Record analyzer/AOT/interpreter coverage and unresolved dynamic dispatch encountered by the route.
-7. Turn any actual failure into the smallest reproducible test.
+6. Capture bounded evidence from both recomp and `snesref`.
+7. Record analyzer/AOT/interpreter coverage and unresolved dynamic dispatch encountered by the route.
+8. Turn any actual failure into the smallest reproducible test.
 
 ### Build a multi-interpretation visual reference corpus
 

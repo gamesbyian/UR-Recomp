@@ -71,6 +71,16 @@ For each header byte, this lists the distinct values observed in each of the fiv
 - byte 14: 1:04/08/10/20/40; 2:10/20; 3:00/10/20/40; 4:04/08/10/20; 5:10/20
 - byte 15: 1:00; 2:00; 3:00; 4:00; 5:00
 
+## Dimension-pair invariant
+
+Bytes 13 and 14 form an unusually strict power-of-two-style pair. Treating encoded byte value `0x00` as 256, every one of the 45 streams satisfies `dim13 × dim14 = 1024`.
+
+- distinct decoded pairs: `4×256`, `16×64`, `32×32`, `64×16`, `128×8`, `256×4`.
+- distinct products: [1024].
+- invariant holds: True (45/45).
+
+This strongly supports bytes 13/14 as complementary course-layout dimensions or strides over a fixed 1024-unit plane/table. It does **not** yet establish the unit (tile, block, column, lookup entry, etc.). The zero-as-256 interpretation is structural and should be runtime-validated, especially on the 256×4 and 4×256 cases.
+
 ## Exact cadence test
 
 - tour-slot-3 streams: 9; byte 2 values: [45].

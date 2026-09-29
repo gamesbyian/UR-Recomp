@@ -33,7 +33,7 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 - [x] Native main loop enters and first frame simulates; treat this as execution bring-up cleared, while exact reset-vector tracing remains available if needed.
 - [x] First simulated frame and audio callback complete without a reported DMA/HDMA initialization failure.
 - [x] Title/logo sequence appears and frame 300 has been visually verified from the actual native target.
-- [~] Input reaches menus. The native scripted harness reproduces the recovered bot's `mainMenu = 0xD7` state and `selectedOption = 0x00`; a minimal Down/Up/A pulse probe is now isolating whether scripted controller sampling is correct before menu traversal is extended.
+- [~] Input reaches menus. The native scripted harness now proves a controller-driven `mainMenu = 0xD7` → `onePlayerSelect = 0x3C` transition. A 60-frame scene-settle is currently required before the first confirm edge; the route is advancing one observed menu state at a time toward race entry.
 - [ ] A mode can be selected.
 
 **Exit:** title/menu operation is reproducible.
@@ -78,7 +78,7 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 - [x] Locate public source for Dessyreqt's 2014 full-game real-time Uniracers bot (Pastebin `A0XpKw9v`).
 - [x] Preserve the source and submitted #4250 SMV in the repository with hashes/provenance.
 - [ ] Verify the bot's key RAM labels against the canonical ROM/runtime. The historical 2008 Microstorage WIP SMV has also been recovered and should be used as a second deterministic input corpus.
-- [~] Port or translate its menu-driving policy into the native/snesref deterministic input harness. The recovered main-menu state/selection labels are verified; current work is validating frame-synchronous controller delivery at that menu before restoring downstream bot logic.
+- [~] Port or translate its menu-driving policy into the native/snesref deterministic input harness. Main-menu and one-player rider-select states are now verified under real scripted controller input; current work is extending the settled state-driven route through rider/tour/track selection.
 - [ ] Evaluate its race-driving policy as an autonomous regression workload.
 
 ## Phase 5 — Differential validation

@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Extract recovered player-1 state anchors from WRAM checkpoint dumps."""
+"""Extract normalized Uniracers player state from WRAM checkpoint dumps.
+
+Compatibility aliases for older reports are retained, but addresses and signed
+conversion live in tools/uniracers_state.py.
+"""
 
 from __future__ import annotations
 
@@ -7,24 +11,35 @@ import argparse
 import json
 from pathlib import Path
 
-FIELDS = {
-    "in_race": ("u8", 0x0313),
-    "track": ("u8", 0x00CE),
-    "x_pos": ("u16", 0x0411),
-    "y_pos": ("u16", 0x0415),
-    "x_speed": ("s16", 0x04B7),
-    "y_speed": ("s16", 0x04BB),
-    # Dessyreqt's player-1 Lua table declares airValue and pitch twice.
-    # Lua keeps the later key, so these are the effective addresses used by
-    # the bot. The earlier candidates are retained separately for archaeology.
-    "pitch_effective": ("u8", 0x0F49),
-    "pitch_early_duplicate": ("u8", 0x04C9),
-    "air_effective": ("u8", 0x0545),
-    "air_early_duplicate": ("u8", 0x0547),
-    "faced_direction": ("u8", 0x0BA1),
-    "countdown_timer": ("u16", 0x11BA),
-    "reverse_controls": ("u8", 0x132B),
-    "screen_x": ("u8", 0x1509),
+from uniracers_state import (
+    HISTORICAL_BOT_EFFECTIVE,
+    HISTORICAL_BOT_OVERWRITTEN,
+    PLAYER1_FIELDS,
+    PLAYER2_FIELDS,
+    Field,
+    read_field,
+)
+
+FIELDS: dict[str, Field] = {
+    "in_race": PLAYER1_FIELDS["in_race"],
+    "track": PLAYER1_FIELDS["track"],
+    "x_pos": PLAYER1_FIELDS["x_pos"],
+    "y_pos": PLAYER1_FIELDS["y_pos"],
+    "x_speed": PLAYER1_FIELDS["x_speed"],
+    "y_speed": PLAYER1_FIELDS["y_speed"],
+    "pitch": PLAYER1_FIELDS["pitch"],
+    "air": PLAYER1_FIELDS["air"],
+    "rotation_candidate": PLAYER1_FIELDS["pitch"],
+    "player2_pitch": PLAYER2_FIELDS["pitch"],
+    "player2_air": PLAYER2_FIELDS["air"],
+    "pitch_effective": HISTORICAL_BOT_EFFECTIVE["pitch_scratch"],
+    "pitch_early_duplicate": HISTORICAL_BOT_OVERWRITTEN["pitch"],
+    "air_effective": HISTORICAL_BOT_EFFECTIVE["air"],
+    "air_early_duplicate": HISTORICAL_BOT_OVERWRITTEN["air"],
+    "faced_direction": PLAYER1_FIELDS["faced_direction"],
+    "countdown_timer": PLAYER1_FIELDS["countdown_timer"],
+    "reverse_controls": PLAYER1_FIELDS["reverse_controls"],
+    "screen_x": PLAYER1_FIELDS["screen_x"],
 }
 
 DEFAULT_CHECKPOINTS = [
@@ -37,22 +52,11 @@ DEFAULT_CHECKPOINTS = [
 ]
 
 
-def read_field(data: bytes, kind: str, addr: int) -> int:
-    if kind == "u8":
-        return data[addr]
-    raw = int.from_bytes(data[addr : addr + 2], "little", signed=False)
-    if kind == "u16":
-        return raw
-    if kind == "s16":
-        return raw - 0x10000 if raw & 0x8000 else raw
-    raise ValueError(kind)
-
-
 def read_dump(path: Path) -> dict[str, int]:
     data = path.read_bytes()
     if len(data) < 0x20000:
         raise ValueError(f"{path}: expected 128 KiB WRAM, got {len(data)} bytes")
-    return {name: read_field(data, kind, addr) for name, (kind, addr) in FIELDS.items()}
+    return {name: read_field(data, field) for name, field in FIELDS.items()}
 
 
 def main() -> int:
@@ -74,8 +78,8 @@ def main() -> int:
             f"{tag}: "
             f"xPos={state['x_pos']} yPos={state['y_pos']} "
             f"xSpeed={state['x_speed']} ySpeed={state['y_speed']} "
-            f"pitch={state['pitch_effective']} pitchEarly={state['pitch_early_duplicate']} "
-            f"air={state['air_effective']} airEarly={state['air_early_duplicate']} "
+            f"pitch={state['pitch']} pitchScratch={state['pitch_effective']} "
+            f"air={state['air']} player2Air={state['player2_air']} "
             f"countdown={state['countdown_timer']}"
         )
 

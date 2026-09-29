@@ -14,6 +14,21 @@ mod = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(mod)
 
 
+class GhidraSymbolAdapterTests(unittest.TestCase):
+    def test_lorom_cpu_bank_maps_to_ghidra_canonical_bank(self) -> None:
+        self.assertEqual(mod.ghidra_lorom_address(0x01, 0xB8F1), 0x81B8F1)
+        self.assertEqual(mod.ghidra_lorom_address(0x81, 0xB8F1), 0x81B8F1)
+        self.assertIsNone(mod.ghidra_lorom_address(0x01, 0x7000))
+
+    def test_render_ghidra_preserves_wram_cpu_addresses(self) -> None:
+        rendered = mod.render_ghidra([
+            {"kind": "function", "address": "01:B8F1", "name": "Code"},
+            {"kind": "ram", "address": "7F:1234", "name": "Ram"},
+        ])
+        self.assertIn('"address": "81B8F1"', rendered)
+        self.assertIn('"address": "7F1234"', rendered)
+
+
 class MesenSymbolAdapterTests(unittest.TestCase):
     def test_lorom_function_maps_to_prg_rom_offset(self) -> None:
         rendered = mod.render_mesen([

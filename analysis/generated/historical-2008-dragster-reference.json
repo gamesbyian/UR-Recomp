@@ -1,0 +1,43 @@
+{
+  "source_movie": "references/imported/tas-bots/uniracers-2008-wip-microstorage.smv",
+  "sample_count": 4975,
+  "event_runs": 307,
+  "reset_anchored": true,
+  "reset_markers": [],
+  "embedded_sram_sha256": "8eb0ed3d85235935668210be94f9600fbd3ca8742e3a385239ccc51e1424c5a1",
+  "emitted_sram_size": 8192,
+  "emitted_sram_sha256": "15650bb496292c6fc9c1ea35f8b26070d8c1617169fbe75be3c0482d98649fd1",
+  "first_in_race_frame": null,
+  "first_race_results_frame": null,
+  "reference_reached_race": false,
+  "reference_reached_results": false,
+  "menu_transitions": [
+    {
+      "frame": 248,
+      "old": 0,
+      "val": 132
+    },
+    {
+      "frame": 437,
+      "old": 132,
+      "val": 215
+    },
+    {
+      "frame": 493,
+      "old": 215,
+      "val": 59
+    },
+    {
+      "frame": 494,
+      "old": 59,
+      "val": 62
+    }
+  ],
+  "in_race_transitions": [
+    {
+      "frame": 493,
+      "old": 0,
+      "val": 60
+    }
+  ]
+}

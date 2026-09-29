@@ -16,16 +16,16 @@
     },
     {
       "id": "snes2asm",
-      "mode": "pending",
+      "mode": "vendored",
       "upstream_url": "https://github.com/nathancassano/snes2asm.git",
       "revision": "04023b0b589042b212f30c92ec7acf6e6bd010e4",
-      "source_path": null,
+      "source_path": "third_party/src/snes2asm",
       "archive_path": null,
-      "source_sha256": null,
-      "license_spdx": null,
-      "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
-      "provenance_path": null
+      "source_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "license_spdx": "Apache-2.0",
+      "license_path": "third_party/src/snes2asm/LICENSE",
+      "notes": "Pruned pristine upstream source. GUI, upstream tests/ROM fixture, and bin wrappers are omitted. UR-Recomp's existing patch remains separate and hash-checked; PyYAML is provided as a repository-owned pure-Python dependency closure.",
+      "provenance_path": "third_party/provenance/snes2asm.json"
     },
     {
       "id": "superfamiconv",
@@ -182,6 +182,19 @@
       "license_path": null,
       "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
       "provenance_path": null
+    },
+    {
+      "id": "pyyaml-6.0.3",
+      "mode": "vendored",
+      "upstream_url": "https://github.com/yaml/pyyaml.git",
+      "revision": "49790e73684bebad1df05ef8d828fa12f685bffb",
+      "source_path": "third_party/src/pyyaml-6.0.3",
+      "archive_path": null,
+      "source_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "license_spdx": "MIT",
+      "license_path": "third_party/src/pyyaml-6.0.3/LICENSE",
+      "provenance_path": "third_party/provenance/pyyaml-6.0.3.json",
+      "notes": "Pure-Python runtime subset for snes2asm. Optional LibYAML extension, build system, examples and upstream tests are omitted."
     }
   ]
 }

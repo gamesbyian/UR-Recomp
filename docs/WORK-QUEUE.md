@@ -48,7 +48,7 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 - [x] Rotate intentionally with L/R while airborne. Run 36516524308 confirms persistent player-1 `7E:04C7` as a modulo-64 pitch angle: eight L frames move 7→55 (−16 mod 64), eight R frames move 7→23 (+16), identically native/reference.
 - [x] Land with event-relative state validation. Run 36517502791 matches native/reference throughout: track-height contact clears `air` by `landing-034`, and vertical velocity is fully reset by `landing-036`. Script labels include the runner's mandatory idle frames and are treated as event-relative.
 - [x] Validate one reproducible collision/contact case. Run 36518208740 is green and native/Snes9x agree at every tracked semantic checkpoint. Against the timing-identical clean-jump control, the 16-frame airborne over-rotation intervention produces a distinct failed-landing/contact trajectory: at the key checkpoint player 1 remains airborne with `ySpeed=-187` and reduced `xSpeed=389`, while control is already grounded with `ySpeed=0` and `xSpeed=448`; the displacement/speed difference persists through settle.
-- [~] Finish a stock race deterministically. Collision/contact is now closed; deterministic race completion is the active Phase 3 milestone.
+- [~] Finish a stock race deterministically. Collision/contact is closed. The active discriminator is now exact replay of the recovered reset-anchored 2008 WIP using its frozen controller stream plus embedded starting SRAM in both pinned Snes9x and the native Lua bridge; the simpler rhythmic Dragster probe remains a secondary diagnostic.
 - [ ] No simulation modifications.
 
 **Exit:** complete a stock race in 4:3.

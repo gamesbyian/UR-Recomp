@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 from collections import Counter
 from pathlib import Path
 import re
@@ -52,7 +53,7 @@ def duplicate_lua_keys(lines: list[str]) -> list[tuple[str, int, int]]:
     return out
 
 
-def main() -> int:
+def render() -> str:
     data = {name: source_lines(path) for name, path in TARGETS.items()}
 
     old = named_lines(data["Snes9x 1.43 DMA"], r"SNESGameFixes\.Uniracers")
@@ -104,8 +105,23 @@ def main() -> int:
         "Do not count the two Snes9x snapshots as independent hardware corroboration. For active-display OAM behavior, prioritize deterministic ROM evidence and generic state-machine models; use game-specific emulator hacks as regression history.",
         "",
     ]
+    return "\n".join(lines)
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--check", action="store_true")
+    args = ap.parse_args()
+
+    rendered = render()
+    if args.check:
+        if not OUT.is_file() or OUT.read_text(encoding="utf-8") != rendered:
+            raise SystemExit(f"stale generated audit: run {Path(__file__).as_posix()}")
+        print(f"third-party source audit is current: {OUT}")
+        return 0
+
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text("\n".join(lines), encoding="utf-8")
+    OUT.write_text(rendered, encoding="utf-8")
     print(OUT)
     return 0
 

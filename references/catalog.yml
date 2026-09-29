@@ -537,8 +537,14 @@ sources:
     title: "Zophar's Domain Uniracers SPC mirror"
     type: audio_dump_mirror
     url: "https://www.zophar.net/music/nintendo-snes-spc/uniracers"
+    archive_url: "https://fi.zophar.net/soundfiles/nintendo-snes-spc/uniracers/Uniracers%20%28EMU%29.zophar.zip"
+    archive_size: 491821
+    archive_sha256: "85a3f00cfe46cddd18caa714374ef54da6835f0d293557ce499de352b8d4fdb0"
+    analysis: "references/notes/uniracers-spc-archaeology.md"
+    generated_summary: "analysis/generated/uniracers-spc-summary.json"
+    status: "acquired and analyzed transiently; binary intentionally not redistributed in this public repository"
     rights: "Public SPC mirror; underlying game audio rights remain with rightsholders."
-    relevance: "Independent surviving mirror of the Uniracers/Unirally SPC set and unused-song tags."
+    relevance: "Independent surviving mirror of the ten-track Uniracers/Unirally SPC set. Analysis identifies a shared driver candidate, shared BRR sample-bank prefix, and distinct Demo-family versus numbered-race-family structure for the two unused songs."
 
   - id: tamoketh-ue4-uniracers-spiritual-successor
     title: "Tamoketh UE4 Uniracers spiritual-successor progress"

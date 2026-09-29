@@ -207,3 +207,16 @@ Durable result:
 
 - `analysis/generated/audio-setup-selector-map.json`
 - `tools/scan_audio_setup_selectors.py`
+
+
+### Setup routine decoded: direct block uploads
+
+The bounded static extraction resolves the semantic class of the repeated `JSL $82:807E` setup calls.
+
+- `02:807E` is a long-call wrapper: `JSR $8082; RTL`.
+- `02:8082` saves caller state, begins the SPC handshake, calls `02:812A APU_ResolveBlockPointer` with the caller's X value, and transfers the resolved record through the APU ports.
+- Therefore the observed immediates `$32-$42` are **audio block IDs**, continuing beyond the first 50 records (`$00-$31`) referenced by the six 64-byte package tables.
+
+This materially changes the interpretation of the `$3B/$3D` gaps. They are not merely missing high-level selector numbers. They are missing direct calls to two block IDs inside a dense run of directly uploaded audio records. The next discriminator is to parse the physical block pool through `$42` and test whether records `$3B` and `$3D` exist and, if so, whether their payloads fingerprint either tagged unused-song SPC family.
+
+The routine is promoted as `APU_UploadBlockById_Wrapper` at `02:807E`. The inner body at `02:8082` remains available for a later finer symbol split if useful.

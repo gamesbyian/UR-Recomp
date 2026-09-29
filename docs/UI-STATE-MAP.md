@@ -168,8 +168,15 @@ That gives the following locally reproduced state anchors:
 | TRACK_SELECT | `7E:009F = F6` | `tracks-ready` |
 | PRE_RACE_CARD / Now Playing | `7E:009F = 16` | `now-playing-ready` |
 | GAMEPLAY | `7E:0313 = 01` | `race-entered` |
+| TWO_PLAYER_SELECT | `7E:009F = 3D` | `ui-two-player-entry` |
+| VS_SELECT | `7E:009F = 3E`; raw SRAM owner `0x0743 = 04` for P1 and `02` for P2 | harvested VS frames; reset-free `ui-vs-handoff` owns future captures |
+| OPTIONS_MENU | `7E:009F = 57` | `ui-options-entry` |
+| RECORDS | `7E:009F = 5D` | `ui-records-entry` |
+| RECORD_TRACK | entry `7E:009F = CC` | `ui-record-track-entry` |
+| PAUSE | `7E:009F = 00`, `7E:0313 = 01` while overlay visible | `ui-pause-after-start` |
+| RESULT_RACE | `7E:009F = 99` | `race-results` |
 
-So the basic screenshot atlas does not need a new rendering subsystem. It already falls out of a route the project trusts.
+So the basic screenshot atlas does not need a new rendering subsystem. The harvested native artifact is summarized durably in `analysis/generated/ui-atlas-native-harvest-2026-09-29.md`, including framebuffer hashes and negative results so expired Actions artifacts do not erase the reasoning. It already falls out of a route the project trusts.
 
 The repository includes `tests/input/ui-options-route.script`, a narrow reconnaissance fixture that:
 
@@ -212,9 +219,9 @@ verified < documented < historical < hypothesis
 
 A route requested with `--max-status documented` may use verified or manual-documented edges, but it will refuse a path that depends on a historical bot label or an untested hypothesis.
 
-The first generated baseline exposed several bookkeeping gaps that were already known semantically. Those have now been encoded, including multiplayer-to-tour progression, all three result-to-post-result transitions, post-result next/back paths, Options submenu returns, ending return, and erase-confirmation cancel.
+The first generated baseline exposed several bookkeeping gaps that were already known semantically. Later evidence has corrected some of those initial guesses rather than merely filling them in. In particular, the verified ordinary 1P Race route is `RESULT_RACE -> TRACK_SELECT` on A/B, not `RESULT_RACE -> POST_RESULT_DECISION`; the following X returns `TRACK_SELECT -> TOUR_SELECT`.
 
-The same pass added fresh capture contracts for Pause and Race Results and a controller-only Options fan-out covering Records, Define Player, Rename Player, and Define League. A separate safe probe enters the manual-documented erase-all confirmation, captures it, and cancels without ever confirming destructive state deletion.
+The same pass added capture contracts for Pause and Race Results and a controller-only Options fan-out covering Records, Define Player, Rename Player, and Define League. A separate safe probe enters the manual-documented erase-all confirmation, captures it, and cancels without ever confirming destructive state deletion. The completed native artifact also promoted the Options/Records/Track Records anchors and exposed reset-related false negatives in several multi-branch probes.
 
 After expanding Records and League naming into distinct visible states, the current generated baseline has **34 conceptual states, 57 executable transitions, 63 capture contracts, and 23 states with at least one capture contract**. Eight states also have indexed public visual leads, two nonvisual/unstable graph nodes are explicitly capture-exempt, and one named capability dependency tracks the missing shared player-2 input surface. The larger gap count reflects finer modeling plus a separate “visually dark” check rather than lost coverage: the newly explicit Records screens and League naming state now appear honestly as uncaptured until evidence classifies them.
 
@@ -322,7 +329,7 @@ The conceptual graph should stay concise. The capture manifest owns reproducible
 
 The shared deterministic controller transport is now present on `main`. Its neutral stream is `start:duration:p1-mask[:p2-mask]`, with independent P1/P2 masks consumed by the native Lua adapter, patched `snesref`, and Mesen adapter.
 
-The remaining boundary is behavioral verification and capture synchronization, not input syntax. `docs/TWO-PLAYER-FIXTURE-PLAN.md` owns the acceptance route: prove P2-only causality and P1→P2 rider-selection handoff, then attach stable named checkpoints/framebuffers to the deeper 2P/VS states. Until that route is reproduced, `VS_CHALLENGER` and `VS_CHALLENGE_TRACK` remain intentionally blocked in route planning even though the transport underneath them exists.
+The remaining boundary is behavioral verification and capture synchronization, not input syntax. `TWO_PLAYER_SELECT = 0x3D` and `VS_SELECT = 0x3E` are now locally reproduced. An accidental VS route also proves the visible P1→P2 selector handoff while `0x3E` remains stable; raw SRAM offset `0x0743` changes `04 -> 02` across that handoff. `docs/TWO-PLAYER-FIXTURE-PLAN.md` owns the remaining acceptance route: prove P2-only causality/confirmation, reconcile that raw discriminator with the historical bot's 5/3/1 comment, then attach stable checkpoints to `VS_CHALLENGER`, `VS_CHALLENGE_TRACK`, 2P progression, and split-screen gameplay.
 
 ## Top-level branch probes
 
@@ -334,7 +341,9 @@ MAIN_MENU --VS--> first VS screen --X--> MAIN_MENU
 MAIN_MENU --LEAGUE--> first League screen --X--> MAIN_MENU
 ```
 
-The destination menu IDs are not hard-coded. Each entry state is dumped and passed to the atlas as a discovery. The recovered 2014 bot predicts `0x3D` for `TWO_PLAYER_SELECT` and `0x3E` for `VS_SELECT`; the local capture decides whether those labels are promoted. It also predicts later VS phases at `0x3F` and `0x5A`, which remain queued for follow-on probing. League is deliberately left entirely open because the historical bot does not provide a useful named League menu anchor.
+The original multi-branch fixture uses scripted console resets between branches. The successful native artifact captured the first 2P branch, then the runtime crashed during reset before VS/League could execute. That is a harness/reset limitation, not evidence that the later game branches are absent.
+
+`tests/input/ui-vs-handoff.script` now provides a reset-free, selectedOption-guarded VS route in its own process. It targets the locally established `0x3E` P1/P2 handoff and captures the SRAM ownership discriminator. The recovered bot's later VS phases at `0x3F` and `0x5A` remain queued behind real P2 confirmation. League remains open: the earlier nominal League probe actually landed in VS because rapid menu inputs were swallowed, and its labels have explicitly not been promoted as League evidence.
 
 ## Screenshot-backed states already found online
 
@@ -398,13 +407,11 @@ These stay explicitly lower-confidence until a local controller/input route capt
 The original manual provides enough structure to seed states that were not found in the first screenshot sweep:
 
 - `PRE_RACE_CARD`: a brief screen states who is playing whom and on what track.
-- `RESULT_RACE`: immediate race result.
 - `RESULT_CIRCUIT`: immediate circuit result with per-lap indicators.
 - `RESULT_STUNT`: stunt tally/result.
 - `LEAGUE_SELECT`: list of active leagues.
 - `LEAGUE_TABLE`: league positions plus a RACE action.
-- `OPTIONS_MENU`.
-- `RECORDS` family: Track Records, High Scores, Player Scores, Group Tables.
+- the remaining `RECORDS` screens: High Scores, Player Scores, and Group Tables. `RECORDS` itself and Track Records are now locally captured.
 - `DEFINE_PLAYER`.
 - `RENAME_PLAYER`.
 - `DEFINE_LEAGUE`.
@@ -425,7 +432,7 @@ These should become deterministic fixtures because they are cheap and behavioral
 | Generic menu | Y or X | previous menu | manual |
 | MAIN_MENU | hold Left + A + L + R | erase-all confirmation | manual |
 | DEFINE_LEAGUE | SELECT + Y + A | guarded redefine/destructive action | manual |
-| GAMEPLAY | Start | pause | manual/control documentation; capture still desirable |
+| GAMEPLAY | Start | pause | locally reproduced; overlay keeps `currentMenu=00`, `inRace=01` on tested route |
 
 The exact frame timing and chord semantics of destructive combinations remain runtime questions.
 
@@ -526,12 +533,12 @@ The machine-readable file tracks these as `UIQ-001` onward. The new Options fixt
 
 1. Exact boot/logo/intro sequence and skip behavior.
 2. Whether A/B equivalence and X/Y-back are genuinely universal.
-3. Exact 2P/VS back-stack behavior.
+3. P2-only causality/confirmation, deeper VS back-stack, and the exact meaning/mapping of the raw SRAM ownership discriminator.
 4. Pre-race card timing and skip input.
-5. Exact post-result choices for every mode.
-6. Full Options layout.
-7. Records screen order/navigation.
-8. Pause presentation/actions.
+5. Circuit/Stunt/2P/VS/League post-result choices; ordinary 1P Race is now locally pinned.
+6. Remaining Options substate behavior rather than the already captured hub.
+7. Records score-screen order/navigation, especially the three uncaptured score families and Track Records internal `0xCC -> 0x5A` behavior.
+8. Pause QUIT behavior; pause presentation and Start-resume are now locally captured.
 9. Attract/demo timeout and return path.
 10. Hunter unlock and Anti-Uni-specific frontend/result states.
 

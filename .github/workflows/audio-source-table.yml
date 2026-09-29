@@ -134,17 +134,25 @@ jobs:
           test -x "$PROJECT/build-trace/UniracersSNESRecomp"
 
           mapfile -t FUNCS < <(
-            grep -RhoE 'bank_82_8298_M[01]X[01]' "$PROJECT/src" |
+            grep -RhoE 'bank_[0-9A-Fa-f]{2}_8298_M[01]X[01]' "$PROJECT/src" |
               sort -u
           )
-          printf 'generated variants at 82:8298:\n'
+          printf 'generated variants at ??:8298:\n'
           printf '  %s\n' "${FUNCS[@]:-}"
           if [ "${#FUNCS[@]}" -ne 1 ]; then
-            echo "expected exactly one generated variant at 82:8298" >&2
+            echo "expected exactly one generated variant at ??:8298" >&2
             exit 1
           fi
-          echo "APU_FUNC=${FUNCS[0]}" >> "$GITHUB_ENV"
-          grep -R -n -B8 -A180 "${FUNCS[0]}" "$PROJECT/src" \
+          APU_FUNC="${FUNCS[0]}"
+          BANK_HEX="$(printf '%s\n' "$APU_FUNC" | sed -E 's/^bank_([0-9A-Fa-f]{2})_8298_.*/\1/')"
+          if ! [[ "$BANK_HEX" =~ ^[0-9A-Fa-f]{2}$ ]]; then
+            echo "could not derive bank from generated function: $APU_FUNC" >&2
+            exit 1
+          fi
+          APU_PC24="${BANK_HEX}8298"
+          echo "APU_FUNC=$APU_FUNC" >> "$GITHUB_ENV"
+          echo "APU_PC24=$APU_PC24" >> "$GITHUB_ENV"
+          grep -R -n -B8 -A180 "$APU_FUNC" "$PROJECT/src" \
             > "$RUNNER_TEMP/audio-source/generated-apu-transfer.txt" || true
 
       - name: Trace source table and transport
@@ -167,6 +175,7 @@ jobs:
           set +e
           python3 tools/trace_audio_source_table.py \
             --snapshot-function "$APU_FUNC" \
+            --target-pc24 "0x$APU_PC24" \
             --port 4377 \
             --command-timeout 60 \
             --coarse-until 900 \
@@ -201,8 +210,14 @@ jobs:
           if d["snapshot_count"] < 1:
               raise SystemExit("target function executed but no function snapshot was captured")
           pointers = [
-              s["source_pointer"] for s in d["snapshots"]
-              if s.get("source_pointer")
+              {
+                  "entry": s.get("entry_stream_pointer"),
+                  "entry_file": s.get("entry_stream_file_offset"),
+                  "working_63": s.get("working_pointer_63"),
+                  "working_63_file": s.get("working_pointer_63_file_offset"),
+              }
+              for s in d["snapshots"]
+              if s.get("entry_stream_pointer") or s.get("working_pointer_63")
           ]
           print(json.dumps({
               "race_active_frame": d["race_active_frame"],

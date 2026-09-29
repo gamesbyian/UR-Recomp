@@ -238,6 +238,14 @@ Do not spend compute deriving obvious button behavior from assembly when a scree
 
 Two-player and VS coverage is a required part of this workstream, not a deferred nicety. The shared neutral P1/P2 transport now exists; `docs/TWO-PLAYER-FIXTURE-PLAN.md` owns the behavioral acceptance route and downstream atlas/fidelity obligations. Continue single-controller atlas work in parallel, but do not treat frontend/fidelity coverage as complete while 2P/VS handoff, split-screen race entry, and cross-runtime multiplayer checkpoints remain unverified.
 
+Do not optimize for 100% atlas closure as an end in itself. Classify remaining gaps before spending effort:
+
+- **critical fidelity:** close it;
+- **cheap completeness:** take the free evidence;
+- **archaeological tail:** preserve known evidence and move on unless another task makes it relevant.
+
+The default escalation budget for an archaeology-only gap is zero beyond cheap observation. Do not trace, disassemble, build bespoke tooling, or create recurring CI merely to answer trivia such as exact forbidden-name behavior, every intermediate tally state, editor punctuation wrapping, or exact attract-mode timing.
+
 ## Experimental apparatus
 
 The research program should attack important unknowns from multiple independent directions rather than treating disassembly as the final product.

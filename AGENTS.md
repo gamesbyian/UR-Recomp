@@ -49,6 +49,7 @@ Compact router for coding and research agents. Load the smallest current authori
 
 20. Imported executable code is raw material, not a trusted dependency. Preserve provenance, but normalize useful behavior into project-owned tools and add regression coverage before depending on it.
 21. Two-player fixture work is a required fidelity dependency. If touching shared input grammar or engine adapters, preserve or advance `docs/TWO-PLAYER-FIXTURE-PLAN.md`; do not let one-player coverage silently stand in for multiplayer coverage.
+22. A UI-atlas gap is not automatically project debt. Apply the completion tiers in `docs/UI-STATE-MAP.md`: close critical-fidelity gaps, harvest cheap evidence, and leave archaeology-only gaps open unless they become implementation-, validation-, compatibility-, or product-relevant.
 
 ## Research before reinvention
 

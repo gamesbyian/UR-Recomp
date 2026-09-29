@@ -170,4 +170,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -f third_party/src/wla-dx third_party/provenance/wla-dx.json third_party/manifest.json
           git commit -m "toolchain: vendor WLA-DX 65816 source"
+          git fetch origin "${{ github.ref_name }}"
+          git rebase "origin/${{ github.ref_name }}"
           git push origin "HEAD:${{ github.ref_name }}"

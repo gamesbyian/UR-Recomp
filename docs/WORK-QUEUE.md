@@ -144,6 +144,63 @@ Only after deterministic stock behavior is established.
 
 Optional authentic scaling, arbitrary windows, 16:9/ultrawide, high-resolution UI and replacement presentation layers.
 
+### Frontend modernization / subtraction
+
+Do this from the verified original UI state map, not from memory or generic modern-UI assumptions.
+
+- [ ] Classify original frontend states/features as presentation artifact, gameplay mechanic, or administrative/hardware-era system.
+- [ ] Preserve every original audiovisual indicator by default; add clearer labels, values, deltas or expanded views alongside it rather than deleting it.
+- [ ] Define the reusable menu visual-language contract from captured evidence: composition, typography, palette, animation/motion, cursor behavior, sounds and transitions.
+- [ ] Design a modern racer/profile model that separates save/profile storage from racer identity and supports create/name/customize. Preserve the original forbidden-name detection list only as an Easter egg: show **"COOL NAME!"** and then accept the entered name normally.
+- [ ] Preserve every classic named/color racer as an exact preset; decide which also become AI opponents, ghosts or tournament cast.
+- [ ] Preserve Bronsen, Silverton and Goldwyn as named opponents independently of any Bronze/Silver/Gold progression redesign.
+- [ ] Prototype a simplified modern League/tournament path while keeping the original League flow reproducible in authentic/reference mode.
+- [ ] Evaluate performance-based medal awarding or selectable challenge tiers as alternatives to mandatory Bronze → Silver → Gold replay.
+- [ ] Add modern per-event/tour persistence unless evidence shows the original session constraint is mechanically meaningful.
+- [ ] Replace destructive controller-chord administration with explicit confirmed actions in modern mode while preserving the original behavior for reference.
+- [ ] Design a unified records/statistics surface that can embed or reproduce the original score/result presentations rather than erasing them.
+- [ ] Make basic controls/status self-explanatory in-game without exposing secrets or advanced discoveries that are intentionally hidden.
+- [ ] Record each intentional modern behavior change as product policy and keep it distinct from fidelity fixes/regressions.
+
+### Baseline modern product requirements
+
+Treat these as must-do unless later technical evidence demonstrates a specific blocker.
+
+- [ ] Full controller hot-plug/rebinding support and practical keyboard support.
+- [ ] Robust autosave, independent profiles/settings and resumable progression.
+- [ ] Instant restart/retry from race, pause and results flows where appropriate.
+- [ ] Modern pause menu with resume, restart, options, controls/run data and exit choices.
+- [ ] Personal-best and previous-run ghosts using local storage only.
+- [ ] Local replay/run-record persistence sufficient to re-drive or review completed runs.
+- [ ] Exact timing, lap/split data, PB deltas and medal/target deltas shown alongside preserved original indicators.
+- [ ] Practice/free-play route with rapid track selection and repeat attempts.
+- [ ] Concise onboarding/tutorial for fundamental controls, landing and stunt-to-speed behavior while preserving secrets/advanced discovery.
+- [ ] Accessibility/input presentation options that do not alter authoritative simulation, including remapping, vibration control, readable text support and reduced flashing where applicable.
+- [ ] Fast local multiplayer join/setup, rematch and track rotation without legacy League bureaucracy.
+- [ ] Authentic/raw-pixel plus modern/HD presentation presets, with optional CRT/NTSC-style display choices where useful.
+- [ ] Fast navigation affordances such as recent track, rematch, next event and direct practice access.
+- [ ] Localization-ready text/UI architecture.
+- [ ] Preserve original attract/demo behavior and leave a clean hook for a local recorded-run showcase.
+- [ ] Keep content/data boundaries friendly to future custom courses, local challenge packs and visual packs without making those all launch requirements.
+
+### Decide when subsystem maturity allows
+
+- [ ] Evaluate expanded racer cosmetics beyond name/color and exact classic presets.
+- [ ] Evaluate a full replay viewer with scrub/frame-step/camera/HUD controls.
+- [ ] Evaluate photo/capture tooling.
+- [ ] Evaluate richer local statistics/telemetry views.
+- [ ] Evaluate achievements/challenges centered on mastery and discovery rather than grind.
+- [ ] Evaluate section/checkpoint-based practice starts after the course/state model is safe enough.
+- [ ] Evaluate a simplified local tournament/bracket mode.
+- [ ] Decide final modern medal/progression policy after original thresholds/state are mapped.
+- [ ] Evaluate a modern attract/demo reel sourced from strong local runs.
+- [ ] Evaluate user-facing mod/content-pack affordances beyond planned custom-course tooling.
+
+### Network/hosted-service non-goals
+
+- [ ] Keep ghost/replay/timing/leaderboard/challenge data models transport-agnostic enough for future extension, but implement only useful local behavior.
+- [ ] Do **not** implement or provision online multiplayer, matchmaking, hosted/global/friend leaderboards, downloadable ghosts, accounts, daily/weekly services, backend deployment, service credentials or online CI/testing unless project infrastructure changes.
+
 - [x] Pin RetroArch, Libretro Slang shaders and bsnes-hd as visual-reference dependencies without adding them to default CI.
 - [x] Define the canonical multi-interpretation upscale/reference strategy in `docs/HD-VISUAL-REFERENCE-PIPELINE.md`.
 - [ ] Curate the minimal project-owned shader/scaler preset matrix: raw/nearest, ScaleNx, HQx, xBR/xBRZ, SABR, ScaleFX, Super-xBR, selected NTSC and selected CRT references.

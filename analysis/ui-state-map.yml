@@ -35,8 +35,12 @@ states:
   - id: BOOT_STARTUP
     family: startup
     kind: sequence
-    confidence: unknown
-    evidence: []
+    confidence: medium
+    evidence: [primary_manual]
+    runtime_signatures:
+      currentMenu_7E009F:
+        demo: "0x00 (recovered 2014 bot label; not yet locally promoted)"
+        splash: "0x84 (recovered 2014 bot label; not yet locally promoted)"
     description: "Power-on/logo/intro sequence before the main menu."
     transitions:
       - input: "sequence completes or accepted skip input"
@@ -47,7 +51,11 @@ states:
     family: frontend
     kind: menu
     confidence: high
-    evidence: [observed_screenshot, primary_manual]
+    evidence: [observed_screenshot, primary_manual, reproduced_runtime]
+    runtime_signatures:
+      currentMenu_7E009F: "0xD7"
+      selectedOption_7E009B: "0x00 for 1P on the verified default route"
+      local_fixture: "tests/input/reach-first-race.script"
     visible_items: ["1P", "2P", "VS", "LEAGUE", "OPTIONS"]
     default_selection: "1P"
     notes:
@@ -85,7 +93,10 @@ states:
     family: race_setup
     kind: menu
     confidence: high
-    evidence: [observed_screenshot, primary_manual]
+    evidence: [observed_screenshot, primary_manual, reproduced_runtime]
+    runtime_signatures:
+      currentMenu_7E009F: "0x3C"
+      local_fixture: "tests/input/reach-first-race.script"
     description: "Choose player-one unicycle from named/color-coded roster."
     transitions:
       - input: "A or B"
@@ -105,7 +116,11 @@ states:
     kind: menu
     confidence: medium
     evidence: [primary_manual]
-    description: "Second unicycle selection pass in 2P/VS."
+    recovered_menu_labels:
+      twoPlayerSelect: "0x3D"
+      vsSelect: "0x3E"
+      vsChallenger: "0x3F"
+    description: "Second unicycle selection / challenger flow in 2P/VS. Recovered labels are historical-bot evidence until locally reproduced."
     transitions:
       - input: "A or B"
         to: TOUR_SELECT
@@ -118,7 +133,11 @@ states:
     family: race_setup
     kind: menu
     confidence: high
-    evidence: [observed_screenshot, primary_manual]
+    evidence: [observed_screenshot, primary_manual, reproduced_runtime]
+    runtime_signatures:
+      onePlayerTours1_currentMenu_7E009F: "0x6D"
+      alternate_or_two_player_tours_7E009F: "0x10 (recovered bot label; context-dependent and not yet locally promoted)"
+      local_fixture: "tests/input/reach-first-race.script"
     visible_known_tours: ["CRAWLER", "SHUFFLER", "WALKER", "HOPPER", "JUMPER", "BOUNDER", "RUNNER", "SPRINTER", "HUNTER"]
     notes:
       - "Manual presents eight normal tours; Hunter is the hidden ninth tour after progression."
@@ -135,7 +154,12 @@ states:
     family: race_setup
     kind: menu
     confidence: high
-    evidence: [observed_screenshot, primary_manual]
+    evidence: [observed_screenshot, primary_manual, reproduced_runtime]
+    runtime_signatures:
+      onePlayerTracks_currentMenu_7E009F: "0xF6"
+      twoPlayerTracksLow: "0x91 (recovered bot label)"
+      twoPlayerTracksHigh: "0x96 (recovered bot label)"
+      local_fixture: "tests/input/reach-first-race.script"
     description: "Five tracks for the selected tour; track type icons are visible."
     transitions:
       - input: "D-pad then A or B"
@@ -148,9 +172,12 @@ states:
   - id: PRE_RACE_CARD
     family: race_setup
     kind: screen
-    confidence: medium
-    evidence: [primary_manual]
-    description: "Brief informational screen identifying matchup/track before play."
+    confidence: high
+    evidence: [primary_manual, reproduced_runtime]
+    runtime_signatures:
+      onePlayerNowPlaying_currentMenu_7E009F: "0x16"
+      local_fixture: "tests/input/reach-first-race.script"
+    description: "Brief informational screen identifying matchup/track before play. The local deterministic route reaches and dumps this state."
     transitions:
       - input: "automatic or confirm input"
         to: GAMEPLAY
@@ -161,6 +188,9 @@ states:
     kind: runtime
     confidence: high
     evidence: [observed_screenshot, reproduced_runtime]
+    runtime_signatures:
+      inRace_7E0313: "0x01"
+      local_fixture: "tests/input/reach-first-race.script"
     variants: ["RACE", "CIRCUIT", "STUNT", "1P", "2P", "VS", "LEAGUE"]
     transitions:
       - event: "finish/timeout/scoring complete"
@@ -195,6 +225,8 @@ states:
     kind: screen
     confidence: high
     evidence: [primary_manual]
+    recovered_menu_labels:
+      raceResults_currentMenu_7E009F: "0x99"
     transitions:
       - input: "advance/next"
         to: POST_RESULT_DECISION
@@ -205,6 +237,8 @@ states:
     kind: screen
     confidence: high
     evidence: [primary_manual]
+    recovered_menu_labels:
+      circuitResults_currentMenu_7E009F: "0xBC"
     transitions:
       - input: "advance/next"
         to: POST_RESULT_DECISION
@@ -215,6 +249,9 @@ states:
     kind: screen
     confidence: high
     evidence: [primary_manual]
+    recovered_menu_labels:
+      stuntResults_currentMenu_7E009F: "0x18"
+      summing_states: ["0x2F", "0xAD", "0xAF", "0xB3", "0xD3", "0xD8", "0xED", "0xF3"]
     transitions:
       - input: "advance/next"
         to: POST_RESULT_DECISION
@@ -359,7 +396,7 @@ states:
 
 open_questions:
   - id: UIQ-001
-    question: "Exact boot/logo/intro states, skip inputs, and timing."
+    question: "Promote/reject recovered demo=0x00 and splash=0x84 labels by local capture; determine skip inputs and timing."
   - id: UIQ-002
     question: "Exact input mapping on every menu: whether A/B are equivalent everywhere and whether Start advances anywhere beyond MAIN_MENU quick-start."
   - id: UIQ-003

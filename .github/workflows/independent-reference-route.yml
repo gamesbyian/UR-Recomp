@@ -10,6 +10,8 @@ on:
       - "tests/input/reach-first-race.script"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain.json"
+      - "third_party/manifest.json"
+      - "third_party/src/beetle-bsnes-libretro/**"
       - "tools/compare_wram_checkpoints.py"
       - ".github/workflows/independent-reference-route.yml"
 
@@ -38,7 +40,7 @@ jobs:
       - name: Build pinned reference cores
         run: |
           python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
-          python3 tools/bootstrap_toolchain.py --tool beetle-bsnes-libretro --jobs 2
+          python3 tools/bootstrap_toolchain.py --offline --tool beetle-bsnes-libretro --jobs 2
 
       - name: Build snesref
         run: |

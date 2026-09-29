@@ -101,7 +101,7 @@
       "group": "core",
       "url": "https://github.com/nathancassano/snes2asm.git",
       "revision": "04023b0b589042b212f30c92ec7acf6e6bd010e4",
-      "purpose": "Configurable LoROM/HiROM disassembly plus graphics, tilemap, palette and SPC700 extraction.",
+      "purpose": "SNES disassembler/project generator, installed into an isolated venv and patched narrowly for UR-Recomp: numeric --empty-fill parsing and robust unknown/missing decoder-type validation.",
       "build": [
         [
           "{python}",
@@ -128,7 +128,13 @@
           "root": "venv"
         }
       ],
-      "install_mode": "build"
+      "install_mode": "build",
+      "patches": [
+        {
+          "path": "tools/patches/snes2asm-ur-recomp.patch",
+          "sha256": "569eb685225d2941d14d3feefdaa8b17b89b6a4f4220bde4d20bd142e6a8c537"
+        }
+      ]
     },
     {
       "id": "cc65",

@@ -1,11 +1,9 @@
-name: One-shot VS P2 OAM reconnaissance
+name: One-shot VS controller causality matrix
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - "tests/input/ui-vs-p2-confirm.input"
-      - "tests/input/ui-vs-p2-confirm-observe.script"
       - "tools/patches/snesrecomp-dual-controller-input.patch"
       - "tools/patches/snes9x-snesref-debug-exports.patch"
       - "tools/toolchain.json"
@@ -14,7 +12,7 @@ on:
 jobs:
   recon:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,35 +32,65 @@ jobs:
           python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
           cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
           cmake --build "$RUNNER_TEMP/snesref-build" -j2
-      - name: Run P2-causal VS route
+      - name: Run controller-causality matrix
         shell: bash
         run: |
           set -euo pipefail
           EXE="$RUNNER_TEMP/snesref-build/snesref"
           CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          DUMPS="$RUNNER_TEMP/vs-p2-dumps"
-          mkdir -p "$DUMPS"
-          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
-          SNESREF_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/ui-vs-p2-confirm.input" \
-          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-vs-p2-confirm-observe.script" \
-          SNESREF_DUMP_DIR="$DUMPS" \
-            "$EXE" "$CORE" "$ROM" | tee "$RUNNER_TEMP/vs-p2-route.log"
-          for tag in vs-p2-before-confirm vs-p2-after-confirm vs-p2-after-060 vs-p2-after-180; do
-            test -s "$DUMPS/$tag.wram.bin"
-            test -s "$DUMPS/$tag.sram.bin"
-            test -s "$DUMPS/$tag.regs.json"
-            test -s "$DUMPS/$tag.ppuw.tsv"
-            test "$(stat -c%s "$DUMPS/$tag.oam.bin")" -eq 544
-            python3 -c 'import pathlib,sys; w=pathlib.Path(sys.argv[1]).read_bytes(); s=pathlib.Path(sys.argv[2]).read_bytes(); print(f"{sys.argv[3]}: menu=0x{w[0x009F]:02X} selected=0x{w[0x009B]:02X} inRace=0x{w[0x0313]:02X} owner_raw=0x{s[0x0743]:02X}")' "$DUMPS/$tag.wram.bin" "$DUMPS/$tag.sram.bin" "$tag"
+          OBS="$RUNNER_TEMP/observe.script"
+          cat >"$OBS" <<'EOF'
+          wait 655
+          dump before
+          wait 10
+          dump after-010
+          wait 60
+          dump after-070
+          wait 120
+          dump after-190
+          quit
+          EOF
+
+          make_input() {
+            local file="$1" p1="$2" p2="$3"
+            cat >"$file" <<EOF
+          500:1:020:000
+          502:1:020:000
+          534:2:100:000
+          597:2:100:000
+          660:2:$p1:$p2
+          EOF
+          }
+
+          make_input "$RUNNER_TEMP/p1-a.input"    100 000
+          make_input "$RUNNER_TEMP/p2-a.input"    000 100
+          make_input "$RUNNER_TEMP/p1-down.input" 020 000
+          make_input "$RUNNER_TEMP/p2-down.input" 000 020
+
+          for variant in p1-a p2-a p1-down p2-down; do
+            echo "===== VARIANT $variant ====="
+            DUMPS="$RUNNER_TEMP/$variant"
+            mkdir -p "$DUMPS"
+            SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+            SNESREF_INPUT_FILE="$RUNNER_TEMP/$variant.input" \
+            SNESREF_SCRIPT="$OBS" \
+            SNESREF_DUMP_DIR="$DUMPS" \
+              "$EXE" "$CORE" "$ROM" 2>&1 | tee "$RUNNER_TEMP/$variant.log"
+            for tag in before after-010 after-070 after-190; do
+              python3 -c 'import pathlib,sys; w=pathlib.Path(sys.argv[1]).read_bytes(); s=pathlib.Path(sys.argv[2]).read_bytes(); print(f"{sys.argv[3]}: menu=0x{w[0x009F]:02X} selected=0x{w[0x009B]:02X} inRace=0x{w[0x0313]:02X} owner=0x{s[0x0743]:02X}")' "$DUMPS/$tag.wram.bin" "$DUMPS/$tag.sram.bin" "$tag"
+            done
+            echo "-- active-display OAM writes --"
+            awk '($4=="2102" || $4=="2103" || $4=="2104") && $2 < 225 {print}' "$DUMPS"/*.ppuw.tsv | head -n 120 || true
           done
-          echo "== active-display OAM writes =="
-          awk '($4=="2102" || $4=="2103" || $4=="2104") && $2 < 225 {print}' "$DUMPS"/*.ppuw.tsv | head -n 300 || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: vs-p2-oam-recon
+          name: vs-controller-causality-matrix
           path: |
-            ${{ runner.temp }}/vs-p2-route.log
-            ${{ runner.temp }}/vs-p2-dumps/
+            ${{ runner.temp }}/p1-a/
+            ${{ runner.temp }}/p2-a/
+            ${{ runner.temp }}/p1-down/
+            ${{ runner.temp }}/p2-down/
+            ${{ runner.temp }}/*.log
           retention-days: 7

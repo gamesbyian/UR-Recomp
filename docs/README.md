@@ -18,6 +18,7 @@ Task routing lives in [`../AGENTS.md`](../AGENTS.md). This file inventories owne
 | [`WIDESCREEN.md`](WIDESCREEN.md) | Focused implementation notes and invariants for the Widescreen feature; subordinate to the project plan |
 | [`TOOLCHAIN.md`](TOOLCHAIN.md) | Research/development tool roles, installation policy, and selection guidance |
 | [`TOOL-INTEROPERABILITY.md`](TOOL-INTEROPERABILITY.md) | Tool input/output formats, verified handoffs, adapter seams, and efficient multi-tool chains |
+| [`TOOLING-AUDIT-CLOSEOUT.md`](TOOLING-AUDIT-CLOSEOUT.md) | Remaining tooling-audit scope, priority order, transfer/defer rules, and closure condition |
 | [`THIRD-PARTY-CODE-AUDIT.md`](THIRD-PARTY-CODE-AUDIT.md) | Review status, defects, adaptation rules and promotion checklist for imported executable/source artifacts |
 | [`PERIODIC-REPOSITORY-HYGIENE.md`](PERIODIC-REPOSITORY-HYGIENE.md) | Recurring repository entropy-control procedure |
 | [`original-development/DEVELOPER-TECHNICAL-HISTORY.md`](original-development/DEVELOPER-TECHNICAL-HISTORY.md) | Confidence-labelled history of original DMA development |

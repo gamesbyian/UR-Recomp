@@ -48,17 +48,21 @@ flowchart TD
     BOOT[BOOT_STARTUP] --> MM[MAIN_MENU]
 
     MM -->|1P| P1[PLAYER_SELECT_P1]
-    MM -->|2P / VS| P1
+    MM -->|2P| P2[TWO_PLAYER_SELECT]
+    MM -->|VS| VS[VS_SELECT]
     MM -->|LEAGUE| LS[LEAGUE_SELECT]
     MM -->|OPTIONS| OPT[OPTIONS_MENU]
     MM -->|Left+A+L+R| ERASE[ERASE_ALL_CONFIRM]
 
-    P1 -->|1P| TOUR[TOUR_SELECT]
-    P1 -->|2P / VS| P2[PLAYER_SELECT_P2]
-    P2 --> TOUR
+    P1 --> TOUR[TOUR_SELECT]
+    P2 -->|participant handoff / complete| P2
+    P2 -->|both chosen| TOUR
+    VS --> VC[VS_CHALLENGER]
+    VC --> VCT[VS_CHALLENGE_TRACK]
+    VCT --> PRE[PRE_RACE_CARD]
 
     TOUR --> TRACK[TRACK_SELECT]
-    TRACK --> PRE[PRE_RACE_CARD]
+    TRACK --> PRE
     PRE --> GAME[GAMEPLAY]
 
     GAME --> RBR{track type}
@@ -155,7 +159,7 @@ MAIN_MENU --VS--> first VS screen --X--> MAIN_MENU
 MAIN_MENU --LEAGUE--> first League screen --X--> MAIN_MENU
 ```
 
-The destination menu IDs are not hard-coded. Each entry state is dumped and passed to the atlas as a discovery. The recovered 2014 bot predicts `0x3D` for 2P Select and `0x3E` for VS Select; the local capture decides whether those labels are promoted. League is deliberately left entirely open because the historical bot does not provide a useful named League menu anchor.
+The destination menu IDs are not hard-coded. Each entry state is dumped and passed to the atlas as a discovery. The recovered 2014 bot predicts `0x3D` for `TWO_PLAYER_SELECT` and `0x3E` for `VS_SELECT`; the local capture decides whether those labels are promoted. It also predicts later VS phases at `0x3F` and `0x5A`, which remain queued for follow-on probing. League is deliberately left entirely open because the historical bot does not provide a useful named League menu anchor.
 
 ## Screenshot-backed states already found online
 
@@ -220,7 +224,7 @@ The original manual provides enough structure to seed states that were not found
 - `DEFINE_LEAGUE`.
 - `ERASE_ALL_CONFIRM`.
 
-The manual states that 2P and VS repeat unicycle selection for the second participant, so `PLAYER_SELECT_P2` is modeled as a separate logical state even if the rendered screen is nearly identical to P1 selection.
+The first skeleton treated multiplayer rider selection as one generic second-player state. The recovered 2014 bot makes that simplification unsafe: it names distinct `TWO_PLAYER_SELECT = 0x3D`, `VS_SELECT = 0x3E`, `VS_CHALLENGER = 0x3F`, and `VS_CHALLENGE_TRACK = 0x5A` states. The conceptual graph now keeps those phases separate while marking the handoffs/transitions as inferred until local controller-only captures promote them.
 
 ## Important known special inputs
 

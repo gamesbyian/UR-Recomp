@@ -68,32 +68,6 @@ jobs:
           cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
           cmake --build "$RUNNER_TEMP/snesref-build" -j2
 
-      - name: Generate and build native target with Lua bridge
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/native"
-          sh snesrecomp/tools/new_project/setup_project.sh \
-            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            --dir "$ROOT" \
-            --name "Uniracers" \
-            --players 2 \
-            --yes \
-            --no-ci \
-            --no-fetch-boxart \
-            --no-recomp-ui \
-            --no-netplay \
-            --no-github \
-            --generate \
-            --no-build \
-            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
-          PROJ="$ROOT/UniracersSNESRecomp"
-          cmake -S "$PROJ" -B "$PROJ/build" \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DSNESRECOMP_ENABLE_LUA=ON
-          cmake --build "$PROJ/build" -j2
-          test -x "$PROJ/build/UniracersSNESRecomp"
-
       - name: Trace one complete reference replay
         shell: bash
         run: |
@@ -134,6 +108,32 @@ jobs:
             --smv-meta "$RUNNER_TEMP/wip-2008.json" \
             --trace-summary "$RUNNER_TEMP/dragster-trace-state.json" \
             --out analysis/generated/historical-2008-dragster-reference.json
+
+      - name: Generate and build native target with Lua bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/native"
+          sh snesrecomp/tools/new_project/setup_project.sh \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --generate \
+            --no-build \
+            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+          PROJ="$ROOT/UniracersSNESRecomp"
+          cmake -S "$PROJ" -B "$PROJ/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ENABLE_LUA=ON
+          cmake --build "$PROJ/build" -j2
+          test -x "$PROJ/build/UniracersSNESRecomp"
 
       - name: Replay exact historical input in native runtime
         shell: bash

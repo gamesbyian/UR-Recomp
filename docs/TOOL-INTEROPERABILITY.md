@@ -62,14 +62,25 @@ The existing `tests/input/*.script` grammar already drives native recompilation 
 
 ### Historical SMV → neutral replay → multiple engines
 
-This chain is already **verified**, not aspirational. `tools/extract_smv_input.py` converts Snes9x SMV movies into the project-neutral `start:duration:mask` controller stream, emits provenance metadata, and recovers embedded reset-anchored SRAM where present. `tools/compare_input_runs.py` compares parsed intervals rather than comments.
+The historical P1 chain is already **verified**, not aspirational. `tools/extract_smv_input.py` converts Snes9x SMV movies into the project-neutral controller stream, emits provenance metadata, and recovers embedded reset-anchored SRAM where present. `tools/compare_input_runs.py` compares parsed intervals rather than comments.
 
-The historical replay workflows then reuse that one neutral stream in two directions:
+The neutral stream is now explicitly dual-player and backward compatible:
 
-- `snesref`/Snes9x consumes it through `SNESREF_INPUT_FILE`, with extracted SRAM through `SNESREF_SRAM_IN`, and can emit a WRAM trace;
-- the native runtime consumes the same stream through `tools/replay_input_via_lua.py`, with the same extracted SRAM staged into the native save path.
+```text
+start:duration:p1-mask[:p2-mask]
+```
 
-The reference WRAM trace is normalized by `tools/summarize_wram_trace_checkpoints.py`, while native snapshots use the project-owned state model. The 2008 Dragster workflow already compares both semantics from the same historical input corpus. This is the template for future external input formats: convert once to a neutral project artifact, then replay everywhere.
+Historical three-field output remains unchanged and means P2 idle. `tools/controller_input.py` is the parser authority for new project adapters.
+
+The same artifact can now move in three directions:
+
+- `snesref`/libretro consumes it through `SNESREF_INPUT_FILE`; the project applies `tools/patches/snesrecomp-dual-controller-input.patch` to the pinned reference frontend when P2 input is required;
+- the native runtime consumes it through `tools/replay_input_via_lua.py`, which writes both controller 1 and controller 2;
+- Mesen consumes it through `tools/replay_input_mesen.py`, which writes ports 0 and 1 through the existing mesen-for-ai bridge.
+
+ROM-free unit tests verify the shared parser and both project-owned writers. The dual-player CI lane also requires the pinned `snesref` patch to apply and compile. A canonical-ROM three-engine 2P replay is still the promotion gate from **supported** to **verified** for the new P2 path.
+
+The reference WRAM trace is normalized by `tools/summarize_wram_trace_checkpoints.py`, while native snapshots use the project-owned state model. The 2008 Dragster workflow already compares P1 semantics from the same historical input corpus. This remains the template for future external input formats: convert once to a neutral project artifact, then replay everywhere.
 
 ### Dynamic trace → canonical symbols
 

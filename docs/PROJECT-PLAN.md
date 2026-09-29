@@ -796,7 +796,7 @@ A representative one-player course and the two-player/Vs. path display true addi
 
 Replace selected low-resolution presentation with high-resolution equivalents without replacing gameplay logic.
 
-The evidence/capture contract lives in `HD-VISUAL-REFERENCE-PIPELINE.md`. The coherent-art decision authority lives in `HD-ART-DIRECTION.md`. A processed reference may help explain ambiguous source pixels, but no scaler output becomes canonical art by default.
+The evidence/capture contract lives in `HD-VISUAL-REFERENCE-PIPELINE.md`. The coherent-art decision authority lives in `HD-ART-DIRECTION.md`. The production restoration/toolchain contract lives in `ASSET-RESTORATION-PIPELINE.md`. A processed reference may help explain ambiguous source pixels, but no scaler or generated output becomes canonical art by default.
 
 ### Preferred mechanism
 
@@ -843,7 +843,7 @@ Every replacement should have:
 
 Do not key important gameplay art solely on fuzzy image matching.
 
-Animated replacements must be reviewed as sequences as well as stills. Reject contour breathing, scale/pivot/contact drift, inconsistent invented detail or material/highlight flicker even when individual frames look plausible.
+Animated replacements must be reviewed as sequences as well as stills. Reject contour breathing, scale/pivot/contact drift, inconsistent invented detail or material/highlight flicker even when individual frames look plausible. Generate comparison dossiers spanning raw source, conventional/pixel-art scalers, selected neural upscalers and constrained generative candidates where useful; retain exact model/workflow provenance for every candidate.
 
 ### Unicycle strategy for HD Presentation
 
@@ -923,15 +923,33 @@ A stock gameplay route can be presented with high-resolution replacement art at 
 
 ## Phase H - optional audio modernization
 
-Stock SPC audio remains the initial and permanent fallback.
+Stock SPC audio remains the initial and permanent fallback. The production workflow and provenance rules live in `ASSET-RESTORATION-PIPELINE.md`.
 
-Only after visual fidelity is stable, consider:
+Treat the SPC/APU state as structured source material rather than beginning from a mixed recording. Prefer this order:
 
-- high-quality soundtrack replacement;
-- lossless/remastered music packs;
-- higher-quality samples/SFX where desired.
+1. exact SPC/DSP reference render;
+2. per-voice isolation;
+3. BRR sample extraction with loop metadata;
+4. sequence/event recovery where practical;
+5. deterministic reconstruction from recovered samples, envelopes, pitch/modulation, DSP/echo and timing;
+6. only then modern sample substitution, re-recording, restoration, generative assistance or mix/master changes.
 
-SNESRecomp's optional MSU-1 path is one possible integration boundary because it can stream modern PCM while leaving the original ROM path intact when disabled.
+Bring in or wrap, when Phase H becomes active:
+
+- a cycle-accurate SPC700/DSP reference renderer such as `snes_spc`;
+- BRR extraction/decoding tooling such as BRRtools;
+- ffmpeg/SoX-class deterministic resampling, normalization and filtering;
+- waveform/spectrogram comparison tooling;
+- sequence/MIDI extraction experiments where they materially reduce manual transcription;
+- neural source separation only for material that cannot already be isolated exactly from APU/SPC state.
+
+For music, preserve composition, timing, arrangement and game-trigger semantics while evaluating exact high-quality rerenders, clean renders of original BRR samples, reconstructed higher-resolution source samples, replacement instruments or hybrid approaches.
+
+For SFX, catalogue each semantic effect's source sample(s), pitch/envelope behavior, DSP context and trigger state before deciding whether to preserve, rerender, reconstruct, subtly layer or replace it. Do not apply one blanket modernization treatment to every effect.
+
+SNESRecomp's optional MSU-1 path is one possible integration boundary because it can stream modern PCM while leaving the original ROM path intact when disabled. Other host-side substitution boundaries are acceptable if they preserve the same fallback and simulation separation.
+
+Require machine-readable provenance for restored/generated audio candidates, parallel to HD visual assets. Keep large models and workstation-specific state out of Git; commit manifests, workflow/project interchange files where practical, hashes, licenses and deterministic recipes.
 
 This phase must never block the visual remaster.
 
@@ -1025,10 +1043,15 @@ Disabling the HD Presentation pack must return to the stock renderer with no sim
 | Bounded 65816 disassembly | da65 with known M/X state |
 | Long-lived cross-reference work | Ghidra + ghidra-snes |
 | IPS experiments | Floating IPS |
-| Frame/audio/image conversion | ffmpeg + ImageMagick |
-| Asset provenance/capture | SNESRecomp assetdump/debug surfaces |
+| Frame/audio/image conversion | ffmpeg + ImageMagick + libvips |
+| Asset provenance/capture | SNESRecomp assetdump/debug surfaces + restoration sidecars |
+| HD reference/upscale candidates | pinned scaler matrix + waifu2x / Real-ESRGAN / Real-CUGAN |
+| Constrained generative reconstruction | reproducible ComfyUI or scripted Diffusers workflows; structural/reference conditioning |
 | HD Presentation layer extraction | SNESRecomp host-overlay extraction |
-| Optional audio modernization | SNESRecomp MSU-1 support |
+| SPC reference/voice isolation | cycle-accurate SPC700/DSP renderer such as `snes_spc` |
+| BRR sample recovery | BRR extraction/decoding tooling |
+| Audio comparison/processing | ffmpeg/SoX-class deterministic processing + waveform/spectrogram probes |
+| Optional modern PCM delivery | SNESRecomp MSU-1 support or equivalent host-side substitution |
 | Historical syntax/tool lineage | preserved SNasm builds |
 
 ---

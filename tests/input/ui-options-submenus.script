@@ -1,0 +1,91 @@
+# UI-state reconnaissance: fan out through the documented Options menu.
+# The manual orders items as RECORDS, DEFINE PLAYER, RENAME PLAYER, DEFINE LEAGUE, MAIN MENU.
+# Each branch starts from reset. We intentionally discover destination menu IDs.
+
+# Helper pattern is repeated explicitly because the project fixture grammar is deliberately tiny.
+
+# RECORDS (default item)
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+dump ui-options-menu-records-selected
+press a 2
+wait 60
+dump ui-records-entry
+press x 2
+wait 60
+dump ui-records-back-options
+
+# DEFINE PLAYER
+reset
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press down 1
+wait 30
+dump ui-options-menu-define-player-selected
+press a 2
+wait 60
+dump ui-define-player-entry
+press x 2
+wait 60
+dump ui-define-player-back-options
+
+# RENAME PLAYER
+reset
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press down 1
+press down 1
+wait 30
+dump ui-options-menu-rename-player-selected
+press a 2
+wait 60
+dump ui-rename-player-entry
+press x 2
+wait 60
+dump ui-rename-player-back-options
+
+# DEFINE LEAGUE
+reset
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press down 1
+press down 1
+press down 1
+wait 30
+dump ui-options-menu-define-league-selected
+press a 2
+wait 60
+dump ui-define-league-entry
+press x 2
+wait 60
+dump ui-define-league-back-options
+
+quit

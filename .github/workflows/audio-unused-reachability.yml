@@ -1,0 +1,31 @@
+name: One-shot unused audio reachability scan
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/scan_audio_setup_selectors.py"
+      - ".github/workflows/audio-unused-reachability.yml"
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Scan all direct upload callers and targeted immediates
+        run: |
+          python3 tools/scan_audio_setup_selectors.py             "reference/roms/retail/Uniracers_USA.sfc"             --json-out audio-unused-reachability.json
+          python3 - <<'PY'
+          import json
+          r=json.load(open("audio-unused-reachability.json"))
+          print("wrapper_calls", len(r["all_setup_wrapper_calls"]))
+          print("setup_calls", len(r["setup_calls"]))
+          print("unbound", json.dumps(r["unbound_setup_wrapper_calls"], indent=2))
+          print("targeted_ldx", json.dumps(r["targeted_immediate_ldx"], indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audio-unused-reachability
+          path: audio-unused-reachability.json

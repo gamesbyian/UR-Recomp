@@ -14,9 +14,13 @@ FIELDS = {
     "y_pos": ("u16", 0x0415),
     "x_speed": ("s16", 0x04B7),
     "y_speed": ("s16", 0x04BB),
-    "pitch": ("u8", 0x04C9),
-    "air_0545": ("u8", 0x0545),
-    "air_0547": ("u8", 0x0547),
+    # Dessyreqt's player-1 Lua table declares airValue and pitch twice.
+    # Lua keeps the later key, so these are the effective addresses used by
+    # the bot. The earlier candidates are retained separately for archaeology.
+    "pitch_effective": ("u8", 0x0F49),
+    "pitch_early_duplicate": ("u8", 0x04C9),
+    "air_effective": ("u8", 0x0545),
+    "air_early_duplicate": ("u8", 0x0547),
     "faced_direction": ("u8", 0x0BA1),
     "countdown_timer": ("u16", 0x11BA),
     "reverse_controls": ("u8", 0x132B),
@@ -70,8 +74,9 @@ def main() -> int:
             f"{tag}: "
             f"xPos={state['x_pos']} yPos={state['y_pos']} "
             f"xSpeed={state['x_speed']} ySpeed={state['y_speed']} "
-            f"pitch={state['pitch']} air545={state['air_0545']} "
-            f"air547={state['air_0547']} countdown={state['countdown_timer']}"
+            f"pitch={state['pitch_effective']} pitchEarly={state['pitch_early_duplicate']} "
+            f"air={state['air_effective']} airEarly={state['air_early_duplicate']} "
+            f"countdown={state['countdown_timer']}"
         )
 
     if args.json_out:

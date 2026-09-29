@@ -259,3 +259,15 @@ The classification rule is deliberately structural: compare each writer at the s
 A second static-classification path now uses the pinned framework's own v2 65816 decoder rather than a project-local partial disassembler. `tools/probe_rnc_writer_decode.py` decodes the known USA RNC1 entry at `01:B8F1` with M/X state tracking and asks whether traced writer PCs `01:BA96` and `01:BB73` are members of that control-flow graph. If reachable, it records the exact decoded instruction and nearby M/X-qualified context. `.github/workflows/rnc-writer-decoder-probe.yml` persists the machine-readable result to `analysis/generated/rnc-writer-decode.json`; that generated path does not retrigger the workflow.
 
 This probe is intentionally complementary to the source-signature report. A positive graph-membership result identifies the writer as part of the decoded RNC1 function under the recompiler's own control-flow model; a negative result means the writer requires a separately rooted helper/game-code decode and must not be classified from address proximity.
+
+
+### Course stream pointer-table search
+
+The 45 confirmed USA RNC payload offsets are now also searched mechanically as potential course-selection targets. `tools/find_course_stream_pointer_tables.py` scans the canonical ROM for consecutive runs of:
+
+- 24-bit little-endian LoROM addresses;
+- 24-bit little-endian file offsets;
+- 16-bit LoROM addresses;
+- common padded fixed-width records containing the 24-bit forms.
+
+The scanner scores only consecutive stream-order runs of length three or greater, reducing isolated pointer-like byte coincidences. Workflow `.github/workflows/course-stream-pointer-search.yml` persists the result to `analysis/generated/course-stream-pointer-search.json`. A positive long run would expose a direct course pointer/index table; a negative result narrows the selector toward split-bank tables, relative offsets, transformed indices, or code-generated addresses.

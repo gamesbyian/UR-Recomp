@@ -85,6 +85,61 @@ The modern product layer should evaluate, rather than automatically inherit:
 
 Where these systems have recognizable presentation, preserve that presentation language or expose an authentic mode rather than deleting the historical evidence wholesale. The target is a cleaner route into Uniracers, not a generic replacement frontend.
 
+### Modern baseline features
+
+The following are **must-do modern product requirements** unless later technical evidence shows that a specific item is impractical or conflicts with fidelity. They should be treated as baseline product competence rather than speculative feature creep:
+
+- full modern controller support, hot-plugging and rebinding;
+- keyboard input where practical;
+- independent modern profiles, racer identity and settings;
+- robust autosave plus resumable progression;
+- instant restart/retry from gameplay, pause and results where appropriate;
+- a modern pause menu with resume, restart, options, controls/run data and exit choices;
+- personal-best and previous-run ghosts;
+- local ghost management and replayable run records without any network dependency;
+- exact timing, lap/split data, personal-best deltas and target/medal deltas shown in addition to original indicators;
+- a coherent records/statistics browser that preserves classic score/result presentations as views;
+- a practice/free-play route with rapid track selection and repeated attempts;
+- a concise in-game onboarding/tutorial path for fundamental controls and the stunt-to-speed relationship;
+- accessibility-oriented presentation/input options where they can be implemented without changing authoritative simulation, including remapping, vibration control, readable text support, reduced flashing and similar host-layer accommodations;
+- fast local multiplayer setup, rematch and track rotation without requiring legacy League administration;
+- native widescreen, modern resolutions including 4K, arbitrary-window support and authentic 4:3 fallback;
+- display/presentation presets including authentic/raw-pixel and modern/HD-oriented choices, with optional CRT/NTSC-style presentation where useful;
+- fast navigation conveniences such as recent track, rematch, next event and direct practice access;
+- localization-ready text/UI architecture even if only one language is initially shipped;
+- preservation of attract/demo behavior, with room for a modern showcase/demo presentation using recorded local runs;
+- architecture that does not unnecessarily prevent custom courses, local challenge packs, visual packs or other data-driven extensions later.
+
+These requirements should be implemented at the layer that owns them. Do not move timing, ghost, replay, menu or accessibility concerns into the original simulation when host/runtime policy can provide them cleanly.
+
+### Decide when the relevant subsystem is mature
+
+The following are desirable but should be evaluated when the underlying state model, renderer, frontend or course model is sufficiently understood. Do not force them early:
+
+- expanded racer cosmetics beyond name/color and exact legacy presets;
+- full replay viewer with scrubbing, frame stepping, camera controls or HUD hiding;
+- photo/capture tools;
+- richer statistics such as stunt histories, heatmaps, streaks or aggregate telemetry;
+- achievements/challenges designed around mastery, secrets and unusual clean runs rather than grind;
+- section/checkpoint-based practice starts, if the course/state model can support them without corrupting normal simulation semantics;
+- a simplified local tournament/bracket mode replacing most legacy League administration;
+- modern medal/progression policy such as awarding the highest achieved tier immediately or making challenge tier selectable;
+- a modernized attract/demo reel sourced from especially strong local runs;
+- user-facing mod/content-pack affordances beyond the already planned custom-course tooling.
+
+A later decision may promote any of these to must-do once implementation cost and fidelity impact are understood.
+
+### Network and hosted-service policy
+
+The project has no planned infrastructure for hosted services and no practical environment for testing production online features. Therefore:
+
+- **do not spend implementation time on online multiplayer, matchmaking, global/friend leaderboards, downloadable ghosts, cloud challenge services, daily/weekly events, accounts or any hosted backend;**
+- **do not add CI, credentials, service deployment or test infrastructure for them;**
+- keep local data models and APIs clean enough that a future contributor could add network transport or hosted services without redesigning core simulation, ghost, replay, timing, leaderboard or challenge data;
+- where a feature has both local and online forms, implement the useful local form only unless the infrastructure situation changes.
+
+This is a deliberate "leave the door open" posture, not a deferred delivery commitment.
+
 The end-state should support:
 
 - native desktop execution;

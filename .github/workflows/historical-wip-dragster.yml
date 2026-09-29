@@ -47,6 +47,8 @@ jobs:
           python3 tools/extract_smv_input.py \
             references/imported/tas-bots/uniracers-2008-wip-microstorage.smv \
             --input-out "$RUNNER_TEMP/wip-2008.input" \
+            --sram-out "$RUNNER_TEMP/wip-2008.srm" \
+            --sram-size 8192 \
             --json-out "$RUNNER_TEMP/wip-2008.json"
           cat "$RUNNER_TEMP/wip-2008.json"
           cmp "$RUNNER_TEMP/wip-2008.input" tests/input/historical-2008-wip.input
@@ -102,6 +104,7 @@ jobs:
             SNESREF_FAST=1 \
             SNESREF_FRAMES="$frames" \
             SNESREF_WRAM_FILL=0 \
+            SNESREF_SRAM_IN="$RUNNER_TEMP/wip-2008.srm" \
             SNESREF_INPUT_FILE="$INPUT" \
             SNESREF_WRAM_DUMP="$dump" \
               "$EXE" "$CORE" "$ROM" >/dev/null 2>&1

@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "game": "Uniracers (USA)",
+  "description": "Expected framebuffer/state-dump anchors for building the canonical UI atlas.",
+  "fields": {
+    "current_menu": {
+      "wram_offset": "0x009F",
+      "width": 1
+    },
+    "selected_option": {
+      "wram_offset": "0x009B",
+      "width": 1
+    },
+    "menu_row": {
+      "wram_offset": "0x000E",
+      "width": 1
+    },
+    "menu_col": {
+      "wram_offset": "0x0C63",
+      "width": 1
+    },
+    "in_race": {
+      "wram_offset": "0x0313",
+      "width": 1
+    }
+  },
+  "captures": [
+    {
+      "tag": "main-menu-ready",
+      "state_id": "MAIN_MENU",
+      "source_fixture": "reach-first-race",
+      "expect": {
+        "current_menu": "0xD7"
+      }
+    },
+    {
+      "tag": "rider-select-ready",
+      "state_id": "PLAYER_SELECT_P1",
+      "source_fixture": "reach-first-race",
+      "expect": {
+        "current_menu": "0x3C"
+      }
+    },
+    {
+      "tag": "tours-ready",
+      "state_id": "TOUR_SELECT",
+      "source_fixture": "reach-first-race",
+      "expect": {
+        "current_menu": "0x6D"
+      }
+    },
+    {
+      "tag": "tracks-ready",
+      "state_id": "TRACK_SELECT",
+      "source_fixture": "reach-first-race",
+      "expect": {
+        "current_menu": "0xF6"
+      }
+    },
+    {
+      "tag": "now-playing-ready",
+      "state_id": "PRE_RACE_CARD",
+      "source_fixture": "reach-first-race",
+      "expect": {
+        "current_menu": "0x16"
+      }
+    },
+    {
+      "tag": "race-entered",
+      "state_id": "GAMEPLAY",
+      "source_fixture": "reach-first-race",
+      "expect": {
+        "in_race": "0x01"
+      }
+    },
+    {
+      "tag": "ui-main-menu-1p",
+      "state_id": "MAIN_MENU",
+      "variant": "selection-1P",
+      "source_fixture": "ui-options-route",
+      "expect": {
+        "current_menu": "0xD7",
+        "selected_option": "0x00"
+      }
+    },
+    {
+      "tag": "ui-main-menu-2p",
+      "state_id": "MAIN_MENU",
+      "variant": "selection-2P",
+      "source_fixture": "ui-options-route",
+      "expect": {
+        "current_menu": "0xD7",
+        "selected_option": "0x01"
+      }
+    },
+    {
+      "tag": "ui-main-menu-vs",
+      "state_id": "MAIN_MENU",
+      "variant": "selection-VS",
+      "source_fixture": "ui-options-route",
+      "expect": {
+        "current_menu": "0xD7",
+        "selected_option": "0x02"
+      }
+    },
+    {
+      "tag": "ui-main-menu-league",
+      "state_id": "MAIN_MENU",
+      "variant": "selection-LEAGUE",
+      "source_fixture": "ui-options-route",
+      "expect": {
+        "current_menu": "0xD7",
+        "selected_option": "0x03"
+      }
+    },
+    {
+      "tag": "ui-main-menu-options",
+      "state_id": "MAIN_MENU",
+      "variant": "selection-OPTIONS",
+      "source_fixture": "ui-options-route",
+      "expect": {
+        "current_menu": "0xD7",
+        "selected_option": "0x04"
+      }
+    },
+    {
+      "tag": "ui-options-entry",
+      "state_id": "OPTIONS_MENU",
+      "source_fixture": "ui-options-route",
+      "discover": [
+        "current_menu"
+      ]
+    },
+    {
+      "tag": "ui-options-back-main",
+      "state_id": "MAIN_MENU",
+      "variant": "returned-from-options",
+      "source_fixture": "ui-options-route",
+      "expect": {
+        "current_menu": "0xD7"
+      }
+    }
+  ]
+}

@@ -117,6 +117,46 @@ This branch also adds `tests/input/ui-options-route.script`, a narrow reconnaiss
 
 The native smoke workflow now runs that fixture and uploads its BMP/state dumps alongside the existing race-route evidence. It prints the newly observed Options menu ID from WRAM when the route succeeds.
 
+## Headless atlas builder
+
+`analysis/ui-capture-manifest.json` is the contract between deterministic UI fixtures and captured evidence. It declares which `dump <tag>` outputs correspond to which conceptual states, which WRAM fields are expected, and which values are intentionally being discovered.
+
+`tools/build_ui_atlas.py` consumes one or more SNESRecomp dump directories and produces:
+
+- a JSON report suitable for later tooling;
+- a compact Markdown table for humans/agents;
+- framebuffer SHA-256 fingerprints and dimensions;
+- the dump frame number where available;
+- observed `currentMenu`, selection, row/column, and in-race state;
+- expected-vs-observed mismatches;
+- explicit newly discovered values such as an unknown menu ID.
+
+The native smoke now feeds its existing 1P route, the Options route, and the top-level branch probe into this builder. `--strict` makes known state anchors regression assertions while still allowing intentionally unknown fields to be reported as discoveries.
+
+This gives the project a useful separation:
+
+```text
+conceptual graph        analysis/ui-state-map.yml
+capture contract         analysis/ui-capture-manifest.json
+controller journeys      tests/input/ui-*.script
+raw evidence             <tag>.fb.bmp + WRAM/PPU/etc dumps
+derived atlas            ui-atlas.json + ui-atlas.md
+```
+
+The conceptual graph should stay concise. The capture manifest owns reproducible visual/runtime anchors. Raw images remain generated evidence rather than bloating the repository.
+
+## Top-level branch probes
+
+The branch now includes `tests/input/ui-main-branches.script`, which starts each test from a clean reset and exercises:
+
+```text
+MAIN_MENU --2P--> first 2P screen --X--> MAIN_MENU
+MAIN_MENU --VS--> first VS screen --X--> MAIN_MENU
+MAIN_MENU --LEAGUE--> first League screen --X--> MAIN_MENU
+```
+
+The destination menu IDs are not hard-coded. Each entry state is dumped and passed to the atlas as a discovery. The recovered 2014 bot predicts `0x3D` for 2P Select and `0x3E` for VS Select; the local capture decides whether those labels are promoted. League is deliberately left entirely open because the historical bot does not provide a useful named League menu anchor.
+
 ## Screenshot-backed states already found online
 
 Public screenshot galleries already give enough to anchor several states without spending compute on discovery:

@@ -71,8 +71,8 @@
       "address": "7E:0415",
       "name": "Player1_YPosition",
       "width": "16-bit",
-      "confidence": 2,
-      "notes": "Effective recovered-bot word key `yPos`. Native/reference race-entry dumps agree at 858; vertical-motion semantics not yet validated."
+      "confidence": 5,
+      "notes": "Effective recovered-bot word key `yPos`. Sustained-B run 36514981164 causally changes player 1 from ground Y=859 in the matched no-B control to Y=797 while airborne; native and Snes9x match exactly."
     },
     {
       "kind": "ram",
@@ -87,16 +87,16 @@
       "address": "7E:04BB",
       "name": "Player1_YSpeed",
       "width": "signed 16-bit",
-      "confidence": 2,
-      "notes": "Effective recovered-bot word key `ySpeed`; bot sign-converts it for jump decisions. Native/reference race-entry dumps agree at 0."
+      "confidence": 5,
+      "notes": "Effective recovered-bot word key `ySpeed`; bot sign-converts it. In run 36514981164 sustained B changes it causally from 0 in the matched control to -21 while player 1 is airborne; native and Snes9x match exactly."
     },
     {
       "kind": "ram",
       "address": "7E:0545",
       "name": "Player1_AirState",
       "width": "8-bit",
-      "confidence": 2,
-      "notes": "Effective player-1 Lua key `airValue`; later duplicate overrides earlier `7E:0547`. Bot treats value 9 specially for jump/tabletop logic."
+      "confidence": 5,
+      "notes": "Effective player-1 Lua key `airValue`; later duplicate overrides second-racer `7E:0547`. In run 36514981164 sustained B causally changes player 1 from 0 to 9 while Y position/speed enter the airborne trajectory; matched no-B control remains 0."
     },
     {
       "kind": "ram",

@@ -17,7 +17,7 @@ Compact router for coding and research agents. Load the smallest current authori
 | Established reverse-engineering claim | `docs/RESEARCH-LEDGER.md` |
 | Recovered code/data symbol | `docs/SYMBOLS.md` |
 | Original DMA development history / missing artifacts | `docs/original-development/DEVELOPER-TECHNICAL-HISTORY.md`, `docs/original-development/ACQUISITION-LEDGER.md` |
-| External source or imported research artifact | `references/README.md`, `references/catalog.yml` |
+| External source or imported research artifact | `references/README.md`, `references/catalog.yml`; for executable/source trust, `docs/THIRD-PARTY-SOURCE-AUDIT.md` |
 | Tool choice / installing research software | `docs/TOOLCHAIN.md`, `tools/toolchain.json` |
 | Periodic repository hygiene | Execute `docs/PERIODIC-REPOSITORY-HYGIENE.md` from current `main` |
 
@@ -33,7 +33,7 @@ Compact router for coding and research agents. Load the smallest current authori
 6. Prefer cheap discovery before broad reading. For conceptual orientation, read the relevant `docs/knowledge/` page before opening large histories or imported corpora. Query filenames, symbols, generated manifests, and the source catalog for exact evidence.
 7. Generated bulk output is disposable unless a compact artifact has durable evidence value. Commit reproducible tooling and compact manifests/reports, not giant generated C, traces, dumps, extracted assets, or Ghidra workspaces.
 8. External claims are leads until reproduced locally. Record observation, evidence, interpretation, and uncertainty separately.
-9. Preserve exact provenance for imported artifacts: source, retrieval date, original filename, hashes/revision, container relationship, and rights/licensing status where known.
+9. Preserve exact provenance for imported artifacts: source, retrieval date, original filename, hashes/revision, container relationship, and rights/licensing status where known. Imported code is evidence, not an implementation dependency, until its assumptions are audited and reproduced locally.
 10. Do not weaken a deterministic validation guard to make a failure disappear. Fix the underlying assumption, dependency, or harness.
 11. Use the cheapest check that answers the current iteration question. GitHub Actions is execution infrastructure, not automatically research evidence.
 12. Do not add a recurring workflow merely because a one-off experiment used CI. Durable checks need a durable repository invariant.

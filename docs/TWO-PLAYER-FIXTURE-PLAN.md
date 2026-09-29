@@ -4,7 +4,7 @@ Status: required supporting capability for UI-state coverage, multiplayer fideli
 
 ## Why this exists
 
-The project now has an established engine-neutral player-2 controller transport. What remains open is behavioral verification and checkpoint/capture integration for multiplayer frontend and gameplay states.
+The project now has an established engine-neutral player-2 controller transport. What remains open is behavioral verification and checkpoint/capture integration for multiplayer frontend and gameplay states. A harvested successful native atlas run has now locally reproduced `TWO_PLAYER_SELECT = 0x3D` and its X-back edge; the unresolved seam begins at participant ownership/handoff and continues into deeper 2P/VS setup.
 
 Until that evidence exists, durable local promotion remains blocked for several known multiplayer frontend states:
 
@@ -92,6 +92,8 @@ Capture at minimum:
 - `7E:0C63 menuSelectedCol`;
 - recovered `playerInput` field where applicable.
 
+The recovered bot places `playerInput` at `0x70:0743`, with historical values `5=P1`, `3=P2`, `1=both`, and gates menu input using `playerInput == 7 - controller * 2`. Do not silently model this as a `7E` WRAM field: current atlas dumps expose WRAM and SRAM separately, and this bank-0x70 address needs an explicitly supported checkpoint/read path. Until that is captured, those ownership values remain historical discriminators rather than locally verified state facts.
+
 Then add the corresponding VS acceptance route through `VS_SELECT -> VS_CHALLENGER -> VS_CHALLENGE_TRACK`.
 
 ## Promotion gates
@@ -109,8 +111,8 @@ Do not mark the capability complete until:
 
 With the grammar now available, implement and verify:
 
-1. 2P rider-selection handoff and back-stack capture;
-2. VS challenger and challenge-track capture;
+1. 2P rider-selection ownership/handoff capture, building from the now-verified `0x3D` entry/back anchor;
+2. VS selection, challenger and challenge-track capture;
 3. first 2P race entry;
 4. split-screen/HUD atlas states;
 5. two-player OAM compatibility coverage;

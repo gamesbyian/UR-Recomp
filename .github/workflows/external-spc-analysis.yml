@@ -180,3 +180,5 @@ jobs:
           fi
           git commit -m "research: preserve Uniracers SPC corpus"
           git push origin HEAD:chatgpt/spc-audio-archaeology-2026-09-29
+
+# rerun marker: analyzer committed

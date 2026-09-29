@@ -80,7 +80,7 @@ def comment_of(entry: dict) -> str:
         raw = entry.get("evidence_/_notes")
     if raw is None:
         return ""
-    return str(raw).replace("\\r\\n", "\\n").replace("\\r", "\\n").replace("\\n", "\\\\n").strip()
+    return str(raw).replace("\r\n", "\n").replace("\r", "\n").replace("\n", "\\n").strip()
 
 
 def render_mesen(entries: list[dict]) -> str:

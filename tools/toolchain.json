@@ -35,7 +35,8 @@
       ],
       "artifacts": [
         "libretro/snes9x_libretro.so"
-      ]
+      ],
+      "install_mode": "build"
     },
     {
       "id": "superfamiconv",
@@ -52,7 +53,8 @@
       ],
       "artifacts": [
         "target/release/superfamiconv"
-      ]
+      ],
+      "install_mode": "build"
     },
     {
       "id": "wla-dx",
@@ -79,7 +81,8 @@
       "artifacts": [
         "build",
         "binaries"
-      ]
+      ],
+      "install_mode": "build"
     },
     {
       "id": "snes2asm",
@@ -96,7 +99,8 @@
           "."
         ]
       ],
-      "artifacts": []
+      "artifacts": [],
+      "install_mode": "build"
     },
     {
       "id": "cc65",
@@ -112,7 +116,8 @@
       ],
       "artifacts": [
         "bin/da65"
-      ]
+      ],
+      "install_mode": "build"
     },
     {
       "id": "ghidra-snes",
@@ -125,7 +130,8 @@
         "GHIDRA_INSTALL_DIR"
       ],
       "build": [],
-      "artifacts": []
+      "artifacts": [],
+      "install_mode": "manual"
     },
     {
       "id": "bsnes-libretro",
@@ -133,8 +139,16 @@
       "url": "https://github.com/libretro/bsnes-libretro.git",
       "revision": "05439f96121d2b9d7ad7a5fc1f29d7eebdcc8c43",
       "purpose": "Independent high-accuracy libretro oracle for cross-checking emulator-sensitive behavior.",
-      "build": [],
-      "artifacts": []
+      "build": [
+        [
+          "make",
+          "-j{jobs}"
+        ]
+      ],
+      "artifacts": [
+        "bsnes_libretro.so"
+      ],
+      "install_mode": "build"
     },
     {
       "id": "flips",
@@ -142,8 +156,15 @@
       "url": "https://github.com/bates64/flips.git",
       "revision": "6caac470f7fc096b0c5fdc374b65954f8bac5b16",
       "purpose": "CLI-capable IPS/BPS patch application and creation for preserving/replaying ROM modifications.",
-      "build": [],
-      "artifacts": []
+      "build": [
+        [
+          "./make-linux.sh"
+        ]
+      ],
+      "artifacts": [
+        "flips"
+      ],
+      "install_mode": "build"
     },
     {
       "id": "ares",
@@ -152,7 +173,8 @@
       "revision": "4cb8d92b441557cb6bcaf133c4cbc7f6819b1122",
       "purpose": "Independent accuracy/preservation-focused emulator for manual behavioral cross-checks.",
       "build": [],
-      "artifacts": []
+      "artifacts": [],
+      "install_mode": "manual"
     },
     {
       "id": "diztinguish",
@@ -161,7 +183,8 @@
       "revision": "7484b87c3bd36f4e1a1e9e3c6075dd103855cbfd",
       "purpose": "Trace-assisted collaborative 65816 disassembly; integrates with a patched bsnes+ live trace stream and exports reassemblable source.",
       "build": [],
-      "artifacts": []
+      "artifacts": [],
+      "install_mode": "manual"
     },
     {
       "id": "bsnes-plus",
@@ -170,7 +193,8 @@
       "revision": "a9789fab9a26859153c2963defe186fcaaa80ca2",
       "purpose": "Debugger-oriented bsnes fork with tracing, breakpoints, ROM/RAM views, code/data highlighting, and VRAM/OAM/tilemap inspection.",
       "build": [],
-      "artifacts": []
+      "artifacts": [],
+      "install_mode": "manual"
     },
     {
       "id": "mesen-for-ai",
@@ -188,7 +212,8 @@
           "."
         ]
       ],
-      "artifacts": []
+      "artifacts": [],
+      "install_mode": "build"
     },
     {
       "id": "mesence",
@@ -197,7 +222,8 @@
       "revision": "20ba206cef5ba207c21203176d02cb9f43dda9fb",
       "purpose": "Community-maintained Mesen continuation and compatible SNES debugger/emulator host for mesen-for-ai experiments.",
       "build": [],
-      "artifacts": []
+      "artifacts": [],
+      "install_mode": "manual"
     }
   ]
 }

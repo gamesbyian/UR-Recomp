@@ -101,3 +101,19 @@ Therefore:
 - if repeated conditional retries or branching become cumbersome, use SNESRecomp's opt-in Lua/TCP bridge instead of growing a large timing script. It exposes WRAM reads and per-frame joypad writes and is the natural adapter for porting the original policy nearly directly.
 
 Once a complete route to race entry is stable, run the exact same script through `snesref` before freezing it as a long-term regression fixture.
+
+
+## Verified shared race-entry fixture
+
+`tests/input/reach-first-race.script` is now a shared native/reference regression fixture rather than a bring-up sketch.
+
+The same file runs successfully in:
+- the generated native SNESRecomp executable (run 36506120930);
+- `snesref` with pinned Snes9x libretro revision `1bcc369e89f08243e0a462882fb1f3e42e51de3a` (run 36506281320).
+
+Both reproduce the clean sequence:
+`mainMenu 0xD7 → onePlayerSelect 0x3C → onePlayerTours1 0x6D → onePlayerTracks 0xF6 → onePlayerNowPlaying 0x16 → inRace 0x01`.
+
+The native run reaches `inRace = 1` at frame 984; the reference run reaches it at frame 975. That timing difference is now a measurement target, not a reason to maintain separate input fixtures.
+
+The next adapter step is full checkpoint comparison: compare complete WRAM dumps, not only selected known fields. Once the first-race state agrees closely enough to trust, extend the fixture with movement inputs and begin validating the recovered race-driving RAM labels/policy.

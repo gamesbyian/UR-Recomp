@@ -192,10 +192,11 @@
       "status": "acquisition-needed",
       "source_ids": [
         "snesmusic-uniracers-spc",
-        "zophar-uniracers-spc"
+        "zophar-uniracers-spc",
+        "tpp-musiclibrary-uniracers"
       ],
       "question": "Can the preserved SPC set fingerprint the audio driver, song table, sample/instrument layout, and reachability of the two tagged unused songs?",
-      "next_discriminator": "Acquire the public SPC set, preserve its project/version metadata, inventory per-track SPC hashes and driver/sample regions, then compare those regions to ROM data and runtime APU uploads.",
+      "next_discriminator": "Acquire the public SNESmusic/Zophar SPC set itself; the pinned TwitchPlaysPokemon manifest independently confirms ten filenames and both unused songs but deliberately omits binaries. Preserve per-track hashes and fingerprint shared APU RAM/driver/sample regions before comparing them to ROM data or runtime APU uploads.",
       "deliverables": [
         "SPC-set provenance and per-file hashes",
         "audio-driver/sample fingerprint",

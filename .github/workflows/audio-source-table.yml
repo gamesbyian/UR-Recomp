@@ -1,4 +1,4 @@
-name: One-shot audio source-table trace
+name: One-shot audio block-pool harvest
 
 on:
   push:
@@ -6,227 +6,124 @@ on:
       - chatgpt/audio-source-table-2026-09-29
     paths:
       - .github/workflows/audio-source-table.yml
-      - tools/trace_audio_source_table.py
-      - tools/trace_native_wram_writers.py
-      - tests/input/reach-first-race.script
 
 permissions:
   contents: read
 
 jobs:
-  trace-audio-source:
+  harvest-audio-block-pool:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 10
     steps:
       - name: Check out project
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Install build dependencies
-        shell: bash
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential cmake ninja-build pkg-config xvfb \
-            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
-            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
-            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
 
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
-      - name: Scan direct calls to APU transfer entry and wrapper
+      - name: Decode packed audio block pool
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/audio-source"
+          mkdir -p "$RUNNER_TEMP/audio-block-pool"
           python3 - <<'PY'
+          import hashlib
           import json
           from pathlib import Path
 
-          rom_path = Path("reference/roms/retail/Uniracers_USA.sfc")
-          data = rom_path.read_bytes()
+          rom = Path("reference/roms/retail/Uniracers_USA.sfc").read_bytes()
 
-          patterns = {
-              "JSR_8298": bytes.fromhex("20 98 82"),
-              "JSR_8294": bytes.fromhex("20 94 82"),
-              "JSR_82A9": bytes.fromhex("20 A9 82"),
-              "JSR_82A5": bytes.fromhex("20 A5 82"),
-              "JSL_828298": bytes.fromhex("22 98 82 82"),
-              "JSL_028298": bytes.fromhex("22 98 82 02"),
-              "JSL_828294": bytes.fromhex("22 94 82 82"),
-              "JSL_028294": bytes.fromhex("22 94 82 02"),
-              "JSL_8282A5": bytes.fromhex("22 A5 82 82"),
-              "JSL_0282A5": bytes.fromhex("22 A5 82 02"),
-              "JSL_8282A9": bytes.fromhex("22 A9 82 82"),
-              "JSL_0282A9": bytes.fromhex("22 A9 82 02"),
-          }
-
-          def cpu_addr(offset):
-              bank = 0x80 | (offset // 0x8000)
-              addr = 0x8000 + (offset % 0x8000)
+          def file_to_cpu(off):
+              bank = off // 0x8000
+              addr = 0x8000 + (off % 0x8000)
               return (bank << 16) | addr
 
-          out = {"schema_version": 2, "patterns": {}, "code_windows": {}}
-          for name, cpu, size in (
-              ("helper_02_812A", 0x02812A, 0x100),
-              ("transfer_02_82A9", 0x0282A9, 0x100),
-              ("helper_02_8328", 0x028328, 0x80),
+          # Helper 02:812A maps block ID X by walking length-prefixed records
+          # from CPU 10:8000 (LoROM file offset 0x080000).
+          cursor = 0x080000
+          blocks = []
+          for block_id in range(0x32):
+              if cursor + 2 > len(rom):
+                  raise SystemExit(f"block {block_id:02X} header outside ROM at {cursor:06X}")
+              total_len = int.from_bytes(rom[cursor:cursor+2], "little")
+              if total_len < 2 or cursor + total_len > len(rom):
+                  raise SystemExit(f"implausible block {block_id:02X} length {total_len} at {cursor:06X}")
+              record = rom[cursor:cursor+total_len]
+              payload = record[2:]
+              blocks.append({
+                  "id": block_id,
+                  "id_hex": f"0x{block_id:02X}",
+                  "cpu_address": f"0x{file_to_cpu(cursor):06X}",
+                  "file_offset": f"0x{cursor:06X}",
+                  "total_length": total_len,
+                  "payload_length": len(payload),
+                  "record_sha256": hashlib.sha256(record).hexdigest(),
+                  "payload_sha256": hashlib.sha256(payload).hexdigest(),
+                  "payload_prefix_hex": payload[:32].hex(" "),
+                  "payload_suffix_hex": payload[-16:].hex(" "),
+              })
+              cursor += total_len
+
+          table_base = 0x01FAD5
+          tables = []
+          direct = {0xFAD5,0xFB15,0xFB55,0xFBD5,0xFC15}
+          for i in range(6):
+              off = table_base + i * 0x40
+              cpu = file_to_cpu(off)
+              raw = rom[off:off+0x40]
+              ids = [x for x in raw if x != 0xFF]
+              tables.append({
+                  "cpu_address": f"0x{cpu:06X}",
+                  "file_offset": f"0x{off:06X}",
+                  "direct_transfer_caller_found": (cpu & 0xFFFF) in direct,
+                  "bytes_hex": raw.hex(" "),
+                  "block_ids": ids,
+                  "block_ids_hex": [f"0x{x:02X}" for x in ids],
+                  "non_ff_count": len(ids),
+                  "sha256": hashlib.sha256(raw).hexdigest(),
+                  "selected_payload_bytes": sum(blocks[x]["payload_length"] for x in ids),
+                  "expected_port3_bytes_including_64_selectors": 64 + sum(blocks[x]["payload_length"] for x in ids),
+              })
+
+          # Static code bytes that justified the decoder.
+          def cpu_to_file(cpu):
+              bank=(cpu>>16)&0x7F; addr=cpu&0xFFFF
+              return bank*0x8000+(addr-0x8000)
+          code_windows={}
+          for name,cpu,size in (
+              ("helper_02_812A",0x02812A,0x100),
+              ("transfer_02_82A9",0x0282A9,0x100),
+              ("helper_02_8328",0x028328,0x80),
           ):
-              bank = (cpu >> 16) & 0x7F
-              addr = cpu & 0xFFFF
-              off = bank * 0x8000 + (addr - 0x8000)
-              out["code_windows"][name] = {
-                  "cpu_start": f"0x{cpu:06X}",
-                  "rom_offset": f"0x{off:06X}",
-                  "hex": data[off:off + size].hex(" "),
-              }
-          for name, pat in patterns.items():
-              rows = []
-              start = 0
-              while True:
-                  pos = data.find(pat, start)
-                  if pos < 0:
-                      break
-                  pc = cpu_addr(pos)
-                  lo = max(0, pos - 24)
-                  hi = min(len(data), pos + len(pat) + 40)
-                  rows.append({
-                      "rom_offset": pos,
-                      "rom_offset_hex": f"0x{pos:06X}",
-                      "cpu_pc24": f"0x{pc:06X}",
-                      "same_bank_82_for_jsr": ((pc >> 16) & 0xFF) == 0x82,
-                      "context_start_hex": f"0x{lo:06X}",
-                      "context_hex": data[lo:hi].hex(" "),
-                  })
-                  start = pos + 1
-              out["patterns"][name] = rows
+              off=cpu_to_file(cpu)
+              code_windows[name]={"cpu_start":f"0x{cpu:06X}","file_offset":f"0x{off:06X}","hex":rom[off:off+size].hex(" ")}
 
-          target = Path(__import__("os").environ["RUNNER_TEMP"]) / "audio-source" / "apu-transfer-callsites.json"
-          target.write_text(json.dumps(out, indent=2) + "\n")
-          print(json.dumps({k: len(v) for k, v in out["patterns"].items()}, indent=2))
-          PY
-
-      - name: Generate project and build trace target
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/trace-project"
-          mkdir -p "$ROOT"
-          sh snesrecomp/tools/new_project/setup_project.sh \
-            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            --dir "$ROOT" \
-            --name "Uniracers" \
-            --players 2 \
-            --yes \
-            --no-ci \
-            --no-fetch-boxart \
-            --no-recomp-ui \
-            --no-netplay \
-            --no-github \
-            --generate \
-            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
-
-          PROJECT="$ROOT/UniracersSNESRecomp"
-
-          python3 - "$PROJECT/src/host_contract.c" <<'PY'
-          from pathlib import Path
-          import sys
-          p = Path(sys.argv[1])
-          s = p.read_text()
-          marker = "#include <stdint.h>\n"
-          if marker not in s:
-              raise SystemExit("host_contract.c include marker not found")
-          s = s.replace(
-              marker,
-              marker + "\n#if !defined(SNESRECOMP_TRACE) || !SNESRECOMP_TRACE\n",
-              1,
-          )
-          s += "\n#endif /* production debug-hook stubs */\n"
-          p.write_text(s)
-          PY
-
-          cmake -S "$PROJECT" -B "$PROJECT/build-trace" \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DSNESRECOMP_ENABLE_TRACE=ON
-          cmake --build "$PROJECT/build-trace" -j2
-          test -x "$PROJECT/build-trace/UniracersSNESRecomp"
-
-      - name: Start held deterministic first-race route
-        shell: bash
-        run: |
-          set -euo pipefail
-          OUT="$RUNNER_TEMP/audio-source"
-          PROJECT="$RUNNER_TEMP/trace-project/UniracersSNESRecomp"
-          SCRIPT="$RUNNER_TEMP/reach-first-race-hold.script"
-          sed '/^[[:space:]]*quit[[:space:]]*$/d' "$GITHUB_WORKSPACE/tests/input/reach-first-race.script" > "$SCRIPT"
-          SNESRECOMP_DEBUG_PORT=4377 SDL_AUDIODRIVER=dummy \
-            timeout 300s xvfb-run -a "$PROJECT/build-trace/UniracersSNESRecomp" \
-            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" --paused --script "$SCRIPT" \
-            >"$OUT/native-audio-source-host.log" 2>&1 &
-          echo "$!" > "$RUNNER_TEMP/audio-source-host.pid"
-
-      - name: Capture direct-page pointer writers
-        shell: bash
-        run: |
-          set -euo pipefail
-          OUT="$RUNNER_TEMP/audio-source"
-          python3 tools/trace_native_wram_writers.py \
-            --port 4377 --command-timeout 45 --coarse-until 900 --coarse-step 25 --max-frames 1400 \
-            --address 0x00 --address 0x01 --address 0x02 \
-            --address 0x63 --address 0x64 --address 0x65 --address 0x6f \
-            --address 0x83 --address 0x84 \
-            --json-out "$OUT/audio-source-writers.json"
-
-      - name: Resolve transfer PC and ROM source windows
-        shell: bash
-        run: |
-          set -euo pipefail
-          OUT="$RUNNER_TEMP/audio-source"
-          python3 tools/trace_audio_source_table.py \
-            --writers-json "$OUT/audio-source-writers.json" \
-            --callsites-json "$OUT/apu-transfer-callsites.json" \
-            --port 4377 --command-timeout 60 \
-            --json-out "$OUT/audio-source-table-trace.json"
-
-          python3 - "$OUT/audio-source-table-trace.json" <<'PY'
-          import json
-          import sys
-          d = json.load(open(sys.argv[1]))
+          out = {
+              "schema_version": 1,
+              "canonical_rom_sha256": hashlib.sha256(rom).hexdigest(),
+              "pool_start_cpu": "0x108000",
+              "pool_start_file_offset": "0x080000",
+              "block_count": len(blocks),
+              "pool_end_file_offset": f"0x{cursor:06X}",
+              "pool_byte_length": cursor - 0x080000,
+              "blocks": blocks,
+              "selector_tables": tables,
+              "code_windows": code_windows,
+          }
+          target=Path(__import__("os").environ["RUNNER_TEMP"])/"audio-block-pool"/"audio-block-pool.json"
+          target.write_text(json.dumps(out,indent=2)+"\n")
           print(json.dumps({
-              "static_interpretation": d["static_interpretation"],
-              "first_live_x": d["first_live_x"],
-              "nearest_static_seed": d["nearest_static_seed"],
-              "static_source_candidates": d["static_source_candidates"],
-              "live_x_head": d["live_x_progression"][:12],
-              "source_windows": [
-                  {k: r.get(k) for k in ("source_pointer", "source_file_offset", "cart_len")}
-                  for r in d["source_cart_windows"]
-              ],
-              "audio_events": len(d["audio_events"]),
-          }, indent=2))
+              "block_count":len(blocks),
+              "pool_end_file_offset":out["pool_end_file_offset"],
+              "pool_byte_length":out["pool_byte_length"],
+              "blocks":[{k:b[k] for k in ("id_hex","cpu_address","total_length","payload_length","payload_sha256")} for b in blocks],
+              "tables":[{k:t[k] for k in ("cpu_address","direct_transfer_caller_found","non_ff_count","selected_payload_bytes","expected_port3_bytes_including_64_selectors")} for t in tables],
+          },indent=2))
           PY
 
-      - name: Stop trace host
-        if: always()
-        shell: bash
-        run: |
-          if [ -f "$RUNNER_TEMP/audio-source-host.pid" ]; then
-            kill "$(cat "$RUNNER_TEMP/audio-source-host.pid")" 2>/dev/null || true
-          fi
-          echo "== host log tail =="
-          tail -n 140 "$RUNNER_TEMP/audio-source/native-audio-source-host.log" 2>/dev/null || true
-
-      - name: Upload source-table evidence
-        if: always()
+      - name: Upload block-pool evidence
         uses: actions/upload-artifact@v4
         with:
-          name: uniracers-audio-source-table
-          path: |
-            ${{ runner.temp }}/audio-source/audio-source-table-trace.json
-            ${{ runner.temp }}/audio-source/audio-source-writers.json
-            ${{ runner.temp }}/audio-source/apu-transfer-callsites.json
-            ${{ runner.temp }}/audio-source/native-audio-source-host.log
-          if-no-files-found: warn
+          name: uniracers-audio-block-pool
+          path: ${{ runner.temp }}/audio-block-pool/audio-block-pool.json
           retention-days: 2

@@ -2,6 +2,34 @@
   "schema_version": 1,
   "fixtures": [
     {
+      "id": "ui-options-route",
+      "input_script": "tests/input/ui-options-route.script",
+      "purpose": "Controller-only UI reconnaissance from the verified Main Menu through each top-level selection to Options and back, with framebuffer/state dumps at each stable stop.",
+      "engines": [
+        "native-recomp"
+      ],
+      "checkpoints": [
+        "ui-main-menu-1p",
+        "ui-main-menu-2p",
+        "ui-main-menu-vs",
+        "ui-main-menu-league",
+        "ui-main-menu-options",
+        "ui-options-entry",
+        "ui-options-back-main"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "full-wram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:009B selectedOption"
+      ],
+      "status": "reconnaissance",
+      "promotion_rule": "Promote the observed Options menu ID and Main Menu selection mapping into analysis/ui-state-map.yml after the controller-only round-trip succeeds and the captured frames are visually classified."
+    },
+    {
       "id": "reach-first-race",
       "input_script": "tests/input/reach-first-race.script",
       "purpose": "Clean boot through the one-player frontend into the first active race using controller input only.",

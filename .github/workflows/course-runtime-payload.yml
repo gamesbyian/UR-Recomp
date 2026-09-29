@@ -67,7 +67,7 @@ jobs:
           SNESREF_DUMP_DIR="$DUMPS" \
             "$EXE" "$CORE" "$ROM" >"$LOG" 2>&1
           cat "$LOG"
-          test -s "$DUMPS/race-entered.wram.bin"
+          test -s "$DUMPS/race-active.wram.bin"
 
       - name: Match decoded payloads across frontend-to-race timeline
         shell: bash

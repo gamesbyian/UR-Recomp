@@ -1,8 +1,7 @@
-# PRE_RACE_CARD timing and skip reconnaissance.
-# Branch 1 samples the card without input.
-# Branch 2 reaches the card from reset and immediately presses A.
+# PRE_RACE_CARD passive timing reconnaissance.
+# One route per process: the native scripted-reset path is known to crash, so
+# immediate-confirm and EXIT behavior live in separate fixtures.
 
-# Passive timing branch.
 until 009F == D7 3600
 wait 60
 press a 2
@@ -25,27 +24,4 @@ wait 15
 dump ui-pre-race-passive-t045
 wait 15
 dump ui-pre-race-passive-t060
-
-# Immediate-A branch.
-reset
-until 009F == D7 3600
-wait 60
-press a 2
-until 009F == 3C 1200
-wait 60
-press a 2
-until 009F == 6D 1200
-wait 60
-press a 2
-until 009F == F6 1200
-wait 60
-press a 2
-until 009F == 16 1200
-dump ui-pre-race-skip-before
-press a 2
-wait 15
-dump ui-pre-race-skip-after-015
-wait 45
-dump ui-pre-race-skip-after-060
-
 quit

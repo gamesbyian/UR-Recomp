@@ -37,7 +37,7 @@ def parse() -> dict:
             continue
         cells = [clean(x) for x in raw.strip().strip("|").split("|")]
         if not headers:
-            headers = [re.sub(r"\\s+", "_", x.lower()) for x in cells]
+            headers = [re.sub(r"\s+", "_", x.lower()) for x in cells]
             continue
         if all(set(x) <= {"-", ":"} for x in cells):
             continue
@@ -62,7 +62,7 @@ def parse() -> dict:
 
 
 def render() -> str:
-    return json.dumps(parse(), indent=2, ensure_ascii=False) + "\\n"
+    return json.dumps(parse(), indent=2, ensure_ascii=False) + "\n"
 
 
 def main() -> int:

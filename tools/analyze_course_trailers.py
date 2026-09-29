@@ -7,6 +7,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 import hashlib
 import json
+import statistics
 
 from analyze_rnc_streams import ROMS, find_streams
 from rnc_method1 import unpack_method1
@@ -63,6 +64,15 @@ def summarize(rows: list[dict]) -> dict:
         "first_byte_counts": {f"0x{k:02X}": v for k, v in sorted(firsts.items())},
         "last_byte_counts": {f"0x{k:02X}": v for k, v in sorted(lasts.items())},
         "slot_lengths": {str(k): v for k, v in sorted(by_slot.items())},
+        "slot_length_stats": {
+            str(k): {
+                "min": min(v),
+                "max": max(v),
+                "mean": round(statistics.mean(v), 6),
+                "median": statistics.median(v),
+            }
+            for k, v in sorted(by_slot.items())
+        },
     }
 
 
@@ -136,12 +146,25 @@ def main() -> int:
             f"{r['distinct_bytes']} | {r['zero_count']} | {r['trailer_hex']} |"
         )
 
-    md += ["", "## USA slot length ranges", ""]
+    md += [
+        "",
+        "## USA slot length ranges",
+        "",
+        "Slot 3 is the independently identified stunt slot. The table reports trailer length only; it does not assume trailer semantics.",
+        "",
+        "| Slot | Track-order role | Min | Median | Mean | Max |",
+        "|---:|---|---:|---:|---:|---:|",
+    ]
     for slot in range(1, 6):
         vals = s["slot_lengths"][str(slot)]
+        st = s["slot_length_stats"][str(slot)]
+        role = "Stunt" if slot == 3 else ("Race" if slot in (1, 4) else "Circuit")
         md.append(
-            f"- slot {slot}: min {min(vals)}, max {max(vals)}, values "
-            + ", ".join(str(v) for v in vals)
+            f"| {slot} | {role} | {st['min']} | {st['median']} | "
+            f"{st['mean']:.3f} | {st['max']} |"
+        )
+        md.append(
+            f"  - values: " + ", ".join(str(v) for v in vals)
         )
 
     MD_OUT.write_text("\n".join(md) + "\n", encoding="utf-8")

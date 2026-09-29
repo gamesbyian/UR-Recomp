@@ -1,0 +1,24 @@
+name: Toolchain bootstrap regression
+
+on:
+  pull_request:
+    paths:
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - "tests/test_bootstrap_toolchain.py"
+      - ".github/workflows/toolchain-bootstrap.yml"
+  push:
+    paths:
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - "tests/test_bootstrap_toolchain.py"
+      - ".github/workflows/toolchain-bootstrap.yml"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate bootstrapper without fetching tools
+        run: python3 tests/test_bootstrap_toolchain.py

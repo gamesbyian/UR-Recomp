@@ -164,6 +164,22 @@ For every recovered artifact:
 - commit only when useful and appropriate;
 - add the source to `references/catalog.yml` and/or the acquisition ledger.
 
+### 8. Establish visual-reference capture tooling without stealing the critical path
+
+RetroArch, the Libretro Slang shader corpus and bsnes-hd are now pinned as on-demand resources. Their primary value belongs to Phase E/HD Presentation, but they may be pulled forward when a concrete rendering investigation benefits from matched presentation variants or layer/sprite isolation.
+
+Actions:
+- curate a small project-owned preset matrix covering raw/nearest controls, ScaleNx, HQx, xBR/xBRZ, SABR, ScaleFX, Super-xBR and representative NTSC/CRT treatments;
+- prove one deterministic identical-frame RetroArch capture route under Linux/headless automation and measure startup/runtime/storage cost;
+- identify reliable offline implementations for scaler families that can process extracted PNG assets without emulator/frontend startup;
+- test bsnes-hd layer/sprite isolation against one useful Uniracers scene before promoting it beyond specialist status;
+- for PPU, color-math, window, OAM or other fidelity work, preserve and compare raw captures first, then use presentation processing only as a secondary diagnostic view;
+- add producer/consumer contracts to `tools/tool_interop.json` only after a concrete capture experiment establishes real commands and outputs.
+
+Priority: opportunistic now, high when Phase E begins producing deterministic graphics assets, and immediately useful earlier only when a rendering seam specifically benefits from these capabilities.
+
+Canonical visual-reference design: `HD-VISUAL-REFERENCE-PIPELINE.md`.
+
 ## Research before reinvention
 
 External research is also an escalation mechanism for technical work, not only a way to collect Uniracers artifacts.

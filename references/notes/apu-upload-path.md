@@ -29,9 +29,14 @@ Reusable project-owned tools:
 
 ## CPU routine
 
-The static MMIO scan collapses the plausible executable accesses into a tight bank-02 cluster. The strongest transfer primitive begins at **`02:8298`**, named provisionally `APU_StreamTransfer`.
+The original #44 note placed the transfer boundary at `02:8298`. Static bytes and a follow-up first-race WRAM trace correct that boundary.
 
-The decisive inner loop is visible directly in the candidate instruction neighborhoods:
+- `02:8294`: `JSR $8298; RTL`, a long-call wrapper around a short initializer.
+- `02:8298-02:82A4`: `PHP; SEP #$20; STZ $68; REP #$20; STZ $6C; STZ $6A; PLP; RTS`. This is now `APU_TransferStateInit`.
+- `02:82A5`: `JSR $82A9; RTL`, the public long-call wrapper `APU_StreamTransfer_Wrapper`.
+- `02:82A9`: the actual `APU_StreamTransfer` body.
+
+The transfer body begins by setting `$6F=$40`, preserving the caller's X in direct page `$83`, and reading `LDA $030000,X`. It then flows into the already runtime-proven transport loop:
 
 - `02:82F0`: `LDA [$63],Y`
 - `02:82F2`: `STA $2143`
@@ -40,13 +45,27 @@ The decisive inner loop is visible directly in the candidate instruction neighbo
 - `02:8301`: `CMP $2142`
 - `02:8304`: `BNE` back to the echo check
 - `02:82F9`: `INY`
-- `02:82FC`: `INC $65` when Y wraps, advancing the 24-bit source pointer rooted at direct-page `$63`
+- `02:82FC`: `INC $65` when Y wraps, advancing the 24-bit working pointer rooted at `$63`
 - `02:831C`: `LDA #$80`
 - `02:831E`: `STA $2142`, followed by another echo wait
 
-Immediately before the routine, `02:8294` is a JSR/RTL long-call wrapper. A small sibling helper at `02:8328` writes a paired value through `$2143/$2142` and waits for the `$2142` echo.
+A small sibling helper at `02:8328` writes a paired value through `$2143/$2142` and waits for the `$2142` echo.
 
-This is enough to call `02:8298` a CPU-to-APU byte-stream transfer routine with confidence 4. The exact higher-level packet/table semantics are still open.
+### ROM-side source seed
+
+A static scan finds 12 long calls to `02:82A5`. Several are immediately preceded by `LDX #imm16`, yielding a compact family of bank-03 source seeds:
+
+- `$FAD5`
+- `$FB15`
+- `$FB55`
+- `$FBD5`
+- `$FC15`
+
+Six bank-83 callers use `LDX #$FB55` immediately before `JSL $82:82A5`.
+
+The deterministic first-race WRAM trace independently confirms that seed. SNESRecomp records the transfer body's 16-bit `STX $83` state as paired byte writes sharing one block index. At frame 906 the first live pair is exactly `$83=$55`, `$84=$FB`, reconstructing **X=`$FB55`**. Subsequent pairs advance through `$FB56`, `$FB57`, and onward. Therefore the first-race transfer enters the bank-03 source at **`03:FB55`**, LoROM file offset **`0x01FB55`**.
+
+This also explains why the earlier attempt to identify a standard stream solely through direct-page `D+$00` was too aggressive: the retail routine has its own directly observed bank-03 selector/cursor path, while `$63-$65` is a working pointer inside the transport. The exact serialization at `03:FB55` remains to be decoded before equating it with SNESRecomp's generic upload-stream grammar.
 
 ## SPC byte-for-byte correlation
 
@@ -90,11 +109,11 @@ Related shared content also appears at shifted APU locations in other snapshots:
 
 The earlier SPC analysis established that large common APU ranges did not appear verbatim in the ROM. This trace explains part of that gap: the retail 65816 side actively streams audio-state bytes through the APU ports. The first-race transfer is not the already-mapped common BRR bank at `$3000-$5F87`; it reconstructs a high-RAM block at `$B0E0-$BDE0`.
 
-That makes the next target much smaller and sharper: locate the caller and source-pointer/table setup for `02:8298`, rather than searching the entire ROM for APU snapshots.
+That target is now narrower still: the first-race caller/source seed is `03:FB55`, with a small cluster of sibling seeds nearby. The next task is to decode that ROM-side serialization and determine how those seeds correspond to audio packages/song selectors.
 
 ## Next discriminator
 
-1. Trace the caller/source pointer feeding `02:8298` and identify the ROM-side block/table that supplies `[$63],Y`.
-2. Query SNESRecomp's already-existing `audio_events` ring around the same transition so request/apply/SPC-read traffic can classify the 12 control/header bytes.
-3. Map the higher-level song/block selector table.
-4. Test whether selectors for `Unused Song 1` and `Unused Song 2` are referenced by dormant retail code/data or are otherwise unreachable.
+1. Decode the bytes beginning at first-race source `03:FB55` and compare sibling seeds `03:FAD5`, `03:FB15`, `03:FBD5`, and `03:FC15`.
+2. Correlate the ROM serialization with the already-established `$2143` chunks and the retained SNESRecomp `audio_events` request/apply/SPC-read chains.
+3. Map the higher-level package/song selector relationships represented by the clustered seeds and their callers.
+4. Test whether selectors/data for `Unused Song 1` and `Unused Song 2` are referenced by dormant retail code/data or are otherwise unreachable.

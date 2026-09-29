@@ -63,6 +63,8 @@ def main() -> int:
             "header_first_16":decoded[:16].hex(" "),
             "pair1":[u16le(decoded,3),u16le(decoded,5)],
             "pair2":[u16le(decoded,7),u16le(decoded,9)],
+            "decoded_le16_11":u16le(decoded,11),
+            "decoded_tail_bytes_after_le16_11":len(decoded)-u16le(decoded,11),
         })
         results.append(result)
 
@@ -78,6 +80,8 @@ def main() -> int:
     focus=by_stream.get(args.focus_stream)
     report={
         "wram_course_base":"7F:0000",
+        "live_header_first_16":live[:16].hex(" "),
+        "live_le16_11":u16le(live,11),
         "best_match":best,
         "focus_stream":focus,
         "top_matches":results[:5],
@@ -96,7 +100,10 @@ def main() -> int:
             f"focus stream #{args.focus_stream}: "
             f"equal={focus['equal_bytes']}/{focus['live_compared']} "
             f"({focus['equal_fraction']:.6f}) prefix={focus['common_prefix']} "
-            f"diffs={focus['diff_count']} live_b11=0x{live[11]:02X}"
+            f"diffs={focus['diff_count']} "
+            f"decoded_le16_11=0x{focus['decoded_le16_11']:04X} "
+            f"tail={focus['decoded_tail_bytes_after_le16_11']} "
+            f"live_le16_11=0x{u16le(live,11):04X}"
         )
     print(f"pair1={best['pair1']} pair2={best['pair2']}")
     print(

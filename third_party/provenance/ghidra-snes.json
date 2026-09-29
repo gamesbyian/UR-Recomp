@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "tool": "ghidra-snes",
+  "upstream_url": "https://github.com/joshleaves/ghidra-snes.git",
+  "upstream_revision": "d33ce5dbfbc3645f00449be1c7ca1c1c65e81756",
+  "plugin_version": "1.3.2",
+  "ghidra_compatibility": "12.0.4",
+  "vendored_source_path": "third_party/src/ghidra-snes",
+  "vendored_tree_sha256": "870081b7ad844d30397eb64a77dcb820ad32b6a4839c721401e0c146683136d9",
+  "license_spdx": "MIT",
+  "license_path": "third_party/src/ghidra-snes/LICENSE",
+  "retained": [
+    "LICENSE",
+    "README.md",
+    "FEATURES.md",
+    "FUNCTIONAL.md",
+    "ROADMAP.md",
+    "Module.manifest",
+    "build.gradle",
+    "extension.properties",
+    "gradle.properties",
+    "data/**",
+    "src/main/**"
+  ],
+  "excluded": [
+    ".github/**",
+    ".vscode/**",
+    ".gitignore",
+    "gradle/**",
+    "gradlew",
+    "gradlew.bat",
+    "src/test/**"
+  ],
+  "exclusion_reason": "UR-Recomp retains the extension implementation, Ghidra language/data definitions and build metadata. Upstream CI/editor files, tests and Gradle wrapper machinery are development conveniences rather than runtime analysis content.",
+  "host_boundary": [
+    "Ghidra 12.0.4 installation",
+    "GHIDRA_INSTALL_DIR",
+    "Gradle execution environment",
+    "Maven/plugin resolution used by build.gradle"
+  ],
+  "build_policy": "manual workbench only; source is preserved locally but no offline Ghidra/Gradle/Maven build is claimed."
+}

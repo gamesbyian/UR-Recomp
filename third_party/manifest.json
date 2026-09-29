@@ -51,16 +51,16 @@
     },
     {
       "id": "ghidra-snes",
-      "mode": "pending",
+      "mode": "vendored",
       "upstream_url": "https://github.com/joshleaves/ghidra-snes.git",
       "revision": "d33ce5dbfbc3645f00449be1c7ca1c1c65e81756",
-      "source_path": null,
+      "source_path": "third_party/src/ghidra-snes",
       "archive_path": null,
-      "source_sha256": null,
-      "license_spdx": null,
-      "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
-      "provenance_path": null
+      "source_sha256": "870081b7ad844d30397eb64a77dcb820ad32b6a4839c721401e0c146683136d9",
+      "license_spdx": "MIT",
+      "license_path": "third_party/src/ghidra-snes/LICENSE",
+      "notes": "Pruned repository-owned Ghidra SNES extension source/data. Ghidra 12.0.4, Gradle execution and Maven/plugin resolution remain manual-workbench host dependencies outside the core offline guarantee.",
+      "provenance_path": "third_party/provenance/ghidra-snes.json"
     },
     {
       "id": "flips",

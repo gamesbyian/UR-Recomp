@@ -98,18 +98,30 @@ Actions:
 
 Exit condition: the largest useful diff regions are classified and at least several function/table boundaries are established.
 
-### 5. Map the OAM/sprite-ripping behavior back to game code
+### 5. Convert emulator-specific compatibility history into local tests
 
-The conceptual mechanism is already strong. The remaining task is exact implementation mapping.
+The active-display OAM mechanism is already strongly supported, and historical Snes9x records show that Uniracers also exposed separate SRAM-mapping, window/XOR and color-math/subscreen issues. Treat these as a small compatibility research program rather than one generic "Uniracers hack."
+
+#### Active-display OAM / sprite ripping
 
 Actions:
-- disassemble around the Canoe hook offsets `0x01534C` and `0x015714`;
-- trace writes to `$2104` and related OAM/HDMA state;
-- verify scanline 0/112 and 0xA5/0x5A behavior where possible;
-- compare unpatched behavior, Canoe workaround behavior, and emulator special cases;
+- disassemble around the Canoe hook offsets `0x01534C` and `0x015714` and injected handler at `0x1FFF00`;
+- identify the original routines affected by those hooks;
+- trace writes to `$2104` and related OAM/HDMA state in the canonical USA ROM;
+- verify the jgenesis scanline 0/112 and `0xA5`/`0x5A` observations where possible;
+- verify the effective high-OAM byte and sprites 96-99;
+- compare unpatched behavior, Canoe workaround behavior, Snes9x's title-specific special case, MAME/jgenesis hardware models, bsnes/ares and SNESRecomp;
 - determine whether the correct SNESRecomp fix belongs in generic PPU/OAM emulation rather than game code.
 
-Exit condition: the exact ROM routine(s) responsible for the split-screen sprite behavior are identified and symbolized.
+#### Other historical compatibility seams
+
+Actions:
+- reproduce the historical LoROM SRAM-mapping issue or demonstrate that the current runtime already handles it, then preserve a deterministic clean/save/load byte-roundtrip test;
+- locate a screen affected by the historical XOR/window-area logic fix and preserve PPU/window-state plus frame evidence;
+- locate a screen affected by the historical color-addition / empty-subscreen behavior and preserve color-math/subscreen state plus frame evidence;
+- keep these tests independent so a rendering failure is not automatically attributed to the OAM path.
+
+Exit condition: each known historical Uniracers emulator-compatibility seam has a local explanation and a deterministic regression test, or a documented demonstration that it does not apply to the canonical runtime.
 
 ### 6. Turn known WRAM/TAS evidence into symbols
 

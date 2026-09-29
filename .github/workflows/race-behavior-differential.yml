@@ -215,11 +215,11 @@ jobs:
           CHECKPOINTS=(
             --checkpoint race-entered
             --checkpoint accel-180
-            --checkpoint jump-trigger
-            --checkpoint jump-early
-            --checkpoint jump-rise
-            --checkpoint jump-mid
-            --checkpoint jump-late
+            --checkpoint jump-hold-024
+            --checkpoint jump-hold-048
+            --checkpoint jump-release-004
+            --checkpoint jump-release-012
+            --checkpoint jump-release-028
             --checkpoint jump-settle
           )
           python3 tools/summarize_player_checkpoints.py \
@@ -239,6 +239,28 @@ jobs:
             --require-cross-engine-match \
             --json-out "$RUNNER_TEMP/jump-semantic-validation.json"
 
+      - name: Summarize paired racer slots for sustained jump
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHECKPOINTS=(
+            --checkpoint accel-180
+            --checkpoint jump-hold-024
+            --checkpoint jump-hold-048
+            --checkpoint jump-release-004
+            --checkpoint jump-release-012
+            --checkpoint jump-release-028
+            --checkpoint jump-settle
+          )
+          python3 tools/summarize_paired_player_slots.py \
+            "$RUNNER_TEMP/native-jump-dumps" "${CHECKPOINTS[@]}" \
+            --json-out "$RUNNER_TEMP/native-jump-paired-slots.json" \
+            | tee "$RUNNER_TEMP/native-jump-paired-slots.txt"
+          python3 tools/summarize_paired_player_slots.py \
+            "$RUNNER_TEMP/native-jump-control-dumps" "${CHECKPOINTS[@]}" \
+            --json-out "$RUNNER_TEMP/native-control-paired-slots.json" \
+            | tee "$RUNNER_TEMP/native-control-paired-slots.txt"
+
       - name: Compare full WRAM jump checkpoints
         shell: bash
         run: |
@@ -247,11 +269,11 @@ jobs:
             "$RUNNER_TEMP/native-jump-dumps" "$RUNNER_TEMP/reference-jump-dumps" \
             --label-a native --label-b snesref --limit 24 \
             --checkpoint accel-180 \
-            --checkpoint jump-trigger \
-            --checkpoint jump-early \
-            --checkpoint jump-rise \
-            --checkpoint jump-mid \
-            --checkpoint jump-late \
+            --checkpoint jump-hold-024 \
+            --checkpoint jump-hold-048 \
+            --checkpoint jump-release-004 \
+            --checkpoint jump-release-012 \
+            --checkpoint jump-release-028 \
             --checkpoint jump-settle \
             --json-out "$RUNNER_TEMP/jump-wram-diff.json" \
             | tee "$RUNNER_TEMP/jump-wram-diff.txt"
@@ -301,11 +323,11 @@ jobs:
           CHECKPOINTS=(
             --checkpoint race-entered
             --checkpoint accel-180
-            --checkpoint jump-trigger
-            --checkpoint jump-early
-            --checkpoint jump-rise
-            --checkpoint jump-mid
-            --checkpoint jump-late
+            --checkpoint jump-hold-024
+            --checkpoint jump-hold-048
+            --checkpoint jump-release-004
+            --checkpoint jump-release-012
+            --checkpoint jump-release-028
             --checkpoint jump-settle
           )
           python3 tools/summarize_player_checkpoints.py \
@@ -334,11 +356,11 @@ jobs:
             "$RUNNER_TEMP/native-jump-dumps" "$RUNNER_TEMP/native-jump-control-dumps" \
             --label-a jump --label-b no-jump --limit 80 \
             --checkpoint accel-180 \
-            --checkpoint jump-trigger \
-            --checkpoint jump-early \
-            --checkpoint jump-rise \
-            --checkpoint jump-mid \
-            --checkpoint jump-late \
+            --checkpoint jump-hold-024 \
+            --checkpoint jump-hold-048 \
+            --checkpoint jump-release-004 \
+            --checkpoint jump-release-012 \
+            --checkpoint jump-release-028 \
             --checkpoint jump-settle \
             --json-out "$RUNNER_TEMP/native-jump-effect.json" \
             | tee "$RUNNER_TEMP/native-jump-effect.txt"
@@ -348,11 +370,11 @@ jobs:
             "$RUNNER_TEMP/reference-jump-dumps" "$RUNNER_TEMP/reference-jump-control-dumps" \
             --label-a jump --label-b no-jump --limit 80 \
             --checkpoint accel-180 \
-            --checkpoint jump-trigger \
-            --checkpoint jump-early \
-            --checkpoint jump-rise \
-            --checkpoint jump-mid \
-            --checkpoint jump-late \
+            --checkpoint jump-hold-024 \
+            --checkpoint jump-hold-048 \
+            --checkpoint jump-release-004 \
+            --checkpoint jump-release-012 \
+            --checkpoint jump-release-028 \
             --checkpoint jump-settle \
             --json-out "$RUNNER_TEMP/reference-jump-effect.json" \
             | tee "$RUNNER_TEMP/reference-jump-effect.txt"
@@ -398,5 +420,9 @@ jobs:
             ${{ runner.temp }}/reference-jump-effect.txt
             ${{ runner.temp }}/native-jump-control-dumps/
             ${{ runner.temp }}/reference-jump-control-dumps/
+            ${{ runner.temp }}/native-jump-paired-slots.json
+            ${{ runner.temp }}/native-control-paired-slots.json
+            ${{ runner.temp }}/native-jump-paired-slots.txt
+            ${{ runner.temp }}/native-control-paired-slots.txt
           if-no-files-found: warn
           retention-days: 7

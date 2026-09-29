@@ -293,7 +293,7 @@ Current P0-A implementation lives in `third_party/manifest.json`, `tools/validat
 
 ### P0-B — Small/high-value direct vendors
 
-- [~] mesen-for-ai. Repository-owned pruned source and GPL-3.0-only license are present; bootstrap uses a stdlib-only installer with no PyPI/build-isolation dependency. Final tree digest and offline CI smoke are being validated in the active tranche.
+- [x] mesen-for-ai. Repository-owned pruned source and GPL-3.0-only license are present; deterministic tree SHA-256 is locked; bootstrap uses a stdlib-only installer with no PyPI/build-isolation dependency; run 36543649163 proves the `--offline` build, vendored tests, and launcher smoke.
 - [ ] snes2asm, incorporating the existing UR-Recomp patch cleanly.
 - [ ] SuperFamiconv plus Cargo dependency closure.
 - [ ] ghidra-snes.

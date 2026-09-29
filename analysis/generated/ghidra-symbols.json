@@ -135,6 +135,12 @@
       "name": "RNC1_ReadWordLoROMSafe",
       "kind": "function",
       "comment": "Integration helper used by the shipped Method-1 decoder for a 16-bit packed-stream read through `IN`. Normal path returns `LDA [IN]` while restoring the pointer; when `IN=$FFFF`, it fetches the high byte from next-bank `$8000`, matching LoROM linear-stream continuity across a bank boundary. `01:BB73` is the helper's wrap-test `BNE`, not a store."
+    },
+    {
+      "address": "828298",
+      "name": "APU_StreamTransfer",
+      "kind": "function",
+      "comment": "Confidence 4. First-race MMIO trace uses $2143 as payload and $2142 as echoed sequence/handshake. Static loop at 02:82F0-02:8327 loads [$63],Y, writes $2143, writes/waits on $2142, advances the 24-bit source pointer on Y wrap, and terminates with $80 on $2142. Traced payload reconstructs race-family SPC APU RAM $B0E0-$BDE0 after transfer-control bytes/overlap are accounted for."
     }
   ]
 }

@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "source_run": {
+    "workflow": "One-shot APU upload-path trace",
+    "run_id": 36578463143,
+    "head_sha": "442ed3bed2caaaab24e36b4e09467d6d2bf90cc3",
+    "artifact_id": 11039280154,
+    "artifact_sha256": "f3ecd38bc68d05d95f33d36c7209a569defacba899d6bc854b876dba122e0c90"
+  },
+  "canonical_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "runtime_trace": {
+    "frame_start": 957,
+    "frame_end": 962,
+    "race_active_frame": 984,
+    "event_count": 6691,
+    "frames_with_writes": 6,
+    "writes": {
+      "0x2140": 0,
+      "0x2141": 0,
+      "0x2142": 3347,
+      "0x2143": 3344
+    },
+    "interpretation": "The first-race transition uses $2142 as a rolling echoed sequence/handshake byte and $2143 as the payload byte. Three $2142-only transitions split the payload into four transfer chunks."
+  },
+  "static_transfer_routine": {
+    "function_address": "02:8298",
+    "function_name": "APU_StreamTransfer",
+    "confidence": 4,
+    "evidence": [
+      "02:82F0 executes LDA [$63],Y and 02:82F2 writes that byte to $2143.",
+      "02:82F5 XBA / 02:82F6 STA $2142 writes the sequence/handshake byte.",
+      "02:8301 CMP $2142 / BNE waits for the echoed handshake before advancing.",
+      "Y increments per payload byte; when Y wraps, 02:82FC INC $65 advances the 24-bit source pointer rooted at direct-page $63.",
+      "02:831C LDA #$80, 02:831E STA $2142 and the echo loop at 02:8321 terminate the observed transfer phase.",
+      "The routine has a JSR/RTL long-call wrapper immediately before it at 02:8294."
+    ],
+    "helper": {
+      "address": "02:8328",
+      "interpretation": "Small helper that writes a byte to $2143, swaps accumulator bytes, writes the paired value to $2142, waits for echo, increments, swaps back, and returns."
+    }
+  },
+  "payload": {
+    "port_2143_bytes": 3344,
+    "port_2143_sha256": "d2c05c89de4f76d398e3bfd2e35d352e4d1b63f749b285da671284654ba8b8c5",
+    "chunks": [
+      {
+        "payload_range": [
+          0,
+          767
+        ],
+        "length": 767,
+        "sha256": "edcd4daf8e0ee0accaa70195ceb40db9f2f1f957a44efecdd69d71ee338ede69",
+        "apu_match": {
+          "payload_offset": 0,
+          "length": 767,
+          "start_hex": "0xB0E0",
+          "end_inclusive_hex": "0xB3DE"
+        }
+      },
+      {
+        "payload_range": [
+          767,
+          808
+        ],
+        "length": 41,
+        "sha256": "e99e8dab668c609f7414a3165552ce2cceb7399ca0c845237a364a22cce5e0d8",
+        "nonmatching_prefix_hex": "30 09",
+        "apu_match": {
+          "payload_offset": 2,
+          "length": 39,
+          "start_hex": "0xB3DC",
+          "end_inclusive_hex": "0xB402",
+          "overlap_with_prior_bytes": 3
+        }
+      },
+      {
+        "payload_range": [
+          808,
+          2928
+        ],
+        "length": 2120,
+        "sha256": "3b3e0c7de78d4edf24f79205087145902c2ead2d9cb1dbbc3d0b41f0862f22d3",
+        "nonmatching_prefix_hex": "08 06 03 00 00",
+        "apu_match": {
+          "payload_offset": 5,
+          "length": 2115,
+          "start_hex": "0xB403",
+          "end_inclusive_hex": "0xBC45"
+        }
+      },
+      {
+        "payload_range": [
+          2928,
+          3344
+        ],
+        "length": 416,
+        "sha256": "fab0dc7a24c782d94701f4b83185f7ca452072354a79bae31ef3a85b8c1603d3",
+        "nonmatching_prefix_hex": "1F 33 03 00 00",
+        "apu_match": {
+          "payload_offset": 5,
+          "length": 411,
+          "start_hex": "0xBC46",
+          "end_inclusive_hex": "0xBDE0"
+        }
+      }
+    ]
+  },
+  "spc_correlation": {
+    "recovered_unique_apu_region": {
+      "start_hex": "0xB0E0",
+      "end_inclusive_hex": "0xBDE0",
+      "length": 3329,
+      "sha256": "2574a4e8abb90cf8d6bc37763d967ef1c63246d0da7b28e4614187563c35c29d"
+    },
+    "exact_same_offset_tracks": [
+      "1st Race",
+      "2nd Race",
+      "3rd Race",
+      "4th Race",
+      "5th Race",
+      "Unused Song 2"
+    ],
+    "explanation": "After removing 12 transfer-control/header bytes and accounting for a 3-byte overlap between the first two chunks, the runtime $2143 stream reconstructs APU RAM $B0E0-$BDE0 exactly. That entire 3,329-byte region is byte-identical at the same offsets in all five numbered-race SPCs and Unused Song 2.",
+    "related_shifted_matches": [
+      "Celebration contains the same matched chunk contents at shifted APU locations.",
+      "Title Screen shares the 2,115-byte middle chunk at APU $8619.",
+      "Demo Race and Unused Song 1 share the final 411-byte chunk at APU $7BA8."
+    ]
+  },
+  "interpretation": [
+    "The CPU-side upload primitive is now localized to executable-looking bank-02 code rather than an inferred raw ROM blob.",
+    "The observed first-race transition copies a large race-family APU data block through $2143 while synchronizing each byte through $2142.",
+    "The matched high-APU-RAM region is distinct from the previously identified shared BRR sample-bank prefix at $3000-$5F87, so it is more plausibly driver-side tables/sequence/state data than the common sample payload itself.",
+    "This result does not yet identify the ROM-side source block table, individual song selector values, or why the two unused compositions are unreachable."
+  ],
+  "next_discriminator": "Trace the caller and source-pointer/table setup feeding 02:8298, and capture the generic SNESRecomp audio_events ring immediately around the transfer to distinguish control/header bytes from applied payload. Use that to map ROM-side audio blocks and song selectors, then test whether the two unused compositions have reachable or dormant selector entries."
+}

@@ -39,6 +39,22 @@ class CourseLayoutPlaneTests(unittest.TestCase):
         self.assertEqual(s["zero_fraction"], 0.75)
         self.assertLess(s["entropy_bits_per_byte"], 2.0)
 
+    def test_shape_aware_neighbor_continuity(self):
+        # Four identical horizontal rows: horizontal neighbors always match;
+        # vertical neighbors always match as well.
+        data = bytes([1] * 256) * 4
+        s = stats(data, 256, 4)
+        self.assertEqual(s["horizontal_equal_fraction"], 1.0)
+        self.assertEqual(s["vertical_equal_fraction"], 1.0)
+        self.assertEqual(s["horizontal_mean_abs_delta"], 0.0)
+        self.assertEqual(s["vertical_mean_abs_delta"], 0.0)
+
+    def test_neighbor_metric_rejects_wrong_shape(self):
+        data = bytes(range(16))
+        s = stats(data, 5, 3)
+        self.assertIsNone(s["horizontal_equal_fraction"])
+        self.assertIsNone(s["vertical_equal_fraction"])
+
 
 if __name__ == "__main__":
     unittest.main()

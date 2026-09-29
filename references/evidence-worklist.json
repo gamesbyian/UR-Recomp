@@ -196,12 +196,13 @@
         "tpp-musiclibrary-uniracers"
       ],
       "question": "Can the preserved SPC set fingerprint the audio driver, song table, sample/instrument layout, and reachability of the two tagged unused songs?",
-      "next_discriminator": "Trace the caller/source pointer and ROM-side table feeding APU_StreamTransfer at 02:8298, and capture SNESRecomp audio_events around the same first-race transfer to classify the control/header bytes. Use the resulting block/song selector map to test whether Unused Song 1 or Unused Song 2 has reachable or dormant retail selector references.",
+      "next_discriminator": "Decode the measured first-race ROM source at 03:FB55 (file 0x01FB55) and sibling caller seeds 03:FAD5, 03:FB15, 03:FBD5, and 03:FC15. Correlate their serialization with the established $2143 payload chunks and audio_events chains, then map package/song selectors and test unused-song reachability.",
       "deliverables": [
         "SPC archive provenance, archive hash and ten per-track hashes (landed)",
         "shared APU driver/sample fingerprint and reusable analyzer (landed)",
         "Unused Song 1 classified with Demo Race; Unused Song 2 classified with numbered-race family (landed)",
-        "CPU-side APU stream-transfer routine 02:8298 and exact first-race APU block $B0E0-$BDE0 mapping (landed)",
+        "CPU-side APU transfer boundaries corrected: initializer 02:8298, wrapper 02:82A5, body 02:82A9; exact first-race APU block $B0E0-$BDE0 mapping (landed)",
+        "first-race ROM source seed 03:FB55 plus clustered sibling seeds identified and runtime-corroborated (landed)",
         "ROM-side audio block table/song selector mapping (next)",
         "unused-song retail reachability result (next)"
       ],

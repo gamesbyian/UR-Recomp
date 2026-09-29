@@ -63,7 +63,28 @@ dump post-confirm-016
 wait 16
 dump post-confirm-032
 
-wait 32
+wait 4
+dump post-confirm-036
+
+wait 4
+dump post-confirm-040
+
+wait 4
+dump post-confirm-044
+
+wait 4
+dump post-confirm-048
+
+wait 4
+dump post-confirm-052
+
+wait 4
+dump post-confirm-056
+
+wait 4
+dump post-confirm-060
+
+wait 4
 dump post-confirm-064
 
 wait 32

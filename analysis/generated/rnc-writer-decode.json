@@ -1,0 +1,113 @@
+{
+  "entry": "01:B8F1",
+  "direct_entry_call_sites": [],
+  "decoded_roots": [
+    {
+      "bank": 1,
+      "pc": 47345,
+      "m": 0,
+      "x": 0,
+      "path": "RNC1",
+      "decoded_states": 156,
+      "error": null
+    },
+    {
+      "bank": 1,
+      "pc": 47983,
+      "m": 0,
+      "x": 0,
+      "path": "RNC1 -> 01:BB6F",
+      "decoded_states": 15,
+      "error": null
+    },
+    {
+      "bank": 1,
+      "pc": 47738,
+      "m": 0,
+      "x": 0,
+      "path": "RNC1 -> 01:BA7A",
+      "decoded_states": 36,
+      "error": null
+    },
+    {
+      "bank": 1,
+      "pc": 47836,
+      "m": 0,
+      "x": 0,
+      "path": "RNC1 -> 01:BADC",
+      "decoded_states": 82,
+      "error": null
+    },
+    {
+      "bank": 1,
+      "pc": 47654,
+      "m": 0,
+      "x": 0,
+      "path": "RNC1 -> 01:BA26",
+      "decoded_states": 30,
+      "error": null
+    }
+  ],
+  "scope_entries": {
+    "byte11-mutation-scope-entry": {
+      "reachable_from_rnc_call_tree": true,
+      "owners": [
+        {
+          "root": "01:BA7A",
+          "root_m": 0,
+          "root_x": 0,
+          "call_path": "RNC1 -> 01:BA7A",
+          "m": 0,
+          "x": 0,
+          "instruction": "$01:BA96 [M=0 X=0] DEY   ",
+          "context": [
+            "$01:BA8A [M=0 X=0] LSR   A",
+            "$01:BA8B [M=0 X=0] ROR   $8F",
+            "$01:BA8D [M=0 X=0] DEY   ",
+            "$01:BA8E [M=0 X=0] BEQ   $BAB3",
+            "$01:BA90 [M=0 X=0] DEX   ",
+            "$01:BA91 [M=0 X=0] BEQ   $BA9C",
+            "$01:BA93 [M=0 X=0] LSR   A",
+            "$01:BA94 [M=0 X=0] ROR   $8F",
+            "$01:BA96 [M=0 X=0] DEY   ",
+            "$01:BA97 [M=0 X=0] BEQ   $BAB3",
+            "$01:BA99 [M=0 X=0] DEX   ",
+            "$01:BA9A [M=0 X=0] BNE   $BA8A",
+            "$01:BA9C [M=0 X=0] CLC   ",
+            "$01:BA9D [M=0 X=0] LDA   $82",
+            "$01:BA9F [M=0 X=0] ADC   #$02",
+            "$01:BAA2 [M=0 X=0] BCC   $BAA9",
+            "$01:BAA4 [M=0 X=0] ORA   #$8000"
+          ]
+        }
+      ]
+    },
+    "payload-install-scope-entry": {
+      "reachable_from_rnc_call_tree": true,
+      "owners": [
+        {
+          "root": "01:BB6F",
+          "root_m": 0,
+          "root_x": 0,
+          "call_path": "RNC1 -> 01:BB6F",
+          "m": 0,
+          "x": 0,
+          "instruction": "$01:BB73 [M=0 X=0] BNE   $BB86",
+          "context": [
+            "$01:BB6F [M=0 X=0] LDA   [$82]",
+            "$01:BB71 [M=0 X=0] INC   $82",
+            "$01:BB73 [M=0 X=0] BNE   $BB86",
+            "$01:BB75 [M=0 X=0] SEC   ",
+            "$01:BB76 [M=0 X=0] ROR   $82",
+            "$01:BB78 [M=0 X=0] INC   $84",
+            "$01:BB7A [M=0 X=0] SEP   #$20",
+            "$01:BB7C [M=1 X=0] XBA   ",
+            "$01:BB7D [M=1 X=0] LDA   [$82]",
+            "$01:BB7F [M=1 X=0] XBA   ",
+            "$01:BB80 [M=1 X=0] REP   #$20"
+          ]
+        }
+      ]
+    }
+  }
+}

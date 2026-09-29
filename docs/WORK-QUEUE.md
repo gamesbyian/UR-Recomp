@@ -68,7 +68,7 @@ Goal: make the core automated research/build toolchain runnable from a clean che
 - [x] Rotate intentionally with L/R while airborne. Run 36516524308 confirms persistent player-1 `7E:04C7` as a modulo-64 pitch angle: eight L frames move 7→55 (−16 mod 64), eight R frames move 7→23 (+16), identically native/reference.
 - [x] Land with event-relative state validation. Run 36517502791 matches native/reference throughout: track-height contact clears `air` by `landing-034`, and vertical velocity is fully reset by `landing-036`. Script labels include the runner's mandatory idle frames and are treated as event-relative.
 - [x] Validate one reproducible collision/contact case. Run 36518208740 is green and native/Snes9x agree at every tracked semantic checkpoint. Against the timing-identical clean-jump control, the 16-frame airborne over-rotation intervention produces a distinct failed-landing/contact trajectory: at the key checkpoint player 1 remains airborne with `ySpeed=-187` and reduced `xSpeed=389`, while control is already grounded with `ySpeed=0` and `xSpeed=448`; the displacement/speed difference persists through settle.
-- [~] Finish a stock race deterministically. Collision/contact is closed. The active discriminator is exact replay of the recovered reset-anchored 2008 WIP using its frozen controller stream plus embedded starting SRAM. The workflow is now reference-first and fail-soft: one pinned-Snes9x trace persists exact race/results transition evidence before native generation/build, then the native Lua bridge replays the same frame masks for cross-runtime comparison. The simpler rhythmic Dragster probe remains a secondary diagnostic.
+- [~] Finish a stock race deterministically. Collision/contact is closed. The 2014 Dessyreqt historical movie now supplies a durable pinned-Snes9x reference oracle that reaches the first race at frame 794 and first results at frame 2874 (run 36538122590). Native replay of an exact historical stream remains open. The 2008 WIP reference side also traces successfully, but its native replay still fails and its obsolete WIP1 timing mode remains a separate compatibility variable. The simpler rhythmic Dragster probe remains a secondary diagnostic.
 - [ ] No simulation modifications.
 
 **Exit:** complete a stock race in 4:3.
@@ -104,7 +104,7 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 - [x] Preserve the source and submitted #4250 SMV in the repository with hashes/provenance.
 - [~] Verify the bot's key RAM labels against the canonical ROM/runtime. Frontend/race-entry state is verified; the active race-acceleration fixture is now testing the effective Lua player-1 X position/speed fields (`7E:0411`, `7E:04B7`) and related recovered state. Duplicate player-1 Lua keys have been resolved by actual Lua overwrite semantics. The historical 2008 Microstorage WIP SMV remains a second deterministic input corpus.
 - [x] Port the clean menu-driving route into the shared native/snesref deterministic input harness through race entry.
-- [~] Evaluate its race-driving policy as an autonomous regression workload. A first bounded whole-race script is active, and the preserved 2014 SMV now has a deterministic extractor plus coarse pinned-Snes9x replay workflow so exact historical first-race input can be recovered before porting more policy logic.
+- [~] Evaluate its race-driving policy as an autonomous regression workload. The preserved 2014 SMV now has a deterministic extractor and a confirmed pinned-Snes9x first-race/results replay with durable frame/state evidence. Prefer replaying this exact historical input through native before porting more state-responsive policy logic.
 
 ## Phase 5 — Differential validation
 
@@ -127,7 +127,7 @@ Maintain `SYMBOLS.md` and `RESEARCH-LEDGER.md`. `tools/export_symbols.py` genera
 
 - [~] Locate compressed blocks and pointer/index tables. All 45 Method-1 course payload blocks are located and verified; the selector/pointer/index structure remains open, with direct/split/relative/fixed-record encodings under mechanical search.
 - [x] Verify RNC Method 1 corpus and independently decompress all 45 streams with CRC validation.
-- [~] Reconstruct dimensions and primitives. Header bytes 13/14 now form a confirmed 45/45 fixed-area structural invariant: zero-as-256 yields complementary pairs whose product is 1024; exact unit/consumer and geometry primitives remain open.
+- [~] Reconstruct dimensions and primitives. Header bytes 13/14 form a confirmed 45/45 fixed-area structural invariant: zero-as-256 yields complementary pairs whose product is 1024. LE16@11 is now runtime-confirmed on Dragster and stream 11 as a mutable pre-trailer cursor that advances exactly through the variable trailing region to EOF−1; trailer grammar, dimension unit/consumer and geometry primitives remain open.
 - [ ] Produce structural documentation.
 - [ ] Build parser/tooling around the canonical ROM.
 

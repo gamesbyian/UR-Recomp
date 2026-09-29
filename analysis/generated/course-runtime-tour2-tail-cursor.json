@@ -1,0 +1,21 @@
+{
+  "expected_stream": 11,
+  "best_stream": 11,
+  "best_equal_fraction": 0.9999842263829519,
+  "focus_cursor": {
+    "decoded_value": 63375,
+    "live_value": 63396,
+    "advance": 21,
+    "decoded_size": 63397,
+    "bytes_after_cursor": 21,
+    "advance_needed_for_last_byte": 21,
+    "live_equals_last_byte_offset": true
+  },
+  "live_header_first_16": "00 00 00 6f 00 28 00 6f 00 26 00 a4 f7 10 40 00",
+  "runtime_racer_state": {
+    "slot1_x": 1776,
+    "slot1_y": 641,
+    "slot2_x": 1776,
+    "slot2_y": 609
+  }
+}

@@ -26,6 +26,12 @@ gen/
 extracted/
 assets/extracted/
 assets/generated/
+
+# Reviewed, reproducible research reports are durable repository evidence.
+# The generic generated/ rule above otherwise catches this nested directory.
+!analysis/generated/
+!analysis/generated/**
+
 dump/
 dumps/
 

@@ -6,6 +6,9 @@ on:
       - chatgpt/external-evidence-intake-2026-09-29
     paths:
       - .github/workflows/external-spc-acquisition.yml
+  pull_request:
+    paths:
+      - .github/workflows/external-spc-acquisition.yml
 
 permissions:
   contents: read

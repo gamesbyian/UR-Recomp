@@ -81,6 +81,7 @@ def main() -> int:
     subprocess.run([sys.executable, str(Path(__file__).with_name("export_symbols.py")), "--check"], check=True)
     subprocess.run([sys.executable, str(Path(__file__).with_name("bootstrap_toolchain.py")), "--validate"], check=True)
     subprocess.run([sys.executable, str(Path(__file__).with_name("audit_imported_references.py"))], check=True)
+    subprocess.run([sys.executable, str(Path(__file__).with_name("audit_imported_code.py")), "--check"], check=True)
 
     roms = [p for p in tracked if Path(p).suffix.lower() in ROM_EXTENSIONS]
     print(f"Tracked-file hygiene check passed ({len(roms)} intentional ROM image(s) under {ROM_PREFIX}).")

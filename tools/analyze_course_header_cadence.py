@@ -48,13 +48,13 @@ def main():
     products=sorted(set(p for _,_,_,p in dim_pairs))
     end_fields=[(i,u16le(d,11),len(d),len(d)-u16le(d,11)) for i,d in enumerate(ss,1)]
     end_deltas=sorted(set(delta for _,_,_,delta in end_fields))
-    lines += ["","## Payload-end field invariant","",
-              "Treating bytes 11–12 as little-endian produces a striking payload-size relationship across the decoded corpus.","",
+    lines += ["","## Near-end header field relationship","",
+              "Treating bytes 11–12 as little-endian places the field near the end of every decoded payload, but the gap is variable rather than a single corpus-wide constant.","",
               f"- distinct values of `decoded_size - LE16@11`: {end_deltas}.",
-              f"- condition `LE16@11 + 8 == decoded_size`: {sum(v+8==n for _,v,n,_ in end_fields)}/45 streams.",
-              f"- condition `LE16@11 + 7 == decoded_size - 1`: {sum(v+7==n-1 for _,v,n,_ in end_fields)}/45 streams.",
+              f"- minimum/maximum gap: {min(end_deltas)}..{max(end_deltas)} bytes.",
+              f"- exact `LE16@11 + 8 == decoded_size` matches: {sum(v+8==n for _,v,n,_ in end_fields)}/45 streams.",
               "",
-              "For Dragster, decoded `LE16@11 = 0x840F` and decoded size is `0x8417`. The observed runtime seven-step increment therefore changes this field to `0x8416`, exactly the final valid byte offset of the decoded payload. This strongly suggests an in-place end/cursor field rather than a gameplay flag; exact consumer semantics remain to be traced.",
+              "Dragster is that one 8-byte-tail case: decoded `LE16@11 = 0x840F` and decoded size is `0x8417`. Its observed seven runtime increments therefore move the field to `0x8416`, exactly the final valid byte offset. This motivates a **variable-length trailer cursor** hypothesis: `LE16@11` may point to the start of a trailer that setup consumes in place, with the number of increments depending on trailer length. A second-course runtime capture is required before promoting that interpretation.",
               "",
               "## Dimension-pair invariant","",
               "Bytes 13 and 14 form an unusually strict power-of-two-style pair. Treating encoded byte value `0x00` as 256, every one of the 45 streams satisfies `dim13 × dim14 = 1024`.","",

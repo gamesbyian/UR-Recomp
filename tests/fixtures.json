@@ -138,7 +138,7 @@
         "7E:04B7 xSpeed",
         "7E:04BB ySpeed",
         "7E:0545 airValue",
-        "7E:0F49 pitch"
+        "7E:04C7 player1 pitch angle (mod 64)"
       ],
       "future_extensions": [
         "right-rotation",
@@ -146,7 +146,9 @@
         "stunt-input",
         "collision",
         "finish"
-      ]
+      ],
+      "mirror_script": "tests/input/race-rotation-right.script",
+      "validation": "L and R direction convention confirmed in run 36516524308"
     }
   ]
 }

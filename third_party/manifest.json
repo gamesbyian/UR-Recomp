@@ -3,15 +3,15 @@
   "components": [
     {
       "id": "mesen-for-ai",
-      "mode": "pending",
+      "mode": "vendored",
       "upstream_url": "https://github.com/paulomanrique/mesen-for-ai.git",
       "revision": "a4bda6285eadf69c871135637df29e9c9a8f6f7a",
-      "source_path": null,
+      "source_path": "third_party/src/mesen-for-ai",
       "archive_path": null,
-      "source_sha256": null,
-      "license_spdx": null,
-      "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified."
+      "source_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "license_spdx": "GPL-3.0-only",
+      "license_path": "third_party/src/mesen-for-ai/LICENSE",
+      "notes": "Pruned repository-owned source subset from the pinned upstream revision. AGENTS.md and optional agent-skill metadata are excluded; bridge, daemon, scripts, tests, patches, packaging metadata, README and license are retained."
     },
     {
       "id": "snes2asm",

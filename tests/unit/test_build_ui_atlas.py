@@ -191,6 +191,55 @@ class BuildUiAtlasTests(unittest.TestCase):
             self.assertEqual(report["captures"][0]["status"], "missing")
             self.assertFalse(report["captures"][0]["required"])
 
+    def test_include_unclassified_surfaces_raw_dump_tag(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            dumps = root / "dumps"
+            dumps.mkdir()
+
+            manifest = {
+                "schema_version": 1,
+                "fields": {
+                    "current_menu": {"wram_offset": "0x009F", "width": 1},
+                    "selected_option": {"wram_offset": "0x009B", "width": 1},
+                    "menu_row": {"wram_offset": "0x000E", "width": 1},
+                    "menu_col": {"wram_offset": "0x0C63", "width": 1},
+                    "in_race": {"wram_offset": "0x0313", "width": 1},
+                },
+                "captures": [],
+            }
+            manifest_path = root / "manifest.json"
+            manifest_path.write_text(json.dumps(manifest))
+
+            _write_bmp(dumps / "mystery.fb.bmp", width=4, height=3)
+
+            out_json = root / "atlas.json"
+            proc = subprocess.run(
+                [
+                    sys.executable,
+                    str(TOOL),
+                    "--manifest",
+                    str(manifest_path),
+                    "--dump-dir",
+                    str(dumps),
+                    "--include-unclassified",
+                    "--out-json",
+                    str(out_json),
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            report = json.loads(out_json.read_text())
+            self.assertEqual(report["summary"]["declared"], 0)
+            self.assertEqual(report["summary"]["unclassified"], 1)
+            self.assertEqual(report["summary"]["total_cards"], 1)
+            capture = report["captures"][0]
+            self.assertEqual(capture["state_id"], "UNCLASSIFIED")
+            self.assertEqual(capture["tag"], "mystery")
+            self.assertEqual(capture["classification_status"], "unclassified")
+
 
 if __name__ == "__main__":
     unittest.main()

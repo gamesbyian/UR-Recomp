@@ -128,11 +128,42 @@ def scan_immediate_ldx_values(rom: bytes, values=(0x3B, 0x3D), context: int = 8)
         })
     return rows
 
+
+def scan_inner_upload_entries(rom: bytes, context: int = 8) -> list[dict]:
+    """Find direct calls to the inner $02:8082 upload body."""
+    rows = []
+    jsr = bytes((0x20, 0x82, 0x80))
+    jsl = bytes((0x22, 0x82, 0x80, 0x82))
+    for pos in range(len(rom)):
+        cpu = file_to_cpu(pos)
+        kind = None
+        width = 0
+        if ((cpu >> 16) & 0xFF) == 0x02 and rom[pos:pos + 3] == jsr:
+            kind = "JSR_8082_bank02"
+            width = 3
+        elif rom[pos:pos + 4] == jsl:
+            kind = "JSL_828082"
+            width = 4
+        if kind is None:
+            continue
+        a = max(0, pos - context)
+        b = min(len(rom), pos + width + context)
+        rows.append({
+            "kind": kind,
+            "rom_offset": pos,
+            "rom_offset_hex": f"0x{pos:06X}",
+            "caller_cpu": fmt_cpu(cpu),
+            "context_start_hex": f"0x{a:06X}",
+            "context_hex": rom[a:b].hex(" "),
+        })
+    return rows
+
 def build_report(rom: bytes) -> dict:
     calls = scan_setup_calls(rom)
     pairs = scan_setup_package_pairs(rom)
     wrapper_calls = scan_all_setup_wrapper_calls(rom)
     targeted_ldx = scan_immediate_ldx_values(rom)
+    inner_entries = scan_inner_upload_entries(rom)
     values = sorted({r["selector"] for r in calls})
     paired_values = sorted({r["selector"] for r in pairs})
     interesting = list(range(0x38, 0x43))
@@ -142,6 +173,7 @@ def build_report(rom: bytes) -> dict:
         "setup_package_pairs": pairs,
         "all_setup_wrapper_calls": wrapper_calls,
         "targeted_immediate_ldx": targeted_ldx,
+        "inner_upload_entries": inner_entries,
         "unbound_setup_wrapper_calls": [r for r in wrapper_calls if r["preceding_ldx_immediate"] is None],
         "selector_values": values,
         "selector_values_hex": [f"0x{x:04X}" for x in values],

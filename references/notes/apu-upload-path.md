@@ -65,7 +65,22 @@ Six bank-83 callers use `LDX #$FB55` immediately before `JSL $82:82A5`.
 
 The deterministic first-race WRAM trace independently confirms that seed. SNESRecomp records the transfer body's 16-bit `STX $83` state as paired byte writes sharing one block index. At frame 906 the first live pair is exactly `$83=$55`, `$84=$FB`, reconstructing **X=`$FB55`**. Subsequent pairs advance through `$FB56`, `$FB57`, and onward. Therefore the first-race transfer enters the bank-03 source at **`03:FB55`**, LoROM file offset **`0x01FB55`**.
 
-This also explains why the earlier attempt to identify a standard stream solely through direct-page `D+$00` was too aggressive: the retail routine has its own directly observed bank-03 selector/cursor path, while `$63-$65` is a working pointer inside the transport. The exact serialization at `03:FB55` remains to be decoded before equating it with SNESRecomp's generic upload-stream grammar.
+This also explains why the earlier attempt to identify a standard stream solely through direct-page `D+$00` was too aggressive: the retail routine has its own directly observed bank-03 selector/cursor path, while `$63-$65` is a working pointer inside the transport.
+
+The recovered `03:FB55` bytes settle the immediate format question. The first 64 bytes are not a `length16,target16,payload` stream; interpreted that way they would begin with an implausible 6,144-byte block targeting `$0627`, then run off the bounded window on the next header. Instead they match the control flow exactly: **64 one-byte selector slots**, containing unique IDs `$00-$30` sparsely among `$FF` sentinels. The live X cursor visits exactly `$FB55-$FB94` once while `$6F` counts down from `$40`. `$FF` slots are normally skipped within the same guest frame, while populated IDs consume transfer time.
+
+The surrounding ROM contains a contiguous six-table ladder at 64-byte spacing:
+
+| table | direct caller found | non-`FF` IDs | SHA-256 |
+| --- | --- | ---: | --- |
+| `03:FAD5` | yes | 25 | `8d4e4bfa27d9e3471fabdce635dfd21ff8ce39ae7aea9a8dc9180533d5e0e4c3` |
+| `03:FB15` | yes | 19 | `960fd76d62a9b985ca50c1d1504aa98e8ec746ebfec7dd6cd71039bef6e32d2f` |
+| `03:FB55` | yes; first-race live | 24 | `85c0973c8e26803e411b6e87cf350ea1c56300427097ff7cd5009296ca52febf` |
+| `03:FB95` | **no direct `JSL $82:82A5` caller found** | 22 | `ba06845292e028a708c216703526c0d30c4a0ada66cf7eab332035c025408b74` |
+| `03:FBD5` | yes | 21 | `12dd26f1219b3688b75139b8e349ae328395741a3dc2e713f98683d0f87a44f1` |
+| `03:FC15` | yes | 23 | `e4479b21aad06acd4f26749ab30842f5ae2bc746fcc5fc8ce60f1866c06a2ba0` |
+
+`03:FB95` is therefore a concrete dormant/unreferenced **audio package selector-table candidate** in retail data. It is not yet identified with either tagged unused song; that requires mapping selector IDs through the block resolver and associating the table callers with song/package states.
 
 ## SPC byte-for-byte correlation
 

@@ -100,11 +100,27 @@
     },
     {
       "kind": "ram",
+      "address": "7E:04C7",
+      "name": "Player1_PitchState",
+      "width": "16-bit",
+      "confidence": 5,
+      "notes": "Persistent player-1 pitch/rotation slot. L input causally changes its low byte (`0x07→0x37`) while jump-only control does not. ROM routine at `02:8D84` executes `LDY $0F49; STY $04C7` in a player-1 copy block."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:04C9",
+      "name": "Player2_PitchState",
+      "width": "16-bit",
+      "confidence": 5,
+      "notes": "Paired player-2 pitch/rotation slot. Sibling ROM routine at `02:9272` executes `LDY $0F49; STY $04C9`, with surrounding destinations consistently shifted to player-2 fields."
+    },
+    {
+      "kind": "ram",
       "address": "7E:0F49",
-      "name": "Player1_Pitch",
-      "width": "8-bit",
-      "confidence": 2,
-      "notes": "Effective player-1 Lua key `pitch`; later duplicate overrides earlier `7E:04C9`. Bot uses ranges around 14/24/32/40/50 to choose rotation input."
+      "name": "CurrentPlayer_PitchScratch",
+      "width": "16-bit working value",
+      "confidence": 4,
+      "notes": "Historical bot reads this as `pitch`, but static sibling routines copy the same working value into persistent player-1 `$04C7` or player-2 `$04C9` slots. L-vs-control checkpoints leave `$0F49` unchanged while `$04C7` changes causally, so it should not be treated as stable player-1 storage."
     },
     {
       "kind": "ram",

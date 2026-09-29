@@ -49,6 +49,32 @@ jobs:
           cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
           cmake --build "$RUNNER_TEMP/snesref-build" -j2
 
+      - name: Generate and build native target with Lua bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/native"
+          sh snesrecomp/tools/new_project/setup_project.sh \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --generate \
+            --no-build \
+            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+          PROJ="$ROOT/UniracersSNESRecomp"
+          cmake -S "$PROJ" -B "$PROJ/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ENABLE_LUA=ON
+          cmake --build "$PROJ/build" -j2
+          test -x "$PROJ/build/UniracersSNESRecomp"
+
       - name: Sample historical Dragster boundaries
         shell: bash
         run: |
@@ -86,6 +112,40 @@ jobs:
           done
           cat "$RUNNER_TEMP/dragster-state.tsv"
 
+      - name: Replay exact historical input in native runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          INPUT="$RUNNER_TEMP/wip-2008.input"
+          LOG="$RUNNER_TEMP/native-lua.log"
+
+          SNESRECOMP_LUA_PORT=4380 \
+          SNESRECOMP_LUA_PAUSED=1 \
+          SDL_AUDIODRIVER=dummy \
+            xvfb-run -a "$EXE" "$ROM" >"$LOG" 2>&1 &
+          PID=$!
+          trap 'kill "$PID" 2>/dev/null || true' EXIT
+
+          python3 tools/replay_input_via_lua.py "$INPUT" \
+            --frames 3480 \
+            --checkpoint 900 --checkpoint 1000 --checkpoint 1100 \
+            --checkpoint 1160 --checkpoint 1180 --checkpoint 1200 \
+            --checkpoint 1400 --checkpoint 1600 --checkpoint 1800 \
+            --checkpoint 2000 --checkpoint 2200 --checkpoint 2400 \
+            --checkpoint 2550 --checkpoint 2600 --checkpoint 2640 \
+            --checkpoint 2660 --checkpoint 2680 --checkpoint 2700 \
+            --checkpoint 2800 --checkpoint 3000 --checkpoint 3200 \
+            --checkpoint 3400 --checkpoint 3480 \
+            --json-out "$RUNNER_TEMP/native-dragster-state.json" \
+            | tee "$RUNNER_TEMP/native-dragster-state.txt"
+
+          kill "$PID" 2>/dev/null || true
+          wait "$PID" 2>/dev/null || true
+          trap - EXIT
+          cat "$LOG"
+
       - name: Validate first-race evidence
         shell: bash
         run: |
@@ -103,6 +163,37 @@ jobs:
           print("\n".join(results) if results else "(none at sampled cutoffs)")
           PY
 
+      - name: Compare native and reference sampled semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - \
+            "$RUNNER_TEMP/native-dragster-state.json" \
+            "$RUNNER_TEMP/dragster-state.tsv" <<'PY'
+          import json, pathlib, re, sys
+          native=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          ref_lines=pathlib.Path(sys.argv[2]).read_text().splitlines()
+          pat=re.compile(r"^(\d+)\tmenu=0x([0-9A-F]+)\tinRace=0x([0-9A-F]+)\ttrack=(\d+)\tx=(-?\d+)\ty=(-?\d+)\tvx=(-?\d+)\tvy=(-?\d+)\tair=(\d+)\tpitch=(\d+)$")
+          ref={}
+          for line in ref_lines:
+              m=pat.match(line)
+              if m:
+                  ref[int(m.group(1))]=tuple(int(x,16) if i in (2,3) else int(x) for i,x in enumerate(m.groups(),1))[1:]
+          npat=re.compile(r"^SNAP (\d+) menu=([0-9A-F]+) inRace=([0-9A-F]+) track=(\d+) x=(-?\d+) y=(-?\d+) vx=(-?\d+) vy=(-?\d+) air=(\d+) pitch=(\d+)$")
+          mismatches=[]
+          for line in native["snapshots"]:
+              m=npat.match(line)
+              if not m:
+                  continue
+              frame=int(m.group(1))
+              vals=(int(m.group(2),16),int(m.group(3),16))+tuple(int(x) for x in m.groups()[3:])
+              if frame in ref:
+                  ok=vals==ref[frame]
+                  print(frame, "MATCH" if ok else f"native={vals} reference={ref[frame]}")
+                  if not ok: mismatches.append(frame)
+          print("first sampled mismatch:", mismatches[0] if mismatches else "none")
+          PY
+
       - name: Upload replay evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -112,5 +203,8 @@ jobs:
             ${{ runner.temp }}/wip-2008.input
             ${{ runner.temp }}/wip-2008.json
             ${{ runner.temp }}/dragster-state.tsv
+            ${{ runner.temp }}/native-dragster-state.json
+            ${{ runner.temp }}/native-dragster-state.txt
+            ${{ runner.temp }}/native-lua.log
             ${{ runner.temp }}/wram-*.bin
           retention-days: 7

@@ -795,3 +795,16 @@ Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribut
 **Falsification:** only 4/45 USA streams satisfy `LE16@11 + 1 = 16 + N×1024` (streams 1, 7, 9 and 16). The other 41 boundaries land on smaller 16-byte subdivisions.
 
 **Conclusion:** retain the 16-byte boundary invariant. Do **not** interpret the cursor as the end of a stack containing only whole 1024-byte planes, and do not merge this fact with the separate 1024-unit dimension invariant without new runtime/structural evidence.
+
+
+### R-SEED-044 — Post-cursor region length varies by track-order role
+
+**Status:** confirmed corpus association; semantics open  
+**Date:** 2026-09-29  
+**Area:** course format | track type | structural statistics
+
+**Observation:** using `LE16@11 + 1` as the aligned start of the decoded trailing region, the nine known stunt-slot streams (tour slot 3) have lengths 10–21 bytes, median 17 and mean 17.0. The other fixed tour slots have medians 26 (slot 1 Race), 27 (slot 2 Circuit), 23 (slot 4 Race) and 27 (slot 5 Circuit); their means are approximately 23.89, 27.22, 23.78 and 26.78 respectively.
+
+**Interpretation:** the trailing region is unlikely to be arbitrary alignment padding alone. Its length distribution is associated with the fixed Race/Circuit/Stunt track-order role, with stunt courses systematically shorter. This does not yet identify the records or prove the trailer is track-type metadata; geometry complexity or another correlated property could produce the same pattern.
+
+**Discriminating tests:** inspect the trailer-byte grammar once the generated trailer corpus lands; compare Europe-retail variants; and use runtime cursor progression on one non-Dragster course to determine whether setup walks the entire region byte-for-byte.

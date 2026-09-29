@@ -602,14 +602,14 @@
       "to": "mesence",
       "format": "mesen-labels",
       "status": "supported",
-      "evidence": "analysis/generated/mesen-symbols.mlb; syntax/address-space mapping derived from pinned MesenCE MesenLabelFile/CodeLabel source and covered by tests/unit/test_symbol_adapters_mesen.py."
+      "evidence": "analysis/generated/mesen-symbols.mlb; syntax/address-space mapping derived from pinned MesenCE MesenLabelFile/CodeLabel source and covered by tests/unit/test_symbol_adapters.py."
     },
     {
       "from": "symbol-adapters",
       "to": "ghidra-snes",
       "format": "ghidra-symbols",
       "status": "supported",
-      "evidence": "analysis/generated/ghidra-symbols.json + tools/ghidra_import_symbols.py; canonical LoROM/WRAM mapping derived from pinned ghidra-snes loader and covered by tests/unit/test_symbol_adapters_mesen.py."
+      "evidence": "analysis/generated/ghidra-symbols.json + tools/ghidra_import_symbols.py; canonical LoROM/WRAM mapping derived from pinned ghidra-snes loader and covered by tests/unit/test_symbol_adapters.py."
     },
     {
       "from": "snes2asm",

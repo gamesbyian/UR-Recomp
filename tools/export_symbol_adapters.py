@@ -151,7 +151,7 @@ def render_ghidra(entries: list[dict]) -> str:
         "target_revision": "d33ce5dbfbc3645f00449be1c7ca1c1c65e81756",
         "address_model": "ghidra-snes canonical 24-bit SNES CPU space; LoROM ROM banks canonicalized to 80-FF; WRAM remains 7E-7F",
         "entries": labels,
-    }, indent=2) + "\n"
+    }, indent=2, ensure_ascii=False) + "\n"
 
 
 def render_da65(entries: list[dict]) -> dict[int, str]:

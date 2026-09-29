@@ -371,18 +371,20 @@ External gameplay documentation states that each tour's five tracks occur in the
 **Dependencies:** only values/scenes actually reproduced are promoted; other recovered bot fields remain historical leads until independently observed.
 
 
-### R-SEED-014 — Native and Snes9x race-entry timing differ while checkpoint state sequence agrees
+### R-SEED-014 — Native and Snes9x race-entry timing/state differential
 
 **Status:** supported  
 **Date:** 2026-09-28  
 **Area:** timing | RAM | other
 
-**Observation:** the shared race-entry script reaches `7E:0313 = 1` at native frame 984 and Snes9x/snesref frame 975. The settled final race dumps occur at frames 1044 and 1035 respectively. Known checkpoint fields printed from WRAM agree at every captured scene despite this nine-frame end-to-end offset.
+**Observation:** the shared race-entry script reaches `7E:0313 = 1` at native frame 984 and Snes9x/snesref frame 975. Full 128 KiB WRAM comparison at seven settled checkpoints shows 19 differing bytes at main menu, roughly 250 through the animated frontend scenes, and only **7 differing bytes** at settled race entry.
 
-**Evidence:** GitHub Actions run 36506120930 (native) and 36506281320 (Snes9x/snesref).
+The final seven are `0x00C6`, `0x00C8`, `0x00C9`, and contiguous `0x01D1–0x01D4`. At race entry the four-byte block is native `90 13 20 80` versus Snes9x `00 00 00 00`.
 
-**Interpretation:** frontend/race-entry behavior is semantically aligned at the currently observed fields, but execution timing is not frame-identical. The offset may come from transition timing, emulator scheduling, or a genuine behavioral divergence; no cause is assigned yet.
+**Evidence:** GitHub Actions runs 36506120930, 36506281320 and combined differential run 36508095522; artifact 11007769197; `tools/compare_wram_checkpoints.py`.
 
-**Discriminating test:** perform full bytewise WRAM comparison at the named checkpoints and report first differing offsets/counts. Add frame/PPU comparison only after state-level differences are characterized.
+**Interpretation:** much of the frontend mismatch is compatible with the known several-frame timing offset inside animated scenes, because the difference set collapses drastically after race entry settles. The persistent `0x01D1–0x01D4` block is a sharper candidate for a genuine runtime/state divergence. The three `0x00C6/0x00C8/0x00C9` differences may be timing/counter state but remain unclassified.
 
-**Dependencies:** the two engines execute the same script and start from zero-filled WRAM; Snes9x reports its existing Uniracers-specific compatibility hack as active.
+**Discriminating test:** trace writes/reads to `0x01D1–0x01D4` in native/reference execution and identify the responsible guest routine; separately characterize whether the three low bytes advance as counters or affect gameplay-visible state.
+
+**Dependencies:** both engines execute the same script and zero-filled initial WRAM; Snes9x reports its existing Uniracers-specific compatibility hack as active.

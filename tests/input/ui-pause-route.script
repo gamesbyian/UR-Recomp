@@ -1,0 +1,32 @@
+# UI-state reconnaissance: pause/unpause from the verified first race.
+# This intentionally does not assume that pause changes currentMenu.
+# It captures before/after framebuffer and WRAM so the visual/runtime seam can be classified.
+
+until 009F == D7 3600
+wait 60
+press a 2
+until 009F == 3C 1200
+wait 60
+press a 2
+until 009F == 6D 1200
+wait 60
+press a 2
+until 009F == F6 1200
+wait 60
+press a 2
+until 009F == 16 1200
+wait 60
+press a 2
+until 0313 == 01 1800
+wait 60
+dump ui-pause-before
+
+press start 2
+wait 60
+dump ui-pause-after-start
+
+press start 2
+wait 60
+dump ui-pause-after-resume
+
+quit

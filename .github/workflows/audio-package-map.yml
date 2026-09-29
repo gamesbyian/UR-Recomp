@@ -1,0 +1,25 @@
+name: One-shot audio package map
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/analyze_audio_packages.py"
+      - "tools/inspect_audio_block_pool.py"
+      - ".github/workflows/audio-package-map.yml"
+
+jobs:
+  map:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Build audio package/caller map
+        run: |
+          python3 tools/analyze_audio_packages.py             "reference/roms/retail/Uniracers_USA.sfc"             --json-out audio-package-map.json
+          cat audio-package-map.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audio-package-map
+          path: audio-package-map.json

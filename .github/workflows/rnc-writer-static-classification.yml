@@ -1,0 +1,38 @@
+name: RNC writer static classification
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "reference/roms/retail/Unirally_Europe.sfc"
+      - "reference/roms/prototypes/Uniracers_Beta_legacy.sfc"
+      - "reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc"
+      - "tools/find_rnc_decoder_signature.py"
+      - ".github/workflows/rnc-writer-static-classification.yml"
+
+concurrency:
+  group: rnc-writer-static-classification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rebuild RNC decoder signature report
+        run: python3 tools/find_rnc_decoder_signature.py
+
+      - name: Show writer-site classification context
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat analysis/generated/rnc-decoder-signature-search.md
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: rnc-writer-static-classification
+          path: analysis/generated/rnc-decoder-signature-search.md
+          retention-days: 7

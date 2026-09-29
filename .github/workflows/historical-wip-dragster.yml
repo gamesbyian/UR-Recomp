@@ -137,12 +137,14 @@ jobs:
           PROJ="$RUNNER_TEMP/native/UniracersSNESRecomp"
           mkdir -p "$PROJ/build/saves"
           cp "$RUNNER_TEMP/wip-2008.srm" "$PROJ/build/saves/save.srm"
-          cd "$PROJ/build"
 
-          SNESRECOMP_LUA_PORT=4380 \
-          SNESRECOMP_LUA_PAUSED=1 \
-          SDL_AUDIODRIVER=dummy \
-            xvfb-run -a "$EXE" "$ROM" >"$LOG" 2>&1 &
+          (
+            cd "$PROJ/build"
+            SNESRECOMP_LUA_PORT=4380 \
+            SNESRECOMP_LUA_PAUSED=1 \
+            SDL_AUDIODRIVER=dummy \
+              xvfb-run -a "$EXE" "$ROM"
+          ) >"$LOG" 2>&1 &
           PID=$!
           trap 'kill "$PID" 2>/dev/null || true' EXIT
 

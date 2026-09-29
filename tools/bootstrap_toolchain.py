@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Reproducibly fetch and optionally build pinned UR-Recomp research tools.
 
-Installs into ignored .tools/. This script never uses sudo and never mutates
-system packages. Use --list before installing a new group.
+Installs into ignored .tools/. This script never uses sudo, a shell command
+interpreter, or system package mutation. Use --list before installing a group.
 """
 from __future__ import annotations
 
@@ -10,22 +10,103 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
+from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = Path(__file__).with_name("toolchain.json")
+REVISION_RE = re.compile(r"^[0-9a-f]{40}$")
+ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 
 
-def run(cmd: list[str] | str, *, cwd: Path | None = None, shell: bool = False) -> None:
-    shown = cmd if isinstance(cmd, str) else " ".join(cmd)
-    print(f"+ {shown}")
-    subprocess.run(cmd, cwd=cwd, shell=shell, check=True)
+def run(cmd: list[str], *, cwd: Path | None = None) -> None:
+    if not cmd or not all(isinstance(x, str) and x for x in cmd):
+        raise ValueError(f"invalid command vector: {cmd!r}")
+    print("+ " + " ".join(cmd))
+    subprocess.run(cmd, cwd=cwd, check=True)
 
 
 def load_manifest() -> dict:
     with MANIFEST.open("r", encoding="utf-8") as f:
-        return json.load(f)
+        manifest = json.load(f)
+    validate_manifest(manifest)
+    return manifest
+
+
+def validate_manifest(manifest: dict) -> None:
+    if manifest.get("schema_version") != 2:
+        raise ValueError(
+            f"unsupported toolchain schema {manifest.get('schema_version')!r}; expected 2"
+        )
+
+    install_root = manifest.get("install_root")
+    if not isinstance(install_root, str) or not install_root:
+        raise ValueError("install_root must be a non-empty string")
+    install_path = Path(install_root)
+    if install_path.is_absolute() or ".." in install_path.parts:
+        raise ValueError("install_root must stay inside the repository")
+
+    tools = manifest.get("tools")
+    if not isinstance(tools, list):
+        raise ValueError("tools must be a list")
+
+    seen: set[str] = set()
+    for index, tool in enumerate(tools):
+        if not isinstance(tool, dict):
+            raise ValueError(f"tool entry {index} must be an object")
+        tool_id = tool.get("id")
+        if not isinstance(tool_id, str) or not ID_RE.fullmatch(tool_id):
+            raise ValueError(f"tool entry {index} has invalid id {tool_id!r}")
+        if tool_id in seen:
+            raise ValueError(f"duplicate tool id {tool_id!r}")
+        seen.add(tool_id)
+
+        revision = tool.get("revision")
+        if not isinstance(revision, str) or not REVISION_RE.fullmatch(revision):
+            raise ValueError(f"{tool_id}: revision must be a full lowercase 40-hex commit")
+
+        url = tool.get("url")
+        if not isinstance(url, str):
+            raise ValueError(f"{tool_id}: url must be a string")
+        parsed = urlparse(url)
+        if parsed.scheme != "https" or parsed.netloc.lower() != "github.com":
+            raise ValueError(f"{tool_id}: tool source must be pinned to https://github.com")
+
+        group = tool.get("group")
+        purpose = tool.get("purpose")
+        if not isinstance(group, str) or not group:
+            raise ValueError(f"{tool_id}: group must be a non-empty string")
+        if not isinstance(purpose, str) or not purpose:
+            raise ValueError(f"{tool_id}: purpose must be a non-empty string")
+
+        build = tool.get("build", [])
+        if not isinstance(build, list):
+            raise ValueError(f"{tool_id}: build must be a list")
+        for cmd_index, cmd in enumerate(build):
+            if (
+                not isinstance(cmd, list)
+                or not cmd
+                or not all(isinstance(arg, str) and arg for arg in cmd)
+            ):
+                raise ValueError(
+                    f"{tool_id}: build command {cmd_index} must be a non-empty argv list"
+                )
+            for arg in cmd:
+                unknown = re.findall(r"{([^{}]+)}", arg)
+                if any(name not in {"jobs", "python"} for name in unknown):
+                    raise ValueError(
+                        f"{tool_id}: unsupported build placeholder(s) in {arg!r}: {unknown}"
+                    )
+
+
+def expand_command(command: list[str], *, jobs: int, python: Path | None) -> list[str]:
+    values = {
+        "jobs": str(jobs),
+        "python": str(python) if python is not None else sys.executable,
+    }
+    return [arg.format(**values) for arg in command]
 
 
 def ensure_checkout(tool: dict, src_root: Path) -> Path:
@@ -61,7 +142,15 @@ def main() -> int:
     parser.add_argument("--clone-only", action="store_true", help="Fetch exact sources but skip builds/installs")
     parser.add_argument("--jobs", type=int, default=max(1, os.cpu_count() or 1))
     parser.add_argument("--system-packages", action="store_true", help="Print recommended Ubuntu packages and exit")
+    parser.add_argument("--validate", action="store_true", help="Validate manifest and exit")
     args = parser.parse_args()
+
+    if args.jobs < 1:
+        raise SystemExit("--jobs must be at least 1")
+
+    if args.validate:
+        print(f"toolchain manifest valid ({len(manifest['tools'])} tools)")
+        return 0
 
     if args.system_packages:
         print(" ".join(manifest.get("system_packages_ubuntu", [])))
@@ -93,10 +182,10 @@ def main() -> int:
         if args.clone_only:
             continue
         for command in tool.get("build", []):
-            if "{python}" in command and python is None:
+            if any("{python}" in arg for arg in command) and python is None:
                 python = ensure_venv(install_root)
-            expanded = command.format(jobs=args.jobs, python=str(python) if python else sys.executable)
-            run(expanded, cwd=dest, shell=True)
+            expanded = expand_command(command, jobs=args.jobs, python=python)
+            run(expanded, cwd=dest)
 
     print("\nPinned toolchain operation complete.")
     return 0

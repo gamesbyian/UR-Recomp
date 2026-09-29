@@ -301,3 +301,12 @@ Accordingly:
 The static ROM context now independently confirms the distinction. `01:BA96` lies inside the preserved RNC Method-1 `GTBITS2` loop, with the surrounding byte sequence matching `LSR A / ROR BITBUFL / DEY / BEQ / DEX / ...` instruction-for-instruction. Thus `81BA96` is a genuine RNC bit-reader continuation/bridge entry, not itself the course-byte store instruction.
 
 The next tracing task is therefore narrower: preserve the proven write timeline, but isolate the **actual interpreted instruction PC** responsible for the `7F:000B` stores rather than inferring it from the bridge-scope label.
+
+
+### Preserved RNC body ends at 01:BB6E
+
+The source-derived `MAKEHUFF` tail can be aligned directly in the already captured USA ROM context. The exact sequence `INY / INY / DEX / BNE / LSR HUFBSE / INC BITLEN / CMP #$0010 / BNE / RTS` begins at `01:BB60` and its final `RTS` is at `01:BB6E`. This establishes the preserved RNC Method-1 body as `01:B8F1..01:BB6E` in USA retail/legacy beta.
+
+The byte stream immediately after that return begins a separate helper at `01:BB6F`. In that helper, `01:BB71` increments the input-pointer low word and `01:BB73` is the following conditional branch. Therefore the historical trace scope `interp@$81BB73` is **outside** the preserved RNC routine, while `interp@$81BA96` is **inside** generic RNC `GTBITS2`.
+
+This gives the course-load write trace a cleaner interpretation: one write group is attributed to an interpreter bridge entered in game/integration helper code immediately following RNC, while the later mutation group is attributed to a bridge entered inside the RNC bit-reader. Neither scope entry is itself the literal store. The exact `IPC=` address-log probe remains the authority for store-opcode ownership.

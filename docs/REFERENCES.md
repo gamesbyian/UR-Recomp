@@ -55,3 +55,5 @@ Detailed technical history, source provenance, and acquisition status:
 - docs/original-development/ACQUISITION-LEDGER.md
 
 High-value sources include Mike Dailly's own SNES tool/hardware notes, the 2010 developer retrospective, the archived level-viewer thread reporting Dailly correspondence, the 1994-11-29 PAL prototype record, and the DMA press-material archive. See SOURCE-INDEX.md for confidence labels and exact URLs.
+
+- External decomp/recomp/ROM reverse-engineering practice archaeology, including multilingual sources: `references/notes/external-reverse-engineering-practices.md`.

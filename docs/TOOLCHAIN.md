@@ -86,9 +86,9 @@ python3 tools/bootstrap_toolchain.py --group analysis
 
 ### Ghidra + ghidra-snes
 
-The pinned `ghidra-snes` extension supplies an SNES ROM loader, SNES-oriented 24-bit 65816 language, memory-map helpers, MMIO/WRAM mirrors, registers and vectors. The pinned extension declares compatibility with Ghidra 12.0.4.
+The pinned `ghidra-snes` extension supplies an SNES ROM loader, SNES-oriented 24-bit 65816 language, memory-map helpers, MMIO/WRAM mirrors, registers and vectors. The repository owns a pruned copy of the exact pinned extension source, language/data definitions and build metadata under `third_party/src/ghidra-snes/`; the extension declares compatibility with Ghidra 12.0.4.
 
-This is a heavyweight interactive workbench, so the bootstrap only pins/checks out the extension source. Install Ghidra separately when a task benefits from cross-references, function/data annotation, or collaborative long-lived static analysis. Keep Ghidra project databases out of Git; export compact symbols/scripts/findings instead.
+This remains a heavyweight interactive workbench. `bootstrap_toolchain.py --offline --tool ghidra-snes --clone-only` stages the preserved extension source without network access, but UR-Recomp does not claim an offline Ghidra/Gradle/Maven build. Install Ghidra separately when a task benefits from cross-references, function/data annotation, or collaborative long-lived static analysis, and provide the compatible Gradle/Maven build environment when compiling the extension. Keep Ghidra project databases out of Git; export compact symbols/scripts/findings instead.
 
 ## Visual-reference and upscaling workbenches
 

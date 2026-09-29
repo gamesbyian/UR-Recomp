@@ -28,7 +28,7 @@ The artifact contained the generated `ui-atlas.json` / HTML / Markdown, comparis
 
 This locally promotes `TWO_PLAYER_SELECT = 0x3D` and the entry/back edges. It does **not** prove P1→P2 ownership handoff, P2-only causality, or the next multiplayer state.
 
-The same process then crashed on scripted console reset, so the artifact contains no valid `VS_SELECT` capture from that fixture. Do not promote VS from this run.
+The same process then crashed on scripted console reset, so the artifact contains no `VS_SELECT` capture from `ui-main-branches`. A separate nominal-League probe later landed in VS because its rapid menu inputs were swallowed; its unmistakable `PICK PLAYER ONE` / `PICK PLAYER TWO` frames provide the local VS evidence described below.
 
 ### Race results and return flow
 
@@ -82,7 +82,8 @@ The Track Records probe's X discriminator did **not** return to Records. Its nex
 ## Useful negative / non-promotion evidence
 
 - `ui-main-branches`: native scripted reset crashed after the successful 2P branch, so VS and League branches from that fixture were not captured.
-- `ui-league-table`: the captures visibly show `PICK PLAYER ONE` then `PICK PLAYER TWO`, both with `currentMenu = 0x3E`; the fixture labels are wrong for this SRAM/context and must not be promoted as League evidence.
+- `ui-league-table`: the captures visibly show `PICK PLAYER ONE` then `PICK PLAYER TWO`, both with `currentMenu = 0x3E`; the fixture labels are wrong for this route and must not be promoted as League evidence. They *are* useful accidental VS evidence: `0x3E` matches the recovered VS_SELECT label and the P1-confirm frame visibly hands the selector to Player Two.
+- The corresponding raw SRAM dumps change physical offset `0x0743` from `0x04` on `PICK PLAYER ONE` to `0x02` on `PICK PLAYER TWO`; a subsequent P1 X leaves both the frame and byte unchanged. This is a locally observed participant-ownership discriminator. It does not numerically match the historical bot comment (`5=P1, 3=P2, 1=both`), so preserve the raw `04 -> 02` observation and investigate the mapping instead of rewriting history to fit it.
 - `ui-stunt-result-route`: entered Stunt gameplay but timed out before a result capture.
 - `ui-circuit-result-route`: remained in active Circuit gameplay and timed out waiting for the result menu.
 - `ui-ending-shortcut`: captured the recovered `0x84` startup state, then timed out waiting for `0x5B`; the ending shortcut is not locally verified by this run.

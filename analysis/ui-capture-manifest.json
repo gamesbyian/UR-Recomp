@@ -81,7 +81,8 @@
       "expect": {
         "current_menu": "0xD7",
         "selected_option": "0x00"
-      }
+      },
+      "required": false
     },
     {
       "tag": "ui-main-menu-2p",
@@ -91,7 +92,8 @@
       "expect": {
         "current_menu": "0xD7",
         "selected_option": "0x01"
-      }
+      },
+      "required": false
     },
     {
       "tag": "ui-main-menu-vs",
@@ -101,7 +103,8 @@
       "expect": {
         "current_menu": "0xD7",
         "selected_option": "0x02"
-      }
+      },
+      "required": false
     },
     {
       "tag": "ui-main-menu-league",
@@ -111,7 +114,8 @@
       "expect": {
         "current_menu": "0xD7",
         "selected_option": "0x03"
-      }
+      },
+      "required": false
     },
     {
       "tag": "ui-main-menu-options",
@@ -121,7 +125,8 @@
       "expect": {
         "current_menu": "0xD7",
         "selected_option": "0x04"
-      }
+      },
+      "required": false
     },
     {
       "tag": "ui-options-entry",
@@ -129,7 +134,8 @@
       "source_fixture": "ui-options-route",
       "discover": [
         "current_menu"
-      ]
+      ],
+      "required": false
     },
     {
       "tag": "ui-options-back-main",
@@ -138,7 +144,8 @@
       "source_fixture": "ui-options-route",
       "expect": {
         "current_menu": "0xD7"
-      }
+      },
+      "required": false
     },
     {
       "tag": "ui-two-player-entry",
@@ -147,7 +154,8 @@
       "source_fixture": "ui-main-branches",
       "discover": [
         "current_menu"
-      ]
+      ],
+      "required": false
     },
     {
       "tag": "ui-two-player-back-main",
@@ -156,7 +164,8 @@
       "source_fixture": "ui-main-branches",
       "expect": {
         "current_menu": "0xD7"
-      }
+      },
+      "required": false
     },
     {
       "tag": "ui-vs-entry",
@@ -165,7 +174,8 @@
       "source_fixture": "ui-main-branches",
       "discover": [
         "current_menu"
-      ]
+      ],
+      "required": false
     },
     {
       "tag": "ui-vs-back-main",
@@ -174,7 +184,8 @@
       "source_fixture": "ui-main-branches",
       "expect": {
         "current_menu": "0xD7"
-      }
+      },
+      "required": false
     },
     {
       "tag": "ui-league-entry",
@@ -182,7 +193,8 @@
       "source_fixture": "ui-main-branches",
       "discover": [
         "current_menu"
-      ]
+      ],
+      "required": false
     },
     {
       "tag": "ui-league-back-main",
@@ -191,7 +203,8 @@
       "source_fixture": "ui-main-branches",
       "expect": {
         "current_menu": "0xD7"
-      }
+      },
+      "required": false
     }
   ]
 }

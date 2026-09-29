@@ -151,6 +151,23 @@
       "install_mode": "build"
     },
     {
+      "id": "beetle-bsnes-libretro",
+      "group": "oracle-extra",
+      "url": "https://github.com/libretro/beetle-bsnes-libretro.git",
+      "revision": "5f05e4c785e936c928ac468e129c55b6f08592cb",
+      "purpose": "Independent Mednafen/bsnes-derived SNES libretro oracle that exposes RETRO_MEMORY_SYSTEM_RAM for snesref state/dump workflows.",
+      "build": [
+        [
+          "make",
+          "-j{jobs}"
+        ]
+      ],
+      "artifacts": [
+        "mednafen_snes_libretro.so"
+      ],
+      "install_mode": "build"
+    },
+    {
       "id": "flips",
       "group": "patching",
       "url": "https://github.com/bates64/flips.git",

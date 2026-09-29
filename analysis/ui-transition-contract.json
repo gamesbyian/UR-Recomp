@@ -475,5 +475,60 @@
       "integration_note": "PR #31 already provides the shared P1/P2 transport across native, snesref, and Mesen. This dependency now tracks only behavioral proof: P2-only causality, P1->P2 rider-selection handoff, stable multiplayer checkpoints, and deeper VS navigation.",
       "note": "Do not treat controller syntax as the blocker. Keep deeper 2P/VS edges blocked until the behavioral acceptance route proves assignment/handoff and captures the multiplayer states."
     }
+  },
+  "completion_tiers": {
+    "1": {
+      "label": "critical_fidelity",
+      "description": "Ordinary play/progression, pause/results, Options/Records, multiplayer/VS, and completion states that must be reproduced or understood well enough to serve as implementation and validation oracles.",
+      "states": [
+        "MAIN_MENU",
+        "PLAYER_SELECT_P1",
+        "TWO_PLAYER_SELECT",
+        "VS_SELECT",
+        "VS_CHALLENGER",
+        "VS_CHALLENGE_TRACK",
+        "TOUR_SELECT",
+        "TRACK_SELECT",
+        "PRE_RACE_CARD",
+        "GAMEPLAY",
+        "PAUSE",
+        "RESULT_BY_TRACK_TYPE",
+        "RESULT_RACE",
+        "RESULT_CIRCUIT",
+        "RESULT_STUNT",
+        "POST_RESULT_DECISION",
+        "OPTIONS_MENU",
+        "RECORDS",
+        "RECORD_TRACK",
+        "RECORD_HIGH_SCORES",
+        "RECORD_PLAYER_SCORES",
+        "RECORD_GROUP_TABLES",
+        "ENDING"
+      ]
+    },
+    "2": {
+      "label": "cheap_completeness",
+      "description": "Useful supporting frontend states whose evidence should be harvested when cheap but which should not displace Tier 1 closure.",
+      "states": [
+        "BOOT_STARTUP",
+        "SPLASH",
+        "LEAGUE_SELECT",
+        "LEAGUE_TABLE",
+        "DEFINE_PLAYER",
+        "RENAME_PLAYER",
+        "PLAYER_NAME_EDITOR",
+        "DEFINE_LEAGUE",
+        "NAME_LEAGUE",
+        "ERASE_ALL_CONFIRM"
+      ]
+    },
+    "3": {
+      "label": "archaeological_tail",
+      "description": "Low-consequence quirks that may remain open indefinitely unless another task promotes them.",
+      "states": [
+        "DEMO",
+        "FORBIDDEN_NAME_REJECTION"
+      ]
+    }
   }
 }

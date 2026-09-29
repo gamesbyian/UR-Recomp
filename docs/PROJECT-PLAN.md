@@ -529,11 +529,48 @@ Original rendered elements can be deterministically identified from authoritativ
 
 Implement the Widescreen feature with stock art before introducing the HD Presentation feature.
 
-This separates geometry/camera problems from asset-resolution problems.
+This separates geometry/camera problems from asset-resolution problems. Canonical reconnaissance details live in `WIDESCREEN-RECONNAISSANCE.md`; pinned external prior art is summarized in `../references/notes/widescreen-and-modern-presentation-prior-art.md`.
 
 ### First rule
 
 Establish the 4:3 release gate before any Widescreen hook. With the Widescreen feature disabled, enhancement work must leave the authentic path bit-identical on defined deterministic captures.
+
+### F0 - reconnaissance before permanent widening
+
+Before changing game behavior, run a bounded widescreen reconnaissance pass on representative deterministic fixtures.
+
+Required preparation:
+
+1. study the pinned `wide-snes` reference by failure category rather than transplanting Super Mario World patches;
+2. establish a small reproducible bsnes-hd diagnostic preset matrix for per-BG widening, sprite clip/safe/unsafe behavior, window handling, overscan and pixel-aspect policy;
+3. build `tools/widescreen_probe.py` only after a deterministic capture route exists, reusing the shared fixture grammar rather than creating another replay format;
+4. probe increasing horizontal exposure margins (initial target: +0, +8, +16, +24, +32, +48, +64 source pixels where the runtime can express them);
+5. record the first margin/frame at which each rendering or game-state assumption fails.
+
+The probe should classify at least:
+
+- stale/unprepared background columns;
+- unintended tilemap wrap or authored-world overrun;
+- sprite disappearance, clipping or coordinate wrap;
+- newly exposed hidden sprites/objects;
+- object pop-in or late graphics preparation;
+- window/color-math/scanline-effect boundaries;
+- unfinished/offstage art;
+- scripted transition or reveal leakage.
+
+The purpose is to replace "widescreen looks wrong" with a machine-readable first-failure map.
+
+### Keep horizontal domains separate
+
+Do not let one `viewport_width` variable silently own unrelated semantics. Model these as distinct policy domains even when stock code happens to conflate them:
+
+1. **simulation / activation bounds** — when gameplay objects exist or become behaviorally active;
+2. **preparation / streaming bounds** — when tiles, graphics, stages or other presentation data must be ready;
+3. **render / culling bounds** — what can be emitted/drawn;
+4. **camera / composition bounds** — how the player and world are framed;
+5. **UI composition bounds** — fixed-screen safe areas, edge anchors and host overlays.
+
+Changing one domain does not authorize changing another. In particular, widening visibility must not silently advance AI, RNG, collision, progression or scripted events.
 
 ### Apply SNESRecomp's proven Widescreen patterns deliberately
 
@@ -545,11 +582,38 @@ For Uniracers, investigate each applicable pattern rather than copying another g
 4. Find a real gameplay-state gate and a separate liveness gate if needed.
 5. Widen culling and the OAM emitter together.
 6. Preserve signed/negative sprite-X behavior in the left margin.
-7. Widen ordinary-object spawn horizons without advancing progression/controller records.
-8. Give large objects enough activation slack to prevent visible pop-in.
+7. Widen ordinary-object presentation horizons without advancing progression/controller records or simulation activation unless independently justified.
+8. Give large objects enough graphics-preparation slack to prevent visible pop-in.
 9. Bias graphics/stage streaming only where widened visibility requires it.
 10. Give each widening subsystem an independent kill switch.
 11. Preserve the original 4:3 path exactly.
+
+### Aspect and pixel-aspect policy
+
+Do not hard-code "widescreen = 352" or any other single source width into game logic.
+
+Define widescreen in terms of:
+
+- logical source viewport bounds;
+- target display aspect;
+- pixel-aspect policy;
+- overscan/safe-area policy;
+- optional compatibility presets.
+
+Support 16:9 first, but make fixes viewport-bound-driven so later ultrawide work does not require rediscovering hidden 256-pixel assumptions. Record whether a test uses raw square source pixels or CRT-era pixel-aspect correction.
+
+### Scene classification
+
+Every important screen/sequence should eventually declare a presentation policy rather than inherit a global widening guess. Initial classes:
+
+- `world-expand` — reveal additional authored world;
+- `fixed-4:3` — preserve the original composition;
+- `fixed-center` — center the original composition inside a wider host canvas;
+- `edge-anchored-ui` — keep a bounded world but move selected UI anchors;
+- `mixed` — layer-specific policies;
+- `special-scripted` — transitions, reveals or sequences requiring explicit handling.
+
+Start with title/frontend, representative one-player race, results, two-player and Vs. Add special cases only from reproduced evidence.
 
 ### Course/world boundaries
 
@@ -571,8 +635,23 @@ Possible policies include:
 
 - keep original HUD centered initially;
 - anchor rigid HUD groups to widened edges;
+- preserve a 16:9 HUD safe frame on wider outputs;
 - use SNESRecomp elastic-band handling only for legitimately stretchable chrome/gauges;
 - move to host-overlay composition once HD Presentation UI replacement begins.
+
+### Information-exposure test
+
+For representative hazards, opponents and scripted events, record:
+
+- first simulated;
+- first behaviorally active;
+- first graphics-prepared;
+- first emitted/drawn;
+- first visible to the player.
+
+Compare 4:3 and 16:9 on the same deterministic route.
+
+Simulation/activation timestamps should remain identical unless a separately justified compatibility fix requires otherwise. Visibility is expected to move earlier. Record that visibility delta so camera/composition decisions can be reviewed with evidence rather than intuition.
 
 ### Two-player and Vs. mode
 
@@ -586,13 +665,15 @@ Authentic mode must reproduce the original scanline/OAM trick. Trace and validat
 - high-OAM byte `$18`;
 - the Canoe hook regions.
 
+Widescreen coverage must exercise one-player, two-player and Vs. paths, with player-1/player-2 viewport behavior considered independently.
+
 For the Widescreen feature with stock presentation, first determine whether the PPU path can extend both viewports correctly while retaining original sprite-ripping semantics.
 
 For the final HD Presentation path, host composition may be cleaner: preserve the original logical sprite state and split-screen timing, but render the two viewport sprite sets directly instead of depending on the physical OAM side effect for final pixels. This is acceptable only if simulation state remains unchanged and authentic mode still proves the original path.
 
 ### Gate
 
-A representative one-player course and the two-player/Vs. path display true additional world width with stock assets, while deterministic simulation remains equivalent to 4:3.
+A representative one-player course and the two-player/Vs. path display true additional world width with stock assets; the first-failure reconnaissance map has no unexplained showstopper inside the supported viewport; camera/UI policy is explicit; and deterministic simulation remains equivalent to 4:3.
 
 ## Phase G - HD Presentation feature
 

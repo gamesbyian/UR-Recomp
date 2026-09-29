@@ -1,30 +1,26 @@
-# Deterministic native menu-input probe derived from Dessyreqt's 2014 bot.
+# Deterministic native menu route derived from Dessyreqt's 2014 bot.
 # Addresses are WRAM offsets (7E:xxxx -> xxxx).
 #
-# This diagnostic deliberately stops at the main menu. It establishes whether
-# SNESRecomp's scripted controller pulses are sampled by Uniracers before the
-# full race route is restored.
+# The native harness has established that Uniracers samples a two-frame
+# scripted button pulse reliably; the earlier one-frame A pulse was too narrow.
 
 turbo on
 
-# Dessyreqt: menu.mainMenu = 215 = 0xD7.
+# Main menu: Dessyreqt menu.mainMenu = 215 = 0xD7.
 until 009F == D7 3600
 dump main-menu
-
-# The recovered bot treats selectedOption 0 as the desired 1P entry and uses
-# Up/Down to navigate this menu. Probe directions first so A is not ambiguous.
-press down 2
-wait 30
-dump after-main-down
-
-press up 2
-wait 30
-dump after-main-up
-
-# Try confirmation with a two-frame pulse. If this changes currentMenu, the
-# earlier one-frame pulse was too narrow for this native sampling path.
 press a 2
+
+# One-player rider select: 60 = 0x3C.
+until 009F == 3C 1200
+dump rider-select
+press a 2
+
+# Do not assume the next tours-page label yet. The historical bot knows both
+# onePlayerTours1=0x6D and onePlayerTours2=0x10. Prove the rider screen exits,
+# then record the actual clean-boot destination.
+until 009F != 3C 1200
 wait 60
-dump after-main-a
+dump after-rider
 
 quit

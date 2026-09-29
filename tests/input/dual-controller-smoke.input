@@ -1,0 +1,5 @@
+# Format/adapter smoke corpus. Not yet a gameplay regression fixture.
+# P1 Right vs P2 Left, then mirrored shoulders, then simultaneous B.
+0:30:080:040
+30:8:400:800
+38:8:001:001

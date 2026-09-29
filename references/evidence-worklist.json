@@ -1,0 +1,359 @@
+{
+  "schema_version": 1,
+  "updated": "2026-09-29",
+  "purpose": "Actionable external evidence queue. Source provenance lives in references/catalog.yml; this file owns uncertainty, next discriminator, acquisition state, and expected project deliverables.",
+  "leads": [
+    {
+      "id": "active-display-oam-behavior",
+      "value": "critical",
+      "cost": "medium",
+      "status": "local-reproduction-pending",
+      "source_ids": [
+        "snes9x-uniracers-oam",
+        "mame-uniracers-oam",
+        "jgenesis-uniracers-oam",
+        "nesdev-oam-2016",
+        "sluffy-canoe-patch"
+      ],
+      "question": "What exact active-display OAM addressing behavior does Uniracers depend on, especially in Vs. split-screen, and where should the correct SNESRecomp fix live?",
+      "next_discriminator": "Replay a deterministic Vs. fixture while tracing writes to $2104/OAM around the known scanline 0 and 112 events; compare native, jgenesis/Mesen-class hardware behavior, and the Canoe workaround without treating the workaround as the oracle.",
+      "deliverables": [
+        "deterministic OAM/PPU regression fixture",
+        "guest-routine ownership map for the relevant $2104 writes",
+        "documented generic-runtime versus game-code fix decision"
+      ],
+      "tags": [
+        "emulation",
+        "oam",
+        "ppu",
+        "two-player",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "mirrored",
+        "user_action_required": false,
+        "request": ""
+      }
+    },
+    {
+      "id": "historical-emulator-failure-matrix",
+      "value": "high",
+      "cost": "low",
+      "status": "local-reproduction-pending",
+      "source_ids": [
+        "dorando-compatibility",
+        "snes9x-143-changelog",
+        "zsnes-uniracers-history"
+      ],
+      "question": "Which historically independent emulator failures expose distinct Uniracers-sensitive subsystems rather than variations of the OAM problem?",
+      "next_discriminator": "Use references/notes/emulator-compatibility-seams.md to exercise the cheapest independent local scene for each fault family, beginning with already-supported frontend/first-race/2P fixtures; add PPU/OAM/APU capture only when the observed symptom requires it.",
+      "deliverables": [
+        "compatibility-seam matrix (landed at references/notes/emulator-compatibility-seams.md)",
+        "one discriminator per independently reported failure class",
+        "explicit duplicates-versus-independent-evidence classification"
+      ],
+      "tags": [
+        "emulation",
+        "compatibility",
+        "two-player",
+        "audio",
+        "rendering"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "mirrored",
+        "user_action_required": false,
+        "request": ""
+      }
+    },
+    {
+      "id": "regional-and-prototype-differential",
+      "value": "critical",
+      "cost": "medium",
+      "status": "ready",
+      "source_ids": [
+        "hidden-palace-uniracers-prototype",
+        "gamedb-snes-unirally-beta-c362c7b1",
+        "regional-title-identities"
+      ],
+      "question": "Which late-development and PAL/NTSC differences reveal function boundaries, timing changes, content tables, and fixes that a single retail image hides?",
+      "next_discriminator": "Continue classification of executable/data diff runs outside the already-mapped RNC corpus and align code-shaped regions across USA retail, Europe retail, legacy beta, and the 1994-11-29 PAL prototype.",
+      "deliverables": [
+        "classified high-value binary-diff regions",
+        "new function/table boundary candidates",
+        "regional timing/frontend/protection hypotheses with local tests"
+      ],
+      "tags": [
+        "prototype",
+        "regionalization",
+        "binary-diff",
+        "archaeology"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "mirrored",
+        "user_action_required": false,
+        "request": ""
+      }
+    },
+    {
+      "id": "spanish-translation-sayans",
+      "value": "high",
+      "cost": "low",
+      "status": "archival-hunt",
+      "source_ids": [
+        "dorando-uniracers-translations",
+        "nesninja-uniracers-translation-metadata",
+        "romhackhispano-sayans-uniracers"
+      ],
+      "question": "Which text, font, pointer, menu-layout, checksum, or compression regions did the Sayans translation team identify?",
+      "next_discriminator": "Query archive indexes and exact-filename mirrors for the original 2002 URL https://sayans.romhackhispano.org/old/antiguas/version3/traducciones/snes/uniracers/uniracers_esp.zip, then fingerprint any recovered patch and compare its touched ranges to the later 1.0b/GoodSNES evidence.",
+      "deliverables": [
+        "patch provenance and hashes",
+        "ROM-offset/LoROM-address touch map",
+        "candidate text/font/pointer regions for local confirmation"
+      ],
+      "tags": [
+        "translation",
+        "localization",
+        "ips",
+        "text",
+        "font"
+      ],
+      "artifact_need": {
+        "kind": "translation patch archive",
+        "state": "dead-link",
+        "user_action_required": false,
+        "request": ""
+      }
+    },
+    {
+      "id": "spanish-translation-sinister",
+      "value": "high",
+      "cost": "low",
+      "status": "acquisition-needed",
+      "source_ids": [
+        "dorando-uniracers-translations",
+        "nesninja-uniracers-translation-metadata"
+      ],
+      "question": "Does the independent Sinister 100% translation touch the same text/font/pointer structures as Sayans, and where do their approaches differ?",
+      "next_discriminator": "Recover the original patch archive if possible, fingerprint it, run the IPS archaeology tool, and compare its touched ranges to Sayans rather than comparing redistributed prepatched ROM images.",
+      "deliverables": [
+        "patch provenance and hashes",
+        "cross-translation touched-range comparison",
+        "independently corroborated text/font/pointer candidates"
+      ],
+      "tags": [
+        "translation",
+        "localization",
+        "ips",
+        "cross-check"
+      ],
+      "artifact_need": {
+        "kind": "translation patch archive",
+        "state": "unknown",
+        "user_action_required": false,
+        "request": ""
+      }
+    },
+    {
+      "id": "uncensored-name-list-patch",
+      "value": "medium",
+      "cost": "low",
+      "status": "acquisition-needed",
+      "source_ids": [
+        "romhack-uncensored",
+        "retroachievements-uniracers-1295"
+      ],
+      "question": "Where is the forbidden-name data and what code consumes it?",
+      "next_discriminator": "Recover the small public IPS patch if a mirror survives, use the IPS analyzer to locate the overwritten list, then trace local readers only if the result is implementation-relevant.",
+      "deliverables": [
+        "forbidden-name data range",
+        "optional reader routine symbol if cheaply recoverable"
+      ],
+      "tags": [
+        "rom-hack",
+        "name-entry",
+        "data-table"
+      ],
+      "artifact_need": {
+        "kind": "IPS patch",
+        "state": "dead-link",
+        "user_action_required": false,
+        "request": ""
+      }
+    },
+    {
+      "id": "spc-audio-driver-and-unused-music",
+      "value": "high",
+      "cost": "low",
+      "status": "acquisition-needed",
+      "source_ids": [
+        "snesmusic-uniracers-spc",
+        "zophar-uniracers-spc"
+      ],
+      "question": "Can the preserved SPC set fingerprint the audio driver, song table, sample/instrument layout, and reachability of the two tagged unused songs?",
+      "next_discriminator": "Acquire the public SPC set, preserve its project/version metadata, inventory per-track SPC hashes and driver/sample regions, then compare those regions to ROM data and runtime APU uploads.",
+      "deliverables": [
+        "SPC-set provenance and per-file hashes",
+        "audio-driver/sample fingerprint",
+        "unused-song reachability hypothesis"
+      ],
+      "tags": [
+        "audio",
+        "spc",
+        "unused-content",
+        "asset-extraction"
+      ],
+      "artifact_need": {
+        "kind": "SPC soundtrack archive",
+        "state": "available-public",
+        "user_action_required": false,
+        "request": ""
+      }
+    },
+    {
+      "id": "usjo13-stunt-optimizer",
+      "value": "critical",
+      "cost": "medium",
+      "status": "archival-hunt",
+      "source_ids": [
+        "usjo13",
+        "tasvideos-usjo",
+        "tasvideos-uniracers-topic"
+      ],
+      "question": "What frame-perfect stunt, boost, timing, and RAM knowledge was encoded in the lost USJO v13 Lua bot?",
+      "next_discriminator": "Search exact historical filename/path, Wayback captures, quoted snippets, mirrors, forum attachments, and author-associated archives before attempting any behavioral reconstruction from prose.",
+      "deliverables": [
+        "recovered original Lua if available",
+        "otherwise a provenance-backed negative result plus surviving behavioral claims",
+        "new RAM/timing hypotheses only when grounded in recovered evidence"
+      ],
+      "tags": [
+        "tas",
+        "lua",
+        "physics",
+        "stunts",
+        "archival"
+      ],
+      "artifact_need": {
+        "kind": "Lua source",
+        "state": "dead-link",
+        "user_action_required": false,
+        "request": ""
+      }
+    },
+    {
+      "id": "dessyreqt-autonomous-bot",
+      "value": "high",
+      "cost": "medium",
+      "status": "ready",
+      "source_ids": [
+        "dessyreqt-uniracers-tabletop-bot-2014",
+        "dessyreqt-uniracers-4250-smv"
+      ],
+      "question": "Which recovered bot labels and policies can be converted into verified state semantics or deterministic fixtures without inheriting historical script bugs?",
+      "next_discriminator": "Continue promoting only locally verified addresses into tools/uniracers_state.py and prefer exact movie replay where a prerecorded corpus answers the question more cheaply than porting live policy.",
+      "deliverables": [
+        "verified RAM symbols",
+        "deterministic replay fixtures",
+        "explicit port/defer decision for state-responsive autonomous driving"
+      ],
+      "tags": [
+        "tas",
+        "automation",
+        "ram",
+        "fixtures"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "mirrored",
+        "user_action_required": false,
+        "request": ""
+      }
+    },
+    {
+      "id": "dma-original-authoring-toolchain",
+      "value": "critical",
+      "cost": "high",
+      "status": "archival-hunt",
+      "source_ids": [
+        "rhdn-uniracers-level-viewer",
+        "mike-dailly-sprite-ripping",
+        "hidden-palace-dma-press-material"
+      ],
+      "question": "What did DMA's original Uniracers authoring pipeline look like, including level editor, compression, plotting, graphics/MIDI conversion, SNasm workflow, and SNES framework abstractions?",
+      "next_discriminator": "Pivot searches away from the retail title and toward period tool terminology, staff names, editor/compression names, workstation screenshots, source-tree listings, old archives, and exact filenames recovered from interviews or surviving documentation.",
+      "deliverables": [
+        "original-tool identity and provenance map",
+        "reconstructed authoring-pipeline model",
+        "tool-derived format hypotheses converted into local ROM tests"
+      ],
+      "tags": [
+        "dma-design",
+        "toolchain",
+        "level-editor",
+        "source-archaeology"
+      ],
+      "artifact_need": {
+        "kind": "historical source/binaries/screenshots",
+        "state": "unknown",
+        "user_action_required": false,
+        "request": ""
+      }
+    },
+    {
+      "id": "tamoketh-ue4-recreation",
+      "value": "medium",
+      "cost": "low",
+      "status": "author-pivot",
+      "source_ids": [
+        "tamoketh-ue4-uniracers-spiritual-successor",
+        "epic-forum-tamoketh-uniracers-physics"
+      ],
+      "question": "Did the 2021 UE4 recreation produce downloadable code, blueprints, measurements, videos, or track-reference data that survives outside the Reddit post?",
+      "next_discriminator": "Pivot on the Tamoketh/TamokethMB handles, linked video/playlist destinations, and Unreal forum posts; preserve only measurements or artifacts that can be independently checked against the game.",
+      "deliverables": [
+        "author/project relationship map",
+        "surviving technical artifact inventory or explicit dead end"
+      ],
+      "tags": [
+        "fan-recreation",
+        "unreal",
+        "physics",
+        "social-pivot"
+      ],
+      "artifact_need": {
+        "kind": "source/video/demo",
+        "state": "unknown",
+        "user_action_required": false,
+        "request": ""
+      }
+    },
+    {
+      "id": "ringracer-spiritual-successor",
+      "value": "low",
+      "cost": "low",
+      "status": "context-only",
+      "source_ids": [
+        "ringracer-steam"
+      ],
+      "question": "Does a current commercial project explicitly inspired by Uniracers expose any transferable design or technical reconstruction knowledge?",
+      "next_discriminator": "Index the project and developer relationship only; investigate deeper solely if public technical material discusses Uniracers-derived handling, track geometry, stunt economics, or local multiplayer design.",
+      "deliverables": [
+        "context record; no fidelity claims without primary technical evidence"
+      ],
+      "tags": [
+        "spiritual-successor",
+        "modern-design"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "metadata-only",
+        "user_action_required": false,
+        "request": ""
+      }
+    }
+  ]
+}

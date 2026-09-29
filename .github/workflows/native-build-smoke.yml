@@ -180,7 +180,7 @@ jobs:
           STATUS=$?
           cat "$LOG"
 
-          for state in main-menu-ready rider-select-ready after-rider-confirm; do
+          for state in main-menu-ready rider-select-ready tours-ready after-tour-confirm; do
             WRAM="$DUMPS/$state.wram.bin"
             if [ -s "$WRAM" ]; then
               python3 -c 'import pathlib,sys; name=sys.argv[1]; w=pathlib.Path(sys.argv[2]).read_bytes(); print(f"{name}: menu[009F]=0x{w[0x009F]:02X} selectedOption[009B]=0x{w[0x009B]:02X} row[000E]=0x{w[0x000E]:02X} col[0C63]=0x{w[0x0C63]:02X}")' "$state" "$WRAM"
@@ -191,11 +191,11 @@ jobs:
             echo "::error::Scripted native route exited with status $STATUS"
             exit "$STATUS"
           fi
-          if [ ! -s "$DUMPS/rider-select-ready.wram.bin" ] || [ ! -s "$DUMPS/after-rider-confirm.wram.bin" ]; then
-            echo "::error::Route did not prove rider-select entry and exit"
+          if [ ! -s "$DUMPS/tours-ready.wram.bin" ] || [ ! -s "$DUMPS/after-tour-confirm.wram.bin" ]; then
+            echo "::error::Route did not prove tours entry and exit"
             exit 1
           fi
-          echo "INPUT_ROUTE_RESULT=through_rider_select"
+          echo "INPUT_ROUTE_RESULT=through_first_tour"
 
       - name: Upload native frame evidence
         if: always()

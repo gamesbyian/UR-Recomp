@@ -6,7 +6,7 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 
 **This workstream preempts new infrastructure expansion, but must not interrupt or overwrite active research already in flight.**
 
-Canonical execution plan: `docs/ISLAND-TOOLCHAIN-PLAN.md` (currently being prepared in the separate P0 island workstream).
+Canonical execution plan: `docs/ISLAND-TOOLCHAIN-PLAN.md`.
 
 Goal: make the core automated research/build toolchain runnable from a clean checkout without GitHub, PyPI or crates.io after ordinary host/compiler prerequisites are present.
 
@@ -14,10 +14,13 @@ Goal: make the core automated research/build toolchain runnable from a clean che
 - [ ] Vendor the small/high-value tool tranche and package-registry closures.
 - [ ] Migrate SNESRecomp and core reconstruction/build dependencies incrementally.
 - [ ] Preserve large/manual workbenches as exact archives or optional external tools where direct vendoring has poor value.
-- [ ] Prove a network-disabled core workflow before removing old fetch paths.
+- [ ] Prove a network-disabled core workflow before removing the old fetch paths.
 - [ ] Use repository ownership to customize/optimize tools for UR-Recomp where measured value justifies divergence from upstream.
 
-**Concurrent-work rule:** islandization must be implemented in isolated tranches and reconciled with current `main` plus still-active overlapping PRs before merge. Do not merge a mechanically conflict-free result if it would discard or stale active work.
+**Concurrent-work rule:** PRs #9, #11 and #14 were active when this P0 item was created and currently overlap plan/tooling files. Islandization must be implemented in isolated tranches, kept draft when necessary, and rebased/reconciled with current `main` plus all still-active overlapping PRs before merge. Do not merge a mechanically conflict-free result if it would discard or stale their work.
+
+**Merge gate:** inspect open PRs/unsubmitted branches, reconcile by intent, regenerate derived artifacts, run repository hygiene + toolchain contract/build smoke, and verify no active evidence/fixture path is weakened. See the canonical plan for the full procedure.
+
 
 ## Phase 0 — Evidence floor
 

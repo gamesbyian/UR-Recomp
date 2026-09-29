@@ -178,3 +178,27 @@ when all of the following are true:
 
 If the only reason to retain an awkward historical behavior is "the old tool did
 it this way," leave it in `references/imported/`.
+
+
+## Pinned toolchain adaptations
+
+The pinned build-tool sources under `.tools/` are disposable checkouts, not evidence mirrors. Unlike `references/imported/`, they may receive small project-owned patches after the exact upstream commit is checked out and verified.
+
+### Flips
+
+Upstream's convenience Linux script defaults to the GTK target, which pulled a GUI development dependency into headless CI for no project benefit. UR-Recomp builds `make TARGET=cli` instead and verifies the resulting `flips` executable.
+
+### Beetle bsnes libretro
+
+This Mednafen/bsnes-derived libretro core is useful specifically because it exposes SNES WRAM through `RETRO_MEMORY_SYSTEM_RAM`, unlike the ordinary pinned bsnes-libretro frontend. Current Ubuntu/glibc also provides fortified `strlcpy/strlcat` wrappers that collide with the core's bundled historical nall declarations. The project build disables those fortify wrappers for this one build; emulator source remains untouched. If that compatibility flag stops being sufficient, carry a narrow hash-pinned source patch rather than editing the checkout by hand.
+
+### snes2asm
+
+The pinned source is old but its installed CLI path is largely Python-3-compatible and uses `yaml.safe_load` for disassembly configuration. The unfinished GUI contains stale code but is not installed as a project entrypoint.
+
+UR-Recomp applies `tools/patches/snes2asm-ur-recomp.patch`, hash-pinned in `tools/toolchain.json`, to correct two CLI/configuration defects:
+
+- `--empty-fill` accepted user input as a string even though downstream code formats it as an integer; it now accepts decimal or Python-style prefixed integers such as `0xFF`;
+- nested/malformed decoder definitions could index `decode_conf['type']` before checking that the key existed, and unknown nested types leaked a `KeyError`; they now produce explicit `ValueError` diagnostics.
+
+The upstream checkout is reset and cleaned before every build, then the patch hash is verified and `git apply --check` must succeed before the patch is applied. A changed upstream pin therefore forces deliberate patch reconciliation.

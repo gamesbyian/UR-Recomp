@@ -165,7 +165,7 @@ def render_markdown(report: dict[str, Any]) -> str:
                 dims = f"{fb['width']}x{fb['height']} "
             fb_text = f"{dims}`{fb.get('sha256', '')[:12]}`"
         lines.append(
-            "| {state} | {variant} | `{tag}` | {frame} | {menu} | {sel} | {race} | {fb} | {status} |".format(
+            "| {state} | {variant} | `{tag}` | {required} | {frame} | {menu} | {sel} | {race} | {fb} | {status} |".format(
                 state=item["state_id"],
                 variant=item.get("variant") or "",
                 tag=item["tag"],
@@ -246,7 +246,7 @@ def main() -> int:
         args.out_md.write_text(md + "\n")
 
     if args.strict and any(
-        c.get("required", True) and c["status"] in {"mismatch", "missing", "invalid"}
+        c.get("required", True) and c["status"] in {"partial", "mismatch", "missing", "invalid"}
         for c in captures
     ):
         return 2

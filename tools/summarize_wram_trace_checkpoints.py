@@ -98,7 +98,13 @@ def main() -> int:
         None,
     )
     first_results = next(
-        (x["frame"] for x in transitions["menu"] if x["val"] == 0x99),
+        (
+            x["frame"]
+            for x in transitions["menu"]
+            if x["val"] == 0x99
+            and first_in_race is not None
+            and x["frame"] >= first_in_race
+        ),
         None,
     )
     report = {

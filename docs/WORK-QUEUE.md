@@ -33,7 +33,7 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 - [x] Native main loop enters and first frame simulates; treat this as execution bring-up cleared, while exact reset-vector tracing remains available if needed.
 - [x] First simulated frame and audio callback complete without a reported DMA/HDMA initialization failure.
 - [x] Title/logo sequence appears and frame 300 has been visually verified from the actual native target.
-- [~] Input reaches menus. The native scripted harness now reproduces the recovered bot's `mainMenu = 0xD7` WRAM state at frame 446; the next transition is under targeted diagnosis using the bot's `selectedOption` policy.
+- [~] Input reaches menus. The native scripted harness reproduces the recovered bot's `mainMenu = 0xD7` state and `selectedOption = 0x00`; a minimal Down/Up/A pulse probe is now isolating whether scripted controller sampling is correct before menu traversal is extended.
 - [ ] A mode can be selected.
 
 **Exit:** title/menu operation is reproducible.
@@ -78,7 +78,7 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 - [x] Locate public source for Dessyreqt's 2014 full-game real-time Uniracers bot (Pastebin `A0XpKw9v`).
 - [x] Preserve the source and submitted #4250 SMV in the repository with hashes/provenance.
 - [ ] Verify the bot's key RAM labels against the canonical ROM/runtime. The historical 2008 Microstorage WIP SMV has also been recovered and should be used as a second deterministic input corpus.
-- [~] Port or translate its menu-driving policy into the native/snesref deterministic input harness. A first frame-synchronous native route exists; main-menu state is verified and conditional option selection is the current seam.
+- [~] Port or translate its menu-driving policy into the native/snesref deterministic input harness. The recovered main-menu state/selection labels are verified; current work is validating frame-synchronous controller delivery at that menu before restoring downstream bot logic.
 - [ ] Evaluate its race-driving policy as an autonomous regression workload.
 
 ## Phase 5 — Differential validation

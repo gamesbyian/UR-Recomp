@@ -254,17 +254,23 @@ states:
 
   - id: PRE_RACE_CARD
     family: race_setup
-    kind: screen
+    kind: menu_or_card
     confidence: high
     evidence: [primary_manual, reproduced_runtime]
     runtime_signatures:
       onePlayerNowPlaying_currentMenu_7E009F: "0x16"
+      inRace_7E0313: "0x00 while the card is active"
       local_fixture: "tests/input/reach-first-race.script"
-    description: "Brief informational screen identifying matchup/track before play. The local deterministic route reaches and dumps this state."
+      passive_timing_fixture: "tests/input/ui-pre-race-timing.script"
+    visible_known_items: ["RACE", "EXIT"]
+    description: "Interactive NOW PLAYING card identifying matchup/track before play. The harvested passive route shows a sliding entrance over roughly the first 45 sampled frames and remains on the settled RACE/EXIT card through at least 60 frames with no input."
     transitions:
-      - input: "automatic or confirm input"
+      - input: "A/B on RACE"
         to: GAMEPLAY
-        confidence: inferred
+        confidence: high
+      - input: "choose EXIT"
+        to: "unknown until isolated exit probe is classified"
+        confidence: unknown
 
   - id: GAMEPLAY
     family: gameplay

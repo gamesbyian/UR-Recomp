@@ -88,7 +88,7 @@ The strongest current candidates for **modern product-layer simplification** are
 - basic control/status information should not depend on an instruction manual, while secrets and advanced discoveries can remain intentionally opaque;
 - preserve the original forbidden-name detection as a modern Easter egg: entering one of those names should show a special **"COOL NAME!"** acknowledgement and then accept the name rather than reject it.
 
-This classification should eventually be encoded per state/edge in `analysis/ui-state-map.yml` once the original flow is sufficiently verified, rather than guessed ahead of evidence.
+The state-level classification is now encoded in `analysis/ui-transition-contract.json` under `completion_tiers`. `tools/validate_ui_state_model.py` requires every conceptual state to appear in exactly one tier, and `tools/report_ui_coverage.py` reports Tier 1 gaps separately from the full archaeological queue. Edge evidence status remains independent: a Tier 1 edge may still be `documented`, `historical`, or `hypothesis` until runtime evidence promotes it.
 
 
 ## Current high-level graph
@@ -192,7 +192,7 @@ The conceptual YAML remains the human-facing semantic authority, but Phase 2 add
 - `tools/query_ui_route.py` finds the shortest known route between conceptual states while allowing callers to cap the weakest evidence they are willing to trust.
 - `tools/validate_ui_state_model.py` checks that transition endpoints, capture states, menu-index states, fixture references, and capture tags remain mutually consistent.
 - `tools/report_ui_coverage.py` summarizes which states have menu IDs, capture contracts, and executable edges.
-- `analysis/generated/ui-state-coverage.md` is the compact generated gap report.
+- `analysis/generated/ui-state-coverage.md` is the compact generated gap report. Its Tier 1 section is the default closure queue for atlas work; the all-gaps section remains useful for opportunistic evidence harvesting and archaeology.
 
 Examples:
 

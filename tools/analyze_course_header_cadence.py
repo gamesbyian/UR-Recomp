@@ -46,7 +46,17 @@ def main():
         h=d[14] or 256
         dim_pairs.append((i,w,h,w*h))
     products=sorted(set(p for _,_,_,p in dim_pairs))
-    lines += ["","## Dimension-pair invariant","",
+    end_fields=[(i,u16le(d,11),len(d),len(d)-u16le(d,11)) for i,d in enumerate(ss,1)]
+    end_deltas=sorted(set(delta for _,_,_,delta in end_fields))
+    lines += ["","## Payload-end field invariant","",
+              "Treating bytes 11–12 as little-endian produces a striking payload-size relationship across the decoded corpus.","",
+              f"- distinct values of `decoded_size - LE16@11`: {end_deltas}.",
+              f"- condition `LE16@11 + 8 == decoded_size`: {sum(v+8==n for _,v,n,_ in end_fields)}/45 streams.",
+              f"- condition `LE16@11 + 7 == decoded_size - 1`: {sum(v+7==n-1 for _,v,n,_ in end_fields)}/45 streams.",
+              "",
+              "For Dragster, decoded `LE16@11 = 0x840F` and decoded size is `0x8417`. The observed runtime seven-step increment therefore changes this field to `0x8416`, exactly the final valid byte offset of the decoded payload. This strongly suggests an in-place end/cursor field rather than a gameplay flag; exact consumer semantics remain to be traced.",
+              "",
+              "## Dimension-pair invariant","",
               "Bytes 13 and 14 form an unusually strict power-of-two-style pair. Treating encoded byte value `0x00` as 256, every one of the 45 streams satisfies `dim13 × dim14 = 1024`.","",
               f"- distinct decoded pairs: " + ", ".join(f"`{w}×{h}`" for w,h in sorted(set((w,h) for _,w,h,_ in dim_pairs))) + ".",
               f"- distinct products: {products}.",

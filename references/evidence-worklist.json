@@ -196,7 +196,7 @@
         "tpp-musiclibrary-uniracers"
       ],
       "question": "Can the preserved SPC set fingerprint the audio driver, song table, sample/instrument layout, and reachability of the two tagged unused songs?",
-      "next_discriminator": "Characterize ROM audio blocks $07, $15 and $29, the exact three blocks present in called table 03:FAD5 but omitted by dormant/unreferenced subset 03:FB95. Correlate their payload effects against the Demo Race / Unused Song 1 and numbered-race / Unused Song 2 SPC-family differences; also retain the three non-call raw FB95 word occurrences as weak indirect-reference candidates unless control-flow evidence promotes them.",
+      "next_discriminator": "Decode caller-side selector setup around JSL $82:807E, especially the apparent selector sequence $38,$39,$3A,$3C,$3E-$42 and missing $3B/$3D values. Determine whether $3B survives anywhere as a dormant selector and whether it pairs structurally with uncalled table 03:FB95. Block $29 now strongly fingerprints Demo Race / Unused Song 1, block $07 Celebration, while block $15 is shared across all ten SPC snapshots.",
       "deliverables": [
         "SPC archive provenance, archive hash and ten per-track hashes (landed)",
         "shared APU driver/sample fingerprint and reusable analyzer (landed)",
@@ -205,7 +205,8 @@
         "first-race ROM source seed 03:FB55 plus clustered sibling seeds identified and runtime-corroborated (landed)",
         "six selector tables mapped to 12 exact direct callers; FB95 has no direct caller and is FAD5 minus blocks 07/15/29 (landed)",
         "unused-song retail reachability result (next)",
-        "blocks 07/15/29 package contribution and unused-song attribution (next)"
+        "blocks 07/15/29 correlated against SPC corpus: 29=Demo/Unused1, 07=Celebration, 15=all tracks (landed)",
+        "caller-side selector semantics and missing $3B/$3D reachability result (next)"
       ],
       "tags": [
         "audio",

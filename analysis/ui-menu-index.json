@@ -1,0 +1,178 @@
+{
+  "schema_version": 1,
+  "address": "7E:009F",
+  "field": "currentMenu",
+  "description": "Reverse index from observed/recovered menu-state byte to conceptual UI state. verified entries come from local deterministic fixtures; historical entries come from the recovered 2014 Dessyreqt bot and remain leads until locally reproduced.",
+  "entries": [
+    {
+      "value": "0xD7",
+      "state_id": "MAIN_MENU",
+      "status": "verified",
+      "source": "tests/input/reach-first-race.script"
+    },
+    {
+      "value": "0x3C",
+      "state_id": "PLAYER_SELECT_P1",
+      "status": "verified",
+      "source": "tests/input/reach-first-race.script"
+    },
+    {
+      "value": "0x6D",
+      "state_id": "TOUR_SELECT",
+      "variant": "one-player-tours-1",
+      "status": "verified",
+      "source": "tests/input/reach-first-race.script"
+    },
+    {
+      "value": "0xF6",
+      "state_id": "TRACK_SELECT",
+      "variant": "one-player",
+      "status": "verified",
+      "source": "tests/input/reach-first-race.script"
+    },
+    {
+      "value": "0x16",
+      "state_id": "PRE_RACE_CARD",
+      "variant": "one-player-now-playing",
+      "status": "verified",
+      "source": "tests/input/reach-first-race.script"
+    },
+    {
+      "value": "0x00",
+      "state_id": "DEMO",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0x84",
+      "state_id": "SPLASH",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0x3D",
+      "state_id": "TWO_PLAYER_SELECT",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0x3E",
+      "state_id": "VS_SELECT",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0x3F",
+      "state_id": "VS_CHALLENGER",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0x5A",
+      "state_id": "VS_CHALLENGE_TRACK",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0x10",
+      "state_id": "TOUR_SELECT",
+      "variant": "one-player-tours-2-or-two-player-tours",
+      "status": "historical_ambiguous",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0x91",
+      "state_id": "TRACK_SELECT",
+      "variant": "two-player-low",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0x96",
+      "state_id": "TRACK_SELECT",
+      "variant": "two-player-high",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0x99",
+      "state_id": "RESULT_RACE",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0xBC",
+      "state_id": "RESULT_CIRCUIT",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0x18",
+      "state_id": "RESULT_STUNT",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0x2F",
+      "state_id": "RESULT_STUNT",
+      "variant": "summing-1",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0xAD",
+      "state_id": "RESULT_STUNT",
+      "variant": "summing-2",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0xAF",
+      "state_id": "RESULT_STUNT",
+      "variant": "summing-3",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0xB3",
+      "state_id": "RESULT_STUNT",
+      "variant": "summing-4",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0xD3",
+      "state_id": "RESULT_STUNT",
+      "variant": "summing-5",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0xD8",
+      "state_id": "RESULT_STUNT",
+      "variant": "summing-6",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0xED",
+      "state_id": "RESULT_STUNT",
+      "variant": "summing-7",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0xF3",
+      "state_id": "RESULT_STUNT",
+      "variant": "summing-8",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    },
+    {
+      "value": "0x5B",
+      "state_id": "ENDING",
+      "status": "historical",
+      "source": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+    }
+  ]
+}

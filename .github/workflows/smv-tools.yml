@@ -1,0 +1,22 @@
+name: SMV tooling regression
+
+on:
+  pull_request:
+    paths:
+      - "tools/extract_smv_input.py"
+      - "tests/test_extract_smv_input.py"
+      - ".github/workflows/smv-tools.yml"
+  push:
+    paths:
+      - "tools/extract_smv_input.py"
+      - "tests/test_extract_smv_input.py"
+      - ".github/workflows/smv-tools.yml"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test SMV extraction
+        run: python3 tests/test_extract_smv_input.py

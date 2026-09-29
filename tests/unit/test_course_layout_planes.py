@@ -29,7 +29,7 @@ class CourseLayoutPlaneTests(unittest.TestCase):
         self.assertAlmostEqual(entropy(data), 8.0)
         s = stats(data)
         self.assertEqual(s["distinct_bytes"], 256)
-        self.assertAlmostEqual(s["zero_fraction"], 4 / 1024)
+        self.assertEqual(s["zero_fraction"], round(4 / 1024, 6))
         self.assertAlmostEqual(s["fraction_lt_64"], 0.25)
 
     def test_sparse_index_like_region(self):

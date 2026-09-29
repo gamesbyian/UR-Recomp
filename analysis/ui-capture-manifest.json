@@ -133,9 +133,12 @@
       "state_id": "OPTIONS_MENU",
       "source_fixture": "ui-options-route",
       "discover": [
-        "current_menu"
+        "selected_option"
       ],
-      "required": false
+      "required": false,
+      "expect": {
+        "current_menu": "0x57"
+      }
     },
     {
       "tag": "ui-options-back-main",
@@ -153,9 +156,14 @@
       "variant": "2P-entry",
       "source_fixture": "ui-main-branches",
       "discover": [
-        "current_menu"
+        "selected_option",
+        "menu_row",
+        "menu_col"
       ],
-      "required": false
+      "required": false,
+      "expect": {
+        "current_menu": "0x3D"
+      }
     },
     {
       "tag": "ui-two-player-back-main",
@@ -259,9 +267,14 @@
       "source_fixture": "ui-pause-route",
       "required": false,
       "discover": [
-        "current_menu",
-        "in_race"
-      ]
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ],
+      "expect": {
+        "current_menu": "0x00",
+        "in_race": "0x01"
+      }
     },
     {
       "tag": "ui-pause-after-resume",
@@ -299,9 +312,13 @@
       "source_fixture": "ui-options-submenus",
       "required": false,
       "discover": [
-        "current_menu",
-        "selected_option"
-      ]
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ],
+      "expect": {
+        "current_menu": "0x5D"
+      }
     },
     {
       "tag": "ui-records-back-options",
@@ -310,9 +327,13 @@
       "source_fixture": "ui-options-submenus",
       "required": false,
       "discover": [
-        "current_menu",
-        "selected_option"
-      ]
+        "selected_option",
+        "menu_row",
+        "menu_col"
+      ],
+      "expect": {
+        "current_menu": "0x57"
+      }
     },
     {
       "tag": "ui-options-menu-define-player-selected",
@@ -474,12 +495,33 @@
     },
     {
       "tag": "ui-race-result-after-advance",
-      "state_id": "POST_RESULT_DECISION",
+      "state_id": "TRACK_SELECT",
       "source_fixture": "ui-race-result-route",
       "required": false,
       "discover": [
-        "current_menu",
         "selected_option",
+        "menu_row",
+        "menu_col",
+        "in_race"
+      ],
+      "variant": "returned-after-race-result",
+      "expect": {
+        "current_menu": "0xF6"
+      }
+    },
+    {
+      "tag": "ui-race-result-after-back",
+      "state_id": "TOUR_SELECT",
+      "variant": "returned-after-race-result-track-back",
+      "source_fixture": "ui-race-result-route",
+      "required": false,
+      "expect": {
+        "current_menu": "0x6D"
+      },
+      "discover": [
+        "selected_option",
+        "menu_row",
+        "menu_col",
         "in_race"
       ]
     },
@@ -907,11 +949,13 @@
       "source_fixture": "ui-records-submenus",
       "required": false,
       "discover": [
-        "current_menu",
         "selected_option",
         "menu_row",
         "menu_col"
-      ]
+      ],
+      "expect": {
+        "current_menu": "0xCC"
+      }
     },
     {
       "tag": "ui-records-high-selected",

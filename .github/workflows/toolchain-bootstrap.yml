@@ -29,9 +29,15 @@ jobs:
       fail-fast: false
       matrix:
         tool:
+          - snes9x-libretro
+          - superfamiconv
+          - wla-dx
+          - snes2asm
+          - cc65
           - flips
           - bsnes-libretro
           - beetle-bsnes-libretro
+          - mesen-for-ai
     steps:
       - uses: actions/checkout@v4
       - name: Build pinned tool through project bootstrap

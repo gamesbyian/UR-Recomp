@@ -41,6 +41,9 @@ Compact router for coding and research agents. Load the smallest current authori
 14. Keep mandatory reading small. Repository growth is acceptable; mandatory-context growth is expensive.
 15. Terminology: `Widescreen` and `HD Presentation` name specific features only. Never use `widescreen`, `HD`, or combinations such as `widescreen/HD` as shorthand for the project, its architecture, or its overall goal.
 16. `docs/knowledge/` is a synthesis layer, not an evidence ledger. Rewrite it when the current model changes; keep chronology, provenance, raw observations and rejected alternatives in their owning evidence documents.
+17. For native/trace CI, never infer runtime failure from a permissive executable fallback, an external wall-clock timeout, or a disconnected debug client. Require the exact generated game target, distinguish harness/tooling failure from guest/runtime failure, and inspect the preserved host log before changing game/runtime code.
+18. SNESRecomp's trace TCP server is command/response, not greeting-based. Reuse the established trace client/workflow rather than inventing a new handshake. Trace builds are much slower than ordinary runs, so batch early stepping within the server's synchronous step deadline and give the outer host timeout generous headroom.
+19. A full-WRAM differential is a discovery surface, not automatically a fidelity verdict. Classify differences by writer/history and semantics first; stale stack bytes and free-running timing/presentation counters are not simulation mismatches unless they affect a proven invariant.
 
 ## Repository boundaries
 

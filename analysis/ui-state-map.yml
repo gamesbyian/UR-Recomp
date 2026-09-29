@@ -662,3 +662,10 @@ open_questions:
     question: "Attract/demo behavior and idle timeout from MAIN_MENU; verify public ending-shortcut chord and ENDING=0x5B without treating cheat-site text as canonical."
   - id: UIQ-010
     question: "Hunter unlock transition and any Anti-Uni-specific frontend/results states."
+
+# 2026-09-29 local two-pad promotion:
+# VS_SELECT P2 causality is now directly reproduced. After the verified P1->P2
+# handoff (menu 0x3E, raw SRAM owner 0x02), P2 Right changes selector column
+# 0x06 -> 0x07. P2 A then advances to TOUR_SELECT 0x6D and clears raw owner
+# 0x02 -> 0x00. P1 Left/Right and P2 Left were inert from the same starting
+# rider, consistent with an unavailable/claimed-rider boundary at column 0x06.

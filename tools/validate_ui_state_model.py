@@ -132,6 +132,20 @@ def validate(root: Path) -> list[str]:
         if not edge.get("trigger"):
             failures.append(f"{label}: missing trigger")
 
+    field_specs = captures.get("fields", {})
+    for field_name, spec in field_specs.items():
+        source = spec.get("source", "wram")
+        if source not in {"wram", "sram"}:
+            failures.append(
+                f"capture field {field_name}: unsupported source {source!r}"
+            )
+            continue
+        offset_key = f"{source}_offset"
+        if offset_key not in spec:
+            failures.append(
+                f"capture field {field_name}: source {source!r} requires {offset_key}"
+            )
+
     capture_tags = [c.get("tag") for c in captures.get("captures", [])]
     for dup in sorted(duplicates([x for x in capture_tags if isinstance(x, str)])):
         failures.append(f"duplicate capture tag: {dup}")
@@ -144,6 +158,11 @@ def validate(root: Path) -> list[str]:
         source_fixture = capture.get("source_fixture")
         if source_fixture and source_fixture not in fixture_ids:
             failures.append(f"capture {tag}: unknown source fixture {source_fixture!r}")
+        for field_name in set(capture.get("discover", [])) | set(capture.get("expect", {})):
+            if field_name not in field_specs:
+                failures.append(
+                    f"capture {tag}: unknown field {field_name!r}"
+                )
 
     menu_values: dict[str, list[dict]] = {}
     for entry in menu.get("entries", []):

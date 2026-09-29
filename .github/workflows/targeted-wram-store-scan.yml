@@ -30,7 +30,7 @@ jobs:
           set -euo pipefail
           python3 tools/find_wram_store_sites.py \
             "reference/roms/retail/Uniracers_USA.sfc" \
-            0x00C6 0x00C8 0x00C9 0x01D1 0x01D2 0x01D3 0x01D4 \
+            0x00C6 0x00C8 0x00C9 0x01D1 0x01D2 0x01D3 0x01D4 0x04C7 0x04C9 \
             --json-out "$RUNNER_TEMP/wram-store-sites.json" \
             | tee "$RUNNER_TEMP/wram-store-sites.txt"
 

@@ -151,3 +151,23 @@ Run 36513805265 compared the original two-frame `Right+B` intervention with a ti
 This matters operationally: do not use the visually changing `7E:0547` byte as evidence that player 1 jumped. It belongs structurally with the second-racer block and changed independently of the controlled B pulse.
 
 The preserved bot's policy would keep B asserted every frame while table-[1] remains in Dragster's jump area. Subsequent controlled-jump fixtures should therefore use sustained B input and demand a causal change in table-[1] state before promoting air/Y semantics.
+
+
+## Pitch-address correction from runtime + shipped-code evidence
+
+The preserved bot's effective player-1 table reads `7E:0F49` as `pitch`. New evidence shows why that can work while still being the wrong address to call persistent player-1 pitch storage.
+
+The shipped ROM contains sibling copy sequences:
+
+- player-1-side routine near `02:8D84`: `LDY $0F49; STY $04C7`;
+- player-2-side routine near `02:9272`: `LDY $0F49; STY $04C9`.
+
+The surrounding destinations also shift in player-paired fashion (`0BA1→0BA3`, `0BAD→0BAF`, `0BB1→0BB3`). Dynamic L input changes `04C7` causally while `0F49` can be identical to control at sampled checkpoints.
+
+Operational rule for future bot adaptation:
+
+- use `04C7` as persistent player-1 pitch/rotation state;
+- use `04C9` as the paired player-2 slot;
+- treat `0F49` as current-player working/scratch pitch unless a specific routine/frame context says otherwise.
+
+Do not rewrite the historical source; preserve it as evidence of what the 2014 bot actually sampled.

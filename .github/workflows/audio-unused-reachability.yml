@@ -24,7 +24,9 @@ jobs:
           print("setup_calls", len(r["setup_calls"]))
           print("unbound", json.dumps(r["unbound_setup_wrapper_calls"], indent=2))
           print("targeted_ldx", json.dumps(r["targeted_immediate_ldx"], indent=2))
+          print("inner_entries", json.dumps(r["inner_upload_entries"], indent=2))
           PY
+          cat audio-unused-reachability.json
       - uses: actions/upload-artifact@v4
         with:
           name: audio-unused-reachability

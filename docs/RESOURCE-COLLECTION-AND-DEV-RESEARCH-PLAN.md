@@ -34,26 +34,26 @@ The following are considered established unless contradicted by stronger evidenc
 - The recovered Canoe patch hooks original ROM code at offsets `0x01534C` and `0x015714`.
 - TAS and RetroAchievements sources provide useful WRAM/SRAM anchors for speed, boost, position, stunt state, medal state, and progression.
 - Historical SNasm 1.7.1 is preserved locally, and Dailly's documented 65816 syntax/conventions provide lineage evidence for future reconstructed assembly.
-- The strict native smoke harness builds and launches the actual `UniracersSNESRecomp` target. Run 36493358927 also captured and visually verified a coherent stock Uniracers title screen from the native executable. The next native milestone is deterministic input through menus into a playable race.
+- The strict native smoke harness builds and launches the actual `UniracersSNESRecomp` target. Deterministic controller-only input now reaches the first one-player race in both native SNESRecomp and Snes9x/snesref. Full-WRAM comparison reduces the settled race-entry mismatch to seven bytes.
 
 ## Operating priorities
 
-### 1. Extend native bring-up from verified title screen to deterministic menu/race execution
+### 1. Reduce the first native/reference race-entry divergence
 
-The build/executable-discovery and visible-title gates are cleared. The next execution task is deterministic controller input through the frontend into a representative one-player race, followed by independent reference comparison.
+The build, title, deterministic frontend, race-entry and initial reference-replay gates are cleared. The active execution question is now the seven-byte settled-race WRAM difference found by the combined native/Snes9x differential.
 
 Actions:
 - keep `.github/workflows/native-build-smoke.yml` strict about the exact generated Uniracers target;
-- retain deterministic screenshot/frame evidence from the real native process;
-- add deterministic input and reach menu selection and a stock one-player race;
-- run the same route through `snesref` and compare bounded state/frame evidence;
-- characterize the first deterministic runtime/visual/input failure only after it is observed;
-- classify it as configuration, runtime/framework behavior, unsupported SNES hardware behavior, generated-code problem, or project integration;
-- record the first failing observable state in `docs/BRINGUP.md`;
+- keep `tests/input/reach-first-race.script` shared verbatim across native and reference runs;
+- preserve full-WRAM checkpoint comparison as the default first-divergence surface;
+- trace the earliest meaningful writes to `0x01D1–0x01D4` and characterize `0x00C6`, `0x00C8`, `0x00C9`;
+- distinguish harmless timing/animation residue from a genuine simulation-state mismatch;
+- only add CPU/PPU/OAM/VRAM/audio instrumentation when WRAM/write-history evidence is insufficient;
+- record each narrowed divergence in `docs/BRINGUP.md` and `docs/RESEARCH-LEDGER.md`;
 - prefer the smallest correct framework/configuration fix over game-specific patches;
 - keep stock 4:3 behavior as the oracle.
 
-Exit condition: deterministic menu navigation reaches a stock one-player race and either executes correctly against the reference route or its first genuine divergence is reduced to a reproducible state.
+Exit condition: the seven settled-race differences are explained or reduced to the first reproducible guest/runtime cause, with a permanent regression assertion for any true invariant.
 
 ### 2. Decode and inventory all 45 RNC streams
 
@@ -185,6 +185,28 @@ Preferred search keys:
 
 Wayback, old forum archives, preserved personal sites, source mirrors, and exact historical URLs should take precedence over generic modern search results.
 
+## Experimental apparatus
+
+The research program should attack important unknowns from multiple independent directions rather than treating disassembly as the final product.
+
+Already implemented:
+- deterministic controller fixtures shared by native recompilation and `snesref`, cataloged in `tests/fixtures.json`;
+- full-WRAM checkpoint comparison and native write-history tracing on the first-race fixture;
+- machine-readable symbol export at `analysis/generated/symbols.json`, generated from the human authority `docs/SYMBOLS.md`;
+- controlled byte mutation with `tools/mutate_rom.py`, including before/after bytes and ROM hashes;
+- pinned on-demand DiztinGUIsh, bsnes-plus, MesenCE, and mesen-for-ai source checkouts in the toolchain manifest.
+
+Next apparatus work, in dependency order:
+1. Extend the replay corpus through acceleration, jump, rotation, landing, collision, finish, two-player, save/load, and known emulator-sensitive scenes.
+2. Extend checkpoint capture from WRAM into relevant CPU, PPU, OAM, VRAM and audio state only when a discrepancy requires it.
+3. Add code/data coverage capture using Mesen CDL or DiztinGUIsh/bsnes+ traces; merge repeated runs into a compact ROM coverage map and feed mode/bank knowledge back into static disassembly.
+4. Build a smallest-first first-divergence reducer: checkpoint mismatch → last matching frame → first differing frame → first differing write/register event → owning guest routine.
+5. Use controlled ROM mutation only against specific hypotheses and classify effects by deterministic replay, never by undocumented manual observation alone.
+6. Build reproducible asset extract → decode → inspect → modify → repack/patch → replay loops for graphics/course/resource formats as they become understood.
+7. Introduce a secondary high-accuracy oracle for hardware-sensitive findings and, where practical, compare against real-hardware captures before declaring an emulator-specific behavior to be hardware truth.
+
+The goal is a closed evidence loop: ROM bytes → static hypothesis → dynamic observation → controlled perturbation → deterministic differential → promoted symbol/format knowledge.
+
 ## Research discipline
 
 - Separate observation, interpretation, and hypothesis.
@@ -198,18 +220,19 @@ Wayback, old forum archives, preserved personal sites, source mirrors, and exact
 
 ## Current execution loop
 
-The preferred single-agent loop is:
+The preferred continuation loop is:
 
-1. inspect current CI/bring-up state;
-2. reduce the native boot failure;
-3. while blocked or once a clean checkpoint is reached, build RNC extraction/decompression tooling;
-4. characterize decoded streams and begin course-format identification;
-5. classify prototype/retail diff regions using emerging symbols;
-6. map OAM/Canoe hooks and known WRAM anchors;
-7. perform narrowly targeted archival recovery when a missing artifact can materially accelerate one of the above;
-8. update canonical docs and commit coherent checkpoints.
+1. inspect PR #5 and the latest differential/trace runs; preserve or update the current first-divergence evidence before starting a new lane;
+2. reduce the seven settled-race WRAM differences to the earliest meaningful guest-side divergence, using the existing shared first-race fixture and native write history before adding heavier instrumentation;
+3. extend the same deterministic input corpus into acceleration, jump, rotation, landing, collision and finish, validating the recovered race-control RAM labels as each action becomes observable;
+4. promote durable replay cases into `tests/fixtures.json` and keep comparison surfaces as narrow as the question permits;
+5. when WRAM/write-history evidence is insufficient, add the smallest useful CPU/PPU/OAM/VRAM/audio capture or use the pinned MesenCE/mesen-for-ai or DiztinGUIsh/bsnes+ workbench for code/data coverage;
+6. feed confirmed readers, writers, routines and tables back into `docs/SYMBOLS.md`, regenerate `analysis/generated/symbols.json`, and record evidence-backed conclusions in the research ledger/knowledge base;
+7. use `tools/mutate_rom.py` for specific causal hypotheses and score mutations through deterministic replay; use asset round-trip experiments when a resource format is sufficiently understood;
+8. continue course-format, emulator-compatibility and archival work opportunistically when the active execution evidence exposes a discriminating question or a missing artifact can materially accelerate it;
+9. update canonical docs and the active PR description at coherent checkpoints.
 
-The agent should move between these tracks based on evidence and blockers rather than completing them as rigid phases.
+The agent should move between these tracks based on evidence and blockers rather than completing them as rigid phases. Repository state is authoritative over conversational summaries.
 
 ## Canonical supporting documents
 

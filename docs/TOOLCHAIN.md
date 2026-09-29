@@ -82,9 +82,27 @@ Pinned as a secondary libretro oracle. Use it to cross-check emulator-sensitive 
 
 Accuracy/preservation-focused descendant of higan/bsnes. Use for independent manual behavior checks or emulator-source archaeology. It is large and GUI-oriented, so it remains an on-demand workbench rather than a CI dependency.
 
-### Mesen / DiztinGUIsh
+### DiztinGUIsh + bsnes-plus
 
-Both are potentially excellent debugger-oriented workbenches. Mesen 2's original repository was archived in June 2026 and its development moved, while DiztinGUIsh emphasizes trace-assisted collaborative 65816 disassembly. Do not pin either into the default bootstrap until a concrete workflow requires it and the current upstream/format is selected.
+Both are now pinned as on-demand workbenches. DiztinGUIsh can consume live CPU trace information from its compatible bsnes+ workflow, track 65816 execution-state details that static disassembly cannot infer safely, classify code/data, and export reassemblable assembly. The ordinary bsnes-plus pin is separately useful for breakpoints, ROM/RAM inspection, trace logging, and VRAM/OAM/tilemap debugging.
+
+Install exact sources without making either part of the default build:
+
+```bash
+python3 tools/bootstrap_toolchain.py --tool diztinguish --tool bsnes-plus --clone-only
+```
+
+Treat workbench databases and bulk trace logs as ignored scratch products. Promote only reproducible scripts, compact exports, symbols, and evidence.
+
+### MesenCE + mesen-for-ai
+
+Both are pinned under the `agent-debug` group. MesenCE is the community-maintained continuation of Mesen and supplies the SNES debugger/emulator host. `mesen-for-ai` exposes compatible debugger operations to an AI agent headlessly: frame stepping, memory/register inspection, breakpoints, traces, and SNES code/data logging.
+
+```bash
+python3 tools/bootstrap_toolchain.py --group agent-debug
+```
+
+This is the preferred future route for agent-driven dynamic archaeology when `snesref` cannot answer the question directly. The pinned MesenCE source is intentionally clone-only for now; building/packaging it should be added only when the first headless experiment proves the exact Linux build contract we need.
 
 ## Patching
 

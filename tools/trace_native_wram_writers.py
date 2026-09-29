@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+"""Query SNESRecomp's trace debug server for writers to selected WRAM bytes."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import socket
+import time
+from pathlib import Path
+
+DEFAULT_ADDRS = (0x00C6, 0x00C8, 0x00C9, 0x01D1, 0x01D2, 0x01D3, 0x01D4)
+
+
+def command(sock: socket.socket, reader, line: str) -> dict:
+    sock.sendall((line + "\n").encode("ascii"))
+    raw = reader.readline()
+    if not raw:
+        raise RuntimeError(f"debug server disconnected after command: {line}")
+    return json.loads(raw)
+
+
+def connect(host: str, port: int, timeout: float) -> tuple[socket.socket, object]:
+    deadline = time.monotonic() + timeout
+    last_error: Exception | None = None
+    while time.monotonic() < deadline:
+        s = socket.socket()
+        s.settimeout(2.0)
+        try:
+            s.connect((host, port))
+            reader = s.makefile("r", encoding="utf-8", newline="\n")
+            greeting = reader.readline()
+            if not greeting:
+                raise RuntimeError("debug server closed before greeting")
+            return s, reader
+        except (OSError, RuntimeError) as exc:
+            last_error = exc
+            s.close()
+            time.sleep(0.1)
+    raise RuntimeError(f"could not connect to {host}:{port}: {last_error}")
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--host", default="127.0.0.1")
+    ap.add_argument("--port", type=int, default=4377)
+    ap.add_argument("--connect-timeout", type=float, default=20.0)
+    ap.add_argument("--max-frames", type=int, default=1400)
+    ap.add_argument("--address", action="append", type=lambda x: int(x, 0))
+    ap.add_argument("--json-out", type=Path)
+    args = ap.parse_args()
+
+    addrs = tuple(args.address) if args.address else DEFAULT_ADDRS
+    sock, reader = connect(args.host, args.port, args.connect_timeout)
+    try:
+        command(sock, reader, "pause")
+        reached = None
+        for frame in range(1, args.max_frames + 1):
+            command(sock, reader, "step 1")
+            state = command(sock, reader, "dump_ram 0x313 1")
+            value = int(state["hex"].replace(" ", ""), 16)
+            if value == 1:
+                reached = frame
+                command(sock, reader, "pause")
+                break
+
+        if reached is None:
+            raise RuntimeError(f"inRace did not become 1 within {args.max_frames} stepped frames")
+
+        report = {"in_race_step": reached, "addresses": {}}
+        print(f"inRace=1 after {reached} stepped frames")
+
+        for addr in addrs:
+            result = command(sock, reader, f"wram_writes_at {addr:x} 0 999999 4096")
+            writes = result.get("matches", [])
+            current = command(sock, reader, f"dump_ram 0x{addr:x} 1")
+            report["addresses"][f"0x{addr:04X}"] = {
+                "current": current.get("hex", "").replace(" ", ""),
+                "writes": writes,
+            }
+            print(f"0x{addr:04X}: current={current.get('hex','').strip()} writes={len(writes)}")
+            for w in writes[-12:]:
+                print(
+                    "  "
+                    f"f={w.get('f')} val={w.get('val')} "
+                    f"old={w.get('old', w.get('before'))} "
+                    f"func={w.get('func')} parent={w.get('parent')}"
+                )
+
+        if args.json_out:
+            args.json_out.parent.mkdir(parents=True, exist_ok=True)
+            args.json_out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+        return 0
+    finally:
+        try:
+            reader.close()
+        finally:
+            sock.close()
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

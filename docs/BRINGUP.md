@@ -129,3 +129,117 @@ While reconciling the repository-hygiene/tooling branch, native run 36493652126 
 The smoke timeout was increased to 20 seconds without changing the requested capture frame or validation criteria. Run 36495039455 then completed successfully.
 
 Interpretation: the branch run exposed harness timing sensitivity rather than a game/runtime regression. Frame 300 remains the visual assertion; the extra wall-clock budget only gives CI enough time to reach it reliably.
+
+
+## 2026-09-28 — Deterministic menu input reaches one-player rider select
+
+The native smoke has been extended with a separate frame-synchronous `--script` route derived from Dessyreqt's recovered 2014 full-game bot rather than wall-clock key injection.
+
+Verified observations:
+- existing native build, boot and frame-300 visual validation remain green before the new input assertion;
+- WRAM `7E:009F` reaches `0xD7` at simulated frame 446, reproducing the bot's historical `mainMenu = 215` label on the canonical USA ROM/runtime;
+- run 36504420741 captured `7E:009B = 0x00` at that state, matching the bot's condition for selecting the one-player entry;
+- a one-frame A pulse sent immediately on first observing `0xD7` was ignored: 30 frames later the menu remained `0xD7`;
+- run 36504768959 instead waited 60 guest frames after first observing `0xD7`, then sent the same one-frame A pulse;
+- that delayed pulse succeeded: after the pulse `7E:009F = 0x3C`, reproducing the bot's `onePlayerSelect = 60` state.
+
+Interpretation: SNESRecomp scripted controller delivery works. The important nuance is that the historical menu-state byte becomes visible before the corresponding scene is ready to accept its first confirmation edge. The recovered bot tolerated this naturally because it reevaluated state and retried inputs every frame; a linear deterministic script needs an explicit readiness delay or equivalent stateful retry policy.
+
+The current committed route applies the same 60-frame settle after reaching `0x3C`, confirms the default rider, then waits only for `currentMenu != 0x3C` and captures the resulting state. This deliberately avoids assuming whether a clean SRAM route next enters the bot's `onePlayerTours1 = 0x6D` or `onePlayerTours2 = 0x10`.
+
+Evidence:
+- workflow run 36504420741;
+- workflow run 36504768959;
+- `tests/input/reach-first-race.script`;
+- `.github/workflows/native-build-smoke.yml`;
+- recovered bot source `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`.
+
+Next milestone: classify the post-rider menu state, then extend the settled state-driven route through tour, track and now-playing selection to `7E:0313 == 1` race state.
+
+
+### Follow-up — native frontend chain reaches track selection
+
+Run 36505156490 extended the settled route through rider confirmation. Run 36505588585 then extended it through the first tour selection. Both completed the deterministic route step successfully.
+
+Observed settled chain on the canonical USA ROM:
+
+- `main-menu-ready`: `currentMenu = 0xD7`, `selectedOption = 0x00`;
+- `rider-select-ready`: `currentMenu = 0x3C`, row `0x00`, column `0x06`;
+- `tours-ready`: `currentMenu = 0x6D`, `selectedOption = 0x00`, row `0x00`, column `0x07`;
+- after confirming the current first tour and allowing the destination to settle: `currentMenu = 0xF6`, `selectedOption = 0x00`, row `0x00`, column `0x01`.
+
+These independently reproduce four Dessyreqt frontend labels under native execution: `mainMenu = 0xD7`, `onePlayerSelect = 0x3C`, `onePlayerTours1 = 0x6D`, and `onePlayerTracks = 0xF6`.
+
+The route uses only controller input plus guest-observed WRAM conditions. No menu/game state is poked. The conservative 60-guest-frame settle remains in place before the first confirm in a newly reached scene because first visibility of the menu byte is not equivalent to input readiness.
+
+Evidence:
+- GitHub Actions run 36505156490, artifact 11006149797;
+- GitHub Actions run 36505588585, artifact 11007410671;
+- `tests/input/reach-first-race.script`;
+- recovered bot source `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`.
+
+Next milestone: settle at `0xF6`, confirm the default first track, and capture the resulting state before treating the bot's `onePlayerNowPlaying = 0x16` label as locally verified.
+
+
+### Follow-up — native race entry and reference replay are green
+
+Run 36506120930 completed the full native deterministic route with controller input only.
+
+Native checkpoints:
+- frame 506: main menu settled, `7E:009F = 0xD7`;
+- frame 569: rider select settled, `0x3C`;
+- frame 639: first tours page settled, `0x6D`;
+- frame 703: track select settled, `0xF6`;
+- frame 769: post-track screen is `0x16`, confirming Dessyreqt's `onePlayerNowPlaying` label;
+- frame 984: `7E:0313 = 0x01`, confirming active race state;
+- frame 1044: settled `race-entered` dump produced and the route exited cleanly.
+
+The same script was then replayed unmodified through `snesref` using the pinned Snes9x libretro core in run 36506281320. That reference run also reached every checkpoint and race state successfully:
+
+- main menu settled at frame 500;
+- rider select at 563;
+- tours at 633;
+- tracks at 696;
+- now-playing at 761;
+- `inRace = 1` at frame 975;
+- settled race dump at frame 1035.
+
+All checkpoint fields printed by the workflows agree across native and reference execution: current menu, selected option, row, column, track byte and race-active byte. The reference path reports Snes9x's existing `Applied Uniracers hack.`, so this successful replay establishes a useful oracle path but does not by itself prove the native runtime reproduces the historical active-display OAM behavior correctly.
+
+Interpretation:
+- Phase 2's title/menu operation gate is cleared;
+- Phase 3's "reach one-player race" milestone is cleared;
+- Dessyreqt's `onePlayerNowPlaying = 0x16` and `inRace = 1` labels are now locally verified;
+- native/reference frontend timing differs by several frames while the observed state sequence agrees.
+
+Next milestone: compare the complete WRAM checkpoint dumps byte-for-byte in one differential job, record the first differing offsets at each scene, and then extend deterministic control into actual race movement/physics.
+
+
+### Follow-up — first full WRAM differential narrows race-entry mismatch to seven bytes
+
+Combined differential workflow run 36508095522 built both native SNESRecomp and pinned Snes9x/snesref, ran the same `reach-first-race.script`, and compared all seven complete 128 KiB WRAM dumps.
+
+Differing-byte counts:
+- `main-menu-ready`: 19 / 131072;
+- `rider-select-ready`: 252;
+- `tours-ready`: 250;
+- `tracks-ready`: 254;
+- `after-track-confirm`: 258;
+- `now-playing-ready`: 255;
+- `race-entered`: **7**.
+
+The settled race-entry differences are:
+- `0x00C6`: native `04`, Snes9x `1D`;
+- `0x00C8`: native `03`, Snes9x `01`;
+- `0x00C9`: native `02`, Snes9x `03`;
+- `0x01D1–0x01D4`: native `90 13 20 80`, Snes9x `00 00 00 00`.
+
+The contiguous `0x01D1–0x01D4` block first becomes visibly divergent by rider-select and remains present through later captured frontend states and race entry. The three `0x00C6/0x00C8/0x00C9` bytes vary across checkpoints and are plausible timing/animation state, but their semantics are not yet assigned.
+
+Interpretation: native/reference semantic race entry is extremely close in WRAM after the 60-frame race settle despite the nine-frame route timing offset. The next high-value discriminator is the origin and meaning of writes to `0x01D1–0x01D4`, followed by characterization of the three remaining low-WRAM differences.
+
+Evidence:
+- workflow run 36508095522;
+- artifact 11007769197;
+- `tools/compare_wram_checkpoints.py`;
+- `.github/workflows/deterministic-differential.yml`.

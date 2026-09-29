@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "source": "docs/SYMBOLS.md",
+  "generated": true,
+  "entries": [
+    {
+      "kind": "function",
+      "address": "`01:B8F1` (USA)",
+      "name": "RNC1_Unpack",
+      "confidence": 5,
+      "evidence_/_notes": "Identified by unique opcode-structure match to preserved 1992 SNES `RNC_1.S`; ROM offset `0x00B8F1`. Regional/build equivalents: Europe retail `01:B8E2` (`0x00B8E2`), 1994-11-29 PAL prototype `01:B8D1` (`0x00B8D1`), legacy beta identical to USA."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:009F",
+      "name": "Frontend_CurrentMenu",
+      "width": "8-bit",
+      "confidence": 5,
+      "notes": "Verified in both native and Snes9x/snesref deterministic runs: `0xD7` main menu, `0x3C` one-player rider select, `0x6D` first one-player tours page, `0xF6` one-player track select, `0x16` now-playing screen, then `0x00` after race entry."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:009B",
+      "name": "Frontend_SelectedOption",
+      "width": "8-bit",
+      "confidence": 4,
+      "notes": "Recovered bot uses it for main-menu/tour selection. Native captures show `0x00` at clean main menu and first tours page, consistent with bot policy."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:000E",
+      "name": "Frontend_SelectedRow",
+      "width": "8-bit",
+      "confidence": 3,
+      "notes": "Recovered bot label; native route captures row `0x00` through the verified clean frontend route. Exact semantics outside these menus not yet tested."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0C63",
+      "name": "Frontend_SelectedColumn",
+      "width": "8-bit",
+      "confidence": 3,
+      "notes": "Recovered bot label; native captures change with frontend scene/selection. Rider-select ready state captures `0x06`, matching the bot's left-column target value."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0313",
+      "name": "Race_ActiveState",
+      "width": "8-bit",
+      "confidence": 5,
+      "notes": "Recovered bot label `inRace`; verified as `0x01` after deterministic race entry in both native and Snes9x/snesref runs. Non-race screens can contain other transient values, so only `0x01 = active race` is currently asserted."
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+name: trace race-entry WRAM writers
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "rom_identity.txt"
+      - "snesrecomp"
+      - "tests/input/reach-first-race.script"
+      - "tools/trace_native_wram_writers.py"
+      - ".github/workflows/trace-race-wram-writers.yml"
+
+concurrency:
+  group: trace-race-wram-writers-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trace-writers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config xvfb \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Generate project and build trace target
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/trace-project"
+          mkdir -p "$ROOT"
+          sh snesrecomp/tools/new_project/setup_project.sh \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --generate \
+            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+
+          PROJECT="$ROOT/UniracersSNESRecomp"
+
+          # Pinned scaffold revision emits production no-op debug hooks
+          # unconditionally in host_contract.c. Trace mode supplies the real
+          # definitions from debug_server.c, so guard the generated stubs for
+          # this trace-only build to avoid duplicate symbols at link time.
+          python3 - "$PROJECT/src/host_contract.c" <<'PY'
+          from pathlib import Path
+          import sys
+          p = Path(sys.argv[1])
+          s = p.read_text()
+          marker = "#include <stdint.h>\n"
+          if marker not in s:
+              raise SystemExit("host_contract.c include marker not found")
+          s = s.replace(
+              marker,
+              marker + "\n#if !defined(SNESRECOMP_TRACE) || !SNESRECOMP_TRACE\n",
+              1,
+          )
+          s += "\n#endif /* production debug-hook stubs */\n"
+          p.write_text(s)
+          PY
+
+          cmake -S "$PROJECT" -B "$PROJECT/build-trace" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ENABLE_TRACE=ON
+          cmake --build "$PROJECT/build-trace" -j2
+          test -x "$PROJECT/build-trace/UniracersSNESRecomp"
+
+      - name: Trace divergent WRAM writers
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT="$RUNNER_TEMP/trace-project/UniracersSNESRecomp"
+          EXE="$PROJECT/build-trace/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
+          LOG="$RUNNER_TEMP/native-trace-host.log"
+          OUT="$RUNNER_TEMP/native-wram-writers.json"
+
+          SNESRECOMP_DEBUG_PORT=4377 SDL_AUDIODRIVER=dummy \
+            timeout 90s xvfb-run -a "$EXE" "$ROM" --paused --script "$SCRIPT" \
+            >"$LOG" 2>&1 &
+          HOST_PID=$!
+          trap 'kill "$HOST_PID" 2>/dev/null || true' EXIT
+
+          python3 tools/trace_native_wram_writers.py \
+            --port 4377 \
+            --max-frames 1400 \
+            --json-out "$OUT"
+
+          kill "$HOST_PID" 2>/dev/null || true
+          wait "$HOST_PID" 2>/dev/null || true
+          trap - EXIT
+
+          echo "== host log tail =="
+          tail -n 100 "$LOG"
+          test -s "$OUT"
+
+      - name: Upload writer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-native-wram-writers
+          path: |
+            ${{ runner.temp }}/native-trace-host.log
+            ${{ runner.temp }}/native-wram-writers.json
+          if-no-files-found: warn
+          retention-days: 7

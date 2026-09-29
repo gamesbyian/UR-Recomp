@@ -1,0 +1,97 @@
+name: snesref deterministic input route
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "rom_identity.txt"
+      - "snesrecomp"
+      - "tests/input/reach-first-race.script"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - ".github/workflows/snesref-input-route.yml"
+
+concurrency:
+  group: snesref-input-route-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  reference-route:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install reference build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Build pinned Snes9x libretro core
+        run: python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+
+      - name: Build snesref
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+          file "$RUNNER_TEMP/snesref-build/snesref"
+
+      - name: Run deterministic reference route
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
+          DUMPS="$RUNNER_TEMP/snesref-dumps"
+          LOG="$RUNNER_TEMP/snesref-route.log"
+          mkdir -p "$DUMPS"
+
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$SCRIPT" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+          "$EXE" "$CORE" "$ROM" >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+
+          for state in main-menu-ready rider-select-ready tours-ready tracks-ready after-track-confirm now-playing-ready race-entered; do
+            WRAM="$DUMPS/$state.wram.bin"
+            if [ -s "$WRAM" ]; then
+              python3 -c 'import pathlib,sys; name=sys.argv[1]; w=pathlib.Path(sys.argv[2]).read_bytes(); print(f"{name}: menu[009F]=0x{w[0x009F]:02X} selectedOption[009B]=0x{w[0x009B]:02X} row[000E]=0x{w[0x000E]:02X} col[0C63]=0x{w[0x0C63]:02X} track[00CE]=0x{w[0x00CE]:02X} inRace[0313]=0x{w[0x0313]:02X}")' "$state" "$WRAM"
+            fi
+          done
+
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::error::snesref deterministic route exited with status $STATUS"
+            exit "$STATUS"
+          fi
+          if [ ! -s "$DUMPS/race-entered.wram.bin" ]; then
+            echo "::error::Reference route did not produce race-entered checkpoint"
+            exit 1
+          fi
+          echo "SNESREF_ROUTE_RESULT=reached_race"
+
+      - name: Upload reference evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-snesref-route
+          path: |
+            ${{ runner.temp }}/snesref-route.log
+            ${{ runner.temp }}/snesref-dumps/
+          if-no-files-found: warn
+          retention-days: 7

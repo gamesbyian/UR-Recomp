@@ -123,6 +123,44 @@
       "purpose": "Independent accuracy/preservation-focused emulator for manual behavioral cross-checks.",
       "build": [],
       "artifacts": []
+    },
+    {
+      "id": "diztinguish",
+      "group": "workbench",
+      "url": "https://github.com/DizTools/DiztinGUIsh.git",
+      "revision": "7484b87c3bd36f4e1a1e9e3c6075dd103855cbfd",
+      "purpose": "Trace-assisted collaborative 65816 disassembly; integrates with a patched bsnes+ live trace stream and exports reassemblable source.",
+      "build": [],
+      "artifacts": []
+    },
+    {
+      "id": "bsnes-plus",
+      "group": "workbench",
+      "url": "https://github.com/devinacker/bsnes-plus.git",
+      "revision": "a9789fab9a26859153c2963defe186fcaaa80ca2",
+      "purpose": "Debugger-oriented bsnes fork with tracing, breakpoints, ROM/RAM views, code/data highlighting, and VRAM/OAM/tilemap inspection.",
+      "build": [],
+      "artifacts": []
+    },
+    {
+      "id": "mesen-for-ai",
+      "group": "agent-debug",
+      "url": "https://github.com/paulomanrique/mesen-for-ai.git",
+      "revision": "a4bda6285eadf69c871135637df29e9c9a8f6f7a",
+      "purpose": "Headless AI-facing Mesen bridge for frame stepping, memory/register inspection, breakpoints, traces, and SNES code/data logging.",
+      "build": [
+        "{python} -m pip install -e ."
+      ],
+      "artifacts": []
+    },
+    {
+      "id": "mesence",
+      "group": "agent-debug",
+      "url": "https://github.com/nesdev-org/MesenCE.git",
+      "revision": "20ba206cef5ba207c21203176d02cb9f43dda9fb",
+      "purpose": "Community-maintained Mesen continuation and compatible SNES debugger/emulator host for mesen-for-ai experiments.",
+      "build": [],
+      "artifacts": []
     }
   ]
 }

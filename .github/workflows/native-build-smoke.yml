@@ -8,6 +8,11 @@ on:
       - "rom_identity.txt"
       - "snesrecomp"
       - ".github/workflows/native-build-smoke.yml"
+      - "tests/input/reach-first-race.script"
+
+concurrency:
+  group: native-build-smoke-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-smoke:
@@ -156,6 +161,42 @@ jobs:
             tail -n 12 "$PRESENTS"
           fi
 
+      - name: Deterministic native input route
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
+          LOG="$RUNNER_TEMP/race-smoke.log"
+          DUMPS="$RUNNER_TEMP/race-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted native input route =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+
+          for state in main-menu-ready rider-select-ready tours-ready tracks-ready after-track-confirm now-playing-ready race-entered; do
+            WRAM="$DUMPS/$state.wram.bin"
+            if [ -s "$WRAM" ]; then
+              python3 -c 'import pathlib,sys; name=sys.argv[1]; w=pathlib.Path(sys.argv[2]).read_bytes(); print(f"{name}: menu[009F]=0x{w[0x009F]:02X} selectedOption[009B]=0x{w[0x009B]:02X} row[000E]=0x{w[0x000E]:02X} col[0C63]=0x{w[0x0C63]:02X} track[00CE]=0x{w[0x00CE]:02X} inRace[0313]=0x{w[0x0313]:02X}")' "$state" "$WRAM"
+            fi
+          done
+
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::error::Scripted native route exited with status $STATUS"
+            exit "$STATUS"
+          fi
+          if [ ! -s "$DUMPS/now-playing-ready.wram.bin" ] || [ ! -s "$DUMPS/race-entered.wram.bin" ]; then
+            echo "::error::Route did not prove now-playing and race entry"
+            exit 1
+          fi
+          echo "INPUT_ROUTE_RESULT=reached_race"
+
       - name: Upload native frame evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -165,6 +206,8 @@ jobs:
             ${{ runner.temp }}/native-frame-300.ppm
             ${{ runner.temp }}/native-presents.csv
             ${{ runner.temp }}/boot.log
+            ${{ runner.temp }}/race-smoke.log
+            ${{ runner.temp }}/race-dumps/
           if-no-files-found: warn
           retention-days: 7
 

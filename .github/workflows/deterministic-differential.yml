@@ -1,0 +1,147 @@
+name: deterministic native/reference differential
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "rom_identity.txt"
+      - "snesrecomp"
+      - "tests/input/reach-first-race.script"
+      - "tools/compare_wram_checkpoints.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - ".github/workflows/deterministic-differential.yml"
+
+concurrency:
+  group: deterministic-differential-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Build native target
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/native"
+          mkdir -p "$ROOT"
+          sh snesrecomp/tools/new_project/setup_project.sh \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --generate \
+            --build \
+            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+          test -x "$ROOT/UniracersSNESRecomp/build/UniracersSNESRecomp"
+
+      - name: Build pinned Snes9x and snesref
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+          test -x "$RUNNER_TEMP/snesref-build/snesref"
+
+      - name: Run native fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
+          DUMPS="$RUNNER_TEMP/native-dumps"
+          LOG="$RUNNER_TEMP/native-route.log"
+          mkdir -p "$DUMPS"
+
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+            timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          cat "$LOG"
+          test -s "$DUMPS/race-entered.wram.bin"
+
+      - name: Run reference fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
+          DUMPS="$RUNNER_TEMP/reference-dumps"
+          LOG="$RUNNER_TEMP/reference-route.log"
+          mkdir -p "$DUMPS"
+
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$SCRIPT" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" >"$LOG" 2>&1
+          cat "$LOG"
+          test -s "$DUMPS/race-entered.wram.bin"
+
+      - name: Compare WRAM checkpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/compare_wram_checkpoints.py \
+            "$RUNNER_TEMP/native-dumps" \
+            "$RUNNER_TEMP/reference-dumps" \
+            --label-a native \
+            --label-b snesref \
+            --limit 40 \
+            --json-out "$RUNNER_TEMP/wram-differential.json" \
+            | tee "$RUNNER_TEMP/wram-differential.txt"
+
+          python3 - "$RUNNER_TEMP/wram-differential.json" <<'PY'
+          import json, pathlib, sys
+          r = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          print("== checkpoint differential summary ==")
+          for name, d in r["checkpoints"].items():
+              print(f"{name}: diff_count={d['diff_count']} same={d['same']}")
+          print(f"all_identical={r['all_identical']}")
+          PY
+
+      - name: Upload differential evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-native-reference-differential
+          path: |
+            ${{ runner.temp }}/native-route.log
+            ${{ runner.temp }}/reference-route.log
+            ${{ runner.temp }}/wram-differential.json
+            ${{ runner.temp }}/wram-differential.txt
+            ${{ runner.temp }}/native-dumps/
+            ${{ runner.temp }}/reference-dumps/
+          if-no-files-found: warn
+          retention-days: 7

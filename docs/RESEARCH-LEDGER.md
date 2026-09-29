@@ -352,3 +352,39 @@ External gameplay documentation states that each tour's five tracks occur in the
 **Discriminating test:** trace selection/loading of one known stunt track and one race track, then trace decoded byte 2 into the gameplay timer initialization. Independently verify the stream ordinal through the course selector.
 
 **Dependencies:** external track-order/timer descriptions are used only for semantic interpretation; the 45-stream count and byte cadence are local binary observations.
+
+
+### R-SEED-013 — Recovered frontend and race-state RAM reproduced in native and reference runs
+
+**Status:** confirmed for observed states  
+**Date:** 2026-09-28  
+**Area:** RAM | UI | race
+
+**Observation:** Dessyreqt's 2014 bot labels WRAM `7E:009F` as the current frontend menu and `7E:0313` as `inRace`. The project-owned shared deterministic input fixture reproduces, in both native SNESRecomp execution and Snes9x through `snesref`, the sequence `0xD7` main menu, `0x3C` one-player rider selection, `0x6D` first one-player tours page, `0xF6` track selection, `0x16` now-playing, then `7E:0313 = 0x01` after race entry.
+
+**Evidence:** `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`; GitHub Actions runs 36506120930 and 36506281320; `tests/input/reach-first-race.script`; `docs/BRINGUP.md`.
+
+**Interpretation:** the recovered frontend state model and active-race flag are now locally validated cross-runtime rather than merely inherited historical labels. A newly visible menu-state byte can precede input readiness; the deterministic fixture therefore retains a conservative scene-settle period before confirmation.
+
+**Discriminating test:** compare complete WRAM dumps at each shared checkpoint byte-for-byte, then extend the same fixture into controlled movement and validate the bot's race-driving RAM labels.
+
+**Dependencies:** only values/scenes actually reproduced are promoted; other recovered bot fields remain historical leads until independently observed.
+
+
+### R-SEED-014 — Native and Snes9x race-entry timing/state differential
+
+**Status:** supported  
+**Date:** 2026-09-28  
+**Area:** timing | RAM | other
+
+**Observation:** the shared race-entry script reaches `7E:0313 = 1` at native frame 984 and Snes9x/snesref frame 975. Full 128 KiB WRAM comparison at seven settled checkpoints shows 19 differing bytes at main menu, roughly 250 through the animated frontend scenes, and only **7 differing bytes** at settled race entry.
+
+The final seven are `0x00C6`, `0x00C8`, `0x00C9`, and contiguous `0x01D1–0x01D4`. At race entry the four-byte block is native `90 13 20 80` versus Snes9x `00 00 00 00`.
+
+**Evidence:** GitHub Actions runs 36506120930, 36506281320 and combined differential run 36508095522; artifact 11007769197; `tools/compare_wram_checkpoints.py`.
+
+**Interpretation:** much of the frontend mismatch is compatible with the known several-frame timing offset inside animated scenes, because the difference set collapses drastically after race entry settles. The persistent `0x01D1–0x01D4` block is a sharper candidate for a genuine runtime/state divergence. The three `0x00C6/0x00C8/0x00C9` differences may be timing/counter state but remain unclassified.
+
+**Discriminating test:** trace writes/reads to `0x01D1–0x01D4` in native/reference execution and identify the responsible guest routine; separately characterize whether the three low bytes advance as counters or affect gameplay-visible state.
+
+**Dependencies:** both engines execute the same script and zero-filled initial WRAM; Snes9x reports its existing Uniracers-specific compatibility hack as active.

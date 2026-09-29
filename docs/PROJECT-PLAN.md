@@ -681,6 +681,8 @@ A representative one-player course and the two-player/Vs. path display true addi
 
 Replace selected low-resolution presentation with high-resolution equivalents without replacing gameplay logic.
 
+The evidence/capture contract lives in `HD-VISUAL-REFERENCE-PIPELINE.md`. The coherent-art decision authority lives in `HD-ART-DIRECTION.md`. A processed reference may help explain ambiguous source pixels, but no scaler output becomes canonical art by default.
+
 ### Preferred mechanism
 
 Use SNESRecomp host-overlay extraction and host-side composition.
@@ -714,14 +716,19 @@ Every replacement should have:
 - source-state or extracted-original identity;
 - original dimensions/pivot;
 - high-resolution dimensions/pivot;
+- gameplay-relevant contact/attachment points where applicable;
 - animation group and frame;
+- neighboring-frame/temporal-coherence evidence for animated assets;
 - palette/color policy;
+- sampling/render policy;
 - intended blend/transparency mode;
 - provenance;
 - checksum;
 - fallback behavior.
 
 Do not key important gameplay art solely on fuzzy image matching.
+
+Animated replacements must be reviewed as sequences as well as stills. Reject contour breathing, scale/pivot/contact drift, inconsistent invented detail or material/highlight flicker even when individual frames look plausible.
 
 ### Unicycle strategy for HD Presentation
 
@@ -773,11 +780,11 @@ The authoritative SNES world remains in original units. The presentation layer m
 
 - true-wide logical view;
 - subpixel/high-resolution asset positions;
-- modern filtering;
+- asset-class-specific deterministic sampling/filtering;
 - high-resolution replacement textures;
 - modern UI layout.
 
-Do not multiply physics coordinates merely because the output is 3840x2160.
+Do not multiply physics coordinates merely because the output is 3840x2160. Do not use one global texture filter for stock pixels, reconstructed sprites, fonts, UI, backgrounds and semantic track geometry; each presentation class needs an explicit policy.
 
 ### Gate
 

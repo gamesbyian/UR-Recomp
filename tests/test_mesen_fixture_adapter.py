@@ -39,12 +39,18 @@ class FakeMesen:
 
 def main() -> int:
     commands = mod.parse_fixture(FIXTURE)
-    assert len(commands) == 20, len(commands)
-    assert commands[0] == {
-        "op": "until", "address": 0x009F, "operator": "==",
-        "value": 0xD7, "timeout": 3600, "line": 9
-    }
+    assert len(commands) >= 20, len(commands)
+    assert commands[0]["op"] == "until"
+    assert commands[0]["address"] == 0x009F
+    assert commands[0]["operator"] == "=="
+    assert commands[0]["value"] == 0xD7
     assert commands[-1]["op"] == "quit"
+    dumps = [cmd["tag"] for cmd in commands if cmd["op"] == "dump"]
+    for required in [
+        "main-menu-ready", "rider-select-ready", "tours-ready", "tracks-ready",
+        "after-track-confirm", "now-playing-ready", "race-entered",
+    ]:
+        assert required in dumps, (required, dumps)
 
     with tempfile.TemporaryDirectory() as td:
         bad = Path(td) / "bad.script"

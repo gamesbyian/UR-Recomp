@@ -40,16 +40,16 @@
       "id": "historical-emulator-failure-matrix",
       "value": "high",
       "cost": "low",
-      "status": "ready",
+      "status": "local-reproduction-pending",
       "source_ids": [
         "dorando-compatibility",
         "snes9x-143-changelog",
         "zsnes-uniracers-history"
       ],
       "question": "Which historically independent emulator failures expose distinct Uniracers-sensitive subsystems rather than variations of the OAM problem?",
-      "next_discriminator": "Split the historical reports into separately testable seams: two-player rendering, sound, screen transitions, bottom-border/window behavior, color math/subscreen behavior, SRAM mapping, and post-race graphics; map each to the cheapest modern deterministic scene.",
+      "next_discriminator": "Use references/notes/emulator-compatibility-seams.md to exercise the cheapest independent local scene for each fault family, beginning with already-supported frontend/first-race/2P fixtures; add PPU/OAM/APU capture only when the observed symptom requires it.",
       "deliverables": [
-        "compatibility-seam matrix",
+        "compatibility-seam matrix (landed at references/notes/emulator-compatibility-seams.md)",
         "one discriminator per independently reported failure class",
         "explicit duplicates-versus-independent-evidence classification"
       ],

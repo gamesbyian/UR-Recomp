@@ -140,7 +140,7 @@
     "The matched high-APU-RAM region is distinct from the previously identified shared BRR sample-bank prefix at $3000-$5F87, so it is more plausibly driver-side tables/sequence/state data than the common sample payload itself.",
     "The ROM serialization and mapping from source seeds to songs/packages are not yet decoded, so unused-song reachability remains open."
   ],
-  "next_discriminator": "Decode the ROM bytes at first-race source 03:FB55 and sibling seeds FAD5/FB15/FBD5/FC15, then correlate that serialization with the established $2143 chunks and audio_events chains to map package/song selectors and test unused-song retail reachability.",
+  "next_discriminator": "Decode helper 02:812A, which APU_StreamTransfer calls after every non-FF selector ID, to map IDs 0x00-0x31 to ROM blocks/APU destinations. Then associate the six 64-byte selector tables and their callers with song/package states; in particular test the uncalled 03:FB95 table against Unused Song 1/2 evidence.",
   "rom_source": {
     "static_x_seeds": [
       "0xFAD5",
@@ -153,6 +153,60 @@
     "first_race_source_cpu": "03:FB55",
     "first_race_source_file_offset": "0x01FB55",
     "runtime_corroboration": "At frame 906 the first paired WRAM writes to DP $83/$84 are $55/$FB, reconstructing X=$FB55; subsequent pairs advance $FB56, $FB57, and onward. Six static long-call sites load X=$FB55 immediately before JSL $82:82A5.",
-    "interpretation": "The retail transfer body has a directly observed bank-03 selector/cursor path. DP $63-$65 is a working pointer inside the transport; generic D+$00 upload-stream semantics must not be projected onto this routine without decoding the ROM serialization."
+    "interpretation": "The retail transfer body has a directly observed bank-03 selector/cursor path. DP $63-$65 is a working pointer inside the transport; generic D+$00 upload-stream semantics must not be projected onto this routine without decoding the ROM serialization.",
+    "selector_table_format": {
+      "entry_count": 64,
+      "entry_width_bytes": 1,
+      "sentinel": "0xFF",
+      "interpretation": "Each table is a 64-slot package/block selector list. The live first-race cursor visits exactly FB55-FB94 while $6F counts down from $40; FF slots are skipped quickly and populated IDs invoke block-transfer work.",
+      "generic_spc_stream_parser_applies": false,
+      "generic_parse_rejection": "At FB55 the generic length16/target16 grammar yields length 0x1800,target 0x0627 followed by a second header whose declared payload runs far beyond the bounded source window; this conflicts with the directly observed 64-iteration selector loop."
+    },
+    "selector_tables": [
+      {
+        "cpu": "03:FAD5",
+        "file_offset": "0x01FAD5",
+        "direct_caller": true,
+        "non_ff_ids": 25,
+        "sha256": "8d4e4bfa27d9e3471fabdce635dfd21ff8ce39ae7aea9a8dc9180533d5e0e4c3"
+      },
+      {
+        "cpu": "03:FB15",
+        "file_offset": "0x01FB15",
+        "direct_caller": true,
+        "non_ff_ids": 19,
+        "sha256": "960fd76d62a9b985ca50c1d1504aa98e8ec746ebfec7dd6cd71039bef6e32d2f"
+      },
+      {
+        "cpu": "03:FB55",
+        "file_offset": "0x01FB55",
+        "direct_caller": true,
+        "first_race_live": true,
+        "non_ff_ids": 24,
+        "sha256": "85c0973c8e26803e411b6e87cf350ea1c56300427097ff7cd5009296ca52febf"
+      },
+      {
+        "cpu": "03:FB95",
+        "file_offset": "0x01FB95",
+        "direct_caller": false,
+        "non_ff_ids": 22,
+        "sha256": "ba06845292e028a708c216703526c0d30c4a0ada66cf7eab332035c025408b74",
+        "interpretation": "Dormant/unreferenced package selector-table candidate; not yet attributable to either unused song."
+      },
+      {
+        "cpu": "03:FBD5",
+        "file_offset": "0x01FBD5",
+        "direct_caller": true,
+        "non_ff_ids": 21,
+        "sha256": "12dd26f1219b3688b75139b8e349ae328395741a3dc2e713f98683d0f87a44f1"
+      },
+      {
+        "cpu": "03:FC15",
+        "file_offset": "0x01FC15",
+        "direct_caller": true,
+        "non_ff_ids": 23,
+        "sha256": "e4479b21aad06acd4f26749ab30842f5ae2bc746fcc5fc8ce60f1866c06a2ba0"
+      }
+    ]
   }
 }

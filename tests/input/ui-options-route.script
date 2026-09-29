@@ -1,0 +1,50 @@
+# UI-state reconnaissance: Main Menu -> OPTIONS -> Main Menu.
+# Uses only documented controller input and locally verified Main Menu WRAM state.
+# Every dump also emits a framebuffer BMP through SNESRecomp state_dump.
+#
+# Known anchors:
+#   7E:009F = D7  MAIN_MENU
+#   7E:009B = 00  1P selected on clean boot
+#
+# We intentionally do not assert an Options menu ID yet. This fixture discovers
+# that value while proving the visible/controller path and a reversible X-back edge.
+
+until 009F == D7 3600
+wait 60
+dump ui-main-menu-1p
+
+# Walk one menu item at a time. Require the observed selection byte to advance;
+# this protects the capture against a swallowed key edge.
+press down 1
+until 009B == 01 240
+wait 20
+dump ui-main-menu-2p
+
+press down 1
+until 009B == 02 240
+wait 20
+dump ui-main-menu-vs
+
+press down 1
+until 009B == 03 240
+wait 20
+dump ui-main-menu-league
+
+press down 1
+until 009B == 04 240
+wait 20
+dump ui-main-menu-options
+
+# Confirm with A, matching the existing first-race fixture's established style.
+press a 2
+until 009F != D7 1200
+wait 60
+dump ui-options-entry
+
+# Manual convention: X or Y moves back to the previous menu.
+press x 2
+until 009F == D7 1200
+wait 60
+dump ui-options-back-main
+
+quit

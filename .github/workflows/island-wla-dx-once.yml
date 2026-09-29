@@ -6,6 +6,7 @@ on:
       - chatgpt/island-wla-dx-2026-09-29
     paths:
       - .github/workflows/island-wla-dx-once.yml
+      - tools/patches/wla-dx-ur-recomp.patch
 
 permissions:
   contents: write

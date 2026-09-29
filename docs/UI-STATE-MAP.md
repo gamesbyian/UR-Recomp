@@ -127,6 +127,21 @@ This branch also adds `tests/input/ui-options-route.script`, a narrow reconnaiss
 
 The native smoke workflow now runs that fixture and uploads its BMP/state dumps alongside the existing race-route evidence. It prints the newly observed Options menu ID from WRAM when the route succeeds.
 
+## Fast menu-ID lookup
+
+`analysis/ui-menu-index.json` is the compact reverse index for the menu byte at `7E:009F`. It deliberately distinguishes locally verified entries from historical-bot leads.
+
+Agents can query it without loading this whole document:
+
+```bash
+python3 tools/query_ui_state.py --menu-id 0x99
+python3 tools/query_ui_state.py --menu-id 153
+python3 tools/query_ui_state.py --state MAIN_MENU
+python3 tools/query_ui_state.py --all
+```
+
+This is intended for exactly the reverse-engineering moment where a trace or WRAM dump exposes a menu byte and the agent needs a cheap semantic orientation before deciding what to inspect next.
+
 ## Headless atlas builder
 
 `analysis/ui-capture-manifest.json` is the contract between deterministic UI fixtures and captured evidence. It declares which `dump <tag>` outputs correspond to which conceptual states, which WRAM fields are expected, and which values are intentionally being discovered.

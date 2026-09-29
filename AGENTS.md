@@ -66,3 +66,8 @@ python3 tools/check_repo_hygiene.py
 For ROM identity or analysis work, use the existing deterministic tools in `tools/` and regenerate the owning compact report. For native execution, follow `docs/VALIDATION.md`; SNESRecomp's `snesref` is the preferred differential harness once deterministic input/state comparison is needed.
 
 Do not use GUI-only observations as the sole basis for a fidelity claim when a deterministic trace, frame dump, memory comparison, or reproducible script can decide it.
+
+
+## Long evidence workflows
+
+Do not set `cancel-in-progress: true` on long-running evidence workflows whose trigger paths are likely to be edited during the same active research session. That can starve the evidence run indefinitely while an agent makes legitimate incremental commits. Use non-cancelling concurrency for long historical replay, trace, and static-classification jobs; reserve cancellation for cheap superseded checks where losing an earlier run does not erase the only pending discriminator.

@@ -34,6 +34,11 @@ PATTERNS={
    0xC8,0xC8,0xCA,0xD0,None,0x46,None,0xE6,None,
    0xC9,0x10,0x00,0xD0,None,0x60
  ],
+ "readword-lorom-safe":[
+   0xA7,0x82,0xE6,0x82,0xD0,0x11,0x38,0x66,0x82,0xE6,0x84,
+   0xE2,0x20,0xEB,0xA7,0x82,0xEB,0xC2,0x20,0xC6,0x84,
+   0x64,0x82,0xC6,0x82,0x60
+ ],
 }
 
 def find(data,pat):
@@ -77,6 +82,21 @@ def main():
             )
         else:
             lines.append(f"- {name}: routine bounds unresolved (prologue hits={pro}, tail hits={tail}).")
+    lines.append("")
+    lines += ["## LoROM packed-word integration helper",""]
+    for name in ROMS:
+        hits=allhits[name]["readword-lorom-safe"]
+        entry=allhits[name]["entry-loose"][0] if allhits[name]["entry-loose"] else None
+        if len(hits)==1:
+            rel=(hits[0]-entry) if entry is not None else None
+            lines.append(
+                f"- {name}: `{snes_lorom(hits[0])}` at ROM `0x{hits[0]:06X}`"
+                + (f", RNC-entry relative +`0x{rel:X}`" if rel is not None else "")
+                + "."
+            )
+        else:
+            lines.append(f"- {name}: unresolved helper hits={hits}.")
+    lines += ["", "This helper performs a 16-bit packed-stream read with LoROM bank-boundary repair and restores `IN` before returning. It is a read adapter, not a course-buffer writer.", ""]
     lines.append("")
     lines += ["## Traced writer-site context","",
               "Dynamic trace run 36517696016 identified USA interpreter attribution-scope entries 01:BA96 and 01:BB73. "

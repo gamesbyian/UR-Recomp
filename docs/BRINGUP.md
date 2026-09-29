@@ -187,3 +187,19 @@ Observed checkpoints:
 This independently reproduces Dessyreqt's `onePlayerTours1 = 109 / 0x6D` label and establishes the clean-SRAM path `mainMenu -> onePlayerSelect -> onePlayerTours1` without guest-state edits.
 
 The bot's tour policy treats `selectedOption = 0` as the first tour candidate (Crawler) when that tour still needs progress, so the next deterministic milestone is to confirm that default selection after the same settle interval and require `onePlayerTracks = 0xF6`.
+
+
+### Follow-up — Crawler confirmation reaches track select
+
+Workflow run 36505588585 completed green through first-tour confirmation.
+
+Observed:
+- `tours-ready`: `currentMenu = 0x6D`, `selectedOption = 0x00`;
+- after the settled Crawler-confirm A pulse, the route leaves `0x6D` after one checked frame;
+- `after-tour-confirm`: `currentMenu = 0xF6`, `selectedOption = 0x00`, row `0x00`, column `0x01`.
+
+This independently reproduces Dessyreqt's `onePlayerTracks = 246 / 0xF6` label. The bot's policy for this state is simply to confirm the current track with A.
+
+Evidence: GitHub Actions run 36505588585; artifact 11007410671.
+
+Next test: use the now-confirmed `0xF6` state to prospectively test the bot's `onePlayerNowPlaying = 0x16` label and then its `7E:0313 == 1` race-state label in the same prediction-gated route.

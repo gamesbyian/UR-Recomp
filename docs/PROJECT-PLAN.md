@@ -1160,3 +1160,59 @@ The project reaches its intended goal when a player can supply the supported ori
 - documented course/asset structures sufficient to maintain and extend the port.
 
 Everything else, including custom courses, remastered audio, ultrawide modes and additional presentation options, is an extension beyond that core victory.
+
+
+## Evidence-to-executable recovery backlog (2026-09-29)
+
+The external-research program is now sufficiently mature that the main risk is no longer losing ideas; it is failing to convert collected evidence into executable invariants, symbols, fixtures and implementation decisions. Treat the following as a durable recovery backlog. Items may be completed by the named current PRs, successor PRs, or later work, but they must not disappear merely because an agent session stalls.
+
+### Stalled/live branch recovery order
+
+1. **Audio source-table archaeology (#48): finish before starting a replacement audio investigation.**
+   - Preserve and harvest all successful one-shot artifacts before deleting temporary workflows.
+   - Complete selector-ID -> ROM block/APU destination mapping, centered on helper `02:812A`.
+   - Associate all six 64-byte selector tables at `03:FAD5` through `03:FC54` with concrete game states.
+   - Test the currently uncalled `03:FB95` table against both unused-song families and document reachability, whether positive or negative.
+   - Keep corrected routine boundaries and promoted symbols synchronized across every symbol adapter.
+   - Retire temporary experiment-only workflows after evidence is durably represented in tools, tests, generated summaries or research notes.
+   - Before merge, reconcile against current `main`; do not overwrite concurrent symbol/toolchain work.
+
+2. **Audio selector/caller work (#47): reconcile with #48 rather than merging adjacent archaeology blindly.**
+   - Preserve reusable caller scanning and audio-event capture tooling that remains unique.
+   - Compare #47 findings against the later #48 interpretation and discard stale assumptions explicitly.
+   - Fold complementary evidence into the surviving audio model, then remove one-shot workflows.
+   - If #48 subsumes a #47 experiment, record that fact in the PR/ledger instead of duplicating the experiment.
+
+3. **Beetle/bsnes independent-reference island (#40): rescue the conflicted branch, not the conflict.**
+   - Reconcile from current `main` while retaining the pinned, provenance-recorded independent core.
+   - Preserve the successful independent-reference route evidence.
+   - Repair the offline bootstrap regression introduced/exposed during reconciliation; do not weaken fail-closed island guarantees merely to make CI green.
+   - Re-run the repository-owned first-race/reference gates after reconciliation.
+   - Land only after the branch is current, deterministic and no longer depends on acquisition-time workflow scaffolding.
+
+4. **Tier-1 UI atlas (#35): close the green parked lane deliberately.**
+   - Preserve already-harvested visual/runtime evidence and avoid repeating successful expensive probes.
+   - Finish only critical-fidelity and cheap-completeness gaps that affect implementation, testing, compatibility or deliberate modernization decisions.
+   - Keep the archaeological-tail policy intact: forbidden-name minutiae, destructive chords and similarly non-critical edge cases must not block completion.
+   - Retain two-player/VS ownership, handoff and split-screen behavior as critical where it affects fidelity or emulator seams.
+   - Reconcile with current `main`, validate generated atlas outputs, and either merge or leave a precise remaining discriminator.
+
+### Research conversion backlog
+
+The following avenues are mandatory backlog, even when no branch is currently active:
+
+- **External-evidence intake:** maintain the existing source -> provenance -> worklist -> acquisition -> local reproduction -> research-ledger pipeline. New discoveries should enter through it instead of living only in chat or prose notes.
+- **Emulator-specific archaeology:** convert remaining historically documented Uniracers failure seams into deterministic local regression fixtures. Prioritize active-display OAM/2P behavior, SRAM mapping, XOR/window behavior, colour-math/subscreen behavior, audio startup, title transition, border/effects and race-renderer seams. Historical emulator workarounds are perturbation evidence, not code to cargo-cult.
+- **Four-ROM differential archaeology:** continue beyond the already-understood RNC corpus. Classify code-shaped and data-shaped deltas among USA retail, Europe retail, the historical GoodSNES beta and the 1994-11-29 PAL prototype; use them to identify localization, timing/protection, frontend, table and late-fix semantics.
+- **Translation-patch forensics:** use the recovered Sayans patch as a map into text/control readers, decode the three identified text/control regions, and continue archival recovery of later Sayans 1.0b and independent Sinister material. Negative evidence such as absence of a font or executable-code patch should remain recorded.
+- **Cheats/TAS/RetroAchievements/speedrun mining:** keep promoting community labels into locally verified symbols and deterministic behavior. Continue historical replay compatibility work without arbitrary frame-offset hacks. Keep the archival search for `usjo13.lua` / Uniracers Stunts & Jump Optimizer v13 active because it may encode unusually dense stunt and gameplay semantics.
+- **SPC/audio archaeology:** complete CPU selector/table mapping, unused-song reachability, package/state attribution and durable audio symbols before moving on to restoration/reproduction work. Audio modernization must be grounded in recovered original structure.
+- **Original DMA authoring/toolchain reconstruction:** continue the archival hunt for the original level editor, SNES framework/source, compression/asset tooling, A0 plotter material and development-disk/source artifacts. This is opportunistic and must not block executable reconstruction, but a recovered artifact should be treated as potentially high-leverage primary evidence.
+- **Weak/dead project preservation:** preserve breadcrumbs, hashes, provenance, mirrors and author pivots for incomplete fan projects, dead links and small ROM-hacking efforts. Do not promote weak material to fidelity authority merely because it survives.
+- **UI/frontend evidence:** complete the Tier-1 atlas and use it as an implementation oracle for modernization. Preserve original presentation grammar and indicators while allowing documented modern product-layer changes.
+
+### Completion rule
+
+A research item is not complete merely because a source was found or a hypothesis was written down. Prefer closure in one or more durable forms: a deterministic fixture, locally verified symbol, parser/decoder, generated evidence report, regression test, implementation constraint, or explicitly recorded negative result. When an experiment fails, preserve the discriminator and what it ruled out so another agent does not unknowingly repeat it.
+
+When concurrent agents are active, prefer a fresh non-overlapping branch, check open PR heads before editing shared plan/symbol files, and reconcile from current `main` before merge. Do not babysit CI; harvest completed runs, keep useful work committed, and stop at a safe documented boundary when a future run is the only remaining dependency.

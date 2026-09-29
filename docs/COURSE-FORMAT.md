@@ -284,3 +284,20 @@ The invariant is now generated mechanically by `tools/analyze_course_header_cade
 Historical evidence now gives this a more specific, still provisional interpretation. OD-006 preserves Spinal's report that Mike Dailly said levels were 256 tiles wide; after decompressing the RNC data and overlaying hand-made maps, Spinal further reported that one byte in a level file corresponds to a 64×64 block. Combined with the local 45/45 product-1024 invariant, the smallest testable model is therefore a **1024-byte one-byte-per-64×64-block layout plane**, reshaped according to bytes 13/14. The provisional course-name alignment is suggestive: Dragster is `256×4`, Vertical is `16×64`, Little Dipper is `4×256`, while many circuit-like layouts are `64×16` or `32×32`. These names remain external/provisional until selector identity is closed.
 
 `tools/analyze_course_layout_planes.py` now tests the first four 1024-byte regions after the header without assigning semantics, so the map-plane hypothesis can be accepted or rejected from corpus statistics rather than visual wishful thinking.
+
+
+### Attribution correction: interpreter scope entries, not literal store PCs
+
+Run 36517696016 remains valid evidence for the **timing, values, and attribution scopes** of the Dragster course-buffer writes, but its `interp@$...` labels were previously described too literally.
+
+SNESRecomp's interpreter bridge documents `interp@$XXXXXX` as the **entry PC of an interpreter bridge run**. That synthesized name is pushed as the attribution scope for all still-interpreted writes during that run. It is not necessarily the guest instruction that performs each store.
+
+Accordingly:
+
+- the frame-867 payload-install writes occur under interpreter scope `interp@$81BB73`;
+- the frame-879 seven-step `7F:000B` mutation `0x0F→...→0x16` occurs under interpreter scope `interp@$81BA96`;
+- neither address should be named as the literal store opcode without narrower instruction-level evidence.
+
+The static ROM context now independently confirms the distinction. `01:BA96` lies inside the preserved RNC Method-1 `GTBITS2` loop, with the surrounding byte sequence matching `LSR A / ROR BITBUFL / DEY / BEQ / DEX / ...` instruction-for-instruction. Thus `81BA96` is a genuine RNC bit-reader continuation/bridge entry, not itself the course-byte store instruction.
+
+The next tracing task is therefore narrower: preserve the proven write timeline, but isolate the **actual interpreted instruction PC** responsible for the `7F:000B` stores rather than inferring it from the bridge-scope label.

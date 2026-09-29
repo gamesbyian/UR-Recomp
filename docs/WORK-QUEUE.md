@@ -166,5 +166,8 @@ See docs/original-development/.
 - [x] Add an independent Snes9x vs Beetle/bsnes-derived first-race state route; first successful run establishes a checkpoint-by-checkpoint emulator-variance baseline.
 - [~] Reuse the shared fixture grammar through Mesen/mesen-for-ai. The adapter and ROM-free semantics tests exist; execute it against the pinned MesenCE binary when the Linux build/runtime path is promoted.
 - [ ] Validate a Mesen-CDL compatibility adapter before feeding Mesen coverage into DiztinGUIsh or da65.
+- [x] Audit headless execution/build posture: keep GUI workbenches off default CI, preserve Mesen's upstream Xvfb-backed testrunner route, and restrict automatic builds to CLI/libretro surfaces.
+- [x] Trim automatic build scope: cc65 now builds only da65; WLA-DX now builds only wla-65816 + wlalink; Python venv setup no longer upgrades pip unconditionally; fresh Git bootstrap fetches only the pinned commit.
+- [ ] Add a fingerprinted safe-reuse/cache mode for repeated same-checkout tool bootstraps only if agent sessions show rebuild time is materially recurring; keep strict clean rebuilds as the CI/default evidence path.
 
 Canonical audit: `docs/THIRD-PARTY-CODE-AUDIT.md`.

@@ -70,6 +70,14 @@ def main() -> int:
     expect_invalid(bad, "install_mode")
 
     bad = copy.deepcopy(manifest)
+    bad["tools"][0]["headless"]["status"] = "mystery"
+    expect_invalid(bad, "headless.status")
+
+    bad = copy.deepcopy(manifest)
+    bad["tools"][0]["headless"] = {"status": "manual", "note": "interactive only"}
+    expect_invalid(bad, "build-mode tool cannot be headless.manual")
+
+    bad = copy.deepcopy(manifest)
     bad["tools"][0]["build"] = ["make -j8"]
     expect_invalid(bad, "argv list")
 

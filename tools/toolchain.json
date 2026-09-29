@@ -39,7 +39,11 @@
           "kind": "shared-library"
         }
       ],
-      "install_mode": "build"
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
+      }
     },
     {
       "id": "superfamiconv",
@@ -60,14 +64,18 @@
           "kind": "executable"
         }
       ],
-      "install_mode": "build"
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
+      }
     },
     {
       "id": "wla-dx",
       "group": "core",
       "url": "https://github.com/vhelin/wla-dx.git",
       "revision": "91c52b1f4ef3cc8ba3c0638f7536539579af6a9f",
-      "purpose": "65816/SPC700 assembler-linker required by snes2asm reconstruction workflows.",
+      "purpose": "65816 assembler and linker required by snes2asm reconstruction workflows; build is restricted to the two targets UR-Recomp actually consumes.",
       "build": [
         [
           "cmake",
@@ -81,6 +89,9 @@
           "cmake",
           "--build",
           "build",
+          "--target",
+          "wla-65816",
+          "wlalink",
           "-j{jobs}"
         ]
       ],
@@ -94,7 +105,11 @@
           "kind": "executable"
         }
       ],
-      "install_mode": "build"
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
+      }
     },
     {
       "id": "snes2asm",
@@ -134,17 +149,22 @@
           "path": "tools/patches/snes2asm-ur-recomp.patch",
           "sha256": "8d75f8314750e8b7e81ac880e2df2e94a48911fa9f1d7a6841f6e678d10f876f"
         }
-      ]
+      ],
+      "headless": {
+        "status": "native",
+        "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
+      }
     },
     {
       "id": "cc65",
       "group": "analysis",
       "url": "https://github.com/cc65/cc65.git",
       "revision": "d8a486acdef93ea1ba432a6a35b96cf1b797bda5",
-      "purpose": "da65 command-line 65816 disassembler and complementary 65xx analysis utilities.",
+      "purpose": "da65 command-line 65816 disassembler; build is restricted to da65 rather than the full cc65 compiler/library/docs/sample suite.",
       "build": [
         [
           "make",
+          "da65",
           "-j{jobs}"
         ]
       ],
@@ -154,7 +174,11 @@
           "kind": "executable"
         }
       ],
-      "install_mode": "build"
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
+      }
     },
     {
       "id": "ghidra-snes",
@@ -168,7 +192,11 @@
       ],
       "build": [],
       "artifacts": [],
-      "install_mode": "manual"
+      "install_mode": "manual",
+      "headless": {
+        "status": "manual",
+        "note": "Interactive/heavy workbench. Keep off default CI; use only when a task requires its GUI/debugger workspace."
+      }
     },
     {
       "id": "bsnes-libretro",
@@ -188,7 +216,11 @@
           "kind": "shared-library"
         }
       ],
-      "install_mode": "build"
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
+      }
     },
     {
       "id": "beetle-bsnes-libretro",
@@ -211,7 +243,11 @@
           "kind": "shared-library"
         }
       ],
-      "install_mode": "build"
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
+      }
     },
     {
       "id": "flips",
@@ -232,7 +268,11 @@
           "kind": "executable"
         }
       ],
-      "install_mode": "build"
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
+      }
     },
     {
       "id": "ares",
@@ -242,7 +282,11 @@
       "purpose": "Independent accuracy/preservation-focused emulator for manual behavioral cross-checks.",
       "build": [],
       "artifacts": [],
-      "install_mode": "manual"
+      "install_mode": "manual",
+      "headless": {
+        "status": "manual",
+        "note": "Interactive/heavy workbench. Keep off default CI; use only when a task requires its GUI/debugger workspace."
+      }
     },
     {
       "id": "diztinguish",
@@ -252,7 +296,11 @@
       "purpose": "Trace-assisted collaborative 65816 disassembly; integrates with a patched bsnes+ live trace stream and exports reassemblable source.",
       "build": [],
       "artifacts": [],
-      "install_mode": "manual"
+      "install_mode": "manual",
+      "headless": {
+        "status": "manual",
+        "note": "Interactive/heavy workbench. Keep off default CI; use only when a task requires its GUI/debugger workspace."
+      }
     },
     {
       "id": "bsnes-plus",
@@ -262,7 +310,11 @@
       "purpose": "Debugger-oriented bsnes fork with tracing, breakpoints, ROM/RAM views, code/data highlighting, and VRAM/OAM/tilemap inspection.",
       "build": [],
       "artifacts": [],
-      "install_mode": "manual"
+      "install_mode": "manual",
+      "headless": {
+        "status": "manual",
+        "note": "Interactive/heavy workbench. Keep off default CI; use only when a task requires its GUI/debugger workspace."
+      }
     },
     {
       "id": "mesen-for-ai",
@@ -287,7 +339,11 @@
           "root": "venv"
         }
       ],
-      "install_mode": "build"
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "The bridge/daemon is headless; actual Mesen hosting uses upstream's Xvfb-backed testrunner path when a Mesen binary is attached."
+      }
     },
     {
       "id": "mesence",
@@ -297,7 +353,11 @@
       "purpose": "Community-maintained Mesen continuation, pinned to the 2026-09-26 head because post-2.2.1 changes include SNES mid-scanline PPU fixes plus debugger/Lua fixes directly relevant to UR-Recomp validation.",
       "build": [],
       "artifacts": [],
-      "install_mode": "manual"
+      "install_mode": "manual",
+      "headless": {
+        "status": "wrapped",
+        "note": "Pinned source remains manual; mesen-for-ai's supported Linux automation path launches Mesen/MesenCE under xvfb-run --testrunner. Do not promote a custom GUI-stripped build without measured benefit."
+      }
     }
   ]
 }

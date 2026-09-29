@@ -72,6 +72,34 @@ The pinned `ghidra-snes` extension supplies an SNES ROM loader, SNES-oriented 24
 
 This is a heavyweight interactive workbench, so the bootstrap only pins/checks out the extension source. Install Ghidra separately when a task benefits from cross-references, function/data annotation, or collaborative long-lived static analysis. Keep Ghidra project databases out of Git; export compact symbols/scripts/findings instead.
 
+## Headless execution posture
+
+Repository automation should prefer tools that are natively command-line, library-style, or explicitly designed for headless control. `tools/toolchain.json` records one of three statuses for every pinned tool:
+
+- **native**: the UR-Recomp build/runtime surface is CLI, libretro, or a headless daemon and needs no desktop session;
+- **wrapped**: the tool itself still needs a display-capable host, but an established wrapper supplies that environment deterministically;
+- **manual**: an interactive workbench kept off default CI.
+
+Current posture:
+
+| Tool family | Status | Repo behavior |
+|---|---|---|
+| Snes9x / bsnes / Beetle libretro | native | Shared libraries driven by `snesref`; no emulator GUI is built or launched. |
+| Flips | native | Builds `TARGET=cli`; GTK is intentionally excluded. |
+| SuperFamiconv | native | Release CLI only. |
+| snes2asm | native | Python CLI installed in an isolated venv; unused GUI code is not an execution dependency. |
+| cc65 / da65 | native | Build only the `da65` target instead of the compiler suite, libraries, docs, utilities and samples. |
+| WLA-DX | native | Build only `wla-65816` and `wlalink`, not every CPU assembler and ancillary target. |
+| mesen-for-ai | native bridge | MCP/JSON-RPC daemon is headless. |
+| MesenCE | wrapped | Upstream automation still launches the actual Mesen binary through `xvfb-run -a ... --testrunner`; isolated HOME/settings disable random power-on state and permit Lua I/O/network access. |
+| Ghidra, ares, DiztinGUIsh, bsnes-plus | manual | Source pins/workbenches only; never default CI dependencies. |
+
+Do not patch a GUI-heavy workbench merely to call it "headless." The criterion is wall-clock/resource value. For MesenCE in particular, the supported `mesen-for-ai` path still requires Xvfb, but it does not require a visible desktop or human interaction. A custom GUI-stripped Mesen fork would be justified only by measured startup/runtime savings large enough to outweigh carrying that fork.
+
+Fresh bootstrap is also optimized for CI: initialize an empty Git checkout and fetch only the exact pinned commit with blob filtering, rather than cloning the default branch first. Python venv creation uses the stdlib-provided pip instead of performing an unconditional network upgrade.
+
+A before/after GitHub Actions smoke comparison on the same audit branch showed the build-scope changes were material: WLA-DX fell from roughly 83 s to 19 s when restricted to `wla-65816` + `wlalink`, and cc65 fell from roughly 57 s to 20 s when restricted to `da65`. Hosted-runner timings are noisy, so these are representative measurements rather than performance contracts, but the reductions are large enough to justify the narrower builds.
+
 ## Independent emulator workbenches
 
 ### bsnes libretro

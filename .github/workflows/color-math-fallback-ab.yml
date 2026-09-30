@@ -81,6 +81,6 @@ jobs:
           name: color-math-fallback-ab
           path: |
             color-math-fallback-ab.json
-            ${{ runner.temp }}/baseline/*.fb.bin
-            ${{ runner.temp }}/backdrop/*.fb.bin
+            ${{ runner.temp }}/baseline/*.fb.bgrx
+            ${{ runner.temp }}/backdrop/*.fb.bgrx
           retention-days: 7

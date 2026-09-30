@@ -1,0 +1,20 @@
+# Bounded title -> frontend reconnaissance from clean boot.
+wait 60
+dump boot-060
+wait 60
+dump boot-120
+wait 60
+dump boot-180
+wait 60
+dump boot-240
+wait 60
+dump boot-300
+wait 60
+dump boot-360
+wait 60
+dump boot-420
+until 009F == D7 600
+dump main-menu-first
+wait 60
+dump main-menu-settled
+quit

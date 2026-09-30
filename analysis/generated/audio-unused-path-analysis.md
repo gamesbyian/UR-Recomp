@@ -27,6 +27,28 @@ The known package family contains six 64-byte tables. Five have direct callers.
 `03:FB95` is the sole orphan. It is a strict, slot-preserving subset of called
 Celebration table `03:FAD5`, replacing base blocks 0x07, 0x15, 0x29 with `FF`.
 
+## Reachable song/package architecture
+
+The known direct setup/package pairs already disprove any one-song/one-package model:
+
+| Selector | Preserved SPC identity | Package table |
+|---|---|---|
+| `0x38` | Demo Race | `03:FB15` |
+| `0x39` | Title Screen | `03:FBD5` |
+| `0x3A` | Celebration | `03:FAD5` |
+| `0x3B` | Unused Song 1 | none |
+| `0x3C` | unidentified in preserved SPC set | `03:FC15` |
+| `0x3D` | Unused Song 2 | none |
+| `0x3E` | 1st Race | `03:FB55` |
+| `0x3F` | 2nd Race | `03:FB55` |
+| `0x40` | 5th Race | `03:FB55` |
+| `0x41` | 3rd Race | `03:FB55` |
+| `0x42` | 4th Race | `03:FB55` |
+
+Most importantly, selectors `0x3E..0x42`, which map to all five numbered race songs,
+share the single package table `03:FB55`. Package reuse is therefore an established
+retail design pattern, not a special assumption introduced for the unused songs.
+
 ## Package reuse is a live hypothesis, not a fallback
 
 The committed package/SPC correlation currently covers **3**

@@ -2,6 +2,8 @@
 
 Work in dependency order. Later visual work is intentionally gated on a trustworthy stock baseline.
 
+**How to choose work:** treat the sections below as evidence/status, not equal-priority buckets. The shipping critical path is: first causal divergence → semantic core map → stock 4:3 race/2P fidelity → course/rendering model → Widescreen → HD Presentation → modern product/editor. Prefer tasks that retire uncertainty on that chain or unlock several later stages at once. Historical/acquisition/tooling work is supporting unless it directly blocks the chain.
+
 ## Priority 0 — Fidelity divergence + semantic decompilation
 
 **This is the current highest-leverage workstream.** The native game already boots, reaches races, and the core offline toolchain is proven. The largest remaining risk to a faithful modern port is now hidden semantic/runtime disagreement, not infrastructure availability.

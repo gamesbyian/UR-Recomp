@@ -44,12 +44,35 @@ def analyze(base: bytes, patch: bytes) -> dict:
     changed = collections.Counter()
     examples: dict[int, list[dict]] = collections.defaultdict(list)
     changed_control_pairs = collections.Counter()
+    control_runs = collections.Counter()
+    control_run_examples: dict[tuple[int, ...], list[dict]] = collections.defaultdict(list)
 
     total_controls = 0
     for record_index, record in enumerate(records):
         before = base[record.offset:record.end]
         if len(before) != len(record.data):
             raise ValueError("patch record extends beyond base ROM")
+        i = 0
+        while i < len(record.data):
+            if printable(record.data[i]):
+                i += 1
+                continue
+            start = i
+            while i < len(record.data) and not printable(record.data[i]):
+                i += 1
+            run = tuple(record.data[start:i])
+            control_runs[run] += 1
+            if len(control_run_examples[run]) < 6:
+                file_offset = record.offset + start
+                control_run_examples[run].append({
+                    "record_index": record_index,
+                    "file_offset": file_offset,
+                    "file_offset_hex": f"0x{file_offset:06X}",
+                    "lorom": lorom_cpu_address(file_offset),
+                    "before_context": context(before, start, radius=10),
+                    "after_context": context(record.data, start, radius=10),
+                })
+
         for i, after_v in enumerate(record.data):
             if printable(after_v):
                 continue
@@ -93,6 +116,19 @@ def analyze(base: bytes, patch: bytes) -> dict:
         "record_count": len(records),
         "total_nonprintable_after_bytes": total_controls,
         "control_values": values,
+        "control_runs": [
+            {
+                "bytes": list(run),
+                "hex": " ".join(f"{v:02X}" for v in run),
+                "length": len(run),
+                "count": count,
+                "examples": control_run_examples[run],
+            }
+            for run, count in sorted(
+                control_runs.items(),
+                key=lambda item: (-item[1], -len(item[0]), item[0]),
+            )
+        ],
         "changed_control_pairs": [
             {
                 "before": f"0x{a:02X}",

@@ -83,13 +83,21 @@ jobs:
         run: |
           set -euo pipefail
           case "${{ matrix.tool }}" in
-            mesen-for-ai|snes2asm|superfamiconv|flips|wla-dx)
+            mesen-for-ai|snes2asm|superfamiconv|flips|wla-dx|beetle-bsnes-libretro)
               python3 tools/bootstrap_toolchain.py --offline --tool "${{ matrix.tool }}" --jobs 2
               ;;
             *)
               python3 tools/bootstrap_toolchain.py --tool "${{ matrix.tool }}" --jobs 2
               ;;
           esac
+      - name: Smoke vendored Beetle/bsnes libretro ABI
+        if: matrix.tool == 'beetle-bsnes-libretro'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f .tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so
+          nm -D .tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so | grep -q ' T retro_init$'
+          nm -D .tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so | grep -q ' T retro_get_memory_data$'
       - name: Test vendored mesen-for-ai
         if: matrix.tool == 'mesen-for-ai'
         run: .tools/venvs/mesen-for-ai/bin/python -m unittest discover -s third_party/src/mesen-for-ai/tests -v

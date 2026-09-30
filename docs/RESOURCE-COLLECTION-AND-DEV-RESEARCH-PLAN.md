@@ -1,3 +1,8 @@
+# 2026-09-30 direct-contact evidence update
+
+The Nitrodon workspace is now recovered, preserved and mined. It supplies a detailed WRAM map, annotated banks 80-83, stunt disassembly, message IDs, ROM/course-offset notes and a bounce trace. This materially lowers the expected value of hunting generic TAS-era notes: future Nitrodon/Dessyreqt outreach should target only **distinct** artifacts such as later USJO/Lua versions, savestates, SRAMs, SMVs, alternate traces or additional working directories.
+
+The still-missing `usjo13.lua` remains useful as a version-delta artifact, but it is no longer needed to reconstruct stunt counters, shared velocity/boost state, landing stunt classification, or the base-5 stunt-combination table. Original DMA framework/tool/source artifacts remain the highest-leverage unrecovered class.
 # Resource Collection and Development Research Plan
 
 Last updated: 2026-09-28

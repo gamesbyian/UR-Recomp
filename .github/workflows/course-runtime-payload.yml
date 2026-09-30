@@ -14,7 +14,8 @@ on:
       - "tools/analyze_rnc_streams.py"
       - "tools/probe_runtime_course_payload.py"
       - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/_global.json"
       - ".github/workflows/course-runtime-payload.yml"
 
 concurrency:

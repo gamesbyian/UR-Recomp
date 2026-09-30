@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "coverage_dimensions": {
+    "execution_analysis": {
+      "analysis_roots": 9,
+      "exact_variants": 54,
+      "aot_eligible_variants": 52,
+      "lle_only_variants": 2,
+      "decoded_instruction_instances": 1808,
+      "lle_examples": [
+        {
+          "pc": "80:91DC",
+          "m": 1,
+          "x": 0,
+          "instruction_count": 119
+        },
+        {
+          "pc": "80:94EB",
+          "m": 1,
+          "x": 0,
+          "instruction_count": 4
+        }
+      ],
+      "unresolved_indirect_guest_sites": [
+        {
+          "pc": "00:8584",
+          "opcode": "JMP",
+          "operand": "$0073",
+          "variant_description": "four M/X variants"
+        },
+        {
+          "pc": "00:8599",
+          "opcode": "JMP",
+          "operand": "$0053",
+          "variant_description": "four M/X variants"
+        },
+        {
+          "pc": "80:C3C8",
+          "opcode": "JMP",
+          "operand": "$005D",
+          "variant_description": "one M/X variant"
+        }
+      ]
+    },
+    "semantic_functions_named": 11,
+    "semantic_placeholders": 5
+  },
+  "understood_functions": [
+    {
+      "address": "`01:C5AF` (USA)",
+      "name": "HUD_QueueMessage",
+      "confidence": 4,
+      "notes": "Nitrodon's annotated stunt disassembly shows this long-call target receiving message IDs for Wipeout (`0x0E`), Head Bounce (`0x10`), Tabletop (`0x11`), flip/roll/twist/Z-flip result messages, and praise messages. Exact queue/render split still needs local call-graph validation."
+    },
+    {
+      "address": "`02:9A42` (USA)",
+      "name": "Stunt_FinalizeAndScoreAirTricks",
+      "confidence": 4,
+      "notes": "Nitrodon's focused `stunts.txt` plus bank-82 listing expose the complete landing/finalization pipeline: roll/flip quarter-turn accumulation, half-twist conversion, Z-flip/tabletop handling, wipeout/headbounce checks, trick-message selection, stunt-combination indexing, praise lookup, and reset of transient stunt state."
+    },
+    {
+      "address": "`02:A968` (USA)",
+      "name": "Player_ApplyVerticalAcceleration",
+      "confidence": 4,
+      "notes": "Nitrodon's bank-82 annotation is directly supported by the instruction flow: current-player Y velocity is capped below `0x0200`, upward motion receives +19, downward acceleration is `19 - Yvel/32`, the result is added to Y velocity, and current-player Y coordinate is incremented."
+    },
+    {
+      "address": "`02:AA6E` (USA)",
+      "name": "Input_DecodePlayer1Buttons",
+      "confidence": 4,
+      "notes": "Nitrodon's bank-82 listing shows raw controller words `$030D/$030F` decoded into explicit A/X/L/R/B/Y/select/start flags and normalized vertical/horizontal direction fields at `$0311/$0315`."
+    },
+    {
+      "address": "`01:B8F1` (USA)",
+      "name": "RNC1_Unpack",
+      "confidence": 5,
+      "notes": "Identified by unique opcode-structure match to preserved 1992 SNES `RNC_1.S`; ROM offset `0x00B8F1`. Regional/build equivalents: Europe retail `01:B8E2` (`0x00B8E2`), 1994-11-29 PAL prototype `01:B8D1` (`0x00B8D1`), legacy beta identical to USA."
+    },
+    {
+      "address": "`01:BB60`",
+      "name": "RNC1_MakeHuffTail",
+      "confidence": 5,
+      "notes": "Preserved Method-1 MAKEHUFF tail begins here; final RTS at `01:BB6E`, establishing the shipped generic RNC1 body end."
+    },
+    {
+      "address": "`01:BB6F`",
+      "name": "RNC1_ReadWordLoROMSafe",
+      "confidence": 5,
+      "notes": "Integration helper used by the shipped Method-1 decoder for a 16-bit packed-stream read through `IN`. Normal path returns `LDA [IN]` while restoring the pointer; when `IN=$FFFF`, it fetches the high byte from next-bank `$8000`, matching LoROM linear-stream continuity across a bank boundary. `01:BB73` is the helper's wrap-test `BNE`, not a store."
+    },
+    {
+      "address": "`02:807E` (USA)",
+      "name": "APU_UploadBlockById_Wrapper",
+      "confidence": 5,
+      "notes": "Exact bytes `JSR $8082; RTL`. Callers load X with audio block IDs before entering; the body at `02:8082` performs the SPC handshake and calls `APU_ResolveBlockPointer` at `02:812A`, establishing X as a block-record selector."
+    },
+    {
+      "address": "`02:812A` (USA)",
+      "name": "APU_ResolveBlockPointer",
+      "confidence": 5,
+      "notes": "Exact static routine maps block ID X onto the packed audio-record pool beginning at `10:8000`. It walks X length-prefixed records, performing LoROM bank-wrap arithmetic, and returns the selected record pointer in DP `$63-$65`. Package-table IDs `$00-$31` address the first 50 records, but direct setup calls pass IDs through at least `$42`; the same contiguous parser resolves records `$32-$42`. Therefore `$00-$31` is the package-table ID universe, not the resolver's upper bound. |\\n| `02:8298` (USA) | `APU_TransferStateInit` | 5 | Exact retail bytes `PHP; SEP #$20; STZ $68; REP #$20; STZ $6C; STZ $6A; PLP; RTS` end at `02:82A4`. `02:8294` is a `JSR $8298; RTL` long-call wrapper. This corrects the earlier over-broad transfer label at `$8298`. |\\n| `02:82A5` (USA) | `APU_StreamTransfer_Wrapper` | 5 | Exact retail bytes are `JSR $82A9; RTL`. Twelve direct long-call sites target this wrapper; several load X immediately beforehand with clustered bank-03 source seeds including `$FAD5`, `$FB15`, `$FB55`, `$FBD5`, and `$FC15`. |\\n| `02:82A9` (USA) | `APU_StreamTransfer` | 4 | The body initializes `$6F`, stores X at DP `$83`, reads `LDA $030000,X`, and flows into the runtime-proven `$2142/$2143` transport loop at `02:82F0-02:8327`. First-race WRAM traces begin with paired `$83/$84 = $55/$FB` at frame 906, exactly corroborating the static `$FB55` caller seed. The earlier port trace reconstructs APU RAM `$B0E0-$BDE0` exactly."
+    },
+    {
+      "address": "`03:8971` (USA)",
+      "name": "Text_HandleFCPositionControl",
+      "confidence": 4,
+      "notes": "Bounded static analysis of the Sayans translation-control grammar. The routine preserves A, recognizes low-byte `FC`, consumes the following parameter, scans subsequent character bytes until `FF` or `FB`, consults `Text_TestCharacterMetadataBit7` for ordinary bytes, then computes `parameter * 32 + horizontal adjustment` into DP `$9F`. The 32-column arithmetic and translated `FF FC xx` / `FB FC xx` sequences support a centered tilemap-position/layout role. Exact user-facing meaning of the parameter remains unpromoted."
+    },
+    {
+      "address": "`00:8C41` (USA)",
+      "name": "Text_TestCharacterMetadataBit7",
+      "confidence": 4,
+      "notes": "Shared helper reached from four text/layout loops including `03:8998`, `00:C4CB`, and `00:C510`. It indexes the byte table at `00:C6F8` by character code and tests bit 7. Printable-table inspection shows uppercase A-Z in the low half while lowercase a-z, digits and much punctuation usually carry bit 7; therefore this is a verified character-metadata class test, not yet a proven glyph-width flag."
+    }
+  ],
+  "semantic_placeholders": [
+    {
+      "address": "TBD",
+      "name": "TBD_Reset",
+      "confidence": 0,
+      "notes": "Not analyzed"
+    },
+    {
+      "address": "TBD",
+      "name": "TBD_MainLoop",
+      "confidence": 0,
+      "notes": "Not analyzed"
+    },
+    {
+      "address": "TBD",
+      "name": "TBD_LoadCourse",
+      "confidence": 0,
+      "notes": "Not analyzed"
+    },
+    {
+      "address": "TBD",
+      "name": "TBD_UpdatePlayer",
+      "confidence": 0,
+      "notes": "Not analyzed"
+    },
+    {
+      "address": "TBD",
+      "name": "TBD_BuildOAM",
+      "confidence": 0,
+      "notes": "Not analyzed"
+    }
+  ],
+  "gap_queue": [
+    {
+      "kind": "semantic_placeholder",
+      "name": "TBD_Reset",
+      "address": "TBD",
+      "priority": "high",
+      "reason": "explicit core-subsystem placeholder in SYMBOLS.md"
+    },
+    {
+      "kind": "semantic_placeholder",
+      "name": "TBD_MainLoop",
+      "address": "TBD",
+      "priority": "high",
+      "reason": "explicit core-subsystem placeholder in SYMBOLS.md"
+    },
+    {
+      "kind": "semantic_placeholder",
+      "name": "TBD_LoadCourse",
+      "address": "TBD",
+      "priority": "high",
+      "reason": "explicit core-subsystem placeholder in SYMBOLS.md"
+    },
+    {
+      "kind": "semantic_placeholder",
+      "name": "TBD_UpdatePlayer",
+      "address": "TBD",
+      "priority": "high",
+      "reason": "explicit core-subsystem placeholder in SYMBOLS.md"
+    },
+    {
+      "kind": "semantic_placeholder",
+      "name": "TBD_BuildOAM",
+      "address": "TBD",
+      "priority": "high",
+      "reason": "explicit core-subsystem placeholder in SYMBOLS.md"
+    },
+    {
+      "kind": "unresolved_indirect_dispatch",
+      "name": null,
+      "address": "00:8584",
+      "priority": "high",
+      "reason": "JMP indirect via $0073; static targets unresolved"
+    },
+    {
+      "kind": "unresolved_indirect_dispatch",
+      "name": null,
+      "address": "00:8599",
+      "priority": "high",
+      "reason": "JMP indirect via $0053; static targets unresolved"
+    },
+    {
+      "kind": "unresolved_indirect_dispatch",
+      "name": null,
+      "address": "80:C3C8",
+      "priority": "high",
+      "reason": "JMP indirect via $005D; static targets unresolved"
+    },
+    {
+      "kind": "lle_only_variant",
+      "name": null,
+      "address": "80:91DC",
+      "priority": "medium",
+      "reason": "SNESRecomp proof gap for M1X0 (119 decoded instructions)"
+    },
+    {
+      "kind": "lle_only_variant",
+      "name": null,
+      "address": "80:94EB",
+      "priority": "medium",
+      "reason": "SNESRecomp proof gap for M1X0 (4 decoded instructions)"
+    }
+  ],
+  "warning": "AOT/execution-analysis coverage is not semantic decompilation coverage."
+}

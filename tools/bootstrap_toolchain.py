@@ -211,6 +211,7 @@ def stage_local_source(tool: dict, component: dict, src_root: Path) -> Path:
         if not source.is_dir():
             raise SystemExit(f"{tool['id']}: local island source is missing: {source}")
         shutil.copytree(source, dest, ignore=shutil.ignore_patterns(".git", "__pycache__"))
+        stage_dependency_closure(tool, component, dest)
         print(f"{tool['id']}: using repository-owned source {rel}", flush=True)
         return dest
 
@@ -227,11 +228,67 @@ def stage_local_source(tool: dict, component: dict, src_root: Path) -> Path:
                 tf.extractall(dest, filter="data")
         except (tarfile.TarError, OSError) as exc:
             raise SystemExit(f"{tool['id']}: failed to extract {rel}: {exc}") from exc
+        stage_dependency_closure(tool, component, dest)
         print(f"{tool['id']}: using repository-owned archive {rel}", flush=True)
         return dest
 
     raise SystemExit(
         f"{tool['id']}: island manifest mode {mode!r} is not a buildable local source"
+    )
+
+
+def stage_dependency_closure(tool: dict, component: dict, dest: Path) -> None:
+    closure = component.get("dependency_closure")
+    if not isinstance(closure, dict) or closure.get("type") != "cargo-vendor":
+        return
+    stage_into = closure.get("stage_into")
+    if stage_into is None:
+        return
+    if (
+        not isinstance(stage_into, str)
+        or not stage_into
+        or Path(stage_into).is_absolute()
+        or ".." in Path(stage_into).parts
+    ):
+        raise SystemExit(f"{tool['id']}: invalid cargo closure stage_into {stage_into!r}")
+
+    target = dest / stage_into
+    if not target.is_dir():
+        raise SystemExit(f"{tool['id']}: cargo closure target is missing: {target}")
+
+    vendor_rel = closure.get("vendor_path")
+    config_rel = closure.get("config_path")
+    lock_rel = closure.get("cargo_lock_path")
+    if not isinstance(vendor_rel, str) or not isinstance(config_rel, str):
+        raise SystemExit(f"{tool['id']}: cargo closure is missing repository paths")
+
+    vendor_src = ROOT / vendor_rel
+    config_src = ROOT / config_rel
+    if not vendor_src.is_dir():
+        raise SystemExit(f"{tool['id']}: cargo vendor source is missing: {vendor_src}")
+    if not config_src.is_file():
+        raise SystemExit(f"{tool['id']}: cargo config source is missing: {config_src}")
+
+    vendor_dest = target / "vendor"
+    if vendor_dest.exists():
+        shutil.rmtree(vendor_dest)
+    shutil.copytree(vendor_src, vendor_dest)
+
+    cargo_dir = target / ".cargo"
+    cargo_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(config_src, cargo_dir / "config.toml")
+
+    if isinstance(lock_rel, str) and lock_rel:
+        lock_src = ROOT / lock_rel
+        lock_dest = target / "Cargo.lock"
+        if not lock_src.is_file() or not lock_dest.is_file():
+            raise SystemExit(f"{tool['id']}: cargo lock comparison path is missing")
+        if lock_src.read_bytes() != lock_dest.read_bytes():
+            raise SystemExit(f"{tool['id']}: staged framework Cargo.lock diverges from closure lock")
+
+    print(
+        f"{tool['id']}: overlaid repository-owned Cargo closure into {stage_into}",
+        flush=True,
     )
 
 

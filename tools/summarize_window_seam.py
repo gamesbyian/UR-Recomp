@@ -65,6 +65,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("inputs", nargs="+", type=Path)
     ap.add_argument("--json-out", type=Path)
+    ap.add_argument("--require-xor-checkpoint", action="append", default=[])
     args = ap.parse_args()
 
     rows = [summarize(path) for path in args.inputs]

@@ -44,6 +44,16 @@ Human-maintained map of understood ROM functions, RAM, tables and hardware-facin
 | `7E:04C7` | `Player1_PitchAngle` | 16-bit slot; low 6 bits observed | 5 | Persistent player-1 pitch/orientation. From control angle `0x07`, eight L frames produce `0x37` (= 7−16 mod 64) and eight R frames produce `0x17` (= 7+16 mod 64), identically native/reference. ROM `02:8D84` copies working `$0F49` into this slot. |
 | `7E:04C9` | `Player2_PitchAngle` | 16-bit slot; low 6 bits observed | 5 | Paired player-2 pitch/orientation slot. Sibling ROM routine at `02:9272` executes `LDY $0F49; STY $04C9`; surrounding destinations shift coherently to player-2 fields. |
 | `7E:0F49` | `CurrentPlayer_PitchScratch` | 16-bit working value | 4 | Historical bot reads this as `pitch`, but static sibling routines copy the same working value into persistent player-1 `$04C7` or player-2 `$04C9` slots. L-vs-control checkpoints leave `$0F49` unchanged while `$04C7` changes causally, so it should not be treated as stable player-1 storage. |
+| `7E:0F61` | `Player1_TwistCount` | 8-bit | 3 | Recovered USJO v8 reads this byte as the completed twist counter; the 2008 TAS watch list independently labels it “# of Twists.” Local transition semantics still need reproduction. |
+| `7E:042F` | `Player1_TabletopCount` | 8-bit | 3 | Recovered USJO v8 reads this byte as the completed tabletop counter; independently present in the historical TAS watch list. |
+| `7E:042B` | `Player1_ZFlipCount` | 8-bit | 3 | Recovered USJO v8 reads this byte as the completed Z-flip counter; independently present in the historical TAS watch list. |
+| `7E:11F9` | `Player1_RollCount` | 8-bit | 3 | Recovered USJO v8 reads this byte as the completed roll counter; independently present in the historical TAS watch list. |
+| `7E:11FD` | `Player1_FlipCount` | 8-bit | 3 | Recovered USJO v8 reads this byte as the completed flip counter; independently present in the historical TAS watch list. |
+| `7E:11CD` | `Player1_BoostMeter` | historical width conflict | 3 | Historical TAS watch list labels a 16-bit unsigned booster meter; USJO v8 reads only the low byte as `realboostmeter` and uses zero/nonzero gating. Verify width/units before stronger promotion. |
+| `7E:0DFD` | `Player1_ZRotationState` | 8-bit | 2 | USJO v8 working label `zrotation`; used to gate Z-flip timing. Exact physical meaning not yet locally reproduced. |
+| `7E:0F57` | `Player1_ZPreRotationState` | 8-bit | 2 | USJO v8 working label `zprerotation`; consulted during chained Z-flip timing. Exact meaning not yet locally reproduced. |
+| `7E:0F9F` | `Player1_XSpeed_Alternate` | 16-bit | 1 | USJO v8 comment names this as an alternative to `7E:04B7` for horizontal speed. Treat as a lead until reader/writer relationship is understood. |
+| `7E:1509` | `Camera_ScreenXPosition` | 8-bit | 3 | Historical TAS watch list labels this “Screen X Position.” Not consumed by v8; local camera/unit semantics still need validation. |
 | `7E:0BA1` | `Player1_FacedDirection` | 8-bit | 2 | Recovered bot: 1 = right, 0 = left. Not yet independently validated. |
 | `7E:0FCC` | `Player1_ArrowsVisible` | 8-bit | 2 | Effective duplicate-key address used by recovered bot; 0 means direction arrows showing. |
 | `7E:0FCB` | `Player1_ArrowDirection` | 8-bit | 2 | Effective duplicate-key address used by recovered bot; 0 = right, 1 = left. |

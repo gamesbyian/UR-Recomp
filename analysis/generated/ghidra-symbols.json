@@ -41,6 +41,18 @@
       "comment": "Effective recovered-bot word key `yPos`. Sustained-B run 36514981164 causally changes player 1 from ground Y=859 in the matched no-B control to Y=797 while airborne; native and Snes9x match exactly."
     },
     {
+      "address": "7E042B",
+      "name": "Player1_ZFlipCount",
+      "kind": "ram",
+      "comment": "Recovered USJO v8 reads this byte as the completed Z-flip counter; independently present in the historical TAS watch list."
+    },
+    {
+      "address": "7E042F",
+      "name": "Player1_TabletopCount",
+      "kind": "ram",
+      "comment": "Recovered USJO v8 reads this byte as the completed tabletop counter; independently present in the historical TAS watch list."
+    },
+    {
       "address": "7E04B7",
       "name": "Player1_XSpeed",
       "kind": "ram",
@@ -83,10 +95,34 @@
       "comment": "Recovered bot label; native captures change with frontend scene/selection. Rider-select ready state captures `0x06`, matching the bot's left-column target value."
     },
     {
+      "address": "7E0DFD",
+      "name": "Player1_ZRotationState",
+      "kind": "ram",
+      "comment": "USJO v8 working label `zrotation`; used to gate Z-flip timing. Exact physical meaning not yet locally reproduced."
+    },
+    {
       "address": "7E0F49",
       "name": "CurrentPlayer_PitchScratch",
       "kind": "ram",
       "comment": "Historical bot reads this as `pitch`, but static sibling routines copy the same working value into persistent player-1 `$04C7` or player-2 `$04C9` slots. L-vs-control checkpoints leave `$0F49` unchanged while `$04C7` changes causally, so it should not be treated as stable player-1 storage."
+    },
+    {
+      "address": "7E0F57",
+      "name": "Player1_ZPreRotationState",
+      "kind": "ram",
+      "comment": "USJO v8 working label `zprerotation`; consulted during chained Z-flip timing. Exact meaning not yet locally reproduced."
+    },
+    {
+      "address": "7E0F61",
+      "name": "Player1_TwistCount",
+      "kind": "ram",
+      "comment": "Recovered USJO v8 reads this byte as the completed twist counter; the 2008 TAS watch list independently labels it “# of Twists.” Local transition semantics still need reproduction."
+    },
+    {
+      "address": "7E0F9F",
+      "name": "Player1_XSpeed_Alternate",
+      "kind": "ram",
+      "comment": "USJO v8 comment names this as an alternative to `7E:04B7` for horizontal speed. Treat as a lead until reader/writer relationship is understood."
     },
     {
       "address": "7E0FCB",
@@ -107,16 +143,46 @@
       "comment": "Recovered bot word key shared by players. In run 36512546762 it decreases identically in native/reference by exactly `0x0100` per guest frame across the staged pre-start/acceleration checkpoints. Exact game-facing units/threshold meanings remain to be named."
     },
     {
+      "address": "7E11CD",
+      "name": "Player1_BoostMeter",
+      "kind": "ram",
+      "comment": "Historical TAS watch list labels a 16-bit unsigned booster meter; USJO v8 reads only the low byte as `realboostmeter` and uses zero/nonzero gating. Verify width/units before stronger promotion."
+    },
+    {
+      "address": "7E11F9",
+      "name": "Player1_RollCount",
+      "kind": "ram",
+      "comment": "Recovered USJO v8 reads this byte as the completed roll counter; independently present in the historical TAS watch list."
+    },
+    {
+      "address": "7E11FD",
+      "name": "Player1_FlipCount",
+      "kind": "ram",
+      "comment": "Recovered USJO v8 reads this byte as the completed flip counter; independently present in the historical TAS watch list."
+    },
+    {
       "address": "7E132B",
       "name": "Race_ReverseControls",
       "kind": "ram",
       "comment": "Recovered bot: 2 = controls reversed, 0 = normal. Not yet independently validated."
     },
     {
+      "address": "7E1509",
+      "name": "Camera_ScreenXPosition",
+      "kind": "ram",
+      "comment": "Historical TAS watch list labels this “Screen X Position.” Not consumed by v8; local camera/unit semantics still need validation."
+    },
+    {
       "address": "7F0000",
       "name": "Course_ActiveDecodedPayload",
       "kind": "ram",
       "comment": "Confirmed by run 36514985916: active Dragster decoded stream 1 matches 33,814/33,815 bytes from this address; only decoded byte 11 is runtime-mutated."
+    },
+    {
+      "address": "808C41",
+      "name": "Text_TestCharacterMetadataBit7",
+      "kind": "function",
+      "comment": "Shared helper reached from four text/layout loops including `03:8998`, `00:C4CB`, and `00:C510`. It indexes the byte table at `00:C6F8` by character code and tests bit 7. Printable-table inspection shows uppercase A-Z in the low half while lowercase a-z, digits and much punctuation usually carry bit 7; therefore this is a verified character-metadata class test, not yet a proven glyph-width flag."
     },
     {
       "address": "81B8F1",
@@ -137,28 +203,22 @@
       "comment": "Integration helper used by the shipped Method-1 decoder for a 16-bit packed-stream read through `IN`. Normal path returns `LDA [IN]` while restoring the pointer; when `IN=$FFFF`, it fetches the high byte from next-bank `$8000`, matching LoROM linear-stream continuity across a bank boundary. `01:BB73` is the helper's wrap-test `BNE`, not a store."
     },
     {
+      "address": "82807E",
+      "name": "APU_UploadBlockById_Wrapper",
+      "kind": "function",
+      "comment": "Exact bytes `JSR $8082; RTL`. Callers load X with audio block IDs before entering; the body at `02:8082` performs the SPC handshake and calls `APU_ResolveBlockPointer` at `02:812A`, establishing X as a block-record selector."
+    },
+    {
       "address": "82812A",
       "name": "APU_ResolveBlockPointer",
       "kind": "function",
       "comment": "Exact static routine maps block ID X onto the packed audio-record pool beginning at `10:8000`. It walks X length-prefixed records, performing LoROM bank-wrap arithmetic, and returns the selected record pointer in DP `$63-$65`. The 50 valid selector IDs `$00-$31` therefore address 50 consecutive records."
     },
     {
-      "address": "828298",
-      "name": "APU_TransferStateInit",
+      "address": "838971",
+      "name": "Text_HandleFCPositionControl",
       "kind": "function",
-      "comment": "Exact retail bytes `PHP; SEP #$20; STZ $68; REP #$20; STZ $6C; STZ $6A; PLP; RTS` end at `02:82A4`. `02:8294` is a `JSR $8298; RTL` long-call wrapper. This corrects the earlier over-broad transfer label at `$8298`."
-    },
-    {
-      "address": "8282A5",
-      "name": "APU_StreamTransfer_Wrapper",
-      "kind": "function",
-      "comment": "Exact retail bytes are `JSR $82A9; RTL`. Twelve direct long-call sites target this wrapper; several load X immediately beforehand with clustered bank-03 source seeds including `$FAD5`, `$FB15`, `$FB55`, `$FBD5`, and `$FC15`."
-    },
-    {
-      "address": "8282A9",
-      "name": "APU_StreamTransfer",
-      "kind": "function",
-      "comment": "The body initializes `$6F`, stores X at DP `$83`, reads `LDA $030000,X`, and flows into the runtime-proven `$2142/$2143` transport loop at `02:82F0-02:8327`. First-race WRAM traces begin with paired `$83/$84 = $55/$FB` at frame 906, exactly corroborating the static `$FB55` caller seed. The earlier port trace reconstructs APU RAM `$B0E0-$BDE0` exactly."
+      "comment": "Bounded static analysis of the Sayans translation-control grammar. The routine preserves A, recognizes low-byte `FC`, consumes the following parameter, scans subsequent character bytes until `FF` or `FB`, consults `Text_TestCharacterMetadataBit7` for ordinary bytes, then computes `parameter * 32 + horizontal adjustment` into DP `$9F`. The 32-column arithmetic and translated `FF FC xx` / `FB FC xx` sequences support a centered tilemap-position/layout role. Exact user-facing meaning of the parameter remains unpromoted."
     }
   ]
 }

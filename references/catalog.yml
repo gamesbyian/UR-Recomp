@@ -330,6 +330,21 @@ sources:
     local: "references/notes/usjo13-passive-recovery.md"
     relevance: "Primary contemporary description naming Uniracers Stunts & Jump Optimizer v13 and explaining its stunt-combination search, speed optimization and best-input replay behavior."
 
+  - id: usjo8-recovered
+    title: "Uniracers Stunts & Jump Optimizer internal version 8"
+    type: lua_tas_optimizer_source
+    historical_family: "USJO"
+    recovered_date: "2026-09-30"
+    source: "Direct recovery from Olivier Bellemare (Halamantariel), who preserved the file from the 2008 Uniracers TAS work."
+    authorship: "Main developer unknown; Olivier explicitly reports that he was not the main developer."
+    internal_date: "2008-02-10"
+    imported: "references/imported/tas-bots/usjo8.lua"
+    size_bytes: 62406
+    sha256: "64b1a26966490a619a6557adee79d6ee0463e534fa2488cf3b5913d55a316ffc"
+    git_blob_sha1: "d78962aae7ca6a63bf94113f68680e730dade3fb"
+    rights: "Historical third-party Lua source recovered directly from a participant; explicit redistribution license not identified. Preserved as private research evidence."
+    relevance: "Recovered five-version ancestor of the lost USJO v13. Encodes savestate-driven stunt search, RAM addresses, timing assumptions, stunt counters, boost scoring and best-input replay behavior; directly actionable for symbol validation and differential fixtures."
+
   - id: usjo13
     title: "Uniracers Stunts & Jump Optimizer v13"
     type: lua_tas_bot

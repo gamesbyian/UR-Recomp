@@ -236,21 +236,22 @@
     },
     {
       "id": "usjo13-stunt-optimizer",
-      "value": "critical",
-      "cost": "medium",
-      "status": "passive-archival-hunt",
+      "value": "high",
+      "cost": "low",
+      "status": "ancestor-recovered-local-analysis-ready",
       "source_ids": [
+        "usjo8-recovered",
         "usjo13",
         "tasvideos-usjo",
         "tasvideos-uniracers-topic"
       ],
-      "question": "What frame-perfect stunt, boost, timing, and RAM knowledge was encoded in the lost USJO v13 Lua bot?",
-      "next_discriminator": "Passive recovery only: search the full title and version family, reconstruct the old obellemare Uniracers directory from mirrors/backups, fingerprint renamed copies with published WRAM addresses plus period Snes9x Lua APIs, and compare surviving Uniracers Lua for lineage. Do not contact historical authors, TASers, site owners, forum users, or other people.",
+      "question": "Which USJO v8 RAM/timing/search assumptions can be promoted into verified symbols and differential fixtures, and what additional implementation-relevant knowledge remains unique to the still-missing v13?",
+      "next_discriminator": "Analyze recovered internal v8 locally first: inventory every memory read, timing constant, scoring rule and input-state transition; verify the unconfirmed fields against the canonical ROM/runtime and promote useful invariants into symbols/tests. Keep v13 as a passive follow-up only, using v8 code fingerprints and version-family comparison if a public copy appears.",
       "deliverables": [
-        "recovered original Lua or any ancestor/descendant/fragment if publicly available",
-        "directory/corpus reconstruction record and code-fingerprint results",
-        "otherwise a provenance-backed negative result plus surviving behavioral claims",
-        "new RAM/timing hypotheses only when grounded in recovered evidence"
+        "recovered internal v8 source preserved with exact bytes and provenance (landed)",
+        "complete v8 RAM/timing/scoring inventory",
+        "locally verified symbols and stunt/boost fixtures derived from v8",
+        "v8-versus-v13 delta analysis if v13 is later recovered"
       ],
       "tags": [
         "tas",
@@ -260,13 +261,13 @@
         "archival"
       ],
       "artifact_need": {
-        "kind": "Lua source",
-        "state": "dead-link",
+        "kind": "USJO v13 or later sibling source",
+        "state": "ancestor-recovered-v13-missing",
         "user_action_required": false,
         "request": ""
       },
-      "acquisition_tier": "P0",
-      "acquisition_judgment": "Still genuinely valuable, but recovery is passive-only. Prefer corpus reconstruction, version-family search and code fingerprints over repeated exact-filename queries; no outreach is permitted."
+      "acquisition_tier": "P1",
+      "acquisition_judgment": "The core historical knowledge is no longer missing: internal v8 directly exposes the stunt optimizer's state reads, search strategy, timing assumptions, boost model and replay loop. v13 remains useful for five revisions of later discoveries, but no implementation milestone should wait for it."
     },
     {
       "id": "dessyreqt-autonomous-bot",

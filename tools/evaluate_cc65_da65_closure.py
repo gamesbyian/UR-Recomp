@@ -33,17 +33,24 @@ def inventory(root: Path) -> dict:
     files = sorted(p for p in root.rglob("*") if p.is_file())
     total = sum(p.stat().st_size for p in files)
     h = hashlib.sha256()
+    island_h = hashlib.sha256()
     rows = []
     for p in files:
         rel = p.relative_to(root).as_posix()
         data = p.read_bytes()
+        digest = hashlib.sha256(data)
         h.update(rel.encode("utf-8") + b"\0")
-        h.update(hashlib.sha256(data).digest())
+        h.update(digest.digest())
+        island_h.update(rel.encode("utf-8"))
+        island_h.update(b"\0")
+        island_h.update(digest.hexdigest().encode("ascii"))
+        island_h.update(b"\n")
         rows.append({"path": rel, "size": len(data)})
     return {
         "file_count": len(files),
         "total_bytes": total,
         "tree_sha256": h.hexdigest(),
+        "island_tree_sha256": island_h.hexdigest(),
         "files": rows,
     }
 
@@ -97,6 +104,7 @@ def main() -> int:
         "source_file_count": before["file_count"],
         "source_total_bytes": before["total_bytes"],
         "source_tree_sha256": before["tree_sha256"],
+        "source_island_tree_sha256": before["island_tree_sha256"],
         "artifact": {
             "path": "bin/da65",
             "size": da65.stat().st_size,

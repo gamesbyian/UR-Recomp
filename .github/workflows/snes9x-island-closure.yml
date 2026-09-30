@@ -43,7 +43,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/measure_source_closure.py             --source-root "$SNES9X_ROOT"             --dep-root "$SNES9X_ROOT"             --include LICENSE             --include libretro/Makefile             --include libretro/Makefile.common             --include libretro/link.T             --output analysis/generated/snes9x-build-closure-probe.json
+          python3 tools/measure_source_closure.py --source-root "$SNES9X_ROOT" --dep-root "$SNES9X_ROOT" --dependency-base "$SNES9X_ROOT/libretro" --include LICENSE --include libretro/Makefile --include libretro/Makefile.common --include libretro/link.T --output analysis/generated/snes9x-build-closure-probe.json
           python3 - <<'PY'
           import json
           from pathlib import Path

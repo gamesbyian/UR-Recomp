@@ -931,7 +931,7 @@ The six known package tables contain one orphan, `03:FB95`. It has no direct `JS
 
 **Evidence:** `analysis/generated/audio-setup-selector-map.json`; `analysis/generated/audio-package-map.json`; `analysis/generated/audio-extended-block-correlation.json`; `analysis/generated/audio-unused-path-analysis.{json,md}`; `analysis/generated/audio-record-pool-reconciliation.md`.
 
-**Discriminating test:** first broaden the existing package-block/SPC correlation from three markers to all `0x00..0x31` package blocks. Then reconstruct four bounded combinations in a reference harness: `0x3B + 03:FB15`, `0x3B + 03:FB95`, `0x3D + 03:FB55`, and tie-control `0x3D + 03:FBD5`, comparing resulting APU RAM against the preserved unused-song SPCs.
+**Discriminating test:** first broaden the existing package-block/SPC correlation from three markers to all `0x00..0x31` package blocks. Then reconstruct five bounded combinations in a reference harness: `0x3B + 03:FB15` (SPC-block ranking), `0x3B + 03:FC15` (near-twin `0x3C` package), `0x3B + 03:FB95` (orphan-table control), `0x3D + 03:FB55`, and tie-control `0x3D + 03:FBD5`, comparing resulting APU RAM against the preserved unused-song SPCs.
 
 ---
 

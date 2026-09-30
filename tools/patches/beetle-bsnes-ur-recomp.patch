@@ -15,15 +15,19 @@ diff --git a/libretro.cpp b/libretro.cpp
        delete surf;
 -   }
     surf = NULL;
-@@ -519,3 +510,5 @@ void *retro_get_memory_data(unsigned type)
+@@ -518,5 +509,7 @@ void *retro_get_memory_data(unsigned type)
+ void *retro_get_memory_data(unsigned type)
  {
     if ( type == RETRO_MEMORY_SYSTEM_RAM )
        return SNES::memory::wram.data();
 +   if ( type == RETRO_MEMORY_SAVE_RAM )
 +      return SNES::memory::cartram.data();
-@@ -525,3 +518,5 @@ size_t retro_get_memory_size(unsigned type)
+    return NULL;
+@@ -524,5 +517,7 @@ size_t retro_get_memory_size(unsigned type)
+ size_t retro_get_memory_size(unsigned type)
  {
     if ( type == RETRO_MEMORY_SYSTEM_RAM )
        return SNES::memory::wram.size();
 +   if ( type == RETRO_MEMORY_SAVE_RAM )
 +      return SNES::memory::cartram.size();
+    return 0;

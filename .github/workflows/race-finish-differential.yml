@@ -6,7 +6,9 @@ on:
     paths:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "rom_identity.txt"
-      - "snesrecomp"
+      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/cargo/snesrecomp-analyzer/**"
+      - "third_party/manifest.json"
       - "tests/input/race-finish-dragster.script"
       - "tools/summarize_paired_player_slots.py"
       - "tools/bootstrap_toolchain.py"
@@ -24,8 +26,6 @@ jobs:
     steps:
       - name: Check out project
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Install build dependencies
         shell: bash
@@ -40,13 +40,21 @@ jobs:
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
+      - name: Stage repository-owned SNESRecomp framework
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
+
       - name: Build native target
         shell: bash
         run: |
           set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
           ROOT="$RUNNER_TEMP/native"
           mkdir -p "$ROOT"
-          sh snesrecomp/tools/new_project/setup_project.sh \
+          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
             --dir "$ROOT" \
             --name "Uniracers" \
@@ -57,10 +65,17 @@ jobs:
             --no-recomp-ui \
             --no-netplay \
             --no-github \
+            --no-submodules \
             --generate \
-            --build \
-            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
-          test -x "$ROOT/UniracersSNESRecomp/build/UniracersSNESRecomp"
+            --no-build
+          PROJ="$ROOT/UniracersSNESRecomp"
+          cmake -S "$PROJ" -B "$PROJ/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF
+          cmake --build "$PROJ/build" -j2
+          test -x "$PROJ/build/UniracersSNESRecomp"
 
       - name: Build pinned Snes9x and snesref
         shell: bash

@@ -116,16 +116,16 @@
     },
     {
       "id": "snes9x-libretro",
-      "mode": "pending",
+      "mode": "vendored",
       "upstream_url": "https://github.com/snes9xgit/snes9x.git",
       "revision": "1bcc369e89f08243e0a462882fb1f3e42e51de3a",
-      "source_path": null,
+      "source_path": "third_party/src/snes9x-libretro",
       "archive_path": null,
-      "source_sha256": null,
-      "license_spdx": null,
-      "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
-      "provenance_path": null
+      "source_sha256": "ba85424ee81b08bc8ae392c089ace824da57d2bbd4000e7215edbed8dfddea6e",
+      "license_spdx": "LicenseRef-Snes9x-Noncommercial",
+      "license_path": "third_party/src/snes9x-libretro/LICENSE",
+      "notes": "Mechanically reduced pristine source closure for the pinned Linux libretro/snesref reference build. The project debug-export patch remains separate and is applied by bootstrap.",
+      "provenance_path": "third_party/provenance/snes9x-libretro.json"
     },
     {
       "id": "bsnes-libretro",

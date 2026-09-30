@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "tool": "snes9x-libretro",
+  "upstream_url": "https://github.com/snes9xgit/snes9x.git",
+  "upstream_revision": "1bcc369e89f08243e0a462882fb1f3e42e51de3a",
+  "vendored_source_path": "third_party/src/snes9x-libretro",
+  "vendored_tree_sha256": "ba85424ee81b08bc8ae392c089ace824da57d2bbd4000e7215edbed8dfddea6e",
+  "vendored_file_count": 136,
+  "vendored_source_bytes": 1818789,
+  "license_spdx": "LicenseRef-Snes9x-Noncommercial",
+  "license_path": "third_party/src/snes9x-libretro/LICENSE",
+  "measurement_run": 36685541554,
+  "measured_patched_closure": {
+    "file_count": 138,
+    "source_bytes": 1831627,
+    "closure_sha256": "7684fe4b70481165c31f0633c3623e08ca078546bd50714d3d6c8dd318f6d946"
+  },
+  "retained": [
+    "compiler-reported source/header dependencies of the patched Linux libretro build",
+    "libretro/Makefile",
+    "libretro/Makefile.common",
+    "libretro/link.T",
+    "LICENSE"
+  ],
+  "excluded": [
+    "files not consumed by the measured Linux libretro build",
+    "GUI/platform frontends and packaging outside the measured closure",
+    "build products and compiler depfiles",
+    "VCS metadata"
+  ],
+  "exclusion_reason": "The P0 island needs the reference-core build consumed by snesref, not the full multi-platform Snes9x repository. The candidate closure was rebuilt successfully in isolation before promotion.",
+  "build_contract": "Bootstrap copies this pristine tree, applies tools/patches/snes9x-snesref-debug-exports.patch, then runs make -C libretro -jN. No source fetch is permitted in --offline mode."
+}

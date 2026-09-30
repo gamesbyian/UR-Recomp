@@ -34,7 +34,7 @@ def parse_ref(path: Path) -> dict[int, tuple[int, ...]]:
     return out
 
 
-def parse_native(path: Path) -> dict[int, tuple[int, ...]]:
+def parse_native_json(path: Path) -> dict[int, tuple[int, ...]]:
     payload = json.loads(path.read_text())
     out = {}
     for line in payload.get("snapshots", []):
@@ -49,19 +49,58 @@ def parse_native(path: Path) -> dict[int, tuple[int, ...]]:
     return out
 
 
+def _u16(blob: bytes, addr: int) -> int:
+    return blob[addr] | (blob[addr + 1] << 8)
+
+
+def _s16(blob: bytes, addr: int) -> int:
+    value = _u16(blob, addr)
+    return value - 0x10000 if value & 0x8000 else value
+
+
+def parse_native_dumps(path: Path) -> dict[int, tuple[int, ...]]:
+    out = {}
+    for dump in sorted(path.glob("frame-*.wram.bin")):
+        m = re.fullmatch(r"frame-(\d+)\.wram\.bin", dump.name)
+        if not m:
+            continue
+        frame = int(m.group(1))
+        blob = dump.read_bytes()
+        if len(blob) < 0x20000:
+            raise SystemExit(f"{dump}: expected 128 KiB WRAM, got {len(blob)}")
+        out[frame] = (
+            blob[0x009F],
+            blob[0x0313],
+            blob[0x00CE],
+            _u16(blob, 0x0411),
+            _u16(blob, 0x0415),
+            _s16(blob, 0x04B7),
+            _s16(blob, 0x04BB),
+            blob[0x0545],
+            _u16(blob, 0x04C7) & 0x3F,
+        )
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--smv-meta", type=Path, required=True)
     ap.add_argument("--trace-summary", type=Path, required=True)
     ap.add_argument("--reference-tsv", type=Path, required=True)
-    ap.add_argument("--native-json", type=Path, required=True)
+    native_group = ap.add_mutually_exclusive_group(required=True)
+    native_group.add_argument("--native-json", type=Path)
+    native_group.add_argument("--native-dump-dir", type=Path)
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
 
     smv = json.loads(args.smv_meta.read_text())
     trace = json.loads(args.trace_summary.read_text())
     ref = parse_ref(args.reference_tsv)
-    native = parse_native(args.native_json)
+    native = (
+        parse_native_json(args.native_json)
+        if args.native_json is not None
+        else parse_native_dumps(args.native_dump_dir)
+    )
 
     shared = sorted(set(ref) & set(native))
     mismatches = []

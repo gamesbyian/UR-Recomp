@@ -1,4 +1,4 @@
-name: One-shot bottom-edge cross-core validation
+name: Bottom-edge cross-core regression
 
 on:
   workflow_dispatch:
@@ -7,6 +7,15 @@ on:
       - "tools/summarize_presentation_geometry.py"
       - "tests/input/reach-first-race.script"
       - ".github/workflows/bottom-edge-cross-core.yml"
+      - "tools/toolchain.json"
+      - "tools/patches/beetle-bsnes-ur-recomp.patch"
+  pull_request:
+    paths:
+      - "tools/summarize_presentation_geometry.py"
+      - "tests/input/reach-first-race.script"
+      - ".github/workflows/bottom-edge-cross-core.yml"
+      - "tools/toolchain.json"
+      - "tools/patches/beetle-bsnes-ur-recomp.patch"
 
 jobs:
   validate:

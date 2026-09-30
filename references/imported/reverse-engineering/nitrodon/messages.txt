@@ -103,15 +103,15 @@
 73: !!!!!!!!!!!!!!
 78: Da' Bomb!
 79: Ain't No Thang!
-7A: All That 
-^Á: It's On!
+7A: All That!
+7B: It's On!
 7C: Whasuuup!
 7D: Slammin'
 7E: Phat! (miscounted somewhere before this point)
 7F: Smooth!
 80: Born to Roll!
 81: It's a Z Thang!
-82: Cool Like Dat
+82: Cool Like Dat!
 88: Outrageous!
 89: I'm Sure!
 8A: Tubular!

@@ -3,6 +3,8 @@ name: Bottom-edge cross-core regression
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     paths:
       - "tools/summarize_presentation_geometry.py"
       - "tests/input/reach-first-race.script"
@@ -21,6 +23,10 @@ on:
       - "tools/toolchain-entries/beetle-bsnes-libretro.json"
       - "tools/toolchain-entries/_global.json"
       - "tools/patches/beetle-bsnes-ur-recomp.patch"
+
+concurrency:
+  group: bottom-edge-cross-core-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:

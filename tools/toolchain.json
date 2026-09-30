@@ -283,7 +283,7 @@
       "patches": [
         {
           "path": "tools/patches/beetle-bsnes-ur-recomp.patch",
-          "sha256": "ada69894409643f791740bf620708fb878d462fdf8a17d9ed6cb99cef8f1c7d2"
+          "sha256": "dbc27c86275911524124fd84edab51ac7619f4695380e783eda3c5f16e14999a"
         }
       ]
     },

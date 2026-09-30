@@ -1,6 +1,6 @@
 # Uniracers Modern Port Plan
 
-Last updated: 2026-09-29
+Last updated: 2026-09-30
 
 This is the canonical product-development plan for turning the original SNES Uniracers / Unirally into a faithful modern native port.
 
@@ -240,6 +240,21 @@ Important current observations:
 - Europe retail changes seven decoded streams while preserving 38 byte-for-byte.
 
 These builds are differential oracles for late fixes, regional behavior and executable/data boundaries.
+
+Treat the four-build corpus as a **comparative code-analysis surface**, not merely a byte-diff archive. The project should build a normalized cross-build code atlas that can align routines and tables even when absolute addresses move. For every useful executable region, compare independent analyzer views rather than treating generated recompilation C as the sole reverse-engineering authority.
+
+The comparative lane should:
+
+- run the canonical USA build and the other three preserved builds through every analysis route that can produce useful structure: SNESRecomp manifest/generated code, snes2asm, bounded da65, and Ghidra/ghidra-snes where persistent cross-reference analysis earns its cost;
+- add other genuinely independent 65816 control-flow analyzers only when they provide a distinct interpretation rather than duplicating an existing decoder;
+- normalize results by SNES address, instruction fingerprint, control-flow shape, callers/callees, referenced ROM tables and WRAM/PPU accesses;
+- align structurally corresponding routines across builds even when code has moved;
+- flag analyzer disagreements in function boundaries, code-vs-data classification, M/X state, indirect targets, jump tables and cross-references as high-value investigation targets;
+- use cross-build stability to distinguish source-level routines/tables from build-specific layout noise;
+- propagate locally verified semantic labels from Nitrodon, Dessyreqt, TAS/RetroAchievements and dynamic traces across structurally matched builds, while retaining provenance and confidence;
+- retain SNESRecomp's generated C as execution-oriented evidence, not as a claim that semantic decompilation is complete.
+
+The goal is a machine-readable **Uniracers comparative code atlas**: one record per candidate routine/data object, correspondence across all preserved builds, analyzer interpretations, runtime execution evidence, known symbols/RAM effects and unresolved disagreements.
 
 ### Course corpus
 
@@ -1205,7 +1220,7 @@ The following avenues are mandatory backlog, even when no branch is currently ac
 
 - **External-evidence intake:** maintain the existing source -> provenance -> worklist -> acquisition -> local reproduction -> research-ledger pipeline. New discoveries should enter through it instead of living only in chat or prose notes.
 - **Emulator-specific archaeology:** convert remaining historically documented Uniracers failure seams into deterministic local regression fixtures. Prioritize active-display OAM/2P behavior, SRAM mapping, XOR/window behavior, colour-math/subscreen behavior, audio startup, title transition, border/effects and race-renderer seams. Historical emulator workarounds are perturbation evidence, not code to cargo-cult.
-- **Four-ROM differential archaeology:** continue beyond the already-understood RNC corpus. Classify code-shaped and data-shaped deltas among USA retail, Europe retail, the historical GoodSNES beta and the 1994-11-29 PAL prototype; use them to identify localization, timing/protection, frontend, table and late-fix semantics.
+- **Multi-ROM × multi-analyzer comparative archaeology:** promote the four preserved builds into a normalized code atlas. Run SNESRecomp, snes2asm, bounded da65 and Ghidra/ghidra-snes over corresponding regions; fingerprint/alignment should survive address movement. Classify code/data deltas, function-boundary disagreements, M/X-state disagreements, indirect targets, jump tables and cross-references. Use runtime traces and historical symbols to adjudicate conflicts and propagate verified semantics across matched builds. Generated recompilation C is an execution artifact, not the endpoint of semantic decompilation.
 - **Translation-patch forensics:** use the recovered Sayans patch as a map into text/control readers, decode the three identified text/control regions, and continue archival recovery of later Sayans 1.0b and independent Sinister material. Negative evidence such as absence of a font or executable-code patch should remain recorded.
 - **Cheats/TAS/RetroAchievements/speedrun mining:** keep promoting community labels into locally verified symbols and deterministic behavior. Continue historical replay compatibility work without arbitrary frame-offset hacks. Keep the archival search for `usjo13.lua` / Uniracers Stunts & Jump Optimizer v13 active because it may encode unusually dense stunt and gameplay semantics.
 - **SPC/audio archaeology:** complete CPU selector/table mapping, unused-song reachability, package/state attribution and durable audio symbols before moving on to restoration/reproduction work. Audio modernization must be grounded in recovered original structure.

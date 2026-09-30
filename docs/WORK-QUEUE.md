@@ -2,22 +2,32 @@
 
 Work in dependency order. Later visual work is intentionally gated on a trustworthy stock baseline.
 
-## Priority 0 — Island / offline toolchain
+## Priority 0 — Fidelity divergence + semantic decompilation
 
-**This workstream preempts new infrastructure expansion, but must not interrupt or overwrite active research already in flight.**
+**This is the current highest-leverage workstream.** The native game already boots, reaches races, and the core offline toolchain is proven. The largest remaining risk to a faithful modern port is now hidden semantic/runtime disagreement, not infrastructure availability.
+
+Immediate order:
+
+1. Bracket the earliest native/reference divergence in the exact 2014 replay around guest frame 440 down toward the first differing write/instruction/state transition.
+2. Map the responsible executed PCs/routines into the comparative code atlas and independently inspect them with SNESRecomp, snes2asm/da65, and Ghidra where useful.
+3. Resolve the three unresolved indirect dispatch sites and two LLE-only analyzer variants when they intersect executed/high-value paths.
+4. Replace the five explicit core placeholders in `SYMBOLS.md` with evidence-backed semantics, prioritizing main loop, player update, course loading, and OAM construction.
+5. Use the resulting semantic map to unblock exact finish fidelity, renderer/widescreen work, course tooling, and later modernization.
+
+Do not chase semantic completeness uniformly. Prioritize code that is executed, divergent, hardware-facing, or a dependency of physics/course/rendering behavior.
+
+## Infrastructure maintenance — Island / offline toolchain
 
 Canonical execution plan: `docs/ISLAND-TOOLCHAIN-PLAN.md`.
 
-Goal: make the core automated research/build toolchain runnable from a clean checkout without GitHub, PyPI or crates.io after ordinary host/compiler prerequisites are present.
+The core no-network proof is complete: run `36791326251` successfully built the vendored Snes9x reference core, staged repository-owned SNESRecomp, generated the canonical project, and built `UniracersSNESRecomp` inside a network namespace. Islandization no longer preempts game research; remaining cleanup is maintenance unless a concrete toolchain defect blocks work.
 
 - [x] Add the `third_party/` provenance/licensing/manifest infrastructure, repository-hygiene validation, local-source bootstrap preference, and fail-closed offline mode. A true network-disabled build smoke follows the first islanded core component.
 - [x] Vendor the small/high-value tool tranche and package-registry closures. `mesen-for-ai`, `snes2asm` plus PyYAML 6.0.3, SuperFamiconv plus its Cargo closure, `ghidra-snes`, pruned Flips CLI, and Beetle/bsnes libretro are repository-owned and proven through fail-closed offline bootstrap. Beetle's libretro SRAM export and teardown defects were subsequently corrected by the narrow project-owned patch merged in #55, with exact 8 KiB SRAM roundtrip and clean teardown now permanent regressions. P0-B is closed.
-- [~] Migrate SNESRecomp and core reconstruction/build dependencies incrementally. C1 framework archive ownership, C2 network classification, C3 SDL host/source policy, C4 analyzer Cargo closure, and the reduced Snes9x/`snesref` reference-core source closure are implemented. The canonical native lane uses the ordinary host `libsdl2-dev` package, forces `SNESRECOMP_SDL_BACKEND=SDL2`, and keeps SDL3 source fetching disabled; SDL3 remains an optional host capability rather than a vendored core dependency unless a measured need appears. The permanent native-build smoke stages the repository-owned framework archive with `bootstrap_toolchain.py --offline`, uses `--no-submodules`, and no longer recursively checks out SNESRecomp. Snes9x is now repository-owned as a 136-file pristine reduced tree, with its project patch applied separately by fail-closed offline bootstrap. A dedicated `offline-core-smoke.yml` now attempts the first true no-network canonical build: after host prerequisites are installed it enters a fresh network namespace, verifies the ROM and island manifest, builds the vendored Snes9x reference core, stages SNESRecomp, generates the canonical project and builds `UniracersSNESRecomp`. Branch CI must turn this into evidence before obsolete fetch paths are retired.
+- [x] Migrate SNESRecomp and the core reference/build dependencies needed by the canonical lane. C1-C4, the reduced Snes9x/`snesref` closure, repository-owned framework staging, and the SDL2 host boundary are implemented. Network-disabled run `36791326251` proves canonical generation and native build with GitHub/PyPI/crates.io physically unreachable.
 - [ ] Preserve large/manual workbenches as exact archives or optional external tools where direct vendoring has poor value.
-- [~] Prove a network-disabled core workflow before removing the old fetch paths. The proof workflow is implemented; wait for a green branch run before claiming closure or deleting any fallback.
+- [x] Prove a network-disabled core workflow before removing old fetch paths. Run `36791326251` is the green proof. Remove obsolete fallbacks only when doing so is low-risk and does not distract from current fidelity/decomp work.
 - [ ] Use repository ownership to customize/optimize tools for UR-Recomp where measured value justifies divergence from upstream.
-
-**Concurrent-work rule:** PRs #9, #11 and #14 were active when this P0 item was created and currently overlap plan/tooling files. Islandization must be implemented in isolated tranches, kept draft when necessary, and rebased/reconciled with current `main` plus all still-active overlapping PRs before merge. Do not merge a mechanically conflict-free result if it would discard or stale their work.
 
 **Merge gate:** inspect open PRs/unsubmitted branches, reconcile by intent, regenerate derived artifacts, run repository hygiene + toolchain contract/build smoke, and verify no active evidence/fixture path is weakened. See the canonical plan for the full procedure.
 
@@ -68,7 +78,7 @@ Goal: make the core automated research/build toolchain runnable from a clean che
 - [x] Rotate intentionally with L/R while airborne. Run 36516524308 confirms persistent player-1 `7E:04C7` as a modulo-64 pitch angle: eight L frames move 7→55 (−16 mod 64), eight R frames move 7→23 (+16), identically native/reference.
 - [x] Land with event-relative state validation. Run 36517502791 matches native/reference throughout: track-height contact clears `air` by `landing-034`, and vertical velocity is fully reset by `landing-036`. Script labels include the runner's mandatory idle frames and are treated as event-relative.
 - [x] Validate one reproducible collision/contact case. Run 36518208740 is green and native/Snes9x agree at every tracked semantic checkpoint. Against the timing-identical clean-jump control, the 16-frame airborne over-rotation intervention produces a distinct failed-landing/contact trajectory: at the key checkpoint player 1 remains airborne with `ySpeed=-187` and reduced `xSpeed=389`, while control is already grounded with `ySpeed=0` and `xSpeed=448`; the displacement/speed difference persists through settle.
-- [~] Finish a stock race deterministically. Collision/contact is closed. The 2014 Dessyreqt historical movie supplies the durable pinned-Snes9x reference oracle, reaching first race at frame 794 and first results at frame 2874 (run 36538122590); native replay of an exact historical stream remains open. The 2008 WIP is now explicitly a legacy-timing compatibility corpus: its full modern pinned-Snes9x reference replay never reaches race/results, matching the unresolved WIP1-timing concern rather than providing a usable finish oracle. The simpler rhythmic Dragster probe remains a secondary diagnostic.
+- [~] Finish a stock race deterministically. The 2014 Dessyreqt movie is now replayable through both reference and native paths. Dense comparison exposes a real native/reference divergence by guest frame 440; reference reaches first race at frame 794 and results at frame 2874, while native is already on a different state trajectory. The active task is to bracket and explain that first divergence, not to build another finish oracle. The 2008 WIP remains a legacy-timing compatibility corpus and the rhythmic Dragster probe a secondary diagnostic.
 - [ ] No simulation modifications.
 
 **Exit:** complete a stock race in 4:3.
@@ -109,7 +119,7 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 
 - [~] Mine and operationalize the recovered **Nitrodon reverse-engineering workspace**. First reconciliation is complete in `references/notes/nitrodon-reverse-engineering-mining.md` and `analysis/generated/nitrodon-reconciliation.json`: tabletop is corrected to duration/progress; roll/flip/Z-flip/tabletop widths and shared current-player velocity/boost slots are reconciled; stunt finalization at `02:9A42`, vertical acceleration at `02:A968`, and controller decode at `02:AA6E` are now canonical symbol seeds; and the exact base-5 four-stunt combination index feeding the 625-byte table at `02:9DAA` is documented. Next: decode `FE/FF` table sentinels, trace stable boost slots `11CF/11D1 ↔ 11CD`, use `1199/119D/0EF1` in the deterministic race-finish lane, trace stunt score `12AF`, reconcile the historical map offsets with RNC course payloads, and turn `bounce tracelog.txt` into a bounded collision/velocity-transform fixture.
 - [x] Port the clean menu-driving route into the shared native/snesref deterministic input harness through race entry.
-- [~] Evaluate its race-driving policy as an autonomous regression workload. The preserved 2014 SMV now has a deterministic extractor and a confirmed pinned-Snes9x first-race/results replay with durable frame/state evidence. Prefer replaying this exact historical input through native before porting more state-responsive policy logic.
+- [~] Evaluate its race-driving policy as an autonomous regression workload. Exact 2014 input now replays through both paths and has already exposed a native/reference divergence by frame 440. Use that divergence as the primary fidelity/decomp target before porting more state-responsive policy logic.
 
 ## Phase 5 — Differential validation
 

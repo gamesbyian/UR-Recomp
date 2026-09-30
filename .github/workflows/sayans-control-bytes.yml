@@ -1,0 +1,25 @@
+name: One-shot Sayans control-byte analysis
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/analyze_translation_controls.py"
+      - "references/imported/patches/sayans-uniracers-2002/Uniraceresp.ips"
+      - ".github/workflows/sayans-control-bytes.yml"
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Analyze translation control bytes
+        run: |
+          python3 tools/analyze_translation_controls.py             "reference/roms/retail/Uniracers_USA.sfc"             "references/imported/patches/sayans-uniracers-2002/Uniraceresp.ips"             --json-out sayans-control-bytes.json
+          cat sayans-control-bytes.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sayans-control-bytes
+          path: sayans-control-bytes.json

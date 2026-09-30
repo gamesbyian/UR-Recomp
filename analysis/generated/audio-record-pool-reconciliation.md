@@ -56,6 +56,27 @@ and only that late family, begins with `0x0400,0x1D00`**. This reinforces that t
 unused records are ordinary members of a specific song-data family rather than detached
 or malformed leftovers.
 
+## Song-record near-duplicate: 0x3B vs 0x3C
+
+Canonical-ROM similarity run `36776832898` (artifact `11125199643`, digest
+`sha256:547b0e242c3f2a63098ed140f388193e331d8c6641acfcd6e1b33ff7e83667c5`)
+compares every pair in the `0x38..0x42` song family.
+
+The standout pair is `0x3B` and `0x3C`:
+
+- both payloads are exactly 536 bytes;
+- they share the first 165 bytes;
+- they share the final 10 bytes;
+- only 16 byte positions differ across the entire 536-byte overlap.
+
+No other song-family pair is close to that degree. `0x3B` is the record that matches
+**Unused Song 1** and has no ordinary setup call; `0x3C` is directly reachable and is
+paired with package `03:FC15`, but does not match any SPC in the preserved archive.
+
+This strongly suggests that `0x3B` and `0x3C` are related program/sequence variants
+rather than independent compositions or arbitrary adjacent records. Exact interpretation
+is held pending the byte-delta probe and control-flow context for the `0x3C` caller.
+
 ## Package table 03:FB95
 
 The known six-table package family contains exactly one table with no direct

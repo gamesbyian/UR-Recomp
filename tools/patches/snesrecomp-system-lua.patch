@@ -1,0 +1,55 @@
+--- a/runner/lua.cmake
++++ b/runner/lua.cmake
+@@ -1,20 +1,39 @@
+ # Opt-in, independently of the trace debugger. No Lua download in normal builds.
+ option(SNESRECOMP_ENABLE_LUA "Build opt-in local TCP Lua scripting" OFF)
++option(SNESRECOMP_LUA_FETCH
++    "When no system Lua 5.4 is found, build the pinned Lua release from source" ON)
+ if(SNESRECOMP_ENABLE_LUA)
+-    if(POLICY CMP0135)
+-        cmake_policy(SET CMP0135 NEW)
++    find_package(Lua 5.4 QUIET)
++
++    add_library(snesrecomp_lua STATIC
++        ${CMAKE_CURRENT_LIST_DIR}/src/lua_bridge.c)
++    target_compile_definitions(snesrecomp_lua PUBLIC SNESRECOMP_ENABLE_LUA=1)
++
++    if(LUA_FOUND)
++        target_include_directories(snesrecomp_lua PRIVATE "${LUA_INCLUDE_DIR}")
++        target_link_libraries(snesrecomp_lua PRIVATE ${LUA_LIBRARIES})
++        message(STATUS "snesrecomp: Lua bridge using installed Lua ${LUA_VERSION_STRING}")
++    else()
++        if(NOT SNESRECOMP_LUA_FETCH)
++            message(FATAL_ERROR
++                "Lua 5.4 was not found and SNESRECOMP_LUA_FETCH=OFF. "
++                "Install a Lua 5.4 development package or enable source fetching.")
++        endif()
++        if(POLICY CMP0135)
++            cmake_policy(SET CMP0135 NEW)
++        endif()
++        include(FetchContent)
++        FetchContent_Declare(snes_lua
++            URL https://www.lua.org/ftp/lua-5.4.9.tar.gz
++            URL_HASH SHA256=2335b6c582a52654f94612bf10d2f4672805d05329aa6568b1d8cd9e5c6fb8e6)
++        FetchContent_MakeAvailable(snes_lua)
++        file(GLOB _snes_lua_sources "${snes_lua_SOURCE_DIR}/src/*.c")
++        list(FILTER _snes_lua_sources EXCLUDE REGEX "/(lua|luac)\\.c$")
++        target_sources(snesrecomp_lua PRIVATE ${_snes_lua_sources})
++        target_include_directories(snesrecomp_lua PRIVATE "${snes_lua_SOURCE_DIR}/src")
++        message(STATUS "snesrecomp: Lua bridge using pinned fetched Lua 5.4.9")
+     endif()
+-    include(FetchContent)
+-    FetchContent_Declare(snes_lua
+-        URL https://www.lua.org/ftp/lua-5.4.9.tar.gz
+-        URL_HASH SHA256=2335b6c582a52654f94612bf10d2f4672805d05329aa6568b1d8cd9e5c6fb8e6)
+-    FetchContent_MakeAvailable(snes_lua)
+-    file(GLOB _snes_lua_sources "${snes_lua_SOURCE_DIR}/src/*.c")
+-    list(FILTER _snes_lua_sources EXCLUDE REGEX "/(lua|luac)\\.c$")
+-    add_library(snesrecomp_lua STATIC ${_snes_lua_sources}
+-        ${CMAKE_CURRENT_LIST_DIR}/src/lua_bridge.c)
+-    target_include_directories(snesrecomp_lua PRIVATE "${snes_lua_SOURCE_DIR}/src")
+-    target_compile_definitions(snesrecomp_lua PUBLIC SNESRECOMP_ENABLE_LUA=1)
++
+     if(WIN32)
+         target_link_libraries(snesrecomp_lua PRIVATE ws2_32)
+     else()

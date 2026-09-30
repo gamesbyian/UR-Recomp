@@ -56,3 +56,21 @@ The project now has a locally reproducible detailed OAM/PPU observation path rat
 The selector-screen capture is a useful **negative discriminator**: its observed `$2104` traffic is ordinary DMA around V=229-230, not the historically reported active-display split-screen seam around scanlines 0/112. Therefore frontend VS selection is too early to reproduce the compatibility bug. The next fixture must advance through a P2-causal route into actual two-player/VS gameplay before judging the historical OAM behavior.
 
 This closes the observability blocker. Remaining work is now scene reachability and cross-oracle comparison, not missing instrumentation.
+
+
+### Reproduced VS active-display seam
+
+A deterministic two-controller route now reaches active VS gameplay and locally reproduces the concrete behavior that historical emulator fixes were trying to preserve. In stable split-screen race checkpoints, the patched Snes9x write journal records:
+
+- scanline 0: HDMA write `$2104 <- $A5`
+- scanline 112: HDMA write `$2104 <- $5A`
+
+The pair repeats at five sampled race checkpoints from guest frame 1140 through 1620. Earlier VS-selector captures contain only vblank-era OAM DMA around V=229-230, providing a local negative control.
+
+This promotes the active-display OAM row from historical-only motivation to a locally reproduced fidelity seam. The exact downstream OAM-address/high-table consequences and sprites 96-99 still need reconstruction-level tracing, but authentic mode now has a concrete event-level regression target rather than a prose description of the old emulator workaround.
+
+Durable inputs/assertion:
+
+- `tests/input/vs-first-race.input`
+- `tests/input/vs-first-race-observe.script`
+- `tools/assert_uniracers_vs_oam_seam.py`

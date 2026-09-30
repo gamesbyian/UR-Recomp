@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-09-29",
+  "updated": "2026-09-30",
   "purpose": "Actionable external evidence queue. Source provenance lives in references/catalog.yml; this file owns uncertainty, next discriminator, acquisition state, and expected project deliverables.",
   "leads": [
     {
@@ -238,16 +238,17 @@
       "id": "usjo13-stunt-optimizer",
       "value": "critical",
       "cost": "medium",
-      "status": "archival-hunt",
+      "status": "passive-archival-hunt",
       "source_ids": [
         "usjo13",
         "tasvideos-usjo",
         "tasvideos-uniracers-topic"
       ],
       "question": "What frame-perfect stunt, boost, timing, and RAM knowledge was encoded in the lost USJO v13 Lua bot?",
-      "next_discriminator": "Search exact historical filename/path, Wayback captures, quoted snippets, mirrors, forum attachments, and author-associated archives before attempting any behavioral reconstruction from prose.",
+      "next_discriminator": "Passive recovery only: search the full title and version family, reconstruct the old obellemare Uniracers directory from mirrors/backups, fingerprint renamed copies with published WRAM addresses plus period Snes9x Lua APIs, and compare surviving Uniracers Lua for lineage. Do not contact historical authors, TASers, site owners, forum users, or other people.",
       "deliverables": [
-        "recovered original Lua if available",
+        "recovered original Lua or any ancestor/descendant/fragment if publicly available",
+        "directory/corpus reconstruction record and code-fingerprint results",
         "otherwise a provenance-backed negative result plus surviving behavioral claims",
         "new RAM/timing hypotheses only when grounded in recovered evidence"
       ],
@@ -265,7 +266,7 @@
         "request": ""
       },
       "acquisition_tier": "P0",
-      "acquisition_judgment": "Still genuinely valuable: recovered source/tool semantics could replace substantial inference and create direct implementation or physics anchors."
+      "acquisition_judgment": "Still genuinely valuable, but recovery is passive-only. Prefer corpus reconstruction, version-family search and code fingerprints over repeated exact-filename queries; no outreach is permitted."
     },
     {
       "id": "dessyreqt-autonomous-bot",

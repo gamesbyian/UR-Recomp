@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "source_workflow": "airborne rotation native/reference differential",
+  "workflow_run_id": 36769806636,
+  "job_id": 110073509186,
+  "canonical_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "cross_runtime_match": true,
+  "fixture": "trusted Dragster airborne L/R pitch-rotation intervention plus matched jump-only control",
+  "checkpoints": [
+    "accel-180",
+    "rotation-pre",
+    "rotation-input-008",
+    "rotation-post-008",
+    "rotation-post-016",
+    "rotation-release-016",
+    "rotation-settle"
+  ],
+  "recovered_fields": {
+    "stunt_or_rotation_candidates": [
+      "twists",
+      "tabletops",
+      "zflips",
+      "rolls",
+      "flips",
+      "z_rotation",
+      "z_pre_rotation"
+    ],
+    "already_confirmed_state": [
+      "x_speed",
+      "y_speed",
+      "air"
+    ],
+    "width_conflict_probe": [
+      "boost_meter_low",
+      "boost_meter_high",
+      "boost_meter_word"
+    ]
+  },
+  "observations": {
+    "candidate_counters": {
+      "all_zero_at_all_sampled_checkpoints": true,
+      "conditions": [
+        "left",
+        "right",
+        "control"
+      ]
+    },
+    "boost_candidate": {
+      "values_by_checkpoint": {
+        "accel-180": 0,
+        "rotation-pre": 0,
+        "rotation-input-008": 0,
+        "rotation-post-008": 0,
+        "rotation-post-016": 112,
+        "rotation-release-016": 92,
+        "rotation-settle": 76
+      },
+      "identical_across_left_right_control": true,
+      "high_byte_zero_at_all_sampled_checkpoints": true
+    }
+  },
+  "interpretation": [
+    "The sampled recovered stunt/rotation candidate fields do not respond to this already-validated ordinary L/R pitch-rotation fixture; this is negative evidence only and does not invalidate their historical labels.",
+    "The 0x11CD candidate changes during the same race window independently of the L/R intervention, so this fixture does not support interpreting it as an immediate pitch-rotation counter.",
+    "Because 0x11CE remains zero throughout these checkpoints, the historical v8 byte read and the older 16-bit watch-list view are numerically equivalent in this sampled value range; the width question remains open outside 0..255."
+  ]
+}

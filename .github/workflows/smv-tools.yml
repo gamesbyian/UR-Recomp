@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "tools/extract_smv_input.py"
+      - "tools/compose_historical_replay_result.py"
+      - "tests/test_compose_historical_replay_result.py"
       - "tests/test_extract_smv_input.py"
       - "tools/summarize_wram_trace_checkpoints.py"
       - "tests/test_summarize_wram_trace_checkpoints.py"
@@ -11,6 +13,8 @@ on:
   push:
     paths:
       - "tools/extract_smv_input.py"
+      - "tools/compose_historical_replay_result.py"
+      - "tests/test_compose_historical_replay_result.py"
       - "tests/test_extract_smv_input.py"
       - "tools/summarize_wram_trace_checkpoints.py"
       - "tests/test_summarize_wram_trace_checkpoints.py"

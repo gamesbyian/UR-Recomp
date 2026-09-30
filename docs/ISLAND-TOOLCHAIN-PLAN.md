@@ -314,8 +314,8 @@ Current P0-A implementation lives in `third_party/manifest.json`, `tools/validat
 
 ### P0-E — Offline completion
 
-- [ ] Close Python package-registry dependencies.
-- [ ] Close Rust crate-registry dependencies.
+- [x] Close Python package-registry dependencies. Core Python tooling contains no `pip install` path: snes2asm receives repository-owned pure-Python PyYAML 6.0.3 plus its own vendored package through `install_pure_python_tool.py`, while mesen-for-ai is installed directly from repository-owned source.
+- [x] Close Rust crate-registry dependencies. SuperFamiconv carries its locked 78-package Cargo vendor closure and builds with `--locked --offline`; SNESRecomp carries the analyzer Cargo closure, overlays it during staging, enforces lockfile equality, and forces Cargo offline. `validate_island.py` rejects Cargo closures that omit locked/offline declarations or matching build flags.
 - [~] Run the core automated research workflow with outbound network disabled. The dedicated offline smoke now exercises the canonical ROM plus both reference/native build sides inside a network namespace; branch CI is the evidence gate.
 - [x] Document remaining host prerequisites as the intentional island boundary. `docs/OFFLINE-HOST-PREREQUISITES.md` now separates ordinary Linux/compiler/runtime packages from repository-owned game/tool inputs and records the concrete Ubuntu package set used by the no-network proof.
 - [ ] Remove obsolete external-fetch paths after all local replacements are proven.

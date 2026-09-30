@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "source": "references/imported/tas-bots/usjo8.lua",
+  "source_lines": [
+    946,
+    995
+  ],
+  "reward_rules": {
+    "twists": [
+      {
+        "line": 947,
+        "counter": "twists",
+        "operator": ">=",
+        "threshold": 8,
+        "reward": 200,
+        "reward_line": 948
+      },
+      {
+        "line": 949,
+        "counter": "twists",
+        "operator": ">=",
+        "threshold": 6,
+        "reward": 176,
+        "reward_line": 950
+      },
+      {
+        "line": 951,
+        "counter": "twists",
+        "operator": ">=",
+        "threshold": 4,
+        "reward": 152,
+        "reward_line": 952
+      },
+      {
+        "line": 953,
+        "counter": "twists",
+        "operator": ">=",
+        "threshold": 2,
+        "reward": 128,
+        "reward_line": 954
+      }
+    ],
+    "tabletops": [
+      {
+        "line": 956,
+        "counter": "tabletops",
+        "operator": ">=",
+        "threshold": 1,
+        "reward": 152,
+        "reward_line": 957
+      }
+    ],
+    "zflips": [
+      {
+        "line": 959,
+        "counter": "zflips",
+        "operator": "==",
+        "threshold": 1,
+        "reward": 128,
+        "reward_line": 960
+      },
+      {
+        "line": 961,
+        "counter": "zflips",
+        "operator": "==",
+        "threshold": 2,
+        "reward": 152,
+        "reward_line": 962
+      },
+      {
+        "line": 963,
+        "counter": "zflips",
+        "operator": "==",
+        "threshold": 3,
+        "reward": 176,
+        "reward_line": 964
+      },
+      {
+        "line": 965,
+        "counter": "zflips",
+        "operator": ">=",
+        "threshold": 4,
+        "reward": 200,
+        "reward_line": 966
+      }
+    ],
+    "rolls": [
+      {
+        "line": 968,
+        "counter": "rolls",
+        "operator": "==",
+        "threshold": 1,
+        "reward": 128,
+        "reward_line": 969
+      },
+      {
+        "line": 970,
+        "counter": "rolls",
+        "operator": "==",
+        "threshold": 2,
+        "reward": 152,
+        "reward_line": 971
+      },
+      {
+        "line": 972,
+        "counter": "rolls",
+        "operator": "==",
+        "threshold": 3,
+        "reward": 176,
+        "reward_line": 973
+      },
+      {
+        "line": 974,
+        "counter": "rolls",
+        "operator": ">=",
+        "threshold": 4,
+        "reward": 200,
+        "reward_line": 975
+      }
+    ],
+    "flips": [
+      {
+        "line": 977,
+        "counter": "flips",
+        "operator": "==",
+        "threshold": 1,
+        "reward": 176,
+        "reward_line": 978
+      },
+      {
+        "line": 979,
+        "counter": "flips",
+        "operator": "==",
+        "threshold": 2,
+        "reward": 200,
+        "reward_line": 980
+      },
+      {
+        "line": 981,
+        "counter": "flips",
+        "operator": "==",
+        "threshold": 3,
+        "reward": 224,
+        "reward_line": 982
+      },
+      {
+        "line": 983,
+        "counter": "flips",
+        "operator": ">=",
+        "threshold": 4,
+        "reward": 248,
+        "reward_line": 984
+      }
+    ]
+  },
+  "score_rule": "finalscore = thisboostmeter + lastspeed",
+  "gates": [
+    {
+      "condition": "lastspeed < 0",
+      "effect": "thisboostmeter = 0",
+      "lines": [
+        987,
+        988
+      ]
+    },
+    {
+      "condition": "realboostmeter == 0",
+      "effect": "thisboostmeter = 0",
+      "lines": [
+        990,
+        991
+      ]
+    }
+  ],
+  "interpretation": {
+    "status": "recovered-source evidence only",
+    "warning": "These are USJO v8 optimization assumptions, not locally verified game boost values."
+  }
+}

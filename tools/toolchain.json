@@ -191,10 +191,12 @@
       "group": "analysis",
       "url": "https://github.com/cc65/cc65.git",
       "revision": "d8a486acdef93ea1ba432a6a35b96cf1b797bda5",
-      "purpose": "da65 command-line 65816 disassembler; build is restricted to da65 rather than the full cc65 compiler/library/docs/sample suite.",
+      "purpose": "Repository-owned reduced cc65/da65 closure for command-line 65816 disassembly; only da65 and its shared common sources are retained.",
       "build": [
         [
           "make",
+          "-C",
+          "src",
           "da65",
           "-j{jobs}"
         ]

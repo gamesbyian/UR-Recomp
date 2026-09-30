@@ -83,13 +83,23 @@ jobs:
         run: |
           set -euo pipefail
           case "${{ matrix.tool }}" in
-            mesen-for-ai|snes2asm|superfamiconv|flips|wla-dx|beetle-bsnes-libretro)
+            mesen-for-ai|snes2asm|superfamiconv|flips|wla-dx|beetle-bsnes-libretro|cc65)
               python3 tools/bootstrap_toolchain.py --offline --tool "${{ matrix.tool }}" --jobs 2
               ;;
             *)
               python3 tools/bootstrap_toolchain.py --tool "${{ matrix.tool }}" --jobs 2
               ;;
           esac
+      - name: Smoke vendored da65 65816 mode
+        if: matrix.tool == 'cc65'
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '\xEA' > "$RUNNER_TEMP/da65-smoke.bin"
+          .tools/src/cc65/bin/da65 --cpu 65816 "$RUNNER_TEMP/da65-smoke.bin" > "$RUNNER_TEMP/da65-smoke.s"
+          grep -q '.setcpu "65816"' "$RUNNER_TEMP/da65-smoke.s"
+          grep -q '\$EA' "$RUNNER_TEMP/da65-smoke.s"
+
       - name: Smoke vendored Beetle/bsnes libretro ABI
         if: matrix.tool == 'beetle-bsnes-libretro'
         shell: bash

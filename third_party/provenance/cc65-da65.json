@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "tool": "cc65",
+  "upstream_url": "https://github.com/cc65/cc65.git",
+  "upstream_revision": "d8a486acdef93ea1ba432a6a35b96cf1b797bda5",
+  "vendored_source_path": "third_party/src/cc65-da65",
+  "vendored_tree_sha256": "11cc79b488738f94b5b98ebcb4182fbfa8488a60c637343ea32f425543ec50ea",
+  "license_spdx": "Zlib",
+  "license_path": "third_party/src/cc65-da65/LICENSE",
+  "retained": [
+    "LICENSE",
+    "src/Makefile",
+    "src/da65/**",
+    "src/common/**"
+  ],
+  "excluded": [
+    "all cc65 tools other than da65",
+    "libsrc/**",
+    "include/**",
+    "cfg/**",
+    "samples/**",
+    "test/**",
+    "targettest/**",
+    "util/**",
+    "documentation and packaging outside the retained license"
+  ],
+  "exclusion_reason": "UR-Recomp currently consumes da65 only. Run 36662983284 proved the four-root closure self-contained for 65816 disassembly, and run 36663755722 measured the validator-compatible tree hash before vendoring.",
+  "dependency_closure": "No package registry or nested dependency. Build requires GNU make, a C compiler, ar and ordinary host libc/libm.",
+  "build_contract": "Run make -C src da65 -jN from the vendored root; artifact is bin/da65. Offline bootstrap must succeed with no network source fetch."
+}

@@ -914,3 +914,24 @@ Pinned source inspection now explains why several independent emulators agree on
 **Result:** fixed-target compatibility implementations and live-pipeline implementations converge on the same concrete `0x218` observation. Together with the unpatched VS trace and recovered Canoe workaround, the evidence favors a general implementation whose effective OAM destination is derived from raster-time sprite-engine state. The next experiment should reduce that state transition to the smallest deterministic case rather than transplanting a game-name/address exception.
 
 Detailed comparison: `docs/CANOE-COMPATIBILITY-PATCH.md`.
+
+### R-SEED-049 — Unused-song records are ordinary but unreachable CPU audio records
+
+**Status:** static/replay-corpus reconciliation confirmed; orphan-package pairing hypothesis open  
+**Date:** 2026-09-30  
+**Area:** audio | APU | CPU | unused content
+
+The audio resolver model is now corrected and unified. `02:812A APU_ResolveBlockPointer` walks the contiguous length-prefixed pool beginning at `10:8000`; `0x00..0x31` is only the ID universe appearing inside the six 64-byte package tables, not the resolver's upper bound. Existing direct setup calls to `02:807E` use IDs through `0x42`, and the extended correlation tooling parses `0x32..0x42` from the same record stream.
+
+Within the song-record range, records `0x3B` and `0x3D` are exceptional in exactly the useful way: their payloads uniquely match **Unused Song 1** and **Unused Song 2** at APU `0x1D00`, while they are the only missing ordinary setup selectors in the otherwise populated `0x38..0x42` range. There are no alternate immediate `LDX #$003B/#$003D` setup forms and no unbound direct calls to the setup wrapper in the current scan.
+
+The six known package tables contain one orphan, `03:FB95`. It has no direct `JSL $82:82A5` caller and is a strict slot-preserving subset of called Celebration table `03:FAD5`: only slots 29, 33 and 49 differ, replacing block IDs `0x15`, `0x29` and `0x07` with `0xFF`. This strongly supports an intentional dormant package variant rather than random bytes.
+
+**Interpretation:** `03:FB95` is the strongest current structural candidate for a removed `0x3B / Unused Song 1` package path because both sides are uniquely orphaned, but that pairing is not yet proven. There is only one orphan package table for two unreachable song records, so any model requiring one distinct missing package table per unused song is ruled out.
+
+**Evidence:** `analysis/generated/audio-setup-selector-map.json`; `analysis/generated/audio-package-map.json`; `analysis/generated/audio-extended-block-correlation.json`; `analysis/generated/audio-unused-path-analysis.{json,md}`; `analysis/generated/audio-record-pool-reconciliation.md`.
+
+**Discriminating test:** reconstruct the ordinary setup/upload path for selector `0x3B` plus package table `03:FB95` in a reference harness and compare resulting APU RAM against the preserved Unused Song 1 SPC. Test `0x3D` separately against plausible reused package tables rather than inventing a seventh table.
+
+---
+

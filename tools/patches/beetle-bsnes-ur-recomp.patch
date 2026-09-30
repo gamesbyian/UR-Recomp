@@ -1,0 +1,35 @@
+diff --git a/libretro.cpp b/libretro.cpp
+--- a/libretro.cpp
++++ b/libretro.cpp
+@@ -391,15 +391,8 @@ void retro_deinit(void)
+ {
+    if (surf)
+-   {
+-#if defined(WANT_32BPP)
+-      if (surf->pixels)
+-         free(surf->pixels);
+-#elif defined(WANT_16BPP)
+-      if (surf->pixels16)
+-         free(surf->pixels16);
+-#endif
+       delete surf;
+-   }
+    surf = NULL;
+ 
+    if (log_cb)
+@@ -518,14 +511,18 @@ void *retro_get_memory_data(unsigned type)
+ {
+    if ( type == RETRO_MEMORY_SYSTEM_RAM )
+       return SNES::memory::wram.data();
++   if ( type == RETRO_MEMORY_SAVE_RAM )
++      return SNES::memory::cartram.data();
+    return NULL;
+ }
+ size_t retro_get_memory_size(unsigned type)
+ {
+    if ( type == RETRO_MEMORY_SYSTEM_RAM )
+       return SNES::memory::wram.size();
++   if ( type == RETRO_MEMORY_SAVE_RAM )
++      return SNES::memory::cartram.size();
+    return 0;
+ }

@@ -440,6 +440,40 @@
         "status": "manual",
         "note": "Optional specialist workbench, not a default CI dependency. Use only when its higher-resolution/layer-isolation features materially answer a graphics question."
       }
+    },
+    {
+      "id": "snesrecomp",
+      "group": "core",
+      "url": "https://github.com/RetroPortingToolKit/snesrecomp.git",
+      "revision": "cd5875cbdaf19f5e324272b1f8051d671fce9215",
+      "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive; baseline smoke builds the snesref tool without optional netplay/Lua submodules.",
+      "build": [
+        [
+          "cmake",
+          "-S",
+          "tools/snesref",
+          "-B",
+          "build-snesref",
+          "-DCMAKE_BUILD_TYPE=Release"
+        ],
+        [
+          "cmake",
+          "--build",
+          "build-snesref",
+          "-j{jobs}"
+        ]
+      ],
+      "artifacts": [
+        {
+          "path": "build-snesref/snesref",
+          "kind": "executable"
+        }
+      ],
+      "install_mode": "build",
+      "headless": {
+        "status": "native",
+        "note": "The C1 smoke builds the command-line/headless snesref frontend from repository-owned framework source. Optional game runner dependencies are handled in later C2-C5 tranches."
+      }
     }
   ]
 }

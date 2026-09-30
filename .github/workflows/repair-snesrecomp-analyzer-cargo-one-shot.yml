@@ -28,6 +28,7 @@ jobs:
           set -euo pipefail
           CRATE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/recompiler-rs"
           ROOT="$GITHUB_WORKSPACE/third_party/cargo/snesrecomp-analyzer"
+          rm -rf "$CRATE/.cargo" "$CRATE/vendor"
           rm -rf "$ROOT/vendor"
           mkdir -p "$ROOT/vendor"
           cd "$CRATE"

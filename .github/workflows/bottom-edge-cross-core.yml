@@ -22,6 +22,7 @@ on:
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tools/toolchain-entries/beetle-bsnes-libretro.json"
       - "tools/toolchain-entries/_global.json"
+      - "tools/bootstrap_toolchain.py"
       - "tools/patches/beetle-bsnes-ur-recomp.patch"
 
 concurrency:

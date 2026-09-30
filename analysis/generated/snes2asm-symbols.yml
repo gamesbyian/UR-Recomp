@@ -1,13 +1,13 @@
 # Generated from analysis/generated/symbols.json.
 # Add structural decoders separately; this file only seeds known labels/memory.
 labels:
+  Text_TestCharacterMetadataBit7: 0xC41
   RNC1_Unpack: 0xB8F1
   RNC1_MakeHuffTail: 0xBB60
   RNC1_ReadWordLoROMSafe: 0xBB6F
+  APU_UploadBlockById_Wrapper: 0x1007E
   APU_ResolveBlockPointer: 0x1012A
-  APU_TransferStateInit: 0x10298
-  APU_StreamTransfer_Wrapper: 0x102A5
-  APU_StreamTransfer: 0x102A9
+  Text_HandleFCPositionControl: 0x18971
 memory:
   Frontend_SelectedRow: 0x7E000E
   Frontend_SelectedOption: 0x7E009B
@@ -15,6 +15,8 @@ memory:
   Race_ActiveState: 0x7E0313
   Player1_XPosition: 0x7E0411
   Player1_YPosition: 0x7E0415
+  Player1_ZFlipCount: 0x7E042B
+  Player1_TabletopCount: 0x7E042F
   Player1_XSpeed: 0x7E04B7
   Player1_YSpeed: 0x7E04BB
   Player1_PitchAngle: 0x7E04C7
@@ -22,9 +24,17 @@ memory:
   Player1_AirState: 0x7E0545
   Player1_FacedDirection: 0x7E0BA1
   Frontend_SelectedColumn: 0x7E0C63
+  Player1_ZRotationState: 0x7E0DFD
   CurrentPlayer_PitchScratch: 0x7E0F49
+  Player1_ZPreRotationState: 0x7E0F57
+  Player1_TwistCount: 0x7E0F61
+  Player1_XSpeed_Alternate: 0x7E0F9F
   Player1_ArrowDirection: 0x7E0FCB
   Player1_ArrowsVisible: 0x7E0FCC
   Race_CountdownTimer: 0x7E11BA
+  Player1_BoostMeter: 0x7E11CD
+  Player1_RollCount: 0x7E11F9
+  Player1_FlipCount: 0x7E11FD
   Race_ReverseControls: 0x7E132B
+  Camera_ScreenXPosition: 0x7E1509
   Course_ActiveDecodedPayload: 0x7F0000

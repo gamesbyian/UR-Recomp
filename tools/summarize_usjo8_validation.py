@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,15 +13,33 @@ JSON_OUT = ROOT / "analysis" / "generated" / "usjo8-validation-matrix.json"
 MD_OUT = ROOT / "analysis" / "generated" / "usjo8-validation-matrix.md"
 BT = chr(96)
 
-ROW_RE = re.compile(
-    r"^\\| `(?P<address>7E:[0-9A-F]{4})` \\| `(?P<name>[^`]+)` \\| "
-    r"(?P<width>[^|]+?) \\| (?P<confidence>\\d+) \\| (?P<notes>.*?) \\|$"
-)
-
 
 def to_symbol_address(address: str) -> str:
     raw = address.removeprefix("0x")
     return f"{raw[:2]}:{raw[2:]}"
+
+
+def parse_ram_symbols(text: str) -> dict[str, dict]:
+    symbols = {}
+    for line in text.splitlines():
+        if not line.startswith("| `7E:"):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) != 5:
+            continue
+        address = cells[0].strip("`")
+        name = cells[1].strip("`")
+        try:
+            confidence = int(cells[3])
+        except ValueError:
+            continue
+        symbols[address] = {
+            "name": name,
+            "width": cells[2],
+            "confidence": confidence,
+            "notes": cells[4],
+        }
+    return symbols
 
 
 def classify(confidence: int, width: str, notes: str) -> tuple[str, int, str]:
@@ -38,20 +55,8 @@ def classify(confidence: int, width: str, notes: str) -> tuple[str, int, str]:
     return "runtime-confirmed", 4, "No additional USJO-specific validation required unless new evidence conflicts."
 
 
-def main() -> None:
-    inventory = json.loads(INVENTORY.read_text(encoding="utf-8"))
-    symbols_text = SYMBOLS.read_text(encoding="utf-8")
-    symbols = {}
-    for line in symbols_text.splitlines():
-        match = ROW_RE.match(line)
-        if match:
-            symbols[match.group("address")] = {
-                "name": match.group("name"),
-                "width": match.group("width").strip(),
-                "confidence": int(match.group("confidence")),
-                "notes": match.group("notes"),
-            }
-
+def build_matrix(inventory: dict, symbols_text: str) -> dict:
+    symbols = parse_ram_symbols(symbols_text)
     rows = []
     for address, reads in inventory["memory_reads_by_address"].items():
         symbol_address = to_symbol_address(address)
@@ -73,17 +78,17 @@ def main() -> None:
             "next_action": action,
             "symbol_notes": symbol["notes"],
         })
-
     rows.sort(key=lambda row: (row["validation_priority"], row["confidence"], row["address"]))
-    payload = {
+    return {
         "schema_version": 1,
         "source_inventory": str(INVENTORY.relative_to(ROOT)),
         "source_symbols": str(SYMBOLS.relative_to(ROOT)),
         "entries": rows,
         "summary": {status: sum(row["status"] == status for row in rows) for status in sorted({row["status"] for row in rows})},
     }
-    JSON_OUT.write_text(json.dumps(payload, indent=2) + "\\n", encoding="utf-8")
 
+
+def render_markdown(payload: dict) -> str:
     lines = [
         "# USJO v8 validation matrix",
         "",
@@ -94,7 +99,7 @@ def main() -> None:
         "| Priority | Address | USJO variable | Canonical symbol | Confidence | Status | Next action |",
         "|---:|---|---|---|---:|---|---|",
     ]
-    for row in rows:
+    for row in payload["entries"]:
         lines.append(
             f"| {row['validation_priority']} | {BT}{row['address']}{BT} | "
             f"{BT}{', '.join(row['usjo_variables'])}{BT} | "
@@ -112,7 +117,14 @@ def main() -> None:
         "USJO-validation effort unless conflicting evidence appears.",
         "",
     ]
-    MD_OUT.write_text("\\n".join(lines), encoding="utf-8")
+    return "\n".join(lines)
+
+
+def main() -> None:
+    inventory = json.loads(INVENTORY.read_text(encoding="utf-8"))
+    payload = build_matrix(inventory, SYMBOLS.read_text(encoding="utf-8"))
+    JSON_OUT.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    MD_OUT.write_text(render_markdown(payload), encoding="utf-8")
 
 
 if __name__ == "__main__":

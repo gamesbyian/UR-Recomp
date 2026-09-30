@@ -124,8 +124,12 @@ jobs:
           SNESREF_TRACE_FILE="$TRACE" \
             "$EXE" "$CORE" "$ROM" >/dev/null 2>&1
 
+          CHECKPOINT_ARGS=()
+          for frame in $(seq 0 460); do
+            CHECKPOINT_ARGS+=(--checkpoint "$frame")
+          done
           python3 tools/summarize_wram_trace_checkpoints.py "$TRACE" \
-            --checkpoint 440 --checkpoint 441 --checkpoint 442 --checkpoint 443 --checkpoint 444 --checkpoint 445 --checkpoint 446 --checkpoint 447 --checkpoint 448 --checkpoint 449 --checkpoint 450 --checkpoint 451 --checkpoint 452 --checkpoint 453 --checkpoint 454 --checkpoint 455 --checkpoint 456 --checkpoint 457 --checkpoint 458 --checkpoint 459 --checkpoint 460 \
+            "${CHECKPOINT_ARGS[@]}" \
             --checkpoint 794 --checkpoint 800 --checkpoint 1000 --checkpoint 1200 \
             --checkpoint 1400 --checkpoint 1600 --checkpoint 1800 \
             --checkpoint 2000 --checkpoint 2200 --checkpoint 2400 \
@@ -202,7 +206,7 @@ jobs:
           from pathlib import Path
           import sys
           checkpoints = [
-              *range(440, 461),
+              *range(0, 461),
               794, 800, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400,
               2600, 2800, 2874, 2894, 3000, 3400, 3800, 4200, 4600, 5000,
           ]

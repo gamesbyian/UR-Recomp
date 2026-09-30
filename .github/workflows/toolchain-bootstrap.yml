@@ -72,6 +72,7 @@ jobs:
           - wla-dx
           - snes2asm
           - cc65
+          - snesrecomp
           - flips
           - bsnes-libretro
           - beetle-bsnes-libretro
@@ -83,13 +84,23 @@ jobs:
         run: |
           set -euo pipefail
           case "${{ matrix.tool }}" in
-            mesen-for-ai|snes2asm|superfamiconv|flips|wla-dx|beetle-bsnes-libretro|cc65)
+            mesen-for-ai|snes2asm|superfamiconv|flips|wla-dx|beetle-bsnes-libretro|cc65|snesrecomp)
               python3 tools/bootstrap_toolchain.py --offline --tool "${{ matrix.tool }}" --jobs 2
               ;;
             *)
               python3 tools/bootstrap_toolchain.py --tool "${{ matrix.tool }}" --jobs 2
               ;;
           esac
+      - name: Smoke repository-owned SNESRecomp archive
+        if: matrix.tool == 'snesrecomp'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -x .tools/src/snesrecomp/build-snesref/snesref
+          test -f .tools/src/snesrecomp/LICENSE
+          test ! -e .tools/src/snesrecomp/lib/recomp-net/CMakeLists.txt
+          test ! -e .tools/src/snesrecomp/lib/retcomm-rbengine/CMakeLists.txt
+
       - name: Smoke vendored da65 65816 mode
         if: matrix.tool == 'cc65'
         shell: bash

@@ -104,6 +104,9 @@ jobs:
           set -euo pipefail
           test -x .tools/src/snesrecomp/build-snesref/snesref
           test -f .tools/src/snesrecomp/LICENSE
+          test -f .tools/src/snesrecomp/recompiler-rs/.cargo/config.toml
+          test -d .tools/src/snesrecomp/recompiler-rs/vendor/serde_json-1.0.150
+          cmp third_party/cargo/snesrecomp-analyzer/Cargo.lock .tools/src/snesrecomp/recompiler-rs/Cargo.lock
           test ! -e .tools/src/snesrecomp/lib/recomp-net/CMakeLists.txt
           test ! -e .tools/src/snesrecomp/lib/retcomm-rbengine/CMakeLists.txt
 

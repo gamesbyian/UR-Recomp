@@ -43,6 +43,98 @@ def load(path: Path) -> dict:
         return json.load(f)
 
 
+def validate_dependency_closure(
+    comp: dict,
+    cid: str,
+    tool: dict | None,
+    errors: list[str],
+) -> None:
+    closure = comp.get("dependency_closure")
+    if closure is None:
+        return
+    if not isinstance(closure, dict):
+        errors.append(f"{cid}: dependency_closure must be an object")
+        return
+    if closure.get("type") != "cargo-vendor":
+        errors.append(
+            f"{cid}: unsupported dependency_closure type {closure.get('type')!r}"
+        )
+        return
+
+    vendor_path = closure.get("vendor_path")
+    config_path = closure.get("config_path")
+    if not isinstance(vendor_path, str) or not vendor_path:
+        errors.append(f"{cid}: cargo-vendor closure needs vendor_path")
+    elif not (ROOT / vendor_path).is_dir():
+        errors.append(f"{cid}: missing cargo vendor directory {vendor_path}")
+
+    if not isinstance(config_path, str) or not config_path:
+        errors.append(f"{cid}: cargo-vendor closure needs config_path")
+    else:
+        config = ROOT / config_path
+        if not config.is_file():
+            errors.append(f"{cid}: missing cargo config {config_path}")
+        else:
+            config_text = config.read_text(encoding="utf-8")
+            required = (
+                "[source.crates-io]",
+                'replace-with = "vendored-sources"',
+                "[source.vendored-sources]",
+                'directory = "vendor"',
+            )
+            for required_marker in required:
+                if required_marker not in config_text:
+                    errors.append(
+                        f"{cid}: cargo config missing required marker "
+                        f"{required_marker!r}"
+                    )
+
+    if closure.get("locked") is not True:
+        errors.append(f"{cid}: cargo-vendor closure must declare locked=true")
+    if closure.get("offline") is not True:
+        errors.append(f"{cid}: cargo-vendor closure must declare offline=true")
+    packages = closure.get("registry_packages")
+    if not isinstance(packages, int) or packages < 1:
+        errors.append(f"{cid}: cargo-vendor closure needs positive registry_packages")
+
+    lock_path = closure.get("cargo_lock_path")
+    if lock_path is not None:
+        if not isinstance(lock_path, str) or not lock_path:
+            errors.append(f"{cid}: cargo_lock_path must be a non-empty path")
+        elif not (ROOT / lock_path).is_file():
+            errors.append(f"{cid}: missing cargo lock file {lock_path}")
+
+    stage_into = closure.get("stage_into")
+    if stage_into is not None:
+        if (
+            not isinstance(stage_into, str)
+            or not stage_into
+            or Path(stage_into).is_absolute()
+            or ".." in Path(stage_into).parts
+        ):
+            errors.append(f"{cid}: invalid cargo closure stage_into {stage_into!r}")
+        if isinstance(config_path, str) and (ROOT / config_path).is_file():
+            config_text = (ROOT / config_path).read_text(encoding="utf-8")
+            if "[net]" not in config_text or "offline = true" not in config_text:
+                errors.append(
+                    f"{cid}: staged cargo closure config must force net.offline"
+                )
+        return
+
+    if tool is None:
+        errors.append(f"{cid}: cargo-vendor closure needs toolchain entry")
+        return
+    cargo_builds = [
+        cmd
+        for cmd in tool.get("build", [])
+        if isinstance(cmd, list) and cmd and cmd[0] == "cargo"
+    ]
+    if not cargo_builds:
+        errors.append(f"{cid}: cargo-vendor closure needs cargo build command")
+    elif not any("--locked" in cmd and "--offline" in cmd for cmd in cargo_builds):
+        errors.append(f"{cid}: cargo build must require --locked and --offline")
+
+
 def validate() -> tuple[list[str], list[str]]:
     errors: list[str] = []
     notes: list[str] = []
@@ -122,6 +214,8 @@ def validate() -> tuple[list[str], list[str]]:
             if not pp.is_file():
                 errors.append(f"{cid}: missing provenance file {provenance_path}")
 
+        validate_dependency_closure(comp, cid, tool, errors)
+
         if mode == "vendored":
             if not isinstance(source_path, str) or not source_path:
                 errors.append(f"{cid}: vendored component needs source_path")
@@ -134,58 +228,6 @@ def validate() -> tuple[list[str], list[str]]:
                 if actual != digest:
                     errors.append(f"{cid}: source tree hash drift {actual} != {digest}")
 
-            closure = comp.get("dependency_closure")
-            if closure is not None:
-                if not isinstance(closure, dict):
-                    errors.append(f"{cid}: dependency_closure must be an object")
-                elif closure.get("type") != "cargo-vendor":
-                    errors.append(
-                        f"{cid}: unsupported dependency_closure type "
-                        f"{closure.get('type')!r}"
-                    )
-                else:
-                    vendor_path = closure.get("vendor_path")
-                    config_path = closure.get("config_path")
-                    if not isinstance(vendor_path, str) or not vendor_path:
-                        errors.append(f"{cid}: cargo-vendor closure needs vendor_path")
-                    elif not (ROOT / vendor_path).is_dir():
-                        errors.append(f"{cid}: missing cargo vendor directory {vendor_path}")
-                    if not isinstance(config_path, str) or not config_path:
-                        errors.append(f"{cid}: cargo-vendor closure needs config_path")
-                    else:
-                        config = ROOT / config_path
-                        if not config.is_file():
-                            errors.append(f"{cid}: missing cargo config {config_path}")
-                        else:
-                            config_text = config.read_text(encoding="utf-8")
-                            required = (
-                                "[source.crates-io]",
-                                'replace-with = "vendored-sources"',
-                                "[source.vendored-sources]",
-                                'directory = "vendor"',
-                            )
-                            for marker in required:
-                                if marker not in config_text:
-                                    errors.append(
-                                        f"{cid}: cargo config missing required marker {marker!r}"
-                                    )
-                    if tool is None:
-                        errors.append(f"{cid}: cargo-vendor closure needs toolchain entry")
-                    else:
-                        cargo_builds = [
-                            cmd
-                            for cmd in tool.get("build", [])
-                            if isinstance(cmd, list) and cmd and cmd[0] == "cargo"
-                        ]
-                        if not cargo_builds:
-                            errors.append(f"{cid}: cargo-vendor closure needs cargo build command")
-                        elif not any(
-                            "--locked" in cmd and "--offline" in cmd
-                            for cmd in cargo_builds
-                        ):
-                            errors.append(
-                                f"{cid}: cargo build must require --locked and --offline"
-                            )
         elif mode == "archive":
             if not isinstance(archive_path, str) or not archive_path:
                 errors.append(f"{cid}: archive component needs archive_path")

@@ -59,7 +59,7 @@ Do not vendor SDL3 merely because SNESRecomp supports doing so. Measure the proj
 
 `recompiler-rs` is a Rust 2021 package with minimum Rust 1.85 and one direct dependency, `serde_json = "1"`.
 
-Its pinned `Cargo.lock` currently resolves ten registry packages:
+Its pinned `Cargo.lock` currently resolves eleven registry packages:
 
 - itoa 1.0.18
 - memchr 2.8.3
@@ -142,9 +142,9 @@ C2 proved this is a runtime/backend dependency, not the generation-time network 
 
 Resolve the first demonstrated SDL3 dependency either as a documented host prerequisite or exact local SDL3 source/archive. Force `SNESRECOMP_SDL3_FETCH=OFF` in the offline gate unless a local `SNESRECOMP_SDL3_SOURCE_DIR` is explicitly supplied.
 
-### C4 — Rust analyzer closure — now baseline-critical
+### C4 — Rust analyzer closure — complete
 
-C2 proved the canonical generation path invokes `recompiler-rs` and that a fresh offline Cargo home cannot build it. Vendor its locked Cargo closure and require `--locked --offline`. The registry surface is small and bounded, so this is the immediate next implementation tranche before C3.
+C2 proved the canonical generation path invokes `recompiler-rs`. PR #68 vendors the exact locked closure: 11 registry packages, 476 files and 5,874,431 bytes. Bootstrap overlays the repository-owned Cargo source config and `vendor/` tree into the disposable staged `recompiler-rs` directory while byte-checking its copied `Cargo.lock` against the immutable framework archive. Acquisition run `36667274511` proves an empty-`CARGO_HOME` `cargo build --locked --offline --release --bin snesrecomp-analyze` succeeds. A broad repository `private/` ignore initially omitted checksum-protected crate files; the repair gate force-tracks the complete vendor tree and proves worktree/index parity at 476 files. Final network audit `36668207804` proves both SDL2 and SDL3-fetch-off lanes rebuild the analyzer from empty Cargo homes, regenerate Uniracers, and make zero observed AF_INET/AF_INET6 connect/send attempts during project generation/configure/build. SDL2 also completes the full native executable build. Rust 1.97.1 remains an explicit host/compiler prerequisite provisioned before tracing.
 
 ### C5 — optional features
 
@@ -165,7 +165,7 @@ Only after the baseline build is green:
 
 ## Immediate next experiment
 
-Proceed immediately to the now-demonstrated C4 native-analyzer Cargo closure. After generation is genuinely offline, resolve C3 SDL3 policy and migrate the permanent native build smoke away from recursive SNESRecomp submodule checkout.
+C4 is complete. Resolve C3 SDL3 policy next, then migrate the permanent native build smoke away from recursive SNESRecomp submodule checkout.
 
 The safest first artifact is an exact source archive or mechanically materialized tree of `cd5875c...`, accompanied by:
 

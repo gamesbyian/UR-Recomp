@@ -30,6 +30,25 @@
     "contents of lib/recomp-net gitlink",
     "contents of lib/retcomm-rbengine gitlink"
   ],
-  "dependency_closure": "C1 proves framework source ownership and the tools/snesref build only. Optional Lua, netplay/rollback, SDL source fallback, and Rust analyzer registry closure are classified separately in docs/SNESRECOMP-ISLAND-SCOPE.md.",
-  "build_contract": "bootstrap_toolchain.py --offline --tool snesrecomp safely extracts the repository-owned archive and builds tools/snesref with CMake. No SNESRecomp GitHub fetch is permitted."
+  "dependency_closure": {
+    "native_analyzer": {
+      "crate": "recompiler-rs",
+      "cargo_lock_path": "third_party/cargo/snesrecomp-analyzer/Cargo.lock",
+      "vendor_path": "third_party/cargo/snesrecomp-analyzer/vendor",
+      "config_path": "third_party/cargo/snesrecomp-analyzer/config.toml",
+      "registry_packages": 11,
+      "vendor_files": 476,
+      "vendor_bytes": 5874431,
+      "acquisition_run": 36667274511,
+      "locked": true,
+      "offline": true,
+      "staging": "bootstrap overlays .cargo/config.toml and vendor/ into staged recompiler-rs while requiring the closure Cargo.lock to match the immutable framework archive"
+    },
+    "host_boundary": {
+      "rust_toolchain": "1.97.1",
+      "policy": "Rust remains an ordinary host/compiler prerequisite and is provisioned before network tracing; project generation must make no outbound network calls after host setup."
+    },
+    "optional": "Lua, netplay/rollback and SDL3 source fallback remain classified separately in docs/SNESRECOMP-ISLAND-SCOPE.md."
+  },
+  "build_contract": "bootstrap_toolchain.py --offline --tool snesrecomp safely extracts the repository-owned framework archive and overlays the locked analyzer Cargo vendor closure. The ordinary snesref smoke and the canonical generation audit must consume only staged repository-owned project dependencies; optional nested netplay contents remain absent."
 }

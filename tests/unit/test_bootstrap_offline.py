@@ -82,6 +82,62 @@ class BootstrapOfflineTests(unittest.TestCase):
             self.assertEqual(actual, stage / "framework")
             self.assertEqual((actual / "nested" / "value.txt").read_bytes(), payload)
 
+
+    def test_archive_stage_overlays_nested_cargo_closure(self) -> None:
+        tool = {
+            "id": "framework",
+            "url": "https://github.com/example/framework.git",
+            "revision": "0" * 40,
+        }
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            archive = root / "framework.tar.gz"
+            lock = b"version = 4\n"
+            with tarfile.open(archive, "w:gz") as tf:
+                for name, payload in (
+                    ("recompiler-rs/Cargo.lock", lock),
+                    ("recompiler-rs/Cargo.toml", b"[package]\nname='x'\nversion='0.1.0'\n"),
+                ):
+                    info = tarfile.TarInfo(name)
+                    info.size = len(payload)
+                    tf.addfile(info, io.BytesIO(payload))
+
+            vendor = root / "cargo" / "vendor" / "dep-1.0.0"
+            vendor.mkdir(parents=True)
+            (vendor / "Cargo.toml").write_text("[package]\nname='dep'\nversion='1.0.0'\n")
+            config = root / "cargo" / "config.toml"
+            config.write_text(
+                '[source.crates-io]\nreplace-with = "vendored-sources"\n'
+                '[source.vendored-sources]\ndirectory = "vendor"\n'
+                '[net]\noffline = true\n',
+                encoding="utf-8",
+            )
+            closure_lock = root / "cargo" / "Cargo.lock"
+            closure_lock.write_bytes(lock)
+
+            island = {
+                "framework": {
+                    "id": "framework",
+                    "mode": "archive",
+                    "archive_path": "framework.tar.gz",
+                    "dependency_closure": {
+                        "type": "cargo-vendor",
+                        "vendor_path": "cargo/vendor",
+                        "config_path": "cargo/config.toml",
+                        "cargo_lock_path": "cargo/Cargo.lock",
+                        "stage_into": "recompiler-rs",
+                    },
+                }
+            }
+            stage = root / ".tools" / "src"
+            with mock.patch.object(bootstrap, "ROOT", root):
+                actual = bootstrap.ensure_source(tool, stage, island, offline=True)
+
+            crate = actual / "recompiler-rs"
+            self.assertTrue((crate / "vendor" / "dep-1.0.0" / "Cargo.toml").is_file())
+            self.assertTrue((crate / ".cargo" / "config.toml").is_file())
+            self.assertEqual((crate / "Cargo.lock").read_bytes(), lock)
+
     def test_vendored_patch_targets_staged_copy_without_git_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

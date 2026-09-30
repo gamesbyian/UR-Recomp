@@ -215,8 +215,18 @@
       "source_sha256": "cc5043c4477adaa31210efb88c3423344e2195044e4366795cf1c563e1014b56",
       "license_spdx": "PolyForm-Noncommercial-1.0.0",
       "license_path": "third_party/provenance/snesrecomp-LICENSE.txt",
-      "notes": "Exact deterministic git-archive snapshot of the pinned SNESRecomp framework. Nested optional gitlinks lib/recomp-net and lib/retcomm-rbengine are recorded in provenance but are intentionally not dereferenced into this baseline archive.",
-      "provenance_path": "third_party/provenance/snesrecomp.json"
+      "notes": "Exact deterministic git-archive snapshot of the pinned SNESRecomp framework. Nested optional gitlinks lib/recomp-net and lib/retcomm-rbengine are recorded in provenance but are intentionally not dereferenced into this baseline archive. The baseline native analyzer Cargo registry closure is repository-owned separately and overlaid into recompiler-rs at staging time.",
+      "provenance_path": "third_party/provenance/snesrecomp.json",
+      "dependency_closure": {
+        "type": "cargo-vendor",
+        "vendor_path": "third_party/cargo/snesrecomp-analyzer/vendor",
+        "config_path": "third_party/cargo/snesrecomp-analyzer/config.toml",
+        "cargo_lock_path": "third_party/cargo/snesrecomp-analyzer/Cargo.lock",
+        "locked": true,
+        "offline": true,
+        "registry_packages": 11,
+        "stage_into": "recompiler-rs"
+      }
     }
   ]
 }

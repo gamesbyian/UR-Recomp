@@ -103,6 +103,8 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 
 - [x] Locate public source for Dessyreqt's 2014 full-game real-time Uniracers bot (Pastebin `A0XpKw9v`).
 - [x] Preserve the source and submitted #4250 SMV in the repository with hashes/provenance.
+- [x] Preserve recovered **USJO internal v8** exactly as `references/imported/tas-bots/usjo8.lua`, with provenance/hashes. Treat the still-missing v13 as a passive later-delta target rather than a blocker.
+- [ ] Inventory every v8 RAM read, timing constant, stunt-state transition and boost/scoring rule; promote only locally reproduced semantics into `SYMBOLS.md`, `RESEARCH-LEDGER.md` and deterministic stunt/boost fixtures.
 - [~] Verify the bot's key RAM labels against the canonical ROM/runtime. Frontend/race-entry state is verified; the active race-acceleration fixture is now testing the effective Lua player-1 X position/speed fields (`7E:0411`, `7E:04B7`) and related recovered state. Duplicate player-1 Lua keys have been resolved by actual Lua overwrite semantics. The historical 2008 Microstorage WIP SMV remains a second deterministic input corpus.
 - [x] Port the clean menu-driving route into the shared native/snesref deterministic input harness through race entry.
 - [~] Evaluate its race-driving policy as an autonomous regression workload. The preserved 2014 SMV now has a deterministic extractor and a confirmed pinned-Snes9x first-race/results replay with durable frame/state evidence. Prefer replaying this exact historical input through native before porting more state-responsive policy logic.

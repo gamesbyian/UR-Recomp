@@ -364,7 +364,8 @@
       "Extended block 0x3D byte-matches only Unused Song 2 at APU 0x1D00 among preserved SPC snapshots.",
       "Neither 0x3B nor 0x3D has an ordinary setup-wrapper call or known setup+package pair.",
       "03:FB95 has zero direct package-transfer callers.",
-      "03:FB95 is a slot-preserving strict subset of called Celebration table 03:FAD5."
+      "03:FB95 is a slot-preserving strict subset of called Celebration table 03:FAD5.",
+      "Package reuse is normal in reachable content: selectors 0x3E-0x42 for all five numbered race songs share package table 03:FB55."
     ],
     "hypothesis": "Package reuse is at least as plausible as orphan-table use for Unused Song 1. The ranking should be recomputed from the full package-block correlation before controlled reconstruction chooses between candidate tables.",
     "unused_song_2_race_package_corroboration": {
@@ -384,6 +385,139 @@
         "Unused Song 2"
       ],
       "unused_song_2_same_offset": true
+    }
+  },
+  "reachable_song_package_matrix": [
+    {
+      "selector": "0x38",
+      "track_matches": [
+        "Demo Race"
+      ],
+      "package_tables": [
+        "0x03FB15"
+      ]
+    },
+    {
+      "selector": "0x39",
+      "track_matches": [
+        "Title Screen"
+      ],
+      "package_tables": [
+        "0x03FBD5"
+      ]
+    },
+    {
+      "selector": "0x3A",
+      "track_matches": [
+        "Celebration"
+      ],
+      "package_tables": [
+        "0x03FAD5"
+      ]
+    },
+    {
+      "selector": "0x3B",
+      "track_matches": [
+        "Unused Song 1"
+      ],
+      "package_tables": []
+    },
+    {
+      "selector": "0x3C",
+      "track_matches": [
+        "unidentified in preserved SPC set"
+      ],
+      "package_tables": [
+        "0x03FC15"
+      ]
+    },
+    {
+      "selector": "0x3D",
+      "track_matches": [
+        "Unused Song 2"
+      ],
+      "package_tables": []
+    },
+    {
+      "selector": "0x3E",
+      "track_matches": [
+        "1st Race"
+      ],
+      "package_tables": [
+        "0x03FB55"
+      ]
+    },
+    {
+      "selector": "0x3F",
+      "track_matches": [
+        "2nd Race"
+      ],
+      "package_tables": [
+        "0x03FB55"
+      ]
+    },
+    {
+      "selector": "0x40",
+      "track_matches": [
+        "5th Race"
+      ],
+      "package_tables": [
+        "0x03FB55"
+      ]
+    },
+    {
+      "selector": "0x41",
+      "track_matches": [
+        "3rd Race"
+      ],
+      "package_tables": [
+        "0x03FB55"
+      ]
+    },
+    {
+      "selector": "0x42",
+      "track_matches": [
+        "4th Race"
+      ],
+      "package_tables": [
+        "0x03FB55"
+      ]
+    }
+  ],
+  "package_reuse_summary": {
+    "0x03FB15": {
+      "selectors": [
+        "0x38"
+      ],
+      "count": 1
+    },
+    "0x03FBD5": {
+      "selectors": [
+        "0x39"
+      ],
+      "count": 1
+    },
+    "0x03FAD5": {
+      "selectors": [
+        "0x3A"
+      ],
+      "count": 1
+    },
+    "0x03FC15": {
+      "selectors": [
+        "0x3C"
+      ],
+      "count": 1
+    },
+    "0x03FB55": {
+      "selectors": [
+        "0x3E",
+        "0x3F",
+        "0x40",
+        "0x41",
+        "0x42"
+      ],
+      "count": 5
     }
   }
 }

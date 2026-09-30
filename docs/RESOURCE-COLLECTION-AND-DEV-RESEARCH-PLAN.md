@@ -33,6 +33,7 @@ The following are considered established unless contradicted by stronger evidenc
 - jgenesis supplies concrete expected HBlank OAM writes in Vs. mode: scanlines 0 and 112, values 0xA5 and 0x5A, affecting high OAM for sprites 96-99.
 - The recovered Canoe patch hooks original ROM code at offsets `0x01534C` and `0x015714`.
 - TAS and RetroAchievements sources provide useful WRAM/SRAM anchors for speed, boost, position, stunt state, medal state, and progression.
+- USJO internal version 8 (2008-02-10) is preserved as exact source under `references/imported/tas-bots/usjo8.lua`. It directly exposes the historical stunt optimizer's savestate search loop, RAM reads, timing constants, stunt counters, boost scoring model and best-input replay behavior.
 - Historical SNasm 1.7.1 is preserved locally, and Dailly's documented 65816 syntax/conventions provide lineage evidence for future reconstructed assembly.
 - The strict native smoke harness builds and launches the actual `UniracersSNESRecomp` target. Deterministic controller-only input reaches the first one-player race in both native SNESRecomp and Snes9x/snesref. The former seven-byte settled race-entry WRAM mismatch is now explained: four bytes are stale stack residue and three are free-running timing/phase counters.
 
@@ -150,22 +151,23 @@ Missing-artifact priority is now marginal-value based rather than completeness b
 **P0 — active hunt because the artifact could materially reduce reverse-engineering work**
 1. Mike Dailly's historical SNES framework source.
 2. Original Uniracers/DMA development-tool source/binaries/screenshots, especially the editor, compression and conversion pipeline.
-3. `usjo13.lua` / Uniracers Stunts & Jump Optimizer v13. Recovery is passive-only: no outreach to historical authors, TASers, site owners, forum users, or other people.
+3. Original Uniracers/DMA development artifacts adjacent to already-known tooling, especially anything that exposes editor/physics/conversion internals.
 
 **P1 — useful independent evidence; pursue opportunistically**
-4. Sinister Translations' independent 100% patch.
-5. Actual FallThrough/Jumpover savestates or SMVs and other movies with unique behavioral coverage.
-6. Dailly Flickr/Wayback material specifically attributable to Uniracers/`1x1`.
+4. `usjo13.lua` or later USJO siblings. Internal v8 is now recovered and actionable, so v13 is a passive delta-recovery target rather than a blocker; do not wait on it before using v8.
+5. Sinister Translations' independent 100% patch.
+6. Actual FallThrough/Jumpover savestates or SMVs and other movies with unique behavioral coverage.
+7. Dailly Flickr/Wayback material specifically attributable to Uniracers/`1x1`.
 
 **P2 — optional accelerants; easy acquisition only**
-7. Halamantariel's historical boost table, because surviving TASVideos posts already preserve several of its important conclusions and local physics tests can recover the rest.
-8. Uniracers-specific Hammond/DMA archive material, manual scans, and course-map/reference-image corpora.
+8. Halamantariel's historical boost table, because surviving TASVideos posts already preserve several of its important conclusions and local physics tests can recover the rest.
+9. Uniracers-specific Hammond/DMA archive material, manual scans, and course-map/reference-image corpora.
 
 **P3 — archival tail; keep searchable but do not build recovery machinery around it**
-9. SNasm 1.7.2 after 1.7.1 and the modern descendant are already preserved.
-10. gamesTM issue 64 unless inspection proves it contains material omitted from the Nintendo Life republication.
-11. Uniracers Uncensored unless a patch file reappears through a cheap direct/archive route.
-12. Generic DMA media or fan-remake media without source, measurements, or Uniracers-specific technical evidence.
+10. SNasm 1.7.2 after 1.7.1 and the modern descendant are already preserved.
+11. gamesTM issue 64 unless inspection proves it contains material omitted from the Nintendo Life republication.
+12. Uniracers Uncensored unless a patch file reappears through a cheap direct/archive route.
+13. Generic DMA media or fan-remake media without source, measurements, or Uniracers-specific technical evidence.
 
 The full per-artifact need judgment lives in `docs/original-development/ACQUISITION-LEDGER.md`. P2/P3 artifacts remain valid leads, but no milestone should wait for them.
 
@@ -239,7 +241,7 @@ This rule is intended to prevent local tunnel vision and repeated reinvention, n
 Searches should now begin from exact names, filenames, URLs, people, or technical behaviors rather than generic Uniracers terms.
 
 Preferred search keys:
-- `usjo13.lua`
+- `usjo8.lua`, `usjo13.lua`, and adjacent USJO version-family names
 - `Uniracers Stunts & Jump Optimizer`
 - plausible USJO version-family names (`usjo1.lua` through later variants) and directory-level backups containing sibling SMV/SRM/WR files
 - published Uniracers WRAM literals combined with period Snes9x Lua APIs, to find renamed/copied descendants

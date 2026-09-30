@@ -5,17 +5,17 @@ CPU setup calls, and 64-byte package-table callers.
 
 | Extended selector | SPC byte match | Setup call exists | Known package pair |
 |---|---|---|---|
-| `0x38` | Demo Race | true | true |
-| `0x39` | Title Screen | true | true |
-| `0x3A` | Celebration | true | true |
-| `0x3B` | Unused Song 1 | false | false |
-| `0x3C` | none | true | true |
-| `0x3D` | Unused Song 2 | false | false |
-| `0x3E` | 1st Race | true | true |
-| `0x3F` | 2nd Race | true | true |
-| `0x40` | 5th Race | true | true |
-| `0x41` | 3rd Race | true | true |
-| `0x42` | 4th Race | true | true |
+| `0x38` | Demo Race | True | True |
+| `0x39` | Title Screen | True | True |
+| `0x3A` | Celebration | True | True |
+| `0x3B` | Unused Song 1 | False | False |
+| `0x3C` | none | True | True |
+| `0x3D` | Unused Song 2 | False | False |
+| `0x3E` | 1st Race | True | True |
+| `0x3F` | 2nd Race | True | True |
+| `0x40` | 5th Race | True | True |
+| `0x41` | 3rd Race | True | True |
+| `0x42` | 4th Race | True | True |
 
 ## Closed reachability facts
 

@@ -1,10 +1,12 @@
-name: One-shot audio startup cross-core probe
+name: Audio startup cross-core regression
 
 on:
   workflow_dispatch:
   push:
     paths:
       - "tools/analyze_reference_audio_windows.py"
+      - "tests/input/reach-first-race.script"
+      - "tools/toolchain.json"
       - ".github/workflows/audio-startup-cross-core.yml"
 
 jobs:

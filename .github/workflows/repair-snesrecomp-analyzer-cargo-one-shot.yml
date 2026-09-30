@@ -1,0 +1,64 @@
+name: One-shot repair analyzer Cargo vendor tracking
+
+on:
+  push:
+    paths:
+      - ".github/workflows/repair-snesrecomp-analyzer-cargo-one-shot.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.ref == 'refs/heads/chatgpt/snesrecomp-c4-analyzer-cargo-2026-09-29'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/snesrecomp-c4-analyzer-cargo-2026-09-29
+          fetch-depth: 0
+
+      - name: Stage exact framework
+        run: python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+
+      - name: Regenerate exact locked vendor closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          CRATE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/recompiler-rs"
+          ROOT="$GITHUB_WORKSPACE/third_party/cargo/snesrecomp-analyzer"
+          rm -rf "$ROOT/vendor"
+          mkdir -p "$ROOT/vendor"
+          cd "$CRATE"
+          cargo vendor --locked --versioned-dirs "$ROOT/vendor" >/dev/null
+          cp Cargo.lock "$ROOT/Cargo.lock"
+
+      - name: Force-track every vendor file and verify index completeness
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=third_party/cargo/snesrecomp-analyzer
+          git add -f "$ROOT"
+
+          WORKTREE_LIST="$RUNNER_TEMP/vendor-worktree-files.txt"
+          INDEX_LIST="$RUNNER_TEMP/vendor-index-files.txt"
+          find "$ROOT/vendor" -type f -printf '%p\n' | sort > "$WORKTREE_LIST"
+          git ls-files "$ROOT/vendor" | sort > "$INDEX_LIST"
+          echo "worktree_vendor_files=$(wc -l < "$WORKTREE_LIST")"
+          echo "index_vendor_files=$(wc -l < "$INDEX_LIST")"
+          diff -u "$WORKTREE_LIST" "$INDEX_LIST"
+
+          test "$(wc -l < "$WORKTREE_LIST")" -eq 476
+          test -f "$ROOT/vendor/serde_core-1.0.228/src/private/seed.rs"
+          git ls-files --error-unmatch "$ROOT/vendor/serde_core-1.0.228/src/private/seed.rs"
+
+      - name: Commit repaired closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --cached --quiet && { echo "Vendor closure already fully tracked"; exit 0; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "vendor: force-track complete analyzer Cargo closure"
+          git push origin HEAD:chatgpt/snesrecomp-c4-analyzer-cargo-2026-09-29

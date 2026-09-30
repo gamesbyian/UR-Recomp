@@ -190,3 +190,6 @@ This repeats at checkpoints 1140, 1240, 1340, 1440 and 1620. The selector-screen
 `tools/assert_uniracers_vs_oam_seam.py` encodes the two active-display writes as a durable regression assertion. The persistent VS reference workflow also runs the same frozen controller stream through the independent Beetle/bsnes core to verify that the route itself reaches stable split-screen gameplay without relying solely on Snes9x's title-specific compatibility behavior.
 
 This closes the recovered **observability + scene reachability** blocker for the famous OAM seam. It does not close all multiplayer work: ordinary 2P mode, native/Mesen parity, paired P1/P2 physics/state fields, and widescreen behavior remain separate obligations.
+
+
+The active-display writes are driven by a stable WRAM HDMA table at `7E:206C`: `70 A5 70 5A 00`. HDMA channel 1 runs mode 0 to `$2104`, producing the observed 112-line split. Future OAM archaeology can therefore start from a tiny deterministic source table instead of rediscovering the raster schedule.

@@ -93,7 +93,10 @@ jobs:
               --no-build \
               >"$RUNNER_TEMP/scaffold-${BACKEND,,}.log" 2>&1
           cat "$RUNNER_TEMP/scaffold-${BACKEND,,}.log"
-          test -s "$TMP/UniracersSNESRecomp/src/gen/functions.c"
+          GEN="$TMP/UniracersSNESRecomp/src/gen"
+          COUNT="$(find "$GEN" -maxdepth 1 -type f -name '*.c' -size +0c | wc -l)"
+          echo "generated_c_files=$COUNT"
+          test "$COUNT" -ge 1
           echo "PROJECT_ROOT=$TMP/UniracersSNESRecomp" >> "$GITHUB_ENV"
 
       - name: Configure and build with source fetching disabled

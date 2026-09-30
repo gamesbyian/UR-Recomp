@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import importlib.util
 from pathlib import Path
 import tempfile
+import tarfile
 import unittest
 from unittest import mock
 
@@ -46,6 +48,39 @@ class BootstrapOfflineTests(unittest.TestCase):
                 actual = bootstrap.ensure_source(tool, Path(td), island, offline=False)
         self.assertEqual(actual, sentinel)
         checkout.assert_called_once()
+
+
+    def test_offline_archive_component_extracts_without_git_fallback(self) -> None:
+        tool = {
+            "id": "framework",
+            "url": "https://github.com/example/framework.git",
+            "revision": "0" * 40,
+        }
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            archive = root / "framework.tar.gz"
+            payload = b"local archive source\n"
+            with tarfile.open(archive, "w:gz") as tf:
+                info = tarfile.TarInfo("nested/value.txt")
+                info.size = len(payload)
+                tf.addfile(info, io.BytesIO(payload))
+
+            island = {
+                "framework": {
+                    "id": "framework",
+                    "mode": "archive",
+                    "archive_path": "framework.tar.gz",
+                }
+            }
+            stage = root / ".tools" / "src"
+            with mock.patch.object(bootstrap, "ROOT", root):
+                with mock.patch.object(
+                    bootstrap, "ensure_checkout", side_effect=AssertionError("network fallback")
+                ):
+                    actual = bootstrap.ensure_source(tool, stage, island, offline=True)
+
+            self.assertEqual(actual, stage / "framework")
+            self.assertEqual((actual / "nested" / "value.txt").read_bytes(), payload)
 
     def test_vendored_patch_targets_staged_copy_without_git_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as td:

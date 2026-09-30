@@ -128,7 +128,14 @@ Halamantariel linked a dedicated boost/mechanics page:
 
 `http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/Uniracers.html`
 
-The page reportedly contained a boost table including head-bounce values and was used to reason about optimal stunt ordering. The live page has not yet been recovered.
+The page itself has not been recovered, but the surrounding 2008 TASVideos discussion preserves enough of its operational conclusions that the missing HTML is no longer a high-priority dependency:
+
+- Halamantariel said the table included head-bounce boost values and made optimal stunt ordering directly inferable.
+- He stated that a flip should come first, and that using one of each stunt before repeating a stunt is faster, giving `FRZ` versus `F2R` as an example.
+- The same post publishes the WRAM watch list reproduced above.
+- Follow-up discussion explicitly says exact per-button frame counts vary with the unicycle's angle, and Halamantariel considered the memory watches plus trial-and-error sufficient for perfect jump optimization.
+
+The 2026-09-29 automated acquisition probe found no Wayback CDX snapshot for the **exact file URL**, despite an archived parent-directory listing that fingerprints `Uniracers.html` at 2.33 KB. Keep looking laterally for mirrors or archived directory payloads, but treat the page as P2: useful corroboration if recovered, not something to block local physics work on.
 
 ## Public 2008 TAS WIP
 

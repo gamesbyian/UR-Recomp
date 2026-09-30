@@ -97,7 +97,8 @@ sources:
     url: "https://romhackplaza.org/"
     author: "_Q_"
     release_date: "2018-09-30"
-    rights: "Patch should be mirrored if publicly downloadable. Treat as third-party research reference; do not infer ownership of underlying game data."
+    status: "record survives on Romhack Plaza, but current page reports no downloadable files; archival-tail lead"
+    rights: "Patch should be mirrored if a surviving public file reappears. Treat as third-party research reference; do not infer ownership of underlying game data."
     relevance: "Reportedly overwrites the banned-name list, making it a lead for locating name-validation data/code."
 
   - id: snes-central-hardware
@@ -283,8 +284,11 @@ sources:
     type: manual_scan
     url: "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf"
     pages: 40
-    status: "public PDF located; binary not yet mirrored"
-    rights: "Copyrighted manual scan; research reference."
+    status: "acquired and preserved 2026-09-29"
+    imported: "references/imported/manuals/Uniracers-USA-manual.pdf"
+    size_bytes: 6006270
+    sha256: "50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235"
+    rights: "Copyrighted manual scan; preserved as research reference."
     relevance: "Primary player-facing documentation including controls, stunts, tracks, tours, hints and a Techie Notes section."
 
   - id: mobygames-pal-course-maps
@@ -515,7 +519,7 @@ sources:
     public_date: "2002-03-28"
     observed_version: "85% complete"
     later_index_version: "1.0b"
-    status: "original ZIP recovered from archived site repository; patch analysis pending canonical-ROM classification"
+    status: "original ZIP recovered; canonical-ROM touched-range analysis, control-byte vocabulary, reader candidates and FC layout semantics landed"
     rights: "Translation-site metadata and third-party patch; patch redistribution rights not established."
     relevance: "Primary release post plus archived site repository recover the original patch and translator identity, enabling direct touched-ROM analysis."
 

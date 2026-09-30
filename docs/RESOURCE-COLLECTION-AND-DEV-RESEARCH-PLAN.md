@@ -145,15 +145,29 @@ Actions:
 
 Broad "find everything Uniracers" searching is now lower priority.
 
-Highest-value missing artifacts:
+Missing-artifact priority is now marginal-value based rather than completeness based:
+
+**P0 — active hunt because the artifact could materially reduce reverse-engineering work**
 1. Mike Dailly's historical SNES framework source.
-2. `usjo13.lua` / Uniracers Stunts & Jump Optimizer v13.
-3. Halamantariel's historical boost table.
-4. Old Uniracers SMV/WIP files and fall-through-glitch savestates.
-5. Original 1993-era SNasm or Uniracers-specific development-tool source/binaries/screenshots.
+2. Original Uniracers/DMA development-tool source/binaries/screenshots, especially the editor, compression and conversion pipeline.
+3. `usjo13.lua` / Uniracers Stunts & Jump Optimizer v13.
+
+**P1 — useful independent evidence; pursue opportunistically**
+4. Sinister Translations' independent 100% patch.
+5. Actual FallThrough/Jumpover savestates or SMVs and other movies with unique behavioral coverage.
 6. Dailly Flickr/Wayback material specifically attributable to Uniracers/`1x1`.
-7. Published Hammond/DMA archive material that contains Uniracers-specific development documents.
-8. gamesTM issue 64 only if its physical layout/captions/images can add material omitted from the Nintendo Life republication.
+
+**P2 — optional accelerants; easy acquisition only**
+7. Halamantariel's historical boost table, because surviving TASVideos posts already preserve several of its important conclusions and local physics tests can recover the rest.
+8. Uniracers-specific Hammond/DMA archive material, manual scans, and course-map/reference-image corpora.
+
+**P3 — archival tail; keep searchable but do not build recovery machinery around it**
+9. SNasm 1.7.2 after 1.7.1 and the modern descendant are already preserved.
+10. gamesTM issue 64 unless inspection proves it contains material omitted from the Nintendo Life republication.
+11. Uniracers Uncensored unless a patch file reappears through a cheap direct/archive route.
+12. Generic DMA media or fan-remake media without source, measurements, or Uniracers-specific technical evidence.
+
+The full per-artifact need judgment lives in `docs/original-development/ACQUISITION-LEDGER.md`. P2/P3 artifacts remain valid leads, but no milestone should wait for them.
 
 For every recovered artifact:
 - preserve original filename;

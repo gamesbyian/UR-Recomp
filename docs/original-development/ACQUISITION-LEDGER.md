@@ -1,8 +1,25 @@
 # External Artifact Acquisition Ledger
 
-Last updated: 2026-09-28
+Last updated: 2026-09-29
 
 This tracks both acquired and still-missing external artifacts, with provenance and next actions.
+
+## Acquisition triage rule
+
+A missing artifact is not automatically a project dependency. Keep searching for all listed leads, but spend effort according to expected forward value:
+
+- **P0 / high leverage** — likely to expose implementation behavior, original code/tool semantics, or hard-to-reconstruct mechanics. Active archival hunting is justified.
+- **P1 / useful corroboration** — likely to make an existing reverse-engineering lane cheaper or independently confirm it. Pursue opportunistically and automate acquisition when cheap.
+- **P2 / optional evidence** — useful if it falls into our hands, but existing ROM/runtime evidence can answer the same questions. Do not block project work on it.
+- **P3 / archival tail** — preserve the lead and accept cheap wins, but do not build bespoke recovery machinery or delay milestones for it.
+
+Current missing-artifact judgment:
+- **P0:** Mike Dailly historical SNES framework; original Uniracers/DMA editor/converter/tool artifacts; `usjo13.lua`.
+- **P1:** Halamantariel boost/mechanics page; Sinister 100% translation patch; genuinely distinct old SMV/savestate corpora; Uniracers-specific Dailly development media.
+- **P2:** VGMaps course images and official packaging maps; Uniracers-specific Steve Hammond material; US manual scan; Tamoketh recreation artifacts when technical/source material exists.
+- **P3:** SNasm 1.7.2 after 1.7.1 + modern SNasm are already preserved; gamesTM #64 unless it contains material absent from the Nintendo Life republication; Uniracers Uncensored unless a surviving patch is trivially downloadable; generic DMA media with no Uniracers attribution.
+
+P2/P3 does **not** mean “stop looking.” It means a future agent should not mistake archival completeness for a critical-path requirement.
 
 ## A-001 — Uniracers / Unirally PAL prototype, 1994-11-29
 
@@ -63,11 +80,12 @@ Look for source, binaries, screenshots, manuals, sample data, command-line docum
 
 ## A-005 — Preserved SPC soundtrack
 
-Priority: medium  
-Status: available externally, not imported  
-Source: https://www.snesmusic.org/v2/profile.php?profile=set&selected=3149
+Priority: completed evidence intake  
+Status: acquired and analyzed transiently; binary intentionally not redistributed in this repository  
+Primary source: https://www.snesmusic.org/v2/profile.php?profile=set&selected=3149  
+Recovered mirror: https://www.zophar.net/music/nintendo-snes-spc/uniracers
 
-Contains ten preserved tracks, including two marked unused. Use for driver identification, song-table mapping, and used/unused-content analysis.
+The ten-track archive, including both tracks tagged unused, was recovered, fingerprinted and analyzed. Archive SHA-256 is recorded in `references/catalog.yml`; durable analysis lives in `references/notes/uniracers-spc-archaeology.md` and `analysis/generated/uniracers-spc-summary.json`. Later ROM-side work identified the two unused songs as retail records $3B and $3D and closed ordinary direct-call reachability. No further acquisition is needed unless a distinct historical dump or driver source appears.
 
 ## Intake standard
 
@@ -85,7 +103,7 @@ For every binary artifact record:
 
 ## A-006 — Mike Dailly Flickr / historical DMA media corpus
 
-Priority: high  
+Priority: P1 when specifically attributable to Uniracers; P3 for generic DMA imagery  
 Status: systematic archival capture not yet done  
 Sources:
 - https://www.flickr.com/photos/mikedailly/
@@ -102,7 +120,7 @@ Acquisition strategy:
 
 ## A-007 — Steve Hammond personal DMA archive traces
 
-Priority: medium-high  
+Priority: P2  
 Status: holdings known generally; Uniracers-specific material unconfirmed  
 Source: https://www.retrovideogamer.co.uk/rvg-interviews-steve-hammond/
 
@@ -122,7 +140,7 @@ The download is behind itch.io's "No thanks, just take me to the downloads" hand
 
 ## A-009 — Historical SNasm 1.7.x builds
 
-Priority: high  
+Priority: P3 for 1.7.2; 1.7.1 already satisfies the historical-lineage need  
 Status: SNasm 1.7.1 acquired and committed; 1.7.2 remains an external preservation lead
 
 SNasm 1.7.1:
@@ -149,7 +167,7 @@ Why important: these builds are only ~13-14 years newer than the Uniracers assem
 
 ## A-010 — gamesTM issue 64 (December 2007)
 
-Priority: medium-high  
+Priority: P3 unless inspection reveals material omitted from the Nintendo Life republication  
 Status: physical copy catalogued by Video Game History Foundation; no digital scan located
 
 Catalog:
@@ -159,7 +177,7 @@ Catalog:
 A contemporary November 2007 NeoGAF thread describes the issue's retro section as containing an interview with the Unirally SNES makers:
 - https://www.neogaf.com/threads/gamestm-issue-64-review-scores-ac-ouch.210737/
 
-The Nintendo Life 2010 feature appears to be a republication of this interview, but the physical issue may contain omitted captions, sidebars, images, layout annotations, or wording. Acquire/inspect only if it becomes useful; current web text already preserves the main interview content.
+Nintendo Life explicitly states that the feature originally appeared **in its entirety** in gamesTM and is reproduced there with permission. Treat the physical magazine as P3 layout/image archaeology only: it could still preserve print-only layout, captions or image treatment, but there is no reason to chase it for missing interview wording.
 
 
 ## A-011 — Unirally Europe retail ROM
@@ -240,3 +258,86 @@ SHA-256: `61cafb40a32d13bc691e93034449f31c6537736aa6caa0e7d933450e2df269a0`
 Historical discussion identifies this as an optimized WIP containing the 23.56 Dragster work and additional progress. It is valuable as an independent deterministic input corpus and a bridge to the earlier USJO/TAS workflow.
 
 Rights: explicit redistribution license not identified; retained as third-party evidence in this private research repository.
+
+## A-015 — Uniracers Stunts & Jump Optimizer v13 (`usjo13.lua`)
+
+Priority: P0  
+Status: exact historical URL known; bytes not recovered  
+Historical URL: `http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/usjo13.lua`
+
+Need judgment: **yes, still worth active hunting.** Contemporary TASVideos posts describe a frame-perfect search bot that optimized stunt combinations and speed. Its source could expose exact state variables, timing assumptions, scoring/boost logic and automation techniques that would otherwise need to be rediscovered from the ROM. It is not required for correctness, but it has unusually high potential to make physics archaeology cheaper.
+
+## A-016 — Halamantariel boost/mechanics table
+
+Priority: P2  
+Status: exact historical URL known; page bytes not recovered  
+Historical URL: `http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/Uniracers.html`
+
+Need judgment: **useful, but no longer important enough to chase expensively.** Surviving TASVideos posts already preserve several core claims from the page plus RAM addresses, including peak speed, airborne-speed behavior, boost timing and stunt-order observations. Local deterministic physics work can verify the remainder. Keep automated/archive probes alive, but do not block or build bespoke recovery tooling around this page.
+
+## A-017 — Sinister Translations Spanish v1.00 / 100% patch
+
+Priority: P1  
+Status: metadata confirmed; original patch archive not located
+
+Need judgment: **genuinely useful corroboration, not a dependency.** The recovered Sayans patch already exposed text/control regions and reader semantics. An independently authored Sinister patch could quickly confirm those structures and highlight alternative pointer/font/layout discoveries. Search cheaply and periodically; do not pause localization archaeology waiting for it.
+
+## A-018 — Jumpover FallThrough glitch savestates / related historical files
+
+Priority: P1 for actual savestates or SMV; P3 for page text alone  
+Status: historical page and contemporary description known; binaries not recovered  
+Historical URL: `http://dscarroll.com/uniracerstas/FallThrough.ashx`
+
+Need judgment: **actual state/movie files would be useful.** They would give a deterministic seed for an unusual collision/track-boundary case and could save substantial reproduction time. The prose page itself adds little beyond surviving TASVideos discussion.
+
+## A-019 — USA instruction manual scan
+
+Priority: P2, acquisition complete  
+Status: acquired and committed 2026-09-29  
+Repository path: `references/imported/manuals/Uniracers-USA-manual.pdf`  
+Exact size: 6,006,270 bytes  
+SHA-256: `50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235`
+
+Need judgment: **nice to preserve, but not needed.** It is canonical player-facing terminology and mechanics documentation, but current runtime evidence covers the implementation-critical questions. Acquisition is now closed.
+
+## A-020 — Halamantariel VGMaps course-map corpus
+
+Priority: P2  
+Status: 44-map public corpus indexed; binary mirroring intentionally deferred unless cheap and size-appropriate
+
+Need judgment: **potentially useful geometric ground truth, but not necessary.** ROM extraction and deterministic rendering are stronger authorities. The maps can accelerate visual checks, especially while course decoding is incomplete, but importing a very large raster corpus merely for completeness is not justified. Preserve a durable inventory/URLs first; fetch individual maps when a concrete comparison needs them.
+
+## A-021 — Uniracers Uncensored IPS patch
+
+Priority: P3  
+Status: current Romhack Plaza record survives but reports no downloadable files
+
+Need judgment: **superfluous to the critical path.** It would cheaply reveal the forbidden-name table, but that behavior is archaeological tail and can be recovered locally if it ever matters. Keep the lead; no bespoke archive hunt unless a surviving patch URL appears incidentally.
+
+## A-022 — Tamoketh UE4 recreation artifacts
+
+Priority: P2 for source/measurements; P3 for ordinary screenshots/video  
+Status: author/project breadcrumbs known; source availability unconfirmed
+
+Need judgment: **only technical artifacts are likely to help.** Source, Blueprints, measurements or explicit movement/track data could provide independent hypotheses. A visual fan recreation is not an oracle and should not compete with the canonical ROM for attention.
+
+## A-023 — Further historical SMV/WIP files
+
+Priority: P1 only when materially distinct from recovered corpora  
+Status: some important movies recovered; additional historical links may exist
+
+Need judgment: **selectively useful.** A movie is valuable when it reaches a scene, glitch, stunt sequence or progression state absent from current deterministic fixtures. Duplicative race footage is archival tail. Acquire cheaply, classify by unique behavioral coverage, and avoid hoarding redundant movies.
+
+
+
+### 2026-09-29 automated archive probe
+
+The one-shot harvest probed the exact known URLs before retirement:
+
+- `usjo13.lua`: no Wayback CDX snapshot for the exact historical URL.
+- Halamantariel boost/mechanics page: no Wayback CDX snapshot for the exact historical URL.
+- FallThrough page: Wayback route timed out during this pass; remain open and try alternate archive/index routes opportunistically.
+- VGMaps course corpus: direct automated inventory request returned HTTP 403; do not build bypass machinery for a P2 corpus.
+- USA manual: recovered successfully and promoted to A-019.
+
+These are route-specific negative results, not claims that the artifacts no longer exist elsewhere. Continue lateral searches, mirrors, filename searches and author/archive pivots according to the P0-P3 effort tiers above.

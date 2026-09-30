@@ -1,6 +1,6 @@
 # Original-Development Source Index
 
-Last updated: 2026-09-28
+Last updated: 2026-09-29
 
 This is the citation spine for original-development archaeology. Prefer primary developer sources and period artifacts. Secondary sources are explicitly marked.
 
@@ -48,5 +48,5 @@ If a source disappears, use an archived copy and record both original and archiv
 | OD-027 | https://dailly.blogspot.com/2008/05/ | Mike Dailly, first-hand | Announces 2008 SNasm release fixing misspelled 65816 opcodes | Strong release evidence |
 | OD-028 | https://plus4world.powweb.com/tools/all/Windows/3 | Preservation index | Records SNasm 1.7.2 dated 2008-05-10 | Historical binary lead |
 
-| OD-029 | https://library.gamehistory.org/subjects/14?filter_fields%5B%5D=primary_type&filter_values%5B%5D=archival_object&page=96 | VGHF catalog | Confirms physical holding of gamesTM issue 64 (December 2007), containing the original Unirally maker interview later republished online | Physical-source lead |
+| OD-029 | https://library.gamehistory.org/subjects/14?filter_fields%5B%5D=primary_type&filter_values%5B%5D=archival_object&page=96 | VGHF catalog | Confirms physical holding of gamesTM issue 64 (December 2007); Nintendo Life says its online feature reproduces the gamesTM feature in its entirety | P3 physical-layout/image lead only |
 | OD-030 | https://www.neogaf.com/threads/gamestm-issue-64-review-scores-ac-ouch.210737/ | Contemporary forum reference | November 2007 thread explicitly notes the issue's retro section contains an interview with the Unirally SNES makers | Corroborates issue identification |

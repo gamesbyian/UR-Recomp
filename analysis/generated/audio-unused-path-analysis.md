@@ -40,15 +40,11 @@ and table are orphaned. It is not yet proof that the original code paired them.
 
 ## Important negative result
 
-There is only one orphan package table but two unreachable song selectors. Current
-static evidence therefore cannot assign a unique package table to `0x3D / Unused Song 2`.
-Any model requiring one distinct missing table per unused song is ruled out by the known
-six-table corpus.
+There is only one orphan package table but two unreachable song selectors, so a one-orphan-table-per-song model is ruled out. More positively, the live first-race `03:FB55` transfer reconstructs APU RAM `$B0E0-$BDE0`; that complete 3,329-byte region is byte-identical at the same offsets in the preserved **Unused Song 2** SPC. `03:FB55` is therefore the leading **reused-package** candidate for `0x3D`.
 
 ## Next discriminator
 
 The useful next experiment is a controlled reconstruction, not more pattern searching:
 invoke the ordinary setup path with selector `0x3B` and package table `03:FB95` in a
 reference harness, then compare resulting APU RAM to the preserved Unused Song 1 SPC.
-Test `0x3D` separately against reused package candidates rather than inventing a seventh
-table.
+Test `0x3D + 03:FB55` as the leading reused-package model rather than inventing a seventh table.

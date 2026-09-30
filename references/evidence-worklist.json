@@ -206,7 +206,7 @@
         "tpp-musiclibrary-uniracers"
       ],
       "question": "Can the preserved SPC set fingerprint the audio driver, song table, sample/instrument layout, and reachability of the two tagged unused songs?",
-      "next_discriminator": "Attribute called direct-upload block $3C and continue higher-level caller/state mapping if it changes an implementation decision. The two tagged unused songs are now recovered as retail records $3B/$3D with their normal direct upload paths absent: all 36 JSL $82:807E calls are immediate-ID calls, none select $3B/$3D, and no alternate direct entry to inner body $8082 exists. Treat exotic computed reachability as a lower-priority falsification target rather than a blocker.",
+      "next_discriminator": "Causally reconstruct the two evidence-backed unused-song load pairs with the fail-closed counterfactual patcher: block 0x3B while retaining Demo package 03:FB15, and block 0x3D while retaining race package 03:FB55. Compare the resulting APU transfer bytes/state against the preserved unused-song SPCs. Continue 0x3C caller/delta archaeology only where it helps explain the near-twin 0x3B/0x3C relationship.",
       "deliverables": [
         "SPC archive provenance, archive hash and ten per-track hashes (landed)",
         "shared APU driver/sample fingerprint and reusable analyzer (landed)",
@@ -219,7 +219,10 @@
         "retail setup-selector map landed; $3B/$3D are the only absent values in $38-$42 (landed)",
         "02:807E setup routine semantics and $3B/$3D interpretation (next)",
         "direct $3B/$3D reachability closed: 36/36 wrapper calls immediate-ID, zero $3B/$3D LDX, no alternate inner-body caller (landed)",
-        "called block $3C attribution (next, non-blocking)"
+        "called block $3C attribution (next, non-blocking)",
+        "full 0x00..0x31 package-block/SPC signatures reproduce known package mappings and attribute Unused Song 1 to reused 03:FB15, Unused Song 2 to reused 03:FB55 (landed)",
+        "0x3B/0x3C near-duplicate established: equal 536-byte payloads, 165-byte common prefix, 10-byte common suffix, 16 differing bytes (landed)",
+        "fail-closed one-byte counterfactual ROM patcher and APU trace verifier for causal reconstruction (landed)"
       ],
       "tags": [
         "audio",

@@ -8,8 +8,6 @@ on:
       - "tools/evaluate_cc65_da65_closure.py"
       - "tests/unit/test_evaluate_cc65_da65_closure.py"
       - "tools/toolchain.json"
-      - "docs/ISLAND-TOOLCHAIN-PLAN.md"
-      - "docs/WORK-QUEUE.md"
 
 concurrency:
   group: cc65-da65-closure-eval-${{ github.ref }}

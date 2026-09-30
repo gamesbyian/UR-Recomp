@@ -477,7 +477,7 @@
       "patches": [
         {
           "path": "tools/patches/snesrecomp-input-file.patch",
-          "sha256": "d79d3a9e7e591a086cb7e0018c6cb5e8bd1f4f6d41fcfc3689c9e71833b7ae7d"
+          "sha256": "74083a719b2be1f8dbd2794b92724b0b4dc3ce6eb2369f3c47b783c847be4c39"
         }
       ]
     }

@@ -108,13 +108,14 @@
         "romhackhispano-sayans-uniracers"
       ],
       "question": "Which text, font, pointer, menu-layout, checksum, or compression regions did the Sayans translation team identify?",
-      "next_discriminator": "Validate the bounded text/control reader candidate around 03:8975 and its ordinary-byte callee 00:8C41. The translated grammar is now explicit (dominant FF FC xx / FB FC xx runs plus the F3 index FF FE x y family); do not name control semantics until disassembly/runtime evidence supports them. Later Sayans 1.0b and independent Sinister patch recovery remains an archival parallel lane.",
+      "next_discriminator": "Use the promoted FC layout handler (03:8971) and character metadata helper (00:8C41) to decode the remaining FB/FF/F2/F3/FE control families, preferably with one runtime text scene or bounded sibling-loop analysis. Continue archival recovery of Sayans 1.0b and Sinister 100% as a parallel lane.",
       "deliverables": [
         "patch provenance and hashes (landed)",
         "canonical-ROM touch summary at analysis/generated/sayans-translation-summary.json (landed)",
         "three text/control-data clusters in banks $80, $83 and $97 (confirmed)",
         "reader/control-byte semantics or later-version cross-check (next)",
-        "Sayans control-byte vocabulary and static reader-candidate map (landed)"
+        "Sayans control-byte vocabulary and static reader-candidate map (landed)",
+        "FC positioned/centered text-layout handler and character-metadata helper promoted (landed)"
       ],
       "tags": [
         "translation",

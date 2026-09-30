@@ -127,6 +127,21 @@ On 2008-03-12 Halamantariel published the following memory-watch list, including
 
 These are higher-confidence semantic labels than most cheat-derived addresses because they were explicitly used as memory watches during manual TAS optimization. They should still be reproduced locally.
 
+
+### 2026 direct recovery recollection
+
+When returning the surviving v8 file on 2026-09-30, Olivier Bellemare also supplied the RAM-watch list he retained from the TAS workflow and recalled that the group was probably using **Snes9x 1.43**. His retained list corroborates all of the addresses above and additionally includes:
+
+| WRAM address | Format | Reported meaning |
+| --- | --- | --- |
+| `7E:1361` | 1-byte unsigned | Air flag |
+| `7E:0545` | 1-byte unsigned | Air flag |
+| `7E:123F` | 1-byte unsigned | Unknown |
+
+The v8 source directly consumes `7E:0545` as its air-state input, strongly linking that retained watch entry to the optimizer. It also reads `7E:04BB` as signed vertical speed plus `7E:0DFD`/`7E:0F57` as Z-rotation-related working state, which were not present in the short retained watch list.
+
+Treat the remembered Snes9x 1.43 version as provenance context rather than a proven execution requirement until the script is actually replayed under a period-compatible Lua build.
+
 ## Historical boost table
 
 Halamantariel linked a dedicated boost/mechanics page:

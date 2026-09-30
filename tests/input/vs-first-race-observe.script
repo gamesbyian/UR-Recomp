@@ -1,0 +1,20 @@
+# Named checkpoints for tests/input/vs-first-race.input.
+wait 740
+dump vs-challenger
+wait 100
+dump vs-challenge-track
+wait 100
+dump vs-pre-race
+wait 100
+dump vs-transition
+wait 100
+dump vs-race-1140
+wait 100
+dump vs-race-1240
+wait 100
+dump vs-race-1340
+wait 100
+dump vs-race-1440
+wait 180
+dump vs-race-1620
+quit

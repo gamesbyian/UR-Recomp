@@ -87,3 +87,33 @@ The stable VS race captures also expose the driving HDMA configuration itself. A
 For direct mode-0 HDMA this is two 112-line runs followed by the terminator: the first run supplies `$A5`, the second supplies `$5A`. This explains why the journal sees one `$2104` write at V=0 and the next at V=112.
 
 That closes the immediate source/timing question. The remaining archaeology is the hardware consequence: map those active-display `$2104` writes through the effective OAM address/high-table semantics and confirm the historically implicated sprite range rather than inferring it from emulator workaround code.
+
+
+### Window XOR reconnaissance lane
+
+Historical Snes9x 1.02 notes contain two separate Uniracers observations that should not be conflated:
+
+- a disabled experiment switching empty-subscreen color addition from fixed color to backdrop color, which helped an early Uniracers case but broke later screens;
+- a subsequent fix to XOR window combination and area-inversion logic, explicitly recorded as making Uniracers work correctly.
+
+The current patched Snes9x debug surface already exposes the registers and decoded state needed to discriminate this locally: window bounds, W12SEL/W34SEL/WOBJSEL, WBGLOG/WOBJLOG, per-layer window enable/inversion/logic, TM/TS/TMW/TSW, CGWSEL/CGADSUB and fixed color.
+
+This branch adds `tools/summarize_window_seam.py` and a reconnaissance workflow over both the deterministic one-player first-race route and the verified VS split-screen route. The first useful question is deliberately narrow: **which captured Uniracers checkpoints actually have two windows active with XOR combination on any BG/OBJ/color layer?** Only those scenes should seed a permanent XOR regression. Empty-subscreen color addition remains a separate follow-up even if it appears in the same checkpoint.
+
+
+#### XOR seam reproduced and pinned
+
+Reconnaissance run 36658348552 covered the deterministic one-player frontend/first-race checkpoints plus five stable VS race checkpoints. Exactly one captured checkpoint enables two active windows with XOR combination: `race-entered` at one-player frame 1035.
+
+At that checkpoint, all six decoded window targets report XOR with both windows active:
+
+- BG1
+- BG2
+- BG3
+- BG4
+- OBJ
+- color window
+
+The raw register state is correspondingly distinctive: `W12SEL=W34SEL=WOBJSEL=WBGLOG=WOBJLOG=0xAA`, `TMW=0x17`, and both window bounds are the edge-wrapped `255..0` form. None of the sampled frontend checkpoints or stable VS checkpoints report an active XOR target.
+
+The workflow now requires the XOR-active checkpoint set to be exactly `{race-entered}`. This promotes the historical Snes9x 1.02 observation into a local permanent regression while keeping empty-subscreen color addition as a separate unresolved seam.

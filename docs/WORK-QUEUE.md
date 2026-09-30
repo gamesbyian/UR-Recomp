@@ -92,7 +92,7 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 ### Other historically exposed seams
 
 - [ ] LoROM SRAM mapping: build deterministic save/load byte-roundtrip coverage.
-- [ ] XOR/window-area logic: identify an affected screen and add PPU/window-state plus frame regression coverage.
+- [x] XOR/window-area logic: run 36658348552 isolates the ordinary one-player `race-entered` checkpoint at frame 1035 as the only sampled XOR-active scene; BG1-4, OBJ and color all have both windows enabled with XOR logic, while the sampled frontend and stable VS checkpoints are negative controls. The permanent workflow now requires the XOR-active checkpoint set to remain exactly `{race-entered}`.
 - [ ] Color math / empty-subscreen behavior: identify an affected screen and add PPU/color-math plus frame regression coverage.
 - [ ] Record each seam's final explanation in the research ledger / knowledge base and link its permanent test.
 

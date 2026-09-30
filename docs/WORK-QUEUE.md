@@ -82,8 +82,8 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 - [ ] Test whether current runtime already handles the behavior correctly.
 - [ ] Reproduce the failure if not.
 - [~] Mode coverage: VS mode is now deterministically reproduced through active split-screen gameplay with the scanline-0/112 $2104 HDMA seam captured. Ordinary 2P and any 1P occurrence still need explicit classification.
-- [ ] Trace writes to `$2104` and verify expected scanline/value behavior, including the jgenesis 0/112 and `0xA5`/`0x5A` observations.
-- [ ] Verify the effective high-OAM target and sprites 96-99.
+- [x] Trace writes to `$2104` and verify expected scanline/value behavior. The durable VS regression reproduces HDMA `$2104 <- $A5` at scanline 0 and `$2104 <- $5A` at scanline 112 at every sampled stable race checkpoint; the source table is `7E:206C = 70 A5 70 5A 00`.
+- [x] Verify the effective high-OAM target and sprites 96-99. Stable race snapshots end with `OAM[0x218] = 0x5A`; independent Snes9x/MAME/jgenesis/SNESdev evidence identifies `0x218` as the active-display destination. High-table byte index `0x18` controls sprites 96-99, and the project decoder verifies the `$A5/$5A` two-bit pair swap.
 - [ ] Disassemble the recovered Canoe patch hooks at `0x01534C` and `0x015714` plus injected handler at `0x1FFF00`.
 - [ ] Compare unpatched behavior, Canoe workaround, Snes9x special case, MAME/jgenesis models and bsnes/ares reference behavior.
 - [ ] Reduce any mismatch to the smallest deterministic case.

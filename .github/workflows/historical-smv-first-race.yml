@@ -83,7 +83,29 @@ jobs:
               raise SystemExit("2014 reset movie did not yield canonical-size 8 KiB SRAM")
           print("2014 movie is reset/SRAM anchored")
           PY
-          head -80 "$RUNNER_TEMP/dessyreqt-4250.input"
+          python3 - "$RUNNER_TEMP/dessyreqt-4250.input" "$RUNNER_TEMP/dessyreqt-first-5000.input" <<'PY'
+          from pathlib import Path
+          import sys
+          from tools.controller_input import load_controller_runs
+
+          source, out = map(Path, sys.argv[1:])
+          horizon = 5000
+          runs = load_controller_runs(source)
+          lines = ["# Exact Dessyreqt input truncated to the first 5000 guest frames."]
+          for run in runs:
+              if run.start >= horizon:
+                  break
+              duration = min(run.duration, horizon - run.start)
+              if duration <= 0:
+                  continue
+              row = f"{run.start}:{duration}:{run.p1_mask:03x}"
+              if run.p2_mask:
+                  row += f":{run.p2_mask:03x}"
+              lines.append(row)
+          out.write_text("\n".join(lines) + "\n")
+          print(f"first-race input runs: {len(lines) - 1}")
+          PY
+          head -80 "$RUNNER_TEMP/dessyreqt-first-5000.input"
 
       - name: Stage and build repository-owned SNESRecomp framework
         shell: bash
@@ -105,7 +127,7 @@ jobs:
           EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
           CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          INPUT="$RUNNER_TEMP/dessyreqt-4250.input"
+          INPUT="$RUNNER_TEMP/dessyreqt-first-5000.input"
           TRACE="$RUNNER_TEMP/dessyreqt-first-race-trace.jsonl"
 
           SNESREF_HEADLESS=1 \
@@ -182,7 +204,7 @@ jobs:
           set -euo pipefail
           EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          INPUT="$RUNNER_TEMP/dessyreqt-4250.input"
+          INPUT="$RUNNER_TEMP/dessyreqt-first-5000.input"
           PROJ="$RUNNER_TEMP/native/UniracersSNESRecomp"
           SCRIPT="$RUNNER_TEMP/dessyreqt-checkpoints.script"
           DUMPS="$RUNNER_TEMP/native-2014-dumps"
@@ -297,6 +319,7 @@ jobs:
           name: dessyreqt-4250-first-race-replay
           path: |
             ${{ runner.temp }}/dessyreqt-4250.input
+            ${{ runner.temp }}/dessyreqt-first-5000.input
             ${{ runner.temp }}/dessyreqt-4250.json
             ${{ runner.temp }}/dessyreqt-4250.srm
             ${{ runner.temp }}/dessyreqt-first-race-trace.jsonl

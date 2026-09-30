@@ -429,6 +429,14 @@
       "git_blob_sha1": "a52da4f94a75e3e76fd61a759cb8e0c3a4fbc5d3",
       "external_sha256": "50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235",
       "review_status": "preservation-only"
+    },
+    {
+      "path": "references/imported/tas-bots/usjo8.lua",
+      "category": "historical-source",
+      "size": 62406,
+      "git_blob_sha1": "d78962aae7ca6a63bf94113f68680e730dade3fb",
+      "external_sha256": "64b1a26966490a619a6557adee79d6ee0463e534fa2488cf3b5913d55a316ffc",
+      "review_status": "analyzed-reference"
     }
   ]
 }

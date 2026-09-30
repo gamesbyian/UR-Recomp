@@ -1,0 +1,8 @@
+Map data
+
+188000: Dragster
+188183: Zoom Zoo
+1894BA: Bowl
+18A07E: Switcher
+
+1A9678: Jumps

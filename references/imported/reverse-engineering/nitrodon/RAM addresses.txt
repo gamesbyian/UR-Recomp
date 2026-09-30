@@ -1,0 +1,186 @@
+7E00A5: X coordinate, currently handled player (2 bytes)
+7E00A7: Y coordinate, currently handled player (2 bytes)
+
+7E0230: flip message number
+7E0232: roll message number
+7E0234: twist message number
+7E0236: Z-flip message number
+7E0260: number of flips counted
+7E0262: number of rolls counted
+7E0264: number of twists counted
+7E0266: number of Z-flips counted
+7E026A: number based on tricks
+
+7E030F: buttons pressed (player 1?)
+7E0311: vertical direction pressed, player 1 (0=up, 1=neutral, 2=down)
+7E0313: vertical direction pressed, player 2 (0=up, 1=neutral, 2=down)
+7E0315: horizontal direction pressed, player 1 (0=left, 1=neutral, 2=right)
+7E0317: horizontal direction pressed, player 2 (0=left, 1=neutral, 2=right)
+7E0319: pressing A, player 1
+7E031B: pressing A, player 2
+7E031D: pressing X, player 1
+7E031F: pressing X, player 2
+7E0321: pressing Y, player 1
+7E0323: pressing Y, player 2
+7E0325: pressing L, player 1
+7E0327: pressing L, player 2
+7E0329: pressing R, player 1
+7E032B: pressing R, player 2
+7E032D: pressing B, player 1
+7E032F: pressing B, player 2
+7E0331: pressing select, player 1
+7E0333: pressing select, player 2
+7E0335: pressing start, player 1
+7E0337: pressing start, player 2
+
+7E033B: was facing right when left ground, player 1
+7E033D: was facing right when left ground, player 2
+
+7E0411: X position, player 1 (2 bytes)
+7E0413: X position, player 2 (2 bytes)
+7E0415: Y position, player 1 (2 bytes)
+7E0417: Y position, player 2 (2 bytes)
+7E0419: camera 1 X
+7E041B: camera 2 X
+7E041D: camera 1 Y
+7E041F: camera 2 Y
+7E0427: 0 = wipeout, player 1
+7E0429: 0 = wipeout, player 2
+7E042B: number of Z-flips, player 1
+7E042D: number of Z-flips, player 2
+7E042F: tabletop duration, player 1
+7E0431: tabletop duration, player 2
+
+7E04B7: X velocity, player 1 (in subpixels, 2 bytes)
+7E04B9: X velocity, player 2 (in subpixels, 2 bytes)
+7E04BB: Y velocity, player 1 (in subpixels, 2 bytes)
+7E04BD: Y velocity, player 2 (in subpixels, 2 bytes)
+7E04C7: angle, player 1 (2 bytes, takes values 0-63)
+
+7E04F1: X size of map /64 (2 bytes)
+7E04F3: X size of map /32? (2 bytes)
+7E04F5: camera X velocity, player 1
+7E04F9: camera Y velocity, player 1
+
+7E0545: time in air, player 1 (2 bytes, max 9 frames)
+
+7E0B68: track angle, player 1 (ranges from -64 to 63)
+7E0B6A: track angle, player 2 (ranges from -64 to 63)
+7E0B6C: some track data, player 1
+7E0B6E: some track data, player 2
+
+7E0BA1: facing right, player 1
+7E0BA3: facing right, player 2
+
+7E0BB1: angular velocity, player 1 (1 byte signed)
+
+7E0CBB-7E0CDA: message queue, player 1 (1 byte per message, cyclic)
+7E0CE1: beginning of queue, player 1
+7E0CE3: end of queue + 1, player 1
+7E0CE5-7E0D04: message queue, player 2
+7E0D0B: beginning of queue, player 2
+7E0D0D: end of queue + 2, player 2
+
+7E0D49: X size of map (2 bytes; bitmask)
+
+7E0DFD: Z rotation, player 1
+
+7E0E0F: timer minutes (2 bytes, main)
+7E0E13: timer seconds, tens digit (2 bytes, main)
+7E0E17: timer seconds, ones digit (2 bytes, main)
+7E0E1B: timer seconds, tenths digit (2 bytes, main)
+7E0E1F: timer frames (2 bytes, main, always increments)
+7E0E25: timer minutes (1 byte, displayed)
+7E0E27: timer minutes? (???)
+7E0E29: timer seconds, tens digit (1 byte, displayed)
+7E0E2B: timer seconds, tens digit (1 byte, displayed)
+7E0E2D: timer seconds, ones digit (1 byte, displayed)
+7E0E2F: timer seconds, ones digit (???)
+7E0E31: timer seconds, tenths digit (1 byte, displayed?)
+7E0E33: timer seconds, tenths digit (???)
+7E0E35: timer .01seconds at end of previous lap, player 1 (2 bytes)
+7E0E37: timer .01seconds at end of previous lap, player 2 (2 bytes)
+7E0E39: timer minutes at end of previous lap, player 1 (2 bytes)
+7E0E3B: timer minutes at end of previous lap, player 2 (2 bytes)
+7E0E3D: timer 10seconds at end of previous lap, player 1 (2 bytes)
+7E0E3F: timer 10seconds at end of previous lap, player 2 (2 bytes)
+7E0E41: timer 1seconds at end of previous lap, player 1 (2 bytes)
+7E0E43: timer 1seconds at end of previous lap, player 2 (2 bytes)
+7E0E45: timer .1seconds at end of previous lap, player 1 (2 bytes)
+7E0E47: timer .1seconds at end of previous lap, player 2 (2 bytes)
+
+7E0E95: collision data?, player 1
+7E0EF1: laps remaining, player 1 (2 bytes)
+7E0EF3: laps remaining, player 2 (2 bytes)
+
+7E0F09: collision data?, currently handled player
+7E0F0D: track angle, currently handled player
+7E0F0F: pressing Y, currently handled player
+7E0F11: pressing L, currently handled player
+7E0F13: pressing R, currently handled player
+7E0F15: pressing B, currently handled player
+7E0F17: horizontal direction pressed, currently handled player
+7E0F27: some track data, currently handled player
+7E0F29: time in air, currently handled player (2 bytes, max 9 frames)
+7E0F2D: angle while "dancing"?, currently handled player
+7E0F47: facing right, currently handled player (0 when facing left or twisting)
+7E0F49: angle, currently handled player (values from 0 to 63, increases clockwise)
+7E0F4B: bounced off seat?, currently handled player
+7E0F4D: angular velocity, currently handled player (1 byte signed)
+7E0F4F: (related to Z angle?), currently handled player
+7E0F57: Z rotation, currently handled player
+7E0F5D: quadrant in previous frame, currently handled player
+7E0F61: number of half-twists, currently handled player
+7E0F63: 0F69, one frame ago
+7E0F65: 0F69, two frames ago
+7E0F67: 0F69, three frames ago
+7E0F69: ???
+
+7E0F99: target angle?, currently handled player
+
+7E0F9F: X velocity, currently handled player (2 bytes)
+7E0FA1: Y velocity, currently handled player
+
+7E0FEF: player currently handled (0=1, 2=2)
+
+7E0FFD: headbounce, currently handled player (2 bytes)
+7E0FFF: headbounce, player 1 (2 bytes)
+7E1001: headbounce, player 2 (2 bytes)
+
+7E1199: next checkpoint, player 1 (2 bytes)
+7E119B: next checkpoint, player 2 (2 bytes)
+7E119D: 0 if can cross finish line, player 1 (2 bytes)
+7E119F: 0 if can cross finish line, player 2 (2 bytes)
+
+7E11CD: boost meter, currently handled player (2 bytes)
+7E11CF: boost meter, player 1 (2 bytes)
+7E11D1: boost meter, player 2 (2 bytes)
+7E11F9: number of rolls, player 1 (2 bytes)
+7E11FB: number of rolls, player 2 (2 bytes)
+7E11FD: number of flips, player 1 (2 bytes)
+7E11FF: number of flips, player 2 (2 bytes)
+7E1201: progress toward roll, player 1 (2 bytes, 4=roll)
+7E1203: progress toward roll, player 2 (2 bytes, 4=roll)
+7E1205: progress toward flip, player 1 (2 bytes, 4=flip)
+7E1207: progress toward flip, player 2 (2 bytes, 4=flip)
+7E1209: at non-neutral Z angle?, currently handled player
+7E121B: player 1 off screen
+
+7E123B: pressing X, currently handled player
+
+7E12AF: current score (in stunt tracks, 2 bytes)
+
+7E1501: screen 2 X position, player 2
+7E1502: screen 2 Y position, player 2
+7E1505: screen 2 X position, player 1
+7E1506: screen 2 Y position, player 1
+7E1509: screen 1 X position, player 1
+7E150A: screen 1 Y position, player 1
+7E150D: screen 1 X position, player 2
+7E150E: screen 1 Y position, player 2
+7E1599: 0x30 makes uni 1 invisible in screen 1
+
+7E20E8-?: scores for completing tricks (in stunt tracks, 1 byte each)
+
+
+7F000F-?: track data? (2 bytes per 64x64 sector)

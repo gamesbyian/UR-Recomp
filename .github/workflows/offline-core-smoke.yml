@@ -25,18 +25,30 @@ jobs:
           set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y \
-            cargo rustc \
             cmake ninja-build pkg-config libsdl2-dev \
             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
 
+      - name: Resolve runner Rust toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUST_TOOLCHAIN_BIN="$(dirname "$(rustup which cargo)")"
+          test -x "$RUST_TOOLCHAIN_BIN/cargo"
+          test -x "$RUST_TOOLCHAIN_BIN/rustc"
+          echo "RUST_TOOLCHAIN_BIN=$RUST_TOOLCHAIN_BIN" >> "$GITHUB_ENV"
+
       - name: Prove canonical native build with no network interface
         shell: bash
         run: |
           set -euo pipefail
-          sudo --preserve-env=GITHUB_WORKSPACE,RUNNER_TEMP \
+          sudo --preserve-env=GITHUB_WORKSPACE,RUNNER_TEMP,RUST_TOOLCHAIN_BIN \
             unshare --net --mount-proc bash -euxo pipefail <<'OFFLINE'
+          export PATH="$RUST_TOOLCHAIN_BIN:$PATH"
+          cargo --version
+          rustc --version
+
           # A fresh network namespace has no configured external interface.
           # Bring loopback up only so local build tools retain ordinary localhost semantics.
           ip link set lo up

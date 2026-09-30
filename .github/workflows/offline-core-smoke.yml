@@ -25,6 +25,7 @@ jobs:
           set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y \
+            cargo rustc \
             cmake ninja-build pkg-config libsdl2-dev \
             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \

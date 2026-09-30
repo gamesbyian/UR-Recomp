@@ -10,7 +10,8 @@ on:
       - "tools/summarize_wram_trace_checkpoints.py"
       - "tools/compose_historical_reference_result.py"
       - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/_global.json"
       - "snesrecomp"
       - ".github/workflows/historical-smv-first-race.yml"
 

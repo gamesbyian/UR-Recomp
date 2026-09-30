@@ -93,3 +93,36 @@ This history is useful as a regression-test inventory: SRAM mapping, window-comb
 
 Mirrored file:
 `references/imported/emulators/snes9x-1.43/changes.txt`
+
+
+## Local deterministic validation
+
+The recovered external predictions are now locally reproduced by the frozen canonical-ROM VS fixture rather than remaining historical-only clues.
+
+The permanent `VS split-screen reference regression` drives the same neutral two-controller stream through patched pinned Snes9x and independent repository-owned Beetle/bsnes. Both reach stable split-screen gameplay. The Snes9x debug journal then records exactly:
+
+```text
+scanline 0    $2104 <- $A5  via HDMA
+scanline 112  $2104 <- $5A  via HDMA
+```
+
+at every sampled stable race checkpoint. HDMA channel 1 is mode 0 to `$2104`, sourced from `7E:206C`, whose stable table is `70 A5 70 5A 00`: 112 lines of `$A5`, then 112 lines of `$5A`, then termination.
+
+The captured end-of-frame OAM snapshot also has `OAM[0x218] = 0x5A` at every stable race checkpoint. That local result aligns with the independent Snes9x/MAME/jgenesis/SNESdev interpretation that the active-display write is routed to byte offset `0x218`. Since high OAM occupies `0x200..0x21F`, offset `0x218` is high-table byte index `0x18`, and one high-table byte carries two bits each for four sprites: **sprites 96-99**.
+
+The two alternating values decode as:
+
+| value | sprite 96 | sprite 97 | sprite 98 | sprite 99 |
+| --- | --- | --- | --- | --- |
+| `$A5` | X-msb 1, size 0 | X-msb 1, size 0 | X-msb 0, size 1 | X-msb 0, size 1 |
+| `$5A` | X-msb 0, size 1 | X-msb 0, size 1 | X-msb 1, size 0 | X-msb 1, size 0 |
+
+This is exactly the pairwise swap expected by the recovered jgenesis description of the top/bottom-half rider sprite trick.
+
+Durable assertions:
+
+- `tools/assert_uniracers_vs_oam_seam.py` checks the active-display scanline/value events.
+- `tools/decode_uniracers_oam_split.py` checks `OAM[0x218]`, maps it to sprites 96-99, and exposes the four two-bit high-OAM fields.
+- `.github/workflows/vs-split-screen-reference.yml` runs both assertions on the frozen race route.
+
+What remains open is implementation architecture, not the target: SNESRecomp should preferably reproduce the general internal OAM cursor behavior that naturally routes the write to `0x218`; a title-specific compatibility rule is a fallback only if a faithful general model is impractical.

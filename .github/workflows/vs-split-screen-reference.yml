@@ -7,6 +7,7 @@ on:
       - "tests/input/vs-first-race.input"
       - "tests/input/vs-first-race-observe.script"
       - "tools/assert_uniracers_vs_oam_seam.py"
+      - "tools/decode_uniracers_oam_split.py"
       - "tools/patches/snesrecomp-dual-controller-input.patch"
       - "tools/patches/snes9x-snesref-debug-exports.patch"
       - "tools/toolchain.json"
@@ -95,6 +96,15 @@ jobs:
             "$RUNNER_TEMP/snes9x-dumps/vs-race-1340.ppuw.tsv" \
             "$RUNNER_TEMP/snes9x-dumps/vs-race-1440.ppuw.tsv" \
             "$RUNNER_TEMP/snes9x-dumps/vs-race-1620.ppuw.tsv"
+
+      - name: Assert high-OAM routing for sprites 96-99
+        run: |
+          python3 tools/decode_uniracers_oam_split.py --expect 0x5A \
+            "$RUNNER_TEMP/snes9x-dumps/vs-race-1140.oam.bin" \
+            "$RUNNER_TEMP/snes9x-dumps/vs-race-1240.oam.bin" \
+            "$RUNNER_TEMP/snes9x-dumps/vs-race-1340.oam.bin" \
+            "$RUNNER_TEMP/snes9x-dumps/vs-race-1440.oam.bin" \
+            "$RUNNER_TEMP/snes9x-dumps/vs-race-1620.oam.bin"
 
       - uses: actions/upload-artifact@v4
         if: always()

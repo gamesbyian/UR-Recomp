@@ -484,6 +484,43 @@ sources:
     relevance: "Provides additional menu/victory screenshot leads, forbidden-name-screen context, and a cheap title-screen ending shortcut suitable for local verification."
 
 
+
+  - id: bsnes-hd-widescreen-technical
+    title: "bsnes-hd widescreen technical documentation"
+    type: emulator_extension_documentation
+    url: "https://github.com/DerKoun/bsnes-hd/blob/fc26b25ea236f0f877f0265d2a2c37dfd93dfde9/README.md"
+    repository: "https://github.com/DerKoun/bsnes-hd"
+    revision: "fc26b25ea236f0f877f0265d2a2c37dfd93dfde9"
+    rights: "GPL-family/upstream project terms apply; indexed as technical documentation."
+    local: "docs/bonus/WIDESCREEN-ROM-HACK.md"
+    relevance: "Defines emulator-assisted horizontal extension, per-BG policy, sprite safe/unsafe/clip behavior, window handling, BSO overrides, aspect/side-extension rules and the documented widened sprite-coordinate limit."
+
+  - id: rpg-hacker-asar
+    title: "Asar SNES patch assembler"
+    type: rom_hacking_tool
+    url: "https://github.com/RPGHacker/asar"
+    revision: "5fd539cd510e4a26afef66fc14e35ca6d8ff0497"
+    release_baseline: "v1.91"
+    rights: "Upstream multi-license terms apply; pinned as build tooling, not vendored evidence."
+    local: "tools/toolchain.json"
+    relevance: "Patch-oriented 65C816 assembler used by wide-snes and the planned Uniracers emulator-assisted widescreen bonus build."
+
+  - id: snesdev-rom-file-formats
+    title: "SNESdev ROM file formats"
+    type: technical_reference
+    url: "https://snes.nesdev.org/wiki/ROM_file_formats"
+    rights: "SNESdev Wiki terms apply; indexed as technical reference."
+    local: "docs/bonus/WIDESCREEN-ROM-HACK.md"
+    relevance: "Documents headered versus unheadered SNES ROM files and modern preference for unheadered dumps, reducing patch-offset ambiguity."
+
+  - id: snesdev-rom-header
+    title: "SNESdev ROM header"
+    type: technical_reference
+    url: "https://snes.nesdev.org/wiki/ROM_header"
+    rights: "SNESdev Wiki terms apply; indexed as technical reference."
+    local: "docs/bonus/WIDESCREEN-ROM-HACK.md"
+    relevance: "Header location, mapper metadata, checksum/complement rules and validation heuristics relevant when a ROM hack changes layout or size."
+
   - id: wide-snes
     title: "Super Mario World Widescreen / wide-snes"
     type: widescreen_reference_implementation

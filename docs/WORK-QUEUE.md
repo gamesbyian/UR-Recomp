@@ -93,7 +93,7 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 
 - [ ] LoROM SRAM mapping: build deterministic save/load byte-roundtrip coverage.
 - [x] XOR/window-area logic: run 36658348552 isolates the ordinary one-player `race-entered` checkpoint at frame 1035 as the only sampled XOR-active scene; BG1-4, OBJ and color all have both windows enabled with XOR logic, while the sampled frontend and stable VS checkpoints are negative controls. The permanent workflow now requires the XOR-active checkpoint set to remain exactly `{race-entered}`.
-- [ ] Color math / empty-subscreen behavior: identify an affected screen and add PPU/color-math plus frame regression coverage.
+- [x] Color math / empty-subscreen behavior: canonical scene survey plus historical fallback A/B are complete. Frontend states use `CGWSEL=02`, `CGADSUB=7F`, `TS=10`, while active race changes to `CGADSUB=04` and fixed red=15. The historical backdrop-for-empty-subscreen perturbation changes ~97-99% of several frontend frames, 0 pixels on Rider Select, and only 392 pixels in a narrow race band; reject any title-wide compatibility fallback and preserve per-pixel SNES color-math semantics. Evidence: `analysis/generated/color-math-scene-survey.json` and `analysis/generated/color-math-fallback-ab.json`.
 - [ ] Record each seam's final explanation in the research ledger / knowledge base and link its permanent test.
 
 **Exit:** the known historical Uniracers emulator compatibility problems are either reproduced and covered by deterministic tests or explicitly shown not to apply to the canonical runtime.

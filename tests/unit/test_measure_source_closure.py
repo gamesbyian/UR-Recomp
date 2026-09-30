@@ -25,7 +25,7 @@ class MeasureSourceClosureTests(unittest.TestCase):
             self.assertIn("../a.cpp", parsed)
             self.assertIn("../a.h", parsed)
 
-            result = collect(root, [dep], ["LICENSE"])
+            result = collect(root, [dep], ["LICENSE"], dependency_base=build)
             self.assertEqual(
                 [entry["path"] for entry in result["files"]],
                 ["LICENSE", "a.cpp", "a.h"],
@@ -42,7 +42,7 @@ class MeasureSourceClosureTests(unittest.TestCase):
             (root / "x.c").write_text("int x;\n", encoding="utf-8")
             dep = root / "x.d"
             dep.write_text("x.o: x.c\n", encoding="utf-8")
-            payload = collect(root, [dep], [])
+            payload = collect(root, [dep], [], dependency_base=root)
             encoded = json.dumps(payload)
             self.assertIn('"closure_sha256"', encoded)
 

@@ -117,3 +117,71 @@ At that checkpoint, all six decoded window targets report XOR with both windows 
 The raw register state is correspondingly distinctive: `W12SEL=W34SEL=WOBJSEL=WBGLOG=WOBJLOG=0xAA`, `TMW=0x17`, and both window bounds are the edge-wrapped `255..0` form. None of the sampled frontend checkpoints or stable VS checkpoints report an active XOR target.
 
 The workflow now requires the XOR-active checkpoint set to be exactly `{race-entered}`. This promotes the historical Snes9x 1.02 observation into a local permanent regression while keeping empty-subscreen color addition as a separate unresolved seam.
+
+### Empty-subscreen colour-addition historical discriminator
+
+The preserved Snes9x 1.43 history makes this seam unusually testable rather than merely anecdotal.
+
+Historical evidence records that Uniracers enables sub-screen addition on BG2 while nothing is present on the sub-screen, and explicitly asks whether the empty contribution should behave as fixed colour or backdrop. A later changelog entry says Snes9x temporarily switched to adding backdrop colour when sub-screen addition was enabled but nothing existed on the sub-screen because Uniracers seemed to require it, then disabled that change because it caused problems in other ROMs **and in later Uniracers screens**.
+
+The corresponding preserved renderer source shows the relevant class of branch directly: when rendering colour addition/subtraction, it distinguishes a real sub-screen pixel from a clear sub-screen and separately handles the backdrop/fixed-colour fallback. Therefore this should be treated as a scene-dependent PPU semantic discriminator, not a title-specific patch to copy.
+
+Local test strategy:
+
+1. survey stable checkpoints using raw `TM`, `TS`, `CGWSEL`, `CGADSUB`, fixed RGB and framebuffer hashes;
+2. identify at least one early checkpoint matching the historical empty-subscreen condition and one later checkpoint whose state differs;
+3. reproduce the historical fallback perturbation in an isolated reference-core A/B;
+4. require a candidate semantic rule to explain both scenes without merely moving the defect;
+5. promote only the hardware/game-facing invariant, never the historical Snes9x workaround itself.
+
+The first survey is implemented by `tools/summarize_color_math_state.py`; its one-shot canonical-ROM run is intentionally evidence acquisition only and will be retired after the measurements are preserved.
+
+
+#### Canonical scene survey
+
+Run `36659159802` surveyed the existing deterministic first-race route with the patched Snes9x register snapshot surface.
+
+All stable frontend checkpoints from Main Menu through Now Playing share the same color-math configuration:
+
+- `TM=13`
+- `TS=10`
+- `CGWSEL=02` (sub-screen math selected)
+- `CGADSUB=7F` (addition with half flag and all layer/backdrop math bits set)
+- fixed colour = black
+- brightness 14
+
+The first active race checkpoint changes regime materially:
+
+- `TM=17`
+- `TS=10`
+- `CGWSEL=02`
+- `CGADSUB=04`
+- half flag off
+- fixed colour = red 15, green/blue 0
+- brightness 15
+- `TMW=17`
+
+This gives the historical fallback experiment a built-in scene pair. The frontend is the candidate regime where old Snes9x reported a backdrop-vs-fixed-colour ambiguity; the race is the later counterexample regime that must not be damaged by an overbroad rule.
+
+The survey is preserved as `analysis/generated/color-math-scene-survey.json`.
+
+
+#### Historical fallback A/B result
+
+Run `36660195171` reproduced the historical backdrop-vs-fixed-colour perturbation in pinned Snes9x without changing game code or any other renderer rule. The experiment changed only the per-pixel fallback used when `CGWSEL` selects sub-screen math but no real sub-screen pixel exists.
+
+The effect is strongly scene-dependent:
+
+| checkpoint | changed pixels | fraction | bounding box |
+| --- | ---: | ---: | --- |
+| Main Menu | 56,627 / 57,344 | 98.75% | full frame |
+| Rider Select | 0 / 57,344 | 0% | none |
+| Tours | 56,628 / 57,344 | 98.75% | full frame |
+| Tracks | 55,793 / 57,344 | 97.30% | full frame |
+| After Track | 56,042 / 57,344 | 97.73% | full frame |
+| Now Playing | 56,039 / 57,344 | 97.72% | full frame |
+| Race Entered | 392 / 57,344 | 0.68% | x=17..238, y=19..29 |
+
+This rejects a title-wide “Uniracers should use backdrop instead of fixed colour” compatibility rule. The same perturbation is nearly global on several frontend scenes, completely inert on Rider Select, and narrowly localized in the race. That matches the historical observation that the experimental rule could appear to help one screen while causing trouble later.
+
+The implementation constraint is therefore **per-pixel SNES color-math fidelity**, not a game-specific fallback. Keep the historical Snes9x branch as perturbation evidence only. Durable measurements are in `analysis/generated/color-math-fallback-ab.json`; the experiment patch remains research-only and is not part of the pinned runtime toolchain.

@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "run_id": 36660195171,
+  "experiment": "When CGWSEL selects subscreen math and a per-pixel subscreen contribution is absent, substitute backdrop color instead of Snes9x's normal fixed-color fallback.",
+  "checkpoints": [
+    {
+      "checkpoint": "after-track-confirm",
+      "changed_pixels": 56042,
+      "pixels": 57344,
+      "changed_fraction": 0.977294921875,
+      "bbox": [
+        0,
+        0,
+        255,
+        223
+      ],
+      "baseline_sha256": "080e3647ddc29f1563872269d8edf022726016e526d70147b266e82d23848cb0",
+      "variant_sha256": "b4147984ad27715c65fe3630c3f97ef6164a852e0dd1ed6af9a281452661a7db"
+    },
+    {
+      "checkpoint": "main-menu-ready",
+      "changed_pixels": 56627,
+      "pixels": 57344,
+      "changed_fraction": 0.9874965122767857,
+      "bbox": [
+        0,
+        0,
+        255,
+        223
+      ],
+      "baseline_sha256": "4647ac196678be203274f5e012243bbc1015784bee8d52d56a91941e6e9b7879",
+      "variant_sha256": "693cf3c3bd2eb7bb4f6fd961c32189dfe367a010a9a7e503b1a58f269d6d14d4"
+    },
+    {
+      "checkpoint": "now-playing-ready",
+      "changed_pixels": 56039,
+      "pixels": 57344,
+      "changed_fraction": 0.9772426060267857,
+      "bbox": [
+        0,
+        0,
+        255,
+        223
+      ],
+      "baseline_sha256": "7c5197d663839b83b1825489d1716f109d277c60a09d2ce91deb99df23a4ee3b",
+      "variant_sha256": "9ca73c5ef72775e79395563048f8702ec54e25dfe354a5c6615e78e0f456a376"
+    },
+    {
+      "checkpoint": "race-entered",
+      "changed_pixels": 392,
+      "pixels": 57344,
+      "changed_fraction": 0.0068359375,
+      "bbox": [
+        17,
+        19,
+        238,
+        29
+      ],
+      "baseline_sha256": "e3b82325b6dabc53754b2aed99cb6f21ab0a96d1f0ed72de40de694e76f73a2f",
+      "variant_sha256": "660a83691f7ed0ce101626c3cf86a6339697588ce5692156d58fa7c347d4a2b8"
+    },
+    {
+      "checkpoint": "rider-select-ready",
+      "changed_pixels": 0,
+      "pixels": 57344,
+      "changed_fraction": 0,
+      "bbox": null,
+      "baseline_sha256": "5583c9f2fbfc3a4dcffe2663789f213815d480aaac1053ddc59fb56c45f82db5",
+      "variant_sha256": "5583c9f2fbfc3a4dcffe2663789f213815d480aaac1053ddc59fb56c45f82db5"
+    },
+    {
+      "checkpoint": "tours-ready",
+      "changed_pixels": 56628,
+      "pixels": 57344,
+      "changed_fraction": 0.9875139508928571,
+      "bbox": [
+        0,
+        0,
+        255,
+        223
+      ],
+      "baseline_sha256": "e239d7b4bace122056c32067945f1431a7fe6bececf64d4dbd73f9468350d148",
+      "variant_sha256": "348fcc4b20e276b3d4844fbafc4dfc8007161b2e315fc3379a3ea3c26d5dc1bd"
+    },
+    {
+      "checkpoint": "tracks-ready",
+      "changed_pixels": 55793,
+      "pixels": 57344,
+      "changed_fraction": 0.9729527064732143,
+      "bbox": [
+        0,
+        0,
+        255,
+        223
+      ],
+      "baseline_sha256": "6a0fcb7e8be878457f84d13511ff4e2eb8e2c9058de0754c7a934da519b11dfc",
+      "variant_sha256": "b8ced28108d8e428a100e120d744c3bfdce5b088ed2d2fb77c752fcb7eedac83"
+    }
+  ],
+  "conclusion": "A title-wide backdrop fallback is rejected. The perturbation is massively scene-dependent and even no-op on Rider Select; preserve hardware/per-pixel color-math semantics rather than a Uniracers-wide compatibility rule."
+}

@@ -1,0 +1,33 @@
+diff --git a/tileimpl.h b/tileimpl.h
+--- a/tileimpl.h
++++ b/tileimpl.h
+@@ -151,8 +151,14 @@ namespace TileImpl {
+ 	template<class Op>
+ 	struct REGMATH
+ 	{
++		static alwaysinline uint16 EmptySubscreenFallback()
++		{
++			return (Memory.FillRAM[0x2130] & 0x02)
++				? IPPU.ScreenColors[0]
++				: GFX.FixedColour;
++		}
+ 		static alwaysinline uint16 Calc(uint16 Main, uint16 Sub, uint8 SD)
+ 		{
+-			return Op::fn(Main, (SD & 0x20) ? Sub : GFX.FixedColour);
++			return Op::fn(Main, (SD & 0x20) ? Sub : EmptySubscreenFallback());
+ 		}
+ 	};
+@@ -174,8 +180,12 @@ namespace TileImpl {
+ 	template<class Op>
+ 	struct MATHS1_2
+ 	{
+ 		static alwaysinline uint16 Calc(uint16 Main, uint16 Sub, uint8 SD)
+ 		{
+-			return GFX.ClipColors ? REGMATH<Op>::Calc(Main, Sub, SD) : (SD & 0x20) ? Op::fn1_2(Main, Sub) : Op::fn(Main, GFX.FixedColour);
++			return GFX.ClipColors
++				? REGMATH<Op>::Calc(Main, Sub, SD)
++				: (SD & 0x20)
++					? Op::fn1_2(Main, Sub)
++					: Op::fn(Main, REGMATH<Op>::EmptySubscreenFallback());
+ 		}
+ 	};

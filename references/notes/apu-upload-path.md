@@ -280,3 +280,65 @@ Durable result:
 
 - `analysis/generated/audio-unused-reachability.json`
 - `tools/scan_audio_setup_selectors.py`
+
+### Full package signatures close the likely unused-song packages
+
+The earlier three-block comparison has now been expanded to the complete package-table
+block universe. Workflow run `36777071311` correlates all records `$00-$31` against
+all ten preserved SPC snapshots. Its transient SPC archive is the same pinned public
+artifact used earlier (491,821 bytes; SHA-256
+`85a3f00cfe46cddd18caa714374ef54da6835f0d293557ce499de352b8d4fdb0`).
+
+Block `$00` is the only record shorter than the correlator's 32-byte minimum
+(`22` payload bytes), so it is the sole mechanically untestable package member.
+Excluding only that record, the method first reproduces every known reachable package
+mapping exactly:
+
+- Title Screen -> `03:FBD5`;
+- Demo Race -> `03:FB15`;
+- Celebration -> `03:FAD5`;
+- all five numbered races -> `03:FB55`.
+
+That successful calibration makes the two unused results substantially stronger:
+
+- **Unused Song 1 has the exact same 18-block correlatable package signature as
+  Demo Race -> `03:FB15`.**
+- **Unused Song 2 has the exact same 23-block correlatable package signature as
+  every numbered race -> `03:FB55`.**
+
+The latter is independently corroborated by the earlier live first-race transfer, whose
+3,329-byte APU region at `$B0E0-$BDE0` is byte-identical at the same offsets in
+Unused Song 2.
+
+Compact durable evidence:
+
+- `analysis/generated/audio-package-spc-signatures.json`
+- `analysis/generated/audio-unused-path-analysis.{json,md}`
+- `analysis/generated/audio-record-pool-reconciliation.md`
+
+This means `03:FB95` should remain classified as an intentional dormant/reduced package
+variant, not the likely complete package for either preserved unused song.
+
+### Song record 3B/3C relationship and causal test
+
+A canonical pairwise comparison also found that unused record `$3B` and reachable
+record `$3C` are exceptional near-duplicates: both payloads are 536 bytes, they share
+a 165-byte prefix and 10-byte suffix, and only 16 byte positions differ. The reachable
+`$3C` path uses package `03:FC15`, so that package remains a useful sequence-sibling
+control even though the full SPC signature identifies `03:FB15` for Unused Song 1.
+
+The project now has two fail-closed causal-test helpers:
+
+- `tools/patch_unused_audio_counterfactual.py` changes only the verified selector byte
+  inside a known-good setup/package pair;
+- `tools/verify_unused_audio_trace.py` requires the complete post-header song body to
+  appear contiguously in the captured `$2143` transfer stream.
+
+Primary counterfactuals are therefore:
+
+1. Demo path `$38 -> $3B` while retaining package `03:FB15`;
+2. first-race path `$3E -> $3D` while retaining package `03:FB55`.
+
+The normal direct selection callsites for `$3B/$3D` remain absent in retail; these
+counterfactuals are research fixtures, not claims of surviving retail reachability.
+

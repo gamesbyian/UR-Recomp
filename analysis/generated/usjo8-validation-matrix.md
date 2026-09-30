@@ -6,22 +6,20 @@ the USJO-specific claim is already causally confirmed in the current runtime evi
 
 | Priority | Address | USJO variable | Canonical symbol | Confidence | Status | Next action |
 |---:|---|---|---|---:|---|---|
-| 1 | `7E:0DFD` | `zrotation` | `Player1_ZRotationState` | 2 | source-lead | Reproduce the claimed semantic transition locally before promotion. |
-| 1 | `7E:0F57` | `zprerotation` | `Player1_ZPreRotationState` | 2 | source-lead | Reproduce the claimed semantic transition locally before promotion. |
-| 2 | `7E:042B` | `numzflips` | `Player1_ZFlipCount` | 3 | corroborated-unreproduced | Trigger the claimed state change and verify this field causally. |
-| 2 | `7E:042F` | `numtabletops` | `Player1_TabletopCount` | 3 | corroborated-unreproduced | Trigger the claimed state change and verify this field causally. |
-| 2 | `7E:0F61` | `numtwists` | `Player1_TwistCount` | 3 | corroborated-unreproduced | Trigger the claimed state change and verify this field causally. |
-| 2 | `7E:11F9` | `numrolls` | `Player1_RollCount` | 3 | corroborated-unreproduced | Trigger the claimed state change and verify this field causally. |
-| 2 | `7E:11FD` | `numflips` | `Player1_FlipCount` | 3 | corroborated-unreproduced | Trigger the claimed state change and verify this field causally. |
+| 3 | `7E:042B` | `numzflips` | `Player1_ZFlipCount` | 4 | strong-partial | Close any remaining semantic/unit ambiguity when convenient. |
+| 3 | `7E:042F` | `numtabletops` | `Player1_TabletopCount` | 4 | strong-partial | Close any remaining semantic/unit ambiguity when convenient. |
+| 3 | `7E:0DFD` | `zrotation` | `Player1_ZRotationState` | 4 | strong-partial | Close any remaining semantic/unit ambiguity when convenient. |
+| 3 | `7E:0F57` | `zprerotation` | `CurrentPlayer_ZRotationWorking` | 4 | strong-partial | Close any remaining semantic/unit ambiguity when convenient. |
+| 3 | `7E:0F61` | `numtwists` | `CurrentPlayer_TwistCountWorking` | 4 | strong-partial | Close any remaining semantic/unit ambiguity when convenient. |
 | 3 | `7E:11CD` | `realboostmeter` | `Player1_BoostMeter` | 4 | strong-partial | Close any remaining semantic/unit ambiguity when convenient. |
+| 3 | `7E:11F9` | `numrolls` | `Player1_RollCount` | 4 | strong-partial | Close any remaining semantic/unit ambiguity when convenient. |
+| 3 | `7E:11FD` | `numflips` | `Player1_FlipCount` | 4 | strong-partial | Close any remaining semantic/unit ambiguity when convenient. |
 | 4 | `7E:04B7` | `curspeed` | `Player1_XSpeed` | 5 | runtime-confirmed | No additional USJO-specific validation required unless new evidence conflicts. |
 | 4 | `7E:04BB` | `yspeed` | `Player1_YSpeed` | 5 | runtime-confirmed | No additional USJO-specific validation required unless new evidence conflicts. |
 | 4 | `7E:0545` | `airflag` | `Player1_AirState` | 5 | runtime-confirmed | No additional USJO-specific validation required unless new evidence conflicts. |
 
 ## Immediate queue
 
-The narrowest unresolved targets are the source-only Z-rotation working fields `7E:0DFD` / `7E:0F57`.
-The former `7E:11CD` width conflict is closed statically as a 16-bit game field; only exact game-facing boost units remain open.
-The five stunt counters are independently corroborated but still need causal transition fixtures.
-X speed, Y speed and air state are already runtime-confirmed and should not consume more
-USJO-validation effort unless conflicting evidence appears.
+All eight formerly unresolved v8 read addresses now have strong static support or resolved storage roles.
+The remaining work is dynamic/semantic closure: event-causal stunt-counter transitions, exact Z-state physical meaning, and exact game-facing boost units.
+X speed, Y speed and air state are already runtime-confirmed and should not consume more USJO-validation effort unless conflicting evidence appears.

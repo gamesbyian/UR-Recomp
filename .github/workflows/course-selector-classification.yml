@@ -1,0 +1,32 @@
+name: One-shot course selector classification
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/probe_course_selector_decode.py"
+      - ".github/workflows/course-selector-classification.yml"
+
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Re-run packed stream pointer encodings
+        run: |
+          python3 tools/find_course_stream_pointer_tables.py             --json-out course-stream-pointer-search.json
+          cat course-stream-pointer-search.json
+      - name: Decode corpus-base selector candidate
+        run: |
+          python3 tools/probe_course_selector_decode.py             "reference/roms/retail/Uniracers_USA.sfc"             --json-out course-selector-decode.json
+          cat course-selector-decode.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: course-selector-classification
+          path: |
+            course-stream-pointer-search.json
+            course-selector-decode.json

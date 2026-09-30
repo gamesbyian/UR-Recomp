@@ -1,0 +1,68 @@
+name: One-shot Canoe patch disassembly
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/analyze_canoe_ips.py"
+      - "references/imported/patches/uniracers_canoe.ips"
+      - ".github/workflows/canoe-patch-disassembly.yml"
+
+jobs:
+  disassemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Inventory patch against canonical ROM
+        run: |
+          python3 tools/analyze_canoe_ips.py             references/imported/patches/uniracers_canoe.ips             --rom "reference/roms/retail/Uniracers_USA.sfc"             --json-out canoe-patch-analysis.json
+      - name: Build pinned da65
+        run: python3 tools/bootstrap_toolchain.py --tool cc65 --jobs 2
+      - name: Extract and disassemble injected BF:FF00 handler
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from tools.analyze_canoe_ips import parse_ips
+          rows=parse_ips(Path("references/imported/patches/uniracers_canoe.ips").read_bytes())
+          payload=next(bytes.fromhex(r["data_hex"]) for r in rows if r["offset"] == 0x1FFF00)
+          Path("canoe-handler.bin").write_bytes(payload)
+          PY
+          cat >canoe-handler.info <<'EOF'
+          RANGE { START $FF00; END $FFE5; TYPE Code; ADDRMODE "Mx"; };
+          LABEL { ADDR $FF00; NAME "canoe_oam_handler"; };
+          LABEL { ADDR $FF36; NAME "canoe_hdma_setup"; };
+          EOF
+          .tools/src/cc65/bin/da65             --cpu 65816 --start-addr 0xFF00             --info canoe-handler.info             -o canoe-handler.s canoe-handler.bin
+          cat canoe-handler.s
+
+          # The lone branch edit at ROM 0x018B16 sits in a separate stock
+          # routine. Decode a bounded original-ROM window around it.
+          python3 - <<'PY'
+          from pathlib import Path
+          rom=Path("reference/roms/retail/Uniracers_USA.sfc").read_bytes()
+          Path("canoe-stock-038b.bin").write_bytes(rom[0x018B0E:0x018B38])
+          PY
+          cat >canoe-stock-038b.info <<'EOF'
+          RANGE { START $8B0E; END $8B37; TYPE Code; ADDRMODE "Mx"; };
+          EOF
+          .tools/src/cc65/bin/da65 \
+            --cpu 65816 --start-addr 0x8B0E \
+            --info canoe-stock-038b.info \
+            -o canoe-stock-038b.s canoe-stock-038b.bin
+          cat canoe-stock-038b.s
+      - name: Upload derived evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: canoe-patch-disassembly
+          path: |
+            canoe-patch-analysis.json
+            canoe-handler.bin
+            canoe-handler.info
+            canoe-handler.s
+            canoe-stock-038b.bin
+            canoe-stock-038b.info
+            canoe-stock-038b.s

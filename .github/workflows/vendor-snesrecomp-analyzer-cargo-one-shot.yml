@@ -33,6 +33,7 @@ jobs:
           cd "$CRATE"
           cargo vendor --locked --versioned-dirs "$DEST" > "$RUNNER_TEMP/cargo-config.txt"
           cp Cargo.lock "$GITHUB_WORKSPACE/third_party/cargo/snesrecomp-analyzer/Cargo.lock"
+          cd "$GITHUB_WORKSPACE"
           python3 - <<'PY'
           from pathlib import Path
           root=Path("third_party/cargo/snesrecomp-analyzer")

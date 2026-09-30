@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "tool": "snesrecomp",
+  "upstream_url": "https://github.com/RetroPortingToolKit/snesrecomp.git",
+  "upstream_revision": "cd5875cbdaf19f5e324272b1f8051d671fce9215",
+  "archive_path": "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz",
+  "archive_sha256": "cc5043c4477adaa31210efb88c3423344e2195044e4366795cf1c563e1014b56",
+  "archive_bytes": 5251351,
+  "archive_entries": 942,
+  "archive_format": "git archive --format=tar | gzip -n -9",
+  "license": "PolyForm Noncommercial 1.0.0",
+  "license_path": "third_party/provenance/snesrecomp-LICENSE.txt",
+  "nested_gitlinks": [
+    {
+      "path": "lib/recomp-net",
+      "upstream_url": "https://github.com/RetroPortingToolKit/recomp-net.git",
+      "revision": "a65fdcfc044a492ab76385a061459b43f6888b55",
+      "included": false,
+      "reason": "Optional netplay dependency; SNESRECOMP_ENABLE_NET defaults off."
+    },
+    {
+      "path": "lib/retcomm-rbengine",
+      "upstream_url": "https://github.com/RetroPortingToolKit/rbengine.git",
+      "revision": "2a03e73693acee0fb78076ea058642c931bef12e",
+      "included": false,
+      "reason": "Optional rollback/netplay dependency; baseline C1 build does not enable netplay."
+    }
+  ],
+  "excluded": [
+    "contents of lib/recomp-net gitlink",
+    "contents of lib/retcomm-rbengine gitlink"
+  ],
+  "dependency_closure": "C1 proves framework source ownership and the tools/snesref build only. Optional Lua, netplay/rollback, SDL source fallback, and Rust analyzer registry closure are classified separately in docs/SNESRECOMP-ISLAND-SCOPE.md.",
+  "build_contract": "bootstrap_toolchain.py --offline --tool snesrecomp safely extracts the repository-owned archive and builds tools/snesref with CMake. No SNESRecomp GitHub fetch is permitted."
+}

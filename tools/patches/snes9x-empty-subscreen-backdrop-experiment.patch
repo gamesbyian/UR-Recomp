@@ -1,7 +1,7 @@
 diff --git a/tileimpl.h b/tileimpl.h
 --- a/tileimpl.h
 +++ b/tileimpl.h
-@@ -151,10 +151,16 @@ namespace TileImpl {
+@@ -151,8 +151,14 @@ namespace TileImpl {
  	template<class Op>
  	struct REGMATH
  	{
@@ -17,7 +17,7 @@ diff --git a/tileimpl.h b/tileimpl.h
 +			return Op::fn(Main, (SD & 0x20) ? Sub : EmptySubscreenFallback());
  		}
  	};
-@@ -174,9 +180,13 @@ namespace TileImpl {
+@@ -174,8 +180,12 @@ namespace TileImpl {
  	template<class Op>
  	struct MATHS1_2
  	{

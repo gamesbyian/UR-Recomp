@@ -1,0 +1,53 @@
+# State-aligned race-visible-onset discriminator.
+until 009F == D7 3600
+wait 60
+press a 2
+until 009F == 3C 1200
+wait 60
+press a 2
+until 009F == 6D 1200
+wait 60
+press a 2
+until 009F == F6 1200
+wait 60
+press a 2
+until 009F != F6 1200
+wait 60
+until 009F == 16 1200
+wait 60
+press a 2
+until 0313 == 01 1200
+dump race-start-active-000
+wait 4
+dump race-start-active-004
+wait 4
+dump race-start-active-008
+wait 4
+dump race-start-active-012
+wait 4
+dump race-start-active-016
+wait 4
+dump race-start-active-020
+wait 4
+dump race-start-active-024
+wait 4
+dump race-start-active-028
+wait 4
+dump race-start-active-032
+wait 4
+dump race-start-active-036
+wait 4
+dump race-start-active-040
+wait 4
+dump race-start-active-044
+wait 4
+dump race-start-active-048
+wait 4
+dump race-start-active-052
+wait 4
+dump race-start-active-056
+wait 4
+dump race-start-active-060
+wait 4
+dump race-start-active-064
+quit

@@ -2,10 +2,6 @@ name: Inspect extended audio record framing
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "tools/inspect_audio_extended_records.py"
-      - ".github/workflows/audio-extended-record-framing.yml"
 
 jobs:
   inspect:

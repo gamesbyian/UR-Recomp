@@ -53,7 +53,7 @@ def load_decode_function():
 def fmt(di):
     pc = di.key.pc
     return (
-        f"$${(pc >> 16) & 0xFF:02X}:{pc & 0xFFFF:04X} "
+        f"${(pc >> 16) & 0xFF:02X}:{pc & 0xFFFF:04X} "
         f"[M={di.key.m} X={di.key.x}] {di.insn.mnem:<5} {di.insn._fmt()}"
     )
 

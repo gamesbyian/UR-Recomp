@@ -2,10 +2,10 @@
   "schema_version": 1,
   "source_workflow": "airborne rotation native/reference differential",
   "workflow_run_id": 36769806636,
-  "job_id": 110073509186,
+  "job_id": 110079167441,
   "canonical_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
   "cross_runtime_match": true,
-  "fixture": "trusted Dragster airborne L/R pitch-rotation intervention plus matched jump-only control",
+  "fixture": "trusted Dragster airborne L/R pitch-rotation intervention, matched jump-only control, and matched eight-frame X-button intervention derived from recovered USJO v8 control mapping",
   "checkpoints": [
     "accel-180",
     "rotation-pre",
@@ -57,11 +57,27 @@
       },
       "identical_across_left_right_control": true,
       "high_byte_zero_at_all_sampled_checkpoints": true
+    },
+    "x_button_probe": {
+      "sampled_usjo_fields_identical_to_control": true,
+      "sampled_gameplay_fields_identical_to_control": true,
+      "sampled_checkpoints": [
+        "accel-180",
+        "rotation-pre",
+        "rotation-input-008",
+        "rotation-post-008",
+        "rotation-post-016",
+        "rotation-release-016",
+        "rotation-settle"
+      ],
+      "interpretation": "An isolated eight-frame X hold at this window did not produce a persistent sampled tabletop/Z-flip counter or Z-state change. This does not exclude transient changes between checkpoints or a timing/cadence requirement."
     }
   },
   "interpretation": [
-    "The sampled recovered stunt/rotation candidate fields do not respond to this already-validated ordinary L/R pitch-rotation fixture; this is negative evidence only and does not invalidate their historical labels.",
-    "The 0x11CD candidate changes during the same race window independently of the L/R intervention, so this fixture does not support interpreting it as an immediate pitch-rotation counter.",
-    "Because 0x11CE remains zero throughout these checkpoints, the historical v8 byte read and the older 16-bit watch-list view are numerically equivalent in this sampled value range; the width question remains open outside 0..255."
-  ]
+    "The sampled recovered stunt/rotation candidate fields do not respond to the already-validated ordinary L/R pitch-rotation fixture; this is negative evidence only and does not invalidate their historical labels.",
+    "The matched eight-frame X intervention is also identical to jump-only control at all sampled USJO and gameplay fields, so a coarse X pulse at this timing is insufficient to cause a persistent sampled tabletop/Z-flip transition.",
+    "Static analysis merged in PR #80 establishes 0x11CD as a 16-bit game field. In this runtime sample its high byte remains zero while the word follows 0→112→92→76 independently of L/R/X intervention, dynamically corroborating that ordinary pitch/X intervention is not the immediate source of those changes.",
+    "The next discriminator should use per-frame WRAM tracing and recovered USJO cadence so transient Z-state activity cannot occur and clear between sparse checkpoints."
+  ],
+  "source_workflow_run_id": 36771542800
 }

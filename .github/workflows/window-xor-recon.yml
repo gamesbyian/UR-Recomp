@@ -1,0 +1,102 @@
+name: Window XOR seam reconnaissance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/window-xor-recon.yml"
+      - "tools/summarize_window_seam.py"
+      - "tests/input/reach-first-race.script"
+      - "tests/input/vs-first-race.input"
+      - "tests/input/vs-first-race-observe.script"
+      - "tools/toolchain.json"
+      - "tools/patches/snes9x-snesref-debug-exports.patch"
+      - "snesrecomp"
+
+concurrency:
+  group: window-xor-recon-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  recon:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Build patched Snes9x and snesref
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+
+      - name: Capture one-player frontend and first race
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DUMPS="$RUNNER_TEMP/one-player"
+          mkdir -p "$DUMPS"
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" >"$RUNNER_TEMP/one-player.log" 2>&1
+          ls -l "$DUMPS"/*.regs.json
+
+      - name: Capture VS split-screen race
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DUMPS="$RUNNER_TEMP/vs"
+          mkdir -p "$DUMPS"
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/vs-first-race.input" \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/vs-first-race-observe.script" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" >"$RUNNER_TEMP/vs.log" 2>&1
+          ls -l "$DUMPS"/*.regs.json
+
+      - name: Summarize window and color-math state
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/summarize_window_seam.py \
+            "$RUNNER_TEMP"/one-player/*.regs.json \
+            "$RUNNER_TEMP"/vs/*.regs.json \
+            --json-out "$RUNNER_TEMP/window-seam-report.json" \
+            | tee "$RUNNER_TEMP/window-seam-report.txt"
+
+      - name: Upload reconnaissance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-window-xor-recon
+          path: |
+            ${{ runner.temp }}/window-seam-report.json
+            ${{ runner.temp }}/window-seam-report.txt
+            ${{ runner.temp }}/one-player.log
+            ${{ runner.temp }}/vs.log
+            ${{ runner.temp }}/one-player/*.regs.json
+            ${{ runner.temp }}/vs/*.regs.json
+          retention-days: 7

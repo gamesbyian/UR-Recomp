@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "source": "SNESRecomp analyzer reconnaissance plus reproduced runtime evidence",
+  "gaps": [
+    {
+      "id": "indirect-008584",
+      "kind": "unresolved_indirect_dispatch",
+      "site": "00:8584",
+      "summary": "JMP indirect through $0073; four M/X variants remain dynamically resolved.",
+      "priority": "high",
+      "next_evidence": "Capture runtime targets across representative frontend/race routes and compare with independent disassembly/CFG output."
+    },
+    {
+      "id": "indirect-008599",
+      "kind": "unresolved_indirect_dispatch",
+      "site": "00:8599",
+      "summary": "JMP indirect through $0053; four M/X variants remain dynamically resolved.",
+      "priority": "high",
+      "next_evidence": "Capture runtime targets across representative frontend/race routes and compare with independent disassembly/CFG output."
+    },
+    {
+      "id": "indirect-80c3c8",
+      "kind": "unresolved_indirect_dispatch",
+      "site": "80:C3C8",
+      "summary": "JMP indirect through $005D; analyzer retains dynamic LLE resolution.",
+      "priority": "high",
+      "next_evidence": "Trace live targets and identify the dispatch table/state that owns $005D."
+    },
+    {
+      "id": "lle-8091dc-m1x0",
+      "kind": "lle_only_variant",
+      "region": "80:91DC M1X0",
+      "summary": "119 decoded instructions; truncated call continuation and unproven 80:886D -> 83:8AF7 callee exit.",
+      "priority": "high",
+      "next_evidence": "Disassemble both sides with known M/X state; prove return/exit modes and cross-check against runtime traces."
+    },
+    {
+      "id": "lle-8094eb-m1x0",
+      "kind": "lle_only_variant",
+      "region": "80:94EB M1X0",
+      "summary": "4 decoded instructions; truncated call continuation and unproven 80:94F4 -> 80:C3AB callee exit.",
+      "priority": "high",
+      "next_evidence": "Disassemble callee/continuation with known M/X state and compare analyzer boundary choices."
+    },
+    {
+      "id": "historical-2014-native-divergence",
+      "kind": "runtime_fidelity_divergence",
+      "region": "historical replay around guest frame 440",
+      "summary": "Exact Dessyreqt 2014 input replay diverges between pinned Snes9x reference and native SNESRecomp before first race; latest reproduced dense sampling first differs around frame 440.",
+      "priority": "high",
+      "next_evidence": "Bracket first CPU/state divergence around frames 438-442, compare input delivery, guest PCs and writes, then map the responsible routine into the comparative atlas."
+    }
+  ]
+}

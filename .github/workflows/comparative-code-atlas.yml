@@ -1,0 +1,27 @@
+name: Build comparative code atlas
+
+on:
+  workflow_dispatch:
+
+jobs:
+  atlas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify preserved ROM corpus
+        run: |
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          test -s reference/roms/retail/Unirally_Europe.sfc
+          test -s reference/roms/prototypes/Uniracers_Beta_legacy.sfc
+          test -s reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc
+      - name: Run ROM-free atlas regression
+        run: python3 tests/test_build_comparative_code_atlas.py
+      - name: Build atlas
+        run: python3 tools/build_comparative_code_atlas.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: comparative-code-atlas
+          path: |
+            analysis/generated/comparative-code-atlas.json
+            analysis/generated/comparative-code-atlas.md
+          if-no-files-found: error

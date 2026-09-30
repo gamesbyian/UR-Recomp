@@ -26,6 +26,13 @@
     },
     {
       "kind": "function",
+      "address": "`02:807E` (USA)",
+      "name": "APU_UploadBlockById_Wrapper",
+      "confidence": 5,
+      "evidence_/_notes": "Exact bytes `JSR $8082; RTL`. Callers load X with audio block IDs before entering; the body at `02:8082` performs the SPC handshake and calls `APU_ResolveBlockPointer` at `02:812A`, establishing X as a block-record selector."
+    },
+    {
+      "kind": "function",
       "address": "`02:812A` (USA)",
       "name": "APU_ResolveBlockPointer",
       "confidence": 5,
@@ -33,24 +40,17 @@
     },
     {
       "kind": "function",
-      "address": "`02:8298` (USA)",
-      "name": "APU_TransferStateInit",
-      "confidence": 5,
-      "evidence_/_notes": "Exact retail bytes `PHP; SEP #$20; STZ $68; REP #$20; STZ $6C; STZ $6A; PLP; RTS` end at `02:82A4`. `02:8294` is a `JSR $8298; RTL` long-call wrapper. This corrects the earlier over-broad transfer label at `$8298`."
-    },
-    {
-      "kind": "function",
-      "address": "`02:82A5` (USA)",
-      "name": "APU_StreamTransfer_Wrapper",
-      "confidence": 5,
-      "evidence_/_notes": "Exact retail bytes are `JSR $82A9; RTL`. Twelve direct long-call sites target this wrapper; several load X immediately beforehand with clustered bank-03 source seeds including `$FAD5`, `$FB15`, `$FB55`, `$FBD5`, and `$FC15`."
-    },
-    {
-      "kind": "function",
-      "address": "`02:82A9` (USA)",
-      "name": "APU_StreamTransfer",
+      "address": "`03:8971` (USA)",
+      "name": "Text_HandleFCPositionControl",
       "confidence": 4,
-      "evidence_/_notes": "The body initializes `$6F`, stores X at DP `$83`, reads `LDA $030000,X`, and flows into the runtime-proven `$2142/$2143` transport loop at `02:82F0-02:8327`. First-race WRAM traces begin with paired `$83/$84 = $55/$FB` at frame 906, exactly corroborating the static `$FB55` caller seed. The earlier port trace reconstructs APU RAM `$B0E0-$BDE0` exactly."
+      "evidence_/_notes": "Bounded static analysis of the Sayans translation-control grammar. The routine preserves A, recognizes low-byte `FC`, consumes the following parameter, scans subsequent character bytes until `FF` or `FB`, consults `Text_TestCharacterMetadataBit7` for ordinary bytes, then computes `parameter * 32 + horizontal adjustment` into DP `$9F`. The 32-column arithmetic and translated `FF FC xx` / `FB FC xx` sequences support a centered tilemap-position/layout role. Exact user-facing meaning of the parameter remains unpromoted."
+    },
+    {
+      "kind": "function",
+      "address": "`00:8C41` (USA)",
+      "name": "Text_TestCharacterMetadataBit7",
+      "confidence": 4,
+      "evidence_/_notes": "Shared helper reached from four text/layout loops including `03:8998`, `00:C4CB`, and `00:C510`. It indexes the byte table at `00:C6F8` by character code and tests bit 7. Printable-table inspection shows uppercase A-Z in the low half while lowercase a-z, digits and much punctuation usually carry bit 7; therefore this is a verified character-metadata class test, not yet a proven glyph-width flag."
     },
     {
       "kind": "ram",
@@ -163,6 +163,86 @@
       "width": "16-bit working value",
       "confidence": 4,
       "notes": "Historical bot reads this as `pitch`, but static sibling routines copy the same working value into persistent player-1 `$04C7` or player-2 `$04C9` slots. L-vs-control checkpoints leave `$0F49` unchanged while `$04C7` changes causally, so it should not be treated as stable player-1 storage."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0F61",
+      "name": "Player1_TwistCount",
+      "width": "8-bit",
+      "confidence": 3,
+      "notes": "Recovered USJO v8 reads this byte as the completed twist counter; the 2008 TAS watch list independently labels it “# of Twists.” Local transition semantics still need reproduction."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:042F",
+      "name": "Player1_TabletopCount",
+      "width": "8-bit",
+      "confidence": 3,
+      "notes": "Recovered USJO v8 reads this byte as the completed tabletop counter; independently present in the historical TAS watch list."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:042B",
+      "name": "Player1_ZFlipCount",
+      "width": "8-bit",
+      "confidence": 3,
+      "notes": "Recovered USJO v8 reads this byte as the completed Z-flip counter; independently present in the historical TAS watch list."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:11F9",
+      "name": "Player1_RollCount",
+      "width": "8-bit",
+      "confidence": 3,
+      "notes": "Recovered USJO v8 reads this byte as the completed roll counter; independently present in the historical TAS watch list."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:11FD",
+      "name": "Player1_FlipCount",
+      "width": "8-bit",
+      "confidence": 3,
+      "notes": "Recovered USJO v8 reads this byte as the completed flip counter; independently present in the historical TAS watch list."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:11CD",
+      "name": "Player1_BoostMeter",
+      "width": "historical width conflict",
+      "confidence": 3,
+      "notes": "Historical TAS watch list labels a 16-bit unsigned booster meter; USJO v8 reads only the low byte as `realboostmeter` and uses zero/nonzero gating. Verify width/units before stronger promotion."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0DFD",
+      "name": "Player1_ZRotationState",
+      "width": "8-bit",
+      "confidence": 2,
+      "notes": "USJO v8 working label `zrotation`; used to gate Z-flip timing. Exact physical meaning not yet locally reproduced."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0F57",
+      "name": "Player1_ZPreRotationState",
+      "width": "8-bit",
+      "confidence": 2,
+      "notes": "USJO v8 working label `zprerotation`; consulted during chained Z-flip timing. Exact meaning not yet locally reproduced."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0F9F",
+      "name": "Player1_XSpeed_Alternate",
+      "width": "16-bit",
+      "confidence": 1,
+      "notes": "USJO v8 comment names this as an alternative to `7E:04B7` for horizontal speed. Treat as a lead until reader/writer relationship is understood."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:1509",
+      "name": "Camera_ScreenXPosition",
+      "width": "8-bit",
+      "confidence": 3,
+      "notes": "Historical TAS watch list labels this “Screen X Position.” Not consumed by v8; local camera/unit semantics still need validation."
     },
     {
       "kind": "ram",

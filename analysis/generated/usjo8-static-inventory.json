@@ -1,0 +1,2162 @@
+{
+  "schema_version": 1,
+  "source": "references/imported/tas-bots/usjo8.lua",
+  "source_line_count": 1459,
+  "memory_reads": [
+    {
+      "line": 144,
+      "variable": "curspeed",
+      "read": "readword",
+      "width_bits": 16,
+      "address": "0x7E04B7",
+      "source": "local curspeed = memory.readword(0x7E04B7) -- Alternatively, 0x7E0F9F"
+    },
+    {
+      "line": 206,
+      "variable": "curspeed",
+      "read": "readword",
+      "width_bits": 16,
+      "address": "0x7E04B7",
+      "source": "curspeed = memory.readword(0x7E04B7)"
+    },
+    {
+      "line": 210,
+      "variable": "yspeed",
+      "read": "readword",
+      "width_bits": 16,
+      "address": "0x7E04BB",
+      "source": "yspeed = memory.readword(0x7E04BB)"
+    },
+    {
+      "line": 218,
+      "variable": "airflag",
+      "read": "readbyte",
+      "width_bits": 8,
+      "address": "0x7E0545",
+      "source": "airflag = memory.readbyte(0x7E0545)"
+    },
+    {
+      "line": 219,
+      "variable": "numtwists",
+      "read": "readbyte",
+      "width_bits": 8,
+      "address": "0x7E0F61",
+      "source": "numtwists = memory.readbyte(0x7E0F61)"
+    },
+    {
+      "line": 220,
+      "variable": "numtabletops",
+      "read": "readbyte",
+      "width_bits": 8,
+      "address": "0x7E042F",
+      "source": "numtabletops = memory.readbyte(0x7E042F)"
+    },
+    {
+      "line": 221,
+      "variable": "numzflips",
+      "read": "readbyte",
+      "width_bits": 8,
+      "address": "0x7E042B",
+      "source": "numzflips = memory.readbyte(0x7E042B)"
+    },
+    {
+      "line": 222,
+      "variable": "numrolls",
+      "read": "readbyte",
+      "width_bits": 8,
+      "address": "0x7E11F9",
+      "source": "numrolls = memory.readbyte(0x7E11F9)"
+    },
+    {
+      "line": 223,
+      "variable": "numflips",
+      "read": "readbyte",
+      "width_bits": 8,
+      "address": "0x7E11FD",
+      "source": "numflips = memory.readbyte(0x7E11FD)"
+    },
+    {
+      "line": 224,
+      "variable": "zrotation",
+      "read": "readbyte",
+      "width_bits": 8,
+      "address": "0x7E0DFD",
+      "source": "zrotation = memory.readbyte(0x7E0DFD)"
+    },
+    {
+      "line": 225,
+      "variable": "zprerotation",
+      "read": "readbyte",
+      "width_bits": 8,
+      "address": "0x7E0F57",
+      "source": "zprerotation = memory.readbyte(0x7E0F57)"
+    },
+    {
+      "line": 226,
+      "variable": "realboostmeter",
+      "read": "readbyte",
+      "width_bits": 8,
+      "address": "0x7E11CD",
+      "source": "realboostmeter = memory.readbyte(0x7E11CD)"
+    }
+  ],
+  "memory_reads_by_address": {
+    "0x7E04B7": [
+      {
+        "line": 144,
+        "variable": "curspeed",
+        "read": "readword",
+        "width_bits": 16,
+        "address": "0x7E04B7",
+        "source": "local curspeed = memory.readword(0x7E04B7) -- Alternatively, 0x7E0F9F"
+      },
+      {
+        "line": 206,
+        "variable": "curspeed",
+        "read": "readword",
+        "width_bits": 16,
+        "address": "0x7E04B7",
+        "source": "curspeed = memory.readword(0x7E04B7)"
+      }
+    ],
+    "0x7E04BB": [
+      {
+        "line": 210,
+        "variable": "yspeed",
+        "read": "readword",
+        "width_bits": 16,
+        "address": "0x7E04BB",
+        "source": "yspeed = memory.readword(0x7E04BB)"
+      }
+    ],
+    "0x7E0545": [
+      {
+        "line": 218,
+        "variable": "airflag",
+        "read": "readbyte",
+        "width_bits": 8,
+        "address": "0x7E0545",
+        "source": "airflag = memory.readbyte(0x7E0545)"
+      }
+    ],
+    "0x7E0F61": [
+      {
+        "line": 219,
+        "variable": "numtwists",
+        "read": "readbyte",
+        "width_bits": 8,
+        "address": "0x7E0F61",
+        "source": "numtwists = memory.readbyte(0x7E0F61)"
+      }
+    ],
+    "0x7E042F": [
+      {
+        "line": 220,
+        "variable": "numtabletops",
+        "read": "readbyte",
+        "width_bits": 8,
+        "address": "0x7E042F",
+        "source": "numtabletops = memory.readbyte(0x7E042F)"
+      }
+    ],
+    "0x7E042B": [
+      {
+        "line": 221,
+        "variable": "numzflips",
+        "read": "readbyte",
+        "width_bits": 8,
+        "address": "0x7E042B",
+        "source": "numzflips = memory.readbyte(0x7E042B)"
+      }
+    ],
+    "0x7E11F9": [
+      {
+        "line": 222,
+        "variable": "numrolls",
+        "read": "readbyte",
+        "width_bits": 8,
+        "address": "0x7E11F9",
+        "source": "numrolls = memory.readbyte(0x7E11F9)"
+      }
+    ],
+    "0x7E11FD": [
+      {
+        "line": 223,
+        "variable": "numflips",
+        "read": "readbyte",
+        "width_bits": 8,
+        "address": "0x7E11FD",
+        "source": "numflips = memory.readbyte(0x7E11FD)"
+      }
+    ],
+    "0x7E0DFD": [
+      {
+        "line": 224,
+        "variable": "zrotation",
+        "read": "readbyte",
+        "width_bits": 8,
+        "address": "0x7E0DFD",
+        "source": "zrotation = memory.readbyte(0x7E0DFD)"
+      }
+    ],
+    "0x7E0F57": [
+      {
+        "line": 225,
+        "variable": "zprerotation",
+        "read": "readbyte",
+        "width_bits": 8,
+        "address": "0x7E0F57",
+        "source": "zprerotation = memory.readbyte(0x7E0F57)"
+      }
+    ],
+    "0x7E11CD": [
+      {
+        "line": 226,
+        "variable": "realboostmeter",
+        "read": "readbyte",
+        "width_bits": 8,
+        "address": "0x7E11CD",
+        "source": "realboostmeter = memory.readbyte(0x7E11CD)"
+      }
+    ]
+  },
+  "preloop_local_constants": [
+    {
+      "line": 25,
+      "name": "startframe",
+      "value": "0"
+    },
+    {
+      "line": 26,
+      "name": "maxframewait",
+      "value": "5"
+    },
+    {
+      "line": 27,
+      "name": "frameincrement",
+      "value": "1"
+    },
+    {
+      "line": 28,
+      "name": "changedirection",
+      "value": "0",
+      "comment": "1 = yes, 0 = no"
+    },
+    {
+      "line": 29,
+      "name": "forcedirection",
+      "value": "0",
+      "comment": "1 = right, -1 = left"
+    },
+    {
+      "line": 30,
+      "name": "flipovercorrect",
+      "value": "0"
+    },
+    {
+      "line": 31,
+      "name": "rollovercorrect",
+      "value": "0"
+    },
+    {
+      "line": 32,
+      "name": "searchwindow",
+      "value": "3",
+      "comment": "How many frames after landing to wait until assessing speed and boost"
+    },
+    {
+      "line": 33,
+      "name": "minjump",
+      "value": "4",
+      "comment": "Minimum jump duration worth looking at in more detail"
+    },
+    {
+      "line": 34,
+      "name": "maxtabletopextrawait",
+      "value": "10"
+    },
+    {
+      "line": 35,
+      "name": "maxtwists",
+      "value": "999"
+    },
+    {
+      "line": 36,
+      "name": "twistoffset",
+      "value": "1"
+    },
+    {
+      "line": 37,
+      "name": "ruttolerance",
+      "value": "10"
+    },
+    {
+      "line": 38,
+      "name": "infiniteloopdetection",
+      "value": "300"
+    },
+    {
+      "line": 44,
+      "name": "twistduration",
+      "value": "9"
+    },
+    {
+      "line": 45,
+      "name": "tabletopwait",
+      "value": "8"
+    },
+    {
+      "line": 46,
+      "name": "tabletopair",
+      "value": "9"
+    },
+    {
+      "line": 47,
+      "name": "tabletoptime",
+      "value": "7"
+    },
+    {
+      "line": 48,
+      "name": "tabletopspeed",
+      "value": "600"
+    },
+    {
+      "line": 51,
+      "name": "mode",
+      "value": "1",
+      "comment": "0 = initializing, 1 = jumping, 2 = first twist, 3 = stunt, 4 = replaying best, 5 = done"
+    },
+    {
+      "line": 52,
+      "name": "jumpstatus",
+      "value": "0",
+      "comment": "0 = not trying to jump, 1 = trying to jump, 2 = airborne, 3 = peaked, 4 = landed"
+    },
+    {
+      "line": 53,
+      "name": "twiststatus",
+      "value": "0",
+      "comment": "0 = not trying, 1 = waiting for back twist to finish, 2 = waiting for front twist to finish"
+    },
+    {
+      "line": 54,
+      "name": "tabletopstatus",
+      "value": "0"
+    },
+    {
+      "line": 55,
+      "name": "zflipstatus",
+      "value": "0"
+    },
+    {
+      "line": 56,
+      "name": "rollstatus",
+      "value": "0"
+    },
+    {
+      "line": 57,
+      "name": "flipstatus",
+      "value": "0"
+    },
+    {
+      "line": 58,
+      "name": "reload",
+      "value": "0"
+    },
+    {
+      "line": 59,
+      "name": "strategy",
+      "value": "1",
+      "comment": "1 = build up, 2 = individual maximums, 3 = tear down from maxes"
+    },
+    {
+      "line": 61,
+      "name": "yspeed",
+      "value": "0"
+    },
+    {
+      "line": 62,
+      "name": "airflag",
+      "value": "0"
+    },
+    {
+      "line": 63,
+      "name": "curframe",
+      "value": "256"
+    },
+    {
+      "line": 64,
+      "name": "afterframe",
+      "value": "0",
+      "comment": "Counter for frames after jump"
+    },
+    {
+      "line": 65,
+      "name": "thisjumpduration",
+      "value": "0"
+    },
+    {
+      "line": 66,
+      "name": "bestjumpduration",
+      "value": "0"
+    },
+    {
+      "line": 67,
+      "name": "jumpiestframe",
+      "value": "0"
+    },
+    {
+      "line": 68,
+      "name": "twistwait",
+      "value": "0"
+    },
+    {
+      "line": 69,
+      "name": "numtwists",
+      "value": "0"
+    },
+    {
+      "line": 70,
+      "name": "numtabletops",
+      "value": "0"
+    },
+    {
+      "line": 71,
+      "name": "numzflips",
+      "value": "0"
+    },
+    {
+      "line": 72,
+      "name": "numrolls",
+      "value": "0"
+    },
+    {
+      "line": 73,
+      "name": "numflips",
+      "value": "0"
+    },
+    {
+      "line": 74,
+      "name": "thismaxtwists",
+      "value": "0"
+    },
+    {
+      "line": 75,
+      "name": "thismaxtabletops",
+      "value": "0"
+    },
+    {
+      "line": 76,
+      "name": "thismaxzflips",
+      "value": "0"
+    },
+    {
+      "line": 77,
+      "name": "thismaxrolls",
+      "value": "0"
+    },
+    {
+      "line": 78,
+      "name": "thismaxflips",
+      "value": "0"
+    },
+    {
+      "line": 79,
+      "name": "tabletopcounter",
+      "value": "0"
+    },
+    {
+      "line": 80,
+      "name": "finalscore",
+      "value": "0"
+    },
+    {
+      "line": 81,
+      "name": "bestfinalscore",
+      "value": "-9999"
+    },
+    {
+      "line": 82,
+      "name": "lastscore",
+      "value": "0"
+    },
+    {
+      "line": 83,
+      "name": "lastaddition",
+      "value": "0"
+    },
+    {
+      "line": 84,
+      "name": "consecutivefailures",
+      "value": "0"
+    },
+    {
+      "line": 85,
+      "name": "strategytext",
+      "value": "\"\""
+    },
+    {
+      "line": 86,
+      "name": "lastboost",
+      "value": "0"
+    },
+    {
+      "line": 87,
+      "name": "lastspeed",
+      "value": "0"
+    },
+    {
+      "line": 88,
+      "name": "twistregisters",
+      "value": "0"
+    },
+    {
+      "line": 89,
+      "name": "tabletopextrawait",
+      "value": "0"
+    },
+    {
+      "line": 90,
+      "name": "zflipframe",
+      "value": "0"
+    },
+    {
+      "line": 91,
+      "name": "twistcounter",
+      "value": "0"
+    },
+    {
+      "line": 92,
+      "name": "zflipinplay",
+      "value": "0"
+    },
+    {
+      "line": 93,
+      "name": "rutcounter",
+      "value": "0"
+    },
+    {
+      "line": 94,
+      "name": "zrotation",
+      "value": "0"
+    },
+    {
+      "line": 95,
+      "name": "zprerotation",
+      "value": "0"
+    },
+    {
+      "line": 96,
+      "name": "zwait",
+      "value": "0"
+    },
+    {
+      "line": 97,
+      "name": "zwaited",
+      "value": "0"
+    },
+    {
+      "line": 98,
+      "name": "zwait2",
+      "value": "0"
+    },
+    {
+      "line": 99,
+      "name": "zfromthegrave",
+      "value": "0"
+    },
+    {
+      "line": 100,
+      "name": "backwardspaddles",
+      "value": "0"
+    },
+    {
+      "line": 101,
+      "name": "realboostmeter",
+      "value": "0"
+    },
+    {
+      "line": 102,
+      "name": "thisrollovercorrect",
+      "value": "0"
+    },
+    {
+      "line": 103,
+      "name": "thisflipovercorrect",
+      "value": "0"
+    },
+    {
+      "line": 105,
+      "name": "bestscoringtwists",
+      "value": "0"
+    },
+    {
+      "line": 106,
+      "name": "bestscoringtabletops",
+      "value": "0"
+    },
+    {
+      "line": 107,
+      "name": "bestscoringzflips",
+      "value": "0"
+    },
+    {
+      "line": 108,
+      "name": "bestscoringrolls",
+      "value": "0"
+    },
+    {
+      "line": 109,
+      "name": "bestscoringflips",
+      "value": "0"
+    },
+    {
+      "line": 110,
+      "name": "bestscoringtwistwait",
+      "value": "0"
+    },
+    {
+      "line": 111,
+      "name": "bestscoringframewait",
+      "value": "0"
+    },
+    {
+      "line": 112,
+      "name": "bestscoringtabletopextrawait",
+      "value": "0"
+    },
+    {
+      "line": 113,
+      "name": "bestscoringzwait",
+      "value": "0"
+    },
+    {
+      "line": 114,
+      "name": "bestscoringzwait2",
+      "value": "0"
+    },
+    {
+      "line": 115,
+      "name": "bestscoringtwistregisters",
+      "value": "0"
+    },
+    {
+      "line": 117,
+      "name": "maxtwistonly",
+      "value": "0"
+    },
+    {
+      "line": 118,
+      "name": "maxtabletopsonly",
+      "value": "0"
+    },
+    {
+      "line": 119,
+      "name": "maxzflipsonly",
+      "value": "0"
+    },
+    {
+      "line": 120,
+      "name": "maxrollsonly",
+      "value": "0"
+    },
+    {
+      "line": 121,
+      "name": "maxflipsonly",
+      "value": "0"
+    },
+    {
+      "line": 123,
+      "name": "completedtwists",
+      "value": "0"
+    },
+    {
+      "line": 124,
+      "name": "completedtabletops",
+      "value": "0"
+    },
+    {
+      "line": 125,
+      "name": "completedzflips",
+      "value": "0"
+    },
+    {
+      "line": 126,
+      "name": "completedrolls",
+      "value": "0"
+    },
+    {
+      "line": 127,
+      "name": "completedflips",
+      "value": "0"
+    },
+    {
+      "line": 129,
+      "name": "jumping",
+      "value": "0"
+    },
+    {
+      "line": 130,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 131,
+      "name": "rolling",
+      "value": "0",
+      "comment": "rolls go against direction (back flip)"
+    },
+    {
+      "line": 132,
+      "name": "flipping",
+      "value": "0",
+      "comment": "flips go in the direction (front flip)"
+    },
+    {
+      "line": 133,
+      "name": "xing",
+      "value": "0"
+    }
+  ],
+  "comment_enums": {
+    "changedirection": {
+      "0": "no",
+      "1": "yes"
+    },
+    "mode": {
+      "0": "initializing",
+      "1": "jumping",
+      "2": "first twist",
+      "3": "stunt",
+      "4": "replaying best",
+      "5": "done"
+    },
+    "jumpstatus": {
+      "0": "not trying to jump",
+      "1": "trying to jump",
+      "2": "airborne",
+      "3": "peaked",
+      "4": "landed"
+    },
+    "twiststatus": {
+      "0": "not trying",
+      "1": "waiting for back twist to finish",
+      "2": "waiting for front twist to finish"
+    },
+    "strategy": {
+      "1": "build up",
+      "2": "individual maximums",
+      "3": "tear down from maxes"
+    }
+  },
+  "state_assignments": [
+    {
+      "line": 176,
+      "name": "jumpstatus",
+      "value": "0"
+    },
+    {
+      "line": 177,
+      "name": "twiststatus",
+      "value": "0"
+    },
+    {
+      "line": 178,
+      "name": "tabletopstatus",
+      "value": "0"
+    },
+    {
+      "line": 179,
+      "name": "zflipstatus",
+      "value": "0"
+    },
+    {
+      "line": 180,
+      "name": "rollstatus",
+      "value": "0"
+    },
+    {
+      "line": 181,
+      "name": "flipstatus",
+      "value": "0"
+    },
+    {
+      "line": 236,
+      "name": "jumpstatus",
+      "value": "1"
+    },
+    {
+      "line": 245,
+      "name": "jumpstatus",
+      "value": "2"
+    },
+    {
+      "line": 253,
+      "name": "jumpstatus",
+      "value": "3"
+    },
+    {
+      "line": 256,
+      "name": "jumpstatus",
+      "value": "4"
+    },
+    {
+      "line": 263,
+      "name": "jumpstatus",
+      "value": "4"
+    },
+    {
+      "line": 274,
+      "name": "mode",
+      "value": "4"
+    },
+    {
+      "line": 275,
+      "name": "strategy",
+      "value": "4"
+    },
+    {
+      "line": 295,
+      "name": "mode",
+      "value": "1"
+    },
+    {
+      "line": 299,
+      "name": "mode",
+      "value": "2"
+    },
+    {
+      "line": 309,
+      "name": "jumpstatus",
+      "value": "1"
+    },
+    {
+      "line": 317,
+      "name": "jumpstatus",
+      "value": "2"
+    },
+    {
+      "line": 322,
+      "name": "jumpstatus",
+      "value": "3"
+    },
+    {
+      "line": 325,
+      "name": "jumpstatus",
+      "value": "4"
+    },
+    {
+      "line": 330,
+      "name": "jumpstatus",
+      "value": "4"
+    },
+    {
+      "line": 340,
+      "name": "twiststatus",
+      "value": "1"
+    },
+    {
+      "line": 350,
+      "name": "twiststatus",
+      "value": "2"
+    },
+    {
+      "line": 352,
+      "name": "mode",
+      "value": "3"
+    },
+    {
+      "line": 366,
+      "name": "mode",
+      "value": "4"
+    },
+    {
+      "line": 367,
+      "name": "strategy",
+      "value": "4"
+    },
+    {
+      "line": 387,
+      "name": "mode",
+      "value": "1"
+    },
+    {
+      "line": 391,
+      "name": "mode",
+      "value": "2"
+    },
+    {
+      "line": 399,
+      "name": "jumpstatus",
+      "value": "1"
+    },
+    {
+      "line": 407,
+      "name": "jumpstatus",
+      "value": "2"
+    },
+    {
+      "line": 412,
+      "name": "jumpstatus",
+      "value": "3"
+    },
+    {
+      "line": 415,
+      "name": "jumpstatus",
+      "value": "4"
+    },
+    {
+      "line": 420,
+      "name": "jumpstatus",
+      "value": "4"
+    },
+    {
+      "line": 431,
+      "name": "twiststatus",
+      "value": "0"
+    },
+    {
+      "line": 435,
+      "name": "twiststatus",
+      "value": "1"
+    },
+    {
+      "line": 446,
+      "name": "twiststatus",
+      "value": "2"
+    },
+    {
+      "line": 457,
+      "name": "twiststatus",
+      "value": "0"
+    },
+    {
+      "line": 461,
+      "name": "twiststatus",
+      "value": "1"
+    },
+    {
+      "line": 473,
+      "name": "tabletopstatus",
+      "value": "0"
+    },
+    {
+      "line": 477,
+      "name": "tabletopstatus",
+      "value": "0"
+    },
+    {
+      "line": 481,
+      "name": "tabletopstatus",
+      "value": "1"
+    },
+    {
+      "line": 487,
+      "name": "tabletopstatus",
+      "value": "1"
+    },
+    {
+      "line": 501,
+      "name": "mode",
+      "value": "4"
+    },
+    {
+      "line": 502,
+      "name": "strategy",
+      "value": "1"
+    },
+    {
+      "line": 518,
+      "name": "mode",
+      "value": "4"
+    },
+    {
+      "line": 519,
+      "name": "strategy",
+      "value": "4"
+    },
+    {
+      "line": 540,
+      "name": "mode",
+      "value": "1"
+    },
+    {
+      "line": 546,
+      "name": "mode",
+      "value": "3"
+    },
+    {
+      "line": 557,
+      "name": "mode",
+      "value": "1"
+    },
+    {
+      "line": 580,
+      "name": "jumpstatus",
+      "value": "1"
+    },
+    {
+      "line": 589,
+      "name": "jumpstatus",
+      "value": "2"
+    },
+    {
+      "line": 595,
+      "name": "jumpstatus",
+      "value": "3"
+    },
+    {
+      "line": 598,
+      "name": "jumpstatus",
+      "value": "4"
+    },
+    {
+      "line": 604,
+      "name": "jumpstatus",
+      "value": "4"
+    },
+    {
+      "line": 610,
+      "name": "twiststatus",
+      "value": "0"
+    },
+    {
+      "line": 611,
+      "name": "tabletopstatus",
+      "value": "0"
+    },
+    {
+      "line": 612,
+      "name": "zflipstatus",
+      "value": "0"
+    },
+    {
+      "line": 613,
+      "name": "flipstatus",
+      "value": "0"
+    },
+    {
+      "line": 614,
+      "name": "rollstatus",
+      "value": "0"
+    },
+    {
+      "line": 621,
+      "name": "twiststatus",
+      "value": "0"
+    },
+    {
+      "line": 626,
+      "name": "twiststatus",
+      "value": "0"
+    },
+    {
+      "line": 632,
+      "name": "twiststatus",
+      "value": "0"
+    },
+    {
+      "line": 642,
+      "name": "twiststatus",
+      "value": "1"
+    },
+    {
+      "line": 656,
+      "name": "twiststatus",
+      "value": "2"
+    },
+    {
+      "line": 669,
+      "name": "twiststatus",
+      "value": "0"
+    },
+    {
+      "line": 673,
+      "name": "twiststatus",
+      "value": "0"
+    },
+    {
+      "line": 680,
+      "name": "twiststatus",
+      "value": "1"
+    },
+    {
+      "line": 693,
+      "name": "tabletopstatus",
+      "value": "0"
+    },
+    {
+      "line": 697,
+      "name": "tabletopstatus",
+      "value": "0"
+    },
+    {
+      "line": 701,
+      "name": "tabletopstatus",
+      "value": "1"
+    },
+    {
+      "line": 707,
+      "name": "tabletopstatus",
+      "value": "1"
+    },
+    {
+      "line": 720,
+      "name": "tabletopstatus",
+      "value": "2"
+    },
+    {
+      "line": 731,
+      "name": "tabletopstatus",
+      "value": "6"
+    },
+    {
+      "line": 744,
+      "name": "zflipstatus",
+      "value": "0"
+    },
+    {
+      "line": 749,
+      "name": "zflipstatus",
+      "value": "0"
+    },
+    {
+      "line": 759,
+      "name": "zflipstatus",
+      "value": "0"
+    },
+    {
+      "line": 766,
+      "name": "zflipstatus",
+      "value": "1"
+    },
+    {
+      "line": 770,
+      "name": "zflipstatus",
+      "value": "0"
+    },
+    {
+      "line": 787,
+      "name": "twiststatus",
+      "value": "1"
+    },
+    {
+      "line": 793,
+      "name": "twiststatus",
+      "value": "1"
+    },
+    {
+      "line": 799,
+      "name": "twiststatus",
+      "value": "1"
+    },
+    {
+      "line": 808,
+      "name": "twiststatus",
+      "value": "2"
+    },
+    {
+      "line": 811,
+      "name": "zflipstatus",
+      "value": "0"
+    },
+    {
+      "line": 817,
+      "name": "twiststatus",
+      "value": "0"
+    },
+    {
+      "line": 820,
+      "name": "zflipstatus",
+      "value": "0"
+    },
+    {
+      "line": 825,
+      "name": "twiststatus",
+      "value": "2"
+    },
+    {
+      "line": 827,
+      "name": "zflipstatus",
+      "value": "0"
+    },
+    {
+      "line": 838,
+      "name": "flipstatus",
+      "value": "0"
+    },
+    {
+      "line": 845,
+      "name": "flipstatus",
+      "value": "0"
+    },
+    {
+      "line": 849,
+      "name": "flipstatus",
+      "value": "1"
+    },
+    {
+      "line": 850,
+      "name": "rollstatus",
+      "value": "0"
+    },
+    {
+      "line": 863,
+      "name": "flipstatus",
+      "value": "1"
+    },
+    {
+      "line": 872,
+      "name": "flipstatus",
+      "value": "0"
+    },
+    {
+      "line": 883,
+      "name": "rollstatus",
+      "value": "0"
+    },
+    {
+      "line": 890,
+      "name": "rollstatus",
+      "value": "0"
+    },
+    {
+      "line": 894,
+      "name": "flipstatus",
+      "value": "0"
+    },
+    {
+      "line": 895,
+      "name": "rollstatus",
+      "value": "1"
+    },
+    {
+      "line": 908,
+      "name": "rollstatus",
+      "value": "1"
+    },
+    {
+      "line": 917,
+      "name": "rollstatus",
+      "value": "0"
+    },
+    {
+      "line": 1200,
+      "name": "strategy",
+      "value": "4"
+    },
+    {
+      "line": 1220,
+      "name": "mode",
+      "value": "1"
+    },
+    {
+      "line": 1267,
+      "name": "strategy",
+      "value": "3"
+    },
+    {
+      "line": 1314,
+      "name": "strategy",
+      "value": "4"
+    },
+    {
+      "line": 1327,
+      "name": "mode",
+      "value": "1"
+    },
+    {
+      "line": 1378,
+      "name": "mode",
+      "value": "5"
+    }
+  ],
+  "control_signal_assignments": [
+    {
+      "line": 167,
+      "name": "jumping",
+      "value": "0"
+    },
+    {
+      "line": 168,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 169,
+      "name": "rolling",
+      "value": "0"
+    },
+    {
+      "line": 170,
+      "name": "flipping",
+      "value": "0"
+    },
+    {
+      "line": 171,
+      "name": "xing",
+      "value": "0"
+    },
+    {
+      "line": 237,
+      "name": "jumping",
+      "value": "1"
+    },
+    {
+      "line": 239,
+      "name": "jumping",
+      "value": "0"
+    },
+    {
+      "line": 243,
+      "name": "jumping",
+      "value": "1"
+    },
+    {
+      "line": 251,
+      "name": "jumping",
+      "value": "1"
+    },
+    {
+      "line": 261,
+      "name": "jumping",
+      "value": "0"
+    },
+    {
+      "line": 267,
+      "name": "jumping",
+      "value": "0"
+    },
+    {
+      "line": 310,
+      "name": "jumping",
+      "value": "1"
+    },
+    {
+      "line": 312,
+      "name": "jumping",
+      "value": "0"
+    },
+    {
+      "line": 315,
+      "name": "jumping",
+      "value": "1"
+    },
+    {
+      "line": 320,
+      "name": "jumping",
+      "value": "1"
+    },
+    {
+      "line": 328,
+      "name": "jumping",
+      "value": "0"
+    },
+    {
+      "line": 333,
+      "name": "jumping",
+      "value": "0"
+    },
+    {
+      "line": 341,
+      "name": "reverse",
+      "value": "1"
+    },
+    {
+      "line": 343,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 347,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 400,
+      "name": "jumping",
+      "value": "1"
+    },
+    {
+      "line": 402,
+      "name": "jumping",
+      "value": "0"
+    },
+    {
+      "line": 405,
+      "name": "jumping",
+      "value": "1"
+    },
+    {
+      "line": 410,
+      "name": "jumping",
+      "value": "1"
+    },
+    {
+      "line": 418,
+      "name": "jumping",
+      "value": "0"
+    },
+    {
+      "line": 423,
+      "name": "jumping",
+      "value": "0"
+    },
+    {
+      "line": 432,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 436,
+      "name": "reverse",
+      "value": "1"
+    },
+    {
+      "line": 440,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 443,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 456,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 460,
+      "name": "reverse",
+      "value": "1"
+    },
+    {
+      "line": 465,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 474,
+      "name": "xing",
+      "value": "0"
+    },
+    {
+      "line": 478,
+      "name": "xing",
+      "value": "0"
+    },
+    {
+      "line": 483,
+      "name": "xing",
+      "value": "1"
+    },
+    {
+      "line": 489,
+      "name": "xing",
+      "value": "1"
+    },
+    {
+      "line": 493,
+      "name": "xing",
+      "value": "0"
+    },
+    {
+      "line": 496,
+      "name": "xing",
+      "value": "0"
+    },
+    {
+      "line": 581,
+      "name": "jumping",
+      "value": "1"
+    },
+    {
+      "line": 583,
+      "name": "jumping",
+      "value": "0"
+    },
+    {
+      "line": 587,
+      "name": "jumping",
+      "value": "1"
+    },
+    {
+      "line": 593,
+      "name": "jumping",
+      "value": "1"
+    },
+    {
+      "line": 602,
+      "name": "jumping",
+      "value": "0"
+    },
+    {
+      "line": 608,
+      "name": "jumping",
+      "value": "0"
+    },
+    {
+      "line": 622,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 627,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 633,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 643,
+      "name": "reverse",
+      "value": "1"
+    },
+    {
+      "line": 649,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 652,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 668,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 674,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 679,
+      "name": "reverse",
+      "value": "1"
+    },
+    {
+      "line": 686,
+      "name": "reverse",
+      "value": "0"
+    },
+    {
+      "line": 694,
+      "name": "xing",
+      "value": "0"
+    },
+    {
+      "line": 698,
+      "name": "xing",
+      "value": "0"
+    },
+    {
+      "line": 703,
+      "name": "xing",
+      "value": "1"
+    },
+    {
+      "line": 709,
+      "name": "xing",
+      "value": "1"
+    },
+    {
+      "line": 713,
+      "name": "xing",
+      "value": "0"
+    },
+    {
+      "line": 716,
+      "name": "xing",
+      "value": "0"
+    },
+    {
+      "line": 719,
+      "name": "xing",
+      "value": "1"
+    },
+    {
+      "line": 727,
+      "name": "xing",
+      "value": "0"
+    },
+    {
+      "line": 745,
+      "name": "xing",
+      "value": "0"
+    },
+    {
+      "line": 750,
+      "name": "xing",
+      "value": "0"
+    },
+    {
+      "line": 760,
+      "name": "xing",
+      "value": "0"
+    },
+    {
+      "line": 765,
+      "name": "xing",
+      "value": "1"
+    },
+    {
+      "line": 771,
+      "name": "xing",
+      "value": "0"
+    },
+    {
+      "line": 779,
+      "name": "xing",
+      "value": "0"
+    },
+    {
+      "line": 786,
+      "name": "reverse",
+      "value": "1"
+    },
+    {
+      "line": 792,
+      "name": "reverse",
+      "value": "1"
+    },
+    {
+      "line": 798,
+      "name": "reverse",
+      "value": "1"
+    },
+    {
+      "line": 832,
+      "name": "xing",
+      "value": "1"
+    },
+    {
+      "line": 839,
+      "name": "flipping",
+      "value": "0"
+    },
+    {
+      "line": 844,
+      "name": "flipping",
+      "value": "0"
+    },
+    {
+      "line": 848,
+      "name": "flipping",
+      "value": "1"
+    },
+    {
+      "line": 862,
+      "name": "flipping",
+      "value": "1"
+    },
+    {
+      "line": 867,
+      "name": "flipping",
+      "value": "1"
+    },
+    {
+      "line": 871,
+      "name": "flipping",
+      "value": "0"
+    },
+    {
+      "line": 884,
+      "name": "rolling",
+      "value": "0"
+    },
+    {
+      "line": 889,
+      "name": "rolling",
+      "value": "0"
+    },
+    {
+      "line": 893,
+      "name": "rolling",
+      "value": "1"
+    },
+    {
+      "line": 907,
+      "name": "rolling",
+      "value": "1"
+    },
+    {
+      "line": 912,
+      "name": "rolling",
+      "value": "1"
+    },
+    {
+      "line": 916,
+      "name": "rolling",
+      "value": "0"
+    },
+    {
+      "line": 928,
+      "name": "rolling",
+      "value": "1"
+    },
+    {
+      "line": 937,
+      "name": "flipping",
+      "value": "1"
+    },
+    {
+      "line": 938,
+      "name": "rolling",
+      "value": "0"
+    },
+    {
+      "line": 940,
+      "name": "rolling",
+      "value": "1"
+    },
+    {
+      "line": 941,
+      "name": "flipping",
+      "value": "0"
+    }
+  ],
+  "boost_scoring_block": {
+    "start_line": 946,
+    "end_line": 995,
+    "lines": [
+      {
+        "line": 946,
+        "text": "            thisboostmeter = 0"
+      },
+      {
+        "line": 947,
+        "text": "            if completedtwists >= 8 then"
+      },
+      {
+        "line": 948,
+        "text": "                thisboostmeter = thisboostmeter + 200"
+      },
+      {
+        "line": 949,
+        "text": "            elseif completedtwists >= 6 then"
+      },
+      {
+        "line": 950,
+        "text": "                thisboostmeter = thisboostmeter + 176"
+      },
+      {
+        "line": 951,
+        "text": "            elseif completedtwists >= 4 then"
+      },
+      {
+        "line": 952,
+        "text": "                thisboostmeter = thisboostmeter + 152"
+      },
+      {
+        "line": 953,
+        "text": "            elseif completedtwists >= 2 then"
+      },
+      {
+        "line": 954,
+        "text": "                thisboostmeter = thisboostmeter + 128"
+      },
+      {
+        "line": 955,
+        "text": "            end"
+      },
+      {
+        "line": 956,
+        "text": "            if completedtabletops >= 1 then"
+      },
+      {
+        "line": 957,
+        "text": "                thisboostmeter = thisboostmeter + 152"
+      },
+      {
+        "line": 958,
+        "text": "            end"
+      },
+      {
+        "line": 959,
+        "text": "            if completedzflips == 1 then"
+      },
+      {
+        "line": 960,
+        "text": "                thisboostmeter = thisboostmeter + 128"
+      },
+      {
+        "line": 961,
+        "text": "            elseif completedzflips == 2 then"
+      },
+      {
+        "line": 962,
+        "text": "                thisboostmeter = thisboostmeter + 152"
+      },
+      {
+        "line": 963,
+        "text": "            elseif completedzflips == 3 then"
+      },
+      {
+        "line": 964,
+        "text": "                thisboostmeter = thisboostmeter + 176"
+      },
+      {
+        "line": 965,
+        "text": "            elseif completedzflips >= 4 then"
+      },
+      {
+        "line": 966,
+        "text": "                thisboostmeter = thisboostmeter + 200"
+      },
+      {
+        "line": 967,
+        "text": "            end"
+      },
+      {
+        "line": 968,
+        "text": "            if completedrolls == 1 then"
+      },
+      {
+        "line": 969,
+        "text": "                thisboostmeter = thisboostmeter + 128"
+      },
+      {
+        "line": 970,
+        "text": "            elseif completedrolls == 2 then"
+      },
+      {
+        "line": 971,
+        "text": "                thisboostmeter = thisboostmeter + 152"
+      },
+      {
+        "line": 972,
+        "text": "            elseif completedrolls == 3 then"
+      },
+      {
+        "line": 973,
+        "text": "                thisboostmeter = thisboostmeter + 176"
+      },
+      {
+        "line": 974,
+        "text": "            elseif completedrolls >= 4 then"
+      },
+      {
+        "line": 975,
+        "text": "                thisboostmeter = thisboostmeter + 200"
+      },
+      {
+        "line": 976,
+        "text": "            end"
+      },
+      {
+        "line": 977,
+        "text": "            if completedflips == 1 then"
+      },
+      {
+        "line": 978,
+        "text": "                thisboostmeter = thisboostmeter + 176"
+      },
+      {
+        "line": 979,
+        "text": "            elseif completedflips == 2 then"
+      },
+      {
+        "line": 980,
+        "text": "                thisboostmeter = thisboostmeter + 200"
+      },
+      {
+        "line": 981,
+        "text": "            elseif completedflips == 3 then"
+      },
+      {
+        "line": 982,
+        "text": "                thisboostmeter = thisboostmeter + 224"
+      },
+      {
+        "line": 983,
+        "text": "            elseif completedflips >= 4 then"
+      },
+      {
+        "line": 984,
+        "text": "                thisboostmeter = thisboostmeter + 248"
+      },
+      {
+        "line": 985,
+        "text": "            end"
+      },
+      {
+        "line": 986,
+        "text": "            lastspeed = curspeed * horzdirection * changedirection            "
+      },
+      {
+        "line": 987,
+        "text": "            if lastspeed < 0 then"
+      },
+      {
+        "line": 988,
+        "text": "                thisboostmeter = 0"
+      },
+      {
+        "line": 989,
+        "text": "            end"
+      },
+      {
+        "line": 990,
+        "text": "            if realboostmeter == 0 then"
+      },
+      {
+        "line": 991,
+        "text": "                thisboostmeter = 0"
+      },
+      {
+        "line": 992,
+        "text": "            end"
+      },
+      {
+        "line": 993,
+        "text": ""
+      },
+      {
+        "line": 994,
+        "text": "            lastboost = thisboostmeter            "
+      },
+      {
+        "line": 995,
+        "text": "            finalscore = thisboostmeter + lastspeed"
+      }
+    ]
+  },
+  "controller_output_block": {
+    "start_line": 1392,
+    "end_line": 1446,
+    "lines": [
+      {
+        "line": 1392,
+        "text": "    buttontable = {start=nil, select=nil, up=nil, down=nil, left=nil, right=nil, A=nil, B=nil, X=nil, Y=nil, L=nil, R=nil}"
+      },
+      {
+        "line": 1393,
+        "text": ""
+      },
+      {
+        "line": 1394,
+        "text": "    if reverse == 0 then"
+      },
+      {
+        "line": 1395,
+        "text": "        if horzdirection == 1 then"
+      },
+      {
+        "line": 1396,
+        "text": "            buttontable.right = true"
+      },
+      {
+        "line": 1397,
+        "text": "        else"
+      },
+      {
+        "line": 1398,
+        "text": "            buttontable.left = true"
+      },
+      {
+        "line": 1399,
+        "text": "        end"
+      },
+      {
+        "line": 1400,
+        "text": "    else"
+      },
+      {
+        "line": 1401,
+        "text": "        if horzdirection == 1 then"
+      },
+      {
+        "line": 1402,
+        "text": "            buttontable.left = true"
+      },
+      {
+        "line": 1403,
+        "text": "        else"
+      },
+      {
+        "line": 1404,
+        "text": "            buttontable.right = true"
+      },
+      {
+        "line": 1405,
+        "text": "        end"
+      },
+      {
+        "line": 1406,
+        "text": "    end"
+      },
+      {
+        "line": 1407,
+        "text": "    "
+      },
+      {
+        "line": 1408,
+        "text": "    if flipping == 1 then"
+      },
+      {
+        "line": 1409,
+        "text": "        if horzdirection == 1 then"
+      },
+      {
+        "line": 1410,
+        "text": "            buttontable.R = true"
+      },
+      {
+        "line": 1411,
+        "text": "        else"
+      },
+      {
+        "line": 1412,
+        "text": "            buttontable.L = true"
+      },
+      {
+        "line": 1413,
+        "text": "        end"
+      },
+      {
+        "line": 1414,
+        "text": "    elseif rolling == 1 then"
+      },
+      {
+        "line": 1415,
+        "text": "        if horzdirection == 1 then"
+      },
+      {
+        "line": 1416,
+        "text": "            buttontable.L = true"
+      },
+      {
+        "line": 1417,
+        "text": "        else"
+      },
+      {
+        "line": 1418,
+        "text": "            buttontable.R = true"
+      },
+      {
+        "line": 1419,
+        "text": "        end"
+      },
+      {
+        "line": 1420,
+        "text": "    elseif (mode > 3 and thisflipovercorrect > 0) then"
+      },
+      {
+        "line": 1421,
+        "text": "        gui.text(0,140,\"FLIP OVERCORRECT\")"
+      },
+      {
+        "line": 1422,
+        "text": "        thisflipovercorrect = thisflipovercorrect - 1"
+      },
+      {
+        "line": 1423,
+        "text": "        if horzdirection == 1 then"
+      },
+      {
+        "line": 1424,
+        "text": "            buttontable.R = true"
+      },
+      {
+        "line": 1425,
+        "text": "        else"
+      },
+      {
+        "line": 1426,
+        "text": "            buttontable.L = true"
+      },
+      {
+        "line": 1427,
+        "text": "        end    "
+      },
+      {
+        "line": 1428,
+        "text": "    elseif (mode > 3 and thisrollovercorrect > 0) then"
+      },
+      {
+        "line": 1429,
+        "text": "        gui.text(0,140,\"ROLL OVERCORRECT\")"
+      },
+      {
+        "line": 1430,
+        "text": "        thisrollovercorrect = thisrollovercorrect - 1"
+      },
+      {
+        "line": 1431,
+        "text": "        if horzdirection == 1 then"
+      },
+      {
+        "line": 1432,
+        "text": "            buttontable.L = true"
+      },
+      {
+        "line": 1433,
+        "text": "        else"
+      },
+      {
+        "line": 1434,
+        "text": "            buttontable.R = true"
+      },
+      {
+        "line": 1435,
+        "text": "        end        "
+      },
+      {
+        "line": 1436,
+        "text": "    end"
+      },
+      {
+        "line": 1437,
+        "text": "    "
+      },
+      {
+        "line": 1438,
+        "text": "    if jumping == 1 then"
+      },
+      {
+        "line": 1439,
+        "text": "        buttontable.B = true"
+      },
+      {
+        "line": 1440,
+        "text": "    end"
+      },
+      {
+        "line": 1441,
+        "text": "    "
+      },
+      {
+        "line": 1442,
+        "text": "    if xing == 1 then"
+      },
+      {
+        "line": 1443,
+        "text": "        buttontable.X = true"
+      },
+      {
+        "line": 1444,
+        "text": "    end"
+      },
+      {
+        "line": 1445,
+        "text": "    "
+      },
+      {
+        "line": 1446,
+        "text": "    joypad.set(1, buttontable)"
+      }
+    ]
+  },
+  "interpretation": {
+    "status": "recovered-source evidence only",
+    "warning": "Names and rules in this inventory describe what USJO v8 assumes or observes. They are not promoted game semantics until reproduced against the canonical ROM/runtime."
+  }
+}

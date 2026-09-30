@@ -258,3 +258,70 @@ SHA-256: `61cafb40a32d13bc691e93034449f31c6537736aa6caa0e7d933450e2df269a0`
 Historical discussion identifies this as an optimized WIP containing the 23.56 Dragster work and additional progress. It is valuable as an independent deterministic input corpus and a bridge to the earlier USJO/TAS workflow.
 
 Rights: explicit redistribution license not identified; retained as third-party evidence in this private research repository.
+
+## A-015 — Uniracers Stunts & Jump Optimizer v13 (`usjo13.lua`)
+
+Priority: P0  
+Status: exact historical URL known; bytes not recovered  
+Historical URL: `http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/usjo13.lua`
+
+Need judgment: **yes, still worth active hunting.** Contemporary TASVideos posts describe a frame-perfect search bot that optimized stunt combinations and speed. Its source could expose exact state variables, timing assumptions, scoring/boost logic and automation techniques that would otherwise need to be rediscovered from the ROM. It is not required for correctness, but it has unusually high potential to make physics archaeology cheaper.
+
+## A-016 — Halamantariel boost/mechanics table
+
+Priority: P2  
+Status: exact historical URL known; page bytes not recovered  
+Historical URL: `http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/Uniracers.html`
+
+Need judgment: **useful, but no longer important enough to chase expensively.** Surviving TASVideos posts already preserve several core claims from the page plus RAM addresses, including peak speed, airborne-speed behavior, boost timing and stunt-order observations. Local deterministic physics work can verify the remainder. Keep automated/archive probes alive, but do not block or build bespoke recovery tooling around this page.
+
+## A-017 — Sinister Translations Spanish v1.00 / 100% patch
+
+Priority: P1  
+Status: metadata confirmed; original patch archive not located
+
+Need judgment: **genuinely useful corroboration, not a dependency.** The recovered Sayans patch already exposed text/control regions and reader semantics. An independently authored Sinister patch could quickly confirm those structures and highlight alternative pointer/font/layout discoveries. Search cheaply and periodically; do not pause localization archaeology waiting for it.
+
+## A-018 — Jumpover FallThrough glitch savestates / related historical files
+
+Priority: P1 for actual savestates or SMV; P3 for page text alone  
+Status: historical page and contemporary description known; binaries not recovered  
+Historical URL: `http://dscarroll.com/uniracerstas/FallThrough.ashx`
+
+Need judgment: **actual state/movie files would be useful.** They would give a deterministic seed for an unusual collision/track-boundary case and could save substantial reproduction time. The prose page itself adds little beyond surviving TASVideos discussion.
+
+## A-019 — USA instruction manual scan
+
+Priority: P2  
+Status: direct public PDF located; repository mirror pending/attempted
+
+Need judgment: **nice to preserve, but not needed.** It is canonical player-facing terminology and mechanics documentation, but current manuals/transcriptions and runtime evidence already cover the implementation-critical questions. Acquire when trivial; never block on it.
+
+## A-020 — Halamantariel VGMaps course-map corpus
+
+Priority: P2  
+Status: 44-map public corpus indexed; binary mirroring intentionally deferred unless cheap and size-appropriate
+
+Need judgment: **potentially useful geometric ground truth, but not necessary.** ROM extraction and deterministic rendering are stronger authorities. The maps can accelerate visual checks, especially while course decoding is incomplete, but importing a very large raster corpus merely for completeness is not justified. Preserve a durable inventory/URLs first; fetch individual maps when a concrete comparison needs them.
+
+## A-021 — Uniracers Uncensored IPS patch
+
+Priority: P3  
+Status: current Romhack Plaza record survives but reports no downloadable files
+
+Need judgment: **superfluous to the critical path.** It would cheaply reveal the forbidden-name table, but that behavior is archaeological tail and can be recovered locally if it ever matters. Keep the lead; no bespoke archive hunt unless a surviving patch URL appears incidentally.
+
+## A-022 — Tamoketh UE4 recreation artifacts
+
+Priority: P2 for source/measurements; P3 for ordinary screenshots/video  
+Status: author/project breadcrumbs known; source availability unconfirmed
+
+Need judgment: **only technical artifacts are likely to help.** Source, Blueprints, measurements or explicit movement/track data could provide independent hypotheses. A visual fan recreation is not an oracle and should not compete with the canonical ROM for attention.
+
+## A-023 — Further historical SMV/WIP files
+
+Priority: P1 only when materially distinct from recovered corpora  
+Status: some important movies recovered; additional historical links may exist
+
+Need judgment: **selectively useful.** A movie is valuable when it reaches a scene, glitch, stunt sequence or progression state absent from current deterministic fixtures. Duplicative race footage is archival tail. Acquire cheaply, classify by unique behavioral coverage, and avoid hoarding redundant movies.
+

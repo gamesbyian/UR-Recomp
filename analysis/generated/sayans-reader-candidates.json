@@ -1,0 +1,326 @@
+{
+  "cluster_radius": 96,
+  "clusters": [
+    {
+      "context_hex": "28 60 20 5b 89 6b 08 e2 20 a9 00 22 d5 9e 83 a0 04 00 9f 75 10 77 e8 88 10 f8 28 60 48 29 ff 00 c9 fc 00 d0 3e e2 20 e8 a9 00 eb bd 00 00 a8 84 00 a0 21 00 84 02 9b b9 01 00 c8 c9 ff f0 10 c9 fb f0 0c 22 41 8c 80 d0 02 c6 02 c6 02 80 e8 a5 02 4a 85 02 c2 20 a5 00 0a 0a 0a 0a 0a 18 65 02 85",
+      "context_start_cpu": "03:8955",
+      "context_start_hex": "0x018955",
+      "end_exclusive": 100758,
+      "end_exclusive_hex": "0x018996",
+      "seed_cpu": "03:8994",
+      "seed_offset": 100756,
+      "site_count": 3,
+      "sites": [
+        {
+          "cpu": "03:8975",
+          "rom_offset": 100725,
+          "rom_offset_hex": "0x018975",
+          "value": 252,
+          "value_hex": "0xFC"
+        },
+        {
+          "cpu": "03:8990",
+          "rom_offset": 100752,
+          "rom_offset_hex": "0x018990",
+          "value": 255,
+          "value_hex": "0xFF"
+        },
+        {
+          "cpu": "03:8994",
+          "rom_offset": 100756,
+          "rom_offset_hex": "0x018994",
+          "value": 251,
+          "value_hex": "0xFB"
+        }
+      ],
+      "start_cpu": "03:8975",
+      "start_hex": "0x018975",
+      "start_offset": 100725,
+      "unique_control_count": 3,
+      "unique_controls": [
+        "0xFB",
+        "0xFC",
+        "0xFF"
+      ]
+    },
+    {
+      "context_hex": "9f e2 20 fa 82 f5 fd c2 20 bd 00 00 e8 80 0b c2 20 bd 00 00 e8 e8 a8 b9 00 00 48 e2 20 bd 00 00 c9 f2 f0 04 c9 fc d0 0b 85 dc bd 01 00 85 dd e8 e8 80 06 a9 fb 85 dc 85 dd c2 20 68 a0 de 00 20 2f 9b bd 00 00 29 ff 00 c9 ee 00 d0 04 e8 20 a3 f8 da a2 dc 00 20 ab c3 fa 82 a0 fd c2 20 bd 00 00 e8 80 0b c2 20 bd 00 00 e8 e8 a8 b9 00 00 48 e2 20 bd 00 00 c9 f2 f0 04 c9 fc d0 0b 85 dc bd 01 00 85 dd e8 e8 80 06 a9 fb 85 dc 85 dd c2 20 68 a0 de 00 20 55 9b bd 00 00 29 ff 00 c9 ee 00 d0 04 e8 20 a3 f8 da a2 dc 00 20 ab c3 fa 82 4b fd c2 20 bd 00 00 e8 80 0b c2 20 bd 00 00 e8 e8 a8 b9 00 00 48 e2 20 bd 00 00 c9 f2 f0 04 c9 fc d0 0b 85 dc bd 01 00 85 dd e8 e8 80 06 a9 fb 85 dc 85 dd c2 20 68 a0 de 00 20 79 9b da a2 dc 00",
+      "context_start_cpu": "00:C5B3",
+      "context_start_hex": "0x0045B3",
+      "end_exclusive": 18051,
+      "end_exclusive_hex": "0x004683",
+      "seed_cpu": "00:C62C",
+      "seed_offset": 17964,
+      "site_count": 6,
+      "sites": [
+        {
+          "cpu": "00:C5D3",
+          "rom_offset": 17875,
+          "rom_offset_hex": "0x0045D3",
+          "value": 242,
+          "value_hex": "0xF2"
+        },
+        {
+          "cpu": "00:C5D7",
+          "rom_offset": 17879,
+          "rom_offset_hex": "0x0045D7",
+          "value": 252,
+          "value_hex": "0xFC"
+        },
+        {
+          "cpu": "00:C628",
+          "rom_offset": 17960,
+          "rom_offset_hex": "0x004628",
+          "value": 242,
+          "value_hex": "0xF2"
+        },
+        {
+          "cpu": "00:C62C",
+          "rom_offset": 17964,
+          "rom_offset_hex": "0x00462C",
+          "value": 252,
+          "value_hex": "0xFC"
+        },
+        {
+          "cpu": "00:C67D",
+          "rom_offset": 18045,
+          "rom_offset_hex": "0x00467D",
+          "value": 242,
+          "value_hex": "0xF2"
+        },
+        {
+          "cpu": "00:C681",
+          "rom_offset": 18049,
+          "rom_offset_hex": "0x004681",
+          "value": 252,
+          "value_hex": "0xFC"
+        }
+      ],
+      "start_cpu": "00:C5D3",
+      "start_hex": "0x0045D3",
+      "start_offset": 17875,
+      "unique_control_count": 2,
+      "unique_controls": [
+        "0xF2",
+        "0xFC"
+      ]
+    },
+    {
+      "context_hex": "65 02 85 9f e2 20 e8 e8 82 08 ff e2 20 a9 00 eb bd 00 00 a8 84 00 a0 21 00 84 02 9b b9 01 00 c8 c9 ff f0 16 c9 fb f0 12 c9 ef d0 03 c8 80 ed 20 41 8c d0 02 c6 02 c6 02 80 e2 a5 02 4a 85 02 c2 20 a5 00 0a 0a 0a 0a 0a 18 65 02 85 9f e2 20 e8 82 c0 fe e2 20 a9 00 eb bd 00 00 a8 84 00 a0 21 00 84 02 9b b9 01 00 c8 c9 ff f0 13 c9 fb f0 0f c9 5f f0 0b 20 41 8c d0 02 c6 02 c6 02 80 e5 a5 02 4a 85 02 c2 20 a5 00 0a 0a 0a 0a 0a 18",
+      "context_start_cpu": "00:C49C",
+      "context_start_hex": "0x00449C",
+      "end_exclusive": 17674,
+      "end_exclusive_hex": "0x00450A",
+      "seed_cpu": "00:C508",
+      "seed_offset": 17672,
+      "site_count": 4,
+      "sites": [
+        {
+          "cpu": "00:C4BC",
+          "rom_offset": 17596,
+          "rom_offset_hex": "0x0044BC",
+          "value": 255,
+          "value_hex": "0xFF"
+        },
+        {
+          "cpu": "00:C4C0",
+          "rom_offset": 17600,
+          "rom_offset_hex": "0x0044C0",
+          "value": 251,
+          "value_hex": "0xFB"
+        },
+        {
+          "cpu": "00:C504",
+          "rom_offset": 17668,
+          "rom_offset_hex": "0x004504",
+          "value": 255,
+          "value_hex": "0xFF"
+        },
+        {
+          "cpu": "00:C508",
+          "rom_offset": 17672,
+          "rom_offset_hex": "0x004508",
+          "value": 251,
+          "value_hex": "0xFB"
+        }
+      ],
+      "start_cpu": "00:C4BC",
+      "start_hex": "0x0044BC",
+      "start_offset": 17596,
+      "unique_control_count": 2,
+      "unique_controls": [
+        "0xFB",
+        "0xFF"
+      ]
+    },
+    {
+      "context_hex": "9f e2 20 fa 82 f5 fd c2 20 bd 00 00 e8 80 0b c2 20 bd 00 00 e8 e8 a8 b9 00 00 48 e2 20 bd 00 00 c9 f2 f0 04 c9 fc d0 0b 85 dc bd 01 00 85 dd e8 e8 80 06 a9 fb 85 dc 85 dd c2 20 68 a0 de 00 20 2f 9b bd 00 00 29 ff 00 c9 ee 00 d0 04 e8 20 a3 f8 da a2 dc 00 20 ab c3 fa 82 a0 fd c2 20 bd 00 00 e8 80 0b c2 20 bd 00 00 e8 e8 a8 b9 00 00 48 e2 20 bd 00 00 c9 f2 f0 04 c9 fc d0 0b 85 dc bd 01 00 85 dd e8 e8 80 06 a9 fb 85 dc 85 dd c2 20 68 a0 de 00 20 55 9b bd 00 00 29",
+      "context_start_cpu": "00:C5B3",
+      "context_start_hex": "0x0045B3",
+      "end_exclusive": 17966,
+      "end_exclusive_hex": "0x00462E",
+      "seed_cpu": "00:C5D7",
+      "seed_offset": 17879,
+      "site_count": 4,
+      "sites": [
+        {
+          "cpu": "00:C5D3",
+          "rom_offset": 17875,
+          "rom_offset_hex": "0x0045D3",
+          "value": 242,
+          "value_hex": "0xF2"
+        },
+        {
+          "cpu": "00:C5D7",
+          "rom_offset": 17879,
+          "rom_offset_hex": "0x0045D7",
+          "value": 252,
+          "value_hex": "0xFC"
+        },
+        {
+          "cpu": "00:C628",
+          "rom_offset": 17960,
+          "rom_offset_hex": "0x004628",
+          "value": 242,
+          "value_hex": "0xF2"
+        },
+        {
+          "cpu": "00:C62C",
+          "rom_offset": 17964,
+          "rom_offset_hex": "0x00462C",
+          "value": 252,
+          "value_hex": "0xFC"
+        }
+      ],
+      "start_cpu": "00:C5D3",
+      "start_hex": "0x0045D3",
+      "start_offset": 17875,
+      "unique_control_count": 2,
+      "unique_controls": [
+        "0xF2",
+        "0xFC"
+      ]
+    },
+    {
+      "context_hex": "20 ab c3 fa 82 a0 fd c2 20 bd 00 00 e8 80 0b c2 20 bd 00 00 e8 e8 a8 b9 00 00 48 e2 20 bd 00 00 c9 f2 f0 04 c9 fc d0 0b 85 dc bd 01 00 85 dd e8 e8 80 06 a9 fb 85 dc 85 dd c2 20 68 a0 de 00 20 55 9b bd 00 00 29 ff 00 c9 ee 00 d0 04 e8 20 a3 f8 da a2 dc 00 20 ab c3 fa 82 4b fd c2 20 bd 00 00 e8 80 0b c2 20 bd 00 00 e8 e8 a8 b9 00 00 48 e2 20 bd 00 00 c9 f2 f0 04 c9 fc d0 0b 85 dc bd 01 00 85 dd e8 e8 80 06 a9 fb 85 dc 85 dd c2 20 68 a0 de 00 20 79 9b da a2 dc 00",
+      "context_start_cpu": "00:C608",
+      "context_start_hex": "0x004608",
+      "end_exclusive": 18051,
+      "end_exclusive_hex": "0x004683",
+      "seed_cpu": "00:C681",
+      "seed_offset": 18049,
+      "site_count": 4,
+      "sites": [
+        {
+          "cpu": "00:C628",
+          "rom_offset": 17960,
+          "rom_offset_hex": "0x004628",
+          "value": 242,
+          "value_hex": "0xF2"
+        },
+        {
+          "cpu": "00:C62C",
+          "rom_offset": 17964,
+          "rom_offset_hex": "0x00462C",
+          "value": 252,
+          "value_hex": "0xFC"
+        },
+        {
+          "cpu": "00:C67D",
+          "rom_offset": 18045,
+          "rom_offset_hex": "0x00467D",
+          "value": 242,
+          "value_hex": "0xF2"
+        },
+        {
+          "cpu": "00:C681",
+          "rom_offset": 18049,
+          "rom_offset_hex": "0x004681",
+          "value": 252,
+          "value_hex": "0xFC"
+        }
+      ],
+      "start_cpu": "00:C628",
+      "start_hex": "0x004628",
+      "start_offset": 17960,
+      "unique_control_count": 2,
+      "unique_controls": [
+        "0xF2",
+        "0xFC"
+      ]
+    },
+    {
+      "context_hex": "65 02 85 9f e2 20 e8 e8 82 22 ff e2 20 a9 00 eb bd 00 00 a8 84 00 a0 21 00 84 02 9b b9 01 00 c8 c9 ff f0 17 c9 fb f0 13 c9 ef d0 03 c8 80 ed 22 3d 8c 80 d0 02 c6 02 c6 02 80 e1 a5 02 4a 85 02 c2 20 a5 00 0a 0a 0a 0a 0a 18 65 02 85 9f e2 20 e8 82 d9 fe e2 20 a9 00 eb bd 00 00 a8 84 00 a0 21 00 84 02 9b b9 01 00 c8 c9 ff f0 14 c9 fb f0 10 c9 5f f0 0c 22 3d 8c 80 d0 02 c6 02 c6 02 80 e4 a5 02 4a 85 02 c2 20 a5 00 0a 0a 0a 0a 0a",
+      "context_start_cpu": "03:AA16",
+      "context_start_hex": "0x01AA16",
+      "end_exclusive": 109189,
+      "end_exclusive_hex": "0x01AA85",
+      "seed_cpu": "03:AA83",
+      "seed_offset": 109187,
+      "site_count": 4,
+      "sites": [
+        {
+          "cpu": "03:AA36",
+          "rom_offset": 109110,
+          "rom_offset_hex": "0x01AA36",
+          "value": 255,
+          "value_hex": "0xFF"
+        },
+        {
+          "cpu": "03:AA3A",
+          "rom_offset": 109114,
+          "rom_offset_hex": "0x01AA3A",
+          "value": 251,
+          "value_hex": "0xFB"
+        },
+        {
+          "cpu": "03:AA7F",
+          "rom_offset": 109183,
+          "rom_offset_hex": "0x01AA7F",
+          "value": 255,
+          "value_hex": "0xFF"
+        },
+        {
+          "cpu": "03:AA83",
+          "rom_offset": 109187,
+          "rom_offset_hex": "0x01AA83",
+          "value": 251,
+          "value_hex": "0xFB"
+        }
+      ],
+      "start_cpu": "03:AA36",
+      "start_hex": "0x01AA36",
+      "start_offset": 109110,
+      "unique_control_count": 2,
+      "unique_controls": [
+        "0xFB",
+        "0xFF"
+      ]
+    }
+  ],
+  "cmp_site_count": 101,
+  "cmp_sites_by_value": {
+    "0xF2": 3,
+    "0xF3": 4,
+    "0xF8": 8,
+    "0xFB": 7,
+    "0xFC": 14,
+    "0xFE": 6,
+    "0xFF": 59
+  },
+  "control_values": [
+    "0xF2",
+    "0xF3",
+    "0xF8",
+    "0xFB",
+    "0xFC",
+    "0xFE",
+    "0xFF"
+  ],
+  "interpretation_guardrails": [
+    "CMP #control clusters are heuristic reader candidates only",
+    "65816 accumulator width is not reconstructed by this byte scan",
+    "candidate windows require real disassembly/control-flow validation"
+  ],
+  "schema_version": 1
+}

@@ -8,7 +8,7 @@ on:
       - ".github/workflows/sram-mapping-probe.yml"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain.json"
-      - "tools/patches/snesrecomp-dual-controller-input.patch"
+      - "tools/patches/beetle-bsnes-ur-recomp.patch"
       - "third_party/src/beetle-bsnes-libretro/**"
       - "references/imported/tas-bots/uniracers-2008-wip-microstorage.smv"
       - "tools/extract_smv_input.py"
@@ -39,11 +39,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/extract_smv_input.py             references/imported/tas-bots/uniracers-2008-wip-microstorage.smv             --input-out "$RUNNER_TEMP/ignored.input"             --sram-out "$RUNNER_TEMP/reference.srm"             --sram-size 8192             --json-out "$RUNNER_TEMP/smv.json" >/dev/null
+          python3 tools/extract_smv_input.py \
+            references/imported/tas-bots/uniracers-2008-wip-microstorage.smv \
+            --input-out "$RUNNER_TEMP/ignored.input" \
+            --sram-out "$RUNNER_TEMP/reference.srm" \
+            --sram-size 8192 \
+            --json-out "$RUNNER_TEMP/smv.json" >/dev/null
           test "$(stat -c%s "$RUNNER_TEMP/reference.srm")" -eq 8192
           sha256sum "$RUNNER_TEMP/reference.srm" | tee "$RUNNER_TEMP/reference.sha256"
 
-      - name: Build reference cores and snesref
+      - name: Build patched reference cores and snesref
         shell: bash
         run: |
           set -euo pipefail
@@ -61,19 +66,21 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           DUMPS="$RUNNER_TEMP/snes9x-dumps"
           mkdir -p "$DUMPS"
-          SNESREF_HEADLESS=1           SNESREF_FAST=1           SNESREF_WRAM_FILL=0           SNESREF_SRAM_IN="$RUNNER_TEMP/reference.srm"           SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/sram-roundtrip.script"           SNESREF_DUMP_DIR="$DUMPS"             "$EXE" "$CORE" "$ROM" >"$RUNNER_TEMP/snes9x.log" 2>&1
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SRAM_IN="$RUNNER_TEMP/reference.srm" \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/sram-roundtrip.script" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" >"$RUNNER_TEMP/snes9x.log" 2>&1
           cat "$RUNNER_TEMP/snes9x.log"
           SRAM_DUMP="$(find "$DUMPS" -maxdepth 1 -type f -name 'sram-roundtrip*sram*' -print -quit)"
-          if [ -z "$SRAM_DUMP" ]; then
-            echo "::error::snesref did not emit an SRAM dump for Snes9x"
-            find "$DUMPS" -maxdepth 1 -type f -printf '%f %s bytes\n' | sort
-            exit 1
-          fi
+          test -n "$SRAM_DUMP"
           test "$(stat -c%s "$SRAM_DUMP")" -eq 8192
           cmp "$RUNNER_TEMP/reference.srm" "$SRAM_DUMP"
           echo "Snes9x exact 8192-byte SRAM preload/dump roundtrip: PASS"
 
-      - name: Characterize Beetle SRAM exposure
+      - name: Prove Beetle SRAM preload roundtrip and clean teardown
         shell: bash
         run: |
           set -euo pipefail
@@ -82,22 +89,20 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           DUMPS="$RUNNER_TEMP/beetle-dumps"
           mkdir -p "$DUMPS"
-          set +e
-          SNESREF_HEADLESS=1           SNESREF_FAST=1           SNESREF_WRAM_FILL=0           SNESREF_SRAM_IN="$RUNNER_TEMP/reference.srm"           SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/sram-roundtrip.script"           SNESREF_DUMP_DIR="$DUMPS"             "$EXE" "$CORE" "$ROM" >"$RUNNER_TEMP/beetle.log" 2>&1
-          status=$?
-          set -e
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SRAM_IN="$RUNNER_TEMP/reference.srm" \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/sram-roundtrip.script" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" >"$RUNNER_TEMP/beetle.log" 2>&1
           cat "$RUNNER_TEMP/beetle.log"
-          printf '%s\n' "$status" >"$RUNNER_TEMP/beetle-exit-status.txt"
-          find "$DUMPS" -maxdepth 1 -type f -printf '%f %s bytes\n' | sort | tee "$RUNNER_TEMP/beetle-dump-files.txt"
-          if grep -q 'sram=0' "$RUNNER_TEMP/beetle.log"; then
-            echo "Beetle exposes zero bytes of save RAM through the current libretro memory interface."
-          else
-            echo "Beetle SRAM exposure changed; inspect uploaded evidence before updating the compatibility conclusion."
-          fi
-          if [ "$status" -ne 0 ] && [ "$status" -ne 134 ]; then
-            echo "::error::unexpected Beetle exit status $status"
-            exit "$status"
-          fi
+          SRAM_DUMP="$(find "$DUMPS" -maxdepth 1 -type f -name 'sram-roundtrip*sram*' -print -quit)"
+          test -n "$SRAM_DUMP"
+          test "$(stat -c%s "$SRAM_DUMP")" -eq 8192
+          cmp "$RUNNER_TEMP/reference.srm" "$SRAM_DUMP"
+          grep -q 'sram=8192' "$RUNNER_TEMP/beetle.log"
+          echo "Beetle exact 8192-byte SRAM preload/dump roundtrip with clean teardown: PASS"
 
       - name: Upload SRAM probe evidence
         if: always()
@@ -111,7 +116,5 @@ jobs:
             ${{ runner.temp }}/snes9x.log
             ${{ runner.temp }}/snes9x-dumps/
             ${{ runner.temp }}/beetle.log
-            ${{ runner.temp }}/beetle-exit-status.txt
-            ${{ runner.temp }}/beetle-dump-files.txt
             ${{ runner.temp }}/beetle-dumps/
           retention-days: 7

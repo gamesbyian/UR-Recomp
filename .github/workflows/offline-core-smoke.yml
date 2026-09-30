@@ -49,7 +49,7 @@ jobs:
           # Prove both sides of the core fidelity toolchain stage from repository-owned
           # material while GitHub/PyPI/crates.io are physically unreachable.
           python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
-          test -f .tools/src/snes9x-libretro/snes9x_libretro.so
+          test -f .tools/src/snes9x-libretro/libretro/snes9x_libretro.so
 
           python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
           FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"

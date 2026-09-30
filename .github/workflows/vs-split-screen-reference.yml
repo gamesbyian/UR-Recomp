@@ -10,7 +10,10 @@ on:
       - "tools/decode_uniracers_oam_split.py"
       - "tools/patches/snesrecomp-dual-controller-input.patch"
       - "tools/patches/snes9x-snesref-debug-exports.patch"
-      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/beetle-bsnes-libretro.json"
+      - "tools/toolchain-entries/_global.json"
+      - "tools/bootstrap_toolchain.py"
       - ".github/workflows/vs-split-screen-reference.yml"
 
 concurrency:

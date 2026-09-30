@@ -150,7 +150,7 @@ Missing-artifact priority is now marginal-value based rather than completeness b
 **P0 — active hunt because the artifact could materially reduce reverse-engineering work**
 1. Mike Dailly's historical SNES framework source.
 2. Original Uniracers/DMA development-tool source/binaries/screenshots, especially the editor, compression and conversion pipeline.
-3. `usjo13.lua` / Uniracers Stunts & Jump Optimizer v13.
+3. `usjo13.lua` / Uniracers Stunts & Jump Optimizer v13. Recovery is passive-only: no outreach to historical authors, TASers, site owners, forum users, or other people.
 
 **P1 — useful independent evidence; pursue opportunistically**
 4. Sinister Translations' independent 100% patch.
@@ -241,6 +241,8 @@ Searches should now begin from exact names, filenames, URLs, people, or technica
 Preferred search keys:
 - `usjo13.lua`
 - `Uniracers Stunts & Jump Optimizer`
+- plausible USJO version-family names (`usjo1.lua` through later variants) and directory-level backups containing sibling SMV/SRM/WR files
+- published Uniracers WRAM literals combined with period Snes9x Lua APIs, to find renamed/copied descendants
 - Halamantariel + boost table / speed / Uniracers
 - old obellemare.com speedruns paths
 - Dailly SNES framework / 65816 framework

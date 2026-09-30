@@ -1,0 +1,60 @@
+name: One-shot Sayans text-reader disassembly
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/sayans-reader-disassembly.yml"
+
+jobs:
+  disassemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Build repository-owned da65
+        run: python3 tools/bootstrap_toolchain.py --offline --tool cc65 --jobs 2
+      - name: Extract candidate windows
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          rom=Path("reference/roms/retail/Uniracers_USA.sfc").read_bytes()
+          windows={
+            "parser-03-8950.bin":(0x018950,0x120),
+            "callee-00-8c20.bin":(0x000C20,0x100),
+            "reader-00-c490.bin":(0x004490,0x220),
+            "reader-03-aa10.bin":(0x01AA10,0x120),
+          }
+          out=Path("reader-windows")
+          out.mkdir()
+          for name,(off,size) in windows.items():
+              (out/name).write_bytes(rom[off:off+size])
+              print(name,hex(off),hex(size),rom[off:off+size].hex(" "))
+          PY
+      - name: Disassemble bounded windows
+        shell: bash
+        run: |
+          set -euo pipefail
+          DA65="$GITHUB_WORKSPACE/.tools/src/cc65/bin/da65"
+          "$DA65" --cpu 65816 --start-addr 0x8950 -o reader-windows/parser-03-8950.s reader-windows/parser-03-8950.bin
+          "$DA65" --cpu 65816 --start-addr 0x8c20 -o reader-windows/callee-00-8c20.s reader-windows/callee-00-8c20.bin
+          "$DA65" --cpu 65816 --start-addr 0xc490 -o reader-windows/reader-00-c490.s reader-windows/reader-00-c490.bin
+          "$DA65" --cpu 65816 --start-addr 0xaa10 -o reader-windows/reader-03-aa10.s reader-windows/reader-03-aa10.bin
+          for f in reader-windows/*.s; do
+            echo "===== $f ====="
+            cat "$f"
+          done
+      - name: Scan call-site candidates
+        run: |
+          ROM="reference/roms/retail/Uniracers_USA.sfc"
+          python3 tools/find_65816_call_sites.py "$ROM" 03:8975 --json-out reader-windows/calls-03-8975.json
+          python3 tools/find_65816_call_sites.py "$ROM" 00:8C41 --json-out reader-windows/calls-00-8c41.json
+          python3 tools/find_65816_call_sites.py "$ROM" 00:C4BC --json-out reader-windows/calls-00-c4bc.json
+          python3 tools/find_65816_call_sites.py "$ROM" 00:C5D3 --json-out reader-windows/calls-00-c5d3.json
+          python3 tools/find_65816_call_sites.py "$ROM" 03:AA36 --json-out reader-windows/calls-03-aa36.json
+          cat reader-windows/calls-*.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sayans-reader-disassembly
+          path: reader-windows/

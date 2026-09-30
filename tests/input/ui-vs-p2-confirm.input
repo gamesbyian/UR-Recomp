@@ -1,0 +1,7 @@
+# Deterministic VS P1->P2 handoff derived from verified snesref timing.
+# start:duration:p1-mask:p2-mask
+500:1:020:000
+502:1:020:000
+534:2:100:000
+597:2:100:000
+660:2:000:100

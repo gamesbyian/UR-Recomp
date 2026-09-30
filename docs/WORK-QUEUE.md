@@ -81,7 +81,7 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 
 - [ ] Test whether current runtime already handles the behavior correctly.
 - [ ] Reproduce the failure if not.
-- [ ] Determine affected one-player, two-player and Vs. modes.
+- [~] Mode coverage: VS mode is now deterministically reproduced through active split-screen gameplay with the scanline-0/112 $2104 HDMA seam captured. Ordinary 2P and any 1P occurrence still need explicit classification.
 - [ ] Trace writes to `$2104` and verify expected scanline/value behavior, including the jgenesis 0/112 and `0xA5`/`0x5A` observations.
 - [ ] Verify the effective high-OAM target and sprites 96-99.
 - [ ] Disassemble the recovered Canoe patch hooks at `0x01534C` and `0x015714` plus injected handler at `0x1FFF00`.
@@ -114,7 +114,7 @@ Use `snesref` or another trustworthy reference route.
 - [x] Full-WRAM/state checkpoint comparison across native and Snes9x/snesref. The first-race fixture compares all 128 KiB at seven checkpoints and reduces the settled-race difference to seven bytes.
 - [x] First-divergence workflow for the settled first-race checkpoint. Run 36511207129 resolves `$01D1–$01D4` as stale stack residue (`SP=$01FF`, `E=false`, no ordinary WRAM writers) and `$00C6/$00C8/$00C9` as free-running timing/phase counters. There is no remaining unexplained persistent gameplay-state divergence in this checkpoint.
 - [x] Establish a backward-compatible neutral P1/P2 controller stream (`start:duration:p1-mask[:p2-mask]`) plus native-Lua and Mesen writers; preserve all historical three-field P1 corpora unchanged. Keep the pinned `snesref` P2 delta as a project patch until equivalent support is upstream.
-- [~] Promote the new P2 transport from adapter/build proof to canonical-ROM evidence: first require a P2-only causal probe with P1 idle, then simultaneous P1/P2 input, 2P frontend/race entry, and paired racer-state checkpoints across native, patched `snesref`, and Mesen.
+- [~] P2 transport now has canonical-ROM causal evidence and a deterministic VS route into active split-screen gameplay. Remaining promotion work is ordinary 2P coverage, simultaneous-input gameplay semantics, paired racer-state checkpoints across native/patched `snesref`/Mesen, and persistent cross-runtime parity.
 - [ ] Adapt the recovered 2014 policy so either controller can be driven independently; use that to create bot-vs-bot and human-vs-bot soak workloads after the deterministic 2P route is trusted.
 - [~] Regression cases for race start, acceleration, jump, rotation, landing, stunt, collision, finish and two-player. Race start, acceleration, jump, rotation, landing and one failed-landing/contact case are covered. Deterministic Dragster finish is the active next 1P fixture; 2P transport infrastructure now exists, while gameplay promotion, stunt and full two-player regression remain open.
 

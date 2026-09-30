@@ -816,6 +816,41 @@
       "validation": "historical-wip-dragster workflow re-extracts the SMV and requires byte-for-byte identity with this frozen fixture before replay.",
       "status": "candidate",
       "promotion_rule": "Promote the first-race/Dragster slice only after pinned Snes9x replay identifies active-race and race-results boundaries and native exact-mask replay characterizes cross-runtime agreement."
+    },
+    {
+      "id": "vs-first-race",
+      "input_file": "tests/input/vs-first-race.input",
+      "checkpoint_script": "tests/input/vs-first-race-observe.script",
+      "purpose": "Deterministic neutral two-pad VS route from clean boot through P1/P2 rider selection and subsequent setup into stable split-screen gameplay; also anchors the active-display OAM compatibility regression.",
+      "engines": [
+        "snesref-snes9x",
+        "snesref-beetle"
+      ],
+      "checkpoints": [
+        "vs-challenger",
+        "vs-challenge-track",
+        "vs-pre-race",
+        "vs-transition",
+        "vs-race-1140",
+        "vs-race-1240",
+        "vs-race-1340",
+        "vs-race-1440",
+        "vs-race-1620"
+      ],
+      "compare_surfaces": [
+        "full-wram",
+        "menu-state-fields",
+        "split-screen-framebuffer",
+        "oam",
+        "ppu-write-journal"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:009B selectedOption",
+        "7E:0313 inRace"
+      ],
+      "status": "validated",
+      "validation": "VS split-screen reference regression: Snes9x and Beetle both have inRace=1/menu=0 at all five stable race checkpoints; patched Snes9x additionally records HDMA $2104 writes V=0->$A5 and V=112->$5A at each sampled race checkpoint."
     }
   ]
 }

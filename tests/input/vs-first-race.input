@@ -1,0 +1,17 @@
+# Deterministic VS route from clean boot into the first active split-screen race.
+# start:duration:p1-mask:p2-mask
+500:1:020:000
+502:1:020:000
+534:2:100:000
+597:2:100:000
+# At the verified Player Two rider phase, move P2 right and confirm.
+665:2:000:080
+685:2:000:100
+# Advance the subsequent VS setup screens with P1 A at generous intervals.
+780:2:100:000
+880:2:100:000
+980:2:100:000
+1080:2:100:000
+1180:2:100:000
+1280:2:100:000
+1380:2:100:000

@@ -1,0 +1,94 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -529,6 +529,59 @@
+ static int g_script_force_poke_count;
+ static int g_script_force_poke_cap;
+ 
++typedef struct {
++  uint64 start;
++  uint64 duration;
++  uint32 mask;
++} ScriptInputEvent;
++
++static ScriptInputEvent *g_input_events;
++static int g_input_event_count;
++static int g_input_event_cap;
++
++static int LoadInputFile(const char *path) {
++  FILE *f = fopen(path, "r");
++  if (!f) {
++    fprintf(stderr, "input: cannot open '%s'\n", path);
++    return 0;
++  }
++  char line[256];
++  unsigned line_number = 0;
++  while (fgets(line, sizeof(line), f)) {
++    line_number++;
++    char *comment = strchr(line, '#');
++    if (comment) *comment = 0;
++    unsigned long long start = 0, duration = 0;
++    unsigned p1 = 0, p2 = 0;
++    int n = sscanf(line, " %llu:%llu:%x:%x", &start, &duration, &p1, &p2);
++    if (n == 3 || n == 4) {
++      if (!duration || p1 > 0x0fffu || p2 > 0x0fffu) {
++        fprintf(stderr, "input: invalid event at %s:%u\n", path, line_number);
++        fclose(f);
++        return 0;
++      }
++      if (g_input_event_count >= g_input_event_cap) {
++        g_input_event_cap = g_input_event_cap ? g_input_event_cap * 2 : 256;
++        g_input_events = (ScriptInputEvent *)realloc(
++            g_input_events, (size_t)g_input_event_cap * sizeof(ScriptInputEvent));
++      }
++      ScriptInputEvent *e = &g_input_events[g_input_event_count++];
++      e->start = (uint64)start;
++      e->duration = (uint64)duration;
++      e->mask = (uint32)p1 | ((uint32)p2 << 12);
++      continue;
++    }
++    for (const char *p = line; *p; p++) {
++      if (*p != ' ' && *p != '\t' && *p != '\r' && *p != '\n') {
++        fprintf(stderr, "input: malformed event at %s:%u\n", path, line_number);
++        fclose(f);
++        return 0;
++      }
++    }
++  }
++  fclose(f);
++  fprintf(stderr, "input: loaded %d event(s) from '%s'\n", g_input_event_count, path);
++  return 1;
++}
++
++static uint32 InputFileMask(uint64 frame) {
++  uint32 mask = 0;
++  for (int i = 0; i < g_input_event_count; i++) {
++    const ScriptInputEvent *e = &g_input_events[i];
++    if (frame >= e->start && frame - e->start < e->duration)
++      mask |= e->mask;
++  }
++  return mask;
++}
++
+ static uint32 ParseButtonMask(const char *name) {
+   const char *sep = strpbrk(name, "+,|");
+   if (sep) {
+@@ -3590,6 +3643,12 @@
+   if (script_file)
+     LoadScript(script_file);
+ 
++  {
++    const char *input_file = HostGetenv("INPUT_FILE");
++    if (input_file && !LoadInputFile(input_file))
++      return 6;
++  }
++
+   if (framedump_dir)
+     FrameDump_Init(framedump_dir);
+@@ -4014,6 +4073,7 @@
+      * iteration that opened a panel consumed a script frame the guest never
+      * saw, and every later scripted press landed a frame early. */
+     inputs |= TickScript();
++    inputs |= InputFileMask(frameCtr);
+     if (g_script_quit) {
+       running = false;
+       exit_reason = g_script_failed ? "script until timed out" : "script quit";

@@ -10,11 +10,12 @@ ROOT = Path(__file__).resolve().parents[1]
 SETUP = ROOT / "analysis/generated/audio-setup-selector-map.json"
 PACKAGES = ROOT / "analysis/generated/audio-package-map.json"
 EXTENDED = ROOT / "analysis/generated/audio-extended-block-correlation.json"
+UPLOAD = ROOT / "analysis/generated/apu-upload-path-summary.json"
 JSON_OUT = ROOT / "analysis/generated/audio-unused-path-analysis.json"
 MD_OUT = ROOT / "analysis/generated/audio-unused-path-analysis.md"
 
 
-def build_analysis(setup: dict, packages: dict, extended: dict) -> dict:
+def build_analysis(setup: dict, packages: dict, extended: dict, upload: dict) -> dict:
     presence = setup["selector_38_42_presence"]
     tables = {row["cpu_address"]: row for row in packages["selector_tables"]}
     tracks = {}
@@ -83,10 +84,12 @@ def build_analysis(setup: dict, packages: dict, extended: dict) -> dict:
                 "track": "Unused Song 2",
                 "ordinary_setup_reachable": presence["0x3D"]["setup_call"],
                 "ordinary_package_pair_reachable": presence["0x3D"]["paired_with_known_table"],
-                "structural_table_candidate": None,
+                "structural_table_candidate": "0x03FB55",
                 "candidate_basis": (
-                    "No second uncalled 64-byte package table exists in the known six-table family, "
-                    "so 0x3D cannot be assigned a unique missing package table from current static evidence."
+                    "The live first-race 03:FB55 transfer reconstructs APU RAM 0xB0E0-0xBDE0, "
+                    "and the preserved Unused Song 2 SPC contains that entire 3,329-byte region "
+                    "byte-identically at the same offsets. This makes reuse of the race-family "
+                    "package the leading candidate, though a counterfactual load remains to prove it."
                 ),
             },
         },
@@ -103,8 +106,16 @@ def build_analysis(setup: dict, packages: dict, extended: dict) -> dict:
                 "but current evidence does not prove that pairing."
             ),
             "negative_result": (
-                "There is no comparable second orphan table to pair uniquely with 0x3D / Unused Song 2."
+                "There is no comparable second orphan table for 0x3D; instead the live 03:FB55 "
+                "race-family package produces a 3,329-byte APU region that is byte-identical at "
+                "the same offsets in Unused Song 2, favoring package reuse."
             ),
+            "unused_song_2_race_package_corroboration": {
+                "package": upload["rom_source"]["first_race_source_cpu"],
+                "apu_region": upload["spc_correlation"]["recovered_unique_apu_region"],
+                "same_offset_tracks": upload["spc_correlation"]["exact_same_offset_tracks"],
+                "unused_song_2_same_offset": "Unused Song 2" in upload["spc_correlation"]["exact_same_offset_tracks"],
+            },
         },
     }
 
@@ -169,6 +180,7 @@ def main() -> None:
         json.loads(SETUP.read_text(encoding="utf-8")),
         json.loads(PACKAGES.read_text(encoding="utf-8")),
         json.loads(EXTENDED.read_text(encoding="utf-8")),
+        json.loads(UPLOAD.read_text(encoding="utf-8")),
     )
     JSON_OUT.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     MD_OUT.write_text(render_markdown(report), encoding="utf-8")

@@ -935,3 +935,15 @@ The six known package tables contain one orphan, `03:FB95`. It has no direct `JS
 
 ---
 
+
+### R-EXT-015 — Nitrodon reverse-engineering workspace
+
+**Status:** supported historical evidence with several locally corroborated promotions  
+**Date:** 2026-09-30  
+**Area:** CPU | RAM | physics | camera | course | UI | other
+
+**Observation:** Nitrodon directly supplied a nine-file 2008–2009 reverse-engineering workspace containing a detailed WRAM map, course/ROM offsets, annotated bank-80–83 listings, focused stunt disassembly, message IDs and a bounce trace. The bank-82 material directly describes the shipped stunt finalizer, movement/boost paths and controller decode. Three adjacent stunt-weight tables are exactly `[0,125,250,375,500]`, `[0,25,50,75,100]`, and `[0,5,10,15,20]`; Z-flips are added directly, proving the stunt combination index `125*flips + 25*rolls + 5*twists + zflips` into the 625-byte table at `02:9DAA`.
+**Evidence:** `references/imported/reverse-engineering/nitrodon/`; `references/notes/nitrodon-reverse-engineering-mining.md`; `analysis/generated/nitrodon-reconciliation.json`; canonical symbol changes in `docs/SYMBOLS.md`. The tabletop-duration interpretation independently explains dynamic run 36776825024's `0→1→2→3→4→0` transient.
+**Interpretation:** This workspace materially narrows several formerly broad reverse-engineering tasks. It resolves shared-current-player versus stable-player state for velocity/boost, corrects multiple field widths/labels, exposes exact stunt-combination encoding, and gives bounded addresses for stunt, gravity, input, checkpoint/finish and collision work.
+**Discriminating test:** decode the `FE/FF` stunt-table sentinels; trace `11CF/11D1 ↔ 11CD`; watch `1199/119D/0EF1` through a deterministic Dragster finish; trace isolated stunt combinations into `12AF`; reconcile Nitrodon's ROM map offsets against decoded RNC course payloads; replay/interpret the bounce trace against current collision code.
+**Dependencies:** Nitrodon's annotations remain historical working evidence where not independently reproduced; the promoted symbol changes are limited to cases with direct instruction-level or dynamic corroboration.

@@ -185,3 +185,29 @@ The effect is strongly scene-dependent:
 This rejects a title-wide “Uniracers should use backdrop instead of fixed colour” compatibility rule. The same perturbation is nearly global on several frontend scenes, completely inert on Rider Select, and narrowly localized in the race. That matches the historical observation that the experimental rule could appear to help one screen while causing trouble later.
 
 The implementation constraint is therefore **per-pixel SNES color-math fidelity**, not a game-specific fallback. Keep the historical Snes9x branch as perturbation evidence only. Durable measurements are in `analysis/generated/color-math-fallback-ab.json`; the experiment patch remains research-only and is not part of the pinned runtime toolchain.
+
+
+### Race-start / post-start graphics seam
+
+The historical Xe 06.22.11 report that Uniracers develops major graphics errors shortly after race start has now been reduced against the canonical USA ROM with patched Snes9x and the independent repository-owned Beetle/bsnes core.
+
+Two complementary captures define the transition:
+
+1. **NOW PLAYING-relative survey.** From +10 through +140 after confirming NOW PLAYING, both cores produce byte-identical black 256x224 framebuffers. Around Snes9x +160, before visible race pixels appear, the PPU enters the already-established race presentation regime: `CGADSUB` changes `7F -> 04`, fixed red changes `0 -> 15`, and XOR window logic becomes active on BG1-BG4, OBJ and COL. The framebuffer remains black at that checkpoint. By +200, visible race output has begun.
+2. **`inRace=1`-aligned survey.** Both cores remain byte-identical through active +12. In Snes9x, the color-math switch occurs by active +8 and the first changing visible framebuffer is observed at active +16. From that point onward the two cores' visible frame phases diverge even though both continue healthy execution, so `inRace=1` is not itself a pixel-phase synchronization point and cross-core pixel equality after visible onset would be a false invariant.
+
+This local evidence places the historical Xe symptom at the **race presentation bring-up boundary**, where the game switches from a black transition frame into its XOR-window / fixed-red color-math race regime and begins visible rendering. It does not identify an additional Uniracers-specific game quirk beyond the already reproduced window/color-math behavior, and it does not justify a new emulator workaround.
+
+Permanent guidance:
+
+- use the existing long-settled first-race semantic/state fixtures as the cross-core behavioral oracle;
+- preserve the race PPU state transition as implementation evidence;
+- do not require Snes9x and Beetle to be pixel-identical at equal frame offsets immediately after `inRace` changes;
+- if a future renderer shows Xe-like corruption, reduce it against the known race-state transition before blaming OAM, HDMA, windows, color math or tile upload independently.
+
+Durable reports:
+
+- `analysis/generated/race-start-presentation-transition.json`
+- `analysis/generated/race-start-cross-core-frames.json`
+- `analysis/generated/race-visible-onset-snes9x.json`
+- `analysis/generated/race-visible-onset-cross-core.json`

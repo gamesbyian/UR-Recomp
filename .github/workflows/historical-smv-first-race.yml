@@ -10,10 +10,9 @@ on:
       - "tools/summarize_wram_trace_checkpoints.py"
       - "tools/compose_historical_reference_result.py"
       - "tools/compose_historical_replay_result.py"
-      - "tools/replay_input_via_lua.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain.json"
-      - "tools/patches/snesrecomp-system-lua.patch"
+      - "tools/patches/snesrecomp-input-file.patch"
       - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
       - "third_party/cargo/snesrecomp-analyzer/**"
       - "third_party/manifest.json"
@@ -26,10 +25,9 @@ on:
       - "tools/summarize_wram_trace_checkpoints.py"
       - "tools/compose_historical_reference_result.py"
       - "tools/compose_historical_replay_result.py"
-      - "tools/replay_input_via_lua.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain.json"
-      - "tools/patches/snesrecomp-system-lua.patch"
+      - "tools/patches/snesrecomp-input-file.patch"
       - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
       - "third_party/cargo/snesrecomp-analyzer/**"
       - "third_party/manifest.json"
@@ -57,8 +55,7 @@ jobs:
             build-essential cmake ninja-build pkg-config xvfb libsdl2-dev \
             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
-            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev \
-            liblua5.4-dev
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
 
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
@@ -150,7 +147,7 @@ jobs:
           print("first race-results frame:", d["first_race_results_frame"])
           PY
 
-      - name: Build native target with Lua bridge
+      - name: Build native target
         shell: bash
         run: |
           set -euo pipefail
@@ -175,9 +172,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_ROOT="$FRAMEWORK" \
             -DSNESRECOMP_SDL_BACKEND=SDL2 \
-            -DSNESRECOMP_SDL3_FETCH=OFF \
-            -DSNESRECOMP_ENABLE_LUA=ON \
-            -DSNESRECOMP_LUA_FETCH=OFF
+            -DSNESRECOMP_SDL3_FETCH=OFF
           cmake --build "$PROJ/build" -j2
           test -x "$PROJ/build/UniracersSNESRecomp"
 
@@ -189,71 +184,47 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           INPUT="$RUNNER_TEMP/dessyreqt-4250.input"
           PROJ="$RUNNER_TEMP/native/UniracersSNESRecomp"
+          SCRIPT="$RUNNER_TEMP/dessyreqt-checkpoints.script"
+          DUMPS="$RUNNER_TEMP/native-2014-dumps"
           LOG="$RUNNER_TEMP/native-2014.log"
-          mkdir -p "$PROJ/build/saves"
+          mkdir -p "$PROJ/build/saves" "$DUMPS"
           cp "$RUNNER_TEMP/dessyreqt-4250.srm" "$PROJ/build/saves/save.srm"
 
+          python3 - "$SCRIPT" <<'PY'
+          from pathlib import Path
+          import sys
+          checkpoints = [
+              794, 800, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400,
+              2600, 2800, 2874, 2894, 3000, 3400, 3800, 4200, 4600, 5000,
+          ]
+          lines = ["# Exact historical replay checkpoints; input comes from SNESRECOMP_INPUT_FILE."]
+          previous = 0
+          for frame in checkpoints:
+              lines.append(f"wait {frame - previous}")
+              lines.append(f"dump frame-{frame}")
+              previous = frame
+          lines.append("quit")
+          Path(sys.argv[1]).write_text("\n".join(lines) + "\n")
+          PY
+          cat "$SCRIPT"
+
+          set +e
           (
             cd "$PROJ/build"
-            SNESRECOMP_LUA_PORT=4380 \
-            SNESRECOMP_LUA_PAUSED=1 \
+            SNESRECOMP_INPUT_FILE="$INPUT" \
+            SNESRECOMP_DUMP_DIR="$DUMPS" \
             SDL_AUDIODRIVER=dummy \
-              xvfb-run -a "$EXE" "$ROM"
-          ) >"$LOG" 2>&1 &
-          PID=$!
-          trap 'kill "$PID" 2>/dev/null || true' EXIT
-
-          python3 tools/replay_input_via_lua.py "$INPUT" \
-            --frames 5000 \
-            --checkpoint 794 --checkpoint 800 --checkpoint 1000 --checkpoint 1200 \
-            --checkpoint 1400 --checkpoint 1600 --checkpoint 1800 --checkpoint 2000 \
-            --checkpoint 2200 --checkpoint 2400 --checkpoint 2600 --checkpoint 2800 \
-            --checkpoint 2874 --checkpoint 2894 --checkpoint 3000 --checkpoint 3400 \
-            --checkpoint 3800 --checkpoint 4200 --checkpoint 4600 --checkpoint 5000 \
-            --run-timeout 600 \
-            --json-out "$RUNNER_TEMP/native-2014-state.json" \
-            | tee "$RUNNER_TEMP/native-2014-state.txt"
-
-          kill "$PID" 2>/dev/null || true
-          wait "$PID" 2>/dev/null || true
-          trap - EXIT
+              timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT"
+          ) >"$LOG" 2>&1
+          RC=$?
+          set -e
           cat "$LOG"
-
-      - name: Compare native and reference historical checkpoints
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - \
-            "$RUNNER_TEMP/native-2014-state.json" \
-            "$RUNNER_TEMP/dessyreqt-first-race-state.tsv" <<'PY'
-          import json, pathlib, re, sys
-          native=json.loads(pathlib.Path(sys.argv[1]).read_text())
-          ref_lines=pathlib.Path(sys.argv[2]).read_text().splitlines()
-          ref_pat=re.compile(r"^(\d+)\tmenu=0x([0-9A-F]+)\tinRace=0x([0-9A-F]+)\ttrack=(\d+)\tx=(-?\d+)\ty=(-?\d+)\tvx=(-?\d+)\tvy=(-?\d+)\tair=(\d+)\tpitch=(\d+)$")
-          native_pat=re.compile(r"^SNAP (\d+) menu=([0-9A-F]+) inRace=([0-9A-F]+) track=(\d+) x=(-?\d+) y=(-?\d+) vx=(-?\d+) vy=(-?\d+) air=(\d+) pitch=(\d+)$")
-          ref={}
-          for line in ref_lines:
-              m=ref_pat.match(line)
-              if m:
-                  ref[int(m.group(1))]=(int(m.group(2),16),int(m.group(3),16))+tuple(int(x) for x in m.groups()[3:])
-          mismatches=[]
-          checked=0
-          for line in native.get("snapshots", []):
-              m=native_pat.match(line)
-              if not m:
-                  continue
-              frame=int(m.group(1))
-              if frame not in ref:
-                  continue
-              vals=(int(m.group(2),16),int(m.group(3),16))+tuple(int(x) for x in m.groups()[3:])
-              checked += 1
-              ok=vals == ref[frame]
-              print(frame, "MATCH" if ok else f"native={vals} reference={ref[frame]}")
-              if not ok:
-                  mismatches.append(frame)
-          print("shared checkpoints:", checked)
-          print("first sampled mismatch:", mismatches[0] if mismatches else "none")
-          PY
+          if [ "$RC" -ne 0 ]; then
+            exit "$RC"
+          fi
+          test -s "$DUMPS/frame-794.wram.bin"
+          test -s "$DUMPS/frame-2874.wram.bin"
+          test -s "$DUMPS/frame-5000.wram.bin"
 
       - name: Compose canonical 2014 replay result
         shell: bash
@@ -263,7 +234,7 @@ jobs:
             --smv-meta "$RUNNER_TEMP/dessyreqt-4250.json" \
             --trace-summary "$RUNNER_TEMP/dessyreqt-first-race-state.json" \
             --reference-tsv "$RUNNER_TEMP/dessyreqt-first-race-state.tsv" \
-            --native-json "$RUNNER_TEMP/native-2014-state.json" \
+            --native-dump-dir "$RUNNER_TEMP/native-2014-dumps" \
             --out analysis/generated/historical-2014-first-race-replay.json
 
       - name: Gate exact 2014 native replay fidelity
@@ -335,7 +306,7 @@ jobs:
             analysis/generated/historical-2014-smv-metadata.json
             analysis/generated/historical-2014-first-race-reference.json
             analysis/generated/historical-2014-first-race-replay.json
-            ${{ runner.temp }}/native-2014-state.json
-            ${{ runner.temp }}/native-2014-state.txt
+            ${{ runner.temp }}/dessyreqt-checkpoints.script
             ${{ runner.temp }}/native-2014.log
+            ${{ runner.temp }}/native-2014-dumps/
           retention-days: 7

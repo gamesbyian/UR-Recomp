@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.summarize_presentation_geometry import row_metrics, summarize_dump
+from tools.summarize_presentation_geometry import row_metrics, summarize_dir, summarize_dump
 
 
 class PresentationGeometryTests(unittest.TestCase):
@@ -32,6 +32,19 @@ class PresentationGeometryTests(unittest.TestCase):
             row = summarize_dump(root, tag)
             self.assertEqual(row["ppu"]["screen_height"], 224)
             self.assertEqual(row["framebuffer"]["height"], 2)
+
+    def test_summarize_dir_accepts_core_without_debug_regs(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            tag = "beetle"
+            (root / f"{tag}.info.json").write_text(json.dumps({
+                "frame": 20, "fb_width": 2, "fb_height": 2,
+                "core_name": "Beetle"
+            }))
+            (root / f"{tag}.fb.bgrx").write_bytes(bytes(2 * 2 * 4))
+            report = summarize_dir(root)
+            self.assertEqual(report["checkpoints"][0]["core_name"], "Beetle")
+            self.assertIsNone(report["checkpoints"][0]["ppu"])
 
 
 if __name__ == "__main__":

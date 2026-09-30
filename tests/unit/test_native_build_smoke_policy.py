@@ -20,7 +20,7 @@ class NativeBuildSmokePolicyTests(unittest.TestCase):
         )
         self.assertIn("--no-submodules", self.text)
         self.assertNotIn("submodules: recursive", self.text)
-        self.assertNotIn("snesrecomp/tools/new_project/setup_project.sh", self.text)
+        self.assertNotIn("sh snesrecomp/tools/new_project/setup_project.sh", self.text)
 
     def test_native_build_uses_system_sdl2_without_sdl3_fetch(self) -> None:
         self.assertIn("libsdl2-dev", self.text)

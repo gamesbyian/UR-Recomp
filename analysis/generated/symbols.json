@@ -36,7 +36,7 @@
       "address": "`02:812A` (USA)",
       "name": "APU_ResolveBlockPointer",
       "confidence": 5,
-      "evidence_/_notes": "Exact static routine maps block ID X onto the packed audio-record pool beginning at `10:8000`. It walks X length-prefixed records, performing LoROM bank-wrap arithmetic, and returns the selected record pointer in DP `$63-$65`. The 50 valid selector IDs `$00-$31` therefore address 50 consecutive records."
+      "evidence_/_notes": "Exact static routine maps block ID X onto the packed audio-record pool beginning at `10:8000`. It walks X length-prefixed records, performing LoROM bank-wrap arithmetic, and returns the selected record pointer in DP `$63-$65`. Package-table IDs `$00-$31` address the first 50 records, but direct setup calls pass IDs through at least `$42`; the same contiguous parser resolves records `$32-$42`. Therefore `$00-$31` is the package-table ID universe, not the resolver's upper bound."
     },
     {
       "kind": "function",

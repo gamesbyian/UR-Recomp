@@ -10,8 +10,6 @@ on:
       - "tests/unit/test_measure_source_closure.py"
       - "tools/patches/snes9x-snesref-debug-exports.patch"
       - ".github/workflows/snes9x-island-closure.yml"
-      - "docs/ISLAND-TOOLCHAIN-PLAN.md"
-      - "docs/WORK-QUEUE.md"
   workflow_dispatch:
 
 permissions:

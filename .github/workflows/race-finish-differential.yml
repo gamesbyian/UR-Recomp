@@ -52,12 +52,13 @@ jobs:
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
-      - name: Stage repository-owned SNESRecomp framework
+      - name: Stage and build repository-owned SNESRecomp framework
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
           test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
+          test -x .tools/src/snesrecomp/build-snesref/snesref
 
       - name: Build native target
         shell: bash
@@ -89,14 +90,11 @@ jobs:
           cmake --build "$PROJ/build" -j2
           test -x "$PROJ/build/UniracersSNESRecomp"
 
-      - name: Build pinned Snes9x and snesref
+      - name: Build pinned Snes9x reference core
         shell: bash
         run: |
           set -euo pipefail
           python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
-          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
-          cmake --build "$RUNNER_TEMP/snesref-build" -j2
-          test -x "$RUNNER_TEMP/snesref-build/snesref"
 
       - name: Run native finish probe
         shell: bash
@@ -117,7 +115,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
           CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script"

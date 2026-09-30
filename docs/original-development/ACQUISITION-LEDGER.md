@@ -1,8 +1,25 @@
 # External Artifact Acquisition Ledger
 
-Last updated: 2026-09-28
+Last updated: 2026-09-29
 
 This tracks both acquired and still-missing external artifacts, with provenance and next actions.
+
+## Acquisition triage rule
+
+A missing artifact is not automatically a project dependency. Keep searching for all listed leads, but spend effort according to expected forward value:
+
+- **P0 / high leverage** — likely to expose implementation behavior, original code/tool semantics, or hard-to-reconstruct mechanics. Active archival hunting is justified.
+- **P1 / useful corroboration** — likely to make an existing reverse-engineering lane cheaper or independently confirm it. Pursue opportunistically and automate acquisition when cheap.
+- **P2 / optional evidence** — useful if it falls into our hands, but existing ROM/runtime evidence can answer the same questions. Do not block project work on it.
+- **P3 / archival tail** — preserve the lead and accept cheap wins, but do not build bespoke recovery machinery or delay milestones for it.
+
+Current missing-artifact judgment:
+- **P0:** Mike Dailly historical SNES framework; original Uniracers/DMA editor/converter/tool artifacts; `usjo13.lua`.
+- **P1:** Halamantariel boost/mechanics page; Sinister 100% translation patch; genuinely distinct old SMV/savestate corpora; Uniracers-specific Dailly development media.
+- **P2:** VGMaps course images and official packaging maps; Uniracers-specific Steve Hammond material; US manual scan; Tamoketh recreation artifacts when technical/source material exists.
+- **P3:** SNasm 1.7.2 after 1.7.1 + modern SNasm are already preserved; gamesTM #64 unless it contains material absent from the Nintendo Life republication; Uniracers Uncensored unless a surviving patch is trivially downloadable; generic DMA media with no Uniracers attribution.
+
+P2/P3 does **not** mean “stop looking.” It means a future agent should not mistake archival completeness for a critical-path requirement.
 
 ## A-001 — Uniracers / Unirally PAL prototype, 1994-11-29
 
@@ -63,11 +80,12 @@ Look for source, binaries, screenshots, manuals, sample data, command-line docum
 
 ## A-005 — Preserved SPC soundtrack
 
-Priority: medium  
-Status: available externally, not imported  
-Source: https://www.snesmusic.org/v2/profile.php?profile=set&selected=3149
+Priority: completed evidence intake  
+Status: acquired and analyzed transiently; binary intentionally not redistributed in this repository  
+Primary source: https://www.snesmusic.org/v2/profile.php?profile=set&selected=3149  
+Recovered mirror: https://www.zophar.net/music/nintendo-snes-spc/uniracers
 
-Contains ten preserved tracks, including two marked unused. Use for driver identification, song-table mapping, and used/unused-content analysis.
+The ten-track archive, including both tracks tagged unused, was recovered, fingerprinted and analyzed. Archive SHA-256 is recorded in `references/catalog.yml`; durable analysis lives in `references/notes/uniracers-spc-archaeology.md` and `analysis/generated/uniracers-spc-summary.json`. Later ROM-side work identified the two unused songs as retail records $3B and $3D and closed ordinary direct-call reachability. No further acquisition is needed unless a distinct historical dump or driver source appears.
 
 ## Intake standard
 
@@ -85,7 +103,7 @@ For every binary artifact record:
 
 ## A-006 — Mike Dailly Flickr / historical DMA media corpus
 
-Priority: high  
+Priority: P1 when specifically attributable to Uniracers; P3 for generic DMA imagery  
 Status: systematic archival capture not yet done  
 Sources:
 - https://www.flickr.com/photos/mikedailly/
@@ -102,7 +120,7 @@ Acquisition strategy:
 
 ## A-007 — Steve Hammond personal DMA archive traces
 
-Priority: medium-high  
+Priority: P2  
 Status: holdings known generally; Uniracers-specific material unconfirmed  
 Source: https://www.retrovideogamer.co.uk/rvg-interviews-steve-hammond/
 
@@ -122,7 +140,7 @@ The download is behind itch.io's "No thanks, just take me to the downloads" hand
 
 ## A-009 — Historical SNasm 1.7.x builds
 
-Priority: high  
+Priority: P3 for 1.7.2; 1.7.1 already satisfies the historical-lineage need  
 Status: SNasm 1.7.1 acquired and committed; 1.7.2 remains an external preservation lead
 
 SNasm 1.7.1:
@@ -149,7 +167,7 @@ Why important: these builds are only ~13-14 years newer than the Uniracers assem
 
 ## A-010 — gamesTM issue 64 (December 2007)
 
-Priority: medium-high  
+Priority: P3 unless inspection reveals material omitted from the Nintendo Life republication  
 Status: physical copy catalogued by Video Game History Foundation; no digital scan located
 
 Catalog:

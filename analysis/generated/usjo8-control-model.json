@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "source_inventory": "analysis/generated/usjo8-static-inventory.json",
+  "states": {
+    "jumpstatus": {
+      "values": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "meanings": {
+        "0": "idle",
+        "1": "trying to jump",
+        "2": "airborne/rising",
+        "3": "past peak",
+        "4": "landed"
+      },
+      "assignment_count": 21,
+      "first_assignment_line": 176,
+      "last_assignment_line": 604
+    },
+    "twiststatus": {
+      "values": [
+        "0",
+        "1",
+        "2"
+      ],
+      "meanings": {
+        "0": "idle/ready",
+        "1": "waiting for backward leg",
+        "2": "waiting for forward leg"
+      },
+      "assignment_count": 23,
+      "first_assignment_line": 177,
+      "last_assignment_line": 825
+    },
+    "tabletopstatus": {
+      "values": [
+        "0",
+        "1",
+        "2",
+        "6"
+      ],
+      "meanings": {
+        "0": "idle/waiting",
+        "1": "first half",
+        "2": "second half",
+        "6": "complete"
+      },
+      "assignment_count": 12,
+      "first_assignment_line": 178,
+      "last_assignment_line": 731
+    },
+    "zflipstatus": {
+      "values": [
+        "0",
+        "1"
+      ],
+      "meanings": {
+        "0": "idle/waiting",
+        "1": "active until counter advances"
+      },
+      "assignment_count": 10,
+      "first_assignment_line": 179,
+      "last_assignment_line": 827
+    },
+    "rollstatus": {
+      "values": [
+        "0",
+        "1"
+      ],
+      "meanings": {
+        "0": "idle/waiting",
+        "1": "active until counter advances"
+      },
+      "assignment_count": 8,
+      "first_assignment_line": 180,
+      "last_assignment_line": 917
+    },
+    "flipstatus": {
+      "values": [
+        "0",
+        "1"
+      ],
+      "meanings": {
+        "0": "idle/waiting",
+        "1": "active until counter advances"
+      },
+      "assignment_count": 8,
+      "first_assignment_line": 181,
+      "last_assignment_line": 894
+    },
+    "mode": {
+      "values": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "meanings": {
+        "1": "jump search",
+        "2": "first-twist timing search",
+        "3": "stunt-combination search",
+        "4": "best-candidate replay/evaluation",
+        "5": "done"
+      },
+      "assignment_count": 15,
+      "first_assignment_line": 274,
+      "last_assignment_line": 1378
+    },
+    "strategy": {
+      "values": [
+        "1",
+        "3",
+        "4"
+      ],
+      "meanings": {
+        "1": "build up",
+        "3": "tear down from maxima",
+        "4": "replay best/finish"
+      },
+      "assignment_count": 7,
+      "first_assignment_line": 275,
+      "last_assignment_line": 1314
+    }
+  },
+  "controller_signals": {
+    "jumping": "B button",
+    "reverse": "swap forward/reverse horizontal direction",
+    "flipping": "R when moving right, L when moving left",
+    "rolling": "L when moving right, R when moving left",
+    "xing": "X button"
+  },
+  "interpretation": {
+    "status": "recovered-source control semantics",
+    "warning": "This documents how USJO v8 drives Snes9x, not verified game-internal state names."
+  }
+}

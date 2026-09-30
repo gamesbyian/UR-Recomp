@@ -89,6 +89,35 @@ For direct mode-0 HDMA this is two 112-line runs followed by the terminator: the
 That closes the immediate source/timing question. The remaining archaeology is the hardware consequence: map those active-display `$2104` writes through the effective OAM address/high-table semantics and confirm the historically implicated sprite range rather than inferring it from emulator workaround code.
 
 
+### Window XOR reconnaissance lane
+
+Historical Snes9x 1.02 notes contain two separate Uniracers observations that should not be conflated:
+
+- a disabled experiment switching empty-subscreen color addition from fixed color to backdrop color, which helped an early Uniracers case but broke later screens;
+- a subsequent fix to XOR window combination and area-inversion logic, explicitly recorded as making Uniracers work correctly.
+
+The current patched Snes9x debug surface already exposes the registers and decoded state needed to discriminate this locally: window bounds, W12SEL/W34SEL/WOBJSEL, WBGLOG/WOBJLOG, per-layer window enable/inversion/logic, TM/TS/TMW/TSW, CGWSEL/CGADSUB and fixed color.
+
+This branch adds `tools/summarize_window_seam.py` and a reconnaissance workflow over both the deterministic one-player first-race route and the verified VS split-screen route. The first useful question is deliberately narrow: **which captured Uniracers checkpoints actually have two windows active with XOR combination on any BG/OBJ/color layer?** Only those scenes should seed a permanent XOR regression. Empty-subscreen color addition remains a separate follow-up even if it appears in the same checkpoint.
+
+
+#### XOR seam reproduced and pinned
+
+Reconnaissance run 36658348552 covered the deterministic one-player frontend/first-race checkpoints plus five stable VS race checkpoints. Exactly one captured checkpoint enables two active windows with XOR combination: `race-entered` at one-player frame 1035.
+
+At that checkpoint, all six decoded window targets report XOR with both windows active:
+
+- BG1
+- BG2
+- BG3
+- BG4
+- OBJ
+- color window
+
+The raw register state is correspondingly distinctive: `W12SEL=W34SEL=WOBJSEL=WBGLOG=WOBJLOG=0xAA`, `TMW=0x17`, and both window bounds are the edge-wrapped `255..0` form. None of the sampled frontend checkpoints or stable VS checkpoints report an active XOR target.
+
+The workflow now requires the XOR-active checkpoint set to be exactly `{race-entered}`. This promotes the historical Snes9x 1.02 observation into a local permanent regression while keeping empty-subscreen color addition as a separate unresolved seam.
+
 ### Empty-subscreen colour-addition historical discriminator
 
 The preserved Snes9x 1.43 history makes this seam unusually testable rather than merely anecdotal.
@@ -135,3 +164,24 @@ The first active race checkpoint changes regime materially:
 This gives the historical fallback experiment a built-in scene pair. The frontend is the candidate regime where old Snes9x reported a backdrop-vs-fixed-colour ambiguity; the race is the later counterexample regime that must not be damaged by an overbroad rule.
 
 The survey is preserved as `analysis/generated/color-math-scene-survey.json`.
+
+
+#### Historical fallback A/B result
+
+Run `36660195171` reproduced the historical backdrop-vs-fixed-colour perturbation in pinned Snes9x without changing game code or any other renderer rule. The experiment changed only the per-pixel fallback used when `CGWSEL` selects sub-screen math but no real sub-screen pixel exists.
+
+The effect is strongly scene-dependent:
+
+| checkpoint | changed pixels | fraction | bounding box |
+| --- | ---: | ---: | --- |
+| Main Menu | 56,627 / 57,344 | 98.75% | full frame |
+| Rider Select | 0 / 57,344 | 0% | none |
+| Tours | 56,628 / 57,344 | 98.75% | full frame |
+| Tracks | 55,793 / 57,344 | 97.30% | full frame |
+| After Track | 56,042 / 57,344 | 97.73% | full frame |
+| Now Playing | 56,039 / 57,344 | 97.72% | full frame |
+| Race Entered | 392 / 57,344 | 0.68% | x=17..238, y=19..29 |
+
+This rejects a title-wide “Uniracers should use backdrop instead of fixed colour” compatibility rule. The same perturbation is nearly global on several frontend scenes, completely inert on Rider Select, and narrowly localized in the race. That matches the historical observation that the experimental rule could appear to help one screen while causing trouble later.
+
+The implementation constraint is therefore **per-pixel SNES color-math fidelity**, not a game-specific fallback. Keep the historical Snes9x branch as perturbation evidence only. Durable measurements are in `analysis/generated/color-math-fallback-ab.json`; the experiment patch remains research-only and is not part of the pinned runtime toolchain.

@@ -1110,22 +1110,21 @@ Developer recollection says very little cartridge space remained. Treat apparent
 
 ---
 
-# Near-term execution order
+# Current critical path
 
-The next work should be:
+A fresh agent should be able to derive this order from the repository without knowing project history. This is the shortest dependency chain from today's state to the intended product:
 
-1. keep the merged repository/toolchain state green and the title-screen smoke reliable;
-2. update stale milestone bookkeeping;
-3. add deterministic native input and reach a one-player race;
-4. run the same input route in `snesref`;
-5. promote the known TAS/RetroAchievements WRAM anchors into verified symbols;
-6. trace the course selector through the known RNC wrapper and confirm stream-to-track identity;
-7. map the first course payload fields and produce one structural course rendering;
-8. disassemble/trace the Canoe hook regions and validate the two-player OAM path;
-9. build deterministic ROM asset extraction for unicycles/backgrounds/UI;
-10. establish a permanent 4:3 fidelity gate;
-11. only then begin stock-art Widescreen feature work using the transferable SNESRecomp patterns;
-12. after wide stock presentation is stable, integrate host-overlay extraction and the first HD Presentation replacement asset.
+1. **Localize first meaningful native/reference divergence.** Use the exact 2014 replay and tighten the current frame-440 bracket toward the first differing input/state/write/PC event. Decide whether the cause is translated CPU code, startup/save state, input/frame semantics, SNES hardware behavior, or host integration.
+2. **Convert that divergence into semantic code knowledge.** Map the executed routines into the comparative four-ROM code atlas; use SNESRecomp plus independent bounded disassembly and Ghidra where useful. Resolve analyzer disagreements only where they affect executed/high-value paths.
+3. **Recover the core authoritative boundaries.** Establish evidence-backed main-loop/race-state, player update/physics, course loading/representation, camera, sprite/OAM construction, culling and renderer-facing state. These boundaries are the contract between preserved simulation and modern presentation.
+4. **Close stock 4:3 fidelity.** Complete a deterministic race and representative 1P/2P/VS routes with no unexplained gameplay divergence on the compared semantic surfaces. Retain permanent first-divergence diagnostics.
+5. **Finish the course and original graphics models needed by presentation.** Decode enough course structure, asset state, animation selection and raster behavior to render the original game deliberately rather than by framebuffer enlargement.
+6. **Implement stock-art Widescreen.** Expand the logical view while holding authoritative simulation and authentic 4:3 behavior constant. Validate information exposure, culling, camera, HUD, multiplayer and scene-specific raster behavior.
+7. **Implement HD Presentation.** Replace/render higher-resolution presentation from semantic game state while preserving animation/state timing, with authentic/raw fallback always available.
+8. **Build the modern product layer.** Contemporary controls/remapping, profiles, save/progression UX, pause/retry, ghosts/timing/statistics, accessibility and streamlined frontend behavior belong here, outside the authoritative simulation where possible.
+9. **Finish editor/analysis tooling and release packaging.** Course editing/custom content and public ROM-supply boundaries follow once the underlying semantic formats are stable.
+
+Supporting research is pulled forward when it shortens one of these steps. It does not become critical merely because evidence exists or because an old workstream once had high priority.
 
 ## First useful HD Presentation prototype
 
@@ -1179,57 +1178,20 @@ The project reaches its intended goal when a player can supply the supported ori
 Everything else, including custom courses, remastered audio, ultrawide modes and additional presentation options, is an extension beyond that core victory.
 
 
-## Evidence-to-executable recovery backlog (2026-09-29)
+## Evidence-to-executable conversion rule
 
-The external-research program is now sufficiently mature that the main risk is no longer losing ideas; it is failing to convert collected evidence into executable invariants, symbols, fixtures and implementation decisions. Treat the following as a durable recovery backlog. Items may be completed by the named current PRs, successor PRs, or later work, but they must not disappear merely because an agent session stalls.
+The repository contains substantial historical/community evidence. Its value is realized only when it changes executable understanding or a product decision.
 
-### Stalled/live branch recovery order
+Current priorities and live work belong in `docs/WORK-QUEUE.md`. Research/acquisition triage belongs in `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md`. Chronological attempts and old branch/PR recovery details belong in logs, ledgers and preserved evidence, not in this product plan.
 
-1. **Audio source-table archaeology (#48): finish before starting a replacement audio investigation.**
-   - Preserve and harvest all successful one-shot artifacts before deleting temporary workflows.
-   - Complete selector-ID -> ROM block/APU destination mapping, centered on helper `02:812A`.
-   - Associate all six 64-byte selector tables at `03:FAD5` through `03:FC54` with concrete game states.
-   - Test the currently uncalled `03:FB95` table against both unused-song families and document reachability, whether positive or negative.
-   - Keep corrected routine boundaries and promoted symbols synchronized across every symbol adapter.
-   - Retire temporary experiment-only workflows after evidence is durably represented in tools, tests, generated summaries or research notes.
-   - Before merge, reconcile against current `main`; do not overwrite concurrent symbol/toolchain work.
+Promote useful evidence into one or more durable forms:
 
-2. **Audio selector/caller work (#47): reconcile with #48 rather than merging adjacent archaeology blindly.**
-   - Preserve reusable caller scanning and audio-event capture tooling that remains unique.
-   - Compare #47 findings against the later #48 interpretation and discard stale assumptions explicitly.
-   - Fold complementary evidence into the surviving audio model, then remove one-shot workflows.
-   - If #48 subsumes a #47 experiment, record that fact in the PR/ledger instead of duplicating the experiment.
+- deterministic fixture or first-divergence discriminator;
+- locally verified symbol/state meaning;
+- parser/decoder or comparative-atlas correspondence;
+- generated compact evidence report;
+- regression test;
+- architecture/implementation constraint;
+- explicit negative result that prevents repeated work.
 
-3. **Beetle/bsnes independent-reference island (#40): rescue the conflicted branch, not the conflict.**
-   - Reconcile from current `main` while retaining the pinned, provenance-recorded independent core.
-   - Preserve the successful independent-reference route evidence.
-   - Repair the offline bootstrap regression introduced/exposed during reconciliation; do not weaken fail-closed island guarantees merely to make CI green.
-   - Re-run the repository-owned first-race/reference gates after reconciliation.
-   - Land only after the branch is current, deterministic and no longer depends on acquisition-time workflow scaffolding.
-
-4. **Tier-1 UI atlas (#35): close the green parked lane deliberately.**
-   - Preserve already-harvested visual/runtime evidence and avoid repeating successful expensive probes.
-   - Finish only critical-fidelity and cheap-completeness gaps that affect implementation, testing, compatibility or deliberate modernization decisions.
-   - Keep the archaeological-tail policy intact: forbidden-name minutiae, destructive chords and similarly non-critical edge cases must not block completion.
-   - Retain two-player/VS ownership, handoff and split-screen behavior as critical where it affects fidelity or emulator seams.
-   - Reconcile with current `main`, validate generated atlas outputs, and either merge or leave a precise remaining discriminator.
-
-### Research conversion backlog
-
-The following avenues are mandatory backlog, even when no branch is currently active:
-
-- **External-evidence intake:** maintain the existing source -> provenance -> worklist -> acquisition -> local reproduction -> research-ledger pipeline. New discoveries should enter through it instead of living only in chat or prose notes.
-- **Emulator-specific archaeology:** convert remaining historically documented Uniracers failure seams into deterministic local regression fixtures. Prioritize active-display OAM/2P behavior, SRAM mapping, XOR/window behavior, colour-math/subscreen behavior, audio startup, title transition, border/effects and race-renderer seams. Historical emulator workarounds are perturbation evidence, not code to cargo-cult.
-- **Multi-ROM × multi-analyzer comparative archaeology:** promote the four preserved builds into a normalized code atlas. Run SNESRecomp, snes2asm, bounded da65 and Ghidra/ghidra-snes over corresponding regions; fingerprint/alignment should survive address movement. Classify code/data deltas, function-boundary disagreements, M/X-state disagreements, indirect targets, jump tables and cross-references. Use runtime traces and historical symbols to adjudicate conflicts and propagate verified semantics across matched builds. Generated recompilation C is an execution artifact, not the endpoint of semantic decompilation.
-- **Translation-patch forensics:** use the recovered Sayans patch as a map into text/control readers, decode the three identified text/control regions, and continue archival recovery of later Sayans 1.0b and independent Sinister material. Negative evidence such as absence of a font or executable-code patch should remain recorded.
-- **Cheats/TAS/RetroAchievements/speedrun mining:** keep promoting community labels into locally verified symbols and deterministic behavior. Continue historical replay compatibility work without arbitrary frame-offset hacks. Keep the archival search for `usjo13.lua` / Uniracers Stunts & Jump Optimizer v13 active because it may encode unusually dense stunt and gameplay semantics.
-- **SPC/audio archaeology:** complete CPU selector/table mapping, unused-song reachability, package/state attribution and durable audio symbols before moving on to restoration/reproduction work. Audio modernization must be grounded in recovered original structure.
-- **Original DMA authoring/toolchain reconstruction:** continue the archival hunt for the original level editor, SNES framework/source, compression/asset tooling, A0 plotter material and development-disk/source artifacts. This is opportunistic and must not block executable reconstruction, but a recovered artifact should be treated as potentially high-leverage primary evidence.
-- **Weak/dead project preservation:** preserve breadcrumbs, hashes, provenance, mirrors and author pivots for incomplete fan projects, dead links and small ROM-hacking efforts. Do not promote weak material to fidelity authority merely because it survives.
-- **UI/frontend evidence:** complete the Tier-1 atlas and use it as an implementation oracle for modernization. Preserve original presentation grammar and indicators while allowing documented modern product-layer changes.
-
-### Completion rule
-
-A research item is not complete merely because a source was found or a hypothesis was written down. Prefer closure in one or more durable forms: a deterministic fixture, locally verified symbol, parser/decoder, generated evidence report, regression test, implementation constraint, or explicitly recorded negative result. When an experiment fails, preserve the discriminator and what it ruled out so another agent does not unknowingly repeat it.
-
-When concurrent agents are active, prefer a fresh non-overlapping branch, check open PR heads before editing shared plan/symbol files, and reconcile from current `main` before merge. Do not babysit CI; harvest completed runs, keep useful work committed, and stop at a safe documented boundary when a future run is the only remaining dependency.
+Do not preserve old task ordering merely because it once reflected active branches. The current critical path above outranks historical workstream momentum.

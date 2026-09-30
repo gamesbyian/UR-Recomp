@@ -1,0 +1,14 @@
+packages=11
+files=476
+bytes=5874431
+itoa-1.0.18
+memchr-2.8.3
+proc-macro2-1.0.106
+quote-1.0.46
+serde-1.0.228
+serde_core-1.0.228
+serde_derive-1.0.228
+serde_json-1.0.150
+syn-2.0.119
+unicode-ident-1.0.24
+zmij-1.0.23

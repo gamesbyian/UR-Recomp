@@ -204,6 +204,19 @@
       "license_path": "third_party/src/pyyaml-6.0.3/LICENSE",
       "provenance_path": "third_party/provenance/pyyaml-6.0.3.json",
       "notes": "Pure-Python runtime subset for snes2asm. Optional LibYAML extension, build system, examples and upstream tests are omitted."
+    },
+    {
+      "id": "snesrecomp",
+      "mode": "archive",
+      "upstream_url": "https://github.com/RetroPortingToolKit/snesrecomp.git",
+      "revision": "cd5875cbdaf19f5e324272b1f8051d671fce9215",
+      "source_path": null,
+      "archive_path": "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz",
+      "source_sha256": "cc5043c4477adaa31210efb88c3423344e2195044e4366795cf1c563e1014b56",
+      "license_spdx": "PolyForm-Noncommercial-1.0.0",
+      "license_path": "third_party/provenance/snesrecomp-LICENSE.txt",
+      "notes": "Exact deterministic git-archive snapshot of the pinned SNESRecomp framework. Nested optional gitlinks lib/recomp-net and lib/retcomm-rbengine are recorded in provenance but are intentionally not dereferenced into this baseline archive.",
+      "provenance_path": "third_party/provenance/snesrecomp.json"
     }
   ]
 }

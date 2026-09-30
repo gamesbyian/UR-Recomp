@@ -26,3 +26,7 @@ A component stays in `mode: "pending"` until its repository-owned copy has prove
 - `beetle-bsnes-libretro`: essentially complete pinned emulator/libretro source from commit `5f05e4c785e936c928ac468e129c55b6f08592cb`, licensed GPL-2.0-or-later. Upstream CI metadata and Android packaging are omitted; emulator implementation, libretro frontend, headers, embedded license material and Linux build files remain intact so the independent oracle is not weakened by aggressive pruning.
 
 - `cc65-da65`: reduced da65-only closure from cc65 commit `d8a486acdef93ea1ba432a6a35b96cf1b797bda5`, licensed Zlib. Retained roots are `LICENSE`, `src/Makefile`, `src/da65/**` and `src/common/**`; measured source closure is 150 files / 1,100,892 bytes and builds `bin/da65` with ordinary GNU make/C tooling only.
+
+## Current immutable archives
+
+- `snesrecomp`: exact deterministic source archive from pinned framework commit `cd5875cbdaf19f5e324272b1f8051d671fce9215`, PolyForm Noncommercial 1.0.0. Archive SHA-256 `cc5043c4477adaa31210efb88c3423344e2195044e4366795cf1c563e1014b56`; 5,251,351 compressed bytes; 942 archive entries. Optional nested gitlinks `lib/recomp-net` and `lib/retcomm-rbengine` are preserved by revision in provenance but intentionally not dereferenced into the baseline C1 archive.

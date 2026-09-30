@@ -2,15 +2,6 @@ name: One-shot course selector classification
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "tools/probe_course_selector_decode.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snesrecomp.json"
-      - "tools/toolchain-entries/_global.json"
-      - "third_party/manifest.json"
-      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
-      - ".github/workflows/course-selector-classification.yml"
 
 jobs:
   classify:

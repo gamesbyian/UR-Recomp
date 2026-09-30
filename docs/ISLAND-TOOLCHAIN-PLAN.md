@@ -317,7 +317,7 @@ Current P0-A implementation lives in `third_party/manifest.json`, `tools/validat
 - [ ] Close Python package-registry dependencies.
 - [ ] Close Rust crate-registry dependencies.
 - [~] Run the core automated research workflow with outbound network disabled. The dedicated offline smoke now exercises the canonical ROM plus both reference/native build sides inside a network namespace; branch CI is the evidence gate.
-- [ ] Document remaining host prerequisites as the intentional island boundary.
+- [x] Document remaining host prerequisites as the intentional island boundary. `docs/OFFLINE-HOST-PREREQUISITES.md` now separates ordinary Linux/compiler/runtime packages from repository-owned game/tool inputs and records the concrete Ubuntu package set used by the no-network proof.
 - [ ] Remove obsolete external-fetch paths after all local replacements are proven.
 
 ## Exit criteria

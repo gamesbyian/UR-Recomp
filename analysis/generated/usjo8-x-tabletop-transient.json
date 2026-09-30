@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "source_run_id": 36776825024,
+  "source_job_id": 110096726905,
+  "source_artifact_id": 11126785345,
+  "fixture": "matched eight-frame SNES X intervention versus jump-only control in trusted Dragster airborne fixture",
+  "cross_runtime_checkpoint_parity": true,
+  "causal_address": "7E:042F",
+  "usjo_variable": "numtabletops",
+  "observation": {
+    "absent_in_matched_control": true,
+    "native": [
+      {
+        "frame": 1263,
+        "old": 0,
+        "val": 1
+      },
+      {
+        "frame": 1265,
+        "old": 1,
+        "val": 2
+      },
+      {
+        "frame": 1267,
+        "old": 2,
+        "val": 3
+      },
+      {
+        "frame": 1269,
+        "old": 3,
+        "val": 4
+      },
+      {
+        "frame": 1271,
+        "old": 4,
+        "val": 0
+      }
+    ],
+    "reference": [
+      {
+        "frame": 1255,
+        "old": 0,
+        "val": 1
+      },
+      {
+        "frame": 1257,
+        "old": 1,
+        "val": 2
+      },
+      {
+        "frame": 1259,
+        "old": 2,
+        "val": 3
+      },
+      {
+        "frame": 1261,
+        "old": 3,
+        "val": 4
+      },
+      {
+        "frame": 1263,
+        "old": 4,
+        "val": 0
+      }
+    ],
+    "normalized_relative_frames": [
+      0,
+      2,
+      4,
+      6,
+      8
+    ],
+    "transition_values": [
+      1,
+      2,
+      3,
+      4,
+      0
+    ]
+  },
+  "interpretation": [
+    "The X intervention causally produces a transient 7E:042F progression while the matched control does not.",
+    "Native and Snes9x agree on transition order, values, and two-frame cadence after normalizing each runtime to its own intervention timeline.",
+    "The observed 1→2→3→4→0 cycle argues against treating 7E:042F as a simple monotonically accumulated lifetime/completed-tabletop count.",
+    "Recovered USJO v8's numtabletops label remains historically useful because it tests this byte for nonzero tabletop success; exact game-facing unit should remain qualified until a recovered-cadence/landing fixture distinguishes progress phase from completed-count encoding."
+  ]
+}

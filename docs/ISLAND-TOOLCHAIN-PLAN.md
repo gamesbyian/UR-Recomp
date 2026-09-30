@@ -287,7 +287,7 @@ If an active PR owns the same files and its work has not landed yet, keep the is
 - [x] Add an explicit offline/no-network verification mode.
 - [x] Add a unit-level offline fail-closed test so a pending component cannot silently fall back to GitHub.
 - [x] Extend local bootstrap to exact source archives. SNESRecomp C1 is the first archive-mode component; focused unit coverage proves `--offline` extraction cannot fall back to GitHub.
-- [ ] Add a true network-disabled build smoke once at least one core component is islanded; before that, a successful offline core build would be a false claim.
+- [~] Add a true network-disabled build smoke once at least one core component is islanded. `.github/workflows/offline-core-smoke.yml` now installs only declared host prerequisites before entering a fresh Linux network namespace, brings up loopback only, then verifies the canonical ROM, validates island provenance, builds the repository-owned Snes9x reference core, stages repository-owned SNESRecomp, generates the canonical project, and builds the native `UniracersSNESRecomp` target with GitHub/PyPI/crates.io physically unreachable. Promote this item to complete only after the branch workflow is green.
 
 Current P0-A implementation lives in `third_party/manifest.json`, `tools/validate_island.py`, `tools/bootstrap_toolchain.py`, repository hygiene, and focused unit coverage. Components remain `pending` until their local source/archive, hash and license are present and validated.
 
@@ -314,10 +314,10 @@ Current P0-A implementation lives in `third_party/manifest.json`, `tools/validat
 
 ### P0-E — Offline completion
 
-- [ ] Close Python package-registry dependencies.
-- [ ] Close Rust crate-registry dependencies.
-- [ ] Run the core automated research workflow with outbound network disabled.
-- [ ] Document remaining host prerequisites as the intentional island boundary.
+- [x] Close Python package-registry dependencies. Core Python tooling contains no `pip install` path: snes2asm receives repository-owned pure-Python PyYAML 6.0.3 plus its own vendored package through `install_pure_python_tool.py`, while mesen-for-ai is installed directly from repository-owned source.
+- [x] Close Rust crate-registry dependencies. SuperFamiconv carries its locked 78-package Cargo vendor closure and builds with `--locked --offline`; SNESRecomp carries the analyzer Cargo closure, overlays it during staging, enforces lockfile equality, and forces Cargo offline. `validate_island.py` rejects Cargo closures that omit locked/offline declarations or matching build flags.
+- [~] Run the core automated research workflow with outbound network disabled. The dedicated offline smoke now exercises the canonical ROM plus both reference/native build sides inside a network namespace; branch CI is the evidence gate.
+- [x] Document remaining host prerequisites as the intentional island boundary. `docs/OFFLINE-HOST-PREREQUISITES.md` now separates ordinary Linux/compiler/runtime packages from repository-owned game/tool inputs and records the concrete Ubuntu package set used by the no-network proof.
 - [ ] Remove obsolete external-fetch paths after all local replacements are proven.
 
 ## Exit criteria

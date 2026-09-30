@@ -15,6 +15,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tarfile
 from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -198,22 +199,40 @@ def load_island_manifest() -> dict[str, dict]:
 
 def stage_local_source(tool: dict, component: dict, src_root: Path) -> Path:
     mode = component.get("mode")
-    if mode != "vendored":
-        raise SystemExit(
-            f"{tool['id']}: island manifest mode {mode!r} is not yet a buildable local source"
-        )
-    rel = component.get("source_path")
-    if not isinstance(rel, str) or not rel:
-        raise SystemExit(f"{tool['id']}: vendored island entry has no source_path")
-    source = ROOT / rel
-    if not source.is_dir():
-        raise SystemExit(f"{tool['id']}: local island source is missing: {source}")
     dest = src_root / tool["id"]
     if dest.exists():
         shutil.rmtree(dest)
-    shutil.copytree(source, dest, ignore=shutil.ignore_patterns(".git", "__pycache__"))
-    print(f"{tool['id']}: using repository-owned source {rel}", flush=True)
-    return dest
+
+    if mode == "vendored":
+        rel = component.get("source_path")
+        if not isinstance(rel, str) or not rel:
+            raise SystemExit(f"{tool['id']}: vendored island entry has no source_path")
+        source = ROOT / rel
+        if not source.is_dir():
+            raise SystemExit(f"{tool['id']}: local island source is missing: {source}")
+        shutil.copytree(source, dest, ignore=shutil.ignore_patterns(".git", "__pycache__"))
+        print(f"{tool['id']}: using repository-owned source {rel}", flush=True)
+        return dest
+
+    if mode == "archive":
+        rel = component.get("archive_path")
+        if not isinstance(rel, str) or not rel:
+            raise SystemExit(f"{tool['id']}: archive island entry has no archive_path")
+        archive = ROOT / rel
+        if not archive.is_file():
+            raise SystemExit(f"{tool['id']}: local island archive is missing: {archive}")
+        dest.mkdir(parents=True)
+        try:
+            with tarfile.open(archive, "r:*") as tf:
+                tf.extractall(dest, filter="data")
+        except (tarfile.TarError, OSError) as exc:
+            raise SystemExit(f"{tool['id']}: failed to extract {rel}: {exc}") from exc
+        print(f"{tool['id']}: using repository-owned archive {rel}", flush=True)
+        return dest
+
+    raise SystemExit(
+        f"{tool['id']}: island manifest mode {mode!r} is not a buildable local source"
+    )
 
 
 def ensure_source(
@@ -224,7 +243,7 @@ def ensure_source(
     offline: bool,
 ) -> Path:
     component = island.get(tool["id"])
-    if component and component.get("mode") == "vendored":
+    if component and component.get("mode") in {"vendored", "archive"}:
         return stage_local_source(tool, component, src_root)
     if offline:
         mode = component.get("mode") if component else "unclassified"

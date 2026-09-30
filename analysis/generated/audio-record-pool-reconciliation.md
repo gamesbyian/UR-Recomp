@@ -47,6 +47,15 @@ ordinary song framing as all reachable songs in this range. The exact semantic r
 the first word `0x0400` remains to be named from code, but it is not unique to the
 unused songs.
 
+A follow-up full-pool run (`36776390764`, artifact `11125328831`, digest
+`sha256:9ea67e6ac4ef96af6ed09163a3851c8a86757c3b49866bf9d8c483450d644844`)
+parses all 67 records `0x00..0x42` from the same contiguous stream. It shows a clean
+late-record framing partition: `0x32..0x33` begin with words `0x0000,0x0400`;
+`0x34..0x37` begin with `0x0000,0x1600`; and **every record `0x38..0x42`,
+and only that late family, begins with `0x0400,0x1D00`**. This reinforces that the
+unused records are ordinary members of a specific song-data family rather than detached
+or malformed leftovers.
+
 ## Package table 03:FB95
 
 The known six-table package family contains exactly one table with no direct

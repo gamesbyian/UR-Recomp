@@ -1,0 +1,142 @@
+name: Counterfactual Unused Song 2 APU trace
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/audio-unused-song2-counterfactual.yml"
+      - "tools/patch_unused_audio_counterfactual.py"
+      - "tools/verify_unused_audio_trace.py"
+      - "tools/trace_apu_ports.py"
+      - "tests/input/reach-first-race.script"
+
+permissions:
+  contents: read
+
+jobs:
+  trace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config xvfb \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Build fail-closed counterfactual ROM
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANON="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          PATCHED="$RUNNER_TEMP/Uniracers_UnusedSong2_FB55.sfc"
+          python3 tools/verify_rom.py "$CANON"
+          python3 tools/patch_unused_audio_counterfactual.py \
+            "$CANON" unused-song-2-race-package "$PATCHED" \
+            --json-out "$RUNNER_TEMP/unused-song2-patch.json"
+          test -s "$PATCHED"
+
+      - name: Generate project and build trace target
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/trace-project"
+          ROM="$RUNNER_TEMP/Uniracers_UnusedSong2_FB55.sfc"
+          mkdir -p "$ROOT"
+          sh snesrecomp/tools/new_project/setup_project.sh \
+            --rom "$ROM" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --generate \
+            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+
+          PROJECT="$ROOT/UniracersSNESRecomp"
+          python3 - "$PROJECT/src/host_contract.c" <<'PY'
+          from pathlib import Path
+          import sys
+          p = Path(sys.argv[1])
+          s = p.read_text()
+          marker = "#include <stdint.h>\n"
+          if marker not in s:
+              raise SystemExit("host_contract.c include marker not found")
+          s = s.replace(marker, marker + "\n#if !defined(SNESRECOMP_TRACE) || !SNESRECOMP_TRACE\n", 1)
+          s += "\n#endif /* production debug-hook stubs */\n"
+          p.write_text(s)
+          PY
+          cmake -S "$PROJECT" -B "$PROJECT/build-trace" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ENABLE_TRACE=ON
+          cmake --build "$PROJECT/build-trace" -j2
+          test -x "$PROJECT/build-trace/UniracersSNESRecomp"
+
+      - name: Trace patched first-race audio path
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT="$RUNNER_TEMP/trace-project/UniracersSNESRecomp"
+          EXE="$PROJECT/build-trace/UniracersSNESRecomp"
+          ROM="$RUNNER_TEMP/Uniracers_UnusedSong2_FB55.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
+          LOG="$RUNNER_TEMP/unused-song2-host.log"
+          OUT="$RUNNER_TEMP/unused-song2-trace.json"
+
+          SNESRECOMP_DEBUG_PORT=4377 SDL_AUDIODRIVER=dummy \
+            timeout 240s xvfb-run -a "$EXE" "$ROM" --paused --script "$SCRIPT" \
+            >"$LOG" 2>&1 &
+          HOST_PID=$!
+          trap 'kill "$HOST_PID" 2>/dev/null || true' EXIT
+
+          set +e
+          python3 tools/trace_apu_ports.py \
+            --port 4377 \
+            --command-timeout 45 \
+            --coarse-until 900 \
+            --coarse-step 25 \
+            --max-frames 1800 \
+            --json-out "$OUT"
+          TRACE_STATUS=$?
+          set -e
+
+          kill "$HOST_PID" 2>/dev/null || true
+          wait "$HOST_PID" 2>/dev/null || true
+          trap - EXIT
+          tail -n 120 "$LOG"
+          test "$TRACE_STATUS" -eq 0
+          test -s "$OUT"
+
+      - name: Require exact Unused Song 2 body on port 2143
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_unused_audio_trace.py \
+            "$RUNNER_TEMP/Uniracers_UnusedSong2_FB55.sfc" \
+            "$RUNNER_TEMP/unused-song2-trace.json" \
+            0x3D \
+            --json-out "$RUNNER_TEMP/unused-song2-verification.json"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unused-song2-fb55-counterfactual
+          path: |
+            ${{ runner.temp }}/unused-song2-patch.json
+            ${{ runner.temp }}/unused-song2-trace.json
+            ${{ runner.temp }}/unused-song2-verification.json
+            ${{ runner.temp }}/unused-song2-host.log
+          if-no-files-found: warn
+          retention-days: 7

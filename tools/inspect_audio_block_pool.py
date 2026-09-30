@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """Inspect Uniracers' ROM-side APU block pool and 64-byte package tables.
 
-The retail transfer resolver at 02:812A maps block IDs 0x00-0x31 onto a
-length-prefixed packed record pool beginning at CPU 10:8000.  Each record's
-first little-endian word is its total length including that two-byte header.
+The retail transfer resolver at 02:812A maps numeric block IDs onto a contiguous
+length-prefixed packed record pool beginning at CPU 10:8000. Each record's first
+little-endian word is its total length including that two-byte header. Direct
+setup callers prove the resolver is used through at least ID 0x42.
 
-APU_StreamTransfer at 02:82A9 consumes 64-byte package tables whose entries are
-block IDs or 0xFF sentinels.  This tool makes both structures explicit and
-hashes the payloads for correlation with runtime/APU evidence.
+APU_StreamTransfer at 02:82A9 consumes 64-byte package tables whose populated
+entries use only the 0x00-0x31 prefix (or 0xFF sentinels). DEFAULT_BLOCK_COUNT
+therefore names the package-table block universe, not the full resolver range.
+This tool makes that package prefix and the six tables explicit; callers may
+request a larger count when inspecting later records.
 """
 from __future__ import annotations
 

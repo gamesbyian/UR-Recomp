@@ -1,0 +1,41 @@
+name: Disassemble audio selector 0x3C caller context
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/audio-selector-3c-disassembly.yml"
+
+jobs:
+  disassemble:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Build pinned reduced da65 closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none --no-checkout https://github.com/cc65/cc65.git "$RUNNER_TEMP/cc65"
+          git -C "$RUNNER_TEMP/cc65" checkout d8a486acdef93ea1ba432a6a35b96cf1b797bda5
+          python3 tools/evaluate_cc65_da65_closure.py             "$RUNNER_TEMP/cc65"             "$RUNNER_TEMP/cc65-da65-closure"             --jobs 2             --json-out "$RUNNER_TEMP/closure.json"             >/dev/null
+
+      - name: Disassemble bank-03 context around selector 0x3C
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROM="reference/roms/retail/Uniracers_USA.sfc"
+          OUT="$RUNNER_TEMP/audio-3c-window.bin"
+          dd if="$ROM" of="$OUT" bs=1 skip=$((0x01A480)) count=$((0x0200)) status=none
+          "$RUNNER_TEMP/cc65-da65-closure/bin/da65"             --cpu 65816             --start-addr 0xA480             --comments 2             "$OUT"             > audio-selector-3c-context.s
+          cat audio-selector-3c-context.s
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audio-selector-3c-disassembly
+          path: audio-selector-3c-context.s
+          retention-days: 7

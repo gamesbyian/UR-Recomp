@@ -127,12 +127,20 @@ def main() -> int:
     ap.add_argument("rom", type=Path)
     ap.add_argument("spc_source", type=Path)
     ap.add_argument("--block", action="append", type=lambda x: int(x, 0), dest="blocks")
+    ap.add_argument(
+        "--package-prefix",
+        action="store_true",
+        help="correlate the complete package-table block universe 0x00..0x31",
+    )
     ap.add_argument("--json-out", type=Path)
     args = ap.parse_args()
+    if args.package_prefix and args.blocks:
+        ap.error("--package-prefix cannot be combined with --block")
+    block_ids = tuple(range(0x32)) if args.package_prefix else (tuple(args.blocks) if args.blocks else DEFAULT_BLOCK_IDS)
     report = analyze(
         args.rom.read_bytes(),
         args.spc_source,
-        tuple(args.blocks) if args.blocks else DEFAULT_BLOCK_IDS,
+        block_ids,
     )
     print(f"blocks={len(report['blocks'])}")
     for block in report["blocks"]:

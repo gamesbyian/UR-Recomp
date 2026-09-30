@@ -1,6 +1,6 @@
 # SNESRecomp islandization scope
 
-Status: C1 implementation active; dependency boundary remains canonical for P0-C.
+Status: C1 framework ownership, C2 network audit, and C4 analyzer Cargo closure are complete. C3 SDL3 policy is the next P0-C tranche; C5 optional features remain deferred.
 
 This note maps the exact dependency surface of UR-Recomp's pinned SNESRecomp revision before any source migration. It is deliberately narrower than a generic SNESRecomp packaging plan: the goal is to make the framework pieces UR-Recomp actually needs reconstructible offline without silently importing optional network/UI/tooling features.
 
@@ -120,7 +120,7 @@ These are not baseline runtime dependencies. Islandization should disable or rou
 
 Implemented in PR #64 as a deterministic `git archive | gzip -n -9` snapshot of `cd5875cbdaf19f5e324272b1f8051d671fce9215`: SHA-256 `cc5043c4477adaa31210efb88c3423344e2195044e4366795cf1c563e1014b56`, 5,251,351 compressed bytes, 942 archive entries. PolyForm Noncommercial 1.0.0 is preserved beside provenance. Nested gitlinks remain excluded from the baseline archive but pinned explicitly in provenance.
 
-Archive-mode bootstrap stages the framework with `--offline`; the ordinary toolchain matrix builds `tools/snesref` from the extracted repository-owned copy. C1 is complete when that final matrix is green.
+Archive-mode bootstrap stages the framework with `--offline`; the ordinary toolchain matrix builds `tools/snesref` from the extracted repository-owned copy. Final C1 head `ee12cc1d18c32288943f51d22c2dca43b6a7a5be` was fully green and merged in PR #64.
 
 ### C2 — baseline build network audit
 

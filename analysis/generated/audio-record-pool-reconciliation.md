@@ -54,9 +54,7 @@ current candidate for an orphan package associated with Unused Song 1. That asso
 remains a hypothesis until reconstructed execution or equivalent APU-state comparison
 demonstrates it.
 
-There is no second orphan package table for `0x3D` / Unused Song 2. Any reconstruction
-that assumes every song needs a unique package table is therefore incompatible with the
-known corpus.
+There is no second orphan package table for `0x3D` / Unused Song 2. Instead, the live first-race `03:FB55` package reconstructs APU RAM `$B0E0-$BDE0`, and that complete 3,329-byte region is byte-identical at the same offsets in the preserved Unused Song 2 SPC. This makes `03:FB55` the leading reused-package candidate for `0x3D` and shows that a unique package per song is not required.
 
 ## Next experiment
 

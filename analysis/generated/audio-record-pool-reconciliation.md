@@ -36,6 +36,17 @@ For every identified song record, the trimmed ROM payload appears at APU `0x1D00
 The two unused-song records are therefore ordinary members of the same serialized song
 record family, distinguished by reachability rather than by a separate storage format.
 
+A canonical-ROM framing probe (workflow run `36771852989`, artifact
+`11124252015`, digest
+`sha256:fec704011913ea724bacdc7c365f0b303ede62d5f9b2599c48f4bd4211aec49d`)
+closes the four-byte-trim question mechanically. Every record `0x38..0x42` begins
+with the same four bytes `00 04 00 1D`, i.e. little-endian words `0x0400` and
+`0x1D00`. The second word exactly matches the APU address where the post-header bytes
+appear in the preserved SPCs. Records `0x3B` and `0x3D` therefore use the same
+ordinary song framing as all reachable songs in this range. The exact semantic role of
+the first word `0x0400` remains to be named from code, but it is not unique to the
+unused songs.
+
 ## Package table 03:FB95
 
 The known six-table package family contains exactly one table with no direct

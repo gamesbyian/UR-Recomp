@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "extended_song_selectors": {
     "0x38": {
       "cpu_address": "0x13F70C",
@@ -149,20 +149,212 @@
       ]
     }
   },
+  "package_marker_analysis": {
+    "marker_ids": [
+      "0x07",
+      "0x15",
+      "0x29"
+    ],
+    "guardrail": "Marker presence in an SPC snapshot can reflect retained APU RAM from earlier loads; matching these three markers ranks candidates but does not prove which package was loaded.",
+    "Unused Song 1": {
+      "observed_marker_presence": {
+        "0x07": false,
+        "0x15": true,
+        "0x29": true
+      },
+      "ranked_tables": [
+        {
+          "table": "0x03FB15",
+          "direct_caller_count": 1,
+          "marker_signature": {
+            "0x07": false,
+            "0x15": true,
+            "0x29": true
+          },
+          "mismatches": [],
+          "mismatch_count": 0
+        },
+        {
+          "table": "0x03FB55",
+          "direct_caller_count": 6,
+          "marker_signature": {
+            "0x07": false,
+            "0x15": true,
+            "0x29": false
+          },
+          "mismatches": [
+            "0x29"
+          ],
+          "mismatch_count": 1
+        },
+        {
+          "table": "0x03FAD5",
+          "direct_caller_count": 2,
+          "marker_signature": {
+            "0x07": true,
+            "0x15": true,
+            "0x29": true
+          },
+          "mismatches": [
+            "0x07"
+          ],
+          "mismatch_count": 1
+        },
+        {
+          "table": "0x03FBD5",
+          "direct_caller_count": 2,
+          "marker_signature": {
+            "0x07": false,
+            "0x15": true,
+            "0x29": false
+          },
+          "mismatches": [
+            "0x29"
+          ],
+          "mismatch_count": 1
+        },
+        {
+          "table": "0x03FC15",
+          "direct_caller_count": 1,
+          "marker_signature": {
+            "0x07": false,
+            "0x15": false,
+            "0x29": false
+          },
+          "mismatches": [
+            "0x15",
+            "0x29"
+          ],
+          "mismatch_count": 2
+        },
+        {
+          "table": "0x03FB95",
+          "direct_caller_count": 0,
+          "marker_signature": {
+            "0x07": false,
+            "0x15": false,
+            "0x29": false
+          },
+          "mismatches": [
+            "0x15",
+            "0x29"
+          ],
+          "mismatch_count": 2
+        }
+      ],
+      "zero_mismatch_tables": [
+        "0x03FB15"
+      ]
+    },
+    "Unused Song 2": {
+      "observed_marker_presence": {
+        "0x07": false,
+        "0x15": true,
+        "0x29": false
+      },
+      "ranked_tables": [
+        {
+          "table": "0x03FB55",
+          "direct_caller_count": 6,
+          "marker_signature": {
+            "0x07": false,
+            "0x15": true,
+            "0x29": false
+          },
+          "mismatches": [],
+          "mismatch_count": 0
+        },
+        {
+          "table": "0x03FBD5",
+          "direct_caller_count": 2,
+          "marker_signature": {
+            "0x07": false,
+            "0x15": true,
+            "0x29": false
+          },
+          "mismatches": [],
+          "mismatch_count": 0
+        },
+        {
+          "table": "0x03FB15",
+          "direct_caller_count": 1,
+          "marker_signature": {
+            "0x07": false,
+            "0x15": true,
+            "0x29": true
+          },
+          "mismatches": [
+            "0x29"
+          ],
+          "mismatch_count": 1
+        },
+        {
+          "table": "0x03FC15",
+          "direct_caller_count": 1,
+          "marker_signature": {
+            "0x07": false,
+            "0x15": false,
+            "0x29": false
+          },
+          "mismatches": [
+            "0x15"
+          ],
+          "mismatch_count": 1
+        },
+        {
+          "table": "0x03FB95",
+          "direct_caller_count": 0,
+          "marker_signature": {
+            "0x07": false,
+            "0x15": false,
+            "0x29": false
+          },
+          "mismatches": [
+            "0x15"
+          ],
+          "mismatch_count": 1
+        },
+        {
+          "table": "0x03FAD5",
+          "direct_caller_count": 2,
+          "marker_signature": {
+            "0x07": true,
+            "0x15": true,
+            "0x29": true
+          },
+          "mismatches": [
+            "0x07",
+            "0x29"
+          ],
+          "mismatch_count": 2
+        }
+      ],
+      "zero_mismatch_tables": [
+        "0x03FB55",
+        "0x03FBD5"
+      ]
+    }
+  },
   "unused_song_findings": {
     "0x3B": {
       "track": "Unused Song 1",
       "ordinary_setup_reachable": false,
       "ordinary_package_pair_reachable": false,
-      "structural_table_candidate": "0x03FB95",
-      "candidate_basis": "03:FB95 is the only known 64-byte package table with no direct caller and is an exact slot-preserving subset of Celebration table 03:FAD5, differing only by three FF substitutions. This is structural evidence, not proof of the lost call pair."
+      "leading_table_candidates": [
+        "0x03FB15",
+        "0x03FB95"
+      ],
+      "candidate_basis": "03:FB95 remains the sole orphan table, but three already-correlated base-block markers favor package reuse: Unused Song 1 has 0x15 and 0x29 present and 0x07 absent, exactly matching called Demo package 03:FB15; 03:FB95 omits all three. Because SPC RAM may retain prior data, the marker pattern is discriminating evidence rather than proof."
     },
     "0x3D": {
       "track": "Unused Song 2",
       "ordinary_setup_reachable": false,
       "ordinary_package_pair_reachable": false,
-      "structural_table_candidate": "0x03FB55",
-      "candidate_basis": "The live first-race 03:FB55 transfer reconstructs APU RAM 0xB0E0-0xBDE0, and the preserved Unused Song 2 SPC contains that entire 3,329-byte region byte-identically at the same offsets. This makes reuse of the race-family package the leading candidate, though a counterfactual load remains to prove it."
+      "leading_table_candidates": [
+        "0x03FB55",
+        "0x03FBD5"
+      ],
+      "candidate_basis": "The three correlated markers match both 03:FB55 and 03:FBD5, but live first-race 03:FB55 transfer evidence is stronger: it reconstructs APU RAM 0xB0E0-0xBDE0, and Unused Song 2 contains that entire 3,329-byte region byte-identically at the same offsets."
     }
   },
   "interpretation": {
@@ -173,8 +365,7 @@
       "03:FB95 has zero direct package-transfer callers.",
       "03:FB95 is a slot-preserving strict subset of called Celebration table 03:FAD5."
     ],
-    "hypothesis": "03:FB95 is a plausible orphan package for the 0x3B / Unused Song 1 path, but current evidence does not prove that pairing.",
-    "negative_result": "There is no comparable second orphan table for 0x3D; instead the live 03:FB55 race-family package produces a 3,329-byte APU region that is byte-identical at the same offsets in Unused Song 2, favoring package reuse.",
+    "hypothesis": "Package reuse is now at least as plausible as orphan-table use for Unused Song 1. 03:FB15 exactly matches all three currently correlated package-marker presences in that SPC, whereas 03:FB95 does not; controlled reconstruction is required to choose between them.",
     "unused_song_2_race_package_corroboration": {
       "package": "03:FB55",
       "apu_region": {

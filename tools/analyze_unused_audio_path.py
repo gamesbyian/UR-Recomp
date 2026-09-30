@@ -95,6 +95,28 @@ def build_analysis(
     song2_markers, song2_candidates = marker_profiles(packages, block_corr, "Unused Song 2")
     marker_ids = correlated_package_ids(block_corr)
 
+    package_pairs: dict[str, list[str]] = {}
+    for row in setup["setup_package_pairs"]:
+        key = f"0x{row['selector']:02X}"
+        package_pairs.setdefault(key, [])
+        if row["table_cpu"] not in package_pairs[key]:
+            package_pairs[key].append(row["table_cpu"])
+
+    song_package_matrix = []
+    package_reuse_summary: dict[str, dict] = {}
+    for selector in range(0x38, 0x43):
+        key = f"0x{selector:02X}"
+        tables_for_selector = package_pairs.get(key, [])
+        song_package_matrix.append({
+            "selector": key,
+            "track_matches": tracks[key]["matched_tracks"] or ["unidentified in preserved SPC set"],
+            "package_tables": tables_for_selector,
+        })
+        for table in tables_for_selector:
+            package_reuse_summary.setdefault(table, {"selectors": [], "count": 0})
+            package_reuse_summary[table]["selectors"].append(key)
+            package_reuse_summary[table]["count"] += 1
+
     return {
         "schema_version": 3,
         "extended_song_selectors": tracks,
@@ -115,6 +137,8 @@ def build_analysis(
                 "different_slots": differences,
             },
         },
+        "reachable_song_package_matrix": song_package_matrix,
+        "package_reuse_summary": package_reuse_summary,
         "package_marker_analysis": {
             "marker_ids": [f"0x{x:02X}" for x in marker_ids],
             "marker_count": len(marker_ids),
@@ -174,6 +198,7 @@ def build_analysis(
                 "Neither 0x3B nor 0x3D has an ordinary setup-wrapper call or known setup+package pair.",
                 "03:FB95 has zero direct package-transfer callers.",
                 "03:FB95 is a slot-preserving strict subset of called Celebration table 03:FAD5.",
+                "Package reuse is normal in reachable content: selectors 0x3E-0x42 for all five numbered race songs share package table 03:FB55.",
             ],
             "hypothesis": (
                 "Package reuse is at least as plausible as orphan-table use for Unused Song 1. "
@@ -203,6 +228,12 @@ def render_markdown(report: dict) -> str:
     markers = report["package_marker_analysis"]
     song1 = markers["Unused Song 1"]
     song2 = markers["Unused Song 2"]
+    package_rows = []
+    for row in report["reachable_song_package_matrix"]:
+        packages = ", ".join(f"`{table.replace('0x', '')[:2]}:{table.replace('0x', '')[2:]}`" for table in row["package_tables"]) or "none"
+        package_rows.append(
+            f"| `{row['selector']}` | {', '.join(row['track_matches'])} | {packages} |"
+        )
     return f"""# Unused-song audio path analysis
 
 This reconciles extended ROM audio blocks, CPU setup calls, package tables,
@@ -221,6 +252,18 @@ at APU `0x1D00`, yet neither has an ordinary `JSL $82:807E` setup call.
 The known package family contains six 64-byte tables. Five have direct callers.
 `03:FB95` is the sole orphan. It is a strict, slot-preserving subset of called
 Celebration table `03:FAD5`, replacing base blocks {removed} with `FF`.
+
+## Reachable song/package architecture
+
+The known direct setup/package pairs already disprove any one-song/one-package model:
+
+| Selector | Preserved SPC identity | Package table |
+|---|---|---|
+{chr(10).join(package_rows)}
+
+Most importantly, selectors `0x3E..0x42`, which map to all five numbered race songs,
+share the single package table `03:FB55`. Package reuse is therefore an established
+retail design pattern, not a special assumption introduced for the unused songs.
 
 ## Package reuse is a live hypothesis, not a fallback
 

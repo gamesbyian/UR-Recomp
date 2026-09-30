@@ -2,7 +2,7 @@ name: dual-player deterministic input
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     paths:
       - "tools/controller_input.py"
       - "tools/replay_input_via_lua.py"
@@ -13,6 +13,23 @@ on:
       - "tests/unit/test_replay_input_mesen.py"
       - ".github/workflows/dual-player-input.yml"
       - "snesrecomp"
+  push:
+    branches:
+      - main
+    paths:
+      - "tools/controller_input.py"
+      - "tools/replay_input_via_lua.py"
+      - "tools/replay_input_mesen.py"
+      - "tools/patches/snesrecomp-dual-controller-input.patch"
+      - "tests/unit/test_controller_input.py"
+      - "tests/unit/test_replay_input_via_lua.py"
+      - "tests/unit/test_replay_input_mesen.py"
+      - ".github/workflows/dual-player-input.yml"
+      - "snesrecomp"
+
+concurrency:
+  group: dual-player-input-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   neutral-input:

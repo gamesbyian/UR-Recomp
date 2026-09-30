@@ -13,6 +13,20 @@ ROOT = Path(__file__).resolve().parents[1]
 TOOL = ROOT / "tools" / "compose_historical_replay_result.py"
 
 
+def write_dump(path: Path, *, menu: int, in_race: int, x: int, y: int,
+               vx: int, vy: int, air: int, pitch: int) -> None:
+    blob = bytearray(0x20000)
+    blob[0x009F] = menu
+    blob[0x0313] = in_race
+    blob[0x00CE] = 0
+    for addr, value in ((0x0411, x), (0x0415, y), (0x04B7, vx), (0x04BB, vy), (0x04C7, pitch)):
+        value &= 0xFFFF
+        blob[addr] = value & 0xFF
+        blob[addr + 1] = value >> 8
+    blob[0x0545] = air
+    path.write_bytes(blob)
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory() as td:
         td = Path(td)
@@ -79,7 +93,31 @@ def main() -> int:
         assert result["native_results_at_reference_results"] is False
         assert result["sampled_native_reference_match"] is False
 
-    print("PASS: historical replay composer transition and mismatch contract")
+        dumps = td / "dumps"
+        dumps.mkdir()
+        write_dump(
+            dumps / "frame-10.wram.bin",
+            menu=0x00, in_race=1, x=1, y=2, vx=3, vy=4, air=0, pitch=5,
+        )
+        write_dump(
+            dumps / "frame-20.wram.bin",
+            menu=0x99, in_race=0, x=6, y=7, vx=8, vy=9, air=0, pitch=10,
+        )
+        subprocess.run([
+            sys.executable, str(TOOL),
+            "--smv-meta", str(meta),
+            "--trace-summary", str(trace),
+            "--reference-tsv", str(ref),
+            "--native-dump-dir", str(dumps),
+            "--out", str(out),
+        ], check=True)
+        result = json.loads(out.read_text())
+        assert result["shared_sampled_frames"] == [10, 20]
+        assert result["sampled_native_reference_match"] is True
+        assert result["native_in_race_at_reference_entry"] is True
+        assert result["native_results_at_reference_results"] is True
+
+    print("PASS: historical replay composer JSON/dump transition and mismatch contract")
     return 0
 
 

@@ -262,10 +262,16 @@ Rights: explicit redistribution license not identified; retained as third-party 
 ## A-015 — Uniracers Stunts & Jump Optimizer v13 (`usjo13.lua`)
 
 Priority: P0  
-Status: exact historical URL known; bytes not recovered  
+Status: exact historical URL and full title known; bytes not recovered  
 Historical URL: `http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/usjo13.lua`
 
-Need judgment: **yes, still worth active hunting.** Contemporary TASVideos posts describe a frame-perfect search bot that optimized stunt combinations and speed. Its source could expose exact state variables, timing assumptions, scoring/boost logic and automation techniques that would otherwise need to be rediscovered from the ROM. It is not required for correctness, but it has unusually high potential to make physics archaeology cheaper.
+Need judgment: **yes, still worth active hunting.** The original 2008 Snes9x Lua thread names it “Uniracers Stunts & Jump Optimizer v13” and describes an automated search over stunt combinations that optimizes speed and replays the best result. Dessyreqt's later submission says Halamantariel/Nitrodon evolved USJO far enough to play Uniracers autonomously. Its source could expose exact state variables, timing assumptions, scoring/boost logic and automation techniques that would otherwise need to be rediscovered from the ROM.
+
+Acquisition boundary: **passive recovery only. Do not contact historical authors, TASers, site owners, forum users, or other people about this artifact.** Search public archives, mirrors, preserved attachments, old directory backups, code indexes, repository history, and already-public collections.
+
+Search posture: pivot away from repeatedly querying only the exact filename. Reconstruct the historical obellemare Uniracers directory; search plausible USJO ancestor/descendant versions; use the published WRAM watch addresses plus period Snes9x Lua APIs as code fingerprints; and compare surviving Uniracers Lua against the recovered 2014 Dessyreqt bot for lineage clues.
+
+Working dossier: `references/notes/usjo13-passive-recovery.md`.
 
 ## A-016 — Halamantariel boost/mechanics table
 

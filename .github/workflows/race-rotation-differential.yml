@@ -22,7 +22,9 @@ on:
       - "tools/summarize_paired_player_slots.py"
       - "tools/compare_wram_checkpoints.py"
       - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/_global.json"
       - ".github/workflows/race-rotation-differential.yml"
   push:
     paths:
@@ -44,7 +46,9 @@ on:
       - "tools/summarize_paired_player_slots.py"
       - "tools/compare_wram_checkpoints.py"
       - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/_global.json"
       - ".github/workflows/race-rotation-differential.yml"
 
 concurrency:

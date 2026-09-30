@@ -1,10 +1,10 @@
 # Two-Player Fixture Capability Plan
 
-Status: required supporting capability for UI-state coverage, multiplayer fidelity, and split-screen/emulator-sensitive validation.
+Status: deterministic VS route and active-display OAM seam locally reproduced; cross-runtime/native promotion and broader 2P coverage remain.
 
 ## Why this exists
 
-The project now has an established engine-neutral player-2 controller transport. What remains open is behavioral verification and checkpoint/capture integration for multiplayer frontend and gameplay states. A harvested successful native atlas run has now locally reproduced `TWO_PLAYER_SELECT = 0x3D` and its X-back edge; the unresolved seam begins at participant ownership/handoff and continues into deeper 2P/VS setup.
+The project has an established engine-neutral player-2 controller transport and a deterministic VS route from clean boot through P1/P2 rider selection into active split-screen gameplay. `TWO_PLAYER_SELECT = 0x3D`, `VS_SELECT = 0x3E`, the P1->P2 presentation handoff, a genuinely P2-causal rider move/confirm edge, deeper VS setup states, and first VS race entry now have local evidence. Remaining work is broader native/Mesen promotion, ordinary 2P coverage, paired racer-state assertions, and downstream widescreen/gameplay validation.
 
 Until that evidence exists, durable local promotion remains blocked for several known multiplayer frontend states:
 
@@ -162,3 +162,31 @@ A four-way controller matrix was run at the first proven `PICK PLAYER TWO` state
 Each pulse began at guest frame 660 after the deterministic P1 -> P2 handoff. All four variants remained at menu `0x3E`, selected option `0x00`, raw ownership `0x02`, and the same non-race state through the +190-frame checkpoint. No active-display OAM writes appeared.
 
 This means the raw `0x02` discriminator identifies the UI's Player Two subject/phase but does not, by itself, establish that controller 2 is immediately live. The next discriminator is a bounded timing sweep of P2 inputs after the handoff. If no delayed pulse is accepted, instrument/reference-check whether the libretro core is polling port 1 before inferring game semantics.
+
+
+## Verified VS first-race and OAM result
+
+The recovered sequence has now been frozen as:
+
+- `tests/input/vs-first-race.input`
+- `tests/input/vs-first-race-observe.script`
+
+The route is deterministic from clean boot. P1 enters VS and confirms the first rider; P2 Right selects an unclaimed rider and P2 A confirms; subsequent setup advances reach active split-screen gameplay. Snes9x checkpoints show:
+
+- `vs-challenger`: menu `0x6D`
+- `vs-challenge-track`: menu `0x91`
+- `vs-pre-race`: menu `0x16`
+- `vs-race-1140` onward: `inRace = 0x01`
+
+Most importantly, the patched Snes9x PPU journal reproduces the historical active-display OAM seam in every sampled stable race frame:
+
+```text
+V=0    $2104 <- $A5  source=HDMA
+V=112  $2104 <- $5A  source=HDMA
+```
+
+This repeats at checkpoints 1140, 1240, 1340, 1440 and 1620. The selector-screen negative control had only vblank-era OAM DMA, so the scanline-0/112 pattern is specifically associated with active split-screen gameplay rather than generic menu OAM upload.
+
+`tools/assert_uniracers_vs_oam_seam.py` encodes the two active-display writes as a durable regression assertion. The persistent VS reference workflow also runs the same frozen controller stream through the independent Beetle/bsnes core to verify that the route itself reaches stable split-screen gameplay without relying solely on Snes9x's title-specific compatibility behavior.
+
+This closes the recovered **observability + scene reachability** blocker for the famous OAM seam. It does not close all multiplayer work: ordinary 2P mode, native/Mesen parity, paired P1/P2 physics/state fields, and widescreen behavior remain separate obligations.

@@ -103,16 +103,16 @@
     },
     {
       "id": "cc65",
-      "mode": "pending",
+      "mode": "vendored",
       "upstream_url": "https://github.com/cc65/cc65.git",
       "revision": "d8a486acdef93ea1ba432a6a35b96cf1b797bda5",
-      "source_path": null,
+      "source_path": "third_party/src/cc65-da65",
       "archive_path": null,
-      "source_sha256": null,
-      "license_spdx": null,
-      "license_path": null,
-      "notes": "Not yet islanded. External pinned bootstrap remains authoritative until a repository-owned source/archive is verified.",
-      "provenance_path": null
+      "source_sha256": "11cc79b488738f94b5b98ebcb4182fbfa8488a60c637343ea32f425543ec50ea",
+      "license_spdx": "Zlib",
+      "license_path": "third_party/src/cc65-da65/LICENSE",
+      "notes": "Pruned repository-owned cc65 source restricted to the da65 disassembler closure: LICENSE, src/Makefile, src/da65 and src/common. The measured closure contains 150 files / 1,100,892 bytes and builds da65 with no package registry or nested dependency.",
+      "provenance_path": "third_party/provenance/cc65-da65.json"
     },
     {
       "id": "snes9x-libretro",

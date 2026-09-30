@@ -51,23 +51,28 @@ retail design pattern, not a special assumption introduced for the unused songs.
 
 ## Package reuse is a live hypothesis, not a fallback
 
-The committed package/SPC correlation currently covers **3**
-package blocks: 0x07, 0x15, 0x29. The ranking code consumes this
-corpus dynamically, so promoting the full `0x00..0x31` correlation requires no new
-interpretation logic.
+The legacy detailed correlation file covers **3** package blocks,
+but the promoted full-corpus signature artifact covers all `0x00..0x31`. Block `0x00`
+is only 22 bytes, below the 32-byte minimum match length; it is the sole mechanically
+untestable package block.
 
-Unused Song 1's current correlated-block pattern is matched exactly by
-0x03FB15. Unused Song 2's current
-pattern is matched exactly by 0x03FB55, 0x03FBD5.
-Existing runtime evidence further favors `03:FB55` for Unused Song 2: the live
-first-race FB55 transfer reconstructs APU RAM `$B0E0-$BDE0`, and that complete
-3,329-byte region is byte-identical at the same offsets in the preserved SPC.
+After excluding only that untestable block, the full signatures reproduce every known
+reachable package mapping exactly: Title=`03:FBD5`, Demo=`03:FB15`,
+Celebration=`03:FAD5`, and all five numbered races=`03:FB55`.
 
-Block presence can reflect retained APU RAM from earlier package loads, so these are
-candidate rankings, not causal proof.
+The same calculation gives **Unused Song 1 = `03:FB15`** and
+**Unused Song 2 = `03:FB55`**. In other words, the unused SPCs carry the exact same
+correlatable package-block signatures as Demo Race and the numbered-race family,
+respectively. Independent live transfer evidence further corroborates FB55 for Unused
+Song 2.
+
+SPC RAM can retain prior data, so controlled reconstruction remains useful for causal
+confirmation, but the package attribution is now strongly evidence-backed rather than a
+three-marker ranking.
 
 ## Next discriminator
 
-Promote the all-`0x00..0x31` block/SPC correlation, regenerate this report, then
-reconstruct the leading package combinations in a reference harness. The orphan
-`03:FB95` remains a required control even if a called package ranks better.
+Reconstruct `0x3B + 03:FB15` and `0x3D + 03:FB55` in a reference harness and
+compare resulting APU RAM against the preserved unused-song SPCs. Retain
+`0x3B + 03:FC15` as the near-twin-sequence control and `0x3B + 03:FB95` as the
+orphan-table control.

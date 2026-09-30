@@ -37,6 +37,10 @@ on:
       - ".github/workflows/toolchain-bootstrap.yml"
   workflow_dispatch:
 
+concurrency:
+  group: toolchain-bootstrap-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   contract:
     runs-on: ubuntu-latest

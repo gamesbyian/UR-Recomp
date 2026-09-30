@@ -1,6 +1,9 @@
 name: Snes9x island closure probe
 
 on:
+  push:
+    branches:
+      - "chatgpt/snes9x-island-closure-2026-09-30"
   pull_request:
     paths:
       - "tools/measure_source_closure.py"
@@ -10,6 +13,9 @@ on:
       - "docs/ISLAND-TOOLCHAIN-PLAN.md"
       - "docs/WORK-QUEUE.md"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   measure:
@@ -87,6 +93,132 @@ jobs:
           find "$out" -name '*.d' -delete
           rm -f "$out/libretro/snes9x_libretro.so"
           tar -C "$RUNNER_TEMP" -czf "$RUNNER_TEMP/snes9x-island.tar.gz" snes9x-island
+
+      - name: Promote proven pristine closure on working branch
+        if: github.event_name == 'push' && github.ref_name == 'chatgpt/snes9x-island-closure-2026-09-30'
+        shell: bash
+        run: |
+          set -euo pipefail
+          dest="third_party/src/snes9x-libretro"
+          rm -rf "$dest"
+          cp -a "$RUNNER_TEMP/snes9x-island" "$dest"
+
+          # The measured/rebuilt candidate is patched. Repository ownership keeps
+          # upstream source pristine and reapplies the project patch at bootstrap.
+          git apply -R --check --directory="$dest" tools/patches/snes9x-snesref-debug-exports.patch
+          git apply -R --directory="$dest" tools/patches/snes9x-snesref-debug-exports.patch
+
+          python3 - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          root = Path("third_party/src/snes9x-libretro")
+
+          def file_sha256(path):
+              h = hashlib.sha256()
+              with path.open("rb") as f:
+                  for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                      h.update(chunk)
+              return h.hexdigest()
+
+          def tree_sha256(path):
+              h = hashlib.sha256()
+              files = sorted(p for p in path.rglob("*") if p.is_file())
+              for item in files:
+                  rel = item.relative_to(path)
+                  if any(part in {".git", "__pycache__"} for part in rel.parts):
+                      continue
+                  h.update(rel.as_posix().encode("utf-8"))
+                  h.update(b"\0")
+                  h.update(file_sha256(item).encode("ascii"))
+                  h.update(b"\n")
+              return h.hexdigest()
+
+          pristine_hash = tree_sha256(root)
+          pristine_files = sum(1 for p in root.rglob("*") if p.is_file())
+          pristine_bytes = sum(p.stat().st_size for p in root.rglob("*") if p.is_file())
+
+          manifest_path = Path("third_party/manifest.json")
+          manifest = json.loads(manifest_path.read_text())
+          component = next(x for x in manifest["components"] if x["id"] == "snes9x-libretro")
+          component.update({
+              "mode": "vendored",
+              "source_path": "third_party/src/snes9x-libretro",
+              "archive_path": None,
+              "source_sha256": pristine_hash,
+              "license_spdx": "LicenseRef-Snes9x-Noncommercial",
+              "license_path": "third_party/src/snes9x-libretro/LICENSE",
+              "notes": (
+                  "Mechanically reduced pristine source closure for the pinned Linux "
+                  "libretro/snesref reference build. The project debug-export patch "
+                  "remains separate and is applied by bootstrap."
+              ),
+              "provenance_path": "third_party/provenance/snes9x-libretro.json",
+          })
+          manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+
+          provenance = {
+              "schema_version": 1,
+              "tool": "snes9x-libretro",
+              "upstream_url": "https://github.com/snes9xgit/snes9x.git",
+              "upstream_revision": "1bcc369e89f08243e0a462882fb1f3e42e51de3a",
+              "vendored_source_path": "third_party/src/snes9x-libretro",
+              "vendored_tree_sha256": pristine_hash,
+              "vendored_file_count": pristine_files,
+              "vendored_source_bytes": pristine_bytes,
+              "license_spdx": "LicenseRef-Snes9x-Noncommercial",
+              "license_path": "third_party/src/snes9x-libretro/LICENSE",
+              "measurement_run": 36685541554,
+              "measured_patched_closure": {
+                  "file_count": 138,
+                  "source_bytes": 1831627,
+                  "closure_sha256": "7684fe4b70481165c31f0633c3623e08ca078546bd50714d3d6c8dd318f6d946",
+              },
+              "retained": [
+                  "compiler-reported source/header dependencies of the patched Linux libretro build",
+                  "libretro/Makefile",
+                  "libretro/Makefile.common",
+                  "libretro/link.T",
+                  "LICENSE",
+              ],
+              "excluded": [
+                  "files not consumed by the measured Linux libretro build",
+                  "GUI/platform frontends and packaging outside the measured closure",
+                  "build products and compiler depfiles",
+                  "VCS metadata",
+              ],
+              "exclusion_reason": (
+                  "The P0 island needs the reference-core build consumed by snesref, "
+                  "not the full multi-platform Snes9x repository. The candidate closure "
+                  "was rebuilt successfully in isolation before promotion."
+              ),
+              "build_contract": (
+                  "Bootstrap copies this pristine tree, applies "
+                  "tools/patches/snes9x-snesref-debug-exports.patch, then runs "
+                  "make -C libretro -jN. No source fetch is permitted in --offline mode."
+              ),
+          }
+          Path("third_party/provenance/snes9x-libretro.json").write_text(
+              json.dumps(provenance, indent=2) + "\n"
+          )
+          print(
+              f"pristine closure: {pristine_files} files, {pristine_bytes} bytes, "
+              f"sha256={pristine_hash}"
+          )
+          PY
+
+          python3 tools/validate_island.py --status
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          test -s .tools/src/snes9x-libretro/libretro/snes9x_libretro.so
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add third_party/src/snes9x-libretro third_party/provenance/snes9x-libretro.json third_party/manifest.json
+          if ! git diff --cached --quiet; then
+            git commit -m "third_party: vendor measured Snes9x closure"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+          fi
 
       - uses: actions/upload-artifact@v4
         with:

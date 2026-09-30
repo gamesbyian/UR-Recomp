@@ -27,6 +27,9 @@ class TranslationControlTests(unittest.TestCase):
             report["changed_control_pairs"],
             [{"before": "0x02", "after": "0x03", "count": 1}],
         )
+        runs = {row["hex"]: row["count"] for row in report["control_runs"]}
+        self.assertEqual(runs["01"], 1)
+        self.assertEqual(runs["03"], 1)
 
 
 if __name__ == "__main__":

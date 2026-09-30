@@ -6,11 +6,11 @@ Experimental static recompilation and modern-port project for **Uniracers / Unir
 
 Preserve the original game's simulation and behavior as the source of truth while building toward a modern native port with deterministic fidelity, a true-view **Widescreen** feature, an **HD Presentation** feature, documented course/asset formats, and eventually a level editor and custom-course pipeline.
 
-The first milestone is deliberately smaller:
+The stock native baseline is already beyond first boot and race entry. The current critical milestone is stricter:
 
-> **Boot the canonical Uniracers ROM through the pinned SNESRecomp stack and reach a playable race with stock presentation.**
+> **Explain and eliminate the first meaningful native/reference divergence on a deterministic stock route, then use that evidence to finish the semantic map of the gameplay/rendering boundaries needed by the modern port.**
 
-No Widescreen-feature, HD Presentation, or gameplay changes should begin until that baseline is trustworthy.
+Widescreen and HD Presentation should advance only behind a trustworthy 4:3 simulation/reference gate.
 
 ## ROM policy
 
@@ -46,4 +46,4 @@ Agents should start with `AGENTS.md`, which routes tasks to the smallest current
 
 ## Status
 
-**Reverse-engineering / bring-up in progress.** ROM identity, four-build comparison, and the 45-stream RNC Method 1 corpus are established. The strict native smoke harness builds and launches the actual `UniracersSNESRecomp` target and has captured a coherent stock Uniracers title screen from native execution. Deterministic controller/menu navigation, a playable race, and differential fidelity remain the next execution milestones.
+**Native bring-up is established; fidelity and semantic recovery are the active critical path.** The canonical game boots, navigates deterministically into gameplay, and supports native/reference replay and state comparison. The strongest current discriminator is the exact 2014 replay, where native and the pinned Snes9x reference have diverged by the dense frame-440 sampling window. Current work is to bracket that first causal divergence, map the responsible routines/state transitions, and expand the comparative four-ROM/multi-analyzer code atlas around the core simulation and rendering boundaries needed for finish fidelity, Widescreen, HD Presentation, and course tooling.

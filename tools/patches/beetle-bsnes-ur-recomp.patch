@@ -1,7 +1,7 @@
 diff --git a/libretro.cpp b/libretro.cpp
 --- a/libretro.cpp
 +++ b/libretro.cpp
-@@ -391,15 +391,8 @@ void retro_deinit(void)
+@@ -391,13 +391,4 @@ void retro_deinit(void)
  {
     if (surf)
 -   {
@@ -15,9 +15,7 @@ diff --git a/libretro.cpp b/libretro.cpp
        delete surf;
 -   }
     surf = NULL;
- 
-    if (log_cb)
-@@ -518,14 +511,18 @@ void *retro_get_memory_data(unsigned type)
+@@ -518,11 +509,15 @@ void *retro_get_memory_data(unsigned type)
  {
     if ( type == RETRO_MEMORY_SYSTEM_RAM )
        return SNES::memory::wram.data();

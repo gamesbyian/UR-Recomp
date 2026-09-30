@@ -1,0 +1,88 @@
+name: Title transition cross-core regression
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tests/input/title-transition-recon.script"
+      - "tools/summarize_title_transition.py"
+      - "analysis/generated/title-transition-reference-summary.json"
+      - ".github/workflows/title-transition-cross-core.yml"
+
+jobs:
+  survey:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Build reference stack
+        run: |
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          python3 tools/bootstrap_toolchain.py --offline --tool beetle-bsnes-libretro --jobs 2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+      - name: Run bounded boot route through both cores
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/title-transition-recon.script"
+          run_core() {
+            local label="$1" core="$2" allow_abort="${3:-0}"
+            local dumps="$RUNNER_TEMP/${label}-dumps"
+            mkdir -p "$dumps"
+            set +e
+            SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+            SNESREF_SCRIPT="$SCRIPT" SNESREF_DUMP_DIR="$dumps" \
+              "$EXE" "$core" "$ROM" >"$RUNNER_TEMP/${label}.log" 2>&1
+            status=$?
+            set -e
+            cat "$RUNNER_TEMP/${label}.log"
+            test -s "$dumps/main-menu-settled.wram.bin"
+            if [ "$status" -eq 0 ]; then return 0; fi
+            if [ "$allow_abort" -eq 1 ] && [ "$status" -eq 134 ]; then return 0; fi
+            return "$status"
+          }
+          run_core snes9x "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          run_core beetle "$GITHUB_WORKSPACE/.tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so" 1
+      - name: Summarize title transition
+        run: |
+          python3 tools/summarize_title_transition.py "$RUNNER_TEMP/snes9x-dumps" --json-out snes9x-title-transition.json
+          python3 tools/summarize_title_transition.py "$RUNNER_TEMP/beetle-dumps" --json-out beetle-title-transition.json
+          cat snes9x-title-transition.json
+          cat beetle-title-transition.json
+          python3 - <<'PY'
+          import json
+          expected = {
+              "boot-060": (60, 0x00),
+              "boot-120": (120, 0x00),
+              "boot-180": (180, 0x00),
+              "boot-240": (240, 0x00),
+              "boot-300": (300, 0x84),
+              "boot-360": (360, 0x84),
+              "boot-420": (420, 0x84),
+              "main-menu-first": (440, 0xD7),
+              "main-menu-settled": (500, 0xD7),
+          }
+          for engine in ("snes9x", "beetle"):
+              r=json.load(open(f"{engine}-title-transition.json"))
+              got={x["tag"]:(x["frame"],x["menu"]) for x in r["checkpoints"]}
+              for tag,value in expected.items():
+                  assert got.get(tag)==value,(engine,tag,got.get(tag),value)
+              print(engine, "title/front-end semantic timeline confirmed")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: title-transition-cross-core
+          path: |
+            snes9x-title-transition.json
+            beetle-title-transition.json

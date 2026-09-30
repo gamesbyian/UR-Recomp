@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "run_id": 36660094678,
+  "invariant": "Both pinned Snes9x and repository-owned Beetle follow the same menu-state timeline through the title/front-end transition.",
+  "checkpoints": [
+    {
+      "tag": "boot-060",
+      "frame": 60,
+      "menu_hex": "0x00"
+    },
+    {
+      "tag": "boot-120",
+      "frame": 120,
+      "menu_hex": "0x00"
+    },
+    {
+      "tag": "boot-180",
+      "frame": 180,
+      "menu_hex": "0x00"
+    },
+    {
+      "tag": "boot-240",
+      "frame": 240,
+      "menu_hex": "0x00"
+    },
+    {
+      "tag": "boot-300",
+      "frame": 300,
+      "menu_hex": "0x84"
+    },
+    {
+      "tag": "boot-360",
+      "frame": 360,
+      "menu_hex": "0x84"
+    },
+    {
+      "tag": "boot-420",
+      "frame": 420,
+      "menu_hex": "0x84"
+    },
+    {
+      "tag": "main-menu-first",
+      "frame": 440,
+      "menu_hex": "0xD7"
+    },
+    {
+      "tag": "main-menu-settled",
+      "frame": 500,
+      "menu_hex": "0xD7"
+    }
+  ],
+  "framebuffer_policy": "Per-core hashes are evidence only; exact cross-core pixel equality is not required."
+}

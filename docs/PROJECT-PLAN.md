@@ -221,7 +221,7 @@ The current smoke proves:
 - a real presented frame can be captured;
 - frame 300 has been visually identified as the coherent stock title screen.
 
-The next execution target is deterministic menu navigation and a playable race.
+Deterministic menu navigation and playable-race bring-up are complete. The current execution target is **first-divergence fidelity**: bracket the exact 2014 native/reference replay mismatch around guest frame 440, identify the responsible code/state transition, and feed that evidence into the comparative decompilation atlas.
 
 ### Four-ROM differential corpus
 
@@ -254,7 +254,7 @@ The comparative lane should:
 - propagate locally verified semantic labels from Nitrodon, Dessyreqt, TAS/RetroAchievements and dynamic traces across structurally matched builds, while retaining provenance and confidence;
 - retain SNESRecomp's generated C as execution-oriented evidence, not as a claim that semantic decompilation is complete.
 
-The goal is a machine-readable **Uniracers comparative code atlas**: one record per candidate routine/data object, correspondence across all preserved builds, analyzer interpretations, runtime execution evidence, known symbols/RAM effects and unresolved disagreements.
+The goal is a machine-readable **Uniracers comparative code atlas**: one record per candidate routine/data object, correspondence across all preserved builds, analyzer interpretations, runtime execution evidence, known symbols/RAM effects and unresolved disagreements. The first implementation now exists in `tools/build_comparative_code_atlas.py`, with explicit gaps in `analysis/decompilation-gaps.json` and semantic coverage in `analysis/generated/decomp-gap-inventory.json`. Expand these artifacts before inventing parallel tracking systems.
 
 ### Course corpus
 

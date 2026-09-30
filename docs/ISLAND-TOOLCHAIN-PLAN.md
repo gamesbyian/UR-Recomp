@@ -286,7 +286,7 @@ If an active PR owns the same files and its work has not landed yet, keep the is
 - [x] Teach bootstrap to select local vendored source before network.
 - [x] Add an explicit offline/no-network verification mode.
 - [x] Add a unit-level offline fail-closed test so a pending component cannot silently fall back to GitHub.
-- [ ] Extend local bootstrap to exact source archives when the first archive-mode component lands.
+- [x] Extend local bootstrap to exact source archives. SNESRecomp C1 is the first archive-mode component; focused unit coverage proves `--offline` extraction cannot fall back to GitHub.
 - [ ] Add a true network-disabled build smoke once at least one core component is islanded; before that, a successful offline core build would be a false claim.
 
 Current P0-A implementation lives in `third_party/manifest.json`, `tools/validate_island.py`, `tools/bootstrap_toolchain.py`, repository hygiene, and focused unit coverage. Components remain `pending` until their local source/archive, hash and license are present and validated.
@@ -303,7 +303,7 @@ Current P0-A implementation lives in `third_party/manifest.json`, `tools/validat
 ### P0-C — Core reconstruction/build tools
 
 - [x] WLA-DX. The exact v10.7 pin (`91c52b1f4ef3cc8ba3c0638f7536539579af6a9f`) is repository-owned as a pruned 65816/linker closure under `third_party/src/wla-dx/`, with GPL-2.0-or-later provenance and deterministic tree hash `8427742e0a299db184a2ed416a997cc360f36f8117c3fdf524c836c9325d6a9e`. `tools/patches/wla-dx-ur-recomp.patch` narrows upstream CMake to `wla-65816` and `wlalink`; acquisition run 36581411375 proves the pruned source configures, builds both binaries and passes the island manifest validator without a package registry.
-- [ ] SNESRecomp.
+- [~] SNESRecomp. C1 exact framework ownership is implemented as a deterministic archive of pinned commit `cd5875cbdaf19f5e324272b1f8051d671fce9215` (SHA-256 `cc5043c4477adaa31210efb88c3423344e2195044e4366795cf1c563e1014b56`, 5,251,351 bytes, 942 entries). Archive-mode bootstrap and the normal toolchain matrix stage it with `--offline` and build `tools/snesref`; optional netplay/Lua/SDL/Rust dependency decisions remain C2-C5.
 - [x] cc65/da65 reduced closure. Run 36662983284 proves a self-contained four-root closure (`LICENSE`, `src/Makefile`, `src/da65`, `src/common`) that builds `bin/da65` and disassembles a 65816 smoke byte. Run 36663755722 measures 150 files / 1,100,892 source bytes with island-tree SHA-256 `11cc79b488738f94b5b98ebcb4182fbfa8488a60c637343ea32f425543ec50ea`; that exact closure is now repository-owned under `third_party/src/cc65-da65/` and wired for offline bootstrap.
 
 ### P0-D — Larger emulator/reference dependencies

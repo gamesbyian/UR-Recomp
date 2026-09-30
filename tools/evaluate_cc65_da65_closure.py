@@ -16,7 +16,7 @@ import subprocess
 from pathlib import Path
 
 
-KEEP = ("LICENSE", "Makefile", "make", "src/da65", "src/common")
+KEEP = ("LICENSE", "Makefile", "src/da65", "src/common")
 
 
 def copy_item(src_root: Path, dst_root: Path, rel: str) -> None:

@@ -304,7 +304,7 @@ Current P0-A implementation lives in `third_party/manifest.json`, `tools/validat
 
 - [x] WLA-DX. The exact v10.7 pin (`91c52b1f4ef3cc8ba3c0638f7536539579af6a9f`) is repository-owned as a pruned 65816/linker closure under `third_party/src/wla-dx/`, with GPL-2.0-or-later provenance and deterministic tree hash `8427742e0a299db184a2ed416a997cc360f36f8117c3fdf524c836c9325d6a9e`. `tools/patches/wla-dx-ur-recomp.patch` narrows upstream CMake to `wla-65816` and `wlalink`; acquisition run 36581411375 proves the pruned source configures, builds both binaries and passes the island manifest validator without a package registry.
 - [ ] SNESRecomp.
-- [~] Evaluate cc65/da65 reduced closure and vendor it if practical. Current evaluation constructs a closure containing only `LICENSE`, top-level/make build metadata, `src/da65`, and `src/common`, then requires that isolated copy to build `bin/da65` and disassemble a 65816 smoke byte. Promote to vendoring only if that closure proves self-contained and reasonably small.
+- [x] cc65/da65 reduced closure. Run 36662983284 proves a self-contained four-root closure (`LICENSE`, `src/Makefile`, `src/da65`, `src/common`) that builds `bin/da65` and disassembles a 65816 smoke byte. Run 36663755722 measures 150 files / 1,100,892 source bytes with island-tree SHA-256 `11cc79b488738f94b5b98ebcb4182fbfa8488a60c637343ea32f425543ec50ea`; that exact closure is now repository-owned under `third_party/src/cc65-da65/` and wired for offline bootstrap.
 
 ### P0-D — Larger emulator/reference dependencies
 

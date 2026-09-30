@@ -421,6 +421,14 @@
       "git_blob_sha1": "0c6b89d94c8e1b06f940c14f70a9ea952315c4c3",
       "external_sha256": "db68d50f647db678c31ee2d1ac84d9108292684d444d3b899abbbca88664bdd7",
       "review_status": "analyzed-reference"
+    },
+    {
+      "path": "references/imported/manuals/Uniracers-USA-manual.pdf",
+      "category": "manual-scan",
+      "size": 6006270,
+      "git_blob_sha1": "a52da4f94a75e3e76fd61a759cb8e0c3a4fbc5d3",
+      "external_sha256": "50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235",
+      "review_status": "preservation-only"
     }
   ]
 }

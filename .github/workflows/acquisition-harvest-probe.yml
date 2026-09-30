@@ -129,4 +129,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Harvest remaining external acquisition leads"
+          git fetch origin chatgpt/acquisition-triage-harvest-2026-09-29
+          git rebase origin/chatgpt/acquisition-triage-harvest-2026-09-29
           git push origin HEAD:chatgpt/acquisition-triage-harvest-2026-09-29

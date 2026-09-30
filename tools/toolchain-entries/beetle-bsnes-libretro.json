@@ -1,0 +1,33 @@
+{
+  "artifacts": [
+    {
+      "kind": "shared-library",
+      "path": "mednafen_snes_libretro.so"
+    }
+  ],
+  "build": [
+    [
+      "env",
+      "CXXFLAGS=-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0",
+      "CFLAGS=-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0",
+      "make",
+      "-j{jobs}"
+    ]
+  ],
+  "group": "oracle-extra",
+  "headless": {
+    "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session.",
+    "status": "native"
+  },
+  "id": "beetle-bsnes-libretro",
+  "install_mode": "build",
+  "patches": [
+    {
+      "path": "tools/patches/beetle-bsnes-ur-recomp.patch",
+      "sha256": "f47aaa9057f4a96ba5118a153a628f2958bc068299c9659f534e53ef18bf079c"
+    }
+  ],
+  "purpose": "Independent Mednafen/bsnes-derived SNES libretro oracle patched narrowly for correct SAVE_RAM exposure and single-owner framebuffer teardown. Build disables glibc fortify wrappers to avoid a modern-glibc collision with the bundled historical nall strlcpy/strlcat.",
+  "revision": "5f05e4c785e936c928ac468e129c55b6f08592cb",
+  "url": "https://github.com/libretro/beetle-bsnes-libretro.git"
+}

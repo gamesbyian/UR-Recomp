@@ -1,0 +1,14 @@
+{
+  "artifacts": [],
+  "build": [],
+  "group": "visual-reference",
+  "headless": {
+    "note": "Optional specialist workbench, not a default CI dependency. Use only when its higher-resolution/layer-isolation features materially answer a graphics question.",
+    "status": "manual"
+  },
+  "id": "bsnes-hd",
+  "install_mode": "manual",
+  "purpose": "Specialist visual-reference workbench for HD Mode 7/high-resolution rendering experiments and clean layer/sprite isolation where its controls provide evidence unavailable from ordinary framebuffer scaling.",
+  "revision": "fc26b25ea236f0f877f0265d2a2c37dfd93dfde9",
+  "url": "https://github.com/DerKoun/bsnes-hd.git"
+}

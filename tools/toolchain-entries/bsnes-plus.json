@@ -1,0 +1,14 @@
+{
+  "artifacts": [],
+  "build": [],
+  "group": "workbench",
+  "headless": {
+    "note": "Interactive/heavy workbench. Keep off default CI; use only when a task requires its GUI/debugger workspace.",
+    "status": "manual"
+  },
+  "id": "bsnes-plus",
+  "install_mode": "manual",
+  "purpose": "Debugger-oriented bsnes fork with tracing, breakpoints, ROM/RAM views, code/data highlighting, and VRAM/OAM/tilemap inspection.",
+  "revision": "a9789fab9a26859153c2963defe186fcaaa80ca2",
+  "url": "https://github.com/devinacker/bsnes-plus.git"
+}

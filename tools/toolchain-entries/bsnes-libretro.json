@@ -1,0 +1,24 @@
+{
+  "artifacts": [
+    {
+      "kind": "shared-library",
+      "path": "bsnes_libretro.so"
+    }
+  ],
+  "build": [
+    [
+      "make",
+      "-j{jobs}"
+    ]
+  ],
+  "group": "oracle-extra",
+  "headless": {
+    "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session.",
+    "status": "native"
+  },
+  "id": "bsnes-libretro",
+  "install_mode": "build",
+  "purpose": "Independent high-accuracy libretro oracle for cross-checking emulator-sensitive behavior.",
+  "revision": "05439f96121d2b9d7ad7a5fc1f29d7eebdcc8c43",
+  "url": "https://github.com/libretro/bsnes-libretro.git"
+}

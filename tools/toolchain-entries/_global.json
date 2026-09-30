@@ -1,0 +1,21 @@
+{
+  "install_root": ".tools",
+  "schema_version": 2,
+  "system_packages_ubuntu": [
+    "build-essential",
+    "cmake",
+    "ninja-build",
+    "git",
+    "python3",
+    "python3-venv",
+    "pkg-config",
+    "libsdl2-dev",
+    "ffmpeg",
+    "imagemagick",
+    "jq",
+    "ripgrep",
+    "file",
+    "cargo",
+    "rustc"
+  ]
+}

@@ -9,7 +9,9 @@ on:
       - "tests/input/reach-first-race.script"
       - "tests/input/vs-first-race.input"
       - "tests/input/vs-first-race-observe.script"
-      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/_global.json"
+      - "tools/bootstrap_toolchain.py"
       - "tools/patches/snes9x-snesref-debug-exports.patch"
       - "snesrecomp"
 

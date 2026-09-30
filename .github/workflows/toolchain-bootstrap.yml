@@ -7,6 +7,8 @@ on:
       - "tools/install_pure_python_tool.py"
       - "tools/validate_island.py"
       - "tools/toolchain.json"
+      - "tools/export_toolchain_entries.py"
+      - "tools/toolchain-entries/**"
       - "third_party/**"
       - "tools/tool_interop.json"
       - "tools/validate_tool_interop.py"
@@ -19,11 +21,15 @@ on:
       - "tests/test_bootstrap_toolchain.py"
       - ".github/workflows/toolchain-bootstrap.yml"
   push:
+    branches:
+      - main
     paths:
       - "tools/bootstrap_toolchain.py"
       - "tools/install_pure_python_tool.py"
       - "tools/validate_island.py"
       - "tools/toolchain.json"
+      - "tools/export_toolchain_entries.py"
+      - "tools/toolchain-entries/**"
       - "third_party/**"
       - "tools/tool_interop.json"
       - "tools/validate_tool_interop.py"
@@ -46,6 +52,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Verify per-tool trigger snapshots
+        run: python3 tools/export_toolchain_entries.py --check
       - name: Validate bootstrapper without fetching tools
         run: python3 tests/test_bootstrap_toolchain.py
       - name: Validate repository-island manifest

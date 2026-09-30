@@ -1,0 +1,14 @@
+{
+  "artifacts": [],
+  "build": [],
+  "group": "workbench",
+  "headless": {
+    "note": "Interactive/heavy workbench. Keep off default CI; use only when a task requires its GUI/debugger workspace.",
+    "status": "manual"
+  },
+  "id": "diztinguish",
+  "install_mode": "manual",
+  "purpose": "Trace-assisted collaborative 65816 disassembly; integrates with a patched bsnes+ live trace stream and exports reassemblable source.",
+  "revision": "7484b87c3bd36f4e1a1e9e3c6075dd103855cbfd",
+  "url": "https://github.com/DizTools/DiztinGUIsh.git"
+}

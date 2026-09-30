@@ -1,0 +1,47 @@
+{
+  "artifacts": [
+    {
+      "kind": "executable",
+      "path": "build/binaries/wla-65816"
+    },
+    {
+      "kind": "executable",
+      "path": "build/binaries/wlalink"
+    }
+  ],
+  "build": [
+    [
+      "cmake",
+      "-S",
+      ".",
+      "-B",
+      "build",
+      "-DCMAKE_BUILD_TYPE=Release"
+    ],
+    [
+      "cmake",
+      "--build",
+      "build",
+      "--target",
+      "wla-65816",
+      "wlalink",
+      "-j{jobs}"
+    ]
+  ],
+  "group": "core",
+  "headless": {
+    "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session.",
+    "status": "native"
+  },
+  "id": "wla-dx",
+  "install_mode": "build",
+  "patches": [
+    {
+      "path": "tools/patches/wla-dx-ur-recomp.patch",
+      "sha256": "fbf59e04d0179b3193cf3f6034ef1a60ffe4a171811683ef13bbdaa9523c2c09"
+    }
+  ],
+  "purpose": "65816 assembler and linker required by snes2asm reconstruction workflows; build is restricted to the two targets UR-Recomp actually consumes.",
+  "revision": "91c52b1f4ef3cc8ba3c0638f7536539579af6a9f",
+  "url": "https://github.com/vhelin/wla-dx.git"
+}

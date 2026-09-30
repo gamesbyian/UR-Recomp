@@ -14,7 +14,8 @@ on:
       - "tools/validate_player_semantics.py"
       - "tools/compare_wram_checkpoints.py"
       - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/_global.json"
       - ".github/workflows/race-behavior-differential.yml"
 
 concurrency:

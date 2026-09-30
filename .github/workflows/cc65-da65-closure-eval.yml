@@ -7,7 +7,6 @@ on:
       - ".github/workflows/cc65-da65-closure-eval.yml"
       - "tools/evaluate_cc65_da65_closure.py"
       - "tests/unit/test_evaluate_cc65_da65_closure.py"
-      - "tools/toolchain.json"
 
 concurrency:
   group: cc65-da65-closure-eval-${{ github.ref }}

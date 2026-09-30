@@ -13,7 +13,8 @@ on:
       - "tools/compose_historical_reference_result.py"
       - "tests/input/historical-2008-wip.input"
       - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/_global.json"
       - "snesrecomp"
       - ".github/workflows/historical-wip-dragster.yml"
 

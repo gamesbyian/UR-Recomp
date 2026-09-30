@@ -1,0 +1,27 @@
+{
+  "artifacts": [
+    {
+      "kind": "executable",
+      "path": "target/release/superfamiconv"
+    }
+  ],
+  "build": [
+    [
+      "cargo",
+      "build",
+      "--release",
+      "--locked",
+      "--offline"
+    ]
+  ],
+  "group": "core",
+  "headless": {
+    "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session.",
+    "status": "native"
+  },
+  "id": "superfamiconv",
+  "install_mode": "build",
+  "purpose": "Scriptable SNES palette, tile, map and image conversion/inspection, built from the repository-owned source and Cargo vendor closure.",
+  "revision": "566522204e271885fb771b56f1f85d62f3f41430",
+  "url": "https://github.com/Optiroc/SuperFamiconv.git"
+}

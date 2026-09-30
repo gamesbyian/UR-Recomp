@@ -6,7 +6,10 @@ on:
     paths:
       - "tools/analyze_reference_audio_windows.py"
       - "tests/input/reach-first-race.script"
-      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/beetle-bsnes-libretro.json"
+      - "tools/toolchain-entries/_global.json"
+      - "tools/bootstrap_toolchain.py"
       - ".github/workflows/audio-startup-cross-core.yml"
 
 concurrency:

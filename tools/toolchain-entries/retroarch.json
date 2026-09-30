@@ -1,0 +1,14 @@
+{
+  "artifacts": [],
+  "build": [],
+  "group": "visual-reference",
+  "headless": {
+    "note": "Keep off default CI initially. Promote only a measured capture path, likely Xvfb plus a software/GPU backend, once a deterministic screenshot experiment proves the runtime contract.",
+    "status": "wrapped"
+  },
+  "id": "retroarch",
+  "install_mode": "manual",
+  "purpose": "Presentation/reference frontend for deterministic matched-frame capture through libretro cores and Slang shader presets. Use for comparative upscale/filter/NTSC/CRT evidence, not as an authoritative gameplay oracle.",
+  "revision": "6e8ab65c17058fb9431582c8af688759422743dc",
+  "url": "https://github.com/libretro/RetroArch.git"
+}

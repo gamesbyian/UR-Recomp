@@ -22,9 +22,13 @@ on:
       - "tools/summarize_paired_player_slots.py"
       - "tools/compare_wram_checkpoints.py"
       - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/_global.json"
       - ".github/workflows/race-rotation-differential.yml"
   push:
+    branches:
+      - main
     paths:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "rom_identity.txt"
@@ -44,7 +48,9 @@ on:
       - "tools/summarize_paired_player_slots.py"
       - "tools/compare_wram_checkpoints.py"
       - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/_global.json"
       - ".github/workflows/race-rotation-differential.yml"
 
 concurrency:

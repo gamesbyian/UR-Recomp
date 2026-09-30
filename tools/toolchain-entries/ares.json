@@ -1,0 +1,14 @@
+{
+  "artifacts": [],
+  "build": [],
+  "group": "workbench",
+  "headless": {
+    "note": "Interactive/heavy workbench. Keep off default CI; use only when a task requires its GUI/debugger workspace.",
+    "status": "manual"
+  },
+  "id": "ares",
+  "install_mode": "manual",
+  "purpose": "Independent accuracy/preservation-focused emulator for manual behavioral cross-checks.",
+  "revision": "4cb8d92b441557cb6bcaf133c4cbc7f6819b1122",
+  "url": "https://github.com/ares-emulator/ares.git"
+}

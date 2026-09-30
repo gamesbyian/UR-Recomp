@@ -2,6 +2,8 @@ name: Project tooling unit tests
 
 on:
   push:
+    branches:
+      - main
     paths:
       - "tools/**"
       - "tests/unit/**"
@@ -12,6 +14,10 @@ on:
       - "tests/unit/**"
       - ".github/workflows/tooling-unit-tests.yml"
   workflow_dispatch:
+
+concurrency:
+  group: tooling-unit-tests-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   unit:

@@ -85,6 +85,7 @@ jobs:
             "$RUNNER_TEMP"/one-player/*.regs.json \
             "$RUNNER_TEMP"/vs/*.regs.json \
             --json-out "$RUNNER_TEMP/window-seam-report.json" \
+            --require-xor-checkpoint race-entered \
             | tee "$RUNNER_TEMP/window-seam-report.txt"
 
       - name: Upload reconnaissance evidence

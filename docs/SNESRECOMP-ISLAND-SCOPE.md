@@ -1,6 +1,6 @@
 # SNESRecomp islandization scope
 
-Status: reconnaissance / execution boundary for P0-C.
+Status: C1 implementation active; dependency boundary remains canonical for P0-C.
 
 This note maps the exact dependency surface of UR-Recomp's pinned SNESRecomp revision before any source migration. It is deliberately narrower than a generic SNESRecomp packaging plan: the goal is to make the framework pieces UR-Recomp actually needs reconstructible offline without silently importing optional network/UI/tooling features.
 
@@ -118,9 +118,9 @@ These are not baseline runtime dependencies. Islandization should disable or rou
 
 ### C1 — exact framework ownership
 
-Create a reproducible repository-owned source/archive at the pinned `cd5875c...` revision with license/provenance and a deterministic tree/archive hash. Preserve nested-gitlink revision metadata but do not silently dereference optional netplay contents.
+Implemented in PR #64 as a deterministic `git archive | gzip -n -9` snapshot of `cd5875cbdaf19f5e324272b1f8051d671fce9215`: SHA-256 `cc5043c4477adaa31210efb88c3423344e2195044e4366795cf1c563e1014b56`, 5,251,351 compressed bytes, 942 archive entries. PolyForm Noncommercial 1.0.0 is preserved beside provenance. Nested gitlinks remain excluded from the baseline archive but pinned explicitly in provenance.
 
-Gate: the current canonical analyzer/generation/native build can consume that copy without fetching SNESRecomp from GitHub.
+Archive-mode bootstrap stages the framework with `--offline`; the ordinary toolchain matrix builds `tools/snesref` from the extracted repository-owned copy. C1 is complete when that final matrix is green.
 
 ### C2 — baseline build network audit
 
@@ -160,7 +160,7 @@ Only after the baseline build is green:
 
 ## Immediate next experiment
 
-C1 should be the next SNESRecomp implementation tranche.
+After C1's final offline matrix is green, proceed to C2 baseline build network audit.
 
 The safest first artifact is an exact source archive or mechanically materialized tree of `cd5875c...`, accompanied by:
 

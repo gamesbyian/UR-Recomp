@@ -129,6 +129,8 @@ Prioritize: main loop, input, race state, player physics, camera, course loader,
 
 Maintain `SYMBOLS.md` and `RESEARCH-LEDGER.md`. `tools/export_symbols.py` generates `analysis/generated/symbols.json`; repository hygiene fails if the machine-readable export is stale.
 
+- [~] CPU audio package archaeology: `02:812A` is confirmed to resolve a contiguous length-prefixed record pool beyond the package-table-only `0x00..0x31` prefix; direct setup calls reach records through at least `0x42`. Records `0x3B` and `0x3D` uniquely byte-match the two preserved unused-song SPCs and are the only missing setup selectors in `0x38..0x42`. `03:FB95` is the sole uncalled package table and a slot-preserving strict subset of Celebration package `03:FAD5`; it is a strong structural candidate for the orphan `0x3B` path, not yet a proven pairing. See `analysis/generated/audio-unused-path-analysis.md` and `analysis/generated/audio-record-pool-reconciliation.md`.
+
 ## Phase 7 — Course format
 
 - [~] Locate compressed blocks and pointer/index tables. All 45 Method-1 course payload blocks are located and verified; the selector/pointer/index structure remains open, with direct/split/relative/fixed-record encodings under mechanical search.

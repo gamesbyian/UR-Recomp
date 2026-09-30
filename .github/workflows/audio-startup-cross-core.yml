@@ -9,6 +9,10 @@ on:
       - "tools/toolchain.json"
       - ".github/workflows/audio-startup-cross-core.yml"
 
+concurrency:
+  group: audio-startup-cross-core-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   probe:
     runs-on: ubuntu-latest

@@ -124,22 +124,27 @@ Archive-mode bootstrap stages the framework with `--offline`; the ordinary toolc
 
 ### C2 — baseline build network audit
 
-Run the canonical build with outbound source fetches disabled. Record every attempted external access. Classify each as:
+Completed by PR #67. The canonical generated-project path now has a measured network boundary:
 
-- required baseline dependency;
-- optional feature accidentally enabled;
-- convenience download;
-- test-only/development-only dependency.
+- the repository-owned C1 archive stages and generates without SNESRecomp submodules;
+- a fresh `CARGO_HOME` with `CARGO_NET_OFFLINE=true` cannot build `snesrecomp-analyze`, proving the Rust registry closure is a baseline generation dependency;
+- ordinary generation currently makes 36 observed AF_INET/AF_INET6 connect/send attempts while first building that native analyzer;
+- after generation, SDL2 configure + full native Uniracers build complete with zero observed internet socket attempts;
+- SDL3 with `SNESRECOMP_SDL3_FETCH=OFF` fails only because the Ubuntu host lacks SDL3, also with zero configure/build network attempts.
 
-Do not pre-vendor from static source inspection alone.
+Therefore the next closure order is evidence-driven: close the native analyzer Cargo registry surface first, then choose the SDL3 host/source policy. Optional Lua/netplay remain outside the baseline closure.
 
 ### C3 — SDL policy
 
+C2 proved this is a runtime/backend dependency, not the generation-time network blocker. System SDL2 already completes the full generated Uniracers native build offline. The default SDL3 path still needs an explicit host-SDL3 or repository-owned-source decision.
+
+
+
 Resolve the first demonstrated SDL3 dependency either as a documented host prerequisite or exact local SDL3 source/archive. Force `SNESRECOMP_SDL3_FETCH=OFF` in the offline gate unless a local `SNESRECOMP_SDL3_SOURCE_DIR` is explicitly supplied.
 
-### C4 — Rust analyzer closure, if active
+### C4 — Rust analyzer closure — now baseline-critical
 
-If the canonical analysis path invokes `recompiler-rs`, vendor its locked Cargo closure and require `--locked --offline`. The registry surface is small enough that this should be a bounded tranche.
+C2 proved the canonical generation path invokes `recompiler-rs` and that a fresh offline Cargo home cannot build it. Vendor its locked Cargo closure and require `--locked --offline`. The registry surface is small and bounded, so this is the immediate next implementation tranche before C3.
 
 ### C5 — optional features
 
@@ -160,7 +165,7 @@ Only after the baseline build is green:
 
 ## Immediate next experiment
 
-After C1's final offline matrix is green, proceed to C2 baseline build network audit.
+Proceed immediately to the now-demonstrated C4 native-analyzer Cargo closure. After generation is genuinely offline, resolve C3 SDL3 policy and migrate the permanent native build smoke away from recursive SNESRecomp submodule checkout.
 
 The safest first artifact is an exact source archive or mechanically materialized tree of `cd5875c...`, accompanied by:
 

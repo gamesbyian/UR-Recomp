@@ -860,3 +860,45 @@ Run `36661148644` validates both narrow Beetle compatibility fixes against the c
 - Toolchain run `36661148675` independently validates the patch through the normal fail-closed offline Beetle build path.
 
 This closes the historical LoROM SRAM-mapping compatibility seam at the libretro reference layer. The earlier Beetle `sram=0` observation was an API-export defect, not missing cartridge SRAM emulation.
+
+### R-SEED-047 — Canoe compatibility patch synthesizes the active-display OAM seam
+
+**Status:** patch mechanics confirmed; emulator-faithfulness interpretation open  
+**Date:** 2026-09-30  
+**Area:** OAM | HDMA | compatibility | Canoe
+
+The recovered Canoe IPS patch is now mechanically reconstructed end to end. GitHub Actions run `36670381748` independently disassembles the injected code with repository-owned da65; `tools/analyze_canoe_ips.py` now makes the same structure a permanent machine-readable regression against the actual patch and canonical USA ROM.
+
+Confirmed patch structure:
+
+- header checksum/complement update at `0x007FDC`;
+- `02:D34C -> JSL BF:FF00; RTS`, replacing the stock `$1599 -> $2104` OAMDATA path;
+- `02:D714 -> JSL BF:FF36`, replacing stock HDMA source setup;
+- `03:8B16` changes `BEQ +4` to `BRA +4`;
+- two `STA long` operands are redirected from `7E:2065/2069` to `7F:FFE1/FFEB`;
+- a 230-byte handler is injected at `3F:FF00` (called through mirror bank BF).
+
+The OAM wrapper transforms `7E:20A2` to `(value & F0) | 05` and `7E:20A3` to `(value & 0F) | 50`, mirrors those values into `7F:FFF1` and `7F:FFF4`, and writes them through `$2104`. This construction can yield the already reproduced VS values `A5` and `5A`.
+
+The HDMA initializer builds two WRAM tables. Channel 7 uses mode 4, B-bus base `$2100`, and table `7F:FFE0` with descriptors `6F [0F 83 0C 01]`, `02 [80 83 0C 01]`, `60 [0F 83 0C 01]`, `00`. These payloads target `$2100..$2103` and repeatedly select OAM address `$010C`, corresponding to the independently established high-OAM byte destination `0x218`. Channel 1 uses mode 2 and table `7F:FFF0 = 70 55 55 70 55 55 00`; the OAM wrapper dynamically replaces the first data byte of each descriptor. The two redirected stock stores feed the first payload byte of channel-7 descriptors one and three.
+
+**Interpretation:** Canoe works around the same split-screen active-display OAM seam reproduced by the project's unpatched VS fixture. It does so by synthesizing replacement OAM/HDMA state, not by simply suppressing the operation. This is strong independent localization evidence, but the workaround itself is not evidence that Canoe models original SNES hardware correctly.
+
+Full reconstruction and remaining comparison questions: `docs/CANOE-COMPATIBILITY-PATCH.md`.
+
+### R-SEED-048 — Active-display OAM models converge on the VS destination by different mechanisms
+
+**Status:** source-model comparison complete; minimal behavioral reduction open  
+**Date:** 2026-09-30  
+**Area:** OAM | emulator compatibility | raster timing
+
+Pinned source inspection now explains why several independent emulators agree on the observed Uniracers VS destination while encoding different general rules.
+
+- **Snes9x** `1bcc369e89f08243e0a462882fb1f3e42e51de3a`: `ApplyROMFixes` enables `SNESGameFixes.Uniracers` for ROM names beginning `UNIRACERS`. During HDMA, a transfer to B-bus register `$04` then forcibly sets `PPU.OAMAddr = 0x10C` and `PPU.OAMFlip = 0`; the source labels this a hack for unknown “OAM Address Invalidation.” The project `snesref` debug patch only observes this path and does not create it.
+- **MAME** `573fd0e2df004e533c560cd04d7dd9166125f772`: active-display OAM access is redirected to fixed physical address `0x0218`. Its source comment names Uniracers and explicitly says the real address varies while the PPU renders, so the fixed address is an approximation.
+- **ares** `4cb8d92b441557cb6bcaf133c4cbc7f6819b1122`: object evaluation and tile fetch update a live `latch.oamAddress`. During active display, OAM reads/writes are redirected through that latch. For high OAM the address is `0x200 | (latch.oamAddress >> 2)`, so sprite index 96 maps to `0x218`.
+- **jgenesis** `cc10b2bdd32deb51f1f7a15efa18bae2ba20a41f`: an active-display OAM write first advances sprite evaluation/fetch to the current dot, obtains the current sprite index, then writes the corresponding high-OAM byte. Its source explicitly records that preserving the last fetched sprite index in the no-visible-sprite case is required by Uniracers VS mode.
+
+**Result:** fixed-target compatibility implementations and live-pipeline implementations converge on the same concrete `0x218` observation. Together with the unpatched VS trace and recovered Canoe workaround, the evidence favors a general implementation whose effective OAM destination is derived from raster-time sprite-engine state. The next experiment should reduce that state transition to the smallest deterministic case rather than transplanting a game-name/address exception.
+
+Detailed comparison: `docs/CANOE-COMPATIBILITY-PATCH.md`.

@@ -20,6 +20,7 @@ class UnusedAudioPathTests(unittest.TestCase):
             json.loads((ROOT / "analysis/generated/audio-extended-block-correlation.json").read_text()),
             json.loads((ROOT / "analysis/generated/apu-upload-path-summary.json").read_text()),
             json.loads((ROOT / "analysis/generated/audio-block-spc-correlation.json").read_text()),
+            json.loads((ROOT / "analysis/generated/audio-package-spc-signatures.json").read_text()),
         )
 
     def test_generated_analysis_is_fresh(self):
@@ -37,8 +38,10 @@ class UnusedAudioPathTests(unittest.TestCase):
         self.assertTrue(relation["same_shared_slot_positions"])
         self.assertEqual(relation["removed_block_ids_hex"], ["0x07", "0x15", "0x29"])
         self.assertEqual(report["package_marker_analysis"]["marker_count"], 3)
-        self.assertEqual(report["package_marker_analysis"]["Unused Song 1"]["zero_mismatch_tables"], ["0x03FB15"])
-        self.assertEqual(report["package_marker_analysis"]["Unused Song 2"]["zero_mismatch_tables"], ["0x03FB55", "0x03FBD5"])
+        self.assertEqual(report["unused_song_findings"]["0x3B"]["exact_package_signature"], "0x03FB15")
+        self.assertEqual(report["unused_song_findings"]["0x3D"]["exact_package_signature"], "0x03FB55")
+        self.assertEqual(report["full_package_signature_evidence"]["track_signatures"]["Unused Song 1"]["exact_package_excluding_untestable"], "0x03FB15")
+        self.assertEqual(report["full_package_signature_evidence"]["track_signatures"]["Unused Song 2"]["exact_package_excluding_untestable"], "0x03FB55")
         self.assertTrue(report["interpretation"]["unused_song_2_race_package_corroboration"]["unused_song_2_same_offset"])
 
 

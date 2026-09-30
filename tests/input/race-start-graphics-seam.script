@@ -1,0 +1,52 @@
+# Dense deterministic transition from verified frontend state into early race.
+# Purpose: reduce the historical Xe "major graphic errors shortly after race begin"
+# symptom to concrete local presentation/PPU changes without assigning a cause.
+until 009F == D7 3600
+wait 60
+press a 2
+until 009F == 3C 1200
+wait 60
+press a 2
+until 009F == 6D 1200
+wait 60
+press a 2
+until 009F == F6 1200
+wait 60
+press a 2
+until 009F != F6 1200
+wait 60
+until 009F == 16 1200
+wait 60
+dump race-start-now-playing
+press a 2
+wait 10
+dump race-start-plus-010
+wait 10
+dump race-start-plus-020
+wait 10
+dump race-start-plus-030
+wait 10
+dump race-start-plus-040
+wait 10
+dump race-start-plus-050
+wait 10
+dump race-start-plus-060
+wait 10
+dump race-start-plus-070
+wait 10
+dump race-start-plus-080
+wait 10
+dump race-start-plus-090
+wait 10
+dump race-start-plus-100
+wait 10
+dump race-start-plus-110
+wait 10
+dump race-start-plus-120
+wait 20
+dump race-start-plus-140
+wait 20
+dump race-start-plus-160
+wait 40
+dump race-start-plus-200
+quit

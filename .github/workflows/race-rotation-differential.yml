@@ -2,15 +2,39 @@ name: airborne rotation native/reference differential
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     paths:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "rom_identity.txt"
-      - "snesrecomp"
+      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/cargo/snesrecomp-analyzer/**"
+      - "third_party/src/snes9x-libretro/**"
+      - "third_party/manifest.json"
       - "tests/input/race-rotation-left.script"
       - "tests/input/race-rotation-right.script"
       - "tests/input/race-rotation-control.script"
       - "tools/summarize_player_checkpoints.py"
+      - "tools/summarize_usjo8_checkpoints.py"
+      - "tests/test_summarize_usjo8_checkpoints.py"
+      - "tools/summarize_paired_player_slots.py"
+      - "tools/compare_wram_checkpoints.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - ".github/workflows/race-rotation-differential.yml"
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "rom_identity.txt"
+      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/cargo/snesrecomp-analyzer/**"
+      - "third_party/src/snes9x-libretro/**"
+      - "third_party/manifest.json"
+      - "tests/input/race-rotation-left.script"
+      - "tests/input/race-rotation-right.script"
+      - "tests/input/race-rotation-control.script"
+      - "tools/summarize_player_checkpoints.py"
+      - "tools/summarize_usjo8_checkpoints.py"
+      - "tests/test_summarize_usjo8_checkpoints.py"
       - "tools/summarize_paired_player_slots.py"
       - "tools/compare_wram_checkpoints.py"
       - "tools/bootstrap_toolchain.py"
@@ -28,8 +52,6 @@ jobs:
     steps:
       - name: Check out project
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Install build dependencies
         shell: bash
@@ -44,13 +66,24 @@ jobs:
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
+      - name: Test USJO checkpoint summarizer
+        run: python3 tests/test_summarize_usjo8_checkpoints.py
+
+      - name: Stage and build repository-owned SNESRecomp framework
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          test -x .tools/src/snesrecomp/build-snesref/snesref
+
       - name: Build native target
         shell: bash
         run: |
           set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
           ROOT="$RUNNER_TEMP/native"
           mkdir -p "$ROOT"
-          sh snesrecomp/tools/new_project/setup_project.sh \
+          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
             --dir "$ROOT" \
             --name "Uniracers" \
@@ -61,19 +94,23 @@ jobs:
             --no-recomp-ui \
             --no-netplay \
             --no-github \
+            --no-submodules \
             --generate \
-            --build \
-            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
-          test -x "$ROOT/UniracersSNESRecomp/build/UniracersSNESRecomp"
+            --no-build
+          PROJ="$ROOT/UniracersSNESRecomp"
+          cmake -S "$PROJ" -B "$PROJ/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF
+          cmake --build "$PROJ/build" -j2
+          test -x "$PROJ/build/UniracersSNESRecomp"
 
-      - name: Build pinned Snes9x and snesref
+      - name: Build pinned Snes9x reference core
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
-          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
-          cmake --build "$RUNNER_TEMP/snesref-build" -j2
-          test -x "$RUNNER_TEMP/snesref-build/snesref"
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
 
       - name: Run native rotation intervention and control
         shell: bash
@@ -97,7 +134,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
           CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           for kind in left right control; do
@@ -163,6 +200,50 @@ jobs:
                   print(cp, diff or "IDENTICAL")
           PY
 
+      - name: Probe recovered USJO v8 RAM semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHECKPOINTS=(
+            --checkpoint accel-180
+            --checkpoint rotation-pre
+            --checkpoint rotation-input-008
+            --checkpoint rotation-post-008
+            --checkpoint rotation-post-016
+            --checkpoint rotation-release-016
+            --checkpoint rotation-settle
+          )
+          for engine in native reference; do
+            for kind in left right control; do
+              python3 tools/summarize_usjo8_checkpoints.py \
+                "$RUNNER_TEMP/${engine}-rotation-${kind}-dumps" \
+                "${CHECKPOINTS[@]}" \
+                --json-out "$RUNNER_TEMP/${engine}-rotation-${kind}-usjo8.json" \
+                | tee "$RUNNER_TEMP/${engine}-rotation-${kind}-usjo8.txt"
+            done
+          done
+
+          python3 - \
+            "$RUNNER_TEMP/native-rotation-left-usjo8.json" "$RUNNER_TEMP/reference-rotation-left-usjo8.json" \
+            "$RUNNER_TEMP/native-rotation-right-usjo8.json" "$RUNNER_TEMP/reference-rotation-right-usjo8.json" \
+            "$RUNNER_TEMP/native-rotation-control-usjo8.json" "$RUNNER_TEMP/reference-rotation-control-usjo8.json" <<'PY'
+          import json, pathlib, sys
+          nl, rl, nr, rr, nc, rc=[json.loads(pathlib.Path(p).read_text()) for p in sys.argv[1:]]
+          for label,a,b in (
+              ("left native/reference", nl, rl),
+              ("right native/reference", nr, rr),
+              ("control native/reference", nc, rc),
+          ):
+              for cp in a:
+                  if a[cp] != b[cp]:
+                      raise SystemExit(f"{label} USJO mismatch at {cp}: native={a[cp]} reference={b[cp]}")
+          for label,a in (("left",nl),("right",nr)):
+              print(f"== USJO {label} vs control ==")
+              for cp,row in a.items():
+                  delta={k:(row[k],nc[cp][k]) for k in row if row[k] != nc[cp][k]}
+                  print(cp, delta or "IDENTICAL")
+          PY
+
       - name: Compare L/R rotation against matched control
         shell: bash
         run: |
@@ -195,6 +276,10 @@ jobs:
             ${{ runner.temp }}/reference-rotation-*-state.json
             ${{ runner.temp }}/native-rotation-*-state.txt
             ${{ runner.temp }}/reference-rotation-*-state.txt
+            ${{ runner.temp }}/native-rotation-*-usjo8.json
+            ${{ runner.temp }}/reference-rotation-*-usjo8.json
+            ${{ runner.temp }}/native-rotation-*-usjo8.txt
+            ${{ runner.temp }}/reference-rotation-*-usjo8.txt
             ${{ runner.temp }}/native-rotation-*-effect.json
             ${{ runner.temp }}/reference-rotation-*-effect.json
             ${{ runner.temp }}/native-rotation-*-effect.txt

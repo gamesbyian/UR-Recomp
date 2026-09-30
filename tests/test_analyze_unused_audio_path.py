@@ -18,6 +18,7 @@ class UnusedAudioPathTests(unittest.TestCase):
             json.loads((ROOT / "analysis/generated/audio-setup-selector-map.json").read_text()),
             json.loads((ROOT / "analysis/generated/audio-package-map.json").read_text()),
             json.loads((ROOT / "analysis/generated/audio-extended-block-correlation.json").read_text()),
+            json.loads((ROOT / "analysis/generated/apu-upload-path-summary.json").read_text()),
         )
 
     def test_generated_analysis_is_fresh(self):
@@ -34,6 +35,8 @@ class UnusedAudioPathTests(unittest.TestCase):
         self.assertTrue(relation["is_strict_subset"])
         self.assertTrue(relation["same_shared_slot_positions"])
         self.assertEqual(relation["removed_block_ids_hex"], ["0x07", "0x15", "0x29"])
+        self.assertEqual(report["unused_song_findings"]["0x3D"]["structural_table_candidate"], "0x03FB55")
+        self.assertTrue(report["interpretation"]["unused_song_2_race_package_corroboration"]["unused_song_2_same_offset"])
 
 
 if __name__ == "__main__":

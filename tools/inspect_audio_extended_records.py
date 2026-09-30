@@ -59,7 +59,13 @@ def build_report(rom: bytes, first: int = 0x32, last: int = 0x42) -> dict:
             suffix = 0
             while suffix < common - prefix and left[-1 - suffix] == right[-1 - suffix]:
                 suffix += 1
-            differing_overlap = sum(a != b for a, b in zip(left, right))
+            diff_rows = [
+                {"offset": off, "offset_hex": f"0x{off:04X}", "left": a, "right": b,
+                 "left_hex": f"0x{a:02X}", "right_hex": f"0x{b:02X}"}
+                for off, (a, b) in enumerate(zip(left, right))
+                if a != b
+            ]
+            differing_overlap = len(diff_rows)
             similarities.append({
                 "left": left_id,
                 "right": right_id,
@@ -69,6 +75,7 @@ def build_report(rom: bytes, first: int = 0x32, last: int = 0x42) -> dict:
                 "common_suffix_bytes": suffix,
                 "differing_bytes_in_overlap": differing_overlap,
                 "same_length": len(left) == len(right),
+                "differences": diff_rows if len(left) == len(right) and differing_overlap <= 64 else None,
             })
     similarities.sort(key=lambda row: (-row["common_prefix_bytes"], row["differing_bytes_in_overlap"], row["left"], row["right"]))
     return {

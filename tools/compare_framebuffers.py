@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 
 
-def compare_frames(a: bytes, b: bytes, width: int = 256) -> dict:
+def compare_frames(a: bytes, b: bytes, width: int = 256, bytes_per_pixel: int = 4) -> dict:
     if len(a) != len(b):
         raise ValueError(f"frame sizes differ: {len(a)} != {len(b)}")
     if len(a) % 2:

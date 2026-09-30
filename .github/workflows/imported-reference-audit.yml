@@ -10,6 +10,8 @@ on:
       - "tests/test_imported_reference_audit.py"
       - ".github/workflows/imported-reference-audit.yml"
   push:
+    branches:
+      - main
     paths:
       - "references/imported/**"
       - "tools/audit_imported_references.py"
@@ -18,6 +20,10 @@ on:
       - "tests/test_imported_reference_audit.py"
       - ".github/workflows/imported-reference-audit.yml"
   workflow_dispatch:
+
+concurrency:
+  group: imported-reference-audit-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   audit:

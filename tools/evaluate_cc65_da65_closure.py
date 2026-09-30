@@ -16,7 +16,7 @@ import subprocess
 from pathlib import Path
 
 
-KEEP = ("LICENSE", "Makefile", "src/da65", "src/common")
+KEEP = ("LICENSE", "src/Makefile", "src/da65", "src/common")
 
 
 def copy_item(src_root: Path, dst_root: Path, rel: str) -> None:
@@ -71,7 +71,7 @@ def main() -> int:
         copy_item(source, closure, rel)
 
     before = inventory(closure)
-    run(["make", "da65", f"-j{args.jobs}"], closure)
+    run(["make", "da65", f"-j{args.jobs}"], closure / "src")
 
     da65 = closure / "bin" / "da65"
     if not da65.is_file():

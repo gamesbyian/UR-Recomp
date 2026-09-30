@@ -17,6 +17,8 @@ on:
       - "tools/summarize_player_checkpoints.py"
       - "tools/summarize_usjo8_checkpoints.py"
       - "tests/test_summarize_usjo8_checkpoints.py"
+      - "tools/extract_wram_transitions.py"
+      - "tests/test_extract_wram_transitions.py"
       - "tools/summarize_paired_player_slots.py"
       - "tools/compare_wram_checkpoints.py"
       - "tools/bootstrap_toolchain.py"
@@ -37,6 +39,8 @@ on:
       - "tools/summarize_player_checkpoints.py"
       - "tools/summarize_usjo8_checkpoints.py"
       - "tests/test_summarize_usjo8_checkpoints.py"
+      - "tools/extract_wram_transitions.py"
+      - "tests/test_extract_wram_transitions.py"
       - "tools/summarize_paired_player_slots.py"
       - "tools/compare_wram_checkpoints.py"
       - "tools/bootstrap_toolchain.py"
@@ -68,8 +72,10 @@ jobs:
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
-      - name: Test USJO checkpoint summarizer
-        run: python3 tests/test_summarize_usjo8_checkpoints.py
+      - name: Test USJO analysis helpers
+        run: |
+          python3 tests/test_summarize_usjo8_checkpoints.py
+          python3 tests/test_extract_wram_transitions.py
 
       - name: Stage and build repository-owned SNESRecomp framework
         shell: bash
@@ -128,8 +134,12 @@ jobs:
             fi
             DUMPS="$RUNNER_TEMP/native-rotation-${kind}-dumps"
             LOG="$RUNNER_TEMP/native-rotation-${kind}.log"
+            TRACE_ARGS=()
+            if [ "$kind" = x ] || [ "$kind" = control ]; then
+              TRACE_ARGS=(env "SNESRECOMP_WRAM_TRACE_FILE=$RUNNER_TEMP/native-rotation-${kind}-wram.jsonl")
+            fi
             mkdir -p "$DUMPS"
-            SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+            "${TRACE_ARGS[@]}" env SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
               timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
               >"$LOG" 2>&1
             cat "$LOG"
@@ -151,8 +161,12 @@ jobs:
             fi
             DUMPS="$RUNNER_TEMP/reference-rotation-${kind}-dumps"
             LOG="$RUNNER_TEMP/reference-rotation-${kind}.log"
+            TRACE_ARGS=()
+            if [ "$kind" = x ] || [ "$kind" = control ]; then
+              TRACE_ARGS=(env "SNESREF_TRACE_FILE=$RUNNER_TEMP/reference-rotation-${kind}-wram.jsonl")
+            fi
             mkdir -p "$DUMPS"
-            SNESREF_HEADLESS=1 \
+            "${TRACE_ARGS[@]}" env SNESREF_HEADLESS=1 \
             SNESREF_FAST=1 \
             SNESREF_WRAM_FILL=0 \
             SNESREF_SCRIPT="$SCRIPT" \
@@ -258,6 +272,71 @@ jobs:
                   print(cp, delta or "IDENTICAL")
           PY
 
+      - name: Inspect transient recovered USJO WRAM transitions
+        shell: bash
+        run: |
+          set -euo pipefail
+          for engine in native reference; do
+            for kind in control x; do
+              python3 tools/extract_wram_transitions.py \
+                "$RUNNER_TEMP/${engine}-rotation-${kind}-wram.jsonl" \
+                --json-out "$RUNNER_TEMP/${engine}-rotation-${kind}-usjo8-transitions.json" \
+                | tee "$RUNNER_TEMP/${engine}-rotation-${kind}-usjo8-transitions.txt"
+            done
+          done
+
+          python3 - \
+            "$RUNNER_TEMP/native-rotation-control-usjo8-transitions.json" "$RUNNER_TEMP/reference-rotation-control-usjo8-transitions.json" \
+            "$RUNNER_TEMP/native-rotation-x-usjo8-transitions.json" "$RUNNER_TEMP/reference-rotation-x-usjo8-transitions.json" <<'PY'
+          import json, pathlib, sys
+          nc, rc, nx, rx=[json.loads(pathlib.Path(p).read_text()) for p in sys.argv[1:]]
+
+          def sig(e):
+              return (e["addr"], e["old"], e["val"])
+
+          def causal_extras(control, intervention):
+              c=[sig(e) for e in control]
+              extras=[]
+              ci=0
+              for e in intervention:
+                  if ci < len(c) and sig(e) == c[ci]:
+                      ci += 1
+                  else:
+                      extras.append(e)
+              if ci != len(c):
+                  raise SystemExit(
+                      "control transition signature is not a subsequence of intervention; "
+                      f"matched {ci}/{len(c)}"
+                  )
+              return extras
+
+          n_extra=causal_extras(nc["events"], nx["events"])
+          r_extra=causal_extras(rc["events"], rx["events"])
+          n_sig=[sig(e) for e in n_extra]
+          r_sig=[sig(e) for e in r_extra]
+          if n_sig != r_sig:
+              raise SystemExit(f"native/reference X causal transition signatures differ\nnative={n_extra}\nreference={r_extra}")
+
+          def relative_frames(events):
+              if not events:
+                  return []
+              first=events[0]["frame"]
+              return [e["frame"]-first for e in events]
+
+          if relative_frames(n_extra) != relative_frames(r_extra):
+              raise SystemExit(
+                  "native/reference X causal transition cadence differs: "
+                  f"native={relative_frames(n_extra)} reference={relative_frames(r_extra)}"
+              )
+
+          print("== selected USJO causal transitions added by X ==")
+          print(json.dumps({
+              "native": n_extra,
+              "reference": r_extra,
+              "relative_frames": relative_frames(n_extra),
+          }, indent=2))
+          PY
+
       - name: Compare airborne interventions against matched control
         shell: bash
         run: |
@@ -298,6 +377,12 @@ jobs:
             ${{ runner.temp }}/reference-rotation-*-effect.json
             ${{ runner.temp }}/native-rotation-*-effect.txt
             ${{ runner.temp }}/reference-rotation-*-effect.txt
+            ${{ runner.temp }}/native-rotation-*-wram.jsonl
+            ${{ runner.temp }}/reference-rotation-*-wram.jsonl
+            ${{ runner.temp }}/native-rotation-*-usjo8-transitions.json
+            ${{ runner.temp }}/reference-rotation-*-usjo8-transitions.json
+            ${{ runner.temp }}/native-rotation-*-usjo8-transitions.txt
+            ${{ runner.temp }}/reference-rotation-*-usjo8-transitions.txt
             ${{ runner.temp }}/native-rotation-*-dumps/
             ${{ runner.temp }}/reference-rotation-*-dumps/
           if-no-files-found: warn

@@ -19,6 +19,8 @@ FIELDS = [
     ("z_rotation", 0x0DFD, 8, False),
     ("z_pre_rotation", 0x0F57, 8, False),
     ("boost_meter_low", 0x11CD, 8, False),
+    ("boost_meter_high", 0x11CE, 8, False),
+    ("boost_meter_word", 0x11CD, 16, False),
 ]
 
 

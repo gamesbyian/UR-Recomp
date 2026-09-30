@@ -5,36 +5,52 @@ labels:
   RNC1_Unpack: 0xB8F1
   RNC1_MakeHuffTail: 0xBB60
   RNC1_ReadWordLoROMSafe: 0xBB6F
+  HUD_QueueMessage: 0xC5AF
   APU_UploadBlockById_Wrapper: 0x1007E
   APU_ResolveBlockPointer: 0x1012A
+  Stunt_FinalizeAndScoreAirTricks: 0x11A42
+  Player_ApplyVerticalAcceleration: 0x12968
+  Input_DecodePlayer1Buttons: 0x12A6E
   Text_HandleFCPositionControl: 0x18971
 memory:
   Frontend_SelectedRow: 0x7E000E
   Frontend_SelectedOption: 0x7E009B
   Frontend_CurrentMenu: 0x7E009F
   Race_ActiveState: 0x7E0313
+  Player1_FacingAtTakeoff: 0x7E033B
   Player1_XPosition: 0x7E0411
   Player1_YPosition: 0x7E0415
   Player1_ZFlipCount: 0x7E042B
-  Player1_TabletopCount: 0x7E042F
+  Player1_TabletopDuration: 0x7E042F
   Player1_XSpeed: 0x7E04B7
   Player1_YSpeed: 0x7E04BB
   Player1_PitchAngle: 0x7E04C7
   Player2_PitchAngle: 0x7E04C9
-  Player1_AirState: 0x7E0545
+  Player1_AirTime: 0x7E0545
   Player1_FacedDirection: 0x7E0BA1
   Frontend_SelectedColumn: 0x7E0C63
   Player1_ZRotationState: 0x7E0DFD
+  Player1_LapsRemaining: 0x7E0EF1
   CurrentPlayer_PitchScratch: 0x7E0F49
-  Player1_ZPreRotationState: 0x7E0F57
-  Player1_TwistCount: 0x7E0F61
-  Player1_XSpeed_Alternate: 0x7E0F9F
+  CurrentPlayer_ZRotationWorking: 0x7E0F57
+  CurrentPlayer_HalfTwistCount: 0x7E0F61
+  CurrentPlayer_XVelocityWorking: 0x7E0F9F
+  CurrentPlayer_YVelocityWorking: 0x7E0FA1
   Player1_ArrowDirection: 0x7E0FCB
   Player1_ArrowsVisible: 0x7E0FCC
+  CurrentPlayer_Index: 0x7E0FEF
+  Player1_NextCheckpoint: 0x7E1199
+  Player1_FinishGateState: 0x7E119D
   Race_CountdownTimer: 0x7E11BA
-  Player1_BoostMeter: 0x7E11CD
+  CurrentPlayer_BoostMeterWorking: 0x7E11CD
+  Player1_BoostMeter: 0x7E11CF
+  Player2_BoostMeter: 0x7E11D1
   Player1_RollCount: 0x7E11F9
   Player1_FlipCount: 0x7E11FD
+  Player1_RollQuarterProgress: 0x7E1201
+  Player1_FlipQuarterProgress: 0x7E1205
+  Stunt_CurrentScore: 0x7E12AF
   Race_ReverseControls: 0x7E132B
+  Player1_StuntAirLatch: 0x7E1361
   Camera_ScreenXPosition: 0x7E1509
   Course_ActiveDecodedPayload: 0x7F0000

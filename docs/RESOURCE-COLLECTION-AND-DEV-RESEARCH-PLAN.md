@@ -376,7 +376,7 @@ The project has largely solved *evidence intake*; current research should emphas
 
 Priority research lanes, in current order of opportunity rather than permanent importance:
 
-1. Finish CPU-side audio package archaeology, including helper `02:812A`, selector-ID -> block/APU mapping, six selector-table attribution, and direct testing of uncalled table `03:FB95` against unused-song evidence. Reconcile #47 and #48 rather than running parallel incompatible interpretations.
+1. Finish CPU-side audio package archaeology. Helper `02:812A` and the record-pool mapping are now reconciled: package tables use the `0x00..0x31` prefix, while direct setup calls resolve later contiguous records through at least `0x42`. Unused records `0x3B`/`0x3D` are now tied directly to the two preserved unused-song SPCs and shown unreachable through ordinary setup calls. The six-table attribution is narrowed: `03:FB95` is the sole orphan table and a strict slot-preserving subset of Celebration table `03:FAD5`, making it a testable candidate for the `0x3B` path; controlled APU reconstruction remains the discriminator. Reconcile #47 and #48 rather than running parallel incompatible interpretations.
 2. Convert known emulator compatibility seams into deterministic fixtures, especially active-display OAM/two-player behavior. The Beetle/bsnes island must retain independent-reference value and fail-closed offline reproducibility when #40 is recovered.
 3. Resume four-ROM differential archaeology outside RNC streams, classifying executable/table/frontend/localization/timing/protection deltas and promoting verified semantics.
 4. Trace readers/control bytes for the recovered Sayans translation regions and continue recovery of later Sayans and Sinister patches.

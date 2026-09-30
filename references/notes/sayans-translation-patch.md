@@ -152,3 +152,28 @@ Durable evidence:
 The next discriminator is bounded 65816 disassembly plus callsite mapping for
 `03:8975`, its ordinary-byte callee `00:8C41`, and the related loops. Reader
 semantics should be named only if control flow supports the translated grammar.
+
+
+### FC layout handler and character metadata
+
+Bounded 65816 analysis has now promoted the strongest static reader candidate.
+
+At `03:8971`, `Text_HandleFCPositionControl`:
+
+- preserves the incoming accumulator and recognizes low-byte `FC`;
+- consumes the following parameter byte;
+- scans the following character stream until `FF` or `FB`;
+- sends ordinary character bytes through `00:8C41`;
+- computes `parameter * 32 + horizontal adjustment` and stores the resulting tilemap-style offset in DP `$9F`.
+
+That is strong evidence that the translated `FF FC xx` / `FB FC xx` forms encode a positioned/centered line transition on a 32-column tilemap. The exact user-facing meaning of each `xx` value remains intentionally unnamed.
+
+The shared helper at `00:8C41`, promoted as `Text_TestCharacterMetadataBit7`, indexes `00:C6F8` by character code and tests bit 7. It has four direct callsites: `00:8C3D`, `00:C4CB`, `00:C510`, and `03:8998`. The metadata table's SHA-256 is `0b32a02cb81e5d0eac9334f247bfe627369408000a726fab2cd0a3a858d76302`.
+
+Printable-table inspection shows that uppercase A-Z are bit-7 clear while lowercase a-z, digits, and much punctuation are bit-7 set. This disproves the tempting but unsupported "bit 7 = glyph width" label. The helper is retained as a character-class/metadata test until rendering evidence explains the visual consequence.
+
+The related loops around `00:C4BC`, `00:C5D3`, and `03:AA36` remain useful follow-up targets for the remaining `FB/FF/F2/FC` grammar.
+
+Durable semantic summary:
+
+- `analysis/generated/sayans-text-layout-semantics.json`

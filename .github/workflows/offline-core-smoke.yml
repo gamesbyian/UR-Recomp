@@ -1,0 +1,89 @@
+name: Offline core research smoke
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/offline-core-smoke.yml"
+      - "docs/ISLAND-TOOLCHAIN-PLAN.md"
+      - "docs/WORK-QUEUE.md"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/verify_rom.py"
+      - "tools/toolchain.json"
+      - "third_party/**"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+  workflow_dispatch:
+
+jobs:
+  offline-native-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Host/compiler prerequisites are deliberately outside the island boundary.
+      # Install them before entering the network namespace.
+      - name: Install declared host prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake ninja-build pkg-config libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Prove canonical native build with no network interface
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo --preserve-env=GITHUB_WORKSPACE,RUNNER_TEMP \
+            unshare --net --mount-proc bash -euxo pipefail <<'OFFLINE'
+          # A fresh network namespace has no configured external interface.
+          # Bring loopback up only so local build tools retain ordinary localhost semantics.
+          ip link set lo up
+
+          cd "$GITHUB_WORKSPACE"
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python3 tools/validate_island.py --status
+
+          # Prove both sides of the core fidelity toolchain stage from repository-owned
+          # material while GitHub/PyPI/crates.io are physically unreachable.
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          test -f .tools/src/snes9x-libretro/snes9x_libretro.so
+
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          test -f "$FRAMEWORK/tools/new_project/setup_project.sh"
+          test -f "$FRAMEWORK/runner/runner.cmake"
+          test ! -e "$FRAMEWORK/lib/recomp-net/CMakeLists.txt"
+          test ! -e "$FRAMEWORK/lib/retcomm-rbengine/CMakeLists.txt"
+
+          TMP="$RUNNER_TEMP/ur-recomp-offline-build"
+          rm -rf "$TMP"
+          mkdir -p "$TMP"
+
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --dir "$TMP" \
+              --name "Uniracers" \
+              --players 2 \
+              --yes \
+              --no-ci \
+              --no-fetch-boxart \
+              --no-recomp-ui \
+              --no-netplay \
+              --no-github \
+              --no-submodules \
+              --generate \
+              --no-build
+
+          ROOT="$TMP/UniracersSNESRecomp"
+          cmake -S "$ROOT" -B "$ROOT/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF
+          cmake --build "$ROOT/build" -j2
+          test -x "$ROOT/build/UniracersSNESRecomp"
+          OFFLINE

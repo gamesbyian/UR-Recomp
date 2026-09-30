@@ -8,7 +8,7 @@ the USJO-specific claim is already causally confirmed in the current runtime evi
 |---:|---|---|---|---:|---|---|
 | 1 | `7E:0DFD` | `zrotation` | `Player1_ZRotationState` | 2 | source-lead | Reproduce the claimed semantic transition locally before promotion. |
 | 1 | `7E:0F57` | `zprerotation` | `Player1_ZPreRotationState` | 2 | source-lead | Reproduce the claimed semantic transition locally before promotion. |
-| 1 | `7E:11CD` | `realboostmeter` | `Player1_BoostMeter` | 3 | width-or-units-conflict | Resolve runtime width/units and byte-vs-word behavior. |
+| 3 | `7E:11CD` | `realboostmeter` | `Player1_BoostMeter` | 4 | strong-partial | Close any remaining semantic/unit ambiguity when convenient. |
 | 2 | `7E:042B` | `numzflips` | `Player1_ZFlipCount` | 3 | corroborated-unreproduced | Trigger the claimed state change and verify this field causally. |
 | 2 | `7E:042F` | `numtabletops` | `Player1_TabletopCount` | 3 | corroborated-unreproduced | Trigger the claimed state change and verify this field causally. |
 | 2 | `7E:0F61` | `numtwists` | `Player1_TwistCount` | 3 | corroborated-unreproduced | Trigger the claimed state change and verify this field causally. |
@@ -20,8 +20,8 @@ the USJO-specific claim is already causally confirmed in the current runtime evi
 
 ## Immediate queue
 
-The narrowest unresolved targets are the boost-meter width/units question at `7E:11CD`
-and the source-only Z-rotation working fields `7E:0DFD` / `7E:0F57`.
+The narrowest unresolved targets are the source-only Z-rotation working fields `7E:0DFD` / `7E:0F57`.
+The former `7E:11CD` width conflict is closed statically as a 16-bit game field; only exact game-facing boost units remain open.
 The five stunt counters are independently corroborated but still need causal transition fixtures.
 X speed, Y speed and air state are already runtime-confirmed and should not consume more
 USJO-validation effort unless conflicting evidence appears.

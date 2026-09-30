@@ -1,0 +1,66 @@
+name: One-shot vendor reduced da65 closure
+
+on:
+  push:
+    paths:
+      - ".github/workflows/vendor-da65-one-shot.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  vendor:
+    if: github.ref == 'refs/heads/chatgpt/cc65-da65-closure-eval-2026-09-29'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/cc65-da65-closure-eval-2026-09-29
+          fetch-depth: 0
+
+      - name: Checkout exact cc65 pin
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none --no-checkout https://github.com/cc65/cc65.git "$RUNNER_TEMP/cc65"
+          git -C "$RUNNER_TEMP/cc65" checkout d8a486acdef93ea1ba432a6a35b96cf1b797bda5
+          test "$(git -C "$RUNNER_TEMP/cc65" rev-parse HEAD)" = d8a486acdef93ea1ba432a6a35b96cf1b797bda5
+
+      - name: Reprove reduced closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/evaluate_cc65_da65_closure.py             "$RUNNER_TEMP/cc65"             "$RUNNER_TEMP/closure"             --json-out "$RUNNER_TEMP/closure.json"             --jobs 2
+          python3 - <<'PY'
+          import json, os
+          p=os.path.join(os.environ["RUNNER_TEMP"],"closure.json")
+          r=json.load(open(p))
+          assert r["source_file_count"] == 150, r
+          assert r["source_total_bytes"] == 1100892, r
+          assert r["source_tree_sha256"] == "0d84d2d2b8c341b53982272e2a19694341839eb1399166fd7b344bbf59e551c8", r
+          PY
+
+      - name: Materialize proven source closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          dst=third_party/src/cc65-da65
+          rm -rf "$dst"
+          mkdir -p "$dst/src"
+          cp "$RUNNER_TEMP/closure/LICENSE" "$dst/LICENSE"
+          cp "$RUNNER_TEMP/closure/src/Makefile" "$dst/src/Makefile"
+          cp -a "$RUNNER_TEMP/closure/src/da65" "$dst/src/da65"
+          cp -a "$RUNNER_TEMP/closure/src/common" "$dst/src/common"
+          test "$(find "$dst" -type f | wc -l)" -eq 150
+
+      - name: Commit vendored closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add third_party/src/cc65-da65
+          git diff --cached --quiet && { echo "No vendoring changes"; exit 0; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "vendor: add reduced cc65 da65 source closure"
+          git push origin HEAD:chatgpt/cc65-da65-closure-eval-2026-09-29

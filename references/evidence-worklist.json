@@ -108,12 +108,13 @@
         "romhackhispano-sayans-uniracers"
       ],
       "question": "Which text, font, pointer, menu-layout, checksum, or compression regions did the Sayans translation team identify?",
-      "next_discriminator": "Treat the recovered 85% patch as a confirmed text/control-data map across LoROM banks $80, $83 and $97. Next, either identify the reader/renderer routines and control-byte semantics for those clusters or recover the later Sayans 1.0b / independent Sinister patch to test whether additional font, pointer or code changes were required.",
+      "next_discriminator": "Validate the bounded text/control reader candidate around 03:8975 and its ordinary-byte callee 00:8C41. The translated grammar is now explicit (dominant FF FC xx / FB FC xx runs plus the F3 index FF FE x y family); do not name control semantics until disassembly/runtime evidence supports them. Later Sayans 1.0b and independent Sinister patch recovery remains an archival parallel lane.",
       "deliverables": [
         "patch provenance and hashes (landed)",
         "canonical-ROM touch summary at analysis/generated/sayans-translation-summary.json (landed)",
         "three text/control-data clusters in banks $80, $83 and $97 (confirmed)",
-        "reader/control-byte semantics or later-version cross-check (next)"
+        "reader/control-byte semantics or later-version cross-check (next)",
+        "Sayans control-byte vocabulary and static reader-candidate map (landed)"
       ],
       "tags": [
         "translation",

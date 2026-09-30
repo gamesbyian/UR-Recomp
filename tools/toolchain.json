@@ -259,7 +259,7 @@
       "group": "oracle-extra",
       "url": "https://github.com/libretro/beetle-bsnes-libretro.git",
       "revision": "5f05e4c785e936c928ac468e129c55b6f08592cb",
-      "purpose": "Independent Mednafen/bsnes-derived SNES libretro oracle that exposes RETRO_MEMORY_SYSTEM_RAM for snesref state/dump workflows. Build disables glibc fortify wrappers to avoid a modern-glibc collision with the bundled historical nall strlcpy/strlcat.",
+      "purpose": "Independent Mednafen/bsnes-derived SNES libretro oracle patched narrowly for correct SAVE_RAM exposure and single-owner framebuffer teardown. Build disables glibc fortify wrappers to avoid a modern-glibc collision with the bundled historical nall strlcpy/strlcat.",
       "build": [
         [
           "env",
@@ -279,7 +279,13 @@
       "headless": {
         "status": "native",
         "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session."
-      }
+      },
+      "patches": [
+        {
+          "path": "tools/patches/beetle-bsnes-ur-recomp.patch",
+          "sha256": "f47aaa9057f4a96ba5118a153a628f2958bc068299c9659f534e53ef18bf079c"
+        }
+      ]
     },
     {
       "id": "flips",

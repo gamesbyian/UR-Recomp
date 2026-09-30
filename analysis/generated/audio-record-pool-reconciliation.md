@@ -73,9 +73,7 @@ No other song-family pair is close to that degree. `0x3B` is the record that mat
 **Unused Song 1** and has no ordinary setup call; `0x3C` is directly reachable and is
 paired with package `03:FC15`, but does not match any SPC in the preserved archive.
 
-This strongly suggests that `0x3B` and `0x3C` are related program/sequence variants
-rather than independent compositions or arbitrary adjacent records. Exact interpretation
-is held pending the byte-delta probe and control-flow context for the `0x3C` caller.
+This strongly suggests that `0x3B` and `0x3C` are related program/sequence variants rather than independent compositions or arbitrary adjacent records. Because reachable `0x3C` is paired with package `03:FC15`, that package is now a separate evidence-driven candidate for Unused Song 1 alongside marker-favored `03:FB15` and orphan `03:FB95`. Exact interpretation is held pending the byte-delta probe and control-flow context for the `0x3C` caller.
 
 ## Package table 03:FB95
 

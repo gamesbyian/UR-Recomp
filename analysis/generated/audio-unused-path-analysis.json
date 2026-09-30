@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "extended_song_selectors": {
+    "0x38": {
+      "cpu_address": "0x13F70C",
+      "matched_tracks": [
+        "Demo Race"
+      ],
+      "setup_call": true,
+      "paired_with_known_table": true
+    },
+    "0x39": {
+      "cpu_address": "0x148265",
+      "matched_tracks": [
+        "Title Screen"
+      ],
+      "setup_call": true,
+      "paired_with_known_table": true
+    },
+    "0x3A": {
+      "cpu_address": "0x148B03",
+      "matched_tracks": [
+        "Celebration"
+      ],
+      "setup_call": true,
+      "paired_with_known_table": true
+    },
+    "0x3B": {
+      "cpu_address": "0x149141",
+      "matched_tracks": [
+        "Unused Song 1"
+      ],
+      "setup_call": false,
+      "paired_with_known_table": false
+    },
+    "0x3C": {
+      "cpu_address": "0x14935B",
+      "matched_tracks": [],
+      "setup_call": true,
+      "paired_with_known_table": true
+    },
+    "0x3D": {
+      "cpu_address": "0x149575",
+      "matched_tracks": [
+        "Unused Song 2"
+      ],
+      "setup_call": false,
+      "paired_with_known_table": false
+    },
+    "0x3E": {
+      "cpu_address": "0x149F5F",
+      "matched_tracks": [
+        "1st Race"
+      ],
+      "setup_call": true,
+      "paired_with_known_table": true
+    },
+    "0x3F": {
+      "cpu_address": "0x14A8FE",
+      "matched_tracks": [
+        "2nd Race"
+      ],
+      "setup_call": true,
+      "paired_with_known_table": true
+    },
+    "0x40": {
+      "cpu_address": "0x14B041",
+      "matched_tracks": [
+        "5th Race"
+      ],
+      "setup_call": true,
+      "paired_with_known_table": true
+    },
+    "0x41": {
+      "cpu_address": "0x14B804",
+      "matched_tracks": [
+        "3rd Race"
+      ],
+      "setup_call": true,
+      "paired_with_known_table": true
+    },
+    "0x42": {
+      "cpu_address": "0x14C249",
+      "matched_tracks": [
+        "4th Race"
+      ],
+      "setup_call": true,
+      "paired_with_known_table": true
+    }
+  },
+  "missing_setup_selectors": [
+    "0x3B",
+    "0x3D"
+  ],
+  "uncalled_table": {
+    "cpu_address": "0x03FB95",
+    "direct_caller_count": 0,
+    "block_ids_hex": [
+      "0x00",
+      "0x18",
+      "0x27",
+      "0x06",
+      "0x0E",
+      "0x0A",
+      "0x10",
+      "0x2F",
+      "0x13",
+      "0x0D",
+      "0x2B",
+      "0x28",
+      "0x04",
+      "0x1A",
+      "0x1B",
+      "0x1C",
+      "0x21",
+      "0x30",
+      "0x08",
+      "0x1F",
+      "0x11",
+      "0x12"
+    ],
+    "relation_to_celebration_table_03FAD5": {
+      "is_strict_subset": true,
+      "same_shared_slot_positions": true,
+      "removed_block_ids_hex": [
+        "0x07",
+        "0x15",
+        "0x29"
+      ],
+      "different_slots": [
+        {
+          "slot": 28,
+          "slot_1based": 29,
+          "fad5": "0x15",
+          "fb95": "0xFF"
+        },
+        {
+          "slot": 32,
+          "slot_1based": 33,
+          "fad5": "0x29",
+          "fb95": "0xFF"
+        },
+        {
+          "slot": 48,
+          "slot_1based": 49,
+          "fad5": "0x07",
+          "fb95": "0xFF"
+        }
+      ]
+    }
+  },
+  "unused_song_findings": {
+    "0x3B": {
+      "track": "Unused Song 1",
+      "ordinary_setup_reachable": false,
+      "ordinary_package_pair_reachable": false,
+      "structural_table_candidate": "0x03FB95",
+      "candidate_basis": "03:FB95 is the only known 64-byte package table with no direct caller and is an exact slot-preserving subset of Celebration table 03:FAD5, differing only by three FF substitutions. This is structural evidence, not proof of the lost call pair."
+    },
+    "0x3D": {
+      "track": "Unused Song 2",
+      "ordinary_setup_reachable": false,
+      "ordinary_package_pair_reachable": false,
+      "structural_table_candidate": null,
+      "candidate_basis": "No second uncalled 64-byte package table exists in the known six-table family, so 0x3D cannot be assigned a unique missing package table from current static evidence."
+    }
+  },
+  "interpretation": {
+    "confirmed": [
+      "Extended block 0x3B byte-matches only Unused Song 1 at APU 0x1D00 among preserved SPC snapshots.",
+      "Extended block 0x3D byte-matches only Unused Song 2 at APU 0x1D00 among preserved SPC snapshots.",
+      "Neither 0x3B nor 0x3D has an ordinary setup-wrapper call or known setup+package pair.",
+      "03:FB95 has zero direct package-transfer callers.",
+      "03:FB95 is a slot-preserving strict subset of called Celebration table 03:FAD5."
+    ],
+    "hypothesis": "03:FB95 is a plausible orphan package for the 0x3B / Unused Song 1 path, but current evidence does not prove that pairing.",
+    "negative_result": "There is no comparable second orphan table to pair uniquely with 0x3D / Unused Song 2."
+  }
+}

@@ -10,6 +10,8 @@ on:
       - ".github/workflows/targeted-wram-store-scan.yml"
 
   push:
+    branches:
+      - main
     paths:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "rom_identity.txt"

@@ -39,12 +39,22 @@ def build_report(rom: bytes, first: int = 0x32, last: int = 0x42) -> dict:
             "second_word_le": int.from_bytes(payload[2:4], "little") if len(payload) >= 4 else None,
             "bytes_after_four_prefix_hex": payload[4:20].hex(" "),
         })
+    song_rows = [row for row in rows if 0x38 <= row["id"] <= 0x42]
+    song_headers = sorted({(row["first_word_le"], row["second_word_le"]) for row in song_rows})
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "pool_start_cpu": pool["pool_start_cpu"],
         "parsed_record_count": last + 1,
         "first_extended_id": f"0x{first:02X}",
         "last_extended_id": f"0x{last:02X}",
+        "song_family_header": {
+            "ids": [row["id_hex"] for row in song_rows],
+            "unique_word_pairs": [[a, b] for a, b in song_headers],
+            "uniform": len(song_headers) == 1,
+            "first_word_le": song_headers[0][0] if len(song_headers) == 1 else None,
+            "second_word_le": song_headers[0][1] if len(song_headers) == 1 else None,
+            "second_word_hex": f"0x{song_headers[0][1]:04X}" if len(song_headers) == 1 else None,
+        },
         "records": rows,
     }
 

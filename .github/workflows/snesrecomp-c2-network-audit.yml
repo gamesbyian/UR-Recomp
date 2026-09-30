@@ -11,6 +11,7 @@ on:
       - "tools/toolchain.json"
       - "third_party/manifest.json"
       - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/cargo/snesrecomp-analyzer/**"
   pull_request:
     paths:
       - ".github/workflows/snesrecomp-c2-network-audit.yml"
@@ -20,6 +21,7 @@ on:
       - "tools/toolchain.json"
       - "third_party/manifest.json"
       - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/cargo/snesrecomp-analyzer/**"
 
 concurrency:
   group: snesrecomp-c2-network-audit-${{ github.ref }}

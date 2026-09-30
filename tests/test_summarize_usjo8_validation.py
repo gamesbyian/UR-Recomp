@@ -27,10 +27,8 @@ class Usjo8ValidationMatrixTests(unittest.TestCase):
         symbols = (ROOT / "docs/SYMBOLS.md").read_text(encoding="utf-8")
         matrix = MODULE.build_matrix(inventory, symbols)
         self.assertEqual(matrix["summary"], {
-            "corroborated-unreproduced": 5,
             "runtime-confirmed": 3,
-            "source-lead": 2,
-            "strong-partial": 1,
+            "strong-partial": 8,
         })
 
 

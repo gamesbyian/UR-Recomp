@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "source_directory": "references/imported/reverse-engineering/nitrodon",
+  "status": "historical evidence reconciled with current ROM/runtime work",
+  "corrected_symbols": {
+    "7E:042F": {
+      "name": "Player1_TabletopDuration",
+      "width": "16-bit slot",
+      "evidence": [
+        "Nitrodon RAM map",
+        "02:9582 INC $042F,X",
+        "02:9C87 threshold >=3",
+        "dynamic run 36776825024"
+      ]
+    },
+    "7E:0F61": {
+      "name": "CurrentPlayer_HalfTwistCount",
+      "width": "16-bit working slot",
+      "evidence": [
+        "Nitrodon RAM map",
+        "02:9C2E LDA then LSR"
+      ]
+    },
+    "7E:11F9": {
+      "name": "Player1_RollCount",
+      "width": "16-bit slot"
+    },
+    "7E:11FD": {
+      "name": "Player1_FlipCount",
+      "width": "16-bit slot"
+    },
+    "7E:11CD": {
+      "name": "CurrentPlayer_BoostMeterWorking",
+      "width": "16-bit",
+      "stable_player_slots": [
+        "7E:11CF",
+        "7E:11D1"
+      ]
+    },
+    "7E:0F9F": {
+      "name": "CurrentPlayer_XVelocityWorking",
+      "width": "signed 16-bit"
+    },
+    "7E:0FA1": {
+      "name": "CurrentPlayer_YVelocityWorking",
+      "width": "signed 16-bit"
+    },
+    "7E:0FEF": {
+      "name": "CurrentPlayer_Index",
+      "width": "16-bit selector",
+      "values": {
+        "0": "player 1",
+        "2": "player 2"
+      }
+    }
+  },
+  "function_landmarks": {
+    "01:C5AF": "HUD_QueueMessage",
+    "02:9A42": "Stunt_FinalizeAndScoreAirTricks",
+    "02:A968": "Player_ApplyVerticalAcceleration",
+    "02:AA6E": "Input_DecodePlayer1Buttons"
+  },
+  "stunt_combination_encoding": {
+    "dimensions": [
+      "flips",
+      "rolls",
+      "twists",
+      "zflips"
+    ],
+    "caps": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "weights": [
+      125,
+      25,
+      5,
+      1
+    ],
+    "formula": "125*flips + 25*rolls + 5*twists + zflips",
+    "table_start": "02:9DAA",
+    "table_length_bytes": 625,
+    "sentinel_values": [
+      "FE",
+      "FF"
+    ],
+    "sentinel_meanings": "unresolved"
+  },
+  "follow_up_targets": [
+    "trace stable player boost slots 11CF/11D1 to shared 11CD",
+    "validate next-checkpoint and finish-gate fields during deterministic Dragster finish",
+    "trace stunt score 12AF against isolated stunt combinations",
+    "decode FE vs FF semantics in 625-byte stunt response table",
+    "reconcile historical ROM map offsets with RNC course payloads",
+    "turn bounce tracelog into a collision/velocity-transform fixture"
+  ]
+}

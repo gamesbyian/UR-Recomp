@@ -1,0 +1,54 @@
+# Unused-song audio path analysis
+
+This reconciles three already-reproducible evidence surfaces: extended ROM audio blocks,
+CPU setup calls, and 64-byte package-table callers.
+
+| Extended selector | SPC byte match | Setup call exists | Known package pair |
+|---|---|---|---|
+| `0x38` | Demo Race | true | true |
+| `0x39` | Title Screen | true | true |
+| `0x3A` | Celebration | true | true |
+| `0x3B` | Unused Song 1 | false | false |
+| `0x3C` | none | true | true |
+| `0x3D` | Unused Song 2 | false | false |
+| `0x3E` | 1st Race | true | true |
+| `0x3F` | 2nd Race | true | true |
+| `0x40` | 5th Race | true | true |
+| `0x41` | 3rd Race | true | true |
+| `0x42` | 4th Race | true | true |
+
+## Closed reachability facts
+
+`0x3B` and `0x3D` are the only gaps in the otherwise populated `0x38..0x42`
+song-selector range. They respectively byte-match **Unused Song 1** and **Unused Song 2**
+at APU `0x1D00`, yet neither has an ordinary `JSL $82:807E` setup call. The scanner
+also finds no hidden immediate `LDX #$003B/#$003D` setup form and no unbound setup-wrapper
+calls.
+
+The known package family contains six 64-byte tables. Five have direct callers.
+`03:FB95` is the sole orphan.
+
+## What 03:FB95 is
+
+`03:FB95` is a strict, slot-preserving subset of called table `03:FAD5`, the table
+paired with selector `0x3A` whose extended block matches **Celebration**. The tables
+differ at exactly three slots: `03:FB95` replaces base blocks 0x07, 0x15, 0x29 with `FF`.
+
+That makes `03:FB95` a strong **structural candidate** for a removed audio path, and
+`0x3B / Unused Song 1` is the natural first pairing to test because both the selector
+and table are orphaned. It is not yet proof that the original code paired them.
+
+## Important negative result
+
+There is only one orphan package table but two unreachable song selectors. Current
+static evidence therefore cannot assign a unique package table to `0x3D / Unused Song 2`.
+Any model requiring one distinct missing table per unused song is ruled out by the known
+six-table corpus.
+
+## Next discriminator
+
+The useful next experiment is a controlled reconstruction, not more pattern searching:
+invoke the ordinary setup path with selector `0x3B` and package table `03:FB95` in a
+reference harness, then compare resulting APU RAM to the preserved Unused Song 1 SPC.
+Test `0x3D` separately against reused package candidates rather than inventing a seventh
+table.

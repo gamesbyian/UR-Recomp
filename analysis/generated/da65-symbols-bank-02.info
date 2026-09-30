@@ -7,3 +7,6 @@ SEGMENT { START $8000; END $FFFF; NAME "bank_02"; };
 
 LABEL { NAME "APU_UploadBlockById_Wrapper"; ADDR $807E; };
 LABEL { NAME "APU_ResolveBlockPointer"; ADDR $812A; };
+LABEL { NAME "Stunt_FinalizeAndScoreAirTricks"; ADDR $9A42; };
+LABEL { NAME "Player_ApplyVerticalAcceleration"; ADDR $A968; };
+LABEL { NAME "Input_DecodePlayer1Buttons"; ADDR $AA6E; };

@@ -5,6 +5,34 @@
   "entries": [
     {
       "kind": "function",
+      "address": "`01:C5AF` (USA)",
+      "name": "HUD_QueueMessage",
+      "confidence": 4,
+      "evidence_/_notes": "Nitrodon's annotated stunt disassembly shows this long-call target receiving message IDs for Wipeout (`0x0E`), Head Bounce (`0x10`), Tabletop (`0x11`), flip/roll/twist/Z-flip result messages, and praise messages. Exact queue/render split still needs local call-graph validation."
+    },
+    {
+      "kind": "function",
+      "address": "`02:9A42` (USA)",
+      "name": "Stunt_FinalizeAndScoreAirTricks",
+      "confidence": 4,
+      "evidence_/_notes": "Nitrodon's focused `stunts.txt` plus bank-82 listing expose the complete landing/finalization pipeline: roll/flip quarter-turn accumulation, half-twist conversion, Z-flip/tabletop handling, wipeout/headbounce checks, trick-message selection, stunt-combination indexing, praise lookup, and reset of transient stunt state."
+    },
+    {
+      "kind": "function",
+      "address": "`02:A968` (USA)",
+      "name": "Player_ApplyVerticalAcceleration",
+      "confidence": 4,
+      "evidence_/_notes": "Nitrodon's bank-82 annotation is directly supported by the instruction flow: current-player Y velocity is capped below `0x0200`, upward motion receives +19, downward acceleration is `19 - Yvel/32`, the result is added to Y velocity, and current-player Y coordinate is incremented."
+    },
+    {
+      "kind": "function",
+      "address": "`02:AA6E` (USA)",
+      "name": "Input_DecodePlayer1Buttons",
+      "confidence": 4,
+      "evidence_/_notes": "Nitrodon's bank-82 listing shows raw controller words `$030D/$030F` decoded into explicit A/X/L/R/B/Y/select/start flags and normalized vertical/horizontal direction fields at `$0311/$0315`."
+    },
+    {
+      "kind": "function",
       "address": "`01:B8F1` (USA)",
       "name": "RNC1_Unpack",
       "confidence": 5,
@@ -135,10 +163,10 @@
     {
       "kind": "ram",
       "address": "7E:0545",
-      "name": "Player1_AirState",
-      "width": "8-bit",
+      "name": "Player1_AirTime",
+      "width": "16-bit slot; low byte observed",
       "confidence": 5,
-      "notes": "Effective player-1 Lua key `airValue`; later duplicate overrides second-racer `7E:0547`. In run 36514981164 sustained B causally changes player 1 from 0 to 9 while Y position/speed enter the airborne trajectory; matched no-B control remains 0."
+      "notes": "Dynamic run 36514981164 causally changes the low byte from 0 to 9 under sustained B while Y position/speed enter the airborne trajectory. Nitrodon's WRAM map identifies the slot as time in air with a 9-frame maximum, and bank-82 stunt code reads it as a word (`LDA $0545,Y`). Historical bots read only the low byte."
     },
     {
       "kind": "ram",
@@ -167,50 +195,50 @@
     {
       "kind": "ram",
       "address": "7E:0F61",
-      "name": "CurrentPlayer_TwistCountWorking",
-      "width": "8-bit counter view",
+      "name": "CurrentPlayer_HalfTwistCount",
+      "width": "16-bit working slot",
       "confidence": 4,
-      "notes": "USJO v8 and the 2008 TAS watch list identify this as the twist count. Static writer scan run 36769525945 finds coherent gameplay-code operations: player-specific state is copied into `$0F61` at `02:8BDB/02:90C5`, it is cleared at `02:949C/02:9D73/02:A3F4`, and `02:A46E` conditionally increments it. This is shared current-player working state rather than stable player-1-only storage; causal stunt-transition validation remains open."
+      "notes": "Nitrodon's map identifies this as the current-player number of half-twists. The stunt finalizer at `02:9C2E` shifts it right once to derive full twists, caps the result at 4, and feeds that into the stunt-combination index. Writer analysis independently shows current-player copy/clear/increment behavior."
     },
     {
       "kind": "ram",
       "address": "7E:042F",
-      "name": "Player1_TabletopCount",
-      "width": "8-bit",
-      "confidence": 4,
-      "notes": "USJO v8 and the historical TAS watch list identify this as the tabletop count. Static writer scan run 36769525945 finds coherent bank-02 initialization/store sites and `INC $042F,X` at `02:9582`, strongly supporting counter semantics; a causal runtime tabletop fixture remains open."
+      "name": "Player1_TabletopDuration",
+      "width": "16-bit slot; low byte observed",
+      "confidence": 5,
+      "notes": "Nitrodon's map and annotated bank-82 code identify this as tabletop duration; `INC $042F,X` at `02:9582` advances it and `02:9C87` requires duration >= 3 to emit the Tabletop message. Dynamic run 36776825024 independently observes X input driving low-byte `0→1→2→3→4→0` at a two-frame cadence in native and pinned Snes9x. This supersedes the older accumulated-count label."
     },
     {
       "kind": "ram",
       "address": "7E:042B",
       "name": "Player1_ZFlipCount",
-      "width": "8-bit",
+      "width": "16-bit slot; low byte used by USJO",
       "confidence": 4,
-      "notes": "USJO v8 and the historical TAS watch list identify this as the Z-flip count. Static writer scan run 36769525945 exposes a coherent `LDA $042B,Y; INC A; STA $042B,Y` sequence around `02:96D0`, plus initialization stores, strongly supporting counter semantics; causal runtime validation remains open."
+      "notes": "Nitrodon's map identifies the player-specific slot as Z-flip count. Bank-82 code reads/writes it under 16-bit accumulator mode, caps the landing result at 4, and uses it directly in the stunt-combination index. USJO v8 reads only the low byte."
     },
     {
       "kind": "ram",
       "address": "7E:11F9",
       "name": "Player1_RollCount",
-      "width": "8-bit",
+      "width": "16-bit slot; low byte used by USJO",
       "confidence": 4,
-      "notes": "USJO v8 and the historical TAS watch list identify this as the roll count. Static writer scan run 36769525945 finds coherent indexed initialization plus `INC $11F9,X` at `02:9B27` and `02:9BB7`, strongly supporting per-racer counter semantics; causal runtime validation remains open."
+      "notes": "Nitrodon's map explicitly records a 2-byte player-1 roll count. The stunt routine increments it with 16-bit `INC $11F9,X` after four quarter-turn progress steps, and may credit a 3/4 roll on landing. USJO v8 reads only the low byte."
     },
     {
       "kind": "ram",
       "address": "7E:11FD",
       "name": "Player1_FlipCount",
-      "width": "8-bit",
+      "width": "16-bit slot; low byte used by USJO",
       "confidence": 4,
-      "notes": "USJO v8 and the historical TAS watch list identify this as the flip count. Static writer scan run 36769525945 finds coherent indexed initialization plus `INC $11FD,X` at `02:9B41` and `02:9BF6`, strongly supporting per-racer counter semantics; causal runtime validation remains open."
+      "notes": "Nitrodon's map explicitly records a 2-byte player-1 flip count. The stunt routine increments it with 16-bit `INC $11FD,X` after four quarter-turn progress steps, and may credit a 3/4 flip on landing. USJO v8 reads only the low byte."
     },
     {
       "kind": "ram",
       "address": "7E:11CD",
-      "name": "Player1_BoostMeter",
+      "name": "CurrentPlayer_BoostMeterWorking",
       "width": "16-bit",
       "confidence": 4,
-      "notes": "Historical TAS watch list labels a 16-bit unsigned booster meter. Static writer scan run 36769525945 finds coherent bank-02 word operations, including `REP #$20; LDA #$0000; STA $11CD` at `02:9BA6` plus word-style arithmetic/store sequences at `02:A768` and nearby routines. USJO v8 intentionally reads only the low byte as `realboostmeter` and uses it solely as a zero/nonzero gate; exact game-facing boost units still need dynamic validation."
+      "notes": "Nitrodon's map distinguishes this shared current-player boost meter from stable player slots at `$11CF/$11D1`. Bank-82 code zeroes it on wipeout, subtracts 16 in an off-screen penalty path, clamps computed boost to `0x0180`, and feeds half the value into velocity limiting. USJO v8 reads only its low byte as a zero/nonzero gate."
     },
     {
       "kind": "ram",
@@ -231,10 +259,106 @@
     {
       "kind": "ram",
       "address": "7E:0F9F",
-      "name": "Player1_XSpeed_Alternate",
+      "name": "CurrentPlayer_XVelocityWorking",
+      "width": "signed 16-bit working slot",
+      "confidence": 4,
+      "notes": "Nitrodon's map identifies current-player X velocity here. Bank-81 collision/transform code reads `$0F9F/$0FA1`, transforms both through matrix terms, and stores the new X/Y pair back; bank-82 movement and boost paths also mutate `$0F9F`. This resolves USJO's old “alternative speed” comment as shared current-player working state rather than a second player-1 field."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0FA1",
+      "name": "CurrentPlayer_YVelocityWorking",
+      "width": "signed 16-bit working slot",
+      "confidence": 4,
+      "notes": "Nitrodon's map and bank-81 velocity transform pair this with `$0F9F`; bank-82 vertical-acceleration code at `02:A968` updates this slot directly."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0FEF",
+      "name": "CurrentPlayer_Index",
+      "width": "16-bit selector",
+      "confidence": 4,
+      "notes": "Nitrodon's map records `0 = player 1`, `2 = player 2`. Bank-82 stunt/movement code repeatedly loads it into X/Y to index paired 16-bit player slots."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:11CF",
+      "name": "Player1_BoostMeter",
       "width": "16-bit",
-      "confidence": 1,
-      "notes": "USJO v8 comment names this as an alternative to `7E:04B7` for horizontal speed. Treat as a lead until reader/writer relationship is understood."
+      "confidence": 4,
+      "notes": "Nitrodon's map identifies the stable player-1 boost slot, distinct from shared current-player working `$11CD`. Local copy-in/copy-out path should still be named explicitly."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:11D1",
+      "name": "Player2_BoostMeter",
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Nitrodon's map identifies the paired player-2 boost slot."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:1201",
+      "name": "Player1_RollQuarterProgress",
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Bank-82 stunt code increments this progress value and converts it into one roll when it reaches 4, then resets it; paired player-2 slot is `$1203`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:1205",
+      "name": "Player1_FlipQuarterProgress",
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Bank-82 stunt code increments this progress value and converts it into one flip when it reaches 4, then resets it; paired player-2 slot is `$1207`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:033B",
+      "name": "Player1_FacingAtTakeoff",
+      "width": "16-bit slot",
+      "confidence": 4,
+      "notes": "Nitrodon's map says this records whether the racer was facing right when leaving the ground. The stunt finalizer uses it to decide whether accumulated quarter-turn direction maps to flip versus roll; paired player-2 slot is `$033D`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:1199",
+      "name": "Player1_NextCheckpoint",
+      "width": "16-bit",
+      "confidence": 3,
+      "notes": "Nitrodon's map identifies the next-checkpoint field; paired player-2 slot is `$119B`. High-value race-finish fixture target."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:119D",
+      "name": "Player1_FinishGateState",
+      "width": "16-bit",
+      "confidence": 3,
+      "notes": "Nitrodon's map records `0` when player 1 can cross the finish line; paired player-2 slot is `$119F`. Exact nonzero state meanings remain open."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0EF1",
+      "name": "Player1_LapsRemaining",
+      "width": "16-bit",
+      "confidence": 3,
+      "notes": "Nitrodon's map identifies laps remaining; paired player-2 slot is `$0EF3`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:12AF",
+      "name": "Stunt_CurrentScore",
+      "width": "16-bit",
+      "confidence": 3,
+      "notes": "Nitrodon's map identifies the current score on stunt tracks. Score update semantics remain to be traced."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:1361",
+      "name": "Player1_StuntAirLatch",
+      "width": "16-bit slot",
+      "confidence": 3,
+      "notes": "Olivier retained this as an “Air flag”; Nitrodon's stunt disassembly shows `02:9A97` setting indexed `$1361` to 1 during stunt-air initialization and `02:9D88` clearing it during finalization. Exact relationship to ordinary air-time `$0545` remains open."
     },
     {
       "kind": "ram",

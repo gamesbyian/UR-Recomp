@@ -627,6 +627,9 @@ sources:
     source: "Directly supplied by Nitrodon to Ian Wallace via Discord"
     original_container: "Uniracers.zip (container intentionally not retained)"
     imported_directory: "references/imported/reverse-engineering/nitrodon/"
+    analysis: "references/notes/nitrodon-reverse-engineering-mining.md"
+    machine_index: "analysis/generated/nitrodon-evidence-index.json"
+    reconciliation: "analysis/generated/nitrodon-reconciliation.json"
     files:
       - "RAM addresses.txt"
       - "ROM addresses.txt"

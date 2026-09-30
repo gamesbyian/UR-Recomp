@@ -324,3 +324,15 @@ Several labels immediately reconcile ambiguities in the recovered USJO v8 materi
 - `stunts.txt` directly annotates the stunt-processing path around bank 82, including roll/flip accumulation, twist/Z-flip/tabletop handling, wipeout/headbounce handling and related score/boost logic.
 
 These labels are high-quality historical reverse-engineering evidence because they are accompanied by disassembly and trace context, but they remain subject to local deterministic validation before being treated as canonical symbols.
+
+### Nitrodon reconciliation of the TAS watch vocabulary
+
+The directly recovered Nitrodon workspace materially sharpens several older TAS labels that were previously preserved only as short watch names:
+
+- `7E:042F` is annotated and used as tabletop **duration/progress**, not a cumulative tabletop count; this agrees with the project's dynamic `0→1→2→3→4→0` transient.
+- `7E:0F61` is the current-player count of **half-twists**; the stunt finalizer shifts it right to count complete twists.
+- `7E:11F9` and `7E:11FD` are 16-bit roll/flip count slots, though historical Lua reads their low bytes.
+- `7E:11CD` is shared current-player boost working state, with stable per-player meters at `7E:11CF/11D1`.
+- `7E:0F9F/0FA1` are shared current-player X/Y velocity working slots.
+
+The same stunt routine proves an exact base-5 stunt-combination index: `125*flips + 25*rolls + 5*twists + zflips`, selecting one of 625 response bytes beginning at `02:9DAA`. See `references/notes/nitrodon-reverse-engineering-mining.md` for the full reconciliation.

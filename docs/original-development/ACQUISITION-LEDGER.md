@@ -347,8 +347,8 @@ Need judgment: **selectively useful.** A movie is valuable when it reaches a sce
 
 ## A-024 — Nitrodon reverse-engineering workspace
 
-Priority: P0 evidence intake complete  
-Status: acquired, extracted and committed 2026-09-30  
+Priority: P0 evidence intake and first mining pass complete  
+Status: acquired, extracted, committed and reconciled 2026-09-30  
 Source: supplied directly by Nitrodon to Ian Wallace via Discord after referral from Dessyreqt  
 Repository directory: `references/imported/reverse-engineering/nitrodon/`
 
@@ -363,7 +363,7 @@ Nine original files are preserved individually; the ZIP transport container is i
 
 Immediate value: this archive materially strengthens and clarifies the recovered USJO evidence. It identifies `7E:11CD` as a two-byte current-player boost meter with player-specific slots at `7E:11CF/11D1`; identifies `7E:0FEF` as the current-player selector; describes `7E:0F9F` as current-player X velocity; refines `7E:042F` to tabletop duration and `7E:0F61` to half-twist count; and records 16-bit roll/flip counters at `7E:11F9/11FD`. Treat these as unusually strong historical working labels, but retain local runtime reproduction as the promotion gate.
 
-Acquisition is complete for this supplied bundle. Further outreach should ask Nitrodon only about distinct material not present here, especially Lua/USJO versions, savestates, SRAMs, SMVs or additional notes.
+Acquisition is complete for this supplied bundle. The first mining/reconciliation pass is preserved at `references/notes/nitrodon-reverse-engineering-mining.md` with machine-readable conclusions in `analysis/generated/nitrodon-reconciliation.json`; resulting symbol corrections and routine landmarks are integrated into the canonical symbol exports. Further outreach should ask Nitrodon only about distinct material not present here, especially Lua/USJO versions, savestates, SRAMs, SMVs or additional notes.
 
 ### 2026-09-29 automated archive probe
 

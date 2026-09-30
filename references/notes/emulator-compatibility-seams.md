@@ -74,3 +74,16 @@ Durable inputs/assertion:
 - `tests/input/vs-first-race.input`
 - `tests/input/vs-first-race-observe.script`
 - `tools/assert_uniracers_vs_oam_seam.py`
+
+
+#### HDMA table source
+
+The stable VS race captures also expose the driving HDMA configuration itself. At HDMA initialization, channel 1 is mode 0 with BBAD `$2104` and table source `$7E:206C`. The WRAM table is stable across the sampled race frames:
+
+```text
+7E:206C  70 A5 70 5A 00
+```
+
+For direct mode-0 HDMA this is two 112-line runs followed by the terminator: the first run supplies `$A5`, the second supplies `$5A`. This explains why the journal sees one `$2104` write at V=0 and the next at V=112.
+
+That closes the immediate source/timing question. The remaining archaeology is the hardware consequence: map those active-display `$2104` writes through the effective OAM address/high-table semantics and confirm the historically implicated sprite range rather than inferring it from emulator workaround code.

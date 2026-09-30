@@ -1,0 +1,1623 @@
+{
+  "schema_version": 1,
+  "source": "Nitrodon direct 2008-2009 reverse-engineering workspace",
+  "generated_from": [
+    "references/imported/reverse-engineering/nitrodon/RAM addresses.txt",
+    "references/imported/reverse-engineering/nitrodon/messages.txt",
+    "references/imported/reverse-engineering/nitrodon/ROM addresses.txt"
+  ],
+  "warning": "Historical annotations are queryable evidence, not automatically canonical semantics. Use docs/SYMBOLS.md for promoted symbols.",
+  "ram_entries": [
+    {
+      "address": "0x7E00A5",
+      "end_address": null,
+      "historical_description": "X coordinate, currently handled player (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E00A7",
+      "end_address": null,
+      "historical_description": "Y coordinate, currently handled player (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0230",
+      "end_address": null,
+      "historical_description": "flip message number",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0232",
+      "end_address": null,
+      "historical_description": "roll message number",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0234",
+      "end_address": null,
+      "historical_description": "twist message number",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0236",
+      "end_address": null,
+      "historical_description": "Z-flip message number",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0260",
+      "end_address": null,
+      "historical_description": "number of flips counted",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0262",
+      "end_address": null,
+      "historical_description": "number of rolls counted",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0264",
+      "end_address": null,
+      "historical_description": "number of twists counted",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0266",
+      "end_address": null,
+      "historical_description": "number of Z-flips counted",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E026A",
+      "end_address": null,
+      "historical_description": "number based on tricks",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E030F",
+      "end_address": null,
+      "historical_description": "buttons pressed (player 1?)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0311",
+      "end_address": null,
+      "historical_description": "vertical direction pressed, player 1 (0=up, 1=neutral, 2=down)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0313",
+      "end_address": null,
+      "historical_description": "vertical direction pressed, player 2 (0=up, 1=neutral, 2=down)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0315",
+      "end_address": null,
+      "historical_description": "horizontal direction pressed, player 1 (0=left, 1=neutral, 2=right)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0317",
+      "end_address": null,
+      "historical_description": "horizontal direction pressed, player 2 (0=left, 1=neutral, 2=right)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0319",
+      "end_address": null,
+      "historical_description": "pressing A, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E031B",
+      "end_address": null,
+      "historical_description": "pressing A, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E031D",
+      "end_address": null,
+      "historical_description": "pressing X, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E031F",
+      "end_address": null,
+      "historical_description": "pressing X, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0321",
+      "end_address": null,
+      "historical_description": "pressing Y, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0323",
+      "end_address": null,
+      "historical_description": "pressing Y, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0325",
+      "end_address": null,
+      "historical_description": "pressing L, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0327",
+      "end_address": null,
+      "historical_description": "pressing L, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0329",
+      "end_address": null,
+      "historical_description": "pressing R, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E032B",
+      "end_address": null,
+      "historical_description": "pressing R, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E032D",
+      "end_address": null,
+      "historical_description": "pressing B, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E032F",
+      "end_address": null,
+      "historical_description": "pressing B, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0331",
+      "end_address": null,
+      "historical_description": "pressing select, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0333",
+      "end_address": null,
+      "historical_description": "pressing select, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0335",
+      "end_address": null,
+      "historical_description": "pressing start, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0337",
+      "end_address": null,
+      "historical_description": "pressing start, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E033B",
+      "end_address": null,
+      "historical_description": "was facing right when left ground, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E033D",
+      "end_address": null,
+      "historical_description": "was facing right when left ground, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0411",
+      "end_address": null,
+      "historical_description": "X position, player 1 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0413",
+      "end_address": null,
+      "historical_description": "X position, player 2 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0415",
+      "end_address": null,
+      "historical_description": "Y position, player 1 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0417",
+      "end_address": null,
+      "historical_description": "Y position, player 2 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0419",
+      "end_address": null,
+      "historical_description": "camera 1 X",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E041B",
+      "end_address": null,
+      "historical_description": "camera 2 X",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E041D",
+      "end_address": null,
+      "historical_description": "camera 1 Y",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E041F",
+      "end_address": null,
+      "historical_description": "camera 2 Y",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0427",
+      "end_address": null,
+      "historical_description": "0 = wipeout, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0429",
+      "end_address": null,
+      "historical_description": "0 = wipeout, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E042B",
+      "end_address": null,
+      "historical_description": "number of Z-flips, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E042D",
+      "end_address": null,
+      "historical_description": "number of Z-flips, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E042F",
+      "end_address": null,
+      "historical_description": "tabletop duration, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0431",
+      "end_address": null,
+      "historical_description": "tabletop duration, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E04B7",
+      "end_address": null,
+      "historical_description": "X velocity, player 1 (in subpixels, 2 bytes)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E04B9",
+      "end_address": null,
+      "historical_description": "X velocity, player 2 (in subpixels, 2 bytes)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E04BB",
+      "end_address": null,
+      "historical_description": "Y velocity, player 1 (in subpixels, 2 bytes)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E04BD",
+      "end_address": null,
+      "historical_description": "Y velocity, player 2 (in subpixels, 2 bytes)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E04C7",
+      "end_address": null,
+      "historical_description": "angle, player 1 (2 bytes, takes values 0-63)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E04F1",
+      "end_address": null,
+      "historical_description": "X size of map /64 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E04F3",
+      "end_address": null,
+      "historical_description": "X size of map /32? (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E04F5",
+      "end_address": null,
+      "historical_description": "camera X velocity, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E04F9",
+      "end_address": null,
+      "historical_description": "camera Y velocity, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0545",
+      "end_address": null,
+      "historical_description": "time in air, player 1 (2 bytes, max 9 frames)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0B68",
+      "end_address": null,
+      "historical_description": "track angle, player 1 (ranges from -64 to 63)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0B6A",
+      "end_address": null,
+      "historical_description": "track angle, player 2 (ranges from -64 to 63)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0B6C",
+      "end_address": null,
+      "historical_description": "some track data, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0B6E",
+      "end_address": null,
+      "historical_description": "some track data, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0BA1",
+      "end_address": null,
+      "historical_description": "facing right, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0BA3",
+      "end_address": null,
+      "historical_description": "facing right, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0BB1",
+      "end_address": null,
+      "historical_description": "angular velocity, player 1 (1 byte signed)",
+      "width_bytes": 1,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0CBB",
+      "end_address": "0x7E0CDA",
+      "historical_description": "message queue, player 1 (1 byte per message, cyclic)",
+      "width_bytes": 1,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0CE1",
+      "end_address": null,
+      "historical_description": "beginning of queue, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0CE3",
+      "end_address": null,
+      "historical_description": "end of queue + 1, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0CE5",
+      "end_address": "0x7E0D04",
+      "historical_description": "message queue, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0D0B",
+      "end_address": null,
+      "historical_description": "beginning of queue, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0D0D",
+      "end_address": null,
+      "historical_description": "end of queue + 2, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0D49",
+      "end_address": null,
+      "historical_description": "X size of map (2 bytes; bitmask)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0DFD",
+      "end_address": null,
+      "historical_description": "Z rotation, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E0F",
+      "end_address": null,
+      "historical_description": "timer minutes (2 bytes, main)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E13",
+      "end_address": null,
+      "historical_description": "timer seconds, tens digit (2 bytes, main)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E17",
+      "end_address": null,
+      "historical_description": "timer seconds, ones digit (2 bytes, main)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E1B",
+      "end_address": null,
+      "historical_description": "timer seconds, tenths digit (2 bytes, main)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E1F",
+      "end_address": null,
+      "historical_description": "timer frames (2 bytes, main, always increments)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E25",
+      "end_address": null,
+      "historical_description": "timer minutes (1 byte, displayed)",
+      "width_bytes": 1,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E27",
+      "end_address": null,
+      "historical_description": "timer minutes? (???)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E29",
+      "end_address": null,
+      "historical_description": "timer seconds, tens digit (1 byte, displayed)",
+      "width_bytes": 1,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E2B",
+      "end_address": null,
+      "historical_description": "timer seconds, tens digit (1 byte, displayed)",
+      "width_bytes": 1,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E2D",
+      "end_address": null,
+      "historical_description": "timer seconds, ones digit (1 byte, displayed)",
+      "width_bytes": 1,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E2F",
+      "end_address": null,
+      "historical_description": "timer seconds, ones digit (???)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E31",
+      "end_address": null,
+      "historical_description": "timer seconds, tenths digit (1 byte, displayed?)",
+      "width_bytes": 1,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E33",
+      "end_address": null,
+      "historical_description": "timer seconds, tenths digit (???)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E35",
+      "end_address": null,
+      "historical_description": "timer .01seconds at end of previous lap, player 1 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E37",
+      "end_address": null,
+      "historical_description": "timer .01seconds at end of previous lap, player 2 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E39",
+      "end_address": null,
+      "historical_description": "timer minutes at end of previous lap, player 1 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E3B",
+      "end_address": null,
+      "historical_description": "timer minutes at end of previous lap, player 2 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E3D",
+      "end_address": null,
+      "historical_description": "timer 10seconds at end of previous lap, player 1 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E3F",
+      "end_address": null,
+      "historical_description": "timer 10seconds at end of previous lap, player 2 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E41",
+      "end_address": null,
+      "historical_description": "timer 1seconds at end of previous lap, player 1 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E43",
+      "end_address": null,
+      "historical_description": "timer 1seconds at end of previous lap, player 2 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E45",
+      "end_address": null,
+      "historical_description": "timer .1seconds at end of previous lap, player 1 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E47",
+      "end_address": null,
+      "historical_description": "timer .1seconds at end of previous lap, player 2 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0E95",
+      "end_address": null,
+      "historical_description": "collision data?, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0EF1",
+      "end_address": null,
+      "historical_description": "laps remaining, player 1 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0EF3",
+      "end_address": null,
+      "historical_description": "laps remaining, player 2 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F09",
+      "end_address": null,
+      "historical_description": "collision data?, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F0D",
+      "end_address": null,
+      "historical_description": "track angle, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F0F",
+      "end_address": null,
+      "historical_description": "pressing Y, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F11",
+      "end_address": null,
+      "historical_description": "pressing L, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F13",
+      "end_address": null,
+      "historical_description": "pressing R, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F15",
+      "end_address": null,
+      "historical_description": "pressing B, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F17",
+      "end_address": null,
+      "historical_description": "horizontal direction pressed, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F27",
+      "end_address": null,
+      "historical_description": "some track data, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F29",
+      "end_address": null,
+      "historical_description": "time in air, currently handled player (2 bytes, max 9 frames)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F2D",
+      "end_address": null,
+      "historical_description": "angle while \"dancing\"?, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F47",
+      "end_address": null,
+      "historical_description": "facing right, currently handled player (0 when facing left or twisting)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F49",
+      "end_address": null,
+      "historical_description": "angle, currently handled player (values from 0 to 63, increases clockwise)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F4B",
+      "end_address": null,
+      "historical_description": "bounced off seat?, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F4D",
+      "end_address": null,
+      "historical_description": "angular velocity, currently handled player (1 byte signed)",
+      "width_bytes": 1,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F4F",
+      "end_address": null,
+      "historical_description": "(related to Z angle?), currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F57",
+      "end_address": null,
+      "historical_description": "Z rotation, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F5D",
+      "end_address": null,
+      "historical_description": "quadrant in previous frame, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F61",
+      "end_address": null,
+      "historical_description": "number of half-twists, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F63",
+      "end_address": null,
+      "historical_description": "0F69, one frame ago",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F65",
+      "end_address": null,
+      "historical_description": "0F69, two frames ago",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F67",
+      "end_address": null,
+      "historical_description": "0F69, three frames ago",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F69",
+      "end_address": null,
+      "historical_description": "???",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F99",
+      "end_address": null,
+      "historical_description": "target angle?, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0F9F",
+      "end_address": null,
+      "historical_description": "X velocity, currently handled player (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0FA1",
+      "end_address": null,
+      "historical_description": "Y velocity, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0FEF",
+      "end_address": null,
+      "historical_description": "player currently handled (0=1, 2=2)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0FFD",
+      "end_address": null,
+      "historical_description": "headbounce, currently handled player (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E0FFF",
+      "end_address": null,
+      "historical_description": "headbounce, player 1 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E1001",
+      "end_address": null,
+      "historical_description": "headbounce, player 2 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E1199",
+      "end_address": null,
+      "historical_description": "next checkpoint, player 1 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E119B",
+      "end_address": null,
+      "historical_description": "next checkpoint, player 2 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E119D",
+      "end_address": null,
+      "historical_description": "0 if can cross finish line, player 1 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E119F",
+      "end_address": null,
+      "historical_description": "0 if can cross finish line, player 2 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E11CD",
+      "end_address": null,
+      "historical_description": "boost meter, currently handled player (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E11CF",
+      "end_address": null,
+      "historical_description": "boost meter, player 1 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E11D1",
+      "end_address": null,
+      "historical_description": "boost meter, player 2 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E11F9",
+      "end_address": null,
+      "historical_description": "number of rolls, player 1 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E11FB",
+      "end_address": null,
+      "historical_description": "number of rolls, player 2 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E11FD",
+      "end_address": null,
+      "historical_description": "number of flips, player 1 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E11FF",
+      "end_address": null,
+      "historical_description": "number of flips, player 2 (2 bytes)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E1201",
+      "end_address": null,
+      "historical_description": "progress toward roll, player 1 (2 bytes, 4=roll)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E1203",
+      "end_address": null,
+      "historical_description": "progress toward roll, player 2 (2 bytes, 4=roll)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E1205",
+      "end_address": null,
+      "historical_description": "progress toward flip, player 1 (2 bytes, 4=flip)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E1207",
+      "end_address": null,
+      "historical_description": "progress toward flip, player 2 (2 bytes, 4=flip)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E1209",
+      "end_address": null,
+      "historical_description": "at non-neutral Z angle?, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E121B",
+      "end_address": null,
+      "historical_description": "player 1 off screen",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E123B",
+      "end_address": null,
+      "historical_description": "pressing X, currently handled player",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E12AF",
+      "end_address": null,
+      "historical_description": "current score (in stunt tracks, 2 bytes)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E1501",
+      "end_address": null,
+      "historical_description": "screen 2 X position, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E1502",
+      "end_address": null,
+      "historical_description": "screen 2 Y position, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E1505",
+      "end_address": null,
+      "historical_description": "screen 2 X position, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E1506",
+      "end_address": null,
+      "historical_description": "screen 2 Y position, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E1509",
+      "end_address": null,
+      "historical_description": "screen 1 X position, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E150A",
+      "end_address": null,
+      "historical_description": "screen 1 Y position, player 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E150D",
+      "end_address": null,
+      "historical_description": "screen 1 X position, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E150E",
+      "end_address": null,
+      "historical_description": "screen 1 Y position, player 2",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E1599",
+      "end_address": null,
+      "historical_description": "0x30 makes uni 1 invisible in screen 1",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7E20E8",
+      "end_address": "0x?",
+      "historical_description": "scores for completing tricks (in stunt tracks, 1 byte each)",
+      "width_bytes": null,
+      "confidence": "historical_annotation"
+    },
+    {
+      "address": "0x7F000F",
+      "end_address": "0x?",
+      "historical_description": "track data? (2 bytes per 64x64 sector)",
+      "width_bytes": 2,
+      "confidence": "historical_annotation"
+    }
+  ],
+  "message_ids": [
+    {
+      "id": "0x01",
+      "text": "Roll"
+    },
+    {
+      "id": "0x02",
+      "text": "Double Roll"
+    },
+    {
+      "id": "0x03",
+      "text": "Treble Roll"
+    },
+    {
+      "id": "0x04",
+      "text": "Roll City"
+    },
+    {
+      "id": "0x05",
+      "text": "Flip"
+    },
+    {
+      "id": "0x06",
+      "text": "Double Flip"
+    },
+    {
+      "id": "0x07",
+      "text": "Treble Flip"
+    },
+    {
+      "id": "0x08",
+      "text": "Flip City"
+    },
+    {
+      "id": "0x09",
+      "text": "Twist"
+    },
+    {
+      "id": "0x0A",
+      "text": "Double Twist"
+    },
+    {
+      "id": "0x0B",
+      "text": "Treble Twist"
+    },
+    {
+      "id": "0x0C",
+      "text": "Twister City"
+    },
+    {
+      "id": "0x0D",
+      "text": "Rollout"
+    },
+    {
+      "id": "0x0E",
+      "text": "Wipeout"
+    },
+    {
+      "id": "0x0F",
+      "text": "Last Lap"
+    },
+    {
+      "id": "0x10",
+      "text": "Head Bounce"
+    },
+    {
+      "id": "0x11",
+      "text": "Tabletop"
+    },
+    {
+      "id": "0x12",
+      "text": "Z Flip"
+    },
+    {
+      "id": "0x13",
+      "text": "Double  Z Flip"
+    },
+    {
+      "id": "0x14",
+      "text": "Treble  Z Flip"
+    },
+    {
+      "id": "0x15",
+      "text": "Z Flip City"
+    },
+    {
+      "id": "0x16",
+      "text": "Wrong Way"
+    },
+    {
+      "id": "0x17",
+      "text": "Secret"
+    },
+    {
+      "id": "0x18",
+      "text": "Cheat"
+    },
+    {
+      "id": "0x19",
+      "text": "Mode"
+    },
+    {
+      "id": "0x1A",
+      "text": "Activated"
+    },
+    {
+      "id": "0x1B",
+      "text": "Screen Flip On"
+    },
+    {
+      "id": "0x1C",
+      "text": "Hedgehog Speed"
+    },
+    {
+      "id": "0x1D",
+      "text": "Slow Motion On"
+    },
+    {
+      "id": "0x1E",
+      "text": "Power Bounce On"
+    },
+    {
+      "id": "0x1F",
+      "text": "Barf Mode On"
+    },
+    {
+      "id": "0x20",
+      "text": "Invisible Track"
+    },
+    {
+      "id": "0x21",
+      "text": "Wobble Mode On"
+    },
+    {
+      "id": "0x22",
+      "text": "Control Reversed"
+    },
+    {
+      "id": "0x24",
+      "text": "Invisible Unis"
+    },
+    {
+      "id": "0x25",
+      "text": "Winner"
+    },
+    {
+      "id": "0x26",
+      "text": "Draw"
+    },
+    {
+      "id": "0x27",
+      "text": "Loser"
+    },
+    {
+      "id": "0x28",
+      "text": "In The Air"
+    },
+    {
+      "id": "0x29",
+      "text": "Buttons Help"
+    },
+    {
+      "id": "0x2A",
+      "text": "You To"
+    },
+    {
+      "id": "0x2B",
+      "text": "Pull Stunts"
+    },
+    {
+      "id": "0x2C",
+      "text": "More Stunts"
+    },
+    {
+      "id": "0x2D",
+      "text": "Give You"
+    },
+    {
+      "id": "0x2E",
+      "text": "Bigger Boosts"
+    },
+    {
+      "id": "0x30",
+      "text": "Bigger Boosts"
+    },
+    {
+      "id": "0x31",
+      "text": "Give You"
+    },
+    {
+      "id": "0x32",
+      "text": "More Speed"
+    },
+    {
+      "id": "0x34",
+      "text": "Pull Stunts"
+    },
+    {
+      "id": "0x35",
+      "text": "To Go Faster"
+    },
+    {
+      "id": "0x38",
+      "text": "To Pull A Stunt"
+    },
+    {
+      "id": "0x3A",
+      "text": "Press Button B"
+    },
+    {
+      "id": "0x3B",
+      "text": "And Button R"
+    },
+    {
+      "id": "0x3C",
+      "text": "Go On"
+    },
+    {
+      "id": "0x3D",
+      "text": "Try It"
+    },
+    {
+      "id": "0x3F",
+      "text": "Pull A Stunt"
+    },
+    {
+      "id": "0x40",
+      "text": "Press Button B"
+    },
+    {
+      "id": "0x41",
+      "text": "To Jump"
+    },
+    {
+      "id": "0x42",
+      "text": "And Button R"
+    },
+    {
+      "id": "0x43",
+      "text": "To Roll"
+    },
+    {
+      "id": "0x44",
+      "text": "Its Really"
+    },
+    {
+      "id": "0x45",
+      "text": "Easy You Know"
+    },
+    {
+      "id": "0x46",
+      "text": "Press B And R"
+    },
+    {
+      "id": "0x47",
+      "text": "At The Same Time"
+    },
+    {
+      "id": "0x48",
+      "text": "Rockin"
+    },
+    {
+      "id": "0x49",
+      "text": "Excellent"
+    },
+    {
+      "id": "0x4A",
+      "text": "Radical"
+    },
+    {
+      "id": "0x4B",
+      "text": "Thrashin'"
+    },
+    {
+      "id": "0x4C",
+      "text": "Air Head"
+    },
+    {
+      "id": "0x4D",
+      "text": "Huh  Huh"
+    },
+    {
+      "id": "0x4E",
+      "text": "Heavy Pedal"
+    },
+    {
+      "id": "0x4F",
+      "text": "Jammin'"
+    },
+    {
+      "id": "0x50",
+      "text": "Head Bangin'"
+    },
+    {
+      "id": "0x51",
+      "text": "Later"
+    },
+    {
+      "id": "0x52",
+      "text": "Dude"
+    },
+    {
+      "id": "0x53",
+      "text": "Intense"
+    },
+    {
+      "id": "0x54",
+      "text": "Brutal"
+    },
+    {
+      "id": "0x56",
+      "text": "Huh  Huh  Huh"
+    },
+    {
+      "id": "0x57",
+      "text": "Righteous"
+    },
+    {
+      "id": "0x58",
+      "text": "What A Rush!"
+    },
+    {
+      "id": "0x59",
+      "text": "Happenin'!"
+    },
+    {
+      "id": "0x5A",
+      "text": "Groovy!"
+    },
+    {
+      "id": "0x5B",
+      "text": "Daisy Rage!"
+    },
+    {
+      "id": "0x5C",
+      "text": "Outta Sight!"
+    },
+    {
+      "id": "0x5D",
+      "text": "Smmmmokin!"
+    },
+    {
+      "id": "0x5E",
+      "text": "Peace!"
+    },
+    {
+      "id": "0x5F",
+      "text": "Cool!"
+    },
+    {
+      "id": "0x60",
+      "text": "Neato!"
+    },
+    {
+      "id": "0x61",
+      "text": "Hip!"
+    },
+    {
+      "id": "0x62",
+      "text": "Far Out!"
+    },
+    {
+      "id": "0x63",
+      "text": "Flower Power!"
+    },
+    {
+      "id": "0x68",
+      "text": "Waaaaahhh!!!"
+    },
+    {
+      "id": "0x69",
+      "text": "Oh  Please!"
+    },
+    {
+      "id": "0x6A",
+      "text": "Toooo Fast!"
+    },
+    {
+      "id": "0x6B",
+      "text": "I'm Dizzy"
+    },
+    {
+      "id": "0x6C",
+      "text": "I Almost Fell"
+    },
+    {
+      "id": "0x6D",
+      "text": "Woooah!"
+    },
+    {
+      "id": "0x6E",
+      "text": "Shoot Me Now!"
+    },
+    {
+      "id": "0x6F",
+      "text": "Slow Me Down!"
+    },
+    {
+      "id": "0x70",
+      "text": "I Hate Races!"
+    },
+    {
+      "id": "0x71",
+      "text": "Huahhh  Wahh!"
+    },
+    {
+      "id": "0x72",
+      "text": "My Innertube!"
+    },
+    {
+      "id": "0x73",
+      "text": "!!!!!!!!!!!!!!"
+    },
+    {
+      "id": "0x78",
+      "text": "Da' Bomb!"
+    },
+    {
+      "id": "0x79",
+      "text": "Ain't No Thang!"
+    },
+    {
+      "id": "0x7A",
+      "text": "All That!"
+    },
+    {
+      "id": "0x7B",
+      "text": "It's On!"
+    },
+    {
+      "id": "0x7C",
+      "text": "Whasuuup!"
+    },
+    {
+      "id": "0x7D",
+      "text": "Slammin'"
+    },
+    {
+      "id": "0x7E",
+      "text": "Phat! (miscounted somewhere before this point)"
+    },
+    {
+      "id": "0x7F",
+      "text": "Smooth!"
+    },
+    {
+      "id": "0x80",
+      "text": "Born to Roll!"
+    },
+    {
+      "id": "0x81",
+      "text": "It's a Z Thang!"
+    },
+    {
+      "id": "0x82",
+      "text": "Cool Like Dat!"
+    },
+    {
+      "id": "0x88",
+      "text": "Outrageous!"
+    },
+    {
+      "id": "0x89",
+      "text": "I'm Sure!"
+    },
+    {
+      "id": "0x8A",
+      "text": "Tubular!"
+    },
+    {
+      "id": "0x8B",
+      "text": "Radical!"
+    },
+    {
+      "id": "0x8C",
+      "text": "Stellar!"
+    }
+  ],
+  "rom_offset_notes": [
+    {
+      "rom_offset": "0x188000",
+      "historical_label": "Dragster",
+      "confidence": "historical_annotation"
+    },
+    {
+      "rom_offset": "0x188183",
+      "historical_label": "Zoom Zoo",
+      "confidence": "historical_annotation"
+    },
+    {
+      "rom_offset": "0x1894BA",
+      "historical_label": "Bowl",
+      "confidence": "historical_annotation"
+    },
+    {
+      "rom_offset": "0x18A07E",
+      "historical_label": "Switcher",
+      "confidence": "historical_annotation"
+    },
+    {
+      "rom_offset": "0x1A9678",
+      "historical_label": "Jumps",
+      "confidence": "historical_annotation"
+    }
+  ]
+}

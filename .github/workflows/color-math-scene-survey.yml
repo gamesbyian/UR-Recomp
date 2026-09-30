@@ -1,0 +1,45 @@
+name: One-shot color-math scene survey
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/summarize_color_math_state.py"
+      - "tests/input/reach-first-race.script"
+      - ".github/workflows/color-math-scene-survey.yml"
+
+jobs:
+  survey:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Build patched Snes9x and snesref
+        run: |
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+      - name: Capture first-race color-math states
+        run: |
+          DUMPS="$RUNNER_TEMP/color-math-dumps"
+          mkdir -p "$DUMPS"
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$RUNNER_TEMP/snesref-build/snesref" \
+            "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python3 tools/summarize_color_math_state.py "$DUMPS" --json-out color-math-scene-survey.json
+          cat color-math-scene-survey.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: color-math-scene-survey
+          path: color-math-scene-survey.json

@@ -76,8 +76,9 @@ jobs:
           rm -rf "$CRATE/vendor"
           cp -a third_party/cargo/snesrecomp-analyzer/vendor "$CRATE/vendor"
           rm -rf "$CRATE/target"
+          cd "$CRATE"
           CARGO_HOME="$RUNNER_TEMP/empty-cargo-home" CARGO_NET_OFFLINE=true \
-            cargo build --manifest-path "$CRATE/Cargo.toml" --locked --offline --release --bin snesrecomp-analyze
+            cargo build --locked --offline --release --bin snesrecomp-analyze
           test -x "$CRATE/target/release/snesrecomp-analyze"
 
       - name: Commit Cargo closure

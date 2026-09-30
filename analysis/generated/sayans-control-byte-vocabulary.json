@@ -1,0 +1,2275 @@
+{
+  "changed_control_pairs": [
+    {
+      "after": "0xFC",
+      "before": "0x00",
+      "count": 5
+    },
+    {
+      "after": "0xFF",
+      "before": "0x00",
+      "count": 4
+    },
+    {
+      "after": "0xFE",
+      "before": "0x21",
+      "count": 3
+    },
+    {
+      "after": "0x17",
+      "before": "0x01",
+      "count": 2
+    },
+    {
+      "after": "0xFC",
+      "before": "0x07",
+      "count": 2
+    },
+    {
+      "after": "0xFF",
+      "before": "0x1A",
+      "count": 2
+    },
+    {
+      "after": "0xFF",
+      "before": "0x5F",
+      "count": 2
+    },
+    {
+      "after": "0xFF",
+      "before": "0x60",
+      "count": 2
+    },
+    {
+      "after": "0xFF",
+      "before": "0x80",
+      "count": 2
+    },
+    {
+      "after": "0xFF",
+      "before": "0xA9",
+      "count": 2
+    },
+    {
+      "after": "0x06",
+      "before": "0x00",
+      "count": 1
+    },
+    {
+      "after": "0xF2",
+      "before": "0x00",
+      "count": 1
+    },
+    {
+      "after": "0xF3",
+      "before": "0x01",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0x01",
+      "count": 1
+    },
+    {
+      "after": "0xFF",
+      "before": "0x01",
+      "count": 1
+    },
+    {
+      "after": "0x10",
+      "before": "0x03",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0x04",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0x05",
+      "count": 1
+    },
+    {
+      "after": "0x10",
+      "before": "0x06",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0x06",
+      "count": 1
+    },
+    {
+      "after": "0xFF",
+      "before": "0x07",
+      "count": 1
+    },
+    {
+      "after": "0xFF",
+      "before": "0x0B",
+      "count": 1
+    },
+    {
+      "after": "0x19",
+      "before": "0x10",
+      "count": 1
+    },
+    {
+      "after": "0xFE",
+      "before": "0x10",
+      "count": 1
+    },
+    {
+      "after": "0x0D",
+      "before": "0x11",
+      "count": 1
+    },
+    {
+      "after": "0xFF",
+      "before": "0x15",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0x18",
+      "count": 1
+    },
+    {
+      "after": "0x0D",
+      "before": "0x1A",
+      "count": 1
+    },
+    {
+      "after": "0x07",
+      "before": "0x20",
+      "count": 1
+    },
+    {
+      "after": "0x0D",
+      "before": "0x20",
+      "count": 1
+    },
+    {
+      "after": "0xFB",
+      "before": "0x20",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0x20",
+      "count": 1
+    },
+    {
+      "after": "0x02",
+      "before": "0x21",
+      "count": 1
+    },
+    {
+      "after": "0x04",
+      "before": "0x21",
+      "count": 1
+    },
+    {
+      "after": "0xF3",
+      "before": "0x21",
+      "count": 1
+    },
+    {
+      "after": "0x18",
+      "before": "0x22",
+      "count": 1
+    },
+    {
+      "after": "0x16",
+      "before": "0x23",
+      "count": 1
+    },
+    {
+      "after": "0xF3",
+      "before": "0x23",
+      "count": 1
+    },
+    {
+      "after": "0xF3",
+      "before": "0x25",
+      "count": 1
+    },
+    {
+      "after": "0x13",
+      "before": "0x2D",
+      "count": 1
+    },
+    {
+      "after": "0xFF",
+      "before": "0x2D",
+      "count": 1
+    },
+    {
+      "after": "0xFF",
+      "before": "0x31",
+      "count": 1
+    },
+    {
+      "after": "0x0F",
+      "before": "0x40",
+      "count": 1
+    },
+    {
+      "after": "0x0D",
+      "before": "0x48",
+      "count": 1
+    },
+    {
+      "after": "0x16",
+      "before": "0x55",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0x55",
+      "count": 1
+    },
+    {
+      "after": "0xFF",
+      "before": "0x58",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0x5A",
+      "count": 1
+    },
+    {
+      "after": "0xFF",
+      "before": "0x5C",
+      "count": 1
+    },
+    {
+      "after": "0x00",
+      "before": "0x5D",
+      "count": 1
+    },
+    {
+      "after": "0xF8",
+      "before": "0x5D",
+      "count": 1
+    },
+    {
+      "after": "0x10",
+      "before": "0x5F",
+      "count": 1
+    },
+    {
+      "after": "0x18",
+      "before": "0x5F",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0x5F",
+      "count": 1
+    },
+    {
+      "after": "0xFE",
+      "before": "0x5F",
+      "count": 1
+    },
+    {
+      "after": "0xFB",
+      "before": "0x60",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0x62",
+      "count": 1
+    },
+    {
+      "after": "0xFF",
+      "before": "0x67",
+      "count": 1
+    },
+    {
+      "after": "0xCA",
+      "before": "0x6C",
+      "count": 1
+    },
+    {
+      "after": "0xFB",
+      "before": "0x77",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0x77",
+      "count": 1
+    },
+    {
+      "after": "0x01",
+      "before": "0x79",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0x7A",
+      "count": 1
+    },
+    {
+      "after": "0xF3",
+      "before": "0x80",
+      "count": 1
+    },
+    {
+      "after": "0xFB",
+      "before": "0x80",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0x81",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0x83",
+      "count": 1
+    },
+    {
+      "after": "0xFF",
+      "before": "0x83",
+      "count": 1
+    },
+    {
+      "after": "0x01",
+      "before": "0x85",
+      "count": 1
+    },
+    {
+      "after": "0xFB",
+      "before": "0x85",
+      "count": 1
+    },
+    {
+      "after": "0x0D",
+      "before": "0x88",
+      "count": 1
+    },
+    {
+      "after": "0x16",
+      "before": "0x89",
+      "count": 1
+    },
+    {
+      "after": "0xFF",
+      "before": "0x8B",
+      "count": 1
+    },
+    {
+      "after": "0x00",
+      "before": "0x8D",
+      "count": 1
+    },
+    {
+      "after": "0x01",
+      "before": "0x8D",
+      "count": 1
+    },
+    {
+      "after": "0x04",
+      "before": "0x8D",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0x90",
+      "count": 1
+    },
+    {
+      "after": "0xFF",
+      "before": "0x93",
+      "count": 1
+    },
+    {
+      "after": "0x03",
+      "before": "0x9C",
+      "count": 1
+    },
+    {
+      "after": "0x04",
+      "before": "0x9C",
+      "count": 1
+    },
+    {
+      "after": "0x08",
+      "before": "0xA0",
+      "count": 1
+    },
+    {
+      "after": "0xFE",
+      "before": "0xA2",
+      "count": 1
+    },
+    {
+      "after": "0x02",
+      "before": "0xA9",
+      "count": 1
+    },
+    {
+      "after": "0x06",
+      "before": "0xA9",
+      "count": 1
+    },
+    {
+      "after": "0x13",
+      "before": "0xA9",
+      "count": 1
+    },
+    {
+      "after": "0x16",
+      "before": "0xA9",
+      "count": 1
+    },
+    {
+      "after": "0x0D",
+      "before": "0xAC",
+      "count": 1
+    },
+    {
+      "after": "0x16",
+      "before": "0xC2",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0xC2",
+      "count": 1
+    },
+    {
+      "after": "0x01",
+      "before": "0xC4",
+      "count": 1
+    },
+    {
+      "after": "0xFF",
+      "before": "0xC4",
+      "count": 1
+    },
+    {
+      "after": "0x0A",
+      "before": "0xD0",
+      "count": 1
+    },
+    {
+      "after": "0x10",
+      "before": "0xD0",
+      "count": 1
+    },
+    {
+      "after": "0xFF",
+      "before": "0xD0",
+      "count": 1
+    },
+    {
+      "after": "0x15",
+      "before": "0xE2",
+      "count": 1
+    },
+    {
+      "after": "0xFC",
+      "before": "0xE2",
+      "count": 1
+    },
+    {
+      "after": "0xFE",
+      "before": "0xE2",
+      "count": 1
+    },
+    {
+      "after": "0x13",
+      "before": "0xEF",
+      "count": 1
+    },
+    {
+      "after": "0xFB",
+      "before": "0xF0",
+      "count": 1
+    },
+    {
+      "after": "0x10",
+      "before": "0xF5",
+      "count": 1
+    },
+    {
+      "after": "0xFB",
+      "before": "0xF9",
+      "count": 1
+    },
+    {
+      "after": "0xFF",
+      "before": "0xFA",
+      "count": 1
+    },
+    {
+      "after": "0x08",
+      "before": "0xFC",
+      "count": 1
+    },
+    {
+      "after": "0x01",
+      "before": "0xFD",
+      "count": 1
+    },
+    {
+      "after": "0xFF",
+      "before": "0xFE",
+      "count": 1
+    }
+  ],
+  "control_runs": [
+    {
+      "bytes": [
+        255
+      ],
+      "count": 5,
+      "examples": [
+        {
+          "after_context": "correr_en[<FF>]_son<FF>_vuel",
+          "before_context": "<FF><00><E2> <18>i<06><A2><90>[<00>]\"<80><B1><82><80><00><C2> <AD><8F>",
+          "file_offset": 13308,
+          "file_offset_hex": "0x0033FC",
+          "lorom": "80:B3FC",
+          "record_index": 10
+        },
+        {
+          "after_context": "er_en<FF>_son[<FF>]_vuel_en<FF>h",
+          "before_context": "<18>i<06><A2><90><00>\"<80><B1><82>[<80>]<00><C2> <AD><8F><01>)<FF><00><E2>",
+          "file_offset": 13313,
+          "file_offset_hex": "0x003401",
+          "lorom": "80:B401",
+          "record_index": 10
+        },
+        {
+          "after_context": "n<FF>_vuel_en[<FF>]haz__suert",
+          "before_context": "<82><80><00><C2> <AD><8F><01>)<FF>[<00>]<E2> <18>i<06><A2><A0><00>\"<80>",
+          "file_offset": 13322,
+          "file_offset_hex": "0x00340A",
+          "lorom": "80:B40A",
+          "record_index": 10
+        },
+        {
+          "after_context": "oro_[<FF>]plata_<FF>bro",
+          "before_context": "<1E><00> <C9>[<FA>] <18><93><88><10><F7>\\<9A><AB><83>",
+          "file_offset": 28877,
+          "file_offset_hex": "0x0070CD",
+          "lorom": "80:F0CD",
+          "record_index": 44
+        },
+        {
+          "after_context": "ro_<FF>plata_[<FF>]bronc",
+          "before_context": "<00> <C9><FA> <18><93><88><10><F7>[\\]<9A><AB><83><E2> ",
+          "file_offset": 28884,
+          "file_offset_hex": "0x0070D4",
+          "lorom": "80:F0D4",
+          "record_index": 44
+        }
+      ],
+      "hex": "FF",
+      "length": 1
+    },
+    {
+      "bytes": [
+        255,
+        252,
+        16
+      ],
+      "count": 4,
+      "examples": [
+        {
+          "after_context": "ISMA_RUTA_[<FF>]<FC><10>SELEC_LA",
+          "before_context": "<F1> <00><B1><A6><AA><86>Z <A5>[<93>] <F5><C1><A9>U<8D><1A><0C><8D><1B>",
+          "file_offset": 12363,
+          "file_offset_hex": "0x00304B",
+          "lorom": "80:B04B",
+          "record_index": 9
+        },
+        {
+          "after_context": "JUGAD_[<FF>]<FC><10>NOMBRA__",
+          "before_context": "<9F><AF>B<07>w<89>[<00>]<04><D0><92><A5>t<89> <00><D0><8F>",
+          "file_offset": 14461,
+          "file_offset_hex": "0x00387D",
+          "lorom": "80:B87D",
+          "record_index": 14
+        },
+        {
+          "after_context": "NTAJ_MAXIM[<FF>]<FC><10>PUNTOS__",
+          "before_context": "00.00_by__[_]______<FE><0C><16><FF>",
+          "file_offset": 22437,
+          "file_offset_hex": "0x0057A5",
+          "lorom": "80:D7A5",
+          "record_index": 23
+        },
+        {
+          "after_context": "SET_PUNTAJ[<FF>]<FC><10>BYE_",
+          "before_context": "<06><AC>-<00><06><AC>-<00><06><AC>[-]<00><06><AC>-<00><06>",
+          "file_offset": 32267,
+          "file_offset_hex": "0x007E0B",
+          "lorom": "80:FE0B",
+          "record_index": 46
+        }
+      ],
+      "hex": "FF FC 10",
+      "length": 3
+    },
+    {
+      "bytes": [
+        255,
+        252,
+        13
+      ],
+      "count": 3,
+      "examples": [
+        {
+          "after_context": "UTA__SIG__[<FF>]<FC><0D>MISMA_RU",
+          "before_context": "Z <C9><FA> <DB><D1>\"<1E><9A>[<83>]z<88><10><F1> <00><B1><A6><AA><86>",
+          "file_offset": 12349,
+          "file_offset_hex": "0x00303D",
+          "lorom": "80:B03D",
+          "record_index": 9
+        },
+        {
+          "after_context": "RDS__RUTAS[<FF>]<FC><0D>PUNTAJ_M",
+          "before_context": "y_________[<FE>]<07><1A>0:00.00_",
+          "file_offset": 22422,
+          "file_offset_hex": "0x005796",
+          "lorom": "80:D796",
+          "record_index": 23
+        },
+        {
+          "after_context": "ANT_PUNTAJ[<FF>]<FC><0D>RESET_PU",
+          "before_context": "<AC>-<00><06><AC>-<00><06><AC>-[<00>]<06><AC>-<00><06><AC>-<00><06><AC>",
+          "file_offset": 32252,
+          "file_offset_hex": "0x007DFC",
+          "lorom": "80:FDFC",
+          "record_index": 46
+        }
+      ],
+      "hex": "FF FC 0D",
+      "length": 3
+    },
+    {
+      "bytes": [
+        255,
+        252,
+        22
+      ],
+      "count": 3,
+      "examples": [
+        {
+          "after_context": "LEC___TOUR[<FF>]<FC><16>BYE_",
+          "before_context": "<80><B1><82>\"<F7><91><83> <18><93>[`]UUTUPU",
+          "file_offset": 12394,
+          "file_offset_hex": "0x00306A",
+          "lorom": "80:B06A",
+          "record_index": 9
+        },
+        {
+          "after_context": "_LIGA_[<FF>]<FC><16>MENU__PR",
+          "before_context": "<80><A0><D0>;<AF>B[<07>]w<89><00><04><D0>.<A5>t<89><80>",
+          "file_offset": 14495,
+          "file_offset_hex": "0x00389F",
+          "lorom": "80:B89F",
+          "record_index": 15
+        },
+        {
+          "after_context": "LAS_GRUPOS[<FF>]<FC><16>MENU__PR",
+          "before_context": "<1A><EF><02><FF><E2> <A9><04>\"Q[<8B>]<83><C2> <A2>X<1B>d<16>d<1A>",
+          "file_offset": 22470,
+          "file_offset_hex": "0x0057C6",
+          "lorom": "80:D7C6",
+          "record_index": 23
+        }
+      ],
+      "hex": "FF FC 16",
+      "length": 3
+    },
+    {
+      "bytes": [
+        251,
+        252,
+        13
+      ],
+      "count": 2,
+      "examples": [
+        {
+          "after_context": "CUIDADO-[<FB>]<FC><0D>esta_opc",
+          "before_context": "<A9><1B><80><02><A9><03><85><DF>[`]<E2>  <E9><D1><A2><CC><A4> <AB>",
+          "file_offset": 7766,
+          "file_offset_hex": "0x001E56",
+          "lorom": "80:9E56",
+          "record_index": 3
+        },
+        {
+          "after_context": "CUIDADO---[<FB>]<FC><0D>esta_opc",
+          "before_context": "<FE><06><1A><FF>_by_<FF><E2>[ ]ZH<E2> <BD><00><00><E8><C9><EE>",
+          "file_offset": 17324,
+          "file_offset_hex": "0x0043AC",
+          "lorom": "80:C3AC",
+          "record_index": 19
+        }
+      ],
+      "hex": "FB FC 0D",
+      "length": 3
+    },
+    {
+      "bytes": [
+        255,
+        252,
+        1
+      ],
+      "count": 2,
+      "examples": [
+        {
+          "after_context": "UN_JUGADOR[<FF>]<FC><01>_TOMA_A_",
+          "before_context": "\"X<95><83><A9><02><85><AC><80><04>[<A9>]<01><85><AC><A5><D0><85><0A> :<E5>",
+          "file_offset": 16300,
+          "file_offset_hex": "0x003FAC",
+          "lorom": "80:BFAC",
+          "record_index": 17
+        },
+        {
+          "after_context": "UNO<FF><FE><18><01>DOS[<FF>]<FC><01>TOMA_UN_",
+          "before_context": "<FF><FE><07><1A>__<FD><B6><00><FF>[_]by_<FF><A2><9A><C3> <AB><C3>",
+          "file_offset": 17144,
+          "file_offset_hex": "0x0042F8",
+          "lorom": "80:C2F8",
+          "record_index": 18
+        }
+      ],
+      "hex": "FF FC 01",
+      "length": 3
+    },
+    {
+      "bytes": [
+        255,
+        252,
+        19
+      ],
+      "count": 2,
+      "examples": [
+        {
+          "after_context": "EC_LA_RUTA[<FF>]<FC><13>SELEC___",
+          "before_context": "<8D><1A><0C><8D><1B><0C> <C9><FA><A2>[<D0>]<00><A9><1C>\"<80><B1><82>\"<F7><91>",
+          "file_offset": 12379,
+          "file_offset_hex": "0x00305B",
+          "lorom": "80:B05B",
+          "record_index": 9
+        },
+        {
+          "after_context": "OS__JUGAD_[<FF>]<FC><13>TABLAS_G",
+          "before_context": "<FE><0C><16><FF><FE><1A><16><EF><00><FE>[<1A>]<18><EF><01><FE><1A><1A><EF><02><FF><E2>",
+          "file_offset": 22454,
+          "file_offset_hex": "0x0057B6",
+          "lorom": "80:D7B6",
+          "record_index": 23
+        }
+      ],
+      "hex": "FF FC 13",
+      "length": 3
+    },
+    {
+      "bytes": [
+        255,
+        252,
+        23
+      ],
+      "count": 2,
+      "examples": [
+        {
+          "after_context": "ORO___[<FF>]<FC><17>PLATA_<FF><FC>",
+          "before_context": "<00><00><01><01><00><01>[g]<00><01>x<00><01><01><00><01><01><00>",
+          "file_offset": 27898,
+          "file_offset_hex": "0x006CFA",
+          "lorom": "80:ECFA",
+          "record_index": 43
+        },
+        {
+          "after_context": "_<FF><FC><17>PLATA_[<FF>]<FC><17>BRONC",
+          "before_context": "<01>g<00><01>x<00><01><01><00><01>[<01>]<00><01><00><A5><95>H<A6>",
+          "file_offset": 27907,
+          "file_offset_hex": "0x006D03",
+          "lorom": "80:ED03",
+          "record_index": 43
+        }
+      ],
+      "hex": "FF FC 17",
+      "length": 3
+    },
+    {
+      "bytes": [
+        251,
+        248,
+        202,
+        0,
+        242,
+        15,
+        255,
+        252,
+        1
+      ],
+      "count": 1,
+      "examples": [
+        {
+          "after_context": "a_a_borrar[<FB>]<F8><CA><00><F2><0F><FF><FC><01>CU",
+          "before_context": "<FF><00>)<FF><00><0A><A8><B9><CB><C3>[<85>]]l]<00>@<C4><81><C4>E<C4>",
+          "file_offset": 17350,
+          "file_offset_hex": "0x0043C6",
+          "lorom": "80:C3C6",
+          "record_index": 19
+        }
+      ],
+      "hex": "FB F8 CA 00 F2 0F FF FC 01",
+      "length": 9
+    },
+    {
+      "bytes": [
+        243,
+        0,
+        255,
+        254,
+        6,
+        13
+      ],
+      "count": 1,
+      "examples": [
+        {
+          "after_context": "UNO:[<F3>]<00><FF><FE><06><0D>DOS:<F3>",
+          "before_context": "<8D><08>!<A9>[#]<8D><0B>!<A9><11><8D>,!<A9><80>",
+          "file_offset": 8492,
+          "file_offset_hex": "0x00212C",
+          "lorom": "80:A12C",
+          "record_index": 6
+        }
+      ],
+      "hex": "F3 00 FF FE 06 0D",
+      "length": 6
+    },
+    {
+      "bytes": [
+        243,
+        1,
+        255,
+        254,
+        2,
+        16
+      ],
+      "count": 1,
+      "examples": [
+        {
+          "after_context": "<F3><00><FF><FE><06><0D>DOS:[<F3>]<01><FF><FE><02><10>_TRES",
+          "before_context": "#<8D><0B>!<A9><11><8D>,!<A9>[<80>]<8D><15>!<A9><03><8D><05>!<A9>c",
+          "file_offset": 8502,
+          "file_offset_hex": "0x002136",
+          "lorom": "80:A136",
+          "record_index": 6
+        }
+      ],
+      "hex": "F3 01 FF FE 02 10",
+      "length": 6
+    },
+    {
+      "bytes": [
+        243,
+        2,
+        255,
+        254,
+        4,
+        19
+      ],
+      "count": 1,
+      "examples": [
+        {
+          "after_context": "<FF><FE><02><10>_TRES:[<F3>]<02><FF><FE><04><13>CUAT:",
+          "before_context": "<15>!<A9><03><8D><05>!<A9>c<8D>[<01>]!<A9><10><8D>-!<A9><02><8D>0",
+          "file_offset": 8514,
+          "file_offset_hex": "0x002142",
+          "lorom": "80:A142",
+          "record_index": 6
+        }
+      ],
+      "hex": "F3 02 FF FE 04 13",
+      "length": 6
+    },
+    {
+      "bytes": [
+        243,
+        3,
+        255,
+        254,
+        4,
+        22
+      ],
+      "count": 1,
+      "examples": [
+        {
+          "after_context": "<02><FF><FE><04><13>CUAT:[<F3>]<03><FF><FE><04><16>CINC:",
+          "before_context": "!<A9><10><8D>-!<A9><02><8D>0[!]<9C>1!<9C>#!<9C>$!<9C>",
+          "file_offset": 8525,
+          "file_offset_hex": "0x00214D",
+          "lorom": "80:A14D",
+          "record_index": 6
+        }
+      ],
+      "hex": "F3 03 FF FE 04 16",
+      "length": 6
+    },
+    {
+      "bytes": [
+        243,
+        4,
+        255,
+        254,
+        6,
+        25
+      ],
+      "count": 1,
+      "examples": [
+        {
+          "after_context": "<03><FF><FE><04><16>CINC:[<F3>]<04><FF><FE><06><19>SEI",
+          "before_context": "<9C>1!<9C>#!<9C>$!<9C>[%]!`<A2><00><10><86><AA><A2>",
+          "file_offset": 8536,
+          "file_offset_hex": "0x002158",
+          "lorom": "80:A158",
+          "record_index": 6
+        }
+      ],
+      "hex": "F3 04 FF FE 06 19",
+      "length": 6
+    },
+    {
+      "bytes": [
+        251,
+        254,
+        7,
+        8
+      ],
+      "count": 1,
+      "examples": [
+        {
+          "after_context": "A[<FB>]<FE><07><08>jugad__",
+          "before_context": "<02>[w]<E2> <A0><07><00><99><D4><00><88><10>",
+          "file_offset": 21382,
+          "file_offset_hex": "0x005386",
+          "lorom": "80:D386",
+          "record_index": 21
+        }
+      ],
+      "hex": "FB FE 07 08",
+      "length": 4
+    },
+    {
+      "bytes": [
+        255,
+        254,
+        24,
+        1
+      ],
+      "count": 1,
+      "examples": [
+        {
+          "after_context": "JUGAD__UNO[<FF>]<FE><18><01>DOS<FF><FC><01>T",
+          "before_context": "<07><18>__<FD><B4><00><FF><FE><07>[<1A>]__<FD><B6><00><FF>_by_",
+          "file_offset": 17137,
+          "file_offset_hex": "0x0042F1",
+          "lorom": "80:C2F1",
+          "record_index": 18
+        }
+      ],
+      "hex": "FF FE 18 01",
+      "length": 4
+    },
+    {
+      "bytes": [
+        251,
+        252,
+        8
+      ],
+      "count": 1,
+      "examples": [
+        {
+          "after_context": "despedorra[<FB>]<FC><08>la_memor",
+          "before_context": " h<A8><A9><00><8F><AD><10>w`[<F9>]<07><FC><0A><17>P<FB><FC><0D><18>P",
+          "file_offset": 11536,
+          "file_offset_hex": "0x002D10",
+          "lorom": "80:AD10",
+          "record_index": 7
+        }
+      ],
+      "hex": "FB FC 08",
+      "length": 3
+    },
+    {
+      "bytes": [
+        251,
+        252,
+        22
+      ],
+      "count": 1,
+      "examples": [
+        {
+          "after_context": "_LIGA_[<FB>]<FC><16>OPC",
+          "before_context": " 8<E8> 5<B7>[<F0>]<05><A9><01><82><E0>",
+          "file_offset": 12073,
+          "file_offset_hex": "0x002F29",
+          "lorom": "80:AF29",
+          "record_index": 8
+        }
+      ],
+      "hex": "FB FC 16",
+      "length": 3
+    },
+    {
+      "bytes": [
+        251,
+        252,
+        24
+      ],
+      "count": 1,
+      "examples": [
+        {
+          "after_context": "__SE_LLAMA[<FB>]<FC><18>EL____JU",
+          "before_context": "<83> <C9><FA><A5><BC><18>i<06><A2>[<80>]<00>\"<80><B1><82><A5><BE><18>i<06>",
+          "file_offset": 22229,
+          "file_offset_hex": "0x0056D5",
+          "lorom": "80:D6D5",
+          "record_index": 22
+        }
+      ],
+      "hex": "FB FC 18",
+      "length": 3
+    },
+    {
+      "bytes": [
+        255,
+        252,
+        10
+      ],
+      "count": 1,
+      "examples": [
+        {
+          "after_context": "punt_:[<FF>]<FC><0A>meta_a_c",
+          "before_context": "<04><D0><09><A5>t<89>[<80>]<90><D0><06><80><00>(<E2><02>`(",
+          "file_offset": 14119,
+          "file_offset_hex": "0x003727",
+          "lorom": "80:B727",
+          "record_index": 12
+        }
+      ],
+      "hex": "FF FC 0A",
+      "length": 3
+    },
+    {
+      "bytes": [
+        255,
+        252,
+        21
+      ],
+      "count": 1,
+      "examples": [
+        {
+          "after_context": "NOMB_QUIEN[<FF>]<FC><15>COMO__SE",
+          "before_context": "<02><00><F0><05> <FD><C2><80><03> [X]<C2><E2> \"<1E><9A><83> <C9><FA>",
+          "file_offset": 22212,
+          "file_offset_hex": "0x0056C4",
+          "lorom": "80:D6C4",
+          "record_index": 22
+        }
+      ],
+      "hex": "FF FC 15",
+      "length": 3
+    }
+  ],
+  "control_values": [
+    {
+      "changed_count": 2,
+      "count": 2,
+      "examples": [
+        {
+          "after": "0x00",
+          "after_context": "UNO:<F3>[<00>]<FF><FE><06><0D>DO",
+          "before": "0x8D",
+          "before_context": "<8D><08>!<A9>#[<8D>]<0B>!<A9><11><8D>,",
+          "file_offset": 8493,
+          "file_offset_hex": "0x00212D",
+          "lorom": "80:A12D",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0x00",
+          "after_context": "rar<FB><F8><CA>[<00>]<F2><0F><FF><FC><01>C",
+          "before": "0x5D",
+          "before_context": "<B9><CB><C3><85>]l[]]<00>@<C4><81><C4>E",
+          "file_offset": 17353,
+          "file_offset_hex": "0x0043C9",
+          "lorom": "80:C3C9",
+          "preserved": false,
+          "record_index": 19
+        }
+      ],
+      "hex": "0x00",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 0
+    },
+    {
+      "changed_count": 5,
+      "count": 5,
+      "examples": [
+        {
+          "after": "0x01",
+          "after_context": "<0D>DOS:<F3>[<01>]<FF><FE><02><10>_T",
+          "before": "0x8D",
+          "before_context": "<11><8D>,!<A9><80>[<8D>]<15>!<A9><03><8D><05>",
+          "file_offset": 8503,
+          "file_offset_hex": "0x002137",
+          "lorom": "80:A137",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0x01",
+          "after_context": "ADOR<FF><FC>[<01>]_TOMA_",
+          "before": "0x85",
+          "before_context": "<85><AC><80><04><A9><01>[<85>]<AC><A5><D0><85><0A> ",
+          "file_offset": 16302,
+          "file_offset_hex": "0x003FAE",
+          "lorom": "80:BFAE",
+          "preserved": false,
+          "record_index": 17
+        },
+        {
+          "after": "0x01",
+          "after_context": "UNO<FF><FE><18>[<01>]DOS<FF><FC><01>",
+          "before": "0xFD",
+          "before_context": "<FF><FE><07><1A>__[<FD>]<B6><00><FF>_by",
+          "file_offset": 17140,
+          "file_offset_hex": "0x0042F4",
+          "lorom": "80:C2F4",
+          "preserved": false,
+          "record_index": 18
+        },
+        {
+          "after": "0x01",
+          "after_context": "<01>DOS<FF><FC>[<01>]TOMA_U",
+          "before": "0x79",
+          "before_context": "<FD><B6><00><FF>_b[y]_<FF><A2><9A><C3> ",
+          "file_offset": 17146,
+          "file_offset_hex": "0x0042FA",
+          "lorom": "80:C2FA",
+          "preserved": false,
+          "record_index": 18
+        },
+        {
+          "after": "0x01",
+          "after_context": "<CA><00><F2><0F><FF><FC>[<01>]CUAL_T",
+          "before": "0xC4",
+          "before_context": "l]<00>@<C4><81>[<C4>]E<C4><A7><C4><AF><C3>",
+          "file_offset": 17358,
+          "file_offset_hex": "0x0043CE",
+          "lorom": "80:C3CE",
+          "preserved": false,
+          "record_index": 19
+        }
+      ],
+      "hex": "0x01",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 1
+    },
+    {
+      "changed_count": 2,
+      "count": 2,
+      "examples": [
+        {
+          "after": "0x02",
+          "after_context": "S:<F3><01><FF><FE>[<02>]<10>_TRES",
+          "before": "0xA9",
+          "before_context": "!<A9><80><8D><15>![<A9>]<03><8D><05>!<A9>c",
+          "file_offset": 8506,
+          "file_offset_hex": "0x00213A",
+          "lorom": "80:A13A",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0x02",
+          "after_context": "TRES:<F3>[<02>]<FF><FE><04><13>CU",
+          "before": "0x21",
+          "before_context": "<05>!<A9>c<8D><01>[!]<A9><10><8D>-!<A9>",
+          "file_offset": 8515,
+          "file_offset_hex": "0x002143",
+          "lorom": "80:A143",
+          "preserved": false,
+          "record_index": 6
+        }
+      ],
+      "hex": "0x02",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 2
+    },
+    {
+      "changed_count": 1,
+      "count": 1,
+      "examples": [
+        {
+          "after": "0x03",
+          "after_context": "CUAT:<F3>[<03>]<FF><FE><04><16>CI",
+          "before": "0x9C",
+          "before_context": "!<A9><02><8D>0![<9C>]1!<9C>#!<9C>",
+          "file_offset": 8526,
+          "file_offset_hex": "0x00214E",
+          "lorom": "80:A14E",
+          "preserved": false,
+          "record_index": 6
+        }
+      ],
+      "hex": "0x03",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 3
+    },
+    {
+      "changed_count": 3,
+      "count": 3,
+      "examples": [
+        {
+          "after": "0x04",
+          "after_context": "S:<F3><02><FF><FE>[<04>]<13>CUAT:",
+          "before": "0x8D",
+          "before_context": "c<8D><01>!<A9><10>[<8D>]-!<A9><02><8D>0",
+          "file_offset": 8518,
+          "file_offset_hex": "0x002146",
+          "lorom": "80:A146",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0x04",
+          "after_context": "T:<F3><03><FF><FE>[<04>]<16>CINC:",
+          "before": "0x9C",
+          "before_context": "<8D>0!<9C>1![<9C>]#!<9C>$!<9C>",
+          "file_offset": 8529,
+          "file_offset_hex": "0x002151",
+          "lorom": "80:A151",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0x04",
+          "after_context": "CINC:<F3>[<04>]<FF><FE><06><19>SE",
+          "before": "0x21",
+          "before_context": "!<9C>$!<9C>%[!]`<A2><00><10><86><AA>",
+          "file_offset": 8537,
+          "file_offset_hex": "0x002159",
+          "lorom": "80:A159",
+          "preserved": false,
+          "record_index": 6
+        }
+      ],
+      "hex": "0x04",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 4
+    },
+    {
+      "changed_count": 2,
+      "count": 2,
+      "examples": [
+        {
+          "after": "0x06",
+          "after_context": "O:<F3><00><FF><FE>[<06>]<0D>DOS:<F3>",
+          "before": "0xA9",
+          "before_context": "!<A9>#<8D><0B>![<A9>]<11><8D>,!<A9><80>",
+          "file_offset": 8496,
+          "file_offset_hex": "0x002130",
+          "lorom": "80:A130",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0x06",
+          "after_context": "C:<F3><04><FF><FE>[<06>]<19>SEI",
+          "before": "0x00",
+          "before_context": "!<9C>%!`<A2>[<00>]<10><86><AA><A2>",
+          "file_offset": 8540,
+          "file_offset_hex": "0x00215C",
+          "lorom": "80:A15C",
+          "preserved": false,
+          "record_index": 6
+        }
+      ],
+      "hex": "0x06",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 6
+    },
+    {
+      "changed_count": 1,
+      "count": 1,
+      "examples": [
+        {
+          "after": "0x07",
+          "after_context": "A<FB><FE>[<07>]<08>jugad",
+          "before": "0x20",
+          "before_context": "<02>w<E2>[ ]<A0><07><00><99><D4><00>",
+          "file_offset": 21384,
+          "file_offset_hex": "0x005388",
+          "lorom": "80:D388",
+          "preserved": false,
+          "record_index": 21
+        }
+      ],
+      "hex": "0x07",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 7
+    },
+    {
+      "changed_count": 2,
+      "count": 2,
+      "examples": [
+        {
+          "after": "0x08",
+          "after_context": "orra<FB><FC>[<08>]la_mem",
+          "before": "0xFC",
+          "before_context": "<AD><10>w`<F9><07>[<FC>]<0A><17>P<FB><FC><0D>",
+          "file_offset": 11538,
+          "file_offset_hex": "0x002D12",
+          "lorom": "80:AD12",
+          "preserved": false,
+          "record_index": 7
+        },
+        {
+          "after": "0x08",
+          "after_context": "A<FB><FE><07>[<08>]jugad_",
+          "before": "0xA0",
+          "before_context": "<02>w<E2> [<A0>]<07><00><99><D4><00><88>",
+          "file_offset": 21385,
+          "file_offset_hex": "0x005389",
+          "lorom": "80:D389",
+          "preserved": false,
+          "record_index": 21
+        }
+      ],
+      "hex": "0x08",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 8
+    },
+    {
+      "changed_count": 1,
+      "count": 1,
+      "examples": [
+        {
+          "after": "0x0A",
+          "after_context": "nt_:<FF><FC>[<0A>]meta_a",
+          "before": "0xD0",
+          "before_context": "<09><A5>t<89><80><90>[<D0>]<06><80><00>(<E2><02>",
+          "file_offset": 14121,
+          "file_offset_hex": "0x003729",
+          "lorom": "80:B729",
+          "preserved": false,
+          "record_index": 12
+        }
+      ],
+      "hex": "0x0A",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 10
+    },
+    {
+      "changed_count": 6,
+      "count": 6,
+      "examples": [
+        {
+          "after": "0x0D",
+          "after_context": "ADO-<FB><FC>[<0D>]esta_o",
+          "before": "0x20",
+          "before_context": "<A9><03><85><DF>`<E2>[ ] <E9><D1><A2><CC><A4>",
+          "file_offset": 7768,
+          "file_offset_hex": "0x001E58",
+          "lorom": "80:9E58",
+          "preserved": false,
+          "record_index": 3
+        },
+        {
+          "after": "0x0D",
+          "after_context": ":<F3><00><FF><FE><06>[<0D>]DOS:<F3><01>",
+          "before": "0x11",
+          "before_context": "<A9>#<8D><0B>!<A9>[<11>]<8D>,!<A9><80><8D>",
+          "file_offset": 8497,
+          "file_offset_hex": "0x002131",
+          "lorom": "80:A131",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0x0D",
+          "after_context": "IG__<FF><FC>[<0D>]MISMA_",
+          "before": "0x88",
+          "before_context": "<D1>\"<1E><9A><83>z[<88>]<10><F1> <00><B1><A6>",
+          "file_offset": 12351,
+          "file_offset_hex": "0x00303F",
+          "lorom": "80:B03F",
+          "preserved": false,
+          "record_index": 9
+        },
+        {
+          "after": "0x0D",
+          "after_context": "O---<FB><FC>[<0D>]esta_o",
+          "before": "0x48",
+          "before_context": "y_<FF><E2> Z[H]<E2> <BD><00><00><E8>",
+          "file_offset": 17326,
+          "file_offset_hex": "0x0043AE",
+          "lorom": "80:C3AE",
+          "preserved": false,
+          "record_index": 19
+        },
+        {
+          "after": "0x0D",
+          "after_context": "UTAS<FF><FC>[<0D>]PUNTAJ",
+          "before": "0x1A",
+          "before_context": "____<FE><07>[<1A>]0:00.0",
+          "file_offset": 22424,
+          "file_offset_hex": "0x005798",
+          "lorom": "80:D798",
+          "preserved": false,
+          "record_index": 23
+        },
+        {
+          "after": "0x0D",
+          "after_context": "NTAJ<FF><FC>[<0D>]RESET_",
+          "before": "0xAC",
+          "before_context": "<00><06><AC>-<00><06>[<AC>]-<00><06><AC>-<00>",
+          "file_offset": 32254,
+          "file_offset_hex": "0x007DFE",
+          "lorom": "80:FDFE",
+          "preserved": false,
+          "record_index": 46
+        }
+      ],
+      "hex": "0x0D",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 13
+    },
+    {
+      "changed_count": 1,
+      "count": 1,
+      "examples": [
+        {
+          "after": "0x0F",
+          "after_context": "r<FB><F8><CA><00><F2>[<0F>]<FF><FC><01>CUA",
+          "before": "0x40",
+          "before_context": "<C3><85>]l]<00>[@]<C4><81><C4>E<C4><A7>",
+          "file_offset": 17355,
+          "file_offset_hex": "0x0043CB",
+          "lorom": "80:C3CB",
+          "preserved": false,
+          "record_index": 19
+        }
+      ],
+      "hex": "0x0F",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 15
+    },
+    {
+      "changed_count": 5,
+      "count": 5,
+      "examples": [
+        {
+          "after": "0x10",
+          "after_context": ":<F3><01><FF><FE><02>[<10>]_TRES:",
+          "before": "0x03",
+          "before_context": "<A9><80><8D><15>!<A9>[<03>]<8D><05>!<A9>c<8D>",
+          "file_offset": 8507,
+          "file_offset_hex": "0x00213B",
+          "lorom": "80:A13B",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0x10",
+          "after_context": "UTA_<FF><FC>[<10>]SELEC_",
+          "before": "0xF5",
+          "before_context": "<86>Z <A5><93> [<F5>]<C1><A9>U<8D><1A><0C>",
+          "file_offset": 12365,
+          "file_offset_hex": "0x00304D",
+          "lorom": "80:B04D",
+          "preserved": false,
+          "record_index": 9
+        },
+        {
+          "after": "0x10",
+          "after_context": "GAD_<FF><FC>[<10>]NOMBRA",
+          "before": "0xD0",
+          "before_context": "B<07>w<89><00><04>[<D0>]<92><A5>t<89> <00>",
+          "file_offset": 14463,
+          "file_offset_hex": "0x00387F",
+          "lorom": "80:B87F",
+          "preserved": false,
+          "record_index": 14
+        },
+        {
+          "after": "0x10",
+          "after_context": "AXIM<FF><FC>[<10>]PUNTOS",
+          "before": "0x5F",
+          "before_context": "by____[_]____<FE><0C>",
+          "file_offset": 22439,
+          "file_offset_hex": "0x0057A7",
+          "lorom": "80:D7A7",
+          "preserved": false,
+          "record_index": 23
+        },
+        {
+          "after": "0x10",
+          "after_context": "NTAJ<FF><FC>[<10>]BYE_",
+          "before": "0x06",
+          "before_context": "-<00><06><AC>-<00>[<06>]<AC>-<00><06>",
+          "file_offset": 32269,
+          "file_offset_hex": "0x007E0D",
+          "lorom": "80:FE0D",
+          "preserved": false,
+          "record_index": 46
+        }
+      ],
+      "hex": "0x10",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 16
+    },
+    {
+      "changed_count": 3,
+      "count": 3,
+      "examples": [
+        {
+          "after": "0x13",
+          "after_context": ":<F3><02><FF><FE><04>[<13>]CUAT:<F3>",
+          "before": "0x2D",
+          "before_context": "<8D><01>!<A9><10><8D>[-]!<A9><02><8D>0!",
+          "file_offset": 8519,
+          "file_offset_hex": "0x002147",
+          "lorom": "80:A147",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0x13",
+          "after_context": "RUTA<FF><FC>[<13>]SELEC_",
+          "before": "0xA9",
+          "before_context": " <C9><FA><A2><D0><00>[<A9>]<1C>\"<80><B1><82>\"",
+          "file_offset": 12381,
+          "file_offset_hex": "0x00305D",
+          "lorom": "80:B05D",
+          "preserved": false,
+          "record_index": 9
+        },
+        {
+          "after": "0x13",
+          "after_context": "GAD_<FF><FC>[<13>]TABLAS",
+          "before": "0xEF",
+          "before_context": "<16><EF><00><FE><1A><18>[<EF>]<01><FE><1A><1A><EF><02>",
+          "file_offset": 22456,
+          "file_offset_hex": "0x0057B8",
+          "lorom": "80:D7B8",
+          "preserved": false,
+          "record_index": 23
+        }
+      ],
+      "hex": "0x13",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 19
+    },
+    {
+      "changed_count": 1,
+      "count": 1,
+      "examples": [
+        {
+          "after": "0x15",
+          "after_context": "UIEN<FF><FC>[<15>]COMO__",
+          "before": "0xE2",
+          "before_context": "<C2><80><03> X<C2>[<E2>] \"<1E><9A><83> ",
+          "file_offset": 22214,
+          "file_offset_hex": "0x0056C6",
+          "lorom": "80:D6C6",
+          "preserved": false,
+          "record_index": 22
+        }
+      ],
+      "hex": "0x15",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 21
+    },
+    {
+      "changed_count": 5,
+      "count": 5,
+      "examples": [
+        {
+          "after": "0x16",
+          "after_context": ":<F3><03><FF><FE><04>[<16>]CINC:<F3>",
+          "before": "0x23",
+          "before_context": "0!<9C>1!<9C>[#]!<9C>$!<9C>%",
+          "file_offset": 8530,
+          "file_offset_hex": "0x002152",
+          "lorom": "80:A152",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0x16",
+          "after_context": "IGA_<FB><FC>[<16>]OPC",
+          "before": "0xA9",
+          "before_context": "<E8> 5<B7><F0><05>[<A9>]<01><82><E0>",
+          "file_offset": 12075,
+          "file_offset_hex": "0x002F2B",
+          "lorom": "80:AF2B",
+          "preserved": false,
+          "record_index": 8
+        },
+        {
+          "after": "0x16",
+          "after_context": "TOUR<FF><FC>[<16>]BYE_",
+          "before": "0x55",
+          "before_context": "<83> <18><93>`U[U]TUPU",
+          "file_offset": 12396,
+          "file_offset_hex": "0x00306C",
+          "lorom": "80:B06C",
+          "preserved": false,
+          "record_index": 9
+        },
+        {
+          "after": "0x16",
+          "after_context": "IGA_<FF><FC>[<16>]MENU__",
+          "before": "0x89",
+          "before_context": "<D0>;<AF>B<07>w[<89>]<00><04><D0>.<A5>t",
+          "file_offset": 14497,
+          "file_offset_hex": "0x0038A1",
+          "lorom": "80:B8A1",
+          "preserved": false,
+          "record_index": 15
+        },
+        {
+          "after": "0x16",
+          "after_context": "UPOS<FF><FC>[<16>]MENU__",
+          "before": "0xC2",
+          "before_context": "<A9><04>\"Q<8B><83>[<C2>] <A2>X<1B>d<16>",
+          "file_offset": 22472,
+          "file_offset_hex": "0x0057C8",
+          "lorom": "80:D7C8",
+          "preserved": false,
+          "record_index": 23
+        }
+      ],
+      "hex": "0x16",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 22
+    },
+    {
+      "changed_count": 2,
+      "count": 2,
+      "examples": [
+        {
+          "after": "0x17",
+          "after_context": "O___<FF><FC>[<17>]PLATA_",
+          "before": "0x01",
+          "before_context": "<01><01><00><01>g<00>[<01>]x<00><01><01><00><01>",
+          "file_offset": 27900,
+          "file_offset_hex": "0x006CFC",
+          "lorom": "80:ECFC",
+          "preserved": false,
+          "record_index": 43
+        },
+        {
+          "after": "0x17",
+          "after_context": "ATA_<FF><FC>[<17>]BRONC",
+          "before": "0x01",
+          "before_context": "<01><01><00><01><01><00>[<01>]<00><A5><95>H<A6>",
+          "file_offset": 27909,
+          "file_offset_hex": "0x006D05",
+          "lorom": "80:ED05",
+          "preserved": false,
+          "record_index": 43
+        }
+      ],
+      "hex": "0x17",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 23
+    },
+    {
+      "changed_count": 2,
+      "count": 2,
+      "examples": [
+        {
+          "after": "0x18",
+          "after_context": "_UNO<FF><FE>[<18>]<01>DOS<FF><FC>",
+          "before": "0x5F",
+          "before_context": "<00><FF><FE><07><1A>_[_]<FD><B6><00><FF>_b",
+          "file_offset": 17139,
+          "file_offset_hex": "0x0042F3",
+          "lorom": "80:C2F3",
+          "preserved": false,
+          "record_index": 18
+        },
+        {
+          "after": "0x18",
+          "after_context": "LAMA<FB><FC>[<18>]EL____",
+          "before": "0x22",
+          "before_context": "<18>i<06><A2><80><00>[\"]<80><B1><82><A5><BE><18>",
+          "file_offset": 22231,
+          "file_offset_hex": "0x0056D7",
+          "lorom": "80:D6D7",
+          "preserved": false,
+          "record_index": 22
+        }
+      ],
+      "hex": "0x18",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 24
+    },
+    {
+      "changed_count": 1,
+      "count": 1,
+      "examples": [
+        {
+          "after": "0x19",
+          "after_context": ":<F3><04><FF><FE><06>[<19>]SEI",
+          "before": "0x10",
+          "before_context": "<9C>%!`<A2><00>[<10>]<86><AA><A2>",
+          "file_offset": 8541,
+          "file_offset_hex": "0x00215D",
+          "lorom": "80:A15D",
+          "preserved": false,
+          "record_index": 6
+        }
+      ],
+      "hex": "0x19",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 25
+    },
+    {
+      "changed_count": 1,
+      "count": 1,
+      "examples": [
+        {
+          "after": "0xCA",
+          "after_context": "rrar<FB><F8>[<CA>]<00><F2><0F><FF><FC><01>",
+          "before": "0x6C",
+          "before_context": "<A8><B9><CB><C3><85>][l]]<00>@<C4><81><C4>",
+          "file_offset": 17352,
+          "file_offset_hex": "0x0043C8",
+          "lorom": "80:C3C8",
+          "preserved": false,
+          "record_index": 19
+        }
+      ],
+      "hex": "0xCA",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 202
+    },
+    {
+      "changed_count": 1,
+      "count": 1,
+      "examples": [
+        {
+          "after": "0xF2",
+          "after_context": "ar<FB><F8><CA><00>[<F2>]<0F><FF><FC><01>CU",
+          "before": "0x00",
+          "before_context": "<CB><C3><85>]l][<00>]@<C4><81><C4>E<C4>",
+          "file_offset": 17354,
+          "file_offset_hex": "0x0043CA",
+          "lorom": "80:C3CA",
+          "preserved": false,
+          "record_index": 19
+        }
+      ],
+      "hex": "0xF2",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 242
+    },
+    {
+      "changed_count": 5,
+      "count": 5,
+      "examples": [
+        {
+          "after": "0xF3",
+          "after_context": "UNO:[<F3>]<00><FF><FE><06><0D>D",
+          "before": "0x23",
+          "before_context": "<8D><08>!<A9>[#]<8D><0B>!<A9><11><8D>",
+          "file_offset": 8492,
+          "file_offset_hex": "0x00212C",
+          "lorom": "80:A12C",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0xF3",
+          "after_context": "<06><0D>DOS:[<F3>]<01><FF><FE><02><10>_",
+          "before": "0x80",
+          "before_context": "<A9><11><8D>,!<A9>[<80>]<8D><15>!<A9><03><8D>",
+          "file_offset": 8502,
+          "file_offset_hex": "0x002136",
+          "lorom": "80:A136",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0xF3",
+          "after_context": "_TRES:[<F3>]<02><FF><FE><04><13>C",
+          "before": "0x01",
+          "before_context": "<8D><05>!<A9>c<8D>[<01>]!<A9><10><8D>-!",
+          "file_offset": 8514,
+          "file_offset_hex": "0x002142",
+          "lorom": "80:A142",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0xF3",
+          "after_context": "<13>CUAT:[<F3>]<03><FF><FE><04><16>C",
+          "before": "0x21",
+          "before_context": "-!<A9><02><8D>0[!]<9C>1!<9C>#!",
+          "file_offset": 8525,
+          "file_offset_hex": "0x00214D",
+          "lorom": "80:A14D",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0xF3",
+          "after_context": "<16>CINC:[<F3>]<04><FF><FE><06><19>S",
+          "before": "0x25",
+          "before_context": "#!<9C>$!<9C>[%]!`<A2><00><10><86>",
+          "file_offset": 8536,
+          "file_offset_hex": "0x002158",
+          "lorom": "80:A158",
+          "preserved": false,
+          "record_index": 6
+        }
+      ],
+      "hex": "0xF3",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 243
+    },
+    {
+      "changed_count": 1,
+      "count": 1,
+      "examples": [
+        {
+          "after": "0xF8",
+          "after_context": "orrar<FB>[<F8>]<CA><00><F2><0F><FF><FC>",
+          "before": "0x5D",
+          "before_context": "<0A><A8><B9><CB><C3><85>[]]l]<00>@<C4><81>",
+          "file_offset": 17351,
+          "file_offset_hex": "0x0043C7",
+          "lorom": "80:C3C7",
+          "preserved": false,
+          "record_index": 19
+        }
+      ],
+      "hex": "0xF8",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 248
+    },
+    {
+      "changed_count": 7,
+      "count": 7,
+      "examples": [
+        {
+          "after": "0xFB",
+          "after_context": "IDADO-[<FB>]<FC><0D>esta",
+          "before": "0x60",
+          "before_context": "<80><02><A9><03><85><DF>[`]<E2>  <E9><D1><A2>",
+          "file_offset": 7766,
+          "file_offset_hex": "0x001E56",
+          "lorom": "80:9E56",
+          "preserved": false,
+          "record_index": 3
+        },
+        {
+          "after": "0xFB",
+          "after_context": "edorra[<FB>]<FC><08>la_m",
+          "before": "0xF9",
+          "before_context": "<00><8F><AD><10>w`[<F9>]<07><FC><0A><17>P<FB>",
+          "file_offset": 11536,
+          "file_offset_hex": "0x002D10",
+          "lorom": "80:AD10",
+          "preserved": false,
+          "record_index": 7
+        },
+        {
+          "after": "0xFB",
+          "after_context": "_LIGA_[<FB>]<FC><16>OPC",
+          "before": "0xF0",
+          "before_context": " 8<E8> 5<B7>[<F0>]<05><A9><01><82><E0>",
+          "file_offset": 12073,
+          "file_offset_hex": "0x002F29",
+          "lorom": "80:AF29",
+          "preserved": false,
+          "record_index": 8
+        },
+        {
+          "after": "0xFB",
+          "after_context": "ADO---[<FB>]<FC><0D>esta",
+          "before": "0x20",
+          "before_context": "_by_<FF><E2>[ ]ZH<E2> <BD><00>",
+          "file_offset": 17324,
+          "file_offset_hex": "0x0043AC",
+          "lorom": "80:C3AC",
+          "preserved": false,
+          "record_index": 19
+        },
+        {
+          "after": "0xFB",
+          "after_context": "borrar[<FB>]<F8><CA><00><F2><0F><FF>",
+          "before": "0x85",
+          "before_context": "<00><0A><A8><B9><CB><C3>[<85>]]l]<00>@<C4>",
+          "file_offset": 17350,
+          "file_offset_hex": "0x0043C6",
+          "lorom": "80:C3C6",
+          "preserved": false,
+          "record_index": 19
+        },
+        {
+          "after": "0xFB",
+          "after_context": "A[<FB>]<FE><07><08>jug",
+          "before": "0x77",
+          "before_context": "<02>[w]<E2> <A0><07><00><99>",
+          "file_offset": 21382,
+          "file_offset_hex": "0x005386",
+          "lorom": "80:D386",
+          "preserved": false,
+          "record_index": 21
+        },
+        {
+          "after": "0xFB",
+          "after_context": "_LLAMA[<FB>]<FC><18>EL__",
+          "before": "0x80",
+          "before_context": "<A5><BC><18>i<06><A2>[<80>]<00>\"<80><B1><82><A5>",
+          "file_offset": 22229,
+          "file_offset_hex": "0x0056D5",
+          "lorom": "80:D6D5",
+          "preserved": false,
+          "record_index": 22
+        }
+      ],
+      "hex": "0xFB",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 251
+    },
+    {
+      "changed_count": 24,
+      "count": 24,
+      "examples": [
+        {
+          "after": "0xFC",
+          "after_context": "DADO-<FB>[<FC>]<0D>esta_",
+          "before": "0xE2",
+          "before_context": "<02><A9><03><85><DF>`[<E2>]  <E9><D1><A2><CC>",
+          "file_offset": 7767,
+          "file_offset_hex": "0x001E57",
+          "lorom": "80:9E57",
+          "preserved": false,
+          "record_index": 3
+        },
+        {
+          "after": "0xFC",
+          "after_context": "dorra<FB>[<FC>]<08>la_me",
+          "before": "0x07",
+          "before_context": "<8F><AD><10>w`<F9>[<07>]<FC><0A><17>P<FB><FC>",
+          "file_offset": 11537,
+          "file_offset_hex": "0x002D11",
+          "lorom": "80:AD11",
+          "preserved": false,
+          "record_index": 7
+        },
+        {
+          "after": "0xFC",
+          "after_context": "LIGA_<FB>[<FC>]<16>OPC",
+          "before": "0x05",
+          "before_context": "8<E8> 5<B7><F0>[<05>]<A9><01><82><E0>",
+          "file_offset": 12074,
+          "file_offset_hex": "0x002F2A",
+          "lorom": "80:AF2A",
+          "preserved": false,
+          "record_index": 8
+        },
+        {
+          "after": "0xFC",
+          "after_context": "SIG__<FF>[<FC>]<0D>MISMA",
+          "before": "0x7A",
+          "before_context": "<DB><D1>\"<1E><9A><83>[z]<88><10><F1> <00><B1>",
+          "file_offset": 12350,
+          "file_offset_hex": "0x00303E",
+          "lorom": "80:B03E",
+          "preserved": false,
+          "record_index": 9
+        },
+        {
+          "after": "0xFC",
+          "after_context": "RUTA_<FF>[<FC>]<10>SELEC",
+          "before": "0x20",
+          "before_context": "<AA><86>Z <A5><93>[ ]<F5><C1><A9>U<8D><1A>",
+          "file_offset": 12364,
+          "file_offset_hex": "0x00304C",
+          "lorom": "80:B04C",
+          "preserved": false,
+          "record_index": 9
+        },
+        {
+          "after": "0xFC",
+          "after_context": "_RUTA<FF>[<FC>]<13>SELEC",
+          "before": "0x00",
+          "before_context": "<0C> <C9><FA><A2><D0>[<00>]<A9><1C>\"<80><B1><82>",
+          "file_offset": 12380,
+          "file_offset_hex": "0x00305C",
+          "lorom": "80:B05C",
+          "preserved": false,
+          "record_index": 9
+        },
+        {
+          "after": "0xFC",
+          "after_context": "_TOUR<FF>[<FC>]<16>BYE_",
+          "before": "0x55",
+          "before_context": "<91><83> <18><93>`[U]UTUPU",
+          "file_offset": 12395,
+          "file_offset_hex": "0x00306B",
+          "lorom": "80:B06B",
+          "preserved": false,
+          "record_index": 9
+        },
+        {
+          "after": "0xFC",
+          "after_context": "unt_:<FF>[<FC>]<0A>meta_",
+          "before": "0x90",
+          "before_context": "<D0><09><A5>t<89><80>[<90>]<D0><06><80><00>(<E2>",
+          "file_offset": 14120,
+          "file_offset_hex": "0x003728",
+          "lorom": "80:B728",
+          "preserved": false,
+          "record_index": 12
+        }
+      ],
+      "hex": "0xFC",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 252
+    },
+    {
+      "changed_count": 7,
+      "count": 7,
+      "examples": [
+        {
+          "after": "0xFE",
+          "after_context": "NO:<F3><00><FF>[<FE>]<06><0D>DOS:",
+          "before": "0x21",
+          "before_context": "<08>!<A9>#<8D><0B>[!]<A9><11><8D>,!<A9>",
+          "file_offset": 8495,
+          "file_offset_hex": "0x00212F",
+          "lorom": "80:A12F",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0xFE",
+          "after_context": "OS:<F3><01><FF>[<FE>]<02><10>_TRE",
+          "before": "0x21",
+          "before_context": ",!<A9><80><8D><15>[!]<A9><03><8D><05>!<A9>",
+          "file_offset": 8505,
+          "file_offset_hex": "0x002139",
+          "lorom": "80:A139",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0xFE",
+          "after_context": "ES:<F3><02><FF>[<FE>]<04><13>CUAT",
+          "before": "0x10",
+          "before_context": "<A9>c<8D><01>!<A9>[<10>]<8D>-!<A9><02><8D>",
+          "file_offset": 8517,
+          "file_offset_hex": "0x002145",
+          "lorom": "80:A145",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0xFE",
+          "after_context": "AT:<F3><03><FF>[<FE>]<04><16>CINC",
+          "before": "0x21",
+          "before_context": "<02><8D>0!<9C>1[!]<9C>#!<9C>$!",
+          "file_offset": 8528,
+          "file_offset_hex": "0x002150",
+          "lorom": "80:A150",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0xFE",
+          "after_context": "NC:<F3><04><FF>[<FE>]<06><19>SEI",
+          "before": "0xA2",
+          "before_context": "$!<9C>%!`[<A2>]<00><10><86><AA><A2>",
+          "file_offset": 8539,
+          "file_offset_hex": "0x00215B",
+          "lorom": "80:A15B",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0xFE",
+          "after_context": "__UNO<FF>[<FE>]<18><01>DOS<FF>",
+          "before": "0x5F",
+          "before_context": "<B4><00><FF><FE><07><1A>[_]_<FD><B6><00><FF>_",
+          "file_offset": 17138,
+          "file_offset_hex": "0x0042F2",
+          "lorom": "80:C2F2",
+          "preserved": false,
+          "record_index": 18
+        },
+        {
+          "after": "0xFE",
+          "after_context": "A<FB>[<FE>]<07><08>juga",
+          "before": "0xE2",
+          "before_context": "<02>w[<E2>] <A0><07><00><99><D4>",
+          "file_offset": 21383,
+          "file_offset_hex": "0x005387",
+          "lorom": "80:D387",
+          "preserved": false,
+          "record_index": 21
+        }
+      ],
+      "hex": "0xFE",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 254
+    },
+    {
+      "changed_count": 30,
+      "count": 30,
+      "examples": [
+        {
+          "after": "0xFF",
+          "after_context": "UNO:<F3><00>[<FF>]<FE><06><0D>DOS",
+          "before": "0x0B",
+          "before_context": "<8D><08>!<A9>#<8D>[<0B>]!<A9><11><8D>,!",
+          "file_offset": 8494,
+          "file_offset_hex": "0x00212E",
+          "lorom": "80:A12E",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0xFF",
+          "after_context": "DOS:<F3><01>[<FF>]<FE><02><10>_TR",
+          "before": "0x15",
+          "before_context": "<8D>,!<A9><80><8D>[<15>]!<A9><03><8D><05>!",
+          "file_offset": 8504,
+          "file_offset_hex": "0x002138",
+          "lorom": "80:A138",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0xFF",
+          "after_context": "RES:<F3><02>[<FF>]<FE><04><13>CUA",
+          "before": "0xA9",
+          "before_context": "!<A9>c<8D><01>![<A9>]<10><8D>-!<A9><02>",
+          "file_offset": 8516,
+          "file_offset_hex": "0x002144",
+          "lorom": "80:A144",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0xFF",
+          "after_context": "UAT:<F3><03>[<FF>]<FE><04><16>CIN",
+          "before": "0x31",
+          "before_context": "<A9><02><8D>0!<9C>[1]!<9C>#!<9C>$",
+          "file_offset": 8527,
+          "file_offset_hex": "0x00214F",
+          "lorom": "80:A14F",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0xFF",
+          "after_context": "INC:<F3><04>[<FF>]<FE><06><19>SEI",
+          "before": "0x60",
+          "before_context": "<9C>$!<9C>%![`]<A2><00><10><86><AA><A2>",
+          "file_offset": 8538,
+          "file_offset_hex": "0x00215A",
+          "lorom": "80:A15A",
+          "preserved": false,
+          "record_index": 6
+        },
+        {
+          "after": "0xFF",
+          "after_context": "_SIG__[<FF>]<FC><0D>MISM",
+          "before": "0x83",
+          "before_context": " <DB><D1>\"<1E><9A>[<83>]z<88><10><F1> <00>",
+          "file_offset": 12349,
+          "file_offset_hex": "0x00303D",
+          "lorom": "80:B03D",
+          "preserved": false,
+          "record_index": 9
+        },
+        {
+          "after": "0xFF",
+          "after_context": "_RUTA_[<FF>]<FC><10>SELE",
+          "before": "0x93",
+          "before_context": "<A6><AA><86>Z <A5>[<93>] <F5><C1><A9>U<8D>",
+          "file_offset": 12363,
+          "file_offset_hex": "0x00304B",
+          "lorom": "80:B04B",
+          "preserved": false,
+          "record_index": 9
+        },
+        {
+          "after": "0xFF",
+          "after_context": "A_RUTA[<FF>]<FC><13>SELE",
+          "before": "0xD0",
+          "before_context": "<1B><0C> <C9><FA><A2>[<D0>]<00><A9><1C>\"<80><B1>",
+          "file_offset": 12379,
+          "file_offset_hex": "0x00305B",
+          "lorom": "80:B05B",
+          "preserved": false,
+          "record_index": 9
+        }
+      ],
+      "hex": "0xFF",
+      "preserved_count": 0,
+      "preserved_fraction": 0,
+      "value": 255
+    }
+  ],
+  "interpretation_guardrails": [
+    "non-printable does not automatically mean control code",
+    "high preservation across translated strings is evidence for syntax, not semantics",
+    "changed controls may encode length/layout but require reader/runtime evidence"
+  ],
+  "record_count": 83,
+  "schema_version": 1,
+  "total_nonprintable_after_bytes": 121
+}

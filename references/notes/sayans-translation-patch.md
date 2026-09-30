@@ -102,3 +102,78 @@ Payload inspection materially sharpens the interpretation:
 This is strong evidence that the recovered 85% patch is overwhelmingly a text/control-data edit across three ROM clusters. No pure binary-only record was found, so this patch does **not currently provide evidence** for a separate font-graphics edit, pointer-table rewrite, header/checksum update, or executable-code-only patch. That is an evidence statement about this patch, not proof those structures do not exist elsewhere.
 
 The next useful local question is therefore narrower: identify the reader/renderer routines and control-byte semantics for these three text clusters, or recover the later Sayans 1.0b / independent Sinister patch to see whether either translation had to modify additional structures.
+
+
+## Control-byte vocabulary and reader candidates
+
+The 85% Sayans patch now has a derived control-byte grammar report at
+`analysis/generated/sayans-control-byte-vocabulary.json`.
+
+Across the 83 IPS records, the translated payloads contain 121 non-printable
+bytes. None of those 121 bytes is preserved byte-for-byte from the USA ROM at
+the same patched location, so the useful evidence is the **new translated
+stream grammar**, not a claim that the patch merely retained original inline
+controls.
+
+Recurring translated control runs include:
+
+- lone `FF` terminator/separator candidates;
+- `FF FC 10` (4 occurrences);
+- `FF FC 0D` (3);
+- `FF FC 16` (3);
+- `FB FC 0D` (2);
+- `FF FC 01`, `FF FC 13`, and `FF FC 17` (2 each);
+- an ordered five-entry family
+  `F3 00 FF FE 06 0D`,
+  `F3 01 FF FE 02 10`,
+  `F3 02 FF FE 04 13`,
+  `F3 03 FF FE 04 16`,
+  `F3 04 FF FE 06 19`.
+
+These patterns strongly suggest a compact text/layout/control language, but no
+byte has been promoted as newline, terminator, color, position, length or
+selector solely from frequency.
+
+A ROM-wide heuristic scan for immediate compares against the high control
+vocabulary (`F2/F3/F8/FB/FC/FE/FF`) produced a particularly strong candidate
+around `03:8975`: within a compact sequential-byte loop it explicitly compares
+against `FC`, `FF`, and `FB`, while ordinary bytes are dispatched through
+`00:8C41`. Related compare loops occur around `00:C4BC`, `00:C5D3`, and
+`03:AA36`. This is now a bounded reader-disassembly target, not yet a promoted
+symbol.
+
+Durable evidence:
+
+- `analysis/generated/sayans-control-byte-vocabulary.json`
+- `analysis/generated/sayans-reader-candidates.json`
+- `tools/analyze_translation_controls.py`
+- `tools/scan_text_control_reader_candidates.py`
+
+The next discriminator is bounded 65816 disassembly plus callsite mapping for
+`03:8975`, its ordinary-byte callee `00:8C41`, and the related loops. Reader
+semantics should be named only if control flow supports the translated grammar.
+
+
+### FC layout handler and character metadata
+
+Bounded 65816 analysis has now promoted the strongest static reader candidate.
+
+At `03:8971`, `Text_HandleFCPositionControl`:
+
+- preserves the incoming accumulator and recognizes low-byte `FC`;
+- consumes the following parameter byte;
+- scans the following character stream until `FF` or `FB`;
+- sends ordinary character bytes through `00:8C41`;
+- computes `parameter * 32 + horizontal adjustment` and stores the resulting tilemap-style offset in DP `$9F`.
+
+That is strong evidence that the translated `FF FC xx` / `FB FC xx` forms encode a positioned/centered line transition on a 32-column tilemap. The exact user-facing meaning of each `xx` value remains intentionally unnamed.
+
+The shared helper at `00:8C41`, promoted as `Text_TestCharacterMetadataBit7`, indexes `00:C6F8` by character code and tests bit 7. It has four direct callsites: `00:8C3D`, `00:C4CB`, `00:C510`, and `03:8998`. The metadata table's SHA-256 is `0b32a02cb81e5d0eac9334f247bfe627369408000a726fab2cd0a3a858d76302`.
+
+Printable-table inspection shows that uppercase A-Z are bit-7 clear while lowercase a-z, digits, and much punctuation are bit-7 set. This disproves the tempting but unsupported "bit 7 = glyph width" label. The helper is retained as a character-class/metadata test until rendering evidence explains the visual consequence.
+
+The related loops around `00:C4BC`, `00:C5D3`, and `03:AA36` remain useful follow-up targets for the remaining `FB/FF/F2/FC` grammar.
+
+Durable semantic summary:
+
+- `analysis/generated/sayans-text-layout-semantics.json`

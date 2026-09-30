@@ -30,3 +30,28 @@ USJO v8's `memory.readbyte(0x7E11CD)` is therefore best understood as an intenti
 ## Next static/dynamic targets
 
 The stunt-counter candidates cluster strongly in bank 02 and include plausible increment instructions, especially `02:A46E` for twist, `02:9582` for tabletop, `02:9B27/9BB7` for roll, and `02:9B41/9BF6` for flip. Bounded disassembly around these sites is the cheapest next step before launching new runtime traces.
+
+## Paired working-state structure
+
+The Z-state and twist candidates are not just isolated stores.
+
+- `02:8AB2` contains `LDY $0DFD; STY $0F57`.
+- `02:8FBA` contains the paired `LDY $0DFF; STY $0F57`.
+- `02:8DB2` copies `LDY $0F57; STY $0DFD`.
+
+That establishes `$0F57` as shared current-player working state fed from paired persistent racer slots `$0DFD/$0DFF`, rather than stable player-1-only storage.
+
+The twist field has the same general shape: `02:8BDB` and `02:90C5` copy distinct player-specific sources into `$0F61`, while `02:A46E` conditionally increments `$0F61`. The historical/player-1 label remains operationally useful for single-player TAS work, but the storage role is better described as current-player working twist count.
+
+## Counter semantics
+
+Several candidate contexts are sufficiently coherent to support static counter semantics:
+
+- Z-flip: around `02:96D0`, `LDA $042B,Y; INC A; STA $042B,Y`.
+- Tabletop: `02:9582`, `INC $042F,X`.
+- Twist: `02:A46E`, conditional `INC $0F61`.
+- Roll: `02:9B27` and `02:9BB7`, `INC $11F9,X`.
+- Flip: `02:9B41` and `02:9BF6`, `INC $11FD,X`.
+
+These static findings corroborate the recovered USJO/TAS labels and justify stronger symbol confidence, while event-causal runtime fixtures remain useful before treating exact transition timing as closed.
+

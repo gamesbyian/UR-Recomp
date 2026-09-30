@@ -9,7 +9,8 @@ on:
       - "snesrecomp"
       - "tests/input/reach-first-race.script"
       - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/_global.json"
       - ".github/workflows/snesref-input-route.yml"
 
 concurrency:

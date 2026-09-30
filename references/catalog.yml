@@ -320,6 +320,16 @@ sources:
     rights: "Original manual: Copyright (c) 1991,92 Rob Northen Computing, All Rights Reserved. Public mirror preserved as historical research evidence."
     relevance: "Official ProPack 2.14 package with period SNES Method 1/2 decompressor source; directly testable against the RNC course-compression lead from Mike Dailly/Spinal."
 
+  - id: tasvideos-snes9x-lua-usjo
+    title: "Snes9x Lua development thread documenting USJO v13"
+    type: primary_forum_description
+    url: "https://tasvideos.org/Forum/Topics/6539"
+    author: "Halamantariel"
+    public_date: "2008-02"
+    rights: "Forum material; summarized with provenance."
+    local: "references/notes/usjo13-passive-recovery.md"
+    relevance: "Primary contemporary description naming Uniracers Stunts & Jump Optimizer v13 and explaining its stunt-combination search, speed optimization and best-input replay behavior."
+
   - id: usjo13
     title: "Uniracers Stunts & Jump Optimizer v13"
     type: lua_tas_bot

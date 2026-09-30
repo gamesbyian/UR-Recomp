@@ -14,8 +14,8 @@ A missing artifact is not automatically a project dependency. Keep searching for
 - **P3 / archival tail** — preserve the lead and accept cheap wins, but do not build bespoke recovery machinery or delay milestones for it.
 
 Current missing-artifact judgment:
-- **P0:** Mike Dailly historical SNES framework; original Uniracers/DMA editor/converter/tool artifacts; `usjo13.lua`.
-- **P1:** Halamantariel boost/mechanics page; Sinister 100% translation patch; genuinely distinct old SMV/savestate corpora; Uniracers-specific Dailly development media.
+- **P0:** Mike Dailly historical SNES framework; original Uniracers/DMA editor/converter/tool artifacts.
+- **P1:** `usjo13.lua` or later USJO siblings now that internal v8 is recovered; Halamantariel boost/mechanics page; Sinister 100% translation patch; genuinely distinct old SMV/savestate corpora; Uniracers-specific Dailly development media.
 - **P2:** VGMaps course images and official packaging maps; Uniracers-specific Steve Hammond material; US manual scan; Tamoketh recreation artifacts when technical/source material exists.
 - **P3:** SNasm 1.7.2 after 1.7.1 + modern SNasm are already preserved; gamesTM #64 unless it contains material absent from the Nintendo Life republication; Uniracers Uncensored unless a surviving patch is trivially downloadable; generic DMA media with no Uniracers attribution.
 
@@ -259,17 +259,25 @@ Historical discussion identifies this as an optimized WIP containing the 23.56 D
 
 Rights: explicit redistribution license not identified; retained as third-party evidence in this private research repository.
 
-## A-015 — Uniracers Stunts & Jump Optimizer v13 (`usjo13.lua`)
+## A-015 — USJO source lineage (internal v8 recovered; v13 still missing)
 
-Priority: P0  
-Status: exact historical URL and full title known; bytes not recovered  
-Historical URL: `http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/usjo13.lua`
+Priority: P1 for v13 delta recovery; recovered v8 is active local evidence  
+Status: **internal version 8 recovered and committed; v13 exact historical URL known but bytes still missing**  
+Recovered source: `references/imported/tas-bots/usjo8.lua`  
+Internal date: 2008-02-10  
+Recovered: 2026-09-30 directly from Olivier Bellemare (Halamantariel), who retained the historical file  
+Exact size: 62,406 bytes  
+SHA-256: `64b1a26966490a619a6557adee79d6ee0463e534fa2488cf3b5913d55a316ffc`  
+Git blob SHA-1: `d78962aae7ca6a63bf94113f68680e730dade3fb`  
+Historical v13 URL: `http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/usjo13.lua`
 
-Need judgment: **yes, still worth active hunting.** The original 2008 Snes9x Lua thread names it “Uniracers Stunts & Jump Optimizer v13” and describes an automated search over stunt combinations that optimizes speed and replays the best result. Dessyreqt's later submission says Halamantariel/Nitrodon evolved USJO far enough to play Uniracers autonomously. Its source could expose exact state variables, timing assumptions, scoring/boost logic and automation techniques that would otherwise need to be rediscovered from the ROM.
+Need judgment: **the high-value knowledge is now directly usable; v13 is no longer a blocker.** Version 8 already contains savestate-driven search over jump/stunt timing, direct RAM reads for speed/vertical speed/air state/stunt counters/rotation/boost, heuristic stunt-combination search, a boost-plus-speed objective, and replay of the best result. This turns USJO from a speculative acquisition lead into an active reverse-engineering input.
 
-Acquisition boundary: **passive recovery only. Do not contact historical authors, TASers, site owners, forum users, or other people about this artifact.** Search public archives, mirrors, preserved attachments, old directory backups, code indexes, repository history, and already-public collections.
+Version 13 remains useful because five later internal revisions may contain additional discoveries, fixes or broader autonomy. Keep passive public recovery alive, but do not delay symbol work, stunt/boost validation or fixture construction waiting for it.
 
-Search posture: pivot away from repeatedly querying only the exact filename. Reconstruct the historical obellemare Uniracers directory; search plausible USJO ancestor/descendant versions; use the published WRAM watch addresses plus period Snes9x Lua APIs as code fingerprints; and compare surviving Uniracers Lua against the recovered 2014 Dessyreqt bot for lineage clues.
+Authorship note: Olivier explicitly reported that he does not remember who the main developer was and that it was not him. Preserve that uncertainty rather than assigning authorship from the surviving hosting/history.
+
+Acquisition boundary for further versions: **passive recovery only.** Public archives, mirrors, preserved attachments, old directory backups, code indexes, repository history and already-public collections are fine; no new project outreach is required.
 
 Working dossier: `references/notes/usjo13-passive-recovery.md`.
 

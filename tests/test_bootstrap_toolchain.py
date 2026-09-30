@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import copy
 import importlib.util
+import hashlib
 import json
 import subprocess
 import sys
@@ -35,6 +36,23 @@ def main() -> int:
 
     subprocess.run([sys.executable, str(TOOL), "--validate"], check=True)
     subprocess.run([sys.executable, str(TOOL), "--list"], check=True)
+
+    for tool in manifest["tools"]:
+        for patch in tool.get("patches", []):
+            patch_path = ROOT / patch["path"]
+            data = patch_path.read_bytes()
+            assert hashlib.sha256(data).hexdigest() == patch["sha256"], (
+                tool["id"], patch["path"], "patch hash drift"
+            )
+            parsed = subprocess.run(
+                ["git", "apply", "--numstat", str(patch_path)],
+                check=False,
+                text=True,
+                capture_output=True,
+            )
+            assert parsed.returncode == 0, (
+                tool["id"], patch["path"], parsed.stderr
+            )
 
     assert mod.canonical_git_url("https://github.com/example/repo.git") == "https://github.com/example/repo"
     assert mod.canonical_git_url("https://github.com/example/repo/") == "https://github.com/example/repo"
@@ -151,7 +169,7 @@ def main() -> int:
             else:
                 raise AssertionError(f"invalid artifact was not rejected: {spec}")
 
-    print("PASS: toolchain manifest schema, argv expansion, artifact checks and safety guards")
+    print("PASS: toolchain manifest, patch hashes/syntax, argv expansion, artifacts and safety guards")
     return 0
 
 

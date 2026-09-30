@@ -1,0 +1,30 @@
+name: Inspect extended audio record framing
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/inspect_audio_extended_records.py"
+      - ".github/workflows/audio-extended-record-framing.yml"
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Inspect records 0x32 through 0x42
+        run: |
+          python3 tools/inspect_audio_extended_records.py             "reference/roms/retail/Uniracers_USA.sfc"             --json-out audio-extended-record-framing.json             | tee audio-extended-record-framing.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audio-extended-record-framing
+          path: |
+            audio-extended-record-framing.json
+            audio-extended-record-framing.txt
+          retention-days: 7

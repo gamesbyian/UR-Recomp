@@ -1,0 +1,117 @@
+name: LoROM SRAM mapping probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "tests/input/sram-roundtrip.script"
+      - ".github/workflows/sram-mapping-probe.yml"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - "tools/patches/snesrecomp-dual-controller-input.patch"
+      - "third_party/src/beetle-bsnes-libretro/**"
+      - "references/imported/tas-bots/uniracers-2008-wip-microstorage.smv"
+      - "tools/extract_smv_input.py"
+      - "snesrecomp"
+
+concurrency:
+  group: sram-mapping-probe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Extract known-valid 8 KiB SRAM image
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/extract_smv_input.py             references/imported/tas-bots/uniracers-2008-wip-microstorage.smv             --input-out "$RUNNER_TEMP/ignored.input"             --sram-out "$RUNNER_TEMP/reference.srm"             --sram-size 8192             --json-out "$RUNNER_TEMP/smv.json" >/dev/null
+          test "$(stat -c%s "$RUNNER_TEMP/reference.srm")" -eq 8192
+          sha256sum "$RUNNER_TEMP/reference.srm" | tee "$RUNNER_TEMP/reference.sha256"
+
+      - name: Build reference cores and snesref
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          python3 tools/bootstrap_toolchain.py --offline --tool beetle-bsnes-libretro --jobs 2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+
+      - name: Prove Snes9x SRAM preload roundtrip
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DUMPS="$RUNNER_TEMP/snes9x-dumps"
+          mkdir -p "$DUMPS"
+          SNESREF_HEADLESS=1           SNESREF_FAST=1           SNESREF_WRAM_FILL=0           SNESREF_SRAM_IN="$RUNNER_TEMP/reference.srm"           SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/sram-roundtrip.script"           SNESREF_DUMP_DIR="$DUMPS"             "$EXE" "$CORE" "$ROM" >"$RUNNER_TEMP/snes9x.log" 2>&1
+          cat "$RUNNER_TEMP/snes9x.log"
+          SRAM_DUMP="$(find "$DUMPS" -maxdepth 1 -type f -name 'sram-roundtrip*sram*' -print -quit)"
+          if [ -z "$SRAM_DUMP" ]; then
+            echo "::error::snesref did not emit an SRAM dump for Snes9x"
+            find "$DUMPS" -maxdepth 1 -type f -printf '%f %s bytes\n' | sort
+            exit 1
+          fi
+          test "$(stat -c%s "$SRAM_DUMP")" -eq 8192
+          cmp "$RUNNER_TEMP/reference.srm" "$SRAM_DUMP"
+          echo "Snes9x exact 8192-byte SRAM preload/dump roundtrip: PASS"
+
+      - name: Characterize Beetle SRAM exposure
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DUMPS="$RUNNER_TEMP/beetle-dumps"
+          mkdir -p "$DUMPS"
+          set +e
+          SNESREF_HEADLESS=1           SNESREF_FAST=1           SNESREF_WRAM_FILL=0           SNESREF_SRAM_IN="$RUNNER_TEMP/reference.srm"           SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/sram-roundtrip.script"           SNESREF_DUMP_DIR="$DUMPS"             "$EXE" "$CORE" "$ROM" >"$RUNNER_TEMP/beetle.log" 2>&1
+          status=$?
+          set -e
+          cat "$RUNNER_TEMP/beetle.log"
+          printf '%s\n' "$status" >"$RUNNER_TEMP/beetle-exit-status.txt"
+          find "$DUMPS" -maxdepth 1 -type f -printf '%f %s bytes\n' | sort | tee "$RUNNER_TEMP/beetle-dump-files.txt"
+          if grep -q 'sram=0' "$RUNNER_TEMP/beetle.log"; then
+            echo "Beetle exposes zero bytes of save RAM through the current libretro memory interface."
+          else
+            echo "Beetle SRAM exposure changed; inspect uploaded evidence before updating the compatibility conclusion."
+          fi
+          if [ "$status" -ne 0 ] && [ "$status" -ne 134 ]; then
+            echo "::error::unexpected Beetle exit status $status"
+            exit "$status"
+          fi
+
+      - name: Upload SRAM probe evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-sram-mapping-probe
+          path: |
+            ${{ runner.temp }}/reference.srm
+            ${{ runner.temp }}/reference.sha256
+            ${{ runner.temp }}/smv.json
+            ${{ runner.temp }}/snes9x.log
+            ${{ runner.temp }}/snes9x-dumps/
+            ${{ runner.temp }}/beetle.log
+            ${{ runner.temp }}/beetle-exit-status.txt
+            ${{ runner.temp }}/beetle-dump-files.txt
+            ${{ runner.temp }}/beetle-dumps/
+          retention-days: 7

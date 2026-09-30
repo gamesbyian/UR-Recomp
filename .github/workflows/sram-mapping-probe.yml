@@ -1,4 +1,4 @@
-name: LoROM SRAM mapping probe
+name: LoROM SRAM mapping regression
 
 on:
   workflow_dispatch:

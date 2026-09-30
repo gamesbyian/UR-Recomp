@@ -927,11 +927,11 @@ Within the song-record range, records `0x3B` and `0x3D` are exceptional in exact
 
 The six known package tables contain one orphan, `03:FB95`. It has no direct `JSL $82:82A5` caller and is a strict slot-preserving subset of called Celebration table `03:FAD5`: only slots 29, 33 and 49 differ, replacing block IDs `0x15`, `0x29` and `0x07` with `0xFF`. This strongly supports an intentional dormant package variant rather than random bytes.
 
-**Interpretation:** `03:FB95` is the strongest current structural candidate for a removed `0x3B / Unused Song 1` package path because both sides are uniquely orphaned, but that pairing is not yet proven. There is only one orphan package table for two unreachable song records, so any model requiring one distinct missing package table per unused song is ruled out.
+**Interpretation:** `03:FB95` is the strongest current structural candidate for a removed `0x3B / Unused Song 1` package path because both sides are uniquely orphaned, but that pairing is not yet proven. There is only one orphan package table for two unreachable song records, so any model requiring one distinct missing package table per unused song is ruled out. Existing live transfer evidence supplies a stronger positive model for `0x3D`: first-race package `03:FB55` reconstructs APU RAM `$B0E0-$BDE0`, and that entire 3,329-byte region is byte-identical at the same offsets in the preserved Unused Song 2 SPC.
 
 **Evidence:** `analysis/generated/audio-setup-selector-map.json`; `analysis/generated/audio-package-map.json`; `analysis/generated/audio-extended-block-correlation.json`; `analysis/generated/audio-unused-path-analysis.{json,md}`; `analysis/generated/audio-record-pool-reconciliation.md`.
 
-**Discriminating test:** reconstruct the ordinary setup/upload path for selector `0x3B` plus package table `03:FB95` in a reference harness and compare resulting APU RAM against the preserved Unused Song 1 SPC. Test `0x3D` separately against plausible reused package tables rather than inventing a seventh table.
+**Discriminating test:** reconstruct the ordinary setup/upload path for selector `0x3B` plus package table `03:FB95` in a reference harness and compare resulting APU RAM against the preserved Unused Song 1 SPC. Separately test the now-leading reused model `0x3D + 03:FB55` against Unused Song 2.
 
 ---
 

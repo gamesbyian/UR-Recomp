@@ -6,9 +6,14 @@ import argparse
 import json
 from pathlib import Path
 
-from tools.summarize_presentation_geometry import summarize_dump
-from tools.summarize_window_seam import summarize as summarize_window
-from tools.summarize_color_math_state import summarize as summarize_color
+try:
+    from tools.summarize_presentation_geometry import summarize_dump
+    from tools.summarize_window_seam import summarize as summarize_window
+    from tools.summarize_color_math_state import summarize as summarize_color
+except ModuleNotFoundError:
+    from summarize_presentation_geometry import summarize_dump
+    from summarize_window_seam import summarize as summarize_window
+    from summarize_color_math_state import summarize as summarize_color
 
 
 def summarize_transition(root: Path) -> dict:

@@ -1,0 +1,25 @@
+{
+  "artifacts": [
+    {
+      "kind": "executable",
+      "path": "flips"
+    }
+  ],
+  "build": [
+    [
+      "make",
+      "TARGET=cli",
+      "-j{jobs}"
+    ]
+  ],
+  "group": "patching",
+  "headless": {
+    "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session.",
+    "status": "native"
+  },
+  "id": "flips",
+  "install_mode": "build",
+  "purpose": "CLI-capable IPS/BPS patch application and creation for preserving/replaying ROM modifications.",
+  "revision": "6caac470f7fc096b0c5fdc374b65954f8bac5b16",
+  "url": "https://github.com/bates64/flips.git"
+}

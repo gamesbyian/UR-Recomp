@@ -1,0 +1,61 @@
+{
+  "artifacts": [
+    {
+      "kind": "executable",
+      "path": "bin/snes2asm",
+      "root": "venv"
+    },
+    {
+      "kind": "executable",
+      "path": "bin/bmp2chr",
+      "root": "venv"
+    },
+    {
+      "kind": "executable",
+      "path": "bin/brr",
+      "root": "venv"
+    }
+  ],
+  "build": [
+    [
+      "{python}",
+      "{root}/tools/install_pure_python_tool.py",
+      "--source-root",
+      "{root}/third_party/src/pyyaml-6.0.3",
+      "--source-dir",
+      "lib/yaml",
+      "--package",
+      "yaml"
+    ],
+    [
+      "{python}",
+      "{root}/tools/install_pure_python_tool.py",
+      "--source-dir",
+      "snes2asm",
+      "--package",
+      "snes2asm",
+      "--entry",
+      "snes2asm=snes2asm:main",
+      "--entry",
+      "bmp2chr=snes2asm:bmp2chr",
+      "--entry",
+      "brr=snes2asm:brr_cli"
+    ]
+  ],
+  "group": "core",
+  "headless": {
+    "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session.",
+    "status": "native"
+  },
+  "id": "snes2asm",
+  "install_mode": "build",
+  "patches": [
+    {
+      "path": "tools/patches/snes2asm-ur-recomp.patch",
+      "sha256": "8d75f8314750e8b7e81ac880e2df2e94a48911fa9f1d7a6841f6e678d10f876f"
+    }
+  ],
+  "purpose": "SNES disassembler/project generator, installed into an isolated venv and patched narrowly for UR-Recomp: numeric --empty-fill parsing and robust unknown/missing decoder-type validation.",
+  "revision": "04023b0b589042b212f30c92ec7acf6e6bd010e4",
+  "url": "https://github.com/nathancassano/snes2asm.git"
+}

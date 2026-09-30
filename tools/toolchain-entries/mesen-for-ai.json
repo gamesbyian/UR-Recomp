@@ -1,0 +1,29 @@
+{
+  "artifacts": [
+    {
+      "kind": "executable",
+      "path": "bin/mesen-mcpd",
+      "root": "venv"
+    }
+  ],
+  "build": [
+    [
+      "{python}",
+      "{root}/tools/install_pure_python_tool.py",
+      "--package",
+      "mesen_mcp",
+      "--entry",
+      "mesen-mcpd=mesen_mcp.daemon:main"
+    ]
+  ],
+  "group": "agent-debug",
+  "headless": {
+    "note": "The bridge/daemon is headless; actual Mesen hosting uses upstream's Xvfb-backed testrunner path when a Mesen binary is attached.",
+    "status": "native"
+  },
+  "id": "mesen-for-ai",
+  "install_mode": "build",
+  "purpose": "Headless AI-facing Mesen bridge for frame stepping, memory/register inspection, breakpoints, traces, and SNES code/data logging.",
+  "revision": "a4bda6285eadf69c871135637df29e9c9a8f6f7a",
+  "url": "https://github.com/paulomanrique/mesen-for-ai.git"
+}

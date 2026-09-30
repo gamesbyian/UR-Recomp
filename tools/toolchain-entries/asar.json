@@ -1,0 +1,38 @@
+{
+  "artifacts": [
+    {
+      "kind": "executable",
+      "path": "build/asar/bin/asar"
+    }
+  ],
+  "build": [
+    [
+      "cmake",
+      "-S",
+      "src",
+      "-B",
+      "build",
+      "-DCMAKE_BUILD_TYPE=MinSizeRel",
+      "-DASAR_GEN_DLL=OFF",
+      "-DASAR_GEN_LIB=OFF"
+    ],
+    [
+      "cmake",
+      "--build",
+      "build",
+      "--target",
+      "asar-standalone",
+      "-j{jobs}"
+    ]
+  ],
+  "group": "patching",
+  "headless": {
+    "note": "Command-line patch assembler; no desktop session required.",
+    "status": "native"
+  },
+  "id": "asar",
+  "install_mode": "build",
+  "purpose": "Patch-oriented 65C816 assembler for reproducible SNES ROM modifications, including the quarantined emulator-assisted widescreen ROM-hack bonus project.",
+  "revision": "5fd539cd510e4a26afef66fc14e35ca6d8ff0497",
+  "url": "https://github.com/RPGHacker/asar.git"
+}

@@ -1,0 +1,27 @@
+{
+  "artifacts": [
+    {
+      "kind": "executable",
+      "path": "bin/da65"
+    }
+  ],
+  "build": [
+    [
+      "make",
+      "-C",
+      "src",
+      "da65",
+      "-j{jobs}"
+    ]
+  ],
+  "group": "analysis",
+  "headless": {
+    "note": "Build/runtime surface used by UR-Recomp is command-line or libretro and does not require a desktop session.",
+    "status": "native"
+  },
+  "id": "cc65",
+  "install_mode": "build",
+  "purpose": "Repository-owned reduced cc65/da65 closure for command-line 65816 disassembly; only da65 and its shared common sources are retained.",
+  "revision": "d8a486acdef93ea1ba432a6a35b96cf1b797bda5",
+  "url": "https://github.com/cc65/cc65.git"
+}

@@ -1,0 +1,14 @@
+{
+  "artifacts": [],
+  "build": [],
+  "group": "visual-reference",
+  "headless": {
+    "note": "Data-only shader checkout. Runtime headlessness depends on the frontend used to execute the presets.",
+    "status": "native"
+  },
+  "id": "slang-shaders",
+  "install_mode": "manual",
+  "purpose": "Pinned Libretro Slang shader corpus for comparative pixel-art reconstruction, scaling, NTSC and CRT reference captures. Curate a small project-owned preset matrix rather than treating every shader as equally useful.",
+  "revision": "84bcd19a854348c0e6a1d3db814a76f11fb6f011",
+  "url": "https://github.com/libretro/slang-shaders.git"
+}

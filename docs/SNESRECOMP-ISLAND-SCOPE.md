@@ -59,7 +59,7 @@ Do not vendor SDL3 merely because SNESRecomp supports doing so. Measure the proj
 
 `recompiler-rs` is a Rust 2021 package with minimum Rust 1.85 and one direct dependency, `serde_json = "1"`.
 
-Its pinned `Cargo.lock` currently resolves ten registry packages:
+Its pinned `Cargo.lock` currently resolves eleven registry packages:
 
 - itoa 1.0.18
 - memchr 2.8.3

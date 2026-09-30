@@ -10,9 +10,21 @@ Historical URL:
 
 `http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/usjo13.lua`
 
-This remains a P0 acquisition lead because the source may directly expose stunt-search logic, RAM accesses, timing assumptions, boost/scoring rules and emulator automation that would otherwise have to be reconstructed from the ROM.
+Internal version 8 is now recovered, so v13 is a **P1 passive delta-recovery target rather than a blocker**. The recovered ancestor already exposes stunt-search logic, RAM accesses, timing assumptions, boost/scoring rules and emulator automation; v13 matters mainly for later changes across five internal revisions.
 
 **Do not contact historical authors, TASers, site owners, forum users, or other people to recover this artifact.** Recovery work is passive-only: public archives, mirrors, indexed code, preserved attachments, caches, repository history, downloadable backup corpora, and already-public artifacts.
+
+## Direct recovery: internal version 8
+
+On 2026-09-30 Olivier Bellemare (Halamantariel) recovered a surviving copy identified in its own header as **February 10th, 2008 (Internal Version 8)**. The exact bytes are preserved at `references/imported/tas-bots/usjo8.lua`.
+
+- size: 62,406 bytes
+- SHA-256: `64b1a26966490a619a6557adee79d6ee0463e534fa2488cf3b5913d55a316ffc`
+- Git blob SHA-1: `d78962aae7ca6a63bf94113f68680e730dade3fb`
+- authorship: unresolved; Olivier explicitly recalls that he was not the main developer
+- immediate value: direct RAM reads, stunt counters, jump/stunt state machine, timing constants, savestate search, boost/speed evaluator and best-input replay
+
+This recovery changes the next action from "find any USJO source" to "mine and locally verify v8." Any future v13 recovery should be diffed against v8 to isolate the later discoveries instead of re-analyzed from zero.
 
 ## Strong surviving evidence
 
@@ -126,7 +138,7 @@ Prioritize:
 
 ## Search results recorded 2026-09-30
 
-- Broad public web searches for `usjo13.lua`, plausible earlier versions, the historical URL, and exact RAM fingerprints did not surface the source.
+- Broad public web searches for `usjo13.lua`, plausible earlier versions, the historical URL, and exact RAM fingerprints did not surface v13 before the direct v8 recovery.
 - GitHub global code search returned no matches for the exact filename, full title, the strongest RAM-address combinations, or obvious Uniracers/Snes9x Lua fingerprints.
 - The original Snes9x Lua thread is therefore currently the strongest surviving primary description of v13 itself.
 - The 2011 submission independently confirms that USJO was later extended beyond one-jump optimization into autonomous play.
@@ -135,7 +147,7 @@ This is a negative result for the obvious indexed surfaces, not evidence that th
 
 ## Stopping rule
 
-Keep USJO at P0, but avoid repeated generic search churn.
+Use recovered v8 immediately. Keep v13 at P1 passive-only and avoid repeated generic search churn.
 
 A productive recovery pass should add at least one of:
 1. a new archive surface or corpus;

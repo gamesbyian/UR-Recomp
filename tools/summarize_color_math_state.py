@@ -52,7 +52,7 @@ def main() -> int:
     rows = []
     for regs in sorted(args.dump_dir.glob("*.regs.json")):
         stem = regs.name.removesuffix(".regs.json")
-        frame = args.dump_dir / f"{stem}.fb.bin"
+        frame = args.dump_dir / f"{stem}.fb.bgrx"
         rows.append(summarize(regs, frame))
     for row in rows:
         print(

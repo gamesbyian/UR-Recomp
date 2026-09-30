@@ -38,8 +38,14 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def collect(source_root: Path, depfiles: list[Path], explicit: list[str]) -> dict:
+def collect(
+    source_root: Path,
+    depfiles: list[Path],
+    explicit: list[str],
+    dependency_base: Path | None = None,
+) -> dict:
     root = source_root.resolve()
+    dep_base = (dependency_base or source_root).resolve()
     files: set[Path] = set()
 
     def add(candidate: Path) -> None:
@@ -52,11 +58,10 @@ def collect(source_root: Path, depfiles: list[Path], explicit: list[str]) -> dic
             files.add(rel)
 
     for depfile in depfiles:
-        base = depfile.parent.resolve()
         for token in parse_depfile(depfile):
             candidate = Path(token)
             if not candidate.is_absolute():
-                candidate = base / candidate
+                candidate = dep_base / candidate
             add(candidate)
 
     for item in explicit:
@@ -99,6 +104,11 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source-root", type=Path, required=True)
     parser.add_argument("--dep-root", type=Path, required=True)
+    parser.add_argument(
+        "--dependency-base",
+        type=Path,
+        help="working directory relative dependency paths in depfiles are based on",
+    )
     parser.add_argument("--include", action="append", default=[])
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
@@ -107,7 +117,12 @@ def main() -> int:
     if not depfiles:
         raise SystemExit(f"no compiler depfiles found under {args.dep_root}")
 
-    result = collect(args.source_root, depfiles, args.include)
+    result = collect(
+        args.source_root,
+        depfiles,
+        args.include,
+        dependency_base=args.dependency_base,
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(

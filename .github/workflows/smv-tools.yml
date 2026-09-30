@@ -1,27 +1,16 @@
 name: SMV tooling regression
 
 on:
-  pull_request:
-    paths:
-      - "tools/extract_smv_input.py"
-      - "tests/test_extract_smv_input.py"
-      - "tools/summarize_wram_trace_checkpoints.py"
-      - "tests/test_summarize_wram_trace_checkpoints.py"
-      - ".github/workflows/smv-tools.yml"
   push:
-    branches:
-      - main
     paths:
       - "tools/extract_smv_input.py"
+      - "tools/compose_historical_replay_result.py"
+      - "tests/test_compose_historical_replay_result.py"
       - "tests/test_extract_smv_input.py"
       - "tools/summarize_wram_trace_checkpoints.py"
       - "tests/test_summarize_wram_trace_checkpoints.py"
       - ".github/workflows/smv-tools.yml"
   workflow_dispatch:
-
-concurrency:
-  group: smv-tools-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   test:

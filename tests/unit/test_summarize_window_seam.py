@@ -35,3 +35,29 @@ def test_summarize_window_seam_detects_two_window_xor(tmp_path: Path):
     report = json.loads(out.read_text())
     assert report["xor_checkpoints"] == [{"checkpoint": "race", "layers": ["BG1"]}]
     assert report["checkpoints"][0]["layers"][0]["logic_name"] == "XOR"
+
+
+def test_summarize_window_seam_requires_exact_checkpoint_set(tmp_path: Path):
+    regs = tmp_path / "race-entered.regs.json"
+    regs.write_text(json.dumps({
+        "frame_tag": 1035,
+        "ppu": {
+            "tm": "17", "ts": "10", "tmw": "17", "tsw": "00",
+            "cgwsel": "02", "cgadsub": "04",
+            "fixed_color": {"r": 15, "g": 0, "b": 0},
+            "window": {
+                "w1_left": 255, "w1_right": 0, "w2_left": 255, "w2_right": 0,
+                "w12sel": "AA", "w34sel": "AA", "wobjsel": "AA",
+                "wbglog": "AA", "wobjlog": "AA",
+                "layers": [
+                    {"w1_enable": 1, "w1_inside": 1, "w2_enable": 1, "w2_inside": 1, "logic": 2}
+                    for _ in range(6)
+                ],
+            },
+        },
+    }))
+    subprocess.run(
+        [sys.executable, "tools/summarize_window_seam.py", str(regs),
+         "--require-xor-checkpoint", "race-entered"],
+        check=True,
+    )

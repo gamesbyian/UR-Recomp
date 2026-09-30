@@ -59,11 +59,7 @@ It is a strict slot-preserving subset of `03:FAD5`, the package paired with sele
 - slot 33: `0x29 -> 0xFF`
 - slot 49: `0x07 -> 0xFF`
 
-This looks intentional rather than random corruption or padding. Because `0x3B` is the
-immediately following song record and is itself unreachable, `03:FB95` is the strongest
-current candidate for an orphan package associated with Unused Song 1. That association
-remains a hypothesis until reconstructed execution or equivalent APU-state comparison
-demonstrates it.
+This looks intentional rather than random corruption or padding. `03:FB95` remains important as the sole orphan package table, but it is no longer the preferred Unused Song 1 pairing on current evidence. Of the three base blocks already correlated against SPC RAM (`0x07`, `0x15`, `0x29`), Unused Song 1 contains `0x15` and `0x29` but not `0x07`. Called Demo package `03:FB15` has exactly that three-marker membership pattern, while `03:FB95` omits all three. Retained APU RAM prevents this marker match from being causal proof, so both `03:FB15` reuse and `03:FB95` orphan use remain reconstruction targets.
 
 There is no second orphan package table for `0x3D` / Unused Song 2. Instead, the live first-race `03:FB55` package reconstructs APU RAM `$B0E0-$BDE0`, and that complete 3,329-byte region is byte-identical at the same offsets in the preserved Unused Song 2 SPC. This makes `03:FB55` the leading reused-package candidate for `0x3D` and shows that a unique package per song is not required.
 

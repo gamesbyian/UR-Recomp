@@ -62,9 +62,11 @@ def build_report(rom: bytes, first: int = 0x32, last: int = 0x42) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("rom", type=Path)
+    ap.add_argument("--first", type=lambda x: int(x, 0), default=0x32)
+    ap.add_argument("--last", type=lambda x: int(x, 0), default=0x42)
     ap.add_argument("--json-out", type=Path)
     args = ap.parse_args()
-    report = build_report(args.rom.read_bytes())
+    report = build_report(args.rom.read_bytes(), first=args.first, last=args.last)
     for row in report["records"]:
         print(
             f"{row['id_hex']} {row['cpu_address']} payload={row['payload_length']} "

@@ -820,3 +820,16 @@ Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribut
 **Evidence update:** attempt-2 run 36538122757 regenerated the full trailer corpus; the durable human-readable report is `analysis/generated/course-trailer-structure.md`. Attempt-2 run 36538122823 independently confirms that the non-Dragster stream-11 runtime advances through all 21 trailer bytes to EOF−1.
 
 **Discriminating tests:** classify the trailer byte grammar and compare Europe-retail variants. The former runtime question, whether a non-Dragster course walks the entire region, is now closed positively.
+
+### R-SEED-045 — Beetle/bsnes teardown abort has a concrete double-free path
+
+**Status:** source-level root cause identified; fix deferred to a non-conflicting toolchain change  
+**Date:** 2026-09-29  
+**Area:** emulator oracle | libretro | island toolchain
+
+**Observation:** independent-reference run 36627766874 completes the full first-race fixture under the repository-owned Beetle/bsnes core, writes all expected evidence, and then exits 134 during libretro teardown. The vendored core's `retro_deinit()` manually frees `surf->pixels` / `surf->pixels16` and immediately executes `delete surf`. `MDFN_Surface::~MDFN_Surface()` independently frees the same pixel pointer. Therefore the normal teardown path contains a deterministic double free.
+
+**Interpretation:** the post-fixture abort is an adapter/core cleanup defect, not evidence of failed emulation or incomplete fixture execution. The smallest correction is to let `MDFN_Surface` own and free its allocation exactly once, preferably as a narrow project-owned patch rather than silently editing the pristine vendored source.
+
+**Concurrency note:** the active OAM/2P branch currently owns `tools/toolchain.json`, so registering the patch there is intentionally deferred until that work lands or moves clear. Preserve the current exit-134 allowance only until the ownership-safe patch can be applied and validated.
+

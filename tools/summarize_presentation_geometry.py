@@ -50,21 +50,15 @@ def row_metrics(raw: bytes, width: int, height: int, rows: int = 16) -> dict:
 
 def summarize_dump(root: Path, tag: str) -> dict:
     info = json.loads((root / f"{tag}.info.json").read_text(encoding="utf-8"))
-    regs = json.loads((root / f"{tag}.regs.json").read_text(encoding="utf-8"))
-    ppu = regs["ppu"]
+    regs_path = root / f"{tag}.regs.json"
     raw = (root / f"{tag}.fb.bgrx").read_bytes()
     width = int(info["fb_width"])
     height = int(info["fb_height"])
-    return {
-        "checkpoint": tag,
-        "frame": int(info["frame"]),
-        "framebuffer": {
-            "width": width,
-            "height": height,
-            "sha256": hashlib.sha256(raw).hexdigest(),
-            "edges": row_metrics(raw, width, height),
-        },
-        "ppu": {
+    ppu_summary = None
+    if regs_path.is_file():
+        regs = json.loads(regs_path.read_text(encoding="utf-8"))
+        ppu = regs["ppu"]
+        ppu_summary = {
             "setini": ppu["setini"],
             "screen_height": ppu["screen_height"],
             "interlace": ppu["interlace"],
@@ -79,16 +73,27 @@ def summarize_dump(root: Path, tag: str) -> dict:
             "tsw": ppu["tsw"],
             "cgwsel": ppu["cgwsel"],
             "cgadsub": ppu["cgadsub"],
+        }
+    return {
+        "checkpoint": tag,
+        "frame": int(info["frame"]),
+        "core_name": info.get("core_name"),
+        "core_version": info.get("core_version"),
+        "framebuffer": {
+            "width": width,
+            "height": height,
+            "sha256": hashlib.sha256(raw).hexdigest(),
+            "edges": row_metrics(raw, width, height),
         },
+        "ppu": ppu_summary,
     }
 
 
 def summarize_dir(root: Path) -> dict:
     tags = sorted(
-        p.name.removesuffix(".regs.json")
-        for p in root.glob("*.regs.json")
-        if (root / f"{p.name.removesuffix('.regs.json')}.fb.bgrx").is_file()
-        and (root / f"{p.name.removesuffix('.regs.json')}.info.json").is_file()
+        p.name.removesuffix(".info.json")
+        for p in root.glob("*.info.json")
+        if (root / f"{p.name.removesuffix('.info.json')}.fb.bgrx").is_file()
     )
     return {"schema_version": 1, "checkpoints": [summarize_dump(root, t) for t in tags]}
 
@@ -104,10 +109,13 @@ def main() -> int:
     for row in report["checkpoints"]:
         p = row["ppu"]
         b = row["framebuffer"]["edges"]["bottom"]
+        ppu_text = (
+            f"setini={p['setini']} screen_height={p['screen_height']} bgmode={p['bgmode']}"
+            if p is not None else "ppu=unavailable"
+        )
         print(
             f"{row['checkpoint']}: {row['framebuffer']['width']}x{row['framebuffer']['height']} "
-            f"setini={p['setini']} screen_height={p['screen_height']} "
-            f"bgmode={p['bgmode']} bottom_nonzero={b['nonzero_pixels']}/{b['pixels']} "
+            f"{ppu_text} bottom_nonzero={b['nonzero_pixels']}/{b['pixels']} "
             f"bottom_colors={b['unique_colors']}"
         )
     if args.json_out:

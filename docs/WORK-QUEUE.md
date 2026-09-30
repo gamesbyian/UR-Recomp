@@ -11,7 +11,7 @@ Canonical execution plan: `docs/ISLAND-TOOLCHAIN-PLAN.md`.
 Goal: make the core automated research/build toolchain runnable from a clean checkout without GitHub, PyPI or crates.io after ordinary host/compiler prerequisites are present.
 
 - [x] Add the `third_party/` provenance/licensing/manifest infrastructure, repository-hygiene validation, local-source bootstrap preference, and fail-closed offline mode. A true network-disabled build smoke follows the first islanded core component.
-- [x] Vendor the small/high-value tool tranche and package-registry closures. `mesen-for-ai`, `snes2asm` plus its PyYAML 6.0.3 closure, SuperFamiconv plus its 78-package Cargo vendor closure, `ghidra-snes` source/language data, pruned Flips CLI, and Beetle/bsnes libretro are complete. Independent-reference run 36627766874 drives the same seven-checkpoint first-race fixture through Snes9x and repository-owned Beetle, and toolchain run 36628608355 proves Beetle through the ordinary fail-closed offline bootstrap/build matrix plus required libretro ABI checks. P0-B is closed; proceed through P0-C. Beetle's post-fixture teardown abort and cross-core WRAM differences remain explicit follow-up evidence, not blockers to the independent execution gate.
+- [ ] Vendor the small/high-value tool tranche and package-registry closures. `mesen-for-ai`, `snes2asm` plus its PyYAML 6.0.3 closure, SuperFamiconv plus its 78-package Cargo vendor closure, `ghidra-snes` source/language data, and pruned Flips CLI are complete. Beetle/bsnes libretro is landed, and independent-reference run 36627766874 successfully drives the same seven-checkpoint first-race fixture through Snes9x and repository-owned Beetle (race entry at frames 1035 and 1038 respectively). The current promotion branch moves Beetle into the ordinary fail-closed offline bootstrap/build matrix; once that branch matrix is green, P0-B is complete and work moves fully to P0-C. Beetle's post-fixture teardown abort and cross-core WRAM differences remain explicit follow-up evidence, not blockers to the independent execution gate.
 - [ ] Migrate SNESRecomp and core reconstruction/build dependencies incrementally. WLA-DX is complete as the first P0-C core-build tranche: the repository owns the exact pinned 65816/linker source closure plus the narrow build patch; ordinary `bootstrap_toolchain.py --offline` proof is green.
 - [ ] Preserve large/manual workbenches as exact archives or optional external tools where direct vendoring has poor value.
 - [ ] Prove a network-disabled core workflow before removing the old fetch paths.
@@ -81,9 +81,9 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 
 - [ ] Test whether current runtime already handles the behavior correctly.
 - [ ] Reproduce the failure if not.
-- [ ] Determine affected one-player, two-player and Vs. modes.
-- [ ] Trace writes to `$2104` and verify expected scanline/value behavior, including the jgenesis 0/112 and `0xA5`/`0x5A` observations.
-- [ ] Verify the effective high-OAM target and sprites 96-99.
+- [~] Mode coverage: VS mode is now deterministically reproduced through active split-screen gameplay with the scanline-0/112 $2104 HDMA seam captured. Ordinary 2P and any 1P occurrence still need explicit classification.
+- [x] Trace writes to `$2104` and verify expected scanline/value behavior. The durable VS regression reproduces HDMA `$2104 <- $A5` at scanline 0 and `$2104 <- $5A` at scanline 112 at every sampled stable race checkpoint; the source table is `7E:206C = 70 A5 70 5A 00`.
+- [x] Verify the effective high-OAM target and sprites 96-99. Stable race snapshots end with `OAM[0x218] = 0x5A`; independent Snes9x/MAME/jgenesis/SNESdev evidence identifies `0x218` as the active-display destination. High-table byte index `0x18` controls sprites 96-99, and the project decoder verifies the `$A5/$5A` two-bit pair swap.
 - [ ] Disassemble the recovered Canoe patch hooks at `0x01534C` and `0x015714` plus injected handler at `0x1FFF00`.
 - [ ] Compare unpatched behavior, Canoe workaround, Snes9x special case, MAME/jgenesis models and bsnes/ares reference behavior.
 - [ ] Reduce any mismatch to the smallest deterministic case.
@@ -91,9 +91,9 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 
 ### Other historically exposed seams
 
-- [~] LoROM SRAM mapping: deterministic probe fixture and CI lane now use the historical 2008 movie's known-valid 8 KiB SRAM image to require an exact Snes9x preload→dump roundtrip and separately characterize Beetle's libretro save-RAM exposure. Promote to complete only after the new probe is green and any cross-core limitation is classified.
-- [ ] XOR/window-area logic: identify an affected screen and add PPU/window-state plus frame regression coverage.
-- [ ] Color math / empty-subscreen behavior: identify an affected screen and add PPU/color-math plus frame regression coverage.
+- [~] LoROM SRAM mapping: deterministic probe fixture and CI lane use the historical 2008 movie's known-valid 8 KiB SRAM image to require an exact Snes9x preload→dump roundtrip and, with the narrow Beetle SAVE_RAM/teardown patch, the same exact roundtrip under the independent core. Promote to complete only after both cores pass and the patch is green in the ordinary offline toolchain matrix.
+- [x] XOR/window-area logic: run 36658348552 isolates the ordinary one-player `race-entered` checkpoint at frame 1035 as the only sampled XOR-active scene; BG1-4, OBJ and color all have both windows enabled with XOR logic, while the sampled frontend and stable VS checkpoints are negative controls. The permanent workflow now requires the XOR-active checkpoint set to remain exactly `{race-entered}`.
+- [x] Color math / empty-subscreen behavior: canonical scene survey plus historical fallback A/B are complete. Frontend states use `CGWSEL=02`, `CGADSUB=7F`, `TS=10`, while active race changes to `CGADSUB=04` and fixed red=15. The historical backdrop-for-empty-subscreen perturbation changes ~97-99% of several frontend frames, 0 pixels on Rider Select, and only 392 pixels in a narrow race band; reject any title-wide compatibility fallback and preserve per-pixel SNES color-math semantics. Evidence: `analysis/generated/color-math-scene-survey.json` and `analysis/generated/color-math-fallback-ab.json`.
 - [ ] Record each seam's final explanation in the research ledger / knowledge base and link its permanent test.
 
 **Exit:** the known historical Uniracers emulator compatibility problems are either reproduced and covered by deterministic tests or explicitly shown not to apply to the canonical runtime.
@@ -114,7 +114,7 @@ Use `snesref` or another trustworthy reference route.
 - [x] Full-WRAM/state checkpoint comparison across native and Snes9x/snesref. The first-race fixture compares all 128 KiB at seven checkpoints and reduces the settled-race difference to seven bytes.
 - [x] First-divergence workflow for the settled first-race checkpoint. Run 36511207129 resolves `$01D1–$01D4` as stale stack residue (`SP=$01FF`, `E=false`, no ordinary WRAM writers) and `$00C6/$00C8/$00C9` as free-running timing/phase counters. There is no remaining unexplained persistent gameplay-state divergence in this checkpoint.
 - [x] Establish a backward-compatible neutral P1/P2 controller stream (`start:duration:p1-mask[:p2-mask]`) plus native-Lua and Mesen writers; preserve all historical three-field P1 corpora unchanged. Keep the pinned `snesref` P2 delta as a project patch until equivalent support is upstream.
-- [~] Promote the new P2 transport from adapter/build proof to canonical-ROM evidence: first require a P2-only causal probe with P1 idle, then simultaneous P1/P2 input, 2P frontend/race entry, and paired racer-state checkpoints across native, patched `snesref`, and Mesen.
+- [~] P2 transport now has canonical-ROM causal evidence and a deterministic VS route into active split-screen gameplay. Remaining promotion work is ordinary 2P coverage, simultaneous-input gameplay semantics, paired racer-state checkpoints across native/patched `snesref`/Mesen, and persistent cross-runtime parity.
 - [ ] Adapt the recovered 2014 policy so either controller can be driven independently; use that to create bot-vs-bot and human-vs-bot soak workloads after the deterministic 2P route is trusted.
 - [~] Regression cases for race start, acceleration, jump, rotation, landing, stunt, collision, finish and two-player. Race start, acceleration, jump, rotation, landing and one failed-landing/contact case are covered. Deterministic Dragster finish is the active next 1P fixture; 2P transport infrastructure now exists, while gameplay promotion, stunt and full two-player regression remain open.
 

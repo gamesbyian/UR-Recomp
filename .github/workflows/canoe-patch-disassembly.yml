@@ -18,8 +18,23 @@ jobs:
       - name: Inventory patch against canonical ROM
         run: |
           python3 tools/analyze_canoe_ips.py             references/imported/patches/uniracers_canoe.ips             --rom "reference/roms/retail/Uniracers_USA.sfc"             --json-out canoe-patch-analysis.json
+      - name: Assert mechanical patch reconstruction
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          report=json.loads(Path("canoe-patch-analysis.json").read_text())
+          s=report["semantic_summary"]
+          assert [h["target"] for h in s["hooks"]] == ["BF:FF00", "BF:FF36"]
+          assert [r["patched_target"] for r in s["long_store_redirects"]] == ["7F:FFE1", "7F:FFEB"]
+          assert s["injected_handler"]["hdma_setup"]["channel7"]["table_address"] == "7F:FFE0"
+          assert s["injected_handler"]["hdma_setup"]["channel1"]["table_address"] == "7F:FFF0"
+          print(json.dumps(s, indent=2, sort_keys=True))
+          PY
       - name: Build pinned da65
-        run: python3 tools/bootstrap_toolchain.py --tool cc65 --jobs 2
+        run: python3 tools/bootstrap_toolchain.py --offline --tool cc65 --jobs 2
       - name: Extract and disassemble injected BF:FF00 handler
         shell: bash
         run: |

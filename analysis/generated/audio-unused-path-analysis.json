@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "extended_song_selectors": {
     "0x38": {
       "cpu_address": "0x13F70C",
@@ -155,7 +155,8 @@
       "0x15",
       "0x29"
     ],
-    "guardrail": "Marker presence in an SPC snapshot can reflect retained APU RAM from earlier loads; matching these three markers ranks candidates but does not prove which package was loaded.",
+    "marker_count": 3,
+    "guardrail": "Block presence in an SPC snapshot can reflect retained APU RAM from earlier loads; matching correlated package blocks ranks candidates but does not prove which package was loaded.",
     "Unused Song 1": {
       "observed_marker_presence": {
         "0x07": false,
@@ -342,9 +343,9 @@
       "ordinary_package_pair_reachable": false,
       "leading_table_candidates": [
         "0x03FB15",
-        "0x03FB95"
+        "0x03FB55"
       ],
-      "candidate_basis": "03:FB95 remains the sole orphan table, but three already-correlated base-block markers favor package reuse: Unused Song 1 has 0x15 and 0x29 present and 0x07 absent, exactly matching called Demo package 03:FB15; 03:FB95 omits all three. Because SPC RAM may retain prior data, the marker pattern is discriminating evidence rather than proof."
+      "candidate_basis": "The package ranking is computed from every package block present in the committed SPC-correlation corpus. With the current three-block corpus, called Demo package 03:FB15 exactly matches Unused Song 1 while orphan 03:FB95 does not. The same analysis automatically expands when the full 0x00..0x31 correlation is promoted."
     },
     "0x3D": {
       "track": "Unused Song 2",
@@ -354,7 +355,7 @@
         "0x03FB55",
         "0x03FBD5"
       ],
-      "candidate_basis": "The three correlated markers match both 03:FB55 and 03:FBD5, but live first-race 03:FB55 transfer evidence is stronger: it reconstructs APU RAM 0xB0E0-0xBDE0, and Unused Song 2 contains that entire 3,329-byte region byte-identically at the same offsets."
+      "candidate_basis": "Package-block correlation currently ties 03:FB55 and 03:FBD5 on the three committed markers. Live first-race 03:FB55 transfer evidence is stronger: it reconstructs APU RAM 0xB0E0-0xBDE0, and Unused Song 2 contains that entire 3,329-byte region byte-identically at the same offsets."
     }
   },
   "interpretation": {
@@ -365,7 +366,7 @@
       "03:FB95 has zero direct package-transfer callers.",
       "03:FB95 is a slot-preserving strict subset of called Celebration table 03:FAD5."
     ],
-    "hypothesis": "Package reuse is now at least as plausible as orphan-table use for Unused Song 1. 03:FB15 exactly matches all three currently correlated package-marker presences in that SPC, whereas 03:FB95 does not; controlled reconstruction is required to choose between them.",
+    "hypothesis": "Package reuse is at least as plausible as orphan-table use for Unused Song 1. The ranking should be recomputed from the full package-block correlation before controlled reconstruction chooses between candidate tables.",
     "unused_song_2_race_package_corroboration": {
       "package": "03:FB55",
       "apu_region": {

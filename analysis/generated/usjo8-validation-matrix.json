@@ -36,22 +36,6 @@
       "symbol_notes": "USJO v8 working label `zprerotation`; consulted during chained Z-flip timing. Exact meaning not yet locally reproduced."
     },
     {
-      "address": "7E:11CD",
-      "usjo_variables": [
-        "realboostmeter"
-      ],
-      "usjo_width_bits": [
-        8
-      ],
-      "symbol_name": "Player1_BoostMeter",
-      "symbol_width": "historical width conflict",
-      "confidence": 3,
-      "status": "width-or-units-conflict",
-      "validation_priority": 1,
-      "next_action": "Resolve runtime width/units and byte-vs-word behavior.",
-      "symbol_notes": "Historical TAS watch list labels a 16-bit unsigned booster meter; USJO v8 reads only the low byte as `realboostmeter` and uses zero/nonzero gating. Verify width/units before stronger promotion."
-    },
-    {
       "address": "7E:042B",
       "usjo_variables": [
         "numzflips"
@@ -132,6 +116,22 @@
       "symbol_notes": "Recovered USJO v8 reads this byte as the completed flip counter; independently present in the historical TAS watch list."
     },
     {
+      "address": "7E:11CD",
+      "usjo_variables": [
+        "realboostmeter"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_BoostMeter",
+      "symbol_width": "16-bit",
+      "confidence": 4,
+      "status": "strong-partial",
+      "validation_priority": 3,
+      "next_action": "Close any remaining semantic/unit ambiguity when convenient.",
+      "symbol_notes": "Historical TAS watch list labels a 16-bit unsigned booster meter. Static writer scan run 36769525945 finds coherent bank-02 word operations, including `REP #$20; LDA #$0000; STA $11CD` at `02:9BA6` plus word-style arithmetic/store sequences at `02:A768` and nearby routines. USJO v8 intentionally reads only the low byte as `realboostmeter` and uses it solely as a zero/nonzero gate; exact game-facing boost units still need dynamic validation."
+    },
+    {
       "address": "7E:04B7",
       "usjo_variables": [
         "curspeed"
@@ -184,6 +184,6 @@
     "corroborated-unreproduced": 5,
     "runtime-confirmed": 3,
     "source-lead": 2,
-    "width-or-units-conflict": 1
+    "strong-partial": 1
   }
 }

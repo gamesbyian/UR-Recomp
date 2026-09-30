@@ -99,3 +99,21 @@ Historical Snes9x 1.02 notes contain two separate Uniracers observations that sh
 The current patched Snes9x debug surface already exposes the registers and decoded state needed to discriminate this locally: window bounds, W12SEL/W34SEL/WOBJSEL, WBGLOG/WOBJLOG, per-layer window enable/inversion/logic, TM/TS/TMW/TSW, CGWSEL/CGADSUB and fixed color.
 
 This branch adds `tools/summarize_window_seam.py` and a reconnaissance workflow over both the deterministic one-player first-race route and the verified VS split-screen route. The first useful question is deliberately narrow: **which captured Uniracers checkpoints actually have two windows active with XOR combination on any BG/OBJ/color layer?** Only those scenes should seed a permanent XOR regression. Empty-subscreen color addition remains a separate follow-up even if it appears in the same checkpoint.
+
+
+#### XOR seam reproduced and pinned
+
+Reconnaissance run 36658348552 covered the deterministic one-player frontend/first-race checkpoints plus five stable VS race checkpoints. Exactly one captured checkpoint enables two active windows with XOR combination: `race-entered` at one-player frame 1035.
+
+At that checkpoint, all six decoded window targets report XOR with both windows active:
+
+- BG1
+- BG2
+- BG3
+- BG4
+- OBJ
+- color window
+
+The raw register state is correspondingly distinctive: `W12SEL=W34SEL=WOBJSEL=WBGLOG=WOBJLOG=0xAA`, `TMW=0x17`, and both window bounds are the edge-wrapped `255..0` form. None of the sampled frontend checkpoints or stable VS checkpoints report an active XOR target.
+
+The workflow now requires the XOR-active checkpoint set to be exactly `{race-entered}`. This promotes the historical Snes9x 1.02 observation into a local permanent regression while keeping empty-subscreen color addition as a separate unresolved seam.

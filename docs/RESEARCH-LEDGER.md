@@ -139,15 +139,15 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 
 ### R-EXT-008 — USJO autonomous stunt bot
 
-**Status:** supported historical lead; artifact missing  
-**Date:** 2026-09-28  
+**Status:** ancestor source recovered; later autonomous lineage supported  
+**Date:** 2026-09-28; updated 2026-09-30  
 **Area:** physics | RAM | other
 
-**Observation:** TASVideos submission #3072 describes a Lua script named USJO, originating with Halamantariel and improved with Nitrodon, that automated frame-precise stunt behavior and reportedly evolved to play Uniracers autonomously.  
-**Evidence:** `references/notes/tas-and-sram-research.md`; TASVideos submission #3072.  
-**Interpretation:** The script likely encodes practical RAM addresses, timing rules and control-state knowledge directly useful for behavioral reconstruction.  
-**Discriminating test:** recover any USJO version or derivative and validate its memory accesses/actions against the supported ROM.  
-**Dependencies:** recovery of the script or sufficiently detailed contemporary discussion.
+**Observation:** TASVideos submission #3072 describes a Lua script named USJO, originating with Halamantariel and improved with Nitrodon, that automated frame-precise stunt behavior and reportedly evolved to play Uniracers autonomously. Internal version 8, dated 2008-02-10, is now recovered exactly at `references/imported/tas-bots/usjo8.lua`.  
+**Evidence:** recovered v8 source; `references/notes/tas-and-sram-research.md`; TASVideos submission #3072.  
+**Interpretation:** The historical USJO line is now executable source evidence rather than a purely documentary lead. Version 8 directly exposes practical RAM addresses, timing rules, search strategy, stunt grammar, boost scoring and controller-state generation.  
+**Discriminating test:** inventory every v8 memory read and timing/scoring assumption, then validate each candidate semantic against the supported ROM/runtime before promotion.  
+**Dependencies:** v13 remains missing, but no local validation work depends on recovering it.
 
 ### R-EXT-009 — Halamantariel course-map corpus
 
@@ -202,15 +202,27 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 
 ### R-EXT-013 — USJO v13 exact filename and behavioral role
 
-**Status:** supported historical lead; artifact missing  
-**Date:** 2026-09-28  
+**Status:** v13 artifact missing; v8 ancestor recovered  
+**Date:** 2026-09-28; updated 2026-09-30  
 **Area:** physics | RAM | other
 
-**Observation:** The 2008 Snes9x Lua-development thread links `usjo13.lua` under the title “Uniracers Stunts & Jump Optimizer v13.” Its author describes it as starting before a jump, intelligently trying stunt combinations, optimizing for speed and replaying the best input.  
-**Evidence:** `references/notes/tas-and-sram-research.md`; historical direct URL preserved in `references/catalog.yml`.  
-**Interpretation:** Recovering this exact script could expose the evaluator, search strategy, RAM accesses, stunt grammar and timing assumptions used by an expert TASer.  
-**Discriminating test:** recover the byte-identical script from an archive/mirror and inspect all memory reads and scoring rules.  
-**Dependencies:** surviving archive of the former obellemare.com speedruns directory.
+**Observation:** The 2008 Snes9x Lua-development thread links `usjo13.lua` under the title “Uniracers Stunts & Jump Optimizer v13.” Its author describes it as starting before a jump, intelligently trying stunt combinations, optimizing for speed and replaying the best input. Internal v8 now independently demonstrates that exact architecture in surviving source.  
+**Evidence:** `references/imported/tas-bots/usjo8.lua`; `references/notes/tas-and-sram-research.md`; historical v13 URL preserved in `references/catalog.yml`.  
+**Interpretation:** v13 is now primarily a five-revision delta target: it may expose later fixes, discoveries or autonomy work, but the evaluator/search/RAM/timing core is already available in v8.  
+**Discriminating test:** if v13 or another sibling appears, byte/code-structure diff it against v8 and promote only genuinely new mechanics or state knowledge.  
+**Dependencies:** passive recovery of a later sibling; no implementation blocker.
+
+### R-EXT-014 — Recovered USJO internal v8 source
+
+**Status:** confirmed external artifact; local semantic validation pending  
+**Date:** 2026-09-30  
+**Area:** physics | RAM | input | TAS
+
+**Observation:** A surviving source file identifies itself as **February 10th, 2008 (Internal Version 8)** and implements a savestate-driven Uniracers stunt optimizer. It reads signed X/Y speed, air state, twist/tabletop/Z-flip/roll/flip counters, Z-rotation/pre-rotation state and boost state; searches jump/stunt timing; scores candidates as derived boost plus resulting horizontal speed; and replays the best candidate through controller input.  
+**Evidence:** `references/imported/tas-bots/usjo8.lua`; source provenance and hashes in `references/catalog.yml` and `docs/original-development/ACQUISITION-LEDGER.md`.  
+**Interpretation:** This is a direct historical behavioral oracle and reverse-engineering accelerator. Its addresses/constants are working hypotheses until locally reproduced, while its source-level control/search architecture is directly established.  
+**Discriminating test:** generate a complete v8 read/constant/state inventory, reproduce each candidate RAM semantic on the canonical ROM, and compare the script's boost table/timing assumptions to actual runtime transitions.  
+**Dependencies:** period Snes9x Lua API compatibility is relevant only if executing the script itself; static mining and semantic validation do not require Snes9x 1.43.
 
 ---
 

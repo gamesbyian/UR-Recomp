@@ -15,13 +15,16 @@ UPLOAD = ROOT / "analysis/generated/apu-upload-path-summary.json"
 JSON_OUT = ROOT / "analysis/generated/audio-unused-path-analysis.json"
 MD_OUT = ROOT / "analysis/generated/audio-unused-path-analysis.md"
 
-MARKER_IDS = (0x07, 0x15, 0x29)
+
+def correlated_package_ids(block_corr: dict) -> tuple[int, ...]:
+    return tuple(sorted(block["id"] for block in block_corr["blocks"] if block["id"] < 0x32))
 
 
 def marker_profiles(packages: dict, block_corr: dict, track: str) -> tuple[dict, list[dict]]:
+    marker_ids = correlated_package_ids(block_corr)
     observed = {}
     for block in block_corr["blocks"]:
-        if block["id"] not in MARKER_IDS:
+        if block["id"] not in marker_ids:
             continue
         match = next(item for item in block["matches"] if item["track"] == track)
         observed[block["id_hex"]] = bool(
@@ -32,7 +35,7 @@ def marker_profiles(packages: dict, block_corr: dict, track: str) -> tuple[dict,
     for table in packages["selector_tables"]:
         signature = {
             f"0x{marker:02X}": marker in table["block_ids"]
-            for marker in MARKER_IDS
+            for marker in marker_ids
         }
         mismatches = [
             marker for marker in observed
@@ -90,9 +93,10 @@ def build_analysis(
 
     song1_markers, song1_candidates = marker_profiles(packages, block_corr, "Unused Song 1")
     song2_markers, song2_candidates = marker_profiles(packages, block_corr, "Unused Song 2")
+    marker_ids = correlated_package_ids(block_corr)
 
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "extended_song_selectors": tracks,
         "missing_setup_selectors": [
             key for key, row in presence.items() if not row["setup_call"]
@@ -112,10 +116,11 @@ def build_analysis(
             },
         },
         "package_marker_analysis": {
-            "marker_ids": [f"0x{x:02X}" for x in MARKER_IDS],
+            "marker_ids": [f"0x{x:02X}" for x in marker_ids],
+            "marker_count": len(marker_ids),
             "guardrail": (
-                "Marker presence in an SPC snapshot can reflect retained APU RAM from earlier loads; "
-                "matching these three markers ranks candidates but does not prove which package was loaded."
+                "Block presence in an SPC snapshot can reflect retained APU RAM from earlier loads; "
+                "matching correlated package blocks ranks candidates but does not prove which package was loaded."
             ),
             "Unused Song 1": {
                 "observed_marker_presence": song1_markers,
@@ -137,23 +142,28 @@ def build_analysis(
                 "track": "Unused Song 1",
                 "ordinary_setup_reachable": presence["0x3B"]["setup_call"],
                 "ordinary_package_pair_reachable": presence["0x3B"]["paired_with_known_table"],
-                "leading_table_candidates": ["0x03FB15", "0x03FB95"],
+                "leading_table_candidates": [
+                    row["table"] for row in song1_candidates[:2]
+                ],
                 "candidate_basis": (
-                    "03:FB95 remains the sole orphan table, but three already-correlated base-block "
-                    "markers favor package reuse: Unused Song 1 has 0x15 and 0x29 present and 0x07 absent, "
-                    "exactly matching called Demo package 03:FB15; 03:FB95 omits all three. Because SPC RAM "
-                    "may retain prior data, the marker pattern is discriminating evidence rather than proof."
+                    "The package ranking is computed from every package block present in the committed "
+                    "SPC-correlation corpus. With the current three-block corpus, called Demo package "
+                    "03:FB15 exactly matches Unused Song 1 while orphan 03:FB95 does not. The same "
+                    "analysis automatically expands when the full 0x00..0x31 correlation is promoted."
                 ),
             },
             "0x3D": {
                 "track": "Unused Song 2",
                 "ordinary_setup_reachable": presence["0x3D"]["setup_call"],
                 "ordinary_package_pair_reachable": presence["0x3D"]["paired_with_known_table"],
-                "leading_table_candidates": ["0x03FB55", "0x03FBD5"],
+                "leading_table_candidates": [
+                    row["table"] for row in song2_candidates[:2]
+                ],
                 "candidate_basis": (
-                    "The three correlated markers match both 03:FB55 and 03:FBD5, but live first-race "
-                    "03:FB55 transfer evidence is stronger: it reconstructs APU RAM 0xB0E0-0xBDE0, and "
-                    "Unused Song 2 contains that entire 3,329-byte region byte-identically at the same offsets."
+                    "Package-block correlation currently ties 03:FB55 and 03:FBD5 on the three committed "
+                    "markers. Live first-race 03:FB55 transfer evidence is stronger: it reconstructs APU "
+                    "RAM 0xB0E0-0xBDE0, and Unused Song 2 contains that entire 3,329-byte region "
+                    "byte-identically at the same offsets."
                 ),
             },
         },
@@ -166,9 +176,9 @@ def build_analysis(
                 "03:FB95 is a slot-preserving strict subset of called Celebration table 03:FAD5.",
             ],
             "hypothesis": (
-                "Package reuse is now at least as plausible as orphan-table use for Unused Song 1. "
-                "03:FB15 exactly matches all three currently correlated package-marker presences in that SPC, "
-                "whereas 03:FB95 does not; controlled reconstruction is required to choose between them."
+                "Package reuse is at least as plausible as orphan-table use for Unused Song 1. "
+                "The ranking should be recomputed from the full package-block correlation before "
+                "controlled reconstruction chooses between candidate tables."
             ),
             "unused_song_2_race_package_corroboration": {
                 "package": upload["rom_source"]["first_race_source_cpu"],
@@ -190,8 +200,9 @@ def render_markdown(report: dict) -> str:
     removed = ", ".join(
         report["uncalled_table"]["relation_to_celebration_table_03FAD5"]["removed_block_ids_hex"]
     )
-    song1 = report["package_marker_analysis"]["Unused Song 1"]
-    song2 = report["package_marker_analysis"]["Unused Song 2"]
+    markers = report["package_marker_analysis"]
+    song1 = markers["Unused Song 1"]
+    song2 = markers["Unused Song 2"]
     return f"""# Unused-song audio path analysis
 
 This reconciles extended ROM audio blocks, CPU setup calls, package tables,
@@ -213,33 +224,26 @@ Celebration table `03:FAD5`, replacing base blocks {removed} with `FF`.
 
 ## Package reuse is a live hypothesis, not a fallback
 
-Three base package blocks already have SPC correlations: `0x07`, `0x15`, and
-`0x29`. Unused Song 1 contains `0x15` and `0x29` but not `0x07`. Among the six
-tables, that three-marker pattern is matched exactly by {", ".join(song1["zero_mismatch_tables"])}.
-Notably, orphan `03:FB95` omits all three markers, so its orphan status alone is no
-longer enough to make it the preferred pairing.
+The committed package/SPC correlation currently covers **{markers["marker_count"]}**
+package blocks: {", ".join(markers["marker_ids"])}. The ranking code consumes this
+corpus dynamically, so promoting the full `0x00..0x31` correlation requires no new
+interpretation logic.
 
-Unused Song 2 contains `0x15` but not `0x07` or `0x29`. The three-marker pattern is
-matched exactly by {", ".join(song2["zero_mismatch_tables"])}. Existing runtime evidence
-breaks that tie in favor of `03:FB55`: the live first-race FB55 transfer reconstructs
-APU RAM `$B0E0-$BDE0`, and that complete 3,329-byte region is byte-identical at the
-same offsets in Unused Song 2.
+Unused Song 1's current correlated-block pattern is matched exactly by
+{", ".join(song1["zero_mismatch_tables"]) or "no table"}. Unused Song 2's current
+pattern is matched exactly by {", ".join(song2["zero_mismatch_tables"]) or "no table"}.
+Existing runtime evidence further favors `03:FB55` for Unused Song 2: the live
+first-race FB55 transfer reconstructs APU RAM `$B0E0-$BDE0`, and that complete
+3,329-byte region is byte-identical at the same offsets in the preserved SPC.
 
-Marker presence can reflect retained APU RAM from earlier package loads, so these are
+Block presence can reflect retained APU RAM from earlier package loads, so these are
 candidate rankings, not causal proof.
 
 ## Next discriminator
 
-Controlled reconstruction should now test **four** targeted combinations rather than
-assuming the orphan table wins:
-
-1. `0x3B + 03:FB15` against Unused Song 1.
-2. `0x3B + 03:FB95` against Unused Song 1.
-3. `0x3D + 03:FB55` against Unused Song 2.
-4. `0x3D + 03:FBD5` as the remaining three-marker tie control.
-
-A broader all-0x00..0x31 block-to-SPC correlation would further sharpen package ranking
-before any executable patch is promoted.
+Promote the all-`0x00..0x31` block/SPC correlation, regenerate this report, then
+reconstruct the leading package combinations in a reference harness. The orphan
+`03:FB95` remains a required control even if a called package ranks better.
 """
 
 

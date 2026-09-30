@@ -74,6 +74,20 @@ The project patch `tools/patches/wla-dx-ur-recomp.patch` restricts upstream CMak
 
 Treat generated disassemblies as working products, not automatically canonical source. Promote symbols and structural findings into project-owned authorities only after validation.
 
+## Patch-authoring tools
+
+### Asar + Flips
+
+Asar is pinned as the source-level assembler for targeted SNES ROM modifications. It is especially useful for the quarantined emulator-assisted widescreen ROM-hack bonus project, whose strongest prior art (Vitor Vilela's wide-snes) also uses Asar. Flips remains the transport layer for creating and applying BPS/IPS patches.
+
+Install both with:
+
+```bash
+python3 tools/bootstrap_toolchain.py --group patching
+```
+
+Keep patch source authoritative. A generated BPS is a reproducible distribution/replay artifact, not the editable source of truth. Assert the canonical base-ROM hash before assembly or patch application, and do not commit a second modified ROM image merely because a bonus experiment needs one locally.
+
 ## Additional analysis tools
 
 ### cc65 / da65
@@ -117,7 +131,7 @@ Prefer offline/image-domain implementations for bulk processing of extracted PNG
 
 ### bsnes-hd
 
-bsnes-hd is pinned as a specialist workbench. Use it selectively for higher-resolution rendering and layer/sprite-isolation experiments where those capabilities answer a concrete graphics question. Do not treat HD Mode 7 as a generic sprite upscaler, and do not make bsnes-hd part of routine CI unless a measured workflow demonstrates unique value.
+bsnes-hd is pinned as a specialist workbench. Use it selectively for higher-resolution rendering and layer/sprite-isolation experiments where those capabilities answer a concrete graphics question. It is also the explicit execution target for the quarantined `docs/bonus/WIDESCREEN-ROM-HACK.md` experiment, because its widescreen extension can expose additional non-stretched horizontal content when paired with ROM-side fixes and `.bso` configuration. Do not confuse that emulator-assisted bonus architecture with the shipping native widescreen feature. Do not treat HD Mode 7 as a generic sprite upscaler, and do not make bsnes-hd part of routine CI unless a measured workflow demonstrates unique value.
 
 ### Capture reproducibility
 

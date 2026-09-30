@@ -446,7 +446,7 @@
       "group": "core",
       "url": "https://github.com/RetroPortingToolKit/snesrecomp.git",
       "revision": "cd5875cbdaf19f5e324272b1f8051d671fce9215",
-      "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive; baseline smoke builds the snesref tool without optional netplay/Lua submodules.",
+      "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive. UR-Recomp's permanent native build uses the ordinary host SDL2 development package, disables SDL3 source fetching, and keeps optional netplay/Lua submodules outside the core path.",
       "build": [
         [
           "cmake",
@@ -472,7 +472,7 @@
       "install_mode": "build",
       "headless": {
         "status": "native",
-        "note": "The C1 smoke builds the command-line/headless snesref frontend from repository-owned framework source. Optional game runner dependencies are handled in later C2-C5 tranches."
+        "note": "Framework staging is repository-owned and fail-closed offline. Command-line snesref remains headless; the native game runner intentionally treats system SDL2 as a host prerequisite and configures SDL3 fetching off."
       }
     }
   ]

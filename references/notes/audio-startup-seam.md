@@ -40,3 +40,21 @@ Require each engine to:
 If both independent cores satisfy those coarse invariants, promote them as the minimum audio-startup regression. Any future native/recompiled audio path can then be compared against the same state boundaries without depending on emulator-specific PCM identity.
 
 Further SPC/DSP/APU-memory tracing is justified only if a later mismatch needs reduction.
+
+## First cross-core result
+
+Run `36659692449` passed on both reference cores.
+
+| checkpoint | Snes9x RMS / peak | Beetle RMS / peak |
+| --- | --- | --- |
+| Main Menu | 2409.89 / 11644 | 2193.50 / 11154 |
+| Now Playing | 4007.58 / 18543 | 3753.57 / 18525 |
+| Race entered | 6919.59 / 30691 | 6381.53 / 28832 |
+
+Both cores are effectively continuously non-zero in all three 60-guest-frame windows (99.1%-99.99% non-zero samples). Both also produce distinct exact window hashes across frontend and race.
+
+The independent route timing stays close but is not forced equal: Snes9x reaches `now-playing-ready` / `race-entered` at frames 821 / 1035, Beetle at 824 / 1038. The reducer keys audio windows to each engine's own named checkpoint frame, so the regression tests state-aligned audio rather than assuming identical emulator timing or sample rate.
+
+This closes the minimum historical audio-startup seam: a conforming implementation must establish audible frontend output and transition into a materially different audible first-race state. Exact PCM remains a stronger per-engine reference artifact, not a cross-engine equality contract.
+
+Durable measurements: `analysis/generated/audio-startup-reference-summary.json`.

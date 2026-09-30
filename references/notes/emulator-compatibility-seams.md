@@ -106,3 +106,32 @@ Local test strategy:
 5. promote only the hardware/game-facing invariant, never the historical Snes9x workaround itself.
 
 The first survey is implemented by `tools/summarize_color_math_state.py`; its one-shot canonical-ROM run is intentionally evidence acquisition only and will be retired after the measurements are preserved.
+
+
+#### Canonical scene survey
+
+Run `36659159802` surveyed the existing deterministic first-race route with the patched Snes9x register snapshot surface.
+
+All stable frontend checkpoints from Main Menu through Now Playing share the same color-math configuration:
+
+- `TM=13`
+- `TS=10`
+- `CGWSEL=02` (sub-screen math selected)
+- `CGADSUB=7F` (addition with half flag and all layer/backdrop math bits set)
+- fixed colour = black
+- brightness 14
+
+The first active race checkpoint changes regime materially:
+
+- `TM=17`
+- `TS=10`
+- `CGWSEL=02`
+- `CGADSUB=04`
+- half flag off
+- fixed colour = red 15, green/blue 0
+- brightness 15
+- `TMW=17`
+
+This gives the historical fallback experiment a built-in scene pair. The frontend is the candidate regime where old Snes9x reported a backdrop-vs-fixed-colour ambiguity; the race is the later counterexample regime that must not be damaged by an overbroad rule.
+
+The survey is preserved as `analysis/generated/color-math-scene-survey.json`.

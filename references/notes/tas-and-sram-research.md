@@ -60,16 +60,21 @@ It reportedly hosted two savestates demonstrating the Jumpover corner/fall-throu
 
 ## USJO Lua stunt bot
 
-Dessyreqt's TASVideos submission #3072 describes a Lua script called **USJO**, originally from Halamantariel and later improved with Nitrodon. According to the submission, USJO automated highly frame-precise stunt/jump behavior and was improved until it could play through Uniracers autonomously.
+On 2026-09-30 Olivier Bellemare (Halamantariel) directly recovered **Internal Version 8**, dated 2008-02-10. The exact historical source is preserved at `references/imported/tas-bots/usjo8.lua` (62,406 bytes; SHA-256 `64b1a26966490a619a6557adee79d6ee0463e534fa2488cf3b5913d55a316ffc`). Olivier reported that he does not remember who the main developer was and specifically recalled that it was not him, so authorship remains unresolved.
 
-This makes USJO one of the highest-value missing artifacts for UR-Recomp because it may encode:
+Dessyreqt's TASVideos submission #3072 describes the later USJO lineage as originating with Halamantariel and later improved with Nitrodon. According to the submission, USJO automated highly frame-precise stunt/jump behavior and was improved until it could play through Uniracers autonomously.
+
+Version 8 already directly encodes:
 - RAM addresses for player state, position, speed and boost;
 - exact stunt timing;
 - track-state observations;
 - emulator scripting assumptions;
-- practical deterministic-control knowledge accumulated by TAS authors.
+- practical deterministic-control knowledge accumulated by TAS authors;
+- savestate-driven search and best-result replay;
+- a boost-plus-horizontal-speed objective and explicit stunt reward table;
+- additional working addresses not present in the short published watch list, including vertical speed and Z-rotation/pre-rotation state.
 
-The same community later discussed real-time AI/bot play by Dessyreqt. No public GitHub copy of USJO was found in the current pass.
+The same community later discussed real-time AI/bot play by Dessyreqt. The still-missing v13 remains useful as a later delta, but v8 is sufficient to begin local validation now.
 
 ## Determinism lead
 
@@ -99,7 +104,7 @@ The 2008 Snes9x Lua development thread preserves the original hyperlink for Hala
 - Historical direct URL: `http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/usjo13.lua`
 - First linked publicly: 2008-02-14
 
-The live file is currently unavailable from this environment, but the exact filename and path are now known. The contemporary description says v13 starts from a pre-jump emulator state, searches stunt combinations, optimizes for speed, then replays the best input sequence. Halamantariel said it could optimize in seconds what took a person hours.
+Version 13 itself remains unavailable, but the exact filename/path are known and internal version 8 is now recovered locally. The contemporary description says v13 starts from a pre-jump emulator state, searches stunt combinations, optimizes for speed, then replays the best input sequence. Halamantariel said it could optimize in seconds what took a person hours.
 
 The same Lua-development discussion is useful context because Halamantariel specifically requested signed memory-read support for Uniracers speed values. This strongly suggests USJO or adjacent tooling consumed signed game-state variables directly from WRAM.
 

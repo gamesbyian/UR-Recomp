@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "source_inventory": "analysis/generated/usjo8-static-inventory.json",
+  "source_symbols": "docs/SYMBOLS.md",
+  "entries": [
+    {
+      "address": "7E:0DFD",
+      "usjo_variables": [
+        "zrotation"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_ZRotationState",
+      "symbol_width": "8-bit",
+      "confidence": 2,
+      "status": "source-lead",
+      "validation_priority": 1,
+      "next_action": "Reproduce the claimed semantic transition locally before promotion.",
+      "symbol_notes": "USJO v8 working label `zrotation`; used to gate Z-flip timing. Exact physical meaning not yet locally reproduced."
+    },
+    {
+      "address": "7E:0F57",
+      "usjo_variables": [
+        "zprerotation"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_ZPreRotationState",
+      "symbol_width": "8-bit",
+      "confidence": 2,
+      "status": "source-lead",
+      "validation_priority": 1,
+      "next_action": "Reproduce the claimed semantic transition locally before promotion.",
+      "symbol_notes": "USJO v8 working label `zprerotation`; consulted during chained Z-flip timing. Exact meaning not yet locally reproduced."
+    },
+    {
+      "address": "7E:11CD",
+      "usjo_variables": [
+        "realboostmeter"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_BoostMeter",
+      "symbol_width": "historical width conflict",
+      "confidence": 3,
+      "status": "width-or-units-conflict",
+      "validation_priority": 1,
+      "next_action": "Resolve runtime width/units and byte-vs-word behavior.",
+      "symbol_notes": "Historical TAS watch list labels a 16-bit unsigned booster meter; USJO v8 reads only the low byte as `realboostmeter` and uses zero/nonzero gating. Verify width/units before stronger promotion."
+    },
+    {
+      "address": "7E:042B",
+      "usjo_variables": [
+        "numzflips"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_ZFlipCount",
+      "symbol_width": "8-bit",
+      "confidence": 3,
+      "status": "corroborated-unreproduced",
+      "validation_priority": 2,
+      "next_action": "Trigger the claimed state change and verify this field causally.",
+      "symbol_notes": "Recovered USJO v8 reads this byte as the completed Z-flip counter; independently present in the historical TAS watch list."
+    },
+    {
+      "address": "7E:042F",
+      "usjo_variables": [
+        "numtabletops"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_TabletopCount",
+      "symbol_width": "8-bit",
+      "confidence": 3,
+      "status": "corroborated-unreproduced",
+      "validation_priority": 2,
+      "next_action": "Trigger the claimed state change and verify this field causally.",
+      "symbol_notes": "Recovered USJO v8 reads this byte as the completed tabletop counter; independently present in the historical TAS watch list."
+    },
+    {
+      "address": "7E:0F61",
+      "usjo_variables": [
+        "numtwists"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_TwistCount",
+      "symbol_width": "8-bit",
+      "confidence": 3,
+      "status": "corroborated-unreproduced",
+      "validation_priority": 2,
+      "next_action": "Trigger the claimed state change and verify this field causally.",
+      "symbol_notes": "Recovered USJO v8 reads this byte as the completed twist counter; the 2008 TAS watch list independently labels it “# of Twists.” Local transition semantics still need reproduction."
+    },
+    {
+      "address": "7E:11F9",
+      "usjo_variables": [
+        "numrolls"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_RollCount",
+      "symbol_width": "8-bit",
+      "confidence": 3,
+      "status": "corroborated-unreproduced",
+      "validation_priority": 2,
+      "next_action": "Trigger the claimed state change and verify this field causally.",
+      "symbol_notes": "Recovered USJO v8 reads this byte as the completed roll counter; independently present in the historical TAS watch list."
+    },
+    {
+      "address": "7E:11FD",
+      "usjo_variables": [
+        "numflips"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_FlipCount",
+      "symbol_width": "8-bit",
+      "confidence": 3,
+      "status": "corroborated-unreproduced",
+      "validation_priority": 2,
+      "next_action": "Trigger the claimed state change and verify this field causally.",
+      "symbol_notes": "Recovered USJO v8 reads this byte as the completed flip counter; independently present in the historical TAS watch list."
+    },
+    {
+      "address": "7E:04B7",
+      "usjo_variables": [
+        "curspeed"
+      ],
+      "usjo_width_bits": [
+        16
+      ],
+      "symbol_name": "Player1_XSpeed",
+      "symbol_width": "signed 16-bit",
+      "confidence": 5,
+      "status": "runtime-confirmed",
+      "validation_priority": 4,
+      "next_action": "No additional USJO-specific validation required unless new evidence conflicts.",
+      "symbol_notes": "Effective recovered-bot word key `xSpeed`; bot explicitly sign-converts it. Race-acceleration run 36512546762 changes it identically from 0 to +447 under Right input while X position increases."
+    },
+    {
+      "address": "7E:04BB",
+      "usjo_variables": [
+        "yspeed"
+      ],
+      "usjo_width_bits": [
+        16
+      ],
+      "symbol_name": "Player1_YSpeed",
+      "symbol_width": "signed 16-bit",
+      "confidence": 5,
+      "status": "runtime-confirmed",
+      "validation_priority": 4,
+      "next_action": "No additional USJO-specific validation required unless new evidence conflicts.",
+      "symbol_notes": "Effective recovered-bot word key `ySpeed`; bot sign-converts it. In run 36514981164 sustained B changes it causally from 0 in the matched control to -21 while player 1 is airborne; native and Snes9x match exactly."
+    },
+    {
+      "address": "7E:0545",
+      "usjo_variables": [
+        "airflag"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_AirState",
+      "symbol_width": "8-bit",
+      "confidence": 5,
+      "status": "runtime-confirmed",
+      "validation_priority": 4,
+      "next_action": "No additional USJO-specific validation required unless new evidence conflicts.",
+      "symbol_notes": "Effective player-1 Lua key `airValue`; later duplicate overrides second-racer `7E:0547`. In run 36514981164 sustained B causally changes player 1 from 0 to 9 while Y position/speed enter the airborne trajectory; matched no-B control remains 0."
+    }
+  ],
+  "summary": {
+    "corroborated-unreproduced": 5,
+    "runtime-confirmed": 3,
+    "source-lead": 2,
+    "width-or-units-conflict": 1
+  }
+}

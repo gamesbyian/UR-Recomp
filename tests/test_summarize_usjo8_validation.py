@@ -27,7 +27,7 @@ class Usjo8ValidationMatrixTests(unittest.TestCase):
             "corroborated-unreproduced": 5,
             "runtime-confirmed": 3,
             "source-lead": 2,
-            "width-or-units-conflict": 1,
+            "strong-partial": 1,
         })
 
 

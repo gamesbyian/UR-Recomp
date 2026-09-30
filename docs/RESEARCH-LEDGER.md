@@ -917,7 +917,7 @@ Detailed comparison: `docs/CANOE-COMPATIBILITY-PATCH.md`.
 
 ### R-SEED-049 — Unused-song records are ordinary but unreachable CPU audio records
 
-**Status:** static/replay-corpus reconciliation confirmed; orphan-package pairing hypothesis open  
+**Status:** static/replay-corpus reconciliation confirmed; unused-song package attribution strongly supported; causal reconstruction open  
 **Date:** 2026-09-30  
 **Area:** audio | APU | CPU | unused content
 
@@ -927,11 +927,11 @@ Within the song-record range, records `0x3B` and `0x3D` are exceptional in exact
 
 The six known package tables contain one orphan, `03:FB95`. It has no direct `JSL $82:82A5` caller and is a strict slot-preserving subset of called Celebration table `03:FAD5`: only slots 29, 33 and 49 differ, replacing block IDs `0x15`, `0x29` and `0x07` with `0xFF`. This strongly supports an intentional dormant package variant rather than random bytes.
 
-**Interpretation:** `03:FB95` remains important as the sole orphan package table, but it is no longer the preferred `0x3B / Unused Song 1` pairing on current evidence. Three already-correlated base blocks (`0x07`, `0x15`, `0x29`) give Unused Song 1 the presence signature absent/present/present; called Demo package `03:FB15` matches that signature exactly, while `03:FB95` omits all three. Retained APU RAM means the three-marker match is a ranking signal, not causal proof. For `0x3D / Unused Song 2`, `03:FB55` and `03:FBD5` both match the three-marker signature, but live transfer evidence breaks the tie toward FB55: first-race package `03:FB55` reconstructs APU RAM `$B0E0-$BDE0`, and that entire 3,329-byte region is byte-identical at the same offsets in the preserved Unused Song 2 SPC. There is still only one orphan package table for two unreachable song records, ruling out any model that requires one distinct missing table per unused song.
+**Interpretation:** full package/SPC correlation run `36777071311` (artifact `11126836085`, digest `sha256:64944bcb5437dd0858ad71d07759b639d30734aa03de0f0635f7963710d92496`) correlates all 50 package blocks against the ten preserved SPC snapshots. Block `0x00` is the sole mechanically untestable record because its 22-byte payload is below the correlator's 32-byte minimum. Excluding only that block, the method reproduces every known reachable package association exactly: Title=`03:FBD5`, Demo=`03:FB15`, Celebration=`03:FAD5`, and all five numbered races=`03:FB55`. It then gives Unused Song 1 the exact same 18-block correlatable signature as Demo Race, strongly supporting `03:FB15` reuse, and Unused Song 2 the exact same 23-block signature as every numbered race, strongly supporting `03:FB55` reuse. Independent live FB55 transfer evidence corroborates the second attribution. `03:FB95` remains an intentional orphan/reduced package variant but is not supported as the complete package of either preserved unused song. The `0x3B/0x3C` near-duplicate keeps `03:FC15` as a useful sequence-sibling control for Unused Song 1.
 
-**Evidence:** `analysis/generated/audio-setup-selector-map.json`; `analysis/generated/audio-package-map.json`; `analysis/generated/audio-extended-block-correlation.json`; `analysis/generated/audio-unused-path-analysis.{json,md}`; `analysis/generated/audio-record-pool-reconciliation.md`.
+**Evidence:** `analysis/generated/audio-setup-selector-map.json`; `analysis/generated/audio-package-map.json`; `analysis/generated/audio-extended-block-correlation.json`; `analysis/generated/audio-package-spc-signatures.json`; `analysis/generated/audio-unused-path-analysis.{json,md}`; `analysis/generated/audio-record-pool-reconciliation.md`.
 
-**Discriminating test:** first broaden the existing package-block/SPC correlation from three markers to all `0x00..0x31` package blocks. Then reconstruct five bounded combinations in a reference harness: `0x3B + 03:FB15` (SPC-block ranking), `0x3B + 03:FC15` (near-twin `0x3C` package), `0x3B + 03:FB95` (orphan-table control), `0x3D + 03:FB55`, and tie-control `0x3D + 03:FBD5`, comparing resulting APU RAM against the preserved unused-song SPCs.
+**Discriminating test:** reconstruct the evidence-backed primary pairs `0x3B + 03:FB15` and `0x3D + 03:FB55` in a reference APU harness and compare resulting RAM against the preserved unused-song SPCs. Retain `0x3B + 03:FC15` as the near-twin-sequence control and `0x3B + 03:FB95` as the orphan-table control.
 
 ---
 

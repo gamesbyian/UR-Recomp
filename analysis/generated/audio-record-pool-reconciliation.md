@@ -87,9 +87,9 @@ It is a strict slot-preserving subset of `03:FAD5`, the package paired with sele
 - slot 33: `0x29 -> 0xFF`
 - slot 49: `0x07 -> 0xFF`
 
-This looks intentional rather than random corruption or padding. `03:FB95` remains important as the sole orphan package table, but it is no longer the preferred Unused Song 1 pairing on current evidence. Of the three base blocks already correlated against SPC RAM (`0x07`, `0x15`, `0x29`), Unused Song 1 contains `0x15` and `0x29` but not `0x07`. Called Demo package `03:FB15` has exactly that three-marker membership pattern, while `03:FB95` omits all three. Retained APU RAM prevents this marker match from being causal proof, so both `03:FB15` reuse and `03:FB95` orphan use remain reconstruction targets.
+This looks intentional rather than random corruption or padding. `03:FB95` remains important as the sole orphan package table, but full package/SPC correlation now rules it out as the complete signature of either preserved unused song. Run `36777071311` correlates every package block `0x00..0x31` against all ten SPC snapshots. Block `0x00` is the sole mechanically untestable block because its payload is only 22 bytes, below the correlator's 32-byte minimum. Excluding only that block, the method first reproduces all known reachable mappings exactly: Title=`03:FBD5`, Demo=`03:FB15`, Celebration=`03:FAD5`, and all five numbered races=`03:FB55`. It then gives Unused Song 1 the exact same 18-block correlatable signature as Demo Race (`03:FB15`).
 
-There is no second orphan package table for `0x3D` / Unused Song 2. Instead, the live first-race `03:FB55` package reconstructs APU RAM `$B0E0-$BDE0`, and that complete 3,329-byte region is byte-identical at the same offsets in the preserved Unused Song 2 SPC. This makes `03:FB55` the leading reused-package candidate for `0x3D` and shows that a unique package per song is not required.
+Unused Song 2 likewise has the exact same 23-block correlatable signature as every numbered race, identifying package reuse `03:FB55`. Independent live first-race evidence reaches the same result: package `03:FB55` reconstructs APU RAM `$B0E0-$BDE0`, and that complete 3,329-byte region is byte-identical at the same offsets in the preserved Unused Song 2 SPC.
 
 ## Next experiment
 

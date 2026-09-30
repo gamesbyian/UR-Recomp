@@ -161,8 +161,8 @@
       "track": "Unused Song 2",
       "ordinary_setup_reachable": false,
       "ordinary_package_pair_reachable": false,
-      "structural_table_candidate": null,
-      "candidate_basis": "No second uncalled 64-byte package table exists in the known six-table family, so 0x3D cannot be assigned a unique missing package table from current static evidence."
+      "structural_table_candidate": "0x03FB55",
+      "candidate_basis": "The live first-race 03:FB55 transfer reconstructs APU RAM 0xB0E0-0xBDE0, and the preserved Unused Song 2 SPC contains that entire 3,329-byte region byte-identically at the same offsets. This makes reuse of the race-family package the leading candidate, though a counterfactual load remains to prove it."
     }
   },
   "interpretation": {
@@ -174,6 +174,24 @@
       "03:FB95 is a slot-preserving strict subset of called Celebration table 03:FAD5."
     ],
     "hypothesis": "03:FB95 is a plausible orphan package for the 0x3B / Unused Song 1 path, but current evidence does not prove that pairing.",
-    "negative_result": "There is no comparable second orphan table to pair uniquely with 0x3D / Unused Song 2."
+    "negative_result": "There is no comparable second orphan table for 0x3D; instead the live 03:FB55 race-family package produces a 3,329-byte APU region that is byte-identical at the same offsets in Unused Song 2, favoring package reuse.",
+    "unused_song_2_race_package_corroboration": {
+      "package": "03:FB55",
+      "apu_region": {
+        "start_hex": "0xB0E0",
+        "end_inclusive_hex": "0xBDE0",
+        "length": 3329,
+        "sha256": "2574a4e8abb90cf8d6bc37763d967ef1c63246d0da7b28e4614187563c35c29d"
+      },
+      "same_offset_tracks": [
+        "1st Race",
+        "2nd Race",
+        "3rd Race",
+        "4th Race",
+        "5th Race",
+        "Unused Song 2"
+      ],
+      "unused_song_2_same_offset": true
+    }
   }
 }

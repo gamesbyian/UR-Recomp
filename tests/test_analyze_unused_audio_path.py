@@ -36,6 +36,7 @@ class UnusedAudioPathTests(unittest.TestCase):
         self.assertTrue(relation["is_strict_subset"])
         self.assertTrue(relation["same_shared_slot_positions"])
         self.assertEqual(relation["removed_block_ids_hex"], ["0x07", "0x15", "0x29"])
+        self.assertEqual(report["package_marker_analysis"]["marker_count"], 3)
         self.assertEqual(report["package_marker_analysis"]["Unused Song 1"]["zero_mismatch_tables"], ["0x03FB15"])
         self.assertEqual(report["package_marker_analysis"]["Unused Song 2"]["zero_mismatch_tables"], ["0x03FB55", "0x03FBD5"])
         self.assertTrue(report["interpretation"]["unused_song_2_race_package_corroboration"]["unused_song_2_same_offset"])

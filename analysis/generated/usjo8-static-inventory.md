@@ -50,6 +50,9 @@ that complete source block. It combines stunt-count thresholds into
 `thisboostmeter`, zeros that estimate when direction/speed is wrong or
 `realboostmeter == 0`, then sets `finalscore = thisboostmeter + lastspeed`.
 
+A useful source-level distinction: v8 reads `7E:11CD` with `memory.readbyte()` even though the retained TAS watch list records a 2-byte unsigned Booster Meter at that address. The bot does not use that byte as the score magnitude; it only tests `realboostmeter == 0` as a gate, while its own `thisboostmeter` value is reconstructed from stunt counts. The full 16-bit runtime meaning still needs local validation.
+
+
 ## Controller policy source block
 
 The final controller-output policy occupies lines 1392-1446.

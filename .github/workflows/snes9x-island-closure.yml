@@ -1,9 +1,6 @@
 name: Snes9x island closure probe
 
 on:
-  push:
-    branches:
-      - "chatgpt/snes9x-island-closure-2026-09-30"
   pull_request:
     paths:
       - "tools/measure_source_closure.py"
@@ -11,6 +8,10 @@ on:
       - "tools/patches/snes9x-snesref-debug-exports.patch"
       - ".github/workflows/snes9x-island-closure.yml"
   workflow_dispatch:
+
+concurrency:
+  group: snes9x-island-closure-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write

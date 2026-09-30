@@ -28,7 +28,7 @@ permissions:
 jobs:
   replay:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -105,10 +105,10 @@ jobs:
             "$EXE" "$CORE" "$ROM" >/dev/null 2>&1
 
           python3 tools/summarize_wram_trace_checkpoints.py "$TRACE" \
-            --checkpoint 800 --checkpoint 1000 --checkpoint 1200 \
+            --checkpoint 794 --checkpoint 800 --checkpoint 1000 --checkpoint 1200 \
             --checkpoint 1400 --checkpoint 1600 --checkpoint 1800 \
             --checkpoint 2000 --checkpoint 2200 --checkpoint 2400 \
-            --checkpoint 2600 --checkpoint 2800 --checkpoint 3000 \
+            --checkpoint 2600 --checkpoint 2800 --checkpoint 2874 --checkpoint 2894 --checkpoint 3000 \
             --checkpoint 3400 --checkpoint 3800 --checkpoint 4200 \
             --checkpoint 4600 --checkpoint 5000 \
             --tsv-out "$RUNNER_TEMP/dessyreqt-first-race-state.tsv" \
@@ -209,7 +209,7 @@ jobs:
           python3 - "$RUNNER_TEMP/native-2014-state.json" <<'PY'
           import json, pathlib, re, sys
           d=json.loads(pathlib.Path(sys.argv[1]).read_text())
-          pat=re.compile(r"^SNAP (\\d+) menu=([0-9A-F]+) inRace=([0-9A-F]+) track=(\\d+) x=(-?\\d+) y=(-?\\d+) vx=(-?\\d+) vy=(-?\\d+) air=(\\d+) pitch=(\\d+)$")
+          pat=re.compile(r"^SNAP (\d+) menu=([0-9A-F]+) inRace=([0-9A-F]+) track=(\d+) x=(-?\d+) y=(-?\d+) vx=(-?\d+) vy=(-?\d+) air=(\d+) pitch=(\d+)$")
           snaps={}
           for line in d.get("snapshots", []):
               m=pat.match(line)
@@ -225,6 +225,46 @@ jobs:
           print("native exact historical stream reaches race at 794 and results at 2874")
           PY
 
+      - name: Compare native and reference historical checkpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - \
+            "$RUNNER_TEMP/native-2014-state.json" \
+            "$RUNNER_TEMP/dessyreqt-first-race-state.tsv" <<'PY'
+          import json, pathlib, re, sys
+          native=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          ref_lines=pathlib.Path(sys.argv[2]).read_text().splitlines()
+          ref_pat=re.compile(r"^(\d+)\tmenu=0x([0-9A-F]+)\tinRace=0x([0-9A-F]+)\ttrack=(\d+)\tx=(-?\d+)\ty=(-?\d+)\tvx=(-?\d+)\tvy=(-?\d+)\tair=(\d+)\tpitch=(\d+)$")
+          native_pat=re.compile(r"^SNAP (\d+) menu=([0-9A-F]+) inRace=([0-9A-F]+) track=(\d+) x=(-?\d+) y=(-?\d+) vx=(-?\d+) vy=(-?\d+) air=(\d+) pitch=(\d+)$")
+          ref={}
+          for line in ref_lines:
+              m=ref_pat.match(line)
+              if m:
+                  ref[int(m.group(1))]=(int(m.group(2),16),int(m.group(3),16))+tuple(int(x) for x in m.groups()[3:])
+          checked=0
+          mismatches=[]
+          for line in native.get("snapshots", []):
+              m=native_pat.match(line)
+              if not m:
+                  continue
+              frame=int(m.group(1))
+              if frame not in ref:
+                  continue
+              vals=(int(m.group(2),16),int(m.group(3),16))+tuple(int(x) for x in m.groups()[3:])
+              checked += 1
+              if vals != ref[frame]:
+                  mismatches.append((frame, vals, ref[frame]))
+                  print(frame, "MISMATCH", "native=", vals, "reference=", ref[frame])
+              else:
+                  print(frame, "MATCH")
+          if checked < 10:
+              raise SystemExit(f"too few shared historical checkpoints compared: {checked}")
+          if mismatches:
+              raise SystemExit(f"historical native/reference mismatch begins at frame {mismatches[0][0]}")
+          print(f"matched {checked} shared historical semantic checkpoints")
+          PY
+
       - name: Persist available 2014 historical evidence
         if: always()
         shell: bash
@@ -233,9 +273,6 @@ jobs:
           for path in \
             analysis/generated/historical-2014-smv-metadata.json \
             analysis/generated/historical-2014-first-race-reference.json
-            ${{ runner.temp }}/native-2014-state.json
-            ${{ runner.temp }}/native-2014-state.txt
-            ${{ runner.temp }}/native-2014.log
           do
             if [ -f "$path" ]; then
               git add "$path"
@@ -267,4 +304,7 @@ jobs:
             ${{ runner.temp }}/dessyreqt-first-race-summary.txt
             analysis/generated/historical-2014-smv-metadata.json
             analysis/generated/historical-2014-first-race-reference.json
+            ${{ runner.temp }}/native-2014-state.json
+            ${{ runner.temp }}/native-2014-state.txt
+            ${{ runner.temp }}/native-2014.log
           retention-days: 7

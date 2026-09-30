@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "source_inventory": "analysis/generated/usjo8-static-inventory.json",
+  "source_symbols": "docs/SYMBOLS.md",
+  "entries": [
+    {
+      "address": "7E:042B",
+      "usjo_variables": [
+        "numzflips"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_ZFlipCount",
+      "symbol_width": "8-bit",
+      "confidence": 4,
+      "status": "strong-partial",
+      "validation_priority": 3,
+      "next_action": "Close any remaining semantic/unit ambiguity when convenient.",
+      "symbol_notes": "USJO v8 and the historical TAS watch list identify this as the Z-flip count. Static writer scan run 36769525945 exposes a coherent `LDA $042B,Y; INC A; STA $042B,Y` sequence around `02:96D0`, plus initialization stores, strongly supporting counter semantics; causal runtime validation remains open."
+    },
+    {
+      "address": "7E:042F",
+      "usjo_variables": [
+        "numtabletops"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_TabletopCount",
+      "symbol_width": "8-bit",
+      "confidence": 4,
+      "status": "strong-partial",
+      "validation_priority": 3,
+      "next_action": "Close any remaining semantic/unit ambiguity when convenient.",
+      "symbol_notes": "USJO v8 and the historical TAS watch list identify this as the tabletop count. Static writer scan run 36769525945 finds coherent bank-02 initialization/store sites and `INC $042F,X` at `02:9582`, strongly supporting counter semantics; a causal runtime tabletop fixture remains open."
+    },
+    {
+      "address": "7E:0DFD",
+      "usjo_variables": [
+        "zrotation"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_ZRotationState",
+      "symbol_width": "16-bit slot; low byte used by USJO",
+      "confidence": 4,
+      "status": "strong-partial",
+      "validation_priority": 3,
+      "next_action": "Close any remaining semantic/unit ambiguity when convenient.",
+      "symbol_notes": "Static scan run 36769525945 exposes paired copy structure: `02:8AB2` loads `$0DFD` and stores it to shared working `$0F57`, while `02:8FBA` loads paired `$0DFF` into the same working slot and `02:8DB2` copies `$0F57` back to `$0DFD`. This strongly supports `$0DFD/$0DFF` as paired persistent racer Z-state slots; exact physical interpretation remains open."
+    },
+    {
+      "address": "7E:0F57",
+      "usjo_variables": [
+        "zprerotation"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "CurrentPlayer_ZRotationWorking",
+      "symbol_width": "16-bit working slot; low byte used by USJO",
+      "confidence": 4,
+      "status": "strong-partial",
+      "validation_priority": 3,
+      "next_action": "Close any remaining semantic/unit ambiguity when convenient.",
+      "symbol_notes": "Static scan run 36769525945 shows `$0F57` as shared current-player working state: `02:8AB2` copies player-1 `$0DFD` into it, `02:8FBA` copies paired `$0DFF` into it, `02:8DB2` writes it back to `$0DFD`, and later bank-02 code mutates/clears it. USJO v8 calls the low byte `zprerotation`; exact physical semantics remain open."
+    },
+    {
+      "address": "7E:0F61",
+      "usjo_variables": [
+        "numtwists"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "CurrentPlayer_TwistCountWorking",
+      "symbol_width": "8-bit counter view",
+      "confidence": 4,
+      "status": "strong-partial",
+      "validation_priority": 3,
+      "next_action": "Close any remaining semantic/unit ambiguity when convenient.",
+      "symbol_notes": "USJO v8 and the 2008 TAS watch list identify this as the twist count. Static writer scan run 36769525945 finds coherent gameplay-code operations: player-specific state is copied into `$0F61` at `02:8BDB/02:90C5`, it is cleared at `02:949C/02:9D73/02:A3F4`, and `02:A46E` conditionally increments it. This is shared current-player working state rather than stable player-1-only storage; causal stunt-transition validation remains open."
+    },
+    {
+      "address": "7E:11CD",
+      "usjo_variables": [
+        "realboostmeter"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_BoostMeter",
+      "symbol_width": "16-bit",
+      "confidence": 4,
+      "status": "strong-partial",
+      "validation_priority": 3,
+      "next_action": "Close any remaining semantic/unit ambiguity when convenient.",
+      "symbol_notes": "Historical TAS watch list labels a 16-bit unsigned booster meter. Static writer scan run 36769525945 finds coherent bank-02 word operations, including `REP #$20; LDA #$0000; STA $11CD` at `02:9BA6` plus word-style arithmetic/store sequences at `02:A768` and nearby routines. USJO v8 intentionally reads only the low byte as `realboostmeter` and uses it solely as a zero/nonzero gate; exact game-facing boost units still need dynamic validation."
+    },
+    {
+      "address": "7E:11F9",
+      "usjo_variables": [
+        "numrolls"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_RollCount",
+      "symbol_width": "8-bit",
+      "confidence": 4,
+      "status": "strong-partial",
+      "validation_priority": 3,
+      "next_action": "Close any remaining semantic/unit ambiguity when convenient.",
+      "symbol_notes": "USJO v8 and the historical TAS watch list identify this as the roll count. Static writer scan run 36769525945 finds coherent indexed initialization plus `INC $11F9,X` at `02:9B27` and `02:9BB7`, strongly supporting per-racer counter semantics; causal runtime validation remains open."
+    },
+    {
+      "address": "7E:11FD",
+      "usjo_variables": [
+        "numflips"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_FlipCount",
+      "symbol_width": "8-bit",
+      "confidence": 4,
+      "status": "strong-partial",
+      "validation_priority": 3,
+      "next_action": "Close any remaining semantic/unit ambiguity when convenient.",
+      "symbol_notes": "USJO v8 and the historical TAS watch list identify this as the flip count. Static writer scan run 36769525945 finds coherent indexed initialization plus `INC $11FD,X` at `02:9B41` and `02:9BF6`, strongly supporting per-racer counter semantics; causal runtime validation remains open."
+    },
+    {
+      "address": "7E:04B7",
+      "usjo_variables": [
+        "curspeed"
+      ],
+      "usjo_width_bits": [
+        16
+      ],
+      "symbol_name": "Player1_XSpeed",
+      "symbol_width": "signed 16-bit",
+      "confidence": 5,
+      "status": "runtime-confirmed",
+      "validation_priority": 4,
+      "next_action": "No additional USJO-specific validation required unless new evidence conflicts.",
+      "symbol_notes": "Effective recovered-bot word key `xSpeed`; bot explicitly sign-converts it. Race-acceleration run 36512546762 changes it identically from 0 to +447 under Right input while X position increases."
+    },
+    {
+      "address": "7E:04BB",
+      "usjo_variables": [
+        "yspeed"
+      ],
+      "usjo_width_bits": [
+        16
+      ],
+      "symbol_name": "Player1_YSpeed",
+      "symbol_width": "signed 16-bit",
+      "confidence": 5,
+      "status": "runtime-confirmed",
+      "validation_priority": 4,
+      "next_action": "No additional USJO-specific validation required unless new evidence conflicts.",
+      "symbol_notes": "Effective recovered-bot word key `ySpeed`; bot sign-converts it. In run 36514981164 sustained B changes it causally from 0 in the matched control to -21 while player 1 is airborne; native and Snes9x match exactly."
+    },
+    {
+      "address": "7E:0545",
+      "usjo_variables": [
+        "airflag"
+      ],
+      "usjo_width_bits": [
+        8
+      ],
+      "symbol_name": "Player1_AirState",
+      "symbol_width": "8-bit",
+      "confidence": 5,
+      "status": "runtime-confirmed",
+      "validation_priority": 4,
+      "next_action": "No additional USJO-specific validation required unless new evidence conflicts.",
+      "symbol_notes": "Effective player-1 Lua key `airValue`; later duplicate overrides second-racer `7E:0547`. In run 36514981164 sustained B causally changes player 1 from 0 to 9 while Y position/speed enter the airborne trajectory; matched no-B control remains 0."
+    }
+  ],
+  "summary": {
+    "runtime-confirmed": 3,
+    "strong-partial": 8
+  }
+}

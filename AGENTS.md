@@ -10,6 +10,7 @@ Compact router for coding and research agents. Load the smallest current authori
 | Understand how the game currently appears to work / orient to a subsystem | `docs/knowledge/README.md`, then the relevant concept page |
 | Overall project architecture / product plan | `docs/PROJECT-PLAN.md` |
 | Widescreen feature implementation | `docs/WIDESCREEN.md`, then `docs/PROJECT-PLAN.md` |
+| Bonus emulator-assisted widescreen ROM hack | `docs/bonus/WIDESCREEN-ROM-HACK.md`; keep isolated from the shipping/native path |
 | Research strategy / external-resource work | `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md` |
 | Native build / boot / runtime failure | `docs/BRINGUP.md`, `docs/VALIDATION.md`, then the changed workflow/runtime files |
 | ROM identity / preserved build comparison | `analysis/generated/reference-rom-inventory.md`, `analysis/generated/reference-rom-comparison.md` |
@@ -79,6 +80,8 @@ The goal is to make outside knowledge an automatic escape hatch from local tunne
 - Scratch captures, savestates, traces, extracted assets, generated recompilation output, emulator workspaces, and bulky intermediate products stay ignored unless deliberately promoted with provenance and a documented reason.
 
 The private repository intentionally tracks preserved ROMs under `reference/roms/`. Do not move, duplicate, publish, or silently substitute them. `reference/roms/retail/Uniracers_USA.sfc` is the canonical recompilation input unless the task explicitly concerns another preserved build.
+
+Bonus-project material must not silently become a main-line dependency. In particular, emulator-assisted widescreen ROM-hack work belongs under `docs/bonus/` and a future `bonus/widescreen-romhack/` implementation tree; promote independently useful findings into main authorities only after validating them outside the bonus architecture.
 
 ## Validation
 

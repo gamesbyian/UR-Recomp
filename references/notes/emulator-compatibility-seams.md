@@ -87,3 +87,22 @@ The stable VS race captures also expose the driving HDMA configuration itself. A
 For direct mode-0 HDMA this is two 112-line runs followed by the terminator: the first run supplies `$A5`, the second supplies `$5A`. This explains why the journal sees one `$2104` write at V=0 and the next at V=112.
 
 That closes the immediate source/timing question. The remaining archaeology is the hardware consequence: map those active-display `$2104` writes through the effective OAM address/high-table semantics and confirm the historically implicated sprite range rather than inferring it from emulator workaround code.
+
+
+### Empty-subscreen colour-addition historical discriminator
+
+The preserved Snes9x 1.43 history makes this seam unusually testable rather than merely anecdotal.
+
+Historical evidence records that Uniracers enables sub-screen addition on BG2 while nothing is present on the sub-screen, and explicitly asks whether the empty contribution should behave as fixed colour or backdrop. A later changelog entry says Snes9x temporarily switched to adding backdrop colour when sub-screen addition was enabled but nothing existed on the sub-screen because Uniracers seemed to require it, then disabled that change because it caused problems in other ROMs **and in later Uniracers screens**.
+
+The corresponding preserved renderer source shows the relevant class of branch directly: when rendering colour addition/subtraction, it distinguishes a real sub-screen pixel from a clear sub-screen and separately handles the backdrop/fixed-colour fallback. Therefore this should be treated as a scene-dependent PPU semantic discriminator, not a title-specific patch to copy.
+
+Local test strategy:
+
+1. survey stable checkpoints using raw `TM`, `TS`, `CGWSEL`, `CGADSUB`, fixed RGB and framebuffer hashes;
+2. identify at least one early checkpoint matching the historical empty-subscreen condition and one later checkpoint whose state differs;
+3. reproduce the historical fallback perturbation in an isolated reference-core A/B;
+4. require a candidate semantic rule to explain both scenes without merely moving the defect;
+5. promote only the hardware/game-facing invariant, never the historical Snes9x workaround itself.
+
+The first survey is implemented by `tools/summarize_color_math_state.py`; its one-shot canonical-ROM run is intentionally evidence acquisition only and will be retired after the measurements are preserved.

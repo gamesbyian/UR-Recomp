@@ -1,0 +1,832 @@
+{
+  "change_points": [
+    {
+      "checkpoint": "race-start-active-008",
+      "fields": [
+        "cgadsub",
+        "fixed_color"
+      ],
+      "frame": 983
+    },
+    {
+      "checkpoint": "race-start-active-016",
+      "fields": [
+        "framebuffer_sha256"
+      ],
+      "frame": 991
+    },
+    {
+      "checkpoint": "race-start-active-020",
+      "fields": [
+        "framebuffer_sha256"
+      ],
+      "frame": 995
+    },
+    {
+      "checkpoint": "race-start-active-024",
+      "fields": [
+        "framebuffer_sha256"
+      ],
+      "frame": 999
+    },
+    {
+      "checkpoint": "race-start-active-028",
+      "fields": [
+        "framebuffer_sha256"
+      ],
+      "frame": 1003
+    },
+    {
+      "checkpoint": "race-start-active-032",
+      "fields": [
+        "framebuffer_sha256"
+      ],
+      "frame": 1007
+    },
+    {
+      "checkpoint": "race-start-active-036",
+      "fields": [
+        "framebuffer_sha256"
+      ],
+      "frame": 1011
+    },
+    {
+      "checkpoint": "race-start-active-040",
+      "fields": [
+        "framebuffer_sha256"
+      ],
+      "frame": 1015
+    },
+    {
+      "checkpoint": "race-start-active-044",
+      "fields": [
+        "framebuffer_sha256"
+      ],
+      "frame": 1019
+    },
+    {
+      "checkpoint": "race-start-active-048",
+      "fields": [
+        "framebuffer_sha256"
+      ],
+      "frame": 1023
+    },
+    {
+      "checkpoint": "race-start-active-052",
+      "fields": [
+        "framebuffer_sha256"
+      ],
+      "frame": 1027
+    },
+    {
+      "checkpoint": "race-start-active-056",
+      "fields": [
+        "framebuffer_sha256"
+      ],
+      "frame": 1031
+    },
+    {
+      "checkpoint": "race-start-active-060",
+      "fields": [
+        "framebuffer_sha256"
+      ],
+      "frame": 1035
+    },
+    {
+      "checkpoint": "race-start-active-064",
+      "fields": [
+        "framebuffer_sha256"
+      ],
+      "frame": 1039
+    }
+  ],
+  "checkpoints": [
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 0,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "4fe7b59af6de3b665b67788cc2f99892ab827efae3a467342b3bb4e3bc8e5bfe",
+        "unique_colors": 1
+      },
+      "changed_from_previous": [],
+      "checkpoint": "race-start-active-000",
+      "frame": 975,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "7F",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 0
+        },
+        "framebuffer_sha256": "d2a23a7de3af6bf70d164a0ce45201371aca7624e30079d30cccab1cb6cf52e3",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    },
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 0,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "4fe7b59af6de3b665b67788cc2f99892ab827efae3a467342b3bb4e3bc8e5bfe",
+        "unique_colors": 1
+      },
+      "changed_from_previous": [],
+      "checkpoint": "race-start-active-004",
+      "frame": 979,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "7F",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 0
+        },
+        "framebuffer_sha256": "d2a23a7de3af6bf70d164a0ce45201371aca7624e30079d30cccab1cb6cf52e3",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    },
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 0,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "4fe7b59af6de3b665b67788cc2f99892ab827efae3a467342b3bb4e3bc8e5bfe",
+        "unique_colors": 1
+      },
+      "changed_from_previous": [
+        "cgadsub",
+        "fixed_color"
+      ],
+      "checkpoint": "race-start-active-008",
+      "frame": 983,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "04",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 15
+        },
+        "framebuffer_sha256": "d2a23a7de3af6bf70d164a0ce45201371aca7624e30079d30cccab1cb6cf52e3",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    },
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 0,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "4fe7b59af6de3b665b67788cc2f99892ab827efae3a467342b3bb4e3bc8e5bfe",
+        "unique_colors": 1
+      },
+      "changed_from_previous": [],
+      "checkpoint": "race-start-active-012",
+      "frame": 987,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "04",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 15
+        },
+        "framebuffer_sha256": "d2a23a7de3af6bf70d164a0ce45201371aca7624e30079d30cccab1cb6cf52e3",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    },
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 4096,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "1ea930a34ed50161bcd0461c2e953216c8078eeeeba0b25098ccc72bf2f41801",
+        "unique_colors": 2
+      },
+      "changed_from_previous": [
+        "framebuffer_sha256"
+      ],
+      "checkpoint": "race-start-active-016",
+      "frame": 991,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "04",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 15
+        },
+        "framebuffer_sha256": "35ec62bc39b300047dd33a39a7507b0917df99cce3cd5e3feba77d97af240a45",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    },
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 4096,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "fa63c52b7f90e8c0ac2d91d278a7d37cf389146fac840fa7b100ff90cd2c0e3c",
+        "unique_colors": 9
+      },
+      "changed_from_previous": [
+        "framebuffer_sha256"
+      ],
+      "checkpoint": "race-start-active-020",
+      "frame": 995,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "04",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 15
+        },
+        "framebuffer_sha256": "fef56c64c57cea91555b58a01e51eeb56e2ecdf4ccd5d3bb9384416444928c2c",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    },
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 4096,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "9f178de1bfa3c394271ba7e3b702ac84ce96e3061b94e9d1e1bc354d14252018",
+        "unique_colors": 12
+      },
+      "changed_from_previous": [
+        "framebuffer_sha256"
+      ],
+      "checkpoint": "race-start-active-024",
+      "frame": 999,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "04",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 15
+        },
+        "framebuffer_sha256": "c5c49b9aa187e55f0b90bf2a0f71bbf86f9f42bd241b8e39b7470e9bf187c4e9",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    },
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 4096,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "98d1d7603039e914f69cf3fbcf9d02c638600d504df2f224509381e11502291c",
+        "unique_colors": 13
+      },
+      "changed_from_previous": [
+        "framebuffer_sha256"
+      ],
+      "checkpoint": "race-start-active-028",
+      "frame": 1003,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "04",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 15
+        },
+        "framebuffer_sha256": "4ceddcbb877e01e34c2d2708b85494b52b6ffc46e9ec316336928da903b46368",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    },
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 4096,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "0a3b238df06417958a3131d845c0d0de40bfe9acd239c87f7065a145e1b377bb",
+        "unique_colors": 13
+      },
+      "changed_from_previous": [
+        "framebuffer_sha256"
+      ],
+      "checkpoint": "race-start-active-032",
+      "frame": 1007,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "04",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 15
+        },
+        "framebuffer_sha256": "564853e1a9f06016918a88542c54250fdb002ab00eba0c692eaedf1e06635542",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    },
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 4096,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "0a3b238df06417958a3131d845c0d0de40bfe9acd239c87f7065a145e1b377bb",
+        "unique_colors": 13
+      },
+      "changed_from_previous": [
+        "framebuffer_sha256"
+      ],
+      "checkpoint": "race-start-active-036",
+      "frame": 1011,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "04",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 15
+        },
+        "framebuffer_sha256": "5992ec792e2c6f72a61a1e63e165285b0f42dcae165f278b2593459fe071d825",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    },
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 4096,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "0a3b238df06417958a3131d845c0d0de40bfe9acd239c87f7065a145e1b377bb",
+        "unique_colors": 13
+      },
+      "changed_from_previous": [
+        "framebuffer_sha256"
+      ],
+      "checkpoint": "race-start-active-040",
+      "frame": 1015,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "04",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 15
+        },
+        "framebuffer_sha256": "a4bac7b9d178c0fe8655f2937ba6566365f143049323cc9a6e53d2cb7905ef6c",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    },
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 4096,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "0a3b238df06417958a3131d845c0d0de40bfe9acd239c87f7065a145e1b377bb",
+        "unique_colors": 13
+      },
+      "changed_from_previous": [
+        "framebuffer_sha256"
+      ],
+      "checkpoint": "race-start-active-044",
+      "frame": 1019,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "04",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 15
+        },
+        "framebuffer_sha256": "1991817d9ea0e5a4a0bae5ae05f04ad2b1c73c9587f166a0add2ce038c336071",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    },
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 4096,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "920979b61250f26e0669b466334ee2ec8d71e04b33269fc6caf0e74f82c22b07",
+        "unique_colors": 13
+      },
+      "changed_from_previous": [
+        "framebuffer_sha256"
+      ],
+      "checkpoint": "race-start-active-048",
+      "frame": 1023,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "04",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 15
+        },
+        "framebuffer_sha256": "9b88b487a218eb1e960fd63e2983aaeb7d7cf76c29b38ef73c42e10a51ff3b36",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    },
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 4096,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "920979b61250f26e0669b466334ee2ec8d71e04b33269fc6caf0e74f82c22b07",
+        "unique_colors": 13
+      },
+      "changed_from_previous": [
+        "framebuffer_sha256"
+      ],
+      "checkpoint": "race-start-active-052",
+      "frame": 1027,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "04",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 15
+        },
+        "framebuffer_sha256": "90b8ce241bb34c0646d10307e457513fcb22bdb83c5bd749c4149cea6e01d4c2",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    },
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 4096,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "920979b61250f26e0669b466334ee2ec8d71e04b33269fc6caf0e74f82c22b07",
+        "unique_colors": 13
+      },
+      "changed_from_previous": [
+        "framebuffer_sha256"
+      ],
+      "checkpoint": "race-start-active-056",
+      "frame": 1031,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "04",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 15
+        },
+        "framebuffer_sha256": "c44fc80158579e744375681ddfffc13a1d14340c5e3464d1424260d18bf3b6b1",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    },
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 4096,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "920979b61250f26e0669b466334ee2ec8d71e04b33269fc6caf0e74f82c22b07",
+        "unique_colors": 13
+      },
+      "changed_from_previous": [
+        "framebuffer_sha256"
+      ],
+      "checkpoint": "race-start-active-060",
+      "frame": 1035,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "04",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 15
+        },
+        "framebuffer_sha256": "e3b82325b6dabc53754b2aed99cb6f21ab0a96d1f0ed72de40de694e76f73a2f",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    },
+    {
+      "bottom_edge": {
+        "nonzero_pixels": 4096,
+        "pixels": 4096,
+        "rows": [
+          208,
+          223
+        ],
+        "sha256": "920979b61250f26e0669b466334ee2ec8d71e04b33269fc6caf0e74f82c22b07",
+        "unique_colors": 13
+      },
+      "changed_from_previous": [
+        "framebuffer_sha256"
+      ],
+      "checkpoint": "race-start-active-064",
+      "frame": 1039,
+      "state": {
+        "bgmode": 1,
+        "cgadsub": "04",
+        "cgwsel": "02",
+        "fixed_color": {
+          "b": 0,
+          "g": 0,
+          "r": 15
+        },
+        "framebuffer_sha256": "8988ed7edf6ab481ab8a226facf7f17bb34a68fbf849fda9382d7b1114f013dc",
+        "height": 224,
+        "screen_height": 224,
+        "setini": "00",
+        "subscreen_math_selected": true,
+        "tm": "17",
+        "ts": "10",
+        "width": 256,
+        "xor_layers": [
+          "BG1",
+          "BG2",
+          "BG3",
+          "BG4",
+          "OBJ",
+          "COL"
+        ]
+      }
+    }
+  ],
+  "schema_version": 1
+}

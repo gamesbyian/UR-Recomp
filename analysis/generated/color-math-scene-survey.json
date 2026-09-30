@@ -1,0 +1,159 @@
+{
+  "checkpoints": [
+    {
+      "brightness": 14,
+      "cgadsub": "7F",
+      "cgwsel": "02",
+      "checkpoint": "after-track-confirm",
+      "color_math_layer_mask": 63,
+      "fixed_color": {
+        "b": 0,
+        "g": 0,
+        "r": 0
+      },
+      "forced_blank": false,
+      "frame_tag": 761,
+      "half": true,
+      "subscreen_layer_mask": 16,
+      "subscreen_math_selected": true,
+      "subtract": false,
+      "tm": "13",
+      "tmw": "00",
+      "ts": "10",
+      "tsw": "00"
+    },
+    {
+      "brightness": 14,
+      "cgadsub": "7F",
+      "cgwsel": "02",
+      "checkpoint": "main-menu-ready",
+      "color_math_layer_mask": 63,
+      "fixed_color": {
+        "b": 0,
+        "g": 0,
+        "r": 0
+      },
+      "forced_blank": false,
+      "frame_tag": 500,
+      "half": true,
+      "subscreen_layer_mask": 16,
+      "subscreen_math_selected": true,
+      "subtract": false,
+      "tm": "13",
+      "tmw": "00",
+      "ts": "10",
+      "tsw": "00"
+    },
+    {
+      "brightness": 14,
+      "cgadsub": "7F",
+      "cgwsel": "02",
+      "checkpoint": "now-playing-ready",
+      "color_math_layer_mask": 63,
+      "fixed_color": {
+        "b": 0,
+        "g": 0,
+        "r": 0
+      },
+      "forced_blank": false,
+      "frame_tag": 821,
+      "half": true,
+      "subscreen_layer_mask": 16,
+      "subscreen_math_selected": true,
+      "subtract": false,
+      "tm": "13",
+      "tmw": "00",
+      "ts": "10",
+      "tsw": "00"
+    },
+    {
+      "brightness": 15,
+      "cgadsub": "04",
+      "cgwsel": "02",
+      "checkpoint": "race-entered",
+      "color_math_layer_mask": 4,
+      "fixed_color": {
+        "b": 0,
+        "g": 0,
+        "r": 15
+      },
+      "forced_blank": false,
+      "frame_tag": 1035,
+      "half": false,
+      "subscreen_layer_mask": 16,
+      "subscreen_math_selected": true,
+      "subtract": false,
+      "tm": "17",
+      "tmw": "17",
+      "ts": "10",
+      "tsw": "00"
+    },
+    {
+      "brightness": 14,
+      "cgadsub": "7F",
+      "cgwsel": "02",
+      "checkpoint": "rider-select-ready",
+      "color_math_layer_mask": 63,
+      "fixed_color": {
+        "b": 0,
+        "g": 0,
+        "r": 0
+      },
+      "forced_blank": false,
+      "frame_tag": 563,
+      "half": true,
+      "subscreen_layer_mask": 16,
+      "subscreen_math_selected": true,
+      "subtract": false,
+      "tm": "13",
+      "tmw": "00",
+      "ts": "10",
+      "tsw": "00"
+    },
+    {
+      "brightness": 14,
+      "cgadsub": "7F",
+      "cgwsel": "02",
+      "checkpoint": "tours-ready",
+      "color_math_layer_mask": 63,
+      "fixed_color": {
+        "b": 0,
+        "g": 0,
+        "r": 0
+      },
+      "forced_blank": false,
+      "frame_tag": 633,
+      "half": true,
+      "subscreen_layer_mask": 16,
+      "subscreen_math_selected": true,
+      "subtract": false,
+      "tm": "13",
+      "tmw": "00",
+      "ts": "10",
+      "tsw": "00"
+    },
+    {
+      "brightness": 14,
+      "cgadsub": "7F",
+      "cgwsel": "02",
+      "checkpoint": "tracks-ready",
+      "color_math_layer_mask": 63,
+      "fixed_color": {
+        "b": 0,
+        "g": 0,
+        "r": 0
+      },
+      "forced_blank": false,
+      "frame_tag": 696,
+      "half": true,
+      "subscreen_layer_mask": 16,
+      "subscreen_math_selected": true,
+      "subtract": false,
+      "tm": "13",
+      "tmw": "00",
+      "ts": "10",
+      "tsw": "00"
+    }
+  ],
+  "schema_version": 1
+}

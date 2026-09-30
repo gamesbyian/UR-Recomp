@@ -844,4 +844,3 @@ Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribut
 **Interpretation:** Beetle's current `sram=0` is a frontend API omission, not evidence that the emulated cartridge lacks SRAM or that LoROM SRAM mapping itself is absent. A narrow future patch should expose `SNES::memory::cartram.data()` and `SNES::memory::cartram.size()` for `RETRO_MEMORY_SAVE_RAM`, then rerun the exact preload/dump roundtrip fixture before promotion.
 
 **Concurrency note:** register that patch only after the active OAM/2P branch clears `tools/toolchain.json`; until then the SRAM probe should preserve the zero-byte exposure as evidence rather than conceal it.
-

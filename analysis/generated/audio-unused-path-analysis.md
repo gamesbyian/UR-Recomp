@@ -29,30 +29,23 @@ Celebration table `03:FAD5`, replacing base blocks 0x07, 0x15, 0x29 with `FF`.
 
 ## Package reuse is a live hypothesis, not a fallback
 
-Three base package blocks already have SPC correlations: `0x07`, `0x15`, and
-`0x29`. Unused Song 1 contains `0x15` and `0x29` but not `0x07`. Among the six
-tables, that three-marker pattern is matched exactly by 0x03FB15.
-Notably, orphan `03:FB95` omits all three markers, so its orphan status alone is no
-longer enough to make it the preferred pairing.
+The committed package/SPC correlation currently covers **3**
+package blocks: 0x07, 0x15, 0x29. The ranking code consumes this
+corpus dynamically, so promoting the full `0x00..0x31` correlation requires no new
+interpretation logic.
 
-Unused Song 2 contains `0x15` but not `0x07` or `0x29`. The three-marker pattern is
-matched exactly by 0x03FB55, 0x03FBD5. Existing runtime evidence
-breaks that tie in favor of `03:FB55`: the live first-race FB55 transfer reconstructs
-APU RAM `$B0E0-$BDE0`, and that complete 3,329-byte region is byte-identical at the
-same offsets in Unused Song 2.
+Unused Song 1's current correlated-block pattern is matched exactly by
+0x03FB15. Unused Song 2's current
+pattern is matched exactly by 0x03FB55, 0x03FBD5.
+Existing runtime evidence further favors `03:FB55` for Unused Song 2: the live
+first-race FB55 transfer reconstructs APU RAM `$B0E0-$BDE0`, and that complete
+3,329-byte region is byte-identical at the same offsets in the preserved SPC.
 
-Marker presence can reflect retained APU RAM from earlier package loads, so these are
+Block presence can reflect retained APU RAM from earlier package loads, so these are
 candidate rankings, not causal proof.
 
 ## Next discriminator
 
-Controlled reconstruction should now test **four** targeted combinations rather than
-assuming the orphan table wins:
-
-1. `0x3B + 03:FB15` against Unused Song 1.
-2. `0x3B + 03:FB95` against Unused Song 1.
-3. `0x3D + 03:FB55` against Unused Song 2.
-4. `0x3D + 03:FBD5` as the remaining three-marker tie control.
-
-A broader all-0x00..0x31 block-to-SPC correlation would further sharpen package ranking
-before any executable patch is promoted.
+Promote the all-`0x00..0x31` block/SPC correlation, regenerate this report, then
+reconstruct the leading package combinations in a reference harness. The orphan
+`03:FB95` remains a required control even if a called package ranks better.

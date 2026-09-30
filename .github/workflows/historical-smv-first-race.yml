@@ -288,7 +288,7 @@ jobs:
           PY
 
       - name: Persist available 2014 historical evidence
-        if: always()
+        if: ${{ always() && github.event_name != 'pull_request' }}
         shell: bash
         run: |
           set -euo pipefail

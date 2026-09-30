@@ -833,3 +833,15 @@ Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribut
 
 **Concurrency note:** the active OAM/2P branch currently owns `tools/toolchain.json`, so registering the patch there is intentionally deferred until that work lands or moves clear. Preserve the current exit-134 allowance only until the ownership-safe patch can be applied and validated.
 
+### R-SEED-046 — Beetle emulates cartridge SRAM but does not expose it through libretro
+
+**Status:** source-level interface gap identified; runtime probe pending  
+**Date:** 2026-09-29  
+**Area:** emulator oracle | SRAM | libretro | LoROM
+
+**Observation:** the vendored Beetle/bsnes cartridge loader allocates `SNES::memory::cartram` from the ROM header's RAM size, maps it into the cartridge bus, and leaves it writable. However, the core's `retro_get_memory_data()` and `retro_get_memory_size()` implementations recognize only `RETRO_MEMORY_SYSTEM_RAM`; every other libretro memory type returns null / zero. This exactly explains the existing independent-reference log reporting `wram=131072 ... sram=0` despite Uniracers declaring 8 KiB SRAM.
+
+**Interpretation:** Beetle's current `sram=0` is a frontend API omission, not evidence that the emulated cartridge lacks SRAM or that LoROM SRAM mapping itself is absent. A narrow future patch should expose `SNES::memory::cartram.data()` and `SNES::memory::cartram.size()` for `RETRO_MEMORY_SAVE_RAM`, then rerun the exact preload/dump roundtrip fixture before promotion.
+
+**Concurrency note:** register that patch only after the active OAM/2P branch clears `tools/toolchain.json`; until then the SRAM probe should preserve the zero-byte exposure as evidence rather than conceal it.
+

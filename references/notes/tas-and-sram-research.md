@@ -306,3 +306,21 @@ This may substantially shorten the path to deterministic native menu/race automa
 ### Current recovery action
 
 A temporary GitHub Actions recovery job is fetching the live Pastebin source and TASVideos #4250 submitted SMV into a provenance-marked recovery area, while separately probing Wayback/CDX for the older USJO/obellemare artifacts.
+
+## Direct Nitrodon reverse-engineering archive recovery
+
+On 2026-09-30 Nitrodon directly supplied a historical Uniracers reverse-engineering bundle after Dessyreqt referred the project to him. The nine extracted files are preserved under `references/imported/reverse-engineering/nitrodon/`; the ZIP transport container is deliberately not retained.
+
+The archive is a substantial independent evidence source rather than a casual note set. It includes a detailed WRAM map, ROM/course offsets, annotated disassemblies for banks 80-83, a focused stunt routine disassembly, internal message IDs and a bounce/collision trace log.
+
+Several labels immediately reconcile ambiguities in the recovered USJO v8 material:
+
+- `7E:11CD` is documented as a 2-byte boost meter for the currently handled player, with `7E:11CF` and `7E:11D1` as player-specific boost meters.
+- `7E:0FEF` is documented as the currently handled player selector, using 0 for player 1 and 2 for player 2.
+- `7E:0F9F` is documented as current-player X velocity.
+- `7E:042F` is documented as tabletop duration rather than a generic tabletop count.
+- `7E:0F61` is documented as number of half-twists.
+- `7E:11F9` and `7E:11FD` are documented as 2-byte roll and flip counters.
+- `stunts.txt` directly annotates the stunt-processing path around bank 82, including roll/flip accumulation, twist/Z-flip/tabletop handling, wipeout/headbounce handling and related score/boost logic.
+
+These labels are high-quality historical reverse-engineering evidence because they are accompanied by disassembly and trace context, but they remain subject to local deterministic validation before being treated as canonical symbols.

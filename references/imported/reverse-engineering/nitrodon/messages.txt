@@ -1,0 +1,119 @@
+01: Roll
+02: Double Roll
+03: Treble Roll
+04: Roll City
+05: Flip
+06: Double Flip
+07: Treble Flip
+08: Flip City
+09: Twist
+0A: Double Twist
+0B: Treble Twist
+0C: Twister City
+0D: Rollout
+0E: Wipeout
+0F: Last Lap
+10: Head Bounce
+11: Tabletop
+12: Z Flip
+13: Double  Z Flip
+14: Treble  Z Flip
+15: Z Flip City
+16: Wrong Way
+17: Secret
+18: Cheat
+19: Mode
+1A: Activated
+1B: Screen Flip On
+1C: Hedgehog Speed
+1D: Slow Motion On
+1E: Power Bounce On
+1F: Barf Mode On
+20: Invisible Track
+21: Wobble Mode On
+22: Control Reversed
+24: Invisible Unis
+25: Winner
+26: Draw
+27: Loser
+28: In The Air
+29: Buttons Help
+2A: You To
+2B: Pull Stunts
+2C: More Stunts
+2D: Give You
+2E: Bigger Boosts
+30: Bigger Boosts
+31: Give You
+32: More Speed
+34: Pull Stunts
+35: To Go Faster
+38: To Pull A Stunt
+3A: Press Button B
+3B: And Button R
+3C: Go On
+3D: Try It
+3F: Pull A Stunt
+40: Press Button B
+41: To Jump
+42: And Button R
+43: To Roll
+44: Its Really
+45: Easy You Know
+46: Press B And R
+47: At The Same Time
+48: Rockin
+49: Excellent
+4A: Radical
+4B: Thrashin'
+4C: Air Head
+4D: Huh  Huh
+4E: Heavy Pedal
+4F: Jammin'
+50: Head Bangin'
+51: Later
+52: Dude
+53: Intense
+54: Brutal
+56: Huh  Huh  Huh
+57: Righteous
+58: What A Rush!
+59: Happenin'!
+5A: Groovy!
+5B: Daisy Rage!
+5C: Outta Sight!
+5D: Smmmmokin!
+5E: Peace!
+5F: Cool!
+60: Neato!
+61: Hip!
+62: Far Out!
+63: Flower Power!
+68: Waaaaahhh!!!
+69: Oh  Please!
+6A: Toooo Fast!
+6B: I'm Dizzy
+6C: I Almost Fell
+6D: Woooah!
+6E: Shoot Me Now!
+6F: Slow Me Down!
+70: I Hate Races!
+71: Huahhh  Wahh!
+72: My Innertube!
+73: !!!!!!!!!!!!!!
+78: Da' Bomb!
+79: Ain't No Thang!
+7A: All That!
+7B: It's On!
+7C: Whasuuup!
+7D: Slammin'
+7E: Phat! (miscounted somewhere before this point)
+7F: Smooth!
+80: Born to Roll!
+81: It's a Z Thang!
+82: Cool Like Dat!
+88: Outrageous!
+89: I'm Sure!
+8A: Tubular!
+8B: Radical!
+8C: Stellar!

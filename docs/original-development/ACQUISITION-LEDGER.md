@@ -177,7 +177,7 @@ Catalog:
 A contemporary November 2007 NeoGAF thread describes the issue's retro section as containing an interview with the Unirally SNES makers:
 - https://www.neogaf.com/threads/gamestm-issue-64-review-scores-ac-ouch.210737/
 
-The Nintendo Life 2010 feature appears to be a republication of this interview, but the physical issue may contain omitted captions, sidebars, images, layout annotations, or wording. Acquire/inspect only if it becomes useful; current web text already preserves the main interview content.
+Nintendo Life explicitly states that the feature originally appeared **in its entirety** in gamesTM and is reproduced there with permission. Treat the physical magazine as P3 layout/image archaeology only: it could still preserve print-only layout, captions or image treatment, but there is no reason to chase it for missing interview wording.
 
 
 ## A-011 — Unirally Europe retail ROM

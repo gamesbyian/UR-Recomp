@@ -102,3 +102,53 @@ Payload inspection materially sharpens the interpretation:
 This is strong evidence that the recovered 85% patch is overwhelmingly a text/control-data edit across three ROM clusters. No pure binary-only record was found, so this patch does **not currently provide evidence** for a separate font-graphics edit, pointer-table rewrite, header/checksum update, or executable-code-only patch. That is an evidence statement about this patch, not proof those structures do not exist elsewhere.
 
 The next useful local question is therefore narrower: identify the reader/renderer routines and control-byte semantics for these three text clusters, or recover the later Sayans 1.0b / independent Sinister patch to see whether either translation had to modify additional structures.
+
+
+## Control-byte vocabulary and reader candidates
+
+The 85% Sayans patch now has a derived control-byte grammar report at
+`analysis/generated/sayans-control-byte-vocabulary.json`.
+
+Across the 83 IPS records, the translated payloads contain 121 non-printable
+bytes. None of those 121 bytes is preserved byte-for-byte from the USA ROM at
+the same patched location, so the useful evidence is the **new translated
+stream grammar**, not a claim that the patch merely retained original inline
+controls.
+
+Recurring translated control runs include:
+
+- lone `FF` terminator/separator candidates;
+- `FF FC 10` (4 occurrences);
+- `FF FC 0D` (3);
+- `FF FC 16` (3);
+- `FB FC 0D` (2);
+- `FF FC 01`, `FF FC 13`, and `FF FC 17` (2 each);
+- an ordered five-entry family
+  `F3 00 FF FE 06 0D`,
+  `F3 01 FF FE 02 10`,
+  `F3 02 FF FE 04 13`,
+  `F3 03 FF FE 04 16`,
+  `F3 04 FF FE 06 19`.
+
+These patterns strongly suggest a compact text/layout/control language, but no
+byte has been promoted as newline, terminator, color, position, length or
+selector solely from frequency.
+
+A ROM-wide heuristic scan for immediate compares against the high control
+vocabulary (`F2/F3/F8/FB/FC/FE/FF`) produced a particularly strong candidate
+around `03:8975`: within a compact sequential-byte loop it explicitly compares
+against `FC`, `FF`, and `FB`, while ordinary bytes are dispatched through
+`00:8C41`. Related compare loops occur around `00:C4BC`, `00:C5D3`, and
+`03:AA36`. This is now a bounded reader-disassembly target, not yet a promoted
+symbol.
+
+Durable evidence:
+
+- `analysis/generated/sayans-control-byte-vocabulary.json`
+- `analysis/generated/sayans-reader-candidates.json`
+- `tools/analyze_translation_controls.py`
+- `tools/scan_text_control_reader_candidates.py`
+
+The next discriminator is bounded 65816 disassembly plus callsite mapping for
+`03:8975`, its ordinary-byte callee `00:8C41`, and the related loops. Reader
+semantics should be named only if control flow supports the translated grammar.

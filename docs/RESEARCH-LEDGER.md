@@ -823,7 +823,7 @@ Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribut
 
 ### R-SEED-045 — Beetle/bsnes teardown abort has a concrete double-free path
 
-**Status:** source-level root cause identified; fix deferred to a non-conflicting toolchain change  
+**Status:** root cause fixed and cross-core validated  
 **Date:** 2026-09-29  
 **Area:** emulator oracle | libretro | island toolchain
 
@@ -835,7 +835,7 @@ Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribut
 
 ### R-SEED-046 — Beetle emulates cartridge SRAM but does not expose it through libretro
 
-**Status:** source-level interface gap identified; runtime probe pending  
+**Status:** interface gap fixed and exact cross-core SRAM roundtrip validated  
 **Date:** 2026-09-29  
 **Area:** emulator oracle | SRAM | libretro | LoROM
 
@@ -844,3 +844,19 @@ Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribut
 **Interpretation:** Beetle's current `sram=0` is a frontend API omission, not evidence that the emulated cartridge lacks SRAM or that LoROM SRAM mapping itself is absent. A narrow future patch should expose `SNES::memory::cartram.data()` and `SNES::memory::cartram.size()` for `RETRO_MEMORY_SAVE_RAM`, then rerun the exact preload/dump roundtrip fixture before promotion.
 
 **Concurrency note:** register that patch only after the active OAM/2P branch clears `tools/toolchain.json`; until then the SRAM probe should preserve the zero-byte exposure as evidence rather than conceal it.
+
+
+### R-SEED-045/046 validation closeout
+
+**Status:** validated  
+**Date:** 2026-09-29  
+**Area:** emulator oracle | SRAM | libretro | LoROM
+
+Run `36661148644` validates both narrow Beetle compatibility fixes against the canonical Uniracers ROM and the historical 2008 movie SRAM image.
+
+- Reference SRAM: 8192 bytes, SHA-256 `15650bb496292c6fc9c1ea35f8b26070d8c1617169fbe75be3c0482d98649fd1`.
+- Pinned Snes9x: reports `sram=8192`, preloads the reference image and dumps an exact byte-for-byte match.
+- Repository-owned Beetle/bsnes: after the project patch, reports `sram=8192`, preloads and dumps the same exact 8192-byte image, and terminates cleanly instead of aborting in framebuffer teardown.
+- Toolchain run `36661148675` independently validates the patch through the normal fail-closed offline Beetle build path.
+
+This closes the historical LoROM SRAM-mapping compatibility seam at the libretro reference layer. The earlier Beetle `sram=0` observation was an API-export defect, not missing cartridge SRAM emulation.

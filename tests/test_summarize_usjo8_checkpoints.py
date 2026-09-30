@@ -27,7 +27,7 @@ def main() -> int:
         put16(blob, 0x04BB, 456)
         values = {
             0x0545: 1, 0x0F61: 2, 0x042F: 3, 0x042B: 4,
-            0x11F9: 5, 0x11FD: 6, 0x0DFD: 7, 0x0F57: 8, 0x11CD: 9,
+            0x11F9: 5, 0x11FD: 6, 0x0DFD: 7, 0x0F57: 8, 0x11CD: 9, 0x11CE: 10,
         }
         for addr, value in values.items():
             blob[addr] = value
@@ -50,6 +50,8 @@ def main() -> int:
             "z_rotation": 7,
             "z_pre_rotation": 8,
             "boost_meter_low": 9,
+            "boost_meter_high": 10,
+            "boost_meter_word": 2569,
         }, row
 
     print("PASS: USJO v8 checkpoint summarizer field widths and signs")

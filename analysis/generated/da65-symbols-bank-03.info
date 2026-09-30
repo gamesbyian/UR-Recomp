@@ -1,0 +1,8 @@
+# Generated labels only. Add RANGE/ADDRMODE from dynamic trace/CDL evidence.
+GLOBAL {
+    CPU "65816";
+    STARTADDR $8000;
+};
+SEGMENT { START $8000; END $FFFF; NAME "bank_03"; };
+
+LABEL { NAME "Text_HandleFCPositionControl"; ADDR $8971; };

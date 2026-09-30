@@ -88,20 +88,27 @@ Actions:
 
 Exit condition: a parser can turn one or more ROM course records into a documented structural representation that matches gameplay/reference maps.
 
-### 4. Use all preserved builds as targeted differential oracles
+### 4. Build a multi-ROM × multi-analyzer comparative code atlas
 
-USA retail and the 1994-11-29 PAL prototype share the complete 45-stream packed corpus, while Europe retail changes seven streams and the legacy beta differs from USA retail only outside that corpus.
+USA retail and the 1994-11-29 PAL prototype share the complete 45-stream packed corpus, while Europe retail changes seven streams and the legacy beta differs from USA retail only outside that corpus. The four preserved builds are now the expected ROM corpus; do not assume additional language/region releases exist or spend acquisition effort on speculative regional variants without a concrete catalog/provenance lead.
+
+Use the four builds as repeated observations of the lost source program. Cross-build correspondence and independent analyzer agreement should be first-class evidence.
 
 Actions:
 - classify the 486 isolated USA-retail vs legacy-beta byte changes;
 - independently decode and compare PAL retail streams 4, 16, 20, 26, 27, 35 and 36 against their USA/prototype counterparts;
-- classify the largest executable/data diff runs outside the RNC region;
-- prioritize code-shaped differences and regions near known hooks/entry points;
-- identify regional timing, frontend/text, protection, late fixes, graphics/audio, and table changes;
-- use shared code blocks to align functions and changed blocks to expose boundaries;
-- annotate useful differential landmarks in the research ledger/symbol map.
+- run corresponding executable regions through SNESRecomp manifest/generated-code analysis, snes2asm, bounded da65, and Ghidra/ghidra-snes when cross-reference persistence is useful;
+- evaluate additional 65816 control-flow analyzers only if they provide a genuinely independent interpretation;
+- create machine-readable fingerprints for candidate functions and data objects using instruction sequences, normalized operands, CFG shape, callers/callees, ROM references and WRAM/PPU accesses;
+- align corresponding functions/tables across builds even when absolute addresses move;
+- classify code-vs-data, function-boundary, M/X-state, indirect-target, jump-table and cross-reference disagreements between analyzers;
+- prioritize disagreements and regions where one build exposes a boundary/target more clearly than another;
+- identify regional timing, frontend/text, protection, late fixes, graphics/audio and table changes;
+- propagate only locally verified semantic labels from Nitrodon/Dessyreqt/TAS/RetroAchievements/dynamic traces across matched functions, preserving provenance and confidence;
+- annotate useful differential landmarks in the research ledger/symbol map;
+- keep generated SNESRecomp C explicitly classified as execution-oriented translation evidence rather than a complete semantic decompilation.
 
-Exit condition: the largest useful diff regions are classified and at least several function/table boundaries are established.
+Exit condition: a reproducible comparative-code-atlas artifact covers the useful executable corpus, major cross-build correspondences are machine-queryable, and analyzer disagreements form a bounded research queue rather than remaining invisible.
 
 ### 5. Convert emulator-specific compatibility history into local tests
 
@@ -150,6 +157,8 @@ Actions:
 ### 7. Continue resource collection only where it can unlock current work
 
 Broad "find everything Uniracers" searching is now lower priority.
+
+The ROM-release hunt is considered **closed unless a concrete new provenance lead appears**. Current evidence supports the preserved USA retail, Europe retail, historical beta and 1994-11-29 PAL prototype as the useful known build corpus; speculative searches for nonexistent language/region releases should not consume project time. A newly surfaced prototype, review build, manufacturing revision with distinct payload, or other independently built image would still be high-value and should be admitted immediately.
 
 Missing-artifact priority is now marginal-value based rather than completeness based:
 

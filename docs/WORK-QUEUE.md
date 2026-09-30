@@ -11,7 +11,7 @@ Canonical execution plan: `docs/ISLAND-TOOLCHAIN-PLAN.md`.
 Goal: make the core automated research/build toolchain runnable from a clean checkout without GitHub, PyPI or crates.io after ordinary host/compiler prerequisites are present.
 
 - [x] Add the `third_party/` provenance/licensing/manifest infrastructure, repository-hygiene validation, local-source bootstrap preference, and fail-closed offline mode. A true network-disabled build smoke follows the first islanded core component.
-- [ ] Vendor the small/high-value tool tranche and package-registry closures. `mesen-for-ai`, `snes2asm` plus its PyYAML 6.0.3 closure, SuperFamiconv plus its 78-package Cargo vendor closure, `ghidra-snes` source/language data, and pruned Flips CLI are complete. Beetle/bsnes libretro is landed, and independent-reference run 36627766874 successfully drives the same seven-checkpoint first-race fixture through Snes9x and repository-owned Beetle (race entry at frames 1035 and 1038 respectively). The current promotion branch moves Beetle into the ordinary fail-closed offline bootstrap/build matrix; once that branch matrix is green, P0-B is complete and work moves fully to P0-C. Beetle's post-fixture teardown abort and cross-core WRAM differences remain explicit follow-up evidence, not blockers to the independent execution gate.
+- [x] Vendor the small/high-value tool tranche and package-registry closures. `mesen-for-ai`, `snes2asm` plus its PyYAML 6.0.3 closure, SuperFamiconv plus its 78-package Cargo vendor closure, `ghidra-snes` source/language data, pruned Flips CLI, and Beetle/bsnes libretro are complete. Independent-reference run 36627766874 drives the same seven-checkpoint first-race fixture through Snes9x and repository-owned Beetle, and toolchain run 36628608355 proves Beetle through the ordinary fail-closed offline bootstrap/build matrix plus required libretro ABI checks. P0-B is closed; proceed through P0-C. Beetle's post-fixture teardown abort and cross-core WRAM differences remain explicit follow-up evidence, not blockers to the independent execution gate.
 - [ ] Migrate SNESRecomp and core reconstruction/build dependencies incrementally. WLA-DX is complete as the first P0-C core-build tranche: the repository owns the exact pinned 65816/linker source closure plus the narrow build patch; ordinary `bootstrap_toolchain.py --offline` proof is green.
 - [ ] Preserve large/manual workbenches as exact archives or optional external tools where direct vendoring has poor value.
 - [ ] Prove a network-disabled core workflow before removing the old fetch paths.
@@ -91,7 +91,7 @@ Convert known historical Uniracers emulator fixes into local understanding and p
 
 ### Other historically exposed seams
 
-- [ ] LoROM SRAM mapping: build deterministic save/load byte-roundtrip coverage.
+- [~] LoROM SRAM mapping: deterministic probe fixture and CI lane now use the historical 2008 movie's known-valid 8 KiB SRAM image to require an exact Snes9x preload→dump roundtrip and separately characterize Beetle's libretro save-RAM exposure. Promote to complete only after the new probe is green and any cross-core limitation is classified.
 - [ ] XOR/window-area logic: identify an affected screen and add PPU/window-state plus frame regression coverage.
 - [ ] Color math / empty-subscreen behavior: identify an affected screen and add PPU/color-math plus frame regression coverage.
 - [ ] Record each seam's final explanation in the research ledger / knowledge base and link its permanent test.

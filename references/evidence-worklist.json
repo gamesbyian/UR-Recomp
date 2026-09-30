@@ -34,7 +34,8 @@
         "state": "mirrored",
         "user_action_required": false,
         "request": ""
-      }
+      },
+      "acquisition_tier": "closed-or-local"
     },
     {
       "id": "historical-emulator-failure-matrix",
@@ -65,7 +66,8 @@
         "state": "mirrored",
         "user_action_required": false,
         "request": ""
-      }
+      },
+      "acquisition_tier": "closed-or-local"
     },
     {
       "id": "regional-and-prototype-differential",
@@ -95,7 +97,8 @@
         "state": "mirrored",
         "user_action_required": false,
         "request": ""
-      }
+      },
+      "acquisition_tier": "closed-or-local"
     },
     {
       "id": "spanish-translation-sayans",
@@ -129,7 +132,8 @@
         "state": "mirrored",
         "user_action_required": false,
         "request": ""
-      }
+      },
+      "acquisition_tier": "closed-or-local"
     },
     {
       "id": "spanish-translation-sinister",
@@ -158,13 +162,15 @@
         "state": "unknown",
         "user_action_required": false,
         "request": ""
-      }
+      },
+      "acquisition_tier": "P1",
+      "acquisition_judgment": "Useful independent corroboration of text/font/pointer structures, but the recovered Sayans patch and local reader work mean it is no longer a blocker."
     },
     {
       "id": "uncensored-name-list-patch",
       "value": "medium",
       "cost": "low",
-      "status": "acquisition-needed",
+      "status": "archival-tail",
       "source_ids": [
         "romhack-uncensored",
         "retroachievements-uniracers-1295"
@@ -185,7 +191,9 @@
         "state": "dead-link",
         "user_action_required": false,
         "request": ""
-      }
+      },
+      "acquisition_tier": "P3",
+      "acquisition_judgment": "Archival tail. Existing local UI/ROM evidence can recover forbidden-name behavior if it ever becomes implementation-relevant; do not spend bespoke recovery effort."
     },
     {
       "id": "spc-audio-driver-and-unused-music",
@@ -255,7 +263,9 @@
         "state": "dead-link",
         "user_action_required": false,
         "request": ""
-      }
+      },
+      "acquisition_tier": "P0",
+      "acquisition_judgment": "Still genuinely valuable: recovered source/tool semantics could replace substantial inference and create direct implementation or physics anchors."
     },
     {
       "id": "dessyreqt-autonomous-bot",
@@ -284,7 +294,8 @@
         "state": "mirrored",
         "user_action_required": false,
         "request": ""
-      }
+      },
+      "acquisition_tier": "closed-or-local"
     },
     {
       "id": "dma-original-authoring-toolchain",
@@ -314,7 +325,9 @@
         "state": "unknown",
         "user_action_required": false,
         "request": ""
-      }
+      },
+      "acquisition_tier": "P0",
+      "acquisition_judgment": "Still genuinely valuable: recovered source/tool semantics could replace substantial inference and create direct implementation or physics anchors."
     },
     {
       "id": "tamoketh-ue4-recreation",
@@ -342,7 +355,9 @@
         "state": "unknown",
         "user_action_required": false,
         "request": ""
-      }
+      },
+      "acquisition_tier": "P2",
+      "acquisition_judgment": "Potentially useful only if source, measurements or technical artifacts survive; videos/prose alone should not distract from canonical-ROM evidence."
     },
     {
       "id": "ringracer-spiritual-successor",
@@ -366,7 +381,18 @@
         "state": "metadata-only",
         "user_action_required": false,
         "request": ""
-      }
+      },
+      "acquisition_tier": "P3",
+      "acquisition_judgment": "Context only; no fidelity dependency."
     }
-  ]
+  ],
+  "acquisition_policy": {
+    "rule": "Keep all leads searchable, but do not let low marginal-value artifacts block implementation or reverse engineering.",
+    "tiers": {
+      "P0": "active hunt; likely to materially reduce implementation uncertainty",
+      "P1": "useful corroboration; pursue opportunistically or with cheap automation",
+      "P2": "optional evidence; acquire if easy, never block",
+      "P3": "archival tail; preserve lead, no bespoke recovery effort unless a new discriminator raises its value"
+    }
+  }
 }

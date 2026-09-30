@@ -17,13 +17,16 @@ jobs:
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
-      - name: Inspect records 0x32 through 0x42
+      - name: Inspect records 0x00 through 0x42
         run: |
-          python3 tools/inspect_audio_extended_records.py             "reference/roms/retail/Uniracers_USA.sfc"             --json-out audio-extended-record-framing.json             | tee audio-extended-record-framing.txt
-          python3 - <<\'PY\'
+          python3 tools/inspect_audio_extended_records.py             "reference/roms/retail/Uniracers_USA.sfc"             --first 0x00 --last 0x42             --json-out audio-extended-record-framing.json             | tee audio-extended-record-framing.txt
+          python3 - <<'PY'
           import json
           r = json.load(open("audio-extended-record-framing.json"))
           h = r["song_family_header"]
+          assert r["parsed_record_count"] == 0x43, r["parsed_record_count"]
+          assert r["first_extended_id"] == "0x00"
+          assert r["last_extended_id"] == "0x42"
           assert h["uniform"], h
           assert h["first_word_le"] == 0x0400, h
           assert h["second_word_le"] == 0x1D00, h

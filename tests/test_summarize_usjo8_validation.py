@@ -17,7 +17,10 @@ class Usjo8ValidationMatrixTests(unittest.TestCase):
         inventory = json.loads((ROOT / "analysis/generated/usjo8-static-inventory.json").read_text(encoding="utf-8"))
         symbols = (ROOT / "docs/SYMBOLS.md").read_text(encoding="utf-8")
         expected = json.loads((ROOT / "analysis/generated/usjo8-validation-matrix.json").read_text(encoding="utf-8"))
-        self.assertEqual(MODULE.build_matrix(inventory, symbols), expected)
+        actual = MODULE.build_matrix(inventory, symbols)
+        self.assertEqual(actual, expected)
+        expected_md = (ROOT / "analysis/generated/usjo8-validation-matrix.md").read_text(encoding="utf-8")
+        self.assertEqual(MODULE.render_markdown(actual), expected_md)
 
     def test_current_status_counts(self):
         inventory = json.loads((ROOT / "analysis/generated/usjo8-static-inventory.json").read_text(encoding="utf-8"))

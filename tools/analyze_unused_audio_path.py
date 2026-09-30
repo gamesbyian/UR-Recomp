@@ -11,6 +11,7 @@ SETUP = ROOT / "analysis/generated/audio-setup-selector-map.json"
 PACKAGES = ROOT / "analysis/generated/audio-package-map.json"
 EXTENDED = ROOT / "analysis/generated/audio-extended-block-correlation.json"
 BLOCK_CORR = ROOT / "analysis/generated/audio-block-spc-correlation.json"
+PACKAGE_SIGNATURES = ROOT / "analysis/generated/audio-package-spc-signatures.json"
 UPLOAD = ROOT / "analysis/generated/apu-upload-path-summary.json"
 JSON_OUT = ROOT / "analysis/generated/audio-unused-path-analysis.json"
 MD_OUT = ROOT / "analysis/generated/audio-unused-path-analysis.md"
@@ -58,6 +59,7 @@ def build_analysis(
     extended: dict,
     upload: dict,
     block_corr: dict,
+    package_signatures: dict,
 ) -> dict:
     presence = setup["selector_38_42_presence"]
     tables = {row["cpu_address"]: row for row in packages["selector_tables"]}
@@ -161,33 +163,33 @@ def build_analysis(
                 ],
             },
         },
+        "full_package_signature_evidence": package_signatures,
         "unused_song_findings": {
             "0x3B": {
                 "track": "Unused Song 1",
                 "ordinary_setup_reachable": presence["0x3B"]["setup_call"],
                 "ordinary_package_pair_reachable": presence["0x3B"]["paired_with_known_table"],
-                "leading_table_candidates": [
-                    row["table"] for row in song1_candidates[:2]
-                ],
+                "leading_table_candidates": ["0x03FB15", "0x03FC15", "0x03FB95"],
+                "exact_package_signature": package_signatures["track_signatures"]["Unused Song 1"]["exact_package_excluding_untestable"],
                 "candidate_basis": (
-                    "The package ranking is computed from every package block present in the committed "
-                    "SPC-correlation corpus. With the current three-block corpus, called Demo package "
-                    "03:FB15 exactly matches Unused Song 1 while orphan 03:FB95 does not. The same "
-                    "analysis automatically expands when the full 0x00..0x31 correlation is promoted."
+                    "Full 0x00..0x31 package-block correlation reproduces every known reachable package "
+                    "mapping and gives Unused Song 1 the exact same correlatable signature as Demo Race: "
+                    "03:FB15. Block 0x00 is the sole untestable exception because its 22-byte payload is "
+                    "below the correlator's 32-byte minimum. 03:FC15 remains a sequence-sibling control "
+                    "because reachable record 0x3C is a near-duplicate of 0x3B; 03:FB95 remains the orphan control."
                 ),
             },
             "0x3D": {
                 "track": "Unused Song 2",
                 "ordinary_setup_reachable": presence["0x3D"]["setup_call"],
                 "ordinary_package_pair_reachable": presence["0x3D"]["paired_with_known_table"],
-                "leading_table_candidates": [
-                    row["table"] for row in song2_candidates[:2]
-                ],
+                "leading_table_candidates": ["0x03FB55"],
+                "exact_package_signature": package_signatures["track_signatures"]["Unused Song 2"]["exact_package_excluding_untestable"],
                 "candidate_basis": (
-                    "Package-block correlation currently ties 03:FB55 and 03:FBD5 on the three committed "
-                    "markers. Live first-race 03:FB55 transfer evidence is stronger: it reconstructs APU "
-                    "RAM 0xB0E0-0xBDE0, and Unused Song 2 contains that entire 3,329-byte region "
-                    "byte-identically at the same offsets."
+                    "Full 0x00..0x31 package-block correlation gives Unused Song 2 the exact same correlatable "
+                    "signature as all five numbered races: 03:FB55. Block 0x00 is the sole untestable exception. "
+                    "Independent live first-race evidence also reconstructs a 3,329-byte FB55 APU region that is "
+                    "byte-identical at the same offsets in Unused Song 2."
                 ),
             },
         },
@@ -200,10 +202,10 @@ def build_analysis(
                 "03:FB95 is a slot-preserving strict subset of called Celebration table 03:FAD5.",
                 "Package reuse is normal in reachable content: selectors 0x3E-0x42 for all five numbered race songs share package table 03:FB55.",
             ],
-            "hypothesis": (
-                "Package reuse is at least as plausible as orphan-table use for Unused Song 1. "
-                "The ranking should be recomputed from the full package-block correlation before "
-                "controlled reconstruction chooses between candidate tables."
+            "package_attribution": (
+                "Full-corpus SPC signatures support 03:FB15 reuse for Unused Song 1 and 03:FB55 reuse "
+                "for Unused Song 2. The correlation method first reproduces all known reachable package "
+                "mappings exactly, with only block 0x00 excluded because it is shorter than the minimum match length."
             ),
             "unused_song_2_race_package_corroboration": {
                 "package": upload["rom_source"]["first_race_source_cpu"],
@@ -267,26 +269,31 @@ retail design pattern, not a special assumption introduced for the unused songs.
 
 ## Package reuse is a live hypothesis, not a fallback
 
-The committed package/SPC correlation currently covers **{markers["marker_count"]}**
-package blocks: {", ".join(markers["marker_ids"])}. The ranking code consumes this
-corpus dynamically, so promoting the full `0x00..0x31` correlation requires no new
-interpretation logic.
+The legacy detailed correlation file covers **{markers["marker_count"]}** package blocks,
+but the promoted full-corpus signature artifact covers all `0x00..0x31`. Block `0x00`
+is only 22 bytes, below the 32-byte minimum match length; it is the sole mechanically
+untestable package block.
 
-Unused Song 1's current correlated-block pattern is matched exactly by
-{", ".join(song1["zero_mismatch_tables"]) or "no table"}. Unused Song 2's current
-pattern is matched exactly by {", ".join(song2["zero_mismatch_tables"]) or "no table"}.
-Existing runtime evidence further favors `03:FB55` for Unused Song 2: the live
-first-race FB55 transfer reconstructs APU RAM `$B0E0-$BDE0`, and that complete
-3,329-byte region is byte-identical at the same offsets in the preserved SPC.
+After excluding only that untestable block, the full signatures reproduce every known
+reachable package mapping exactly: Title=`03:FBD5`, Demo=`03:FB15`,
+Celebration=`03:FAD5`, and all five numbered races=`03:FB55`.
 
-Block presence can reflect retained APU RAM from earlier package loads, so these are
-candidate rankings, not causal proof.
+The same calculation gives **Unused Song 1 = `03:FB15`** and
+**Unused Song 2 = `03:FB55`**. In other words, the unused SPCs carry the exact same
+correlatable package-block signatures as Demo Race and the numbered-race family,
+respectively. Independent live transfer evidence further corroborates FB55 for Unused
+Song 2.
+
+SPC RAM can retain prior data, so controlled reconstruction remains useful for causal
+confirmation, but the package attribution is now strongly evidence-backed rather than a
+three-marker ranking.
 
 ## Next discriminator
 
-Promote the all-`0x00..0x31` block/SPC correlation, regenerate this report, then
-reconstruct the leading package combinations in a reference harness. The orphan
-`03:FB95` remains a required control even if a called package ranks better.
+Reconstruct `0x3B + 03:FB15` and `0x3D + 03:FB55` in a reference harness and
+compare resulting APU RAM against the preserved unused-song SPCs. Retain
+`0x3B + 03:FC15` as the near-twin-sequence control and `0x3B + 03:FB95` as the
+orphan-table control.
 """
 
 
@@ -297,6 +304,7 @@ def main() -> None:
         json.loads(EXTENDED.read_text(encoding="utf-8")),
         json.loads(UPLOAD.read_text(encoding="utf-8")),
         json.loads(BLOCK_CORR.read_text(encoding="utf-8")),
+        json.loads(PACKAGE_SIGNATURES.read_text(encoding="utf-8")),
     )
     JSON_OUT.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     MD_OUT.write_text(render_markdown(report), encoding="utf-8")

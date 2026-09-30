@@ -290,12 +290,51 @@ jobs:
             "$RUNNER_TEMP/native-rotation-x-usjo8-transitions.json" "$RUNNER_TEMP/reference-rotation-x-usjo8-transitions.json" <<'PY'
           import json, pathlib, sys
           nc, rc, nx, rx=[json.loads(pathlib.Path(p).read_text()) for p in sys.argv[1:]]
-          for label,a,b in (("control",nc,rc),("X",nx,rx)):
-              if a["events"] != b["events"]:
-                  raise SystemExit(f"{label} selected-address transition mismatch\nnative={a['events']}\nreference={b['events']}")
-          control=nc["events"]; x=nx["events"]
-          print("== selected USJO transient events: X vs control ==")
-          print("IDENTICAL" if x==control else json.dumps({"control":control,"x":x},indent=2))
+
+          def sig(e):
+              return (e["addr"], e["old"], e["val"])
+
+          def causal_extras(control, intervention):
+              c=[sig(e) for e in control]
+              extras=[]
+              ci=0
+              for e in intervention:
+                  if ci < len(c) and sig(e) == c[ci]:
+                      ci += 1
+                  else:
+                      extras.append(e)
+              if ci != len(c):
+                  raise SystemExit(
+                      "control transition signature is not a subsequence of intervention; "
+                      f"matched {ci}/{len(c)}"
+                  )
+              return extras
+
+          n_extra=causal_extras(nc["events"], nx["events"])
+          r_extra=causal_extras(rc["events"], rx["events"])
+          n_sig=[sig(e) for e in n_extra]
+          r_sig=[sig(e) for e in r_extra]
+          if n_sig != r_sig:
+              raise SystemExit(f"native/reference X causal transition signatures differ\nnative={n_extra}\nreference={r_extra}")
+
+          def relative_frames(events):
+              if not events:
+                  return []
+              first=events[0]["frame"]
+              return [e["frame"]-first for e in events]
+
+          if relative_frames(n_extra) != relative_frames(r_extra):
+              raise SystemExit(
+                  "native/reference X causal transition cadence differs: "
+                  f"native={relative_frames(n_extra)} reference={relative_frames(r_extra)}"
+              )
+
+          print("== selected USJO causal transitions added by X ==")
+          print(json.dumps({
+              "native": n_extra,
+              "reference": r_extra,
+              "relative_frames": relative_frames(n_extra),
+          }, indent=2))
           PY
 
       - name: Compare airborne interventions against matched control

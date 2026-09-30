@@ -1,18 +1,22 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -529,6 +529,59 @@
+@@ -529,6 +529,92 @@
  static int g_script_force_poke_count;
  static int g_script_force_poke_cap;
  
 +typedef struct {
 +  uint64 start;
 +  uint64 duration;
-+  uint32 mask;
++  uint16 p1_mask;
++  uint16 p2_mask;
 +} ScriptInputEvent;
 +
 +static ScriptInputEvent *g_input_events;
 +static int g_input_event_count;
 +static int g_input_event_cap;
++static int g_input_event_cursor;
++static uint16 g_input_p1_mask, g_input_p2_mask;
++static uint64 g_input_p1_end, g_input_p2_end;
 +
 +static int LoadInputFile(const char *path) {
 +  FILE *f = fopen(path, "r");
@@ -22,6 +26,7 @@
 +  }
 +  char line[256];
 +  unsigned line_number = 0;
++  uint64 previous_p1_end = 0, previous_p2_end = 0;
 +  while (fgets(line, sizeof(line), f)) {
 +    line_number++;
 +    char *comment = strchr(line, '#');
@@ -30,8 +35,23 @@
 +    unsigned p1 = 0, p2 = 0;
 +    int n = sscanf(line, " %llu:%llu:%x:%x", &start, &duration, &p1, &p2);
 +    if (n == 3 || n == 4) {
-+      if (!duration || p1 > 0x0fffu || p2 > 0x0fffu) {
++      uint64 end = (uint64)start + (uint64)duration;
++      if (!duration || p1 > 0x0fffu || p2 > 0x0fffu || (!p1 && !p2) ||
++          end < (uint64)start) {
 +        fprintf(stderr, "input: invalid event at %s:%u\n", path, line_number);
++        fclose(f);
++        return 0;
++      }
++      if ((p1 && (uint64)start < previous_p1_end) ||
++          (p2 && (uint64)start < previous_p2_end)) {
++        fprintf(stderr, "input: overlapping player event at %s:%u\n", path, line_number);
++        fclose(f);
++        return 0;
++      }
++      if (g_input_event_count > 0 &&
++          (uint64)start < g_input_events[g_input_event_count - 1].start) {
++        fprintf(stderr, "input: events must be sorted by start frame at %s:%u\n",
++                path, line_number);
 +        fclose(f);
 +        return 0;
 +      }
@@ -39,11 +59,18 @@
 +        g_input_event_cap = g_input_event_cap ? g_input_event_cap * 2 : 256;
 +        g_input_events = (ScriptInputEvent *)realloc(
 +            g_input_events, (size_t)g_input_event_cap * sizeof(ScriptInputEvent));
++        if (!g_input_events) {
++          fclose(f);
++          return 0;
++        }
 +      }
 +      ScriptInputEvent *e = &g_input_events[g_input_event_count++];
 +      e->start = (uint64)start;
 +      e->duration = (uint64)duration;
-+      e->mask = (uint32)p1 | ((uint32)p2 << 12);
++      e->p1_mask = (uint16)p1;
++      e->p2_mask = (uint16)p2;
++      if (p1) previous_p1_end = end;
++      if (p2) previous_p2_end = end;
 +      continue;
 +    }
 +    for (const char *p = line; *p; p++) {
@@ -60,19 +87,28 @@
 +}
 +
 +static uint32 InputFileMask(uint64 frame) {
-+  uint32 mask = 0;
-+  for (int i = 0; i < g_input_event_count; i++) {
-+    const ScriptInputEvent *e = &g_input_events[i];
-+    if (frame >= e->start && frame - e->start < e->duration)
-+      mask |= e->mask;
++  if (frame >= g_input_p1_end) g_input_p1_mask = 0;
++  if (frame >= g_input_p2_end) g_input_p2_mask = 0;
++  while (g_input_event_cursor < g_input_event_count &&
++         g_input_events[g_input_event_cursor].start <= frame) {
++    const ScriptInputEvent *e = &g_input_events[g_input_event_cursor++];
++    const uint64 end = e->start + e->duration;
++    if (e->p1_mask) {
++      g_input_p1_mask = e->p1_mask;
++      g_input_p1_end = end;
++    }
++    if (e->p2_mask) {
++      g_input_p2_mask = e->p2_mask;
++      g_input_p2_end = end;
++    }
 +  }
-+  return mask;
++  return (uint32)g_input_p1_mask | ((uint32)g_input_p2_mask << 12);
 +}
 +
  static uint32 ParseButtonMask(const char *name) {
    const char *sep = strpbrk(name, "+,|");
    if (sep) {
-@@ -3590,6 +3643,12 @@
+@@ -3590,6 +3676,12 @@
    if (script_file)
      LoadScript(script_file);
  
@@ -84,7 +120,7 @@
 +
    if (framedump_dir)
      FrameDump_Init(framedump_dir);
-@@ -4014,6 +4073,7 @@
+@@ -4014,6 +4106,7 @@
       * iteration that opened a panel consumed a script frame the guest never
       * saw, and every later scripted press landed a frame early. */
      inputs |= TickScript();

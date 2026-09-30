@@ -343,19 +343,21 @@
       "ordinary_package_pair_reachable": false,
       "leading_table_candidates": [
         "0x03FB15",
-        "0x03FB55"
+        "0x03FC15",
+        "0x03FB95"
       ],
-      "candidate_basis": "The package ranking is computed from every package block present in the committed SPC-correlation corpus. With the current three-block corpus, called Demo package 03:FB15 exactly matches Unused Song 1 while orphan 03:FB95 does not. The same analysis automatically expands when the full 0x00..0x31 correlation is promoted."
+      "exact_package_signature": "0x03FB15",
+      "candidate_basis": "Full 0x00..0x31 package-block correlation reproduces every known reachable package mapping and gives Unused Song 1 the exact same correlatable signature as Demo Race: 03:FB15. Block 0x00 is the sole untestable exception because its 22-byte payload is below the correlator's 32-byte minimum. 03:FC15 remains a sequence-sibling control because reachable record 0x3C is a near-duplicate of 0x3B; 03:FB95 remains the orphan control."
     },
     "0x3D": {
       "track": "Unused Song 2",
       "ordinary_setup_reachable": false,
       "ordinary_package_pair_reachable": false,
       "leading_table_candidates": [
-        "0x03FB55",
-        "0x03FBD5"
+        "0x03FB55"
       ],
-      "candidate_basis": "Package-block correlation currently ties 03:FB55 and 03:FBD5 on the three committed markers. Live first-race 03:FB55 transfer evidence is stronger: it reconstructs APU RAM 0xB0E0-0xBDE0, and Unused Song 2 contains that entire 3,329-byte region byte-identically at the same offsets."
+      "exact_package_signature": "0x03FB55",
+      "candidate_basis": "Full 0x00..0x31 package-block correlation gives Unused Song 2 the exact same correlatable signature as all five numbered races: 03:FB55. Block 0x00 is the sole untestable exception. Independent live first-race evidence also reconstructs a 3,329-byte FB55 APU region that is byte-identical at the same offsets in Unused Song 2."
     }
   },
   "interpretation": {
@@ -367,7 +369,6 @@
       "03:FB95 is a slot-preserving strict subset of called Celebration table 03:FAD5.",
       "Package reuse is normal in reachable content: selectors 0x3E-0x42 for all five numbered race songs share package table 03:FB55."
     ],
-    "hypothesis": "Package reuse is at least as plausible as orphan-table use for Unused Song 1. The ranking should be recomputed from the full package-block correlation before controlled reconstruction chooses between candidate tables.",
     "unused_song_2_race_package_corroboration": {
       "package": "03:FB55",
       "apu_region": {
@@ -385,7 +386,8 @@
         "Unused Song 2"
       ],
       "unused_song_2_same_offset": true
-    }
+    },
+    "package_attribution": "Full-corpus SPC signatures support 03:FB15 reuse for Unused Song 1 and 03:FB55 reuse for Unused Song 2. The correlation method first reproduces all known reachable package mappings exactly, with only block 0x00 excluded because it is shorter than the minimum match length."
   },
   "reachable_song_package_matrix": [
     {
@@ -519,5 +521,307 @@
       ],
       "count": 5
     }
+  },
+  "full_package_signature_evidence": {
+    "schema_version": 1,
+    "source_run": {
+      "workflow": "Full audio package SPC correlation",
+      "run_id": 36777071311,
+      "head_sha": "7baf6db368b80a0797d8046b1e2f357407b77418",
+      "artifact_id": 11126836085,
+      "artifact_sha256": "64944bcb5437dd0858ad71d07759b639d30734aa03de0f0635f7963710d92496"
+    },
+    "spc_archive": {
+      "size": 491821,
+      "sha256": "85a3f00cfe46cddd18caa714374ef54da6835f0d293557ce499de352b8d4fdb0"
+    },
+    "method": {
+      "package_block_ids": "0x00..0x31",
+      "min_match_bytes": 32,
+      "untestable_blocks": [
+        {
+          "id": "0x00",
+          "payload_length": 22,
+          "reason": "below correlator minimum match length"
+        }
+      ],
+      "guardrail": "A present block can in principle be retained from an earlier load, so exact package signatures are strongest when the method first reproduces known reachable selector/package mappings."
+    },
+    "track_signatures": {
+      "Title Screen": {
+        "present": [
+          "0x04",
+          "0x06",
+          "0x08",
+          "0x0A",
+          "0x0D",
+          "0x0E",
+          "0x0F",
+          "0x11",
+          "0x12",
+          "0x13",
+          "0x14",
+          "0x15",
+          "0x18",
+          "0x1A",
+          "0x1B",
+          "0x27",
+          "0x28",
+          "0x2B",
+          "0x2E",
+          "0x30"
+        ],
+        "exact_package_excluding_untestable": "0x03FBD5"
+      },
+      "Demo Race": {
+        "present": [
+          "0x02",
+          "0x06",
+          "0x0D",
+          "0x0E",
+          "0x0F",
+          "0x10",
+          "0x11",
+          "0x12",
+          "0x13",
+          "0x14",
+          "0x15",
+          "0x17",
+          "0x18",
+          "0x1F",
+          "0x22",
+          "0x27",
+          "0x29",
+          "0x2E"
+        ],
+        "exact_package_excluding_untestable": "0x03FB15"
+      },
+      "1st Race": {
+        "present": [
+          "0x06",
+          "0x08",
+          "0x0A",
+          "0x0D",
+          "0x0E",
+          "0x10",
+          "0x12",
+          "0x13",
+          "0x15",
+          "0x18",
+          "0x19",
+          "0x1A",
+          "0x1B",
+          "0x1C",
+          "0x1F",
+          "0x20",
+          "0x21",
+          "0x25",
+          "0x27",
+          "0x28",
+          "0x2A",
+          "0x2F",
+          "0x30"
+        ],
+        "exact_package_excluding_untestable": "0x03FB55"
+      },
+      "2nd Race": {
+        "present": [
+          "0x06",
+          "0x08",
+          "0x0A",
+          "0x0D",
+          "0x0E",
+          "0x10",
+          "0x12",
+          "0x13",
+          "0x15",
+          "0x18",
+          "0x19",
+          "0x1A",
+          "0x1B",
+          "0x1C",
+          "0x1F",
+          "0x20",
+          "0x21",
+          "0x25",
+          "0x27",
+          "0x28",
+          "0x2A",
+          "0x2F",
+          "0x30"
+        ],
+        "exact_package_excluding_untestable": "0x03FB55"
+      },
+      "3rd Race": {
+        "present": [
+          "0x06",
+          "0x08",
+          "0x0A",
+          "0x0D",
+          "0x0E",
+          "0x10",
+          "0x12",
+          "0x13",
+          "0x15",
+          "0x18",
+          "0x19",
+          "0x1A",
+          "0x1B",
+          "0x1C",
+          "0x1F",
+          "0x20",
+          "0x21",
+          "0x25",
+          "0x27",
+          "0x28",
+          "0x2A",
+          "0x2F",
+          "0x30"
+        ],
+        "exact_package_excluding_untestable": "0x03FB55"
+      },
+      "4th Race": {
+        "present": [
+          "0x06",
+          "0x08",
+          "0x0A",
+          "0x0D",
+          "0x0E",
+          "0x10",
+          "0x12",
+          "0x13",
+          "0x15",
+          "0x18",
+          "0x19",
+          "0x1A",
+          "0x1B",
+          "0x1C",
+          "0x1F",
+          "0x20",
+          "0x21",
+          "0x25",
+          "0x27",
+          "0x28",
+          "0x2A",
+          "0x2F",
+          "0x30"
+        ],
+        "exact_package_excluding_untestable": "0x03FB55"
+      },
+      "5th Race": {
+        "present": [
+          "0x06",
+          "0x08",
+          "0x0A",
+          "0x0D",
+          "0x0E",
+          "0x10",
+          "0x12",
+          "0x13",
+          "0x15",
+          "0x18",
+          "0x19",
+          "0x1A",
+          "0x1B",
+          "0x1C",
+          "0x1F",
+          "0x20",
+          "0x21",
+          "0x25",
+          "0x27",
+          "0x28",
+          "0x2A",
+          "0x2F",
+          "0x30"
+        ],
+        "exact_package_excluding_untestable": "0x03FB55"
+      },
+      "Celebration": {
+        "present": [
+          "0x04",
+          "0x06",
+          "0x07",
+          "0x08",
+          "0x0A",
+          "0x0D",
+          "0x0E",
+          "0x10",
+          "0x11",
+          "0x12",
+          "0x13",
+          "0x15",
+          "0x18",
+          "0x1A",
+          "0x1B",
+          "0x1C",
+          "0x1F",
+          "0x21",
+          "0x27",
+          "0x28",
+          "0x29",
+          "0x2B",
+          "0x2F",
+          "0x30"
+        ],
+        "exact_package_excluding_untestable": "0x03FAD5"
+      },
+      "Unused Song 1": {
+        "present": [
+          "0x02",
+          "0x06",
+          "0x0D",
+          "0x0E",
+          "0x0F",
+          "0x10",
+          "0x11",
+          "0x12",
+          "0x13",
+          "0x14",
+          "0x15",
+          "0x17",
+          "0x18",
+          "0x1F",
+          "0x22",
+          "0x27",
+          "0x29",
+          "0x2E"
+        ],
+        "exact_package_excluding_untestable": "0x03FB15"
+      },
+      "Unused Song 2": {
+        "present": [
+          "0x06",
+          "0x08",
+          "0x0A",
+          "0x0D",
+          "0x0E",
+          "0x10",
+          "0x12",
+          "0x13",
+          "0x15",
+          "0x18",
+          "0x19",
+          "0x1A",
+          "0x1B",
+          "0x1C",
+          "0x1F",
+          "0x20",
+          "0x21",
+          "0x25",
+          "0x27",
+          "0x28",
+          "0x2A",
+          "0x2F",
+          "0x30"
+        ],
+        "exact_package_excluding_untestable": "0x03FB55"
+      }
+    },
+    "conclusions": [
+      "Known reachable mappings are reproduced exactly after excluding only untestable block 0x00: Title->03:FBD5, Demo->03:FB15, Celebration->03:FAD5, and every numbered race->03:FB55.",
+      "Unused Song 1 has the exact same correlatable package-block signature as Demo Race and therefore supports package reuse 03:FB15.",
+      "Unused Song 2 has the exact same correlatable package-block signature as all five numbered races and therefore supports package reuse 03:FB55.",
+      "03:FB95 remains an intentional orphan/reduced package variant but is not supported as the complete package signature of either preserved unused-song SPC."
+    ]
   }
 }

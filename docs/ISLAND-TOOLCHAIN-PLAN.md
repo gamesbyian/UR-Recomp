@@ -308,7 +308,7 @@ Current P0-A implementation lives in `third_party/manifest.json`, `tools/validat
 
 ### P0-D — Larger emulator/reference dependencies
 
-- [ ] Establish the smallest reproducible Snes9x source/build closure required by `snesref`.
+- [~] Establish the smallest reproducible Snes9x source/build closure required by `snesref`. The pinned Linux libretro path now has a project-owned closure probe: it builds the exact patched revision with compiler depfiles, reduces those dependencies to repository-relative source inputs, fingerprints every retained file, and emits a materialized candidate closure artifact. Promote it to `third_party/` only after the measured closure rebuilds successfully in isolation; do not assume the upstream full tree is required.
 - [ ] Decide source-tree versus archive strategy for ordinary bsnes-libretro.
 - [ ] Preserve larger manual workbenches through exact source archives when useful.
 

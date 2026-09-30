@@ -437,6 +437,78 @@
       "git_blob_sha1": "d78962aae7ca6a63bf94113f68680e730dade3fb",
       "external_sha256": "64b1a26966490a619a6557adee79d6ee0463e534fa2488cf3b5913d55a316ffc",
       "review_status": "analyzed-reference"
+    },
+    {
+      "path": "references/imported/reverse-engineering/nitrodon/RAM addresses.txt",
+      "category": "historical-reverse-engineering",
+      "size": 7262,
+      "git_blob_sha1": "afc5316a79bedc2c1dcee3880eb87718f308a5a8",
+      "external_sha256": "28ab4d64068ec04c0a935c62b4afff6e55911e0cca49fb319fd676eb00984cef",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "references/imported/reverse-engineering/nitrodon/ROM addresses.txt",
+      "category": "historical-reverse-engineering",
+      "size": 95,
+      "git_blob_sha1": "ce541cc9cc396ca09c8ff97ede87a6a8176f05fe",
+      "external_sha256": "6fc02a65f6bb763831c4d8ae18833a1ce43dbf467b6de9118ab47d104503866a",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "references/imported/reverse-engineering/nitrodon/bank 80.txt",
+      "category": "historical-reverse-engineering",
+      "size": 453892,
+      "git_blob_sha1": "714acd07db5209831f79b5d5b5be020184fb4b97",
+      "external_sha256": "226885604478a95640770151fddce39b2de6ec8e9d1e514c0439ad8a2f54d84a",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "references/imported/reverse-engineering/nitrodon/bank 81.txt",
+      "category": "historical-reverse-engineering",
+      "size": 425721,
+      "git_blob_sha1": "968f9755824911d32455910b881b2f38ab0239d5",
+      "external_sha256": "29efc3981cf128b96e41c3a59cc4073cdf2319e7afcc84373562b89c852af3ed",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "references/imported/reverse-engineering/nitrodon/bank 82.txt",
+      "category": "historical-reverse-engineering",
+      "size": 327774,
+      "git_blob_sha1": "f8a06d20e74b5bb6968cc92ffa5a4e63ea863561",
+      "external_sha256": "f45ad8d6ee6f57f7ee20a84bc16f18260afa91560e04bc08d08e468a6842ee7e",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "references/imported/reverse-engineering/nitrodon/bank 83.txt",
+      "category": "historical-reverse-engineering",
+      "size": 446890,
+      "git_blob_sha1": "7aba0c7bad2d40fd61a8828d61d11813d97084e1",
+      "external_sha256": "0e3fd554bddaa5c56af5095d35d6d26cc0b6f129ec80c01bc7892cef17867df5",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "references/imported/reverse-engineering/nitrodon/bounce tracelog.txt",
+      "category": "historical-reverse-engineering",
+      "size": 314506,
+      "git_blob_sha1": "fa63e052d18f42955951a988c7f90aae3f96729b",
+      "external_sha256": "95406a7377c476230c74e68963ff7528e2016b81007b3760b3b1ee751fd0c759",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "references/imported/reverse-engineering/nitrodon/messages.txt",
+      "category": "historical-reverse-engineering",
+      "size": 1930,
+      "git_blob_sha1": "4e05d9e3559e3a6274ff17a691b9ba89620f0215",
+      "external_sha256": "aba7aeeb1fd01b31225f95c3bb3232d7c397d1e944c68fa0d8f719ceacde2897",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "references/imported/reverse-engineering/nitrodon/stunts.txt",
+      "category": "historical-reverse-engineering",
+      "size": 10048,
+      "git_blob_sha1": "415eccc9e1b1cc890a52d34bc5190b2c0aa7928b",
+      "external_sha256": "8b18c8c72f886837c847ea60673714b721ea430337e9f001904c87cc416455bb",
+      "review_status": "analyzed-reference"
     }
   ]
 }

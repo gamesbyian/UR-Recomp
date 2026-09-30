@@ -619,3 +619,23 @@ sources:
     rights: "Repository manifest metadata indexed only; no license file found at the pinned revision."
     relevance: "Independent filename/title manifest corroborates the ten-track Uniracers SPC corpus and both unused-song identities without redistributing audio dumps."
 
+
+  - id: nitrodon-reverse-engineering-archive
+    title: "Nitrodon Uniracers reverse-engineering workspace"
+    type: historical_reverse_engineering_archive
+    recovered: "2026-09-30"
+    source: "Directly supplied by Nitrodon to Ian Wallace via Discord"
+    original_container: "Uniracers.zip (container intentionally not retained)"
+    imported_directory: "references/imported/reverse-engineering/nitrodon/"
+    files:
+      - "RAM addresses.txt"
+      - "ROM addresses.txt"
+      - "bank 80.txt"
+      - "bank 81.txt"
+      - "bank 82.txt"
+      - "bank 83.txt"
+      - "bounce tracelog.txt"
+      - "messages.txt"
+      - "stunts.txt"
+    rights: "Historical third-party reverse-engineering material directly supplied for this research project; explicit redistribution license not established."
+    relevance: "2008-2009-era WRAM/ROM maps, annotated 65816 disassembly, stunt/boost logic, message IDs, course offsets and bounce/collision trace evidence. Use as strong historical working evidence and validate semantics locally before promotion."

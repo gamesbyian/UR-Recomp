@@ -8,12 +8,12 @@ the USJO-specific claim is already causally confirmed in the current runtime evi
 |---:|---|---|---|---:|---|---|
 | 1 | `7E:0DFD` | `zrotation` | `Player1_ZRotationState` | 2 | source-lead | Reproduce the claimed semantic transition locally before promotion. |
 | 1 | `7E:0F57` | `zprerotation` | `Player1_ZPreRotationState` | 2 | source-lead | Reproduce the claimed semantic transition locally before promotion. |
-| 3 | `7E:11CD` | `realboostmeter` | `Player1_BoostMeter` | 4 | strong-partial | Close any remaining semantic/unit ambiguity when convenient. |
 | 2 | `7E:042B` | `numzflips` | `Player1_ZFlipCount` | 3 | corroborated-unreproduced | Trigger the claimed state change and verify this field causally. |
 | 2 | `7E:042F` | `numtabletops` | `Player1_TabletopCount` | 3 | corroborated-unreproduced | Trigger the claimed state change and verify this field causally. |
 | 2 | `7E:0F61` | `numtwists` | `Player1_TwistCount` | 3 | corroborated-unreproduced | Trigger the claimed state change and verify this field causally. |
 | 2 | `7E:11F9` | `numrolls` | `Player1_RollCount` | 3 | corroborated-unreproduced | Trigger the claimed state change and verify this field causally. |
 | 2 | `7E:11FD` | `numflips` | `Player1_FlipCount` | 3 | corroborated-unreproduced | Trigger the claimed state change and verify this field causally. |
+| 3 | `7E:11CD` | `realboostmeter` | `Player1_BoostMeter` | 4 | strong-partial | Close any remaining semantic/unit ambiguity when convenient. |
 | 4 | `7E:04B7` | `curspeed` | `Player1_XSpeed` | 5 | runtime-confirmed | No additional USJO-specific validation required unless new evidence conflicts. |
 | 4 | `7E:04BB` | `yspeed` | `Player1_YSpeed` | 5 | runtime-confirmed | No additional USJO-specific validation required unless new evidence conflicts. |
 | 4 | `7E:0545` | `airflag` | `Player1_AirState` | 5 | runtime-confirmed | No additional USJO-specific validation required unless new evidence conflicts. |

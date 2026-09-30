@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare raw snesref RGB565 framebuffer checkpoints."""
+"""Compare raw snesref BGRX8888 framebuffer checkpoints."""
 from __future__ import annotations
 
 import argparse
@@ -8,15 +8,22 @@ import json
 from pathlib import Path
 
 
-def compare_frames(a: bytes, b: bytes, width: int = 256, bytes_per_pixel: int = 4) -> dict:
+def compare_frames(
+    a: bytes,
+    b: bytes,
+    *,
+    width: int = 256,
+    bytes_per_pixel: int = 4,
+) -> dict:
     if len(a) != len(b):
         raise ValueError(f"frame sizes differ: {len(a)} != {len(b)}")
-    if len(a) % 2:
-        raise ValueError("RGB565 framebuffer byte length must be even")
-    pixels = len(a) // 2
+    if bytes_per_pixel < 1 or len(a) % bytes_per_pixel:
+        raise ValueError("framebuffer byte length does not match pixel size")
+    pixels = len(a) // bytes_per_pixel
     changed = []
     for i in range(pixels):
-        if a[i*2:i*2+2] != b[i*2:i*2+2]:
+        p = i * bytes_per_pixel
+        if a[p:p + bytes_per_pixel] != b[p:p + bytes_per_pixel]:
             changed.append(i)
     if changed:
         xs = [i % width for i in changed]
@@ -37,13 +44,18 @@ def compare_frames(a: bytes, b: bytes, width: int = 256, bytes_per_pixel: int = 
 
 def compare_dirs(a_dir: Path, b_dir: Path) -> dict:
     rows = []
-    for a in sorted(a_dir.glob("*.fb.bin")):
+    for a in sorted(a_dir.glob("*.fb.bgrx")):
         name = a.name
         b = b_dir / name
         if not b.is_file():
             continue
-        row = compare_frames(a.read_bytes(), b.read_bytes())
-        row["checkpoint"] = name.removesuffix(".fb.bin")
+        row = compare_frames(
+            a.read_bytes(),
+            b.read_bytes(),
+            width=256,
+            bytes_per_pixel=4,
+        )
+        row["checkpoint"] = name.removesuffix(".fb.bgrx")
         rows.append(row)
     return {"schema_version": 1, "checkpoints": rows}
 
@@ -55,6 +67,8 @@ def main() -> int:
     ap.add_argument("--json-out", type=Path)
     args = ap.parse_args()
     report = compare_dirs(args.a_dir, args.b_dir)
+    if not report["checkpoints"]:
+        raise SystemExit("no matching *.fb.bgrx checkpoint pairs found")
     for row in report["checkpoints"]:
         print(
             f"{row['checkpoint']}: changed={row['changed_pixels']}/"

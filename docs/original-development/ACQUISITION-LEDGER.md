@@ -292,10 +292,13 @@ Need judgment: **actual state/movie files would be useful.** They would give a d
 
 ## A-019 — USA instruction manual scan
 
-Priority: P2  
-Status: direct public PDF located; repository mirror pending/attempted
+Priority: P2, acquisition complete  
+Status: acquired and committed 2026-09-29  
+Repository path: `references/imported/manuals/Uniracers-USA-manual.pdf`  
+Exact size: 6,006,270 bytes  
+SHA-256: `50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235`
 
-Need judgment: **nice to preserve, but not needed.** It is canonical player-facing terminology and mechanics documentation, but current manuals/transcriptions and runtime evidence already cover the implementation-critical questions. Acquire when trivial; never block on it.
+Need judgment: **nice to preserve, but not needed.** It is canonical player-facing terminology and mechanics documentation, but current runtime evidence covers the implementation-critical questions. Acquisition is now closed.
 
 ## A-020 — Halamantariel VGMaps course-map corpus
 
@@ -325,3 +328,16 @@ Status: some important movies recovered; additional historical links may exist
 
 Need judgment: **selectively useful.** A movie is valuable when it reaches a scene, glitch, stunt sequence or progression state absent from current deterministic fixtures. Duplicative race footage is archival tail. Acquire cheaply, classify by unique behavioral coverage, and avoid hoarding redundant movies.
 
+
+
+### 2026-09-29 automated archive probe
+
+The one-shot harvest probed the exact known URLs before retirement:
+
+- `usjo13.lua`: no Wayback CDX snapshot for the exact historical URL.
+- Halamantariel boost/mechanics page: no Wayback CDX snapshot for the exact historical URL.
+- FallThrough page: Wayback route timed out during this pass; remain open and try alternate archive/index routes opportunistically.
+- VGMaps course corpus: direct automated inventory request returned HTTP 403; do not build bypass machinery for a P2 corpus.
+- USA manual: recovered successfully and promoted to A-019.
+
+These are route-specific negative results, not claims that the artifacts no longer exist elsewhere. Continue lateral searches, mirrors, filename searches and author/archive pivots according to the P0-P3 effort tiers above.

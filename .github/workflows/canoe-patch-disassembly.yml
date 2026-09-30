@@ -2,11 +2,6 @@ name: One-shot Canoe patch disassembly
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "tools/analyze_canoe_ips.py"
-      - "references/imported/patches/uniracers_canoe.ips"
-      - ".github/workflows/canoe-patch-disassembly.yml"
 
 jobs:
   disassemble:

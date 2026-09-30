@@ -820,3 +820,27 @@ Combined with the prior `GTBITS2` alignment at `01:BA96`, the two trace attribut
 **Evidence update:** attempt-2 run 36538122757 regenerated the full trailer corpus; the durable human-readable report is `analysis/generated/course-trailer-structure.md`. Attempt-2 run 36538122823 independently confirms that the non-Dragster stream-11 runtime advances through all 21 trailer bytes to EOF−1.
 
 **Discriminating tests:** classify the trailer byte grammar and compare Europe-retail variants. The former runtime question, whether a non-Dragster course walks the entire region, is now closed positively.
+
+### R-SEED-045 — Beetle/bsnes teardown abort has a concrete double-free path
+
+**Status:** source-level root cause identified; fix deferred to a non-conflicting toolchain change  
+**Date:** 2026-09-29  
+**Area:** emulator oracle | libretro | island toolchain
+
+**Observation:** independent-reference run 36627766874 completes the full first-race fixture under the repository-owned Beetle/bsnes core, writes all expected evidence, and then exits 134 during libretro teardown. The vendored core's `retro_deinit()` manually frees `surf->pixels` / `surf->pixels16` and immediately executes `delete surf`. `MDFN_Surface::~MDFN_Surface()` independently frees the same pixel pointer. Therefore the normal teardown path contains a deterministic double free.
+
+**Interpretation:** the post-fixture abort is an adapter/core cleanup defect, not evidence of failed emulation or incomplete fixture execution. The smallest correction is to let `MDFN_Surface` own and free its allocation exactly once, preferably as a narrow project-owned patch rather than silently editing the pristine vendored source.
+
+**Concurrency note:** the active OAM/2P branch currently owns `tools/toolchain.json`, so registering the patch there is intentionally deferred until that work lands or moves clear. Preserve the current exit-134 allowance only until the ownership-safe patch can be applied and validated.
+
+### R-SEED-046 — Beetle emulates cartridge SRAM but does not expose it through libretro
+
+**Status:** source-level interface gap identified; runtime probe pending  
+**Date:** 2026-09-29  
+**Area:** emulator oracle | SRAM | libretro | LoROM
+
+**Observation:** the vendored Beetle/bsnes cartridge loader allocates `SNES::memory::cartram` from the ROM header's RAM size, maps it into the cartridge bus, and leaves it writable. However, the core's `retro_get_memory_data()` and `retro_get_memory_size()` implementations recognize only `RETRO_MEMORY_SYSTEM_RAM`; every other libretro memory type returns null / zero. This exactly explains the existing independent-reference log reporting `wram=131072 ... sram=0` despite Uniracers declaring 8 KiB SRAM.
+
+**Interpretation:** Beetle's current `sram=0` is a frontend API omission, not evidence that the emulated cartridge lacks SRAM or that LoROM SRAM mapping itself is absent. A narrow future patch should expose `SNES::memory::cartram.data()` and `SNES::memory::cartram.size()` for `RETRO_MEMORY_SAVE_RAM`, then rerun the exact preload/dump roundtrip fixture before promotion.
+
+**Concurrency note:** register that patch only after the active OAM/2P branch clears `tools/toolchain.json`; until then the SRAM probe should preserve the zero-byte exposure as evidence rather than conceal it.

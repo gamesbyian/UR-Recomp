@@ -1,0 +1,6 @@
+# SRAM mapping probe.
+# Dump immediately after the first scripted frame so preload bytes can be
+# checked before navigating menus or intentionally changing save data.
+wait 1
+dump sram-roundtrip
+quit

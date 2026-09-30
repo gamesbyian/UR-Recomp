@@ -1,6 +1,6 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -529,6 +529,92 @@
+@@ -597,6 +597,107 @@
  static int g_script_force_poke_count;
  static int g_script_force_poke_cap;
  
@@ -108,7 +108,7 @@
  static uint32 ParseButtonMask(const char *name) {
    const char *sep = strpbrk(name, "+,|");
    if (sep) {
-@@ -3590,6 +3676,12 @@
+@@ -3428,5 +3529,11 @@
    if (script_file)
      LoadScript(script_file);
  
@@ -120,7 +120,7 @@
 +
    if (framedump_dir)
      FrameDump_Init(framedump_dir);
-@@ -4014,6 +4106,7 @@
+@@ -3814,6 +3921,7 @@
       * iteration that opened a panel consumed a script frame the guest never
       * saw, and every later scripted press landed a frame early. */
      inputs |= TickScript();

@@ -41,6 +41,36 @@ def build_report(rom: bytes, first: int = 0x32, last: int = 0x42) -> dict:
         })
     song_rows = [row for row in rows if 0x38 <= row["id"] <= 0x42]
     song_headers = sorted({(row["first_word_le"], row["second_word_le"]) for row in song_rows})
+    song_payloads = {}
+    for block in pool["blocks"][0x38:0x43]:
+        off = int(block["file_offset"], 16)
+        total = block["total_length"]
+        song_payloads[block["id_hex"]] = rom[off + 2:off + total]
+    similarities = []
+    song_ids = sorted(song_payloads)
+    for i, left_id in enumerate(song_ids):
+        left = song_payloads[left_id]
+        for right_id in song_ids[i + 1:]:
+            right = song_payloads[right_id]
+            common = min(len(left), len(right))
+            prefix = 0
+            while prefix < common and left[prefix] == right[prefix]:
+                prefix += 1
+            suffix = 0
+            while suffix < common - prefix and left[-1 - suffix] == right[-1 - suffix]:
+                suffix += 1
+            differing_overlap = sum(a != b for a, b in zip(left, right))
+            similarities.append({
+                "left": left_id,
+                "right": right_id,
+                "left_length": len(left),
+                "right_length": len(right),
+                "common_prefix_bytes": prefix,
+                "common_suffix_bytes": suffix,
+                "differing_bytes_in_overlap": differing_overlap,
+                "same_length": len(left) == len(right),
+            })
+    similarities.sort(key=lambda row: (-row["common_prefix_bytes"], row["differing_bytes_in_overlap"], row["left"], row["right"]))
     return {
         "schema_version": 2,
         "pool_start_cpu": pool["pool_start_cpu"],
@@ -55,6 +85,7 @@ def build_report(rom: bytes, first: int = 0x32, last: int = 0x42) -> dict:
             "second_word_le": song_headers[0][1] if len(song_headers) == 1 else None,
             "second_word_hex": f"0x{song_headers[0][1]:04X}" if len(song_headers) == 1 else None,
         },
+        "song_family_pair_similarities": similarities,
         "records": rows,
     }
 

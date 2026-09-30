@@ -3,6 +3,8 @@ name: SNESRecomp C2 baseline network audit
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     paths:
       - ".github/workflows/snesrecomp-c2-network-audit.yml"
       - "tools/audit_network_trace.py"

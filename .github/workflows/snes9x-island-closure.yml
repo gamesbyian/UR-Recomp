@@ -80,6 +80,12 @@ jobs:
               target.parent.mkdir(parents=True, exist_ok=True)
               shutil.copy2(source / rel, target)
           PY
+          rm -f "$out"/**/*.o "$out"/**/*.d 2>/dev/null || true
+          make -C "$out/libretro" -j2
+          test -s "$out/libretro/snes9x_libretro.so"
+          find "$out" -name '*.o' -delete
+          find "$out" -name '*.d' -delete
+          rm -f "$out/libretro/snes9x_libretro.so"
           tar -C "$RUNNER_TEMP" -czf "$RUNNER_TEMP/snes9x-island.tar.gz" snes9x-island
 
       - uses: actions/upload-artifact@v4

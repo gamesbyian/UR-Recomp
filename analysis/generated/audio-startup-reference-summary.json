@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "run_id": 36659692449,
+  "engines": [
+    {
+      "schema_version": 1,
+      "engine": "snes9x",
+      "wav_sha256": "a2248dbc4d8be84a27875a6dc220fbb27065a2dca37a001cd491b8e452fc22b6",
+      "checkpoints": {
+        "main-menu-ready": {
+          "guest_frame": 500,
+          "nonzero_fraction": 0.9995779667375265,
+          "pcm_frames": 31988,
+          "peak": 11644,
+          "radius_guest_frames": 30,
+          "rms": 2409.893367,
+          "window_sha256": "ebaad11084121dbb59d1af1b36238e8950c6e9081ce09e1bd9d36a1f4050c940"
+        },
+        "now-playing-ready": {
+          "guest_frame": 821,
+          "nonzero_fraction": 0.9914030261348006,
+          "pcm_frames": 31988,
+          "peak": 18543,
+          "radius_guest_frames": 30,
+          "rms": 4007.577739,
+          "window_sha256": "579e6e672cd2785e132346c20dc4cc1a3f12af250f7c687240ad06ef25586d60"
+        },
+        "race-entered": {
+          "guest_frame": 1035,
+          "nonzero_fraction": 0.9998429549594824,
+          "pcm_frames": 15919,
+          "peak": 30691,
+          "radius_guest_frames": 30,
+          "rms": 6919.587074,
+          "window_sha256": "60f0479bd72d2ba47542d50c64d93a3fe356d8c7a40e5323eca8f717db145649"
+        }
+      }
+    },
+    {
+      "schema_version": 1,
+      "engine": "beetle-bsnes-libretro",
+      "wav_sha256": "2310cfad32eae8fa204f36aa6dea2914b42c4941df2eeb690e8a08705052a748",
+      "checkpoints": {
+        "main-menu-ready": {
+          "guest_frame": 500,
+          "nonzero_fraction": 0.9997160768636715,
+          "pcm_frames": 44026,
+          "peak": 11154,
+          "radius_guest_frames": 30,
+          "rms": 2193.500763,
+          "window_sha256": "34a92e473fc3c79e51f22508db58ab1a3608722bd3cd5d30f099c93b0c60845e"
+        },
+        "now-playing-ready": {
+          "guest_frame": 824,
+          "nonzero_fraction": 0.9966951346931359,
+          "pcm_frames": 44026,
+          "peak": 18525,
+          "radius_guest_frames": 30,
+          "rms": 3753.570794,
+          "window_sha256": "456c10bd4c3c37bbfb0333374a5f32ee6b39c8008645a9ea71c9553eb69e740d"
+        },
+        "race-entered": {
+          "guest_frame": 1038,
+          "nonzero_fraction": 0.9999292552940622,
+          "pcm_frames": 21203,
+          "peak": 28832,
+          "radius_guest_frames": 30,
+          "rms": 6381.525529,
+          "window_sha256": "2de4d4b19d6f80a657b29c5683ab22dad0b203128de61ce87550ffe9e9f14b3d"
+        }
+      }
+    }
+  ]
+}

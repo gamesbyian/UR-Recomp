@@ -208,9 +208,9 @@
       "kind": "ram",
       "address": "7E:11CD",
       "name": "Player1_BoostMeter",
-      "width": "historical width conflict",
-      "confidence": 3,
-      "notes": "Historical TAS watch list labels a 16-bit unsigned booster meter; USJO v8 reads only the low byte as `realboostmeter` and uses zero/nonzero gating. Verify width/units before stronger promotion."
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Historical TAS watch list labels a 16-bit unsigned booster meter. Static writer scan run 36769525945 finds coherent bank-02 word operations, including `REP #$20; LDA #$0000; STA $11CD` at `02:9BA6` plus word-style arithmetic/store sequences at `02:A768` and nearby routines. USJO v8 intentionally reads only the low byte as `realboostmeter` and uses it solely as a zero/nonzero gate; exact game-facing boost units still need dynamic validation."
     },
     {
       "kind": "ram",

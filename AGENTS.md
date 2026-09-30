@@ -26,6 +26,18 @@ Compact router for coding and research agents. Load the smallest current authori
 
 `docs/README.md` inventories document ownership. It is not a second agent guide.
 
+## Fresh-agent priority rule
+
+If you have no project history, do **not** reconstruct priority from chronology, old PR references, completed phase headings, or the amount of documentation devoted to a topic. Use this order:
+
+1. read the top of `docs/WORK-QUEUE.md`;
+2. identify the first unresolved gate on the shipping critical path;
+3. use current generated evidence and specialist docs to attack that gate;
+4. prefer work that removes uncertainty for multiple downstream features over locally interesting archaeology.
+
+At present the critical path is: first native/reference divergence → semantic executable/state map → exact stock-race and multiplayer fidelity → course/rendering model → stock-art Widescreen → HD Presentation → modern product layer/editor. Acquisition, unused-content research, translation archaeology, and toolchain cleanup are supporting lanes unless they directly unblock that path.
+
+
 ## Working rules
 
 1. Read the current authority and relevant implementation before editing. Historical notes, imported references, generated reports, and old workflow logs do not override current project state.

@@ -1,0 +1,63 @@
+name: One-shot acquire SNESRecomp source archive
+
+on:
+  push:
+    paths:
+      - ".github/workflows/vendor-snesrecomp-archive-one-shot.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  acquire:
+    if: github.ref == 'refs/heads/chatgpt/snesrecomp-c1-archive-2026-09-29'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/snesrecomp-c1-archive-2026-09-29
+          fetch-depth: 0
+
+      - name: Checkout exact framework pin without nested submodules
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none --no-checkout https://github.com/RetroPortingToolKit/snesrecomp.git "$RUNNER_TEMP/snesrecomp-upstream"
+          git -C "$RUNNER_TEMP/snesrecomp-upstream" checkout cd5875cbdaf19f5e324272b1f8051d671fce9215
+          test "$(git -C "$RUNNER_TEMP/snesrecomp-upstream" rev-parse HEAD)" = cd5875cbdaf19f5e324272b1f8051d671fce9215
+          test "$(git -C "$RUNNER_TEMP/snesrecomp-upstream" ls-tree HEAD lib/recomp-net | awk '{print $2}')" = commit
+          test "$(git -C "$RUNNER_TEMP/snesrecomp-upstream" ls-tree HEAD lib/retcomm-rbengine | awk '{print $2}')" = commit
+
+      - name: Create deterministic source archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p third_party/archives
+          out=third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz
+          git -C "$RUNNER_TEMP/snesrecomp-upstream" archive --format=tar cd5875cbdaf19f5e324272b1f8051d671fce9215 | gzip -n -9 > "$out"
+          sha256sum "$out" | tee "$RUNNER_TEMP/snesrecomp-archive.sha256"
+          tar -tzf "$out" > "$RUNNER_TEMP/snesrecomp-archive-files.txt"
+          test "$(tar -xOf "$out" LICENSE | head -n1)" = "PolyForm Noncommercial License 1.0.0"
+          ! grep -q '^lib/recomp-net/' "$RUNNER_TEMP/snesrecomp-archive-files.txt"
+          ! grep -q '^lib/retcomm-rbengine/' "$RUNNER_TEMP/snesrecomp-archive-files.txt"
+          printf 'entries=%s bytes=%s\n'             "$(wc -l < "$RUNNER_TEMP/snesrecomp-archive-files.txt")"             "$(stat -c%s "$out")"
+
+      - name: Commit exact source archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz
+          git diff --cached --quiet && { echo "Archive already current"; exit 0; }
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "vendor: add pinned SNESRecomp source archive"
+          git push origin HEAD:chatgpt/snesrecomp-c1-archive-2026-09-29
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: snesrecomp-c1-archive-metadata
+          path: |
+            ${{ runner.temp }}/snesrecomp-archive.sha256
+            ${{ runner.temp }}/snesrecomp-archive-files.txt
+          retention-days: 7

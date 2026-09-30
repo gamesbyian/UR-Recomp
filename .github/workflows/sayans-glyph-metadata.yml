@@ -1,0 +1,30 @@
+name: One-shot Sayans glyph metadata table
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/sayans-glyph-metadata.yml"
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Inspect character metadata at 00:C6F8
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          rom=Path("reference/roms/retail/Uniracers_USA.sfc").read_bytes()
+          off=0x46F8
+          table=rom[off:off+256]
+          print("table_sha256", __import__("hashlib").sha256(table).hexdigest())
+          print("bit7 set printable:")
+          print("".join(chr(i) for i in range(32,127) if table[i] & 0x80))
+          print("bit7 clear printable:")
+          print("".join(chr(i) for i in range(32,127) if not (table[i] & 0x80)))
+          for i in range(32,127):
+              print(f"{i:02X} {chr(i)!r} meta={table[i]:02X} bit7={(table[i]>>7)&1}")
+          PY

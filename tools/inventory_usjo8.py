@@ -9,7 +9,6 @@ this address / uses this rule" and "the game semantics have been reproduced loca
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import re
 from pathlib import Path
@@ -109,7 +108,6 @@ def build_inventory(source: Path) -> dict:
     return {
         "schema_version": 1,
         "source": str(source).replace("\\", "/"),
-        "source_sha256": hashlib.sha256(raw).hexdigest(),
         "source_line_count": len(lines),
         "memory_reads": memory_reads,
         "memory_reads_by_address": unique_reads,
@@ -157,7 +155,6 @@ addresses, timing assumptions and scoring rules below describe what the 2008 bot
 reads or assumes. Each item still needs canonical-ROM/runtime reproduction before it
 can become an authoritative symbol or gameplay rule.
 
-Source SHA-256: \`{data['source_sha256']}\`  
 Source lines: {data['source_line_count']}
 
 ## RAM reads

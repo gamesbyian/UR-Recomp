@@ -140,6 +140,7 @@ jobs:
             "$EXE" "$CORE" "$ROM" >/dev/null 2>&1
 
           python3 tools/summarize_wram_trace_checkpoints.py "$TRACE" \
+            --checkpoint 440 --checkpoint 441 --checkpoint 442 --checkpoint 443 --checkpoint 444 --checkpoint 445 --checkpoint 446 --checkpoint 447 --checkpoint 448 --checkpoint 449 --checkpoint 450 --checkpoint 451 --checkpoint 452 --checkpoint 453 --checkpoint 454 --checkpoint 455 --checkpoint 456 --checkpoint 457 --checkpoint 458 --checkpoint 459 --checkpoint 460 \
             --checkpoint 794 --checkpoint 800 --checkpoint 1000 --checkpoint 1200 \
             --checkpoint 1400 --checkpoint 1600 --checkpoint 1800 \
             --checkpoint 2000 --checkpoint 2200 --checkpoint 2400 \
@@ -149,35 +150,6 @@ jobs:
             --tsv-out "$RUNNER_TEMP/dessyreqt-first-race-state.tsv" \
             --json-out "$RUNNER_TEMP/dessyreqt-first-race-state.json" \
             | tee "$RUNNER_TEMP/dessyreqt-first-race-summary.txt"
-
-      - name: Probe historical startup-state sensitivity
-        shell: bash
-        run: |
-          set -euo pipefail
-          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
-          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/snes9x_libretro.so"
-          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          INPUT="$RUNNER_TEMP/dessyreqt-first-5000.input"
-          TRACE="$RUNNER_TEMP/dessyreqt-zero-wram-800-trace.jsonl"
-          STATE="$RUNNER_TEMP/dessyreqt-zero-wram-800-state.tsv"
-          rm -f "$TRACE"
-          SNESREF_FAST=1 \
-          SNESREF_FRAMES=800 \
-          SNESREF_WRAM_FILL=0 \
-          SNESREF_INPUT_FILE="$INPUT" \
-          SNESREF_SRAM_IN="$RUNNER_TEMP/dessyreqt-4250.srm" \
-          SNESREF_TRACE_FILE="$TRACE" \
-            "$EXE" "$CORE" "$ROM"
-
-          python3 tools/trace_state.py "$TRACE" \
-            --checkpoint 440 --checkpoint 794 --checkpoint 800 \
-            --tsv-out "$STATE" \
-            --json-out "$RUNNER_TEMP/dessyreqt-zero-wram-800-state.json"
-
-          echo "== default historical startup =="
-          grep -E '^(440|794|800)[[:space:]]' "$RUNNER_TEMP/dessyreqt-first-race-state.tsv" || true
-          echo "== zero-filled startup =="
-          cat "$STATE"
 
       - name: Compose and validate 2014 reference result
         shell: bash
@@ -245,7 +217,8 @@ jobs:
           from pathlib import Path
           import sys
           checkpoints = [
-              440, 794, 800, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400,
+              *range(440, 461),
+              794, 800, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400,
               2600, 2800, 2874, 2894, 3000, 3400, 3800, 4200, 4600, 5000,
           ]
           lines = ["# Exact historical replay checkpoints; input comes from SNESRECOMP_INPUT_FILE."]
@@ -355,9 +328,6 @@ jobs:
             ${{ runner.temp }}/dessyreqt-first-race-state.tsv
             ${{ runner.temp }}/dessyreqt-first-race-state.json
             ${{ runner.temp }}/dessyreqt-first-race-summary.txt
-            ${{ runner.temp }}/dessyreqt-zero-wram-800-trace.jsonl
-            ${{ runner.temp }}/dessyreqt-zero-wram-800-state.tsv
-            ${{ runner.temp }}/dessyreqt-zero-wram-800-state.json
             analysis/generated/historical-2014-smv-metadata.json
             analysis/generated/historical-2014-first-race-reference.json
             analysis/generated/historical-2014-first-race-replay.json

@@ -6,7 +6,11 @@ on:
     paths:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "rom_identity.txt"
-      - "snesrecomp"
+      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/cargo/snesrecomp-analyzer/**"
+      - "third_party/manifest.json"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
       - ".github/workflows/native-build-smoke.yml"
       - "tests/input/reach-first-race.script"
       - "tests/input/ui-options-route.script"
@@ -43,15 +47,13 @@ jobs:
     steps:
       - name: Check out project
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - name: Install desktop build dependencies
         shell: bash
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            cmake ninja-build pkg-config xvfb \
+            cmake ninja-build pkg-config xvfb libsdl2-dev \
             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
@@ -59,26 +61,48 @@ jobs:
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
+      - name: Stage repository-owned SNESRecomp framework
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
+          test -f .tools/src/snesrecomp/runner/runner.cmake
+          test ! -e .tools/src/snesrecomp/lib/recomp-net/CMakeLists.txt
+          test ! -e .tools/src/snesrecomp/lib/retcomm-rbengine/CMakeLists.txt
+
       - name: Scaffold, generate and build
         shell: bash
         run: |
           set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
           TMP="$RUNNER_TEMP/ur-recomp-build"
           mkdir -p "$TMP"
-          sh snesrecomp/tools/new_project/setup_project.sh \
-            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            --dir "$TMP" \
-            --name "Uniracers" \
-            --players 2 \
-            --yes \
-            --no-ci \
-            --no-fetch-boxart \
-            --no-recomp-ui \
-            --no-netplay \
-            --no-github \
-            --generate \
-            --build \
-            --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --dir "$TMP" \
+              --name "Uniracers" \
+              --players 2 \
+              --yes \
+              --no-ci \
+              --no-fetch-boxart \
+              --no-recomp-ui \
+              --no-netplay \
+              --no-github \
+              --no-submodules \
+              --generate \
+              --no-build
+
+          ROOT="$TMP/UniracersSNESRecomp"
+          cmake -S "$ROOT" -B "$ROOT/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF
+          cmake --build "$ROOT/build" -j2
+          test -x "$ROOT/build/UniracersSNESRecomp"
 
       - name: Locate game executable
         id: exe

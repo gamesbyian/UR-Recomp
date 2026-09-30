@@ -291,6 +291,8 @@ These should become symbol and validation anchors rather than remaining referenc
 
 ### Split-screen/OAM behavior
 
+**Local reproduction status (2026-09-29):** the deterministic VS route now reaches active split-screen gameplay and captures HDMA writes `$2104 <- $A5` at scanline 0 and `$2104 <- $5A` at scanline 112 across repeated stable race checkpoints. Patched Snes9x supplies the detailed PPU/OAM journal; the frozen neutral controller stream is also exercised against an independent Beetle/bsnes reference path. Treat these events as the concrete authentic-mode regression target while continuing to reconstruct their effective OAM-address/high-table consequences.
+
 The project has unusually rich independent evidence for Uniracers' raster sprite trick:
 
 - developer testimony describes C64-style sprite ripping and scanline-state changes;

@@ -1,4 +1,4 @@
-name: One-shot title transition cross-core survey
+name: Title transition cross-core regression
 
 on:
   workflow_dispatch:
@@ -6,6 +6,7 @@ on:
     paths:
       - "tests/input/title-transition-recon.script"
       - "tools/summarize_title_transition.py"
+      - "analysis/generated/title-transition-reference-summary.json"
       - ".github/workflows/title-transition-cross-core.yml"
 
 jobs:
@@ -59,6 +60,26 @@ jobs:
           python3 tools/summarize_title_transition.py "$RUNNER_TEMP/beetle-dumps" --json-out beetle-title-transition.json
           cat snes9x-title-transition.json
           cat beetle-title-transition.json
+          python3 - <<'PY'
+          import json
+          expected = {
+              "boot-060": (60, 0x00),
+              "boot-120": (120, 0x00),
+              "boot-180": (180, 0x00),
+              "boot-240": (240, 0x00),
+              "boot-300": (300, 0x84),
+              "boot-360": (360, 0x84),
+              "boot-420": (420, 0x84),
+              "main-menu-first": (440, 0xD7),
+              "main-menu-settled": (500, 0xD7),
+          }
+          for engine in ("snes9x", "beetle"):
+              r=json.load(open(f"{engine}-title-transition.json"))
+              got={x["tag"]:(x["frame"],x["menu"]) for x in r["checkpoints"]}
+              for tag,value in expected.items():
+                  assert got.get(tag)==value,(engine,tag,got.get(tag),value)
+              print(engine, "title/front-end semantic timeline confirmed")
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: title-transition-cross-core

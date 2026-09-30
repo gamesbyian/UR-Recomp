@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compose a compact canonical result for the historical 2008 Dragster replay."""
+"""Compose a compact canonical result for an exact historical replay."""
 
 from __future__ import annotations
 
@@ -75,6 +75,11 @@ def main() -> int:
                 }
             )
 
+    first_race = trace.get("first_in_race_frame")
+    first_results = trace.get("first_race_results_frame")
+    native_race_state = native.get(first_race) if first_race is not None else None
+    native_results_state = native.get(first_results) if first_results is not None else None
+
     result = {
         "source_movie": smv.get("path"),
         "sample_count": smv.get("sample_count"),
@@ -83,14 +88,20 @@ def main() -> int:
         "embedded_sram_sha256": smv.get("embedded_sram_sha256"),
         "emitted_sram_size": smv.get("emitted_sram_size"),
         "emitted_sram_sha256": smv.get("emitted_sram_sha256"),
-        "first_in_race_frame": trace.get("first_in_race_frame"),
-        "first_race_results_frame": trace.get("first_race_results_frame"),
+        "first_in_race_frame": first_race,
+        "first_race_results_frame": first_results,
         "shared_sampled_frames": shared,
         "sampled_mismatch_count": len(mismatches),
         "first_sampled_mismatch_frame": mismatches[0]["frame"] if mismatches else None,
         "sampled_mismatches": mismatches,
-        "reference_reached_race": trace.get("first_in_race_frame") is not None,
-        "reference_reached_results": trace.get("first_race_results_frame") is not None,
+        "reference_reached_race": first_race is not None,
+        "reference_reached_results": first_results is not None,
+        "native_in_race_at_reference_entry": (
+            native_race_state is not None and native_race_state[1] == 1
+        ),
+        "native_results_at_reference_results": (
+            native_results_state is not None and native_results_state[0] == 0x99
+        ),
         "sampled_native_reference_match": not mismatches,
     }
 

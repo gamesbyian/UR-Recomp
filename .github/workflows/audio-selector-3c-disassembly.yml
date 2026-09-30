@@ -2,9 +2,6 @@ name: Disassemble audio selector 0x3C caller context
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - ".github/workflows/audio-selector-3c-disassembly.yml"
 
 jobs:
   disassemble:

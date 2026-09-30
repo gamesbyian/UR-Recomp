@@ -2,10 +2,6 @@ name: One-shot four-ROM lineage deltas
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "tools/analyze_rom_lineage_deltas.py"
-      - ".github/workflows/four-rom-lineage-deltas.yml"
 
 jobs:
   analyze:

@@ -2,12 +2,6 @@ name: SNESRecomp analyzer reconnaissance
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "rom_identity.txt"
-      - "snesrecomp"
-      - ".github/workflows/analyzer-recon.yml"
 
 jobs:
   analyze:

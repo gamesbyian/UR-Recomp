@@ -169,6 +169,14 @@
       "summary": "Recovered the full 676-byte P1/P2 persistent-state to shared-current-player marshal. USA/beta are identical; PAL prototype and Europe stay at -32 with all 234 aligned opcodes preserved. Paired pitch-angle and angular-velocity workspace mappings are now explicit.",
       "priority": "low",
       "next_evidence": "Expand individual shared-workspace fields only for a concrete physics/collision implementation need. Comparative structure work should move to a fourteenth independent subsystem."
+    },
+    {
+      "id": "resolved-collision-resolution-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:8FB8..99D5 and homologs",
+      "summary": "Recovered the 2,590-byte per-racer collision/contact resolver plus geometry helper. Live paths preserve exact regional opcode architecture; four USA-dormant alternatives are explicitly bounded. Europe adds six NOPs after the 9302 branch homolog and an 11-byte conditional gate before the 9800 homolog.",
+      "priority": "low",
+      "next_evidence": "Interpret the Europe-only gate only for a concrete regional collision/fidelity need. Comparative structure work should move to a fifteenth independent subsystem."
     }
   ]
 }

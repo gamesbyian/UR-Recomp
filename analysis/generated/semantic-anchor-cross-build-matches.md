@@ -14,8 +14,8 @@ These are mechanically projected USA LE16 semantic operands from each top struct
 
 | Delta | Evidence count |
 |---:|---:|
+| `+4` (`0x0004`) | 114 |
 | `+10` (`0x000A`) | 106 |
-| `+4` (`0x0004`) | 93 |
 | `+0` (`0x0000`) | 55 |
 | `+6` (`0x0006`) | 38 |
 | `+17` (`0x0011`) | 1 |
@@ -24,13 +24,13 @@ These are mechanically projected USA LE16 semantic operands from each top struct
 
 | Delta | Evidence count |
 |---:|---:|
-| `+0` (`0x0000`) | 331 |
+| `+0` (`0x0000`) | 352 |
 
 ### pal-prototype-1994-11-29
 
 | Delta | Evidence count |
 |---:|---:|
-| `+0` (`0x0000`) | 196 |
+| `+0` (`0x0000`) | 217 |
 | `+4` (`0x0004`) | 115 |
 | `-2` (`0xFFFE`) | 1 |
 
@@ -475,6 +475,72 @@ Top candidate: `81:C590`; byte similarity 0.969; semantic-reference recall 1.000
 | `+0x3E` | 1 | `db` | `df` |
 | `+0x46` | 1 | `db` | `df` |
 | `+0x53` | 2 | `09c6` | `e6c5` |
+
+
+## Camera_StateQuantizeP1
+
+USA anchor: `81:AF3A` / file `0x00AF3A`; window `0x89`.
+
+Bounded Nitrodon camera-state quantization subregion through RTS at 81:AFC2; intentionally spans the suspected +4→+6 WRAM lineage boundary.
+
+| Build | Rank | Candidate | Same offset? | Score | Byte similarity | Semantic-ref recall | N-gram votes |
+|---|---:|---|:---:|---:|---:|---:|---:|
+| europe-retail | 1 | `81:AF2B` (`0x00AF2B`) | no | 0.690 | 0.847 | 0.333 | 9 |
+| europe-retail | 2 | `81:B0EB` (`0x00B0EB`) | no | 0.631 | 0.752 | 0.444 | 6 |
+| europe-retail | 3 | `81:B1F0` (`0x00B1F0`) | no | 0.515 | 0.752 | 0.111 | 6 |
+| europe-retail | 4 | `81:AEAC` (`0x00AEAC`) | no | 0.302 | 0.460 | 0.111 | 2 |
+| europe-retail | 5 | `81:B06C` (`0x00B06C`) | no | 0.302 | 0.460 | 0.111 | 2 |
+| legacy-beta | 1 | `81:AF3A` (`0x00AF3A`) | yes | 1.000 | 1.000 | 1.000 | 43 |
+| legacy-beta | 2 | `81:B0FA` (`0x00B0FA`) | no | 0.829 | 0.891 | 0.778 | 32 |
+| legacy-beta | 3 | `81:B1FF` (`0x00B1FF`) | no | 0.436 | 0.752 | 0.111 | 6 |
+| legacy-beta | 4 | `81:AF4B` (`0x00AF4B`) | no | 0.369 | 0.109 | 0.889 | 1 |
+| legacy-beta | 5 | `81:B10B` (`0x00B10B`) | no | 0.288 | 0.102 | 0.667 | 1 |
+| pal-prototype-1994-11-29 | 1 | `81:AF1A` (`0x00AF1A`) | no | 1.000 | 1.000 | 1.000 | 43 |
+| pal-prototype-1994-11-29 | 2 | `81:B0DA` (`0x00B0DA`) | no | 0.829 | 0.891 | 0.778 | 32 |
+| pal-prototype-1994-11-29 | 3 | `81:B1DF` (`0x00B1DF`) | no | 0.436 | 0.752 | 0.111 | 6 |
+| pal-prototype-1994-11-29 | 4 | `81:AF3A` (`0x00AF3A`) | yes | 0.397 | 0.095 | 1.000 | 0 |
+| pal-prototype-1994-11-29 | 5 | `81:AF2B` (`0x00AF2B`) | no | 0.369 | 0.109 | 0.889 | 1 |
+### europe-retail top-candidate deltas
+
+Top candidate: `81:AF2B`; byte similarity 0.847; semantic-reference recall 0.333.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+| `+0x3` | 1 | `f5` | `f9` |
+| `+0x1D` | 1 | `21` | `25` |
+| `+0x22` | 1 | `21` | `25` |
+| `+0x27` | 1 | `1d` | `21` |
+| `+0x2C` | 1 | `1d` | `21` |
+| `+0x2F` | 1 | `05` | `09` |
+| `+0x37` | 1 | `05` | `09` |
+| `+0x3D` | 1 | `09` | `0d` |
+| `+0x40` | 1 | `05` | `09` |
+| `+0x4B` | 1 | `2f` | `33` |
+| `+0x52` | 1 | `2f` | `33` |
+| `+0x55` | 1 | `2b` | `2f` |
+| `+0x5D` | 1 | `2b` | `2f` |
+| `+0x63` | 1 | `09` | `0d` |
+| `+0x69` | 1 | `2f` | `33` |
+| `+0x71` | 1 | `05` | `09` |
+| `+0x74` | 1 | `09` | `0d` |
+| `+0x7A` | 1 | `2b` | `2f` |
+| `+0x7D` | 1 | `2f` | `33` |
+| `+0x83` | 1 | `0f` | `13` |
+| `+0x86` | 1 | `07` | `0b` |
+
+### legacy-beta top-candidate deltas
+
+Top candidate: `81:AF3A`; byte similarity 1.000; semantic-reference recall 1.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+
+### pal-prototype-1994-11-29 top-candidate deltas
+
+Top candidate: `81:AF1A`; byte similarity 1.000; semantic-reference recall 1.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
 
 
 ## Camera_MapGeometrySetup

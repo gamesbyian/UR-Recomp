@@ -87,6 +87,106 @@
     {
       "anchor_count": 6,
       "anchors": [
+        "Camera_StateQuantizeP1",
+        "Camera_UpdatePersistentState",
+        "Input_DecodePlayer1Buttons",
+        "Race_BuildRacerOAMState",
+        "Race_UpdateRacersFrame",
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0311",
+        "0313",
+        "0315",
+        "0319",
+        "031D",
+        "0321",
+        "0325",
+        "0329",
+        "032D",
+        "0331",
+        "0335",
+        "0339",
+        "033F",
+        "0415",
+        "0417",
+        "0419",
+        "041B",
+        "041D",
+        "041F",
+        "0421",
+        "0423",
+        "0425",
+        "0427",
+        "042F",
+        "0433",
+        "04BB",
+        "04BF",
+        "04CB",
+        "04F9",
+        "04FB",
+        "04FD",
+        "04FF",
+        "0509",
+        "050B",
+        "050D",
+        "0513",
+        "0521",
+        "0525",
+        "052F",
+        "0533"
+      ],
+      "delta": 4,
+      "evidence_count": 114,
+      "field_count": 40,
+      "observation_count": 45,
+      "usa_words": [
+        "030D",
+        "030F",
+        "0311",
+        "0315",
+        "0319",
+        "031D",
+        "0321",
+        "0325",
+        "0329",
+        "032D",
+        "0331",
+        "0335",
+        "033B",
+        "0411",
+        "0413",
+        "0415",
+        "0417",
+        "0419",
+        "041B",
+        "041D",
+        "041F",
+        "0421",
+        "0423",
+        "042B",
+        "042F",
+        "04B7",
+        "04BB",
+        "04C7",
+        "04F5",
+        "04F7",
+        "04F9",
+        "04FB",
+        "0505",
+        "0507",
+        "0509",
+        "050F",
+        "051D",
+        "0521",
+        "052B",
+        "052F"
+      ]
+    },
+    {
+      "anchor_count": 6,
+      "anchors": [
         "Camera_UpdatePersistentState",
         "HUD_QueueMessage",
         "Player_ApplyVerticalAcceleration",
@@ -130,89 +230,6 @@
         "0D0D",
         "0D49",
         "0DDB"
-      ]
-    },
-    {
-      "anchor_count": 5,
-      "anchors": [
-        "Camera_UpdatePersistentState",
-        "Input_DecodePlayer1Buttons",
-        "Race_BuildRacerOAMState",
-        "Race_UpdateRacersFrame",
-        "Stunt_FinalizeAndScoreAirTricks"
-      ],
-      "build": "europe-retail",
-      "candidate_words": [
-        "0311",
-        "0313",
-        "0315",
-        "0319",
-        "031D",
-        "0321",
-        "0325",
-        "0329",
-        "032D",
-        "0331",
-        "0335",
-        "0339",
-        "033F",
-        "0415",
-        "0417",
-        "0419",
-        "041B",
-        "041D",
-        "041F",
-        "0421",
-        "0423",
-        "0425",
-        "0427",
-        "042F",
-        "0433",
-        "04BB",
-        "04BF",
-        "04CB",
-        "04F9",
-        "04FB",
-        "04FD",
-        "04FF"
-      ],
-      "delta": 4,
-      "evidence_count": 93,
-      "field_count": 32,
-      "observation_count": 36,
-      "usa_words": [
-        "030D",
-        "030F",
-        "0311",
-        "0315",
-        "0319",
-        "031D",
-        "0321",
-        "0325",
-        "0329",
-        "032D",
-        "0331",
-        "0335",
-        "033B",
-        "0411",
-        "0413",
-        "0415",
-        "0417",
-        "0419",
-        "041B",
-        "041D",
-        "041F",
-        "0421",
-        "0423",
-        "042B",
-        "042F",
-        "04B7",
-        "04BB",
-        "04C7",
-        "04F5",
-        "04F7",
-        "04F9",
-        "04FB"
       ]
     },
     {
@@ -271,9 +288,10 @@
       ]
     },
     {
-      "anchor_count": 12,
+      "anchor_count": 13,
       "anchors": [
         "Camera_MapGeometrySetup",
+        "Camera_StateQuantizeP1",
         "Camera_UpdatePersistentState",
         "Collision_BuildContactShape",
         "Collision_TransformVelocity",
@@ -336,6 +354,14 @@
         "04F7",
         "04F9",
         "04FB",
+        "0505",
+        "0507",
+        "0509",
+        "050F",
+        "051D",
+        "0521",
+        "052B",
+        "052F",
         "0541",
         "0545",
         "0553",
@@ -392,9 +418,9 @@
         "420C"
       ],
       "delta": 0,
-      "evidence_count": 330,
-      "field_count": 102,
-      "observation_count": 112,
+      "evidence_count": 351,
+      "field_count": 110,
+      "observation_count": 121,
       "usa_words": [
         "000B",
         "0230",
@@ -444,6 +470,14 @@
         "04F7",
         "04F9",
         "04FB",
+        "0505",
+        "0507",
+        "0509",
+        "050F",
+        "051D",
+        "0521",
+        "052B",
+        "052F",
         "0541",
         "0545",
         "0553",
@@ -501,9 +535,10 @@
       ]
     },
     {
-      "anchor_count": 10,
+      "anchor_count": 11,
       "anchors": [
         "Camera_MapGeometrySetup",
+        "Camera_StateQuantizeP1",
         "Camera_UpdatePersistentState",
         "Collision_TransformVelocity",
         "Course_LoadAndMaterialize",
@@ -564,6 +599,14 @@
         "04F7",
         "04F9",
         "04FB",
+        "0505",
+        "0507",
+        "0509",
+        "050F",
+        "051D",
+        "0521",
+        "052B",
+        "052F",
         "0541",
         "0545",
         "0553",
@@ -587,9 +630,9 @@
         "420C"
       ],
       "delta": 0,
-      "evidence_count": 196,
-      "field_count": 69,
-      "observation_count": 75,
+      "evidence_count": 217,
+      "field_count": 77,
+      "observation_count": 84,
       "usa_words": [
         "000B",
         "0230",
@@ -639,6 +682,14 @@
         "04F7",
         "04F9",
         "04FB",
+        "0505",
+        "0507",
+        "0509",
+        "050F",
+        "051D",
+        "0521",
+        "052B",
+        "052F",
         "0541",
         "0545",
         "0553",
@@ -1348,6 +1399,7 @@
     },
     {
       "anchors": [
+        "Camera_StateQuantizeP1",
         "Camera_UpdatePersistentState"
       ],
       "build": "europe-retail",
@@ -1401,6 +1453,118 @@
         4
       ],
       "usa_word": "04FB"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0509"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "0505"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "050B"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "0507"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "050D"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "0509"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0513"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "050F"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0521"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "051D"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0525"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "0521"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "052F"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "052B"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0533"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "052F"
     },
     {
       "anchors": [
@@ -2730,6 +2894,7 @@
     },
     {
       "anchors": [
+        "Camera_StateQuantizeP1",
         "Camera_UpdatePersistentState"
       ],
       "build": "legacy-beta",
@@ -2783,6 +2948,118 @@
         0
       ],
       "usa_word": "04FB"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0505"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0505"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0507"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0507"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0509"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0509"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "050F"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "050F"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "051D"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "051D"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0521"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0521"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "052B"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "052B"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "052F"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "052F"
     },
     {
       "anchors": [
@@ -4168,6 +4445,7 @@
     },
     {
       "anchors": [
+        "Camera_StateQuantizeP1",
         "Camera_UpdatePersistentState"
       ],
       "build": "pal-prototype-1994-11-29",
@@ -4221,6 +4499,118 @@
         0
       ],
       "usa_word": "04FB"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0505"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0505"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0507"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0507"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0509"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0509"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "050F"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "050F"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "051D"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "051D"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0521"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0521"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "052B"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "052B"
+    },
+    {
+      "anchors": [
+        "Camera_StateQuantizeP1"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "052F"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "052F"
     },
     {
       "anchors": [
@@ -5170,9 +5560,17 @@
           "04F9",
           "04FB",
           "04FD",
-          "04FF"
+          "04FF",
+          "0509",
+          "050B",
+          "050D",
+          "0513",
+          "0521",
+          "0525",
+          "052F",
+          "0533"
         ],
-        "field_count": 32,
+        "field_count": 40,
         "prototype_to_europe_delta": 4,
         "prototype_words": [
           "030D",
@@ -5206,7 +5604,15 @@
           "04F5",
           "04F7",
           "04F9",
-          "04FB"
+          "04FB",
+          "0505",
+          "0507",
+          "0509",
+          "050F",
+          "051D",
+          "0521",
+          "052B",
+          "052F"
         ],
         "usa_words": [
           "030D",
@@ -5240,7 +5646,15 @@
           "04F5",
           "04F7",
           "04F9",
-          "04FB"
+          "04FB",
+          "0505",
+          "0507",
+          "0509",
+          "050F",
+          "051D",
+          "0521",
+          "052B",
+          "052F"
         ]
       },
       {
@@ -5325,15 +5739,15 @@
         "to_delta": 4
       },
       {
-        "address_gap_bytes": 70,
+        "address_gap_bytes": 18,
         "delta_jump": 2,
         "europe_first_after": "0547",
-        "europe_last_before": "04FF",
+        "europe_last_before": "0533",
         "first_known_after": "0541",
         "from_delta": 4,
-        "last_known_before": "04FB",
+        "last_known_before": "052F",
         "prototype_first_after": "0541",
-        "prototype_last_before": "04FB",
+        "prototype_last_before": "052F",
         "to_delta": 6
       }
     ],
@@ -5936,11 +6350,13 @@
       },
       {
         "europe_anchors": [
+          "Camera_StateQuantizeP1",
           "Camera_UpdatePersistentState"
         ],
         "europe_delta_from_usa": 4,
         "europe_word": "04F9",
         "prototype_anchors": [
+          "Camera_StateQuantizeP1",
           "Camera_UpdatePersistentState"
         ],
         "prototype_delta_from_usa": 0,
@@ -5989,6 +6405,118 @@
         "prototype_to_europe_delta": 4,
         "prototype_word": "04FB",
         "usa_word": "04FB"
+      },
+      {
+        "europe_anchors": [
+          "Camera_StateQuantizeP1"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0509",
+        "prototype_anchors": [
+          "Camera_StateQuantizeP1"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0505",
+        "usa_word": "0505"
+      },
+      {
+        "europe_anchors": [
+          "Camera_StateQuantizeP1"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "050B",
+        "prototype_anchors": [
+          "Camera_StateQuantizeP1"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0507",
+        "usa_word": "0507"
+      },
+      {
+        "europe_anchors": [
+          "Camera_StateQuantizeP1"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "050D",
+        "prototype_anchors": [
+          "Camera_StateQuantizeP1"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0509",
+        "usa_word": "0509"
+      },
+      {
+        "europe_anchors": [
+          "Camera_StateQuantizeP1"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0513",
+        "prototype_anchors": [
+          "Camera_StateQuantizeP1"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "050F",
+        "usa_word": "050F"
+      },
+      {
+        "europe_anchors": [
+          "Camera_StateQuantizeP1"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0521",
+        "prototype_anchors": [
+          "Camera_StateQuantizeP1"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "051D",
+        "usa_word": "051D"
+      },
+      {
+        "europe_anchors": [
+          "Camera_StateQuantizeP1"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0525",
+        "prototype_anchors": [
+          "Camera_StateQuantizeP1"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0521",
+        "usa_word": "0521"
+      },
+      {
+        "europe_anchors": [
+          "Camera_StateQuantizeP1"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "052F",
+        "prototype_anchors": [
+          "Camera_StateQuantizeP1"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "052B",
+        "usa_word": "052B"
+      },
+      {
+        "europe_anchors": [
+          "Camera_StateQuantizeP1"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0533",
+        "prototype_anchors": [
+          "Camera_StateQuantizeP1"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "052F",
+        "usa_word": "052F"
       },
       {
         "europe_anchors": [
@@ -8365,6 +8893,303 @@
       "evidence_count": 5,
       "source_occurrences": 5,
       "usa_word": "0D0D"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 0.846715,
+      "anchor_candidate_cpu": "81:AF2B",
+      "build": "europe-retail",
+      "candidate_word": "04F9",
+      "delta": 4,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04F5"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 0.846715,
+      "anchor_candidate_cpu": "81:AF2B",
+      "build": "europe-retail",
+      "candidate_word": "0509",
+      "delta": 4,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0505"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 0.846715,
+      "anchor_candidate_cpu": "81:AF2B",
+      "build": "europe-retail",
+      "candidate_word": "050B",
+      "delta": 4,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0507"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 0.846715,
+      "anchor_candidate_cpu": "81:AF2B",
+      "build": "europe-retail",
+      "candidate_word": "050D",
+      "delta": 4,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0509"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 0.846715,
+      "anchor_candidate_cpu": "81:AF2B",
+      "build": "europe-retail",
+      "candidate_word": "0513",
+      "delta": 4,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "050F"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 0.846715,
+      "anchor_candidate_cpu": "81:AF2B",
+      "build": "europe-retail",
+      "candidate_word": "0521",
+      "delta": 4,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "051D"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 0.846715,
+      "anchor_candidate_cpu": "81:AF2B",
+      "build": "europe-retail",
+      "candidate_word": "0525",
+      "delta": 4,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0521"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 0.846715,
+      "anchor_candidate_cpu": "81:AF2B",
+      "build": "europe-retail",
+      "candidate_word": "052F",
+      "delta": 4,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "052B"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 0.846715,
+      "anchor_candidate_cpu": "81:AF2B",
+      "build": "europe-retail",
+      "candidate_word": "0533",
+      "delta": 4,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "052F"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF3A",
+      "build": "legacy-beta",
+      "candidate_word": "04F5",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04F5"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF3A",
+      "build": "legacy-beta",
+      "candidate_word": "0505",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0505"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF3A",
+      "build": "legacy-beta",
+      "candidate_word": "0507",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0507"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF3A",
+      "build": "legacy-beta",
+      "candidate_word": "0509",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0509"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF3A",
+      "build": "legacy-beta",
+      "candidate_word": "050F",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "050F"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF3A",
+      "build": "legacy-beta",
+      "candidate_word": "051D",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "051D"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF3A",
+      "build": "legacy-beta",
+      "candidate_word": "0521",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0521"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF3A",
+      "build": "legacy-beta",
+      "candidate_word": "052B",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "052B"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF3A",
+      "build": "legacy-beta",
+      "candidate_word": "052F",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "052F"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF1A",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "04F5",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04F5"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF1A",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0505",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0505"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF1A",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0507",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0507"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF1A",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0509",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0509"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF1A",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "050F",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "050F"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF1A",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "051D",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "051D"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF1A",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0521",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0521"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF1A",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "052B",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "052B"
+    },
+    {
+      "anchor": "Camera_StateQuantizeP1",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:AF1A",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "052F",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "052F"
     },
     {
       "anchor": "Camera_MapGeometrySetup",

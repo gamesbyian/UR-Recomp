@@ -979,3 +979,27 @@ Run `36795810324` explains why the early tuple was a bad semantic oracle. Nitrod
 **Interpretation:** stop spending evidence budget on absolute pre-race frame equality for this old SMV. Use it event-relatively until a mutually valid semantic anchor exists. The useful decompilation result is that analyzer gap `80:C3C8` is a live 17-way frontend/text command dispatcher and should be mapped as such.
 
 **Evidence:** `analysis/generated/historical-2014-native-replay-gap.md`; runs `36793691236`, `36794900073`, `36795810324`; Nitrodon bank 80/83 listings.
+
+
+### R-SEED-051 — Deterministic Dragster finish mechanism matches native/reference
+
+**Status:** confirmed and promoted  
+**Date:** 2026-09-30  
+**Area:** race | checkpoint | finish | validation
+
+Run `36801728342` reuses the existing deterministic Dragster finish route and adds only three paired semantic fields per racer: next checkpoint `1199/119B`, finish gate `119D/119F`, and laps remaining `0EF1/0EF3`. No additional framebuffer or dense-frame capture was required.
+
+Native and pinned Snes9x agree at every existing racer-state checkpoint and on every added finish field. The shared progression is:
+
+- finish-probe-start: checkpoint/gate/laps = `0 / 0 / 2`;
+- finish-probe-05: `1 / 1 / 1`;
+- finish-probe-20 through terminal: `3 / 0 / 1`;
+- race-results: `1 / 1 / 0`.
+
+Both runtimes reach stock results with `Frontend_CurrentMenu = 0x99` and `Race_ActiveState = 0x00`. Both players exhibit the same paired checkpoint/gate/lap sequence.
+
+Static bank-81 analysis independently localizes the checkpoint/finish handler to `81:8050`, dispatched from the course object/collision table at `81:8334`. That routine gates on `119D/Y`, snapshots the race timer, decrements `0EF1/Y`, and advances checkpoint state including `1199/Y`.
+
+**Interpretation:** deterministic 1P finish fidelity is closed at the current semantic evidence level. Further finish tracing should be demand-driven by a specific product discrepancy, not collected for completeness.
+
+**Evidence:** run `36801728342`; `.github/workflows/race-finish-differential.yml`; `tools/summarize_paired_player_slots.py`; Nitrodon bank-81 listing.

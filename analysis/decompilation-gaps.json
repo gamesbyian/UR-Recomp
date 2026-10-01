@@ -61,10 +61,10 @@
     {
       "id": "resolved-europe-usa-seeded-homologs",
       "kind": "resolved_cross_build_analyzer_consensus",
-      "region": "selected USA/Europe homologs: text metadata, vertical acceleration, input decode, collision transform/contact shape, HUD queue, racer-frame marshal, stunt-finalizer, course-loader/materializer",
-      "summary": "Trusted-entry-seeded snes2asm comparison covers 1,152 aligned opcode positions across 14 executable subregions. All opcode bytes, opcode/operand roles, and M/X states agree; 427 aligned byte changes are operand bytes only. The racer-frame marshal prefix alone has 203 changed operands at 0.674 raw similarity while preserving all 208 opcodes. The earlier unseeded zero-disagreement pass is rejected because these regions were unreached from the default vector walk.",
+      "region": "selected USA/Europe homologs: text metadata, vertical acceleration, input decode, collision transform/contact shape, HUD queue, racer-frame marshal, stunt-finalizer, course-loader/materializer, OAM projection, checkpoint/finish",
+      "summary": "Trusted-entry-seeded snes2asm comparison now covers 20 directly comparable executable subregions with 1,455 aligned opcode positions. All aligned opcode bytes, opcode/operand roles, and M/X states agree; 510 aligned byte changes are operand bytes. Checkpoint/finish additionally contains one explicit structural delta: Europe retail contracts USA 81:8102..8117 (22-byte frame-normalization logic) to 81:8102..8109 (8 bytes), a net -14 bytes. USA retail, legacy beta, and the 1994-11-29 PAL prototype retain the 22-byte executable shape; Europe retail alone uses the contracted form.",
       "priority": "low",
-      "next_evidence": "Do not re-adjudicate these regions with da65/Ghidra absent a new contradiction. Continue only into additional high-value Europe/USA homologs, preserving trusted seeding and bounded semantic/control-flow subdivision."
+      "next_evidence": "Do not re-adjudicate the 20 clean homolog regions with da65/Ghidra absent a contradiction. Preserve the checkpoint timer contraction as genuine lineage evidence. Continue only into additional high-value homologs with independently trustworthy boundaries and state."
     }
   ]
 }

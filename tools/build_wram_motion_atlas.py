@@ -21,6 +21,7 @@ OUT_JSON = Path("analysis/generated/wram-motion-atlas.json")
 OUT_MD = Path("analysis/generated/wram-motion-atlas.md")
 
 MIN_SIMILARITY = 0.60
+NON_WRAM_ANCHORS = {"Text_TestCharacterMetadataBit7"}
 
 
 def signed_delta(usa: int, candidate: int) -> int:
@@ -31,6 +32,8 @@ def signed_delta(usa: int, candidate: int) -> int:
 def collect_motion_rows(corpus: dict, *, min_similarity: float = MIN_SIMILARITY) -> list[dict]:
     rows = []
     for anchor in corpus["anchors"]:
+        if anchor["name"] in NON_WRAM_ANCHORS:
+            continue
         for build, matches in anchor["matches"].items():
             if not matches:
                 continue
@@ -122,6 +125,37 @@ def summarize(rows: list[dict]) -> dict:
 
 
 
+
+def infer_secondary_motion_boundaries(rows: list[dict]) -> list[dict]:
+    """Bracket post-prototype displacement changes in USA address order."""
+    ordered = sorted(rows, key=lambda r: int(r["usa_word"], 16))
+    out = []
+    for left, right in zip(ordered, ordered[1:]):
+        ld = left["prototype_to_europe_delta"]
+        rd = right["prototype_to_europe_delta"]
+        if ld == rd:
+            continue
+        la = int(left["usa_word"], 16)
+        ra = int(right["usa_word"], 16)
+        # Ignore jumps into MMIO/high address spaces; the useful boundaries are
+        # within the low WRAM/state address corpus.
+        if la >= 0x2000 or ra >= 0x2000:
+            continue
+        out.append({
+            "from_delta": ld,
+            "to_delta": rd,
+            "delta_jump": rd - ld,
+            "last_known_before": left["usa_word"],
+            "first_known_after": right["usa_word"],
+            "address_gap_bytes": ra - la,
+            "prototype_last_before": left["prototype_word"],
+            "prototype_first_after": right["prototype_word"],
+            "europe_last_before": left["europe_word"],
+            "europe_first_after": right["europe_word"],
+        })
+    return out
+
+
 def build_lineage_motion(field_consistency: list[dict]) -> dict:
     """Compare the same USA fields between PAL prototype and Europe retail.
 
@@ -164,7 +198,11 @@ def build_lineage_motion(field_consistency: list[dict]) -> dict:
             "europe_words": [m["europe_word"] for m in members],
         })
     summary.sort(key=lambda x: (-x["field_count"], x["prototype_to_europe_delta"]))
-    return {"rows": rows, "clusters": summary}
+    return {
+        "rows": rows,
+        "clusters": summary,
+        "inferred_boundaries": infer_secondary_motion_boundaries(rows),
+    }
 
 
 def render_markdown(atlas: dict) -> str:
@@ -226,6 +264,22 @@ def render_markdown(atlas: dict) -> str:
         lines.append(
             f"| {cluster['prototype_to_europe_delta']:+d} | {cluster['field_count']} | "
             f"{', '.join(examples)} |"
+        )
+
+    lines += [
+        "",
+        "## Inferred post-prototype insertion brackets",
+        "",
+        "These are address-space brackets, not exact insertion addresses. A displacement jump means some later-added/expanded state lies after the last known field in the old family and no later than the first known field in the new family.",
+        "",
+        "| From delta | To delta | Jump | Last known before | First known after | USA-address gap |",
+        "|---:|---:|---:|---|---|---:|",
+    ]
+    for b in atlas["prototype_to_europe_motion"]["inferred_boundaries"]:
+        lines.append(
+            f"| {b['from_delta']:+d} | {b['to_delta']:+d} | {b['delta_jump']:+d} | "
+            f"`{b['last_known_before']}` | `{b['first_known_after']}` | "
+            f"{b['address_gap_bytes']} |"
         )
 
     lines += [

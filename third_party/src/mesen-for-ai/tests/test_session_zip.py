@@ -8,16 +8,6 @@ from pathlib import Path
 from mesen_mcp.session import _bridge_stage_summary, _bridge_startup_timeout, _extract_rom_from_zip, _launcher_log_tail
 
 
-class BridgeStartupDiagnosticsTests(unittest.TestCase):
-    def test_surfaces_log_tail(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / "mesen.stderr.log").write_text("prefix-" + "x" * 20)
-            diagnostics = _session_log_diagnostics(root, tail_chars=8)
-            self.assertIn("mesen.stderr.log tail:", diagnostics)
-            self.assertTrue(diagnostics.endswith("xxxxxxxx"))
-
-
 class BridgeStartupTimeoutTests(unittest.TestCase):
     def test_respects_short_session_timeout(self) -> None:
         self.assertEqual(_bridge_startup_timeout(8), 8.0)

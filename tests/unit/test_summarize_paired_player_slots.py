@@ -31,6 +31,12 @@ class PairedPlayerSlotsTest(unittest.TestCase):
                 0x0DDB: 1,
                 0x121B: 1,
                 0x121D: 0,
+                0x0505: 0xFE, 0x0506: 0xFF,
+                0x0507: 0x34, 0x0508: 0x12,
+                0x0509: 0xFF, 0x050A: 0xFF,
+                0x050B: 0x78, 0x050C: 0x56,
+                0x052B: 0x10, 0x052C: 0x00,
+                0x052D: 0x08, 0x052E: 0x00,
             }
             for addr, value in values.items():
                 data[addr] = value
@@ -52,6 +58,14 @@ class PairedPlayerSlotsTest(unittest.TestCase):
                 "player2_x_velocity": 4,
                 "player1_y_velocity": 3,
                 "player2_y_velocity": -5,
+            })
+            self.assertEqual(s["camera_and_viewport"]["world_window"], {
+                "camera1_edge_raw": -2,
+                "camera2_edge_raw": 0x1234,
+                "camera1_span_raw": 0x0010,
+                "camera2_span_raw": 0x0008,
+                "camera1_fine_raw": -1,
+                "camera2_fine_raw": 0x5678,
             })
             self.assertEqual(s["camera_and_viewport"]["screen_relative"], {
                 "screen2_player2_x": 10,

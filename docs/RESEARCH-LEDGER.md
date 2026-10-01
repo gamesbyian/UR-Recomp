@@ -1461,3 +1461,29 @@ For the second +2 bracket, the only numerically Europe-only trusted operand insi
 
 **Evidence:** `tools/probe_wram_insertion_brackets.py`; `analysis/generated/wram-insertion-bracket-probe.{json,md}`; run `36819609931` and final refreshed evidence.
 
+### R-SEED-061 — External version-difference search yields actionable timing/OAM prior art, no public comprehensive diff
+
+**Status:** external prior-art pass complete; local discriminators queued  
+**Date:** 2026-09-30  
+**Area:** regionalization | prototype | timing | emulation history
+
+A dedicated public search was run across TAS/speedrun forums, GameFAQs archives, emulator changelogs/source history, NESdev/bsnes hardware discussions, preservation databases, developer interviews, and multilingual web results. This is distinct from earlier resource acquisition: the question was specifically what other people had already learned about USA/PAL/prototype differences.
+
+High-value public evidence:
+
+1. **Cross-region deterministic input desync.** A 2008 TASVideos poster accidentally replayed a USA Snes9x movie against PAL `Unirally`; the run diverged immediately and failed Dragster. This is independent historical evidence that region choice materially changes deterministic replay behavior.
+2. **Separate PAL/NTSC record populations.** Historic GameFAQs communities maintained distinct regional record tables. Representative Dragster records (~25.06 s NTSC vs ~29.85 s PAL) are roughly consistent with 60/50-Hz wall-clock scaling but are human records, not a timer oracle.
+3. **Prototype chronology.** Hidden Palace explicitly identifies the Nov-29-1994 image as a European PAL prototype, preceding USA retail and roughly five months before Europe retail. This supports using it as an intermediate lineage discriminator.
+4. **Active-display OAM prior art.** Snes9x historically carried a Uniracers-specific OAM/HDMA workaround; later bsnes/NESdev hardware research explains the game as an unusual active-display/HBlank OAM writer whose successful destination depends on internal PPU OAM addressing.
+5. **Developer protection provenance.** Andrew Innes independently described DMA accidentally discovering real-cartridge versus copy-device behavior and deliberately turning it into anti-piracy protection; contemporary copier documentation also listed Uniracers as protected.
+
+No trustworthy public source found provides a comprehensive USA-vs-Europe executable/gameplay change list. In particular, the search found no prior public documentation of:
+- the Europe-retail-only checkpoint timer-normalization contraction;
+- the post-prototype +4/+2 WRAM insertion chronology;
+- the unresolved semantics of those inserted WRAM spans;
+- a prototype-to-retail technical change log.
+
+**Interpretation:** the public record supplies valuable independent discriminators but does not supersede the local multi-ROM atlas. The strongest next local experiment is a project-owned fixed input trace replayed across USA retail, PAL prototype, and Europe retail, with first divergent frame/state localized.
+
+**Evidence:** `reference/notes/regional-version-differences-prior-art.md`; indexed sources in `reference/catalog.yml`; updated `regional-and-prototype-differential` evidence-worklist entry.
+

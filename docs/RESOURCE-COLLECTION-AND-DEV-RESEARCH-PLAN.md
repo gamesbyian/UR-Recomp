@@ -42,6 +42,21 @@ The following are considered established unless contradicted by stronger evidenc
 - Historical SNasm 1.7.1 is preserved locally, and Dailly's documented 65816 syntax/conventions provide lineage evidence for future reconstructed assembly.
 - The strict native smoke harness builds and launches the actual `UniracersSNESRecomp` target. Deterministic controller-only input reaches the first one-player race in both native SNESRecomp and Snes9x/snesref. The former seven-byte settled race-entry WRAM mismatch is now explained: four bytes are stale stack residue and three are free-running timing/phase counters.
 
+## Semantic compounding rule
+
+Reverse engineering should get cheaper as verified semantics accumulate. Treat every high-confidence field, routine, table, format or state transition as a potential anchor for further inference rather than an isolated completed fact.
+
+Before closing a materially useful semantic discovery, run a bounded propagation pass:
+
+- collect its readers/writers, callers/callees, pointers and table relationships;
+- inspect obvious paired/sibling structures and repeated access shapes;
+- align it across the four-ROM comparative atlas when supported;
+- cross-check recovered Nitrodon/Dessyreqt/TAS/RetroAchievements evidence;
+- ask which existing gaps or competing interpretations the new fact now constrains;
+- promote only useful consequences into the existing symbol map, ledger, atlas, parser, fixture, regression or work queue.
+
+This rule complements the value-of-information rule below. Do **not** chase transitive semantic completeness. Continue propagation while the next hop is cheap, reduces consequential uncertainty, or unlocks implementation/testing; stop when it becomes archaeology without a downstream hinge.
+
 ## Operating priorities
 
 ### 1. Extend deterministic differential coverage into race behavior
@@ -379,7 +394,7 @@ The preferred continuation loop is:
 2. treat straight-line acceleration as established: `7E:0411` X position and signed `7E:04B7` X speed are confirmed cross-runtime, with `7E:11BA` decrementing by `0x0100` per guest frame during the sampled start window;
 3. treat jump, rotation, event-relative landing and one failed-landing/contact case as established: `7E:0415` Y position, signed `7E:04BB` Y speed, `7E:0545` air state and modulo-64 `7E:04C7` pitch angle are validated cross-runtime; deterministic stock-race finish is now the active race-behavior milestone;
 4. resolve recovered-source ambiguities before promoting symbols; in particular, respect Lua duplicate-key semantics and distinguish effective bot addresses from earlier overwritten candidates;
-5. promote confirmed race-state fields/routines into `docs/SYMBOLS.md`, regenerate `analysis/generated/symbols.json`, and record evidence-backed conclusions in the research ledger/knowledge base;
+5. promote confirmed race-state fields/routines into `docs/SYMBOLS.md`, regenerate `analysis/generated/symbols.json`, record evidence-backed conclusions in the research ledger/knowledge base, and run the bounded semantic propagation pass so each promoted anchor is checked for useful readers/writers, siblings, cross-ROM matches and newly constrained gaps;
 6. promote durable replay cases into `tests/fixtures.json` and compare semantic/event-relative state rather than stale stack or free-running presentation counters;
 7. when WRAM/write-history evidence is insufficient, add the smallest useful CPU/PPU/OAM/VRAM/audio capture or use the pinned MesenCE/mesen-for-ai or DiztinGUIsh/bsnes+ workbench for code/data coverage;
 8. use `tools/mutate_rom.py` only for specific causal hypotheses and score mutations through deterministic replay; use asset round-trip experiments when a resource format is sufficiently understood;

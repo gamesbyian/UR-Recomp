@@ -18,6 +18,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 379,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 379,
@@ -57,6 +58,827 @@
     {
       "aligned_mx_disagreements": 15,
       "aligned_opcode_pairs": 200,
+      "aligned_residuals": [
+        {
+          "prototype_byte": "0xDD",
+          "prototype_offset": 11520,
+          "prototype_role": "operand",
+          "relative_offset": 374,
+          "retail_byte": "0xF9",
+          "retail_offset": 11551,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0x0B",
+          "prototype_offset": 11521,
+          "prototype_role": "operand",
+          "relative_offset": 375,
+          "retail_byte": "0x07",
+          "retail_offset": 11552,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0x18",
+          "prototype_offset": 11522,
+          "prototype_role": "opcode",
+          "relative_offset": 376,
+          "retail_byte": "0xFC",
+          "retail_offset": 11553,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0x69",
+          "prototype_offset": 11523,
+          "prototype_role": "opcode",
+          "relative_offset": 377,
+          "retail_byte": "0x0A",
+          "retail_offset": 11554,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0x08",
+          "prototype_offset": 11524,
+          "prototype_role": "operand",
+          "relative_offset": 378,
+          "retail_byte": "0x17",
+          "retail_offset": 11555,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0x8D",
+          "prototype_offset": 11525,
+          "prototype_role": "opcode",
+          "relative_offset": 379,
+          "retail_byte": "0x50",
+          "retail_offset": 11556,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0xFD",
+          "prototype_offset": 11526,
+          "prototype_role": "operand",
+          "relative_offset": 380,
+          "retail_byte": "0xFB",
+          "retail_offset": 11557,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0x0B",
+          "prototype_offset": 11527,
+          "prototype_role": "operand",
+          "relative_offset": 381,
+          "retail_byte": "0xFC",
+          "retail_offset": 11558,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0x20",
+          "prototype_offset": 11528,
+          "prototype_role": "opcode",
+          "relative_offset": 382,
+          "retail_byte": "0x0D",
+          "retail_offset": 11559,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0x5F",
+          "prototype_offset": 11529,
+          "prototype_role": "operand",
+          "relative_offset": 383,
+          "retail_byte": "0x18",
+          "retail_offset": 11560,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0xA8",
+          "prototype_offset": 11530,
+          "prototype_role": "operand",
+          "relative_offset": 384,
+          "retail_byte": "0x50",
+          "retail_offset": 11561,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0xA9",
+          "prototype_offset": 11531,
+          "prototype_role": "opcode",
+          "relative_offset": 385,
+          "retail_byte": "0xFB",
+          "retail_offset": 11562,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0x00",
+          "prototype_offset": 11532,
+          "prototype_role": "operand",
+          "relative_offset": 386,
+          "retail_byte": "0xFC",
+          "retail_offset": 11563,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0x8F",
+          "prototype_offset": 11533,
+          "prototype_role": "opcode",
+          "relative_offset": 387,
+          "retail_byte": "0x10",
+          "retail_offset": 11564,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0xAD",
+          "prototype_offset": 11534,
+          "prototype_role": "operand",
+          "relative_offset": 388,
+          "retail_byte": "0x56",
+          "retail_offset": 11565,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0x10",
+          "prototype_offset": 11535,
+          "prototype_role": "operand",
+          "relative_offset": 389,
+          "retail_byte": "0x53",
+          "retail_offset": 11566,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0x77",
+          "prototype_offset": 11536,
+          "prototype_role": "operand",
+          "relative_offset": 390,
+          "retail_byte": "0xFB",
+          "retail_offset": 11567,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0x60",
+          "prototype_offset": 11537,
+          "prototype_role": "opcode",
+          "relative_offset": 391,
+          "retail_byte": "0xFC",
+          "retail_offset": 11568,
+          "retail_role": "unreached"
+        },
+        {
+          "prototype_byte": "0x13",
+          "prototype_offset": 11556,
+          "prototype_role": "unreached",
+          "relative_offset": 410,
+          "retail_byte": "0x20",
+          "retail_offset": 11587,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x4C",
+          "prototype_offset": 11557,
+          "prototype_role": "unreached",
+          "relative_offset": 411,
+          "retail_byte": "0x47",
+          "retail_offset": 11588,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x45",
+          "prototype_offset": 11558,
+          "prototype_role": "unreached",
+          "relative_offset": 412,
+          "retail_byte": "0xAD",
+          "retail_offset": 11589,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x41",
+          "prototype_offset": 11559,
+          "prototype_role": "unreached",
+          "relative_offset": 413,
+          "retail_byte": "0x6B",
+          "retail_offset": 11590,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x47",
+          "prototype_offset": 11560,
+          "prototype_role": "unreached",
+          "relative_offset": 414,
+          "retail_byte": "0xDA",
+          "retail_offset": 11591,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x55",
+          "prototype_offset": 11561,
+          "prototype_role": "unreached",
+          "relative_offset": 415,
+          "retail_byte": "0x5A",
+          "retail_offset": 11592,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x45",
+          "prototype_offset": 11562,
+          "prototype_role": "unreached",
+          "relative_offset": 416,
+          "retail_byte": "0x48",
+          "retail_offset": 11593,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xFB",
+          "prototype_offset": 11563,
+          "prototype_role": "unreached",
+          "relative_offset": 417,
+          "retail_byte": "0x08",
+          "retail_offset": 11594,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xFC",
+          "prototype_offset": 11564,
+          "prototype_role": "unreached",
+          "relative_offset": 418,
+          "retail_byte": "0xE2",
+          "retail_offset": 11595,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x16",
+          "prototype_offset": 11565,
+          "prototype_role": "unreached",
+          "relative_offset": 419,
+          "retail_byte": "0x20",
+          "retail_offset": 11596,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x4F",
+          "prototype_offset": 11566,
+          "prototype_role": "unreached",
+          "relative_offset": 420,
+          "retail_byte": "0xA5",
+          "retail_offset": 11597,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x50",
+          "prototype_offset": 11567,
+          "prototype_role": "unreached",
+          "relative_offset": 421,
+          "retail_byte": "0xCC",
+          "retail_offset": 11598,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x54",
+          "prototype_offset": 11568,
+          "prototype_role": "unreached",
+          "relative_offset": 422,
+          "retail_byte": "0x22",
+          "retail_offset": 11599,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x49",
+          "prototype_offset": 11569,
+          "prototype_role": "unreached",
+          "relative_offset": 423,
+          "retail_byte": "0x3C",
+          "retail_offset": 11600,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x4F",
+          "prototype_offset": 11570,
+          "prototype_role": "unreached",
+          "relative_offset": 424,
+          "retail_byte": "0x96",
+          "retail_offset": 11601,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x4E",
+          "prototype_offset": 11571,
+          "prototype_role": "unreached",
+          "relative_offset": 425,
+          "retail_byte": "0x83",
+          "retail_offset": 11602,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x53",
+          "prototype_offset": 11572,
+          "prototype_role": "unreached",
+          "relative_offset": 426,
+          "retail_byte": "0xC2",
+          "retail_offset": 11603,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xFF",
+          "prototype_offset": 11573,
+          "prototype_role": "unreached",
+          "relative_offset": 427,
+          "retail_byte": "0x20",
+          "retail_offset": 11604,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0xAD",
+          "prototype_offset": 11576,
+          "prototype_role": "operand",
+          "relative_offset": 430,
+          "retail_byte": "0x0A",
+          "retail_offset": 11607,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xA5",
+          "prototype_offset": 11584,
+          "prototype_role": "opcode",
+          "relative_offset": 438,
+          "retail_byte": "0x02",
+          "retail_offset": 11615,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0xCC",
+          "prototype_offset": 11585,
+          "prototype_role": "operand",
+          "relative_offset": 439,
+          "retail_byte": "0x85",
+          "retail_offset": 11616,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x22",
+          "prototype_offset": 11586,
+          "prototype_role": "opcode",
+          "relative_offset": 440,
+          "retail_byte": "0x78",
+          "retail_offset": 11617,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x3C",
+          "prototype_offset": 11587,
+          "prototype_role": "operand",
+          "relative_offset": 441,
+          "retail_byte": "0xAA",
+          "retail_offset": 11618,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x96",
+          "prototype_offset": 11588,
+          "prototype_role": "operand",
+          "relative_offset": 442,
+          "retail_byte": "0xE2",
+          "retail_offset": 11619,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x0A",
+          "prototype_offset": 11594,
+          "prototype_role": "opcode",
+          "relative_offset": 448,
+          "retail_byte": "0x01",
+          "retail_offset": 11625,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x0A",
+          "prototype_offset": 11596,
+          "prototype_role": "opcode",
+          "relative_offset": 450,
+          "retail_byte": "0x51",
+          "retail_offset": 11627,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x0A",
+          "prototype_offset": 11597,
+          "prototype_role": "opcode",
+          "relative_offset": 451,
+          "retail_byte": "0x01",
+          "retail_offset": 11628,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x18",
+          "prototype_offset": 11599,
+          "prototype_role": "opcode",
+          "relative_offset": 453,
+          "retail_byte": "0x9A",
+          "retail_offset": 11630,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x69",
+          "prototype_offset": 11600,
+          "prototype_role": "opcode",
+          "relative_offset": 454,
+          "retail_byte": "0x01",
+          "retail_offset": 11631,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0xC0",
+          "prototype_offset": 11601,
+          "prototype_role": "operand",
+          "relative_offset": 455,
+          "retail_byte": "0xC2",
+          "retail_offset": 11632,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xAA",
+          "prototype_offset": 11605,
+          "prototype_role": "opcode",
+          "relative_offset": 459,
+          "retail_byte": "0x00",
+          "retail_offset": 11636,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0xA9",
+          "prototype_offset": 11608,
+          "prototype_role": "opcode",
+          "relative_offset": 462,
+          "retail_byte": "0x01",
+          "retail_offset": 11639,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0xA9",
+          "prototype_offset": 11621,
+          "prototype_role": "opcode",
+          "relative_offset": 475,
+          "retail_byte": "0x01",
+          "retail_offset": 11652,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x1F",
+          "prototype_offset": 11622,
+          "prototype_role": "operand",
+          "relative_offset": 476,
+          "retail_byte": "0xE8",
+          "retail_offset": 11653,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x00",
+          "prototype_offset": 11623,
+          "prototype_role": "operand",
+          "relative_offset": 477,
+          "retail_byte": "0xE8",
+          "retail_offset": 11654,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x99",
+          "prototype_offset": 11625,
+          "prototype_role": "operand",
+          "relative_offset": 479,
+          "retail_byte": "0xE8",
+          "retail_offset": 11656,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x01",
+          "prototype_offset": 11626,
+          "prototype_role": "operand",
+          "relative_offset": 480,
+          "retail_byte": "0x1A",
+          "retail_offset": 11657,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x00",
+          "prototype_offset": 11627,
+          "prototype_role": "operand",
+          "relative_offset": 481,
+          "retail_byte": "0x88",
+          "retail_offset": 11658,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x00",
+          "prototype_offset": 11630,
+          "prototype_role": "operand",
+          "relative_offset": 484,
+          "retail_byte": "0x20",
+          "retail_offset": 11661,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xA2",
+          "prototype_offset": 11631,
+          "prototype_role": "opcode",
+          "relative_offset": 485,
+          "retail_byte": "0xD4",
+          "retail_offset": 11662,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x00",
+          "prototype_offset": 11633,
+          "prototype_role": "operand",
+          "relative_offset": 487,
+          "retail_byte": "0x22",
+          "retail_offset": 11664,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xA0",
+          "prototype_offset": 11634,
+          "prototype_role": "opcode",
+          "relative_offset": 488,
+          "retail_byte": "0xBE",
+          "retail_offset": 11665,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x01",
+          "prototype_offset": 11639,
+          "prototype_role": "operand",
+          "relative_offset": 493,
+          "retail_byte": "0x0A",
+          "retail_offset": 11670,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x1A",
+          "prototype_offset": 11644,
+          "prototype_role": "opcode",
+          "relative_offset": 498,
+          "retail_byte": "0x07",
+          "retail_offset": 11675,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x88",
+          "prototype_offset": 11645,
+          "prototype_role": "opcode",
+          "relative_offset": 499,
+          "retail_byte": "0x00",
+          "retail_offset": 11676,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0xF5",
+          "prototype_offset": 11647,
+          "prototype_role": "operand",
+          "relative_offset": 501,
+          "retail_byte": "0xE2",
+          "retail_offset": 11678,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x20",
+          "prototype_offset": 11648,
+          "prototype_role": "opcode",
+          "relative_offset": 502,
+          "retail_byte": "0x20",
+          "retail_offset": 11679,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0xB8",
+          "prototype_offset": 11649,
+          "prototype_role": "operand",
+          "relative_offset": 503,
+          "retail_byte": "0xA0",
+          "retail_offset": 11680,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x22",
+          "prototype_offset": 11651,
+          "prototype_role": "opcode",
+          "relative_offset": 505,
+          "retail_byte": "0x00",
+          "retail_offset": 11682,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0xBE",
+          "prototype_offset": 11652,
+          "prototype_role": "operand",
+          "relative_offset": 506,
+          "retail_byte": "0xB9",
+          "retail_offset": 11683,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x0A",
+          "prototype_offset": 11657,
+          "prototype_role": "opcode",
+          "relative_offset": 511,
+          "retail_byte": "0x05",
+          "retail_offset": 11688,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x0A",
+          "prototype_offset": 11658,
+          "prototype_role": "opcode",
+          "relative_offset": 512,
+          "retail_byte": "0x77",
+          "retail_offset": 11689,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x00",
+          "prototype_offset": 11663,
+          "prototype_role": "operand",
+          "relative_offset": 517,
+          "retail_byte": "0xC2",
+          "retail_offset": 11694,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xAA",
+          "prototype_offset": 11664,
+          "prototype_role": "opcode",
+          "relative_offset": 518,
+          "retail_byte": "0x20",
+          "retail_offset": 11695,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0xD4",
+          "prototype_offset": 11671,
+          "prototype_role": "operand",
+          "relative_offset": 525,
+          "retail_byte": "0x0A",
+          "retail_offset": 11702,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x00",
+          "prototype_offset": 11672,
+          "prototype_role": "operand",
+          "relative_offset": 526,
+          "retail_byte": "0xAA",
+          "retail_offset": 11703,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x88",
+          "prototype_offset": 11678,
+          "prototype_role": "opcode",
+          "relative_offset": 532,
+          "retail_byte": "0x07",
+          "retail_offset": 11709,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x10",
+          "prototype_offset": 11679,
+          "prototype_role": "opcode",
+          "relative_offset": 533,
+          "retail_byte": "0x00",
+          "retail_offset": 11710,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0xF5",
+          "prototype_offset": 11680,
+          "prototype_role": "operand",
+          "relative_offset": 534,
+          "retail_byte": "0xC9",
+          "retail_offset": 11711,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xC2",
+          "prototype_offset": 11681,
+          "prototype_role": "opcode",
+          "relative_offset": 535,
+          "retail_byte": "0x00",
+          "retail_offset": 11712,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x0A",
+          "prototype_offset": 11689,
+          "prototype_role": "opcode",
+          "relative_offset": 543,
+          "retail_byte": "0x05",
+          "retail_offset": 11720,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0xAF",
+          "prototype_offset": 11691,
+          "prototype_role": "opcode",
+          "relative_offset": 545,
+          "retail_byte": "0x00",
+          "retail_offset": 11722,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x07",
+          "prototype_offset": 11693,
+          "prototype_role": "operand",
+          "relative_offset": 547,
+          "retail_byte": "0x80",
+          "retail_offset": 11724,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xF0",
+          "prototype_offset": 11701,
+          "prototype_role": "opcode",
+          "relative_offset": 555,
+          "retail_byte": "0x77",
+          "retail_offset": 11732,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x0A",
+          "prototype_offset": 11702,
+          "prototype_role": "operand",
+          "relative_offset": 556,
+          "retail_byte": "0xA5",
+          "retail_offset": 11733,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xC9",
+          "prototype_offset": 11703,
+          "prototype_role": "opcode",
+          "relative_offset": 557,
+          "retail_byte": "0xD4",
+          "retail_offset": 11734,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x03",
+          "prototype_offset": 11704,
+          "prototype_role": "operand",
+          "relative_offset": 558,
+          "retail_byte": "0x29",
+          "retail_offset": 11735,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xF0",
+          "prototype_offset": 11706,
+          "prototype_role": "opcode",
+          "relative_offset": 560,
+          "retail_byte": "0x00",
+          "retail_offset": 11737,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x05",
+          "prototype_offset": 11707,
+          "prototype_role": "operand",
+          "relative_offset": 561,
+          "retail_byte": "0x9F",
+          "retail_offset": 11738,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xA9",
+          "prototype_offset": 11708,
+          "prototype_role": "opcode",
+          "relative_offset": 562,
+          "retail_byte": "0x86",
+          "retail_offset": 11739,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x03",
+          "prototype_offset": 11712,
+          "prototype_role": "operand",
+          "relative_offset": 566,
+          "retail_byte": "0x68",
+          "retail_offset": 11743,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x62",
+          "prototype_offset": 11714,
+          "prototype_role": "operand",
+          "relative_offset": 568,
+          "retail_byte": "0xFA",
+          "retail_offset": 11745,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xEA",
+          "prototype_offset": 11715,
+          "prototype_role": "operand",
+          "relative_offset": 569,
+          "retail_byte": "0x60",
+          "retail_offset": 11746,
+          "retail_role": "opcode"
+        }
+      ],
       "aligned_role_disagreements": 91,
       "aligned_role_pairs": {
         "opcode->opcode": 200,
@@ -103,6 +925,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 159,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 159,
@@ -142,6 +965,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 90,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 90,
@@ -181,6 +1005,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 140,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 140,
@@ -220,6 +1045,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 152,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 152,
@@ -258,6 +1084,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 157,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 157,
@@ -295,6 +1122,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 83,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 83,
@@ -333,6 +1161,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 107,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 107,
@@ -371,6 +1200,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 70,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 70,
@@ -409,6 +1239,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 53,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 53,
@@ -446,6 +1277,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 50,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 50,
@@ -484,6 +1316,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 134,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 134,
@@ -522,6 +1355,53 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 72,
+      "aligned_residuals": [
+        {
+          "prototype_byte": "0x7F",
+          "prototype_offset": 17355,
+          "prototype_role": "operand",
+          "relative_offset": 53,
+          "retail_byte": "0x92",
+          "retail_offset": 17374,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xC4",
+          "prototype_offset": 17356,
+          "prototype_role": "opcode",
+          "relative_offset": 54,
+          "retail_byte": "0xC4",
+          "retail_offset": 17375,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x43",
+          "prototype_offset": 17357,
+          "prototype_role": "operand",
+          "relative_offset": 55,
+          "retail_byte": "0x56",
+          "retail_offset": 17376,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xC4",
+          "prototype_offset": 17358,
+          "prototype_role": "opcode",
+          "relative_offset": 56,
+          "retail_byte": "0xC4",
+          "retail_offset": 17377,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0xA5",
+          "prototype_offset": 17359,
+          "prototype_role": "operand",
+          "relative_offset": 57,
+          "retail_byte": "0xB8",
+          "retail_offset": 17378,
+          "retail_role": "opcode"
+        }
+      ],
       "aligned_role_disagreements": 5,
       "aligned_role_pairs": {
         "opcode->opcode": 72,
@@ -562,6 +1442,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 48,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 48,
@@ -599,6 +1480,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 49,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 49,
@@ -637,6 +1519,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 31,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 31,
@@ -674,6 +1557,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 34,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 34,
@@ -711,6 +1595,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 42,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 42,
@@ -749,6 +1634,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 43,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 43,
@@ -786,6 +1672,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 29,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 29,
@@ -824,6 +1711,170 @@
     {
       "aligned_mx_disagreements": 1,
       "aligned_opcode_pairs": 36,
+      "aligned_residuals": [
+        {
+          "prototype_byte": "0xFA",
+          "prototype_offset": 3141,
+          "prototype_role": "unreached",
+          "relative_offset": 5,
+          "retail_byte": "0x08",
+          "retail_offset": 3150,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x89",
+          "prototype_offset": 3142,
+          "prototype_role": "unreached",
+          "relative_offset": 6,
+          "retail_byte": "0xE2",
+          "retail_offset": 3151,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x80",
+          "prototype_offset": 3143,
+          "prototype_role": "unreached",
+          "relative_offset": 7,
+          "retail_byte": "0x20",
+          "retail_offset": 3152,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x60",
+          "prototype_offset": 3144,
+          "prototype_role": "unreached",
+          "relative_offset": 8,
+          "retail_byte": "0xA9",
+          "retail_offset": 3153,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x08",
+          "prototype_offset": 3145,
+          "prototype_role": "opcode",
+          "relative_offset": 9,
+          "retail_byte": "0x04",
+          "retail_offset": 3154,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0xA9",
+          "prototype_offset": 3148,
+          "prototype_role": "opcode",
+          "relative_offset": 12,
+          "retail_byte": "0x8B",
+          "retail_offset": 3157,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x8B",
+          "prototype_offset": 3152,
+          "prototype_role": "operand",
+          "relative_offset": 16,
+          "retail_byte": "0x86",
+          "retail_offset": 3161,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xC2",
+          "prototype_offset": 3158,
+          "prototype_role": "opcode",
+          "relative_offset": 22,
+          "retail_byte": "0x00",
+          "retail_offset": 3167,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x20",
+          "prototype_offset": 3159,
+          "prototype_role": "operand",
+          "relative_offset": 23,
+          "retail_byte": "0xA0",
+          "retail_offset": 3168,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xA2",
+          "prototype_offset": 3160,
+          "prototype_role": "opcode",
+          "relative_offset": 24,
+          "retail_byte": "0x05",
+          "retail_offset": 3169,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x00",
+          "prototype_offset": 3162,
+          "prototype_role": "operand",
+          "relative_offset": 26,
+          "retail_byte": "0xBF",
+          "retail_offset": 3171,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xA0",
+          "prototype_offset": 3163,
+          "prototype_role": "opcode",
+          "relative_offset": 27,
+          "retail_byte": "0x00",
+          "retail_offset": 3172,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x80",
+          "prototype_offset": 3172,
+          "prototype_role": "operand",
+          "relative_offset": 36,
+          "retail_byte": "0xE8",
+          "retail_offset": 3181,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x83",
+          "prototype_offset": 3173,
+          "prototype_role": "operand",
+          "relative_offset": 37,
+          "retail_byte": "0xE8",
+          "retail_offset": 3182,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x07",
+          "prototype_offset": 3175,
+          "prototype_role": "operand",
+          "relative_offset": 39,
+          "retail_byte": "0x10",
+          "retail_offset": 3184,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0xE8",
+          "prototype_offset": 3176,
+          "prototype_role": "opcode",
+          "relative_offset": 40,
+          "retail_byte": "0xF1",
+          "retail_offset": 3185,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x28",
+          "prototype_offset": 3181,
+          "prototype_role": "opcode",
+          "relative_offset": 45,
+          "retail_byte": "0xFB",
+          "retail_offset": 3190,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x60",
+          "prototype_offset": 3182,
+          "prototype_role": "opcode",
+          "relative_offset": 46,
+          "retail_byte": "0x83",
+          "retail_offset": 3191,
+          "retail_role": "operand"
+        }
+      ],
       "aligned_role_disagreements": 18,
       "aligned_role_pairs": {
         "opcode->opcode": 36,
@@ -865,6 +1916,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 30,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 30,
@@ -902,6 +1954,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 30,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 30,
@@ -940,6 +1993,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 33,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 33,
@@ -977,6 +2031,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 32,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 32,
@@ -1014,6 +2069,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 32,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 32,
@@ -1051,6 +2107,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 17,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 17,
@@ -1088,6 +2145,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 20,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 20,
@@ -1125,6 +2183,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 10,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 10,
@@ -1158,6 +2217,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 15,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 15,
@@ -1195,6 +2255,7 @@
     {
       "aligned_mx_disagreements": 0,
       "aligned_opcode_pairs": 15,
+      "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
         "opcode->opcode": 15,

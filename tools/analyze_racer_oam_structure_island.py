@@ -27,9 +27,9 @@ REGIONS=[
  ("post_final_flags","82:B151","82:B17F","code"),
 ]
 
-def best_shift(src,dst,start,end,radius=192):
- block=src[start:end+1]; best=(0,-1.0)
- for shift in range(-radius,radius+1):
+def best_shift(src,dst,start,end,center=0,radius=192):
+ block=src[start:end+1]; best=(center,-1.0)
+ for shift in range(center-radius,center+radius+1):
   a=start+shift; b=a+len(block)
   if a<0 or b>len(dst): continue
   score=sum(x==y for x,y in zip(block,dst[a:b]))/len(block)
@@ -49,10 +49,16 @@ def build():
  blobs={k:p.read_bytes() for k,p in ROMS.items()}; usa=blobs["usa-retail"]
  aligns={}
  for build,blob in blobs.items():
-  per={}
-  for name,s,e,kind in REGIONS:
+  per={}; previous_shift=0
+  for index,(name,s,e,kind) in enumerate(REGIONS):
    st=cpu_to_offset(s); en=cpu_to_offset(e)
-   shift,sim=(0,1.0) if build=="usa-retail" else best_shift(usa,blob,st,en)
+   if build=="usa-retail":
+    shift,sim=(0,1.0)
+   elif index==0:
+    shift,sim=best_shift(usa,blob,st,en,center=0,radius=192)
+   else:
+    shift,sim=best_shift(usa,blob,st,en,center=previous_shift,radius=12)
+   previous_shift=shift
    per[name]={"shift":shift,"similarity":round(sim,6),"start":offset_to_cpu(st+shift),"end":offset_to_cpu(en+shift)}
   aligns[build]=per
  analyzers={}

@@ -2,9 +2,9 @@
 
 This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **100** (92 code, 8 data)
-- bounded bytes: **14689** (13544 code-region bytes, 1145 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **5665**
+- bounded regions: **103** (95 code, 8 data)
+- bounded bytes: **15094** (13949 code-region bytes, 1145 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **5911**
 - represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -47,6 +47,9 @@ This is the first machine-queryable census for the comparative structure-recover
 | `81:983B..81:9971` | code | 311 | collision-resolution | geometry_helper_live_prefix | 81:981B..81:9951 (-32; size 311; sim 0.987) | 81:982C..81:9962 (-15; size 311; sim 0.977) | 81:983B..81:9971 (+0; size 311; sim 1.000) |
 | `81:9972..81:9978` | code | 7 | collision-resolution | geometry_helper_usa_dormant | 81:9952..81:9958 (-32; size 7; sim 1.000) | 81:9963..81:9969 (-15; size 7; sim 0.857) | 81:9972..81:9978 (+0; size 7; sim 1.000) |
 | `81:9979..81:99D5` | code | 93 | collision-resolution | geometry_helper_live_tail | 81:9959..81:99B5 (-32; size 93; sim 0.968) | 81:996A..81:99C6 (-15; size 93; sim 0.968) | 81:9979..81:99D5 (+0; size 93; sim 1.000) |
+| `81:9E2A..81:9E7C` | code | 83 | contact-geometry | angle_and_source_record_setup | 81:9E0A..81:9E5C (-32; size 83; sim 0.988) | 81:9E1B..81:9E6D (-15; size 83; sim 0.988) | 81:9E2A..81:9E7C (+0; size 83; sim 1.000) |
+| `81:9E7D..81:9F1C` | code | 160 | contact-geometry | vertex_expansion_and_orientation | 81:9E5D..81:9EFC (-32; size 160; sim 1.000) | 81:9E6E..81:9F0D (-15; size 160; sim 1.000) | 81:9E7D..81:9F1C (+0; size 160; sim 1.000) |
+| `81:9F1D..81:9FBE` | code | 162 | contact-geometry | mirror_offset_and_collision_anchor_finalize | 81:9EFD..81:9F9E (-32; size 162; sim 0.981) | 81:9F0E..81:9FAF (-15; size 162; sim 0.981) | 81:9F1D..81:9FBE (+0; size 162; sim 1.000) |
 | `81:9FBF..81:A2E4` | code | 806 | camera-control | camera_velocity_follow_solver | 81:9F9F..81:A2C4 (-32; size 806; sim 0.996) | 81:9FB0..81:A2D5 (-15; size 806; sim 0.935) | 81:9FBF..81:A2E4 (+0; size 806; sim 1.000) |
 | `81:A2E5..81:A30E` | code | 42 | camera-control | camera_smoothing_helper | 81:A2C5..81:A2EE (-32; size 42; sim 1.000) | 81:A2D6..81:A2FF (-15; size 42; sim 1.000) | 81:A2E5..81:A30E (+0; size 42; sim 1.000) |
 | `81:A30F..81:A52A` | code | 540 | camera-control | camera_scale_config | 81:A2EF..81:A50A (-32; size 540; sim 0.963) | 81:A300..81:A51B (-15; size 540; sim 0.841) | 81:A30F..81:A52A (+0; size 540; sim 1.000) |

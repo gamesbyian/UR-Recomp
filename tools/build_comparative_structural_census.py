@@ -100,7 +100,7 @@ def render(census: dict) -> str:
         )
     lines += [
         "", "## Selection rule for the next island", "",
-        "Grow this census by choosing a different executed/high-connectivity subsystem where comparative evidence can recover multiple boundaries or relationships at once. Prefer a candidate with direct call/table structure and shipping relevance (course materialization, rendering/OAM, camera, or race-state plumbing). Do not extend either existing island merely to increase byte totals.",
+        "Grow this census by choosing a different executed/high-connectivity subsystem where comparative evidence can recover multiple boundaries or relationships at once. Prefer a candidate with direct call/table structure and shipping relevance. Do not extend an existing island merely to increase byte totals.",
         "", "The JSON form is the authoritative query surface: `analysis/generated/comparative-structural-census.json`.", ""
     ]
     return "\n".join(lines)

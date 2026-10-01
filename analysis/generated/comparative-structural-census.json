@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "purpose": "Machine-queryable seed census of confidently bounded program structure recovered by the comparative four-ROM lane.",
-  "scope_note": "This is a seed census, not a whole-ROM coverage claim. It intentionally contains only regions whose boundaries/code-data role have already been independently recovered in the two structural-island analyses.",
+  "scope_note": "This census is a conservative floor, not a whole-ROM coverage claim. It contains only regions whose boundaries/code-data role have already been independently recovered in accepted structural-island analyses.",
   "sources": [
     {
       "id": "racer-update",
@@ -10,17 +10,21 @@
     {
       "id": "object-collision",
       "path": "analysis/generated/object-collision-structure-island.json"
+    },
+    {
+      "id": "course-materialization",
+      "path": "analysis/generated/course-materialization-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 20,
-    "code_regions": 17,
+    "regions": 25,
+    "code_regions": 22,
     "data_regions": 3,
-    "bounded_bytes": 2611,
-    "bounded_code_region_bytes": 2403,
+    "bounded_bytes": 3165,
+    "bounded_code_region_bytes": 2957,
     "bounded_data_region_bytes": 208,
-    "analyzer_opcode_bytes": 1001,
-    "analyzer_operand_bytes": 1371,
+    "analyzer_opcode_bytes": 1258,
+    "analyzer_operand_bytes": 1668,
     "analyzer_unreached_or_data_bytes": 239,
     "banks": [
       "81",
@@ -783,6 +787,196 @@
         "legacy-beta": {
           "start": "82:AA6A",
           "end": "82:AA6D",
+          "shift": 0,
+          "similarity": 1
+        }
+      }
+    },
+    {
+      "source": "course-materialization",
+      "source_path": "analysis/generated/course-materialization-structure-island.json",
+      "name": "setup",
+      "kind": "code",
+      "usa_start": "82:E165",
+      "usa_end": "82:E1CF",
+      "size": 107,
+      "usa_opcode_bytes": 42,
+      "usa_operand_bytes": 65,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:E12B",
+          "end": "82:E195",
+          "shift": -58,
+          "similarity": 0.943925
+        },
+        "legacy-beta": {
+          "start": "82:E165",
+          "end": "82:E1CF",
+          "shift": 0,
+          "similarity": 1
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:E101",
+          "end": "82:E16B",
+          "shift": -100,
+          "similarity": 0.943925
+        },
+        "usa-retail": {
+          "start": "82:E165",
+          "end": "82:E1CF",
+          "shift": 0,
+          "similarity": 1
+        }
+      }
+    },
+    {
+      "source": "course-materialization",
+      "source_path": "analysis/generated/course-materialization-structure-island.json",
+      "name": "resource_record_header",
+      "kind": "code",
+      "usa_start": "82:E1D1",
+      "usa_end": "82:E213",
+      "size": 67,
+      "usa_opcode_bytes": 30,
+      "usa_operand_bytes": 37,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:E197",
+          "end": "82:E1D9",
+          "shift": -58,
+          "similarity": 0.895522
+        },
+        "legacy-beta": {
+          "start": "82:E1D1",
+          "end": "82:E213",
+          "shift": 0,
+          "similarity": 1
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:E16D",
+          "end": "82:E1AF",
+          "shift": -100,
+          "similarity": 0.895522
+        },
+        "usa-retail": {
+          "start": "82:E1D1",
+          "end": "82:E213",
+          "shift": 0,
+          "similarity": 1
+        }
+      }
+    },
+    {
+      "source": "course-materialization",
+      "source_path": "analysis/generated/course-materialization-structure-island.json",
+      "name": "dma_row_loop",
+      "kind": "code",
+      "usa_start": "82:E216",
+      "usa_end": "82:E2FF",
+      "size": 234,
+      "usa_opcode_bytes": 101,
+      "usa_operand_bytes": 133,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:E1DC",
+          "end": "82:E2C5",
+          "shift": -58,
+          "similarity": 0.884615
+        },
+        "legacy-beta": {
+          "start": "82:E216",
+          "end": "82:E2FF",
+          "shift": 0,
+          "similarity": 1
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:E1B2",
+          "end": "82:E29B",
+          "shift": -100,
+          "similarity": 0.884615
+        },
+        "usa-retail": {
+          "start": "82:E216",
+          "end": "82:E2FF",
+          "shift": 0,
+          "similarity": 1
+        }
+      }
+    },
+    {
+      "source": "course-materialization",
+      "source_path": "analysis/generated/course-materialization-structure-island.json",
+      "name": "resource_materialize_A000_C000",
+      "kind": "code",
+      "usa_start": "82:E302",
+      "usa_end": "82:E385",
+      "size": 132,
+      "usa_opcode_bytes": 77,
+      "usa_operand_bytes": 55,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:E2C8",
+          "end": "82:E34B",
+          "shift": -58,
+          "similarity": 0.954545
+        },
+        "legacy-beta": {
+          "start": "82:E302",
+          "end": "82:E385",
+          "shift": 0,
+          "similarity": 1
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:E29E",
+          "end": "82:E321",
+          "shift": -100,
+          "similarity": 0.954545
+        },
+        "usa-retail": {
+          "start": "82:E302",
+          "end": "82:E385",
+          "shift": 0,
+          "similarity": 1
+        }
+      }
+    },
+    {
+      "source": "course-materialization",
+      "source_path": "analysis/generated/course-materialization-structure-island.json",
+      "name": "exit",
+      "kind": "code",
+      "usa_start": "82:E388",
+      "usa_end": "82:E395",
+      "size": 14,
+      "usa_opcode_bytes": 7,
+      "usa_operand_bytes": 7,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:E34E",
+          "end": "82:E35B",
+          "shift": -58,
+          "similarity": 0.928571
+        },
+        "legacy-beta": {
+          "start": "82:E388",
+          "end": "82:E395",
+          "shift": 0,
+          "similarity": 1
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:E324",
+          "end": "82:E331",
+          "shift": -100,
+          "similarity": 0.928571
+        },
+        "usa-retail": {
+          "start": "82:E388",
+          "end": "82:E395",
           "shift": 0,
           "similarity": 1
         }

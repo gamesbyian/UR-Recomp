@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "source_directory": "reference/imported/reverse-engineering/nitrodon",
   "status": "historical evidence reconciled with current ROM/runtime work",
   "corrected_symbols": {
@@ -52,6 +52,35 @@
         "0": "player 1",
         "2": "player 2"
       }
+    },
+    "7E:12AF": {
+      "name": "Player1_StuntScoreDisplayCache",
+      "width": "16-bit",
+      "backing_score": "77:07BB",
+      "evidence": [
+        "81:C37F LDA $7707BB",
+        "81:C383 CMP $12AF",
+        "81:C388 STA $12AF",
+        "81:C38B..C3E7 decimal display decomposition"
+      ]
+    },
+    "77:07BB": {
+      "name": "Player1_StuntScore",
+      "width": "16-bit",
+      "evidence": [
+        "81:C13D ADC $7707BB",
+        "81:C141 STA $7707BB",
+        "81:C37F display-sync read"
+      ]
+    },
+    "77:0825": {
+      "name": "Player2_StuntScore",
+      "width": "16-bit",
+      "evidence": [
+        "81:C282 ADC $770825",
+        "81:C286 STA $770825",
+        "81:C3EA display-sync read"
+      ]
     }
   },
   "function_landmarks": {
@@ -83,17 +112,41 @@
     "table_start": "02:9DAA",
     "table_length_bytes": 625,
     "sentinel_values": [
-      "FE",
-      "FF"
+      "FE"
     ],
-    "sentinel_meanings": "unresolved"
+    "sentinel_meanings": {
+      "FE": "suppress paired praise messages and clean up stunt state",
+      "non_FE": "allow praise path; loaded table byte is not otherwise consumed",
+      "FF": "not behaviorally distinct from other non-FE values in the sole bank-82 consumer"
+    },
+    "consumer": {
+      "address": "02:9D22",
+      "reference_count_in_bank_82": 1,
+      "compare": "CMP #$00FE at 02:9D29",
+      "praise_ids": "computed independently after the gate"
+    }
   },
   "follow_up_targets": [
-    "trace stable player boost slots 11CF/11D1 to shared 11CD",
+    "quantify human-facing boost units and auxiliary reward-word semantics only if a product or fidelity decision requires them",
     "validate next-checkpoint and finish-gate fields during deterministic Dragster finish",
-    "trace stunt score 12AF against isolated stunt combinations",
-    "decode FE vs FF semantics in 625-byte stunt response table",
     "reconcile historical ROM map offsets with RNC course payloads",
     "turn bounce tracelog into a collision/velocity-transform fixture"
-  ]
+  ],
+  "message_reward_pipeline": {
+    "producer": "01:C5AF HUD_QueueMessage",
+    "player1": {
+      "consumer_range": "81:C0E8..C225",
+      "queue": "7E:0CBB+",
+      "score": "77:07BB",
+      "boost": "7E:11CF"
+    },
+    "player2": {
+      "consumer_range": "81:C228..C369",
+      "queue": "7E:0CE5+",
+      "score": "77:0825",
+      "boost": "7E:11D1"
+    },
+    "boost_reward_table": "81:C4AA signed words indexed by message_id - 1",
+    "note": "reward application is delayed until queue consumption; exact user-facing boost units remain open"
+  }
 }

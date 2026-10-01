@@ -51,7 +51,7 @@ def build():
          "seed_basis":"USA 83:CBCC is SEP #$30, independently establishing 8-bit A/X before the setup and frame-loop corridor.",
          "loop":{"header":"83:CC62","back_edge":"83:CD9D JMP $CC62"},
          "known_calls":{"input":"82:AA6A","racer_update":"82:89B5 wrapper","oam":"82:ACA1","player_state_marshal":"81:8D14"},
-         "builds":{},"regions":[]}
+         "builds":{},"regions":[],"transition_probe":{}}
  for build,blob in blobs.items():
   shift,sim=(0,1.0) if build=="usa-retail" else best_shift(usa,blob,us,ue)
   st=us+shift; en=ue+shift
@@ -61,6 +61,19 @@ def build():
                            "size":en-st+1,"size_delta":0,**roles,"sha256":hashlib.sha256(blob[st:en+1]).hexdigest()}
   if build!="usa-retail":
    result["builds"][build]["local_shift_profile_16byte"]=local_shift_profile(usa,blob,us,ue,shift)
+ # The coarse profile shows a PAL-line -2-byte transition near USA CC85..CC8A.
+ # Preserve a compact raw window anchored to the pre-transition homolog shift so
+ # the exact insertion/deletion can be identified without retaining ROM dumps.
+ probe_start=cpu_to_offset("83:CC78")
+ probe_size=48
+ pre_shifts={"usa-retail":0,"legacy-beta":0,"pal-prototype-1994-11-29":0,"europe-retail":38}
+ for build,blob in blobs.items():
+  ps=probe_start+pre_shifts[build]
+  result["transition_probe"][build]={
+   "start":offset_to_cpu(ps),
+   "size":probe_size,
+   "hex":blob[ps:ps+probe_size].hex(" "),
+  }
  result["regions"].append({"name":"Race_FrameOrchestrationCorridor","kind":"code","usa_start":USA_START,"usa_end":USA_END,
                            "size":ue-us+1,"builds":{name:{k:v for k,v in info.items() if k!="opcode_starts"} for name,info in result["builds"].items()}})
  return result

@@ -91,10 +91,26 @@ def build():
     row["builds"][build]["local_shift_profile_4byte"]=local_profile(usa,blob,us,ue,shift,window=4)
   rows.append(row)
  late_start,late_end=cpu_to_offset("81:81D4"),cpu_to_offset("81:82E0")
+ transition_windows=[]
+ for label,cpu,pre_shift in [
+  ("late1","81:81FC",0),
+  ("late2","81:8214",-6),
+  ("late3","81:822B",-12),
+  ("late4","81:8248",-18),
+  ("late5","81:8274",-25),
+ ]:
+  us=cpu_to_offset(cpu)
+  row={"name":label,"usa_start":cpu,"size":40,"usa_hex":usa[us:us+40].hex(" "),"builds":{}}
+  for build,blob in [("pal-prototype-1994-11-29",blobs["pal-prototype-1994-11-29"]),("europe-retail",blobs["europe-retail"])]:
+   shift=pre_shift + (-14 if build=="europe-retail" else 0)
+   bs=us+shift
+   row["builds"][build]={"start":offset_to_cpu(bs),"shift":shift,"hex":blob[bs:bs+40].hex(" ")}
+  transition_windows.append(row)
  proto_candidates=boundary_candidates(usa,blobs["pal-prototype-1994-11-29"],ds["usa-retail"],ds["pal-prototype-1994-11-29"],late_start,late_end,[0,-6,-12,-18,-25,-29])
  europe_candidates=boundary_candidates(usa,blobs["europe-retail"],ds["usa-retail"],ds["europe-retail"],late_start,late_end,[-14,-20,-26,-32,-39,-43])
  return {"schema_version":1,"island":"Race_HandleCheckpointFinish","usa_start":"81:8050","usa_end":"81:82E0",
  "instruction_aligned_shift_candidates":{"pal-prototype-1994-11-29":proto_candidates,"europe-retail":europe_candidates},
+ "transition_windows":transition_windows,
  "dispatch":{"object_code":"0x14","entry":"81:8050","shared_exit":"81:82E1"},
  "lineage_edits":[{"usa_span":"81:8102..8117","europe_span":"81:8102..8109","effect":"Europe retail contracts the 22-byte frame-normalization block to 8 bytes; PAL prototype and beta retain USA shape."}],
  "regions":rows}

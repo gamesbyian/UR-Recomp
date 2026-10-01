@@ -153,6 +153,14 @@
       "summary": "Recovered the 1,503-byte race camera-control cluster: velocity/follow solving, smoothing, scale configuration, and per-frame update. Every USA byte is executable; USA/beta are identical; PAL prototype remains at -32 and Europe -15 with 659/659 aligned opcode positions preserved.",
       "priority": "low",
       "next_evidence": "Name individual camera constants and regional WRAM operands only when viewport/widescreen implementation needs them. Comparative structure work should move to a twelfth independent subsystem."
+    },
+    {
+      "id": "resolved-race-timer-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:C697..C906 and homologs",
+      "summary": "Recovered the complete 624-byte race/stunt timer lifecycle. USA/beta are identical; PAL prototype stays at -35 and Europe -19 with all 244 aligned opcode positions preserved. The shared timer digit/subtick representation at 0E0F/0E13/0E17/0E1B/0E1F is now promoted.",
+      "priority": "low",
+      "next_evidence": "Expand mode selector 0E23, finish flags 0EF5/0EF7, or warning thresholds only for a concrete timing-fidelity or UI need. Comparative structure work should move to a thirteenth independent subsystem."
     }
   ]
 }

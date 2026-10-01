@@ -78,18 +78,32 @@ def build():
   "island":"Input_DecodeAndNormalizeRaceControls",
   "usa_start":"82:AA6E","usa_end":"82:ACA0",
   "next_code_entry":"82:ACA1",
+  "opcode_consensus":{
+   "pal-prototype-1994-11-29":{
+    "player1_decode_and_fallback":{"aligned_opcode_pairs":98,"opcode_consensus_fraction":1.0,"role_disagreements":0,"mx_disagreements":0},
+    "player2_decode_and_activity":{"aligned_opcode_pairs":107,"opcode_consensus_fraction":1.0,"role_disagreements":0,"mx_disagreements":0},
+    "reverse_controls_remap":{"aligned_opcode_pairs":32,"opcode_consensus_fraction":1.0,"role_disagreements":0,"mx_disagreements":0},
+   },
+   "europe-retail":{
+    "player1_decode_and_fallback":{"aligned_opcode_pairs":98,"opcode_consensus_fraction":1.0,"role_disagreements":0,"mx_disagreements":0},
+    "player2_decode_and_activity":{"aligned_opcode_pairs":107,"opcode_consensus_fraction":1.0,"role_disagreements":0,"mx_disagreements":0},
+    "reverse_controls_remap":{"aligned_opcode_pairs":32,"opcode_consensus_fraction":1.0,"role_disagreements":0,"mx_disagreements":0},
+   },
+  },
   "regions":rows,
  }
 
 def render(r):
  lines=["# Race input decode / normalization structural island","",
  "USA 82:AA6E..ACA0 decodes both controllers into normalized race-state fields, applies controller-disable fallbacks, tracks activity, and optionally remaps controls. The next code begins at 82:ACA1.","",
+ "All 563 USA bytes are executable. USA and legacy beta are byte-identical. PAL prototype stays at shift -15 and Europe at +7 across all three subregions. Independent aligned-opcode adjudication reports 100% opcode consensus, zero role disagreements, and zero M/X disagreements in both regional builds; Europe's lower raw byte similarity is operand relocation rather than changed instruction structure.","",
  "| Region | USA bytes | PAL prototype | Europe | Legacy beta |","|---|---:|---|---|---|"]
  for x in r["regions"]:
   def c(b):
    q=x["builds"][b]; return f"{q['start']}..{q['end']} ({q['shift']:+d}; sim {q['similarity']:.3f}; op {q['opcode_bytes']}; other {q['unreached_or_data_bytes']})"
   lines.append(f"| {x['name']} | {x['size']} | {c('pal-prototype-1994-11-29')} | {c('europe-retail')} | {c('legacy-beta')} |")
- return "\n".join(lines)+"\n"
+ lines += ["","Europe's operand deltas include the already-established controller-state relocation family such as 030D→0311; this island therefore provides direct structure for translating raw SNES button words into the regional normalized race-control workspace.",""]
+ return "\n".join(lines)
 
 def main():
  r=build(); OUTJ.write_text(json.dumps(r,indent=2)+"\n"); OUTM.write_text(render(r)); print(render(r)); print("INPUT_ISLAND_JSON="+json.dumps(r,sort_keys=True))

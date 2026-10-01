@@ -1,0 +1,288 @@
+{
+  "method": {
+    "alignment": "each executable island independently raw-byte aligned around parent shift +/-48 bytes",
+    "analyzer": "vendored snes2asm",
+    "boundary_sources": [
+      "reference/imported/reverse-engineering/nitrodon/bank 80.txt",
+      "tools/analyze_frontend_text_dispatch.py",
+      "known callable/control-flow entry points"
+    ],
+    "negative_result_policy": "vanished whole-window disagreements remain evidence of layout/analyzer noise"
+  },
+  "schema_version": 1,
+  "totals": {
+    "reduction_fraction": 1,
+    "subregion_aligned_role_disagreements": 0,
+    "survivor_windows": 3,
+    "whole_window_role_disagreements": 114
+  },
+  "windows": [
+    {
+      "parent": "00:ABA9..00:ADE2",
+      "segments": [
+        {
+          "action": "excluded_from_executable_role_comparison",
+          "basis": "Nitrodon: frontend/text bytes before executable 80:ABB9.",
+          "end_cpu": "00:ABB8",
+          "kind": "data",
+          "retail_end": 11192,
+          "retail_start": 11177,
+          "start_cpu": "00:ABA9"
+        },
+        {
+          "aligned_mx_disagreements": 0,
+          "aligned_opcode_pairs": 153,
+          "aligned_residuals": [],
+          "aligned_role_disagreements": 0,
+          "aligned_role_pairs": {
+            "opcode->opcode": 153,
+            "operand->operand": 175,
+            "unreached->unreached": 15
+          },
+          "basis": "Nitrodon: executable island from JSL 83:9558 through RTS at 80:AD0F.",
+          "end_cpu": "00:AD0F",
+          "kind": "code",
+          "prototype_end": 11504,
+          "prototype_shift": -31,
+          "prototype_start": 11162,
+          "raw_similarity_after_alignment": 0.953353,
+          "retail_end": 11535,
+          "retail_start": 11193,
+          "same_offset_mx_disagreements": 45,
+          "same_offset_opcode_pairs": 72,
+          "same_offset_role_disagreements": 176,
+          "same_offset_role_pairs": {
+            "opcode->opcode": 72,
+            "opcode->operand": 81,
+            "operand->opcode": 80,
+            "operand->operand": 95,
+            "unreached->opcode": 5,
+            "unreached->operand": 10
+          },
+          "start_cpu": "00:ABB9"
+        },
+        {
+          "action": "excluded_from_executable_role_comparison",
+          "basis": "Nitrodon: embedded frontend command/text stream consumed via 80:C3AB.",
+          "end_cpu": "00:AD33",
+          "kind": "data",
+          "retail_end": 11571,
+          "retail_start": 11536,
+          "start_cpu": "00:AD10"
+        },
+        {
+          "aligned_mx_disagreements": 0,
+          "aligned_opcode_pairs": 79,
+          "aligned_residuals": [],
+          "aligned_role_disagreements": 0,
+          "aligned_role_pairs": {
+            "opcode->opcode": 79,
+            "operand->operand": 81,
+            "unreached->unreached": 15
+          },
+          "basis": "Nitrodon: callable routine entry 80:AD34 through bounded survivor end.",
+          "end_cpu": "00:ADE2",
+          "kind": "code",
+          "prototype_end": 11733,
+          "prototype_shift": -13,
+          "prototype_start": 11559,
+          "raw_similarity_after_alignment": 0.988571,
+          "retail_end": 11746,
+          "retail_start": 11572,
+          "same_offset_mx_disagreements": 17,
+          "same_offset_opcode_pairs": 39,
+          "same_offset_role_disagreements": 90,
+          "same_offset_role_pairs": {
+            "opcode->opcode": 39,
+            "opcode->operand": 33,
+            "opcode->unreached": 7,
+            "operand->opcode": 31,
+            "operand->operand": 44,
+            "operand->unreached": 6,
+            "unreached->opcode": 9,
+            "unreached->operand": 4,
+            "unreached->unreached": 2
+          },
+          "start_cpu": "00:AD34"
+        }
+      ],
+      "whole_window_role_disagreements": 91,
+      "whole_window_shift": -31
+    },
+    {
+      "parent": "00:C3A9..00:C450",
+      "segments": [
+        {
+          "action": "excluded_from_executable_role_comparison",
+          "basis": "Tail of preceding frontend string; parser entry independently known at 80:C3AB.",
+          "end_cpu": "00:C3AA",
+          "kind": "data",
+          "retail_end": 17322,
+          "retail_start": 17321,
+          "start_cpu": "00:C3A9"
+        },
+        {
+          "aligned_mx_disagreements": 0,
+          "aligned_opcode_pairs": 9,
+          "aligned_residuals": [],
+          "aligned_role_disagreements": 0,
+          "aligned_role_pairs": {
+            "opcode->opcode": 9,
+            "operand->operand": 6,
+            "unreached->unreached": 17
+          },
+          "basis": "Known frontend/text interpreter entry through indirect dispatch setup.",
+          "end_cpu": "00:C3CA",
+          "kind": "code",
+          "prototype_end": 17335,
+          "prototype_shift": -19,
+          "prototype_start": 17304,
+          "raw_similarity_after_alignment": 1,
+          "retail_end": 17354,
+          "retail_start": 17323,
+          "same_offset_mx_disagreements": 4,
+          "same_offset_opcode_pairs": 4,
+          "same_offset_role_disagreements": 25,
+          "same_offset_role_pairs": {
+            "opcode->opcode": 4,
+            "opcode->operand": 5,
+            "operand->opcode": 3,
+            "operand->operand": 3,
+            "unreached->opcode": 9,
+            "unreached->operand": 8
+          },
+          "start_cpu": "00:C3AB"
+        },
+        {
+          "action": "excluded_from_executable_role_comparison",
+          "basis": "Decoded 17-entry FF..EF handler-word table at 80:C3CB.",
+          "end_cpu": "00:C3EC",
+          "kind": "data",
+          "retail_end": 17388,
+          "retail_start": 17355,
+          "start_cpu": "00:C3CB"
+        },
+        {
+          "aligned_mx_disagreements": 0,
+          "aligned_opcode_pairs": 50,
+          "aligned_residuals": [],
+          "aligned_role_disagreements": 0,
+          "aligned_role_pairs": {
+            "opcode->opcode": 50,
+            "operand->operand": 50
+          },
+          "basis": "Executable handler region immediately following bounded dispatch table.",
+          "end_cpu": "00:C450",
+          "kind": "code",
+          "prototype_end": 17469,
+          "prototype_shift": -19,
+          "prototype_start": 17370,
+          "raw_similarity_after_alignment": 0.89,
+          "retail_end": 17488,
+          "retail_start": 17389,
+          "same_offset_mx_disagreements": 12,
+          "same_offset_opcode_pairs": 26,
+          "same_offset_role_disagreements": 49,
+          "same_offset_role_pairs": {
+            "opcode->opcode": 26,
+            "opcode->operand": 15,
+            "opcode->unreached": 9,
+            "operand->opcode": 15,
+            "operand->operand": 25,
+            "operand->unreached": 10
+          },
+          "start_cpu": "00:C3ED"
+        }
+      ],
+      "whole_window_role_disagreements": 5,
+      "whole_window_shift": -19
+    },
+    {
+      "parent": "00:8C49..00:8CCA",
+      "segments": [
+        {
+          "action": "excluded_from_executable_role_comparison",
+          "basis": "Window begins inside final LDA operand of helper 80:8C41; exclude boundary fragment.",
+          "end_cpu": "00:8C4D",
+          "kind": "boundary_tail",
+          "retail_end": 3149,
+          "retail_start": 3145,
+          "start_cpu": "00:8C49"
+        },
+        {
+          "aligned_mx_disagreements": 0,
+          "aligned_opcode_pairs": 18,
+          "aligned_residuals": [],
+          "aligned_role_disagreements": 0,
+          "aligned_role_pairs": {
+            "opcode->opcode": 18,
+            "operand->operand": 20
+          },
+          "basis": "Nitrodon gives the clean 80:8C4E entry; raw local alignment independently shows this prefix is byte-identical to prototype at shift -5 through the local PLP/RTS.",
+          "end_cpu": "00:8C73",
+          "kind": "code",
+          "prototype_end": 3182,
+          "prototype_shift": -5,
+          "prototype_start": 3145,
+          "raw_similarity_after_alignment": 1,
+          "retail_end": 3187,
+          "retail_start": 3150,
+          "same_offset_mx_disagreements": 1,
+          "same_offset_opcode_pairs": 7,
+          "same_offset_role_disagreements": 22,
+          "same_offset_role_pairs": {
+            "opcode->opcode": 7,
+            "opcode->operand": 11,
+            "operand->opcode": 11,
+            "operand->operand": 9
+          },
+          "shift_hint": -5,
+          "start_cpu": "00:8C4E"
+        },
+        {
+          "action": "excluded_from_executable_role_comparison",
+          "basis": "Four-byte JSL exists only in PAL retail at this homolog boundary; prototype proceeds directly to the following stores. Preserve as genuine executable delta.",
+          "end_cpu": "00:8C77",
+          "kind": "retail_only_code",
+          "retail_end": 3191,
+          "retail_start": 3188,
+          "start_cpu": "00:8C74"
+        },
+        {
+          "aligned_mx_disagreements": 0,
+          "aligned_opcode_pairs": 26,
+          "aligned_residuals": [],
+          "aligned_role_disagreements": 0,
+          "aligned_role_pairs": {
+            "opcode->opcode": 26,
+            "operand->operand": 57
+          },
+          "basis": "Immediately after the four-byte retail-only insertion, the remaining executable suffix is byte-identical to prototype at shift -9.",
+          "end_cpu": "00:8CCA",
+          "kind": "code",
+          "prototype_end": 3265,
+          "prototype_shift": -9,
+          "prototype_start": 3183,
+          "raw_similarity_after_alignment": 1,
+          "retail_end": 3274,
+          "retail_start": 3192,
+          "same_offset_mx_disagreements": 0,
+          "same_offset_opcode_pairs": 6,
+          "same_offset_role_disagreements": 40,
+          "same_offset_role_pairs": {
+            "opcode->opcode": 6,
+            "opcode->operand": 16,
+            "opcode->unreached": 4,
+            "operand->opcode": 15,
+            "operand->operand": 37,
+            "operand->unreached": 5
+          },
+          "shift_hint": -9,
+          "start_cpu": "00:8C78"
+        }
+      ],
+      "whole_window_role_disagreements": 18,
+      "whole_window_shift": -9
+    }
+  ]
+}

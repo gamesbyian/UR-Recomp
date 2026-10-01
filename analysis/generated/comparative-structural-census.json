@@ -38,17 +38,21 @@
     {
       "id": "stunt-message-pipeline",
       "path": "analysis/generated/stunt-message-pipeline-structure-island.json"
+    },
+    {
+      "id": "input-normalization",
+      "path": "analysis/generated/input-normalization-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 73,
-    "code_regions": 65,
+    "regions": 76,
+    "code_regions": 68,
     "data_regions": 8,
-    "bounded_bytes": 8733,
-    "bounded_code_region_bytes": 7588,
+    "bounded_bytes": 9296,
+    "bounded_code_region_bytes": 8151,
     "bounded_data_region_bytes": 1145,
-    "analyzer_opcode_bytes": 3182,
-    "analyzer_operand_bytes": 4344,
+    "analyzer_opcode_bytes": 3419,
+    "analyzer_operand_bytes": 4670,
     "analyzer_unreached_or_data_bytes": 1207,
     "banks": [
       "81",
@@ -2409,6 +2413,144 @@
           "shift": 0,
           "similarity": 1,
           "size": 4,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "input-normalization",
+      "source_path": "analysis/generated/input-normalization-structure-island.json",
+      "name": "player1_decode_and_fallback",
+      "kind": "code",
+      "usa_start": "82:AA6E",
+      "usa_end": "82:AB54",
+      "size": 231,
+      "usa_opcode_bytes": 98,
+      "usa_operand_bytes": 133,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:AA75",
+          "end": "82:AB5B",
+          "shift": 7,
+          "similarity": 0.848485,
+          "size": 231,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:AA6E",
+          "end": "82:AB54",
+          "shift": 0,
+          "similarity": 1,
+          "size": 231,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:AA5F",
+          "end": "82:AB45",
+          "shift": -15,
+          "similarity": 0.991342,
+          "size": 231,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:AA6E",
+          "end": "82:AB54",
+          "shift": 0,
+          "similarity": 1,
+          "size": 231,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "input-normalization",
+      "source_path": "analysis/generated/input-normalization-structure-island.json",
+      "name": "player2_decode_and_activity",
+      "kind": "code",
+      "usa_start": "82:AB55",
+      "usa_end": "82:AC52",
+      "size": 254,
+      "usa_opcode_bytes": 107,
+      "usa_operand_bytes": 147,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:AB5C",
+          "end": "82:AC59",
+          "shift": 7,
+          "similarity": 0.850394,
+          "size": 254,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:AB55",
+          "end": "82:AC52",
+          "shift": 0,
+          "similarity": 1,
+          "size": 254,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:AB46",
+          "end": "82:AC43",
+          "shift": -15,
+          "similarity": 0.988189,
+          "size": 254,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:AB55",
+          "end": "82:AC52",
+          "shift": 0,
+          "similarity": 1,
+          "size": 254,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "input-normalization",
+      "source_path": "analysis/generated/input-normalization-structure-island.json",
+      "name": "reverse_controls_remap",
+      "kind": "code",
+      "usa_start": "82:AC53",
+      "usa_end": "82:ACA0",
+      "size": 78,
+      "usa_opcode_bytes": 32,
+      "usa_operand_bytes": 46,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:AC5A",
+          "end": "82:ACA7",
+          "shift": 7,
+          "similarity": 0.730769,
+          "size": 78,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:AC53",
+          "end": "82:ACA0",
+          "shift": 0,
+          "similarity": 1,
+          "size": 78,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:AC44",
+          "end": "82:AC91",
+          "shift": -15,
+          "similarity": 0.987179,
+          "size": 78,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:AC53",
+          "end": "82:ACA0",
+          "shift": 0,
+          "similarity": 1,
+          "size": 78,
           "size_delta": 0
         }
       }

@@ -95,14 +95,14 @@ def build():
 
 def render(r):
  lines=["# Race input decode / normalization structural island","",
- "USA 82:AA6E..ACA0 decodes both controllers into normalized race-state fields, applies controller-disable fallbacks, tracks activity, and optionally remaps controls. The next code begins at 82:ACA1.","",
+ "USA `82:AA6E..ACA0` decodes both controllers into normalized race-state fields, applies controller-disable fallbacks, tracks activity, and optionally remaps controls. The next code begins at `82:ACA1`.","",
  "All 563 USA bytes are executable. USA and legacy beta are byte-identical. PAL prototype stays at shift -15 and Europe at +7 across all three subregions. Independent aligned-opcode adjudication reports 100% opcode consensus, zero role disagreements, and zero M/X disagreements in both regional builds; Europe's lower raw byte similarity is operand relocation rather than changed instruction structure.","",
  "| Region | USA bytes | PAL prototype | Europe | Legacy beta |","|---|---:|---|---|---|"]
  for x in r["regions"]:
   def c(b):
    q=x["builds"][b]; return f"{q['start']}..{q['end']} ({q['shift']:+d}; sim {q['similarity']:.3f}; op {q['opcode_bytes']}; other {q['unreached_or_data_bytes']})"
   lines.append(f"| {x['name']} | {x['size']} | {c('pal-prototype-1994-11-29')} | {c('europe-retail')} | {c('legacy-beta')} |")
- lines += ["","Europe's operand deltas include the already-established controller-state relocation family such as 030D→0311; this island therefore provides direct structure for translating raw SNES button words into the regional normalized race-control workspace.",""]
+ lines += ["","Europe's operand deltas include the already-established controller-state relocation family such as `030D→0311`; this island therefore provides direct structure for translating raw SNES button words into the regional normalized race-control workspace.",""]
  return "\n".join(lines)
 
 def main():

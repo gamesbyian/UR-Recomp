@@ -215,6 +215,94 @@ jobs:
           print(f"FIRST_P2_DRIFT frame={frame} diffs={diffs}")
           PY
 
+      - name: Discriminate player-slot versus direction drift
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
+          MICRO="$GITHUB_WORKSPACE/tests/input/two-player-p2-drift-microtrace.script"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          REF="$RUNNER_TEMP/snesref-build/snesref"
+          NATIVE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+
+          python3 - "$BASE" "$RUNNER_TEMP" <<'PY'
+          from pathlib import Path
+          import sys
+          src=Path(sys.argv[1]).read_text().splitlines()
+          out=Path(sys.argv[2])
+          prefix=[]
+          for raw in src:
+              line=raw.split("#",1)[0].strip()
+              if not line:
+                  continue
+              start=int(line.split(":",1)[0],0)
+              if start < 1480:
+                  prefix.append(line)
+          variants={
+              "p1-left": "1530:24:040:000",
+              "p2-right": "1530:24:000:080",
+          }
+          for name,event in variants.items():
+              (out/f"{name}.input").write_text("\n".join(prefix+[event])+"\n")
+          PY
+
+          run_variant() {
+            local name="$1"
+            local input="$RUNNER_TEMP/$name.input"
+            mkdir -p "$RUNNER_TEMP/$name-snes9x" "$RUNNER_TEMP/$name-native"
+            SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+            SNESREF_INPUT_FILE="$input" SNESREF_SCRIPT="$MICRO" \
+            SNESREF_DUMP_DIR="$RUNNER_TEMP/$name-snes9x" \
+              "$REF" "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" "$ROM" \
+              >"$RUNNER_TEMP/$name-snes9x.log" 2>&1
+            SNESRECOMP_INPUT_FILE="$input" SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/$name-native" \
+            SDL_AUDIODRIVER=dummy \
+              timeout 180s xvfb-run -a "$NATIVE" "$ROM" --script "$MICRO" \
+              >"$RUNNER_TEMP/$name-native.log" 2>&1
+          }
+          run_variant p1-left
+          run_variant p2-right
+
+          python3 - "$RUNNER_TEMP" <<'PY'
+          from pathlib import Path
+          import sys
+          root=Path(sys.argv[1])
+          slots={
+              "p1-left":{
+                  "x":("u16",0x0411),"y":("u16",0x0415),
+                  "vx":("s16",0x04B7),"vy":("s16",0x04BB),
+                  "air":("u8",0x0545),"rot":("u8",0x04C7),
+              },
+              "p2-right":{
+                  "x":("u16",0x0413),"y":("u16",0x0417),
+                  "vx":("s16",0x04B9),"vy":("s16",0x04BD),
+                  "air":("u8",0x0547),"rot":("u8",0x04C9),
+              },
+          }
+          def read(path, fields):
+              w=path.read_bytes(); out={}
+              for name,(kind,off) in fields.items():
+                  if kind=="u8": v=w[off]
+                  else:
+                      v=int.from_bytes(w[off:off+2],"little")
+                      if kind=="s16" and v&0x8000: v-=0x10000
+                  out[name]=v
+              return out
+          for variant,fields in slots.items():
+              first=None
+              print("VARIANT",variant)
+              for frame in range(1528,1555):
+                  tag=f"p2-drift-{frame}"
+                  a=read(root/f"{variant}-native"/f"{tag}.wram.bin",fields)
+                  b=read(root/f"{variant}-snes9x"/f"{tag}.wram.bin",fields)
+                  diffs={k:(a[k],b[k]) for k in fields if a[k]!=b[k]}
+                  if frame < 1530 and diffs:
+                      raise SystemExit(f"{variant}: pre-intervention mismatch at {frame}: {diffs}")
+                  if diffs and first is None:
+                      first=(frame,diffs)
+              print("FIRST_VARIANT_DRIFT",variant,first or "MATCH_THROUGH_1554")
+          PY
+
       - name: Assert ordinary 2P active-display OAM seam
         run: |
           python3 tools/assert_uniracers_vs_oam_seam.py             "$RUNNER_TEMP/snes9x-dumps/two-player-race-1220.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-race-1420.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-p1-pre-1470.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-p2-post-1570.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-both-post-1620.ppuw.tsv"
@@ -243,4 +331,10 @@ jobs:
             ${{ runner.temp }}/snes9x-micro/
             ${{ runner.temp }}/native-micro.log
             ${{ runner.temp }}/snes9x-micro.log
+            ${{ runner.temp }}/p1-left-native/
+            ${{ runner.temp }}/p1-left-snes9x/
+            ${{ runner.temp }}/p2-right-native/
+            ${{ runner.temp }}/p2-right-snes9x/
+            ${{ runner.temp }}/p1-left-*.log
+            ${{ runner.temp }}/p2-right-*.log
           retention-days: 7

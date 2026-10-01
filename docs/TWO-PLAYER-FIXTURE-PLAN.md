@@ -190,6 +190,14 @@ PR #145 turns this static explanation into an explicit dynamic assertion while p
 
 If that assertion passes, retire signed-arithmetic differences inside `A5F3` as the leading explanation. The remaining root question moves one layer earlier: why native and the reference cores enter stable race play with opposite `$0302` scheduler phase from frame 1135 onward. Do not investigate the later terrain/contact amplification until that phase-origin seam is either explained or shown to be an intentional host-observation offset.
 
+Static main-loop ordering further narrows that root question. In bank 83, the per-frame loop updates scheduler state at `83:CC87..CC9A` before it dispatches into race logic via `83:CD32..CD3A`. The ordinary-2P race routine then writes `inRace` at `83:E070..E073` (and the sibling path at `83:E3FB..E3FE`) without resetting `$0300/$0302/$0304`. Therefore race entry inherits the scheduler parity that already existed on that guest-frame pass; it does not create a fresh phase.
+
+This leaves two tightly bounded possibilities for the dense 1128-1140 probe:
+1. the runtimes are already phase-shifted before `inRace` becomes 1, which points to a pre-race guest-frame/loop-count discrepancy; or
+2. they agree immediately before entry but observe different sides of the same entry pass, which points to host checkpoint/frame-boundary semantics rather than game arithmetic.
+
+The probe should be interpreted in that order.
+
 ## VS active-movement parity refinement
 
 Current-main replay reconfirms exact native/Snes9x paired-racer semantics at stable pre-intervention checkpoints 1240, 1340 and 1440. After the P1-only, P2-only and simultaneous movement sequence, P1 still matches while P2 ends with a very small difference: native `x=1137, vx=-263`; Snes9x `x=1141, vx=-266`.

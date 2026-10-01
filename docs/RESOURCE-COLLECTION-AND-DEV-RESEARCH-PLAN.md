@@ -120,19 +120,19 @@ PR #124 has already demonstrated that cross-build semantic correspondence is hig
 
 The next work should therefore exploit the strongest demonstrated signal first, then use the unusually clean USA/beta delta set as a bounded analyzer-validation corpus.
 
-#### Stage 1 — bounded WRAM motion atlas
+#### Stage 1 — bounded WRAM motion atlas — completed 2026-09-30
 
-Build directly on `tools/compare_semantic_anchors.py` and the merged findings from PR #124.
+`tools/build_wram_motion_atlas.py` now derives a machine-readable displacement/co-occurrence atlas directly from the trusted semantic-anchor corpus. Evidence run `36807393022` is green.
 
-- collect absolute/direct-page WRAM operands from the trusted structurally matched routines;
-- align operand positions structurally across builds;
-- cluster fields by shared displacement and co-occurrence rather than assuming one global offset;
-- distinguish stable fields, shifted logical blocks, insertions/removals, and local exceptions;
-- use the PAL prototype's recurring `+4` motion and Europe's structure-specific `+10` / `+6` / `+4` families as primary evidence;
-- keep weak Europe checkpoint/HUD/OAM candidates unpromoted until another local structural or runtime discriminator agrees;
-- feed useful clusters back into `docs/SYMBOLS.md`, decompilation gaps, and course/physics/rendering structure inference only where they change a current decision or make later RE materially cheaper.
+Current bounded result:
+- Europe retail: `+10` spans 6 trusted anchors / 29 USA fields / 99 operand observations; `+4` spans 3 anchors / 12 fields / 38 observations; `+6` spans 2 anchors / 9 fields / 28 observations; a stable family also remains.
+- PAL prototype: `+4` spans 7 trusted anchors / 31 fields / 108 observations, alongside a stable family spanning 6 anchors / 31 fields / 90 observations.
+- Legacy beta: all eight trusted anchors remain structurally stable at `+0`, covering 62 fields / 212 observations.
+- Repeated USA fields that appear in more than one trusted anchor project consistently in every accepted top match; the atlas reports no conflicting repeated-field projection.
 
-**Stop rule:** do not chase complete WRAM archaeology. Stop when additional clustering no longer changes symbol confidence, structure reconstruction, implementation choices, or an active fidelity/decompilation question.
+Interpretation remains deliberately bounded: these are structure-membership/layout signals, not automatic semantic labels or chronology claims. The atlas confirms that Europe has multiple independently moving WRAM blocks rather than one global relocation and that the PAL prototype preserves a large stable block beside a broad `+4` family.
+
+Artifacts: `analysis/generated/wram-motion-atlas.json` and `.md`. Further clustering is not a priority unless a current physics/course/rendering/fidelity question needs a finer split.
 
 #### Stage 2 — classify the 486 USA-retail vs legacy-beta differences with independent analyzers
 

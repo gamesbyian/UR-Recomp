@@ -10,6 +10,7 @@ DEFAULT_SOURCES = (
     ("object-collision", "analysis/generated/object-collision-structure-island.json", True),
     ("course-materialization", "analysis/generated/course-materialization-structure-island.json", False),
     ("racer-oam", "analysis/generated/racer-oam-structure-island.json", False),
+    ("course-surface-sampler", "analysis/generated/course-surface-sampler-structure-island.json", False),
 )
 
 def build(root: Path) -> dict:

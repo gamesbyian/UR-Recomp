@@ -211,6 +211,18 @@ Static frontend recovery moves that boundary one step earlier. Entry point `80:9
 
 The phase-origin probe therefore also reports raw 8 KiB SRAM offsets `$0742/$074B/$074D/$0750/$10AD`. If Snes9x reaches `$074D=FF` one frame before native, the root seam moves out of bank 83 entirely and into the frontend branch that reaches `99A4`; if those SRAM fields already match, continue inside the common setup body.
 
+The five statically recovered `99A4` callers can be distinguished mechanically by the `$7710AD` value established in their surrounding branch:
+
+| `$7710AD` | `99A4` callsite |
+| ---: | --- |
+| 1 | `80:BC41` |
+| 2 | `80:BD68` |
+| 3 | `80:BFF5` |
+| 4 | `80:BEFA` |
+| 5 | `80:94C7` |
+
+Do not attach player-facing mode names to these values until runtime evidence or another recovered source proves them. The purpose of the table is only to turn the SRAM discriminator into an exact frontend callsite.
+
 A related community-memory note should remain explicitly qualified: Dessyreqt's 2014 bot reads a word at `7E:11BA` and labels it `countdownTimer`, but the recovered game code initializes, compares, and decrements a 16-bit countdown at `$11BB` (`82:D88F..D895`, `83:E59B..`, `83:E721/E737/E76D`). The bot watch is useful historical corroboration of countdown progress, not an authoritative exact address label. The countdown is downstream of race entry and therefore not a candidate cause of the 1134 entry seam.
 
 ## VS active-movement parity refinement

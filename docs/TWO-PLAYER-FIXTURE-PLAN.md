@@ -163,22 +163,22 @@ The controller-snapshot bytes remain equal at the first velocity divergence, so 
 
 The USA race-update routine copies P2 persistent X speed `$04B9` into shared working X speed `$0F9F`, processes the common racer physics path, then copies `$0F9F` back to `$04B9`. The trace now includes decoded P2 horizontal direction and the shared working speed/rotation fields.
 
-Run `36822486597` adds a directional/player-slot discriminator from the exact same pre-intervention state:
+Run `36822486597` originally appeared to make the seam direction-specific, but retained artifact inspection later showed that sequential native launches were sharing persisted generated-host SRAM. That made the directional matrix non-repeatable before intervention and invalidated the leftward-only interpretation.
+
+The clean-SRAM rerun `36827520546` now deletes the generated native save directory before every native oracle launch and gates full WRAM plus full SRAM identity at frames 1528-1529 across every generated variant. Under that controlled state:
 
 - P1 Left: first difference at frame 1532, X speed only, native `-48` vs Snes9x `-47`;
-- P2 Left: first difference at frame 1532, X speed only, native `-47` vs Snes9x `-48`;
-- P2 Right: exact through frame 1554;
-- P1 Right: no early X-speed seam; first difference is a later contact/air transition at frame 1539.
+- P1 Right: first difference at frame 1532, X speed only, native `+48` vs Snes9x `+47`;
+- P2 Right: first difference at frame 1532, X speed only, native `+47` vs Snes9x `+48`;
+- canonical P2 Left remains first-different at frame 1532, with persistent and shared working X speed native `-47` vs Snes9x `-48`.
 
-That directional result initially looked like a leftward-physics defect, but the retained run artifact exposes a test-fixture contaminant before any such conclusion is justified.
+This rules out player-slot routing, input direction, and persisted fixture state as the primary cause. The earliest seam is a **one-unit small-speed update difference** in the common racer physics path. Its polarity changes with the exact incoming state rather than with a single controller or direction.
 
-The recovered bank-82 code shows that `82:A5F3..A617` nudges a small nonzero `$0F9F` one unit toward zero when `$0F31 == 0` and `$0F0D == 0`. It is called from the alternating per-player update paths at `82:8C4F` (P1) and `82:9136` (P2). The caller paths are selected by `$0302`; the race loop at `83:CC87..CC9A` increments `$0304` modulo 3 and flips `$0302` between 0 and 1 every iteration. The frame-1532 +/-1 speed pattern is exactly consistent with observing that one-unit nudge on adjacent scheduler phases.
+The recovered bank-82 code narrows the relevant update to `82:A5F3..A617`, which nudges a small nonzero shared working X speed `$0F9F` one unit toward zero when its neutral-angle conditions hold. It is reached from the alternating P1/P2 update paths; the scheduler phase fields therefore remain relevant, but the clean rerun shows the effect is not a stale-save artifact. The left helper at `82:AA09` is no longer the leading arithmetic suspect.
 
-More importantly, the supposedly same-prefix native variant runs were **not starting from the same battery SRAM**. The generated desktop host persists `saves/save.srm` beside the executable, and the workflow launched several native diagnostics sequentially from that same build tree. In retained run `36822486597`, SRAM byte `$10B1` is `2` in the original P2-Left native microtrace, then `3` in P1-Left, `4` in P1-Right and `5` in P2-Right. The Snes9x runs start fresh and all report `1`. P1-Left and P1-Right have identical controller input through frame 1529, yet their native WRAM already differs before the intervention while their Snes9x WRAM is byte-identical. Their native dumps also land at different intra-frame master clocks/H positions (for example frame 1528: V=236/H=688 versus V=236/H=476), consistent with the inherited save state perturbing race-loop phase.
+A disposable trace-enabled writer workflow was attempted and retired because its generated trace target hits an unrelated unresolved `80:C3C8 -> 00:FFFF` dispatch at frame 445, before multiplayer. The generic trace client retains the useful bounded `--continue-until` option, but repairing trace-target generation is not a prerequisite for this lane.
 
-The durable fixture therefore now deletes the generated native save directory before **every** native oracle launch. Do not interpret the old frame-1532 directional matrix as a physics mismatch until the clean-SRAM rerun is harvested. If the +/-1 seam disappears, close it as fixture-state contamination. If it survives from identical SRAM, only then resume bounded instruction attribution around `A5F3` / `AA09`.
-
-A disposable trace-enabled writer workflow was also attempted and retired: its generated trace target hit the unrelated unresolved dispatch `80:C3C8 -> 00:FFFF` at frame 445, before multiplayer. The generic trace client gained a bounded `--continue-until` option, but fixing that trace-target dispatch is not a prerequisite for this multiplayer lane.
+The next useful discriminator is bounded around `82:A5F3..A617`: establish why native and Snes9x differ on whether/how that one-unit nudge is applied at frame 1532, using existing instruction/state evidence or a lightweight oracle that does not require fixing the trace-target generator. Do not investigate the later terrain/contact amplification until this first one-unit decision is explained.
 
 ## VS active-movement parity refinement
 

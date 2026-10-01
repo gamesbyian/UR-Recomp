@@ -148,7 +148,7 @@ Do not propagate weak names as facts. Hypotheses remain hypotheses, cross-ROM la
 
 ### R-METHOD-001 — Cross-build semantic anchors must survive relocation
 
-**Status:** method implemented; corpus run pending  
+**Status:** implemented and corpus-confirmed  
 **Date:** 2026-09-30  
 **Area:** tooling | decompilation | multi-ROM
 
@@ -168,9 +168,23 @@ Do not propagate weak names as facts. Hypotheses remain hypotheses, cross-ROM la
 **Observation:** relocation-tolerant matching of eight trusted USA semantic anchors finds exact legacy-beta matches and coherent relocated PAL/Europe counterparts. At structurally aligned operand positions, PAL prototype repeatedly maps USA semantic WRAM words by `+0x04`, while Europe repeatedly maps the same classes by `+0x0A`; Europe’s message-ring block instead moves by `+0x06`.  
 **Evidence:** workflow runs `36806186428` and `36806317142`; `analysis/generated/cross-build-semantic-anchor-findings-2026-09-30.md`; `tools/compare_semantic_anchors.py`.  
 **Interpretation:** cross-build WRAM layouts evolved by structure-specific insert/remove/repack operations. Shared field motion is useful evidence of logical structure membership and should be treated as a semantic signal, not merely relocation noise.  
-**Discriminating test:** build a WRAM motion atlas from structurally aligned operand positions, cluster fields by shared displacement/co-occurrence, and inspect exceptions where a field does not follow its local cluster.  
+**Discriminating test:** completed by `tools/build_wram_motion_atlas.py` / run `36807393022`; further splitting is warranted only when an active subsystem question needs it.  
 **Dependencies:** top candidates with weak semantic-reference retention, especially Europe checkpoint/finish and HUD queue, still require a second local discriminator before label transfer.  
-**Propagation:** cross-build correspondence work should now infer field groups from shared motion; literal USA addresses must not be copied into PAL/Europe symbol maps.
+**Propagation:** the bounded atlas confirms multiple independently moving logical blocks; literal USA addresses must not be copied into PAL/Europe symbol maps. The next comparative priority is the isolated USA/beta delta corpus.
+
+
+### R-METHOD-003 — WRAM motion atlas separates stable and independently moving field families
+
+**Status:** supported across the trusted anchor corpus  
+**Date:** 2026-09-30  
+**Area:** multi-ROM | RAM | decompilation
+
+**Observation:** clustering structurally aligned semantic operands from the eight trusted anchors produces distinct build-specific motion families. Europe retail has a dominant `+0x0A` family spanning 6 anchors / 29 fields / 99 observations, a `+0x04` family spanning 3 / 12 / 38, a `+0x06` family spanning 2 / 9 / 28, plus stable fields. The PAL prototype has a `+0x04` family spanning 7 / 31 / 108 alongside a stable family spanning 6 / 31 / 90. Legacy beta remains `+0` across all 8 anchors / 62 fields / 212 observations. Repeated USA fields seen in multiple anchors project consistently; no conflicting repeated-field projection appears in the accepted top-match corpus.  
+**Evidence:** `tools/build_wram_motion_atlas.py`; `analysis/generated/wram-motion-atlas.{json,md}`; evidence run `36807393022`; unit coverage in `tests/unit/test_build_wram_motion_atlas.py`.  
+**Interpretation:** the comparative builds expose logical WRAM block boundaries: Europe underwent several structure-specific insert/remove/repack shifts rather than a global relocation, while the PAL prototype preserves a broad stable block beside a recurrent four-byte-shifted family. Shared motion can therefore constrain likely structure membership before every field is named.  
+**Discriminating test:** none needed for the clustering claim. Investigate a cluster boundary or exception only when it intersects an active physics, course, renderer, or fidelity question.  
+**Dependencies:** the atlas inherits the correspondence confidence of each accepted top anchor match; weak Europe checkpoint/HUD/OAM candidates remain non-promoted.  
+**Propagation:** close the generic WRAM-clustering task. Use the atlas as a lookup/evidence surface for future semantic propagation, and move comparative effort to the bounded 486-byte USA-retail vs legacy-beta cross-analyzer classification corpus.
 
 ## Seed leads to verify locally
 

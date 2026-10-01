@@ -393,36 +393,15 @@ Reach and complete a normal one-player race in the native executable with no pre
 7. Record analyzer/AOT/interpreter coverage and unresolved dynamic dispatch encountered by the route.
 8. Turn any actual failure into the smallest reproducible test.
 
-### Build a multi-interpretation visual reference corpus
+### Visual-reference work is decision-triggered, not a Phase-A gate
 
-Do not ask one upscaler to invent the final art. Build a reproducible ensemble of processed references from the same native source and treat them as competing hypotheses about contour/edge structure and period display appearance.
+The project owns a rich visual-reference toolset, but broad scaler/CRT/upscaler matrices are **not** required before stock fidelity is established.
 
-The initial matrix should include:
+Use raw/native captures as the factual control. Pull in Scale2x/HQx/xBR/SABR/ScaleFX/Super-xBR, NTSC/CRT processing, RetroArch/Slang, bsnes-hd or other reference views only when a concrete graphics/asset question would benefit from competing interpretations. Prefer isolated extracted assets once the underlying graphics/palette/state selection is known.
 
-- raw/native pixels and nearest-neighbor integer scaling as factual controls;
-- Scale2x/ScaleNx-style conservative edge continuation;
-- HQx;
-- xBR/xBRZ;
-- SABR;
-- ScaleFX;
-- Super-xBR;
-- simple bilinear/bicubic/Lanczos controls where informative;
-- representative NTSC RGB/S-Video/composite treatments;
-- a deliberately small CRT reference set;
-- bsnes-hd captures only where its higher-resolution rendering or layer/sprite isolation answers a concrete question.
+For each such experiment, define the ambiguity it is meant to resolve and stop once the result is sufficient for an implementation/design decision. Do not generate exhaustive presentation variants merely because the pipeline can.
 
-Use RetroArch plus the pinned Slang shader corpus as the main batch visual-reference frontend. Use existing Snes9x/bsnes/Beetle routes, ares and bsnes-hd when an independent renderer or specialist capability adds information. Prefer offline CPU/image-domain implementations for bulk extracted-asset processing whenever they reproduce the same scaler result more cheaply and deterministically.
-
-Run the matrix at two levels:
-
-1. **matched deterministic framebuffer captures** for composited PPU/display behavior;
-2. **isolated extracted assets** once ROM graphics, palettes and semantic animation keys are known.
-
-The second route is preferred for eventual 4K reconstruction because it avoids asking a scaler to disentangle already-composited backgrounds, transparency and neighboring sprites.
-
-For each semantic asset, eventually generate a compact reference dossier containing the native data/palette, animation neighbors, selected scaler outputs, representative in-game captures, optional NTSC/CRT references and exact provenance/tool revisions. Agreement across unrelated algorithms is useful evidence; disagreement marks ambiguity for explicit design review.
-
-Canonical implementation details and the capture/reproducibility contract live in `HD-VISUAL-REFERENCE-PIPELINE.md`.
+Canonical implementation details remain in `HD-VISUAL-REFERENCE-PIPELINE.md`, but that pipeline is supporting infrastructure until Phase E/G questions actually need it.
 
 ### Gate
 

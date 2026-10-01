@@ -133,6 +133,19 @@ Do not propagate weak names as facts. Hypotheses remain hypotheses, cross-ROM la
 **Dependencies:** exact semantic roles of A000, descriptor fields, and chunk dimensions remain open.  
 **Propagation:** course/editor planning should model reusable resources explicitly; next format work is reduced to six Dragster resources rather than the full bank-17 corpus.
 
+### R-PROP-009 — Dragster resource 0x24 materializes checkpoint/finish cells
+
+**Status:** confirmed for Dragster  
+**Date:** 2026-09-30  
+**Area:** course | RAM | methodology
+
+**Observation:** Dragster's resource list is `01 02 14 24 16 18 FF`. Descriptor-derived C000 spans are `1,1,4,9,4,1`, totaling the exact 20-byte runtime behavior plane. Resource `24` therefore owns offsets 6–14, which are nine consecutive `0x14` behavior bytes.  
+**Evidence:** frame-exact run 36517460851; recovered bank-82 descriptor table and materializer instruction flow; runtime C000 snapshot.  
+**Interpretation:** on Dragster, resource ID `0x24` is the chunk whose behavior-plane contribution consists entirely of checkpoint/finish cells. Resource ID `0x14` is not the checkpoint resource and instead emits `12 1C 00 00`.  
+**Discriminating test:** extract all 45 resource lists and match checkpoint-resource candidates by incidence/descriptor/output/behavior fingerprints rather than numeric ID.  
+**Dependencies:** game-wide semantic identity of resource `24` is not yet claimed; IDs may be reused/renumbered across builds or contexts.  
+**Propagation:** added address-independent course-resource fingerprint tooling and updated COURSE-FORMAT to make structural equivalence, not address equality, the matching rule.
+
 ## Seed leads to verify locally
 
 ### R-SEED-001 — Rob Northen Compression

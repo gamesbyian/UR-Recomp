@@ -173,10 +173,11 @@ def render_markdown(baseline: Path, variant: Path, result: dict) -> str:
     ]
     for item in code["baseline_only_ranges"]:
         lines.append(
-            f"| `0x{item['start']:06X}` | `0x{item['end']:06X}` | {item['length']} |"
+            f"| `0x{item['start']:06X}` | `0x{item['end']:06X}` | "
+            f"`{item['cpu_start']}..{item['cpu_end']}` | {item['length']} |"
         )
     if not code["baseline_only_ranges"]:
-        lines.append("| _none_ | _none_ | 0 |")
+        lines.append("| _none_ | _none_ | _none_ | 0 |")
     return "\n".join(lines) + "\n"
 
 

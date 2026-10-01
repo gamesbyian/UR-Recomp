@@ -4,19 +4,19 @@
   "gaps": [
     {
       "id": "indirect-008584",
-      "kind": "unresolved_indirect_dispatch",
+      "kind": "bounded_indirect_vector",
       "site": "00:8584",
-      "summary": "JMP indirect through $0073; four M/X variants remain dynamically resolved.",
-      "priority": "high",
-      "next_evidence": "Capture runtime targets across representative frontend/race routes and compare with independent disassembly/CFG output."
+      "summary": "JMP long-indirect through $73:$75. The only explicit complete 24-bit vector construction found sets target 80:85A4 during interrupt/HDMA setup.",
+      "priority": "medium",
+      "next_evidence": "Dynamically confirm only if a fidelity defect or AOT proof requires excluding indirect pointer mutation; target discovery is otherwise bounded."
     },
     {
       "id": "indirect-008599",
-      "kind": "unresolved_indirect_dispatch",
+      "kind": "bounded_indirect_vector",
       "site": "00:8599",
-      "summary": "JMP indirect through $0053; four M/X variants remain dynamically resolved.",
-      "priority": "high",
-      "next_evidence": "Capture runtime targets across representative frontend/race routes and compare with independent disassembly/CFG output."
+      "summary": "JMP long-indirect through $53:$55. Explicit complete vector constructions select 80:F60C, 80:8610, or 80:85A5; the same vector is invoked by the mirrored wrapper at 80:B0DE.",
+      "priority": "medium",
+      "next_evidence": "Dynamically confirm mode/target ownership only if a concrete interrupt-path fidelity or analyzer proof question requires it."
     },
     {
       "id": "indirect-80c3c8",

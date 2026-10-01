@@ -1362,3 +1362,25 @@ Checkpoint/finish provides the clearest lineage discriminator: the PAL prototype
 
 **Evidence:** `tools/compare_usa_palprototype_snes2asm_homologs.py`; `analysis/generated/usa-pal-prototype-snes2asm-homologs.{json,md}`; run `36817274047`.
 
+### R-SEED-057 — Post-prototype WRAM repacking separates into +6, +4, and stable families
+
+**Status:** confirmed structural lineage clustering  
+**Date:** 2026-09-30  
+**Area:** WRAM | cross-build lineage | structure inference
+
+The existing `tools/build_wram_motion_atlas.py` was extended rather than replaced. For USA fields that project consistently in both the 1994-11-29 PAL prototype and Europe retail, the atlas now computes a second displacement: Europe candidate address minus prototype candidate address.
+
+This isolates layout motion that occurred **after** the surviving PAL prototype.
+
+The accepted cross-build field set collapses into three clean secondary-motion families:
+
+- **+6 bytes:** 38 fields. This includes message/UI state (`0BA1/0BA3`, `0CBB`, `0CE1..0CE5`, `0D0B/0D0D/0D49`) and a large shared gameplay/state family (`0E89..0E93`, `0F47/0F49/0F61/0F7B/0F9F/0FA1/0FEF`, stunt/progress fields, OAM-related `1509..150E`, and course/runtime fields).
+- **+4 bytes:** 12 fields concentrated in racer position/camera/velocity state, including `0411..042F` and `04B7/04BB`.
+- **+0 bytes:** 10 stable fields, primarily DP/hardware/DMA registers such as `000B`, `02C0..02C6`, `2100/2115/2116`, and `420B/420C`.
+
+No contradictory projection appears within the accepted field corpus.
+
+**Interpretation:** Europe retail is not merely “prototype layout plus a global shift.” At least two distinct logical WRAM families were repacked after November 1994: one by +6 and the racer position/velocity family by +4, while hardware-facing addresses remained fixed. This is stronger evidence for structure boundaries than raw address adjacency alone.
+
+**Evidence:** `tools/build_wram_motion_atlas.py`; `analysis/generated/wram-motion-atlas.{json,md}`; one-shot refresh run `36817638025`.
+

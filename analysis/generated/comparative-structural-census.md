@@ -2,9 +2,9 @@
 
 This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **88** (80 code, 8 data)
-- bounded bytes: **12099** (10954 code-region bytes, 1145 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **4556**
+- bounded regions: **93** (85 code, 8 data)
+- bounded bytes: **14689** (13544 code-region bytes, 1145 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **5665**
 - represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -35,6 +35,11 @@ This is the first machine-queryable census for the comparative structure-recover
 | `81:8D14..81:8D17` | code | 4 | player-state-marshal | long_entry_wrapper | 81:8CF4..81:8CF7 (-32; size 4; sim 0.500) | 81:8CF4..81:8CF7 (-32; size 4; sim 0.500) | 81:8D14..81:8D17 (+0; size 4; sim 1.000) |
 | `81:8D18..81:8E62` | code | 331 | player-state-marshal | player1_marshal_and_sim_bridge | 81:8CF8..81:8E42 (-32; size 331; sim 0.822) | 81:8CF8..81:8E42 (-32; size 331; sim 0.692) | 81:8D18..81:8E62 (+0; size 331; sim 1.000) |
 | `81:8E63..81:8FB7` | code | 341 | player-state-marshal | player2_marshal_and_sim_bridge | 81:8E43..81:8F97 (-32; size 341; sim 0.824) | 81:8E43..81:8F97 (-32; size 341; sim 0.692) | 81:8E63..81:8FB7 (+0; size 341; sim 1.000) |
+| `81:8FB8..81:91F0` | code | 569 | collision-response | candidate_reduction_and_surface_classification | 81:8F98..81:91D0 (-32; size 569; sim 0.938) | 81:8F98..81:91D0 (-32; size 569; sim 0.924) | 81:8FB8..81:91F0 (+0; size 569; sim 1.000) |
+| `81:91F1..81:9303` | code | 275 | collision-response | landing_air_and_velocity_gates | 81:91D1..81:92E3 (-32; size 275; sim 0.887) | 81:91D1..81:92E3 (-32; size 275; sim 0.880) | 81:91F1..81:9303 (+0; size 275; sim 1.000) |
+| `81:9304..81:97FF` | code | 1276 | collision-response | contact_response_after_europe_nops | 81:92E4..81:97DF (-32; size 1276; sim 0.926) | 81:92EA..81:97E5 (-26; size 1276; sim 0.916) | 81:9304..81:97FF (+0; size 1276; sim 1.000) |
+| `81:9800..81:983A` | code | 59 | collision-response | final_position_correction_and_return | 81:97E0..81:981A (-32; size 59; sim 0.966) | 81:97F1..81:982B (-15; size 59; sim 0.966) | 81:9800..81:983A (+0; size 59; sim 1.000) |
+| `81:983B..81:99D5` | code | 411 | collision-response | contact_direction_quantizer | 81:981B..81:99B5 (-32; size 411; sim 0.983) | 81:982C..81:99C6 (-15; size 411; sim 0.973) | 81:983B..81:99D5 (+0; size 411; sim 1.000) |
 | `81:9FBF..81:A2E4` | code | 806 | camera-control | camera_velocity_follow_solver | 81:9F9F..81:A2C4 (-32; size 806; sim 0.996) | 81:9FB0..81:A2D5 (-15; size 806; sim 0.935) | 81:9FBF..81:A2E4 (+0; size 806; sim 1.000) |
 | `81:A2E5..81:A30E` | code | 42 | camera-control | camera_smoothing_helper | 81:A2C5..81:A2EE (-32; size 42; sim 1.000) | 81:A2D6..81:A2FF (-15; size 42; sim 1.000) | 81:A2E5..81:A30E (+0; size 42; sim 1.000) |
 | `81:A30F..81:A52A` | code | 540 | camera-control | camera_scale_config | 81:A2EF..81:A50A (-32; size 540; sim 0.963) | 81:A300..81:A51B (-15; size 540; sim 0.841) | 81:A30F..81:A52A (+0; size 540; sim 1.000) |

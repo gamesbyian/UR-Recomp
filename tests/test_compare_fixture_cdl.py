@@ -48,6 +48,15 @@ class CompareFixtureCdlTests(unittest.TestCase):
         self.assertEqual(result["data"]["variant_only"], 1)
         self.assertEqual(result["data"]["baseline_only"], 1)
 
+    def test_render_markdown_uses_cpu_ranges_in_both_directions(self):
+        result = mod.compare_entries(
+            [{"code": True}, {}, {}],
+            [{}, {"code": True}, {}],
+        )
+        rendered = mod.render_markdown(Path("control"), Path("jump"), result)
+        self.assertIn("`00:8001..00:8001`", rendered)
+        self.assertIn("`00:8000..00:8000`", rendered)
+
     def test_compare_entries_rejects_different_map_sizes(self):
         with self.assertRaisesRegex(ValueError, "CDL map size mismatch"):
             mod.compare_entries([{}], [{}, {}])

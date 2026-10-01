@@ -308,29 +308,6 @@ def score_candidates(anchor: Anchor, usa: bytes, target: bytes, *, top: int, k: 
 
 def build_translation_summary(output: dict) -> dict:
     summary = {}
-    lines += [
-        "## Cross-build semantic-word translation summary",
-        "",
-        "These are mechanically projected USA LE16 semantic operands from each "
-        "top structurally aligned candidate. Repeated deltas across unrelated "
-        "anchors are useful evidence of build-specific WRAM layout shifts; "
-        "individual pairs are not promoted without context.",
-        "",
-    ]
-    for build_name, summary in output["translation_summary"].items():
-        deltas = sorted(
-            summary["delta_counts"].items(),
-            key=lambda kv: kv[1],
-            reverse=True,
-        )
-        lines += [f"### {build_name}", "", "| Delta | Evidence count |", "|---:|---:|"]
-        for delta, count in deltas[:12]:
-            signed = int(delta, 16)
-            if signed >= 0x8000:
-                signed -= 0x10000
-            lines.append(f"| `{signed:+d}` (`0x{delta}`) | {count} |")
-        lines.append("")
-
     for anchor in output["anchors"]:
         for build_name, matches in anchor["matches"].items():
             if not matches:
@@ -434,6 +411,29 @@ def main() -> None:
         "only after a second structural or runtime discriminator agrees.",
         "",
     ]
+
+    lines += [
+        "## Cross-build semantic-word translation summary",
+        "",
+        "These are mechanically projected USA LE16 semantic operands from each "
+        "top structurally aligned candidate. Repeated deltas across unrelated "
+        "anchors are useful evidence of build-specific WRAM layout shifts; "
+        "individual pairs are not promoted without context.",
+        "",
+    ]
+    for build_name, translation in output["translation_summary"].items():
+        deltas = sorted(
+            translation["delta_counts"].items(),
+            key=lambda kv: kv[1],
+            reverse=True,
+        )
+        lines += [f"### {build_name}", "", "| Delta | Evidence count |", "|---:|---:|"]
+        for delta, count in deltas[:12]:
+            signed = int(delta, 16)
+            if signed >= 0x8000:
+                signed -= 0x10000
+            lines.append(f"| `{signed:+d}` (`0x{delta}`) | {count} |")
+        lines.append("")
 
     for anchor in output["anchors"]:
         lines += [

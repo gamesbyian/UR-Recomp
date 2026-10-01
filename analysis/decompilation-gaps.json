@@ -70,9 +70,9 @@
       "id": "wram-post-prototype-insertions",
       "kind": "unresolved_structural_semantics",
       "region": "Europe-retail WRAM insertion brackets after 0309/before old 030D and after 053B/before old 0541",
-      "summary": "Cross-build operand motion proves two post-1994-11-29 Europe-retail WRAM expansions: +4 bytes before the old controller-state block and a later +2 bytes before old field 0541. Exact inserted-field semantics are not yet identified.",
+      "summary": "Cross-build operand motion proves two post-1994-11-29 Europe-retail WRAM expansions: +4 bytes after stable 0309/before the relocated controller buffer at old 030D, and +2 bytes after 053B/before old 0541. An all-trusted-anchor scan finds no unexplained direct Europe operands in either inserted span. Europe auto-joypad capture still reads only 4218..421B and stores the same four-byte payload at relocated 0311..0314, so the first insertion is not extra controller capture state.",
       "priority": "medium",
-      "next_evidence": "Inspect Europe-specific initialization/access patterns in the narrow 030A..0310 and 053D..0546 neighborhoods. Promote semantics only with direct code/runtime evidence."
+      "next_evidence": "Only pursue exact inserted-field semantics via indexed/indirect access reconstruction, runtime watchpoints, or newly recovered source/comments. Direct absolute-reference mining is currently exhausted."
     }
   ]
 }

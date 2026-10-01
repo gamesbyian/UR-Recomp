@@ -107,6 +107,32 @@ Do not propagate weak names as facts. Hypotheses remain hypotheses, cross-ROM la
 **Dependencies:** individual `125B+` point meanings and the semantic identity of the `20:BC9F` templates remain open.  
 **Propagation:** upgrades the historical trace from archival evidence to a bounded collision fixture and narrows future physics work to shape generation and transform coefficients rather than broad collision archaeology.
 
+### R-PROP-007 — Course header points to a tail resource-ID list
+
+**Status:** confirmed  
+**Date:** 2026-09-30  
+**Area:** course | compression | RAM
+
+**Observation:** `Course_LoadAndMaterialize` reads the 16-bit word at decoded offsets `0x000B..0x000C` as a cursor into the active `7F:0000` payload, increments it after each byte read, and stops when the resource byte is `FF`. On Dragster the word advances from `0x840F` to `0x8416`; decoded size is `0x8417`.  
+**Evidence:** exact bank-82 instruction flow at `82:E1D1..E1F2`; prior runtime traces showing low byte `0x0F→0x16`; canonical decoded size.  
+**Interpretation:** the long-standing byte-11 mutation is fully explained as the low byte of a mutable resource-list cursor. Dragster's tail span `0x840F..0x8415` contains six resource IDs followed by the terminating `FF`.  
+**Discriminating test:** recover the six IDs and record each resource's cumulative A000/C000 materialization span.  
+**Dependencies:** the final decoded byte at `0x8416` remains semantically unassigned.  
+**Propagation:** promoted `Course_ResourceListCursor`; revised COURSE-FORMAT; redirected checkpoint-object back-mapping through resource spans rather than raw-byte search.
+
+### R-PROP-008 — Course resources materialize paired A000/C000 runtime planes
+
+**Status:** confirmed structurally  
+**Date:** 2026-09-30  
+**Area:** course | RAM | rendering
+
+**Observation:** each decoded resource ID enters a five-byte descriptor lookup through `82:B2AD` and a four-byte bank-17 pointer lookup at `17:A000`. `82:E329..E380` appends derived data from the selected resource into separate runtime planes at `7E:A000` and `7E:C000`, with independent cumulative cursors.  
+**Evidence:** exact `Course_LoadAndMaterialize` instruction flow.  
+**Interpretation:** decoded course data references reusable resources/chunks; the final runtime behavior map is synthesized from selected bank-17 templates. This explains why checkpoint/finish code `0x14` should be attributed to a selected resource span rather than expected verbatim at a simple decoded-stream coordinate.  
+**Discriminating test:** for Dragster, enumerate six selected resource IDs, descriptor sizes, C000 output ranges, and which range contains `0x14`.  
+**Dependencies:** exact semantic roles of A000, descriptor fields, and chunk dimensions remain open.  
+**Propagation:** course/editor planning should model reusable resources explicitly; next format work is reduced to six Dragster resources rather than the full bank-17 corpus.
+
 ## Seed leads to verify locally
 
 ### R-SEED-001 — Rob Northen Compression

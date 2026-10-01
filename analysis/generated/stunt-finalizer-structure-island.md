@@ -19,4 +19,4 @@ USA code begins at 82:9A42 and returns at 82:9D8B. Three compact score-weight ta
 
 - 82:9D09..9D0D (5 bytes): NOP; NOP; NOP; NOP; NOP.
 - USA/beta retain the five NOPs. PAL prototype and Europe omit them, changing the prototype shift -5 to -10 and Europe +17 to +12.
-- All three score-weight tables and the 625-byte trick/praise table are byte-identical across all four builds.
+- All three score-weight tables and the 625-byte trick/praise table are byte-identical across all four builds after this shift.

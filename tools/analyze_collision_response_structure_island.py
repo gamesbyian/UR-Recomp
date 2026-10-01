@@ -76,17 +76,11 @@ def build():
  ds={}
  for build,blob in blobs.items():
   d=trace(blob)
-  seeds=[cpu_to_offset(s)+shifts[build][name] for name,s,e,proto_shift,europe_shift in REGIONS]
-  for cpu in ["81:9355","81:93CA","81:9401","81:9467","81:9484","81:9646","81:96AD","81:9969","81:996B","81:9972"]:
-   off=cpu_to_offset(cpu)
-   if build=="europe-retail":
-    local_shift=-26 if off<cpu_to_offset("81:9800") else -15
-   elif build=="pal-prototype-1994-11-29":
-    local_shift=-32
-   else:
-    local_shift=0
-   seeds.append(off+local_shift)
-  seed_entries(d,seeds); ds[build]=d
+  # Enter only through the real subsystem entry so M/X context flows through
+  # calls and branches instead of being invented by internal labels.
+  entry_shift=0 if build in {"usa-retail","legacy-beta"} else -32
+  seed_entries(d,[cpu_to_offset("81:8FB8")+entry_shift])
+  ds[build]=d
  rows=[]
  for name,s,e,proto_shift,europe_shift in REGIONS:
   us,ue=cpu_to_offset(s),cpu_to_offset(e)
@@ -132,7 +126,7 @@ def build():
    "effect":"Europe retail alone adds an 11-byte guard before the final position-correction tail; subsequent homolog shift changes -26 to -15.",
   },
  ]
- return {"schema_version":1,"island":"PerRacerCollisionContactResponse","usa_start":"81:8FB8","usa_end":"81:99D5","next_code_entry":"81:99D6","dormant_usa_code":[{"start":"81:9484","end":"81:948A","size":7,"instructions":"LDA #$0764; STA $A3; BRA $94AF","note":"valid instruction-aligned alternative bypassed by the recovered live predecessor path"}],"europe_only_insertions":insertions,"usa_unreached_runs":ranges_for(lambda x:not (ds["usa-retail"].code_map[x]&(ds["usa-retail"].OP_CODE|ds["usa-retail"].OP_PARAM)),cpu_to_offset("81:8FB8"),cpu_to_offset("81:99D5")),"regions":rows}
+ return {"schema_version":1,"island":"PerRacerCollisionContactResponse","usa_start":"81:8FB8","usa_end":"81:99D5","next_code_entry":"81:99D6","dormant_usa_code":[{"start":"81:9484","end":"81:948A","size":7,"instructions":"LDA #$0764; STA $A3; BRA $94AF","note":"valid instruction-aligned alternative bypassed by the recovered live predecessor path"},{"start":"81:9972","end":"81:9978","size":7,"instructions":"LDA #$056C; STA $A3; BRA $997E","note":"valid instruction-aligned alternative with no live predecessor in the recovered helper path"}],"europe_only_insertions":insertions,"usa_unreached_runs":ranges_for(lambda x:not (ds["usa-retail"].code_map[x]&(ds["usa-retail"].OP_CODE|ds["usa-retail"].OP_PARAM)),cpu_to_offset("81:8FB8"),cpu_to_offset("81:99D5")),"regions":rows}
 
 def render(r):
  lines=["# Per-racer collision / contact-response structural island","",

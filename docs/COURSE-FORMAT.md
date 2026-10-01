@@ -76,6 +76,25 @@ The historical mapper scripts also show their method: freeze timers, move the ra
 
 See `reference/notes/dessyreqt-workspace-mining.md`.
 
+
+## Recovered historical ROM addresses independently confirm course identities
+
+A retrospective semantic-propagation pass reconciled Nitrodon's recovered `ROM addresses.txt` against the canonical RNC manifest.
+
+The historical values are SNES LoROM CPU addresses. Converting them to file offsets lands exactly on known packed RNC starts:
+
+- `18:8000` → `0x0C0000` → stream 1 → **Dragster**;
+- `18:8183` → `0x0C0183` → stream 2 → **Zoom Zoo**;
+- recovered `18:94BA` does not land on a header, but `18:9B4A` → `0x0C1B4A` is exactly stream 3 → **Bowl**; this is strongly consistent with a transposition typo in the historical note;
+- `18:A07E` → `0x0C207E` → stream 4 → **Switcher**;
+- `1A:9678` → `0x0D1678` → stream 13 → **Jumps**.
+
+These five names are therefore independently anchored by historical address evidence rather than only inferred from the modern stream-order reconstruction. The Bowl correction should be treated as a supported typo repair, not silently substituted into the preserved source file.
+
+Practical rule: when mining historical ROM addresses, first test SNES LoROM CPU-address interpretation before treating the value as a raw file offset.
+
+Full derivation: `analysis/generated/retrospective-semantic-propagation-2026-09-30.md`.
+
 ## First decoded course-header field identified
 
 The 45-stream corpus now aligns strongly with the shipped 45-track/tour structure.

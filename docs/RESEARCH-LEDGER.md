@@ -27,6 +27,34 @@ Use the smallest useful subset of: xrefs/readers/writers, caller/callee neighbor
 
 Do not propagate weak names as facts. Hypotheses remain hypotheses, cross-ROM labels retain provenance/confidence, and the value-of-information rule still governs how far the fan-out travels.
 
+## Retrospective semantic propagation — 2026-09-30
+
+### R-PROP-001 — Racer-frame marshal exposes exact P1/P2 workspace pairings
+
+**Status:** confirmed  
+**Date:** 2026-09-30  
+**Area:** RAM | physics | other
+
+**Observation:** `Race_UpdateRacersFrame` at `82:89B9..9384` performs a P1 persistent-state → shared-workspace → common simulation → persistent-state writeback pass, then repeats the same structure for P2 when active.  
+**Evidence:** recovered Nitrodon `bank 82.txt`; exact copy pairs summarized in `analysis/generated/retrospective-semantic-propagation-2026-09-30.md`.  
+**Interpretation:** P2 X/Y position, X/Y velocity, air time, facing, pitch, Z-state and boost slots are structural siblings of the already established P1 fields; `11CD` is definitively the shared boost workspace with `11CF/11D1` as persistent P1/P2 storage. `0FEF` is explicitly set to 0/2 for the two passes.  
+**Discriminating test:** none needed for the storage-boundary claims; isolated 2P causal fixtures remain useful only for game-facing value conventions.  
+**Dependencies:** recovered bank-82 listing is treated as an exact disassembly of the canonical USA ROM.  
+**Propagation:** promoted high-confidence P2 position/speed, boost-copy, selector and P2 air-time semantics in `docs/SYMBOLS.md`; narrowed the historical `0F63` conflict by showing it is shared workspace loaded from different per-player backing fields.
+
+### R-PROP-002 — Historical course addresses align with RNC boundaries
+
+**Status:** confirmed, with one supported typo repair  
+**Date:** 2026-09-30  
+**Area:** course | compression
+
+**Observation:** four of Nitrodon's five recovered course addresses convert from LoROM CPU addresses to exact canonical RNC stream starts: `18:8000` → stream 1, `18:8183` → stream 2, `18:A07E` → stream 4, and `1A:9678` → stream 13. The remaining Bowl entry `18:94BA` misses every header, while `18:9B4A` converts exactly to stream 3 at file offset `0x0C1B4A`.  
+**Evidence:** `reference/imported/reverse-engineering/nitrodon/ROM addresses.txt`; `analysis/generated/rnc-stream-manifest.json`; derivation in `analysis/generated/retrospective-semantic-propagation-2026-09-30.md`.  
+**Interpretation:** historical addresses are SNES CPU addresses for packed course streams. Streams 1/2/4/13 independently identify Dragster/Zoom Zoo/Switcher/Jumps. Bowl is strongly supported as stream 3 with a transposed historical address (`1894BA` vs `189B4A`).  
+**Discriminating test:** no further test is warranted unless contradictory evidence appears; the corrected Bowl address landing exactly on the sole adjacent RNC boundary is sufficient for current planning.  
+**Dependencies:** standard LoROM CPU-address to file-offset mapping; canonical USA RNC manifest.  
+**Propagation:** five course identities are now independent of order-only inference; future historical ROM addresses should be tested as LoROM CPU addresses first.
+
 ## Seed leads to verify locally
 
 ### R-SEED-001 — Rob Northen Compression

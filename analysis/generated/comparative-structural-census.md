@@ -2,9 +2,9 @@
 
 This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **80** (72 code, 8 data)
-- bounded bytes: **10799** (9654 code-region bytes, 1145 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **4078**
+- bounded regions: **85** (77 code, 8 data)
+- bounded bytes: **11423** (10278 code-region bytes, 1145 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **4322**
 - represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -44,6 +44,11 @@ This is the first machine-queryable census for the comparative structure-recover
 | `81:C37F..81:C457` | code | 217 | stunt-message-pipeline | score_display_suffix | 81:C35C..81:C434 (-35; size 217; sim 0.871) | 81:C368..81:C440 (-23; size 217; sim 0.871) | 81:C37F..81:C457 (+0; size 217; sim 1.000) |
 | `81:C458..81:C571` | data | 282 | stunt-message-pipeline | message_reward_lookup_block | 81:C435..81:C54E (-35; size 282; sim 1.000) | 81:C441..81:C55A (-23; size 282; sim 1.000) | 81:C458..81:C571 (+0; size 282; sim 1.000) |
 | `81:C572..81:C604` | code | 147 | stunt-message-pipeline | queue_long_entry_and_helpers | 81:C54F..81:C5E1 (-35; size 147; sim 0.959) | 81:C55B..81:C5ED (-23; size 147; sim 0.810) | 81:C572..81:C604 (+0; size 147; sim 1.000) |
+| `81:C697..81:C6A3` | code | 13 | race-timer | long_entry_and_dispatch_live | 81:C674..81:C680 (-35; size 13; sim 0.769) | 81:C684..81:C690 (-19; size 13; sim 0.769) | 81:C697..81:C6A3 (+0; size 13; sim 1.000) |
+| `81:C6A4..81:C6A6` | code | 3 | race-timer | dormant_cb37_call | 81:C681..81:C683 (-35; size 3; sim 0.667) | 81:C691..81:C693 (-19; size 3; sim 0.667) | 81:C6A4..81:C6A6 (+0; size 3; sim 1.000) |
+| `81:C6A7..81:C6D2` | code | 44 | race-timer | mode_dispatch_tail | 81:C684..81:C6AF (-35; size 44; sim 0.795) | 81:C694..81:C6BF (-19; size 44; sim 0.773) | 81:C6A7..81:C6D2 (+0; size 44; sim 1.000) |
+| `81:C6D3..81:C7E0` | code | 270 | race-timer | count_up_timer | 81:C6B0..81:C7BD (-35; size 270; sim 0.844) | 81:C6C0..81:C7CD (-19; size 270; sim 0.815) | 81:C6D3..81:C7E0 (+0; size 270; sim 1.000) |
+| `81:C7E1..81:C906` | code | 294 | race-timer | stunt_countdown_timer | 81:C7BE..81:C8E3 (-35; size 294; sim 0.850) | 81:C7CE..81:C8F3 (-19; size 294; sim 0.806) | 81:C7E1..81:C906 (+0; size 294; sim 1.000) |
 | `82:9A42..82:9B57` | code | 278 | stunt-finalizer | air_state_and_rotation_progress | 82:9A3D..82:9B52 (-5; size 278; sim 0.856) | 82:9A53..82:9B68 (+17; size 278; sim 0.842) | 82:9A42..82:9B57 (+0; size 278; sim 1.000) |
 | `82:9B58..82:9C97` | code | 320 | stunt-finalizer | landing_trick_classification | 82:9B53..82:9C92 (-5; size 320; sim 0.919) | 82:9B69..82:9CA8 (+17; size 320; sim 0.881) | 82:9B58..82:9C97 (+0; size 320; sim 1.000) |
 | `82:9C98..82:9D08` | code | 113 | stunt-finalizer | score_index_and_message_prefix | 82:9C93..82:9D03 (-5; size 113; sim 0.903) | 82:9CA9..82:9D19 (+17; size 113; sim 0.903) | 82:9C98..82:9D08 (+0; size 113; sim 1.000) |

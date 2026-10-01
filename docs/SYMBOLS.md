@@ -40,7 +40,11 @@ Human-maintained map of understood ROM functions, RAM, tables and hardware-facin
 | TBD | player velocity | TBD | 0 | |
 | TBD | rotation | TBD | 0 | |
 | TBD | camera | TBD | 0 | |
-| TBD | race timer | TBD | 0 | |
+| `7E:0E0F` | `RaceTimer_MinutesDigit` | 16-bit | 5 | Shared race/stunt timer minutes digit. Count-up path `81:C74A-C74E` increments it; stunt countdown `81:C83A-C83E` decrements it. Finish handling snapshots it for the active player at `81:80BE-C1`. |
+| `7E:0E13` | `RaceTimer_TensSecondsDigit` | 16-bit | 5 | Timer tens-of-seconds digit, range 0-5 in normal operation. Count-up carries here at `81:C738-C747`; countdown borrows through it at `81:C82B-C837`. |
+| `7E:0E17` | `RaceTimer_SecondsDigit` | 16-bit | 5 | Timer ones-of-seconds digit, range 0-9. Count-up and countdown mutate it at `81:C723-C735` and `81:C819-C828`; finish handling includes it in the active-player time snapshot. |
+| `7E:0E1B` | `RaceTimer_TenthsDigit` | 16-bit | 5 | Timer tenths digit, range 0-9. The count-up path increments it after six sub-ticks; stunt countdown decrements it after six sub-ticks. |
+| `7E:0E1F` | `RaceTimer_SubTick` | 16-bit | 5 | Six-step timer phase. Both timer directions advance this field and roll it at 6 before changing the tenths digit, giving the timer its 1/10-second cadence. |
 | `7E:009F` | `Frontend_CurrentMenu` | 8-bit | 4 | Stable deterministic checkpoints correlate `0xD7` main menu, `0x3C` one-player rider select, `0x6D` first one-player tours page, `0xF6` one-player track select, `0x16` now-playing, then `0x00` after race entry. Do not treat it as continuously semantic: bank-80 text/layout handlers also reuse DP `$9F` as a tile/text position accumulator during frontend construction. |
 | `7E:009B` | `Frontend_SelectedOption` | 8-bit | 4 | Recovered bot uses it for main-menu/tour selection. Native captures show `0x00` at clean main menu and first tours page, consistent with bot policy. |
 | `7E:000E` | `Frontend_SelectedRow` | 8-bit | 3 | Recovered bot label; native route captures row `0x00` through the verified clean frontend route. Exact semantics outside these menus not yet tested. |

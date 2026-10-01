@@ -17,6 +17,7 @@ DEFAULT_SOURCES = (
     ("stunt-message-pipeline", "analysis/generated/stunt-message-pipeline-structure-island.json", False),
     ("input-normalization", "analysis/generated/input-normalization-structure-island.json", False),
     ("camera-control", "analysis/generated/camera-control-structure-island.json", False),
+    ("race-timer", "analysis/generated/race-timer-structure-island.json", False),
 )
 
 def build(root: Path) -> dict:

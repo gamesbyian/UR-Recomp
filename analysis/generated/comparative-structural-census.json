@@ -30,18 +30,22 @@
     {
       "id": "checkpoint-finish",
       "path": "analysis/generated/checkpoint-finish-structure-island.json"
+    },
+    {
+      "id": "stunt-finalizer",
+      "path": "analysis/generated/stunt-finalizer-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 55,
-    "code_regions": 52,
-    "data_regions": 3,
-    "bounded_bytes": 5916,
-    "bounded_code_region_bytes": 5708,
-    "bounded_data_region_bytes": 208,
-    "analyzer_opcode_bytes": 2393,
-    "analyzer_operand_bytes": 3253,
-    "analyzer_unreached_or_data_bytes": 270,
+    "regions": 65,
+    "code_regions": 58,
+    "data_regions": 7,
+    "bounded_bytes": 7413,
+    "bounded_code_region_bytes": 6550,
+    "bounded_data_region_bytes": 863,
+    "analyzer_opcode_bytes": 2743,
+    "analyzer_operand_bytes": 3745,
+    "analyzer_unreached_or_data_bytes": 925,
     "banks": [
       "81",
       "82",
@@ -1015,6 +1019,450 @@
           "shift": 0,
           "similarity": 1,
           "size": 383,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-finalizer",
+      "source_path": "analysis/generated/stunt-finalizer-structure-island.json",
+      "name": "air_state_and_rotation_progress",
+      "kind": "code",
+      "usa_start": "82:9A42",
+      "usa_end": "82:9B57",
+      "size": 278,
+      "usa_opcode_bytes": 117,
+      "usa_operand_bytes": 161,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:9A53",
+          "end": "82:9B68",
+          "shift": 17,
+          "similarity": 0.841727,
+          "size": 278,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:9A42",
+          "end": "82:9B57",
+          "shift": 0,
+          "similarity": 1,
+          "size": 278,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:9A3D",
+          "end": "82:9B52",
+          "shift": -5,
+          "similarity": 0.856115,
+          "size": 278,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:9A42",
+          "end": "82:9B57",
+          "shift": 0,
+          "similarity": 1,
+          "size": 278,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-finalizer",
+      "source_path": "analysis/generated/stunt-finalizer-structure-island.json",
+      "name": "landing_trick_classification",
+      "kind": "code",
+      "usa_start": "82:9B58",
+      "usa_end": "82:9C97",
+      "size": 320,
+      "usa_opcode_bytes": 134,
+      "usa_operand_bytes": 186,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:9B69",
+          "end": "82:9CA8",
+          "shift": 17,
+          "similarity": 0.88125,
+          "size": 320,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:9B58",
+          "end": "82:9C97",
+          "shift": 0,
+          "similarity": 1,
+          "size": 320,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:9B53",
+          "end": "82:9C92",
+          "shift": -5,
+          "similarity": 0.91875,
+          "size": 320,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:9B58",
+          "end": "82:9C97",
+          "shift": 0,
+          "similarity": 1,
+          "size": 320,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-finalizer",
+      "source_path": "analysis/generated/stunt-finalizer-structure-island.json",
+      "name": "score_index_and_message_prefix",
+      "kind": "code",
+      "usa_start": "82:9C98",
+      "usa_end": "82:9D08",
+      "size": 113,
+      "usa_opcode_bytes": 44,
+      "usa_operand_bytes": 69,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:9CA9",
+          "end": "82:9D19",
+          "shift": 17,
+          "similarity": 0.902655,
+          "size": 113,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:9C98",
+          "end": "82:9D08",
+          "shift": 0,
+          "similarity": 1,
+          "size": 113,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:9C93",
+          "end": "82:9D03",
+          "shift": -5,
+          "similarity": 0.902655,
+          "size": 113,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:9C98",
+          "end": "82:9D08",
+          "shift": 0,
+          "similarity": 1,
+          "size": 113,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-finalizer",
+      "source_path": "analysis/generated/stunt-finalizer-structure-island.json",
+      "name": "pal_line_removed_nops",
+      "kind": "code",
+      "usa_start": "82:9D09",
+      "usa_end": "82:9D0D",
+      "size": 5,
+      "usa_opcode_bytes": 5,
+      "usa_operand_bytes": 0,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "legacy-beta": {
+          "start": "82:9D09",
+          "end": "82:9D0D",
+          "shift": 0,
+          "similarity": 1,
+          "size": 5,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:9D09",
+          "end": "82:9D0D",
+          "shift": 0,
+          "similarity": 1,
+          "size": 5,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-finalizer",
+      "source_path": "analysis/generated/stunt-finalizer-structure-island.json",
+      "name": "praise_select_emit",
+      "kind": "code",
+      "usa_start": "82:9D0E",
+      "usa_end": "82:9D67",
+      "size": 90,
+      "usa_opcode_bytes": 37,
+      "usa_operand_bytes": 53,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:9D1A",
+          "end": "82:9D73",
+          "shift": 12,
+          "similarity": 0.922222,
+          "size": 90,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:9D0E",
+          "end": "82:9D67",
+          "shift": 0,
+          "similarity": 1,
+          "size": 90,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:9D04",
+          "end": "82:9D5D",
+          "shift": -10,
+          "similarity": 0.922222,
+          "size": 90,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:9D0E",
+          "end": "82:9D67",
+          "shift": 0,
+          "similarity": 1,
+          "size": 90,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-finalizer",
+      "source_path": "analysis/generated/stunt-finalizer-structure-island.json",
+      "name": "state_clear_and_exit",
+      "kind": "code",
+      "usa_start": "82:9D68",
+      "usa_end": "82:9D8B",
+      "size": 36,
+      "usa_opcode_bytes": 13,
+      "usa_operand_bytes": 23,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:9D74",
+          "end": "82:9D97",
+          "shift": 12,
+          "similarity": 0.666667,
+          "size": 36,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:9D68",
+          "end": "82:9D8B",
+          "shift": 0,
+          "similarity": 1,
+          "size": 36,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:9D5E",
+          "end": "82:9D81",
+          "shift": -10,
+          "similarity": 0.75,
+          "size": 36,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:9D68",
+          "end": "82:9D8B",
+          "shift": 0,
+          "similarity": 1,
+          "size": 36,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-finalizer",
+      "source_path": "analysis/generated/stunt-finalizer-structure-island.json",
+      "name": "flip_score_weights",
+      "kind": "data",
+      "usa_start": "82:9D8C",
+      "usa_end": "82:9D95",
+      "size": 10,
+      "usa_opcode_bytes": 0,
+      "usa_operand_bytes": 0,
+      "usa_unreached_or_data_bytes": 10,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:9D98",
+          "end": "82:9DA1",
+          "shift": 12,
+          "similarity": 1,
+          "size": 10,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:9D8C",
+          "end": "82:9D95",
+          "shift": 0,
+          "similarity": 1,
+          "size": 10,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:9D82",
+          "end": "82:9D8B",
+          "shift": -10,
+          "similarity": 1,
+          "size": 10,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:9D8C",
+          "end": "82:9D95",
+          "shift": 0,
+          "similarity": 1,
+          "size": 10,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-finalizer",
+      "source_path": "analysis/generated/stunt-finalizer-structure-island.json",
+      "name": "roll_score_weights",
+      "kind": "data",
+      "usa_start": "82:9D96",
+      "usa_end": "82:9D9F",
+      "size": 10,
+      "usa_opcode_bytes": 0,
+      "usa_operand_bytes": 0,
+      "usa_unreached_or_data_bytes": 10,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:9DA2",
+          "end": "82:9DAB",
+          "shift": 12,
+          "similarity": 1,
+          "size": 10,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:9D96",
+          "end": "82:9D9F",
+          "shift": 0,
+          "similarity": 1,
+          "size": 10,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:9D8C",
+          "end": "82:9D95",
+          "shift": -10,
+          "similarity": 1,
+          "size": 10,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:9D96",
+          "end": "82:9D9F",
+          "shift": 0,
+          "similarity": 1,
+          "size": 10,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-finalizer",
+      "source_path": "analysis/generated/stunt-finalizer-structure-island.json",
+      "name": "twist_score_weights",
+      "kind": "data",
+      "usa_start": "82:9DA0",
+      "usa_end": "82:9DA9",
+      "size": 10,
+      "usa_opcode_bytes": 0,
+      "usa_operand_bytes": 0,
+      "usa_unreached_or_data_bytes": 10,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:9DAC",
+          "end": "82:9DB5",
+          "shift": 12,
+          "similarity": 1,
+          "size": 10,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:9DA0",
+          "end": "82:9DA9",
+          "shift": 0,
+          "similarity": 1,
+          "size": 10,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:9D96",
+          "end": "82:9D9F",
+          "shift": -10,
+          "similarity": 1,
+          "size": 10,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:9DA0",
+          "end": "82:9DA9",
+          "shift": 0,
+          "similarity": 1,
+          "size": 10,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-finalizer",
+      "source_path": "analysis/generated/stunt-finalizer-structure-island.json",
+      "name": "trick_praise_table",
+      "kind": "data",
+      "usa_start": "82:9DAA",
+      "usa_end": "82:A01A",
+      "size": 625,
+      "usa_opcode_bytes": 0,
+      "usa_operand_bytes": 0,
+      "usa_unreached_or_data_bytes": 625,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:9DB6",
+          "end": "82:A026",
+          "shift": 12,
+          "similarity": 1,
+          "size": 625,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:9DAA",
+          "end": "82:A01A",
+          "shift": 0,
+          "similarity": 1,
+          "size": 625,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:9DA0",
+          "end": "82:A010",
+          "shift": -10,
+          "similarity": 1,
+          "size": 625,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:9DAA",
+          "end": "82:A01A",
+          "shift": 0,
+          "similarity": 1,
+          "size": 625,
           "size_delta": 0
         }
       }

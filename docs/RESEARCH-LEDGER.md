@@ -1656,3 +1656,21 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 **Propagation:** represented the entire 657-byte USA handler as 15 gapless code regions, preserving USA/beta-only deleted blocks explicitly rather than hiding them inside shift arithmetic. Added the island to `analysis/generated/comparative-structural-census.{json,md}`, bringing the census to **55 regions / 5,916 bounded USA bytes**, including **5,708 code-region bytes** and **2,393 analyzer opcode bytes**.
 
+### R-SEED-068 — Stunt finalization preserves scoring architecture across PAL-line cleanup
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | stunt physics | scoring | comparative atlas
+
+**Observation:** USA `82:9A42..9D8B` is the complete stunt-finalization/scoring routine, followed immediately by three 10-byte score-weight tables at `9D8C..9DA9` and a 625-byte trick/praise lookup at `9DAA..A01A`; the next USA code begins at `82:A01B`. The combined island is 1,497 bytes.
+
+**Evidence:** `tools/analyze_stunt_finalizer_structure_island.py`; `analysis/generated/stunt-finalizer-structure-island.{json,md}`; ROM-backed project-tooling run `36933522739`. Regional entry seeding reaches every accepted executable byte in all four builds. USA and legacy beta are byte-identical.
+
+**Interpretation:** the PAL prototype and Europe preserve the full stunt state-machine/scoring architecture with one structural cleanup: both omit five USA/beta NOPs at `82:9D09..9D0D`. Before the deletion the prototype homolog shift is -5 and Europe +17; afterward they are -10 and +12 respectively. The three score-weight tables and the full 625-byte trick/praise table are byte-identical across all four ROMs after accounting for that shift.
+
+**Discriminating test:** none required for code/data boundaries, the five-NOP contraction, or table identity. Exact semantics of individual praise-table values should be pursued only when implementing stunt messaging/scoring or validating a concrete discrepancy.
+
+**Dependencies:** Nitrodon stunt disassembly; trusted-entry snes2asm; four-ROM preserved corpus; direct table hashes.
+
+**Propagation:** added ten regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **65 regions / 7,413 bounded USA bytes**, including **6,550 code-region bytes**, **863 data bytes**, and **2,743 analyzer opcode bytes**.
+

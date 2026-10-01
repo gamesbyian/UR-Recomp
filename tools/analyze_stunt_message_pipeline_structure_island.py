@@ -65,7 +65,7 @@ def build():
   rows.append(row)
 
  n0,n1=cpu_to_offset("81:C24B"),cpu_to_offset("81:C24D")
- eu_s,eu_e=cpu_to_offset("81:C35D"),cpu_to_offset("81:C364")
+ eu_s,eu_e=cpu_to_offset("81:C360"),cpu_to_offset("81:C367")
  europe=blobs["europe-retail"]
  return {
   "schema_version":1,
@@ -80,7 +80,7 @@ def build():
    "europe_two_player_gate":{
     "usa_span":"81:C372..C37E","usa_size":13,"usa_hex":usa[cpu_to_offset("81:C372"):cpu_to_offset("81:C37E")+1].hex(" "),
     "prototype_span":"81:C34F..C35B",
-    "europe_span":"81:C35D..C364","europe_size":8,"europe_hex":europe[eu_s:eu_e+1].hex(" "),
+    "europe_span":"81:C360..C367","europe_size":8,"europe_hex":europe[eu_s:eu_e+1].hex(" "),
     "effect":"Europe replaces the longer USA/prototype two-player score-display gate with an equivalent 8-byte compare/branch/jump sequence, net -5 bytes.",
    },
   },

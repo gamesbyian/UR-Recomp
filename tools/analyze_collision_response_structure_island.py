@@ -71,6 +71,15 @@ def build():
  for build,blob in blobs.items():
   d=trace(blob)
   seeds=[cpu_to_offset(s)+shifts[build][name] for name,s,e in REGIONS]
+  for cpu in ["81:9355","81:93CA","81:9401","81:9467","81:9646","81:96AD","81:9969"]:
+   off=cpu_to_offset(cpu)
+   if build=="europe-retail":
+    local_shift=-26 if off<cpu_to_offset("81:9806") else -15
+   elif build=="pal-prototype-1994-11-29":
+    local_shift=-32
+   else:
+    local_shift=0
+   seeds.append(off+local_shift)
   seed_entries(d,seeds); ds[build]=d
  rows=[]
  for name,s,e in REGIONS:
@@ -100,7 +109,18 @@ def build():
     info["local_shift_profile_16byte"]=fine_profile(usa,blob,us,ue,sh,16)
    row["builds"][build]=info
   rows.append(row)
- return {"schema_version":1,"island":"PerRacerCollisionContactResponse","usa_start":"81:8FB8","usa_end":"81:99D5","next_code_entry":"81:99D6","usa_unreached_runs":ranges_for(lambda x:not (ds["usa-retail"].code_map[x]&(ds["usa-retail"].OP_CODE|ds["usa-retail"].OP_PARAM)),cpu_to_offset("81:8FB8"),cpu_to_offset("81:99D5")),"regions":rows}
+ windows=[]
+ for label,cpu,eu_shift in [
+  ("europe_insert_1","81:92E8",-32),
+  ("europe_insert_2","81:97F0",-26),
+ ]:
+  us=cpu_to_offset(cpu); size=80
+  row={"name":label,"usa_start":cpu,"size":size,"usa_hex":usa[us:us+size].hex(" "),"builds":{}}
+  for build,shift in [("pal-prototype-1994-11-29",-32),("europe-retail",eu_shift)]:
+   blob=blobs[build]; bs=us+shift
+   row["builds"][build]={"start":offset_to_cpu(bs),"shift":shift,"hex":blob[bs:bs+size].hex(" ")}
+  windows.append(row)
+ return {"schema_version":1,"island":"PerRacerCollisionContactResponse","usa_start":"81:8FB8","usa_end":"81:99D5","next_code_entry":"81:99D6","transition_windows":windows,"usa_unreached_runs":ranges_for(lambda x:not (ds["usa-retail"].code_map[x]&(ds["usa-retail"].OP_CODE|ds["usa-retail"].OP_PARAM)),cpu_to_offset("81:8FB8"),cpu_to_offset("81:99D5")),"regions":rows}
 
 def render(r):
  lines=["# Per-racer collision / contact-response structural island","",

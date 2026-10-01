@@ -25,6 +25,20 @@ Same-address status is recorded but is not used as proof.
 
 The legacy beta is exact for all eight tested anchors, consistent with the known 486 isolated USA/beta byte differences living elsewhere in the ROM.
 
+## Aggregate operand-motion evidence
+
+The final successful corpus run mechanically projected known USA LE16 semantic operands through each top structurally aligned candidate.
+
+Aggregate displacement evidence:
+
+| Build | Dominant displacement families |
+|---|---|
+| legacy beta | `+0`: 212 |
+| PAL prototype | `+4`: 108; `+0`: 90 |
+| Europe retail | `+10`: 99; `+4`: 38; `+6`: 28; `+0`: 19 |
+
+These counts are not a claim that every occurrence is an independently named variable. They measure repeated structurally aligned operand motion across the trusted anchor corpus. The fact that the same small set of deltas recurs across unrelated routines is the useful signal.
+
 ## A second structural signal: coherent WRAM layout translation
 
 The top candidates do more than resemble the USA bytes. At the same relative instruction positions, known USA state operands repeatedly become nearby but different WRAM addresses in the other builds.

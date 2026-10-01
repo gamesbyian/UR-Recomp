@@ -342,13 +342,8 @@ def build_translation_summary(output: dict) -> dict:
                 })
     return summary
 
-def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--top", type=int, default=5, help="candidate matches per anchor/build")
-    ap.add_argument("--ngram", type=int, default=6, help="byte n-gram length")
-    ap.add_argument("--stride", type=int, default=3, help="anchor n-gram sampling stride")
-    args = ap.parse_args()
-
+def build_output(*, top: int = 5, ngram: int = 6, stride: int = 3) -> dict:
+    """Build the machine-readable correspondence corpus without writing files."""
     blobs = {name: path.read_bytes() for name, path in ROMS.items()}
     usa = blobs["usa-retail"]
 
@@ -386,13 +381,24 @@ def main() -> None:
                 anchor,
                 usa,
                 blob,
-                top=args.top,
-                k=args.ngram,
-                stride=args.stride,
+                top=top,
+                k=ngram,
+                stride=stride,
             )
         output["anchors"].append(item)
 
     output["translation_summary"] = build_translation_summary(output)
+    return output
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--top", type=int, default=5, help="candidate matches per anchor/build")
+    ap.add_argument("--ngram", type=int, default=6, help="byte n-gram length")
+    ap.add_argument("--stride", type=int, default=3, help="anchor n-gram sampling stride")
+    args = ap.parse_args()
+
+    output = build_output(top=args.top, ngram=args.ngram, stride=args.stride)
 
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     OUT_JSON.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")

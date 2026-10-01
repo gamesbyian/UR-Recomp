@@ -83,6 +83,13 @@ ANCHORS = (
         "Per-player 32-entry stunt/HUD message-ring enqueue path.",
     ),
     Anchor(
+        "Camera_StateQuantizeP1",
+        "81:AF3A",
+        0x89,
+        (0x04F5, 0x0505, 0x0507, 0x0509, 0x050F, 0x051D, 0x0521, 0x052B, 0x052F),
+        "Bounded Nitrodon camera-state quantization subregion through RTS at 81:AFC2; intentionally spans the suspected +4→+6 WRAM lineage boundary.",
+    ),
+    Anchor(
         "Camera_MapGeometrySetup",
         "81:A50E",
         0x1D,

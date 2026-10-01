@@ -19,15 +19,24 @@ memory:
   Race_ActiveState: 0x7E0313
   Player1_FacingAtTakeoff: 0x7E033B
   Player1_XPosition: 0x7E0411
+  Player2_XPosition: 0x7E0413
   Player1_YPosition: 0x7E0415
+  Player2_YPosition: 0x7E0417
   Player1_ZFlipCount: 0x7E042B
+  Player2_ZFlipCount: 0x7E042D
   Player1_TabletopDuration: 0x7E042F
+  Player2_TabletopDuration: 0x7E0431
   Player1_XSpeed: 0x7E04B7
+  Player2_XSpeed: 0x7E04B9
   Player1_YSpeed: 0x7E04BB
+  Player2_YSpeed: 0x7E04BD
   Player1_PitchAngle: 0x7E04C7
   Player2_PitchAngle: 0x7E04C9
+  Player1_CameraXSpeed: 0x7E04F5
+  Player2_CameraXSpeed: 0x7E04F7
   Player1_AirTime: 0x7E0545
   Player1_FacedDirection: 0x7E0BA1
+  Player2_FacedDirection: 0x7E0BA3
   Frontend_SelectedColumn: 0x7E0C63
   Player1_ZRotationState: 0x7E0DFD
   Player1_LapsRemaining: 0x7E0EF1
@@ -40,13 +49,16 @@ memory:
   Player1_ArrowsVisible: 0x7E0FCC
   CurrentPlayer_Index: 0x7E0FEF
   Player1_NextCheckpoint: 0x7E1199
+  Player2_NextCheckpoint: 0x7E119B
   Player1_FinishGateState: 0x7E119D
   Race_CountdownTimer: 0x7E11BA
   CurrentPlayer_BoostMeterWorking: 0x7E11CD
   Player1_BoostMeter: 0x7E11CF
   Player2_BoostMeter: 0x7E11D1
   Player1_RollCount: 0x7E11F9
+  Player2_RollCount: 0x7E11FB
   Player1_FlipCount: 0x7E11FD
+  Player2_FlipCount: 0x7E11FF
   Player1_RollQuarterProgress: 0x7E1201
   Player1_FlipQuarterProgress: 0x7E1205
   Stunt_CurrentScore: 0x7E12AF

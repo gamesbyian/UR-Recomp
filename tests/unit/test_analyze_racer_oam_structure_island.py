@@ -26,6 +26,10 @@ class RacerOamStructureTests(unittest.TestCase):
         for name in ("p1_projection","p2_projection_shared_camera"):
             self.assertEqual(by_name[name]["builds"]["europe-retail"]["shift"], 7)
             self.assertEqual(by_name[name]["builds"]["pal-prototype-1994-11-29"]["shift"], -15)
+        for name in ("split_p2_projection","split_p1_projection"):
+            self.assertEqual(by_name[name]["builds"]["europe-retail"]["size_delta"], -2)
+            self.assertEqual(by_name[name]["builds"]["pal-prototype-1994-11-29"]["size_delta"], -2)
+        self.assertEqual([x["usa_span"] for x in result["lineage_edits"]], ["82:AF96..AF97","82:B01F..B020"])
         print("RACER_OAM_ISLAND_JSON="+json.dumps(result,sort_keys=True))
 
 if __name__=="__main__":

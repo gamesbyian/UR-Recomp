@@ -15,8 +15,8 @@ A missing artifact is not automatically a project dependency. Keep searching for
 
 Current missing-artifact judgment:
 - **P0:** Mike Dailly historical SNES framework; original Uniracers/DMA editor/converter/tool artifacts.
-- **P1:** `usjo13.lua` or later USJO siblings now that internal v8 is recovered; Halamantariel boost/mechanics page; Sinister 100% translation patch; genuinely distinct old SMV/savestate corpora; Uniracers-specific Dailly development media.
-- **P2:** VGMaps course images and official packaging maps; Uniracers-specific Steve Hammond material; US manual scan; Tamoketh recreation artifacts when technical/source material exists.
+- **P1:** Sinister 100% translation patch; genuinely distinct old SMV/savestate corpora not covered by the Dessyreqt recovery; Uniracers-specific Dailly development media.
+- **P2:** Halamantariel boost/mechanics page; USJO v13 as historical gap-filling only; external VGMaps copies only for independent comparison; official packaging maps; Uniracers-specific Steve Hammond material; Tamoketh recreation artifacts when technical/source material exists.
 - **P3:** SNasm 1.7.2 after 1.7.1 + modern SNasm are already preserved; gamesTM #64 unless it contains material absent from the Nintendo Life republication; Uniracers Uncensored unless a surviving patch is trivially downloadable; generic DMA media with no Uniracers attribution.
 
 P2/P3 does **not** mean “stop looking.” It means a future agent should not mistake archival completeness for a critical-path requirement.
@@ -304,11 +304,11 @@ Need judgment: **genuinely useful corroboration, not a dependency.** The recover
 
 ## A-018 — Jumpover FallThrough glitch savestates / related historical files
 
-Priority: P1 for actual savestates or SMV; P3 for page text alone  
-Status: historical page and contemporary description known; binaries not recovered  
+Priority: acquisition complete for movie evidence; exact historical savestate remains optional  
+Status: **two Jumpover halfpipe SMVs plus dedicated left/right reproduction scripts recovered directly from Dessyreqt**  
 Historical URL: `http://dscarroll.com/uniracerstas/FallThrough.ashx`
 
-Need judgment: **actual state/movie files would be useful.** They would give a deterministic seed for an unusual collision/track-boundary case and could save substantial reproduction time. The prose page itself adds little beyond surviving TASVideos discussion.
+Recovered files include `Glitches/Jumpover - Jump through halfpipe.smv`, `Glitches/Jumpover - Jump through halfpipe - left.smv`, `Scripts/jumpthroughhalfpiperight.lua`, and `Scripts/jumpthroughhalfpipeleft.lua` under `reference/imported/reverse-engineering/dessyreqt/`. The scripts preserve the historical savestate-position sweep method and successful-X comments. This closes the practical acquisition need: collision work now has deterministic movie/script seeds. Recover the exact old webpage savestate only if it surfaces cheaply.
 
 ## A-019 — USA instruction manual scan
 
@@ -320,12 +320,12 @@ SHA-256: `50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235`
 
 Need judgment: **nice to preserve, but not needed.** It is canonical player-facing terminology and mechanics documentation, but current runtime evidence covers the implementation-critical questions. Acquisition is now closed.
 
-## A-020 — Halamantariel VGMaps course-map corpus
+## A-020 — Historical course-map corpus / VGMaps comparison
 
-Priority: P2  
-Status: 44-map public corpus indexed; binary mirroring intentionally deferred unless cheap and size-appropriate
+Priority: P3 for further acquisition  
+Status: **complete 45-map local course corpus recovered directly from Dessyreqt; external VGMaps set remains comparison-only**
 
-Need judgment: **potentially useful geometric ground truth, but not necessary.** ROM extraction and deterministic rendering are stronger authorities. The maps can accelerate visual checks, especially while course decoding is incomplete, but importing a very large raster corpus merely for completeness is not justified. Preserve a durable inventory/URLs first; fetch individual maps when a concrete comparison needs them.
+Dessyreqt's workspace contains one PNG for every shipped course across all nine tours under `reference/imported/reverse-engineering/dessyreqt/Maps/`. That satisfies the practical need for local visual course ground truth. The public VGMaps corpus is still useful as an independent provenance/hash comparison, but there is no longer value in chasing it merely to obtain maps.
 
 ## A-021 — Uniracers Uncensored IPS patch
 

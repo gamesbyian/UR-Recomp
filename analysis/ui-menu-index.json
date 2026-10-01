@@ -53,9 +53,10 @@
       "value": "0x3D",
       "state_id": "TWO_PLAYER_SELECT",
       "status": "verified",
-      "source": "analysis/generated/ui-atlas-native-harvest-2026-09-29.md",
-      "fixture": "ui-main-branches",
-      "capture": "ui-two-player-entry"
+      "source": "tests/input/two-player-first-race.input",
+      "fixture": "two-player-first-race",
+      "capture": "two-player-select-560",
+      "capture_note": "Durable two-controller route remains in 0x3D across the first rider-confirm phase, accepts P2-only movement/confirm, then advances into two-player setup."
     },
     {
       "value": "0x3E",
@@ -88,8 +89,11 @@
       "value": "0x91",
       "state_id": "TRACK_SELECT",
       "variant": "two-player-low",
-      "status": "historical",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "tests/input/two-player-first-race.input",
+      "fixture": "two-player-first-race",
+      "capture": "two-player-setup-920",
+      "capture_note": "Ordinary two-player route reaches 0x91 before pre-race transition."
     },
     {
       "value": "0x96",

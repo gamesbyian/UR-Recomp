@@ -172,6 +172,34 @@ Use structural fingerprints for future resource equivalence: course incidence, l
 
 Full derivation: `analysis/generated/dragster-resource-span-attribution-2026-09-30.md`.
 
+## Checkpoint/finish resource family generalized across all 45 courses
+
+The full 45-course resource-list corpus now turns Dragster resource `0x24` from a course-specific attribution into a game-wide structural family.
+
+`tools/analyze_course_resource_lists.py` decodes every course in all four preserved builds and fingerprints each resource by course incidence, tour slot, and list position. The result for resource `0x24` is exact and unusually clean:
+
+- it occurs in **36 / 45** courses;
+- those 36 are **every Race A, Circuit A, Race B, and Circuit B slot in all nine tours**;
+- it occurs in **0 / 9 Stunt** courses;
+- the same `0x24` ID and the same incidence/list-position fingerprint are preserved in USA retail, Europe retail, the legacy beta, and the 1994-11-29 PAL prototype;
+- Dragster independently proves that this resource contributes nine runtime `0x14` object cells, and `0x14` dispatches to `Race_HandleCheckpointFinish`.
+
+Taken together, the supported semantic label is now:
+
+`resource 0x24 = race/circuit checkpoint-finish resource family`
+
+This does **not** imply every byte or every materialized cell from `0x24` is identical on every course. It identifies the reusable resource family selected by every shipped lap/checkpoint-bearing race/circuit course and omitted by every timed Stunt course.
+
+The negative evidence is especially useful: Stunt courses do not use the ordinary checkpoint/finish resource family, which matches their timer/score mode and gives the future editor/runtime model a clean mode-dependent structural distinction.
+
+Generated corpus:
+- `analysis/generated/course-resource-list-manifest.json`
+- `analysis/generated/course-resource-list-manifest.md`
+
+Derived closeout:
+- `analysis/generated/checkpoint-resource-family-2026-10-01.md`
+
+
 ## Runtime object map: checkpoint/finish code identified
 
 A retrospective propagation pass through the race object dispatcher at `81:82E6` identifies one concrete runtime course-object code.

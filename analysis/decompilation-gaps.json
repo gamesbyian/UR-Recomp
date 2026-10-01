@@ -97,6 +97,14 @@
       "summary": "Recovered the full named course loader as five bounded executable regions: setup, resource-record/header handling, DMA row loop, A000/C000 materialization, and common exit. All 554 USA bytes are analyzer-reached. Europe preserves the structure at shift -58, PAL prototype at -100, and legacy beta is byte-identical.",
       "priority": "low",
       "next_evidence": "Revisit internal descriptor/plane semantics only when course/editor implementation requires them. Comparative structure work should move to a fourth independent subsystem."
+    },
+    {
+      "id": "resolved-racer-oam-viewport-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 82:ACA5..B17F and homologs",
+      "summary": "Recovered the complete racer OAM/viewport builder as 12 gapless instruction-aligned regions. Legacy beta is byte-identical. PAL prototype and Europe preserve the same architecture; their two 2-byte contractions delete redundant first copies from consecutive REP #$20 pairs in the split-camera P2 and P1 projection blocks.",
+      "priority": "low",
+      "next_evidence": "Revisit only for concrete widescreen/viewport policy implementation or if runtime evidence exposes a presentation discrepancy. Comparative structure work should move to another subsystem."
     }
   ]
 }

@@ -280,6 +280,8 @@ jobs:
           # being mistaken for the root cause when an earlier state byte is
           # already different.
           first_full=None
+          baseline_diff_addrs=None
+          first_growth=None
           for frame in range(1128,1135):
               tag=f"phase-origin-{frame}"
               nw=(nroot/f"{tag}.wram.bin").read_bytes()
@@ -289,6 +291,18 @@ jobs:
                   f"FULL_WRAM_DIFF frame={frame} count={len(wdiff)} "
                   f"first={wdiff[:32]}"
               )
+              addrs={i for i,_,_ in wdiff}
+              if baseline_diff_addrs is None:
+                  baseline_diff_addrs=addrs
+              else:
+                  new=[x for x in wdiff if x[0] not in baseline_diff_addrs]
+                  if new:
+                      print(
+                          f"NEW_WRAM_DIFF frame={frame} count={len(new)} "
+                          f"first={new[:64]}"
+                      )
+                      if first_growth is None:
+                          first_growth=(frame,new[:64])
               if wdiff and first_full is None:
                   first_full=(frame,wdiff[:32])
               ns=nroot/f"{tag}.sram.bin"
@@ -317,6 +331,7 @@ jobs:
                               f"SRAM_FIELD frame={frame} {name}=({nb[off]},{sb[off]})"
                           )
           print("FIRST_FULL_WRAM_DIFF", first_full or "MATCH_THROUGH_1134")
+          print("FIRST_WRAM_DIFF_GROWTH", first_growth or "NO_GROWTH_THROUGH_1134")
           PY
 
       - name: Localize native/Snes9x P2-only drift

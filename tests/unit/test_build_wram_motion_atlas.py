@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 
-from tools.build_wram_motion_atlas import signed_delta, summarize
+from tools.build_wram_motion_atlas import build_lineage_motion, signed_delta, summarize
 
 
 class WramMotionAtlasTests(unittest.TestCase):
@@ -128,7 +128,7 @@ class WramMotionAtlasTests(unittest.TestCase):
                 "consistent": True,
             },
         ]
-        out = MODULE.build_lineage_motion(rows)
+        out = build_lineage_motion(rows)
         by_delta = {x["prototype_to_europe_delta"]: x for x in out["clusters"]}
         self.assertEqual(by_delta[6]["usa_words"], ["0F9F"])
         self.assertEqual(by_delta[4]["usa_words"], ["0411"])

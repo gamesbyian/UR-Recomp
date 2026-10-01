@@ -26,7 +26,10 @@ if str(SNES2ASM_ROOT) not in sys.path:
 from snes2asm.cartridge import Cartridge
 from snes2asm.disassembler import Disassembler
 
-from tools.analyze_rom_lineage_deltas import DEFAULTS, build_report, excluded_mask
+try:
+    from tools.analyze_rom_lineage_deltas import DEFAULTS, build_report, excluded_mask
+except ModuleNotFoundError:
+    from analyze_rom_lineage_deltas import DEFAULTS, build_report, excluded_mask
 
 OUT_JSON = ROOT / "analysis" / "generated" / "usa-beta-cross-analyzer.json"
 OUT_MD = ROOT / "analysis" / "generated" / "usa-beta-cross-analyzer.md"

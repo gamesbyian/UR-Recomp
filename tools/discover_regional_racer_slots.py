@@ -123,7 +123,13 @@ def inspect_build(blob: bytes, spec: dict) -> dict:
         'ypos': decorate(discover_dp_y_pairs(region, 0xA7), base),
         'xspeed': decorate(discover_abs_y_pairs(region, spec['x_work']), base),
         'yspeed': decorate(discover_abs_y_pairs(region, spec['y_work']), base),
-        'boost': decorate(discover_abs_a_pairs(region, spec['boost_work']), base),
+        'boost': decorate(
+            {
+                **discover_abs_y_pairs(region, spec['boost_work']),
+                **discover_abs_a_pairs(region, spec['boost_work']),
+            },
+            base,
+        ),
     }
     assignment={}
     for name, rows in fields.items():

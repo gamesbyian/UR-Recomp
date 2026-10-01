@@ -138,7 +138,7 @@ The same fixture exposes the split-screen culling sentinels produced by bank 82.
 
 These relationships are durable event-relative assertions in the ordinary-2P workflow. They deliberately assert ownership/direction/culling behavior rather than exact post-input cross-runtime coordinates: the closed frame-origin investigation already proved that libretro cores and the native host can cut a vblank-shaped transition on adjacent absolute frame ordinals.
 
-The same camera-control path also exposes raw world-window state used before render-update construction: `$0505/$0507` are per-camera movement-derived edge values, `$052B/$052D` are associated update spans, and `$0509/$050B` are fine/index components. Immediately before DMA/update descriptors are built, `81:AA40..AB87` filters two compact 16-entry structures against those moving edge bands. Their counts are `$0DCD/$0DCF`, byte flags `$0D6D/$0D7D`, and encoded coordinate words `$0D8D/$0DAD`. Tooling exposes them as activation candidates, not proven gameplay objects, until runtime mutations establish their role.
+The same camera-control path also exposes raw world-window state used before render-update construction: `$0505/$0507` are per-camera movement-derived edge values, `$052B/$052D` are associated update spans, and `$0509/$050B` are fine/index components. Immediately before DMA/update descriptors are built, `81:AA40..AB87` filters two compact 16-entry structures against those moving edge bands. Their counts are `$0DCD/$0DCF`, byte flags `$0D6D/$0D7D`, and encoded coordinate words `$0D8D/$0DAD`. Bank 82 consumes them as VRAM update commands at `82:D383..D3C4`: encoded words become `$2116` VRAM addresses and flag-selected values are written through `$2118`.
 
 ## Downstream obligations
 

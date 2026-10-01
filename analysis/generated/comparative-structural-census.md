@@ -1,11 +1,11 @@
 # Comparative structural census
 
-This census aggregates only accepted comparative structure-recovery islands, so the counts below are a conservative **floor**, not a whole-ROM coverage percentage.
+This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **38** (35 code, 3 data)
-- bounded bytes: **4791** (4583 code-region bytes, 208 explicit data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **1923**
-- represented USA banks: **81, 82**
+- bounded regions: **40** (37 code, 3 data)
+- bounded bytes: **5259** (5051 code-region bytes, 208 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **2108**
+- represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
 |---|---|---:|---|---|---|---|---|
@@ -47,7 +47,11 @@ This census aggregates only accepted comparative structure-recovery islands, so 
 | `82:E216..82:E2FF` | code | 234 | course-materialization | dma_row_loop | 82:E1B2..82:E29B (-100; size 234; sim 0.885) | 82:E1DC..82:E2C5 (-58; size 234; sim 0.885) | 82:E216..82:E2FF (+0; size 234; sim 1.000) |
 | `82:E302..82:E385` | code | 132 | course-materialization | resource_materialize_A000_C000 | 82:E29E..82:E321 (-100; size 132; sim 0.955) | 82:E2C8..82:E34B (-58; size 132; sim 0.955) | 82:E302..82:E385 (+0; size 132; sim 1.000) |
 | `82:E388..82:E395` | code | 14 | course-materialization | exit | 82:E324..82:E331 (-100; size 14; sim 0.929) | 82:E34E..82:E35B (-58; size 14; sim 0.929) | 82:E388..82:E395 (+0; size 14; sim 1.000) |
+| `83:CBCC..83:CC86` | code | 187 | race-frame-orchestrator | setup_loop_prefix | 83:CBCC..83:CC84 (+0; size 185; sim 0.882) | 83:CBF2..83:CCAA (+38; size 185; sim 0.872) | 83:CBCC..83:CC86 (+0; size 187; sim 1.000) |
+| `83:CC87..83:CD9F` | code | 281 | race-frame-orchestrator | loop_body_after_sep_cleanup | 83:CC85..83:CD9D (-2; size 281; sim 0.833) | 83:CCAB..83:CDC3 (+36; size 281; sim 0.790) | 83:CC87..83:CD9F (+0; size 281; sim 1.000) |
 
-## Current growth rule
+## Selection rule for the next island
 
-Choose subsequent islands for implementation leverage, not byte count. The census now spans racer simulation, object/collision dispatch, course materialization, the full racer OAM/viewport builder, and the per-racer course runtime surface sampler. Any sixth island should illuminate another shipping-critical subsystem rather than extending these already-bounded corridors without a concrete need.
+Grow this census by choosing a different executed/high-connectivity subsystem where comparative evidence can recover multiple boundaries or relationships at once. Prefer a candidate with direct call/table structure and shipping relevance. Do not extend an existing island merely to increase byte totals.
+
+The JSON form is the authoritative query surface: `analysis/generated/comparative-structural-census.json`.

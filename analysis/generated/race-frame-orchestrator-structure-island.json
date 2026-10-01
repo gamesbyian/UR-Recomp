@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "island": "race-frame orchestration corridor",
+  "usa_start": "83:CBCC",
+  "usa_end": "83:CD9F",
+  "usa_size": 468,
+  "seed_basis": "USA 83:CBCC is SEP #$30, independently establishing 8-bit A/X before the setup and loop corridor.",
+  "loop": {
+    "header": "83:CC62",
+    "back_edge": "83:CD9D JMP $CC62",
+    "header_reached": true,
+    "back_edge_reached": true
+  },
+  "known_calls": {
+    "input": "82:AA6A",
+    "racer_update": "82:89B5 wrapper",
+    "oam": "82:ACA1",
+    "player_state_marshal": "81:8D14"
+  },
+  "lineage_edits": [
+    {
+      "usa_span": "83:CC85..CC86",
+      "bytes": "e2 20",
+      "instruction": "SEP #$20",
+      "effect": "PAL prototype and Europe omit the second of two consecutive SEP #$20 instructions at USA 83:CC83..CC86; net -2 bytes with the following loop body otherwise continuing at the new homolog shift."
+    }
+  ],
+  "regions": [
+    {
+      "name": "setup_loop_prefix",
+      "kind": "code",
+      "usa_start": "83:CBCC",
+      "usa_end": "83:CC86",
+      "size": 187,
+      "builds": {
+        "usa-retail": {
+          "start": "83:CBCC",
+          "end": "83:CC86",
+          "shift": 0,
+          "similarity": 1,
+          "size": 187,
+          "size_delta": 0,
+          "opcode_bytes": 76,
+          "operand_bytes": 111,
+          "unreached_or_data_bytes": 0,
+          "sha256": "2b8afefbf706ba6f77012d3d46f0e651cccb23f9ac12e3b256c834625914fdf8"
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "83:CBCC",
+          "end": "83:CC84",
+          "shift": 0,
+          "similarity": 0.882353,
+          "size": 185,
+          "size_delta": -2,
+          "opcode_bytes": 75,
+          "operand_bytes": 110,
+          "unreached_or_data_bytes": 0,
+          "sha256": "7a718c3cd8c3458fa79f58f763fbb250ff9f1c9e44855f7d254fc1d7794be058"
+        },
+        "europe-retail": {
+          "start": "83:CBF2",
+          "end": "83:CCAA",
+          "shift": 38,
+          "similarity": 0.871658,
+          "size": 185,
+          "size_delta": -2,
+          "opcode_bytes": 75,
+          "operand_bytes": 110,
+          "unreached_or_data_bytes": 0,
+          "sha256": "d62542785ecf4086d240857098096e5f1e572c1eec84eccce405d06f25d3600b"
+        },
+        "legacy-beta": {
+          "start": "83:CBCC",
+          "end": "83:CC86",
+          "shift": 0,
+          "similarity": 1,
+          "size": 187,
+          "size_delta": 0,
+          "opcode_bytes": 76,
+          "operand_bytes": 111,
+          "unreached_or_data_bytes": 0,
+          "sha256": "2b8afefbf706ba6f77012d3d46f0e651cccb23f9ac12e3b256c834625914fdf8"
+        }
+      }
+    },
+    {
+      "name": "loop_body_after_sep_cleanup",
+      "kind": "code",
+      "usa_start": "83:CC87",
+      "usa_end": "83:CD9F",
+      "size": 281,
+      "builds": {
+        "usa-retail": {
+          "start": "83:CC87",
+          "end": "83:CD9F",
+          "shift": 0,
+          "similarity": 1,
+          "size": 281,
+          "size_delta": 0,
+          "opcode_bytes": 109,
+          "operand_bytes": 172,
+          "unreached_or_data_bytes": 0,
+          "sha256": "ae5de7570136904e1316d8363ecee41866a6e5cbbc131560f8f9a6afb0a51799"
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "83:CC85",
+          "end": "83:CD9D",
+          "shift": -2,
+          "similarity": 0.83274,
+          "size": 281,
+          "size_delta": 0,
+          "opcode_bytes": 108,
+          "operand_bytes": 173,
+          "unreached_or_data_bytes": 0,
+          "sha256": "6689a889f624ceaa391505cc7f8890548c038f929e566736c43d84dce6d41e53"
+        },
+        "europe-retail": {
+          "start": "83:CCAB",
+          "end": "83:CDC3",
+          "shift": 36,
+          "similarity": 0.790036,
+          "size": 281,
+          "size_delta": 0,
+          "opcode_bytes": 106,
+          "operand_bytes": 175,
+          "unreached_or_data_bytes": 0,
+          "sha256": "3c4a34463879005a3ae09d14d235e0936326380c57b5c6dfb78db081fdd02c10"
+        },
+        "legacy-beta": {
+          "start": "83:CC87",
+          "end": "83:CD9F",
+          "shift": 0,
+          "similarity": 1,
+          "size": 281,
+          "size_delta": 0,
+          "opcode_bytes": 109,
+          "operand_bytes": 172,
+          "unreached_or_data_bytes": 0,
+          "sha256": "ae5de7570136904e1316d8363ecee41866a6e5cbbc131560f8f9a6afb0a51799"
+        }
+      }
+    }
+  ]
+}

@@ -51,6 +51,25 @@ def best_shift_near(source: bytes, target: bytes, start: int, end: int, center: 
             best = (shift, score)
     return best
 
+def alignment_profile(source: bytes, target: bytes, start: int, end: int, center: int, chunk: int = 8) -> list[dict]:
+    rows = []
+    pos = start
+    while pos <= end:
+        stop = min(end, pos + chunk - 1)
+        shift, sim = best_shift_near(source, target, pos, stop, center)
+        rows.append({
+            "retail_start": pos,
+            "retail_end": stop,
+            "relative_start": pos - start,
+            "relative_end": stop - start,
+            "prototype_shift": shift,
+            "raw_similarity": round(sim, 6),
+            "retail_hex": source[pos:stop + 1].hex(" "),
+            "prototype_hex": target[pos + shift:stop + shift + 1].hex(" "),
+        })
+        pos = stop + 1
+    return rows
+
 def build() -> dict:
     retail = EUROPE.read_bytes()
     proto = PROTO.read_bytes()
@@ -86,6 +105,10 @@ def build() -> dict:
                 "raw_similarity_after_alignment": round(sim, 6),
                 **metrics,
             })
+            if metrics["aligned_role_disagreements"]:
+                out["raw_alignment_profile_8byte"] = alignment_profile(
+                    retail, proto, start, end, parent["parent_shift"], chunk=8
+                )
             after += metrics["aligned_role_disagreements"]
             row["segments"].append(out)
         parents.append(row)
@@ -139,6 +162,14 @@ def render(report: dict) -> str:
                     f"  - +0x{x['relative_offset']:X}: Europe {x['retail_role']} {x['retail_byte']} "
                     f"vs prototype {x['prototype_role']} {x['prototype_byte']}"
                 )
+            if seg.get("raw_alignment_profile_8byte"):
+                lines.append("  - raw 8-byte local-shift profile:")
+                for p in seg["raw_alignment_profile_8byte"]:
+                    lines.append(
+                        f"    - +0x{p['relative_start']:X}..+0x{p['relative_end']:X}: "
+                        f"shift {p['prototype_shift']:+d}, sim {p['raw_similarity']:.3f}; "
+                        f"EU [{p['retail_hex']}] / proto [{p['prototype_hex']}]"
+                    )
         lines.append("")
     lines += [
         "Removed disagreements are retained as negative evidence: a single shift had crossed independently known code/data or function boundaries.",

@@ -31,6 +31,7 @@ BRACKETS = {
 FOCUSED_NEIGHBORHOODS = {
     "first_inserted_space": (0x030A, 0x0310),
     "second_inserted_space": (0x053C, 0x0546),
+    "autojoy_hardware_registers": (0x4218, 0x421F),
 }
 
 

@@ -46,8 +46,9 @@ def build():
   # Seed only trusted live entries. Dormant USA alternatives retain the inherited
   # classification produced by normal control flow rather than fabricated M/X context.
   base_shift=0 if build in {"usa-retail","legacy-beta"} else -32
-  helper_shift=0 if build in {"usa-retail","legacy-beta"} else (-32 if build=="pal-prototype-1994-11-29" else -15)
-  seed_entries(d,[cpu_to_offset("81:8FB8")+base_shift,cpu_to_offset("81:983B")+helper_shift]); ds[build]=d
+  # The geometry helper is reached through the real JSR from the resolver so its
+  # M/X state is inherited from the caller. Do not independently seed it.
+  seed_entries(d,[cpu_to_offset("81:8FB8")+base_shift]); ds[build]=d
  rows=[]
  for name,s,e,europe_shift,execution_class in REGIONS:
   us,ue=cpu_to_offset(s),cpu_to_offset(e)

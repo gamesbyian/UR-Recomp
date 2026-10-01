@@ -16,6 +16,17 @@ jobs:
         run: |
           python3 tools/build_comparative_code_atlas.py
           cat analysis/generated/comparative-code-atlas.md
+      - name: Probe fresh Europe/USA structural anchors
+        run: |
+          python3 tools/compare_semantic_anchors.py
+          python3 - <<'PY'
+          import json
+          p=json.load(open("analysis/generated/semantic-anchor-cross-build-matches.json"))
+          wanted={"Player_ApplyVerticalAcceleration","Input_DecodePlayer1Buttons"}
+          for a in p["anchors"]:
+              if a["name"] in wanted:
+                  print("ANCHOR_JSON="+json.dumps(a,sort_keys=True))
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: pal-snes2asm-subregion-alignment

@@ -103,7 +103,8 @@ Current promotion-gate status:
 - [x] native and Snes9x share the neutral input stream plus named checkpoint schedule;
 - [x] the Mesen adapter can synchronize that same neutral stream with named checkpoint scripts, with ROM-free two-pad timing coverage;
 - [ ] run the promoted ordinary-2P fixture against a compatible Mesen/MesenCE binary and compare the named semantic checkpoints;
-- [ ] reconcile any remaining UI-menu-index / atlas evidence that benefits from the promoted route.
+- [x] `analysis/ui-menu-index.json` now points `0x3D` at the durable ordinary-2P fixture and promotes two-player `0x91` from historical to verified;
+- [ ] harvest any richer framebuffer/HUD atlas evidence that materially benefits from the promoted route.
 
 ## Downstream obligations
 

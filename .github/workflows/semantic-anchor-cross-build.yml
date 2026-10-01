@@ -1,4 +1,5 @@
 name: Semantic anchor cross-build pass
+# bounded evidence run: 2026-09-30
 
 on:
   pull_request:

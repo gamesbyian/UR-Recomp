@@ -1,0 +1,269 @@
+{
+  "method": {
+    "alignment": "per executable subregion raw-byte similarity within +/-64 bytes",
+    "analyzer": "vendored snes2asm",
+    "boundaries": "Nitrodon/control-flow recovered boundaries",
+    "promotion_rule": "only residual role/MX disagreement after homolog alignment is an analyzer-adjudication candidate",
+    "reachability": "default vector walk plus independently trusted function-entry seeds",
+    "source": "USA retail",
+    "target": "Europe retail"
+  },
+  "regions": [
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 8,
+      "aligned_residuals": [],
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 8,
+        "operand->operand": 5
+      },
+      "basis": "Nitrodon helper entry/body; structural matcher places Europe homolog at the same CPU address.",
+      "europe_end": "80:8C4D",
+      "europe_shift": 0,
+      "europe_start": "80:8C41",
+      "expected_europe_shift": 0,
+      "name": "Text_TestCharacterMetadataBit7",
+      "raw_similarity_after_alignment": 0.846154,
+      "same_offset_mx_disagreements": 0,
+      "same_offset_opcode_pairs": 8,
+      "same_offset_role_disagreements": 0,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 8,
+        "operand->operand": 5
+      },
+      "usa_end": "80:8C4D",
+      "usa_file_end": 3149,
+      "usa_file_start": 3137,
+      "usa_start": "80:8C41"
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 34,
+      "aligned_residuals": [],
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 34,
+        "operand->operand": 34
+      },
+      "basis": "Nitrodon function entry through RTS; structural matcher places Europe homolog at 82:A96F.",
+      "europe_end": "82:A9B2",
+      "europe_shift": 7,
+      "europe_start": "82:A96F",
+      "expected_europe_shift": 7,
+      "name": "Player_ApplyVerticalAcceleration",
+      "raw_similarity_after_alignment": 0.897059,
+      "same_offset_mx_disagreements": 1,
+      "same_offset_opcode_pairs": 11,
+      "same_offset_role_disagreements": 46,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 11,
+        "opcode->operand": 20,
+        "opcode->unreached": 3,
+        "operand->opcode": 19,
+        "operand->operand": 11,
+        "operand->unreached": 4
+      },
+      "usa_end": "82:A9AB",
+      "usa_file_end": 76203,
+      "usa_file_start": 76136,
+      "usa_start": "82:A968"
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 98,
+      "aligned_residuals": [],
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 98,
+        "operand->operand": 133
+      },
+      "basis": "Nitrodon input function entry through byte immediately before the independently visible AB55 second-controller/shared phase.",
+      "europe_end": "82:AB5B",
+      "europe_shift": 7,
+      "europe_start": "82:AA75",
+      "expected_europe_shift": 7,
+      "name": "Input_DecodePlayer1Buttons:p1_decode",
+      "raw_similarity_after_alignment": 0.848485,
+      "same_offset_mx_disagreements": 0,
+      "same_offset_opcode_pairs": 67,
+      "same_offset_role_disagreements": 62,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 67,
+        "opcode->operand": 27,
+        "opcode->unreached": 4,
+        "operand->opcode": 28,
+        "operand->operand": 102,
+        "operand->unreached": 3
+      },
+      "usa_end": "82:AB54",
+      "usa_file_end": 76628,
+      "usa_file_start": 76398,
+      "usa_start": "82:AA6E"
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 107,
+      "aligned_residuals": [],
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 107,
+        "operand->operand": 147
+      },
+      "basis": "Nitrodon AB55 second-controller/shared phase through byte before AC53 post-processing.",
+      "europe_end": "82:AC59",
+      "europe_shift": 7,
+      "europe_start": "82:AB5C",
+      "expected_europe_shift": 7,
+      "name": "Input_DecodePlayer1Buttons:p2_decode",
+      "raw_similarity_after_alignment": 0.850394,
+      "same_offset_mx_disagreements": 1,
+      "same_offset_opcode_pairs": 73,
+      "same_offset_role_disagreements": 68,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 73,
+        "opcode->operand": 34,
+        "operand->opcode": 34,
+        "operand->operand": 113
+      },
+      "usa_end": "82:AC52",
+      "usa_file_end": 76882,
+      "usa_file_start": 76629,
+      "usa_start": "82:AB55"
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 32,
+      "aligned_residuals": [],
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 32,
+        "operand->operand": 46
+      },
+      "basis": "Nitrodon AC53 post-processing block through RTS at ACA0.",
+      "europe_end": "82:ACA7",
+      "europe_shift": 7,
+      "europe_start": "82:AC5A",
+      "expected_europe_shift": 7,
+      "name": "Input_DecodePlayer1Buttons:postprocess",
+      "raw_similarity_after_alignment": 0.730769,
+      "same_offset_mx_disagreements": 2,
+      "same_offset_opcode_pairs": 19,
+      "same_offset_role_disagreements": 26,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 19,
+        "opcode->operand": 13,
+        "operand->opcode": 13,
+        "operand->operand": 33
+      },
+      "usa_end": "82:ACA0",
+      "usa_file_end": 76960,
+      "usa_file_start": 76883,
+      "usa_start": "82:AC53"
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 97,
+      "aligned_residuals": [],
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 97,
+        "operand->operand": 126
+      },
+      "basis": "Nitrodon matrix/velocity transform body through working-field clears; bounded before the JMP at 81:9627. M/X state is seeded from the independently visible REP/SEP setup at 81:953D.",
+      "europe_end": "81:960A",
+      "europe_shift": -26,
+      "europe_start": "81:952C",
+      "expected_europe_shift": -26,
+      "name": "Collision_TransformVelocity:matrix_apply",
+      "raw_similarity_after_alignment": 0.914798,
+      "same_offset_mx_disagreements": 6,
+      "same_offset_opcode_pairs": 38,
+      "same_offset_role_disagreements": 119,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 38,
+        "opcode->operand": 52,
+        "opcode->unreached": 7,
+        "operand->opcode": 46,
+        "operand->operand": 66,
+        "operand->unreached": 14
+      },
+      "usa_end": "81:9624",
+      "usa_file_end": 38436,
+      "usa_file_start": 38214,
+      "usa_start": "81:9546"
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 246,
+      "aligned_residuals": [],
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 246,
+        "operand->operand": 159
+      },
+      "basis": "Nitrodon function entry establishes M/X with REP #$30 and runs through RTS at 81:9FBE.",
+      "europe_end": "81:9FAF",
+      "europe_shift": -15,
+      "europe_start": "81:9E1B",
+      "expected_europe_shift": -15,
+      "name": "Collision_BuildContactShape",
+      "raw_similarity_after_alignment": 0.990123,
+      "same_offset_mx_disagreements": 22,
+      "same_offset_opcode_pairs": 116,
+      "same_offset_role_disagreements": 259,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 116,
+        "opcode->operand": 122,
+        "opcode->unreached": 8,
+        "operand->opcode": 122,
+        "operand->operand": 30,
+        "operand->unreached": 7
+      },
+      "usa_end": "81:9FBE",
+      "usa_file_end": 40894,
+      "usa_file_start": 40490,
+      "usa_start": "81:9E2A"
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 34,
+      "aligned_residuals": [],
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 34,
+        "operand->operand": 48
+      },
+      "basis": "Nitrodon message-queue function entry establishes accumulator/index widths and runs through RTS at 81:C604.",
+      "europe_end": "81:C5ED",
+      "europe_shift": -23,
+      "europe_start": "81:C59C",
+      "expected_europe_shift": -23,
+      "name": "HUD_QueueMessage",
+      "raw_similarity_after_alignment": 0.804878,
+      "same_offset_mx_disagreements": 0,
+      "same_offset_opcode_pairs": 10,
+      "same_offset_role_disagreements": 51,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 10,
+        "opcode->operand": 14,
+        "opcode->unreached": 10,
+        "operand->opcode": 14,
+        "operand->operand": 21,
+        "operand->unreached": 13
+      },
+      "usa_end": "81:C604",
+      "usa_file_end": 50692,
+      "usa_file_start": 50611,
+      "usa_start": "81:C5B3"
+    }
+  ],
+  "schema_version": 1,
+  "totals": {
+    "aligned_mx_disagreements": 0,
+    "aligned_opcode_pairs": 656,
+    "aligned_role_disagreements": 0,
+    "regions": 8,
+    "zero_role_disagreement_regions": 8
+  }
+}

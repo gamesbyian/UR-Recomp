@@ -125,6 +125,33 @@ Those names remain provisional until a runtime course-load trace or an in-ROM se
 Generated structural evidence: `analysis/generated/course-header-cadence.md`.
 
 
+## Decoded payload tail resource list identified
+
+The previously unexplained Dragster mutation at decoded offsets `0x000B..0x000C` is now resolved.
+
+Those two bytes are the little-endian word `0x840F`, not an isolated byte-sized field. `Course_LoadAndMaterialize` reads this word as an offset into the active decoded payload, increments it after each read, and consumes one-byte resource IDs until it encounters `0xFF`.
+
+For Dragster:
+
+- decoded size = `0x8417` bytes;
+- initial resource cursor = `0x840F`;
+- observed settled cursor = `0x8416`;
+- therefore the loader consumed offsets `0x840F..0x8415`;
+- `0x8415` is the terminating `0xFF`;
+- the span contains six resource IDs plus the terminator.
+
+This exactly explains the long-observed low-byte mutation `0x0F → 0x16`: the loader advances the 16-bit cursor from `0x840F` to `0x8416`.
+
+Each resource ID then indexes two related structures: a five-byte descriptor table used by the generic resource-transfer path and a four-byte bank-17 pointer table. The latter feeds paired materialization into runtime planes at `7E:A000` and `7E:C000`. The C000 plane is the one later queried by the course object/collision dispatcher.
+
+Current structural model:
+
+`decoded header → tail resource-ID list → reusable bank-17 resources/templates → runtime A000 + C000 planes → object/collision behavior`
+
+This means checkpoint/finish object code `0x14` should be traced backward through the owning materialized resource span, not searched for as a naive raw byte in the RNC payload.
+
+Full derivation: `analysis/generated/course-resource-list-materialization-2026-09-30.md`.
+
 ## Runtime object map: checkpoint/finish code identified
 
 A retrospective propagation pass through the race object dispatcher at `81:82E6` identifies one concrete runtime course-object code.
@@ -162,7 +189,7 @@ Current confidence separation:
 - **Confirmed:** decoded stream 1 is resident at `7F:0000` during Dragster. Run 36514985916 compares all 33,815 decoded bytes and finds 33,814 exact matches; only decoded offset `0x000B` differs (`0x0F` decoded, `0x16` live).
 - **Observed:** header X value 68 maps exactly to runtime start X 1088 at ×16.
 - **Strongly supported hypothesis:** LE16 fields at decoded offsets 3/5 and 7/9 are two course-coordinate pairs, plausibly start/spawn positions for the two racer slots. On confirmed Dragster, both X values are 68 and both runtime racer X positions are exactly `68 × 16 = 1088`.
-- **Open:** the meaning of decoded byte 11 and why it mutates `0x0F → 0x16`; the Y-coordinate anchor; whether the two pairs are racer starts, start/finish, or another paired course landmark.
+- **Resolved:** decoded offsets `0x000B..0x000C` are a mutable 16-bit resource-list cursor (`0x840F → 0x8416` on Dragster); the apparent byte-11 mutation is simply its low byte advancing. **Open:** whether the two coordinate pairs are racer starts, start/finish, or another paired course landmark.
 
 Next discriminator: capture a different known stream/course at race entry, or causally perturb one decoded coordinate field, and test whether the corresponding runtime position moves by the predicted 16-unit scale.
 
@@ -184,7 +211,7 @@ No other decoded stream approaches this relationship. This directly confirms str
 
 The next format question is no longer "where does the course go?" It is:
 1. when during frontend/race transition is the payload installed at `7F:0000`;
-2. what writes decoded byte 11 from `0x0F` to `0x16`;
+2. which six resource IDs occupy Dragster's tail list and what A000/C000 spans each materializes;
 3. what the coordinate-like header pairs represent precisely.
 
 

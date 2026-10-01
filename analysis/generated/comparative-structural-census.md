@@ -2,9 +2,9 @@
 
 This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **65** (58 code, 7 data)
-- bounded bytes: **7413** (6550 code-region bytes, 863 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **2743**
+- bounded regions: **73** (65 code, 8 data)
+- bounded bytes: **8733** (7588 code-region bytes, 1145 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **3182**
 - represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -32,6 +32,14 @@ This is the first machine-queryable census for the comparative structure-recover
 | `81:8372..81:83A3` | data | 50 | object-collision | lookup_8372 | 81:8355..81:8386 (-29; size 50; sim 1.000) | 81:834C..81:837D (-38; size 50; sim 1.000) | 81:8372..81:83A3 (+0; size 50; sim 1.000) |
 | `81:83A4..81:84D1` | code | 302 | object-collision | handler_83A4 | 81:8387..81:84B4 (-29; size 302; sim 0.871) | 81:837E..81:84AB (-38; size 302; sim 0.828) | 81:83A4..81:84D1 (+0; size 302; sim 1.000) |
 | `81:8B95..81:8D13` | code | 383 | course-surface-sampler | Course_SampleRuntimeSurface | 81:8B75..81:8CF3 (-32; size 383; sim 0.971) | 81:8B75..81:8CF3 (-32; size 383; sim 0.971) | 81:8B95..81:8D13 (+0; size 383; sim 1.000) |
+| `81:C0DD..81:C24A` | code | 366 | stunt-message-pipeline | message_consume_pre_cleanup | 81:C0BD..81:C22A (-32; size 366; sim 0.940) | 81:C0CE..81:C23B (-15; size 366; sim 0.915) | 81:C0DD..81:C24A (+0; size 366; sim 1.000) |
+| `81:C24B..81:C24D` | code | 3 | stunt-message-pipeline | pal_line_removed_nops | — | — | 81:C24B..81:C24D (+0; size 3; sim 1.000) |
+| `81:C24E..81:C368` | code | 283 | stunt-message-pipeline | message_consume_post_cleanup | 81:C22B..81:C345 (-35; size 283; sim 0.940) | 81:C23C..81:C356 (-18; size 283; sim 0.943) | 81:C24E..81:C368 (+0; size 283; sim 1.000) |
+| `81:C369..81:C371` | code | 9 | stunt-message-pipeline | score_display_prefix | 81:C346..81:C34E (-35; size 9; sim 1.000) | 81:C357..81:C35F (-18; size 9; sim 1.000) | 81:C369..81:C371 (+0; size 9; sim 1.000) |
+| `81:C372..81:C37E` | code | 13 | stunt-message-pipeline | score_display_usa_gate | 81:C34F..81:C35B (-35; size 13; sim 0.846) | — | 81:C372..81:C37E (+0; size 13; sim 1.000) |
+| `81:C37F..81:C457` | code | 217 | stunt-message-pipeline | score_display_suffix | 81:C35C..81:C434 (-35; size 217; sim 0.871) | 81:C368..81:C440 (-23; size 217; sim 0.871) | 81:C37F..81:C457 (+0; size 217; sim 1.000) |
+| `81:C458..81:C571` | data | 282 | stunt-message-pipeline | message_reward_lookup_block | 81:C435..81:C54E (-35; size 282; sim 1.000) | 81:C441..81:C55A (-23; size 282; sim 1.000) | 81:C458..81:C571 (+0; size 282; sim 1.000) |
+| `81:C572..81:C604` | code | 147 | stunt-message-pipeline | queue_long_entry_and_helpers | 81:C54F..81:C5E1 (-35; size 147; sim 0.959) | 81:C55B..81:C5ED (-23; size 147; sim 0.810) | 81:C572..81:C604 (+0; size 147; sim 1.000) |
 | `82:9A42..82:9B57` | code | 278 | stunt-finalizer | air_state_and_rotation_progress | 82:9A3D..82:9B52 (-5; size 278; sim 0.856) | 82:9A53..82:9B68 (+17; size 278; sim 0.842) | 82:9A42..82:9B57 (+0; size 278; sim 1.000) |
 | `82:9B58..82:9C97` | code | 320 | stunt-finalizer | landing_trick_classification | 82:9B53..82:9C92 (-5; size 320; sim 0.919) | 82:9B69..82:9CA8 (+17; size 320; sim 0.881) | 82:9B58..82:9C97 (+0; size 320; sim 1.000) |
 | `82:9C98..82:9D08` | code | 113 | stunt-finalizer | score_index_and_message_prefix | 82:9C93..82:9D03 (-5; size 113; sim 0.903) | 82:9CA9..82:9D19 (+17; size 113; sim 0.903) | 82:9C98..82:9D08 (+0; size 113; sim 1.000) |

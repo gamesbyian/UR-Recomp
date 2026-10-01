@@ -1384,3 +1384,31 @@ No contradictory projection appears within the accepted field corpus.
 
 **Evidence:** `tools/build_wram_motion_atlas.py`; `analysis/generated/wram-motion-atlas.{json,md}`; one-shot refresh run `36817638025`.
 
+### R-SEED-058 — Europe retail WRAM repacking is bracketed by two post-prototype insertions
+
+**Status:** confirmed structural brackets; exact inserted fields still open  
+**Date:** 2026-09-30  
+**Area:** WRAM | cross-build lineage | structure inference
+
+The prototype→Europe secondary-motion atlas was tightened with additional trusted semantic fields from input decoding, stunt/result state, persistent racer state, camera state, and air-time handling.
+
+The accepted low-address corpus now separates into three structural families:
+- **+0:** stunt/result scratch through at least `026A`, plus other stable low/MMIO fields;
+- **+4:** raw/controller state beginning by `030D`, persistent racer position/stunt/velocity/pitch state, and camera velocity through at least `04FB`;
+- **+6:** air/physics state beginning by `0541`, and the broad later gameplay/UI/state families above it.
+
+This brackets two post-1994-11-29 insertions/expansions in the Europe-retail WRAM layout:
+
+1. **+4-byte insertion bracket:** after the last confirmed +0 field `026A` and no later than the first confirmed +4 field `030D`.
+2. **+2-byte insertion bracket:** after the last confirmed +4 field `04FB` and no later than the first confirmed +6 field `0541`.
+
+The second bracket is independently supported by bounded camera anchors: `04F5/04F7/04F9/04FB` all remain prototype→Europe +4, while `0541` and `0545` are +6.
+
+Nitrodon's recovered RAM map gives useful semantic landmarks around the second bracket: `04F1/04F3` are map-size geometry, `04F5/04F7/04F9/04FB` are camera-velocity/state slots, and `0545` is player air time. The exact new Europe-only field(s) responsible for the +2 jump are not yet identified.
+
+A hygiene correction also excludes `Text_TestCharacterMetadataBit7`'s ROM table at `80:C6F8` from the WRAM-motion atlas; its prior +19 projection was not WRAM evidence.
+
+**Interpretation:** treat these as address-space insertion brackets, not exact field locations. The highest-value next step is to inspect code/data references inside `026A..030D` and `04FB..0541` for Europe-only or resized state, rather than broadening the homolog corpus.
+
+**Evidence:** `tools/compare_semantic_anchors.py`; `tools/build_wram_motion_atlas.py`; `analysis/generated/wram-motion-atlas.{json,md}`; Nitrodon `RAM addresses.txt`; boundary-refresh runs `36818170140`, `36818242325`.
+

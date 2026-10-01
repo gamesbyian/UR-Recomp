@@ -3,6 +3,7 @@
 from __future__ import annotations
 import hashlib,json
 from compare_europe_usa_snes2asm_homologs import ROOT,trace,seed_entries,cpu_to_offset,offset_to_cpu
+
 ROMS={
  "usa-retail":ROOT/"reference/roms/retail/Uniracers_USA.sfc",
  "pal-prototype-1994-11-29":ROOT/"reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc",
@@ -11,54 +12,26 @@ ROMS={
 }
 OUTJ=ROOT/"analysis/generated/checkpoint-finish-structure-island.json"
 OUTM=ROOT/"analysis/generated/checkpoint-finish-structure-island.md"
+
 REGIONS=[
- ("entry_time_prefix","81:8050","81:8101"),
- ("frame_normalization","81:8102","81:8117"),
- ("post_normalization","81:8118","81:8194"),
- ("lap_hud","81:8195","81:81D3"),
- ("late_handler","81:81D4","81:82E0"),
+ ("entry_time_prefix","81:8050","81:8101",0,0),
+ ("frame_normalization_usa_shape","81:8102","81:8117",0,None),
+ ("post_normalization","81:8118","81:8194",0,-14),
+ ("lap_hud","81:8195","81:81D3",0,-14),
+ ("late_pre_contractions","81:81D4","81:820F",0,-14),
+ ("late_after_delete_1","81:8216","81:8226",-6,-20),
+ ("late_after_delete_2","81:822D","81:823D",-12,-26),
+ ("late_after_delete_3","81:8244","81:8252",-18,-32),
+ ("late_after_delete_4","81:825A","81:8277",-25,-39),
+ ("late_after_delete_5","81:827C","81:82E0",-29,-43),
 ]
-
-def best_shift(src,dst,start,end,center=0,radius=64):
- block=src[start:end+1]; best=(center,-1.0)
- for shift in range(center-radius,center+radius+1):
-  a=start+shift; b=a+len(block)
-  if a<0 or b>len(dst): continue
-  score=sum(x==y for x,y in zip(block,dst[a:b]))/len(block)
-  if score>best[1]: best=(shift,score)
- return best
-def local_profile(src,dst,start,end,center,window=16):
- out=[]; pos=start
- while pos<=end:
-  hi=min(end,pos+window-1)
-  sh,sc=best_shift(src,dst,pos,hi,center)
-  out.append({"usa_start":offset_to_cpu(pos),"usa_end":offset_to_cpu(hi),"shift":sh,"similarity":round(sc,6)})
-  pos=hi+1
- return out
-
-
-def opcode_starts(d,start,end):
- return [off for off in range(start,end+1) if d.code_map[off]&d.OP_CODE]
-
-def boundary_candidates(src,dst,sd,td,start,end,centers):
- """Find instruction-aligned USA cut points where the preferred homolog shift changes."""
- starts=opcode_starts(sd,start,end)
- out=[]
- for off in starts:
-  best=None
-  for shift in centers:
-   toff=off+shift
-   if toff<0 or toff>=len(dst) or not (td.code_map[toff]&td.OP_CODE):
-    continue
-   # Score from this opcode through up to the next 23 bytes, stopping at region end.
-   hi=min(end,off+23)
-   n=hi-off+1
-   score=sum(src[off+i]==dst[toff+i] for i in range(n))/n
-   cand=(score,shift)
-   if best is None or cand>best: best=cand
-  if best:
-   out.append({"usa":offset_to_cpu(off),"shift":best[1],"similarity":round(best[0],6)})
- return out
+USA_ONLY_DELETIONS=[
+ ("pal_delete_1","81:8210","81:8215","8a 99 39 0e a5 00","TXA; STA $0E39,Y; LDA $00"),
+ ("pal_delete_2","81:8227","81:822C","8a 99 3d 0e a5 00","TXA; STA $0E3D,Y; LDA $00"),
+ ("pal_delete_3","81:823E","81:8243","8a 99 41 0e a5 00","TXA; STA $0E41,Y; LDA $00"),
+ ("pal_delete_4","81:8253","81:8259","99 35 0e 8a 99 45 0e","STA $0E35,Y; TXA; STA $0E45,Y"),
+ ("pal_delete_5","81:8278","81:827B","ea ea ea ea","NOP; NOP; NOP; NOP"),
+]
 
 def roles(d,s,e):
  op=pa=ot=0
@@ -68,61 +41,90 @@ def roles(d,s,e):
   elif r&d.OP_PARAM: pa+=1
   else: ot+=1
  return {"opcode_bytes":op,"operand_bytes":pa,"unreached_or_data_bytes":ot}
-def sim(a,b): return sum(x==y for x,y in zip(a,b))/max(len(a),len(b))
+
+def similarity(a,b):
+ return sum(x==y for x,y in zip(a,b))/max(len(a),len(b))
+
 def build():
  blobs={k:p.read_bytes() for k,p in ROMS.items()}; usa=blobs["usa-retail"]
  ds={}
  for name,blob in blobs.items():
   d=trace(blob); seed_entries(d,[cpu_to_offset("81:8050")]); ds[name]=d
+
  rows=[]
- for idx,(name,s,e) in enumerate(REGIONS):
+ for name,s,e,proto_shift,europe_shift in REGIONS:
   us,ue=cpu_to_offset(s),cpu_to_offset(e)
   row={"name":name,"kind":"code","usa_start":s,"usa_end":e,"size":ue-us+1,"builds":{}}
-  for build,blob in blobs.items():
-   shift=0 if build!="europe-retail" or idx<2 else -14
-   delta=-14 if build=="europe-retail" and idx==1 else 0
-   bs=us+shift; be=ue+shift+delta
-   row["builds"][build]={"start":offset_to_cpu(bs),"end":offset_to_cpu(be),"shift":shift,
-      "size":be-bs+1,"size_delta":delta,
-      "similarity":round(sim(usa[us:ue+1],blob[bs:be+1]),6),
-      **roles(ds[build],bs,be),"sha256":hashlib.sha256(blob[bs:be+1]).hexdigest()}
-   if idx==4 and build in {"pal-prototype-1994-11-29","europe-retail"}:
-    row["builds"][build]["local_shift_profile_16byte"]=local_profile(usa,blob,us,ue,shift)
-    row["builds"][build]["local_shift_profile_4byte"]=local_profile(usa,blob,us,ue,shift,window=4)
+  shifts={"usa-retail":0,"legacy-beta":0,"pal-prototype-1994-11-29":proto_shift,"europe-retail":europe_shift}
+  for build,shift in shifts.items():
+   if shift is None:
+    continue
+   blob=blobs[build]; bs=us+shift; be=ue+shift
+   row["builds"][build]={
+    "start":offset_to_cpu(bs),"end":offset_to_cpu(be),"shift":shift,
+    "size":be-bs+1,"size_delta":0,
+    "similarity":round(similarity(usa[us:ue+1],blob[bs:be+1]),6),
+    **roles(ds[build],bs,be),
+    "sha256":hashlib.sha256(blob[bs:be+1]).hexdigest(),
+   }
   rows.append(row)
- late_start,late_end=cpu_to_offset("81:81D4"),cpu_to_offset("81:82E0")
- transition_windows=[]
- for label,cpu,pre_shift in [
-  ("late1","81:81FC",0),
-  ("late2","81:8214",-6),
-  ("late3","81:822B",-12),
-  ("late4","81:8248",-18),
-  ("late5","81:8274",-25),
- ]:
-  us=cpu_to_offset(cpu)
-  row={"name":label,"usa_start":cpu,"size":40,"usa_hex":usa[us:us+40].hex(" "),"builds":{}}
-  for build,blob in [("pal-prototype-1994-11-29",blobs["pal-prototype-1994-11-29"]),("europe-retail",blobs["europe-retail"])]:
-   shift=pre_shift + (-14 if build=="europe-retail" else 0)
-   bs=us+shift
-   row["builds"][build]={"start":offset_to_cpu(bs),"shift":shift,"hex":blob[bs:bs+40].hex(" ")}
-  transition_windows.append(row)
- proto_candidates=boundary_candidates(usa,blobs["pal-prototype-1994-11-29"],ds["usa-retail"],ds["pal-prototype-1994-11-29"],late_start,late_end,[0,-6,-12,-18,-25,-29])
- europe_candidates=boundary_candidates(usa,blobs["europe-retail"],ds["usa-retail"],ds["europe-retail"],late_start,late_end,[-14,-20,-26,-32,-39,-43])
- return {"schema_version":1,"island":"Race_HandleCheckpointFinish","usa_start":"81:8050","usa_end":"81:82E0",
- "instruction_aligned_shift_candidates":{"pal-prototype-1994-11-29":proto_candidates,"europe-retail":europe_candidates},
- "transition_windows":transition_windows,
- "dispatch":{"object_code":"0x14","entry":"81:8050","shared_exit":"81:82E1"},
- "lineage_edits":[{"usa_span":"81:8102..8117","europe_span":"81:8102..8109","effect":"Europe retail contracts the 22-byte frame-normalization block to 8 bytes; PAL prototype and beta retain USA shape."}],
- "regions":rows}
+
+ eu_s=cpu_to_offset("81:8102"); eu_e=cpu_to_offset("81:8109"); europe=blobs["europe-retail"]
+ europe_norm={
+  "name":"frame_normalization_europe_shape","kind":"code",
+  "usa_reference_start":"81:8102","usa_reference_end":"81:8117",
+  "start":"81:8102","end":"81:8109","size":8,"size_delta_vs_usa":-14,
+  **roles(ds["europe-retail"],eu_s,eu_e),
+  "hex":europe[eu_s:eu_e+1].hex(" "),
+ }
+
+ deletions=[]
+ for name,s,e,expected_hex,instructions in USA_ONLY_DELETIONS:
+  us,ue=cpu_to_offset(s),cpu_to_offset(e); hx=usa[us:ue+1].hex(" ")
+  deletions.append({
+   "name":name,"usa_start":s,"usa_end":e,"size":ue-us+1,
+   "hex":hx,"expected_hex":expected_hex,"instructions":instructions,
+   "usa_roles":roles(ds["usa-retail"],us,ue),
+   "legacy_beta_identical":blobs["legacy-beta"][us:ue+1]==usa[us:ue+1],
+   "pal_prototype_omits":True,"europe_retail_omits":True,
+  })
+
+ return {
+  "schema_version":1,"island":"Race_HandleCheckpointFinish",
+  "usa_start":"81:8050","usa_end":"81:82E0",
+  "usa_size":cpu_to_offset("81:82E0")-cpu_to_offset("81:8050")+1,
+  "dispatch":{"object_code":"0x14","entry":"81:8050","shared_exit":"81:82E1"},
+  "lineage_edits":{
+   "europe_only_frame_normalization":europe_norm,
+   "pal_line_usa_only_deletions":deletions,
+   "pal_line_total_contraction":-29,
+   "europe_total_contraction_after_both_lineages":-43,
+  },
+  "regions":rows,
+ }
+
 def render(r):
- lines=["# Checkpoint / finish structural island: USA 81:8050..82E0","",
- "Object code 0x14 dispatches to 81:8050. The bounded handler exits through the shared object-handler continuation at 81:82E1.","",
- "| Region | USA bytes | PAL prototype | Europe | Legacy beta |","|---|---:|---|---|---|"]
+ lines=[
+  "# Checkpoint / finish structural island: USA 81:8050..82E0","",
+  "Object code 0x14 dispatches to 81:8050. The handler rejoins the shared object-handler continuation at 81:82E1.","",
+  "| Region | USA bytes | PAL prototype | Europe | Legacy beta |",
+  "|---|---:|---|---|---|",
+ ]
  for x in r["regions"]:
-  def c(b):
-   q=x["builds"][b]; return f"{q['start']}..{q['end']} ({q['shift']:+d}; size {q['size']}; sim {q['similarity']:.3f}; op {q['opcode_bytes']}; other {q['unreached_or_data_bytes']})"
-  lines.append(f"| {x['name']} | {x['size']} | {c('pal-prototype-1994-11-29')} | {c('europe-retail')} | {c('legacy-beta')} |")
- return "\n".join(lines)+"\n"
+  def cell(build):
+   q=x["builds"].get(build)
+   if not q: return "none"
+   return f"{q['start']}..{q['end']} ({q['shift']:+d}; sim {q['similarity']:.3f}; op {q['opcode_bytes']}; other {q['unreached_or_data_bytes']})"
+  lines.append(f"| {x['name']} | {x['size']} | {cell('pal-prototype-1994-11-29')} | {cell('europe-retail')} | {cell('legacy-beta')} |")
+ lines += ["","## Lineage edits","",
+  "Europe retail alone contracts the USA 22-byte frame-normalization block at 81:8102..8117 to 8 bytes at 81:8102..8109, contributing -14 bytes before the later shared PAL-line edits.","",
+  "The PAL prototype and Europe both omit five instruction-aligned USA blocks later in the handler:"]
+ for d in r["lineage_edits"]["pal_line_usa_only_deletions"]:
+  lines.append(f"- {d['usa_start']}..{d['usa_end']} ({d['size']} bytes): {d['hex']} = {d['instructions']}")
+ lines += ["",
+  "Those five deletions total 29 bytes. Therefore the PAL prototype finishes the handler at shift -29 relative to USA; Europe finishes at -43 after layering the earlier -14 timer contraction.",""]
+ return "\n".join(lines)
+
 def main():
  r=build(); OUTJ.write_text(json.dumps(r,indent=2)+"\n"); OUTM.write_text(render(r)); print(render(r)); print("CHECKPOINT_FINISH_JSON="+json.dumps(r,sort_keys=True))
 if __name__=="__main__": main()

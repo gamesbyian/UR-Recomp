@@ -18,6 +18,24 @@ REGIONS=[
  ("lap_hud","81:8195","81:81D3"),
  ("late_handler","81:81D4","81:82E0"),
 ]
+
+def best_shift(src,dst,start,end,center=0,radius=64):
+ block=src[start:end+1]; best=(center,-1.0)
+ for shift in range(center-radius,center+radius+1):
+  a=start+shift; b=a+len(block)
+  if a<0 or b>len(dst): continue
+  score=sum(x==y for x,y in zip(block,dst[a:b]))/len(block)
+  if score>best[1]: best=(shift,score)
+ return best
+def local_profile(src,dst,start,end,center,window=16):
+ out=[]; pos=start
+ while pos<=end:
+  hi=min(end,pos+window-1)
+  sh,sc=best_shift(src,dst,pos,hi,center)
+  out.append({"usa_start":offset_to_cpu(pos),"usa_end":offset_to_cpu(hi),"shift":sh,"similarity":round(sc,6)})
+  pos=hi+1
+ return out
+
 def roles(d,s,e):
  op=pa=ot=0
  for x in range(s,e+1):
@@ -44,6 +62,8 @@ def build():
       "size":be-bs+1,"size_delta":delta,
       "similarity":round(sim(usa[us:ue+1],blob[bs:be+1]),6),
       **roles(ds[build],bs,be),"sha256":hashlib.sha256(blob[bs:be+1]).hexdigest()}
+   if idx==4 and build in {"pal-prototype-1994-11-29","europe-retail"}:
+    row["builds"][build]["local_shift_profile_16byte"]=local_profile(usa,blob,us,ue,shift)
   rows.append(row)
  return {"schema_version":1,"island":"Race_HandleCheckpointFinish","usa_start":"81:8050","usa_end":"81:82E0",
  "dispatch":{"object_code":"0x14","entry":"81:8050","shared_exit":"81:82E1"},

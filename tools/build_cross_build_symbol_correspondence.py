@@ -76,7 +76,7 @@ RAM_EDGE_OVERRIDES = {
         "candidate": "7E:11D9",
         "evidence_tier": "strong",
         "independent_evidence": "bidirectional copy relation with 7E:11D7 in Race_UpdateRacersFrame",
-    },,
+    },
     ("pal-prototype-1994-11-29", "Player2_XPosition"): {
         "candidate": "7E:0413",
         "evidence_tier": "strong",

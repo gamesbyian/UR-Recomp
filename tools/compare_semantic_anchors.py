@@ -130,6 +130,38 @@ def semantic_hits(blob: bytes, start: int, size: int, words: tuple[int, ...]) ->
     return out
 
 
+def semantic_word_projection(source: bytes, candidate: bytes, words: tuple[int, ...]) -> dict[str, dict]:
+    """Project known USA word operands through a structurally aligned candidate window.
+
+    For every occurrence of a known semantic LE16 word in the USA window, read
+    the candidate word at the same relative offset. Repeated agreement on a new
+    value is evidence for a build-specific address translation, even when the
+    original literal address disappears.
+    """
+    out = {}
+    for word in words:
+        token = word.to_bytes(2, "little")
+        positions = []
+        pos = source.find(token)
+        while pos >= 0:
+            if pos + 2 <= len(candidate):
+                positions.append(pos)
+            pos = source.find(token, pos + 1)
+        if not positions:
+            continue
+        vals = Counter(int.from_bytes(candidate[pos:pos+2], "little") for pos in positions)
+        out[f"{word:04X}"] = {
+            "source_occurrences": len(positions),
+            "candidate_values": {
+                f"{value:04X}": count
+                for value, count in vals.most_common()
+            },
+            "dominant_candidate": f"{vals.most_common(1)[0][0]:04X}",
+            "dominant_count": vals.most_common(1)[0][1],
+        }
+    return out
+
+
 def similarity(a: bytes, b: bytes) -> float:
     n = min(len(a), len(b))
     if not n:
@@ -252,6 +284,9 @@ def score_candidates(anchor: Anchor, usa: bytes, target: bytes, *, top: int, k: 
             "ngram_vote_fraction": round(vote_fraction, 6),
             "ngram_votes": vote_count,
             "semantic_hits": sem,
+            "semantic_word_projection": semantic_word_projection(
+                source, region, anchor.semantic_words
+            ),
             "diff_runs": compact_diff_runs(source, region),
             "changed_le16_pairs": changed_le16_pairs(source, region),
             "sha256": hashlib.sha256(region).hexdigest(),
@@ -268,6 +303,67 @@ def score_candidates(anchor: Anchor, usa: bytes, target: bytes, *, top: int, k: 
     )
     return candidates[:top]
 
+
+
+
+def build_translation_summary(output: dict) -> dict:
+    summary = {}
+    lines += [
+        "## Cross-build semantic-word translation summary",
+        "",
+        "These are mechanically projected USA LE16 semantic operands from each "
+        "top structurally aligned candidate. Repeated deltas across unrelated "
+        "anchors are useful evidence of build-specific WRAM layout shifts; "
+        "individual pairs are not promoted without context.",
+        "",
+    ]
+    for build_name, summary in output["translation_summary"].items():
+        deltas = sorted(
+            summary["delta_counts"].items(),
+            key=lambda kv: kv[1],
+            reverse=True,
+        )
+        lines += [f"### {build_name}", "", "| Delta | Evidence count |", "|---:|---:|"]
+        for delta, count in deltas[:12]:
+            signed = int(delta, 16)
+            if signed >= 0x8000:
+                signed -= 0x10000
+            lines.append(f"| `{signed:+d}` (`0x{delta}`) | {count} |")
+        lines.append("")
+
+    for anchor in output["anchors"]:
+        for build_name, matches in anchor["matches"].items():
+            if not matches:
+                continue
+            top = matches[0]
+            if top["byte_similarity"] < 0.60:
+                continue
+            b = summary.setdefault(build_name, {
+                "pairs": {},
+                "delta_counts": {},
+                "evidence": [],
+            })
+            for usa_hex, proj in top["semantic_word_projection"].items():
+                cand_hex = proj["dominant_candidate"]
+                if proj["dominant_count"] < 1:
+                    continue
+                usa = int(usa_hex, 16)
+                cand = int(cand_hex, 16)
+                delta = (cand - usa) & 0xFFFF
+                key = f"{usa_hex}->{cand_hex}"
+                b["pairs"][key] = b["pairs"].get(key, 0) + proj["dominant_count"]
+                dkey = f"{delta:04X}"
+                b["delta_counts"][dkey] = b["delta_counts"].get(dkey, 0) + proj["dominant_count"]
+                b["evidence"].append({
+                    "anchor": anchor["name"],
+                    "usa_word": usa_hex,
+                    "candidate_word": cand_hex,
+                    "delta": dkey,
+                    "count": proj["dominant_count"],
+                    "candidate_cpu": top["cpu_address"],
+                    "byte_similarity": top["byte_similarity"],
+                })
+    return summary
 
 def main() -> None:
     ap = argparse.ArgumentParser()
@@ -318,6 +414,8 @@ def main() -> None:
                 stride=args.stride,
             )
         output["anchors"].append(item)
+
+    output["translation_summary"] = build_translation_summary(output)
 
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     OUT_JSON.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")

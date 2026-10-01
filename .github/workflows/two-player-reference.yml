@@ -243,6 +243,10 @@ jobs:
               "skip_reload":0x127F,
               "skip_timer_word_lo":0x12AB,
               "skip_timer_word_hi":0x12AC,
+              # State-machine selectors that dispatch to the two recovered
+              # $1281 producers: $131F -> 83:D514, $1327 -> 83:D4CC.
+              "skip_path_131f":0x131F,
+              "skip_path_1327":0x1327,
           }
           first=None
           for frame in range(1128,1141):

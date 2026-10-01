@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "purpose": "Machine-queryable seed census of confidently bounded program structure recovered by the comparative four-ROM lane.",
+  "purpose": "Machine-queryable census of confidently bounded program structure recovered by the comparative four-ROM lane.",
   "scope_note": "This census is a conservative floor, not a whole-ROM coverage claim. It contains only regions whose boundaries/code-data role have already been independently recovered in accepted structural-island analyses.",
   "sources": [
     {
@@ -14,18 +14,22 @@
     {
       "id": "course-materialization",
       "path": "analysis/generated/course-materialization-structure-island.json"
+    },
+    {
+      "id": "racer-oam",
+      "path": "analysis/generated/racer-oam-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 25,
-    "code_regions": 22,
+    "regions": 37,
+    "code_regions": 34,
     "data_regions": 3,
-    "bounded_bytes": 3165,
-    "bounded_code_region_bytes": 2957,
+    "bounded_bytes": 4408,
+    "bounded_code_region_bytes": 4200,
     "bounded_data_region_bytes": 208,
-    "analyzer_opcode_bytes": 1258,
-    "analyzer_operand_bytes": 1668,
-    "analyzer_unreached_or_data_bytes": 239,
+    "analyzer_opcode_bytes": 1756,
+    "analyzer_operand_bytes": 2382,
+    "analyzer_unreached_or_data_bytes": 270,
     "banks": [
       "81",
       "82"
@@ -48,25 +52,33 @@
           "start": "81:82E2",
           "end": "81:82E5",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 4,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "81:82C5",
           "end": "81:82C8",
           "shift": -29,
-          "similarity": 0.75
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "81:82B7",
           "end": "81:82BA",
           "shift": -43,
-          "similarity": 0.75
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "81:82E2",
           "end": "81:82E5",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 4,
+          "size_delta": 0
         }
       }
     },
@@ -86,25 +98,33 @@
           "start": "81:82E6",
           "end": "81:831F",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 58,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "81:82C9",
           "end": "81:8302",
           "shift": -29,
-          "similarity": 0.913793
+          "similarity": 0.913793,
+          "size": 58,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "81:82BB",
           "end": "81:82F4",
           "shift": -43,
-          "similarity": 0.862069
+          "similarity": 0.862069,
+          "size": 58,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "81:82E6",
           "end": "81:831F",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 58,
+          "size_delta": 0
         }
       }
     },
@@ -124,25 +144,33 @@
           "start": "81:8320",
           "end": "81:833D",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 30,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "81:8303",
           "end": "81:8320",
           "shift": -29,
-          "similarity": 0.5
+          "similarity": 0.5,
+          "size": 30,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "81:82F5",
           "end": "81:8312",
           "shift": -43,
-          "similarity": 0.5
+          "similarity": 0.5,
+          "size": 30,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "81:8320",
           "end": "81:833D",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 30,
+          "size_delta": 0
         }
       }
     },
@@ -162,25 +190,33 @@
           "start": "81:833E",
           "end": "81:8340",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 3,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "81:8321",
           "end": "81:8323",
           "shift": -29,
-          "similarity": 1
+          "similarity": 1,
+          "size": 3,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "81:8313",
           "end": "81:8315",
           "shift": -43,
-          "similarity": 1
+          "similarity": 1,
+          "size": 3,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "81:833E",
           "end": "81:8340",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 3,
+          "size_delta": 0
         }
       }
     },
@@ -200,25 +236,33 @@
           "start": "81:8341",
           "end": "81:8371",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 49,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "81:8324",
           "end": "81:8354",
           "shift": -29,
-          "similarity": 0.897959
+          "similarity": 0.897959,
+          "size": 49,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "81:831B",
           "end": "81:834B",
           "shift": -38,
-          "similarity": 0.857143
+          "similarity": 0.857143,
+          "size": 49,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "81:8341",
           "end": "81:8371",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 49,
+          "size_delta": 0
         }
       }
     },
@@ -238,25 +282,33 @@
           "start": "81:8372",
           "end": "81:83A3",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 50,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "81:8355",
           "end": "81:8386",
           "shift": -29,
-          "similarity": 1
+          "similarity": 1,
+          "size": 50,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "81:834C",
           "end": "81:837D",
           "shift": -38,
-          "similarity": 1
+          "similarity": 1,
+          "size": 50,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "81:8372",
           "end": "81:83A3",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 50,
+          "size_delta": 0
         }
       }
     },
@@ -276,25 +328,33 @@
           "start": "81:83A4",
           "end": "81:84D1",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 302,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "81:8387",
           "end": "81:84B4",
           "shift": -29,
-          "similarity": 0.870861
+          "similarity": 0.870861,
+          "size": 302,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "81:837E",
           "end": "81:84AB",
           "shift": -38,
-          "similarity": 0.827815
+          "similarity": 0.827815,
+          "size": 302,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "81:83A4",
           "end": "81:84D1",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 302,
+          "size_delta": 0
         }
       }
     },
@@ -314,25 +374,33 @@
           "start": "82:A22B",
           "end": "82:A27B",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 81,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:A221",
           "end": "82:A271",
           "shift": -10,
-          "similarity": 0.851852
+          "similarity": 0.851852,
+          "size": 81,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "82:A237",
           "end": "82:A287",
           "shift": 12,
-          "similarity": 0.851852
+          "similarity": 0.851852,
+          "size": 81,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:A22B",
           "end": "82:A27B",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 81,
+          "size_delta": 0
         }
       }
     },
@@ -352,25 +420,33 @@
           "start": "82:A27C",
           "end": "82:A2D3",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 88,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:A272",
           "end": "82:A2C9",
           "shift": -10,
-          "similarity": 0.511364
+          "similarity": 0.511364,
+          "size": 88,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "82:A288",
           "end": "82:A2DF",
           "shift": 12,
-          "similarity": 0.511364
+          "similarity": 0.511364,
+          "size": 88,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:A27C",
           "end": "82:A2D3",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 88,
+          "size_delta": 0
         }
       }
     },
@@ -390,25 +466,33 @@
           "start": "82:A2D4",
           "end": "82:A353",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 128,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:A2C5",
           "end": "82:A344",
           "shift": -15,
-          "similarity": 1
+          "similarity": 1,
+          "size": 128,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "82:A2DB",
           "end": "82:A35A",
           "shift": 7,
-          "similarity": 1
+          "similarity": 1,
+          "size": 128,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:A2D4",
           "end": "82:A353",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 128,
+          "size_delta": 0
         }
       }
     },
@@ -428,25 +512,33 @@
           "start": "82:A354",
           "end": "82:A497",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 324,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:A345",
           "end": "82:A488",
           "shift": -15,
-          "similarity": 0.820988
+          "similarity": 0.820988,
+          "size": 324,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "82:A35B",
           "end": "82:A49E",
           "shift": 7,
-          "similarity": 0.814815
+          "similarity": 0.814815,
+          "size": 324,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:A354",
           "end": "82:A497",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 324,
+          "size_delta": 0
         }
       }
     },
@@ -466,25 +558,33 @@
           "start": "82:A498",
           "end": "82:A5F2",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 347,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:A489",
           "end": "82:A5E3",
           "shift": -15,
-          "similarity": 0.873199
+          "similarity": 0.873199,
+          "size": 347,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "82:A49F",
           "end": "82:A5F9",
           "shift": 7,
-          "similarity": 0.832853
+          "similarity": 0.832853,
+          "size": 347,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:A498",
           "end": "82:A5F2",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 347,
+          "size_delta": 0
         }
       }
     },
@@ -504,25 +604,33 @@
           "start": "82:A5F3",
           "end": "82:A617",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 37,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:A5E4",
           "end": "82:A608",
           "shift": -15,
-          "similarity": 0.891892
+          "similarity": 0.891892,
+          "size": 37,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "82:A5FA",
           "end": "82:A61E",
           "shift": 7,
-          "similarity": 0.891892
+          "similarity": 0.891892,
+          "size": 37,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:A5F3",
           "end": "82:A617",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 37,
+          "size_delta": 0
         }
       }
     },
@@ -542,25 +650,33 @@
           "start": "82:A618",
           "end": "82:A6F0",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 217,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:A609",
           "end": "82:A6E1",
           "shift": -15,
-          "similarity": 0.953917
+          "similarity": 0.953917,
+          "size": 217,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "82:A61F",
           "end": "82:A6F7",
           "shift": 7,
-          "similarity": 0.889401
+          "similarity": 0.889401,
+          "size": 217,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:A618",
           "end": "82:A6F0",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 217,
+          "size_delta": 0
         }
       }
     },
@@ -580,25 +696,33 @@
           "start": "82:A6F1",
           "end": "82:A8C1",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 465,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:A6E2",
           "end": "82:A8B2",
           "shift": -15,
-          "similarity": 0.888172
+          "similarity": 0.888172,
+          "size": 465,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "82:A6F8",
           "end": "82:A8C8",
           "shift": 7,
-          "similarity": 0.873118
+          "similarity": 0.873118,
+          "size": 465,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:A6F1",
           "end": "82:A8C1",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 465,
+          "size_delta": 0
         }
       }
     },
@@ -618,25 +742,33 @@
           "start": "82:A8C2",
           "end": "82:A967",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 166,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:A8B3",
           "end": "82:A958",
           "shift": -15,
-          "similarity": 0.837349
+          "similarity": 0.837349,
+          "size": 166,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "82:A8C9",
           "end": "82:A96E",
           "shift": 7,
-          "similarity": 0.831325
+          "similarity": 0.831325,
+          "size": 166,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:A8C2",
           "end": "82:A967",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 166,
+          "size_delta": 0
         }
       }
     },
@@ -656,25 +788,33 @@
           "start": "82:A968",
           "end": "82:A9AB",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 68,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:A959",
           "end": "82:A99C",
           "shift": -15,
-          "similarity": 0.911765
+          "similarity": 0.911765,
+          "size": 68,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "82:A96F",
           "end": "82:A9B2",
           "shift": 7,
-          "similarity": 0.897059
+          "similarity": 0.897059,
+          "size": 68,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:A968",
           "end": "82:A9AB",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 68,
+          "size_delta": 0
         }
       }
     },
@@ -694,25 +834,33 @@
           "start": "82:A9AC",
           "end": "82:AA08",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 93,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:A99D",
           "end": "82:A9F9",
           "shift": -15,
-          "similarity": 0.88172
+          "similarity": 0.88172,
+          "size": 93,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "82:A9B3",
           "end": "82:AA0F",
           "shift": 7,
-          "similarity": 0.870968
+          "similarity": 0.870968,
+          "size": 93,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:A9AC",
           "end": "82:AA08",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 93,
+          "size_delta": 0
         }
       }
     },
@@ -732,25 +880,33 @@
           "start": "82:AA09",
           "end": "82:AA69",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 97,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:A9FA",
           "end": "82:AA5A",
           "shift": -15,
-          "similarity": 0.886598
+          "similarity": 0.886598,
+          "size": 97,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "82:AA10",
           "end": "82:AA70",
           "shift": 7,
-          "similarity": 0.876289
+          "similarity": 0.876289,
+          "size": 97,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:AA09",
           "end": "82:AA69",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 97,
+          "size_delta": 0
         }
       }
     },
@@ -770,25 +926,585 @@
           "start": "82:AA6A",
           "end": "82:AA6D",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 4,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:AA5B",
           "end": "82:AA5E",
           "shift": -15,
-          "similarity": 0.75
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0
         },
         "europe-retail": {
           "start": "82:AA71",
           "end": "82:AA74",
           "shift": 7,
-          "similarity": 0.75
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:AA6A",
           "end": "82:AA6D",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 4,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "racer-oam",
+      "source_path": "analysis/generated/racer-oam-structure-island.json",
+      "name": "entry_mode_setup",
+      "kind": "code",
+      "usa_start": "82:ACA5",
+      "usa_end": "82:ACF2",
+      "size": 78,
+      "usa_opcode_bytes": 30,
+      "usa_operand_bytes": 48,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:ACAC",
+          "end": "82:ACF9",
+          "shift": 7,
+          "similarity": 0.833333,
+          "size": 78,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:ACA5",
+          "end": "82:ACF2",
+          "shift": 0,
+          "similarity": 1,
+          "size": 78,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:AC96",
+          "end": "82:ACE3",
+          "shift": -15,
+          "similarity": 0.871795,
+          "size": 78,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:ACA5",
+          "end": "82:ACF2",
+          "shift": 0,
+          "similarity": 1,
+          "size": 78,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "racer-oam",
+      "source_path": "analysis/generated/racer-oam-structure-island.json",
+      "name": "p1_projection",
+      "kind": "code",
+      "usa_start": "82:ACF3",
+      "usa_end": "82:ADA6",
+      "size": 180,
+      "usa_opcode_bytes": 75,
+      "usa_operand_bytes": 105,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:ACFA",
+          "end": "82:ADAD",
+          "shift": 7,
+          "similarity": 0.855556,
+          "size": 180,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:ACF3",
+          "end": "82:ADA6",
+          "shift": 0,
+          "similarity": 1,
+          "size": 180,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:ACE4",
+          "end": "82:AD97",
+          "shift": -15,
+          "similarity": 0.933333,
+          "size": 180,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:ACF3",
+          "end": "82:ADA6",
+          "shift": 0,
+          "similarity": 1,
+          "size": 180,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "racer-oam",
+      "source_path": "analysis/generated/racer-oam-structure-island.json",
+      "name": "p2_dispatch_setup",
+      "kind": "code",
+      "usa_start": "82:ADA7",
+      "usa_end": "82:ADC0",
+      "size": 26,
+      "usa_opcode_bytes": 10,
+      "usa_operand_bytes": 16,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:ADAE",
+          "end": "82:ADC7",
+          "shift": 7,
+          "similarity": 0.769231,
+          "size": 26,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:ADA7",
+          "end": "82:ADC0",
+          "shift": 0,
+          "similarity": 1,
+          "size": 26,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:AD98",
+          "end": "82:ADB1",
+          "shift": -15,
+          "similarity": 0.846154,
+          "size": 26,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:ADA7",
+          "end": "82:ADC0",
+          "shift": 0,
+          "similarity": 1,
+          "size": 26,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "racer-oam",
+      "source_path": "analysis/generated/racer-oam-structure-island.json",
+      "name": "p2_projection_shared_camera",
+      "kind": "code",
+      "usa_start": "82:ADC1",
+      "usa_end": "82:AE59",
+      "size": 153,
+      "usa_opcode_bytes": 65,
+      "usa_operand_bytes": 88,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:ADC8",
+          "end": "82:AE60",
+          "shift": 7,
+          "similarity": 0.849673,
+          "size": 153,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:ADC1",
+          "end": "82:AE59",
+          "shift": 0,
+          "similarity": 1,
+          "size": 153,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:ADB2",
+          "end": "82:AE4A",
+          "shift": -15,
+          "similarity": 0.928105,
+          "size": 153,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:ADC1",
+          "end": "82:AE59",
+          "shift": 0,
+          "similarity": 1,
+          "size": 153,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "racer-oam",
+      "source_path": "analysis/generated/racer-oam-structure-island.json",
+      "name": "p2_projection_alt_camera",
+      "kind": "code",
+      "usa_start": "82:AE5A",
+      "usa_end": "82:AF30",
+      "size": 215,
+      "usa_opcode_bytes": 76,
+      "usa_operand_bytes": 108,
+      "usa_unreached_or_data_bytes": 31,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:AE61",
+          "end": "82:AF37",
+          "shift": 7,
+          "similarity": 0.851163,
+          "size": 215,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:AE5A",
+          "end": "82:AF30",
+          "shift": 0,
+          "similarity": 1,
+          "size": 215,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:AE4B",
+          "end": "82:AF21",
+          "shift": -15,
+          "similarity": 0.930233,
+          "size": 215,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:AE5A",
+          "end": "82:AF30",
+          "shift": 0,
+          "similarity": 1,
+          "size": 215,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "racer-oam",
+      "source_path": "analysis/generated/racer-oam-structure-island.json",
+      "name": "split_mode_setup",
+      "kind": "code",
+      "usa_start": "82:AF31",
+      "usa_end": "82:AF4E",
+      "size": 30,
+      "usa_opcode_bytes": 11,
+      "usa_operand_bytes": 19,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:AF38",
+          "end": "82:AF55",
+          "shift": 7,
+          "similarity": 0.866667,
+          "size": 30,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:AF31",
+          "end": "82:AF4E",
+          "shift": 0,
+          "similarity": 1,
+          "size": 30,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:AF22",
+          "end": "82:AF3F",
+          "shift": -15,
+          "similarity": 0.866667,
+          "size": 30,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:AF31",
+          "end": "82:AF4E",
+          "shift": 0,
+          "similarity": 1,
+          "size": 30,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "racer-oam",
+      "source_path": "analysis/generated/racer-oam-structure-island.json",
+      "name": "split_p2_projection",
+      "kind": "code",
+      "usa_start": "82:AF4F",
+      "usa_end": "82:AFD4",
+      "size": 134,
+      "usa_opcode_bytes": 58,
+      "usa_operand_bytes": 76,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:AF56",
+          "end": "82:AFD9",
+          "shift": 7,
+          "similarity": 0.425373,
+          "size": 132,
+          "size_delta": -2
+        },
+        "legacy-beta": {
+          "start": "82:AF4F",
+          "end": "82:AFD4",
+          "shift": 0,
+          "similarity": 1,
+          "size": 134,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:AF40",
+          "end": "82:AFC3",
+          "shift": -15,
+          "similarity": 0.492537,
+          "size": 132,
+          "size_delta": -2
+        },
+        "usa-retail": {
+          "start": "82:AF4F",
+          "end": "82:AFD4",
+          "shift": 0,
+          "similarity": 1,
+          "size": 134,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "racer-oam",
+      "source_path": "analysis/generated/racer-oam-structure-island.json",
+      "name": "split_p1_projection",
+      "kind": "code",
+      "usa_start": "82:AFD5",
+      "usa_end": "82:B056",
+      "size": 130,
+      "usa_opcode_bytes": 56,
+      "usa_operand_bytes": 74,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:AFDA",
+          "end": "82:B059",
+          "shift": 5,
+          "similarity": 0.453846,
+          "size": 128,
+          "size_delta": -2
+        },
+        "legacy-beta": {
+          "start": "82:AFD5",
+          "end": "82:B056",
+          "shift": 0,
+          "similarity": 1,
+          "size": 130,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:AFC4",
+          "end": "82:B043",
+          "shift": -17,
+          "similarity": 0.530769,
+          "size": 128,
+          "size_delta": -2
+        },
+        "usa-retail": {
+          "start": "82:AFD5",
+          "end": "82:B056",
+          "shift": 0,
+          "similarity": 1,
+          "size": 130,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "racer-oam",
+      "source_path": "analysis/generated/racer-oam-structure-island.json",
+      "name": "post_mode_setup",
+      "kind": "code",
+      "usa_start": "82:B057",
+      "usa_end": "82:B07A",
+      "size": 36,
+      "usa_opcode_bytes": 14,
+      "usa_operand_bytes": 22,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:B05A",
+          "end": "82:B07D",
+          "shift": 3,
+          "similarity": 0.777778,
+          "size": 36,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:B057",
+          "end": "82:B07A",
+          "shift": 0,
+          "similarity": 1,
+          "size": 36,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:B044",
+          "end": "82:B067",
+          "shift": -19,
+          "similarity": 0.833333,
+          "size": 36,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:B057",
+          "end": "82:B07A",
+          "shift": 0,
+          "similarity": 1,
+          "size": 36,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "racer-oam",
+      "source_path": "analysis/generated/racer-oam-structure-island.json",
+      "name": "post_p2_adjust",
+      "kind": "code",
+      "usa_start": "82:B07B",
+      "usa_end": "82:B0E5",
+      "size": 107,
+      "usa_opcode_bytes": 42,
+      "usa_operand_bytes": 65,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:B07E",
+          "end": "82:B0E8",
+          "shift": 3,
+          "similarity": 0.897196,
+          "size": 107,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:B07B",
+          "end": "82:B0E5",
+          "shift": 0,
+          "similarity": 1,
+          "size": 107,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:B068",
+          "end": "82:B0D2",
+          "shift": -19,
+          "similarity": 0.906542,
+          "size": 107,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:B07B",
+          "end": "82:B0E5",
+          "shift": 0,
+          "similarity": 1,
+          "size": 107,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "racer-oam",
+      "source_path": "analysis/generated/racer-oam-structure-island.json",
+      "name": "post_p1_adjust",
+      "kind": "code",
+      "usa_start": "82:B0E6",
+      "usa_end": "82:B150",
+      "size": 107,
+      "usa_opcode_bytes": 42,
+      "usa_operand_bytes": 65,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:B0E9",
+          "end": "82:B153",
+          "shift": 3,
+          "similarity": 0.897196,
+          "size": 107,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:B0E6",
+          "end": "82:B150",
+          "shift": 0,
+          "similarity": 1,
+          "size": 107,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:B0D3",
+          "end": "82:B13D",
+          "shift": -19,
+          "similarity": 0.906542,
+          "size": 107,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:B0E6",
+          "end": "82:B150",
+          "shift": 0,
+          "similarity": 1,
+          "size": 107,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "racer-oam",
+      "source_path": "analysis/generated/racer-oam-structure-island.json",
+      "name": "post_final_flags",
+      "kind": "code",
+      "usa_start": "82:B151",
+      "usa_end": "82:B17F",
+      "size": 47,
+      "usa_opcode_bytes": 19,
+      "usa_operand_bytes": 28,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:B154",
+          "end": "82:B182",
+          "shift": 3,
+          "similarity": 0.87234,
+          "size": 47,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:B151",
+          "end": "82:B17F",
+          "shift": 0,
+          "similarity": 1,
+          "size": 47,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:B13E",
+          "end": "82:B16C",
+          "shift": -19,
+          "similarity": 0.87234,
+          "size": 47,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:B151",
+          "end": "82:B17F",
+          "shift": 0,
+          "similarity": 1,
+          "size": 47,
+          "size_delta": 0
         }
       }
     },
@@ -808,25 +1524,33 @@
           "start": "82:E12B",
           "end": "82:E195",
           "shift": -58,
-          "similarity": 0.943925
+          "similarity": 0.943925,
+          "size": 107,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:E165",
           "end": "82:E1CF",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 107,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:E101",
           "end": "82:E16B",
           "shift": -100,
-          "similarity": 0.943925
+          "similarity": 0.943925,
+          "size": 107,
+          "size_delta": 0
         },
         "usa-retail": {
           "start": "82:E165",
           "end": "82:E1CF",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 107,
+          "size_delta": 0
         }
       }
     },
@@ -846,25 +1570,33 @@
           "start": "82:E197",
           "end": "82:E1D9",
           "shift": -58,
-          "similarity": 0.895522
+          "similarity": 0.895522,
+          "size": 67,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:E1D1",
           "end": "82:E213",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 67,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:E16D",
           "end": "82:E1AF",
           "shift": -100,
-          "similarity": 0.895522
+          "similarity": 0.895522,
+          "size": 67,
+          "size_delta": 0
         },
         "usa-retail": {
           "start": "82:E1D1",
           "end": "82:E213",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 67,
+          "size_delta": 0
         }
       }
     },
@@ -884,25 +1616,33 @@
           "start": "82:E1DC",
           "end": "82:E2C5",
           "shift": -58,
-          "similarity": 0.884615
+          "similarity": 0.884615,
+          "size": 234,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:E216",
           "end": "82:E2FF",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 234,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:E1B2",
           "end": "82:E29B",
           "shift": -100,
-          "similarity": 0.884615
+          "similarity": 0.884615,
+          "size": 234,
+          "size_delta": 0
         },
         "usa-retail": {
           "start": "82:E216",
           "end": "82:E2FF",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 234,
+          "size_delta": 0
         }
       }
     },
@@ -922,25 +1662,33 @@
           "start": "82:E2C8",
           "end": "82:E34B",
           "shift": -58,
-          "similarity": 0.954545
+          "similarity": 0.954545,
+          "size": 132,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:E302",
           "end": "82:E385",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 132,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:E29E",
           "end": "82:E321",
           "shift": -100,
-          "similarity": 0.954545
+          "similarity": 0.954545,
+          "size": 132,
+          "size_delta": 0
         },
         "usa-retail": {
           "start": "82:E302",
           "end": "82:E385",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 132,
+          "size_delta": 0
         }
       }
     },
@@ -960,25 +1708,33 @@
           "start": "82:E34E",
           "end": "82:E35B",
           "shift": -58,
-          "similarity": 0.928571
+          "similarity": 0.928571,
+          "size": 14,
+          "size_delta": 0
         },
         "legacy-beta": {
           "start": "82:E388",
           "end": "82:E395",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 14,
+          "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "82:E324",
           "end": "82:E331",
           "shift": -100,
-          "similarity": 0.928571
+          "similarity": 0.928571,
+          "size": 14,
+          "size_delta": 0
         },
         "usa-retail": {
           "start": "82:E388",
           "end": "82:E395",
           "shift": 0,
-          "similarity": 1
+          "similarity": 1,
+          "size": 14,
+          "size_delta": 0
         }
       }
     }

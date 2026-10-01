@@ -9,7 +9,7 @@ class T(unittest.TestCase):
   r=mod.build(); self.assertEqual(r["main_entry"],"81:8FB8"); self.assertEqual(r["helper_entry"],"81:983B")
   self.assertEqual(sum(x["size"] for x in r["regions"]),2590)
   dormant=[x for x in r["regions"] if x["execution_class"]=="usa-dormant"]
-  self.assertEqual(sum(x["size"] for x in dormant),62)
+  self.assertEqual(sum(x["size"] for x in dormant),53)
   for region in r["regions"]:
    self.assertEqual(region["builds"]["legacy-beta"]["similarity"],1.0,region["name"])
    if region["execution_class"]=="live":

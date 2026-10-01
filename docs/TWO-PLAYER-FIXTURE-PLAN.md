@@ -192,15 +192,18 @@ If that assertion passes, retire signed-arithmetic differences inside `A5F3` as 
 
 Static main-loop ordering further narrows that root question. In bank 83, the per-frame loop updates scheduler state at `83:CC87..CC9A` before it dispatches into race logic via `83:CD32..CD3A`. The ordinary-2P race routine then writes `inRace` at `83:E070..E073` (and the sibling path at `83:E3FB..E3FE`) without resetting `$0300/$0302/$0304`. Therefore race entry inherits the scheduler parity that already existed on that guest-frame pass; it does not create a fresh phase.
 
-This leaves two tightly bounded possibilities for the dense 1128-1140 probe:
-1. the runtimes are already phase-shifted before `inRace` becomes 1, which points to a pre-race guest-frame/loop-count discrepancy; or
-2. they agree immediately before entry but observe different sides of the same entry pass, which points to host checkpoint/frame-boundary semantics rather than game arithmetic.
+The dense one-frame probe resolves that ambiguity. Frames 1128-1133 match exactly. At frame 1134, Snes9x has already entered race state while native has not:
 
-The probe should be interpreted in that order.
+- native: `inRace=0`, `race_tick=0`, scheduler bytes `0/0/0`;
+- Snes9x: `inRace=1`, `race_tick=1`, scheduler bytes `1/1/1`.
 
-A stronger upstream candidate is now identified in the same main loop. At `83:CC74..CC7C`, nonzero `$1281` is cleared and execution jumps directly to `83:CD86`, skipping input sampling and all three scheduler-counter updates for exactly one pass. The recovered writers at `83:D50D..D510` and `83:D552..D557` can raise this latch from a small transition/countdown subsystem. A one-runtime-only assertion of `$1281` around race entry would create exactly the persistent one-frame scheduler-phase offset observed afterward.
+At frame 1135 both runtimes report `inRace=1`, but Snes9x remains exactly one race update ahead: native `race_tick=1`, Snes9x `race_tick=2`, with the corresponding one-step scheduler rotation. The offset then persists.
 
-The dense phase-origin probe therefore also captures `$1281`, `$127B/$127D/$127F`, and `$12AB-$12AC`. If the first `$0302/$0304` divergence coincides with a one-sided scheduler-skip latch, follow that producer chain before investigating any host-frame-boundary theory.
+This also rules out the tempting `$1281` scheduler-skip hypothesis for this seam. `$1281`, its nearby countdown/reload state, and both recovered producer selectors remain zero in both runtimes throughout frames 1128-1140. The phase difference is therefore downstream of **one-runtime-earlier race entry**, not a scheduler update skipped after entry.
+
+The same green run dynamically confirms the `A5F3` mechanism at frame 1532 for P1 Left, P1 Right, and P2 Right: opposite `$0302` eligibility predicts which runtime receives the one-unit toward-zero speed nudge exactly. Signed arithmetic inside `A5F3` is no longer a live leading explanation.
+
+The root-cause boundary now moves to the race-entry handshake. `83:C9C8..C9CB` can set `$0C67`; `83:CBA4..CBB2` can clear it; and `83:CD3A -> 83:E066` consumes it before `E070` writes `inRace=1`. The next microtrace captures `$0C67`, `$0DDB`, and `$7E212C` around 1128-1140. Follow whichever handshake byte first differs before investigating later racer physics.
 
 ## VS active-movement parity refinement
 

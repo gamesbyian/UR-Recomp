@@ -1,4 +1,16 @@
+local function stage_marker(suffix)
+  local ready = os.getenv("MESEN_BRIDGE_READY")
+  if not ready or ready == "" then return end
+  local file = io.open(ready .. suffix, "w")
+  if file then
+    file:write("ok\n")
+    file:close()
+  end
+end
+
+stage_marker(".lua")
 local socket = require("socket.core")
+stage_marker(".socket")
 
 local host = os.getenv("MESEN_BRIDGE_HOST") or "127.0.0.1"
 local port = tonumber(os.getenv("MESEN_BRIDGE_PORT") or "0")
@@ -866,6 +878,7 @@ server:setoption("reuseaddr", true)
 assert(server:bind(host, port))
 assert(server:listen(8))
 server:settimeout(0)
+stage_marker(".listen")
 
 if ready_path and ready_path ~= "" then
   local file = assert(io.open(ready_path, "w"))

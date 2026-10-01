@@ -19,8 +19,12 @@ wait 100
 dump two-player-1320
 wait 100
 dump two-player-1420
-wait 100
+wait 50
+dump two-player-1470
+wait 50
 dump two-player-1520
-wait 100
+wait 50
+dump two-player-1570
+wait 50
 dump two-player-1620
 quit

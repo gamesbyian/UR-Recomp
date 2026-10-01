@@ -119,11 +119,26 @@ REGIONS = [
         "basis": "Nitrodon bounded VRAM/DMA row loop through the post-loop VRAM pointer load, before exit/range dispatch at 82:E302.",
     },
     {
-        "name": "Race_HandleCheckpointFinish:entry_and_time",
+        "name": "Race_HandleCheckpointFinish:entry_and_time_prefix",
         "usa_start": "81:8050",
-        "usa_end": "81:8122",
+        "usa_end": "81:8101",
         "expected_europe_shift": 0,
-        "basis": "Dispatch-confirmed handler entry establishes REP #$30; bounded through race-time snapshot before the player-specific record branch.",
+        "basis": "Dispatch-confirmed handler entry through accumulated minute/second/tenths total; Europe remains at the same code layout through this boundary.",
+    },
+    {
+        "name": "Race_HandleCheckpointFinish:frame_normalization_delta",
+        "usa_start": "81:8102",
+        "usa_end": "81:8117",
+        "expected_europe_shift": -6,
+        "allow_structural_delta": true,
+        "basis": "Bounded timer-frame normalization block. Local shift profiling shows Europe contracts this block and the shared suffix has reached shift -14 by USA 81:8118.",
+    },
+    {
+        "name": "Race_HandleCheckpointFinish:time_suffix",
+        "usa_start": "81:8118",
+        "usa_end": "81:8122",
+        "expected_europe_shift": -14,
+        "basis": "Post-normalization race-time sum and player branch; local profile independently shows exact downstream homolog shift -14.",
     },
     {
         "name": "Race_HandleCheckpointFinish:player_records",
@@ -284,7 +299,18 @@ def build() -> dict:
         end = cpu_to_offset(region["usa_end"])
         center = int(region["expected_europe_shift"])
         # Constrain the search around the already-established structural candidate.
-        shift, sim = best_shift(usa, europe, start, end, radius=64)
+        center = int(region["expected_europe_shift"])
+        src = usa[start:end + 1]
+        best = (center, -1.0)
+        for candidate_shift in range(center - 32, center + 33):
+            a = start + candidate_shift
+            b = a + len(src)
+            if a < 0 or b > len(europe):
+                continue
+            score = sum(x == y for x, y in zip(src, europe[a:b])) / len(src)
+            if score > best[1]:
+                best = (candidate_shift, score)
+        shift, sim = best
         metrics = compare_roles(ud, ed, usa, europe, start, end, shift)
         byte_metrics = compare_aligned_bytes(ud, ed, usa, europe, start, end, shift)
         if metrics["aligned_opcode_pairs"] == 0:
@@ -308,7 +334,10 @@ def build() -> dict:
 
     totals = {
         "regions": len(rows),
-        "aligned_role_disagreements": sum(x["aligned_role_disagreements"] for x in rows),
+        "aligned_role_disagreements": sum(
+            x["aligned_role_disagreements"] for x in rows if not x.get("allow_structural_delta")
+        ),
+        "structural_delta_regions": sum(bool(x.get("allow_structural_delta")) for x in rows),
         "aligned_mx_disagreements": sum(x["aligned_mx_disagreements"] for x in rows),
         "zero_role_disagreement_regions": sum(x["aligned_role_disagreements"] == 0 for x in rows),
         "aligned_opcode_pairs": sum(x["aligned_opcode_pairs"] for x in rows),
@@ -367,7 +396,11 @@ def render(report: dict) -> str:
             )
         lines.append("")
 
-    survivors = [r for r in report["regions"] if r["aligned_role_disagreements"] or r["aligned_mx_disagreements"]]
+    survivors = [
+        r for r in report["regions"]
+        if not r.get("allow_structural_delta")
+        and (r["aligned_role_disagreements"] or r["aligned_mx_disagreements"])
+    ]
     lines += ["", "## Surviving analyzer disagreements", ""]
     if not survivors:
         lines.append("None.")

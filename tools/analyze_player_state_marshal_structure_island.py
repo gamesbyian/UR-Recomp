@@ -97,13 +97,15 @@ def build():
 
 def render(r):
  lines=["# Player persistent-state marshal structural island","",
- "USA 81:8D14..8FB7 marshals P1/P2 persistent racer state into the shared current-player 0Fxx workspace, runs the common per-racer helpers, and writes the workspace back before collision handling at 81:8FB8.","",
+ "USA `81:8D14..8FB7` marshals P1/P2 persistent racer state into the shared current-player `0Fxx` workspace, runs the common per-racer helpers, and writes the workspace back before collision handling at `81:8FB8`.","",
+ "All 676 USA bytes are executable. USA and legacy beta are byte-identical. PAL prototype and Europe both remain at shift -32 throughout. Both regional builds preserve all 234 aligned opcode positions with zero code/operand-role disagreements.","",
  "| Region | USA bytes | PAL prototype | Europe | Legacy beta |","|---|---:|---|---|---|"]
  for x in r["regions"]:
   def c(b):
    q=x["builds"][b]; return f"{q['start']}..{q['end']} ({q['shift']:+d}; sim {q['similarity']:.3f}; op {q['opcode_bytes']}; other {q['unreached_or_data_bytes']})"
   lines.append(f"| {x['name']} | {x['size']} | {c('pal-prototype-1994-11-29')} | {c('europe-retail')} | {c('legacy-beta')} |")
- return "\n".join(lines)+"\n"
+ lines += ["","The P1 bridge copies persistent angle `7E:04C7` to shared `7E:0F49` and persistent angular velocity `7E:0BAD` to shared `7E:0F4B`; the P2 bridge performs the same mapping from `7E:04C9` and `7E:0BAF`. The writeback path returns shared angular velocity to each persistent slot after common simulation.",""]
+ return "\n".join(lines)
 
 def main():
  r=build(); OUTJ.write_text(json.dumps(r,indent=2)+"\n"); OUTM.write_text(render(r)); print(render(r)); print("PLAYER_STATE_MARSHAL_JSON="+json.dumps(r,sort_keys=True))

@@ -12,10 +12,16 @@ jobs:
       - uses: actions/checkout@v4
       - name: Refine survivor windows
         run: python3 tools/refine_pal_snes2asm_survivors.py
+      - name: Build current comparative atlas
+        run: |
+          python3 tools/build_comparative_code_atlas.py
+          cat analysis/generated/comparative-code-atlas.md
       - uses: actions/upload-artifact@v4
         with:
           name: pal-snes2asm-subregion-alignment
           path: |
             analysis/generated/pal-snes2asm-subregion-alignment.json
             analysis/generated/pal-snes2asm-subregion-alignment.md
+            analysis/generated/comparative-code-atlas.json
+            analysis/generated/comparative-code-atlas.md
           if-no-files-found: error

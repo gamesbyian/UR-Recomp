@@ -75,8 +75,8 @@ jobs:
           CHECKPOINTS=(
             --checkpoint two-player-race-1220
             --checkpoint two-player-race-1420
-            --checkpoint two-player-p1-post-1470
-            --checkpoint two-player-p2-pre-1520
+            --checkpoint two-player-p1-pre-1470
+            --checkpoint two-player-p1-post-1520
             --checkpoint two-player-p2-post-1570
             --checkpoint two-player-both-post-1620
           )
@@ -84,7 +84,7 @@ jobs:
             python3 - "$RUNNER_TEMP/$label-dumps" "$label" <<'PY'
           import pathlib,sys
           root=pathlib.Path(sys.argv[1]); label=sys.argv[2]
-          for tag in ("two-player-race-1220","two-player-race-1420","two-player-p1-post-1470","two-player-p2-pre-1520","two-player-p2-post-1570","two-player-both-post-1620"):
+          for tag in ("two-player-race-1220","two-player-race-1420","two-player-p1-pre-1470","two-player-p1-post-1520","two-player-p2-post-1570","two-player-both-post-1620"):
               w=(root/f"{tag}.wram.bin").read_bytes()
               assert w[0x0313] == 1, f"{label}/{tag}: inRace={w[0x0313]}"
               assert w[0x009F] == 0, f"{label}/{tag}: menu=0x{w[0x009F]:02X}"
@@ -105,14 +105,14 @@ jobs:
           # Causal ownership: P1-only input moves slot1 while slot2 remains at baseline.
           for label,data in (("native",native),("snes9x",ref)):
               base=data["two-player-race-1420"]
-              p1=data["two-player-p1-post-1470"]
-              p2pre=data["two-player-p2-pre-1520"]
+              p1pre=data["two-player-p1-pre-1470"]
+              p1post=data["two-player-p1-post-1520"]
               p2post=data["two-player-p2-post-1570"]
               both=data["two-player-both-post-1620"]
-              assert p1["slot1"]["x_pos"] != base["slot1"]["x_pos"], f"{label}: P1 did not move"
-              assert p1["slot2"]["x_pos"] == base["slot2"]["x_pos"], f"{label}: P1-only input moved P2"
-              assert p2pre["slot2"]["x_pos"] == base["slot2"]["x_pos"], f"{label}: P2 moved before P2 input"
-              assert p2post["slot2"]["x_pos"] != p2pre["slot2"]["x_pos"], f"{label}: P2 did not respond"
+              assert p1pre["slot1"]["x_pos"] == base["slot1"]["x_pos"], f"{label}: P1 moved before P1 input"
+              assert p1post["slot1"]["x_pos"] != p1pre["slot1"]["x_pos"], f"{label}: P1 did not respond"
+              assert p1post["slot2"]["x_pos"] == p1pre["slot2"]["x_pos"], f"{label}: P1-only input changed P2 X position"
+              assert p2post["slot2"]["x_pos"] != p1post["slot2"]["x_pos"], f"{label}: P2 did not respond"
               assert both["slot1"]["x_speed"] > 0, f"{label}: expected P1 positive X velocity"
               assert both["slot2"]["x_speed"] < 0, f"{label}: expected P2 negative X velocity"
 
@@ -123,7 +123,7 @@ jobs:
                       assert native[cp]["race_progress"][player][field] == ref[cp]["race_progress"][player][field],                           f"{cp}/{player}/{field}: race-progress mismatch"
 
           # Report any post-intervention kinematic drift without converting it into a tolerance.
-          for cp in ("two-player-p1-post-1470","two-player-p2-pre-1520","two-player-p2-post-1570","two-player-both-post-1620"):
+          for cp in ("two-player-p1-pre-1470","two-player-p1-post-1520","two-player-p2-post-1570","two-player-both-post-1620"):
               diffs={}
               for slot in ("slot1","slot2"):
                   for field in native[cp][slot]:
@@ -134,14 +134,14 @@ jobs:
 
       - name: Assert ordinary 2P active-display OAM seam
         run: |
-          python3 tools/assert_uniracers_vs_oam_seam.py             "$RUNNER_TEMP/snes9x-dumps/two-player-race-1220.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-race-1420.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-p1-post-1470.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-p2-post-1570.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-both-post-1620.ppuw.tsv"
+          python3 tools/assert_uniracers_vs_oam_seam.py             "$RUNNER_TEMP/snes9x-dumps/two-player-race-1220.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-race-1420.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-p1-pre-1470.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-p2-post-1570.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-both-post-1620.ppuw.tsv"
 
       - name: Assert ordinary 2P high-OAM routing
         run: |
           python3 tools/decode_uniracers_oam_split.py --expect 0x5A \
             "$RUNNER_TEMP/snes9x-dumps/two-player-race-1220.oam.bin" \
             "$RUNNER_TEMP/snes9x-dumps/two-player-race-1420.oam.bin" \
-            "$RUNNER_TEMP/snes9x-dumps/two-player-p1-post-1470.oam.bin" \
+            "$RUNNER_TEMP/snes9x-dumps/two-player-p1-pre-1470.oam.bin" \
             "$RUNNER_TEMP/snes9x-dumps/two-player-p2-post-1570.oam.bin" \
             "$RUNNER_TEMP/snes9x-dumps/two-player-both-post-1620.oam.bin"
 

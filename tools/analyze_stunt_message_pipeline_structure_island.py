@@ -82,7 +82,18 @@ def build():
     info["local_shift_profile_32byte"]=local_profile(usa,blob,us,ue,sh)
    row["builds"][build]=info
   rows.append(row)
- return {"schema_version":1,"island":"StuntMessageRewardDisplayPipeline","usa_start":"81:C0DD","usa_end":"81:C604","regions":rows}
+ windows=[]
+ for label,cpu,proto_shift,europe_shift in [
+  ("shared_three_byte_transition","81:C238",-32,-15),
+  ("europe_five_byte_transition","81:C368",-35,-18),
+ ]:
+  us=cpu_to_offset(cpu); size=64
+  row={"name":label,"usa_start":cpu,"size":size,"usa_hex":usa[us:us+size].hex(" "),"builds":{}}
+  for build,shift in [("pal-prototype-1994-11-29",proto_shift),("europe-retail",europe_shift)]:
+   blob=blobs[build]; bs=us+shift
+   row["builds"][build]={"start":offset_to_cpu(bs),"shift":shift,"hex":blob[bs:bs+size].hex(" ")}
+  windows.append(row)
+ return {"schema_version":1,"island":"StuntMessageRewardDisplayPipeline","usa_start":"81:C0DD","usa_end":"81:C604","transition_windows":windows,"regions":rows}
 
 def render(r):
  lines=["# Stunt message / reward / display structural island","",

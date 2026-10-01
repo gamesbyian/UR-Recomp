@@ -21,6 +21,10 @@ class RaceFrameOrchestratorTests(unittest.TestCase):
         self.assertEqual(r["builds"]["legacy-beta"]["similarity"],1.0)
         self.assertIn("83:CC62",r["builds"]["usa-retail"]["opcode_starts"])
         self.assertIn("83:CD9D",r["builds"]["usa-retail"]["opcode_starts"])
+        self.assertEqual(set(r["builds"]), set(mod.ROMS))
+        for build, info in r["builds"].items():
+            self.assertEqual(info["size"], 468, build)
+            self.assertEqual(info["size_delta"], 0, build)
         print("RACE_FRAME_ORCHESTRATOR_JSON="+json.dumps(r,sort_keys=True))
 
 if __name__=="__main__":

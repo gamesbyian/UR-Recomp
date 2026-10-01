@@ -55,13 +55,21 @@ def build():
   align[build]={"shift":shift,"similarity":round(sim,6),"start":offset_to_cpu(us+shift),"end":offset_to_cpu(ue+shift)}
  out={"schema_version":1,"island":"per-racer course runtime surface sampler","usa_start":USA_START,"usa_end":USA_END,"usa_size":ue-us+1,
       "call_context":{"p1_caller":"81:8DD9","p2_caller":"81:8F2D","preceded_by":"JSR 81:9E2A collision/contact-shape construction","followed_by":"JSR 81:8FB8 later collision path"},
-      "builds":{}}
+      "builds":{},"regions":[]}
  for build,blob in blobs.items():
   d=trace(blob); st=us+align[build]["shift"]; en=ue+align[build]["shift"]
   seed_entries(d,[st])
   counts,spans=role_spans(d,st,en)
-  out["builds"][build]={**align[build],**counts,"role_spans":spans,
+  out["builds"][build]={**align[build],"size":en-st+1,"size_delta":0,**counts,"role_spans":spans,
       "sha256":hashlib.sha256(blob[st:en+1]).hexdigest()}
+ out["regions"].append({
+   "name":"Course_SampleRuntimeSurface",
+   "kind":"code",
+   "usa_start":USA_START,
+   "usa_end":USA_END,
+   "size":ue-us+1,
+   "builds":{name:{k:v for k,v in info.items() if k!="role_spans"} for name,info in out["builds"].items()},
+ })
  return out
 
 def render(r):

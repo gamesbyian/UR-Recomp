@@ -350,7 +350,7 @@ jobs:
           print(f"FIRST_P2_DRIFT frame={frame} diffs={diffs}")
           PY
 
-      - name: Discriminate player-slot versus direction drift
+      - name: Assert frame-1532 scheduler-phase speed gate
         shell: bash
         run: |
           set -euo pipefail

@@ -6,15 +6,20 @@ import json
 from pathlib import Path
 
 DEFAULT_SOURCES = (
-    ("racer-update", "analysis/generated/racer-update-structure-island.json"),
-    ("object-collision", "analysis/generated/object-collision-structure-island.json"),
+    ("racer-update", "analysis/generated/racer-update-structure-island.json", True),
+    ("object-collision", "analysis/generated/object-collision-structure-island.json", True),
+    ("course-materialization", "analysis/generated/course-materialization-structure-island.json", False),
 )
 
 def build(root: Path) -> dict:
     rows = []
     sources = []
-    for source_id, rel in DEFAULT_SOURCES:
+    for source_id, rel, required in DEFAULT_SOURCES:
         path = root / rel
+        if not path.exists():
+            if required:
+                raise FileNotFoundError(path)
+            continue
         data = json.loads(path.read_text())
         sources.append({"id": source_id, "path": rel})
         for region in data["regions"]:

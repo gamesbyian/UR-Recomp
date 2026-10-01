@@ -1338,3 +1338,27 @@ Four-ROM shape classification sharpens the lineage:
 
 **Evidence:** `tools/compare_europe_usa_snes2asm_homologs.py`; `analysis/generated/europe-usa-snes2asm-homologs.{json,md}`; run `36816833830`; dispatch-confirmed `Race_HandleCheckpointFinish` identity.
 
+### R-SEED-056 — PAL prototype preserves USA opcode stream across trusted semantic corpus
+
+**Status:** confirmed bounded analyzer consensus  
+**Date:** 2026-09-30  
+**Area:** CPU | PAL prototype | comparative analysis | regional layout
+
+The trusted Europe/USA semantic corpus was reused against the 1994-11-29 PAL prototype, preserving the same independently recovered subregion boundaries and trusted-entry seeding discipline.
+
+Across **19 bounded executable subregions** and **1,465 aligned opcode positions**:
+- **0 opcode substitutions**;
+- **0 opcode/operand role disagreements**;
+- **0 M/X disagreements**;
+- **296 changed operand bytes**.
+
+The tested corpus spans text metadata, vertical acceleration, the recovered input decoder, collision velocity/contact-shape logic, HUD enqueue, racer-frame state marshal, stunt finalizer, course load/materialization, checkpoint/finish, and both racer-OAM projection blocks.
+
+The prototype is therefore instruction-for-instruction USA-shaped throughout this bounded corpus while already carrying substantial regional operand/address motion. Europe retail shows 510 operand-byte changes across the comparable corpus, versus 296 in the prototype, consistent with additional regional layout evolution after November 1994.
+
+Checkpoint/finish provides the clearest lineage discriminator: the PAL prototype retains the USA-style 22-byte frame-normalization logic at `81:8102`, while Europe retail alone contracts it to 8 bytes.
+
+**Interpretation:** the surviving PAL prototype is best treated as an intermediate regional-layout snapshot with largely frozen executable structure, not merely as a noisy alternate build. For the current trusted-anchor corpus, additional second-analyzer escalation is not warranted unless new evidence contradicts the seeded snes2asm consensus.
+
+**Evidence:** `tools/compare_usa_palprototype_snes2asm_homologs.py`; `analysis/generated/usa-pal-prototype-snes2asm-homologs.{json,md}`; run `36817274047`.
+

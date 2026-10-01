@@ -1710,3 +1710,21 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 **Propagation:** added three code regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **76 regions / 9,296 bounded USA bytes**, including **8,151 code-region bytes**, **1,145 data bytes**, and **3,419 analyzer opcode bytes**.
 
+### R-SEED-071 — Race camera control is a preserved 1.5 KiB executable subsystem
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | camera | viewport | comparative atlas
+
+**Observation:** USA `81:9FBF..A59D` forms a connected camera-control cluster: target-velocity/follow solving, a shared smoothing helper, course/scale configuration driven from `7F:000D`, and the per-frame camera update wrapper at `81:A52B/A52F`. All 1,503 USA bytes are executable under trusted-entry tracing.
+
+**Evidence:** `tools/analyze_camera_control_structure_island.py`; `analysis/generated/camera-control-structure-island.{json,md}`; ROM-backed project-tooling runs `36938453986` and `36938508110`. USA and legacy beta are byte-identical. PAL prototype stays at shift -32 and Europe at -15 across all four regions.
+
+**Interpretation:** regional builds preserve the camera instruction architecture wholesale. The velocity solver, smoothing helper, scale configuration, and per-frame update together contain 659 aligned USA opcode positions; both PAL prototype and Europe match all 659 with zero code/operand role disagreements. The old Nitrodon listing's BRK/COP clutter in the velocity solver is width/context drift rather than exceptional control flow.
+
+**Discriminating test:** no further boundary work is required. Individual camera constants and WRAM operands should be named as widescreen/viewport implementation needs demand them.
+
+**Dependencies:** Nitrodon bank-81 listing; trusted-entry snes2asm; four-ROM preserved corpus; camera position/velocity semantics already promoted in SYMBOLS.
+
+**Propagation:** added four code regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **80 regions / 10,799 bounded USA bytes**, including **9,654 code-region bytes**, **1,145 data bytes**, and **4,078 analyzer opcode bytes**.
+

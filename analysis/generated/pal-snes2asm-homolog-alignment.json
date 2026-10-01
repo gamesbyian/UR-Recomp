@@ -1,0 +1,1233 @@
+{
+  "method": {
+    "alignment": "local raw-byte similarity within +/-256 bytes",
+    "analyzer": "vendored snes2asm",
+    "note": "alignment is independent of snes2asm role classification"
+  },
+  "schema_version": 1,
+  "totals": {
+    "aligned_mx_disagreements": 16,
+    "aligned_role_disagreements": 114,
+    "role_disagreement_reduction_fraction": 0.968869,
+    "same_offset_mx_disagreements": 263,
+    "same_offset_role_disagreements": 3662,
+    "windows": 32,
+    "zero_role_disagreement_after_alignment": 29
+  },
+  "windows": [
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 379,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 379,
+        "operand->operand": 365,
+        "unreached->unreached": 83
+      },
+      "original_changed_bytes": 778,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 412,
+        "opcode-change": 261,
+        "operand-or-literal-change": 5,
+        "reachability-disagreement": 100
+      },
+      "prototype_end": 48786,
+      "prototype_shift": -17,
+      "prototype_start": 47960,
+      "raw_similarity_after_alignment": 0.970979,
+      "retail_end": 48803,
+      "retail_end_cpu": "01:BEA3",
+      "retail_start": 47977,
+      "retail_start_cpu": "01:BB69",
+      "same_offset_mx_disagreements": 30,
+      "same_offset_opcode_pairs": 180,
+      "same_offset_role_disagreements": 445,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 180,
+        "opcode->operand": 171,
+        "opcode->unreached": 28,
+        "operand->opcode": 172,
+        "operand->operand": 170,
+        "operand->unreached": 23,
+        "unreached->opcode": 27,
+        "unreached->operand": 24,
+        "unreached->unreached": 32
+      }
+    },
+    {
+      "aligned_mx_disagreements": 15,
+      "aligned_opcode_pairs": 200,
+      "aligned_role_disagreements": 91,
+      "aligned_role_pairs": {
+        "opcode->opcode": 200,
+        "opcode->operand": 27,
+        "opcode->unreached": 10,
+        "operand->opcode": 28,
+        "operand->operand": 230,
+        "operand->unreached": 8,
+        "unreached->opcode": 7,
+        "unreached->operand": 11,
+        "unreached->unreached": 49
+      },
+      "original_changed_bytes": 535,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 287,
+        "mx-state-disagreement": 1,
+        "opcode-change": 175,
+        "operand-or-literal-change": 2,
+        "reachability-disagreement": 70
+      },
+      "prototype_end": 11715,
+      "prototype_shift": -31,
+      "prototype_start": 11146,
+      "raw_similarity_after_alignment": 0.615789,
+      "retail_end": 11746,
+      "retail_end_cpu": "00:ADE2",
+      "retail_start": 11177,
+      "retail_start_cpu": "00:ABA9",
+      "same_offset_mx_disagreements": 62,
+      "same_offset_opcode_pairs": 111,
+      "same_offset_role_disagreements": 296,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 111,
+        "opcode->operand": 114,
+        "opcode->unreached": 12,
+        "operand->opcode": 112,
+        "operand->operand": 140,
+        "operand->unreached": 14,
+        "unreached->opcode": 21,
+        "unreached->operand": 23,
+        "unreached->unreached": 23
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 159,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 159,
+        "operand->operand": 240,
+        "unreached->unreached": 23
+      },
+      "original_changed_bytes": 413,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 276,
+        "mx-state-disagreement": 1,
+        "opcode-change": 85,
+        "operand-or-literal-change": 5,
+        "reachability-disagreement": 46
+      },
+      "prototype_end": 21351,
+      "prototype_shift": -19,
+      "prototype_start": 20930,
+      "raw_similarity_after_alignment": 0.954976,
+      "retail_end": 21370,
+      "retail_end_cpu": "00:D37A",
+      "retail_start": 20949,
+      "retail_start_cpu": "00:D1D5",
+      "same_offset_mx_disagreements": 6,
+      "same_offset_opcode_pairs": 50,
+      "same_offset_role_disagreements": 244,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 50,
+        "opcode->operand": 99,
+        "opcode->unreached": 10,
+        "operand->opcode": 99,
+        "operand->operand": 128,
+        "operand->unreached": 13,
+        "unreached->opcode": 10,
+        "unreached->operand": 13
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 90,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 90,
+        "operand->operand": 127,
+        "unreached->unreached": 64
+      },
+      "original_changed_bytes": 263,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 107,
+        "opcode-change": 44,
+        "operand-or-literal-change": 1,
+        "reachability-disagreement": 111
+      },
+      "prototype_end": 30203,
+      "prototype_shift": -28,
+      "prototype_start": 29923,
+      "raw_similarity_after_alignment": 0.950178,
+      "retail_end": 30231,
+      "retail_end_cpu": "00:F617",
+      "retail_start": 29951,
+      "retail_start_cpu": "00:F4FF",
+      "same_offset_mx_disagreements": 2,
+      "same_offset_opcode_pairs": 27,
+      "same_offset_role_disagreements": 192,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 27,
+        "opcode->operand": 39,
+        "opcode->unreached": 24,
+        "operand->opcode": 41,
+        "operand->operand": 54,
+        "operand->unreached": 32,
+        "unreached->opcode": 22,
+        "unreached->operand": 34,
+        "unreached->unreached": 8
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 140,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 140,
+        "operand->operand": 204,
+        "unreached->unreached": 24
+      },
+      "original_changed_bytes": 345,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 193,
+        "mx-state-disagreement": 1,
+        "opcode-change": 91,
+        "operand-or-literal-change": 14,
+        "reachability-disagreement": 46
+      },
+      "prototype_end": 8665,
+      "prototype_shift": -24,
+      "prototype_start": 8298,
+      "raw_similarity_after_alignment": 0.980978,
+      "retail_end": 8689,
+      "retail_end_cpu": "00:A1F1",
+      "retail_start": 8322,
+      "retail_start_cpu": "00:A082",
+      "same_offset_mx_disagreements": 3,
+      "same_offset_opcode_pairs": 58,
+      "same_offset_role_disagreements": 191,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 58,
+        "opcode->operand": 70,
+        "opcode->unreached": 12,
+        "operand->opcode": 73,
+        "operand->operand": 119,
+        "operand->unreached": 12,
+        "unreached->opcode": 9,
+        "unreached->operand": 15
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 152,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 152,
+        "operand->operand": 176,
+        "unreached->unreached": 28
+      },
+      "original_changed_bytes": 350,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 169,
+        "opcode-change": 124,
+        "operand-or-literal-change": 2,
+        "reachability-disagreement": 55
+      },
+      "prototype_end": 25438,
+      "prototype_shift": -28,
+      "prototype_start": 25083,
+      "raw_similarity_after_alignment": 0.960674,
+      "retail_end": 25466,
+      "retail_end_cpu": "00:E37A",
+      "retail_start": 25111,
+      "retail_start_cpu": "00:E217",
+      "same_offset_mx_disagreements": 14,
+      "same_offset_opcode_pairs": 71,
+      "same_offset_role_disagreements": 191,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 71,
+        "opcode->operand": 68,
+        "opcode->unreached": 13,
+        "operand->opcode": 67,
+        "operand->operand": 94,
+        "operand->unreached": 15,
+        "unreached->opcode": 14,
+        "unreached->operand": 14
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 157,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 157,
+        "operand->operand": 145,
+        "unreached->unreached": 19
+      },
+      "original_changed_bytes": 317,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 173,
+        "opcode-change": 107,
+        "reachability-disagreement": 37
+      },
+      "prototype_end": 14934,
+      "prototype_shift": -19,
+      "prototype_start": 14614,
+      "raw_similarity_after_alignment": 0.971963,
+      "retail_end": 14953,
+      "retail_end_cpu": "00:BA69",
+      "retail_start": 14633,
+      "retail_start_cpu": "00:B929",
+      "same_offset_mx_disagreements": 36,
+      "same_offset_opcode_pairs": 75,
+      "same_offset_role_disagreements": 184,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 75,
+        "opcode->operand": 74,
+        "opcode->unreached": 8,
+        "operand->opcode": 72,
+        "operand->operand": 62,
+        "operand->unreached": 11,
+        "unreached->opcode": 10,
+        "unreached->operand": 9
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 83,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 83,
+        "operand->operand": 114,
+        "unreached->unreached": 56
+      },
+      "original_changed_bytes": 235,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 108,
+        "opcode-change": 51,
+        "reachability-disagreement": 76
+      },
+      "prototype_end": 14245,
+      "prototype_shift": -19,
+      "prototype_start": 13993,
+      "raw_similarity_after_alignment": 0.980237,
+      "retail_end": 14264,
+      "retail_end_cpu": "00:B7B8",
+      "retail_start": 14012,
+      "retail_start_cpu": "00:B6BC",
+      "same_offset_mx_disagreements": 8,
+      "same_offset_opcode_pairs": 29,
+      "same_offset_role_disagreements": 153,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 29,
+        "opcode->operand": 40,
+        "opcode->unreached": 14,
+        "operand->opcode": 37,
+        "operand->operand": 53,
+        "operand->unreached": 24,
+        "unreached->opcode": 17,
+        "unreached->operand": 21,
+        "unreached->unreached": 18
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 107,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 107,
+        "operand->operand": 123,
+        "unreached->unreached": 27
+      },
+      "original_changed_bytes": 242,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 121,
+        "mx-state-disagreement": 3,
+        "opcode-change": 64,
+        "reachability-disagreement": 54
+      },
+      "prototype_end": 31656,
+      "prototype_shift": -28,
+      "prototype_start": 31400,
+      "raw_similarity_after_alignment": 0.984436,
+      "retail_end": 31684,
+      "retail_end_cpu": "00:FBC4",
+      "retail_start": 31428,
+      "retail_start_cpu": "00:FAC4",
+      "same_offset_mx_disagreements": 19,
+      "same_offset_opcode_pairs": 45,
+      "same_offset_role_disagreements": 151,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 45,
+        "opcode->operand": 46,
+        "opcode->unreached": 16,
+        "operand->opcode": 50,
+        "operand->operand": 61,
+        "operand->unreached": 12,
+        "unreached->opcode": 11,
+        "unreached->operand": 16
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 70,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 70,
+        "operand->operand": 47,
+        "unreached->unreached": 66
+      },
+      "original_changed_bytes": 158,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 45,
+        "opcode-change": 27,
+        "reachability-disagreement": 86
+      },
+      "prototype_end": 78350,
+      "prototype_shift": -22,
+      "prototype_start": 78168,
+      "raw_similarity_after_alignment": 0.923497,
+      "retail_end": 78372,
+      "retail_end_cpu": "02:B224",
+      "retail_start": 78190,
+      "retail_start_cpu": "02:B16E",
+      "same_offset_mx_disagreements": 4,
+      "same_offset_opcode_pairs": 23,
+      "same_offset_role_disagreements": 126,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 23,
+        "opcode->operand": 19,
+        "opcode->unreached": 28,
+        "operand->opcode": 20,
+        "operand->operand": 11,
+        "operand->unreached": 16,
+        "unreached->opcode": 26,
+        "unreached->operand": 17,
+        "unreached->unreached": 23
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 53,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 53,
+        "operand->operand": 68,
+        "unreached->unreached": 28
+      },
+      "original_changed_bytes": 147,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 64,
+        "opcode-change": 29,
+        "reachability-disagreement": 54
+      },
+      "prototype_end": 30832,
+      "prototype_shift": -28,
+      "prototype_start": 30684,
+      "raw_similarity_after_alignment": 0.939597,
+      "retail_end": 30860,
+      "retail_end_cpu": "00:F88C",
+      "retail_start": 30712,
+      "retail_start_cpu": "00:F7F8",
+      "same_offset_mx_disagreements": 4,
+      "same_offset_opcode_pairs": 17,
+      "same_offset_role_disagreements": 104,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 17,
+        "opcode->operand": 25,
+        "opcode->unreached": 11,
+        "operand->opcode": 23,
+        "operand->operand": 28,
+        "operand->unreached": 17,
+        "unreached->opcode": 13,
+        "unreached->operand": 15
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 50,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 50,
+        "operand->operand": 55,
+        "unreached->unreached": 34
+      },
+      "original_changed_bytes": 131,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 58,
+        "opcode-change": 21,
+        "reachability-disagreement": 52
+      },
+      "prototype_end": 12671,
+      "prototype_shift": -13,
+      "prototype_start": 12533,
+      "raw_similarity_after_alignment": 1.0,
+      "retail_end": 12684,
+      "retail_end_cpu": "00:B18C",
+      "retail_start": 12546,
+      "retail_start_cpu": "00:B102",
+      "same_offset_mx_disagreements": 5,
+      "same_offset_opcode_pairs": 16,
+      "same_offset_role_disagreements": 98,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 16,
+        "opcode->operand": 24,
+        "opcode->unreached": 10,
+        "operand->opcode": 22,
+        "operand->operand": 17,
+        "operand->unreached": 16,
+        "unreached->opcode": 12,
+        "unreached->operand": 14,
+        "unreached->unreached": 8
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 134,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 134,
+        "operand->operand": 229,
+        "unreached->unreached": 9
+      },
+      "original_changed_bytes": 252,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 109,
+        "opcode-change": 67,
+        "operand-or-literal-change": 58,
+        "reachability-disagreement": 18
+      },
+      "prototype_end": 4914,
+      "prototype_shift": -9,
+      "prototype_start": 4543,
+      "raw_similarity_after_alignment": 0.989247,
+      "retail_end": 4923,
+      "retail_end_cpu": "00:933B",
+      "retail_start": 4552,
+      "retail_start_cpu": "00:91C8",
+      "same_offset_mx_disagreements": 5,
+      "same_offset_opcode_pairs": 90,
+      "same_offset_role_disagreements": 96,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 90,
+        "opcode->operand": 40,
+        "opcode->unreached": 4,
+        "operand->opcode": 38,
+        "operand->operand": 186,
+        "operand->unreached": 5,
+        "unreached->opcode": 6,
+        "unreached->operand": 3
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 72,
+      "aligned_role_disagreements": 5,
+      "aligned_role_pairs": {
+        "opcode->opcode": 72,
+        "opcode->operand": 3,
+        "operand->opcode": 2,
+        "operand->operand": 72,
+        "unreached->unreached": 19
+      },
+      "original_changed_bytes": 165,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 66,
+        "opcode-change": 59,
+        "operand-or-literal-change": 2,
+        "reachability-disagreement": 38
+      },
+      "prototype_end": 17469,
+      "prototype_shift": -19,
+      "prototype_start": 17302,
+      "raw_similarity_after_alignment": 0.875,
+      "retail_end": 17488,
+      "retail_end_cpu": "00:C450",
+      "retail_start": 17321,
+      "retail_start_cpu": "00:C3A9",
+      "same_offset_mx_disagreements": 16,
+      "same_offset_opcode_pairs": 37,
+      "same_offset_role_disagreements": 94,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 37,
+        "opcode->operand": 29,
+        "opcode->unreached": 9,
+        "operand->opcode": 27,
+        "operand->operand": 37,
+        "operand->unreached": 10,
+        "unreached->opcode": 10,
+        "unreached->operand": 9
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 48,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 48,
+        "operand->operand": 39,
+        "unreached->unreached": 28
+      },
+      "original_changed_bytes": 115,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 36,
+        "opcode-change": 23,
+        "reachability-disagreement": 56
+      },
+      "prototype_end": 28686,
+      "prototype_shift": -28,
+      "prototype_start": 28572,
+      "raw_similarity_after_alignment": 0.982609,
+      "retail_end": 28714,
+      "retail_end_cpu": "00:F02A",
+      "retail_start": 28600,
+      "retail_start_cpu": "00:EFB8",
+      "same_offset_mx_disagreements": 0,
+      "same_offset_opcode_pairs": 18,
+      "same_offset_role_disagreements": 87,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 18,
+        "opcode->operand": 15,
+        "opcode->unreached": 15,
+        "operand->opcode": 16,
+        "operand->operand": 10,
+        "operand->unreached": 13,
+        "unreached->opcode": 14,
+        "unreached->operand": 14
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 49,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 49,
+        "operand->operand": 54,
+        "unreached->unreached": 19
+      },
+      "original_changed_bytes": 121,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 56,
+        "opcode-change": 25,
+        "operand-or-literal-change": 2,
+        "reachability-disagreement": 38
+      },
+      "prototype_end": 16981,
+      "prototype_shift": -19,
+      "prototype_start": 16860,
+      "raw_similarity_after_alignment": 0.934426,
+      "retail_end": 17000,
+      "retail_end_cpu": "00:C268",
+      "retail_start": 16879,
+      "retail_start_cpu": "00:C1EF",
+      "same_offset_mx_disagreements": 8,
+      "same_offset_opcode_pairs": 17,
+      "same_offset_role_disagreements": 84,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 17,
+        "opcode->operand": 23,
+        "opcode->unreached": 9,
+        "operand->opcode": 23,
+        "operand->operand": 21,
+        "operand->unreached": 10,
+        "unreached->opcode": 9,
+        "unreached->operand": 10
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 31,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 31,
+        "operand->operand": 39,
+        "unreached->unreached": 24
+      },
+      "original_changed_bytes": 92,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 33,
+        "opcode-change": 12,
+        "reachability-disagreement": 47
+      },
+      "prototype_end": 10721,
+      "prototype_shift": -24,
+      "prototype_start": 10628,
+      "raw_similarity_after_alignment": 0.914894,
+      "retail_end": 10745,
+      "retail_end_cpu": "00:A9F9",
+      "retail_start": 10652,
+      "retail_start_cpu": "00:A99C",
+      "same_offset_mx_disagreements": 6,
+      "same_offset_opcode_pairs": 7,
+      "same_offset_role_disagreements": 76,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 7,
+        "opcode->operand": 14,
+        "opcode->unreached": 10,
+        "operand->opcode": 14,
+        "operand->operand": 11,
+        "operand->unreached": 14,
+        "unreached->opcode": 10,
+        "unreached->operand": 14
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 34,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 34,
+        "operand->operand": 55,
+        "unreached->unreached": 28
+      },
+      "original_changed_bytes": 116,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 27,
+        "opcode-change": 34,
+        "reachability-disagreement": 55
+      },
+      "prototype_end": 10427,
+      "prototype_shift": -24,
+      "prototype_start": 10311,
+      "raw_similarity_after_alignment": 0.91453,
+      "retail_end": 10451,
+      "retail_end_cpu": "00:A8D3",
+      "retail_start": 10335,
+      "retail_start_cpu": "00:A85F",
+      "same_offset_mx_disagreements": 0,
+      "same_offset_opcode_pairs": 15,
+      "same_offset_role_disagreements": 74,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 15,
+        "opcode->operand": 9,
+        "opcode->unreached": 10,
+        "operand->opcode": 9,
+        "operand->operand": 28,
+        "operand->unreached": 18,
+        "unreached->opcode": 10,
+        "unreached->operand": 18
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 42,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 42,
+        "operand->operand": 53,
+        "unreached->unreached": 19
+      },
+      "original_changed_bytes": 101,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 41,
+        "opcode-change": 21,
+        "operand-or-literal-change": 2,
+        "reachability-disagreement": 37
+      },
+      "prototype_end": 17847,
+      "prototype_shift": -19,
+      "prototype_start": 17734,
+      "raw_similarity_after_alignment": 1.0,
+      "retail_end": 17866,
+      "retail_end_cpu": "00:C5CA",
+      "retail_start": 17753,
+      "retail_start_cpu": "00:C559",
+      "same_offset_mx_disagreements": 2,
+      "same_offset_opcode_pairs": 15,
+      "same_offset_role_disagreements": 73,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 15,
+        "opcode->operand": 19,
+        "opcode->unreached": 8,
+        "operand->opcode": 16,
+        "operand->operand": 26,
+        "operand->unreached": 11,
+        "unreached->opcode": 11,
+        "unreached->operand": 8
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 43,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 43,
+        "operand->operand": 24,
+        "unreached->unreached": 26
+      },
+      "original_changed_bytes": 92,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 21,
+        "opcode-change": 19,
+        "reachability-disagreement": 52
+      },
+      "prototype_end": 78534,
+      "prototype_shift": -22,
+      "prototype_start": 78442,
+      "raw_similarity_after_alignment": 0.978495,
+      "retail_end": 78556,
+      "retail_end_cpu": "02:B2DC",
+      "retail_start": 78464,
+      "retail_start_cpu": "02:B280",
+      "same_offset_mx_disagreements": 12,
+      "same_offset_opcode_pairs": 16,
+      "same_offset_role_disagreements": 72,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 16,
+        "opcode->operand": 12,
+        "opcode->unreached": 15,
+        "operand->opcode": 8,
+        "operand->operand": 5,
+        "operand->unreached": 11,
+        "unreached->opcode": 19,
+        "unreached->operand": 7
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 29,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 29,
+        "operand->operand": 33,
+        "unreached->unreached": 28
+      },
+      "original_changed_bytes": 86,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 20,
+        "opcode-change": 10,
+        "operand-or-literal-change": 1,
+        "reachability-disagreement": 55
+      },
+      "prototype_end": 27460,
+      "prototype_shift": -28,
+      "prototype_start": 27371,
+      "raw_similarity_after_alignment": 0.977778,
+      "retail_end": 27488,
+      "retail_end_cpu": "00:EB60",
+      "retail_start": 27399,
+      "retail_start_cpu": "00:EB07",
+      "same_offset_mx_disagreements": 3,
+      "same_offset_opcode_pairs": 8,
+      "same_offset_role_disagreements": 71,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 8,
+        "opcode->operand": 7,
+        "opcode->unreached": 14,
+        "operand->opcode": 8,
+        "operand->operand": 11,
+        "operand->unreached": 14,
+        "unreached->opcode": 13,
+        "unreached->operand": 15
+      }
+    },
+    {
+      "aligned_mx_disagreements": 1,
+      "aligned_opcode_pairs": 36,
+      "aligned_role_disagreements": 18,
+      "aligned_role_pairs": {
+        "opcode->opcode": 36,
+        "opcode->operand": 6,
+        "opcode->unreached": 3,
+        "operand->opcode": 8,
+        "operand->operand": 71,
+        "operand->unreached": 1,
+        "unreached->unreached": 5
+      },
+      "original_changed_bytes": 129,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 88,
+        "opcode-change": 27,
+        "reachability-disagreement": 14
+      },
+      "prototype_end": 3265,
+      "prototype_shift": -9,
+      "prototype_start": 3136,
+      "raw_similarity_after_alignment": 0.653846,
+      "retail_end": 3274,
+      "retail_end_cpu": "00:8CCA",
+      "retail_start": 3145,
+      "retail_start_cpu": "00:8C49",
+      "same_offset_mx_disagreements": 1,
+      "same_offset_opcode_pairs": 13,
+      "same_offset_role_disagreements": 70,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 13,
+        "opcode->operand": 28,
+        "opcode->unreached": 4,
+        "operand->opcode": 28,
+        "operand->operand": 47,
+        "operand->unreached": 5,
+        "unreached->opcode": 3,
+        "unreached->operand": 2
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 30,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 30,
+        "operand->operand": 30,
+        "unreached->unreached": 28
+      },
+      "original_changed_bytes": 83,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 15,
+        "opcode-change": 14,
+        "reachability-disagreement": 54
+      },
+      "prototype_end": 28524,
+      "prototype_shift": -28,
+      "prototype_start": 28437,
+      "raw_similarity_after_alignment": 0.943182,
+      "retail_end": 28552,
+      "retail_end_cpu": "00:EF88",
+      "retail_start": 28465,
+      "retail_start_cpu": "00:EF31",
+      "same_offset_mx_disagreements": 8,
+      "same_offset_opcode_pairs": 9,
+      "same_offset_role_disagreements": 70,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 9,
+        "opcode->operand": 8,
+        "opcode->unreached": 13,
+        "operand->opcode": 6,
+        "operand->operand": 9,
+        "operand->unreached": 15,
+        "unreached->opcode": 15,
+        "unreached->operand": 13
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 30,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 30,
+        "operand->operand": 50,
+        "unreached->unreached": 13
+      },
+      "original_changed_bytes": 90,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 51,
+        "opcode-change": 12,
+        "operand-or-literal-change": 1,
+        "reachability-disagreement": 26
+      },
+      "prototype_end": 12494,
+      "prototype_shift": -13,
+      "prototype_start": 12402,
+      "raw_similarity_after_alignment": 0.913978,
+      "retail_end": 12507,
+      "retail_end_cpu": "00:B0DB",
+      "retail_start": 12415,
+      "retail_start_cpu": "00:B07F",
+      "same_offset_mx_disagreements": 0,
+      "same_offset_opcode_pairs": 6,
+      "same_offset_role_disagreements": 63,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 6,
+        "opcode->operand": 18,
+        "opcode->unreached": 6,
+        "operand->opcode": 19,
+        "operand->operand": 24,
+        "operand->unreached": 7,
+        "unreached->opcode": 5,
+        "unreached->operand": 8
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 33,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 33,
+        "operand->operand": 57,
+        "unreached->unreached": 5
+      },
+      "original_changed_bytes": 94,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 71,
+        "opcode-change": 13,
+        "reachability-disagreement": 10
+      },
+      "prototype_end": 2220,
+      "prototype_shift": -5,
+      "prototype_start": 2126,
+      "raw_similarity_after_alignment": 0.789474,
+      "retail_end": 2225,
+      "retail_end_cpu": "00:88B1",
+      "retail_start": 2131,
+      "retail_start_cpu": "00:8853",
+      "same_offset_mx_disagreements": 3,
+      "same_offset_opcode_pairs": 7,
+      "same_offset_role_disagreements": 58,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 7,
+        "opcode->operand": 24,
+        "opcode->unreached": 2,
+        "operand->opcode": 24,
+        "operand->operand": 30,
+        "operand->unreached": 3,
+        "unreached->opcode": 2,
+        "unreached->operand": 3
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 32,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 32,
+        "operand->operand": 48,
+        "unreached->unreached": 9
+      },
+      "original_changed_bytes": 89,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 55,
+        "opcode-change": 16,
+        "reachability-disagreement": 18
+      },
+      "prototype_end": 5057,
+      "prototype_shift": -9,
+      "prototype_start": 4969,
+      "raw_similarity_after_alignment": 0.988764,
+      "retail_end": 5066,
+      "retail_end_cpu": "00:93CA",
+      "retail_start": 4978,
+      "retail_start_cpu": "00:9372",
+      "same_offset_mx_disagreements": 0,
+      "same_offset_opcode_pairs": 8,
+      "same_offset_role_disagreements": 58,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 8,
+        "opcode->operand": 20,
+        "opcode->unreached": 4,
+        "operand->opcode": 20,
+        "operand->operand": 23,
+        "operand->unreached": 5,
+        "unreached->opcode": 4,
+        "unreached->operand": 5
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 32,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 32,
+        "operand->operand": 38,
+        "unreached->unreached": 13
+      },
+      "original_changed_bytes": 82,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 35,
+        "opcode-change": 22,
+        "reachability-disagreement": 25
+      },
+      "prototype_end": 6313,
+      "prototype_shift": -9,
+      "prototype_start": 6231,
+      "raw_similarity_after_alignment": 0.927711,
+      "retail_end": 6322,
+      "retail_end_cpu": "00:98B2",
+      "retail_start": 6240,
+      "retail_start_cpu": "00:9860",
+      "same_offset_mx_disagreements": 0,
+      "same_offset_opcode_pairs": 12,
+      "same_offset_role_disagreements": 55,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 12,
+        "opcode->operand": 14,
+        "opcode->unreached": 6,
+        "operand->opcode": 15,
+        "operand->operand": 16,
+        "operand->unreached": 7,
+        "unreached->opcode": 5,
+        "unreached->operand": 8
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 17,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 17,
+        "operand->operand": 17,
+        "unreached->unreached": 19
+      },
+      "original_changed_bytes": 53,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 8,
+        "opcode-change": 7,
+        "reachability-disagreement": 38
+      },
+      "prototype_end": 21777,
+      "prototype_shift": -19,
+      "prototype_start": 21725,
+      "raw_similarity_after_alignment": 0.962264,
+      "retail_end": 21796,
+      "retail_end_cpu": "00:D524",
+      "retail_start": 21744,
+      "retail_start_cpu": "00:D4F0",
+      "same_offset_mx_disagreements": 0,
+      "same_offset_opcode_pairs": 4,
+      "same_offset_role_disagreements": 45,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 4,
+        "opcode->operand": 4,
+        "opcode->unreached": 9,
+        "operand->opcode": 3,
+        "operand->operand": 4,
+        "operand->unreached": 10,
+        "unreached->opcode": 10,
+        "unreached->operand": 9
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 20,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 20,
+        "operand->operand": 32,
+        "unreached->unreached": 9
+      },
+      "original_changed_bytes": 61,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 31,
+        "opcode-change": 12,
+        "reachability-disagreement": 18
+      },
+      "prototype_end": 5531,
+      "prototype_shift": -9,
+      "prototype_start": 5471,
+      "raw_similarity_after_alignment": 0.918033,
+      "retail_end": 5540,
+      "retail_end_cpu": "00:95A4",
+      "retail_start": 5480,
+      "retail_start_cpu": "00:9568",
+      "same_offset_mx_disagreements": 0,
+      "same_offset_opcode_pairs": 6,
+      "same_offset_role_disagreements": 38,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 6,
+        "opcode->operand": 10,
+        "opcode->unreached": 4,
+        "operand->opcode": 10,
+        "operand->operand": 17,
+        "operand->unreached": 5,
+        "unreached->opcode": 4,
+        "unreached->operand": 5
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 10,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 10,
+        "operand->operand": 10,
+        "unreached->unreached": 19
+      },
+      "original_changed_bytes": 39,
+      "original_classifications": {
+        "opcode-change": 1,
+        "reachability-disagreement": 38
+      },
+      "prototype_end": 13842,
+      "prototype_shift": -19,
+      "prototype_start": 13804,
+      "raw_similarity_after_alignment": 0.974359,
+      "retail_end": 13861,
+      "retail_end_cpu": "00:B625",
+      "retail_start": 13823,
+      "retail_start_cpu": "00:B5FF",
+      "same_offset_mx_disagreements": 1,
+      "same_offset_opcode_pairs": 1,
+      "same_offset_role_disagreements": 38,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 1,
+        "opcode->unreached": 9,
+        "operand->unreached": 10,
+        "unreached->opcode": 9,
+        "unreached->operand": 10
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 15,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 15,
+        "operand->operand": 23,
+        "unreached->unreached": 9
+      },
+      "original_changed_bytes": 47,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 25,
+        "opcode-change": 4,
+        "reachability-disagreement": 18
+      },
+      "prototype_end": 5383,
+      "prototype_shift": -9,
+      "prototype_start": 5337,
+      "raw_similarity_after_alignment": 0.851064,
+      "retail_end": 5392,
+      "retail_end_cpu": "00:9510",
+      "retail_start": 5346,
+      "retail_start_cpu": "00:94E2",
+      "same_offset_mx_disagreements": 0,
+      "same_offset_opcode_pairs": 2,
+      "same_offset_role_disagreements": 37,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 2,
+        "opcode->operand": 9,
+        "opcode->unreached": 4,
+        "operand->opcode": 10,
+        "operand->operand": 8,
+        "operand->unreached": 5,
+        "unreached->opcode": 3,
+        "unreached->operand": 6
+      }
+    },
+    {
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_pairs": 15,
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 15,
+        "operand->operand": 13,
+        "unreached->unreached": 9
+      },
+      "original_changed_bytes": 37,
+      "original_classifications": {
+        "instruction-boundary-disagreement": 11,
+        "opcode-change": 8,
+        "reachability-disagreement": 18
+      },
+      "prototype_end": 5903,
+      "prototype_shift": -9,
+      "prototype_start": 5867,
+      "raw_similarity_after_alignment": 0.945946,
+      "retail_end": 5912,
+      "retail_end_cpu": "00:9718",
+      "retail_start": 5876,
+      "retail_start_cpu": "00:96F4",
+      "same_offset_mx_disagreements": 5,
+      "same_offset_opcode_pairs": 6,
+      "same_offset_role_disagreements": 28,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 6,
+        "opcode->operand": 5,
+        "opcode->unreached": 4,
+        "operand->opcode": 5,
+        "operand->operand": 3,
+        "operand->unreached": 5,
+        "unreached->opcode": 4,
+        "unreached->operand": 5
+      }
+    }
+  ]
+}

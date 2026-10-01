@@ -155,10 +155,12 @@ def main()->int:
             report['probes'].append(row)
     args.json_out.parent.mkdir(parents=True,exist_ok=True)
     args.json_out.write_text(json.dumps(report,indent=2,sort_keys=True)+'\n',encoding='utf-8')
-    lines=['# PAL retail vs prototype: bounded da65 adjudication','', 'Width-state provenance is independent of snes2asm.','', '| Probe | Range | Retail lines | Prototype lines | Same count | First differing line | Exact |','|---|---|---:|---:|---|---:|---|']
+    lines=['# PAL retail vs prototype: bounded da65 adjudication','', 'Width-state provenance is independent of snes2asm.','', '| Probe | USA anchor | Europe range / shift / sim | Prototype range / shift / sim | Lines E/P | Shape | Sizes | Exact |','|---|---|---|---|---:|---|---|---|']
     for p in report['probes']:
         lines.append(f"| {p['id']} | `{p['usa_anchor_start']}..{p['usa_anchor_end']}` | `{p['builds']['europe-retail']['start']}..{p['builds']['europe-retail']['end']}` / {p['builds']['europe-retail']['shift_from_usa']:+d} / {p['builds']['europe-retail']['raw_similarity_to_usa']:.3f} | `{p['builds']['pal-prototype-1994-11-29']['start']}..{p['builds']['pal-prototype-1994-11-29']['end']}` / {p['builds']['pal-prototype-1994-11-29']['shift_from_usa']:+d} / {p['builds']['pal-prototype-1994-11-29']['raw_similarity_to_usa']:.3f} | {p['builds']['europe-retail']['instruction_lines']}/{p['builds']['pal-prototype-1994-11-29']['instruction_lines']} | {p['instruction_shape_match']} | {p['instruction_size_sequence_match']} | {p['exact_normalized_match']} |")
-    lines += ['', 'Interpretation rule: USA recovered-code ranges provide independent M/X provenance, while raw-byte similarity independently locates each homolog in Europe and the PAL prototype. Equal da65 instruction counts support stable boundaries despite relocation; count divergence between high-similarity homologs is a stronger structural-change signal and should be escalated to Ghidra/xref inspection.', '']
+    all_shapes=all(p['instruction_shape_match'] for p in report['probes'])
+    all_sizes=all(p['instruction_size_sequence_match'] for p in report['probes'])
+    lines += ['', f'Across these probes, instruction-shape agreement: **{all_shapes}**; instruction-size-sequence agreement: **{all_sizes}**.', '', 'Interpretation rule: USA recovered-code ranges provide independent M/X provenance, while raw-byte similarity independently locates each homolog in Europe and the PAL prototype. Equal da65 instruction counts plus shape/size agreement support stable boundaries despite relocation; only a remaining mismatch after homolog alignment should be escalated to Ghidra/xref inspection.', '']
     args.md_out.write_text('\n'.join(lines),encoding='utf-8')
     print(args.md_out.read_text())
     return 0

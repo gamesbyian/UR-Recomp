@@ -18,6 +18,10 @@ REGIONS = [
  ("routine_A27C","82:A27C","82:A2D3","code"),
  ("table_A2D4","82:A2D4","82:A353","data"),
  ("routine_A354","82:A354","82:A497","code"),
+ ("routine_A498","82:A498","82:A5F2","code"),
+ ("routine_A5F3","82:A5F3","82:A617","code"),
+ ("routine_A618","82:A618","82:A6F0","code"),
+ ("routine_A6F1","82:A6F1","82:A8C1","code"),
 ]
 
 def best_shift(src,dst,start,end,radius=128):

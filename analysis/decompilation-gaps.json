@@ -137,6 +137,14 @@
       "summary": "Recovered the complete stunt-message/reward/display pipeline as seven code regions plus one 282-byte embedded lookup block. PAL-line builds remove three USA/beta NOPs; Europe additionally contracts the two-player display gate by five bytes. The corrected C458..C571 lookup block is byte-identical across all four ROMs, and C572..C575 is executable JSR/RTL wrapper code rather than data.",
       "priority": "low",
       "next_evidence": "Decode individual lookup entries only for HUD/message implementation or a concrete scoring/boost discrepancy. Comparative structure work should move to a tenth independent subsystem."
+    },
+    {
+      "id": "resolved-input-normalization-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 82:AA6E..ACA0 and homologs",
+      "summary": "Recovered the complete two-player race input decode/normalization and reverse-controls subsystem. All 563 USA bytes are executable; USA/beta are identical; PAL prototype stays at -15 and Europe +7 with 237/237 aligned opcode positions preserved and no role/M/X disagreement.",
+      "priority": "low",
+      "next_evidence": "Decode individual regional WRAM operands only for a concrete implementation or fidelity need. Comparative structure work should move to an eleventh independent subsystem."
     }
   ]
 }

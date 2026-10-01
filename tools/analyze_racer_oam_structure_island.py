@@ -18,8 +18,13 @@ REGIONS=[
  ("p2_dispatch_setup","82:ADA8","82:ADC0","code"),
  ("p2_projection_shared_camera","82:ADC1","82:AE57","code"),
  ("p2_projection_alt_camera","82:AE5A","82:AF30","code"),
- ("split_camera_projection","82:AF31","82:B056","code"),
- ("post_projection_adjustments","82:B057","82:B17F","code"),
+ ("split_mode_setup","82:AF31","82:AF4E","code"),
+ ("split_p2_projection","82:AF4F","82:AFD4","code"),
+ ("split_p1_projection","82:AFD5","82:B056","code"),
+ ("post_mode_setup","82:B057","82:B07A","code"),
+ ("post_p2_adjust","82:B07B","82:B0E5","code"),
+ ("post_p1_adjust","82:B0E6","82:B150","code"),
+ ("post_final_flags","82:B151","82:B17F","code"),
 ]
 
 def best_shift(src,dst,start,end,radius=192):
@@ -93,8 +98,11 @@ def render(r):
  "- p2_dispatch_setup selects whether P2 shares camera state or follows an alternate presentation path.",
  "- p2_projection_shared_camera is the previously trusted P2 sibling block.",
  "- p2_projection_alt_camera handles a distinct P2 projection path used by another display mode.",
- "- split_camera_projection projects both racers against paired camera coordinates and writes alternate sprite-screen coordinates.",
- "- post_projection_adjustments applies final sprite coordinate/flag adjustments and returns.",
+ "- split_mode_setup selects and clears split-camera sprite state.",
+ "- split_p2_projection and split_p1_projection project the two racers against paired camera coordinates.",
+ "- post_mode_setup begins the common final adjustment path.",
+ "- post_p2_adjust and post_p1_adjust apply per-racer coordinate/flag correction.",
+ "- post_final_flags handles the final mode-specific sprite flags and returns.",
  "","These labels describe control-flow/presentation roles visible in the routine; they do not assign semantics to every flag field."]
  return "\n".join(lines)+"\n"
 

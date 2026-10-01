@@ -22,6 +22,7 @@ jobs:
         run: |
           python tests/test_compare_semantic_anchors.py
       - name: Upload correspondence report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: semantic-anchor-cross-build

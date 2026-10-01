@@ -32,6 +32,11 @@ SLOTS = {
 }
 
 CAMERA_AND_VIEWPORT = {
+    "mode": {
+        "split_screen_active_raw": ("u8", 0x0DDB),
+        "player1_offscreen_raw": ("u8", 0x121B),
+        "player2_offscreen_raw": ("u8", 0x121D),
+    },
     "camera": {
         "player1_x": ("u16", 0x0419),
         "player2_x": ("u16", 0x041B),
@@ -112,6 +117,7 @@ def main() -> int:
         report[tag] = s
         a, b = s["slot1"], s["slot2"]
         rp1, rp2 = s["race_progress"]["player1"], s["race_progress"]["player2"]
+        mode = s["camera_and_viewport"]["mode"]
         cam = s["camera_and_viewport"]["camera"]
         screen = s["camera_and_viewport"]["screen_relative"]
         print(
@@ -123,6 +129,8 @@ def main() -> int:
             f"slot2 x={b['x_pos']} y={b['y_pos']} "
             f"vx={b['x_speed']} vy={b['y_speed']} "
             f"air={b['air']} rot={b['rotation_candidate']} | "
+            f"split={mode['split_screen_active_raw']} "
+            f"offscreen=({mode['player1_offscreen_raw']},{mode['player2_offscreen_raw']}) | "
             f"camera p1=({cam['player1_x']},{cam['player1_y']}) "
             f"p2=({cam['player2_x']},{cam['player2_y']}) "
             f"p1v=({cam['player1_x_velocity']},{cam['player1_y_velocity']}) "

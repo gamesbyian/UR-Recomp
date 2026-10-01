@@ -58,17 +58,21 @@
     {
       "id": "collision-resolution",
       "path": "analysis/generated/collision-resolution-structure-island.json"
+    },
+    {
+      "id": "contact-geometry",
+      "path": "analysis/generated/contact-geometry-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 100,
-    "code_regions": 92,
+    "regions": 103,
+    "code_regions": 95,
     "data_regions": 8,
-    "bounded_bytes": 14689,
-    "bounded_code_region_bytes": 13544,
+    "bounded_bytes": 15094,
+    "bounded_code_region_bytes": 13949,
     "bounded_data_region_bytes": 1145,
-    "analyzer_opcode_bytes": 5665,
-    "analyzer_operand_bytes": 7764,
+    "analyzer_opcode_bytes": 5911,
+    "analyzer_operand_bytes": 7923,
     "analyzer_unreached_or_data_bytes": 1260,
     "banks": [
       "81",
@@ -1733,6 +1737,144 @@
           "shift": 0,
           "similarity": 1,
           "size": 93,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "contact-geometry",
+      "source_path": "analysis/generated/contact-geometry-structure-island.json",
+      "name": "angle_and_source_record_setup",
+      "kind": "code",
+      "usa_start": "81:9E2A",
+      "usa_end": "81:9E7C",
+      "size": 83,
+      "usa_opcode_bytes": 48,
+      "usa_operand_bytes": 35,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:9E1B",
+          "end": "81:9E6D",
+          "shift": -15,
+          "similarity": 0.987952,
+          "size": 83,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:9E2A",
+          "end": "81:9E7C",
+          "shift": 0,
+          "similarity": 1,
+          "size": 83,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:9E0A",
+          "end": "81:9E5C",
+          "shift": -32,
+          "similarity": 0.987952,
+          "size": 83,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:9E2A",
+          "end": "81:9E7C",
+          "shift": 0,
+          "similarity": 1,
+          "size": 83,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "contact-geometry",
+      "source_path": "analysis/generated/contact-geometry-structure-island.json",
+      "name": "vertex_expansion_and_orientation",
+      "kind": "code",
+      "usa_start": "81:9E7D",
+      "usa_end": "81:9F1C",
+      "size": 160,
+      "usa_opcode_bytes": 107,
+      "usa_operand_bytes": 53,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:9E6E",
+          "end": "81:9F0D",
+          "shift": -15,
+          "similarity": 1,
+          "size": 160,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:9E7D",
+          "end": "81:9F1C",
+          "shift": 0,
+          "similarity": 1,
+          "size": 160,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:9E5D",
+          "end": "81:9EFC",
+          "shift": -32,
+          "similarity": 1,
+          "size": 160,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:9E7D",
+          "end": "81:9F1C",
+          "shift": 0,
+          "similarity": 1,
+          "size": 160,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "contact-geometry",
+      "source_path": "analysis/generated/contact-geometry-structure-island.json",
+      "name": "mirror_offset_and_collision_anchor_finalize",
+      "kind": "code",
+      "usa_start": "81:9F1D",
+      "usa_end": "81:9FBE",
+      "size": 162,
+      "usa_opcode_bytes": 91,
+      "usa_operand_bytes": 71,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:9F0E",
+          "end": "81:9FAF",
+          "shift": -15,
+          "similarity": 0.981481,
+          "size": 162,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:9F1D",
+          "end": "81:9FBE",
+          "shift": 0,
+          "similarity": 1,
+          "size": 162,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:9EFD",
+          "end": "81:9F9E",
+          "shift": -32,
+          "similarity": 0.981481,
+          "size": 162,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:9F1D",
+          "end": "81:9FBE",
+          "shift": 0,
+          "similarity": 1,
+          "size": 162,
           "size_delta": 0
         }
       }

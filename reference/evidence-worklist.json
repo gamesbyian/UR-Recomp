@@ -239,22 +239,24 @@
     },
     {
       "id": "usjo13-stunt-optimizer",
-      "value": "high",
+      "value": "medium",
       "cost": "low",
-      "status": "ancestor-recovered-local-analysis-ready",
+      "status": "later-lineage-recovered-v13-gap-only",
       "source_ids": [
         "usjo8-recovered",
         "usjo13",
         "tasvideos-usjo",
-        "tasvideos-uniracers-topic"
+        "tasvideos-uniracers-topic",
+        "dessyreqt-direct-workspace-2026"
       ],
-      "question": "Which USJO v8 RAM/timing/search assumptions can be promoted into verified symbols and differential fixtures, and what additional implementation-relevant knowledge remains unique to the still-missing v13?",
-      "next_discriminator": "Analyze recovered internal v8 locally first: inventory every memory read, timing constant, scoring rule and input-state transition; verify the unconfirmed fields against the canonical ROM/runtime and promote useful invariants into symbols/tests. Keep v13 as a passive follow-up only, using v8 code fingerprints and version-family comparison if a public copy appears.",
+      "question": "What implementation-relevant knowledge in the recovered USJO v8→v14→v14a lineage can be promoted into verified symbols/fixtures, and does exact v13 contain any historically interesting intermediate delta?",
+      "next_discriminator": "Use recovered v14/v14a locally: reconcile its 16-bit boost and queued-message scoring against Nitrodon/ROM evidence. Treat exact v13 as passive historical gap-filling only if a copy surfaces naturally.",
       "deliverables": [
-        "recovered internal v8 source preserved with exact bytes and provenance (landed)",
-        "complete v8 RAM/timing/scoring inventory",
-        "locally verified symbols and stunt/boost fixtures derived from v8",
-        "v8-versus-v13 delta analysis if v13 is later recovered"
+        "recovered v8, v14, v14a, backup and test sources preserved with provenance (landed)",
+        "v8 static inventory and local symbol reconciliation (landed/ongoing)",
+        "v14a named queued-boost mapping (landed)",
+        "v8→v14→v14a lineage analysis (landed)",
+        "v13 intermediate delta only if recovered incidentally"
       ],
       "tags": [
         "tas",
@@ -264,13 +266,13 @@
         "archival"
       ],
       "artifact_need": {
-        "kind": "USJO v13 or later sibling source",
-        "state": "ancestor-recovered-v13-missing",
+        "kind": "USJO v13 source",
+        "state": "later-siblings-recovered-v13-gap-only",
         "user_action_required": false,
         "request": ""
       },
-      "acquisition_tier": "P1",
-      "acquisition_judgment": "The core historical knowledge is no longer missing: internal v8 directly exposes the stunt optimizer's state reads, search strategy, timing assumptions, boost model and replay loop. v13 remains useful for five revisions of later discoveries, but no implementation milestone should wait for it."
+      "acquisition_tier": "P2",
+      "acquisition_judgment": "Recovered v14/v14a are newer surviving evidence and supersede v13 technically. Do not spend bespoke acquisition effort on v13; retain the exact URL/fingerprint as historical provenance."
     },
     {
       "id": "dessyreqt-autonomous-bot",

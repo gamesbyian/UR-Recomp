@@ -15,6 +15,17 @@ class PairedPlayerSlotsTest(unittest.TestCase):
                 0x119D: 0, 0x119F: 1,
                 0x0EF1: 2, 0x0EF3: 5,
                 0x0411: 0x34, 0x0412: 0x12,
+                0x0419: 0x78, 0x041A: 0x56,
+                0x041B: 0xBC, 0x041C: 0x9A,
+                0x041D: 0x11, 0x041E: 0x22,
+                0x041F: 0x33, 0x0420: 0x44,
+                0x04F5: 0xFE, 0x04F6: 0xFF,
+                0x04F9: 0x03, 0x04FA: 0x00,
+                0x1501: 10, 0x1502: 11,
+                0x1505: 12, 0x1506: 13,
+                0x1509: 14, 0x150A: 15,
+                0x150D: 16, 0x150E: 17,
+                0x1599: 0x30,
             }
             for addr, value in values.items():
                 data[addr] = value
@@ -22,6 +33,25 @@ class PairedPlayerSlotsTest(unittest.TestCase):
 
             s = state(p)
             self.assertEqual(s["slot1"]["x_pos"], 0x1234)
+            self.assertEqual(s["camera_and_viewport"]["camera"], {
+                "player1_x": 0x5678,
+                "player2_x": 0x9ABC,
+                "player1_y": 0x2211,
+                "player2_y": 0x4433,
+                "player1_x_velocity": -2,
+                "player1_y_velocity": 3,
+            })
+            self.assertEqual(s["camera_and_viewport"]["screen_relative"], {
+                "screen2_player2_x": 10,
+                "screen2_player2_y": 11,
+                "screen2_player1_x": 12,
+                "screen2_player1_y": 13,
+                "screen1_player1_x": 14,
+                "screen1_player1_y": 15,
+                "screen1_player2_x": 16,
+                "screen1_player2_y": 17,
+                "screen1_player1_visibility_raw": 0x30,
+            })
             self.assertEqual(s["race_progress"]["player1"], {
                 "next_checkpoint": 3,
                 "finish_gate": 0,

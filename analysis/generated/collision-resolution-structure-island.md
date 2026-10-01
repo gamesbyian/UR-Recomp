@@ -13,8 +13,8 @@ USA `81:8FB8..99D5` contains the per-racer collision/contact resolver plus its d
 | resolver_usa_dormant_c | usa-dormant | 3 | 81:968D..81:968F (-32; sim 0.667; op 0; other 3) | 81:9693..81:9695 (-26; sim 0.667; op 0; other 3) | 81:96AD..81:96AF (+0; sim 1.000; op 0; other 3) |
 | resolver_live_d | live | 336 | 81:9690..81:97DF (-32; sim 0.952; op 165; other 0) | 81:9696..81:97E5 (-26; sim 0.949; op 165; other 0) | 81:96B0..81:97FF (+0; sim 1.000; op 165; other 0) |
 | resolver_tail_after_europe_gate | live | 59 | 81:97E0..81:981A (-32; sim 0.966; op 31; other 0) | 81:97F1..81:982B (-15; sim 0.966; op 31; other 0) | 81:9800..81:983A (+0; sim 1.000; op 31; other 0) |
-| geometry_helper_live_prefix | live | 302 | 81:981B..81:9948 (-32; sim 0.987; op 133; other 0) | 81:982C..81:9959 (-15; sim 0.980; op 133; other 0) | 81:983B..81:9968 (+0; sim 1.000; op 133; other 0) |
-| geometry_helper_usa_dormant | usa-dormant | 16 | 81:9949..81:9958 (-32; sim 1.000; op 4; other 7) | 81:995A..81:9969 (-15; sim 0.875; op 4; other 7) | 81:9969..81:9978 (+0; sim 1.000; op 4; other 7) |
+| geometry_helper_live_prefix | live | 311 | 81:981B..81:9951 (-32; sim 0.987; op 137; other 0) | 81:982C..81:9962 (-15; sim 0.977; op 137; other 0) | 81:983B..81:9971 (+0; sim 1.000; op 137; other 0) |
+| geometry_helper_usa_dormant | usa-dormant | 7 | 81:9952..81:9958 (-32; sim 1.000; op 0; other 7) | 81:9963..81:9969 (-15; sim 0.857; op 0; other 7) | 81:9972..81:9978 (+0; sim 1.000; op 0; other 7) |
 | geometry_helper_live_tail | live | 93 | 81:9959..81:99B5 (-32; sim 0.968; op 42; other 0) | 81:996A..81:99C6 (-15; sim 0.968; op 42; other 0) | 81:9979..81:99D5 (+0; sim 1.000; op 42; other 0) |
 
 ## Europe-only structural edits

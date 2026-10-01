@@ -5,7 +5,7 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from mesen_mcp.session import _bridge_startup_timeout, _extract_rom_from_zip, _launcher_log_tail
+from mesen_mcp.session import _bridge_stage_summary, _bridge_startup_timeout, _extract_rom_from_zip, _launcher_log_tail
 
 
 class BridgeStartupTimeoutTests(unittest.TestCase):
@@ -14,6 +14,19 @@ class BridgeStartupTimeoutTests(unittest.TestCase):
 
     def test_caps_long_session_timeout(self) -> None:
         self.assertEqual(_bridge_startup_timeout(300), 60.0)
+
+
+class BridgeStageSummaryTests(unittest.TestCase):
+    def test_reports_reached_stages(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            ready = Path(tmp) / "bridge.ready"
+            Path(str(ready) + ".lua").write_text("ok\n", encoding="utf-8")
+            Path(str(ready) + ".socket").write_text("ok\n", encoding="utf-8")
+            self.assertEqual(_bridge_stage_summary(ready), "lua,socket")
+
+    def test_reports_no_stages(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(_bridge_stage_summary(Path(tmp) / "bridge.ready"), "none")
 
 
 class LauncherLogTailTests(unittest.TestCase):

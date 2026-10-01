@@ -16,7 +16,10 @@ from pathlib import Path
 import json
 import re
 
-from tools.compare_semantic_anchors import build_output
+try:
+    from tools.compare_semantic_anchors import build_output
+except ModuleNotFoundError:
+    from compare_semantic_anchors import build_output
 
 ROOT = Path(__file__).resolve().parents[1]
 SO_SYMBOLS = ROOT / "analysis" / "generated" / "symbols.json"

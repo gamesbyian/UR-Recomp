@@ -1619,3 +1619,22 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 **Discriminating test:** exact meanings of individual A000/C000 values should be resolved only when a physics discrepancy or course/editor implementation decision requires them. The function boundary and code/data classification need no further adjudication.  
 **Dependencies:** existing course-materialization proof for the runtime planes; trusted-entry snes2asm role recovery.  
 **Propagation:** added `Course_SampleRuntimeSurface` to `analysis/generated/comparative-structural-census.{json,md}`, bringing the census to 38 regions / 4,791 bounded USA bytes. Future course-format work can now follow producer→materialized plane→sampler rather than treating A000 and C000 as isolated observations.
+
+### R-SEED-066 — Race-frame orchestrator preserves loop architecture across the PAL-line cleanup
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | race state | orchestration | comparative atlas
+
+**Observation:** USA `83:CBCC..CD9F` is a 468-byte race-frame orchestration corridor beginning from an explicit `SEP #$30` state seed. Trusted-entry analysis reaches the main loop header at `83:CC62`, the `JMP $CC62` back-edge at `83:CD9D`, and every byte in the accepted USA regions. The corridor directly calls into input decode, racer simulation, player-state marshaling, racer OAM construction, and additional HUD/race services.
+
+**Evidence:** `tools/analyze_race_frame_orchestrator_structure_island.py`; `analysis/generated/race-frame-orchestrator-structure-island.{json,md}`; ROM-backed project-tooling runs `36930324751` and `36930588185`. The first whole-corridor probe showed USA/beta byte identity but a two-opcode deficit in both PAL-line builds. A 16-byte local-shift profile localized a shared two-byte contraction, and the raw transition window identifies the exact edit.
+
+**Interpretation:** USA retail and legacy beta contain consecutive `SEP #$20` instructions at `83:CC83..CC86`. PAL prototype 1994-11-29 and Europe retail omit the second instruction, corresponding to USA `83:CC85..CC86`. The accepted structural representation therefore uses two homolog regions: USA `CBCC..CC86` (187 bytes; 185 in PAL-line builds) and USA `CC87..CD9F` (281 bytes at the post-contraction shift). This is a redundant state-width cleanup already present in the PAL prototype, not evidence of a different race-loop architecture.
+
+**Discriminating test:** no further test is required for the contraction or the two-region homolog model. Deeper naming of individual HUD/race callees should be demand-driven by implementation or fidelity discrepancies.
+
+**Dependencies:** trusted-entry snes2asm code-role recovery; preserved four-ROM corpus; exact raw-byte comparison at the shift transition.
+
+**Propagation:** added both regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **40 regions / 5,259 bounded USA bytes**, including **5,051 code-region bytes** and **2,108 analyzer-classified opcode bytes**, and adding bank 83 to the represented-bank set. The queue now advances to a seventh independent subsystem.
+

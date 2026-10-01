@@ -31,9 +31,13 @@ fi
 SESSION_ROOT=${MESEN_MCP_SESSION_ROOT:-"$(mktemp -d -t mesen-for-ai.XXXXXX)"}
 SESSION_HOME="$SESSION_ROOT/home"
 SESSION_WORK="$SESSION_ROOT/work"
-MESEN_CONFIG_HOME="$(dirname "$MESEN_BIN")"
+MESEN_SOURCE_DIR="$(dirname "$MESEN_BIN")"
+MESEN_PORTABLE_DIR="$SESSION_ROOT/mesen-portable"
+MESEN_CONFIG_HOME="$MESEN_PORTABLE_DIR"
 
-mkdir -p "$SESSION_HOME" "$SESSION_WORK"
+mkdir -p "$SESSION_HOME" "$SESSION_WORK" "$MESEN_PORTABLE_DIR"
+cp -al "$MESEN_SOURCE_DIR/." "$MESEN_PORTABLE_DIR/"
+MESEN_RUN_BIN="$MESEN_PORTABLE_DIR/$(basename "$MESEN_BIN")"
 
 if [[ -n "${MESEN_PCECD_FIRMWARE:-}" ]]; then
   if [[ ! -f "$MESEN_PCECD_FIRMWARE" ]]; then
@@ -92,9 +96,6 @@ export HOME="$SESSION_HOME"
 export DOTNET_ROLL_FORWARD="${DOTNET_ROLL_FORWARD:-Major}"
 
 cd "$SESSION_WORK"
-exec xvfb-run -a "$MESEN_BIN" --testrunner --enableStdout \
-  --debug.scriptWindow.allowIoOsAccess=true \
-  --debug.scriptWindow.allowNetworkAccess=true \
-  --debug.scriptWindow.scriptTimeout=60 \
+exec xvfb-run -a "$MESEN_RUN_BIN" --testrunner --enableStdout --doNotSaveSettings \
   "$ROM" "$LUA_SCRIPT" --timeout="${MESEN_TESTRUNNER_TIMEOUT:-30}" \
   >"$SESSION_ROOT/mesen.stdout.log" 2>"$SESSION_ROOT/mesen.stderr.log"

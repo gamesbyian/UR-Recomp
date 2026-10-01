@@ -227,6 +227,20 @@ Do not propagate weak names as facts. Hypotheses remain hypotheses, cross-ROM la
 **Discriminating test:** no further identity test is required for these two function correspondences. Future work should focus on behavioral differences inside the confirmed handlers or on weaker OAM/single-anchor RAM mappings.  
 **Propagation:** corrected generated correspondence, cross-build findings, `docs/SYMBOLS.md`, and work queue. Treat dispatch/call edges as higher-value corroboration than raw window similarity when they disagree.
 
+
+### R-METHOD-007 — Regional racer state preserves P1/P2 marshal and writeback roles
+
+**Status:** confirmed for correspondence  
+**Date:** 2026-09-30  
+**Area:** multi-ROM | physics | 2P | RAM
+
+**Observation:** matched `Race_UpdateRacersFrame` routines in USA, PAL prototype, and Europe preserve bidirectional persistent→working→persistent relations for racer position, velocity, and boost. A first bounded pass proves P1 X/Y speed and boost against known working slots. A second discovery pass finds exactly two persistent slots for each tested state family (X/Y position, X/Y speed, boost), allowing P2 to be recovered as the unique second record without assuming a regional displacement. PAL P2 is `0413/0417`, `04B9/04BD`, boost `11D5`; Europe P2 is `0417/041B`, `04BD/04C1`, boost `11DB`.  
+**Evidence:** `tools/verify_regional_racer_state_relations.py`; `tools/discover_regional_racer_slots.py`; generated `regional-racer-state-relations` and `regional-racer-slot-discovery` artifacts; green evidence runs `36809888227` and `36810453122`; permanent tooling tests green.  
+**Interpretation:** regional builds preserve the same two-racer marshal→simulate→writeback architecture. These addresses correspond semantically as persistent racer state even where the earlier WRAM-motion atlas did not expose them.  
+**Discriminating test:** identity is sufficiently established for these fields. Runtime tests are needed only for behavioral/value differences between builds, not to establish which fields correspond.  
+**Dependencies:** matched racer-update routine boundaries and already-established current-player workspace semantics.  
+**Propagation:** promote PAL/Europe P1 and P2 position/speed/boost mappings to strong in the cross-build correspondence surface and use them directly for regional 1P/2P watch/probe configuration.
+
 ## Seed leads to verify locally
 
 ### R-SEED-001 — Rob Northen Compression

@@ -1412,3 +1412,32 @@ A hygiene correction also excludes `Text_TestCharacterMetadataBit7`'s ROM table 
 
 **Evidence:** `tools/compare_semantic_anchors.py`; `tools/build_wram_motion_atlas.py`; `analysis/generated/wram-motion-atlas.{json,md}`; Nitrodon `RAM addresses.txt`; boundary-refresh runs `36818170140`, `36818242325`.
 
+### R-SEED-059 — Post-prototype WRAM insertion brackets narrowed to 0309→030D and 053B→0541
+
+**Status:** confirmed structural brackets; inserted-field semantics remain unidentified  
+**Date:** 2026-09-30  
+**Area:** WRAM | cross-build lineage | structure inference
+
+Two narrow probes refine R-SEED-058 without changing its basic interpretation.
+
+For the first Europe-retail +4 displacement jump, additional trusted anchors show:
+- `0302` remains fixed across USA retail, the PAL prototype, and Europe retail.
+- unnamed live state `0306` remains fixed.
+- unnamed live state `0309` remains fixed.
+- USA/prototype raw-controller word `030D` maps to Europe `0311` (+4), and `030F` maps to `0313`.
+
+No credible recovered references were found for `030A..030C`. The formal insertion bracket is therefore **after `0309`, no later than old field `030D`**. The evidence is consistent with a four-byte Europe-only allocation immediately before the old controller block, but its contents are not yet semantically identified.
+
+For the later +2 jump, same-function camera-state anchors progressively tighten the boundary:
+- `0521`, `052B`, `052F`, `0533`, `0535`, `0537`, `0539`, and `053B` all remain in the prototype→Europe +4 family.
+- `0541` is already in the +6 family, mapping to Europe `0547`.
+- `0545` likewise maps at +6 to Europe `054B`.
+
+The formal second insertion bracket is therefore **after `053B`, no later than old field `0541`**. Recovered code has no trustworthy references to `053D/053F`, so static evidence currently cannot place the two-byte insertion more precisely.
+
+A separate trusted-entry operand scan corroborates the family transitions without being used as semantic proof. Its evidence is preserved in `analysis/generated/wram-insertion-bracket-probe.{json,md}`.
+
+**Interpretation:** Europe retail added or expanded four bytes of low WRAM state immediately before the old controller-state family, and later accumulated a further two-byte expansion somewhere after `053B` but before `0541`. These are structure-boundary facts; the identities of the added fields remain open.
+
+**Evidence:** `tools/compare_semantic_anchors.py`; `tools/build_wram_motion_atlas.py`; `tools/probe_wram_insertion_brackets.py`; `analysis/generated/wram-motion-atlas.{json,md}`; `analysis/generated/wram-insertion-bracket-probe.{json,md}`; Nitrodon bank-81/bank-82 listings.
+

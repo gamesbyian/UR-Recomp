@@ -40,6 +40,12 @@ class PairedPlayerSlotsTest(unittest.TestCase):
             }
             for addr, value in values.items():
                 data[addr] = value
+            data[0x0DCD] = 2
+            data[0x0DCF] = 3
+            data[0x0D6D:0x0D71] = bytes([1, 0, 2, 0])
+            data[0x0D7D:0x0D81] = bytes([0, 3, 4, 0])
+            data[0x0D8D:0x0D91] = bytes([0x34, 0x12, 0x78, 0x56])
+            data[0x0DAD:0x0DB1] = bytes([0xBC, 0x9A, 0xF0, 0xDE])
             p.write_bytes(data)
 
             s = state(p)
@@ -78,6 +84,12 @@ class PairedPlayerSlotsTest(unittest.TestCase):
                 "screen1_player2_y": 17,
                 "screen1_player1_visibility_raw": 0x30,
             })
+            self.assertEqual(s["activation_candidate"]["list_a_count_raw"], 2)
+            self.assertEqual(s["activation_candidate"]["list_b_count_raw"], 3)
+            self.assertEqual(s["activation_candidate"]["list_a_nonzero_flags"], 2)
+            self.assertEqual(s["activation_candidate"]["list_b_nonzero_flags"], 2)
+            self.assertEqual(s["activation_candidate"]["list_a_coords"][:2], [0x1234, 0x5678])
+            self.assertEqual(s["activation_candidate"]["list_b_coords"][:2], [0x9ABC, 0xDEF0])
             self.assertEqual(s["race_progress"]["player1"], {
                 "next_checkpoint": 3,
                 "finish_gate": 0,

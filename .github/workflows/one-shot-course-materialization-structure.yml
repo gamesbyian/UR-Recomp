@@ -1,6 +1,13 @@
 name: One-shot course materialization structural island
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - chatgpt/pal-subregion-survivor-refinement-2026-09-30
+    paths:
+      - tools/analyze_course_materialization_structure_island.py
+      - tests/unit/test_analyze_course_materialization_structure_island.py
+      - .github/workflows/one-shot-course-materialization-structure.yml
 jobs:
   analyze:
     runs-on: ubuntu-latest

@@ -233,11 +233,14 @@ jobs:
               "phase3":0x0304,
               "inRace":0x0313,
               "race_tick":0x0FE7,
-              # Dessyreqt's recovered full-game bot labels $11BA as the
-              # countdown timer. $11BB is adjacent and repeatedly tested by
-              # the recovered race-transition code.
-              "countdown_lo":0x11BA,
-              "countdown_hi":0x11BB,
+              # Dessyreqt's bot historically reads a word at $11BA as its
+              # countdown watch, but recovered game code initializes,
+              # compares and decrements the actual 16-bit countdown at $11BB.
+              # Keep both bytes visible without treating the bot's offset as
+              # authoritative.
+              "bot_countdown_watch_lo":0x11BA,
+              "countdown_word_lo":0x11BB,
+              "countdown_word_hi":0x11BC,
               "current_track":0x00CE,
               # Race-entry handshake. 83:C9C8 can set $0C67; 83:CBA4 can
               # clear it before 83:CD3A -> 83:E066 tests it. $0DDB selects

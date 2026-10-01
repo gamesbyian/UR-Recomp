@@ -14,9 +14,9 @@ These are mechanically projected USA LE16 semantic operands from each top struct
 
 | Delta | Evidence count |
 |---:|---:|
-| `+4` (`0x0004`) | 135 |
+| `+4` (`0x0004`) | 136 |
 | `+10` (`0x000A`) | 109 |
-| `+0` (`0x0000`) | 61 |
+| `+0` (`0x0000`) | 65 |
 | `+6` (`0x0006`) | 38 |
 | `+17` (`0x0011`) | 1 |
 
@@ -24,13 +24,13 @@ These are mechanically projected USA LE16 semantic operands from each top struct
 
 | Delta | Evidence count |
 |---:|---:|
-| `+0` (`0x0000`) | 382 |
+| `+0` (`0x0000`) | 387 |
 
 ### pal-prototype-1994-11-29
 
 | Delta | Evidence count |
 |---:|---:|
-| `+0` (`0x0000`) | 244 |
+| `+0` (`0x0000`) | 249 |
 | `+4` (`0x0004`) | 118 |
 | `-2` (`0xFFFE`) | 1 |
 
@@ -475,6 +475,52 @@ Top candidate: `81:C590`; byte similarity 0.969; semantic-reference recall 1.000
 | `+0x3E` | 1 | `db` | `df` |
 | `+0x46` | 1 | `db` | `df` |
 | `+0x53` | 2 | `09c6` | `e6c5` |
+
+
+## State053B_VramGate
+
+USA anchor: `81:D2AA` / file `0x00D2AA`; window `0x28`.
+
+Bounded recovered VRAM/state gate beginning at 81:D2AA; used only to track unnamed $053B across builds.
+
+| Build | Rank | Candidate | Same offset? | Score | Byte similarity | Semantic-ref recall | N-gram votes |
+|---|---:|---|:---:|---:|---:|---:|---:|
+| europe-retail | 1 | `81:D28F` (`0x00D28F`) | no | 0.871 | 0.975 | 0.667 | 10 |
+| europe-retail | 2 | `81:D398` (`0x00D398`) | no | 0.816 | 0.925 | 0.667 | 8 |
+| europe-retail | 3 | `81:D6E8` (`0x00D6E8`) | no | 0.726 | 0.925 | 0.667 | 2 |
+| europe-retail | 4 | `81:DDE0` (`0x00DDE0`) | no | 0.706 | 0.825 | 0.667 | 4 |
+| europe-retail | 5 | `81:D30F` (`0x00D30F`) | no | 0.696 | 0.775 | 0.667 | 5 |
+| legacy-beta | 1 | `81:D2AA` (`0x00D2AA`) | yes | 1.000 | 1.000 | 1.000 | 12 |
+| legacy-beta | 2 | `81:D3B3` (`0x00D3B3`) | no | 0.938 | 0.950 | 1.000 | 9 |
+| legacy-beta | 3 | `81:D703` (`0x00D703`) | no | 0.875 | 0.950 | 1.000 | 4 |
+| legacy-beta | 4 | `81:D78C` (`0x00D78C`) | no | 0.812 | 0.900 | 1.000 | 1 |
+| legacy-beta | 5 | `81:DDFB` (`0x00DDFB`) | no | 0.696 | 0.825 | 0.667 | 4 |
+| pal-prototype-1994-11-29 | 1 | `81:D27F` (`0x00D27F`) | no | 1.000 | 1.000 | 1.000 | 12 |
+| pal-prototype-1994-11-29 | 2 | `81:D388` (`0x00D388`) | no | 0.938 | 0.950 | 1.000 | 9 |
+| pal-prototype-1994-11-29 | 3 | `81:D6D8` (`0x00D6D8`) | no | 0.875 | 0.950 | 1.000 | 4 |
+| pal-prototype-1994-11-29 | 4 | `81:D761` (`0x00D761`) | no | 0.812 | 0.900 | 1.000 | 1 |
+| pal-prototype-1994-11-29 | 5 | `81:DDD0` (`0x00DDD0`) | no | 0.696 | 0.825 | 0.667 | 4 |
+### europe-retail top-candidate deltas
+
+Top candidate: `81:D28F`; byte similarity 0.975; semantic-reference recall 0.667.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+| `+0x4` | 1 | `3b` | `3f` |
+
+### legacy-beta top-candidate deltas
+
+Top candidate: `81:D2AA`; byte similarity 1.000; semantic-reference recall 1.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+
+### pal-prototype-1994-11-29 top-candidate deltas
+
+Top candidate: `81:D27F`; byte similarity 1.000; semantic-reference recall 1.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
 
 
 ## Camera_StateQuantizeP2Tail

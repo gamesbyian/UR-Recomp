@@ -90,7 +90,7 @@
       ]
     },
     {
-      "anchor_count": 7,
+      "anchor_count": 8,
       "anchors": [
         "Camera_StateQuantizeP1",
         "Camera_StateQuantizeP2Tail",
@@ -98,6 +98,7 @@
         "Input_DecodePlayer1Buttons",
         "Race_BuildRacerOAMState",
         "Race_UpdateRacersFrame",
+        "State053B_VramGate",
         "Stunt_FinalizeAndScoreAirTricks"
       ],
       "build": "europe-retail",
@@ -148,12 +149,13 @@
         "0537",
         "0539",
         "053B",
-        "053D"
+        "053D",
+        "053F"
       ],
       "delta": 4,
-      "evidence_count": 135,
-      "field_count": 47,
-      "observation_count": 53,
+      "evidence_count": 136,
+      "field_count": 48,
+      "observation_count": 54,
       "usa_words": [
         "030D",
         "030F",
@@ -201,17 +203,19 @@
         "0533",
         "0535",
         "0537",
-        "0539"
+        "0539",
+        "053B"
       ]
     },
     {
-      "anchor_count": 6,
+      "anchor_count": 7,
       "anchors": [
         "Collision_TransformVelocity",
         "Course_LoadAndMaterialize",
         "Race_UpdateRacersFrame",
         "State0306_DmaGate",
         "State0309_TextLoopCounter",
+        "State053B_VramGate",
         "Stunt_FinalizeAndScoreAirTricks"
       ],
       "build": "europe-retail",
@@ -236,13 +240,14 @@
         "2100",
         "2115",
         "2116",
+        "2118",
         "420B",
         "420C"
       ],
       "delta": 0,
-      "evidence_count": 61,
-      "field_count": 22,
-      "observation_count": 24,
+      "evidence_count": 65,
+      "field_count": 23,
+      "observation_count": 26,
       "usa_words": [
         "000B",
         "0230",
@@ -264,6 +269,7 @@
         "2100",
         "2115",
         "2116",
+        "2118",
         "420B",
         "420C"
       ]
@@ -317,7 +323,7 @@
       ]
     },
     {
-      "anchor_count": 16,
+      "anchor_count": 17,
       "anchors": [
         "Camera_MapGeometrySetup",
         "Camera_StateQuantizeP1",
@@ -334,6 +340,7 @@
         "Race_UpdateRacersFrame",
         "State0306_DmaGate",
         "State0309_TextLoopCounter",
+        "State053B_VramGate",
         "Stunt_FinalizeAndScoreAirTricks"
       ],
       "build": "legacy-beta",
@@ -404,6 +411,7 @@
         "0535",
         "0537",
         "0539",
+        "053B",
         "0541",
         "0545",
         "0553",
@@ -458,13 +466,14 @@
         "2100",
         "2115",
         "2116",
+        "2118",
         "420B",
         "420C"
       ],
       "delta": 0,
-      "evidence_count": 381,
-      "field_count": 122,
-      "observation_count": 136,
+      "evidence_count": 386,
+      "field_count": 124,
+      "observation_count": 139,
       "usa_words": [
         "000B",
         "0230",
@@ -532,6 +541,7 @@
         "0535",
         "0537",
         "0539",
+        "053B",
         "0541",
         "0545",
         "0553",
@@ -586,12 +596,13 @@
         "2100",
         "2115",
         "2116",
+        "2118",
         "420B",
         "420C"
       ]
     },
     {
-      "anchor_count": 14,
+      "anchor_count": 15,
       "anchors": [
         "Camera_MapGeometrySetup",
         "Camera_StateQuantizeP1",
@@ -606,6 +617,7 @@
         "Race_UpdateRacersFrame",
         "State0306_DmaGate",
         "State0309_TextLoopCounter",
+        "State053B_VramGate",
         "Stunt_FinalizeAndScoreAirTricks"
       ],
       "build": "pal-prototype-1994-11-29",
@@ -676,6 +688,7 @@
         "0535",
         "0537",
         "0539",
+        "053B",
         "0541",
         "0545",
         "0553",
@@ -695,13 +708,14 @@
         "2100",
         "2115",
         "2116",
+        "2118",
         "420B",
         "420C"
       ],
       "delta": 0,
-      "evidence_count": 244,
-      "field_count": 87,
-      "observation_count": 97,
+      "evidence_count": 249,
+      "field_count": 89,
+      "observation_count": 100,
       "usa_words": [
         "000B",
         "0230",
@@ -769,6 +783,7 @@
         "0535",
         "0537",
         "0539",
+        "053B",
         "0541",
         "0545",
         "0553",
@@ -788,6 +803,7 @@
         "2100",
         "2115",
         "2116",
+        "2118",
         "420B",
         "420C"
       ]
@@ -1793,6 +1809,20 @@
     },
     {
       "anchors": [
+        "State053B_VramGate"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "053F"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "053B"
+    },
+    {
+      "anchors": [
         "Player_ApplyVerticalAcceleration"
       ],
       "build": "europe-retail",
@@ -2486,7 +2516,8 @@
     },
     {
       "anchors": [
-        "Course_LoadAndMaterialize"
+        "Course_LoadAndMaterialize",
+        "State053B_VramGate"
       ],
       "build": "europe-retail",
       "candidate_words": [
@@ -2497,6 +2528,20 @@
         0
       ],
       "usa_word": "2116"
+    },
+    {
+      "anchors": [
+        "State053B_VramGate"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "2118"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "2118"
     },
     {
       "anchors": [
@@ -3456,6 +3501,20 @@
         0
       ],
       "usa_word": "0539"
+    },
+    {
+      "anchors": [
+        "State053B_VramGate"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "053B"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "053B"
     },
     {
       "anchors": [
@@ -4208,7 +4267,8 @@
     },
     {
       "anchors": [
-        "Course_LoadAndMaterialize"
+        "Course_LoadAndMaterialize",
+        "State053B_VramGate"
       ],
       "build": "legacy-beta",
       "candidate_words": [
@@ -4219,6 +4279,20 @@
         0
       ],
       "usa_word": "2116"
+    },
+    {
+      "anchors": [
+        "State053B_VramGate"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "2118"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "2118"
     },
     {
       "anchors": [
@@ -5181,6 +5255,20 @@
     },
     {
       "anchors": [
+        "State053B_VramGate"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "053B"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "053B"
+    },
+    {
+      "anchors": [
         "Player_ApplyVerticalAcceleration"
       ],
       "build": "pal-prototype-1994-11-29",
@@ -5930,7 +6018,8 @@
     },
     {
       "anchors": [
-        "Course_LoadAndMaterialize"
+        "Course_LoadAndMaterialize",
+        "State053B_VramGate"
       ],
       "build": "pal-prototype-1994-11-29",
       "candidate_words": [
@@ -5941,6 +6030,20 @@
         0
       ],
       "usa_word": "2116"
+    },
+    {
+      "anchors": [
+        "State053B_VramGate"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "2118"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "2118"
     },
     {
       "anchors": [
@@ -6027,9 +6130,10 @@
           "0537",
           "0539",
           "053B",
-          "053D"
+          "053D",
+          "053F"
         ],
-        "field_count": 47,
+        "field_count": 48,
         "prototype_to_europe_delta": 4,
         "prototype_words": [
           "030D",
@@ -6078,7 +6182,8 @@
           "0533",
           "0535",
           "0537",
-          "0539"
+          "0539",
+          "053B"
         ],
         "usa_words": [
           "030D",
@@ -6127,7 +6232,8 @@
           "0533",
           "0535",
           "0537",
-          "0539"
+          "0539",
+          "053B"
         ]
       },
       {
@@ -6303,10 +6409,11 @@
           "2100",
           "2115",
           "2116",
+          "2118",
           "420B",
           "420C"
         ],
-        "field_count": 22,
+        "field_count": 23,
         "prototype_to_europe_delta": 0,
         "prototype_words": [
           "000B",
@@ -6329,6 +6436,7 @@
           "2100",
           "2115",
           "2116",
+          "2118",
           "420B",
           "420C"
         ],
@@ -6353,6 +6461,7 @@
           "2100",
           "2115",
           "2116",
+          "2118",
           "420B",
           "420C"
         ]
@@ -6372,15 +6481,15 @@
         "to_delta": 4
       },
       {
-        "address_gap_bytes": 8,
+        "address_gap_bytes": 6,
         "delta_jump": 2,
         "europe_first_after": "0547",
-        "europe_last_before": "053D",
+        "europe_last_before": "053F",
         "first_known_after": "0541",
         "from_delta": 4,
-        "last_known_before": "0539",
+        "last_known_before": "053B",
         "prototype_first_after": "0541",
-        "prototype_last_before": "0539",
+        "prototype_last_before": "053B",
         "to_delta": 6
       }
     ],
@@ -7295,6 +7404,20 @@
       },
       {
         "europe_anchors": [
+          "State053B_VramGate"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "053F",
+        "prototype_anchors": [
+          "State053B_VramGate"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "053B",
+        "usa_word": "053B"
+      },
+      {
+        "europe_anchors": [
           "Player_ApplyVerticalAcceleration"
         ],
         "europe_delta_from_usa": 6,
@@ -7995,17 +8118,33 @@
       },
       {
         "europe_anchors": [
-          "Course_LoadAndMaterialize"
+          "Course_LoadAndMaterialize",
+          "State053B_VramGate"
         ],
         "europe_delta_from_usa": 0,
         "europe_word": "2116",
         "prototype_anchors": [
-          "Course_LoadAndMaterialize"
+          "Course_LoadAndMaterialize",
+          "State053B_VramGate"
         ],
         "prototype_delta_from_usa": 0,
         "prototype_to_europe_delta": 0,
         "prototype_word": "2116",
         "usa_word": "2116"
+      },
+      {
+        "europe_anchors": [
+          "State053B_VramGate"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "2118",
+        "prototype_anchors": [
+          "State053B_VramGate"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "2118",
+        "usa_word": "2118"
       },
       {
         "europe_anchors": [
@@ -9733,6 +9872,105 @@
       "evidence_count": 5,
       "source_occurrences": 5,
       "usa_word": "0D0D"
+    },
+    {
+      "anchor": "State053B_VramGate",
+      "anchor_byte_similarity": 0.975,
+      "anchor_candidate_cpu": "81:D28F",
+      "build": "europe-retail",
+      "candidate_word": "053F",
+      "delta": 4,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "053B"
+    },
+    {
+      "anchor": "State053B_VramGate",
+      "anchor_byte_similarity": 0.975,
+      "anchor_candidate_cpu": "81:D28F",
+      "build": "europe-retail",
+      "candidate_word": "2116",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "2116"
+    },
+    {
+      "anchor": "State053B_VramGate",
+      "anchor_byte_similarity": 0.975,
+      "anchor_candidate_cpu": "81:D28F",
+      "build": "europe-retail",
+      "candidate_word": "2118",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "2118"
+    },
+    {
+      "anchor": "State053B_VramGate",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:D2AA",
+      "build": "legacy-beta",
+      "candidate_word": "053B",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "053B"
+    },
+    {
+      "anchor": "State053B_VramGate",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:D2AA",
+      "build": "legacy-beta",
+      "candidate_word": "2116",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "2116"
+    },
+    {
+      "anchor": "State053B_VramGate",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:D2AA",
+      "build": "legacy-beta",
+      "candidate_word": "2118",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "2118"
+    },
+    {
+      "anchor": "State053B_VramGate",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:D27F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "053B",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "053B"
+    },
+    {
+      "anchor": "State053B_VramGate",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:D27F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "2116",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "2116"
+    },
+    {
+      "anchor": "State053B_VramGate",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:D27F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "2118",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "2118"
     },
     {
       "anchor": "Camera_StateQuantizeP2Tail",

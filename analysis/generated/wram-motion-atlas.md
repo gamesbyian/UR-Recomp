@@ -9,11 +9,11 @@ This is a structural clustering surface. Repeated displacement across independen
 | Build | Delta | Anchors | Fields | Evidence | Example USA fields |
 |---|---:|---:|---:|---:|---|
 | europe-retail | +10 | 9 | 33 | 109 | `0E89`, `0E8B`, `0E8D`, `0E8F`, `0E91`, `0E93`, `0F41`, `0F47` |
-| europe-retail | +4 | 7 | 47 | 135 | `030D`, `030F`, `0311`, `0315`, `0319`, `031D`, `0321`, `0325` |
-| europe-retail | +0 | 6 | 22 | 61 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
+| europe-retail | +4 | 8 | 48 | 136 | `030D`, `030F`, `0311`, `0315`, `0319`, `031D`, `0321`, `0325` |
+| europe-retail | +0 | 7 | 23 | 65 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
 | europe-retail | +6 | 6 | 14 | 38 | `0541`, `0545`, `0BA1`, `0BA3`, `0BE9`, `0BEB`, `0CBB`, `0CE1` |
-| legacy-beta | +0 | 16 | 122 | 381 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
-| pal-prototype-1994-11-29 | +0 | 14 | 87 | 244 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
+| legacy-beta | +0 | 17 | 124 | 386 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
+| pal-prototype-1994-11-29 | +0 | 15 | 89 | 249 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
 | pal-prototype-1994-11-29 | +4 | 10 | 35 | 118 | `0E89`, `0E8B`, `0E8D`, `0E8F`, `0E91`, `0E93`, `0EF1`, `0F41` |
 
 ## Cross-anchor field consistency
@@ -34,6 +34,7 @@ A field is listed here when the same USA address appears in more than one truste
 | europe-retail | `0FA1` | `0FAB` | +10 | Collision_TransformVelocity, Player_ApplyVerticalAcceleration, Race_UpdateRacersFrame |
 | europe-retail | `0FEF` | `0FF9` | +10 | Player_ApplyVerticalAcceleration, Race_UpdateRacersFrame |
 | europe-retail | `2115` | `2115` | +0 | Course_LoadAndMaterialize, State0306_DmaGate |
+| europe-retail | `2116` | `2116` | +0 | Course_LoadAndMaterialize, State053B_VramGate |
 | europe-retail | `420B` | `420B` | +0 | Course_LoadAndMaterialize, State0306_DmaGate |
 | legacy-beta | `0411` | `0411` | +0 | Race_BuildRacerOAMState, Race_UpdateRacersFrame |
 | legacy-beta | `0415` | `0415` | +0 | Race_BuildRacerOAMState, Race_UpdateRacersFrame |
@@ -47,6 +48,7 @@ A field is listed here when the same USA address appears in more than one truste
 | legacy-beta | `0FA1` | `0FA1` | +0 | Collision_TransformVelocity, Player_ApplyVerticalAcceleration, Race_UpdateRacersFrame |
 | legacy-beta | `0FEF` | `0FEF` | +0 | Player_ApplyVerticalAcceleration, Race_UpdateRacersFrame |
 | legacy-beta | `2115` | `2115` | +0 | Course_LoadAndMaterialize, State0306_DmaGate |
+| legacy-beta | `2116` | `2116` | +0 | Course_LoadAndMaterialize, State053B_VramGate |
 | legacy-beta | `420B` | `420B` | +0 | Course_LoadAndMaterialize, State0306_DmaGate |
 | pal-prototype-1994-11-29 | `0411` | `0411` | +0 | Race_BuildRacerOAMState, Race_UpdateRacersFrame |
 | pal-prototype-1994-11-29 | `0415` | `0415` | +0 | Race_BuildRacerOAMState, Race_UpdateRacersFrame |
@@ -60,6 +62,7 @@ A field is listed here when the same USA address appears in more than one truste
 | pal-prototype-1994-11-29 | `0FA1` | `0FA5` | +4 | Collision_TransformVelocity, Player_ApplyVerticalAcceleration, Race_UpdateRacersFrame |
 | pal-prototype-1994-11-29 | `0FEF` | `0FF3` | +4 | Player_ApplyVerticalAcceleration, Race_UpdateRacersFrame |
 | pal-prototype-1994-11-29 | `2115` | `2115` | +0 | Course_LoadAndMaterialize, State0306_DmaGate |
+| pal-prototype-1994-11-29 | `2116` | `2116` | +0 | Course_LoadAndMaterialize, State053B_VramGate |
 | pal-prototype-1994-11-29 | `420B` | `420B` | +0 | Course_LoadAndMaterialize, State0306_DmaGate |
 
 ## PAL prototype → Europe retail secondary motion
@@ -68,9 +71,9 @@ For fields consistently projected in both builds, this subtracts the prototype a
 
 | Prototype→Europe delta | Fields | Example USA→prototype→Europe paths |
 |---:|---:|---|
-| +4 | 47 | `030D→030D→0311`, `030F→030F→0313`, `0311→0311→0315`, `0315→0315→0319`, `0319→0319→031D`, `031D→031D→0321` |
+| +4 | 48 | `030D→030D→0311`, `030F→030F→0313`, `0311→0311→0315`, `0315→0315→0319`, `0319→0319→031D`, `031D→031D→0321` |
 | +6 | 47 | `0541→0541→0547`, `0545→0545→054B`, `0BA1→0BA1→0BA7`, `0BA3→0BA3→0BA9`, `0BE9→0BE9→0BEF`, `0BEB→0BEB→0BF1` |
-| +0 | 22 | `000B→000B→000B`, `0230→0230→0230`, `0232→0232→0232`, `0234→0234→0234`, `0236→0236→0236`, `0260→0260→0260` |
+| +0 | 23 | `000B→000B→000B`, `0230→0230→0230`, `0232→0232→0232`, `0234→0234→0234`, `0236→0236→0236`, `0260→0260→0260` |
 
 ## Inferred post-prototype insertion brackets
 
@@ -79,7 +82,7 @@ These are address-space brackets, not exact insertion addresses. A displacement 
 | From delta | To delta | Jump | Last known before | First known after | USA-address gap |
 |---:|---:|---:|---|---|---:|
 | +0 | +4 | +4 | `0309` | `030D` | 4 |
-| +4 | +6 | +2 | `0539` | `0541` | 8 |
+| +4 | +6 | +2 | `053B` | `0541` | 6 |
 
 ## Contradictions / exceptions
 

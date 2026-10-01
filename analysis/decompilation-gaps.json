@@ -169,6 +169,14 @@
       "summary": "Recovered the full 676-byte P1/P2 persistent-state to shared-current-player marshal. USA/beta are identical; PAL prototype and Europe stay at -32 with all 234 aligned opcodes preserved. Paired pitch-angle and angular-velocity workspace mappings are now explicit.",
       "priority": "low",
       "next_evidence": "Expand individual shared-workspace fields only for a concrete physics/collision implementation need. Comparative structure work should move to a fourteenth independent subsystem."
+    },
+    {
+      "id": "resolved-collision-response-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:8FB8..99D5 and homologs",
+      "summary": "Recovered the 2,590-byte per-racer collision/contact-response core. USA/beta are identical; PAL prototype stays at -32. Europe adds a 6-byte NOP pad before the USA 9304 boundary and an 11-byte 0DE7 guard before USA 9800, ending at shift -15. Exact homolog regions preserve 100% opcode consensus; 53 USA bytes are explicit dormant code.",
+      "priority": "low",
+      "next_evidence": "Investigate the Europe-only 0DE7 guard only for a concrete regional collision/landing discrepancy. Comparative structure work should move to a fifteenth independent subsystem."
     }
   ]
 }

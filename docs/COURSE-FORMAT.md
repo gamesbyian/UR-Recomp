@@ -152,6 +152,26 @@ This means checkpoint/finish object code `0x14` should be traced backward throug
 
 Full derivation: `analysis/generated/course-resource-list-materialization-2026-09-30.md`.
 
+## Dragster checkpoint resource attributed structurally
+
+The frame-exact course-load artifact plus the five-byte resource descriptors now partition Dragster's complete 20-byte `7E:C000` behavior plane by owning resource.
+
+Recovered Dragster tail list:
+
+`01 02 14 24 16 18 FF`
+
+Descriptor sizes imply C000 spans of `1, 1, 4, 9, 4, 1` bytes respectively. Those sum exactly to the observed 20-byte runtime behavior plane:
+
+`00 00 | 12 1C 00 00 | 14 14 14 14 14 14 14 14 14 | 02 02 02 02 | 02`
+
+Therefore resource ID **`0x24`** owns C000 offsets 6–14, and its entire nine-byte behavior contribution is object code `0x14`, the confirmed checkpoint/finish dispatcher code.
+
+This is an important methodological counterexample: resource ID `0x14` is **not** the checkpoint resource. It materializes `12 1C 00 00`. Matching numeric IDs/addresses alone would have produced the wrong conclusion; the correct attribution comes from descriptor size, cumulative materialization spans, runtime behavior distribution, and loader chronology.
+
+Use structural fingerprints for future resource equivalence: course incidence, list position, track-slot context, descriptor shape, output spans, pointer relationships, behavior-code distribution, and content signatures. Numeric IDs and absolute addresses are supporting evidence only.
+
+Full derivation: `analysis/generated/dragster-resource-span-attribution-2026-09-30.md`.
+
 ## Runtime object map: checkpoint/finish code identified
 
 A retrospective propagation pass through the race object dispatcher at `81:82E6` identifies one concrete runtime course-object code.

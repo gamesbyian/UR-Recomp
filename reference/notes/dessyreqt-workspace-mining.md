@@ -261,3 +261,24 @@ Do **not** yet call either region a medal array or Hunter-unlock array. The cont
 make those strong hypotheses, but checksum/duplication/per-racer structure and exact value
 semantics remain to be established. The machine-readable diff is
 `analysis/generated/dessyreqt-sram-diff.json`.
+
+## Named queued boost rewards
+
+Joining v14a's queued-message boost parser with Nitrodon's message table removes the numeric
+ambiguity. The queue values are:
+
+- Roll / Twist / Z Flip: 128;
+- Double Roll / Double Twist / Tabletop / Double Z Flip: 152;
+- Treble Roll / Flip / Treble Twist / Treble Z Flip: 176;
+- Roll City / Double Flip / Twister City / Z Flip City: 200;
+- Treble Flip: 224;
+- Flip City: 248.
+
+This makes the discrepancies in Dessyreqt's tiny `Docs/stunts.txt` especially likely to be
+transcription errors: it says Tabletop 156 and Flip City 252, while executable v14a and
+Nitrodon's named queue evidence agree on 152 and 248. Preserve the text file unchanged, but
+do not use those two values as game constants. Machine-readable reconciliation:
+`analysis/generated/dessyreqt-named-boost-messages.json`.
+
+The complete 45-track start/finish coordinate table extracted from `magicnumber.lua` is
+stored separately in `analysis/generated/dessyreqt-course-landmarks.json`.

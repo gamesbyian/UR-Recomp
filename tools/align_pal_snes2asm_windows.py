@@ -62,21 +62,33 @@ def best_shift(source:bytes,target:bytes,start:int,end:int,radius:int=256)->tupl
     return best
 
 
-def compare_roles(rd:Disassembler,pd:Disassembler,start:int,end:int,shift:int)->dict:
+def compare_roles(rd:Disassembler,pd:Disassembler,retail:bytes,proto:bytes,start:int,end:int,shift:int)->dict:
     same=Counter(); aligned=Counter()
     same_mode=0; aligned_mode=0; opcode_pairs_same=0; opcode_pairs_aligned=0
+    residuals=[]
     for off in range(start,end+1):
         rr=role(rd,off)
         sr=role(pd,off)
-        ar=role(pd,off+shift)
+        poff=off+shift
+        ar=role(pd,poff)
         same[f'{rr}->{sr}'] += 1
         aligned[f'{rr}->{ar}'] += 1
+        if rr != ar:
+            residuals.append({
+                'retail_offset':off,
+                'prototype_offset':poff,
+                'relative_offset':off-start,
+                'retail_role':rr,
+                'prototype_role':ar,
+                'retail_byte':f"0x{retail[off]:02X}",
+                'prototype_byte':f"0x{proto[poff]:02X}",
+            })
         if rr=='opcode' and sr=='opcode':
             opcode_pairs_same += 1
             if mode(rd,off)!=mode(pd,off): same_mode += 1
         if rr=='opcode' and ar=='opcode':
             opcode_pairs_aligned += 1
-            if mode(rd,off)!=mode(pd,off+shift): aligned_mode += 1
+            if mode(rd,off)!=mode(pd,poff): aligned_mode += 1
     def disagreements(c:Counter)->int:
         return sum(v for k,v in c.items() if k.split('->')[0]!=k.split('->')[1])
     return {
@@ -88,6 +100,7 @@ def compare_roles(rd:Disassembler,pd:Disassembler,start:int,end:int,shift:int)->
         'aligned_opcode_pairs':opcode_pairs_aligned,
         'same_offset_mx_disagreements':same_mode,
         'aligned_mx_disagreements':aligned_mode,
+        'aligned_residuals':residuals,
     }
 
 
@@ -100,7 +113,7 @@ def build()->dict:
         if not w['da65_candidate']: continue
         a=w['start']; b=w['end']
         shift,sim=best_shift(retail,proto,a,b)
-        metrics=compare_roles(rd,pd,a,b,shift)
+        metrics=compare_roles(rd,pd,retail,proto,a,b,shift)
         rows.append({
             'retail_start':a,'retail_end':b,
             'retail_start_cpu':w['start_cpu'],'retail_end_cpu':w['end_cpu'],
@@ -141,6 +154,13 @@ def render(r:dict)->str:
     ]
     for w in r['windows']:
         lines.append(f"| `{w['retail_start_cpu']}..{w['retail_end_cpu']}` | {w['prototype_shift']:+d} | {w['raw_similarity_after_alignment']:.3f} | {w['same_offset_role_disagreements']}→{w['aligned_role_disagreements']} | {w['same_offset_mx_disagreements']}→{w['aligned_mx_disagreements']} |")
+    survivors=[w for w in r['windows'] if w['aligned_role_disagreements']]
+    lines += ['', '## Surviving aligned role disagreements', '']
+    for w in survivors:
+        lines.append(f"### `{w['retail_start_cpu']}..{w['retail_end_cpu']}` → shift {w['prototype_shift']:+d}")
+        for x in w['aligned_residuals']:
+            lines.append(f"- +`0x{x['relative_offset']:X}`: Europe {x['retail_role']} {x['retail_byte']} vs prototype {x['prototype_role']} {x['prototype_byte']}")
+        lines.append('')
     lines += ['', 'Only disagreements that survive homolog alignment should be considered candidates for da65/Ghidra adjudication. Same-offset disagreement is retained as raw evidence but is not itself semantic evidence.', '']
     return '\n'.join(lines)
 

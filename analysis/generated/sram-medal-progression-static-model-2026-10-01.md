@@ -76,6 +76,18 @@ The medal matrix `069C..072B` lies wholly inside this protected region. Any pers
 
 ## Controlled-runtime discriminator
 
-A clean-SRAM Dragster route proved that merely arriving at the race-results screen does not yet mutate the medal matrix. A second probe advances the stock results UI and compares SRAM immediately before and after that transition.
+A clean-SRAM deterministic Dragster route was checked at three adjacent states:
 
-Stopping condition: once one game-authored medal transition establishes the exact cell changed and the checksum response, broad SRAM reverse engineering is unnecessary for the current port plan.
+1. settled race-results screen;
+2. after advancing once from results;
+3. after the documented back input.
+
+None of those transitions changed the medal matrix at `069C..072B` or the derived tier table at `10D3..10E2`. The adjacent result-screen transitions changed only unrelated live/progression working state.
+
+This falsifies the timing hypothesis that the medal write merely occurs after leaving the results screen. The static result gate at `83:879A` explains the negative: medal update is conditional on the mode-specific result/performance gate, and the project's simple deterministic Dragster fixture is a finish/reachability fixture rather than a proven medal-winning run.
+
+That negative is sufficient for the current discriminator because the persistent layout itself is already mechanically resolved by direct shipped-code indexing, value saturation, threshold scans, recovered clean/all-silver snapshots, and checksum code. Replaying or optimizing a TAS solely to force one `0→1` cell would add little implementation value.
+
+## Stopping condition
+
+Do not broaden into generic SRAM archaeology. Revisit the medal award gate dynamically only when a stock-progression acceptance test needs an actual medal-winning fixture. The current port already has enough evidence to implement and validate the matrix shape, medal values, first-eight-tour unlock thresholds, derived tier tables, and checksum boundary.

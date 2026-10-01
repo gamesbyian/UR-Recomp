@@ -13,6 +13,8 @@ class RacerOamStructureTests(unittest.TestCase):
         self.assertEqual(mod.REGIONS[-1][2], "82:B17F")
         for (_,_,_,kind) in mod.REGIONS:
             self.assertEqual(kind, "code")
+        for left,right in zip(mod.REGIONS,mod.REGIONS[1:]):
+            self.assertEqual(mod.cpu_to_offset(left[2])+1, mod.cpu_to_offset(right[1]))
 
     def test_rom_backed_oam_island_when_roms_present(self):
         if not all(path.exists() for path in mod.ROMS.values()):

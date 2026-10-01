@@ -14,7 +14,7 @@ These are mechanically projected USA LE16 semantic operands from each top struct
 
 | Delta | Evidence count |
 |---:|---:|
-| `+4` (`0x0004`) | 126 |
+| `+4` (`0x0004`) | 135 |
 | `+10` (`0x000A`) | 109 |
 | `+0` (`0x0000`) | 61 |
 | `+6` (`0x0006`) | 38 |
@@ -24,13 +24,13 @@ These are mechanically projected USA LE16 semantic operands from each top struct
 
 | Delta | Evidence count |
 |---:|---:|
-| `+0` (`0x0000`) | 373 |
+| `+0` (`0x0000`) | 382 |
 
 ### pal-prototype-1994-11-29
 
 | Delta | Evidence count |
 |---:|---:|
-| `+0` (`0x0000`) | 235 |
+| `+0` (`0x0000`) | 244 |
 | `+4` (`0x0004`) | 118 |
 | `-2` (`0xFFFE`) | 1 |
 
@@ -475,6 +475,60 @@ Top candidate: `81:C590`; byte similarity 0.969; semantic-reference recall 1.000
 | `+0x3E` | 1 | `db` | `df` |
 | `+0x46` | 1 | `db` | `df` |
 | `+0x53` | 2 | `09c6` | `e6c5` |
+
+
+## Camera_StateQuantizeP2Tail
+
+USA anchor: `81:B1CD` / file `0x00B1CD`; window `0x33`.
+
+Bounded recovered camera-state quantization tail through the join at 81:B1FF; used to discriminate the upper edge of the +4 WRAM family.
+
+| Build | Rank | Candidate | Same offset? | Score | Byte similarity | Semantic-ref recall | N-gram votes |
+|---|---:|---|:---:|---:|---:|---:|---:|
+| europe-retail | 1 | `81:B1BE` (`0x00B1BE`) | no | 0.737 | 0.824 | 0.500 | 2 |
+| europe-retail | 2 | `81:B23D` (`0x00B23D`) | no | 0.642 | 0.784 | 0.500 | 1 |
+| europe-retail | 3 | `81:AEF9` (`0x00AEF9`) | no | 0.562 | 0.824 | 0.000 | 2 |
+| europe-retail | 4 | `81:B0B9` (`0x00B0B9`) | no | 0.562 | 0.824 | 0.000 | 2 |
+| europe-retail | 5 | `81:AF78` (`0x00AF78`) | no | 0.457 | 0.765 | 0.000 | 1 |
+| legacy-beta | 1 | `81:B1CD` (`0x00B1CD`) | yes | 1.000 | 1.000 | 1.000 | 16 |
+| legacy-beta | 2 | `81:B1DE` (`0x00B1DE`) | no | 0.448 | 0.176 | 1.000 | 1 |
+| legacy-beta | 3 | `81:B1BC` (`0x00B1BC`) | no | 0.448 | 0.176 | 1.000 | 1 |
+| legacy-beta | 4 | `81:AF08` (`0x00AF08`) | no | 0.431 | 0.824 | 0.000 | 2 |
+| legacy-beta | 5 | `81:B0C8` (`0x00B0C8`) | no | 0.431 | 0.824 | 0.000 | 2 |
+| pal-prototype-1994-11-29 | 1 | `81:B1AD` (`0x00B1AD`) | no | 1.000 | 1.000 | 1.000 | 16 |
+| pal-prototype-1994-11-29 | 2 | `81:B1BE` (`0x00B1BE`) | no | 0.448 | 0.176 | 1.000 | 1 |
+| pal-prototype-1994-11-29 | 3 | `81:B19C` (`0x00B19C`) | no | 0.448 | 0.176 | 1.000 | 1 |
+| pal-prototype-1994-11-29 | 4 | `81:AEE8` (`0x00AEE8`) | no | 0.431 | 0.824 | 0.000 | 2 |
+| pal-prototype-1994-11-29 | 5 | `81:B0A8` (`0x00B0A8`) | no | 0.431 | 0.824 | 0.000 | 2 |
+### europe-retail top-candidate deltas
+
+Top candidate: `81:B1BE`; byte similarity 0.824; semantic-reference recall 0.500.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+| `+0x5` | 1 | `35` | `39` |
+| `+0x8` | 1 | `39` | `3d` |
+| `+0x10` | 1 | `35` | `39` |
+| `+0x16` | 1 | `13` | `17` |
+| `+0x1C` | 1 | `39` | `3d` |
+| `+0x24` | 1 | `0f` | `13` |
+| `+0x27` | 1 | `13` | `17` |
+| `+0x2D` | 1 | `35` | `39` |
+| `+0x30` | 1 | `39` | `3d` |
+
+### legacy-beta top-candidate deltas
+
+Top candidate: `81:B1CD`; byte similarity 1.000; semantic-reference recall 1.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+
+### pal-prototype-1994-11-29 top-candidate deltas
+
+Top candidate: `81:B1AD`; byte similarity 1.000; semantic-reference recall 1.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
 
 
 ## Camera_StateQuantizeP1

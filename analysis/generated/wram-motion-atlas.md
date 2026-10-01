@@ -9,11 +9,11 @@ This is a structural clustering surface. Repeated displacement across independen
 | Build | Delta | Anchors | Fields | Evidence | Example USA fields |
 |---|---:|---:|---:|---:|---|
 | europe-retail | +10 | 9 | 33 | 109 | `0E89`, `0E8B`, `0E8D`, `0E8F`, `0E91`, `0E93`, `0F41`, `0F47` |
-| europe-retail | +4 | 6 | 44 | 126 | `030D`, `030F`, `0311`, `0315`, `0319`, `031D`, `0321`, `0325` |
+| europe-retail | +4 | 7 | 47 | 135 | `030D`, `030F`, `0311`, `0315`, `0319`, `031D`, `0321`, `0325` |
 | europe-retail | +0 | 6 | 22 | 61 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
 | europe-retail | +6 | 6 | 14 | 38 | `0541`, `0545`, `0BA1`, `0BA3`, `0BE9`, `0BEB`, `0CBB`, `0CE1` |
-| legacy-beta | +0 | 15 | 119 | 372 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
-| pal-prototype-1994-11-29 | +0 | 13 | 84 | 235 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
+| legacy-beta | +0 | 16 | 122 | 381 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
+| pal-prototype-1994-11-29 | +0 | 14 | 87 | 244 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
 | pal-prototype-1994-11-29 | +4 | 10 | 35 | 118 | `0E89`, `0E8B`, `0E8D`, `0E8F`, `0E91`, `0E93`, `0EF1`, `0F41` |
 
 ## Cross-anchor field consistency
@@ -27,6 +27,7 @@ A field is listed here when the same USA address appears in more than one truste
 | europe-retail | `0419` | `041D` | +4 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
 | europe-retail | `041D` | `0421` | +4 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
 | europe-retail | `04F5` | `04F9` | +4 | Camera_StateQuantizeP1, Camera_UpdatePersistentState |
+| europe-retail | `050F` | `0513` | +4 | Camera_StateQuantizeP1, Camera_StateQuantizeP2Tail |
 | europe-retail | `0545` | `054B` | +6 | Race_UpdateRacersFrame, Stunt_FinalizeAndScoreAirTricks |
 | europe-retail | `0D49` | `0D4F` | +6 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
 | europe-retail | `0F9F` | `0FA9` | +10 | Collision_TransformVelocity, Race_UpdateRacersFrame |
@@ -39,6 +40,7 @@ A field is listed here when the same USA address appears in more than one truste
 | legacy-beta | `0419` | `0419` | +0 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
 | legacy-beta | `041D` | `041D` | +0 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
 | legacy-beta | `04F5` | `04F5` | +0 | Camera_StateQuantizeP1, Camera_UpdatePersistentState |
+| legacy-beta | `050F` | `050F` | +0 | Camera_StateQuantizeP1, Camera_StateQuantizeP2Tail |
 | legacy-beta | `0545` | `0545` | +0 | Race_UpdateRacersFrame, Stunt_FinalizeAndScoreAirTricks |
 | legacy-beta | `0D49` | `0D49` | +0 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
 | legacy-beta | `0F9F` | `0F9F` | +0 | Collision_TransformVelocity, Race_UpdateRacersFrame |
@@ -51,6 +53,7 @@ A field is listed here when the same USA address appears in more than one truste
 | pal-prototype-1994-11-29 | `0419` | `0419` | +0 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
 | pal-prototype-1994-11-29 | `041D` | `041D` | +0 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
 | pal-prototype-1994-11-29 | `04F5` | `04F5` | +0 | Camera_StateQuantizeP1, Camera_UpdatePersistentState |
+| pal-prototype-1994-11-29 | `050F` | `050F` | +0 | Camera_StateQuantizeP1, Camera_StateQuantizeP2Tail |
 | pal-prototype-1994-11-29 | `0545` | `0545` | +0 | Race_UpdateRacersFrame, Stunt_FinalizeAndScoreAirTricks |
 | pal-prototype-1994-11-29 | `0D49` | `0D49` | +0 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
 | pal-prototype-1994-11-29 | `0F9F` | `0FA3` | +4 | Collision_TransformVelocity, Race_UpdateRacersFrame |
@@ -65,8 +68,8 @@ For fields consistently projected in both builds, this subtracts the prototype a
 
 | Prototype→Europe delta | Fields | Example USA→prototype→Europe paths |
 |---:|---:|---|
+| +4 | 47 | `030D→030D→0311`, `030F→030F→0313`, `0311→0311→0315`, `0315→0315→0319`, `0319→0319→031D`, `031D→031D→0321` |
 | +6 | 47 | `0541→0541→0547`, `0545→0545→054B`, `0BA1→0BA1→0BA7`, `0BA3→0BA3→0BA9`, `0BE9→0BE9→0BEF`, `0BEB→0BEB→0BF1` |
-| +4 | 44 | `030D→030D→0311`, `030F→030F→0313`, `0311→0311→0315`, `0315→0315→0319`, `0319→0319→031D`, `031D→031D→0321` |
 | +0 | 22 | `000B→000B→000B`, `0230→0230→0230`, `0232→0232→0232`, `0234→0234→0234`, `0236→0236→0236`, `0260→0260→0260` |
 
 ## Inferred post-prototype insertion brackets
@@ -76,7 +79,7 @@ These are address-space brackets, not exact insertion addresses. A displacement 
 | From delta | To delta | Jump | Last known before | First known after | USA-address gap |
 |---:|---:|---:|---|---|---:|
 | +0 | +4 | +4 | `0309` | `030D` | 4 |
-| +4 | +6 | +2 | `0537` | `0541` | 10 |
+| +4 | +6 | +2 | `0539` | `0541` | 8 |
 
 ## Contradictions / exceptions
 

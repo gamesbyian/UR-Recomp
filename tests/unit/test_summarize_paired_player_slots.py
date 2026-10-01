@@ -84,12 +84,12 @@ class PairedPlayerSlotsTest(unittest.TestCase):
                 "screen1_player2_y": 17,
                 "screen1_player1_visibility_raw": 0x30,
             })
-            self.assertEqual(s["activation_candidate"]["list_a_count_raw"], 2)
-            self.assertEqual(s["activation_candidate"]["list_b_count_raw"], 3)
-            self.assertEqual(s["activation_candidate"]["list_a_nonzero_flags"], 2)
-            self.assertEqual(s["activation_candidate"]["list_b_nonzero_flags"], 2)
-            self.assertEqual(s["activation_candidate"]["list_a_coords"][:2], [0x1234, 0x5678])
-            self.assertEqual(s["activation_candidate"]["list_b_coords"][:2], [0x9ABC, 0xDEF0])
+            self.assertEqual(s["vram_update_lists"]["list_a_count_raw"], 2)
+            self.assertEqual(s["vram_update_lists"]["list_b_count_raw"], 3)
+            self.assertEqual(s["vram_update_lists"]["list_a_nonzero_flags"], 2)
+            self.assertEqual(s["vram_update_lists"]["list_b_nonzero_flags"], 2)
+            self.assertEqual(s["vram_update_lists"]["list_a_coords"][:2], [0x1234, 0x5678])
+            self.assertEqual(s["vram_update_lists"]["list_b_coords"][:2], [0x9ABC, 0xDEF0])
             self.assertEqual(s["race_progress"]["player1"], {
                 "next_checkpoint": 3,
                 "finish_gate": 0,

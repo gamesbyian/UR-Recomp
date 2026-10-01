@@ -186,6 +186,20 @@ Do not propagate weak names as facts. Hypotheses remain hypotheses, cross-ROM la
 **Dependencies:** the atlas inherits the correspondence confidence of each accepted top anchor match; weak Europe checkpoint/HUD/OAM candidates remain non-promoted.  
 **Propagation:** close the generic WRAM-clustering task. Use the atlas as a lookup/evidence surface for future semantic propagation, and move comparative effort to the bounded 486-byte USA-retail vs legacy-beta cross-analyzer classification corpus.
 
+
+### R-METHOD-004 — USA/beta delta corpus collapses to SRAM-bank aliasing plus three edits
+
+**Status:** supported; executable delta interpreted  
+**Date:** 2026-09-30  
+**Area:** multi-ROM | RAM | decompilation
+
+**Observation:** the USA-retail vs legacy-beta non-RNC corpus contains 486 changed bytes. Of these, 483 are exactly `0x77→0x70`, all in file bank 00. snes2asm marks only 39 changed bytes as code-related: 36 operand changes, 2 reachability disagreements, and 1 opcode change. The only three non-`77→70` edits are header byte `00:FFDA 01→33`, `83:8AFF A9 12→A9 32`, and `83:8B16 F0 04→80 04`.  
+**Evidence:** `analysis/generated/usa-beta-cross-analyzer.{json,md}`; evidence run `36808261152`; recovered Nitrodon bank-83 listing; local Snes9x `map_LoROMSRAM` and `getset.h` mapping formula.  
+**Interpretation:** for 8 KiB SRAM, `SRAMMask=$1FFF`; Snes9x maps banks `$70..$7D` through `(((bank<<16)>>1)|(addr&$7FFF)) & $1FFF`, so the bank contribution is discarded. The pervasive `$77→$70` rewrite is therefore consistent with an SRAM-bank alias convention rather than a gameplay change. The two executable non-alias edits occur in the SRAM boundary/mirroring probe at `83:8AF7`: retail writes across `$77:1FFF`, verifies the wrapped high byte at `$77:0000`, and conditionally jumps to `80:94EB` on failure; beta changes the saved/test seed and replaces that conditional branch with an unconditional branch, bypassing the failure path.  
+**Discriminating test:** no blanket second-disassembler pass is justified. Use da65/Ghidra only if a current compatibility/protection question needs independent confirmation of this routine or one of the two snes2asm reachability disagreements.  
+**Dependencies:** the 483-byte alias interpretation is strongest where the changed byte is an SRAM bank byte; the corpus-wide systematic substitution plus exact mapper equivalence supports treating the remainder as the same build convention unless contradicted locally.  
+**Propagation:** downgrade USA/beta as a broad semantic-difference source. Preserve the SRAM probe as an emulator/protection seam and redirect comparative effort toward PAL/prototype/Europe regions with genuine structural motion.
+
 ## Seed leads to verify locally
 
 ### R-SEED-001 — Rob Northen Compression

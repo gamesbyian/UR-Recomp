@@ -140,7 +140,7 @@ The USA/beta pair remains valuable precisely because its trusted semantic anchor
 
 - take `tools/analyze_rom_lineage_deltas.py` and the generated pairwise/four-ROM reports as byte-level ground truth;
 - restrict the first pass to the changed positions plus small bounded context;
-- run at least two already-owned independent static-analysis paths under pinned assumptions, starting with da65 and snes2asm where practical;
+- use snes2asm as the broad first static witness where its tracing can classify a changed region; use da65 only on bounded ranges for which CODE boundaries and 65816 M/X state are independently known or can be seeded from existing trace/CDL evidence. The current da65 adapters intentionally contain labels only, so whole-bank da65 output without RANGE/ADDRMODE context would be noise rather than an independent vote;
 - normalize output into machine-comparable records keyed by SNES/file address, instruction shape, normalized operands, control-flow edges and referenced addresses; strip formatting/generated-label noise;
 - classify each delta as executable change, data/table change, relocation/addressing change, analyzer code/data disagreement, M/X-state disagreement, or unresolved;
 - join classifications to existing symbols and the comparative atlas;

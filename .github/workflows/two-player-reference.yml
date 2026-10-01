@@ -68,6 +68,10 @@ jobs:
           set -euo pipefail
           EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
           mkdir -p "$RUNNER_TEMP/native-dumps"
+          # Every native oracle launch must start from the same battery-SRAM baseline.
+          # The generated desktop host persists saves beside the executable on exit; without
+          # this reset, sequential diagnostics silently inherit each other's race/session state.
+          rm -rf "$(dirname "$EXE")/saves"
           SNESRECOMP_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"           SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/native-dumps"           SDL_AUDIODRIVER=dummy             timeout 180s xvfb-run -a "$EXE"             "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"             --script "$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"             >"$RUNNER_TEMP/native.log" 2>&1
           cat "$RUNNER_TEMP/native.log"
 
@@ -165,6 +169,7 @@ jobs:
           fi
           test -s "$RUNNER_TEMP/phase-beetle/phase-entry-1220.wram.bin"
 
+          rm -rf "$(dirname "$NATIVE")/saves"
           SNESRECOMP_INPUT_FILE="$INPUT" SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/phase-native" \
           SDL_AUDIODRIVER=dummy \
             timeout 180s xvfb-run -a "$NATIVE" "$ROM" --script "$PHASE" \
@@ -210,6 +215,7 @@ jobs:
             >"$RUNNER_TEMP/snes9x-micro.log" 2>&1
 
           NATIVE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          rm -rf "$(dirname "$NATIVE")/saves"
           SNESRECOMP_INPUT_FILE="$INPUT" SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/native-micro" \
           SDL_AUDIODRIVER=dummy \
             timeout 180s xvfb-run -a "$NATIVE" "$ROM" --script "$MICRO" \
@@ -316,6 +322,7 @@ jobs:
             SNESREF_DUMP_DIR="$RUNNER_TEMP/$name-snes9x" \
               "$REF" "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" "$ROM" \
               >"$RUNNER_TEMP/$name-snes9x.log" 2>&1
+            rm -rf "$(dirname "$NATIVE")/saves"
             SNESRECOMP_INPUT_FILE="$input" SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/$name-native" \
             SDL_AUDIODRIVER=dummy \
               timeout 180s xvfb-run -a "$NATIVE" "$ROM" --script "$MICRO" \

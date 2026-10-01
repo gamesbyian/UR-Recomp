@@ -77,7 +77,7 @@ def build():
  for build,blob in blobs.items():
   d=trace(blob)
   seeds=[cpu_to_offset(s)+shifts[build][name] for name,s,e,proto_shift,europe_shift in REGIONS]
-  for cpu in ["81:9355","81:93CA","81:9401","81:9467","81:9646","81:96AD","81:996B","81:9972"]:
+  for cpu in ["81:9355","81:93CA","81:9401","81:9467","81:9484","81:9646","81:96AD","81:9969","81:996B","81:9972"]:
    off=cpu_to_offset(cpu)
    if build=="europe-retail":
     local_shift=-26 if off<cpu_to_offset("81:9800") else -15
@@ -129,7 +129,7 @@ def build():
    "effect":"Europe retail alone adds an 11-byte guard before the final position-correction tail; subsequent homolog shift changes -26 to -15.",
   },
  ]
- return {"schema_version":1,"island":"PerRacerCollisionContactResponse","usa_start":"81:8FB8","usa_end":"81:99D5","next_code_entry":"81:99D6","europe_only_insertions":insertions,"usa_unreached_runs":ranges_for(lambda x:not (ds["usa-retail"].code_map[x]&(ds["usa-retail"].OP_CODE|ds["usa-retail"].OP_PARAM)),cpu_to_offset("81:8FB8"),cpu_to_offset("81:99D5")),"regions":rows}
+ return {"schema_version":1,"island":"PerRacerCollisionContactResponse","usa_start":"81:8FB8","usa_end":"81:99D5","next_code_entry":"81:99D6","dormant_usa_code":[{"start":"81:9484","end":"81:948A","size":7,"instructions":"LDA #$0764; STA $A3; BRA $94AF","note":"valid instruction-aligned alternative bypassed by the recovered live predecessor path"}],"europe_only_insertions":insertions,"usa_unreached_runs":ranges_for(lambda x:not (ds["usa-retail"].code_map[x]&(ds["usa-retail"].OP_CODE|ds["usa-retail"].OP_PARAM)),cpu_to_offset("81:8FB8"),cpu_to_offset("81:99D5")),"regions":rows}
 
 def render(r):
  lines=["# Per-racer collision / contact-response structural island","",

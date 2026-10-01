@@ -1782,3 +1782,21 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 **Propagation:** added twelve code regions to `analysis/generated/comparative-structural-census.{json,md}`, bringing the census to **100 regions / 14,689 bounded USA bytes**, including **13,544 code-region bytes**, **1,145 data bytes**, and **5,665 analyzer opcode bytes**.
 
+### R-SEED-075 — Contact-geometry construction is invariant across all four builds
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | collision geometry | racer state | comparative atlas
+
+**Observation:** USA `81:9E2A..9FBE` is a 405-byte per-racer contact-geometry constructor. Both player marshal paths call it (`81:8DD6`, `81:8F2A`) immediately before the recovered course-surface sampler and collision/contact resolver. The routine derives orientation-dependent geometry from shared current-player state and writes the active-player collision anchor at `125B,Y`. Camera control begins immediately at `81:9FBF`.
+
+**Evidence:** `tools/analyze_contact_geometry_structure_island.py`; `analysis/generated/contact-geometry-structure-island.{json,md}`; ROM-backed project-tooling run `36942483867`. All 405 USA bytes are trusted-entry executable. USA and legacy beta are byte-identical.
+
+**Interpretation:** PAL prototype preserves the complete routine at constant shift -32 and Europe at constant shift -15. Across the three structural regions, both regional builds preserve all 246 aligned opcode positions with zero code/operand-role disagreements. Therefore the Europe-only lineage edits recovered in the downstream collision resolver do not originate in contact-geometry generation.
+
+**Discriminating test:** no further structural work is required. Individual geometry source tables/fields should be named only when a concrete collision-shape, editor, or native-physics implementation needs them.
+
+**Dependencies:** P1/P2 state marshal callers; course-surface sampler; collision-resolution island; trusted-entry snes2asm; four-ROM corpus.
+
+**Propagation:** added three code regions to the branch-local comparative census, expanding it to **103 regions / 15,094 bounded USA bytes**, including **13,949 code-region bytes**, **1,145 data bytes**, and **5,911 analyzer opcode bytes**. The adjacent fifteenth geometry-precompute island remains independently owned by PR #159.
+

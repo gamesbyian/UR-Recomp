@@ -31,6 +31,28 @@ SLOTS = {
     },
 }
 
+CAMERA_AND_VIEWPORT = {
+    "camera": {
+        "player1_x": ("u16", 0x0419),
+        "player2_x": ("u16", 0x041B),
+        "player1_y": ("u16", 0x041D),
+        "player2_y": ("u16", 0x041F),
+        "player1_x_velocity": ("s16", 0x04F5),
+        "player1_y_velocity": ("s16", 0x04F9),
+    },
+    "screen_relative": {
+        "screen2_player2_x": ("u8", 0x1501),
+        "screen2_player2_y": ("u8", 0x1502),
+        "screen2_player1_x": ("u8", 0x1505),
+        "screen2_player1_y": ("u8", 0x1506),
+        "screen1_player1_x": ("u8", 0x1509),
+        "screen1_player1_y": ("u8", 0x150A),
+        "screen1_player2_x": ("u8", 0x150D),
+        "screen1_player2_y": ("u8", 0x150E),
+        "screen1_player1_visibility_raw": ("u8", 0x1599),
+    },
+}
+
 RACE_PROGRESS = {
     "player1": {
         "next_checkpoint": ("u16", 0x1199),
@@ -62,6 +84,10 @@ def state(path: Path) -> dict:
         slot: {name: read_value(data, kind, addr) for name, (kind, addr) in fields.items()}
         for slot, fields in SLOTS.items()
     }
+    out["camera_and_viewport"] = {
+        group: {name: read_value(data, kind, addr) for name, (kind, addr) in fields.items()}
+        for group, fields in CAMERA_AND_VIEWPORT.items()
+    }
     out["race_progress"] = {
         player: {name: read_value(data, kind, addr) for name, (kind, addr) in fields.items()}
         for player, fields in RACE_PROGRESS.items()
@@ -84,6 +110,8 @@ def main() -> int:
         report[tag] = s
         a, b = s["slot1"], s["slot2"]
         rp1, rp2 = s["race_progress"]["player1"], s["race_progress"]["player2"]
+        cam = s["camera_and_viewport"]["camera"]
+        screen = s["camera_and_viewport"]["screen_relative"]
         print(
             f"{tag}: "
             f"slot1 x={a['x_pos']} y={a['y_pos']} "
@@ -93,6 +121,14 @@ def main() -> int:
             f"slot2 x={b['x_pos']} y={b['y_pos']} "
             f"vx={b['x_speed']} vy={b['y_speed']} "
             f"air={b['air']} rot={b['rotation_candidate']} | "
+            f"camera p1=({cam['player1_x']},{cam['player1_y']}) "
+            f"p2=({cam['player2_x']},{cam['player2_y']}) "
+            f"p1v=({cam['player1_x_velocity']},{cam['player1_y_velocity']}) | "
+            f"screen1 p1=({screen['screen1_player1_x']},{screen['screen1_player1_y']}) "
+            f"p2=({screen['screen1_player2_x']},{screen['screen1_player2_y']}) "
+            f"screen2 p1=({screen['screen2_player1_x']},{screen['screen2_player1_y']}) "
+            f"p2=({screen['screen2_player2_x']},{screen['screen2_player2_y']}) "
+            f"vis1raw={screen['screen1_player1_visibility_raw']} | "
             f"finish p1 checkpoint={rp1['next_checkpoint']} gate={rp1['finish_gate']} "
             f"laps={rp1['laps_remaining']} p2 checkpoint={rp2['next_checkpoint']} "
             f"gate={rp2['finish_gate']} laps={rp2['laps_remaining']}"

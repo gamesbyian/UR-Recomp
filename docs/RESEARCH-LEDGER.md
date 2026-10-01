@@ -964,3 +964,18 @@ The six known package tables contain one orphan, `03:FB95`. It has no direct `JS
 
 **Dependencies:** imported Lua remains historical working code with old-Snes9x assumptions and deliberate WRAM mutation in several utilities. Preserve source unchanged and promote semantics only after local corroboration.
 
+
+
+### R-SEED-050 — 2014 pre-race mismatch is frontend timing reuse, not established gameplay divergence
+
+**Status:** reclassified; useful semantic dispatch discovery retained  
+**Date:** 2026-09-30  
+**Area:** CPU | frontend | validation | timing
+
+Dense historical replay run `36793691236` moved the first sampled low-WRAM mismatch to frame 437. A bounded +5-frame phase experiment in run `36794900073` delayed the first mismatch to frame 455 but did not restore race-entry/results alignment. State matching shows the offset is not fixed: it grows from roughly +2 to +5 frames through startup.
+
+Run `36795810324` explains why the early tuple was a bad semantic oracle. Nitrodon's exact listings show `83:8B79-8B8B` bulk-fills WRAM `$0200-$09FF` with `$004C`, covering `$0313/$0411/$0415`, while `80:C3AB/C3C8` interprets frontend/text commands and reuses DP `$9F` as layout state. The live trace reaches `interp@$80C3C8` during this transition. Therefore the pre-race values sampled at the player/race addresses are frontend workspace, not authoritative race simulation.
+
+**Interpretation:** stop spending evidence budget on absolute pre-race frame equality for this old SMV. Use it event-relatively until a mutually valid semantic anchor exists. The useful decompilation result is that analyzer gap `80:C3C8` is a live 17-way frontend/text command dispatcher and should be mapped as such.
+
+**Evidence:** `analysis/generated/historical-2014-native-replay-gap.md`; runs `36793691236`, `36794900073`, `36795810324`; Nitrodon bank 80/83 listings.

@@ -83,6 +83,13 @@ ANCHORS = (
         "Per-player 32-entry stunt/HUD message-ring enqueue path.",
     ),
     Anchor(
+        "State053B_VramGate",
+        "81:D2AA",
+        0x28,
+        (0x053B, 0x2116, 0x2118),
+        "Bounded recovered VRAM/state gate beginning at 81:D2AA; used only to track unnamed $053B across builds.",
+    ),
+    Anchor(
         "Camera_StateQuantizeP2Tail",
         "81:B1CD",
         0x33,

@@ -39,6 +39,7 @@ class CourseMaterializationStructureTests(unittest.TestCase):
             self.assertEqual(region["builds"]["legacy-beta"]["similarity"], 1.0)
         for region in result["regions"][:3]:
             self.assertEqual(region["builds"]["europe-retail"]["shift"], -58)
+            self.assertEqual(region["builds"]["pal-prototype-1994-11-29"]["shift"], -100)
         print("COURSE_ISLAND_TEST_JSON="+json.dumps(result,sort_keys=True))
 
 

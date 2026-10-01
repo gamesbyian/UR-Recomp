@@ -16,6 +16,7 @@ import subprocess
 import tempfile
 
 ROOT=Path(__file__).resolve().parents[1]
+USA=ROOT/"reference/roms/retail/Uniracers_USA.sfc"
 ROMS={
  "europe-retail": ROOT/"reference/roms/retail/Unirally_Europe.sfc",
  "pal-prototype-1994-11-29": ROOT/"reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc",
@@ -50,18 +51,18 @@ def info_text(probe:dict, shift:int=0)->str:
         lines.append(f'RANGE {{ START ${a:04X}; END ${b:04X}; TYPE CODE; ADDRMODE "{mode}"; COMMENT "{why}"; }};')
     return '\n'.join(lines)+'\n'
 
-def best_shift(retail:bytes, proto:bytes, probe:dict, radius:int=128)->tuple[int,float]:
+def best_shift(source:bytes, target:bytes, probe:dict, radius:int=128)->tuple[int,float]:
     """Align homologous code by raw-byte similarity, independently of snes2asm."""
     a=probe['start']-0x8000
     b=probe['end']-0x8000+1
-    src=retail[a:b]
+    src=source[a:b]
     best=(0,-1.0)
     for shift in range(-radius,radius+1):
         pa=a+shift
         pb=pa+len(src)
-        if pa < 0 or pb > len(proto):
+        if pa < 0 or pb > len(target):
             continue
-        dst=proto[pa:pb]
+        dst=target[pa:pb]
         score=sum(x==y for x,y in zip(src,dst))/len(src)
         if score > best[1]:
             best=(shift,score)
@@ -102,27 +103,33 @@ def main()->int:
     with tempfile.TemporaryDirectory() as td:
         tmp=Path(td)
         for probe in PROBES:
-            retail_bytes=ROMS['europe-retail'].read_bytes()[:0x8000]
-            proto_bytes=ROMS['pal-prototype-1994-11-29'].read_bytes()[:0x8000]
-            shift,score=best_shift(retail_bytes,proto_bytes,probe)
+            usa_bytes=USA.read_bytes()[:0x8000]
+            shifts={}
+            similarities={}
+            for name,rom in ROMS.items():
+                target=rom.read_bytes()[:0x8000]
+                shifts[name],similarities[name]=best_shift(usa_bytes,target,probe)
             row={
                 'id':probe['id'],
-                'retail_start':f"00:{probe['start']:04X}",
-                'retail_end':f"00:{probe['end']:04X}",
-                'prototype_start':f"00:{probe['start']+shift:04X}",
-                'prototype_end':f"00:{probe['end']+shift:04X}",
-                'prototype_shift':shift,
-                'raw_alignment_similarity':round(score,6),
+                'usa_anchor_start':f"00:{probe['start']:04X}",
+                'usa_anchor_end':f"00:{probe['end']:04X}",
                 'ranges':[{'start':f"00:{a:04X}",'end':f"00:{b:04X}",'addrmode':mode,'basis':why} for a,b,mode,why in probe['ranges']],
                 'builds':{}
             }
             norms={}
             for name,rom in ROMS.items():
-                local_shift=0 if name=='europe-retail' else shift
-                asm=run_da65(args.da65,rom,probe,tmp,local_shift)
+                shift=shifts[name]
+                asm=run_da65(args.da65,rom,probe,tmp,shift)
                 norm=normalized_lines(asm,probe)
                 norms[name]=norm
-                row['builds'][name]={'instruction_lines':len(norm),'normalized':norm}
+                row['builds'][name]={
+                    'start':f"00:{probe['start']+shift:04X}",
+                    'end':f"00:{probe['end']+shift:04X}",
+                    'shift_from_usa':shift,
+                    'raw_similarity_to_usa':round(similarities[name],6),
+                    'instruction_lines':len(norm),
+                    'normalized':norm
+                }
             a=norms['europe-retail']; b=norms['pal-prototype-1994-11-29']
             row['same_instruction_count']=len(a)==len(b)
             row['aligned_prefix_lines']=next((i for i,(x,y) in enumerate(zip(a,b)) if x!=y),min(len(a),len(b)))
@@ -132,8 +139,8 @@ def main()->int:
     args.json_out.write_text(json.dumps(report,indent=2,sort_keys=True)+'\n',encoding='utf-8')
     lines=['# PAL retail vs prototype: bounded da65 adjudication','', 'Width-state provenance is independent of snes2asm.','', '| Probe | Range | Retail lines | Prototype lines | Same count | First differing line | Exact |','|---|---|---:|---:|---|---:|---|']
     for p in report['probes']:
-        lines.append(f"| {p['id']} | `{p['retail_start']}..{p['retail_end']}` | `{p['prototype_start']}..{p['prototype_end']}` | {p['prototype_shift']:+d} | {p['raw_alignment_similarity']:.3f} | {p['builds']['europe-retail']['instruction_lines']} | {p['builds']['pal-prototype-1994-11-29']['instruction_lines']} | {p['same_instruction_count']} | {p['exact_normalized_match']} |")
-    lines += ['', 'Interpretation rule: the raw-byte shift establishes the homologous region independently of snes2asm. Equal da65 instruction counts support stable boundaries despite relocation; count divergence after a high-similarity raw alignment is a stronger structural-change signal and should be escalated to Ghidra/xref inspection.', '']
+        lines.append(f"| {p['id']} | `{p['usa_anchor_start']}..{p['usa_anchor_end']}` | `{p['builds']['europe-retail']['start']}..{p['builds']['europe-retail']['end']}` / {p['builds']['europe-retail']['shift_from_usa']:+d} / {p['builds']['europe-retail']['raw_similarity_to_usa']:.3f} | `{p['builds']['pal-prototype-1994-11-29']['start']}..{p['builds']['pal-prototype-1994-11-29']['end']}` / {p['builds']['pal-prototype-1994-11-29']['shift_from_usa']:+d} / {p['builds']['pal-prototype-1994-11-29']['raw_similarity_to_usa']:.3f} | {p['builds']['europe-retail']['instruction_lines']} | {p['builds']['pal-prototype-1994-11-29']['instruction_lines']} | {p['same_instruction_count']} | {p['exact_normalized_match']} |")
+    lines += ['', 'Interpretation rule: USA recovered-code ranges provide independent M/X provenance, while raw-byte similarity independently locates each homolog in Europe and the PAL prototype. Equal da65 instruction counts support stable boundaries despite relocation; count divergence between high-similarity homologs is a stronger structural-change signal and should be escalated to Ghidra/xref inspection.', '']
     args.md_out.write_text('\n'.join(lines),encoding='utf-8')
     print(args.md_out.read_text())
     return 0

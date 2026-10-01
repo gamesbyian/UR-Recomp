@@ -81,6 +81,32 @@ Do not propagate weak names as facts. Hypotheses remain hypotheses, cross-ROM la
 **Dependencies:** ordinary-race path analyzed; alternate split-screen/mode branches may adjust limits.  
 **Propagation:** corrected `1509` from generic TAS “screen X” to P1 screen X, promoted paired screen-coordinate outputs, and marked the projection-policy fields as future widescreen anchors.
 
+### R-PROP-005 — Runtime object code 0x14 is checkpoint/finish behavior
+
+**Status:** confirmed  
+**Date:** 2026-09-30  
+**Area:** course | RAM | physics
+
+**Observation:** `81:82E6` reads an object byte from `7E:C000,X`, clears bit 0, and dispatches through the jump table at `81:8320`. Even code `0x14` selects `81:8050`, the already-confirmed checkpoint/finish handler.  
+**Evidence:** recovered Nitrodon bank-81 disassembly; deterministic Dragster finish fixture already validates the handler's `1199/119D/0EF1` state transitions.  
+**Interpretation:** at least part of `7E:C000+` is a runtime course-object behavior map, and `0x14` is a checkpoint/finish object code.  
+**Discriminating test:** locate `0x14` cells in the active Dragster map, map them to known checkpoint/finish positions, and trace them backward into the decoded RNC payload.  
+**Dependencies:** exact `7E:C000` dimensions/index geometry remain open.  
+**Propagation:** promoted `Course_RuntimeObjectMap`, updated the course-format bridge, and made `0x14` the first concrete behavior code for future editor/course decoding.
+
+### R-PROP-006 — Bounce trace contains collision-shape construction plus velocity transform
+
+**Status:** supported at instruction level  
+**Date:** 2026-09-30  
+**Area:** collision | physics | RAM
+
+**Observation:** the recovered bounce trace through `81:9E2A` reads a compact bank-21 record, uses one byte as a selector into a 16-byte row at `20:BC9F`, combines alternating offsets with base bytes, mirrors by facing, and writes derived geometry under `125B+`. A later block at `81:9546..961B` applies four matrix-like elements to current-player X/Y velocity and writes the transformed pair back to `0F9F/0FA1`.  
+**Evidence:** exact Nitrodon trace `bounce tracelog.txt` plus matching bank-81 disassembly.  
+**Interpretation:** `81:9E2A` is best treated as collision/contact-shape construction, while `81:9546..961B` is a distinct 2×2 velocity-transform boundary for bounce response.  
+**Discriminating test:** replay the recovered bounce case as a deterministic fixture and compare derived `125B+` geometry plus pre/post `0F9F/0FA1`; trace the four transform coefficients upstream only if a collision fidelity defect requires exact surface semantics.  
+**Dependencies:** individual `125B+` point meanings and the semantic identity of the `20:BC9F` templates remain open.  
+**Propagation:** upgrades the historical trace from archival evidence to a bounded collision fixture and narrows future physics work to shape generation and transform coefficients rather than broad collision archaeology.
+
 ## Seed leads to verify locally
 
 ### R-SEED-001 — Rob Northen Compression

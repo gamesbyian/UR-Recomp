@@ -8,13 +8,13 @@ This is a structural clustering surface. Repeated displacement across independen
 
 | Build | Delta | Anchors | Fields | Evidence | Example USA fields |
 |---|---:|---:|---:|---:|---|
-| europe-retail | +10 | 6 | 29 | 99 | `0E89`, `0E8B`, `0E8D`, `0E8F`, `0E91`, `0E93`, `0F47`, `0F49` |
-| europe-retail | +4 | 3 | 12 | 38 | `0411`, `0413`, `0415`, `0417`, `0419`, `041D`, `0421`, `0423` |
-| europe-retail | +6 | 2 | 9 | 28 | `0BA1`, `0BA3`, `0CBB`, `0CE1`, `0CE3`, `0CE5`, `0D0B`, `0D0D` |
-| europe-retail | +0 | 2 | 10 | 19 | `000B`, `02C0`, `02C2`, `02C4`, `02C6`, `2100`, `2115`, `2116` |
-| legacy-beta | +0 | 8 | 62 | 212 | `000B`, `02C0`, `02C2`, `02C4`, `02C6`, `0411`, `0413`, `0415` |
-| pal-prototype-1994-11-29 | +4 | 7 | 31 | 108 | `0E89`, `0E8B`, `0E8D`, `0E8F`, `0E91`, `0E93`, `0EF1`, `0F47` |
-| pal-prototype-1994-11-29 | +0 | 6 | 31 | 90 | `000B`, `02C0`, `02C2`, `02C4`, `02C6`, `0411`, `0413`, `0415` |
+| europe-retail | +10 | 9 | 33 | 109 | `0E89`, `0E8B`, `0E8D`, `0E8F`, `0E91`, `0E93`, `0F41`, `0F47` |
+| europe-retail | +4 | 8 | 48 | 136 | `030D`, `030F`, `0311`, `0315`, `0319`, `031D`, `0321`, `0325` |
+| europe-retail | +0 | 7 | 23 | 65 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
+| europe-retail | +6 | 6 | 14 | 38 | `0541`, `0545`, `0BA1`, `0BA3`, `0BE9`, `0BEB`, `0CBB`, `0CE1` |
+| legacy-beta | +0 | 17 | 124 | 386 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
+| pal-prototype-1994-11-29 | +0 | 15 | 89 | 249 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
+| pal-prototype-1994-11-29 | +4 | 10 | 35 | 118 | `0E89`, `0E8B`, `0E8D`, `0E8F`, `0E91`, `0E93`, `0EF1`, `0F41` |
 
 ## Cross-anchor field consistency
 
@@ -24,16 +24,65 @@ A field is listed here when the same USA address appears in more than one truste
 |---|---|---|---:|---|
 | europe-retail | `0411` | `0415` | +4 | Race_BuildRacerOAMState, Race_UpdateRacersFrame |
 | europe-retail | `0415` | `0419` | +4 | Race_BuildRacerOAMState, Race_UpdateRacersFrame |
+| europe-retail | `0419` | `041D` | +4 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
+| europe-retail | `041D` | `0421` | +4 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
+| europe-retail | `04F5` | `04F9` | +4 | Camera_StateQuantizeP1, Camera_UpdatePersistentState |
+| europe-retail | `050F` | `0513` | +4 | Camera_StateQuantizeP1, Camera_StateQuantizeP2Tail |
+| europe-retail | `0545` | `054B` | +6 | Race_UpdateRacersFrame, Stunt_FinalizeAndScoreAirTricks |
+| europe-retail | `0D49` | `0D4F` | +6 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
 | europe-retail | `0F9F` | `0FA9` | +10 | Collision_TransformVelocity, Race_UpdateRacersFrame |
-| europe-retail | `0FA1` | `0FAB` | +10 | Collision_TransformVelocity, Race_UpdateRacersFrame |
+| europe-retail | `0FA1` | `0FAB` | +10 | Collision_TransformVelocity, Player_ApplyVerticalAcceleration, Race_UpdateRacersFrame |
+| europe-retail | `0FEF` | `0FF9` | +10 | Player_ApplyVerticalAcceleration, Race_UpdateRacersFrame |
+| europe-retail | `2115` | `2115` | +0 | Course_LoadAndMaterialize, State0306_DmaGate |
+| europe-retail | `2116` | `2116` | +0 | Course_LoadAndMaterialize, State053B_VramGate |
+| europe-retail | `420B` | `420B` | +0 | Course_LoadAndMaterialize, State0306_DmaGate |
 | legacy-beta | `0411` | `0411` | +0 | Race_BuildRacerOAMState, Race_UpdateRacersFrame |
 | legacy-beta | `0415` | `0415` | +0 | Race_BuildRacerOAMState, Race_UpdateRacersFrame |
+| legacy-beta | `0419` | `0419` | +0 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
+| legacy-beta | `041D` | `041D` | +0 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
+| legacy-beta | `04F5` | `04F5` | +0 | Camera_StateQuantizeP1, Camera_UpdatePersistentState |
+| legacy-beta | `050F` | `050F` | +0 | Camera_StateQuantizeP1, Camera_StateQuantizeP2Tail |
+| legacy-beta | `0545` | `0545` | +0 | Race_UpdateRacersFrame, Stunt_FinalizeAndScoreAirTricks |
+| legacy-beta | `0D49` | `0D49` | +0 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
 | legacy-beta | `0F9F` | `0F9F` | +0 | Collision_TransformVelocity, Race_UpdateRacersFrame |
-| legacy-beta | `0FA1` | `0FA1` | +0 | Collision_TransformVelocity, Race_UpdateRacersFrame |
+| legacy-beta | `0FA1` | `0FA1` | +0 | Collision_TransformVelocity, Player_ApplyVerticalAcceleration, Race_UpdateRacersFrame |
+| legacy-beta | `0FEF` | `0FEF` | +0 | Player_ApplyVerticalAcceleration, Race_UpdateRacersFrame |
+| legacy-beta | `2115` | `2115` | +0 | Course_LoadAndMaterialize, State0306_DmaGate |
+| legacy-beta | `2116` | `2116` | +0 | Course_LoadAndMaterialize, State053B_VramGate |
+| legacy-beta | `420B` | `420B` | +0 | Course_LoadAndMaterialize, State0306_DmaGate |
 | pal-prototype-1994-11-29 | `0411` | `0411` | +0 | Race_BuildRacerOAMState, Race_UpdateRacersFrame |
 | pal-prototype-1994-11-29 | `0415` | `0415` | +0 | Race_BuildRacerOAMState, Race_UpdateRacersFrame |
+| pal-prototype-1994-11-29 | `0419` | `0419` | +0 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
+| pal-prototype-1994-11-29 | `041D` | `041D` | +0 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
+| pal-prototype-1994-11-29 | `04F5` | `04F5` | +0 | Camera_StateQuantizeP1, Camera_UpdatePersistentState |
+| pal-prototype-1994-11-29 | `050F` | `050F` | +0 | Camera_StateQuantizeP1, Camera_StateQuantizeP2Tail |
+| pal-prototype-1994-11-29 | `0545` | `0545` | +0 | Race_UpdateRacersFrame, Stunt_FinalizeAndScoreAirTricks |
+| pal-prototype-1994-11-29 | `0D49` | `0D49` | +0 | Camera_UpdatePersistentState, Race_BuildRacerOAMState |
 | pal-prototype-1994-11-29 | `0F9F` | `0FA3` | +4 | Collision_TransformVelocity, Race_UpdateRacersFrame |
-| pal-prototype-1994-11-29 | `0FA1` | `0FA5` | +4 | Collision_TransformVelocity, Race_UpdateRacersFrame |
+| pal-prototype-1994-11-29 | `0FA1` | `0FA5` | +4 | Collision_TransformVelocity, Player_ApplyVerticalAcceleration, Race_UpdateRacersFrame |
+| pal-prototype-1994-11-29 | `0FEF` | `0FF3` | +4 | Player_ApplyVerticalAcceleration, Race_UpdateRacersFrame |
+| pal-prototype-1994-11-29 | `2115` | `2115` | +0 | Course_LoadAndMaterialize, State0306_DmaGate |
+| pal-prototype-1994-11-29 | `2116` | `2116` | +0 | Course_LoadAndMaterialize, State053B_VramGate |
+| pal-prototype-1994-11-29 | `420B` | `420B` | +0 | Course_LoadAndMaterialize, State0306_DmaGate |
+
+## PAL prototype → Europe retail secondary motion
+
+For fields consistently projected in both builds, this subtracts the prototype address from the Europe address. The result isolates layout motion that occurred after the 1994-11-29 prototype.
+
+| Prototype→Europe delta | Fields | Example USA→prototype→Europe paths |
+|---:|---:|---|
+| +4 | 48 | `030D→030D→0311`, `030F→030F→0313`, `0311→0311→0315`, `0315→0315→0319`, `0319→0319→031D`, `031D→031D→0321` |
+| +6 | 47 | `0541→0541→0547`, `0545→0545→054B`, `0BA1→0BA1→0BA7`, `0BA3→0BA3→0BA9`, `0BE9→0BE9→0BEF`, `0BEB→0BEB→0BF1` |
+| +0 | 23 | `000B→000B→000B`, `0230→0230→0230`, `0232→0232→0232`, `0234→0234→0234`, `0236→0236→0236`, `0260→0260→0260` |
+
+## Inferred post-prototype insertion brackets
+
+These are address-space brackets, not exact insertion addresses. A displacement jump means some later-added/expanded state lies after the last known field in the old family and no later than the first known field in the new family.
+
+| From delta | To delta | Jump | Last known before | First known after | USA-address gap |
+|---:|---:|---:|---|---|---:|
+| +0 | +4 | +4 | `0309` | `030D` | 4 |
+| +4 | +6 | +2 | `053B` | `0541` | 6 |
 
 ## Contradictions / exceptions
 
@@ -43,5 +92,6 @@ No trusted USA field projected to conflicting candidate addresses across the acc
 
 - Prefer clusters supported by multiple independent anchors when inferring a build-specific logical block.
 - Treat structure-specific displacement families as evidence against a single global WRAM relocation.
+- Use prototype→Europe secondary motion to infer later insertions/repacking without conflating them with earlier USA→prototype layout changes.
 - Investigate exceptions first when they intersect current physics, course, rendering, or fidelity questions.
 - Do not transfer semantic labels from USA solely because an address follows a dominant displacement family.

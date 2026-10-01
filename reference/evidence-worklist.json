@@ -73,17 +73,25 @@
       "id": "regional-and-prototype-differential",
       "value": "critical",
       "cost": "medium",
-      "status": "ready",
+      "status": "active-local-discriminators",
       "source_ids": [
         "hidden-palace-uniracers-prototype",
         "gamedb-snes-unirally-beta-c362c7b1",
-        "regional-title-identities"
+        "regional-title-identities",
+        "tasvideos-uniracers-region-desync",
+        "gamefaqs-uniracers-ntsc-records",
+        "gamefaqs-unirally-pal-records",
+        "nintendolife-making-unirally-2010",
+        "bsnes-state-of-emulation-uniracers"
       ],
       "question": "Which late-development and PAL/NTSC differences reveal function boundaries, timing changes, content tables, and fixes that a single retail image hides?",
-      "next_discriminator": "Continue classification of executable/data diff runs outside the already-mapped RNC corpus and align code-shaped regions across USA retail, Europe retail, legacy beta, and the 1994-11-29 PAL prototype.",
+      "next_discriminator": "Reproduce the historically observed PAL/NTSC deterministic-input desync with a project-owned fixed input trace across USA retail, PAL prototype, and Europe retail; localize the first divergent frame/state. Use historical PAL/NTSC record tables only as coarse timer sanity checks, and keep active-display OAM emulator history as a separate hardware seam rather than regional-code evidence.",
       "deliverables": [
-        "classified high-value binary-diff regions",
-        "new function/table boundary candidates",
+        "classified high-value binary-diff regions (landed/ongoing)",
+        "homolog-aligned multi-analyzer corpus with PAL survivor closure (landed)",
+        "post-prototype WRAM insertion brackets and negative direct-reference probes (landed)",
+        "regional deterministic-input first-divergence report (next)",
+        "regional timer sanity comparison against historical PAL/NTSC record populations (next, low-cost)",
         "regional timing/frontend/protection hypotheses with local tests"
       ],
       "tags": [

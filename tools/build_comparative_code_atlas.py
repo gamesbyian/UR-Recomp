@@ -116,18 +116,42 @@ def semantic_status(symbol: dict[str, Any]) -> str:
     return "named_unverified"
 
 
+STRUCTURAL_BUILD_NAMES = {
+    "europe-retail": "europe",
+    "legacy-beta": "beta",
+    "pal-prototype-1994-11-29": "prototype",
+}
+STRUCTURAL_RESOLVED_TIERS = {"exact", "strong", "supported"}
+
+
+def load_structural_correspondence(path: Path | None) -> dict[tuple[str, str], dict[str, Any]]:
+    if path is None or not path.exists():
+        return {}
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    out: dict[tuple[str, str], dict[str, Any]] = {}
+    for row in payload.get("functions", []):
+        build = STRUCTURAL_BUILD_NAMES.get(str(row.get("build")))
+        name = row.get("name")
+        if not build or not name:
+            continue
+        out[(str(name), build)] = row
+    return out
+
+
 def build_atlas(
     rom_paths: dict[str, Path],
     symbols_path: Path,
     gaps_path: Path,
     *,
     window_size: int = 32,
+    correspondence_path: Path | None = None,
 ) -> dict[str, Any]:
     if window_size < 8:
         raise ValueError("window_size must be >= 8")
     roms = {name: rom_paths[name].read_bytes() for name in ROM_NAMES}
     symbols_payload = json.loads(symbols_path.read_text(encoding="utf-8"))
     gaps_payload = json.loads(gaps_path.read_text(encoding="utf-8"))
+    structural = load_structural_correspondence(correspondence_path)
 
     functions: list[dict[str, Any]] = []
     skipped: list[dict[str, Any]] = []
@@ -164,6 +188,16 @@ def build_atlas(
         }
         for name in ROM_NAMES[1:]:
             matches[name] = match_build(roms[name], off, window)
+            row = structural.get((str(symbol.get("name")), name))
+            if row:
+                matches[name]["structural_correspondence"] = {
+                    "candidate_cpu_address": row.get("candidate"),
+                    "evidence_tier": row.get("evidence_tier"),
+                    "byte_similarity": row.get("byte_similarity"),
+                    "matcher_score": row.get("matcher_score"),
+                    "semantic_reference_recall": row.get("semantic_reference_recall"),
+                    "independent_evidence": row.get("independent_evidence"),
+                }
 
         functions.append({
             "id": f"fn_{cpu:06X}",
@@ -181,6 +215,10 @@ def build_atlas(
             "build_matches": matches,
             "needs_structural_alignment": any(
                 m["status"] in {"unmatched", "exact_ambiguous"}
+                and (
+                    not m.get("structural_correspondence")
+                    or m["structural_correspondence"].get("evidence_tier") not in STRUCTURAL_RESOLVED_TIERS
+                )
                 for name, m in matches.items() if name != "usa"
             ),
         })
@@ -192,6 +230,15 @@ def build_atlas(
             status = fn["build_matches"][name]["status"]
             counts[status] = counts.get(status, 0) + 1
         match_counts[name] = dict(sorted(counts.items()))
+
+    structural_resolved_counts: dict[str, int] = {}
+    for name in ROM_NAMES[1:]:
+        structural_resolved_counts[name] = sum(
+            1 for fn in functions
+            if fn["build_matches"][name]["status"] in {"unmatched", "exact_ambiguous"}
+            and fn["build_matches"][name].get("structural_correspondence", {}).get("evidence_tier")
+                in STRUCTURAL_RESOLVED_TIERS
+        )
 
     semantic_counts: dict[str, int] = {}
     for fn in functions:
@@ -210,6 +257,7 @@ def build_atlas(
         "inputs": {
             "symbols": str(symbols_path),
             "gaps": str(gaps_path),
+            "structural_correspondence": str(correspondence_path) if correspondence_path else None,
             "roms": {
                 name: {
                     "path": str(rom_paths[name]),
@@ -224,6 +272,7 @@ def build_atlas(
             "skipped_function_symbols": len(skipped),
             "semantic_status_counts": dict(sorted(semantic_counts.items())),
             "cross_build_match_status_counts": match_counts,
+            "structurally_resolved_exact_misses": structural_resolved_counts,
             "explicit_gap_count": len(gaps),
             "gap_kind_counts": dict(sorted(gap_counts.items())),
             "note": (
@@ -269,6 +318,34 @@ def render_markdown(atlas: dict[str, Any]) -> str:
             f"{x.get('unmatched', 0)} |"
         )
 
+    lines += [
+        "",
+        "## Structurally resolved exact-fingerprint misses",
+        "",
+        "These remain exact-fingerprint misses. They are removed from the structural-alignment queue only when an independent structural matcher has already supplied supported-or-better correspondence evidence.",
+        "",
+        "| USA address | Symbol | Build | Exact status | Structural candidate | Tier |",
+        "|---|---|---|---|---|---|",
+    ]
+    structural_rows = []
+    for fn in atlas["functions"]:
+        for build in ROM_NAMES[1:]:
+            match = fn["build_matches"][build]
+            corr = match.get("structural_correspondence")
+            if (
+                match["status"] in {"unmatched", "exact_ambiguous"}
+                and corr
+                and corr.get("evidence_tier") in STRUCTURAL_RESOLVED_TIERS
+            ):
+                structural_rows.append((fn, build, match, corr))
+    for fn, build, match, corr in structural_rows:
+        lines.append(
+            f"| `{fn['usa_cpu_address']}` | {fn['name']} | {build} | {match['status']} | "
+            f"`{corr.get('candidate_cpu_address')}` | {corr.get('evidence_tier')} |"
+        )
+    if not structural_rows:
+        lines.append("| — | None | — | — | — | — |")
+
     lines += ["", "## Explicit gaps", ""]
     for gap in atlas["explicit_gaps"]:
         loc = gap.get("address") or gap.get("site") or gap.get("region") or "n/a"
@@ -305,11 +382,22 @@ def main() -> int:
     ap.add_argument("--symbols", type=Path, default=Path("analysis/generated/symbols.json"))
     ap.add_argument("--gaps", type=Path, default=Path("analysis/decompilation-gaps.json"))
     ap.add_argument("--window-size", type=int, default=32)
+    ap.add_argument(
+        "--correspondence",
+        type=Path,
+        default=Path("analysis/generated/cross-build-symbol-correspondence.json"),
+    )
     ap.add_argument("--json-out", type=Path, default=Path("analysis/generated/comparative-code-atlas.json"))
     ap.add_argument("--md-out", type=Path, default=Path("analysis/generated/comparative-code-atlas.md"))
     args = ap.parse_args()
     rom_paths = {name: getattr(args, name) for name in ROM_NAMES}
-    atlas = build_atlas(rom_paths, args.symbols, args.gaps, window_size=args.window_size)
+    atlas = build_atlas(
+        rom_paths,
+        args.symbols,
+        args.gaps,
+        window_size=args.window_size,
+        correspondence_path=args.correspondence,
+    )
     args.json_out.parent.mkdir(parents=True, exist_ok=True)
     args.md_out.parent.mkdir(parents=True, exist_ok=True)
     args.json_out.write_text(json.dumps(atlas, indent=2, sort_keys=True) + "\n", encoding="utf-8")

@@ -49,6 +49,70 @@
       "summary": "Dense replay sampling first differs at frame 437, but bounded tracing shows the compared low-WRAM addresses are being reused by frontend fill/text-layout code before their race semantics apply. The historical SMV's absolute pre-race frame clock is therefore not a semantic fidelity oracle.",
       "priority": "medium",
       "next_evidence": "Use the historical movie event-relatively. Resume divergence tracing only at a state/address whose semantics are valid in both runtimes, preferably after race entry or another explicit semantic anchor."
+    },
+    {
+      "id": "resolved-pal-subregion-alignment",
+      "kind": "resolved_cross_build_alignment",
+      "region": "PAL retail/prototype survivor windows 00:8C49..00:8CCA, 00:ABA9..00:ADE2, 00:C3A9..00:C450",
+      "summary": "All 114 snes2asm role disagreements surviving whole-window homolog alignment disappear after trusted code/data/function subdivision and piecewise realignment. The only genuine executable lineage delta is a four-byte PAL-retail-only JSL at 80:8C74..80:8C77, which changes the local homolog shift from -5 to -9.",
+      "priority": "low",
+      "next_evidence": "No da65/Ghidra adjudication is needed for these windows. Revisit the retail-only call only if its semantics become necessary for a later cross-build interpretation."
+    },
+    {
+      "id": "resolved-europe-usa-seeded-homologs",
+      "kind": "resolved_cross_build_analyzer_consensus",
+      "region": "selected USA/Europe homologs: text metadata, vertical acceleration, input decode, collision transform/contact shape, HUD queue, racer-frame marshal, stunt-finalizer, course-loader/materializer, OAM projection, checkpoint/finish",
+      "summary": "Trusted-entry-seeded snes2asm comparison now covers 20 directly comparable executable subregions with 1,455 aligned opcode positions. All aligned opcode bytes, opcode/operand roles, and M/X states agree; 510 aligned byte changes are operand bytes. Checkpoint/finish additionally contains one explicit structural delta: Europe retail contracts USA 81:8102..8117 (22-byte frame-normalization logic) to 81:8102..8109 (8 bytes), a net -14 bytes. USA retail, legacy beta, and the 1994-11-29 PAL prototype retain the 22-byte executable shape; Europe retail alone uses the contracted form. A parallel USA/PAL-prototype pass covers 19 trusted subregions with 1,465 aligned opcode positions: zero opcode substitutions, zero role/MX disagreements, and 296 operand-byte changes. This confirms the prototype preserves the USA executable stream throughout the tested corpus and is materially closer to USA than Europe retail at the operand/layout level.",
+      "priority": "low",
+      "next_evidence": "Trusted code-shape comparisons are saturated. Remaining high-information comparative work is WRAM lineage: identify the Europe-only state responsible for the +4 insertion after 0309/before old 030D and the +2 insertion after 053B/before old 0541. Do not broaden analyzer coverage absent a new disagreement."
+    },
+    {
+      "id": "wram-post-prototype-insertions",
+      "kind": "unresolved_structural_semantics",
+      "region": "Europe-retail WRAM insertion brackets after 0309/before old 030D and after 053B/before old 0541",
+      "summary": "Cross-build operand motion proves two post-1994-11-29 Europe-retail WRAM expansions: +4 bytes after stable 0309/before the relocated controller buffer at old 030D, and +2 bytes after 053B/before old 0541. An all-trusted-anchor scan finds no unexplained direct Europe operands in either inserted span. Europe auto-joypad capture still reads only 4218..421B and stores the same four-byte payload at relocated 0311..0314, so the first insertion is not extra controller capture state.",
+      "priority": "medium",
+      "next_evidence": "Only pursue exact inserted-field semantics via indexed/indirect access reconstruction, runtime watchpoints, or newly recovered source/comments. Direct absolute-reference mining is currently exhausted."
+    },
+    {
+      "id": "resolved-racer-update-a22b-aa6d-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 82:A22B..AA6D and homologs",
+      "summary": "Comparative structure recovery now covers 2,115 contiguous USA bytes: eleven bounded routines, a byte-identical 128-byte/64-word lookup table, the five-byte PAL-line NOP contraction, two preserved dead-code candidates, and a structural bridge into the named vertical-acceleration and input-decoder anchors.",
+      "priority": "low",
+      "next_evidence": "Move to another high-connectivity executed subsystem island. Revisit this corridor only when runtime or semantic evidence needs one of its anonymous routines or dead-code candidates."
+    },
+    {
+      "id": "resolved-object-collision-82e2-84d1-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:82E2..84D1 and homologs",
+      "summary": "Recovered long-entry wrapper, dispatcher code split around a 15-word pointer prefix, a bounded handler, an exact 25-word lookup table, corrected next-handler entry, and an Europe-retail-only five-byte executable prologue absent from the PAL prototype.",
+      "priority": "low",
+      "next_evidence": "Only expand the indirect dispatch domain when a concrete object-handler or AOT question requires proving X values beyond the explicit 15-pointer prefix."
+    },
+    {
+      "id": "resolved-course-materialization-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 82:E165..E395 and homologs",
+      "summary": "Recovered the full named course loader as five bounded executable regions: setup, resource-record/header handling, DMA row loop, A000/C000 materialization, and common exit. All 554 USA bytes are analyzer-reached. Europe preserves the structure at shift -58, PAL prototype at -100, and legacy beta is byte-identical.",
+      "priority": "low",
+      "next_evidence": "Revisit internal descriptor/plane semantics only when course/editor implementation requires them. Comparative structure work should move to a fourth independent subsystem."
+    },
+    {
+      "id": "resolved-racer-oam-viewport-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 82:ACA5..B17F and homologs",
+      "summary": "Recovered the complete racer OAM/viewport builder as 12 gapless instruction-aligned regions. Legacy beta is byte-identical. PAL prototype and Europe preserve the same architecture; their two 2-byte contractions delete redundant first copies from consecutive REP #$20 pairs in the split-camera P2 and P1 projection blocks.",
+      "priority": "low",
+      "next_evidence": "Revisit only for concrete widescreen/viewport policy implementation or if runtime evidence exposes a presentation discrepancy. Comparative structure work should move to another subsystem."
+    },
+    {
+      "id": "resolved-course-surface-sampler-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:8B95..8D13 and homologs",
+      "summary": "Recovered the common per-racer course runtime surface sampler as one fully reached 383-byte function. It consumes C000 plus A000/A001 between collision-shape construction and later collision handling. PAL prototype and Europe retain the complete 167-opcode/216-operand shape at -32; beta is byte-identical. The odd-looking 8C03..8C1F Nitrodon stream is width-context linear-disassembly drift, not embedded data or exceptional control flow.",
+      "priority": "low",
+      "next_evidence": "Revisit A000/C000 value semantics only for a concrete course/editor or collision-fidelity decision. Comparative structure should move to another subsystem."
     }
   ]
 }

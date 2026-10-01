@@ -1253,3 +1253,369 @@ Static bank-81 analysis independently localizes the checkpoint/finish handler to
 **Interpretation:** deterministic 1P finish fidelity is closed at the current semantic evidence level. Further finish tracing should be demand-driven by a specific product discrepancy, not collected for completeness.
 
 **Evidence:** run `36801728342`; `.github/workflows/race-finish-differential.yml`; `tools/summarize_paired_player_slots.py`; Nitrodon bank-81 listing.
+
+### R-SEED-052 — PAL survivor disagreements collapse under trusted-boundary piecewise alignment
+
+**Status:** confirmed methodological closure with one genuine executable lineage delta  
+**Date:** 2026-09-30  
+**Area:** CPU | decompilation | comparative analysis | tooling
+
+The first homolog-aligned PAL retail versus 1994-11-29 prototype snes2asm pass reduced same-offset role disagreement from 3,662 to 114 but left three survivor windows. A second pass subdivided only at independently recovered boundaries from Nitrodon's bank-80 listing, the decoded frontend dispatch table, and known control-flow entries, then realigned each executable island separately.
+
+All 114 remaining role disagreements disappear. In `00:ABA9..00:ADE2`, executable `ABB9..AD0F` aligns at -31 while `AD34..ADE2` aligns at -13, with embedded frontend data between them. In `00:C3A9..00:C450`, code on both sides of the 17-entry `C3CB..C3EC` dispatch table aligns cleanly at -19. In `00:8C49..00:8CCA`, executable `8C4E..8C73` is byte-identical at -5 and `8C78..8CCA` is byte-identical at -9; PAL retail alone contains a four-byte JSL at `80:8C74..80:8C77`.
+
+**Interpretation:** analyzer disagreement is now zero inside homologous executable subregions for all 32 high-value PAL/prototype windows. The remaining evidence is structural: mixed code/data windows need piecewise alignment, and real instruction insertions/deletions can change the homolog shift within a function. Do not escalate these closed windows to da65 or Ghidra. Preserve the retail-only JSL as a genuine lineage delta.
+
+**Evidence:** `analysis/generated/pal-snes2asm-homolog-alignment.{json,md}`; `analysis/generated/pal-snes2asm-subregion-alignment.{json,md}`; `tools/refine_pal_snes2asm_survivors.py`; Nitrodon `reference/imported/reverse-engineering/nitrodon/bank 80.txt`.
+
+### R-SEED-053 — Fresh Europe/USA exact misses resolve structurally
+
+**Status:** supported/strong cross-build correspondence; atlas queue corrected  
+**Date:** 2026-09-30  
+**Area:** CPU | decompilation | comparative analysis | symbols
+
+After closing the PAL/prototype analyzer survivors, the exact-fingerprint atlas still exposed five Europe/USA function misses. HUD queue and stunt finalizer already had structural correspondence evidence. The three remaining useful misses were added to the relocation-resistant semantic-anchor corpus.
+
+`Player_ApplyVerticalAcceleration` maps USA `82:A968` to PAL prototype `82:A959` (0.912 similarity, strong) and Europe `82:A96F` (0.897, supported). Europe’s changed operands follow established regional motion families: `0F41→0F4B`, `0FEF→0FF9`, `0FA1→0FAB`, with `0541→0547` in a +6 family.
+
+`Input_DecodePlayer1Buttons` maps USA `82:AA6E` to PAL prototype `82:AA5F` (0.988, strong) and Europe `82:AA75` (0.846, strong). Europe coherently translates the controller-state block by +4, including `030D→0311`, `030F→0313`, and the output fields through `0335→0339`.
+
+`Text_TestCharacterMetadataBit7` maps USA `80:8C41` to PAL prototype `80:8C3C` (0.923, strong) and Europe `80:8C41` (0.846, supported).
+
+**Interpretation:** exact byte-window failure and unresolved correspondence are different states. The comparative atlas now consumes the canonical structural-correspondence surface and removes supported-or-better structural matches from the structural-alignment queue while retaining their exact-match status unchanged.
+
+**Evidence:** `tools/compare_semantic_anchors.py`; `tools/build_cross_build_symbol_correspondence.py`; `tools/build_comparative_code_atlas.py`; `analysis/generated/semantic-anchor-cross-build-matches.{json,md}`; `analysis/generated/cross-build-symbol-correspondence.{json,md}`; `analysis/generated/cross-build-semantic-anchor-findings-2026-09-30.md`.
+
+### R-SEED-054 — Seeded Europe/USA homologs preserve opcodes across selected core routines
+
+**Status:** confirmed bounded analyzer consensus; operand-only regional variation in accepted corpus  
+**Date:** 2026-09-30  
+**Area:** CPU | decompilation | comparative analysis | regional layout
+
+The first Europe/USA snes2asm probe initially returned zero role disagreement for the newly matched bank-81/bank-82 routines, but inspection showed every compared byte was `unreached→unreached`. That unseeded result is rejected as vacuous: snes2asm's default vector walk does not reach these routines.
+
+The accepted pass seeds only independently recovered function entries before path discovery. `Collision_TransformVelocity` additionally seeds at the local `REP #$10 / SEP #$20` width setup immediately before the compared matrix body, so M/X context is established independently rather than guessed.
+
+Fourteen executable subregions now cover text metadata, vertical acceleration, three independently bounded input-decoder pieces, collision velocity/contact-shape logic, HUD enqueue, the racer-frame state-marshal prefix, two stunt-finalizer blocks, and three course-loader/materializer blocks.
+
+Across **1,152 aligned opcode positions** there are:
+- **0 opcode-byte substitutions**;
+- **0 opcode/operand role disagreements**;
+- **0 M/X disagreements**;
+- **427 changed operand bytes**.
+
+Raw similarity ranges from 0.674 to 0.990. The racer-frame marshal prefix is the strongest example: only 67.4% of raw bytes match, yet all 208 aligned opcode bytes are identical and 203 changed bytes are operands. This is direct comparative evidence of regional state-layout retargeting inside preserved executable structure.
+
+**Interpretation:** do not escalate these fourteen regions to da65/Ghidra. Preserve their operand changes as regional address/constant evidence. Also treat analyzer reachability itself as part of the comparison contract: `unreached→unreached` is not consensus.
+
+**Evidence:** `tools/compare_europe_usa_snes2asm_homologs.py`; `analysis/generated/europe-usa-snes2asm-homologs.{json,md}`; run `36816088608`; Nitrodon bank-80/81/82 listings.
+
+### R-SEED-055 — Europe retail contracts checkpoint timer normalization after the PAL prototype
+
+**Status:** confirmed four-ROM lineage delta  
+**Date:** 2026-09-30  
+**Area:** CPU | checkpoint/finish | regional timing | comparative analysis
+
+The expanded Europe/USA seeded snes2asm corpus adds bounded checkpoint/finish and racer-OAM projection regions.
+
+The OAM player-1 and player-2 projection blocks align at Europe shift `+7` with 141 aligned opcode positions, zero opcode substitutions, zero role/M/X disagreements, and 48 operand-byte changes.
+
+`Race_HandleCheckpointFinish` is more interesting. Its dispatch-confirmed entry remains `81:8050` in USA and Europe. Code through USA/Europe `81:8101` is structurally aligned at shift 0. The later record and lap/HUD blocks align cleanly at shift `-14`. The intervening timer-frame normalization block is a real regional size/logic change:
+
+- USA `81:8102..81:8117`: 22 bytes, opcode shape `AD C9 30 3A 0A 18 6D C9 30 A9`.
+- Europe `81:8102..81:8109`: 8 bytes, opcode shape `AD 0A 18 6D`.
+- Net Europe contraction: **14 bytes**.
+
+Under the independently established 16-bit state, USA reads the frame field, conditionally decrements it when it is at least 4, doubles it, adds `$0300`, then clamps the result to 9. Europe reads its relocated frame field, doubles it, and adds `$0300`, omitting both adjustment/clamp branches.
+
+Four-ROM shape classification sharpens the lineage:
+- USA retail: 22-byte style.
+- Legacy beta: 22-byte style.
+- PAL prototype 1994-11-29: 22-byte style with the expected relocated frame-field operand.
+- Europe retail: 8-byte style.
+
+**Interpretation:** this simplification occurred after the November 1994 PAL prototype and is specific to the later Europe-retail line among the four preserved builds. Do not generalize it to all PAL code. It is preserved as a genuine executable delta, while the surrounding checkpoint/finish code remains homologous after piecewise alignment.
+
+**Evidence:** `tools/compare_europe_usa_snes2asm_homologs.py`; `analysis/generated/europe-usa-snes2asm-homologs.{json,md}`; run `36816833830`; dispatch-confirmed `Race_HandleCheckpointFinish` identity.
+
+### R-SEED-056 — PAL prototype preserves USA opcode stream across trusted semantic corpus
+
+**Status:** confirmed bounded analyzer consensus  
+**Date:** 2026-09-30  
+**Area:** CPU | PAL prototype | comparative analysis | regional layout
+
+The trusted Europe/USA semantic corpus was reused against the 1994-11-29 PAL prototype, preserving the same independently recovered subregion boundaries and trusted-entry seeding discipline.
+
+Across **19 bounded executable subregions** and **1,465 aligned opcode positions**:
+- **0 opcode substitutions**;
+- **0 opcode/operand role disagreements**;
+- **0 M/X disagreements**;
+- **296 changed operand bytes**.
+
+The tested corpus spans text metadata, vertical acceleration, the recovered input decoder, collision velocity/contact-shape logic, HUD enqueue, racer-frame state marshal, stunt finalizer, course load/materialization, checkpoint/finish, and both racer-OAM projection blocks.
+
+The prototype is therefore instruction-for-instruction USA-shaped throughout this bounded corpus while already carrying substantial regional operand/address motion. Europe retail shows 510 operand-byte changes across the comparable corpus, versus 296 in the prototype, consistent with additional regional layout evolution after November 1994.
+
+Checkpoint/finish provides the clearest lineage discriminator: the PAL prototype retains the USA-style 22-byte frame-normalization logic at `81:8102`, while Europe retail alone contracts it to 8 bytes.
+
+**Interpretation:** the surviving PAL prototype is best treated as an intermediate regional-layout snapshot with largely frozen executable structure, not merely as a noisy alternate build. For the current trusted-anchor corpus, additional second-analyzer escalation is not warranted unless new evidence contradicts the seeded snes2asm consensus.
+
+**Evidence:** `tools/compare_usa_palprototype_snes2asm_homologs.py`; `analysis/generated/usa-pal-prototype-snes2asm-homologs.{json,md}`; run `36817274047`.
+
+### R-SEED-057 — Post-prototype WRAM repacking separates into +6, +4, and stable families
+
+**Status:** confirmed structural lineage clustering  
+**Date:** 2026-09-30  
+**Area:** WRAM | cross-build lineage | structure inference
+
+The existing `tools/build_wram_motion_atlas.py` was extended rather than replaced. For USA fields that project consistently in both the 1994-11-29 PAL prototype and Europe retail, the atlas now computes a second displacement: Europe candidate address minus prototype candidate address.
+
+This isolates layout motion that occurred **after** the surviving PAL prototype.
+
+The accepted cross-build field set collapses into three clean secondary-motion families:
+
+- **+6 bytes:** 38 fields. This includes message/UI state (`0BA1/0BA3`, `0CBB`, `0CE1..0CE5`, `0D0B/0D0D/0D49`) and a large shared gameplay/state family (`0E89..0E93`, `0F47/0F49/0F61/0F7B/0F9F/0FA1/0FEF`, stunt/progress fields, OAM-related `1509..150E`, and course/runtime fields).
+- **+4 bytes:** 12 fields concentrated in racer position/camera/velocity state, including `0411..042F` and `04B7/04BB`.
+- **+0 bytes:** 10 stable fields, primarily DP/hardware/DMA registers such as `000B`, `02C0..02C6`, `2100/2115/2116`, and `420B/420C`.
+
+No contradictory projection appears within the accepted field corpus.
+
+**Interpretation:** Europe retail is not merely “prototype layout plus a global shift.” At least two distinct logical WRAM families were repacked after November 1994: one by +6 and the racer position/velocity family by +4, while hardware-facing addresses remained fixed. This is stronger evidence for structure boundaries than raw address adjacency alone.
+
+**Evidence:** `tools/build_wram_motion_atlas.py`; `analysis/generated/wram-motion-atlas.{json,md}`; one-shot refresh run `36817638025`.
+
+### R-SEED-058 — Europe retail WRAM repacking is bracketed by two post-prototype insertions
+
+**Status:** confirmed structural brackets; exact inserted fields still open  
+**Date:** 2026-09-30  
+**Area:** WRAM | cross-build lineage | structure inference
+
+The prototype→Europe secondary-motion atlas was tightened with additional trusted semantic fields from input decoding, stunt/result state, persistent racer state, camera state, and air-time handling.
+
+The accepted low-address corpus now separates into three structural families:
+- **+0:** stunt/result scratch through at least `026A`, plus other stable low/MMIO fields;
+- **+4:** raw/controller state beginning by `030D`, persistent racer position/stunt/velocity/pitch state, and camera velocity through at least `04FB`;
+- **+6:** air/physics state beginning by `0541`, and the broad later gameplay/UI/state families above it.
+
+This brackets two post-1994-11-29 insertions/expansions in the Europe-retail WRAM layout:
+
+1. **+4-byte insertion bracket:** after the last confirmed +0 field `026A` and no later than the first confirmed +4 field `030D`.
+2. **+2-byte insertion bracket:** after the last confirmed +4 field `04FB` and no later than the first confirmed +6 field `0541`.
+
+The second bracket is independently supported by bounded camera anchors: `04F5/04F7/04F9/04FB` all remain prototype→Europe +4, while `0541` and `0545` are +6.
+
+Nitrodon's recovered RAM map gives useful semantic landmarks around the second bracket: `04F1/04F3` are map-size geometry, `04F5/04F7/04F9/04FB` are camera-velocity/state slots, and `0545` is player air time. The exact new Europe-only field(s) responsible for the +2 jump are not yet identified.
+
+A hygiene correction also excludes `Text_TestCharacterMetadataBit7`'s ROM table at `80:C6F8` from the WRAM-motion atlas; its prior +19 projection was not WRAM evidence.
+
+**Interpretation:** treat these as address-space insertion brackets, not exact field locations. The highest-value next step is to inspect code/data references inside `026A..030D` and `04FB..0541` for Europe-only or resized state, rather than broadening the homolog corpus.
+
+**Evidence:** `tools/compare_semantic_anchors.py`; `tools/build_wram_motion_atlas.py`; `analysis/generated/wram-motion-atlas.{json,md}`; Nitrodon `RAM addresses.txt`; boundary-refresh runs `36818170140`, `36818242325`.
+
+### R-SEED-059 — Post-prototype WRAM insertion brackets narrowed to 0309→030D and 053B→0541
+
+**Status:** confirmed structural brackets; inserted-field semantics remain unidentified  
+**Date:** 2026-09-30  
+**Area:** WRAM | cross-build lineage | structure inference
+
+Two narrow probes refine R-SEED-058 without changing its basic interpretation.
+
+For the first Europe-retail +4 displacement jump, additional trusted anchors show:
+- `0302` remains fixed across USA retail, the PAL prototype, and Europe retail.
+- unnamed live state `0306` remains fixed.
+- unnamed live state `0309` remains fixed.
+- USA/prototype raw-controller word `030D` maps to Europe `0311` (+4), and `030F` maps to `0313`.
+
+No credible recovered references were found for `030A..030C`. The formal insertion bracket is therefore **after `0309`, no later than old field `030D`**. The evidence is consistent with a four-byte Europe-only allocation immediately before the old controller block, but its contents are not yet semantically identified.
+
+For the later +2 jump, same-function camera-state anchors progressively tighten the boundary:
+- `0521`, `052B`, `052F`, `0533`, `0535`, `0537`, `0539`, and `053B` all remain in the prototype→Europe +4 family.
+- `0541` is already in the +6 family, mapping to Europe `0547`.
+- `0545` likewise maps at +6 to Europe `054B`.
+
+The formal second insertion bracket is therefore **after `053B`, no later than old field `0541`**. Recovered code has no trustworthy references to `053D/053F`, so static evidence currently cannot place the two-byte insertion more precisely.
+
+A separate trusted-entry operand scan corroborates the family transitions without being used as semantic proof. Its evidence is preserved in `analysis/generated/wram-insertion-bracket-probe.{json,md}`.
+
+**Interpretation:** Europe retail added or expanded four bytes of low WRAM state immediately before the old controller-state family, and later accumulated a further two-byte expansion somewhere after `053B` but before `0541`. These are structure-boundary facts; the identities of the added fields remain open.
+
+**Evidence:** `tools/compare_semantic_anchors.py`; `tools/build_wram_motion_atlas.py`; `tools/probe_wram_insertion_brackets.py`; `analysis/generated/wram-motion-atlas.{json,md}`; `analysis/generated/wram-insertion-bracket-probe.{json,md}`; Nitrodon bank-81/bank-82 listings.
+
+### R-SEED-060 — Europe controller-buffer shift is not extra auto-joypad capture state
+
+**Status:** negative result; insertion semantics remain open  
+**Date:** 2026-09-30  
+**Area:** WRAM | input | regional lineage
+
+The final trusted inserted-state probe seeded every accepted semantic anchor and searched the two narrow post-prototype insertion neighborhoods.
+
+For the first +4 bracket, Europe retail has **no trusted direct references to `030A..0310`**. USA and the PAL prototype reference the old raw-controller bytes `030D..0310`; Europe instead uses the relocated controller buffer beginning at `0311`.
+
+The recovered Europe auto-joypad capture sequence still reads only SNES auto-joypad registers `4218..421B`; there are no trusted reads of `421C..421F`. Europe prepends width-state setup and stores the four captured bytes at `0311/0313/0312/0314`, preserving the same four-byte controller payload after the +4 WRAM displacement.
+
+Therefore the four inserted bytes before the old controller block are **not explained by expanded controller-register capture**. Within the trusted direct-address corpus they are currently unreferenced; padding, reserved state, indexed/indirect access, or as-yet-unrecovered use remain possible.
+
+For the second +2 bracket, the only numerically Europe-only trusted operand inside `053C..0546` is `053D`, which is fully explained as the established +4 relocation target of USA/prototype `0539`. No unexplained Europe direct operand is present in that inserted neighborhood either.
+
+**Interpretation:** absence of direct references is meaningful negative evidence but does not prove padding. Do not assign semantics to either inserted span without direct indexed/runtime evidence.
+
+**Evidence:** `tools/probe_wram_insertion_brackets.py`; `analysis/generated/wram-insertion-bracket-probe.{json,md}`; run `36819609931` and final refreshed evidence.
+
+### R-SEED-061 — External version-difference search yields actionable timing/OAM prior art, no public comprehensive diff
+
+**Status:** external prior-art pass complete; local discriminators queued  
+**Date:** 2026-09-30  
+**Area:** regionalization | prototype | timing | emulation history
+
+A dedicated public search was run across TAS/speedrun forums, GameFAQs archives, emulator changelogs/source history, NESdev/bsnes hardware discussions, preservation databases, developer interviews, and multilingual web results. This is distinct from earlier resource acquisition: the question was specifically what other people had already learned about USA/PAL/prototype differences.
+
+High-value public evidence:
+
+1. **Cross-region deterministic input desync.** A 2008 TASVideos poster accidentally replayed a USA Snes9x movie against PAL `Unirally`; the run diverged immediately and failed Dragster. This is independent historical evidence that region choice materially changes deterministic replay behavior.
+2. **Separate PAL/NTSC record populations.** Historic GameFAQs communities maintained distinct regional record tables. Representative Dragster records (~25.06 s NTSC vs ~29.85 s PAL) are roughly consistent with 60/50-Hz wall-clock scaling but are human records, not a timer oracle.
+3. **Prototype chronology.** Hidden Palace explicitly identifies the Nov-29-1994 image as a European PAL prototype, preceding USA retail and roughly five months before Europe retail. This supports using it as an intermediate lineage discriminator.
+4. **Active-display OAM prior art.** Snes9x historically carried a Uniracers-specific OAM/HDMA workaround; later bsnes/NESdev hardware research explains the game as an unusual active-display/HBlank OAM writer whose successful destination depends on internal PPU OAM addressing.
+5. **Developer protection provenance.** Andrew Innes independently described DMA accidentally discovering real-cartridge versus copy-device behavior and deliberately turning it into anti-piracy protection; contemporary copier documentation also listed Uniracers as protected.
+
+No trustworthy public source found provides a comprehensive USA-vs-Europe executable/gameplay change list. In particular, the search found no prior public documentation of:
+- the Europe-retail-only checkpoint timer-normalization contraction;
+- the post-prototype +4/+2 WRAM insertion chronology;
+- the unresolved semantics of those inserted WRAM spans;
+- a prototype-to-retail technical change log.
+
+**Interpretation:** the public record supplies valuable independent discriminators but does not supersede the local multi-ROM atlas. The strongest next local experiment is a project-owned fixed input trace replayed across USA retail, PAL prototype, and Europe retail, with first divergent frame/state localized.
+
+**Evidence:** `reference/notes/regional-version-differences-prior-art.md`; indexed sources in `reference/catalog.yml`; updated `regional-and-prototype-differential` evidence-worklist entry.
+
+### R-SEED-062 — Racer-update island recovers code→table→code boundaries across all four builds
+
+**Status:** confirmed structural recovery  
+**Date:** 2026-09-30  
+**Area:** CPU | racer update | code/data boundaries | comparative atlas
+
+The reframed multi-ROM × multi-analyzer lane produced its first new structure outside the previously named semantic-anchor set.
+
+Direct calls from `Race_UpdateRacersFrame`, explicit RTS boundaries, exact cross-build byte identity, and trusted-entry-seeded snes2asm recover the USA/beta island:
+
+- routine `82:A22B..A27B` (81 bytes);
+- routine `82:A27C..A2D3` (88 bytes);
+- 128-byte / 64-word lookup table `82:A2D4..A353`;
+- following routine `82:A354..A497`.
+
+The 1994-11-29 PAL prototype and Europe retail omit the five USA/beta NOP bytes at `A2B2..A2B6`-equivalent position. Their second routine is therefore 83 bytes rather than 88, and the otherwise byte-identical lookup table plus following routine shift by an additional five bytes.
+
+The 128-byte lookup table is **exactly identical in all four builds** and is directly consumed by the following routine via a long indexed load from its build-specific base. This independently establishes a durable code/data boundary.
+
+Within the following routine, snes2asm leaves a 13-byte instruction-shaped pocket unreached in every build (USA/beta `A484..A490`, prototype `A475..A481`, Europe `A48B..A497`). The surrounding flow jumps over it and no direct bank-82 branch/call target was found. Preserve it as a dead-code candidate, not data.
+
+**Interpretation:** this is the intended payoff of comparative structure recovery: function sizes, data-object boundaries, lineage edits and dead-code candidates become recoverable before full semantic naming.
+
+**Evidence:** `tools/analyze_racer_update_structure_island.py`; `analysis/generated/racer-update-structure-island.{json,md}`; run `36821725861`.
+
+### R-SEED-063 — Racer-update structural corridor extended 2.1 KiB into gravity/input anchors
+
+**Status:** confirmed structural recovery  
+**Date:** 2026-09-30  
+**Area:** CPU | racer update | call graph | code/data boundaries
+
+The first comparative structural island has been extended contiguously from USA `82:A22B` through `82:AA6D`, covering **2,115 bytes** of the per-frame simulation neighborhood.
+
+The corridor now contains eleven bounded routines, one exact 128-byte/64-word inline table, and the long-entry wrapper immediately preceding the known input decoder. It directly bridges anonymous racer-update internals into the already-promoted `Player_ApplyVerticalAcceleration` routine and `Input_DecodePlayer1Buttons`.
+
+All added routine boundaries relocate coherently across the PAL prototype and Europe retail after accounting for the five-byte PAL-line contraction already identified inside the `A27C` routine. Legacy beta remains byte-identical to USA throughout this corridor.
+
+A second preserved unreachable instruction block is visible inside the `A6F1..A8C1` routine: USA/beta `A794..A7A5` (18 bytes), prototype `A785..A796`, Europe `A79B..A7AC`. Preserve it as a dead-code candidate pending runtime/indirect evidence.
+
+**Interpretation:** the comparative lane is now recovering useful call-graph structure at kilobyte scale. The next priority is to repeat this process on other high-connectivity executed islands rather than further dissecting already-bounded regional WRAM gaps.
+
+**Evidence:** `tools/analyze_racer_update_structure_island.py`; `analysis/generated/racer-update-structure-island.{json,md}`; run `36822022169`.
+
+### R-SEED-064 — Collision/object island recovers embedded dispatch data and Europe-only handler prologue
+
+**Status:** confirmed structural recovery  
+**Date:** 2026-09-30  
+**Area:** CPU | collision/object handling | code/data boundaries | comparative atlas
+
+A second independent structural-recovery island has been established in bank 81 around the object/collision path entered from the racer-update hub.
+
+USA/beta structure:
+- long-entry wrapper `81:82E2..82E5`;
+- dispatcher head `81:82E6..831F`;
+- 30-byte / 15-word explicit handler-pointer prefix `81:8320..833D`;
+- dispatcher tail `81:833E..8340`;
+- handler `81:8341..8371`;
+- exact 50-byte / 25-signed-word lookup table `81:8372..83A3`;
+- following handler `81:83A4..84D1`.
+
+The lookup table is byte-identical in all four builds and establishes a clean data→code boundary. It also corrects Nitrodon's linear listing, which begins decoding one byte early at `83A3`.
+
+The explicit pointer prefix relocates coherently across builds. Its final entry targets USA/beta `8341`, prototype `8324`, and Europe retail **`8316`**.
+
+Europe retail adds five executable bytes before the otherwise homologous handler body:
+
+`C2 30 AD 2F 0F` = `REP #$30; LDA $0F2F`.
+
+The PAL prototype lacks this prologue, proving it was added later in the Europe-retail lineage. The loaded value is immediately overwritten by the homologous body, so the addition appears semantically inert under ordinary WRAM-read behavior, but that semantic interpretation remains secondary to the confirmed structural fact.
+
+The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a complete dispatch table: `JSR ($8320,X)` is guarded by `X < 0x003C`, which by itself permits a wider offset domain than these 15 words.
+
+**Interpretation:** the comparative structure method now works in two independent race-critical subsystems, recovering embedded data boundaries and executable lineage edits without needing full semantic naming.
+
+**Evidence:** `tools/analyze_object_collision_structure_island.py`; `analysis/generated/object-collision-structure-island.{json,md}`; object-collision structure runs ending at `36823094425`.
+
+
+
+### R-SEED-062 — Comparative structural census seeded from recovered islands
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | other
+
+**Observation:** the two comparative structure-recovery islands can now be queried through one normalized census rather than separate prose/artifact surfaces. The seed contains 20 bounded USA regions across banks 81 and 82: 17 code regions and 3 explicit data regions, totaling 2,611 bytes.  
+**Evidence:** `analysis/generated/comparative-structural-census.{json,md}`, built deterministically by `tools/build_comparative_structural_census.py` from the racer-update and object/collision structural-island JSON artifacts. The current seed contains 2,403 code-region bytes, 208 explicit data bytes, and 1,001 analyzer-classified USA opcode bytes.  
+**Interpretation:** comparative structure recovery now has a machine-queryable growth surface. Coverage counts are intentionally a floor, not a whole-ROM percentage, because only independently recovered boundaries are admitted.  
+**Discriminating test:** extend the census with a third independent executed subsystem island and confirm that its regions can be added without weakening existing boundary provenance or turning raw linear-disassembly reachability into asserted structure.  
+**Dependencies:** source island boundaries retain their existing evidence/provenance; this census does not independently prove them.  
+**Propagation:** work queue item 9 now treats the seed census as completed infrastructure and directs the next pass toward a third high-connectivity subsystem rather than deepening the already-bounded racer or object/collision islands merely for byte count.
+
+
+### R-SEED-063 — Full course-loader structure is stable across all four builds
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | course | PPU | DMA/HDMA
+
+**Observation:** the complete named `Course_LoadAndMaterialize` corridor at USA `82:E165..E395` partitions cleanly into five executable phases: setup, resource-record/header handling, DMA row loop, resource materialization into `7E:A000/7E:C000`, and common exit.  
+**Evidence:** ROM-backed unit run `36854224907`; `analysis/generated/course-materialization-structure-island.{json,md}`; `tools/analyze_course_materialization_structure_island.py`. All 554 USA bytes in the five partitions are analyzer-reached (257 opcode bytes + 297 operand bytes). Europe retail aligns at a constant -58-byte shift across all five partitions, PAL prototype 1994-11-29 at -100, and legacy beta is byte-identical to USA.  
+**Interpretation:** the loader's internal architecture was preserved across the regional lineage even as code was relocated. The resource-to-WRAM materialization stage is now structurally bounded rather than inferred only from semantic traces, giving course/editor work a stable implementation seam.  
+**Discriminating test:** none required for the five-part structural boundary claim. Deeper descriptor/plane semantics should be pursued only when editor/course implementation needs them.  
+**Dependencies:** snes2asm trusted-entry seeding and existing Nitrodon/control-flow boundaries.  
+**Propagation:** added the course island to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to 25 regions / 3,165 bytes; the queue now advances to a fourth independent subsystem rather than further decomposing this loader for coverage alone.
+
+
+### R-SEED-064 — Full racer OAM builder exposes preserved viewport architecture
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | camera | PPU | other
+
+**Observation:** the complete named `Race_BuildRacerOAMState` routine at USA `82:ACA5..B17F` forms a gapless 1,243-byte presentation corridor that can be partitioned into 12 instruction-aligned regions: entry/mode setup, ordinary P1/P2 projection, alternate-camera projection, split-camera P1/P2 projection, and shared post-projection adjustments.  
+**Evidence:** ROM-backed project-tooling runs `36854671970`, `36854862093`, and corrected instruction-boundary run `36855218823`; `analysis/generated/racer-oam-structure-island.{json,md}`; `tools/analyze_racer_oam_structure_island.py`; contraction localization in `tools/localize_oam_split_contractions.py`. USA contains 498 opcode bytes, 714 operand bytes and 31 statically unreached bytes inside the alternate-camera block. Legacy beta is byte-identical throughout.  
+**Interpretation:** the regional builds preserve the same viewport/OAM architecture. Europe shifts +7 through the ordinary and first split-camera path, then +5 and +3; the PAL prototype similarly shifts -15, -17 and -19. Both shift changes are caused by removal of redundant first copies from consecutive `REP #$20; REP #$20` pairs at USA `AF96..AF97` and `B01F..B020`. Those contractions were already present in the November 1994 prototype and do not change accumulator state.  
+**Discriminating test:** none required for structural equivalence or the two redundant-instruction removals. Runtime validation of widened viewport policy belongs to the later widescreen implementation phase, not this comparative pass.  
+**Dependencies:** Nitrodon disassembly provides canonical USA instruction boundaries; trusted-entry snes2asm supplies per-build code roles; adjacent homolog alignment is continuity-constrained to avoid matching repeated P1/P2 sibling blocks.  
+**Propagation:** added the full viewport island to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to 37 regions / 4,408 bounded USA bytes. The result strengthens `Race_BuildRacerOAMState` as the presentation seam between authoritative world/camera state and downstream sprite/OAM state.
+
+
+### R-SEED-065 — Per-racer sampler links materialized course planes to collision response
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | course | collision | physics
+
+**Observation:** USA `81:8B95..8D13` is a 383-byte common per-racer routine invoked from both player simulation paths at `81:8DD9` and `81:8F2D`. Both calls follow the recovered collision/contact-shape constructor at `81:9E2A` and precede the later collision path at `81:8FB8`. Inside the routine, course coordinates/orientation are transformed and the materialized runtime planes at `7E:C000` and `7E:A000/A001` are sampled.  
+**Evidence:** ROM-backed project-tooling run `36856034874`; `analysis/generated/course-surface-sampler-structure-island.{json,md}`; `tools/analyze_course_surface_sampler_structure_island.py`. Trusted-entry snes2asm classifies all 383 bytes as executable instruction/operand bytes in every build: 167 opcode bytes + 216 operand bytes + 0 unreached/data bytes.  
+**Interpretation:** this routine is the first bounded common consumer joining the course loader's A000/C000 runtime materialization to per-racer surface/collision response. The old Nitrodon linear listing around USA `8C03..8C1F` looked like stray `BRK`/`RTI` opcodes because accumulator-width context was lost; trusted-entry analysis proves that region is ordinary executable code under the actual routine state. PAL prototype and Europe both preserve the complete function at shift -32, while legacy beta is byte-identical to USA.  
+**Discriminating test:** exact meanings of individual A000/C000 values should be resolved only when a physics discrepancy or course/editor implementation decision requires them. The function boundary and code/data classification need no further adjudication.  
+**Dependencies:** existing course-materialization proof for the runtime planes; trusted-entry snes2asm role recovery.  
+**Propagation:** added `Course_SampleRuntimeSurface` to `analysis/generated/comparative-structural-census.{json,md}`, bringing the census to 38 regions / 4,791 bounded USA bytes. Future course-format work can now follow producer→materialized plane→sampler rather than treating A000 and C000 as isolated observations.

@@ -1,0 +1,6688 @@
+{
+  "anchor_diagnostics": {
+    "Input_CaptureAutoJoypad": {
+      "builds": {
+        "europe-retail": {
+          "byte_similarity": 0.0,
+          "changed_le16_pairs": [
+            {
+              "candidate_hex": "e220",
+              "candidate_le16": 8418,
+              "relative_offset": 0,
+              "usa_hex": "ad18",
+              "usa_le16": 6317
+            },
+            {
+              "candidate_hex": "0f1a",
+              "candidate_le16": 6671,
+              "relative_offset": 30,
+              "usa_hex": "3002",
+              "usa_le16": 560
+            }
+          ],
+          "cpu_address": "80:85E4",
+          "diff_runs": [
+            {
+              "candidate_hex": "e220c210ad18428d1103ad19428d1303ad1a428d1203ad1b428d1403adf10f1a",
+              "length": 32,
+              "relative_end_exclusive": 32,
+              "relative_start": 0,
+              "usa_hex": "ad18428d0d03ad19428d0f03ad1a428d0e03ad1b428d1003ade70f1ac90f3002"
+            }
+          ],
+          "score": 0.175,
+          "semantic_reference_recall": 0.5,
+          "semantic_word_projection": {
+            "030D": {
+              "candidate_values": {
+                "18AD": 1
+              },
+              "dominant_candidate": "18AD",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "030E": {
+              "candidate_values": {
+                "1AAD": 1
+              },
+              "dominant_candidate": "1AAD",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "030F": {
+              "candidate_values": {
+                "19AD": 1
+              },
+              "dominant_candidate": "19AD",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "0310": {
+              "candidate_values": {
+                "1BAD": 1
+              },
+              "dominant_candidate": "1BAD",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "4218": {
+              "candidate_values": {
+                "C220": 1
+              },
+              "dominant_candidate": "C220",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "4219": {
+              "candidate_values": {
+                "118D": 1
+              },
+              "dominant_candidate": "118D",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "421A": {
+              "candidate_values": {
+                "138D": 1
+              },
+              "dominant_candidate": "138D",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "421B": {
+              "candidate_values": {
+                "128D": 1
+              },
+              "dominant_candidate": "128D",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            }
+          }
+        },
+        "pal-prototype-1994-11-29": {
+          "byte_similarity": 0.96875,
+          "changed_le16_pairs": [
+            {
+              "candidate_hex": "adeb",
+              "candidate_le16": 60333,
+              "relative_offset": 24,
+              "usa_hex": "ade7",
+              "usa_le16": 59309
+            },
+            {
+              "candidate_hex": "eb0f",
+              "candidate_le16": 4075,
+              "relative_offset": 25,
+              "usa_hex": "e70f",
+              "usa_le16": 4071
+            }
+          ],
+          "cpu_address": "80:85E3",
+          "diff_runs": [
+            {
+              "candidate_hex": "eb",
+              "length": 1,
+              "relative_end_exclusive": 26,
+              "relative_start": 25,
+              "usa_hex": "e7"
+            }
+          ],
+          "score": 0.984375,
+          "semantic_reference_recall": 1.0,
+          "semantic_word_projection": {
+            "030D": {
+              "candidate_values": {
+                "030D": 1
+              },
+              "dominant_candidate": "030D",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "030E": {
+              "candidate_values": {
+                "030E": 1
+              },
+              "dominant_candidate": "030E",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "030F": {
+              "candidate_values": {
+                "030F": 1
+              },
+              "dominant_candidate": "030F",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "0310": {
+              "candidate_values": {
+                "0310": 1
+              },
+              "dominant_candidate": "0310",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "4218": {
+              "candidate_values": {
+                "4218": 1
+              },
+              "dominant_candidate": "4218",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "4219": {
+              "candidate_values": {
+                "4219": 1
+              },
+              "dominant_candidate": "4219",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "421A": {
+              "candidate_values": {
+                "421A": 1
+              },
+              "dominant_candidate": "421A",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "421B": {
+              "candidate_values": {
+                "421B": 1
+              },
+              "dominant_candidate": "421B",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            }
+          }
+        }
+      },
+      "usa_cpu_address": "80:85E4",
+      "window_size": 32
+    }
+  },
+  "builds": {
+    "europe-retail": {
+      "autojoy_hardware_registers": {
+        "hits": [
+          {
+            "file_offset": 20975,
+            "opcode": "AE",
+            "operand": "4218",
+            "operand_bytes": "18 42"
+          },
+          {
+            "file_offset": 20980,
+            "opcode": "AE",
+            "operand": "421A",
+            "operand_bytes": "1a 42"
+          }
+        ],
+        "operand_counts": {
+          "4218": 1,
+          "421A": 1
+        },
+        "range": [
+          "4218",
+          "421F"
+        ],
+        "reference_count": 2
+      },
+      "first_inserted_space": {
+        "hits": [],
+        "operand_counts": {},
+        "range": [
+          "030A",
+          "0310"
+        ],
+        "reference_count": 0
+      },
+      "first_plus4": {
+        "hits": [
+          {
+            "file_offset": 11245,
+            "opcode": "C9",
+            "operand": "02B0",
+            "operand_bytes": "b0 02"
+          },
+          {
+            "file_offset": 11252,
+            "opcode": "C9",
+            "operand": "02B0",
+            "operand_bytes": "b0 02"
+          },
+          {
+            "file_offset": 11613,
+            "opcode": "69",
+            "operand": "02C0",
+            "operand_bytes": "c0 02"
+          },
+          {
+            "file_offset": 30809,
+            "opcode": "69",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 38194,
+            "opcode": "8D",
+            "operand": "02C1",
+            "operand_bytes": "c1 02"
+          },
+          {
+            "file_offset": 38201,
+            "opcode": "8D",
+            "operand": "02C0",
+            "operand_bytes": "c0 02"
+          },
+          {
+            "file_offset": 38206,
+            "opcode": "9C",
+            "operand": "02C3",
+            "operand_bytes": "c3 02"
+          },
+          {
+            "file_offset": 38215,
+            "opcode": "8D",
+            "operand": "02C3",
+            "operand_bytes": "c3 02"
+          },
+          {
+            "file_offset": 38222,
+            "opcode": "8D",
+            "operand": "02C2",
+            "operand_bytes": "c2 02"
+          },
+          {
+            "file_offset": 38227,
+            "opcode": "9C",
+            "operand": "02C5",
+            "operand_bytes": "c5 02"
+          },
+          {
+            "file_offset": 38236,
+            "opcode": "8D",
+            "operand": "02C5",
+            "operand_bytes": "c5 02"
+          },
+          {
+            "file_offset": 38243,
+            "opcode": "8D",
+            "operand": "02C4",
+            "operand_bytes": "c4 02"
+          },
+          {
+            "file_offset": 38248,
+            "opcode": "9C",
+            "operand": "02C7",
+            "operand_bytes": "c7 02"
+          },
+          {
+            "file_offset": 38257,
+            "opcode": "8D",
+            "operand": "02C7",
+            "operand_bytes": "c7 02"
+          },
+          {
+            "file_offset": 38264,
+            "opcode": "8D",
+            "operand": "02C6",
+            "operand_bytes": "c6 02"
+          },
+          {
+            "file_offset": 38274,
+            "opcode": "AE",
+            "operand": "02C0",
+            "operand_bytes": "c0 02"
+          },
+          {
+            "file_offset": 38283,
+            "opcode": "AE",
+            "operand": "02C1",
+            "operand_bytes": "c1 02"
+          },
+          {
+            "file_offset": 38297,
+            "opcode": "8D",
+            "operand": "02CC",
+            "operand_bytes": "cc 02"
+          },
+          {
+            "file_offset": 38303,
+            "opcode": "AE",
+            "operand": "02C2",
+            "operand_bytes": "c2 02"
+          },
+          {
+            "file_offset": 38312,
+            "opcode": "AE",
+            "operand": "02C3",
+            "operand_bytes": "c3 02"
+          },
+          {
+            "file_offset": 38327,
+            "opcode": "6D",
+            "operand": "02CC",
+            "operand_bytes": "cc 02"
+          },
+          {
+            "file_offset": 38330,
+            "opcode": "8D",
+            "operand": "02CC",
+            "operand_bytes": "cc 02"
+          },
+          {
+            "file_offset": 38336,
+            "opcode": "AE",
+            "operand": "02C4",
+            "operand_bytes": "c4 02"
+          },
+          {
+            "file_offset": 38345,
+            "opcode": "AE",
+            "operand": "02C5",
+            "operand_bytes": "c5 02"
+          },
+          {
+            "file_offset": 38359,
+            "opcode": "8D",
+            "operand": "02CE",
+            "operand_bytes": "ce 02"
+          },
+          {
+            "file_offset": 38365,
+            "opcode": "AE",
+            "operand": "02C6",
+            "operand_bytes": "c6 02"
+          },
+          {
+            "file_offset": 38374,
+            "opcode": "AE",
+            "operand": "02C7",
+            "operand_bytes": "c7 02"
+          },
+          {
+            "file_offset": 38389,
+            "opcode": "6D",
+            "operand": "02CE",
+            "operand_bytes": "ce 02"
+          },
+          {
+            "file_offset": 38392,
+            "opcode": "8D",
+            "operand": "02CE",
+            "operand_bytes": "ce 02"
+          },
+          {
+            "file_offset": 38398,
+            "opcode": "AD",
+            "operand": "02CC",
+            "operand_bytes": "cc 02"
+          },
+          {
+            "file_offset": 48068,
+            "opcode": "A0",
+            "operand": "02A0",
+            "operand_bytes": "a0 02"
+          },
+          {
+            "file_offset": 48091,
+            "opcode": "A0",
+            "operand": "02A0",
+            "operand_bytes": "a0 02"
+          },
+          {
+            "file_offset": 49046,
+            "opcode": "EE",
+            "operand": "0309",
+            "operand_bytes": "09 03"
+          },
+          {
+            "file_offset": 68686,
+            "opcode": "AD",
+            "operand": "0302",
+            "operand_bytes": "02 03"
+          },
+          {
+            "file_offset": 69941,
+            "opcode": "AD",
+            "operand": "0302",
+            "operand_bytes": "02 03"
+          },
+          {
+            "file_offset": 72873,
+            "opcode": "9C",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72885,
+            "opcode": "8D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72898,
+            "opcode": "6D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72901,
+            "opcode": "8D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72914,
+            "opcode": "6D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72917,
+            "opcode": "8D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72924,
+            "opcode": "6D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72927,
+            "opcode": "8D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 73000,
+            "opcode": "8D",
+            "operand": "026C",
+            "operand_bytes": "6c 02"
+          },
+          {
+            "file_offset": 73003,
+            "opcode": "AE",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 74659,
+            "opcode": "AD",
+            "operand": "0302",
+            "operand_bytes": "02 03"
+          },
+          {
+            "file_offset": 74667,
+            "opcode": "AD",
+            "operand": "0302",
+            "operand_bytes": "02 03"
+          },
+          {
+            "file_offset": 75823,
+            "opcode": "69",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 75855,
+            "opcode": "A9",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 80050,
+            "opcode": "AD",
+            "operand": "0306",
+            "operand_bytes": "06 03"
+          },
+          {
+            "file_offset": 80058,
+            "opcode": "9C",
+            "operand": "0306",
+            "operand_bytes": "06 03"
+          },
+          {
+            "file_offset": 83285,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83324,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83363,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83402,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83441,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83480,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83519,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83558,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83597,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83636,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83675,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83714,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83753,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83792,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83831,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83870,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83909,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83948,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83987,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84026,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84065,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84104,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84143,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84182,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84221,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84260,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84299,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84338,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84377,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84416,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84455,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84494,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84533,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84572,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84611,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84650,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84689,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84728,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84767,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84806,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84845,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84884,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84923,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84962,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85001,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85040,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85079,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85118,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85157,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85196,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85235,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85274,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85313,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85352,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85391,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85430,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85469,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85508,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85547,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85586,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85625,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85664,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85703,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85742,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85781,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85820,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85859,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85898,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85937,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85976,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86015,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86054,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86093,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86132,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86171,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86210,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86249,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86288,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86327,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86366,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86405,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 102693,
+            "opcode": "8F",
+            "operand": "02B0",
+            "operand_bytes": "b0 02"
+          },
+          {
+            "file_offset": 102730,
+            "opcode": "7F",
+            "operand": "02C0",
+            "operand_bytes": "c0 02"
+          },
+          {
+            "file_offset": 102753,
+            "opcode": "7F",
+            "operand": "02B2",
+            "operand_bytes": "b2 02"
+          },
+          {
+            "file_offset": 102762,
+            "opcode": "8F",
+            "operand": "02BE",
+            "operand_bytes": "be 02"
+          },
+          {
+            "file_offset": 103197,
+            "opcode": "9F",
+            "operand": "02C0",
+            "operand_bytes": "c0 02"
+          },
+          {
+            "file_offset": 103221,
+            "opcode": "9F",
+            "operand": "02B2",
+            "operand_bytes": "b2 02"
+          },
+          {
+            "file_offset": 104021,
+            "opcode": "BF",
+            "operand": "02B2",
+            "operand_bytes": "b2 02"
+          },
+          {
+            "file_offset": 109414,
+            "opcode": "69",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 126708,
+            "opcode": "6D",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          }
+        ],
+        "operand_counts": {
+          "026A": 9,
+          "026C": 1,
+          "02A0": 2,
+          "02B0": 3,
+          "02B2": 3,
+          "02BE": 1,
+          "02C0": 5,
+          "02C1": 2,
+          "02C2": 2,
+          "02C3": 3,
+          "02C4": 2,
+          "02C5": 3,
+          "02C6": 2,
+          "02C7": 3,
+          "02CC": 4,
+          "02CE": 3,
+          "0300": 86,
+          "0302": 4,
+          "0306": 2,
+          "0309": 1
+        },
+        "range": [
+          "026A",
+          "030D"
+        ],
+        "reference_count": 141
+      },
+      "second_inserted_space": {
+        "hits": [
+          {
+            "file_offset": 44100,
+            "opcode": "AD",
+            "operand": "053D",
+            "operand_bytes": "3d 05"
+          },
+          {
+            "file_offset": 45509,
+            "opcode": "8D",
+            "operand": "053D",
+            "operand_bytes": "3d 05"
+          },
+          {
+            "file_offset": 45529,
+            "opcode": "8D",
+            "operand": "053D",
+            "operand_bytes": "3d 05"
+          },
+          {
+            "file_offset": 45549,
+            "opcode": "8D",
+            "operand": "053D",
+            "operand_bytes": "3d 05"
+          }
+        ],
+        "operand_counts": {
+          "053D": 4
+        },
+        "range": [
+          "053C",
+          "0546"
+        ],
+        "reference_count": 4
+      },
+      "second_plus2": {
+        "hits": [
+          {
+            "file_offset": 8593,
+            "opcode": "A2",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 11223,
+            "opcode": "A2",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 41132,
+            "opcode": "AD",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 41143,
+            "opcode": "AD",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 41166,
+            "opcode": "8D",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 41288,
+            "opcode": "AD",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 41299,
+            "opcode": "AD",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 41322,
+            "opcode": "8D",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 41495,
+            "opcode": "AD",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 41506,
+            "opcode": "AD",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 41529,
+            "opcode": "8D",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 41648,
+            "opcode": "AD",
+            "operand": "04FF",
+            "operand_bytes": "ff 04"
+          },
+          {
+            "file_offset": 41659,
+            "opcode": "AD",
+            "operand": "04FF",
+            "operand_bytes": "ff 04"
+          },
+          {
+            "file_offset": 41682,
+            "opcode": "8D",
+            "operand": "04FF",
+            "operand_bytes": "ff 04"
+          },
+          {
+            "file_offset": 42300,
+            "opcode": "6D",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 42333,
+            "opcode": "6D",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 42352,
+            "opcode": "6D",
+            "operand": "04FF",
+            "operand_bytes": "ff 04"
+          },
+          {
+            "file_offset": 42428,
+            "opcode": "AD",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 42433,
+            "opcode": "AD",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 42469,
+            "opcode": "AD",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 42476,
+            "opcode": "AD",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 42530,
+            "opcode": "AD",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 42537,
+            "opcode": "AD",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 42559,
+            "opcode": "AD",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 42605,
+            "opcode": "AD",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 42647,
+            "opcode": "AD",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 42686,
+            "opcode": "AD",
+            "operand": "0539",
+            "operand_bytes": "39 05"
+          },
+          {
+            "file_offset": 42691,
+            "opcode": "AD",
+            "operand": "04FF",
+            "operand_bytes": "ff 04"
+          },
+          {
+            "file_offset": 42727,
+            "opcode": "AD",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 42734,
+            "opcode": "AD",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 42788,
+            "opcode": "AD",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 42795,
+            "opcode": "AD",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 42817,
+            "opcode": "AD",
+            "operand": "0531",
+            "operand_bytes": "31 05"
+          },
+          {
+            "file_offset": 42822,
+            "opcode": "AD",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 42863,
+            "opcode": "AD",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 42905,
+            "opcode": "AD",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 43912,
+            "opcode": "AD",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 43929,
+            "opcode": "6D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 43947,
+            "opcode": "AD",
+            "operand": "053B",
+            "operand_bytes": "3b 05"
+          },
+          {
+            "file_offset": 43964,
+            "opcode": "6D",
+            "operand": "0515",
+            "operand_bytes": "15 05"
+          },
+          {
+            "file_offset": 43982,
+            "opcode": "AD",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 43999,
+            "opcode": "6D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 44017,
+            "opcode": "AD",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 44034,
+            "opcode": "6D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 44065,
+            "opcode": "AD",
+            "operand": "0539",
+            "operand_bytes": "39 05"
+          },
+          {
+            "file_offset": 44082,
+            "opcode": "6D",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 44100,
+            "opcode": "AD",
+            "operand": "053D",
+            "operand_bytes": "3d 05"
+          },
+          {
+            "file_offset": 44117,
+            "opcode": "6D",
+            "operand": "0517",
+            "operand_bytes": "17 05"
+          },
+          {
+            "file_offset": 44135,
+            "opcode": "AD",
+            "operand": "0531",
+            "operand_bytes": "31 05"
+          },
+          {
+            "file_offset": 44152,
+            "opcode": "6D",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 44170,
+            "opcode": "AD",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 44187,
+            "opcode": "6D",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 44618,
+            "opcode": "AD",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 44623,
+            "opcode": "AD",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 44627,
+            "opcode": "6D",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 44633,
+            "opcode": "8D",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 44645,
+            "opcode": "6D",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 44651,
+            "opcode": "8D",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 44659,
+            "opcode": "6D",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 44709,
+            "opcode": "AD",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 44718,
+            "opcode": "AD",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 44730,
+            "opcode": "AC",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 44744,
+            "opcode": "CD",
+            "operand": "0519",
+            "operand_bytes": "19 05"
+          },
+          {
+            "file_offset": 44749,
+            "opcode": "8D",
+            "operand": "0519",
+            "operand_bytes": "19 05"
+          },
+          {
+            "file_offset": 44754,
+            "opcode": "CD",
+            "operand": "051D",
+            "operand_bytes": "1d 05"
+          },
+          {
+            "file_offset": 44759,
+            "opcode": "8D",
+            "operand": "051D",
+            "operand_bytes": "1d 05"
+          },
+          {
+            "file_offset": 44762,
+            "opcode": "8D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 44773,
+            "opcode": "8D",
+            "operand": "0515",
+            "operand_bytes": "15 05"
+          },
+          {
+            "file_offset": 44776,
+            "opcode": "AD",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 44790,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 44797,
+            "opcode": "ED",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 44800,
+            "opcode": "8D",
+            "operand": "053B",
+            "operand_bytes": "3b 05"
+          },
+          {
+            "file_offset": 44808,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 44814,
+            "opcode": "8D",
+            "operand": "0515",
+            "operand_bytes": "15 05"
+          },
+          {
+            "file_offset": 44820,
+            "opcode": "8D",
+            "operand": "053B",
+            "operand_bytes": "3b 05"
+          },
+          {
+            "file_offset": 44828,
+            "opcode": "8D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 44831,
+            "opcode": "8D",
+            "operand": "0515",
+            "operand_bytes": "15 05"
+          },
+          {
+            "file_offset": 44837,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 44840,
+            "opcode": "8D",
+            "operand": "053B",
+            "operand_bytes": "3b 05"
+          },
+          {
+            "file_offset": 44871,
+            "opcode": "CD",
+            "operand": "0525",
+            "operand_bytes": "25 05"
+          },
+          {
+            "file_offset": 44876,
+            "opcode": "8D",
+            "operand": "0525",
+            "operand_bytes": "25 05"
+          },
+          {
+            "file_offset": 44881,
+            "opcode": "CD",
+            "operand": "0521",
+            "operand_bytes": "21 05"
+          },
+          {
+            "file_offset": 44886,
+            "opcode": "8D",
+            "operand": "0521",
+            "operand_bytes": "21 05"
+          },
+          {
+            "file_offset": 44889,
+            "opcode": "8D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 44897,
+            "opcode": "AD",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 44903,
+            "opcode": "8D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 44906,
+            "opcode": "AD",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 44917,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 44924,
+            "opcode": "ED",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 44927,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 44935,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 44941,
+            "opcode": "8D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 44947,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 44955,
+            "opcode": "8D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 44958,
+            "opcode": "8D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 44964,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 44967,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 44973,
+            "opcode": "8D",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 44976,
+            "opcode": "8D",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 44980,
+            "opcode": "AD",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 44985,
+            "opcode": "AD",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 44989,
+            "opcode": "6D",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 44995,
+            "opcode": "8D",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 45007,
+            "opcode": "6D",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 45013,
+            "opcode": "8D",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 45021,
+            "opcode": "6D",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 45050,
+            "opcode": "AD",
+            "operand": "04FF",
+            "operand_bytes": "ff 04"
+          },
+          {
+            "file_offset": 45055,
+            "opcode": "AD",
+            "operand": "04FF",
+            "operand_bytes": "ff 04"
+          },
+          {
+            "file_offset": 45059,
+            "opcode": "6D",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 45065,
+            "opcode": "8D",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 45068,
+            "opcode": "AD",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 45073,
+            "opcode": "AD",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 45077,
+            "opcode": "6D",
+            "operand": "0503",
+            "operand_bytes": "03 05"
+          },
+          {
+            "file_offset": 45083,
+            "opcode": "8D",
+            "operand": "0503",
+            "operand_bytes": "03 05"
+          },
+          {
+            "file_offset": 45091,
+            "opcode": "6D",
+            "operand": "04FF",
+            "operand_bytes": "ff 04"
+          },
+          {
+            "file_offset": 45108,
+            "opcode": "6D",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 45157,
+            "opcode": "AD",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 45166,
+            "opcode": "AD",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 45178,
+            "opcode": "AC",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 45192,
+            "opcode": "CD",
+            "operand": "0519",
+            "operand_bytes": "19 05"
+          },
+          {
+            "file_offset": 45197,
+            "opcode": "8D",
+            "operand": "0519",
+            "operand_bytes": "19 05"
+          },
+          {
+            "file_offset": 45202,
+            "opcode": "CD",
+            "operand": "051D",
+            "operand_bytes": "1d 05"
+          },
+          {
+            "file_offset": 45207,
+            "opcode": "8D",
+            "operand": "051D",
+            "operand_bytes": "1d 05"
+          },
+          {
+            "file_offset": 45210,
+            "opcode": "8D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 45221,
+            "opcode": "8D",
+            "operand": "0515",
+            "operand_bytes": "15 05"
+          },
+          {
+            "file_offset": 45224,
+            "opcode": "AD",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 45238,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 45245,
+            "opcode": "ED",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 45248,
+            "opcode": "8D",
+            "operand": "053B",
+            "operand_bytes": "3b 05"
+          },
+          {
+            "file_offset": 45256,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 45262,
+            "opcode": "8D",
+            "operand": "0515",
+            "operand_bytes": "15 05"
+          },
+          {
+            "file_offset": 45268,
+            "opcode": "8D",
+            "operand": "053B",
+            "operand_bytes": "3b 05"
+          },
+          {
+            "file_offset": 45276,
+            "opcode": "8D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 45279,
+            "opcode": "8D",
+            "operand": "0515",
+            "operand_bytes": "15 05"
+          },
+          {
+            "file_offset": 45285,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 45288,
+            "opcode": "8D",
+            "operand": "053B",
+            "operand_bytes": "3b 05"
+          },
+          {
+            "file_offset": 45319,
+            "opcode": "CD",
+            "operand": "0525",
+            "operand_bytes": "25 05"
+          },
+          {
+            "file_offset": 45324,
+            "opcode": "8D",
+            "operand": "0525",
+            "operand_bytes": "25 05"
+          },
+          {
+            "file_offset": 45329,
+            "opcode": "CD",
+            "operand": "0521",
+            "operand_bytes": "21 05"
+          },
+          {
+            "file_offset": 45334,
+            "opcode": "8D",
+            "operand": "0521",
+            "operand_bytes": "21 05"
+          },
+          {
+            "file_offset": 45337,
+            "opcode": "8D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 45345,
+            "opcode": "AD",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 45351,
+            "opcode": "8D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 45354,
+            "opcode": "AD",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 45365,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 45372,
+            "opcode": "ED",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 45375,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 45383,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 45389,
+            "opcode": "8D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 45395,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 45403,
+            "opcode": "8D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 45406,
+            "opcode": "8D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 45412,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 45415,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 45418,
+            "opcode": "AD",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 45427,
+            "opcode": "AD",
+            "operand": "0503",
+            "operand_bytes": "03 05"
+          },
+          {
+            "file_offset": 45439,
+            "opcode": "AC",
+            "operand": "04FF",
+            "operand_bytes": "ff 04"
+          },
+          {
+            "file_offset": 45453,
+            "opcode": "CD",
+            "operand": "051B",
+            "operand_bytes": "1b 05"
+          },
+          {
+            "file_offset": 45458,
+            "opcode": "8D",
+            "operand": "051B",
+            "operand_bytes": "1b 05"
+          },
+          {
+            "file_offset": 45463,
+            "opcode": "CD",
+            "operand": "051F",
+            "operand_bytes": "1f 05"
+          },
+          {
+            "file_offset": 45468,
+            "opcode": "8D",
+            "operand": "051F",
+            "operand_bytes": "1f 05"
+          },
+          {
+            "file_offset": 45471,
+            "opcode": "8D",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 45482,
+            "opcode": "8D",
+            "operand": "0517",
+            "operand_bytes": "17 05"
+          },
+          {
+            "file_offset": 45485,
+            "opcode": "AD",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 45499,
+            "opcode": "8D",
+            "operand": "0539",
+            "operand_bytes": "39 05"
+          },
+          {
+            "file_offset": 45506,
+            "opcode": "ED",
+            "operand": "0539",
+            "operand_bytes": "39 05"
+          },
+          {
+            "file_offset": 45509,
+            "opcode": "8D",
+            "operand": "053D",
+            "operand_bytes": "3d 05"
+          },
+          {
+            "file_offset": 45517,
+            "opcode": "8D",
+            "operand": "0539",
+            "operand_bytes": "39 05"
+          },
+          {
+            "file_offset": 45523,
+            "opcode": "8D",
+            "operand": "0517",
+            "operand_bytes": "17 05"
+          },
+          {
+            "file_offset": 45529,
+            "opcode": "8D",
+            "operand": "053D",
+            "operand_bytes": "3d 05"
+          },
+          {
+            "file_offset": 45537,
+            "opcode": "8D",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 45540,
+            "opcode": "8D",
+            "operand": "0517",
+            "operand_bytes": "17 05"
+          },
+          {
+            "file_offset": 45546,
+            "opcode": "8D",
+            "operand": "0539",
+            "operand_bytes": "39 05"
+          },
+          {
+            "file_offset": 45549,
+            "opcode": "8D",
+            "operand": "053D",
+            "operand_bytes": "3d 05"
+          },
+          {
+            "file_offset": 45554,
+            "opcode": "AC",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 45580,
+            "opcode": "CD",
+            "operand": "0527",
+            "operand_bytes": "27 05"
+          },
+          {
+            "file_offset": 45585,
+            "opcode": "8D",
+            "operand": "0527",
+            "operand_bytes": "27 05"
+          },
+          {
+            "file_offset": 45590,
+            "opcode": "CD",
+            "operand": "0523",
+            "operand_bytes": "23 05"
+          },
+          {
+            "file_offset": 45595,
+            "opcode": "8D",
+            "operand": "0523",
+            "operand_bytes": "23 05"
+          },
+          {
+            "file_offset": 45598,
+            "opcode": "8D",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 45606,
+            "opcode": "AD",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 45612,
+            "opcode": "8D",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 45615,
+            "opcode": "AD",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 45626,
+            "opcode": "8D",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 45633,
+            "opcode": "ED",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 45636,
+            "opcode": "8D",
+            "operand": "0531",
+            "operand_bytes": "31 05"
+          },
+          {
+            "file_offset": 45644,
+            "opcode": "8D",
+            "operand": "0531",
+            "operand_bytes": "31 05"
+          },
+          {
+            "file_offset": 45650,
+            "opcode": "8D",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 45656,
+            "opcode": "8D",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 45664,
+            "opcode": "8D",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 45667,
+            "opcode": "8D",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 45673,
+            "opcode": "8D",
+            "operand": "0531",
+            "operand_bytes": "31 05"
+          },
+          {
+            "file_offset": 45676,
+            "opcode": "8D",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 45950,
+            "opcode": "AD",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 45987,
+            "opcode": "AD",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 45998,
+            "opcode": "AD",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          }
+        ],
+        "operand_counts": {
+          "04FB": 10,
+          "04FD": 18,
+          "04FF": 9,
+          "0501": 6,
+          "0503": 3,
+          "0505": 6,
+          "0507": 3,
+          "0509": 12,
+          "050B": 9,
+          "050D": 7,
+          "050F": 4,
+          "0511": 11,
+          "0513": 9,
+          "0515": 7,
+          "0517": 4,
+          "0519": 4,
+          "051B": 2,
+          "051D": 4,
+          "051F": 2,
+          "0521": 4,
+          "0523": 2,
+          "0525": 4,
+          "0527": 2,
+          "052F": 8,
+          "0531": 5,
+          "0533": 9,
+          "0535": 5,
+          "0537": 10,
+          "0539": 6,
+          "053B": 7,
+          "053D": 4
+        },
+        "range": [
+          "04FB",
+          "0541"
+        ],
+        "reference_count": 196
+      }
+    },
+    "pal-prototype-1994-11-29": {
+      "autojoy_hardware_registers": {
+        "hits": [
+          {
+            "file_offset": 1507,
+            "opcode": "AD",
+            "operand": "4218",
+            "operand_bytes": "18 42"
+          },
+          {
+            "file_offset": 1513,
+            "opcode": "AD",
+            "operand": "4219",
+            "operand_bytes": "19 42"
+          },
+          {
+            "file_offset": 1519,
+            "opcode": "AD",
+            "operand": "421A",
+            "operand_bytes": "1a 42"
+          },
+          {
+            "file_offset": 1525,
+            "opcode": "AD",
+            "operand": "421B",
+            "operand_bytes": "1b 42"
+          },
+          {
+            "file_offset": 20956,
+            "opcode": "AE",
+            "operand": "4218",
+            "operand_bytes": "18 42"
+          },
+          {
+            "file_offset": 20961,
+            "opcode": "AE",
+            "operand": "421A",
+            "operand_bytes": "1a 42"
+          }
+        ],
+        "operand_counts": {
+          "4218": 2,
+          "4219": 1,
+          "421A": 2,
+          "421B": 1
+        },
+        "range": [
+          "4218",
+          "421F"
+        ],
+        "reference_count": 6
+      },
+      "first_inserted_space": {
+        "hits": [
+          {
+            "file_offset": 1510,
+            "opcode": "8D",
+            "operand": "030D",
+            "operand_bytes": "0d 03"
+          },
+          {
+            "file_offset": 1516,
+            "opcode": "8D",
+            "operand": "030F",
+            "operand_bytes": "0f 03"
+          },
+          {
+            "file_offset": 1522,
+            "opcode": "8D",
+            "operand": "030E",
+            "operand_bytes": "0e 03"
+          },
+          {
+            "file_offset": 1528,
+            "opcode": "8D",
+            "operand": "0310",
+            "operand_bytes": "10 03"
+          },
+          {
+            "file_offset": 76430,
+            "opcode": "AD",
+            "operand": "030D",
+            "operand_bytes": "0d 03"
+          },
+          {
+            "file_offset": 76489,
+            "opcode": "AD",
+            "operand": "030F",
+            "operand_bytes": "0f 03"
+          },
+          {
+            "file_offset": 76669,
+            "opcode": "AD",
+            "operand": "030E",
+            "operand_bytes": "0e 03"
+          },
+          {
+            "file_offset": 76728,
+            "opcode": "AD",
+            "operand": "0310",
+            "operand_bytes": "10 03"
+          }
+        ],
+        "operand_counts": {
+          "030D": 2,
+          "030E": 2,
+          "030F": 2,
+          "0310": 2
+        },
+        "range": [
+          "030A",
+          "0310"
+        ],
+        "reference_count": 8
+      },
+      "first_plus4": {
+        "hits": [
+          {
+            "file_offset": 1510,
+            "opcode": "8D",
+            "operand": "030D",
+            "operand_bytes": "0d 03"
+          },
+          {
+            "file_offset": 11214,
+            "opcode": "C9",
+            "operand": "02B0",
+            "operand_bytes": "b0 02"
+          },
+          {
+            "file_offset": 11221,
+            "opcode": "C9",
+            "operand": "02B0",
+            "operand_bytes": "b0 02"
+          },
+          {
+            "file_offset": 11600,
+            "opcode": "69",
+            "operand": "02C0",
+            "operand_bytes": "c0 02"
+          },
+          {
+            "file_offset": 30781,
+            "opcode": "69",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 33037,
+            "opcode": "6D",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 38195,
+            "opcode": "8D",
+            "operand": "02C0",
+            "operand_bytes": "c0 02"
+          },
+          {
+            "file_offset": 38200,
+            "opcode": "9C",
+            "operand": "02C3",
+            "operand_bytes": "c3 02"
+          },
+          {
+            "file_offset": 38216,
+            "opcode": "8D",
+            "operand": "02C2",
+            "operand_bytes": "c2 02"
+          },
+          {
+            "file_offset": 38221,
+            "opcode": "9C",
+            "operand": "02C5",
+            "operand_bytes": "c5 02"
+          },
+          {
+            "file_offset": 38237,
+            "opcode": "8D",
+            "operand": "02C4",
+            "operand_bytes": "c4 02"
+          },
+          {
+            "file_offset": 38242,
+            "opcode": "9C",
+            "operand": "02C7",
+            "operand_bytes": "c7 02"
+          },
+          {
+            "file_offset": 38258,
+            "opcode": "8D",
+            "operand": "02C6",
+            "operand_bytes": "c6 02"
+          },
+          {
+            "file_offset": 38268,
+            "opcode": "AE",
+            "operand": "02C0",
+            "operand_bytes": "c0 02"
+          },
+          {
+            "file_offset": 38277,
+            "opcode": "AE",
+            "operand": "02C1",
+            "operand_bytes": "c1 02"
+          },
+          {
+            "file_offset": 38291,
+            "opcode": "8D",
+            "operand": "02CC",
+            "operand_bytes": "cc 02"
+          },
+          {
+            "file_offset": 38297,
+            "opcode": "AE",
+            "operand": "02C2",
+            "operand_bytes": "c2 02"
+          },
+          {
+            "file_offset": 38306,
+            "opcode": "AE",
+            "operand": "02C3",
+            "operand_bytes": "c3 02"
+          },
+          {
+            "file_offset": 38321,
+            "opcode": "6D",
+            "operand": "02CC",
+            "operand_bytes": "cc 02"
+          },
+          {
+            "file_offset": 38324,
+            "opcode": "8D",
+            "operand": "02CC",
+            "operand_bytes": "cc 02"
+          },
+          {
+            "file_offset": 38330,
+            "opcode": "AE",
+            "operand": "02C4",
+            "operand_bytes": "c4 02"
+          },
+          {
+            "file_offset": 38339,
+            "opcode": "AE",
+            "operand": "02C5",
+            "operand_bytes": "c5 02"
+          },
+          {
+            "file_offset": 38353,
+            "opcode": "8D",
+            "operand": "02CE",
+            "operand_bytes": "ce 02"
+          },
+          {
+            "file_offset": 38359,
+            "opcode": "AE",
+            "operand": "02C6",
+            "operand_bytes": "c6 02"
+          },
+          {
+            "file_offset": 38368,
+            "opcode": "AE",
+            "operand": "02C7",
+            "operand_bytes": "c7 02"
+          },
+          {
+            "file_offset": 38383,
+            "opcode": "6D",
+            "operand": "02CE",
+            "operand_bytes": "ce 02"
+          },
+          {
+            "file_offset": 38386,
+            "opcode": "8D",
+            "operand": "02CE",
+            "operand_bytes": "ce 02"
+          },
+          {
+            "file_offset": 38392,
+            "opcode": "AD",
+            "operand": "02CC",
+            "operand_bytes": "cc 02"
+          },
+          {
+            "file_offset": 48051,
+            "opcode": "A0",
+            "operand": "02A0",
+            "operand_bytes": "a0 02"
+          },
+          {
+            "file_offset": 48074,
+            "opcode": "A0",
+            "operand": "02A0",
+            "operand_bytes": "a0 02"
+          },
+          {
+            "file_offset": 49029,
+            "opcode": "EE",
+            "operand": "0309",
+            "operand_bytes": "09 03"
+          },
+          {
+            "file_offset": 68664,
+            "opcode": "AD",
+            "operand": "0302",
+            "operand_bytes": "02 03"
+          },
+          {
+            "file_offset": 69919,
+            "opcode": "AD",
+            "operand": "0302",
+            "operand_bytes": "02 03"
+          },
+          {
+            "file_offset": 72851,
+            "opcode": "9C",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72863,
+            "opcode": "8D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72876,
+            "opcode": "6D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72879,
+            "opcode": "8D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72892,
+            "opcode": "6D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72895,
+            "opcode": "8D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72902,
+            "opcode": "6D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72905,
+            "opcode": "8D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72978,
+            "opcode": "8D",
+            "operand": "026C",
+            "operand_bytes": "6c 02"
+          },
+          {
+            "file_offset": 72981,
+            "opcode": "AE",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 74637,
+            "opcode": "AD",
+            "operand": "0302",
+            "operand_bytes": "02 03"
+          },
+          {
+            "file_offset": 74645,
+            "opcode": "AD",
+            "operand": "0302",
+            "operand_bytes": "02 03"
+          },
+          {
+            "file_offset": 75801,
+            "opcode": "69",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 75833,
+            "opcode": "A9",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 76430,
+            "opcode": "AD",
+            "operand": "030D",
+            "operand_bytes": "0d 03"
+          },
+          {
+            "file_offset": 80028,
+            "opcode": "AD",
+            "operand": "0306",
+            "operand_bytes": "06 03"
+          },
+          {
+            "file_offset": 80036,
+            "opcode": "9C",
+            "operand": "0306",
+            "operand_bytes": "06 03"
+          },
+          {
+            "file_offset": 83263,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83302,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83341,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83380,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83419,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83458,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83497,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83536,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83575,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83614,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83653,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83692,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83731,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83770,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83809,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83848,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83887,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83926,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83965,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84004,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84043,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84082,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84121,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84160,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84199,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84238,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84277,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84316,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84355,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84394,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84433,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84472,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84511,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84550,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84589,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84628,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84667,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84706,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84745,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84784,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84823,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84862,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84901,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84940,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84979,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85018,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85057,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85096,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85135,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85174,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85213,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85252,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85291,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85330,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85369,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85408,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85447,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85486,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85525,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85564,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85603,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85642,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85681,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85720,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85759,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85798,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85837,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85876,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85915,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85954,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85993,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86032,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86071,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86110,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86149,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86188,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86227,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86266,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86305,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86344,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86383,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 102693,
+            "opcode": "8F",
+            "operand": "02B0",
+            "operand_bytes": "b0 02"
+          },
+          {
+            "file_offset": 102730,
+            "opcode": "7F",
+            "operand": "02C0",
+            "operand_bytes": "c0 02"
+          },
+          {
+            "file_offset": 102753,
+            "opcode": "7F",
+            "operand": "02B2",
+            "operand_bytes": "b2 02"
+          },
+          {
+            "file_offset": 102762,
+            "opcode": "8F",
+            "operand": "02BE",
+            "operand_bytes": "be 02"
+          },
+          {
+            "file_offset": 103197,
+            "opcode": "9F",
+            "operand": "02C0",
+            "operand_bytes": "c0 02"
+          },
+          {
+            "file_offset": 103221,
+            "opcode": "9F",
+            "operand": "02B2",
+            "operand_bytes": "b2 02"
+          },
+          {
+            "file_offset": 104021,
+            "opcode": "BF",
+            "operand": "02B2",
+            "operand_bytes": "b2 02"
+          },
+          {
+            "file_offset": 109414,
+            "opcode": "69",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 126672,
+            "opcode": "6D",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          }
+        ],
+        "operand_counts": {
+          "026A": 9,
+          "026C": 1,
+          "02A0": 2,
+          "02B0": 3,
+          "02B2": 3,
+          "02BE": 1,
+          "02C0": 5,
+          "02C1": 1,
+          "02C2": 2,
+          "02C3": 2,
+          "02C4": 2,
+          "02C5": 2,
+          "02C6": 2,
+          "02C7": 2,
+          "02CC": 4,
+          "02CE": 3,
+          "0300": 87,
+          "0302": 4,
+          "0306": 2,
+          "0309": 1,
+          "030D": 2
+        },
+        "range": [
+          "026A",
+          "030D"
+        ],
+        "reference_count": 140
+      },
+      "second_inserted_space": {
+        "hits": [
+          {
+            "file_offset": 34561,
+            "opcode": "B9",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          },
+          {
+            "file_offset": 34567,
+            "opcode": "99",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          },
+          {
+            "file_offset": 68120,
+            "opcode": "AD",
+            "operand": "0545",
+            "operand_bytes": "45 05"
+          },
+          {
+            "file_offset": 71872,
+            "opcode": "B9",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          },
+          {
+            "file_offset": 72783,
+            "opcode": "B9",
+            "operand": "0545",
+            "operand_bytes": "45 05"
+          },
+          {
+            "file_offset": 75495,
+            "opcode": "B9",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          },
+          {
+            "file_offset": 76131,
+            "opcode": "B9",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          }
+        ],
+        "operand_counts": {
+          "0541": 5,
+          "0545": 2
+        },
+        "range": [
+          "053C",
+          "0546"
+        ],
+        "reference_count": 7
+      },
+      "second_plus2": {
+        "hits": [
+          {
+            "file_offset": 8569,
+            "opcode": "A2",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 11192,
+            "opcode": "A2",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 34561,
+            "opcode": "B9",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          },
+          {
+            "file_offset": 34567,
+            "opcode": "99",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          },
+          {
+            "file_offset": 41631,
+            "opcode": "AD",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 41642,
+            "opcode": "AD",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 41665,
+            "opcode": "8D",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 42335,
+            "opcode": "6D",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 42411,
+            "opcode": "AD",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 42452,
+            "opcode": "AD",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 42459,
+            "opcode": "AD",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 42513,
+            "opcode": "AD",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 42520,
+            "opcode": "AD",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 42542,
+            "opcode": "AD",
+            "operand": "052B",
+            "operand_bytes": "2b 05"
+          },
+          {
+            "file_offset": 42588,
+            "opcode": "AD",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 42630,
+            "opcode": "AD",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 42669,
+            "opcode": "AD",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 42674,
+            "opcode": "AD",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 42710,
+            "opcode": "AD",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 42717,
+            "opcode": "AD",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 42771,
+            "opcode": "AD",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 42778,
+            "opcode": "AD",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 42800,
+            "opcode": "AD",
+            "operand": "052D",
+            "operand_bytes": "2d 05"
+          },
+          {
+            "file_offset": 42846,
+            "opcode": "AD",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 42888,
+            "opcode": "AD",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 43895,
+            "opcode": "AD",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 43912,
+            "opcode": "6D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 43930,
+            "opcode": "AD",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 43947,
+            "opcode": "6D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 43965,
+            "opcode": "AD",
+            "operand": "052B",
+            "operand_bytes": "2b 05"
+          },
+          {
+            "file_offset": 43982,
+            "opcode": "6D",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 44000,
+            "opcode": "AD",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 44017,
+            "opcode": "6D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 44048,
+            "opcode": "AD",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 44065,
+            "opcode": "6D",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 44083,
+            "opcode": "AD",
+            "operand": "0539",
+            "operand_bytes": "39 05"
+          },
+          {
+            "file_offset": 44100,
+            "opcode": "6D",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 44118,
+            "opcode": "AD",
+            "operand": "052D",
+            "operand_bytes": "2d 05"
+          },
+          {
+            "file_offset": 44135,
+            "opcode": "6D",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 44153,
+            "opcode": "AD",
+            "operand": "0531",
+            "operand_bytes": "31 05"
+          },
+          {
+            "file_offset": 44170,
+            "opcode": "6D",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 44610,
+            "opcode": "6D",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 44616,
+            "opcode": "8D",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 44628,
+            "opcode": "6D",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 44634,
+            "opcode": "8D",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 44692,
+            "opcode": "AD",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 44701,
+            "opcode": "AD",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 44727,
+            "opcode": "CD",
+            "operand": "0515",
+            "operand_bytes": "15 05"
+          },
+          {
+            "file_offset": 44732,
+            "opcode": "8D",
+            "operand": "0515",
+            "operand_bytes": "15 05"
+          },
+          {
+            "file_offset": 44737,
+            "opcode": "CD",
+            "operand": "0519",
+            "operand_bytes": "19 05"
+          },
+          {
+            "file_offset": 44742,
+            "opcode": "8D",
+            "operand": "0519",
+            "operand_bytes": "19 05"
+          },
+          {
+            "file_offset": 44745,
+            "opcode": "8D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 44756,
+            "opcode": "8D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 44759,
+            "opcode": "AD",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 44773,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 44780,
+            "opcode": "ED",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 44783,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 44791,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 44797,
+            "opcode": "8D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 44803,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 44811,
+            "opcode": "8D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 44814,
+            "opcode": "8D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 44820,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 44823,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 44854,
+            "opcode": "CD",
+            "operand": "0521",
+            "operand_bytes": "21 05"
+          },
+          {
+            "file_offset": 44859,
+            "opcode": "8D",
+            "operand": "0521",
+            "operand_bytes": "21 05"
+          },
+          {
+            "file_offset": 44864,
+            "opcode": "CD",
+            "operand": "051D",
+            "operand_bytes": "1d 05"
+          },
+          {
+            "file_offset": 44869,
+            "opcode": "8D",
+            "operand": "051D",
+            "operand_bytes": "1d 05"
+          },
+          {
+            "file_offset": 44872,
+            "opcode": "8D",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 44880,
+            "opcode": "AD",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 44886,
+            "opcode": "8D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 44889,
+            "opcode": "AD",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 44900,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 44907,
+            "opcode": "ED",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 44910,
+            "opcode": "8D",
+            "operand": "052B",
+            "operand_bytes": "2b 05"
+          },
+          {
+            "file_offset": 44918,
+            "opcode": "8D",
+            "operand": "052B",
+            "operand_bytes": "2b 05"
+          },
+          {
+            "file_offset": 44924,
+            "opcode": "8D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 44930,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 44938,
+            "opcode": "8D",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 44941,
+            "opcode": "8D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 44947,
+            "opcode": "8D",
+            "operand": "052B",
+            "operand_bytes": "2b 05"
+          },
+          {
+            "file_offset": 44950,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 44956,
+            "opcode": "8D",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 44959,
+            "opcode": "8D",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 44972,
+            "opcode": "6D",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 44978,
+            "opcode": "8D",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 44990,
+            "opcode": "6D",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 44996,
+            "opcode": "8D",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 45033,
+            "opcode": "AD",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 45038,
+            "opcode": "AD",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 45042,
+            "opcode": "6D",
+            "operand": "0503",
+            "operand_bytes": "03 05"
+          },
+          {
+            "file_offset": 45048,
+            "opcode": "8D",
+            "operand": "0503",
+            "operand_bytes": "03 05"
+          },
+          {
+            "file_offset": 45060,
+            "opcode": "6D",
+            "operand": "04FF",
+            "operand_bytes": "ff 04"
+          },
+          {
+            "file_offset": 45066,
+            "opcode": "8D",
+            "operand": "04FF",
+            "operand_bytes": "ff 04"
+          },
+          {
+            "file_offset": 45074,
+            "opcode": "6D",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 45140,
+            "opcode": "AD",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 45149,
+            "opcode": "AD",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 45175,
+            "opcode": "CD",
+            "operand": "0515",
+            "operand_bytes": "15 05"
+          },
+          {
+            "file_offset": 45180,
+            "opcode": "8D",
+            "operand": "0515",
+            "operand_bytes": "15 05"
+          },
+          {
+            "file_offset": 45185,
+            "opcode": "CD",
+            "operand": "0519",
+            "operand_bytes": "19 05"
+          },
+          {
+            "file_offset": 45190,
+            "opcode": "8D",
+            "operand": "0519",
+            "operand_bytes": "19 05"
+          },
+          {
+            "file_offset": 45193,
+            "opcode": "8D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 45204,
+            "opcode": "8D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 45207,
+            "opcode": "AD",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 45221,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 45228,
+            "opcode": "ED",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 45231,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 45239,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 45245,
+            "opcode": "8D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 45251,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 45259,
+            "opcode": "8D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 45262,
+            "opcode": "8D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 45268,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 45271,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 45302,
+            "opcode": "CD",
+            "operand": "0521",
+            "operand_bytes": "21 05"
+          },
+          {
+            "file_offset": 45307,
+            "opcode": "8D",
+            "operand": "0521",
+            "operand_bytes": "21 05"
+          },
+          {
+            "file_offset": 45312,
+            "opcode": "CD",
+            "operand": "051D",
+            "operand_bytes": "1d 05"
+          },
+          {
+            "file_offset": 45317,
+            "opcode": "8D",
+            "operand": "051D",
+            "operand_bytes": "1d 05"
+          },
+          {
+            "file_offset": 45320,
+            "opcode": "8D",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 45328,
+            "opcode": "AD",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 45334,
+            "opcode": "8D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 45337,
+            "opcode": "AD",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 45348,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 45355,
+            "opcode": "ED",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 45358,
+            "opcode": "8D",
+            "operand": "052B",
+            "operand_bytes": "2b 05"
+          },
+          {
+            "file_offset": 45366,
+            "opcode": "8D",
+            "operand": "052B",
+            "operand_bytes": "2b 05"
+          },
+          {
+            "file_offset": 45372,
+            "opcode": "8D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 45378,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 45386,
+            "opcode": "8D",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 45389,
+            "opcode": "8D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 45395,
+            "opcode": "8D",
+            "operand": "052B",
+            "operand_bytes": "2b 05"
+          },
+          {
+            "file_offset": 45398,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 45401,
+            "opcode": "AD",
+            "operand": "0503",
+            "operand_bytes": "03 05"
+          },
+          {
+            "file_offset": 45410,
+            "opcode": "AD",
+            "operand": "04FF",
+            "operand_bytes": "ff 04"
+          },
+          {
+            "file_offset": 45422,
+            "opcode": "AC",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 45436,
+            "opcode": "CD",
+            "operand": "0517",
+            "operand_bytes": "17 05"
+          },
+          {
+            "file_offset": 45441,
+            "opcode": "8D",
+            "operand": "0517",
+            "operand_bytes": "17 05"
+          },
+          {
+            "file_offset": 45446,
+            "opcode": "CD",
+            "operand": "051B",
+            "operand_bytes": "1b 05"
+          },
+          {
+            "file_offset": 45451,
+            "opcode": "8D",
+            "operand": "051B",
+            "operand_bytes": "1b 05"
+          },
+          {
+            "file_offset": 45454,
+            "opcode": "8D",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 45465,
+            "opcode": "8D",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 45468,
+            "opcode": "AD",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 45482,
+            "opcode": "8D",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 45489,
+            "opcode": "ED",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 45492,
+            "opcode": "8D",
+            "operand": "0539",
+            "operand_bytes": "39 05"
+          },
+          {
+            "file_offset": 45500,
+            "opcode": "8D",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 45506,
+            "opcode": "8D",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 45512,
+            "opcode": "8D",
+            "operand": "0539",
+            "operand_bytes": "39 05"
+          },
+          {
+            "file_offset": 45520,
+            "opcode": "8D",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 45523,
+            "opcode": "8D",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 45529,
+            "opcode": "8D",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 45532,
+            "opcode": "8D",
+            "operand": "0539",
+            "operand_bytes": "39 05"
+          },
+          {
+            "file_offset": 45563,
+            "opcode": "CD",
+            "operand": "0523",
+            "operand_bytes": "23 05"
+          },
+          {
+            "file_offset": 45568,
+            "opcode": "8D",
+            "operand": "0523",
+            "operand_bytes": "23 05"
+          },
+          {
+            "file_offset": 45573,
+            "opcode": "CD",
+            "operand": "051F",
+            "operand_bytes": "1f 05"
+          },
+          {
+            "file_offset": 45578,
+            "opcode": "8D",
+            "operand": "051F",
+            "operand_bytes": "1f 05"
+          },
+          {
+            "file_offset": 45581,
+            "opcode": "8D",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 45589,
+            "opcode": "AD",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 45595,
+            "opcode": "8D",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 45598,
+            "opcode": "AD",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 45609,
+            "opcode": "8D",
+            "operand": "0531",
+            "operand_bytes": "31 05"
+          },
+          {
+            "file_offset": 45616,
+            "opcode": "ED",
+            "operand": "0531",
+            "operand_bytes": "31 05"
+          },
+          {
+            "file_offset": 45619,
+            "opcode": "8D",
+            "operand": "052D",
+            "operand_bytes": "2d 05"
+          },
+          {
+            "file_offset": 45627,
+            "opcode": "8D",
+            "operand": "052D",
+            "operand_bytes": "2d 05"
+          },
+          {
+            "file_offset": 45633,
+            "opcode": "8D",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 45639,
+            "opcode": "8D",
+            "operand": "0531",
+            "operand_bytes": "31 05"
+          },
+          {
+            "file_offset": 45647,
+            "opcode": "8D",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 45650,
+            "opcode": "8D",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 45656,
+            "opcode": "8D",
+            "operand": "052D",
+            "operand_bytes": "2d 05"
+          },
+          {
+            "file_offset": 45659,
+            "opcode": "8D",
+            "operand": "0531",
+            "operand_bytes": "31 05"
+          },
+          {
+            "file_offset": 45933,
+            "opcode": "AD",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 45970,
+            "opcode": "AD",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 71872,
+            "opcode": "B9",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          },
+          {
+            "file_offset": 75495,
+            "opcode": "B9",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          },
+          {
+            "file_offset": 76131,
+            "opcode": "B9",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          }
+        ],
+        "operand_counts": {
+          "04FB": 9,
+          "04FD": 8,
+          "04FF": 3,
+          "0501": 6,
+          "0503": 3,
+          "0505": 12,
+          "0507": 9,
+          "0509": 7,
+          "050B": 4,
+          "050D": 11,
+          "050F": 9,
+          "0511": 7,
+          "0513": 4,
+          "0515": 4,
+          "0517": 2,
+          "0519": 4,
+          "051B": 2,
+          "051D": 4,
+          "051F": 2,
+          "0521": 4,
+          "0523": 2,
+          "052B": 8,
+          "052D": 5,
+          "052F": 9,
+          "0531": 5,
+          "0533": 10,
+          "0535": 6,
+          "0537": 7,
+          "0539": 4,
+          "0541": 5
+        },
+        "range": [
+          "04FB",
+          "0541"
+        ],
+        "reference_count": 175
+      }
+    },
+    "usa-retail": {
+      "autojoy_hardware_registers": {
+        "hits": [
+          {
+            "file_offset": 1508,
+            "opcode": "AD",
+            "operand": "4218",
+            "operand_bytes": "18 42"
+          },
+          {
+            "file_offset": 1514,
+            "opcode": "AD",
+            "operand": "4219",
+            "operand_bytes": "19 42"
+          },
+          {
+            "file_offset": 1520,
+            "opcode": "AD",
+            "operand": "421A",
+            "operand_bytes": "1a 42"
+          },
+          {
+            "file_offset": 1526,
+            "opcode": "AD",
+            "operand": "421B",
+            "operand_bytes": "1b 42"
+          },
+          {
+            "file_offset": 20958,
+            "opcode": "AE",
+            "operand": "4218",
+            "operand_bytes": "18 42"
+          },
+          {
+            "file_offset": 20963,
+            "opcode": "AE",
+            "operand": "421A",
+            "operand_bytes": "1a 42"
+          }
+        ],
+        "operand_counts": {
+          "4218": 2,
+          "4219": 1,
+          "421A": 2,
+          "421B": 1
+        },
+        "range": [
+          "4218",
+          "421F"
+        ],
+        "reference_count": 6
+      },
+      "first_inserted_space": {
+        "hits": [
+          {
+            "file_offset": 1511,
+            "opcode": "8D",
+            "operand": "030D",
+            "operand_bytes": "0d 03"
+          },
+          {
+            "file_offset": 1517,
+            "opcode": "8D",
+            "operand": "030F",
+            "operand_bytes": "0f 03"
+          },
+          {
+            "file_offset": 1523,
+            "opcode": "8D",
+            "operand": "030E",
+            "operand_bytes": "0e 03"
+          },
+          {
+            "file_offset": 1529,
+            "opcode": "8D",
+            "operand": "0310",
+            "operand_bytes": "10 03"
+          },
+          {
+            "file_offset": 76445,
+            "opcode": "AD",
+            "operand": "030D",
+            "operand_bytes": "0d 03"
+          },
+          {
+            "file_offset": 76504,
+            "opcode": "AD",
+            "operand": "030F",
+            "operand_bytes": "0f 03"
+          },
+          {
+            "file_offset": 76684,
+            "opcode": "AD",
+            "operand": "030E",
+            "operand_bytes": "0e 03"
+          },
+          {
+            "file_offset": 76743,
+            "opcode": "AD",
+            "operand": "0310",
+            "operand_bytes": "10 03"
+          }
+        ],
+        "operand_counts": {
+          "030D": 2,
+          "030E": 2,
+          "030F": 2,
+          "0310": 2
+        },
+        "range": [
+          "030A",
+          "0310"
+        ],
+        "reference_count": 8
+      },
+      "first_plus4": {
+        "hits": [
+          {
+            "file_offset": 1511,
+            "opcode": "8D",
+            "operand": "030D",
+            "operand_bytes": "0d 03"
+          },
+          {
+            "file_offset": 11230,
+            "opcode": "C9",
+            "operand": "02B0",
+            "operand_bytes": "b0 02"
+          },
+          {
+            "file_offset": 11237,
+            "opcode": "C9",
+            "operand": "02B0",
+            "operand_bytes": "b0 02"
+          },
+          {
+            "file_offset": 11598,
+            "opcode": "69",
+            "operand": "02C0",
+            "operand_bytes": "c0 02"
+          },
+          {
+            "file_offset": 30787,
+            "opcode": "69",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 33037,
+            "opcode": "6D",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 38227,
+            "opcode": "8D",
+            "operand": "02C0",
+            "operand_bytes": "c0 02"
+          },
+          {
+            "file_offset": 38232,
+            "opcode": "9C",
+            "operand": "02C3",
+            "operand_bytes": "c3 02"
+          },
+          {
+            "file_offset": 38248,
+            "opcode": "8D",
+            "operand": "02C2",
+            "operand_bytes": "c2 02"
+          },
+          {
+            "file_offset": 38253,
+            "opcode": "9C",
+            "operand": "02C5",
+            "operand_bytes": "c5 02"
+          },
+          {
+            "file_offset": 38269,
+            "opcode": "8D",
+            "operand": "02C4",
+            "operand_bytes": "c4 02"
+          },
+          {
+            "file_offset": 38274,
+            "opcode": "9C",
+            "operand": "02C7",
+            "operand_bytes": "c7 02"
+          },
+          {
+            "file_offset": 38290,
+            "opcode": "8D",
+            "operand": "02C6",
+            "operand_bytes": "c6 02"
+          },
+          {
+            "file_offset": 38300,
+            "opcode": "AE",
+            "operand": "02C0",
+            "operand_bytes": "c0 02"
+          },
+          {
+            "file_offset": 38309,
+            "opcode": "AE",
+            "operand": "02C1",
+            "operand_bytes": "c1 02"
+          },
+          {
+            "file_offset": 38323,
+            "opcode": "8D",
+            "operand": "02CC",
+            "operand_bytes": "cc 02"
+          },
+          {
+            "file_offset": 38329,
+            "opcode": "AE",
+            "operand": "02C2",
+            "operand_bytes": "c2 02"
+          },
+          {
+            "file_offset": 38338,
+            "opcode": "AE",
+            "operand": "02C3",
+            "operand_bytes": "c3 02"
+          },
+          {
+            "file_offset": 38353,
+            "opcode": "6D",
+            "operand": "02CC",
+            "operand_bytes": "cc 02"
+          },
+          {
+            "file_offset": 38356,
+            "opcode": "8D",
+            "operand": "02CC",
+            "operand_bytes": "cc 02"
+          },
+          {
+            "file_offset": 38362,
+            "opcode": "AE",
+            "operand": "02C4",
+            "operand_bytes": "c4 02"
+          },
+          {
+            "file_offset": 38371,
+            "opcode": "AE",
+            "operand": "02C5",
+            "operand_bytes": "c5 02"
+          },
+          {
+            "file_offset": 38385,
+            "opcode": "8D",
+            "operand": "02CE",
+            "operand_bytes": "ce 02"
+          },
+          {
+            "file_offset": 38391,
+            "opcode": "AE",
+            "operand": "02C6",
+            "operand_bytes": "c6 02"
+          },
+          {
+            "file_offset": 38400,
+            "opcode": "AE",
+            "operand": "02C7",
+            "operand_bytes": "c7 02"
+          },
+          {
+            "file_offset": 38415,
+            "opcode": "6D",
+            "operand": "02CE",
+            "operand_bytes": "ce 02"
+          },
+          {
+            "file_offset": 38418,
+            "opcode": "8D",
+            "operand": "02CE",
+            "operand_bytes": "ce 02"
+          },
+          {
+            "file_offset": 38424,
+            "opcode": "AD",
+            "operand": "02CC",
+            "operand_bytes": "cc 02"
+          },
+          {
+            "file_offset": 48083,
+            "opcode": "A0",
+            "operand": "02A0",
+            "operand_bytes": "a0 02"
+          },
+          {
+            "file_offset": 48106,
+            "opcode": "A0",
+            "operand": "02A0",
+            "operand_bytes": "a0 02"
+          },
+          {
+            "file_offset": 49061,
+            "opcode": "EE",
+            "operand": "0309",
+            "operand_bytes": "09 03"
+          },
+          {
+            "file_offset": 68667,
+            "opcode": "AD",
+            "operand": "0302",
+            "operand_bytes": "02 03"
+          },
+          {
+            "file_offset": 69922,
+            "opcode": "AD",
+            "operand": "0302",
+            "operand_bytes": "02 03"
+          },
+          {
+            "file_offset": 72856,
+            "opcode": "9C",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72868,
+            "opcode": "8D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72881,
+            "opcode": "6D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72884,
+            "opcode": "8D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72897,
+            "opcode": "6D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72900,
+            "opcode": "8D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72907,
+            "opcode": "6D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72910,
+            "opcode": "8D",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 72988,
+            "opcode": "8D",
+            "operand": "026C",
+            "operand_bytes": "6c 02"
+          },
+          {
+            "file_offset": 72991,
+            "opcode": "AE",
+            "operand": "026A",
+            "operand_bytes": "6a 02"
+          },
+          {
+            "file_offset": 74652,
+            "opcode": "AD",
+            "operand": "0302",
+            "operand_bytes": "02 03"
+          },
+          {
+            "file_offset": 74660,
+            "opcode": "AD",
+            "operand": "0302",
+            "operand_bytes": "02 03"
+          },
+          {
+            "file_offset": 75816,
+            "opcode": "69",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 75848,
+            "opcode": "A9",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 76445,
+            "opcode": "AD",
+            "operand": "030D",
+            "operand_bytes": "0d 03"
+          },
+          {
+            "file_offset": 80047,
+            "opcode": "AD",
+            "operand": "0306",
+            "operand_bytes": "06 03"
+          },
+          {
+            "file_offset": 80055,
+            "opcode": "9C",
+            "operand": "0306",
+            "operand_bytes": "06 03"
+          },
+          {
+            "file_offset": 83282,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83321,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83360,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83399,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83438,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83477,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83516,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83555,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83594,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83633,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83672,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83711,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83750,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83789,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83828,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83867,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83906,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83945,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 83984,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84023,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84062,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84101,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84140,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84179,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84218,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84257,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84296,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84335,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84374,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84413,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84452,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84491,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84530,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84569,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84608,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84647,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84686,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84725,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84764,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84803,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84842,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84881,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84920,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84959,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 84998,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85037,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85076,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85115,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85154,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85193,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85232,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85271,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85310,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85349,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85388,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85427,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85466,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85505,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85544,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85583,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85622,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85661,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85700,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85739,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85778,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85817,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85856,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85895,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85934,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 85973,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86012,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86051,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86090,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86129,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86168,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86207,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86246,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86285,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86324,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86363,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 86402,
+            "opcode": "AE",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 102693,
+            "opcode": "8F",
+            "operand": "02B0",
+            "operand_bytes": "b0 02"
+          },
+          {
+            "file_offset": 102730,
+            "opcode": "7F",
+            "operand": "02C0",
+            "operand_bytes": "c0 02"
+          },
+          {
+            "file_offset": 102753,
+            "opcode": "7F",
+            "operand": "02B2",
+            "operand_bytes": "b2 02"
+          },
+          {
+            "file_offset": 102762,
+            "opcode": "8F",
+            "operand": "02BE",
+            "operand_bytes": "be 02"
+          },
+          {
+            "file_offset": 103197,
+            "opcode": "9F",
+            "operand": "02C0",
+            "operand_bytes": "c0 02"
+          },
+          {
+            "file_offset": 103221,
+            "opcode": "9F",
+            "operand": "02B2",
+            "operand_bytes": "b2 02"
+          },
+          {
+            "file_offset": 104021,
+            "opcode": "BF",
+            "operand": "02B2",
+            "operand_bytes": "b2 02"
+          },
+          {
+            "file_offset": 109414,
+            "opcode": "69",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          },
+          {
+            "file_offset": 126640,
+            "opcode": "6D",
+            "operand": "0300",
+            "operand_bytes": "00 03"
+          }
+        ],
+        "operand_counts": {
+          "026A": 9,
+          "026C": 1,
+          "02A0": 2,
+          "02B0": 3,
+          "02B2": 3,
+          "02BE": 1,
+          "02C0": 5,
+          "02C1": 1,
+          "02C2": 2,
+          "02C3": 2,
+          "02C4": 2,
+          "02C5": 2,
+          "02C6": 2,
+          "02C7": 2,
+          "02CC": 4,
+          "02CE": 3,
+          "0300": 87,
+          "0302": 4,
+          "0306": 2,
+          "0309": 1,
+          "030D": 2
+        },
+        "range": [
+          "026A",
+          "030D"
+        ],
+        "reference_count": 140
+      },
+      "second_inserted_space": {
+        "hits": [
+          {
+            "file_offset": 34593,
+            "opcode": "B9",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          },
+          {
+            "file_offset": 34599,
+            "opcode": "99",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          },
+          {
+            "file_offset": 68123,
+            "opcode": "AD",
+            "operand": "0545",
+            "operand_bytes": "45 05"
+          },
+          {
+            "file_offset": 71877,
+            "opcode": "B9",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          },
+          {
+            "file_offset": 72788,
+            "opcode": "B9",
+            "operand": "0545",
+            "operand_bytes": "45 05"
+          },
+          {
+            "file_offset": 75510,
+            "opcode": "B9",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          },
+          {
+            "file_offset": 76146,
+            "opcode": "B9",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          }
+        ],
+        "operand_counts": {
+          "0541": 5,
+          "0545": 2
+        },
+        "range": [
+          "053C",
+          "0546"
+        ],
+        "reference_count": 7
+      },
+      "second_plus2": {
+        "hits": [
+          {
+            "file_offset": 8578,
+            "opcode": "A2",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 11208,
+            "opcode": "A2",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 34593,
+            "opcode": "B9",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          },
+          {
+            "file_offset": 34599,
+            "opcode": "99",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          },
+          {
+            "file_offset": 41663,
+            "opcode": "AD",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 41674,
+            "opcode": "AD",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 41697,
+            "opcode": "8D",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 42367,
+            "opcode": "6D",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 42443,
+            "opcode": "AD",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 42484,
+            "opcode": "AD",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 42491,
+            "opcode": "AD",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 42545,
+            "opcode": "AD",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 42552,
+            "opcode": "AD",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 42574,
+            "opcode": "AD",
+            "operand": "052B",
+            "operand_bytes": "2b 05"
+          },
+          {
+            "file_offset": 42620,
+            "opcode": "AD",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 42662,
+            "opcode": "AD",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 42701,
+            "opcode": "AD",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 42706,
+            "opcode": "AD",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 42742,
+            "opcode": "AD",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 42749,
+            "opcode": "AD",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 42803,
+            "opcode": "AD",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 42810,
+            "opcode": "AD",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 42832,
+            "opcode": "AD",
+            "operand": "052D",
+            "operand_bytes": "2d 05"
+          },
+          {
+            "file_offset": 42878,
+            "opcode": "AD",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 42920,
+            "opcode": "AD",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 43927,
+            "opcode": "AD",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 43944,
+            "opcode": "6D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 43962,
+            "opcode": "AD",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 43979,
+            "opcode": "6D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 43997,
+            "opcode": "AD",
+            "operand": "052B",
+            "operand_bytes": "2b 05"
+          },
+          {
+            "file_offset": 44014,
+            "opcode": "6D",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 44032,
+            "opcode": "AD",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 44049,
+            "opcode": "6D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 44080,
+            "opcode": "AD",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 44097,
+            "opcode": "6D",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 44115,
+            "opcode": "AD",
+            "operand": "0539",
+            "operand_bytes": "39 05"
+          },
+          {
+            "file_offset": 44132,
+            "opcode": "6D",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 44150,
+            "opcode": "AD",
+            "operand": "052D",
+            "operand_bytes": "2d 05"
+          },
+          {
+            "file_offset": 44167,
+            "opcode": "6D",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 44185,
+            "opcode": "AD",
+            "operand": "0531",
+            "operand_bytes": "31 05"
+          },
+          {
+            "file_offset": 44202,
+            "opcode": "6D",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 44642,
+            "opcode": "6D",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 44648,
+            "opcode": "8D",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 44660,
+            "opcode": "6D",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 44666,
+            "opcode": "8D",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 44724,
+            "opcode": "AD",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 44733,
+            "opcode": "AD",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 44759,
+            "opcode": "CD",
+            "operand": "0515",
+            "operand_bytes": "15 05"
+          },
+          {
+            "file_offset": 44764,
+            "opcode": "8D",
+            "operand": "0515",
+            "operand_bytes": "15 05"
+          },
+          {
+            "file_offset": 44769,
+            "opcode": "CD",
+            "operand": "0519",
+            "operand_bytes": "19 05"
+          },
+          {
+            "file_offset": 44774,
+            "opcode": "8D",
+            "operand": "0519",
+            "operand_bytes": "19 05"
+          },
+          {
+            "file_offset": 44777,
+            "opcode": "8D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 44788,
+            "opcode": "8D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 44791,
+            "opcode": "AD",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 44805,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 44812,
+            "opcode": "ED",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 44815,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 44823,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 44829,
+            "opcode": "8D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 44835,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 44843,
+            "opcode": "8D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 44846,
+            "opcode": "8D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 44852,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 44855,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 44886,
+            "opcode": "CD",
+            "operand": "0521",
+            "operand_bytes": "21 05"
+          },
+          {
+            "file_offset": 44891,
+            "opcode": "8D",
+            "operand": "0521",
+            "operand_bytes": "21 05"
+          },
+          {
+            "file_offset": 44896,
+            "opcode": "CD",
+            "operand": "051D",
+            "operand_bytes": "1d 05"
+          },
+          {
+            "file_offset": 44901,
+            "opcode": "8D",
+            "operand": "051D",
+            "operand_bytes": "1d 05"
+          },
+          {
+            "file_offset": 44904,
+            "opcode": "8D",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 44912,
+            "opcode": "AD",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 44918,
+            "opcode": "8D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 44921,
+            "opcode": "AD",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 44932,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 44939,
+            "opcode": "ED",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 44942,
+            "opcode": "8D",
+            "operand": "052B",
+            "operand_bytes": "2b 05"
+          },
+          {
+            "file_offset": 44950,
+            "opcode": "8D",
+            "operand": "052B",
+            "operand_bytes": "2b 05"
+          },
+          {
+            "file_offset": 44956,
+            "opcode": "8D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 44962,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 44970,
+            "opcode": "8D",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 44973,
+            "opcode": "8D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 44979,
+            "opcode": "8D",
+            "operand": "052B",
+            "operand_bytes": "2b 05"
+          },
+          {
+            "file_offset": 44982,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 44988,
+            "opcode": "8D",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 44991,
+            "opcode": "8D",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 45004,
+            "opcode": "6D",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 45010,
+            "opcode": "8D",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 45022,
+            "opcode": "6D",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 45028,
+            "opcode": "8D",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 45065,
+            "opcode": "AD",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 45070,
+            "opcode": "AD",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 45074,
+            "opcode": "6D",
+            "operand": "0503",
+            "operand_bytes": "03 05"
+          },
+          {
+            "file_offset": 45080,
+            "opcode": "8D",
+            "operand": "0503",
+            "operand_bytes": "03 05"
+          },
+          {
+            "file_offset": 45092,
+            "opcode": "6D",
+            "operand": "04FF",
+            "operand_bytes": "ff 04"
+          },
+          {
+            "file_offset": 45098,
+            "opcode": "8D",
+            "operand": "04FF",
+            "operand_bytes": "ff 04"
+          },
+          {
+            "file_offset": 45106,
+            "opcode": "6D",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 45172,
+            "opcode": "AD",
+            "operand": "0501",
+            "operand_bytes": "01 05"
+          },
+          {
+            "file_offset": 45181,
+            "opcode": "AD",
+            "operand": "04FD",
+            "operand_bytes": "fd 04"
+          },
+          {
+            "file_offset": 45207,
+            "opcode": "CD",
+            "operand": "0515",
+            "operand_bytes": "15 05"
+          },
+          {
+            "file_offset": 45212,
+            "opcode": "8D",
+            "operand": "0515",
+            "operand_bytes": "15 05"
+          },
+          {
+            "file_offset": 45217,
+            "opcode": "CD",
+            "operand": "0519",
+            "operand_bytes": "19 05"
+          },
+          {
+            "file_offset": 45222,
+            "opcode": "8D",
+            "operand": "0519",
+            "operand_bytes": "19 05"
+          },
+          {
+            "file_offset": 45225,
+            "opcode": "8D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 45236,
+            "opcode": "8D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 45239,
+            "opcode": "AD",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 45253,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 45260,
+            "opcode": "ED",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 45263,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 45271,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 45277,
+            "opcode": "8D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 45283,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 45291,
+            "opcode": "8D",
+            "operand": "050D",
+            "operand_bytes": "0d 05"
+          },
+          {
+            "file_offset": 45294,
+            "opcode": "8D",
+            "operand": "0511",
+            "operand_bytes": "11 05"
+          },
+          {
+            "file_offset": 45300,
+            "opcode": "8D",
+            "operand": "0533",
+            "operand_bytes": "33 05"
+          },
+          {
+            "file_offset": 45303,
+            "opcode": "8D",
+            "operand": "0537",
+            "operand_bytes": "37 05"
+          },
+          {
+            "file_offset": 45334,
+            "opcode": "CD",
+            "operand": "0521",
+            "operand_bytes": "21 05"
+          },
+          {
+            "file_offset": 45339,
+            "opcode": "8D",
+            "operand": "0521",
+            "operand_bytes": "21 05"
+          },
+          {
+            "file_offset": 45344,
+            "opcode": "CD",
+            "operand": "051D",
+            "operand_bytes": "1d 05"
+          },
+          {
+            "file_offset": 45349,
+            "opcode": "8D",
+            "operand": "051D",
+            "operand_bytes": "1d 05"
+          },
+          {
+            "file_offset": 45352,
+            "opcode": "8D",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 45360,
+            "opcode": "AD",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 45366,
+            "opcode": "8D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 45369,
+            "opcode": "AD",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 45380,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 45387,
+            "opcode": "ED",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 45390,
+            "opcode": "8D",
+            "operand": "052B",
+            "operand_bytes": "2b 05"
+          },
+          {
+            "file_offset": 45398,
+            "opcode": "8D",
+            "operand": "052B",
+            "operand_bytes": "2b 05"
+          },
+          {
+            "file_offset": 45404,
+            "opcode": "8D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 45410,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 45418,
+            "opcode": "8D",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 45421,
+            "opcode": "8D",
+            "operand": "0509",
+            "operand_bytes": "09 05"
+          },
+          {
+            "file_offset": 45427,
+            "opcode": "8D",
+            "operand": "052B",
+            "operand_bytes": "2b 05"
+          },
+          {
+            "file_offset": 45430,
+            "opcode": "8D",
+            "operand": "052F",
+            "operand_bytes": "2f 05"
+          },
+          {
+            "file_offset": 45433,
+            "opcode": "AD",
+            "operand": "0503",
+            "operand_bytes": "03 05"
+          },
+          {
+            "file_offset": 45442,
+            "opcode": "AD",
+            "operand": "04FF",
+            "operand_bytes": "ff 04"
+          },
+          {
+            "file_offset": 45454,
+            "opcode": "AC",
+            "operand": "04FB",
+            "operand_bytes": "fb 04"
+          },
+          {
+            "file_offset": 45468,
+            "opcode": "CD",
+            "operand": "0517",
+            "operand_bytes": "17 05"
+          },
+          {
+            "file_offset": 45473,
+            "opcode": "8D",
+            "operand": "0517",
+            "operand_bytes": "17 05"
+          },
+          {
+            "file_offset": 45478,
+            "opcode": "CD",
+            "operand": "051B",
+            "operand_bytes": "1b 05"
+          },
+          {
+            "file_offset": 45483,
+            "opcode": "8D",
+            "operand": "051B",
+            "operand_bytes": "1b 05"
+          },
+          {
+            "file_offset": 45486,
+            "opcode": "8D",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 45497,
+            "opcode": "8D",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 45500,
+            "opcode": "AD",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 45514,
+            "opcode": "8D",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 45521,
+            "opcode": "ED",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 45524,
+            "opcode": "8D",
+            "operand": "0539",
+            "operand_bytes": "39 05"
+          },
+          {
+            "file_offset": 45532,
+            "opcode": "8D",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 45538,
+            "opcode": "8D",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 45544,
+            "opcode": "8D",
+            "operand": "0539",
+            "operand_bytes": "39 05"
+          },
+          {
+            "file_offset": 45552,
+            "opcode": "8D",
+            "operand": "050F",
+            "operand_bytes": "0f 05"
+          },
+          {
+            "file_offset": 45555,
+            "opcode": "8D",
+            "operand": "0513",
+            "operand_bytes": "13 05"
+          },
+          {
+            "file_offset": 45561,
+            "opcode": "8D",
+            "operand": "0535",
+            "operand_bytes": "35 05"
+          },
+          {
+            "file_offset": 45564,
+            "opcode": "8D",
+            "operand": "0539",
+            "operand_bytes": "39 05"
+          },
+          {
+            "file_offset": 45595,
+            "opcode": "CD",
+            "operand": "0523",
+            "operand_bytes": "23 05"
+          },
+          {
+            "file_offset": 45600,
+            "opcode": "8D",
+            "operand": "0523",
+            "operand_bytes": "23 05"
+          },
+          {
+            "file_offset": 45605,
+            "opcode": "CD",
+            "operand": "051F",
+            "operand_bytes": "1f 05"
+          },
+          {
+            "file_offset": 45610,
+            "opcode": "8D",
+            "operand": "051F",
+            "operand_bytes": "1f 05"
+          },
+          {
+            "file_offset": 45613,
+            "opcode": "8D",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 45621,
+            "opcode": "AD",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 45627,
+            "opcode": "8D",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 45630,
+            "opcode": "AD",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 45641,
+            "opcode": "8D",
+            "operand": "0531",
+            "operand_bytes": "31 05"
+          },
+          {
+            "file_offset": 45648,
+            "opcode": "ED",
+            "operand": "0531",
+            "operand_bytes": "31 05"
+          },
+          {
+            "file_offset": 45651,
+            "opcode": "8D",
+            "operand": "052D",
+            "operand_bytes": "2d 05"
+          },
+          {
+            "file_offset": 45659,
+            "opcode": "8D",
+            "operand": "052D",
+            "operand_bytes": "2d 05"
+          },
+          {
+            "file_offset": 45665,
+            "opcode": "8D",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 45671,
+            "opcode": "8D",
+            "operand": "0531",
+            "operand_bytes": "31 05"
+          },
+          {
+            "file_offset": 45679,
+            "opcode": "8D",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 45682,
+            "opcode": "8D",
+            "operand": "050B",
+            "operand_bytes": "0b 05"
+          },
+          {
+            "file_offset": 45688,
+            "opcode": "8D",
+            "operand": "052D",
+            "operand_bytes": "2d 05"
+          },
+          {
+            "file_offset": 45691,
+            "opcode": "8D",
+            "operand": "0531",
+            "operand_bytes": "31 05"
+          },
+          {
+            "file_offset": 45965,
+            "opcode": "AD",
+            "operand": "0505",
+            "operand_bytes": "05 05"
+          },
+          {
+            "file_offset": 46002,
+            "opcode": "AD",
+            "operand": "0507",
+            "operand_bytes": "07 05"
+          },
+          {
+            "file_offset": 71877,
+            "opcode": "B9",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          },
+          {
+            "file_offset": 75510,
+            "opcode": "B9",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          },
+          {
+            "file_offset": 76146,
+            "opcode": "B9",
+            "operand": "0541",
+            "operand_bytes": "41 05"
+          }
+        ],
+        "operand_counts": {
+          "04FB": 9,
+          "04FD": 8,
+          "04FF": 3,
+          "0501": 6,
+          "0503": 3,
+          "0505": 12,
+          "0507": 9,
+          "0509": 7,
+          "050B": 4,
+          "050D": 11,
+          "050F": 9,
+          "0511": 7,
+          "0513": 4,
+          "0515": 4,
+          "0517": 2,
+          "0519": 4,
+          "051B": 2,
+          "051D": 4,
+          "051F": 2,
+          "0521": 4,
+          "0523": 2,
+          "052B": 8,
+          "052D": 5,
+          "052F": 9,
+          "0531": 5,
+          "0533": 10,
+          "0535": 6,
+          "0537": 7,
+          "0539": 4,
+          "0541": 5
+        },
+        "range": [
+          "04FB",
+          "0541"
+        ],
+        "reference_count": 175
+      }
+    }
+  },
+  "focused_exclusivity": {
+    "autojoy_hardware_registers": {
+      "europe_only_numeric_operands": [],
+      "europe_operands": [
+        "4218",
+        "421A"
+      ],
+      "explained_by_trusted_projection": [],
+      "shared_all_three": [
+        "4218",
+        "421A"
+      ],
+      "unexplained_europe_operands": []
+    },
+    "first_inserted_space": {
+      "europe_only_numeric_operands": [],
+      "europe_operands": [],
+      "explained_by_trusted_projection": [],
+      "shared_all_three": [],
+      "unexplained_europe_operands": []
+    },
+    "second_inserted_space": {
+      "europe_only_numeric_operands": [
+        "053D"
+      ],
+      "europe_operands": [
+        "053D"
+      ],
+      "explained_by_trusted_projection": [
+        "053D"
+      ],
+      "shared_all_three": [],
+      "unexplained_europe_operands": []
+    }
+  },
+  "method": {
+    "caveat": "operand presence is structural evidence, not semantic identity by itself",
+    "minimum_seed_similarity": 0.6,
+    "reachability": "all accepted semantic-anchor top matches seeded into vendored snes2asm",
+    "scope": "absolute-looking 16-bit operands inside the two inferred WRAM insertion brackets"
+  },
+  "schema_version": 2,
+  "seed_counts": {
+    "europe-retail": 16,
+    "pal-prototype-1994-11-29": 19,
+    "usa-retail": 19
+  }
+}

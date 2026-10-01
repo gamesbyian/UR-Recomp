@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 import unittest
 
-from tools.build_wram_motion_atlas import signed_delta, summarize
+from tools.build_wram_motion_atlas import (
+    build_lineage_motion,
+    collect_motion_rows,
+    infer_secondary_motion_boundaries,
+    signed_delta,
+    summarize,
+)
 
 
 class WramMotionAtlasTests(unittest.TestCase):
@@ -92,6 +98,82 @@ class WramMotionAtlasTests(unittest.TestCase):
                 "consistent": False,
             }],
         )
+
+    def test_groups_secondary_motion_between_prototype_and_europe(self):
+        rows = [
+            {
+                "build": "pal-prototype-1994-11-29",
+                "usa_word": "0F9F",
+                "candidate_words": ["0FA3"],
+                "deltas": [4],
+                "anchors": ["A", "B"],
+                "consistent": True,
+            },
+            {
+                "build": "europe-retail",
+                "usa_word": "0F9F",
+                "candidate_words": ["0FA9"],
+                "deltas": [10],
+                "anchors": ["A", "B"],
+                "consistent": True,
+            },
+            {
+                "build": "pal-prototype-1994-11-29",
+                "usa_word": "0411",
+                "candidate_words": ["0411"],
+                "deltas": [0],
+                "anchors": ["C"],
+                "consistent": True,
+            },
+            {
+                "build": "europe-retail",
+                "usa_word": "0411",
+                "candidate_words": ["0415"],
+                "deltas": [4],
+                "anchors": ["C"],
+                "consistent": True,
+            },
+        ]
+        out = build_lineage_motion(rows)
+        by_delta = {x["prototype_to_europe_delta"]: x for x in out["clusters"]}
+        self.assertEqual(by_delta[6]["usa_words"], ["0F9F"])
+        self.assertEqual(by_delta[4]["usa_words"], ["0411"])
+
+    def test_infers_secondary_motion_boundaries(self):
+        rows = [
+            {"usa_word": "026A", "prototype_word": "026A", "europe_word": "026A", "prototype_to_europe_delta": 0},
+            {"usa_word": "030D", "prototype_word": "030D", "europe_word": "0311", "prototype_to_europe_delta": 4},
+            {"usa_word": "04FB", "prototype_word": "04FB", "europe_word": "04FF", "prototype_to_europe_delta": 4},
+            {"usa_word": "0541", "prototype_word": "0541", "europe_word": "0547", "prototype_to_europe_delta": 6},
+        ]
+        out = infer_secondary_motion_boundaries(rows)
+        self.assertEqual(
+            [(x["last_known_before"], x["first_known_after"], x["delta_jump"]) for x in out],
+            [("026A", "030D", 4), ("04FB", "0541", 2)],
+        )
+
+    def test_non_wram_anchor_is_excluded(self):
+        corpus = {
+            "anchors": [
+                {
+                    "name": "Text_TestCharacterMetadataBit7",
+                    "matches": {
+                        "europe-retail": [{
+                            "byte_similarity": 1.0,
+                            "cpu_address": "80:8C41",
+                            "semantic_word_projection": {
+                                "C6F8": {
+                                    "dominant_candidate": "C709",
+                                    "dominant_count": 1,
+                                    "source_occurrences": 1,
+                                }
+                            },
+                        }]
+                    },
+                }
+            ]
+        }
+        self.assertEqual(collect_motion_rows(corpus), [])
 
 
 if __name__ == "__main__":

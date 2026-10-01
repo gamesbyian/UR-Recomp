@@ -21,6 +21,7 @@ OUT_JSON = Path("analysis/generated/wram-motion-atlas.json")
 OUT_MD = Path("analysis/generated/wram-motion-atlas.md")
 
 MIN_SIMILARITY = 0.60
+NON_WRAM_ANCHORS = {"Text_TestCharacterMetadataBit7"}
 
 
 def signed_delta(usa: int, candidate: int) -> int:
@@ -31,6 +32,8 @@ def signed_delta(usa: int, candidate: int) -> int:
 def collect_motion_rows(corpus: dict, *, min_similarity: float = MIN_SIMILARITY) -> list[dict]:
     rows = []
     for anchor in corpus["anchors"]:
+        if anchor["name"] in NON_WRAM_ANCHORS:
+            continue
         for build, matches in anchor["matches"].items():
             if not matches:
                 continue
@@ -102,8 +105,9 @@ def summarize(rows: list[dict]) -> dict:
         })
 
     contradictions = [x for x in field_consistency if not x["consistent"]]
+    lineage_motion = build_lineage_motion(field_consistency)
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "method": {
             "source": "top structural candidates from tools/compare_semantic_anchors.py",
             "minimum_byte_similarity": MIN_SIMILARITY,
@@ -116,6 +120,88 @@ def summarize(rows: list[dict]) -> dict:
         "clusters": clusters,
         "field_consistency": field_consistency,
         "contradictions": contradictions,
+        "prototype_to_europe_motion": lineage_motion,
+    }
+
+
+
+
+def infer_secondary_motion_boundaries(rows: list[dict]) -> list[dict]:
+    """Bracket post-prototype displacement changes in USA address order."""
+    ordered = sorted(rows, key=lambda r: int(r["usa_word"], 16))
+    out = []
+    for left, right in zip(ordered, ordered[1:]):
+        ld = left["prototype_to_europe_delta"]
+        rd = right["prototype_to_europe_delta"]
+        if ld == rd:
+            continue
+        la = int(left["usa_word"], 16)
+        ra = int(right["usa_word"], 16)
+        # Ignore jumps into MMIO/high address spaces; the useful boundaries are
+        # within the low WRAM/state address corpus.
+        if la >= 0x2000 or ra >= 0x2000:
+            continue
+        out.append({
+            "from_delta": ld,
+            "to_delta": rd,
+            "delta_jump": rd - ld,
+            "last_known_before": left["usa_word"],
+            "first_known_after": right["usa_word"],
+            "address_gap_bytes": ra - la,
+            "prototype_last_before": left["prototype_word"],
+            "prototype_first_after": right["prototype_word"],
+            "europe_last_before": left["europe_word"],
+            "europe_first_after": right["europe_word"],
+        })
+    return out
+
+
+def build_lineage_motion(field_consistency: list[dict]) -> dict:
+    """Compare the same USA fields between PAL prototype and Europe retail.
+
+    This isolates layout motion that happened after the 1994-11-29 prototype.
+    Only fields with a single consistent candidate in both builds are admitted.
+    """
+    by_key = {(r["build"], r["usa_word"]): r for r in field_consistency if r["consistent"]}
+    rows = []
+    for (build, usa_word), proto in sorted(by_key.items()):
+        if build != "pal-prototype-1994-11-29":
+            continue
+        europe = by_key.get(("europe-retail", usa_word))
+        if not europe:
+            continue
+        proto_candidate = int(proto["candidate_words"][0], 16)
+        europe_candidate = int(europe["candidate_words"][0], 16)
+        secondary = signed_delta(proto_candidate, europe_candidate)
+        rows.append({
+            "usa_word": usa_word,
+            "prototype_word": proto["candidate_words"][0],
+            "europe_word": europe["candidate_words"][0],
+            "prototype_delta_from_usa": proto["deltas"][0],
+            "europe_delta_from_usa": europe["deltas"][0],
+            "prototype_to_europe_delta": secondary,
+            "prototype_anchors": proto["anchors"],
+            "europe_anchors": europe["anchors"],
+        })
+
+    clusters: dict[int, list[dict]] = defaultdict(list)
+    for row in rows:
+        clusters[row["prototype_to_europe_delta"]].append(row)
+
+    summary = []
+    for delta, members in clusters.items():
+        summary.append({
+            "prototype_to_europe_delta": delta,
+            "field_count": len(members),
+            "usa_words": [m["usa_word"] for m in members],
+            "prototype_words": [m["prototype_word"] for m in members],
+            "europe_words": [m["europe_word"] for m in members],
+        })
+    summary.sort(key=lambda x: (-x["field_count"], x["prototype_to_europe_delta"]))
+    return {
+        "rows": rows,
+        "clusters": summary,
+        "inferred_boundaries": infer_secondary_motion_boundaries(rows),
     }
 
 
@@ -160,6 +246,44 @@ def render_markdown(atlas: dict) -> str:
 
     lines += [
         "",
+        "## PAL prototype → Europe retail secondary motion",
+        "",
+        "For fields consistently projected in both builds, this subtracts the prototype address from the Europe address. The result isolates layout motion that occurred after the 1994-11-29 prototype.",
+        "",
+        "| Prototype→Europe delta | Fields | Example USA→prototype→Europe paths |",
+        "|---:|---:|---|",
+    ]
+    lineage_rows = {r["usa_word"]: r for r in atlas["prototype_to_europe_motion"]["rows"]}
+    for cluster in atlas["prototype_to_europe_motion"]["clusters"]:
+        examples = []
+        for usa_word in cluster["usa_words"][:6]:
+            r = lineage_rows[usa_word]
+            examples.append(
+                f"`{usa_word}→{r['prototype_word']}→{r['europe_word']}`"
+            )
+        lines.append(
+            f"| {cluster['prototype_to_europe_delta']:+d} | {cluster['field_count']} | "
+            f"{', '.join(examples)} |"
+        )
+
+    lines += [
+        "",
+        "## Inferred post-prototype insertion brackets",
+        "",
+        "These are address-space brackets, not exact insertion addresses. A displacement jump means some later-added/expanded state lies after the last known field in the old family and no later than the first known field in the new family.",
+        "",
+        "| From delta | To delta | Jump | Last known before | First known after | USA-address gap |",
+        "|---:|---:|---:|---|---|---:|",
+    ]
+    for b in atlas["prototype_to_europe_motion"]["inferred_boundaries"]:
+        lines.append(
+            f"| {b['from_delta']:+d} | {b['to_delta']:+d} | {b['delta_jump']:+d} | "
+            f"`{b['last_known_before']}` | `{b['first_known_after']}` | "
+            f"{b['address_gap_bytes']} |"
+        )
+
+    lines += [
+        "",
         "## Contradictions / exceptions",
         "",
     ]
@@ -184,6 +308,7 @@ def render_markdown(atlas: dict) -> str:
         "",
         "- Prefer clusters supported by multiple independent anchors when inferring a build-specific logical block.",
         "- Treat structure-specific displacement families as evidence against a single global WRAM relocation.",
+        "- Use prototype→Europe secondary motion to infer later insertions/repacking without conflating them with earlier USA→prototype layout changes.",
         "- Investigate exceptions first when they intersect current physics, course, rendering, or fidelity questions.",
         "- Do not transfer semantic labels from USA solely because an address follows a dominant displacement family.",
         "",

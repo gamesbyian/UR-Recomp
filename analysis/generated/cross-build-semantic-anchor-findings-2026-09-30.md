@@ -142,3 +142,16 @@ That should recover parts of the original logical data structures without needin
 ## Follow-up edge corroboration
 
 Run `36809304325` added two independent structural checks. Europe retail has exactly two direct `JSR` references to `81:C59C`, matching the USA/PAL call-count pattern for the HUD queue. Separately, relocation of the course-object dispatcher finds the Europe table at `81:82F5`; object code `0x14` points directly to `81:8050`. This corrects the earlier lightweight matcher’s `81:8042` checkpoint-window candidate and promotes Europe `Race_HandleCheckpointFinish` at `81:8050`.
+
+## Follow-up: vertical acceleration, input decode, and text metadata helper
+
+The exact-fingerprint atlas still listed three known USA routines as Europe/PAL misses after the first trusted-anchor corpus. Relocation-resistant matching now resolves all three without relying on literal addresses.
+
+| Routine | USA | PAL prototype | Europe retail | Key structural evidence |
+|---|---|---|---|---|
+| `Player_ApplyVerticalAcceleration` | `82:A968` | `82:A959`, strong, 0.912 similarity | `82:A96F`, supported, 0.897 similarity | Europe projects `0F41→0F4B`, `0FEF→0FF9`, `0FA1→0FAB`; prototype projects the established +4 family. |
+| `Input_DecodePlayer1Buttons` | `82:AA6E` | `82:AA5F`, strong, 0.988 similarity | `82:AA75`, strong, 0.846 similarity | Europe maps the controller-state block coherently by +4 from `030D→0311` through `0335→0339`; prototype leaves those controller fields fixed while nearby regional state moves. |
+| `Text_TestCharacterMetadataBit7` | `80:8C41` | `80:8C3C`, strong, 0.923 similarity | `80:8C41`, supported, 0.846 similarity | Tiny bounded helper preserves its opcode shape; the exact fingerprint miss is operand/build-layout sensitivity, not evidence for a different routine. |
+
+These rows are now part of the canonical structural-correspondence generator. Exact fingerprint status remains separately visible: structural correspondence resolves the research queue without rewriting an exact miss into an exact match.
+

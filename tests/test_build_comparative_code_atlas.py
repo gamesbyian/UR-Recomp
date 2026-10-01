@@ -64,13 +64,31 @@ def main() -> int:
         gaps.write_text(json.dumps({"gaps": [
             {"id": "g1", "kind": "unresolved_indirect_dispatch", "site": "80:9000"}
         ]}))
+        correspondence = td / "cross-build-symbol-correspondence.json"
+        correspondence.write_text(json.dumps({
+            "functions": [{
+                "name": "B",
+                "build": "pal-prototype-1994-11-29",
+                "candidate": "81:8300",
+                "evidence_tier": "supported",
+                "byte_similarity": 0.8,
+                "matcher_score": 0.75,
+                "semantic_reference_recall": 0.5,
+                "independent_evidence": "fixture structural edge"
+            }]
+        }))
 
-        atlas = mod.build_atlas(paths, symbols, gaps, window_size=32)
+        atlas = mod.build_atlas(
+            paths, symbols, gaps, window_size=32, correspondence_path=correspondence
+        )
         by_name = {x["name"]: x for x in atlas["functions"]}
         assert by_name["A"]["build_matches"]["europe"]["status"] == "exact_same_offset"
         assert by_name["B"]["build_matches"]["europe"]["status"] == "exact_unique_relocated"
         assert by_name["B"]["build_matches"]["europe"]["file_offset"] == moved
         assert by_name["B"]["build_matches"]["prototype"]["status"] == "unmatched"
+        assert by_name["B"]["build_matches"]["prototype"]["structural_correspondence"]["evidence_tier"] == "supported"
+        assert by_name["B"]["needs_structural_alignment"] is False
+        assert atlas["coverage"]["structurally_resolved_exact_misses"]["prototype"] == 1
         assert by_name["A"]["semantic_status"] == "corroborated"
         assert by_name["B"]["semantic_status"] == "candidate"
         assert atlas["coverage"]["explicit_gap_count"] == 1
@@ -78,6 +96,8 @@ def main() -> int:
         md = mod.render_markdown(atlas)
         assert "Comparative Code Atlas" in md
         assert "unresolved_indirect_dispatch" in json.dumps(atlas)
+        assert "Structurally resolved exact-fingerprint misses" in md
+        assert "81:8300" in md
     print("PASS: comparative code atlas matching, coverage and gap contract")
     return 0
 

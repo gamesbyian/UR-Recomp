@@ -16,8 +16,23 @@ from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+TOOLS = ROOT / "tools"
+if str(TOOLS) not in sys.path:
+    sys.path.insert(0, str(TOOLS))
+
+from controller_input import ControllerRun, load_controller_runs, masks_at
+
 DEFAULT_MESEN_REPO = ROOT / ".tools" / "src" / "mesen-for-ai"
 CLIENT = Path("skills/mesen-emulator/scripts/mesen_client.py")
+MASK_BUTTONS = (
+    ("b", 0x001), ("y", 0x002), ("select", 0x004), ("start", 0x008),
+    ("up", 0x010), ("down", 0x020), ("left", 0x040), ("right", 0x080),
+    ("a", 0x100), ("x", 0x200), ("l", 0x400), ("r", 0x800),
+)
+
+
+def buttons_for_mask(mask: int) -> dict[str, bool]:
+    return {name: True for name, bit in MASK_BUTTONS if mask & bit}
 
 
 def parse_fixture(path: Path) -> list[dict]:
@@ -70,20 +85,45 @@ def load_mesen_class(repo: Path):
 
 
 class FixtureRunner:
-    def __init__(self, mesen, dump_dir: Path):
+    def __init__(self, mesen, dump_dir: Path, controller_runs: list[ControllerRun] | None = None):
         self.mesen = mesen
         self.dump_dir = dump_dir
+        self.controller_runs = controller_runs
         self.frame = 0
         self.started = False
+        self.previous_masks: tuple[int | None, int | None] = (None, None)
+
+    def _apply_stream_for_frame(self) -> None:
+        if self.controller_runs is None:
+            return
+        current = masks_at(self.controller_runs, self.frame)
+        for port, mask in enumerate(current):
+            if mask != self.previous_masks[port]:
+                self.mesen.tool(
+                    "input.set", port=port, subport=0, buttons=buttons_for_mask(mask)
+                )
+        self.previous_masks = current
 
     def step(self, frames: int) -> None:
         if frames < 0:
             raise ValueError("negative frame count")
         if frames == 0:
             return
-        result = self.mesen.tool("run.step_frames", frames=frames, reset=not self.started)
-        self.started = True
-        self.frame = int(result["status"]["frame"])
+        if self.controller_runs is None:
+            result = self.mesen.tool("run.step_frames", frames=frames, reset=not self.started)
+            self.started = True
+            self.frame = int(result["status"]["frame"])
+            return
+        for _ in range(frames):
+            self._apply_stream_for_frame()
+            result = self.mesen.tool("run.step_frames", frames=1, reset=not self.started)
+            self.started = True
+            status_frame = int(result["status"]["frame"])
+            if status_frame < self.frame + 1:
+                raise RuntimeError(
+                    f"Mesen frame counter did not advance: expected >= {self.frame + 1}, got {status_frame}"
+                )
+            self.frame += 1
 
     def read_byte(self, address: int) -> int:
         result = self.mesen.tool(
@@ -112,6 +152,8 @@ class FixtureRunner:
             if op == "wait":
                 self.step(command["frames"])
             elif op == "press":
+                if self.controller_runs is not None:
+                    raise RuntimeError("press commands cannot be mixed with --input-file; put controller input in the neutral stream")
                 self.mesen.tool(
                     "input.set", port=0, subport=0, buttons={command["button"]: True}
                 )
@@ -150,12 +192,14 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("rom", nargs="?")
     ap.add_argument("--script", required=True)
+    ap.add_argument("--input-file", type=Path, help="neutral start:duration:p1-mask[:p2-mask] controller stream")
     ap.add_argument("--dump-dir", default="analysis/mesen-fixture-dumps")
     ap.add_argument("--mesen-for-ai-repo", default=os.environ.get("MESEN_FOR_AI_REPO", str(DEFAULT_MESEN_REPO)))
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
     commands = parse_fixture(Path(args.script))
+    controller_runs = load_controller_runs(args.input_file) if args.input_file else None
     if args.dry_run:
         print(json.dumps(commands, indent=2))
         return 0
@@ -166,7 +210,7 @@ def main() -> int:
     Mesen = load_mesen_class(mesen_repo)
     with Mesen(repo=str(mesen_repo)) as mesen:
         mesen.load_rom(str(Path(args.rom).resolve()), timeout=180)
-        FixtureRunner(mesen, Path(args.dump_dir)).execute(commands)
+        FixtureRunner(mesen, Path(args.dump_dir), controller_runs=controller_runs).execute(commands)
     return 0
 
 

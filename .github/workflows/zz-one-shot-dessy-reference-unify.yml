@@ -17,21 +17,12 @@ jobs:
           ref: chatgpt/dessy-intake-and-reference-unify-2026-09-30
           fetch-depth: 0
 
-      - name: Consolidate reference roots and unpack Dessy archive
+      - name: Consolidate on singular reference root and unpack Dessy archive
         shell: bash
         run: |
           set -euo pipefail
 
           test -f "references/imported/Uniracers Stuff.zip"
-
-          mkdir -p references
-          if [ -d reference/roms ]; then
-            git mv reference/roms references/roms
-          fi
-          if [ -d reference/tools ]; then
-            git mv reference/tools references/tools
-          fi
-          rmdir reference 2>/dev/null || true
 
           rm -rf /tmp/dessy-intake
           mkdir -p /tmp/dessy-intake
@@ -42,11 +33,15 @@ jobs:
           cp -a /tmp/dessy-intake/. "$dest"/
           rm "references/imported/Uniracers Stuff.zip"
 
-          while IFS= read -r -d '' file; do
-            perl -0pi -e 's#(?<!s)reference/#references/#g' "$file"
-          done < <(git grep -Ilz 'reference/' -- ':!references/imported/reverse-engineering/dessyreqt/**' || true)
+          mkdir -p reference
+          for item in references/*; do
+            git mv "$item" reference/
+          done
+          rmdir references
 
-          rm -f .github/workflows/zz-one-shot-dessy-reference-unify.yml
+          while IFS= read -r -d '' file; do
+            perl -0pi -e 's#references/#reference/#g' "$file"
+          done < <(git grep -Ilz 'references/' -- ':!.github/workflows/**' ':!reference/imported/**' || true)
 
           git add -A
           git status --short

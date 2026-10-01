@@ -64,7 +64,9 @@ cat > "$MESEN_CONFIG_HOME/settings.json" <<JSON
   },
   "Snes": {
     "RamPowerOnState": 1,
-    "EnableRandomPowerOnState": false
+    "EnableRandomPowerOnState": false,
+    "Port1": { "Type": 1 },
+    "Port2": { "Type": 1 }
   },
   "Nes": {
     "RamPowerOnState": 1,

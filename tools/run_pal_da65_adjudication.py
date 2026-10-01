@@ -56,7 +56,7 @@ def run_da65(exe:Path, rom:Path, probe:dict, tmp:Path)->str:
     out=tmp/f"{rom.stem}-{probe['id']}.s"
     binp.write_bytes(bank)
     inf.write_text(info_text(probe),encoding='utf-8')
-    subprocess.run([str(exe),'--info',str(inf),'--comments','4','--output',str(out),str(binp)],check=True)
+    subprocess.run([str(exe),'--info',str(inf),'--comments','4','-o',str(out),str(binp)],check=True)
     return out.read_text(encoding='utf-8',errors='replace')
 
 def normalized_lines(text:str,probe:dict)->list[str]:

@@ -1,0 +1,710 @@
+{
+  "boundary_basis": {
+    "entry": "named long-entry wrapper at 82:ACA1 calls 82:ACA5",
+    "exit": "all surviving paths converge on the adjustment tail ending RTS at 82:B17F",
+    "known_projections": "trusted prior homologs establish the internal P1/P2 projection correspondence; structural cuts are normalized to full instruction boundaries",
+    "mode_branches": "control flow separates shared-camera, alternate-camera and split-camera projection paths"
+  },
+  "island": "Race_BuildRacerOAMState 82:ACA5..B17F",
+  "lineage_edits": [
+    {
+      "bytes": "c2 20",
+      "effect": "PAL prototype and Europe omit the first of two consecutive REP #$20 instructions in split P2 projection; net -2 bytes.",
+      "instruction": "REP #$20",
+      "usa_span": "82:AF96..AF97"
+    },
+    {
+      "bytes": "c2 20",
+      "effect": "PAL prototype and Europe omit the first of two consecutive REP #$20 instructions in split P1 projection; net -2 bytes.",
+      "instruction": "REP #$20",
+      "usa_span": "82:B01F..B020"
+    }
+  ],
+  "regions": [
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:ACF9",
+          "opcode_bytes": 30,
+          "operand_bytes": 48,
+          "sha256": "92a95fc3e3d7e46603e6c09eea2e1b68e1de058b5c17168e5acd780f04fbff70",
+          "shift": 7,
+          "similarity": 0.833333,
+          "size": 78,
+          "size_delta": 0,
+          "start": "82:ACAC",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "82:ACF2",
+          "opcode_bytes": 30,
+          "operand_bytes": 48,
+          "sha256": "2797f70c953146ad0290fe2971e9958ee90a1cd946e2f2d44883fcb91d1d6a7f",
+          "shift": 0,
+          "similarity": 1,
+          "size": 78,
+          "size_delta": 0,
+          "start": "82:ACA5",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:ACE3",
+          "opcode_bytes": 30,
+          "operand_bytes": 48,
+          "sha256": "43fe9eb7f3194e68129f93af7d7257e2b46cfdcc0ae4c680de07fa4c3efbc075",
+          "shift": -15,
+          "similarity": 0.871795,
+          "size": 78,
+          "size_delta": 0,
+          "start": "82:AC96",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:ACF2",
+          "opcode_bytes": 30,
+          "operand_bytes": 48,
+          "sha256": "2797f70c953146ad0290fe2971e9958ee90a1cd946e2f2d44883fcb91d1d6a7f",
+          "shift": 0,
+          "similarity": 1,
+          "size": 78,
+          "size_delta": 0,
+          "start": "82:ACA5",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "entry_mode_setup",
+      "size": 78,
+      "usa_end": "82:ACF2",
+      "usa_start": "82:ACA5"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:ADAD",
+          "opcode_bytes": 75,
+          "operand_bytes": 105,
+          "sha256": "8de7cd445426edce9d569f1db713de401ccf5251973922d9c97e4c0eb01eda80",
+          "shift": 7,
+          "similarity": 0.855556,
+          "size": 180,
+          "size_delta": 0,
+          "start": "82:ACFA",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "82:ADA6",
+          "opcode_bytes": 75,
+          "operand_bytes": 105,
+          "sha256": "cb3138d03fc236a148e9622862a6e4d97742aebab7bac931aa5ea9cafe4f0ed2",
+          "shift": 0,
+          "similarity": 1,
+          "size": 180,
+          "size_delta": 0,
+          "start": "82:ACF3",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:AD97",
+          "opcode_bytes": 75,
+          "operand_bytes": 105,
+          "sha256": "d6f4c51fabc73913ca33b2fe7207de9146e6c2ef987e26410cb2ac0d8f7b3acb",
+          "shift": -15,
+          "similarity": 0.933333,
+          "size": 180,
+          "size_delta": 0,
+          "start": "82:ACE4",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:ADA6",
+          "opcode_bytes": 75,
+          "operand_bytes": 105,
+          "sha256": "cb3138d03fc236a148e9622862a6e4d97742aebab7bac931aa5ea9cafe4f0ed2",
+          "shift": 0,
+          "similarity": 1,
+          "size": 180,
+          "size_delta": 0,
+          "start": "82:ACF3",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "p1_projection",
+      "size": 180,
+      "usa_end": "82:ADA6",
+      "usa_start": "82:ACF3"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:ADC7",
+          "opcode_bytes": 10,
+          "operand_bytes": 16,
+          "sha256": "b14222896463042aeee496494bd90602ec0580da34c6d1ab48f785d2b86657d8",
+          "shift": 7,
+          "similarity": 0.769231,
+          "size": 26,
+          "size_delta": 0,
+          "start": "82:ADAE",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "82:ADC0",
+          "opcode_bytes": 10,
+          "operand_bytes": 16,
+          "sha256": "838660048c7addfb814480b07ab0a0626fc1b37d2e3fecaadf3e3268137bfd47",
+          "shift": 0,
+          "similarity": 1,
+          "size": 26,
+          "size_delta": 0,
+          "start": "82:ADA7",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:ADB1",
+          "opcode_bytes": 10,
+          "operand_bytes": 16,
+          "sha256": "b4a85e9d72af6068e67dfe628cbeca6516e70d64fb6b7dbf69a3df3bbfbafe2b",
+          "shift": -15,
+          "similarity": 0.846154,
+          "size": 26,
+          "size_delta": 0,
+          "start": "82:AD98",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:ADC0",
+          "opcode_bytes": 10,
+          "operand_bytes": 16,
+          "sha256": "838660048c7addfb814480b07ab0a0626fc1b37d2e3fecaadf3e3268137bfd47",
+          "shift": 0,
+          "similarity": 1,
+          "size": 26,
+          "size_delta": 0,
+          "start": "82:ADA7",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "p2_dispatch_setup",
+      "size": 26,
+      "usa_end": "82:ADC0",
+      "usa_start": "82:ADA7"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:AE60",
+          "opcode_bytes": 65,
+          "operand_bytes": 88,
+          "sha256": "0ae8a21b44f0032f59a5c1db3427251dd4f20cc3d1f1742c03267415f2af4f5b",
+          "shift": 7,
+          "similarity": 0.849673,
+          "size": 153,
+          "size_delta": 0,
+          "start": "82:ADC8",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "82:AE59",
+          "opcode_bytes": 65,
+          "operand_bytes": 88,
+          "sha256": "f32990713c26a5fd52aae5452c60cfd571db50ff41a737766b5690870e2ccb6e",
+          "shift": 0,
+          "similarity": 1,
+          "size": 153,
+          "size_delta": 0,
+          "start": "82:ADC1",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:AE4A",
+          "opcode_bytes": 65,
+          "operand_bytes": 88,
+          "sha256": "c0b0dd0466ba4123ed2160104d5a2390e8ebb6ccf38d075347dbc65aa512101c",
+          "shift": -15,
+          "similarity": 0.928105,
+          "size": 153,
+          "size_delta": 0,
+          "start": "82:ADB2",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:AE59",
+          "opcode_bytes": 65,
+          "operand_bytes": 88,
+          "sha256": "f32990713c26a5fd52aae5452c60cfd571db50ff41a737766b5690870e2ccb6e",
+          "shift": 0,
+          "similarity": 1,
+          "size": 153,
+          "size_delta": 0,
+          "start": "82:ADC1",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "p2_projection_shared_camera",
+      "size": 153,
+      "usa_end": "82:AE59",
+      "usa_start": "82:ADC1"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:AF37",
+          "opcode_bytes": 76,
+          "operand_bytes": 108,
+          "sha256": "37eee03bc585808b4f359b32a2db090432287aa0240006adbb8d6df93f7a3724",
+          "shift": 7,
+          "similarity": 0.851163,
+          "size": 215,
+          "size_delta": 0,
+          "start": "82:AE61",
+          "unreached_or_data_bytes": 31
+        },
+        "legacy-beta": {
+          "end": "82:AF30",
+          "opcode_bytes": 76,
+          "operand_bytes": 108,
+          "sha256": "62f452a913253d493af19b2979ac7274c4debd2038d2fabe482c96d200877891",
+          "shift": 0,
+          "similarity": 1,
+          "size": 215,
+          "size_delta": 0,
+          "start": "82:AE5A",
+          "unreached_or_data_bytes": 31
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:AF21",
+          "opcode_bytes": 76,
+          "operand_bytes": 108,
+          "sha256": "6d965fe458c273e9a258f9a94ba101518483fa24eb9b1515ed982e741d82ac70",
+          "shift": -15,
+          "similarity": 0.930233,
+          "size": 215,
+          "size_delta": 0,
+          "start": "82:AE4B",
+          "unreached_or_data_bytes": 31
+        },
+        "usa-retail": {
+          "end": "82:AF30",
+          "opcode_bytes": 76,
+          "operand_bytes": 108,
+          "sha256": "62f452a913253d493af19b2979ac7274c4debd2038d2fabe482c96d200877891",
+          "shift": 0,
+          "similarity": 1,
+          "size": 215,
+          "size_delta": 0,
+          "start": "82:AE5A",
+          "unreached_or_data_bytes": 31
+        }
+      },
+      "kind": "code",
+      "name": "p2_projection_alt_camera",
+      "size": 215,
+      "usa_end": "82:AF30",
+      "usa_start": "82:AE5A"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:AF55",
+          "opcode_bytes": 11,
+          "operand_bytes": 19,
+          "sha256": "b7a604910b7041ced8a7b7791b2fcfa60beefd3bbc88662b47de26cce749fe4e",
+          "shift": 7,
+          "similarity": 0.866667,
+          "size": 30,
+          "size_delta": 0,
+          "start": "82:AF38",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "82:AF4E",
+          "opcode_bytes": 11,
+          "operand_bytes": 19,
+          "sha256": "23014508c715af4f2bc08846f2fe1c26e5bb2b7989dcf807bfb911790740d444",
+          "shift": 0,
+          "similarity": 1,
+          "size": 30,
+          "size_delta": 0,
+          "start": "82:AF31",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:AF3F",
+          "opcode_bytes": 11,
+          "operand_bytes": 19,
+          "sha256": "f3ec0cf7014bbbbe3335b82a9d6be7f2acc31eea55e1eacb590eb6996ab95f3c",
+          "shift": -15,
+          "similarity": 0.866667,
+          "size": 30,
+          "size_delta": 0,
+          "start": "82:AF22",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:AF4E",
+          "opcode_bytes": 11,
+          "operand_bytes": 19,
+          "sha256": "23014508c715af4f2bc08846f2fe1c26e5bb2b7989dcf807bfb911790740d444",
+          "shift": 0,
+          "similarity": 1,
+          "size": 30,
+          "size_delta": 0,
+          "start": "82:AF31",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "split_mode_setup",
+      "size": 30,
+      "usa_end": "82:AF4E",
+      "usa_start": "82:AF31"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:AFD9",
+          "opcode_bytes": 57,
+          "operand_bytes": 75,
+          "sha256": "dfd611341ae391b6bb9d9dcb63fd0453be0dd361b6c9ed2a225efe465f6f47b7",
+          "shift": 7,
+          "similarity": 0.425373,
+          "size": 132,
+          "size_delta": -2,
+          "start": "82:AF56",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "82:AFD4",
+          "opcode_bytes": 58,
+          "operand_bytes": 76,
+          "sha256": "15be6e8f0eaa279f4e6b7b0080499cd3bb2cd6132520f730e7f9fe1ffc0332b7",
+          "shift": 0,
+          "similarity": 1,
+          "size": 134,
+          "size_delta": 0,
+          "start": "82:AF4F",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:AFC3",
+          "opcode_bytes": 57,
+          "operand_bytes": 75,
+          "sha256": "73a39ddb92d2bba3e5fe308d70012e881ea73610659c9c7ab7ae5b50053a991a",
+          "shift": -15,
+          "similarity": 0.492537,
+          "size": 132,
+          "size_delta": -2,
+          "start": "82:AF40",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:AFD4",
+          "opcode_bytes": 58,
+          "operand_bytes": 76,
+          "sha256": "15be6e8f0eaa279f4e6b7b0080499cd3bb2cd6132520f730e7f9fe1ffc0332b7",
+          "shift": 0,
+          "similarity": 1,
+          "size": 134,
+          "size_delta": 0,
+          "start": "82:AF4F",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "split_p2_projection",
+      "size": 134,
+      "usa_end": "82:AFD4",
+      "usa_start": "82:AF4F"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:B059",
+          "opcode_bytes": 55,
+          "operand_bytes": 73,
+          "sha256": "4d17f0f054231556820eef5e76d09671593958c0c7f689f2e8c81619be85f269",
+          "shift": 5,
+          "similarity": 0.453846,
+          "size": 128,
+          "size_delta": -2,
+          "start": "82:AFDA",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "82:B056",
+          "opcode_bytes": 56,
+          "operand_bytes": 74,
+          "sha256": "613e2b64dc8a68eb5c70dfabb513a4d6d387bf3b840a8729f6628e13da4e7ca0",
+          "shift": 0,
+          "similarity": 1,
+          "size": 130,
+          "size_delta": 0,
+          "start": "82:AFD5",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:B043",
+          "opcode_bytes": 55,
+          "operand_bytes": 73,
+          "sha256": "e5d9226627922f4f1fae0c1c03e9d9004e122c2e6eefbc647a376635c1d1d8b8",
+          "shift": -17,
+          "similarity": 0.530769,
+          "size": 128,
+          "size_delta": -2,
+          "start": "82:AFC4",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:B056",
+          "opcode_bytes": 56,
+          "operand_bytes": 74,
+          "sha256": "613e2b64dc8a68eb5c70dfabb513a4d6d387bf3b840a8729f6628e13da4e7ca0",
+          "shift": 0,
+          "similarity": 1,
+          "size": 130,
+          "size_delta": 0,
+          "start": "82:AFD5",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "split_p1_projection",
+      "size": 130,
+      "usa_end": "82:B056",
+      "usa_start": "82:AFD5"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:B07D",
+          "opcode_bytes": 14,
+          "operand_bytes": 22,
+          "sha256": "e5d8d640d2648b0791b05f523603e51b4aeb332d2b89708963235ff0bb4eeb7b",
+          "shift": 3,
+          "similarity": 0.777778,
+          "size": 36,
+          "size_delta": 0,
+          "start": "82:B05A",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "82:B07A",
+          "opcode_bytes": 14,
+          "operand_bytes": 22,
+          "sha256": "cdce9557da879a47cc8b72de9316edb75eb82b94cb14efc8b935a6152c53d775",
+          "shift": 0,
+          "similarity": 1,
+          "size": 36,
+          "size_delta": 0,
+          "start": "82:B057",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:B067",
+          "opcode_bytes": 14,
+          "operand_bytes": 22,
+          "sha256": "65e8dcc35d81d67b55b11b7f2dbdff456e31000aea8ba5b389616e58992dc051",
+          "shift": -19,
+          "similarity": 0.833333,
+          "size": 36,
+          "size_delta": 0,
+          "start": "82:B044",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:B07A",
+          "opcode_bytes": 14,
+          "operand_bytes": 22,
+          "sha256": "cdce9557da879a47cc8b72de9316edb75eb82b94cb14efc8b935a6152c53d775",
+          "shift": 0,
+          "similarity": 1,
+          "size": 36,
+          "size_delta": 0,
+          "start": "82:B057",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "post_mode_setup",
+      "size": 36,
+      "usa_end": "82:B07A",
+      "usa_start": "82:B057"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:B0E8",
+          "opcode_bytes": 42,
+          "operand_bytes": 65,
+          "sha256": "18c19c7f056b955109a2036a92dbf5a5deaa17b63806949a6f930cd67c6ad557",
+          "shift": 3,
+          "similarity": 0.897196,
+          "size": 107,
+          "size_delta": 0,
+          "start": "82:B07E",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "82:B0E5",
+          "opcode_bytes": 42,
+          "operand_bytes": 65,
+          "sha256": "0ea7fbf36d8bf3a6b0339329a06fc8fbdb7c8136abda39d6bbccc9339d630435",
+          "shift": 0,
+          "similarity": 1,
+          "size": 107,
+          "size_delta": 0,
+          "start": "82:B07B",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:B0D2",
+          "opcode_bytes": 42,
+          "operand_bytes": 65,
+          "sha256": "4c514aad8f21e9ec1e408011401a422e9a1c32c2527bf0db46039ad91934926b",
+          "shift": -19,
+          "similarity": 0.906542,
+          "size": 107,
+          "size_delta": 0,
+          "start": "82:B068",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:B0E5",
+          "opcode_bytes": 42,
+          "operand_bytes": 65,
+          "sha256": "0ea7fbf36d8bf3a6b0339329a06fc8fbdb7c8136abda39d6bbccc9339d630435",
+          "shift": 0,
+          "similarity": 1,
+          "size": 107,
+          "size_delta": 0,
+          "start": "82:B07B",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "post_p2_adjust",
+      "size": 107,
+      "usa_end": "82:B0E5",
+      "usa_start": "82:B07B"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:B153",
+          "opcode_bytes": 42,
+          "operand_bytes": 65,
+          "sha256": "6c70e954590aca93a8f0ac9139e1533f4e660a3b858a1203e273fd011f2427c5",
+          "shift": 3,
+          "similarity": 0.897196,
+          "size": 107,
+          "size_delta": 0,
+          "start": "82:B0E9",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "82:B150",
+          "opcode_bytes": 42,
+          "operand_bytes": 65,
+          "sha256": "757627bf06cc92f8549639035c1a6b86d8dab795a63fbe09dd2669a8eeb5c902",
+          "shift": 0,
+          "similarity": 1,
+          "size": 107,
+          "size_delta": 0,
+          "start": "82:B0E6",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:B13D",
+          "opcode_bytes": 42,
+          "operand_bytes": 65,
+          "sha256": "f559d54ffaacbcdddbfbc08e56e3742b689d7ff09f94fb72e871fc215294b8b5",
+          "shift": -19,
+          "similarity": 0.906542,
+          "size": 107,
+          "size_delta": 0,
+          "start": "82:B0D3",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:B150",
+          "opcode_bytes": 42,
+          "operand_bytes": 65,
+          "sha256": "757627bf06cc92f8549639035c1a6b86d8dab795a63fbe09dd2669a8eeb5c902",
+          "shift": 0,
+          "similarity": 1,
+          "size": 107,
+          "size_delta": 0,
+          "start": "82:B0E6",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "post_p1_adjust",
+      "size": 107,
+      "usa_end": "82:B150",
+      "usa_start": "82:B0E6"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:B182",
+          "opcode_bytes": 19,
+          "operand_bytes": 28,
+          "sha256": "43839f525862054a60559e1378040d0123dc13750538ea7402217dd907404eef",
+          "shift": 3,
+          "similarity": 0.87234,
+          "size": 47,
+          "size_delta": 0,
+          "start": "82:B154",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "82:B17F",
+          "opcode_bytes": 19,
+          "operand_bytes": 28,
+          "sha256": "7f19fb420cf46aabb66053adf7bca2ba56e6a80bf56f78cf6038ce352d3eb571",
+          "shift": 0,
+          "similarity": 1,
+          "size": 47,
+          "size_delta": 0,
+          "start": "82:B151",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:B16C",
+          "opcode_bytes": 19,
+          "operand_bytes": 28,
+          "sha256": "0dc6d6ea8679f030e68eb36d34ed8c1371e0d945ea07e332ee65cb5d1cd36e55",
+          "shift": -19,
+          "similarity": 0.87234,
+          "size": 47,
+          "size_delta": 0,
+          "start": "82:B13E",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:B17F",
+          "opcode_bytes": 19,
+          "operand_bytes": 28,
+          "sha256": "7f19fb420cf46aabb66053adf7bca2ba56e6a80bf56f78cf6038ce352d3eb571",
+          "shift": 0,
+          "similarity": 1,
+          "size": 47,
+          "size_delta": 0,
+          "start": "82:B151",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "post_final_flags",
+      "size": 47,
+      "usa_end": "82:B17F",
+      "usa_start": "82:B151"
+    }
+  ],
+  "schema_version": 1
+}

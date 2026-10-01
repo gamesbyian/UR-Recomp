@@ -49,30 +49,42 @@ jobs:
           mkdir -p "$DUMPS"
           SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
           SNESREF_SRAM_IN="$CLEAN" \
-          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script" \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-race-result-route.script" \
           SNESREF_DUMP_DIR="$DUMPS" \
             "$EXE" "$CORE" "$ROM" >"$RUNNER_TEMP/run.log" 2>&1
           cat "$RUNNER_TEMP/run.log"
-          AFTER="$(find "$DUMPS" -maxdepth 1 -type f -name 'race-results*sram*' -print -quit)"
-          test -n "$AFTER"
-          cp "$AFTER" "$RUNNER_TEMP/after.srm"
+          RESULTS="$(find "$DUMPS" -maxdepth 1 -type f -name 'race-results*sram*' -print -quit)"
+          ADVANCE="$(find "$DUMPS" -maxdepth 1 -type f -name 'ui-race-result-after-advance*sram*' -print -quit)"
+          BACK="$(find "$DUMPS" -maxdepth 1 -type f -name 'ui-race-result-after-back*sram*' -print -quit)"
+          test -n "$RESULTS"
+          test -n "$ADVANCE"
+          test -n "$BACK"
+          cp "$RESULTS" "$RUNNER_TEMP/race-results.srm"
+          cp "$ADVANCE" "$RUNNER_TEMP/after-advance.srm"
+          cp "$BACK" "$RUNNER_TEMP/after-back.srm"
 
-      - name: Analyze controlled mutation
+      - name: Analyze controlled transitions
         run: |
           python3 tools/analyze_sram_medal_discriminator.py \
-            reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm \
-            "$RUNNER_TEMP/after.srm" \
+            "$RUNNER_TEMP/race-results.srm" \
+            "$RUNNER_TEMP/after-advance.srm" \
             --known-no-hunter "reference/imported/reverse-engineering/dessyreqt/SRAM/All Silvers - No Hunter.srm" \
             --known-with-hunter "reference/imported/reverse-engineering/dessyreqt/SRAM/All Silvers - With Hunter.srm" \
-            --json-out analysis/generated/sram-controlled-dragster-result.json \
-            --md-out analysis/generated/sram-controlled-dragster-result.md
-          cat analysis/generated/sram-controlled-dragster-result.md
+            --json-out analysis/generated/sram-controlled-result-advance.json \
+            --md-out analysis/generated/sram-controlled-result-advance.md
+          python3 tools/analyze_sram_medal_discriminator.py \
+            "$RUNNER_TEMP/after-advance.srm" \
+            "$RUNNER_TEMP/after-back.srm" \
+            --json-out analysis/generated/sram-controlled-result-back.json \
+            --md-out analysis/generated/sram-controlled-result-back.md
+          cat analysis/generated/sram-controlled-result-advance.md
+          cat analysis/generated/sram-controlled-result-back.md
 
       - name: Persist report
         shell: bash
         run: |
           set -euo pipefail
-          git add analysis/generated/sram-controlled-dragster-result.json analysis/generated/sram-controlled-dragster-result.md
+          git add analysis/generated/sram-controlled-result-advance.json analysis/generated/sram-controlled-result-advance.md analysis/generated/sram-controlled-result-back.json analysis/generated/sram-controlled-result-back.md
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "Record controlled Dragster SRAM mutation"

@@ -287,6 +287,17 @@ Search results remain leads. Before adopting a technique:
 
 This rule is intended to prevent local tunnel vision and repeated reinvention, not to encourage open-ended browsing. Stop searching when the current uncertainty has a good discriminator and return to local evidence.
 
+### Bounded related-project scan
+
+A 2026-09-30 scan of indirect descendants and analogous projects is closed as a supporting exercise, not a new acquisition lane. See `reference/notes/related-projects-technical-scan.md`.
+
+Only two practices were promoted:
+
+- keep future course authoring separate from the project-owned semantic runtime model, with normalization/validation at the import boundary;
+- use tiny deterministic headless visual/physics fixtures when they can answer geometry or stunt questions more cheaply than full-race capture.
+
+Wheelsprung is retained as a source-level editor/runtime reference; Trike as a validation-methodology reference. A bounded search did not recover Linolium's 2005 Sonic-style source/editor and that lead is passive unless a later course/surface-model blocker raises its value. Other Uniracers-like games remain design references only. Do not divert P0 work to acquire or reverse engineer them without a concrete decision they can change.
+
 ## Resource-search strategy
 
 Searches should now begin from exact names, filenames, URLs, people, or technical behaviors rather than generic Uniracers terms.

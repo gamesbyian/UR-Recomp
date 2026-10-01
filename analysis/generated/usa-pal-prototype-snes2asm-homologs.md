@@ -1,6 +1,6 @@
 # USA / 1994-11-29 PAL prototype snes2asm homolog comparison
 
-Trusted semantic/control-flow subregions are compared after structural relocation alignment and independently seeded snes2asm reachability.
+Trusted semantic/control-flow subregions reused from the Europe/USA corpus are aligned independently against the PAL prototype and analyzed with trusted-entry-seeded snes2asm.
 
 Regions compared: **19**.
 Aligned opcode pairs: **1465**.
@@ -9,7 +9,7 @@ Operand-byte changes: **296**.
 Role disagreements: **0**.
 M/X disagreements: **0**.
 
-| Region | USA | Prototype | Shift | Raw sim | Opcode Δ | Operand Δ | Role Δ | M/X Δ |
+| Region | USA | PAL prototype | Shift | Raw sim | Opcode Δ | Operand Δ | Role Δ | M/X Δ |
 |---|---|---|---:|---:|---:|---:|---:|---:|
 | Text_TestCharacterMetadataBit7 | `80:8C41..80:8C4D` | `80:8C3C..80:8C48` | -5 | 0.923 | 0 | 1 | 0 | 0 |
 | Player_ApplyVerticalAcceleration | `82:A968..82:A9AB` | `82:A959..82:A99C` | -15 | 0.912 | 0 | 6 | 0 | 0 |
@@ -33,8 +33,10 @@ M/X disagreements: **0**.
 
 ## Interpretation
 
-All **1,465** aligned opcode positions are byte-identical between USA retail and the 1994-11-29 PAL prototype in this trusted corpus. All **296** aligned byte differences are operands, and instruction roles plus M/X state agree throughout.
+All **1,465** aligned opcode positions are identical between USA retail and the 1994-11-29 PAL prototype. All **296** changed aligned bytes are operands. No opcode/operand role or M/X disagreement survives homolog alignment and trusted entry seeding.
 
-This provides a useful baseline for the later Europe retail comparison: the prototype already contains substantial WRAM/layout retargeting while preserving instruction streams, but it still retains the USA-style 22-byte checkpoint timer-normalization block. Europe retail adds further operand motion and the later 14-byte contraction of that block.
+The prototype therefore preserves the same instruction stream throughout this selected corpus while exposing an earlier stage of regional address/constant/layout motion. Compared with Europe retail's 510 operand-byte changes across the comparable corpus, the prototype is materially closer to USA at the operand/layout level.
 
-No da65/Ghidra escalation is warranted for these 19 prototype homolog regions because no opcode, role, or M/X disagreement survives trusted seeding and alignment.
+The checkpoint/finish handler remains USA-shaped in the prototype, including the 22-byte frame-normalization block. Europe retail's later 8-byte contraction is therefore a post-prototype executable change rather than a generic PAL characteristic.
+
+No da65/Ghidra escalation is warranted for these prototype regions.

@@ -131,6 +131,19 @@
       "usa": "82:9A42"
     },
     {
+      "build": "europe-retail",
+      "byte_similarity": 0.846154,
+      "candidate": "80:8C41",
+      "evidence_tier": "supported",
+      "independent_evidence": null,
+      "matcher_candidate": "80:8C41",
+      "matcher_score": 0.573077,
+      "name": "Text_TestCharacterMetadataBit7",
+      "same_address": true,
+      "semantic_reference_recall": 0.0,
+      "usa": "80:8C41"
+    },
+    {
       "build": "legacy-beta",
       "byte_similarity": 1.0,
       "candidate": "81:9E2A",
@@ -261,6 +274,19 @@
       "usa": "82:9A42"
     },
     {
+      "build": "legacy-beta",
+      "byte_similarity": 1.0,
+      "candidate": "80:8C41",
+      "evidence_tier": "exact",
+      "independent_evidence": null,
+      "matcher_candidate": "80:8C41",
+      "matcher_score": 1.0,
+      "name": "Text_TestCharacterMetadataBit7",
+      "same_address": true,
+      "semantic_reference_recall": 1.0,
+      "usa": "80:8C41"
+    },
+    {
       "build": "pal-prototype-1994-11-29",
       "byte_similarity": 0.990809,
       "candidate": "81:9E0A",
@@ -389,6 +415,19 @@
       "same_address": false,
       "semantic_reference_recall": 0.75,
       "usa": "82:9A42"
+    },
+    {
+      "build": "pal-prototype-1994-11-29",
+      "byte_similarity": 0.923077,
+      "candidate": "80:8C3C",
+      "evidence_tier": "strong",
+      "independent_evidence": null,
+      "matcher_candidate": "80:8C3C",
+      "matcher_score": 0.611538,
+      "name": "Text_TestCharacterMetadataBit7",
+      "same_address": false,
+      "semantic_reference_recall": 0.0,
+      "usa": "80:8C41"
     }
   ],
   "method": {

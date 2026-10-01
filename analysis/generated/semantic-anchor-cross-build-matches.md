@@ -18,12 +18,13 @@ These are mechanically projected USA LE16 semantic operands from each top struct
 | `+4` (`0x0004`) | 76 |
 | `+6` (`0x0006`) | 29 |
 | `+0` (`0x0000`) | 19 |
+| `+17` (`0x0011`) | 1 |
 
 ### legacy-beta
 
 | Delta | Evidence count |
 |---:|---:|
-| `+0` (`0x0000`) | 258 |
+| `+0` (`0x0000`) | 259 |
 
 ### pal-prototype-1994-11-29
 
@@ -31,6 +32,7 @@ These are mechanically projected USA LE16 semantic operands from each top struct
 |---:|---:|
 | `+0` (`0x0000`) | 129 |
 | `+4` (`0x0004`) | 115 |
+| `-2` (`0xFFFE`) | 1 |
 
 ## Race_UpdateRacersFrame
 
@@ -710,6 +712,42 @@ Top candidate: `82:9A3D`; byte similarity 0.724; semantic-reference recall 0.750
 | `+0x8F` | 1 | `05` | `09` |
 | `+0x99` | 1 | `3f` | `43` |
 | `+0x9E` | 1 | `61` | `65` |
+
+
+## Text_TestCharacterMetadataBit7
+
+USA anchor: `80:8C41` / file `0x000C41`; window `0xD`.
+
+Recovered shared text/layout helper: indexes the character-metadata table and tests bit 7.
+
+| Build | Rank | Candidate | Same offset? | Score | Byte similarity | Semantic-ref recall | N-gram votes |
+|---|---:|---|:---:|---:|---:|---:|---:|
+| europe-retail | 1 | `80:8C41` (`0x000C41`) | yes | 0.573 | 0.846 | 0.000 | 1 |
+| legacy-beta | 1 | `80:8C41` (`0x000C41`) | yes | 1.000 | 1.000 | 1.000 | 3 |
+| pal-prototype-1994-11-29 | 1 | `80:8C3C` (`0x000C3C`) | no | 0.612 | 0.923 | 0.000 | 1 |
+| pal-prototype-1994-11-29 | 2 | `80:8C41` (`0x000C41`) | yes | 0.000 | 0.000 | 0.000 | 0 |
+### europe-retail top-candidate deltas
+
+Top candidate: `80:8C41`; byte similarity 0.846; semantic-reference recall 0.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+| `+0x7` | 2 | `f8c6` | `09c7` |
+
+### legacy-beta top-candidate deltas
+
+Top candidate: `80:8C41`; byte similarity 1.000; semantic-reference recall 1.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+
+### pal-prototype-1994-11-29 top-candidate deltas
+
+Top candidate: `80:8C3C`; byte similarity 0.923; semantic-reference recall 0.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+| `+0x7` | 1 | `f8` | `f6` |
 
 
 ## Player_ApplyVerticalAcceleration

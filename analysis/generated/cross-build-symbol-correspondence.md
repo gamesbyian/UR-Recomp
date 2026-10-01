@@ -18,6 +18,7 @@ A mapped address means the structurally corresponding build-specific location su
 | Race_HandleCheckpointFinish | `81:8050` | Europe retail | `81:8050` | 0.504 | 0.402 | 0.000 | strong | relocated object-dispatch table maps object code 0x14 directly to 81:8050 |
 | Race_UpdateRacersFrame | `82:89B9` | Europe retail | `82:89CC` | 0.679 | 0.712 | 0.636 | supported |  |
 | Stunt_FinalizeAndScoreAirTricks | `82:9A42` | Europe retail | `82:9A53` | 0.706 | 0.591 | 0.250 | supported |  |
+| Text_TestCharacterMetadataBit7 | `80:8C41` | Europe retail | `80:8C41` | 0.846 | 0.573 | 0.000 | supported |  |
 | Collision_BuildContactShape | `81:9E2A` | PAL prototype | `81:9E0A` | 0.991 | 0.645 | 0.000 | strong |  |
 | Collision_TransformVelocity | `81:9546` | PAL prototype | `81:9526` | 0.946 | 0.857 | 0.667 | strong |  |
 | Course_LoadAndMaterialize | `82:E165` | PAL prototype | `82:E101` | 0.917 | 0.842 | 0.667 | strong |  |
@@ -28,6 +29,7 @@ A mapped address means the structurally corresponding build-specific location su
 | Race_HandleCheckpointFinish | `81:8050` | PAL prototype | `81:8050` | 0.871 | 0.585 | 0.000 | supported |  |
 | Race_UpdateRacersFrame | `82:89B9` | PAL prototype | `82:89B6` | 0.779 | 0.826 | 0.818 | strong |  |
 | Stunt_FinalizeAndScoreAirTricks | `82:9A42` | PAL prototype | `82:9A3D` | 0.724 | 0.775 | 0.750 | strong |  |
+| Text_TestCharacterMetadataBit7 | `80:8C41` | PAL prototype | `80:8C3C` | 0.923 | 0.612 | 0.000 | strong |  |
 
 ## Named RAM fields with repeated cross-anchor support
 

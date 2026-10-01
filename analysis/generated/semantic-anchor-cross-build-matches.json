@@ -49623,6 +49623,201 @@
       }
     },
     {
+      "name": "Text_TestCharacterMetadataBit7",
+      "usa_cpu_address": "80:8C41",
+      "usa_file_offset": 3137,
+      "window_size": 13,
+      "note": "Recovered shared text/layout helper: indexes the character-metadata table and tests bit 7.",
+      "semantic_words": [
+        "C6F8"
+      ],
+      "usa_semantic_hits": {
+        "C6F8": 1
+      },
+      "matches": {
+        "europe-retail": [
+          {
+            "file_offset": 3137,
+            "cpu_address": "80:8C41",
+            "same_offset_as_usa": true,
+            "score": 0.573077,
+            "byte_similarity": 0.846154,
+            "semantic_reference_recall": 0.0,
+            "ngram_vote_fraction": 1.0,
+            "ngram_votes": 1,
+            "semantic_hits": {},
+            "semantic_word_projection": {
+              "C6F8": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "C709": 1
+                },
+                "dominant_candidate": "C709",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 7,
+                "relative_end_exclusive": 9,
+                "length": 2,
+                "usa_hex": "f8c6",
+                "candidate_hex": "09c7"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 6,
+                "usa_le16": 63677,
+                "candidate_le16": 2493,
+                "usa_hex": "bdf8",
+                "candidate_hex": "bd09"
+              },
+              {
+                "relative_offset": 7,
+                "usa_le16": 50936,
+                "candidate_le16": 50953,
+                "usa_hex": "f8c6",
+                "candidate_hex": "09c7"
+              },
+              {
+                "relative_offset": 8,
+                "usa_le16": 64198,
+                "candidate_le16": 64199,
+                "usa_hex": "c6fa",
+                "candidate_hex": "c7fa"
+              }
+            ],
+            "sha256": "0c4410f1ce920eeb3973127fb169916c699e7ce003b84833176ce1119e9cf32a"
+          }
+        ],
+        "legacy-beta": [
+          {
+            "file_offset": 3137,
+            "cpu_address": "80:8C41",
+            "same_offset_as_usa": true,
+            "score": 1.0,
+            "byte_similarity": 1.0,
+            "semantic_reference_recall": 1.0,
+            "ngram_vote_fraction": 1.0,
+            "ngram_votes": 3,
+            "semantic_hits": {
+              "C6F8": 1
+            },
+            "semantic_word_projection": {
+              "C6F8": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "C6F8": 1
+                },
+                "dominant_candidate": "C6F8",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [],
+            "changed_le16_pairs": [],
+            "sha256": "614b63ca095b8e96ec4722662aab45f9d698450bf1bd475a0e1ff8c45988245f"
+          }
+        ],
+        "pal-prototype-1994-11-29": [
+          {
+            "file_offset": 3132,
+            "cpu_address": "80:8C3C",
+            "same_offset_as_usa": false,
+            "score": 0.611538,
+            "byte_similarity": 0.923077,
+            "semantic_reference_recall": 0.0,
+            "ngram_vote_fraction": 1.0,
+            "ngram_votes": 1,
+            "semantic_hits": {},
+            "semantic_word_projection": {
+              "C6F8": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "C6F6": 1
+                },
+                "dominant_candidate": "C6F6",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 7,
+                "relative_end_exclusive": 8,
+                "length": 1,
+                "usa_hex": "f8",
+                "candidate_hex": "f6"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 6,
+                "usa_le16": 63677,
+                "candidate_le16": 63165,
+                "usa_hex": "bdf8",
+                "candidate_hex": "bdf6"
+              },
+              {
+                "relative_offset": 7,
+                "usa_le16": 50936,
+                "candidate_le16": 50934,
+                "usa_hex": "f8c6",
+                "candidate_hex": "f6c6"
+              }
+            ],
+            "sha256": "be47ba064181d122753c2c5e54bd34c09c9c22a6005cc0d4bdba124fd3d7db48"
+          },
+          {
+            "file_offset": 3137,
+            "cpu_address": "80:8C41",
+            "same_offset_as_usa": true,
+            "score": 0.0,
+            "byte_similarity": 0.0,
+            "semantic_reference_recall": 0.0,
+            "ngram_vote_fraction": 0.0,
+            "ngram_votes": 0,
+            "semantic_hits": {},
+            "semantic_word_projection": {
+              "C6F8": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "0860": 1
+                },
+                "dominant_candidate": "0860",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 0,
+                "relative_end_exclusive": 13,
+                "length": 13,
+                "usa_hex": "dac220aae220bdf8c6fa898060",
+                "candidate_hex": "20bdf6c6fa89806008e220a904"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 0,
+                "usa_le16": 49882,
+                "candidate_le16": 48416,
+                "usa_hex": "dac2",
+                "candidate_hex": "20bd"
+              },
+              {
+                "relative_offset": 11,
+                "usa_le16": 24704,
+                "candidate_le16": 1193,
+                "usa_hex": "8060",
+                "candidate_hex": "a904"
+              }
+            ],
+            "sha256": "0884bf9de8a913a5751640156b75395736ba5125b0facfd8bf3e03991a300db5"
+          }
+        ]
+      }
+    },
+    {
       "name": "Player_ApplyVerticalAcceleration",
       "usa_cpu_address": "82:A968",
       "usa_file_offset": 76136,
@@ -59250,6 +59445,7 @@
         "1201->120B": 6,
         "1205->120F": 6,
         "1361->136B": 2,
+        "C6F8->C709": 1,
         "0F41->0F4B": 1,
         "0541->0547": 1,
         "12D5->12DF": 1,
@@ -59270,7 +59466,8 @@
         "0004": 76,
         "000A": 106,
         "0000": 19,
-        "0006": 29
+        "0006": 29,
+        "0011": 1
       },
       "evidence": [
         {
@@ -59850,6 +60047,15 @@
           "byte_similarity": 0.706473
         },
         {
+          "anchor": "Text_TestCharacterMetadataBit7",
+          "usa_word": "C6F8",
+          "candidate_word": "C709",
+          "delta": "0011",
+          "count": 1,
+          "candidate_cpu": "80:8C41",
+          "byte_similarity": 0.846154
+        },
+        {
           "anchor": "Player_ApplyVerticalAcceleration",
           "usa_word": "0F41",
           "candidate_word": "0F4B",
@@ -60068,6 +60274,7 @@
         "1201->1201": 7,
         "1205->1205": 7,
         "1361->1361": 3,
+        "C6F8->C6F8": 1,
         "0F41->0F41": 1,
         "0541->0541": 1,
         "12D5->12D5": 1,
@@ -60085,7 +60292,7 @@
         "0311->0311": 3
       },
       "delta_counts": {
-        "0000": 258
+        "0000": 259
       },
       "evidence": [
         {
@@ -60683,6 +60890,15 @@
           "byte_similarity": 1.0
         },
         {
+          "anchor": "Text_TestCharacterMetadataBit7",
+          "usa_word": "C6F8",
+          "candidate_word": "C6F8",
+          "delta": "0000",
+          "count": 1,
+          "candidate_cpu": "80:8C41",
+          "byte_similarity": 1.0
+        },
+        {
           "anchor": "Player_ApplyVerticalAcceleration",
           "usa_word": "0F41",
           "candidate_word": "0F41",
@@ -60901,6 +61117,7 @@
         "1201->1205": 6,
         "1205->1209": 6,
         "1361->1365": 2,
+        "C6F8->C6F6": 1,
         "0F41->0F45": 1,
         "0541->0541": 1,
         "12D5->12D9": 1,
@@ -60919,7 +61136,8 @@
       },
       "delta_counts": {
         "0000": 129,
-        "0004": 115
+        "0004": 115,
+        "FFFE": 1
       },
       "evidence": [
         {
@@ -61515,6 +61733,15 @@
           "count": 2,
           "candidate_cpu": "82:9A3D",
           "byte_similarity": 0.72433
+        },
+        {
+          "anchor": "Text_TestCharacterMetadataBit7",
+          "usa_word": "C6F8",
+          "candidate_word": "C6F6",
+          "delta": "FFFE",
+          "count": 1,
+          "candidate_cpu": "80:8C3C",
+          "byte_similarity": 0.923077
         },
         {
           "anchor": "Player_ApplyVerticalAcceleration",

@@ -46,6 +46,17 @@ def ranges(indices: list[int]) -> list[tuple[int, int]]:
     return out
 
 
+def lorom_cpu_address(offset: int) -> str:
+    """Map a canonical 2 MiB LoROM file offset to its low-bank CPU mirror."""
+    if offset < 0:
+        raise ValueError("negative ROM offset")
+    bank = offset // 0x8000
+    if bank > 0x7F:
+        raise ValueError(f"ROM offset outside LoROM bank range: 0x{offset:X}")
+    address = 0x8000 + (offset % 0x8000)
+    return f"{bank:02X}:{address:04X}"
+
+
 def classify_bytes(entries: list[dict]) -> tuple[set[int], set[int]]:
     code = {i for i, entry in enumerate(entries) if entry.get("code")}
     data = {i for i, entry in enumerate(entries) if entry.get("data")}
@@ -70,11 +81,23 @@ def compare_entries(baseline: list[dict], variant: list[dict]) -> dict:
             "variant_only": len(variant_only_code),
             "baseline_only": len(baseline_only_code),
             "variant_only_ranges": [
-                {"start": lo, "end": hi, "length": hi - lo + 1}
+                {
+                    "start": lo,
+                    "end": hi,
+                    "length": hi - lo + 1,
+                    "cpu_start": lorom_cpu_address(lo),
+                    "cpu_end": lorom_cpu_address(hi),
+                }
                 for lo, hi in ranges(variant_only_code)
             ],
             "baseline_only_ranges": [
-                {"start": lo, "end": hi, "length": hi - lo + 1}
+                {
+                    "start": lo,
+                    "end": hi,
+                    "length": hi - lo + 1,
+                    "cpu_start": lorom_cpu_address(lo),
+                    "cpu_end": lorom_cpu_address(hi),
+                }
                 for lo, hi in ranges(baseline_only_code)
             ],
         },
@@ -131,21 +154,22 @@ def render_markdown(baseline: Path, variant: Path, result: dict) -> str:
         "",
         "## Variant-only executed ranges",
         "",
-        "| ROM offset start | End | Bytes |",
-        "|---:|---:|---:|",
+        "| ROM offset start | End | CPU range | Bytes |",
+        "|---:|---:|---|---:|",
     ]
     for item in code["variant_only_ranges"]:
         lines.append(
-            f"| `0x{item['start']:06X}` | `0x{item['end']:06X}` | {item['length']} |"
+            f"| `0x{item['start']:06X}` | `0x{item['end']:06X}` | "
+            f"`{item['cpu_start']}..{item['cpu_end']}` | {item['length']} |"
         )
     if not code["variant_only_ranges"]:
-        lines.append("| _none_ | _none_ | 0 |")
+        lines.append("| _none_ | _none_ | _none_ | 0 |")
     lines += [
         "",
         "## Baseline-only executed ranges",
         "",
-        "| ROM offset start | End | Bytes |",
-        "|---:|---:|---:|",
+        "| ROM offset start | End | CPU range | Bytes |",
+        "|---:|---:|---|---:|",
     ]
     for item in code["baseline_only_ranges"]:
         lines.append(

@@ -105,7 +105,7 @@ def state(path: Path) -> dict:
     }
     # Camera-derived code around 81:AA40..AB87 filters two compact 16-entry
     # lists against moving world-window edge bands. Their precise gameplay
-    # semantics are not yet named, so expose them as candidate activation
+    # semantics are not yet named, so expose them as VRAM update
     # bookkeeping rather than calling them objects prematurely.
     list_a_flags = list(data[0x0D6D:0x0D7D])
     list_b_flags = list(data[0x0D7D:0x0D8D])
@@ -117,7 +117,7 @@ def state(path: Path) -> dict:
         int.from_bytes(data[0x0DAD + i * 2:0x0DAF + i * 2], "little")
         for i in range(16)
     ]
-    out["activation_candidate"] = {
+    out["vram_update_lists"] = {
         "list_a_count_raw": data[0x0DCD],
         "list_b_count_raw": data[0x0DCF],
         "list_a_nonzero_flags": sum(1 for v in list_a_flags if v),
@@ -149,7 +149,7 @@ def main() -> int:
         report[tag] = s
         a, b = s["slot1"], s["slot2"]
         rp1, rp2 = s["race_progress"]["player1"], s["race_progress"]["player2"]
-        activation = s["activation_candidate"]
+        activation = s["vram_update_lists"]
         mode = s["camera_and_viewport"]["mode"]
         cam = s["camera_and_viewport"]["camera"]
         world = s["camera_and_viewport"]["world_window"]

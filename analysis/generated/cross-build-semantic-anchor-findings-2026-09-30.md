@@ -17,8 +17,8 @@ Same-address status is recorded but is not used as proof.
 | racer frame update | `82:89B9` | `82:89B9`, exact | `82:89B6`, strong | `82:89CC`, strong | same semantic pipeline, locally relocated/repacked |
 | course load/materialize | `82:E165` | `82:E165`, exact | `82:E101`, strong | `82:E12B`, strong | same loader/materializer family |
 | racer OAM projection | `82:ACA5` | `82:ACA5`, exact | `82:AC96`, strong | `82:ACAC`, supported | same world→camera→screen seam |
-| checkpoint/finish | `81:8050` | `81:8050`, exact | `81:8050`, supported/strong | `81:8042`, candidate | prototype retains address but changes state operands; Europe needs another local discriminator |
-| HUD/message enqueue | `81:C5B3` | `81:C5B3`, exact | `81:C590`, very strong | `81:C59C`, supported | PAL body is 96.9% byte-similar with full known queue-reference retention |
+| checkpoint/finish | `81:8050` | `81:8050`, exact | `81:8050`, supported/strong | `81:8050`, dispatch-confirmed | Europe object-code `0x14` dispatch independently confirms the same handler address; the matcher’s earlier `81:8042` top window was a false alignment |
+| HUD/message enqueue | `81:C5B3` | `81:C5B3`, exact | `81:C590`, very strong | `81:C59C`, call-edge confirmed | Europe retains two coherent direct JSR references, including the checkpoint/finish caller at `81:81BA` |
 | collision shape builder | `81:9E2A` | `81:9E2A`, exact | `81:9E0A`, very strong | `81:9E1B`, very strong | bodies are 99.1% / 96.9% similar; changed bytes expose shifted WRAM operands |
 | collision velocity transform | `81:9546` | `81:9546`, exact | `81:9526`, very strong | `81:952C`, very strong | matrix/velocity structure preserved while working-state addresses move |
 | stunt finalizer | `82:9A42` | `82:9A42`, exact | `82:9A3D`, strong | `82:9A53`, strong | stunt-state layout shifts coherently with other systems |
@@ -123,8 +123,6 @@ Promoted as strong correspondence:
 - Europe course loader, racer update, collision shape, collision velocity, and stunt finalizer.
 
 Still requiring another local discriminator before semantic-label transfer:
-- Europe checkpoint/finish;
-- Europe HUD/message enqueue;
 - some Europe OAM substructure;
 - exact semantics of every shifted-but-unnamed WRAM field.
 
@@ -139,3 +137,8 @@ Build a cross-build WRAM motion atlas from trusted structurally matched routines
 - feed those clusters back into `docs/SYMBOLS.md`, decompilation gaps, and course/physics/rendering structure inference.
 
 That should recover parts of the original logical data structures without needing source declarations.
+
+
+## Follow-up edge corroboration
+
+Run `36809304325` added two independent structural checks. Europe retail has exactly two direct `JSR` references to `81:C59C`, matching the USA/PAL call-count pattern for the HUD queue. Separately, relocation of the course-object dispatcher finds the Europe table at `81:82F5`; object code `0x14` points directly to `81:8050`. This corrects the earlier lightweight matcher’s `81:8042` checkpoint-window candidate and promotes Europe `Race_HandleCheckpointFinish` at `81:8050`.

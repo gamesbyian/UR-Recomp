@@ -30,13 +30,22 @@ def best_shift(src,dst,start,end,radius=128):
  return best
 
 def role_counts(d,start,end):
- op=param=other=0
+ op=param=other=0; other_offsets=[]
  for off in range(start,end+1):
   role=d.code_map[off]
   if role & d.OP_CODE: op+=1
   elif role & d.OP_PARAM: param+=1
-  else: other+=1
- return {"opcode_bytes":op,"operand_bytes":param,"unreached_or_data_bytes":other}
+  else:
+   other+=1; other_offsets.append(off)
+ spans=[]
+ if other_offsets:
+  s=p=other_offsets[0]
+  for off in other_offsets[1:]:
+   if off==p+1: p=off; continue
+   spans.append((s,p)); s=p=off
+  spans.append((s,p))
+ return {"opcode_bytes":op,"operand_bytes":param,"unreached_or_data_bytes":other,
+         "unreached_spans":[{"start":offset_to_cpu(a),"end":offset_to_cpu(b),"size":b-a+1} for a,b in spans]}
 
 def build():
  blobs={k:p.read_bytes() for k,p in ROMS.items()}; usa=blobs["usa-retail"]
@@ -67,7 +76,18 @@ def build():
   rows.append(row)
  table=usa[cpu_to_offset("82:A2D4"):cpu_to_offset("82:A353")+1]
  words=[int.from_bytes(table[i:i+2],"little") for i in range(0,len(table),2)]
- return {"schema_version":1,"island":"Race_UpdateRacersFrame direct-callee island A22B..A497","regions":rows,"table_A2D4":{"size":len(table),"word_count":len(words),"usa_words":words,"interpretation":"128-byte / 64-word inline lookup table between two trusted routine boundaries; following routine indexes USA 82:A2D4 with X."}}
+ # The table's exact 128-byte identity establishes its true start in each build.
+ table_starts={build:aligns[build]["table_A2D4"]["start"] for build in blobs}
+ a27c_starts={build:aligns[build]["routine_A27C"]["start"] for build in blobs}
+ true_a27c={}
+ for build in blobs:
+  st=cpu_to_offset(a27c_starts[build]); ts=cpu_to_offset(table_starts[build])
+  true_a27c[build]={"start":a27c_starts[build],"end":offset_to_cpu(ts-1),"size":ts-st}
+ return {"schema_version":2,"island":"Race_UpdateRacersFrame direct-callee island A22B..A497","regions":rows,
+         "true_routine_A27C":true_a27c,
+         "lineage_edit":{"usa_removed_span":"82:A2B2..82:A2B6","size":5,
+          "observation":"USA retail and legacy beta retain five NOP bytes; PAL prototype and Europe retail omit them, contracting routine_A27C by five bytes before an otherwise byte-identical 128-byte table."},
+         "table_A2D4":{"size":len(table),"word_count":len(words),"usa_words":words,"interpretation":"128-byte / 64-word inline lookup table between two trusted routine boundaries; following routine indexes USA 82:A2D4 with X."}}
 
 def render(r):
  lines=["# Racer-update structural island: A22B..A497","","This report recovers structure, not semantic names. Boundaries are anchored by direct calls from the racer-frame update hub and explicit RTS instructions.","","| Region | Kind | Size | USA | PAL prototype | Europe | Legacy beta |","|---|---|---:|---|---|---|---|"]

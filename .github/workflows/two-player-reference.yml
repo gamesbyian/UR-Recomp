@@ -233,6 +233,12 @@ jobs:
               "phase3":0x0304,
               "inRace":0x0313,
               "race_tick":0x0FE7,
+              # Dessyreqt's recovered full-game bot labels $11BA as the
+              # countdown timer. $11BB is adjacent and repeatedly tested by
+              # the recovered race-transition code.
+              "countdown_lo":0x11BA,
+              "countdown_hi":0x11BB,
+              "current_track":0x00CE,
               # Race-entry handshake. 83:C9C8 can set $0C67; 83:CBA4 can
               # clear it before 83:CD3A -> 83:E066 tests it. $0DDB selects
               # the sibling E238 route at CD32..CD38.

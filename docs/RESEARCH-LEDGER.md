@@ -14,9 +14,18 @@ Use this for claims about the ROM, formats, routines, RAM, graphics or hardware 
 **Evidence:** addresses, traces, hashes, debugger output, source references or repeatable steps.  
 **Interpretation:** what it probably means.  
 **Discriminating test:** smallest test distinguishing this from alternatives.  
-**Dependencies:** assumptions this relies upon.
+**Dependencies:** assumptions this relies upon.  
+**Propagation:** after a supported/confirmed semantic claim, note any high-value readers/writers, callers/callees, sibling fields/tables, cross-ROM matches, existing gaps resolved/constrained, and concrete follow-up artifacts or tests. Write `none — bounded/no downstream value` when the pass finds nothing worth pursuing.
 
 ---
+
+### Semantic propagation rule
+
+For supported or confirmed claims with semantic value, do one bounded fan-out pass before treating the claim as complete. The purpose is to make each solved field, routine, table or format reduce uncertainty elsewhere.
+
+Use the smallest useful subset of: xrefs/readers/writers, caller/callee neighborhood, sibling/paired storage, adjacent or parallel tables, four-ROM structural correspondence, recovered-source references, and deterministic runtime checks. Promote consequences into existing symbols/tests/parsers/atlas/queue surfaces rather than creating a separate tracking system.
+
+Do not propagate weak names as facts. Hypotheses remain hypotheses, cross-ROM labels retain provenance/confidence, and the value-of-information rule still governs how far the fan-out travels.
 
 ## Seed leads to verify locally
 

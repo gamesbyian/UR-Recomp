@@ -15,3 +15,8 @@
 1180:2:100:000
 1280:2:100:000
 1380:2:100:000
+# Once the race is stably active, exercise ordinary two-player movement.
+# Right=0x080, Left=0x040. These are intentionally separated, then simultaneous.
+1480:24:080:000
+1530:24:000:040
+1580:24:080:040

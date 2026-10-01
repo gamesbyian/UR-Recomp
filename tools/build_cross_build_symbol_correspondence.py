@@ -96,7 +96,7 @@ def build_function_correspondences(corpus: dict) -> list[dict]:
                 tier = "candidate"
             rows.append({
                 "name": anchor["name"],
-                "usa": anchor["cpu_address"],
+                "usa": anchor["usa_cpu_address"],
                 "build": build,
                 "candidate": top["cpu_address"],
                 "byte_similarity": sim,

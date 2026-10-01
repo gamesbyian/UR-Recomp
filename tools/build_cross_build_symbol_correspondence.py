@@ -86,11 +86,13 @@ def build_function_correspondences(corpus: dict) -> list[dict]:
                 continue
             top = matches[0]
             sim = top["byte_similarity"]
+            score = top["score"]
+            recall = top["semantic_reference_recall"]
             if build == "legacy-beta":
                 tier = "exact" if sim == 1.0 else "strong"
-            elif sim >= 0.90:
+            elif sim >= 0.90 or (score >= 0.75 and recall >= 0.75):
                 tier = "strong"
-            elif sim >= 0.72:
+            elif sim >= 0.70 or (score >= 0.65 and recall >= 0.50):
                 tier = "supported"
             else:
                 tier = "candidate"
@@ -100,6 +102,8 @@ def build_function_correspondences(corpus: dict) -> list[dict]:
                 "build": build,
                 "candidate": top["cpu_address"],
                 "byte_similarity": sim,
+                "matcher_score": score,
+                "semantic_reference_recall": recall,
                 "same_address": top["same_offset_as_usa"],
                 "evidence_tier": tier,
             })
@@ -139,15 +143,16 @@ def render_md(report: dict) -> str:
         "",
         "## Trusted function anchors",
         "",
-        "| Symbol | USA | Build | Candidate | Similarity | Tier |",
-        "|---|---|---|---|---:|---|",
+        "| Symbol | USA | Build | Candidate | Similarity | Score | Semantic recall | Tier |",
+        "|---|---|---|---|---:|---:|---:|---|",
     ]
     for row in report["functions"]:
         if row["build"] == "legacy-beta":
             continue
         lines.append(
             f"| {row['name']} | `{row['usa']}` | {BUILD_LABELS[row['build']]} | "
-            f"`{row['candidate']}` | {row['byte_similarity']:.3f} | {row['evidence_tier']} |"
+            f"`{row['candidate']}` | {row['byte_similarity']:.3f} | {row['matcher_score']:.3f} | "
+            f"{row['semantic_reference_recall']:.3f} | {row['evidence_tier']} |"
         )
 
     lines += [

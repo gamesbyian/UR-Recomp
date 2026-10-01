@@ -2,9 +2,9 @@
 
 This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **73** (65 code, 8 data)
-- bounded bytes: **8733** (7588 code-region bytes, 1145 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **3182**
+- bounded regions: **76** (68 code, 8 data)
+- bounded bytes: **9296** (8151 code-region bytes, 1145 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **3419**
 - represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -63,6 +63,9 @@ This is the first machine-queryable census for the comparative structure-recover
 | `82:A9AC..82:AA08` | code | 93 | racer-update | routine_A9AC | 82:A99D..82:A9F9 (-15; size 93; sim 0.882) | 82:A9B3..82:AA0F (+7; size 93; sim 0.871) | 82:A9AC..82:AA08 (+0; size 93; sim 1.000) |
 | `82:AA09..82:AA69` | code | 97 | racer-update | routine_AA09 | 82:A9FA..82:AA5A (-15; size 97; sim 0.887) | 82:AA10..82:AA70 (+7; size 97; sim 0.876) | 82:AA09..82:AA69 (+0; size 97; sim 1.000) |
 | `82:AA6A..82:AA6D` | code | 4 | racer-update | Input_LongEntryWrapper | 82:AA5B..82:AA5E (-15; size 4; sim 0.750) | 82:AA71..82:AA74 (+7; size 4; sim 0.750) | 82:AA6A..82:AA6D (+0; size 4; sim 1.000) |
+| `82:AA6E..82:AB54` | code | 231 | input-normalization | player1_decode_and_fallback | 82:AA5F..82:AB45 (-15; size 231; sim 0.991) | 82:AA75..82:AB5B (+7; size 231; sim 0.848) | 82:AA6E..82:AB54 (+0; size 231; sim 1.000) |
+| `82:AB55..82:AC52` | code | 254 | input-normalization | player2_decode_and_activity | 82:AB46..82:AC43 (-15; size 254; sim 0.988) | 82:AB5C..82:AC59 (+7; size 254; sim 0.850) | 82:AB55..82:AC52 (+0; size 254; sim 1.000) |
+| `82:AC53..82:ACA0` | code | 78 | input-normalization | reverse_controls_remap | 82:AC44..82:AC91 (-15; size 78; sim 0.987) | 82:AC5A..82:ACA7 (+7; size 78; sim 0.731) | 82:AC53..82:ACA0 (+0; size 78; sim 1.000) |
 | `82:ACA5..82:ACF2` | code | 78 | racer-oam | entry_mode_setup | 82:AC96..82:ACE3 (-15; size 78; sim 0.872) | 82:ACAC..82:ACF9 (+7; size 78; sim 0.833) | 82:ACA5..82:ACF2 (+0; size 78; sim 1.000) |
 | `82:ACF3..82:ADA6` | code | 180 | racer-oam | p1_projection | 82:ACE4..82:AD97 (-15; size 180; sim 0.933) | 82:ACFA..82:ADAD (+7; size 180; sim 0.856) | 82:ACF3..82:ADA6 (+0; size 180; sim 1.000) |
 | `82:ADA7..82:ADC0` | code | 26 | racer-oam | p2_dispatch_setup | 82:AD98..82:ADB1 (-15; size 26; sim 0.846) | 82:ADAE..82:ADC7 (+7; size 26; sim 0.769) | 82:ADA7..82:ADC0 (+0; size 26; sim 1.000) |

@@ -12,6 +12,11 @@ This report recovers structure, not semantic names. Boundaries are anchored by d
 | routine_A5F3 | code | 37 | 82:A5F3..82:A617 (+0, sim 1.000; op 17, data/unreached 0) | 82:A5E4..82:A608 (-15, sim 0.892; op 17, data/unreached 0) | 82:A5FA..82:A61E (+7, sim 0.892; op 17, data/unreached 0) | 82:A5F3..82:A617 (+0, sim 1.000; op 17, data/unreached 0) |
 | routine_A618 | code | 217 | 82:A618..82:A6F0 (+0, sim 1.000; op 114, data/unreached 0) | 82:A609..82:A6E1 (-15, sim 0.954; op 114, data/unreached 0) | 82:A61F..82:A6F7 (+7, sim 0.889; op 114, data/unreached 0) | 82:A618..82:A6F0 (+0, sim 1.000; op 114, data/unreached 0) |
 | routine_A6F1 | code | 465 | 82:A6F1..82:A8C1 (+0, sim 1.000; op 193, data/unreached 18) | 82:A6E2..82:A8B2 (-15, sim 0.888; op 193, data/unreached 18) | 82:A6F8..82:A8C8 (+7, sim 0.873; op 193, data/unreached 18) | 82:A6F1..82:A8C1 (+0, sim 1.000; op 193, data/unreached 18) |
+| routine_A8C2 | code | 166 | 82:A8C2..82:A967 (+0, sim 1.000; op 67, data/unreached 0) | 82:A8B3..82:A958 (-15, sim 0.837; op 67, data/unreached 0) | 82:A8C9..82:A96E (+7, sim 0.831; op 67, data/unreached 0) | 82:A8C2..82:A967 (+0, sim 1.000; op 67, data/unreached 0) |
+| Player_ApplyVerticalAcceleration | code | 68 | 82:A968..82:A9AB (+0, sim 1.000; op 34, data/unreached 0) | 82:A959..82:A99C (-15, sim 0.912; op 34, data/unreached 0) | 82:A96F..82:A9B2 (+7, sim 0.897; op 34, data/unreached 0) | 82:A968..82:A9AB (+0, sim 1.000; op 34, data/unreached 0) |
+| routine_A9AC | code | 93 | 82:A9AC..82:AA08 (+0, sim 1.000; op 42, data/unreached 0) | 82:A99D..82:A9F9 (-15, sim 0.882; op 42, data/unreached 0) | 82:A9B3..82:AA0F (+7, sim 0.871; op 42, data/unreached 0) | 82:A9AC..82:AA08 (+0, sim 1.000; op 42, data/unreached 0) |
+| routine_AA09 | code | 97 | 82:AA09..82:AA69 (+0, sim 1.000; op 44, data/unreached 0) | 82:A9FA..82:AA5A (-15, sim 0.887; op 44, data/unreached 0) | 82:AA10..82:AA70 (+7, sim 0.876; op 44, data/unreached 0) | 82:AA09..82:AA69 (+0, sim 1.000; op 44, data/unreached 0) |
+| Input_LongEntryWrapper | code | 4 | 82:AA6A..82:AA6D (+0, sim 1.000; op 2, data/unreached 0) | 82:AA5B..82:AA5E (-15, sim 0.750; op 2, data/unreached 0) | 82:AA71..82:AA74 (+7, sim 0.750; op 2, data/unreached 0) | 82:AA6A..82:AA6D (+0, sim 1.000; op 2, data/unreached 0) |
 
 ## Inline table
 

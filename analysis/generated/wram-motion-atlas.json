@@ -3221,7 +3221,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "0411",
@@ -3232,7 +3232,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "0415",
@@ -3243,7 +3243,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "04B7",
@@ -3254,7 +3254,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "04BB",
@@ -3265,7 +3265,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "0F49",
@@ -3276,7 +3276,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "0F9F",
@@ -3287,7 +3287,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "0FA1",
@@ -3298,7 +3298,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "0FEF",
@@ -3309,7 +3309,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "11CD",
@@ -3320,7 +3320,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "11CF",
@@ -3331,7 +3331,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "11D1",
@@ -3628,7 +3628,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "000B",
@@ -3639,7 +3639,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "0E89",
@@ -3650,7 +3650,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "0E8B",
@@ -3661,7 +3661,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "0E8D",
@@ -3672,7 +3672,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "0E8F",
@@ -3683,7 +3683,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "0E91",
@@ -3694,7 +3694,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "0E93",
@@ -3705,7 +3705,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "15A1",
@@ -3716,7 +3716,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "1645",
@@ -3727,7 +3727,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "16E9",
@@ -3738,7 +3738,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "2100",
@@ -3749,7 +3749,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "2115",
@@ -3760,7 +3760,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "2116",
@@ -3771,7 +3771,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "420B",
@@ -3782,7 +3782,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "420C",
@@ -4123,7 +4123,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0411",
@@ -4134,7 +4134,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0413",
@@ -4145,7 +4145,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0415",
@@ -4156,7 +4156,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0417",
@@ -4167,7 +4167,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0419",
@@ -4178,7 +4178,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "041D",
@@ -4189,7 +4189,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0421",
@@ -4200,7 +4200,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0423",
@@ -4211,7 +4211,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0BA1",
@@ -4222,7 +4222,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0BA3",
@@ -4233,7 +4233,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0D49",
@@ -4244,7 +4244,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "1509",
@@ -4255,7 +4255,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "150A",
@@ -4266,7 +4266,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "150D",
@@ -4277,7 +4277,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "150E",
@@ -4453,7 +4453,7 @@
     },
     {
       "anchor": "Race_HandleCheckpointFinish",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:8050",
       "build": "legacy-beta",
       "candidate_word": "0EF1",
@@ -4464,7 +4464,7 @@
     },
     {
       "anchor": "Race_HandleCheckpointFinish",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:8050",
       "build": "legacy-beta",
       "candidate_word": "119D",
@@ -4563,7 +4563,7 @@
     },
     {
       "anchor": "HUD_QueueMessage",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:C5B3",
       "build": "legacy-beta",
       "candidate_word": "0CBB",
@@ -4574,7 +4574,7 @@
     },
     {
       "anchor": "HUD_QueueMessage",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:C5B3",
       "build": "legacy-beta",
       "candidate_word": "0CE1",
@@ -4585,7 +4585,7 @@
     },
     {
       "anchor": "HUD_QueueMessage",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:C5B3",
       "build": "legacy-beta",
       "candidate_word": "0CE3",
@@ -4596,7 +4596,7 @@
     },
     {
       "anchor": "HUD_QueueMessage",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:C5B3",
       "build": "legacy-beta",
       "candidate_word": "0CE5",
@@ -4607,7 +4607,7 @@
     },
     {
       "anchor": "HUD_QueueMessage",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:C5B3",
       "build": "legacy-beta",
       "candidate_word": "0D0B",
@@ -4618,7 +4618,7 @@
     },
     {
       "anchor": "HUD_QueueMessage",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:C5B3",
       "build": "legacy-beta",
       "candidate_word": "0D0D",
@@ -4728,7 +4728,7 @@
     },
     {
       "anchor": "Collision_BuildContactShape",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:9E2A",
       "build": "legacy-beta",
       "candidate_word": "0F47",
@@ -4739,7 +4739,7 @@
     },
     {
       "anchor": "Collision_BuildContactShape",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:9E2A",
       "build": "legacy-beta",
       "candidate_word": "0F7B",
@@ -4750,7 +4750,7 @@
     },
     {
       "anchor": "Collision_BuildContactShape",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:9E2A",
       "build": "legacy-beta",
       "candidate_word": "125B",
@@ -4860,7 +4860,7 @@
     },
     {
       "anchor": "Collision_TransformVelocity",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:9546",
       "build": "legacy-beta",
       "candidate_word": "02C0",
@@ -4871,7 +4871,7 @@
     },
     {
       "anchor": "Collision_TransformVelocity",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:9546",
       "build": "legacy-beta",
       "candidate_word": "02C2",
@@ -4882,7 +4882,7 @@
     },
     {
       "anchor": "Collision_TransformVelocity",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:9546",
       "build": "legacy-beta",
       "candidate_word": "02C4",
@@ -4893,7 +4893,7 @@
     },
     {
       "anchor": "Collision_TransformVelocity",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:9546",
       "build": "legacy-beta",
       "candidate_word": "02C6",
@@ -4904,7 +4904,7 @@
     },
     {
       "anchor": "Collision_TransformVelocity",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:9546",
       "build": "legacy-beta",
       "candidate_word": "0F9F",
@@ -4915,7 +4915,7 @@
     },
     {
       "anchor": "Collision_TransformVelocity",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "81:9546",
       "build": "legacy-beta",
       "candidate_word": "0FA1",
@@ -5080,7 +5080,7 @@
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:9A42",
       "build": "legacy-beta",
       "candidate_word": "042B",
@@ -5091,7 +5091,7 @@
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:9A42",
       "build": "legacy-beta",
       "candidate_word": "042F",
@@ -5102,7 +5102,7 @@
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:9A42",
       "build": "legacy-beta",
       "candidate_word": "0F61",
@@ -5113,7 +5113,7 @@
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:9A42",
       "build": "legacy-beta",
       "candidate_word": "11F9",
@@ -5124,7 +5124,7 @@
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:9A42",
       "build": "legacy-beta",
       "candidate_word": "11FD",
@@ -5135,7 +5135,7 @@
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:9A42",
       "build": "legacy-beta",
       "candidate_word": "1201",
@@ -5146,7 +5146,7 @@
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:9A42",
       "build": "legacy-beta",
       "candidate_word": "1205",
@@ -5157,7 +5157,7 @@
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
-      "anchor_byte_similarity": 1.0,
+      "anchor_byte_similarity": 1,
       "anchor_candidate_cpu": "82:9A42",
       "build": "legacy-beta",
       "candidate_word": "1361",
@@ -5255,5 +5255,1069 @@
       "usa_word": "1361"
     }
   ],
-  "schema_version": 1
+  "schema_version": 2,
+  "prototype_to_europe_motion": {
+    "rows": [
+      {
+        "usa_word": "000B",
+        "prototype_word": "000B",
+        "europe_word": "000B",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ]
+      },
+      {
+        "usa_word": "02C0",
+        "prototype_word": "02C0",
+        "europe_word": "02C0",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_anchors": [
+          "Collision_TransformVelocity"
+        ],
+        "europe_anchors": [
+          "Collision_TransformVelocity"
+        ]
+      },
+      {
+        "usa_word": "02C2",
+        "prototype_word": "02C2",
+        "europe_word": "02C2",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_anchors": [
+          "Collision_TransformVelocity"
+        ],
+        "europe_anchors": [
+          "Collision_TransformVelocity"
+        ]
+      },
+      {
+        "usa_word": "02C4",
+        "prototype_word": "02C4",
+        "europe_word": "02C4",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_anchors": [
+          "Collision_TransformVelocity"
+        ],
+        "europe_anchors": [
+          "Collision_TransformVelocity"
+        ]
+      },
+      {
+        "usa_word": "02C6",
+        "prototype_word": "02C6",
+        "europe_word": "02C6",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_anchors": [
+          "Collision_TransformVelocity"
+        ],
+        "europe_anchors": [
+          "Collision_TransformVelocity"
+        ]
+      },
+      {
+        "usa_word": "0411",
+        "prototype_word": "0411",
+        "europe_word": "0415",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 4,
+        "prototype_to_europe_delta": 4,
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState",
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_anchors": [
+          "Race_BuildRacerOAMState",
+          "Race_UpdateRacersFrame"
+        ]
+      },
+      {
+        "usa_word": "0413",
+        "prototype_word": "0413",
+        "europe_word": "0417",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 4,
+        "prototype_to_europe_delta": 4,
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ]
+      },
+      {
+        "usa_word": "0415",
+        "prototype_word": "0415",
+        "europe_word": "0419",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 4,
+        "prototype_to_europe_delta": 4,
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState",
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_anchors": [
+          "Race_BuildRacerOAMState",
+          "Race_UpdateRacersFrame"
+        ]
+      },
+      {
+        "usa_word": "0417",
+        "prototype_word": "0417",
+        "europe_word": "041B",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 4,
+        "prototype_to_europe_delta": 4,
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ]
+      },
+      {
+        "usa_word": "0419",
+        "prototype_word": "0419",
+        "europe_word": "041D",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 4,
+        "prototype_to_europe_delta": 4,
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ]
+      },
+      {
+        "usa_word": "041D",
+        "prototype_word": "041D",
+        "europe_word": "0421",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 4,
+        "prototype_to_europe_delta": 4,
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ]
+      },
+      {
+        "usa_word": "0421",
+        "prototype_word": "0421",
+        "europe_word": "0425",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 4,
+        "prototype_to_europe_delta": 4,
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ]
+      },
+      {
+        "usa_word": "0423",
+        "prototype_word": "0423",
+        "europe_word": "0427",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 4,
+        "prototype_to_europe_delta": 4,
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ]
+      },
+      {
+        "usa_word": "042B",
+        "prototype_word": "042B",
+        "europe_word": "042F",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 4,
+        "prototype_to_europe_delta": 4,
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ]
+      },
+      {
+        "usa_word": "042F",
+        "prototype_word": "042F",
+        "europe_word": "0433",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 4,
+        "prototype_to_europe_delta": 4,
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ]
+      },
+      {
+        "usa_word": "04B7",
+        "prototype_word": "04B7",
+        "europe_word": "04BB",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 4,
+        "prototype_to_europe_delta": 4,
+        "prototype_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_anchors": [
+          "Race_UpdateRacersFrame"
+        ]
+      },
+      {
+        "usa_word": "04BB",
+        "prototype_word": "04BB",
+        "europe_word": "04BF",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 4,
+        "prototype_to_europe_delta": 4,
+        "prototype_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_anchors": [
+          "Race_UpdateRacersFrame"
+        ]
+      },
+      {
+        "usa_word": "0BA1",
+        "prototype_word": "0BA1",
+        "europe_word": "0BA7",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 6,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ]
+      },
+      {
+        "usa_word": "0BA3",
+        "prototype_word": "0BA3",
+        "europe_word": "0BA9",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 6,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ]
+      },
+      {
+        "usa_word": "0CBB",
+        "prototype_word": "0CBB",
+        "europe_word": "0CC1",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 6,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "europe_anchors": [
+          "HUD_QueueMessage"
+        ]
+      },
+      {
+        "usa_word": "0CE1",
+        "prototype_word": "0CE1",
+        "europe_word": "0CE7",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 6,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "europe_anchors": [
+          "HUD_QueueMessage"
+        ]
+      },
+      {
+        "usa_word": "0CE3",
+        "prototype_word": "0CE3",
+        "europe_word": "0CE9",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 6,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "europe_anchors": [
+          "HUD_QueueMessage"
+        ]
+      },
+      {
+        "usa_word": "0CE5",
+        "prototype_word": "0CE5",
+        "europe_word": "0CEB",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 6,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "europe_anchors": [
+          "HUD_QueueMessage"
+        ]
+      },
+      {
+        "usa_word": "0D0B",
+        "prototype_word": "0D0B",
+        "europe_word": "0D11",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 6,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "europe_anchors": [
+          "HUD_QueueMessage"
+        ]
+      },
+      {
+        "usa_word": "0D0D",
+        "prototype_word": "0D0D",
+        "europe_word": "0D13",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 6,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "europe_anchors": [
+          "HUD_QueueMessage"
+        ]
+      },
+      {
+        "usa_word": "0D49",
+        "prototype_word": "0D49",
+        "europe_word": "0D4F",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 6,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ]
+      },
+      {
+        "usa_word": "0E89",
+        "prototype_word": "0E8D",
+        "europe_word": "0E93",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ]
+      },
+      {
+        "usa_word": "0E8B",
+        "prototype_word": "0E8F",
+        "europe_word": "0E95",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ]
+      },
+      {
+        "usa_word": "0E8D",
+        "prototype_word": "0E91",
+        "europe_word": "0E97",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ]
+      },
+      {
+        "usa_word": "0E8F",
+        "prototype_word": "0E93",
+        "europe_word": "0E99",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ]
+      },
+      {
+        "usa_word": "0E91",
+        "prototype_word": "0E95",
+        "europe_word": "0E9B",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ]
+      },
+      {
+        "usa_word": "0E93",
+        "prototype_word": "0E97",
+        "europe_word": "0E9D",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ]
+      },
+      {
+        "usa_word": "0F47",
+        "prototype_word": "0F4B",
+        "europe_word": "0F51",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Collision_BuildContactShape"
+        ],
+        "europe_anchors": [
+          "Collision_BuildContactShape"
+        ]
+      },
+      {
+        "usa_word": "0F49",
+        "prototype_word": "0F4D",
+        "europe_word": "0F53",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_anchors": [
+          "Race_UpdateRacersFrame"
+        ]
+      },
+      {
+        "usa_word": "0F61",
+        "prototype_word": "0F65",
+        "europe_word": "0F6B",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ]
+      },
+      {
+        "usa_word": "0F7B",
+        "prototype_word": "0F7F",
+        "europe_word": "0F85",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Collision_BuildContactShape"
+        ],
+        "europe_anchors": [
+          "Collision_BuildContactShape"
+        ]
+      },
+      {
+        "usa_word": "0F9F",
+        "prototype_word": "0FA3",
+        "europe_word": "0FA9",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Collision_TransformVelocity",
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_anchors": [
+          "Collision_TransformVelocity",
+          "Race_UpdateRacersFrame"
+        ]
+      },
+      {
+        "usa_word": "0FA1",
+        "prototype_word": "0FA5",
+        "europe_word": "0FAB",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Collision_TransformVelocity",
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_anchors": [
+          "Collision_TransformVelocity",
+          "Race_UpdateRacersFrame"
+        ]
+      },
+      {
+        "usa_word": "0FEF",
+        "prototype_word": "0FF3",
+        "europe_word": "0FF9",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_anchors": [
+          "Race_UpdateRacersFrame"
+        ]
+      },
+      {
+        "usa_word": "11CD",
+        "prototype_word": "11D1",
+        "europe_word": "11D7",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_anchors": [
+          "Race_UpdateRacersFrame"
+        ]
+      },
+      {
+        "usa_word": "11CF",
+        "prototype_word": "11D3",
+        "europe_word": "11D9",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_anchors": [
+          "Race_UpdateRacersFrame"
+        ]
+      },
+      {
+        "usa_word": "11D1",
+        "prototype_word": "11D5",
+        "europe_word": "11DB",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_anchors": [
+          "Race_UpdateRacersFrame"
+        ]
+      },
+      {
+        "usa_word": "11F9",
+        "prototype_word": "11FD",
+        "europe_word": "1203",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ]
+      },
+      {
+        "usa_word": "11FD",
+        "prototype_word": "1201",
+        "europe_word": "1207",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ]
+      },
+      {
+        "usa_word": "1201",
+        "prototype_word": "1205",
+        "europe_word": "120B",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ]
+      },
+      {
+        "usa_word": "1205",
+        "prototype_word": "1209",
+        "europe_word": "120F",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ]
+      },
+      {
+        "usa_word": "125B",
+        "prototype_word": "125F",
+        "europe_word": "1265",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Collision_BuildContactShape"
+        ],
+        "europe_anchors": [
+          "Collision_BuildContactShape"
+        ]
+      },
+      {
+        "usa_word": "1361",
+        "prototype_word": "1365",
+        "europe_word": "136B",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ]
+      },
+      {
+        "usa_word": "1509",
+        "prototype_word": "150D",
+        "europe_word": "1513",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ]
+      },
+      {
+        "usa_word": "150A",
+        "prototype_word": "150E",
+        "europe_word": "1514",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ]
+      },
+      {
+        "usa_word": "150D",
+        "prototype_word": "1511",
+        "europe_word": "1517",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ]
+      },
+      {
+        "usa_word": "150E",
+        "prototype_word": "1512",
+        "europe_word": "1518",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ]
+      },
+      {
+        "usa_word": "15A1",
+        "prototype_word": "15A5",
+        "europe_word": "15AB",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ]
+      },
+      {
+        "usa_word": "1645",
+        "prototype_word": "1649",
+        "europe_word": "164F",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ]
+      },
+      {
+        "usa_word": "16E9",
+        "prototype_word": "16ED",
+        "europe_word": "16F3",
+        "prototype_delta_from_usa": 4,
+        "europe_delta_from_usa": 10,
+        "prototype_to_europe_delta": 6,
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ]
+      },
+      {
+        "usa_word": "2100",
+        "prototype_word": "2100",
+        "europe_word": "2100",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ]
+      },
+      {
+        "usa_word": "2115",
+        "prototype_word": "2115",
+        "europe_word": "2115",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ]
+      },
+      {
+        "usa_word": "2116",
+        "prototype_word": "2116",
+        "europe_word": "2116",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ]
+      },
+      {
+        "usa_word": "420B",
+        "prototype_word": "420B",
+        "europe_word": "420B",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ]
+      },
+      {
+        "usa_word": "420C",
+        "prototype_word": "420C",
+        "europe_word": "420C",
+        "prototype_delta_from_usa": 0,
+        "europe_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ]
+      }
+    ],
+    "clusters": [
+      {
+        "prototype_to_europe_delta": 6,
+        "field_count": 38,
+        "usa_words": [
+          "0BA1",
+          "0BA3",
+          "0CBB",
+          "0CE1",
+          "0CE3",
+          "0CE5",
+          "0D0B",
+          "0D0D",
+          "0D49",
+          "0E89",
+          "0E8B",
+          "0E8D",
+          "0E8F",
+          "0E91",
+          "0E93",
+          "0F47",
+          "0F49",
+          "0F61",
+          "0F7B",
+          "0F9F",
+          "0FA1",
+          "0FEF",
+          "11CD",
+          "11CF",
+          "11D1",
+          "11F9",
+          "11FD",
+          "1201",
+          "1205",
+          "125B",
+          "1361",
+          "1509",
+          "150A",
+          "150D",
+          "150E",
+          "15A1",
+          "1645",
+          "16E9"
+        ],
+        "prototype_words": [
+          "0BA1",
+          "0BA3",
+          "0CBB",
+          "0CE1",
+          "0CE3",
+          "0CE5",
+          "0D0B",
+          "0D0D",
+          "0D49",
+          "0E8D",
+          "0E8F",
+          "0E91",
+          "0E93",
+          "0E95",
+          "0E97",
+          "0F4B",
+          "0F4D",
+          "0F65",
+          "0F7F",
+          "0FA3",
+          "0FA5",
+          "0FF3",
+          "11D1",
+          "11D3",
+          "11D5",
+          "11FD",
+          "1201",
+          "1205",
+          "1209",
+          "125F",
+          "1365",
+          "150D",
+          "150E",
+          "1511",
+          "1512",
+          "15A5",
+          "1649",
+          "16ED"
+        ],
+        "europe_words": [
+          "0BA7",
+          "0BA9",
+          "0CC1",
+          "0CE7",
+          "0CE9",
+          "0CEB",
+          "0D11",
+          "0D13",
+          "0D4F",
+          "0E93",
+          "0E95",
+          "0E97",
+          "0E99",
+          "0E9B",
+          "0E9D",
+          "0F51",
+          "0F53",
+          "0F6B",
+          "0F85",
+          "0FA9",
+          "0FAB",
+          "0FF9",
+          "11D7",
+          "11D9",
+          "11DB",
+          "1203",
+          "1207",
+          "120B",
+          "120F",
+          "1265",
+          "136B",
+          "1513",
+          "1514",
+          "1517",
+          "1518",
+          "15AB",
+          "164F",
+          "16F3"
+        ]
+      },
+      {
+        "prototype_to_europe_delta": 4,
+        "field_count": 12,
+        "usa_words": [
+          "0411",
+          "0413",
+          "0415",
+          "0417",
+          "0419",
+          "041D",
+          "0421",
+          "0423",
+          "042B",
+          "042F",
+          "04B7",
+          "04BB"
+        ],
+        "prototype_words": [
+          "0411",
+          "0413",
+          "0415",
+          "0417",
+          "0419",
+          "041D",
+          "0421",
+          "0423",
+          "042B",
+          "042F",
+          "04B7",
+          "04BB"
+        ],
+        "europe_words": [
+          "0415",
+          "0417",
+          "0419",
+          "041B",
+          "041D",
+          "0421",
+          "0425",
+          "0427",
+          "042F",
+          "0433",
+          "04BB",
+          "04BF"
+        ]
+      },
+      {
+        "prototype_to_europe_delta": 0,
+        "field_count": 10,
+        "usa_words": [
+          "000B",
+          "02C0",
+          "02C2",
+          "02C4",
+          "02C6",
+          "2100",
+          "2115",
+          "2116",
+          "420B",
+          "420C"
+        ],
+        "prototype_words": [
+          "000B",
+          "02C0",
+          "02C2",
+          "02C4",
+          "02C6",
+          "2100",
+          "2115",
+          "2116",
+          "420B",
+          "420C"
+        ],
+        "europe_words": [
+          "000B",
+          "02C0",
+          "02C2",
+          "02C4",
+          "02C6",
+          "2100",
+          "2115",
+          "2116",
+          "420B",
+          "420C"
+        ]
+      }
+    ]
+  }
 }

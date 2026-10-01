@@ -24,6 +24,16 @@ def best_shift(src,dst,start,end,center=0,radius=256):
   if score>best[1]: best=(shift,score)
  return best
 
+def local_shift_profile(src,dst,start,end,center,window=16,radius=64):
+ out=[]
+ pos=start
+ while pos<=end:
+  hi=min(pos+window-1,end)
+  shift,sim=best_shift(src,dst,pos,hi,center=center,radius=radius)
+  out.append({"usa_start":offset_to_cpu(pos),"usa_end":offset_to_cpu(hi),"shift":shift,"similarity":round(sim,6)})
+  pos=hi+1
+ return out
+
 def classify(d,start,end):
  op=param=other=0; opcode_starts=[]
  for off in range(start,end+1):
@@ -49,6 +59,8 @@ def build():
   roles=classify(d,st,en)
   result["builds"][build]={"start":offset_to_cpu(st),"end":offset_to_cpu(en),"shift":shift,"similarity":round(sim,6),
                            "size":en-st+1,"size_delta":0,**roles,"sha256":hashlib.sha256(blob[st:en+1]).hexdigest()}
+  if build!="usa-retail":
+   result["builds"][build]["local_shift_profile_16byte"]=local_shift_profile(usa,blob,us,ue,shift)
  result["regions"].append({"name":"Race_FrameOrchestrationCorridor","kind":"code","usa_start":USA_START,"usa_end":USA_END,
                            "size":ue-us+1,"builds":{name:{k:v for k,v in info.items() if k!="opcode_starts"} for name,info in result["builds"].items()}})
  return result

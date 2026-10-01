@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "site": "80:C3C8",
+  "parser": "80:C3AB",
+  "table": "80:C3CB",
+  "valid_command_range": "0xFF..0xEF",
+  "entries": [
+    {
+      "command": "0xFF",
+      "index": 0,
+      "target": "80:C440",
+      "role": "return"
+    },
+    {
+      "command": "0xFE",
+      "index": 1,
+      "target": "80:C481",
+      "role": "set_cursor_row_col"
+    },
+    {
+      "command": "0xFD",
+      "index": 2,
+      "target": "80:C445",
+      "role": "format_indirect_number_from_dp0002"
+    },
+    {
+      "command": "0xFC",
+      "index": 3,
+      "target": "80:C4A7",
+      "role": "center_following_text_ff_fb"
+    },
+    {
+      "command": "0xFB",
+      "index": 4,
+      "target": "80:C3AF",
+      "role": "continue"
+    },
+    {
+      "command": "0xFA",
+      "index": 5,
+      "target": "80:C534",
+      "role": "parse_nested_stream_pointer"
+    },
+    {
+      "command": "0xF9",
+      "index": 6,
+      "target": "80:C546",
+      "role": "set_tile_attribute_bits"
+    },
+    {
+      "command": "0xF8",
+      "index": 7,
+      "target": "80:C5C2",
+      "role": "formatter_A_indirect"
+    },
+    {
+      "command": "0xF7",
+      "index": 8,
+      "target": "80:C617",
+      "role": "formatter_B_indirect"
+    },
+    {
+      "command": "0xF6",
+      "index": 9,
+      "target": "80:C66C",
+      "role": "formatter_C_indirect"
+    },
+    {
+      "command": "0xF5",
+      "index": 10,
+      "target": "80:C5BA",
+      "role": "formatter_A_direct"
+    },
+    {
+      "command": "0xF4",
+      "index": 11,
+      "target": "80:C60F",
+      "role": "formatter_B_direct"
+    },
+    {
+      "command": "0xF3",
+      "index": 12,
+      "target": "80:C664",
+      "role": "formatter_C_direct"
+    },
+    {
+      "command": "0xF2",
+      "index": 13,
+      "target": "80:C4EF",
+      "role": "center_following_text_ff_fb_5f"
+    },
+    {
+      "command": "0xF1",
+      "index": 14,
+      "target": "80:C6AA",
+      "role": "format_indirect_via_838c7b"
+    },
+    {
+      "command": "0xF0",
+      "index": 15,
+      "target": "80:C463",
+      "role": "format_indirect_number_from_dp0005"
+    },
+    {
+      "command": "0xEF",
+      "index": 16,
+      "target": "80:C6C4",
+      "role": "store_layout_coordinate"
+    }
+  ],
+  "ee_boundary": {
+    "command": "0xEE",
+    "computed_word": "0x20E2",
+    "valid_rom_target": false,
+    "interpretation": "escape_or_sentinel_requires_parser_invariant"
+  },
+  "evidence": [
+    "canonical ROM table bytes",
+    "reference/imported/reverse-engineering/nitrodon/bank 80.txt",
+    "historical replay trace 36795810324"
+  ]
+}

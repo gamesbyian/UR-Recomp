@@ -212,30 +212,36 @@ Observation: the bytes exactly match the historical GoodSNES-listed beta fingerp
 Next action: perform byte/run/RNC comparison against USA retail and seek distinguishing build/provenance evidence only if the binary differences make that materially useful.
 
 
-## A-013 — Dessyreqt 2014 autonomous Uniracers bot and submitted movie
+## A-013 — Dessyreqt autonomous-player and research corpus
 
-Priority: critical for deterministic bring-up and validation  
-Status: acquired and committed  
-Retrieved: 2026-09-28
+Priority: critical for deterministic bring-up, behavior archaeology and validation  
+Status: expanded direct recovery acquired and committed  
+Initial public recovery: 2026-09-28  
+Direct historical workspace recovery: 2026-09-30
 
-Public bot source:
-- title: `Uniracers Tabletop bot`
-- author: Dessyreqt
-- source: https://pastebin.com/A0XpKw9v
-- associated TASVideos submission: https://tasvideos.org/4250S
-- repository path: `reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua`
-- exact size: 30,047 bytes
-- SHA-256: `9183b89f27e153b5db450134c00fb98f47d67c47e979a189ae51bcd8c06629c6`
+The earlier public recovery remains preserved:
+- `reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua`
+- `reference/imported/tas-bots/dessyreqt-4250-submission.smv`
 
-Submitted SMV:
-- source: https://tasvideos.org/4250S?handler=Download
-- repository path: `reference/imported/tas-bots/dessyreqt-4250-submission.smv`
-- exact size: 507,032 bytes
-- SHA-256: `06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442`
+Dessyreqt subsequently supplied his historical Uniracers working directory directly. The ZIP was used only as transport and removed after extraction. The 80 preserved files now live under:
 
-TASVideos describes the Lua as a bot capable of completing the game without savestate search and adjustable for human-vs-bot play. The recovered source contains frontend automation, labeled RAM addresses, internal track IDs, and course-specific control regions. Treat labels as historical working evidence until locally reproduced.
+`reference/imported/reverse-engineering/dessyreqt/`
 
-Rights: explicit redistribution license not identified; retained as third-party evidence in this private research repository.
+Recovered contents:
+- 17 Lua scripts, including `usjo14.lua`, `usjo14a.lua`, its backup/test variants, `movebot.lua`, `teststuntbot.lua`, `tabletopbot.lua`, mapping/grading/glitch helpers and related experiments;
+- 9 historical glitch/test SMVs, including both Jumpover halfpipe directions and several other track-traversal/glitch cases;
+- 45 course-map PNGs covering all nine tours;
+- 3 SRAM images (clean and two progression states);
+- 2 memory-watch files;
+- 4 research documents/spreadsheets.
+
+Immediate acquisition consequences:
+- the USJO lineage is now recovered beyond the formerly missing v13 target, through v14/v14a development material;
+- a distinct autonomous movement/control lineage is preserved in addition to the already-known tabletop/full-game bot;
+- the previously missing Jumpover/FallThrough-style historical movie evidence is now locally available;
+- further Dessyreqt acquisition should target only material outside this supplied directory.
+
+Every extracted file is classified in `reference/imported/MANIFEST.json`. Treat labels, scripts and maps as historical working evidence until independently reconciled with the supported ROM/runtime.
 
 ## A-014 — Halamantariel 2008 Uniracers TAS WIP SMV
 
@@ -259,10 +265,10 @@ Historical discussion identifies this as an optimized WIP containing the 23.56 D
 
 Rights: explicit redistribution license not identified; retained as third-party evidence in this private research repository.
 
-## A-015 — USJO source lineage (internal v8 recovered; v13 still missing)
+## A-015 — USJO source lineage (v8 plus v14/v14a recovered)
 
-Priority: P1 for v13 delta recovery; recovered v8 is active local evidence  
-Status: **internal version 8 recovered and committed; v13 exact historical URL known but bytes still missing**  
+Priority: P2 for historical gap-filling only; multiple surviving versions are now active local evidence  
+Status: **internal v8 plus Dessyreqt's v14/v14a development family recovered and committed; exact v13 bytes remain missing but are no longer technically important**  
 Recovered source: `reference/imported/tas-bots/usjo8.lua`  
 Internal date: 2008-02-10  
 Recovered: 2026-09-30 directly from Olivier Bellemare (Halamantariel), who retained the historical file  
@@ -273,7 +279,7 @@ Historical v13 URL: `http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%
 
 Need judgment: **the high-value knowledge is now directly usable; v13 is no longer a blocker.** Version 8 already contains savestate-driven search over jump/stunt timing, direct RAM reads for speed/vertical speed/air state/stunt counters/rotation/boost, heuristic stunt-combination search, a boost-plus-speed objective, and replay of the best result. This turns USJO from a speculative acquisition lead into an active reverse-engineering input.
 
-Version 13 remains useful because five later internal revisions may contain additional discoveries, fixes or broader autonomy. Keep passive public recovery alive, but do not delay symbol work, stunt/boost validation or fixture construction waiting for it.
+Version 13 is now mainly a historical lineage gap. Dessyreqt's directly recovered workspace supplies v14/v14a plus backup/test variants and therefore supersedes v13 as the highest surviving later-version evidence. Keep passive recovery cheap, but spend no bespoke effort on v13 unless a copy surfaces naturally.
 
 Authorship note: Olivier explicitly reported that he does not remember who the main developer was and that it was not him. Preserve that uncertainty rather than assigning authorship from the surviving hosting/history.
 

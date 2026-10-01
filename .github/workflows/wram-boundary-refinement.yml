@@ -1,0 +1,35 @@
+name: WRAM boundary refinement
+
+on:
+  push:
+    branches:
+      - chatgpt/pal-subregion-survivor-refinement-2026-09-30
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refresh semantic anchors and WRAM atlas
+        run: |
+          python3 tools/compare_semantic_anchors.py
+          python3 tools/build_wram_motion_atlas.py
+          python3 - <<'PY'
+          import json
+          sem=json.load(open("analysis/generated/semantic-anchor-cross-build-matches.json"))
+          wanted={"Race_UpdateRacersFrame","Race_BuildRacerOAMState","Stunt_FinalizeAndScoreAirTricks"}
+          for a in sem["anchors"]:
+              if a["name"] in wanted:
+                  print("BOUNDARY_ANCHOR="+json.dumps(a,sort_keys=True))
+          atlas=json.load(open("analysis/generated/wram-motion-atlas.json"))
+          print("LINEAGE="+json.dumps(atlas["prototype_to_europe_motion"],sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wram-boundary-refinement
+          path: |
+            analysis/generated/semantic-anchor-cross-build-matches.json
+            analysis/generated/semantic-anchor-cross-build-matches.md
+            analysis/generated/wram-motion-atlas.json
+            analysis/generated/wram-motion-atlas.md
+          if-no-files-found: error

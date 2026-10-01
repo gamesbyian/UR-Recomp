@@ -128,6 +128,14 @@ jobs:
               print("CAMERA_MOVEMENT_SERIES", runtime_name)
               for cp in movement_cps:
                   print(cp, report[cp]["camera_and_viewport"])
+                  ac=report[cp]["activation_candidate"]
+                  print(
+                      "ACTIVATION_CANDIDATE", runtime_name, cp,
+                      "counts",(ac["list_a_count_raw"],ac["list_b_count_raw"]),
+                      "nonzero",(ac["list_a_nonzero_flags"],ac["list_b_nonzero_flags"]),
+                      "flags_a",ac["list_a_flags"],
+                      "flags_b",ac["list_b_flags"],
+                  )
               for a,b in zip(movement_cps,movement_cps[1:]):
                   ca=report[a]["camera_and_viewport"]["camera"]
                   cb=report[b]["camera_and_viewport"]["camera"]

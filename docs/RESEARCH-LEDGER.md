@@ -1253,3 +1253,18 @@ Static bank-81 analysis independently localizes the checkpoint/finish handler to
 **Interpretation:** deterministic 1P finish fidelity is closed at the current semantic evidence level. Further finish tracing should be demand-driven by a specific product discrepancy, not collected for completeness.
 
 **Evidence:** run `36801728342`; `.github/workflows/race-finish-differential.yml`; `tools/summarize_paired_player_slots.py`; Nitrodon bank-81 listing.
+
+### R-SEED-052 — PAL survivor disagreements collapse under trusted-boundary piecewise alignment
+
+**Status:** confirmed methodological closure with one genuine executable lineage delta  
+**Date:** 2026-09-30  
+**Area:** CPU | decompilation | comparative analysis | tooling
+
+The first homolog-aligned PAL retail versus 1994-11-29 prototype snes2asm pass reduced same-offset role disagreement from 3,662 to 114 but left three survivor windows. A second pass subdivided only at independently recovered boundaries from Nitrodon's bank-80 listing, the decoded frontend dispatch table, and known control-flow entries, then realigned each executable island separately.
+
+All 114 remaining role disagreements disappear. In `00:ABA9..00:ADE2`, executable `ABB9..AD0F` aligns at -31 while `AD34..ADE2` aligns at -13, with embedded frontend data between them. In `00:C3A9..00:C450`, code on both sides of the 17-entry `C3CB..C3EC` dispatch table aligns cleanly at -19. In `00:8C49..00:8CCA`, executable `8C4E..8C73` is byte-identical at -5 and `8C78..8CCA` is byte-identical at -9; PAL retail alone contains a four-byte JSL at `80:8C74..80:8C77`.
+
+**Interpretation:** analyzer disagreement is now zero inside homologous executable subregions for all 32 high-value PAL/prototype windows. The remaining evidence is structural: mixed code/data windows need piecewise alignment, and real instruction insertions/deletions can change the homolog shift within a function. Do not escalate these closed windows to da65 or Ghidra. Preserve the retail-only JSL as a genuine lineage delta.
+
+**Evidence:** `analysis/generated/pal-snes2asm-homolog-alignment.{json,md}`; `analysis/generated/pal-snes2asm-subregion-alignment.{json,md}`; `tools/refine_pal_snes2asm_survivors.py`; Nitrodon `reference/imported/reverse-engineering/nitrodon/bank 80.txt`.
+

@@ -233,6 +233,8 @@ The next discriminator uses the already-built independent Beetle/bsnes core with
 
 Do not change the 64-master-clock model merely because it is suspicious. The required evidence is: independent-core transition-frame agreement plus a direct link from the differing transition to a `FAC9` wait or its immediate caller.
 
+The ordinary-2P callsite now supplies that immediate caller candidate. On the identified `$7710AD=2` route, `80:BD65` calls `80:9885` immediately before `80:BD68 -> 80:99A4`. Routine `9885` runs a seven-iteration fade loop; each iteration calls `FAC9`, updates display state through `80:9318`, and steps the brightness register toward forced blank before returning into `99A4`. If the independent-core vote points at native, instrument this specific `BD65/9885/FAC9` boundary first rather than all `FAC9` users globally.
+
 A related community-memory note should remain explicitly qualified: Dessyreqt's 2014 bot reads a word at `7E:11BA` and labels it `countdownTimer`, but the recovered game code initializes, compares, and decrements a 16-bit countdown at `$11BB` (`82:D88F..D895`, `83:E59B..`, `83:E721/E737/E76D`). The bot watch is useful historical corroboration of countdown progress, not an authoritative exact address label. The countdown is downstream of race entry and therefore not a candidate cause of the 1134 entry seam.
 
 ## VS active-movement parity refinement

@@ -233,6 +233,12 @@ jobs:
               "phase3":0x0304,
               "inRace":0x0313,
               "race_tick":0x0FE7,
+              # Race-entry handshake. 83:C9C8 can set $0C67; 83:CBA4 can
+              # clear it before 83:CD3A -> 83:E066 tests it. $0DDB selects
+              # the sibling E238 route at CD32..CD38.
+              "race_enable":0x0C67,
+              "race_alt_route":0x0DDB,
+              "race_route_latch":0x212C,
               # $1281 is a one-pass scheduler-skip latch: when nonzero at
               # 83:CC74 it is cleared and execution jumps past the input/
               # phase-toggle block to 83:CD86. The nearby counters are its

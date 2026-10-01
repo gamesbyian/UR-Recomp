@@ -105,6 +105,14 @@
       "summary": "Recovered the complete racer OAM/viewport builder as 12 gapless instruction-aligned regions. Legacy beta is byte-identical. PAL prototype and Europe preserve the same architecture; their two 2-byte contractions delete redundant first copies from consecutive REP #$20 pairs in the split-camera P2 and P1 projection blocks.",
       "priority": "low",
       "next_evidence": "Revisit only for concrete widescreen/viewport policy implementation or if runtime evidence exposes a presentation discrepancy. Comparative structure work should move to another subsystem."
+    },
+    {
+      "id": "resolved-course-surface-sampler-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:8B95..8D13 and homologs",
+      "summary": "Recovered the common per-racer course runtime surface sampler as one fully reached 383-byte function. It consumes C000 plus A000/A001 between collision-shape construction and later collision handling. PAL prototype and Europe retain the complete 167-opcode/216-operand shape at -32; beta is byte-identical. The odd-looking 8C03..8C1F Nitrodon stream is width-context linear-disassembly drift, not embedded data or exceptional control flow.",
+      "priority": "low",
+      "next_evidence": "Revisit A000/C000 value semantics only for a concrete course/editor or collision-fidelity decision. Comparative structure should move to another subsystem."
     }
   ]
 }

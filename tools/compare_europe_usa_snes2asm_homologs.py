@@ -55,6 +55,27 @@ REGIONS = [
         "expected_europe_shift": 7,
         "basis": "Nitrodon AC53 post-processing block through RTS at ACA0.",
     },
+    {
+        "name": "Collision_TransformVelocity:matrix_apply",
+        "usa_start": "81:9546",
+        "usa_end": "81:9624",
+        "expected_europe_shift": -26,
+        "basis": "Nitrodon matrix/velocity transform body through working-field clears; bounded before the JMP at 81:9627. M/X state is seeded from the independently visible REP/SEP setup at 81:953D.",
+    },
+    {
+        "name": "Collision_BuildContactShape",
+        "usa_start": "81:9E2A",
+        "usa_end": "81:9FBE",
+        "expected_europe_shift": -15,
+        "basis": "Nitrodon function entry establishes M/X with REP #$30 and runs through RTS at 81:9FBE.",
+    },
+    {
+        "name": "HUD_QueueMessage",
+        "usa_start": "81:C5B3",
+        "usa_end": "81:C604",
+        "expected_europe_shift": -23,
+        "basis": "Nitrodon message-queue function entry establishes accumulator/index widths and runs through RTS at 81:C604.",
+    },
 ]
 
 
@@ -97,11 +118,17 @@ def build() -> dict:
         cpu_to_offset("80:8C41"),
         cpu_to_offset("82:A968"),
         cpu_to_offset("82:AA6E"),
+        cpu_to_offset("81:953D"),
+        cpu_to_offset("81:9E2A"),
+        cpu_to_offset("81:C5B3"),
     ]
     europe_seeds = [
         cpu_to_offset("80:8C41"),
         cpu_to_offset("82:A96F"),
         cpu_to_offset("82:AA75"),
+        cpu_to_offset("81:9523"),
+        cpu_to_offset("81:9E1B"),
+        cpu_to_offset("81:C59C"),
     ]
     seed_entries(ud, usa_seeds)
     seed_entries(ed, europe_seeds)

@@ -10,9 +10,9 @@ dump two-player-race-1220
 wait 200
 dump two-player-race-1420
 wait 50
-dump two-player-p1-post-1470
+dump two-player-p1-pre-1470
 wait 50
-dump two-player-p2-pre-1520
+dump two-player-p1-post-1520
 wait 50
 dump two-player-p2-post-1570
 wait 50

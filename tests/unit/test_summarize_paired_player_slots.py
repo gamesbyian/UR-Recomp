@@ -20,7 +20,9 @@ class PairedPlayerSlotsTest(unittest.TestCase):
                 0x041D: 0x11, 0x041E: 0x22,
                 0x041F: 0x33, 0x0420: 0x44,
                 0x04F5: 0xFE, 0x04F6: 0xFF,
+                0x04F7: 0x04, 0x04F8: 0x00,
                 0x04F9: 0x03, 0x04FA: 0x00,
+                0x04FB: 0xFB, 0x04FC: 0xFF,
                 0x1501: 10, 0x1502: 11,
                 0x1505: 12, 0x1506: 13,
                 0x1509: 14, 0x150A: 15,
@@ -39,7 +41,9 @@ class PairedPlayerSlotsTest(unittest.TestCase):
                 "player1_y": 0x2211,
                 "player2_y": 0x4433,
                 "player1_x_velocity": -2,
+                "player2_x_velocity": 4,
                 "player1_y_velocity": 3,
+                "player2_y_velocity": -5,
             })
             self.assertEqual(s["camera_and_viewport"]["screen_relative"], {
                 "screen2_player2_x": 10,

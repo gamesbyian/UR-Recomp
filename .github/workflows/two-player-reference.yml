@@ -233,6 +233,16 @@ jobs:
               "phase3":0x0304,
               "inRace":0x0313,
               "race_tick":0x0FE7,
+              # $1281 is a one-pass scheduler-skip latch: when nonzero at
+              # 83:CC74 it is cleared and execution jumps past the input/
+              # phase-toggle block to 83:CD86. The nearby counters are its
+              # only recovered producers and may identify the root parity slip.
+              "scheduler_skip":0x1281,
+              "skip_countdown":0x127B,
+              "skip_mode":0x127D,
+              "skip_reload":0x127F,
+              "skip_timer_word_lo":0x12AB,
+              "skip_timer_word_hi":0x12AC,
           }
           first=None
           for frame in range(1128,1141):

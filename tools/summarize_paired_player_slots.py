@@ -103,6 +103,30 @@ def state(path: Path) -> dict:
         group: {name: read_value(data, kind, addr) for name, (kind, addr) in fields.items()}
         for group, fields in CAMERA_AND_VIEWPORT.items()
     }
+    # Camera-derived code around 81:AA40..AB87 filters two compact 16-entry
+    # lists against moving world-window edge bands. Their precise gameplay
+    # semantics are not yet named, so expose them as candidate activation
+    # bookkeeping rather than calling them objects prematurely.
+    list_a_flags = list(data[0x0D6D:0x0D7D])
+    list_b_flags = list(data[0x0D7D:0x0D8D])
+    list_a_coords = [
+        int.from_bytes(data[0x0D8D + i * 2:0x0D8F + i * 2], "little")
+        for i in range(16)
+    ]
+    list_b_coords = [
+        int.from_bytes(data[0x0DAD + i * 2:0x0DAF + i * 2], "little")
+        for i in range(16)
+    ]
+    out["activation_candidate"] = {
+        "list_a_count_raw": data[0x0DCD],
+        "list_b_count_raw": data[0x0DCF],
+        "list_a_nonzero_flags": sum(1 for v in list_a_flags if v),
+        "list_b_nonzero_flags": sum(1 for v in list_b_flags if v),
+        "list_a_flags": list_a_flags,
+        "list_b_flags": list_b_flags,
+        "list_a_coords": list_a_coords,
+        "list_b_coords": list_b_coords,
+    }
     out["race_progress"] = {
         player: {name: read_value(data, kind, addr) for name, (kind, addr) in fields.items()}
         for player, fields in RACE_PROGRESS.items()
@@ -125,6 +149,7 @@ def main() -> int:
         report[tag] = s
         a, b = s["slot1"], s["slot2"]
         rp1, rp2 = s["race_progress"]["player1"], s["race_progress"]["player2"]
+        activation = s["activation_candidate"]
         mode = s["camera_and_viewport"]["mode"]
         cam = s["camera_and_viewport"]["camera"]
         world = s["camera_and_viewport"]["world_window"]
@@ -146,6 +171,9 @@ def main() -> int:
             f"p2v=({cam['player2_x_velocity']},{cam['player2_y_velocity']}) | "
             f"worldwin p1edge={world['camera1_edge_raw']} span={world['camera1_span_raw']} "
             f"p2edge={world['camera2_edge_raw']} span={world['camera2_span_raw']} | "
+            f"candidate-lists a={activation['list_a_count_raw']}/"
+            f"{activation['list_a_nonzero_flags']} b={activation['list_b_count_raw']}/"
+            f"{activation['list_b_nonzero_flags']} | "
             f"screen1 p1=({screen['screen1_player1_x']},{screen['screen1_player1_y']}) "
             f"p2=({screen['screen1_player2_x']},{screen['screen1_player2_y']}) "
             f"screen2 p1=({screen['screen2_player1_x']},{screen['screen2_player1_y']}) "

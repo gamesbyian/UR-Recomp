@@ -101,6 +101,21 @@ ANCHORS = (
          0x12AF, 0x1361),
         "Landing-time stunt classification, messages, counters, and score path.",
     ),
+    Anchor(
+        "Player_ApplyVerticalAcceleration",
+        "82:A968",
+        0x44,
+        (0x0F41, 0x0FEF, 0x0541, 0x0FA1),
+        "Recovered Nitrodon routine: bounded vertical-acceleration update through RTS at 82:A9AB.",
+    ),
+    Anchor(
+        "Input_DecodePlayer1Buttons",
+        "82:AA6E",
+        0x200,
+        (0x12D5, 0x0325, 0x0329, 0x0319, 0x032D, 0x0321, 0x031D,
+         0x0331, 0x0335, 0x0315, 0x030D, 0x030F, 0x0311),
+        "Recovered Nitrodon input decoder; 0x200-byte structural window covers the P1 decode and mirrored P2 setup.",
+    ),
 )
 
 

@@ -265,6 +265,29 @@ jobs:
               if diffs and first is None:
                   first=(frame,diffs)
           print("FIRST_PHASE_ORIGIN_DIFF", first or "MATCH_THROUGH_1140")
+
+          # Also report the full cross-runtime memory delta immediately before
+          # and at the race-entry seam. This prevents a hand-picked field from
+          # being mistaken for the root cause when an earlier state byte is
+          # already different.
+          for frame in (1133,1134):
+              tag=f"phase-origin-{frame}"
+              nw=(nroot/f"{tag}.wram.bin").read_bytes()
+              sw=(sroot/f"{tag}.wram.bin").read_bytes()
+              wdiff=[(i,nw[i],sw[i]) for i in range(min(len(nw),len(sw))) if nw[i]!=sw[i]]
+              print(
+                  f"FULL_WRAM_DIFF frame={frame} count={len(wdiff)} "
+                  f"first={wdiff[:32]}"
+              )
+              ns=nroot/f"{tag}.sram.bin"
+              ss=sroot/f"{tag}.sram.bin"
+              if ns.exists() and ss.exists():
+                  nb=ns.read_bytes(); sb=ss.read_bytes()
+                  sdiff=[(i,nb[i],sb[i]) for i in range(min(len(nb),len(sb))) if nb[i]!=sb[i]]
+                  print(
+                      f"FULL_SRAM_DIFF frame={frame} count={len(sdiff)} "
+                      f"first={sdiff[:32]}"
+                  )
           PY
 
       - name: Localize native/Snes9x P2-only drift

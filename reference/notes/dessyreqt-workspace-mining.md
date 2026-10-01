@@ -239,3 +239,25 @@ but must be validated before it becomes a game-rule constant.
 7. Use `magicnumber.lua` start/finish coordinates as cheap course-identity/finish probes.
 8. Do not port historical bot code wholesale. Prefer exact SMV playback where prerecorded
    inputs answer the question; port only state-responsive policy components that add coverage.
+
+## Controlled SRAM progression differential
+
+The three supplied 8 KiB SRAM images form a compact controlled comparison.
+
+`Clean.srm → All Silvers - No Hunter.srm` changes exactly 144 bytes:
+
+- `0x069C..0x071B`: 128 contiguous bytes, all `00 → 02`;
+- `0x10D3..0x10E2`: 16 contiguous bytes, all `00 → 02`.
+
+`All Silvers - No Hunter.srm → All Silvers - With Hunter.srm` changes exactly 16 bytes:
+
+- `0x10D3..0x10E2`: the same 16-byte block, all `02 → 03`.
+
+Thus the broader all-silver progression state is isolated to two tiny regions, while the
+difference associated with adding Hunter is isolated entirely to the 16-byte region. This is
+a much better save-format starting point than broad SRAM archaeology.
+
+Do **not** yet call either region a medal array or Hunter-unlock array. The controlled labels
+make those strong hypotheses, but checksum/duplication/per-racer structure and exact value
+semantics remain to be established. The machine-readable diff is
+`analysis/generated/dessyreqt-sram-diff.json`.

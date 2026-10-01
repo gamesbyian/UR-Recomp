@@ -1268,3 +1268,21 @@ All 114 remaining role disagreements disappear. In `00:ABA9..00:ADE2`, executabl
 
 **Evidence:** `analysis/generated/pal-snes2asm-homolog-alignment.{json,md}`; `analysis/generated/pal-snes2asm-subregion-alignment.{json,md}`; `tools/refine_pal_snes2asm_survivors.py`; Nitrodon `reference/imported/reverse-engineering/nitrodon/bank 80.txt`.
 
+### R-SEED-053 — Fresh Europe/USA exact misses resolve structurally
+
+**Status:** supported/strong cross-build correspondence; atlas queue corrected  
+**Date:** 2026-09-30  
+**Area:** CPU | decompilation | comparative analysis | symbols
+
+After closing the PAL/prototype analyzer survivors, the exact-fingerprint atlas still exposed five Europe/USA function misses. HUD queue and stunt finalizer already had structural correspondence evidence. The three remaining useful misses were added to the relocation-resistant semantic-anchor corpus.
+
+`Player_ApplyVerticalAcceleration` maps USA `82:A968` to PAL prototype `82:A959` (0.912 similarity, strong) and Europe `82:A96F` (0.897, supported). Europe’s changed operands follow established regional motion families: `0F41→0F4B`, `0FEF→0FF9`, `0FA1→0FAB`, with `0541→0547` in a +6 family.
+
+`Input_DecodePlayer1Buttons` maps USA `82:AA6E` to PAL prototype `82:AA5F` (0.988, strong) and Europe `82:AA75` (0.846, strong). Europe coherently translates the controller-state block by +4, including `030D→0311`, `030F→0313`, and the output fields through `0335→0339`.
+
+`Text_TestCharacterMetadataBit7` maps USA `80:8C41` to PAL prototype `80:8C3C` (0.923, strong) and Europe `80:8C41` (0.846, supported).
+
+**Interpretation:** exact byte-window failure and unresolved correspondence are different states. The comparative atlas now consumes the canonical structural-correspondence surface and removes supported-or-better structural matches from the structural-alignment queue while retaining their exact-match status unchanged.
+
+**Evidence:** `tools/compare_semantic_anchors.py`; `tools/build_cross_build_symbol_correspondence.py`; `tools/build_comparative_code_atlas.py`; `analysis/generated/semantic-anchor-cross-build-matches.{json,md}`; `analysis/generated/cross-build-symbol-correspondence.{json,md}`; `analysis/generated/cross-build-semantic-anchor-findings-2026-09-30.md`.
+

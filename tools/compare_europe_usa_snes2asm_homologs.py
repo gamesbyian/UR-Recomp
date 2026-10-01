@@ -279,9 +279,22 @@ def checkpoint_frame_normalization_lineage(usa: bytes, europe: bytes) -> dict:
     for name, data in builds.items():
         usa_candidate = data[start:start + len(usa_span)]
         europe_candidate = data[start:start + len(europe_span)]
-        if usa_candidate == usa_span:
+        # Both styles begin with LDA abs; the operand itself is expected to
+        # move between regional WRAM layouts. Classify executable shape while
+        # ignoring only that first two-byte address operand.
+        usa_shape = (
+            len(usa_candidate) == len(usa_span)
+            and usa_candidate[0] == usa_span[0]
+            and usa_candidate[3:] == usa_span[3:]
+        )
+        europe_shape = (
+            len(europe_candidate) == len(europe_span)
+            and europe_candidate[0] == europe_span[0]
+            and europe_candidate[3:] == europe_span[3:]
+        )
+        if usa_shape:
             style = "usa-style-22-byte"
-        elif europe_candidate == europe_span:
+        elif europe_shape:
             style = "europe-style-8-byte"
         else:
             style = "other"

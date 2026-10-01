@@ -8,6 +8,10 @@ This report recovers structure, not semantic names. Boundaries are anchored by d
 | routine_A27C | code | 88 | 82:A27C..82:A2D3 (+0, sim 1.000; op 38, data/unreached 0) | 82:A272..82:A2C9 (-10, sim 0.511; op 33, data/unreached 5) | 82:A288..82:A2DF (+12, sim 0.511; op 33, data/unreached 5) | 82:A27C..82:A2D3 (+0, sim 1.000; op 38, data/unreached 0) |
 | table_A2D4 | data | 128 | 82:A2D4..82:A353 (+0, sim 1.000; op 0, data/unreached 128) | 82:A2C5..82:A344 (-15, sim 1.000; op 0, data/unreached 128) | 82:A2DB..82:A35A (+7, sim 1.000; op 0, data/unreached 128) | 82:A2D4..82:A353 (+0, sim 1.000; op 0, data/unreached 128) |
 | routine_A354 | code | 324 | 82:A354..82:A497 (+0, sim 1.000; op 120, data/unreached 13) | 82:A345..82:A488 (-15, sim 0.821; op 120, data/unreached 13) | 82:A35B..82:A49E (+7, sim 0.815; op 120, data/unreached 13) | 82:A354..82:A497 (+0, sim 1.000; op 120, data/unreached 13) |
+| routine_A498 | code | 347 | 82:A498..82:A5F2 (+0, sim 1.000; op 128, data/unreached 0) | 82:A489..82:A5E3 (-15, sim 0.873; op 128, data/unreached 0) | 82:A49F..82:A5F9 (+7, sim 0.833; op 128, data/unreached 0) | 82:A498..82:A5F2 (+0, sim 1.000; op 128, data/unreached 0) |
+| routine_A5F3 | code | 37 | 82:A5F3..82:A617 (+0, sim 1.000; op 17, data/unreached 0) | 82:A5E4..82:A608 (-15, sim 0.892; op 17, data/unreached 0) | 82:A5FA..82:A61E (+7, sim 0.892; op 17, data/unreached 0) | 82:A5F3..82:A617 (+0, sim 1.000; op 17, data/unreached 0) |
+| routine_A618 | code | 217 | 82:A618..82:A6F0 (+0, sim 1.000; op 114, data/unreached 0) | 82:A609..82:A6E1 (-15, sim 0.954; op 114, data/unreached 0) | 82:A61F..82:A6F7 (+7, sim 0.889; op 114, data/unreached 0) | 82:A618..82:A6F0 (+0, sim 1.000; op 114, data/unreached 0) |
+| routine_A6F1 | code | 465 | 82:A6F1..82:A8C1 (+0, sim 1.000; op 193, data/unreached 18) | 82:A6E2..82:A8B2 (-15, sim 0.888; op 193, data/unreached 18) | 82:A6F8..82:A8C8 (+7, sim 0.873; op 193, data/unreached 18) | 82:A6F1..82:A8C1 (+0, sim 1.000; op 193, data/unreached 18) |
 
 ## Inline table
 

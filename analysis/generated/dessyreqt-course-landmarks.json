@@ -1,0 +1,278 @@
+{
+  "schema_version": 1,
+  "source": "reference/imported/reverse-engineering/dessyreqt/Scripts/magicnumber.lua",
+  "warning": "Historical optimizer coordinates; use as probes, not canonical course-format truth.",
+  "tracks": [
+    {
+      "track_id": 0,
+      "name": "Dragster",
+      "start_x": 1088,
+      "finish_x": 25278,
+      "total_lap_override": 0
+    },
+    {
+      "track_id": 1,
+      "name": "Zoom Zoo",
+      "start_x": 8961,
+      "finish_x": 8881
+    },
+    {
+      "track_id": 2,
+      "name": "Bowl",
+      "start_x": 5776,
+      "finish_x": 5776
+    },
+    {
+      "track_id": 3,
+      "name": "Switcher",
+      "start_x": 1584,
+      "finish_x": 63062
+    },
+    {
+      "track_id": 4,
+      "name": "Monster",
+      "start_x": 4640,
+      "finish_x": 4719
+    },
+    {
+      "track_id": 5,
+      "name": "Wobble",
+      "start_x": 2272,
+      "finish_x": 2678
+    },
+    {
+      "track_id": 6,
+      "name": "Twinpeak",
+      "start_x": 7120,
+      "finish_x": 7210
+    },
+    {
+      "track_id": 7,
+      "name": "Skier",
+      "start_x": 128,
+      "finish_x": 128
+    },
+    {
+      "track_id": 8,
+      "name": "Loopback",
+      "start_x": 576,
+      "finish_x": 1590
+    },
+    {
+      "track_id": 9,
+      "name": "Small Cut",
+      "start_x": 7696,
+      "finish_x": 7920
+    },
+    {
+      "track_id": 10,
+      "name": "Looper",
+      "start_x": 1776,
+      "finish_x": 2439
+    },
+    {
+      "track_id": 11,
+      "name": "Megajump",
+      "start_x": 9488,
+      "finish_x": 9704
+    },
+    {
+      "track_id": 12,
+      "name": "Jumps",
+      "start_x": 0,
+      "finish_x": 0
+    },
+    {
+      "track_id": 13,
+      "name": "Flat Fun",
+      "start_x": 2192,
+      "finish_x": 5206
+    },
+    {
+      "track_id": 14,
+      "name": "Infinity",
+      "start_x": 720,
+      "finish_x": 721
+    },
+    {
+      "track_id": 15,
+      "name": "Last One",
+      "start_x": 16208,
+      "finish_x": 15660
+    },
+    {
+      "track_id": 16,
+      "name": "Marathon",
+      "start_x": 4992,
+      "finish_x": 5189
+    },
+    {
+      "track_id": 17,
+      "name": "Circle",
+      "start_x": 2464,
+      "finish_x": 2464
+    },
+    {
+      "track_id": 18,
+      "name": "Plinkey",
+      "start_x": 32,
+      "finish_x": 229
+    },
+    {
+      "track_id": 19,
+      "name": "Jumpover",
+      "start_x": 816,
+      "finish_x": 1000
+    },
+    {
+      "track_id": 20,
+      "name": "Dragrace",
+      "start_x": 3264,
+      "finish_x": 30547
+    },
+    {
+      "track_id": 21,
+      "name": "Pingpong",
+      "start_x": 7920,
+      "finish_x": 8150
+    },
+    {
+      "track_id": 22,
+      "name": "Hill Climb",
+      "start_x": 0,
+      "finish_x": 0
+    },
+    {
+      "track_id": 23,
+      "name": "Hybrid",
+      "start_x": 112,
+      "finish_x": 300
+    },
+    {
+      "track_id": 24,
+      "name": "Short Cut",
+      "start_x": 7936,
+      "finish_x": 7710
+    },
+    {
+      "track_id": 25,
+      "name": "Down+Up",
+      "start_x": 672,
+      "finish_x": 1325
+    },
+    {
+      "track_id": 26,
+      "name": "Highroad",
+      "start_x": 1264,
+      "finish_x": 1400
+    },
+    {
+      "track_id": 27,
+      "name": "Spine",
+      "start_x": 2048,
+      "finish_x": 2048
+    },
+    {
+      "track_id": 28,
+      "name": "Boo!",
+      "start_x": 160,
+      "finish_x": 5278
+    },
+    {
+      "track_id": 29,
+      "name": "Fire Escape",
+      "start_x": 1760,
+      "finish_x": 1900
+    },
+    {
+      "track_id": 30,
+      "name": "Wario Paint",
+      "start_x": 1408,
+      "finish_x": 47100
+    },
+    {
+      "track_id": 31,
+      "name": "Crock",
+      "start_x": 8896,
+      "finish_x": 9120
+    },
+    {
+      "track_id": 32,
+      "name": "Downer",
+      "start_x": 464,
+      "finish_x": 464
+    },
+    {
+      "track_id": 33,
+      "name": "East",
+      "start_x": 3088,
+      "finish_x": 58090
+    },
+    {
+      "track_id": 34,
+      "name": "Hairpin Hill",
+      "start_x": 7968,
+      "finish_x": 7813
+    },
+    {
+      "track_id": 35,
+      "name": "Vertical",
+      "start_x": 576,
+      "finish_x": 3860
+    },
+    {
+      "track_id": 36,
+      "name": "Flash",
+      "start_x": 5440,
+      "finish_x": 5200
+    },
+    {
+      "track_id": 37,
+      "name": "Little Dipper",
+      "start_x": 480,
+      "finish_x": 480
+    },
+    {
+      "track_id": 38,
+      "name": "Fruitbat",
+      "start_x": 352,
+      "finish_x": 3900
+    },
+    {
+      "track_id": 39,
+      "name": "123 Jump",
+      "start_x": 2304,
+      "finish_x": 2470
+    },
+    {
+      "track_id": 40,
+      "name": "Griller",
+      "start_x": 2160,
+      "finish_x": 4550
+    },
+    {
+      "track_id": 41,
+      "name": "Two Loops",
+      "start_x": 1552,
+      "finish_x": 1730
+    },
+    {
+      "track_id": 42,
+      "name": "Neon",
+      "start_x": 5696,
+      "finish_x": 5696
+    },
+    {
+      "track_id": 43,
+      "name": "Hamster",
+      "start_x": 384,
+      "finish_x": 1005
+    },
+    {
+      "track_id": 44,
+      "name": "To And Fro",
+      "start_x": 3168,
+      "finish_x": 3540
+    }
+  ]
+}

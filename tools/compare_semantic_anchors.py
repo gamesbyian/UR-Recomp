@@ -102,6 +102,13 @@ ANCHORS = (
         "Landing-time stunt classification, messages, counters, and score path.",
     ),
     Anchor(
+        "Text_TestCharacterMetadataBit7",
+        "80:8C41",
+        0x0D,
+        (0xC6F8,),
+        "Recovered shared text/layout helper: indexes the character-metadata table and tests bit 7.",
+    ),
+    Anchor(
         "Player_ApplyVerticalAcceleration",
         "82:A968",
         0x44,

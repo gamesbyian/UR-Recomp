@@ -1310,3 +1310,31 @@ Raw similarity ranges from 0.674 to 0.990. The racer-frame marshal prefix is the
 
 **Evidence:** `tools/compare_europe_usa_snes2asm_homologs.py`; `analysis/generated/europe-usa-snes2asm-homologs.{json,md}`; run `36816088608`; Nitrodon bank-80/81/82 listings.
 
+### R-SEED-055 — Europe retail contracts checkpoint timer normalization after the PAL prototype
+
+**Status:** confirmed four-ROM lineage delta  
+**Date:** 2026-09-30  
+**Area:** CPU | checkpoint/finish | regional timing | comparative analysis
+
+The expanded Europe/USA seeded snes2asm corpus adds bounded checkpoint/finish and racer-OAM projection regions.
+
+The OAM player-1 and player-2 projection blocks align at Europe shift `+7` with 141 aligned opcode positions, zero opcode substitutions, zero role/M/X disagreements, and 48 operand-byte changes.
+
+`Race_HandleCheckpointFinish` is more interesting. Its dispatch-confirmed entry remains `81:8050` in USA and Europe. Code through USA/Europe `81:8101` is structurally aligned at shift 0. The later record and lap/HUD blocks align cleanly at shift `-14`. The intervening timer-frame normalization block is a real regional size/logic change:
+
+- USA `81:8102..81:8117`: 22 bytes, opcode shape `AD C9 30 3A 0A 18 6D C9 30 A9`.
+- Europe `81:8102..81:8109`: 8 bytes, opcode shape `AD 0A 18 6D`.
+- Net Europe contraction: **14 bytes**.
+
+Under the independently established 16-bit state, USA reads the frame field, conditionally decrements it when it is at least 4, doubles it, adds `$0300`, then clamps the result to 9. Europe reads its relocated frame field, doubles it, and adds `$0300`, omitting both adjustment/clamp branches.
+
+Four-ROM shape classification sharpens the lineage:
+- USA retail: 22-byte style.
+- Legacy beta: 22-byte style.
+- PAL prototype 1994-11-29: 22-byte style with the expected relocated frame-field operand.
+- Europe retail: 8-byte style.
+
+**Interpretation:** this simplification occurred after the November 1994 PAL prototype and is specific to the later Europe-retail line among the four preserved builds. Do not generalize it to all PAL code. It is preserved as a genuine executable delta, while the surrounding checkpoint/finish code remains homologous after piecewise alignment.
+
+**Evidence:** `tools/compare_europe_usa_snes2asm_homologs.py`; `analysis/generated/europe-usa-snes2asm-homologs.{json,md}`; run `36816833830`; dispatch-confirmed `Race_HandleCheckpointFinish` identity.
+

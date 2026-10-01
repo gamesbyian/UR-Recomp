@@ -233,10 +233,11 @@
       ]
     },
     {
-      "anchor_count": 3,
+      "anchor_count": 4,
       "anchors": [
         "Collision_TransformVelocity",
         "Course_LoadAndMaterialize",
+        "State0306_DmaGate",
         "Stunt_FinalizeAndScoreAirTricks"
       ],
       "build": "europe-retail",
@@ -255,6 +256,7 @@
         "02C2",
         "02C4",
         "02C6",
+        "0306",
         "2100",
         "2115",
         "2116",
@@ -262,9 +264,9 @@
         "420C"
       ],
       "delta": 0,
-      "evidence_count": 55,
-      "field_count": 19,
-      "observation_count": 19,
+      "evidence_count": 59,
+      "field_count": 20,
+      "observation_count": 22,
       "usa_words": [
         "000B",
         "0230",
@@ -280,6 +282,7 @@
         "02C2",
         "02C4",
         "02C6",
+        "0306",
         "2100",
         "2115",
         "2116",
@@ -288,7 +291,7 @@
       ]
     },
     {
-      "anchor_count": 13,
+      "anchor_count": 14,
       "anchors": [
         "Camera_MapGeometrySetup",
         "Camera_StateQuantizeP1",
@@ -302,6 +305,7 @@
         "Race_BuildRacerOAMState",
         "Race_HandleCheckpointFinish",
         "Race_UpdateRacersFrame",
+        "State0306_DmaGate",
         "Stunt_FinalizeAndScoreAirTricks"
       ],
       "build": "legacy-beta",
@@ -320,6 +324,7 @@
         "02C2",
         "02C4",
         "02C6",
+        "0306",
         "030D",
         "030F",
         "0311",
@@ -418,9 +423,9 @@
         "420C"
       ],
       "delta": 0,
-      "evidence_count": 351,
-      "field_count": 110,
-      "observation_count": 121,
+      "evidence_count": 355,
+      "field_count": 111,
+      "observation_count": 124,
       "usa_words": [
         "000B",
         "0230",
@@ -436,6 +441,7 @@
         "02C2",
         "02C4",
         "02C6",
+        "0306",
         "030D",
         "030F",
         "0311",
@@ -535,7 +541,7 @@
       ]
     },
     {
-      "anchor_count": 11,
+      "anchor_count": 12,
       "anchors": [
         "Camera_MapGeometrySetup",
         "Camera_StateQuantizeP1",
@@ -547,6 +553,7 @@
         "Player_ApplyVerticalAcceleration",
         "Race_BuildRacerOAMState",
         "Race_UpdateRacersFrame",
+        "State0306_DmaGate",
         "Stunt_FinalizeAndScoreAirTricks"
       ],
       "build": "pal-prototype-1994-11-29",
@@ -565,6 +572,7 @@
         "02C2",
         "02C4",
         "02C6",
+        "0306",
         "030D",
         "030F",
         "0311",
@@ -630,9 +638,9 @@
         "420C"
       ],
       "delta": 0,
-      "evidence_count": 217,
-      "field_count": 77,
-      "observation_count": 84,
+      "evidence_count": 221,
+      "field_count": 78,
+      "observation_count": 87,
       "usa_words": [
         "000B",
         "0230",
@@ -648,6 +656,7 @@
         "02C2",
         "02C4",
         "02C6",
+        "0306",
         "030D",
         "030F",
         "0311",
@@ -1000,6 +1009,20 @@
         0
       ],
       "usa_word": "02C6"
+    },
+    {
+      "anchors": [
+        "State0306_DmaGate"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0306"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0306"
     },
     {
       "anchors": [
@@ -2218,7 +2241,8 @@
     },
     {
       "anchors": [
-        "Course_LoadAndMaterialize"
+        "Course_LoadAndMaterialize",
+        "State0306_DmaGate"
       ],
       "build": "europe-retail",
       "candidate_words": [
@@ -2246,7 +2270,8 @@
     },
     {
       "anchors": [
-        "Course_LoadAndMaterialize"
+        "Course_LoadAndMaterialize",
+        "State0306_DmaGate"
       ],
       "build": "europe-retail",
       "candidate_words": [
@@ -2467,6 +2492,20 @@
         0
       ],
       "usa_word": "02C6"
+    },
+    {
+      "anchors": [
+        "State0306_DmaGate"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0306"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0306"
     },
     {
       "anchors": [
@@ -3769,7 +3808,8 @@
     },
     {
       "anchors": [
-        "Course_LoadAndMaterialize"
+        "Course_LoadAndMaterialize",
+        "State0306_DmaGate"
       ],
       "build": "legacy-beta",
       "candidate_words": [
@@ -3797,7 +3837,8 @@
     },
     {
       "anchors": [
-        "Course_LoadAndMaterialize"
+        "Course_LoadAndMaterialize",
+        "State0306_DmaGate"
       ],
       "build": "legacy-beta",
       "candidate_words": [
@@ -4018,6 +4059,20 @@
         0
       ],
       "usa_word": "02C6"
+    },
+    {
+      "anchors": [
+        "State0306_DmaGate"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0306"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0306"
     },
     {
       "anchors": [
@@ -5320,7 +5375,8 @@
     },
     {
       "anchors": [
-        "Course_LoadAndMaterialize"
+        "Course_LoadAndMaterialize",
+        "State0306_DmaGate"
       ],
       "build": "pal-prototype-1994-11-29",
       "candidate_words": [
@@ -5348,7 +5404,8 @@
     },
     {
       "anchors": [
-        "Course_LoadAndMaterialize"
+        "Course_LoadAndMaterialize",
+        "State0306_DmaGate"
       ],
       "build": "pal-prototype-1994-11-29",
       "candidate_words": [
@@ -5673,13 +5730,14 @@
           "02C2",
           "02C4",
           "02C6",
+          "0306",
           "2100",
           "2115",
           "2116",
           "420B",
           "420C"
         ],
-        "field_count": 19,
+        "field_count": 20,
         "prototype_to_europe_delta": 0,
         "prototype_words": [
           "000B",
@@ -5696,6 +5754,7 @@
           "02C2",
           "02C4",
           "02C6",
+          "0306",
           "2100",
           "2115",
           "2116",
@@ -5717,6 +5776,7 @@
           "02C2",
           "02C4",
           "02C6",
+          "0306",
           "2100",
           "2115",
           "2116",
@@ -5727,15 +5787,15 @@
     ],
     "inferred_boundaries": [
       {
-        "address_gap_bytes": 71,
+        "address_gap_bytes": 7,
         "delta_jump": 4,
         "europe_first_after": "0311",
-        "europe_last_before": "02C6",
+        "europe_last_before": "0306",
         "first_known_after": "030D",
         "from_delta": 0,
-        "last_known_before": "02C6",
+        "last_known_before": "0306",
         "prototype_first_after": "030D",
-        "prototype_last_before": "02C6",
+        "prototype_last_before": "0306",
         "to_delta": 4
       },
       {
@@ -5947,6 +6007,20 @@
         "prototype_to_europe_delta": 0,
         "prototype_word": "02C6",
         "usa_word": "02C6"
+      },
+      {
+        "europe_anchors": [
+          "State0306_DmaGate"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "0306",
+        "prototype_anchors": [
+          "State0306_DmaGate"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "0306",
+        "usa_word": "0306"
       },
       {
         "europe_anchors": [
@@ -7176,12 +7250,14 @@
       },
       {
         "europe_anchors": [
-          "Course_LoadAndMaterialize"
+          "Course_LoadAndMaterialize",
+          "State0306_DmaGate"
         ],
         "europe_delta_from_usa": 0,
         "europe_word": "2115",
         "prototype_anchors": [
-          "Course_LoadAndMaterialize"
+          "Course_LoadAndMaterialize",
+          "State0306_DmaGate"
         ],
         "prototype_delta_from_usa": 0,
         "prototype_to_europe_delta": 0,
@@ -7204,12 +7280,14 @@
       },
       {
         "europe_anchors": [
-          "Course_LoadAndMaterialize"
+          "Course_LoadAndMaterialize",
+          "State0306_DmaGate"
         ],
         "europe_delta_from_usa": 0,
         "europe_word": "420B",
         "prototype_anchors": [
-          "Course_LoadAndMaterialize"
+          "Course_LoadAndMaterialize",
+          "State0306_DmaGate"
         ],
         "prototype_delta_from_usa": 0,
         "prototype_to_europe_delta": 0,
@@ -10730,6 +10808,105 @@
       "evidence_count": 4,
       "source_occurrences": 4,
       "usa_word": "0FA1"
+    },
+    {
+      "anchor": "State0306_DmaGate",
+      "anchor_byte_similarity": 0.921875,
+      "anchor_candidate_cpu": "82:B8AE",
+      "build": "europe-retail",
+      "candidate_word": "0306",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0306"
+    },
+    {
+      "anchor": "State0306_DmaGate",
+      "anchor_byte_similarity": 0.921875,
+      "anchor_candidate_cpu": "82:B8AE",
+      "build": "europe-retail",
+      "candidate_word": "420B",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "420B"
+    },
+    {
+      "anchor": "State0306_DmaGate",
+      "anchor_byte_similarity": 0.921875,
+      "anchor_candidate_cpu": "82:B8AE",
+      "build": "europe-retail",
+      "candidate_word": "2115",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "2115"
+    },
+    {
+      "anchor": "State0306_DmaGate",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:B8AB",
+      "build": "legacy-beta",
+      "candidate_word": "0306",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0306"
+    },
+    {
+      "anchor": "State0306_DmaGate",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:B8AB",
+      "build": "legacy-beta",
+      "candidate_word": "420B",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "420B"
+    },
+    {
+      "anchor": "State0306_DmaGate",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:B8AB",
+      "build": "legacy-beta",
+      "candidate_word": "2115",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "2115"
+    },
+    {
+      "anchor": "State0306_DmaGate",
+      "anchor_byte_similarity": 0.921875,
+      "anchor_candidate_cpu": "82:B898",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0306",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0306"
+    },
+    {
+      "anchor": "State0306_DmaGate",
+      "anchor_byte_similarity": 0.921875,
+      "anchor_candidate_cpu": "82:B898",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "420B",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "420B"
+    },
+    {
+      "anchor": "State0306_DmaGate",
+      "anchor_byte_similarity": 0.921875,
+      "anchor_candidate_cpu": "82:B898",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "2115",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "2115"
     },
     {
       "anchor": "Input_DecodePlayer1Buttons",

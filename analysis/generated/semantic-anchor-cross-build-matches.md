@@ -16,7 +16,7 @@ These are mechanically projected USA LE16 semantic operands from each top struct
 |---:|---:|
 | `+4` (`0x0004`) | 114 |
 | `+10` (`0x000A`) | 106 |
-| `+0` (`0x0000`) | 55 |
+| `+0` (`0x0000`) | 59 |
 | `+6` (`0x0006`) | 38 |
 | `+17` (`0x0011`) | 1 |
 
@@ -24,13 +24,13 @@ These are mechanically projected USA LE16 semantic operands from each top struct
 
 | Delta | Evidence count |
 |---:|---:|
-| `+0` (`0x0000`) | 352 |
+| `+0` (`0x0000`) | 356 |
 
 ### pal-prototype-1994-11-29
 
 | Delta | Evidence count |
 |---:|---:|
-| `+0` (`0x0000`) | 217 |
+| `+0` (`0x0000`) | 221 |
 | `+4` (`0x0004`) | 115 |
 | `-2` (`0xFFFE`) | 1 |
 
@@ -980,6 +980,61 @@ Top candidate: `82:A959`; byte similarity 0.912; semantic-reference recall 0.250
 | `+0x20` | 1 | `a1` | `a5` |
 | `+0x39` | 1 | `a1` | `a5` |
 | `+0x3C` | 1 | `a1` | `a5` |
+
+
+## State0306_DmaGate
+
+USA anchor: `82:B8AB` / file `0x0138AB`; window `0x40`.
+
+Bounded recovered routine beginning at 82:B8AB; used only to track the unnamed $0306 state slot across builds without assigning semantics.
+
+| Build | Rank | Candidate | Same offset? | Score | Byte similarity | Semantic-ref recall | N-gram votes |
+|---|---:|---|:---:|---:|---:|---:|---:|
+| europe-retail | 1 | `82:B8AE` (`0x0138AE`) | no | 0.961 | 0.922 | 1.000 | 13 |
+| europe-retail | 2 | `82:E154` (`0x016154`) | no | 0.506 | 0.406 | 0.667 | 6 |
+| europe-retail | 3 | `82:B8AB` (`0x0138AB`) | yes | 0.358 | 0.016 | 1.000 | 0 |
+| europe-retail | 4 | `82:D189` (`0x015189`) | no | 0.268 | 0.234 | 0.333 | 3 |
+| europe-retail | 5 | `83:FAE0` (`0x01FAE0`) | no | 0.230 | 0.203 | 0.333 | 1 |
+| legacy-beta | 1 | `82:B8AB` (`0x0138AB`) | yes | 1.000 | 1.000 | 1.000 | 20 |
+| legacy-beta | 2 | `82:E18E` (`0x01618E`) | no | 0.481 | 0.406 | 0.667 | 6 |
+| legacy-beta | 3 | `82:D186` (`0x015186`) | no | 0.256 | 0.234 | 0.333 | 3 |
+| legacy-beta | 4 | `82:C506` (`0x014506`) | no | 0.233 | 0.203 | 0.333 | 2 |
+| legacy-beta | 5 | `80:A123` (`0x002123`) | no | 0.218 | 0.188 | 0.333 | 1 |
+| pal-prototype-1994-11-29 | 1 | `82:B898` (`0x013898`) | no | 0.961 | 0.922 | 1.000 | 13 |
+| pal-prototype-1994-11-29 | 2 | `82:E12A` (`0x01612A`) | no | 0.506 | 0.406 | 0.667 | 6 |
+| pal-prototype-1994-11-29 | 3 | `82:D173` (`0x015173`) | no | 0.268 | 0.234 | 0.333 | 3 |
+| pal-prototype-1994-11-29 | 4 | `80:A11A` (`0x00211A`) | no | 0.222 | 0.188 | 0.333 | 1 |
+| pal-prototype-1994-11-29 | 5 | `80:D20B` (`0x00520B`) | no | 0.222 | 0.188 | 0.333 | 1 |
+### europe-retail top-candidate deltas
+
+Top candidate: `82:B8AE`; byte similarity 0.922; semantic-reference recall 1.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+| `+0xA` | 1 | `96` | `99` |
+| `+0x2D` | 1 | `eb` | `f5` |
+| `+0x32` | 1 | `3a` | `3d` |
+| `+0x39` | 1 | `a1` | `ab` |
+| `+0x3E` | 1 | `92` | `95` |
+
+### legacy-beta top-candidate deltas
+
+Top candidate: `82:B8AB`; byte similarity 1.000; semantic-reference recall 1.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+
+### pal-prototype-1994-11-29 top-candidate deltas
+
+Top candidate: `82:B898`; byte similarity 0.922; semantic-reference recall 1.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+| `+0xA` | 1 | `96` | `83` |
+| `+0x2D` | 1 | `eb` | `ef` |
+| `+0x32` | 1 | `3a` | `27` |
+| `+0x39` | 1 | `a1` | `a5` |
+| `+0x3E` | 1 | `92` | `7f` |
 
 
 ## Input_DecodePlayer1Buttons

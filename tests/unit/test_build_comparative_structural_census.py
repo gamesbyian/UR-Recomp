@@ -69,7 +69,7 @@ class ComparativeStructuralCensusTests(unittest.TestCase):
                     "size": 14,
                     "builds": {
                         "usa-retail": {"start": "82:E388", "end": "82:E395", "shift": 0, "similarity": 1.0, "opcode_bytes": 6, "operand_bytes": 8, "unreached_or_data_bytes": 0},
-                        "europe-retail": {"start": "82:E34E", "end": "82:E35B", "shift": -58, "similarity": 0.9},
+                        "europe-retail": {"start": "82:E34E", "end": "82:E35A", "shift": -58, "similarity": 0.9, "size": 13, "size_delta": -1},
                     },
                 }]
             }
@@ -78,6 +78,8 @@ class ComparativeStructuralCensusTests(unittest.TestCase):
             self.assertEqual(result["totals"]["regions"], 1)
             self.assertEqual(result["totals"]["bounded_bytes"], 14)
             self.assertEqual(result["regions"][0]["source"], "course-materialization")
+            self.assertEqual(result["regions"][0]["homologs"]["europe-retail"]["size"], 13)
+            self.assertEqual(result["regions"][0]["homologs"]["europe-retail"]["size_delta"], -1)
             self.assertEqual({source["id"] for source in result["sources"]}, {"racer-update", "object-collision", "course-materialization"})
 
 

@@ -63,6 +63,11 @@ At present the critical path is: first native/reference divergence → semantic 
 20. Imported executable code is raw material, not a trusted dependency. Preserve provenance, but normalize useful behavior into project-owned tools and add regression coverage before depending on it.
 21. Two-player fixture work is a required fidelity dependency. If touching shared input grammar or engine adapters, preserve or advance `docs/TWO-PLAYER-FIXTURE-PLAN.md`; do not let one-player coverage silently stand in for multiplayer coverage.
 22. A UI-atlas gap is not automatically project debt. Apply the completion tiers in `docs/UI-STATE-MAP.md`: close critical-fidelity gaps, harvest cheap evidence, and leave archaeology-only gaps open unless they become implementation-, validation-, compatibility-, or product-relevant.
+23. Apply **value-of-information discipline** before expensive evidence work. State the decision/uncertainty being resolved, the cheapest discriminator likely to change that decision, and the stopping condition. Do not collect every available surface merely because it can be collected.
+24. Match rigor to consequence. Core simulation, first-divergence, save-state, multiplayer and SNES hardware claims may justify independent corroboration and fine traces. Cosmetic observations, obvious UI behavior, provenance leads and low-impact archaeology usually do not.
+25. Escalate evidence progressively: existing artifact/documentation → one bounded observation → targeted state/frame/write capture → first-divergence trace → independent-core/hardware corroboration. Skip levels only when the cheaper level cannot answer the actual question.
+26. For video/frame work, search coarsely first and inspect narrowly. Use hashes/deltas/timestamps/state anchors to localize the interesting interval; do not manually inspect or enhance long frame ranges when a binary search or machine comparison can reduce the search space.
+27. Stop when the next measurement is unlikely to change implementation, priority, confidence category, or a validation gate. “More evidence” is not itself a deliverable.
 
 ## Research before reinvention
 

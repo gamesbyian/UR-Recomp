@@ -13,6 +13,7 @@ DEFAULT_SOURCES = (
     ("course-surface-sampler", "analysis/generated/course-surface-sampler-structure-island.json", False),
     ("race-frame-orchestrator", "analysis/generated/race-frame-orchestrator-structure-island.json", False),
     ("checkpoint-finish", "analysis/generated/checkpoint-finish-structure-island.json", False),
+    ("stunt-finalizer", "analysis/generated/stunt-finalizer-structure-island.json", False),
 )
 
 def build(root: Path) -> dict:

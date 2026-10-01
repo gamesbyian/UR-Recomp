@@ -435,6 +435,81 @@
     {
       "anchor_count": 1,
       "anchors": [
+        "Race_UpdateRacersFrame"
+      ],
+      "build": "europe-retail",
+      "candidate": "7E:11DB",
+      "delta": 10,
+      "evidence_tier": "strong",
+      "independent_evidence": "unique second bidirectional slot paired with 7E:11D7 in Race_UpdateRacersFrame",
+      "motion_candidate": "7E:11DB",
+      "name": "Player2_BoostMeter",
+      "source_confidence": 4,
+      "usa": "7E:11D1"
+    },
+    {
+      "anchor_count": 1,
+      "anchors": [
+        "Race_BuildRacerOAMState"
+      ],
+      "build": "europe-retail",
+      "candidate": "7E:0417",
+      "delta": 4,
+      "evidence_tier": "strong",
+      "independent_evidence": "unique second bidirectional slot paired through racer-update DP X-position workspace",
+      "motion_candidate": "7E:0417",
+      "name": "Player2_XPosition",
+      "source_confidence": 4,
+      "usa": "7E:0413"
+    },
+    {
+      "anchor_count": 0,
+      "anchors": [
+        "Race_UpdateRacersFrame:dataflow"
+      ],
+      "build": "europe-retail",
+      "candidate": "7E:04BD",
+      "delta": 4,
+      "evidence_tier": "strong",
+      "independent_evidence": "unique second bidirectional slot paired with 7E:0FA9 in Race_UpdateRacersFrame",
+      "motion_candidate": null,
+      "name": "Player2_XSpeed",
+      "source_confidence": 4,
+      "usa": "7E:04B9"
+    },
+    {
+      "anchor_count": 1,
+      "anchors": [
+        "Race_BuildRacerOAMState"
+      ],
+      "build": "europe-retail",
+      "candidate": "7E:041B",
+      "delta": 4,
+      "evidence_tier": "strong",
+      "independent_evidence": "unique second bidirectional slot paired through racer-update DP Y-position workspace",
+      "motion_candidate": "7E:041B",
+      "name": "Player2_YPosition",
+      "source_confidence": 4,
+      "usa": "7E:0417"
+    },
+    {
+      "anchor_count": 0,
+      "anchors": [
+        "Race_UpdateRacersFrame:dataflow"
+      ],
+      "build": "europe-retail",
+      "candidate": "7E:04C1",
+      "delta": 4,
+      "evidence_tier": "strong",
+      "independent_evidence": "unique second bidirectional slot paired with 7E:0FAB in Race_UpdateRacersFrame",
+      "motion_candidate": null,
+      "name": "Player2_YSpeed",
+      "source_confidence": 4,
+      "usa": "7E:04BD"
+    },
+    {
+      "anchor_count": 1,
+      "anchors": [
         "Race_BuildRacerOAMState"
       ],
       "build": "europe-retail",
@@ -630,21 +705,6 @@
     {
       "anchor_count": 1,
       "anchors": [
-        "Race_UpdateRacersFrame"
-      ],
-      "build": "europe-retail",
-      "candidate": "7E:11DB",
-      "delta": 10,
-      "evidence_tier": "candidate",
-      "independent_evidence": null,
-      "motion_candidate": "7E:11DB",
-      "name": "Player2_BoostMeter",
-      "source_confidence": 4,
-      "usa": "7E:11D1"
-    },
-    {
-      "anchor_count": 1,
-      "anchors": [
         "Race_BuildRacerOAMState"
       ],
       "build": "europe-retail",
@@ -656,36 +716,6 @@
       "name": "Player2_FacedDirection",
       "source_confidence": 3,
       "usa": "7E:0BA3"
-    },
-    {
-      "anchor_count": 1,
-      "anchors": [
-        "Race_BuildRacerOAMState"
-      ],
-      "build": "europe-retail",
-      "candidate": "7E:0417",
-      "delta": 4,
-      "evidence_tier": "candidate",
-      "independent_evidence": null,
-      "motion_candidate": "7E:0417",
-      "name": "Player2_XPosition",
-      "source_confidence": 4,
-      "usa": "7E:0413"
-    },
-    {
-      "anchor_count": 1,
-      "anchors": [
-        "Race_BuildRacerOAMState"
-      ],
-      "build": "europe-retail",
-      "candidate": "7E:041B",
-      "delta": 4,
-      "evidence_tier": "candidate",
-      "independent_evidence": null,
-      "motion_candidate": "7E:041B",
-      "name": "Player2_YPosition",
-      "source_confidence": 4,
-      "usa": "7E:0417"
     },
     {
       "anchor_count": 2,
@@ -1193,6 +1223,81 @@
     {
       "anchor_count": 1,
       "anchors": [
+        "Race_UpdateRacersFrame"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate": "7E:11D5",
+      "delta": 4,
+      "evidence_tier": "strong",
+      "independent_evidence": "unique second bidirectional slot paired with 7E:11D1 in Race_UpdateRacersFrame",
+      "motion_candidate": "7E:11D5",
+      "name": "Player2_BoostMeter",
+      "source_confidence": 4,
+      "usa": "7E:11D1"
+    },
+    {
+      "anchor_count": 1,
+      "anchors": [
+        "Race_BuildRacerOAMState"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate": "7E:0413",
+      "delta": 0,
+      "evidence_tier": "strong",
+      "independent_evidence": "unique second bidirectional slot paired through racer-update DP X-position workspace",
+      "motion_candidate": "7E:0413",
+      "name": "Player2_XPosition",
+      "source_confidence": 4,
+      "usa": "7E:0413"
+    },
+    {
+      "anchor_count": 0,
+      "anchors": [
+        "Race_UpdateRacersFrame:dataflow"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate": "7E:04B9",
+      "delta": 0,
+      "evidence_tier": "strong",
+      "independent_evidence": "unique second bidirectional slot paired with 7E:0FA3 in Race_UpdateRacersFrame",
+      "motion_candidate": null,
+      "name": "Player2_XSpeed",
+      "source_confidence": 4,
+      "usa": "7E:04B9"
+    },
+    {
+      "anchor_count": 1,
+      "anchors": [
+        "Race_BuildRacerOAMState"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate": "7E:0417",
+      "delta": 0,
+      "evidence_tier": "strong",
+      "independent_evidence": "unique second bidirectional slot paired through racer-update DP Y-position workspace",
+      "motion_candidate": "7E:0417",
+      "name": "Player2_YPosition",
+      "source_confidence": 4,
+      "usa": "7E:0417"
+    },
+    {
+      "anchor_count": 0,
+      "anchors": [
+        "Race_UpdateRacersFrame:dataflow"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate": "7E:04BD",
+      "delta": 0,
+      "evidence_tier": "strong",
+      "independent_evidence": "unique second bidirectional slot paired with 7E:0FA5 in Race_UpdateRacersFrame",
+      "motion_candidate": null,
+      "name": "Player2_YSpeed",
+      "source_confidence": 4,
+      "usa": "7E:04BD"
+    },
+    {
+      "anchor_count": 1,
+      "anchors": [
         "Race_BuildRacerOAMState"
       ],
       "build": "pal-prototype-1994-11-29",
@@ -1418,21 +1523,6 @@
     {
       "anchor_count": 1,
       "anchors": [
-        "Race_UpdateRacersFrame"
-      ],
-      "build": "pal-prototype-1994-11-29",
-      "candidate": "7E:11D5",
-      "delta": 4,
-      "evidence_tier": "candidate",
-      "independent_evidence": null,
-      "motion_candidate": "7E:11D5",
-      "name": "Player2_BoostMeter",
-      "source_confidence": 4,
-      "usa": "7E:11D1"
-    },
-    {
-      "anchor_count": 1,
-      "anchors": [
         "Race_BuildRacerOAMState"
       ],
       "build": "pal-prototype-1994-11-29",
@@ -1444,36 +1534,6 @@
       "name": "Player2_FacedDirection",
       "source_confidence": 3,
       "usa": "7E:0BA3"
-    },
-    {
-      "anchor_count": 1,
-      "anchors": [
-        "Race_BuildRacerOAMState"
-      ],
-      "build": "pal-prototype-1994-11-29",
-      "candidate": "7E:0413",
-      "delta": 0,
-      "evidence_tier": "candidate",
-      "independent_evidence": null,
-      "motion_candidate": "7E:0413",
-      "name": "Player2_XPosition",
-      "source_confidence": 4,
-      "usa": "7E:0413"
-    },
-    {
-      "anchor_count": 1,
-      "anchors": [
-        "Race_BuildRacerOAMState"
-      ],
-      "build": "pal-prototype-1994-11-29",
-      "candidate": "7E:0417",
-      "delta": 0,
-      "evidence_tier": "candidate",
-      "independent_evidence": null,
-      "motion_candidate": "7E:0417",
-      "name": "Player2_YPosition",
-      "source_confidence": 4,
-      "usa": "7E:0417"
     }
   ],
   "schema_version": 1

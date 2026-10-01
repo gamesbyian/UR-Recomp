@@ -10,8 +10,13 @@
   },
   "regions": [
     {
+      "aligned_equal_opcode_pairs": 8,
       "aligned_mx_disagreements": 0,
+      "aligned_opcode_byte_consensus_fraction": 1,
+      "aligned_opcode_byte_disagreements": 0,
+      "aligned_opcode_changes": [],
       "aligned_opcode_pairs": 8,
+      "aligned_operand_byte_changes": 2,
       "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
@@ -38,8 +43,13 @@
       "usa_start": "80:8C41"
     },
     {
+      "aligned_equal_opcode_pairs": 34,
       "aligned_mx_disagreements": 0,
+      "aligned_opcode_byte_consensus_fraction": 1,
+      "aligned_opcode_byte_disagreements": 0,
+      "aligned_opcode_changes": [],
       "aligned_opcode_pairs": 34,
+      "aligned_operand_byte_changes": 7,
       "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
@@ -70,8 +80,13 @@
       "usa_start": "82:A968"
     },
     {
+      "aligned_equal_opcode_pairs": 98,
       "aligned_mx_disagreements": 0,
+      "aligned_opcode_byte_consensus_fraction": 1,
+      "aligned_opcode_byte_disagreements": 0,
+      "aligned_opcode_changes": [],
       "aligned_opcode_pairs": 98,
+      "aligned_operand_byte_changes": 35,
       "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
@@ -102,8 +117,13 @@
       "usa_start": "82:AA6E"
     },
     {
+      "aligned_equal_opcode_pairs": 107,
       "aligned_mx_disagreements": 0,
+      "aligned_opcode_byte_consensus_fraction": 1,
+      "aligned_opcode_byte_disagreements": 0,
+      "aligned_opcode_changes": [],
       "aligned_opcode_pairs": 107,
+      "aligned_operand_byte_changes": 38,
       "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
@@ -132,8 +152,13 @@
       "usa_start": "82:AB55"
     },
     {
+      "aligned_equal_opcode_pairs": 32,
       "aligned_mx_disagreements": 0,
+      "aligned_opcode_byte_consensus_fraction": 1,
+      "aligned_opcode_byte_disagreements": 0,
+      "aligned_opcode_changes": [],
       "aligned_opcode_pairs": 32,
+      "aligned_operand_byte_changes": 21,
       "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
@@ -162,8 +187,13 @@
       "usa_start": "82:AC53"
     },
     {
+      "aligned_equal_opcode_pairs": 97,
       "aligned_mx_disagreements": 0,
+      "aligned_opcode_byte_consensus_fraction": 1,
+      "aligned_opcode_byte_disagreements": 0,
+      "aligned_opcode_changes": [],
       "aligned_opcode_pairs": 97,
+      "aligned_operand_byte_changes": 19,
       "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
@@ -194,8 +224,13 @@
       "usa_start": "81:9546"
     },
     {
+      "aligned_equal_opcode_pairs": 246,
       "aligned_mx_disagreements": 0,
+      "aligned_opcode_byte_consensus_fraction": 1,
+      "aligned_opcode_byte_disagreements": 0,
+      "aligned_opcode_changes": [],
       "aligned_opcode_pairs": 246,
+      "aligned_operand_byte_changes": 4,
       "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
@@ -226,8 +261,13 @@
       "usa_start": "81:9E2A"
     },
     {
+      "aligned_equal_opcode_pairs": 34,
       "aligned_mx_disagreements": 0,
+      "aligned_opcode_byte_consensus_fraction": 1,
+      "aligned_opcode_byte_disagreements": 0,
+      "aligned_opcode_changes": [],
       "aligned_opcode_pairs": 34,
+      "aligned_operand_byte_changes": 16,
       "aligned_residuals": [],
       "aligned_role_disagreements": 0,
       "aligned_role_pairs": {
@@ -261,7 +301,9 @@
   "schema_version": 1,
   "totals": {
     "aligned_mx_disagreements": 0,
+    "aligned_opcode_byte_disagreements": 0,
     "aligned_opcode_pairs": 656,
+    "aligned_operand_byte_changes": 142,
     "aligned_role_disagreements": 0,
     "regions": 8,
     "zero_role_disagreement_regions": 8

@@ -1,0 +1,21 @@
+# Bounded ordinary-2P route probe derived from the proven VS timing.
+# Only the Main Menu selection differs initially: 2P is one Down from default 1P.
+# start:duration:p1-mask:p2-mask
+500:1:020:000
+534:2:100:000
+# Candidate P1 rider confirm, then P2 rider movement/confirm.
+597:2:100:000
+665:2:000:080
+685:2:000:100
+# Generous setup advances. Extra A pulses are harmless reconnaissance if a screen lingers.
+780:2:100:000
+880:2:100:000
+980:2:100:000
+1080:2:100:000
+1180:2:100:000
+1280:2:100:000
+1380:2:100:000
+# If gameplay is active, exercise P1-only, P2-only, then simultaneous movement.
+1480:24:080:000
+1530:24:000:040
+1580:24:080:040

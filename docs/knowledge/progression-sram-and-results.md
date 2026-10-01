@@ -1,8 +1,10 @@
 # Progression, SRAM and results
 
-## Historical SRAM structure
+## Medal matrix and derived progression state
 
-TAS research reports nine 16-byte tour medal blocks:
+The historical nine-row layout is now supported directly by shipped code rather than only TAS notes.
+
+`83:9EB4` computes the medal-cell index as `16 * tour + unicycle` before callers access `77:069C,X`. The resulting 16-byte rows are:
 
 - Crawler: `0x069C-0x06AB`;
 - Jumper: `0x06AC-0x06BB`;
@@ -14,16 +16,20 @@ TAS research reports nine 16-byte tour medal blocks:
 - Sprinter: `0x070C-0x071B`;
 - Hunter: `0x071C-0x072B`.
 
-The historical interpretation is one byte per unicycle, with:
+The race-results path increments the active cell and saturates at 3. Combined with the recovered all-silver snapshot, the medal values are mechanically supported as:
 
 - `00`: no medal;
 - `01`: bronze;
 - `02`: silver;
 - `03`: gold.
 
-Tour unlock state is reported around `0x10D3-0x10E2`.
+After a medal update, the same results routine scans the selected unicycle through the first eight tour rows only. It derives progression tiers from three thresholds: all eight gold medals → tier 3; six-or-more silver-or-better medals → tier 2; four-or-more medals of any level → tier 1. The tier is written into 16-entry per-unicycle tables at `0x10D3-0x10E2` and `0x10FD-0x110C`.
 
-RetroAchievements independently corroborates the medal-region pattern and exposes additional stunt/result/progression addresses.
+This explains the recovered snapshots without assuming that `0x10D3` is itself a medal block: the first eight medal rows become `02` in the all-silver save, while the derived table becomes `02`; the “With Hunter” snapshot leaves the medal matrix unchanged and raises the derived table to `03`.
+
+The medal matrix is checksum-protected. `83:90F4` sums 170 16-bit words covering `0x05E8-0x073B` and stores the checksum at `0x073C-0x073D`. Any persistent medal edit must therefore update that checksum as well.
+
+RetroAchievements remains useful independent corroboration for the region and surrounding progression behavior, but the row/column geometry, value encoding, threshold scan, and checksum boundary no longer depend on it.
 
 ## Important ordering clue
 
@@ -41,19 +47,11 @@ When linking:
 
 record the exact mapping rather than assuming they all share one enumeration.
 
-## Validation opportunity
+## Controlled validation
 
-The clean/hacked 8 KiB SRAM files from Halamantariel's old directory remain missing, but we can reconstruct equivalent experiments ourselves.
+The recovered Dessyreqt workspace now supplies clean and all-silver 8 KiB SRAM images, so the historical model can be tested locally.
 
-A useful controlled save experiment is:
-
-1. start from a known clean SRAM;
-2. change exactly one medal/result;
-3. diff SRAM;
-4. repeat across tours/unicycles;
-5. compare with historical offsets and RetroAchievements conditions.
-
-This would turn the old layout from historical evidence into local confirmation.
+A clean-SRAM deterministic Dragster run showed that merely reaching the results screen does not yet mutate the medal matrix. The bounded follow-up advances the stock results UI and compares SRAM immediately before and after that transition. Once one game-authored medal change confirms the expected matrix cell plus checksum response, no broad SRAM reverse-engineering sweep is warranted for the current port plan.
 
 ## Port requirement
 

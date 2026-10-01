@@ -140,6 +140,8 @@ These relationships are durable event-relative assertions in the ordinary-2P wor
 
 The same camera-control path also exposes raw world-window state used before render-update construction: `$0505/$0507` are per-camera movement-derived edge values, `$052B/$052D` are associated update spans, and `$0509/$050B` are fine/index components. Immediately before DMA/update descriptors are built, `81:AA40..AB87` filters two compact 16-entry structures against those moving edge bands. Their counts are `$0DCD/$0DCF`, byte flags `$0D6D/$0D7D`, and encoded coordinate words `$0D8D/$0DAD`. Bank 82 consumes them as VRAM update commands at `82:D383..D3C4`: encoded words become `$2116` VRAM addresses and flag-selected values are written through `$2118`.
 
+This explicitly **does not close gameplay object activation**. The recovered RAM notes currently provide only racer collision-state hints (`$0E95`, `$0F09`) and no authoritative object-enable table. Keep the remaining object-activation obligation separate: trace entity/object state from the bank-81 object/collision dispatcher or from a fixture where a world object enters/leaves the active region, rather than reusing these render-side VRAM lists.
+
 ## Downstream obligations
 
 With the grammar now available, implement and verify:

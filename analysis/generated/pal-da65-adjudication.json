@@ -5,7 +5,6 @@
   },
   "probes": [
     {
-      "aligned_prefix_lines": 0,
       "builds": {
         "europe-retail": {
           "end": "00:933B",
@@ -294,6 +293,8 @@
       },
       "exact_normalized_match": false,
       "id": "reset-init",
+      "instruction_shape_match": true,
+      "instruction_size_sequence_match": true,
       "ranges": [
         {
           "addrmode": "MX",
@@ -321,11 +322,12 @@
         }
       ],
       "same_instruction_count": true,
+      "shape_mismatch_indices": [],
+      "size_mismatch_indices": [],
       "usa_anchor_end": "00:933B",
       "usa_anchor_start": "00:91D1"
     },
     {
-      "aligned_prefix_lines": 0,
       "builds": {
         "europe-retail": {
           "end": "00:A12D",
@@ -392,6 +394,8 @@
       },
       "exact_normalized_match": false,
       "id": "ppu-init-16bit",
+      "instruction_shape_match": true,
+      "instruction_size_sequence_match": true,
       "ranges": [
         {
           "addrmode": "mx",
@@ -401,11 +405,12 @@
         }
       ],
       "same_instruction_count": true,
+      "shape_mismatch_indices": [],
+      "size_mismatch_indices": [],
       "usa_anchor_end": "00:A11E",
       "usa_anchor_start": "00:A0DA"
     },
     {
-      "aligned_prefix_lines": 0,
       "builds": {
         "europe-retail": {
           "end": "00:D1F9",
@@ -444,6 +449,8 @@
       },
       "exact_normalized_match": false,
       "id": "joypad-helper",
+      "instruction_shape_match": true,
+      "instruction_size_sequence_match": true,
       "ranges": [
         {
           "addrmode": "Mx",
@@ -453,6 +460,8 @@
         }
       ],
       "same_instruction_count": true,
+      "shape_mismatch_indices": [],
+      "size_mismatch_indices": [],
       "usa_anchor_end": "00:D1E8",
       "usa_anchor_start": "00:D1D7"
     }

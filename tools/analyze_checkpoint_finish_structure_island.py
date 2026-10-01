@@ -64,6 +64,7 @@ def build():
       **roles(ds[build],bs,be),"sha256":hashlib.sha256(blob[bs:be+1]).hexdigest()}
    if idx==4 and build in {"pal-prototype-1994-11-29","europe-retail"}:
     row["builds"][build]["local_shift_profile_16byte"]=local_profile(usa,blob,us,ue,shift)
+    row["builds"][build]["local_shift_profile_4byte"]=local_profile(usa,blob,us,ue,shift,window=4)
   rows.append(row)
  return {"schema_version":1,"island":"Race_HandleCheckpointFinish","usa_start":"81:8050","usa_end":"81:82E0",
  "dispatch":{"object_code":"0x14","entry":"81:8050","shared_exit":"81:82E1"},

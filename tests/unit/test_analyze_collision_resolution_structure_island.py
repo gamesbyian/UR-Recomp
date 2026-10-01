@@ -9,7 +9,7 @@ class T(unittest.TestCase):
   r=mod.build(); self.assertEqual(r["main_entry"],"81:8FB8"); self.assertEqual(r["helper_entry"],"81:983B")
   self.assertEqual(sum(x["size"] for x in r["regions"]),2590)
   dormant=[x for x in r["regions"] if x["execution_class"]=="usa-dormant"]
-  self.assertEqual(sum(x["size"] for x in dormant),62)
+  self.assertEqual(sum(x["size"] for x in dormant),53)
   for region in r["regions"]:
    self.assertEqual(region["builds"]["legacy-beta"]["similarity"],1.0,region["name"])
    if region["execution_class"]=="live":
@@ -19,10 +19,10 @@ class T(unittest.TestCase):
      self.assertEqual(item["aligned_opcode_pairs"],item["aligned_equal_opcode_pairs"],(region["name"],build))
      self.assertEqual(item["aligned_role_disagreements"],0,(region["name"],build))
   self.assertEqual([x["size_delta"] for x in r["lineage_edits"]],[6,11])
+  print("COLLISION_ISLAND_JSON="+json.dumps(r,sort_keys=True))
   self.assertEqual(json.loads(mod.OUTJ.read_text()),r)
   self.assertEqual(mod.OUTM.read_text(),mod.render(r))
   rebuilt=census_mod.build(ROOT)
   self.assertEqual(json.loads((ROOT/"analysis/generated/comparative-structural-census.json").read_text()),rebuilt)
   self.assertEqual((ROOT/"analysis/generated/comparative-structural-census.md").read_text(),census_mod.render(rebuilt))
-  print("COLLISION_ISLAND_JSON="+json.dumps(r,sort_keys=True))
 if __name__=="__main__": unittest.main()

@@ -1605,42 +1605,42 @@
       "name": "geometry_helper_live_prefix",
       "kind": "code",
       "usa_start": "81:983B",
-      "usa_end": "81:9968",
-      "size": 302,
-      "usa_opcode_bytes": 133,
-      "usa_operand_bytes": 169,
+      "usa_end": "81:9971",
+      "size": 311,
+      "usa_opcode_bytes": 137,
+      "usa_operand_bytes": 174,
       "usa_unreached_or_data_bytes": 0,
       "homologs": {
         "europe-retail": {
           "start": "81:982C",
-          "end": "81:9959",
+          "end": "81:9962",
           "shift": -15,
-          "similarity": 0.980132,
-          "size": 302,
+          "similarity": 0.977492,
+          "size": 311,
           "size_delta": 0
         },
         "legacy-beta": {
           "start": "81:983B",
-          "end": "81:9968",
+          "end": "81:9971",
           "shift": 0,
           "similarity": 1,
-          "size": 302,
+          "size": 311,
           "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
           "start": "81:981B",
-          "end": "81:9948",
+          "end": "81:9951",
           "shift": -32,
-          "similarity": 0.986755,
-          "size": 302,
+          "similarity": 0.987138,
+          "size": 311,
           "size_delta": 0
         },
         "usa-retail": {
           "start": "81:983B",
-          "end": "81:9968",
+          "end": "81:9971",
           "shift": 0,
           "similarity": 1,
-          "size": 302,
+          "size": 311,
           "size_delta": 0
         }
       }
@@ -1650,43 +1650,43 @@
       "source_path": "analysis/generated/collision-resolution-structure-island.json",
       "name": "geometry_helper_usa_dormant",
       "kind": "code",
-      "usa_start": "81:9969",
+      "usa_start": "81:9972",
       "usa_end": "81:9978",
-      "size": 16,
-      "usa_opcode_bytes": 4,
-      "usa_operand_bytes": 5,
+      "size": 7,
+      "usa_opcode_bytes": 0,
+      "usa_operand_bytes": 0,
       "usa_unreached_or_data_bytes": 7,
       "homologs": {
         "europe-retail": {
-          "start": "81:995A",
+          "start": "81:9963",
           "end": "81:9969",
           "shift": -15,
-          "similarity": 0.875,
-          "size": 16,
+          "similarity": 0.857143,
+          "size": 7,
           "size_delta": 0
         },
         "legacy-beta": {
-          "start": "81:9969",
+          "start": "81:9972",
           "end": "81:9978",
           "shift": 0,
           "similarity": 1,
-          "size": 16,
+          "size": 7,
           "size_delta": 0
         },
         "pal-prototype-1994-11-29": {
-          "start": "81:9949",
+          "start": "81:9952",
           "end": "81:9958",
           "shift": -32,
           "similarity": 1,
-          "size": 16,
+          "size": 7,
           "size_delta": 0
         },
         "usa-retail": {
-          "start": "81:9969",
+          "start": "81:9972",
           "end": "81:9978",
           "shift": 0,
           "similarity": 1,
-          "size": 16,
+          "size": 7,
           "size_delta": 0
         }
       }

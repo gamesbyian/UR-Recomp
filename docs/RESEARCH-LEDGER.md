@@ -1770,7 +1770,7 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 **Date:** 2026-10-01  
 **Area:** CPU | collision | contact response | comparative atlas
 
-**Observation:** USA `81:8FB8..99D5` is a 2,590-byte collision cluster consisting of the main per-racer contact resolver through `983A` and its directly called geometry helper `983B..99D5`. Trusted-entry tracing fully reaches the live paths. Four instruction-bounded USA-dormant alternatives total 62 bytes and are represented separately rather than force-seeded with fabricated width context.
+**Observation:** USA `81:8FB8..99D5` is a 2,590-byte collision cluster consisting of the main per-racer contact resolver through `983A` and its directly called geometry helper `983B..99D5`. Trusted-entry tracing fully reaches the live paths. Four instruction-bounded USA-dormant alternatives total 53 bytes and are represented separately rather than force-seeded with fabricated width context.
 
 **Evidence:** `tools/analyze_collision_resolution_structure_island.py`; `analysis/generated/collision-resolution-structure-island.{json,md}`; ROM-backed project-tooling runs `36940735178`, `36941007139`, and `36941413521`. USA and legacy beta are byte-identical.
 

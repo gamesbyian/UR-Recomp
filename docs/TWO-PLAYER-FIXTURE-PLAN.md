@@ -211,6 +211,8 @@ Static frontend recovery moves that boundary one step earlier. Entry point `80:9
 
 The phase-origin probe therefore also reports raw 8 KiB SRAM offsets `$0742/$074B/$074D/$0750/$10AD`. If Snes9x reaches `$074D=FF` one frame before native, the root seam moves out of bank 83 entirely and into the frontend branch that reaches `99A4`; if those SRAM fields already match, continue inside the common setup body.
 
+A related community-memory note should remain explicitly qualified: Dessyreqt's 2014 bot reads a word at `7E:11BA` and labels it `countdownTimer`, but the recovered game code initializes, compares, and decrements a 16-bit countdown at `$11BB` (`82:D88F..D895`, `83:E59B..`, `83:E721/E737/E76D`). The bot watch is useful historical corroboration of countdown progress, not an authoritative exact address label. The countdown is downstream of race entry and therefore not a candidate cause of the 1134 entry seam.
+
 ## VS active-movement parity refinement
 
 Current-main replay reconfirms exact native/Snes9x paired-racer semantics at stable pre-intervention checkpoints 1240, 1340 and 1440. After the P1-only, P2-only and simultaneous movement sequence, P1 still matches while P2 ends with a very small difference: native `x=1137, vx=-263`; Snes9x `x=1141, vx=-266`.

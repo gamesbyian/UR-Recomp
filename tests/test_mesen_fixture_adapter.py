@@ -6,10 +6,13 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 import tempfile
-
-from tools.controller_input import ControllerRun, load_controller_runs
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from tools.controller_input import ControllerRun, load_controller_runs
 TOOL = ROOT / "tools" / "run_fixture_mesen.py"
 FIXTURE = ROOT / "tests" / "input" / "reach-first-race.script"
 

@@ -4,6 +4,7 @@ import unittest
 from tools.discover_regional_racer_slots import (
     discover_abs_a_pairs,
     discover_abs_y_pairs,
+    discover_abs_mixed_pairs,
     discover_dp_y_pairs,
 )
 
@@ -17,6 +18,11 @@ class RegionalRacerSlotDiscoveryTests(unittest.TestCase):
     def test_abs_a_requires_both_directions(self):
         data = bytes.fromhex("AD CF 11 8D CD 11 00 AD CD 11 8D CF 11")
         pairs = discover_abs_a_pairs(data, 0x11CD)
+        self.assertEqual(list(pairs), [0x11CF])
+
+    def test_mixed_register_pair_accepts_y_in_and_a_out(self):
+        data = bytes.fromhex("AC CF 11 8C CD 11 00 AD CD 11 8D CF 11")
+        pairs = discover_abs_mixed_pairs(data, 0x11CD)
         self.assertEqual(list(pairs), [0x11CF])
 
     def test_dp_y_requires_both_directions(self):

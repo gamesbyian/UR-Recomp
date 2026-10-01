@@ -1,0 +1,171 @@
+name: Historical 2014 first-divergence trace
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "references/imported/tas-bots/dessyreqt-4250-submission.smv"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "tools/extract_smv_input.py"
+      - "tools/trace_native_wram_writers.py"
+      - "tools/trace_native_wram_window.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - "tools/patches/snesrecomp-input-file.patch"
+      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/cargo/snesrecomp-analyzer/**"
+      - "third_party/manifest.json"
+      - ".github/workflows/historical-2014-first-divergence-trace.yml"
+
+concurrency:
+  group: historical-2014-first-divergence-trace-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  trace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM and prepare phase-aligned historical input
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python3 tools/extract_smv_input.py \
+            references/imported/tas-bots/dessyreqt-4250-submission.smv \
+            --input-out "$RUNNER_TEMP/dessyreqt.input" \
+            --sram-out "$RUNNER_TEMP/dessyreqt.srm" \
+            --sram-size 8192 \
+            --json-out "$RUNNER_TEMP/dessyreqt.json"
+          python3 - "$RUNNER_TEMP/dessyreqt.input" "$RUNNER_TEMP/dessyreqt-plus5.input" <<'PY'
+          from pathlib import Path
+          import sys
+          source, out = map(Path, sys.argv[1:])
+          rows = ["# +5 guest-frame hypothesis from localization run 36793691236."]
+          for raw in source.read_text().splitlines():
+              raw = raw.strip()
+              if not raw or raw.startswith("#"):
+                  continue
+              parts = raw.split(":")
+              start = int(parts[0]) + 5
+              if start >= 470:
+                  break
+              parts[0] = str(start)
+              rows.append(":".join(parts))
+          out.write_text("\n".join(rows) + "\n")
+          PY
+
+      - name: Stage framework and build trace target
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          ROOT="$RUNNER_TEMP/trace"
+          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --no-submodules \
+            --generate \
+            --no-build
+          PROJECT="$ROOT/UniracersSNESRecomp"
+
+          python3 - "$PROJECT/src/host_contract.c" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1])
+          s=p.read_text()
+          marker="#include <stdint.h>\n"
+          if marker not in s:
+              raise SystemExit("host_contract.c include marker not found")
+          s=s.replace(marker, marker + "\n#if !defined(SNESRECOMP_TRACE) || !SNESRECOMP_TRACE\n", 1)
+          s += "\n#endif /* production debug-hook stubs */\n"
+          p.write_text(s)
+          PY
+
+          cmake -S "$PROJECT" -B "$PROJECT/build-trace" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF \
+            -DSNESRECOMP_ENABLE_TRACE=ON
+          cmake --build "$PROJECT/build-trace" -j2
+          test -x "$PROJECT/build-trace/UniracersSNESRecomp"
+
+      - name: Trace compensated transition writers
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT="$RUNNER_TEMP/trace/UniracersSNESRecomp"
+          EXE="$PROJECT/build-trace/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          LOG="$RUNNER_TEMP/native-transition-trace.log"
+          OUT="$RUNNER_TEMP/native-transition-writers.json"
+          mkdir -p "$PROJECT/build-trace/saves"
+          cp "$RUNNER_TEMP/dessyreqt.srm" "$PROJECT/build-trace/saves/save.srm"
+
+          (
+            cd "$PROJECT/build-trace"
+            SNESRECOMP_DEBUG_PORT=4377 \
+            SNESRECOMP_INPUT_FILE="$RUNNER_TEMP/dessyreqt-plus5.input" \
+            SDL_AUDIODRIVER=dummy \
+              timeout 240s xvfb-run -a "$EXE" "$ROM" --paused \
+              >"$LOG" 2>&1
+          ) &
+          HOST_PID=$!
+          trap 'kill "$HOST_PID" 2>/dev/null || true' EXIT
+
+          set +e
+          python3 tools/trace_native_wram_window.py \
+            --port 4377 \
+            --command-timeout 45 \
+            --stop-frame 465 \
+            --coarse-step 15 \
+            --window-start 430 \
+            --address 0x009F \
+            --address 0x0313 \
+            --address 0x0411 \
+            --address 0x0415 \
+            --json-out "$OUT"
+          STATUS=$?
+          set -e
+
+          kill "$HOST_PID" 2>/dev/null || true
+          wait "$HOST_PID" 2>/dev/null || true
+          trap - EXIT
+          tail -n 120 "$LOG"
+          if [ "$STATUS" -ne 0 ]; then
+            exit "$STATUS"
+          fi
+          test -s "$OUT"
+
+      - name: Upload bounded writer evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-2014-first-divergence-writers
+          path: |
+            ${{ runner.temp }}/native-transition-trace.log
+            ${{ runner.temp }}/native-transition-writers.json
+          if-no-files-found: warn
+          retention-days: 7

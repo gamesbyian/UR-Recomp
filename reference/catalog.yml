@@ -3,6 +3,33 @@ retrieved: 2026-09-28
 project: UR-Recomp
 
 sources:
+  - id: wheelsprung-related-project
+    title: "Wheelsprung source and level-editor pipeline"
+    type: related_project_source
+    url: "https://github.com/ninovanhooff/wheelsprung"
+    revision: "67ef4f3ad6837eaf8a7e3a3fbfe2de6c09bda5b8"
+    rights: "Repository metadata does not expose a top-level license; wheelsprung.nimble declares MIT. Treat upstream licensing as needing recheck before code reuse."
+    local: "reference/notes/related-projects-technical-scan.md"
+    relevance: "Modern reference for Tiled authoring, geometry normalization, semantic level loading, segment-based terrain collision, and editor/runtime separation. Not evidence of original Uniracers behavior."
+
+  - id: trike-related-project
+    title: "Trike development architecture"
+    type: related_project_writeup
+    url: "https://chaps.dev/projects/trike/"
+    status: "public technical project description reviewed 2026-09-30"
+    rights: "Public project writeup; source-code licensing not evaluated because no code import is proposed."
+    local: "reference/notes/related-projects-technical-scan.md"
+    relevance: "Uniracers-inspired modern stunt racer using spline tracks, human-readable scenes, scripts, and small headless PNG regression fixtures; useful primarily as validation-methodology reference."
+
+  - id: gamedev-linolium-uniracers-physics
+    title: "2005 Uniracers physics / Linolium Sonic-style engine discussion"
+    type: technical_discussion_and_lost_source_lead
+    url: "https://gamedev.net/forums/topic/299691-uniracers-physics/"
+    status: "thread survives; offered DOS/MSVC source and level editor were not recovered in bounded 2026-09-30 search"
+    rights: "Forum material; lost source rights unknown."
+    local: "reference/notes/related-projects-technical-scan.md"
+    relevance: "Historical analogous implementation of loops/slopes using discrete surface orientations, coordinate transforms, collision-map switching and editor tooling. Passive lead only."
+
   - id: rhdn-uniracers-level-viewer
     title: "Unirally/Uniracers level viewer"
     type: forum_research

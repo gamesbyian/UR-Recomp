@@ -2,9 +2,9 @@
 
 This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **55** (52 code, 3 data)
-- bounded bytes: **5916** (5708 code-region bytes, 208 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **2393**
+- bounded regions: **65** (58 code, 7 data)
+- bounded bytes: **7413** (6550 code-region bytes, 863 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **2743**
 - represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -32,6 +32,16 @@ This is the first machine-queryable census for the comparative structure-recover
 | `81:8372..81:83A3` | data | 50 | object-collision | lookup_8372 | 81:8355..81:8386 (-29; size 50; sim 1.000) | 81:834C..81:837D (-38; size 50; sim 1.000) | 81:8372..81:83A3 (+0; size 50; sim 1.000) |
 | `81:83A4..81:84D1` | code | 302 | object-collision | handler_83A4 | 81:8387..81:84B4 (-29; size 302; sim 0.871) | 81:837E..81:84AB (-38; size 302; sim 0.828) | 81:83A4..81:84D1 (+0; size 302; sim 1.000) |
 | `81:8B95..81:8D13` | code | 383 | course-surface-sampler | Course_SampleRuntimeSurface | 81:8B75..81:8CF3 (-32; size 383; sim 0.971) | 81:8B75..81:8CF3 (-32; size 383; sim 0.971) | 81:8B95..81:8D13 (+0; size 383; sim 1.000) |
+| `82:9A42..82:9B57` | code | 278 | stunt-finalizer | air_state_and_rotation_progress | 82:9A3D..82:9B52 (-5; size 278; sim 0.856) | 82:9A53..82:9B68 (+17; size 278; sim 0.842) | 82:9A42..82:9B57 (+0; size 278; sim 1.000) |
+| `82:9B58..82:9C97` | code | 320 | stunt-finalizer | landing_trick_classification | 82:9B53..82:9C92 (-5; size 320; sim 0.919) | 82:9B69..82:9CA8 (+17; size 320; sim 0.881) | 82:9B58..82:9C97 (+0; size 320; sim 1.000) |
+| `82:9C98..82:9D08` | code | 113 | stunt-finalizer | score_index_and_message_prefix | 82:9C93..82:9D03 (-5; size 113; sim 0.903) | 82:9CA9..82:9D19 (+17; size 113; sim 0.903) | 82:9C98..82:9D08 (+0; size 113; sim 1.000) |
+| `82:9D09..82:9D0D` | code | 5 | stunt-finalizer | pal_line_removed_nops | — | — | 82:9D09..82:9D0D (+0; size 5; sim 1.000) |
+| `82:9D0E..82:9D67` | code | 90 | stunt-finalizer | praise_select_emit | 82:9D04..82:9D5D (-10; size 90; sim 0.922) | 82:9D1A..82:9D73 (+12; size 90; sim 0.922) | 82:9D0E..82:9D67 (+0; size 90; sim 1.000) |
+| `82:9D68..82:9D8B` | code | 36 | stunt-finalizer | state_clear_and_exit | 82:9D5E..82:9D81 (-10; size 36; sim 0.750) | 82:9D74..82:9D97 (+12; size 36; sim 0.667) | 82:9D68..82:9D8B (+0; size 36; sim 1.000) |
+| `82:9D8C..82:9D95` | data | 10 | stunt-finalizer | flip_score_weights | 82:9D82..82:9D8B (-10; size 10; sim 1.000) | 82:9D98..82:9DA1 (+12; size 10; sim 1.000) | 82:9D8C..82:9D95 (+0; size 10; sim 1.000) |
+| `82:9D96..82:9D9F` | data | 10 | stunt-finalizer | roll_score_weights | 82:9D8C..82:9D95 (-10; size 10; sim 1.000) | 82:9DA2..82:9DAB (+12; size 10; sim 1.000) | 82:9D96..82:9D9F (+0; size 10; sim 1.000) |
+| `82:9DA0..82:9DA9` | data | 10 | stunt-finalizer | twist_score_weights | 82:9D96..82:9D9F (-10; size 10; sim 1.000) | 82:9DAC..82:9DB5 (+12; size 10; sim 1.000) | 82:9DA0..82:9DA9 (+0; size 10; sim 1.000) |
+| `82:9DAA..82:A01A` | data | 625 | stunt-finalizer | trick_praise_table | 82:9DA0..82:A010 (-10; size 625; sim 1.000) | 82:9DB6..82:A026 (+12; size 625; sim 1.000) | 82:9DAA..82:A01A (+0; size 625; sim 1.000) |
 | `82:A22B..82:A27B` | code | 81 | racer-update | routine_A22B | 82:A221..82:A271 (-10; size 81; sim 0.852) | 82:A237..82:A287 (+12; size 81; sim 0.852) | 82:A22B..82:A27B (+0; size 81; sim 1.000) |
 | `82:A27C..82:A2D3` | code | 88 | racer-update | routine_A27C | 82:A272..82:A2C9 (-10; size 88; sim 0.511) | 82:A288..82:A2DF (+12; size 88; sim 0.511) | 82:A27C..82:A2D3 (+0; size 88; sim 1.000) |
 | `82:A2D4..82:A353` | data | 128 | racer-update | table_A2D4 | 82:A2C5..82:A344 (-15; size 128; sim 1.000) | 82:A2DB..82:A35A (+7; size 128; sim 1.000) | 82:A2D4..82:A353 (+0; size 128; sim 1.000) |

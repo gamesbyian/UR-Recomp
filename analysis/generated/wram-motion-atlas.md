@@ -35,6 +35,16 @@ A field is listed here when the same USA address appears in more than one truste
 | pal-prototype-1994-11-29 | `0F9F` | `0FA3` | +4 | Collision_TransformVelocity, Race_UpdateRacersFrame |
 | pal-prototype-1994-11-29 | `0FA1` | `0FA5` | +4 | Collision_TransformVelocity, Race_UpdateRacersFrame |
 
+## PAL prototype → Europe retail secondary motion
+
+For fields consistently projected in both builds, this subtracts the prototype address from the Europe address. The result isolates layout motion that occurred after the 1994-11-29 prototype.
+
+| Prototype→Europe delta | Fields | Example USA→prototype→Europe paths |
+|---:|---:|---|
+| +6 | 38 | `0BA1→0BA1→0BA7`, `0BA3→0BA3→0BA9`, `0CBB→0CBB→0CC1`, `0CE1→0CE1→0CE7`, `0CE3→0CE3→0CE9`, `0CE5→0CE5→0CEB` |
+| +4 | 12 | `0411→0411→0415`, `0413→0413→0417`, `0415→0415→0419`, `0417→0417→041B`, `0419→0419→041D`, `041D→041D→0421` |
+| +0 | 10 | `000B→000B→000B`, `02C0→02C0→02C0`, `02C2→02C2→02C2`, `02C4→02C4→02C4`, `02C6→02C6→02C6`, `2100→2100→2100` |
+
 ## Contradictions / exceptions
 
 No trusted USA field projected to conflicting candidate addresses across the accepted top-match corpus.
@@ -43,5 +53,6 @@ No trusted USA field projected to conflicting candidate addresses across the acc
 
 - Prefer clusters supported by multiple independent anchors when inferring a build-specific logical block.
 - Treat structure-specific displacement families as evidence against a single global WRAM relocation.
+- Use prototype→Europe secondary motion to infer later insertions/repacking without conflating them with earlier USA→prototype layout changes.
 - Investigate exceptions first when they intersect current physics, course, rendering, or fidelity questions.
 - Do not transfer semantic labels from USA solely because an address follows a dominant displacement family.

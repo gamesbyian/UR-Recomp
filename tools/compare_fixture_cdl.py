@@ -12,13 +12,117 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNNER_PATH = ROOT / "tools" / "run_fixture_mesen.py"
 DEFAULT_MESEN_REPO = ROOT / ".tools" / "src" / "mesen-for-ai"
-CLIENT = Path("skills/mesen-emulator/scripts/mesen_client.py")
+
+
+class MesenRpc:
+    """Small stdio MCP client for the pinned mesen-for-ai daemon."""
+
+    def __init__(self, repo: Path):
+        self.repo = repo
+        self.process: subprocess.Popen[str] | None = None
+        self.next_id = 0
+        self.session: str | None = None
+
+    def __enter__(self):
+        daemon = self.repo / "src" / "mesen_mcp" / "daemon.py"
+        if not daemon.is_file():
+            raise FileNotFoundError(
+                f"mesen-for-ai daemon not found at {daemon}; "
+                "run bootstrap_toolchain.py --tool mesen-for-ai"
+            )
+        env = os.environ.copy()
+        env["PYTHONPATH"] = str(self.repo / "src")
+        self.process = subprocess.Popen(
+            [sys.executable, "-m", "mesen_mcp.daemon"],
+            cwd=self.repo,
+            env=env,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+        )
+        self._request(
+            "initialize",
+            {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {},
+                "clientInfo": {"name": "ur-recomp-cdl-trial", "version": "1"},
+            },
+        )
+        return self
+
+    def __exit__(self, *_):
+        if self.process is None:
+            return
+        try:
+            if self.session is not None:
+                try:
+                    self.tool("session.shutdown")
+                except Exception:
+                    pass
+            if self.process.stdin:
+                self.process.stdin.close()
+            self.process.wait(timeout=30)
+        except Exception:
+            self.process.kill()
+        finally:
+            self.process = None
+            self.session = None
+
+    def _request(self, method: str, params: dict | None = None) -> dict:
+        if self.process is None or self.process.stdin is None or self.process.stdout is None:
+            raise RuntimeError("Mesen RPC client is not running")
+        self.next_id += 1
+        request_id = self.next_id
+        self.process.stdin.write(
+            json.dumps(
+                {
+                    "jsonrpc": "2.0",
+                    "id": request_id,
+                    "method": method,
+                    "params": params or {},
+                }
+            )
+            + "\n"
+        )
+        self.process.stdin.flush()
+        while True:
+            line = self.process.stdout.readline()
+            if not line:
+                stderr = self.process.stderr.read() if self.process.stderr else ""
+                raise RuntimeError(f"mesen-mcpd closed unexpectedly: {stderr}")
+            message = json.loads(line)
+            if message.get("id") == request_id:
+                if "error" in message:
+                    raise RuntimeError(f"{method}: {message['error']}")
+                return message
+
+    def tool(self, name: str, **arguments):
+        if self.session is not None and "session" not in arguments and name != "session.load_rom":
+            arguments["session"] = self.session
+        message = self._request("tools/call", {"name": name, "arguments": arguments})
+        result = message["result"]
+        content = result.get("content") or []
+        payload = content[0].get("text", "") if content else ""
+        parsed = json.loads(payload) if payload.strip().startswith(("{", "[")) else payload
+        if result.get("isError"):
+            raise RuntimeError(f"{name}: {parsed}")
+        if name == "session.shutdown":
+            self.session = None
+        return parsed
+
+    def load_rom(self, rom: str, **kwargs):
+        result = self.tool("session.load_rom", rom=rom, **kwargs)
+        self.session = result["session"]
+        return result
 
 
 def load_module(path: Path, name: str):
@@ -120,9 +224,8 @@ def compare_entries(baseline: list[dict], variant: list[dict]) -> dict:
 
 def run_fixture(rom: Path, fixture: Path, mesen_repo: Path, export: Path):
     runner = load_module(RUNNER_PATH, "ur_fixture_runner")
-    client = load_module(mesen_repo / CLIENT, "ur_mesen_client")
     commands = runner.parse_fixture(fixture)
-    with client.Mesen(repo=str(mesen_repo)) as mesen:
+    with MesenRpc(mesen_repo) as mesen:
         mesen.load_rom(str(rom.resolve()), timeout=300)
         mesen.tool("cdl.start")
         runner.FixtureRunner(

@@ -1530,3 +1530,36 @@ A second preserved unreachable instruction block is visible inside the `A6F1..A8
 
 **Evidence:** `tools/analyze_racer_update_structure_island.py`; `analysis/generated/racer-update-structure-island.{json,md}`; run `36822022169`.
 
+### R-SEED-064 — Collision/object island recovers embedded dispatch data and Europe-only handler prologue
+
+**Status:** confirmed structural recovery  
+**Date:** 2026-09-30  
+**Area:** CPU | collision/object handling | code/data boundaries | comparative atlas
+
+A second independent structural-recovery island has been established in bank 81 around the object/collision path entered from the racer-update hub.
+
+USA/beta structure:
+- long-entry wrapper `81:82E2..82E5`;
+- dispatcher head `81:82E6..831F`;
+- 30-byte / 15-word explicit handler-pointer prefix `81:8320..833D`;
+- dispatcher tail `81:833E..8340`;
+- handler `81:8341..8371`;
+- exact 50-byte / 25-signed-word lookup table `81:8372..83A3`;
+- following handler `81:83A4..84D1`.
+
+The lookup table is byte-identical in all four builds and establishes a clean data→code boundary. It also corrects Nitrodon's linear listing, which begins decoding one byte early at `83A3`.
+
+The explicit pointer prefix relocates coherently across builds. Its final entry targets USA/beta `8341`, prototype `8324`, and Europe retail **`8316`**.
+
+Europe retail adds five executable bytes before the otherwise homologous handler body:
+
+`C2 30 AD 2F 0F` = `REP #$30; LDA $0F2F`.
+
+The PAL prototype lacks this prologue, proving it was added later in the Europe-retail lineage. The loaded value is immediately overwritten by the homologous body, so the addition appears semantically inert under ordinary WRAM-read behavior, but that semantic interpretation remains secondary to the confirmed structural fact.
+
+The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a complete dispatch table: `JSR ($8320,X)` is guarded by `X < 0x003C`, which by itself permits a wider offset domain than these 15 words.
+
+**Interpretation:** the comparative structure method now works in two independent race-critical subsystems, recovering embedded data boundaries and executable lineage edits without needing full semantic naming.
+
+**Evidence:** `tools/analyze_object_collision_structure_island.py`; `analysis/generated/object-collision-structure-island.{json,md}`; object-collision structure runs ending at `36823094425`.
+

@@ -73,6 +73,41 @@ jobs:
               )
           PY
 
+      - name: Summarize paired racer semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/summarize_paired_player_slots.py "$RUNNER_TEMP/dumps" \
+            --checkpoint two-player-1420 \
+            --checkpoint two-player-1470 \
+            --checkpoint two-player-1520 \
+            --checkpoint two-player-1570 \
+            --checkpoint two-player-1620 \
+            --json-out "$RUNNER_TEMP/two-player-state.json" \
+            | tee "$RUNNER_TEMP/two-player-state.txt"
+
+      - name: Classify ordinary 2P active-display OAM writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("${{ runner.temp }}/dumps")
+          for path in sorted(root.glob("two-player-1*.ppuw.tsv")):
+              rows=[]
+              for raw in path.read_text().splitlines():
+                  line=raw.strip()
+                  if not line or line.startswith("#") or line.lower().startswith("frame"):
+                      continue
+                  parts=line.split()
+                  if len(parts) != 6:
+                      continue
+                  frame,v,h,addr,value,source=parts
+                  if int(addr,16)==0x2104 and source.lower()=="hdma" and int(v,0)<225:
+                      rows.append((int(v,0),int(value,16)))
+              print(path.name, rows)
+          PY
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -1,0 +1,456 @@
+{
+  "dormant_usa_code": [
+    {
+      "end": "81:948A",
+      "instructions": "LDA #$0764; STA $A3; BRA $94AF",
+      "note": "bypassed alternative reward/contact selector",
+      "size": 7,
+      "start": "81:9484"
+    },
+    {
+      "end": "81:9669",
+      "instructions": "decay $0F4B/$0F4D toward zero",
+      "note": "alternate angular-state decay block bypassed by the live BRA at 81:9644",
+      "size": 36,
+      "start": "81:9646"
+    },
+    {
+      "end": "81:96AF",
+      "instructions": "JMP $9728",
+      "note": "orphaned alternate jump with no recovered predecessor",
+      "size": 3,
+      "start": "81:96AD"
+    },
+    {
+      "end": "81:9978",
+      "instructions": "LDA #$056C; STA $A3; BRA $997E",
+      "note": "bypassed contact-direction selector alternative",
+      "size": 7,
+      "start": "81:9972"
+    }
+  ],
+  "europe_only_insertions": [
+    {
+      "effect": "Europe retail alone inserts six NOPs after the landing-state CMP/BNE gate; subsequent homolog shift changes -32 to -26.",
+      "europe_start": "81:92E4",
+      "hex": "ea ea ea ea ea ea",
+      "instructions": "NOP; NOP; NOP; NOP; NOP; NOP",
+      "name": "europe_landing_nop_insert",
+      "size": 6,
+      "usa_boundary_before": "81:9304"
+    },
+    {
+      "effect": "Europe retail alone adds an 11-byte guard before the final position-correction tail; subsequent homolog shift changes -26 to -15.",
+      "europe_start": "81:97E6",
+      "hex": "ad e7 0d 29 fe 00 c9 08 00 f0 08",
+      "instructions": "LDA $0DE7; AND #$00FE; CMP #$0008; BEQ +8",
+      "name": "europe_position_guard_insert",
+      "size": 11,
+      "usa_boundary_before": "81:9800"
+    }
+  ],
+  "island": "PerRacerCollisionContactResponse",
+  "next_code_entry": "81:99D6",
+  "regions": [
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 231,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_mismatches": [],
+          "aligned_opcode_pairs": 231,
+          "aligned_role_disagreement_positions": [],
+          "aligned_role_disagreements": 0,
+          "end": "81:91D0",
+          "opcode_bytes": 231,
+          "operand_bytes": 338,
+          "sha256": "e1329ce2f49047e624c7dd39e654603d533a948e3530ccafcbbcc9475ec184a5",
+          "shift": -32,
+          "similarity": 0.924429,
+          "size": 569,
+          "size_delta": 0,
+          "start": "81:8F98",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 231,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_mismatches": [],
+          "aligned_opcode_pairs": 231,
+          "aligned_role_disagreement_positions": [],
+          "aligned_role_disagreements": 0,
+          "end": "81:91F0",
+          "opcode_bytes": 231,
+          "operand_bytes": 338,
+          "sha256": "91f4b56ed237c99dff07cfc7085bf7b7a91cf92c7505b8139df3eb53a0c5a724",
+          "shift": 0,
+          "similarity": 1,
+          "size": 569,
+          "size_delta": 0,
+          "start": "81:8FB8",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 231,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_mismatches": [],
+          "aligned_opcode_pairs": 231,
+          "aligned_role_disagreement_positions": [],
+          "aligned_role_disagreements": 0,
+          "end": "81:91D0",
+          "opcode_bytes": 231,
+          "operand_bytes": 338,
+          "sha256": "ff5dd905569b2cc9bdeaeec7ce8190b30a88c039e3d61043292df3e641499509",
+          "shift": -32,
+          "similarity": 0.938489,
+          "size": 569,
+          "size_delta": 0,
+          "start": "81:8F98",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:91F0",
+          "opcode_bytes": 231,
+          "operand_bytes": 338,
+          "sha256": "91f4b56ed237c99dff07cfc7085bf7b7a91cf92c7505b8139df3eb53a0c5a724",
+          "shift": 0,
+          "similarity": 1,
+          "size": 569,
+          "size_delta": 0,
+          "start": "81:8FB8",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "candidate_reduction_and_surface_classification",
+      "size": 569,
+      "usa_end": "81:91F0",
+      "usa_start": "81:8FB8"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 117,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_mismatches": [],
+          "aligned_opcode_pairs": 117,
+          "aligned_role_disagreement_positions": [],
+          "aligned_role_disagreements": 0,
+          "end": "81:92E3",
+          "opcode_bytes": 117,
+          "operand_bytes": 158,
+          "sha256": "5de032d5f3dddf699014b7a112560fa1bc2e3185ba202fb40307115343507a0e",
+          "shift": -32,
+          "similarity": 0.88,
+          "size": 275,
+          "size_delta": 0,
+          "start": "81:91D1",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 117,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_mismatches": [],
+          "aligned_opcode_pairs": 117,
+          "aligned_role_disagreement_positions": [],
+          "aligned_role_disagreements": 0,
+          "end": "81:9303",
+          "opcode_bytes": 117,
+          "operand_bytes": 158,
+          "sha256": "3d53813d3364d5e94177991bb46a84f1f39a33970fc0a878dfd63aa32d100147",
+          "shift": 0,
+          "similarity": 1,
+          "size": 275,
+          "size_delta": 0,
+          "start": "81:91F1",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 117,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_mismatches": [],
+          "aligned_opcode_pairs": 117,
+          "aligned_role_disagreement_positions": [],
+          "aligned_role_disagreements": 0,
+          "end": "81:92E3",
+          "opcode_bytes": 117,
+          "operand_bytes": 158,
+          "sha256": "ac15805b5b042c09124ea885195017601bd67b4f659db7ee741918c1204c5780",
+          "shift": -32,
+          "similarity": 0.887273,
+          "size": 275,
+          "size_delta": 0,
+          "start": "81:91D1",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:9303",
+          "opcode_bytes": 117,
+          "operand_bytes": 158,
+          "sha256": "3d53813d3364d5e94177991bb46a84f1f39a33970fc0a878dfd63aa32d100147",
+          "shift": 0,
+          "similarity": 1,
+          "size": 275,
+          "size_delta": 0,
+          "start": "81:91F1",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "landing_air_and_velocity_gates",
+      "size": 275,
+      "usa_end": "81:9303",
+      "usa_start": "81:91F1"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 551,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_mismatches": [],
+          "aligned_opcode_pairs": 551,
+          "aligned_role_disagreement_positions": [],
+          "aligned_role_disagreements": 0,
+          "end": "81:97E5",
+          "opcode_bytes": 551,
+          "operand_bytes": 679,
+          "sha256": "9aae9340659f49f32217323ccf94b24e7973c2f69462b63f9ccab7e4c95b8678",
+          "shift": -26,
+          "similarity": 0.916144,
+          "size": 1276,
+          "size_delta": 0,
+          "start": "81:92EA",
+          "unreached_or_data_bytes": 46
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 551,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_mismatches": [],
+          "aligned_opcode_pairs": 551,
+          "aligned_role_disagreement_positions": [],
+          "aligned_role_disagreements": 0,
+          "end": "81:97FF",
+          "opcode_bytes": 551,
+          "operand_bytes": 679,
+          "sha256": "8684b3f8ad0973bc32ef135f8ba0ac9fa477b0be27a798e3976fc2c29403218a",
+          "shift": 0,
+          "similarity": 1,
+          "size": 1276,
+          "size_delta": 0,
+          "start": "81:9304",
+          "unreached_or_data_bytes": 46
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 551,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_mismatches": [],
+          "aligned_opcode_pairs": 551,
+          "aligned_role_disagreement_positions": [],
+          "aligned_role_disagreements": 0,
+          "end": "81:97DF",
+          "opcode_bytes": 551,
+          "operand_bytes": 679,
+          "sha256": "a1fb2d153b7d5adf2e2d68f9233b7274a0b2fe0d1506155d2a3ef6b7dc565f43",
+          "shift": -32,
+          "similarity": 0.926332,
+          "size": 1276,
+          "size_delta": 0,
+          "start": "81:92E4",
+          "unreached_or_data_bytes": 46
+        },
+        "usa-retail": {
+          "end": "81:97FF",
+          "opcode_bytes": 551,
+          "operand_bytes": 679,
+          "sha256": "8684b3f8ad0973bc32ef135f8ba0ac9fa477b0be27a798e3976fc2c29403218a",
+          "shift": 0,
+          "similarity": 1,
+          "size": 1276,
+          "size_delta": 0,
+          "start": "81:9304",
+          "unreached_or_data_bytes": 46
+        }
+      },
+      "kind": "code",
+      "name": "contact_response_after_europe_nops",
+      "size": 1276,
+      "usa_end": "81:97FF",
+      "usa_start": "81:9304"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 31,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_mismatches": [],
+          "aligned_opcode_pairs": 31,
+          "aligned_role_disagreement_positions": [],
+          "aligned_role_disagreements": 0,
+          "end": "81:982B",
+          "opcode_bytes": 31,
+          "operand_bytes": 28,
+          "sha256": "7e190a5e84d4ec751214879701cdb38886a3ee1732d88e55bb8c16f69349ffcd",
+          "shift": -15,
+          "similarity": 0.966102,
+          "size": 59,
+          "size_delta": 0,
+          "start": "81:97F1",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 31,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_mismatches": [],
+          "aligned_opcode_pairs": 31,
+          "aligned_role_disagreement_positions": [],
+          "aligned_role_disagreements": 0,
+          "end": "81:983A",
+          "opcode_bytes": 31,
+          "operand_bytes": 28,
+          "sha256": "bdfde15a2186170772aa164071ca18e5ac5f3b16cd6e2f726888652ff6e88e5e",
+          "shift": 0,
+          "similarity": 1,
+          "size": 59,
+          "size_delta": 0,
+          "start": "81:9800",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 31,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_mismatches": [],
+          "aligned_opcode_pairs": 31,
+          "aligned_role_disagreement_positions": [],
+          "aligned_role_disagreements": 0,
+          "end": "81:981A",
+          "opcode_bytes": 31,
+          "operand_bytes": 28,
+          "sha256": "5307a5f7133af14305de98c325187a8b879d5e0551763b7dc40df0608c979f56",
+          "shift": -32,
+          "similarity": 0.966102,
+          "size": 59,
+          "size_delta": 0,
+          "start": "81:97E0",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:983A",
+          "opcode_bytes": 31,
+          "operand_bytes": 28,
+          "sha256": "bdfde15a2186170772aa164071ca18e5ac5f3b16cd6e2f726888652ff6e88e5e",
+          "shift": 0,
+          "similarity": 1,
+          "size": 59,
+          "size_delta": 0,
+          "start": "81:9800",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "final_position_correction_and_return",
+      "size": 59,
+      "usa_end": "81:983A",
+      "usa_start": "81:9800"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 179,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_mismatches": [],
+          "aligned_opcode_pairs": 179,
+          "aligned_role_disagreement_positions": [],
+          "aligned_role_disagreements": 0,
+          "end": "81:99C6",
+          "opcode_bytes": 179,
+          "operand_bytes": 225,
+          "sha256": "ae4b0bd8e298c1e0f173e752d5004ff273d7fbf658daa775e19f83bab51f35c2",
+          "shift": -15,
+          "similarity": 0.973236,
+          "size": 411,
+          "size_delta": 0,
+          "start": "81:982C",
+          "unreached_or_data_bytes": 7
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 179,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_mismatches": [],
+          "aligned_opcode_pairs": 179,
+          "aligned_role_disagreement_positions": [],
+          "aligned_role_disagreements": 0,
+          "end": "81:99D5",
+          "opcode_bytes": 179,
+          "operand_bytes": 225,
+          "sha256": "dec0dd606fad878e1a3a870efe0e2213deb07d9b4b77f1764fe7083b7426feda",
+          "shift": 0,
+          "similarity": 1,
+          "size": 411,
+          "size_delta": 0,
+          "start": "81:983B",
+          "unreached_or_data_bytes": 7
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 179,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_mismatches": [],
+          "aligned_opcode_pairs": 179,
+          "aligned_role_disagreement_positions": [],
+          "aligned_role_disagreements": 0,
+          "end": "81:99B5",
+          "opcode_bytes": 179,
+          "operand_bytes": 225,
+          "sha256": "e8a3950f4baca7a93feb79654a6d54960b5b9c873c6787ce8ae8f0d497e6b560",
+          "shift": -32,
+          "similarity": 0.982968,
+          "size": 411,
+          "size_delta": 0,
+          "start": "81:981B",
+          "unreached_or_data_bytes": 7
+        },
+        "usa-retail": {
+          "end": "81:99D5",
+          "opcode_bytes": 179,
+          "operand_bytes": 225,
+          "sha256": "dec0dd606fad878e1a3a870efe0e2213deb07d9b4b77f1764fe7083b7426feda",
+          "shift": 0,
+          "similarity": 1,
+          "size": 411,
+          "size_delta": 0,
+          "start": "81:983B",
+          "unreached_or_data_bytes": 7
+        }
+      },
+      "kind": "code",
+      "name": "contact_direction_quantizer",
+      "size": 411,
+      "usa_end": "81:99D5",
+      "usa_start": "81:983B"
+    }
+  ],
+  "schema_version": 1,
+  "usa_end": "81:99D5",
+  "usa_start": "81:8FB8",
+  "usa_unreached_runs": [
+    {
+      "end": "81:948A",
+      "size": 7,
+      "start": "81:9484"
+    },
+    {
+      "end": "81:9669",
+      "size": 36,
+      "start": "81:9646"
+    },
+    {
+      "end": "81:96AF",
+      "size": 3,
+      "start": "81:96AD"
+    },
+    {
+      "end": "81:9978",
+      "size": 7,
+      "start": "81:9972"
+    }
+  ]
+}

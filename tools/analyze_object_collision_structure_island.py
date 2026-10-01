@@ -69,6 +69,11 @@ def build():
   rows.append(row)
  jt=usa[cpu_to_offset("81:8320"):cpu_to_offset("81:833D")+1]
  jtwords=[int.from_bytes(jt[i:i+2],"little") for i in range(0,len(jt),2)]
+ jt_by_build={}
+ for build,blob in blobs.items():
+  st=cpu_to_offset(aligns[build]["handler_pointer_prefix"]["start"])
+  raw=blob[st:st+len(jt)]
+  jt_by_build[build]=[f"{int.from_bytes(raw[i:i+2],'little'):04X}" for i in range(0,len(raw),2)]
  lut=usa[cpu_to_offset("81:8372"):cpu_to_offset("81:83A3")+1]
  lutwords=[int.from_bytes(lut[i:i+2],"little",signed=True) for i in range(0,len(lut),2)]
  gap_info={}
@@ -81,7 +86,7 @@ def build():
   else:
    gap_info[build]={"size":0,"start":None,"end":None,"hex":""}
  return {"schema_version":2,"island":"bank-81 object/collision dispatch structure","regions":rows,"post_dispatch_gap":gap_info,
-   "handler_pointer_prefix":{"size":len(jt),"entries":len(jtwords),"usa_words":[f"{x:04X}" for x in jtwords],"caveat":"JSR ($8320,X) is guarded only by X < 0x003C, so this 30-byte run is a proven pointer prefix, not yet a proven complete indirect domain."},
+   "handler_pointer_prefix":{"size":len(jt),"entries":len(jtwords),"usa_words":[f"{x:04X}" for x in jtwords],"words_by_build":jt_by_build,"caveat":"JSR ($8320,X) is guarded only by X < 0x003C, so this 30-byte run is a proven pointer prefix, not yet a proven complete indirect domain."},
    "lookup_8372":{"size":len(lut),"entries":len(lutwords),"usa_signed_words":lutwords}}
 
 def render(r):
@@ -99,7 +104,7 @@ def render(r):
    lines.append(f"- {build}: {g['start']}..{g['end']} ({g['size']} bytes): {g['hex']}")
   else:
    lines.append(f"- {build}: none")
- lines+=["","## Embedded handler table","",f"- {jt['size']} bytes / {jt['entries']} little-endian words.","- USA entries: "+" ".join(jt["usa_words"]),"- `JSR ($8320,X)` proves these words are an embedded handler-pointer prefix. Because the guard is only `X < 0x003C`, do **not** treat the 30-byte prefix as the complete indirect domain without a tighter X-value proof.","","## Lookup table after handler_8341","",f"- {lut['size']} bytes / {lut['entries']} signed words.","- USA signed values: "+" ".join(str(x) for x in lut["usa_signed_words"]),"- The next executable entry begins at `81:83A4`; linear disassembly beginning at `83A3` is a one-byte code/data boundary error.",""]
+ lines+=["","## Embedded handler table","",f"- {jt['size']} bytes / {jt['entries']} little-endian words.","- USA entries: "+" ".join(jt["usa_words"]),"- PAL prototype entries: "+" ".join(jt["words_by_build"]["pal-prototype-1994-11-29"]),"- Europe entries: "+" ".join(jt["words_by_build"]["europe-retail"]),"- `JSR ($8320,X)` proves these words are an embedded handler-pointer prefix. Because the guard is only `X < 0x003C`, do **not** treat the 30-byte prefix as the complete indirect domain without a tighter X-value proof.","","## Lookup table after handler_8341","",f"- {lut['size']} bytes / {lut['entries']} signed words.","- USA signed values: "+" ".join(str(x) for x in lut["usa_signed_words"]),"- The next executable entry begins at `81:83A4`; linear disassembly beginning at `83A3` is a one-byte code/data boundary error.",""]
  return "\n".join(lines)
 
 def main():

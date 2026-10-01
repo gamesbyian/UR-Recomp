@@ -1,0 +1,85 @@
+{
+  "hud_queue": {
+    "europe-retail": {
+      "refs": {
+        "jsl": [],
+        "jsr": [
+          {
+            "cpu": "81:81BA",
+            "file_offset": 33210
+          },
+          {
+            "cpu": "81:C598",
+            "file_offset": 50584
+          }
+        ]
+      },
+      "target": "81:C59C"
+    },
+    "pal-prototype-1994-11-29": {
+      "refs": {
+        "jsl": [],
+        "jsr": [
+          {
+            "cpu": "81:81C8",
+            "file_offset": 33224
+          },
+          {
+            "cpu": "81:C58C",
+            "file_offset": 50572
+          }
+        ]
+      },
+      "target": "81:C590"
+    },
+    "usa-retail": {
+      "refs": {
+        "jsl": [],
+        "jsr": [
+          {
+            "cpu": "81:81C8",
+            "file_offset": 33224
+          },
+          {
+            "cpu": "81:C5AF",
+            "file_offset": 50607
+          }
+        ]
+      },
+      "target": "81:C5B3"
+    }
+  },
+  "object_dispatch": {
+    "europe-retail": {
+      "candidate_start": "81:82BB",
+      "file_offset": 33467,
+      "ngram_votes": 8,
+      "object_14_entry_cpu": "81:8309",
+      "object_14_handler": "81:8050",
+      "score": 0.628125,
+      "similarity": 0.5625,
+      "table_cpu": "81:82F5"
+    },
+    "pal-prototype-1994-11-29": {
+      "candidate_start": "81:82C9",
+      "file_offset": 33481,
+      "ngram_votes": 14,
+      "object_14_entry_cpu": "81:8317",
+      "object_14_handler": "81:8050",
+      "score": 0.840625,
+      "similarity": 0.8125,
+      "table_cpu": "81:8303"
+    },
+    "usa-retail": {
+      "candidate_start": "81:82E6",
+      "file_offset": 33510,
+      "ngram_votes": 41,
+      "object_14_entry_cpu": "81:8334",
+      "object_14_handler": "81:8050",
+      "score": 1.0,
+      "similarity": 1.0,
+      "table_cpu": "81:8320"
+    }
+  },
+  "schema_version": 1
+}

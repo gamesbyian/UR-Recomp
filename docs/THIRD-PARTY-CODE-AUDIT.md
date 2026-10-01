@@ -66,6 +66,28 @@ Project response:
 Future adaptation should port policy concepts into state/policy/input layers.
 Do not edit the preserved Lua snapshot into becoming the modern implementation.
 
+### Dessyreqt direct historical workspace
+
+Source: `reference/imported/reverse-engineering/dessyreqt/`.
+
+Status: high-value historical evidence, heterogeneous safety/semantic quality.
+
+The 17 Lua files are not one coherent library. They include autonomous policies, savestate search, memory-poking glitch reproducers, screenshot-map tooling, speed experiments, and a generic borrowed map-capture script. Important hazards:
+
+- all scripts target old Snes9x Lua APIs and several rely on savestate slot 11;
+- historical signed-word conversion retains the old `> 32768` edge bug in multiple files;
+- several scripts deliberately write WRAM to reposition the racer, freeze timers, alter background state, or force experimental conditions;
+- `mappertest.lua` contains unrelated game-specific labels and must not seed Uniracers semantics merely because it was present in the folder;
+- the recovered `tabletopbot.lua` is a distinct variant of the public source, so neither should silently replace the other;
+- v14a's queue-aware scoring is stronger historical evidence than v8's calculated-boost heuristic, but still requires ROM/runtime reconciliation before becoming project logic.
+
+Project response:
+- preserve the entire workspace unchanged as evidence;
+- port concepts into project-owned state/policy/fixture code rather than executing imported Lua as production logic;
+- use the recovered SMVs as data fixtures where possible;
+- use `reference/notes/dessyreqt-workspace-mining.md` as the reconciliation layer;
+- promote only independently corroborated addresses/semantics to `docs/SYMBOLS.md`.
+
 ### Historical Snes9x 1.43
 
 Source: `reference/imported/emulators/snes9x-1.43/`.

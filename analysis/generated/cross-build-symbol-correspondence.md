@@ -27,16 +27,22 @@ A mapped address means the structurally corresponding build-specific location su
 
 ## Named RAM fields with repeated cross-anchor support
 
-| Symbol | USA | Build | Candidate | Delta | Anchors |
-|---|---|---|---|---:|---:|
-| CurrentPlayer_XVelocityWorking | `7E:0F9F` | Europe retail | `7E:0FA9` | +10 | 2 |
-| CurrentPlayer_YVelocityWorking | `7E:0FA1` | Europe retail | `7E:0FAB` | +10 | 2 |
-| Player1_XPosition | `7E:0411` | Europe retail | `7E:0415` | +4 | 2 |
-| Player1_YPosition | `7E:0415` | Europe retail | `7E:0419` | +4 | 2 |
-| CurrentPlayer_XVelocityWorking | `7E:0F9F` | PAL prototype | `7E:0FA3` | +4 | 2 |
-| CurrentPlayer_YVelocityWorking | `7E:0FA1` | PAL prototype | `7E:0FA5` | +4 | 2 |
-| Player1_XPosition | `7E:0411` | PAL prototype | `7E:0411` | +0 | 2 |
-| Player1_YPosition | `7E:0415` | PAL prototype | `7E:0415` | +0 | 2 |
+| Symbol | USA | Build | Candidate | Delta | Anchors | Independent edge |
+|---|---|---|---|---:|---:|---|
+| CurrentPlayer_XVelocityWorking | `7E:0F9F` | Europe retail | `7E:0FA9` | +10 | 2 |  |
+| CurrentPlayer_YVelocityWorking | `7E:0FA1` | Europe retail | `7E:0FAB` | +10 | 2 |  |
+| Player1_BoostMeter | `7E:11CF` | Europe retail | `7E:11D9` | +10 | 1 | bidirectional copy relation with 7E:11D7 in Race_UpdateRacersFrame |
+| Player1_XPosition | `7E:0411` | Europe retail | `7E:0415` | +4 | 2 |  |
+| Player1_XSpeed | `7E:04B7` | Europe retail | `7E:04BB` | +4 | 1 | bidirectional copy relation with 7E:0FA9 in Race_UpdateRacersFrame |
+| Player1_YPosition | `7E:0415` | Europe retail | `7E:0419` | +4 | 2 |  |
+| Player1_YSpeed | `7E:04BB` | Europe retail | `7E:04BF` | +4 | 1 | bidirectional copy relation with 7E:0FAB in Race_UpdateRacersFrame |
+| CurrentPlayer_XVelocityWorking | `7E:0F9F` | PAL prototype | `7E:0FA3` | +4 | 2 |  |
+| CurrentPlayer_YVelocityWorking | `7E:0FA1` | PAL prototype | `7E:0FA5` | +4 | 2 |  |
+| Player1_BoostMeter | `7E:11CF` | PAL prototype | `7E:11D3` | +4 | 1 | bidirectional copy relation with 7E:11D1 in Race_UpdateRacersFrame |
+| Player1_XPosition | `7E:0411` | PAL prototype | `7E:0411` | +0 | 2 |  |
+| Player1_XSpeed | `7E:04B7` | PAL prototype | `7E:04B7` | +0 | 1 | bidirectional copy relation with 7E:0FA3 in Race_UpdateRacersFrame |
+| Player1_YPosition | `7E:0415` | PAL prototype | `7E:0415` | +0 | 2 |  |
+| Player1_YSpeed | `7E:04BB` | PAL prototype | `7E:04BB` | +0 | 1 | bidirectional copy relation with 7E:0FA5 in Race_UpdateRacersFrame |
 
 ## Single-anchor named RAM candidates
 
@@ -49,7 +55,6 @@ These are useful search/probe targets, but should not be copied into authoritati
 | CurrentPlayer_HalfTwistCount | `7E:0F61` | Europe retail | `7E:0F6B` | +10 | Stunt_FinalizeAndScoreAirTricks |
 | CurrentPlayer_Index | `7E:0FEF` | Europe retail | `7E:0FF9` | +10 | Race_UpdateRacersFrame |
 | CurrentPlayer_PitchScratch | `7E:0F49` | Europe retail | `7E:0F53` | +10 | Race_UpdateRacersFrame |
-| Player1_BoostMeter | `7E:11CF` | Europe retail | `7E:11D9` | +10 | Race_UpdateRacersFrame |
 | Player1_FacedDirection | `7E:0BA1` | Europe retail | `7E:0BA7` | +6 | Race_BuildRacerOAMState |
 | Player1_FlipCount | `7E:11FD` | Europe retail | `7E:1207` | +10 | Stunt_FinalizeAndScoreAirTricks |
 | Player1_FlipQuarterProgress | `7E:1205` | Europe retail | `7E:120F` | +10 | Stunt_FinalizeAndScoreAirTricks |
@@ -57,8 +62,6 @@ These are useful search/probe targets, but should not be copied into authoritati
 | Player1_RollQuarterProgress | `7E:1201` | Europe retail | `7E:120B` | +10 | Stunt_FinalizeAndScoreAirTricks |
 | Player1_StuntAirLatch | `7E:1361` | Europe retail | `7E:136B` | +10 | Stunt_FinalizeAndScoreAirTricks |
 | Player1_TabletopDuration | `7E:042F` | Europe retail | `7E:0433` | +4 | Stunt_FinalizeAndScoreAirTricks |
-| Player1_XSpeed | `7E:04B7` | Europe retail | `7E:04BB` | +4 | Race_UpdateRacersFrame |
-| Player1_YSpeed | `7E:04BB` | Europe retail | `7E:04BF` | +4 | Race_UpdateRacersFrame |
 | Player1_ZFlipCount | `7E:042B` | Europe retail | `7E:042F` | +4 | Stunt_FinalizeAndScoreAirTricks |
 | Player2_BoostMeter | `7E:11D1` | Europe retail | `7E:11DB` | +10 | Race_UpdateRacersFrame |
 | Player2_FacedDirection | `7E:0BA3` | Europe retail | `7E:0BA9` | +6 | Race_BuildRacerOAMState |
@@ -69,7 +72,6 @@ These are useful search/probe targets, but should not be copied into authoritati
 | CurrentPlayer_HalfTwistCount | `7E:0F61` | PAL prototype | `7E:0F65` | +4 | Stunt_FinalizeAndScoreAirTricks |
 | CurrentPlayer_Index | `7E:0FEF` | PAL prototype | `7E:0FF3` | +4 | Race_UpdateRacersFrame |
 | CurrentPlayer_PitchScratch | `7E:0F49` | PAL prototype | `7E:0F4D` | +4 | Race_UpdateRacersFrame |
-| Player1_BoostMeter | `7E:11CF` | PAL prototype | `7E:11D3` | +4 | Race_UpdateRacersFrame |
 | Player1_FacedDirection | `7E:0BA1` | PAL prototype | `7E:0BA1` | +0 | Race_BuildRacerOAMState |
 | Player1_FinishGateState | `7E:119D` | PAL prototype | `7E:11A1` | +4 | Race_HandleCheckpointFinish |
 | Player1_FlipCount | `7E:11FD` | PAL prototype | `7E:1201` | +4 | Stunt_FinalizeAndScoreAirTricks |
@@ -79,8 +81,6 @@ These are useful search/probe targets, but should not be copied into authoritati
 | Player1_RollQuarterProgress | `7E:1201` | PAL prototype | `7E:1205` | +4 | Stunt_FinalizeAndScoreAirTricks |
 | Player1_StuntAirLatch | `7E:1361` | PAL prototype | `7E:1365` | +4 | Stunt_FinalizeAndScoreAirTricks |
 | Player1_TabletopDuration | `7E:042F` | PAL prototype | `7E:042F` | +0 | Stunt_FinalizeAndScoreAirTricks |
-| Player1_XSpeed | `7E:04B7` | PAL prototype | `7E:04B7` | +0 | Race_UpdateRacersFrame |
-| Player1_YSpeed | `7E:04BB` | PAL prototype | `7E:04BB` | +0 | Race_UpdateRacersFrame |
 | Player1_ZFlipCount | `7E:042B` | PAL prototype | `7E:042B` | +0 | Stunt_FinalizeAndScoreAirTricks |
 | Player2_BoostMeter | `7E:11D1` | PAL prototype | `7E:11D5` | +4 | Race_UpdateRacersFrame |
 | Player2_FacedDirection | `7E:0BA3` | PAL prototype | `7E:0BA3` | +0 | Race_BuildRacerOAMState |

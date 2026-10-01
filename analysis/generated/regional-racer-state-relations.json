@@ -1,0 +1,339 @@
+{
+  "builds": {
+    "europe-retail": {
+      "all_bidirectional": true,
+      "relations": {
+        "Player1_BoostMeter": {
+          "bidirectional": true,
+          "copy_in": [
+            {
+              "cpu": "82:8BB5",
+              "file_offset": 68533
+            }
+          ],
+          "copy_in_count": 1,
+          "copy_out": [
+            {
+              "cpu": "82:8D04",
+              "file_offset": 68868
+            }
+          ],
+          "copy_out_count": 1,
+          "patterns": {
+            "copy_in_a": [],
+            "copy_in_y": [
+              {
+                "cpu": "82:8BB5",
+                "file_offset": 68533
+              }
+            ],
+            "copy_out_a": [
+              {
+                "cpu": "82:8D04",
+                "file_offset": 68868
+              }
+            ],
+            "copy_out_y": []
+          },
+          "persistent": "7E:11D9",
+          "working": "7E:11D7"
+        },
+        "Player1_XSpeed": {
+          "bidirectional": true,
+          "copy_in": [
+            {
+              "cpu": "82:8B97",
+              "file_offset": 68503
+            }
+          ],
+          "copy_in_count": 1,
+          "copy_out": [
+            {
+              "cpu": "82:8E97",
+              "file_offset": 69271
+            }
+          ],
+          "copy_out_count": 1,
+          "patterns": {
+            "copy_in_a": [],
+            "copy_in_y": [
+              {
+                "cpu": "82:8B97",
+                "file_offset": 68503
+              }
+            ],
+            "copy_out_a": [],
+            "copy_out_y": [
+              {
+                "cpu": "82:8E97",
+                "file_offset": 69271
+              }
+            ]
+          },
+          "persistent": "7E:04BB",
+          "working": "7E:0FA9"
+        },
+        "Player1_YSpeed": {
+          "bidirectional": true,
+          "copy_in": [
+            {
+              "cpu": "82:8B9D",
+              "file_offset": 68509
+            }
+          ],
+          "copy_in_count": 1,
+          "copy_out": [
+            {
+              "cpu": "82:8E9D",
+              "file_offset": 69277
+            }
+          ],
+          "copy_out_count": 1,
+          "patterns": {
+            "copy_in_a": [],
+            "copy_in_y": [
+              {
+                "cpu": "82:8B9D",
+                "file_offset": 68509
+              }
+            ],
+            "copy_out_a": [],
+            "copy_out_y": [
+              {
+                "cpu": "82:8E9D",
+                "file_offset": 69277
+              }
+            ]
+          },
+          "persistent": "7E:04BF",
+          "working": "7E:0FAB"
+        }
+      },
+      "routine": "82:89CC"
+    },
+    "pal-prototype-1994-11-29": {
+      "all_bidirectional": true,
+      "relations": {
+        "Player1_BoostMeter": {
+          "bidirectional": true,
+          "copy_in": [
+            {
+              "cpu": "82:8B9F",
+              "file_offset": 68511
+            }
+          ],
+          "copy_in_count": 1,
+          "copy_out": [
+            {
+              "cpu": "82:8CEE",
+              "file_offset": 68846
+            }
+          ],
+          "copy_out_count": 1,
+          "patterns": {
+            "copy_in_a": [],
+            "copy_in_y": [
+              {
+                "cpu": "82:8B9F",
+                "file_offset": 68511
+              }
+            ],
+            "copy_out_a": [
+              {
+                "cpu": "82:8CEE",
+                "file_offset": 68846
+              }
+            ],
+            "copy_out_y": []
+          },
+          "persistent": "7E:11D3",
+          "working": "7E:11D1"
+        },
+        "Player1_XSpeed": {
+          "bidirectional": true,
+          "copy_in": [
+            {
+              "cpu": "82:8B81",
+              "file_offset": 68481
+            }
+          ],
+          "copy_in_count": 1,
+          "copy_out": [
+            {
+              "cpu": "82:8E81",
+              "file_offset": 69249
+            }
+          ],
+          "copy_out_count": 1,
+          "patterns": {
+            "copy_in_a": [],
+            "copy_in_y": [
+              {
+                "cpu": "82:8B81",
+                "file_offset": 68481
+              }
+            ],
+            "copy_out_a": [],
+            "copy_out_y": [
+              {
+                "cpu": "82:8E81",
+                "file_offset": 69249
+              }
+            ]
+          },
+          "persistent": "7E:04B7",
+          "working": "7E:0FA3"
+        },
+        "Player1_YSpeed": {
+          "bidirectional": true,
+          "copy_in": [
+            {
+              "cpu": "82:8B87",
+              "file_offset": 68487
+            }
+          ],
+          "copy_in_count": 1,
+          "copy_out": [
+            {
+              "cpu": "82:8E87",
+              "file_offset": 69255
+            }
+          ],
+          "copy_out_count": 1,
+          "patterns": {
+            "copy_in_a": [],
+            "copy_in_y": [
+              {
+                "cpu": "82:8B87",
+                "file_offset": 68487
+              }
+            ],
+            "copy_out_a": [],
+            "copy_out_y": [
+              {
+                "cpu": "82:8E87",
+                "file_offset": 69255
+              }
+            ]
+          },
+          "persistent": "7E:04BB",
+          "working": "7E:0FA5"
+        }
+      },
+      "routine": "82:89B6"
+    },
+    "usa-retail": {
+      "all_bidirectional": true,
+      "relations": {
+        "Player1_BoostMeter": {
+          "bidirectional": true,
+          "copy_in": [
+            {
+              "cpu": "82:8BA2",
+              "file_offset": 68514
+            }
+          ],
+          "copy_in_count": 1,
+          "copy_out": [
+            {
+              "cpu": "82:8CF1",
+              "file_offset": 68849
+            }
+          ],
+          "copy_out_count": 1,
+          "patterns": {
+            "copy_in_a": [],
+            "copy_in_y": [
+              {
+                "cpu": "82:8BA2",
+                "file_offset": 68514
+              }
+            ],
+            "copy_out_a": [
+              {
+                "cpu": "82:8CF1",
+                "file_offset": 68849
+              }
+            ],
+            "copy_out_y": []
+          },
+          "persistent": "7E:11CF",
+          "working": "7E:11CD"
+        },
+        "Player1_XSpeed": {
+          "bidirectional": true,
+          "copy_in": [
+            {
+              "cpu": "82:8B84",
+              "file_offset": 68484
+            }
+          ],
+          "copy_in_count": 1,
+          "copy_out": [
+            {
+              "cpu": "82:8E84",
+              "file_offset": 69252
+            }
+          ],
+          "copy_out_count": 1,
+          "patterns": {
+            "copy_in_a": [],
+            "copy_in_y": [
+              {
+                "cpu": "82:8B84",
+                "file_offset": 68484
+              }
+            ],
+            "copy_out_a": [],
+            "copy_out_y": [
+              {
+                "cpu": "82:8E84",
+                "file_offset": 69252
+              }
+            ]
+          },
+          "persistent": "7E:04B7",
+          "working": "7E:0F9F"
+        },
+        "Player1_YSpeed": {
+          "bidirectional": true,
+          "copy_in": [
+            {
+              "cpu": "82:8B8A",
+              "file_offset": 68490
+            }
+          ],
+          "copy_in_count": 1,
+          "copy_out": [
+            {
+              "cpu": "82:8E8A",
+              "file_offset": 69258
+            }
+          ],
+          "copy_out_count": 1,
+          "patterns": {
+            "copy_in_a": [],
+            "copy_in_y": [
+              {
+                "cpu": "82:8B8A",
+                "file_offset": 68490
+              }
+            ],
+            "copy_out_a": [],
+            "copy_out_y": [
+              {
+                "cpu": "82:8E8A",
+                "file_offset": 69258
+              }
+            ]
+          },
+          "persistent": "7E:04BB",
+          "working": "7E:0FA1"
+        }
+      },
+      "routine": "82:89B9"
+    }
+  },
+  "method": "exact local 65816 absolute load/store dataflow pairs inside matched Race_UpdateRacersFrame windows",
+  "schema_version": 1
+}

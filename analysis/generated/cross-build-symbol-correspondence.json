@@ -333,6 +333,8 @@
       "candidate": "7E:0FA9",
       "delta": 10,
       "evidence_tier": "strong",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0FA9",
       "name": "CurrentPlayer_XVelocityWorking",
       "source_confidence": 4,
       "usa": "7E:0F9F"
@@ -347,9 +349,26 @@
       "candidate": "7E:0FAB",
       "delta": 10,
       "evidence_tier": "strong",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0FAB",
       "name": "CurrentPlayer_YVelocityWorking",
       "source_confidence": 4,
       "usa": "7E:0FA1"
+    },
+    {
+      "anchor_count": 1,
+      "anchors": [
+        "Race_UpdateRacersFrame"
+      ],
+      "build": "europe-retail",
+      "candidate": "7E:11D9",
+      "delta": 10,
+      "evidence_tier": "strong",
+      "independent_evidence": "bidirectional copy relation with 7E:11D7 in Race_UpdateRacersFrame",
+      "motion_candidate": "7E:11D9",
+      "name": "Player1_BoostMeter",
+      "source_confidence": 4,
+      "usa": "7E:11CF"
     },
     {
       "anchor_count": 2,
@@ -361,9 +380,26 @@
       "candidate": "7E:0415",
       "delta": 4,
       "evidence_tier": "strong",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0415",
       "name": "Player1_XPosition",
       "source_confidence": 5,
       "usa": "7E:0411"
+    },
+    {
+      "anchor_count": 1,
+      "anchors": [
+        "Race_UpdateRacersFrame"
+      ],
+      "build": "europe-retail",
+      "candidate": "7E:04BB",
+      "delta": 4,
+      "evidence_tier": "strong",
+      "independent_evidence": "bidirectional copy relation with 7E:0FA9 in Race_UpdateRacersFrame",
+      "motion_candidate": "7E:04BB",
+      "name": "Player1_XSpeed",
+      "source_confidence": 5,
+      "usa": "7E:04B7"
     },
     {
       "anchor_count": 2,
@@ -375,9 +411,26 @@
       "candidate": "7E:0419",
       "delta": 4,
       "evidence_tier": "strong",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0419",
       "name": "Player1_YPosition",
       "source_confidence": 5,
       "usa": "7E:0415"
+    },
+    {
+      "anchor_count": 1,
+      "anchors": [
+        "Race_UpdateRacersFrame"
+      ],
+      "build": "europe-retail",
+      "candidate": "7E:04BF",
+      "delta": 4,
+      "evidence_tier": "strong",
+      "independent_evidence": "bidirectional copy relation with 7E:0FAB in Race_UpdateRacersFrame",
+      "motion_candidate": "7E:04BF",
+      "name": "Player1_YSpeed",
+      "source_confidence": 5,
+      "usa": "7E:04BB"
     },
     {
       "anchor_count": 1,
@@ -388,6 +441,8 @@
       "candidate": "7E:1513",
       "delta": 10,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:1513",
       "name": "Camera_ScreenXPosition",
       "source_confidence": 3,
       "usa": "7E:1509"
@@ -401,6 +456,8 @@
       "candidate": "7E:11D7",
       "delta": 10,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:11D7",
       "name": "CurrentPlayer_BoostMeterWorking",
       "source_confidence": 4,
       "usa": "7E:11CD"
@@ -414,6 +471,8 @@
       "candidate": "7E:0F6B",
       "delta": 10,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0F6B",
       "name": "CurrentPlayer_HalfTwistCount",
       "source_confidence": 4,
       "usa": "7E:0F61"
@@ -427,6 +486,8 @@
       "candidate": "7E:0FF9",
       "delta": 10,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0FF9",
       "name": "CurrentPlayer_Index",
       "source_confidence": 4,
       "usa": "7E:0FEF"
@@ -440,22 +501,11 @@
       "candidate": "7E:0F53",
       "delta": 10,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0F53",
       "name": "CurrentPlayer_PitchScratch",
       "source_confidence": 4,
       "usa": "7E:0F49"
-    },
-    {
-      "anchor_count": 1,
-      "anchors": [
-        "Race_UpdateRacersFrame"
-      ],
-      "build": "europe-retail",
-      "candidate": "7E:11D9",
-      "delta": 10,
-      "evidence_tier": "candidate",
-      "name": "Player1_BoostMeter",
-      "source_confidence": 4,
-      "usa": "7E:11CF"
     },
     {
       "anchor_count": 1,
@@ -466,6 +516,8 @@
       "candidate": "7E:0BA7",
       "delta": 6,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0BA7",
       "name": "Player1_FacedDirection",
       "source_confidence": 2,
       "usa": "7E:0BA1"
@@ -479,6 +531,8 @@
       "candidate": "7E:1207",
       "delta": 10,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:1207",
       "name": "Player1_FlipCount",
       "source_confidence": 4,
       "usa": "7E:11FD"
@@ -492,6 +546,8 @@
       "candidate": "7E:120F",
       "delta": 10,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:120F",
       "name": "Player1_FlipQuarterProgress",
       "source_confidence": 4,
       "usa": "7E:1205"
@@ -505,6 +561,8 @@
       "candidate": "7E:1203",
       "delta": 10,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:1203",
       "name": "Player1_RollCount",
       "source_confidence": 4,
       "usa": "7E:11F9"
@@ -518,6 +576,8 @@
       "candidate": "7E:120B",
       "delta": 10,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:120B",
       "name": "Player1_RollQuarterProgress",
       "source_confidence": 4,
       "usa": "7E:1201"
@@ -531,6 +591,8 @@
       "candidate": "7E:136B",
       "delta": 10,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:136B",
       "name": "Player1_StuntAirLatch",
       "source_confidence": 3,
       "usa": "7E:1361"
@@ -544,35 +606,11 @@
       "candidate": "7E:0433",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0433",
       "name": "Player1_TabletopDuration",
       "source_confidence": 5,
       "usa": "7E:042F"
-    },
-    {
-      "anchor_count": 1,
-      "anchors": [
-        "Race_UpdateRacersFrame"
-      ],
-      "build": "europe-retail",
-      "candidate": "7E:04BB",
-      "delta": 4,
-      "evidence_tier": "candidate",
-      "name": "Player1_XSpeed",
-      "source_confidence": 5,
-      "usa": "7E:04B7"
-    },
-    {
-      "anchor_count": 1,
-      "anchors": [
-        "Race_UpdateRacersFrame"
-      ],
-      "build": "europe-retail",
-      "candidate": "7E:04BF",
-      "delta": 4,
-      "evidence_tier": "candidate",
-      "name": "Player1_YSpeed",
-      "source_confidence": 5,
-      "usa": "7E:04BB"
     },
     {
       "anchor_count": 1,
@@ -583,6 +621,8 @@
       "candidate": "7E:042F",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:042F",
       "name": "Player1_ZFlipCount",
       "source_confidence": 4,
       "usa": "7E:042B"
@@ -596,6 +636,8 @@
       "candidate": "7E:11DB",
       "delta": 10,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:11DB",
       "name": "Player2_BoostMeter",
       "source_confidence": 4,
       "usa": "7E:11D1"
@@ -609,6 +651,8 @@
       "candidate": "7E:0BA9",
       "delta": 6,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0BA9",
       "name": "Player2_FacedDirection",
       "source_confidence": 3,
       "usa": "7E:0BA3"
@@ -622,6 +666,8 @@
       "candidate": "7E:0417",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0417",
       "name": "Player2_XPosition",
       "source_confidence": 4,
       "usa": "7E:0413"
@@ -635,6 +681,8 @@
       "candidate": "7E:041B",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:041B",
       "name": "Player2_YPosition",
       "source_confidence": 4,
       "usa": "7E:0417"
@@ -649,6 +697,8 @@
       "candidate": "7E:0F9F",
       "delta": 0,
       "evidence_tier": "strong",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0F9F",
       "name": "CurrentPlayer_XVelocityWorking",
       "source_confidence": 4,
       "usa": "7E:0F9F"
@@ -663,6 +713,8 @@
       "candidate": "7E:0FA1",
       "delta": 0,
       "evidence_tier": "strong",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0FA1",
       "name": "CurrentPlayer_YVelocityWorking",
       "source_confidence": 4,
       "usa": "7E:0FA1"
@@ -677,6 +729,8 @@
       "candidate": "7E:0411",
       "delta": 0,
       "evidence_tier": "strong",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0411",
       "name": "Player1_XPosition",
       "source_confidence": 5,
       "usa": "7E:0411"
@@ -691,6 +745,8 @@
       "candidate": "7E:0415",
       "delta": 0,
       "evidence_tier": "strong",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0415",
       "name": "Player1_YPosition",
       "source_confidence": 5,
       "usa": "7E:0415"
@@ -704,6 +760,8 @@
       "candidate": "7E:1509",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:1509",
       "name": "Camera_ScreenXPosition",
       "source_confidence": 3,
       "usa": "7E:1509"
@@ -717,6 +775,8 @@
       "candidate": "7E:11CD",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:11CD",
       "name": "CurrentPlayer_BoostMeterWorking",
       "source_confidence": 4,
       "usa": "7E:11CD"
@@ -730,6 +790,8 @@
       "candidate": "7E:0F61",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0F61",
       "name": "CurrentPlayer_HalfTwistCount",
       "source_confidence": 4,
       "usa": "7E:0F61"
@@ -743,6 +805,8 @@
       "candidate": "7E:0FEF",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0FEF",
       "name": "CurrentPlayer_Index",
       "source_confidence": 4,
       "usa": "7E:0FEF"
@@ -756,6 +820,8 @@
       "candidate": "7E:0F49",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0F49",
       "name": "CurrentPlayer_PitchScratch",
       "source_confidence": 4,
       "usa": "7E:0F49"
@@ -769,6 +835,8 @@
       "candidate": "7E:11CF",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:11CF",
       "name": "Player1_BoostMeter",
       "source_confidence": 4,
       "usa": "7E:11CF"
@@ -782,6 +850,8 @@
       "candidate": "7E:0BA1",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0BA1",
       "name": "Player1_FacedDirection",
       "source_confidence": 2,
       "usa": "7E:0BA1"
@@ -795,6 +865,8 @@
       "candidate": "7E:119D",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:119D",
       "name": "Player1_FinishGateState",
       "source_confidence": 3,
       "usa": "7E:119D"
@@ -808,6 +880,8 @@
       "candidate": "7E:11FD",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:11FD",
       "name": "Player1_FlipCount",
       "source_confidence": 4,
       "usa": "7E:11FD"
@@ -821,6 +895,8 @@
       "candidate": "7E:1205",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:1205",
       "name": "Player1_FlipQuarterProgress",
       "source_confidence": 4,
       "usa": "7E:1205"
@@ -834,6 +910,8 @@
       "candidate": "7E:0EF1",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0EF1",
       "name": "Player1_LapsRemaining",
       "source_confidence": 3,
       "usa": "7E:0EF1"
@@ -847,6 +925,8 @@
       "candidate": "7E:11F9",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:11F9",
       "name": "Player1_RollCount",
       "source_confidence": 4,
       "usa": "7E:11F9"
@@ -860,6 +940,8 @@
       "candidate": "7E:1201",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:1201",
       "name": "Player1_RollQuarterProgress",
       "source_confidence": 4,
       "usa": "7E:1201"
@@ -873,6 +955,8 @@
       "candidate": "7E:1361",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:1361",
       "name": "Player1_StuntAirLatch",
       "source_confidence": 3,
       "usa": "7E:1361"
@@ -886,6 +970,8 @@
       "candidate": "7E:042F",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:042F",
       "name": "Player1_TabletopDuration",
       "source_confidence": 5,
       "usa": "7E:042F"
@@ -899,6 +985,8 @@
       "candidate": "7E:04B7",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:04B7",
       "name": "Player1_XSpeed",
       "source_confidence": 5,
       "usa": "7E:04B7"
@@ -912,6 +1000,8 @@
       "candidate": "7E:04BB",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:04BB",
       "name": "Player1_YSpeed",
       "source_confidence": 5,
       "usa": "7E:04BB"
@@ -925,6 +1015,8 @@
       "candidate": "7E:042B",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:042B",
       "name": "Player1_ZFlipCount",
       "source_confidence": 4,
       "usa": "7E:042B"
@@ -938,6 +1030,8 @@
       "candidate": "7E:11D1",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:11D1",
       "name": "Player2_BoostMeter",
       "source_confidence": 4,
       "usa": "7E:11D1"
@@ -951,6 +1045,8 @@
       "candidate": "7E:0BA3",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0BA3",
       "name": "Player2_FacedDirection",
       "source_confidence": 3,
       "usa": "7E:0BA3"
@@ -964,6 +1060,8 @@
       "candidate": "7E:0413",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0413",
       "name": "Player2_XPosition",
       "source_confidence": 4,
       "usa": "7E:0413"
@@ -977,6 +1075,8 @@
       "candidate": "7E:0417",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0417",
       "name": "Player2_YPosition",
       "source_confidence": 4,
       "usa": "7E:0417"
@@ -991,6 +1091,8 @@
       "candidate": "7E:0FA3",
       "delta": 4,
       "evidence_tier": "strong",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0FA3",
       "name": "CurrentPlayer_XVelocityWorking",
       "source_confidence": 4,
       "usa": "7E:0F9F"
@@ -1005,9 +1107,26 @@
       "candidate": "7E:0FA5",
       "delta": 4,
       "evidence_tier": "strong",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0FA5",
       "name": "CurrentPlayer_YVelocityWorking",
       "source_confidence": 4,
       "usa": "7E:0FA1"
+    },
+    {
+      "anchor_count": 1,
+      "anchors": [
+        "Race_UpdateRacersFrame"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate": "7E:11D3",
+      "delta": 4,
+      "evidence_tier": "strong",
+      "independent_evidence": "bidirectional copy relation with 7E:11D1 in Race_UpdateRacersFrame",
+      "motion_candidate": "7E:11D3",
+      "name": "Player1_BoostMeter",
+      "source_confidence": 4,
+      "usa": "7E:11CF"
     },
     {
       "anchor_count": 2,
@@ -1019,9 +1138,26 @@
       "candidate": "7E:0411",
       "delta": 0,
       "evidence_tier": "strong",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0411",
       "name": "Player1_XPosition",
       "source_confidence": 5,
       "usa": "7E:0411"
+    },
+    {
+      "anchor_count": 1,
+      "anchors": [
+        "Race_UpdateRacersFrame"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate": "7E:04B7",
+      "delta": 0,
+      "evidence_tier": "strong",
+      "independent_evidence": "bidirectional copy relation with 7E:0FA3 in Race_UpdateRacersFrame",
+      "motion_candidate": "7E:04B7",
+      "name": "Player1_XSpeed",
+      "source_confidence": 5,
+      "usa": "7E:04B7"
     },
     {
       "anchor_count": 2,
@@ -1033,9 +1169,26 @@
       "candidate": "7E:0415",
       "delta": 0,
       "evidence_tier": "strong",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0415",
       "name": "Player1_YPosition",
       "source_confidence": 5,
       "usa": "7E:0415"
+    },
+    {
+      "anchor_count": 1,
+      "anchors": [
+        "Race_UpdateRacersFrame"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate": "7E:04BB",
+      "delta": 0,
+      "evidence_tier": "strong",
+      "independent_evidence": "bidirectional copy relation with 7E:0FA5 in Race_UpdateRacersFrame",
+      "motion_candidate": "7E:04BB",
+      "name": "Player1_YSpeed",
+      "source_confidence": 5,
+      "usa": "7E:04BB"
     },
     {
       "anchor_count": 1,
@@ -1046,6 +1199,8 @@
       "candidate": "7E:150D",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:150D",
       "name": "Camera_ScreenXPosition",
       "source_confidence": 3,
       "usa": "7E:1509"
@@ -1059,6 +1214,8 @@
       "candidate": "7E:11D1",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:11D1",
       "name": "CurrentPlayer_BoostMeterWorking",
       "source_confidence": 4,
       "usa": "7E:11CD"
@@ -1072,6 +1229,8 @@
       "candidate": "7E:0F65",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0F65",
       "name": "CurrentPlayer_HalfTwistCount",
       "source_confidence": 4,
       "usa": "7E:0F61"
@@ -1085,6 +1244,8 @@
       "candidate": "7E:0FF3",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0FF3",
       "name": "CurrentPlayer_Index",
       "source_confidence": 4,
       "usa": "7E:0FEF"
@@ -1098,22 +1259,11 @@
       "candidate": "7E:0F4D",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0F4D",
       "name": "CurrentPlayer_PitchScratch",
       "source_confidence": 4,
       "usa": "7E:0F49"
-    },
-    {
-      "anchor_count": 1,
-      "anchors": [
-        "Race_UpdateRacersFrame"
-      ],
-      "build": "pal-prototype-1994-11-29",
-      "candidate": "7E:11D3",
-      "delta": 4,
-      "evidence_tier": "candidate",
-      "name": "Player1_BoostMeter",
-      "source_confidence": 4,
-      "usa": "7E:11CF"
     },
     {
       "anchor_count": 1,
@@ -1124,6 +1274,8 @@
       "candidate": "7E:0BA1",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0BA1",
       "name": "Player1_FacedDirection",
       "source_confidence": 2,
       "usa": "7E:0BA1"
@@ -1137,6 +1289,8 @@
       "candidate": "7E:11A1",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:11A1",
       "name": "Player1_FinishGateState",
       "source_confidence": 3,
       "usa": "7E:119D"
@@ -1150,6 +1304,8 @@
       "candidate": "7E:1201",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:1201",
       "name": "Player1_FlipCount",
       "source_confidence": 4,
       "usa": "7E:11FD"
@@ -1163,6 +1319,8 @@
       "candidate": "7E:1209",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:1209",
       "name": "Player1_FlipQuarterProgress",
       "source_confidence": 4,
       "usa": "7E:1205"
@@ -1176,6 +1334,8 @@
       "candidate": "7E:0EF5",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0EF5",
       "name": "Player1_LapsRemaining",
       "source_confidence": 3,
       "usa": "7E:0EF1"
@@ -1189,6 +1349,8 @@
       "candidate": "7E:11FD",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:11FD",
       "name": "Player1_RollCount",
       "source_confidence": 4,
       "usa": "7E:11F9"
@@ -1202,6 +1364,8 @@
       "candidate": "7E:1205",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:1205",
       "name": "Player1_RollQuarterProgress",
       "source_confidence": 4,
       "usa": "7E:1201"
@@ -1215,6 +1379,8 @@
       "candidate": "7E:1365",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:1365",
       "name": "Player1_StuntAirLatch",
       "source_confidence": 3,
       "usa": "7E:1361"
@@ -1228,35 +1394,11 @@
       "candidate": "7E:042F",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:042F",
       "name": "Player1_TabletopDuration",
       "source_confidence": 5,
       "usa": "7E:042F"
-    },
-    {
-      "anchor_count": 1,
-      "anchors": [
-        "Race_UpdateRacersFrame"
-      ],
-      "build": "pal-prototype-1994-11-29",
-      "candidate": "7E:04B7",
-      "delta": 0,
-      "evidence_tier": "candidate",
-      "name": "Player1_XSpeed",
-      "source_confidence": 5,
-      "usa": "7E:04B7"
-    },
-    {
-      "anchor_count": 1,
-      "anchors": [
-        "Race_UpdateRacersFrame"
-      ],
-      "build": "pal-prototype-1994-11-29",
-      "candidate": "7E:04BB",
-      "delta": 0,
-      "evidence_tier": "candidate",
-      "name": "Player1_YSpeed",
-      "source_confidence": 5,
-      "usa": "7E:04BB"
     },
     {
       "anchor_count": 1,
@@ -1267,6 +1409,8 @@
       "candidate": "7E:042B",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:042B",
       "name": "Player1_ZFlipCount",
       "source_confidence": 4,
       "usa": "7E:042B"
@@ -1280,6 +1424,8 @@
       "candidate": "7E:11D5",
       "delta": 4,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:11D5",
       "name": "Player2_BoostMeter",
       "source_confidence": 4,
       "usa": "7E:11D1"
@@ -1293,6 +1439,8 @@
       "candidate": "7E:0BA3",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0BA3",
       "name": "Player2_FacedDirection",
       "source_confidence": 3,
       "usa": "7E:0BA3"
@@ -1306,6 +1454,8 @@
       "candidate": "7E:0413",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0413",
       "name": "Player2_XPosition",
       "source_confidence": 4,
       "usa": "7E:0413"
@@ -1319,6 +1469,8 @@
       "candidate": "7E:0417",
       "delta": 0,
       "evidence_tier": "candidate",
+      "independent_evidence": null,
+      "motion_candidate": "7E:0417",
       "name": "Player2_YPosition",
       "source_confidence": 4,
       "usa": "7E:0417"

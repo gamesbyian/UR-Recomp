@@ -46,6 +46,40 @@ FUNCTION_EDGE_OVERRIDES = {
     },
 }
 
+RAM_EDGE_OVERRIDES = {
+    ("pal-prototype-1994-11-29", "Player1_XSpeed"): {
+        "candidate": "7E:04B7",
+        "evidence_tier": "strong",
+        "independent_evidence": "bidirectional copy relation with 7E:0FA3 in Race_UpdateRacersFrame",
+    },
+    ("pal-prototype-1994-11-29", "Player1_YSpeed"): {
+        "candidate": "7E:04BB",
+        "evidence_tier": "strong",
+        "independent_evidence": "bidirectional copy relation with 7E:0FA5 in Race_UpdateRacersFrame",
+    },
+    ("pal-prototype-1994-11-29", "Player1_BoostMeter"): {
+        "candidate": "7E:11D3",
+        "evidence_tier": "strong",
+        "independent_evidence": "bidirectional copy relation with 7E:11D1 in Race_UpdateRacersFrame",
+    },
+    ("europe-retail", "Player1_XSpeed"): {
+        "candidate": "7E:04BB",
+        "evidence_tier": "strong",
+        "independent_evidence": "bidirectional copy relation with 7E:0FA9 in Race_UpdateRacersFrame",
+    },
+    ("europe-retail", "Player1_YSpeed"): {
+        "candidate": "7E:04BF",
+        "evidence_tier": "strong",
+        "independent_evidence": "bidirectional copy relation with 7E:0FAB in Race_UpdateRacersFrame",
+    },
+    ("europe-retail", "Player1_BoostMeter"): {
+        "candidate": "7E:11D9",
+        "evidence_tier": "strong",
+        "independent_evidence": "bidirectional copy relation with 7E:11D7 in Race_UpdateRacersFrame",
+    },
+}
+
+
 
 def parse_usa_ram_address(value: str) -> str | None:
     m = re.fullmatch(r"7E:([0-9A-Fa-f]{4})", value.strip("` "))
@@ -76,16 +110,22 @@ def build_ram_correspondences(symbol_doc: dict, atlas: dict) -> list[dict]:
             continue
         candidate = item["candidate_words"][0].upper()
         anchor_count = len(item["anchors"])
+        override = RAM_EDGE_OVERRIDES.get((item["build"], symbol["name"]))
         rows.append({
             "name": symbol["name"],
             "usa": f"7E:{usa}",
             "build": item["build"],
-            "candidate": f"7E:{candidate}",
+            "candidate": override["candidate"] if override else f"7E:{candidate}",
+            "motion_candidate": f"7E:{candidate}",
             "delta": item["deltas"][0],
             "source_confidence": symbol.get("confidence"),
             "anchor_count": anchor_count,
             "anchors": item["anchors"],
-            "evidence_tier": "strong" if anchor_count >= 2 else "candidate",
+            "evidence_tier": (
+                override["evidence_tier"] if override
+                else ("strong" if anchor_count >= 2 else "candidate")
+            ),
+            "independent_evidence": None if not override else override["independent_evidence"],
         })
     rows.sort(key=lambda x: (x["build"], x["evidence_tier"] != "strong", x["name"]))
     return rows
@@ -179,15 +219,16 @@ def render_md(report: dict) -> str:
         "",
         "## Named RAM fields with repeated cross-anchor support",
         "",
-        "| Symbol | USA | Build | Candidate | Delta | Anchors |",
-        "|---|---|---|---|---:|---:|",
+        "| Symbol | USA | Build | Candidate | Delta | Anchors | Independent edge |",
+        "|---|---|---|---|---:|---:|---|",
     ]
     for row in report["ram"]:
         if row["build"] == "legacy-beta" or row["evidence_tier"] != "strong":
             continue
         lines.append(
             f"| {row['name']} | `{row['usa']}` | {BUILD_LABELS[row['build']]} | "
-            f"`{row['candidate']}` | {row['delta']:+d} | {row['anchor_count']} |"
+            f"`{row['candidate']}` | {row['delta']:+d} | {row['anchor_count']} | "
+            f"{row.get('independent_evidence') or ''} |"
         )
 
     lines += [

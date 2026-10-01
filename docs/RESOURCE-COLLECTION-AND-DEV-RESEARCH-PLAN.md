@@ -138,20 +138,33 @@ Artifacts: `analysis/generated/wram-motion-atlas.json` and `.md`. Further cluste
 
 The bounded corpus is closed as a broad comparison target. `tools/classify_usa_beta_deltas.py` and `analysis/generated/usa-beta-cross-analyzer.{json,md}` show that 483/486 non-RNC changes are the systematic `0x77→0x70` SRAM-bank rewrite; with the game's 8 KiB LoROM SRAM those banks alias after the `$1FFF` mask. The remaining three edits are one header/license byte and two bytes in the SRAM boundary/mirroring probe, where the beta bypasses the retail failure branch. snes2asm marks only 39 changed bytes as code-related. Do not spend a blanket da65/Ghidra pass here; use those tools only if a future SRAM/protection question needs independent confirmation.
 
-#### Stage 3 — normalized PAL/Europe multi-analyzer comparison — current
+#### Stage 3 — comparative program-structure recovery — current
 
-The next active experiment is deliberately code-analysis focused:
+The bounded named-anchor comparisons have validated the method. The active goal is now broader and more implementation-facing: use four build variants plus independent analyzer views to recover **program structure** that is difficult to establish confidently from one ROM alone.
 
-1. start with PAL retail vs the 1994-11-29 PAL prototype because they share region/timing context while exposing genuine executable/layout change;
-2. select bounded executable windows from known raw-delta regions, prioritizing windows that intersect trusted semantic anchors, cross-build WRAM-motion families, course/rendering/physics code, or current decompilation gaps;
-3. run snes2asm over both builds and emit normalized records for instruction starts, opcodes, normalized operands/targets, control-flow edges and code/unreached classification;
-4. run bounded da65 only where CODE ranges and 65816 M/X state can be supplied from independent evidence; record disagreement rather than forcing alignment;
-5. use Ghidra/ghidra-snes only on persistent high-information disagreements involving function boundaries, code-vs-data classification, xrefs, indirect targets/jump tables or processor-state assumptions;
-6. compare SNESRecomp analyzer/generated-code structure where it adds execution/AOT information ordinary disassembly cannot;
-7. feed consensus and disagreement records back into `tools/build_comparative_code_atlas.py`, `analysis/decompilation-gaps.json` and the semantic inventory;
-8. then extend the same normalized machinery to selected Europe/USA regions and all-six-pair lineage signatures, without creating six isolated report silos.
+The builds are controlled perturbations of one program. Address shifts, preserved opcode streams, inserted/deleted blocks, and prototype/retail chronology can reveal boundaries even when the routine's semantics are not yet understood.
 
-**Discipline:** when a diff reveals an interesting gameplay fact, record and propagate it, but remain on the comparative corpus unless resolving that fact is necessary to interpret the analyzer disagreement itself.
+Work in this order:
+
+1. **Structural census.** Inventory each code-bearing bank/range for analyzer-reached instruction bytes, trusted/recovered entry labels, direct JSR/JSL targets, return/terminal instructions, indirect dispatches, embedded unreached/data islands, and known semantic ownership.
+2. **Unknown-region ranking.** Prefer regions that are executed or connected to known code, have independent Nitrodon/Dessyreqt evidence, touch physics/course/rendering/input/hardware, or show informative cross-build displacement. Down-rank isolated archaeological leftovers.
+3. **Cross-build homolog discovery.** Align selected unknown regions across USA retail, PAL prototype, Europe retail and legacy beta. Preserve piecewise alignment where embedded data or inserted blocks change displacement.
+4. **Boundary/data recovery.** Use agreement across builds and analyzers to identify function entries/exits, basic-block joins, inline data, pointer/jump tables and code/data transitions. Do not force a semantic name merely because a boundary is known.
+5. **Call-graph expansion.** Promote stable direct call edges and sibling-function relationships into the structural atlas. A newly bounded unknown function is useful if it grows the call graph around an implemented subsystem.
+6. **Operand classification.** Separate relocatable addresses/targets from genuine immediate constants. Escalate genuine cross-build constant changes when they plausibly encode timing, physics, camera or hardware adaptation.
+7. **Independent adjudication.** Use da65 only with independently known M/X and CODE ranges; use ghidra-snes only for persistent function-boundary, xref, jump-table or code/data ambiguity; use SNESRecomp analyzer/generated structure where its AOT view adds independent information.
+8. **Semantic propagation.** When structure connects to a known function/field/table, perform the bounded propagation pass and update existing authoritative surfaces rather than creating a parallel notebook.
+9. **Value-of-information stop rule.** Regional quirks are evidence, not a collection target. Stop local archaeology when the next step will not recover structure, resolve a disagreement, or change an implementation/test decision.
+
+Current foundation:
+- trusted named Europe/USA homologs: 1,455 aligned opcode positions, zero residual opcode/role/M/X disagreement outside the explicit Europe-retail checkpoint contraction;
+- trusted USA/PAL-prototype homologs: 1,465 aligned opcode positions with zero opcode/role/M/X disagreement;
+- PAL-retail/prototype survivor set closed by trusted-boundary piecewise alignment;
+- USA/beta broad-delta corpus closed as mostly SRAM-bank aliasing/protection behavior;
+- WRAM lineage brackets are bounded; direct absolute-reference mining is exhausted.
+
+**Next milestone:** recover and commit new function/data boundaries outside the existing named-anchor set, beginning with high-information unknown regions connected to executed game systems.
+
 #### Durable comparative atlas
 
 Build on the existing `tools/build_comparative_code_atlas.py`, `analysis/decompilation-gaps.json`, symbol adapters, and generated semantic inventory. Do not create a parallel tracking system.

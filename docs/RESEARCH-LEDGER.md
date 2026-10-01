@@ -1296,17 +1296,17 @@ The first Europe/USA snes2asm probe initially returned zero role disagreement fo
 
 The accepted pass seeds only independently recovered function entries before path discovery. `Collision_TransformVelocity` additionally seeds at the local `REP #$10 / SEP #$20` width setup immediately before the compared matrix body, so M/X context is established independently rather than guessed.
 
-Eight executable subregions were compared after homolog alignment: `Text_TestCharacterMetadataBit7`, `Player_ApplyVerticalAcceleration`, three independently bounded pieces of `Input_DecodePlayer1Buttons`, the matrix-application body of `Collision_TransformVelocity`, `Collision_BuildContactShape`, and `HUD_QueueMessage`.
+Fourteen executable subregions now cover text metadata, vertical acceleration, three independently bounded input-decoder pieces, collision velocity/contact-shape logic, HUD enqueue, the racer-frame state-marshal prefix, two stunt-finalizer blocks, and three course-loader/materializer blocks.
 
-Across **656 aligned opcode positions** there are:
+Across **1,152 aligned opcode positions** there are:
 - **0 opcode-byte substitutions**;
 - **0 opcode/operand role disagreements**;
 - **0 M/X disagreements**;
-- **142 changed operand bytes**.
+- **427 changed operand bytes**.
 
-Raw similarity ranges from 0.731 to 0.990, so the result is not trivial byte identity. In this selected corpus, Europe preserves the executable instruction stream while regional differences live in instruction operands, consistent with the independently recovered WRAM/layout motion.
+Raw similarity ranges from 0.674 to 0.990. The racer-frame marshal prefix is the strongest example: only 67.4% of raw bytes match, yet all 208 aligned opcode bytes are identical and 203 changed bytes are operands. This is direct comparative evidence of regional state-layout retargeting inside preserved executable structure.
 
-**Interpretation:** do not escalate these eight regions to da65/Ghidra. Preserve their operand changes as regional address/constant evidence. Also treat analyzer reachability itself as part of the comparison contract: `unreached→unreached` is not consensus.
+**Interpretation:** do not escalate these fourteen regions to da65/Ghidra. Preserve their operand changes as regional address/constant evidence. Also treat analyzer reachability itself as part of the comparison contract: `unreached→unreached` is not consensus.
 
-**Evidence:** `tools/compare_europe_usa_snes2asm_homologs.py`; `analysis/generated/europe-usa-snes2asm-homologs.{json,md}`; run `36815908366`; Nitrodon bank-80/81/82 listings.
+**Evidence:** `tools/compare_europe_usa_snes2asm_homologs.py`; `analysis/generated/europe-usa-snes2asm-homologs.{json,md}`; run `36816088608`; Nitrodon bank-80/81/82 listings.
 

@@ -131,18 +131,6 @@ def _bridge_startup_timeout(session_timeout: int) -> float:
     return min(float(session_timeout), 60.0)
 
 
-def _session_log_diagnostics(root: Path, tail_chars: int = 4000) -> str:
-    parts: list[str] = []
-    for name in ("mesen.stdout.log", "mesen.stderr.log"):
-        path = root / name
-        if not path.is_file():
-            continue
-        text = path.read_text(encoding="utf-8", errors="replace")
-        if text:
-            parts.append(f"\n{name} tail:\n{text[-tail_chars:]}")
-    return "".join(parts)
-
-
 def _free_port() -> int:
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))

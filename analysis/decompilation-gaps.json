@@ -121,6 +121,14 @@
       "summary": "Recovered the complete checkpoint/finish object-code 0x14 handler as 15 gapless USA code regions. Europe alone contracts the 22-byte frame-normalization block by 14 bytes. PAL prototype and Europe additionally omit five instruction-aligned USA/beta blocks totaling 29 bytes, so their late-handler shift staircases are the same lineage with Europe offset by the earlier timer contraction.",
       "priority": "low",
       "next_evidence": "Revisit deleted-store semantics only if race-results/finish fidelity or regional timing behavior requires them. Comparative structure work should move to an eighth independent subsystem."
+    },
+    {
+      "id": "resolved-stunt-finalizer-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 82:9A42..A01A and homologs",
+      "summary": "Recovered the complete stunt-finalization/scoring routine plus its three score-weight tables and 625-byte trick/praise lookup. USA/beta are byte-identical; PAL prototype and Europe omit five USA/beta NOPs at 82:9D09..9D0D, while all four scoring tables remain byte-identical across every build.",
+      "priority": "low",
+      "next_evidence": "Revisit individual praise-table semantics only for stunt-scoring/message implementation or a concrete fidelity discrepancy. Comparative structure work should move to a ninth independent subsystem."
     }
   ]
 }

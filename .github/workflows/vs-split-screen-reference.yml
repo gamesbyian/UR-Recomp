@@ -164,6 +164,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # 1140 is a race-entry observation seam; dense common-schedule tracing matched it,
+          # but sparse dump cadence can perturb that transient. Gate stable post-entry state.
           CHECKPOINTS=(
             --checkpoint vs-race-1240
             --checkpoint vs-race-1340

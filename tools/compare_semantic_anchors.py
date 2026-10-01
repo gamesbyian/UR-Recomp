@@ -137,6 +137,59 @@ def similarity(a: bytes, b: bytes) -> float:
     return sum(x == y for x, y in zip(a[:n], b[:n])) / n
 
 
+def compact_diff_runs(a: bytes, b: bytes, *, max_runs: int = 24) -> list[dict]:
+    """Return bounded relative byte-difference runs for structural inspection."""
+    n = min(len(a), len(b))
+    runs = []
+    i = 0
+    while i < n:
+        if a[i] == b[i]:
+            i += 1
+            continue
+        start = i
+        while i < n and a[i] != b[i]:
+            i += 1
+        end = i
+        runs.append({
+            "relative_start": start,
+            "relative_end_exclusive": end,
+            "length": end - start,
+            "usa_hex": a[start:end].hex(),
+            "candidate_hex": b[start:end].hex(),
+        })
+        if len(runs) >= max_runs:
+            break
+    return runs
+
+
+def changed_le16_pairs(a: bytes, b: bytes, *, max_pairs: int = 32) -> list[dict]:
+    """Surface changed little-endian word-sized operands without claiming semantics."""
+    out = []
+    n = min(len(a), len(b))
+    seen = set()
+    for i in range(n - 1):
+        if a[i:i+2] == b[i:i+2]:
+            continue
+        # Prefer windows where at least one adjacent byte survives, which is common
+        # for relocated addresses/constants and avoids flooding on long rewrites.
+        if i and a[i-1] != b[i-1] and i + 2 < n and a[i+2] != b[i+2]:
+            continue
+        key = (i, a[i:i+2], b[i:i+2])
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append({
+            "relative_offset": i,
+            "usa_le16": int.from_bytes(a[i:i+2], "little"),
+            "candidate_le16": int.from_bytes(b[i:i+2], "little"),
+            "usa_hex": a[i:i+2].hex(),
+            "candidate_hex": b[i:i+2].hex(),
+        })
+        if len(out) >= max_pairs:
+            break
+    return out
+
+
 def ngram_votes(anchor: bytes, target: bytes, *, k: int, stride: int, max_hits: int) -> Counter[int]:
     votes: Counter[int] = Counter()
     seen = set()
@@ -199,6 +252,8 @@ def score_candidates(anchor: Anchor, usa: bytes, target: bytes, *, top: int, k: 
             "ngram_vote_fraction": round(vote_fraction, 6),
             "ngram_votes": vote_count,
             "semantic_hits": sem,
+            "diff_runs": compact_diff_runs(source, region),
+            "changed_le16_pairs": changed_le16_pairs(source, region),
             "sha256": hashlib.sha256(region).hexdigest(),
         })
 
@@ -303,6 +358,28 @@ def main() -> None:
                     f"{match['score']:.3f} | {match['byte_similarity']:.3f} | "
                     f"{match['semantic_reference_recall']:.3f} | {match['ngram_votes']} |"
                 )
+        # Only the top candidate gets byte-delta detail in Markdown. JSON retains
+        # bounded delta summaries for every reported candidate.
+        for build_name, matches in anchor["matches"].items():
+            if not matches:
+                continue
+            top_match = matches[0]
+            lines += [
+                f"### {build_name} top-candidate deltas",
+                "",
+                f"Top candidate: `{top_match['cpu_address']}`; "
+                f"byte similarity {top_match['byte_similarity']:.3f}; "
+                f"semantic-reference recall {top_match['semantic_reference_recall']:.3f}.",
+                "",
+                "| Rel | Len | USA | Candidate |",
+                "|---:|---:|---|---|",
+            ]
+            for run in top_match["diff_runs"]:
+                lines.append(
+                    f"| `+0x{run['relative_start']:X}` | {run['length']} | "
+                    f"`{run['usa_hex']}` | `{run['candidate_hex']}` |"
+                )
+            lines.append("")
         lines.append("")
 
     OUT_MD.write_text("\n".join(lines), encoding="utf-8")

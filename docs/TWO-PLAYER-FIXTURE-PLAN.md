@@ -132,7 +132,11 @@ Recovered split-screen/OAM staging:
 
 Bank 82 computes these bytes from racer positions and camera state, substitutes off-screen sentinel coordinates on rejection paths, updates visibility bits in `$1599`, and then `82:D2D8..` streams `$1501..$1510` directly to OAMDATA. This is therefore a concrete camera → screen-relative projection/culling → sprite-emission bridge.
 
-These fields are initially observational in CI. Do not turn them into absolute-host-frame equality gates: the closed frame-origin investigation already proved that libretro cores and the native host can cut a vblank-shaped transition on adjacent absolute frame ordinals. Promote durable camera assertions only from stable/event-relative behavior.
+Run 79 supplies the first event-relative camera evidence from the promoted fixture. At the 1470 baseline both cameras sit at X=984 with zero X velocity. After the P1-only interval, both runtimes report camera 1 at X=1455 with positive velocity 15 while camera 2 remains at X=984 with zero velocity. During the following P2-only interval, camera 2 begins following the second racer (native X=1082/vx=11; Snes9x X=1089/vx=10). During simultaneous P1-right/P2-left input, camera 2 reverses left in both runtimes while camera 1 continues right.
+
+The same fixture exposes the split-screen culling sentinels produced by bank 82. Once P1 has pulled away, screen 1 represents P2 as `0x70/0x70` and screen 2 represents P1 as `0x30/0x30`, matching the recovered off-screen branches that write those exact coordinate pairs.
+
+These relationships are now durable event-relative assertions in the ordinary-2P workflow. They deliberately assert ownership/direction/culling behavior rather than exact post-input cross-runtime coordinates: the closed frame-origin investigation already proved that libretro cores and the native host can cut a vblank-shaped transition on adjacent absolute frame ordinals.
 
 ## Downstream obligations
 

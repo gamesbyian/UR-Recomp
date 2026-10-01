@@ -83,6 +83,21 @@ ANCHORS = (
         "Per-player 32-entry stunt/HUD message-ring enqueue path.",
     ),
     Anchor(
+        "Camera_MapGeometrySetup",
+        "81:A50E",
+        0x1D,
+        (0x04F1, 0x04F3, 0x0553, 0x0DD9),
+        "Recovered Nitrodon setup block: map-width geometry and derived camera/map state through RTS at 81:A52A.",
+    ),
+    Anchor(
+        "Camera_UpdatePersistentState",
+        "81:A52F",
+        0x70,
+        (0x0419, 0x041B, 0x041D, 0x041F, 0x04F5, 0x04F7, 0x04F9, 0x04FB,
+         0x0BE9, 0x0BEB, 0x0D49, 0x0DDB),
+        "Recovered camera-position update block spanning both player camera state paths.",
+    ),
+    Anchor(
         "Collision_BuildContactShape",
         "81:9E2A",
         0x220,

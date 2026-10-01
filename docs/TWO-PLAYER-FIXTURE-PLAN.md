@@ -193,3 +193,22 @@ This closes the recovered **observability + scene reachability** blocker for the
 
 
 The active-display writes are driven by a stable WRAM HDMA table at `7E:206C`: `70 A5 70 5A 00`. HDMA channel 1 runs mode 0 to `$2104`, producing the observed 112-line split. Future OAM archaeology can therefore start from a tiny deterministic source table instead of rediscovering the raster schedule.
+
+## Controller replay boundary result
+
+The deterministic fixture contract is now bounded tightly enough for project use.
+
+Both project adapters apply the neutral input-file mask from the current zero-based guest-frame counter immediately before executing exactly one guest frame, then increment that counter afterward. Native does this in the desktop host before `RtlRunFrame`; `snesref` does it immediately before `retro_run`. Therefore an event beginning at fixture frame `N` is presented to guest frame `N` in both paths.
+
+On the game side, the ordinary interrupt paths snapshot the SNES auto-joypad result registers `$4218-$421B` into `$030D-$0310`. The currently mapped long-vector target has alternate handlers at `80:85A5` and `80:8610`; both use a full controller snapshot on their applicable path. The separate helper at `80:D1DB` reads `$4218/$421A` directly and is heavily used by blocking frontend/setup loops. Those reads do not consume the hardware latch.
+
+For deterministic fixtures, the required invariant is therefore small:
+
+- keep each controller mask constant for the whole guest frame;
+- index events by guest frame, not presentation frame or wall time;
+- advance the fixture clock only when a guest frame actually executes;
+- do not attempt to model individual reads of `$4218-$421B` inside a frame.
+
+The dense VS race-entry microtrace additionally showed exact native/Snes9x agreement at every sampled 10-frame checkpoint from 1040 through 1240 when both were observed with the same schedule. A mismatch seen only at the sparse `vs-race-1140` observation schedule is therefore treated as observation-cadence sensitivity at the race-entry seam, not evidence that the input adapters disagree by one frame. Stable post-entry checkpoints are the parity gate.
+
+This closes the controller-poll/replay-boundary task for the current deterministic harness. Reopen it only if a future fixture demonstrates a reproducible mismatch that depends on intra-frame input changes, lag-frame semantics, or a host path that advances its event clock without executing a guest frame.

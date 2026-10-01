@@ -36,6 +36,30 @@ def local_profile(src,dst,start,end,center,window=16):
   pos=hi+1
  return out
 
+
+def opcode_starts(d,start,end):
+ return [off for off in range(start,end+1) if d.code_map[off]&d.OP_CODE]
+
+def boundary_candidates(src,dst,sd,td,start,end,centers):
+ """Find instruction-aligned USA cut points where the preferred homolog shift changes."""
+ starts=opcode_starts(sd,start,end)
+ out=[]
+ for off in starts:
+  best=None
+  for shift in centers:
+   toff=off+shift
+   if toff<0 or toff>=len(dst) or not (td.code_map[toff]&td.OP_CODE):
+    continue
+   # Score from this opcode through up to the next 23 bytes, stopping at region end.
+   hi=min(end,off+23)
+   n=hi-off+1
+   score=sum(src[off+i]==dst[toff+i] for i in range(n))/n
+   cand=(score,shift)
+   if best is None or cand>best: best=cand
+  if best:
+   out.append({"usa":offset_to_cpu(off),"shift":best[1],"similarity":round(best[0],6)})
+ return out
+
 def roles(d,s,e):
  op=pa=ot=0
  for x in range(s,e+1):
@@ -66,7 +90,11 @@ def build():
     row["builds"][build]["local_shift_profile_16byte"]=local_profile(usa,blob,us,ue,shift)
     row["builds"][build]["local_shift_profile_4byte"]=local_profile(usa,blob,us,ue,shift,window=4)
   rows.append(row)
+ late_start,late_end=cpu_to_offset("81:81D4"),cpu_to_offset("81:82E0")
+ proto_candidates=boundary_candidates(usa,blobs["pal-prototype-1994-11-29"],ds["usa-retail"],ds["pal-prototype-1994-11-29"],late_start,late_end,[0,-6,-12,-18,-25,-29])
+ europe_candidates=boundary_candidates(usa,blobs["europe-retail"],ds["usa-retail"],ds["europe-retail"],late_start,late_end,[-14,-20,-26,-32,-39,-43])
  return {"schema_version":1,"island":"Race_HandleCheckpointFinish","usa_start":"81:8050","usa_end":"81:82E0",
+ "instruction_aligned_shift_candidates":{"pal-prototype-1994-11-29":proto_candidates,"europe-retail":europe_candidates},
  "dispatch":{"object_code":"0x14","entry":"81:8050","shared_exit":"81:82E1"},
  "lineage_edits":[{"usa_span":"81:8102..8117","europe_span":"81:8102..8109","effect":"Europe retail contracts the 22-byte frame-normalization block to 8 bytes; PAL prototype and beta retain USA shape."}],
  "regions":rows}

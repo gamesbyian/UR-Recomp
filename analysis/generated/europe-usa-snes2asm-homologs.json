@@ -1,4 +1,33 @@
 {
+  "checkpoint_frame_normalization_lineage": {
+    "builds": {
+      "europe-retail": {
+        "bytes_8102_8109": "ad 29 0e 0a 18 6d 00 03",
+        "bytes_8102_8117": "ad 29 0e 0a 18 6d 00 03 99 3f 0e 18 65 00 85 02 c0 00 00 d0 39 a2",
+        "style": "europe-style-8-byte"
+      },
+      "legacy-beta": {
+        "bytes_8102_8109": "ad 1f 0e c9 04 00 30 01",
+        "bytes_8102_8117": "ad 1f 0e c9 04 00 30 01 3a 0a 18 6d 00 03 c9 0a 00 30 03 a9 09 00",
+        "style": "usa-style-22-byte"
+      },
+      "pal-prototype-1994-11-29": {
+        "bytes_8102_8109": "ad 23 0e c9 04 00 30 01",
+        "bytes_8102_8117": "ad 23 0e c9 04 00 30 01 3a 0a 18 6d 00 03 c9 0a 00 30 03 a9 09 00",
+        "style": "usa-style-22-byte"
+      },
+      "usa-retail": {
+        "bytes_8102_8109": "ad 1f 0e c9 04 00 30 01",
+        "bytes_8102_8117": "ad 1f 0e c9 04 00 30 01 3a 0a 18 6d 00 03 c9 0a 00 30 03 a9 09 00",
+        "style": "usa-style-22-byte"
+      }
+    },
+    "cpu_start": "81:8102",
+    "europe_style_hex": "ad 29 0e 0a 18 6d 00 03",
+    "europe_style_span": "81:8102..81:8109",
+    "usa_style_hex": "ad 1f 0e c9 04 00 30 01 3a 0a 18 6d 00 03 c9 0a 00 30 03 a9 09 00",
+    "usa_style_span": "81:8102..81:8117"
+  },
   "method": {
     "alignment": "per executable subregion raw-byte similarity within +/-64 bytes",
     "analyzer": "vendored snes2asm",
@@ -506,16 +535,376 @@
       "usa_file_end": 90879,
       "usa_file_start": 90646,
       "usa_start": "82:E216"
+    },
+    {
+      "aligned_equal_opcode_pairs": 75,
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_byte_consensus_fraction": 1,
+      "aligned_opcode_byte_disagreements": 0,
+      "aligned_opcode_changes": [],
+      "aligned_opcode_pairs": 75,
+      "aligned_operand_byte_changes": 17,
+      "aligned_residuals": [],
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 75,
+        "operand->operand": 103
+      },
+      "basis": "Dispatch-confirmed handler entry through accumulated minute/second/tenths total; Europe remains at the same code layout through this boundary.",
+      "europe_end": "81:8101",
+      "europe_shift": 0,
+      "europe_start": "81:8050",
+      "expected_europe_shift": 0,
+      "name": "Race_HandleCheckpointFinish:entry_and_time_prefix",
+      "raw_similarity_after_alignment": 0.904494,
+      "same_offset_mx_disagreements": 0,
+      "same_offset_opcode_pairs": 75,
+      "same_offset_role_disagreements": 0,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 75,
+        "operand->operand": 103
+      },
+      "usa_end": "81:8101",
+      "usa_file_end": 33025,
+      "usa_file_start": 32848,
+      "usa_start": "81:8050"
+    },
+    {
+      "aligned_equal_opcode_pairs": 3,
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_byte_consensus_fraction": 0.428571,
+      "aligned_opcode_byte_disagreements": 4,
+      "aligned_opcode_changes": [
+        {
+          "europe_offset": 33020,
+          "europe_opcode": "0x7F",
+          "relative_offset": 0,
+          "usa_offset": 33026,
+          "usa_opcode": "0xAD"
+        },
+        {
+          "europe_offset": 33026,
+          "europe_opcode": "0xAD",
+          "relative_offset": 6,
+          "usa_offset": 33032,
+          "usa_opcode": "0x30"
+        },
+        {
+          "europe_offset": 33034,
+          "europe_opcode": "0x99",
+          "relative_offset": 14,
+          "usa_offset": 33040,
+          "usa_opcode": "0xC9"
+        },
+        {
+          "europe_offset": 33037,
+          "europe_opcode": "0x18",
+          "relative_offset": 17,
+          "usa_offset": 33043,
+          "usa_opcode": "0x30"
+        }
+      ],
+      "aligned_opcode_pairs": 7,
+      "aligned_operand_byte_changes": 6,
+      "aligned_residuals": [
+        {
+          "prototype_byte": "0x81",
+          "prototype_offset": 33023,
+          "prototype_role": "operand",
+          "relative_offset": 3,
+          "retail_byte": "0xC9",
+          "retail_offset": 33029,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x85",
+          "prototype_offset": 33024,
+          "prototype_role": "opcode",
+          "relative_offset": 4,
+          "retail_byte": "0x04",
+          "retail_offset": 33030,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x0E",
+          "prototype_offset": 33028,
+          "prototype_role": "operand",
+          "relative_offset": 8,
+          "retail_byte": "0x3A",
+          "retail_offset": 33034,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x65",
+          "prototype_offset": 33038,
+          "prototype_role": "opcode",
+          "relative_offset": 18,
+          "retail_byte": "0x03",
+          "retail_offset": 33044,
+          "retail_role": "operand"
+        },
+        {
+          "prototype_byte": "0x00",
+          "prototype_offset": 33039,
+          "prototype_role": "operand",
+          "relative_offset": 19,
+          "retail_byte": "0xA9",
+          "retail_offset": 33045,
+          "retail_role": "opcode"
+        },
+        {
+          "prototype_byte": "0x85",
+          "prototype_offset": 33040,
+          "prototype_role": "opcode",
+          "relative_offset": 20,
+          "retail_byte": "0x09",
+          "retail_offset": 33046,
+          "retail_role": "operand"
+        }
+      ],
+      "aligned_role_disagreements": 6,
+      "aligned_role_pairs": {
+        "opcode->opcode": 7,
+        "opcode->operand": 3,
+        "operand->opcode": 3,
+        "operand->operand": 9
+      },
+      "allow_structural_delta": true,
+      "basis": "Bounded timer-frame normalization block. USA uses 22 bytes (8102..8117); Europe uses 8 bytes (8102..8109), after which the shared suffix resumes at Europe 810A / USA 8118 for a net -14 shift.",
+      "europe_end": "81:8111",
+      "europe_explicit_end": "81:8109",
+      "europe_explicit_start": "81:8102",
+      "europe_shift": -6,
+      "europe_start": "81:80FC",
+      "expected_europe_shift": -6,
+      "name": "Race_HandleCheckpointFinish:frame_normalization_delta",
+      "raw_similarity_after_alignment": 0.272727,
+      "same_offset_mx_disagreements": 0,
+      "same_offset_opcode_pairs": 6,
+      "same_offset_role_disagreements": 9,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 6,
+        "opcode->operand": 4,
+        "operand->opcode": 5,
+        "operand->operand": 7
+      },
+      "structural_delta": {
+        "europe_end": "81:8109",
+        "europe_hex": "ad 29 0e 0a 18 6d 00 03",
+        "europe_opcode_bytes": [
+          "0xAD",
+          "0x0A",
+          "0x18",
+          "0x6D"
+        ],
+        "europe_span_bytes": 8,
+        "europe_start": "81:8102",
+        "net_size_delta_europe_minus_usa": -14,
+        "usa_hex": "ad 1f 0e c9 04 00 30 01 3a 0a 18 6d 00 03 c9 0a 00 30 03 a9 09 00",
+        "usa_opcode_bytes": [
+          "0xAD",
+          "0xC9",
+          "0x30",
+          "0x3A",
+          "0x0A",
+          "0x18",
+          "0x6D",
+          "0xC9",
+          "0x30",
+          "0xA9"
+        ],
+        "usa_span_bytes": 22
+      },
+      "usa_end": "81:8117",
+      "usa_file_end": 33047,
+      "usa_file_start": 33026,
+      "usa_start": "81:8102"
+    },
+    {
+      "aligned_equal_opcode_pairs": 5,
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_byte_consensus_fraction": 1,
+      "aligned_opcode_byte_disagreements": 0,
+      "aligned_opcode_changes": [],
+      "aligned_opcode_pairs": 5,
+      "aligned_operand_byte_changes": 1,
+      "aligned_residuals": [],
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 5,
+        "operand->operand": 6
+      },
+      "basis": "Post-normalization race-time sum and player branch; local profile independently shows exact downstream homolog shift -14.",
+      "europe_end": "81:8114",
+      "europe_shift": -14,
+      "europe_start": "81:810A",
+      "expected_europe_shift": -14,
+      "name": "Race_HandleCheckpointFinish:time_suffix",
+      "raw_similarity_after_alignment": 0.909091,
+      "same_offset_mx_disagreements": 0,
+      "same_offset_opcode_pairs": 0,
+      "same_offset_role_disagreements": 8,
+      "same_offset_role_pairs": {
+        "opcode->operand": 5,
+        "operand->opcode": 3,
+        "operand->operand": 3
+      },
+      "usa_end": "81:8122",
+      "usa_file_end": 33058,
+      "usa_file_start": 33048,
+      "usa_start": "81:8118"
+    },
+    {
+      "aligned_equal_opcode_pairs": 58,
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_byte_consensus_fraction": 1,
+      "aligned_opcode_byte_disagreements": 0,
+      "aligned_opcode_changes": [],
+      "aligned_opcode_pairs": 58,
+      "aligned_operand_byte_changes": 6,
+      "aligned_residuals": [],
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 58,
+        "operand->operand": 56
+      },
+      "basis": "Player-specific persistent record update block; bounded at the shared lap-update join 81:8195.",
+      "europe_end": "81:8186",
+      "europe_shift": -14,
+      "europe_start": "81:8115",
+      "expected_europe_shift": 0,
+      "name": "Race_HandleCheckpointFinish:player_records",
+      "raw_similarity_after_alignment": 0.947368,
+      "same_offset_mx_disagreements": 0,
+      "same_offset_opcode_pairs": 35,
+      "same_offset_role_disagreements": 47,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 35,
+        "opcode->operand": 23,
+        "operand->opcode": 24,
+        "operand->operand": 32
+      },
+      "usa_end": "81:8194",
+      "usa_file_end": 33172,
+      "usa_file_start": 33059,
+      "usa_start": "81:8123"
+    },
+    {
+      "aligned_equal_opcode_pairs": 24,
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_byte_consensus_fraction": 1,
+      "aligned_opcode_byte_disagreements": 0,
+      "aligned_opcode_changes": [],
+      "aligned_opcode_pairs": 24,
+      "aligned_operand_byte_changes": 11,
+      "aligned_residuals": [],
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 24,
+        "operand->operand": 39
+      },
+      "basis": "Shared lap decrement and HUD-message phase; stops before the later Nitrodon listing becomes width-ambiguous around 81:81EC.",
+      "europe_end": "81:81C5",
+      "europe_shift": -14,
+      "europe_start": "81:8187",
+      "expected_europe_shift": 0,
+      "name": "Race_HandleCheckpointFinish:lap_hud",
+      "raw_similarity_after_alignment": 0.825397,
+      "same_offset_mx_disagreements": 0,
+      "same_offset_opcode_pairs": 10,
+      "same_offset_role_disagreements": 28,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 10,
+        "opcode->operand": 14,
+        "operand->opcode": 14,
+        "operand->operand": 25
+      },
+      "usa_end": "81:81D3",
+      "usa_file_end": 33235,
+      "usa_file_start": 33173,
+      "usa_start": "81:8195"
+    },
+    {
+      "aligned_equal_opcode_pairs": 76,
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_byte_consensus_fraction": 1,
+      "aligned_opcode_byte_disagreements": 0,
+      "aligned_opcode_changes": [],
+      "aligned_opcode_pairs": 76,
+      "aligned_operand_byte_changes": 26,
+      "aligned_residuals": [],
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 76,
+        "operand->operand": 105
+      },
+      "basis": "Player-1 world/camera-to-screen projection begins with REP #$30 and runs through its bounded offscreen-classification join.",
+      "europe_end": "82:ADAE",
+      "europe_shift": 7,
+      "europe_start": "82:ACFA",
+      "expected_europe_shift": 7,
+      "name": "Race_BuildRacerOAMState:p1_projection",
+      "raw_similarity_after_alignment": 0.856354,
+      "same_offset_mx_disagreements": 10,
+      "same_offset_opcode_pairs": 32,
+      "same_offset_role_disagreements": 87,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 32,
+        "opcode->operand": 44,
+        "operand->opcode": 43,
+        "operand->operand": 62
+      },
+      "usa_end": "82:ADA7",
+      "usa_file_end": 77223,
+      "usa_file_start": 77043,
+      "usa_start": "82:ACF3"
+    },
+    {
+      "aligned_equal_opcode_pairs": 65,
+      "aligned_mx_disagreements": 0,
+      "aligned_opcode_byte_consensus_fraction": 1,
+      "aligned_opcode_byte_disagreements": 0,
+      "aligned_opcode_changes": [],
+      "aligned_opcode_pairs": 65,
+      "aligned_operand_byte_changes": 22,
+      "aligned_residuals": [],
+      "aligned_role_disagreements": 0,
+      "aligned_role_pairs": {
+        "opcode->opcode": 65,
+        "operand->operand": 86
+      },
+      "basis": "Player-2 sibling projection begins with REP #$30 and runs through its bounded offscreen-classification jump.",
+      "europe_end": "82:AE5E",
+      "europe_shift": 7,
+      "europe_start": "82:ADC8",
+      "expected_europe_shift": 7,
+      "name": "Race_BuildRacerOAMState:p2_projection",
+      "raw_similarity_after_alignment": 0.854305,
+      "same_offset_mx_disagreements": 10,
+      "same_offset_opcode_pairs": 30,
+      "same_offset_role_disagreements": 69,
+      "same_offset_role_pairs": {
+        "opcode->opcode": 30,
+        "opcode->operand": 35,
+        "operand->opcode": 34,
+        "operand->operand": 52
+      },
+      "usa_end": "82:AE57",
+      "usa_file_end": 77399,
+      "usa_file_start": 77249,
+      "usa_start": "82:ADC1"
     }
   ],
   "schema_version": 1,
   "totals": {
     "aligned_mx_disagreements": 0,
     "aligned_opcode_byte_disagreements": 0,
-    "aligned_opcode_pairs": 1152,
-    "aligned_operand_byte_changes": 427,
+    "aligned_opcode_pairs": 1455,
+    "aligned_operand_byte_changes": 510,
     "aligned_role_disagreements": 0,
-    "regions": 14,
-    "zero_role_disagreement_regions": 14
+    "comparable_homolog_regions": 20,
+    "regions": 21,
+    "structural_delta_regions": 1,
+    "zero_role_disagreement_regions": 20
   }
 }

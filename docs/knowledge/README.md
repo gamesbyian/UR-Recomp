@@ -8,7 +8,7 @@ It does **not** own raw evidence, chronology, milestone status, or source proven
 - Recovered addresses and routine/data names belong in `docs/SYMBOLS.md`.
 - Current implementation priority belongs in `docs/WORK-QUEUE.md`.
 - Course-specific investigation detail belongs in `docs/COURSE-FORMAT.md`.
-- External artifacts and provenance belong under `references/`.
+- External artifacts and provenance belong under `reference/`.
 - Machine-generated measurements belong under `analysis/generated/`.
 
 The knowledge base answers a different question: **what coherent model of the game follows from all of those sources together?**

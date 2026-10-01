@@ -14,12 +14,12 @@ SPEC.loader.exec_module(MODULE)
 
 class Usjo8BoostModelTests(unittest.TestCase):
     def test_generated_model_is_fresh(self):
-        source = (ROOT / "references/imported/tas-bots/usjo8.lua").read_text(encoding="utf-8")
+        source = (ROOT / "reference/imported/tas-bots/usjo8.lua").read_text(encoding="utf-8")
         expected = json.loads((ROOT / "analysis/generated/usjo8-boost-model.json").read_text(encoding="utf-8"))
         self.assertEqual(MODULE.build_model(source), expected)
 
     def test_key_reward_rules(self):
-        source = (ROOT / "references/imported/tas-bots/usjo8.lua").read_text(encoding="utf-8")
+        source = (ROOT / "reference/imported/tas-bots/usjo8.lua").read_text(encoding="utf-8")
         model = MODULE.build_model(source)
         self.assertEqual([r["reward"] for r in model["reward_rules"]["flips"]], [176, 200, 224, 248])
         self.assertEqual([r["reward"] for r in model["reward_rules"]["rolls"]], [128, 152, 176, 200])

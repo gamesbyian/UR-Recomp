@@ -804,7 +804,7 @@
     {
       "id": "historical-2008-wip-input",
       "input_file": "tests/input/historical-2008-wip.input",
-      "source_movie": "references/imported/tas-bots/uniracers-2008-wip-microstorage.smv",
+      "source_movie": "reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv",
       "purpose": "Frozen exact controller stream extracted from Halamantariel's reset-anchored 2008 SMV WIP, used as a historical autonomous/optimized replay corpus and candidate exact Dragster finish workload.",
       "engines": [
         "snesref-snes9x",

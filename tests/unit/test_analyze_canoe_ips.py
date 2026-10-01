@@ -30,7 +30,7 @@ class CanoeIpsTests(unittest.TestCase):
         self.assertNotIn("semantic_summary", report)
 
     def test_recovered_patch_semantics(self):
-        patch = (ROOT / "references/imported/patches/uniracers_canoe.ips").read_bytes()
+        patch = (ROOT / "reference/imported/patches/uniracers_canoe.ips").read_bytes()
         rom = (ROOT / "reference/roms/retail/Uniracers_USA.sfc").read_bytes()
         report = analyze(patch, rom)
         summary = report["semantic_summary"]

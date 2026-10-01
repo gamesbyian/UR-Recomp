@@ -1,0 +1,2079 @@
+
+--==========================================================================
+--  _   _   __   _   _   _____        ___   _____   _____   _____    _____
+-- | | | | |  \ | | | | |  _  \      /   | /  ___| | ____| |  _  \  /  ___/
+-- | | | | |   \| | | | | |_| |     / /| | | |     | |__   | |_| |  | |___
+-- | | | | | |\   | | | |  _  /    / / | | | |     |  __|  |  _  /  \___  \
+-- | |_| | | | \  | | | | | \ \   / /  | | | |___  | |___  | | \ \   ___| |
+-- \_____/ |_|  \_| |_| |_|  \_\ /_/   |_| \_____| |_____| |_|  \_\ /_____/
+--
+--        |¯  ¯|¯ | | |\| ¯|¯   /¯\ |\| |¯\    ¯|¯ | | |\/| |¯|
+--         ¯|  |  |_| | |  |    |¯| | | |_/   |_|  |_| |  | |¯
+--  _____  ¯_____   _____   _       ___  ___   _   ______  _____   _____
+-- /  _  \ |  _  \ |_   _| | |     /   |/   | | | |___  / | ____| |  _  \
+-- | | | | | |_| |   | |   | |    / /|   /| | | |    / /  | |__   | |_| |
+-- | | | | |  ___/   | |   | |   / / |__/ | | | |   / /   |  __|  |  _  /
+-- | |_| | | |       | |   | |  / /       | | | |  / /__  | |___  | | \ \
+-- \_____/ |_|       |_|   |_| /_/        |_| |_| /_____| |_____| |_|  \_\
+--
+--==========================================================================
+--                           November 19, 2009
+--                           (Internal Version 14a)
+--==========================================================================
+
+--- IMPORTANT REMINDER: LUA SCRIPTING BREAKS WITH SNES9X SLOWDOWN (50% or 2% in "normal" speed mode for example)
+--- WARNING: THIS SCRIPT OVERWRITES SAVESTATE SLOT 11.
+
+-- ====== Usage notes =======
+-- In general, to find the true optimum you'll want every permutation of the following:
+-- 0.) Always back up a few frames and use a nice wide currentStunt.frameWait window (like 0 to 5 or 0 to 10) even if you think you know the best jump frame
+-- 1.) reverseFlipRoll = 1; reverseFlipRoll = 0
+-- 2.) twistOffset = 1; twistOffset = -3; twistOffset = -5; (if you have some currentStunt.frameWait, try a twistOffset equal to your maxFrameWait?)
+-- 3.) If its a short jump (less than a TtFT), or you're using minimumY or maximumY, try assumeNothing = 1, but try permutations with assumeNothing = 0 as well!
+-- 4.) If you think maxBFrames is a good idea, try the above permutations with maxBFrames = 0 too
+-- For extra diligence, watch the bot run in frame advance (or even just trick executer on a trick it isn't finding), and see if you need some flip or roll overcorrect
+
+-- ====== Parameters for Script ======
+startFrame = 0 -- The lowest value to use for currentStunt.frameWait
+maxFrameWait = 5 -- The highest value to use for currentStunt.frameWait (can be set equal to startFrame)
+frameIncrement = 1 -- The increment by which it steps through the currentStunt.frameWait range
+
+changeDirection = 0 -- 1 = yes, 0 = no -- To be used if you want to score the speed of a jump based on going the opposite direction as the jump started (zippers)
+forceDirection = 0 -- 1 = right, -1 = left -- To be used if you have zero speed or another case where you want the bot to go in a direction
+
+reverseFlipRoll = 1 -- 0 = no, 1 = yes -- Change the order in which you flip and roll, always try a jump both with and without this!  On a good ramp, particularly steep ones, you will likely want this to = 1
+
+flipOvercorrect = 0 -- Extra frames of flipping after all flipping and rolling are complete
+rollOvercorrect = 0 -- Ditto, try them both, sometimes flipping and rolling get mixed up due to z rotation
+zFlipPreference = 0 -- 0 = perform a flip, 1 = perform a roll (default) -- What button do you hold with the z-flip if not flipping or rolling
+
+maxBFrames = 0 -- default = 0; only works with currentStunt.frameWait = 0 (startFrame = 0 and maxFrameWait = 0) -- hold B for this number of frames and no more
+twistOffset = 3 -- How many frames back to try starting a pre-twist.  Set to -3 to stop pre-twisting?
+
+assumeNothing = 0 -- 0 = no, 1 = yes, if yes, will start each jump trying no tricks and build up from there, vs. the "conservative guess".  useful if trying to find a case without a TtT
+maximumY =  3200000 -- Y to end above, use if trying to get up on a platform, should be tried with assumeNothing = 1
+minimumY = -3200000 -- Y to end below, use if trying to get down to a level, must be used with assumeNothing = 1
+wholeTwistsOnly = 1 -- 0 = no, 1 = yes, increments twist attempts by 2 instead of 1
+
+searchWindow = 1 -- How many frames after landing to wait until assessing speed and boost
+minJump = 4 -- Minimum jump duration worth looking at in more detail, change if some framewaits hit an immediate obstacle and you're worried about compute time
+maxTabletopExtraWait = 15 -- How many frames of delay to search to make a tabletop work, if it doesn't find a good one, it will erroneously assume tabletops are finishing
+maxTwistWait = 20 -- How many frames of delay to search to make the first twist work, if it doesn't find one, it will skip that currentStunt.frameWait, default = 20
+
+rutTolerance = 5 -- For getting out of local minima in the global search, set to higher number if you're in no hurry, but unlikely to find anything new past 15
+infiniteLoopDetection = 300 -- Maximum duration of currentStunt.frameWait + jump time before realizing its stuck in an in-game infinite loop and trying the next currentStunt.frameWait
+
+-- =========== Trick Execution Mode Controls ===============
+trickExecution = 0 -- 0 = off, 1 = on
+Tt = 1
+F = 1
+R = 0
+T = 1
+Z = 1
+-- Note: if you have a Tt and Z without a T, it will fail at the Z. (until someone comes up with the generalized timing rules for that case (screw Zflips!))
+
+-- ============== Trick Execution Usage Notes ==============
+-- When you run the optimizer, note the "Tried: " trick on the final paused output frame!  Note half-twists too!
+-- This is the input required to recreate the result seen on the "Made: " line
+-- Just because the ROM told you it landed a certain trick doesn't mean inputting the landed trick into the trick executer will cause it to repeat
+
+-- ====== Some enum-like structures for readability ======
+RAM = {
+	words = {
+		yPos = 0x7E0415,
+		xSpeed = 0x7E04B7,
+		ySpeed = 0x7E04BB,
+		boostMeter = 0x7E11CD
+	},
+
+	bytes = {
+		airFlag = 0x7E0545,
+		twists = 0x7E0F61,
+		tabletops = 0x7E042F,
+		zFlips = 0x7E042B,
+		rolls = 0x7E11F9,
+		flips = 0x7E11FD,
+		zRotation = 0x7E0DFD,
+		zPrerotation = 0x7E0F57,
+        messageQueueCurrentIndex = 0x7E0CE1,
+        messageQueueFirstNewIndex = 0x7E0CE3,
+        messageQueueStart = 0x7E0CBB
+	}
+}
+
+modes = {
+	initializing = 0,
+	jumping = 1,
+	twisting = 2,
+	tabletopping = 3,
+	optimizing = 4,
+	done = 5
+}
+
+strategies = {
+	buildUpCombo = 1,
+	maximizeStunts = 2,
+	tearDownFromMax = 3,
+	replayBest = 4
+}
+
+jumpState = {
+	notJumping = 0,
+	tryingJump = 1,
+	airborne = 2,
+	peaked = 3,
+	landed = 4
+}
+
+twistState = {
+	notTwisting = 0,
+	backTwisting = 1,
+	frontTwisting = 2
+}
+
+tabletopState = {
+	notTabletopping = 0,
+	firstHalf = 1,
+	secondHalf = 2,
+	done = 6
+}
+
+zFlipState = {
+	notZFlipping = 0,
+	zFlipping = 1
+}
+
+rollState = {
+	notRolling = 0,
+	rolling = 1
+}
+
+flipState = {
+	notFlipping = 0,
+	flipping = 1,
+	flippingNoInput = 3
+}
+
+direction = {
+	up = 1,
+	right = 1,
+	down = -1,
+	left = -1,
+	none = 0
+}
+
+stunts = {
+	none = 0,
+	twist = 1,
+	tabletop = 2,
+	flip = 3,
+	roll = 4,
+	zFlip = 5,
+	extraRoll = 6,
+	extraFlip = 7
+}
+
+-- =============== Output notes =====================
+--- On the final paused frame, the bot will tell you the parameters it learned so that you can recreate the trick easily yourself
+-- currentStunt.twistWait is how many frames after B is pressed to press reverse direction (may be impacted by twistOffset)
+-- currentStunt.twistRegisters is how many frames from the start until the twist will register (for tabletop pre-knowledge)
+-- currentStunt.tabletopExtraWait is how many frames after currentStunt.twistRegisters to delay until pressing X
+-- currentStunt.zWait is how many frames after the tabletop and twist finish before pressing and holding X
+-- currentStunt.zWait2 is how many frames to wait after a previous zflip has finished before pressing and holding X again (after the one frame not pressing X)
+-- currentStunt.finalFlipFrame is the frame the last flip will end on, allowing for pre-knowledge for currentStunt.rollWait
+-- currentStunt.rollWait = 1 means stopping your first rotating stunt (flip or roll) one frame before it registers and pressing the opposite direction (L/R)
+
+tabletopWait = 8
+tabletopAir = 9 -- airFlag required for tabletops
+tabletopTime = 7 -- I think this is used... duration of front half of tabletop?
+
+mode = modes.jumping
+
+jumpStatus = jumpState.notJumping
+twistStatus = twistState.notTwisting
+tabletopStatus = tabletopState.notTabletopping
+zFlipStatus = zFlipState.notZFlipping
+rollStatus = rollState.notRolling
+flipStatus = flipState.notFlipping
+strategy = strategies.buildUpCombo
+
+reload = 0
+
+gameState = {
+	xSpeed = 0, 
+	ySpeed = 0, 
+	airFlag = 0,
+	twists = 0,
+	tabletops = 0, 
+	zFlips = 0, 
+	rolls = 0, 
+	flips = 0, 
+	zRotation = 0, 
+	zPrerotation = 0, 
+	boostMeter = 0, 
+	yPos = 0 
+}
+
+currentStunt = {
+	score = 0, 
+	speed = 0, 
+	twists = 0, 
+	tabletops = 0, 
+	zFlips = 0, 
+	rolls = 0, 
+	flips = 0, 
+	twistWait = 0, 
+	frameWait = 0, 
+	tabletopExtraWait = 0, 
+	zWait = 0, 
+	zWait2 = 0, 
+	twistRegisters = 0, 
+	rollWait = 0, 
+	finalFlipFrame = 0 
+}
+
+bestStunt = {
+	score = -9999, 
+	speed = 0, 
+	twists = 0, 
+	tabletops = 0, 
+	zFlips = 0, 
+	rolls = 0, 
+	flips = 0, 
+	twistWait = 0, 
+	frameWait = 0, 
+	tabletopExtraWait = 0, 
+	zWait = 0, 
+	zWait2 = 0, 
+	twistRegisters = 0, 
+	rollWait = 0, 
+	finalFlipFrame = 0 
+}
+
+curFrame = 0
+afterFrame = 0 -- Counter for frames after jump
+thisJumpDuration = 0
+bestJumpDuration = 0
+jumpiestFrame = 0
+tabletopCounter = 0
+lastScore = 0
+lastAddition = stunts.none
+consecutiveFailures = 0
+strategyText = ""
+lastBoost = 0
+zFlipFrame = 0
+twistCounter = 0
+zflipInPlay = 0
+rutCounter = 0
+zWaited = 0
+zFromTheGrave = 0
+backwardsPaddles = 0
+thisRollOvercorrect = 0
+thisFlipOvercorrect = 0
+lastFrameTwist = 0
+lastFrameTabletop = 0
+
+normalEndBoost = 0
+
+maxTwistOnly = 0
+maxTabletopsOnly = 0
+maxZFlipsOnly = 0
+maxRollsOnly = 0
+maxFlipsOnly = 0
+
+completedTwists = 0
+completedTabletops = 0
+completedZFlips = 0
+completedRolls = 0
+completedFlips = 0
+
+jumping = 0
+reverse = 0
+rolling = 0  -- rolls go in the direction (front flip)
+flipping = 0 -- flips go against direction (back flip)
+xing = 0
+
+
+-- ====== Setup our task ===========
+-- Create a saveslot to use
+startSS = savestate.create(11) -- Chose 11 for the hell of it, snes9x seems to eventually crash if you use lua-only SS
+horzDirection = direction.none
+vertDirection = direction.none
+
+function GetFinishDirection()
+	-- Figure out which direction we're going
+	gameState.xSpeed = memory.readword(RAM.words.xSpeed) -- Alternatively, 0x7E0F9F
+	horzDirection = direction.right -- 1 = right, -1 = left
+	if gameState.xSpeed > 32768 then -- Until 0.04 of snes9x-lua adds signed version of readword
+		gameState.xSpeed =  gameState.xSpeed - 65536
+		horzDirection = direction.left
+	end
+
+	if forceDirection == direction.right then
+		horzDirection = direction.right
+	elseif forceDirection == direction.left then
+		horzDirection = direction.left
+	end
+
+	if changeDirection == 1 then
+		changeDirection = -1
+	else
+		changeDirection = 1
+	end
+end
+
+function HandleTrickExecutionMode()
+	if trickExecution == 1 then
+		maxFrameWait = startFrame
+		frameIncrement = 1
+		--changeDirection has no effect due to not scoring/optimizing
+		--searchWindow has no effect due to not scoring/optimizing
+		--assumeNothing has no effect due to specifying the trick
+		--maximumY has no effect due to not scoring/optimizing
+		--minimumY has no effect due to not scoring/optimizing
+		--wholeTwistsOnly has no effect due to specifying the trick
+		T = T * 2 -- Convert to half-twists
+		mode = modes.twisting
+	end
+end
+
+function ResetMovementState()
+	jumping = 0
+	reverse = 0
+	rolling = 0
+	flipping = 0
+	xing = 0
+end
+
+function ReloadSavestate()
+	savestate.load(startSS)
+	gui.text(0, 130, "Reloaded Savestate this frame!")
+	jumpStatus = jumpState.notJumping
+	twistStatus = twistState.notTwisting
+	tabletopStatus = tabletopState.notTabletopping
+	zFlipStatus = zFlipState.notZFlipping
+	rollStatus = rollState.notRolling
+	flipStatus = flipState.notFlipping
+	tabletopCounter = 0
+	twistCounter = 0
+	zFlipFrame = 0
+	zflipInPlay = 0
+	zWaited = 0
+	zFromTheGrave = 0
+	backwardsPaddles = 0
+	completedTwists = 0
+	completedTabletops = 0
+	completedZFlips = 0
+	completedRolls = 0
+	completedFlips = 0
+	currentStunt.score = 0
+	thisRollOvercorrect = rollOvercorrect
+	thisFlipOvercorrect = flipOvercorrect
+	if mode == modes.jumping then
+		thisJumpDuration = 0
+	end
+	afterFrame = 0
+	curFrame = 0
+	reload = 0
+end
+
+function GetGameState()
+	gameState.xSpeed = memory.readword(RAM.words.xSpeed)
+	if gameState.xSpeed > 32768 then -- Until 0.04 of snes9x-lua adds signed version of readword
+		gameState.xSpeed =  gameState.xSpeed - 65536
+	end
+
+	vertDirection = direction.down
+	gameState.ySpeed = memory.readword(RAM.words.ySpeed)
+	if gameState.ySpeed > 32768 then
+		gameState.ySpeed = gameState.ySpeed - 65536
+		vertDirection = direction.up
+	end
+
+	gameState.airFlag = memory.readbyte(RAM.bytes.airFlag)
+	gameState.twists = memory.readbyte(RAM.bytes.twists)
+	gameState.tabletops = memory.readbyte(RAM.bytes.tabletops)
+	gameState.zFlips = memory.readbyte(RAM.bytes.zFlips)
+	gameState.rolls = memory.readbyte(RAM.bytes.rolls)
+	gameState.flips = memory.readbyte(RAM.bytes.flips)
+	gameState.zRotation = memory.readbyte(RAM.bytes.zRotation)
+	gameState.zPrerotation = memory.readbyte(RAM.bytes.zPrerotation)
+	gameState.boostMeter = memory.readword(RAM.words.boostMeter)
+	gameState.yPos = memory.readword(RAM.words.yPos)
+end
+
+function CheckJumpFrame()
+	if curFrame >= currentStunt.frameWait then
+		jumpStatus = jumpState.tryingJump
+		jumping = 1
+	else
+		jumping = 0
+	end
+end
+
+function CheckJumped()
+	jumping = 1
+	if gameState.airFlag >= 2 then
+		jumpStatus = jumpState.airborne
+	end
+end
+
+function CheckAscending()
+	jumping = 1
+	if vertDirection == direction.down then
+		jumpStatus = jumpState.peaked
+	end
+	if gameState.airFlag == 0 then
+		jumpStatus = jumpState.landed
+	end
+end
+
+function CheckDescending()
+	jumping = 0
+	if gameState.airFlag == 0 then
+		jumpStatus = jumpState.landed
+	end
+end
+
+function SetBestJump()
+	mode = modes.optimizing
+	strategy = strategies.replayBest
+	currentStunt.twists = bestStunt.twists
+	currentStunt.tabletops = bestStunt.tabletops
+	currentStunt.zFlips = bestStunt.zFlips
+	currentStunt.rolls = bestStunt.rolls
+	currentStunt.flips = bestStunt.flips
+	currentStunt.twistWait = bestStunt.twistWait
+	currentStunt.frameWait = bestStunt.frameWait
+	currentStunt.tabletopExtraWait = bestStunt.tabletopExtraWait
+	currentStunt.zWait = bestStunt.zWait
+	currentStunt.zWait2 = bestStunt.zWait2
+	currentStunt.twistRegisters = bestStunt.twistRegisters
+	currentStunt.rollWait = bestStunt.rollWait
+	currentStunt.finalFlipFrame = bestStunt.finalFlipFrame
+	lastScore = 0
+	lastAddition = stunts.none
+	consecutiveFailures = 0
+	rutCounter = 0
+	snes9x.speedmode("normal")
+end
+
+function CheckJumpDuration()
+    normalEndBoost = memory.readword(RAM.words.boostMeter)
+	jumping = 0
+	if thisJumpDuration > bestJumpDuration then
+		bestJumpDuration = thisJumpDuration
+		jumpiestFrame = currentStunt.frameWait
+	end
+	if thisJumpDuration < minJump then
+		if currentStunt.frameWait >= maxFrameWait then
+			SetBestJump()
+		else
+			currentStunt.frameWait = currentStunt.frameWait + frameIncrement
+			reload = 1
+			mode = modes.jumping
+		end
+	else
+		reload = 1
+		mode = modes.twisting
+		currentStunt.twistWait = 0
+	end
+end
+
+function TestJumping()
+	gui.text(0,0, "Framewait: " .. currentStunt.frameWait .. ", measuring jump.")
+	if jumpStatus == jumpState.notJumping then
+		gui.text(0, 10, "Not trying to jump just yet.")
+		CheckJumpFrame()
+	elseif jumpStatus == jumpState.tryingJump then
+		gui.text(0, 10, "Trying to jump!")
+		CheckJumped()
+		if gameState.airFlag >= 2 then
+			thisJumpDuration = 2
+		end
+	elseif jumpStatus == jumpState.airborne then
+		gui.text(0, 10, "Airborne for " .. thisJumpDuration .. ".")
+		thisJumpDuration = thisJumpDuration + 1
+		CheckAscending()
+	elseif jumpStatus == jumpState.peaked then
+		gui.text(0, 10, "Peaked, airborne for " .. thisJumpDuration .. ".")
+		thisJumpDuration = thisJumpDuration + 1
+		CheckDescending()
+	elseif jumpStatus == jumpState.landed then
+		gui.text(0, 10, "Landed after " .. thisJumpDuration .. ".")
+		CheckJumpDuration()
+	end
+end
+
+function CheckTwistFrame()
+	gui.text(0, 10, "Twistwait: " .. currentStunt.twistWait .. ", waiting reverse.")
+	if curFrame >= (currentStunt.twistWait + currentStunt.frameWait - twistOffset) then
+		gui.text(0, 20, "On frame " .. curFrame .. " I tried to twist.")
+		twistStatus = twistState.backTwisting
+		reverse = 1
+	else
+		reverse = 0
+	end
+end
+
+function CheckBackTwisted()
+	gui.text(0, 10, "Twistwait: " .. currentStunt.twistWait .. ", wait on register.")
+	reverse = 0
+	if gameState.twists > lastFrameTwist then
+		currentStunt.twistRegisters = curFrame
+		twistStatus = twistState.frontTwisting
+		reload = 1
+		mode = modes.tabletopping
+		currentStunt.tabletopExtraWait = 0
+		currentStunt.twists = 2
+		currentStunt.tabletops = 1
+		currentStunt.zFlips = 0
+		currentStunt.rolls = 0
+		currentStunt.flips = 0
+		if trickExecution == 1 and Tt == 0 then
+			currentStunt.tabletops = 0
+		end
+	end
+end
+
+function SetMaxTwistsZero()
+	currentStunt.twistRegisters = curFrame
+	reload = 1
+	mode = modes.tabletopping
+	currentStunt.tabletopExtraWait = 0
+	currentStunt.twists = 0
+	currentStunt.tabletops = 1
+	currentStunt.zFlips = 0
+	currentStunt.rolls = 0
+	currentStunt.flips = 0
+	if Tt == 0 then
+		currentStunt.tabletops = 0
+	end
+end
+
+function GetFirstTwistTiming()
+	gui.text(0,0, "Framewait: " .. currentStunt.frameWait .. ", find twist frame.")
+	gui.text(0,140, "Jump duration: " .. thisJumpDuration .. ".")
+	if jumpStatus == jumpState.notJumping then
+		CheckJumpFrame()
+	elseif jumpStatus == jumpState.tryingJump then
+		CheckJumped()
+	elseif jumpStatus == jumpState.airborne then
+		CheckAscending()
+	elseif jumpStatus == jumpState.peaked then
+		CheckDescending()
+	elseif jumpStatus == jumpState.landed then
+		jumping = 0
+	end
+
+	if twistStatus == twistState.notTwisting then
+		CheckTwistFrame()
+	elseif twistStatus == twistState.backTwisting then
+		CheckBackTwisted()
+	end
+
+	if (trickExecution == 1 and T == 0) then
+		SetMaxTwistsZero()
+	end
+
+	if (twistStatus == twistState.backTwisting and (curFrame - currentStunt.frameWait > 20 or jumpStatus == jumpState.landed)) then
+		currentStunt.twistWait = currentStunt.twistWait + 1
+		if currentStunt.twistWait > maxTwistWait then
+			if currentStunt.frameWait >= maxFrameWait then
+				SetBestJump()
+			else
+				currentStunt.frameWait = currentStunt.frameWait + frameIncrement
+				reload = 1
+				mode = modes.jumping
+			end
+		else
+			reload = 1
+			mode = modes.twisting
+		end
+	end
+end
+
+function HandleTwistStatusForTabletopTiming()
+	if twistStatus == twistState.notTwisting then
+		if curFrame >= (currentStunt.twistWait + currentStunt.frameWait - twistOffset) then
+			if (jumpStatus == jumpState.landed or completedTwists >= currentStunt.twists) then
+				gui.text(0, 50, "Tw: At Max. All done.")
+				twistStatus = twistState.notTwisting
+				reverse = 0
+			else
+				gui.text(0, 50, "Tw: Reversing!")
+				twistStatus = twistState.backTwisting
+				reverse = 1
+			end
+		else
+			gui.text(0, 50, "Tw: Waiting to Reverse")
+			reverse = 0
+		end
+	elseif twistStatus == twistState.backTwisting then
+		reverse = 0
+		if gameState.twists > completedTwists then
+			completedTwists = gameState.twists
+			twistStatus = twistState.frontTwisting
+			gui.text(0, 50, "Tw: Finished backwards leg")
+		else
+			gui.text(0, 50, "Tw: Waiting on Backwards")
+		end
+	elseif twistStatus == twistState.frontTwisting then
+		if gameState.twists > completedTwists then
+			completedTwists = gameState.twists
+			if completedTwists >= currentStunt.twists then
+				gui.text(0, 50, "Tw: Finished last twist")
+				reverse = 0
+				twistStatus = twistState.notTwisting
+			else
+				gui.text(0, 50, "Tw: Starting another twist")
+				reverse = 1
+				twistStatus = twistState.backTwisting
+			end
+		else
+			gui.text(0, 50, "Tw: Waiting on Forward")
+			reverse = 0
+		end
+	end
+end
+
+function DetermineIfShouldTabletop()
+	if gameState.airFlag == tabletopAir then
+		if (jumpStatus == jumpState.landed or completedTabletops >= currentStunt.tabletops) then
+			tabletopStatus = tabletopState.notTabletopping
+			xing = 0
+			gui.text(0, 60, "Tt: All done.")
+		elseif (curFrame < currentStunt.twistRegisters + currentStunt.tabletopExtraWait - 1 and currentStunt.twists > 0) then
+			tabletopStatus = tabletopState.notTabletopping
+			xing = 0
+			gui.text(0, 60, "Tt: Waiting for twist")
+		else
+			tabletopStatus = tabletopState.firstHalf
+			tabletopCounter = 0
+			xing = 1
+			gui.text(0, 60, "Tt: Starting first half")
+		end
+	elseif (gameState.airFlag == tabletopAir - 1 and (gameState.twists >= 1 or (currentStunt.tabletopExtraWait == 0 and currentStunt.twists == 0))) then
+		tabletopStatus = tabletopState.firstHalf
+		tabletopCounter = 0
+		xing = 1
+		gui.text(0, 60, "Tt: Starting first half")
+	else
+		gui.text(0, 60, "Tt: Waiting")
+		xing = 0
+	end
+end
+
+function CompleteTabletop()
+	xing = 0
+	tabletopCounter = tabletopCounter + 1
+	if gameState.tabletops > lastFrameTabletop then
+		if trickExecution == 1 then
+			reload = 1
+			mode = modes.optimizing
+			strategy = strategies.buildUpCombo
+			currentStunt.twists = T
+			currentStunt.tabletops = Tt
+			currentStunt.zFlips = Z
+			currentStunt.flips = F
+			currentStunt.rolls = R
+			strategyText = "First try at specified trick"
+			lastScore = 0
+			lastAddition = stunts.none
+			consecutiveFailures = 0
+			rutCounter = 0
+			currentStunt.zWait = 0
+			currentStunt.zWait2 = 0
+			currentStunt.rollWait = 0
+			currentStunt.finalFlipFrame = 0
+		else
+			gui.text(0, 60, "Tt: Tabletop worked w/ " .. currentStunt.tabletopExtraWait .. " wait")
+			reload = 1
+			mode = modes.optimizing
+			strategy = strategies.buildUpCombo
+			currentStunt.twists = math.max(0, math.floor((thisJumpDuration - 40) / 12))
+			if wholeTwistsOnly == 1 and currentStunt.twists % 2 == 1 then
+				currentStunt.twists = math.max(0, currentStunt.twists - 1)
+			end
+			currentStunt.tabletops = math.max(0, math.min(1, thisJumpDuration - (9 + 8 + 8 + 1)))
+			currentStunt.zFlips = math.max(0, math.floor((thisJumpDuration - (9 + 8 + 8 + 1)) / 50))
+			currentStunt.rolls = math.max(0, math.floor((thisJumpDuration - 30) / 30))
+			currentStunt.flips = math.max(0, math.min(1, math.floor(thisJumpDuration / 30)))
+			if currentStunt.rolls > 4 then
+				currentStunt.flips = currentStunt.flips + (currentStunt.rolls - 4)
+				currentStunt.rolls = 4
+			end
+
+			strategyText = "Conservative guess"
+			if assumeNothing == 1 then
+				currentStunt.twists = 0
+				currentStunt.tabletops = 0
+				currentStunt.zFlips = 0
+				currentStunt.rolls = 0
+				currentStunt.flips = 0
+				strategyText = "Assume nothing!"
+			end
+
+			lastScore = 0
+			lastAddition = stunts.none
+			consecutiveFailures = 0
+			rutCounter = 0
+			currentStunt.zWait = 0
+			currentStunt.zWait2 = 0
+			currentStunt.rollWait = 0
+			currentStunt.finalFlipFrame = 0
+		end
+	elseif tabletopCounter >= tabletopTime + 2 then
+		if currentStunt.tabletopExtraWait >= maxTabletopExtraWait then
+			if currentStunt.frameWait >= maxFrameWait then
+				mode = modes.optimizing
+				strategy = strategies.replayBest
+				currentStunt.twists = bestStunt.twists
+				currentStunt.tabletops = bestStunt.tabletops
+				currentStunt.zFlips = bestStunt.zFlips
+				currentStunt.rolls = bestStunt.rolls
+				currentStunt.flips = bestStunt.flips
+				currentStunt.twistWait = bestStunt.twistWait
+				currentStunt.frameWait = bestStunt.frameWait
+				currentStunt.tabletopExtraWait = bestStunt.tabletopExtraWait
+				currentStunt.zWait = bestStunt.zWait
+				currentStunt.zWait2 = bestStunt.zWait2
+				currentStunt.twistRegisters = bestStunt.twistRegisters
+				currentStunt.rollWait = bestStunt.rollWait
+				currentStunt.finalFlipFrame = bestStunt.finalFlipFrame
+				lastScore = 0
+				lastAddition = stunts.none
+				consecutiveFailures = 0
+				rutCounter = 0
+				snes9x.speedmode("normal")
+			else
+				currentStunt.frameWait = currentStunt.frameWait + frameIncrement
+				reload = 1
+				mode = modes.jumping
+			end
+		else
+			currentStunt.tabletopExtraWait = currentStunt.tabletopExtraWait + 1
+			tabletopCounter = 0
+			reload = 1
+			mode = modes.tabletopping
+		end
+	else
+		gui.text(0, 60, "Tt: Frame " .. tabletopCounter .. "/" .. tabletopTime + 2 .. " elapsed")
+	end
+end
+
+function HandleTabletopStatusForTiming()
+	gui.text(0, 20, curFrame .. " " .. currentStunt.twistRegisters .. " " .. currentStunt.tabletopExtraWait .. " " .. currentStunt.twists)
+	if tabletopStatus == tabletopState.notTabletopping then
+		DetermineIfShouldTabletop()
+	elseif tabletopStatus == tabletopState.firstHalf then
+		CompleteTabletop()
+	end
+end
+
+function GetTabletopTiming()
+	gui.text(0,0, "Framewait: " .. currentStunt.frameWait .. ", Tabletop timing.")
+	gui.text(0,10, "Tabletop extra wait: " .. currentStunt.tabletopExtraWait)
+	if jumpStatus == jumpState.notJumping then
+		CheckJumpFrame()
+	elseif jumpStatus == jumpState.tryingJump then
+		CheckJumped()
+	elseif jumpStatus == jumpState.airborne then
+		CheckAscending()
+	elseif jumpStatus == jumpState.peaked then
+		CheckDescending()
+	elseif jumpStatus == jumpState.landed then
+		jumping = 0
+		afterFrame = afterFrame + 1
+	end
+
+	HandleTwistStatusForTabletopTiming()
+	HandleTabletopStatusForTiming()
+
+	if trickExecution == 1 and Tt == 0 then
+		reload = 1
+		mode = modes.optimizing
+		strategy = strategies.buildUpCombo
+		currentStunt.twists = T
+		currentStunt.tabletops = Tt
+		currentStunt.zFlips = Z
+		currentStunt.flips = F
+		currentStunt.rolls = R
+		strategyText = "First try at specified trick"
+		lastScore = 0
+		lastAddition = stunts.none
+		consecutiveFailures = 0
+		rutCounter = 0
+		currentStunt.zWait = 0
+		currentStunt.zWait2 = 0
+		currentStunt.rollWait = 0
+		currentStunt.finalFlipFrame = 0
+	end
+	if (curFrame >= infiniteLoopDetection) then
+		currentStunt.frameWait = currentStunt.frameWait + frameIncrement
+		reload = 1
+		mode = modes.jumping
+	end
+end
+
+function DisplayOptimizationStatus()
+	gui.text(0,0, "Framewait: " .. currentStunt.frameWait .. ", stunt optimization.")
+	gui.text(0, 20, "Try Tw:" .. currentStunt.twists .. " Tt:" .. currentStunt.tabletops .. " Zf:" .. currentStunt.zFlips .. " Ro:" .. currentStunt.rolls .. " Fl:" .. currentStunt.flips .. " Sc:" .. BestScore(currentStunt))
+	gui.text(0, 30, "Pro Tw:" .. completedTwists .. " Tt:" .. completedTabletops .. " Zf:" .. completedZFlips .. " Ro:" .. completedRolls .. " Fl:" .. completedFlips)
+	gui.text(0, 100, consecutiveFailures .. ": " .. strategyText)
+	gui.text(0, 110, "LBo: " .. lastBoost .. " LSp: " .. currentStunt.speed)
+	gui.text(0, 120, "LSc: " .. lastScore .. " BSc: " .. bestStunt.score .. "(" .. rutCounter .. "/" .. rutTolerance .. ")")
+	if trickExecution == 1 then
+		gui.text(0,10, "--Trick Execution Mode!--")
+	elseif strategy == strategies.buildUpCombo then
+		gui.text(0,10, "Trying to build up to best combo.")
+	elseif strategy == strategies.maximizeStunts then
+		gui.text(0,10, "Maximizing each stunt individually.")
+	elseif strategy == strategies.tearDownFromMax then
+		gui.text(0,10, "Tearing down from maximum.")
+	elseif strategy == strategies.replayBest then
+		gui.text(0,10, "REPLAYING BEST OPTION!")
+	end
+end
+
+function HandleJumpStatus()
+	if jumpStatus == jumpState.notJumping then
+		gui.text(0, 40, "Jump: Waiting")
+		if curFrame >= currentStunt.frameWait then
+			jumpStatus = jumpState.tryingJump
+			jumping = 1
+		else
+			jumping = 0
+		end
+	elseif jumpStatus == jumpState.tryingJump then
+		gui.text(0, 40, "Jump: Trying")
+		jumping = 1
+		if gameState.airFlag >= 2 then
+			jumpStatus = jumpState.airborne
+			completedTwists = 0
+			completedTabletops = 0
+			completedZFlips = 0
+			completedRolls = 0
+			completedFlips = 0
+		end
+	elseif jumpStatus == jumpState.airborne then
+		gui.text(0, 40, "Jump: Airborne")
+		jumping = 1
+		if vertDirection == direction.down then
+			jumpStatus = jumpState.peaked
+		end
+		if gameState.airFlag == 0 then
+			jumpStatus = jumpState.landed
+		end
+	elseif jumpStatus == jumpState.peaked then
+		gui.text(0, 40, "Jump: Peaked")
+		jumping = 0
+		if gameState.airFlag == 0 then
+			jumpStatus = jumpState.landed
+		end
+	elseif jumpStatus == jumpState.landed then
+		gui.text(0, 40, "Jump: Landed")
+		jumping = 0
+		afterFrame = afterFrame + 1
+		twistStatus = twistState.notTwisting
+		tabletopStatus = tabletopState.notTabletopping
+		zFlipStatus = zFlipState.notZFlipping
+		flipStatus = flipState.notFlipping
+		rollStatus = rollState.notRolling
+	end
+end
+
+function HandleTwistStatus()
+	if twistStatus == twistState.notTwisting then
+		if curFrame >= (currentStunt.twistWait + currentStunt.frameWait - twistOffset) then
+			if (jumpStatus == jumpState.landed or completedTwists >= currentStunt.twists) then
+				gui.text(0, 50, "Tw: At Max. All done.")
+				twistStatus = twistState.notTwisting
+				reverse = 0
+				zFlipFrame = 1
+			elseif tabletopStatus == tabletopState.firstHalf or tabletopStatus == tabletopState.secondHalf then
+				gui.text(0, 50, "Tw: Waiting on Tt")
+				reverse = 0
+			elseif zflipInPlay > 1 then
+				gui.text(0, 50, "Tw: Z-flip in play for " .. zflipInPlay - 1)
+				twistStatus = twistState.notTwisting
+				reverse = 0
+				zFlipFrame = 0
+			else
+				if zFromTheGrave > 1 then
+					zFromTheGrave = zFromTheGrave - 1
+					twistStatus = twistState.notTwisting
+					reverse = 0
+					zFlipFrame = 0
+					gui.text(0, 50, "Tw: Wise Fwom The Gwave! (" .. zFromTheGrave .. ")")
+				else
+					if zFromTheGrave == 1 then
+						zFromTheGrave = 2
+					end
+					gui.text(0, 50, "Tw: Reversing!")
+					twistCounter = 0
+					twistStatus = twistState.backTwisting
+					reverse = 1
+					zFlipFrame = 1
+				end
+			end
+		else
+			gui.text(0, 50, "Tw: Waiting to Reverse")
+			reverse = 0
+		end
+	elseif twistStatus == twistState.backTwisting then
+		reverse = 0
+		zFlipFrame = 0
+		if (gameState.twists > completedTwists and jumpStatus > jumpState.tryingJump) then
+			completedTwists = gameState.twists
+			twistStatus = twistState.frontTwisting
+			twistCounter = 0
+			gui.text(0, 50, "Tw: Finished backwards leg")
+		else
+			gui.text(0, 50, "Tw: Waiting on Backwards")
+		end
+	elseif twistStatus == twistState.frontTwisting then
+		if gameState.twists > completedTwists then
+			completedTwists = gameState.twists
+			zFlipFrame = 1
+			if completedTwists >= currentStunt.twists then
+				gui.text(0, 50, "Tw: Finished last twist")
+				reverse = 0
+				twistStatus = twistState.notTwisting
+			else
+				if zFromTheGrave > 1 then
+					zFromTheGrave = zFromTheGrave - 1
+					twistStatus = twistState.notTwisting
+					reverse = 0
+					zFlipFrame = 0
+					gui.text(0, 50, "Tw: Wise Fwom The Gwave! (" .. zFromTheGrave .. ")")
+				else
+					gui.text(0, 50, "Tw: Starting another twist")
+					reverse = 1
+					twistStatus = twistState.backTwisting
+				end
+			end
+		else
+			zFlipFrame = 0
+			gui.text(0, 50, "Tw: Waiting on Forward")
+			reverse = 0
+		end
+	end
+end
+
+function HandleTabletopStatus()
+	if tabletopStatus == tabletopState.notTabletopping then
+		if gameState.airFlag == tabletopAir then
+			if (jumpStatus == jumpState.landed or completedTabletops >= currentStunt.tabletops) then
+				tabletopStatus = tabletopState.notTabletopping
+				xing = 0
+				gui.text(0, 60, "Tt: All done.")
+			elseif (curFrame < currentStunt.twistRegisters + currentStunt.tabletopExtraWait - 1 and currentStunt.twists > 0) then
+				tabletopStatus = tabletopState.notTabletopping
+				xing = 0
+				gui.text(0, 60, "Tt: Waiting for twist")
+			else
+				tabletopStatus = tabletopState.firstHalf
+				tabletopCounter = 0
+				xing = 1
+				gui.text(0, 60, "Tt: Starting first half")
+				if (twistStatus == twistState.backTwisting and currentStunt.tabletopExtraWait > 9) or twistStatus == twistState.frontTwisting then
+					gui.text(0, 170, "Tw: Late Tt, resetting Tw")
+					if gameState.twists == 1 then
+						twistStatus = twistState.frontTwisting
+					else
+						twistStatus = twistState.notTwisting
+					end
+				end
+			end
+		elseif (gameState.airFlag == tabletopAir-1 and (gameState.twists >= 1 or (currentStunt.tabletopExtraWait == 0 and currentStunt.twists == 0))) then
+			tabletopStatus = tabletopState.firstHalf
+			tabletopCounter = 0
+			xing = 1
+			gui.text(0, 60, "Tt: Starting first half")
+
+		else
+			gui.text(0, 60, "Tt: Waiting")
+			xing = 0
+		end
+	elseif tabletopStatus == tabletopState.firstHalf then
+		xing = 0
+		tabletopCounter = tabletopCounter + 1
+		if tabletopCounter >= tabletopTime + 1 then
+			xing = 1
+			tabletopStatus = tabletopState.secondHalf
+			tabletopCounter = 0
+			gui.text(0, 60, "Tt: Starting second half")
+		else
+			gui.text(0, 60, "Tt: Frame " .. tabletopCounter .. "/" .. tabletopTime .. " elapsed")
+		end
+	elseif tabletopStatus == tabletopState.secondHalf then
+		xing = 0
+		tabletopCounter = tabletopCounter + 1
+		if tabletopCounter >= tabletopWait then
+			completedTabletops = completedTabletops + 1
+			tabletopStatus = tabletopState.done
+			gui.text(0, 60, "Tt: Finished it!")
+		else
+			gui.text(0, 60, "Tt: Frame " .. tabletopCounter .. "/" .. tabletopWait .. " elapsed")
+		end
+	elseif tabletopStatus == tabletopState.done then
+		gui.text(0, 60, "Tt: All done")
+	end
+end
+
+function DetermineIfShouldZFlip()
+	if (tabletopStatus == tabletopState.done or (jumpStatus > jumpState.notJumping and currentStunt.tabletops <= 0)) then
+		if (jumpStatus == jumpState.landed or completedZFlips >= currentStunt.zFlips) then
+			zFlipStatus = zFlipState.notZFlipping
+			xing = 0
+			gui.text(0, 70, "Zf: All done")
+		elseif zflipInPlay > 1 then
+			if gameState.zPrerotation == 0 then
+				zFlipStatus = zFlipState.notZFlipping
+				xing = 0
+				gui.text(0, 70, "Zf: Waiting for 2nd z-flip")
+			else
+				currentStunt.zWait2 = 1
+				reload = 1
+				gui.text(0, 70, "Zf: SON OF A BITCH!!!!")
+			end
+		elseif currentStunt.twists > 0 and gameState.twists <= 2 and currentStunt.tabletopExtraWait > 9 then
+			zFlipStatus = zFlipState.notZFlipping
+			xing = 0
+			gui.text(0, 70, "Zf: Waiting on T after late Tt")
+		elseif (zflipInPlay == 1 or twistStatus == twistState.notTwisting or zFlipFrame == 1) then
+			if (currentStunt.zWait == 1 and zWaited == 0) then
+				zFlipStatus = zFlipState.notZFlipping
+				xing = 0
+				zflipInPlay = 2
+				zWaited = 1
+				gui.text(0, 70, "Zf: Delaying one frame")
+			elseif (currentStunt.zWait == 1 and zWaited > 1) then
+				zFlipStatus = zFlipState.notZFlipping
+				xing = 0
+				zflipInPlay = 2
+				zWaited = zWaited - 1
+				gui.text(0, 70, "Zf: Delaying one frame")
+			else
+				xing = 1
+				zFlipStatus = zFlipState.zFlipping
+				gui.text(0, 70, "Zf: Starting")
+			end
+		else
+			zFlipStatus = zFlipState.notZFlipping
+			xing = 0
+			gui.text(0, 70, "Zf: Waiting on twist (" .. gameState.zRotation .. ")")
+		end
+	else
+		gui.text(0, 70, "Zf: Waiting for Tt to finish")
+	end
+end
+
+function CompleteZFlip()
+	if gameState.zFlips > completedZFlips then
+		xing = 0
+		zWaited = 0
+		completedZFlips = gameState.zFlips
+		if completedZFlips >= currentStunt.zFlips then
+			if currentStunt.zWait2 == 0 then
+				if twistStatus == twistState.notTwisting then
+					if completedTwists < currentStunt.twists then
+						reverse = 1
+						twistStatus = twistState.backTwisting
+						gui.text(0,50, "Tw: Z-flip caused reverse")
+					end
+				elseif twistStatus == twistState.backTwisting then
+					if completedTwists < currentStunt.twists then
+						reverse = 1
+						twistStatus = twistState.backTwisting
+						gui.text(0,50, "Tw: Z-flip caused reverse")
+					end
+				elseif twistStatus == twistState.frontTwisting then
+					if completedTwists < currentStunt.twists then
+						reverse = 1
+						twistStatus = twistState.backTwisting
+						gui.text(0,50, "Tw: Z-flip caused reverse")
+					end
+				end
+				zflipInPlay = 2
+			else
+				zflipInPlay = 0
+				zFromTheGrave = 2
+				if completedTwists < currentStunt.twists then
+					twistStatus = twistState.frontTwisting
+				end
+			end
+			zFlipStatus = zFlipState.notZFlipping
+			gui.text(0, 70, "Zf: Finished last one")
+		else
+			if currentStunt.zWait2 == 0 then
+				zflipInPlay = 3
+				if completedTwists < currentStunt.twists then
+					twistStatus = twistState.notTwisting
+				end
+				gui.text(0, 70, "Zf: Finished one, waiting")
+				zFlipStatus = zFlipState.notZFlipping
+			else
+				gui.text(0, 70, "Zf: Finished one mid-twist")
+				zflipInPlay = 0
+				if completedTwists < currentStunt.twists then
+					twistStatus = twistState.frontTwisting
+				end
+				zFlipStatus = zFlipState.notZFlipping
+			end
+		end
+	else
+		xing = 1
+		gui.text(0, 70, "Zf: Continuing")
+	end
+end
+
+function HandleZFlipStatus()
+	gui.text(0, 130, zflipInPlay .. " " .. twistStatus .. " " .. zFlipFrame .. " " .. gameState.zRotation .. " " .. gameState.zPrerotation .. " " .. zFromTheGrave)
+	if zFlipStatus == zFlipState.notZFlipping then
+		DetermineIfShouldZFlip()
+	elseif zFlipStatus == zFlipState.zFlipping then
+		CompleteZFlip()
+	end
+end
+
+function HandleFlipStatus()
+	if flipStatus == flipState.notFlipping then
+		flipStatus = flipState.notFlipping
+		flipping = 0
+		if gameState.flips > completedFlips then
+			backwardsPaddles = 1
+			completedFlips = gameState.flips
+			if completedFlips >= currentStunt.flips then
+				flipping = 0
+				flipStatus = flipState.notFlipping
+				gui.text(0, 80, "Fl: Finished last one")
+				if currentStunt.rollWait == 0 then
+					currentStunt.finalFlipFrame = curFrame
+				end
+			else
+				flipping = 1
+				flipStatus = flipState.flipping
+				rollStatus = rollState.notRolling
+				gui.text(0, 80, "Fl: Finished one, continuing")
+			end
+		else
+			if jumpStatus == jumpState.notJumping then
+				gui.text(0, 80, "Fl: Still on ground")
+			elseif (jumpStatus == jumpState.landed or completedFlips >= currentStunt.flips) then
+				gui.text(0, 80, "Fl: All done")
+			elseif rollStatus == rollState.rolling then
+				gui.text(0, 80, "Fl: Rolling instead")
+			else
+				gui.text(0, 80, "Fl: Starting")
+				flipping = 1
+				flipStatus = flipState.flipping
+			end
+		end
+	elseif flipStatus == flipState.flipping then
+		flipping = 1
+		if gameState.flips > completedFlips then
+			completedFlips = gameState.flips
+			if completedFlips >= currentStunt.flips then
+				flipping = 0
+				flipStatus = flipState.notFlipping
+				gui.text(0, 80, "Fl: Finished last one")
+				if currentStunt.rollWait == 0 then
+					currentStunt.finalFlipFrame = curFrame
+				end
+			else
+				gui.text(0, 80, "Fl: Finished one, continuing")
+			end
+		elseif (currentStunt.rollWait == 1 and curFrame == currentStunt.finalFlipFrame - 1) then
+			flipping = 0
+			flipStatus = flipState.flippingNoInput
+			gui.text(0, 80, "Fl: Momentum will finish it")
+		else
+			gui.text(0, 80, "Fl: Continuing")
+		end
+	elseif flipStatus == flipState.flippingNoInput then
+		if completedFlips < currentStunt.flips then
+			gui.text(0, 80, "Fl: Rollwait killed my dog!")
+		else
+			gui.text(0, 80, "Fl: All done thanks to currentStunt.rollWait")
+		end
+	end
+end
+
+function HandleRollStatus()
+	if rollStatus == rollState.notRolling then
+		rollStatus = rollState.notRolling
+		rolling = 0
+		if gameState.rolls > completedRolls then
+			backwardsPaddles = 1
+			completedRolls = gameState.rolls
+			if completedRolls >= currentStunt.rolls then
+				rolling = 0
+				rollStatus = rollState.notRolling
+				gui.text(0, 90, "Ro: Finished last one")
+			else
+				rolling = 1
+				flipStatus = flipState.notFlipping
+				rollStatus = rollState.rolling
+				gui.text(0, 90, "Ro: Finished one, continuing")
+			end
+		else
+			if jumpStatus == jumpState.notJumping then
+				gui.text(0, 90, "Ro: Still on ground")
+			elseif (jumpStatus == jumpState.landed or completedRolls >= currentStunt.rolls) then
+				gui.text(0, 90, "Ro: All done")
+			elseif flipStatus == flipState.flipping then
+				gui.text(0, 90, "Ro: Flipping instead")
+			else
+				gui.text(0, 90, "Ro: Starting")
+				rolling = 1
+				rollStatus = rollState.rolling
+			end
+		end
+	elseif rollStatus == rollState.rolling then
+		rolling = 1
+		if gameState.rolls > completedRolls then
+			completedRolls = gameState.rolls
+			if completedRolls >= currentStunt.rolls then
+				rolling = 0
+				rollStatus = rollState.notRolling
+				gui.text(0, 90, "Ro: Finished last one")
+			else
+				gui.text(0, 90, "Ro: Finished one, continuing")
+			end
+		else
+			gui.text(0, 90, "Ro: Continuing")
+		end
+	end
+end
+
+function HandleStuntComboing()
+	if zFlipStatus > zFlipState.notZFlipping and (rolling == 0 and flipping == 0) then
+		if zFlipPreference == 0 then
+			flipping = 1
+		else
+			rolling = 1
+		end
+	end
+
+	if zflipInPlay > 0 then
+		zflipInPlay = zflipInPlay - 1
+	end
+
+	if backwardsPaddles == 1 or reverseFlipRoll == 1 then
+		if rolling == 1 then
+			flipping = 1
+			rolling = 0
+		elseif flipping == 1 then
+			rolling = 1
+			flipping = 0
+		end
+	end
+end
+
+function SetBestStunt()
+	bestStunt.score = currentStunt.score
+	bestStunt.speed = currentStunt.speed
+	bestStunt.twists = currentStunt.twists
+	bestStunt.tabletops = currentStunt.tabletops
+	bestStunt.zFlips = currentStunt.zFlips
+	bestStunt.rolls = currentStunt.rolls
+	bestStunt.flips = currentStunt.flips
+	bestStunt.twistWait = currentStunt.twistWait
+	bestStunt.frameWait = currentStunt.frameWait
+	bestStunt.tabletopExtraWait = currentStunt.tabletopExtraWait
+	bestStunt.zWait = currentStunt.zWait
+	bestStunt.zWait2 = currentStunt.zWait2
+	bestStunt.twistRegisters = currentStunt.twistRegisters
+	bestStunt.rollWait = currentStunt.rollWait
+	bestStunt.finalFlipFrame = currentStunt.finalFlipFrame
+end
+
+function ScoreStunt()
+	currentStunt.score =  memory.readword(RAM.words.boostMeter) + GetBoostInQueue() - normalEndBoost
+
+	if gameState.yPos > maximumY then
+		gui.text(0, 170, gameState.yPos .. " above " .. maximumY)
+		currentStunt.score = -9999
+	elseif gameState.yPos < minimumY then
+		gui.text(0, 170, gameState.yPos .. " below " .. minimumY)
+		currentStunt.score = -9999
+	end
+
+	if currentStunt.score > bestStunt.score then
+		rutCounter = 0
+	elseif currentStunt.score >= 0 and BestScore(currentStunt) >= bestStunt.score then
+		rutCounter = rutCounter + 1
+	end
+	if (currentStunt.score >= bestStunt.score) then
+		SetBestStunt()       
+	end
+end
+
+function GetBoostInQueue()
+    local messageQueueCurrentIndex = memory.readbyte(RAM.bytes.messageQueueCurrentIndex)
+    local messageQueueFirstNewIndex = memory.readbyte(RAM.bytes.messageQueueFirstNewIndex)
+    local boostInQueue = 0
+    
+    if messageQueueFirstNewIndex < messageQueueCurrentIndex then
+        messageQueueFirstNewIndex = messageQueueFirstNewIndex + 32
+    end
+    
+    currentReadIndex = messageQueueCurrentIndex + 1
+    
+    while currentReadIndex < messageQueueFirstNewIndex do
+        local currentMessage = memory.readbyte(RAM.bytes.messageQueueStart + (currentReadIndex % 32))
+        
+        if currentMessage == 1 or currentMessage == 9 or currentMessage == 18 then
+            boostInQueue = boostInQueue + 128
+        elseif currentMessage == 2 or currentMessage == 10 or currentMessage == 17 or currentMessage == 19 then
+            boostInQueue = boostInQueue + 152
+        elseif currentMessage == 3 or currentMessage == 5 or currentMessage == 11 or currentMessage == 20 then
+            boostInQueue = boostInQueue + 176
+        elseif currentMessage == 4 or currentMessage == 6 or currentMessage == 12 or currentMessage == 21 then
+            boostInQueue = boostInQueue + 200
+        elseif currentMessage == 7 then
+            boostInQueue = boostInQueue + 224
+        elseif currentMessage == 8 then
+            boostInQueue = boostInQueue + 248
+        end
+        
+        currentReadIndex = currentReadIndex + 1
+    end
+    
+    return boostInQueue
+end
+
+
+function FindWait()
+	if completedZFlips == 0 and currentStunt.zFlips > 0 and currentStunt.zWait == 0 then
+		strategyText = "Try that again with currentStunt.zWait"
+		currentStunt.zWait = 1
+	elseif currentStunt.rollWait == 0 and currentStunt.rolls >= 1 and currentStunt.flips >= 1 then
+		currentStunt.rollWait = 1
+		strategyText = "Frame shaving with currentStunt.rollWait!"
+	else
+		if currentStunt.rollWait == 1 and currentStunt.rolls >= 1 and currentStunt.flips >= 1 and (completedRolls == 0 or completedFlips == 0) then
+			currentStunt.rollWait = 0
+		end
+		strategyText = "Executing specified trick!"
+		strategy = strategies.replayBest
+	end
+end
+
+function AddFirstTwist()
+	if completedZFlips == 0 and currentStunt.zFlips > 0 and currentStunt.zWait == 0 then
+		strategyText = "Guess fixed, try with currentStunt.zWait"
+		lastAddition = stunts.none
+		currentStunt.zWait = 1
+	elseif completedRolls == 0 and currentStunt.rolls > 0 and currentStunt.rollWait == 0 then
+		strategyText = "Guess fixed, try with currentStunt.rollWait"
+		lastAddition = stunts.none
+		currentStunt.rollWait = 1
+	else
+		lastAddition = stunts.twist
+		strategyText = "Guess fixed, try Twist"
+		currentStunt.twists = completedTwists + 1
+		if wholeTwistsOnly == 1 then
+			currentStunt.twists = currentStunt.twists + 1
+		end
+		currentStunt.tabletops = completedTabletops
+		currentStunt.zFlips = math.min(4, completedZFlips)
+		currentStunt.rolls = math.min(4, completedRolls)
+		currentStunt.flips = math.min(4, completedFlips)
+	end
+end
+
+function AddNextTwist()
+	lastAddition = stunts.twist
+	currentStunt.twists = currentStunt.twists + 1
+	if wholeTwistsOnly == 1 then
+		currentStunt.twists = currentStunt.twists + 1
+	end
+	strategyText = "Twist worked, add another"
+	consecutiveFailures = 0
+end
+
+function ReplaceTwistWithNewStunt()
+	currentStunt.twists = completedTwists
+	if currentStunt.tabletops == 0 then
+		strategyText = "Unneeded Tw, Add Tt"
+		lastAddition = stunts.tabletop
+		currentStunt.tabletops = currentStunt.tabletops + 1
+	else
+		strategyText = "Unneeded Tw, Add Flip"
+		lastAddition = stunts.flip
+		currentStunt.flips = currentStunt.flips + 1
+		currentStunt.rollWait = 0
+	end
+	consecutiveFailures = consecutiveFailures + 1
+end
+
+function AddStuntAfterTabletop()
+	if (currentStunt.flips > 0) and (currentStunt.rolls == 0) then
+		strategyText = "Tt worked, add Roll"
+		lastAddition = stunts.roll
+		currentStunt.rolls = currentStunt.rolls + 1
+	else
+		strategyText = "Tt worked, add Flip"
+		lastAddition = stunts.flip
+		currentStunt.flips = currentStunt.flips + 1
+		currentStunt.rollWait = 0
+	end
+	consecutiveFailures = 0
+end
+
+function AddRollAfterFlip()
+	strategyText = "Flip worked, add Roll"
+	lastAddition = stunts.roll
+	currentStunt.rolls = currentStunt.rolls + 1
+	consecutiveFailures = 0
+end
+
+function ReplaceFlipWithRoll()
+	currentStunt.flips = completedFlips + 1
+	strategyText = "Unneeded flip, add Roll"
+	lastAddition = stunts.roll
+	currentStunt.rolls = currentStunt.rolls + 1
+	currentStunt.rollWait = 0
+end
+
+function AddZFlipAfterRoll()
+	strategyText = "Roll worked, add Zflip"
+	lastAddition = stunts.zFlip
+	currentStunt.zFlips = currentStunt.zFlips + 1
+	consecutiveFailures = 0
+end
+
+function ReplaceRollWithZFlip()
+	currentStunt.rolls = completedRolls + 1
+	strategyText = "Unneeded roll, add Zflip"
+	lastAddition = stunts.zFlip
+	currentStunt.zFlips = currentStunt.zFlips + 1
+end
+
+function AddTwistAfterZFlip()
+	strategyText = "Zflip worked, add twist"
+	lastAddition = stunts.twist
+	currentStunt.twists = currentStunt.twists + 1
+	if wholeTwistsOnly == 1 then
+		currentStunt.twists = currentStunt.twists + 1
+	end
+	consecutiveFailures = 0
+end
+
+function ReplaceZFlipWithTwist()
+	strategyText = "Uneeded Zf, add twist"
+	currentStunt.zFlips = completedZFlips
+	lastAddition = stunts.twist
+	currentStunt.twists = currentStunt.twists + 1
+	if wholeTwistsOnly == 1 then
+		currentStunt.twists = currentStunt.twists + 1
+	end
+end
+
+function AddZFlipAfterFlipRoll()
+	strategyText = "F+R worked, add zflip"
+	lastAddition = stunts.zFlip
+	currentStunt.zFlips = currentStunt.zFlips + 1
+	consecutiveFailures = 0
+end
+
+function FailRollWait()
+	currentStunt.rollWait = -1
+	strategyText = "Rollwait was a failure!"
+	if rutCounter > rutTolerance - 3 then
+		if currentStunt.flips + 1 < currentStunt.rolls then
+			currentStunt.rolls = currentStunt.rolls - 1
+			currentStunt.flips = currentStunt.flips + 1
+			lastAddition = stunts.flip
+			strategyText = "Trade a roll for a flip"
+		elseif currentStunt.rolls + 1 < currentStunt.flips then
+			currentStunt.flips = currentStunt.flips - 1
+			currentStunt.rolls = currentStunt.rolls + 1
+			lastAddition = stunts.roll
+			strategyText = "Trade a flip for a roll"
+		end
+	end
+end
+
+function FailTwistAddNewStunt()
+	currentStunt.twists = currentStunt.twists - 1
+	if wholeTwistsOnly == 1 then
+		currentStunt.twists = currentStunt.twists - 1
+	end
+	if currentStunt.tabletops == 0 then
+		strategyText = "Twist failed, add Tt"
+		lastAddition = stunts.tabletop
+		currentStunt.tabletops = currentStunt.tabletops + 1
+	else
+		strategyText = "Twist failed, add Flip"
+		lastAddition = stunts.flip
+		currentStunt.flips = currentStunt.flips + 1
+		currentStunt.rollWait = 0
+	end
+end
+
+function FailTabletopAddFlip()
+	strategyText = "Tt failed, try Flip"
+	currentStunt.tabletops = currentStunt.tabletops - 1
+	lastAddition = stunts.flip
+	currentStunt.flips = currentStunt.flips + 1
+	currentStunt.rollWait = 0
+end
+
+function FailFlipAddRoll()
+	if completedFlips + 1 < currentStunt.flips then
+		currentStunt.flips = completedFlips + 1
+		strategyText = "Un. Flip failed, try extra Roll"
+	else
+		strategyText = "Flip failed, try extra Roll"
+	end
+	lastAddition = stunts.extraRoll
+	currentStunt.rolls = currentStunt.rolls + 1
+	consecutiveFailures = consecutiveFailures - 1
+end
+
+function FailRollAddExtraFlip()
+	if completedRolls + 1 < currentStunt.rolls then
+		currentStunt.rolls = completedRolls + 1
+		strategyText = "Un. Roll failed, try extra Flip"
+	else
+		strategyText = "Roll failed, try extra Flip"
+	end
+	currentStunt.flips = currentStunt.flips + 1
+	currentStunt.rollWait = 0
+	lastAddition = stunts.extraFlip
+	consecutiveFailures = consecutiveFailures - 1
+end
+
+function FailUnZFlipAddTwist()
+	currentStunt.zFlips = completedZFlips
+	strategyText = "Un. Zf failed, add Twist"
+	lastAddition = stunts.twist
+	currentStunt.twists = currentStunt.twists + 1
+	if wholeTwistsOnly == 1 then
+		currentStunt.twists = currentStunt.twists + 1
+	end
+end
+
+function FailZFlipAddTwist()
+	currentStunt.zFlips = currentStunt.zFlips - 1
+	strategyText = "Zflip failed, add Twist"
+	lastAddition = stunts.twist
+	currentStunt.twists = currentStunt.twists + 1
+end
+
+function FailRollFlipAddZFlip()
+	strategyText = "Roll and Flip failed, add zflip"
+	currentStunt.rolls = currentStunt.rolls - 1
+	currentStunt.flips = currentStunt.flips - 1
+	lastAddition = stunts.zFlip
+	currentStunt.zFlips = currentStunt.zFlips + 1
+end
+
+function GetBestStunt()
+	strategy = strategies.replayBest
+	currentStunt.twists = bestStunt.twists
+	currentStunt.tabletops = bestStunt.tabletops
+	currentStunt.zFlips = bestStunt.zFlips
+	currentStunt.rolls = bestStunt.rolls
+	currentStunt.flips = bestStunt.flips
+	currentStunt.twistWait = bestStunt.twistWait
+	currentStunt.frameWait = bestStunt.frameWait
+	currentStunt.tabletopExtraWait = bestStunt.tabletopExtraWait
+	currentStunt.zWait = bestStunt.zWait
+	currentStunt.zWait2 = bestStunt.zWait2
+	currentStunt.twistRegisters = bestStunt.twistRegisters
+	currentStunt.rollWait = bestStunt.rollWait
+	currentStunt.finalFlipFrame = bestStunt.finalFlipFrame
+	lastScore = 0
+	lastAddition = stunts.none
+	consecutiveFailures = 0
+	rutCounter = 0
+	snes9x.speedmode("normal")
+end
+
+function BuildUpCombo()
+	if trickExecution == 1 then
+		FindWait()
+	elseif currentStunt.score > lastScore then
+		if lastAddition == stunts.none then
+			AddFirstTwist()
+		elseif (lastAddition == stunts.twist and completedTwists >= currentStunt.twists) then
+			AddNextTwist()
+		elseif (lastAddition == stunts.twist and completedTwists < currentStunt.twists) then
+			ReplaceTwistWithNewStunt()
+		elseif lastAddition == stunts.tabletop then
+			AddStuntAfterTabletop()
+		elseif (lastAddition == stunts.flip and completedFlips + 1 >= currentStunt.flips) then
+			AddRollAfterFlip()
+		elseif (lastAddition == stunts.flip and completedFlips + 1 < currentStunt.flips) then
+			ReplaceFlipWithRoll()
+		elseif (lastAddition == stunts.roll and completedRolls + 1 >= currentStunt.rolls) then
+			AddZFlipAfterRoll()
+		elseif (lastAddition == stunts.roll and completedRolls + 1 < currentStunt.rolls) then
+			if currentStunt.rollWait == 0 then
+				strategyText = "Try that again with currentStunt.rollWait"
+				currentStunt.rollWait = 1
+			else
+				ReplaceRollWithZFlip()
+			end
+		elseif (lastAddition == stunts.zFlip and completedZFlips >= currentStunt.zFlips) then
+			AddTwistAfterZFlip()
+		elseif (lastAddition == stunts.zFlip and completedZFlips < currentStunt.zFlips) then
+			if (currentStunt.zFlips == 1 and currentStunt.zWait == 0) then
+				strategyText = "Try that again with currentStunt.zWait"
+				currentStunt.zWait = 1
+			else
+				ReplaceZFlipWithTwist()
+			end
+		elseif (lastAddition == stunts.extraRoll or lastAddition == stunts.extraFlip) then
+			AddZFlipAfterFlipRoll()
+		end
+	else
+		if currentStunt.rollWait == 0 and currentStunt.rolls >= 1 and currentStunt.flips >= 1 then
+			if lastAddition == stunts.zFlip and completedZFlips < currentStunt.zFlips and currentStunt.zFlips == 1 and currentStunt.zWait == 0 then
+				strategyText = "Try that again with currentStunt.zWait"
+				currentStunt.zWait = 1
+				consecutiveFailures = consecutiveFailures - 1
+			else
+				currentStunt.rollWait = 1
+				strategyText = "Try that with currentStunt.rollWait!"
+			end
+		elseif currentStunt.rollWait == 1 and currentStunt.rolls >= 1 and currentStunt.flips >= 1 and (completedFlips < currentStunt.flips) and lastAddition < stunts.extraRoll then
+			FailRollWait()
+		else
+			consecutiveFailures = consecutiveFailures + 1
+			if lastAddition == stunts.none then
+				AddFirstTwist()
+			elseif lastAddition == stunts.twist then
+				FailTwistAddNewStunt()
+			elseif lastAddition == stunts.tabletop then
+				FailTabletopAddFlip()
+			elseif lastAddition == stunts.flip then
+				FailFlipAddRoll()
+			elseif lastAddition == stunts.roll then
+				if currentStunt.rollWait == 0 then
+					strategyText = "Try that again with currentStunt.rollWait"
+					currentStunt.rollWait = 1
+					consecutiveFailures = consecutiveFailures - 1
+				else
+					FailRollAddExtraFlip()
+				end
+			elseif lastAddition == stunts.zFlip then
+				if completedZFlips < currentStunt.zFlips then
+					if (currentStunt.zFlips == 1 and currentStunt.zWait == 0) then
+						strategyText = "Try that again with currentStunt.zWait"
+						currentStunt.zWait = 1
+						consecutiveFailures = consecutiveFailures - 1
+					else
+						FailUnZFlipAddTwist()
+					end
+				else
+					FailZFlipAddTwist()
+				end
+			elseif lastAddition == stunts.extraRoll then
+				if currentStunt.rollWait == 0 then
+					strategyText = "Try that again with currentStunt.rollWait"
+					currentStunt.rollWait = 1
+					consecutiveFailures = consecutiveFailures - 1
+				else
+					strategyText = "F+R failed, try Roll only"
+					currentStunt.flips = currentStunt.flips - 1
+					lastAddition = stunts.roll
+				end
+			elseif lastAddition == stunts.extraFlip then
+				if currentStunt.rollWait == 0 then
+					strategyText = "Try that again with currentStunt.rollWait"
+					currentStunt.rollWait = 1
+					consecutiveFailures = consecutiveFailures - 1
+				else
+					FailRollFlipAddZFlip()
+				end
+			end
+		end
+	end
+	if (consecutiveFailures >= 20 or rutCounter >= rutTolerance) then
+		if currentStunt.frameWait >= maxFrameWait then
+			GetBestStunt()
+		else
+			currentStunt.frameWait = currentStunt.frameWait + frameIncrement
+			mode = modes.jumping
+		end
+	end
+	reload = 1
+end
+
+function MaximizeStunts()
+	if currentStunt.score > lastScore then
+		if lastAddition == stunts.twist then
+			lastAddition = stunts.twist
+			currentStunt.twists = currentStunt.twists + 1
+		elseif lastAddition == stunts.tabletop then
+			lastAddition = stunts.flip
+			maxTabletopsOnly = currentStunt.tabletops
+			currentStunt.tabletops = 0
+			currentStunt.flips = currentStunt.flips + 1
+		elseif lastAddition == stunts.flip then
+			lastAddition = stunts.flip
+			currentStunt.flips = currentStunt.flips + 1
+		elseif lastAddition == stunts.roll then
+			lastAddition = stunts.roll
+			currentStunt.rolls = currentStunt.rolls + 1
+		elseif lastAddition == stunts.zFlip then
+			lastAddition = stunts.zFlip
+			currentStunt.zFlips = currentStunt.zFlips + 1
+		end
+	else
+		if lastAddition == stunts.twist then
+			maxTwistOnly = currentStunt.twists - 1
+			currentStunt.twists = 0
+			lastAddition = stunts.tabletop
+			currentStunt.tabletops = 1
+		elseif lastAddition == stunts.tabletop then
+			maxTabletopsOnly = currentStunt.tabletops - 1
+			currentStunt.tabletops = 0
+			lastAddition = stunts.flip
+			currentStunt.flips = currentStunt.flips + 1
+		elseif lastAddition == stunts.flip then
+			maxFlipsOnly = currentStunt.flips - 1
+			currentStunt.flips = 0
+			lastAddition = stunts.roll
+			currentStunt.rolls = currentStunt.rolls + 1
+		elseif lastAddition == stunts.roll then
+			maxRollsOnly = currentStunt.rolls - 1
+			currentStunt.rolls = 0
+			lastAddition = stunts.zFlip
+			currentStunt.zFlips = currentStunt.zFlips + 1
+		elseif lastAddition == stunts.zFlip then
+			maxZFlipsOnly = currentStunt.zFlips - 1
+			strategy = strategies.tearDownFromMax
+			currentStunt.twists = maxTwistOnly
+			currentStunt.tabletops = maxTabletopsOnly
+			currentStunt.zFlips = maxZFlipsOnly
+			currentStunt.rolls = maxRollsOnly
+			currentStunt.flips = maxFlipsOnly
+			if currentStunt.rolls > 4 then
+				lastAddition = stunts.roll
+			elseif currentStunt.zFlips > 4 then
+				lastAddition = stunts.zFlip
+			elseif currentStunt.flips > 4 then
+				lastAddition = stunts.flip
+			elseif currentStunt.twists > 4 then
+				lastAddition = stunts.twist
+			elseif currentStunt.rolls > 1 then
+				lastAddition = stunts.roll
+			elseif currentStunt.zFlips > 1 then
+				lastAddition = stunts.zFlip
+			elseif currentStunt.flips > 1 then
+				lastAddition = stunts.flip
+			elseif currentStunt.twists > 1 then
+				lastAddition = stunts.twist
+			elseif currentStunt.rolls > 0 then
+				lastAddition = stunts.roll
+			elseif currentStunt.zFlips > 0 then
+				lastAddition = stunts.zFlip
+			elseif currentStunt.flips > 0 then
+				lastAddition = stunts.flip
+			elseif currentStunt.tabletops > 0 then
+				lastAddition = stunts.tabletop
+			elseif currentStunt.twists > 0 then
+				lastAddition = stunts.twist
+			else
+				lastAddition = stunts.extraRoll -- error condition
+			end
+
+			consecutiveFailures = 0
+		end
+	end
+end
+
+function TearDownFromMax()
+	if (currentStunt.score > lastScore or lastAddition == stunts.extraRoll) then
+		if (consecutiveFailures > 1 or (consecutiveFailures == 0 and lastAddition == stunts.twist)) then
+			currentStunt.twists = currentStunt.twists + 1
+			lastAddition = stunts.twist
+		else
+			if currentStunt.frameWait >= maxFrameWait then
+				strategy = strategies.replayBest
+				currentStunt.twists = bestStunt.twists
+				currentStunt.tabletops = bestStunt.tabletops
+				currentStunt.zFlips = bestStunt.zFlips
+				currentStunt.rolls = bestStunt.rolls
+				currentStunt.flips = bestStunt.flips
+				currentStunt.twistWait = bestStunt.twistWait
+				currentStunt.frameWait = bestStunt.frameWait
+				currentStunt.tabletopExtraWait = bestStunt.tabletopExtraWait
+				currentStunt.twistRegisters = bestStunt.twistRegisters
+				currentStunt.rollWait = bestStunt.rollWait
+				currentStunt.finalFlipFrame = bestStunt.finalFlipFrame
+				snes9x.speedmode("normal")
+			else
+				currentStunt.frameWait = currentStunt.frameWait + frameIncrement
+				mode = modes.jumping
+			end
+		end
+		consecutiveFailures = 0
+	else
+		consecutiveFailures = consecutiveFailures + 1
+		if (consecutiveFailures == 1 and lastAddition == stunts.twist) then
+			lastAddition = stunts.twist
+		elseif currentStunt.rolls > 4 then
+			lastAddition = stunts.roll
+		elseif currentStunt.zFlips > 4 then
+			lastAddition = stunts.zFlip
+		elseif currentStunt.flips > 4 then
+			lastAddition = stunts.flip
+		elseif currentStunt.twists > 4 then
+			lastAddition = stunts.twist
+		elseif currentStunt.rolls > 1 then
+			lastAddition = stunts.roll
+		elseif currentStunt.zFlips > 1 then
+			lastAddition = stunts.zFlip
+		elseif currentStunt.flips > 1 then
+			lastAddition = stunts.flip
+		elseif currentStunt.twists > 1 then
+			lastAddition = stunts.twist
+		elseif currentStunt.rolls > 0 then
+			lastAddition = stunts.roll
+		elseif currentStunt.zFlips > 0 then
+			lastAddition = stunts.zFlip
+		elseif currentStunt.flips > 0 then
+			lastAddition = stunts.flip
+		elseif currentStunt.tabletops > 0 then
+			lastAddition = stunts.tabletop
+		elseif currentStunt.twists > 0 then
+			lastAddition = stunts.twist
+		else
+			lastAddition = stunts.extraRoll
+		end
+
+		if lastAddition == stunts.twist then
+			maxTwistOnly = currentStunt.twists - 1
+		elseif lastAddition == stunts.tabletop then
+			maxTabletopsOnly = currentStunt.tabletops - 1
+		elseif lastAddition == stunts.flip then
+			maxFlipsOnly = currentStunt.flips - 1
+		elseif lastAddition == stunts.roll then
+			maxRollsOnly = currentStunt.rolls - 1
+		elseif lastAddition == stunts.zFlip then
+			maxZFlipsOnly = currentStunt.zFlips - 1
+		end
+	end
+end
+
+function BestScore(stunt)
+   	local retVal = 0
+    
+    if stunt.twists > 0 then
+        retVal = retVal + 128 + (stunt.twists - 2) * 12
+    end
+    if stunt.tabletops > 0 then
+        retVal = retVal + 152
+    end
+    if stunt.zFlips > 0 then
+        retVal = retVal + 128 + (stunt.zFlips - 1) * 24
+    end
+    if stunt.rolls > 0 then
+        retVal = retVal + 128 + (stunt.rolls - 1) * 24
+    end
+    if stunt.flips > 0 then
+        retVal = retVal + 176 + (stunt.flips - 1) * 24
+    end
+
+    return retVal
+end    
+
+function OptimizeStunts()
+	DisplayOptimizationStatus()
+	HandleJumpStatus()
+	HandleTwistStatus()
+	HandleTabletopStatus()
+	HandleZFlipStatus()
+	HandleFlipStatus()
+	HandleRollStatus()
+	HandleStuntComboing()
+
+	if (afterFrame >= searchWindow or (curFrame >= infiniteLoopDetection) or (strategy == strategies.replayBest and jumpStatus == jumpState.landed) or BestScore(currentStunt) < bestStunt.score) then
+		ScoreStunt()
+
+		if strategy == strategies.buildUpCombo then
+			BuildUpCombo()
+		elseif strategy == strategies.maximizeStunts then
+			MaximizeStunts()
+		elseif strategy == strategies.tearDownFromMax then
+			TearDownFromMax()
+		elseif strategy == strategies.replayBest then
+			mode = modes.done
+		end
+		lastScore = currentStunt.score
+		reload = 1
+		if mode == modes.done then
+			reload = 0
+		end
+	end
+end
+
+function SetCurrentFrame()
+	buttontable = {start=nil, select=nil, up=nil, down=nil, left=nil, right=nil, A=nil, B=nil, X=nil, Y=nil, L=nil, R=nil}
+
+	if reverse == 0 then
+		if horzDirection == direction.right then
+			buttontable.right = true
+		else
+			buttontable.left = true
+		end
+	else
+		if horzDirection == direction.right then
+			buttontable.left = true
+		else
+			buttontable.right = true
+		end
+	end
+
+	if flipping == 1 then
+		if horzDirection == direction.right then
+			buttontable.R = true
+		else
+			buttontable.L = true
+		end
+	elseif rolling == 1 then
+		if horzDirection == direction.right then
+			buttontable.L = true
+		else
+			buttontable.R = true
+		end
+	elseif (mode > modes.tabletopping and thisFlipOvercorrect > 0) then
+		gui.text(0,140,"FLIP OVERCORRECT")
+		thisFlipOvercorrect = thisFlipOvercorrect - 1
+		if horzDirection == direction.right then
+			buttontable.R = true
+		else
+			buttontable.L = true
+		end
+	elseif (mode > modes.tabletopping and thisRollOvercorrect > 0) then
+		gui.text(0,140,"ROLL OVERCORRECT")
+		thisRollOvercorrect = thisRollOvercorrect - 1
+		if horzDirection == direction.right then
+			buttontable.L = true
+		else
+			buttontable.R = true
+		end
+	end
+
+	if jumping == 1 then
+		if maxBFrames == 0 then
+			buttontable.B = true
+		elseif curFrame < maxBFrames then
+			buttontable.B = true
+		end
+	end
+
+	if xing == 1 then
+		buttontable.X = true
+	end
+
+	lastFrameTwist = gameState.twists
+	lastFrameTabletop = gameState.tabletops
+
+	joypad.set(1, buttontable)
+end
+
+function DisplayResult()
+	local trickText = ""
+
+	if completedTabletops > 0 then
+		trickText = trickText .. "Tt"
+	end
+
+	if completedFlips > 1 then
+		trickText = trickText .. completedFlips .. "F"
+	elseif completedFlips > 0 then
+		trickText = trickText .. "F"
+	end
+
+	if completedRolls > 1 then
+		trickText = trickText .. completedRolls .. "R"
+	elseif completedRolls > 0 then
+		trickText = trickText .. "R"
+	end
+
+	if completedTwists > 2 then
+		trickText = trickText .. math.floor(completedTwists/2) .. "T"
+	elseif completedTwists > 0 then
+		trickText = trickText .. "T"
+	end
+
+	if completedZFlips > 1 then
+		trickText = trickText .. completedZFlips .. "Z"
+	elseif completedZFlips > 0 then
+		trickText = trickText .. "Z"
+	end
+
+	gui.text(0, 10, "ALL DONE: " .. trickText)
+	gui.text(0, 20, "Tried: " .. currentStunt.tabletops .. "Tt " .. currentStunt.flips .. "F " .. currentStunt.rolls .. "R " .. currentStunt.twists/2 .. "T " .. currentStunt.zFlips .. "Z")
+	gui.text(0, 30, "Made : " .. completedTabletops .. "Tt " .. completedFlips .. "F " .. completedRolls .. "R " .. completedTwists/2 .. "T " .. completedZFlips .. "Z")
+	gui.text(0, 40, "Framewait: " .. currentStunt.frameWait)
+	gui.text(0, 50, "Twistwait: " .. currentStunt.twistWait)
+	gui.text(0, 60, "Twistregisters: " .. currentStunt.twistRegisters)
+	gui.text(0, 70, "Tabletopextrawait: " .. currentStunt.tabletopExtraWait)
+	gui.text(0, 80, "currentStunt.zWait: " .. currentStunt.zWait)
+	gui.text(0, 90, "currentStunt.zWait2: " .. currentStunt.zWait2)
+	gui.text(0, 100, "currentStunt.finalFlipFrame: " .. currentStunt.finalFlipFrame)
+	gui.text(0, 110, "currentStunt.rollWait: " .. currentStunt.rollWait)
+	gui.text(0, 120, "Resulting speed: " .. bestStunt.speed)
+end
+
+function Main()
+
+	--- IMPORTANT REMINDER: LUA SCRIPTING BREAKS WITH SNES9X SLOWDOWN (50% or 2% in "normal" speed mode)
+	snes9x.speedmode("nothrottle")
+	--snes9x.speedmode("maximum")
+    
+	HandleTrickExecutionMode()
+
+	savestate.save(startSS)
+
+	currentStunt.frameWait = startFrame
+
+	GetFinishDirection()
+
+	while mode < modes.done do
+		ResetMovementState()
+
+		if reload == 1 then
+			ReloadSavestate()
+		end
+
+		GetGameState()
+
+		if reverseFlipRoll == 1 then
+			gameState.rolls, gameState.flips = gameState.flips, gameState.rolls
+		end
+
+		gui.text(0, 150, "Xv: " .. gameState.xSpeed .. "(" .. horzDirection .. ") Yv: " .. gameState.ySpeed .. "(" .. vertDirection .. ")")
+		gui.text(0, 160, "Air:" .. gameState.airFlag .. " Tw:" .. gameState.twists .. " Tt:" .. gameState.tabletops .. " Zf:" .. gameState.zFlips .. " Ro:" .. gameState.rolls .. " Fl:" .. gameState.flips)
+
+		if mode == modes.jumping then
+			TestJumping()
+		elseif mode == modes.twisting then
+			GetFirstTwistTiming()
+		elseif mode == modes.tabletopping then
+			GetTabletopTiming()
+		elseif mode == modes.optimizing then
+			OptimizeStunts()
+		elseif mode == modes.done then
+			-- We're done
+		end
+
+		SetCurrentFrame()
+		curFrame = curFrame + 1
+		snes9x.frameadvance()
+	end
+
+	DisplayResult()
+end
+
+Main()

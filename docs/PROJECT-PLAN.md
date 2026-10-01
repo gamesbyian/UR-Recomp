@@ -640,7 +640,7 @@ Original rendered elements can be deterministically identified from authoritativ
 
 Implement the Widescreen feature with stock art before introducing the HD Presentation feature.
 
-This separates geometry/camera problems from asset-resolution problems. Canonical reconnaissance details live in `WIDESCREEN-RECONNAISSANCE.md`; pinned external prior art is summarized in `../references/notes/widescreen-and-modern-presentation-prior-art.md`.
+This separates geometry/camera problems from asset-resolution problems. Canonical reconnaissance details live in `WIDESCREEN-RECONNAISSANCE.md`; pinned external prior art is summarized in `../reference/notes/widescreen-and-modern-presentation-prior-art.md`.
 
 ### First rule
 

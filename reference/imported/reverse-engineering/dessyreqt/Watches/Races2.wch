@@ -1,0 +1,21 @@
+
+19
+00000	7E0413	w	u	0	X Position
+00001	7E0417	w	u	0	Y Position
+00002	7E150B	b	u	0	X Pos/Screen
+00003	7E11CF	w	u	0	Boost Meter
+00004	7E041F	w	u	0	Screen Y Position
+00005	7E119B	b	u	0	Checkpoint
+00006	7E04C9	b	u	0	Pitch
+00007	7E0431	b	u	0	Tabletops
+00008	7E11FF	b	u	0	Flips
+00009	7E11FB	b	u	0	Rolls
+0000A	7E042D	b	s	0	Z-Flips
+0000B	7E0F63	b	u	0	Twists * 2
+0000C	7E033D	b	s	0	Facing Right in Air
+0000D	7E0547	b	u	0	Air Flag
+0000E	7E04BD	w	s	0	Y Speed
+0000F	7E04B9	w	s	0	X Speed
+00010	7E04F7	b	s	0	Camera X Speed
+00011	7E009F	b	u	0	Menu
+00012	s00743	b	u	0	asdf

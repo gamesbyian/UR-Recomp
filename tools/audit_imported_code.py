@@ -12,12 +12,12 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "analysis" / "generated" / "third-party-code-audit.md"
 
 TARGETS = {
-    "Snes9x 1.43 DMA": ROOT / "references/imported/emulators/snes9x-1.43/dma.cpp",
-    "Snes9x pinned DMA": ROOT / "references/imported/emulators/snes9x/dma.cpp",
-    "Snes9x pinned ROM hacks": ROOT / "references/imported/emulators/snes9x/memmap.cpp",
-    "jgenesis sprites": ROOT / "references/imported/emulators/jgenesis/sprites.rs",
-    "MAME SNES PPU": ROOT / "references/imported/emulators/mame/snes_ppu.cpp",
-    "2014 Tabletop bot": ROOT / "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua",
+    "Snes9x 1.43 DMA": ROOT / "reference/imported/emulators/snes9x-1.43/dma.cpp",
+    "Snes9x pinned DMA": ROOT / "reference/imported/emulators/snes9x/dma.cpp",
+    "Snes9x pinned ROM hacks": ROOT / "reference/imported/emulators/snes9x/memmap.cpp",
+    "jgenesis sprites": ROOT / "reference/imported/emulators/jgenesis/sprites.rs",
+    "MAME SNES PPU": ROOT / "reference/imported/emulators/mame/snes_ppu.cpp",
+    "2014 Tabletop bot": ROOT / "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua",
 }
 
 
@@ -91,7 +91,7 @@ def render() -> str:
         f"| Snes9x 1.43 DMA | named special-case at line(s) {', '.join(str(n) for n,_ in old)} | historical game-specific workaround |",
         f"| pinned Snes9x DMA + ROM hacks | named handling at DMA line(s) {', '.join(str(n) for n,_ in new_dma)}; ROM-hack line(s) {', '.join(str(n) for n,_ in new_map)} | still game-specific; not an independent generic hardware model |",
         f"| jgenesis sprites | Uniracers appears only in a comment at line {jgen[0][0]} | generic sprite/OAM state model; strongest architecture reference of these imports |",
-        f"| MAME SNES PPU | relevant references/caveat at line(s) {', '.join(str(n) for n,_ in mame)} | independent implementation, but source explicitly describes the treatment as a hack |",
+        f"| MAME SNES PPU | relevant reference/caveat at line(s) {', '.join(str(n) for n,_ in mame)} | independent implementation, but source explicitly describes the treatment as a hack |",
         "",
         "## Recovered 2014 bot source hazards",
         "",

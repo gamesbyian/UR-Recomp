@@ -33,12 +33,12 @@ The following are considered established unless contradicted by stronger evidenc
 - All 45 streams use RNC Method 1.
 - All 45 streams occur at identical offsets and have matching packed/unpacked sizes and CRCs across USA retail and the 1994-11-29 PAL prototype. Europe retail relocates most streams after seven content/size changes, so cross-build RNC matching must use content fingerprints rather than offsets alone.
 - The RNC corpus begins at `0x0C0000` and extends through the last stream beginning at `0x0FB9D7`.
-- Period RNC ProPack 2.14 source, including SNES Method 1 and Method 2 unpackers, is preserved under `references/imported/tools/rnc_propack-2.14/`.
+- Period RNC ProPack 2.14 source, including SNES Method 1 and Method 2 unpackers, is preserved under `reference/imported/tools/rnc_propack-2.14/`.
 - The active-display OAM / split-screen behavior is supported by independent emulator implementations and first-hand Mike Dailly testimony describing scanline-based C64-style sprite ripping.
 - jgenesis supplies concrete expected HBlank OAM writes in Vs. mode: scanlines 0 and 112, values 0xA5 and 0x5A, affecting high OAM for sprites 96-99.
 - The recovered Canoe patch hooks original ROM code at offsets `0x01534C` and `0x015714`.
 - TAS and RetroAchievements sources provide useful WRAM/SRAM anchors for speed, boost, position, stunt state, medal state, and progression.
-- USJO internal version 8 (2008-02-10) is preserved as exact source under `references/imported/tas-bots/usjo8.lua`. It directly exposes the historical stunt optimizer's savestate search loop, RAM reads, timing constants, stunt counters, boost scoring model and best-input replay behavior. `tools/inventory_usjo8.py` now converts that source into `analysis/generated/usjo8-static-inventory.{json,md}` so each historical address/rule can be queued for local reproduction without treating source labels as game truth.
+- USJO internal version 8 (2008-02-10) is preserved as exact source under `reference/imported/tas-bots/usjo8.lua`. It directly exposes the historical stunt optimizer's savestate search loop, RAM reads, timing constants, stunt counters, boost scoring model and best-input replay behavior. `tools/inventory_usjo8.py` now converts that source into `analysis/generated/usjo8-static-inventory.{json,md}` so each historical address/rule can be queued for local reproduction without treating source labels as game truth.
 - Historical SNasm 1.7.1 is preserved locally, and Dailly's documented 65816 syntax/conventions provide lineage evidence for future reconstructed assembly.
 - The strict native smoke harness builds and launches the actual `UniracersSNESRecomp` target. Deterministic controller-only input reaches the first one-player race in both native SNESRecomp and Snes9x/snesref. The former seven-byte settled race-entry WRAM mismatch is now explained: four bytes are stale stack residue and three are free-running timing/phase counters.
 
@@ -192,14 +192,14 @@ For every recovered artifact:
 - preserve archive/container provenance;
 - document redistribution status where known;
 - commit only when useful and appropriate;
-- add the source to `references/catalog.yml` and/or the acquisition ledger.
+- add the source to `reference/catalog.yml` and/or the acquisition ledger.
 
 ### External-evidence intake and preservation
 
 The source registry and active acquisition/reproduction queue have distinct owners:
 
-- `references/catalog.yml` records source identity, provenance, rights status and relevance;
-- `references/evidence-worklist.json` records live uncertainty, value/cost, acquisition state, next discriminator, expected deliverables and any genuinely necessary user action;
+- `reference/catalog.yml` records source identity, provenance, rights status and relevance;
+- `reference/evidence-worklist.json` records live uncertainty, value/cost, acquisition state, next discriminator, expected deliverables and any genuinely necessary user action;
 - `docs/EXTERNAL-EVIDENCE-INTAKE.md` defines the intake pipeline from public lead through local reproduction and promotion into durable project knowledge.
 
 Do not leave actionable findings trapped in a conversational research report. Convert useful leads into the worklist, then close them by producing a local test, report, symbol, fixture, format description or explicit dead-end record. Independent translation patches and SPC dumps are first-class reverse-engineering evidence when their transformations can be mapped back to canonical ROM/runtime behavior. Social remake/rerelease discussions are lower-priority breadcrumb graphs unless their replies expose a project, author, artifact or technical measurement.
@@ -377,7 +377,7 @@ The agent should move between these tracks based on evidence and blockers rather
 - `docs/original-development/DEVELOPER-TECHNICAL-HISTORY.md` — original-development history.
 - `docs/original-development/SOURCE-INDEX.md` — source provenance.
 - `docs/original-development/ACQUISITION-LEDGER.md` — missing/acquired artifacts.
-- `references/catalog.yml` and `references/notes/` — external-source corpus.
+- `reference/catalog.yml` and `reference/notes/` — external-source corpus.
 - `analysis/generated/retail-vs-prototype-structure.md` — original USA-retail vs PAL-prototype structural comparison.
 - `analysis/generated/reference-rom-inventory.md` — exact local identities for all preserved ROMs.
 - `analysis/generated/reference-rom-comparison.md` — current four-build pairwise and RNC comparison.
@@ -388,7 +388,7 @@ The agent should move between these tracks based on evidence and blockers rather
 
 Use outside decompilation, disassembly, recompilation, emulator and ROM-hacking work as a source of tested workflow ideas, especially when a new reverse-engineering phase begins or a recurring manual bottleneck appears.
 
-Canonical notes and source list: `references/notes/external-reverse-engineering-practices.md`.
+Canonical notes and source list: `reference/notes/external-reverse-engineering-practices.md`.
 
 Operating rules:
 

@@ -2,9 +2,9 @@
   "schema_version": 1,
   "source": "Nitrodon direct 2008-2009 reverse-engineering workspace",
   "generated_from": [
-    "references/imported/reverse-engineering/nitrodon/RAM addresses.txt",
-    "references/imported/reverse-engineering/nitrodon/messages.txt",
-    "references/imported/reverse-engineering/nitrodon/ROM addresses.txt"
+    "reference/imported/reverse-engineering/nitrodon/RAM addresses.txt",
+    "reference/imported/reverse-engineering/nitrodon/messages.txt",
+    "reference/imported/reverse-engineering/nitrodon/ROM addresses.txt"
   ],
   "warning": "Historical annotations are queryable evidence, not automatically canonical semantics. Use docs/SYMBOLS.md for promoted symbols.",
   "ram_entries": [

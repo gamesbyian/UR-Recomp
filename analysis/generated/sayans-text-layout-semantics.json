@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_patch": "references/imported/patches/sayans-uniracers-2002/Uniraceresp.ips",
+  "source_patch": "reference/imported/patches/sayans-uniracers-2002/Uniraceresp.ips",
   "control_grammar": {
     "dominant_runs": [
       "FF",

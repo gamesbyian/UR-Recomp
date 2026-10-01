@@ -4,7 +4,7 @@ Goal: produce a ROM-free technical description of Uniracers/Unirally course data
 
 ## Historical leads
 
-Historical reports identified Rob Northen Compression for level/course data. The most useful historical course-layout observations are normalized in `references/notes/course-layout-history.md`. Local analysis confirmed 45 valid RNC Method 1 streams in the canonical USA retail ROM and 1994-11-29 PAL prototype, byte-identical at identical offsets. The newly acquired historical GoodSNES beta shares all 45 byte-for-byte as well. Europe retail also contains 45 streams, of which 38 are byte-identical by content; ordinal streams 4, 16, 20, 26, 27, 35 and 36 have changed packed/unpacked sizes and CRCs. The remaining question is what each decoded stream contains and how these seven final-PAL changes map to course or other semantics.
+Historical reports identified Rob Northen Compression for level/course data. The most useful historical course-layout observations are normalized in `reference/notes/course-layout-history.md`. Local analysis confirmed 45 valid RNC Method 1 streams in the canonical USA retail ROM and 1994-11-29 PAL prototype, byte-identical at identical offsets. The newly acquired historical GoodSNES beta shares all 45 byte-for-byte as well. Europe retail also contains 45 streams, of which 38 are byte-identical by content; ordinal streams 4, 16, 20, 26, 27, 35 and 36 have changed packed/unpacked sizes and CRCs. The remaining question is what each decoded stream contains and how these seven final-PAL changes map to course or other semantics.
 
 ## Questions
 
@@ -24,7 +24,7 @@ Historical reports identified Rob Northen Compression for level/course data. The
 
 The repository now contains a byte-preserved mirror of the public RNC ProPack 2.14 package at:
 
-`references/imported/tools/rnc_propack-2.14/`
+`reference/imported/tools/rnc_propack-2.14/`
 
 Most useful files for this investigation:
 
@@ -78,7 +78,7 @@ Current interpretation, with confidence separated:
 - **Supported interpretation:** one RNC payload corresponds to one shipped track, ordered by tour/slot.
 - **Strong field identification:** decoded byte offset 2 is the stunt-course time limit in seconds, or a field whose shipped value directly supplies that 45-second limit. Runtime tracing can distinguish direct timer use from a semantically equivalent mode parameter.
 
-The provisional stream-to-name mapping is recorded in `references/notes/course-order-and-stunt-timer.md`. Under that mapping, the seven PAL-retail content changes correspond to stream candidates:
+The provisional stream-to-name mapping is recorded in `reference/notes/course-order-and-stunt-timer.md`. Under that mapping, the seven PAL-retail content changes correspond to stream candidates:
 
 - 4 Crawler / Switcher
 - 16 Hopper / Wario Paint

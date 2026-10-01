@@ -55,7 +55,7 @@ Hidden Palace: https://hiddenpalace.org/Assets/DMA_Design_Miscellaneous_Press_Ma
 Internet Archive: https://archive.org/details/dma_press_material  
 Archive size: about 638.6 MB.
 
-Outcome: the archive was manually inspected and the Uniracers PDF was uploaded and organized at `references/imported/press/dma-design/uniracers_01.pdf`. The user judged the remaining archive contents not useful for this project. Reopen only if a later clue points to a specific file or asset class.
+Outcome: the archive was manually inspected and the Uniracers PDF was uploaded and organized at `reference/imported/press/dma-design/uniracers_01.pdf`. The user judged the remaining archive contents not useful for this project. Reopen only if a later clue points to a specific file or asset class.
 
 ## A-003 — Mike Dailly historical SNES framework source
 
@@ -85,7 +85,7 @@ Status: acquired and analyzed transiently; binary intentionally not redistribute
 Primary source: https://www.snesmusic.org/v2/profile.php?profile=set&selected=3149  
 Recovered mirror: https://www.zophar.net/music/nintendo-snes-spc/uniracers
 
-The ten-track archive, including both tracks tagged unused, was recovered, fingerprinted and analyzed. Archive SHA-256 is recorded in `references/catalog.yml`; durable analysis lives in `references/notes/uniracers-spc-archaeology.md` and `analysis/generated/uniracers-spc-summary.json`. Later ROM-side work identified the two unused songs as retail records $3B and $3D and closed ordinary direct-call reachability. No further acquisition is needed unless a distinct historical dump or driver source appears.
+The ten-track archive, including both tracks tagged unused, was recovered, fingerprinted and analyzed. Archive SHA-256 is recorded in `reference/catalog.yml`; durable analysis lives in `reference/notes/uniracers-spc-archaeology.md` and `analysis/generated/uniracers-spc-summary.json`. Later ROM-side work identified the two unused songs as retail records $3B and $3D and closed ordinary direct-call reachability. No further acquisition is needed unless a distinct historical dump or driver source appears.
 
 ## Intake standard
 
@@ -223,13 +223,13 @@ Public bot source:
 - author: Dessyreqt
 - source: https://pastebin.com/A0XpKw9v
 - associated TASVideos submission: https://tasvideos.org/4250S
-- repository path: `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`
+- repository path: `reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua`
 - exact size: 30,047 bytes
 - SHA-256: `9183b89f27e153b5db450134c00fb98f47d67c47e979a189ae51bcd8c06629c6`
 
 Submitted SMV:
 - source: https://tasvideos.org/4250S?handler=Download
-- repository path: `references/imported/tas-bots/dessyreqt-4250-submission.smv`
+- repository path: `reference/imported/tas-bots/dessyreqt-4250-submission.smv`
 - exact size: 507,032 bytes
 - SHA-256: `06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442`
 
@@ -250,7 +250,7 @@ Recovered from the still-live Microstorage direct-download form:
 `http://dehacked.2y.net/microstorage.php/get/1674584940/Uniracers%20%28U%29%20%5B%21%5D.smv`
 
 Repository path:
-`references/imported/tas-bots/uniracers-2008-wip-microstorage.smv`
+`reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv`
 
 Exact size: 10,542 bytes  
 SHA-256: `61cafb40a32d13bc691e93034449f31c6537736aa6caa0e7d933450e2df269a0`
@@ -263,7 +263,7 @@ Rights: explicit redistribution license not identified; retained as third-party 
 
 Priority: P1 for v13 delta recovery; recovered v8 is active local evidence  
 Status: **internal version 8 recovered and committed; v13 exact historical URL known but bytes still missing**  
-Recovered source: `references/imported/tas-bots/usjo8.lua`  
+Recovered source: `reference/imported/tas-bots/usjo8.lua`  
 Internal date: 2008-02-10  
 Recovered: 2026-09-30 directly from Olivier Bellemare (Halamantariel), who retained the historical file  
 Exact size: 62,406 bytes  
@@ -279,7 +279,7 @@ Authorship note: Olivier explicitly reported that he does not remember who the m
 
 Acquisition boundary for further versions: **passive recovery only.** Public archives, mirrors, preserved attachments, old directory backups, code indexes, repository history and already-public collections are fine; no new project outreach is required.
 
-Working dossier: `references/notes/usjo13-passive-recovery.md`.
+Working dossier: `reference/notes/usjo13-passive-recovery.md`.
 
 ## A-016 — Halamantariel boost/mechanics table
 
@@ -308,7 +308,7 @@ Need judgment: **actual state/movie files would be useful.** They would give a d
 
 Priority: P2, acquisition complete  
 Status: acquired and committed 2026-09-29  
-Repository path: `references/imported/manuals/Uniracers-USA-manual.pdf`  
+Repository path: `reference/imported/manuals/Uniracers-USA-manual.pdf`  
 Exact size: 6,006,270 bytes  
 SHA-256: `50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235`
 
@@ -350,7 +350,7 @@ Need judgment: **selectively useful.** A movie is valuable when it reaches a sce
 Priority: P0 evidence intake and first mining pass complete  
 Status: acquired, extracted, committed and reconciled 2026-09-30  
 Source: supplied directly by Nitrodon to Ian Wallace via Discord after referral from Dessyreqt  
-Repository directory: `references/imported/reverse-engineering/nitrodon/`
+Repository directory: `reference/imported/reverse-engineering/nitrodon/`
 
 Nine original files are preserved individually; the ZIP transport container is intentionally not retained:
 
@@ -363,7 +363,7 @@ Nine original files are preserved individually; the ZIP transport container is i
 
 Immediate value: this archive materially strengthens and clarifies the recovered USJO evidence. It identifies `7E:11CD` as a two-byte current-player boost meter with player-specific slots at `7E:11CF/11D1`; identifies `7E:0FEF` as the current-player selector; describes `7E:0F9F` as current-player X velocity; refines `7E:042F` to tabletop duration and `7E:0F61` to half-twist count; and records 16-bit roll/flip counters at `7E:11F9/11FD`. Treat these as unusually strong historical working labels, but retain local runtime reproduction as the promotion gate.
 
-Acquisition is complete for this supplied bundle. The first mining/reconciliation pass is preserved at `references/notes/nitrodon-reverse-engineering-mining.md` with machine-readable conclusions in `analysis/generated/nitrodon-reconciliation.json`; resulting symbol corrections and routine landmarks are integrated into the canonical symbol exports. Further outreach should ask Nitrodon only about distinct material not present here, especially Lua/USJO versions, savestates, SRAMs, SMVs or additional notes.
+Acquisition is complete for this supplied bundle. The first mining/reconciliation pass is preserved at `reference/notes/nitrodon-reverse-engineering-mining.md` with machine-readable conclusions in `analysis/generated/nitrodon-reconciliation.json`; resulting symbol corrections and routine landmarks are integrated into the canonical symbol exports. Further outreach should ask Nitrodon only about distinct material not present here, especially Lua/USJO versions, savestates, SRAMs, SMVs or additional notes.
 
 ### 2026-09-29 automated archive probe
 

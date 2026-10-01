@@ -131,7 +131,7 @@ Exact layout may be refined during implementation, but keep these concepts separ
 - project-owned patches/adaptations;
 - provenance/license metadata.
 
-Do not merge these with `references/imported/`, which is the research-evidence corpus.
+Do not merge these with `reference/imported/`, which is the research-evidence corpus.
 
 ## Manifest contract
 

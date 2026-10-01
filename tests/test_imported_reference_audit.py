@@ -28,18 +28,18 @@ def main() -> int:
     manifest = mod.load_manifest()
     by_path = {x["path"]: x for x in manifest["entries"]}
 
-    cheat = by_path["references/imported/libretro/Uniracers (USA).cht"]
+    cheat = by_path["reference/imported/libretro/Uniracers (USA).cht"]
     assert cheat["git_blob_sha1"] == "c7cc8c948b105aef6db8af18188b56b6fcd43bf8"
     assert cheat["upstream_git_blob_sha1"] == cheat["git_blob_sha1"]
 
-    bot = by_path["references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"]
+    bot = by_path["reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"]
     assert bot["category"] == "bot-source"
     assert bot["review_status"] == "audited-known-defects"
     assert bot["external_sha256"] == (
         "9183b89f27e153b5db450134c00fb98f47d67c47e979a189ae51bcd8c06629c6"
     )
 
-    dos = by_path["references/imported/tools/rnc_propack-2.14/PPIBM.EXE"]
+    dos = by_path["reference/imported/tools/rnc_propack-2.14/PPIBM.EXE"]
     assert dos["category"] == "historical-executable"
     assert dos["review_status"] == "archive-only-never-execute"
     assert dos["upstream_git_blob_sha1"] == dos["git_blob_sha1"]

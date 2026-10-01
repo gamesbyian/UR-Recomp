@@ -157,12 +157,12 @@ def main() -> int:
         "path",
         nargs="?",
         type=Path,
-        default=Path("references/evidence-worklist.json"),
+        default=Path("reference/evidence-worklist.json"),
     )
     ap.add_argument(
         "--catalog",
         type=Path,
-        default=Path("references/catalog.yml"),
+        default=Path("reference/catalog.yml"),
         help="source catalog used to verify every worklist source id",
     )
     ap.add_argument("--json", action="store_true", help="print machine-readable summary")

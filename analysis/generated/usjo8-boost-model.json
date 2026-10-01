@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source": "references/imported/tas-bots/usjo8.lua",
+  "source": "reference/imported/tas-bots/usjo8.lua",
   "source_lines": [
     946,
     995

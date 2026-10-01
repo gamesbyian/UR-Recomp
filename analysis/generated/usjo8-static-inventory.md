@@ -1,6 +1,6 @@
 # USJO v8 static inventory
 
-Generated from `references/imported/tas-bots/usjo8.lua` by `tools/inventory_usjo8.py`.
+Generated from `reference/imported/tas-bots/usjo8.lua` by `tools/inventory_usjo8.py`.
 
 This is **recovered-source evidence**, not promoted game truth. The variable names,
 addresses, timing assumptions and scoring rules below describe what the 2008 bot

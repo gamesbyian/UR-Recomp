@@ -27,7 +27,7 @@ Task routing lives in [`../AGENTS.md`](../AGENTS.md). This file inventories owne
 | [`original-development/ACQUISITION-LEDGER.md`](original-development/ACQUISITION-LEDGER.md) | Acquired/missing external artifacts and intake status |
 | [`original-development/SOURCE-INDEX.md`](original-development/SOURCE-INDEX.md) | Original-development source provenance |
 
-External research sources are owned by `references/catalog.yml`; see `references/README.md`. Compact machine-generated ROM analyses live in `analysis/generated/`.
+External research sources are owned by `reference/catalog.yml`; see `reference/README.md`. Compact machine-generated ROM analyses live in `analysis/generated/`.
 
 - `HD-VISUAL-REFERENCE-PIPELINE.md` — controlled emulator/shader/upscaler reference strategy for Phase E and 4K replacement art, including provenance and headless-capture requirements.
 - `HD-ART-DIRECTION.md` — visual-language and asset-approval rules for coherent HD Presentation reconstruction.

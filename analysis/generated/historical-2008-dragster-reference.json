@@ -1,5 +1,5 @@
 {
-  "source_movie": "references/imported/tas-bots/uniracers-2008-wip-microstorage.smv",
+  "source_movie": "reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv",
   "sample_count": 4975,
   "event_runs": 307,
   "reset_anchored": true,

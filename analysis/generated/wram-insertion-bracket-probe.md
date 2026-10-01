@@ -2,6 +2,14 @@
 
 Narrow trusted-code scan for absolute 16-bit operands inside the two post-prototype WRAM insertion brackets.
 
+## Input_CaptureAutoJoypad structural match
+
+- USA: `80:85E4`
+- pal-prototype-1994-11-29: `80:85E3`, similarity 0.969, semantic recall 1.000
+  - projections: `030D→030D`, `030E→030E`, `030F→030F`, `0310→0310`, `4218→4218`, `4219→4219`, `421A→421A`, `421B→421B`
+- europe-retail: `80:85E4`, similarity 0.000, semantic recall 0.500
+  - projections: `030D→18AD`, `030E→1AAD`, `030F→19AD`, `0310→1BAD`, `4218→C220`, `4219→118D`, `421A→138D`, `421B→128D`
+
 ## first_plus4 026A..030D
 
 - **usa-retail:** 140 references; `026A`×9, `026C`×1, `02A0`×2, `02B0`×3, `02B2`×3, `02BE`×1, `02C0`×5, `02C1`×1, `02C2`×2, `02C3`×2, `02C4`×2, `02C5`×2, `02C6`×2, `02C7`×2, `02CC`×4, `02CE`×3, `0300`×87, `0302`×4, `0306`×2, `0309`×1, `030D`×2

@@ -1,4 +1,206 @@
 {
+  "anchor_diagnostics": {
+    "Input_CaptureAutoJoypad": {
+      "builds": {
+        "europe-retail": {
+          "byte_similarity": 0.0,
+          "changed_le16_pairs": [
+            {
+              "candidate_hex": "e220",
+              "candidate_le16": 8418,
+              "relative_offset": 0,
+              "usa_hex": "ad18",
+              "usa_le16": 6317
+            },
+            {
+              "candidate_hex": "0f1a",
+              "candidate_le16": 6671,
+              "relative_offset": 30,
+              "usa_hex": "3002",
+              "usa_le16": 560
+            }
+          ],
+          "cpu_address": "80:85E4",
+          "diff_runs": [
+            {
+              "candidate_hex": "e220c210ad18428d1103ad19428d1303ad1a428d1203ad1b428d1403adf10f1a",
+              "length": 32,
+              "relative_end_exclusive": 32,
+              "relative_start": 0,
+              "usa_hex": "ad18428d0d03ad19428d0f03ad1a428d0e03ad1b428d1003ade70f1ac90f3002"
+            }
+          ],
+          "score": 0.175,
+          "semantic_reference_recall": 0.5,
+          "semantic_word_projection": {
+            "030D": {
+              "candidate_values": {
+                "18AD": 1
+              },
+              "dominant_candidate": "18AD",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "030E": {
+              "candidate_values": {
+                "1AAD": 1
+              },
+              "dominant_candidate": "1AAD",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "030F": {
+              "candidate_values": {
+                "19AD": 1
+              },
+              "dominant_candidate": "19AD",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "0310": {
+              "candidate_values": {
+                "1BAD": 1
+              },
+              "dominant_candidate": "1BAD",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "4218": {
+              "candidate_values": {
+                "C220": 1
+              },
+              "dominant_candidate": "C220",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "4219": {
+              "candidate_values": {
+                "118D": 1
+              },
+              "dominant_candidate": "118D",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "421A": {
+              "candidate_values": {
+                "138D": 1
+              },
+              "dominant_candidate": "138D",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "421B": {
+              "candidate_values": {
+                "128D": 1
+              },
+              "dominant_candidate": "128D",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            }
+          }
+        },
+        "pal-prototype-1994-11-29": {
+          "byte_similarity": 0.96875,
+          "changed_le16_pairs": [
+            {
+              "candidate_hex": "adeb",
+              "candidate_le16": 60333,
+              "relative_offset": 24,
+              "usa_hex": "ade7",
+              "usa_le16": 59309
+            },
+            {
+              "candidate_hex": "eb0f",
+              "candidate_le16": 4075,
+              "relative_offset": 25,
+              "usa_hex": "e70f",
+              "usa_le16": 4071
+            }
+          ],
+          "cpu_address": "80:85E3",
+          "diff_runs": [
+            {
+              "candidate_hex": "eb",
+              "length": 1,
+              "relative_end_exclusive": 26,
+              "relative_start": 25,
+              "usa_hex": "e7"
+            }
+          ],
+          "score": 0.984375,
+          "semantic_reference_recall": 1.0,
+          "semantic_word_projection": {
+            "030D": {
+              "candidate_values": {
+                "030D": 1
+              },
+              "dominant_candidate": "030D",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "030E": {
+              "candidate_values": {
+                "030E": 1
+              },
+              "dominant_candidate": "030E",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "030F": {
+              "candidate_values": {
+                "030F": 1
+              },
+              "dominant_candidate": "030F",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "0310": {
+              "candidate_values": {
+                "0310": 1
+              },
+              "dominant_candidate": "0310",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "4218": {
+              "candidate_values": {
+                "4218": 1
+              },
+              "dominant_candidate": "4218",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "4219": {
+              "candidate_values": {
+                "4219": 1
+              },
+              "dominant_candidate": "4219",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "421A": {
+              "candidate_values": {
+                "421A": 1
+              },
+              "dominant_candidate": "421A",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            },
+            "421B": {
+              "candidate_values": {
+                "421B": 1
+              },
+              "dominant_candidate": "421B",
+              "dominant_count": 1,
+              "source_occurrences": 1
+            }
+          }
+        }
+      },
+      "usa_cpu_address": "80:85E4",
+      "window_size": 32
+    }
+  },
   "builds": {
     "europe-retail": {
       "autojoy_hardware_registers": {

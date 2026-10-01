@@ -1764,3 +1764,23 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 **Propagation:** replaced the generic rotation TBD with angular-velocity/current-player workspace semantics and added three code regions to the comparative census, expanding it to **88 regions / 12,099 bounded USA bytes**, including **10,954 code-region bytes**, **1,145 data bytes**, and **4,556 analyzer opcode bytes**.
 
+### R-SEED-074 — Collision/contact response preserves the core algorithm around two Europe-only insertions
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | collision | landing | racer physics | comparative atlas
+
+**Observation:** USA `81:8FB8..99D5` is a 2,590-byte per-racer collision/contact-response subsystem immediately after the recovered persistent-state marshal. It reduces sampled contact candidates, classifies surface/landing state, corrects X/Y velocity and position, and includes the contact-direction quantizer at `81:983B`. The next independent long-entry wrapper begins at `81:99D6`.
+
+**Evidence:** `tools/analyze_collision_response_structure_island.py`; `analysis/generated/collision-response-structure-island.{json,md}`; ROM-backed project-tooling runs through `36941449394`. Real-entry tracing preserves M/X context and removes the false opcode disagreements produced by internal coarse seeds. USA and legacy beta are byte-identical.
+
+**Interpretation:** PAL prototype preserves the subsystem at constant shift -32. Europe also starts at -32, but inserts six NOPs at Europe `81:92E4..92E9` before the USA `81:9304` homolog boundary, moving subsequent code to shift -26. Europe later inserts an 11-byte guard at `81:97E6..97F0` (`LDA $0DE7; AND #$00FE; CMP #$0008; BEQ +8`) before the USA `81:9800` boundary, moving the remainder to shift -15. Inside each resulting exact homolog region, both regional builds retain 100% aligned opcode consensus with zero code/operand-role disagreements.
+
+**Dormant code:** four instruction-aligned USA alternatives are not reached from the real subsystem entry: `9484..948A` (7 bytes), `9646..9669` (36), `96AD..96AF` (3), and `9972..9978` (7). They remain classified as code rather than being silently re-labeled as data.
+
+**Discriminating test:** no further structural work is required. Investigate the Europe-only `0DE7` guard semantically only if a collision/landing fidelity discrepancy or regional behavior question requires it.
+
+**Dependencies:** course-runtime surface sampler; persistent-state marshal; trusted-entry snes2asm; four-ROM corpus.
+
+**Propagation:** added five code regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **93 regions / 14,689 bounded USA bytes**, including **13,544 code-region bytes**, **1,145 data bytes**, and **5,665 analyzer opcode bytes**.
+

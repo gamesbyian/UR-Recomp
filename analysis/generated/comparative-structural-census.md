@@ -1,10 +1,10 @@
 # Comparative structural census
 
-This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
+This census aggregates only accepted comparative structure-recovery islands, so the counts below are a conservative **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **20** (17 code, 3 data)
-- bounded bytes: **2611** (2403 code-region bytes, 208 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **1001**
+- bounded regions: **25** (22 code, 3 data)
+- bounded bytes: **3165** (2957 code-region bytes, 208 explicit data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **1258**
 - represented USA banks: **81, 82**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -29,9 +29,12 @@ This is the first machine-queryable census for the comparative structure-recover
 | `82:A9AC..82:AA08` | code | 93 | racer-update | routine_A9AC | 82:A99D..82:A9F9 (-15; 0.882) | 82:A9B3..82:AA0F (+7; 0.871) | 82:A9AC..82:AA08 (+0; 1.000) |
 | `82:AA09..82:AA69` | code | 97 | racer-update | routine_AA09 | 82:A9FA..82:AA5A (-15; 0.887) | 82:AA10..82:AA70 (+7; 0.876) | 82:AA09..82:AA69 (+0; 1.000) |
 | `82:AA6A..82:AA6D` | code | 4 | racer-update | Input_LongEntryWrapper | 82:AA5B..82:AA5E (-15; 0.750) | 82:AA71..82:AA74 (+7; 0.750) | 82:AA6A..82:AA6D (+0; 1.000) |
+| `82:E165..82:E1CF` | code | 107 | course-materialization | setup | 82:E101..82:E16B (-100; 0.944) | 82:E12B..82:E195 (-58; 0.944) | 82:E165..82:E1CF (+0; 1.000) |
+| `82:E1D1..82:E213` | code | 67 | course-materialization | resource_record_header | 82:E16D..82:E1AF (-100; 0.896) | 82:E197..82:E1D9 (-58; 0.896) | 82:E1D1..82:E213 (+0; 1.000) |
+| `82:E216..82:E2FF` | code | 234 | course-materialization | dma_row_loop | 82:E1B2..82:E29B (-100; 0.885) | 82:E1DC..82:E2C5 (-58; 0.885) | 82:E216..82:E2FF (+0; 1.000) |
+| `82:E302..82:E385` | code | 132 | course-materialization | resource_materialize_A000_C000 | 82:E29E..82:E321 (-100; 0.955) | 82:E2C8..82:E34B (-58; 0.955) | 82:E302..82:E385 (+0; 1.000) |
+| `82:E388..82:E395` | code | 14 | course-materialization | exit | 82:E324..82:E331 (-100; 0.929) | 82:E34E..82:E35B (-58; 0.929) | 82:E388..82:E395 (+0; 1.000) |
 
-## Selection rule for the next island
+## Current growth rule
 
-Grow this census by choosing a different executed/high-connectivity subsystem where comparative evidence can recover multiple boundaries or relationships at once. Prefer a candidate with direct call/table structure and shipping relevance (course materialization, rendering/OAM, camera, or race-state plumbing). Do not extend either existing island merely to increase byte totals.
-
-The JSON form is the authoritative query surface: `analysis/generated/comparative-structural-census.json`.
+Choose the next island for information gain and shipping leverage, not byte count. The current census now spans racer simulation, object/collision dispatch, and course materialization. A fourth island should therefore come from a different high-value subsystem, with rendering/OAM or camera/viewport structure preferred if one pass can recover multiple boundaries or tables.

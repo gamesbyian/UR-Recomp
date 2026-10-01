@@ -98,18 +98,21 @@ def build():
          "similarity":round(sc,6),**roles(ds[build],bs,be),
          "sha256":hashlib.sha256(blob[bs:be+1]).hexdigest()}
    if build!="usa-retail":
-    pairs=equal=role_disagreements=0
+    pairs=equal=role_disagreements=0; opcode_mismatches=[]; role_positions=[]
     for pos in range(us,ue+1):
      a=ds["usa-retail"].code_map[pos]; b=ds[build].code_map[pos+sh]
      if bool(a&ds["usa-retail"].OP_CODE)!=bool(b&ds[build].OP_CODE) or bool(a&ds["usa-retail"].OP_PARAM)!=bool(b&ds[build].OP_PARAM):
-      role_disagreements+=1
+      role_disagreements+=1; role_positions.append({"usa":offset_to_cpu(pos),"target":offset_to_cpu(pos+sh),"usa_byte":f"{usa[pos]:02x}","target_byte":f"{blob[pos+sh]:02x}"})
      if a&ds["usa-retail"].OP_CODE and b&ds[build].OP_CODE:
       pairs+=1
       if usa[pos]==blob[pos+sh]: equal+=1
+      else: opcode_mismatches.append({"usa":offset_to_cpu(pos),"target":offset_to_cpu(pos+sh),"usa_opcode":f"{usa[pos]:02x}","target_opcode":f"{blob[pos+sh]:02x}"})
     info["aligned_opcode_pairs"]=pairs
     info["aligned_equal_opcode_pairs"]=equal
     info["aligned_opcode_consensus_fraction"]=round(equal/pairs,6) if pairs else None
     info["aligned_role_disagreements"]=role_disagreements
+    info["aligned_opcode_mismatches"]=opcode_mismatches
+    info["aligned_role_disagreement_positions"]=role_positions
    row["builds"][build]=info
   rows.append(row)
  eu=blobs["europe-retail"]

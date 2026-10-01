@@ -178,7 +178,17 @@ The recovered bank-82 code narrows the relevant update to `82:A5F3..A617`, which
 
 A disposable trace-enabled writer workflow was attempted and retired because its generated trace target hits an unrelated unresolved `80:C3C8 -> 00:FFFF` dispatch at frame 445, before multiplayer. The generic trace client retains the useful bounded `--continue-until` option, but repairing trace-target generation is not a prerequisite for this lane.
 
-The next useful discriminator is bounded around `82:A5F3..A617`: establish why native and Snes9x differ on whether/how that one-unit nudge is applied at frame 1532, using existing instruction/state evidence or a lightweight oracle that does not require fixing the trace-target generator. Do not investigate the later terrain/contact amplification until this first one-unit decision is explained.
+Static control-flow recovery now explains the frame-1532 discriminator more tightly. The two racer update paths gate the same `82:A5F3` small-speed nudge on opposite values of scheduler byte `$0302`:
+
+- P1 path `82:8C3B..8C4F`: call `A5F3` only when `$0302 != 0`;
+- P2 path `82:9122..9136`: call `A5F3` only when `$0302 == 0`;
+- frame scheduler `83:CC94..CC9A`: replace `$0302` with `1 - $0302` every frame.
+
+The already-observed race-entry phase seam therefore predicts the clean directional matrix exactly. On a frame where native has `$0302=0` and Snes9x has `$0302=1`, Snes9x alone nudges P1 one unit toward zero while native alone nudges P2 one unit toward zero. That is precisely the observed frame-1532 polarity: P1 Left/Right are one unit closer to zero in Snes9x, while P2 Left/Right are one unit closer to zero in native.
+
+PR #145 turns this static explanation into an explicit dynamic assertion while preserving the full WRAM/SRAM identical-prefix contamination oracle. Its discriminator treats only `$0302/$0304` as scheduler diagnostics, requires a one-unit frame-1532 speed seam, requires opposite `A5F3` eligibility, and requires the eligible runtime's speed to be exactly one unit closer to zero.
+
+If that assertion passes, retire signed-arithmetic differences inside `A5F3` as the leading explanation. The remaining root question moves one layer earlier: why native and the reference cores enter stable race play with opposite `$0302` scheduler phase from frame 1135 onward. Do not investigate the later terrain/contact amplification until that phase-origin seam is either explained or shown to be an intentional host-observation offset.
 
 ## VS active-movement parity refinement
 

@@ -270,7 +270,8 @@ jobs:
           # and at the race-entry seam. This prevents a hand-picked field from
           # being mistaken for the root cause when an earlier state byte is
           # already different.
-          for frame in (1133,1134):
+          first_full=None
+          for frame in range(1128,1135):
               tag=f"phase-origin-{frame}"
               nw=(nroot/f"{tag}.wram.bin").read_bytes()
               sw=(sroot/f"{tag}.wram.bin").read_bytes()
@@ -279,6 +280,8 @@ jobs:
                   f"FULL_WRAM_DIFF frame={frame} count={len(wdiff)} "
                   f"first={wdiff[:32]}"
               )
+              if wdiff and first_full is None:
+                  first_full=(frame,wdiff[:32])
               ns=nroot/f"{tag}.sram.bin"
               ss=sroot/f"{tag}.sram.bin"
               if ns.exists() and ss.exists():
@@ -288,6 +291,7 @@ jobs:
                       f"FULL_SRAM_DIFF frame={frame} count={len(sdiff)} "
                       f"first={sdiff[:32]}"
                   )
+          print("FIRST_FULL_WRAM_DIFF", first_full or "MATCH_THROUGH_1134")
           PY
 
       - name: Localize native/Snes9x P2-only drift

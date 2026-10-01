@@ -947,3 +947,20 @@ The six known package tables contain one orphan, `03:FB95`. It has no direct `JS
 **Interpretation:** This workspace materially narrows several formerly broad reverse-engineering tasks. It resolves shared-current-player versus stable-player state for velocity/boost, corrects multiple field widths/labels, exposes exact stunt-combination encoding, and gives bounded addresses for stunt, gravity, input, checkpoint/finish and collision work.
 **Discriminating test:** decode the `FE/FF` stunt-table sentinels; trace `11CF/11D1 ↔ 11CD`; watch `1199/119D/0EF1` through a deterministic Dragster finish; trace isolated stunt combinations into `12AF`; reconcile Nitrodon's ROM map offsets against decoded RNC course payloads; replay/interpret the bounce trace against current collision code.
 **Dependencies:** Nitrodon's annotations remain historical working evidence where not independently reproduced; the promoted symbol changes are limited to cases with direct instruction-level or dynamic corroboration.
+
+### R-EXT-016 — Dessyreqt direct historical workspace
+
+**Status:** supported historical evidence; selected conclusions corroborated by Nitrodon/current runtime  
+**Date:** 2026-09-30  
+**Area:** RAM | physics | camera | course | UI | other
+
+**Observation:** Dessyreqt directly supplied an 80-file historical Uniracers working directory containing 17 Lua scripts, 9 glitch/test SMVs, 45 course-map PNGs, 3 SRAM images, 2 memory-watch files and 4 research documents. The scripts recover a visible `movebot → teststuntbot → tabletopbot` autonomy lineage plus USJO internal v14/v14a development material. V14/v14a read `7E:11CD` as a 16-bit boost word; v14a additionally parses the message queue at `0CBB/0CE1/0CE3` and scores live boost plus queued stunt credit relative to a no-stunt baseline. The directly recovered Tabletop bot differs from the public 2014 source by a Dragster-specific direction/rotation correction and one changed jump rectangle.
+
+**Evidence:** `reference/imported/reverse-engineering/dessyreqt/`; `reference/notes/dessyreqt-workspace-mining.md`; `analysis/generated/dessyreqt-workspace-index.json`. Independent Nitrodon evidence corroborates several paired-racer/stunt addresses and the 16-bit boost interpretation.
+
+**Interpretation:** v13 recovery is no longer technically important; the project now has later optimizer source and a broader autonomous-policy development history. The 45 maps satisfy the practical need for a complete local visual course corpus. The glitch SMVs provide deterministic collision-boundary seeds. The P2 watch/bot fields are particularly useful for the existing two-player fidelity lane.
+
+**Discriminating test:** reconcile v14a queue-message IDs against Nitrodon's message table and ROM-side message/boost routine; verify P2 facing/tabletop/roll/flip/Z/checkpoint fields during deterministic 2P play; replay one recovered Jumpover SMV unchanged before reducing it to a minimal collision discriminator; compare `magicnumber.lua` start/finish coordinates to runtime/course-stream identity.
+
+**Dependencies:** imported Lua remains historical working code with old-Snes9x assumptions and deliberate WRAM mutation in several utilities. Preserve source unchanged and promote semantics only after local corroboration.
+

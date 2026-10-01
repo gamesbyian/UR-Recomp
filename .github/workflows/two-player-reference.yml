@@ -467,6 +467,102 @@ jobs:
           print(f"FIRST_P2_DRIFT frame={frame} diffs={diffs}")
           PY
 
+      - name: Test race-relative input alignment
+        shell: bash
+        run: |
+          set -euo pipefail
+          INPUT="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
+          MICRO="$GITHUB_WORKSPACE/tests/input/two-player-p2-drift-microtrace.script"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          NATIVE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          SHIFTED="$RUNNER_TEMP/two-player-native-race-relative.input"
+
+          # Native enters the ordinary 2P race one host frame after Snes9x.
+          # Preserve the pre-entry route verbatim, then shift every controller
+          # event at/after 1180 by +1 so post-entry input occurs at the same
+          # race-relative tick in both runtimes.
+          python3 - "$INPUT" "$SHIFTED" <<'PY'
+          from pathlib import Path
+          import sys
+          src=Path(sys.argv[1]).read_text().splitlines()
+          out=[]
+          for raw in src:
+              body=raw.split("#",1)[0].strip()
+              if not body:
+                  out.append(raw)
+                  continue
+              parts=body.split(":")
+              if len(parts) not in (3,4):
+                  out.append(raw)
+                  continue
+              start=int(parts[0])
+              if start >= 1180:
+                  parts[0]=str(start+1)
+                  suffix=""
+                  if "#" in raw:
+                      suffix=" #"+raw.split("#",1)[1]
+                  raw=":".join(parts)+suffix
+              out.append(raw)
+          Path(sys.argv[2]).write_text("\n".join(out)+"\n")
+          PY
+          cat "$SHIFTED"
+
+          mkdir -p "$RUNNER_TEMP/native-race-relative"
+          rm -rf "$(dirname "$NATIVE")/saves"
+          SNESRECOMP_INPUT_FILE="$SHIFTED" SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/native-race-relative" \
+          SDL_AUDIODRIVER=dummy \
+            timeout 180s xvfb-run -a "$NATIVE" "$ROM" --script "$MICRO" \
+            >"$RUNNER_TEMP/native-race-relative.log" 2>&1
+
+          # Snes9x dumps from the immediately preceding microtrace step use
+          # the unshifted fixture. Compare native frame N+1 to Snes9x frame N.
+          python3 - "$RUNNER_TEMP/native-race-relative" "$RUNNER_TEMP/snes9x-micro" <<'PY'
+          from pathlib import Path
+          import sys
+          nroot=Path(sys.argv[1]); sroot=Path(sys.argv[2])
+          fields={
+              "phase0":("u8",0x0300),
+              "phase2":("u8",0x0302),
+              "phase3":("u8",0x0304),
+              "inRace":("u8",0x0313),
+              "race_tick":("u8",0x0FE7),
+              "slot1.x":("u16",0x0411),
+              "slot1.y":("u16",0x0415),
+              "slot1.vx":("s16",0x04B7),
+              "slot1.vy":("s16",0x04BB),
+              "slot1.air":("u8",0x0545),
+              "slot1.rot":("u8",0x04C7),
+              "slot2.x":("u16",0x0413),
+              "slot2.y":("u16",0x0417),
+              "slot2.vx":("s16",0x04B9),
+              "slot2.vy":("s16",0x04BD),
+              "slot2.air":("u8",0x0547),
+              "slot2.rot":("u8",0x04C9),
+              "working.x_speed":("s16",0x0F9F),
+          }
+          def read(w,kind,off):
+              if kind=="u8": return w[off]
+              v=w[off]|(w[off+1]<<8)
+              return v-0x10000 if kind=="s16" and v&0x8000 else v
+
+          mismatches=[]
+          for sf in range(1528,1541):
+              nf=sf+1
+              s=(sroot/f"p2-drift-{sf}.wram.bin").read_bytes()
+              n=(nroot/f"p2-drift-{nf}.wram.bin").read_bytes()
+              diffs={}
+              for name,(kind,off) in fields.items():
+                  pair=(read(n,kind,off),read(s,kind,off))
+                  if pair[0]!=pair[1]:
+                      diffs[name]=pair
+              print(f"RACE_RELATIVE_COMPARE native={nf} snes9x={sf}",
+                    "MATCH" if not diffs else diffs)
+              if diffs:
+                  mismatches.append((nf,sf,diffs))
+          assert not mismatches, f"race-relative semantic mismatch: {mismatches[:3]}"
+          print("RACE_RELATIVE_ALIGNMENT_CONFIRMED")
+          PY
+
       - name: Assert frame-1532 scheduler-phase speed gate
         shell: bash
         run: |

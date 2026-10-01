@@ -1286,3 +1286,27 @@ After closing the PAL/prototype analyzer survivors, the exact-fingerprint atlas 
 
 **Evidence:** `tools/compare_semantic_anchors.py`; `tools/build_cross_build_symbol_correspondence.py`; `tools/build_comparative_code_atlas.py`; `analysis/generated/semantic-anchor-cross-build-matches.{json,md}`; `analysis/generated/cross-build-symbol-correspondence.{json,md}`; `analysis/generated/cross-build-semantic-anchor-findings-2026-09-30.md`.
 
+### R-SEED-054 — Seeded Europe/USA homologs preserve opcodes across selected core routines
+
+**Status:** confirmed bounded analyzer consensus; operand-only regional variation in accepted corpus  
+**Date:** 2026-09-30  
+**Area:** CPU | decompilation | comparative analysis | regional layout
+
+The first Europe/USA snes2asm probe initially returned zero role disagreement for the newly matched bank-81/bank-82 routines, but inspection showed every compared byte was `unreached→unreached`. That unseeded result is rejected as vacuous: snes2asm's default vector walk does not reach these routines.
+
+The accepted pass seeds only independently recovered function entries before path discovery. `Collision_TransformVelocity` additionally seeds at the local `REP #$10 / SEP #$20` width setup immediately before the compared matrix body, so M/X context is established independently rather than guessed.
+
+Eight executable subregions were compared after homolog alignment: `Text_TestCharacterMetadataBit7`, `Player_ApplyVerticalAcceleration`, three independently bounded pieces of `Input_DecodePlayer1Buttons`, the matrix-application body of `Collision_TransformVelocity`, `Collision_BuildContactShape`, and `HUD_QueueMessage`.
+
+Across **656 aligned opcode positions** there are:
+- **0 opcode-byte substitutions**;
+- **0 opcode/operand role disagreements**;
+- **0 M/X disagreements**;
+- **142 changed operand bytes**.
+
+Raw similarity ranges from 0.731 to 0.990, so the result is not trivial byte identity. In this selected corpus, Europe preserves the executable instruction stream while regional differences live in instruction operands, consistent with the independently recovered WRAM/layout motion.
+
+**Interpretation:** do not escalate these eight regions to da65/Ghidra. Preserve their operand changes as regional address/constant evidence. Also treat analyzer reachability itself as part of the comparison contract: `unreached→unreached` is not consensus.
+
+**Evidence:** `tools/compare_europe_usa_snes2asm_homologs.py`; `analysis/generated/europe-usa-snes2asm-homologs.{json,md}`; run `36815908366`; Nitrodon bank-80/81/82 listings.
+

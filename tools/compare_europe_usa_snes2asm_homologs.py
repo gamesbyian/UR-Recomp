@@ -130,7 +130,7 @@ REGIONS = [
         "usa_start": "81:8102",
         "usa_end": "81:8117",
         "expected_europe_shift": -6,
-        "allow_structural_delta": true,
+        "allow_structural_delta": True,
         "basis": "Bounded timer-frame normalization block. Local shift profiling shows Europe contracts this block and the shared suffix has reached shift -14 by USA 81:8118.",
     },
     {

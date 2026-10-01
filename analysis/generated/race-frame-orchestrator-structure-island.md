@@ -12,3 +12,4 @@ The corridor begins at an explicit SEP #$30, includes the main race-loop header 
 USA retail and the legacy beta contain consecutive SEP #$20 instructions at 83:CC83..CC86. The PAL prototype and Europe retail omit the second instruction (USA 83:CC85..CC86), contracting the remaining loop body by two bytes. The edit is already present in the 1994-11-29 PAL prototype.
 
 The corridor directly orchestrates input decode, racer simulation, player-state marshaling, racer OAM construction, and additional HUD/race services. This artifact records control-flow structure without assigning semantics to every callee.
+

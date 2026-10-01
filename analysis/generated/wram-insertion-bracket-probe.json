@@ -6253,7 +6253,9 @@
     "first_inserted_space": {
       "europe_only_numeric_operands": [],
       "europe_operands": [],
-      "shared_all_three": []
+      "explained_by_trusted_projection": [],
+      "shared_all_three": [],
+      "unexplained_europe_operands": []
     },
     "second_inserted_space": {
       "europe_only_numeric_operands": [
@@ -6262,7 +6264,11 @@
       "europe_operands": [
         "053D"
       ],
-      "shared_all_three": []
+      "explained_by_trusted_projection": [
+        "053D"
+      ],
+      "shared_all_three": [],
+      "unexplained_europe_operands": []
     }
   },
   "method": {

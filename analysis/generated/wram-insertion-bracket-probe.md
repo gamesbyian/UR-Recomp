@@ -20,6 +20,8 @@ Narrow trusted-code scan for absolute 16-bit operands inside the two post-protot
 - **pal-prototype-1994-11-29:** 4 references; `030D`×1, `030E`×1, `030F`×1, `0310`×1
 - **europe-retail:** 0 references; none
 - Europe-only numeric operands in trusted code: none
+- Explained by trusted relocation projection: none
+- **Unexplained Europe operands:** none
 
 ## second_inserted_space 053C..0546
 
@@ -27,3 +29,5 @@ Narrow trusted-code scan for absolute 16-bit operands inside the two post-protot
 - **pal-prototype-1994-11-29:** 7 references; `0541`×5, `0545`×2
 - **europe-retail:** 4 references; `053D`×4
 - Europe-only numeric operands in trusted code: `053D`
+- Explained by trusted relocation projection: `053D`
+- **Unexplained Europe operands:** none

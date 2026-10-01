@@ -1,0 +1,257 @@
+{
+  "boundary_basis": {
+    "entry": "direct JSR at USA 82:DE0F plus existing named-function correspondence",
+    "exit": "all terminal paths converge at E388..E395 and RTS",
+    "materialization": "post-DMA branch at E302 enters resource-to-WRAM materialization; loop returns to E1D9",
+    "resource_loop": "header cursor read at E1D1; DMA loop begins E216"
+  },
+  "island": "Course_LoadAndMaterialize 82:E165..E395",
+  "regions": [
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:E195",
+          "opcode_bytes": 42,
+          "operand_bytes": 65,
+          "sha256": "54216acb39e80173af1b744860de6a5cdfbb742d6bceecda7b51b81f6aa2f973",
+          "shift": -58,
+          "similarity": 0.943925,
+          "start": "82:E12B",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "82:E1CF",
+          "opcode_bytes": 42,
+          "operand_bytes": 65,
+          "sha256": "382a42d10cbb3d2c3927d5a91ea9961f6bc0a8d39324ed3f0ffc6d272e0cac1a",
+          "shift": 0,
+          "similarity": 1,
+          "start": "82:E165",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:E16B",
+          "opcode_bytes": 42,
+          "operand_bytes": 65,
+          "sha256": "7fffb1a96b2c25a4be29345b1423a5282b37497de0afa6a3088c64e7ec10ce1d",
+          "shift": -100,
+          "similarity": 0.943925,
+          "start": "82:E101",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:E1CF",
+          "opcode_bytes": 42,
+          "operand_bytes": 65,
+          "sha256": "382a42d10cbb3d2c3927d5a91ea9961f6bc0a8d39324ed3f0ffc6d272e0cac1a",
+          "shift": 0,
+          "similarity": 1,
+          "start": "82:E165",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "setup",
+      "size": 107,
+      "usa_end": "82:E1CF",
+      "usa_start": "82:E165"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:E1D9",
+          "opcode_bytes": 30,
+          "operand_bytes": 37,
+          "sha256": "2fab015be00fdcfaa910ba69cf7e8e7af886edc169b3cc01996229a4aee147f5",
+          "shift": -58,
+          "similarity": 0.895522,
+          "start": "82:E197",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "82:E213",
+          "opcode_bytes": 30,
+          "operand_bytes": 37,
+          "sha256": "4cdf07747805d23b70dfb5de7a3a6397bb79c6338c0cd065eb81a74814bee6f3",
+          "shift": 0,
+          "similarity": 1,
+          "start": "82:E1D1",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:E1AF",
+          "opcode_bytes": 30,
+          "operand_bytes": 37,
+          "sha256": "02d8f05497feb959bb88b6887e0405e6c34044fb8b6c27c4d24cbd71a4bd63ac",
+          "shift": -100,
+          "similarity": 0.895522,
+          "start": "82:E16D",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:E213",
+          "opcode_bytes": 30,
+          "operand_bytes": 37,
+          "sha256": "4cdf07747805d23b70dfb5de7a3a6397bb79c6338c0cd065eb81a74814bee6f3",
+          "shift": 0,
+          "similarity": 1,
+          "start": "82:E1D1",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "resource_record_header",
+      "size": 67,
+      "usa_end": "82:E213",
+      "usa_start": "82:E1D1"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:E2C5",
+          "opcode_bytes": 101,
+          "operand_bytes": 133,
+          "sha256": "a732f0317957eb8be65609e5b483dde12ea66614c14602bd6a1fc803bf3c338a",
+          "shift": -58,
+          "similarity": 0.884615,
+          "start": "82:E1DC",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "82:E2FF",
+          "opcode_bytes": 101,
+          "operand_bytes": 133,
+          "sha256": "f3a1fc9b2055210619e4ac0ba78fe635c6638663d680fcbecb86f96d394d0e24",
+          "shift": 0,
+          "similarity": 1,
+          "start": "82:E216",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:E29B",
+          "opcode_bytes": 101,
+          "operand_bytes": 133,
+          "sha256": "28e95e2ff145db717033aa5b50cac7856dd8b0561cee9da463a67cfbfcfda5e1",
+          "shift": -100,
+          "similarity": 0.884615,
+          "start": "82:E1B2",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:E2FF",
+          "opcode_bytes": 101,
+          "operand_bytes": 133,
+          "sha256": "f3a1fc9b2055210619e4ac0ba78fe635c6638663d680fcbecb86f96d394d0e24",
+          "shift": 0,
+          "similarity": 1,
+          "start": "82:E216",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "dma_row_loop",
+      "size": 234,
+      "usa_end": "82:E2FF",
+      "usa_start": "82:E216"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:E34B",
+          "opcode_bytes": 77,
+          "operand_bytes": 55,
+          "sha256": "759d627c3077fbc4183390bd2032b7c4819a7d50e0ebc985808d946a5bf94807",
+          "shift": -58,
+          "similarity": 0.954545,
+          "start": "82:E2C8",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "82:E385",
+          "opcode_bytes": 77,
+          "operand_bytes": 55,
+          "sha256": "c6c0ee4b2251daf248e36054da00d762d98e029a81d47f38fb27524b9b0a3157",
+          "shift": 0,
+          "similarity": 1,
+          "start": "82:E302",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:E321",
+          "opcode_bytes": 77,
+          "operand_bytes": 55,
+          "sha256": "72690d5df80ad54be7145dca182a970322b8092534e5910a3a53e2d390b869ba",
+          "shift": -100,
+          "similarity": 0.954545,
+          "start": "82:E29E",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:E385",
+          "opcode_bytes": 77,
+          "operand_bytes": 55,
+          "sha256": "c6c0ee4b2251daf248e36054da00d762d98e029a81d47f38fb27524b9b0a3157",
+          "shift": 0,
+          "similarity": 1,
+          "start": "82:E302",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "resource_materialize_A000_C000",
+      "size": 132,
+      "usa_end": "82:E385",
+      "usa_start": "82:E302"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "82:E35B",
+          "opcode_bytes": 7,
+          "operand_bytes": 7,
+          "sha256": "62b2faf504fcc9417917f59535071643309e18158b68ec748075bf31785ed056",
+          "shift": -58,
+          "similarity": 0.928571,
+          "start": "82:E34E",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "82:E395",
+          "opcode_bytes": 7,
+          "operand_bytes": 7,
+          "sha256": "f37e7d37395c62bd4fc0a6b39253d37831d5cee9a16282c38f626750ab21c3e5",
+          "shift": 0,
+          "similarity": 1,
+          "start": "82:E388",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "82:E331",
+          "opcode_bytes": 7,
+          "operand_bytes": 7,
+          "sha256": "e2efce644b5a5369d933011778618d564ed3d56c06a7d71d4f40153e57f0eff5",
+          "shift": -100,
+          "similarity": 0.928571,
+          "start": "82:E324",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:E395",
+          "opcode_bytes": 7,
+          "operand_bytes": 7,
+          "sha256": "f37e7d37395c62bd4fc0a6b39253d37831d5cee9a16282c38f626750ab21c3e5",
+          "shift": 0,
+          "similarity": 1,
+          "start": "82:E388",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "exit",
+      "size": 14,
+      "usa_end": "82:E395",
+      "usa_start": "82:E388"
+    }
+  ],
+  "schema_version": 1
+}

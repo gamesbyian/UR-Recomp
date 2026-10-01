@@ -1093,17 +1093,16 @@ Developer recollection says very little cartridge space remained. Treat apparent
 
 # Current critical path
 
-A fresh agent should be able to derive this order from the repository without knowing project history. This is the shortest dependency chain from today's state to the intended product:
+A fresh agent should derive this order from current evidence rather than replay the historical frame-440 investigation. That lead was reclassified in PR #111: the observed pre-race mismatch was frontend timing/scratch-state reuse, not an established gameplay-semantic divergence. The five original semantic-core placeholders are mapped, deterministic 1P Dragster completion is parity-certified, and the four-ROM comparative/cross-build correspondence surfaces are now durable.
 
-1. **Localize first meaningful native/reference divergence.** Use the exact 2014 replay and tighten the current frame-440 bracket toward the first differing input/state/write/PC event. Decide whether the cause is translated CPU code, startup/save state, input/frame semantics, SNES hardware behavior, or host integration.
-2. **Convert that divergence into semantic code knowledge.** Map the executed routines into the comparative four-ROM code atlas; use SNESRecomp plus independent bounded disassembly and Ghidra where useful. Resolve analyzer disagreements only where they affect executed/high-value paths.
-3. **Recover the core authoritative boundaries.** Establish evidence-backed main-loop/race-state, player update/physics, course loading/representation, camera, sprite/OAM construction, culling and renderer-facing state. These boundaries are the contract between preserved simulation and modern presentation.
-4. **Close stock 4:3 fidelity.** Complete a deterministic race and representative 1P/2P/VS routes with no unexplained gameplay divergence on the compared semantic surfaces. Retain permanent first-divergence diagnostics.
-5. **Finish the course and original graphics models needed by presentation.** Decode enough course structure, asset state, animation selection and raster behavior to render the original game deliberately rather than by framebuffer enlargement.
-6. **Implement stock-art Widescreen.** Expand the logical view while holding authoritative simulation and authentic 4:3 behavior constant. Validate information exposure, culling, camera, HUD, multiplayer and scene-specific raster behavior.
-7. **Implement HD Presentation.** Replace/render higher-resolution presentation from semantic game state while preserving animation/state timing, with authentic/raw fallback always available.
-8. **Build the modern product layer.** Contemporary controls/remapping, profiles, save/progression UX, pause/retry, ghosts/timing/statistics, accessibility and streamlined frontend behavior belong here, outside the authoritative simulation where possible.
-9. **Finish editor/analysis tooling and release packaging.** Course editing/custom content and public ROM-supply boundaries follow once the underlying semantic formats are stable.
+1. **Close the remaining stock 4:3 fidelity surface.** Extend deterministic reference/native coverage from the already-green 1P route to representative stunt behavior and ordinary two-player gameplay. Compare only state whose semantics are valid in both contexts, and localize the first meaningful divergence if one appears.
+2. **Verify the controller-poll/replay boundary once.** Establish the smallest invariant needed by deterministic fixtures: where canonical input is sampled, whether lag or multiple polls can invalidate simple frame-index assumptions, and how event-relative replay should be represented. Do not turn this into a broad emulator-input study.
+3. **Expand semantics only where fidelity or presentation needs them.** Use the mapped race update, course loader, camera/projection, OAM, collision, stunt, HUD/message and checkpoint/finish anchors plus the PAL/Europe correspondence surface. Prefer bounded propagation and cheap discriminators over uniform decompilation.
+4. **Finish the course and original graphics models needed by presentation.** Decode enough course structure, asset state, animation selection and raster behavior to render the original game deliberately rather than by framebuffer enlargement.
+5. **Implement stock-art Widescreen.** Expand the logical view while holding authoritative simulation and authentic 4:3 behavior constant. Validate information exposure, culling, camera, HUD, multiplayer and scene-specific raster behavior.
+6. **Implement HD Presentation.** Replace/render higher-resolution presentation from semantic game state while preserving animation/state timing, with authentic/raw fallback always available.
+7. **Build the modern product layer.** Contemporary controls/remapping, profiles, save/progression UX, pause/retry, ghosts/timing/statistics, accessibility and streamlined frontend behavior belong here, outside the authoritative simulation where possible.
+8. **Finish editor/analysis tooling and release packaging.** Course editing/custom content and public ROM-supply boundaries follow once the underlying semantic formats are stable.
 
 Supporting research is pulled forward when it shortens one of these steps. It does not become critical merely because evidence exists or because an old workstream once had high priority.
 

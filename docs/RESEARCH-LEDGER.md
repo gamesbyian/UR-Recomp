@@ -1487,3 +1487,28 @@ No trustworthy public source found provides a comprehensive USA-vs-Europe execut
 
 **Evidence:** `reference/notes/regional-version-differences-prior-art.md`; indexed sources in `reference/catalog.yml`; updated `regional-and-prototype-differential` evidence-worklist entry.
 
+### R-SEED-062 — Racer-update island recovers code→table→code boundaries across all four builds
+
+**Status:** confirmed structural recovery  
+**Date:** 2026-09-30  
+**Area:** CPU | racer update | code/data boundaries | comparative atlas
+
+The reframed multi-ROM × multi-analyzer lane produced its first new structure outside the previously named semantic-anchor set.
+
+Direct calls from `Race_UpdateRacersFrame`, explicit RTS boundaries, exact cross-build byte identity, and trusted-entry-seeded snes2asm recover the USA/beta island:
+
+- routine `82:A22B..A27B` (81 bytes);
+- routine `82:A27C..A2D3` (88 bytes);
+- 128-byte / 64-word lookup table `82:A2D4..A353`;
+- following routine `82:A354..A497`.
+
+The 1994-11-29 PAL prototype and Europe retail omit the five USA/beta NOP bytes at `A2B2..A2B6`-equivalent position. Their second routine is therefore 83 bytes rather than 88, and the otherwise byte-identical lookup table plus following routine shift by an additional five bytes.
+
+The 128-byte lookup table is **exactly identical in all four builds** and is directly consumed by the following routine via a long indexed load from its build-specific base. This independently establishes a durable code/data boundary.
+
+Within the following routine, snes2asm leaves a 13-byte instruction-shaped pocket unreached in every build (USA/beta `A484..A490`, prototype `A475..A481`, Europe `A48B..A497`). The surrounding flow jumps over it and no direct bank-82 branch/call target was found. Preserve it as a dead-code candidate, not data.
+
+**Interpretation:** this is the intended payoff of comparative structure recovery: function sizes, data-object boundaries, lineage edits and dead-code candidates become recoverable before full semantic naming.
+
+**Evidence:** `tools/analyze_racer_update_structure_island.py`; `analysis/generated/racer-update-structure-island.{json,md}`; run `36821725861`.
+

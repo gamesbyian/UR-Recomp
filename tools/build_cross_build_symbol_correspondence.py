@@ -76,7 +76,57 @@ RAM_EDGE_OVERRIDES = {
         "candidate": "7E:11D9",
         "evidence_tier": "strong",
         "independent_evidence": "bidirectional copy relation with 7E:11D7 in Race_UpdateRacersFrame",
+    },,
+    ("pal-prototype-1994-11-29", "Player2_XPosition"): {
+        "candidate": "7E:0413",
+        "evidence_tier": "strong",
+        "independent_evidence": "unique second bidirectional slot paired through racer-update DP X-position workspace",
     },
+    ("pal-prototype-1994-11-29", "Player2_YPosition"): {
+        "candidate": "7E:0417",
+        "evidence_tier": "strong",
+        "independent_evidence": "unique second bidirectional slot paired through racer-update DP Y-position workspace",
+    },
+    ("pal-prototype-1994-11-29", "Player2_XSpeed"): {
+        "candidate": "7E:04B9",
+        "evidence_tier": "strong",
+        "independent_evidence": "unique second bidirectional slot paired with 7E:0FA3 in Race_UpdateRacersFrame",
+    },
+    ("pal-prototype-1994-11-29", "Player2_YSpeed"): {
+        "candidate": "7E:04BD",
+        "evidence_tier": "strong",
+        "independent_evidence": "unique second bidirectional slot paired with 7E:0FA5 in Race_UpdateRacersFrame",
+    },
+    ("pal-prototype-1994-11-29", "Player2_BoostMeter"): {
+        "candidate": "7E:11D5",
+        "evidence_tier": "strong",
+        "independent_evidence": "unique second bidirectional slot paired with 7E:11D1 in Race_UpdateRacersFrame",
+    },
+    ("europe-retail", "Player2_XPosition"): {
+        "candidate": "7E:0417",
+        "evidence_tier": "strong",
+        "independent_evidence": "unique second bidirectional slot paired through racer-update DP X-position workspace",
+    },
+    ("europe-retail", "Player2_YPosition"): {
+        "candidate": "7E:041B",
+        "evidence_tier": "strong",
+        "independent_evidence": "unique second bidirectional slot paired through racer-update DP Y-position workspace",
+    },
+    ("europe-retail", "Player2_XSpeed"): {
+        "candidate": "7E:04BD",
+        "evidence_tier": "strong",
+        "independent_evidence": "unique second bidirectional slot paired with 7E:0FA9 in Race_UpdateRacersFrame",
+    },
+    ("europe-retail", "Player2_YSpeed"): {
+        "candidate": "7E:04C1",
+        "evidence_tier": "strong",
+        "independent_evidence": "unique second bidirectional slot paired with 7E:0FAB in Race_UpdateRacersFrame",
+    },
+    ("europe-retail", "Player2_BoostMeter"): {
+        "candidate": "7E:11DB",
+        "evidence_tier": "strong",
+        "independent_evidence": "unique second bidirectional slot paired with 7E:11D7 in Race_UpdateRacersFrame",
+    }
 }
 
 
@@ -126,6 +176,32 @@ def build_ram_correspondences(symbol_doc: dict, atlas: dict) -> list[dict]:
                 else ("strong" if anchor_count >= 2 else "candidate")
             ),
             "independent_evidence": None if not override else override["independent_evidence"],
+        })
+    existing={(row["build"], row["name"]) for row in rows}
+    symbols_by_name={entry["name"]: entry for entry in symbol_doc["entries"] if entry.get("kind") == "ram"}
+    for (build, name), override in RAM_EDGE_OVERRIDES.items():
+        if (build, name) in existing:
+            continue
+        symbol=symbols_by_name.get(name)
+        if not symbol:
+            continue
+        usa=parse_usa_ram_address(symbol.get("address", ""))
+        if usa is None:
+            continue
+        candidate=override["candidate"]
+        delta=int(candidate.split(":")[1],16)-int(usa,16)
+        rows.append({
+            "name": name,
+            "usa": f"7E:{usa}",
+            "build": build,
+            "candidate": candidate,
+            "motion_candidate": None,
+            "delta": delta,
+            "source_confidence": symbol.get("confidence"),
+            "anchor_count": 0,
+            "anchors": ["Race_UpdateRacersFrame:dataflow"],
+            "evidence_tier": override["evidence_tier"],
+            "independent_evidence": override["independent_evidence"],
         })
     rows.sort(key=lambda x: (x["build"], x["evidence_tier"] != "strong", x["name"]))
     return rows

@@ -7,6 +7,8 @@ import importlib.util
 from pathlib import Path
 import tempfile
 
+from tools.controller_input import ControllerRun
+
 ROOT = Path(__file__).resolve().parents[1]
 TOOL = ROOT / "tools" / "run_fixture_mesen.py"
 FIXTURE = ROOT / "tests" / "input" / "reach-first-race.script"
@@ -75,6 +77,51 @@ def main() -> int:
         assert fake.calls[1][1]["reset"] is True
         assert fake.calls[2] == ("input.set", {"port": 0, "subport": 0, "buttons": {}})
         assert (Path(td) / "dumps" / "checkpoint.wram.bin").stat().st_size == 0x20000
+
+        # Neutral input-file mode must apply both controller masks before each
+        # guest frame while preserving named dump timing.
+        fake = FakeMesen()
+        runner = mod.FixtureRunner(
+            fake,
+            Path(td) / "stream-dumps",
+            controller_runs=[
+                ControllerRun(0, 2, 0x080, 0),
+                ControllerRun(1, 2, 0, 0x040),
+            ],
+        )
+        runner.execute([
+            {"op": "wait", "frames": 3, "line": 1},
+            {"op": "dump", "tag": "stream-checkpoint", "line": 2},
+            {"op": "quit", "line": 3},
+        ])
+        input_calls = [call for call in fake.calls if call[0] == "input.set"]
+        assert input_calls[0] == (
+            "input.set",
+            {"port": 0, "subport": 0, "buttons": {"right": True}},
+        )
+        assert input_calls[1] == (
+            "input.set",
+            {"port": 1, "subport": 0, "buttons": {}},
+        )
+        assert (
+            "input.set",
+            {"port": 1, "subport": 0, "buttons": {"left": True}},
+        ) in input_calls
+        assert fake.frame == 3
+        assert (Path(td) / "stream-dumps" / "stream-checkpoint.wram.bin").stat().st_size == 0x20000
+
+        fake = FakeMesen()
+        runner = mod.FixtureRunner(
+            fake,
+            Path(td) / "mixed-dumps",
+            controller_runs=[ControllerRun(0, 1, 0x080, 0)],
+        )
+        try:
+            runner.execute([{"op": "press", "button": "a", "frames": 1, "line": 1}])
+        except RuntimeError as exc:
+            assert "cannot be mixed" in str(exc)
+        else:
+            raise AssertionError("inline press accepted alongside neutral input stream")
 
     print("PASS: Mesen fixture parser and frame/input/dump semantics")
     return 0

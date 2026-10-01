@@ -26,7 +26,9 @@ SURVIVORS = [
     ]},
     {"parent":"00:8C49..00:8CCA","parent_shift":-9,"parent_role_disagreements":18,"segments":[
         {"kind":"boundary_tail","start_cpu":"00:8C49","end_cpu":"00:8C4D","basis":"Window begins inside final LDA operand of helper 80:8C41; exclude boundary fragment."},
-        {"kind":"code","start_cpu":"00:8C4E","end_cpu":"00:8CCA","basis":"Nitrodon: clean PHP function entry at 80:8C4E through RTS at 80:8CCA."},
+        {"kind":"code","start_cpu":"00:8C4E","end_cpu":"00:8C73","shift_hint":-5,"basis":"Nitrodon gives the clean 80:8C4E entry; raw local alignment independently shows this prefix is byte-identical to prototype at shift -5 through the local PLP/RTS."},
+        {"kind":"retail_only_code","start_cpu":"00:8C74","end_cpu":"00:8C77","basis":"Four-byte JSL exists only in PAL retail at this homolog boundary; prototype proceeds directly to the following stores. Preserve as genuine executable delta."},
+        {"kind":"code","start_cpu":"00:8C78","end_cpu":"00:8CCA","shift_hint":-9,"basis":"Immediately after the four-byte retail-only insertion, the remaining executable suffix is byte-identical to prototype at shift -9."},
     ]},
 ]
 
@@ -96,7 +98,7 @@ def build() -> dict:
                 out["action"] = "excluded_from_executable_role_comparison"
                 row["segments"].append(out)
                 continue
-            shift, sim = best_shift_near(retail, proto, start, end, parent["parent_shift"])
+            shift, sim = best_shift_near(retail, proto, start, end, seg.get("shift_hint", parent["parent_shift"]))
             metrics = compare_roles(rd, pd, retail, proto, start, end, shift)
             out.update({
                 "prototype_shift": shift,

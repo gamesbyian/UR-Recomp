@@ -104,9 +104,19 @@ jobs:
           ref=json.loads(pathlib.Path(sys.argv[2]).read_text())
           progress=("next_checkpoint","finish_gate","laps_remaining")
 
-          # Pre-intervention race state should be exact across runtimes.
+          # Preserve the established pre-intervention semantic gate.
+          # Newly promoted camera/viewport fields are observational until
+          # event-relative multiplayer camera behavior is characterized.
           for cp in ("two-player-race-1220","two-player-race-1420"):
-              assert native[cp] == ref[cp], f"{cp}: native/reference semantic mismatch"
+              for section in ("slot1","slot2","race_progress"):
+                  assert native[cp][section] == ref[cp][section], (
+                      f"{cp}/{section}: native/reference semantic mismatch"
+                  )
+              print(
+                  "CAMERA_CHECKPOINT", cp,
+                  "native", native[cp]["camera_and_viewport"],
+                  "snes9x", ref[cp]["camera_and_viewport"],
+              )
 
           # Causal ownership: P1-only input moves slot1 while slot2 remains at baseline.
           for label,data in (("native",native),("snes9x",ref)):

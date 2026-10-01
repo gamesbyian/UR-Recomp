@@ -19,6 +19,7 @@ Task routing lives in [`../AGENTS.md`](../AGENTS.md). This file inventories owne
 | [`WIDESCREEN-RECONNAISSANCE.md`](WIDESCREEN-RECONNAISSANCE.md) | Phase F staged-exposure harness, horizontal-domain model, aspect policy, scene classification, and split-screen widening evidence contract |
 | [`bonus/WIDESCREEN-ROM-HACK.md`](bonus/WIDESCREEN-ROM-HACK.md) | Quarantined emulator-assisted widescreen SNES ROM-hack bonus project; non-blocking and not part of the shipping architecture |
 | [`TOOLCHAIN.md`](TOOLCHAIN.md) | Research/development tool roles, installation policy, and selection guidance |
+| [`AI-ASSISTED-REVERSE-ENGINEERING.md`](AI-ASSISTED-REVERSE-ENGINEERING.md) | Imported AI/agent reverse-engineering workflow practices, evidence/oracle rules, and adoption guidance |
 | [`TOOL-INTEROPERABILITY.md`](TOOL-INTEROPERABILITY.md) | Tool input/output formats, verified handoffs, adapter seams, and efficient multi-tool chains |
 | [`TOOLING-AUDIT-CLOSEOUT.md`](TOOLING-AUDIT-CLOSEOUT.md) | Remaining tooling-audit scope, priority order, transfer/defer rules, and closure condition |
 | [`THIRD-PARTY-CODE-AUDIT.md`](THIRD-PARTY-CODE-AUDIT.md) | Review status, defects, adaptation rules and promotion checklist for imported executable/source artifacts |

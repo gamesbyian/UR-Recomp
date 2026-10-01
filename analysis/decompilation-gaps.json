@@ -145,6 +145,14 @@
       "summary": "Recovered the complete two-player race input decode/normalization and reverse-controls subsystem. All 563 USA bytes are executable; USA/beta are identical; PAL prototype stays at -15 and Europe +7 with 237/237 aligned opcode positions preserved and no role/M/X disagreement.",
       "priority": "low",
       "next_evidence": "Decode individual regional WRAM operands only for a concrete implementation or fidelity need. Comparative structure work should move to an eleventh independent subsystem."
+    },
+    {
+      "id": "resolved-camera-control-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:9FBF..A59D and homologs",
+      "summary": "Recovered the 1,503-byte race camera-control cluster: velocity/follow solving, smoothing, scale configuration, and per-frame update. Every USA byte is executable; USA/beta are identical; PAL prototype remains at -32 and Europe -15 with 659/659 aligned opcode positions preserved.",
+      "priority": "low",
+      "next_evidence": "Name individual camera constants and regional WRAM operands only when viewport/widescreen implementation needs them. Comparative structure work should move to a twelfth independent subsystem."
     }
   ]
 }

@@ -72,6 +72,20 @@ def build():
    info={"start":offset_to_cpu(bs),"end":offset_to_cpu(be),"shift":sh,"size":be-bs+1,"size_delta":0,
          "similarity":round(sc,6),**roles(ds[build],bs,be),
          "sha256":hashlib.sha256(blob[bs:be+1]).hexdigest()}
+   if build!="usa-retail":
+    opcode_pairs=opcode_equal=role_disagreements=0
+    for pos in range(us,ue+1):
+     up=ds["usa-retail"].code_map[pos]
+     tp=ds[build].code_map[pos+sh]
+     if bool(up&ds["usa-retail"].OP_CODE) != bool(tp&ds[build].OP_CODE) or bool(up&ds["usa-retail"].OP_PARAM) != bool(tp&ds[build].OP_PARAM):
+      role_disagreements+=1
+     if up&ds["usa-retail"].OP_CODE and tp&ds[build].OP_CODE:
+      opcode_pairs+=1
+      if usa[pos]==blob[pos+sh]: opcode_equal+=1
+    info["aligned_opcode_pairs"]=opcode_pairs
+    info["aligned_equal_opcode_pairs"]=opcode_equal
+    info["aligned_opcode_consensus_fraction"]=round(opcode_equal/opcode_pairs,6) if opcode_pairs else None
+    info["aligned_role_disagreements"]=role_disagreements
    if build in {"pal-prototype-1994-11-29","europe-retail"}:
     info["local_shift_profile_64byte"]=local_profile(usa,blob,us,ue,sh)
    row["builds"][build]=info

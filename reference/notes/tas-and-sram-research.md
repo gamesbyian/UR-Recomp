@@ -41,7 +41,7 @@ Tour-unlock state is reported at:
 - `02`: first 8
 - `03`: all tours
 
-A historical recipe to prepare a broad silver/unlocked state was to set `0x069C–0x071B` and `0x10D3–0x10E2` to `02`. These offsets should be verified against the supported ROM/SRAM before being treated as canonical.
+A historical recipe to prepare a broad silver/unlocked state was to set `0x069C–0x071B` and `0x10D3–0x10E2` to `02`. These offsets are now strongly corroborated by Dessyreqt's directly recovered controlled SRAM snapshots: `Clean → All Silvers - No Hunter` changes `0x069C..0x071B` uniformly `00→02` and `0x10D3..0x10E2` uniformly `00→02`; adding Hunter changes only the latter 16 bytes `02→03`. Exact per-record/value semantics still deserve a one-change-at-a-time runtime/save check. See `analysis/generated/dessyreqt-sram-diff.json`.
 
 ### Lost SRAM and movie files
 
@@ -56,7 +56,7 @@ The live files have not yet been recovered. Search targets include likely clean/
 A 2009 TAS discussion references a dedicated page:
 `http://dscarroll.com/uniracerstas/FallThrough.ashx`
 
-It reportedly hosted two savestates demonstrating the Jumpover corner/fall-through behavior: one state during the jump and one before it. The files have not yet been recovered.
+It reportedly hosted two savestates demonstrating the Jumpover corner/fall-through behavior: one state during the jump and one before it. The exact historical savestates remain unrecovered, but the practical evidence gap is now closed: Dessyreqt directly supplied two Jumpover halfpipe SMVs plus dedicated left/right reproduction scripts, preserved under `reference/imported/reverse-engineering/dessyreqt/Glitches/` and `Scripts/`. The scripts retain the original starting-position sweep method and successful-X notes.
 
 ## USJO Lua stunt bot
 
@@ -74,7 +74,7 @@ Version 8 already directly encodes:
 - a boost-plus-horizontal-speed objective and explicit stunt reward table;
 - additional working addresses not present in the short published watch list, including vertical speed and Z-rotation/pre-rotation state.
 
-The same community later discussed real-time AI/bot play by Dessyreqt. The still-missing v13 remains useful as a later delta, but v8 is sufficient to begin local validation now.
+The same community later discussed real-time AI/bot play by Dessyreqt. His directly recovered workspace now supplies internal v14, v14a, a v14a backup/test sibling, and a separate `movebot → teststuntbot → tabletopbot` autonomous-player lineage. Exact v13 is therefore only an intermediate historical gap; v14/v14a are the more important surviving later evidence.
 
 ## Determinism lead
 
@@ -104,7 +104,7 @@ The 2008 Snes9x Lua development thread preserves the original hyperlink for Hala
 - Historical direct URL: `http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/usjo13.lua`
 - First linked publicly: 2008-02-14
 
-Version 13 itself remains unavailable, but the exact filename/path are known and internal version 8 is now recovered locally. The contemporary description says v13 starts from a pre-jump emulator state, searches stunt combinations, optimizes for speed, then replays the best input sequence. Halamantariel said it could optimize in seconds what took a person hours.
+Version 13 itself remains unavailable, but the exact filename/path are known and internal v8 plus later v14/v14a are now recovered locally. The contemporary v13 description still documents an intermediate point in the lineage, but its exact bytes are no longer needed for technical reconstruction. Halamantariel said it could optimize in seconds what took a person hours.
 
 The same Lua-development discussion is useful context because Halamantariel specifically requested signed memory-read support for Uniracers speed values. This strongly suggests USJO or adjacent tooling consumed signed game-state variables directly from WRAM.
 
@@ -336,3 +336,16 @@ The directly recovered Nitrodon workspace materially sharpens several older TAS 
 - `7E:0F9F/0FA1` are shared current-player X/Y velocity working slots.
 
 The same stunt routine proves an exact base-5 stunt-combination index: `125*flips + 25*rolls + 5*twists + zflips`, selecting one of 625 response bytes beginning at `02:9DAA`. See `reference/notes/nitrodon-reverse-engineering-mining.md` for the full reconciliation.
+
+### Direct Dessyreqt workspace update
+
+The 2026-09-30 direct recovery changes several older acquisition statements in this note.
+
+- USJO is locally represented by v8, v14 and v14a development variants, so v13 is historical gap-filling only.
+- The autonomous-player source lineage is visible as `movebot → teststuntbot → tabletopbot`, alongside the published 2014 bot/movie.
+- Nine glitch/test SMVs are local, including Jumpover halfpipe traversal in both directions.
+- All 45 course maps are local.
+- Three 8 KiB SRAM snapshots provide a controlled progression differential.
+- V14a reads boost as a 16-bit word and accounts for delayed boost via the HUD/message queue; its message IDs reconcile directly with Nitrodon's named message table.
+
+The current synthesis is `reference/notes/dessyreqt-workspace-mining.md`. Machine-readable outputs are `analysis/generated/dessyreqt-workspace-index.json`, `analysis/generated/dessyreqt-sram-diff.json`, `analysis/generated/dessyreqt-course-landmarks.json`, and `analysis/generated/dessyreqt-named-boost-messages.json`.

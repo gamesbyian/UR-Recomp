@@ -1764,3 +1764,21 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 **Propagation:** replaced the generic rotation TBD with angular-velocity/current-player workspace semantics and added three code regions to the comparative census, expanding it to **88 regions / 12,099 bounded USA bytes**, including **10,954 code-region bytes**, **1,145 data bytes**, and **4,556 analyzer opcode bytes**.
 
+### R-SEED-074 — Collision/contact resolver preserves shared live architecture around two Europe-only insertions
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | collision | contact response | comparative atlas
+
+**Observation:** USA `81:8FB8..99D5` is a 2,590-byte collision cluster consisting of the main per-racer contact resolver through `983A` and its directly called geometry helper `983B..99D5`. Trusted-entry tracing fully reaches the live paths. Four instruction-bounded USA-dormant alternatives total 62 bytes and are represented separately rather than force-seeded with fabricated width context.
+
+**Evidence:** `tools/analyze_collision_resolution_structure_island.py`; `analysis/generated/collision-resolution-structure-island.{json,md}`; ROM-backed project-tooling runs `36940735178`, `36941007139`, and `36941413521`. USA and legacy beta are byte-identical.
+
+**Interpretation:** PAL prototype preserves the shared cluster at constant shift -32. Europe preserves every live aligned opcode around two explicit insertions: after the homolog of USA `81:9302 D0 09`, the branch becomes `D0 0F` and six NOPs are inserted, moving subsequent homologs from -32 to -26; before the homolog of USA `81:9800`, Europe inserts 11 bytes `AD E7 0D 29 FE 00 C9 08 00 F0 08` (`LDA $0DE7; AND #$00FE; CMP #$0008; BEQ +8`), moving the following structure -26 to -15. Every live region has zero regional opcode or code/operand-role disagreement once the helper inherits M/X context through its real caller.
+
+**Discriminating test:** exact semantics of the Europe-only gate should be pursued only if a regional collision/fidelity question requires it. The structural boundary, live/dormant classification and lineage insertions are closed.
+
+**Dependencies:** player-state marshal island; trusted-entry snes2asm; Nitrodon bank-81 collision listing; four-ROM corpus.
+
+**Propagation:** added twelve code regions to `analysis/generated/comparative-structural-census.{json,md}`, bringing the census to **100 regions / 14,689 bounded USA bytes**, including **13,544 code-region bytes**, **1,145 data bytes**, and **5,665 analyzer opcode bytes**.
+

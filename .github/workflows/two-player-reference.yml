@@ -297,6 +297,22 @@ jobs:
                       f"FULL_SRAM_DIFF frame={frame} count={len(sdiff)} "
                       f"first={sdiff[:32]}"
                   )
+                  # Bank $77 is the game's 8 KiB SRAM window. These offsets
+                  # identify the frontend route into 80:99A4 -> 83:C8E0:
+                  # $074D is set to FF by the 99A4 entry; $10AD selects the
+                  # surrounding mode/setup branch; nearby flags are consumed
+                  # by the bank-83 setup routine.
+                  for off,name in (
+                      (0x0742,"sram_flags_0742"),
+                      (0x074B,"sram_mode_074b"),
+                      (0x074D,"sram_ready_074d"),
+                      (0x0750,"sram_flags_0750"),
+                      (0x10AD,"sram_setup_mode_10ad"),
+                  ):
+                      if off < len(nb) and off < len(sb):
+                          print(
+                              f"SRAM_FIELD frame={frame} {name}=({nb[off]},{sb[off]})"
+                          )
           print("FIRST_FULL_WRAM_DIFF", first_full or "MATCH_THROUGH_1134")
           PY
 

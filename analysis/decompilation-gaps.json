@@ -20,11 +20,11 @@
     },
     {
       "id": "indirect-80c3c8",
-      "kind": "unresolved_indirect_dispatch",
+      "kind": "bounded_indirect_dispatch",
       "site": "80:C3C8",
-      "summary": "Live frontend/text command dispatcher: JMP indirect through $005D into the handler table at 80:C3CB-C3EA. Historical replay trace 36795810324 executes this site during frontend transition setup.",
-      "priority": "high",
-      "next_evidence": "Recover the 17 handler semantics and runtime target distribution from bounded frontend routes; promote only handlers that affect current UI/state architecture."
+      "summary": "Valid command domain FF..EF is fully mapped to 17 concrete bank-80 handlers from the canonical ROM table at 80:C3CB. EE is a boundary escape/sentinel whose computed next word is not a valid ROM handler.",
+      "priority": "medium",
+      "next_evidence": "Only prove the EE exclusion/range invariant or deeper handler semantics if a concrete frontend fidelity or modernization decision requires it. Target discovery itself is closed."
     },
     {
       "id": "lle-8091dc-m1x0",

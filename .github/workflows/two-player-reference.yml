@@ -290,6 +290,37 @@ jobs:
                   first=(frame,diffs)
           print("FIRST_PHASE_ORIGIN_DIFF", first or "MATCH_THROUGH_1140")
 
+          # Normalize each runtime to its own first inRace frame. Absolute
+          # libretro/host frame boundaries can cut the same transition one
+          # frame apart; this reveals whether the post-entry game-state
+          # trajectory itself is actually different.
+          roots={"native":nroot,"snes9x":sroot,"beetle":broot}
+          entry={}
+          for label,root in roots.items():
+              for frame in range(1128,1141):
+                  w=(root/f"phase-origin-{frame}.wram.bin").read_bytes()
+                  if w[0x0313]:
+                      entry[label]=frame
+                      break
+          print("RACE_ENTRY_FRAMES", entry)
+          rel_fields={
+              "phase0":0x0300,
+              "phase2":0x0302,
+              "phase3":0x0304,
+              "inRace":0x0313,
+              "race_tick":0x0FE7,
+              "countdown_lo":0x11BB,
+              "countdown_hi":0x11BC,
+          }
+          for rel in range(0,5):
+              vals={}
+              for label,root in roots.items():
+                  frame=entry[label]+rel
+                  w=(root/f"phase-origin-{frame}.wram.bin").read_bytes()
+                  vals[label]={name:w[off] for name,off in rel_fields.items()}
+              print(f"ENTRY_RELATIVE rel={rel}", vals,
+                    "MATCH" if len({tuple(v.values()) for v in vals.values()})==1 else "DIFF")
+
           # Also report the full cross-runtime memory delta immediately before
           # and at the race-entry seam. This prevents a hand-picked field from
           # being mistaken for the root cause when an earlier state byte is

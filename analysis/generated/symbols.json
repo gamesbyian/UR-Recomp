@@ -298,6 +298,102 @@
     },
     {
       "kind": "ram",
+      "address": "7E:0413",
+      "name": "Player2_XPosition",
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 X position; paired structure with verified player-1 `$0411` and the existing player-2 pitch/copy routines supports the assignment. Dynamic 2P causal validation remains desirable."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0417",
+      "name": "Player2_YPosition",
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 Y position; it is the paired word after verified player-1 `$0415`. Dynamic 2P causal validation remains desirable."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:04B9",
+      "name": "Player2_XSpeed",
+      "width": "signed 16-bit",
+      "confidence": 4,
+      "notes": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 X speed, paired with verified player-1 `$04B7`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:04BD",
+      "name": "Player2_YSpeed",
+      "width": "signed 16-bit",
+      "confidence": 4,
+      "notes": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 Y speed, paired with verified player-1 `$04BB`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0BA3",
+      "name": "Player2_FacedDirection",
+      "width": "8-bit",
+      "confidence": 3,
+      "notes": "Independently present in Nitrodon's WRAM map and Dessyreqt's recovered Tabletop bot as player-2 facing; historical convention is 1 = right, 0 = left."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0431",
+      "name": "Player2_TabletopDuration",
+      "width": "16-bit slot; low byte watched",
+      "confidence": 4,
+      "notes": "Nitrodon's WRAM map identifies player-2 tabletop duration here; Dessyreqt's Tabletop bot and `Races2.wch` independently use the same paired address."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:042D",
+      "name": "Player2_ZFlipCount",
+      "width": "16-bit slot; low byte watched",
+      "confidence": 4,
+      "notes": "Nitrodon's WRAM map identifies the paired player-2 Z-flip field; Dessyreqt's `Races2.wch` independently labels it Z-Flips."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:11FB",
+      "name": "Player2_RollCount",
+      "width": "16-bit slot; low byte watched",
+      "confidence": 4,
+      "notes": "Nitrodon's WRAM map identifies a two-byte player-2 roll count; Dessyreqt's `Races2.wch` independently labels the same address Rolls."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:11FF",
+      "name": "Player2_FlipCount",
+      "width": "16-bit slot; low byte watched",
+      "confidence": 4,
+      "notes": "Nitrodon's WRAM map identifies a two-byte player-2 flip count; Dessyreqt's `Races2.wch` independently labels the same address Flips."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:119B",
+      "name": "Player2_NextCheckpoint",
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Nitrodon's WRAM map and Dessyreqt's `Races2.wch` independently identify the paired player-2 checkpoint slot."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:04F5",
+      "name": "Player1_CameraXSpeed",
+      "width": "signed 8-bit",
+      "confidence": 3,
+      "notes": "Nitrodon's map calls this player-1 camera X velocity; Dessyreqt's `Races.wch` and SCUM independently use it as Camera X Speed. SCUM sign-converts the byte."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:04F7",
+      "name": "Player2_CameraXSpeed",
+      "width": "signed 8-bit",
+      "confidence": 2,
+      "notes": "Dessyreqt's `Races2.wch` identifies this paired player-2 Camera X Speed slot. Pairing with corroborated player-1 `$04F5` is strong, but direct runtime validation is still open."
+    },
+    {
+      "kind": "ram",
       "address": "7E:1201",
       "name": "Player1_RollQuarterProgress",
       "width": "16-bit",

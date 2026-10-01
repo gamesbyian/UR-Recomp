@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "sources": [
+    "reference/imported/reverse-engineering/dessyreqt/Scripts/usjo14a.lua",
+    "reference/imported/reverse-engineering/nitrodon/messages.txt"
+  ],
+  "mapping": [
+    {
+      "message_id": "0x01",
+      "name": "Roll",
+      "boost": 128
+    },
+    {
+      "message_id": "0x02",
+      "name": "Double Roll",
+      "boost": 152
+    },
+    {
+      "message_id": "0x03",
+      "name": "Treble Roll",
+      "boost": 176
+    },
+    {
+      "message_id": "0x04",
+      "name": "Roll City",
+      "boost": 200
+    },
+    {
+      "message_id": "0x05",
+      "name": "Flip",
+      "boost": 176
+    },
+    {
+      "message_id": "0x06",
+      "name": "Double Flip",
+      "boost": 200
+    },
+    {
+      "message_id": "0x07",
+      "name": "Treble Flip",
+      "boost": 224
+    },
+    {
+      "message_id": "0x08",
+      "name": "Flip City",
+      "boost": 248
+    },
+    {
+      "message_id": "0x09",
+      "name": "Twist",
+      "boost": 128
+    },
+    {
+      "message_id": "0x0A",
+      "name": "Double Twist",
+      "boost": 152
+    },
+    {
+      "message_id": "0x0B",
+      "name": "Treble Twist",
+      "boost": 176
+    },
+    {
+      "message_id": "0x0C",
+      "name": "Twister City",
+      "boost": 200
+    },
+    {
+      "message_id": "0x11",
+      "name": "Tabletop",
+      "boost": 152
+    },
+    {
+      "message_id": "0x12",
+      "name": "Z Flip",
+      "boost": 128
+    },
+    {
+      "message_id": "0x13",
+      "name": "Double Z Flip",
+      "boost": 152
+    },
+    {
+      "message_id": "0x14",
+      "name": "Treble Z Flip",
+      "boost": 176
+    },
+    {
+      "message_id": "0x15",
+      "name": "Z Flip City",
+      "boost": 200
+    }
+  ],
+  "note": "This named mapping joins v14a's decimal queue IDs/boost increments to Nitrodon's historical message table. It supports Tabletop=152 and Flip City=248; Dessyreqt Docs/stunts.txt values 156/252 are treated as historical transcription discrepancies."
+}

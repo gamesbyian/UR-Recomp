@@ -41,10 +41,22 @@
       "comment": "Effective recovered-bot word key `xPos`. Race-acceleration run 36512546762 moves it identically in native/reference from 1088 at rest to 1655 under staged Right input, alongside positive X speed."
     },
     {
+      "address": "7E0413",
+      "name": "Player2_XPosition",
+      "kind": "ram",
+      "comment": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 X position; paired structure with verified player-1 `$0411` and the existing player-2 pitch/copy routines supports the assignment. Dynamic 2P causal validation remains desirable."
+    },
+    {
       "address": "7E0415",
       "name": "Player1_YPosition",
       "kind": "ram",
       "comment": "Effective recovered-bot word key `yPos`. Sustained-B run 36514981164 causally changes player 1 from ground Y=859 in the matched no-B control to Y=797 while airborne; native and Snes9x match exactly."
+    },
+    {
+      "address": "7E0417",
+      "name": "Player2_YPosition",
+      "kind": "ram",
+      "comment": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 Y position; it is the paired word after verified player-1 `$0415`. Dynamic 2P causal validation remains desirable."
     },
     {
       "address": "7E042B",
@@ -53,10 +65,22 @@
       "comment": "Nitrodon's map identifies the player-specific slot as Z-flip count. Bank-82 code reads/writes it under 16-bit accumulator mode, caps the landing result at 4, and uses it directly in the stunt-combination index. USJO v8 reads only the low byte."
     },
     {
+      "address": "7E042D",
+      "name": "Player2_ZFlipCount",
+      "kind": "ram",
+      "comment": "Nitrodon's WRAM map identifies the paired player-2 Z-flip field; Dessyreqt's `Races2.wch` independently labels it Z-Flips."
+    },
+    {
       "address": "7E042F",
       "name": "Player1_TabletopDuration",
       "kind": "ram",
       "comment": "Nitrodon's map and annotated bank-82 code identify this as tabletop duration; `INC $042F,X` at `02:9582` advances it and `02:9C87` requires duration >= 3 to emit the Tabletop message. Dynamic run 36776825024 independently observes X input driving low-byte `0→1→2→3→4→0` at a two-frame cadence in native and pinned Snes9x. This supersedes the older accumulated-count label."
+    },
+    {
+      "address": "7E0431",
+      "name": "Player2_TabletopDuration",
+      "kind": "ram",
+      "comment": "Nitrodon's WRAM map identifies player-2 tabletop duration here; Dessyreqt's Tabletop bot and `Races2.wch` independently use the same paired address."
     },
     {
       "address": "7E04B7",
@@ -65,10 +89,22 @@
       "comment": "Effective recovered-bot word key `xSpeed`; bot explicitly sign-converts it. Race-acceleration run 36512546762 changes it identically from 0 to +447 under Right input while X position increases."
     },
     {
+      "address": "7E04B9",
+      "name": "Player2_XSpeed",
+      "kind": "ram",
+      "comment": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 X speed, paired with verified player-1 `$04B7`."
+    },
+    {
       "address": "7E04BB",
       "name": "Player1_YSpeed",
       "kind": "ram",
       "comment": "Effective recovered-bot word key `ySpeed`; bot sign-converts it. In run 36514981164 sustained B changes it causally from 0 in the matched control to -21 while player 1 is airborne; native and Snes9x match exactly."
+    },
+    {
+      "address": "7E04BD",
+      "name": "Player2_YSpeed",
+      "kind": "ram",
+      "comment": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 Y speed, paired with verified player-1 `$04BB`."
     },
     {
       "address": "7E04C7",
@@ -83,6 +119,18 @@
       "comment": "Paired player-2 pitch/orientation slot. Sibling ROM routine at `02:9272` executes `LDY $0F49; STY $04C9`; surrounding destinations shift coherently to player-2 fields."
     },
     {
+      "address": "7E04F5",
+      "name": "Player1_CameraXSpeed",
+      "kind": "ram",
+      "comment": "Nitrodon's map calls this player-1 camera X velocity; Dessyreqt's `Races.wch` and SCUM independently use it as Camera X Speed. SCUM sign-converts the byte."
+    },
+    {
+      "address": "7E04F7",
+      "name": "Player2_CameraXSpeed",
+      "kind": "ram",
+      "comment": "Dessyreqt's `Races2.wch` identifies this paired player-2 Camera X Speed slot. Pairing with corroborated player-1 `$04F5` is strong, but direct runtime validation is still open."
+    },
+    {
       "address": "7E0545",
       "name": "Player1_AirTime",
       "kind": "ram",
@@ -93,6 +141,12 @@
       "name": "Player1_FacedDirection",
       "kind": "ram",
       "comment": "Recovered bot: 1 = right, 0 = left. Not yet independently validated."
+    },
+    {
+      "address": "7E0BA3",
+      "name": "Player2_FacedDirection",
+      "kind": "ram",
+      "comment": "Independently present in Nitrodon's WRAM map and Dessyreqt's recovered Tabletop bot as player-2 facing; historical convention is 1 = right, 0 = left."
     },
     {
       "address": "7E0C63",
@@ -167,6 +221,12 @@
       "comment": "Nitrodon's map identifies the next-checkpoint field; paired player-2 slot is `$119B`. High-value race-finish fixture target."
     },
     {
+      "address": "7E119B",
+      "name": "Player2_NextCheckpoint",
+      "kind": "ram",
+      "comment": "Nitrodon's WRAM map and Dessyreqt's `Races2.wch` independently identify the paired player-2 checkpoint slot."
+    },
+    {
       "address": "7E119D",
       "name": "Player1_FinishGateState",
       "kind": "ram",
@@ -203,10 +263,22 @@
       "comment": "Nitrodon's map explicitly records a 2-byte player-1 roll count. The stunt routine increments it with 16-bit `INC $11F9,X` after four quarter-turn progress steps, and may credit a 3/4 roll on landing. USJO v8 reads only the low byte."
     },
     {
+      "address": "7E11FB",
+      "name": "Player2_RollCount",
+      "kind": "ram",
+      "comment": "Nitrodon's WRAM map identifies a two-byte player-2 roll count; Dessyreqt's `Races2.wch` independently labels the same address Rolls."
+    },
+    {
       "address": "7E11FD",
       "name": "Player1_FlipCount",
       "kind": "ram",
       "comment": "Nitrodon's map explicitly records a 2-byte player-1 flip count. The stunt routine increments it with 16-bit `INC $11FD,X` after four quarter-turn progress steps, and may credit a 3/4 flip on landing. USJO v8 reads only the low byte."
+    },
+    {
+      "address": "7E11FF",
+      "name": "Player2_FlipCount",
+      "kind": "ram",
+      "comment": "Nitrodon's WRAM map identifies a two-byte player-2 flip count; Dessyreqt's `Races2.wch` independently labels the same address Flips."
     },
     {
       "address": "7E1201",

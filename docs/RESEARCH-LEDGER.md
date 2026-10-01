@@ -127,27 +127,27 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 
 ### R-EXT-007 — SRAM tour/progression layout
 
-**Status:** historical lead  
-**Date:** 2026-09-28  
+**Status:** locally corroborated by controlled historical save snapshots  
+**Date:** 2026-09-28; updated 2026-09-30  
 **Area:** RAM | other
 
-**Observation:** TASVideos research attributes medal state to nine 16-byte tour blocks spanning SRAM `0x069C–0x072B`, with one byte per unicycle and values 00/01/02/03 for none/bronze/silver/gold. Tour unlock count is reported at `0x10D3–0x10E2`.  
-**Evidence:** `reference/notes/tas-and-sram-research.md` and TASVideos Uniracers topic 979.  
-**Interpretation:** This is a useful starting map for decoding save structure and can rapidly expose per-unicycle progression fields.  
-**Discriminating test:** compare clean SRAM, controlled medal changes and unlock transitions byte-for-byte.  
-**Dependencies:** historical emulator SRAM format and ROM revision must be matched.
+**Observation:** TASVideos research attributes medal state to nine 16-byte tour blocks beginning at SRAM `0x069C`, with one byte per unicycle and values 00/01/02/03 for none/bronze/silver/gold, and reports progression/unlock state near `0x10D3–0x10E2`. Dessyreqt's directly recovered 8 KiB SRAM snapshots now provide the requested controlled differential: `Clean → All Silvers - No Hunter` changes exactly 144 bytes, comprising `0x069C..0x071B` (128 bytes, all `00→02`) and `0x10D3..0x10E2` (16 bytes, all `00→02`). `No Hunter → With Hunter` changes only the same 16-byte `0x10D3..0x10E2` block, uniformly `02→03`.  
+**Evidence:** `reference/notes/tas-and-sram-research.md`; `reference/imported/reverse-engineering/dessyreqt/SRAM/`; `analysis/generated/dessyreqt-sram-diff.json`.  
+**Interpretation:** The historical progression map is strongly corroborated and the Hunter-associated transition is isolated to a tiny 16-byte region. Do not yet over-name the exact record structure or assume every byte is literally a medal tier without a one-change-at-a-time runtime/save experiment.  
+**Discriminating test:** create one controlled Bronze/Silver/Gold change for a single racer/tour and one Hunter unlock transition, then verify the predicted byte(s) and any checksum/copy behavior.  
+**Dependencies:** none for byte-layout reconnaissance; semantic promotion still requires controlled in-game writes/saves.
 
 ### R-EXT-008 — USJO autonomous stunt bot
 
-**Status:** ancestor source recovered; later autonomous lineage supported  
+**Status:** v8 and later v14/v14a source lineage recovered  
 **Date:** 2026-09-28; updated 2026-09-30  
 **Area:** physics | RAM | other
 
-**Observation:** TASVideos submission #3072 describes a Lua script named USJO, originating with Halamantariel and improved with Nitrodon, that automated frame-precise stunt behavior and reportedly evolved to play Uniracers autonomously. Internal version 8, dated 2008-02-10, is now recovered exactly at `reference/imported/tas-bots/usjo8.lua`.  
+**Observation:** TASVideos submission #3072 describes a Lua script named USJO that automated frame-precise stunt behavior and reportedly evolved toward autonomous play. Internal v8 (2008-02-10) is preserved at `reference/imported/tas-bots/usjo8.lua`; Dessyreqt's direct workspace additionally recovers internal v14 (2008-02-14), v14a (2009-11-19), a v14a backup and a v14a test sibling. V14 changes the boost read to a 16-bit word; v14a refactors the optimizer and adds queue-aware delayed boost scoring.  
 **Evidence:** recovered v8 source; `reference/notes/tas-and-sram-research.md`; TASVideos submission #3072.  
 **Interpretation:** The historical USJO line is now executable source evidence rather than a purely documentary lead. Version 8 directly exposes practical RAM addresses, timing rules, search strategy, stunt grammar, boost scoring and controller-state generation.  
 **Discriminating test:** inventory every v8 memory read and timing/scoring assumption, then validate each candidate semantic against the supported ROM/runtime before promotion.  
-**Dependencies:** v13 remains missing, but no local validation work depends on recovering it.
+**Dependencies:** exact v13 remains missing, but v14/v14a supersede it technically; v13 is historical gap-filling only.
 
 ### R-EXT-009 — Halamantariel course-map corpus
 
@@ -947,3 +947,20 @@ The six known package tables contain one orphan, `03:FB95`. It has no direct `JS
 **Interpretation:** This workspace materially narrows several formerly broad reverse-engineering tasks. It resolves shared-current-player versus stable-player state for velocity/boost, corrects multiple field widths/labels, exposes exact stunt-combination encoding, and gives bounded addresses for stunt, gravity, input, checkpoint/finish and collision work.
 **Discriminating test:** decode the `FE/FF` stunt-table sentinels; trace `11CF/11D1 ↔ 11CD`; watch `1199/119D/0EF1` through a deterministic Dragster finish; trace isolated stunt combinations into `12AF`; reconcile Nitrodon's ROM map offsets against decoded RNC course payloads; replay/interpret the bounce trace against current collision code.
 **Dependencies:** Nitrodon's annotations remain historical working evidence where not independently reproduced; the promoted symbol changes are limited to cases with direct instruction-level or dynamic corroboration.
+
+### R-EXT-016 — Dessyreqt direct historical workspace
+
+**Status:** supported historical evidence; selected conclusions corroborated by Nitrodon/current runtime  
+**Date:** 2026-09-30  
+**Area:** RAM | physics | camera | course | UI | other
+
+**Observation:** Dessyreqt directly supplied an 80-file historical Uniracers working directory containing 17 Lua scripts, 9 glitch/test SMVs, 45 course-map PNGs, 3 SRAM images, 2 memory-watch files and 4 research documents. The scripts recover a visible `movebot → teststuntbot → tabletopbot` autonomy lineage plus USJO internal v14/v14a development material. V14/v14a read `7E:11CD` as a 16-bit boost word; v14a additionally parses the message queue at `0CBB/0CE1/0CE3` and scores live boost plus queued stunt credit relative to a no-stunt baseline. The directly recovered Tabletop bot differs from the public 2014 source by a Dragster-specific direction/rotation correction and one changed jump rectangle.
+
+**Evidence:** `reference/imported/reverse-engineering/dessyreqt/`; `reference/notes/dessyreqt-workspace-mining.md`; `analysis/generated/dessyreqt-workspace-index.json`. Independent Nitrodon evidence corroborates several paired-racer/stunt addresses and the 16-bit boost interpretation.
+
+**Interpretation:** v13 recovery is no longer technically important; the project now has later optimizer source and a broader autonomous-policy development history. The 45 maps satisfy the practical need for a complete local visual course corpus. The glitch SMVs provide deterministic collision-boundary seeds. The P2 watch/bot fields are particularly useful for the existing two-player fidelity lane.
+
+**Discriminating test:** reconcile v14a queue-message IDs against Nitrodon's message table and ROM-side message/boost routine; verify P2 facing/tabletop/roll/flip/Z/checkpoint fields during deterministic 2P play; replay one recovered Jumpover SMV unchanged before reducing it to a minimal collision discriminator; compare `magicnumber.lua` start/finish coordinates to runtime/course-stream identity.
+
+**Dependencies:** imported Lua remains historical working code with old-Snes9x assumptions and deliberate WRAM mutation in several utilities. Preserve source unchanged and promote semantics only after local corroboration.
+

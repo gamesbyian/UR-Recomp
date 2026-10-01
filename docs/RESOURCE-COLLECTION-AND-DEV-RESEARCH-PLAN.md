@@ -74,13 +74,24 @@ Actions:
 
 Exit condition: **met 2026-09-28**. All 45 streams in each of four preserved builds decode reproducibly with packed/unpacked CRC verification; compact manifests are generated in CI.
 
+### Direct Dessyreqt workspace changes the evidence economy
+
+The 2026-09-30 direct recovery from Dessyreqt closes several former acquisition gaps at once: USJO v14/v14a and development variants, a distinct movement→stunt→full-game autonomous-player lineage, nine glitch/test SMVs, a complete 45-course map set, three SRAMs, and two memory-watch files. See `reference/notes/dessyreqt-workspace-mining.md`.
+
+Planning consequences:
+- USJO v13 is now passive historical gap-filling, not a technical target;
+- do not spend acquisition effort obtaining course maps merely for completeness;
+- use the recovered Jumpover/corkscrew/circle SMVs as collision-boundary fixtures after ordinary race fidelity is stable;
+- use v14a's queue-aware boost accounting and P2 address set as high-value semantic leads;
+- prefer exact recovered movies over porting old policy where prerecorded input answers the question.
+
 ### 3. Identify the semantic course format
 
 Use the decoded RNC corpus to test historical claims rather than inheriting them.
 
 Actions:
 - test the reported 256-tile width and 64x64-block interpretation against bytes;
-- correlate decoded stream sizes and structures with the 44 VGMaps course maps and in-game course count;
+- correlate decoded stream sizes and structures with the complete 45-map local Dessyreqt corpus; use VGMaps only as an independent comparison when useful;
 - use the historical `7E:2080` course-load breadcrumb and known WRAM state where applicable;
 - identify course index/pointer tables and the loader;
 - distinguish geometry, visual tiles, metadata, hazards, boosts, starts/finishes, themes, and parallel tables;

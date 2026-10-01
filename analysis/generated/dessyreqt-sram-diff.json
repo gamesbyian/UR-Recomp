@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "sources": {
+    "clean": "reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm",
+    "all_silvers_no_hunter": "reference/imported/reverse-engineering/dessyreqt/SRAM/All Silvers - No Hunter.srm",
+    "all_silvers_with_hunter": "reference/imported/reverse-engineering/dessyreqt/SRAM/All Silvers - With Hunter.srm"
+  },
+  "size_bytes": 8192,
+  "comparisons": {
+    "clean_to_all_silvers_no_hunter": {
+      "differing_bytes": 144,
+      "ranges": [
+        {
+          "start": "0x069C",
+          "end": "0x071B",
+          "length": 128,
+          "from": "0x00",
+          "to": "0x02"
+        },
+        {
+          "start": "0x10D3",
+          "end": "0x10E2",
+          "length": 16,
+          "from": "0x00",
+          "to": "0x02"
+        }
+      ]
+    },
+    "all_silvers_no_hunter_to_with_hunter": {
+      "differing_bytes": 16,
+      "ranges": [
+        {
+          "start": "0x10D3",
+          "end": "0x10E2",
+          "length": 16,
+          "from": "0x02",
+          "to": "0x03"
+        }
+      ]
+    },
+    "clean_to_all_silvers_with_hunter": {
+      "differing_bytes": 144,
+      "ranges": [
+        {
+          "start": "0x069C",
+          "end": "0x071B",
+          "length": 128,
+          "from": "0x00",
+          "to": "0x02"
+        },
+        {
+          "start": "0x10D3",
+          "end": "0x10E2",
+          "length": 16,
+          "from": "0x00",
+          "to": "0x03"
+        }
+      ]
+    }
+  },
+  "interpretation": {
+    "established": "The supplied save states isolate progression into two compact contiguous regions.",
+    "hypothesis": "The 128-byte block is strongly associated with the all-silver progression change; the 16-byte block changes again when Hunter is included and is therefore a high-priority unlock/medal-state discriminator.",
+    "caution": "Exact record structure, per-racer meaning, checksum/copy semantics and whether values 2/3 literally encode medal tiers are not established by these three snapshots alone."
+  }
+}

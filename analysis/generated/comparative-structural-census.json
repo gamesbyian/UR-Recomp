@@ -50,17 +50,21 @@
     {
       "id": "race-timer",
       "path": "analysis/generated/race-timer-structure-island.json"
+    },
+    {
+      "id": "player-state-marshal",
+      "path": "analysis/generated/player-state-marshal-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 85,
-    "code_regions": 77,
+    "regions": 88,
+    "code_regions": 80,
     "data_regions": 8,
-    "bounded_bytes": 11423,
-    "bounded_code_region_bytes": 10278,
+    "bounded_bytes": 12099,
+    "bounded_code_region_bytes": 10954,
     "bounded_data_region_bytes": 1145,
-    "analyzer_opcode_bytes": 4322,
-    "analyzer_operand_bytes": 5894,
+    "analyzer_opcode_bytes": 4556,
+    "analyzer_operand_bytes": 6336,
     "analyzer_unreached_or_data_bytes": 1207,
     "banks": [
       "81",
@@ -1035,6 +1039,144 @@
           "shift": 0,
           "similarity": 1,
           "size": 383,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "player-state-marshal",
+      "source_path": "analysis/generated/player-state-marshal-structure-island.json",
+      "name": "long_entry_wrapper",
+      "kind": "code",
+      "usa_start": "81:8D14",
+      "usa_end": "81:8D17",
+      "size": 4,
+      "usa_opcode_bytes": 2,
+      "usa_operand_bytes": 2,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:8CF4",
+          "end": "81:8CF7",
+          "shift": -32,
+          "similarity": 0.5,
+          "size": 4,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:8D14",
+          "end": "81:8D17",
+          "shift": 0,
+          "similarity": 1,
+          "size": 4,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:8CF4",
+          "end": "81:8CF7",
+          "shift": -32,
+          "similarity": 0.5,
+          "size": 4,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:8D14",
+          "end": "81:8D17",
+          "shift": 0,
+          "similarity": 1,
+          "size": 4,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "player-state-marshal",
+      "source_path": "analysis/generated/player-state-marshal-structure-island.json",
+      "name": "player1_marshal_and_sim_bridge",
+      "kind": "code",
+      "usa_start": "81:8D18",
+      "usa_end": "81:8E62",
+      "size": 331,
+      "usa_opcode_bytes": 114,
+      "usa_operand_bytes": 217,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:8CF8",
+          "end": "81:8E42",
+          "shift": -32,
+          "similarity": 0.691843,
+          "size": 331,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:8D18",
+          "end": "81:8E62",
+          "shift": 0,
+          "similarity": 1,
+          "size": 331,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:8CF8",
+          "end": "81:8E42",
+          "shift": -32,
+          "similarity": 0.821752,
+          "size": 331,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:8D18",
+          "end": "81:8E62",
+          "shift": 0,
+          "similarity": 1,
+          "size": 331,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "player-state-marshal",
+      "source_path": "analysis/generated/player-state-marshal-structure-island.json",
+      "name": "player2_marshal_and_sim_bridge",
+      "kind": "code",
+      "usa_start": "81:8E63",
+      "usa_end": "81:8FB7",
+      "size": 341,
+      "usa_opcode_bytes": 118,
+      "usa_operand_bytes": 223,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:8E43",
+          "end": "81:8F97",
+          "shift": -32,
+          "similarity": 0.692082,
+          "size": 341,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:8E63",
+          "end": "81:8FB7",
+          "shift": 0,
+          "similarity": 1,
+          "size": 341,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:8E43",
+          "end": "81:8F97",
+          "shift": -32,
+          "similarity": 0.824047,
+          "size": 341,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:8E63",
+          "end": "81:8FB7",
+          "shift": 0,
+          "similarity": 1,
+          "size": 341,
           "size_delta": 0
         }
       }

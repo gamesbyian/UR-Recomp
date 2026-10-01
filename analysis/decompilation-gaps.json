@@ -161,6 +161,14 @@
       "summary": "Recovered the complete 624-byte race/stunt timer lifecycle. USA/beta are identical; PAL prototype stays at -35 and Europe -19 with all 244 aligned opcode positions preserved. The shared timer digit/subtick representation at 0E0F/0E13/0E17/0E1B/0E1F is now promoted.",
       "priority": "low",
       "next_evidence": "Expand mode selector 0E23, finish flags 0EF5/0EF7, or warning thresholds only for a concrete timing-fidelity or UI need. Comparative structure work should move to a thirteenth independent subsystem."
+    },
+    {
+      "id": "resolved-player-state-marshal-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:8D14..8FB7 and homologs",
+      "summary": "Recovered the full 676-byte P1/P2 persistent-state to shared-current-player marshal. USA/beta are identical; PAL prototype and Europe stay at -32 with all 234 aligned opcodes preserved. Paired pitch-angle and angular-velocity workspace mappings are now explicit.",
+      "priority": "low",
+      "next_evidence": "Expand individual shared-workspace fields only for a concrete physics/collision implementation need. Comparative structure work should move to a fourteenth independent subsystem."
     }
   ]
 }

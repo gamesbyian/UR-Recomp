@@ -1746,3 +1746,21 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 **Propagation:** replaced the generic race-timer TBD in `docs/SYMBOLS.md` with five concrete timer fields and added five code regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **85 regions / 11,423 bounded USA bytes**, including **10,278 code-region bytes**, **1,145 data bytes**, and **4,322 analyzer opcode bytes**.
 
+### R-SEED-073 — Two-player persistent-state marshal preserves shared simulation architecture
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | racer state | rotation | comparative atlas
+
+**Observation:** USA `81:8D14..8FB7` is a 676-byte, fully executable bridge between paired persistent P1/P2 racer state and the shared current-player `0Fxx` workspace. It follows the recovered course-surface sampler and exits immediately before collision handling at `81:8FB8`.
+
+**Evidence:** `tools/analyze_player_state_marshal_structure_island.py`; `analysis/generated/player-state-marshal-structure-island.{json,md}`; ROM-backed tooling run `36940294304`. USA and legacy beta are byte-identical. PAL prototype and Europe both remain at shift -32 throughout all three regions.
+
+**Interpretation:** both regional builds preserve all 234 aligned opcode positions with zero code/operand-role disagreements. The P1 bridge copies persistent pitch angle `04C7` to shared `0F49` and persistent angular velocity `0BAD` to shared `0F4B`; P2 mirrors those relations from `04C9` and `0BAF`. Shared angular velocity is written back after the common simulation pass. This closes the stale generic rotation gap while keeping separate per-frame rotational delta `0F4D` distinct.
+
+**Discriminating test:** no further structural work is required. Broaden individual shared-workspace labels only when a concrete physics/collision implementation needs them.
+
+**Dependencies:** Nitrodon bank-81 listing; trusted-entry snes2asm; four-ROM corpus; existing P1/P2 pitch-angle semantics.
+
+**Propagation:** replaced the generic rotation TBD with angular-velocity/current-player workspace semantics and added three code regions to the comparative census, expanding it to **88 regions / 12,099 bounded USA bytes**, including **10,954 code-region bytes**, **1,145 data bytes**, and **4,556 analyzer opcode bytes**.
+

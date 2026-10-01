@@ -12,7 +12,10 @@ from collections import defaultdict
 from pathlib import Path
 import json
 
-from tools.compare_semantic_anchors import build_output
+try:
+    from tools.compare_semantic_anchors import build_output
+except ModuleNotFoundError:
+    from compare_semantic_anchors import build_output
 
 OUT_JSON = Path("analysis/generated/wram-motion-atlas.json")
 OUT_MD = Path("analysis/generated/wram-motion-atlas.md")

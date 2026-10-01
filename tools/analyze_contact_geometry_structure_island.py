@@ -86,12 +86,14 @@ def build():
 def render(r):
  lines=["# Per-racer contact-geometry structural island","",
  "USA `81:9E2A..9FBE` is called independently for P1 and P2 from the persistent-state marshal, before the course-surface sampler and collision resolver. It derives orientation-dependent contact geometry and writes the active-player collision anchor at `125B,Y`. Camera control begins immediately at `81:9FBF`.","",
+ "All 405 USA bytes are executable. USA and legacy beta are byte-identical. PAL prototype preserves the routine at constant shift -32; Europe preserves it at constant shift -15. Both regional builds match all 246 aligned opcode positions with zero code/operand-role disagreements.","",
  "| Region | USA bytes | PAL prototype | Europe | Legacy beta |","|---|---:|---|---|---|"]
  for x in r["regions"]:
   def c(b):
    q=x["builds"][b]; return f"{q['start']}..{q['end']} ({q['shift']:+d}; sim {q['similarity']:.3f}; op {q['opcode_bytes']}; other {q['unreached_or_data_bytes']})"
   lines.append(f"| {x['name']} | {x['size']} | {c('pal-prototype-1994-11-29')} | {c('europe-retail')} | {c('legacy-beta')} |")
- return "\n".join(lines)+"\n"
+ lines += ["","The routine is the structural bridge from shared current-player orientation/state to the course-surface sampler and collision resolver. Regional collision lineage edits therefore occur downstream of this constructor, not in contact-geometry generation.",""]
+ return "\n".join(lines)
 
 def main():
  r=build(); OUTJ.write_text(json.dumps(r,indent=2)+"\n"); OUTM.write_text(render(r)); print(render(r)); print("CONTACT_GEOMETRY_JSON="+json.dumps(r,sort_keys=True))

@@ -116,26 +116,78 @@ Exit condition: a parser can turn one or more ROM course records into a document
 
 ### 4. Build a multi-ROM × multi-analyzer comparative code atlas
 
-USA retail and the 1994-11-29 PAL prototype share the complete 45-stream packed corpus, while Europe retail changes seven streams and the legacy beta differs from USA retail only outside that corpus. The four preserved builds are now the expected ROM corpus; do not assume additional language/region releases exist or spend acquisition effort on speculative regional variants without a concrete catalog/provenance lead.
+PR #124 has already demonstrated that cross-build semantic correspondence is high-yield: all eight trusted USA anchors are exact in the legacy beta, strong relocated counterparts exist across the PAL prototype and Europe retail, and structurally aligned operands expose recurring build-specific WRAM motion (`+4` families in the PAL prototype; `+10`, `+6`, `+4`, and stable families in Europe). Treat that as established evidence, not a pilot still awaiting justification.
 
-Use the four builds as repeated observations of the lost source program. Cross-build correspondence and independent analyzer agreement should be first-class evidence.
+The next work should therefore exploit the strongest demonstrated signal first, then use the unusually clean USA/beta delta set as a bounded analyzer-validation corpus.
 
-Actions:
-- classify the 486 isolated USA-retail vs legacy-beta byte changes;
-- independently decode and compare PAL retail streams 4, 16, 20, 26, 27, 35 and 36 against their USA/prototype counterparts;
-- run corresponding executable regions through SNESRecomp manifest/generated-code analysis, snes2asm, bounded da65, and Ghidra/ghidra-snes when cross-reference persistence is useful;
-- evaluate additional 65816 control-flow analyzers only if they provide a genuinely independent interpretation;
-- create machine-readable fingerprints for candidate functions and data objects using instruction sequences, normalized operands, CFG shape, callers/callees, ROM references and WRAM/PPU accesses;
-- use `tools/compare_semantic_anchors.py` as a lightweight first-pass correspondence proposer for trusted semantic anchors: relocation-tolerant byte n-gram voting plus known WRAM/PPU reference signatures; same absolute address is never privileged, and matches still require a second structural/runtime discriminator before label propagation;
-- align corresponding functions/tables across builds even when absolute addresses move;
-- classify code-vs-data, function-boundary, M/X-state, indirect-target, jump-table and cross-reference disagreements between analyzers;
-- prioritize disagreements and regions where one build exposes a boundary/target more clearly than another;
-- identify regional timing, frontend/text, protection, late fixes, graphics/audio and table changes;
-- propagate only locally verified semantic labels from Nitrodon/Dessyreqt/TAS/RetroAchievements/dynamic traces across matched functions, preserving provenance and confidence;
-- annotate useful differential landmarks in the research ledger/symbol map;
-- keep generated SNESRecomp C explicitly classified as execution-oriented translation evidence rather than a complete semantic decompilation.
+#### Stage 1 — bounded WRAM motion atlas
 
-Exit condition: a reproducible comparative-code-atlas artifact covers the useful executable corpus, major cross-build correspondences are machine-queryable, and analyzer disagreements form a bounded research queue rather than remaining invisible.
+Build directly on `tools/compare_semantic_anchors.py` and the merged findings from PR #124.
+
+- collect absolute/direct-page WRAM operands from the trusted structurally matched routines;
+- align operand positions structurally across builds;
+- cluster fields by shared displacement and co-occurrence rather than assuming one global offset;
+- distinguish stable fields, shifted logical blocks, insertions/removals, and local exceptions;
+- use the PAL prototype's recurring `+4` motion and Europe's structure-specific `+10` / `+6` / `+4` families as primary evidence;
+- keep weak Europe checkpoint/HUD/OAM candidates unpromoted until another local structural or runtime discriminator agrees;
+- feed useful clusters back into `docs/SYMBOLS.md`, decompilation gaps, and course/physics/rendering structure inference only where they change a current decision or make later RE materially cheaper.
+
+**Stop rule:** do not chase complete WRAM archaeology. Stop when additional clustering no longer changes symbol confidence, structure reconstruction, implementation choices, or an active fidelity/decompilation question.
+
+#### Stage 2 — classify the 486 USA-retail vs legacy-beta differences with independent analyzers
+
+The USA/beta pair remains valuable precisely because its trusted semantic anchors are identical. Use its 486 isolated non-RNC byte changes as a compact corpus for identifying late isolated fixes, constants, table edits and analyzer-boundary mistakes.
+
+- take `tools/analyze_rom_lineage_deltas.py` and the generated pairwise/four-ROM reports as byte-level ground truth;
+- restrict the first pass to the changed positions plus small bounded context;
+- run at least two already-owned independent static-analysis paths under pinned assumptions, starting with da65 and snes2asm where practical;
+- normalize output into machine-comparable records keyed by SNES/file address, instruction shape, normalized operands, control-flow edges and referenced addresses; strip formatting/generated-label noise;
+- classify each delta as executable change, data/table change, relocation/addressing change, analyzer code/data disagreement, M/X-state disagreement, or unresolved;
+- join classifications to existing symbols and the comparative atlas;
+- use Ghidra/ghidra-snes only for the high-information subset where persistent xrefs/CFG/function boundaries can adjudicate ambiguity;
+- measure yield: semantic classifications gained, existing symbols strengthened, and reusable analyzer corrections discovered.
+
+The purpose of this pass is not to decide whether comparative analysis works; PR #124 already answered that. Its purpose is to cheaply validate and improve the normalized cross-analyzer machinery on a very small, clean change set.
+
+#### Stage 3 — expand only where information value justifies it
+
+If Stages 1-2 expose useful unresolved regions:
+
+1. apply the same normalized comparison to PAL retail vs the 1994-11-29 PAL prototype;
+2. use all six pairings through the existing four-ROM lineage signatures rather than creating six unrelated reports;
+3. promote Ghidra as a richer third witness for selected executable regions, not a mandatory whole-ROM batch step;
+4. compare SNESRecomp analyzer/generated-code structure where it contributes execution/AOT information ordinary disassembly cannot;
+5. evaluate another 65816 analyzer only if it provides a genuinely independent interpretation.
+
+#### Durable comparative atlas
+
+Build on the existing `tools/build_comparative_code_atlas.py`, `analysis/decompilation-gaps.json`, symbol adapters, and generated semantic inventory. Do not create a parallel tracking system.
+
+The durable artifact should make these relationships queryable:
+
+- ROM/build identity and exact address/range;
+- raw byte-delta / lineage signature;
+- normalized instruction/basic-block fingerprint;
+- candidate routine or data-object identity;
+- cross-build correspondence even when absolute addresses move;
+- analyzer agreement/disagreement;
+- callers/callees, ROM-table references and WRAM/PPU accesses where available;
+- runtime-execution evidence;
+- semantic labels with provenance/confidence;
+- unresolved ambiguity and cheapest next discriminator.
+
+Priority inside the atlas is consequential rather than exhaustive:
+
+1. regions touching known executed symbols and current fidelity questions;
+2. physics, collision, stunt, checkpoint/finish and input code;
+3. course loading/materialization and renderer/OAM/PPU-facing code;
+4. emulator-compatibility seams and startup/protection behavior;
+5. frontend/text/timing and regional differences when they affect behavior;
+6. archaeological leftovers only when a cheap pass falls out of the above.
+
+Cross-build agreement is evidence, not proof. Same-address identity is only one feature. Propagate semantic labels only when byte/instruction structure plus at least one independent structural or runtime discriminator supports the mapping.
+
+Exit condition: WRAM motion has been converted into bounded, useful structure hypotheses; the 486-byte USA/beta corpus has either validated useful normalized cross-analyzer classification or been closed as low-yield; and any expanded atlas work remains machine-queryable and tied to concrete project decisions.
 
 ### 5. Convert emulator-specific compatibility history into local tests
 

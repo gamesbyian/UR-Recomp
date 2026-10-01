@@ -1605,3 +1605,17 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 **Discriminating test:** none required for structural equivalence or the two redundant-instruction removals. Runtime validation of widened viewport policy belongs to the later widescreen implementation phase, not this comparative pass.  
 **Dependencies:** Nitrodon disassembly provides canonical USA instruction boundaries; trusted-entry snes2asm supplies per-build code roles; adjacent homolog alignment is continuity-constrained to avoid matching repeated P1/P2 sibling blocks.  
 **Propagation:** added the full viewport island to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to 37 regions / 4,408 bounded USA bytes. The result strengthens `Race_BuildRacerOAMState` as the presentation seam between authoritative world/camera state and downstream sprite/OAM state.
+
+
+### R-SEED-065 — Per-racer sampler links materialized course planes to collision response
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | course | collision | physics
+
+**Observation:** USA `81:8B95..8D13` is a 383-byte common per-racer routine invoked from both player simulation paths at `81:8DD9` and `81:8F2D`. Both calls follow the recovered collision/contact-shape constructor at `81:9E2A` and precede the later collision path at `81:8FB8`. Inside the routine, course coordinates/orientation are transformed and the materialized runtime planes at `7E:C000` and `7E:A000/A001` are sampled.  
+**Evidence:** ROM-backed project-tooling run `36856034874`; `analysis/generated/course-surface-sampler-structure-island.{json,md}`; `tools/analyze_course_surface_sampler_structure_island.py`. Trusted-entry snes2asm classifies all 383 bytes as executable instruction/operand bytes in every build: 167 opcode bytes + 216 operand bytes + 0 unreached/data bytes.  
+**Interpretation:** this routine is the first bounded common consumer joining the course loader's A000/C000 runtime materialization to per-racer surface/collision response. The old Nitrodon linear listing around USA `8C03..8C1F` looked like stray `BRK`/`RTI` opcodes because accumulator-width context was lost; trusted-entry analysis proves that region is ordinary executable code under the actual routine state. PAL prototype and Europe both preserve the complete function at shift -32, while legacy beta is byte-identical to USA.  
+**Discriminating test:** exact meanings of individual A000/C000 values should be resolved only when a physics discrepancy or course/editor implementation decision requires them. The function boundary and code/data classification need no further adjudication.  
+**Dependencies:** existing course-materialization proof for the runtime planes; trusted-entry snes2asm role recovery.  
+**Propagation:** added `Course_SampleRuntimeSurface` to `analysis/generated/comparative-structural-census.{json,md}`, bringing the census to 38 regions / 4,791 bounded USA bytes. Future course-format work can now follow producer→materialized plane→sampler rather than treating A000 and C000 as isolated observations.

@@ -13,10 +13,11 @@ ROMS={
 OUTJ=ROOT/"analysis/generated/collision-response-structure-island.json"
 OUTM=ROOT/"analysis/generated/collision-response-structure-island.md"
 REGIONS=[
- ("candidate_reduction_and_surface_classification","81:8FB8","81:91F0"),
- ("landing_air_and_velocity_gates","81:91F1","81:9325"),
- ("contact_response_and_position_correction","81:9326","81:983A"),
- ("contact_direction_quantizer","81:983B","81:99D5"),
+ ("candidate_reduction_and_surface_classification","81:8FB8","81:91F0",-32,-32),
+ ("landing_air_and_velocity_gates","81:91F1","81:9303",-32,-32),
+ ("contact_response_after_europe_nops","81:9304","81:97FF",-32,-26),
+ ("final_position_correction_and_return","81:9800","81:983A",-32,-15),
+ ("contact_direction_quantizer","81:983B","81:99D5",-32,-15),
 ]
 
 def roles(d,s,e):
@@ -64,17 +65,22 @@ def build():
  shifts={}
  for build,blob in blobs.items():
   shifts[build]={}
-  for name,s,e in REGIONS:
+  for name,s,e,proto_shift,europe_shift in REGIONS:
    us,ue=cpu_to_offset(s),cpu_to_offset(e)
-   shifts[build][name]=best_shift(usa,blob,us,ue,centers[build])[0]
+   if build=="pal-prototype-1994-11-29":
+    shifts[build][name]=proto_shift
+   elif build=="europe-retail":
+    shifts[build][name]=europe_shift
+   else:
+    shifts[build][name]=0
  ds={}
  for build,blob in blobs.items():
   d=trace(blob)
-  seeds=[cpu_to_offset(s)+shifts[build][name] for name,s,e in REGIONS]
-  for cpu in ["81:9355","81:93CA","81:9401","81:9467","81:9646","81:96AD","81:9969"]:
+  seeds=[cpu_to_offset(s)+shifts[build][name] for name,s,e,proto_shift,europe_shift in REGIONS]
+  for cpu in ["81:9355","81:93CA","81:9401","81:9467","81:9646","81:96AD","81:996B","81:9972"]:
    off=cpu_to_offset(cpu)
    if build=="europe-retail":
-    local_shift=-26 if off<cpu_to_offset("81:9806") else -15
+    local_shift=-26 if off<cpu_to_offset("81:9800") else -15
    elif build=="pal-prototype-1994-11-29":
     local_shift=-32
    else:
@@ -82,7 +88,7 @@ def build():
    seeds.append(off+local_shift)
   seed_entries(d,seeds); ds[build]=d
  rows=[]
- for name,s,e in REGIONS:
+ for name,s,e,proto_shift,europe_shift in REGIONS:
   us,ue=cpu_to_offset(s),cpu_to_offset(e)
   row={"name":name,"kind":"code","usa_start":s,"usa_end":e,"size":ue-us+1,"builds":{}}
   for build,blob in blobs.items():
@@ -104,23 +110,26 @@ def build():
     info["aligned_equal_opcode_pairs"]=equal
     info["aligned_opcode_consensus_fraction"]=round(equal/pairs,6) if pairs else None
     info["aligned_role_disagreements"]=role_disagreements
-   if build in {"pal-prototype-1994-11-29","europe-retail"}:
-    info["local_shift_profile_64byte"]=local_profile(usa,blob,us,ue,sh)
-    info["local_shift_profile_16byte"]=fine_profile(usa,blob,us,ue,sh,16)
    row["builds"][build]=info
   rows.append(row)
- windows=[]
- for label,cpu,eu_shift in [
-  ("europe_insert_1","81:92E8",-32),
-  ("europe_insert_2","81:97F0",-26),
- ]:
-  us=cpu_to_offset(cpu); size=80
-  row={"name":label,"usa_start":cpu,"size":size,"usa_hex":usa[us:us+size].hex(" "),"builds":{}}
-  for build,shift in [("pal-prototype-1994-11-29",-32),("europe-retail",eu_shift)]:
-   blob=blobs[build]; bs=us+shift
-   row["builds"][build]={"start":offset_to_cpu(bs),"shift":shift,"hex":blob[bs:bs+size].hex(" ")}
-  windows.append(row)
- return {"schema_version":1,"island":"PerRacerCollisionContactResponse","usa_start":"81:8FB8","usa_end":"81:99D5","next_code_entry":"81:99D6","transition_windows":windows,"usa_unreached_runs":ranges_for(lambda x:not (ds["usa-retail"].code_map[x]&(ds["usa-retail"].OP_CODE|ds["usa-retail"].OP_PARAM)),cpu_to_offset("81:8FB8"),cpu_to_offset("81:99D5")),"regions":rows}
+ eu=blobs["europe-retail"]
+ insertions=[
+  {
+   "name":"europe_landing_nop_insert",
+   "usa_boundary_before":"81:9304","europe_start":"81:92E4","size":6,
+   "hex":eu[cpu_to_offset("81:92E4"):cpu_to_offset("81:92E9")+1].hex(" "),
+   "instructions":"NOP; NOP; NOP; NOP; NOP; NOP",
+   "effect":"Europe retail alone inserts six NOPs after the landing-state CMP/BNE gate; subsequent homolog shift changes -32 to -26.",
+  },
+  {
+   "name":"europe_position_guard_insert",
+   "usa_boundary_before":"81:9800","europe_start":"81:97E6","size":11,
+   "hex":eu[cpu_to_offset("81:97E6"):cpu_to_offset("81:97F0")+1].hex(" "),
+   "instructions":"LDA $0DE7; AND #$00FE; CMP #$0008; BEQ +8",
+   "effect":"Europe retail alone adds an 11-byte guard before the final position-correction tail; subsequent homolog shift changes -26 to -15.",
+  },
+ ]
+ return {"schema_version":1,"island":"PerRacerCollisionContactResponse","usa_start":"81:8FB8","usa_end":"81:99D5","next_code_entry":"81:99D6","europe_only_insertions":insertions,"usa_unreached_runs":ranges_for(lambda x:not (ds["usa-retail"].code_map[x]&(ds["usa-retail"].OP_CODE|ds["usa-retail"].OP_PARAM)),cpu_to_offset("81:8FB8"),cpu_to_offset("81:99D5")),"regions":rows}
 
 def render(r):
  lines=["# Per-racer collision / contact-response structural island","",

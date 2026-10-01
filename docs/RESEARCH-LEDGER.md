@@ -241,6 +241,19 @@ Do not propagate weak names as facts. Hypotheses remain hypotheses, cross-ROM la
 **Dependencies:** matched racer-update routine boundaries and already-established current-player workspace semantics.  
 **Propagation:** promote PAL/Europe P1 and P2 position/speed/boost mappings to strong in the cross-build correspondence surface and use them directly for regional 1P/2P watch/probe configuration.
 
+
+### R-METHOD-006 — PAL apparent boundary churn collapses under homolog alignment
+
+**Status:** supported by independent second witness  
+**Date:** 2026-09-30  
+**Area:** multi-ROM | decompilation | analyzer calibration
+
+**Observation:** the first same-address snes2asm pass over Europe retail vs the 1994-11-29 PAL prototype reported 2,812 instruction-boundary disagreements and 1,528 reachability disagreements among 5,979 code-related changed bytes. Bounded da65 probes were then aligned independently from trusted USA recovered-code anchors by local raw-byte similarity and supplied M/X state from architectural reset semantics or local REP/SEP transitions, not from snes2asm. Three representative homologs all preserve da65 instruction count, mnemonic sequence and instruction-size sequence despite relocation: reset/init (Europe +0, prototype -9), 16-bit PPU/init block (Europe +15, prototype -9), and joypad helper (Europe +17, prototype -2).  
+**Evidence:** `analysis/generated/pal-retail-vs-prototype-snes2asm.{json,md}`; `analysis/generated/pal-da65-adjudication.{json,md}`; `tools/run_pal_da65_adjudication.py`.  
+**Interpretation:** a material fraction of same-address snes2asm boundary/reachability churn is relocation/alignment noise rather than true instruction-boundary change. Comparative analysis must align homologous regions before counting analyzer disagreement.  
+**Next discriminator:** rebuild the PAL/prototype snes2asm disagreement corpus on locally aligned homolog windows, then send only disagreements that survive alignment to Ghidra/xref analysis.  
+**Propagation:** treat same-file-offset code diffs as raw evidence only; analyzer disagreement becomes meaningful after homolog alignment.
+
 ## Seed leads to verify locally
 
 ### R-SEED-001 — Rob Northen Compression

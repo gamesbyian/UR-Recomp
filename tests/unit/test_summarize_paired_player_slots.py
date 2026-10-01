@@ -28,6 +28,9 @@ class PairedPlayerSlotsTest(unittest.TestCase):
                 0x1509: 14, 0x150A: 15,
                 0x150D: 16, 0x150E: 17,
                 0x1599: 0x30,
+                0x0DDB: 1,
+                0x121B: 1,
+                0x121D: 0,
             }
             for addr, value in values.items():
                 data[addr] = value
@@ -35,6 +38,11 @@ class PairedPlayerSlotsTest(unittest.TestCase):
 
             s = state(p)
             self.assertEqual(s["slot1"]["x_pos"], 0x1234)
+            self.assertEqual(s["camera_and_viewport"]["mode"], {
+                "split_screen_active_raw": 1,
+                "player1_offscreen_raw": 1,
+                "player2_offscreen_raw": 0,
+            })
             self.assertEqual(s["camera_and_viewport"]["camera"], {
                 "player1_x": 0x5678,
                 "player2_x": 0x9ABC,

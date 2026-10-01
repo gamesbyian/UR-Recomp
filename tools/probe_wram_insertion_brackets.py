@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+"""Probe the two post-prototype WRAM insertion brackets using trusted code operands.
+
+This is intentionally narrow. It scans only instructions reached after trusted
+entry seeding and reports absolute 16-bit operands inside the two bracket ranges.
+"""
+from __future__ import annotations
+from collections import Counter, defaultdict
+from pathlib import Path
+import json
+
+from compare_europe_usa_snes2asm_homologs import ROOT, trace, seed_entries, cpu_to_offset
+
+ROMS = {
+    "usa-retail": ROOT / "reference/roms/retail/Uniracers_USA.sfc",
+    "pal-prototype-1994-11-29": ROOT / "reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc",
+    "europe-retail": ROOT / "reference/roms/retail/Unirally_Europe.sfc",
+}
+
+OUT_JSON = ROOT / "analysis/generated/wram-insertion-bracket-probe.json"
+OUT_MD = ROOT / "analysis/generated/wram-insertion-bracket-probe.md"
+
+# Trusted entries already used by the comparative corpus plus camera/input/stunt paths.
+SEEDS = {
+    "usa-retail": [
+        "82:AA6E", "82:9A42", "82:89B9", "81:A50E", "81:A52F",
+    ],
+    "pal-prototype-1994-11-29": [
+        "82:AA5F", "82:9A3D", "82:89B6", "81:A50E", "81:A52F",
+    ],
+    "europe-retail": [
+        "82:AA75", "82:9A53", "82:89CC", "81:A50E", "81:A52F",
+    ],
+}
+
+BRACKETS = {
+    "first_plus4": (0x026A, 0x030D),
+    "second_plus2": (0x04FB, 0x0541),
+}
+
+
+def scan_operands(blob: bytes, disassembler, lo: int, hi: int) -> list[dict]:
+    out = []
+    # snes2asm marks opcode bytes and operand bytes. For 3-byte absolute ops,
+    # take the two operand bytes following a reached opcode and interpret LE16.
+    for off in range(0, len(blob) - 2):
+        role = disassembler.code_map[off]
+        if not (role & disassembler.OP_CODE):
+            continue
+        if not (disassembler.code_map[off + 1] & disassembler.OP_PARAM):
+            continue
+        if not (disassembler.code_map[off + 2] & disassembler.OP_PARAM):
+            continue
+        value = blob[off + 1] | (blob[off + 2] << 8)
+        if lo <= value <= hi:
+            out.append({
+                "file_offset": off,
+                "opcode": f"{blob[off]:02X}",
+                "operand": f"{value:04X}",
+                "operand_bytes": blob[off + 1:off + 3].hex(" "),
+            })
+    return out
+
+
+def build() -> dict:
+    builds = {}
+    for name, path in ROMS.items():
+        blob = path.read_bytes()
+        d = trace(blob)
+        seed_entries(d, [cpu_to_offset(x) for x in SEEDS[name]])
+        per = {}
+        for bracket, (lo, hi) in BRACKETS.items():
+            hits = scan_operands(blob, d, lo, hi)
+            counts = Counter(h["operand"] for h in hits)
+            per[bracket] = {
+                "range": [f"{lo:04X}", f"{hi:04X}"],
+                "reference_count": len(hits),
+                "operand_counts": dict(sorted(counts.items())),
+                "hits": hits,
+            }
+        builds[name] = per
+
+    return {
+        "schema_version": 1,
+        "method": {
+            "reachability": "trusted-entry-seeded vendored snes2asm",
+            "scope": "absolute-looking 16-bit operands inside the two inferred WRAM insertion brackets",
+            "caveat": "operand presence is structural evidence, not semantic identity by itself",
+        },
+        "builds": builds,
+    }
+
+
+def render(report: dict) -> str:
+    lines = [
+        "# WRAM insertion-bracket operand probe",
+        "",
+        "Narrow trusted-code scan for absolute 16-bit operands inside the two post-prototype WRAM insertion brackets.",
+        "",
+    ]
+    for bracket, bounds in BRACKETS.items():
+        lines += [f"## {bracket} {bounds[0]:04X}..{bounds[1]:04X}", ""]
+        for build, data in report["builds"].items():
+            x = data[bracket]
+            ops = ", ".join(f"`{k}`×{v}" for k, v in x["operand_counts"].items()) or "none"
+            lines.append(f"- **{build}:** {x['reference_count']} references; {ops}")
+        lines.append("")
+    return "\n".join(lines)
+
+
+def main() -> int:
+    report = build()
+    OUT_JSON.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    OUT_MD.write_text(render(report), encoding="utf-8")
+    print(OUT_MD.read_text(encoding="utf-8"))
+    print("BRACKET_JSON=" + json.dumps(report, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -38,7 +38,9 @@ Human-maintained map of understood ROM functions, RAM, tables and hardware-facin
 |---|---|---:|---:|---|
 | TBD | player position | TBD | 0 | |
 | TBD | player velocity | TBD | 0 | |
-| TBD | rotation | TBD | 0 | |
+| `7E:0BAD` / `7E:0BAF` | `Player1/2_AngularVelocity` | 16-bit each | 5 | Persistent paired angular-velocity slots. `81:8D9C-8D9F` copies P1 `0BAD` into shared `0F4B` and `81:8E11-8E14` writes it back; the P2 bridge mirrors the same relation with `0BAF` at `81:8EF6-8EF9` / `81:8F65-8F68`. |
+| `7E:0F49` | `CurrentPlayer_PitchAngleWorking` | 16-bit | 5 | Shared current-player pitch/orientation workspace. The player-state marshal loads it from persistent P1 `04C7` or P2 `04C9`; stunt finalization reads it to track quadrant transitions. |
+| `7E:0F4B` | `CurrentPlayer_AngularVelocityWorking` | 16-bit | 5 | Shared current-player angular-velocity workspace. The bank-81 player-state bridge round-trips persistent `0BAD/0BAF` through this slot for the common simulation pass. Distinct from `0F4D`, which is a separate per-frame rotation delta used by stunt logic. |
 | TBD | camera | TBD | 0 | |
 | `7E:0E0F` | `RaceTimer_MinutesDigit` | 16-bit | 5 | Shared race/stunt timer minutes digit. Count-up path `81:C74A-C74E` increments it; stunt countdown `81:C83A-C83E` decrements it. Finish handling snapshots it for the active player at `81:80BE-C1`. |
 | `7E:0E13` | `RaceTimer_TensSecondsDigit` | 16-bit | 5 | Timer tens-of-seconds digit, range 0-5 in normal operation. Count-up carries here at `81:C738-C747`; countdown borrows through it at `81:C82B-C837`. |

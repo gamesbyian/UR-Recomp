@@ -1563,3 +1563,17 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 **Evidence:** `tools/analyze_object_collision_structure_island.py`; `analysis/generated/object-collision-structure-island.{json,md}`; object-collision structure runs ending at `36823094425`.
 
+
+
+### R-SEED-062 — Comparative structural census seeded from recovered islands
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | other
+
+**Observation:** the two comparative structure-recovery islands can now be queried through one normalized census rather than separate prose/artifact surfaces. The seed contains 20 bounded USA regions across banks 81 and 82: 17 code regions and 3 explicit data regions, totaling 2,611 bytes.  
+**Evidence:** `analysis/generated/comparative-structural-census.{json,md}`, built deterministically by `tools/build_comparative_structural_census.py` from the racer-update and object/collision structural-island JSON artifacts. The current seed contains 2,403 code-region bytes, 208 explicit data bytes, and 1,001 analyzer-classified USA opcode bytes.  
+**Interpretation:** comparative structure recovery now has a machine-queryable growth surface. Coverage counts are intentionally a floor, not a whole-ROM percentage, because only independently recovered boundaries are admitted.  
+**Discriminating test:** extend the census with a third independent executed subsystem island and confirm that its regions can be added without weakening existing boundary provenance or turning raw linear-disassembly reachability into asserted structure.  
+**Dependencies:** source island boundaries retain their existing evidence/provenance; this census does not independently prove them.  
+**Propagation:** work queue item 9 now treats the seed census as completed infrastructure and directs the next pass toward a third high-connectivity subsystem rather than deepening the already-bounded racer or object/collision islands merely for byte count.

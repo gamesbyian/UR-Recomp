@@ -198,6 +198,10 @@ This leaves two tightly bounded possibilities for the dense 1128-1140 probe:
 
 The probe should be interpreted in that order.
 
+A stronger upstream candidate is now identified in the same main loop. At `83:CC74..CC7C`, nonzero `$1281` is cleared and execution jumps directly to `83:CD86`, skipping input sampling and all three scheduler-counter updates for exactly one pass. The recovered writers at `83:D50D..D510` and `83:D552..D557` can raise this latch from a small transition/countdown subsystem. A one-runtime-only assertion of `$1281` around race entry would create exactly the persistent one-frame scheduler-phase offset observed afterward.
+
+The dense phase-origin probe therefore also captures `$1281`, `$127B/$127D/$127F`, and `$12AB-$12AC`. If the first `$0302/$0304` divergence coincides with a one-sided scheduler-skip latch, follow that producer chain before investigating any host-frame-boundary theory.
+
 ## VS active-movement parity refinement
 
 Current-main replay reconfirms exact native/Snes9x paired-racer semantics at stable pre-intervention checkpoints 1240, 1340 and 1440. After the P1-only, P2-only and simultaneous movement sequence, P1 still matches while P2 ends with a very small difference: native `x=1137, vx=-263`; Snes9x `x=1141, vx=-266`.

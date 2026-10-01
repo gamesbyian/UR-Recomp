@@ -81,6 +81,14 @@
       "summary": "Comparative structure recovery now covers 2,115 contiguous USA bytes: eleven bounded routines, a byte-identical 128-byte/64-word lookup table, the five-byte PAL-line NOP contraction, two preserved dead-code candidates, and a structural bridge into the named vertical-acceleration and input-decoder anchors.",
       "priority": "low",
       "next_evidence": "Move to another high-connectivity executed subsystem island. Revisit this corridor only when runtime or semantic evidence needs one of its anonymous routines or dead-code candidates."
+    },
+    {
+      "id": "resolved-object-collision-82e2-84d1-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:82E2..84D1 and homologs",
+      "summary": "Recovered long-entry wrapper, dispatcher code split around a 15-word pointer prefix, a bounded handler, an exact 25-word lookup table, corrected next-handler entry, and an Europe-retail-only five-byte executable prologue absent from the PAL prototype.",
+      "priority": "low",
+      "next_evidence": "Only expand the indirect dispatch domain when a concrete object-handler or AOT question requires proving X values beyond the explicit 15-pointer prefix."
     }
   ]
 }

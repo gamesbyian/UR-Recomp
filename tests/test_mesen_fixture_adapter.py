@@ -94,6 +94,22 @@ def main() -> int:
         assert fake.calls[2] == ("input.set", {"port": 0, "subport": 0, "buttons": {}})
         assert (Path(td) / "dumps" / "checkpoint.wram.bin").stat().st_size == 0x20000
 
+        fake = FakeMesen()
+        runner = mod.FixtureRunner(fake, Path(td) / "chord-dumps")
+        runner.execute([
+            {"op": "press", "button": "right+b", "frames": 2, "line": 1},
+            {"op": "quit", "line": 2},
+        ])
+        assert fake.calls[0] == (
+            "input.set",
+            {
+                "port": 0,
+                "subport": 0,
+                "buttons": {"right": True, "b": True},
+            },
+        )
+        assert fake.calls[2] == ("input.set", {"port": 0, "subport": 0, "buttons": {}})
+
         # Neutral input-file mode must apply both controller masks before each
         # guest frame while preserving named dump timing.
         fake = FakeMesen()

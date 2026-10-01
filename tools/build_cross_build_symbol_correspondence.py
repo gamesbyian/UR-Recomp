@@ -33,6 +33,19 @@ BUILD_LABELS = {
     "europe-retail": "Europe retail",
 }
 
+FUNCTION_EDGE_OVERRIDES = {
+    ("europe-retail", "HUD_QueueMessage"): {
+        "candidate": "81:C59C",
+        "evidence_tier": "strong",
+        "independent_evidence": "two coherent direct JSR references, including checkpoint/finish caller 81:81BA",
+    },
+    ("europe-retail", "Race_HandleCheckpointFinish"): {
+        "candidate": "81:8050",
+        "evidence_tier": "strong",
+        "independent_evidence": "relocated object-dispatch table maps object code 0x14 directly to 81:8050",
+    },
+}
+
 
 def parse_usa_ram_address(value: str) -> str | None:
     m = re.fullmatch(r"7E:([0-9A-Fa-f]{4})", value.strip("` "))
@@ -96,16 +109,22 @@ def build_function_correspondences(corpus: dict) -> list[dict]:
                 tier = "supported"
             else:
                 tier = "candidate"
+            override = FUNCTION_EDGE_OVERRIDES.get((build, anchor["name"]))
             rows.append({
                 "name": anchor["name"],
                 "usa": anchor["usa_cpu_address"],
                 "build": build,
-                "candidate": top["cpu_address"],
+                "candidate": override["candidate"] if override else top["cpu_address"],
+                "matcher_candidate": top["cpu_address"],
                 "byte_similarity": sim,
                 "matcher_score": score,
                 "semantic_reference_recall": recall,
-                "same_address": top["same_offset_as_usa"],
-                "evidence_tier": tier,
+                "same_address": (
+                    override["candidate"] == anchor["usa_cpu_address"]
+                    if override else top["same_offset_as_usa"]
+                ),
+                "evidence_tier": override["evidence_tier"] if override else tier,
+                "independent_evidence": None if not override else override["independent_evidence"],
             })
     rows.sort(key=lambda x: (x["build"], x["name"]))
     return rows
@@ -143,8 +162,8 @@ def render_md(report: dict) -> str:
         "",
         "## Trusted function anchors",
         "",
-        "| Symbol | USA | Build | Candidate | Similarity | Score | Semantic recall | Tier |",
-        "|---|---|---|---|---:|---:|---:|---|",
+        "| Symbol | USA | Build | Candidate | Similarity | Score | Semantic recall | Tier | Independent edge |",
+        "|---|---|---|---|---:|---:|---:|---|---|",
     ]
     for row in report["functions"]:
         if row["build"] == "legacy-beta":
@@ -152,7 +171,8 @@ def render_md(report: dict) -> str:
         lines.append(
             f"| {row['name']} | `{row['usa']}` | {BUILD_LABELS[row['build']]} | "
             f"`{row['candidate']}` | {row['byte_similarity']:.3f} | {row['matcher_score']:.3f} | "
-            f"{row['semantic_reference_recall']:.3f} | {row['evidence_tier']} |"
+            f"{row['semantic_reference_recall']:.3f} | {row['evidence_tier']} | "
+            f"{row['independent_evidence'] or ''} |"
         )
 
     lines += [

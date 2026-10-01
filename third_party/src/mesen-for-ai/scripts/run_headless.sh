@@ -92,4 +92,9 @@ export HOME="$SESSION_HOME"
 export DOTNET_ROLL_FORWARD="${DOTNET_ROLL_FORWARD:-Major}"
 
 cd "$SESSION_WORK"
-exec xvfb-run -a "$MESEN_BIN" --testrunner --enableStdout "$ROM" "$LUA_SCRIPT" --timeout="${MESEN_TESTRUNNER_TIMEOUT:-30}" >"$SESSION_ROOT/mesen.stdout.log" 2>"$SESSION_ROOT/mesen.stderr.log"
+exec xvfb-run -a "$MESEN_BIN" --testrunner --enableStdout \
+  --debug.scriptWindow.allowIoOsAccess=true \
+  --debug.scriptWindow.allowNetworkAccess=true \
+  --debug.scriptWindow.scriptTimeout=60 \
+  "$ROM" "$LUA_SCRIPT" --timeout="${MESEN_TESTRUNNER_TIMEOUT:-30}" \
+  >"$SESSION_ROOT/mesen.stdout.log" 2>"$SESSION_ROOT/mesen.stderr.log"

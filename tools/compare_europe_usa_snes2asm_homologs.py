@@ -108,6 +108,42 @@ def seed_entries(disassembler, offsets: list[int]) -> None:
     disassembler.find_valid_code_paths()
 
 
+
+def compare_aligned_bytes(ud, ed, usa: bytes, europe: bytes, start: int, end: int, shift: int) -> dict:
+    opcode_changes = []
+    operand_byte_changes = 0
+    equal_opcode_pairs = 0
+    for off in range(start, end + 1):
+        eo = off + shift
+        ur = ud.code_map[off]
+        er = ed.code_map[eo]
+        u_opcode = bool(ur & ud.OP_CODE)
+        e_opcode = bool(er & ed.OP_CODE)
+        u_operand = bool(ur & ud.OP_PARAM)
+        e_operand = bool(er & ed.OP_PARAM)
+        if u_opcode and e_opcode:
+            if usa[off] == europe[eo]:
+                equal_opcode_pairs += 1
+            else:
+                opcode_changes.append({
+                    "relative_offset": off - start,
+                    "usa_offset": off,
+                    "europe_offset": eo,
+                    "usa_opcode": f"0x{usa[off]:02X}",
+                    "europe_opcode": f"0x{europe[eo]:02X}",
+                })
+        elif u_operand and e_operand and usa[off] != europe[eo]:
+            operand_byte_changes += 1
+    total = equal_opcode_pairs + len(opcode_changes)
+    return {
+        "aligned_equal_opcode_pairs": equal_opcode_pairs,
+        "aligned_opcode_byte_disagreements": len(opcode_changes),
+        "aligned_opcode_byte_consensus_fraction": 0 if total == 0 else round(equal_opcode_pairs / total, 6),
+        "aligned_operand_byte_changes": operand_byte_changes,
+        "aligned_opcode_changes": opcode_changes,
+    }
+
+
 def build() -> dict:
     usa = USA.read_bytes()
     europe = EUROPE.read_bytes()
@@ -142,6 +178,7 @@ def build() -> dict:
         # Constrain the search around the already-established structural candidate.
         shift, sim = best_shift(usa, europe, start, end, radius=64)
         metrics = compare_roles(ud, ed, usa, europe, start, end, shift)
+        byte_metrics = compare_aligned_bytes(ud, ed, usa, europe, start, end, shift)
         if metrics["aligned_opcode_pairs"] == 0:
             raise RuntimeError(
                 f"{region['name']}: seeded snes2asm still found zero aligned opcode pairs"
@@ -155,6 +192,7 @@ def build() -> dict:
             "europe_end": offset_to_cpu(end + shift),
             "raw_similarity_after_alignment": round(sim, 6),
             **metrics,
+            **byte_metrics,
         })
 
     totals = {
@@ -163,6 +201,8 @@ def build() -> dict:
         "aligned_mx_disagreements": sum(x["aligned_mx_disagreements"] for x in rows),
         "zero_role_disagreement_regions": sum(x["aligned_role_disagreements"] == 0 for x in rows),
         "aligned_opcode_pairs": sum(x["aligned_opcode_pairs"] for x in rows),
+        "aligned_opcode_byte_disagreements": sum(x["aligned_opcode_byte_disagreements"] for x in rows),
+        "aligned_operand_byte_changes": sum(x["aligned_operand_byte_changes"] for x in rows),
     }
     return {
         "schema_version": 1,
@@ -187,20 +227,35 @@ def render(report: dict) -> str:
         "",
         f"Executable subregions compared: **{t['regions']}**.",
         f"Aligned opcode pairs: **{t['aligned_opcode_pairs']}**.",
+        f"Aligned opcode-byte disagreements: **{t['aligned_opcode_byte_disagreements']}**.",
+        f"Aligned operand-byte changes: **{t['aligned_operand_byte_changes']}**.",
         f"Aligned role disagreements: **{t['aligned_role_disagreements']}**.",
         f"Aligned M/X disagreements: **{t['aligned_mx_disagreements']}**.",
         f"Zero-role-disagreement subregions: **{t['zero_role_disagreement_regions']} / {t['regions']}**.",
         "",
-        "| Region | USA | Europe | Shift | Raw sim | Role disagree | M/X disagree |",
-        "|---|---|---|---:|---:|---:|---:|",
+        "| Region | USA | Europe | Shift | Raw sim | Opcode Δ | Operand-byte Δ | Role disagree | M/X disagree |",
+        "|---|---|---|---:|---:|---:|---:|---:|---:|",
     ]
     for r in report["regions"]:
         lines.append(
             f"| {r['name']} | `{r['usa_start']}..{r['usa_end']}` | "
             f"`{r['europe_start']}..{r['europe_end']}` | {r['europe_shift']:+d} | "
-            f"{r['raw_similarity_after_alignment']:.3f} | {r['aligned_role_disagreements']} | "
+            f"{r['raw_similarity_after_alignment']:.3f} | {r['aligned_opcode_byte_disagreements']} | "
+            f"{r['aligned_operand_byte_changes']} | {r['aligned_role_disagreements']} | "
             f"{r['aligned_mx_disagreements']} |"
         )
+    opcode_survivors = [r for r in report["regions"] if r["aligned_opcode_byte_disagreements"]]
+    lines += ["", "## Genuine aligned opcode substitutions", ""]
+    if not opcode_survivors:
+        lines.append("None.")
+    for r in opcode_survivors:
+        lines += [f"### {r['name']}", ""]
+        for x in r["aligned_opcode_changes"]:
+            lines.append(
+                f"- +0x{x['relative_offset']:X}: USA {x['usa_opcode']} vs Europe {x['europe_opcode']}"
+            )
+        lines.append("")
+
     survivors = [r for r in report["regions"] if r["aligned_role_disagreements"] or r["aligned_mx_disagreements"]]
     lines += ["", "## Surviving analyzer disagreements", ""]
     if not survivors:
@@ -215,7 +270,7 @@ def render(report: dict) -> str:
         lines.append("")
     lines += [
         "",
-        "Raw byte differences that preserve opcode/operand role are retained as regional executable/operand variation, not analyzer disagreement.",
+        "Aligned opcode-byte substitutions are genuine executable deltas even when instruction boundaries and M/X state remain stable. Operand-byte changes are retained separately as likely addresses/constants/layout motion until semantics say otherwise.",
         "",
     ]
     return "\n".join(lines)

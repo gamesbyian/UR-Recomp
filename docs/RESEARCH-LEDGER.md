@@ -1512,3 +1512,21 @@ Within the following routine, snes2asm leaves a 13-byte instruction-shaped pocke
 
 **Evidence:** `tools/analyze_racer_update_structure_island.py`; `analysis/generated/racer-update-structure-island.{json,md}`; run `36821725861`.
 
+### R-SEED-063 — Racer-update structural corridor extended 2.1 KiB into gravity/input anchors
+
+**Status:** confirmed structural recovery  
+**Date:** 2026-09-30  
+**Area:** CPU | racer update | call graph | code/data boundaries
+
+The first comparative structural island has been extended contiguously from USA `82:A22B` through `82:AA6D`, covering **2,115 bytes** of the per-frame simulation neighborhood.
+
+The corridor now contains eleven bounded routines, one exact 128-byte/64-word inline table, and the long-entry wrapper immediately preceding the known input decoder. It directly bridges anonymous racer-update internals into the already-promoted `Player_ApplyVerticalAcceleration` routine and `Input_DecodePlayer1Buttons`.
+
+All added routine boundaries relocate coherently across the PAL prototype and Europe retail after accounting for the five-byte PAL-line contraction already identified inside the `A27C` routine. Legacy beta remains byte-identical to USA throughout this corridor.
+
+A second preserved unreachable instruction block is visible inside the `A6F1..A8C1` routine: USA/beta `A794..A7A5` (18 bytes), prototype `A785..A796`, Europe `A79B..A7AC`. Preserve it as a dead-code candidate pending runtime/indirect evidence.
+
+**Interpretation:** the comparative lane is now recovering useful call-graph structure at kilobyte scale. The next priority is to repeat this process on other high-connectivity executed islands rather than further dissecting already-bounded regional WRAM gaps.
+
+**Evidence:** `tools/analyze_racer_update_structure_island.py`; `analysis/generated/racer-update-structure-island.{json,md}`; run `36822022169`.
+

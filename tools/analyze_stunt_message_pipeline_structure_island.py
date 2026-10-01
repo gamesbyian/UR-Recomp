@@ -68,6 +68,7 @@ def build():
      seeds.append(off+region_shifts[build][name]); break
   seed_entries(d,seeds); ds[build]=d
  rows=[]
+ data_differences={}
  for name,kind,s,e in REGIONS:
   us,ue=cpu_to_offset(s),cpu_to_offset(e)
   row={"name":name,"kind":kind,"usa_start":s,"usa_end":e,"size":ue-us+1,"builds":{}}
@@ -82,6 +83,14 @@ def build():
     info["local_shift_profile_32byte"]=local_profile(usa,blob,us,ue,sh)
    row["builds"][build]=info
   rows.append(row)
+  if name=="embedded_message_reward_data":
+   for build in ("pal-prototype-1994-11-29","europe-retail","legacy-beta"):
+    q=row["builds"][build]; sh=q["shift"]; blob=blobs[build]
+    diffs=[]
+    for off in range(us,ue+1):
+     if usa[off]!=blob[off+sh]:
+      diffs.append({"usa":offset_to_cpu(off),"other":offset_to_cpu(off+sh),"usa_byte":f"{usa[off]:02x}","other_byte":f"{blob[off+sh]:02x}"})
+    data_differences[build]=diffs
  windows=[]
  for label,cpu,proto_shift,europe_shift in [
   ("shared_three_byte_transition","81:C238",-32,-15),
@@ -93,7 +102,7 @@ def build():
    blob=blobs[build]; bs=us+shift
    row["builds"][build]={"start":offset_to_cpu(bs),"shift":shift,"hex":blob[bs:bs+size].hex(" ")}
   windows.append(row)
- return {"schema_version":1,"island":"StuntMessageRewardDisplayPipeline","usa_start":"81:C0DD","usa_end":"81:C604","transition_windows":windows,"regions":rows}
+ return {"schema_version":1,"island":"StuntMessageRewardDisplayPipeline","usa_start":"81:C0DD","usa_end":"81:C604","transition_windows":windows,"embedded_data_differences":data_differences,"regions":rows}
 
 def render(r):
  lines=["# Stunt message / reward / display structural island","",

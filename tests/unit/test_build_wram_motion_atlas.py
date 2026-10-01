@@ -93,6 +93,46 @@ class WramMotionAtlasTests(unittest.TestCase):
             }],
         )
 
+    def test_groups_secondary_motion_between_prototype_and_europe(self):
+        rows = [
+            {
+                "build": "pal-prototype-1994-11-29",
+                "usa_word": "0F9F",
+                "candidate_words": ["0FA3"],
+                "deltas": [4],
+                "anchors": ["A", "B"],
+                "consistent": True,
+            },
+            {
+                "build": "europe-retail",
+                "usa_word": "0F9F",
+                "candidate_words": ["0FA9"],
+                "deltas": [10],
+                "anchors": ["A", "B"],
+                "consistent": True,
+            },
+            {
+                "build": "pal-prototype-1994-11-29",
+                "usa_word": "0411",
+                "candidate_words": ["0411"],
+                "deltas": [0],
+                "anchors": ["C"],
+                "consistent": True,
+            },
+            {
+                "build": "europe-retail",
+                "usa_word": "0411",
+                "candidate_words": ["0415"],
+                "deltas": [4],
+                "anchors": ["C"],
+                "consistent": True,
+            },
+        ]
+        out = MODULE.build_lineage_motion(rows)
+        by_delta = {x["prototype_to_europe_delta"]: x for x in out["clusters"]}
+        self.assertEqual(by_delta[6]["usa_words"], ["0F9F"])
+        self.assertEqual(by_delta[4]["usa_words"], ["0411"])
+
 
 if __name__ == "__main__":
     unittest.main()

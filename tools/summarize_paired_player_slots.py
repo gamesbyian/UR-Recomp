@@ -47,6 +47,14 @@ CAMERA_AND_VIEWPORT = {
         "player1_y_velocity": ("s16", 0x04F9),
         "player2_y_velocity": ("s16", 0x04FB),
     },
+    "world_window": {
+        "camera1_edge_raw": ("s16", 0x0505),
+        "camera2_edge_raw": ("s16", 0x0507),
+        "camera1_span_raw": ("u16", 0x052B),
+        "camera2_span_raw": ("u16", 0x052D),
+        "camera1_fine_raw": ("s16", 0x0509),
+        "camera2_fine_raw": ("s16", 0x050B),
+    },
     "screen_relative": {
         "screen2_player2_x": ("u8", 0x1501),
         "screen2_player2_y": ("u8", 0x1502),
@@ -119,6 +127,7 @@ def main() -> int:
         rp1, rp2 = s["race_progress"]["player1"], s["race_progress"]["player2"]
         mode = s["camera_and_viewport"]["mode"]
         cam = s["camera_and_viewport"]["camera"]
+        world = s["camera_and_viewport"]["world_window"]
         screen = s["camera_and_viewport"]["screen_relative"]
         print(
             f"{tag}: "
@@ -135,6 +144,8 @@ def main() -> int:
             f"p2=({cam['player2_x']},{cam['player2_y']}) "
             f"p1v=({cam['player1_x_velocity']},{cam['player1_y_velocity']}) "
             f"p2v=({cam['player2_x_velocity']},{cam['player2_y_velocity']}) | "
+            f"worldwin p1edge={world['camera1_edge_raw']} span={world['camera1_span_raw']} "
+            f"p2edge={world['camera2_edge_raw']} span={world['camera2_span_raw']} | "
             f"screen1 p1=({screen['screen1_player1_x']},{screen['screen1_player1_y']}) "
             f"p2=({screen['screen1_player2_x']},{screen['screen1_player2_y']}) "
             f"screen2 p1=({screen['screen2_player1_x']},{screen['screen2_player1_y']}) "

@@ -75,12 +75,12 @@
       "next_evidence": "Only pursue exact inserted-field semantics via indexed/indirect access reconstruction, runtime watchpoints, or newly recovered source/comments. Direct absolute-reference mining is currently exhausted."
     },
     {
-      "id": "resolved-racer-update-a22b-a497-structure",
+      "id": "resolved-racer-update-a22b-aa6d-structure",
       "kind": "resolved_structural_island",
-      "region": "USA 82:A22B..A497 and homologs",
-      "summary": "Direct calls, returns, exact cross-build identity and seeded snes2asm recover two routines, a 128-byte/64-word inline lookup table, the following routine, a five-byte USA/beta-only NOP run absent from the PAL lineage, and a 13-byte preserved dead-code candidate.",
+      "region": "USA 82:A22B..AA6D and homologs",
+      "summary": "Comparative structure recovery now covers 2,115 contiguous USA bytes: eleven bounded routines, a byte-identical 128-byte/64-word lookup table, the five-byte PAL-line NOP contraction, two preserved dead-code candidates, and a structural bridge into the named vertical-acceleration and input-decoder anchors.",
       "priority": "low",
-      "next_evidence": "Semantic naming is optional. Revisit only if a gameplay/runtime question needs these routines or if a later call-graph pass can cheaply identify the dead-code pocket."
+      "next_evidence": "Move to another high-connectivity executed subsystem island. Revisit this corridor only when runtime or semantic evidence needs one of its anonymous routines or dead-code candidates."
     }
   ]
 }

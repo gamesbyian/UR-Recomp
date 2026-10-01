@@ -43,6 +43,8 @@ def build(root: Path) -> dict:
                         "end": item["end"],
                         "shift": item["shift"],
                         "similarity": item["similarity"],
+                        "size": item.get("size", region["size"]),
+                        "size_delta": item.get("size_delta", 0),
                     }
                     for name, item in builds.items()
                 },
@@ -87,7 +89,7 @@ def render(census: dict) -> str:
         h = row["homologs"].get(build)
         if not h:
             return "—"
-        return f"{h['start']}..{h['end']} ({h['shift']:+d}; {h['similarity']:.3f})"
+        return f"{h['start']}..{h['end']} ({h['shift']:+d}; size {h['size']}; sim {h['similarity']:.3f})"
     for row in census["regions"]:
         lines.append(
             f"| `{row['usa_start']}..{row['usa_end']}` | {row['kind']} | {row['size']} | "

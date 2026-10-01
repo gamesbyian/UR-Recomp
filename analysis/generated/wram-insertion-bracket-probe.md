@@ -4,8 +4,8 @@ Narrow trusted-code scan for absolute 16-bit operands inside the two post-protot
 
 ## first_plus4 026A..030D
 
-- **usa-retail:** 139 references; `026A`×9, `026C`×1, `02A0`×2, `02B0`×3, `02B2`×3, `02BE`×1, `02C0`×5, `02C1`×1, `02C2`×2, `02C3`×2, `02C4`×2, `02C5`×2, `02C6`×2, `02C7`×2, `02CC`×4, `02CE`×3, `0300`×87, `0302`×4, `0306`×2, `0309`×1, `030D`×1
-- **pal-prototype-1994-11-29:** 139 references; `026A`×9, `026C`×1, `02A0`×2, `02B0`×3, `02B2`×3, `02BE`×1, `02C0`×5, `02C1`×1, `02C2`×2, `02C3`×2, `02C4`×2, `02C5`×2, `02C6`×2, `02C7`×2, `02CC`×4, `02CE`×3, `0300`×87, `0302`×4, `0306`×2, `0309`×1, `030D`×1
+- **usa-retail:** 140 references; `026A`×9, `026C`×1, `02A0`×2, `02B0`×3, `02B2`×3, `02BE`×1, `02C0`×5, `02C1`×1, `02C2`×2, `02C3`×2, `02C4`×2, `02C5`×2, `02C6`×2, `02C7`×2, `02CC`×4, `02CE`×3, `0300`×87, `0302`×4, `0306`×2, `0309`×1, `030D`×2
+- **pal-prototype-1994-11-29:** 140 references; `026A`×9, `026C`×1, `02A0`×2, `02B0`×3, `02B2`×3, `02BE`×1, `02C0`×5, `02C1`×1, `02C2`×2, `02C3`×2, `02C4`×2, `02C5`×2, `02C6`×2, `02C7`×2, `02CC`×4, `02CE`×3, `0300`×87, `0302`×4, `0306`×2, `0309`×1, `030D`×2
 - **europe-retail:** 141 references; `026A`×9, `026C`×1, `02A0`×2, `02B0`×3, `02B2`×3, `02BE`×1, `02C0`×5, `02C1`×2, `02C2`×2, `02C3`×3, `02C4`×2, `02C5`×3, `02C6`×2, `02C7`×3, `02CC`×4, `02CE`×3, `0300`×86, `0302`×4, `0306`×2, `0309`×1
 
 ## second_plus2 04FB..0541
@@ -16,8 +16,8 @@ Narrow trusted-code scan for absolute 16-bit operands inside the two post-protot
 
 ## first_inserted_space 030A..0310
 
-- **usa-retail:** 4 references; `030D`×1, `030E`×1, `030F`×1, `0310`×1
-- **pal-prototype-1994-11-29:** 4 references; `030D`×1, `030E`×1, `030F`×1, `0310`×1
+- **usa-retail:** 8 references; `030D`×2, `030E`×2, `030F`×2, `0310`×2
+- **pal-prototype-1994-11-29:** 8 references; `030D`×2, `030E`×2, `030F`×2, `0310`×2
 - **europe-retail:** 0 references; none
 - Europe-only numeric operands in trusted code: none
 - Explained by trusted relocation projection: none

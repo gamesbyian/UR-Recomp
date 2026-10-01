@@ -168,7 +168,7 @@ Evidence:
 - workflow run 36504768959;
 - `tests/input/reach-first-race.script`;
 - `.github/workflows/native-build-smoke.yml`;
-- recovered bot source `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`.
+- recovered bot source `reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua`.
 
 Next milestone: classify the post-rider menu state, then extend the settled state-driven route through tour, track and now-playing selection to `7E:0313 == 1` race state.
 
@@ -192,7 +192,7 @@ Evidence:
 - GitHub Actions run 36505156490, artifact 11006149797;
 - GitHub Actions run 36505588585, artifact 11007410671;
 - `tests/input/reach-first-race.script`;
-- recovered bot source `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`.
+- recovered bot source `reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua`.
 
 Next milestone: settle at `0xF6`, confirm the default first track, and capture the resulting state before treating the bot's `onePlayerNowPlaying = 0x16` label as locally verified.
 

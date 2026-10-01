@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify classification and byte integrity of references/imported/.
+"""Verify classification and byte integrity of reference/imported/.
 
 The imported tree is an evidence corpus. This check prevents silent edits,
 normalization, executable-bit drift, and unclassified additions.
@@ -34,7 +34,7 @@ def git_blob_sha1(data: bytes) -> str:
 
 def tracked_imports() -> dict[str, str]:
     out = subprocess.check_output(
-        ["git", "ls-files", "--stage", "references/imported"],
+        ["git", "ls-files", "--stage", "reference/imported"],
         cwd=ROOT,
         text=True,
         encoding="utf-8",
@@ -63,15 +63,15 @@ def verify() -> list[str]:
     manifest = load_manifest()
     failures: list[str] = []
     tracked = tracked_imports()
-    tracked.pop("references/imported/MANIFEST.json", None)
+    tracked.pop("reference/imported/MANIFEST.json", None)
 
     entries: dict[str, dict] = {}
     for entry in manifest["entries"]:
         path = entry.get("path")
-        if not isinstance(path, str) or not path.startswith("references/imported/"):
+        if not isinstance(path, str) or not path.startswith("reference/imported/"):
             failures.append(f"invalid manifest path: {path!r}")
             continue
-        if path == "references/imported/MANIFEST.json":
+        if path == "reference/imported/MANIFEST.json":
             failures.append("manifest must not recursively classify itself")
             continue
         if path in entries:

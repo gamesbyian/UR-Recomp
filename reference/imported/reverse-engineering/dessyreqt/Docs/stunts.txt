@@ -1,0 +1,28 @@
+
+Head Bound = 152
+Tabletop = 156
+
+Flip = 176
+Double Flip = 200
+Treble Flip = 224 
+Flip City = 252
+
+Roll = 128
+Double Roll = 152
+Treble Roll = 176
+Roll City = 200
+
+Twist = 128
+Double Twist = 152
+Treble Twist = 176
+Twister City = 200
+
+Z Flip = 128
+Double Z Flip = 152
+Treble Z Flip = 176
+Z Flip City = 200
+
+
+
+
+

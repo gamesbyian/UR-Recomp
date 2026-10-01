@@ -1,0 +1,33 @@
+{
+  "probes": [
+    {
+      "name": "US instruction manual",
+      "state": "recovered",
+      "source": "https://www.videogamemanual.com/snes/Uniracers%20(USA).pdf",
+      "path": "reference/imported/manuals/Uniracers-USA-manual.pdf",
+      "size": 6006270,
+      "sha256": "50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235"
+    },
+    {
+      "name": "usjo13.lua",
+      "state": "no-wayback-snapshot",
+      "url": "http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/usjo13.lua"
+    },
+    {
+      "name": "Halamantariel boost/mechanics page",
+      "state": "no-wayback-snapshot",
+      "url": "http://www.obellemare.com/speedruns/Uniracers%20%28U%29%20%5B%21%5D/Uniracers.html"
+    },
+    {
+      "name": "FallThrough glitch page",
+      "state": "wayback-probe-failed",
+      "url": "http://dscarroll.com/uniracerstas/FallThrough.ashx",
+      "error": "URLError(TimeoutError('timed out'))"
+    },
+    {
+      "name": "VGMaps course corpus",
+      "state": "inventory-failed",
+      "error": "<HTTPError 403: 'Forbidden'>"
+    }
+  ]
+}

@@ -209,7 +209,7 @@ def main() -> None:
     parser.add_argument(
         "--source",
         type=Path,
-        default=Path("references/imported/tas-bots/usjo8.lua"),
+        default=Path("reference/imported/tas-bots/usjo8.lua"),
     )
     parser.add_argument(
         "--json-out",

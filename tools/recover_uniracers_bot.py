@@ -2,7 +2,7 @@
 """Focused archival recovery for historical Uniracers TAS/bot artifacts.
 
 Uses public archive/index endpoints and exact historical URLs. Successful payloads
-are saved under references/recovered/tas-bot/ with a JSON report and SHA-256.
+are saved under reference/recovered/tas-bot/ with a JSON report and SHA-256.
 This is intentionally narrow and may be run from GitHub Actions when local/web
 fetch paths cannot reach old hosts.
 """
@@ -13,7 +13,7 @@ from urllib.parse import quote, urlencode, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 
-OUT = Path("references/recovered/tas-bot")
+OUT = Path("reference/recovered/tas-bot")
 OUT.mkdir(parents=True, exist_ok=True)
 
 DIRECT_DOWNLOADS = [

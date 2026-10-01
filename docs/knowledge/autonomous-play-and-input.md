@@ -4,7 +4,7 @@
 
 The repository preserves Dessyreqt's 2014 public Lua source:
 
-`references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`
+`reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua`
 
 Associated TASVideos submission #4250 states that the bot can complete Uniracers without savestate search and can be adjusted for human-vs-bot play.
 

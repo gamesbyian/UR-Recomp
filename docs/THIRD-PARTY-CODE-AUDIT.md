@@ -5,7 +5,7 @@ best implementation for UR-Recomp's current needs, not a compatibility museum.
 
 ## Operating rule
 
-Keep source provenance intact under `references/imported/` when historical
+Keep source provenance intact under `reference/imported/` when historical
 identity matters. Do not preserve defects, emulator-specific APIs, awkward data
 models or obsolete constraints in project-owned tools merely because an imported
 artifact had them.
@@ -36,7 +36,7 @@ Before an imported executable/script/algorithm becomes infrastructure:
 
 ### Dessyreqt 2014 Tabletop bot
 
-Source: `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`.
+Source: `reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua`.
 
 Status: useful but not safe to consume as an API.
 
@@ -68,7 +68,7 @@ Do not edit the preserved Lua snapshot into becoming the modern implementation.
 
 ### Historical Snes9x 1.43
 
-Source: `references/imported/emulators/snes9x-1.43/`.
+Source: `reference/imported/emulators/snes9x-1.43/`.
 
 Status: archaeology/regression inventory, not an implementation template.
 
@@ -85,7 +85,7 @@ Project response:
 
 ### Modern Snes9x snapshot
 
-Source: `references/imported/emulators/snes9x/`.
+Source: `reference/imported/emulators/snes9x/`.
 
 Status: useful reference interpreter, but **not independent evidence at the Uniracers OAM seam**.
 
@@ -101,7 +101,7 @@ with generic models, independent cores, and ROM evidence.
 
 ### jgenesis sprite implementation
 
-Source: `references/imported/emulators/jgenesis/sprites.rs`.
+Source: `reference/imported/emulators/jgenesis/sprites.rs`.
 
 Status: high-value modern implementation evidence, still to be validated locally.
 
@@ -112,7 +112,7 @@ and target behavior remain evidence to test, not assumptions to clone blindly.
 
 ### MAME SNES PPU snapshot
 
-Source: `references/imported/emulators/mame/snes_ppu.cpp`.
+Source: `reference/imported/emulators/mame/snes_ppu.cpp`.
 
 Status: independent PPU implementation reference, explicitly approximate at this seam.
 
@@ -122,7 +122,7 @@ model, not as proof that its chosen target is exact hardware behavior.
 
 ### RNC ProPack 2.14
 
-Source: `references/imported/tools/rnc_propack-2.14/`.
+Source: `reference/imported/tools/rnc_propack-2.14/`.
 
 Status: authoritative historical format/algorithm evidence, awkward production tool.
 
@@ -141,7 +141,7 @@ Project response:
 
 ### Historical SMV movies
 
-Source: `references/imported/tas-bots/*.smv`.
+Source: `reference/imported/tas-bots/*.smv`.
 
 Status: data corpus, not trusted semantics.
 
@@ -164,7 +164,7 @@ compares parsed controller intervals instead.
 The imported evidence corpus and the executable research toolchain have different
 policies:
 
-- `references/imported/` preserves evidence bytes. `references/imported/MANIFEST.json`
+- `reference/imported/` preserves evidence bytes. `reference/imported/MANIFEST.json`
   classifies every tracked import, pins repository bytes, verifies known upstream
   Git blobs/source hashes, and records review status. CI rejects unclassified additions,
   silent edits and executable-bit drift.

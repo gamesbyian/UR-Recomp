@@ -13,7 +13,7 @@ Inspect:
 - `AGENTS.md`, thin provider adapters, and `docs/README.md`;
 - current queue/plan and specialist authorities;
 - `tools/`, `tools/toolchain.json`, workflows, and submodule pins;
-- `reference/`, `references/`, and generated-analysis boundaries;
+- `reference/`, `reference/`, and generated-analysis boundaries;
 - recently completed experiments/imports/migrations.
 
 Run:
@@ -53,7 +53,7 @@ Check:
 - scratch files are deleted or ignored;
 - generated/build/workbench output remains outside Git;
 - ROMs exist only under the intentional private `reference/roms/` boundary;
-- `reference/` and `references/` remain semantically distinct and documented.
+- `reference/` and `reference/` remain semantically distinct and documented.
 
 Do not relocate preserved artifacts without updating provenance/ledger paths.
 

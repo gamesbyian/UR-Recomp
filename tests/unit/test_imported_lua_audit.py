@@ -23,7 +23,7 @@ class LuaAuditTests(unittest.TestCase):
         self.assertEqual([(f.key, f.first_line, f.duplicate_line) for f in findings], [("a", 3, 5)])
 
     def test_recovered_bot_known_duplicate_keys_remain_visible(self):
-        path = ROOT / "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+        path = ROOT / "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
         findings = find_duplicate_table_keys(path.read_text(encoding="utf-8"))
         keys = {f.key for f in findings}
         self.assertTrue(

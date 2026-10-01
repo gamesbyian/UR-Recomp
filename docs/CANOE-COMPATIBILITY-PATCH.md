@@ -9,7 +9,7 @@ Primary evidence:
 - patch SHA-256:
   `35b695d9cc0667d09f950a05cb3066ada5f0078a50818bc04d348f5ef4f852cf`;
 - successful disassembly run: GitHub Actions `36670381748`;
-- source artifact: `references/imported/patches/uniracers_canoe.ips`;
+- source artifact: `reference/imported/patches/uniracers_canoe.ips`;
 - permanent semantic test: `tests/unit/test_analyze_canoe_ips.py`;
 - active-game oracle: `tools/assert_uniracers_vs_oam_seam.py`.
 

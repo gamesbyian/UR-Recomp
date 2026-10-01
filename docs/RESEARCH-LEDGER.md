@@ -28,7 +28,7 @@ Use this for claims about the ROM, formats, routines, RAM, graphics or hardware 
 
 **Observation:** both canonical USA retail and 1994-11-29 PAL prototype ROMs contain exactly 45 valid RNC headers, all Method 1, at identical offsets with matching packed/unpacked sizes and CRCs.
 
-**Evidence:** `analysis/generated/retail-vs-prototype-structure.md`; preserved ProPack sources under `references/imported/tools/rnc_propack-2.14/`.
+**Evidence:** `analysis/generated/retail-vs-prototype-structure.md`; preserved ProPack sources under `reference/imported/tools/rnc_propack-2.14/`.
 
 **Interpretation:** RNC Method 1 is established binary fact for this 45-stream corpus. Whether every stream is course data remains to be established.
 
@@ -58,7 +58,7 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Area:** compression | course
 
 **Observation:** A preserved ROMhacking.net investigation records successful extraction/decompression of Uniracers course data after Mike Dailly reportedly identified it as Rob Northen Compression (RNC). The same work reports a 256-tile course width and says generated viewer output aligned with independently hand-made maps.  
-**Evidence:** `references/notes/course-reverse-engineering-history.md` and its pinned source URLs.  
+**Evidence:** `reference/notes/course-reverse-engineering-history.md` and its pinned source URLs.  
 **Interpretation:** The ROM should contain an identifiable RNC-based course-data path, but exact record boundaries, RNC method and the meaning of “tile” remain to be reproduced.  
 **Discriminating test:** locate candidate RNC headers/decompressor calls in the supported ROM and produce one course image/data structure that independently matches gameplay.  
 **Dependencies:** historical forum archive and reported Mike Dailly correspondence.
@@ -70,7 +70,7 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Area:** PPU | DMA/HDMA
 
 **Observation:** Current Snes9x source enables an explicit `UNIRACERS` game fix during HDMA writes to $2104, forcing OAM address 0x10c. MAME independently documents Uniracers as the known game that accesses OAM during active display and routes such access to byte offset 0x0218.  
-**Evidence:** `references/notes/oam-active-display.md`; Snes9x revision `1bcc369e89f08243e0a462882fb1f3e42e51de3a`, `dma.cpp` blob `e1ad324c6e94149a777b69054bda5e09337631a6`, `memmap.cpp` blob `04ce87e7362b8dda8cb7a79abfa226e13d3568f4`; MAME revision `dcca0e9b281be806813848db869d9ee54b4ad92e`, `snes_ppu.cpp` blob `525911c9cf3015b27676bcc0aebfecd6e6dd3b64`.  
+**Evidence:** `reference/notes/oam-active-display.md`; Snes9x revision `1bcc369e89f08243e0a462882fb1f3e42e51de3a`, `dma.cpp` blob `e1ad324c6e94149a777b69054bda5e09337631a6`, `memmap.cpp` blob `04ce87e7362b8dda8cb7a79abfa226e13d3568f4`; MAME revision `dcca0e9b281be806813848db869d9ee54b4ad92e`, `snes_ppu.cpp` blob `525911c9cf3015b27676bcc0aebfecd6e6dd3b64`.  
 **Interpretation:** The values are consistent because word-style OAM address 0x10c corresponds to byte offset 0x218. This is a concrete compatibility seam for SNESRecomp bring-up.  
 **Discriminating test:** trace Uniracers HDMA writes to $2104 and compare sprite/OAM results on SNESRecomp, a known-correct emulator and, if needed, hardware behavior documentation.  
 **Dependencies:** correct interpretation of emulator OAM address units.
@@ -82,7 +82,7 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Area:** RAM | physics | UI | other
 
 **Observation:** libretro-database contains 24 Uniracers cheat entries affecting timer behavior, CPU braking, racer speed, stunt scoring, color state, course selection and race/qualification completion.  
-**Evidence:** `references/imported/libretro/Uniracers (USA).cht`, upstream revision and license recorded in `references/imported/libretro/ATTRIBUTION.md`.  
+**Evidence:** `reference/imported/libretro/Uniracers (USA).cht`, upstream revision and license recorded in `reference/imported/libretro/ATTRIBUTION.md`.  
 **Interpretation:** Even without trusting cheat descriptions blindly, these codes are a compact set of candidate ROM/RAM locations for quickly locating important gameplay systems.  
 **Discriminating test:** decode each Game Genie code to ROM addresses where applicable, classify RAM-vs-ROM effects, and verify each behavior against the supported ROM.  
 **Dependencies:** cheat-code format/version compatibility with the supported US ROM.
@@ -95,7 +95,7 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Area:** PPU | DMA/HDMA
 
 **Observation:** jgenesis issue #164 reports OAMDATA writes on scanlines 0 and 112 every frame, with values 0xA5 and 0x5A respectively. Both writes are expected to affect high-OAM byte $18, controlling sprites 96–99. The top-half/bottom-half split is implemented by alternately moving sprite pairs 96–97 and 98–99 on/off screen.  
-**Evidence:** jgenesis issue #164 and mirrored `references/imported/emulators/jgenesis/sprites.rs`.  
+**Evidence:** jgenesis issue #164 and mirrored `reference/imported/emulators/jgenesis/sprites.rs`.  
 **Interpretation:** This specifies the exact raster-time mechanism behind the long-known Uniracers OAM quirk and gives us concrete trace assertions for SNESRecomp.  
 **Discriminating test:** trace $2104 writes during Vs. mode and verify scanlines, values and resulting high-OAM location against these expectations.  
 **Dependencies:** supported ROM behaves equivalently to the version tested by jgenesis.
@@ -107,7 +107,7 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Area:** other
 
 **Observation:** Hidden Palace lists a publicly released European prototype built 1994-11-29 from a 4-EPROM SHVC-4PV5B-01 board labelled UNIRALLY PAL.  
-**Evidence:** `references/catalog.yml` entry `hidden-palace-uniracers-prototype`.  
+**Evidence:** `reference/catalog.yml` entry `hidden-palace-uniracers-prototype`.  
 **Interpretation:** Binary-diffing this build against retail PAL and US versions could reveal late changes to physics, content, censoring, region logic, compression tables or rendering workarounds.  
 **Discriminating test:** acquire the prototype artifact, hash it, identify header/version differences and perform structured binary/behavioral diffs.  
 **Dependencies:** exact public prototype file retrieval.
@@ -120,7 +120,7 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Area:** PPU | DMA/HDMA | other
 
 **Observation:** The surviving public Google Drive file `uniracers_canoe.ips` was recovered byte-for-byte. It is a 295-byte IPS file created/modified on 2018-03-30. It contains seven records, including JSL hooks at ROM offsets `0x01534C` and `0x015714` into code installed at `0x1FFF00`, plus several smaller patches.  
-**Evidence:** `references/imported/patches/uniracers_canoe.ips` and `references/imported/patches/uniracers_canoe.md`; SHA-256 `35b695d9cc0667d09f950a05cb3066ada5f0078a50818bc04d348f5ef4f852cf`.  
+**Evidence:** `reference/imported/patches/uniracers_canoe.ips` and `reference/imported/patches/uniracers_canoe.md`; SHA-256 `35b695d9cc0667d09f950a05cb3066ada5f0078a50818bc04d348f5ef4f852cf`.  
 **Interpretation:** This preserves an independent software workaround for the same active-display OAM behavior documented by Snes9x, MAME and jgenesis. Disassembling it may reveal exactly which game routines Canoe needed redirected and what state the patch synthesizes.  
 **Discriminating test:** apply to the verified US baseline, disassemble changed routines, and compare runtime OAM writes with unpatched hardware-faithful behavior.  
 **Dependencies:** exact patch revision chronology is inferred from public 2018 discussion and Drive timestamps.
@@ -132,7 +132,7 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Area:** RAM | other
 
 **Observation:** TASVideos research attributes medal state to nine 16-byte tour blocks spanning SRAM `0x069C–0x072B`, with one byte per unicycle and values 00/01/02/03 for none/bronze/silver/gold. Tour unlock count is reported at `0x10D3–0x10E2`.  
-**Evidence:** `references/notes/tas-and-sram-research.md` and TASVideos Uniracers topic 979.  
+**Evidence:** `reference/notes/tas-and-sram-research.md` and TASVideos Uniracers topic 979.  
 **Interpretation:** This is a useful starting map for decoding save structure and can rapidly expose per-unicycle progression fields.  
 **Discriminating test:** compare clean SRAM, controlled medal changes and unlock transitions byte-for-byte.  
 **Dependencies:** historical emulator SRAM format and ROM revision must be matched.
@@ -143,8 +143,8 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Date:** 2026-09-28; updated 2026-09-30  
 **Area:** physics | RAM | other
 
-**Observation:** TASVideos submission #3072 describes a Lua script named USJO, originating with Halamantariel and improved with Nitrodon, that automated frame-precise stunt behavior and reportedly evolved to play Uniracers autonomously. Internal version 8, dated 2008-02-10, is now recovered exactly at `references/imported/tas-bots/usjo8.lua`.  
-**Evidence:** recovered v8 source; `references/notes/tas-and-sram-research.md`; TASVideos submission #3072.  
+**Observation:** TASVideos submission #3072 describes a Lua script named USJO, originating with Halamantariel and improved with Nitrodon, that automated frame-precise stunt behavior and reportedly evolved to play Uniracers autonomously. Internal version 8, dated 2008-02-10, is now recovered exactly at `reference/imported/tas-bots/usjo8.lua`.  
+**Evidence:** recovered v8 source; `reference/notes/tas-and-sram-research.md`; TASVideos submission #3072.  
 **Interpretation:** The historical USJO line is now executable source evidence rather than a purely documentary lead. Version 8 directly exposes practical RAM addresses, timing rules, search strategy, stunt grammar, boost scoring and controller-state generation.  
 **Discriminating test:** inventory every v8 memory read and timing/scoring assumption, then validate each candidate semantic against the supported ROM/runtime before promotion.  
 **Dependencies:** v13 remains missing, but no local validation work depends on recovering it.
@@ -156,7 +156,7 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Area:** course | UI
 
 **Observation:** VGMaps currently indexes 44 complete Uniracers course maps credited to Halamantariel. Several are extremely large stitched images, including a 28,128×152 Dragster map and a 36,864×16,111 Downer map.  
-**Evidence:** `references/notes/tas-and-sram-research.md`; VGMaps Uniracers index.  
+**Evidence:** `reference/notes/tas-and-sram-research.md`; VGMaps Uniracers index.  
 **Interpretation:** These maps can serve as independent geometric ground truth for a ROM course extractor and may connect directly to the hand-made maps mentioned in the historical level-viewer investigation.  
 **Discriminating test:** reproduce a course from ROM data and align its topology/segment ordering against the corresponding map.  
 **Dependencies:** obtain direct image files or sufficient map access for pixel-level comparison.
@@ -169,7 +169,7 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Area:** RAM | physics | other
 
 **Observation:** A public snapshot of the Uniracers RetroAchievements set contains 24 raw memory-condition definitions. Its medal addresses at `0x02069C`, `0x0206AC`, ... `0x02071C` independently match Halamantariel's historical per-tour medal offsets. It additionally exposes a dense stunt-state block from `0x02076B` through `0x0207AF` and per-tour five-byte state groups from `0x021075` through `0x0210A1`.  
-**Evidence:** `references/imported/retroachievements/1295.json` and `references/notes/retroachievements-ram.md`.  
+**Evidence:** `reference/imported/retroachievements/1295.json` and `reference/notes/retroachievements-ram.md`.  
 **Interpretation:** These are high-value watchpoints for reconstructing stunt and race state because they were used in live achievement conditions, not merely guessed from static inspection.  
 **Discriminating test:** instrument the supported ROM while deliberately triggering one stunt/result at a time and map exact transition semantics.  
 **Dependencies:** RetroAchievements' SNES address-domain mapping must be translated correctly to native WRAM/SRAM addresses.
@@ -182,7 +182,7 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Area:** compression | course
 
 **Observation:** The public mirror of RNC ProPack 2.14 includes the original packer package and separate SNES assembly unpackers for RNC Method 1 and Method 2. The package has been mirrored byte-for-byte into this repository.  
-**Evidence:** `references/imported/tools/rnc_propack-2.14/`; upstream revision `08406a33e700aa33936e4c4800cd0887a468a31b`; SNES source blobs `ad4f5c58590dcc1357fb01c138084ff78ad22d75` (Method 1) and `0055f7fad678ef226757b3b7fa9fb06e48fc8929` (Method 2).  
+**Evidence:** `reference/imported/tools/rnc_propack-2.14/`; upstream revision `08406a33e700aa33936e4c4800cd0887a468a31b`; SNES source blobs `ad4f5c58590dcc1357fb01c138084ff78ad22d75` (Method 1) and `0055f7fad678ef226757b3b7fa9fb06e48fc8929` (Method 2).  
 **Interpretation:** We now have period reference implementations suitable for structural comparison with the Uniracers ROM. This can independently test the historical claim that course data uses RNC and determine the exact method/variant.  
 **Discriminating test:** locate candidate RNC records and the ROM decompressor, compare against both supplied SNES implementations, then decompress one candidate and connect it to a known course load.  
 **Dependencies:** The public 2.14 package may not be the exact ProPack revision used by DMA Design, so algorithmic agreement matters more than byte-identical source.
@@ -195,7 +195,7 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Area:** RAM | physics | camera
 
 **Observation:** Halamantariel published an explicit Snes9x memory-watch list used during Uniracers TAS work: `7E:04B7` signed 16-bit speed, `7E:11CD` unsigned 16-bit boost meter, `7E:0411`/ `7E:0415` unsigned 16-bit X/Y position, `7E:1509` screen-X, plus one-byte stunt counters at `7E:11FD`, `7E:11F9`, `7E:0F61`, `7E:042B`, and `7E:042F`.  
-**Evidence:** `references/notes/tas-and-sram-research.md`; TASVideos Uniracers topic post dated 2008-03-12.  
+**Evidence:** `reference/notes/tas-and-sram-research.md`; TASVideos Uniracers topic post dated 2008-03-12.  
 **Interpretation:** These provide directly named native WRAM watchpoints for core movement/boost/stunt state and are prime anchors for symbol reconstruction.  
 **Discriminating test:** watch each address during controlled gameplay and verify direction, units, signedness and reset/update behavior.  
 **Dependencies:** Snes9x memory-domain notation is interpreted as native banks `7E/7F`; exact supported US ROM should be verified.
@@ -207,7 +207,7 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Area:** physics | RAM | other
 
 **Observation:** The 2008 Snes9x Lua-development thread links `usjo13.lua` under the title “Uniracers Stunts & Jump Optimizer v13.” Its author describes it as starting before a jump, intelligently trying stunt combinations, optimizing for speed and replaying the best input. Internal v8 now independently demonstrates that exact architecture in surviving source.  
-**Evidence:** `references/imported/tas-bots/usjo8.lua`; `references/notes/tas-and-sram-research.md`; historical v13 URL preserved in `references/catalog.yml`.  
+**Evidence:** `reference/imported/tas-bots/usjo8.lua`; `reference/notes/tas-and-sram-research.md`; historical v13 URL preserved in `reference/catalog.yml`.  
 **Interpretation:** v13 is now primarily a five-revision delta target: it may expose later fixes, discoveries or autonomy work, but the evaluator/search/RAM/timing core is already available in v8.  
 **Discriminating test:** if v13 or another sibling appears, byte/code-structure diff it against v8 and promote only genuinely new mechanics or state knowledge.  
 **Dependencies:** passive recovery of a later sibling; no implementation blocker.
@@ -219,7 +219,7 @@ Snes9x has historically carried Uniracers-specific handling related to OAM addre
 **Area:** physics | RAM | input | TAS
 
 **Observation:** A surviving source file identifies itself as **February 10th, 2008 (Internal Version 8)** and implements a savestate-driven Uniracers stunt optimizer. It reads signed X/Y speed, air state, twist/tabletop/Z-flip/roll/flip counters, Z-rotation/pre-rotation state and boost state; searches jump/stunt timing; scores candidates as derived boost plus resulting horizontal speed; and replays the best candidate through controller input.  
-**Evidence:** `references/imported/tas-bots/usjo8.lua`; source provenance and hashes in `references/catalog.yml` and `docs/original-development/ACQUISITION-LEDGER.md`; reproducible static inventory in `analysis/generated/usjo8-static-inventory.{json,md}` generated by `tools/inventory_usjo8.py`.  
+**Evidence:** `reference/imported/tas-bots/usjo8.lua`; source provenance and hashes in `reference/catalog.yml` and `docs/original-development/ACQUISITION-LEDGER.md`; reproducible static inventory in `analysis/generated/usjo8-static-inventory.{json,md}` generated by `tools/inventory_usjo8.py`.  
 **Interpretation:** This is a direct historical behavioral oracle and reverse-engineering accelerator. Its addresses/constants are working hypotheses until locally reproduced, while its source-level control/search architecture is directly established. One source-level nuance now exposed by the inventory: v8 reads `7E:11CD` as one byte and only uses it as a zero/nonzero gate, while the retained TAS watch list describes a 2-byte unsigned Booster Meter there; v8 reconstructs its own boost score from stunt counts rather than using the runtime meter magnitude directly.  
 **Discriminating test:** the complete static read/constant/state inventory is generated. `analysis/generated/usjo8-validation-matrix.{json,md}` classifies the 11 read addresses against the canonical symbol map: 3 runtime-confirmed and 8 strong-static fields. Writer analysis now supports all five stunt counters, resolves `$0DFD/$0DFF -> $0F57` as paired persistent-to-current-player Z-state flow, identifies `$0F61` as current-player working twist count, and establishes `7E:11CD` as 16-bit with exact game-facing units still open. `analysis/generated/usjo8-boost-model.{json,md}` extracts the exact historical stunt-reward ladder and score gates, while `analysis/generated/usjo8-control-model.{json,md}` records the optimizer's recovered state domains and controller translation. Targeted WRAM store-site run 36769525945 now covers all eight formerly unresolved USJO addresses; `analysis/generated/usjo8-writer-scan.md` preserves the compact findings. Its coherent bank-02 candidates resolve `7E:11CD` as a 16-bit game field and identify narrow writer landmarks for each stunt counter and Z-state lead. Dynamic run 36776825024 adds the first event-causal stunt validation: matched X input produces `7E:042F` **0→1→2→3→4→0** every two frames in both native and pinned Snes9x, while matched control does not. Because that byte clears after the short progression, the historical `numtabletops` label is supported as a tabletop detector but a simple accumulated completed-tabletop-count interpretation remains unproven; `analysis/generated/usjo8-x-tabletop-transient.{json,md}` preserves the evidence.  
 **Dependencies:** period Snes9x Lua API compatibility is relevant only if executing the script itself; static mining and semantic validation do not require Snes9x 1.43.
@@ -334,11 +334,11 @@ USA retail, the legacy beta, and the 1994-11-29 PAL prototype have identical dec
 **Date:** 2026-09-28  
 **Area:** CPU | compression | course
 
-**Observation:** a masked opcode signature derived from the preserved 1992 Super NES ProPack Method 1 source, `references/imported/tools/rnc_propack-2.14/SOURCE/SUPERNES/RNC_1.S`, produces one unpacker-entry hit per preserved build. The USA retail and legacy beta entry is ROM offset `0x00B8F1` (LoROM `01:B8F1`); Europe retail is `0x00B8E2` (`01:B8E2`); the 1994-11-29 PAL prototype is `0x00B8D1` (`01:B8D1`). Surrounding instructions reproduce the period routine's distinctive entry sequence: `REP $39`, stack-relative source/destination argument loads, direct-page stores, `PHB/XBA/PHA/PLB/PLB`, input pointer adjustment by 17 bytes, block-count read, bit-buffer initialization, and calls into the Huffman/bit-reader machinery.
+**Observation:** a masked opcode signature derived from the preserved 1992 Super NES ProPack Method 1 source, `reference/imported/tools/rnc_propack-2.14/SOURCE/SUPERNES/RNC_1.S`, produces one unpacker-entry hit per preserved build. The USA retail and legacy beta entry is ROM offset `0x00B8F1` (LoROM `01:B8F1`); Europe retail is `0x00B8E2` (`01:B8E2`); the 1994-11-29 PAL prototype is `0x00B8D1` (`01:B8D1`). Surrounding instructions reproduce the period routine's distinctive entry sequence: `REP $39`, stack-relative source/destination argument loads, direct-page stores, `PHB/XBA/PHA/PLB/PLB`, input pointer adjustment by 17 bytes, block-count read, bit-buffer initialization, and calls into the Huffman/bit-reader machinery.
 
 The same search also finds the expected Huffman-builder-shaped code later in the routine region, with build-relative address shifts consistent with the unpacker entry shifts.
 
-**Evidence:** `analysis/generated/rnc-decoder-signature-search.md`; generator `tools/find_rnc_decoder_signature.py`; preserved period source `references/imported/tools/rnc_propack-2.14/SOURCE/SUPERNES/RNC_1.S`.
+**Evidence:** `analysis/generated/rnc-decoder-signature-search.md`; generator `tools/find_rnc_decoder_signature.py`; preserved period source `reference/imported/tools/rnc_propack-2.14/SOURCE/SUPERNES/RNC_1.S`.
 
 **Interpretation:** Uniracers/Unirally contains a directly recognizable integration of Rob Northen's SNES Method 1 unpacker, rather than merely a format-compatible independent decoder. Build-to-build movement of the routine provides an additional code-alignment landmark.
 
@@ -357,7 +357,7 @@ The same search also finds the expected Huffman-builder-shaped code later in the
 
 External gameplay documentation states that each tour's five tracks occur in the fixed order Race, Circuit, Stunt, Race, Circuit, and independently describes stunt courses as 45-second events. Decimal 45 is `0x2D`.
 
-**Evidence:** `analysis/generated/course-header-cadence.md`; generator `tools/analyze_course_header_cadence.py`; `references/notes/course-order-and-stunt-timer.md`.
+**Evidence:** `analysis/generated/course-header-cadence.md`; generator `tools/analyze_course_header_cadence.py`; `reference/notes/course-order-and-stunt-timer.md`.
 
 **Interpretation:** the simplest explanation is one RNC payload per shipped track, ordered by tour and slot. Decoded byte 2 is very likely the stunt-course time limit in seconds, or a directly equivalent stunt-only parameter. This is the first semantically identified field in the decompressed course record.
 
@@ -374,7 +374,7 @@ External gameplay documentation states that each tour's five tracks occur in the
 
 **Observation:** Dessyreqt's 2014 bot labels WRAM `7E:009F` as the current frontend menu and `7E:0313` as `inRace`. The project-owned shared deterministic input fixture reproduces, in both native SNESRecomp execution and Snes9x through `snesref`, the sequence `0xD7` main menu, `0x3C` one-player rider selection, `0x6D` first one-player tours page, `0xF6` track selection, `0x16` now-playing, then `7E:0313 = 0x01` after race entry.
 
-**Evidence:** `references/imported/tas-bots/uniracers-tabletop-bot-2014.lua`; GitHub Actions runs 36506120930 and 36506281320; `tests/input/reach-first-race.script`; `docs/BRINGUP.md`.
+**Evidence:** `reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua`; GitHub Actions runs 36506120930 and 36506281320; `tests/input/reach-first-race.script`; `docs/BRINGUP.md`.
 
 **Interpretation:** the recovered frontend state model and active-race flag are now locally validated cross-runtime rather than merely inherited historical labels. A newly visible menu-state byte can precede input readiness; the deterministic fixture therefore retains a conservative scene-settle period before confirmation.
 
@@ -665,7 +665,7 @@ Dynamic run 36515746538 independently shows airborne L input changing `$04C7` fr
 **Date:** 2026-09-28  
 **Area:** input | TAS | autonomous play
 
-**Observation:** `references/imported/tas-bots/uniracers-2008-wip-microstorage.smv` is a raw SMV v1 file, 10,542 bytes, reset-anchored, with one recorded controller and 4,974 header frames. Controller data starts at offset 592. Per the SMV v1 reset-movie format, the block from the savestate offset to controller data is a gzip-compressed 128 KiB SRAM snapshot; the replay tooling now extracts it and emits the canonical game's 8 KiB cartridge SRAM for both reference and native preload. Direct bit translation into the project/snesref 12-bit mask exposes a long regular control block around frames 1184–2655, including repeated `B+Right+R`, periodic `X`, short left corrections, and a final 359-frame Right interval. A later complex block begins around frame 3472.
+**Observation:** `reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv` is a raw SMV v1 file, 10,542 bytes, reset-anchored, with one recorded controller and 4,974 header frames. Controller data starts at offset 592. Per the SMV v1 reset-movie format, the block from the savestate offset to controller data is a gzip-compressed 128 KiB SRAM snapshot; the replay tooling now extracts it and emits the canonical game's 8 KiB cartridge SRAM for both reference and native preload. Direct bit translation into the project/snesref 12-bit mask exposes a long regular control block around frames 1184–2655, including repeated `B+Right+R`, periodic `X`, short left corrections, and a final 359-frame Right interval. A later complex block begins around frame 3472.
 
 **Interpretation:** this is a high-value candidate source for an exact known-working Dragster controller sequence, potentially preferable to approximating the 2014 Lua policy. The apparent race boundaries are not yet promoted because they are inferred from input shape alone.
 
@@ -745,7 +745,7 @@ Direct inspection of all 4,975 controller samples in the reset-anchored 2008 WIP
 **Date:** 2026-09-28  
 **Area:** TAS | provenance | replay fidelity
 
-The SMV v1 ROM-info record embedded in `references/imported/tas-bots/uniracers-2008-wip-microstorage.smv` identifies internal ROM name `UNIRACERS` and CRC32 `383858c7`. That CRC exactly matches the canonical project's USA ROM in `rom_identity.txt`. The movie metadata names its author as `Olivier Bellemare aka Halamantariel`.
+The SMV v1 ROM-info record embedded in `reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv` identifies internal ROM name `UNIRACERS` and CRC32 `383858c7`. That CRC exactly matches the canonical project's USA ROM in `rom_identity.txt`. The movie metadata names its author as `Olivier Bellemare aka Halamantariel`.
 
 This closes ROM-revision mismatch as a possible cause of historical replay desynchronization. The extractor now preserves author/ROM metadata and the historical replay workflow refuses to proceed when an embedded movie CRC disagrees with the canonical ROM.
 
@@ -943,7 +943,7 @@ The six known package tables contain one orphan, `03:FB95`. It has no direct `JS
 **Area:** CPU | RAM | physics | camera | course | UI | other
 
 **Observation:** Nitrodon directly supplied a nine-file 2008–2009 reverse-engineering workspace containing a detailed WRAM map, course/ROM offsets, annotated bank-80–83 listings, focused stunt disassembly, message IDs and a bounce trace. The bank-82 material directly describes the shipped stunt finalizer, movement/boost paths and controller decode. Three adjacent stunt-weight tables are exactly `[0,125,250,375,500]`, `[0,25,50,75,100]`, and `[0,5,10,15,20]`; Z-flips are added directly, proving the stunt combination index `125*flips + 25*rolls + 5*twists + zflips` into the 625-byte table at `02:9DAA`.
-**Evidence:** `references/imported/reverse-engineering/nitrodon/`; `references/notes/nitrodon-reverse-engineering-mining.md`; `analysis/generated/nitrodon-reconciliation.json`; canonical symbol changes in `docs/SYMBOLS.md`. The tabletop-duration interpretation independently explains dynamic run 36776825024's `0→1→2→3→4→0` transient.
+**Evidence:** `reference/imported/reverse-engineering/nitrodon/`; `reference/notes/nitrodon-reverse-engineering-mining.md`; `analysis/generated/nitrodon-reconciliation.json`; canonical symbol changes in `docs/SYMBOLS.md`. The tabletop-duration interpretation independently explains dynamic run 36776825024's `0→1→2→3→4→0` transient.
 **Interpretation:** This workspace materially narrows several formerly broad reverse-engineering tasks. It resolves shared-current-player versus stable-player state for velocity/boost, corrects multiple field widths/labels, exposes exact stunt-combination encoding, and gives bounded addresses for stunt, gravity, input, checkpoint/finish and collision work.
 **Discriminating test:** decode the `FE/FF` stunt-table sentinels; trace `11CF/11D1 ↔ 11CD`; watch `1199/119D/0EF1` through a deterministic Dragster finish; trace isolated stunt combinations into `12AF`; reconcile Nitrodon's ROM map offsets against decoded RNC course payloads; replay/interpret the bounce trace against current collision code.
 **Dependencies:** Nitrodon's annotations remain historical working evidence where not independently reproduced; the promoted symbol changes are limited to cases with direct instruction-level or dynamic corroboration.

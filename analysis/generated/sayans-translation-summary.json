@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_patch": "references/imported/patches/sayans-uniracers-2002/Uniraceresp.ips",
+  "source_patch": "reference/imported/patches/sayans-uniracers-2002/Uniraceresp.ips",
   "canonical_base": "reference/roms/retail/Uniracers_USA.sfc",
   "patch_sha256": "db68d50f647db678c31ee2d1ac84d9108292684d444d3b899abbbca88664bdd7",
   "base_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",

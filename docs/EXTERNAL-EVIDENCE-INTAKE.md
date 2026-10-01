@@ -2,17 +2,17 @@
 
 This document defines how public third-party research moves from an interesting lead into project-owned, reproducible evidence.
 
-The source registry is `references/catalog.yml`. The actionable queue is `references/evidence-worklist.json`. The worklist owns current uncertainty, acquisition state, next discriminator, expected deliverables, and whether human download assistance is actually required. It is intentionally separate from the chronological `docs/RESEARCH-LEDGER.md`.
+The source registry is `reference/catalog.yml`. The actionable queue is `reference/evidence-worklist.json`. The worklist owns current uncertainty, acquisition state, next discriminator, expected deliverables, and whether human download assistance is actually required. It is intentionally separate from the chronological `docs/RESEARCH-LEDGER.md`.
 
 ## Evidence pipeline
 
 Use the smallest path that can answer the current question:
 
-1. **Index the source.** Add stable title/author/date/URL/revision information and rights status to `references/catalog.yml`.
+1. **Index the source.** Add stable title/author/date/URL/revision information and rights status to `reference/catalog.yml`.
 2. **Create or update a worklist lead.** State the uncertainty as a question, identify the cheapest useful discriminator, and say what durable project artifact should result.
 3. **Acquire only what is useful.** Prefer original patches, source, traces, movies, metadata, SPCs, documents, or other research artifacts over transformed ROM images.
 4. **Fingerprint immediately.** Record original filename/container, byte size, SHA-256, source URL, retrieval date, and upstream revision/hash where applicable.
-5. **Keep third-party bytes quarantined.** Imported material belongs under `references/imported/` and must follow `references/imported/MANIFEST.json` and `docs/THIRD-PARTY-CODE-AUDIT.md`.
+5. **Keep third-party bytes quarantined.** Imported material belongs under `reference/imported/` and must follow `reference/imported/MANIFEST.json` and `docs/THIRD-PARTY-CODE-AUDIT.md`.
 6. **Convert the artifact into a project-owned observation.** Examples include touched-ROM ranges, RAM predicates, symbol candidates, decoded data structure, input stream, audio-driver fingerprint, or emulator-sensitive event.
 7. **Reproduce locally.** External claims and labels remain leads until a canonical ROM/runtime experiment supports them.
 8. **Promote durable truth.** Confirmed technical conclusions go to `docs/RESEARCH-LEDGER.md`, `docs/SYMBOLS.md`, a deterministic fixture/test, or the subsystem authority that owns the fact.

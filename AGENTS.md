@@ -19,7 +19,7 @@ Compact router for coding and research agents. Load the smallest current authori
 | Established reverse-engineering claim | `docs/RESEARCH-LEDGER.md` |
 | Recovered code/data symbol | `docs/SYMBOLS.md` |
 | Original DMA development history / missing artifacts | `docs/original-development/DEVELOPER-TECHNICAL-HISTORY.md`, `docs/original-development/ACQUISITION-LEDGER.md` |
-| External source, acquisition lead, or imported research artifact | `docs/EXTERNAL-EVIDENCE-INTAKE.md`, `references/evidence-worklist.json`, `references/catalog.yml`, then `docs/THIRD-PARTY-CODE-AUDIT.md` as applicable |
+| External source, acquisition lead, or imported research artifact | `docs/EXTERNAL-EVIDENCE-INTAKE.md`, `reference/evidence-worklist.json`, `reference/catalog.yml`, then `docs/THIRD-PARTY-CODE-AUDIT.md` as applicable |
 | Tool choice / installing research software | `docs/TOOLCHAIN.md`, `tools/toolchain.json`; for producer/consumer chains and adapters, `docs/TOOL-INTEROPERABILITY.md` |
 | Adopting or adapting imported scripts/source | `docs/THIRD-PARTY-CODE-AUDIT.md`, then the imported source |
 | Periodic repository hygiene | Execute `docs/PERIODIC-REPOSITORY-HYGIENE.md` from current `main` |
@@ -90,8 +90,7 @@ The goal is to make outside knowledge an automatic escape hatch from local tunne
 
 ## Repository boundaries
 
-- `reference/` contains project-input and project-local reference material needed to reproduce work, including preserved ROM builds and historical tool packages.
-- `references/` is the provenance-managed external research corpus: imported third-party evidence under `references/imported/`, project summaries under `references/notes/`, and the source registry in `references/catalog.yml`.
+- `reference/` is the unified research/reference root: preserved ROM builds and historical tool packages live alongside provenance-managed external evidence under `reference/imported/`, project summaries under `reference/notes/`, and the source registry in `reference/catalog.yml`.
 - `analysis/generated/` contains compact reproducible analysis products suitable for version control.
 - `.tools/` is ignored local installation/build space populated by `tools/bootstrap_toolchain.py`.
 - Scratch captures, savestates, traces, extracted assets, generated recompilation output, emulator workspaces, and bulky intermediate products stay ignored unless deliberately promoted with provenance and a documented reason.

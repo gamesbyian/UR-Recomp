@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_directory": "references/imported/reverse-engineering/nitrodon",
+  "source_directory": "reference/imported/reverse-engineering/nitrodon",
   "status": "historical evidence reconciled with current ROM/runtime work",
   "corrected_symbols": {
     "7E:042F": {

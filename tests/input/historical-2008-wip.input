@@ -1,4 +1,4 @@
-# Extracted from references/imported/tas-bots/uniracers-2008-wip-microstorage.smv
+# Extracted from reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv
 # Raw SMV v1, reset-anchored, 4975 controller samples including frame 0.
 # Format: start-frame:duration:12-bit-mask (B,Y,Select,Start,Up,Down,Left,Right,A,X,L,R).
 446:1:010

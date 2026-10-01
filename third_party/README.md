@@ -2,7 +2,7 @@
 
 This directory is the boundary for UR-Recomp's offline/island toolchain.
 
-The canonical plan is `docs/ISLAND-TOOLCHAIN-PLAN.md`. `manifest.json` records provenance and migration state. Research evidence remains under `references/`; do not mix evidence imports with executable dependencies.
+The canonical plan is `docs/ISLAND-TOOLCHAIN-PLAN.md`. `manifest.json` records provenance and migration state. Research evidence remains under `reference/`; do not mix evidence imports with executable dependencies.
 
 Layout as components land:
 

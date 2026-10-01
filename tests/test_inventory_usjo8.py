@@ -18,7 +18,7 @@ class Usjo8InventoryTests(unittest.TestCase):
         generated = ROOT / "analysis" / "generated" / "usjo8-static-inventory.json"
         expected = json.loads(generated.read_text(encoding="utf-8"))
         actual = MODULE.build_inventory(source)
-        actual["source"] = "references/imported/tas-bots/usjo8.lua"
+        actual["source"] = "reference/imported/tas-bots/usjo8.lua"
         self.assertEqual(actual, expected)
 
     def test_recovered_read_surface_is_explicit(self):

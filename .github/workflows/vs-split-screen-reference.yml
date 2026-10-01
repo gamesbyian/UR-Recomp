@@ -2,13 +2,25 @@ name: VS split-screen reference regression
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     paths:
       - "tests/input/vs-first-race.input"
       - "tests/input/vs-first-race-observe.script"
+      - "tools/summarize_paired_player_slots.py"
+      - "tools/patches/snesrecomp-input-file.patch"
+      - ".github/workflows/vs-split-screen-reference.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "tests/input/vs-first-race.input"
+      - "tests/input/vs-first-race-observe.script"
+      - "tests/input/vs-race-entry-microtrace.script"
       - "tools/assert_uniracers_vs_oam_seam.py"
       - "tools/decode_uniracers_oam_split.py"
       - "tools/patches/snesrecomp-dual-controller-input.patch"
+      - "tools/patches/snesrecomp-input-file.patch"
+      - "tools/summarize_paired_player_slots.py"
       - "tools/patches/snes9x-snesref-debug-exports.patch"
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tools/toolchain-entries/beetle-bsnes-libretro.json"
@@ -32,7 +44,11 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
 
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
@@ -48,6 +64,37 @@ jobs:
           python3 tools/bootstrap_toolchain.py --offline --tool beetle-bsnes-libretro --jobs 2
           cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
           cmake --build "$RUNNER_TEMP/snesref-build" -j2
+
+      - name: Build native target with neutral input replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          ROOT="$RUNNER_TEMP/native"
+          mkdir -p "$ROOT"
+          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --no-submodules \
+            --generate \
+            --no-build
+          PROJ="$ROOT/UniracersSNESRecomp"
+          cmake -S "$PROJ" -B "$PROJ/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF
+          cmake --build "$PROJ/build" -j2
+          test -x "$PROJ/build/UniracersSNESRecomp"
 
       - name: Run identical VS fixture through Snes9x and Beetle
         shell: bash
@@ -85,15 +132,122 @@ jobs:
           run_core snes9x "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
           run_core beetle "$GITHUB_WORKSPACE/.tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so" 1
 
+      - name: Run identical VS fixture through native target
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          INPUT="$GITHUB_WORKSPACE/tests/input/vs-first-race.input"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/vs-first-race-observe.script"
+          DUMPS="$RUNNER_TEMP/native-dumps"
+          mkdir -p "$DUMPS"
+          SNESRECOMP_INPUT_FILE="$INPUT" \
+          SNESRECOMP_DUMP_DIR="$DUMPS" \
+          SDL_AUDIODRIVER=dummy \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$RUNNER_TEMP/native.log" 2>&1
+          cat "$RUNNER_TEMP/native.log"
+          test -s "$DUMPS/vs-race-1140.wram.bin"
+
       - name: Assert split-screen gameplay state
         shell: bash
         run: |
           set -euo pipefail
-          for label in snes9x beetle; do
+          for label in native snes9x beetle; do
             for tag in vs-race-1140 vs-race-1240 vs-race-1340 vs-race-1440 vs-race-1620; do
               python3 -c 'import pathlib,sys; w=pathlib.Path(sys.argv[1]).read_bytes(); assert w[0x0313] == 1, f"{sys.argv[2]}: inRace=0x{w[0x0313]:02X}"; print(f"{sys.argv[2]}: inRace=1 menu=0x{w[0x009F]:02X}")' "$RUNNER_TEMP/${label}-dumps/${tag}.wram.bin" "${label}/${tag}"
             done
           done
+
+      - name: Compare native and Snes9x paired racer semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          # 1140 is a race-entry observation seam; dense common-schedule tracing matched it,
+          # but sparse dump cadence can perturb that transient. Gate stable post-entry state.
+          CHECKPOINTS=(
+            --checkpoint vs-race-1240
+            --checkpoint vs-race-1340
+            --checkpoint vs-race-1440
+            --checkpoint vs-race-1620
+          )
+          for label in native snes9x; do
+            python3 tools/summarize_paired_player_slots.py \
+              "$RUNNER_TEMP/${label}-dumps" "${CHECKPOINTS[@]}" \
+              --json-out "$RUNNER_TEMP/${label}-vs-state.json" \
+              | tee "$RUNNER_TEMP/${label}-vs-state.txt"
+          done
+
+          python3 - "$RUNNER_TEMP/native-vs-state.json" "$RUNNER_TEMP/snes9x-vs-state.json" <<'PY'
+          import json, pathlib, sys
+          native=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          ref=json.loads(pathlib.Path(sys.argv[2]).read_text())
+          if list(native) != list(ref):
+              raise SystemExit(f"checkpoint mismatch: {list(native)} != {list(ref)}")
+
+          slot_fields={
+              "slot1": ["x_pos","y_pos","x_speed","y_speed","air_effective","rotation_candidate"],
+              "slot2": ["x_pos","y_pos","x_speed","y_speed","air","rotation_candidate"],
+          }
+          progress_fields=["next_checkpoint","finish_gate","laps_remaining"]
+          failures=[]
+          for cp in native:
+              diffs={}
+              # Exact slot-state parity is required before active movement. The final
+              # checkpoint is a causal gameplay gate: current main shows a tiny P2
+              # timing drift there, recorded in docs rather than hidden by tolerance.
+              if cp != "vs-race-1620":
+                  for slot,fields in slot_fields.items():
+                      for field in fields:
+                          a=native[cp][slot][field]
+                          b=ref[cp][slot][field]
+                          if a != b:
+                              diffs[f"{slot}.{field}"]=(a,b)
+              for player in ("player1","player2"):
+                  for field in progress_fields:
+                      a=native[cp]["race_progress"][player][field]
+                      b=ref[cp]["race_progress"][player][field]
+                      if a != b:
+                          diffs[f"{player}.{field}"]=(a,b)
+              print(cp, "MATCH" if not diffs else diffs)
+              if diffs:
+                  failures.append((cp,diffs))
+          if failures:
+              raise SystemExit(1)
+
+          final_native=native["vs-race-1620"]
+          final_ref=ref["vs-race-1620"]
+          final_drift={}
+          for slot,fields in slot_fields.items():
+              for field in fields:
+                  a=final_native[slot][field]
+                  b=final_ref[slot][field]
+                  if a != b:
+                      final_drift[f"{slot}.{field}"]=(a,b)
+          print("final active-movement slot drift:", final_drift)
+
+          for label,data in (("native",native),("snes9x",ref)):
+              baseline=data["vs-race-1440"]
+              final=data["vs-race-1620"]
+              moved={}
+              for slot in ("slot1","slot2"):
+                  moved[slot]=(
+                      final[slot]["x_pos"] != baseline[slot]["x_pos"]
+                      or final[slot]["y_pos"] != baseline[slot]["y_pos"]
+                  )
+                  print(label,slot,"moved=",moved[slot],
+                        "from=",(baseline[slot]["x_pos"],baseline[slot]["y_pos"]),
+                        "to=",(final[slot]["x_pos"],final[slot]["y_pos"]),
+                        "vx=",final[slot]["x_speed"])
+              if not all(moved.values()):
+                  raise SystemExit(f"{label}: active VS fixture did not move both racer slots: {moved}")
+              if final["slot1"]["x_speed"] <= 0 or final["slot2"]["x_speed"] >= 0:
+                  raise SystemExit(
+                      f"{label}: expected P1 Right/P2 Left velocity signs, got "
+                      f"{final['slot1']['x_speed']}/{final['slot2']['x_speed']}"
+                  )
+          PY
 
       - name: Assert canonical active-display OAM seam
         run: |
@@ -118,6 +272,12 @@ jobs:
         with:
           name: uniracers-vs-split-screen-reference
           path: |
+            ${{ runner.temp }}/native.log
+            ${{ runner.temp }}/native-vs-state.json
+            ${{ runner.temp }}/native-vs-state.txt
+            ${{ runner.temp }}/snes9x-vs-state.json
+            ${{ runner.temp }}/snes9x-vs-state.txt
+            ${{ runner.temp }}/native-dumps/
             ${{ runner.temp }}/snes9x.log
             ${{ runner.temp }}/beetle.log
             ${{ runner.temp }}/snes9x-dumps/

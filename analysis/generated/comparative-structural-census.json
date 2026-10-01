@@ -54,18 +54,22 @@
     {
       "id": "player-state-marshal",
       "path": "analysis/generated/player-state-marshal-structure-island.json"
+    },
+    {
+      "id": "collision-resolution",
+      "path": "analysis/generated/collision-resolution-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 88,
-    "code_regions": 80,
+    "regions": 100,
+    "code_regions": 92,
     "data_regions": 8,
-    "bounded_bytes": 12099,
-    "bounded_code_region_bytes": 10954,
+    "bounded_bytes": 14689,
+    "bounded_code_region_bytes": 13544,
     "bounded_data_region_bytes": 1145,
-    "analyzer_opcode_bytes": 4556,
-    "analyzer_operand_bytes": 6336,
-    "analyzer_unreached_or_data_bytes": 1207,
+    "analyzer_opcode_bytes": 5665,
+    "analyzer_operand_bytes": 7764,
+    "analyzer_unreached_or_data_bytes": 1260,
     "banks": [
       "81",
       "82",
@@ -1177,6 +1181,558 @@
           "shift": 0,
           "similarity": 1,
           "size": 341,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-resolution",
+      "source_path": "analysis/generated/collision-resolution-structure-island.json",
+      "name": "resolver_prefix_before_europe_nops",
+      "kind": "code",
+      "usa_start": "81:8FB8",
+      "usa_end": "81:9303",
+      "size": 844,
+      "usa_opcode_bytes": 348,
+      "usa_operand_bytes": 496,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:8F98",
+          "end": "81:92E3",
+          "shift": -32,
+          "similarity": 0.909953,
+          "size": 844,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:8FB8",
+          "end": "81:9303",
+          "shift": 0,
+          "similarity": 1,
+          "size": 844,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:8F98",
+          "end": "81:92E3",
+          "shift": -32,
+          "similarity": 0.921801,
+          "size": 844,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:8FB8",
+          "end": "81:9303",
+          "shift": 0,
+          "similarity": 1,
+          "size": 844,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-resolution",
+      "source_path": "analysis/generated/collision-resolution-structure-island.json",
+      "name": "resolver_live_a",
+      "kind": "code",
+      "usa_start": "81:9304",
+      "usa_end": "81:9483",
+      "size": 384,
+      "usa_opcode_bytes": 161,
+      "usa_operand_bytes": 223,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:92EA",
+          "end": "81:9469",
+          "shift": -26,
+          "similarity": 0.914062,
+          "size": 384,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:9304",
+          "end": "81:9483",
+          "shift": 0,
+          "similarity": 1,
+          "size": 384,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:92E4",
+          "end": "81:9463",
+          "shift": -32,
+          "similarity": 0.916667,
+          "size": 384,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:9304",
+          "end": "81:9483",
+          "shift": 0,
+          "similarity": 1,
+          "size": 384,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-resolution",
+      "source_path": "analysis/generated/collision-resolution-structure-island.json",
+      "name": "resolver_usa_dormant_a",
+      "kind": "code",
+      "usa_start": "81:9484",
+      "usa_end": "81:948A",
+      "size": 7,
+      "usa_opcode_bytes": 0,
+      "usa_operand_bytes": 0,
+      "usa_unreached_or_data_bytes": 7,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:946A",
+          "end": "81:9470",
+          "shift": -26,
+          "similarity": 0.857143,
+          "size": 7,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:9484",
+          "end": "81:948A",
+          "shift": 0,
+          "similarity": 1,
+          "size": 7,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:9464",
+          "end": "81:946A",
+          "shift": -32,
+          "similarity": 1,
+          "size": 7,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:9484",
+          "end": "81:948A",
+          "shift": 0,
+          "similarity": 1,
+          "size": 7,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-resolution",
+      "source_path": "analysis/generated/collision-resolution-structure-island.json",
+      "name": "resolver_live_b",
+      "kind": "code",
+      "usa_start": "81:948B",
+      "usa_end": "81:9645",
+      "size": 443,
+      "usa_opcode_bytes": 195,
+      "usa_operand_bytes": 248,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:9471",
+          "end": "81:962B",
+          "shift": -26,
+          "similarity": 0.911964,
+          "size": 443,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:948B",
+          "end": "81:9645",
+          "shift": 0,
+          "similarity": 1,
+          "size": 443,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:946B",
+          "end": "81:9625",
+          "shift": -32,
+          "similarity": 0.934537,
+          "size": 443,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:948B",
+          "end": "81:9645",
+          "shift": 0,
+          "similarity": 1,
+          "size": 443,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-resolution",
+      "source_path": "analysis/generated/collision-resolution-structure-island.json",
+      "name": "resolver_usa_dormant_b",
+      "kind": "code",
+      "usa_start": "81:9646",
+      "usa_end": "81:9669",
+      "size": 36,
+      "usa_opcode_bytes": 0,
+      "usa_operand_bytes": 0,
+      "usa_unreached_or_data_bytes": 36,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:962C",
+          "end": "81:964F",
+          "shift": -26,
+          "similarity": 0.888889,
+          "size": 36,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:9646",
+          "end": "81:9669",
+          "shift": 0,
+          "similarity": 1,
+          "size": 36,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:9626",
+          "end": "81:9649",
+          "shift": -32,
+          "similarity": 0.888889,
+          "size": 36,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:9646",
+          "end": "81:9669",
+          "shift": 0,
+          "similarity": 1,
+          "size": 36,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-resolution",
+      "source_path": "analysis/generated/collision-resolution-structure-island.json",
+      "name": "resolver_live_c",
+      "kind": "code",
+      "usa_start": "81:966A",
+      "usa_end": "81:96AC",
+      "size": 67,
+      "usa_opcode_bytes": 30,
+      "usa_operand_bytes": 37,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:9650",
+          "end": "81:9692",
+          "shift": -26,
+          "similarity": 0.820896,
+          "size": 67,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:966A",
+          "end": "81:96AC",
+          "shift": 0,
+          "similarity": 1,
+          "size": 67,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:964A",
+          "end": "81:968C",
+          "shift": -32,
+          "similarity": 0.820896,
+          "size": 67,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:966A",
+          "end": "81:96AC",
+          "shift": 0,
+          "similarity": 1,
+          "size": 67,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-resolution",
+      "source_path": "analysis/generated/collision-resolution-structure-island.json",
+      "name": "resolver_usa_dormant_c",
+      "kind": "code",
+      "usa_start": "81:96AD",
+      "usa_end": "81:96AF",
+      "size": 3,
+      "usa_opcode_bytes": 0,
+      "usa_operand_bytes": 0,
+      "usa_unreached_or_data_bytes": 3,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:9693",
+          "end": "81:9695",
+          "shift": -26,
+          "similarity": 0.666667,
+          "size": 3,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:96AD",
+          "end": "81:96AF",
+          "shift": 0,
+          "similarity": 1,
+          "size": 3,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:968D",
+          "end": "81:968F",
+          "shift": -32,
+          "similarity": 0.666667,
+          "size": 3,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:96AD",
+          "end": "81:96AF",
+          "shift": 0,
+          "similarity": 1,
+          "size": 3,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-resolution",
+      "source_path": "analysis/generated/collision-resolution-structure-island.json",
+      "name": "resolver_live_d",
+      "kind": "code",
+      "usa_start": "81:96B0",
+      "usa_end": "81:97FF",
+      "size": 336,
+      "usa_opcode_bytes": 165,
+      "usa_operand_bytes": 171,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:9696",
+          "end": "81:97E5",
+          "shift": -26,
+          "similarity": 0.949405,
+          "size": 336,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:96B0",
+          "end": "81:97FF",
+          "shift": 0,
+          "similarity": 1,
+          "size": 336,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:9690",
+          "end": "81:97DF",
+          "shift": -32,
+          "similarity": 0.952381,
+          "size": 336,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:96B0",
+          "end": "81:97FF",
+          "shift": 0,
+          "similarity": 1,
+          "size": 336,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-resolution",
+      "source_path": "analysis/generated/collision-resolution-structure-island.json",
+      "name": "resolver_tail_after_europe_gate",
+      "kind": "code",
+      "usa_start": "81:9800",
+      "usa_end": "81:983A",
+      "size": 59,
+      "usa_opcode_bytes": 31,
+      "usa_operand_bytes": 28,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:97F1",
+          "end": "81:982B",
+          "shift": -15,
+          "similarity": 0.966102,
+          "size": 59,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:9800",
+          "end": "81:983A",
+          "shift": 0,
+          "similarity": 1,
+          "size": 59,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:97E0",
+          "end": "81:981A",
+          "shift": -32,
+          "similarity": 0.966102,
+          "size": 59,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:9800",
+          "end": "81:983A",
+          "shift": 0,
+          "similarity": 1,
+          "size": 59,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-resolution",
+      "source_path": "analysis/generated/collision-resolution-structure-island.json",
+      "name": "geometry_helper_live_prefix",
+      "kind": "code",
+      "usa_start": "81:983B",
+      "usa_end": "81:9968",
+      "size": 302,
+      "usa_opcode_bytes": 133,
+      "usa_operand_bytes": 169,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:982C",
+          "end": "81:9959",
+          "shift": -15,
+          "similarity": 0.980132,
+          "size": 302,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:983B",
+          "end": "81:9968",
+          "shift": 0,
+          "similarity": 1,
+          "size": 302,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:981B",
+          "end": "81:9948",
+          "shift": -32,
+          "similarity": 0.986755,
+          "size": 302,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:983B",
+          "end": "81:9968",
+          "shift": 0,
+          "similarity": 1,
+          "size": 302,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-resolution",
+      "source_path": "analysis/generated/collision-resolution-structure-island.json",
+      "name": "geometry_helper_usa_dormant",
+      "kind": "code",
+      "usa_start": "81:9969",
+      "usa_end": "81:9978",
+      "size": 16,
+      "usa_opcode_bytes": 4,
+      "usa_operand_bytes": 5,
+      "usa_unreached_or_data_bytes": 7,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:995A",
+          "end": "81:9969",
+          "shift": -15,
+          "similarity": 0.875,
+          "size": 16,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:9969",
+          "end": "81:9978",
+          "shift": 0,
+          "similarity": 1,
+          "size": 16,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:9949",
+          "end": "81:9958",
+          "shift": -32,
+          "similarity": 1,
+          "size": 16,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:9969",
+          "end": "81:9978",
+          "shift": 0,
+          "similarity": 1,
+          "size": 16,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-resolution",
+      "source_path": "analysis/generated/collision-resolution-structure-island.json",
+      "name": "geometry_helper_live_tail",
+      "kind": "code",
+      "usa_start": "81:9979",
+      "usa_end": "81:99D5",
+      "size": 93,
+      "usa_opcode_bytes": 42,
+      "usa_operand_bytes": 51,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:996A",
+          "end": "81:99C6",
+          "shift": -15,
+          "similarity": 0.967742,
+          "size": 93,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:9979",
+          "end": "81:99D5",
+          "shift": 0,
+          "similarity": 1,
+          "size": 93,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:9959",
+          "end": "81:99B5",
+          "shift": -32,
+          "similarity": 0.967742,
+          "size": 93,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:9979",
+          "end": "81:99D5",
+          "shift": 0,
+          "similarity": 1,
+          "size": 93,
           "size_delta": 0
         }
       }

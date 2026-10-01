@@ -154,8 +154,13 @@ class FixtureRunner:
             elif op == "press":
                 if self.controller_runs is not None:
                     raise RuntimeError("press commands cannot be mixed with --input-file; put controller input in the neutral stream")
+                buttons = {
+                    name: True
+                    for name in command["button"].split("+")
+                    if name
+                }
                 self.mesen.tool(
-                    "input.set", port=0, subport=0, buttons={command["button"]: True}
+                    "input.set", port=0, subport=0, buttons=buttons
                 )
                 self.step(command["frames"])
                 self.mesen.tool("input.set", port=0, subport=0, buttons={})

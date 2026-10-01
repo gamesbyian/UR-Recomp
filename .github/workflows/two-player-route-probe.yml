@@ -1,0 +1,83 @@
+name: ordinary 2P route probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "tests/input/two-player-route-probe.input"
+      - "tests/input/two-player-route-probe-observe.script"
+      - ".github/workflows/two-player-route-probe.yml"
+
+concurrency:
+  group: ordinary-2p-route-probe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Patch and build two-pad snesref
+        run: |
+          git -C snesrecomp apply --check "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
+          git -C snesrecomp apply "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+
+      - name: Run bounded ordinary 2P probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/dumps"
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/two-player-route-probe.input" \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/two-player-route-probe-observe.script" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/dumps" \
+            "$RUNNER_TEMP/snesref-build/snesref" \
+            "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            | tee "$RUNNER_TEMP/probe.log"
+
+      - name: Summarize route
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path("${{ runner.temp }}/dumps")
+          for p in sorted(root.glob("two-player-*.wram.bin")):
+              w=p.read_bytes()
+              def u16(off):
+                  return w[off] | (w[off+1] << 8)
+              print(
+                  p.stem,
+                  f"menu=0x{w[0x009F]:02X}",
+                  f"selected=0x{w[0x009B]:02X}",
+                  f"inRace={w[0x0313]}",
+                  f"p1x={u16(0x04A1)}",
+                  f"p2x={u16(0x04A3)}",
+                  f"p1xs={u16(0x047B)}",
+                  f"p2xs={u16(0x047D)}",
+              )
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ordinary-2p-route-probe
+          path: |
+            ${{ runner.temp }}/probe.log
+            ${{ runner.temp }}/dumps/
+          retention-days: 3

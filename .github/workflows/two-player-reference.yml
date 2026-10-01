@@ -136,6 +136,15 @@ jobs:
         run: |
           python3 tools/assert_uniracers_vs_oam_seam.py             "$RUNNER_TEMP/snes9x-dumps/two-player-race-1220.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-race-1420.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-p1-post-1470.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-p2-post-1570.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-both-post-1620.ppuw.tsv"
 
+      - name: Assert ordinary 2P high-OAM routing
+        run: |
+          python3 tools/decode_uniracers_oam_split.py --expect 0x5A \
+            "$RUNNER_TEMP/snes9x-dumps/two-player-race-1220.oam.bin" \
+            "$RUNNER_TEMP/snes9x-dumps/two-player-race-1420.oam.bin" \
+            "$RUNNER_TEMP/snes9x-dumps/two-player-p1-post-1470.oam.bin" \
+            "$RUNNER_TEMP/snes9x-dumps/two-player-p2-post-1570.oam.bin" \
+            "$RUNNER_TEMP/snes9x-dumps/two-player-both-post-1620.oam.bin"
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:

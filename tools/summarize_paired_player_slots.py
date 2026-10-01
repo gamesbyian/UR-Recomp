@@ -38,7 +38,9 @@ CAMERA_AND_VIEWPORT = {
         "player1_y": ("u16", 0x041D),
         "player2_y": ("u16", 0x041F),
         "player1_x_velocity": ("s16", 0x04F5),
+        "player2_x_velocity": ("s16", 0x04F7),
         "player1_y_velocity": ("s16", 0x04F9),
+        "player2_y_velocity": ("s16", 0x04FB),
     },
     "screen_relative": {
         "screen2_player2_x": ("u8", 0x1501),
@@ -123,7 +125,8 @@ def main() -> int:
             f"air={b['air']} rot={b['rotation_candidate']} | "
             f"camera p1=({cam['player1_x']},{cam['player1_y']}) "
             f"p2=({cam['player2_x']},{cam['player2_y']}) "
-            f"p1v=({cam['player1_x_velocity']},{cam['player1_y_velocity']}) | "
+            f"p1v=({cam['player1_x_velocity']},{cam['player1_y_velocity']}) "
+            f"p2v=({cam['player2_x_velocity']},{cam['player2_y_velocity']}) | "
             f"screen1 p1=({screen['screen1_player1_x']},{screen['screen1_player1_y']}) "
             f"p2=({screen['screen1_player2_x']},{screen['screen1_player2_y']}) "
             f"screen2 p1=({screen['screen2_player1_x']},{screen['screen2_player1_y']}) "

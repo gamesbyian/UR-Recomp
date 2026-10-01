@@ -27,7 +27,7 @@ Human-maintained map of understood ROM functions, RAM, tables and hardware-facin
 | `03:8971` (USA) | `Text_HandleFCPositionControl` | 4 | Bounded static analysis of the Sayans translation-control grammar. The routine preserves A, recognizes low-byte `FC`, consumes the following parameter, scans subsequent character bytes until `FF` or `FB`, consults `Text_TestCharacterMetadataBit7` for ordinary bytes, then computes `parameter * 32 + horizontal adjustment` into DP `$9F`. The 32-column arithmetic and translated `FF FC xx` / `FB FC xx` sequences support a centered tilemap-position/layout role. Exact user-facing meaning of the parameter remains unpromoted. |
 | `00:8C41` (USA) | `Text_TestCharacterMetadataBit7` | 4 | Shared helper reached from four text/layout loops including `03:8998`, `00:C4CB`, and `00:C510`. It indexes the byte table at `00:C6F8` by character code and tests bit 7. Printable-table inspection shows uppercase A-Z in the low half while lowercase a-z, digits and much punctuation usually carry bit 7; therefore this is a verified character-metadata class test, not yet a proven glyph-width flag. |
 | TBD | `TBD_LoadCourse` | 0 | Not analyzed |
-| TBD | `TBD_UpdatePlayer` | 0 | Not analyzed |
+| `82:89B9` (USA) | `Race_UpdateRacersFrame` | 5 | Frame-level racer orchestration. It marshals player 1 persistent state/input into the shared `$0Fxx` current-player workspace, runs collision/stunt/physics helpers including `Stunt_FinalizeAndScoreAirTricks` and `Player_ApplyVerticalAcceleration`, writes results back to player-1 slots, then conditionally repeats the same pipeline for player 2 before returning at `82:9384`. |
 | TBD | `TBD_BuildOAM` | 0 | Not analyzed |
 
 ## RAM

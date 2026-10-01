@@ -341,16 +341,22 @@ jobs:
                   "x":("u16",0x0411),"y":("u16",0x0415),
                   "vx":("s16",0x04B7),"vy":("s16",0x04BB),
                   "air":("u8",0x0545),"rot":("u8",0x04C7),
+                  "working_vx":("s16",0x0F9F),
+                  "phase2":("u8",0x0302),"phase3":("u8",0x0304),
               },
               "p1-right":{
                   "x":("u16",0x0411),"y":("u16",0x0415),
                   "vx":("s16",0x04B7),"vy":("s16",0x04BB),
                   "air":("u8",0x0545),"rot":("u8",0x04C7),
+                  "working_vx":("s16",0x0F9F),
+                  "phase2":("u8",0x0302),"phase3":("u8",0x0304),
               },
               "p2-right":{
                   "x":("u16",0x0413),"y":("u16",0x0417),
                   "vx":("s16",0x04B9),"vy":("s16",0x04BD),
                   "air":("u8",0x0547),"rot":("u8",0x04C9),
+                  "working_vx":("s16",0x0F9F),
+                  "phase2":("u8",0x0302),"phase3":("u8",0x0304),
               },
           }
           def read(path, fields):

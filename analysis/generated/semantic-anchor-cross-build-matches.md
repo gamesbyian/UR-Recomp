@@ -15,22 +15,22 @@ These are mechanically projected USA LE16 semantic operands from each top struct
 | Delta | Evidence count |
 |---:|---:|
 | `+10` (`0x000A`) | 106 |
-| `+4` (`0x0004`) | 76 |
-| `+6` (`0x0006`) | 29 |
-| `+0` (`0x0000`) | 19 |
+| `+4` (`0x0004`) | 93 |
+| `+0` (`0x0000`) | 55 |
+| `+6` (`0x0006`) | 38 |
 | `+17` (`0x0011`) | 1 |
 
 ### legacy-beta
 
 | Delta | Evidence count |
 |---:|---:|
-| `+0` (`0x0000`) | 259 |
+| `+0` (`0x0000`) | 331 |
 
 ### pal-prototype-1994-11-29
 
 | Delta | Evidence count |
 |---:|---:|
-| `+0` (`0x0000`) | 129 |
+| `+0` (`0x0000`) | 196 |
 | `+4` (`0x0004`) | 115 |
 | `-2` (`0xFFFE`) | 1 |
 
@@ -42,21 +42,21 @@ P1/P2 persistent-state marshal into shared current-player simulation workspace.
 
 | Build | Rank | Candidate | Same offset? | Score | Byte similarity | Semantic-ref recall | N-gram votes |
 |---|---:|---|:---:|---:|---:|---:|---:|
-| europe-retail | 1 | `82:89CC` (`0x0109CC`) | no | 0.712 | 0.679 | 0.636 | 4 |
-| europe-retail | 2 | `82:89B9` (`0x0109B9`) | yes | 0.230 | 0.015 | 0.636 | 0 |
+| europe-retail | 1 | `82:89CC` (`0x0109CC`) | no | 0.678 | 0.679 | 0.538 | 4 |
+| europe-retail | 2 | `82:89B9` (`0x0109B9`) | yes | 0.196 | 0.015 | 0.538 | 0 |
 | legacy-beta | 1 | `82:89B9` (`0x0109B9`) | yes | 1.000 | 1.000 | 1.000 | 425 |
-| legacy-beta | 2 | `82:8EC1` (`0x010EC1`) | no | 0.366 | 0.349 | 0.545 | 1 |
-| legacy-beta | 3 | `82:8EA7` (`0x010EA7`) | no | 0.364 | 0.345 | 0.545 | 2 |
-| legacy-beta | 4 | `82:8EA3` (`0x010EA3`) | no | 0.309 | 0.232 | 0.545 | 7 |
-| legacy-beta | 5 | `81:8D46` (`0x008D46`) | no | 0.297 | 0.084 | 0.727 | 1 |
-| pal-prototype-1994-11-29 | 1 | `82:89B6` (`0x0109B6`) | no | 0.826 | 0.779 | 0.818 | 16 |
-| pal-prototype-1994-11-29 | 2 | `82:89AA` (`0x0109AA`) | no | 0.524 | 0.420 | 0.818 | 3 |
-| pal-prototype-1994-11-29 | 3 | `82:89B9` (`0x0109B9`) | yes | 0.324 | 0.076 | 0.818 | 0 |
-| pal-prototype-1994-11-29 | 4 | `82:8E86` (`0x010E86`) | no | 0.294 | 0.123 | 0.636 | 1 |
-| pal-prototype-1994-11-29 | 5 | `81:8974` (`0x008974`) | no | 0.204 | 0.052 | 0.455 | 2 |
+| legacy-beta | 2 | `82:8EC1` (`0x010EC1`) | no | 0.337 | 0.349 | 0.462 | 1 |
+| legacy-beta | 3 | `82:8EA7` (`0x010EA7`) | no | 0.335 | 0.345 | 0.462 | 2 |
+| legacy-beta | 4 | `81:8D46` (`0x008D46`) | no | 0.311 | 0.084 | 0.769 | 1 |
+| legacy-beta | 5 | `81:8D28` (`0x008D28`) | no | 0.305 | 0.071 | 0.769 | 1 |
+| pal-prototype-1994-11-29 | 1 | `82:89B6` (`0x0109B6`) | no | 0.836 | 0.779 | 0.846 | 16 |
+| pal-prototype-1994-11-29 | 2 | `82:89AA` (`0x0109AA`) | no | 0.534 | 0.420 | 0.846 | 3 |
+| pal-prototype-1994-11-29 | 3 | `82:89B9` (`0x0109B9`) | yes | 0.334 | 0.076 | 0.846 | 0 |
+| pal-prototype-1994-11-29 | 4 | `82:8E86` (`0x010E86`) | no | 0.260 | 0.123 | 0.538 | 1 |
+| pal-prototype-1994-11-29 | 5 | `81:8974` (`0x008974`) | no | 0.233 | 0.052 | 0.538 | 2 |
 ### europe-retail top-candidate deltas
 
-Top candidate: `82:89CC`; byte similarity 0.679; semantic-reference recall 0.636.
+Top candidate: `82:89CC`; byte similarity 0.679; semantic-reference recall 0.538.
 
 | Rel | Len | USA | Candidate |
 |---:|---:|---|---|
@@ -94,7 +94,7 @@ Top candidate: `82:89B9`; byte similarity 1.000; semantic-reference recall 1.000
 
 ### pal-prototype-1994-11-29 top-candidate deltas
 
-Top candidate: `82:89B6`; byte similarity 0.779; semantic-reference recall 0.818.
+Top candidate: `82:89B6`; byte similarity 0.779; semantic-reference recall 0.846.
 
 | Rel | Len | USA | Candidate |
 |---:|---:|---|---|
@@ -477,6 +477,115 @@ Top candidate: `81:C590`; byte similarity 0.969; semantic-reference recall 1.000
 | `+0x53` | 2 | `09c6` | `e6c5` |
 
 
+## Camera_MapGeometrySetup
+
+USA anchor: `81:A50E` / file `0x00A50E`; window `0x1D`.
+
+Recovered Nitrodon setup block: map-width geometry and derived camera/map state through RTS at 81:A52A.
+
+| Build | Rank | Candidate | Same offset? | Score | Byte similarity | Semantic-ref recall | N-gram votes |
+|---|---:|---|:---:|---:|---:|---:|---:|
+| europe-retail | 1 | `81:A50E` (`0x00A50E`) | yes | 0.034 | 0.069 | 0.000 | 0 |
+| legacy-beta | 1 | `81:A50E` (`0x00A50E`) | yes | 1.000 | 1.000 | 1.000 | 8 |
+| legacy-beta | 2 | `81:AD00` (`0x00AD00`) | no | 0.349 | 0.310 | 0.500 | 1 |
+| pal-prototype-1994-11-29 | 1 | `81:A4EE` (`0x00A4EE`) | no | 0.983 | 0.966 | 1.000 | 6 |
+| pal-prototype-1994-11-29 | 2 | `81:A50E` (`0x00A50E`) | yes | 0.017 | 0.034 | 0.000 | 0 |
+### europe-retail top-candidate deltas
+
+Top candidate: `81:A50E`; byte similarity 0.069; semantic-reference recall 0.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+| `+0x0` | 8 | `8ef1042068b68a0a` | `040a8df704a9e000` |
+| `+0x9` | 3 | `5305c2` | `df0de2` |
+| `+0xD` | 16 | `adf1040a8df304a9e0008dd90de22060` | `602020a56bc23020b09fad1d04186df9` |
+
+### legacy-beta top-candidate deltas
+
+Top candidate: `81:A50E`; byte similarity 1.000; semantic-reference recall 1.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+
+### pal-prototype-1994-11-29 top-candidate deltas
+
+Top candidate: `81:A4EE`; byte similarity 0.966; semantic-reference recall 1.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+| `+0x4` | 1 | `68` | `48` |
+
+
+## Camera_UpdatePersistentState
+
+USA anchor: `81:A52F` / file `0x00A52F`; window `0x70`.
+
+Recovered camera-position update block spanning both player camera state paths.
+
+| Build | Rank | Candidate | Same offset? | Score | Byte similarity | Semantic-ref recall | N-gram votes |
+|---|---:|---|:---:|---:|---:|---:|---:|
+| europe-retail | 1 | `81:A520` (`0x00A520`) | no | 0.668 | 0.804 | 0.333 | 6 |
+| europe-retail | 2 | `81:A4EC` (`0x00A4EC`) | no | 0.395 | 0.348 | 0.417 | 3 |
+| europe-retail | 3 | `81:A554` (`0x00A554`) | no | 0.312 | 0.357 | 0.167 | 3 |
+| europe-retail | 4 | `81:A50D` (`0x00A50D`) | no | 0.263 | 0.125 | 0.500 | 1 |
+| europe-retail | 5 | `81:A52F` (`0x00A52F`) | yes | 0.105 | 0.036 | 0.250 | 0 |
+| legacy-beta | 1 | `81:A52F` (`0x00A52F`) | yes | 1.000 | 1.000 | 1.000 | 34 |
+| legacy-beta | 2 | `81:A563` (`0x00A563`) | no | 0.430 | 0.366 | 0.667 | 3 |
+| legacy-beta | 3 | `81:A4FB` (`0x00A4FB`) | no | 0.425 | 0.357 | 0.667 | 3 |
+| legacy-beta | 4 | `81:9506` (`0x009506`) | no | 0.045 | 0.080 | 0.000 | 1 |
+| legacy-beta | 5 | `81:94D2` (`0x0094D2`) | no | 0.045 | 0.080 | 0.000 | 1 |
+| pal-prototype-1994-11-29 | 1 | `81:A50F` (`0x00A50F`) | no | 0.987 | 0.973 | 1.000 | 30 |
+| pal-prototype-1994-11-29 | 2 | `81:A543` (`0x00A543`) | no | 0.431 | 0.366 | 0.667 | 3 |
+| pal-prototype-1994-11-29 | 3 | `81:A4DB` (`0x00A4DB`) | no | 0.427 | 0.357 | 0.667 | 3 |
+| pal-prototype-1994-11-29 | 4 | `81:A52F` (`0x00A52F`) | yes | 0.263 | 0.000 | 0.750 | 0 |
+| pal-prototype-1994-11-29 | 5 | `81:94E6` (`0x0094E6`) | no | 0.045 | 0.080 | 0.000 | 1 |
+### europe-retail top-candidate deltas
+
+Top candidate: `81:A520`; byte similarity 0.804; semantic-reference recall 0.333.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+| `+0x3` | 1 | `bf` | `b0` |
+| `+0x6` | 1 | `19` | `1d` |
+| `+0xA` | 1 | `f5` | `f9` |
+| `+0xD` | 1 | `49` | `4f` |
+| `+0x10` | 1 | `19` | `1d` |
+| `+0x16` | 1 | `e9` | `ef` |
+| `+0x19` | 1 | `1d` | `21` |
+| `+0x1D` | 1 | `f9` | `fd` |
+| `+0x20` | 1 | `1d` | `21` |
+| `+0x32` | 1 | `e9` | `ef` |
+| `+0x35` | 1 | `db` | `e1` |
+| `+0x3A` | 1 | `1b` | `1f` |
+| `+0x3E` | 1 | `f7` | `fb` |
+| `+0x41` | 1 | `49` | `4f` |
+| `+0x44` | 1 | `1b` | `1f` |
+| `+0x4A` | 1 | `eb` | `f1` |
+| `+0x4D` | 1 | `1f` | `23` |
+| `+0x51` | 1 | `fb` | `ff` |
+| `+0x54` | 1 | `1f` | `23` |
+| `+0x66` | 1 | `eb` | `f1` |
+| `+0x69` | 1 | `9e` | `8f` |
+| `+0x6C` | 1 | `88` | `79` |
+
+### legacy-beta top-candidate deltas
+
+Top candidate: `81:A52F`; byte similarity 1.000; semantic-reference recall 1.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+
+### pal-prototype-1994-11-29 top-candidate deltas
+
+Top candidate: `81:A50F`; byte similarity 0.973; semantic-reference recall 1.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+| `+0x3` | 1 | `bf` | `9f` |
+| `+0x69` | 1 | `9e` | `7e` |
+| `+0x6C` | 1 | `88` | `68` |
+
+
 ## Collision_BuildContactShape
 
 USA anchor: `81:9E2A` / file `0x009E2A`; window `0x220`.
@@ -629,24 +738,24 @@ Landing-time stunt classification, messages, counters, and score path.
 
 | Build | Rank | Candidate | Same offset? | Score | Byte similarity | Semantic-ref recall | N-gram votes |
 |---|---:|---|:---:|---:|---:|---:|---:|
-| europe-retail | 1 | `82:9A53` (`0x011A53`) | no | 0.591 | 0.706 | 0.250 | 88 |
-| europe-retail | 2 | `82:9A4E` (`0x011A4E`) | no | 0.246 | 0.202 | 0.250 | 34 |
-| europe-retail | 3 | `82:9994` (`0x011994`) | no | 0.152 | 0.038 | 0.375 | 1 |
-| europe-retail | 4 | `82:9A8F` (`0x011A8F`) | no | 0.132 | 0.073 | 0.250 | 5 |
-| europe-retail | 5 | `82:9A63` (`0x011A63`) | no | 0.131 | 0.080 | 0.250 | 2 |
+| europe-retail | 1 | `82:9A53` (`0x011A53`) | no | 0.706 | 0.706 | 0.579 | 88 |
+| europe-retail | 2 | `82:9A4E` (`0x011A4E`) | no | 0.362 | 0.202 | 0.579 | 34 |
+| europe-retail | 3 | `82:9A8F` (`0x011A8F`) | no | 0.247 | 0.073 | 0.579 | 5 |
+| europe-retail | 4 | `82:9A63` (`0x011A63`) | no | 0.246 | 0.080 | 0.579 | 2 |
+| europe-retail | 5 | `82:9A43` (`0x011A43`) | no | 0.243 | 0.074 | 0.579 | 2 |
 | legacy-beta | 1 | `82:9A42` (`0x011A42`) | yes | 1.000 | 1.000 | 1.000 | 270 |
 | legacy-beta | 2 | `82:9A52` (`0x011A52`) | no | 0.393 | 0.084 | 1.000 | 2 |
 | legacy-beta | 3 | `82:9A7E` (`0x011A7E`) | no | 0.393 | 0.076 | 1.000 | 9 |
 | legacy-beta | 4 | `82:9A32` (`0x011A32`) | no | 0.391 | 0.080 | 1.000 | 2 |
 | legacy-beta | 5 | `82:9A5E` (`0x011A5E`) | no | 0.390 | 0.075 | 1.000 | 5 |
-| pal-prototype-1994-11-29 | 1 | `82:9A3D` (`0x011A3D`) | no | 0.775 | 0.724 | 0.750 | 103 |
-| pal-prototype-1994-11-29 | 2 | `82:9A38` (`0x011A38`) | no | 0.416 | 0.205 | 0.750 | 35 |
-| pal-prototype-1994-11-29 | 3 | `82:9A4D` (`0x011A4D`) | no | 0.309 | 0.081 | 0.750 | 4 |
-| pal-prototype-1994-11-29 | 4 | `82:9A23` (`0x011A23`) | no | 0.308 | 0.070 | 0.750 | 7 |
-| pal-prototype-1994-11-29 | 5 | `82:9A79` (`0x011A79`) | no | 0.307 | 0.074 | 0.750 | 5 |
+| pal-prototype-1994-11-29 | 1 | `82:9A3D` (`0x011A3D`) | no | 0.825 | 0.724 | 0.895 | 103 |
+| pal-prototype-1994-11-29 | 2 | `82:9A38` (`0x011A38`) | no | 0.467 | 0.205 | 0.895 | 35 |
+| pal-prototype-1994-11-29 | 3 | `82:9A4D` (`0x011A4D`) | no | 0.360 | 0.081 | 0.895 | 4 |
+| pal-prototype-1994-11-29 | 4 | `82:9A23` (`0x011A23`) | no | 0.359 | 0.070 | 0.895 | 7 |
+| pal-prototype-1994-11-29 | 5 | `82:9A79` (`0x011A79`) | no | 0.357 | 0.074 | 0.895 | 5 |
 ### europe-retail top-candidate deltas
 
-Top candidate: `82:9A53`; byte similarity 0.706; semantic-reference recall 0.250.
+Top candidate: `82:9A53`; byte similarity 0.706; semantic-reference recall 0.579.
 
 | Rel | Len | USA | Candidate |
 |---:|---:|---|---|
@@ -684,7 +793,7 @@ Top candidate: `82:9A42`; byte similarity 1.000; semantic-reference recall 1.000
 
 ### pal-prototype-1994-11-29 top-candidate deltas
 
-Top candidate: `82:9A3D`; byte similarity 0.724; semantic-reference recall 0.750.
+Top candidate: `82:9A3D`; byte similarity 0.724; semantic-reference recall 0.895.
 
 | Rel | Len | USA | Candidate |
 |---:|---:|---|---|

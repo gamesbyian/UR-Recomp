@@ -1,11 +1,13 @@
 {
   "clusters": [
     {
-      "anchor_count": 6,
+      "anchor_count": 8,
       "anchors": [
         "Collision_BuildContactShape",
         "Collision_TransformVelocity",
         "Course_LoadAndMaterialize",
+        "Input_DecodePlayer1Buttons",
+        "Player_ApplyVerticalAcceleration",
         "Race_BuildRacerOAMState",
         "Race_UpdateRacersFrame",
         "Stunt_FinalizeAndScoreAirTricks"
@@ -18,6 +20,7 @@
         "0E99",
         "0E9B",
         "0E9D",
+        "0F4B",
         "0F51",
         "0F53",
         "0F6B",
@@ -33,6 +36,7 @@
         "120B",
         "120F",
         "1265",
+        "12DF",
         "136B",
         "1513",
         "1514",
@@ -43,9 +47,9 @@
         "16F3"
       ],
       "delta": 10,
-      "evidence_count": 99,
-      "field_count": 29,
-      "observation_count": 31,
+      "evidence_count": 106,
+      "field_count": 31,
+      "observation_count": 35,
       "usa_words": [
         "0E89",
         "0E8B",
@@ -53,6 +57,7 @@
         "0E8F",
         "0E91",
         "0E93",
+        "0F41",
         "0F47",
         "0F49",
         "0F61",
@@ -68,6 +73,7 @@
         "1201",
         "1205",
         "125B",
+        "12D5",
         "1361",
         "1509",
         "150A",
@@ -79,89 +85,155 @@
       ]
     },
     {
-      "anchor_count": 3,
+      "anchor_count": 6,
       "anchors": [
+        "Camera_UpdatePersistentState",
+        "HUD_QueueMessage",
+        "Player_ApplyVerticalAcceleration",
         "Race_BuildRacerOAMState",
         "Race_UpdateRacersFrame",
         "Stunt_FinalizeAndScoreAirTricks"
       ],
       "build": "europe-retail",
       "candidate_words": [
-        "0415",
-        "0417",
-        "0419",
-        "041B",
-        "041D",
-        "0421",
-        "0425",
-        "0427",
-        "042F",
-        "0433",
-        "04BB",
-        "04BF"
-      ],
-      "delta": 4,
-      "evidence_count": 38,
-      "field_count": 12,
-      "observation_count": 14,
-      "usa_words": [
-        "0411",
-        "0413",
-        "0415",
-        "0417",
-        "0419",
-        "041D",
-        "0421",
-        "0423",
-        "042B",
-        "042F",
-        "04B7",
-        "04BB"
-      ]
-    },
-    {
-      "anchor_count": 2,
-      "anchors": [
-        "HUD_QueueMessage",
-        "Race_BuildRacerOAMState"
-      ],
-      "build": "europe-retail",
-      "candidate_words": [
+        "0547",
+        "054B",
         "0BA7",
         "0BA9",
+        "0BEF",
+        "0BF1",
         "0CC1",
         "0CE7",
         "0CE9",
         "0CEB",
         "0D11",
         "0D13",
-        "0D4F"
+        "0D4F",
+        "0DE1"
       ],
       "delta": 6,
-      "evidence_count": 28,
-      "field_count": 9,
-      "observation_count": 9,
+      "evidence_count": 38,
+      "field_count": 14,
+      "observation_count": 16,
       "usa_words": [
+        "0541",
+        "0545",
         "0BA1",
         "0BA3",
+        "0BE9",
+        "0BEB",
         "0CBB",
         "0CE1",
         "0CE3",
         "0CE5",
         "0D0B",
         "0D0D",
-        "0D49"
+        "0D49",
+        "0DDB"
       ]
     },
     {
-      "anchor_count": 2,
+      "anchor_count": 5,
+      "anchors": [
+        "Camera_UpdatePersistentState",
+        "Input_DecodePlayer1Buttons",
+        "Race_BuildRacerOAMState",
+        "Race_UpdateRacersFrame",
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0311",
+        "0313",
+        "0315",
+        "0319",
+        "031D",
+        "0321",
+        "0325",
+        "0329",
+        "032D",
+        "0331",
+        "0335",
+        "0339",
+        "033F",
+        "0415",
+        "0417",
+        "0419",
+        "041B",
+        "041D",
+        "041F",
+        "0421",
+        "0423",
+        "0425",
+        "0427",
+        "042F",
+        "0433",
+        "04BB",
+        "04BF",
+        "04CB",
+        "04F9",
+        "04FB",
+        "04FD",
+        "04FF"
+      ],
+      "delta": 4,
+      "evidence_count": 93,
+      "field_count": 32,
+      "observation_count": 36,
+      "usa_words": [
+        "030D",
+        "030F",
+        "0311",
+        "0315",
+        "0319",
+        "031D",
+        "0321",
+        "0325",
+        "0329",
+        "032D",
+        "0331",
+        "0335",
+        "033B",
+        "0411",
+        "0413",
+        "0415",
+        "0417",
+        "0419",
+        "041B",
+        "041D",
+        "041F",
+        "0421",
+        "0423",
+        "042B",
+        "042F",
+        "04B7",
+        "04BB",
+        "04C7",
+        "04F5",
+        "04F7",
+        "04F9",
+        "04FB"
+      ]
+    },
+    {
+      "anchor_count": 3,
       "anchors": [
         "Collision_TransformVelocity",
-        "Course_LoadAndMaterialize"
+        "Course_LoadAndMaterialize",
+        "Stunt_FinalizeAndScoreAirTricks"
       ],
       "build": "europe-retail",
       "candidate_words": [
         "000B",
+        "0230",
+        "0232",
+        "0234",
+        "0236",
+        "0260",
+        "0262",
+        "0264",
+        "0266",
+        "026A",
         "02C0",
         "02C2",
         "02C4",
@@ -173,11 +245,20 @@
         "420C"
       ],
       "delta": 0,
-      "evidence_count": 19,
-      "field_count": 10,
-      "observation_count": 10,
+      "evidence_count": 55,
+      "field_count": 19,
+      "observation_count": 19,
       "usa_words": [
         "000B",
+        "0230",
+        "0232",
+        "0234",
+        "0236",
+        "0260",
+        "0262",
+        "0264",
+        "0266",
+        "026A",
         "02C0",
         "02C2",
         "02C4",
@@ -190,12 +271,16 @@
       ]
     },
     {
-      "anchor_count": 8,
+      "anchor_count": 12,
       "anchors": [
+        "Camera_MapGeometrySetup",
+        "Camera_UpdatePersistentState",
         "Collision_BuildContactShape",
         "Collision_TransformVelocity",
         "Course_LoadAndMaterialize",
         "HUD_QueueMessage",
+        "Input_DecodePlayer1Buttons",
+        "Player_ApplyVerticalAcceleration",
         "Race_BuildRacerOAMState",
         "Race_HandleCheckpointFinish",
         "Race_UpdateRacersFrame",
@@ -204,24 +289,60 @@
       "build": "legacy-beta",
       "candidate_words": [
         "000B",
+        "0230",
+        "0232",
+        "0234",
+        "0236",
+        "0260",
+        "0262",
+        "0264",
+        "0266",
+        "026A",
         "02C0",
         "02C2",
         "02C4",
         "02C6",
+        "030D",
+        "030F",
+        "0311",
+        "0315",
+        "0319",
+        "031D",
+        "0321",
+        "0325",
+        "0329",
+        "032D",
+        "0331",
+        "0335",
+        "033B",
         "0411",
         "0413",
         "0415",
         "0417",
         "0419",
+        "041B",
         "041D",
+        "041F",
         "0421",
         "0423",
         "042B",
         "042F",
         "04B7",
         "04BB",
+        "04C7",
+        "04F1",
+        "04F3",
+        "04F5",
+        "04F7",
+        "04F9",
+        "04FB",
+        "0541",
+        "0545",
+        "0553",
         "0BA1",
         "0BA3",
+        "0BE9",
+        "0BEB",
         "0CBB",
         "0CE1",
         "0CE3",
@@ -229,6 +350,8 @@
         "0D0B",
         "0D0D",
         "0D49",
+        "0DD9",
+        "0DDB",
         "0E89",
         "0E8B",
         "0E8D",
@@ -236,6 +359,7 @@
         "0E91",
         "0E93",
         "0EF1",
+        "0F41",
         "0F47",
         "0F49",
         "0F61",
@@ -252,6 +376,7 @@
         "1201",
         "1205",
         "125B",
+        "12D5",
         "1361",
         "1509",
         "150A",
@@ -267,29 +392,65 @@
         "420C"
       ],
       "delta": 0,
-      "evidence_count": 212,
-      "field_count": 62,
-      "observation_count": 66,
+      "evidence_count": 330,
+      "field_count": 102,
+      "observation_count": 112,
       "usa_words": [
         "000B",
+        "0230",
+        "0232",
+        "0234",
+        "0236",
+        "0260",
+        "0262",
+        "0264",
+        "0266",
+        "026A",
         "02C0",
         "02C2",
         "02C4",
         "02C6",
+        "030D",
+        "030F",
+        "0311",
+        "0315",
+        "0319",
+        "031D",
+        "0321",
+        "0325",
+        "0329",
+        "032D",
+        "0331",
+        "0335",
+        "033B",
         "0411",
         "0413",
         "0415",
         "0417",
         "0419",
+        "041B",
         "041D",
+        "041F",
         "0421",
         "0423",
         "042B",
         "042F",
         "04B7",
         "04BB",
+        "04C7",
+        "04F1",
+        "04F3",
+        "04F5",
+        "04F7",
+        "04F9",
+        "04FB",
+        "0541",
+        "0545",
+        "0553",
         "0BA1",
         "0BA3",
+        "0BE9",
+        "0BEB",
         "0CBB",
         "0CE1",
         "0CE3",
@@ -297,6 +458,8 @@
         "0D0B",
         "0D0D",
         "0D49",
+        "0DD9",
+        "0DDB",
         "0E89",
         "0E8B",
         "0E8D",
@@ -304,6 +467,7 @@
         "0E91",
         "0E93",
         "0EF1",
+        "0F41",
         "0F47",
         "0F49",
         "0F61",
@@ -320,6 +484,7 @@
         "1201",
         "1205",
         "125B",
+        "12D5",
         "1361",
         "1509",
         "150A",
@@ -336,11 +501,175 @@
       ]
     },
     {
-      "anchor_count": 7,
+      "anchor_count": 10,
+      "anchors": [
+        "Camera_MapGeometrySetup",
+        "Camera_UpdatePersistentState",
+        "Collision_TransformVelocity",
+        "Course_LoadAndMaterialize",
+        "HUD_QueueMessage",
+        "Input_DecodePlayer1Buttons",
+        "Player_ApplyVerticalAcceleration",
+        "Race_BuildRacerOAMState",
+        "Race_UpdateRacersFrame",
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "000B",
+        "0230",
+        "0232",
+        "0234",
+        "0236",
+        "0260",
+        "0262",
+        "0264",
+        "0266",
+        "026A",
+        "02C0",
+        "02C2",
+        "02C4",
+        "02C6",
+        "030D",
+        "030F",
+        "0311",
+        "0315",
+        "0319",
+        "031D",
+        "0321",
+        "0325",
+        "0329",
+        "032D",
+        "0331",
+        "0335",
+        "033B",
+        "0411",
+        "0413",
+        "0415",
+        "0417",
+        "0419",
+        "041B",
+        "041D",
+        "041F",
+        "0421",
+        "0423",
+        "042B",
+        "042F",
+        "04B7",
+        "04BB",
+        "04C7",
+        "04F1",
+        "04F3",
+        "04F5",
+        "04F7",
+        "04F9",
+        "04FB",
+        "0541",
+        "0545",
+        "0553",
+        "0BA1",
+        "0BA3",
+        "0BE9",
+        "0BEB",
+        "0CBB",
+        "0CE1",
+        "0CE3",
+        "0CE5",
+        "0D0B",
+        "0D0D",
+        "0D49",
+        "0DD9",
+        "0DDB",
+        "2100",
+        "2115",
+        "2116",
+        "420B",
+        "420C"
+      ],
+      "delta": 0,
+      "evidence_count": 196,
+      "field_count": 69,
+      "observation_count": 75,
+      "usa_words": [
+        "000B",
+        "0230",
+        "0232",
+        "0234",
+        "0236",
+        "0260",
+        "0262",
+        "0264",
+        "0266",
+        "026A",
+        "02C0",
+        "02C2",
+        "02C4",
+        "02C6",
+        "030D",
+        "030F",
+        "0311",
+        "0315",
+        "0319",
+        "031D",
+        "0321",
+        "0325",
+        "0329",
+        "032D",
+        "0331",
+        "0335",
+        "033B",
+        "0411",
+        "0413",
+        "0415",
+        "0417",
+        "0419",
+        "041B",
+        "041D",
+        "041F",
+        "0421",
+        "0423",
+        "042B",
+        "042F",
+        "04B7",
+        "04BB",
+        "04C7",
+        "04F1",
+        "04F3",
+        "04F5",
+        "04F7",
+        "04F9",
+        "04FB",
+        "0541",
+        "0545",
+        "0553",
+        "0BA1",
+        "0BA3",
+        "0BE9",
+        "0BEB",
+        "0CBB",
+        "0CE1",
+        "0CE3",
+        "0CE5",
+        "0D0B",
+        "0D0D",
+        "0D49",
+        "0DD9",
+        "0DDB",
+        "2100",
+        "2115",
+        "2116",
+        "420B",
+        "420C"
+      ]
+    },
+    {
+      "anchor_count": 9,
       "anchors": [
         "Collision_BuildContactShape",
         "Collision_TransformVelocity",
         "Course_LoadAndMaterialize",
+        "Input_DecodePlayer1Buttons",
+        "Player_ApplyVerticalAcceleration",
         "Race_BuildRacerOAMState",
         "Race_HandleCheckpointFinish",
         "Race_UpdateRacersFrame",
@@ -355,6 +684,7 @@
         "0E95",
         "0E97",
         "0EF5",
+        "0F45",
         "0F4B",
         "0F4D",
         "0F65",
@@ -371,6 +701,7 @@
         "1205",
         "1209",
         "125F",
+        "12D9",
         "1365",
         "150D",
         "150E",
@@ -381,9 +712,9 @@
         "16ED"
       ],
       "delta": 4,
-      "evidence_count": 108,
-      "field_count": 31,
-      "observation_count": 33,
+      "evidence_count": 115,
+      "field_count": 33,
+      "observation_count": 37,
       "usa_words": [
         "0E89",
         "0E8B",
@@ -392,6 +723,7 @@
         "0E91",
         "0E93",
         "0EF1",
+        "0F41",
         "0F47",
         "0F49",
         "0F61",
@@ -408,6 +740,7 @@
         "1201",
         "1205",
         "125B",
+        "12D5",
         "1361",
         "1509",
         "150A",
@@ -416,88 +749,6 @@
         "15A1",
         "1645",
         "16E9"
-      ]
-    },
-    {
-      "anchor_count": 6,
-      "anchors": [
-        "Collision_TransformVelocity",
-        "Course_LoadAndMaterialize",
-        "HUD_QueueMessage",
-        "Race_BuildRacerOAMState",
-        "Race_UpdateRacersFrame",
-        "Stunt_FinalizeAndScoreAirTricks"
-      ],
-      "build": "pal-prototype-1994-11-29",
-      "candidate_words": [
-        "000B",
-        "02C0",
-        "02C2",
-        "02C4",
-        "02C6",
-        "0411",
-        "0413",
-        "0415",
-        "0417",
-        "0419",
-        "041D",
-        "0421",
-        "0423",
-        "042B",
-        "042F",
-        "04B7",
-        "04BB",
-        "0BA1",
-        "0BA3",
-        "0CBB",
-        "0CE1",
-        "0CE3",
-        "0CE5",
-        "0D0B",
-        "0D0D",
-        "0D49",
-        "2100",
-        "2115",
-        "2116",
-        "420B",
-        "420C"
-      ],
-      "delta": 0,
-      "evidence_count": 90,
-      "field_count": 31,
-      "observation_count": 33,
-      "usa_words": [
-        "000B",
-        "02C0",
-        "02C2",
-        "02C4",
-        "02C6",
-        "0411",
-        "0413",
-        "0415",
-        "0417",
-        "0419",
-        "041D",
-        "0421",
-        "0423",
-        "042B",
-        "042F",
-        "04B7",
-        "04BB",
-        "0BA1",
-        "0BA3",
-        "0CBB",
-        "0CE1",
-        "0CE3",
-        "0CE5",
-        "0D0B",
-        "0D0D",
-        "0D49",
-        "2100",
-        "2115",
-        "2116",
-        "420B",
-        "420C"
       ]
     }
   ],
@@ -516,6 +767,132 @@
         0
       ],
       "usa_word": "000B"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0230"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0230"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0232"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0232"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0234"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0234"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0236"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0236"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0260"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0260"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0262"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0262"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0264"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0264"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0266"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0266"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "026A"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "026A"
     },
     {
       "anchors": [
@@ -572,6 +949,188 @@
         0
       ],
       "usa_word": "02C6"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0311"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "030D"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0313"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "030F"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0315"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "0311"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0319"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "0315"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "031D"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "0319"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0321"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "031D"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0325"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "0321"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0329"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "0325"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "032D"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "0329"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0331"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "032D"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0335"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "0331"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0339"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "0335"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "033F"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "033B"
     },
     {
       "anchors": [
@@ -633,6 +1192,7 @@
     },
     {
       "anchors": [
+        "Camera_UpdatePersistentState",
         "Race_BuildRacerOAMState"
       ],
       "build": "europe-retail",
@@ -647,6 +1207,21 @@
     },
     {
       "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "041F"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "041B"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState",
         "Race_BuildRacerOAMState"
       ],
       "build": "europe-retail",
@@ -658,6 +1233,20 @@
         4
       ],
       "usa_word": "041D"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0423"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "041F"
     },
     {
       "anchors": [
@@ -745,6 +1334,105 @@
     },
     {
       "anchors": [
+        "Race_UpdateRacersFrame"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "04CB"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "04C7"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "04F9"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "04F5"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "04FB"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "04F7"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "04FD"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "04F9"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "04FF"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "04FB"
+    },
+    {
+      "anchors": [
+        "Player_ApplyVerticalAcceleration"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0547"
+      ],
+      "consistent": true,
+      "deltas": [
+        6
+      ],
+      "usa_word": "0541"
+    },
+    {
+      "anchors": [
+        "Race_UpdateRacersFrame",
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "054B"
+      ],
+      "consistent": true,
+      "deltas": [
+        6
+      ],
+      "usa_word": "0545"
+    },
+    {
+      "anchors": [
         "Race_BuildRacerOAMState"
       ],
       "build": "europe-retail",
@@ -770,6 +1458,34 @@
         6
       ],
       "usa_word": "0BA3"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0BEF"
+      ],
+      "consistent": true,
+      "deltas": [
+        6
+      ],
+      "usa_word": "0BE9"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0BF1"
+      ],
+      "consistent": true,
+      "deltas": [
+        6
+      ],
+      "usa_word": "0BEB"
     },
     {
       "anchors": [
@@ -857,6 +1573,7 @@
     },
     {
       "anchors": [
+        "Camera_UpdatePersistentState",
         "Race_BuildRacerOAMState"
       ],
       "build": "europe-retail",
@@ -868,6 +1585,20 @@
         6
       ],
       "usa_word": "0D49"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0DE1"
+      ],
+      "consistent": true,
+      "deltas": [
+        6
+      ],
+      "usa_word": "0DDB"
     },
     {
       "anchors": [
@@ -955,6 +1686,20 @@
     },
     {
       "anchors": [
+        "Player_ApplyVerticalAcceleration"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "0F4B"
+      ],
+      "consistent": true,
+      "deltas": [
+        10
+      ],
+      "usa_word": "0F41"
+    },
+    {
+      "anchors": [
         "Collision_BuildContactShape"
       ],
       "build": "europe-retail",
@@ -1027,6 +1772,7 @@
     {
       "anchors": [
         "Collision_TransformVelocity",
+        "Player_ApplyVerticalAcceleration",
         "Race_UpdateRacersFrame"
       ],
       "build": "europe-retail",
@@ -1041,6 +1787,7 @@
     },
     {
       "anchors": [
+        "Player_ApplyVerticalAcceleration",
         "Race_UpdateRacersFrame"
       ],
       "build": "europe-retail",
@@ -1164,6 +1911,20 @@
         10
       ],
       "usa_word": "125B"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "europe-retail",
+      "candidate_words": [
+        "12DF"
+      ],
+      "consistent": true,
+      "deltas": [
+        10
+      ],
+      "usa_word": "12D5"
     },
     {
       "anchors": [
@@ -1363,6 +2124,132 @@
     },
     {
       "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0230"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0230"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0232"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0232"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0234"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0234"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0236"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0236"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0260"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0260"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0262"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0262"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0264"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0264"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0266"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0266"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "026A"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "026A"
+    },
+    {
+      "anchors": [
         "Collision_TransformVelocity"
       ],
       "build": "legacy-beta",
@@ -1416,6 +2303,188 @@
         0
       ],
       "usa_word": "02C6"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "030D"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "030D"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "030F"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "030F"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0311"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0311"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0315"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0315"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0319"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0319"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "031D"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "031D"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0321"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0321"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0325"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0325"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0329"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0329"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "032D"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "032D"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0331"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0331"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0335"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0335"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "033B"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "033B"
     },
     {
       "anchors": [
@@ -1477,6 +2546,7 @@
     },
     {
       "anchors": [
+        "Camera_UpdatePersistentState",
         "Race_BuildRacerOAMState"
       ],
       "build": "legacy-beta",
@@ -1491,6 +2561,21 @@
     },
     {
       "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "041B"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "041B"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState",
         "Race_BuildRacerOAMState"
       ],
       "build": "legacy-beta",
@@ -1502,6 +2587,20 @@
         0
       ],
       "usa_word": "041D"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "041F"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "041F"
     },
     {
       "anchors": [
@@ -1589,6 +2688,147 @@
     },
     {
       "anchors": [
+        "Race_UpdateRacersFrame"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "04C7"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "04C7"
+    },
+    {
+      "anchors": [
+        "Camera_MapGeometrySetup"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "04F1"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "04F1"
+    },
+    {
+      "anchors": [
+        "Camera_MapGeometrySetup"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "04F3"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "04F3"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "04F5"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "04F5"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "04F7"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "04F7"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "04F9"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "04F9"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "04FB"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "04FB"
+    },
+    {
+      "anchors": [
+        "Player_ApplyVerticalAcceleration"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0541"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0541"
+    },
+    {
+      "anchors": [
+        "Race_UpdateRacersFrame",
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0545"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0545"
+    },
+    {
+      "anchors": [
+        "Camera_MapGeometrySetup"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0553"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0553"
+    },
+    {
+      "anchors": [
         "Race_BuildRacerOAMState"
       ],
       "build": "legacy-beta",
@@ -1614,6 +2854,34 @@
         0
       ],
       "usa_word": "0BA3"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0BE9"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0BE9"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0BEB"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0BEB"
     },
     {
       "anchors": [
@@ -1701,6 +2969,7 @@
     },
     {
       "anchors": [
+        "Camera_UpdatePersistentState",
         "Race_BuildRacerOAMState"
       ],
       "build": "legacy-beta",
@@ -1712,6 +2981,34 @@
         0
       ],
       "usa_word": "0D49"
+    },
+    {
+      "anchors": [
+        "Camera_MapGeometrySetup"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0DD9"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0DD9"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0DDB"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0DDB"
     },
     {
       "anchors": [
@@ -1813,6 +3110,20 @@
     },
     {
       "anchors": [
+        "Player_ApplyVerticalAcceleration"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "0F41"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0F41"
+    },
+    {
+      "anchors": [
         "Collision_BuildContactShape"
       ],
       "build": "legacy-beta",
@@ -1885,6 +3196,7 @@
     {
       "anchors": [
         "Collision_TransformVelocity",
+        "Player_ApplyVerticalAcceleration",
         "Race_UpdateRacersFrame"
       ],
       "build": "legacy-beta",
@@ -1899,6 +3211,7 @@
     },
     {
       "anchors": [
+        "Player_ApplyVerticalAcceleration",
         "Race_UpdateRacersFrame"
       ],
       "build": "legacy-beta",
@@ -2036,6 +3349,20 @@
         0
       ],
       "usa_word": "125B"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "legacy-beta",
+      "candidate_words": [
+        "12D5"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "12D5"
     },
     {
       "anchors": [
@@ -2235,6 +3562,132 @@
     },
     {
       "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0230"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0230"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0232"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0232"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0234"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0234"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0236"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0236"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0260"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0260"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0262"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0262"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0264"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0264"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0266"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0266"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "026A"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "026A"
+    },
+    {
+      "anchors": [
         "Collision_TransformVelocity"
       ],
       "build": "pal-prototype-1994-11-29",
@@ -2288,6 +3741,188 @@
         0
       ],
       "usa_word": "02C6"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "030D"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "030D"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "030F"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "030F"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0311"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0311"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0315"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0315"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0319"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0319"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "031D"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "031D"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0321"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0321"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0325"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0325"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0329"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0329"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "032D"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "032D"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0331"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0331"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0335"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0335"
+    },
+    {
+      "anchors": [
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "033B"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "033B"
     },
     {
       "anchors": [
@@ -2349,6 +3984,7 @@
     },
     {
       "anchors": [
+        "Camera_UpdatePersistentState",
         "Race_BuildRacerOAMState"
       ],
       "build": "pal-prototype-1994-11-29",
@@ -2363,6 +3999,21 @@
     },
     {
       "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "041B"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "041B"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState",
         "Race_BuildRacerOAMState"
       ],
       "build": "pal-prototype-1994-11-29",
@@ -2374,6 +4025,20 @@
         0
       ],
       "usa_word": "041D"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "041F"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "041F"
     },
     {
       "anchors": [
@@ -2461,6 +4126,147 @@
     },
     {
       "anchors": [
+        "Race_UpdateRacersFrame"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "04C7"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "04C7"
+    },
+    {
+      "anchors": [
+        "Camera_MapGeometrySetup"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "04F1"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "04F1"
+    },
+    {
+      "anchors": [
+        "Camera_MapGeometrySetup"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "04F3"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "04F3"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "04F5"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "04F5"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "04F7"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "04F7"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "04F9"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "04F9"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "04FB"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "04FB"
+    },
+    {
+      "anchors": [
+        "Player_ApplyVerticalAcceleration"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0541"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0541"
+    },
+    {
+      "anchors": [
+        "Race_UpdateRacersFrame",
+        "Stunt_FinalizeAndScoreAirTricks"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0545"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0545"
+    },
+    {
+      "anchors": [
+        "Camera_MapGeometrySetup"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0553"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0553"
+    },
+    {
+      "anchors": [
         "Race_BuildRacerOAMState"
       ],
       "build": "pal-prototype-1994-11-29",
@@ -2486,6 +4292,34 @@
         0
       ],
       "usa_word": "0BA3"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0BE9"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0BE9"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0BEB"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0BEB"
     },
     {
       "anchors": [
@@ -2573,6 +4407,7 @@
     },
     {
       "anchors": [
+        "Camera_UpdatePersistentState",
         "Race_BuildRacerOAMState"
       ],
       "build": "pal-prototype-1994-11-29",
@@ -2584,6 +4419,34 @@
         0
       ],
       "usa_word": "0D49"
+    },
+    {
+      "anchors": [
+        "Camera_MapGeometrySetup"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0DD9"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0DD9"
+    },
+    {
+      "anchors": [
+        "Camera_UpdatePersistentState"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0DDB"
+      ],
+      "consistent": true,
+      "deltas": [
+        0
+      ],
+      "usa_word": "0DDB"
     },
     {
       "anchors": [
@@ -2685,6 +4548,20 @@
     },
     {
       "anchors": [
+        "Player_ApplyVerticalAcceleration"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "0F45"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "0F41"
+    },
+    {
+      "anchors": [
         "Collision_BuildContactShape"
       ],
       "build": "pal-prototype-1994-11-29",
@@ -2757,6 +4634,7 @@
     {
       "anchors": [
         "Collision_TransformVelocity",
+        "Player_ApplyVerticalAcceleration",
         "Race_UpdateRacersFrame"
       ],
       "build": "pal-prototype-1994-11-29",
@@ -2771,6 +4649,7 @@
     },
     {
       "anchors": [
+        "Player_ApplyVerticalAcceleration",
         "Race_UpdateRacersFrame"
       ],
       "build": "pal-prototype-1994-11-29",
@@ -2908,6 +4787,20 @@
         4
       ],
       "usa_word": "125B"
+    },
+    {
+      "anchors": [
+        "Input_DecodePlayer1Buttons"
+      ],
+      "build": "pal-prototype-1994-11-29",
+      "candidate_words": [
+        "12D9"
+      ],
+      "consistent": true,
+      "deltas": [
+        4
+      ],
+      "usa_word": "12D5"
     },
     {
       "anchors": [
@@ -3097,6 +4990,1720 @@
     "minimum_byte_similarity": 0.6,
     "source": "top structural candidates from tools/compare_semantic_anchors.py"
   },
+  "prototype_to_europe_motion": {
+    "clusters": [
+      {
+        "europe_words": [
+          "0547",
+          "054B",
+          "0BA7",
+          "0BA9",
+          "0BEF",
+          "0BF1",
+          "0CC1",
+          "0CE7",
+          "0CE9",
+          "0CEB",
+          "0D11",
+          "0D13",
+          "0D4F",
+          "0DE1",
+          "0E93",
+          "0E95",
+          "0E97",
+          "0E99",
+          "0E9B",
+          "0E9D",
+          "0F4B",
+          "0F51",
+          "0F53",
+          "0F6B",
+          "0F85",
+          "0FA9",
+          "0FAB",
+          "0FF9",
+          "11D7",
+          "11D9",
+          "11DB",
+          "1203",
+          "1207",
+          "120B",
+          "120F",
+          "1265",
+          "12DF",
+          "136B",
+          "1513",
+          "1514",
+          "1517",
+          "1518",
+          "15AB",
+          "164F",
+          "16F3"
+        ],
+        "field_count": 45,
+        "prototype_to_europe_delta": 6,
+        "prototype_words": [
+          "0541",
+          "0545",
+          "0BA1",
+          "0BA3",
+          "0BE9",
+          "0BEB",
+          "0CBB",
+          "0CE1",
+          "0CE3",
+          "0CE5",
+          "0D0B",
+          "0D0D",
+          "0D49",
+          "0DDB",
+          "0E8D",
+          "0E8F",
+          "0E91",
+          "0E93",
+          "0E95",
+          "0E97",
+          "0F45",
+          "0F4B",
+          "0F4D",
+          "0F65",
+          "0F7F",
+          "0FA3",
+          "0FA5",
+          "0FF3",
+          "11D1",
+          "11D3",
+          "11D5",
+          "11FD",
+          "1201",
+          "1205",
+          "1209",
+          "125F",
+          "12D9",
+          "1365",
+          "150D",
+          "150E",
+          "1511",
+          "1512",
+          "15A5",
+          "1649",
+          "16ED"
+        ],
+        "usa_words": [
+          "0541",
+          "0545",
+          "0BA1",
+          "0BA3",
+          "0BE9",
+          "0BEB",
+          "0CBB",
+          "0CE1",
+          "0CE3",
+          "0CE5",
+          "0D0B",
+          "0D0D",
+          "0D49",
+          "0DDB",
+          "0E89",
+          "0E8B",
+          "0E8D",
+          "0E8F",
+          "0E91",
+          "0E93",
+          "0F41",
+          "0F47",
+          "0F49",
+          "0F61",
+          "0F7B",
+          "0F9F",
+          "0FA1",
+          "0FEF",
+          "11CD",
+          "11CF",
+          "11D1",
+          "11F9",
+          "11FD",
+          "1201",
+          "1205",
+          "125B",
+          "12D5",
+          "1361",
+          "1509",
+          "150A",
+          "150D",
+          "150E",
+          "15A1",
+          "1645",
+          "16E9"
+        ]
+      },
+      {
+        "europe_words": [
+          "0311",
+          "0313",
+          "0315",
+          "0319",
+          "031D",
+          "0321",
+          "0325",
+          "0329",
+          "032D",
+          "0331",
+          "0335",
+          "0339",
+          "033F",
+          "0415",
+          "0417",
+          "0419",
+          "041B",
+          "041D",
+          "041F",
+          "0421",
+          "0423",
+          "0425",
+          "0427",
+          "042F",
+          "0433",
+          "04BB",
+          "04BF",
+          "04CB",
+          "04F9",
+          "04FB",
+          "04FD",
+          "04FF"
+        ],
+        "field_count": 32,
+        "prototype_to_europe_delta": 4,
+        "prototype_words": [
+          "030D",
+          "030F",
+          "0311",
+          "0315",
+          "0319",
+          "031D",
+          "0321",
+          "0325",
+          "0329",
+          "032D",
+          "0331",
+          "0335",
+          "033B",
+          "0411",
+          "0413",
+          "0415",
+          "0417",
+          "0419",
+          "041B",
+          "041D",
+          "041F",
+          "0421",
+          "0423",
+          "042B",
+          "042F",
+          "04B7",
+          "04BB",
+          "04C7",
+          "04F5",
+          "04F7",
+          "04F9",
+          "04FB"
+        ],
+        "usa_words": [
+          "030D",
+          "030F",
+          "0311",
+          "0315",
+          "0319",
+          "031D",
+          "0321",
+          "0325",
+          "0329",
+          "032D",
+          "0331",
+          "0335",
+          "033B",
+          "0411",
+          "0413",
+          "0415",
+          "0417",
+          "0419",
+          "041B",
+          "041D",
+          "041F",
+          "0421",
+          "0423",
+          "042B",
+          "042F",
+          "04B7",
+          "04BB",
+          "04C7",
+          "04F5",
+          "04F7",
+          "04F9",
+          "04FB"
+        ]
+      },
+      {
+        "europe_words": [
+          "000B",
+          "0230",
+          "0232",
+          "0234",
+          "0236",
+          "0260",
+          "0262",
+          "0264",
+          "0266",
+          "026A",
+          "02C0",
+          "02C2",
+          "02C4",
+          "02C6",
+          "2100",
+          "2115",
+          "2116",
+          "420B",
+          "420C"
+        ],
+        "field_count": 19,
+        "prototype_to_europe_delta": 0,
+        "prototype_words": [
+          "000B",
+          "0230",
+          "0232",
+          "0234",
+          "0236",
+          "0260",
+          "0262",
+          "0264",
+          "0266",
+          "026A",
+          "02C0",
+          "02C2",
+          "02C4",
+          "02C6",
+          "2100",
+          "2115",
+          "2116",
+          "420B",
+          "420C"
+        ],
+        "usa_words": [
+          "000B",
+          "0230",
+          "0232",
+          "0234",
+          "0236",
+          "0260",
+          "0262",
+          "0264",
+          "0266",
+          "026A",
+          "02C0",
+          "02C2",
+          "02C4",
+          "02C6",
+          "2100",
+          "2115",
+          "2116",
+          "420B",
+          "420C"
+        ]
+      }
+    ],
+    "inferred_boundaries": [
+      {
+        "address_gap_bytes": 71,
+        "delta_jump": 4,
+        "europe_first_after": "0311",
+        "europe_last_before": "02C6",
+        "first_known_after": "030D",
+        "from_delta": 0,
+        "last_known_before": "02C6",
+        "prototype_first_after": "030D",
+        "prototype_last_before": "02C6",
+        "to_delta": 4
+      },
+      {
+        "address_gap_bytes": 70,
+        "delta_jump": 2,
+        "europe_first_after": "0547",
+        "europe_last_before": "04FF",
+        "first_known_after": "0541",
+        "from_delta": 4,
+        "last_known_before": "04FB",
+        "prototype_first_after": "0541",
+        "prototype_last_before": "04FB",
+        "to_delta": 6
+      }
+    ],
+    "rows": [
+      {
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "000B",
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "000B",
+        "usa_word": "000B"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "0230",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "0230",
+        "usa_word": "0230"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "0232",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "0232",
+        "usa_word": "0232"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "0234",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "0234",
+        "usa_word": "0234"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "0236",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "0236",
+        "usa_word": "0236"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "0260",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "0260",
+        "usa_word": "0260"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "0262",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "0262",
+        "usa_word": "0262"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "0264",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "0264",
+        "usa_word": "0264"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "0266",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "0266",
+        "usa_word": "0266"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "026A",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "026A",
+        "usa_word": "026A"
+      },
+      {
+        "europe_anchors": [
+          "Collision_TransformVelocity"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "02C0",
+        "prototype_anchors": [
+          "Collision_TransformVelocity"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "02C0",
+        "usa_word": "02C0"
+      },
+      {
+        "europe_anchors": [
+          "Collision_TransformVelocity"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "02C2",
+        "prototype_anchors": [
+          "Collision_TransformVelocity"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "02C2",
+        "usa_word": "02C2"
+      },
+      {
+        "europe_anchors": [
+          "Collision_TransformVelocity"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "02C4",
+        "prototype_anchors": [
+          "Collision_TransformVelocity"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "02C4",
+        "usa_word": "02C4"
+      },
+      {
+        "europe_anchors": [
+          "Collision_TransformVelocity"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "02C6",
+        "prototype_anchors": [
+          "Collision_TransformVelocity"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "02C6",
+        "usa_word": "02C6"
+      },
+      {
+        "europe_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0311",
+        "prototype_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "030D",
+        "usa_word": "030D"
+      },
+      {
+        "europe_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0313",
+        "prototype_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "030F",
+        "usa_word": "030F"
+      },
+      {
+        "europe_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0315",
+        "prototype_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0311",
+        "usa_word": "0311"
+      },
+      {
+        "europe_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0319",
+        "prototype_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0315",
+        "usa_word": "0315"
+      },
+      {
+        "europe_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "031D",
+        "prototype_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0319",
+        "usa_word": "0319"
+      },
+      {
+        "europe_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0321",
+        "prototype_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "031D",
+        "usa_word": "031D"
+      },
+      {
+        "europe_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0325",
+        "prototype_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0321",
+        "usa_word": "0321"
+      },
+      {
+        "europe_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0329",
+        "prototype_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0325",
+        "usa_word": "0325"
+      },
+      {
+        "europe_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "032D",
+        "prototype_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0329",
+        "usa_word": "0329"
+      },
+      {
+        "europe_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0331",
+        "prototype_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "032D",
+        "usa_word": "032D"
+      },
+      {
+        "europe_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0335",
+        "prototype_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0331",
+        "usa_word": "0331"
+      },
+      {
+        "europe_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0339",
+        "prototype_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0335",
+        "usa_word": "0335"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "033F",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "033B",
+        "usa_word": "033B"
+      },
+      {
+        "europe_anchors": [
+          "Race_BuildRacerOAMState",
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0415",
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState",
+          "Race_UpdateRacersFrame"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0411",
+        "usa_word": "0411"
+      },
+      {
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0417",
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0413",
+        "usa_word": "0413"
+      },
+      {
+        "europe_anchors": [
+          "Race_BuildRacerOAMState",
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0419",
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState",
+          "Race_UpdateRacersFrame"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0415",
+        "usa_word": "0415"
+      },
+      {
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "041B",
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0417",
+        "usa_word": "0417"
+      },
+      {
+        "europe_anchors": [
+          "Camera_UpdatePersistentState",
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "041D",
+        "prototype_anchors": [
+          "Camera_UpdatePersistentState",
+          "Race_BuildRacerOAMState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0419",
+        "usa_word": "0419"
+      },
+      {
+        "europe_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "041F",
+        "prototype_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "041B",
+        "usa_word": "041B"
+      },
+      {
+        "europe_anchors": [
+          "Camera_UpdatePersistentState",
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0421",
+        "prototype_anchors": [
+          "Camera_UpdatePersistentState",
+          "Race_BuildRacerOAMState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "041D",
+        "usa_word": "041D"
+      },
+      {
+        "europe_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0423",
+        "prototype_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "041F",
+        "usa_word": "041F"
+      },
+      {
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0425",
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0421",
+        "usa_word": "0421"
+      },
+      {
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0427",
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "0423",
+        "usa_word": "0423"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "042F",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "042B",
+        "usa_word": "042B"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "0433",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "042F",
+        "usa_word": "042F"
+      },
+      {
+        "europe_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "04BB",
+        "prototype_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "04B7",
+        "usa_word": "04B7"
+      },
+      {
+        "europe_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "04BF",
+        "prototype_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "04BB",
+        "usa_word": "04BB"
+      },
+      {
+        "europe_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "04CB",
+        "prototype_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "04C7",
+        "usa_word": "04C7"
+      },
+      {
+        "europe_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "04F9",
+        "prototype_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "04F5",
+        "usa_word": "04F5"
+      },
+      {
+        "europe_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "04FB",
+        "prototype_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "04F7",
+        "usa_word": "04F7"
+      },
+      {
+        "europe_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "04FD",
+        "prototype_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "04F9",
+        "usa_word": "04F9"
+      },
+      {
+        "europe_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "europe_delta_from_usa": 4,
+        "europe_word": "04FF",
+        "prototype_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 4,
+        "prototype_word": "04FB",
+        "usa_word": "04FB"
+      },
+      {
+        "europe_anchors": [
+          "Player_ApplyVerticalAcceleration"
+        ],
+        "europe_delta_from_usa": 6,
+        "europe_word": "0547",
+        "prototype_anchors": [
+          "Player_ApplyVerticalAcceleration"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0541",
+        "usa_word": "0541"
+      },
+      {
+        "europe_anchors": [
+          "Race_UpdateRacersFrame",
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 6,
+        "europe_word": "054B",
+        "prototype_anchors": [
+          "Race_UpdateRacersFrame",
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0545",
+        "usa_word": "0545"
+      },
+      {
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_delta_from_usa": 6,
+        "europe_word": "0BA7",
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0BA1",
+        "usa_word": "0BA1"
+      },
+      {
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_delta_from_usa": 6,
+        "europe_word": "0BA9",
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0BA3",
+        "usa_word": "0BA3"
+      },
+      {
+        "europe_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "europe_delta_from_usa": 6,
+        "europe_word": "0BEF",
+        "prototype_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0BE9",
+        "usa_word": "0BE9"
+      },
+      {
+        "europe_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "europe_delta_from_usa": 6,
+        "europe_word": "0BF1",
+        "prototype_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0BEB",
+        "usa_word": "0BEB"
+      },
+      {
+        "europe_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "europe_delta_from_usa": 6,
+        "europe_word": "0CC1",
+        "prototype_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0CBB",
+        "usa_word": "0CBB"
+      },
+      {
+        "europe_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "europe_delta_from_usa": 6,
+        "europe_word": "0CE7",
+        "prototype_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0CE1",
+        "usa_word": "0CE1"
+      },
+      {
+        "europe_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "europe_delta_from_usa": 6,
+        "europe_word": "0CE9",
+        "prototype_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0CE3",
+        "usa_word": "0CE3"
+      },
+      {
+        "europe_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "europe_delta_from_usa": 6,
+        "europe_word": "0CEB",
+        "prototype_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0CE5",
+        "usa_word": "0CE5"
+      },
+      {
+        "europe_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "europe_delta_from_usa": 6,
+        "europe_word": "0D11",
+        "prototype_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0D0B",
+        "usa_word": "0D0B"
+      },
+      {
+        "europe_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "europe_delta_from_usa": 6,
+        "europe_word": "0D13",
+        "prototype_anchors": [
+          "HUD_QueueMessage"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0D0D",
+        "usa_word": "0D0D"
+      },
+      {
+        "europe_anchors": [
+          "Camera_UpdatePersistentState",
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_delta_from_usa": 6,
+        "europe_word": "0D4F",
+        "prototype_anchors": [
+          "Camera_UpdatePersistentState",
+          "Race_BuildRacerOAMState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0D49",
+        "usa_word": "0D49"
+      },
+      {
+        "europe_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "europe_delta_from_usa": 6,
+        "europe_word": "0DE1",
+        "prototype_anchors": [
+          "Camera_UpdatePersistentState"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0DDB",
+        "usa_word": "0DDB"
+      },
+      {
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "0E93",
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0E8D",
+        "usa_word": "0E89"
+      },
+      {
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "0E95",
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0E8F",
+        "usa_word": "0E8B"
+      },
+      {
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "0E97",
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0E91",
+        "usa_word": "0E8D"
+      },
+      {
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "0E99",
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0E93",
+        "usa_word": "0E8F"
+      },
+      {
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "0E9B",
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0E95",
+        "usa_word": "0E91"
+      },
+      {
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "0E9D",
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0E97",
+        "usa_word": "0E93"
+      },
+      {
+        "europe_anchors": [
+          "Player_ApplyVerticalAcceleration"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "0F4B",
+        "prototype_anchors": [
+          "Player_ApplyVerticalAcceleration"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0F45",
+        "usa_word": "0F41"
+      },
+      {
+        "europe_anchors": [
+          "Collision_BuildContactShape"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "0F51",
+        "prototype_anchors": [
+          "Collision_BuildContactShape"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0F4B",
+        "usa_word": "0F47"
+      },
+      {
+        "europe_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "0F53",
+        "prototype_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0F4D",
+        "usa_word": "0F49"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "0F6B",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0F65",
+        "usa_word": "0F61"
+      },
+      {
+        "europe_anchors": [
+          "Collision_BuildContactShape"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "0F85",
+        "prototype_anchors": [
+          "Collision_BuildContactShape"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0F7F",
+        "usa_word": "0F7B"
+      },
+      {
+        "europe_anchors": [
+          "Collision_TransformVelocity",
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "0FA9",
+        "prototype_anchors": [
+          "Collision_TransformVelocity",
+          "Race_UpdateRacersFrame"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0FA3",
+        "usa_word": "0F9F"
+      },
+      {
+        "europe_anchors": [
+          "Collision_TransformVelocity",
+          "Player_ApplyVerticalAcceleration",
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "0FAB",
+        "prototype_anchors": [
+          "Collision_TransformVelocity",
+          "Player_ApplyVerticalAcceleration",
+          "Race_UpdateRacersFrame"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0FA5",
+        "usa_word": "0FA1"
+      },
+      {
+        "europe_anchors": [
+          "Player_ApplyVerticalAcceleration",
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "0FF9",
+        "prototype_anchors": [
+          "Player_ApplyVerticalAcceleration",
+          "Race_UpdateRacersFrame"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "0FF3",
+        "usa_word": "0FEF"
+      },
+      {
+        "europe_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "11D7",
+        "prototype_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "11D1",
+        "usa_word": "11CD"
+      },
+      {
+        "europe_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "11D9",
+        "prototype_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "11D3",
+        "usa_word": "11CF"
+      },
+      {
+        "europe_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "11DB",
+        "prototype_anchors": [
+          "Race_UpdateRacersFrame"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "11D5",
+        "usa_word": "11D1"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "1203",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "11FD",
+        "usa_word": "11F9"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "1207",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "1201",
+        "usa_word": "11FD"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "120B",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "1205",
+        "usa_word": "1201"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "120F",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "1209",
+        "usa_word": "1205"
+      },
+      {
+        "europe_anchors": [
+          "Collision_BuildContactShape"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "1265",
+        "prototype_anchors": [
+          "Collision_BuildContactShape"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "125F",
+        "usa_word": "125B"
+      },
+      {
+        "europe_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "12DF",
+        "prototype_anchors": [
+          "Input_DecodePlayer1Buttons"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "12D9",
+        "usa_word": "12D5"
+      },
+      {
+        "europe_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "136B",
+        "prototype_anchors": [
+          "Stunt_FinalizeAndScoreAirTricks"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "1365",
+        "usa_word": "1361"
+      },
+      {
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "1513",
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "150D",
+        "usa_word": "1509"
+      },
+      {
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "1514",
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "150E",
+        "usa_word": "150A"
+      },
+      {
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "1517",
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "1511",
+        "usa_word": "150D"
+      },
+      {
+        "europe_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "1518",
+        "prototype_anchors": [
+          "Race_BuildRacerOAMState"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "1512",
+        "usa_word": "150E"
+      },
+      {
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "15AB",
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "15A5",
+        "usa_word": "15A1"
+      },
+      {
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "164F",
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "1649",
+        "usa_word": "1645"
+      },
+      {
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_delta_from_usa": 10,
+        "europe_word": "16F3",
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "prototype_delta_from_usa": 4,
+        "prototype_to_europe_delta": 6,
+        "prototype_word": "16ED",
+        "usa_word": "16E9"
+      },
+      {
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "2100",
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "2100",
+        "usa_word": "2100"
+      },
+      {
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "2115",
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "2115",
+        "usa_word": "2115"
+      },
+      {
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "2116",
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "2116",
+        "usa_word": "2116"
+      },
+      {
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "420B",
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "420B",
+        "usa_word": "420B"
+      },
+      {
+        "europe_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "europe_delta_from_usa": 0,
+        "europe_word": "420C",
+        "prototype_anchors": [
+          "Course_LoadAndMaterialize"
+        ],
+        "prototype_delta_from_usa": 0,
+        "prototype_to_europe_delta": 0,
+        "prototype_word": "420C",
+        "usa_word": "420C"
+      }
+    ]
+  },
   "rows": [
     {
       "anchor": "Race_UpdateRacersFrame",
@@ -3141,6 +6748,28 @@
       "evidence_count": 2,
       "source_occurrences": 2,
       "usa_word": "04BB"
+    },
+    {
+      "anchor": "Race_UpdateRacersFrame",
+      "anchor_byte_similarity": 0.678906,
+      "anchor_candidate_cpu": "82:89CC",
+      "build": "europe-retail",
+      "candidate_word": "04CB",
+      "delta": 4,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "04C7"
+    },
+    {
+      "anchor": "Race_UpdateRacersFrame",
+      "anchor_byte_similarity": 0.678906,
+      "anchor_candidate_cpu": "82:89CC",
+      "build": "europe-retail",
+      "candidate_word": "054B",
+      "delta": 6,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0545"
     },
     {
       "anchor": "Race_UpdateRacersFrame",
@@ -3221,7 +6850,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "0411",
@@ -3232,7 +6861,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "0415",
@@ -3243,7 +6872,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "04B7",
@@ -3254,7 +6883,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "04BB",
@@ -3265,7 +6894,29 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:89B9",
+      "build": "legacy-beta",
+      "candidate_word": "04C7",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "04C7"
+    },
+    {
+      "anchor": "Race_UpdateRacersFrame",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:89B9",
+      "build": "legacy-beta",
+      "candidate_word": "0545",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0545"
+    },
+    {
+      "anchor": "Race_UpdateRacersFrame",
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "0F49",
@@ -3276,7 +6927,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "0F9F",
@@ -3287,7 +6938,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "0FA1",
@@ -3298,7 +6949,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "0FEF",
@@ -3309,7 +6960,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "11CD",
@@ -3320,7 +6971,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "11CF",
@@ -3331,7 +6982,7 @@
     },
     {
       "anchor": "Race_UpdateRacersFrame",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:89B9",
       "build": "legacy-beta",
       "candidate_word": "11D1",
@@ -3383,6 +7034,28 @@
       "evidence_count": 2,
       "source_occurrences": 2,
       "usa_word": "04BB"
+    },
+    {
+      "anchor": "Race_UpdateRacersFrame",
+      "anchor_byte_similarity": 0.778906,
+      "anchor_candidate_cpu": "82:89B6",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "04C7",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "04C7"
+    },
+    {
+      "anchor": "Race_UpdateRacersFrame",
+      "anchor_byte_similarity": 0.778906,
+      "anchor_candidate_cpu": "82:89B6",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0545",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0545"
     },
     {
       "anchor": "Race_UpdateRacersFrame",
@@ -3628,7 +7301,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "000B",
@@ -3639,7 +7312,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "0E89",
@@ -3650,7 +7323,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "0E8B",
@@ -3661,7 +7334,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "0E8D",
@@ -3672,7 +7345,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "0E8F",
@@ -3683,7 +7356,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "0E91",
@@ -3694,7 +7367,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "0E93",
@@ -3705,7 +7378,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "15A1",
@@ -3716,7 +7389,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "1645",
@@ -3727,7 +7400,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "16E9",
@@ -3738,7 +7411,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "2100",
@@ -3749,7 +7422,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "2115",
@@ -3760,7 +7433,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "2116",
@@ -3771,7 +7444,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "420B",
@@ -3782,7 +7455,7 @@
     },
     {
       "anchor": "Course_LoadAndMaterialize",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:E165",
       "build": "legacy-beta",
       "candidate_word": "420C",
@@ -4123,7 +7796,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0411",
@@ -4134,7 +7807,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0413",
@@ -4145,7 +7818,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0415",
@@ -4156,7 +7829,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0417",
@@ -4167,7 +7840,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0419",
@@ -4178,7 +7851,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "041D",
@@ -4189,7 +7862,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0421",
@@ -4200,7 +7873,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0423",
@@ -4211,7 +7884,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0BA1",
@@ -4222,7 +7895,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0BA3",
@@ -4233,7 +7906,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "0D49",
@@ -4244,7 +7917,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "1509",
@@ -4255,7 +7928,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "150A",
@@ -4266,7 +7939,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "150D",
@@ -4277,7 +7950,7 @@
     },
     {
       "anchor": "Race_BuildRacerOAMState",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:ACA5",
       "build": "legacy-beta",
       "candidate_word": "150E",
@@ -4453,7 +8126,7 @@
     },
     {
       "anchor": "Race_HandleCheckpointFinish",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:8050",
       "build": "legacy-beta",
       "candidate_word": "0EF1",
@@ -4464,7 +8137,7 @@
     },
     {
       "anchor": "Race_HandleCheckpointFinish",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:8050",
       "build": "legacy-beta",
       "candidate_word": "119D",
@@ -4563,7 +8236,7 @@
     },
     {
       "anchor": "HUD_QueueMessage",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:C5B3",
       "build": "legacy-beta",
       "candidate_word": "0CBB",
@@ -4574,7 +8247,7 @@
     },
     {
       "anchor": "HUD_QueueMessage",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:C5B3",
       "build": "legacy-beta",
       "candidate_word": "0CE1",
@@ -4585,7 +8258,7 @@
     },
     {
       "anchor": "HUD_QueueMessage",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:C5B3",
       "build": "legacy-beta",
       "candidate_word": "0CE3",
@@ -4596,7 +8269,7 @@
     },
     {
       "anchor": "HUD_QueueMessage",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:C5B3",
       "build": "legacy-beta",
       "candidate_word": "0CE5",
@@ -4607,7 +8280,7 @@
     },
     {
       "anchor": "HUD_QueueMessage",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:C5B3",
       "build": "legacy-beta",
       "candidate_word": "0D0B",
@@ -4618,7 +8291,7 @@
     },
     {
       "anchor": "HUD_QueueMessage",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:C5B3",
       "build": "legacy-beta",
       "candidate_word": "0D0D",
@@ -4692,6 +8365,490 @@
       "evidence_count": 5,
       "source_occurrences": 5,
       "usa_word": "0D0D"
+    },
+    {
+      "anchor": "Camera_MapGeometrySetup",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:A50E",
+      "build": "legacy-beta",
+      "candidate_word": "04F1",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "04F1"
+    },
+    {
+      "anchor": "Camera_MapGeometrySetup",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:A50E",
+      "build": "legacy-beta",
+      "candidate_word": "04F3",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04F3"
+    },
+    {
+      "anchor": "Camera_MapGeometrySetup",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:A50E",
+      "build": "legacy-beta",
+      "candidate_word": "0553",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0553"
+    },
+    {
+      "anchor": "Camera_MapGeometrySetup",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:A50E",
+      "build": "legacy-beta",
+      "candidate_word": "0DD9",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0DD9"
+    },
+    {
+      "anchor": "Camera_MapGeometrySetup",
+      "anchor_byte_similarity": 0.965517,
+      "anchor_candidate_cpu": "81:A4EE",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "04F1",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "04F1"
+    },
+    {
+      "anchor": "Camera_MapGeometrySetup",
+      "anchor_byte_similarity": 0.965517,
+      "anchor_candidate_cpu": "81:A4EE",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "04F3",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04F3"
+    },
+    {
+      "anchor": "Camera_MapGeometrySetup",
+      "anchor_byte_similarity": 0.965517,
+      "anchor_candidate_cpu": "81:A4EE",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0553",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0553"
+    },
+    {
+      "anchor": "Camera_MapGeometrySetup",
+      "anchor_byte_similarity": 0.965517,
+      "anchor_candidate_cpu": "81:A4EE",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0DD9",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0DD9"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.803571,
+      "anchor_candidate_cpu": "81:A520",
+      "build": "europe-retail",
+      "candidate_word": "041D",
+      "delta": 4,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0419"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.803571,
+      "anchor_candidate_cpu": "81:A520",
+      "build": "europe-retail",
+      "candidate_word": "041F",
+      "delta": 4,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "041B"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.803571,
+      "anchor_candidate_cpu": "81:A520",
+      "build": "europe-retail",
+      "candidate_word": "0421",
+      "delta": 4,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "041D"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.803571,
+      "anchor_candidate_cpu": "81:A520",
+      "build": "europe-retail",
+      "candidate_word": "0423",
+      "delta": 4,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "041F"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.803571,
+      "anchor_candidate_cpu": "81:A520",
+      "build": "europe-retail",
+      "candidate_word": "04F9",
+      "delta": 4,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04F5"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.803571,
+      "anchor_candidate_cpu": "81:A520",
+      "build": "europe-retail",
+      "candidate_word": "04FB",
+      "delta": 4,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04F7"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.803571,
+      "anchor_candidate_cpu": "81:A520",
+      "build": "europe-retail",
+      "candidate_word": "04FD",
+      "delta": 4,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04F9"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.803571,
+      "anchor_candidate_cpu": "81:A520",
+      "build": "europe-retail",
+      "candidate_word": "04FF",
+      "delta": 4,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04FB"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.803571,
+      "anchor_candidate_cpu": "81:A520",
+      "build": "europe-retail",
+      "candidate_word": "0BEF",
+      "delta": 6,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0BE9"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.803571,
+      "anchor_candidate_cpu": "81:A520",
+      "build": "europe-retail",
+      "candidate_word": "0BF1",
+      "delta": 6,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0BEB"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.803571,
+      "anchor_candidate_cpu": "81:A520",
+      "build": "europe-retail",
+      "candidate_word": "0D4F",
+      "delta": 6,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0D49"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.803571,
+      "anchor_candidate_cpu": "81:A520",
+      "build": "europe-retail",
+      "candidate_word": "0DE1",
+      "delta": 6,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0DDB"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:A52F",
+      "build": "legacy-beta",
+      "candidate_word": "0419",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0419"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:A52F",
+      "build": "legacy-beta",
+      "candidate_word": "041B",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "041B"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:A52F",
+      "build": "legacy-beta",
+      "candidate_word": "041D",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "041D"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:A52F",
+      "build": "legacy-beta",
+      "candidate_word": "041F",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "041F"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:A52F",
+      "build": "legacy-beta",
+      "candidate_word": "04F5",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04F5"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:A52F",
+      "build": "legacy-beta",
+      "candidate_word": "04F7",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04F7"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:A52F",
+      "build": "legacy-beta",
+      "candidate_word": "04F9",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04F9"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:A52F",
+      "build": "legacy-beta",
+      "candidate_word": "04FB",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04FB"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:A52F",
+      "build": "legacy-beta",
+      "candidate_word": "0BE9",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0BE9"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:A52F",
+      "build": "legacy-beta",
+      "candidate_word": "0BEB",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0BEB"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:A52F",
+      "build": "legacy-beta",
+      "candidate_word": "0D49",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0D49"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "81:A52F",
+      "build": "legacy-beta",
+      "candidate_word": "0DDB",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0DDB"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.973214,
+      "anchor_candidate_cpu": "81:A50F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0419",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0419"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.973214,
+      "anchor_candidate_cpu": "81:A50F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "041B",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "041B"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.973214,
+      "anchor_candidate_cpu": "81:A50F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "041D",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "041D"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.973214,
+      "anchor_candidate_cpu": "81:A50F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "041F",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "041F"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.973214,
+      "anchor_candidate_cpu": "81:A50F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "04F5",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04F5"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.973214,
+      "anchor_candidate_cpu": "81:A50F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "04F7",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04F7"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.973214,
+      "anchor_candidate_cpu": "81:A50F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "04F9",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04F9"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.973214,
+      "anchor_candidate_cpu": "81:A50F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "04FB",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "04FB"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.973214,
+      "anchor_candidate_cpu": "81:A50F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0BE9",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0BE9"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.973214,
+      "anchor_candidate_cpu": "81:A50F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0BEB",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0BEB"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.973214,
+      "anchor_candidate_cpu": "81:A50F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0D49",
+      "delta": 0,
+      "evidence_count": 2,
+      "source_occurrences": 2,
+      "usa_word": "0D49"
+    },
+    {
+      "anchor": "Camera_UpdatePersistentState",
+      "anchor_byte_similarity": 0.973214,
+      "anchor_candidate_cpu": "81:A50F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0DDB",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0DDB"
     },
     {
       "anchor": "Collision_BuildContactShape",
@@ -4728,7 +8885,7 @@
     },
     {
       "anchor": "Collision_BuildContactShape",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:9E2A",
       "build": "legacy-beta",
       "candidate_word": "0F47",
@@ -4739,7 +8896,7 @@
     },
     {
       "anchor": "Collision_BuildContactShape",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:9E2A",
       "build": "legacy-beta",
       "candidate_word": "0F7B",
@@ -4750,7 +8907,7 @@
     },
     {
       "anchor": "Collision_BuildContactShape",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:9E2A",
       "build": "legacy-beta",
       "candidate_word": "125B",
@@ -4860,7 +9017,7 @@
     },
     {
       "anchor": "Collision_TransformVelocity",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:9546",
       "build": "legacy-beta",
       "candidate_word": "02C0",
@@ -4871,7 +9028,7 @@
     },
     {
       "anchor": "Collision_TransformVelocity",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:9546",
       "build": "legacy-beta",
       "candidate_word": "02C2",
@@ -4882,7 +9039,7 @@
     },
     {
       "anchor": "Collision_TransformVelocity",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:9546",
       "build": "legacy-beta",
       "candidate_word": "02C4",
@@ -4893,7 +9050,7 @@
     },
     {
       "anchor": "Collision_TransformVelocity",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:9546",
       "build": "legacy-beta",
       "candidate_word": "02C6",
@@ -4904,7 +9061,7 @@
     },
     {
       "anchor": "Collision_TransformVelocity",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:9546",
       "build": "legacy-beta",
       "candidate_word": "0F9F",
@@ -4915,7 +9072,7 @@
     },
     {
       "anchor": "Collision_TransformVelocity",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "81:9546",
       "build": "legacy-beta",
       "candidate_word": "0FA1",
@@ -4995,6 +9152,116 @@
       "anchor_byte_similarity": 0.706473,
       "anchor_candidate_cpu": "82:9A53",
       "build": "europe-retail",
+      "candidate_word": "0230",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0230"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.706473,
+      "anchor_candidate_cpu": "82:9A53",
+      "build": "europe-retail",
+      "candidate_word": "0232",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0232"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.706473,
+      "anchor_candidate_cpu": "82:9A53",
+      "build": "europe-retail",
+      "candidate_word": "0234",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0234"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.706473,
+      "anchor_candidate_cpu": "82:9A53",
+      "build": "europe-retail",
+      "candidate_word": "0236",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0236"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.706473,
+      "anchor_candidate_cpu": "82:9A53",
+      "build": "europe-retail",
+      "candidate_word": "0260",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 8,
+      "usa_word": "0260"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.706473,
+      "anchor_candidate_cpu": "82:9A53",
+      "build": "europe-retail",
+      "candidate_word": "0262",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0262"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.706473,
+      "anchor_candidate_cpu": "82:9A53",
+      "build": "europe-retail",
+      "candidate_word": "0264",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0264"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.706473,
+      "anchor_candidate_cpu": "82:9A53",
+      "build": "europe-retail",
+      "candidate_word": "0266",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0266"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.706473,
+      "anchor_candidate_cpu": "82:9A53",
+      "build": "europe-retail",
+      "candidate_word": "026A",
+      "delta": 0,
+      "evidence_count": 8,
+      "source_occurrences": 9,
+      "usa_word": "026A"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.706473,
+      "anchor_candidate_cpu": "82:9A53",
+      "build": "europe-retail",
+      "candidate_word": "033F",
+      "delta": 4,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "033B"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.706473,
+      "anchor_candidate_cpu": "82:9A53",
+      "build": "europe-retail",
       "candidate_word": "042F",
       "delta": 4,
       "evidence_count": 1,
@@ -5011,6 +9278,17 @@
       "evidence_count": 3,
       "source_occurrences": 4,
       "usa_word": "042F"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.706473,
+      "anchor_candidate_cpu": "82:9A53",
+      "build": "europe-retail",
+      "candidate_word": "054B",
+      "delta": 6,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0545"
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
@@ -5080,7 +9358,117 @@
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:9A42",
+      "build": "legacy-beta",
+      "candidate_word": "0230",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0230"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:9A42",
+      "build": "legacy-beta",
+      "candidate_word": "0232",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0232"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:9A42",
+      "build": "legacy-beta",
+      "candidate_word": "0234",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0234"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:9A42",
+      "build": "legacy-beta",
+      "candidate_word": "0236",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0236"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:9A42",
+      "build": "legacy-beta",
+      "candidate_word": "0260",
+      "delta": 0,
+      "evidence_count": 8,
+      "source_occurrences": 8,
+      "usa_word": "0260"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:9A42",
+      "build": "legacy-beta",
+      "candidate_word": "0262",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0262"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:9A42",
+      "build": "legacy-beta",
+      "candidate_word": "0264",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0264"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:9A42",
+      "build": "legacy-beta",
+      "candidate_word": "0266",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0266"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:9A42",
+      "build": "legacy-beta",
+      "candidate_word": "026A",
+      "delta": 0,
+      "evidence_count": 9,
+      "source_occurrences": 9,
+      "usa_word": "026A"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:9A42",
+      "build": "legacy-beta",
+      "candidate_word": "033B",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "033B"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:9A42",
       "build": "legacy-beta",
       "candidate_word": "042B",
@@ -5091,7 +9479,7 @@
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:9A42",
       "build": "legacy-beta",
       "candidate_word": "042F",
@@ -5102,7 +9490,18 @@
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:9A42",
+      "build": "legacy-beta",
+      "candidate_word": "0545",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0545"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:9A42",
       "build": "legacy-beta",
       "candidate_word": "0F61",
@@ -5113,7 +9512,7 @@
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:9A42",
       "build": "legacy-beta",
       "candidate_word": "11F9",
@@ -5124,7 +9523,7 @@
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:9A42",
       "build": "legacy-beta",
       "candidate_word": "11FD",
@@ -5135,7 +9534,7 @@
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:9A42",
       "build": "legacy-beta",
       "candidate_word": "1201",
@@ -5146,7 +9545,7 @@
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:9A42",
       "build": "legacy-beta",
       "candidate_word": "1205",
@@ -5157,7 +9556,7 @@
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
-      "anchor_byte_similarity": 1,
+      "anchor_byte_similarity": 1.0,
       "anchor_candidate_cpu": "82:9A42",
       "build": "legacy-beta",
       "candidate_word": "1361",
@@ -5165,6 +9564,116 @@
       "evidence_count": 3,
       "source_occurrences": 3,
       "usa_word": "1361"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.72433,
+      "anchor_candidate_cpu": "82:9A3D",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0230",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0230"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.72433,
+      "anchor_candidate_cpu": "82:9A3D",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0232",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0232"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.72433,
+      "anchor_candidate_cpu": "82:9A3D",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0234",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0234"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.72433,
+      "anchor_candidate_cpu": "82:9A3D",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0236",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0236"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.72433,
+      "anchor_candidate_cpu": "82:9A3D",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0260",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 8,
+      "usa_word": "0260"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.72433,
+      "anchor_candidate_cpu": "82:9A3D",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0262",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0262"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.72433,
+      "anchor_candidate_cpu": "82:9A3D",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0264",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0264"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.72433,
+      "anchor_candidate_cpu": "82:9A3D",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0266",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0266"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.72433,
+      "anchor_candidate_cpu": "82:9A3D",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "026A",
+      "delta": 0,
+      "evidence_count": 8,
+      "source_occurrences": 9,
+      "usa_word": "026A"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.72433,
+      "anchor_candidate_cpu": "82:9A3D",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "033B",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "033B"
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
@@ -5187,6 +9696,17 @@
       "evidence_count": 3,
       "source_occurrences": 4,
       "usa_word": "042F"
+    },
+    {
+      "anchor": "Stunt_FinalizeAndScoreAirTricks",
+      "anchor_byte_similarity": 0.72433,
+      "anchor_candidate_cpu": "82:9A3D",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0545",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0545"
     },
     {
       "anchor": "Stunt_FinalizeAndScoreAirTricks",
@@ -5253,1071 +9773,568 @@
       "evidence_count": 2,
       "source_occurrences": 3,
       "usa_word": "1361"
+    },
+    {
+      "anchor": "Player_ApplyVerticalAcceleration",
+      "anchor_byte_similarity": 0.897059,
+      "anchor_candidate_cpu": "82:A96F",
+      "build": "europe-retail",
+      "candidate_word": "0F4B",
+      "delta": 10,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0F41"
+    },
+    {
+      "anchor": "Player_ApplyVerticalAcceleration",
+      "anchor_byte_similarity": 0.897059,
+      "anchor_candidate_cpu": "82:A96F",
+      "build": "europe-retail",
+      "candidate_word": "0FF9",
+      "delta": 10,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0FEF"
+    },
+    {
+      "anchor": "Player_ApplyVerticalAcceleration",
+      "anchor_byte_similarity": 0.897059,
+      "anchor_candidate_cpu": "82:A96F",
+      "build": "europe-retail",
+      "candidate_word": "0547",
+      "delta": 6,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0541"
+    },
+    {
+      "anchor": "Player_ApplyVerticalAcceleration",
+      "anchor_byte_similarity": 0.897059,
+      "anchor_candidate_cpu": "82:A96F",
+      "build": "europe-retail",
+      "candidate_word": "0FAB",
+      "delta": 10,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0FA1"
+    },
+    {
+      "anchor": "Player_ApplyVerticalAcceleration",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:A968",
+      "build": "legacy-beta",
+      "candidate_word": "0F41",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0F41"
+    },
+    {
+      "anchor": "Player_ApplyVerticalAcceleration",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:A968",
+      "build": "legacy-beta",
+      "candidate_word": "0FEF",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0FEF"
+    },
+    {
+      "anchor": "Player_ApplyVerticalAcceleration",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:A968",
+      "build": "legacy-beta",
+      "candidate_word": "0541",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0541"
+    },
+    {
+      "anchor": "Player_ApplyVerticalAcceleration",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:A968",
+      "build": "legacy-beta",
+      "candidate_word": "0FA1",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0FA1"
+    },
+    {
+      "anchor": "Player_ApplyVerticalAcceleration",
+      "anchor_byte_similarity": 0.911765,
+      "anchor_candidate_cpu": "82:A959",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0F45",
+      "delta": 4,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0F41"
+    },
+    {
+      "anchor": "Player_ApplyVerticalAcceleration",
+      "anchor_byte_similarity": 0.911765,
+      "anchor_candidate_cpu": "82:A959",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0FF3",
+      "delta": 4,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0FEF"
+    },
+    {
+      "anchor": "Player_ApplyVerticalAcceleration",
+      "anchor_byte_similarity": 0.911765,
+      "anchor_candidate_cpu": "82:A959",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0541",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "0541"
+    },
+    {
+      "anchor": "Player_ApplyVerticalAcceleration",
+      "anchor_byte_similarity": 0.911765,
+      "anchor_candidate_cpu": "82:A959",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0FA5",
+      "delta": 4,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0FA1"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.845703,
+      "anchor_candidate_cpu": "82:AA75",
+      "build": "europe-retail",
+      "candidate_word": "12DF",
+      "delta": 10,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "12D5"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.845703,
+      "anchor_candidate_cpu": "82:AA75",
+      "build": "europe-retail",
+      "candidate_word": "0329",
+      "delta": 4,
+      "evidence_count": 5,
+      "source_occurrences": 5,
+      "usa_word": "0325"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.845703,
+      "anchor_candidate_cpu": "82:AA75",
+      "build": "europe-retail",
+      "candidate_word": "032D",
+      "delta": 4,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0329"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.845703,
+      "anchor_candidate_cpu": "82:AA75",
+      "build": "europe-retail",
+      "candidate_word": "031D",
+      "delta": 4,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0319"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.845703,
+      "anchor_candidate_cpu": "82:AA75",
+      "build": "europe-retail",
+      "candidate_word": "0331",
+      "delta": 4,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "032D"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.845703,
+      "anchor_candidate_cpu": "82:AA75",
+      "build": "europe-retail",
+      "candidate_word": "0325",
+      "delta": 4,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0321"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.845703,
+      "anchor_candidate_cpu": "82:AA75",
+      "build": "europe-retail",
+      "candidate_word": "0321",
+      "delta": 4,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "031D"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.845703,
+      "anchor_candidate_cpu": "82:AA75",
+      "build": "europe-retail",
+      "candidate_word": "0335",
+      "delta": 4,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0331"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.845703,
+      "anchor_candidate_cpu": "82:AA75",
+      "build": "europe-retail",
+      "candidate_word": "0339",
+      "delta": 4,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0335"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.845703,
+      "anchor_candidate_cpu": "82:AA75",
+      "build": "europe-retail",
+      "candidate_word": "0319",
+      "delta": 4,
+      "evidence_count": 6,
+      "source_occurrences": 6,
+      "usa_word": "0315"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.845703,
+      "anchor_candidate_cpu": "82:AA75",
+      "build": "europe-retail",
+      "candidate_word": "0311",
+      "delta": 4,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "030D"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.845703,
+      "anchor_candidate_cpu": "82:AA75",
+      "build": "europe-retail",
+      "candidate_word": "0313",
+      "delta": 4,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "030F"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.845703,
+      "anchor_candidate_cpu": "82:AA75",
+      "build": "europe-retail",
+      "candidate_word": "0315",
+      "delta": 4,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0311"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:AA6E",
+      "build": "legacy-beta",
+      "candidate_word": "12D5",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "12D5"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:AA6E",
+      "build": "legacy-beta",
+      "candidate_word": "0325",
+      "delta": 0,
+      "evidence_count": 5,
+      "source_occurrences": 5,
+      "usa_word": "0325"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:AA6E",
+      "build": "legacy-beta",
+      "candidate_word": "0329",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0329"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:AA6E",
+      "build": "legacy-beta",
+      "candidate_word": "0319",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0319"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:AA6E",
+      "build": "legacy-beta",
+      "candidate_word": "032D",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "032D"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:AA6E",
+      "build": "legacy-beta",
+      "candidate_word": "0321",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0321"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:AA6E",
+      "build": "legacy-beta",
+      "candidate_word": "031D",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "031D"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:AA6E",
+      "build": "legacy-beta",
+      "candidate_word": "0331",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0331"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:AA6E",
+      "build": "legacy-beta",
+      "candidate_word": "0335",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0335"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:AA6E",
+      "build": "legacy-beta",
+      "candidate_word": "0315",
+      "delta": 0,
+      "evidence_count": 6,
+      "source_occurrences": 6,
+      "usa_word": "0315"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:AA6E",
+      "build": "legacy-beta",
+      "candidate_word": "030D",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "030D"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:AA6E",
+      "build": "legacy-beta",
+      "candidate_word": "030F",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "030F"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 1.0,
+      "anchor_candidate_cpu": "82:AA6E",
+      "build": "legacy-beta",
+      "candidate_word": "0311",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0311"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.988281,
+      "anchor_candidate_cpu": "82:AA5F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "12D9",
+      "delta": 4,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "12D5"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.988281,
+      "anchor_candidate_cpu": "82:AA5F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0325",
+      "delta": 0,
+      "evidence_count": 5,
+      "source_occurrences": 5,
+      "usa_word": "0325"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.988281,
+      "anchor_candidate_cpu": "82:AA5F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0329",
+      "delta": 0,
+      "evidence_count": 4,
+      "source_occurrences": 4,
+      "usa_word": "0329"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.988281,
+      "anchor_candidate_cpu": "82:AA5F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0319",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0319"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.988281,
+      "anchor_candidate_cpu": "82:AA5F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "032D",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "032D"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.988281,
+      "anchor_candidate_cpu": "82:AA5F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0321",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0321"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.988281,
+      "anchor_candidate_cpu": "82:AA5F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "031D",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "031D"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.988281,
+      "anchor_candidate_cpu": "82:AA5F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0331",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0331"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.988281,
+      "anchor_candidate_cpu": "82:AA5F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0335",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0335"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.988281,
+      "anchor_candidate_cpu": "82:AA5F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0315",
+      "delta": 0,
+      "evidence_count": 6,
+      "source_occurrences": 6,
+      "usa_word": "0315"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.988281,
+      "anchor_candidate_cpu": "82:AA5F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "030D",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "030D"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.988281,
+      "anchor_candidate_cpu": "82:AA5F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "030F",
+      "delta": 0,
+      "evidence_count": 1,
+      "source_occurrences": 1,
+      "usa_word": "030F"
+    },
+    {
+      "anchor": "Input_DecodePlayer1Buttons",
+      "anchor_byte_similarity": 0.988281,
+      "anchor_candidate_cpu": "82:AA5F",
+      "build": "pal-prototype-1994-11-29",
+      "candidate_word": "0311",
+      "delta": 0,
+      "evidence_count": 3,
+      "source_occurrences": 3,
+      "usa_word": "0311"
     }
   ],
-  "schema_version": 2,
-  "prototype_to_europe_motion": {
-    "rows": [
-      {
-        "usa_word": "000B",
-        "prototype_word": "000B",
-        "europe_word": "000B",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 0,
-        "prototype_to_europe_delta": 0,
-        "prototype_anchors": [
-          "Course_LoadAndMaterialize"
-        ],
-        "europe_anchors": [
-          "Course_LoadAndMaterialize"
-        ]
-      },
-      {
-        "usa_word": "02C0",
-        "prototype_word": "02C0",
-        "europe_word": "02C0",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 0,
-        "prototype_to_europe_delta": 0,
-        "prototype_anchors": [
-          "Collision_TransformVelocity"
-        ],
-        "europe_anchors": [
-          "Collision_TransformVelocity"
-        ]
-      },
-      {
-        "usa_word": "02C2",
-        "prototype_word": "02C2",
-        "europe_word": "02C2",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 0,
-        "prototype_to_europe_delta": 0,
-        "prototype_anchors": [
-          "Collision_TransformVelocity"
-        ],
-        "europe_anchors": [
-          "Collision_TransformVelocity"
-        ]
-      },
-      {
-        "usa_word": "02C4",
-        "prototype_word": "02C4",
-        "europe_word": "02C4",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 0,
-        "prototype_to_europe_delta": 0,
-        "prototype_anchors": [
-          "Collision_TransformVelocity"
-        ],
-        "europe_anchors": [
-          "Collision_TransformVelocity"
-        ]
-      },
-      {
-        "usa_word": "02C6",
-        "prototype_word": "02C6",
-        "europe_word": "02C6",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 0,
-        "prototype_to_europe_delta": 0,
-        "prototype_anchors": [
-          "Collision_TransformVelocity"
-        ],
-        "europe_anchors": [
-          "Collision_TransformVelocity"
-        ]
-      },
-      {
-        "usa_word": "0411",
-        "prototype_word": "0411",
-        "europe_word": "0415",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 4,
-        "prototype_to_europe_delta": 4,
-        "prototype_anchors": [
-          "Race_BuildRacerOAMState",
-          "Race_UpdateRacersFrame"
-        ],
-        "europe_anchors": [
-          "Race_BuildRacerOAMState",
-          "Race_UpdateRacersFrame"
-        ]
-      },
-      {
-        "usa_word": "0413",
-        "prototype_word": "0413",
-        "europe_word": "0417",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 4,
-        "prototype_to_europe_delta": 4,
-        "prototype_anchors": [
-          "Race_BuildRacerOAMState"
-        ],
-        "europe_anchors": [
-          "Race_BuildRacerOAMState"
-        ]
-      },
-      {
-        "usa_word": "0415",
-        "prototype_word": "0415",
-        "europe_word": "0419",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 4,
-        "prototype_to_europe_delta": 4,
-        "prototype_anchors": [
-          "Race_BuildRacerOAMState",
-          "Race_UpdateRacersFrame"
-        ],
-        "europe_anchors": [
-          "Race_BuildRacerOAMState",
-          "Race_UpdateRacersFrame"
-        ]
-      },
-      {
-        "usa_word": "0417",
-        "prototype_word": "0417",
-        "europe_word": "041B",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 4,
-        "prototype_to_europe_delta": 4,
-        "prototype_anchors": [
-          "Race_BuildRacerOAMState"
-        ],
-        "europe_anchors": [
-          "Race_BuildRacerOAMState"
-        ]
-      },
-      {
-        "usa_word": "0419",
-        "prototype_word": "0419",
-        "europe_word": "041D",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 4,
-        "prototype_to_europe_delta": 4,
-        "prototype_anchors": [
-          "Race_BuildRacerOAMState"
-        ],
-        "europe_anchors": [
-          "Race_BuildRacerOAMState"
-        ]
-      },
-      {
-        "usa_word": "041D",
-        "prototype_word": "041D",
-        "europe_word": "0421",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 4,
-        "prototype_to_europe_delta": 4,
-        "prototype_anchors": [
-          "Race_BuildRacerOAMState"
-        ],
-        "europe_anchors": [
-          "Race_BuildRacerOAMState"
-        ]
-      },
-      {
-        "usa_word": "0421",
-        "prototype_word": "0421",
-        "europe_word": "0425",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 4,
-        "prototype_to_europe_delta": 4,
-        "prototype_anchors": [
-          "Race_BuildRacerOAMState"
-        ],
-        "europe_anchors": [
-          "Race_BuildRacerOAMState"
-        ]
-      },
-      {
-        "usa_word": "0423",
-        "prototype_word": "0423",
-        "europe_word": "0427",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 4,
-        "prototype_to_europe_delta": 4,
-        "prototype_anchors": [
-          "Race_BuildRacerOAMState"
-        ],
-        "europe_anchors": [
-          "Race_BuildRacerOAMState"
-        ]
-      },
-      {
-        "usa_word": "042B",
-        "prototype_word": "042B",
-        "europe_word": "042F",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 4,
-        "prototype_to_europe_delta": 4,
-        "prototype_anchors": [
-          "Stunt_FinalizeAndScoreAirTricks"
-        ],
-        "europe_anchors": [
-          "Stunt_FinalizeAndScoreAirTricks"
-        ]
-      },
-      {
-        "usa_word": "042F",
-        "prototype_word": "042F",
-        "europe_word": "0433",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 4,
-        "prototype_to_europe_delta": 4,
-        "prototype_anchors": [
-          "Stunt_FinalizeAndScoreAirTricks"
-        ],
-        "europe_anchors": [
-          "Stunt_FinalizeAndScoreAirTricks"
-        ]
-      },
-      {
-        "usa_word": "04B7",
-        "prototype_word": "04B7",
-        "europe_word": "04BB",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 4,
-        "prototype_to_europe_delta": 4,
-        "prototype_anchors": [
-          "Race_UpdateRacersFrame"
-        ],
-        "europe_anchors": [
-          "Race_UpdateRacersFrame"
-        ]
-      },
-      {
-        "usa_word": "04BB",
-        "prototype_word": "04BB",
-        "europe_word": "04BF",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 4,
-        "prototype_to_europe_delta": 4,
-        "prototype_anchors": [
-          "Race_UpdateRacersFrame"
-        ],
-        "europe_anchors": [
-          "Race_UpdateRacersFrame"
-        ]
-      },
-      {
-        "usa_word": "0BA1",
-        "prototype_word": "0BA1",
-        "europe_word": "0BA7",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 6,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Race_BuildRacerOAMState"
-        ],
-        "europe_anchors": [
-          "Race_BuildRacerOAMState"
-        ]
-      },
-      {
-        "usa_word": "0BA3",
-        "prototype_word": "0BA3",
-        "europe_word": "0BA9",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 6,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Race_BuildRacerOAMState"
-        ],
-        "europe_anchors": [
-          "Race_BuildRacerOAMState"
-        ]
-      },
-      {
-        "usa_word": "0CBB",
-        "prototype_word": "0CBB",
-        "europe_word": "0CC1",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 6,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "HUD_QueueMessage"
-        ],
-        "europe_anchors": [
-          "HUD_QueueMessage"
-        ]
-      },
-      {
-        "usa_word": "0CE1",
-        "prototype_word": "0CE1",
-        "europe_word": "0CE7",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 6,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "HUD_QueueMessage"
-        ],
-        "europe_anchors": [
-          "HUD_QueueMessage"
-        ]
-      },
-      {
-        "usa_word": "0CE3",
-        "prototype_word": "0CE3",
-        "europe_word": "0CE9",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 6,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "HUD_QueueMessage"
-        ],
-        "europe_anchors": [
-          "HUD_QueueMessage"
-        ]
-      },
-      {
-        "usa_word": "0CE5",
-        "prototype_word": "0CE5",
-        "europe_word": "0CEB",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 6,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "HUD_QueueMessage"
-        ],
-        "europe_anchors": [
-          "HUD_QueueMessage"
-        ]
-      },
-      {
-        "usa_word": "0D0B",
-        "prototype_word": "0D0B",
-        "europe_word": "0D11",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 6,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "HUD_QueueMessage"
-        ],
-        "europe_anchors": [
-          "HUD_QueueMessage"
-        ]
-      },
-      {
-        "usa_word": "0D0D",
-        "prototype_word": "0D0D",
-        "europe_word": "0D13",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 6,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "HUD_QueueMessage"
-        ],
-        "europe_anchors": [
-          "HUD_QueueMessage"
-        ]
-      },
-      {
-        "usa_word": "0D49",
-        "prototype_word": "0D49",
-        "europe_word": "0D4F",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 6,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Race_BuildRacerOAMState"
-        ],
-        "europe_anchors": [
-          "Race_BuildRacerOAMState"
-        ]
-      },
-      {
-        "usa_word": "0E89",
-        "prototype_word": "0E8D",
-        "europe_word": "0E93",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Course_LoadAndMaterialize"
-        ],
-        "europe_anchors": [
-          "Course_LoadAndMaterialize"
-        ]
-      },
-      {
-        "usa_word": "0E8B",
-        "prototype_word": "0E8F",
-        "europe_word": "0E95",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Course_LoadAndMaterialize"
-        ],
-        "europe_anchors": [
-          "Course_LoadAndMaterialize"
-        ]
-      },
-      {
-        "usa_word": "0E8D",
-        "prototype_word": "0E91",
-        "europe_word": "0E97",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Course_LoadAndMaterialize"
-        ],
-        "europe_anchors": [
-          "Course_LoadAndMaterialize"
-        ]
-      },
-      {
-        "usa_word": "0E8F",
-        "prototype_word": "0E93",
-        "europe_word": "0E99",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Course_LoadAndMaterialize"
-        ],
-        "europe_anchors": [
-          "Course_LoadAndMaterialize"
-        ]
-      },
-      {
-        "usa_word": "0E91",
-        "prototype_word": "0E95",
-        "europe_word": "0E9B",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Course_LoadAndMaterialize"
-        ],
-        "europe_anchors": [
-          "Course_LoadAndMaterialize"
-        ]
-      },
-      {
-        "usa_word": "0E93",
-        "prototype_word": "0E97",
-        "europe_word": "0E9D",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Course_LoadAndMaterialize"
-        ],
-        "europe_anchors": [
-          "Course_LoadAndMaterialize"
-        ]
-      },
-      {
-        "usa_word": "0F47",
-        "prototype_word": "0F4B",
-        "europe_word": "0F51",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Collision_BuildContactShape"
-        ],
-        "europe_anchors": [
-          "Collision_BuildContactShape"
-        ]
-      },
-      {
-        "usa_word": "0F49",
-        "prototype_word": "0F4D",
-        "europe_word": "0F53",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Race_UpdateRacersFrame"
-        ],
-        "europe_anchors": [
-          "Race_UpdateRacersFrame"
-        ]
-      },
-      {
-        "usa_word": "0F61",
-        "prototype_word": "0F65",
-        "europe_word": "0F6B",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Stunt_FinalizeAndScoreAirTricks"
-        ],
-        "europe_anchors": [
-          "Stunt_FinalizeAndScoreAirTricks"
-        ]
-      },
-      {
-        "usa_word": "0F7B",
-        "prototype_word": "0F7F",
-        "europe_word": "0F85",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Collision_BuildContactShape"
-        ],
-        "europe_anchors": [
-          "Collision_BuildContactShape"
-        ]
-      },
-      {
-        "usa_word": "0F9F",
-        "prototype_word": "0FA3",
-        "europe_word": "0FA9",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Collision_TransformVelocity",
-          "Race_UpdateRacersFrame"
-        ],
-        "europe_anchors": [
-          "Collision_TransformVelocity",
-          "Race_UpdateRacersFrame"
-        ]
-      },
-      {
-        "usa_word": "0FA1",
-        "prototype_word": "0FA5",
-        "europe_word": "0FAB",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Collision_TransformVelocity",
-          "Race_UpdateRacersFrame"
-        ],
-        "europe_anchors": [
-          "Collision_TransformVelocity",
-          "Race_UpdateRacersFrame"
-        ]
-      },
-      {
-        "usa_word": "0FEF",
-        "prototype_word": "0FF3",
-        "europe_word": "0FF9",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Race_UpdateRacersFrame"
-        ],
-        "europe_anchors": [
-          "Race_UpdateRacersFrame"
-        ]
-      },
-      {
-        "usa_word": "11CD",
-        "prototype_word": "11D1",
-        "europe_word": "11D7",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Race_UpdateRacersFrame"
-        ],
-        "europe_anchors": [
-          "Race_UpdateRacersFrame"
-        ]
-      },
-      {
-        "usa_word": "11CF",
-        "prototype_word": "11D3",
-        "europe_word": "11D9",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Race_UpdateRacersFrame"
-        ],
-        "europe_anchors": [
-          "Race_UpdateRacersFrame"
-        ]
-      },
-      {
-        "usa_word": "11D1",
-        "prototype_word": "11D5",
-        "europe_word": "11DB",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Race_UpdateRacersFrame"
-        ],
-        "europe_anchors": [
-          "Race_UpdateRacersFrame"
-        ]
-      },
-      {
-        "usa_word": "11F9",
-        "prototype_word": "11FD",
-        "europe_word": "1203",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Stunt_FinalizeAndScoreAirTricks"
-        ],
-        "europe_anchors": [
-          "Stunt_FinalizeAndScoreAirTricks"
-        ]
-      },
-      {
-        "usa_word": "11FD",
-        "prototype_word": "1201",
-        "europe_word": "1207",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Stunt_FinalizeAndScoreAirTricks"
-        ],
-        "europe_anchors": [
-          "Stunt_FinalizeAndScoreAirTricks"
-        ]
-      },
-      {
-        "usa_word": "1201",
-        "prototype_word": "1205",
-        "europe_word": "120B",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Stunt_FinalizeAndScoreAirTricks"
-        ],
-        "europe_anchors": [
-          "Stunt_FinalizeAndScoreAirTricks"
-        ]
-      },
-      {
-        "usa_word": "1205",
-        "prototype_word": "1209",
-        "europe_word": "120F",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Stunt_FinalizeAndScoreAirTricks"
-        ],
-        "europe_anchors": [
-          "Stunt_FinalizeAndScoreAirTricks"
-        ]
-      },
-      {
-        "usa_word": "125B",
-        "prototype_word": "125F",
-        "europe_word": "1265",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Collision_BuildContactShape"
-        ],
-        "europe_anchors": [
-          "Collision_BuildContactShape"
-        ]
-      },
-      {
-        "usa_word": "1361",
-        "prototype_word": "1365",
-        "europe_word": "136B",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Stunt_FinalizeAndScoreAirTricks"
-        ],
-        "europe_anchors": [
-          "Stunt_FinalizeAndScoreAirTricks"
-        ]
-      },
-      {
-        "usa_word": "1509",
-        "prototype_word": "150D",
-        "europe_word": "1513",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Race_BuildRacerOAMState"
-        ],
-        "europe_anchors": [
-          "Race_BuildRacerOAMState"
-        ]
-      },
-      {
-        "usa_word": "150A",
-        "prototype_word": "150E",
-        "europe_word": "1514",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Race_BuildRacerOAMState"
-        ],
-        "europe_anchors": [
-          "Race_BuildRacerOAMState"
-        ]
-      },
-      {
-        "usa_word": "150D",
-        "prototype_word": "1511",
-        "europe_word": "1517",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Race_BuildRacerOAMState"
-        ],
-        "europe_anchors": [
-          "Race_BuildRacerOAMState"
-        ]
-      },
-      {
-        "usa_word": "150E",
-        "prototype_word": "1512",
-        "europe_word": "1518",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Race_BuildRacerOAMState"
-        ],
-        "europe_anchors": [
-          "Race_BuildRacerOAMState"
-        ]
-      },
-      {
-        "usa_word": "15A1",
-        "prototype_word": "15A5",
-        "europe_word": "15AB",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Course_LoadAndMaterialize"
-        ],
-        "europe_anchors": [
-          "Course_LoadAndMaterialize"
-        ]
-      },
-      {
-        "usa_word": "1645",
-        "prototype_word": "1649",
-        "europe_word": "164F",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Course_LoadAndMaterialize"
-        ],
-        "europe_anchors": [
-          "Course_LoadAndMaterialize"
-        ]
-      },
-      {
-        "usa_word": "16E9",
-        "prototype_word": "16ED",
-        "europe_word": "16F3",
-        "prototype_delta_from_usa": 4,
-        "europe_delta_from_usa": 10,
-        "prototype_to_europe_delta": 6,
-        "prototype_anchors": [
-          "Course_LoadAndMaterialize"
-        ],
-        "europe_anchors": [
-          "Course_LoadAndMaterialize"
-        ]
-      },
-      {
-        "usa_word": "2100",
-        "prototype_word": "2100",
-        "europe_word": "2100",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 0,
-        "prototype_to_europe_delta": 0,
-        "prototype_anchors": [
-          "Course_LoadAndMaterialize"
-        ],
-        "europe_anchors": [
-          "Course_LoadAndMaterialize"
-        ]
-      },
-      {
-        "usa_word": "2115",
-        "prototype_word": "2115",
-        "europe_word": "2115",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 0,
-        "prototype_to_europe_delta": 0,
-        "prototype_anchors": [
-          "Course_LoadAndMaterialize"
-        ],
-        "europe_anchors": [
-          "Course_LoadAndMaterialize"
-        ]
-      },
-      {
-        "usa_word": "2116",
-        "prototype_word": "2116",
-        "europe_word": "2116",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 0,
-        "prototype_to_europe_delta": 0,
-        "prototype_anchors": [
-          "Course_LoadAndMaterialize"
-        ],
-        "europe_anchors": [
-          "Course_LoadAndMaterialize"
-        ]
-      },
-      {
-        "usa_word": "420B",
-        "prototype_word": "420B",
-        "europe_word": "420B",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 0,
-        "prototype_to_europe_delta": 0,
-        "prototype_anchors": [
-          "Course_LoadAndMaterialize"
-        ],
-        "europe_anchors": [
-          "Course_LoadAndMaterialize"
-        ]
-      },
-      {
-        "usa_word": "420C",
-        "prototype_word": "420C",
-        "europe_word": "420C",
-        "prototype_delta_from_usa": 0,
-        "europe_delta_from_usa": 0,
-        "prototype_to_europe_delta": 0,
-        "prototype_anchors": [
-          "Course_LoadAndMaterialize"
-        ],
-        "europe_anchors": [
-          "Course_LoadAndMaterialize"
-        ]
-      }
-    ],
-    "clusters": [
-      {
-        "prototype_to_europe_delta": 6,
-        "field_count": 38,
-        "usa_words": [
-          "0BA1",
-          "0BA3",
-          "0CBB",
-          "0CE1",
-          "0CE3",
-          "0CE5",
-          "0D0B",
-          "0D0D",
-          "0D49",
-          "0E89",
-          "0E8B",
-          "0E8D",
-          "0E8F",
-          "0E91",
-          "0E93",
-          "0F47",
-          "0F49",
-          "0F61",
-          "0F7B",
-          "0F9F",
-          "0FA1",
-          "0FEF",
-          "11CD",
-          "11CF",
-          "11D1",
-          "11F9",
-          "11FD",
-          "1201",
-          "1205",
-          "125B",
-          "1361",
-          "1509",
-          "150A",
-          "150D",
-          "150E",
-          "15A1",
-          "1645",
-          "16E9"
-        ],
-        "prototype_words": [
-          "0BA1",
-          "0BA3",
-          "0CBB",
-          "0CE1",
-          "0CE3",
-          "0CE5",
-          "0D0B",
-          "0D0D",
-          "0D49",
-          "0E8D",
-          "0E8F",
-          "0E91",
-          "0E93",
-          "0E95",
-          "0E97",
-          "0F4B",
-          "0F4D",
-          "0F65",
-          "0F7F",
-          "0FA3",
-          "0FA5",
-          "0FF3",
-          "11D1",
-          "11D3",
-          "11D5",
-          "11FD",
-          "1201",
-          "1205",
-          "1209",
-          "125F",
-          "1365",
-          "150D",
-          "150E",
-          "1511",
-          "1512",
-          "15A5",
-          "1649",
-          "16ED"
-        ],
-        "europe_words": [
-          "0BA7",
-          "0BA9",
-          "0CC1",
-          "0CE7",
-          "0CE9",
-          "0CEB",
-          "0D11",
-          "0D13",
-          "0D4F",
-          "0E93",
-          "0E95",
-          "0E97",
-          "0E99",
-          "0E9B",
-          "0E9D",
-          "0F51",
-          "0F53",
-          "0F6B",
-          "0F85",
-          "0FA9",
-          "0FAB",
-          "0FF9",
-          "11D7",
-          "11D9",
-          "11DB",
-          "1203",
-          "1207",
-          "120B",
-          "120F",
-          "1265",
-          "136B",
-          "1513",
-          "1514",
-          "1517",
-          "1518",
-          "15AB",
-          "164F",
-          "16F3"
-        ]
-      },
-      {
-        "prototype_to_europe_delta": 4,
-        "field_count": 12,
-        "usa_words": [
-          "0411",
-          "0413",
-          "0415",
-          "0417",
-          "0419",
-          "041D",
-          "0421",
-          "0423",
-          "042B",
-          "042F",
-          "04B7",
-          "04BB"
-        ],
-        "prototype_words": [
-          "0411",
-          "0413",
-          "0415",
-          "0417",
-          "0419",
-          "041D",
-          "0421",
-          "0423",
-          "042B",
-          "042F",
-          "04B7",
-          "04BB"
-        ],
-        "europe_words": [
-          "0415",
-          "0417",
-          "0419",
-          "041B",
-          "041D",
-          "0421",
-          "0425",
-          "0427",
-          "042F",
-          "0433",
-          "04BB",
-          "04BF"
-        ]
-      },
-      {
-        "prototype_to_europe_delta": 0,
-        "field_count": 10,
-        "usa_words": [
-          "000B",
-          "02C0",
-          "02C2",
-          "02C4",
-          "02C6",
-          "2100",
-          "2115",
-          "2116",
-          "420B",
-          "420C"
-        ],
-        "prototype_words": [
-          "000B",
-          "02C0",
-          "02C2",
-          "02C4",
-          "02C6",
-          "2100",
-          "2115",
-          "2116",
-          "420B",
-          "420C"
-        ],
-        "europe_words": [
-          "000B",
-          "02C0",
-          "02C2",
-          "02C4",
-          "02C6",
-          "2100",
-          "2115",
-          "2116",
-          "420B",
-          "420C"
-        ]
-      }
-    ]
-  }
+  "schema_version": 2
 }

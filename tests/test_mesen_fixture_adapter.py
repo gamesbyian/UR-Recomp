@@ -7,7 +7,7 @@ import importlib.util
 from pathlib import Path
 import tempfile
 
-from tools.controller_input import ControllerRun
+from tools.controller_input import ControllerRun, load_controller_runs
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOL = ROOT / "tools" / "run_fixture_mesen.py"
@@ -41,6 +41,22 @@ class FakeMesen:
 
 def main() -> int:
     commands = mod.parse_fixture(FIXTURE)
+    # The promoted ordinary-2P corpus must remain consumable by the same Mesen
+    # adapter: named checkpoints come from the script, controller ownership from
+    # the neutral stream.
+    two_player_script = ROOT / "tests" / "input" / "two-player-first-race-observe.script"
+    two_player_input = ROOT / "tests" / "input" / "two-player-first-race.input"
+    two_player_commands = mod.parse_fixture(two_player_script)
+    two_player_dumps = [cmd["tag"] for cmd in two_player_commands if cmd["op"] == "dump"]
+    assert "two-player-race-1220" in two_player_dumps
+    assert "two-player-p1-post-1520" in two_player_dumps
+    assert "two-player-p2-post-1570" in two_player_dumps
+    assert "two-player-both-post-1620" in two_player_dumps
+
+    two_player_runs = load_controller_runs(two_player_input)
+    assert any(run.p2_mask and not run.p1_mask for run in two_player_runs)
+    assert any(run.p1_mask and run.p2_mask for run in two_player_runs)
+
     assert len(commands) >= 20, len(commands)
     assert commands[0]["op"] == "until"
     assert commands[0]["address"] == 0x009F

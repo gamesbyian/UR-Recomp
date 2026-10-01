@@ -134,31 +134,24 @@ Interpretation remains deliberately bounded: these are structure-membership/layo
 
 Artifacts: `analysis/generated/wram-motion-atlas.json` and `.md`. Further clustering is not a priority unless a current physics/course/rendering/fidelity question needs a finer split.
 
-#### Stage 2 — classify the 486 USA-retail vs legacy-beta differences with independent analyzers
+#### Stage 2 — classify the 486 USA-retail vs legacy-beta differences with independent analyzers — completed 2026-09-30
 
-The USA/beta pair remains valuable precisely because its trusted semantic anchors are identical. Use its 486 isolated non-RNC byte changes as a compact corpus for identifying late isolated fixes, constants, table edits and analyzer-boundary mistakes.
+The bounded corpus is closed as a broad comparison target. `tools/classify_usa_beta_deltas.py` and `analysis/generated/usa-beta-cross-analyzer.{json,md}` show that 483/486 non-RNC changes are the systematic `0x77→0x70` SRAM-bank rewrite; with the game's 8 KiB LoROM SRAM those banks alias after the `$1FFF` mask. The remaining three edits are one header/license byte and two bytes in the SRAM boundary/mirroring probe, where the beta bypasses the retail failure branch. snes2asm marks only 39 changed bytes as code-related. Do not spend a blanket da65/Ghidra pass here; use those tools only if a future SRAM/protection question needs independent confirmation.
 
-- take `tools/analyze_rom_lineage_deltas.py` and the generated pairwise/four-ROM reports as byte-level ground truth;
-- restrict the first pass to the changed positions plus small bounded context;
-- use snes2asm as the broad first static witness where its tracing can classify a changed region; use da65 only on bounded ranges for which CODE boundaries and 65816 M/X state are independently known or can be seeded from existing trace/CDL evidence. The current da65 adapters intentionally contain labels only, so whole-bank da65 output without RANGE/ADDRMODE context would be noise rather than an independent vote;
-- normalize output into machine-comparable records keyed by SNES/file address, instruction shape, normalized operands, control-flow edges and referenced addresses; strip formatting/generated-label noise;
-- classify each delta as executable change, data/table change, relocation/addressing change, analyzer code/data disagreement, M/X-state disagreement, or unresolved;
-- join classifications to existing symbols and the comparative atlas;
-- use Ghidra/ghidra-snes only for the high-information subset where persistent xrefs/CFG/function boundaries can adjudicate ambiguity;
-- measure yield: semantic classifications gained, existing symbols strengthened, and reusable analyzer corrections discovered.
+#### Stage 3 — normalized PAL/Europe multi-analyzer comparison — current
 
-The purpose of this pass is not to decide whether comparative analysis works; PR #124 already answered that. Its purpose is to cheaply validate and improve the normalized cross-analyzer machinery on a very small, clean change set.
+The next active experiment is deliberately code-analysis focused:
 
-#### Stage 3 — expand only where information value justifies it
+1. start with PAL retail vs the 1994-11-29 PAL prototype because they share region/timing context while exposing genuine executable/layout change;
+2. select bounded executable windows from known raw-delta regions, prioritizing windows that intersect trusted semantic anchors, cross-build WRAM-motion families, course/rendering/physics code, or current decompilation gaps;
+3. run snes2asm over both builds and emit normalized records for instruction starts, opcodes, normalized operands/targets, control-flow edges and code/unreached classification;
+4. run bounded da65 only where CODE ranges and 65816 M/X state can be supplied from independent evidence; record disagreement rather than forcing alignment;
+5. use Ghidra/ghidra-snes only on persistent high-information disagreements involving function boundaries, code-vs-data classification, xrefs, indirect targets/jump tables or processor-state assumptions;
+6. compare SNESRecomp analyzer/generated-code structure where it adds execution/AOT information ordinary disassembly cannot;
+7. feed consensus and disagreement records back into `tools/build_comparative_code_atlas.py`, `analysis/decompilation-gaps.json` and the semantic inventory;
+8. then extend the same normalized machinery to selected Europe/USA regions and all-six-pair lineage signatures, without creating six isolated report silos.
 
-If Stages 1-2 expose useful unresolved regions:
-
-1. apply the same normalized comparison to PAL retail vs the 1994-11-29 PAL prototype;
-2. use all six pairings through the existing four-ROM lineage signatures rather than creating six unrelated reports;
-3. promote Ghidra as a richer third witness for selected executable regions, not a mandatory whole-ROM batch step;
-4. compare SNESRecomp analyzer/generated-code structure where it contributes execution/AOT information ordinary disassembly cannot;
-5. evaluate another 65816 analyzer only if it provides a genuinely independent interpretation.
-
+**Discipline:** when a diff reveals an interesting gameplay fact, record and propagate it, but remain on the comparative corpus unless resolving that fact is necessary to interpret the analyzer disagreement itself.
 #### Durable comparative atlas
 
 Build on the existing `tools/build_comparative_code_atlas.py`, `analysis/decompilation-gaps.json`, symbol adapters, and generated semantic inventory. Do not create a parallel tracking system.

@@ -1106,6 +1106,8 @@ A fresh agent should derive this order from current evidence rather than replay 
 
 Supporting research is pulled forward when it shortens one of these steps. It does not become critical merely because evidence exists or because an old workstream once had high priority.
 
+**Active research-lane clarification (2026-09-30):** the current VS/native replay work is preserved as a parallel fidelity lane in PR #133 and `docs/TWO-PLAYER-FIXTURE-PLAN.md`. Agents working that lane should finish stable active two-player parity and subsequent ordinary-2P/Mesen promotion. The active reverse-engineering lane returns to the four-ROM × multi-analyzer comparative code atlas: normalized PAL/prototype/Europe executable comparisons, analyzer disagreements, and propagation into the existing atlas/decomp-gap surfaces. Do not let discoveries from that comparative pass recursively turn into unrelated gameplay investigations; record them and continue the corpus unless interpretation requires the detour.
+
 ## First useful HD Presentation prototype
 
 The first HD Presentation experiment should **not** try to replace the whole game's presentation.

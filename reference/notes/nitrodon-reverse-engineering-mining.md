@@ -23,7 +23,18 @@ The three word tables immediately before the 625-byte matrix are `0,125,250,375,
 
 `index = 125*flips + 25*rolls + 5*twists + zflips`
 
-Each dimension is capped to 0..4, so this is a base-5 encoding of four stunt dimensions covering exactly 625 combinations. The table at `02:9DAA..A01A` is therefore an exact four-dimensional stunt-combination response matrix. Values `FE` and `FF` act as special sentinels in the observed selection path; their exact distinction remains unresolved.
+Each dimension is capped to 0..4, so this is a base-5 encoding of four stunt dimensions covering exactly 625 combinations. The table at `02:9DAA..A01A` is therefore an exact four-dimensional stunt-combination response matrix. The shipped consumer at `02:9D22` reduces this table to a binary gate: after loading the indexed byte it compares only with `FE`, and `FE` branches directly to stunt-state cleanup. Every other byte, including `FF`, follows the same praise path. The actual praise message IDs are then computed independently from racer/course state and `$A5 & 0x0F`; the response-table byte is never reused. A full bank-82 scan finds no second reference to `$829DAA`. Therefore `FE` is the only runtime suppression sentinel in this consumer; `FF` is not behaviorally distinct from the other non-`FE` entries here.
+
+## Message consumption, stunt score and delayed boost
+
+The paired 32-entry HUD/message rings are also a gameplay accounting pipeline, not merely presentation queues. `HUD_QueueMessage` enqueues the trick message first; later bank-81 consumption advances each queue head and applies the message-dependent reward.
+
+- P1 consumes `7E:0CBB+` at `81:C0E8..C225`. For reward-bearing trick messages it adds the per-message score byte from `7E:20E8+` into `77:07BB`, then uses the signed word table at `81:C4AA` to add boost directly to persistent `7E:11CF` when that table entry is nonnegative.
+- P2 mirrors the path at `81:C228..C369`, consuming `7E:0CE5+`, adding score into `77:0825`, and adding the same boost-table reward to persistent `7E:11D1`.
+- This closes the historical delay between trick recognition and boost mutation: stunt finalization produces queue entries, and queue consumption is the later reward-application boundary. The shared `7E:11CD` slot remains the per-racer simulation workspace copied to/from the persistent boost meters by `Race_UpdateRacersFrame`.
+- `7E:12AF` is not the underlying P1 stunt-score accumulator. At `81:C37F..C3E7`, the display/update path loads `77:07BB`, compares it with `12AF`, copies a changed value into `12AF`, and decomposes it into decimal display digits. `12AF` is therefore a cached/display-side copy of the P1 score. The corresponding P2 backing score is `77:0825`; its nearby display cache is `12B1`.
+
+These are static instruction-level conclusions. Exact human-facing boost units and the meaning of the auxiliary boost/reward words remain open, but no additional tracing is needed to establish where queued stunt rewards enter score and persistent boost state.
 
 ## Movement and boost landmarks
 
@@ -46,4 +57,4 @@ Nitrodon's RAM map adds several high-leverage fields: `7E:1199/119B` next checkp
 
 Promoted now because source plus ROM/static/dynamic evidence agree: tabletop duration/progress interpretation; 16-bit roll/flip/Z-flip/tabletop slot widths; current-player velocity/boost distinction; current-player selector; roll/flip quarter-progress fields; and stunt-finalizer, vertical-acceleration and input-decoder landmarks.
 
-Retained as leads: exact meaning of `7E:123F`, `0F69`, `0F4F`, and several collision fields; exact meaning of `FE` vs `FF` in the 625-byte stunt table; precise boost units; exact relationship between historical map offsets and RNC payloads; and the bounce trace's coefficient/table identities.
+Retained as leads: exact meaning of `7E:123F`, `0F69`, `0F4F`, and several collision fields; precise human-facing boost units and the auxiliary reward words; exact relationship between historical map offsets and RNC payloads; and the bounce trace's coefficient/table identities. The `FE` response-table suppression rule, queue-consumer reward boundary, P1/P2 score backing words, and `12AF` display-cache role are now statically closed.

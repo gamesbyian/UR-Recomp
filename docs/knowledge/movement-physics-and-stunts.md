@@ -13,12 +13,12 @@ Historical TAS work supplies strong candidate WRAM semantics:
 - `7E:0411`: P1 X position;
 - `7E:0415`: P1 Y position;
 - `7E:1509`: screen X position;
-- `7E:11CD`: boost meter;
+- `7E:11CD`: shared current-player boost working value; persistent player slots are `7E:11CF` / `7E:11D1`;
 - `7E:11FD`: flips;
 - `7E:11F9`: rolls;
 - `7E:0F61`: twists;
 - `7E:042B`: Z-flips;
-- `7E:042F`: tabletops;
+- `7E:042F`: tabletop duration/progress;
 - `7E:132B`: reverse-controls flag in the recovered bot.
 
 Several of these come from independent historical sources and therefore make excellent symbol-validation anchors.
@@ -26,6 +26,10 @@ Several of these come from independent historical sources and therefore make exc
 ## Current conceptual model
 
 **Supported.** Racing performance couples ordinary movement to successful stunt execution. Stunts are not only score events: landing useful tricks modifies the player's speed/boost state.
+
+The reward application is now statically localized. `Stunt_FinalizeAndScoreAirTricks` queues trick messages through `HUD_QueueMessage`; the later bank-81 queue consumer applies per-message rewards. P1 consumption adds score into `77:07BB` and boost into persistent `7E:11CF`; P2 mirrors this through `77:0825` and `7E:11D1`. `7E:12AF`, previously treated as the stunt score itself, is a display cache refreshed from `77:07BB` when that backing score changes.
+
+The 625-byte stunt-combination table at `02:9DAA` is also simpler at runtime than its varied byte contents suggest. The sole bank-82 consumer tests only for `FE`: `FE` suppresses the paired praise messages, while every non-`FE` byte, including `FF`, takes the same allowed path. The praise IDs are computed afterward from other state rather than from the table byte.
 
 The recovered autonomous player does not solve physics from first principles. Instead it uses live player state plus hand-authored course regions such as:
 
@@ -57,7 +61,6 @@ Do not yet assume:
 - speed units;
 - exact fixed-point formats;
 - whether boost is additive, multiplicative or a cap modifier;
-- stunt counter update timing;
 - how trick chains are represented internally;
 - exact contact-state representation;
 - whether AI uses the same movement-control path as players.

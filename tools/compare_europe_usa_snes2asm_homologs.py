@@ -118,6 +118,41 @@ REGIONS = [
         "expected_europe_shift": -58,
         "basis": "Nitrodon bounded VRAM/DMA row loop through the post-loop VRAM pointer load, before exit/range dispatch at 82:E302.",
     },
+    {
+        "name": "Race_HandleCheckpointFinish:entry_and_time",
+        "usa_start": "81:8050",
+        "usa_end": "81:8122",
+        "expected_europe_shift": 0,
+        "basis": "Dispatch-confirmed handler entry establishes REP #$30; bounded through race-time snapshot before the player-specific record branch.",
+    },
+    {
+        "name": "Race_HandleCheckpointFinish:player_records",
+        "usa_start": "81:8123",
+        "usa_end": "81:8194",
+        "expected_europe_shift": 0,
+        "basis": "Player-specific persistent record update block; bounded at the shared lap-update join 81:8195.",
+    },
+    {
+        "name": "Race_HandleCheckpointFinish:lap_hud",
+        "usa_start": "81:8195",
+        "usa_end": "81:81D3",
+        "expected_europe_shift": 0,
+        "basis": "Shared lap decrement and HUD-message phase; stops before the later Nitrodon listing becomes width-ambiguous around 81:81EC.",
+    },
+    {
+        "name": "Race_BuildRacerOAMState:p1_projection",
+        "usa_start": "82:ACF3",
+        "usa_end": "82:ADA7",
+        "expected_europe_shift": 7,
+        "basis": "Player-1 world/camera-to-screen projection begins with REP #$30 and runs through its bounded offscreen-classification join.",
+    },
+    {
+        "name": "Race_BuildRacerOAMState:p2_projection",
+        "usa_start": "82:ADC1",
+        "usa_end": "82:AE57",
+        "expected_europe_shift": 7,
+        "basis": "Player-2 sibling projection begins with REP #$30 and runs through its bounded offscreen-classification jump.",
+    },
 ]
 
 
@@ -202,6 +237,8 @@ def build() -> dict:
         cpu_to_offset("82:89B9"),
         cpu_to_offset("82:9A42"),
         cpu_to_offset("82:E165"),
+        cpu_to_offset("81:8050"),
+        cpu_to_offset("82:ACA5"),
     ]
     europe_seeds = [
         cpu_to_offset("80:8C41"),
@@ -213,6 +250,8 @@ def build() -> dict:
         cpu_to_offset("82:89CC"),
         cpu_to_offset("82:9A53"),
         cpu_to_offset("82:E12B"),
+        cpu_to_offset("81:8050"),
+        cpu_to_offset("82:ACAC"),
     ]
     seed_entries(ud, usa_seeds)
     seed_entries(ed, europe_seeds)

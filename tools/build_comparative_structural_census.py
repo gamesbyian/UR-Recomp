@@ -19,6 +19,7 @@ DEFAULT_SOURCES = (
     ("camera-control", "analysis/generated/camera-control-structure-island.json", False),
     ("race-timer", "analysis/generated/race-timer-structure-island.json", False),
     ("player-state-marshal", "analysis/generated/player-state-marshal-structure-island.json", False),
+    ("collision-resolution", "analysis/generated/collision-resolution-structure-island.json", False),
 )
 
 def build(root: Path) -> dict:

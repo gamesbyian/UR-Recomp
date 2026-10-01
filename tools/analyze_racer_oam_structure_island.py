@@ -17,9 +17,9 @@ CONTRACTION_REGIONS={"split_p2_projection","split_p1_projection"}
 
 REGIONS=[
  ("entry_mode_setup","82:ACA5","82:ACF2","code"),
- ("p1_projection","82:ACF3","82:ADA7","code"),
- ("p2_dispatch_setup","82:ADA8","82:ADC0","code"),
- ("p2_projection_shared_camera","82:ADC1","82:AE57","code"),
+ ("p1_projection","82:ACF3","82:ADA6","code"),
+ ("p2_dispatch_setup","82:ADA7","82:ADC0","code"),
+ ("p2_projection_shared_camera","82:ADC1","82:AE59","code"),
  ("p2_projection_alt_camera","82:AE5A","82:AF30","code"),
  ("split_mode_setup","82:AF31","82:AF4E","code"),
  ("split_p2_projection","82:AF4F","82:AFD4","code"),
@@ -90,7 +90,7 @@ def build():
   "island":"Race_BuildRacerOAMState 82:ACA5..B17F",
   "boundary_basis":{
    "entry":"named long-entry wrapper at 82:ACA1 calls 82:ACA5",
-   "known_projections":"trusted prior homologs bound USA ACF3..ADA7 and ADC1..AE57",
+   "known_projections":"trusted prior homologs establish the internal P1/P2 projection correspondence; structural cuts are normalized to full instruction boundaries",
    "mode_branches":"control flow separates shared-camera, alternate-camera and split-camera projection paths",
    "exit":"all surviving paths converge on the adjustment tail ending RTS at 82:B17F",
   },

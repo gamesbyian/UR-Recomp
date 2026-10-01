@@ -93,7 +93,7 @@ class SessionManager:
         client = BridgeClient("127.0.0.1", port)
         session = Session(handle, rom_path, loaded_rom, root, port, process, client)
         try:
-            _wait_for_bridge(session, ready)
+            _wait_for_bridge(session, ready, timeout=_bridge_startup_timeout(timeout))
         except Exception:
             session.close()
             shutil.rmtree(root, ignore_errors=True)
@@ -127,10 +127,35 @@ class SessionManager:
                 pass
 
 
+def _bridge_startup_timeout(session_timeout: int) -> float:
+    return min(float(session_timeout), 60.0)
+
+
 def _free_port() -> int:
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
         return int(sock.getsockname()[1])
+
+
+def _bridge_stage_summary(ready: Path) -> str:
+    stages = []
+    for suffix, label in ((".lua", "lua"), (".socket", "socket"), (".listen", "listen")):
+        if Path(str(ready) + suffix).is_file():
+            stages.append(label)
+    return ",".join(stages) if stages else "none"
+
+
+def _launcher_log_tail(root: Path, limit: int = 4000) -> str:
+    parts: list[str] = []
+    for name in ("mesen.stdout.log", "mesen.stderr.log"):
+        path = root / name
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if len(text) > limit:
+            text = text[-limit:]
+        parts.append(f"{name}:\n{text}")
+    return "\n".join(parts)
 
 
 def _wait_for_bridge(session: Session, ready: Path, timeout: float = 15.0) -> None:
@@ -138,7 +163,12 @@ def _wait_for_bridge(session: Session, ready: Path, timeout: float = 15.0) -> No
     last_error: Exception | None = None
     while time.monotonic() < deadline:
         if session.process.poll() is not None:
-            raise RuntimeError(f"Mesen exited before bridge was ready, code={session.process.returncode}")
+            logs = _launcher_log_tail(session.root)
+            suffix = f"\n{logs}" if logs else ""
+            stages = _bridge_stage_summary(ready)
+            raise RuntimeError(
+                f"Mesen exited before bridge was ready, code={session.process.returncode}; bridgeStages={stages}{suffix}"
+            )
         if ready.exists():
             try:
                 session.client.request("ping")
@@ -146,9 +176,12 @@ def _wait_for_bridge(session: Session, ready: Path, timeout: float = 15.0) -> No
             except Exception as exc:
                 last_error = exc
         time.sleep(0.05)
+    logs = _launcher_log_tail(session.root)
+    suffix = f"\n{logs}" if logs else ""
+    stages = _bridge_stage_summary(ready)
     if last_error:
-        raise TimeoutError(f"bridge did not respond: {last_error}")
-    raise TimeoutError("bridge did not become ready")
+        raise TimeoutError(f"bridge did not respond: {last_error}; bridgeStages={stages}{suffix}")
+    raise TimeoutError(f"bridge did not become ready; bridgeStages={stages}{suffix}")
 
 
 def _prepare_rom(rom_path: Path, root: Path) -> Path:

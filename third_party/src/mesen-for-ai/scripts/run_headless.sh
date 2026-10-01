@@ -31,9 +31,17 @@ fi
 SESSION_ROOT=${MESEN_MCP_SESSION_ROOT:-"$(mktemp -d -t mesen-for-ai.XXXXXX)"}
 SESSION_HOME="$SESSION_ROOT/home"
 SESSION_WORK="$SESSION_ROOT/work"
-MESEN_CONFIG_HOME="$SESSION_HOME/.config/MesenCE"
+MESEN_SOURCE_DIR="$(dirname "$MESEN_BIN")"
+MESEN_PORTABLE_DIR="$SESSION_ROOT/mesen-portable"
+MESEN_CONFIG_HOME="$MESEN_PORTABLE_DIR"
 
-mkdir -p "$MESEN_CONFIG_HOME" "$SESSION_WORK"
+mkdir -p "$SESSION_HOME" "$SESSION_WORK" "$MESEN_PORTABLE_DIR"
+if ! cp -al "$MESEN_SOURCE_DIR/." "$MESEN_PORTABLE_DIR/"; then
+  rm -rf "$MESEN_PORTABLE_DIR"
+  mkdir -p "$MESEN_PORTABLE_DIR"
+  cp -a "$MESEN_SOURCE_DIR/." "$MESEN_PORTABLE_DIR/"
+fi
+MESEN_RUN_BIN="$MESEN_PORTABLE_DIR/$(basename "$MESEN_BIN")"
 
 if [[ -n "${MESEN_PCECD_FIRMWARE:-}" ]]; then
   if [[ ! -f "$MESEN_PCECD_FIRMWARE" ]]; then
@@ -60,7 +68,9 @@ cat > "$MESEN_CONFIG_HOME/settings.json" <<JSON
   },
   "Snes": {
     "RamPowerOnState": 1,
-    "EnableRandomPowerOnState": false
+    "EnableRandomPowerOnState": false,
+    "Port1": { "Type": 1 },
+    "Port2": { "Type": 1 }
   },
   "Nes": {
     "RamPowerOnState": 1,
@@ -92,4 +102,6 @@ export HOME="$SESSION_HOME"
 export DOTNET_ROLL_FORWARD="${DOTNET_ROLL_FORWARD:-Major}"
 
 cd "$SESSION_WORK"
-exec xvfb-run -a "$MESEN_BIN" --testrunner "$ROM" "$LUA_SCRIPT" --timeout="${MESEN_TESTRUNNER_TIMEOUT:-30}" >"$SESSION_ROOT/mesen.stdout.log" 2>"$SESSION_ROOT/mesen.stderr.log"
+exec xvfb-run -a "$MESEN_RUN_BIN" --testrunner --enableStdout --doNotSaveSettings \
+  "$ROM" "$LUA_SCRIPT" --timeout="${MESEN_TESTRUNNER_TIMEOUT:-30}" \
+  >"$SESSION_ROOT/mesen.stdout.log" 2>"$SESSION_ROOT/mesen.stderr.log"

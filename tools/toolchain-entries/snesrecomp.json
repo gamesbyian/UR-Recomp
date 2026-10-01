@@ -28,7 +28,13 @@
   },
   "id": "snesrecomp",
   "install_mode": "build",
-  "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive. UR-Recomp's permanent native build uses the ordinary host SDL2 development package, disables SDL3 source fetching, and keeps optional netplay/Lua submodules outside the core path.",
+  "patches": [
+    {
+      "path": "tools/patches/snesrecomp-input-file.patch",
+      "sha256": "74083a719b2be1f8dbd2794b92724b0b4dc3ce6eb2369f3c47b783c847be4c39"
+    }
+  ],
+  "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive. UR-Recomp's permanent native build uses host SDL2, disables SDL3 source fetching, and carries a narrow project patch for exact neutral controller-stream replay in the desktop host.",
   "revision": "cd5875cbdaf19f5e324272b1f8051d671fce9215",
   "url": "https://github.com/RetroPortingToolKit/snesrecomp.git"
 }

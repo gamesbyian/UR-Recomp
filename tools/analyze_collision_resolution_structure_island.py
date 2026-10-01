@@ -25,6 +25,16 @@ def roles(d,s,e):
   else: ot+=1
  return {"opcode_bytes":op,"operand_bytes":pa,"unreached_or_data_bytes":ot}
 
+def spans_for_mask(d,start,end):
+ spans=[]; a=None
+ for p in range(start,end+1):
+  reached=bool(d.code_map[p]&(d.OP_CODE|d.OP_PARAM))
+  if not reached and a is None: a=p
+  if reached and a is not None:
+   spans.append({"start":offset_to_cpu(a),"end":offset_to_cpu(p-1),"size":p-a}); a=None
+ if a is not None: spans.append({"start":offset_to_cpu(a),"end":offset_to_cpu(end),"size":end-a+1})
+ return spans
+
 def best_shift(src,dst,start,end,center=0,radius=192):
  block=src[start:end+1]; best=(center,-1.0)
  for shift in range(center-radius,center+radius+1):
@@ -58,7 +68,7 @@ def build():
  rows=[]
  for name,s,e in REGIONS:
   us,ue=cpu_to_offset(s),cpu_to_offset(e)
-  row={"name":name,"kind":"code","usa_start":s,"usa_end":e,"size":ue-us+1,"builds":{}}
+  row={"name":name,"kind":"code","usa_start":s,"usa_end":e,"size":ue-us+1,"usa_unreached_spans":spans_for_mask(ds["usa-retail"],us,ue),"builds":{}}
   for build,blob in blobs.items():
    sh=shifts[build][name]; bs,be=us+sh,ue+sh
    sc=sum(a==b for a,b in zip(usa[us:ue+1],blob[bs:be+1]))/(ue-us+1)

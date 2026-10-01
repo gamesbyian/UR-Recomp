@@ -129,9 +129,9 @@ jobs:
               print("CAMERA_MOVEMENT_SERIES", runtime_name)
               for cp in movement_cps:
                   print(cp, report[cp]["camera_and_viewport"])
-                  ac=report[cp]["activation_candidate"]
+                  ac=report[cp]["vram_update_lists"]
                   print(
-                      "ACTIVATION_CANDIDATE", runtime_name, cp,
+                      "VRAM_UPDATE_LISTS", runtime_name, cp,
                       "counts",(ac["list_a_count_raw"],ac["list_b_count_raw"]),
                       "nonzero",(ac["list_a_nonzero_flags"],ac["list_b_nonzero_flags"]),
                       "flags_a",ac["list_a_flags"],

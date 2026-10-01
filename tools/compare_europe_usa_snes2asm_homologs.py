@@ -221,6 +221,27 @@ def compare_aligned_bytes(ud, ed, usa: bytes, europe: bytes, start: int, end: in
     }
 
 
+
+def local_shift_profile(source: bytes, target: bytes, start: int, end: int, chunk: int = 8) -> list[dict]:
+    rows = []
+    pos = start
+    while pos <= end:
+        stop = min(end, pos + chunk - 1)
+        shift, sim = best_shift(source, target, pos, stop, radius=64)
+        rows.append({
+            "relative_start": pos - start,
+            "relative_end": stop - start,
+            "usa_start": offset_to_cpu(pos),
+            "usa_end": offset_to_cpu(stop),
+            "europe_shift": shift,
+            "raw_similarity": round(sim, 6),
+            "usa_hex": source[pos:stop + 1].hex(" "),
+            "europe_hex": target[pos + shift:stop + shift + 1].hex(" "),
+        })
+        pos = stop + 1
+    return rows
+
+
 def build() -> dict:
     usa = USA.read_bytes()
     europe = EUROPE.read_bytes()
@@ -270,7 +291,7 @@ def build() -> dict:
             raise RuntimeError(
                 f"{region['name']}: seeded snes2asm still found zero aligned opcode pairs"
             )
-        rows.append({
+        row = {
             **region,
             "usa_file_start": start,
             "usa_file_end": end,
@@ -280,7 +301,10 @@ def build() -> dict:
             "raw_similarity_after_alignment": round(sim, 6),
             **metrics,
             **byte_metrics,
-        })
+        }
+        if metrics["aligned_role_disagreements"] or byte_metrics["aligned_opcode_byte_disagreements"]:
+            row["raw_local_shift_profile_8byte"] = local_shift_profile(usa, europe, start, end)
+        rows.append(row)
 
     totals = {
         "regions": len(rows),
@@ -354,6 +378,14 @@ def render(report: dict) -> str:
                 f"- +0x{x['relative_offset']:X}: USA {x['retail_role']} {x['retail_byte']} "
                 f"vs Europe {x['prototype_role']} {x['prototype_byte']}"
             )
+        if r.get("raw_local_shift_profile_8byte"):
+            lines.append("- local raw shift profile:")
+            for p in r["raw_local_shift_profile_8byte"]:
+                lines.append(
+                    f"  - +0x{p['relative_start']:X}..+0x{p['relative_end']:X} "
+                    f"({p['usa_start']}..{p['usa_end']}): shift {p['europe_shift']:+d}, "
+                    f"sim {p['raw_similarity']:.3f}; USA [{p['usa_hex']}] / Europe [{p['europe_hex']}]"
+                )
         lines.append("")
     lines += [
         "",

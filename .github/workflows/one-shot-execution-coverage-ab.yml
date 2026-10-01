@@ -1,0 +1,55 @@
+name: One-shot execution coverage A/B
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: one-shot-execution-coverage-ab-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.x
+
+      - name: Install host dependencies
+        run: |
+          sudo apt-get update -qy
+          sudo apt-get install -qy libsdl2-dev xvfb clang
+
+      - name: Stage pinned MesenCE and mesen-for-ai
+        run: python3 tools/bootstrap_toolchain.py --tool mesence --tool mesen-for-ai --jobs 2
+
+      - name: Build upstream-supported MesenCE Linux target
+        working-directory: .tools/src/mesence
+        run: |
+          make -j2 -O
+          test -x bin/linux-x64/Release/linux-x64/publish/Mesen
+
+      - name: Unit-test the compact comparator
+        run: python3 -m unittest tests/test_compare_fixture_cdl.py
+
+      - name: Compare jump versus control execution coverage
+        env:
+          MESEN_BIN: ${{ github.workspace }}/.tools/src/mesence/bin/linux-x64/Release/linux-x64/publish/Mesen
+          MESEN_FOR_AI_REPO: ${{ github.workspace }}/.tools/src/mesen-for-ai
+        run: |
+          python3 tools/compare_fixture_cdl.py             reference/roms/retail/Uniracers_USA.sfc             tests/input/race-jump-control.script             tests/input/race-jump.script             --json-out analysis/generated/execution-coverage-jump-ab.json             --md-out analysis/generated/execution-coverage-jump-ab.md
+          cat analysis/generated/execution-coverage-jump-ab.md
+
+      - name: Upload compact evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: execution-coverage-jump-ab
+          path: |
+            analysis/generated/execution-coverage-jump-ab.json
+            analysis/generated/execution-coverage-jump-ab.md

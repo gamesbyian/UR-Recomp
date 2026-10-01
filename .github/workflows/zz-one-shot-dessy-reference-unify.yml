@@ -37,7 +37,7 @@ jobs:
           dest="reference/imported/reverse-engineering/dessyreqt"
           mkdir -p "$dest"
           cp -a /tmp/dessy-intake/. "$dest"/
-          git rm "reference/imported/Uniracers Stuff.zip"
+          git rm -f "reference/imported/Uniracers Stuff.zip"
 
           while IFS= read -r -d '' file; do
             perl -0pi -e 's#references/#reference/#g' "$file"

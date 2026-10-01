@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "source_directory": "reference/imported/reverse-engineering/dessyreqt",
+  "file_count": 80,
+  "corpus": {
+    "lua_scripts": 17,
+    "glitch_smvs": 9,
+    "course_maps": 45,
+    "sram_images": 3,
+    "memory_watch_files": 2,
+    "research_documents": 4
+  },
+  "autonomous_lineage": [
+    {
+      "file": "Scripts/movebot.lua",
+      "role": "race-driving bot",
+      "unique_track_ids": 16,
+      "coordinate_rectangles": 49
+    },
+    {
+      "file": "Scripts/teststuntbot.lua",
+      "role": "stunt-capable movement prototype",
+      "unique_track_ids": 26,
+      "coordinate_rectangles": 164
+    },
+    {
+      "file": "Scripts/tabletopbot.lua",
+      "role": "full-game autonomous policy",
+      "unique_track_ids": 36,
+      "coordinate_rectangles": 308
+    }
+  ],
+  "tabletop_bot_variant": {
+    "public": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua",
+    "recovered": "reference/imported/reverse-engineering/dessyreqt/Scripts/tabletopbot.lua",
+    "byte_identical": false,
+    "known_deltas": [
+      "jump rectangle {6725,1212,6872,1316} -> {6725,1212,7172,1316}",
+      "recovered copy adds Dragster-specific direction/rotation handling"
+    ]
+  },
+  "usjo_lineage": [
+    {
+      "version": "8",
+      "date": "2008-02-10",
+      "path": "reference/imported/tas-bots/usjo8.lua"
+    },
+    {
+      "version": "14",
+      "date": "2008-02-14",
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/usjo14.lua"
+    },
+    {
+      "version": "14a",
+      "date": "2009-11-19",
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/usjo14a.lua"
+    },
+    {
+      "version": "14a backup",
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/usjo14a.lua.bak"
+    },
+    {
+      "version": "14a test",
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/usjo14a_test.lua"
+    }
+  ],
+  "lineage_similarity": {
+    "v8_v14_jaccard": 0.731,
+    "v14a_v14a_test_jaccard": 0.932
+  },
+  "v14a_boost_queue": {
+    "queue_start": "7E:0CBB",
+    "current_index": "7E:0CE1",
+    "first_new_index": "7E:0CE3",
+    "message_boost": {
+      "128": [
+        1,
+        9,
+        18
+      ],
+      "152": [
+        2,
+        10,
+        17,
+        19
+      ],
+      "176": [
+        3,
+        5,
+        11,
+        20
+      ],
+      "200": [
+        4,
+        6,
+        12,
+        21
+      ],
+      "224": [
+        7
+      ],
+      "248": [
+        8
+      ]
+    },
+    "objective": "live 16-bit boost + queued-message boost - no-stunt baseline boost"
+  },
+  "paired_racer_leads": {
+    "p2_x_position": "7E:0413",
+    "p2_y_position": "7E:0417",
+    "p2_x_speed": "7E:04B9",
+    "p2_y_speed": "7E:04BD",
+    "p2_facing": "7E:0BA3",
+    "p2_tabletop_duration": "7E:0431",
+    "p2_z_flips": "7E:042D",
+    "p2_rolls": "7E:11FB",
+    "p2_flips": "7E:11FF",
+    "p2_checkpoint": "7E:119B",
+    "p2_camera_x_speed": "7E:04F7"
+  },
+  "conflicts": [
+    {
+      "address": "7E:0F63",
+      "dessyreqt": "Twists * 2",
+      "nitrodon": "different historical label; unresolved"
+    }
+  ],
+  "planning_consequences": [
+    "demote USJO v13 acquisition to passive historical gap-filling",
+    "use P2 leads for deterministic paired-racer fixtures",
+    "promote 9 SMVs into bounded collision/glitch fixture candidates",
+    "treat 45 recovered maps as complete local visual course corpus",
+    "reconcile v14a queue-based boost accounting with Nitrodon/ROM message semantics",
+    "use magicnumber start/finish coordinates as course identity and finish probes"
+  ]
+}

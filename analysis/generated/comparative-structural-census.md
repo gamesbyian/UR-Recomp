@@ -2,9 +2,9 @@
 
 This census aggregates only accepted comparative structure-recovery islands, so the counts below are a conservative **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **37** (34 code, 3 data)
-- bounded bytes: **4408** (4200 code-region bytes, 208 explicit data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **1756**
+- bounded regions: **38** (35 code, 3 data)
+- bounded bytes: **4791** (4583 code-region bytes, 208 explicit data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **1923**
 - represented USA banks: **81, 82**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -16,6 +16,7 @@ This census aggregates only accepted comparative structure-recovery islands, so 
 | `81:8341..81:8371` | code | 49 | object-collision | handler_8341 | 81:8324..81:8354 (-29; size 49; sim 0.898) | 81:831B..81:834B (-38; size 49; sim 0.857) | 81:8341..81:8371 (+0; size 49; sim 1.000) |
 | `81:8372..81:83A3` | data | 50 | object-collision | lookup_8372 | 81:8355..81:8386 (-29; size 50; sim 1.000) | 81:834C..81:837D (-38; size 50; sim 1.000) | 81:8372..81:83A3 (+0; size 50; sim 1.000) |
 | `81:83A4..81:84D1` | code | 302 | object-collision | handler_83A4 | 81:8387..81:84B4 (-29; size 302; sim 0.871) | 81:837E..81:84AB (-38; size 302; sim 0.828) | 81:83A4..81:84D1 (+0; size 302; sim 1.000) |
+| `81:8B95..81:8D13` | code | 383 | course-surface-sampler | Course_SampleRuntimeSurface | 81:8B75..81:8CF3 (-32; size 383; sim 0.971) | 81:8B75..81:8CF3 (-32; size 383; sim 0.971) | 81:8B95..81:8D13 (+0; size 383; sim 1.000) |
 | `82:A22B..82:A27B` | code | 81 | racer-update | routine_A22B | 82:A221..82:A271 (-10; size 81; sim 0.852) | 82:A237..82:A287 (+12; size 81; sim 0.852) | 82:A22B..82:A27B (+0; size 81; sim 1.000) |
 | `82:A27C..82:A2D3` | code | 88 | racer-update | routine_A27C | 82:A272..82:A2C9 (-10; size 88; sim 0.511) | 82:A288..82:A2DF (+12; size 88; sim 0.511) | 82:A27C..82:A2D3 (+0; size 88; sim 1.000) |
 | `82:A2D4..82:A353` | data | 128 | racer-update | table_A2D4 | 82:A2C5..82:A344 (-15; size 128; sim 1.000) | 82:A2DB..82:A35A (+7; size 128; sim 1.000) | 82:A2D4..82:A353 (+0; size 128; sim 1.000) |
@@ -49,4 +50,4 @@ This census aggregates only accepted comparative structure-recovery islands, so 
 
 ## Current growth rule
 
-Choose subsequent islands for implementation leverage, not byte count. The census now spans racer simulation, object/collision dispatch, course materialization, and the full racer OAM/viewport builder. Any fifth island should illuminate another shipping-critical subsystem rather than extending these already-bounded corridors without a concrete need.
+Choose subsequent islands for implementation leverage, not byte count. The census now spans racer simulation, object/collision dispatch, course materialization, the full racer OAM/viewport builder, and the per-racer course runtime surface sampler. Any sixth island should illuminate another shipping-critical subsystem rather than extending these already-bounded corridors without a concrete need.

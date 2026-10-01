@@ -102,8 +102,9 @@ def summarize(rows: list[dict]) -> dict:
         })
 
     contradictions = [x for x in field_consistency if not x["consistent"]]
+    lineage_motion = build_lineage_motion(field_consistency)
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "method": {
             "source": "top structural candidates from tools/compare_semantic_anchors.py",
             "minimum_byte_similarity": MIN_SIMILARITY,
@@ -116,7 +117,54 @@ def summarize(rows: list[dict]) -> dict:
         "clusters": clusters,
         "field_consistency": field_consistency,
         "contradictions": contradictions,
+        "prototype_to_europe_motion": lineage_motion,
     }
+
+
+
+def build_lineage_motion(field_consistency: list[dict]) -> dict:
+    """Compare the same USA fields between PAL prototype and Europe retail.
+
+    This isolates layout motion that happened after the 1994-11-29 prototype.
+    Only fields with a single consistent candidate in both builds are admitted.
+    """
+    by_key = {(r["build"], r["usa_word"]): r for r in field_consistency if r["consistent"]}
+    rows = []
+    for (build, usa_word), proto in sorted(by_key.items()):
+        if build != "pal-prototype-1994-11-29":
+            continue
+        europe = by_key.get(("europe-retail", usa_word))
+        if not europe:
+            continue
+        proto_candidate = int(proto["candidate_words"][0], 16)
+        europe_candidate = int(europe["candidate_words"][0], 16)
+        secondary = signed_delta(proto_candidate, europe_candidate)
+        rows.append({
+            "usa_word": usa_word,
+            "prototype_word": proto["candidate_words"][0],
+            "europe_word": europe["candidate_words"][0],
+            "prototype_delta_from_usa": proto["deltas"][0],
+            "europe_delta_from_usa": europe["deltas"][0],
+            "prototype_to_europe_delta": secondary,
+            "prototype_anchors": proto["anchors"],
+            "europe_anchors": europe["anchors"],
+        })
+
+    clusters: dict[int, list[dict]] = defaultdict(list)
+    for row in rows:
+        clusters[row["prototype_to_europe_delta"]].append(row)
+
+    summary = []
+    for delta, members in clusters.items():
+        summary.append({
+            "prototype_to_europe_delta": delta,
+            "field_count": len(members),
+            "usa_words": [m["usa_word"] for m in members],
+            "prototype_words": [m["prototype_word"] for m in members],
+            "europe_words": [m["europe_word"] for m in members],
+        })
+    summary.sort(key=lambda x: (-x["field_count"], x["prototype_to_europe_delta"]))
+    return {"rows": rows, "clusters": summary}
 
 
 def render_markdown(atlas: dict) -> str:
@@ -160,6 +208,28 @@ def render_markdown(atlas: dict) -> str:
 
     lines += [
         "",
+        "## PAL prototype → Europe retail secondary motion",
+        "",
+        "For fields consistently projected in both builds, this subtracts the prototype address from the Europe address. The result isolates layout motion that occurred after the 1994-11-29 prototype.",
+        "",
+        "| Prototype→Europe delta | Fields | Example USA→prototype→Europe paths |",
+        "|---:|---:|---|",
+    ]
+    lineage_rows = {r["usa_word"]: r for r in atlas["prototype_to_europe_motion"]["rows"]}
+    for cluster in atlas["prototype_to_europe_motion"]["clusters"]:
+        examples = []
+        for usa_word in cluster["usa_words"][:6]:
+            r = lineage_rows[usa_word]
+            examples.append(
+                f"`{usa_word}→{r['prototype_word']}→{r['europe_word']}`"
+            )
+        lines.append(
+            f"| {cluster['prototype_to_europe_delta']:+d} | {cluster['field_count']} | "
+            f"{', '.join(examples)} |"
+        )
+
+    lines += [
+        "",
         "## Contradictions / exceptions",
         "",
     ]
@@ -184,6 +254,7 @@ def render_markdown(atlas: dict) -> str:
         "",
         "- Prefer clusters supported by multiple independent anchors when inferring a build-specific logical block.",
         "- Treat structure-specific displacement families as evidence against a single global WRAM relocation.",
+        "- Use prototype→Europe secondary motion to infer later insertions/repacking without conflating them with earlier USA→prototype layout changes.",
         "- Investigate exceptions first when they intersect current physics, course, rendering, or fidelity questions.",
         "- Do not transfer semantic labels from USA solely because an address follows a dominant displacement family.",
         "",

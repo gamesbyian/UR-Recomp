@@ -297,9 +297,13 @@ jobs:
               else:
                   new=[x for x in wdiff if x[0] not in baseline_diff_addrs]
                   if new:
+                      semantic_new=[x for x in new if x[0] >= 0x0200]
+                      scratch_new=[x for x in new if x[0] < 0x0200]
                       print(
                           f"NEW_WRAM_DIFF frame={frame} count={len(new)} "
-                          f"first={new[:64]}"
+                          f"scratch={len(scratch_new)} semantic={len(semantic_new)} "
+                          f"scratch_first={scratch_new[:32]} "
+                          f"semantic_first={semantic_new[:64]}"
                       )
                       if first_growth is None:
                           first_growth=(frame,new[:64])

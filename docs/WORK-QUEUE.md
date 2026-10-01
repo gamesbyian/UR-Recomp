@@ -13,8 +13,8 @@ Immediate order:
 1. Treat the 2014 SMV pre-race mismatch as a timing-alignment lead, not a semantic gameplay divergence. Dense/trace work shows the frame-437 low-WRAM differences occur while frontend fill/text code reuses the compared addresses. Use the historical movie event-relatively unless a later semantic anchor disagrees.
 2. Treat `80:C3C8` target discovery as bounded/closed for its valid `FF..EF` command domain: all 17 handlers are mapped from the canonical ROM. Prove the `EE` escape invariant or deeper handler semantics only if a concrete frontend decision needs them.
 3. Find the earliest **meaningful** unexplained native/reference divergence only on state whose semantics are valid in both contexts. Existing event-relative race fixtures already match acceleration, jump, rotation, landing and collision, so do not manufacture debt from pre-race scratch bytes.
-4. Resolve the two still-unmapped indirect dispatch sites (`00:8584`, `00:8599`) and the two LLE-only analyzer variants when they intersect executed/high-value paths.
-5. Replace the five explicit core placeholders in `SYMBOLS.md` with evidence-backed semantics, prioritizing main loop, player update, course loading, and OAM construction, then use that map to unblock finish fidelity, renderer/Widescreen work and course tooling.
+4. Treat all three analyzer indirect sites as bounded: `80:C3C8` has a 17-target valid command table, `00:8584` has one explicit complete vector target (`80:85A4`), and `00:8599` has three explicit complete vector targets (`80:F60C`, `80:8610`, `80:85A5`). Add dynamic target logging only when a concrete fidelity/AOT question requires it.
+5. Prioritize the two LLE-only analyzer variants and replace the five explicit core placeholders in `SYMBOLS.md` with evidence-backed semantics, especially main loop, player update, course loading, and OAM construction; use that map to unblock finish fidelity, renderer/Widescreen work and course tooling.
 
 Do not chase semantic completeness uniformly. Prioritize code that is executed, divergent, hardware-facing, or a dependency of physics/course/rendering behavior.
 

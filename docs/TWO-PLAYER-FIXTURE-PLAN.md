@@ -143,6 +143,26 @@ Evidence run: `36817685308`.
 
 The promoted fixture is `tests/input/two-player-first-race.input` with `tests/input/two-player-first-race-observe.script`. Run 36819833356 confirms the isolated Snes9x semantics: P1-only Right moves slot1 while slot2 remains at baseline; P2-only input then moves slot2; simultaneous input leaves P1 with positive X velocity and P2 with negative X velocity. The same run reproduces the canonical active-display OAM seam, HDMA `$2104` writes `V=0->$A5` and `V=112->$5A`, at every sampled stable race checkpoint. The disposable probe and its guessed offsets were removed after promotion; canonical racer fields come only from `tools/summarize_paired_player_slots.py`.
 
+## Native/reference P2 timing seam
+
+The ordinary-2P fixture now localizes the remaining native/Snes9x kinematic disagreement to the P2-only movement window rather than route timing or controller ownership.
+
+Run `36821645246` uses a common one-frame observation schedule from frames 1528 through 1554. P2 Left begins at guest frame 1530.
+
+- 1528-1531: tracked state matches.
+- 1532: first difference, only `Player2_XSpeed`: native `-47`, Snes9x `-48`.
+- 1533-1535: tracked state reconverges.
+- 1536: P2 X differs by one and the candidate P2 camera-X speed differs by one.
+- 1538-1544: tracked state reconverges again.
+- 1545: P2 Y differs by one.
+- 1548: X speed differs by one again.
+- 1550: the small drift crosses a contact threshold: native has `vy=19, air=1` while Snes9x remains `vy=0, air=0`.
+- 1551-1552: the one-frame contact difference amplifies into materially different X position/speed, rotation and camera speed.
+
+The controller-snapshot bytes remain equal at the first velocity divergence, so the earlier hypothesis that native's no-multitap live `$4218-$421B` behavior was exposing the P2 input edge early is not supported by this trace. The game-side race path consumes P2 from the NMI-copied `$030E/$0310` word and decodes horizontal direction into `$0317`; future diagnostics should therefore start after that decode, in the shared racer working block.
+
+The USA race-update routine copies P2 persistent X speed `$04B9` into shared working X speed `$0F9F`, processes the common racer physics path, then copies `$0F9F` back to `$04B9`. The current trace now includes decoded P2 horizontal direction and the shared working speed/rotation fields. The next useful question is whether the first 1-unit delta enters while loading player-specific state, inside a direction-dependent common-physics operation, or from contact/course state. Do not broaden this into a full-physics trace unless those fields fail to discriminate.
+
 ## VS active-movement parity refinement
 
 Current-main replay reconfirms exact native/Snes9x paired-racer semantics at stable pre-intervention checkpoints 1240, 1340 and 1440. After the P1-only, P2-only and simultaneous movement sequence, P1 still matches while P2 ends with a very small difference: native `x=1137, vx=-263`; Snes9x `x=1141, vx=-266`.

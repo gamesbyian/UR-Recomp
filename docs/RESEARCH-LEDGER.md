@@ -1728,3 +1728,21 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 **Propagation:** added four code regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **80 regions / 10,799 bounded USA bytes**, including **9,654 code-region bytes**, **1,145 data bytes**, and **4,078 analyzer opcode bytes**.
 
+### R-SEED-072 — Race/stunt timer lifecycle preserves one instruction architecture across all four builds
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | race timing | stunt timing | comparative atlas
+
+**Observation:** USA `81:C697..C906` is a 624-byte timer lifecycle containing the long-entry wrapper, mode dispatcher, count-up race timer, stunt countdown timer, digit refresh, timeout/finalization handling, and warning-sound threshold. The next code starts at `81:C907`.
+
+**Evidence:** `tools/analyze_race_timer_structure_island.py`; `analysis/generated/race-timer-structure-island.{json,md}`; ROM-backed project-tooling runs `36939582649` and `36939682024`. All 624 USA bytes are executable when the dormant `C6A4..C6A6` call slot is seeded explicitly. USA and legacy beta are byte-identical.
+
+**Interpretation:** PAL prototype preserves the entire subsystem at shift -35 and Europe at -19. Across the five structural regions, both regional builds preserve all 244 aligned opcode positions with zero code/operand-role disagreements. `81:C6A4..C6A6` is valid dormant code (`JSR $CB37`) intentionally bypassed by `BRA $C6A7`, not an embedded data seam. The live timer representation is `0E0F` minutes, `0E13` tens of seconds, `0E17` seconds, `0E1B` tenths, and `0E1F` six-step sub-tick; both count directions share these fields and digit-display refresh paths.
+
+**Discriminating test:** no further structural work is required. Exact semantics of mode selector `0E23`, finish flags `0EF5/0EF7`, and warning thresholds should be expanded only for a concrete fidelity or UI implementation need.
+
+**Dependencies:** Nitrodon bank-81 listing; trusted-entry snes2asm; four-ROM corpus; checkpoint/finish timer snapshot evidence.
+
+**Propagation:** replaced the generic race-timer TBD in `docs/SYMBOLS.md` with five concrete timer fields and added five code regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **85 regions / 11,423 bounded USA bytes**, including **10,278 code-region bytes**, **1,145 data bytes**, and **4,322 analyzer opcode bytes**.
+

@@ -5,7 +5,7 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from mesen_mcp.session import _bridge_startup_timeout, _extract_rom_from_zip
+from mesen_mcp.session import _bridge_startup_timeout, _extract_rom_from_zip, _launcher_log_tail
 
 
 class BridgeStartupTimeoutTests(unittest.TestCase):
@@ -14,6 +14,17 @@ class BridgeStartupTimeoutTests(unittest.TestCase):
 
     def test_caps_long_session_timeout(self) -> None:
         self.assertEqual(_bridge_startup_timeout(300), 60.0)
+
+
+class LauncherLogTailTests(unittest.TestCase):
+    def test_collects_launcher_logs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "mesen.stdout.log").write_text("stdout marker", encoding="utf-8")
+            (root / "mesen.stderr.log").write_text("stderr marker", encoding="utf-8")
+            tail = _launcher_log_tail(root)
+            self.assertIn("stdout marker", tail)
+            self.assertIn("stderr marker", tail)
 
 
 class ZipRomTests(unittest.TestCase):

@@ -106,6 +106,42 @@ Current promotion-gate status:
 - [x] `analysis/ui-menu-index.json` now points `0x3D` at the durable ordinary-2P fixture and promotes two-player `0x91` from historical to verified;
 - [ ] harvest any richer framebuffer/HUD atlas evidence that materially benefits from the promoted route.
 
+## Multiplayer camera / viewport observability
+
+The promoted ordinary-2P fixture now exposes the recovered dual-camera and split-screen projection state through `tools/summarize_paired_player_slots.py`.
+
+Recovered multiplayer mode/culling state:
+
+- `$0DDB`: raw split-screen/multiplayer camera-path enable. It is set from the setup flag at `83:C9C0..C9C6` and gates camera-2 updates, dual-window course sampling, split-screen OAM/HDMA setup, and alternate race paths;
+- `$121B/$121D`: per-racer off-screen flags used alongside the screen-relative OAM staging.
+
+Recovered camera state:
+
+- camera 1 position: `$0419/$041D`;
+- camera 2 position: `$041B/$041F`;
+- camera 1 velocity: `$04F5/$04F9`;
+- camera 2 velocity: `$04F7/$04FB`.
+
+The bank-81 camera-control structural island confirms these are active per-frame state, not duplicate annotations. `81:A52F` updates camera 1 from `$04F5/$04F9`; when `$0DDB != 0`, the same wrapper updates camera 2 from `$04F7/$04FB`.
+
+Recovered split-screen/OAM staging:
+
+- screen-2 racer coordinates: `$1501/$1502` and `$1505/$1506`;
+- screen-1 racer coordinates: `$1509/$150A` and `$150D/$150E`;
+- raw visibility/culling bits: `$1599`.
+
+Bank 82 computes these bytes from racer positions and camera state, substitutes off-screen sentinel coordinates on rejection paths, updates visibility bits in `$1599`, and then `82:D2D8..` streams `$1501..$1510` directly to OAMDATA. This is therefore a concrete camera → screen-relative projection/culling → sprite-emission bridge.
+
+Run 79 supplies the first event-relative camera evidence from the promoted fixture. At the 1470 baseline both cameras sit at X=984 with zero X velocity. After the P1-only interval, both runtimes report camera 1 at X=1455 with positive velocity 15 while camera 2 remains at X=984 with zero velocity. During the following P2-only interval, camera 2 begins following the second racer (native X=1082/vx=11; Snes9x X=1089/vx=10). During simultaneous P1-right/P2-left input, camera 2 reverses left in both runtimes while camera 1 continues right.
+
+The same fixture exposes the split-screen culling sentinels produced by bank 82. Once P1 has pulled away, screen 1 represents P2 as `0x70/0x70` and screen 2 represents P1 as `0x30/0x30`, matching the recovered off-screen branches that write those exact coordinate pairs.
+
+These relationships are durable event-relative assertions in the ordinary-2P workflow. They deliberately assert ownership/direction/culling behavior rather than exact post-input cross-runtime coordinates: the closed frame-origin investigation already proved that libretro cores and the native host can cut a vblank-shaped transition on adjacent absolute frame ordinals.
+
+The same camera-control path also exposes raw world-window state used before render-update construction: `$0505/$0507` are per-camera movement-derived edge values, `$052B/$052D` are associated update spans, and `$0509/$050B` are fine/index components. Immediately before DMA/update descriptors are built, `81:AA40..AB87` filters two compact 16-entry structures against those moving edge bands. Their counts are `$0DCD/$0DCF`, byte flags `$0D6D/$0D7D`, and encoded coordinate words `$0D8D/$0DAD`. Bank 82 consumes them as VRAM update commands at `82:D383..D3C4`: encoded words become `$2116` VRAM addresses and flag-selected values are written through `$2118`.
+
+This explicitly **does not close gameplay object activation**. The recovered RAM notes currently provide only racer collision-state hints (`$0E95`, `$0F09`) and no authoritative object-enable table. Keep the remaining object-activation obligation separate: trace entity/object state from the bank-81 object/collision dispatcher or from a fixture where a world object enters/leaves the active region, rather than reusing these render-side VRAM lists.
+
 ## Downstream obligations
 
 With the grammar now available, implement and verify:

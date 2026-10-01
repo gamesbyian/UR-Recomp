@@ -222,6 +222,32 @@ Priority: opportunistic now, high when Phase E begins producing deterministic gr
 
 Canonical visual-reference design: `HD-VISUAL-REFERENCE-PIPELINE.md`.
 
+## Value-of-information rule
+
+Research effort should be proportional to the expected value of the uncertainty removed.
+
+For any non-trivial investigation, especially video/frame mining, multi-core comparison, long traces, exhaustive static analysis, or custom instrumentation, record mentally or in the owning issue/work item:
+
+- **decision:** what implementation, priority, or validation choice could change;
+- **uncertainty:** which competing explanations remain plausible;
+- **cheapest discriminator:** the smallest observation likely to separate them;
+- **expected payoff:** what downstream work becomes safer or unnecessary if resolved;
+- **stop rule:** when further evidence is unlikely to change the decision.
+
+Default evidence ladder:
+
+1. already-owned evidence, docs, symbols, screenshots, logs;
+2. one cheap targeted observation;
+3. bounded deterministic capture/diff;
+4. fine-grained state/write/PC trace around a localized interval;
+5. independent emulator or hardware-model corroboration only for claims whose consequence warrants it.
+
+Do not jump to level 4 or 5 merely because the tooling exists.
+
+For video and frame analysis, prefer coarse-to-fine localization: scene/timestamp scan → frame hashes or image deltas → short candidate windows → manual inspection of only the discriminating frames. Enhancement/compositing is worthwhile when it can recover a specific hidden fact that would change the plan; it is not a default requirement for every ambiguous image.
+
+A useful heuristic is **decision value / investigation cost**, not confidence maximization. Low-cost, high-upside checks can be run speculatively. High-cost work needs a clear downstream hinge. Stop at “good enough to act” unless the claim will become a permanent fidelity invariant.
+
 ## Research before reinvention
 
 External research is also an escalation mechanism for technical work, not only a way to collect Uniracers artifacts.

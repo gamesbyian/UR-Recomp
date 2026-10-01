@@ -18,17 +18,21 @@
     {
       "id": "racer-oam",
       "path": "analysis/generated/racer-oam-structure-island.json"
+    },
+    {
+      "id": "course-surface-sampler",
+      "path": "analysis/generated/course-surface-sampler-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 37,
-    "code_regions": 34,
+    "regions": 38,
+    "code_regions": 35,
     "data_regions": 3,
-    "bounded_bytes": 4408,
-    "bounded_code_region_bytes": 4200,
+    "bounded_bytes": 4791,
+    "bounded_code_region_bytes": 4583,
     "bounded_data_region_bytes": 208,
-    "analyzer_opcode_bytes": 1756,
-    "analyzer_operand_bytes": 2382,
+    "analyzer_opcode_bytes": 1923,
+    "analyzer_operand_bytes": 2598,
     "analyzer_unreached_or_data_bytes": 270,
     "banks": [
       "81",
@@ -354,6 +358,52 @@
           "shift": 0,
           "similarity": 1,
           "size": 302,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "course-surface-sampler",
+      "source_path": "analysis/generated/course-surface-sampler-structure-island.json",
+      "name": "Course_SampleRuntimeSurface",
+      "kind": "code",
+      "usa_start": "81:8B95",
+      "usa_end": "81:8D13",
+      "size": 383,
+      "usa_opcode_bytes": 167,
+      "usa_operand_bytes": 216,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:8B75",
+          "end": "81:8CF3",
+          "shift": -32,
+          "similarity": 0.971279,
+          "size": 383,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:8B95",
+          "end": "81:8D13",
+          "shift": 0,
+          "similarity": 1,
+          "size": 383,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:8B75",
+          "end": "81:8CF3",
+          "shift": -32,
+          "similarity": 0.971279,
+          "size": 383,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:8B95",
+          "end": "81:8D13",
+          "shift": 0,
+          "similarity": 1,
+          "size": 383,
           "size_delta": 0
         }
       }

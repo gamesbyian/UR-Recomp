@@ -4,16 +4,9 @@ Status: deterministic VS and ordinary-2P routes are both reproduced. Ordinary 2P
 
 ## Why this exists
 
-The project has an established engine-neutral player-2 controller transport and a deterministic VS route from clean boot through P1/P2 rider selection into active split-screen gameplay. `TWO_PLAYER_SELECT = 0x3D`, `VS_SELECT = 0x3E`, the P1->P2 presentation handoff, a genuinely P2-causal rider move/confirm edge, deeper VS setup states, and first VS race entry now have local evidence. Remaining work is broader native/Mesen promotion, ordinary 2P coverage, paired racer-state assertions, and downstream widescreen/gameplay validation.
+The project has an established engine-neutral player-2 controller transport plus deterministic VS and ordinary-2P routes from clean boot into active split-screen gameplay. `TWO_PLAYER_SELECT = 0x3D`, `VS_SELECT = 0x3E`, two-controller rider selection, deeper setup states, first race entry, paired racer-state assertions, simultaneous input, and the active-display OAM seam now have local evidence. Remaining work is full Mesen runtime promotion, the small post-input native/reference P2 timing seam, richer split-screen/HUD interaction coverage, and downstream widescreen validation.
 
-Until that evidence exists, durable local promotion remains blocked for several known multiplayer frontend states:
-
-- `TWO_PLAYER_SELECT`
-- `VS_SELECT` beyond first entry
-- `VS_CHALLENGER`
-- `VS_CHALLENGE_TRACK`
-
-It also blocks proper two-player coverage of split-screen rendering, OAM behavior, gameplay interaction, and differential validation.
+The former frontend reachability blockers are now covered by frozen routes. Remaining promotion work is no longer basic reachability: it is cross-runtime breadth and deeper behavior, especially Mesen execution, split-screen/HUD interaction, multiplayer camera/object activation, and eventual widescreen validation.
 
 This is a tooling dependency, not permission to neglect multiplayer work.
 
@@ -67,7 +60,7 @@ neutral .input stream
 
 Do not invent `p2 press ...` syntax in the existing scene grammar merely to unblock the atlas. For 2P/VS atlas work, either generate/freeze the neutral controller stream from a small state-aware driver or extend the shared runner so scene checkpoints can be synchronized with that stream without changing its controller semantics.
 
-The planned first durable atlas corpus is `ui-two-player-handoff.input`, paired with named state checkpoints proving P1 selection, P2 handoff, P2 selection, and the next multiplayer setup state.
+The durable ordinary-2P corpus is now `tests/input/two-player-first-race.input`, paired with `tests/input/two-player-first-race-observe.script`; it proves two-controller selection, the next setup states, race entry, isolated per-player movement, simultaneous movement, and stable split-screen checkpoints.
 
 ## Acceptance fixture
 
@@ -100,26 +93,30 @@ Then add the corresponding VS acceptance route through `VS_SELECT -> VS_CHALLENG
 
 ## Promotion gates
 
-Do not mark the capability complete until:
+Current promotion-gate status:
 
-- the same fixture syntax is accepted by every engine adapter that claims shared-fixture support;
-- a two-player route produces stable named checkpoints;
-- controller assignment is proven, not inferred from a visually similar frame;
-- simultaneous P1/P2 input is covered by a small semantics test;
-- `tests/fixtures.json` contains at least one durable 2P fixture;
-- `analysis/ui-state-map.yml`, `analysis/ui-menu-index.json`, and the UI atlas are updated from local evidence.
+- [x] a two-player route produces stable named checkpoints;
+- [x] controller assignment is behaviorally proven rather than inferred from a similar frame;
+- [x] simultaneous P1/P2 input is covered by a small semantics test;
+- [x] `tests/fixtures.json` contains a durable ordinary-2P fixture;
+- [x] `analysis/ui-state-map.yml` reflects the reproduced ordinary-2P handoff;
+- [x] native and Snes9x share the neutral input stream plus named checkpoint schedule;
+- [x] the Mesen adapter can synchronize that same neutral stream with named checkpoint scripts, with ROM-free two-pad timing coverage;
+- [ ] run the promoted ordinary-2P fixture against a compatible Mesen/MesenCE binary and compare the named semantic checkpoints;
+- [ ] reconcile any remaining UI-menu-index / atlas evidence that benefits from the promoted route.
 
 ## Downstream obligations
 
 With the grammar now available, implement and verify:
 
-1. P2-only causality/confirmation in the initial 2P/VS selectors, building from the verified `0x3D` 2P anchor and verified `0x3E` VS P1→P2 presentation handoff;
-2. VS challenger and challenge-track capture after the P2 confirm;
-3. first 2P race entry;
-4. split-screen/HUD atlas states;
-5. two-player OAM compatibility coverage;
-6. at least one cross-runtime deterministic multiplayer checkpoint;
-7. two-player effects on camera, object activation, and later Widescreen behavior.
+1. [x] P2-only causality/confirmation in the initial ordinary-2P route;
+2. [x] VS challenger and challenge-track reachability after P2 confirm;
+3. [x] first ordinary-2P race entry;
+4. [ ] richer split-screen/HUD atlas states;
+5. [x] two-player OAM compatibility coverage for the canonical scanline split and high-OAM routing;
+6. [x] native/Snes9x deterministic multiplayer checkpoints, with exact stable pre-intervention parity and bounded post-input drift;
+7. [ ] promoted Mesen/MesenCE runtime parity using the synchronized neutral-stream + named-checkpoint adapter;
+8. [ ] two-player effects on camera, object activation, and later widescreen behavior.
 
 Do not allow completion of general fidelity work to imply multiplayer fidelity if these items remain open.
 
@@ -210,7 +207,7 @@ This repeats at checkpoints 1140, 1240, 1340, 1440 and 1620. The selector-screen
 
 `tools/assert_uniracers_vs_oam_seam.py` encodes the two active-display writes as a durable regression assertion. The persistent VS reference workflow also runs the same frozen controller stream through the independent Beetle/bsnes core to verify that the route itself reaches stable split-screen gameplay without relying solely on Snes9x's title-specific compatibility behavior.
 
-This closes the recovered **observability + scene reachability** blocker for the famous OAM seam. It does not close all multiplayer work: ordinary 2P mode, native/Mesen parity, paired P1/P2 physics/state fields, and widescreen behavior remain separate obligations.
+This closes the recovered **observability + scene reachability** blocker for the famous OAM seam. Ordinary 2P mode and paired P1/P2 state coverage are now also promoted; Mesen runtime parity, the small active-input timing seam, richer multiplayer interaction coverage, and widescreen behavior remain separate obligations.
 
 
 The active-display writes are driven by a stable WRAM HDMA table at `7E:206C`: `70 A5 70 5A 00`. HDMA channel 1 runs mode 0 to `$2104`, producing the observed 112-line split. Future OAM archaeology can therefore start from a tiny deterministic source table instead of rediscovering the raster schedule.

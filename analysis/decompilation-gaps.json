@@ -89,6 +89,14 @@
       "summary": "Recovered long-entry wrapper, dispatcher code split around a 15-word pointer prefix, a bounded handler, an exact 25-word lookup table, corrected next-handler entry, and an Europe-retail-only five-byte executable prologue absent from the PAL prototype.",
       "priority": "low",
       "next_evidence": "Only expand the indirect dispatch domain when a concrete object-handler or AOT question requires proving X values beyond the explicit 15-pointer prefix."
+    },
+    {
+      "id": "resolved-course-materialization-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 82:E165..E395 and homologs",
+      "summary": "Recovered the full named course loader as five bounded executable regions: setup, resource-record/header handling, DMA row loop, A000/C000 materialization, and common exit. All 554 USA bytes are analyzer-reached. Europe preserves the structure at shift -58, PAL prototype at -100, and legacy beta is byte-identical.",
+      "priority": "low",
+      "next_evidence": "Revisit internal descriptor/plane semantics only when course/editor implementation requires them. Comparative structure work should move to a fourth independent subsystem."
     }
   ]
 }

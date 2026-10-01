@@ -331,7 +331,6 @@ def build() -> dict:
             **byte_metrics,
         }
         if region.get("allow_structural_delta"):
-        if region.get("allow_structural_delta"):
             eu_start = cpu_to_offset(region["europe_explicit_start"])
             eu_end = cpu_to_offset(region["europe_explicit_end"])
             row["structural_delta"] = {

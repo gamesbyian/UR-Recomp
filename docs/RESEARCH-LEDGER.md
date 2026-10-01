@@ -1638,3 +1638,21 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 **Propagation:** added both regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **40 regions / 5,259 bounded USA bytes**, including **5,051 code-region bytes** and **2,108 analyzer-classified opcode bytes**, and adding bank 83 to the represented-bank set. The queue now advances to a seventh independent subsystem.
 
+### R-SEED-067 — Checkpoint/finish handler resolves into two regional edit lineages
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | race state | course objects | comparative atlas
+
+**Observation:** object code `0x14` dispatches to USA `81:8050`, and the handler runs through `81:82E0` before the shared object-handler continuation at `81:82E1`. The complete USA handler is 657 bytes and trusted-entry snes2asm reaches every USA byte. Legacy beta is byte-identical.
+
+**Evidence:** `tools/analyze_checkpoint_finish_structure_island.py`; `analysis/generated/checkpoint-finish-structure-island.{json,md}`; ROM-backed project-tooling runs beginning with `36932038895` and the exact-boundary passes that followed. The earlier homolog pass had already isolated Europe retail's frame-normalization contraction. The seventh-island pass extended through the formerly width-ambiguous late handler and localized the remaining shift staircase to exact instruction-aligned deletions.
+
+**Interpretation:** two separate lineages are superposed. Europe retail alone replaces USA `81:8102..8117` (22 bytes) with `81:8102..8109` (8 bytes), net -14. Independently, PAL prototype and Europe both omit five USA/beta blocks: `8210..8215` (6 bytes: TXA; STA $0E39,Y; LDA $00), `8227..822C` (6: TXA; STA $0E3D,Y; LDA $00), `823E..8243` (6: TXA; STA $0E41,Y; LDA $00), `8253..8259` (7: STA $0E35,Y; TXA; STA $0E45,Y), and `8278..827B` (4 NOPs). Those shared PAL-line deletions total -29, so the prototype exits at shift -29 and Europe at -43 after also applying the timer edit.
+
+**Discriminating test:** no further boundary work is required. Exact semantic meaning of the deleted bookkeeping stores should be pursued only if race-results/finish fidelity or regional-timing behavior requires it.
+
+**Dependencies:** object-code dispatcher mapping; trusted-entry snes2asm; four-ROM preserved corpus; exact transition-window byte comparison.
+
+**Propagation:** represented the entire 657-byte USA handler as 15 gapless code regions, preserving USA/beta-only deleted blocks explicitly rather than hiding them inside shift arithmetic. Added the island to `analysis/generated/comparative-structural-census.{json,md}`, bringing the census to **55 regions / 5,916 bounded USA bytes**, including **5,708 code-region bytes** and **2,393 analyzer opcode bytes**.
+

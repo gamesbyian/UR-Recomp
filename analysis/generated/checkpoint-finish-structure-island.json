@@ -1,0 +1,842 @@
+{
+  "dispatch": {
+    "entry": "81:8050",
+    "object_code": "0x14",
+    "shared_exit": "81:82E1"
+  },
+  "island": "Race_HandleCheckpointFinish",
+  "lineage_edits": {
+    "europe_only_frame_normalization": {
+      "end": "81:8109",
+      "hex": "ad 29 0e 0a 18 6d 00 03",
+      "kind": "code",
+      "name": "frame_normalization_europe_shape",
+      "opcode_bytes": 4,
+      "operand_bytes": 4,
+      "size": 8,
+      "size_delta_vs_usa": -14,
+      "start": "81:8102",
+      "unreached_or_data_bytes": 0,
+      "usa_reference_end": "81:8117",
+      "usa_reference_start": "81:8102"
+    },
+    "europe_total_contraction_after_both_lineages": -43,
+    "pal_line_total_contraction": -29,
+    "pal_line_usa_only_deletions": [
+      {
+        "europe_retail_omits": true,
+        "expected_hex": "8a 99 39 0e a5 00",
+        "hex": "8a 99 39 0e a5 00",
+        "instructions": "TXA; STA $0E39,Y; LDA $00",
+        "legacy_beta_identical": true,
+        "name": "pal_delete_1",
+        "pal_prototype_omits": true,
+        "size": 6,
+        "usa_end": "81:8215",
+        "usa_roles": {
+          "opcode_bytes": 3,
+          "operand_bytes": 3,
+          "unreached_or_data_bytes": 0
+        },
+        "usa_start": "81:8210"
+      },
+      {
+        "europe_retail_omits": true,
+        "expected_hex": "8a 99 3d 0e a5 00",
+        "hex": "8a 99 3d 0e a5 00",
+        "instructions": "TXA; STA $0E3D,Y; LDA $00",
+        "legacy_beta_identical": true,
+        "name": "pal_delete_2",
+        "pal_prototype_omits": true,
+        "size": 6,
+        "usa_end": "81:822C",
+        "usa_roles": {
+          "opcode_bytes": 3,
+          "operand_bytes": 3,
+          "unreached_or_data_bytes": 0
+        },
+        "usa_start": "81:8227"
+      },
+      {
+        "europe_retail_omits": true,
+        "expected_hex": "8a 99 41 0e a5 00",
+        "hex": "8a 99 41 0e a5 00",
+        "instructions": "TXA; STA $0E41,Y; LDA $00",
+        "legacy_beta_identical": true,
+        "name": "pal_delete_3",
+        "pal_prototype_omits": true,
+        "size": 6,
+        "usa_end": "81:8243",
+        "usa_roles": {
+          "opcode_bytes": 3,
+          "operand_bytes": 3,
+          "unreached_or_data_bytes": 0
+        },
+        "usa_start": "81:823E"
+      },
+      {
+        "europe_retail_omits": true,
+        "expected_hex": "99 35 0e 8a 99 45 0e",
+        "hex": "99 35 0e 8a 99 45 0e",
+        "instructions": "STA $0E35,Y; TXA; STA $0E45,Y",
+        "legacy_beta_identical": true,
+        "name": "pal_delete_4",
+        "pal_prototype_omits": true,
+        "size": 7,
+        "usa_end": "81:8259",
+        "usa_roles": {
+          "opcode_bytes": 3,
+          "operand_bytes": 4,
+          "unreached_or_data_bytes": 0
+        },
+        "usa_start": "81:8253"
+      },
+      {
+        "europe_retail_omits": true,
+        "expected_hex": "ea ea ea ea",
+        "hex": "ea ea ea ea",
+        "instructions": "NOP; NOP; NOP; NOP",
+        "legacy_beta_identical": true,
+        "name": "pal_delete_5",
+        "pal_prototype_omits": true,
+        "size": 4,
+        "usa_end": "81:827B",
+        "usa_roles": {
+          "opcode_bytes": 4,
+          "operand_bytes": 0,
+          "unreached_or_data_bytes": 0
+        },
+        "usa_start": "81:8278"
+      }
+    ]
+  },
+  "regions": [
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:8101",
+          "opcode_bytes": 75,
+          "operand_bytes": 103,
+          "sha256": "aa6abca3fea61f9d1de01ccbca417f3337b3e63394c423a2a85f27fb155d5add",
+          "shift": 0,
+          "similarity": 0.904494,
+          "size": 178,
+          "size_delta": 0,
+          "start": "81:8050",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "81:8101",
+          "opcode_bytes": 75,
+          "operand_bytes": 103,
+          "sha256": "4a99d2c132c6f7db15347f2f2771e08e37fae8e03ebde6da7f95f63960ef3ca0",
+          "shift": 0,
+          "similarity": 1,
+          "size": 178,
+          "size_delta": 0,
+          "start": "81:8050",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:8101",
+          "opcode_bytes": 75,
+          "operand_bytes": 103,
+          "sha256": "ca7b4aa9b4ed2b62f6596e671e1a240c6b46d4f62a87a9e3f09fd93787f305a4",
+          "shift": 0,
+          "similarity": 0.904494,
+          "size": 178,
+          "size_delta": 0,
+          "start": "81:8050",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:8101",
+          "opcode_bytes": 75,
+          "operand_bytes": 103,
+          "sha256": "4a99d2c132c6f7db15347f2f2771e08e37fae8e03ebde6da7f95f63960ef3ca0",
+          "shift": 0,
+          "similarity": 1,
+          "size": 178,
+          "size_delta": 0,
+          "start": "81:8050",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "entry_time_prefix",
+      "size": 178,
+      "usa_end": "81:8101",
+      "usa_start": "81:8050"
+    },
+    {
+      "builds": {
+        "legacy-beta": {
+          "end": "81:8117",
+          "opcode_bytes": 10,
+          "operand_bytes": 12,
+          "sha256": "369d14efc90295a15bc1069a19d41918aa5b07023087da926cd4c51d75eb8f29",
+          "shift": 0,
+          "similarity": 1,
+          "size": 22,
+          "size_delta": 0,
+          "start": "81:8102",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:8117",
+          "opcode_bytes": 10,
+          "operand_bytes": 12,
+          "sha256": "e2c00056bee84ead3a0bde00280c7f334ca0ab4ce40b949c204440411d96784c",
+          "shift": 0,
+          "similarity": 0.954545,
+          "size": 22,
+          "size_delta": 0,
+          "start": "81:8102",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:8117",
+          "opcode_bytes": 10,
+          "operand_bytes": 12,
+          "sha256": "369d14efc90295a15bc1069a19d41918aa5b07023087da926cd4c51d75eb8f29",
+          "shift": 0,
+          "similarity": 1,
+          "size": 22,
+          "size_delta": 0,
+          "start": "81:8102",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "frame_normalization_usa_shape",
+      "size": 22,
+      "usa_end": "81:8117",
+      "usa_start": "81:8102"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:8186",
+          "opcode_bytes": 63,
+          "operand_bytes": 62,
+          "sha256": "ac87673773eb7bbc3605b5c0a10657d23df78040e8e6437d043e901803f40724",
+          "shift": -14,
+          "similarity": 0.944,
+          "size": 125,
+          "size_delta": 0,
+          "start": "81:810A",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "81:8194",
+          "opcode_bytes": 63,
+          "operand_bytes": 62,
+          "sha256": "b0c686aaf4fc320ebde2574e5a471bafc6cf535e5ce7a772472d86ef6b361a59",
+          "shift": 0,
+          "similarity": 1,
+          "size": 125,
+          "size_delta": 0,
+          "start": "81:8118",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:8194",
+          "opcode_bytes": 63,
+          "operand_bytes": 62,
+          "sha256": "d7daafcc6905ce670a0e77f5bcce8a4a8be41a56e0b41236a40d80ed92b43aa4",
+          "shift": 0,
+          "similarity": 0.976,
+          "size": 125,
+          "size_delta": 0,
+          "start": "81:8118",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:8194",
+          "opcode_bytes": 63,
+          "operand_bytes": 62,
+          "sha256": "b0c686aaf4fc320ebde2574e5a471bafc6cf535e5ce7a772472d86ef6b361a59",
+          "shift": 0,
+          "similarity": 1,
+          "size": 125,
+          "size_delta": 0,
+          "start": "81:8118",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "post_normalization",
+      "size": 125,
+      "usa_end": "81:8194",
+      "usa_start": "81:8118"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:81C5",
+          "opcode_bytes": 24,
+          "operand_bytes": 39,
+          "sha256": "14c706cfe15baee450642fe9dd2d74a2b8c77b8a191a53ce3d8bcfebd9ffd136",
+          "shift": -14,
+          "similarity": 0.825397,
+          "size": 63,
+          "size_delta": 0,
+          "start": "81:8187",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "81:81D3",
+          "opcode_bytes": 24,
+          "operand_bytes": 39,
+          "sha256": "d030f9a38fe62499c9572a8b0868050067d3915daa990b84d5578fd933a3ed9d",
+          "shift": 0,
+          "similarity": 1,
+          "size": 63,
+          "size_delta": 0,
+          "start": "81:8195",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:81D3",
+          "opcode_bytes": 24,
+          "operand_bytes": 39,
+          "sha256": "627dc1335366a827099b93a5f03863eec8aa4b39c3f1c72bdd8c36a9553eabb5",
+          "shift": 0,
+          "similarity": 0.857143,
+          "size": 63,
+          "size_delta": 0,
+          "start": "81:8195",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:81D3",
+          "opcode_bytes": 24,
+          "operand_bytes": 39,
+          "sha256": "d030f9a38fe62499c9572a8b0868050067d3915daa990b84d5578fd933a3ed9d",
+          "shift": 0,
+          "similarity": 1,
+          "size": 63,
+          "size_delta": 0,
+          "start": "81:8195",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "lap_hud",
+      "size": 63,
+      "usa_end": "81:81D3",
+      "usa_start": "81:8195"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:8201",
+          "opcode_bytes": 25,
+          "operand_bytes": 35,
+          "sha256": "4ad9963b743271bd07f6a884205ae5714253cd746e22a8fcaaa9e9f06965316f",
+          "shift": -14,
+          "similarity": 0.983333,
+          "size": 60,
+          "size_delta": 0,
+          "start": "81:81C6",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "81:820F",
+          "opcode_bytes": 25,
+          "operand_bytes": 35,
+          "sha256": "d6fd0de5ad1a0b7864855ab159cf6f0080855baf8e54c1c77e789a83fd822873",
+          "shift": 0,
+          "similarity": 1,
+          "size": 60,
+          "size_delta": 0,
+          "start": "81:81D4",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:820F",
+          "opcode_bytes": 25,
+          "operand_bytes": 35,
+          "sha256": "be147991133d80ec12b72bce0d7aa4854e7c1efe30310254c2e0773f7eb172a2",
+          "shift": 0,
+          "similarity": 0.983333,
+          "size": 60,
+          "size_delta": 0,
+          "start": "81:81D4",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:820F",
+          "opcode_bytes": 25,
+          "operand_bytes": 35,
+          "sha256": "d6fd0de5ad1a0b7864855ab159cf6f0080855baf8e54c1c77e789a83fd822873",
+          "shift": 0,
+          "similarity": 1,
+          "size": 60,
+          "size_delta": 0,
+          "start": "81:81D4",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "late_pre_contractions",
+      "size": 60,
+      "usa_end": "81:820F",
+      "usa_start": "81:81D4"
+    },
+    {
+      "builds": {
+        "legacy-beta": {
+          "end": "81:8215",
+          "opcode_bytes": 3,
+          "operand_bytes": 3,
+          "sha256": "bd2d972c736512453b942b95be216dee1d0215e74b1fd4cbbd410a52e8f16a7a",
+          "shift": 0,
+          "similarity": 1,
+          "size": 6,
+          "size_delta": 0,
+          "start": "81:8210",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:8215",
+          "opcode_bytes": 3,
+          "operand_bytes": 3,
+          "sha256": "bd2d972c736512453b942b95be216dee1d0215e74b1fd4cbbd410a52e8f16a7a",
+          "shift": 0,
+          "similarity": 1,
+          "size": 6,
+          "size_delta": 0,
+          "start": "81:8210",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "pal_delete_1",
+      "size": 6,
+      "usa_end": "81:8215",
+      "usa_start": "81:8210"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:8212",
+          "opcode_bytes": 8,
+          "operand_bytes": 9,
+          "sha256": "388809ed0b1000ed0e2163071b5a21877905d32f263b2569ca77562d81df0baa",
+          "shift": -20,
+          "similarity": 1,
+          "size": 17,
+          "size_delta": 0,
+          "start": "81:8202",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "81:8226",
+          "opcode_bytes": 8,
+          "operand_bytes": 9,
+          "sha256": "388809ed0b1000ed0e2163071b5a21877905d32f263b2569ca77562d81df0baa",
+          "shift": 0,
+          "similarity": 1,
+          "size": 17,
+          "size_delta": 0,
+          "start": "81:8216",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:8220",
+          "opcode_bytes": 8,
+          "operand_bytes": 9,
+          "sha256": "388809ed0b1000ed0e2163071b5a21877905d32f263b2569ca77562d81df0baa",
+          "shift": -6,
+          "similarity": 1,
+          "size": 17,
+          "size_delta": 0,
+          "start": "81:8210",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:8226",
+          "opcode_bytes": 8,
+          "operand_bytes": 9,
+          "sha256": "388809ed0b1000ed0e2163071b5a21877905d32f263b2569ca77562d81df0baa",
+          "shift": 0,
+          "similarity": 1,
+          "size": 17,
+          "size_delta": 0,
+          "start": "81:8216",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "late_after_delete_1",
+      "size": 17,
+      "usa_end": "81:8226",
+      "usa_start": "81:8216"
+    },
+    {
+      "builds": {
+        "legacy-beta": {
+          "end": "81:822C",
+          "opcode_bytes": 3,
+          "operand_bytes": 3,
+          "sha256": "2cfcc67ed89e8a14c2f4bc9feb8e3105585cb5d43e682de39fd3601d3181b14e",
+          "shift": 0,
+          "similarity": 1,
+          "size": 6,
+          "size_delta": 0,
+          "start": "81:8227",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:822C",
+          "opcode_bytes": 3,
+          "operand_bytes": 3,
+          "sha256": "2cfcc67ed89e8a14c2f4bc9feb8e3105585cb5d43e682de39fd3601d3181b14e",
+          "shift": 0,
+          "similarity": 1,
+          "size": 6,
+          "size_delta": 0,
+          "start": "81:8227",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "pal_delete_2",
+      "size": 6,
+      "usa_end": "81:822C",
+      "usa_start": "81:8227"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:8223",
+          "opcode_bytes": 8,
+          "operand_bytes": 9,
+          "sha256": "b4c0178fc00dd03428d0ef7d722b962e94dd158ad6e814994b583417ee629d40",
+          "shift": -26,
+          "similarity": 1,
+          "size": 17,
+          "size_delta": 0,
+          "start": "81:8213",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "81:823D",
+          "opcode_bytes": 8,
+          "operand_bytes": 9,
+          "sha256": "b4c0178fc00dd03428d0ef7d722b962e94dd158ad6e814994b583417ee629d40",
+          "shift": 0,
+          "similarity": 1,
+          "size": 17,
+          "size_delta": 0,
+          "start": "81:822D",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:8231",
+          "opcode_bytes": 8,
+          "operand_bytes": 9,
+          "sha256": "b4c0178fc00dd03428d0ef7d722b962e94dd158ad6e814994b583417ee629d40",
+          "shift": -12,
+          "similarity": 1,
+          "size": 17,
+          "size_delta": 0,
+          "start": "81:8221",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:823D",
+          "opcode_bytes": 8,
+          "operand_bytes": 9,
+          "sha256": "b4c0178fc00dd03428d0ef7d722b962e94dd158ad6e814994b583417ee629d40",
+          "shift": 0,
+          "similarity": 1,
+          "size": 17,
+          "size_delta": 0,
+          "start": "81:822D",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "late_after_delete_2",
+      "size": 17,
+      "usa_end": "81:823D",
+      "usa_start": "81:822D"
+    },
+    {
+      "builds": {
+        "legacy-beta": {
+          "end": "81:8243",
+          "opcode_bytes": 3,
+          "operand_bytes": 3,
+          "sha256": "98ecc1051d23bd63976ab5fd759f5cff9e2f0b2d8f64ca172e381278da3bf5b6",
+          "shift": 0,
+          "similarity": 1,
+          "size": 6,
+          "size_delta": 0,
+          "start": "81:823E",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:8243",
+          "opcode_bytes": 3,
+          "operand_bytes": 3,
+          "sha256": "98ecc1051d23bd63976ab5fd759f5cff9e2f0b2d8f64ca172e381278da3bf5b6",
+          "shift": 0,
+          "similarity": 1,
+          "size": 6,
+          "size_delta": 0,
+          "start": "81:823E",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "pal_delete_3",
+      "size": 6,
+      "usa_end": "81:8243",
+      "usa_start": "81:823E"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:8232",
+          "opcode_bytes": 7,
+          "operand_bytes": 8,
+          "sha256": "42d2ceb74b7c4a303c042613e23423a32e580df086c7f50d088dac7549d86568",
+          "shift": -32,
+          "similarity": 1,
+          "size": 15,
+          "size_delta": 0,
+          "start": "81:8224",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "81:8252",
+          "opcode_bytes": 7,
+          "operand_bytes": 8,
+          "sha256": "42d2ceb74b7c4a303c042613e23423a32e580df086c7f50d088dac7549d86568",
+          "shift": 0,
+          "similarity": 1,
+          "size": 15,
+          "size_delta": 0,
+          "start": "81:8244",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:8240",
+          "opcode_bytes": 7,
+          "operand_bytes": 8,
+          "sha256": "42d2ceb74b7c4a303c042613e23423a32e580df086c7f50d088dac7549d86568",
+          "shift": -18,
+          "similarity": 1,
+          "size": 15,
+          "size_delta": 0,
+          "start": "81:8232",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:8252",
+          "opcode_bytes": 7,
+          "operand_bytes": 8,
+          "sha256": "42d2ceb74b7c4a303c042613e23423a32e580df086c7f50d088dac7549d86568",
+          "shift": 0,
+          "similarity": 1,
+          "size": 15,
+          "size_delta": 0,
+          "start": "81:8244",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "late_after_delete_3",
+      "size": 15,
+      "usa_end": "81:8252",
+      "usa_start": "81:8244"
+    },
+    {
+      "builds": {
+        "legacy-beta": {
+          "end": "81:8259",
+          "opcode_bytes": 3,
+          "operand_bytes": 4,
+          "sha256": "bcb9de3ce1eefaa6351283af31d9d1111dc171266c97fbfb33ffa182a048f2c1",
+          "shift": 0,
+          "similarity": 1,
+          "size": 7,
+          "size_delta": 0,
+          "start": "81:8253",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:8259",
+          "opcode_bytes": 3,
+          "operand_bytes": 4,
+          "sha256": "bcb9de3ce1eefaa6351283af31d9d1111dc171266c97fbfb33ffa182a048f2c1",
+          "shift": 0,
+          "similarity": 1,
+          "size": 7,
+          "size_delta": 0,
+          "start": "81:8253",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "pal_delete_4",
+      "size": 7,
+      "usa_end": "81:8259",
+      "usa_start": "81:8253"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:8250",
+          "opcode_bytes": 11,
+          "operand_bytes": 19,
+          "sha256": "81798da9b527e067a66a657f2ff800a8f31b2f25b2d1c65bc541078a4fc6e625",
+          "shift": -39,
+          "similarity": 0.866667,
+          "size": 30,
+          "size_delta": 0,
+          "start": "81:8233",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "81:8277",
+          "opcode_bytes": 11,
+          "operand_bytes": 19,
+          "sha256": "3acaeb897f209efff45e737eac54269f3b12b166288162692dfd2c8d349ee3e6",
+          "shift": 0,
+          "similarity": 1,
+          "size": 30,
+          "size_delta": 0,
+          "start": "81:825A",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:825E",
+          "opcode_bytes": 11,
+          "operand_bytes": 19,
+          "sha256": "d7b1c8d4480ba07965b4754b87275d76da922c7c7504ca20dda1b26e35195214",
+          "shift": -25,
+          "similarity": 0.933333,
+          "size": 30,
+          "size_delta": 0,
+          "start": "81:8241",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:8277",
+          "opcode_bytes": 11,
+          "operand_bytes": 19,
+          "sha256": "3acaeb897f209efff45e737eac54269f3b12b166288162692dfd2c8d349ee3e6",
+          "shift": 0,
+          "similarity": 1,
+          "size": 30,
+          "size_delta": 0,
+          "start": "81:825A",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "late_after_delete_4",
+      "size": 30,
+      "usa_end": "81:8277",
+      "usa_start": "81:825A"
+    },
+    {
+      "builds": {
+        "legacy-beta": {
+          "end": "81:827B",
+          "opcode_bytes": 4,
+          "operand_bytes": 0,
+          "sha256": "1fd71139b09480335a4e8021a653488c189b4f98c04254868a1fc64747522c53",
+          "shift": 0,
+          "similarity": 1,
+          "size": 4,
+          "size_delta": 0,
+          "start": "81:8278",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:827B",
+          "opcode_bytes": 4,
+          "operand_bytes": 0,
+          "sha256": "1fd71139b09480335a4e8021a653488c189b4f98c04254868a1fc64747522c53",
+          "shift": 0,
+          "similarity": 1,
+          "size": 4,
+          "size_delta": 0,
+          "start": "81:8278",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "pal_delete_5",
+      "size": 4,
+      "usa_end": "81:827B",
+      "usa_start": "81:8278"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:82B5",
+          "opcode_bytes": 38,
+          "operand_bytes": 63,
+          "sha256": "dc951841166c4a2156045682eef7b1f499569da411986f97e25db5edf976ca2d",
+          "shift": -43,
+          "similarity": 0.891089,
+          "size": 101,
+          "size_delta": 0,
+          "start": "81:8251",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "81:82E0",
+          "opcode_bytes": 38,
+          "operand_bytes": 63,
+          "sha256": "715a6e0f07576c145a9b5f8d03b8728316a2c0fad763c62ba41380c0c1a0581b",
+          "shift": 0,
+          "similarity": 1,
+          "size": 101,
+          "size_delta": 0,
+          "start": "81:827C",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:82C3",
+          "opcode_bytes": 38,
+          "operand_bytes": 63,
+          "sha256": "d74661cc1d4919f38c7143262cead3f1973070b4f455150b19731dcd230f3c5b",
+          "shift": -29,
+          "similarity": 0.90099,
+          "size": 101,
+          "size_delta": 0,
+          "start": "81:825F",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:82E0",
+          "opcode_bytes": 38,
+          "operand_bytes": 63,
+          "sha256": "715a6e0f07576c145a9b5f8d03b8728316a2c0fad763c62ba41380c0c1a0581b",
+          "shift": 0,
+          "similarity": 1,
+          "size": 101,
+          "size_delta": 0,
+          "start": "81:827C",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "late_after_delete_5",
+      "size": 101,
+      "usa_end": "81:82E0",
+      "usa_start": "81:827C"
+    }
+  ],
+  "schema_version": 1,
+  "usa_end": "81:82E0",
+  "usa_size": 657,
+  "usa_start": "81:8050"
+}

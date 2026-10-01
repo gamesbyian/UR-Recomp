@@ -2,13 +2,28 @@
 
 This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **40** (37 code, 3 data)
-- bounded bytes: **5259** (5051 code-region bytes, 208 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **2108**
+- bounded regions: **55** (52 code, 3 data)
+- bounded bytes: **5916** (5708 code-region bytes, 208 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **2393**
 - represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
 |---|---|---:|---|---|---|---|---|
+| `81:8050..81:8101` | code | 178 | checkpoint-finish | entry_time_prefix | 81:8050..81:8101 (+0; size 178; sim 0.904) | 81:8050..81:8101 (+0; size 178; sim 0.904) | 81:8050..81:8101 (+0; size 178; sim 1.000) |
+| `81:8102..81:8117` | code | 22 | checkpoint-finish | frame_normalization_usa_shape | 81:8102..81:8117 (+0; size 22; sim 0.955) | — | 81:8102..81:8117 (+0; size 22; sim 1.000) |
+| `81:8118..81:8194` | code | 125 | checkpoint-finish | post_normalization | 81:8118..81:8194 (+0; size 125; sim 0.976) | 81:810A..81:8186 (-14; size 125; sim 0.944) | 81:8118..81:8194 (+0; size 125; sim 1.000) |
+| `81:8195..81:81D3` | code | 63 | checkpoint-finish | lap_hud | 81:8195..81:81D3 (+0; size 63; sim 0.857) | 81:8187..81:81C5 (-14; size 63; sim 0.825) | 81:8195..81:81D3 (+0; size 63; sim 1.000) |
+| `81:81D4..81:820F` | code | 60 | checkpoint-finish | late_pre_contractions | 81:81D4..81:820F (+0; size 60; sim 0.983) | 81:81C6..81:8201 (-14; size 60; sim 0.983) | 81:81D4..81:820F (+0; size 60; sim 1.000) |
+| `81:8210..81:8215` | code | 6 | checkpoint-finish | pal_delete_1 | — | — | 81:8210..81:8215 (+0; size 6; sim 1.000) |
+| `81:8216..81:8226` | code | 17 | checkpoint-finish | late_after_delete_1 | 81:8210..81:8220 (-6; size 17; sim 1.000) | 81:8202..81:8212 (-20; size 17; sim 1.000) | 81:8216..81:8226 (+0; size 17; sim 1.000) |
+| `81:8227..81:822C` | code | 6 | checkpoint-finish | pal_delete_2 | — | — | 81:8227..81:822C (+0; size 6; sim 1.000) |
+| `81:822D..81:823D` | code | 17 | checkpoint-finish | late_after_delete_2 | 81:8221..81:8231 (-12; size 17; sim 1.000) | 81:8213..81:8223 (-26; size 17; sim 1.000) | 81:822D..81:823D (+0; size 17; sim 1.000) |
+| `81:823E..81:8243` | code | 6 | checkpoint-finish | pal_delete_3 | — | — | 81:823E..81:8243 (+0; size 6; sim 1.000) |
+| `81:8244..81:8252` | code | 15 | checkpoint-finish | late_after_delete_3 | 81:8232..81:8240 (-18; size 15; sim 1.000) | 81:8224..81:8232 (-32; size 15; sim 1.000) | 81:8244..81:8252 (+0; size 15; sim 1.000) |
+| `81:8253..81:8259` | code | 7 | checkpoint-finish | pal_delete_4 | — | — | 81:8253..81:8259 (+0; size 7; sim 1.000) |
+| `81:825A..81:8277` | code | 30 | checkpoint-finish | late_after_delete_4 | 81:8241..81:825E (-25; size 30; sim 0.933) | 81:8233..81:8250 (-39; size 30; sim 0.867) | 81:825A..81:8277 (+0; size 30; sim 1.000) |
+| `81:8278..81:827B` | code | 4 | checkpoint-finish | pal_delete_5 | — | — | 81:8278..81:827B (+0; size 4; sim 1.000) |
+| `81:827C..81:82E0` | code | 101 | checkpoint-finish | late_after_delete_5 | 81:825F..81:82C3 (-29; size 101; sim 0.901) | 81:8251..81:82B5 (-43; size 101; sim 0.891) | 81:827C..81:82E0 (+0; size 101; sim 1.000) |
 | `81:82E2..81:82E5` | code | 4 | object-collision | long_entry_wrapper | 81:82C5..81:82C8 (-29; size 4; sim 0.750) | 81:82B7..81:82BA (-43; size 4; sim 0.750) | 81:82E2..81:82E5 (+0; size 4; sim 1.000) |
 | `81:82E6..81:831F` | code | 58 | object-collision | dispatcher_head | 81:82C9..81:8302 (-29; size 58; sim 0.914) | 81:82BB..81:82F4 (-43; size 58; sim 0.862) | 81:82E6..81:831F (+0; size 58; sim 1.000) |
 | `81:8320..81:833D` | data | 30 | object-collision | handler_pointer_prefix | 81:8303..81:8320 (-29; size 30; sim 0.500) | 81:82F5..81:8312 (-43; size 30; sim 0.500) | 81:8320..81:833D (+0; size 30; sim 1.000) |

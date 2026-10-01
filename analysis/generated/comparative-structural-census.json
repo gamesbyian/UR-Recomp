@@ -26,17 +26,21 @@
     {
       "id": "race-frame-orchestrator",
       "path": "analysis/generated/race-frame-orchestrator-structure-island.json"
+    },
+    {
+      "id": "checkpoint-finish",
+      "path": "analysis/generated/checkpoint-finish-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 40,
-    "code_regions": 37,
+    "regions": 55,
+    "code_regions": 52,
     "data_regions": 3,
-    "bounded_bytes": 5259,
-    "bounded_code_region_bytes": 5051,
+    "bounded_bytes": 5916,
+    "bounded_code_region_bytes": 5708,
     "bounded_data_region_bytes": 208,
-    "analyzer_opcode_bytes": 2108,
-    "analyzer_operand_bytes": 2881,
+    "analyzer_opcode_bytes": 2393,
+    "analyzer_operand_bytes": 3253,
     "analyzer_unreached_or_data_bytes": 270,
     "banks": [
       "81",
@@ -45,6 +49,608 @@
     ]
   },
   "regions": [
+    {
+      "source": "checkpoint-finish",
+      "source_path": "analysis/generated/checkpoint-finish-structure-island.json",
+      "name": "entry_time_prefix",
+      "kind": "code",
+      "usa_start": "81:8050",
+      "usa_end": "81:8101",
+      "size": 178,
+      "usa_opcode_bytes": 75,
+      "usa_operand_bytes": 103,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:8050",
+          "end": "81:8101",
+          "shift": 0,
+          "similarity": 0.904494,
+          "size": 178,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:8050",
+          "end": "81:8101",
+          "shift": 0,
+          "similarity": 1,
+          "size": 178,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:8050",
+          "end": "81:8101",
+          "shift": 0,
+          "similarity": 0.904494,
+          "size": 178,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:8050",
+          "end": "81:8101",
+          "shift": 0,
+          "similarity": 1,
+          "size": 178,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "checkpoint-finish",
+      "source_path": "analysis/generated/checkpoint-finish-structure-island.json",
+      "name": "frame_normalization_usa_shape",
+      "kind": "code",
+      "usa_start": "81:8102",
+      "usa_end": "81:8117",
+      "size": 22,
+      "usa_opcode_bytes": 10,
+      "usa_operand_bytes": 12,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "legacy-beta": {
+          "start": "81:8102",
+          "end": "81:8117",
+          "shift": 0,
+          "similarity": 1,
+          "size": 22,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:8102",
+          "end": "81:8117",
+          "shift": 0,
+          "similarity": 0.954545,
+          "size": 22,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:8102",
+          "end": "81:8117",
+          "shift": 0,
+          "similarity": 1,
+          "size": 22,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "checkpoint-finish",
+      "source_path": "analysis/generated/checkpoint-finish-structure-island.json",
+      "name": "post_normalization",
+      "kind": "code",
+      "usa_start": "81:8118",
+      "usa_end": "81:8194",
+      "size": 125,
+      "usa_opcode_bytes": 63,
+      "usa_operand_bytes": 62,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:810A",
+          "end": "81:8186",
+          "shift": -14,
+          "similarity": 0.944,
+          "size": 125,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:8118",
+          "end": "81:8194",
+          "shift": 0,
+          "similarity": 1,
+          "size": 125,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:8118",
+          "end": "81:8194",
+          "shift": 0,
+          "similarity": 0.976,
+          "size": 125,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:8118",
+          "end": "81:8194",
+          "shift": 0,
+          "similarity": 1,
+          "size": 125,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "checkpoint-finish",
+      "source_path": "analysis/generated/checkpoint-finish-structure-island.json",
+      "name": "lap_hud",
+      "kind": "code",
+      "usa_start": "81:8195",
+      "usa_end": "81:81D3",
+      "size": 63,
+      "usa_opcode_bytes": 24,
+      "usa_operand_bytes": 39,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:8187",
+          "end": "81:81C5",
+          "shift": -14,
+          "similarity": 0.825397,
+          "size": 63,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:8195",
+          "end": "81:81D3",
+          "shift": 0,
+          "similarity": 1,
+          "size": 63,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:8195",
+          "end": "81:81D3",
+          "shift": 0,
+          "similarity": 0.857143,
+          "size": 63,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:8195",
+          "end": "81:81D3",
+          "shift": 0,
+          "similarity": 1,
+          "size": 63,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "checkpoint-finish",
+      "source_path": "analysis/generated/checkpoint-finish-structure-island.json",
+      "name": "late_pre_contractions",
+      "kind": "code",
+      "usa_start": "81:81D4",
+      "usa_end": "81:820F",
+      "size": 60,
+      "usa_opcode_bytes": 25,
+      "usa_operand_bytes": 35,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:81C6",
+          "end": "81:8201",
+          "shift": -14,
+          "similarity": 0.983333,
+          "size": 60,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:81D4",
+          "end": "81:820F",
+          "shift": 0,
+          "similarity": 1,
+          "size": 60,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:81D4",
+          "end": "81:820F",
+          "shift": 0,
+          "similarity": 0.983333,
+          "size": 60,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:81D4",
+          "end": "81:820F",
+          "shift": 0,
+          "similarity": 1,
+          "size": 60,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "checkpoint-finish",
+      "source_path": "analysis/generated/checkpoint-finish-structure-island.json",
+      "name": "pal_delete_1",
+      "kind": "code",
+      "usa_start": "81:8210",
+      "usa_end": "81:8215",
+      "size": 6,
+      "usa_opcode_bytes": 3,
+      "usa_operand_bytes": 3,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "legacy-beta": {
+          "start": "81:8210",
+          "end": "81:8215",
+          "shift": 0,
+          "similarity": 1,
+          "size": 6,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:8210",
+          "end": "81:8215",
+          "shift": 0,
+          "similarity": 1,
+          "size": 6,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "checkpoint-finish",
+      "source_path": "analysis/generated/checkpoint-finish-structure-island.json",
+      "name": "late_after_delete_1",
+      "kind": "code",
+      "usa_start": "81:8216",
+      "usa_end": "81:8226",
+      "size": 17,
+      "usa_opcode_bytes": 8,
+      "usa_operand_bytes": 9,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:8202",
+          "end": "81:8212",
+          "shift": -20,
+          "similarity": 1,
+          "size": 17,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:8216",
+          "end": "81:8226",
+          "shift": 0,
+          "similarity": 1,
+          "size": 17,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:8210",
+          "end": "81:8220",
+          "shift": -6,
+          "similarity": 1,
+          "size": 17,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:8216",
+          "end": "81:8226",
+          "shift": 0,
+          "similarity": 1,
+          "size": 17,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "checkpoint-finish",
+      "source_path": "analysis/generated/checkpoint-finish-structure-island.json",
+      "name": "pal_delete_2",
+      "kind": "code",
+      "usa_start": "81:8227",
+      "usa_end": "81:822C",
+      "size": 6,
+      "usa_opcode_bytes": 3,
+      "usa_operand_bytes": 3,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "legacy-beta": {
+          "start": "81:8227",
+          "end": "81:822C",
+          "shift": 0,
+          "similarity": 1,
+          "size": 6,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:8227",
+          "end": "81:822C",
+          "shift": 0,
+          "similarity": 1,
+          "size": 6,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "checkpoint-finish",
+      "source_path": "analysis/generated/checkpoint-finish-structure-island.json",
+      "name": "late_after_delete_2",
+      "kind": "code",
+      "usa_start": "81:822D",
+      "usa_end": "81:823D",
+      "size": 17,
+      "usa_opcode_bytes": 8,
+      "usa_operand_bytes": 9,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:8213",
+          "end": "81:8223",
+          "shift": -26,
+          "similarity": 1,
+          "size": 17,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:822D",
+          "end": "81:823D",
+          "shift": 0,
+          "similarity": 1,
+          "size": 17,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:8221",
+          "end": "81:8231",
+          "shift": -12,
+          "similarity": 1,
+          "size": 17,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:822D",
+          "end": "81:823D",
+          "shift": 0,
+          "similarity": 1,
+          "size": 17,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "checkpoint-finish",
+      "source_path": "analysis/generated/checkpoint-finish-structure-island.json",
+      "name": "pal_delete_3",
+      "kind": "code",
+      "usa_start": "81:823E",
+      "usa_end": "81:8243",
+      "size": 6,
+      "usa_opcode_bytes": 3,
+      "usa_operand_bytes": 3,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "legacy-beta": {
+          "start": "81:823E",
+          "end": "81:8243",
+          "shift": 0,
+          "similarity": 1,
+          "size": 6,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:823E",
+          "end": "81:8243",
+          "shift": 0,
+          "similarity": 1,
+          "size": 6,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "checkpoint-finish",
+      "source_path": "analysis/generated/checkpoint-finish-structure-island.json",
+      "name": "late_after_delete_3",
+      "kind": "code",
+      "usa_start": "81:8244",
+      "usa_end": "81:8252",
+      "size": 15,
+      "usa_opcode_bytes": 7,
+      "usa_operand_bytes": 8,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:8224",
+          "end": "81:8232",
+          "shift": -32,
+          "similarity": 1,
+          "size": 15,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:8244",
+          "end": "81:8252",
+          "shift": 0,
+          "similarity": 1,
+          "size": 15,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:8232",
+          "end": "81:8240",
+          "shift": -18,
+          "similarity": 1,
+          "size": 15,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:8244",
+          "end": "81:8252",
+          "shift": 0,
+          "similarity": 1,
+          "size": 15,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "checkpoint-finish",
+      "source_path": "analysis/generated/checkpoint-finish-structure-island.json",
+      "name": "pal_delete_4",
+      "kind": "code",
+      "usa_start": "81:8253",
+      "usa_end": "81:8259",
+      "size": 7,
+      "usa_opcode_bytes": 3,
+      "usa_operand_bytes": 4,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "legacy-beta": {
+          "start": "81:8253",
+          "end": "81:8259",
+          "shift": 0,
+          "similarity": 1,
+          "size": 7,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:8253",
+          "end": "81:8259",
+          "shift": 0,
+          "similarity": 1,
+          "size": 7,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "checkpoint-finish",
+      "source_path": "analysis/generated/checkpoint-finish-structure-island.json",
+      "name": "late_after_delete_4",
+      "kind": "code",
+      "usa_start": "81:825A",
+      "usa_end": "81:8277",
+      "size": 30,
+      "usa_opcode_bytes": 11,
+      "usa_operand_bytes": 19,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:8233",
+          "end": "81:8250",
+          "shift": -39,
+          "similarity": 0.866667,
+          "size": 30,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:825A",
+          "end": "81:8277",
+          "shift": 0,
+          "similarity": 1,
+          "size": 30,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:8241",
+          "end": "81:825E",
+          "shift": -25,
+          "similarity": 0.933333,
+          "size": 30,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:825A",
+          "end": "81:8277",
+          "shift": 0,
+          "similarity": 1,
+          "size": 30,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "checkpoint-finish",
+      "source_path": "analysis/generated/checkpoint-finish-structure-island.json",
+      "name": "pal_delete_5",
+      "kind": "code",
+      "usa_start": "81:8278",
+      "usa_end": "81:827B",
+      "size": 4,
+      "usa_opcode_bytes": 4,
+      "usa_operand_bytes": 0,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "legacy-beta": {
+          "start": "81:8278",
+          "end": "81:827B",
+          "shift": 0,
+          "similarity": 1,
+          "size": 4,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:8278",
+          "end": "81:827B",
+          "shift": 0,
+          "similarity": 1,
+          "size": 4,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "checkpoint-finish",
+      "source_path": "analysis/generated/checkpoint-finish-structure-island.json",
+      "name": "late_after_delete_5",
+      "kind": "code",
+      "usa_start": "81:827C",
+      "usa_end": "81:82E0",
+      "size": 101,
+      "usa_opcode_bytes": 38,
+      "usa_operand_bytes": 63,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:8251",
+          "end": "81:82B5",
+          "shift": -43,
+          "similarity": 0.891089,
+          "size": 101,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:827C",
+          "end": "81:82E0",
+          "shift": 0,
+          "similarity": 1,
+          "size": 101,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:825F",
+          "end": "81:82C3",
+          "shift": -29,
+          "similarity": 0.90099,
+          "size": 101,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:827C",
+          "end": "81:82E0",
+          "shift": 0,
+          "similarity": 1,
+          "size": 101,
+          "size_delta": 0
+        }
+      }
+    },
     {
       "source": "object-collision",
       "source_path": "analysis/generated/object-collision-structure-island.json",

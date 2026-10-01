@@ -169,7 +169,7 @@ Do not propagate weak names as facts. Hypotheses remain hypotheses, cross-ROM la
 **Evidence:** workflow runs `36806186428` and `36806317142`; `analysis/generated/cross-build-semantic-anchor-findings-2026-09-30.md`; `tools/compare_semantic_anchors.py`.  
 **Interpretation:** cross-build WRAM layouts evolved by structure-specific insert/remove/repack operations. Shared field motion is useful evidence of logical structure membership and should be treated as a semantic signal, not merely relocation noise.  
 **Discriminating test:** completed by `tools/build_wram_motion_atlas.py` / run `36807393022`; further splitting is warranted only when an active subsystem question needs it.  
-**Dependencies:** top candidates with weak semantic-reference retention, especially Europe checkpoint/finish and HUD queue, still require a second local discriminator before label transfer.  
+**Dependencies:** Europe checkpoint/finish and HUD queue now have independent edge corroboration; remaining weak cross-build areas are narrower, especially some Europe OAM substructure and single-anchor RAM projections.  
 **Propagation:** the bounded atlas confirms multiple independently moving logical blocks; literal USA addresses must not be copied into PAL/Europe symbol maps. The next comparative priority is the isolated USA/beta delta corpus.
 
 
@@ -207,12 +207,25 @@ Do not propagate weak names as facts. Hypotheses remain hypotheses, cross-ROM la
 **Date:** 2026-09-30  
 **Area:** multi-ROM | RAM | decompilation
 
-**Observation:** joining the trusted semantic-anchor matcher, WRAM-motion atlas, and named USA symbol corpus produces a durable build-specific correspondence surface. Repeated cross-anchor support yields strong PAL/Europe mappings for player-1 X/Y position and current-player X/Y velocity. Combined matcher evidence also promotes PAL prototype racer update, stunt finalization, racer OAM build, HUD queue, collision shape/velocity, and course load as strong function correspondences. Europe collision shape/velocity and course load are strong; racer update, OAM build, and stunt finalizer are supported; Europe HUD queue and checkpoint/finish remain candidates.  
+**Observation:** joining the trusted semantic-anchor matcher, WRAM-motion atlas, and named USA symbol corpus produces a durable build-specific correspondence surface. Repeated cross-anchor support yields strong PAL/Europe mappings for player-1 X/Y position and current-player X/Y velocity. Combined matcher evidence also promotes PAL prototype racer update, stunt finalization, racer OAM build, HUD queue, collision shape/velocity, and course load as strong function correspondences. Europe collision shape/velocity and course load are strong; racer update, OAM build, and stunt finalizer are supported. Europe HUD queue is independently call-edge confirmed at `81:C59C`, and checkpoint/finish is dispatch-confirmed at `81:8050`; the earlier matcher candidate `81:8042` is rejected.  
 **Evidence:** `tools/build_cross_build_symbol_correspondence.py`; `analysis/generated/cross-build-symbol-correspondence.{json,md}`; evidence run `36809041878`; permanent tooling-unit suite green on commit `d3117a9`.  
 **Interpretation:** regional/prototype reverse engineering no longer needs literal USA addresses or ad hoc prose translation. Known semantics can be projected conservatively with explicit evidence tiers, while weak mappings stay visibly unpromoted.  
 **Discriminating test:** use repeated-support RAM mappings directly in regional watch/probe configuration. For single-anchor fields, choose a runtime watch, local xref/disassembly, or another matched routine before promotion.  
 **Dependencies:** semantic equivalence remains distinct from address correspondence; supported/candidate function matches may still contain behavioral changes.  
 **Propagation:** prefer the generated correspondence surface whenever a PAL prototype or Europe runtime/static question needs known USA semantics translated into that build.
+
+
+### R-METHOD-006 — Independent edges correct Europe checkpoint and promote HUD queue
+
+**Status:** confirmed for correspondence  
+**Date:** 2026-09-30  
+**Area:** multi-ROM | course | HUD | control flow
+
+**Observation:** Europe retail has exactly two direct JSR references to the proposed HUD queue target `81:C59C`, matching the USA/PAL call-count pattern; one caller is the structurally corresponding checkpoint/finish path at `81:81BA`. Separately, the relocated Europe course-object dispatcher begins at `81:82BB`, its table at `81:82F5`, and object code `0x14` points directly to `81:8050`.  
+**Evidence:** `tools/verify_europe_semantic_edges.py`; `analysis/generated/europe-hud-finish-discriminators.{json,md}`; evidence run `36809304325`; regenerated cross-build correspondence artifact.  
+**Interpretation:** Europe `HUD_QueueMessage = 81:C59C` is independently corroborated. Europe `Race_HandleCheckpointFinish = 81:8050` is directly confirmed by the same object-code dispatch relation as USA; the lightweight matcher’s earlier `81:8042` window was a false alignment caused by nearby structurally similar bytes.  
+**Discriminating test:** no further identity test is required for these two function correspondences. Future work should focus on behavioral differences inside the confirmed handlers or on weaker OAM/single-anchor RAM mappings.  
+**Propagation:** corrected generated correspondence, cross-build findings, `docs/SYMBOLS.md`, and work queue. Treat dispatch/call edges as higher-value corroboration than raw window similarity when they disagree.
 
 ## Seed leads to verify locally
 

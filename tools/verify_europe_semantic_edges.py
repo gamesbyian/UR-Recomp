@@ -5,7 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 import json
 
-from tools.compare_semantic_anchors import ROMS, cpu_to_lorom_file, file_to_lorom_cpu, ngram_votes, similarity
+try:
+    from tools.compare_semantic_anchors import ROMS, cpu_to_lorom_file, file_to_lorom_cpu, ngram_votes, similarity
+except ModuleNotFoundError:
+    from compare_semantic_anchors import ROMS, cpu_to_lorom_file, file_to_lorom_cpu, ngram_votes, similarity
 
 OUT_JSON = Path("analysis/generated/europe-hud-finish-discriminators.json")
 OUT_MD = Path("analysis/generated/europe-hud-finish-discriminators.md")

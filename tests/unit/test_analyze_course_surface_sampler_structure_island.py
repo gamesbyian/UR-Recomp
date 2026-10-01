@@ -19,7 +19,12 @@ class CourseSurfaceSamplerTests(unittest.TestCase):
         result=mod.build()
         self.assertEqual(result["usa_size"],383)
         self.assertGreater(result["builds"]["usa-retail"]["opcode_bytes"],0)
+        self.assertEqual(result["builds"]["usa-retail"]["unreached_or_data_bytes"],0)
         self.assertEqual(result["builds"]["legacy-beta"]["similarity"],1.0)
+        self.assertEqual(result["builds"]["pal-prototype-1994-11-29"]["shift"],-32)
+        self.assertEqual(result["builds"]["europe-retail"]["shift"],-32)
+        self.assertEqual(len(result["regions"]),1)
+        self.assertEqual(result["regions"][0]["name"],"Course_SampleRuntimeSurface")
         print("COURSE_SURFACE_SAMPLER_JSON="+json.dumps(result,sort_keys=True))
 
 if __name__=="__main__":

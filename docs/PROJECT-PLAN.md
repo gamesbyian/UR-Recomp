@@ -957,10 +957,12 @@ Preferred architecture:
 
 - neutral documented course model;
 - importer from original RNC course records;
-- validator;
-- visual editor;
+- validator and normalization boundary between authoring data and runtime semantics;
+- visual editor that targets the semantic model rather than the original packed binary layout;
 - exporter/packaging format;
 - runtime loader or data-only mod integration.
+
+For editor/geometry iteration, prefer small deterministic headless fixtures that exercise one curve, transition, surface or camera rule before relying on full-course visual review. The related-project scan in `reference/notes/related-projects-technical-scan.md` records modern examples of both patterns; they are implementation references, not fidelity evidence.
 
 Original courses remain canonical fixtures for parser and renderer tests.
 

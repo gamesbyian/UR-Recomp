@@ -1,5 +1,8 @@
 name: One-shot WRAM motion atlas evidence
 
+permissions:
+  contents: write
+
 on:
   pull_request:
     branches: [main]
@@ -16,6 +19,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
       - name: Build semantic corpus and WRAM motion atlas
         run: |
           python tools/compare_semantic_anchors.py
@@ -24,6 +29,13 @@ jobs:
         run: python3 -m unittest tests.unit.test_build_wram_motion_atlas -v
       - name: Show compact atlas
         run: cat analysis/generated/wram-motion-atlas.md
+      - name: Commit compact generated atlas
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add analysis/generated/wram-motion-atlas.json analysis/generated/wram-motion-atlas.md
+          git diff --cached --quiet || git commit -m "analysis: record cross-build WRAM motion atlas"
+          git push origin HEAD:${{ github.head_ref }}
       - uses: actions/upload-artifact@v4
         with:
           name: wram-motion-atlas

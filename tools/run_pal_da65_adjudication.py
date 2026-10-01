@@ -42,20 +42,38 @@ LINE_RE=re.compile(r'^\s*([A-Za-z]{2,5})\s*(.*?)(?:\s*;.*)?$')
 def file_off(addr:int)->int:
     return addr-0x8000
 
-def info_text(probe:dict)->str:
+def info_text(probe:dict, shift:int=0)->str:
     lines=['GLOBAL { CPU "65816"; STARTADDR $8000; };','SEGMENT { START $8000; END $FFFF; NAME "bank_00"; };']
-    # Everything outside the bounded probe remains default/data.
     for a,b,mode,why in probe['ranges']:
+        a += shift
+        b += shift
         lines.append(f'RANGE {{ START ${a:04X}; END ${b:04X}; TYPE CODE; ADDRMODE "{mode}"; COMMENT "{why}"; }};')
     return '\n'.join(lines)+'\n'
 
-def run_da65(exe:Path, rom:Path, probe:dict, tmp:Path)->str:
+def best_shift(retail:bytes, proto:bytes, probe:dict, radius:int=128)->tuple[int,float]:
+    """Align homologous code by raw-byte similarity, independently of snes2asm."""
+    a=probe['start']-0x8000
+    b=probe['end']-0x8000+1
+    src=retail[a:b]
+    best=(0,-1.0)
+    for shift in range(-radius,radius+1):
+        pa=a+shift
+        pb=pa+len(src)
+        if pa < 0 or pb > len(proto):
+            continue
+        dst=proto[pa:pb]
+        score=sum(x==y for x,y in zip(src,dst))/len(src)
+        if score > best[1]:
+            best=(shift,score)
+    return best
+
+def run_da65(exe:Path, rom:Path, probe:dict, tmp:Path, shift:int=0)->str:
     bank=rom.read_bytes()[:0x8000]
     binp=tmp/f"{rom.stem}-{probe['id']}.bin"
     inf=tmp/f"{rom.stem}-{probe['id']}.info"
     out=tmp/f"{rom.stem}-{probe['id']}.s"
     binp.write_bytes(bank)
-    inf.write_text(info_text(probe),encoding='utf-8')
+    inf.write_text(info_text(probe,shift),encoding='utf-8')
     subprocess.run([str(exe),'--info',str(inf),'--comments','4','-o',str(out),str(binp)],check=True)
     return out.read_text(encoding='utf-8',errors='replace')
 
@@ -84,10 +102,24 @@ def main()->int:
     with tempfile.TemporaryDirectory() as td:
         tmp=Path(td)
         for probe in PROBES:
-            row={'id':probe['id'],'start':f"00:{probe['start']:04X}",'end':f"00:{probe['end']:04X}",'ranges':[{'start':f"00:{a:04X}",'end':f"00:{b:04X}",'addrmode':mode,'basis':why} for a,b,mode,why in probe['ranges']],'builds':{}}
+            retail_bytes=ROMS['europe-retail'].read_bytes()[:0x8000]
+            proto_bytes=ROMS['pal-prototype-1994-11-29'].read_bytes()[:0x8000]
+            shift,score=best_shift(retail_bytes,proto_bytes,probe)
+            row={
+                'id':probe['id'],
+                'retail_start':f"00:{probe['start']:04X}",
+                'retail_end':f"00:{probe['end']:04X}",
+                'prototype_start':f"00:{probe['start']+shift:04X}",
+                'prototype_end':f"00:{probe['end']+shift:04X}",
+                'prototype_shift':shift,
+                'raw_alignment_similarity':round(score,6),
+                'ranges':[{'start':f"00:{a:04X}",'end':f"00:{b:04X}",'addrmode':mode,'basis':why} for a,b,mode,why in probe['ranges']],
+                'builds':{}
+            }
             norms={}
             for name,rom in ROMS.items():
-                asm=run_da65(args.da65,rom,probe,tmp)
+                local_shift=0 if name=='europe-retail' else shift
+                asm=run_da65(args.da65,rom,probe,tmp,local_shift)
                 norm=normalized_lines(asm,probe)
                 norms[name]=norm
                 row['builds'][name]={'instruction_lines':len(norm),'normalized':norm}
@@ -100,8 +132,8 @@ def main()->int:
     args.json_out.write_text(json.dumps(report,indent=2,sort_keys=True)+'\n',encoding='utf-8')
     lines=['# PAL retail vs prototype: bounded da65 adjudication','', 'Width-state provenance is independent of snes2asm.','', '| Probe | Range | Retail lines | Prototype lines | Same count | First differing line | Exact |','|---|---|---:|---:|---|---:|---|']
     for p in report['probes']:
-        lines.append(f"| {p['id']} | `{p['start']}..{p['end']}` | {p['builds']['europe-retail']['instruction_lines']} | {p['builds']['pal-prototype-1994-11-29']['instruction_lines']} | {p['same_instruction_count']} | {p['aligned_prefix_lines']} | {p['exact_normalized_match']} |")
-    lines += ['', 'Interpretation rule: equal instruction counts and long aligned prefixes support stable boundaries; early count/prefix divergence supports genuine structural change or a wrong independent mode assumption and should be escalated to Ghidra/xref inspection.', '']
+        lines.append(f"| {p['id']} | `{p['retail_start']}..{p['retail_end']}` | `{p['prototype_start']}..{p['prototype_end']}` | {p['prototype_shift']:+d} | {p['raw_alignment_similarity']:.3f} | {p['builds']['europe-retail']['instruction_lines']} | {p['builds']['pal-prototype-1994-11-29']['instruction_lines']} | {p['same_instruction_count']} | {p['exact_normalized_match']} |")
+    lines += ['', 'Interpretation rule: the raw-byte shift establishes the homologous region independently of snes2asm. Equal da65 instruction counts support stable boundaries despite relocation; count divergence after a high-similarity raw alignment is a stronger structural-change signal and should be escalated to Ghidra/xref inspection.', '']
     args.md_out.write_text('\n'.join(lines),encoding='utf-8')
     print(args.md_out.read_text())
     return 0

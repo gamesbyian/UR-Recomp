@@ -49,6 +49,14 @@
       "summary": "Dense replay sampling first differs at frame 437, but bounded tracing shows the compared low-WRAM addresses are being reused by frontend fill/text-layout code before their race semantics apply. The historical SMV's absolute pre-race frame clock is therefore not a semantic fidelity oracle.",
       "priority": "medium",
       "next_evidence": "Use the historical movie event-relatively. Resume divergence tracing only at a state/address whose semantics are valid in both runtimes, preferably after race entry or another explicit semantic anchor."
+    },
+    {
+      "id": "resolved-pal-subregion-alignment",
+      "kind": "resolved_cross_build_alignment",
+      "region": "PAL retail/prototype survivor windows 00:8C49..00:8CCA, 00:ABA9..00:ADE2, 00:C3A9..00:C450",
+      "summary": "All 114 snes2asm role disagreements surviving whole-window homolog alignment disappear after trusted code/data/function subdivision and piecewise realignment. The only genuine executable lineage delta is a four-byte PAL-retail-only JSL at 80:8C74..80:8C77, which changes the local homolog shift from -5 to -9.",
+      "priority": "low",
+      "next_evidence": "No da65/Ghidra adjudication is needed for these windows. Revisit the retail-only call only if its semantics become necessary for a later cross-build interpretation."
     }
   ]
 }

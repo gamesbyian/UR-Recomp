@@ -42,17 +42,21 @@
     {
       "id": "input-normalization",
       "path": "analysis/generated/input-normalization-structure-island.json"
+    },
+    {
+      "id": "camera-control",
+      "path": "analysis/generated/camera-control-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 76,
-    "code_regions": 68,
+    "regions": 80,
+    "code_regions": 72,
     "data_regions": 8,
-    "bounded_bytes": 9296,
-    "bounded_code_region_bytes": 8151,
+    "bounded_bytes": 10799,
+    "bounded_code_region_bytes": 9654,
     "bounded_data_region_bytes": 1145,
-    "analyzer_opcode_bytes": 3419,
-    "analyzer_operand_bytes": 4670,
+    "analyzer_opcode_bytes": 4078,
+    "analyzer_operand_bytes": 5514,
     "analyzer_unreached_or_data_bytes": 1207,
     "banks": [
       "81",
@@ -1027,6 +1031,190 @@
           "shift": 0,
           "similarity": 1,
           "size": 383,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "camera-control",
+      "source_path": "analysis/generated/camera-control-structure-island.json",
+      "name": "camera_velocity_follow_solver",
+      "kind": "code",
+      "usa_start": "81:9FBF",
+      "usa_end": "81:A2E4",
+      "size": 806,
+      "usa_opcode_bytes": 390,
+      "usa_operand_bytes": 416,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:9FB0",
+          "end": "81:A2D5",
+          "shift": -15,
+          "similarity": 0.935484,
+          "size": 806,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:9FBF",
+          "end": "81:A2E4",
+          "shift": 0,
+          "similarity": 1,
+          "size": 806,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:9F9F",
+          "end": "81:A2C4",
+          "shift": -32,
+          "similarity": 0.996278,
+          "size": 806,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:9FBF",
+          "end": "81:A2E4",
+          "shift": 0,
+          "similarity": 1,
+          "size": 806,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "camera-control",
+      "source_path": "analysis/generated/camera-control-structure-island.json",
+      "name": "camera_smoothing_helper",
+      "kind": "code",
+      "usa_start": "81:A2E5",
+      "usa_end": "81:A30E",
+      "size": 42,
+      "usa_opcode_bytes": 28,
+      "usa_operand_bytes": 14,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:A2D6",
+          "end": "81:A2FF",
+          "shift": -15,
+          "similarity": 1,
+          "size": 42,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:A2E5",
+          "end": "81:A30E",
+          "shift": 0,
+          "similarity": 1,
+          "size": 42,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:A2C5",
+          "end": "81:A2EE",
+          "shift": -32,
+          "similarity": 1,
+          "size": 42,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:A2E5",
+          "end": "81:A30E",
+          "shift": 0,
+          "similarity": 1,
+          "size": 42,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "camera-control",
+      "source_path": "analysis/generated/camera-control-structure-island.json",
+      "name": "camera_scale_config",
+      "kind": "code",
+      "usa_start": "81:A30F",
+      "usa_end": "81:A52A",
+      "size": 540,
+      "usa_opcode_bytes": 188,
+      "usa_operand_bytes": 352,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:A300",
+          "end": "81:A51B",
+          "shift": -15,
+          "similarity": 0.840741,
+          "size": 540,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:A30F",
+          "end": "81:A52A",
+          "shift": 0,
+          "similarity": 1,
+          "size": 540,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:A2EF",
+          "end": "81:A50A",
+          "shift": -32,
+          "similarity": 0.962963,
+          "size": 540,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:A30F",
+          "end": "81:A52A",
+          "shift": 0,
+          "similarity": 1,
+          "size": 540,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "camera-control",
+      "source_path": "analysis/generated/camera-control-structure-island.json",
+      "name": "camera_update_wrapper",
+      "kind": "code",
+      "usa_start": "81:A52B",
+      "usa_end": "81:A59D",
+      "size": 115,
+      "usa_opcode_bytes": 53,
+      "usa_operand_bytes": 62,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:A51C",
+          "end": "81:A58E",
+          "shift": -15,
+          "similarity": 0.8,
+          "size": 115,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:A52B",
+          "end": "81:A59D",
+          "shift": 0,
+          "similarity": 1,
+          "size": 115,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:A50B",
+          "end": "81:A57D",
+          "shift": -32,
+          "similarity": 0.965217,
+          "size": 115,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:A52B",
+          "end": "81:A59D",
+          "shift": 0,
+          "similarity": 1,
+          "size": 115,
           "size_delta": 0
         }
       }

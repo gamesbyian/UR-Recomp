@@ -1,0 +1,45 @@
+# Bounded race-entry scheduler-phase trace.
+# Localizes where native and Snes9x first disagree on the alternating $0302 / mod-3 $0304 bookkeeping.
+wait 1120
+dump phase-entry-1120
+wait 5
+dump phase-entry-1125
+wait 5
+dump phase-entry-1130
+wait 5
+dump phase-entry-1135
+wait 5
+dump phase-entry-1140
+wait 5
+dump phase-entry-1145
+wait 5
+dump phase-entry-1150
+wait 5
+dump phase-entry-1155
+wait 5
+dump phase-entry-1160
+wait 5
+dump phase-entry-1165
+wait 5
+dump phase-entry-1170
+wait 5
+dump phase-entry-1175
+wait 5
+dump phase-entry-1180
+wait 5
+dump phase-entry-1185
+wait 5
+dump phase-entry-1190
+wait 5
+dump phase-entry-1195
+wait 5
+dump phase-entry-1200
+wait 5
+dump phase-entry-1205
+wait 5
+dump phase-entry-1210
+wait 5
+dump phase-entry-1215
+wait 5
+dump phase-entry-1220
+quit

@@ -93,7 +93,7 @@ class SessionManager:
         client = BridgeClient("127.0.0.1", port)
         session = Session(handle, rom_path, loaded_rom, root, port, process, client)
         try:
-            _wait_for_bridge(session, ready, timeout=min(float(timeout), 60.0))
+            _wait_for_bridge(session, ready, timeout=_bridge_startup_timeout(timeout))
         except Exception:
             session.close()
             shutil.rmtree(root, ignore_errors=True)
@@ -125,6 +125,10 @@ class SessionManager:
                 self.close(handle)
             except Exception:
                 pass
+
+
+def _bridge_startup_timeout(session_timeout: int) -> float:
+    return min(float(session_timeout), 60.0)
 
 
 def _free_port() -> int:

@@ -8,6 +8,7 @@ on:
       - "tests/input/two-player-first-race-observe.script"
       - "tests/input/two-player-p2-drift-microtrace.script"
       - "tests/input/two-player-phase-entry-microtrace.script"
+      - "tests/input/two-player-phase-origin-microtrace.script"
       - "tools/summarize_paired_player_slots.py"
       - "tools/assert_uniracers_vs_oam_seam.py"
       - ".github/workflows/two-player-reference.yml"
@@ -196,6 +197,54 @@ jobs:
               if diffs and first is None:
                   first=(frame,diffs)
           print("FIRST_PHASE_ENTRY_DIFF", first or "MATCH_THROUGH_1220")
+          PY
+
+      - name: Pin first race-entry scheduler divergence
+        shell: bash
+        run: |
+          set -euo pipefail
+          PHASE="$GITHUB_WORKSPACE/tests/input/two-player-phase-origin-microtrace.script"
+          INPUT="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          REF="$RUNNER_TEMP/snesref-build/snesref"
+          NATIVE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          mkdir -p "$RUNNER_TEMP/phase-origin-snes9x" "$RUNNER_TEMP/phase-origin-native"
+
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_INPUT_FILE="$INPUT" SNESREF_SCRIPT="$PHASE" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/phase-origin-snes9x" \
+            "$REF" "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" "$ROM" \
+            >"$RUNNER_TEMP/phase-origin-snes9x.log" 2>&1
+
+          rm -rf "$(dirname "$NATIVE")/saves"
+          SNESRECOMP_INPUT_FILE="$INPUT" SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/phase-origin-native" \
+          SDL_AUDIODRIVER=dummy \
+            timeout 180s xvfb-run -a "$NATIVE" "$ROM" --script "$PHASE" \
+            >"$RUNNER_TEMP/phase-origin-native.log" 2>&1
+
+          python3 - "$RUNNER_TEMP/phase-origin-native" "$RUNNER_TEMP/phase-origin-snes9x" <<'PY'
+          from pathlib import Path
+          import sys
+          nroot=Path(sys.argv[1]); sroot=Path(sys.argv[2])
+          fields={
+              "menu":0x009F,
+              "phase0":0x0300,
+              "phase2":0x0302,
+              "phase3":0x0304,
+              "inRace":0x0313,
+              "race_tick":0x0FE7,
+          }
+          first=None
+          for frame in range(1128,1141):
+              tag=f"phase-origin-{frame}"
+              n=(nroot/f"{tag}.wram.bin").read_bytes()
+              s=(sroot/f"{tag}.wram.bin").read_bytes()
+              values={name:(n[off],s[off]) for name,off in fields.items()}
+              diffs={name:pair for name,pair in values.items() if pair[0] != pair[1]}
+              print(tag, values, "MATCH" if not diffs else f"DIFF {diffs}")
+              if diffs and first is None:
+                  first=(frame,diffs)
+          print("FIRST_PHASE_ORIGIN_DIFF", first or "MATCH_THROUGH_1140")
           PY
 
       - name: Localize native/Snes9x P2-only drift

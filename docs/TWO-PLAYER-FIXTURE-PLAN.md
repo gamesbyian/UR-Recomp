@@ -207,6 +207,10 @@ The root-cause boundary now moves to the race-entry handshake. `83:C9C8..C9CB` c
 
 The same probe now also emits the complete cross-runtime WRAM delta at frames 1133 and 1134, plus SRAM deltas when the dump surface provides them. This is deliberately broader than the hand-picked handshake fields: if frame 1133 is globally identical but frame 1134 introduces an earlier state difference outside `$0C67/$0DDB/$212C`, treat that earliest memory delta as the new causal boundary rather than overfitting to the known race-entry code.
 
+Static frontend recovery moves that boundary one step earlier. Entry point `80:99A4` sets SRAM `$77074D = $FFFF`, runs common setup, and then directly calls `83:C8E0` at `80:9A2B`. The sibling `80:999F` entry skips the `$77074D` sentinel write but joins the same setup body. Multiple frontend branches call `99A4`, with SRAM `$7710AD` distinguishing the surrounding setup mode.
+
+The phase-origin probe therefore also reports raw 8 KiB SRAM offsets `$0742/$074B/$074D/$0750/$10AD`. If Snes9x reaches `$074D=FF` one frame before native, the root seam moves out of bank 83 entirely and into the frontend branch that reaches `99A4`; if those SRAM fields already match, continue inside the common setup body.
+
 ## VS active-movement parity refinement
 
 Current-main replay reconfirms exact native/Snes9x paired-racer semantics at stable pre-intervention checkpoints 1240, 1340 and 1440. After the P1-only, P2-only and simultaneous movement sequence, P1 still matches while P2 ends with a very small difference: native `x=1137, vx=-263`; Snes9x `x=1141, vx=-266`.

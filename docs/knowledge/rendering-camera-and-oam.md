@@ -45,6 +45,32 @@ Older Snes9x history shows Uniracers also exposed unrelated emulator correctness
 
 These should be separate tests. A visual failure in Uniracers should not automatically be blamed on the famous OAM quirk.
 
+## Recovered multiplayer camera-to-render bridge
+
+Recent structural recovery turns the split-screen camera path into a concrete chain rather than a generic widescreen risk.
+
+The game maintains two camera positions and velocity pairs:
+
+- camera 1: `$0419/$041D`, velocity `$04F5/$04F9`;
+- camera 2: `$041B/$041F`, velocity `$04F7/$04FB`.
+
+Bank 81's recovered camera-control island updates camera 1 every active race pass and conditionally updates camera 2 when `$0DDB != 0`. The same island converts camera position into coarse/fine map-window indices and feeds `81:ADB6`, `81:B27F` and `81:B375`, which derive track-data windows from `$7F000F` into working buffers. This is evidence that camera state participates in world/course sampling, not only PPU scroll.
+
+The per-camera raw window-update state is now exposed by the paired-player summarizer: `$0505/$0507` are the movement-derived edge values, `$052B/$052D` are their associated update spans, and `$0509/$050B` retain the fine/index component. The code sets inactive edges to `$FFFF` and zero span, while active camera motion drives additional strip fetches through `B27F/B375`. Treat these names as structural/raw until runtime evidence further narrows whether they represent rendering-only streaming, collision/object activation, or a shared world-window primitive.
+
+Immediately before the DMA/update-descriptor construction, `81:AA40..AB87` uses those same camera-derived edge bands to filter two compact 16-entry structures. Counts live at `$0DCD/$0DCF`, byte flags at `$0D6D/$0D7D`, and encoded coordinate words at `$0D8D/$0DAD`. Matching entries have their flag byte cleared as camera 1 or camera 2 crosses the encoded edge bands. No trustworthy semantic label exists yet for these lists, so the tooling exposes them as **activation candidates** rather than asserting they are gameplay objects. Runtime movement-series evidence should determine whether their mutations correlate with camera/world activation independently of the render DMA path.
+
+Bank 82 then computes per-racer, per-screen coordinates in `$1501..$150E` from racer positions relative to camera 1/2. Off-screen branches substitute sentinel coordinates and update visibility bits in `$1599`. Routine `82:D2D8..` subsequently writes `$1501..$1510` directly to OAMDATA.
+
+For later widescreen work, keep these layers distinct:
+
+1. camera simulation/follow state;
+2. camera-derived course/window sampling;
+3. racer screen-space projection and culling;
+4. OAM emission and the active-display split-screen seam.
+
+Expanding only the final render rectangle would therefore be insufficient and could expose objects or course sectors outside the original simulation/activation window.
+
 ## Camera and future Widescreen feature
 
 The project should recover and distinguish:

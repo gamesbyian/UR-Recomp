@@ -362,6 +362,36 @@ jobs:
                       if kind=="s16" and v&0x8000: v-=0x10000
                   out[name]=v
               return out
+
+          # All three variants have an identical input prefix through frame 1529.
+          # Require full guest state identity inside each runtime before the
+          # frame-1530 intervention. This guards against shared SRAM/save state
+          # or other process-to-process leakage in the native oracle.
+          variants=("p1-left","p1-right","p2-right")
+          for runtime in ("native","snes9x"):
+              for frame in (1528,1529):
+                  tag=f"p2-drift-{frame}"
+                  baseline=(root/f"{variants[0]}-{runtime}"/f"{tag}.wram.bin").read_bytes()
+                  baseline_sram=(root/f"{variants[0]}-{runtime}"/f"{tag}.sram.bin").read_bytes()
+                  for variant in variants[1:]:
+                      w=(root/f"{variant}-{runtime}"/f"{tag}.wram.bin").read_bytes()
+                      sr=(root/f"{variant}-{runtime}"/f"{tag}.sram.bin").read_bytes()
+                      if w != baseline:
+                          first=next(i for i,(a,b) in enumerate(zip(baseline,w)) if a != b)
+                          raise SystemExit(
+                              f"{runtime}: identical-prefix WRAM is not repeatable at frame {frame}; "
+                              f"{variants[0]} vs {variant}, first byte 0x{first:04X}: "
+                              f"{baseline[first]:02X}!={w[first]:02X}"
+                          )
+                      if sr != baseline_sram:
+                          first=next(i for i,(a,b) in enumerate(zip(baseline_sram,sr)) if a != b)
+                          raise SystemExit(
+                              f"{runtime}: identical-prefix SRAM is not repeatable at frame {frame}; "
+                              f"{variants[0]} vs {variant}, first byte 0x{first:04X}: "
+                              f"{baseline_sram[first]:02X}!={sr[first]:02X}"
+                          )
+                  print("IDENTICAL_PREFIX", runtime, frame, "MATCH")
+
           for variant,fields in slots.items():
               first=None
               print("VARIANT",variant)

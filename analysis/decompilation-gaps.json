@@ -4,43 +4,43 @@
   "gaps": [
     {
       "id": "indirect-008584",
-      "kind": "unresolved_indirect_dispatch",
+      "kind": "bounded_indirect_vector",
       "site": "00:8584",
-      "summary": "JMP indirect through $0073; four M/X variants remain dynamically resolved.",
-      "priority": "high",
-      "next_evidence": "Capture runtime targets across representative frontend/race routes and compare with independent disassembly/CFG output."
+      "summary": "JMP long-indirect through $73:$75. The only explicit complete 24-bit vector construction found sets target 80:85A4 during interrupt/HDMA setup.",
+      "priority": "medium",
+      "next_evidence": "Dynamically confirm only if a fidelity defect or AOT proof requires excluding indirect pointer mutation; target discovery is otherwise bounded."
     },
     {
       "id": "indirect-008599",
-      "kind": "unresolved_indirect_dispatch",
+      "kind": "bounded_indirect_vector",
       "site": "00:8599",
-      "summary": "JMP indirect through $0053; four M/X variants remain dynamically resolved.",
-      "priority": "high",
-      "next_evidence": "Capture runtime targets across representative frontend/race routes and compare with independent disassembly/CFG output."
+      "summary": "JMP long-indirect through $53:$55. Explicit complete vector constructions select 80:F60C, 80:8610, or 80:85A5; the same vector is invoked by the mirrored wrapper at 80:B0DE.",
+      "priority": "medium",
+      "next_evidence": "Dynamically confirm mode/target ownership only if a concrete interrupt-path fidelity or analyzer proof question requires it."
     },
     {
       "id": "indirect-80c3c8",
-      "kind": "unresolved_indirect_dispatch",
+      "kind": "bounded_indirect_dispatch",
       "site": "80:C3C8",
-      "summary": "Live frontend/text command dispatcher: JMP indirect through $005D into the handler table at 80:C3CB-C3EA. Historical replay trace 36795810324 executes this site during frontend transition setup.",
-      "priority": "high",
-      "next_evidence": "Recover the 17 handler semantics and runtime target distribution from bounded frontend routes; promote only handlers that affect current UI/state architecture."
+      "summary": "Valid command domain FF..EF is fully mapped to 17 concrete bank-80 handlers from the canonical ROM table at 80:C3CB. EE is a boundary escape/sentinel whose computed next word is not a valid ROM handler.",
+      "priority": "medium",
+      "next_evidence": "Only prove the EE exclusion/range invariant or deeper handler semantics if a concrete frontend fidelity or modernization decision requires it. Target discovery itself is closed."
     },
     {
       "id": "lle-8091dc-m1x0",
-      "kind": "lle_only_variant",
+      "kind": "resolved_lle_semantics",
       "region": "80:91DC M1X0",
-      "summary": "119 decoded instructions; truncated call continuation and unproven 80:886D -> 83:8AF7 callee exit.",
-      "priority": "high",
-      "next_evidence": "Disassemble both sides with known M/X state; prove return/exit modes and cross-check against runtime traces."
+      "summary": "Startup path understood. Call 80:886D -> 83:8AF7 is a cartridge/memory self-test: success RTLs to continuation; failure deliberately tail-jumps to fatal screen 80:94EB.",
+      "priority": "low",
+      "next_evidence": "No gameplay evidence needed. Revisit only if improving SNESRecomp static exit-proof logic is itself prioritized."
     },
     {
       "id": "lle-8094eb-m1x0",
-      "kind": "lle_only_variant",
+      "kind": "resolved_lle_semantics",
       "region": "80:94EB M1X0",
-      "summary": "4 decoded instructions; truncated call continuation and unproven 80:94F4 -> 80:C3AB callee exit.",
-      "priority": "high",
-      "next_evidence": "Disassemble callee/continuation with known M/X state and compare analyzer boundary choices."
+      "summary": "Fatal 'game pak not found' path understood. The concrete stream at 80:9505 uses only resolved F9/FC/FF frontend controls, so JSR 80:C3AB returns normally to 80:94F7.",
+      "priority": "low",
+      "next_evidence": "No runtime tracing needed unless working specifically on analyzer proof improvements."
     },
     {
       "id": "historical-2014-native-divergence",

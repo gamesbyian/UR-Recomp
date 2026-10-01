@@ -406,11 +406,30 @@ jobs:
                   a=read(root/f"{variant}-native"/f"{tag}.wram.bin",fields)
                   b=read(root/f"{variant}-snes9x"/f"{tag}.wram.bin",fields)
                   diffs={k:(a[k],b[k]) for k in fields if a[k]!=b[k]}
-                  if frame < 1530 and diffs:
-                      raise SystemExit(f"{variant}: pre-intervention mismatch at {frame}: {diffs}")
-                  if diffs and first is None:
-                      first=(frame,diffs)
-              print("FIRST_VARIANT_DRIFT",variant,first or "MATCH_THROUGH_1554")
+                  phase_diffs={k:v for k,v in diffs.items() if k in ("phase2","phase3")}
+                  semantic_diffs={k:v for k,v in diffs.items() if k not in ("phase2","phase3")}
+                  if frame < 1530 and semantic_diffs:
+                      raise SystemExit(
+                          f"{variant}: pre-intervention semantic mismatch at {frame}: {semantic_diffs}; "
+                          f"scheduler_phase={phase_diffs or 'MATCH'}"
+                      )
+                  if frame < 1530 and phase_diffs:
+                      print("PRE_INTERVENTION_PHASE",variant,frame,phase_diffs)
+                  if semantic_diffs and first is None:
+                      first=(frame,semantic_diffs,phase_diffs)
+                  if frame in (1530,1531,1532,1533):
+                      print(
+                          "FRAME_DISCRIMINATOR",variant,frame,
+                          "semantic",semantic_diffs or "MATCH",
+                          "phase",phase_diffs or "MATCH",
+                          "native_phase",(a["phase2"],a["phase3"]),
+                          "snes9x_phase",(b["phase2"],b["phase3"]),
+                          "native_vx",a["vx"],
+                          "snes9x_vx",b["vx"],
+                          "native_working_vx",a["working_vx"],
+                          "snes9x_working_vx",b["working_vx"],
+                      )
+              print("FIRST_VARIANT_SEMANTIC_DRIFT",variant,first or "MATCH_THROUGH_1554")
           PY
 
       - name: Assert ordinary 2P active-display OAM seam

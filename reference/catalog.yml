@@ -679,3 +679,15 @@ sources:
       - "stunts.txt"
     rights: "Historical third-party reverse-engineering material directly supplied for this research project; explicit redistribution license not established."
     relevance: "2008-2009-era WRAM/ROM maps, annotated 65816 disassembly, stunt/boost logic, message IDs, course offsets and bounce/collision trace evidence. Use as strong historical working evidence and validate semantics locally before promotion."
+
+  - id: dessyreqt-direct-workspace-2026
+    title: "Dessyreqt historical Uniracers working directory"
+    type: historical_reverse_engineering_archive
+    recovered: "2026-09-30"
+    source: "Directly supplied by Dessyreqt to Ian Wallace"
+    original_container: "Uniracers Stuff.zip (transport container intentionally removed after extraction)"
+    imported_directory: "reference/imported/reverse-engineering/dessyreqt/"
+    file_count: 80
+    contents: "17 Lua scripts including USJO v14/v14a and bot variants; 9 glitch SMVs; 45 course maps; 3 SRAM images; 2 memory-watch files; 4 research documents"
+    rights: "Historical third-party fan/TAS/reverse-engineering material directly supplied for this research project; explicit redistribution license not established."
+    relevance: "Recovers later USJO source lineage, autonomous movement/stunt bots, deterministic glitch movies, full course-map corpus, save states, memory watches, and historical research notes."

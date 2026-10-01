@@ -113,6 +113,10 @@ Examples: neutral vs jump, clean landing vs failed landing, no stunt vs tabletop
 
 A small coverage delta can locate behavior more cheaply than scanning every reader/writer of a broad state region.
 
+UR-Recomp validated this experimentally in run `36940956374` using the timing-identical jump-control vs B-held first-race fixtures. Across roughly 33.8k executed ROM code bytes, the B-held variant introduced only 94 executed bytes in seven compact ranges while the control introduced 14 bytes in three ranges. One variant-only range, `02:AADF..AAE5`, is exactly the pressed-B arm of `Input_DecodePlayer1Buttons`, which sets `$032D = 1`; the remaining differences are compact downstream state/animation/render-transfer branches rather than a broad multi-bank spray. This is enough measured information gain to retain controlled CDL A/B as a bounded semantic-search accelerant.
+
+Do not require a guessed downstream routine to appear before accepting a useful delta. The same experiment prospectively expected the jump-state branch around `02:A8FD..A95E`, but that range was not variant-only in the tested window. Treat this as a hypothesis correction: coverage establishes which branches differed under the actual fixture, not which branch ought to differ according to the current semantic model. Prefer the earliest interpretable discriminator, then follow its bounded downstream consequences with xrefs, writes, or a tighter fixture.
+
 ### 6. Preserve dead ends with retry conditions
 
 Repeated agent sessions can rediscover the same failed route. Record a dead end when a materially bounded approach has failed enough times that repetition is likely.

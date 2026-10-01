@@ -2,6 +2,7 @@ import json,sys,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]; sys.path.insert(0,str(ROOT/"tools"))
 import analyze_stunt_finalizer_structure_island as mod
+import build_comparative_structural_census as census_mod
 
 class StuntFinalizerTests(unittest.TestCase):
  def test_rom_probe(self):
@@ -27,6 +28,11 @@ class StuntFinalizerTests(unittest.TestCase):
    region=next(x for x in r["regions"] if x["name"]==name)
    for build in region["builds"].values():
     self.assertEqual(build["similarity"],1.0,(name,build["start"]))
+  self.assertEqual(json.loads(mod.OUTJ.read_text()),r)
+  self.assertEqual(mod.OUTM.read_text(),mod.render(r))
+  rebuilt=census_mod.build(ROOT)
+  self.assertEqual(json.loads((ROOT/"analysis/generated/comparative-structural-census.json").read_text()),rebuilt)
+  self.assertEqual((ROOT/"analysis/generated/comparative-structural-census.md").read_text(),census_mod.render(rebuilt))
   print("STUNT_ISLAND_JSON="+json.dumps(r,sort_keys=True))
 
 if __name__=="__main__": unittest.main()

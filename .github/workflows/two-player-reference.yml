@@ -173,6 +173,9 @@ jobs:
               "slot2.vy":("s16",0x04BD),
               "slot2.air":("u8",0x0547),
               "slot2.rot":("u8",0x04C9),
+              "slot2.camera_vx":("s8",0x04F7),
+              "joy2.auto_lo":("u8",0x030F),
+              "joy2.auto_hi":("u8",0x0310),
           }
           def read(path):
               w=path.read_bytes()
@@ -180,6 +183,10 @@ jobs:
               for name,(kind,off) in fields.items():
                   if kind=="u8":
                       v=w[off]
+                  elif kind=="s8":
+                      v=w[off]
+                      if v & 0x80:
+                          v-=0x100
                   else:
                       v=int.from_bytes(w[off:off+2],"little")
                       if kind=="s16" and v & 0x8000:
@@ -188,7 +195,7 @@ jobs:
               return out
 
           first=None
-          for frame in range(1528,1571,2):
+          for frame in range(1528,1555):
               tag=f"p2-drift-{frame}"
               a=read(native_root/f"{tag}.wram.bin")
               b=read(ref_root/f"{tag}.wram.bin")

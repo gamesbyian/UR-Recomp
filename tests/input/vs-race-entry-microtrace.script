@@ -1,0 +1,45 @@
+# Dense transition probe for the already-frozen VS controller stream.
+# Fixed guest-frame checkpoints around first split-screen race entry.
+wait 1040
+dump vs-transition-1040
+wait 10
+dump vs-transition-1050
+wait 10
+dump vs-transition-1060
+wait 10
+dump vs-transition-1070
+wait 10
+dump vs-transition-1080
+wait 10
+dump vs-transition-1090
+wait 10
+dump vs-transition-1100
+wait 10
+dump vs-transition-1110
+wait 10
+dump vs-transition-1120
+wait 10
+dump vs-transition-1130
+wait 10
+dump vs-transition-1140
+wait 10
+dump vs-transition-1150
+wait 10
+dump vs-transition-1160
+wait 10
+dump vs-transition-1170
+wait 10
+dump vs-transition-1180
+wait 10
+dump vs-transition-1190
+wait 10
+dump vs-transition-1200
+wait 10
+dump vs-transition-1210
+wait 10
+dump vs-transition-1220
+wait 10
+dump vs-transition-1230
+wait 10
+dump vs-transition-1240
+quit

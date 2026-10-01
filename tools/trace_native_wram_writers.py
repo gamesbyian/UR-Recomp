@@ -61,6 +61,11 @@ def main() -> int:
         help="step in batches until this many frames have been requested, then probe every frame",
     )
     ap.add_argument("--coarse-step", type=int, default=25)
+    ap.add_argument(
+        "--continue-until",
+        type=int,
+        help="after detecting inRace, continue executing guest frames through this frame before querying writes",
+    )
     ap.add_argument("--address", action="append", type=lambda x: int(x, 0))
     ap.add_argument("--json-out", type=Path)
     args = ap.parse_args()
@@ -100,10 +105,25 @@ def main() -> int:
         if reached is None:
             raise RuntimeError(f"inRace did not become 1 within {args.max_frames} stepped frames")
 
+        if args.continue_until is not None:
+            if args.continue_until < stepped:
+                raise RuntimeError(
+                    f"--continue-until {args.continue_until} precedes current frame {stepped}"
+                )
+            while stepped < args.continue_until:
+                batch = min(args.coarse_step, args.continue_until - stepped)
+                result = command(sock, reader, f"step {batch}")
+                if result.get("timeout"):
+                    raise RuntimeError(
+                        f"trace server timed out while continuing {batch} frames: {result}"
+                    )
+                stepped += batch
+
         cpu_state = command(sock, reader, "get_cpu_state")
         stack_page = command(sock, reader, "dump_ram 0x100 256")
         report = {
             "in_race_step": reached,
+            "final_step": stepped,
             "cpu_state_at_in_race": cpu_state,
             "stack_page_0x0100_0x01ff": stack_page.get("hex", ""),
             "addresses": {},

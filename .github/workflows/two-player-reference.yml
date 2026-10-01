@@ -1,0 +1,459 @@
+name: ordinary 2P reference regression
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "tests/input/two-player-first-race.input"
+      - "tests/input/two-player-first-race-observe.script"
+      - "tests/input/two-player-p2-drift-microtrace.script"
+      - "tests/input/two-player-phase-entry-microtrace.script"
+      - "tools/summarize_paired_player_slots.py"
+      - "tools/assert_uniracers_vs_oam_seam.py"
+      - ".github/workflows/two-player-reference.yml"
+
+concurrency:
+  group: ordinary-2p-reference-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  two-player-reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev xvfb
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Build two-pad reference cores
+        run: |
+          git -C snesrecomp apply --check "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
+          git -C snesrecomp apply "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          python3 tools/bootstrap_toolchain.py --tool beetle-bsnes-libretro --jobs 2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+
+      - name: Build native target with neutral input replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          ROOT="$RUNNER_TEMP/native"
+          mkdir -p "$ROOT"
+          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh"             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"             --dir "$ROOT"             --name "Uniracers"             --players 2             --yes             --no-ci             --no-fetch-boxart             --no-recomp-ui             --no-netplay             --no-github             --no-submodules             --generate             --no-build
+          PROJ="$ROOT/UniracersSNESRecomp"
+          cmake -S "$PROJ" -B "$PROJ/build"             -DCMAKE_BUILD_TYPE=Release             -DSNESRECOMP_ROOT="$FRAMEWORK"             -DSNESRECOMP_SDL_BACKEND=SDL2             -DSNESRECOMP_SDL3_FETCH=OFF
+          cmake --build "$PROJ/build" -j2
+
+      - name: Replay ordinary 2P fixture in Snes9x
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/snes9x-dumps"
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0           SNESREF_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"           SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"           SNESREF_DUMP_DIR="$RUNNER_TEMP/snes9x-dumps"             "$RUNNER_TEMP/snesref-build/snesref"             "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"             "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"             | tee "$RUNNER_TEMP/snes9x.log"
+
+      - name: Replay ordinary 2P fixture in native target
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          mkdir -p "$RUNNER_TEMP/native-dumps"
+          # Every native oracle launch must start from the same battery-SRAM baseline.
+          # The generated desktop host persists saves beside the executable on exit; without
+          # this reset, sequential diagnostics silently inherit each other's race/session state.
+          rm -rf "$(dirname "$EXE")/saves"
+          SNESRECOMP_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"           SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/native-dumps"           SDL_AUDIODRIVER=dummy             timeout 180s xvfb-run -a "$EXE"             "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"             --script "$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"             >"$RUNNER_TEMP/native.log" 2>&1
+          cat "$RUNNER_TEMP/native.log"
+
+      - name: Assert route and paired-player causality
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHECKPOINTS=(
+            --checkpoint two-player-race-1220
+            --checkpoint two-player-race-1420
+            --checkpoint two-player-p1-pre-1470
+            --checkpoint two-player-p1-post-1520
+            --checkpoint two-player-p2-post-1570
+            --checkpoint two-player-both-post-1620
+          )
+          for label in native snes9x; do
+            python3 - "$RUNNER_TEMP/$label-dumps" "$label" <<'PY'
+          import pathlib,sys
+          root=pathlib.Path(sys.argv[1]); label=sys.argv[2]
+          for tag in ("two-player-race-1220","two-player-race-1420","two-player-p1-pre-1470","two-player-p1-post-1520","two-player-p2-post-1570","two-player-both-post-1620"):
+              w=(root/f"{tag}.wram.bin").read_bytes()
+              assert w[0x009F] == 0, f"{label}/{tag}: menu=0x{w[0x009F]:02X}"
+          PY
+            python3 tools/summarize_paired_player_slots.py               "$RUNNER_TEMP/$label-dumps" "${CHECKPOINTS[@]}"               --json-out "$RUNNER_TEMP/$label-two-player-state.json"               | tee "$RUNNER_TEMP/$label-two-player-state.txt"
+          done
+
+          python3 - "$RUNNER_TEMP/native-two-player-state.json" "$RUNNER_TEMP/snes9x-two-player-state.json" <<'PY'
+          import json,pathlib,sys
+          native=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          ref=json.loads(pathlib.Path(sys.argv[2]).read_text())
+          progress=("next_checkpoint","finish_gate","laps_remaining")
+
+          # Pre-intervention race state should be exact across runtimes.
+          for cp in ("two-player-race-1220","two-player-race-1420"):
+              assert native[cp] == ref[cp], f"{cp}: native/reference semantic mismatch"
+
+          # Causal ownership: P1-only input moves slot1 while slot2 remains at baseline.
+          for label,data in (("native",native),("snes9x",ref)):
+              base=data["two-player-race-1420"]
+              p1pre=data["two-player-p1-pre-1470"]
+              p1post=data["two-player-p1-post-1520"]
+              p2post=data["two-player-p2-post-1570"]
+              both=data["two-player-both-post-1620"]
+              assert p1pre["slot1"]["x_pos"] == base["slot1"]["x_pos"], f"{label}: P1 moved before P1 input"
+              assert p1post["slot1"]["x_pos"] != p1pre["slot1"]["x_pos"], f"{label}: P1 did not respond"
+              assert p1post["slot2"]["x_pos"] == p1pre["slot2"]["x_pos"], f"{label}: P1-only input changed P2 X position"
+              assert p2post["slot2"]["x_pos"] != p1post["slot2"]["x_pos"], f"{label}: P2 did not respond"
+              assert both["slot1"]["x_speed"] > 0, f"{label}: expected P1 positive X velocity"
+              assert both["slot2"]["x_speed"] < 0, f"{label}: expected P2 negative X velocity"
+
+          # Race-progress semantics remain exact even if a tiny final kinematic timing drift persists.
+          for cp in native:
+              for player in ("player1","player2"):
+                  for field in progress:
+                      assert native[cp]["race_progress"][player][field] == ref[cp]["race_progress"][player][field],                           f"{cp}/{player}/{field}: race-progress mismatch"
+
+          # Report any post-intervention kinematic drift without converting it into a tolerance.
+          for cp in ("two-player-p1-pre-1470","two-player-p1-post-1520","two-player-p2-post-1570","two-player-both-post-1620"):
+              diffs={}
+              for slot in ("slot1","slot2"):
+                  for field in native[cp][slot]:
+                      if native[cp][slot][field] != ref[cp][slot][field]:
+                          diffs[f"{slot}.{field}"]=(native[cp][slot][field],ref[cp][slot][field])
+              print(cp, "MATCH" if not diffs else diffs)
+          PY
+
+      - name: Localize race-entry scheduler phase
+        shell: bash
+        run: |
+          set -euo pipefail
+          PHASE="$GITHUB_WORKSPACE/tests/input/two-player-phase-entry-microtrace.script"
+          INPUT="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          REF="$RUNNER_TEMP/snesref-build/snesref"
+          NATIVE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          mkdir -p "$RUNNER_TEMP/phase-snes9x" "$RUNNER_TEMP/phase-beetle" "$RUNNER_TEMP/phase-native"
+
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_INPUT_FILE="$INPUT" SNESREF_SCRIPT="$PHASE" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/phase-snes9x" \
+            "$REF" "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" "$ROM" \
+            >"$RUNNER_TEMP/phase-snes9x.log" 2>&1
+
+          set +e
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_INPUT_FILE="$INPUT" SNESREF_SCRIPT="$PHASE" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/phase-beetle" \
+            "$REF" "$GITHUB_WORKSPACE/.tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so" "$ROM" \
+            >"$RUNNER_TEMP/phase-beetle.log" 2>&1
+          beetle_status=$?
+          set -e
+          if [ "$beetle_status" -ne 0 ] && [ "$beetle_status" -ne 134 ]; then
+            cat "$RUNNER_TEMP/phase-beetle.log"
+            exit "$beetle_status"
+          fi
+          test -s "$RUNNER_TEMP/phase-beetle/phase-entry-1220.wram.bin"
+
+          rm -rf "$(dirname "$NATIVE")/saves"
+          SNESRECOMP_INPUT_FILE="$INPUT" SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/phase-native" \
+          SDL_AUDIODRIVER=dummy \
+            timeout 180s xvfb-run -a "$NATIVE" "$ROM" --script "$PHASE" \
+            >"$RUNNER_TEMP/phase-native.log" 2>&1
+
+          python3 - "$RUNNER_TEMP/phase-native" "$RUNNER_TEMP/phase-snes9x" "$RUNNER_TEMP/phase-beetle" <<'PY'
+          from pathlib import Path
+          import sys
+          nroot=Path(sys.argv[1]); sroot=Path(sys.argv[2]); broot=Path(sys.argv[3])
+          first=None
+          for frame in range(1120,1221,5):
+              tag=f"phase-entry-{frame}"
+              n=(nroot/f"{tag}.wram.bin").read_bytes()
+              s=(sroot/f"{tag}.wram.bin").read_bytes()
+              b=(broot/f"{tag}.wram.bin").read_bytes()
+              fields={
+                  "menu":(n[0x009F],s[0x009F],b[0x009F]),
+                  "p2VerticalDirection":(n[0x0313],s[0x0313],b[0x0313]),
+                  "phase2":(n[0x0302],s[0x0302],b[0x0302]),
+                  "phase3":(n[0x0304],s[0x0304],b[0x0304]),
+              }
+              diffs={k:v for k,v in fields.items() if len(set(v)) != 1}
+              print(tag, fields, "MATCH" if not diffs else f"DIFF {diffs}")
+              if diffs and first is None:
+                  first=(frame,diffs)
+          print("FIRST_PHASE_ENTRY_DIFF", first or "MATCH_THROUGH_1220")
+          PY
+
+      - name: Localize native/Snes9x P2-only drift
+        shell: bash
+        run: |
+          set -euo pipefail
+          MICRO="$GITHUB_WORKSPACE/tests/input/two-player-p2-drift-microtrace.script"
+          INPUT="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          EXE="$RUNNER_TEMP/snesref-build/snesref"
+
+          mkdir -p "$RUNNER_TEMP/snes9x-micro" "$RUNNER_TEMP/native-micro"
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_INPUT_FILE="$INPUT" SNESREF_SCRIPT="$MICRO" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/snes9x-micro" \
+            "$EXE" "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" "$ROM" \
+            >"$RUNNER_TEMP/snes9x-micro.log" 2>&1
+
+          NATIVE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          rm -rf "$(dirname "$NATIVE")/saves"
+          SNESRECOMP_INPUT_FILE="$INPUT" SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/native-micro" \
+          SDL_AUDIODRIVER=dummy \
+            timeout 180s xvfb-run -a "$NATIVE" "$ROM" --script "$MICRO" \
+            >"$RUNNER_TEMP/native-micro.log" 2>&1
+
+          python3 - "$RUNNER_TEMP/native-micro" "$RUNNER_TEMP/snes9x-micro" <<'PY'
+          from pathlib import Path
+          import sys
+
+          native_root=Path(sys.argv[1]); ref_root=Path(sys.argv[2])
+          fields={
+              "slot1.x":("u16",0x0411),
+              "slot1.y":("u16",0x0415),
+              "slot1.vx":("s16",0x04B7),
+              "slot1.vy":("s16",0x04BB),
+              "slot1.air":("u8",0x0545),
+              "slot1.rot":("u8",0x04C7),
+              "slot2.x":("u16",0x0413),
+              "slot2.y":("u16",0x0417),
+              "slot2.vx":("s16",0x04B9),
+              "slot2.vy":("s16",0x04BD),
+              "slot2.air":("u8",0x0547),
+              "slot2.rot":("u8",0x04C9),
+              "slot2.camera_vx":("s8",0x04F7),
+              "joy2.auto_lo":("u8",0x030E),
+              "joy2.auto_hi":("u8",0x0310),
+              "p2.horizontal_dir":("u8",0x0317),
+              "working.x_speed":("s16",0x0F9F),
+              "working.y_speed":("s16",0x0FA1),
+              "working.rotation":("u8",0x0F49),
+          }
+          def read(path):
+              w=path.read_bytes()
+              out={}
+              for name,(kind,off) in fields.items():
+                  if kind=="u8":
+                      v=w[off]
+                  elif kind=="s8":
+                      v=w[off]
+                      if v & 0x80:
+                          v-=0x100
+                  else:
+                      v=int.from_bytes(w[off:off+2],"little")
+                      if kind=="s16" and v & 0x8000:
+                          v-=0x10000
+                  out[name]=v
+              return out
+
+          first=None
+          for frame in range(1528,1555):
+              tag=f"p2-drift-{frame}"
+              a=read(native_root/f"{tag}.wram.bin")
+              b=read(ref_root/f"{tag}.wram.bin")
+              diffs={k:(a[k],b[k]) for k in fields if a[k]!=b[k]}
+              print(tag, "MATCH" if not diffs else diffs)
+              if diffs and first is None:
+                  first=(frame,diffs)
+          if first is None:
+              raise SystemExit("P2 drift disappeared under common microtrace schedule; update documentation instead of assuming the sparse result")
+          frame,diffs=first
+          if frame <= 1530:
+              raise SystemExit(f"P2 drift predates execution of the P2-only input window: first={frame} {diffs}")
+          print(f"FIRST_P2_DRIFT frame={frame} diffs={diffs}")
+          PY
+
+      - name: Discriminate player-slot versus direction drift
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
+          MICRO="$GITHUB_WORKSPACE/tests/input/two-player-p2-drift-microtrace.script"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          REF="$RUNNER_TEMP/snesref-build/snesref"
+          NATIVE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+
+          python3 - "$BASE" "$RUNNER_TEMP" <<'PY'
+          from pathlib import Path
+          import sys
+          src=Path(sys.argv[1]).read_text().splitlines()
+          out=Path(sys.argv[2])
+          prefix=[]
+          for raw in src:
+              line=raw.split("#",1)[0].strip()
+              if not line:
+                  continue
+              start=int(line.split(":",1)[0],0)
+              if start < 1480:
+                  prefix.append(line)
+          variants={
+              "p1-left": "1530:24:040:000",
+              "p1-right": "1530:24:080:000",
+              "p2-right": "1530:24:000:080",
+          }
+          for name,event in variants.items():
+              (out/f"{name}.input").write_text("\n".join(prefix+[event])+"\n")
+          PY
+
+          run_variant() {
+            local name="$1"
+            local input="$RUNNER_TEMP/$name.input"
+            mkdir -p "$RUNNER_TEMP/$name-snes9x" "$RUNNER_TEMP/$name-native"
+            SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+            SNESREF_INPUT_FILE="$input" SNESREF_SCRIPT="$MICRO" \
+            SNESREF_DUMP_DIR="$RUNNER_TEMP/$name-snes9x" \
+              "$REF" "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" "$ROM" \
+              >"$RUNNER_TEMP/$name-snes9x.log" 2>&1
+            rm -rf "$(dirname "$NATIVE")/saves"
+            SNESRECOMP_INPUT_FILE="$input" SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/$name-native" \
+            SDL_AUDIODRIVER=dummy \
+              timeout 180s xvfb-run -a "$NATIVE" "$ROM" --script "$MICRO" \
+              >"$RUNNER_TEMP/$name-native.log" 2>&1
+          }
+          run_variant p1-left
+          run_variant p1-right
+          run_variant p2-right
+
+          python3 - "$RUNNER_TEMP" <<'PY'
+          from pathlib import Path
+          import sys
+          root=Path(sys.argv[1])
+          slots={
+              "p1-left":{
+                  "x":("u16",0x0411),"y":("u16",0x0415),
+                  "vx":("s16",0x04B7),"vy":("s16",0x04BB),
+                  "air":("u8",0x0545),"rot":("u8",0x04C7),
+                  "working_vx":("s16",0x0F9F),
+                  "phase2":("u8",0x0302),"phase3":("u8",0x0304),
+              },
+              "p1-right":{
+                  "x":("u16",0x0411),"y":("u16",0x0415),
+                  "vx":("s16",0x04B7),"vy":("s16",0x04BB),
+                  "air":("u8",0x0545),"rot":("u8",0x04C7),
+                  "working_vx":("s16",0x0F9F),
+                  "phase2":("u8",0x0302),"phase3":("u8",0x0304),
+              },
+              "p2-right":{
+                  "x":("u16",0x0413),"y":("u16",0x0417),
+                  "vx":("s16",0x04B9),"vy":("s16",0x04BD),
+                  "air":("u8",0x0547),"rot":("u8",0x04C9),
+                  "working_vx":("s16",0x0F9F),
+                  "phase2":("u8",0x0302),"phase3":("u8",0x0304),
+              },
+          }
+          def read(path, fields):
+              w=path.read_bytes(); out={}
+              for name,(kind,off) in fields.items():
+                  if kind=="u8": v=w[off]
+                  else:
+                      v=int.from_bytes(w[off:off+2],"little")
+                      if kind=="s16" and v&0x8000: v-=0x10000
+                  out[name]=v
+              return out
+
+          # All three variants have an identical input prefix through frame 1529.
+          # Require full guest state identity inside each runtime before the
+          # frame-1530 intervention. This guards against shared SRAM/save state
+          # or other process-to-process leakage in the native oracle.
+          variants=("p1-left","p1-right","p2-right")
+          for runtime in ("native","snes9x"):
+              for frame in (1528,1529):
+                  tag=f"p2-drift-{frame}"
+                  baseline=(root/f"{variants[0]}-{runtime}"/f"{tag}.wram.bin").read_bytes()
+                  baseline_sram=(root/f"{variants[0]}-{runtime}"/f"{tag}.sram.bin").read_bytes()
+                  for variant in variants[1:]:
+                      w=(root/f"{variant}-{runtime}"/f"{tag}.wram.bin").read_bytes()
+                      sr=(root/f"{variant}-{runtime}"/f"{tag}.sram.bin").read_bytes()
+                      if w != baseline:
+                          first=next(i for i,(a,b) in enumerate(zip(baseline,w)) if a != b)
+                          raise SystemExit(
+                              f"{runtime}: identical-prefix WRAM is not repeatable at frame {frame}; "
+                              f"{variants[0]} vs {variant}, first byte 0x{first:04X}: "
+                              f"{baseline[first]:02X}!={w[first]:02X}"
+                          )
+                      if sr != baseline_sram:
+                          first=next(i for i,(a,b) in enumerate(zip(baseline_sram,sr)) if a != b)
+                          raise SystemExit(
+                              f"{runtime}: identical-prefix SRAM is not repeatable at frame {frame}; "
+                              f"{variants[0]} vs {variant}, first byte 0x{first:04X}: "
+                              f"{baseline_sram[first]:02X}!={sr[first]:02X}"
+                          )
+                  print("IDENTICAL_PREFIX", runtime, frame, "MATCH")
+
+          for variant,fields in slots.items():
+              first=None
+              print("VARIANT",variant)
+              for frame in range(1528,1555):
+                  tag=f"p2-drift-{frame}"
+                  a=read(root/f"{variant}-native"/f"{tag}.wram.bin",fields)
+                  b=read(root/f"{variant}-snes9x"/f"{tag}.wram.bin",fields)
+                  diffs={k:(a[k],b[k]) for k in fields if a[k]!=b[k]}
+                  if frame < 1530 and diffs:
+                      raise SystemExit(f"{variant}: pre-intervention mismatch at {frame}: {diffs}")
+                  if diffs and first is None:
+                      first=(frame,diffs)
+              print("FIRST_VARIANT_DRIFT",variant,first or "MATCH_THROUGH_1554")
+          PY
+
+      - name: Assert ordinary 2P active-display OAM seam
+        run: |
+          python3 tools/assert_uniracers_vs_oam_seam.py             "$RUNNER_TEMP/snes9x-dumps/two-player-race-1220.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-race-1420.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-p1-pre-1470.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-p2-post-1570.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-both-post-1620.ppuw.tsv"
+
+      - name: Assert ordinary 2P high-OAM routing
+        run: |
+          python3 tools/decode_uniracers_oam_split.py --expect 0x5A \
+            "$RUNNER_TEMP/snes9x-dumps/two-player-race-1220.oam.bin" \
+            "$RUNNER_TEMP/snes9x-dumps/two-player-race-1420.oam.bin" \
+            "$RUNNER_TEMP/snes9x-dumps/two-player-p1-pre-1470.oam.bin" \
+            "$RUNNER_TEMP/snes9x-dumps/two-player-p2-post-1570.oam.bin" \
+            "$RUNNER_TEMP/snes9x-dumps/two-player-both-post-1620.oam.bin"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ordinary-2p-reference
+          path: |
+            ${{ runner.temp }}/native.log
+            ${{ runner.temp }}/snes9x.log
+            ${{ runner.temp }}/*-two-player-state.json
+            ${{ runner.temp }}/*-two-player-state.txt
+            ${{ runner.temp }}/native-dumps/
+            ${{ runner.temp }}/snes9x-dumps/
+            ${{ runner.temp }}/phase-native/
+            ${{ runner.temp }}/phase-snes9x/
+            ${{ runner.temp }}/phase-beetle/
+            ${{ runner.temp }}/phase-native.log
+            ${{ runner.temp }}/phase-snes9x.log
+            ${{ runner.temp }}/phase-beetle.log
+            ${{ runner.temp }}/native-micro/
+            ${{ runner.temp }}/snes9x-micro/
+            ${{ runner.temp }}/native-micro.log
+            ${{ runner.temp }}/snes9x-micro.log
+            ${{ runner.temp }}/p1-left-native/
+            ${{ runner.temp }}/p1-left-snes9x/
+            ${{ runner.temp }}/p1-right-native/
+            ${{ runner.temp }}/p1-right-snes9x/
+            ${{ runner.temp }}/p2-right-native/
+            ${{ runner.temp }}/p2-right-snes9x/
+            ${{ runner.temp }}/p1-left-*.log
+            ${{ runner.temp }}/p1-right-*.log
+            ${{ runner.temp }}/p2-right-*.log
+          retention-days: 7

@@ -1,0 +1,18 @@
+# Deterministic ordinary two-player route from clean boot into first race.
+# Neutral two-pad grammar: start:duration:p1-mask:p2-mask
+500:1:020:000
+534:2:100:000
+597:2:100:000
+665:2:000:080
+685:2:000:100
+780:2:100:000
+880:2:100:000
+980:2:100:000
+1080:2:100:000
+1180:2:100:000
+1280:2:100:000
+1380:2:100:000
+# Causal controller coverage: P1 Right, P2 Left, then both simultaneously.
+1480:24:080:000
+1530:24:000:040
+1580:24:080:040

@@ -146,14 +146,15 @@ states:
     evidence: [primary_manual, reproduced_runtime]
     runtime_signatures:
       currentMenu_7E009F: "0x3D"
-      local_fixture: "tests/input/ui-main-branches.script"
-    description: "2P unicycle-selection state. A harvested native run visibly reaches the PICK A PLAYER roster at 0x3D and X returns to Main Menu. Participant ownership/handoff inside the state remains to be reproduced."
+      local_fixture: "tests/input/two-player-first-race.input"
+      validated_route: "P1 enters/commits first rider, P2 moves/commits second rider, then route advances to 0x6D and stable split-screen gameplay"
+    description: "2P unicycle-selection state. The durable ordinary-2P fixture reaches 0x3D, remains there across the P1 rider-confirm phase, then accepts P2-only movement/confirm input and advances to the next setup state. Two-controller handoff is therefore reproduced behaviorally; the historical ownership byte interpretation remains unresolved."
     runtime_fields:
       playerInput_700743: "Recovered bot says 5 = player one, 3 = player two, 1 = both players. This address is in bank 0x70 rather than the WRAM-only atlas field set, so ownership remains historical until a suitable checkpoint path records it."
     transitions:
-      - input: "A or B by active participant"
-        to: "TWO_PLAYER_SELECT or TOUR_SELECT depending whether another participant must choose"
-        confidence: inferred
+      - input: "P1 A/B confirm, then P2 movement + A/B confirm"
+        to: "TWO_PLAYER_SELECT, then TOUR_SELECT/setup after the second rider is committed"
+        confidence: high
       - input: "Y or X"
         to: MAIN_MENU
         confidence: medium

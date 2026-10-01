@@ -818,6 +818,42 @@
       "promotion_rule": "Promote the first-race/Dragster slice only after pinned Snes9x replay identifies active-race and race-results boundaries and native exact-mask replay characterizes cross-runtime agreement."
     },
     {
+      "id": "two-player-first-race",
+      "input_file": "tests/input/two-player-first-race.input",
+      "checkpoint_script": "tests/input/two-player-first-race-observe.script",
+      "purpose": "Deterministic ordinary two-player route from clean boot through both rider selections and setup into stable split-screen gameplay, with isolated P1-only, P2-only and simultaneous movement checkpoints.",
+      "engines": [
+        "native-recomp",
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "two-player-select-560",
+        "two-player-setup-720",
+        "two-player-setup-920",
+        "two-player-race-1220",
+        "two-player-race-1420",
+        "two-player-p1-pre-1470",
+        "two-player-p1-post-1520",
+        "two-player-p2-post-1570",
+        "two-player-both-post-1620"
+      ],
+      "compare_surfaces": [
+        "paired-player-state",
+        "menu-state-fields",
+        "full-wram",
+        "ppu-write-journal",
+        "oam"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:0313 inRace",
+        "paired racer position/velocity/air/orientation",
+        "paired checkpoint/finish/lap progress"
+      ],
+      "status": "validated",
+      "validation": "Reference run 36819833356 proves ordinary 2P reaches stable gameplay by frame 1220, isolates causal P1 and P2 control, and reproduces active-display HDMA $2104 writes V=0->$A5 and V=112->$5A at every sampled stable race checkpoint. Native/reference run 36820807916 independently reproduces the small P2 kinematic drift during the P2-only intervention; durable workflow gates exact pre-intervention semantics, causal ownership, race-progress agreement and high-OAM routing without masking that drift."
+    },
+    {
       "id": "vs-first-race",
       "input_file": "tests/input/vs-first-race.input",
       "checkpoint_script": "tests/input/vs-first-race-observe.script",

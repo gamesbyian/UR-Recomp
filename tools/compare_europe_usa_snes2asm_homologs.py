@@ -16,6 +16,8 @@ from align_pal_snes2asm_windows import best_shift, compare_roles, trace
 ROOT = Path(__file__).resolve().parents[1]
 USA = ROOT / "reference/roms/retail/Uniracers_USA.sfc"
 EUROPE = ROOT / "reference/roms/retail/Unirally_Europe.sfc"
+BETA = ROOT / "reference/roms/prototypes/Uniracers_Beta_legacy.sfc"
+PROTO = ROOT / "reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc"
 OUT_JSON = ROOT / "analysis/generated/europe-usa-snes2asm-homologs.json"
 OUT_MD = ROOT / "analysis/generated/europe-usa-snes2asm-homologs.md"
 
@@ -259,6 +261,46 @@ def local_shift_profile(source: bytes, target: bytes, start: int, end: int, chun
     return rows
 
 
+
+def checkpoint_frame_normalization_lineage(usa: bytes, europe: bytes) -> dict:
+    beta = BETA.read_bytes()
+    proto = PROTO.read_bytes()
+    start = cpu_to_offset("81:8102")
+    usa_span = usa[start:cpu_to_offset("81:8117") + 1]
+    europe_span = europe[start:cpu_to_offset("81:8109") + 1]
+
+    builds = {
+        "usa-retail": usa,
+        "legacy-beta": beta,
+        "pal-prototype-1994-11-29": proto,
+        "europe-retail": europe,
+    }
+    rows = {}
+    for name, data in builds.items():
+        usa_candidate = data[start:start + len(usa_span)]
+        europe_candidate = data[start:start + len(europe_span)]
+        if usa_candidate == usa_span:
+            style = "usa-style-22-byte"
+        elif europe_candidate == europe_span:
+            style = "europe-style-8-byte"
+        else:
+            style = "other"
+        rows[name] = {
+            "style": style,
+            "bytes_8102_8117": usa_candidate.hex(" "),
+            "bytes_8102_8109": europe_candidate.hex(" "),
+        }
+
+    return {
+        "cpu_start": "81:8102",
+        "usa_style_span": "81:8102..81:8117",
+        "europe_style_span": "81:8102..81:8109",
+        "usa_style_hex": usa_span.hex(" "),
+        "europe_style_hex": europe_span.hex(" "),
+        "builds": rows,
+    }
+
+
 def build() -> dict:
     usa = USA.read_bytes()
     europe = EUROPE.read_bytes()
@@ -369,6 +411,7 @@ def build() -> dict:
     }
     return {
         "schema_version": 1,
+        "checkpoint_frame_normalization_lineage": checkpoint_frame_normalization_lineage(usa, europe),
         "method": {
             "source": "USA retail",
             "target": "Europe retail",
@@ -464,6 +507,10 @@ def render(report: dict) -> str:
                     f"sim {p['raw_similarity']:.3f}; USA [{p['usa_hex']}] / Europe [{p['europe_hex']}]"
                 )
         lines.append("")
+    lineage = report["checkpoint_frame_normalization_lineage"]
+    lines += ["", "## Checkpoint timer-normalization lineage", ""]
+    for build, row in lineage["builds"].items():
+        lines.append(f"- {build}: **{row['style']}**")
     lines += [
         "",
         "Aligned opcode-byte substitutions are genuine executable deltas even when instruction boundaries and M/X state remain stable. Operand-byte changes are retained separately as likely addresses/constants/layout motion until semantics say otherwise.",

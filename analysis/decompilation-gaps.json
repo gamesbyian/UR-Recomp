@@ -57,6 +57,14 @@
       "summary": "All 114 snes2asm role disagreements surviving whole-window homolog alignment disappear after trusted code/data/function subdivision and piecewise realignment. The only genuine executable lineage delta is a four-byte PAL-retail-only JSL at 80:8C74..80:8C77, which changes the local homolog shift from -5 to -9.",
       "priority": "low",
       "next_evidence": "No da65/Ghidra adjudication is needed for these windows. Revisit the retail-only call only if its semantics become necessary for a later cross-build interpretation."
+    },
+    {
+      "id": "resolved-europe-usa-seeded-homologs",
+      "kind": "resolved_cross_build_analyzer_consensus",
+      "region": "selected USA/Europe homologs: text metadata, vertical acceleration, input decode, collision transform/contact shape, HUD queue",
+      "summary": "Trusted-entry-seeded snes2asm comparison covers 656 aligned opcode positions across 8 executable subregions. All opcode bytes, opcode/operand roles, and M/X states agree; 142 aligned byte changes are operand bytes only. The earlier unseeded zero-disagreement pass is rejected because these regions were unreached from the default vector walk.",
+      "priority": "low",
+      "next_evidence": "Do not re-adjudicate these regions with da65/Ghidra absent a new contradiction. Continue the same seeded, homolog-aligned method into larger trusted Europe/USA anchors in bounded subregions."
     }
   ]
 }

@@ -723,3 +723,46 @@ sources:
     contents: "17 Lua scripts including USJO v14/v14a and bot variants; 9 glitch SMVs; 45 course maps; 3 SRAM images; 2 memory-watch files; 4 research documents"
     rights: "Historical third-party fan/TAS/reverse-engineering material directly supplied for this research project; explicit redistribution license not established."
     relevance: "Recovers later USJO source lineage, autonomous movement/stunt bots, deterministic glitch movies, full course-map corpus, save states, memory watches, and historical research notes."
+
+  - id: gamefaqs-uniracers-ntsc-records
+    title: "Uniracers NTSC Scores (Google Cache preservation)"
+    type: historical_player_records
+    url: "https://gamefaqs.gamespot.com/boards/588824-uniracers/41488930"
+    public_date: "2008"
+    rights: "Public forum/archive metadata; index and summarize only."
+    relevance: "Preserves a historical NTSC score population, useful as coarse external timing sanity evidence and for confirming that regional records were maintained separately."
+
+  - id: gamefaqs-unirally-pal-records
+    title: "Unirally high scores (PAL)"
+    type: historical_player_records
+    url: "https://gamefaqs.gamespot.com/boards/588824-uniracers/29406415"
+    public_date: "2007-2008"
+    rights: "Public forum/archive metadata; index and summarize only."
+    relevance: "Preserves a historical PAL score population separate from NTSC, giving coarse evidence for region-specific timing and wall-clock comparability."
+
+  - id: nintendolife-making-unirally-2010
+    title: "The Making of Unirally"
+    type: developer_interview
+    url: "https://www.nintendolife.com/news/2010/03/feature_the_making_of_unirally"
+    author: "Damien McFerran"
+    public_date: "2010-03-09"
+    interviewees: ["Andrew Innes", "Mike Dailly", "Robbie Graham"]
+    rights: "Public article; quotation/reuse rights remain with publisher/authors."
+    relevance: "Primary-adjacent developer recollection confirming accidental-then-deliberate cartridge/copy-device detection and extremely tight final ROM space."
+
+  - id: bsnes-state-of-emulation-uniracers
+    title: "The State of Emulation, Part II — Uniracers active-display OAM"
+    type: emulator_hardware_research
+    url: "https://bsnes.org/articles/state-of-emulation-2/"
+    author: "Near"
+    rights: "Public technical article; index and summarize for research."
+    relevance: "Explains the observed 0x0218 active-display OAM destination and why the historical fix was hardware-model evidence rather than reliable game-specific semantics."
+
+  - id: tasvideos-uniracers-region-desync
+    title: "TASVideos Uniracers thread — PAL/NTSC movie desync observation"
+    type: historical_tas_discussion
+    url: "https://tasvideos.org/Forum/Topics/979?CurrentPage=4&Highlight=39298&PageSize=25&Sort=CreateTimestamp"
+    public_date: "2008-02"
+    rights: "Public forum posts; index and summarize only."
+    relevance: "Records an accidental cross-region replay where a USA movie on PAL Unirally diverged immediately, providing an independent historical deterministic-input version discriminator."
+

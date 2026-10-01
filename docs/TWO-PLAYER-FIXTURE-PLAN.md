@@ -205,6 +205,8 @@ The same green run dynamically confirms the `A5F3` mechanism at frame 1532 for P
 
 The root-cause boundary now moves to the race-entry handshake. `83:C9C8..C9CB` can set `$0C67`; `83:CBA4..CBB2` can clear it; and `83:CD3A -> 83:E066` consumes it before `E070` writes `inRace=1`. The next microtrace captures `$0C67`, `$0DDB`, and `$7E212C` around 1128-1140. Follow whichever handshake byte first differs before investigating later racer physics.
 
+The same probe now also emits the complete cross-runtime WRAM delta at frames 1133 and 1134, plus SRAM deltas when the dump surface provides them. This is deliberately broader than the hand-picked handshake fields: if frame 1133 is globally identical but frame 1134 introduces an earlier state difference outside `$0C67/$0DDB/$212C`, treat that earliest memory delta as the new causal boundary rather than overfitting to the known race-entry code.
+
 ## VS active-movement parity refinement
 
 Current-main replay reconfirms exact native/Snes9x paired-racer semantics at stable pre-intervention checkpoints 1240, 1340 and 1440. After the P1-only, P2-only and simultaneous movement sequence, P1 still matches while P2 ends with a very small difference: native `x=1137, vx=-263`; Snes9x `x=1141, vx=-266`.

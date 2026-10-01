@@ -105,9 +105,86 @@ jobs:
           ref=json.loads(pathlib.Path(sys.argv[2]).read_text())
           progress=("next_checkpoint","finish_gate","laps_remaining")
 
-          # Pre-intervention race state should be exact across runtimes.
+          # Preserve the established pre-intervention semantic gate.
+          # Newly promoted camera/viewport fields are observational until
+          # event-relative multiplayer camera behavior is characterized.
           for cp in ("two-player-race-1220","two-player-race-1420"):
-              assert native[cp] == ref[cp], f"{cp}: native/reference semantic mismatch"
+              for section in ("slot1","slot2","race_progress"):
+                  assert native[cp][section] == ref[cp][section], (
+                      f"{cp}/{section}: native/reference semantic mismatch"
+                  )
+              print(
+                  "CAMERA_CHECKPOINT", cp,
+                  "native", native[cp]["camera_and_viewport"],
+                  "snes9x", ref[cp]["camera_and_viewport"],
+              )
+
+          movement_cps=(
+              "two-player-p1-pre-1470",
+              "two-player-p1-post-1520",
+              "two-player-p2-post-1570",
+              "two-player-both-post-1620",
+          )
+          for runtime_name,report in (("native",native),("snes9x",ref)):
+              print("CAMERA_MOVEMENT_SERIES", runtime_name)
+              for cp in movement_cps:
+                  print(cp, report[cp]["camera_and_viewport"])
+                  ac=report[cp]["vram_update_lists"]
+                  print(
+                      "VRAM_UPDATE_LISTS", runtime_name, cp,
+                      "counts",(ac["list_a_count_raw"],ac["list_b_count_raw"]),
+                      "nonzero",(ac["list_a_nonzero_flags"],ac["list_b_nonzero_flags"]),
+                      "flags_a",ac["list_a_flags"],
+                      "flags_b",ac["list_b_flags"],
+                  )
+              for a,b in zip(movement_cps,movement_cps[1:]):
+                  ca=report[a]["camera_and_viewport"]["camera"]
+                  cb=report[b]["camera_and_viewport"]["camera"]
+                  delta={k:cb[k]-ca[k] for k in ca}
+                  print("CAMERA_DELTA", runtime_name, a, "->", b, delta)
+
+              base=report["two-player-p1-pre-1470"]["camera_and_viewport"]
+              p1=report["two-player-p1-post-1520"]["camera_and_viewport"]
+              p2=report["two-player-p2-post-1570"]["camera_and_viewport"]
+              both=report["two-player-both-post-1620"]["camera_and_viewport"]
+
+              # Event-relative dual-camera ownership: with only P1 driven,
+              # camera 1 follows while camera 2 remains at its baseline X.
+              assert p1["camera"]["player1_x"] > base["camera"]["player1_x"], (
+                  runtime_name, "P1 camera did not advance under P1-only input"
+              )
+              assert p1["camera"]["player2_x"] == base["camera"]["player2_x"], (
+                  runtime_name, "P2 camera moved during P1-only input"
+              )
+              assert p1["camera"]["player1_x_velocity"] > 0
+              assert p1["camera"]["player2_x_velocity"] == 0
+
+              # P2-only leftward fixture phase begins from rest for P2, then
+              # produces a positive follow velocity while the racer is still
+              # carrying rightward momentum from race setup; the following
+              # simultaneous-left phase reverses both racer/camera direction.
+              assert p2["camera"]["player2_x"] > p1["camera"]["player2_x"], (
+                  runtime_name, "P2 camera did not respond during P2-only phase"
+              )
+              assert p2["camera"]["player2_x_velocity"] > 0
+              assert both["camera"]["player2_x"] < p2["camera"]["player2_x"], (
+                  runtime_name, "P2 camera did not reverse during simultaneous-left phase"
+              )
+              assert both["camera"]["player2_x_velocity"] < 0
+              assert both["camera"]["player1_x_velocity"] > 0
+
+              # Bank 82 uses distinct split-screen off-screen sentinels:
+              # screen 1 substitutes 0x70/0x70 and screen 2 substitutes
+              # 0x30/0x30 for the opposite racer once P1 pulls away.
+              assert (
+                  p1["screen_relative"]["screen1_player2_x"],
+                  p1["screen_relative"]["screen1_player2_y"],
+              ) == (0x70,0x70), (runtime_name, "screen1 P2 culling sentinel")
+              assert (
+                  p1["screen_relative"]["screen2_player1_x"],
+                  p1["screen_relative"]["screen2_player1_y"],
+              ) == (0x30,0x30), (runtime_name, "screen2 P1 culling sentinel")
+              print("CAMERA_CAUSALITY_CONFIRMED", runtime_name)
 
           # Causal ownership: P1-only input moves slot1 while slot2 remains at baseline.
           for label,data in (("native",native),("snes9x",ref)):

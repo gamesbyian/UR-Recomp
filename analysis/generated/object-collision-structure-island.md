@@ -23,6 +23,8 @@ Boundaries come from direct long-entry calls, explicit RTS/RTL instructions, the
 
 - 30 bytes / 15 little-endian words.
 - USA entries: 0000 8745 8785 8515 857D 87EB 8970 89B9 8A17 84D2 8050 84D2 84DB 83A4 8341
+- PAL prototype entries: 0000 8725 8765 84F5 855D 87CB 8950 8999 89F7 84B5 8050 84B5 84BB 8387 8324
+- Europe entries: 0000 871C 875C 84EC 8554 87C2 8950 8999 89F7 84AC 8050 84AC 84B2 837E 8316
 - `JSR ($8320,X)` proves these words are an embedded handler-pointer prefix. Because the guard is only `X < 0x003C`, do **not** treat the 30-byte prefix as the complete indirect domain without a tighter X-value proof.
 
 ## Lookup table after handler_8341

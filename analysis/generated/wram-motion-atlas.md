@@ -8,13 +8,13 @@ This is a structural clustering surface. Repeated displacement across independen
 
 | Build | Delta | Anchors | Fields | Evidence | Example USA fields |
 |---|---:|---:|---:|---:|---|
-| europe-retail | +10 | 8 | 31 | 106 | `0E89`, `0E8B`, `0E8D`, `0E8F`, `0E91`, `0E93`, `0F41`, `0F47` |
+| europe-retail | +10 | 9 | 33 | 109 | `0E89`, `0E8B`, `0E8D`, `0E8F`, `0E91`, `0E93`, `0F41`, `0F47` |
 | europe-retail | +4 | 6 | 44 | 126 | `030D`, `030F`, `0311`, `0315`, `0319`, `031D`, `0321`, `0325` |
+| europe-retail | +0 | 6 | 22 | 61 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
 | europe-retail | +6 | 6 | 14 | 38 | `0541`, `0545`, `0BA1`, `0BA3`, `0BE9`, `0BEB`, `0CBB`, `0CE1` |
-| europe-retail | +0 | 5 | 21 | 60 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
-| legacy-beta | +0 | 14 | 116 | 368 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
-| pal-prototype-1994-11-29 | +0 | 12 | 83 | 234 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
-| pal-prototype-1994-11-29 | +4 | 9 | 33 | 115 | `0E89`, `0E8B`, `0E8D`, `0E8F`, `0E91`, `0E93`, `0EF1`, `0F41` |
+| legacy-beta | +0 | 15 | 119 | 372 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
+| pal-prototype-1994-11-29 | +0 | 13 | 84 | 235 | `000B`, `0230`, `0232`, `0234`, `0236`, `0260`, `0262`, `0264` |
+| pal-prototype-1994-11-29 | +4 | 10 | 35 | 118 | `0E89`, `0E8B`, `0E8D`, `0E8F`, `0E91`, `0E93`, `0EF1`, `0F41` |
 
 ## Cross-anchor field consistency
 
@@ -65,9 +65,9 @@ For fields consistently projected in both builds, this subtracts the prototype a
 
 | Prototype→Europe delta | Fields | Example USA→prototype→Europe paths |
 |---:|---:|---|
-| +6 | 45 | `0541→0541→0547`, `0545→0545→054B`, `0BA1→0BA1→0BA7`, `0BA3→0BA3→0BA9`, `0BE9→0BE9→0BEF`, `0BEB→0BEB→0BF1` |
+| +6 | 47 | `0541→0541→0547`, `0545→0545→054B`, `0BA1→0BA1→0BA7`, `0BA3→0BA3→0BA9`, `0BE9→0BE9→0BEF`, `0BEB→0BEB→0BF1` |
 | +4 | 44 | `030D→030D→0311`, `030F→030F→0313`, `0311→0311→0315`, `0315→0315→0319`, `0319→0319→031D`, `031D→031D→0321` |
-| +0 | 21 | `000B→000B→000B`, `0230→0230→0230`, `0232→0232→0232`, `0234→0234→0234`, `0236→0236→0236`, `0260→0260→0260` |
+| +0 | 22 | `000B→000B→000B`, `0230→0230→0230`, `0232→0232→0232`, `0234→0234→0234`, `0236→0236→0236`, `0260→0260→0260` |
 
 ## Inferred post-prototype insertion brackets
 
@@ -75,7 +75,7 @@ These are address-space brackets, not exact insertion addresses. A displacement 
 
 | From delta | To delta | Jump | Last known before | First known after | USA-address gap |
 |---:|---:|---:|---|---|---:|
-| +0 | +4 | +4 | `0306` | `030D` | 7 |
+| +0 | +4 | +4 | `0309` | `030D` | 4 |
 | +4 | +6 | +2 | `0537` | `0541` | 10 |
 
 ## Contradictions / exceptions

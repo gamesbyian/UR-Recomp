@@ -15,8 +15,8 @@ These are mechanically projected USA LE16 semantic operands from each top struct
 | Delta | Evidence count |
 |---:|---:|
 | `+4` (`0x0004`) | 126 |
-| `+10` (`0x000A`) | 106 |
-| `+0` (`0x0000`) | 60 |
+| `+10` (`0x000A`) | 109 |
+| `+0` (`0x0000`) | 61 |
 | `+6` (`0x0006`) | 38 |
 | `+17` (`0x0011`) | 1 |
 
@@ -24,14 +24,14 @@ These are mechanically projected USA LE16 semantic operands from each top struct
 
 | Delta | Evidence count |
 |---:|---:|
-| `+0` (`0x0000`) | 369 |
+| `+0` (`0x0000`) | 373 |
 
 ### pal-prototype-1994-11-29
 
 | Delta | Evidence count |
 |---:|---:|
-| `+0` (`0x0000`) | 234 |
-| `+4` (`0x0004`) | 115 |
+| `+0` (`0x0000`) | 235 |
+| `+4` (`0x0004`) | 118 |
 | `-2` (`0xFFFE`) | 1 |
 
 ## Race_UpdateRacersFrame
@@ -983,6 +983,59 @@ Top candidate: `82:A959`; byte similarity 0.912; semantic-reference recall 0.250
 | `+0x20` | 1 | `a1` | `a5` |
 | `+0x39` | 1 | `a1` | `a5` |
 | `+0x3C` | 1 | `a1` | `a5` |
+
+
+## State0309_TextLoopCounter
+
+USA anchor: `81:BF6D` / file `0x00BF6D`; window `0x50`.
+
+Bounded recovered text/state loop through the first return path; used only to track unnamed $0309 across builds.
+
+| Build | Rank | Candidate | Same offset? | Score | Byte similarity | Semantic-ref recall | N-gram votes |
+|---|---:|---|:---:|---:|---:|---:|---:|
+| europe-retail | 1 | `81:BF5E` (`0x00BF5E`) | no | 0.742 | 0.950 | 0.333 | 20 |
+| europe-retail | 2 | `81:BFE9` (`0x00BFE9`) | no | 0.645 | 0.787 | 0.333 | 18 |
+| europe-retail | 3 | `81:C05F` (`0x00C05F`) | no | 0.450 | 0.675 | 0.000 | 15 |
+| europe-retail | 4 | `83:F731` (`0x01F731`) | no | 0.328 | 0.550 | 0.000 | 7 |
+| europe-retail | 5 | `81:BF6D` (`0x00BF6D`) | yes | 0.123 | 0.013 | 0.333 | 0 |
+| legacy-beta | 1 | `81:BF6D` (`0x00BF6D`) | yes | 1.000 | 1.000 | 1.000 | 25 |
+| legacy-beta | 2 | `81:BFF8` (`0x00BFF8`) | no | 0.618 | 0.787 | 0.333 | 18 |
+| legacy-beta | 3 | `81:C06E` (`0x00C06E`) | no | 0.427 | 0.675 | 0.000 | 15 |
+| legacy-beta | 4 | `81:BF89` (`0x00BF89`) | no | 0.412 | 0.113 | 1.000 | 1 |
+| legacy-beta | 5 | `83:F6F5` (`0x01F6F5`) | no | 0.317 | 0.550 | 0.000 | 7 |
+| pal-prototype-1994-11-29 | 1 | `81:BF4D` (`0x00BF4D`) | no | 0.742 | 0.950 | 0.333 | 20 |
+| pal-prototype-1994-11-29 | 2 | `81:BFD8` (`0x00BFD8`) | no | 0.645 | 0.787 | 0.333 | 18 |
+| pal-prototype-1994-11-29 | 3 | `81:C04E` (`0x00C04E`) | no | 0.450 | 0.675 | 0.000 | 15 |
+| pal-prototype-1994-11-29 | 4 | `83:F70D` (`0x01F70D`) | no | 0.328 | 0.550 | 0.000 | 7 |
+| pal-prototype-1994-11-29 | 5 | `81:BF6D` (`0x00BF6D`) | yes | 0.135 | 0.037 | 0.333 | 0 |
+### europe-retail top-candidate deltas
+
+Top candidate: `81:BF5E`; byte similarity 0.950; semantic-reference recall 0.333.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+| `+0x31` | 1 | `83` | `8d` |
+| `+0x45` | 1 | `a5` | `af` |
+| `+0x4C` | 1 | `83` | `8d` |
+| `+0x4F` | 1 | `9d` | `a7` |
+
+### legacy-beta top-candidate deltas
+
+Top candidate: `81:BF6D`; byte similarity 1.000; semantic-reference recall 1.000.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+
+### pal-prototype-1994-11-29 top-candidate deltas
+
+Top candidate: `81:BF4D`; byte similarity 0.950; semantic-reference recall 0.333.
+
+| Rel | Len | USA | Candidate |
+|---:|---:|---|---|
+| `+0x31` | 1 | `83` | `87` |
+| `+0x45` | 1 | `a5` | `a9` |
+| `+0x4C` | 1 | `83` | `87` |
+| `+0x4F` | 1 | `9d` | `a1` |
 
 
 ## State0306_DmaGate

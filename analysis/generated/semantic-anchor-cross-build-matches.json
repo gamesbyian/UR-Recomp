@@ -65196,6 +65196,1874 @@
       }
     },
     {
+      "name": "State0309_TextLoopCounter",
+      "usa_cpu_address": "81:BF6D",
+      "usa_file_offset": 49005,
+      "window_size": 80,
+      "note": "Bounded recovered text/state loop through the first return path; used only to track unnamed $0309 across builds.",
+      "semantic_words": [
+        "0309",
+        "1283",
+        "12A5",
+        "0E9D",
+        "0EDD"
+      ],
+      "usa_semantic_hits": {
+        "0309": 1,
+        "1283": 2,
+        "12A5": 1
+      },
+      "matches": {
+        "europe-retail": [
+          {
+            "file_offset": 48990,
+            "cpu_address": "81:BF5E",
+            "same_offset_as_usa": false,
+            "score": 0.741667,
+            "byte_similarity": 0.95,
+            "semantic_reference_recall": 0.333333,
+            "ngram_vote_fraction": 1.0,
+            "ngram_votes": 20,
+            "semantic_hits": {
+              "0309": 1
+            },
+            "semantic_word_projection": {
+              "0309": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "0309": 1
+                },
+                "dominant_candidate": "0309",
+                "dominant_count": 1
+              },
+              "1283": {
+                "source_occurrences": 2,
+                "candidate_values": {
+                  "128D": 2
+                },
+                "dominant_candidate": "128D",
+                "dominant_count": 2
+              },
+              "12A5": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "12AF": 1
+                },
+                "dominant_candidate": "12AF",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 49,
+                "relative_end_exclusive": 50,
+                "length": 1,
+                "usa_hex": "83",
+                "candidate_hex": "8d"
+              },
+              {
+                "relative_start": 69,
+                "relative_end_exclusive": 70,
+                "length": 1,
+                "usa_hex": "a5",
+                "candidate_hex": "af"
+              },
+              {
+                "relative_start": 76,
+                "relative_end_exclusive": 77,
+                "length": 1,
+                "usa_hex": "83",
+                "candidate_hex": "8d"
+              },
+              {
+                "relative_start": 79,
+                "relative_end_exclusive": 80,
+                "length": 1,
+                "usa_hex": "9d",
+                "candidate_hex": "a7"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 48,
+                "usa_le16": 33689,
+                "candidate_le16": 36249,
+                "usa_hex": "9983",
+                "candidate_hex": "998d"
+              },
+              {
+                "relative_offset": 49,
+                "usa_le16": 4739,
+                "candidate_le16": 4749,
+                "usa_hex": "8312",
+                "candidate_hex": "8d12"
+              },
+              {
+                "relative_offset": 68,
+                "usa_le16": 42381,
+                "candidate_le16": 44941,
+                "usa_hex": "8da5",
+                "candidate_hex": "8daf"
+              },
+              {
+                "relative_offset": 69,
+                "usa_le16": 4773,
+                "candidate_le16": 4783,
+                "usa_hex": "a512",
+                "candidate_hex": "af12"
+              },
+              {
+                "relative_offset": 75,
+                "usa_le16": 33721,
+                "candidate_le16": 36281,
+                "usa_hex": "b983",
+                "candidate_hex": "b98d"
+              },
+              {
+                "relative_offset": 76,
+                "usa_le16": 4739,
+                "candidate_le16": 4749,
+                "usa_hex": "8312",
+                "candidate_hex": "8d12"
+              },
+              {
+                "relative_offset": 78,
+                "usa_le16": 40345,
+                "candidate_le16": 42905,
+                "usa_hex": "999d",
+                "candidate_hex": "99a7"
+              }
+            ],
+            "sha256": "c529bc286f180d7a8eb33a6376ba7f8ac283a8fb9221a80a731c2fdb920cc822"
+          },
+          {
+            "file_offset": 49129,
+            "cpu_address": "81:BFE9",
+            "same_offset_as_usa": false,
+            "score": 0.645417,
+            "byte_similarity": 0.7875,
+            "semantic_reference_recall": 0.333333,
+            "ngram_vote_fraction": 0.9,
+            "ngram_votes": 18,
+            "semantic_hits": {
+              "0309": 1
+            },
+            "semantic_word_projection": {
+              "0309": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "0309": 1
+                },
+                "dominant_candidate": "0309",
+                "dominant_count": 1
+              },
+              "1283": {
+                "source_occurrences": 2,
+                "candidate_values": {
+                  "0EA7": 1,
+                  "0CA5": 1
+                },
+                "dominant_candidate": "0EA7",
+                "dominant_count": 1
+              },
+              "12A5": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "F012": 1
+                },
+                "dominant_candidate": "F012",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 49,
+                "relative_end_exclusive": 51,
+                "length": 2,
+                "usa_hex": "8312",
+                "candidate_hex": "a70e"
+              },
+              {
+                "relative_start": 65,
+                "relative_end_exclusive": 80,
+                "length": 15,
+                "usa_hex": "a900008da512e230a00fb98312999d",
+                "candidate_hex": "c230ade312f008a978008da50c801b"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 48,
+                "usa_le16": 33689,
+                "candidate_le16": 42905,
+                "usa_hex": "9983",
+                "candidate_hex": "99a7"
+              },
+              {
+                "relative_offset": 49,
+                "usa_le16": 4739,
+                "candidate_le16": 3751,
+                "usa_hex": "8312",
+                "candidate_hex": "a70e"
+              },
+              {
+                "relative_offset": 50,
+                "usa_le16": 42514,
+                "candidate_le16": 42510,
+                "usa_hex": "12a6",
+                "candidate_hex": "0ea6"
+              },
+              {
+                "relative_offset": 64,
+                "usa_le16": 43455,
+                "candidate_le16": 49855,
+                "usa_hex": "bfa9",
+                "candidate_hex": "bfc2"
+              },
+              {
+                "relative_offset": 65,
+                "usa_le16": 169,
+                "candidate_le16": 12482,
+                "usa_hex": "a900",
+                "candidate_hex": "c230"
+              },
+              {
+                "relative_offset": 78,
+                "usa_le16": 40345,
+                "candidate_le16": 7040,
+                "usa_hex": "999d",
+                "candidate_hex": "801b"
+              }
+            ],
+            "sha256": "a03e0810edbf53aef321c4872e9fa7440af4cf5420aabf5148fea33e0d22d976"
+          },
+          {
+            "file_offset": 49247,
+            "cpu_address": "81:C05F",
+            "same_offset_as_usa": false,
+            "score": 0.45,
+            "byte_similarity": 0.675,
+            "semantic_reference_recall": 0.0,
+            "ngram_vote_fraction": 0.75,
+            "ngram_votes": 15,
+            "semantic_hits": {},
+            "semantic_word_projection": {
+              "0309": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "10C0": 1
+                },
+                "dominant_candidate": "10C0",
+                "dominant_count": 1
+              },
+              "1283": {
+                "source_occurrences": 2,
+                "candidate_values": {
+                  "0EC7": 1,
+                  "0078": 1
+                },
+                "dominant_candidate": "0EC7",
+                "dominant_count": 1
+              },
+              "12A5": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "AD30": 1
+                },
+                "dominant_candidate": "AD30",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 49,
+                "relative_end_exclusive": 51,
+                "length": 2,
+                "usa_hex": "8312",
+                "candidate_hex": "c70e"
+              },
+              {
+                "relative_start": 56,
+                "relative_end_exclusive": 80,
+                "length": 24,
+                "usa_hex": "ee0903c8c01000d0bfa900008da512e230a00fb98312999d",
+                "candidate_hex": "c8c01000d0c2a901008de90ec230ade512f008a978008da7"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 48,
+                "usa_le16": 33689,
+                "candidate_le16": 51097,
+                "usa_hex": "9983",
+                "candidate_hex": "99c7"
+              },
+              {
+                "relative_offset": 49,
+                "usa_le16": 4739,
+                "candidate_le16": 3783,
+                "usa_hex": "8312",
+                "candidate_hex": "c70e"
+              },
+              {
+                "relative_offset": 50,
+                "usa_le16": 42514,
+                "candidate_le16": 42510,
+                "usa_hex": "12a6",
+                "candidate_hex": "0ea6"
+              },
+              {
+                "relative_offset": 55,
+                "usa_le16": 60928,
+                "candidate_le16": 51200,
+                "usa_hex": "00ee",
+                "candidate_hex": "00c8"
+              },
+              {
+                "relative_offset": 56,
+                "usa_le16": 2542,
+                "candidate_le16": 49352,
+                "usa_hex": "ee09",
+                "candidate_hex": "c8c0"
+              },
+              {
+                "relative_offset": 78,
+                "usa_le16": 40345,
+                "candidate_le16": 42893,
+                "usa_hex": "999d",
+                "candidate_hex": "8da7"
+              }
+            ],
+            "sha256": "fdf5a6f2aebc0a0979b4cc02aab40a55b08505fc5d1bf03cde54f697b292257a"
+          },
+          {
+            "file_offset": 128817,
+            "cpu_address": "83:F731",
+            "same_offset_as_usa": false,
+            "score": 0.3275,
+            "byte_similarity": 0.55,
+            "semantic_reference_recall": 0.0,
+            "ngram_vote_fraction": 0.35,
+            "ngram_votes": 7,
+            "semantic_hits": {},
+            "semantic_word_projection": {
+              "0309": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "2116": 1
+                },
+                "dominant_candidate": "2116",
+                "dominant_count": 1
+              },
+              "1283": {
+                "source_occurrences": 2,
+                "candidate_values": {
+                  "00FF": 1,
+                  "188D": 1
+                },
+                "dominant_candidate": "00FF",
+                "dominant_count": 1
+              },
+              "12A5": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "A521": 1
+                },
+                "dominant_candidate": "A521",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 1,
+                "relative_end_exclusive": 4,
+                "length": 3,
+                "usa_hex": "04ca17",
+                "candidate_hex": "16f583"
+              },
+              {
+                "relative_start": 16,
+                "relative_end_exclusive": 17,
+                "length": 1,
+                "usa_hex": "1f",
+                "candidate_hex": "22"
+              },
+              {
+                "relative_start": 27,
+                "relative_end_exclusive": 28,
+                "length": 1,
+                "usa_hex": "14",
+                "candidate_hex": "17"
+              },
+              {
+                "relative_start": 38,
+                "relative_end_exclusive": 39,
+                "length": 1,
+                "usa_hex": "09",
+                "candidate_hex": "0c"
+              },
+              {
+                "relative_start": 48,
+                "relative_end_exclusive": 52,
+                "length": 4,
+                "usa_hex": "998312a6",
+                "candidate_hex": "29ff0009"
+              },
+              {
+                "relative_start": 53,
+                "relative_end_exclusive": 66,
+                "length": 13,
+                "usa_hex": "e88600ee0903c8c01000d0bfa9",
+                "candidate_hex": "3885028c16218d182198186920"
+              },
+              {
+                "relative_start": 67,
+                "relative_end_exclusive": 80,
+                "length": 13,
+                "usa_hex": "008da512e230a00fb98312999d",
+                "candidate_hex": "8d1621a502186910008d1821a6"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 0,
+                "usa_le16": 1215,
+                "candidate_le16": 5823,
+                "usa_hex": "bf04",
+                "candidate_hex": "bf16"
+              },
+              {
+                "relative_offset": 1,
+                "usa_le16": 51716,
+                "candidate_le16": 62742,
+                "usa_hex": "04ca",
+                "candidate_hex": "16f5"
+              },
+              {
+                "relative_offset": 2,
+                "usa_le16": 6090,
+                "candidate_le16": 33781,
+                "usa_hex": "ca17",
+                "candidate_hex": "f583"
+              },
+              {
+                "relative_offset": 3,
+                "usa_le16": 10519,
+                "candidate_le16": 10627,
+                "usa_hex": "1729",
+                "candidate_hex": "8329"
+              },
+              {
+                "relative_offset": 15,
+                "usa_le16": 8064,
+                "candidate_le16": 8832,
+                "usa_hex": "801f",
+                "candidate_hex": "8022"
+              },
+              {
+                "relative_offset": 16,
+                "usa_le16": 51487,
+                "candidate_le16": 51490,
+                "usa_hex": "1fc9",
+                "candidate_hex": "22c9"
+              },
+              {
+                "relative_offset": 26,
+                "usa_le16": 5248,
+                "candidate_le16": 6016,
+                "usa_hex": "8014",
+                "candidate_hex": "8017"
+              },
+              {
+                "relative_offset": 27,
+                "usa_le16": 51476,
+                "candidate_le16": 51479,
+                "usa_hex": "14c9",
+                "candidate_hex": "17c9"
+              },
+              {
+                "relative_offset": 37,
+                "usa_le16": 2432,
+                "candidate_le16": 3200,
+                "usa_hex": "8009",
+                "candidate_hex": "800c"
+              },
+              {
+                "relative_offset": 38,
+                "usa_le16": 14345,
+                "candidate_le16": 14348,
+                "usa_hex": "0938",
+                "candidate_hex": "0c38"
+              },
+              {
+                "relative_offset": 47,
+                "usa_le16": 39296,
+                "candidate_le16": 10624,
+                "usa_hex": "8099",
+                "candidate_hex": "8029"
+              },
+              {
+                "relative_offset": 48,
+                "usa_le16": 33689,
+                "candidate_le16": 65321,
+                "usa_hex": "9983",
+                "candidate_hex": "29ff"
+              },
+              {
+                "relative_offset": 50,
+                "usa_le16": 42514,
+                "candidate_le16": 2304,
+                "usa_hex": "12a6",
+                "candidate_hex": "0009"
+              },
+              {
+                "relative_offset": 53,
+                "usa_le16": 34536,
+                "candidate_le16": 34104,
+                "usa_hex": "e886",
+                "candidate_hex": "3885"
+              },
+              {
+                "relative_offset": 64,
+                "usa_le16": 43455,
+                "candidate_le16": 8297,
+                "usa_hex": "bfa9",
+                "candidate_hex": "6920"
+              },
+              {
+                "relative_offset": 67,
+                "usa_le16": 36096,
+                "candidate_le16": 5773,
+                "usa_hex": "008d",
+                "candidate_hex": "8d16"
+              },
+              {
+                "relative_offset": 78,
+                "usa_le16": 40345,
+                "candidate_le16": 42529,
+                "usa_hex": "999d",
+                "candidate_hex": "21a6"
+              }
+            ],
+            "sha256": "853655f8c20de9a9a03b21e7ad3f67b9f2ba657ce978b9e20922508b3aaf8252"
+          },
+          {
+            "file_offset": 49005,
+            "cpu_address": "81:BF6D",
+            "same_offset_as_usa": true,
+            "score": 0.122917,
+            "byte_similarity": 0.0125,
+            "semantic_reference_recall": 0.333333,
+            "ngram_vote_fraction": 0.0,
+            "ngram_votes": 0,
+            "semantic_hits": {
+              "0309": 1
+            },
+            "semantic_word_projection": {
+              "0309": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "A030": 1
+                },
+                "dominant_candidate": "A030",
+                "dominant_count": 1
+              },
+              "1283": {
+                "source_occurrences": 2,
+                "candidate_values": {
+                  "A9BF": 1,
+                  "C3AD": 1
+                },
+                "dominant_candidate": "A9BF",
+                "dominant_count": 1
+              },
+              "12A5": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "01A9": 1
+                },
+                "dominant_candidate": "01A9",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 0,
+                "relative_end_exclusive": 52,
+                "length": 52,
+                "usa_hex": "bf04ca1729ff00c92000d005a98000801fc92100d006af2382808014c92200d006af248280800938e96100aabffe8180998312a6",
+                "candidate_hex": "801fc92100d006af2382808014c92200d006af248280800938e96100aabffe8180998d12a600e88600ee0903c8c01000d0bfa900"
+              },
+              {
+                "relative_start": 53,
+                "relative_end_exclusive": 80,
+                "length": 27,
+                "usa_hex": "e88600ee0903c8c01000d0bfa900008da512e230a00fb98312999d",
+                "candidate_hex": "8daf12e230a00fb98d1299a70e8810f7a9018de70e801aadc311f0"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 0,
+                "usa_le16": 1215,
+                "candidate_le16": 8064,
+                "usa_hex": "bf04",
+                "candidate_hex": "801f"
+              },
+              {
+                "relative_offset": 50,
+                "usa_le16": 42514,
+                "candidate_le16": 169,
+                "usa_hex": "12a6",
+                "candidate_hex": "a900"
+              },
+              {
+                "relative_offset": 53,
+                "usa_le16": 34536,
+                "candidate_le16": 44941,
+                "usa_hex": "e886",
+                "candidate_hex": "8daf"
+              },
+              {
+                "relative_offset": 78,
+                "usa_le16": 40345,
+                "candidate_le16": 61457,
+                "usa_hex": "999d",
+                "candidate_hex": "11f0"
+              }
+            ],
+            "sha256": "2b92c609c449a7e8ebb9bfd04588ad0f292478b7356bb6211f989ab0a8806cb5"
+          }
+        ],
+        "legacy-beta": [
+          {
+            "file_offset": 49005,
+            "cpu_address": "81:BF6D",
+            "same_offset_as_usa": true,
+            "score": 1.0,
+            "byte_similarity": 1.0,
+            "semantic_reference_recall": 1.0,
+            "ngram_vote_fraction": 1.0,
+            "ngram_votes": 25,
+            "semantic_hits": {
+              "0309": 1,
+              "1283": 2,
+              "12A5": 1
+            },
+            "semantic_word_projection": {
+              "0309": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "0309": 1
+                },
+                "dominant_candidate": "0309",
+                "dominant_count": 1
+              },
+              "1283": {
+                "source_occurrences": 2,
+                "candidate_values": {
+                  "1283": 2
+                },
+                "dominant_candidate": "1283",
+                "dominant_count": 2
+              },
+              "12A5": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "12A5": 1
+                },
+                "dominant_candidate": "12A5",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [],
+            "changed_le16_pairs": [],
+            "sha256": "93b21a88513b1bfb10b16d7e5b0a8047235629abd51f75a850b41f4e37140ede"
+          },
+          {
+            "file_offset": 49144,
+            "cpu_address": "81:BFF8",
+            "same_offset_as_usa": false,
+            "score": 0.618417,
+            "byte_similarity": 0.7875,
+            "semantic_reference_recall": 0.333333,
+            "ngram_vote_fraction": 0.72,
+            "ngram_votes": 18,
+            "semantic_hits": {
+              "0309": 1,
+              "0E9D": 1
+            },
+            "semantic_word_projection": {
+              "0309": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "0309": 1
+                },
+                "dominant_candidate": "0309",
+                "dominant_count": 1
+              },
+              "1283": {
+                "source_occurrences": 2,
+                "candidate_values": {
+                  "0E9D": 1,
+                  "0C9F": 1
+                },
+                "dominant_candidate": "0E9D",
+                "dominant_count": 1
+              },
+              "12A5": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "F012": 1
+                },
+                "dominant_candidate": "F012",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 49,
+                "relative_end_exclusive": 51,
+                "length": 2,
+                "usa_hex": "8312",
+                "candidate_hex": "9d0e"
+              },
+              {
+                "relative_start": 65,
+                "relative_end_exclusive": 80,
+                "length": 15,
+                "usa_hex": "a900008da512e230a00fb98312999d",
+                "candidate_hex": "c230add912f008a978008d9f0c801b"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 48,
+                "usa_le16": 33689,
+                "candidate_le16": 40345,
+                "usa_hex": "9983",
+                "candidate_hex": "999d"
+              },
+              {
+                "relative_offset": 49,
+                "usa_le16": 4739,
+                "candidate_le16": 3741,
+                "usa_hex": "8312",
+                "candidate_hex": "9d0e"
+              },
+              {
+                "relative_offset": 50,
+                "usa_le16": 42514,
+                "candidate_le16": 42510,
+                "usa_hex": "12a6",
+                "candidate_hex": "0ea6"
+              },
+              {
+                "relative_offset": 64,
+                "usa_le16": 43455,
+                "candidate_le16": 49855,
+                "usa_hex": "bfa9",
+                "candidate_hex": "bfc2"
+              },
+              {
+                "relative_offset": 65,
+                "usa_le16": 169,
+                "candidate_le16": 12482,
+                "usa_hex": "a900",
+                "candidate_hex": "c230"
+              },
+              {
+                "relative_offset": 78,
+                "usa_le16": 40345,
+                "candidate_le16": 7040,
+                "usa_hex": "999d",
+                "candidate_hex": "801b"
+              }
+            ],
+            "sha256": "e29dc385358bc57bcb11350864be25c257b96c952a9e40d45031960ed1ca6738"
+          },
+          {
+            "file_offset": 49262,
+            "cpu_address": "81:C06E",
+            "same_offset_as_usa": false,
+            "score": 0.4275,
+            "byte_similarity": 0.675,
+            "semantic_reference_recall": 0.0,
+            "ngram_vote_fraction": 0.6,
+            "ngram_votes": 15,
+            "semantic_hits": {},
+            "semantic_word_projection": {
+              "0309": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "10C0": 1
+                },
+                "dominant_candidate": "10C0",
+                "dominant_count": 1
+              },
+              "1283": {
+                "source_occurrences": 2,
+                "candidate_values": {
+                  "0EBD": 1,
+                  "0078": 1
+                },
+                "dominant_candidate": "0EBD",
+                "dominant_count": 1
+              },
+              "12A5": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "AD30": 1
+                },
+                "dominant_candidate": "AD30",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 49,
+                "relative_end_exclusive": 51,
+                "length": 2,
+                "usa_hex": "8312",
+                "candidate_hex": "bd0e"
+              },
+              {
+                "relative_start": 56,
+                "relative_end_exclusive": 80,
+                "length": 24,
+                "usa_hex": "ee0903c8c01000d0bfa900008da512e230a00fb98312999d",
+                "candidate_hex": "c8c01000d0c2a901008ddf0ec230addb12f008a978008da1"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 48,
+                "usa_le16": 33689,
+                "candidate_le16": 48537,
+                "usa_hex": "9983",
+                "candidate_hex": "99bd"
+              },
+              {
+                "relative_offset": 49,
+                "usa_le16": 4739,
+                "candidate_le16": 3773,
+                "usa_hex": "8312",
+                "candidate_hex": "bd0e"
+              },
+              {
+                "relative_offset": 50,
+                "usa_le16": 42514,
+                "candidate_le16": 42510,
+                "usa_hex": "12a6",
+                "candidate_hex": "0ea6"
+              },
+              {
+                "relative_offset": 55,
+                "usa_le16": 60928,
+                "candidate_le16": 51200,
+                "usa_hex": "00ee",
+                "candidate_hex": "00c8"
+              },
+              {
+                "relative_offset": 56,
+                "usa_le16": 2542,
+                "candidate_le16": 49352,
+                "usa_hex": "ee09",
+                "candidate_hex": "c8c0"
+              },
+              {
+                "relative_offset": 78,
+                "usa_le16": 40345,
+                "candidate_le16": 41357,
+                "usa_hex": "999d",
+                "candidate_hex": "8da1"
+              }
+            ],
+            "sha256": "8fa66485d3d0e78f41b068f4a959656f676163fcad6f9b50fd6530b4d4e6cc55"
+          },
+          {
+            "file_offset": 49033,
+            "cpu_address": "81:BF89",
+            "same_offset_as_usa": false,
+            "score": 0.41225,
+            "byte_similarity": 0.1125,
+            "semantic_reference_recall": 1.0,
+            "ngram_vote_fraction": 0.04,
+            "ngram_votes": 1,
+            "semantic_hits": {
+              "0309": 1,
+              "1283": 3,
+              "12A5": 1,
+              "0E9D": 1,
+              "0EDD": 1
+            },
+            "semantic_word_projection": {
+              "0309": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "8D01": 1
+                },
+                "dominant_candidate": "8D01",
+                "dominant_count": 1
+              },
+              "1283": {
+                "source_occurrences": 2,
+                "candidate_values": {
+                  "9912": 1,
+                  "1283": 1
+                },
+                "dominant_candidate": "9912",
+                "dominant_count": 1
+              },
+              "12A5": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "11B9": 1
+                },
+                "dominant_candidate": "11B9",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 0,
+                "relative_end_exclusive": 14,
+                "length": 14,
+                "usa_hex": "bf04ca1729ff00c92000d005a980",
+                "candidate_hex": "c92200d006af248280800938e961"
+              },
+              {
+                "relative_start": 15,
+                "relative_end_exclusive": 71,
+                "length": 56,
+                "usa_hex": "801fc92100d006af2382808014c92200d006af248280800938e96100aabffe8180998312a600e88600ee0903c8c01000d0bfa900008da512",
+                "candidate_hex": "aabffe8180998312a600e88600ee0903c8c01000d0bfa900008da512e230a00fb98312999d0e8810f7a9018ddd0e801aadb911f0159cb911"
+              },
+              {
+                "relative_start": 79,
+                "relative_end_exclusive": 80,
+                "length": 1,
+                "usa_hex": "9d",
+                "candidate_hex": "bd"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 0,
+                "usa_le16": 1215,
+                "candidate_le16": 8905,
+                "usa_hex": "bf04",
+                "candidate_hex": "c922"
+              },
+              {
+                "relative_offset": 12,
+                "usa_le16": 32937,
+                "candidate_le16": 25065,
+                "usa_hex": "a980",
+                "candidate_hex": "e961"
+              },
+              {
+                "relative_offset": 15,
+                "usa_le16": 8064,
+                "candidate_le16": 49066,
+                "usa_hex": "801f",
+                "candidate_hex": "aabf"
+              },
+              {
+                "relative_offset": 69,
+                "usa_le16": 4773,
+                "candidate_le16": 4537,
+                "usa_hex": "a512",
+                "candidate_hex": "b911"
+              },
+              {
+                "relative_offset": 70,
+                "usa_le16": 57874,
+                "candidate_le16": 57873,
+                "usa_hex": "12e2",
+                "candidate_hex": "11e2"
+              },
+              {
+                "relative_offset": 78,
+                "usa_le16": 40345,
+                "candidate_le16": 48537,
+                "usa_hex": "999d",
+                "candidate_hex": "99bd"
+              }
+            ],
+            "sha256": "39a765a104b4241bfd6fc60e2d3a4cf1fee2d4257f45632b81055351c689a269"
+          },
+          {
+            "file_offset": 128757,
+            "cpu_address": "83:F6F5",
+            "same_offset_as_usa": false,
+            "score": 0.317,
+            "byte_similarity": 0.55,
+            "semantic_reference_recall": 0.0,
+            "ngram_vote_fraction": 0.28,
+            "ngram_votes": 7,
+            "semantic_hits": {},
+            "semantic_word_projection": {
+              "0309": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "2116": 1
+                },
+                "dominant_candidate": "2116",
+                "dominant_count": 1
+              },
+              "1283": {
+                "source_occurrences": 2,
+                "candidate_values": {
+                  "00FF": 1,
+                  "188D": 1
+                },
+                "dominant_candidate": "00FF",
+                "dominant_count": 1
+              },
+              "12A5": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "A521": 1
+                },
+                "dominant_candidate": "A521",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 1,
+                "relative_end_exclusive": 4,
+                "length": 3,
+                "usa_hex": "04ca17",
+                "candidate_hex": "daf483"
+              },
+              {
+                "relative_start": 16,
+                "relative_end_exclusive": 17,
+                "length": 1,
+                "usa_hex": "1f",
+                "candidate_hex": "22"
+              },
+              {
+                "relative_start": 27,
+                "relative_end_exclusive": 28,
+                "length": 1,
+                "usa_hex": "14",
+                "candidate_hex": "17"
+              },
+              {
+                "relative_start": 38,
+                "relative_end_exclusive": 39,
+                "length": 1,
+                "usa_hex": "09",
+                "candidate_hex": "0c"
+              },
+              {
+                "relative_start": 48,
+                "relative_end_exclusive": 52,
+                "length": 4,
+                "usa_hex": "998312a6",
+                "candidate_hex": "29ff0009"
+              },
+              {
+                "relative_start": 53,
+                "relative_end_exclusive": 66,
+                "length": 13,
+                "usa_hex": "e88600ee0903c8c01000d0bfa9",
+                "candidate_hex": "3885028c16218d182198186920"
+              },
+              {
+                "relative_start": 67,
+                "relative_end_exclusive": 80,
+                "length": 13,
+                "usa_hex": "008da512e230a00fb98312999d",
+                "candidate_hex": "8d1621a502186910008d1821a6"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 0,
+                "usa_le16": 1215,
+                "candidate_le16": 55999,
+                "usa_hex": "bf04",
+                "candidate_hex": "bfda"
+              },
+              {
+                "relative_offset": 1,
+                "usa_le16": 51716,
+                "candidate_le16": 62682,
+                "usa_hex": "04ca",
+                "candidate_hex": "daf4"
+              },
+              {
+                "relative_offset": 2,
+                "usa_le16": 6090,
+                "candidate_le16": 33780,
+                "usa_hex": "ca17",
+                "candidate_hex": "f483"
+              },
+              {
+                "relative_offset": 3,
+                "usa_le16": 10519,
+                "candidate_le16": 10627,
+                "usa_hex": "1729",
+                "candidate_hex": "8329"
+              },
+              {
+                "relative_offset": 15,
+                "usa_le16": 8064,
+                "candidate_le16": 8832,
+                "usa_hex": "801f",
+                "candidate_hex": "8022"
+              },
+              {
+                "relative_offset": 16,
+                "usa_le16": 51487,
+                "candidate_le16": 51490,
+                "usa_hex": "1fc9",
+                "candidate_hex": "22c9"
+              },
+              {
+                "relative_offset": 26,
+                "usa_le16": 5248,
+                "candidate_le16": 6016,
+                "usa_hex": "8014",
+                "candidate_hex": "8017"
+              },
+              {
+                "relative_offset": 27,
+                "usa_le16": 51476,
+                "candidate_le16": 51479,
+                "usa_hex": "14c9",
+                "candidate_hex": "17c9"
+              },
+              {
+                "relative_offset": 37,
+                "usa_le16": 2432,
+                "candidate_le16": 3200,
+                "usa_hex": "8009",
+                "candidate_hex": "800c"
+              },
+              {
+                "relative_offset": 38,
+                "usa_le16": 14345,
+                "candidate_le16": 14348,
+                "usa_hex": "0938",
+                "candidate_hex": "0c38"
+              },
+              {
+                "relative_offset": 47,
+                "usa_le16": 39296,
+                "candidate_le16": 10624,
+                "usa_hex": "8099",
+                "candidate_hex": "8029"
+              },
+              {
+                "relative_offset": 48,
+                "usa_le16": 33689,
+                "candidate_le16": 65321,
+                "usa_hex": "9983",
+                "candidate_hex": "29ff"
+              },
+              {
+                "relative_offset": 50,
+                "usa_le16": 42514,
+                "candidate_le16": 2304,
+                "usa_hex": "12a6",
+                "candidate_hex": "0009"
+              },
+              {
+                "relative_offset": 53,
+                "usa_le16": 34536,
+                "candidate_le16": 34104,
+                "usa_hex": "e886",
+                "candidate_hex": "3885"
+              },
+              {
+                "relative_offset": 64,
+                "usa_le16": 43455,
+                "candidate_le16": 8297,
+                "usa_hex": "bfa9",
+                "candidate_hex": "6920"
+              },
+              {
+                "relative_offset": 67,
+                "usa_le16": 36096,
+                "candidate_le16": 5773,
+                "usa_hex": "008d",
+                "candidate_hex": "8d16"
+              },
+              {
+                "relative_offset": 78,
+                "usa_le16": 40345,
+                "candidate_le16": 42529,
+                "usa_hex": "999d",
+                "candidate_hex": "21a6"
+              }
+            ],
+            "sha256": "bd50e07e7a9f9260cb3746aae9bfab6a752bd1e9be11425bde43661651c3e8b6"
+          }
+        ],
+        "pal-prototype-1994-11-29": [
+          {
+            "file_offset": 48973,
+            "cpu_address": "81:BF4D",
+            "same_offset_as_usa": false,
+            "score": 0.741667,
+            "byte_similarity": 0.95,
+            "semantic_reference_recall": 0.333333,
+            "ngram_vote_fraction": 1.0,
+            "ngram_votes": 20,
+            "semantic_hits": {
+              "0309": 1
+            },
+            "semantic_word_projection": {
+              "0309": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "0309": 1
+                },
+                "dominant_candidate": "0309",
+                "dominant_count": 1
+              },
+              "1283": {
+                "source_occurrences": 2,
+                "candidate_values": {
+                  "1287": 2
+                },
+                "dominant_candidate": "1287",
+                "dominant_count": 2
+              },
+              "12A5": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "12A9": 1
+                },
+                "dominant_candidate": "12A9",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 49,
+                "relative_end_exclusive": 50,
+                "length": 1,
+                "usa_hex": "83",
+                "candidate_hex": "87"
+              },
+              {
+                "relative_start": 69,
+                "relative_end_exclusive": 70,
+                "length": 1,
+                "usa_hex": "a5",
+                "candidate_hex": "a9"
+              },
+              {
+                "relative_start": 76,
+                "relative_end_exclusive": 77,
+                "length": 1,
+                "usa_hex": "83",
+                "candidate_hex": "87"
+              },
+              {
+                "relative_start": 79,
+                "relative_end_exclusive": 80,
+                "length": 1,
+                "usa_hex": "9d",
+                "candidate_hex": "a1"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 48,
+                "usa_le16": 33689,
+                "candidate_le16": 34713,
+                "usa_hex": "9983",
+                "candidate_hex": "9987"
+              },
+              {
+                "relative_offset": 49,
+                "usa_le16": 4739,
+                "candidate_le16": 4743,
+                "usa_hex": "8312",
+                "candidate_hex": "8712"
+              },
+              {
+                "relative_offset": 68,
+                "usa_le16": 42381,
+                "candidate_le16": 43405,
+                "usa_hex": "8da5",
+                "candidate_hex": "8da9"
+              },
+              {
+                "relative_offset": 69,
+                "usa_le16": 4773,
+                "candidate_le16": 4777,
+                "usa_hex": "a512",
+                "candidate_hex": "a912"
+              },
+              {
+                "relative_offset": 75,
+                "usa_le16": 33721,
+                "candidate_le16": 34745,
+                "usa_hex": "b983",
+                "candidate_hex": "b987"
+              },
+              {
+                "relative_offset": 76,
+                "usa_le16": 4739,
+                "candidate_le16": 4743,
+                "usa_hex": "8312",
+                "candidate_hex": "8712"
+              },
+              {
+                "relative_offset": 78,
+                "usa_le16": 40345,
+                "candidate_le16": 41369,
+                "usa_hex": "999d",
+                "candidate_hex": "99a1"
+              }
+            ],
+            "sha256": "1c1d5faa5834c9d35914652c0c75be097a626c03bb9a4bd9fad01ed6269bfa68"
+          },
+          {
+            "file_offset": 49112,
+            "cpu_address": "81:BFD8",
+            "same_offset_as_usa": false,
+            "score": 0.645417,
+            "byte_similarity": 0.7875,
+            "semantic_reference_recall": 0.333333,
+            "ngram_vote_fraction": 0.9,
+            "ngram_votes": 18,
+            "semantic_hits": {
+              "0309": 1
+            },
+            "semantic_word_projection": {
+              "0309": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "0309": 1
+                },
+                "dominant_candidate": "0309",
+                "dominant_count": 1
+              },
+              "1283": {
+                "source_occurrences": 2,
+                "candidate_values": {
+                  "0EA1": 1,
+                  "0C9F": 1
+                },
+                "dominant_candidate": "0EA1",
+                "dominant_count": 1
+              },
+              "12A5": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "F012": 1
+                },
+                "dominant_candidate": "F012",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 49,
+                "relative_end_exclusive": 51,
+                "length": 2,
+                "usa_hex": "8312",
+                "candidate_hex": "a10e"
+              },
+              {
+                "relative_start": 65,
+                "relative_end_exclusive": 80,
+                "length": 15,
+                "usa_hex": "a900008da512e230a00fb98312999d",
+                "candidate_hex": "c230addd12f008a978008d9f0c801b"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 48,
+                "usa_le16": 33689,
+                "candidate_le16": 41369,
+                "usa_hex": "9983",
+                "candidate_hex": "99a1"
+              },
+              {
+                "relative_offset": 49,
+                "usa_le16": 4739,
+                "candidate_le16": 3745,
+                "usa_hex": "8312",
+                "candidate_hex": "a10e"
+              },
+              {
+                "relative_offset": 50,
+                "usa_le16": 42514,
+                "candidate_le16": 42510,
+                "usa_hex": "12a6",
+                "candidate_hex": "0ea6"
+              },
+              {
+                "relative_offset": 64,
+                "usa_le16": 43455,
+                "candidate_le16": 49855,
+                "usa_hex": "bfa9",
+                "candidate_hex": "bfc2"
+              },
+              {
+                "relative_offset": 65,
+                "usa_le16": 169,
+                "candidate_le16": 12482,
+                "usa_hex": "a900",
+                "candidate_hex": "c230"
+              },
+              {
+                "relative_offset": 78,
+                "usa_le16": 40345,
+                "candidate_le16": 7040,
+                "usa_hex": "999d",
+                "candidate_hex": "801b"
+              }
+            ],
+            "sha256": "dbd9af13fff8c006cd0f818c7f1d03da08789e3eea4d648f182000f50951e818"
+          },
+          {
+            "file_offset": 49230,
+            "cpu_address": "81:C04E",
+            "same_offset_as_usa": false,
+            "score": 0.45,
+            "byte_similarity": 0.675,
+            "semantic_reference_recall": 0.0,
+            "ngram_vote_fraction": 0.75,
+            "ngram_votes": 15,
+            "semantic_hits": {},
+            "semantic_word_projection": {
+              "0309": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "10C0": 1
+                },
+                "dominant_candidate": "10C0",
+                "dominant_count": 1
+              },
+              "1283": {
+                "source_occurrences": 2,
+                "candidate_values": {
+                  "0EC1": 1,
+                  "0078": 1
+                },
+                "dominant_candidate": "0EC1",
+                "dominant_count": 1
+              },
+              "12A5": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "AD30": 1
+                },
+                "dominant_candidate": "AD30",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 49,
+                "relative_end_exclusive": 51,
+                "length": 2,
+                "usa_hex": "8312",
+                "candidate_hex": "c10e"
+              },
+              {
+                "relative_start": 56,
+                "relative_end_exclusive": 80,
+                "length": 24,
+                "usa_hex": "ee0903c8c01000d0bfa900008da512e230a00fb98312999d",
+                "candidate_hex": "c8c01000d0c2a901008de30ec230addf12f008a978008da1"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 48,
+                "usa_le16": 33689,
+                "candidate_le16": 49561,
+                "usa_hex": "9983",
+                "candidate_hex": "99c1"
+              },
+              {
+                "relative_offset": 49,
+                "usa_le16": 4739,
+                "candidate_le16": 3777,
+                "usa_hex": "8312",
+                "candidate_hex": "c10e"
+              },
+              {
+                "relative_offset": 50,
+                "usa_le16": 42514,
+                "candidate_le16": 42510,
+                "usa_hex": "12a6",
+                "candidate_hex": "0ea6"
+              },
+              {
+                "relative_offset": 55,
+                "usa_le16": 60928,
+                "candidate_le16": 51200,
+                "usa_hex": "00ee",
+                "candidate_hex": "00c8"
+              },
+              {
+                "relative_offset": 56,
+                "usa_le16": 2542,
+                "candidate_le16": 49352,
+                "usa_hex": "ee09",
+                "candidate_hex": "c8c0"
+              },
+              {
+                "relative_offset": 78,
+                "usa_le16": 40345,
+                "candidate_le16": 41357,
+                "usa_hex": "999d",
+                "candidate_hex": "8da1"
+              }
+            ],
+            "sha256": "4886046b60ccdfc7fb318723b2a7a53ee30ba776930661caac3b975c58a618fe"
+          },
+          {
+            "file_offset": 128781,
+            "cpu_address": "83:F70D",
+            "same_offset_as_usa": false,
+            "score": 0.3275,
+            "byte_similarity": 0.55,
+            "semantic_reference_recall": 0.0,
+            "ngram_vote_fraction": 0.35,
+            "ngram_votes": 7,
+            "semantic_hits": {},
+            "semantic_word_projection": {
+              "0309": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "2116": 1
+                },
+                "dominant_candidate": "2116",
+                "dominant_count": 1
+              },
+              "1283": {
+                "source_occurrences": 2,
+                "candidate_values": {
+                  "00FF": 1,
+                  "188D": 1
+                },
+                "dominant_candidate": "00FF",
+                "dominant_count": 1
+              },
+              "12A5": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "A521": 1
+                },
+                "dominant_candidate": "A521",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 1,
+                "relative_end_exclusive": 4,
+                "length": 3,
+                "usa_hex": "04ca17",
+                "candidate_hex": "f2f483"
+              },
+              {
+                "relative_start": 16,
+                "relative_end_exclusive": 17,
+                "length": 1,
+                "usa_hex": "1f",
+                "candidate_hex": "22"
+              },
+              {
+                "relative_start": 27,
+                "relative_end_exclusive": 28,
+                "length": 1,
+                "usa_hex": "14",
+                "candidate_hex": "17"
+              },
+              {
+                "relative_start": 38,
+                "relative_end_exclusive": 39,
+                "length": 1,
+                "usa_hex": "09",
+                "candidate_hex": "0c"
+              },
+              {
+                "relative_start": 48,
+                "relative_end_exclusive": 52,
+                "length": 4,
+                "usa_hex": "998312a6",
+                "candidate_hex": "29ff0009"
+              },
+              {
+                "relative_start": 53,
+                "relative_end_exclusive": 66,
+                "length": 13,
+                "usa_hex": "e88600ee0903c8c01000d0bfa9",
+                "candidate_hex": "3885028c16218d182198186920"
+              },
+              {
+                "relative_start": 67,
+                "relative_end_exclusive": 80,
+                "length": 13,
+                "usa_hex": "008da512e230a00fb98312999d",
+                "candidate_hex": "8d1621a502186910008d1821a6"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 0,
+                "usa_le16": 1215,
+                "candidate_le16": 62143,
+                "usa_hex": "bf04",
+                "candidate_hex": "bff2"
+              },
+              {
+                "relative_offset": 1,
+                "usa_le16": 51716,
+                "candidate_le16": 62706,
+                "usa_hex": "04ca",
+                "candidate_hex": "f2f4"
+              },
+              {
+                "relative_offset": 2,
+                "usa_le16": 6090,
+                "candidate_le16": 33780,
+                "usa_hex": "ca17",
+                "candidate_hex": "f483"
+              },
+              {
+                "relative_offset": 3,
+                "usa_le16": 10519,
+                "candidate_le16": 10627,
+                "usa_hex": "1729",
+                "candidate_hex": "8329"
+              },
+              {
+                "relative_offset": 15,
+                "usa_le16": 8064,
+                "candidate_le16": 8832,
+                "usa_hex": "801f",
+                "candidate_hex": "8022"
+              },
+              {
+                "relative_offset": 16,
+                "usa_le16": 51487,
+                "candidate_le16": 51490,
+                "usa_hex": "1fc9",
+                "candidate_hex": "22c9"
+              },
+              {
+                "relative_offset": 26,
+                "usa_le16": 5248,
+                "candidate_le16": 6016,
+                "usa_hex": "8014",
+                "candidate_hex": "8017"
+              },
+              {
+                "relative_offset": 27,
+                "usa_le16": 51476,
+                "candidate_le16": 51479,
+                "usa_hex": "14c9",
+                "candidate_hex": "17c9"
+              },
+              {
+                "relative_offset": 37,
+                "usa_le16": 2432,
+                "candidate_le16": 3200,
+                "usa_hex": "8009",
+                "candidate_hex": "800c"
+              },
+              {
+                "relative_offset": 38,
+                "usa_le16": 14345,
+                "candidate_le16": 14348,
+                "usa_hex": "0938",
+                "candidate_hex": "0c38"
+              },
+              {
+                "relative_offset": 47,
+                "usa_le16": 39296,
+                "candidate_le16": 10624,
+                "usa_hex": "8099",
+                "candidate_hex": "8029"
+              },
+              {
+                "relative_offset": 48,
+                "usa_le16": 33689,
+                "candidate_le16": 65321,
+                "usa_hex": "9983",
+                "candidate_hex": "29ff"
+              },
+              {
+                "relative_offset": 50,
+                "usa_le16": 42514,
+                "candidate_le16": 2304,
+                "usa_hex": "12a6",
+                "candidate_hex": "0009"
+              },
+              {
+                "relative_offset": 53,
+                "usa_le16": 34536,
+                "candidate_le16": 34104,
+                "usa_hex": "e886",
+                "candidate_hex": "3885"
+              },
+              {
+                "relative_offset": 64,
+                "usa_le16": 43455,
+                "candidate_le16": 8297,
+                "usa_hex": "bfa9",
+                "candidate_hex": "6920"
+              },
+              {
+                "relative_offset": 67,
+                "usa_le16": 36096,
+                "candidate_le16": 5773,
+                "usa_hex": "008d",
+                "candidate_hex": "8d16"
+              },
+              {
+                "relative_offset": 78,
+                "usa_le16": 40345,
+                "candidate_le16": 42529,
+                "usa_hex": "999d",
+                "candidate_hex": "21a6"
+              }
+            ],
+            "sha256": "4fd6708dc60f7155f98ecfd2879022881b5a3e79d94a5618739ddaf89fb0f2a9"
+          },
+          {
+            "file_offset": 49005,
+            "cpu_address": "81:BF6D",
+            "same_offset_as_usa": true,
+            "score": 0.135417,
+            "byte_similarity": 0.0375,
+            "semantic_reference_recall": 0.333333,
+            "ngram_vote_fraction": 0.0,
+            "ngram_votes": 0,
+            "semantic_hits": {
+              "0309": 1
+            },
+            "semantic_word_projection": {
+              "0309": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "1A80": 1
+                },
+                "dominant_candidate": "1A80",
+                "dominant_count": 1
+              },
+              "1283": {
+                "source_occurrences": 2,
+                "candidate_values": {
+                  "1088": 1,
+                  "880E": 1
+                },
+                "dominant_candidate": "1088",
+                "dominant_count": 1
+              },
+              "12A5": {
+                "source_occurrences": 1,
+                "candidate_values": {
+                  "0FA0": 1
+                },
+                "dominant_candidate": "0FA0",
+                "dominant_count": 1
+              }
+            },
+            "diff_runs": [
+              {
+                "relative_start": 0,
+                "relative_end_exclusive": 15,
+                "length": 15,
+                "usa_hex": "bf04ca1729ff00c92000d005a98000",
+                "candidate_hex": "06af248280800938e96100aabffe81"
+              },
+              {
+                "relative_start": 16,
+                "relative_end_exclusive": 30,
+                "length": 14,
+                "usa_hex": "1fc92100d006af2382808014c922",
+                "candidate_hex": "998712a600e88600ee0903c8c010"
+              },
+              {
+                "relative_start": 32,
+                "relative_end_exclusive": 80,
+                "length": 48,
+                "usa_hex": "06af248280800938e96100aabffe8180998312a600e88600ee0903c8c01000d0bfa900008da512e230a00fb98312999d",
+                "candidate_hex": "bfa900008da912e230a00fb9871299a10e8810f7a9018de10e801aadbd11f0159cbd11e230a00fb9871299c10e8810f7"
+              }
+            ],
+            "changed_le16_pairs": [
+              {
+                "relative_offset": 0,
+                "usa_le16": 1215,
+                "candidate_le16": 44806,
+                "usa_hex": "bf04",
+                "candidate_hex": "06af"
+              },
+              {
+                "relative_offset": 13,
+                "usa_le16": 128,
+                "candidate_le16": 33278,
+                "usa_hex": "8000",
+                "candidate_hex": "fe81"
+              },
+              {
+                "relative_offset": 16,
+                "usa_le16": 51487,
+                "candidate_le16": 34713,
+                "usa_hex": "1fc9",
+                "candidate_hex": "9987"
+              },
+              {
+                "relative_offset": 28,
+                "usa_le16": 8905,
+                "candidate_le16": 4288,
+                "usa_hex": "c922",
+                "candidate_hex": "c010"
+              },
+              {
+                "relative_offset": 29,
+                "usa_le16": 34,
+                "candidate_le16": 16,
+                "usa_hex": "2200",
+                "candidate_hex": "1000"
+              },
+              {
+                "relative_offset": 31,
+                "usa_le16": 1744,
+                "candidate_le16": 49104,
+                "usa_hex": "d006",
+                "candidate_hex": "d0bf"
+              },
+              {
+                "relative_offset": 32,
+                "usa_le16": 44806,
+                "candidate_le16": 43455,
+                "usa_hex": "06af",
+                "candidate_hex": "bfa9"
+              },
+              {
+                "relative_offset": 78,
+                "usa_le16": 40345,
+                "candidate_le16": 63248,
+                "usa_hex": "999d",
+                "candidate_hex": "10f7"
+              }
+            ],
+            "sha256": "233c3dce0be682a2c9841e6e37355fb0762a78bca64147232b907fb9e7080eb5"
+          }
+        ]
+      }
+    },
+    {
       "name": "State0306_DmaGate",
       "usa_cpu_address": "82:B8AB",
       "usa_file_offset": 80043,
@@ -74848,6 +76716,9 @@
         "C6F8->C709": 1,
         "0F41->0F4B": 1,
         "0541->0547": 1,
+        "0309->0309": 1,
+        "1283->128D": 2,
+        "12A5->12AF": 1,
         "0306->0306": 2,
         "12D5->12DF": 1,
         "0325->0329": 5,
@@ -74864,10 +76735,10 @@
         "0311->0315": 3
       },
       "delta_counts": {
-        "0000": 60,
+        "0000": 61,
         "0004": 126,
         "0006": 38,
-        "000A": 106,
+        "000A": 109,
         "0011": 1
       },
       "evidence": [
@@ -75844,6 +77715,33 @@
           "byte_similarity": 0.897059
         },
         {
+          "anchor": "State0309_TextLoopCounter",
+          "usa_word": "0309",
+          "candidate_word": "0309",
+          "delta": "0000",
+          "count": 1,
+          "candidate_cpu": "81:BF5E",
+          "byte_similarity": 0.95
+        },
+        {
+          "anchor": "State0309_TextLoopCounter",
+          "usa_word": "1283",
+          "candidate_word": "128D",
+          "delta": "000A",
+          "count": 2,
+          "candidate_cpu": "81:BF5E",
+          "byte_similarity": 0.95
+        },
+        {
+          "anchor": "State0309_TextLoopCounter",
+          "usa_word": "12A5",
+          "candidate_word": "12AF",
+          "delta": "000A",
+          "count": 1,
+          "candidate_cpu": "81:BF5E",
+          "byte_similarity": 0.95
+        },
+        {
           "anchor": "State0306_DmaGate",
           "usa_word": "0306",
           "candidate_word": "0306",
@@ -76094,6 +77992,9 @@
         "C6F8->C6F8": 1,
         "0F41->0F41": 1,
         "0541->0541": 1,
+        "0309->0309": 1,
+        "1283->1283": 2,
+        "12A5->12A5": 1,
         "0306->0306": 2,
         "12D5->12D5": 1,
         "0325->0325": 5,
@@ -76110,7 +78011,7 @@
         "0311->0311": 3
       },
       "delta_counts": {
-        "0000": 369
+        "0000": 373
       },
       "evidence": [
         {
@@ -77140,6 +79041,33 @@
           "byte_similarity": 1.0
         },
         {
+          "anchor": "State0309_TextLoopCounter",
+          "usa_word": "0309",
+          "candidate_word": "0309",
+          "delta": "0000",
+          "count": 1,
+          "candidate_cpu": "81:BF6D",
+          "byte_similarity": 1.0
+        },
+        {
+          "anchor": "State0309_TextLoopCounter",
+          "usa_word": "1283",
+          "candidate_word": "1283",
+          "delta": "0000",
+          "count": 2,
+          "candidate_cpu": "81:BF6D",
+          "byte_similarity": 1.0
+        },
+        {
+          "anchor": "State0309_TextLoopCounter",
+          "usa_word": "12A5",
+          "candidate_word": "12A5",
+          "delta": "0000",
+          "count": 1,
+          "candidate_cpu": "81:BF6D",
+          "byte_similarity": 1.0
+        },
+        {
           "anchor": "State0306_DmaGate",
           "usa_word": "0306",
           "candidate_word": "0306",
@@ -77390,6 +79318,9 @@
         "C6F8->C6F6": 1,
         "0F41->0F45": 1,
         "0541->0541": 1,
+        "0309->0309": 1,
+        "1283->1287": 2,
+        "12A5->12A9": 1,
         "0306->0306": 2,
         "12D5->12D9": 1,
         "0325->0325": 5,
@@ -77406,8 +79337,8 @@
         "0311->0311": 3
       },
       "delta_counts": {
-        "0000": 234,
-        "0004": 115,
+        "0000": 235,
+        "0004": 118,
         "FFFE": 1
       },
       "evidence": [
@@ -78436,6 +80367,33 @@
           "count": 4,
           "candidate_cpu": "82:A959",
           "byte_similarity": 0.911765
+        },
+        {
+          "anchor": "State0309_TextLoopCounter",
+          "usa_word": "0309",
+          "candidate_word": "0309",
+          "delta": "0000",
+          "count": 1,
+          "candidate_cpu": "81:BF4D",
+          "byte_similarity": 0.95
+        },
+        {
+          "anchor": "State0309_TextLoopCounter",
+          "usa_word": "1283",
+          "candidate_word": "1287",
+          "delta": "0004",
+          "count": 2,
+          "candidate_cpu": "81:BF4D",
+          "byte_similarity": 0.95
+        },
+        {
+          "anchor": "State0309_TextLoopCounter",
+          "usa_word": "12A5",
+          "candidate_word": "12A9",
+          "delta": "0004",
+          "count": 1,
+          "candidate_cpu": "81:BF4D",
+          "byte_similarity": 0.95
         },
         {
           "anchor": "State0306_DmaGate",

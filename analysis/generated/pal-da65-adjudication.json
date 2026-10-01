@@ -148,9 +148,14 @@
         "pal-prototype-1994-11-29": {
           "instruction_lines": 133,
           "normalized": [
-            "sta ($80),y ; 91D1 91 80 ..",
-            "ldx #$FE ; 91D3 A2 FE ..",
-            "ora ($9A,x) ; 91D5 01 9A ..",
+            "clc ; 91C8 18 .",
+            "xce ; 91C9 FB .",
+            "sep #$20 ; 91CA E2 20 .",
+            "rep #$10 ; 91CC C2 10 ..",
+            "sei ; 91CE 78 x",
+            "jml L8091D3 ; 91CF 5C D3 91 80 \\...",
+            "ldx #$01FE ; 91D3 A2 FE ..",
+            "txs ; 91D6 9A .",
             "pea $00 ; 91D7 F4 00 00 ...",
             "pld ; 91DA 2B +",
             "lda #$80 ; 91DB A9 80 ..",
@@ -262,31 +267,28 @@
             "jmp L8856 ; 9308 4C 56 88 LV.",
             "jsr L930F ; 930B 20 0F 93 ..",
             "rtl ; 930E 6B k",
+            "rep #$20 ; 930F C2 20 .",
             "stz $2102 ; 9311 9C 02 21 ..!",
-            "lda #$00 ; 9314 A9 00 ..",
-            "asl a ; 9316 0A .",
+            "lda #$0A00 ; 9314 A9 00 ..",
             "sta $4312 ; 9317 8D 12 43 ..C",
             "lda #$0220 ; 931A A9 20 .",
             "sta $4315 ; 931D 8D 15 43 ..C",
             "lda #$0400 ; 9320 A9 00 ..",
             "sta $4310 ; 9323 8D 10 43 ..C",
             "sep #$20 ; 9326 E2 20 .",
-            "lda #$8D00 ; 9328 A9 00 ..",
-            "trb $43 ; 932B 14 43 .C",
-            "lda #$8D02 ; 932D A9 02 ..",
-            "phd ; 9330 0B .",
-            "wdm ; 9331 42 60 B`",
-            "php ; 9333 08 .",
-            "sep #$20 ; 9334 E2 20 .",
-            "pha ; 9336 48 H",
-            "lda a:$00,x ; 9337 BD 00 00 ...",
-            "cmp #$FF ; 933A C9 FF .."
+            "lda #$00 ; 9328 A9 00 ..",
+            "sta $4314 ; 932A 8D 14 43 ..C",
+            "lda #$02 ; 932D A9 02 ..",
+            "sta $420B ; 932F 8D 0B 42 ..B",
+            "rts ; 9332 60 `"
           ]
         }
       },
-      "end": "00:933B",
       "exact_normalized_match": false,
       "id": "reset-init",
+      "prototype_end": "00:9332",
+      "prototype_shift": -9,
+      "prototype_start": "00:91C8",
       "ranges": [
         {
           "addrmode": "MX",
@@ -313,8 +315,10 @@
           "start": "00:932F"
         }
       ],
-      "same_instruction_count": true,
-      "start": "00:91D1"
+      "raw_alignment_similarity": 0.988981,
+      "retail_end": "00:933B",
+      "retail_start": "00:91D1",
+      "same_instruction_count": true
     },
     {
       "aligned_prefix_lines": 0,
@@ -351,12 +355,18 @@
           ]
         },
         "pal-prototype-1994-11-29": {
-          "instruction_lines": 25,
+          "instruction_lines": 24,
           "normalized": [
-            "LA06A: .byte $8C ; A06A 8C .",
-            "brk ; A0DA 00 .",
-            "bra LA06A ; A0DB 80 8D ..",
-            "sta $01,s ; A0DD 83 01 ..",
+            "lda #$2205 ; A0C2 A9 05 ..",
+            "adc L82B1 ; A0C5 6D B1 82 m..",
+            "ldx #$7000 ; A0C8 A2 00 ..",
+            "lda #$2258 ; A0CB A9 58 .X",
+            "cmp $B1 ; A0CE C5 B1 ..",
+            "brl LD195 ; A0D0 82 C2 30 ..0",
+            "lda #$003E ; A0D3 A9 3E .>",
+            "sta $0181 ; A0D6 8D 81 01 ...",
+            "lda #$8000 ; A0D9 A9 00 ..",
+            "sta $0183 ; A0DC 8D 83 01 ...",
             "rep #$10 ; A0DF C2 10 ..",
             "ldx #$0032 ; A0E1 A2 32 .2",
             "jsl L82807E ; A0E4 22 7E 80 82 \"~..",
@@ -370,20 +380,15 @@
             "jsl L8282A5 ; A0FD 22 A5 82 82 \"...",
             "lda #$0102 ; A101 A9 02 ..",
             "jsl L828000 ; A104 22 00 80 82 \"...",
-            "lda #$08FF ; A108 A9 FF ..",
-            "jsl L828000 ; A10B 22 00 80 82 \"...",
-            "lda #$077F ; A10F A9 7F ..",
-            "jsl L828000 ; A112 22 00 80 82 \"...",
-            "sep #$20 ; A116 E2 20 .",
-            "lda #$8D02 ; A118 A9 02 ..",
-            "ora [$21] ; A11B 07 21 .!",
-            "lda #$8D13 ; A11D A9 13 .."
+            "LD195: .byte $6D ; D195 6D m"
           ]
         }
       },
-      "end": "00:A11E",
       "exact_normalized_match": false,
       "id": "ppu-init-16bit",
+      "prototype_end": "00:A106",
+      "prototype_shift": -24,
+      "prototype_start": "00:A0C2",
       "ranges": [
         {
           "addrmode": "mx",
@@ -392,8 +397,10 @@
           "start": "00:A0DA"
         }
       ],
-      "same_instruction_count": false,
-      "start": "00:A0DA"
+      "raw_alignment_similarity": 0.956522,
+      "retail_end": "00:A11E",
+      "retail_start": "00:A0DA",
+      "same_instruction_count": false
     },
     {
       "aligned_prefix_lines": 0,
@@ -415,21 +422,23 @@
         "pal-prototype-1994-11-29": {
           "instruction_lines": 9,
           "normalized": [
-            "cmp ($6B),y ; D1D7 D1 6B .k",
-            "jsr L930F ; D1D9 20 0F 93 ..",
-            "ldx $4218 ; D1DC AE 18 42 ..B",
-            "stx $72 ; D1DF 86 72 .r",
-            "ldx $421A ; D1E1 AE 1A 42 ..B",
-            "stx $74 ; D1E4 86 74 .t",
-            "rts ; D1E6 60 `",
-            "php ; D1E7 08 .",
-            "sep #$20 ; D1E8 E2 20 ."
+            "sbc ($C0),y ; D1C4 F1 C0 ..",
+            "brk ; D1C6 00 .",
+            "sbc $1707FE,x ; D1C7 FF FE 07 17 ....",
+            "sed ; D1CB F8 .",
+            "rep #$00 ; D1CC C2 00 ..",
+            "inc $1711,x ; D1CE FE 11 17 ...",
+            "sbc ($C4),y ; D1D1 F1 C4 ..",
+            "brk ; D1D3 00 .",
+            "sbc $D1D920,x ; D1D4 FF 20 D9 D1 . .."
           ]
         }
       },
-      "end": "00:D1E8",
       "exact_normalized_match": false,
       "id": "joypad-helper",
+      "prototype_end": "00:D1D5",
+      "prototype_shift": -19,
+      "prototype_start": "00:D1C4",
       "ranges": [
         {
           "addrmode": "Mx",
@@ -438,8 +447,10 @@
           "start": "00:D1D7"
         }
       ],
-      "same_instruction_count": true,
-      "start": "00:D1D7"
+      "raw_alignment_similarity": 1.0,
+      "retail_end": "00:D1E8",
+      "retail_start": "00:D1D7",
+      "same_instruction_count": true
     }
   ],
   "schema_version": 1

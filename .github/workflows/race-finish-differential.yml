@@ -164,15 +164,32 @@ jobs:
                   raise SystemExit(f"{label}: expected raceResults menu 0x99")
 
           fields = ["x_pos", "y_pos", "x_speed", "y_speed", "air_effective", "rotation_candidate"]
+          progress_fields = ["next_checkpoint", "finish_gate", "laps_remaining"]
           for cp in ns:
               if cp not in rs:
                   raise SystemExit(f"missing reference checkpoint {cp}")
               a = ns[cp]["slot1"]
               b = rs[cp]["slot1"]
               diff = {k:(a[k],b[k]) for k in fields if a[k] != b[k]}
+              for player in ("player1", "player2"):
+                  ap = ns[cp]["race_progress"][player]
+                  bp = rs[cp]["race_progress"][player]
+                  diff.update({
+                      f"{player}.{k}": (ap[k], bp[k])
+                      for k in progress_fields if ap[k] != bp[k]
+                  })
               print(cp, "MATCH" if not diff else diff)
               if diff:
                   raise SystemExit(1)
+
+          # The race must actually consume player-1 laps before entering results.
+          laps = [
+              ns[cp]["race_progress"]["player1"]["laps_remaining"]
+              for cp in ns if cp.startswith("finish-probe")
+          ]
+          if not laps or min(laps) >= max(laps):
+              raise SystemExit(f"player1 laps never decreased across finish probe: {laps}")
+          print("player1 finish progression laps:", laps)
           PY
 
       - name: Upload finish evidence

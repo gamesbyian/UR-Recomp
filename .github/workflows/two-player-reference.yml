@@ -7,6 +7,7 @@ on:
       - "tests/input/two-player-first-race.input"
       - "tests/input/two-player-first-race-observe.script"
       - "tests/input/two-player-p2-drift-microtrace.script"
+      - "tests/input/two-player-phase-entry-microtrace.script"
       - "tools/summarize_paired_player_slots.py"
       - "tools/assert_uniracers_vs_oam_seam.py"
       - ".github/workflows/two-player-reference.yml"
@@ -131,6 +132,50 @@ jobs:
                       if native[cp][slot][field] != ref[cp][slot][field]:
                           diffs[f"{slot}.{field}"]=(native[cp][slot][field],ref[cp][slot][field])
               print(cp, "MATCH" if not diffs else diffs)
+          PY
+
+      - name: Localize race-entry scheduler phase
+        shell: bash
+        run: |
+          set -euo pipefail
+          PHASE="$GITHUB_WORKSPACE/tests/input/two-player-phase-entry-microtrace.script"
+          INPUT="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          REF="$RUNNER_TEMP/snesref-build/snesref"
+          NATIVE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          mkdir -p "$RUNNER_TEMP/phase-snes9x" "$RUNNER_TEMP/phase-native"
+
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_INPUT_FILE="$INPUT" SNESREF_SCRIPT="$PHASE" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/phase-snes9x" \
+            "$REF" "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" "$ROM" \
+            >"$RUNNER_TEMP/phase-snes9x.log" 2>&1
+
+          SNESRECOMP_INPUT_FILE="$INPUT" SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/phase-native" \
+          SDL_AUDIODRIVER=dummy \
+            timeout 180s xvfb-run -a "$NATIVE" "$ROM" --script "$PHASE" \
+            >"$RUNNER_TEMP/phase-native.log" 2>&1
+
+          python3 - "$RUNNER_TEMP/phase-native" "$RUNNER_TEMP/phase-snes9x" <<'PY'
+          from pathlib import Path
+          import sys
+          nroot=Path(sys.argv[1]); sroot=Path(sys.argv[2])
+          first=None
+          for frame in range(1120,1221,5):
+              tag=f"phase-entry-{frame}"
+              n=(nroot/f"{tag}.wram.bin").read_bytes()
+              s=(sroot/f"{tag}.wram.bin").read_bytes()
+              fields={
+                  "menu":(n[0x009F],s[0x009F]),
+                  "inRace":(n[0x0313],s[0x0313]),
+                  "phase2":(n[0x0302],s[0x0302]),
+                  "phase3":(n[0x0304],s[0x0304]),
+              }
+              diffs={k:v for k,v in fields.items() if v[0]!=v[1]}
+              print(tag, fields, "MATCH" if not diffs else f"DIFF {diffs}")
+              if diffs and first is None:
+                  first=(frame,diffs)
+          print("FIRST_PHASE_ENTRY_DIFF", first or "MATCH_THROUGH_1220")
           PY
 
       - name: Localize native/Snes9x P2-only drift
@@ -334,6 +379,10 @@ jobs:
             ${{ runner.temp }}/*-two-player-state.txt
             ${{ runner.temp }}/native-dumps/
             ${{ runner.temp }}/snes9x-dumps/
+            ${{ runner.temp }}/phase-native/
+            ${{ runner.temp }}/phase-snes9x/
+            ${{ runner.temp }}/phase-native.log
+            ${{ runner.temp }}/phase-snes9x.log
             ${{ runner.temp }}/native-micro/
             ${{ runner.temp }}/snes9x-micro/
             ${{ runner.temp }}/native-micro.log

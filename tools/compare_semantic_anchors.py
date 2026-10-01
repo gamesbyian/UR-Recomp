@@ -142,6 +142,13 @@ ANCHORS = (
         "Recovered Nitrodon routine: bounded vertical-acceleration update through RTS at 82:A9AB.",
     ),
     Anchor(
+        "State0306_DmaGate",
+        "82:B8AB",
+        0x40,
+        (0x0306, 0x420B, 0x2115, 0x2116),
+        "Bounded recovered routine beginning at 82:B8AB; used only to track the unnamed $0306 state slot across builds without assigning semantics.",
+    ),
+    Anchor(
         "Input_DecodePlayer1Buttons",
         "82:AA6E",
         0x200,

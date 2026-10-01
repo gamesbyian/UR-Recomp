@@ -254,6 +254,20 @@ Do not propagate weak names as facts. Hypotheses remain hypotheses, cross-ROM la
 **Next discriminator:** rebuild the PAL/prototype snes2asm disagreement corpus on locally aligned homolog windows, then send only disagreements that survive alignment to Ghidra/xref analysis.  
 **Propagation:** treat same-file-offset code diffs as raw evidence only; analyzer disagreement becomes meaningful after homolog alignment.
 
+
+### R-METHOD-007 — Homolog alignment removes 96.9% of PAL snes2asm role disagreement
+
+**Status:** supported; residuals bounded  
+**Date:** 2026-09-30  
+**Area:** multi-ROM | decompilation | analyzer calibration
+
+**Observation:** rescoring the 32 high-value Europe-retail / PAL-prototype snes2asm windows after local raw-byte homolog alignment reduces whole-window code-role disagreements from 3,662 to 114 (96.9%). Twenty-nine of 32 windows fall to zero role disagreement, and the apparent M/X disagreement vanishes in nearly every aligned window.  
+**Evidence:** `analysis/generated/pal-snes2asm-homolog-alignment.{json,md}`; independent da65 calibration in R-METHOD-006.  
+**Residuals:** only `00:ABA9..ADE2` (91), `00:8C49..8CCA` (18), and `00:C3A9..C450` (5) retain role disagreement. The five `C3A9` residuals fall inside the known frontend command-handler pointer table around `00:C3CB..C3EC`, so they are code-vs-data classification noise rather than an executable boundary dispute. The other two residual windows have low whole-window raw similarity and mix code with text/data, so they require finer-grained homolog alignment before Ghidra escalation.  
+**Interpretation:** same-offset disassembly diffing dramatically overstates executable change when regional/prototype layout moves. Homolog alignment is now a required normalization stage before counting analyzer disagreement.  
+**Next discriminator:** split the two low-similarity survivor windows along known code/data boundaries, realign subregions, and use bounded da65/Ghidra only if role disagreement survives within high-similarity executable homologs.  
+**Propagation:** comparative-atlas disagreement metrics should distinguish raw same-offset disagreement from homolog-aligned disagreement.
+
 ## Seed leads to verify locally
 
 ### R-SEED-001 — Rob Northen Compression

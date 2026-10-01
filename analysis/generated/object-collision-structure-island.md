@@ -12,6 +12,13 @@ Boundaries come from direct long-entry calls, explicit RTS/RTL instructions, the
 | lookup_8372 | data | 50 | 81:8372..81:83A3 (+0, sim 1.000; op 0, data/unreached 50) | 81:8355..81:8386 (-29, sim 1.000; op 0, data/unreached 50) | 81:834C..81:837D (-38, sim 1.000; op 0, data/unreached 50) | 81:8372..81:83A3 (+0, sim 1.000; op 0, data/unreached 50) |
 | handler_83A4 | code | 302 | 81:83A4..81:84D1 (+0, sim 1.000; op 119, data/unreached 0) | 81:8387..81:84B4 (-29, sim 0.871; op 119, data/unreached 0) | 81:837E..81:84AB (-38, sim 0.828; op 119, data/unreached 0) | 81:83A4..81:84D1 (+0, sim 1.000; op 119, data/unreached 0) |
 
+## Post-dispatch gap
+
+- usa-retail: none
+- pal-prototype-1994-11-29: none
+- europe-retail: 81:8316..81:831A (5 bytes): c2 30 ad 2f 0f
+- legacy-beta: none
+
 ## Embedded handler table
 
 - 30 bytes / 15 little-endian words.

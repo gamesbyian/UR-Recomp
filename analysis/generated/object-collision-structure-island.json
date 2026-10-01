@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "island": "bank-81 object/collision dispatch structure",
   "regions": [
     {
@@ -346,6 +346,32 @@
       }
     }
   ],
+  "post_dispatch_gap": {
+    "usa-retail": {
+      "size": 0,
+      "start": null,
+      "end": null,
+      "hex": ""
+    },
+    "pal-prototype-1994-11-29": {
+      "size": 0,
+      "start": null,
+      "end": null,
+      "hex": ""
+    },
+    "europe-retail": {
+      "size": 5,
+      "start": "81:8316",
+      "end": "81:831A",
+      "hex": "c2 30 ad 2f 0f"
+    },
+    "legacy-beta": {
+      "size": 0,
+      "start": null,
+      "end": null,
+      "hex": ""
+    }
+  },
   "handler_pointer_prefix": {
     "size": 30,
     "entries": 15,

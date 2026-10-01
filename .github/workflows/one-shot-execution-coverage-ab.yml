@@ -41,6 +41,9 @@ jobs:
       - name: Stage pinned MesenCE and mesen-for-ai
         run: python3 tools/bootstrap_toolchain.py --tool mesence --tool mesen-for-ai --jobs 2
 
+      - name: Make vendored mesen-for-ai launcher executable
+        run: chmod +x .tools/src/mesen-for-ai/scripts/run_headless.sh
+
       - name: Build upstream-supported MesenCE Linux target
         working-directory: .tools/src/mesence
         run: |

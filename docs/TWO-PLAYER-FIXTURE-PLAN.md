@@ -143,7 +143,7 @@ Evidence run: `36817685308`.
 
 The promoted fixture is `tests/input/two-player-first-race.input` with `tests/input/two-player-first-race-observe.script`. Run 36819833356 confirms the isolated Snes9x semantics: P1-only Right moves slot1 while slot2 remains at baseline; P2-only input then moves slot2; simultaneous input leaves P1 with positive X velocity and P2 with negative X velocity. The same run reproduces the canonical active-display OAM seam, HDMA `$2104` writes `V=0->$A5` and `V=112->$5A`, at every sampled stable race checkpoint. The disposable probe and its guessed offsets were removed after promotion; canonical racer fields come only from `tools/summarize_paired_player_slots.py`.
 
-## Native/reference P2 timing seam
+## Resolved native/reference P2 timing seam
 
 The ordinary-2P fixture now localizes the remaining native/Snes9x kinematic disagreement to the P2-only movement window rather than route timing or controller ownership.
 
@@ -186,9 +186,9 @@ Static control-flow recovery now explains the frame-1532 discriminator more tigh
 
 The already-observed race-entry phase seam therefore predicts the clean directional matrix exactly. On a frame where native has `$0302=0` and Snes9x has `$0302=1`, Snes9x alone nudges P1 one unit toward zero while native alone nudges P2 one unit toward zero. That is precisely the observed frame-1532 polarity: P1 Left/Right are one unit closer to zero in Snes9x, while P2 Left/Right are one unit closer to zero in native.
 
-PR #145 turns this static explanation into an explicit dynamic assertion while preserving the full WRAM/SRAM identical-prefix contamination oracle. Its discriminator treats only `$0302/$0304` as scheduler diagnostics, requires a one-unit frame-1532 speed seam, requires opposite `A5F3` eligibility, and requires the eligible runtime's speed to be exactly one unit closer to zero.
+PR #145 dynamically confirmed this static explanation before retiring the exploratory matrix: opposite `$0302` eligibility predicted the one-unit toward-zero nudge for P1 Left, P1 Right and P2 Right exactly. Signed-arithmetic differences inside `A5F3` were therefore retired as an explanation.
 
-If that assertion passes, retire signed-arithmetic differences inside `A5F3` as the leading explanation. The remaining root question moves one layer earlier: why native and the reference cores enter stable race play with opposite `$0302` scheduler phase from frame 1135 onward. Do not investigate the later terrain/contact amplification until that phase-origin seam is either explained or shown to be an intentional host-observation offset.
+That result moved the investigation upstream to the race-entry phase origin. The later three-runtime and race-relative tests below close that question as a host-frame-boundary/absolute-input anchoring effect rather than an event-relative gameplay divergence.
 
 Static main-loop ordering further narrows that root question. In bank 83, the per-frame loop updates scheduler state at `83:CC87..CC9A` before it dispatches into race logic via `83:CD32..CD3A`. The ordinary-2P race routine then writes `inRace` at `83:E070..E073` (and the sibling path at `83:E3FB..E3FE`) without resetting `$0300/$0302/$0304`. Therefore race entry inherits the scheduler parity that already existed on that guest-frame pass; it does not create a fresh phase.
 

@@ -1,6 +1,6 @@
 # Two-Player Fixture Capability Plan
 
-Status: deterministic VS route and active-display OAM seam locally reproduced; cross-runtime/native promotion and broader 2P coverage remain.
+Status: deterministic VS route and active-display OAM seam locally reproduced; native/reference VS semantics are exact before active movement, with a tiny post-input P2 timing drift preserved as open evidence. A bounded ordinary-2P route now reaches stock gameplay; durable ordinary-2P semantic/OAM promotion is in progress.
 
 ## Why this exists
 
@@ -129,6 +129,27 @@ Any agent modifying the shared fixture grammar, native scripted-input harness, `
 
 Conversely, UI-atlas work should continue on single-controller-reachable states while behavioral multiplayer verification remains open rather than waiting idle.
 
+
+## Ordinary 2P route result
+
+The first bounded ordinary-2P probe succeeded without a search sweep. Reusing the verified VS two-pad timing while changing only the Main Menu selection from VS to 2P reaches:
+
+- `0x3D` ordinary two-player rider selection at frames 560 and 640;
+- `0x6D` at frame 720;
+- `0x91` at frame 820;
+- `0x16` at frame 920;
+- transition state by frames 1020/1120;
+- stable `inRace=1`, `currentMenu=0x00` by frame 1220 and thereafter.
+
+Evidence run: `36817685308`.
+
+The route probe now includes isolated checkpoints immediately before and after P1-only, P2-only and simultaneous movement. Promote it only after the canonical paired-slot summarizer confirms causal movement and the native/reference route agrees on the semantic gate. The temporary coarse probe's guessed racer offsets are explicitly non-evidence and must not be reused; canonical racer fields come from `tools/summarize_paired_player_slots.py`.
+
+## VS active-movement parity refinement
+
+Current-main replay reconfirms exact native/Snes9x paired-racer semantics at stable pre-intervention checkpoints 1240, 1340 and 1440. After the P1-only, P2-only and simultaneous movement sequence, P1 still matches while P2 ends with a very small difference: native `x=1137, vx=-263`; Snes9x `x=1141, vx=-266`.
+
+Do not hide this with a numeric tolerance or call it exact parity. The durable gate requires exact pre-intervention slot state and race-progress parity, then causal agreement after movement: both racer slots must move, P1 Right must produce positive X velocity, P2 Left must produce negative X velocity, and race-progress fields must agree. The small P2 final-state drift remains a bounded fidelity lead for later event-relative timing localization if it persists under the ordinary-2P fixture.
 
 ## OAM seam instrumentation
 

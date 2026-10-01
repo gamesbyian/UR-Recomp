@@ -11,6 +11,7 @@ DEFAULT_SOURCES = (
     ("course-materialization", "analysis/generated/course-materialization-structure-island.json", False),
     ("racer-oam", "analysis/generated/racer-oam-structure-island.json", False),
     ("course-surface-sampler", "analysis/generated/course-surface-sampler-structure-island.json", False),
+    ("race-frame-orchestrator", "analysis/generated/race-frame-orchestrator-structure-island.json", False),
 )
 
 def build(root: Path) -> dict:
@@ -68,7 +69,7 @@ def build(root: Path) -> dict:
     return {
         "schema_version": 1,
         "purpose": "Machine-queryable seed census of confidently bounded program structure recovered by the comparative four-ROM lane.",
-        "scope_note": "This is a seed census, not a whole-ROM coverage claim. It intentionally contains only regions whose boundaries/code-data role have already been independently recovered in the two structural-island analyses.",
+        "scope_note": "This is a seed census, not a whole-ROM coverage claim. It intentionally contains only regions whose boundaries/code-data role have already been independently recovered in accepted structural-island analyses.",
         "sources": sources,
         "totals": totals,
         "regions": rows,

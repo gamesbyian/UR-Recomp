@@ -86,6 +86,28 @@ def discover_abs_a_pairs(region: bytes, working: int) -> dict[int, dict]:
     }
 
 
+
+def discover_abs_mixed_pairs(region: bytes, working: int) -> dict[int, dict]:
+    """Find bidirectional absolute copies regardless of A/Y register choice."""
+    w=le16(working)
+    inbound={}
+    outbound={}
+    load_ops=(0xAC, 0xAD)   # LDY abs, LDA abs
+    store_ops=(0x8C, 0x8D)  # STY abs, STA abs
+    for p in range(len(region)-5):
+        if region[p] in load_ops and region[p+3] in store_ops and region[p+4:p+6] == w:
+            persistent=int.from_bytes(region[p+1:p+3], 'little')
+            inbound.setdefault(persistent, []).append(p)
+        if region[p] in load_ops and region[p+1:p+3] == w and region[p+3] in store_ops:
+            persistent=int.from_bytes(region[p+4:p+6], 'little')
+            outbound.setdefault(persistent, []).append(p)
+    return {
+        addr: {'in': inbound.get(addr, []), 'out': outbound.get(addr, [])}
+        for addr in sorted(set(inbound) | set(outbound))
+        if inbound.get(addr) and outbound.get(addr)
+    }
+
+
 def discover_dp_y_pairs(region: bytes, dp: int) -> dict[int, dict]:
     # LDY abs persistent; STY dp  <->  LDY dp; STY abs persistent
     inbound={}
@@ -123,13 +145,7 @@ def inspect_build(blob: bytes, spec: dict) -> dict:
         'ypos': decorate(discover_dp_y_pairs(region, 0xA7), base),
         'xspeed': decorate(discover_abs_y_pairs(region, spec['x_work']), base),
         'yspeed': decorate(discover_abs_y_pairs(region, spec['y_work']), base),
-        'boost': decorate(
-            {
-                **discover_abs_y_pairs(region, spec['boost_work']),
-                **discover_abs_a_pairs(region, spec['boost_work']),
-            },
-            base,
-        ),
+        'boost': decorate(discover_abs_mixed_pairs(region, spec['boost_work']), base),
     }
     assignment={}
     for name, rows in fields.items():

@@ -200,6 +200,20 @@ Do not propagate weak names as facts. Hypotheses remain hypotheses, cross-ROM la
 **Dependencies:** the 483-byte alias interpretation is strongest where the changed byte is an SRAM bank byte; the corpus-wide systematic substitution plus exact mapper equivalence supports treating the remainder as the same build convention unless contradicted locally.  
 **Propagation:** downgrade USA/beta as a broad semantic-difference source. Preserve the SRAM probe as an emulator/protection seam and redirect comparative effort toward PAL/prototype/Europe regions with genuine structural motion.
 
+
+### R-METHOD-005 — Named cross-build semantics can now be projected with evidence tiers
+
+**Status:** supported and machine-queryable  
+**Date:** 2026-09-30  
+**Area:** multi-ROM | RAM | decompilation
+
+**Observation:** joining the trusted semantic-anchor matcher, WRAM-motion atlas, and named USA symbol corpus produces a durable build-specific correspondence surface. Repeated cross-anchor support yields strong PAL/Europe mappings for player-1 X/Y position and current-player X/Y velocity. Combined matcher evidence also promotes PAL prototype racer update, stunt finalization, racer OAM build, HUD queue, collision shape/velocity, and course load as strong function correspondences. Europe collision shape/velocity and course load are strong; racer update, OAM build, and stunt finalizer are supported; Europe HUD queue and checkpoint/finish remain candidates.  
+**Evidence:** `tools/build_cross_build_symbol_correspondence.py`; `analysis/generated/cross-build-symbol-correspondence.{json,md}`; evidence run `36809041878`; permanent tooling-unit suite green on commit `d3117a9`.  
+**Interpretation:** regional/prototype reverse engineering no longer needs literal USA addresses or ad hoc prose translation. Known semantics can be projected conservatively with explicit evidence tiers, while weak mappings stay visibly unpromoted.  
+**Discriminating test:** use repeated-support RAM mappings directly in regional watch/probe configuration. For single-anchor fields, choose a runtime watch, local xref/disassembly, or another matched routine before promotion.  
+**Dependencies:** semantic equivalence remains distinct from address correspondence; supported/candidate function matches may still contain behavioral changes.  
+**Propagation:** prefer the generated correspondence surface whenever a PAL prototype or Europe runtime/static question needs known USA semantics translated into that build.
+
 ## Seed leads to verify locally
 
 ### R-SEED-001 — Rob Northen Compression

@@ -1591,3 +1591,17 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 **Discriminating test:** none required for the five-part structural boundary claim. Deeper descriptor/plane semantics should be pursued only when editor/course implementation needs them.  
 **Dependencies:** snes2asm trusted-entry seeding and existing Nitrodon/control-flow boundaries.  
 **Propagation:** added the course island to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to 25 regions / 3,165 bytes; the queue now advances to a fourth independent subsystem rather than further decomposing this loader for coverage alone.
+
+
+### R-SEED-064 — Full racer OAM builder exposes preserved viewport architecture
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | camera | PPU | other
+
+**Observation:** the complete named `Race_BuildRacerOAMState` routine at USA `82:ACA5..B17F` forms a gapless 1,243-byte presentation corridor that can be partitioned into 12 instruction-aligned regions: entry/mode setup, ordinary P1/P2 projection, alternate-camera projection, split-camera P1/P2 projection, and shared post-projection adjustments.  
+**Evidence:** ROM-backed project-tooling runs `36854671970`, `36854862093`, and corrected instruction-boundary run `36855218823`; `analysis/generated/racer-oam-structure-island.{json,md}`; `tools/analyze_racer_oam_structure_island.py`; contraction localization in `tools/localize_oam_split_contractions.py`. USA contains 498 opcode bytes, 714 operand bytes and 31 statically unreached bytes inside the alternate-camera block. Legacy beta is byte-identical throughout.  
+**Interpretation:** the regional builds preserve the same viewport/OAM architecture. Europe shifts +7 through the ordinary and first split-camera path, then +5 and +3; the PAL prototype similarly shifts -15, -17 and -19. Both shift changes are caused by removal of redundant first copies from consecutive `REP #$20; REP #$20` pairs at USA `AF96..AF97` and `B01F..B020`. Those contractions were already present in the November 1994 prototype and do not change accumulator state.  
+**Discriminating test:** none required for structural equivalence or the two redundant-instruction removals. Runtime validation of widened viewport policy belongs to the later widescreen implementation phase, not this comparative pass.  
+**Dependencies:** Nitrodon disassembly provides canonical USA instruction boundaries; trusted-entry snes2asm supplies per-build code roles; adjacent homolog alignment is continuity-constrained to avoid matching repeated P1/P2 sibling blocks.  
+**Propagation:** added the full viewport island to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to 37 regions / 4,408 bounded USA bytes. The result strengthens `Race_BuildRacerOAMState` as the presentation seam between authoritative world/camera state and downstream sprite/OAM state.

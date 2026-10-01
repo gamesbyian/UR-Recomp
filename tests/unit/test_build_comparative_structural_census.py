@@ -46,3 +46,30 @@ def test_builds_seed_census_from_structural_islands(tmp_path):
     assert result["totals"]["banks"] == ["81", "82"]
     assert result["regions"][0]["usa_start"] == "81:9000"
     assert result["regions"][1]["homologs"]["europe-retail"]["shift"] == 4
+
+
+def test_optional_course_island_expands_census(tmp_path):
+    generated = tmp_path / "analysis" / "generated"
+    generated.mkdir(parents=True)
+    empty = {"regions": []}
+    (generated / "racer-update-structure-island.json").write_text(json.dumps(empty))
+    (generated / "object-collision-structure-island.json").write_text(json.dumps(empty))
+    course = {
+        "regions": [{
+            "name": "course_exit",
+            "kind": "code",
+            "usa_start": "82:E388",
+            "usa_end": "82:E395",
+            "size": 14,
+            "builds": {
+                "usa-retail": {"start": "82:E388", "end": "82:E395", "shift": 0, "similarity": 1.0, "opcode_bytes": 6, "operand_bytes": 8, "unreached_or_data_bytes": 0},
+                "europe-retail": {"start": "82:E34E", "end": "82:E35B", "shift": -58, "similarity": 0.9},
+            },
+        }]
+    }
+    (generated / "course-materialization-structure-island.json").write_text(json.dumps(course))
+    result = census.build(tmp_path)
+    assert result["totals"]["regions"] == 1
+    assert result["totals"]["bounded_bytes"] == 14
+    assert result["regions"][0]["source"] == "course-materialization"
+    assert {source["id"] for source in result["sources"]} == {"racer-update", "object-collision", "course-materialization"}

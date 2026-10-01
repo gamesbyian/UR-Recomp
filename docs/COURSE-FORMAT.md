@@ -125,6 +125,22 @@ Those names remain provisional until a runtime course-load trace or an in-ROM se
 Generated structural evidence: `analysis/generated/course-header-cadence.md`.
 
 
+## Runtime object map: checkpoint/finish code identified
+
+A retrospective propagation pass through the race object dispatcher at `81:82E6` identifies one concrete runtime course-object code.
+
+The dispatcher reads a byte from the materialized runtime map at `7E:C000,X`, clears bit 0, and uses the resulting even value as a jump-table offset into `81:8320`. Object code `0x14` selects `81:8050`, the confirmed checkpoint/finish handler.
+
+Therefore `0x14` is a supported runtime **checkpoint/finish course-object code**.
+
+This gives the course-format investigation a direct semantic bridge:
+
+`decoded course payload → materialized 7E:C000 object map → object code 0x14 → checkpoint/finish race-state mutation`
+
+Next high-value discriminator: locate `0x14` cells in the active Dragster object map, map their runtime grid positions to known finish/checkpoint coordinates, then trace those bytes backward into the decoded RNC payload. Do not decode the rest of the object jump table uniformly; promote additional codes only when a gameplay/editor/fidelity question needs them.
+
+Full derivation: `analysis/generated/semantic-propagation-finish-collision-2026-09-30.md`.
+
 ## Runtime bridge: active decoded payload appears at 7F:0000
 
 The deterministic Dragster race-entry WRAM dump provides the first direct bridge from decoded RNC bytes into live game memory.

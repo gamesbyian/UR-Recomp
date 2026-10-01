@@ -34,9 +34,8 @@ FOCUSED_NEIGHBORHOODS = {
 }
 
 
-def trusted_seed_map() -> dict[str, list[str]]:
+def trusted_seed_map(corpus: dict) -> dict[str, list[str]]:
     """Use every accepted semantic anchor as a reachability seed."""
-    corpus = build_output()
     seeds = {name: [] for name in ROMS}
     for anchor in corpus["anchors"]:
         seeds["usa-retail"].append(anchor["usa_cpu_address"])
@@ -48,6 +47,22 @@ def trusted_seed_map() -> dict[str, list[str]]:
             if top["byte_similarity"] >= MIN_SEED_SIMILARITY:
                 seeds[build].append(top["cpu_address"])
     return {name: sorted(set(values)) for name, values in seeds.items()}
+
+
+
+def trusted_europe_projection_targets(corpus: dict) -> set[str]:
+    """Collect Europe operand targets already explained by accepted projections."""
+    out: set[str] = set()
+    for anchor in corpus["anchors"]:
+        matches = anchor["matches"].get("europe-retail", [])
+        if not matches:
+            continue
+        top = matches[0]
+        if top["byte_similarity"] < MIN_SEED_SIMILARITY:
+            continue
+        for projection in top["semantic_word_projection"].values():
+            out.add(projection["dominant_candidate"])
+    return out
 
 
 def scan_operands(blob: bytes, disassembler, lo: int, hi: int) -> list[dict]:
@@ -74,7 +89,9 @@ def scan_operands(blob: bytes, disassembler, lo: int, hi: int) -> list[dict]:
 
 
 def build() -> dict:
-    seeds = trusted_seed_map()
+    corpus = build_output()
+    seeds = trusted_seed_map(corpus)
+    explained_europe = trusted_europe_projection_targets(corpus)
     builds = {}
     for name, path in ROMS.items():
         blob = path.read_bytes()
@@ -97,8 +114,11 @@ def build() -> dict:
         usa = set(builds["usa-retail"][neighborhood]["operand_counts"])
         proto = set(builds["pal-prototype-1994-11-29"][neighborhood]["operand_counts"])
         europe = set(builds["europe-retail"][neighborhood]["operand_counts"])
+        numeric_only = europe - usa - proto
         exclusive[neighborhood] = {
-            "europe_only_numeric_operands": sorted(europe - usa - proto),
+            "europe_only_numeric_operands": sorted(numeric_only),
+            "explained_by_trusted_projection": sorted(numeric_only & explained_europe),
+            "unexplained_europe_operands": sorted(numeric_only - explained_europe),
             "shared_all_three": sorted(europe & usa & proto),
             "europe_operands": sorted(europe),
         }
@@ -132,8 +152,12 @@ def render(report: dict) -> str:
             lines.append(f"- **{build}:** {x['reference_count']} references; {ops}")
         if bracket in report["focused_exclusivity"]:
             ex = report["focused_exclusivity"][bracket]
-            europe_only = ", ".join(f"`{x}`" for x in ex["europe_only_numeric_operands"]) or "none"
-            lines.append(f"- Europe-only numeric operands in trusted code: {europe_only}")
+            numeric_only = ", ".join(f"`{x}`" for x in ex["europe_only_numeric_operands"]) or "none"
+            explained = ", ".join(f"`{x}`" for x in ex["explained_by_trusted_projection"]) or "none"
+            unexplained = ", ".join(f"`{x}`" for x in ex["unexplained_europe_operands"]) or "none"
+            lines.append(f"- Europe-only numeric operands in trusted code: {numeric_only}")
+            lines.append(f"- Explained by trusted relocation projection: {explained}")
+            lines.append(f"- **Unexplained Europe operands:** {unexplained}")
         lines.append("")
     return "\n".join(lines)
 

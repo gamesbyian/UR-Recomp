@@ -8,6 +8,7 @@
       "aligned_prefix_lines": 0,
       "builds": {
         "europe-retail": {
+          "end": "00:933B",
           "instruction_lines": 133,
           "normalized": [
             "clc ; 91D1 18 .",
@@ -143,9 +144,13 @@
             "lda #$02 ; 9336 A9 02 ..",
             "sta $420B ; 9338 8D 0B 42 ..B",
             "rts ; 933B 60 `"
-          ]
+          ],
+          "raw_similarity_to_usa": 0.997245,
+          "shift_from_usa": 0,
+          "start": "00:91D1"
         },
         "pal-prototype-1994-11-29": {
+          "end": "00:9332",
           "instruction_lines": 133,
           "normalized": [
             "clc ; 91C8 18 .",
@@ -281,14 +286,14 @@
             "lda #$02 ; 932D A9 02 ..",
             "sta $420B ; 932F 8D 0B 42 ..B",
             "rts ; 9332 60 `"
-          ]
+          ],
+          "raw_similarity_to_usa": 0.988981,
+          "shift_from_usa": -9,
+          "start": "00:91C8"
         }
       },
       "exact_normalized_match": false,
       "id": "reset-init",
-      "prototype_end": "00:9332",
-      "prototype_shift": -9,
-      "prototype_start": "00:91C8",
       "ranges": [
         {
           "addrmode": "MX",
@@ -315,24 +320,17 @@
           "start": "00:932F"
         }
       ],
-      "raw_alignment_similarity": 0.988981,
-      "retail_end": "00:933B",
-      "retail_start": "00:91D1",
-      "same_instruction_count": true
+      "same_instruction_count": true,
+      "usa_anchor_end": "00:933B",
+      "usa_anchor_start": "00:91D1"
     },
     {
       "aligned_prefix_lines": 0,
       "builds": {
         "europe-retail": {
-          "instruction_lines": 26,
+          "end": "00:A12D",
+          "instruction_lines": 22,
           "normalized": [
-            "LA08D: .byte $80 ; A08D 80 .",
-            "lda #$2205 ; A0DA A9 05 ..",
-            "sta $B1,s ; A0DD 83 B1 ..",
-            "brl LA184 ; A0DF 82 A2 00 ...",
-            "bvs LA08D ; A0E2 70 A9 p.",
-            "cli ; A0E4 58 X",
-            "jsl L82B1DB ; A0E5 22 DB B1 82 \"...",
             "rep #$30 ; A0E9 C2 30 .0",
             "lda #$003E ; A0EB A9 3E .>",
             "sta $0181 ; A0EE 8D 81 01 ...",
@@ -351,18 +349,20 @@
             "jsl L8282A5 ; A115 22 A5 82 82 \"...",
             "lda #$0102 ; A119 A9 02 ..",
             "jsl L828000 ; A11C 22 00 80 82 \"...",
-            "LA184: .byte $E2 ; A184 E2 ."
-          ]
+            "lda #$08FF ; A120 A9 FF ..",
+            "jsl L828000 ; A123 22 00 80 82 \"...",
+            "lda #$077F ; A127 A9 7F ..",
+            "jsl L828000 ; A12A 22 00 80 82 \"..."
+          ],
+          "raw_similarity_to_usa": 0.971014,
+          "shift_from_usa": 15,
+          "start": "00:A0E9"
         },
         "pal-prototype-1994-11-29": {
-          "instruction_lines": 24,
+          "end": "00:A115",
+          "instruction_lines": 22,
           "normalized": [
-            "lda #$2205 ; A0C2 A9 05 ..",
-            "adc L82B1 ; A0C5 6D B1 82 m..",
-            "ldx #$7000 ; A0C8 A2 00 ..",
-            "lda #$2258 ; A0CB A9 58 .X",
-            "cmp $B1 ; A0CE C5 B1 ..",
-            "brl LD195 ; A0D0 82 C2 30 ..0",
+            "rep #$30 ; A0D1 C2 30 .0",
             "lda #$003E ; A0D3 A9 3E .>",
             "sta $0181 ; A0D6 8D 81 01 ...",
             "lda #$8000 ; A0D9 A9 00 ..",
@@ -380,15 +380,18 @@
             "jsl L8282A5 ; A0FD 22 A5 82 82 \"...",
             "lda #$0102 ; A101 A9 02 ..",
             "jsl L828000 ; A104 22 00 80 82 \"...",
-            "LD195: .byte $6D ; D195 6D m"
-          ]
+            "lda #$08FF ; A108 A9 FF ..",
+            "jsl L828000 ; A10B 22 00 80 82 \"...",
+            "lda #$077F ; A10F A9 7F ..",
+            "jsl L828000 ; A112 22 00 80 82 \"..."
+          ],
+          "raw_similarity_to_usa": 0.971014,
+          "shift_from_usa": -9,
+          "start": "00:A0D1"
         }
       },
       "exact_normalized_match": false,
       "id": "ppu-init-16bit",
-      "prototype_end": "00:A106",
-      "prototype_shift": -24,
-      "prototype_start": "00:A0C2",
       "ranges": [
         {
           "addrmode": "mx",
@@ -397,48 +400,50 @@
           "start": "00:A0DA"
         }
       ],
-      "raw_alignment_similarity": 0.956522,
-      "retail_end": "00:A11E",
-      "retail_start": "00:A0DA",
-      "same_instruction_count": false
+      "same_instruction_count": true,
+      "usa_anchor_end": "00:A11E",
+      "usa_anchor_start": "00:A0DA"
     },
     {
       "aligned_prefix_lines": 0,
       "builds": {
         "europe-retail": {
-          "instruction_lines": 9,
+          "end": "00:D1F9",
+          "instruction_lines": 8,
           "normalized": [
-            "sbc ($C0),y ; D1D7 F1 C0 ..",
-            "brk ; D1D9 00 .",
-            "sbc $1707FE,x ; D1DA FF FE 07 17 ....",
-            "sed ; D1DE F8 .",
-            "rep #$00 ; D1DF C2 00 ..",
-            "inc $1711,x ; D1E1 FE 11 17 ...",
-            "sbc ($C4),y ; D1E4 F1 C4 ..",
-            "brk ; D1E6 00 .",
-            "sbc $D1EC20,x ; D1E7 FF 20 EC D1 . .."
-          ]
+            "jsr LD1EC ; D1E8 20 EC D1 ..",
+            "rtl ; D1EB 6B k",
+            "LD1EC: jsr L9318 ; D1EC 20 18 93 ..",
+            "ldx $4218 ; D1EF AE 18 42 ..B",
+            "stx $72 ; D1F2 86 72 .r",
+            "ldx $421A ; D1F4 AE 1A 42 ..B",
+            "stx $74 ; D1F7 86 74 .t",
+            "rts ; D1F9 60 `"
+          ],
+          "raw_similarity_to_usa": 0.944444,
+          "shift_from_usa": 17,
+          "start": "00:D1E8"
         },
         "pal-prototype-1994-11-29": {
-          "instruction_lines": 9,
+          "end": "00:D1E6",
+          "instruction_lines": 8,
           "normalized": [
-            "sbc ($C0),y ; D1C4 F1 C0 ..",
-            "brk ; D1C6 00 .",
-            "sbc $1707FE,x ; D1C7 FF FE 07 17 ....",
-            "sed ; D1CB F8 .",
-            "rep #$00 ; D1CC C2 00 ..",
-            "inc $1711,x ; D1CE FE 11 17 ...",
-            "sbc ($C4),y ; D1D1 F1 C4 ..",
-            "brk ; D1D3 00 .",
-            "sbc $D1D920,x ; D1D4 FF 20 D9 D1 . .."
-          ]
+            "jsr LD1D9 ; D1D5 20 D9 D1 ..",
+            "rtl ; D1D8 6B k",
+            "LD1D9: jsr L930F ; D1D9 20 0F 93 ..",
+            "ldx $4218 ; D1DC AE 18 42 ..B",
+            "stx $72 ; D1DF 86 72 .r",
+            "ldx $421A ; D1E1 AE 1A 42 ..B",
+            "stx $74 ; D1E4 86 74 .t",
+            "rts ; D1E6 60 `"
+          ],
+          "raw_similarity_to_usa": 0.888889,
+          "shift_from_usa": -2,
+          "start": "00:D1D5"
         }
       },
       "exact_normalized_match": false,
       "id": "joypad-helper",
-      "prototype_end": "00:D1D5",
-      "prototype_shift": -19,
-      "prototype_start": "00:D1C4",
       "ranges": [
         {
           "addrmode": "Mx",
@@ -447,10 +452,9 @@
           "start": "00:D1D7"
         }
       ],
-      "raw_alignment_similarity": 1.0,
-      "retail_end": "00:D1E8",
-      "retail_start": "00:D1D7",
-      "same_instruction_count": true
+      "same_instruction_count": true,
+      "usa_anchor_end": "00:D1E8",
+      "usa_anchor_start": "00:D1D7"
     }
   ],
   "schema_version": 1

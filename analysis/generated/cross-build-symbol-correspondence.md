@@ -12,6 +12,8 @@ A mapped address means the structurally corresponding build-specific location su
 | Collision_TransformVelocity | `81:9546` | Europe retail | `81:952C` | 0.911 | 0.839 | 0.667 | strong |  |
 | Course_LoadAndMaterialize | `82:E165` | Europe retail | `82:E12B` | 0.906 | 0.766 | 0.467 | strong |  |
 | HUD_QueueMessage | `81:C5B3` | Europe retail | `81:C59C` | 0.635 | 0.468 | 0.000 | strong | two coherent direct JSR references, including checkpoint/finish caller 81:81BA |
+| Input_DecodePlayer1Buttons | `82:AA6E` | Europe retail | `82:AA75` | 0.846 | 0.842 | 0.769 | strong |  |
+| Player_ApplyVerticalAcceleration | `82:A968` | Europe retail | `82:A96F` | 0.897 | 0.599 | 0.000 | supported |  |
 | Race_BuildRacerOAMState | `82:ACA5` | Europe retail | `82:ACAC` | 0.710 | 0.668 | 0.467 | supported |  |
 | Race_HandleCheckpointFinish | `81:8050` | Europe retail | `81:8050` | 0.504 | 0.402 | 0.000 | strong | relocated object-dispatch table maps object code 0x14 directly to 81:8050 |
 | Race_UpdateRacersFrame | `82:89B9` | Europe retail | `82:89CC` | 0.679 | 0.712 | 0.636 | supported |  |
@@ -20,6 +22,8 @@ A mapped address means the structurally corresponding build-specific location su
 | Collision_TransformVelocity | `81:9546` | PAL prototype | `81:9526` | 0.946 | 0.857 | 0.667 | strong |  |
 | Course_LoadAndMaterialize | `82:E165` | PAL prototype | `82:E101` | 0.917 | 0.842 | 0.667 | strong |  |
 | HUD_QueueMessage | `81:C5B3` | PAL prototype | `81:C590` | 0.969 | 0.984 | 1.000 | strong |  |
+| Input_DecodePlayer1Buttons | `82:AA6E` | PAL prototype | `82:AA5F` | 0.988 | 0.967 | 0.923 | strong |  |
+| Player_ApplyVerticalAcceleration | `82:A968` | PAL prototype | `82:A959` | 0.912 | 0.693 | 0.250 | strong |  |
 | Race_BuildRacerOAMState | `82:ACA5` | PAL prototype | `82:AC96` | 0.773 | 0.840 | 0.867 | strong |  |
 | Race_HandleCheckpointFinish | `81:8050` | PAL prototype | `81:8050` | 0.871 | 0.585 | 0.000 | supported |  |
 | Race_UpdateRacersFrame | `82:89B9` | PAL prototype | `82:89B6` | 0.779 | 0.826 | 0.818 | strong |  |

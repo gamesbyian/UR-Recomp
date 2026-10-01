@@ -54,6 +54,32 @@
     },
     {
       "build": "europe-retail",
+      "byte_similarity": 0.845703,
+      "candidate": "82:AA75",
+      "evidence_tier": "strong",
+      "independent_evidence": null,
+      "matcher_candidate": "82:AA75",
+      "matcher_score": 0.842082,
+      "name": "Input_DecodePlayer1Buttons",
+      "same_address": false,
+      "semantic_reference_recall": 0.769231,
+      "usa": "82:AA6E"
+    },
+    {
+      "build": "europe-retail",
+      "byte_similarity": 0.897059,
+      "candidate": "82:A96F",
+      "evidence_tier": "supported",
+      "independent_evidence": null,
+      "matcher_candidate": "82:A96F",
+      "matcher_score": 0.598529,
+      "name": "Player_ApplyVerticalAcceleration",
+      "same_address": false,
+      "semantic_reference_recall": 0.0,
+      "usa": "82:A968"
+    },
+    {
+      "build": "europe-retail",
       "byte_similarity": 0.709821,
       "candidate": "82:ACAC",
       "evidence_tier": "supported",
@@ -159,6 +185,32 @@
     {
       "build": "legacy-beta",
       "byte_similarity": 1.0,
+      "candidate": "82:AA6E",
+      "evidence_tier": "exact",
+      "independent_evidence": null,
+      "matcher_candidate": "82:AA6E",
+      "matcher_score": 1.0,
+      "name": "Input_DecodePlayer1Buttons",
+      "same_address": true,
+      "semantic_reference_recall": 1.0,
+      "usa": "82:AA6E"
+    },
+    {
+      "build": "legacy-beta",
+      "byte_similarity": 1.0,
+      "candidate": "82:A968",
+      "evidence_tier": "exact",
+      "independent_evidence": null,
+      "matcher_candidate": "82:A968",
+      "matcher_score": 1.0,
+      "name": "Player_ApplyVerticalAcceleration",
+      "same_address": true,
+      "semantic_reference_recall": 1.0,
+      "usa": "82:A968"
+    },
+    {
+      "build": "legacy-beta",
+      "byte_similarity": 1.0,
       "candidate": "82:ACA5",
       "evidence_tier": "exact",
       "independent_evidence": null,
@@ -259,6 +311,32 @@
       "same_address": false,
       "semantic_reference_recall": 1.0,
       "usa": "81:C5B3"
+    },
+    {
+      "build": "pal-prototype-1994-11-29",
+      "byte_similarity": 0.988281,
+      "candidate": "82:AA5F",
+      "evidence_tier": "strong",
+      "independent_evidence": null,
+      "matcher_candidate": "82:AA5F",
+      "matcher_score": 0.967218,
+      "name": "Input_DecodePlayer1Buttons",
+      "same_address": false,
+      "semantic_reference_recall": 0.923077,
+      "usa": "82:AA6E"
+    },
+    {
+      "build": "pal-prototype-1994-11-29",
+      "byte_similarity": 0.911765,
+      "candidate": "82:A959",
+      "evidence_tier": "strong",
+      "independent_evidence": null,
+      "matcher_candidate": "82:A959",
+      "matcher_score": 0.693382,
+      "name": "Player_ApplyVerticalAcceleration",
+      "same_address": false,
+      "semantic_reference_recall": 0.25,
+      "usa": "82:A968"
     },
     {
       "build": "pal-prototype-1994-11-29",

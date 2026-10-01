@@ -22,6 +22,11 @@ REGIONS = [
  ("routine_A5F3","82:A5F3","82:A617","code"),
  ("routine_A618","82:A618","82:A6F0","code"),
  ("routine_A6F1","82:A6F1","82:A8C1","code"),
+ ("routine_A8C2","82:A8C2","82:A967","code"),
+ ("Player_ApplyVerticalAcceleration","82:A968","82:A9AB","code"),
+ ("routine_A9AC","82:A9AC","82:AA08","code"),
+ ("routine_AA09","82:AA09","82:AA69","code"),
+ ("Input_LongEntryWrapper","82:AA6A","82:AA6D","code"),
 ]
 
 def best_shift(src,dst,start,end,radius=128):

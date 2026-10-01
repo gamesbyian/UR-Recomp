@@ -64,7 +64,15 @@
       "region": "selected USA/Europe homologs: text metadata, vertical acceleration, input decode, collision transform/contact shape, HUD queue, racer-frame marshal, stunt-finalizer, course-loader/materializer, OAM projection, checkpoint/finish",
       "summary": "Trusted-entry-seeded snes2asm comparison now covers 20 directly comparable executable subregions with 1,455 aligned opcode positions. All aligned opcode bytes, opcode/operand roles, and M/X states agree; 510 aligned byte changes are operand bytes. Checkpoint/finish additionally contains one explicit structural delta: Europe retail contracts USA 81:8102..8117 (22-byte frame-normalization logic) to 81:8102..8109 (8 bytes), a net -14 bytes. USA retail, legacy beta, and the 1994-11-29 PAL prototype retain the 22-byte executable shape; Europe retail alone uses the contracted form. A parallel USA/PAL-prototype pass covers 19 trusted subregions with 1,465 aligned opcode positions: zero opcode substitutions, zero role/MX disagreements, and 296 operand-byte changes. This confirms the prototype preserves the USA executable stream throughout the tested corpus and is materially closer to USA than Europe retail at the operand/layout level.",
       "priority": "low",
-      "next_evidence": "Do not re-adjudicate the clean Europe or PAL-prototype homolog regions with da65/Ghidra absent a contradiction. The trusted-anchor corpus is now broadly saturated; prioritize new comparative work only where it can distinguish lineage, infer shared structure, or resolve an actual analyzer disagreement."
+      "next_evidence": "Trusted code-shape comparisons are saturated. Remaining high-information comparative work is WRAM lineage: identify the Europe-only state responsible for the +4 insertion after 0309/before old 030D and the +2 insertion after 053B/before old 0541. Do not broaden analyzer coverage absent a new disagreement."
+    },
+    {
+      "id": "wram-post-prototype-insertions",
+      "kind": "unresolved_structural_semantics",
+      "region": "Europe-retail WRAM insertion brackets after 0309/before old 030D and after 053B/before old 0541",
+      "summary": "Cross-build operand motion proves two post-1994-11-29 Europe-retail WRAM expansions: +4 bytes before the old controller-state block and a later +2 bytes before old field 0541. Exact inserted-field semantics are not yet identified.",
+      "priority": "medium",
+      "next_evidence": "Inspect Europe-specific initialization/access patterns in the narrow 030A..0310 and 053D..0546 neighborhoods. Promote semantics only with direct code/runtime evidence."
     }
   ]
 }

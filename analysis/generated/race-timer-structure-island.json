@@ -1,0 +1,570 @@
+{
+  "count_up_entry": "81:C6D3",
+  "countdown_entry": "81:C7E1",
+  "dispatcher": "81:C69B",
+  "island": "RaceAndStuntTimerLifecycle",
+  "long_entry": "81:C697",
+  "next_code_entry": "81:C907",
+  "regions": [
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 6,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_pairs": 6,
+          "aligned_role_disagreements": 0,
+          "end": "81:C690",
+          "local_shift_profile_48byte": [
+            {
+              "shift": -19,
+              "similarity": 0.769231,
+              "usa_end": "81:C6A3",
+              "usa_start": "81:C697"
+            }
+          ],
+          "opcode_bytes": 6,
+          "operand_bytes": 7,
+          "sha256": "9aff312a76f3f626045f533fd1d4b4ae537c2c5abd0849d99598dbaf2946358e",
+          "shift": -19,
+          "similarity": 0.769231,
+          "size": 13,
+          "size_delta": 0,
+          "start": "81:C684",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 6,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_pairs": 6,
+          "aligned_role_disagreements": 0,
+          "end": "81:C6A3",
+          "opcode_bytes": 6,
+          "operand_bytes": 7,
+          "sha256": "3b09af3bb9c23a6464771b60c90160d3cc29a9c7de454c8b595aa5809ddd93f5",
+          "shift": 0,
+          "similarity": 1,
+          "size": 13,
+          "size_delta": 0,
+          "start": "81:C697",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 6,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_pairs": 6,
+          "aligned_role_disagreements": 0,
+          "end": "81:C680",
+          "local_shift_profile_48byte": [
+            {
+              "shift": -35,
+              "similarity": 0.769231,
+              "usa_end": "81:C6A3",
+              "usa_start": "81:C697"
+            }
+          ],
+          "opcode_bytes": 6,
+          "operand_bytes": 7,
+          "sha256": "0bf27af67a078ecf4b6a7ff82da47d999c863ed44aed8a68a9ed40d0d60e1cda",
+          "shift": -35,
+          "similarity": 0.769231,
+          "size": 13,
+          "size_delta": 0,
+          "start": "81:C674",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:C6A3",
+          "opcode_bytes": 6,
+          "operand_bytes": 7,
+          "sha256": "3b09af3bb9c23a6464771b60c90160d3cc29a9c7de454c8b595aa5809ddd93f5",
+          "shift": 0,
+          "similarity": 1,
+          "size": 13,
+          "size_delta": 0,
+          "start": "81:C697",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "long_entry_and_dispatch_live",
+      "size": 13,
+      "usa_end": "81:C6A3",
+      "usa_start": "81:C697"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 1,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_pairs": 1,
+          "aligned_role_disagreements": 0,
+          "end": "81:C693",
+          "local_shift_profile_48byte": [
+            {
+              "shift": -19,
+              "similarity": 0.666667,
+              "usa_end": "81:C6A6",
+              "usa_start": "81:C6A4"
+            }
+          ],
+          "opcode_bytes": 1,
+          "operand_bytes": 2,
+          "sha256": "b24d60a4cbac453ab607e0cfab07b3fe99e351e383e1e27eb7590bbca5baf40b",
+          "shift": -19,
+          "similarity": 0.666667,
+          "size": 3,
+          "size_delta": 0,
+          "start": "81:C691",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 1,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_pairs": 1,
+          "aligned_role_disagreements": 0,
+          "end": "81:C6A6",
+          "opcode_bytes": 1,
+          "operand_bytes": 2,
+          "sha256": "ab2bf4e577ccfa23497bb3f5f4f30f8dd2d841e817be066f6be5fd8450d3931a",
+          "shift": 0,
+          "similarity": 1,
+          "size": 3,
+          "size_delta": 0,
+          "start": "81:C6A4",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 1,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_pairs": 1,
+          "aligned_role_disagreements": 0,
+          "end": "81:C683",
+          "local_shift_profile_48byte": [
+            {
+              "shift": -35,
+              "similarity": 0.666667,
+              "usa_end": "81:C6A6",
+              "usa_start": "81:C6A4"
+            }
+          ],
+          "opcode_bytes": 1,
+          "operand_bytes": 2,
+          "sha256": "67cba879cd2fe45bb256e5450c610c998f63259683d83ba6641b56cf41360b41",
+          "shift": -35,
+          "similarity": 0.666667,
+          "size": 3,
+          "size_delta": 0,
+          "start": "81:C681",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:C6A6",
+          "opcode_bytes": 1,
+          "operand_bytes": 2,
+          "sha256": "ab2bf4e577ccfa23497bb3f5f4f30f8dd2d841e817be066f6be5fd8450d3931a",
+          "shift": 0,
+          "similarity": 1,
+          "size": 3,
+          "size_delta": 0,
+          "start": "81:C6A4",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "dormant_cb37_call",
+      "size": 3,
+      "usa_end": "81:C6A6",
+      "usa_start": "81:C6A4"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 17,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_pairs": 17,
+          "aligned_role_disagreements": 0,
+          "end": "81:C6BF",
+          "local_shift_profile_48byte": [
+            {
+              "shift": -19,
+              "similarity": 0.772727,
+              "usa_end": "81:C6D2",
+              "usa_start": "81:C6A7"
+            }
+          ],
+          "opcode_bytes": 17,
+          "operand_bytes": 27,
+          "sha256": "20a3afa16b8e82b03b49f2d633239b207f1993b1ceb0f68fce5ef65d251e0230",
+          "shift": -19,
+          "similarity": 0.772727,
+          "size": 44,
+          "size_delta": 0,
+          "start": "81:C694",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 17,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_pairs": 17,
+          "aligned_role_disagreements": 0,
+          "end": "81:C6D2",
+          "opcode_bytes": 17,
+          "operand_bytes": 27,
+          "sha256": "f96b69d4355645a51f9bb766862587bd67a4fa7c3e63f98efbb6475eeaed071d",
+          "shift": 0,
+          "similarity": 1,
+          "size": 44,
+          "size_delta": 0,
+          "start": "81:C6A7",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 17,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_pairs": 17,
+          "aligned_role_disagreements": 0,
+          "end": "81:C6AF",
+          "local_shift_profile_48byte": [
+            {
+              "shift": -35,
+              "similarity": 0.795455,
+              "usa_end": "81:C6D2",
+              "usa_start": "81:C6A7"
+            }
+          ],
+          "opcode_bytes": 17,
+          "operand_bytes": 27,
+          "sha256": "596f8a7db7b1d3a00c7135b5a41a5d86b4ad65630c338ec37f67f89ee992d5de",
+          "shift": -35,
+          "similarity": 0.795455,
+          "size": 44,
+          "size_delta": 0,
+          "start": "81:C684",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:C6D2",
+          "opcode_bytes": 17,
+          "operand_bytes": 27,
+          "sha256": "f96b69d4355645a51f9bb766862587bd67a4fa7c3e63f98efbb6475eeaed071d",
+          "shift": 0,
+          "similarity": 1,
+          "size": 44,
+          "size_delta": 0,
+          "start": "81:C6A7",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "mode_dispatch_tail",
+      "size": 44,
+      "usa_end": "81:C6D2",
+      "usa_start": "81:C6A7"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 104,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_pairs": 104,
+          "aligned_role_disagreements": 0,
+          "end": "81:C7CD",
+          "local_shift_profile_48byte": [
+            {
+              "shift": -19,
+              "similarity": 0.791667,
+              "usa_end": "81:C702",
+              "usa_start": "81:C6D3"
+            },
+            {
+              "shift": -19,
+              "similarity": 0.8125,
+              "usa_end": "81:C732",
+              "usa_start": "81:C703"
+            },
+            {
+              "shift": -19,
+              "similarity": 0.8125,
+              "usa_end": "81:C762",
+              "usa_start": "81:C733"
+            },
+            {
+              "shift": -19,
+              "similarity": 0.791667,
+              "usa_end": "81:C792",
+              "usa_start": "81:C763"
+            },
+            {
+              "shift": -19,
+              "similarity": 0.875,
+              "usa_end": "81:C7C2",
+              "usa_start": "81:C793"
+            },
+            {
+              "shift": -19,
+              "similarity": 0.8,
+              "usa_end": "81:C7E0",
+              "usa_start": "81:C7C3"
+            }
+          ],
+          "opcode_bytes": 104,
+          "operand_bytes": 166,
+          "sha256": "27b497dab22d2a6c811c244db710340b957d088d6ad16cb9e89634c60a24be0b",
+          "shift": -19,
+          "similarity": 0.814815,
+          "size": 270,
+          "size_delta": 0,
+          "start": "81:C6C0",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 104,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_pairs": 104,
+          "aligned_role_disagreements": 0,
+          "end": "81:C7E0",
+          "opcode_bytes": 104,
+          "operand_bytes": 166,
+          "sha256": "3f7bca750a92b6b6045fbdf07771ce00ffff7a1d8fd13b210559db7316cb8694",
+          "shift": 0,
+          "similarity": 1,
+          "size": 270,
+          "size_delta": 0,
+          "start": "81:C6D3",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 104,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_pairs": 104,
+          "aligned_role_disagreements": 0,
+          "end": "81:C7BD",
+          "local_shift_profile_48byte": [
+            {
+              "shift": -35,
+              "similarity": 0.833333,
+              "usa_end": "81:C702",
+              "usa_start": "81:C6D3"
+            },
+            {
+              "shift": -35,
+              "similarity": 0.833333,
+              "usa_end": "81:C732",
+              "usa_start": "81:C703"
+            },
+            {
+              "shift": -35,
+              "similarity": 0.8125,
+              "usa_end": "81:C762",
+              "usa_start": "81:C733"
+            },
+            {
+              "shift": -35,
+              "similarity": 0.854167,
+              "usa_end": "81:C792",
+              "usa_start": "81:C763"
+            },
+            {
+              "shift": -35,
+              "similarity": 0.895833,
+              "usa_end": "81:C7C2",
+              "usa_start": "81:C793"
+            },
+            {
+              "shift": -35,
+              "similarity": 0.833333,
+              "usa_end": "81:C7E0",
+              "usa_start": "81:C7C3"
+            }
+          ],
+          "opcode_bytes": 104,
+          "operand_bytes": 166,
+          "sha256": "a055aa1cc7a357897f6a756f14608f35cf166263c71108ea1a6db51816b04fcf",
+          "shift": -35,
+          "similarity": 0.844444,
+          "size": 270,
+          "size_delta": 0,
+          "start": "81:C6B0",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:C7E0",
+          "opcode_bytes": 104,
+          "operand_bytes": 166,
+          "sha256": "3f7bca750a92b6b6045fbdf07771ce00ffff7a1d8fd13b210559db7316cb8694",
+          "shift": 0,
+          "similarity": 1,
+          "size": 270,
+          "size_delta": 0,
+          "start": "81:C6D3",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "count_up_timer",
+      "size": 270,
+      "usa_end": "81:C7E0",
+      "usa_start": "81:C6D3"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 116,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_pairs": 116,
+          "aligned_role_disagreements": 0,
+          "end": "81:C8F3",
+          "local_shift_profile_48byte": [
+            {
+              "shift": -19,
+              "similarity": 0.770833,
+              "usa_end": "81:C810",
+              "usa_start": "81:C7E1"
+            },
+            {
+              "shift": -19,
+              "similarity": 0.770833,
+              "usa_end": "81:C840",
+              "usa_start": "81:C811"
+            },
+            {
+              "shift": -19,
+              "similarity": 0.875,
+              "usa_end": "81:C870",
+              "usa_start": "81:C841"
+            },
+            {
+              "shift": -19,
+              "similarity": 0.75,
+              "usa_end": "81:C8A0",
+              "usa_start": "81:C871"
+            },
+            {
+              "shift": -46,
+              "similarity": 0.791667,
+              "usa_end": "81:C8D0",
+              "usa_start": "81:C8A1"
+            },
+            {
+              "shift": -19,
+              "similarity": 0.854167,
+              "usa_end": "81:C900",
+              "usa_start": "81:C8D1"
+            },
+            {
+              "shift": -19,
+              "similarity": 1,
+              "usa_end": "81:C906",
+              "usa_start": "81:C901"
+            }
+          ],
+          "opcode_bytes": 116,
+          "operand_bytes": 178,
+          "sha256": "e3ff22b7f289a0e518bcaf0da8e78fd40a1ed1429d8be350d0e1380f78dc631d",
+          "shift": -19,
+          "similarity": 0.806122,
+          "size": 294,
+          "size_delta": 0,
+          "start": "81:C7CE",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 116,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_pairs": 116,
+          "aligned_role_disagreements": 0,
+          "end": "81:C906",
+          "opcode_bytes": 116,
+          "operand_bytes": 178,
+          "sha256": "b06db138de23c48981f3d193d8018efefc361c63d13bf04e8f9eda9c1c6796d1",
+          "shift": 0,
+          "similarity": 1,
+          "size": 294,
+          "size_delta": 0,
+          "start": "81:C7E1",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 116,
+          "aligned_opcode_consensus_fraction": 1,
+          "aligned_opcode_pairs": 116,
+          "aligned_role_disagreements": 0,
+          "end": "81:C8E3",
+          "local_shift_profile_48byte": [
+            {
+              "shift": -35,
+              "similarity": 0.833333,
+              "usa_end": "81:C810",
+              "usa_start": "81:C7E1"
+            },
+            {
+              "shift": -35,
+              "similarity": 0.770833,
+              "usa_end": "81:C840",
+              "usa_start": "81:C811"
+            },
+            {
+              "shift": -35,
+              "similarity": 0.958333,
+              "usa_end": "81:C870",
+              "usa_start": "81:C841"
+            },
+            {
+              "shift": -35,
+              "similarity": 0.833333,
+              "usa_end": "81:C8A0",
+              "usa_start": "81:C871"
+            },
+            {
+              "shift": -62,
+              "similarity": 0.958333,
+              "usa_end": "81:C8D0",
+              "usa_start": "81:C8A1"
+            },
+            {
+              "shift": -35,
+              "similarity": 0.854167,
+              "usa_end": "81:C900",
+              "usa_start": "81:C8D1"
+            },
+            {
+              "shift": -35,
+              "similarity": 1,
+              "usa_end": "81:C906",
+              "usa_start": "81:C901"
+            }
+          ],
+          "opcode_bytes": 116,
+          "operand_bytes": 178,
+          "sha256": "dda373c8181c68730253aa4c4a2dc8316acfb84b650e2e21a65c05ed6f46b843",
+          "shift": -35,
+          "similarity": 0.85034,
+          "size": 294,
+          "size_delta": 0,
+          "start": "81:C7BE",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:C906",
+          "opcode_bytes": 116,
+          "operand_bytes": 178,
+          "sha256": "b06db138de23c48981f3d193d8018efefc361c63d13bf04e8f9eda9c1c6796d1",
+          "shift": 0,
+          "similarity": 1,
+          "size": 294,
+          "size_delta": 0,
+          "start": "81:C7E1",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "stunt_countdown_timer",
+      "size": 294,
+      "usa_end": "81:C906",
+      "usa_start": "81:C7E1"
+    }
+  ],
+  "schema_version": 1,
+  "usa_end": "81:C906",
+  "usa_start": "81:C697"
+}

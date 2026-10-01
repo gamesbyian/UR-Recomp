@@ -161,7 +161,18 @@ Run `36821645246` uses a common one-frame observation schedule from frames 1528 
 
 The controller-snapshot bytes remain equal at the first velocity divergence, so the earlier hypothesis that native's no-multitap live `$4218-$421B` behavior was exposing the P2 input edge early is not supported by this trace. The game-side race path consumes P2 from the NMI-copied `$030E/$0310` word and decodes horizontal direction into `$0317`; future diagnostics should therefore start after that decode, in the shared racer working block.
 
-The USA race-update routine copies P2 persistent X speed `$04B9` into shared working X speed `$0F9F`, processes the common racer physics path, then copies `$0F9F` back to `$04B9`. The current trace now includes decoded P2 horizontal direction and the shared working speed/rotation fields. The next useful question is whether the first 1-unit delta enters while loading player-specific state, inside a direction-dependent common-physics operation, or from contact/course state. Do not broaden this into a full-physics trace unless those fields fail to discriminate.
+The USA race-update routine copies P2 persistent X speed `$04B9` into shared working X speed `$0F9F`, processes the common racer physics path, then copies `$0F9F` back to `$04B9`. The trace now includes decoded P2 horizontal direction and the shared working speed/rotation fields.
+
+Run `36822486597` adds a directional/player-slot discriminator from the exact same pre-intervention state:
+
+- P1 Left: first difference at frame 1532, X speed only, native `-48` vs Snes9x `-47`;
+- P2 Left: first difference at frame 1532, X speed only, native `-47` vs Snes9x `-48`;
+- P2 Right: exact through frame 1554;
+- P1 Right: no early X-speed seam; first difference is a later contact/air transition at frame 1539.
+
+This rules out a simple P2-routing defect. The earliest kinematic seam follows **leftward movement** in either racer slot and is already present in the shared working X-speed field. The player slots disagree in opposite one-unit directions, so a single fixed offset or one-frame P2 input shift also does not explain it.
+
+The next diagnostic is therefore instruction attribution for writes to `$0F9F`, `$04B7`, and `$04B9` across frames 1528-1533, using the existing native trace server. Keep this bounded to the first speed delta before investigating later terrain/contact amplification.
 
 ## VS active-movement parity refinement
 

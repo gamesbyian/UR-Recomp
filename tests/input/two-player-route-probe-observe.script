@@ -1,0 +1,26 @@
+# Coarse observation schedule for the bounded ordinary-2P route probe.
+wait 560
+dump two-player-560
+wait 80
+dump two-player-640
+wait 80
+dump two-player-720
+wait 100
+dump two-player-820
+wait 100
+dump two-player-920
+wait 100
+dump two-player-1020
+wait 100
+dump two-player-1120
+wait 100
+dump two-player-1220
+wait 100
+dump two-player-1320
+wait 100
+dump two-player-1420
+wait 100
+dump two-player-1520
+wait 100
+dump two-player-1620
+quit

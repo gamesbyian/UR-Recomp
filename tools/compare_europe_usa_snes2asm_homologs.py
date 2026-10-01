@@ -73,11 +73,39 @@ def offset_to_cpu(off: int) -> str:
     return f"{bank:02X}:{addr:04X}"
 
 
+
+def seed_entries(disassembler, offsets: list[int]) -> None:
+    """Add trusted entry labels and rerun snes2asm path discovery.
+
+    The default vector walk does not reach several bank-82 routines. Seeding is
+    valid here because each entry is independently recovered from Nitrodon's
+    listing / structural correspondence, and the compared functions immediately
+    establish or safely preserve the M/X state needed by this bounded pass.
+    """
+    for off in offsets:
+        disassembler.label_name(off)
+    disassembler.find_valid_code_paths()
+
+
 def build() -> dict:
     usa = USA.read_bytes()
     europe = EUROPE.read_bytes()
     ud = trace(usa)
     ed = trace(europe)
+
+    usa_seeds = [
+        cpu_to_offset("80:8C41"),
+        cpu_to_offset("82:A968"),
+        cpu_to_offset("82:AA6E"),
+    ]
+    europe_seeds = [
+        cpu_to_offset("80:8C41"),
+        cpu_to_offset("82:A96F"),
+        cpu_to_offset("82:AA75"),
+    ]
+    seed_entries(ud, usa_seeds)
+    seed_entries(ed, europe_seeds)
+
     rows = []
 
     for region in REGIONS:
@@ -87,6 +115,10 @@ def build() -> dict:
         # Constrain the search around the already-established structural candidate.
         shift, sim = best_shift(usa, europe, start, end, radius=64)
         metrics = compare_roles(ud, ed, usa, europe, start, end, shift)
+        if metrics["aligned_opcode_pairs"] == 0:
+            raise RuntimeError(
+                f"{region['name']}: seeded snes2asm still found zero aligned opcode pairs"
+            )
         rows.append({
             **region,
             "usa_file_start": start,
@@ -103,6 +135,7 @@ def build() -> dict:
         "aligned_role_disagreements": sum(x["aligned_role_disagreements"] for x in rows),
         "aligned_mx_disagreements": sum(x["aligned_mx_disagreements"] for x in rows),
         "zero_role_disagreement_regions": sum(x["aligned_role_disagreements"] == 0 for x in rows),
+        "aligned_opcode_pairs": sum(x["aligned_opcode_pairs"] for x in rows),
     }
     return {
         "schema_version": 1,
@@ -112,6 +145,7 @@ def build() -> dict:
             "analyzer": "vendored snes2asm",
             "boundaries": "Nitrodon/control-flow recovered boundaries",
             "alignment": "per executable subregion raw-byte similarity within +/-64 bytes",
+            "reachability": "default vector walk plus independently trusted function-entry seeds",
             "promotion_rule": "only residual role/MX disagreement after homolog alignment is an analyzer-adjudication candidate",
         },
         "totals": totals,
@@ -125,6 +159,7 @@ def render(report: dict) -> str:
         "# Europe/USA selected snes2asm homolog comparison",
         "",
         f"Executable subregions compared: **{t['regions']}**.",
+        f"Aligned opcode pairs: **{t['aligned_opcode_pairs']}**.",
         f"Aligned role disagreements: **{t['aligned_role_disagreements']}**.",
         f"Aligned M/X disagreements: **{t['aligned_mx_disagreements']}**.",
         f"Zero-role-disagreement subregions: **{t['zero_role_disagreement_regions']} / {t['regions']}**.",

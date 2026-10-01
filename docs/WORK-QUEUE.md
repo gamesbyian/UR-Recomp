@@ -18,6 +18,19 @@ Immediate order:
 
 Do not chase semantic completeness uniformly. Prioritize code that is executed, divergent, hardware-facing, or a dependency of physics/course/rendering behavior.
 
+### Semantic propagation pass
+
+A high-confidence semantic discovery is not finished when it is named or documented. Before closing the discovery, perform a **bounded propagation pass** when doing so can illuminate the shipping critical path:
+
+1. enumerate direct readers, writers, callers, callees, pointers and referenced tables;
+2. look for sibling structures and repeated access patterns, especially P1/P2, current-player/stable-player, adjacent fields, parallel tables and structurally similar routines;
+3. propagate the label across comparative-ROM matches only where structural evidence supports it, preserving provenance and confidence;
+4. test whether the new meaning resolves or constrains an existing decompilation gap, fidelity mismatch, course/rendering unknown, or recovered-source ambiguity;
+5. turn useful consequences into the existing authoritative surfaces: `SYMBOLS.md`, research-ledger entries, comparative-atlas metadata, fixtures, parsers, tests, or the owning queue item;
+6. record promising downstream hypotheses only when there is a cheap discriminator or concrete implementation decision they can affect.
+
+Treat this as semantic **fan-out**, not an invitation to recursively reverse engineer everything nearby. Apply the value-of-information rule at each hop and stop when the next expansion would no longer change a current decision, unlock downstream work, or produce cheap reusable knowledge.
+
 ## Infrastructure maintenance — Island / offline toolchain
 
 Canonical execution plan: `docs/ISLAND-TOOLCHAIN-PLAN.md`.

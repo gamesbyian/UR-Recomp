@@ -5,7 +5,15 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from mesen_mcp.session import _extract_rom_from_zip
+from mesen_mcp.session import _bridge_startup_timeout, _extract_rom_from_zip
+
+
+class BridgeStartupTimeoutTests(unittest.TestCase):
+    def test_respects_short_session_timeout(self) -> None:
+        self.assertEqual(_bridge_startup_timeout(8), 8.0)
+
+    def test_caps_long_session_timeout(self) -> None:
+        self.assertEqual(_bridge_startup_timeout(300), 60.0)
 
 
 class ZipRomTests(unittest.TestCase):

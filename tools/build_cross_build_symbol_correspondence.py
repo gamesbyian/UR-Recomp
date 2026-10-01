@@ -100,7 +100,7 @@ def build_function_correspondences(corpus: dict) -> list[dict]:
                 "build": build,
                 "candidate": top["cpu_address"],
                 "byte_similarity": sim,
-                "same_address": top["same_address"],
+                "same_address": top["same_offset_as_usa"],
                 "evidence_tier": tier,
             })
     rows.sort(key=lambda x: (x["build"], x["name"]))

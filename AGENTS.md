@@ -21,6 +21,7 @@ Compact router for coding and research agents. Load the smallest current authori
 | Original DMA development history / missing artifacts | `docs/original-development/DEVELOPER-TECHNICAL-HISTORY.md`, `docs/original-development/ACQUISITION-LEDGER.md` |
 | External source, acquisition lead, or imported research artifact | `docs/EXTERNAL-EVIDENCE-INTAKE.md`, `reference/evidence-worklist.json`, `reference/catalog.yml`, then `docs/THIRD-PARTY-CODE-AUDIT.md` as applicable |
 | Tool choice / installing research software | `docs/TOOLCHAIN.md`, `tools/toolchain.json`; for producer/consumer chains and adapters, `docs/TOOL-INTEROPERABILITY.md` |
+| AI/LLM-assisted reverse-engineering method | `docs/AI-ASSISTED-REVERSE-ENGINEERING.md`; apply it as technique guidance, not as a second work queue |
 | Adopting or adapting imported scripts/source | `docs/THIRD-PARTY-CODE-AUDIT.md`, then the imported source |
 | Periodic repository hygiene | Execute `docs/PERIODIC-REPOSITORY-HYGIENE.md` from current `main` |
 
@@ -68,6 +69,10 @@ At present the critical path is: first native/reference divergence → semantic 
 25. Escalate evidence progressively: existing artifact/documentation → one bounded observation → targeted state/frame/write capture → first-divergence trace → independent-core/hardware corroboration. Skip levels only when the cheaper level cannot answer the actual question.
 26. For video/frame work, search coarsely first and inspect narrowly. Use hashes/deltas/timestamps/state anchors to localize the interesting interval; do not manually inspect or enhance long frame ranges when a binary search or machine comparison can reduce the search space.
 27. Stop when the next measurement is unlikely to change implementation, priority, confidence category, or a validation gate. “More evidence” is not itself a deliverable.
+28. For opaque RE questions, give the agent a compact semantic neighborhood before broad dumps: callers/callees, xrefs, relevant state/PPU accesses, dynamic participation, competing hypotheses, and the smallest useful trace window.
+29. Prefer the narrow debugger primitive that answers the question: writer watch → execution breakpoint → code/data coverage → bounded trace → full trace only if needed.
+30. The mechanical oracle decides. Model confidence, documentation completeness, decompiler output, or agreement between agents never substitutes for deterministic bytes/state/execution evidence when a falsifiable check exists.
+31. When a bounded approach repeatedly fails to reduce uncertainty, record why and what new evidence would justify retrying before another agent repeats it. Use an existing owning ledger/doc unless repetition becomes common enough to justify a dedicated dead-end artifact.
 
 ## Research before reinvention
 

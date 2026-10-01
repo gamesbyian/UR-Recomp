@@ -31,6 +31,16 @@ A high-confidence semantic discovery is not finished when it is named or documen
 
 Treat this as semantic **fan-out**, not an invitation to recursively reverse engineer everything nearby. Apply the value-of-information rule at each hop and stop when the next expansion would no longer change a current decision, unlock downstream work, or produce cheap reusable knowledge.
 
+### Community / AI reverse-engineering accelerants
+
+Use `docs/AI-ASSISTED-REVERSE-ENGINEERING.md` as method guidance while working the critical path. These are optional accelerants, not new blocking milestones:
+
+- [ ] Verify the canonical game's controller-poll/replay boundary once, including whether lag or multiple polls can invalidate frame-index assumptions. Promote only the invariant needed by deterministic fixtures.
+- [ ] Trial execution-coverage/CDL deltas on one already-understood causal A/B pair (for example clean vs failed landing, neutral vs stunt, or P1-only vs P2-only). Keep the technique only if it narrows code discovery more cheaply than existing xref/write-trace routes.
+- [ ] When an important routine remains opaque after targeted tracing, use a bounded one-variable perturbation matrix from a shared checkpoint and cluster outcomes/first divergences before attempting broader decompilation.
+- [ ] For future Ghidra-heavy passes, stabilize processor context/signatures/types before semantic naming/comments, then finish with a mechanical contradiction/falsification check. Do not add a new Ghidra dependency unless existing pinned/manual surfaces cannot support the needed experiment.
+
+
 ## Infrastructure maintenance — Island / offline toolchain
 
 Canonical execution plan: `docs/ISLAND-TOOLCHAIN-PLAN.md`.

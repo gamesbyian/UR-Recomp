@@ -5,8 +5,10 @@
       "byte_similarity": 0.96875,
       "candidate": "81:9E1B",
       "evidence_tier": "strong",
+      "matcher_score": 0.634375,
       "name": "Collision_BuildContactShape",
       "same_address": false,
+      "semantic_reference_recall": 0.0,
       "usa": "81:9E2A"
     },
     {
@@ -14,8 +16,10 @@
       "byte_similarity": 0.910714,
       "candidate": "81:952C",
       "evidence_tier": "strong",
+      "matcher_score": 0.83869,
       "name": "Collision_TransformVelocity",
       "same_address": false,
+      "semantic_reference_recall": 0.666667,
       "usa": "81:9546"
     },
     {
@@ -23,8 +27,10 @@
       "byte_similarity": 0.90625,
       "candidate": "82:E12B",
       "evidence_tier": "strong",
+      "matcher_score": 0.766458,
       "name": "Course_LoadAndMaterialize",
       "same_address": false,
+      "semantic_reference_recall": 0.466667,
       "usa": "82:E165"
     },
     {
@@ -32,17 +38,21 @@
       "byte_similarity": 0.635417,
       "candidate": "81:C59C",
       "evidence_tier": "candidate",
+      "matcher_score": 0.467708,
       "name": "HUD_QueueMessage",
       "same_address": false,
+      "semantic_reference_recall": 0.0,
       "usa": "81:C5B3"
     },
     {
       "build": "europe-retail",
       "byte_similarity": 0.709821,
       "candidate": "82:ACAC",
-      "evidence_tier": "candidate",
+      "evidence_tier": "supported",
+      "matcher_score": 0.668244,
       "name": "Race_BuildRacerOAMState",
       "same_address": false,
+      "semantic_reference_recall": 0.466667,
       "usa": "82:ACA5"
     },
     {
@@ -50,26 +60,32 @@
       "byte_similarity": 0.504167,
       "candidate": "81:8042",
       "evidence_tier": "candidate",
+      "matcher_score": 0.402083,
       "name": "Race_HandleCheckpointFinish",
       "same_address": false,
+      "semantic_reference_recall": 0.0,
       "usa": "81:8050"
     },
     {
       "build": "europe-retail",
       "byte_similarity": 0.678906,
       "candidate": "82:89CC",
-      "evidence_tier": "candidate",
+      "evidence_tier": "supported",
+      "matcher_score": 0.71218,
       "name": "Race_UpdateRacersFrame",
       "same_address": false,
+      "semantic_reference_recall": 0.636364,
       "usa": "82:89B9"
     },
     {
       "build": "europe-retail",
       "byte_similarity": 0.706473,
       "candidate": "82:9A53",
-      "evidence_tier": "candidate",
+      "evidence_tier": "supported",
+      "matcher_score": 0.590737,
       "name": "Stunt_FinalizeAndScoreAirTricks",
       "same_address": false,
+      "semantic_reference_recall": 0.25,
       "usa": "82:9A42"
     },
     {
@@ -77,8 +93,10 @@
       "byte_similarity": 1.0,
       "candidate": "81:9E2A",
       "evidence_tier": "exact",
+      "matcher_score": 1.0,
       "name": "Collision_BuildContactShape",
       "same_address": true,
+      "semantic_reference_recall": 1.0,
       "usa": "81:9E2A"
     },
     {
@@ -86,8 +104,10 @@
       "byte_similarity": 1.0,
       "candidate": "81:9546",
       "evidence_tier": "exact",
+      "matcher_score": 1.0,
       "name": "Collision_TransformVelocity",
       "same_address": true,
+      "semantic_reference_recall": 1.0,
       "usa": "81:9546"
     },
     {
@@ -95,8 +115,10 @@
       "byte_similarity": 1.0,
       "candidate": "82:E165",
       "evidence_tier": "exact",
+      "matcher_score": 1.0,
       "name": "Course_LoadAndMaterialize",
       "same_address": true,
+      "semantic_reference_recall": 1.0,
       "usa": "82:E165"
     },
     {
@@ -104,8 +126,10 @@
       "byte_similarity": 1.0,
       "candidate": "81:C5B3",
       "evidence_tier": "exact",
+      "matcher_score": 1.0,
       "name": "HUD_QueueMessage",
       "same_address": true,
+      "semantic_reference_recall": 1.0,
       "usa": "81:C5B3"
     },
     {
@@ -113,8 +137,10 @@
       "byte_similarity": 1.0,
       "candidate": "82:ACA5",
       "evidence_tier": "exact",
+      "matcher_score": 1.0,
       "name": "Race_BuildRacerOAMState",
       "same_address": true,
+      "semantic_reference_recall": 1.0,
       "usa": "82:ACA5"
     },
     {
@@ -122,8 +148,10 @@
       "byte_similarity": 1.0,
       "candidate": "81:8050",
       "evidence_tier": "exact",
+      "matcher_score": 1.0,
       "name": "Race_HandleCheckpointFinish",
       "same_address": true,
+      "semantic_reference_recall": 1.0,
       "usa": "81:8050"
     },
     {
@@ -131,8 +159,10 @@
       "byte_similarity": 1.0,
       "candidate": "82:89B9",
       "evidence_tier": "exact",
+      "matcher_score": 1.0,
       "name": "Race_UpdateRacersFrame",
       "same_address": true,
+      "semantic_reference_recall": 1.0,
       "usa": "82:89B9"
     },
     {
@@ -140,8 +170,10 @@
       "byte_similarity": 1.0,
       "candidate": "82:9A42",
       "evidence_tier": "exact",
+      "matcher_score": 1.0,
       "name": "Stunt_FinalizeAndScoreAirTricks",
       "same_address": true,
+      "semantic_reference_recall": 1.0,
       "usa": "82:9A42"
     },
     {
@@ -149,8 +181,10 @@
       "byte_similarity": 0.990809,
       "candidate": "81:9E0A",
       "evidence_tier": "strong",
+      "matcher_score": 0.645404,
       "name": "Collision_BuildContactShape",
       "same_address": false,
+      "semantic_reference_recall": 0.0,
       "usa": "81:9E2A"
     },
     {
@@ -158,8 +192,10 @@
       "byte_similarity": 0.946429,
       "candidate": "81:9526",
       "evidence_tier": "strong",
+      "matcher_score": 0.856548,
       "name": "Collision_TransformVelocity",
       "same_address": false,
+      "semantic_reference_recall": 0.666667,
       "usa": "81:9546"
     },
     {
@@ -167,8 +203,10 @@
       "byte_similarity": 0.916667,
       "candidate": "82:E101",
       "evidence_tier": "strong",
+      "matcher_score": 0.841667,
       "name": "Course_LoadAndMaterialize",
       "same_address": false,
+      "semantic_reference_recall": 0.666667,
       "usa": "82:E165"
     },
     {
@@ -176,17 +214,21 @@
       "byte_similarity": 0.96875,
       "candidate": "81:C590",
       "evidence_tier": "strong",
+      "matcher_score": 0.984375,
       "name": "HUD_QueueMessage",
       "same_address": false,
+      "semantic_reference_recall": 1.0,
       "usa": "81:C5B3"
     },
     {
       "build": "pal-prototype-1994-11-29",
       "byte_similarity": 0.773438,
       "candidate": "82:AC96",
-      "evidence_tier": "supported",
+      "evidence_tier": "strong",
+      "matcher_score": 0.840052,
       "name": "Race_BuildRacerOAMState",
       "same_address": false,
+      "semantic_reference_recall": 0.866667,
       "usa": "82:ACA5"
     },
     {
@@ -194,26 +236,32 @@
       "byte_similarity": 0.870833,
       "candidate": "81:8050",
       "evidence_tier": "supported",
+      "matcher_score": 0.585417,
       "name": "Race_HandleCheckpointFinish",
       "same_address": true,
+      "semantic_reference_recall": 0.0,
       "usa": "81:8050"
     },
     {
       "build": "pal-prototype-1994-11-29",
       "byte_similarity": 0.778906,
       "candidate": "82:89B6",
-      "evidence_tier": "supported",
+      "evidence_tier": "strong",
+      "matcher_score": 0.825817,
       "name": "Race_UpdateRacersFrame",
       "same_address": false,
+      "semantic_reference_recall": 0.818182,
       "usa": "82:89B9"
     },
     {
       "build": "pal-prototype-1994-11-29",
       "byte_similarity": 0.72433,
       "candidate": "82:9A3D",
-      "evidence_tier": "supported",
+      "evidence_tier": "strong",
+      "matcher_score": 0.774665,
       "name": "Stunt_FinalizeAndScoreAirTricks",
       "same_address": false,
+      "semantic_reference_recall": 0.75,
       "usa": "82:9A42"
     }
   ],

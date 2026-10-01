@@ -1441,3 +1441,23 @@ A separate trusted-entry operand scan corroborates the family transitions withou
 
 **Evidence:** `tools/compare_semantic_anchors.py`; `tools/build_wram_motion_atlas.py`; `tools/probe_wram_insertion_brackets.py`; `analysis/generated/wram-motion-atlas.{json,md}`; `analysis/generated/wram-insertion-bracket-probe.{json,md}`; Nitrodon bank-81/bank-82 listings.
 
+### R-SEED-060 — Europe controller-buffer shift is not extra auto-joypad capture state
+
+**Status:** negative result; insertion semantics remain open  
+**Date:** 2026-09-30  
+**Area:** WRAM | input | regional lineage
+
+The final trusted inserted-state probe seeded every accepted semantic anchor and searched the two narrow post-prototype insertion neighborhoods.
+
+For the first +4 bracket, Europe retail has **no trusted direct references to `030A..0310`**. USA and the PAL prototype reference the old raw-controller bytes `030D..0310`; Europe instead uses the relocated controller buffer beginning at `0311`.
+
+The recovered Europe auto-joypad capture sequence still reads only SNES auto-joypad registers `4218..421B`; there are no trusted reads of `421C..421F`. Europe prepends width-state setup and stores the four captured bytes at `0311/0313/0312/0314`, preserving the same four-byte controller payload after the +4 WRAM displacement.
+
+Therefore the four inserted bytes before the old controller block are **not explained by expanded controller-register capture**. Within the trusted direct-address corpus they are currently unreferenced; padding, reserved state, indexed/indirect access, or as-yet-unrecovered use remain possible.
+
+For the second +2 bracket, the only numerically Europe-only trusted operand inside `053C..0546` is `053D`, which is fully explained as the established +4 relocation target of USA/prototype `0539`. No unexplained Europe direct operand is present in that inserted neighborhood either.
+
+**Interpretation:** absence of direct references is meaningful negative evidence but does not prove padding. Do not assign semantics to either inserted span without direct indexed/runtime evidence.
+
+**Evidence:** `tools/probe_wram_insertion_brackets.py`; `analysis/generated/wram-insertion-bracket-probe.{json,md}`; run `36819609931` and final refreshed evidence.
+

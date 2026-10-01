@@ -7,7 +7,7 @@ import argparse
 import json
 from pathlib import Path
 
-from tools.trace_native_wram_writers import command, connect
+from trace_native_wram_writers import command, connect
 
 
 def main() -> int:

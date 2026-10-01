@@ -34,18 +34,22 @@
     {
       "id": "stunt-finalizer",
       "path": "analysis/generated/stunt-finalizer-structure-island.json"
+    },
+    {
+      "id": "stunt-message-pipeline",
+      "path": "analysis/generated/stunt-message-pipeline-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 65,
-    "code_regions": 58,
-    "data_regions": 7,
-    "bounded_bytes": 7413,
-    "bounded_code_region_bytes": 6550,
-    "bounded_data_region_bytes": 863,
-    "analyzer_opcode_bytes": 2743,
-    "analyzer_operand_bytes": 3745,
-    "analyzer_unreached_or_data_bytes": 925,
+    "regions": 73,
+    "code_regions": 65,
+    "data_regions": 8,
+    "bounded_bytes": 8733,
+    "bounded_code_region_bytes": 7588,
+    "bounded_data_region_bytes": 1145,
+    "analyzer_opcode_bytes": 3182,
+    "analyzer_operand_bytes": 4344,
+    "analyzer_unreached_or_data_bytes": 1207,
     "banks": [
       "81",
       "82",
@@ -1019,6 +1023,350 @@
           "shift": 0,
           "similarity": 1,
           "size": 383,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-message-pipeline",
+      "source_path": "analysis/generated/stunt-message-pipeline-structure-island.json",
+      "name": "message_consume_pre_cleanup",
+      "kind": "code",
+      "usa_start": "81:C0DD",
+      "usa_end": "81:C24A",
+      "size": 366,
+      "usa_opcode_bytes": 158,
+      "usa_operand_bytes": 208,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:C0CE",
+          "end": "81:C23B",
+          "shift": -15,
+          "similarity": 0.915301,
+          "size": 366,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:C0DD",
+          "end": "81:C24A",
+          "shift": 0,
+          "similarity": 1,
+          "size": 366,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:C0BD",
+          "end": "81:C22A",
+          "shift": -32,
+          "similarity": 0.939891,
+          "size": 366,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:C0DD",
+          "end": "81:C24A",
+          "shift": 0,
+          "similarity": 1,
+          "size": 366,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-message-pipeline",
+      "source_path": "analysis/generated/stunt-message-pipeline-structure-island.json",
+      "name": "pal_line_removed_nops",
+      "kind": "code",
+      "usa_start": "81:C24B",
+      "usa_end": "81:C24D",
+      "size": 3,
+      "usa_opcode_bytes": 3,
+      "usa_operand_bytes": 0,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "legacy-beta": {
+          "start": "81:C24B",
+          "end": "81:C24D",
+          "shift": 0,
+          "similarity": 1,
+          "size": 3,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:C24B",
+          "end": "81:C24D",
+          "shift": 0,
+          "similarity": 1,
+          "size": 3,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-message-pipeline",
+      "source_path": "analysis/generated/stunt-message-pipeline-structure-island.json",
+      "name": "message_consume_post_cleanup",
+      "kind": "code",
+      "usa_start": "81:C24E",
+      "usa_end": "81:C368",
+      "size": 283,
+      "usa_opcode_bytes": 120,
+      "usa_operand_bytes": 163,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:C23C",
+          "end": "81:C356",
+          "shift": -18,
+          "similarity": 0.943463,
+          "size": 283,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:C24E",
+          "end": "81:C368",
+          "shift": 0,
+          "similarity": 1,
+          "size": 283,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:C22B",
+          "end": "81:C345",
+          "shift": -35,
+          "similarity": 0.939929,
+          "size": 283,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:C24E",
+          "end": "81:C368",
+          "shift": 0,
+          "similarity": 1,
+          "size": 283,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-message-pipeline",
+      "source_path": "analysis/generated/stunt-message-pipeline-structure-island.json",
+      "name": "score_display_prefix",
+      "kind": "code",
+      "usa_start": "81:C369",
+      "usa_end": "81:C371",
+      "size": 9,
+      "usa_opcode_bytes": 3,
+      "usa_operand_bytes": 6,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:C357",
+          "end": "81:C35F",
+          "shift": -18,
+          "similarity": 1,
+          "size": 9,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:C369",
+          "end": "81:C371",
+          "shift": 0,
+          "similarity": 1,
+          "size": 9,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:C346",
+          "end": "81:C34E",
+          "shift": -35,
+          "similarity": 1,
+          "size": 9,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:C369",
+          "end": "81:C371",
+          "shift": 0,
+          "similarity": 1,
+          "size": 9,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-message-pipeline",
+      "source_path": "analysis/generated/stunt-message-pipeline-structure-island.json",
+      "name": "score_display_usa_gate",
+      "kind": "code",
+      "usa_start": "81:C372",
+      "usa_end": "81:C37E",
+      "size": 13,
+      "usa_opcode_bytes": 5,
+      "usa_operand_bytes": 8,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "legacy-beta": {
+          "start": "81:C372",
+          "end": "81:C37E",
+          "shift": 0,
+          "similarity": 1,
+          "size": 13,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:C34F",
+          "end": "81:C35B",
+          "shift": -35,
+          "similarity": 0.846154,
+          "size": 13,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:C372",
+          "end": "81:C37E",
+          "shift": 0,
+          "similarity": 1,
+          "size": 13,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-message-pipeline",
+      "source_path": "analysis/generated/stunt-message-pipeline-structure-island.json",
+      "name": "score_display_suffix",
+      "kind": "code",
+      "usa_start": "81:C37F",
+      "usa_end": "81:C457",
+      "size": 217,
+      "usa_opcode_bytes": 88,
+      "usa_operand_bytes": 129,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:C368",
+          "end": "81:C440",
+          "shift": -23,
+          "similarity": 0.870968,
+          "size": 217,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:C37F",
+          "end": "81:C457",
+          "shift": 0,
+          "similarity": 1,
+          "size": 217,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:C35C",
+          "end": "81:C434",
+          "shift": -35,
+          "similarity": 0.870968,
+          "size": 217,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:C37F",
+          "end": "81:C457",
+          "shift": 0,
+          "similarity": 1,
+          "size": 217,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-message-pipeline",
+      "source_path": "analysis/generated/stunt-message-pipeline-structure-island.json",
+      "name": "message_reward_lookup_block",
+      "kind": "data",
+      "usa_start": "81:C458",
+      "usa_end": "81:C571",
+      "size": 282,
+      "usa_opcode_bytes": 0,
+      "usa_operand_bytes": 0,
+      "usa_unreached_or_data_bytes": 282,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:C441",
+          "end": "81:C55A",
+          "shift": -23,
+          "similarity": 1,
+          "size": 282,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:C458",
+          "end": "81:C571",
+          "shift": 0,
+          "similarity": 1,
+          "size": 282,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:C435",
+          "end": "81:C54E",
+          "shift": -35,
+          "similarity": 1,
+          "size": 282,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:C458",
+          "end": "81:C571",
+          "shift": 0,
+          "similarity": 1,
+          "size": 282,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "stunt-message-pipeline",
+      "source_path": "analysis/generated/stunt-message-pipeline-structure-island.json",
+      "name": "queue_long_entry_and_helpers",
+      "kind": "code",
+      "usa_start": "81:C572",
+      "usa_end": "81:C604",
+      "size": 147,
+      "usa_opcode_bytes": 62,
+      "usa_operand_bytes": 85,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:C55B",
+          "end": "81:C5ED",
+          "shift": -23,
+          "similarity": 0.809524,
+          "size": 147,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:C572",
+          "end": "81:C604",
+          "shift": 0,
+          "similarity": 1,
+          "size": 147,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:C54F",
+          "end": "81:C5E1",
+          "shift": -35,
+          "similarity": 0.959184,
+          "size": 147,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:C572",
+          "end": "81:C604",
+          "shift": 0,
+          "similarity": 1,
+          "size": 147,
           "size_delta": 0
         }
       }

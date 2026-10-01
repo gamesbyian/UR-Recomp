@@ -129,6 +129,14 @@
       "summary": "Recovered the complete stunt-finalization/scoring routine plus its three score-weight tables and 625-byte trick/praise lookup. USA/beta are byte-identical; PAL prototype and Europe omit five USA/beta NOPs at 82:9D09..9D0D, while all four scoring tables remain byte-identical across every build.",
       "priority": "low",
       "next_evidence": "Revisit individual praise-table semantics only for stunt-scoring/message implementation or a concrete fidelity discrepancy. Comparative structure work should move to a ninth independent subsystem."
+    },
+    {
+      "id": "resolved-stunt-message-pipeline-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:C0DD..C604 and homologs",
+      "summary": "Recovered the complete stunt-message/reward/display pipeline as seven code regions plus one 282-byte embedded lookup block. PAL-line builds remove three USA/beta NOPs; Europe additionally contracts the two-player display gate by five bytes. The corrected C458..C571 lookup block is byte-identical across all four ROMs, and C572..C575 is executable JSR/RTL wrapper code rather than data.",
+      "priority": "low",
+      "next_evidence": "Decode individual lookup entries only for HUD/message implementation or a concrete scoring/boost discrepancy. Comparative structure work should move to a tenth independent subsystem."
     }
   ]
 }

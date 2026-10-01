@@ -1674,3 +1674,21 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 **Propagation:** added ten regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **65 regions / 7,413 bounded USA bytes**, including **6,550 code-region bytes**, **863 data bytes**, and **2,743 analyzer opcode bytes**.
 
+### R-SEED-069 — Stunt-message pipeline closes the finalizer→queue→reward/display chain
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | stunt scoring | HUD | message queues | comparative atlas
+
+**Observation:** USA `81:C0DD..C604` is a connected 1,320-byte subsystem that consumes queued stunt-message IDs for both players, applies stunt-score and boost rewards, converts backing scores into display digits, exposes embedded message/reward lookup data, and appends new messages through the queue helper at `C5B3`.
+
+**Evidence:** `tools/analyze_stunt_message_pipeline_structure_island.py`; `analysis/generated/stunt-message-pipeline-structure-island.{json,md}`; ROM-backed project-tooling runs culminating in `36934577086`. Trusted regional entry seeding reaches every accepted executable byte. USA and legacy beta are byte-identical.
+
+**Interpretation:** the PAL prototype and Europe both omit the three USA/beta NOPs at `81:C24B..C24D`, shifting the later prototype stream from -32 to -35 and Europe from -15 to -18. Europe alone then replaces USA/prototype `81:C372..C37E` (13 bytes) with `81:C360..C367` (8 bytes), a compact equivalent two-player score-display gate that moves subsequent Europe code to shift -23. The apparent one-byte difference in the old embedded-data span was not data at all: USA `C572..C575` is executable `JSR $C576; RTL`, and its relocated JSR operand changes naturally in regional builds. The corrected data block `C458..C571` is 282 bytes and byte-identical across all four ROMs.
+
+**Discriminating test:** no further code/data or lineage-boundary work is needed. Individual meanings inside the overlapping message/action, boost-reward and record-mapping lookup views should be decoded only when implementing HUD/message behavior or validating a concrete scoring discrepancy.
+
+**Dependencies:** Nitrodon bank-81 listing; recovered `HUD_QueueMessage` homologs; stunt-finalizer producer semantics; trusted-entry snes2asm; four-ROM corpus.
+
+**Propagation:** added eight regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **73 regions / 8,733 bounded USA bytes**, including **7,588 code-region bytes**, **1,145 data bytes**, and **3,182 analyzer opcode bytes**. This closes a direct implementation chain from stunt recognition/scoring through delayed queue consumption, persistent score/boost mutation, and display-state refresh.
+

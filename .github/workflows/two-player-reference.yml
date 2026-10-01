@@ -429,6 +429,35 @@ jobs:
                           "native_working_vx",a["working_vx"],
                           "snes9x_working_vx",b["working_vx"],
                       )
+                  if frame == 1532:
+                      # Static bank-82 control flow: P1 calls the small-speed
+                      # nudge at 82:A5F3 only when $0302 != 0; P2 calls it only
+                      # when $0302 == 0. With opposite scheduler phase, exactly
+                      # one runtime should apply the one-unit nudge to the
+                      # actively driven racer on this frame.
+                      p1=variant.startswith("p1-")
+                      native_eligible=(a["phase2"] != 0) if p1 else (a["phase2"] == 0)
+                      snes9x_eligible=(b["phase2"] != 0) if p1 else (b["phase2"] == 0)
+                      assert native_eligible != snes9x_eligible, (
+                          f"{variant}: frame 1532 does not discriminate A5F3 eligibility: "
+                          f"native phase2={a['phase2']} snes9x phase2={b['phase2']}"
+                      )
+                      assert abs(a["vx"]-b["vx"]) == 1, (
+                          f"{variant}: expected one-unit frame-1532 speed seam, got "
+                          f"native={a['vx']} snes9x={b['vx']}"
+                      )
+                      nudged=a["vx"] if native_eligible else b["vx"]
+                      skipped=b["vx"] if native_eligible else a["vx"]
+                      assert abs(nudged) + 1 == abs(skipped), (
+                          f"{variant}: eligible runtime did not move speed one unit toward zero: "
+                          f"eligible={nudged} skipped={skipped}"
+                      )
+                      print(
+                          "A5F3_PHASE_GATE_CONFIRMED",variant,
+                          "native_eligible",native_eligible,
+                          "snes9x_eligible",snes9x_eligible,
+                          "nudged_vx",nudged,"skipped_vx",skipped,
+                      )
               print("FIRST_VARIANT_SEMANTIC_DRIFT",variant,first or "MATCH_THROUGH_1554")
           PY
 

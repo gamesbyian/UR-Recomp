@@ -143,6 +143,13 @@ ANCHORS = (
         "Recovered Nitrodon routine: bounded vertical-acceleration update through RTS at 82:A9AB.",
     ),
     Anchor(
+        "State0309_TextLoopCounter",
+        "81:BF6D",
+        0x50,
+        (0x0309, 0x1283, 0x12A5, 0x0E9D, 0x0EDD),
+        "Bounded recovered text/state loop through the first return path; used only to track unnamed $0309 across builds.",
+    ),
+    Anchor(
         "State0306_DmaGate",
         "82:B8AB",
         0x40,

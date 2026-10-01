@@ -143,6 +143,14 @@ ANCHORS = (
         "Landing-time stunt classification, messages, counters, and score path.",
     ),
     Anchor(
+        "Input_CaptureAutoJoypad",
+        "80:85E4",
+        0x20,
+        (0x030D, 0x030E, 0x030F, 0x0310,
+         0x4218, 0x4219, 0x421A, 0x421B, 0x421C, 0x421D, 0x421E, 0x421F),
+        "Recovered auto-joypad capture sequence; tracks whether Europe expanded the four-byte raw-controller capture area or added extra controller-register reads.",
+    ),
+    Anchor(
         "Text_TestCharacterMetadataBit7",
         "80:8C41",
         0x0D,

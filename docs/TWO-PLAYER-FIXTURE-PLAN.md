@@ -110,6 +110,11 @@ Current promotion-gate status:
 
 The promoted ordinary-2P fixture now exposes the recovered dual-camera and split-screen projection state through `tools/summarize_paired_player_slots.py`.
 
+Recovered multiplayer mode/culling state:
+
+- `$0DDB`: raw split-screen/multiplayer camera-path enable. It is set from the setup flag at `83:C9C0..C9C6` and gates camera-2 updates, dual-window course sampling, split-screen OAM/HDMA setup, and alternate race paths;
+- `$121B/$121D`: per-racer off-screen flags used alongside the screen-relative OAM staging.
+
 Recovered camera state:
 
 - camera 1 position: `$0419/$041D`;

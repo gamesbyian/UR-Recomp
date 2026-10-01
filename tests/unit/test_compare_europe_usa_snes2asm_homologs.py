@@ -19,6 +19,14 @@ class EuropeUsaHomologToolTests(unittest.TestCase):
 
     def test_render_separates_structural_delta_from_comparable_consensus(self):
         report = {
+            "checkpoint_frame_normalization_lineage": {
+                "builds": {
+                    "usa-retail": {"style": "usa-style-22-byte"},
+                    "legacy-beta": {"style": "usa-style-22-byte"},
+                    "pal-prototype-1994-11-29": {"style": "usa-style-22-byte"},
+                    "europe-retail": {"style": "europe-style-8-byte"},
+                }
+            },
             "totals": {
                 "regions": 2,
                 "comparable_homolog_regions": 1,

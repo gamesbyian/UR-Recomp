@@ -1,0 +1,6682 @@
+{
+  "builds": {
+    "europe-retail": {
+      "end": "81:8CF3",
+      "opcode_bytes": 167,
+      "operand_bytes": 216,
+      "role_spans": [
+        {
+          "end": "81:8B75",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B75"
+        },
+        {
+          "end": "81:8B77",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B76"
+        },
+        {
+          "end": "81:8B78",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B78"
+        },
+        {
+          "end": "81:8B79",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8B79"
+        },
+        {
+          "end": "81:8B7A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B7A"
+        },
+        {
+          "end": "81:8B7C",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B7B"
+        },
+        {
+          "end": "81:8B7D",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B7D"
+        },
+        {
+          "end": "81:8B7F",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B7E"
+        },
+        {
+          "end": "81:8B80",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B80"
+        },
+        {
+          "end": "81:8B81",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8B81"
+        },
+        {
+          "end": "81:8B82",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B82"
+        },
+        {
+          "end": "81:8B84",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B83"
+        },
+        {
+          "end": "81:8B85",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B85"
+        },
+        {
+          "end": "81:8B87",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B86"
+        },
+        {
+          "end": "81:8B88",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B88"
+        },
+        {
+          "end": "81:8B89",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8B89"
+        },
+        {
+          "end": "81:8B8A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B8A"
+        },
+        {
+          "end": "81:8B8C",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B8B"
+        },
+        {
+          "end": "81:8B8D",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B8D"
+        },
+        {
+          "end": "81:8B8F",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B8E"
+        },
+        {
+          "end": "81:8B90",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B90"
+        },
+        {
+          "end": "81:8B92",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B91"
+        },
+        {
+          "end": "81:8B93",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B93"
+        },
+        {
+          "end": "81:8B95",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B94"
+        },
+        {
+          "end": "81:8B96",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B96"
+        },
+        {
+          "end": "81:8B97",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8B97"
+        },
+        {
+          "end": "81:8B98",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B98"
+        },
+        {
+          "end": "81:8B9A",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B99"
+        },
+        {
+          "end": "81:8B9B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B9B"
+        },
+        {
+          "end": "81:8B9D",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B9C"
+        },
+        {
+          "end": "81:8B9E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B9E"
+        },
+        {
+          "end": "81:8B9F",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8B9F"
+        },
+        {
+          "end": "81:8BA0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BA0"
+        },
+        {
+          "end": "81:8BA2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BA1"
+        },
+        {
+          "end": "81:8BA3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BA3"
+        },
+        {
+          "end": "81:8BA4",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BA4"
+        },
+        {
+          "end": "81:8BA6",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8BA5"
+        },
+        {
+          "end": "81:8BA8",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BA7"
+        },
+        {
+          "end": "81:8BAB",
+          "role": "opcode",
+          "size": 3,
+          "start": "81:8BA9"
+        },
+        {
+          "end": "81:8BAD",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BAC"
+        },
+        {
+          "end": "81:8BAE",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BAE"
+        },
+        {
+          "end": "81:8BAF",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BAF"
+        },
+        {
+          "end": "81:8BB0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BB0"
+        },
+        {
+          "end": "81:8BB2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BB1"
+        },
+        {
+          "end": "81:8BB3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BB3"
+        },
+        {
+          "end": "81:8BB4",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BB4"
+        },
+        {
+          "end": "81:8BB5",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BB5"
+        },
+        {
+          "end": "81:8BB7",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BB6"
+        },
+        {
+          "end": "81:8BB8",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BB8"
+        },
+        {
+          "end": "81:8BB9",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BB9"
+        },
+        {
+          "end": "81:8BBA",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BBA"
+        },
+        {
+          "end": "81:8BBC",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BBB"
+        },
+        {
+          "end": "81:8BBD",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BBD"
+        },
+        {
+          "end": "81:8BBE",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BBE"
+        },
+        {
+          "end": "81:8BBF",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BBF"
+        },
+        {
+          "end": "81:8BC1",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BC0"
+        },
+        {
+          "end": "81:8BC2",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BC2"
+        },
+        {
+          "end": "81:8BC3",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BC3"
+        },
+        {
+          "end": "81:8BC4",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BC4"
+        },
+        {
+          "end": "81:8BC5",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BC5"
+        },
+        {
+          "end": "81:8BC6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BC6"
+        },
+        {
+          "end": "81:8BC8",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BC7"
+        },
+        {
+          "end": "81:8BC9",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BC9"
+        },
+        {
+          "end": "81:8BCB",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BCA"
+        },
+        {
+          "end": "81:8BCC",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BCC"
+        },
+        {
+          "end": "81:8BCE",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BCD"
+        },
+        {
+          "end": "81:8BCF",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BCF"
+        },
+        {
+          "end": "81:8BD0",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BD0"
+        },
+        {
+          "end": "81:8BD1",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BD1"
+        },
+        {
+          "end": "81:8BD2",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BD2"
+        },
+        {
+          "end": "81:8BD3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BD3"
+        },
+        {
+          "end": "81:8BD5",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BD4"
+        },
+        {
+          "end": "81:8BD6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BD6"
+        },
+        {
+          "end": "81:8BD8",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BD7"
+        },
+        {
+          "end": "81:8BD9",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BD9"
+        },
+        {
+          "end": "81:8BDA",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BDA"
+        },
+        {
+          "end": "81:8BDB",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BDB"
+        },
+        {
+          "end": "81:8BDC",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BDC"
+        },
+        {
+          "end": "81:8BDD",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BDD"
+        },
+        {
+          "end": "81:8BDF",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BDE"
+        },
+        {
+          "end": "81:8BE0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BE0"
+        },
+        {
+          "end": "81:8BE2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BE1"
+        },
+        {
+          "end": "81:8BE3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BE3"
+        },
+        {
+          "end": "81:8BE5",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BE4"
+        },
+        {
+          "end": "81:8BE6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BE6"
+        },
+        {
+          "end": "81:8BE8",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BE7"
+        },
+        {
+          "end": "81:8BE9",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BE9"
+        },
+        {
+          "end": "81:8BEA",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BEA"
+        },
+        {
+          "end": "81:8BEB",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BEB"
+        },
+        {
+          "end": "81:8BED",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BEC"
+        },
+        {
+          "end": "81:8BEE",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BEE"
+        },
+        {
+          "end": "81:8BF0",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BEF"
+        },
+        {
+          "end": "81:8BF1",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BF1"
+        },
+        {
+          "end": "81:8BF2",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BF2"
+        },
+        {
+          "end": "81:8BF4",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8BF3"
+        },
+        {
+          "end": "81:8BF6",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BF5"
+        },
+        {
+          "end": "81:8BF8",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8BF7"
+        },
+        {
+          "end": "81:8BF9",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BF9"
+        },
+        {
+          "end": "81:8BFB",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8BFA"
+        },
+        {
+          "end": "81:8BFD",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BFC"
+        },
+        {
+          "end": "81:8C00",
+          "role": "opcode",
+          "size": 3,
+          "start": "81:8BFE"
+        },
+        {
+          "end": "81:8C01",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C01"
+        },
+        {
+          "end": "81:8C08",
+          "role": "opcode",
+          "size": 7,
+          "start": "81:8C02"
+        },
+        {
+          "end": "81:8C09",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C09"
+        },
+        {
+          "end": "81:8C0A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C0A"
+        },
+        {
+          "end": "81:8C0B",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C0B"
+        },
+        {
+          "end": "81:8C0C",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C0C"
+        },
+        {
+          "end": "81:8C0F",
+          "role": "operand",
+          "size": 3,
+          "start": "81:8C0D"
+        },
+        {
+          "end": "81:8C10",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C10"
+        },
+        {
+          "end": "81:8C11",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C11"
+        },
+        {
+          "end": "81:8C12",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C12"
+        },
+        {
+          "end": "81:8C13",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C13"
+        },
+        {
+          "end": "81:8C14",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C14"
+        },
+        {
+          "end": "81:8C16",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C15"
+        },
+        {
+          "end": "81:8C17",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C17"
+        },
+        {
+          "end": "81:8C18",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C18"
+        },
+        {
+          "end": "81:8C19",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C19"
+        },
+        {
+          "end": "81:8C1A",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C1A"
+        },
+        {
+          "end": "81:8C1B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C1B"
+        },
+        {
+          "end": "81:8C1D",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C1C"
+        },
+        {
+          "end": "81:8C1E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C1E"
+        },
+        {
+          "end": "81:8C20",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C1F"
+        },
+        {
+          "end": "81:8C22",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C21"
+        },
+        {
+          "end": "81:8C24",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C23"
+        },
+        {
+          "end": "81:8C25",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C25"
+        },
+        {
+          "end": "81:8C26",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C26"
+        },
+        {
+          "end": "81:8C27",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C27"
+        },
+        {
+          "end": "81:8C29",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C28"
+        },
+        {
+          "end": "81:8C2A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C2A"
+        },
+        {
+          "end": "81:8C2B",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C2B"
+        },
+        {
+          "end": "81:8C2C",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C2C"
+        },
+        {
+          "end": "81:8C2D",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C2D"
+        },
+        {
+          "end": "81:8C2E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C2E"
+        },
+        {
+          "end": "81:8C30",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C2F"
+        },
+        {
+          "end": "81:8C31",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C31"
+        },
+        {
+          "end": "81:8C33",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C32"
+        },
+        {
+          "end": "81:8C35",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C34"
+        },
+        {
+          "end": "81:8C37",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C36"
+        },
+        {
+          "end": "81:8C38",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C38"
+        },
+        {
+          "end": "81:8C39",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C39"
+        },
+        {
+          "end": "81:8C3A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C3A"
+        },
+        {
+          "end": "81:8C3B",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C3B"
+        },
+        {
+          "end": "81:8C3C",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C3C"
+        },
+        {
+          "end": "81:8C3E",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C3D"
+        },
+        {
+          "end": "81:8C3F",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C3F"
+        },
+        {
+          "end": "81:8C41",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C40"
+        },
+        {
+          "end": "81:8C42",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C42"
+        },
+        {
+          "end": "81:8C43",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C43"
+        },
+        {
+          "end": "81:8C44",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C44"
+        },
+        {
+          "end": "81:8C46",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C45"
+        },
+        {
+          "end": "81:8C48",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C47"
+        },
+        {
+          "end": "81:8C4A",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C49"
+        },
+        {
+          "end": "81:8C4B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C4B"
+        },
+        {
+          "end": "81:8C4C",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C4C"
+        },
+        {
+          "end": "81:8C4D",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C4D"
+        },
+        {
+          "end": "81:8C4F",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C4E"
+        },
+        {
+          "end": "81:8C50",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C50"
+        },
+        {
+          "end": "81:8C51",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C51"
+        },
+        {
+          "end": "81:8C52",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C52"
+        },
+        {
+          "end": "81:8C54",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C53"
+        },
+        {
+          "end": "81:8C56",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C55"
+        },
+        {
+          "end": "81:8C58",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C57"
+        },
+        {
+          "end": "81:8C59",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C59"
+        },
+        {
+          "end": "81:8C5A",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C5A"
+        },
+        {
+          "end": "81:8C5B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C5B"
+        },
+        {
+          "end": "81:8C5D",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C5C"
+        },
+        {
+          "end": "81:8C5E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C5E"
+        },
+        {
+          "end": "81:8C5F",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C5F"
+        },
+        {
+          "end": "81:8C60",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C60"
+        },
+        {
+          "end": "81:8C62",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C61"
+        },
+        {
+          "end": "81:8C63",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C63"
+        },
+        {
+          "end": "81:8C64",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C64"
+        },
+        {
+          "end": "81:8C65",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C65"
+        },
+        {
+          "end": "81:8C66",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C66"
+        },
+        {
+          "end": "81:8C67",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C67"
+        },
+        {
+          "end": "81:8C69",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C68"
+        },
+        {
+          "end": "81:8C6A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C6A"
+        },
+        {
+          "end": "81:8C6C",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C6B"
+        },
+        {
+          "end": "81:8C6E",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C6D"
+        },
+        {
+          "end": "81:8C70",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C6F"
+        },
+        {
+          "end": "81:8C71",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C71"
+        },
+        {
+          "end": "81:8C72",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C72"
+        },
+        {
+          "end": "81:8C73",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C73"
+        },
+        {
+          "end": "81:8C75",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C74"
+        },
+        {
+          "end": "81:8C76",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C76"
+        },
+        {
+          "end": "81:8C77",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C77"
+        },
+        {
+          "end": "81:8C78",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C78"
+        },
+        {
+          "end": "81:8C79",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C79"
+        },
+        {
+          "end": "81:8C7A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C7A"
+        },
+        {
+          "end": "81:8C7C",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C7B"
+        },
+        {
+          "end": "81:8C7D",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C7D"
+        },
+        {
+          "end": "81:8C7F",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C7E"
+        },
+        {
+          "end": "81:8C81",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C80"
+        },
+        {
+          "end": "81:8C83",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C82"
+        },
+        {
+          "end": "81:8C84",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C84"
+        },
+        {
+          "end": "81:8C85",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C85"
+        },
+        {
+          "end": "81:8C86",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C86"
+        },
+        {
+          "end": "81:8C87",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C87"
+        },
+        {
+          "end": "81:8C88",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C88"
+        },
+        {
+          "end": "81:8C8A",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C89"
+        },
+        {
+          "end": "81:8C8B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C8B"
+        },
+        {
+          "end": "81:8C8D",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C8C"
+        },
+        {
+          "end": "81:8C8E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C8E"
+        },
+        {
+          "end": "81:8C8F",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C8F"
+        },
+        {
+          "end": "81:8C90",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C90"
+        },
+        {
+          "end": "81:8C92",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C91"
+        },
+        {
+          "end": "81:8C94",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C93"
+        },
+        {
+          "end": "81:8C96",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C95"
+        },
+        {
+          "end": "81:8C97",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C97"
+        },
+        {
+          "end": "81:8C98",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C98"
+        },
+        {
+          "end": "81:8C99",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C99"
+        },
+        {
+          "end": "81:8C9B",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C9A"
+        },
+        {
+          "end": "81:8C9C",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C9C"
+        },
+        {
+          "end": "81:8C9D",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C9D"
+        },
+        {
+          "end": "81:8C9E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C9E"
+        },
+        {
+          "end": "81:8CA0",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C9F"
+        },
+        {
+          "end": "81:8CA2",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CA1"
+        },
+        {
+          "end": "81:8CA4",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CA3"
+        },
+        {
+          "end": "81:8CA5",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CA5"
+        },
+        {
+          "end": "81:8CA6",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CA6"
+        },
+        {
+          "end": "81:8CA7",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CA7"
+        },
+        {
+          "end": "81:8CA8",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CA8"
+        },
+        {
+          "end": "81:8CA9",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CA9"
+        },
+        {
+          "end": "81:8CAB",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CAA"
+        },
+        {
+          "end": "81:8CAC",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CAC"
+        },
+        {
+          "end": "81:8CAE",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CAD"
+        },
+        {
+          "end": "81:8CB0",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CAF"
+        },
+        {
+          "end": "81:8CB1",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CB1"
+        },
+        {
+          "end": "81:8CB2",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CB2"
+        },
+        {
+          "end": "81:8CB4",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CB3"
+        },
+        {
+          "end": "81:8CB6",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CB5"
+        },
+        {
+          "end": "81:8CB7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CB7"
+        },
+        {
+          "end": "81:8CB9",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CB8"
+        },
+        {
+          "end": "81:8CBA",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CBA"
+        },
+        {
+          "end": "81:8CBB",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CBB"
+        },
+        {
+          "end": "81:8CBE",
+          "role": "operand",
+          "size": 3,
+          "start": "81:8CBC"
+        },
+        {
+          "end": "81:8CBF",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CBF"
+        },
+        {
+          "end": "81:8CC0",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CC0"
+        },
+        {
+          "end": "81:8CC1",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CC1"
+        },
+        {
+          "end": "81:8CC2",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CC2"
+        },
+        {
+          "end": "81:8CC3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CC3"
+        },
+        {
+          "end": "81:8CC5",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CC4"
+        },
+        {
+          "end": "81:8CC6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CC6"
+        },
+        {
+          "end": "81:8CC7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CC7"
+        },
+        {
+          "end": "81:8CC9",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CC8"
+        },
+        {
+          "end": "81:8CCB",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CCA"
+        },
+        {
+          "end": "81:8CCC",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CCC"
+        },
+        {
+          "end": "81:8CCE",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CCD"
+        },
+        {
+          "end": "81:8CD0",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CCF"
+        },
+        {
+          "end": "81:8CD2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CD1"
+        },
+        {
+          "end": "81:8CD3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CD3"
+        },
+        {
+          "end": "81:8CD5",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CD4"
+        },
+        {
+          "end": "81:8CD6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CD6"
+        },
+        {
+          "end": "81:8CD7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CD7"
+        },
+        {
+          "end": "81:8CD8",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CD8"
+        },
+        {
+          "end": "81:8CD9",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CD9"
+        },
+        {
+          "end": "81:8CDA",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CDA"
+        },
+        {
+          "end": "81:8CDC",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CDB"
+        },
+        {
+          "end": "81:8CDD",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CDD"
+        },
+        {
+          "end": "81:8CE0",
+          "role": "operand",
+          "size": 3,
+          "start": "81:8CDE"
+        },
+        {
+          "end": "81:8CE1",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CE1"
+        },
+        {
+          "end": "81:8CE3",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CE2"
+        },
+        {
+          "end": "81:8CE4",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CE4"
+        },
+        {
+          "end": "81:8CE5",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CE5"
+        },
+        {
+          "end": "81:8CE6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CE6"
+        },
+        {
+          "end": "81:8CE7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CE7"
+        },
+        {
+          "end": "81:8CE9",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CE8"
+        },
+        {
+          "end": "81:8CEB",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CEA"
+        },
+        {
+          "end": "81:8CEE",
+          "role": "opcode",
+          "size": 3,
+          "start": "81:8CEC"
+        },
+        {
+          "end": "81:8CEF",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CEF"
+        },
+        {
+          "end": "81:8CF0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CF0"
+        },
+        {
+          "end": "81:8CF2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CF1"
+        },
+        {
+          "end": "81:8CF3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CF3"
+        }
+      ],
+      "sha256": "828939fa83b7eb91f046dc6ee6ceb2b3622991564b0c096ad424d09b44a827ce",
+      "shift": -32,
+      "similarity": 0.971279,
+      "size": 383,
+      "size_delta": 0,
+      "start": "81:8B75",
+      "unreached_or_data_bytes": 0
+    },
+    "legacy-beta": {
+      "end": "81:8D13",
+      "opcode_bytes": 167,
+      "operand_bytes": 216,
+      "role_spans": [
+        {
+          "end": "81:8B95",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B95"
+        },
+        {
+          "end": "81:8B97",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B96"
+        },
+        {
+          "end": "81:8B98",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B98"
+        },
+        {
+          "end": "81:8B99",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8B99"
+        },
+        {
+          "end": "81:8B9A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B9A"
+        },
+        {
+          "end": "81:8B9C",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B9B"
+        },
+        {
+          "end": "81:8B9D",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B9D"
+        },
+        {
+          "end": "81:8B9F",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B9E"
+        },
+        {
+          "end": "81:8BA0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BA0"
+        },
+        {
+          "end": "81:8BA1",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BA1"
+        },
+        {
+          "end": "81:8BA2",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BA2"
+        },
+        {
+          "end": "81:8BA4",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BA3"
+        },
+        {
+          "end": "81:8BA5",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BA5"
+        },
+        {
+          "end": "81:8BA7",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BA6"
+        },
+        {
+          "end": "81:8BA8",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BA8"
+        },
+        {
+          "end": "81:8BA9",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BA9"
+        },
+        {
+          "end": "81:8BAA",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BAA"
+        },
+        {
+          "end": "81:8BAC",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BAB"
+        },
+        {
+          "end": "81:8BAD",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BAD"
+        },
+        {
+          "end": "81:8BAF",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BAE"
+        },
+        {
+          "end": "81:8BB0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BB0"
+        },
+        {
+          "end": "81:8BB2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BB1"
+        },
+        {
+          "end": "81:8BB3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BB3"
+        },
+        {
+          "end": "81:8BB5",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BB4"
+        },
+        {
+          "end": "81:8BB6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BB6"
+        },
+        {
+          "end": "81:8BB7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BB7"
+        },
+        {
+          "end": "81:8BB8",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BB8"
+        },
+        {
+          "end": "81:8BBA",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BB9"
+        },
+        {
+          "end": "81:8BBB",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BBB"
+        },
+        {
+          "end": "81:8BBD",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BBC"
+        },
+        {
+          "end": "81:8BBE",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BBE"
+        },
+        {
+          "end": "81:8BBF",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BBF"
+        },
+        {
+          "end": "81:8BC0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BC0"
+        },
+        {
+          "end": "81:8BC2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BC1"
+        },
+        {
+          "end": "81:8BC3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BC3"
+        },
+        {
+          "end": "81:8BC4",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BC4"
+        },
+        {
+          "end": "81:8BC6",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8BC5"
+        },
+        {
+          "end": "81:8BC8",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BC7"
+        },
+        {
+          "end": "81:8BCB",
+          "role": "opcode",
+          "size": 3,
+          "start": "81:8BC9"
+        },
+        {
+          "end": "81:8BCD",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BCC"
+        },
+        {
+          "end": "81:8BCE",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BCE"
+        },
+        {
+          "end": "81:8BCF",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BCF"
+        },
+        {
+          "end": "81:8BD0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BD0"
+        },
+        {
+          "end": "81:8BD2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BD1"
+        },
+        {
+          "end": "81:8BD3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BD3"
+        },
+        {
+          "end": "81:8BD4",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BD4"
+        },
+        {
+          "end": "81:8BD5",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BD5"
+        },
+        {
+          "end": "81:8BD7",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BD6"
+        },
+        {
+          "end": "81:8BD8",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BD8"
+        },
+        {
+          "end": "81:8BD9",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BD9"
+        },
+        {
+          "end": "81:8BDA",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BDA"
+        },
+        {
+          "end": "81:8BDC",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BDB"
+        },
+        {
+          "end": "81:8BDD",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BDD"
+        },
+        {
+          "end": "81:8BDE",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BDE"
+        },
+        {
+          "end": "81:8BDF",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BDF"
+        },
+        {
+          "end": "81:8BE1",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BE0"
+        },
+        {
+          "end": "81:8BE2",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BE2"
+        },
+        {
+          "end": "81:8BE3",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BE3"
+        },
+        {
+          "end": "81:8BE4",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BE4"
+        },
+        {
+          "end": "81:8BE5",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BE5"
+        },
+        {
+          "end": "81:8BE6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BE6"
+        },
+        {
+          "end": "81:8BE8",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BE7"
+        },
+        {
+          "end": "81:8BE9",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BE9"
+        },
+        {
+          "end": "81:8BEB",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BEA"
+        },
+        {
+          "end": "81:8BEC",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BEC"
+        },
+        {
+          "end": "81:8BEE",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BED"
+        },
+        {
+          "end": "81:8BEF",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BEF"
+        },
+        {
+          "end": "81:8BF0",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BF0"
+        },
+        {
+          "end": "81:8BF1",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BF1"
+        },
+        {
+          "end": "81:8BF2",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BF2"
+        },
+        {
+          "end": "81:8BF3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BF3"
+        },
+        {
+          "end": "81:8BF5",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BF4"
+        },
+        {
+          "end": "81:8BF6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BF6"
+        },
+        {
+          "end": "81:8BF8",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BF7"
+        },
+        {
+          "end": "81:8BF9",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BF9"
+        },
+        {
+          "end": "81:8BFA",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BFA"
+        },
+        {
+          "end": "81:8BFB",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BFB"
+        },
+        {
+          "end": "81:8BFC",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BFC"
+        },
+        {
+          "end": "81:8BFD",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BFD"
+        },
+        {
+          "end": "81:8BFF",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BFE"
+        },
+        {
+          "end": "81:8C00",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C00"
+        },
+        {
+          "end": "81:8C02",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C01"
+        },
+        {
+          "end": "81:8C03",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C03"
+        },
+        {
+          "end": "81:8C05",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C04"
+        },
+        {
+          "end": "81:8C06",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C06"
+        },
+        {
+          "end": "81:8C08",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C07"
+        },
+        {
+          "end": "81:8C09",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C09"
+        },
+        {
+          "end": "81:8C0A",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C0A"
+        },
+        {
+          "end": "81:8C0B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C0B"
+        },
+        {
+          "end": "81:8C0D",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C0C"
+        },
+        {
+          "end": "81:8C0E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C0E"
+        },
+        {
+          "end": "81:8C10",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C0F"
+        },
+        {
+          "end": "81:8C11",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C11"
+        },
+        {
+          "end": "81:8C12",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C12"
+        },
+        {
+          "end": "81:8C14",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C13"
+        },
+        {
+          "end": "81:8C16",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C15"
+        },
+        {
+          "end": "81:8C18",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C17"
+        },
+        {
+          "end": "81:8C19",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C19"
+        },
+        {
+          "end": "81:8C1B",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C1A"
+        },
+        {
+          "end": "81:8C1D",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C1C"
+        },
+        {
+          "end": "81:8C20",
+          "role": "opcode",
+          "size": 3,
+          "start": "81:8C1E"
+        },
+        {
+          "end": "81:8C21",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C21"
+        },
+        {
+          "end": "81:8C28",
+          "role": "opcode",
+          "size": 7,
+          "start": "81:8C22"
+        },
+        {
+          "end": "81:8C29",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C29"
+        },
+        {
+          "end": "81:8C2A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C2A"
+        },
+        {
+          "end": "81:8C2B",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C2B"
+        },
+        {
+          "end": "81:8C2C",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C2C"
+        },
+        {
+          "end": "81:8C2F",
+          "role": "operand",
+          "size": 3,
+          "start": "81:8C2D"
+        },
+        {
+          "end": "81:8C30",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C30"
+        },
+        {
+          "end": "81:8C31",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C31"
+        },
+        {
+          "end": "81:8C32",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C32"
+        },
+        {
+          "end": "81:8C33",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C33"
+        },
+        {
+          "end": "81:8C34",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C34"
+        },
+        {
+          "end": "81:8C36",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C35"
+        },
+        {
+          "end": "81:8C37",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C37"
+        },
+        {
+          "end": "81:8C38",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C38"
+        },
+        {
+          "end": "81:8C39",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C39"
+        },
+        {
+          "end": "81:8C3A",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C3A"
+        },
+        {
+          "end": "81:8C3B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C3B"
+        },
+        {
+          "end": "81:8C3D",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C3C"
+        },
+        {
+          "end": "81:8C3E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C3E"
+        },
+        {
+          "end": "81:8C40",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C3F"
+        },
+        {
+          "end": "81:8C42",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C41"
+        },
+        {
+          "end": "81:8C44",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C43"
+        },
+        {
+          "end": "81:8C45",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C45"
+        },
+        {
+          "end": "81:8C46",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C46"
+        },
+        {
+          "end": "81:8C47",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C47"
+        },
+        {
+          "end": "81:8C49",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C48"
+        },
+        {
+          "end": "81:8C4A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C4A"
+        },
+        {
+          "end": "81:8C4B",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C4B"
+        },
+        {
+          "end": "81:8C4C",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C4C"
+        },
+        {
+          "end": "81:8C4D",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C4D"
+        },
+        {
+          "end": "81:8C4E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C4E"
+        },
+        {
+          "end": "81:8C50",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C4F"
+        },
+        {
+          "end": "81:8C51",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C51"
+        },
+        {
+          "end": "81:8C53",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C52"
+        },
+        {
+          "end": "81:8C55",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C54"
+        },
+        {
+          "end": "81:8C57",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C56"
+        },
+        {
+          "end": "81:8C58",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C58"
+        },
+        {
+          "end": "81:8C59",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C59"
+        },
+        {
+          "end": "81:8C5A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C5A"
+        },
+        {
+          "end": "81:8C5B",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C5B"
+        },
+        {
+          "end": "81:8C5C",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C5C"
+        },
+        {
+          "end": "81:8C5E",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C5D"
+        },
+        {
+          "end": "81:8C5F",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C5F"
+        },
+        {
+          "end": "81:8C61",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C60"
+        },
+        {
+          "end": "81:8C62",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C62"
+        },
+        {
+          "end": "81:8C63",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C63"
+        },
+        {
+          "end": "81:8C64",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C64"
+        },
+        {
+          "end": "81:8C66",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C65"
+        },
+        {
+          "end": "81:8C68",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C67"
+        },
+        {
+          "end": "81:8C6A",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C69"
+        },
+        {
+          "end": "81:8C6B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C6B"
+        },
+        {
+          "end": "81:8C6C",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C6C"
+        },
+        {
+          "end": "81:8C6D",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C6D"
+        },
+        {
+          "end": "81:8C6F",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C6E"
+        },
+        {
+          "end": "81:8C70",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C70"
+        },
+        {
+          "end": "81:8C71",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C71"
+        },
+        {
+          "end": "81:8C72",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C72"
+        },
+        {
+          "end": "81:8C74",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C73"
+        },
+        {
+          "end": "81:8C76",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C75"
+        },
+        {
+          "end": "81:8C78",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C77"
+        },
+        {
+          "end": "81:8C79",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C79"
+        },
+        {
+          "end": "81:8C7A",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C7A"
+        },
+        {
+          "end": "81:8C7B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C7B"
+        },
+        {
+          "end": "81:8C7D",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C7C"
+        },
+        {
+          "end": "81:8C7E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C7E"
+        },
+        {
+          "end": "81:8C7F",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C7F"
+        },
+        {
+          "end": "81:8C80",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C80"
+        },
+        {
+          "end": "81:8C82",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C81"
+        },
+        {
+          "end": "81:8C83",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C83"
+        },
+        {
+          "end": "81:8C84",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C84"
+        },
+        {
+          "end": "81:8C85",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C85"
+        },
+        {
+          "end": "81:8C86",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C86"
+        },
+        {
+          "end": "81:8C87",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C87"
+        },
+        {
+          "end": "81:8C89",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C88"
+        },
+        {
+          "end": "81:8C8A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C8A"
+        },
+        {
+          "end": "81:8C8C",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C8B"
+        },
+        {
+          "end": "81:8C8E",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C8D"
+        },
+        {
+          "end": "81:8C90",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C8F"
+        },
+        {
+          "end": "81:8C91",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C91"
+        },
+        {
+          "end": "81:8C92",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C92"
+        },
+        {
+          "end": "81:8C93",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C93"
+        },
+        {
+          "end": "81:8C95",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C94"
+        },
+        {
+          "end": "81:8C96",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C96"
+        },
+        {
+          "end": "81:8C97",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C97"
+        },
+        {
+          "end": "81:8C98",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C98"
+        },
+        {
+          "end": "81:8C99",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C99"
+        },
+        {
+          "end": "81:8C9A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C9A"
+        },
+        {
+          "end": "81:8C9C",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C9B"
+        },
+        {
+          "end": "81:8C9D",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C9D"
+        },
+        {
+          "end": "81:8C9F",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C9E"
+        },
+        {
+          "end": "81:8CA1",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CA0"
+        },
+        {
+          "end": "81:8CA3",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CA2"
+        },
+        {
+          "end": "81:8CA4",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CA4"
+        },
+        {
+          "end": "81:8CA5",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CA5"
+        },
+        {
+          "end": "81:8CA6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CA6"
+        },
+        {
+          "end": "81:8CA7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CA7"
+        },
+        {
+          "end": "81:8CA8",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CA8"
+        },
+        {
+          "end": "81:8CAA",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CA9"
+        },
+        {
+          "end": "81:8CAB",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CAB"
+        },
+        {
+          "end": "81:8CAD",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CAC"
+        },
+        {
+          "end": "81:8CAE",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CAE"
+        },
+        {
+          "end": "81:8CAF",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CAF"
+        },
+        {
+          "end": "81:8CB0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CB0"
+        },
+        {
+          "end": "81:8CB2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CB1"
+        },
+        {
+          "end": "81:8CB4",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CB3"
+        },
+        {
+          "end": "81:8CB6",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CB5"
+        },
+        {
+          "end": "81:8CB7",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CB7"
+        },
+        {
+          "end": "81:8CB8",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CB8"
+        },
+        {
+          "end": "81:8CB9",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CB9"
+        },
+        {
+          "end": "81:8CBB",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CBA"
+        },
+        {
+          "end": "81:8CBC",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CBC"
+        },
+        {
+          "end": "81:8CBD",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CBD"
+        },
+        {
+          "end": "81:8CBE",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CBE"
+        },
+        {
+          "end": "81:8CC0",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CBF"
+        },
+        {
+          "end": "81:8CC2",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CC1"
+        },
+        {
+          "end": "81:8CC4",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CC3"
+        },
+        {
+          "end": "81:8CC5",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CC5"
+        },
+        {
+          "end": "81:8CC6",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CC6"
+        },
+        {
+          "end": "81:8CC7",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CC7"
+        },
+        {
+          "end": "81:8CC8",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CC8"
+        },
+        {
+          "end": "81:8CC9",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CC9"
+        },
+        {
+          "end": "81:8CCB",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CCA"
+        },
+        {
+          "end": "81:8CCC",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CCC"
+        },
+        {
+          "end": "81:8CCE",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CCD"
+        },
+        {
+          "end": "81:8CD0",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CCF"
+        },
+        {
+          "end": "81:8CD1",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CD1"
+        },
+        {
+          "end": "81:8CD2",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CD2"
+        },
+        {
+          "end": "81:8CD4",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CD3"
+        },
+        {
+          "end": "81:8CD6",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CD5"
+        },
+        {
+          "end": "81:8CD7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CD7"
+        },
+        {
+          "end": "81:8CD9",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CD8"
+        },
+        {
+          "end": "81:8CDA",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CDA"
+        },
+        {
+          "end": "81:8CDB",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CDB"
+        },
+        {
+          "end": "81:8CDE",
+          "role": "operand",
+          "size": 3,
+          "start": "81:8CDC"
+        },
+        {
+          "end": "81:8CDF",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CDF"
+        },
+        {
+          "end": "81:8CE0",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CE0"
+        },
+        {
+          "end": "81:8CE1",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CE1"
+        },
+        {
+          "end": "81:8CE2",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CE2"
+        },
+        {
+          "end": "81:8CE3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CE3"
+        },
+        {
+          "end": "81:8CE5",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CE4"
+        },
+        {
+          "end": "81:8CE6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CE6"
+        },
+        {
+          "end": "81:8CE7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CE7"
+        },
+        {
+          "end": "81:8CE9",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CE8"
+        },
+        {
+          "end": "81:8CEB",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CEA"
+        },
+        {
+          "end": "81:8CEC",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CEC"
+        },
+        {
+          "end": "81:8CEE",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CED"
+        },
+        {
+          "end": "81:8CF0",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CEF"
+        },
+        {
+          "end": "81:8CF2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CF1"
+        },
+        {
+          "end": "81:8CF3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CF3"
+        },
+        {
+          "end": "81:8CF5",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CF4"
+        },
+        {
+          "end": "81:8CF6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CF6"
+        },
+        {
+          "end": "81:8CF7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CF7"
+        },
+        {
+          "end": "81:8CF8",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CF8"
+        },
+        {
+          "end": "81:8CF9",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CF9"
+        },
+        {
+          "end": "81:8CFA",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CFA"
+        },
+        {
+          "end": "81:8CFC",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CFB"
+        },
+        {
+          "end": "81:8CFD",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CFD"
+        },
+        {
+          "end": "81:8D00",
+          "role": "operand",
+          "size": 3,
+          "start": "81:8CFE"
+        },
+        {
+          "end": "81:8D01",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8D01"
+        },
+        {
+          "end": "81:8D03",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8D02"
+        },
+        {
+          "end": "81:8D04",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8D04"
+        },
+        {
+          "end": "81:8D05",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8D05"
+        },
+        {
+          "end": "81:8D06",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8D06"
+        },
+        {
+          "end": "81:8D07",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8D07"
+        },
+        {
+          "end": "81:8D09",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8D08"
+        },
+        {
+          "end": "81:8D0B",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8D0A"
+        },
+        {
+          "end": "81:8D0E",
+          "role": "opcode",
+          "size": 3,
+          "start": "81:8D0C"
+        },
+        {
+          "end": "81:8D0F",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8D0F"
+        },
+        {
+          "end": "81:8D10",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8D10"
+        },
+        {
+          "end": "81:8D12",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8D11"
+        },
+        {
+          "end": "81:8D13",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8D13"
+        }
+      ],
+      "sha256": "d64faeb9686b976b11f16fe304060b5d7473e322a99e9b34cc338446fa2576fb",
+      "shift": 0,
+      "similarity": 1,
+      "size": 383,
+      "size_delta": 0,
+      "start": "81:8B95",
+      "unreached_or_data_bytes": 0
+    },
+    "pal-prototype-1994-11-29": {
+      "end": "81:8CF3",
+      "opcode_bytes": 167,
+      "operand_bytes": 216,
+      "role_spans": [
+        {
+          "end": "81:8B75",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B75"
+        },
+        {
+          "end": "81:8B77",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B76"
+        },
+        {
+          "end": "81:8B78",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B78"
+        },
+        {
+          "end": "81:8B79",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8B79"
+        },
+        {
+          "end": "81:8B7A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B7A"
+        },
+        {
+          "end": "81:8B7C",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B7B"
+        },
+        {
+          "end": "81:8B7D",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B7D"
+        },
+        {
+          "end": "81:8B7F",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B7E"
+        },
+        {
+          "end": "81:8B80",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B80"
+        },
+        {
+          "end": "81:8B81",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8B81"
+        },
+        {
+          "end": "81:8B82",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B82"
+        },
+        {
+          "end": "81:8B84",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B83"
+        },
+        {
+          "end": "81:8B85",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B85"
+        },
+        {
+          "end": "81:8B87",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B86"
+        },
+        {
+          "end": "81:8B88",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B88"
+        },
+        {
+          "end": "81:8B89",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8B89"
+        },
+        {
+          "end": "81:8B8A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B8A"
+        },
+        {
+          "end": "81:8B8C",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B8B"
+        },
+        {
+          "end": "81:8B8D",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B8D"
+        },
+        {
+          "end": "81:8B8F",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B8E"
+        },
+        {
+          "end": "81:8B90",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B90"
+        },
+        {
+          "end": "81:8B92",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B91"
+        },
+        {
+          "end": "81:8B93",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B93"
+        },
+        {
+          "end": "81:8B95",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B94"
+        },
+        {
+          "end": "81:8B96",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B96"
+        },
+        {
+          "end": "81:8B97",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8B97"
+        },
+        {
+          "end": "81:8B98",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B98"
+        },
+        {
+          "end": "81:8B9A",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B99"
+        },
+        {
+          "end": "81:8B9B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B9B"
+        },
+        {
+          "end": "81:8B9D",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B9C"
+        },
+        {
+          "end": "81:8B9E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B9E"
+        },
+        {
+          "end": "81:8B9F",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8B9F"
+        },
+        {
+          "end": "81:8BA0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BA0"
+        },
+        {
+          "end": "81:8BA2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BA1"
+        },
+        {
+          "end": "81:8BA3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BA3"
+        },
+        {
+          "end": "81:8BA4",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BA4"
+        },
+        {
+          "end": "81:8BA6",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8BA5"
+        },
+        {
+          "end": "81:8BA8",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BA7"
+        },
+        {
+          "end": "81:8BAB",
+          "role": "opcode",
+          "size": 3,
+          "start": "81:8BA9"
+        },
+        {
+          "end": "81:8BAD",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BAC"
+        },
+        {
+          "end": "81:8BAE",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BAE"
+        },
+        {
+          "end": "81:8BAF",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BAF"
+        },
+        {
+          "end": "81:8BB0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BB0"
+        },
+        {
+          "end": "81:8BB2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BB1"
+        },
+        {
+          "end": "81:8BB3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BB3"
+        },
+        {
+          "end": "81:8BB4",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BB4"
+        },
+        {
+          "end": "81:8BB5",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BB5"
+        },
+        {
+          "end": "81:8BB7",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BB6"
+        },
+        {
+          "end": "81:8BB8",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BB8"
+        },
+        {
+          "end": "81:8BB9",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BB9"
+        },
+        {
+          "end": "81:8BBA",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BBA"
+        },
+        {
+          "end": "81:8BBC",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BBB"
+        },
+        {
+          "end": "81:8BBD",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BBD"
+        },
+        {
+          "end": "81:8BBE",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BBE"
+        },
+        {
+          "end": "81:8BBF",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BBF"
+        },
+        {
+          "end": "81:8BC1",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BC0"
+        },
+        {
+          "end": "81:8BC2",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BC2"
+        },
+        {
+          "end": "81:8BC3",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BC3"
+        },
+        {
+          "end": "81:8BC4",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BC4"
+        },
+        {
+          "end": "81:8BC5",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BC5"
+        },
+        {
+          "end": "81:8BC6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BC6"
+        },
+        {
+          "end": "81:8BC8",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BC7"
+        },
+        {
+          "end": "81:8BC9",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BC9"
+        },
+        {
+          "end": "81:8BCB",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BCA"
+        },
+        {
+          "end": "81:8BCC",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BCC"
+        },
+        {
+          "end": "81:8BCE",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BCD"
+        },
+        {
+          "end": "81:8BCF",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BCF"
+        },
+        {
+          "end": "81:8BD0",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BD0"
+        },
+        {
+          "end": "81:8BD1",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BD1"
+        },
+        {
+          "end": "81:8BD2",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BD2"
+        },
+        {
+          "end": "81:8BD3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BD3"
+        },
+        {
+          "end": "81:8BD5",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BD4"
+        },
+        {
+          "end": "81:8BD6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BD6"
+        },
+        {
+          "end": "81:8BD8",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BD7"
+        },
+        {
+          "end": "81:8BD9",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BD9"
+        },
+        {
+          "end": "81:8BDA",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BDA"
+        },
+        {
+          "end": "81:8BDB",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BDB"
+        },
+        {
+          "end": "81:8BDC",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BDC"
+        },
+        {
+          "end": "81:8BDD",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BDD"
+        },
+        {
+          "end": "81:8BDF",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BDE"
+        },
+        {
+          "end": "81:8BE0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BE0"
+        },
+        {
+          "end": "81:8BE2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BE1"
+        },
+        {
+          "end": "81:8BE3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BE3"
+        },
+        {
+          "end": "81:8BE5",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BE4"
+        },
+        {
+          "end": "81:8BE6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BE6"
+        },
+        {
+          "end": "81:8BE8",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BE7"
+        },
+        {
+          "end": "81:8BE9",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BE9"
+        },
+        {
+          "end": "81:8BEA",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BEA"
+        },
+        {
+          "end": "81:8BEB",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BEB"
+        },
+        {
+          "end": "81:8BED",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BEC"
+        },
+        {
+          "end": "81:8BEE",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BEE"
+        },
+        {
+          "end": "81:8BF0",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BEF"
+        },
+        {
+          "end": "81:8BF1",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BF1"
+        },
+        {
+          "end": "81:8BF2",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BF2"
+        },
+        {
+          "end": "81:8BF4",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8BF3"
+        },
+        {
+          "end": "81:8BF6",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BF5"
+        },
+        {
+          "end": "81:8BF8",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8BF7"
+        },
+        {
+          "end": "81:8BF9",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BF9"
+        },
+        {
+          "end": "81:8BFB",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8BFA"
+        },
+        {
+          "end": "81:8BFD",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BFC"
+        },
+        {
+          "end": "81:8C00",
+          "role": "opcode",
+          "size": 3,
+          "start": "81:8BFE"
+        },
+        {
+          "end": "81:8C01",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C01"
+        },
+        {
+          "end": "81:8C08",
+          "role": "opcode",
+          "size": 7,
+          "start": "81:8C02"
+        },
+        {
+          "end": "81:8C09",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C09"
+        },
+        {
+          "end": "81:8C0A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C0A"
+        },
+        {
+          "end": "81:8C0B",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C0B"
+        },
+        {
+          "end": "81:8C0C",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C0C"
+        },
+        {
+          "end": "81:8C0F",
+          "role": "operand",
+          "size": 3,
+          "start": "81:8C0D"
+        },
+        {
+          "end": "81:8C10",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C10"
+        },
+        {
+          "end": "81:8C11",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C11"
+        },
+        {
+          "end": "81:8C12",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C12"
+        },
+        {
+          "end": "81:8C13",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C13"
+        },
+        {
+          "end": "81:8C14",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C14"
+        },
+        {
+          "end": "81:8C16",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C15"
+        },
+        {
+          "end": "81:8C17",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C17"
+        },
+        {
+          "end": "81:8C18",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C18"
+        },
+        {
+          "end": "81:8C19",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C19"
+        },
+        {
+          "end": "81:8C1A",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C1A"
+        },
+        {
+          "end": "81:8C1B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C1B"
+        },
+        {
+          "end": "81:8C1D",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C1C"
+        },
+        {
+          "end": "81:8C1E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C1E"
+        },
+        {
+          "end": "81:8C20",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C1F"
+        },
+        {
+          "end": "81:8C22",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C21"
+        },
+        {
+          "end": "81:8C24",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C23"
+        },
+        {
+          "end": "81:8C25",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C25"
+        },
+        {
+          "end": "81:8C26",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C26"
+        },
+        {
+          "end": "81:8C27",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C27"
+        },
+        {
+          "end": "81:8C29",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C28"
+        },
+        {
+          "end": "81:8C2A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C2A"
+        },
+        {
+          "end": "81:8C2B",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C2B"
+        },
+        {
+          "end": "81:8C2C",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C2C"
+        },
+        {
+          "end": "81:8C2D",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C2D"
+        },
+        {
+          "end": "81:8C2E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C2E"
+        },
+        {
+          "end": "81:8C30",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C2F"
+        },
+        {
+          "end": "81:8C31",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C31"
+        },
+        {
+          "end": "81:8C33",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C32"
+        },
+        {
+          "end": "81:8C35",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C34"
+        },
+        {
+          "end": "81:8C37",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C36"
+        },
+        {
+          "end": "81:8C38",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C38"
+        },
+        {
+          "end": "81:8C39",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C39"
+        },
+        {
+          "end": "81:8C3A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C3A"
+        },
+        {
+          "end": "81:8C3B",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C3B"
+        },
+        {
+          "end": "81:8C3C",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C3C"
+        },
+        {
+          "end": "81:8C3E",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C3D"
+        },
+        {
+          "end": "81:8C3F",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C3F"
+        },
+        {
+          "end": "81:8C41",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C40"
+        },
+        {
+          "end": "81:8C42",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C42"
+        },
+        {
+          "end": "81:8C43",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C43"
+        },
+        {
+          "end": "81:8C44",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C44"
+        },
+        {
+          "end": "81:8C46",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C45"
+        },
+        {
+          "end": "81:8C48",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C47"
+        },
+        {
+          "end": "81:8C4A",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C49"
+        },
+        {
+          "end": "81:8C4B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C4B"
+        },
+        {
+          "end": "81:8C4C",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C4C"
+        },
+        {
+          "end": "81:8C4D",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C4D"
+        },
+        {
+          "end": "81:8C4F",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C4E"
+        },
+        {
+          "end": "81:8C50",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C50"
+        },
+        {
+          "end": "81:8C51",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C51"
+        },
+        {
+          "end": "81:8C52",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C52"
+        },
+        {
+          "end": "81:8C54",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C53"
+        },
+        {
+          "end": "81:8C56",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C55"
+        },
+        {
+          "end": "81:8C58",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C57"
+        },
+        {
+          "end": "81:8C59",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C59"
+        },
+        {
+          "end": "81:8C5A",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C5A"
+        },
+        {
+          "end": "81:8C5B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C5B"
+        },
+        {
+          "end": "81:8C5D",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C5C"
+        },
+        {
+          "end": "81:8C5E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C5E"
+        },
+        {
+          "end": "81:8C5F",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C5F"
+        },
+        {
+          "end": "81:8C60",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C60"
+        },
+        {
+          "end": "81:8C62",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C61"
+        },
+        {
+          "end": "81:8C63",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C63"
+        },
+        {
+          "end": "81:8C64",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C64"
+        },
+        {
+          "end": "81:8C65",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C65"
+        },
+        {
+          "end": "81:8C66",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C66"
+        },
+        {
+          "end": "81:8C67",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C67"
+        },
+        {
+          "end": "81:8C69",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C68"
+        },
+        {
+          "end": "81:8C6A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C6A"
+        },
+        {
+          "end": "81:8C6C",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C6B"
+        },
+        {
+          "end": "81:8C6E",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C6D"
+        },
+        {
+          "end": "81:8C70",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C6F"
+        },
+        {
+          "end": "81:8C71",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C71"
+        },
+        {
+          "end": "81:8C72",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C72"
+        },
+        {
+          "end": "81:8C73",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C73"
+        },
+        {
+          "end": "81:8C75",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C74"
+        },
+        {
+          "end": "81:8C76",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C76"
+        },
+        {
+          "end": "81:8C77",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C77"
+        },
+        {
+          "end": "81:8C78",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C78"
+        },
+        {
+          "end": "81:8C79",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C79"
+        },
+        {
+          "end": "81:8C7A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C7A"
+        },
+        {
+          "end": "81:8C7C",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C7B"
+        },
+        {
+          "end": "81:8C7D",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C7D"
+        },
+        {
+          "end": "81:8C7F",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C7E"
+        },
+        {
+          "end": "81:8C81",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C80"
+        },
+        {
+          "end": "81:8C83",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C82"
+        },
+        {
+          "end": "81:8C84",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C84"
+        },
+        {
+          "end": "81:8C85",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C85"
+        },
+        {
+          "end": "81:8C86",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C86"
+        },
+        {
+          "end": "81:8C87",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C87"
+        },
+        {
+          "end": "81:8C88",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C88"
+        },
+        {
+          "end": "81:8C8A",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C89"
+        },
+        {
+          "end": "81:8C8B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C8B"
+        },
+        {
+          "end": "81:8C8D",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C8C"
+        },
+        {
+          "end": "81:8C8E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C8E"
+        },
+        {
+          "end": "81:8C8F",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C8F"
+        },
+        {
+          "end": "81:8C90",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C90"
+        },
+        {
+          "end": "81:8C92",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C91"
+        },
+        {
+          "end": "81:8C94",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C93"
+        },
+        {
+          "end": "81:8C96",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C95"
+        },
+        {
+          "end": "81:8C97",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C97"
+        },
+        {
+          "end": "81:8C98",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C98"
+        },
+        {
+          "end": "81:8C99",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C99"
+        },
+        {
+          "end": "81:8C9B",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C9A"
+        },
+        {
+          "end": "81:8C9C",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C9C"
+        },
+        {
+          "end": "81:8C9D",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C9D"
+        },
+        {
+          "end": "81:8C9E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C9E"
+        },
+        {
+          "end": "81:8CA0",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C9F"
+        },
+        {
+          "end": "81:8CA2",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CA1"
+        },
+        {
+          "end": "81:8CA4",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CA3"
+        },
+        {
+          "end": "81:8CA5",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CA5"
+        },
+        {
+          "end": "81:8CA6",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CA6"
+        },
+        {
+          "end": "81:8CA7",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CA7"
+        },
+        {
+          "end": "81:8CA8",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CA8"
+        },
+        {
+          "end": "81:8CA9",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CA9"
+        },
+        {
+          "end": "81:8CAB",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CAA"
+        },
+        {
+          "end": "81:8CAC",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CAC"
+        },
+        {
+          "end": "81:8CAE",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CAD"
+        },
+        {
+          "end": "81:8CB0",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CAF"
+        },
+        {
+          "end": "81:8CB1",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CB1"
+        },
+        {
+          "end": "81:8CB2",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CB2"
+        },
+        {
+          "end": "81:8CB4",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CB3"
+        },
+        {
+          "end": "81:8CB6",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CB5"
+        },
+        {
+          "end": "81:8CB7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CB7"
+        },
+        {
+          "end": "81:8CB9",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CB8"
+        },
+        {
+          "end": "81:8CBA",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CBA"
+        },
+        {
+          "end": "81:8CBB",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CBB"
+        },
+        {
+          "end": "81:8CBE",
+          "role": "operand",
+          "size": 3,
+          "start": "81:8CBC"
+        },
+        {
+          "end": "81:8CBF",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CBF"
+        },
+        {
+          "end": "81:8CC0",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CC0"
+        },
+        {
+          "end": "81:8CC1",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CC1"
+        },
+        {
+          "end": "81:8CC2",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CC2"
+        },
+        {
+          "end": "81:8CC3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CC3"
+        },
+        {
+          "end": "81:8CC5",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CC4"
+        },
+        {
+          "end": "81:8CC6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CC6"
+        },
+        {
+          "end": "81:8CC7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CC7"
+        },
+        {
+          "end": "81:8CC9",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CC8"
+        },
+        {
+          "end": "81:8CCB",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CCA"
+        },
+        {
+          "end": "81:8CCC",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CCC"
+        },
+        {
+          "end": "81:8CCE",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CCD"
+        },
+        {
+          "end": "81:8CD0",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CCF"
+        },
+        {
+          "end": "81:8CD2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CD1"
+        },
+        {
+          "end": "81:8CD3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CD3"
+        },
+        {
+          "end": "81:8CD5",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CD4"
+        },
+        {
+          "end": "81:8CD6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CD6"
+        },
+        {
+          "end": "81:8CD7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CD7"
+        },
+        {
+          "end": "81:8CD8",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CD8"
+        },
+        {
+          "end": "81:8CD9",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CD9"
+        },
+        {
+          "end": "81:8CDA",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CDA"
+        },
+        {
+          "end": "81:8CDC",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CDB"
+        },
+        {
+          "end": "81:8CDD",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CDD"
+        },
+        {
+          "end": "81:8CE0",
+          "role": "operand",
+          "size": 3,
+          "start": "81:8CDE"
+        },
+        {
+          "end": "81:8CE1",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CE1"
+        },
+        {
+          "end": "81:8CE3",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CE2"
+        },
+        {
+          "end": "81:8CE4",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CE4"
+        },
+        {
+          "end": "81:8CE5",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CE5"
+        },
+        {
+          "end": "81:8CE6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CE6"
+        },
+        {
+          "end": "81:8CE7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CE7"
+        },
+        {
+          "end": "81:8CE9",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CE8"
+        },
+        {
+          "end": "81:8CEB",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CEA"
+        },
+        {
+          "end": "81:8CEE",
+          "role": "opcode",
+          "size": 3,
+          "start": "81:8CEC"
+        },
+        {
+          "end": "81:8CEF",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CEF"
+        },
+        {
+          "end": "81:8CF0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CF0"
+        },
+        {
+          "end": "81:8CF2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CF1"
+        },
+        {
+          "end": "81:8CF3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CF3"
+        }
+      ],
+      "sha256": "01eca050c0ec4e288109e28325569df963744ad37fc8d12033eb4cc9d24d0b2e",
+      "shift": -32,
+      "similarity": 0.971279,
+      "size": 383,
+      "size_delta": 0,
+      "start": "81:8B75",
+      "unreached_or_data_bytes": 0
+    },
+    "usa-retail": {
+      "end": "81:8D13",
+      "opcode_bytes": 167,
+      "operand_bytes": 216,
+      "role_spans": [
+        {
+          "end": "81:8B95",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B95"
+        },
+        {
+          "end": "81:8B97",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B96"
+        },
+        {
+          "end": "81:8B98",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B98"
+        },
+        {
+          "end": "81:8B99",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8B99"
+        },
+        {
+          "end": "81:8B9A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B9A"
+        },
+        {
+          "end": "81:8B9C",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B9B"
+        },
+        {
+          "end": "81:8B9D",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8B9D"
+        },
+        {
+          "end": "81:8B9F",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8B9E"
+        },
+        {
+          "end": "81:8BA0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BA0"
+        },
+        {
+          "end": "81:8BA1",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BA1"
+        },
+        {
+          "end": "81:8BA2",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BA2"
+        },
+        {
+          "end": "81:8BA4",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BA3"
+        },
+        {
+          "end": "81:8BA5",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BA5"
+        },
+        {
+          "end": "81:8BA7",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BA6"
+        },
+        {
+          "end": "81:8BA8",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BA8"
+        },
+        {
+          "end": "81:8BA9",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BA9"
+        },
+        {
+          "end": "81:8BAA",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BAA"
+        },
+        {
+          "end": "81:8BAC",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BAB"
+        },
+        {
+          "end": "81:8BAD",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BAD"
+        },
+        {
+          "end": "81:8BAF",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BAE"
+        },
+        {
+          "end": "81:8BB0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BB0"
+        },
+        {
+          "end": "81:8BB2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BB1"
+        },
+        {
+          "end": "81:8BB3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BB3"
+        },
+        {
+          "end": "81:8BB5",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BB4"
+        },
+        {
+          "end": "81:8BB6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BB6"
+        },
+        {
+          "end": "81:8BB7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BB7"
+        },
+        {
+          "end": "81:8BB8",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BB8"
+        },
+        {
+          "end": "81:8BBA",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BB9"
+        },
+        {
+          "end": "81:8BBB",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BBB"
+        },
+        {
+          "end": "81:8BBD",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BBC"
+        },
+        {
+          "end": "81:8BBE",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BBE"
+        },
+        {
+          "end": "81:8BBF",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BBF"
+        },
+        {
+          "end": "81:8BC0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BC0"
+        },
+        {
+          "end": "81:8BC2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BC1"
+        },
+        {
+          "end": "81:8BC3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BC3"
+        },
+        {
+          "end": "81:8BC4",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BC4"
+        },
+        {
+          "end": "81:8BC6",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8BC5"
+        },
+        {
+          "end": "81:8BC8",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BC7"
+        },
+        {
+          "end": "81:8BCB",
+          "role": "opcode",
+          "size": 3,
+          "start": "81:8BC9"
+        },
+        {
+          "end": "81:8BCD",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BCC"
+        },
+        {
+          "end": "81:8BCE",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BCE"
+        },
+        {
+          "end": "81:8BCF",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BCF"
+        },
+        {
+          "end": "81:8BD0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BD0"
+        },
+        {
+          "end": "81:8BD2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BD1"
+        },
+        {
+          "end": "81:8BD3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BD3"
+        },
+        {
+          "end": "81:8BD4",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BD4"
+        },
+        {
+          "end": "81:8BD5",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BD5"
+        },
+        {
+          "end": "81:8BD7",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BD6"
+        },
+        {
+          "end": "81:8BD8",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BD8"
+        },
+        {
+          "end": "81:8BD9",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BD9"
+        },
+        {
+          "end": "81:8BDA",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BDA"
+        },
+        {
+          "end": "81:8BDC",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BDB"
+        },
+        {
+          "end": "81:8BDD",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BDD"
+        },
+        {
+          "end": "81:8BDE",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BDE"
+        },
+        {
+          "end": "81:8BDF",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BDF"
+        },
+        {
+          "end": "81:8BE1",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BE0"
+        },
+        {
+          "end": "81:8BE2",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BE2"
+        },
+        {
+          "end": "81:8BE3",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BE3"
+        },
+        {
+          "end": "81:8BE4",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BE4"
+        },
+        {
+          "end": "81:8BE5",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BE5"
+        },
+        {
+          "end": "81:8BE6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BE6"
+        },
+        {
+          "end": "81:8BE8",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BE7"
+        },
+        {
+          "end": "81:8BE9",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BE9"
+        },
+        {
+          "end": "81:8BEB",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BEA"
+        },
+        {
+          "end": "81:8BEC",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BEC"
+        },
+        {
+          "end": "81:8BEE",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BED"
+        },
+        {
+          "end": "81:8BEF",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BEF"
+        },
+        {
+          "end": "81:8BF0",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BF0"
+        },
+        {
+          "end": "81:8BF1",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BF1"
+        },
+        {
+          "end": "81:8BF2",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BF2"
+        },
+        {
+          "end": "81:8BF3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BF3"
+        },
+        {
+          "end": "81:8BF5",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BF4"
+        },
+        {
+          "end": "81:8BF6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BF6"
+        },
+        {
+          "end": "81:8BF8",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BF7"
+        },
+        {
+          "end": "81:8BF9",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BF9"
+        },
+        {
+          "end": "81:8BFA",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BFA"
+        },
+        {
+          "end": "81:8BFB",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BFB"
+        },
+        {
+          "end": "81:8BFC",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8BFC"
+        },
+        {
+          "end": "81:8BFD",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8BFD"
+        },
+        {
+          "end": "81:8BFF",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8BFE"
+        },
+        {
+          "end": "81:8C00",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C00"
+        },
+        {
+          "end": "81:8C02",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C01"
+        },
+        {
+          "end": "81:8C03",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C03"
+        },
+        {
+          "end": "81:8C05",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C04"
+        },
+        {
+          "end": "81:8C06",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C06"
+        },
+        {
+          "end": "81:8C08",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C07"
+        },
+        {
+          "end": "81:8C09",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C09"
+        },
+        {
+          "end": "81:8C0A",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C0A"
+        },
+        {
+          "end": "81:8C0B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C0B"
+        },
+        {
+          "end": "81:8C0D",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C0C"
+        },
+        {
+          "end": "81:8C0E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C0E"
+        },
+        {
+          "end": "81:8C10",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C0F"
+        },
+        {
+          "end": "81:8C11",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C11"
+        },
+        {
+          "end": "81:8C12",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C12"
+        },
+        {
+          "end": "81:8C14",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C13"
+        },
+        {
+          "end": "81:8C16",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C15"
+        },
+        {
+          "end": "81:8C18",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C17"
+        },
+        {
+          "end": "81:8C19",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C19"
+        },
+        {
+          "end": "81:8C1B",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C1A"
+        },
+        {
+          "end": "81:8C1D",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C1C"
+        },
+        {
+          "end": "81:8C20",
+          "role": "opcode",
+          "size": 3,
+          "start": "81:8C1E"
+        },
+        {
+          "end": "81:8C21",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C21"
+        },
+        {
+          "end": "81:8C28",
+          "role": "opcode",
+          "size": 7,
+          "start": "81:8C22"
+        },
+        {
+          "end": "81:8C29",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C29"
+        },
+        {
+          "end": "81:8C2A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C2A"
+        },
+        {
+          "end": "81:8C2B",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C2B"
+        },
+        {
+          "end": "81:8C2C",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C2C"
+        },
+        {
+          "end": "81:8C2F",
+          "role": "operand",
+          "size": 3,
+          "start": "81:8C2D"
+        },
+        {
+          "end": "81:8C30",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C30"
+        },
+        {
+          "end": "81:8C31",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C31"
+        },
+        {
+          "end": "81:8C32",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C32"
+        },
+        {
+          "end": "81:8C33",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C33"
+        },
+        {
+          "end": "81:8C34",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C34"
+        },
+        {
+          "end": "81:8C36",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C35"
+        },
+        {
+          "end": "81:8C37",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C37"
+        },
+        {
+          "end": "81:8C38",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C38"
+        },
+        {
+          "end": "81:8C39",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C39"
+        },
+        {
+          "end": "81:8C3A",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C3A"
+        },
+        {
+          "end": "81:8C3B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C3B"
+        },
+        {
+          "end": "81:8C3D",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C3C"
+        },
+        {
+          "end": "81:8C3E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C3E"
+        },
+        {
+          "end": "81:8C40",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C3F"
+        },
+        {
+          "end": "81:8C42",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C41"
+        },
+        {
+          "end": "81:8C44",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C43"
+        },
+        {
+          "end": "81:8C45",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C45"
+        },
+        {
+          "end": "81:8C46",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C46"
+        },
+        {
+          "end": "81:8C47",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C47"
+        },
+        {
+          "end": "81:8C49",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C48"
+        },
+        {
+          "end": "81:8C4A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C4A"
+        },
+        {
+          "end": "81:8C4B",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C4B"
+        },
+        {
+          "end": "81:8C4C",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C4C"
+        },
+        {
+          "end": "81:8C4D",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C4D"
+        },
+        {
+          "end": "81:8C4E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C4E"
+        },
+        {
+          "end": "81:8C50",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C4F"
+        },
+        {
+          "end": "81:8C51",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C51"
+        },
+        {
+          "end": "81:8C53",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C52"
+        },
+        {
+          "end": "81:8C55",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C54"
+        },
+        {
+          "end": "81:8C57",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C56"
+        },
+        {
+          "end": "81:8C58",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C58"
+        },
+        {
+          "end": "81:8C59",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C59"
+        },
+        {
+          "end": "81:8C5A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C5A"
+        },
+        {
+          "end": "81:8C5B",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C5B"
+        },
+        {
+          "end": "81:8C5C",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C5C"
+        },
+        {
+          "end": "81:8C5E",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C5D"
+        },
+        {
+          "end": "81:8C5F",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C5F"
+        },
+        {
+          "end": "81:8C61",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C60"
+        },
+        {
+          "end": "81:8C62",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C62"
+        },
+        {
+          "end": "81:8C63",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C63"
+        },
+        {
+          "end": "81:8C64",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C64"
+        },
+        {
+          "end": "81:8C66",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C65"
+        },
+        {
+          "end": "81:8C68",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C67"
+        },
+        {
+          "end": "81:8C6A",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C69"
+        },
+        {
+          "end": "81:8C6B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C6B"
+        },
+        {
+          "end": "81:8C6C",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C6C"
+        },
+        {
+          "end": "81:8C6D",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C6D"
+        },
+        {
+          "end": "81:8C6F",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C6E"
+        },
+        {
+          "end": "81:8C70",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C70"
+        },
+        {
+          "end": "81:8C71",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C71"
+        },
+        {
+          "end": "81:8C72",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C72"
+        },
+        {
+          "end": "81:8C74",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C73"
+        },
+        {
+          "end": "81:8C76",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C75"
+        },
+        {
+          "end": "81:8C78",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C77"
+        },
+        {
+          "end": "81:8C79",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C79"
+        },
+        {
+          "end": "81:8C7A",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C7A"
+        },
+        {
+          "end": "81:8C7B",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C7B"
+        },
+        {
+          "end": "81:8C7D",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C7C"
+        },
+        {
+          "end": "81:8C7E",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C7E"
+        },
+        {
+          "end": "81:8C7F",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C7F"
+        },
+        {
+          "end": "81:8C80",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C80"
+        },
+        {
+          "end": "81:8C82",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C81"
+        },
+        {
+          "end": "81:8C83",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C83"
+        },
+        {
+          "end": "81:8C84",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C84"
+        },
+        {
+          "end": "81:8C85",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C85"
+        },
+        {
+          "end": "81:8C86",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C86"
+        },
+        {
+          "end": "81:8C87",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C87"
+        },
+        {
+          "end": "81:8C89",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C88"
+        },
+        {
+          "end": "81:8C8A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C8A"
+        },
+        {
+          "end": "81:8C8C",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C8B"
+        },
+        {
+          "end": "81:8C8E",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8C8D"
+        },
+        {
+          "end": "81:8C90",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C8F"
+        },
+        {
+          "end": "81:8C91",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C91"
+        },
+        {
+          "end": "81:8C92",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C92"
+        },
+        {
+          "end": "81:8C93",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C93"
+        },
+        {
+          "end": "81:8C95",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C94"
+        },
+        {
+          "end": "81:8C96",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C96"
+        },
+        {
+          "end": "81:8C97",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C97"
+        },
+        {
+          "end": "81:8C98",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C98"
+        },
+        {
+          "end": "81:8C99",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8C99"
+        },
+        {
+          "end": "81:8C9A",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C9A"
+        },
+        {
+          "end": "81:8C9C",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C9B"
+        },
+        {
+          "end": "81:8C9D",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8C9D"
+        },
+        {
+          "end": "81:8C9F",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8C9E"
+        },
+        {
+          "end": "81:8CA1",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CA0"
+        },
+        {
+          "end": "81:8CA3",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CA2"
+        },
+        {
+          "end": "81:8CA4",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CA4"
+        },
+        {
+          "end": "81:8CA5",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CA5"
+        },
+        {
+          "end": "81:8CA6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CA6"
+        },
+        {
+          "end": "81:8CA7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CA7"
+        },
+        {
+          "end": "81:8CA8",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CA8"
+        },
+        {
+          "end": "81:8CAA",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CA9"
+        },
+        {
+          "end": "81:8CAB",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CAB"
+        },
+        {
+          "end": "81:8CAD",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CAC"
+        },
+        {
+          "end": "81:8CAE",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CAE"
+        },
+        {
+          "end": "81:8CAF",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CAF"
+        },
+        {
+          "end": "81:8CB0",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CB0"
+        },
+        {
+          "end": "81:8CB2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CB1"
+        },
+        {
+          "end": "81:8CB4",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CB3"
+        },
+        {
+          "end": "81:8CB6",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CB5"
+        },
+        {
+          "end": "81:8CB7",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CB7"
+        },
+        {
+          "end": "81:8CB8",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CB8"
+        },
+        {
+          "end": "81:8CB9",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CB9"
+        },
+        {
+          "end": "81:8CBB",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CBA"
+        },
+        {
+          "end": "81:8CBC",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CBC"
+        },
+        {
+          "end": "81:8CBD",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CBD"
+        },
+        {
+          "end": "81:8CBE",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CBE"
+        },
+        {
+          "end": "81:8CC0",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CBF"
+        },
+        {
+          "end": "81:8CC2",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CC1"
+        },
+        {
+          "end": "81:8CC4",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CC3"
+        },
+        {
+          "end": "81:8CC5",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CC5"
+        },
+        {
+          "end": "81:8CC6",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CC6"
+        },
+        {
+          "end": "81:8CC7",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CC7"
+        },
+        {
+          "end": "81:8CC8",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CC8"
+        },
+        {
+          "end": "81:8CC9",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CC9"
+        },
+        {
+          "end": "81:8CCB",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CCA"
+        },
+        {
+          "end": "81:8CCC",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CCC"
+        },
+        {
+          "end": "81:8CCE",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CCD"
+        },
+        {
+          "end": "81:8CD0",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CCF"
+        },
+        {
+          "end": "81:8CD1",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CD1"
+        },
+        {
+          "end": "81:8CD2",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CD2"
+        },
+        {
+          "end": "81:8CD4",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CD3"
+        },
+        {
+          "end": "81:8CD6",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CD5"
+        },
+        {
+          "end": "81:8CD7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CD7"
+        },
+        {
+          "end": "81:8CD9",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CD8"
+        },
+        {
+          "end": "81:8CDA",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CDA"
+        },
+        {
+          "end": "81:8CDB",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CDB"
+        },
+        {
+          "end": "81:8CDE",
+          "role": "operand",
+          "size": 3,
+          "start": "81:8CDC"
+        },
+        {
+          "end": "81:8CDF",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CDF"
+        },
+        {
+          "end": "81:8CE0",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CE0"
+        },
+        {
+          "end": "81:8CE1",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CE1"
+        },
+        {
+          "end": "81:8CE2",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CE2"
+        },
+        {
+          "end": "81:8CE3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CE3"
+        },
+        {
+          "end": "81:8CE5",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CE4"
+        },
+        {
+          "end": "81:8CE6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CE6"
+        },
+        {
+          "end": "81:8CE7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CE7"
+        },
+        {
+          "end": "81:8CE9",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CE8"
+        },
+        {
+          "end": "81:8CEB",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CEA"
+        },
+        {
+          "end": "81:8CEC",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CEC"
+        },
+        {
+          "end": "81:8CEE",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CED"
+        },
+        {
+          "end": "81:8CF0",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8CEF"
+        },
+        {
+          "end": "81:8CF2",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CF1"
+        },
+        {
+          "end": "81:8CF3",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CF3"
+        },
+        {
+          "end": "81:8CF5",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CF4"
+        },
+        {
+          "end": "81:8CF6",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CF6"
+        },
+        {
+          "end": "81:8CF7",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CF7"
+        },
+        {
+          "end": "81:8CF8",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CF8"
+        },
+        {
+          "end": "81:8CF9",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8CF9"
+        },
+        {
+          "end": "81:8CFA",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CFA"
+        },
+        {
+          "end": "81:8CFC",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8CFB"
+        },
+        {
+          "end": "81:8CFD",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8CFD"
+        },
+        {
+          "end": "81:8D00",
+          "role": "operand",
+          "size": 3,
+          "start": "81:8CFE"
+        },
+        {
+          "end": "81:8D01",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8D01"
+        },
+        {
+          "end": "81:8D03",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8D02"
+        },
+        {
+          "end": "81:8D04",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8D04"
+        },
+        {
+          "end": "81:8D05",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8D05"
+        },
+        {
+          "end": "81:8D06",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8D06"
+        },
+        {
+          "end": "81:8D07",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8D07"
+        },
+        {
+          "end": "81:8D09",
+          "role": "opcode",
+          "size": 2,
+          "start": "81:8D08"
+        },
+        {
+          "end": "81:8D0B",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8D0A"
+        },
+        {
+          "end": "81:8D0E",
+          "role": "opcode",
+          "size": 3,
+          "start": "81:8D0C"
+        },
+        {
+          "end": "81:8D0F",
+          "role": "operand",
+          "size": 1,
+          "start": "81:8D0F"
+        },
+        {
+          "end": "81:8D10",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8D10"
+        },
+        {
+          "end": "81:8D12",
+          "role": "operand",
+          "size": 2,
+          "start": "81:8D11"
+        },
+        {
+          "end": "81:8D13",
+          "role": "opcode",
+          "size": 1,
+          "start": "81:8D13"
+        }
+      ],
+      "sha256": "d64faeb9686b976b11f16fe304060b5d7473e322a99e9b34cc338446fa2576fb",
+      "shift": 0,
+      "similarity": 1,
+      "size": 383,
+      "size_delta": 0,
+      "start": "81:8B95",
+      "unreached_or_data_bytes": 0
+    }
+  },
+  "call_context": {
+    "followed_by": "JSR 81:8FB8 later collision path",
+    "p1_caller": "81:8DD9",
+    "p2_caller": "81:8F2D",
+    "preceded_by": "JSR 81:9E2A collision/contact-shape construction"
+  },
+  "island": "per-racer course runtime surface sampler",
+  "regions": [
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:8CF3",
+          "opcode_bytes": 167,
+          "operand_bytes": 216,
+          "sha256": "828939fa83b7eb91f046dc6ee6ceb2b3622991564b0c096ad424d09b44a827ce",
+          "shift": -32,
+          "similarity": 0.971279,
+          "size": 383,
+          "size_delta": 0,
+          "start": "81:8B75",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "81:8D13",
+          "opcode_bytes": 167,
+          "operand_bytes": 216,
+          "sha256": "d64faeb9686b976b11f16fe304060b5d7473e322a99e9b34cc338446fa2576fb",
+          "shift": 0,
+          "similarity": 1,
+          "size": 383,
+          "size_delta": 0,
+          "start": "81:8B95",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:8CF3",
+          "opcode_bytes": 167,
+          "operand_bytes": 216,
+          "sha256": "01eca050c0ec4e288109e28325569df963744ad37fc8d12033eb4cc9d24d0b2e",
+          "shift": -32,
+          "similarity": 0.971279,
+          "size": 383,
+          "size_delta": 0,
+          "start": "81:8B75",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:8D13",
+          "opcode_bytes": 167,
+          "operand_bytes": 216,
+          "sha256": "d64faeb9686b976b11f16fe304060b5d7473e322a99e9b34cc338446fa2576fb",
+          "shift": 0,
+          "similarity": 1,
+          "size": 383,
+          "size_delta": 0,
+          "start": "81:8B95",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "Course_SampleRuntimeSurface",
+      "size": 383,
+      "usa_end": "81:8D13",
+      "usa_start": "81:8B95"
+    }
+  ],
+  "schema_version": 1,
+  "usa_end": "81:8D13",
+  "usa_size": 383,
+  "usa_start": "81:8B95"
+}

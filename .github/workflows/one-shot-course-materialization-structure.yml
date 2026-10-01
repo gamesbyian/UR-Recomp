@@ -1,0 +1,16 @@
+name: One-shot course materialization structural island
+on:
+  workflow_dispatch:
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run course island analysis
+        run: python3 tools/analyze_course_materialization_structure_island.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: course-materialization-structure-island
+          path: |
+            analysis/generated/course-materialization-structure-island.json
+            analysis/generated/course-materialization-structure-island.md

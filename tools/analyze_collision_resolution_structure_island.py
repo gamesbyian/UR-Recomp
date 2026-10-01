@@ -19,7 +19,7 @@ REGIONS=[
  ("resolver_after_europe_gate","81:9800","81:983A",-32,-15),
  ("collision_geometry_helper","81:983B","81:99D5",-32,-15),
 ]
-DORMANT_USA=["81:9484","81:9646","81:96AD","81:9969"]
+DORMANT_USA=["81:9484","81:9646","81:96AD","81:9969","81:996B","81:9972"]
 
 def roles(d,s,e):
  op=pa=ot=0
@@ -56,14 +56,17 @@ def build():
    info={"start":offset_to_cpu(bs),"end":offset_to_cpu(be),"shift":sh,"size":be-bs+1,"size_delta":0,
          "similarity":round(sc,6),**roles(ds[build],bs,be),"sha256":hashlib.sha256(blob[bs:be+1]).hexdigest()}
    if build!="usa-retail":
-    pairs=equal=bad=0
+    pairs=equal=bad=0; role_mismatches=[]; opcode_mismatches=[]
     for pos in range(us,ue+1):
      a=ds["usa-retail"].code_map[pos]; b=ds[build].code_map[pos+sh]
-     if bool(a&ds["usa-retail"].OP_CODE)!=bool(b&ds[build].OP_CODE) or bool(a&ds["usa-retail"].OP_PARAM)!=bool(b&ds[build].OP_PARAM): bad+=1
+     role_bad=bool(a&ds["usa-retail"].OP_CODE)!=bool(b&ds[build].OP_CODE) or bool(a&ds["usa-retail"].OP_PARAM)!=bool(b&ds[build].OP_PARAM)
+     if role_bad:
+      bad+=1; role_mismatches.append({"usa":offset_to_cpu(pos),"other":offset_to_cpu(pos+sh),"usa_byte":f"{usa[pos]:02x}","other_byte":f"{blob[pos+sh]:02x}"})
      if a&ds["usa-retail"].OP_CODE and b&ds[build].OP_CODE:
       pairs+=1
       if usa[pos]==blob[pos+sh]: equal+=1
-    info.update({"aligned_opcode_pairs":pairs,"aligned_equal_opcode_pairs":equal,"aligned_role_disagreements":bad})
+      else: opcode_mismatches.append({"usa":offset_to_cpu(pos),"other":offset_to_cpu(pos+sh),"usa_byte":f"{usa[pos]:02x}","other_byte":f"{blob[pos+sh]:02x}"})
+    info.update({"aligned_opcode_pairs":pairs,"aligned_equal_opcode_pairs":equal,"aligned_role_disagreements":bad,"role_mismatches":role_mismatches,"opcode_mismatches":opcode_mismatches})
    row["builds"][build]=info
   rows.append(row)
  us=cpu_to_offset("81:9302"); eu=us-32

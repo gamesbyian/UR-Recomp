@@ -16,7 +16,7 @@ PAL_LINE_BUILDS={"pal-prototype-1994-11-29","europe-retail"}
 
 REGIONS=[
  ("setup_loop_prefix","83:CBCC","83:CC86","code"),
- ("loop_body_after_rep_cleanup","83:CC87","83:CD9F","code"),
+ ("loop_body_after_sep_cleanup","83:CC87","83:CD9F","code"),
 ]
 SHIFTS={
  "usa-retail":(0,0),

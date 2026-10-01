@@ -36,6 +36,11 @@ A mapped address means the structurally corresponding build-specific location su
 | Player1_XSpeed | `7E:04B7` | Europe retail | `7E:04BB` | +4 | 1 | bidirectional copy relation with 7E:0FA9 in Race_UpdateRacersFrame |
 | Player1_YPosition | `7E:0415` | Europe retail | `7E:0419` | +4 | 2 |  |
 | Player1_YSpeed | `7E:04BB` | Europe retail | `7E:04BF` | +4 | 1 | bidirectional copy relation with 7E:0FAB in Race_UpdateRacersFrame |
+| Player2_BoostMeter | `7E:11D1` | Europe retail | `7E:11DB` | +10 | 1 | unique second bidirectional slot paired with 7E:11D7 in Race_UpdateRacersFrame |
+| Player2_XPosition | `7E:0413` | Europe retail | `7E:0417` | +4 | 1 | unique second bidirectional slot paired through racer-update DP X-position workspace |
+| Player2_XSpeed | `7E:04B9` | Europe retail | `7E:04BD` | +4 | 0 | unique second bidirectional slot paired with 7E:0FA9 in Race_UpdateRacersFrame |
+| Player2_YPosition | `7E:0417` | Europe retail | `7E:041B` | +4 | 1 | unique second bidirectional slot paired through racer-update DP Y-position workspace |
+| Player2_YSpeed | `7E:04BD` | Europe retail | `7E:04C1` | +4 | 0 | unique second bidirectional slot paired with 7E:0FAB in Race_UpdateRacersFrame |
 | CurrentPlayer_XVelocityWorking | `7E:0F9F` | PAL prototype | `7E:0FA3` | +4 | 2 |  |
 | CurrentPlayer_YVelocityWorking | `7E:0FA1` | PAL prototype | `7E:0FA5` | +4 | 2 |  |
 | Player1_BoostMeter | `7E:11CF` | PAL prototype | `7E:11D3` | +4 | 1 | bidirectional copy relation with 7E:11D1 in Race_UpdateRacersFrame |
@@ -43,6 +48,11 @@ A mapped address means the structurally corresponding build-specific location su
 | Player1_XSpeed | `7E:04B7` | PAL prototype | `7E:04B7` | +0 | 1 | bidirectional copy relation with 7E:0FA3 in Race_UpdateRacersFrame |
 | Player1_YPosition | `7E:0415` | PAL prototype | `7E:0415` | +0 | 2 |  |
 | Player1_YSpeed | `7E:04BB` | PAL prototype | `7E:04BB` | +0 | 1 | bidirectional copy relation with 7E:0FA5 in Race_UpdateRacersFrame |
+| Player2_BoostMeter | `7E:11D1` | PAL prototype | `7E:11D5` | +4 | 1 | unique second bidirectional slot paired with 7E:11D1 in Race_UpdateRacersFrame |
+| Player2_XPosition | `7E:0413` | PAL prototype | `7E:0413` | +0 | 1 | unique second bidirectional slot paired through racer-update DP X-position workspace |
+| Player2_XSpeed | `7E:04B9` | PAL prototype | `7E:04B9` | +0 | 0 | unique second bidirectional slot paired with 7E:0FA3 in Race_UpdateRacersFrame |
+| Player2_YPosition | `7E:0417` | PAL prototype | `7E:0417` | +0 | 1 | unique second bidirectional slot paired through racer-update DP Y-position workspace |
+| Player2_YSpeed | `7E:04BD` | PAL prototype | `7E:04BD` | +0 | 0 | unique second bidirectional slot paired with 7E:0FA5 in Race_UpdateRacersFrame |
 
 ## Single-anchor named RAM candidates
 
@@ -63,10 +73,7 @@ These are useful search/probe targets, but should not be copied into authoritati
 | Player1_StuntAirLatch | `7E:1361` | Europe retail | `7E:136B` | +10 | Stunt_FinalizeAndScoreAirTricks |
 | Player1_TabletopDuration | `7E:042F` | Europe retail | `7E:0433` | +4 | Stunt_FinalizeAndScoreAirTricks |
 | Player1_ZFlipCount | `7E:042B` | Europe retail | `7E:042F` | +4 | Stunt_FinalizeAndScoreAirTricks |
-| Player2_BoostMeter | `7E:11D1` | Europe retail | `7E:11DB` | +10 | Race_UpdateRacersFrame |
 | Player2_FacedDirection | `7E:0BA3` | Europe retail | `7E:0BA9` | +6 | Race_BuildRacerOAMState |
-| Player2_XPosition | `7E:0413` | Europe retail | `7E:0417` | +4 | Race_BuildRacerOAMState |
-| Player2_YPosition | `7E:0417` | Europe retail | `7E:041B` | +4 | Race_BuildRacerOAMState |
 | Camera_ScreenXPosition | `7E:1509` | PAL prototype | `7E:150D` | +4 | Race_BuildRacerOAMState |
 | CurrentPlayer_BoostMeterWorking | `7E:11CD` | PAL prototype | `7E:11D1` | +4 | Race_UpdateRacersFrame |
 | CurrentPlayer_HalfTwistCount | `7E:0F61` | PAL prototype | `7E:0F65` | +4 | Stunt_FinalizeAndScoreAirTricks |
@@ -82,10 +89,7 @@ These are useful search/probe targets, but should not be copied into authoritati
 | Player1_StuntAirLatch | `7E:1361` | PAL prototype | `7E:1365` | +4 | Stunt_FinalizeAndScoreAirTricks |
 | Player1_TabletopDuration | `7E:042F` | PAL prototype | `7E:042F` | +0 | Stunt_FinalizeAndScoreAirTricks |
 | Player1_ZFlipCount | `7E:042B` | PAL prototype | `7E:042B` | +0 | Stunt_FinalizeAndScoreAirTricks |
-| Player2_BoostMeter | `7E:11D1` | PAL prototype | `7E:11D5` | +4 | Race_UpdateRacersFrame |
 | Player2_FacedDirection | `7E:0BA3` | PAL prototype | `7E:0BA3` | +0 | Race_BuildRacerOAMState |
-| Player2_XPosition | `7E:0413` | PAL prototype | `7E:0413` | +0 | Race_BuildRacerOAMState |
-| Player2_YPosition | `7E:0417` | PAL prototype | `7E:0417` | +0 | Race_BuildRacerOAMState |
 
 ## Operational rule
 

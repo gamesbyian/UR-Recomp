@@ -1,0 +1,450 @@
+{
+  "builds": {
+    "europe-retail": {
+      "all_exact_pairs": true,
+      "assignment": {
+        "boost": {
+          "exact_pair": true,
+          "p1": "7E:11D9",
+          "p1_present": true,
+          "p2_candidates": [
+            "7E:11DB"
+          ]
+        },
+        "xpos": {
+          "exact_pair": true,
+          "p1": "7E:0415",
+          "p1_present": true,
+          "p2_candidates": [
+            "7E:0417"
+          ]
+        },
+        "xspeed": {
+          "exact_pair": true,
+          "p1": "7E:04BB",
+          "p1_present": true,
+          "p2_candidates": [
+            "7E:04BD"
+          ]
+        },
+        "ypos": {
+          "exact_pair": true,
+          "p1": "7E:0419",
+          "p1_present": true,
+          "p2_candidates": [
+            "7E:041B"
+          ]
+        },
+        "yspeed": {
+          "exact_pair": true,
+          "p1": "7E:04BF",
+          "p1_present": true,
+          "p2_candidates": [
+            "7E:04C1"
+          ]
+        }
+      },
+      "fields": {
+        "boost": [
+          {
+            "copy_in": [
+              "82:8BB5"
+            ],
+            "copy_out": [
+              "82:8D04"
+            ],
+            "persistent": "7E:11D9"
+          },
+          {
+            "copy_in": [
+              "82:8EC4"
+            ],
+            "copy_out": [
+              "82:91EC"
+            ],
+            "persistent": "7E:11DB"
+          }
+        ],
+        "xpos": [
+          {
+            "copy_in": [
+              "82:8AB1"
+            ],
+            "copy_out": [
+              "82:8DB7"
+            ],
+            "persistent": "7E:0415"
+          },
+          {
+            "copy_in": [
+              "82:8FB9"
+            ],
+            "copy_out": [
+              "82:92A5"
+            ],
+            "persistent": "7E:0417"
+          }
+        ],
+        "xspeed": [
+          {
+            "copy_in": [
+              "82:8B97"
+            ],
+            "copy_out": [
+              "82:8E97"
+            ],
+            "persistent": "7E:04BB"
+          },
+          {
+            "copy_in": [
+              "82:909F"
+            ],
+            "copy_out": [
+              "82:9385"
+            ],
+            "persistent": "7E:04BD"
+          }
+        ],
+        "ypos": [
+          {
+            "copy_in": [
+              "82:8AAC"
+            ],
+            "copy_out": [
+              "82:8DB2"
+            ],
+            "persistent": "7E:0419"
+          },
+          {
+            "copy_in": [
+              "82:8FB4"
+            ],
+            "copy_out": [
+              "82:92A0"
+            ],
+            "persistent": "7E:041B"
+          }
+        ],
+        "yspeed": [
+          {
+            "copy_in": [
+              "82:8B9D"
+            ],
+            "copy_out": [
+              "82:8E9D"
+            ],
+            "persistent": "7E:04BF"
+          },
+          {
+            "copy_in": [
+              "82:90A5"
+            ],
+            "copy_out": [
+              "82:938B"
+            ],
+            "persistent": "7E:04C1"
+          }
+        ]
+      },
+      "routine": "82:89CC"
+    },
+    "pal-prototype-1994-11-29": {
+      "all_exact_pairs": true,
+      "assignment": {
+        "boost": {
+          "exact_pair": true,
+          "p1": "7E:11D3",
+          "p1_present": true,
+          "p2_candidates": [
+            "7E:11D5"
+          ]
+        },
+        "xpos": {
+          "exact_pair": true,
+          "p1": "7E:0411",
+          "p1_present": true,
+          "p2_candidates": [
+            "7E:0413"
+          ]
+        },
+        "xspeed": {
+          "exact_pair": true,
+          "p1": "7E:04B7",
+          "p1_present": true,
+          "p2_candidates": [
+            "7E:04B9"
+          ]
+        },
+        "ypos": {
+          "exact_pair": true,
+          "p1": "7E:0415",
+          "p1_present": true,
+          "p2_candidates": [
+            "7E:0417"
+          ]
+        },
+        "yspeed": {
+          "exact_pair": true,
+          "p1": "7E:04BB",
+          "p1_present": true,
+          "p2_candidates": [
+            "7E:04BD"
+          ]
+        }
+      },
+      "fields": {
+        "boost": [
+          {
+            "copy_in": [
+              "82:8B9F"
+            ],
+            "copy_out": [
+              "82:8CEE"
+            ],
+            "persistent": "7E:11D3"
+          },
+          {
+            "copy_in": [
+              "82:8EAE"
+            ],
+            "copy_out": [
+              "82:91D6"
+            ],
+            "persistent": "7E:11D5"
+          }
+        ],
+        "xpos": [
+          {
+            "copy_in": [
+              "82:8A9B"
+            ],
+            "copy_out": [
+              "82:8DA1"
+            ],
+            "persistent": "7E:0411"
+          },
+          {
+            "copy_in": [
+              "82:8FA3"
+            ],
+            "copy_out": [
+              "82:928F"
+            ],
+            "persistent": "7E:0413"
+          }
+        ],
+        "xspeed": [
+          {
+            "copy_in": [
+              "82:8B81"
+            ],
+            "copy_out": [
+              "82:8E81"
+            ],
+            "persistent": "7E:04B7"
+          },
+          {
+            "copy_in": [
+              "82:9089"
+            ],
+            "copy_out": [
+              "82:936F"
+            ],
+            "persistent": "7E:04B9"
+          }
+        ],
+        "ypos": [
+          {
+            "copy_in": [
+              "82:8A96"
+            ],
+            "copy_out": [
+              "82:8D9C"
+            ],
+            "persistent": "7E:0415"
+          },
+          {
+            "copy_in": [
+              "82:8F9E"
+            ],
+            "copy_out": [
+              "82:928A"
+            ],
+            "persistent": "7E:0417"
+          }
+        ],
+        "yspeed": [
+          {
+            "copy_in": [
+              "82:8B87"
+            ],
+            "copy_out": [
+              "82:8E87"
+            ],
+            "persistent": "7E:04BB"
+          },
+          {
+            "copy_in": [
+              "82:908F"
+            ],
+            "copy_out": [
+              "82:9375"
+            ],
+            "persistent": "7E:04BD"
+          }
+        ]
+      },
+      "routine": "82:89B6"
+    },
+    "usa-retail": {
+      "all_exact_pairs": true,
+      "assignment": {
+        "boost": {
+          "exact_pair": true,
+          "p1": "7E:11CF",
+          "p1_present": true,
+          "p2_candidates": [
+            "7E:11D1"
+          ]
+        },
+        "xpos": {
+          "exact_pair": true,
+          "p1": "7E:0411",
+          "p1_present": true,
+          "p2_candidates": [
+            "7E:0413"
+          ]
+        },
+        "xspeed": {
+          "exact_pair": true,
+          "p1": "7E:04B7",
+          "p1_present": true,
+          "p2_candidates": [
+            "7E:04B9"
+          ]
+        },
+        "ypos": {
+          "exact_pair": true,
+          "p1": "7E:0415",
+          "p1_present": true,
+          "p2_candidates": [
+            "7E:0417"
+          ]
+        },
+        "yspeed": {
+          "exact_pair": true,
+          "p1": "7E:04BB",
+          "p1_present": true,
+          "p2_candidates": [
+            "7E:04BD"
+          ]
+        }
+      },
+      "fields": {
+        "boost": [
+          {
+            "copy_in": [
+              "82:8BA2"
+            ],
+            "copy_out": [
+              "82:8CF1"
+            ],
+            "persistent": "7E:11CF"
+          },
+          {
+            "copy_in": [
+              "82:8EB1"
+            ],
+            "copy_out": [
+              "82:91D9"
+            ],
+            "persistent": "7E:11D1"
+          }
+        ],
+        "xpos": [
+          {
+            "copy_in": [
+              "82:8A9E"
+            ],
+            "copy_out": [
+              "82:8DA4"
+            ],
+            "persistent": "7E:0411"
+          },
+          {
+            "copy_in": [
+              "82:8FA6"
+            ],
+            "copy_out": [
+              "82:9292"
+            ],
+            "persistent": "7E:0413"
+          }
+        ],
+        "xspeed": [
+          {
+            "copy_in": [
+              "82:8B84"
+            ],
+            "copy_out": [
+              "82:8E84"
+            ],
+            "persistent": "7E:04B7"
+          },
+          {
+            "copy_in": [
+              "82:908C"
+            ],
+            "copy_out": [
+              "82:9372"
+            ],
+            "persistent": "7E:04B9"
+          }
+        ],
+        "ypos": [
+          {
+            "copy_in": [
+              "82:8A99"
+            ],
+            "copy_out": [
+              "82:8D9F"
+            ],
+            "persistent": "7E:0415"
+          },
+          {
+            "copy_in": [
+              "82:8FA1"
+            ],
+            "copy_out": [
+              "82:928D"
+            ],
+            "persistent": "7E:0417"
+          }
+        ],
+        "yspeed": [
+          {
+            "copy_in": [
+              "82:8B8A"
+            ],
+            "copy_out": [
+              "82:8E8A"
+            ],
+            "persistent": "7E:04BB"
+          },
+          {
+            "copy_in": [
+              "82:9092"
+            ],
+            "copy_out": [
+              "82:9378"
+            ],
+            "persistent": "7E:04BD"
+          }
+        ]
+      },
+      "routine": "82:89B9"
+    }
+  },
+  "method": "bidirectional persistent/current-player marshal and writeback edge discovery",
+  "schema_version": 1
+}

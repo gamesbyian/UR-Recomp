@@ -73,11 +73,21 @@ A successful first milestone is:
 
 After that, the race-driving policy can become an autonomous soak workload.
 
-## USJO remains useful
+## Recovered autonomous-player and USJO lineages
 
-The original 2008 `Uniracers Stunts & Jump Optimizer v13` remains worth recovering because it appears to use savestate search to optimize stunt combinations and speed.
+The direct Dessyreqt workspace turns two formerly fragmentary histories into local source corpora.
 
-Its value is now specialized: evaluator/search logic, stunt grammar, timing assumptions and additional RAM knowledge. It is no longer a prerequisite for obtaining an autonomous player.
+The race-policy line is now visibly developmental:
+
+`movebot.lua → teststuntbot.lua → tabletopbot.lua`
+
+The first drives 16 mapped tracks using position/speed/facing/arrows/reverse-controls. The second expands to 26 mapped tracks and adds braking plus tabletop/Z-input logic. The mature Tabletop bot covers 36 mapped tracks, automates frontend/results/ending progression, and contains paired P1/P2 state tables. The directly recovered Tabletop-bot copy is a distinct working-tree variant of the public 2014 Pastebin version, including a Dragster-specific direction/rotation correction and one expanded jump rectangle. Preserve both.
+
+USJO is also no longer represented only by v8 plus a missing-v13 link. The workspace contains internal v14, v14a, a v14a backup and a v14a test sibling. V14 changes the boost read to a 16-bit word and adds broader search controls. V14a substantially refactors the optimizer and scores delayed stunt credit through the HUD/message queue. Exact v13 bytes are now historical gap-filling only.
+
+See `reference/notes/dessyreqt-workspace-mining.md` and `analysis/generated/dessyreqt-workspace-index.json`.
+
+Operational rule: prefer exact SMV replay when a fixed historical input answers the question. Port state-responsive policy only when it provides coverage a movie cannot, especially adaptive whole-race, bot-vs-bot or human-vs-bot workloads.
 
 
 ## Native harness status

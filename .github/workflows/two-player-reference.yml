@@ -170,12 +170,6 @@ jobs:
           fi
           test -s "$RUNNER_TEMP/phase-beetle/phase-entry-1220.wram.bin"
 
-          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
-          SNESREF_INPUT_FILE="$INPUT" SNESREF_SCRIPT="$PHASE" \
-          SNESREF_DUMP_DIR="$RUNNER_TEMP/phase-origin-beetle" \
-            "$REF" "$GITHUB_WORKSPACE/.tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so" "$ROM" \
-            >"$RUNNER_TEMP/phase-origin-beetle.log" 2>&1
-
           rm -rf "$(dirname "$NATIVE")/saves"
           SNESRECOMP_INPUT_FILE="$INPUT" SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/phase-native" \
           SDL_AUDIODRIVER=dummy \
@@ -221,6 +215,12 @@ jobs:
           SNESREF_DUMP_DIR="$RUNNER_TEMP/phase-origin-snes9x" \
             "$REF" "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" "$ROM" \
             >"$RUNNER_TEMP/phase-origin-snes9x.log" 2>&1
+
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_INPUT_FILE="$INPUT" SNESREF_SCRIPT="$PHASE" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/phase-origin-beetle" \
+            "$REF" "$GITHUB_WORKSPACE/.tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so" "$ROM" \
+            >"$RUNNER_TEMP/phase-origin-beetle.log" 2>&1
 
           rm -rf "$(dirname "$NATIVE")/saves"
           SNESRECOMP_INPUT_FILE="$INPUT" SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/phase-origin-native" \

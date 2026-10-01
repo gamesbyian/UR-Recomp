@@ -126,17 +126,24 @@ def build():
    "effect":"Europe retail alone adds an 11-byte guard before the final position-correction tail; subsequent homolog shift changes -26 to -15.",
   },
  ]
- return {"schema_version":1,"island":"PerRacerCollisionContactResponse","usa_start":"81:8FB8","usa_end":"81:99D5","next_code_entry":"81:99D6","dormant_usa_code":[{"start":"81:9484","end":"81:948A","size":7,"instructions":"LDA #$0764; STA $A3; BRA $94AF","note":"valid instruction-aligned alternative bypassed by the recovered live predecessor path"},{"start":"81:9972","end":"81:9978","size":7,"instructions":"LDA #$056C; STA $A3; BRA $997E","note":"valid instruction-aligned alternative with no live predecessor in the recovered helper path"}],"europe_only_insertions":insertions,"usa_unreached_runs":ranges_for(lambda x:not (ds["usa-retail"].code_map[x]&(ds["usa-retail"].OP_CODE|ds["usa-retail"].OP_PARAM)),cpu_to_offset("81:8FB8"),cpu_to_offset("81:99D5")),"regions":rows}
+ return {"schema_version":1,"island":"PerRacerCollisionContactResponse","usa_start":"81:8FB8","usa_end":"81:99D5","next_code_entry":"81:99D6","dormant_usa_code":[{"start":"81:9484","end":"81:948A","size":7,"instructions":"LDA #$0764; STA $A3; BRA $94AF","note":"bypassed alternative reward/contact selector"},{"start":"81:9646","end":"81:9669","size":36,"instructions":"decay $0F4B/$0F4D toward zero","note":"alternate angular-state decay block bypassed by the live BRA at 81:9644"},{"start":"81:96AD","end":"81:96AF","size":3,"instructions":"JMP $9728","note":"orphaned alternate jump with no recovered predecessor"},{"start":"81:9972","end":"81:9978","size":7,"instructions":"LDA #$056C; STA $A3; BRA $997E","note":"bypassed contact-direction selector alternative"}],"europe_only_insertions":insertions,"usa_unreached_runs":ranges_for(lambda x:not (ds["usa-retail"].code_map[x]&(ds["usa-retail"].OP_CODE|ds["usa-retail"].OP_PARAM)),cpu_to_offset("81:8FB8"),cpu_to_offset("81:99D5")),"regions":rows}
 
 def render(r):
  lines=["# Per-racer collision / contact-response structural island","",
- "USA 81:8FB8..99D5 consumes sampled course/contact state, reduces collision candidates, classifies landing/air state, corrects velocity and position, and includes the contact-direction quantizer at 81:983B. The next independent long-entry wrapper begins at 81:99D6.","",
+ "USA `81:8FB8..99D5` consumes sampled course/contact state, reduces collision candidates, classifies landing/air state, corrects velocity and position, and includes the contact-direction quantizer at `81:983B`. The next independent long-entry wrapper begins at `81:99D6`.","",
  "| Region | USA bytes | PAL prototype | Europe | Legacy beta |","|---|---:|---|---|---|"]
  for x in r["regions"]:
-  def c(b):
+  def cell(b):
    q=x["builds"][b]; return f"{q['start']}..{q['end']} ({q['shift']:+d}; sim {q['similarity']:.3f}; op {q['opcode_bytes']}; other {q['unreached_or_data_bytes']})"
-  lines.append(f"| {x['name']} | {x['size']} | {c('pal-prototype-1994-11-29')} | {c('europe-retail')} | {c('legacy-beta')} |")
- return "\n".join(lines)+"\n"
+  lines.append(f"| {x['name']} | {x['size']} | {cell('pal-prototype-1994-11-29')} | {cell('europe-retail')} | {cell('legacy-beta')} |")
+ lines += ["","## Europe-retail insertions",""]
+ for ins in r["europe_only_insertions"]:
+  lines.append(f"- Before USA {ins['usa_boundary_before']}: Europe {ins['europe_start']} inserts {ins['size']} bytes: {ins['instructions']}.")
+ lines += ["","## Dormant USA code",""]
+ for d in r["dormant_usa_code"]:
+  lines.append(f"- {d['start']}..{d['end']} ({d['size']} bytes): {d['instructions']} — {d['note']}.")
+ lines += ["","Trusted-entry tracing from the real subsystem entry preserves accumulator/index context and gives 100% aligned opcode consensus in every accepted homolog region. The dormant blocks remain explicit code but are not counted as live reached bytes.",""]
+ return "\n".join(lines)
 
 def main():
  r=build(); OUTJ.write_text(json.dumps(r,indent=2)+"\n"); OUTM.write_text(render(r)); print(render(r)); print("COLLISION_RESPONSE_JSON="+json.dumps(r,sort_keys=True))

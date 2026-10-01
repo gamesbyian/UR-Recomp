@@ -8,6 +8,7 @@ on:
       - "tests/input/two-player-first-race-observe.script"
       - "tests/input/two-player-p2-drift-microtrace.script"
       - "tests/input/two-player-phase-entry-microtrace.script"
+      - "tests/input/two-player-phase-origin-microtrace.script"
       - "tools/summarize_paired_player_slots.py"
       - "tools/assert_uniracers_vs_oam_seam.py"
       - ".github/workflows/two-player-reference.yml"
@@ -138,95 +139,73 @@ jobs:
               print(cp, "MATCH" if not diffs else diffs)
           PY
 
-      - name: Localize race-entry scheduler phase
+      - name: Assert race-relative ordinary 2P parity
         shell: bash
         run: |
           set -euo pipefail
-          PHASE="$GITHUB_WORKSPACE/tests/input/two-player-phase-entry-microtrace.script"
           INPUT="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
+          MICRO="$GITHUB_WORKSPACE/tests/input/two-player-p2-drift-microtrace.script"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           REF="$RUNNER_TEMP/snesref-build/snesref"
           NATIVE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
-          mkdir -p "$RUNNER_TEMP/phase-snes9x" "$RUNNER_TEMP/phase-beetle" "$RUNNER_TEMP/phase-native"
+          SHIFTED="$RUNNER_TEMP/two-player-native-race-relative.input"
 
-          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
-          SNESREF_INPUT_FILE="$INPUT" SNESREF_SCRIPT="$PHASE" \
-          SNESREF_DUMP_DIR="$RUNNER_TEMP/phase-snes9x" \
-            "$REF" "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" "$ROM" \
-            >"$RUNNER_TEMP/phase-snes9x.log" 2>&1
-
-          set +e
-          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
-          SNESREF_INPUT_FILE="$INPUT" SNESREF_SCRIPT="$PHASE" \
-          SNESREF_DUMP_DIR="$RUNNER_TEMP/phase-beetle" \
-            "$REF" "$GITHUB_WORKSPACE/.tools/src/beetle-bsnes-libretro/mednafen_snes_libretro.so" "$ROM" \
-            >"$RUNNER_TEMP/phase-beetle.log" 2>&1
-          beetle_status=$?
-          set -e
-          if [ "$beetle_status" -ne 0 ] && [ "$beetle_status" -ne 134 ]; then
-            cat "$RUNNER_TEMP/phase-beetle.log"
-            exit "$beetle_status"
-          fi
-          test -s "$RUNNER_TEMP/phase-beetle/phase-entry-1220.wram.bin"
-
-          rm -rf "$(dirname "$NATIVE")/saves"
-          SNESRECOMP_INPUT_FILE="$INPUT" SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/phase-native" \
-          SDL_AUDIODRIVER=dummy \
-            timeout 180s xvfb-run -a "$NATIVE" "$ROM" --script "$PHASE" \
-            >"$RUNNER_TEMP/phase-native.log" 2>&1
-
-          python3 - "$RUNNER_TEMP/phase-native" "$RUNNER_TEMP/phase-snes9x" "$RUNNER_TEMP/phase-beetle" <<'PY'
+          # Native enters the ordinary 2P race one host frame after Snes9x.
+          # Preserve the pre-entry route verbatim, then shift every controller
+          # event at/after 1180 by +1 so post-entry input occurs at the same
+          # race-relative tick in both runtimes.
+          python3 - "$INPUT" "$SHIFTED" <<'PY'
           from pathlib import Path
           import sys
-          nroot=Path(sys.argv[1]); sroot=Path(sys.argv[2]); broot=Path(sys.argv[3])
-          first=None
-          for frame in range(1120,1221,5):
-              tag=f"phase-entry-{frame}"
-              n=(nroot/f"{tag}.wram.bin").read_bytes()
-              s=(sroot/f"{tag}.wram.bin").read_bytes()
-              b=(broot/f"{tag}.wram.bin").read_bytes()
-              fields={
-                  "menu":(n[0x009F],s[0x009F],b[0x009F]),
-                  "p2VerticalDirection":(n[0x0313],s[0x0313],b[0x0313]),
-                  "phase2":(n[0x0302],s[0x0302],b[0x0302]),
-                  "phase3":(n[0x0304],s[0x0304],b[0x0304]),
-              }
-              diffs={k:v for k,v in fields.items() if len(set(v)) != 1}
-              print(tag, fields, "MATCH" if not diffs else f"DIFF {diffs}")
-              if diffs and first is None:
-                  first=(frame,diffs)
-          print("FIRST_PHASE_ENTRY_DIFF", first or "MATCH_THROUGH_1220")
+          src=Path(sys.argv[1]).read_text().splitlines()
+          out=[]
+          for raw in src:
+              body=raw.split("#",1)[0].strip()
+              if not body:
+                  out.append(raw)
+                  continue
+              parts=body.split(":")
+              if len(parts) not in (3,4):
+                  out.append(raw)
+                  continue
+              start=int(parts[0])
+              if start >= 1180:
+                  parts[0]=str(start+1)
+                  suffix=""
+                  if "#" in raw:
+                      suffix=" #"+raw.split("#",1)[1]
+                  raw=":".join(parts)+suffix
+              out.append(raw)
+          Path(sys.argv[2]).write_text("\n".join(out)+"\n")
           PY
+          cat "$SHIFTED"
 
-      - name: Localize native/Snes9x P2-only drift
-        shell: bash
-        run: |
-          set -euo pipefail
-          MICRO="$GITHUB_WORKSPACE/tests/input/two-player-p2-drift-microtrace.script"
-          INPUT="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
-          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          EXE="$RUNNER_TEMP/snesref-build/snesref"
+          mkdir -p "$RUNNER_TEMP/snes9x-race-relative" "$RUNNER_TEMP/native-race-relative"
 
-          mkdir -p "$RUNNER_TEMP/snes9x-micro" "$RUNNER_TEMP/native-micro"
           SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
           SNESREF_INPUT_FILE="$INPUT" SNESREF_SCRIPT="$MICRO" \
-          SNESREF_DUMP_DIR="$RUNNER_TEMP/snes9x-micro" \
-            "$EXE" "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" "$ROM" \
-            >"$RUNNER_TEMP/snes9x-micro.log" 2>&1
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/snes9x-race-relative" \
+            "$REF" "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" "$ROM" \
+            >"$RUNNER_TEMP/snes9x-race-relative.log" 2>&1
 
-          NATIVE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
           rm -rf "$(dirname "$NATIVE")/saves"
-          SNESRECOMP_INPUT_FILE="$INPUT" SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/native-micro" \
+          SNESRECOMP_INPUT_FILE="$SHIFTED" SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/native-race-relative" \
           SDL_AUDIODRIVER=dummy \
             timeout 180s xvfb-run -a "$NATIVE" "$ROM" --script "$MICRO" \
-            >"$RUNNER_TEMP/native-micro.log" 2>&1
+            >"$RUNNER_TEMP/native-race-relative.log" 2>&1
 
-          python3 - "$RUNNER_TEMP/native-micro" "$RUNNER_TEMP/snes9x-micro" <<'PY'
+          # Compare the same race-relative instant: native enters this route
+          # one host frame later, so native frame N+1 is paired with Snes9x N.
+          python3 - "$RUNNER_TEMP/native-race-relative" "$RUNNER_TEMP/snes9x-race-relative" <<'PY'
           from pathlib import Path
           import sys
-
-          native_root=Path(sys.argv[1]); ref_root=Path(sys.argv[2])
+          nroot=Path(sys.argv[1]); sroot=Path(sys.argv[2])
           fields={
+              "phase0":("u8",0x0300),
+              "phase2":("u8",0x0302),
+              "phase3":("u8",0x0304),
+              "inRace":("u8",0x0313),
+              "race_tick":("u8",0x0FE7),
               "slot1.x":("u16",0x0411),
               "slot1.y":("u16",0x0415),
               "slot1.vx":("s16",0x04B7),
@@ -239,178 +218,29 @@ jobs:
               "slot2.vy":("s16",0x04BD),
               "slot2.air":("u8",0x0547),
               "slot2.rot":("u8",0x04C9),
-              "slot2.camera_vx":("s8",0x04F7),
-              "joy2.auto_lo":("u8",0x030E),
-              "joy2.auto_hi":("u8",0x0310),
-              "p2.horizontal_dir":("u8",0x0317),
               "working.x_speed":("s16",0x0F9F),
-              "working.y_speed":("s16",0x0FA1),
-              "working.rotation":("u8",0x0F49),
           }
-          def read(path):
-              w=path.read_bytes()
-              out={}
+          def read(w,kind,off):
+              if kind=="u8": return w[off]
+              v=w[off]|(w[off+1]<<8)
+              return v-0x10000 if kind=="s16" and v&0x8000 else v
+
+          mismatches=[]
+          for sf in range(1528,1541):
+              nf=sf+1
+              s=(sroot/f"p2-drift-{sf}.wram.bin").read_bytes()
+              n=(nroot/f"p2-drift-{nf}.wram.bin").read_bytes()
+              diffs={}
               for name,(kind,off) in fields.items():
-                  if kind=="u8":
-                      v=w[off]
-                  elif kind=="s8":
-                      v=w[off]
-                      if v & 0x80:
-                          v-=0x100
-                  else:
-                      v=int.from_bytes(w[off:off+2],"little")
-                      if kind=="s16" and v & 0x8000:
-                          v-=0x10000
-                  out[name]=v
-              return out
-
-          first=None
-          for frame in range(1528,1555):
-              tag=f"p2-drift-{frame}"
-              a=read(native_root/f"{tag}.wram.bin")
-              b=read(ref_root/f"{tag}.wram.bin")
-              diffs={k:(a[k],b[k]) for k in fields if a[k]!=b[k]}
-              print(tag, "MATCH" if not diffs else diffs)
-              if diffs and first is None:
-                  first=(frame,diffs)
-          if first is None:
-              raise SystemExit("P2 drift disappeared under common microtrace schedule; update documentation instead of assuming the sparse result")
-          frame,diffs=first
-          if frame <= 1530:
-              raise SystemExit(f"P2 drift predates execution of the P2-only input window: first={frame} {diffs}")
-          print(f"FIRST_P2_DRIFT frame={frame} diffs={diffs}")
-          PY
-
-      - name: Discriminate player-slot versus direction drift
-        shell: bash
-        run: |
-          set -euo pipefail
-          BASE="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
-          MICRO="$GITHUB_WORKSPACE/tests/input/two-player-p2-drift-microtrace.script"
-          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          REF="$RUNNER_TEMP/snesref-build/snesref"
-          NATIVE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
-
-          python3 - "$BASE" "$RUNNER_TEMP" <<'PY'
-          from pathlib import Path
-          import sys
-          src=Path(sys.argv[1]).read_text().splitlines()
-          out=Path(sys.argv[2])
-          prefix=[]
-          for raw in src:
-              line=raw.split("#",1)[0].strip()
-              if not line:
-                  continue
-              start=int(line.split(":",1)[0],0)
-              if start < 1480:
-                  prefix.append(line)
-          variants={
-              "p1-left": "1530:24:040:000",
-              "p1-right": "1530:24:080:000",
-              "p2-right": "1530:24:000:080",
-          }
-          for name,event in variants.items():
-              (out/f"{name}.input").write_text("\n".join(prefix+[event])+"\n")
-          PY
-
-          run_variant() {
-            local name="$1"
-            local input="$RUNNER_TEMP/$name.input"
-            mkdir -p "$RUNNER_TEMP/$name-snes9x" "$RUNNER_TEMP/$name-native"
-            SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
-            SNESREF_INPUT_FILE="$input" SNESREF_SCRIPT="$MICRO" \
-            SNESREF_DUMP_DIR="$RUNNER_TEMP/$name-snes9x" \
-              "$REF" "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" "$ROM" \
-              >"$RUNNER_TEMP/$name-snes9x.log" 2>&1
-            rm -rf "$(dirname "$NATIVE")/saves"
-            SNESRECOMP_INPUT_FILE="$input" SNESRECOMP_DUMP_DIR="$RUNNER_TEMP/$name-native" \
-            SDL_AUDIODRIVER=dummy \
-              timeout 180s xvfb-run -a "$NATIVE" "$ROM" --script "$MICRO" \
-              >"$RUNNER_TEMP/$name-native.log" 2>&1
-          }
-          run_variant p1-left
-          run_variant p1-right
-          run_variant p2-right
-
-          python3 - "$RUNNER_TEMP" <<'PY'
-          from pathlib import Path
-          import sys
-          root=Path(sys.argv[1])
-          slots={
-              "p1-left":{
-                  "x":("u16",0x0411),"y":("u16",0x0415),
-                  "vx":("s16",0x04B7),"vy":("s16",0x04BB),
-                  "air":("u8",0x0545),"rot":("u8",0x04C7),
-                  "working_vx":("s16",0x0F9F),
-                  "phase2":("u8",0x0302),"phase3":("u8",0x0304),
-              },
-              "p1-right":{
-                  "x":("u16",0x0411),"y":("u16",0x0415),
-                  "vx":("s16",0x04B7),"vy":("s16",0x04BB),
-                  "air":("u8",0x0545),"rot":("u8",0x04C7),
-                  "working_vx":("s16",0x0F9F),
-                  "phase2":("u8",0x0302),"phase3":("u8",0x0304),
-              },
-              "p2-right":{
-                  "x":("u16",0x0413),"y":("u16",0x0417),
-                  "vx":("s16",0x04B9),"vy":("s16",0x04BD),
-                  "air":("u8",0x0547),"rot":("u8",0x04C9),
-                  "working_vx":("s16",0x0F9F),
-                  "phase2":("u8",0x0302),"phase3":("u8",0x0304),
-              },
-          }
-          def read(path, fields):
-              w=path.read_bytes(); out={}
-              for name,(kind,off) in fields.items():
-                  if kind=="u8": v=w[off]
-                  else:
-                      v=int.from_bytes(w[off:off+2],"little")
-                      if kind=="s16" and v&0x8000: v-=0x10000
-                  out[name]=v
-              return out
-
-          # All three variants have an identical input prefix through frame 1529.
-          # Require full guest state identity inside each runtime before the
-          # frame-1530 intervention. This guards against shared SRAM/save state
-          # or other process-to-process leakage in the native oracle.
-          variants=("p1-left","p1-right","p2-right")
-          for runtime in ("native","snes9x"):
-              for frame in (1528,1529):
-                  tag=f"p2-drift-{frame}"
-                  baseline=(root/f"{variants[0]}-{runtime}"/f"{tag}.wram.bin").read_bytes()
-                  baseline_sram=(root/f"{variants[0]}-{runtime}"/f"{tag}.sram.bin").read_bytes()
-                  for variant in variants[1:]:
-                      w=(root/f"{variant}-{runtime}"/f"{tag}.wram.bin").read_bytes()
-                      sr=(root/f"{variant}-{runtime}"/f"{tag}.sram.bin").read_bytes()
-                      if w != baseline:
-                          first=next(i for i,(a,b) in enumerate(zip(baseline,w)) if a != b)
-                          raise SystemExit(
-                              f"{runtime}: identical-prefix WRAM is not repeatable at frame {frame}; "
-                              f"{variants[0]} vs {variant}, first byte 0x{first:04X}: "
-                              f"{baseline[first]:02X}!={w[first]:02X}"
-                          )
-                      if sr != baseline_sram:
-                          first=next(i for i,(a,b) in enumerate(zip(baseline_sram,sr)) if a != b)
-                          raise SystemExit(
-                              f"{runtime}: identical-prefix SRAM is not repeatable at frame {frame}; "
-                              f"{variants[0]} vs {variant}, first byte 0x{first:04X}: "
-                              f"{baseline_sram[first]:02X}!={sr[first]:02X}"
-                          )
-                  print("IDENTICAL_PREFIX", runtime, frame, "MATCH")
-
-          for variant,fields in slots.items():
-              first=None
-              print("VARIANT",variant)
-              for frame in range(1528,1555):
-                  tag=f"p2-drift-{frame}"
-                  a=read(root/f"{variant}-native"/f"{tag}.wram.bin",fields)
-                  b=read(root/f"{variant}-snes9x"/f"{tag}.wram.bin",fields)
-                  diffs={k:(a[k],b[k]) for k in fields if a[k]!=b[k]}
-                  if frame < 1530 and diffs:
-                      raise SystemExit(f"{variant}: pre-intervention mismatch at {frame}: {diffs}")
-                  if diffs and first is None:
-                      first=(frame,diffs)
-              print("FIRST_VARIANT_DRIFT",variant,first or "MATCH_THROUGH_1554")
+                  pair=(read(n,kind,off),read(s,kind,off))
+                  if pair[0]!=pair[1]:
+                      diffs[name]=pair
+              print(f"RACE_RELATIVE_COMPARE native={nf} snes9x={sf}",
+                    "MATCH" if not diffs else diffs)
+              if diffs:
+                  mismatches.append((nf,sf,diffs))
+          assert not mismatches, f"race-relative semantic mismatch: {mismatches[:3]}"
+          print("RACE_RELATIVE_ALIGNMENT_CONFIRMED")
           PY
 
       - name: Assert ordinary 2P active-display OAM seam

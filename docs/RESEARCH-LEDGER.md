@@ -1638,3 +1638,147 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 **Propagation:** added both regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **40 regions / 5,259 bounded USA bytes**, including **5,051 code-region bytes** and **2,108 analyzer-classified opcode bytes**, and adding bank 83 to the represented-bank set. The queue now advances to a seventh independent subsystem.
 
+### R-SEED-067 — Checkpoint/finish handler resolves into two regional edit lineages
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | race state | course objects | comparative atlas
+
+**Observation:** object code `0x14` dispatches to USA `81:8050`, and the handler runs through `81:82E0` before the shared object-handler continuation at `81:82E1`. The complete USA handler is 657 bytes and trusted-entry snes2asm reaches every USA byte. Legacy beta is byte-identical.
+
+**Evidence:** `tools/analyze_checkpoint_finish_structure_island.py`; `analysis/generated/checkpoint-finish-structure-island.{json,md}`; ROM-backed project-tooling runs beginning with `36932038895` and the exact-boundary passes that followed. The earlier homolog pass had already isolated Europe retail's frame-normalization contraction. The seventh-island pass extended through the formerly width-ambiguous late handler and localized the remaining shift staircase to exact instruction-aligned deletions.
+
+**Interpretation:** two separate lineages are superposed. Europe retail alone replaces USA `81:8102..8117` (22 bytes) with `81:8102..8109` (8 bytes), net -14. Independently, PAL prototype and Europe both omit five USA/beta blocks: `8210..8215` (6 bytes: TXA; STA $0E39,Y; LDA $00), `8227..822C` (6: TXA; STA $0E3D,Y; LDA $00), `823E..8243` (6: TXA; STA $0E41,Y; LDA $00), `8253..8259` (7: STA $0E35,Y; TXA; STA $0E45,Y), and `8278..827B` (4 NOPs). Those shared PAL-line deletions total -29, so the prototype exits at shift -29 and Europe at -43 after also applying the timer edit.
+
+**Discriminating test:** no further boundary work is required. Exact semantic meaning of the deleted bookkeeping stores should be pursued only if race-results/finish fidelity or regional-timing behavior requires it.
+
+**Dependencies:** object-code dispatcher mapping; trusted-entry snes2asm; four-ROM preserved corpus; exact transition-window byte comparison.
+
+**Propagation:** represented the entire 657-byte USA handler as 15 gapless code regions, preserving USA/beta-only deleted blocks explicitly rather than hiding them inside shift arithmetic. Added the island to `analysis/generated/comparative-structural-census.{json,md}`, bringing the census to **55 regions / 5,916 bounded USA bytes**, including **5,708 code-region bytes** and **2,393 analyzer opcode bytes**.
+
+### R-SEED-068 — Stunt finalization preserves scoring architecture across PAL-line cleanup
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | stunt physics | scoring | comparative atlas
+
+**Observation:** USA `82:9A42..9D8B` is the complete stunt-finalization/scoring routine, followed immediately by three 10-byte score-weight tables at `9D8C..9DA9` and a 625-byte trick/praise lookup at `9DAA..A01A`; the next USA code begins at `82:A01B`. The combined island is 1,497 bytes.
+
+**Evidence:** `tools/analyze_stunt_finalizer_structure_island.py`; `analysis/generated/stunt-finalizer-structure-island.{json,md}`; ROM-backed project-tooling run `36933522739`. Regional entry seeding reaches every accepted executable byte in all four builds. USA and legacy beta are byte-identical.
+
+**Interpretation:** the PAL prototype and Europe preserve the full stunt state-machine/scoring architecture with one structural cleanup: both omit five USA/beta NOPs at `82:9D09..9D0D`. Before the deletion the prototype homolog shift is -5 and Europe +17; afterward they are -10 and +12 respectively. The three score-weight tables and the full 625-byte trick/praise table are byte-identical across all four ROMs after accounting for that shift.
+
+**Discriminating test:** none required for code/data boundaries, the five-NOP contraction, or table identity. Exact semantics of individual praise-table values should be pursued only when implementing stunt messaging/scoring or validating a concrete discrepancy.
+
+**Dependencies:** Nitrodon stunt disassembly; trusted-entry snes2asm; four-ROM preserved corpus; direct table hashes.
+
+**Propagation:** added ten regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **65 regions / 7,413 bounded USA bytes**, including **6,550 code-region bytes**, **863 data bytes**, and **2,743 analyzer opcode bytes**.
+
+### R-SEED-069 — Stunt-message pipeline closes the finalizer→queue→reward/display chain
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | stunt scoring | HUD | message queues | comparative atlas
+
+**Observation:** USA `81:C0DD..C604` is a connected 1,320-byte subsystem that consumes queued stunt-message IDs for both players, applies stunt-score and boost rewards, converts backing scores into display digits, exposes embedded message/reward lookup data, and appends new messages through the queue helper at `C5B3`.
+
+**Evidence:** `tools/analyze_stunt_message_pipeline_structure_island.py`; `analysis/generated/stunt-message-pipeline-structure-island.{json,md}`; ROM-backed project-tooling runs culminating in `36934577086`. Trusted regional entry seeding reaches every accepted executable byte. USA and legacy beta are byte-identical.
+
+**Interpretation:** the PAL prototype and Europe both omit the three USA/beta NOPs at `81:C24B..C24D`, shifting the later prototype stream from -32 to -35 and Europe from -15 to -18. Europe alone then replaces USA/prototype `81:C372..C37E` (13 bytes) with `81:C360..C367` (8 bytes), a compact equivalent two-player score-display gate that moves subsequent Europe code to shift -23. The apparent one-byte difference in the old embedded-data span was not data at all: USA `C572..C575` is executable `JSR $C576; RTL`, and its relocated JSR operand changes naturally in regional builds. The corrected data block `C458..C571` is 282 bytes and byte-identical across all four ROMs.
+
+**Discriminating test:** no further code/data or lineage-boundary work is needed. Individual meanings inside the overlapping message/action, boost-reward and record-mapping lookup views should be decoded only when implementing HUD/message behavior or validating a concrete scoring discrepancy.
+
+**Dependencies:** Nitrodon bank-81 listing; recovered `HUD_QueueMessage` homologs; stunt-finalizer producer semantics; trusted-entry snes2asm; four-ROM corpus.
+
+**Propagation:** added eight regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **73 regions / 8,733 bounded USA bytes**, including **7,588 code-region bytes**, **1,145 data bytes**, and **3,182 analyzer opcode bytes**. This closes a direct implementation chain from stunt recognition/scoring through delayed queue consumption, persistent score/boost mutation, and display-state refresh.
+
+### R-SEED-070 — Race input normalization preserves instruction architecture across all four builds
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | input | racer control | comparative atlas
+
+**Observation:** USA `82:AA6E..ACA0` is a 563-byte, fully executable input subsystem spanning P1 decode/fallback, P2 decode/activity tracking, and reverse-controls remapping immediately before the racer-OAM wrapper at `82:ACA1`.
+
+**Evidence:** `tools/analyze_input_normalization_structure_island.py`; `analysis/generated/input-normalization-structure-island.{json,md}`; existing Europe/USA and USA/PAL-prototype snes2asm homolog adjudication for all three subregions. USA/legacy beta are byte-identical. PAL prototype stays at shift -15 and Europe at +7 across the full routine.
+
+**Interpretation:** the routine's instruction structure is unchanged regionally. Across P1, P2, and postprocess blocks, PAL prototype and Europe each preserve all 237 aligned opcode positions with 100% opcode consensus, zero code/operand role disagreements, and zero M/X-width disagreements. Europe's lower raw byte similarity is therefore operand relocation, not altered control architecture; this includes the established regional controller-state family such as USA `030D` mapping to Europe `0311`.
+
+**Discriminating test:** no further function-boundary or control-flow work is required. Decode individual regional WRAM operands only when an implementation or fidelity test needs them.
+
+**Dependencies:** Nitrodon bank-82 listing; cross-build symbol correspondence; Europe/USA and USA/PAL-prototype snes2asm homolog reports; four-ROM corpus.
+
+**Propagation:** added three code regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **76 regions / 9,296 bounded USA bytes**, including **8,151 code-region bytes**, **1,145 data bytes**, and **3,419 analyzer opcode bytes**.
+
+### R-SEED-071 — Race camera control is a preserved 1.5 KiB executable subsystem
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | camera | viewport | comparative atlas
+
+**Observation:** USA `81:9FBF..A59D` forms a connected camera-control cluster: target-velocity/follow solving, a shared smoothing helper, course/scale configuration driven from `7F:000D`, and the per-frame camera update wrapper at `81:A52B/A52F`. All 1,503 USA bytes are executable under trusted-entry tracing.
+
+**Evidence:** `tools/analyze_camera_control_structure_island.py`; `analysis/generated/camera-control-structure-island.{json,md}`; ROM-backed project-tooling runs `36938453986` and `36938508110`. USA and legacy beta are byte-identical. PAL prototype stays at shift -32 and Europe at -15 across all four regions.
+
+**Interpretation:** regional builds preserve the camera instruction architecture wholesale. The velocity solver, smoothing helper, scale configuration, and per-frame update together contain 659 aligned USA opcode positions; both PAL prototype and Europe match all 659 with zero code/operand role disagreements. The old Nitrodon listing's BRK/COP clutter in the velocity solver is width/context drift rather than exceptional control flow.
+
+**Discriminating test:** no further boundary work is required. Individual camera constants and WRAM operands should be named as widescreen/viewport implementation needs demand them.
+
+**Dependencies:** Nitrodon bank-81 listing; trusted-entry snes2asm; four-ROM preserved corpus; camera position/velocity semantics already promoted in SYMBOLS.
+
+**Propagation:** added four code regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **80 regions / 10,799 bounded USA bytes**, including **9,654 code-region bytes**, **1,145 data bytes**, and **4,078 analyzer opcode bytes**.
+
+### R-SEED-072 — Race/stunt timer lifecycle preserves one instruction architecture across all four builds
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | race timing | stunt timing | comparative atlas
+
+**Observation:** USA `81:C697..C906` is a 624-byte timer lifecycle containing the long-entry wrapper, mode dispatcher, count-up race timer, stunt countdown timer, digit refresh, timeout/finalization handling, and warning-sound threshold. The next code starts at `81:C907`.
+
+**Evidence:** `tools/analyze_race_timer_structure_island.py`; `analysis/generated/race-timer-structure-island.{json,md}`; ROM-backed project-tooling runs `36939582649` and `36939682024`. All 624 USA bytes are executable when the dormant `C6A4..C6A6` call slot is seeded explicitly. USA and legacy beta are byte-identical.
+
+**Interpretation:** PAL prototype preserves the entire subsystem at shift -35 and Europe at -19. Across the five structural regions, both regional builds preserve all 244 aligned opcode positions with zero code/operand-role disagreements. `81:C6A4..C6A6` is valid dormant code (`JSR $CB37`) intentionally bypassed by `BRA $C6A7`, not an embedded data seam. The live timer representation is `0E0F` minutes, `0E13` tens of seconds, `0E17` seconds, `0E1B` tenths, and `0E1F` six-step sub-tick; both count directions share these fields and digit-display refresh paths.
+
+**Discriminating test:** no further structural work is required. Exact semantics of mode selector `0E23`, finish flags `0EF5/0EF7`, and warning thresholds should be expanded only for a concrete fidelity or UI implementation need.
+
+**Dependencies:** Nitrodon bank-81 listing; trusted-entry snes2asm; four-ROM corpus; checkpoint/finish timer snapshot evidence.
+
+**Propagation:** replaced the generic race-timer TBD in `docs/SYMBOLS.md` with five concrete timer fields and added five code regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **85 regions / 11,423 bounded USA bytes**, including **10,278 code-region bytes**, **1,145 data bytes**, and **4,322 analyzer opcode bytes**.
+
+### R-SEED-073 — Two-player persistent-state marshal preserves shared simulation architecture
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | racer state | rotation | comparative atlas
+
+**Observation:** USA `81:8D14..8FB7` is a 676-byte, fully executable bridge between paired persistent P1/P2 racer state and the shared current-player `0Fxx` workspace. It follows the recovered course-surface sampler and exits immediately before collision handling at `81:8FB8`.
+
+**Evidence:** `tools/analyze_player_state_marshal_structure_island.py`; `analysis/generated/player-state-marshal-structure-island.{json,md}`; ROM-backed tooling run `36940294304`. USA and legacy beta are byte-identical. PAL prototype and Europe both remain at shift -32 throughout all three regions.
+
+**Interpretation:** both regional builds preserve all 234 aligned opcode positions with zero code/operand-role disagreements. The P1 bridge copies persistent pitch angle `04C7` to shared `0F49` and persistent angular velocity `0BAD` to shared `0F4B`; P2 mirrors those relations from `04C9` and `0BAF`. Shared angular velocity is written back after the common simulation pass. This closes the stale generic rotation gap while keeping separate per-frame rotational delta `0F4D` distinct.
+
+**Discriminating test:** no further structural work is required. Broaden individual shared-workspace labels only when a concrete physics/collision implementation needs them.
+
+**Dependencies:** Nitrodon bank-81 listing; trusted-entry snes2asm; four-ROM corpus; existing P1/P2 pitch-angle semantics.
+
+**Propagation:** replaced the generic rotation TBD with angular-velocity/current-player workspace semantics and added three code regions to the comparative census, expanding it to **88 regions / 12,099 bounded USA bytes**, including **10,954 code-region bytes**, **1,145 data bytes**, and **4,556 analyzer opcode bytes**.
+
+### R-SEED-074 — Collision/contact resolver preserves shared live architecture around two Europe-only insertions
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | collision | contact response | comparative atlas
+
+**Observation:** USA `81:8FB8..99D5` is a 2,590-byte collision cluster consisting of the main per-racer contact resolver through `983A` and its directly called geometry helper `983B..99D5`. Trusted-entry tracing fully reaches the live paths. Four instruction-bounded USA-dormant alternatives total 62 bytes and are represented separately rather than force-seeded with fabricated width context.
+
+**Evidence:** `tools/analyze_collision_resolution_structure_island.py`; `analysis/generated/collision-resolution-structure-island.{json,md}`; ROM-backed project-tooling runs `36940735178`, `36941007139`, and `36941413521`. USA and legacy beta are byte-identical.
+
+**Interpretation:** PAL prototype preserves the shared cluster at constant shift -32. Europe preserves every live aligned opcode around two explicit insertions: after the homolog of USA `81:9302 D0 09`, the branch becomes `D0 0F` and six NOPs are inserted, moving subsequent homologs from -32 to -26; before the homolog of USA `81:9800`, Europe inserts 11 bytes `AD E7 0D 29 FE 00 C9 08 00 F0 08` (`LDA $0DE7; AND #$00FE; CMP #$0008; BEQ +8`), moving the following structure -26 to -15. Every live region has zero regional opcode or code/operand-role disagreement once the helper inherits M/X context through its real caller.
+
+**Discriminating test:** exact semantics of the Europe-only gate should be pursued only if a regional collision/fidelity question requires it. The structural boundary, live/dormant classification and lineage insertions are closed.
+
+**Dependencies:** player-state marshal island; trusted-entry snes2asm; Nitrodon bank-81 collision listing; four-ROM corpus.
+
+**Propagation:** added twelve code regions to `analysis/generated/comparative-structural-census.{json,md}`, bringing the census to **100 regions / 14,689 bounded USA bytes**, including **13,544 code-region bytes**, **1,145 data bytes**, and **5,665 analyzer opcode bytes**.
+

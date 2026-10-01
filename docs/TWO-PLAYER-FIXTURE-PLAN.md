@@ -1,10 +1,10 @@
 # Two-Player Fixture Capability Plan
 
-Status: deterministic VS and ordinary-2P routes are both reproduced. Ordinary 2P is promoted to a durable two-controller fixture with isolated P1-only, P2-only and simultaneous movement checkpoints plus the active-display OAM seam. Native/reference VS semantics are exact before active movement, with a tiny post-input P2 timing drift preserved as open evidence.
+Status: deterministic VS and ordinary-2P routes are both reproduced. Ordinary 2P is promoted to a durable two-controller fixture with isolated P1-only, P2-only and simultaneous movement checkpoints plus the active-display OAM seam. The former frame-1532 one-unit X-speed seam is resolved as an absolute host-frame anchoring artifact: native, Snes9x and Beetle cut the common race-entry transition on adjacent frame boundaries, while race-relative scheduler and racer semantics align.
 
 ## Why this exists
 
-The project has an established engine-neutral player-2 controller transport plus deterministic VS and ordinary-2P routes from clean boot into active split-screen gameplay. `TWO_PLAYER_SELECT = 0x3D`, `VS_SELECT = 0x3E`, two-controller rider selection, deeper setup states, first race entry, paired racer-state assertions, simultaneous input, and the active-display OAM seam now have local evidence. Remaining work is full Mesen runtime promotion, the small post-input native/reference P2 timing seam, richer split-screen/HUD interaction coverage, and downstream widescreen validation.
+The project has an established engine-neutral player-2 controller transport plus deterministic VS and ordinary-2P routes from clean boot into active split-screen gameplay. `TWO_PLAYER_SELECT = 0x3D`, `VS_SELECT = 0x3E`, two-controller rider selection, deeper setup states, first race entry, paired racer-state assertions, simultaneous input, and the active-display OAM seam now have local evidence. Remaining work is full Mesen runtime promotion, richer split-screen/HUD interaction coverage, multiplayer camera/object activation, and downstream widescreen validation. Do not reopen the closed frame-1532 arithmetic/timing seam unless an event-relative fixture produces a semantic mismatch.
 
 The former frontend reachability blockers are now covered by frozen routes. Remaining promotion work is no longer basic reachability: it is cross-runtime breadth and deeper behavior, especially Mesen execution, split-screen/HUD interaction, multiplayer camera/object activation, and eventual widescreen validation.
 
@@ -143,7 +143,7 @@ Evidence run: `36817685308`.
 
 The promoted fixture is `tests/input/two-player-first-race.input` with `tests/input/two-player-first-race-observe.script`. Run 36819833356 confirms the isolated Snes9x semantics: P1-only Right moves slot1 while slot2 remains at baseline; P2-only input then moves slot2; simultaneous input leaves P1 with positive X velocity and P2 with negative X velocity. The same run reproduces the canonical active-display OAM seam, HDMA `$2104` writes `V=0->$A5` and `V=112->$5A`, at every sampled stable race checkpoint. The disposable probe and its guessed offsets were removed after promotion; canonical racer fields come only from `tools/summarize_paired_player_slots.py`.
 
-## Native/reference P2 timing seam
+## Resolved native/reference P2 timing seam
 
 The ordinary-2P fixture now localizes the remaining native/Snes9x kinematic disagreement to the P2-only movement window rather than route timing or controller ownership.
 
@@ -178,7 +178,74 @@ The recovered bank-82 code narrows the relevant update to `82:A5F3..A617`, which
 
 A disposable trace-enabled writer workflow was attempted and retired because its generated trace target hits an unrelated unresolved `80:C3C8 -> 00:FFFF` dispatch at frame 445, before multiplayer. The generic trace client retains the useful bounded `--continue-until` option, but repairing trace-target generation is not a prerequisite for this lane.
 
-The next useful discriminator is bounded around `82:A5F3..A617`: establish why native and Snes9x differ on whether/how that one-unit nudge is applied at frame 1532, using existing instruction/state evidence or a lightweight oracle that does not require fixing the trace-target generator. Do not investigate the later terrain/contact amplification until this first one-unit decision is explained.
+Static control-flow recovery now explains the frame-1532 discriminator more tightly. The two racer update paths gate the same `82:A5F3` small-speed nudge on opposite values of scheduler byte `$0302`:
+
+- P1 path `82:8C3B..8C4F`: call `A5F3` only when `$0302 != 0`;
+- P2 path `82:9122..9136`: call `A5F3` only when `$0302 == 0`;
+- frame scheduler `83:CC94..CC9A`: replace `$0302` with `1 - $0302` every frame.
+
+The already-observed race-entry phase seam therefore predicts the clean directional matrix exactly. On a frame where native has `$0302=0` and Snes9x has `$0302=1`, Snes9x alone nudges P1 one unit toward zero while native alone nudges P2 one unit toward zero. That is precisely the observed frame-1532 polarity: P1 Left/Right are one unit closer to zero in Snes9x, while P2 Left/Right are one unit closer to zero in native.
+
+PR #145 dynamically confirmed this static explanation before retiring the exploratory matrix: opposite `$0302` eligibility predicted the one-unit toward-zero nudge for P1 Left, P1 Right and P2 Right exactly. Signed-arithmetic differences inside `A5F3` were therefore retired as an explanation.
+
+That result moved the investigation upstream to the race-entry phase origin. The later three-runtime and race-relative tests below close that question as a host-frame-boundary/absolute-input anchoring effect rather than an event-relative gameplay divergence.
+
+Static main-loop ordering further narrows that root question. In bank 83, the per-frame loop updates scheduler state at `83:CC87..CC9A` before it dispatches into race logic via `83:CD32..CD3A`. The ordinary-2P race routine then writes `inRace` at `83:E070..E073` (and the sibling path at `83:E3FB..E3FE`) without resetting `$0300/$0302/$0304`. Therefore race entry inherits the scheduler parity that already existed on that guest-frame pass; it does not create a fresh phase.
+
+The dense one-frame probe resolves that ambiguity. Frames 1128-1133 match exactly. At frame 1134, Snes9x has already entered race state while native has not:
+
+- native: `inRace=0`, `race_tick=0`, scheduler bytes `0/0/0`;
+- Snes9x: `inRace=1`, `race_tick=1`, scheduler bytes `1/1/1`.
+
+At frame 1135 both runtimes report `inRace=1`, but Snes9x remains exactly one race update ahead: native `race_tick=1`, Snes9x `race_tick=2`, with the corresponding one-step scheduler rotation. The offset then persists.
+
+This also rules out the tempting `$1281` scheduler-skip hypothesis for this seam. `$1281`, its nearby countdown/reload state, and both recovered producer selectors remain zero in both runtimes throughout frames 1128-1140. The phase difference is therefore downstream of **one-runtime-earlier race entry**, not a scheduler update skipped after entry.
+
+The same green run dynamically confirms the `A5F3` mechanism at frame 1532 for P1 Left, P1 Right, and P2 Right: opposite `$0302` eligibility predicts which runtime receives the one-unit toward-zero speed nudge exactly. Signed arithmetic inside `A5F3` is no longer a live leading explanation.
+
+The root-cause boundary now moves to the race-entry handshake. `83:C9C8..C9CB` can set `$0C67`; `83:CBA4..CBB2` can clear it; and `83:CD3A -> 83:E066` consumes it before `E070` writes `inRace=1`. The next microtrace captures `$0C67`, `$0DDB`, and `$7E212C` around 1128-1140. Follow whichever handshake byte first differs before investigating later racer physics.
+
+The same probe now also emits the complete cross-runtime WRAM delta at frames 1133 and 1134, plus SRAM deltas when the dump surface provides them. This is deliberately broader than the hand-picked handshake fields: if frame 1133 is globally identical but frame 1134 introduces an earlier state difference outside `$0C67/$0DDB/$212C`, treat that earliest memory delta as the new causal boundary rather than overfitting to the known race-entry code.
+
+Static frontend recovery moves that boundary one step earlier. Entry point `80:99A4` sets SRAM `$77074D = $FFFF`, runs common setup, and then directly calls `83:C8E0` at `80:9A2B`. The sibling `80:999F` entry skips the `$77074D` sentinel write but joins the same setup body. Multiple frontend branches call `99A4`, with SRAM `$7710AD` distinguishing the surrounding setup mode.
+
+The phase-origin probe therefore also reports raw 8 KiB SRAM offsets `$0742/$074B/$074D/$0750/$10AD`. If Snes9x reaches `$074D=FF` one frame before native, the root seam moves out of bank 83 entirely and into the frontend branch that reaches `99A4`; if those SRAM fields already match, continue inside the common setup body.
+
+The five statically recovered `99A4` callers can be distinguished mechanically by the `$7710AD` value established in their surrounding branch:
+
+| `$7710AD` | `99A4` callsite |
+| ---: | --- |
+| 1 | `80:BC41` |
+| 2 | `80:BD68` |
+| 3 | `80:BFF5` |
+| 4 | `80:BEFA` |
+| 5 | `80:94C7` |
+
+Do not attach player-facing mode names to these values until runtime evidence or another recovered source proves them. The purpose of the table is only to turn the SRAM discriminator into an exact frontend callsite.
+
+Run 59 resolves that ambiguity for the ordinary-2P fixture. Both runtimes report `$7710AD=2` and `$77074D=FF` continuously through frames 1128-1134. Combined with the literal `PICK A PLAYER` / `PICK ANOTHER` strings in the `80:BDxx` neighborhood, this identifies the exercised route as `80:BD68 -> 80:99A4 -> 83:C8E0`. Branch selection and the `$074D` ready sentinel are therefore already synchronized before the later race-entry seam.
+
+The same run also shows why a raw whole-WRAM equality test is too coarse here. Frames 1128-1132 already contain a stable 19-byte native/reference difference entirely in low WRAM / stack-scratch territory. At frame 1133, one frame before `inRace` differs, the raw delta expands sharply (82 bytes), again beginning with direct-page and stack-page values. The selected durable race fields remain equal through frame 1133. Treat this as evidence that the runtimes may occupy different control-flow positions inside the transition frame, not yet as proof of divergent persistent game state. The follow-up probe therefore partitions newly appearing deltas into scratch/stack (`<$0200`) and semantic WRAM (`>=$0200`).
+
+Run 67 resolves the remaining phase-origin ambiguity with an independent three-way observation. The same dense 1128-1140 schedule reports first race entry at three adjacent absolute frame numbers:
+
+- Beetle/bsnes: frame 1133;
+- Snes9x: frame 1134;
+- native: frame 1135.
+
+This is not three different race-state trajectories. At each runtime's own first `inRace=1` frame, `race_tick=1` and scheduler tuple `$0300/$0302/$0304 = 1/1/1`; the following relative frames rotate through the same scheduler/race-tick sequence. The frame-1133 native/Snes9x WRAM growth also lands directly in recovered race-setup staging (`$1359`, `$121F`, `$1277` under `83:CAxx..CCxx`), which is exactly what is expected when one runtime is earlier inside the same transition rather than in a different gameplay state.
+
+The project therefore must not treat boot-relative frame ordinal as a universal SNES time coordinate across libretro cores and the native host. Snes9x, Beetle and the recomp host cut this vblank-shaped transition at different frame boundaries. The shared script grammar is not off by one: all runners define `dump` as the state of the frame just completed. The disagreement is where each runtime's frame boundary lands.
+
+The decisive follow-up aligns controller input to race-relative time. Native enters this route one host frame after Snes9x, so all post-entry native controller events are shifted by +1 frame and native frame `N+1` is compared with Snes9x frame `N` across the P2-only seam. The exact comparison covers scheduler phase, `inRace`, race tick, both racers' X/Y positions, signed X/Y velocities, air state, rotation, and shared working X speed. That assertion passes across every sampled frame 1528-1540.
+
+Therefore the former frame-1532 one-unit X-speed seam is **closed as an absolute-frame anchoring artifact**, not a racer-physics defect. The previously proven `82:A5F3` phase gate remains the local mechanism that makes the artifact visible when the same absolute input frame lands on opposite scheduler parity. There is no evidence here for bad signed arithmetic, player-slot logic, stale saves, or divergent event-relative gameplay evolution.
+
+Do not tune the shared `$4212` virtual-hardware model merely to make native match one emulator's absolute boot-frame count. `80:FAC9` and the `80:BD65 -> 80:9885` fade remain useful explanations for why this transition is vblank-sensitive, but the three-way staircase means neither Snes9x nor Beetle supplies a unique absolute-frame oracle. If exact hardware timing of this frontend transition becomes important later, use a cycle-accurate Mesen/MesenCE run or direct cycle-visible evidence.
+
+The exploratory phase-origin probes and directional A5F3 matrix have been removed from persistent CI. The durable regression is now the compact race-relative ordinary-2P parity check; the causal archaeology remains here as evidence rather than recurring compute cost.
+
+A related community-memory note should remain explicitly qualified: Dessyreqt's 2014 bot reads a word at `7E:11BA` and labels it `countdownTimer`, but the recovered game code initializes, compares, and decrements a 16-bit countdown at `$11BB` (`82:D88F..D895`, `83:E59B..`, `83:E721/E737/E76D`). The bot watch is useful historical corroboration of countdown progress, not an authoritative exact address label. The countdown is downstream of race entry and therefore not a candidate cause of the 1134 entry seam.
 
 ## VS active-movement parity refinement
 
@@ -245,7 +312,7 @@ This repeats at checkpoints 1140, 1240, 1340, 1440 and 1620. The selector-screen
 
 `tools/assert_uniracers_vs_oam_seam.py` encodes the two active-display writes as a durable regression assertion. The persistent VS reference workflow also runs the same frozen controller stream through the independent Beetle/bsnes core to verify that the route itself reaches stable split-screen gameplay without relying solely on Snes9x's title-specific compatibility behavior.
 
-This closes the recovered **observability + scene reachability** blocker for the famous OAM seam. Ordinary 2P mode and paired P1/P2 state coverage are now also promoted; Mesen runtime parity, the small active-input timing seam, richer multiplayer interaction coverage, and widescreen behavior remain separate obligations.
+This closes the recovered **observability + scene reachability** blocker for the famous OAM seam. Ordinary 2P mode and paired P1/P2 state coverage are now also promoted; the former active-input timing seam is closed by the race-relative parity result above. Mesen runtime parity, richer multiplayer interaction coverage, and widescreen behavior remain separate obligations.
 
 
 The active-display writes are driven by a stable WRAM HDMA table at `7E:206C`: `70 A5 70 5A 00`. HDMA channel 1 runs mode 0 to `$2104`, producing the observed 112-line split. Future OAM archaeology can therefore start from a tiny deterministic source table instead of rediscovering the raster schedule.

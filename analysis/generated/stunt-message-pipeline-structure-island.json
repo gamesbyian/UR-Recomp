@@ -1,0 +1,465 @@
+{
+  "data_accesses": [
+    {
+      "base": "81:C458",
+      "role": "message presentation/action lookup indexed by message id",
+      "site": "81:C1A8"
+    },
+    {
+      "base": "81:C4AA",
+      "role": "signed stunt-message boost reward lookup indexed by 2*(message id-1)",
+      "site": "81:C167"
+    },
+    {
+      "base": "81:C521",
+      "role": "message-to-stat/record mapping lookup indexed by message id-1",
+      "site": "81:C10E"
+    }
+  ],
+  "island": "StuntMessageRewardDisplayPipeline",
+  "lineage_edits": {
+    "europe_two_player_gate": {
+      "effect": "Europe replaces the longer USA/prototype two-player score-display gate with an equivalent 8-byte compare/branch/jump sequence, net -5 bytes.",
+      "europe_hex": "c9 02 00 f0 03 4c 3e c4",
+      "europe_size": 8,
+      "europe_span": "81:C360..C367",
+      "prototype_span": "81:C34F..C35B",
+      "usa_hex": "c9 01 00 10 03 4c 55 c4 d0 03 4c 55 c4",
+      "usa_size": 13,
+      "usa_span": "81:C372..C37E"
+    },
+    "pal_line_nop_cleanup": {
+      "effect": "PAL prototype and Europe omit the three USA/beta NOPs in the P2 message-consumer path.",
+      "hex": "ea ea ea",
+      "instructions": "NOP; NOP; NOP",
+      "size": 3,
+      "usa_span": "81:C24B..C24D"
+    }
+  },
+  "next_code_entry": "81:C605",
+  "regions": [
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:C23B",
+          "opcode_bytes": 158,
+          "operand_bytes": 208,
+          "sha256": "1713e24e75cbf7e28ff0e8412894da5376b17e903c4478b609f4a9165111191d",
+          "shift": -15,
+          "similarity": 0.915301,
+          "size": 366,
+          "size_delta": 0,
+          "start": "81:C0CE",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "81:C24A",
+          "opcode_bytes": 158,
+          "operand_bytes": 208,
+          "sha256": "e052f5e4efd2e0f2ca81d7d96e2b10b54e6c86a766f1b874600f32526fe8c4e7",
+          "shift": 0,
+          "similarity": 1,
+          "size": 366,
+          "size_delta": 0,
+          "start": "81:C0DD",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:C22A",
+          "opcode_bytes": 158,
+          "operand_bytes": 208,
+          "sha256": "388e53e22d2e321d912485c97d92a3c2831f5cebed6e162df49e5cebc184a2bb",
+          "shift": -32,
+          "similarity": 0.939891,
+          "size": 366,
+          "size_delta": 0,
+          "start": "81:C0BD",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:C24A",
+          "opcode_bytes": 158,
+          "operand_bytes": 208,
+          "sha256": "e052f5e4efd2e0f2ca81d7d96e2b10b54e6c86a766f1b874600f32526fe8c4e7",
+          "shift": 0,
+          "similarity": 1,
+          "size": 366,
+          "size_delta": 0,
+          "start": "81:C0DD",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "message_consume_pre_cleanup",
+      "size": 366,
+      "usa_end": "81:C24A",
+      "usa_start": "81:C0DD"
+    },
+    {
+      "builds": {
+        "legacy-beta": {
+          "end": "81:C24D",
+          "opcode_bytes": 3,
+          "operand_bytes": 0,
+          "sha256": "2ab627a7d8df9c69fbace525384a3cb4c883abed9a4ba393112c65126c5109b1",
+          "shift": 0,
+          "similarity": 1,
+          "size": 3,
+          "size_delta": 0,
+          "start": "81:C24B",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:C24D",
+          "opcode_bytes": 3,
+          "operand_bytes": 0,
+          "sha256": "2ab627a7d8df9c69fbace525384a3cb4c883abed9a4ba393112c65126c5109b1",
+          "shift": 0,
+          "similarity": 1,
+          "size": 3,
+          "size_delta": 0,
+          "start": "81:C24B",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "pal_line_removed_nops",
+      "size": 3,
+      "usa_end": "81:C24D",
+      "usa_start": "81:C24B"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:C356",
+          "opcode_bytes": 120,
+          "operand_bytes": 163,
+          "sha256": "dcfcb3458963988b1ccfed0596c50321ffdc87985fae7e8a09e612e2e561ceca",
+          "shift": -18,
+          "similarity": 0.943463,
+          "size": 283,
+          "size_delta": 0,
+          "start": "81:C23C",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "81:C368",
+          "opcode_bytes": 120,
+          "operand_bytes": 163,
+          "sha256": "a98b329550bd82483357dd6aaed1146ad498e9129d6691ec5c1cd683db2ddb5f",
+          "shift": 0,
+          "similarity": 1,
+          "size": 283,
+          "size_delta": 0,
+          "start": "81:C24E",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:C345",
+          "opcode_bytes": 120,
+          "operand_bytes": 163,
+          "sha256": "9e0250fad85f2d24d4f50bfadda4af090bef6fe729973dc0d9d9db646e5bb28a",
+          "shift": -35,
+          "similarity": 0.939929,
+          "size": 283,
+          "size_delta": 0,
+          "start": "81:C22B",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:C368",
+          "opcode_bytes": 120,
+          "operand_bytes": 163,
+          "sha256": "a98b329550bd82483357dd6aaed1146ad498e9129d6691ec5c1cd683db2ddb5f",
+          "shift": 0,
+          "similarity": 1,
+          "size": 283,
+          "size_delta": 0,
+          "start": "81:C24E",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "message_consume_post_cleanup",
+      "size": 283,
+      "usa_end": "81:C368",
+      "usa_start": "81:C24E"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:C35F",
+          "opcode_bytes": 3,
+          "operand_bytes": 6,
+          "sha256": "d46c588e8249609b1b7fa1c5fa83b53d54736e006934af6614f7f591abcb0fec",
+          "shift": -18,
+          "similarity": 1,
+          "size": 9,
+          "size_delta": 0,
+          "start": "81:C357",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "81:C371",
+          "opcode_bytes": 3,
+          "operand_bytes": 6,
+          "sha256": "d46c588e8249609b1b7fa1c5fa83b53d54736e006934af6614f7f591abcb0fec",
+          "shift": 0,
+          "similarity": 1,
+          "size": 9,
+          "size_delta": 0,
+          "start": "81:C369",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:C34E",
+          "opcode_bytes": 3,
+          "operand_bytes": 6,
+          "sha256": "d46c588e8249609b1b7fa1c5fa83b53d54736e006934af6614f7f591abcb0fec",
+          "shift": -35,
+          "similarity": 1,
+          "size": 9,
+          "size_delta": 0,
+          "start": "81:C346",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:C371",
+          "opcode_bytes": 3,
+          "operand_bytes": 6,
+          "sha256": "d46c588e8249609b1b7fa1c5fa83b53d54736e006934af6614f7f591abcb0fec",
+          "shift": 0,
+          "similarity": 1,
+          "size": 9,
+          "size_delta": 0,
+          "start": "81:C369",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "score_display_prefix",
+      "size": 9,
+      "usa_end": "81:C371",
+      "usa_start": "81:C369"
+    },
+    {
+      "builds": {
+        "legacy-beta": {
+          "end": "81:C37E",
+          "opcode_bytes": 5,
+          "operand_bytes": 8,
+          "sha256": "4f38a7ec37f803bb020d505f1de2af660439bf5d51c74665000801ba2022c0f3",
+          "shift": 0,
+          "similarity": 1,
+          "size": 13,
+          "size_delta": 0,
+          "start": "81:C372",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:C35B",
+          "opcode_bytes": 5,
+          "operand_bytes": 8,
+          "sha256": "00a81acaa1defc52548354d33210e613fb0490e1b5dad014548e6941fa1d6467",
+          "shift": -35,
+          "similarity": 0.846154,
+          "size": 13,
+          "size_delta": 0,
+          "start": "81:C34F",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:C37E",
+          "opcode_bytes": 5,
+          "operand_bytes": 8,
+          "sha256": "4f38a7ec37f803bb020d505f1de2af660439bf5d51c74665000801ba2022c0f3",
+          "shift": 0,
+          "similarity": 1,
+          "size": 13,
+          "size_delta": 0,
+          "start": "81:C372",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "score_display_usa_gate",
+      "size": 13,
+      "usa_end": "81:C37E",
+      "usa_start": "81:C372"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:C440",
+          "opcode_bytes": 88,
+          "operand_bytes": 129,
+          "sha256": "b92c1f93b9f074e58e97551bf60e8d1e49911a81d098e0fe6d2e95f0d76f2d08",
+          "shift": -23,
+          "similarity": 0.870968,
+          "size": 217,
+          "size_delta": 0,
+          "start": "81:C368",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "81:C457",
+          "opcode_bytes": 88,
+          "operand_bytes": 129,
+          "sha256": "75dd9b642c66603ba102e38af76ecf96133d8e35644ad64f77446f6db26a58cb",
+          "shift": 0,
+          "similarity": 1,
+          "size": 217,
+          "size_delta": 0,
+          "start": "81:C37F",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:C434",
+          "opcode_bytes": 88,
+          "operand_bytes": 129,
+          "sha256": "f1f8e645c1ba36ce810972e20ab3330a9040fa037e45165a79a25bf830581a30",
+          "shift": -35,
+          "similarity": 0.870968,
+          "size": 217,
+          "size_delta": 0,
+          "start": "81:C35C",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:C457",
+          "opcode_bytes": 88,
+          "operand_bytes": 129,
+          "sha256": "75dd9b642c66603ba102e38af76ecf96133d8e35644ad64f77446f6db26a58cb",
+          "shift": 0,
+          "similarity": 1,
+          "size": 217,
+          "size_delta": 0,
+          "start": "81:C37F",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "score_display_suffix",
+      "size": 217,
+      "usa_end": "81:C457",
+      "usa_start": "81:C37F"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:C55A",
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "sha256": "024a5da15bc0d96b4df5e941fb3cb21e4ac60c081533230bb68e5471205d7f4b",
+          "shift": -23,
+          "similarity": 1,
+          "size": 282,
+          "size_delta": 0,
+          "start": "81:C441",
+          "unreached_or_data_bytes": 282
+        },
+        "legacy-beta": {
+          "end": "81:C571",
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "sha256": "024a5da15bc0d96b4df5e941fb3cb21e4ac60c081533230bb68e5471205d7f4b",
+          "shift": 0,
+          "similarity": 1,
+          "size": 282,
+          "size_delta": 0,
+          "start": "81:C458",
+          "unreached_or_data_bytes": 282
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:C54E",
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "sha256": "024a5da15bc0d96b4df5e941fb3cb21e4ac60c081533230bb68e5471205d7f4b",
+          "shift": -35,
+          "similarity": 1,
+          "size": 282,
+          "size_delta": 0,
+          "start": "81:C435",
+          "unreached_or_data_bytes": 282
+        },
+        "usa-retail": {
+          "end": "81:C571",
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "sha256": "024a5da15bc0d96b4df5e941fb3cb21e4ac60c081533230bb68e5471205d7f4b",
+          "shift": 0,
+          "similarity": 1,
+          "size": 282,
+          "size_delta": 0,
+          "start": "81:C458",
+          "unreached_or_data_bytes": 282
+        }
+      },
+      "kind": "data",
+      "name": "message_reward_lookup_block",
+      "size": 282,
+      "usa_end": "81:C571",
+      "usa_start": "81:C458"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:C5ED",
+          "opcode_bytes": 62,
+          "operand_bytes": 85,
+          "sha256": "223029e75db3f4fb412e7fe280c79fa5119f9d8f6ccd5f14e763b72138f80f33",
+          "shift": -23,
+          "similarity": 0.809524,
+          "size": 147,
+          "size_delta": 0,
+          "start": "81:C55B",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "end": "81:C604",
+          "opcode_bytes": 62,
+          "operand_bytes": 85,
+          "sha256": "a13a84bee40f890c6fa6b8f4977257abb497251e5305e18862a38101abeb5bd4",
+          "shift": 0,
+          "similarity": 1,
+          "size": 147,
+          "size_delta": 0,
+          "start": "81:C572",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:C5E1",
+          "opcode_bytes": 62,
+          "operand_bytes": 85,
+          "sha256": "e7899b4328629d17ff9b2591c0348c6b0b36159617bfa3ab54076455df62af49",
+          "shift": -35,
+          "similarity": 0.959184,
+          "size": 147,
+          "size_delta": 0,
+          "start": "81:C54F",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:C604",
+          "opcode_bytes": 62,
+          "operand_bytes": 85,
+          "sha256": "a13a84bee40f890c6fa6b8f4977257abb497251e5305e18862a38101abeb5bd4",
+          "shift": 0,
+          "similarity": 1,
+          "size": 147,
+          "size_delta": 0,
+          "start": "81:C572",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "queue_long_entry_and_helpers",
+      "size": 147,
+      "usa_end": "81:C604",
+      "usa_start": "81:C572"
+    }
+  ],
+  "schema_version": 1,
+  "usa_end": "81:C604",
+  "usa_start": "81:C0DD"
+}

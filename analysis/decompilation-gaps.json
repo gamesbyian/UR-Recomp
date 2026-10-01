@@ -113,6 +113,70 @@
       "summary": "Recovered the common per-racer course runtime surface sampler as one fully reached 383-byte function. It consumes C000 plus A000/A001 between collision-shape construction and later collision handling. PAL prototype and Europe retain the complete 167-opcode/216-operand shape at -32; beta is byte-identical. The odd-looking 8C03..8C1F Nitrodon stream is width-context linear-disassembly drift, not embedded data or exceptional control flow.",
       "priority": "low",
       "next_evidence": "Revisit A000/C000 value semantics only for a concrete course/editor or collision-fidelity decision. Comparative structure should move to another subsystem."
+    },
+    {
+      "id": "resolved-checkpoint-finish-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:8050..82E0 and homologs",
+      "summary": "Recovered the complete checkpoint/finish object-code 0x14 handler as 15 gapless USA code regions. Europe alone contracts the 22-byte frame-normalization block by 14 bytes. PAL prototype and Europe additionally omit five instruction-aligned USA/beta blocks totaling 29 bytes, so their late-handler shift staircases are the same lineage with Europe offset by the earlier timer contraction.",
+      "priority": "low",
+      "next_evidence": "Revisit deleted-store semantics only if race-results/finish fidelity or regional timing behavior requires them. Comparative structure work should move to an eighth independent subsystem."
+    },
+    {
+      "id": "resolved-stunt-finalizer-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 82:9A42..A01A and homologs",
+      "summary": "Recovered the complete stunt-finalization/scoring routine plus its three score-weight tables and 625-byte trick/praise lookup. USA/beta are byte-identical; PAL prototype and Europe omit five USA/beta NOPs at 82:9D09..9D0D, while all four scoring tables remain byte-identical across every build.",
+      "priority": "low",
+      "next_evidence": "Revisit individual praise-table semantics only for stunt-scoring/message implementation or a concrete fidelity discrepancy. Comparative structure work should move to a ninth independent subsystem."
+    },
+    {
+      "id": "resolved-stunt-message-pipeline-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:C0DD..C604 and homologs",
+      "summary": "Recovered the complete stunt-message/reward/display pipeline as seven code regions plus one 282-byte embedded lookup block. PAL-line builds remove three USA/beta NOPs; Europe additionally contracts the two-player display gate by five bytes. The corrected C458..C571 lookup block is byte-identical across all four ROMs, and C572..C575 is executable JSR/RTL wrapper code rather than data.",
+      "priority": "low",
+      "next_evidence": "Decode individual lookup entries only for HUD/message implementation or a concrete scoring/boost discrepancy. Comparative structure work should move to a tenth independent subsystem."
+    },
+    {
+      "id": "resolved-input-normalization-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 82:AA6E..ACA0 and homologs",
+      "summary": "Recovered the complete two-player race input decode/normalization and reverse-controls subsystem. All 563 USA bytes are executable; USA/beta are identical; PAL prototype stays at -15 and Europe +7 with 237/237 aligned opcode positions preserved and no role/M/X disagreement.",
+      "priority": "low",
+      "next_evidence": "Decode individual regional WRAM operands only for a concrete implementation or fidelity need. Comparative structure work should move to an eleventh independent subsystem."
+    },
+    {
+      "id": "resolved-camera-control-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:9FBF..A59D and homologs",
+      "summary": "Recovered the 1,503-byte race camera-control cluster: velocity/follow solving, smoothing, scale configuration, and per-frame update. Every USA byte is executable; USA/beta are identical; PAL prototype remains at -32 and Europe -15 with 659/659 aligned opcode positions preserved.",
+      "priority": "low",
+      "next_evidence": "Name individual camera constants and regional WRAM operands only when viewport/widescreen implementation needs them. Comparative structure work should move to a twelfth independent subsystem."
+    },
+    {
+      "id": "resolved-race-timer-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:C697..C906 and homologs",
+      "summary": "Recovered the complete 624-byte race/stunt timer lifecycle. USA/beta are identical; PAL prototype stays at -35 and Europe -19 with all 244 aligned opcode positions preserved. The shared timer digit/subtick representation at 0E0F/0E13/0E17/0E1B/0E1F is now promoted.",
+      "priority": "low",
+      "next_evidence": "Expand mode selector 0E23, finish flags 0EF5/0EF7, or warning thresholds only for a concrete timing-fidelity or UI need. Comparative structure work should move to a thirteenth independent subsystem."
+    },
+    {
+      "id": "resolved-player-state-marshal-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:8D14..8FB7 and homologs",
+      "summary": "Recovered the full 676-byte P1/P2 persistent-state to shared-current-player marshal. USA/beta are identical; PAL prototype and Europe stay at -32 with all 234 aligned opcodes preserved. Paired pitch-angle and angular-velocity workspace mappings are now explicit.",
+      "priority": "low",
+      "next_evidence": "Expand individual shared-workspace fields only for a concrete physics/collision implementation need. Comparative structure work should move to a fourteenth independent subsystem."
+    },
+    {
+      "id": "resolved-collision-resolution-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:8FB8..99D5 and homologs",
+      "summary": "Recovered the 2,590-byte per-racer collision/contact resolver plus geometry helper. Live paths preserve exact regional opcode architecture; four USA-dormant alternatives are explicitly bounded. Europe adds six NOPs after the 9302 branch homolog and an 11-byte conditional gate before the 9800 homolog.",
+      "priority": "low",
+      "next_evidence": "Interpret the Europe-only gate only for a concrete regional collision/fidelity need. Comparative structure work should move to a fifteenth independent subsystem."
     }
   ]
 }

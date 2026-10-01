@@ -1,13 +1,14 @@
 # External reference corpus
 
-## `reference/` versus `reference/`
+## Unified `reference/` tree
 
-These names are intentionally distinct:
+The repository uses a single `reference/` root for all preserved research inputs and evidence.
 
-- `reference/` holds project-input/project-local reference material needed to reproduce work, including preserved ROM builds and historical tool packages.
-- `reference/` is the provenance-managed external research corpus: mirrored third-party evidence under `reference/imported/`, project summaries under `reference/notes/`, and this source catalogue.
-
-Do not merge the directories merely because their names are similar.
+- `reference/roms/` contains preserved ROM builds used as project inputs.
+- `reference/tools/` contains project-local historical/reference tool packages.
+- `reference/imported/` contains provenance-managed third-party research artifacts.
+- `reference/notes/` contains project-authored summaries and technical observations.
+- `reference/catalog.yml` and `reference/evidence-worklist.json` are the source registry and evidence queue.
 
 This directory records public Uniracers / Unirally material that may help reverse engineering, validation, reimplementation, graphics study, or historical reconstruction.
 

@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "policy": "Every tracked file under references/imported/ except this manifest must be classified here. git_blob_sha1 pins repository bytes; upstream_git_blob_sha1 additionally proves byte identity with a known upstream Git blob; external_sha256 records source-distribution hashes where known. review_status records whether an artifact is audited, a lead, immutable input, or archive-only; it is not a license statement.",
+  "policy": "Every tracked file under reference/imported/ except this manifest must be classified here. git_blob_sha1 pins repository bytes; upstream_git_blob_sha1 additionally proves byte identity with a known upstream Git blob; external_sha256 records source-distribution hashes where known. review_status records whether an artifact is audited, a lead, immutable input, or archive-only; it is not a license statement.",
   "entries": [
     {
-      "path": "references/imported/emulators/ATTRIBUTION.md",
+      "path": "reference/imported/emulators/ATTRIBUTION.md",
       "category": "emulator-history",
       "size": 2133,
       "git_blob_sha1": "bd84baa7b650a0c4f0d882be6597deba2770d499",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/emulators/jgenesis/sprites.rs",
+      "path": "reference/imported/emulators/jgenesis/sprites.rs",
       "category": "emulator-source",
       "size": 19890,
       "git_blob_sha1": "f14736bc0e809dfef7223988194309c4ab78fcbb",
@@ -18,7 +18,7 @@
       "review_status": "audited-reference"
     },
     {
-      "path": "references/imported/emulators/mame/snes_ppu.cpp",
+      "path": "reference/imported/emulators/mame/snes_ppu.cpp",
       "category": "emulator-source",
       "size": 85538,
       "git_blob_sha1": "525911c9cf3015b27676bcc0aebfecd6e6dd3b64",
@@ -26,7 +26,7 @@
       "review_status": "audited-reference"
     },
     {
-      "path": "references/imported/emulators/snes9x-1.43/changes.txt",
+      "path": "reference/imported/emulators/snes9x-1.43/changes.txt",
       "category": "emulator-history",
       "size": 132370,
       "git_blob_sha1": "18e4bfdc6e619a1a5dfecc0116b108a3a11858af",
@@ -34,7 +34,7 @@
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/emulators/snes9x-1.43/dma.cpp",
+      "path": "reference/imported/emulators/snes9x-1.43/dma.cpp",
       "category": "emulator-source",
       "size": 32711,
       "git_blob_sha1": "01450e775259fe39393b626c88b560f660a7442d",
@@ -42,7 +42,7 @@
       "review_status": "audited-reference"
     },
     {
-      "path": "references/imported/emulators/snes9x-1.43/problems.txt",
+      "path": "reference/imported/emulators/snes9x-1.43/problems.txt",
       "category": "emulator-history",
       "size": 27943,
       "git_blob_sha1": "293df5968984b49e5b753e3470826fabdb42c242",
@@ -50,14 +50,14 @@
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/emulators/snes9x/changes.txt",
+      "path": "reference/imported/emulators/snes9x/changes.txt",
       "category": "emulator-history",
       "size": 173763,
       "git_blob_sha1": "c78f8e2f5b55ade8c383ee758843b28212e95b8f",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/emulators/snes9x/dma.cpp",
+      "path": "reference/imported/emulators/snes9x/dma.cpp",
       "category": "emulator-source",
       "size": 39694,
       "git_blob_sha1": "e1ad324c6e94149a777b69054bda5e09337631a6",
@@ -65,7 +65,7 @@
       "review_status": "audited-reference"
     },
     {
-      "path": "references/imported/emulators/snes9x/memmap.cpp",
+      "path": "reference/imported/emulators/snes9x/memmap.cpp",
       "category": "emulator-source",
       "size": 100193,
       "git_blob_sha1": "04ce87e7362b8dda8cb7a79abfa226e13d3568f4",
@@ -73,7 +73,7 @@
       "review_status": "audited-reference"
     },
     {
-      "path": "references/imported/emulators/zsnes/history.html",
+      "path": "reference/imported/emulators/zsnes/history.html",
       "category": "emulator-history",
       "size": 188188,
       "git_blob_sha1": "1c42ca9b6c5ac577051595e31ef8544f4afffdac",
@@ -81,21 +81,21 @@
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/graphics/libretro-thumbnails/Unirally (Europe) (Beta) (1994-11-29).png",
+      "path": "reference/imported/graphics/libretro-thumbnails/Unirally (Europe) (Beta) (1994-11-29).png",
       "category": "graphics-reference",
       "size": 14006,
       "git_blob_sha1": "821605809a5e03c6077949f022ff8210b6c67fc7",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/libretro/ATTRIBUTION.md",
+      "path": "reference/imported/libretro/ATTRIBUTION.md",
       "category": "provenance",
       "size": 760,
       "git_blob_sha1": "f7676b0f7401c589a2c849bebdb72dba7b715553",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/libretro/Uniracers (USA).cht",
+      "path": "reference/imported/libretro/Uniracers (USA).cht",
       "category": "cheat-data",
       "size": 2699,
       "git_blob_sha1": "c7cc8c948b105aef6db8af18188b56b6fcd43bf8",
@@ -103,91 +103,91 @@
       "review_status": "unverified-leads"
     },
     {
-      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/checksum.txt",
+      "path": "reference/imported/metadata/GameDB-SNES/c362c7b1/checksum.txt",
       "category": "metadata",
       "size": 7,
       "git_blob_sha1": "9505f1ff67392717054be420f8e151c855ad55a7",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/crc32.txt",
+      "path": "reference/imported/metadata/GameDB-SNES/c362c7b1/crc32.txt",
       "category": "metadata",
       "size": 11,
       "git_blob_sha1": "b3cda8a0a838563f6e6082c0ae75edbd6271ec31",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/crc32_128kb.txt",
+      "path": "reference/imported/metadata/GameDB-SNES/c362c7b1/crc32_128kb.txt",
       "category": "metadata",
       "size": 11,
       "git_blob_sha1": "428627438c97dc4d1a48dc109e27129878b5ee1b",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/developer_ID.txt",
+      "path": "reference/imported/metadata/GameDB-SNES/c362c7b1/developer_ID.txt",
       "category": "metadata",
       "size": 5,
       "git_blob_sha1": "2d29c61b030c51a5f9a430bd4ded4c151a5f1b7f",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/fast_slow_rom.txt",
+      "path": "reference/imported/metadata/GameDB-SNES/c362c7b1/fast_slow_rom.txt",
       "category": "metadata",
       "size": 8,
       "git_blob_sha1": "29a3e0b2f769e3da99237fcab72c89dc837a8e32",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/hardware.txt",
+      "path": "reference/imported/metadata/GameDB-SNES/c362c7b1/hardware.txt",
       "category": "metadata",
       "size": 20,
       "git_blob_sha1": "0974b3ab5f6087b23209adbf71d6f965f3f2a0d9",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/internal_title.txt",
+      "path": "reference/imported/metadata/GameDB-SNES/c362c7b1/internal_title.txt",
       "category": "metadata",
       "size": 45,
       "git_blob_sha1": "febdf060089fcb43d74bd3b63e546f966880e7db",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/region.txt",
+      "path": "reference/imported/metadata/GameDB-SNES/c362c7b1/region.txt",
       "category": "metadata",
       "size": 4,
       "git_blob_sha1": "4c7de76410ca54a5e0a65636f561a0a443705da2",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/release_name.txt",
+      "path": "reference/imported/metadata/GameDB-SNES/c362c7b1/release_name.txt",
       "category": "metadata",
       "size": 38,
       "git_blob_sha1": "3fc5cad9024ad809004c7c82c8c737db317866a1",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/rom_type.txt",
+      "path": "reference/imported/metadata/GameDB-SNES/c362c7b1/rom_type.txt",
       "category": "metadata",
       "size": 6,
       "git_blob_sha1": "7a93e079830b6937032e92711ee538b29b09c971",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/rom_version.txt",
+      "path": "reference/imported/metadata/GameDB-SNES/c362c7b1/rom_version.txt",
       "category": "metadata",
       "size": 2,
       "git_blob_sha1": "573541ac9702dd3969c9bc859d2b91ec1f7e6e56",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/metadata/GameDB-SNES/c362c7b1/title.txt",
+      "path": "reference/imported/metadata/GameDB-SNES/c362c7b1/title.txt",
       "category": "metadata",
       "size": 22,
       "git_blob_sha1": "e2165e40e88f1134ea73b81985c31c690e0ede68",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/patches/uniracers_canoe.ips",
+      "path": "reference/imported/patches/uniracers_canoe.ips",
       "category": "compatibility-patch",
       "size": 295,
       "git_blob_sha1": "29115366b88185ee9ac2bbb189d397770e66e789",
@@ -195,21 +195,21 @@
       "review_status": "analyzed-reference"
     },
     {
-      "path": "references/imported/patches/uniracers_canoe.md",
+      "path": "reference/imported/patches/uniracers_canoe.md",
       "category": "patch-analysis",
       "size": 2828,
       "git_blob_sha1": "645af41bbb65d690f01daa8b44b305fef17eae7d",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/press/dma-design/uniracers_01.pdf",
+      "path": "reference/imported/press/dma-design/uniracers_01.pdf",
       "category": "archival-document",
       "size": 2928411,
       "git_blob_sha1": "75f2b30ed3ef159085b638fc6a787edd08927d37",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/retroachievements/1295.json",
+      "path": "reference/imported/retroachievements/1295.json",
       "category": "reverse-engineered-data",
       "size": 13140,
       "git_blob_sha1": "a4df9eb523048143deb790c84b9e31a460d0e90e",
@@ -217,21 +217,21 @@
       "review_status": "unverified-leads"
     },
     {
-      "path": "references/imported/tas-bots/README.md",
+      "path": "reference/imported/tas-bots/README.md",
       "category": "provenance",
       "size": 1489,
       "git_blob_sha1": "3caad301a02e95f272a29fa2516ec8998829cf62",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/tas-bots/SHA256SUMS",
+      "path": "reference/imported/tas-bots/SHA256SUMS",
       "category": "provenance",
       "size": 383,
       "git_blob_sha1": "72a7c9091e1400f79ad0082c7f0d046bc45a7033",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/tas-bots/dessyreqt-4250-submission.smv",
+      "path": "reference/imported/tas-bots/dessyreqt-4250-submission.smv",
       "category": "emulator-movie",
       "size": 507032,
       "git_blob_sha1": "100be190913ca5aa5fe7eca49cdc329fd8448a3e",
@@ -239,7 +239,7 @@
       "review_status": "immutable-input-corpus"
     },
     {
-      "path": "references/imported/tas-bots/uniracers-2008-wip-microstorage.smv",
+      "path": "reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv",
       "category": "emulator-movie",
       "size": 10542,
       "git_blob_sha1": "f7a538082eb09fd9210e6870102e34d944e8ca2b",
@@ -247,7 +247,7 @@
       "review_status": "immutable-input-corpus"
     },
     {
-      "path": "references/imported/tas-bots/uniracers-tabletop-bot-2014.lua",
+      "path": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua",
       "category": "bot-source",
       "size": 30047,
       "git_blob_sha1": "6afa5490b4947f170f2731c950e7363c4df56159",
@@ -255,14 +255,14 @@
       "review_status": "audited-known-defects"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/LIST",
+      "path": "reference/imported/tools/rnc_propack-2.14/LIST",
       "category": "tool-documentation",
       "size": 1051,
       "git_blob_sha1": "f550d40e10953a2c3616cfa6349e5d16a92aa556",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/PPAMI.EXE",
+      "path": "reference/imported/tools/rnc_propack-2.14/PPAMI.EXE",
       "category": "historical-executable",
       "size": 28820,
       "git_blob_sha1": "6c7871675d983685c87460c5942759645aed302e",
@@ -270,7 +270,7 @@
       "review_status": "archive-only-never-execute"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/PPIBM.EXE",
+      "path": "reference/imported/tools/rnc_propack-2.14/PPIBM.EXE",
       "category": "historical-executable",
       "size": 35193,
       "git_blob_sha1": "7f713d2df0ee67bcf5cb0f7c3aa695c8d119fe39",
@@ -278,112 +278,112 @@
       "review_status": "archive-only-never-execute"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/PROPACK.DOC",
+      "path": "reference/imported/tools/rnc_propack-2.14/PROPACK.DOC",
       "category": "tool-documentation",
       "size": 16688,
       "git_blob_sha1": "a832bbbdae344b6befc28263a75cc1f5eec298e4",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/PROPACK.TXT",
+      "path": "reference/imported/tools/rnc_propack-2.14/PROPACK.TXT",
       "category": "tool-documentation",
       "size": 16688,
       "git_blob_sha1": "a832bbbdae344b6befc28263a75cc1f5eec298e4",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/GAMEBOY/RNC_1.ASM",
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/GAMEBOY/RNC_1.ASM",
       "category": "historical-source",
       "size": 14706,
       "git_blob_sha1": "b3a085204a7a1bfd4662516b50071ea997823a83",
       "review_status": "reference-only"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/GAMEBOY/RNC_2.S",
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/GAMEBOY/RNC_2.S",
       "category": "historical-source",
       "size": 4879,
       "git_blob_sha1": "8ac47b00a47b45aed8b7c0e8b681052876fa4cec",
       "review_status": "reference-only"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/IBMPC/RNC_1.ASM",
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/IBMPC/RNC_1.ASM",
       "category": "historical-source",
       "size": 17362,
       "git_blob_sha1": "e6d7d664fe8e91a39b934a8f6ef836a4b851d06a",
       "review_status": "reference-only"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/IBMPC/RNC_2.ASM",
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/IBMPC/RNC_2.ASM",
       "category": "historical-source",
       "size": 14391,
       "git_blob_sha1": "df60b41870e752818805c8e5f04b371b09e50c6c",
       "review_status": "reference-only"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC.MAC",
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC.MAC",
       "category": "historical-source",
       "size": 1001,
       "git_blob_sha1": "971920b9bffe4254563cfeddfaa89b17ee6047dd",
       "review_status": "reference-only"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC_1.BAK",
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC_1.BAK",
       "category": "historical-source",
       "size": 11874,
       "git_blob_sha1": "431bb5b2edd8038e767fd3341d17338ca0d10f9b",
       "review_status": "reference-only"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC_1.SRC",
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC_1.SRC",
       "category": "historical-source",
       "size": 11876,
       "git_blob_sha1": "ac80d8c27e728db38835eed108309eebc022e70a",
       "review_status": "reference-only"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC_2.SRC",
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC_2.SRC",
       "category": "historical-source",
       "size": 10465,
       "git_blob_sha1": "fa8464debccee77062643b3d66cf1b77d2f0fd02",
       "review_status": "reference-only"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_1.S",
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_1.S",
       "category": "historical-source",
       "size": 8063,
       "git_blob_sha1": "77c3ce2ca02d55b48a09f2c83615abe1e68adf2d",
       "review_status": "reference-only"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_1C.S",
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_1C.S",
       "category": "historical-source",
       "size": 4876,
       "git_blob_sha1": "ea813b85d4af30a06b00172ca1d547f86afebbd0",
       "review_status": "reference-only"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_2.S",
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_2.S",
       "category": "historical-source",
       "size": 7627,
       "git_blob_sha1": "a5e85e2035ef1c803c0dba8c8506c2f190402714",
       "review_status": "reference-only"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_2C.S",
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_2C.S",
       "category": "historical-source",
       "size": 4393,
       "git_blob_sha1": "b7776608c7b3d5e0bff44558092373cfded238e9",
       "review_status": "reference-only"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/MIPS/RNC_1.ASM",
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/MIPS/RNC_1.ASM",
       "category": "historical-source",
       "size": 8477,
       "git_blob_sha1": "b1d2bc46dd6d7a3650d8f6bfbcbc6da8a059dec7",
       "review_status": "reference-only"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/SUPERNES/RNC_1.S",
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/SUPERNES/RNC_1.S",
       "category": "historical-source",
       "size": 8465,
       "git_blob_sha1": "ad4f5c58590dcc1357fb01c138084ff78ad22d75",
@@ -391,7 +391,7 @@
       "review_status": "audited-reference"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/SOURCE/SUPERNES/RNC_2.S",
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/SUPERNES/RNC_2.S",
       "category": "historical-source",
       "size": 7081,
       "git_blob_sha1": "0055f7fad678ef226757b3b7fa9fb06e48fc8929",
@@ -399,14 +399,14 @@
       "review_status": "audited-reference"
     },
     {
-      "path": "references/imported/tools/rnc_propack-2.14/UR-RECOMP-PROVENANCE.md",
+      "path": "reference/imported/tools/rnc_propack-2.14/UR-RECOMP-PROVENANCE.md",
       "category": "tool-documentation",
       "size": 1356,
       "git_blob_sha1": "960849df2b8419a10280d5dbbfc84e360ccdf6ac",
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/patches/sayans-uniracers-2002/uniracers_esp.zip",
+      "path": "reference/imported/patches/sayans-uniracers-2002/uniracers_esp.zip",
       "category": "translation-patch-archive",
       "size": 1261,
       "git_blob_sha1": "b3a25f6e3f00f2314b4ce83804c0d2902ca3c2dc",
@@ -415,7 +415,7 @@
       "review_status": "analyzed-reference"
     },
     {
-      "path": "references/imported/patches/sayans-uniracers-2002/Uniraceresp.ips",
+      "path": "reference/imported/patches/sayans-uniracers-2002/Uniraceresp.ips",
       "category": "translation-patch",
       "size": 1678,
       "git_blob_sha1": "0c6b89d94c8e1b06f940c14f70a9ea952315c4c3",
@@ -423,7 +423,7 @@
       "review_status": "analyzed-reference"
     },
     {
-      "path": "references/imported/manuals/Uniracers-USA-manual.pdf",
+      "path": "reference/imported/manuals/Uniracers-USA-manual.pdf",
       "category": "manual-scan",
       "size": 6006270,
       "git_blob_sha1": "a52da4f94a75e3e76fd61a759cb8e0c3a4fbc5d3",
@@ -431,7 +431,7 @@
       "review_status": "preservation-only"
     },
     {
-      "path": "references/imported/tas-bots/usjo8.lua",
+      "path": "reference/imported/tas-bots/usjo8.lua",
       "category": "historical-source",
       "size": 62406,
       "git_blob_sha1": "d78962aae7ca6a63bf94113f68680e730dade3fb",
@@ -439,7 +439,7 @@
       "review_status": "analyzed-reference"
     },
     {
-      "path": "references/imported/reverse-engineering/nitrodon/RAM addresses.txt",
+      "path": "reference/imported/reverse-engineering/nitrodon/RAM addresses.txt",
       "category": "historical-reverse-engineering",
       "size": 7262,
       "git_blob_sha1": "afc5316a79bedc2c1dcee3880eb87718f308a5a8",
@@ -447,7 +447,7 @@
       "review_status": "analyzed-reference"
     },
     {
-      "path": "references/imported/reverse-engineering/nitrodon/ROM addresses.txt",
+      "path": "reference/imported/reverse-engineering/nitrodon/ROM addresses.txt",
       "category": "historical-reverse-engineering",
       "size": 95,
       "git_blob_sha1": "ce541cc9cc396ca09c8ff97ede87a6a8176f05fe",
@@ -455,7 +455,7 @@
       "review_status": "analyzed-reference"
     },
     {
-      "path": "references/imported/reverse-engineering/nitrodon/bank 80.txt",
+      "path": "reference/imported/reverse-engineering/nitrodon/bank 80.txt",
       "category": "historical-reverse-engineering",
       "size": 453892,
       "git_blob_sha1": "714acd07db5209831f79b5d5b5be020184fb4b97",
@@ -463,7 +463,7 @@
       "review_status": "analyzed-reference"
     },
     {
-      "path": "references/imported/reverse-engineering/nitrodon/bank 81.txt",
+      "path": "reference/imported/reverse-engineering/nitrodon/bank 81.txt",
       "category": "historical-reverse-engineering",
       "size": 425721,
       "git_blob_sha1": "968f9755824911d32455910b881b2f38ab0239d5",
@@ -471,7 +471,7 @@
       "review_status": "analyzed-reference"
     },
     {
-      "path": "references/imported/reverse-engineering/nitrodon/bank 82.txt",
+      "path": "reference/imported/reverse-engineering/nitrodon/bank 82.txt",
       "category": "historical-reverse-engineering",
       "size": 327774,
       "git_blob_sha1": "f8a06d20e74b5bb6968cc92ffa5a4e63ea863561",
@@ -479,7 +479,7 @@
       "review_status": "analyzed-reference"
     },
     {
-      "path": "references/imported/reverse-engineering/nitrodon/bank 83.txt",
+      "path": "reference/imported/reverse-engineering/nitrodon/bank 83.txt",
       "category": "historical-reverse-engineering",
       "size": 446890,
       "git_blob_sha1": "7aba0c7bad2d40fd61a8828d61d11813d97084e1",
@@ -487,7 +487,7 @@
       "review_status": "analyzed-reference"
     },
     {
-      "path": "references/imported/reverse-engineering/nitrodon/bounce tracelog.txt",
+      "path": "reference/imported/reverse-engineering/nitrodon/bounce tracelog.txt",
       "category": "historical-reverse-engineering",
       "size": 314506,
       "git_blob_sha1": "fa63e052d18f42955951a988c7f90aae3f96729b",
@@ -495,7 +495,7 @@
       "review_status": "analyzed-reference"
     },
     {
-      "path": "references/imported/reverse-engineering/nitrodon/messages.txt",
+      "path": "reference/imported/reverse-engineering/nitrodon/messages.txt",
       "category": "historical-reverse-engineering",
       "size": 1930,
       "git_blob_sha1": "142c8aa94b70665c5c36e58d674f92225713ce06",
@@ -503,12 +503,572 @@
       "review_status": "analyzed-reference"
     },
     {
-      "path": "references/imported/reverse-engineering/nitrodon/stunts.txt",
+      "path": "reference/imported/reverse-engineering/nitrodon/stunts.txt",
       "category": "historical-reverse-engineering",
       "size": 10048,
       "git_blob_sha1": "415eccc9e1b1cc890a52d34bc5190b2c0aa7928b",
       "external_sha256": "8b18c8c72f886837c847ea60673714b721ea430337e9f001904c87cc416455bb",
       "review_status": "analyzed-reference"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Docs/High Scores.txt",
+      "category": "historical-research-document",
+      "size": 1220,
+      "git_blob_sha1": "faafd0a372d42dae338523a650a635008bf94ec9",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Docs/High Scores.xlsx",
+      "category": "historical-research-document",
+      "size": 12822,
+      "git_blob_sha1": "8d929deb6fe4a7061cb68051220454234f498e18",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Docs/Stunts Checklist.doc",
+      "category": "historical-research-document",
+      "size": 58880,
+      "git_blob_sha1": "b55fe867a7875d3824f91a4f4422a2d03c3a0591",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Docs/stunts.txt",
+      "category": "historical-research-document",
+      "size": 337,
+      "git_blob_sha1": "860135e4b4edd564af79320b40fb951fc7d288bd",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Glitches/Bowl - Jump through halfpipe 1.smv",
+      "category": "historical-tas-movie",
+      "size": 79890,
+      "git_blob_sha1": "bf5379c2d9a1c44cc3f5137a0c631ea8206e7c97",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Glitches/Bowl - Jump through halfpipe 2.smv",
+      "category": "historical-tas-movie",
+      "size": 79654,
+      "git_blob_sha1": "f48caa4ecf7146a7f5bdde268a3f5acb823a2621",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Glitches/Down+Up.smv",
+      "category": "historical-tas-movie",
+      "size": 97116,
+      "git_blob_sha1": "5874f9f231fb2191d1e979e175bf5f0c06dbfd98",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Glitches/Dragster - Go Left Test 4.smv",
+      "category": "historical-tas-movie",
+      "size": 77692,
+      "git_blob_sha1": "29f51179ea2a670d715da21c035eb914338ed87f",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Glitches/Griller - Jump through corkscrew.smv",
+      "category": "historical-tas-movie",
+      "size": 101830,
+      "git_blob_sha1": "c341a3a50f47ade5bda1f4c24abece692a4f976d",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Glitches/Jumpover - Jump through halfpipe - left.smv",
+      "category": "historical-tas-movie",
+      "size": 91868,
+      "git_blob_sha1": "9d33a826b49da786fa9c6f5cd535a8aa043b3c97",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Glitches/Jumpover - Jump through halfpipe.smv",
+      "category": "historical-tas-movie",
+      "size": 91844,
+      "git_blob_sha1": "0b65f09bb6cf473a6883714a42d3d37b57b08255",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Glitches/Megajump - Jump through corkscrew.smv",
+      "category": "historical-tas-movie",
+      "size": 89346,
+      "git_blob_sha1": "08585b64edf38007a5a8582f9d1a9aa2a6a738ec",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Glitches/Neon - Jump into circle.smv",
+      "category": "historical-tas-movie",
+      "size": 93476,
+      "git_blob_sha1": "c38fdab4fa1d00b5e8f6f37e613686e807d9f77f",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/01 Crawler/01 Dragster.png",
+      "category": "historical-course-map",
+      "size": 7220,
+      "git_blob_sha1": "193f7bca5a057f986d0619e0ffec1c91f6543f38",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/01 Crawler/02 Zoom Zoo.png",
+      "category": "historical-course-map",
+      "size": 138721,
+      "git_blob_sha1": "11ba0de467b8f1f3071eb6c394e81c5726b96609",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/01 Crawler/03 Bowl.png",
+      "category": "historical-course-map",
+      "size": 50164,
+      "git_blob_sha1": "10f06d5b4db4e33844de8eae2f65918e22e7b762",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/01 Crawler/04 Switcher.png",
+      "category": "historical-course-map",
+      "size": 632177,
+      "git_blob_sha1": "ce222ac71ca964fce348856dff749f25eb1a40c7",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/01 Crawler/05 Monster.png",
+      "category": "historical-course-map",
+      "size": 151513,
+      "git_blob_sha1": "f824ff2e9fe8c9827e9dcc9d73e3142b6825e9f5",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/02 Shuffler/01 Looper.png",
+      "category": "historical-course-map",
+      "size": 528191,
+      "git_blob_sha1": "79e143187aeb54a4504553a537dd40517cf1c80c",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/02 Shuffler/02 Megajump.png",
+      "category": "historical-course-map",
+      "size": 122174,
+      "git_blob_sha1": "59d6fec651a316da575b359b1dab06b007e48695",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/02 Shuffler/03 Jumps.png",
+      "category": "historical-course-map",
+      "size": 33758,
+      "git_blob_sha1": "eede5056915365e93affa777ee81ae9a7fe9bb26",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/02 Shuffler/04 Flat Fun.png",
+      "category": "historical-course-map",
+      "size": 198681,
+      "git_blob_sha1": "4a4ca58b2add9f2e06223add08c53573e7550ea0",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/02 Shuffler/05 Infinity.png",
+      "category": "historical-course-map",
+      "size": 22140,
+      "git_blob_sha1": "484c8bc68597be10f77a2a216fd96de678ac2e7d",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/03 Walker/01 Dragrace.png",
+      "category": "historical-course-map",
+      "size": 155796,
+      "git_blob_sha1": "620ee7f4f242dbe4de6d6d3cae36d90ae36e520c",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/03 Walker/02 Pingpong.png",
+      "category": "historical-course-map",
+      "size": 102768,
+      "git_blob_sha1": "b9543b6f78614d93f55e4670deaca44279bae27c",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/03 Walker/03 HillClimb.png",
+      "category": "historical-course-map",
+      "size": 16002,
+      "git_blob_sha1": "f65df24bf637bc63a5cf1af4cbbeae7510b8bb57",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/03 Walker/04 Hybrid.png",
+      "category": "historical-course-map",
+      "size": 164457,
+      "git_blob_sha1": "b71f23bacf0205302b0ccab6b9ca654948a683b2",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/03 Walker/05 Short Cut.png",
+      "category": "historical-course-map",
+      "size": 103155,
+      "git_blob_sha1": "c837a6fa14e30c94470d45ea31885708903923aa",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/04 Hopper/01 Wario Paint.png",
+      "category": "historical-course-map",
+      "size": 477814,
+      "git_blob_sha1": "1edd3ecc8a1922988d7c85cf46f2fe9ea49368d0",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/04 Hopper/02 Crock.png",
+      "category": "historical-course-map",
+      "size": 181519,
+      "git_blob_sha1": "33855cb516a895482eac9d15d53749d3a05617fd",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/04 Hopper/03 Downer.png",
+      "category": "historical-course-map",
+      "size": 1025292,
+      "git_blob_sha1": "c5dcb2647f7fcd48d1f6c512048bb6a07d569298",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/04 Hopper/04 East.png",
+      "category": "historical-course-map",
+      "size": 265542,
+      "git_blob_sha1": "f079f6cd54298d91166ebeef24212059dc53e0c8",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/04 Hopper/05 Hairpin Hill.png",
+      "category": "historical-course-map",
+      "size": 67493,
+      "git_blob_sha1": "b8a509adfe5937663587919fbb836a01adbf0a85",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/05 Jumper/01 Wobble.png",
+      "category": "historical-course-map",
+      "size": 483727,
+      "git_blob_sha1": "dda63c4e4ff6fbb6c905d138d274772f724c9dd8",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/05 Jumper/02 Twinpeak.png",
+      "category": "historical-course-map",
+      "size": 166346,
+      "git_blob_sha1": "69fffce299096e0f737837fd577a0884eba2b0b7",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/05 Jumper/03 Skier.png",
+      "category": "historical-course-map",
+      "size": 78434,
+      "git_blob_sha1": "50cda7856ca6e531e3db315a5dbc66ae4907c4d2",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/05 Jumper/04 Loopback.png",
+      "category": "historical-course-map",
+      "size": 328183,
+      "git_blob_sha1": "1125e4ae278128e4e52848decba631629e7297ee",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/05 Jumper/05 Small Cut.png",
+      "category": "historical-course-map",
+      "size": 62003,
+      "git_blob_sha1": "a728709649c356703059bbc91011ee09d82720a7",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/06 Bounder/01 LastOne.png",
+      "category": "historical-course-map",
+      "size": 226914,
+      "git_blob_sha1": "3786f6daa3844ce13cf1332511e67af8b6b2fccb",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/06 Bounder/02 Marathon.png",
+      "category": "historical-course-map",
+      "size": 103347,
+      "git_blob_sha1": "c18ddb8b6ee25e8838c143acb99e76431ce67b7c",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/06 Bounder/03 Circle.png",
+      "category": "historical-course-map",
+      "size": 10205,
+      "git_blob_sha1": "2bff3a817fd4438aa8074e944de54e892d54db60",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/06 Bounder/04 Plinkey.png",
+      "category": "historical-course-map",
+      "size": 105945,
+      "git_blob_sha1": "c6d974d10209e8071dea90e7bc30f39a22466666",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/06 Bounder/05 Jumpover.png",
+      "category": "historical-course-map",
+      "size": 91939,
+      "git_blob_sha1": "9379630b77bed7cd6d4d07c2391b3fb448840961",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/07 Runner/01 Down+Up.png",
+      "category": "historical-course-map",
+      "size": 203060,
+      "git_blob_sha1": "f214d5c63d586b89acf374dad9a393f14571b7c2",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/07 Runner/02 Highroad.png",
+      "category": "historical-course-map",
+      "size": 103014,
+      "git_blob_sha1": "57ac8c189136c28d6f26835bc9e5101d4e6373d4",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/07 Runner/03 Spine.png",
+      "category": "historical-course-map",
+      "size": 40553,
+      "git_blob_sha1": "507f7033b0badac4f6489164729d4df63ff98b5f",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/07 Runner/04 Boo!.png",
+      "category": "historical-course-map",
+      "size": 162463,
+      "git_blob_sha1": "a173e1bdfa930f46f2b36b5374da043c374e5e6b",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/07 Runner/05 Fire Escape.png",
+      "category": "historical-course-map",
+      "size": 29555,
+      "git_blob_sha1": "f4d99e09d786eced1b713a2a18c2ee2a1bf11496",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/08 Sprinter/01 Vertical.png",
+      "category": "historical-course-map",
+      "size": 383615,
+      "git_blob_sha1": "ddeb7ae1ce384a914b3d3d757bb79c3b91fa10c4",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/08 Sprinter/02 Flash.png",
+      "category": "historical-course-map",
+      "size": 86007,
+      "git_blob_sha1": "62cd4c97a11e3a5b5fcf0c17ba87093b70054867",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/08 Sprinter/03 Little Dipper.png",
+      "category": "historical-course-map",
+      "size": 8685,
+      "git_blob_sha1": "74d553829e99a73b8d9dd327fb4afe9e5d97442d",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/08 Sprinter/04 Fruitbat.png",
+      "category": "historical-course-map",
+      "size": 124094,
+      "git_blob_sha1": "be594ad1bccf25bd8b1854d4c4684c0829552e5e",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/08 Sprinter/05 123 Jump.png",
+      "category": "historical-course-map",
+      "size": 155804,
+      "git_blob_sha1": "bfa4462c9c159c49ae14c81fec9a315a23cba54b",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/09 Hunter/01 Griller.png",
+      "category": "historical-course-map",
+      "size": 401693,
+      "git_blob_sha1": "ed0716b36bd155225c634b9bbf6c253c50ad8cfc",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/09 Hunter/02 Two Loops.png",
+      "category": "historical-course-map",
+      "size": 63491,
+      "git_blob_sha1": "a3ba6d44a9c57847dad269763c4dee7183d33366",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/09 Hunter/03 Neon.png",
+      "category": "historical-course-map",
+      "size": 29418,
+      "git_blob_sha1": "996f94eeca29be740295a592f4a290333b12e7a2",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/09 Hunter/04 Hamster.png",
+      "category": "historical-course-map",
+      "size": 180896,
+      "git_blob_sha1": "b4353064f1a48980ecf8b6188a250138d094c7c0",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Maps/09 Hunter/05 To And Fro'.png",
+      "category": "historical-course-map",
+      "size": 69085,
+      "git_blob_sha1": "97bef2a1cf87230ba927c07cc3d6cf78476f9db6",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/SRAM/All Silvers - No Hunter.srm",
+      "category": "historical-save-state",
+      "size": 8192,
+      "git_blob_sha1": "4ae110e31277a55b1ba804fd043057d56bf93fe9",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/SRAM/All Silvers - With Hunter.srm",
+      "category": "historical-save-state",
+      "size": 8192,
+      "git_blob_sha1": "70ae6b34d30397921a1b1323d7421247e9a4261d",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm",
+      "category": "historical-save-state",
+      "size": 8192,
+      "git_blob_sha1": "f5c722385bca6c08fd27e47999684b05036bea4b",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/cpucam.lua",
+      "category": "historical-bot-source",
+      "size": 128,
+      "git_blob_sha1": "2b9d025073af1ec743e73e4ff374c7029d04768c",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/governator.lua",
+      "category": "historical-bot-source",
+      "size": 1566,
+      "git_blob_sha1": "5ffd84c57e4d8158b3e5fd31e253a4143105c5f1",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/grader.lua",
+      "category": "historical-bot-source",
+      "size": 6871,
+      "git_blob_sha1": "6322ee4a3632550d7bc297bd01aaa778902f39e1",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/jumpthroughhalfpipeleft.lua",
+      "category": "historical-bot-source",
+      "size": 3327,
+      "git_blob_sha1": "8598a4fc9744edbd77a17b4ff2ed58ed6fc195c0",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/jumpthroughhalfpiperight.lua",
+      "category": "historical-bot-source",
+      "size": 3410,
+      "git_blob_sha1": "129fbd0786ce10d5e1520c30e34da71e6a1eaeb4",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/magicnumber.lua",
+      "category": "historical-bot-source",
+      "size": 5650,
+      "git_blob_sha1": "5cee0eab1ddff98fbcee3b84e9ef7a9003b8587f",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/mapper.lua",
+      "category": "historical-bot-source",
+      "size": 1910,
+      "git_blob_sha1": "101cfa0a7cbb5495aa64dd0ea5c861b6776354d7",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/mappertest.lua",
+      "category": "historical-bot-source",
+      "size": 38413,
+      "git_blob_sha1": "f691a279d1a55dcc4804bb7b5588f73bf81dce00",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/movebot.lua",
+      "category": "historical-bot-source",
+      "size": 8089,
+      "git_blob_sha1": "3980adf4c136b8bd20a4c974a0d64ac24f7fd9b4",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/positiontest.lua",
+      "category": "historical-bot-source",
+      "size": 1331,
+      "git_blob_sha1": "09d297518a50b8cddb602c370ee00e7ba29ba5a1",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/scum.lua",
+      "category": "historical-bot-source",
+      "size": 3449,
+      "git_blob_sha1": "dc4b6e81b12c851fd82fd7a9c0886e8f14deec07",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/tabletopbot.lua",
+      "category": "historical-bot-source",
+      "size": 30278,
+      "git_blob_sha1": "38a3603e911718b3f35769234635c85d38cd6a86",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/teststuntbot.lua",
+      "category": "historical-bot-source",
+      "size": 14426,
+      "git_blob_sha1": "c044aeab4536ea977b76fb10ee873b5a3aa6f7dc",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/usjo14.lua",
+      "category": "historical-bot-source",
+      "size": 63475,
+      "git_blob_sha1": "4a5921e0a9b0e8a3d8f10d6a3b1705e0c7fb984e",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/usjo14a.lua",
+      "category": "historical-bot-source",
+      "size": 70383,
+      "git_blob_sha1": "b6aecd439af0eb614f00b7ba431b0fba85769567",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/usjo14a.lua.bak",
+      "category": "historical-bot-source",
+      "size": 68649,
+      "git_blob_sha1": "6105b9fb32d8a21b6ac39fa4951c779d8a1dc595",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/usjo14a_test.lua",
+      "category": "historical-bot-source",
+      "size": 78528,
+      "git_blob_sha1": "590f2f1500b06db0eb5be1d9ef915c965ad8315d",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Watches/Races.wch",
+      "category": "historical-memory-watch",
+      "size": 547,
+      "git_blob_sha1": "5a69ca6b5319f6f76a3651ad6b6aaaab91152d22",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Watches/Races2.wch",
+      "category": "historical-memory-watch",
+      "size": 558,
+      "git_blob_sha1": "906cc4868d68f6917f1faeba1b1342774aa809cc",
+      "review_status": "direct-recovery-unreviewed"
     }
   ]
 }

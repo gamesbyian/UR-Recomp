@@ -39,6 +39,7 @@ Use `docs/AI-ASSISTED-REVERSE-ENGINEERING.md` as method guidance while working t
 - [ ] Trial execution-coverage/CDL deltas on one already-understood causal A/B pair (for example clean vs failed landing, neutral vs stunt, or P1-only vs P2-only). Keep the technique only if it narrows code discovery more cheaply than existing xref/write-trace routes.
 - [ ] When an important routine remains opaque after targeted tracing, use a bounded one-variable perturbation matrix from a shared checkpoint and cluster outcomes/first divergences before attempting broader decompilation.
 - [ ] For future Ghidra-heavy passes, stabilize processor context/signatures/types before semantic naming/comments, then finish with a mechanical contradiction/falsification check. Do not add a new Ghidra dependency unless existing pinned/manual surfaces cannot support the needed experiment.
+- [ ] Run the trusted semantic-anchor set through `tools/compare_semantic_anchors.py` across all four ROMs. For any relocated/non-identical candidate, corroborate with control-flow, caller/callee, table, or runtime evidence before transferring the USA semantic label. Treat same-address matches as one feature, never the proof.
 
 
 ## Infrastructure maintenance — Island / offline toolchain

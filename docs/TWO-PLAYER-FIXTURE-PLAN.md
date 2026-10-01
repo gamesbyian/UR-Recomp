@@ -106,6 +106,29 @@ Current promotion-gate status:
 - [x] `analysis/ui-menu-index.json` now points `0x3D` at the durable ordinary-2P fixture and promotes two-player `0x91` from historical to verified;
 - [ ] harvest any richer framebuffer/HUD atlas evidence that materially benefits from the promoted route.
 
+## Multiplayer camera / viewport observability
+
+The promoted ordinary-2P fixture now exposes the recovered dual-camera and split-screen projection state through `tools/summarize_paired_player_slots.py`.
+
+Recovered camera state:
+
+- camera 1 position: `$0419/$041D`;
+- camera 2 position: `$041B/$041F`;
+- camera 1 velocity: `$04F5/$04F9`;
+- camera 2 velocity: `$04F7/$04FB`.
+
+The new bank-81 camera-control structural island confirms these are active per-frame state, not duplicate annotations. `81:A52F` updates camera 1 from `$04F5/$04F9`; when `$0DDB != 0`, the same wrapper updates camera 2 from `$04F7/$04FB`.
+
+Recovered split-screen/OAM staging:
+
+- screen-2 racer coordinates: `$1501/$1502` and `$1505/$1506`;
+- screen-1 racer coordinates: `$1509/$150A` and `$150D/$150E`;
+- raw visibility/culling bits: `$1599`.
+
+Bank 82 computes these bytes from racer positions and camera state, substitutes off-screen sentinel coordinates on rejection paths, updates visibility bits in `$1599`, and then `82:D2D8..` streams `$1501..$1510` directly to OAMDATA. This is therefore a concrete camera → screen-relative projection/culling → sprite-emission bridge.
+
+These fields are initially observational in CI. Do not turn them into absolute-host-frame equality gates: the closed frame-origin investigation already proved that libretro cores and the native host can cut a vblank-shaped transition on adjacent absolute frame ordinals. Promote durable camera assertions only from stable/event-relative behavior.
+
 ## Downstream obligations
 
 With the grammar now available, implement and verify:

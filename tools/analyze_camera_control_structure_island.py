@@ -101,13 +101,15 @@ def build():
 
 def render(r):
  lines=["# Race camera-control structural island","",
- "This probe covers the camera target-velocity solver, its smoothing helper, zoom/scale configuration, and the per-frame camera update wrapper.","",
+ "USA `81:9FBF..A59D` covers the camera target-velocity/follow solver, shared smoothing helper, zoom/scale configuration, and the per-frame camera update wrapper at `81:A52B/A52F`.","",
+ "All 1,503 USA bytes are executable. USA and legacy beta are byte-identical. PAL prototype remains at shift -32 and Europe at -15 across the full cluster. Across all four regions, both regional builds preserve 659/659 aligned opcode positions with zero role disagreements; lower raw similarity is operand/data relocation rather than changed camera control flow.","",
  "| Region | USA bytes | PAL prototype | Europe | Legacy beta |","|---|---:|---|---|---|"]
  for x in r["regions"]:
   def c(b):
    q=x["builds"][b]; return f"{q['start']}..{q['end']} ({q['shift']:+d}; sim {q['similarity']:.3f}; op {q['opcode_bytes']}; other {q['unreached_or_data_bytes']})"
   lines.append(f"| {x['name']} | {x['size']} | {c('pal-prototype-1994-11-29')} | {c('europe-retail')} | {c('legacy-beta')} |")
- return "\n".join(lines)+"\n"
+ lines += ["","The old Nitrodon listing's apparent BRK/COP clutter inside the velocity solver is width/context drift: trusted-entry tracing reaches the entire region as ordinary executable code.",""]
+ return "\n".join(lines)
 
 def main():
  r=build(); OUTJ.write_text(json.dumps(r,indent=2)+"\n"); OUTM.write_text(render(r)); print(render(r)); print("CAMERA_ISLAND_JSON="+json.dumps(r,sort_keys=True))

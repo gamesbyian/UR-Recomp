@@ -126,6 +126,7 @@ Actions:
 - run corresponding executable regions through SNESRecomp manifest/generated-code analysis, snes2asm, bounded da65, and Ghidra/ghidra-snes when cross-reference persistence is useful;
 - evaluate additional 65816 control-flow analyzers only if they provide a genuinely independent interpretation;
 - create machine-readable fingerprints for candidate functions and data objects using instruction sequences, normalized operands, CFG shape, callers/callees, ROM references and WRAM/PPU accesses;
+- use `tools/compare_semantic_anchors.py` as a lightweight first-pass correspondence proposer for trusted semantic anchors: relocation-tolerant byte n-gram voting plus known WRAM/PPU reference signatures; same absolute address is never privileged, and matches still require a second structural/runtime discriminator before label propagation;
 - align corresponding functions/tables across builds even when absolute addresses move;
 - classify code-vs-data, function-boundary, M/X-state, indirect-target, jump-table and cross-reference disagreements between analyzers;
 - prioritize disagreements and regions where one build exposes a boundary/target more clearly than another;

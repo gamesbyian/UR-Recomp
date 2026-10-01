@@ -22,9 +22,9 @@
       "id": "indirect-80c3c8",
       "kind": "unresolved_indirect_dispatch",
       "site": "80:C3C8",
-      "summary": "JMP indirect through $005D; analyzer retains dynamic LLE resolution.",
+      "summary": "Live frontend/text command dispatcher: JMP indirect through $005D into the handler table at 80:C3CB-C3EA. Historical replay trace 36795810324 executes this site during frontend transition setup.",
       "priority": "high",
-      "next_evidence": "Trace live targets and identify the dispatch table/state that owns $005D."
+      "next_evidence": "Recover the 17 handler semantics and runtime target distribution from bounded frontend routes; promote only handlers that affect current UI/state architecture."
     },
     {
       "id": "lle-8091dc-m1x0",
@@ -44,11 +44,11 @@
     },
     {
       "id": "historical-2014-native-divergence",
-      "kind": "runtime_fidelity_divergence",
-      "region": "historical replay around guest frame 440",
-      "summary": "Exact Dessyreqt 2014 input replay diverges between pinned Snes9x reference and native SNESRecomp before first race; latest reproduced dense sampling first differs around frame 440.",
-      "priority": "high",
-      "next_evidence": "Bracket first CPU/state divergence around frames 438-442, compare input delivery, guest PCs and writes, then map the responsible routine into the comparative atlas."
+      "kind": "runtime_timing_alignment",
+      "region": "historical replay pre-race frontend",
+      "summary": "Dense replay sampling first differs at frame 437, but bounded tracing shows the compared low-WRAM addresses are being reused by frontend fill/text-layout code before their race semantics apply. The historical SMV's absolute pre-race frame clock is therefore not a semantic fidelity oracle.",
+      "priority": "medium",
+      "next_evidence": "Use the historical movie event-relatively. Resume divergence tracing only at a state/address whose semantics are valid in both runtimes, preferably after race entry or another explicit semantic anchor."
     }
   ]
 }

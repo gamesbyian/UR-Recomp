@@ -24,8 +24,8 @@ REGIONS=[
  ("resolver_usa_dormant_c","81:96AD","81:96AF",-26,"usa-dormant"),
  ("resolver_live_d","81:96B0","81:97FF",-26,"live"),
  ("resolver_tail_after_europe_gate","81:9800","81:983A",-15,"live"),
- ("geometry_helper_live_prefix","81:983B","81:9968",-15,"live"),
- ("geometry_helper_usa_dormant","81:9969","81:9978",-15,"usa-dormant"),
+ ("geometry_helper_live_prefix","81:983B","81:9971",-15,"live"),
+ ("geometry_helper_usa_dormant","81:9972","81:9978",-15,"usa-dormant"),
  ("geometry_helper_live_tail","81:9979","81:99D5",-15,"live"),
 ]
 

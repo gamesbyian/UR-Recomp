@@ -83,6 +83,13 @@ ANCHORS = (
         "Per-player 32-entry stunt/HUD message-ring enqueue path.",
     ),
     Anchor(
+        "Camera_StateQuantizeP2Tail",
+        "81:B1CD",
+        0x33,
+        (0x050F, 0x0513, 0x0535, 0x0539),
+        "Bounded recovered camera-state quantization tail through the join at 81:B1FF; used to discriminate the upper edge of the +4 WRAM family.",
+    ),
+    Anchor(
         "Camera_StateQuantizeP1",
         "81:AEF1",
         0xD2,

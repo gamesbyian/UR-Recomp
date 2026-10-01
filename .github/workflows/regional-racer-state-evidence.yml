@@ -22,12 +22,14 @@ jobs:
           ref: ${{ github.head_ref }}
       - name: Verify regional racer-state relations
         run: python3 tools/verify_regional_racer_state_relations.py
+      - name: Regenerate cross-build correspondence
+        run: python3 tools/build_cross_build_symbol_correspondence.py
       - name: Run focused unit regression
-        run: python3 -m unittest tests.unit.test_verify_regional_racer_state_relations -v
+        run: python3 -m unittest tests.unit.test_verify_regional_racer_state_relations tests.unit.test_build_cross_build_symbol_correspondence -v
       - name: Commit generated evidence
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add analysis/generated/regional-racer-state-relations.json analysis/generated/regional-racer-state-relations.md
+          git add analysis/generated/regional-racer-state-relations.json analysis/generated/regional-racer-state-relations.md analysis/generated/cross-build-symbol-correspondence.json analysis/generated/cross-build-symbol-correspondence.md
           git diff --cached --quiet || git commit -m "analysis: record regional racer-state relations"
           git push origin HEAD:${{ github.head_ref }}

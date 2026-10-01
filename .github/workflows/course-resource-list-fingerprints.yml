@@ -1,0 +1,45 @@
+name: Course resource-list fingerprints
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/analyze_course_resource_lists.py"
+      - ".github/workflows/course-resource-list-fingerprints.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: course-resource-list-fingerprints-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  analyze:
+    if: github.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Analyze all course resource lists
+        run: |
+          python3 tools/analyze_course_resource_lists.py
+          cat analysis/generated/course-resource-list-manifest.md
+
+      - name: Persist compact manifests
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add analysis/generated/course-resource-list-manifest.json analysis/generated/course-resource-list-manifest.md
+          if git diff --cached --quiet; then
+            echo "course resource-list reports already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Record course resource-list fingerprints"
+          git fetch origin "${{ github.ref_name }}"
+          git rebase "origin/${{ github.ref_name }}"
+          git push origin HEAD:${{ github.ref_name }}

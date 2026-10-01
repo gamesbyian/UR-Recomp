@@ -8,6 +8,8 @@ Human-maintained map of understood ROM functions, RAM, tables and hardware-facin
 |---|---|---:|---|
 | TBD | `TBD_Reset` | 0 | Not analyzed |
 | TBD | `TBD_MainLoop` | 0 | Not analyzed |
+| `80:C3AB` (USA) | `Frontend_TextCommandStream` | 4 | Nitrodon bank-80 disassembly shows a byte-command parser with control bytes `>= 0xEE`, text/layout handlers, and returns through `80:C440`; bounded historical replay tracing executes this interpreter during frontend transition construction. |
+| `80:C3C8` (USA) | `Frontend_TextCommandDispatch` | 4 | Exact instruction `JMP ($005D)`. The parser computes an index from control bytes and loads `$005D` from the 17-entry handler table at `80:C3CB-C3EA`. This is one of SNESRecomp analysis's three unresolved indirect guest sites and is dynamically exercised by run `36795810324`. |
 | `01:C5AF` (USA) | `HUD_QueueMessage` | 4 | Nitrodon's annotated stunt disassembly shows this long-call target receiving message IDs for Wipeout (`0x0E`), Head Bounce (`0x10`), Tabletop (`0x11`), flip/roll/twist/Z-flip result messages, and praise messages. Exact queue/render split still needs local call-graph validation. |
 | `02:9A42` (USA) | `Stunt_FinalizeAndScoreAirTricks` | 4 | Nitrodon's focused `stunts.txt` plus bank-82 listing expose the complete landing/finalization pipeline: roll/flip quarter-turn accumulation, half-twist conversion, Z-flip/tabletop handling, wipeout/headbounce checks, trick-message selection, stunt-combination indexing, praise lookup, and reset of transient stunt state. |
 | `02:A968` (USA) | `Player_ApplyVerticalAcceleration` | 4 | Nitrodon's bank-82 annotation is directly supported by the instruction flow: current-player Y velocity is capped below `0x0200`, upward motion receives +19, downward acceleration is `19 - Yvel/32`, the result is added to Y velocity, and current-player Y coordinate is incremented. |
@@ -33,7 +35,7 @@ Human-maintained map of understood ROM functions, RAM, tables and hardware-facin
 | TBD | rotation | TBD | 0 | |
 | TBD | camera | TBD | 0 | |
 | TBD | race timer | TBD | 0 | |
-| `7E:009F` | `Frontend_CurrentMenu` | 8-bit | 5 | Verified in both native and Snes9x/snesref deterministic runs: `0xD7` main menu, `0x3C` one-player rider select, `0x6D` first one-player tours page, `0xF6` one-player track select, `0x16` now-playing screen, then `0x00` after race entry. |
+| `7E:009F` | `Frontend_CurrentMenu` | 8-bit | 4 | Stable deterministic checkpoints correlate `0xD7` main menu, `0x3C` one-player rider select, `0x6D` first one-player tours page, `0xF6` one-player track select, `0x16` now-playing, then `0x00` after race entry. Do not treat it as continuously semantic: bank-80 text/layout handlers also reuse DP `$9F` as a tile/text position accumulator during frontend construction. |
 | `7E:009B` | `Frontend_SelectedOption` | 8-bit | 4 | Recovered bot uses it for main-menu/tour selection. Native captures show `0x00` at clean main menu and first tours page, consistent with bot policy. |
 | `7E:000E` | `Frontend_SelectedRow` | 8-bit | 3 | Recovered bot label; native route captures row `0x00` through the verified clean frontend route. Exact semantics outside these menus not yet tested. |
 | `7E:0C63` | `Frontend_SelectedColumn` | 8-bit | 3 | Recovered bot label; native captures change with frontend scene/selection. Rider-select ready state captures `0x06`, matching the bot's left-column target value. |

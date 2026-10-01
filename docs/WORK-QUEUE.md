@@ -10,11 +10,11 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 
 Immediate order:
 
-1. Bracket the earliest native/reference divergence in the exact 2014 replay around guest frame 440 down toward the first differing write/instruction/state transition.
-2. Map the responsible executed PCs/routines into the comparative code atlas and independently inspect them with SNESRecomp, snes2asm/da65, and Ghidra where useful.
-3. Resolve the three unresolved indirect dispatch sites and two LLE-only analyzer variants when they intersect executed/high-value paths.
-4. Replace the five explicit core placeholders in `SYMBOLS.md` with evidence-backed semantics, prioritizing main loop, player update, course loading, and OAM construction.
-5. Use the resulting semantic map to unblock exact finish fidelity, renderer/widescreen work, course tooling, and later modernization.
+1. Treat the 2014 SMV pre-race mismatch as a timing-alignment lead, not a semantic gameplay divergence. Dense/trace work shows the frame-437 low-WRAM differences occur while frontend fill/text code reuses the compared addresses. Use the historical movie event-relatively unless a later semantic anchor disagrees.
+2. Exploit the durable discovery from that investigation: `80:C3C8` is a live frontend/text indirect dispatcher on the historical route. Recover its handler semantics/runtime targets and fold them into the comparative atlas.
+3. Find the earliest **meaningful** unexplained native/reference divergence only on state whose semantics are valid in both contexts. Existing event-relative race fixtures already match acceleration, jump, rotation, landing and collision, so do not manufacture debt from pre-race scratch bytes.
+4. Resolve the remaining unresolved indirect dispatch sites and two LLE-only analyzer variants when they intersect executed/high-value paths.
+5. Replace the five explicit core placeholders in `SYMBOLS.md` with evidence-backed semantics, prioritizing main loop, player update, course loading, and OAM construction, then use that map to unblock finish fidelity, renderer/Widescreen work and course tooling.
 
 Do not chase semantic completeness uniformly. Prioritize code that is executed, divergent, hardware-facing, or a dependency of physics/course/rendering behavior.
 

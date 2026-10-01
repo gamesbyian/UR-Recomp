@@ -5,6 +5,7 @@ import unittest
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/"tools"))
 import analyze_race_frame_orchestrator_structure_island as mod
+import build_comparative_structural_census as census_mod
 
 class RaceFrameOrchestratorTests(unittest.TestCase):
     def test_bounds_include_loop(self):
@@ -31,6 +32,11 @@ class RaceFrameOrchestratorTests(unittest.TestCase):
         self.assertEqual(second["builds"]["pal-prototype-1994-11-29"]["shift"],-2)
         self.assertEqual(second["builds"]["europe-retail"]["shift"],36)
         self.assertEqual(r["lineage_edits"][0]["usa_span"],"83:CC85..CC86")
+        self.assertEqual(json.loads(mod.OUTJ.read_text()), r)
+        self.assertEqual(mod.OUTM.read_text(), mod.render(r)+"\n")
+        rebuilt=census_mod.build(ROOT)
+        self.assertEqual(json.loads((ROOT/"analysis/generated/comparative-structural-census.json").read_text()), rebuilt)
+        self.assertEqual((ROOT/"analysis/generated/comparative-structural-census.md").read_text(), census_mod.render(rebuilt))
         print("RACE_FRAME_ORCHESTRATOR_JSON="+json.dumps(r,sort_keys=True))
 
 if __name__=="__main__":

@@ -79,8 +79,10 @@ def build():
  }
 
  deletions=[]
+ deletion_regions=[]
  for name,s,e,expected_hex,instructions in USA_ONLY_DELETIONS:
   us,ue=cpu_to_offset(s),cpu_to_offset(e); hx=usa[us:ue+1].hex(" ")
+  deletion_regions.append({"name":name,"kind":"code","usa_start":s,"usa_end":e,"size":ue-us+1,"builds":{"usa-retail":{"start":s,"end":e,"shift":0,"size":ue-us+1,"size_delta":0,"similarity":1.0,**roles(ds["usa-retail"],us,ue),"sha256":hashlib.sha256(usa[us:ue+1]).hexdigest()},"legacy-beta":{"start":s,"end":e,"shift":0,"size":ue-us+1,"size_delta":0,"similarity":1.0,**roles(ds["legacy-beta"],us,ue),"sha256":hashlib.sha256(blobs["legacy-beta"][us:ue+1]).hexdigest()}}})
   deletions.append({
    "name":name,"usa_start":s,"usa_end":e,"size":ue-us+1,
    "hex":hx,"expected_hex":expected_hex,"instructions":instructions,
@@ -100,7 +102,7 @@ def build():
    "pal_line_total_contraction":-29,
    "europe_total_contraction_after_both_lineages":-43,
   },
-  "regions":rows,
+  "regions":sorted(rows+deletion_regions,key=lambda x:x["usa_start"]),
  }
 
 def render(r):

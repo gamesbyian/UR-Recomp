@@ -1,6 +1,6 @@
 # Two-Player Fixture Capability Plan
 
-Status: deterministic VS route and active-display OAM seam locally reproduced; native/reference VS semantics are exact before active movement, with a tiny post-input P2 timing drift preserved as open evidence. A bounded ordinary-2P route now reaches stock gameplay; durable ordinary-2P semantic/OAM promotion is in progress.
+Status: deterministic VS and ordinary-2P routes are both reproduced. Ordinary 2P is promoted to a durable two-controller fixture with isolated P1-only, P2-only and simultaneous movement checkpoints plus the active-display OAM seam. Native/reference VS semantics are exact before active movement, with a tiny post-input P2 timing drift preserved as open evidence.
 
 ## Why this exists
 
@@ -143,7 +143,7 @@ The first bounded ordinary-2P probe succeeded without a search sweep. Reusing th
 
 Evidence run: `36817685308`.
 
-The route probe now includes isolated checkpoints immediately before and after P1-only, P2-only and simultaneous movement. Promote it only after the canonical paired-slot summarizer confirms causal movement and the native/reference route agrees on the semantic gate. The temporary coarse probe's guessed racer offsets are explicitly non-evidence and must not be reused; canonical racer fields come from `tools/summarize_paired_player_slots.py`.
+The promoted fixture is `tests/input/two-player-first-race.input` with `tests/input/two-player-first-race-observe.script`. Run 36819833356 confirms the isolated Snes9x semantics: P1-only Right moves slot1 while slot2 remains at baseline; P2-only input then moves slot2; simultaneous input leaves P1 with positive X velocity and P2 with negative X velocity. The same run reproduces the canonical active-display OAM seam, HDMA `$2104` writes `V=0->$A5` and `V=112->$5A`, at every sampled stable race checkpoint. The disposable probe and its guessed offsets were removed after promotion; canonical racer fields come only from `tools/summarize_paired_player_slots.py`.
 
 ## VS active-movement parity refinement
 

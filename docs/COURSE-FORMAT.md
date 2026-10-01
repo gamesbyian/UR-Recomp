@@ -63,6 +63,19 @@ The canonical USA ROM's Method 1 unpacker begins at ROM offset `0x00B8F1` / LoRO
 This is now a useful bridge between packed data and code archaeology. The immediate course-loader task is to find callers of this routine and the pointer/index structure that selects one of the 45 packed streams, then follow the destination buffer into the historical `7E:2080` tilemap breadcrumb or another verified runtime consumer.
 
 
+## Recovered 45-map and start/finish corpus
+
+Dessyreqt's direct historical workspace supplies one PNG map for every shipped course under `reference/imported/reverse-engineering/dessyreqt/Maps/`, plus `Scripts/magicnumber.lua`, which records start/finish X coordinates for all 45 track IDs. This changes the validation posture:
+
+- the project now has a complete local visual map corpus, so external VGMaps acquisition is comparison-only;
+- the historical start/finish coordinates are cheap course-identity and race-finish probes, especially for distinguishing wraparound/circuit layouts;
+- neither artifact overrides ROM/runtime evidence: the PNGs were produced by emulator-era tooling and `magicnumber.lua` is an optimization model, not a course-format specification;
+- where provisional stream names are uncertain, prefer a low-cost coordinate/topology comparison against these artifacts before launching a broad trace.
+
+The historical mapper scripts also show their method: freeze timers, move the racer through a grid, read camera position, and stitch emulator screenshots. That makes the maps independent visual observations of rendered courses rather than decoded RNC outputs, which is useful for validating a future ROM-derived renderer.
+
+See `reference/notes/dessyreqt-workspace-mining.md`.
+
 ## First decoded course-header field identified
 
 The 45-stream corpus now aligns strongly with the shipped 45-track/tour structure.

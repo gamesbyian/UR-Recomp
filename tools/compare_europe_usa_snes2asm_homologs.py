@@ -76,6 +76,48 @@ REGIONS = [
         "expected_europe_shift": -23,
         "basis": "Nitrodon message-queue function entry establishes accumulator/index widths and runs through RTS at 81:C604.",
     },
+    {
+        "name": "Race_UpdateRacersFrame:state_marshal_prefix",
+        "usa_start": "82:89B9",
+        "usa_end": "82:8C26",
+        "expected_europe_shift": 19,
+        "basis": "Nitrodon function entry through the sequential state-marshal prefix immediately before the first long call at 82:8C27.",
+    },
+    {
+        "name": "Stunt_FinalizeAndScoreAirTricks:air_entry",
+        "usa_start": "82:9A42",
+        "usa_end": "82:9AA8",
+        "expected_europe_shift": 17,
+        "basis": "Nitrodon stunt-finalizer entry through the first air-entry/reset block, bounded before JMP 82:9AA9.",
+    },
+    {
+        "name": "Stunt_FinalizeAndScoreAirTricks:rotation_progress",
+        "usa_start": "82:9AAC",
+        "usa_end": "82:9B54",
+        "expected_europe_shift": 17,
+        "basis": "Nitrodon rotation/progress block through the stored quadrant, bounded before JMP 82:9B55.",
+    },
+    {
+        "name": "Course_LoadAndMaterialize:setup",
+        "usa_start": "82:E165",
+        "usa_end": "82:E1CF",
+        "expected_europe_shift": -58,
+        "basis": "Nitrodon course-loader entry through initial clear/DMA/pointer setup and width transition at 82:E1CF.",
+    },
+    {
+        "name": "Course_LoadAndMaterialize:record_header",
+        "usa_start": "82:E1D1",
+        "usa_end": "82:E213",
+        "expected_europe_shift": -58,
+        "basis": "Nitrodon course-record header read and materialization pointer setup, bounded before the DMA row loop at 82:E216.",
+    },
+    {
+        "name": "Course_LoadAndMaterialize:dma_row_loop",
+        "usa_start": "82:E216",
+        "usa_end": "82:E2FF",
+        "expected_europe_shift": -58,
+        "basis": "Nitrodon bounded VRAM/DMA row loop through the post-loop VRAM pointer load, before exit/range dispatch at 82:E302.",
+    },
 ]
 
 
@@ -157,6 +199,9 @@ def build() -> dict:
         cpu_to_offset("81:953D"),
         cpu_to_offset("81:9E2A"),
         cpu_to_offset("81:C5B3"),
+        cpu_to_offset("82:89B9"),
+        cpu_to_offset("82:9A42"),
+        cpu_to_offset("82:E165"),
     ]
     europe_seeds = [
         cpu_to_offset("80:8C41"),
@@ -165,6 +210,9 @@ def build() -> dict:
         cpu_to_offset("81:9523"),
         cpu_to_offset("81:9E1B"),
         cpu_to_offset("81:C59C"),
+        cpu_to_offset("82:89CC"),
+        cpu_to_offset("82:9A53"),
+        cpu_to_offset("82:E12B"),
     ]
     seed_entries(ud, usa_seeds)
     seed_entries(ed, europe_seeds)

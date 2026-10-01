@@ -18,7 +18,7 @@ class RacerOamStructureTests(unittest.TestCase):
         if not all(path.exists() for path in mod.ROMS.values()):
             self.skipTest("preserved ROM corpus not present")
         result=mod.build()
-        self.assertEqual(len(result["regions"]), 7)
+        self.assertEqual(len(result["regions"]), 12)
         by_name={r["name"]:r for r in result["regions"]}
         for region in result["regions"]:
             self.assertGreater(region["builds"]["usa-retail"]["opcode_bytes"], 0)

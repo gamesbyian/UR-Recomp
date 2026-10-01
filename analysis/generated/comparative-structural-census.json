@@ -54,18 +54,22 @@
     {
       "id": "player-state-marshal",
       "path": "analysis/generated/player-state-marshal-structure-island.json"
+    },
+    {
+      "id": "collision-response",
+      "path": "analysis/generated/collision-response-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 88,
-    "code_regions": 80,
+    "regions": 93,
+    "code_regions": 85,
     "data_regions": 8,
-    "bounded_bytes": 12099,
-    "bounded_code_region_bytes": 10954,
+    "bounded_bytes": 14689,
+    "bounded_code_region_bytes": 13544,
     "bounded_data_region_bytes": 1145,
-    "analyzer_opcode_bytes": 4556,
-    "analyzer_operand_bytes": 6336,
-    "analyzer_unreached_or_data_bytes": 1207,
+    "analyzer_opcode_bytes": 5665,
+    "analyzer_operand_bytes": 7764,
+    "analyzer_unreached_or_data_bytes": 1260,
     "banks": [
       "81",
       "82",
@@ -1177,6 +1181,236 @@
           "shift": 0,
           "similarity": 1,
           "size": 341,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-response",
+      "source_path": "analysis/generated/collision-response-structure-island.json",
+      "name": "candidate_reduction_and_surface_classification",
+      "kind": "code",
+      "usa_start": "81:8FB8",
+      "usa_end": "81:91F0",
+      "size": 569,
+      "usa_opcode_bytes": 231,
+      "usa_operand_bytes": 338,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:8F98",
+          "end": "81:91D0",
+          "shift": -32,
+          "similarity": 0.924429,
+          "size": 569,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:8FB8",
+          "end": "81:91F0",
+          "shift": 0,
+          "similarity": 1,
+          "size": 569,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:8F98",
+          "end": "81:91D0",
+          "shift": -32,
+          "similarity": 0.938489,
+          "size": 569,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:8FB8",
+          "end": "81:91F0",
+          "shift": 0,
+          "similarity": 1,
+          "size": 569,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-response",
+      "source_path": "analysis/generated/collision-response-structure-island.json",
+      "name": "landing_air_and_velocity_gates",
+      "kind": "code",
+      "usa_start": "81:91F1",
+      "usa_end": "81:9303",
+      "size": 275,
+      "usa_opcode_bytes": 117,
+      "usa_operand_bytes": 158,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:91D1",
+          "end": "81:92E3",
+          "shift": -32,
+          "similarity": 0.88,
+          "size": 275,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:91F1",
+          "end": "81:9303",
+          "shift": 0,
+          "similarity": 1,
+          "size": 275,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:91D1",
+          "end": "81:92E3",
+          "shift": -32,
+          "similarity": 0.887273,
+          "size": 275,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:91F1",
+          "end": "81:9303",
+          "shift": 0,
+          "similarity": 1,
+          "size": 275,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-response",
+      "source_path": "analysis/generated/collision-response-structure-island.json",
+      "name": "contact_response_after_europe_nops",
+      "kind": "code",
+      "usa_start": "81:9304",
+      "usa_end": "81:97FF",
+      "size": 1276,
+      "usa_opcode_bytes": 551,
+      "usa_operand_bytes": 679,
+      "usa_unreached_or_data_bytes": 46,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:92EA",
+          "end": "81:97E5",
+          "shift": -26,
+          "similarity": 0.916144,
+          "size": 1276,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:9304",
+          "end": "81:97FF",
+          "shift": 0,
+          "similarity": 1,
+          "size": 1276,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:92E4",
+          "end": "81:97DF",
+          "shift": -32,
+          "similarity": 0.926332,
+          "size": 1276,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:9304",
+          "end": "81:97FF",
+          "shift": 0,
+          "similarity": 1,
+          "size": 1276,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-response",
+      "source_path": "analysis/generated/collision-response-structure-island.json",
+      "name": "final_position_correction_and_return",
+      "kind": "code",
+      "usa_start": "81:9800",
+      "usa_end": "81:983A",
+      "size": 59,
+      "usa_opcode_bytes": 31,
+      "usa_operand_bytes": 28,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:97F1",
+          "end": "81:982B",
+          "shift": -15,
+          "similarity": 0.966102,
+          "size": 59,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:9800",
+          "end": "81:983A",
+          "shift": 0,
+          "similarity": 1,
+          "size": 59,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:97E0",
+          "end": "81:981A",
+          "shift": -32,
+          "similarity": 0.966102,
+          "size": 59,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:9800",
+          "end": "81:983A",
+          "shift": 0,
+          "similarity": 1,
+          "size": 59,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "collision-response",
+      "source_path": "analysis/generated/collision-response-structure-island.json",
+      "name": "contact_direction_quantizer",
+      "kind": "code",
+      "usa_start": "81:983B",
+      "usa_end": "81:99D5",
+      "size": 411,
+      "usa_opcode_bytes": 179,
+      "usa_operand_bytes": 225,
+      "usa_unreached_or_data_bytes": 7,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:982C",
+          "end": "81:99C6",
+          "shift": -15,
+          "similarity": 0.973236,
+          "size": 411,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:983B",
+          "end": "81:99D5",
+          "shift": 0,
+          "similarity": 1,
+          "size": 411,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:981B",
+          "end": "81:99B5",
+          "shift": -32,
+          "similarity": 0.982968,
+          "size": 411,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:983B",
+          "end": "81:99D5",
+          "shift": 0,
+          "similarity": 1,
+          "size": 411,
           "size_delta": 0
         }
       }

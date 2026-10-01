@@ -687,6 +687,8 @@ sources:
     source: "Directly supplied by Dessyreqt to Ian Wallace"
     original_container: "Uniracers Stuff.zip (transport container intentionally removed after extraction)"
     imported_directory: "reference/imported/reverse-engineering/dessyreqt/"
+    analysis: "reference/notes/dessyreqt-workspace-mining.md"
+    machine_index: "analysis/generated/dessyreqt-workspace-index.json"
     file_count: 80
     contents: "17 Lua scripts including USJO v14/v14a and bot variants; 9 glitch SMVs; 45 course maps; 3 SRAM images; 2 memory-watch files; 4 research documents"
     rights: "Historical third-party fan/TAS/reverse-engineering material directly supplied for this research project; explicit redistribution license not established."

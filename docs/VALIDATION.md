@@ -11,6 +11,24 @@ Fidelity should be falsifiable.
 
 Visual similarity alone does not establish simulation fidelity.
 
+## Evidence proportionality
+
+Validation exists to decide whether the port is faithful enough to proceed, not to maximize the amount of evidence collected.
+
+Before adding a capture, trace, second emulator, manual frame review, or bespoke workflow, name:
+
+1. the specific decision or uncertainty;
+2. the cheapest observable that can discriminate the plausible explanations;
+3. what result would change the next action;
+4. the stopping condition.
+
+Use the minimum sufficient surface. A player-position question does not automatically require full WRAM + VRAM + OAM + audio + screenshots; a PPU/OAM question does not automatically require instruction tracing. Escalate only after a cheaper surface fails to distinguish the hypotheses.
+
+For temporal/video divergences, first localize with machine-friendly methods: frame/state hashes, coarse checkpoints, binary search over time, or event-relative anchors. Inspect individual frames or short frame windows only after the interval is bounded. Frame-by-frame manual review of a long run is a last resort, not a default fidelity ritual.
+
+Rigor should scale with downstream consequence. A claim that changes authoritative simulation or a hardware-compatibility rule deserves stronger independent corroboration than a cosmetic/layout observation or an archival inference. Once additional evidence is unlikely to change implementation, a gate, or the confidence class, stop.
+
+
 ## Deterministic cases
 
 The machine-readable fixture catalog is `tests/fixtures.json`. Each fixture names its controller script, purpose, execution engines, checkpoints, current comparison surfaces, and intended extensions. Add a fixture there when a replay becomes a durable regression workload.

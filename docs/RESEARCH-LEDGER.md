@@ -1692,3 +1692,21 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 **Propagation:** added eight regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **73 regions / 8,733 bounded USA bytes**, including **7,588 code-region bytes**, **1,145 data bytes**, and **3,182 analyzer opcode bytes**. This closes a direct implementation chain from stunt recognition/scoring through delayed queue consumption, persistent score/boost mutation, and display-state refresh.
 
+### R-SEED-070 — Race input normalization preserves instruction architecture across all four builds
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | input | racer control | comparative atlas
+
+**Observation:** USA `82:AA6E..ACA0` is a 563-byte, fully executable input subsystem spanning P1 decode/fallback, P2 decode/activity tracking, and reverse-controls remapping immediately before the racer-OAM wrapper at `82:ACA1`.
+
+**Evidence:** `tools/analyze_input_normalization_structure_island.py`; `analysis/generated/input-normalization-structure-island.{json,md}`; existing Europe/USA and USA/PAL-prototype snes2asm homolog adjudication for all three subregions. USA/legacy beta are byte-identical. PAL prototype stays at shift -15 and Europe at +7 across the full routine.
+
+**Interpretation:** the routine's instruction structure is unchanged regionally. Across P1, P2, and postprocess blocks, PAL prototype and Europe each preserve all 237 aligned opcode positions with 100% opcode consensus, zero code/operand role disagreements, and zero M/X-width disagreements. Europe's lower raw byte similarity is therefore operand relocation, not altered control architecture; this includes the established regional controller-state family such as USA `030D` mapping to Europe `0311`.
+
+**Discriminating test:** no further function-boundary or control-flow work is required. Decode individual regional WRAM operands only when an implementation or fidelity test needs them.
+
+**Dependencies:** Nitrodon bank-82 listing; cross-build symbol correspondence; Europe/USA and USA/PAL-prototype snes2asm homolog reports; four-ROM corpus.
+
+**Propagation:** added three code regions to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to **76 regions / 9,296 bounded USA bytes**, including **8,151 code-region bytes**, **1,145 data bytes**, and **3,419 analyzer opcode bytes**.
+

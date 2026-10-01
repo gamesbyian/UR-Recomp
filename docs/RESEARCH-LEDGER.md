@@ -1577,3 +1577,17 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 **Discriminating test:** extend the census with a third independent executed subsystem island and confirm that its regions can be added without weakening existing boundary provenance or turning raw linear-disassembly reachability into asserted structure.  
 **Dependencies:** source island boundaries retain their existing evidence/provenance; this census does not independently prove them.  
 **Propagation:** work queue item 9 now treats the seed census as completed infrastructure and directs the next pass toward a third high-connectivity subsystem rather than deepening the already-bounded racer or object/collision islands merely for byte count.
+
+
+### R-SEED-063 — Full course-loader structure is stable across all four builds
+
+**Status:** confirmed  
+**Date:** 2026-10-01  
+**Area:** CPU | course | PPU | DMA/HDMA
+
+**Observation:** the complete named `Course_LoadAndMaterialize` corridor at USA `82:E165..E395` partitions cleanly into five executable phases: setup, resource-record/header handling, DMA row loop, resource materialization into `7E:A000/7E:C000`, and common exit.  
+**Evidence:** ROM-backed unit run `36854224907`; `analysis/generated/course-materialization-structure-island.{json,md}`; `tools/analyze_course_materialization_structure_island.py`. All 554 USA bytes in the five partitions are analyzer-reached (257 opcode bytes + 297 operand bytes). Europe retail aligns at a constant -58-byte shift across all five partitions, PAL prototype 1994-11-29 at -100, and legacy beta is byte-identical to USA.  
+**Interpretation:** the loader's internal architecture was preserved across the regional lineage even as code was relocated. The resource-to-WRAM materialization stage is now structurally bounded rather than inferred only from semantic traces, giving course/editor work a stable implementation seam.  
+**Discriminating test:** none required for the five-part structural boundary claim. Deeper descriptor/plane semantics should be pursued only when editor/course implementation needs them.  
+**Dependencies:** snes2asm trusted-entry seeding and existing Nitrodon/control-flow boundaries.  
+**Propagation:** added the course island to `analysis/generated/comparative-structural-census.{json,md}`, expanding the census to 25 regions / 3,165 bytes; the queue now advances to a fourth independent subsystem rather than further decomposing this loader for coverage alone.

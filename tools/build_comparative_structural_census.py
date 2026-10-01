@@ -11,6 +11,7 @@ DEFAULT_SOURCES = (
     ("course-materialization", "analysis/generated/course-materialization-structure-island.json", False),
     ("racer-oam", "analysis/generated/racer-oam-structure-island.json", False),
     ("course-surface-sampler", "analysis/generated/course-surface-sampler-structure-island.json", False),
+    ("race-frame-orchestrator", "analysis/generated/race-frame-orchestrator-structure-island.json", False),
 )
 
 def build(root: Path) -> dict:
@@ -67,8 +68,8 @@ def build(root: Path) -> dict:
     }
     return {
         "schema_version": 1,
-        "purpose": "Machine-queryable seed census of confidently bounded program structure recovered by the comparative four-ROM lane.",
-        "scope_note": "This is a seed census, not a whole-ROM coverage claim. It intentionally contains only regions whose boundaries/code-data role have already been independently recovered in the two structural-island analyses.",
+        "purpose": "Machine-queryable census of confidently bounded program structure recovered by the comparative four-ROM lane.",
+        "scope_note": "This census is a conservative floor, not a whole-ROM coverage claim. It contains only regions whose boundaries/code-data role have already been independently recovered in accepted structural-island analyses.",
         "sources": sources,
         "totals": totals,
         "regions": rows,
@@ -99,7 +100,7 @@ def render(census: dict) -> str:
         )
     lines += [
         "", "## Selection rule for the next island", "",
-        "Grow this census by choosing a different executed/high-connectivity subsystem where comparative evidence can recover multiple boundaries or relationships at once. Prefer a candidate with direct call/table structure and shipping relevance (course materialization, rendering/OAM, camera, or race-state plumbing). Do not extend either existing island merely to increase byte totals.",
+        "Grow this census by choosing a different executed/high-connectivity subsystem where comparative evidence can recover multiple boundaries or relationships at once. Prefer a candidate with direct call/table structure and shipping relevance. Do not extend an existing island merely to increase byte totals.",
         "", "The JSON form is the authoritative query surface: `analysis/generated/comparative-structural-census.json`.", ""
     ]
     return "\n".join(lines)

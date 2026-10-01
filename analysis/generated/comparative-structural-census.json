@@ -22,21 +22,26 @@
     {
       "id": "course-surface-sampler",
       "path": "analysis/generated/course-surface-sampler-structure-island.json"
+    },
+    {
+      "id": "race-frame-orchestrator",
+      "path": "analysis/generated/race-frame-orchestrator-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 38,
-    "code_regions": 35,
+    "regions": 40,
+    "code_regions": 37,
     "data_regions": 3,
-    "bounded_bytes": 4791,
-    "bounded_code_region_bytes": 4583,
+    "bounded_bytes": 5259,
+    "bounded_code_region_bytes": 5051,
     "bounded_data_region_bytes": 208,
-    "analyzer_opcode_bytes": 1923,
-    "analyzer_operand_bytes": 2598,
+    "analyzer_opcode_bytes": 2108,
+    "analyzer_operand_bytes": 2881,
     "analyzer_unreached_or_data_bytes": 270,
     "banks": [
       "81",
-      "82"
+      "82",
+      "83"
     ]
   },
   "regions": [
@@ -1784,6 +1789,98 @@
           "shift": 0,
           "similarity": 1,
           "size": 14,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "race-frame-orchestrator",
+      "source_path": "analysis/generated/race-frame-orchestrator-structure-island.json",
+      "name": "setup_loop_prefix",
+      "kind": "code",
+      "usa_start": "83:CBCC",
+      "usa_end": "83:CC86",
+      "size": 187,
+      "usa_opcode_bytes": 76,
+      "usa_operand_bytes": 111,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "usa-retail": {
+          "start": "83:CBCC",
+          "end": "83:CC86",
+          "shift": 0,
+          "similarity": 1,
+          "size": 187,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "83:CBCC",
+          "end": "83:CC84",
+          "shift": 0,
+          "similarity": 0.882353,
+          "size": 185,
+          "size_delta": -2
+        },
+        "europe-retail": {
+          "start": "83:CBF2",
+          "end": "83:CCAA",
+          "shift": 38,
+          "similarity": 0.871658,
+          "size": 185,
+          "size_delta": -2
+        },
+        "legacy-beta": {
+          "start": "83:CBCC",
+          "end": "83:CC86",
+          "shift": 0,
+          "similarity": 1,
+          "size": 187,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "race-frame-orchestrator",
+      "source_path": "analysis/generated/race-frame-orchestrator-structure-island.json",
+      "name": "loop_body_after_sep_cleanup",
+      "kind": "code",
+      "usa_start": "83:CC87",
+      "usa_end": "83:CD9F",
+      "size": 281,
+      "usa_opcode_bytes": 109,
+      "usa_operand_bytes": 172,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "usa-retail": {
+          "start": "83:CC87",
+          "end": "83:CD9F",
+          "shift": 0,
+          "similarity": 1,
+          "size": 281,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "83:CC85",
+          "end": "83:CD9D",
+          "shift": -2,
+          "similarity": 0.83274,
+          "size": 281,
+          "size_delta": 0
+        },
+        "europe-retail": {
+          "start": "83:CCAB",
+          "end": "83:CDC3",
+          "shift": 36,
+          "similarity": 0.790036,
+          "size": 281,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "83:CC87",
+          "end": "83:CD9F",
+          "shift": 0,
+          "similarity": 1,
+          "size": 281,
           "size_delta": 0
         }
       }

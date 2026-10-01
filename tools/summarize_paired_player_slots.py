@@ -31,6 +31,19 @@ SLOTS = {
     },
 }
 
+RACE_PROGRESS = {
+    "player1": {
+        "next_checkpoint": ("u16", 0x1199),
+        "finish_gate": ("u16", 0x119D),
+        "laps_remaining": ("u16", 0x0EF1),
+    },
+    "player2": {
+        "next_checkpoint": ("u16", 0x119B),
+        "finish_gate": ("u16", 0x119F),
+        "laps_remaining": ("u16", 0x0EF3),
+    },
+}
+
 def read_value(data: bytes, kind: str, addr: int) -> int:
     if kind == "u8":
         return data[addr]
@@ -45,10 +58,15 @@ def state(path: Path) -> dict:
     data = path.read_bytes()
     if len(data) < 0x20000:
         raise ValueError(f"{path}: expected 128 KiB WRAM")
-    return {
+    out = {
         slot: {name: read_value(data, kind, addr) for name, (kind, addr) in fields.items()}
         for slot, fields in SLOTS.items()
     }
+    out["race_progress"] = {
+        player: {name: read_value(data, kind, addr) for name, (kind, addr) in fields.items()}
+        for player, fields in RACE_PROGRESS.items()
+    }
+    return out
 
 def main() -> int:
     ap = argparse.ArgumentParser()
@@ -65,6 +83,7 @@ def main() -> int:
         s = state(p)
         report[tag] = s
         a, b = s["slot1"], s["slot2"]
+        rp1, rp2 = s["race_progress"]["player1"], s["race_progress"]["player2"]
         print(
             f"{tag}: "
             f"slot1 x={a['x_pos']} y={a['y_pos']} "
@@ -73,7 +92,10 @@ def main() -> int:
             f"botPitch={a['bot_pitch_derived']} | "
             f"slot2 x={b['x_pos']} y={b['y_pos']} "
             f"vx={b['x_speed']} vy={b['y_speed']} "
-            f"air={b['air']} rot={b['rotation_candidate']}"
+            f"air={b['air']} rot={b['rotation_candidate']} | "
+            f"finish p1 checkpoint={rp1['next_checkpoint']} gate={rp1['finish_gate']} "
+            f"laps={rp1['laps_remaining']} p2 checkpoint={rp2['next_checkpoint']} "
+            f"gate={rp2['finish_gate']} laps={rp2['laps_remaining']}"
         )
 
     if args.json_out:

@@ -131,7 +131,9 @@ REGIONS = [
         "usa_end": "81:8117",
         "expected_europe_shift": -6,
         "allow_structural_delta": True,
-        "basis": "Bounded timer-frame normalization block. Local shift profiling shows Europe contracts this block and the shared suffix has reached shift -14 by USA 81:8118.",
+        "europe_explicit_start": "81:8102",
+        "europe_explicit_end": "81:8109",
+        "basis": "Bounded timer-frame normalization block. USA uses 22 bytes (8102..8117); Europe uses 8 bytes (8102..8109), after which the shared suffix resumes at Europe 810A / USA 8118 for a net -14 shift.",
     },
     {
         "name": "Race_HandleCheckpointFinish:time_suffix",
@@ -328,21 +330,43 @@ def build() -> dict:
             **metrics,
             **byte_metrics,
         }
-        if metrics["aligned_role_disagreements"] or byte_metrics["aligned_opcode_byte_disagreements"]:
+        if region.get("allow_structural_delta"):
+        if region.get("allow_structural_delta"):
+            eu_start = cpu_to_offset(region["europe_explicit_start"])
+            eu_end = cpu_to_offset(region["europe_explicit_end"])
+            row["structural_delta"] = {
+                "usa_span_bytes": end - start + 1,
+                "europe_span_bytes": eu_end - eu_start + 1,
+                "net_size_delta_europe_minus_usa": (eu_end - eu_start + 1) - (end - start + 1),
+                "usa_hex": usa[start:end + 1].hex(" "),
+                "europe_hex": europe[eu_start:eu_end + 1].hex(" "),
+                "usa_opcode_bytes": [
+                    f"0x{usa[off]:02X}" for off in range(start, end + 1)
+                    if ud.code_map[off] & ud.OP_CODE
+                ],
+                "europe_opcode_bytes": [
+                    f"0x{europe[off]:02X}" for off in range(eu_start, eu_end + 1)
+                    if ed.code_map[off] & ed.OP_CODE
+                ],
+                "europe_start": region["europe_explicit_start"],
+                "europe_end": region["europe_explicit_end"],
+            }
+        elif metrics["aligned_role_disagreements"] or byte_metrics["aligned_opcode_byte_disagreements"]:
             row["raw_local_shift_profile_8byte"] = local_shift_profile(usa, europe, start, end)
         rows.append(row)
 
+    comparable = [x for x in rows if not x.get("allow_structural_delta")]
+    deltas = [x for x in rows if x.get("allow_structural_delta")]
     totals = {
         "regions": len(rows),
-        "aligned_role_disagreements": sum(
-            x["aligned_role_disagreements"] for x in rows if not x.get("allow_structural_delta")
-        ),
-        "structural_delta_regions": sum(bool(x.get("allow_structural_delta")) for x in rows),
-        "aligned_mx_disagreements": sum(x["aligned_mx_disagreements"] for x in rows),
-        "zero_role_disagreement_regions": sum(x["aligned_role_disagreements"] == 0 for x in rows),
-        "aligned_opcode_pairs": sum(x["aligned_opcode_pairs"] for x in rows),
-        "aligned_opcode_byte_disagreements": sum(x["aligned_opcode_byte_disagreements"] for x in rows),
-        "aligned_operand_byte_changes": sum(x["aligned_operand_byte_changes"] for x in rows),
+        "comparable_homolog_regions": len(comparable),
+        "structural_delta_regions": len(deltas),
+        "aligned_role_disagreements": sum(x["aligned_role_disagreements"] for x in comparable),
+        "aligned_mx_disagreements": sum(x["aligned_mx_disagreements"] for x in comparable),
+        "zero_role_disagreement_regions": sum(x["aligned_role_disagreements"] == 0 for x in comparable),
+        "aligned_opcode_pairs": sum(x["aligned_opcode_pairs"] for x in comparable),
+        "aligned_opcode_byte_disagreements": sum(x["aligned_opcode_byte_disagreements"] for x in comparable),
+        "aligned_operand_byte_changes": sum(x["aligned_operand_byte_changes"] for x in comparable),
     }
     return {
         "schema_version": 1,
@@ -384,7 +408,10 @@ def render(report: dict) -> str:
             f"{r['aligned_operand_byte_changes']} | {r['aligned_role_disagreements']} | "
             f"{r['aligned_mx_disagreements']} |"
         )
-    opcode_survivors = [r for r in report["regions"] if r["aligned_opcode_byte_disagreements"]]
+    opcode_survivors = [
+        r for r in report["regions"]
+        if not r.get("allow_structural_delta") and r["aligned_opcode_byte_disagreements"]
+    ]
     lines += ["", "## Genuine aligned opcode substitutions", ""]
     if not opcode_survivors:
         lines.append("None.")
@@ -395,6 +422,24 @@ def render(report: dict) -> str:
                 f"- +0x{x['relative_offset']:X}: USA {x['usa_opcode']} vs Europe {x['europe_opcode']}"
             )
         lines.append("")
+
+    deltas = [r for r in report["regions"] if r.get("allow_structural_delta")]
+    lines += ["", "## Genuine structural deltas", ""]
+    if not deltas:
+        lines.append("None.")
+    for r in deltas:
+        d = r["structural_delta"]
+        lines += [
+            f"### {r['name']}",
+            "",
+            r["basis"],
+            f"- USA span: \`{r['usa_start']}..{r['usa_end']}\` ({d['usa_span_bytes']} bytes)",
+            f"- Europe span: \`{d['europe_start']}..{d['europe_end']}\` ({d['europe_span_bytes']} bytes)",
+            f"- Net Europe size delta: {d['net_size_delta_europe_minus_usa']:+d} bytes",
+            f"- USA opcodes: {' '.join(d['usa_opcode_bytes'])}",
+            f"- Europe opcodes: {' '.join(d['europe_opcode_bytes'])}",
+            "",
+        ]
 
     survivors = [
         r for r in report["regions"]

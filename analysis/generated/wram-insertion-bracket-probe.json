@@ -1,6 +1,31 @@
 {
   "builds": {
     "europe-retail": {
+      "autojoy_hardware_registers": {
+        "hits": [
+          {
+            "file_offset": 20975,
+            "opcode": "AE",
+            "operand": "4218",
+            "operand_bytes": "18 42"
+          },
+          {
+            "file_offset": 20980,
+            "opcode": "AE",
+            "operand": "421A",
+            "operand_bytes": "1a 42"
+          }
+        ],
+        "operand_counts": {
+          "4218": 1,
+          "421A": 1
+        },
+        "range": [
+          "4218",
+          "421F"
+        ],
+        "reference_count": 2
+      },
       "first_inserted_space": {
         "hits": [],
         "operand_counts": {},
@@ -2143,6 +2168,57 @@
       }
     },
     "pal-prototype-1994-11-29": {
+      "autojoy_hardware_registers": {
+        "hits": [
+          {
+            "file_offset": 1507,
+            "opcode": "AD",
+            "operand": "4218",
+            "operand_bytes": "18 42"
+          },
+          {
+            "file_offset": 1513,
+            "opcode": "AD",
+            "operand": "4219",
+            "operand_bytes": "19 42"
+          },
+          {
+            "file_offset": 1519,
+            "opcode": "AD",
+            "operand": "421A",
+            "operand_bytes": "1a 42"
+          },
+          {
+            "file_offset": 1525,
+            "opcode": "AD",
+            "operand": "421B",
+            "operand_bytes": "1b 42"
+          },
+          {
+            "file_offset": 20956,
+            "opcode": "AE",
+            "operand": "4218",
+            "operand_bytes": "18 42"
+          },
+          {
+            "file_offset": 20961,
+            "opcode": "AE",
+            "operand": "421A",
+            "operand_bytes": "1a 42"
+          }
+        ],
+        "operand_counts": {
+          "4218": 2,
+          "4219": 1,
+          "421A": 2,
+          "421B": 1
+        },
+        "range": [
+          "4218",
+          "421F"
+        ],
+        "reference_count": 6
+      },
       "first_inserted_space": {
         "hits": [
           {
@@ -4226,6 +4302,57 @@
       }
     },
     "usa-retail": {
+      "autojoy_hardware_registers": {
+        "hits": [
+          {
+            "file_offset": 1508,
+            "opcode": "AD",
+            "operand": "4218",
+            "operand_bytes": "18 42"
+          },
+          {
+            "file_offset": 1514,
+            "opcode": "AD",
+            "operand": "4219",
+            "operand_bytes": "19 42"
+          },
+          {
+            "file_offset": 1520,
+            "opcode": "AD",
+            "operand": "421A",
+            "operand_bytes": "1a 42"
+          },
+          {
+            "file_offset": 1526,
+            "opcode": "AD",
+            "operand": "421B",
+            "operand_bytes": "1b 42"
+          },
+          {
+            "file_offset": 20958,
+            "opcode": "AE",
+            "operand": "4218",
+            "operand_bytes": "18 42"
+          },
+          {
+            "file_offset": 20963,
+            "opcode": "AE",
+            "operand": "421A",
+            "operand_bytes": "1a 42"
+          }
+        ],
+        "operand_counts": {
+          "4218": 2,
+          "4219": 1,
+          "421A": 2,
+          "421B": 1
+        },
+        "range": [
+          "4218",
+          "421F"
+        ],
+        "reference_count": 6
+      },
       "first_inserted_space": {
         "hits": [
           {
@@ -6310,6 +6437,19 @@
     }
   },
   "focused_exclusivity": {
+    "autojoy_hardware_registers": {
+      "europe_only_numeric_operands": [],
+      "europe_operands": [
+        "4218",
+        "421A"
+      ],
+      "explained_by_trusted_projection": [],
+      "shared_all_three": [
+        "4218",
+        "421A"
+      ],
+      "unexplained_europe_operands": []
+    },
     "first_inserted_space": {
       "europe_only_numeric_operands": [],
       "europe_operands": [],

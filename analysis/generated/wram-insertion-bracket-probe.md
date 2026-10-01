@@ -31,3 +31,12 @@ Narrow trusted-code scan for absolute 16-bit operands inside the two post-protot
 - Europe-only numeric operands in trusted code: `053D`
 - Explained by trusted relocation projection: `053D`
 - **Unexplained Europe operands:** none
+
+## autojoy_hardware_registers 4218..421F
+
+- **usa-retail:** 6 references; `4218`×2, `4219`×1, `421A`×2, `421B`×1
+- **pal-prototype-1994-11-29:** 6 references; `4218`×2, `4219`×1, `421A`×2, `421B`×1
+- **europe-retail:** 2 references; `4218`×1, `421A`×1
+- Europe-only numeric operands in trusted code: none
+- Explained by trusted relocation projection: none
+- **Unexplained Europe operands:** none

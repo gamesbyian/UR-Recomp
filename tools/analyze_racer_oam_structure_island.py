@@ -12,6 +12,9 @@ ROMS={
 }
 OUTJ=ROOT/"analysis/generated/racer-oam-structure-island.json"
 OUTM=ROOT/"analysis/generated/racer-oam-structure-island.md"
+PAL_LINE_BUILDS={"pal-prototype-1994-11-29","europe-retail"}
+CONTRACTION_REGIONS={"split_p2_projection","split_p1_projection"}
+
 REGIONS=[
  ("entry_mode_setup","82:ACA5","82:ACF2","code"),
  ("p1_projection","82:ACF3","82:ADA7","code"),
@@ -67,15 +70,20 @@ def build():
   seed_entries(d,[cpu_to_offset(s)+aligns[build][name]["shift"] for name,s,e,kind in REGIONS if kind=="code"])
   analyzers[build]={}
   for name,s,e,kind in REGIONS:
-   st=cpu_to_offset(s)+aligns[build][name]["shift"]; en=cpu_to_offset(e)+aligns[build][name]["shift"]
+   st=cpu_to_offset(s)+aligns[build][name]["shift"]
+   size_delta=-2 if build in PAL_LINE_BUILDS and name in CONTRACTION_REGIONS else 0
+   en=cpu_to_offset(e)+aligns[build][name]["shift"]+size_delta
    analyzers[build][name]=roles(d,st,en)
  rows=[]
  for name,s,e,kind in REGIONS:
   us=cpu_to_offset(s); ue=cpu_to_offset(e)
   row={"name":name,"kind":kind,"size":ue-us+1,"usa_start":s,"usa_end":e,"builds":{}}
   for build,blob in blobs.items():
-   a=aligns[build][name]; bs=us+a["shift"]; be=ue+a["shift"]
-   row["builds"][build]={**a,**analyzers[build][name],"sha256":hashlib.sha256(blob[bs:be+1]).hexdigest()}
+   a=aligns[build][name]; bs=us+a["shift"]
+   size_delta=-2 if build in PAL_LINE_BUILDS and name in CONTRACTION_REGIONS else 0
+   be=ue+a["shift"]+size_delta
+   true_end=offset_to_cpu(be)
+   row["builds"][build]={**a,"end":true_end,"size":be-bs+1,"size_delta":size_delta,**analyzers[build][name],"sha256":hashlib.sha256(blob[bs:be+1]).hexdigest()}
   rows.append(row)
  return {
   "schema_version":1,
@@ -87,6 +95,10 @@ def build():
    "exit":"all surviving paths converge on the adjustment tail ending RTS at 82:B17F",
   },
   "regions":rows,
+  "lineage_edits":[
+   {"usa_span":"82:AF96..AF97","bytes":"c2 20","instruction":"REP #$20","effect":"PAL prototype and Europe omit the first of two consecutive REP #$20 instructions in split P2 projection; net -2 bytes."},
+   {"usa_span":"82:B01F..B020","bytes":"c2 20","instruction":"REP #$20","effect":"PAL prototype and Europe omit the first of two consecutive REP #$20 instructions in split P1 projection; net -2 bytes."},
+  ],
  }
 
 def render(r):

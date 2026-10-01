@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Probe the per-racer collision/contact resolution cluster across preserved ROM builds."""
 from __future__ import annotations
-import hashlib,json
+import hashlib,json,difflib
 from compare_europe_usa_snes2asm_homologs import ROOT,trace,seed_entries,cpu_to_offset,offset_to_cpu
 ROMS={
  "usa-retail":ROOT/"reference/roms/retail/Uniracers_USA.sfc",
@@ -86,7 +86,20 @@ def build():
    if build in {"pal-prototype-1994-11-29","europe-retail"}: info["local_shift_profile_96byte"]=local_profile(usa,blob,us,ue,sh)
    row["builds"][build]=info
   rows.append(row)
- return {"schema_version":1,"island":"CollisionContactResolutionCluster","usa_start":"81:8FB8","usa_end":"81:99D5","main_entry":"81:8FB8","helper_entry":"81:983B","next_wrapper":"81:99D6","regions":rows}
+ transitions=[]
+ for name,s,e,shift in [
+  ("europe_first_contraction","81:92A0","81:9340",-32),
+  ("europe_second_contraction","81:9770","81:9860",-26),
+ ]:
+  us,ue=cpu_to_offset(s),cpu_to_offset(e); other=blobs["europe-retail"]; os=us+shift
+  a=usa[us:ue+1]; b=other[os:os+len(a)+32]
+  sm=difflib.SequenceMatcher(None,a,b,autojunk=False)
+  edits=[]
+  for tag,i1,i2,j1,j2 in sm.get_opcodes():
+   if tag=="equal": continue
+   edits.append({"tag":tag,"usa_start":offset_to_cpu(us+i1),"usa_end":offset_to_cpu(us+i2-1) if i2>i1 else None,"usa_hex":a[i1:i2].hex(" "),"other_start":offset_to_cpu(os+j1),"other_end":offset_to_cpu(os+j2-1) if j2>j1 else None,"other_hex":b[j1:j2].hex(" ")})
+  transitions.append({"name":name,"usa_start":s,"usa_end":e,"starting_shift":shift,"edits":edits})
+ return {"schema_version":1,"island":"CollisionContactResolutionCluster","usa_start":"81:8FB8","usa_end":"81:99D5","main_entry":"81:8FB8","helper_entry":"81:983B","next_wrapper":"81:99D6","europe_transition_windows":transitions,"regions":rows}
 
 def render(r):
  lines=["# Collision/contact resolution structural island","",

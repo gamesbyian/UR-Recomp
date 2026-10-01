@@ -14,7 +14,9 @@ OUTJ=ROOT/"analysis/generated/race-timer-structure-island.json"
 OUTM=ROOT/"analysis/generated/race-timer-structure-island.md"
 
 REGIONS=[
- ("long_entry_and_mode_dispatch","81:C697","81:C6D2"),
+ ("long_entry_and_dispatch_live","81:C697","81:C6A3"),
+ ("dormant_cb37_call","81:C6A4","81:C6A6"),
+ ("mode_dispatch_tail","81:C6A7","81:C6D2"),
  ("count_up_timer","81:C6D3","81:C7E0"),
  ("stunt_countdown_timer","81:C7E1","81:C906"),
 ]
@@ -69,6 +71,19 @@ def build():
    info={"start":offset_to_cpu(bs),"end":offset_to_cpu(be),"shift":sh,"size":be-bs+1,"size_delta":0,
          "similarity":round(sc,6),**roles(ds[build],bs,be),
          "sha256":hashlib.sha256(blob[bs:be+1]).hexdigest()}
+   if build!="usa-retail":
+    pairs=equal=role_disagreements=0
+    for pos in range(us,ue+1):
+     a=ds["usa-retail"].code_map[pos]; b=ds[build].code_map[pos+sh]
+     if bool(a&ds["usa-retail"].OP_CODE)!=bool(b&ds[build].OP_CODE) or bool(a&ds["usa-retail"].OP_PARAM)!=bool(b&ds[build].OP_PARAM):
+      role_disagreements+=1
+     if a&ds["usa-retail"].OP_CODE and b&ds[build].OP_CODE:
+      pairs+=1
+      if usa[pos]==blob[pos+sh]: equal+=1
+    info["aligned_opcode_pairs"]=pairs
+    info["aligned_equal_opcode_pairs"]=equal
+    info["aligned_opcode_consensus_fraction"]=round(equal/pairs,6) if pairs else None
+    info["aligned_role_disagreements"]=role_disagreements
    if build in {"pal-prototype-1994-11-29","europe-retail"}:
     info["local_shift_profile_48byte"]=local_profile(usa,blob,us,ue,sh)
    row["builds"][build]=info

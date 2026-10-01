@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Probe the per-racer collision/contact resolution cluster across preserved ROM builds."""
+"""Recover the per-racer collision/contact resolution cluster across preserved ROM builds."""
 from __future__ import annotations
-import hashlib,json,difflib
+import hashlib,json
 from compare_europe_usa_snes2asm_homologs import ROOT,trace,seed_entries,cpu_to_offset,offset_to_cpu
+
 ROMS={
  "usa-retail":ROOT/"reference/roms/retail/Uniracers_USA.sfc",
  "pal-prototype-1994-11-29":ROOT/"reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc",
@@ -11,10 +12,14 @@ ROMS={
 }
 OUTJ=ROOT/"analysis/generated/collision-resolution-structure-island.json"
 OUTM=ROOT/"analysis/generated/collision-resolution-structure-island.md"
+
 REGIONS=[
- ("collision_contact_resolver","81:8FB8","81:983A"),
- ("collision_geometry_helper","81:983B","81:99D5"),
+ ("resolver_prefix_before_europe_nops","81:8FB8","81:9303",-32,-32),
+ ("resolver_after_europe_nops","81:9304","81:97FF",-32,-26),
+ ("resolver_after_europe_gate","81:9800","81:983A",-32,-15),
+ ("collision_geometry_helper","81:983B","81:99D5",-32,-15),
 ]
+DORMANT_USA=["81:9484","81:9646","81:96AD","81:9969"]
 
 def roles(d,s,e):
  op=pa=ot=0
@@ -25,91 +30,67 @@ def roles(d,s,e):
   else: ot+=1
  return {"opcode_bytes":op,"operand_bytes":pa,"unreached_or_data_bytes":ot}
 
-def spans_for_mask(d,start,end):
- spans=[]; a=None
- for p in range(start,end+1):
-  reached=bool(d.code_map[p]&(d.OP_CODE|d.OP_PARAM))
-  if not reached and a is None: a=p
-  if reached and a is not None:
-   spans.append({"start":offset_to_cpu(a),"end":offset_to_cpu(p-1),"size":p-a}); a=None
- if a is not None: spans.append({"start":offset_to_cpu(a),"end":offset_to_cpu(end),"size":end-a+1})
- return spans
-
-def best_shift(src,dst,start,end,center=0,radius=192):
- block=src[start:end+1]; best=(center,-1.0)
- for shift in range(center-radius,center+radius+1):
-  a=start+shift; b=a+len(block)
-  if a<0 or b>len(dst): continue
-  sc=sum(x==y for x,y in zip(block,dst[a:b]))/len(block)
-  if sc>best[1]: best=(shift,sc)
- return best
-
-def local_profile(src,dst,start,end,center,window=96):
- out=[]; p=start
- while p<=end:
-  hi=min(end,p+window-1); sh,sc=best_shift(src,dst,p,hi,center,96)
-  out.append({"usa_start":offset_to_cpu(p),"usa_end":offset_to_cpu(hi),"shift":sh,"similarity":round(sc,6)})
-  p=hi+1
- return out
+def shift_for(cpu,build):
+ off=cpu_to_offset(cpu)
+ for _,s,e,proto,eu in REGIONS:
+  if cpu_to_offset(s)<=off<=cpu_to_offset(e):
+   return 0 if build in {"usa-retail","legacy-beta"} else (proto if build=="pal-prototype-1994-11-29" else eu)
+ raise ValueError(cpu)
 
 def build():
  blobs={k:p.read_bytes() for k,p in ROMS.items()}; usa=blobs["usa-retail"]
- centers={"usa-retail":0,"legacy-beta":0,"pal-prototype-1994-11-29":-32,"europe-retail":-32}
- shifts={}
- for build,blob in blobs.items():
-  shifts[build]={}
-  for name,s,e in REGIONS:
-   us,ue=cpu_to_offset(s),cpu_to_offset(e)
-   shifts[build][name]=best_shift(usa,blob,us,ue,centers[build])[0]
  ds={}
  for build,blob in blobs.items():
   d=trace(blob)
-  seed_entries(d,[cpu_to_offset(s)+shifts[build][name] for name,s,e in REGIONS]); ds[build]=d
+  seeds=[cpu_to_offset(s)+(0 if build in {"usa-retail","legacy-beta"} else (proto if build=="pal-prototype-1994-11-29" else eu)) for _,s,e,proto,eu in REGIONS]
+  seeds += [cpu_to_offset(cpu)+shift_for(cpu,build) for cpu in DORMANT_USA]
+  seed_entries(d,seeds); ds[build]=d
  rows=[]
- for name,s,e in REGIONS:
+ for name,s,e,proto_shift,europe_shift in REGIONS:
   us,ue=cpu_to_offset(s),cpu_to_offset(e)
-  row={"name":name,"kind":"code","usa_start":s,"usa_end":e,"size":ue-us+1,"usa_unreached_spans":spans_for_mask(ds["usa-retail"],us,ue),"builds":{}}
+  row={"name":name,"kind":"code","usa_start":s,"usa_end":e,"size":ue-us+1,"builds":{}}
   for build,blob in blobs.items():
-   sh=shifts[build][name]; bs,be=us+sh,ue+sh
+   sh=0 if build in {"usa-retail","legacy-beta"} else (proto_shift if build=="pal-prototype-1994-11-29" else europe_shift)
+   bs,be=us+sh,ue+sh
    sc=sum(a==b for a,b in zip(usa[us:ue+1],blob[bs:be+1]))/(ue-us+1)
    info={"start":offset_to_cpu(bs),"end":offset_to_cpu(be),"shift":sh,"size":be-bs+1,"size_delta":0,
          "similarity":round(sc,6),**roles(ds[build],bs,be),"sha256":hashlib.sha256(blob[bs:be+1]).hexdigest()}
    if build!="usa-retail":
-    pairs=equal=roles_bad=0
+    pairs=equal=bad=0
     for pos in range(us,ue+1):
      a=ds["usa-retail"].code_map[pos]; b=ds[build].code_map[pos+sh]
-     if bool(a&ds["usa-retail"].OP_CODE)!=bool(b&ds[build].OP_CODE) or bool(a&ds["usa-retail"].OP_PARAM)!=bool(b&ds[build].OP_PARAM): roles_bad+=1
+     if bool(a&ds["usa-retail"].OP_CODE)!=bool(b&ds[build].OP_CODE) or bool(a&ds["usa-retail"].OP_PARAM)!=bool(b&ds[build].OP_PARAM): bad+=1
      if a&ds["usa-retail"].OP_CODE and b&ds[build].OP_CODE:
       pairs+=1
       if usa[pos]==blob[pos+sh]: equal+=1
-    info.update({"aligned_opcode_pairs":pairs,"aligned_equal_opcode_pairs":equal,"aligned_role_disagreements":roles_bad})
-   if build in {"pal-prototype-1994-11-29","europe-retail"}: info["local_shift_profile_96byte"]=local_profile(usa,blob,us,ue,sh)
+    info.update({"aligned_opcode_pairs":pairs,"aligned_equal_opcode_pairs":equal,"aligned_role_disagreements":bad})
    row["builds"][build]=info
   rows.append(row)
- transitions=[]
- for name,s,e,shift in [
-  ("europe_first_contraction","81:92A0","81:9340",-32),
-  ("europe_second_contraction","81:9770","81:9860",-26),
- ]:
-  us,ue=cpu_to_offset(s),cpu_to_offset(e); other=blobs["europe-retail"]; os=us+shift
-  a=usa[us:ue+1]; b=other[os:os+len(a)+32]
-  sm=difflib.SequenceMatcher(None,a,b,autojunk=False)
-  edits=[]
-  for tag,i1,i2,j1,j2 in sm.get_opcodes():
-   if tag=="equal": continue
-   edits.append({"tag":tag,"usa_start":offset_to_cpu(us+i1),"usa_end":offset_to_cpu(us+i2-1) if i2>i1 else None,"usa_hex":a[i1:i2].hex(" "),"other_start":offset_to_cpu(os+j1),"other_end":offset_to_cpu(os+j2-1) if j2>j1 else None,"other_hex":b[j1:j2].hex(" ")})
-  transitions.append({"name":name,"usa_start":s,"usa_end":e,"starting_shift":shift,"edits":edits})
- return {"schema_version":1,"island":"CollisionContactResolutionCluster","usa_start":"81:8FB8","usa_end":"81:99D5","main_entry":"81:8FB8","helper_entry":"81:983B","next_wrapper":"81:99D6","europe_transition_windows":transitions,"regions":rows}
+ us=cpu_to_offset("81:9302"); eu=us-32
+ gate_us=cpu_to_offset("81:9800"); gate_eu=gate_us-15-11
+ return {
+  "schema_version":1,"island":"CollisionContactResolutionCluster",
+  "usa_start":"81:8FB8","usa_end":"81:99D5","main_entry":"81:8FB8","helper_entry":"81:983B","next_wrapper":"81:99D6",
+  "dormant_seed_entries":DORMANT_USA,
+  "lineage_edits":[
+   {"build":"europe-retail","usa_seam":"after 81:9303","europe_span":offset_to_cpu(eu+2)+".."+offset_to_cpu(eu+7),"size_delta":6,"effect":"Branch at USA 81:9302 D0 09 becomes D0 0F in Europe and is followed by six NOP bytes; subsequent homolog shift changes -32 to -26."},
+   {"build":"europe-retail","usa_seam":"before 81:9800","europe_span":offset_to_cpu(gate_eu)+".."+offset_to_cpu(gate_eu+10),"size_delta":11,"hex":blobs["europe-retail"][gate_eu:gate_eu+11].hex(" "),"effect":"Europe inserts an 11-byte conditional gate before the shared 81:9800 tail; subsequent homolog shift changes -26 to -15."},
+  ],
+  "regions":rows,
+ }
 
 def render(r):
  lines=["# Collision/contact resolution structural island","",
- "USA `81:8FB8..99D5` contains the per-racer collision/contact resolver plus its directly called geometry helper. The next wrapper begins at `81:99D6`.","",
+ "USA `81:8FB8..99D5` contains the per-racer collision/contact resolver plus its directly called geometry helper. Four dormant branch entries are seeded explicitly so the full USA code surface is classified. The next wrapper begins at `81:99D6`.","",
  "| Region | USA bytes | PAL prototype | Europe | Legacy beta |","|---|---:|---|---|---|"]
  for x in r["regions"]:
   def c(b):
    q=x["builds"][b]; return f"{q['start']}..{q['end']} ({q['shift']:+d}; sim {q['similarity']:.3f}; op {q['opcode_bytes']}; other {q['unreached_or_data_bytes']})"
   lines.append(f"| {x['name']} | {x['size']} | {c('pal-prototype-1994-11-29')} | {c('europe-retail')} | {c('legacy-beta')} |")
- return "\n".join(lines)+"\n"
+ lines += ["","## Europe-only structural edits",""]
+ for e in r["lineage_edits"]: lines.append(f"- {e['usa_seam']}: {e['effect']}")
+ lines.append("")
+ return "\n".join(lines)
 def main():
  r=build(); OUTJ.write_text(json.dumps(r,indent=2)+"\n"); OUTM.write_text(render(r)); print(render(r)); print("COLLISION_ISLAND_JSON="+json.dumps(r,sort_keys=True))
 if __name__=="__main__": main()

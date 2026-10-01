@@ -28,19 +28,19 @@
     },
     {
       "id": "lle-8091dc-m1x0",
-      "kind": "lle_only_variant",
+      "kind": "resolved_lle_semantics",
       "region": "80:91DC M1X0",
-      "summary": "119 decoded instructions; truncated call continuation and unproven 80:886D -> 83:8AF7 callee exit.",
-      "priority": "high",
-      "next_evidence": "Disassemble both sides with known M/X state; prove return/exit modes and cross-check against runtime traces."
+      "summary": "Startup path understood. Call 80:886D -> 83:8AF7 is a cartridge/memory self-test: success RTLs to continuation; failure deliberately tail-jumps to fatal screen 80:94EB.",
+      "priority": "low",
+      "next_evidence": "No gameplay evidence needed. Revisit only if improving SNESRecomp static exit-proof logic is itself prioritized."
     },
     {
       "id": "lle-8094eb-m1x0",
-      "kind": "lle_only_variant",
+      "kind": "resolved_lle_semantics",
       "region": "80:94EB M1X0",
-      "summary": "4 decoded instructions; truncated call continuation and unproven 80:94F4 -> 80:C3AB callee exit.",
-      "priority": "high",
-      "next_evidence": "Disassemble callee/continuation with known M/X state and compare analyzer boundary choices."
+      "summary": "Fatal 'game pak not found' path understood. The concrete stream at 80:9505 uses only resolved F9/FC/FF frontend controls, so JSR 80:C3AB returns normally to 80:94F7.",
+      "priority": "low",
+      "next_evidence": "No runtime tracing needed unless working specifically on analyzer proof improvements."
     },
     {
       "id": "historical-2014-native-divergence",

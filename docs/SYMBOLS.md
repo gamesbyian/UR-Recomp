@@ -6,7 +6,9 @@ Human-maintained map of understood ROM functions, RAM, tables and hardware-facin
 
 | Address | Name | Confidence | Evidence / notes |
 |---|---|---:|---|
-| TBD | `TBD_Reset` | 0 | Not analyzed |
+| `80:91D1` (USA) | `Reset_Entry` | 5 | Reset vector `80:8858` jumps here. The routine executes `CLC; XCE`, establishes 8-bit A / 16-bit index mode, disables interrupts, then tail-jumps to `80:91DC` for stack/direct-page, PPU/CPU register and WRAM initialization before entering the normal startup chain. |
+| `83:8AF7` (USA) | `CartridgeMemorySelfTest` | 5 | Called during startup at `80:886D`. It probes mirrored/available memory through `77:0000/1FFF`; success restores the original byte and `RTL`s, while failure deliberately tail-jumps to `80:94EB`. |
+| `80:94EB` (USA) | `Fatal_GamePakNotFound` | 5 | Failure target of `CartridgeMemorySelfTest`. Its stream at `80:9505` uses resolved frontend controls `F9/FC/FF` around the literal `game_pak_not_found`, proving normal return from the `80:C3AB` call on this path. |
 | TBD | `TBD_MainLoop` | 0 | Not analyzed |
 | `80:C3AB` (USA) | `Frontend_TextCommandStream` | 4 | Nitrodon bank-80 disassembly shows a byte-command parser with control bytes `>= 0xEE`, text/layout handlers, and returns through `80:C440`; bounded historical replay tracing executes this interpreter during frontend transition construction. |
 | `80:C3C8` (USA) | `Frontend_TextCommandDispatch` | 5 | Exact instruction `JMP ($005D)`. Canonical-ROM decoding maps valid commands `FF..EF` to 17 concrete bank-80 handlers at `80:C3CB`; run `36795810324` proves live execution. `EE` is a boundary escape/sentinel whose computed next word is not a valid ROM handler, leaving only a range-proof invariant rather than unknown targets. See `analysis/generated/frontend-text-command-dispatch.md`. |

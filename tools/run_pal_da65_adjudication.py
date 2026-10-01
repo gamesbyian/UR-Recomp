@@ -93,6 +93,17 @@ def normalized_lines(text:str,probe:dict)->list[str]:
             out.append(' '.join(s.split()))
     return out
 
+def instruction_shape(line:str)->str:
+    body=line.split(';',1)[0].strip()
+    body=re.sub(r'^[A-Za-z_][A-Za-z0-9_]*:\s*','',body)
+    return body.split(None,1)[0].lower() if body else ""
+
+def instruction_size(line:str)->int | None:
+    m=re.search(r';\s*[0-9A-Fa-f]{4}\s+((?:[0-9A-Fa-f]{2}(?:\s+|$))+)',line)
+    if not m:
+        return None
+    return len(re.findall(r'[0-9A-Fa-f]{2}',m.group(1)))
+
 def main()->int:
     ap=argparse.ArgumentParser()
     ap.add_argument('--da65',type=Path,required=True)
@@ -131,15 +142,22 @@ def main()->int:
                     'normalized':norm
                 }
             a=norms['europe-retail']; b=norms['pal-prototype-1994-11-29']
+            ashapes=[instruction_shape(x) for x in a]
+            bshapes=[instruction_shape(x) for x in b]
+            asizes=[instruction_size(x) for x in a]
+            bsizes=[instruction_size(x) for x in b]
             row['same_instruction_count']=len(a)==len(b)
-            row['aligned_prefix_lines']=next((i for i,(x,y) in enumerate(zip(a,b)) if x!=y),min(len(a),len(b)))
             row['exact_normalized_match']=a==b
+            row['instruction_shape_match']=ashapes==bshapes
+            row['instruction_size_sequence_match']=asizes==bsizes
+            row['shape_mismatch_indices']=[i for i,(x,y) in enumerate(zip(ashapes,bshapes)) if x!=y]
+            row['size_mismatch_indices']=[i for i,(x,y) in enumerate(zip(asizes,bsizes)) if x!=y]
             report['probes'].append(row)
     args.json_out.parent.mkdir(parents=True,exist_ok=True)
     args.json_out.write_text(json.dumps(report,indent=2,sort_keys=True)+'\n',encoding='utf-8')
     lines=['# PAL retail vs prototype: bounded da65 adjudication','', 'Width-state provenance is independent of snes2asm.','', '| Probe | Range | Retail lines | Prototype lines | Same count | First differing line | Exact |','|---|---|---:|---:|---|---:|---|']
     for p in report['probes']:
-        lines.append(f"| {p['id']} | `{p['usa_anchor_start']}..{p['usa_anchor_end']}` | `{p['builds']['europe-retail']['start']}..{p['builds']['europe-retail']['end']}` / {p['builds']['europe-retail']['shift_from_usa']:+d} / {p['builds']['europe-retail']['raw_similarity_to_usa']:.3f} | `{p['builds']['pal-prototype-1994-11-29']['start']}..{p['builds']['pal-prototype-1994-11-29']['end']}` / {p['builds']['pal-prototype-1994-11-29']['shift_from_usa']:+d} / {p['builds']['pal-prototype-1994-11-29']['raw_similarity_to_usa']:.3f} | {p['builds']['europe-retail']['instruction_lines']} | {p['builds']['pal-prototype-1994-11-29']['instruction_lines']} | {p['same_instruction_count']} | {p['exact_normalized_match']} |")
+        lines.append(f"| {p['id']} | `{p['usa_anchor_start']}..{p['usa_anchor_end']}` | `{p['builds']['europe-retail']['start']}..{p['builds']['europe-retail']['end']}` / {p['builds']['europe-retail']['shift_from_usa']:+d} / {p['builds']['europe-retail']['raw_similarity_to_usa']:.3f} | `{p['builds']['pal-prototype-1994-11-29']['start']}..{p['builds']['pal-prototype-1994-11-29']['end']}` / {p['builds']['pal-prototype-1994-11-29']['shift_from_usa']:+d} / {p['builds']['pal-prototype-1994-11-29']['raw_similarity_to_usa']:.3f} | {p['builds']['europe-retail']['instruction_lines']}/{p['builds']['pal-prototype-1994-11-29']['instruction_lines']} | {p['instruction_shape_match']} | {p['instruction_size_sequence_match']} | {p['exact_normalized_match']} |")
     lines += ['', 'Interpretation rule: USA recovered-code ranges provide independent M/X provenance, while raw-byte similarity independently locates each homolog in Europe and the PAL prototype. Equal da65 instruction counts support stable boundaries despite relocation; count divergence between high-similarity homologs is a stronger structural-change signal and should be escalated to Ghidra/xref inspection.', '']
     args.md_out.write_text('\n'.join(lines),encoding='utf-8')
     print(args.md_out.read_text())

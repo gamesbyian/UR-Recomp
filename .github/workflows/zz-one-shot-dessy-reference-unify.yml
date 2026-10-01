@@ -1,0 +1,65 @@
+name: One-shot Dessy intake and reference root consolidation
+on:
+  push:
+    branches:
+      - chatgpt/dessy-intake-and-reference-unify-2026-09-30
+
+permissions:
+  contents: write
+
+jobs:
+  reorganize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/dessy-intake-and-reference-unify-2026-09-30
+          fetch-depth: 0
+
+      - name: Consolidate reference roots and unpack Dessy archive
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -f "references/imported/Uniracers Stuff.zip"
+
+          mkdir -p references
+          if [ -d reference/roms ]; then
+            git mv reference/roms references/roms
+          fi
+          if [ -d reference/tools ]; then
+            git mv reference/tools references/tools
+          fi
+          rmdir reference 2>/dev/null || true
+
+          rm -rf /tmp/dessy-intake
+          mkdir -p /tmp/dessy-intake
+          unzip -q "references/imported/Uniracers Stuff.zip" -d /tmp/dessy-intake
+
+          dest="references/imported/reverse-engineering/dessyreqt"
+          mkdir -p "$dest"
+          cp -a /tmp/dessy-intake/. "$dest"/
+          rm "references/imported/Uniracers Stuff.zip"
+
+          while IFS= read -r -d '' file; do
+            perl -0pi -e 's#(?<!s)reference/#references/#g' "$file"
+          done < <(git grep -Ilz 'reference/' -- ':!references/imported/reverse-engineering/dessyreqt/**' || true)
+
+          rm -f .github/workflows/zz-one-shot-dessy-reference-unify.yml
+
+          git add -A
+          git status --short
+
+      - name: Commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "Import Dessyreqt archive and unify reference roots"
+          git push origin HEAD:chatgpt/dessy-intake-and-reference-unify-2026-09-30

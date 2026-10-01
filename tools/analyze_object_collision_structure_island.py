@@ -85,7 +85,7 @@ def build():
    gap_info[build]={"size":len(gap),"start":offset_to_cpu(tail_end+1),"end":offset_to_cpu(next_start-1),"hex":gap.hex(" ")}
   else:
    gap_info[build]={"size":0,"start":None,"end":None,"hex":""}
- return {"schema_version":2,"island":"bank-81 object/collision dispatch structure","regions":rows,"post_dispatch_gap":gap_info,
+ return {"schema_version":2,"island":"bank-81 object/collision dispatch structure","regions":rows,"pre_handler_bytes":gap_info,
    "handler_pointer_prefix":{"size":len(jt),"entries":len(jtwords),"usa_words":[f"{x:04X}" for x in jtwords],"words_by_build":jt_by_build,"caveat":"JSR ($8320,X) is guarded only by X < 0x003C, so this 30-byte run is a proven pointer prefix, not yet a proven complete indirect domain."},
    "lookup_8372":{"size":len(lut),"entries":len(lutwords),"usa_signed_words":lutwords}}
 
@@ -98,8 +98,8 @@ def render(r):
    b=x["builds"][build]; return "{}..{} ({:+d}, sim {:.3f}; op {}, data/unreached {})".format(b["start"],b["end"],b["shift"],b["similarity"],b["opcode_bytes"],b["unreached_or_data_bytes"])
   lines.append("| {} | {} | {} | {} | {} | {} | {} |".format(x["name"],x["kind"],x["size"],cell("usa-retail"),cell("pal-prototype-1994-11-29"),cell("europe-retail"),cell("legacy-beta")))
  jt=r["handler_pointer_prefix"]; lut=r["lookup_8372"]
- lines+=["","## Post-dispatch gap",""]
- for build,g in r["post_dispatch_gap"].items():
+ lines+=["","## Europe-retail handler prologue",""]
+ for build,g in r["pre_handler_bytes"].items():
   if g["size"]:
    lines.append(f"- {build}: {g['start']}..{g['end']} ({g['size']} bytes): {g['hex']}")
   else:

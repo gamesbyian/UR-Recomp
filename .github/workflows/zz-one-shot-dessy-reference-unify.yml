@@ -28,16 +28,16 @@ jobs:
           mkdir -p /tmp/dessy-intake
           unzip -q "references/imported/Uniracers Stuff.zip" -d /tmp/dessy-intake
 
-          dest="references/imported/reverse-engineering/dessyreqt"
-          mkdir -p "$dest"
-          cp -a /tmp/dessy-intake/. "$dest"/
-          rm "references/imported/Uniracers Stuff.zip"
-
           mkdir -p reference
           for item in references/*; do
             git mv "$item" reference/
           done
           rmdir references
+
+          dest="reference/imported/reverse-engineering/dessyreqt"
+          mkdir -p "$dest"
+          cp -a /tmp/dessy-intake/. "$dest"/
+          git rm "reference/imported/Uniracers Stuff.zip"
 
           while IFS= read -r -d '' file; do
             perl -0pi -e 's#references/#reference/#g' "$file"

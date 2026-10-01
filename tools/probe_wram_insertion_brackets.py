@@ -10,6 +10,7 @@ from pathlib import Path
 import json
 
 from compare_europe_usa_snes2asm_homologs import ROOT, trace, seed_entries, cpu_to_offset
+from compare_semantic_anchors import build_output
 
 ROMS = {
     "usa-retail": ROOT / "reference/roms/retail/Uniracers_USA.sfc",
@@ -20,23 +21,33 @@ ROMS = {
 OUT_JSON = ROOT / "analysis/generated/wram-insertion-bracket-probe.json"
 OUT_MD = ROOT / "analysis/generated/wram-insertion-bracket-probe.md"
 
-# Trusted entries already used by the comparative corpus plus camera/input/stunt paths.
-SEEDS = {
-    "usa-retail": [
-        "82:AA6E", "82:9A42", "82:89B9", "81:A50E", "81:A52F",
-    ],
-    "pal-prototype-1994-11-29": [
-        "82:AA5F", "82:9A3D", "82:89B6", "81:A50E", "81:A52F",
-    ],
-    "europe-retail": [
-        "82:AA75", "82:9A53", "82:89CC", "81:A50E", "81:A52F",
-    ],
-}
+MIN_SEED_SIMILARITY = 0.60
 
 BRACKETS = {
     "first_plus4": (0x026A, 0x030D),
     "second_plus2": (0x04FB, 0x0541),
 }
+
+FOCUSED_NEIGHBORHOODS = {
+    "first_inserted_space": (0x030A, 0x0310),
+    "second_inserted_space": (0x053C, 0x0546),
+}
+
+
+def trusted_seed_map() -> dict[str, list[str]]:
+    """Use every accepted semantic anchor as a reachability seed."""
+    corpus = build_output()
+    seeds = {name: [] for name in ROMS}
+    for anchor in corpus["anchors"]:
+        seeds["usa-retail"].append(anchor["usa_cpu_address"])
+        for build in ("pal-prototype-1994-11-29", "europe-retail"):
+            matches = anchor["matches"].get(build, [])
+            if not matches:
+                continue
+            top = matches[0]
+            if top["byte_similarity"] >= MIN_SEED_SIMILARITY:
+                seeds[build].append(top["cpu_address"])
+    return {name: sorted(set(values)) for name, values in seeds.items()}
 
 
 def scan_operands(blob: bytes, disassembler, lo: int, hi: int) -> list[dict]:
@@ -63,13 +74,14 @@ def scan_operands(blob: bytes, disassembler, lo: int, hi: int) -> list[dict]:
 
 
 def build() -> dict:
+    seeds = trusted_seed_map()
     builds = {}
     for name, path in ROMS.items():
         blob = path.read_bytes()
         d = trace(blob)
-        seed_entries(d, [cpu_to_offset(x) for x in SEEDS[name]])
+        seed_entries(d, [cpu_to_offset(x) for x in seeds[name]])
         per = {}
-        for bracket, (lo, hi) in BRACKETS.items():
+        for bracket, (lo, hi) in {**BRACKETS, **FOCUSED_NEIGHBORHOODS}.items():
             hits = scan_operands(blob, d, lo, hi)
             counts = Counter(h["operand"] for h in hits)
             per[bracket] = {
@@ -80,14 +92,28 @@ def build() -> dict:
             }
         builds[name] = per
 
+    exclusive = {}
+    for neighborhood in FOCUSED_NEIGHBORHOODS:
+        usa = set(builds["usa-retail"][neighborhood]["operand_counts"])
+        proto = set(builds["pal-prototype-1994-11-29"][neighborhood]["operand_counts"])
+        europe = set(builds["europe-retail"][neighborhood]["operand_counts"])
+        exclusive[neighborhood] = {
+            "europe_only_numeric_operands": sorted(europe - usa - proto),
+            "shared_all_three": sorted(europe & usa & proto),
+            "europe_operands": sorted(europe),
+        }
+
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "method": {
-            "reachability": "trusted-entry-seeded vendored snes2asm",
+            "reachability": "all accepted semantic-anchor top matches seeded into vendored snes2asm",
+            "minimum_seed_similarity": MIN_SEED_SIMILARITY,
             "scope": "absolute-looking 16-bit operands inside the two inferred WRAM insertion brackets",
             "caveat": "operand presence is structural evidence, not semantic identity by itself",
         },
+        "seed_counts": {name: len(values) for name, values in seeds.items()},
         "builds": builds,
+        "focused_exclusivity": exclusive,
     }
 
 
@@ -98,12 +124,16 @@ def render(report: dict) -> str:
         "Narrow trusted-code scan for absolute 16-bit operands inside the two post-prototype WRAM insertion brackets.",
         "",
     ]
-    for bracket, bounds in BRACKETS.items():
+    for bracket, bounds in {**BRACKETS, **FOCUSED_NEIGHBORHOODS}.items():
         lines += [f"## {bracket} {bounds[0]:04X}..{bounds[1]:04X}", ""]
         for build, data in report["builds"].items():
             x = data[bracket]
             ops = ", ".join(f"`{k}`×{v}" for k, v in x["operand_counts"].items()) or "none"
             lines.append(f"- **{build}:** {x['reference_count']} references; {ops}")
+        if bracket in report["focused_exclusivity"]:
+            ex = report["focused_exclusivity"][bracket]
+            europe_only = ", ".join(f"`{x}`" for x in ex["europe_only_numeric_operands"]) or "none"
+            lines.append(f"- Europe-only numeric operands in trusted code: {europe_only}")
         lines.append("")
     return "\n".join(lines)
 

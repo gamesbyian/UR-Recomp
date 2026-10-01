@@ -130,11 +130,96 @@ def semantic_hits(blob: bytes, start: int, size: int, words: tuple[int, ...]) ->
     return out
 
 
+def semantic_word_projection(source: bytes, candidate: bytes, words: tuple[int, ...]) -> dict[str, dict]:
+    """Project known USA word operands through a structurally aligned candidate window.
+
+    For every occurrence of a known semantic LE16 word in the USA window, read
+    the candidate word at the same relative offset. Repeated agreement on a new
+    value is evidence for a build-specific address translation, even when the
+    original literal address disappears.
+    """
+    out = {}
+    for word in words:
+        token = word.to_bytes(2, "little")
+        positions = []
+        pos = source.find(token)
+        while pos >= 0:
+            if pos + 2 <= len(candidate):
+                positions.append(pos)
+            pos = source.find(token, pos + 1)
+        if not positions:
+            continue
+        vals = Counter(int.from_bytes(candidate[pos:pos+2], "little") for pos in positions)
+        out[f"{word:04X}"] = {
+            "source_occurrences": len(positions),
+            "candidate_values": {
+                f"{value:04X}": count
+                for value, count in vals.most_common()
+            },
+            "dominant_candidate": f"{vals.most_common(1)[0][0]:04X}",
+            "dominant_count": vals.most_common(1)[0][1],
+        }
+    return out
+
+
 def similarity(a: bytes, b: bytes) -> float:
     n = min(len(a), len(b))
     if not n:
         return 0.0
     return sum(x == y for x, y in zip(a[:n], b[:n])) / n
+
+
+def compact_diff_runs(a: bytes, b: bytes, *, max_runs: int = 24) -> list[dict]:
+    """Return bounded relative byte-difference runs for structural inspection."""
+    n = min(len(a), len(b))
+    runs = []
+    i = 0
+    while i < n:
+        if a[i] == b[i]:
+            i += 1
+            continue
+        start = i
+        while i < n and a[i] != b[i]:
+            i += 1
+        end = i
+        runs.append({
+            "relative_start": start,
+            "relative_end_exclusive": end,
+            "length": end - start,
+            "usa_hex": a[start:end].hex(),
+            "candidate_hex": b[start:end].hex(),
+        })
+        if len(runs) >= max_runs:
+            break
+    return runs
+
+
+def changed_le16_pairs(a: bytes, b: bytes, *, max_pairs: int = 32) -> list[dict]:
+    """Surface changed little-endian word-sized operands without claiming semantics."""
+    out = []
+    n = min(len(a), len(b))
+    seen = set()
+    for i in range(n - 1):
+        if a[i:i+2] == b[i:i+2]:
+            continue
+        # Prefer windows where at least one adjacent byte survives, which is common
+        # for relocated addresses/constants and avoids flooding on long rewrites.
+        if i and a[i-1] != b[i-1] and i + 2 < n and a[i+2] != b[i+2]:
+            continue
+        key = (i, a[i:i+2], b[i:i+2])
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append({
+            "relative_offset": i,
+            "usa_le16": int.from_bytes(a[i:i+2], "little"),
+            "candidate_le16": int.from_bytes(b[i:i+2], "little"),
+            "usa_hex": a[i:i+2].hex(),
+            "candidate_hex": b[i:i+2].hex(),
+        })
+        if len(out) >= max_pairs:
+            break
+    return out
 
 
 def ngram_votes(anchor: bytes, target: bytes, *, k: int, stride: int, max_hits: int) -> Counter[int]:
@@ -199,6 +284,11 @@ def score_candidates(anchor: Anchor, usa: bytes, target: bytes, *, top: int, k: 
             "ngram_vote_fraction": round(vote_fraction, 6),
             "ngram_votes": vote_count,
             "semantic_hits": sem,
+            "semantic_word_projection": semantic_word_projection(
+                source, region, anchor.semantic_words
+            ),
+            "diff_runs": compact_diff_runs(source, region),
+            "changed_le16_pairs": changed_le16_pairs(source, region),
             "sha256": hashlib.sha256(region).hexdigest(),
         })
 
@@ -213,6 +303,44 @@ def score_candidates(anchor: Anchor, usa: bytes, target: bytes, *, top: int, k: 
     )
     return candidates[:top]
 
+
+
+
+def build_translation_summary(output: dict) -> dict:
+    summary = {}
+    for anchor in output["anchors"]:
+        for build_name, matches in anchor["matches"].items():
+            if not matches:
+                continue
+            top = matches[0]
+            if top["byte_similarity"] < 0.60:
+                continue
+            b = summary.setdefault(build_name, {
+                "pairs": {},
+                "delta_counts": {},
+                "evidence": [],
+            })
+            for usa_hex, proj in top["semantic_word_projection"].items():
+                cand_hex = proj["dominant_candidate"]
+                if proj["dominant_count"] < 1:
+                    continue
+                usa = int(usa_hex, 16)
+                cand = int(cand_hex, 16)
+                delta = (cand - usa) & 0xFFFF
+                key = f"{usa_hex}->{cand_hex}"
+                b["pairs"][key] = b["pairs"].get(key, 0) + proj["dominant_count"]
+                dkey = f"{delta:04X}"
+                b["delta_counts"][dkey] = b["delta_counts"].get(dkey, 0) + proj["dominant_count"]
+                b["evidence"].append({
+                    "anchor": anchor["name"],
+                    "usa_word": usa_hex,
+                    "candidate_word": cand_hex,
+                    "delta": dkey,
+                    "count": proj["dominant_count"],
+                    "candidate_cpu": top["cpu_address"],
+                    "byte_similarity": top["byte_similarity"],
+                })
+    return summary
 
 def main() -> None:
     ap = argparse.ArgumentParser()
@@ -264,6 +392,8 @@ def main() -> None:
             )
         output["anchors"].append(item)
 
+    output["translation_summary"] = build_translation_summary(output)
+
     OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
     OUT_JSON.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
 
@@ -281,6 +411,29 @@ def main() -> None:
         "only after a second structural or runtime discriminator agrees.",
         "",
     ]
+
+    lines += [
+        "## Cross-build semantic-word translation summary",
+        "",
+        "These are mechanically projected USA LE16 semantic operands from each "
+        "top structurally aligned candidate. Repeated deltas across unrelated "
+        "anchors are useful evidence of build-specific WRAM layout shifts; "
+        "individual pairs are not promoted without context.",
+        "",
+    ]
+    for build_name, translation in output["translation_summary"].items():
+        deltas = sorted(
+            translation["delta_counts"].items(),
+            key=lambda kv: kv[1],
+            reverse=True,
+        )
+        lines += [f"### {build_name}", "", "| Delta | Evidence count |", "|---:|---:|"]
+        for delta, count in deltas[:12]:
+            signed = int(delta, 16)
+            if signed >= 0x8000:
+                signed -= 0x10000
+            lines.append(f"| `{signed:+d}` (`0x{delta}`) | {count} |")
+        lines.append("")
 
     for anchor in output["anchors"]:
         lines += [
@@ -303,6 +456,28 @@ def main() -> None:
                     f"{match['score']:.3f} | {match['byte_similarity']:.3f} | "
                     f"{match['semantic_reference_recall']:.3f} | {match['ngram_votes']} |"
                 )
+        # Only the top candidate gets byte-delta detail in Markdown. JSON retains
+        # bounded delta summaries for every reported candidate.
+        for build_name, matches in anchor["matches"].items():
+            if not matches:
+                continue
+            top_match = matches[0]
+            lines += [
+                f"### {build_name} top-candidate deltas",
+                "",
+                f"Top candidate: `{top_match['cpu_address']}`; "
+                f"byte similarity {top_match['byte_similarity']:.3f}; "
+                f"semantic-reference recall {top_match['semantic_reference_recall']:.3f}.",
+                "",
+                "| Rel | Len | USA | Candidate |",
+                "|---:|---:|---|---|",
+            ]
+            for run in top_match["diff_runs"]:
+                lines.append(
+                    f"| `+0x{run['relative_start']:X}` | {run['length']} | "
+                    f"`{run['usa_hex']}` | `{run['candidate_hex']}` |"
+                )
+            lines.append("")
         lines.append("")
 
     OUT_MD.write_text("\n".join(lines), encoding="utf-8")

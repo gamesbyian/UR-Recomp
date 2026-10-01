@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 """Regression tests for relocation-tolerant semantic anchor matching."""
+from pathlib import Path
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tools.compare_semantic_anchors import Anchor, score_candidates
 
 

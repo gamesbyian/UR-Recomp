@@ -159,6 +159,19 @@ Do not propagate weak names as facts. Hypotheses remain hypotheses, cross-ROM la
 **Dependencies:** current lightweight matcher proposes candidates from byte n-grams plus semantic-reference recall; it is intentionally not a full CFG matcher.  
 **Propagation:** added a synthetic relocation regression and wired the matcher into the comparative-atlas plan; future atlas work can layer normalized CFG/caller-callee evidence on top when useful.
 
+### R-METHOD-002 — Trusted anchors expose build-specific WRAM layout motion
+
+**Status:** supported across multiple independent anchors  
+**Date:** 2026-09-30  
+**Area:** multi-ROM | RAM | decompilation
+
+**Observation:** relocation-tolerant matching of eight trusted USA semantic anchors finds exact legacy-beta matches and coherent relocated PAL/Europe counterparts. At structurally aligned operand positions, PAL prototype repeatedly maps USA semantic WRAM words by `+0x04`, while Europe repeatedly maps the same classes by `+0x0A`; Europe’s message-ring block instead moves by `+0x06`.  
+**Evidence:** workflow runs `36806186428` and `36806317142`; `analysis/generated/cross-build-semantic-anchor-findings-2026-09-30.md`; `tools/compare_semantic_anchors.py`.  
+**Interpretation:** cross-build WRAM layouts evolved by structure-specific insert/remove/repack operations. Shared field motion is useful evidence of logical structure membership and should be treated as a semantic signal, not merely relocation noise.  
+**Discriminating test:** build a WRAM motion atlas from structurally aligned operand positions, cluster fields by shared displacement/co-occurrence, and inspect exceptions where a field does not follow its local cluster.  
+**Dependencies:** top candidates with weak semantic-reference retention, especially Europe checkpoint/finish and HUD queue, still require a second local discriminator before label transfer.  
+**Propagation:** cross-build correspondence work should now infer field groups from shared motion; literal USA addresses must not be copied into PAL/Europe symbol maps.
+
 ## Seed leads to verify locally
 
 ### R-SEED-001 — Rob Northen Compression

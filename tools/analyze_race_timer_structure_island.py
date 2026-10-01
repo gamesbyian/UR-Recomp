@@ -100,13 +100,16 @@ def build():
 
 def render(r):
  lines=["# Race / stunt timer lifecycle structural island","",
- "USA 81:C697..C906 contains the timer long-entry wrapper, mode dispatcher, count-up race timer, stunt countdown timer, digit refresh, timeout handling, and warning-sound threshold. The next code begins at 81:C907.","",
+ "USA `81:C697..C906` contains the timer long-entry wrapper, mode dispatcher, count-up race timer, stunt countdown timer, digit refresh, timeout handling, and warning-sound threshold. The next code begins at `81:C907`.","",
+ "All 624 USA bytes are executable. USA and legacy beta are byte-identical. PAL prototype stays at shift -35 and Europe at -19 throughout. Both regional builds preserve all 244 aligned opcode positions with zero code/operand-role disagreements.","",
  "| Region | USA bytes | PAL prototype | Europe | Legacy beta |","|---|---:|---|---|---|"]
  for x in r["regions"]:
   def c(b):
    q=x["builds"][b]; return f"{q['start']}..{q['end']} ({q['shift']:+d}; sim {q['similarity']:.3f}; op {q['opcode_bytes']}; other {q['unreached_or_data_bytes']})"
   lines.append(f"| {x['name']} | {x['size']} | {c('pal-prototype-1994-11-29')} | {c('europe-retail')} | {c('legacy-beta')} |")
- return "\n".join(lines)+"\n"
+ lines += ["","`81:C6A4..C6A6` is a valid `JSR $CB37` intentionally bypassed by the unconditional `BRA` at `C6A2`; it is retained as a dormant code slot, not reclassified as data.","",
+ "The live timer representation is split across `7E:0E0F` (minutes), `0E13` (tens of seconds), `0E17` (seconds), `0E1B` (tenths), and `0E1F` (six-step sub-tick/frame phase). The count-up and countdown routines share the same display-digit refresh path.",""]
+ return "\n".join(lines)
 
 def main():
  r=build(); OUTJ.write_text(json.dumps(r,indent=2)+"\n"); OUTM.write_text(render(r)); print(render(r)); print("TIMER_ISLAND_JSON="+json.dumps(r,sort_keys=True))

@@ -841,7 +841,8 @@
         "paired-player-state",
         "menu-state-fields",
         "full-wram",
-        "ppu-write-journal"
+        "ppu-write-journal",
+        "oam"
       ],
       "semantic_fields": [
         "7E:009F currentMenu",
@@ -850,7 +851,7 @@
         "paired checkpoint/finish/lap progress"
       ],
       "status": "validated",
-      "validation": "Reference run 36819833356 proves ordinary 2P reaches stable gameplay by frame 1220, isolates causal P1 and P2 control, and reproduces active-display HDMA $2104 writes V=0->$A5 and V=112->$5A at every sampled stable race checkpoint. Durable workflow additionally gates native/reference pre-intervention parity, causal ownership and race-progress agreement."
+      "validation": "Reference run 36819833356 proves ordinary 2P reaches stable gameplay by frame 1220, isolates causal P1 and P2 control, and reproduces active-display HDMA $2104 writes V=0->$A5 and V=112->$5A at every sampled stable race checkpoint. Durable workflow additionally gates native/reference pre-intervention parity, causal ownership, race-progress agreement and high-OAM routing."
     },
     {
       "id": "vs-first-race",

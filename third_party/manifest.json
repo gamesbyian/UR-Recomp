@@ -8,7 +8,7 @@
       "revision": "a4bda6285eadf69c871135637df29e9c9a8f6f7a",
       "source_path": "third_party/src/mesen-for-ai",
       "archive_path": null,
-      "source_sha256": "e259440a061af0141db6762d70575c6e358de841c468efb4ba3e8b56d0c78574",
+      "source_sha256": "9b4a3beefbd8a8b1109779635d99a55dfc7b123acfef5983b90d2bae9b2be61b",
       "license_spdx": "GPL-3.0-only",
       "license_path": "third_party/src/mesen-for-ai/LICENSE",
       "notes": "Pruned repository-owned source subset from the pinned upstream revision. AGENTS.md and optional agent-skill metadata are excluded; bridge, daemon, scripts, tests, patches, packaging metadata, README and license are retained.",

@@ -68,8 +68,8 @@ def build(root: Path) -> dict:
     }
     return {
         "schema_version": 1,
-        "purpose": "Machine-queryable seed census of confidently bounded program structure recovered by the comparative four-ROM lane.",
-        "scope_note": "This is a seed census, not a whole-ROM coverage claim. It intentionally contains only regions whose boundaries/code-data role have already been independently recovered in accepted structural-island analyses.",
+        "purpose": "Machine-queryable census of confidently bounded program structure recovered by the comparative four-ROM lane.",
+        "scope_note": "This census is a conservative floor, not a whole-ROM coverage claim. It contains only regions whose boundaries/code-data role have already been independently recovered in accepted structural-island analyses.",
         "sources": sources,
         "totals": totals,
         "regions": rows,

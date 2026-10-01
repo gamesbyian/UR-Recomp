@@ -85,10 +85,8 @@ def render(r):
   lines.append("| {} | {} | {} | {} | {} | {} | {} |".format(x["name"],x["kind"],x["size"],cell("usa-retail"),cell("pal-prototype-1994-11-29"),cell("europe-retail"),cell("legacy-beta")))
  jt=r["handler_pointer_prefix"]; lut=r["lookup_8372"]
  lines+=["","## Embedded handler table","",f"- {jt['size']} bytes / {jt['entries']} little-endian words.","- USA entries: "+" ".join(jt["usa_words"]),"- `JSR ($8320,X)` proves these words are an embedded handler-pointer prefix. Because the guard is only `X < 0x003C`, do **not** treat the 30-byte prefix as the complete indirect domain without a tighter X-value proof.","","## Lookup table after handler_8341","",f"- {lut['size']} bytes / {lut['entries']} signed words.","- USA signed values: "+" ".join(str(x) for x in lut["usa_signed_words"]),"- The next executable entry begins at `81:83A4`; linear disassembly beginning at `83A3` is a one-byte code/data boundary error.",""]
- return "
-".join(lines)
+ return "\n".join(lines)
 
 def main():
- r=build(); OUTJ.write_text(json.dumps(r,indent=2)+"
-"); OUTM.write_text(render(r)); print(render(r)); print("OBJECT_ISLAND_JSON="+json.dumps(r,sort_keys=True))
+ r=build(); OUTJ.write_text(json.dumps(r,indent=2)+"\n"); OUTM.write_text(render(r)); print(render(r)); print("OBJECT_ISLAND_JSON="+json.dumps(r,sort_keys=True))
 if __name__=="__main__": main()

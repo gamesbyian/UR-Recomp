@@ -55,6 +55,32 @@ Do not propagate weak names as facts. Hypotheses remain hypotheses, cross-ROM la
 **Dependencies:** standard LoROM CPU-address to file-offset mapping; canonical USA RNC manifest.  
 **Propagation:** five course identities are now independent of order-only inference; future historical ROM addresses should be tested as LoROM CPU addresses first.
 
+### R-PROP-003 — Stunt messages are queued in explicit per-player 32-entry rings
+
+**Status:** confirmed  
+**Date:** 2026-09-30  
+**Area:** RAM | physics | UI
+
+**Observation:** `81:C5B3` enqueues a message into one of two 32-entry WRAM rings, selected by player. P1 storage is `0CBB+` with write index `0CE3`; P2 storage is `0CE5+` with write index `0D0D`; all indices wrap with `AND #$1F`. The stunt finalizer calls the long-entry wrapper `81:C5AF` with stunt/result message IDs.  
+**Evidence:** recovered Nitrodon bank-81/bank-82 disassembly; Dessyreqt USJO v14a independently parses `0CBB/0CE1/0CE3` and converts queued stunt-message IDs into delayed boost credit.  
+**Interpretation:** the historical queue-aware optimizer is observing the actual in-game stunt-message pipeline. Message presentation and delayed stunt boost are structurally linked, although the exact ROM-side message→boost conversion remains untraced.  
+**Discriminating test:** trace the queue consumer that mutates boost, or run one deterministic landing with queue/boost checkpoints before and after message consumption.  
+**Dependencies:** exact queue-consumer role of `0CE1/0D0B` is not yet statically named.  
+**Propagation:** promoted queue storage/write-index symbols and upgraded `HUD_QueueMessage`; future boost-unit work should begin from this queue consumer rather than from isolated boost writes.
+
+### R-PROP-004 — Racer OAM builder exposes the world→camera→screen boundary
+
+**Status:** confirmed  
+**Date:** 2026-09-30  
+**Area:** camera | PPU | RAM
+
+**Observation:** `82:ACA5` projects P1 world coordinates `0411/0415` and P2 `0413/0417` relative to camera `0419/041D`, applies horizontal scaling/culling/wrap policy, and writes P1 screen X/Y to `1509/150A` and P2 X/Y to `150D/150E`.  
+**Evidence:** recovered Nitrodon bank-82 disassembly; detailed derivation in `analysis/generated/semantic-propagation-boost-oam-2026-09-30.md`.  
+**Interpretation:** this routine is a concrete presentation seam for widescreen/HD work: authoritative simulation coordinates are upstream; viewport/culling policy lies in the projection step; screen/OAM state is downstream.  
+**Discriminating test:** exact meanings/units of `03ED`, `0421/0423`, and `0D49` should be resolved only when widescreen/course-wrap implementation requires them.  
+**Dependencies:** ordinary-race path analyzed; alternate split-screen/mode branches may adjust limits.  
+**Propagation:** corrected `1509` from generic TAS “screen X” to P1 screen X, promoted paired screen-coordinate outputs, and marked the projection-policy fields as future widescreen anchors.
+
 ## Seed leads to verify locally
 
 ### R-SEED-001 — Rob Northen Compression

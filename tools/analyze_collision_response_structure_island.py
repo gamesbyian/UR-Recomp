@@ -45,6 +45,19 @@ def local_profile(src,dst,start,end,center,window=64):
   p=hi+1
  return out
 
+def ranges_for(predicate,start,end):
+ out=[]; run=None
+ for x in range(start,end+1):
+  if predicate(x):
+   if run is None: run=x
+  elif run is not None:
+   out.append({"start":offset_to_cpu(run),"end":offset_to_cpu(x-1),"size":x-run}); run=None
+ if run is not None: out.append({"start":offset_to_cpu(run),"end":offset_to_cpu(end),"size":end-run+1})
+ return out
+
+def fine_profile(src,dst,start,end,center,window=16):
+ return local_profile(src,dst,start,end,center,window)
+
 def build():
  blobs={k:p.read_bytes() for k,p in ROMS.items()}; usa=blobs["usa-retail"]
  centers={"usa-retail":0,"legacy-beta":0,"pal-prototype-1994-11-29":-32,"europe-retail":-32}
@@ -84,9 +97,10 @@ def build():
     info["aligned_role_disagreements"]=role_disagreements
    if build in {"pal-prototype-1994-11-29","europe-retail"}:
     info["local_shift_profile_64byte"]=local_profile(usa,blob,us,ue,sh)
+    info["local_shift_profile_16byte"]=fine_profile(usa,blob,us,ue,sh,16)
    row["builds"][build]=info
   rows.append(row)
- return {"schema_version":1,"island":"PerRacerCollisionContactResponse","usa_start":"81:8FB8","usa_end":"81:99D5","next_code_entry":"81:99D6","regions":rows}
+ return {"schema_version":1,"island":"PerRacerCollisionContactResponse","usa_start":"81:8FB8","usa_end":"81:99D5","next_code_entry":"81:99D6","usa_unreached_runs":ranges_for(lambda x:not (ds["usa-retail"].code_map[x]&(ds["usa-retail"].OP_CODE|ds["usa-retail"].OP_PARAM)),cpu_to_offset("81:8FB8"),cpu_to_offset("81:99D5")),"regions":rows}
 
 def render(r):
  lines=["# Per-racer collision / contact-response structural island","",

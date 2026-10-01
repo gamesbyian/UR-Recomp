@@ -23,3 +23,18 @@ def test_render_describes_materialization_boundaries():
     text=mod.render(fake)
     assert "A000/C000" in text
     assert "resource cursor" in text
+
+
+def test_rom_backed_course_island_when_roms_present():
+    if not all(path.exists() for path in mod.ROMS.values()):
+        return
+    result=mod.build()
+    assert len(result["regions"]) == 5
+    for region in result["regions"]:
+        assert region["builds"]["usa-retail"]["opcode_bytes"] > 0
+        assert region["builds"]["legacy-beta"]["similarity"] == 1.0
+    # Existing trusted homolog corpus already establishes the common Europe shift
+    # through the first three partitions; preserve that as a regression oracle.
+    for region in result["regions"][:3]:
+        assert region["builds"]["europe-retail"]["shift"] == -58
+    print("COURSE_ISLAND_TEST_JSON="+__import__("json").dumps(result,sort_keys=True))

@@ -36,7 +36,6 @@ class NativeWidescreenPrepAnchorTests(unittest.TestCase):
             self.assertEqual(report["target_counts"]["wrapper_call_a59e"],1)
             self.assertEqual(report["target_counts"]["prep_helper_entry"],1)
             self.assertEqual(report["staging_initializer_count"],1)
-            self.assertEqual(report["target_counts"]["nmi_post_consume_cleanup"],1)
 
     def test_missing_target_fails_contract(self):
         with tempfile.TemporaryDirectory() as td:

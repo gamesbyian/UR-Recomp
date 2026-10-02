@@ -11,6 +11,7 @@ Current surfaces:
 - `code-semantics.json` — named semantic functions joined to the comparative structural census and cross-build correspondence.
 - `presentation-assets.json` — reusable container for semantic presentation/graphics families.
 - `evidence-claims.json` — selective atomic claims whose provenance matters for cross-source inference.
+- `progression-model.json` — normalized medal matrix, tier derivation, checksum coverage, and current runtime-acceptance status.
 
 Regenerate with:
 
@@ -20,3 +21,5 @@ python3 tools/build_consolidated_knowledge.py --check
 ```
 
 See `docs/KNOWLEDGE-CONSOLIDATION-PLAN.md` for ownership and maintenance rules and `docs/INFERENCE-AUDIT-PLAN.md` for the analysis that consumes these datasets.
+
+Second-pass consolidation also attaches the recovered 45-track historical start/finish landmarks directly to course records, and enriches `state-schema.json` with paired-racer leads, regional WRAM motion clusters, and reconciled Nitrodon semantics.

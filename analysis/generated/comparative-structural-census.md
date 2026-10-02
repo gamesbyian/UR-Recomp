@@ -2,9 +2,9 @@
 
 This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **116** (105 code, 11 data)
-- bounded bytes: **17101** (15732 code-region bytes, 1369 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **6768**
+- bounded regions: **118** (107 code, 11 data)
+- bounded bytes: **17278** (15909 code-region bytes, 1369 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **6837**
 - represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -74,6 +74,8 @@ This is the first machine-queryable census for the comparative structure-recover
 | `81:C6A7..81:C6D2` | code | 44 | race-timer | mode_dispatch_tail | 81:C684..81:C6AF (-35; size 44; sim 0.795) | 81:C694..81:C6BF (-19; size 44; sim 0.773) | 81:C6A7..81:C6D2 (+0; size 44; sim 1.000) |
 | `81:C6D3..81:C7E0` | code | 270 | race-timer | count_up_timer | 81:C6B0..81:C7BD (-35; size 270; sim 0.844) | 81:C6C0..81:C7CD (-19; size 270; sim 0.815) | 81:C6D3..81:C7E0 (+0; size 270; sim 1.000) |
 | `81:C7E1..81:C906` | code | 294 | race-timer | stunt_countdown_timer | 81:C7BE..81:C8E3 (-35; size 294; sim 0.850) | 81:C7CE..81:C8F3 (-19; size 294; sim 0.806) | 81:C7E1..81:C906 (+0; size 294; sim 1.000) |
+| `82:980D..82:9810` | code | 4 | race-state-980d | long_entry_wrapper | 82:9808..82:980B (-5; size 4; sim 0.750) | 82:981E..82:9821 (+17; size 4; sim 0.750) | 82:980D..82:9810 (+0; size 4; sim 1.000) |
+| `82:9811..82:98BD` | code | 173 | race-state-980d | mirrored_state_bridge | 82:980C..82:98B8 (-5; size 173; sim 0.896) | 82:9822..82:98CE (+17; size 173; sim 0.890) | 82:9811..82:98BD (+0; size 173; sim 1.000) |
 | `82:9A42..82:9B57` | code | 278 | stunt-finalizer | air_state_and_rotation_progress | 82:9A3D..82:9B52 (-5; size 278; sim 0.856) | 82:9A53..82:9B68 (+17; size 278; sim 0.842) | 82:9A42..82:9B57 (+0; size 278; sim 1.000) |
 | `82:9B58..82:9C97` | code | 320 | stunt-finalizer | landing_trick_classification | 82:9B53..82:9C92 (-5; size 320; sim 0.919) | 82:9B69..82:9CA8 (+17; size 320; sim 0.881) | 82:9B58..82:9C97 (+0; size 320; sim 1.000) |
 | `82:9C98..82:9D08` | code | 113 | stunt-finalizer | score_index_and_message_prefix | 82:9C93..82:9D03 (-5; size 113; sim 0.903) | 82:9CA9..82:9D19 (+17; size 113; sim 0.903) | 82:9C98..82:9D08 (+0; size 113; sim 1.000) |

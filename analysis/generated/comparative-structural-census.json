@@ -82,17 +82,21 @@
     {
       "id": "ec46-coordinate-window",
       "path": "analysis/generated/ec46-coordinate-window-structure-island.json"
+    },
+    {
+      "id": "race-state-980d",
+      "path": "analysis/generated/race-state-980d-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 116,
-    "code_regions": 105,
+    "regions": 118,
+    "code_regions": 107,
     "data_regions": 11,
-    "bounded_bytes": 17101,
-    "bounded_code_region_bytes": 15732,
+    "bounded_bytes": 17278,
+    "bounded_code_region_bytes": 15909,
     "bounded_data_region_bytes": 1369,
-    "analyzer_opcode_bytes": 6768,
-    "analyzer_operand_bytes": 8849,
+    "analyzer_opcode_bytes": 6837,
+    "analyzer_operand_bytes": 8957,
     "analyzer_unreached_or_data_bytes": 1484,
     "banks": [
       "81",
@@ -2975,6 +2979,98 @@
           "shift": 0,
           "similarity": 1,
           "size": 294,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "race-state-980d",
+      "source_path": "analysis/generated/race-state-980d-structure-island.json",
+      "name": "long_entry_wrapper",
+      "kind": "code",
+      "usa_start": "82:980D",
+      "usa_end": "82:9810",
+      "size": 4,
+      "usa_opcode_bytes": 2,
+      "usa_operand_bytes": 2,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "usa-retail": {
+          "start": "82:980D",
+          "end": "82:9810",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 4,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:9808",
+          "end": "82:980B",
+          "shift": -5,
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0
+        },
+        "europe-retail": {
+          "start": "82:981E",
+          "end": "82:9821",
+          "shift": 17,
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:980D",
+          "end": "82:9810",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 4,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "race-state-980d",
+      "source_path": "analysis/generated/race-state-980d-structure-island.json",
+      "name": "mirrored_state_bridge",
+      "kind": "code",
+      "usa_start": "82:9811",
+      "usa_end": "82:98BD",
+      "size": 173,
+      "usa_opcode_bytes": 67,
+      "usa_operand_bytes": 106,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "usa-retail": {
+          "start": "82:9811",
+          "end": "82:98BD",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 173,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:980C",
+          "end": "82:98B8",
+          "shift": -5,
+          "similarity": 0.895954,
+          "size": 173,
+          "size_delta": 0
+        },
+        "europe-retail": {
+          "start": "82:9822",
+          "end": "82:98CE",
+          "shift": 17,
+          "similarity": 0.890173,
+          "size": 173,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:9811",
+          "end": "82:98BD",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 173,
           "size_delta": 0
         }
       }

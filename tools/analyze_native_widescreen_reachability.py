@@ -8,17 +8,35 @@ from pathlib import Path
 
 try:
     from tools.verify_europe_semantic_edges import find_call_refs
+    from tools.compare_europe_usa_snes2asm_homologs import trace
+    from tools.compare_semantic_anchors import cpu_to_lorom_file
 except ModuleNotFoundError:
     from verify_europe_semantic_edges import find_call_refs
+    from compare_europe_usa_snes2asm_homologs import trace
+    from compare_semantic_anchors import cpu_to_lorom_file
 
 TARGETS = {
     "long_wrapper": "81:A52B",
     "per_frame_entry": "81:A52F",
 }
 
+def _classify_refs(blob: bytes, cpu: str, disasm) -> dict:
+    bank = cpu.split(":", 1)[0].upper()
+    raw = find_call_refs(blob, cpu)
+    jsr = [r for r in raw["jsr"] if r["cpu"].split(":", 1)[0].upper() == bank]
+    def classify(rows):
+        out = []
+        for row in rows:
+            off = row["file_offset"]
+            executable = bool(disasm.code_map[off] & disasm.OP_CODE)
+            out.append({**row, "executable": executable})
+        return out
+    return {"jsr": classify(jsr), "jsl": classify(raw["jsl"])}
+
 def report(rom: Path) -> dict:
     blob = rom.read_bytes()
-    refs = {name: {"target": cpu, **find_call_refs(blob, cpu)}
+    disasm = trace(blob)
+    refs = {name: {"target": cpu, **_classify_refs(blob, cpu, disasm)}
             for name, cpu in TARGETS.items()}
     return {
         "schema_version": 1,
@@ -36,10 +54,14 @@ def render(data: dict) -> str:
         lines.append("")
         lines.append(f"- JSR references: **{len(item['jsr'])}**")
         for ref in item["jsr"]:
-            lines.append(f"  - {ref['cpu']} (ROM 0x{ref['file_offset']:06X})")
+            lines.append(
+                f"  - {ref['cpu']} (ROM 0x{ref['file_offset']:06X}; executable={ref['executable']})"
+            )
         lines.append(f"- JSL references: **{len(item['jsl'])}**")
         for ref in item["jsl"]:
-            lines.append(f"  - {ref['cpu']} (ROM 0x{ref['file_offset']:06X})")
+            lines.append(
+                f"  - {ref['cpu']} (ROM 0x{ref['file_offset']:06X}; executable={ref['executable']})"
+            )
         lines.append("")
     return "\n".join(lines)
 

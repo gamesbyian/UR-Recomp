@@ -80,7 +80,7 @@ def build():
 
 def render(r):
  lines=["# Race-render F0BB structural island","",
- "USA 83:F0BB..F4D1 is a race-loop rendering/geometry service called from 83:CD7F. It contains a 475-byte main body and two internal decode helpers, ending before the unrelated F4D2 helper and F4DA text data.","",
+ "USA `83:F0BB..F4D1` is a race-loop rendering/geometry service called from `83:CD7F`. It contains a 475-byte main body and two internal decode helpers, ending before the unrelated `F4D2` helper and `F4DA` text data.","",
  "| Region | USA bytes | PAL prototype | Europe | Legacy beta |","|---|---:|---|---|---|"]
  for x in r["regions"]:
   def cell(b):

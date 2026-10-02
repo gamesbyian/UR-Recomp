@@ -278,6 +278,16 @@
         ],
         "runtime_fixture": "MesenCE ordinary 2P evidence",
         "workflow_run": 36948109734
+      },
+      "inferred_record_structure": {
+        "status": "strong_inference",
+        "header_bytes": 4,
+        "header_role": "32-bit occupancy/piece mask candidate",
+        "rule": "popcount(record_header_bytes) = packed_word_count",
+        "observed_frames": 4,
+        "holds_for_all_observed_frames": true,
+        "implication": "one 16-bit packed word follows for each set header bit, in some stable bit traversal order",
+        "source": "analysis/generated/inference-audit-second-pass.json"
       }
     }
   ]

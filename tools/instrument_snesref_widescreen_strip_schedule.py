@@ -39,6 +39,10 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 					const char *m = getenv("URRECOMP_WS_MODE");
 					return m && strcmp(m, "secondary_pre") == 0;
 				}();
+				static bool ur_ws_doublepass = []() -> bool {
+					const char *m = getenv("URRECOMP_WS_MODE");
+					return m && strcmp(m, "doublepass") == 0;
+				}();
 				static uint16 ur_ws_saved_count_x = 0;
 				static bool ur_ws_count_patched = false;
 				static int ur_ws_x_delta = []() -> int {
@@ -50,6 +54,12 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 				static uint16 ur_ws_saved_edge2 = 0;
 				static uint16 ur_ws_saved_count2 = 0;
 				static bool ur_ws_secondary_patched = false;
+				static uint8 ur_ws_doublepass_snapshot[0x2000];
+				static uint8 ur_ws_doublepass_buffer[32];
+				static bool ur_ws_doublepass_running = false;
+				static bool ur_ws_doublepass_buffer_live = false;
+				static uint16 ur_ws_dp_a = 0, ur_ws_dp_x = 0, ur_ws_dp_y = 0;
+				static uint16 ur_ws_dp_d = 0, ur_ws_dp_p = 0;
 				static bool ur_ws_bias_a = []() -> bool {
 					const char *t = getenv("URRECOMP_WS_BIAS_TARGET");
 					return t && (t[0] == 'A' || t[0] == 'a');
@@ -192,7 +202,7 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 				}
 
 				if (ur_ws_margin == 8 && !ur_ws_count32 && !ur_ws_secondary &&
-				    !ur_ws_secondary_pre && ur_ws_x_delta == 0 &&
+				    !ur_ws_secondary_pre && !ur_ws_doublepass && ur_ws_x_delta == 0 &&
 				    Registers.PB == 0x81 && ur_ws_pcw == ur_ws_hook_pc)
 				{
 					if (ur_ws_bias_a)
@@ -226,6 +236,70 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 							"WSSECONDARYPRE frame=%u primary=%04X secondary=%04X count=16\n",
 							(unsigned)ICPU.Frame, (unsigned)edge, (unsigned)next_edge);
 					}
+				}
+
+				/* Double-pass stock-helper discriminator. On the first A59E return,
+				   snapshot low WRAM/register state and re-execute the same JSR.
+				   The second pass redirects the helper staging pointer to $0453.
+				   On its return, preserve only the future strip plus secondary
+				   edge/count, restoring all other helper side effects. */
+				if (ur_ws_margin == 8 && ur_ws_doublepass &&
+				    Registers.PB == 0x81 && ur_ws_pcw == 0xA59A)
+				{
+					if (!ur_ws_doublepass_running)
+					{
+						uint16 edge = ur_ws_w16(0x0505);
+						uint16 count = ur_ws_w16(0x052B);
+						if (edge != 0xffff && count == 16)
+						{
+							for (unsigned i = 0; i < 0x2000; i++)
+								ur_ws_doublepass_snapshot[i] = Memory.RAM[i];
+							ur_ws_dp_a = Registers.A.W;
+							ur_ws_dp_x = Registers.X.W;
+							ur_ws_dp_y = Registers.Y.W;
+							ur_ws_dp_d = Registers.D.W;
+							ur_ws_dp_p = Registers.P.W;
+							ur_ws_doublepass_running = true;
+							/* Op is JSR at both A59A and A597. Rebase PC so the
+							   current dispatch replays JSR A59E. */
+							Registers.PCw = 0xA597;
+							fprintf(stderr,
+								"WSDOUBLEPASS begin frame=%u primary=%04X\n",
+								(unsigned)ICPU.Frame, (unsigned)edge);
+						}
+					}
+					else
+					{
+						uint16 second_edge = ur_ws_w16(0x0505);
+						uint16 second_count = ur_ws_w16(0x052B);
+						for (unsigned j = 0; j < 32; j++)
+							ur_ws_doublepass_buffer[j] = Memory.RAM[0x0453 + j];
+						for (unsigned i = 0; i < 0x2000; i++)
+							Memory.RAM[i] = ur_ws_doublepass_snapshot[i];
+						if (second_edge != 0xffff && second_count == 16)
+						{
+							ur_ws_set16(0x0509, second_edge);
+							ur_ws_set16(0x052F, second_count);
+							for (unsigned j = 0; j < 32; j++)
+								Memory.RAM[0x0453 + j] = ur_ws_doublepass_buffer[j];
+							ur_ws_doublepass_buffer_live = true;
+						}
+						Registers.A.W = ur_ws_dp_a;
+						Registers.X.W = ur_ws_dp_x;
+						Registers.Y.W = ur_ws_dp_y;
+						Registers.D.W = ur_ws_dp_d;
+						Registers.P.W = ur_ws_dp_p;
+						ur_ws_doublepass_running = false;
+						fprintf(stderr,
+							"WSDOUBLEPASS end frame=%u secondary=%04X count=%u\n",
+							(unsigned)ICPU.Frame, (unsigned)second_edge,
+							(unsigned)second_count);
+					}
+				}
+				if (ur_ws_margin == 8 && ur_ws_doublepass_running &&
+				    Registers.PB == 0x81 && ur_ws_pcw == 0xA5A3)
+				{
+					Registers.Y.W = 0x0453;
 				}
 
 				/* Transient A59E input-phase discriminator. Preserve the wrapper's
@@ -288,6 +362,26 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 				}
 
 				/* A59D is reached after the A59A JSR to the proven strip builder. */
+				if (ur_ws_margin == 8 && ur_ws_doublepass &&
+				    Registers.PB == 0x81 && ur_ws_pcw == 0xA59D &&
+				    ur_ws_doublepass_buffer_live)
+				{
+					ur_ws_set16(0x0509,
+						(uint16)(ur_ws_doublepass_snapshot[0x0509] |
+						(ur_ws_doublepass_snapshot[0x050A] << 8)));
+					ur_ws_set16(0x052F,
+						(uint16)(ur_ws_doublepass_snapshot[0x052F] |
+						(ur_ws_doublepass_snapshot[0x0530] << 8)));
+				}
+				if (ur_ws_margin == 8 && ur_ws_doublepass &&
+				    Registers.PB == 0x82 && ur_ws_pcw == 0xD2D1 &&
+				    ur_ws_doublepass_buffer_live)
+				{
+					for (unsigned j = 0; j < 32; j++)
+						Memory.RAM[0x0453 + j] = ur_ws_doublepass_snapshot[0x0453 + j];
+					ur_ws_doublepass_buffer_live = false;
+				}
+
 				if (Registers.PB == 0x81 && ur_ws_pcw == 0xA59D && ur_ws_secondary_patched)
 				{
 					ur_ws_set16(0x0509, ur_ws_saved_edge2);

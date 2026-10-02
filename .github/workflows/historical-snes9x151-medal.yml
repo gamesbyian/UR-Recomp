@@ -64,6 +64,7 @@ jobs:
       - name: Replay until first game-authored Crawler medal
         env:
           UR_MEDAL_SRAM_OUT: /tmp/first-medal.srm
+          UR_MEDAL_BEFORE_OUT: /tmp/before-runtime.srm
           UR_MEDAL_META_OUT: /tmp/first-medal.txt
         run: |
           set -euo pipefail
@@ -88,6 +89,8 @@ jobs:
           fi
           set -e
           test "$rc" -eq 0
+          test -s /tmp/before-runtime.srm
+          test "$(stat -c %s /tmp/before-runtime.srm)" = 8192
           test -s /tmp/first-medal.srm
           test "$(stat -c %s /tmp/first-medal.srm)" = 8192
           cat /tmp/first-medal.txt
@@ -133,7 +136,7 @@ jobs:
           test -n "$RELOAD"
           cp "$RELOAD" /tmp/reload.srm
           python3 tools/analyze_progression_sram_acceptance.py \
-            --before /tmp/before.srm \
+            --before /tmp/before-runtime.srm \
             --after /tmp/first-medal.srm \
             --reload /tmp/reload.srm \
             --model analysis/data/progression-model.json \
@@ -159,6 +162,7 @@ jobs:
           path: |
             /tmp/historical-smv.json
             /tmp/before.srm
+            /tmp/before-runtime.srm
             /tmp/first-medal.srm
             /tmp/first-medal.txt
             /tmp/reload.srm

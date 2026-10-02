@@ -37,5 +37,5 @@ Run()
     text = out.read_text(encoding="utf-8")
     assert "targetMedal = 17 -- progression acceptance: bronze" in text
     assert text.count("URProgressionMonitor()") == 2
-    assert 'snes9x.speedmode("maximum")' in text
+    assert 'snes9x.speedmode("nothrottle")' in text
     assert '--snes9x.speedmode("nothrottle")' not in text

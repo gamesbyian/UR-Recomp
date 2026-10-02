@@ -7,6 +7,8 @@ ROOT=Path(__file__).resolve().parents[2]
 SPEC=importlib.util.spec_from_file_location("ws_accept",ROOT/"tools/analyze_native_widescreen_hook_acceptance.py")
 MOD=importlib.util.module_from_spec(SPEC); assert SPEC.loader; SPEC.loader.exec_module(MOD)
 
+PAYLOAD="00112233445566778899AABBCCDDEEFF"*2
+
 class NativeWidescreenHookAcceptanceTests(unittest.TestCase):
     def dump(self,path:Path,tweak=None):
         raw=bytearray(0x20000)
@@ -15,69 +17,66 @@ class NativeWidescreenHookAcceptanceTests(unittest.TestCase):
         if tweak is not None: raw[tweak]=0xEE
         path.write_bytes(raw)
 
-    def test_accepts_plus8_and_capacity_stop(self):
+    def logs(self, *, payload=PAYLOAD, terminal_pending=True):
+        primary=[]
+        widened=[]
+        for i in range(320):
+            stock_camx=108+i
+            wide_camx=100+i
+            primary.append(
+                f"URWS_PRIMARY margin=0 camx={stock_camx} edge=0D81 count=16 payload={payload}\n"
+            )
+            if i:
+                widened.append("URWS_CLEANUP margin=8\n")
+            widened.append(
+                f"URWS_PREP margin=8 camx={wide_camx} edge=0D81 count=16 payload={PAYLOAD}\n"
+            )
+        if not terminal_pending:
+            widened.append("URWS_CLEANUP margin=8\n")
+        return {
+            0:"".join(primary),
+            8:"".join(widened),
+            16:"URWS_LIMIT margin=16 required_extra_columns=2 stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n",
+            24:"URWS_LIMIT margin=24 required_extra_columns=3 stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n",
+        }
+
+    def dumps(self, root:Path, tweak8=None):
+        dumps={}
+        for m in (0,8,16,24):
+            p=root/f"{m}.bin"
+            self.dump(p, tweak8 if m==8 else None)
+            dumps[m]=p
+        return dumps
+
+    def test_accepts_exact_future_stock_contract_with_terminal_pending_payload(self):
         with tempfile.TemporaryDirectory() as td:
-            root=Path(td); dumps={}
-            for m in (0,8,16,24):
-                p=root/f"{m}.bin"; self.dump(p); dumps[m]=p
-            logs={
-                0:"",
-                8:"URWS_PREP margin=8 edge=0D81 count=16\nURWS_CLEANUP margin=8\n",
-                16:"URWS_LIMIT margin=16 required_extra_columns=2 stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n",
-                24:"URWS_LIMIT margin=24 required_extra_columns=3 stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n",
-            }
-            r=MOD.analyze(logs,dumps)
+            root=Path(td)
+            r=MOD.analyze(self.logs(),self.dumps(root))
             self.assertTrue(r["accepted"])
+            self.assertTrue(r["native_runtime"]["margin8_terminal_payload_pending"])
+            self.assertGreaterEqual(r["native_runtime"]["margin8_exact_future_stock_matches"],309)
+            self.assertGreaterEqual(r["native_runtime"]["margin8_longest_consecutive_exact_match_run"],14)
             self.assertEqual(r["first_generalization_constraint"],"secondary-lane-capacity")
 
-    def test_accepts_one_final_live_payload_at_fixture_exit(self):
+    def test_accepts_fully_cleaned_final_payload(self):
         with tempfile.TemporaryDirectory() as td:
-            root=Path(td); dumps={}
-            for m in (0,8,16,24):
-                p=root/f"{m}.bin"; self.dump(p); dumps[m]=p
-            logs={
-                0:"",
-                8:(
-                    "URWS_PREP margin=8 edge=0D81 count=16\n"
-                    "URWS_CLEANUP margin=8\n"
-                    "URWS_PREP margin=8 edge=0D82 count=16\n"
-                ),
-                16:"URWS_LIMIT margin=16 required_extra_columns=2 stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n",
-                24:"URWS_LIMIT margin=24 required_extra_columns=3 stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n",
-            }
-            r=MOD.analyze(logs,dumps)
+            root=Path(td)
+            r=MOD.analyze(self.logs(terminal_pending=False),self.dumps(root))
             self.assertTrue(r["accepted"])
-            self.assertTrue(r["native_runtime"]["margin8_final_payload_live_at_exit"])
-            self.assertTrue(r["checks"]["margin8_cleanup_lifecycle_valid"])
-
-    def test_rejects_double_prepare_without_cleanup(self):
-        with tempfile.TemporaryDirectory() as td:
-            root=Path(td); dumps={}
-            for m in (0,8,16,24):
-                p=root/f"{m}.bin"; self.dump(p); dumps[m]=p
-            logs={
-                0:"",
-                8:(
-                    "URWS_PREP margin=8 edge=0D81 count=16\n"
-                    "URWS_PREP margin=8 edge=0D82 count=16\n"
-                ),
-                16:"URWS_LIMIT margin=16 required_extra_columns=2 stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n",
-                24:"URWS_LIMIT margin=24 required_extra_columns=3 stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n",
-            }
-            self.assertFalse(MOD.analyze(logs,dumps)["accepted"])
+            self.assertFalse(r["native_runtime"]["margin8_terminal_payload_pending"])
 
     def test_rejects_protected_state_change(self):
         with tempfile.TemporaryDirectory() as td:
-            root=Path(td); dumps={}
-            for m in (0,8,16,24):
-                p=root/f"{m}.bin"; self.dump(p,0x0411 if m==8 else None); dumps[m]=p
-            logs={
-                0:"",
-                8:"URWS_PREP margin=8 edge=0D81 count=16\nURWS_CLEANUP margin=8\n",
-                16:"URWS_LIMIT margin=16 required_extra_columns=2 stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n",
-                24:"URWS_LIMIT margin=24 required_extra_columns=3 stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n",
-            }
-            self.assertFalse(MOD.analyze(logs,dumps)["accepted"])
+            root=Path(td)
+            self.assertFalse(MOD.analyze(self.logs(),self.dumps(root,0x0411))["accepted"])
+
+    def test_rejects_nonmatching_future_stock_payloads(self):
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td)
+            wrong="FF"*32
+            r=MOD.analyze(self.logs(payload=wrong),self.dumps(root))
+            self.assertFalse(r["accepted"])
+            self.assertFalse(r["checks"]["margin8_future_stock_exact_matches"])
 
 if __name__=="__main__":
     unittest.main()

@@ -19,6 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install generation dependencies
+        run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
+
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 

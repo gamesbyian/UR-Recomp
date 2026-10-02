@@ -202,6 +202,40 @@ jobs:
             --md-out analysis/generated/widescreen-secondary-lane.md
           cat analysis/generated/widescreen-secondary-lane.md
 
+      - name: Probe pre-helper secondary horizontal lane
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script"
+          ROOT="$RUNNER_TEMP/ws-secondary-pre"
+          mkdir -p "$ROOT/control/dumps" "$ROOT/secondary-pre/dumps" analysis/generated
+
+          URRECOMP_WS_MARGIN=0 \
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$SCRIPT" \
+          SNESREF_DUMP_DIR="$ROOT/control/dumps" \
+            "$EXE" "$CORE" "$ROM" >"$ROOT/control/run.log" 2>&1
+
+          URRECOMP_WS_MARGIN=8 \
+          URRECOMP_WS_MODE=secondary_pre \
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$SCRIPT" \
+          SNESREF_DUMP_DIR="$ROOT/secondary-pre/dumps" \
+            "$EXE" "$CORE" "$ROM" >"$ROOT/secondary-pre/run.log" 2>&1
+
+          python3 tools/analyze_widescreen_secondary_lane.py \
+            "$ROOT/control/run.log" "$ROOT/secondary-pre/run.log" \
+            --json-out analysis/generated/widescreen-secondary-prehelper.json \
+            --md-out analysis/generated/widescreen-secondary-prehelper.md
+          cat analysis/generated/widescreen-secondary-prehelper.md
+
       - name: Trace A59E strip preparation internals
         shell: bash
         run: |
@@ -242,11 +276,18 @@ jobs:
             analysis/generated/widescreen-count32-discriminator.md
             analysis/generated/widescreen-a59e-trace.json
             analysis/generated/widescreen-a59e-trace.md
+            analysis/generated/widescreen-xphase-discriminator.json
+            analysis/generated/widescreen-xphase-discriminator.md
+            analysis/generated/widescreen-secondary-lane.json
+            analysis/generated/widescreen-secondary-lane.md
+            analysis/generated/widescreen-secondary-prehelper.json
+            analysis/generated/widescreen-secondary-prehelper.md
             ${{ runner.temp }}/ws-boundary/
             ${{ runner.temp }}/ws-edge-helper/
             ${{ runner.temp }}/ws-count32/
             ${{ runner.temp }}/ws-a59e/
             ${{ runner.temp }}/ws-xphase/
             ${{ runner.temp }}/ws-secondary/
+            ${{ runner.temp }}/ws-secondary-pre/
           if-no-files-found: warn
           retention-days: 7

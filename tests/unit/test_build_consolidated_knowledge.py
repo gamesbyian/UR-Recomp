@@ -44,6 +44,34 @@ class ConsolidatedKnowledgeTests(unittest.TestCase):
         self.assertGreater(len(data["functions"]), 0)
         self.assertTrue(any(x["containing_structural_regions"] for x in data["functions"]))
 
+    def test_course_stream_identity_matches_progression_row_order(self):
+        data = MOD.courses()["courses"]
+        expected_tours = [
+            "Crawler", "Jumper", "Shuffler", "Bounder", "Walker",
+            "Runner", "Hopper", "Sprinter", "Hunter",
+        ]
+        self.assertEqual(
+            [data[i * 5]["tour"] for i in range(9)],
+            expected_tours,
+        )
+        self.assertEqual(sum(
+            1 for row in data
+            if row["historical_landmarks"]["start_matches_header_a_x16"]
+        ), 43)
+
+    def test_stunt_historical_start_equals_finish(self):
+        data = MOD.courses()["courses"]
+        stunt = [row for row in data if row["track_kind"] == "stunt"]
+        non_stunt = [row for row in data if row["track_kind"] != "stunt"]
+        self.assertTrue(all(
+            row["historical_landmarks"]["start_x"] == row["historical_landmarks"]["finish_x"]
+            for row in stunt
+        ))
+        self.assertTrue(all(
+            row["historical_landmarks"]["start_x"] != row["historical_landmarks"]["finish_x"]
+            for row in non_stunt
+        ))
+
     def test_claim_ids_are_unique(self):
         ids = [x["id"] for x in MOD.CLAIMS]
         self.assertEqual(len(ids), len(set(ids)))

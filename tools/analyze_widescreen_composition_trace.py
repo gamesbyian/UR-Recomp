@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 from pathlib import Path
 
 TAGS = ("object-tail-167", "object-tail-168", "object-tail-169")
 LINE_RE = re.compile(r"WS_EDGE (.*)")
+OBJ_RE = re.compile(r"WS_OBJ_CAND (.*)")
 KV_RE = re.compile(r"(\w+)=(-?\w+)")
 
 
@@ -59,10 +61,15 @@ def main() -> int:
                 "143": obj_traces[margin].get((frame, 143), []),
                 "144": obj_traces[margin].get((frame, 144), []),
             }
+            hashes = {}
+            for suffix in ("vram.bin", "cgram.bin", "oam.bin"):
+                path = d / "state" / f"{tag}.{suffix}"
+                hashes[suffix] = hashlib.sha256(path.read_bytes()).hexdigest()
             item["margins"][str(margin)] = {
                 "frame": frame,
                 "lines": lines,
-                "obj_writes": obj_lines,
+                "obj_candidates": obj_lines,
+                "state_hashes": hashes,
             }
         item["guest_frame_delta"] = item["margins"]["8"]["frame"] - item["margins"]["0"]["frame"]
         rows.append(item)
@@ -97,8 +104,17 @@ def main() -> int:
     lines += ["", "OBJ writes to logical x=255 at object-tail-168:"]
     target = next(r for r in rows if r["tag"] == "object-tail-168")
     for margin in ("0", "8"):
-        writes = target["margins"][margin]["obj_writes"]
+        writes = target["margins"][margin]["obj_candidates"]
         lines.append(f"- margin {margin}: line143={writes['143']} line144={writes['144']}")
+
+    lines += [
+        "",
+        "Event-boundary presentation-memory equality at object-tail-168:",
+    ]
+    h0 = target["margins"]["0"]["state_hashes"]
+    h8 = target["margins"]["8"]["state_hashes"]
+    for key in ("vram.bin", "cgram.bin", "oam.bin"):
+        lines.append(f"- {key}: {'match' if h0[key] == h8[key] else 'DIFF'}")
 
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)

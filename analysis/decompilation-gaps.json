@@ -249,6 +249,14 @@
       "summary": "Recovered the seam-bounded race-loop E580 support island between the accepted E066..E53F pair and the separate E7A5 routine: a byte-identical 64-byte/32-word lookup table plus a fully reached 549-byte control body called directly from race-frame orchestration at 83:CD47. USA/beta are byte-identical; PAL prototype preserves the island at shift -10 and Europe at +28. All 199 aligned opcode positions match in every non-USA build with zero analyzer role disagreements.",
       "priority": "low",
       "next_evidence": "Refine $11F3/$11F5 and race-phase/audio semantics only for a concrete race-control or audio implementation need. Keep the parallel E7A5 island separate."
+    },
+    {
+      "id": "resolved-multiply-b668-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:B664..B68A and homologs",
+      "summary": "Recovered a 39-byte generic arithmetic island consisting of a 4-byte long-entry wrapper and the 35-byte B668 shift-and-add multiply helper called from recovered camera-control at 81:A511. The multiply body is byte-identical across all four preserved ROMs; PAL prototype relocates by -32 and Europe by -15. All 21 aligned opcode positions across wrapper/body match in every non-USA build with zero analyzer role disagreements.",
+      "priority": "low",
+      "next_evidence": "No deeper work is needed unless another subsystem requires exact calling/overflow semantics. Structural recovery should continue at a higher-impact unresolved frontier."
     }
   ]
 }

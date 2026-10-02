@@ -1,0 +1,67 @@
+name: Preparation to PPU emission probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - chatgpt/preparation-emission-causal-closure-2026-10-02
+    paths:
+      - ".github/workflows/preparation-emission-probe.yml"
+      - "tools/analyze_preparation_emission_probe.py"
+      - "tests/input/race-visible-onset.script"
+  pull_request:
+    paths:
+      - ".github/workflows/preparation-emission-probe.yml"
+      - "tools/analyze_preparation_emission_probe.py"
+      - "tests/input/race-visible-onset.script"
+
+concurrency:
+  group: preparation-emission-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y             build-essential cmake ninja-build pkg-config xvfb libsdl2-dev             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Build native reference target
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          ROOT="$RUNNER_TEMP/native"
+          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh"             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"             --dir "$ROOT" --name "Uniracers" --players 2 --yes --no-ci             --no-fetch-boxart --no-recomp-ui --no-netplay --no-github             --no-submodules --generate --no-build
+          PROJ="$ROOT/UniracersSNESRecomp"
+          cmake -S "$PROJ" -B "$PROJ/build"             -DCMAKE_BUILD_TYPE=Release             -DSNESRECOMP_ROOT="$FRAMEWORK"             -DSNESRECOMP_SDL_BACKEND=SDL2             -DSNESRECOMP_SDL3_FETCH=OFF
+          cmake --build "$PROJ/build" -j2
+      - name: Capture stock race onset and match emission
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DUMPS="$RUNNER_TEMP/preparation-emission-dumps"
+          mkdir -p "$DUMPS" analysis/generated
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy             timeout 180s xvfb-run -a "$EXE" "$ROM"             --script "$GITHUB_WORKSPACE/tests/input/race-visible-onset.script"             >"$RUNNER_TEMP/preparation-emission.log" 2>&1
+          tail -n 120 "$RUNNER_TEMP/preparation-emission.log"
+          python3 tools/analyze_preparation_emission_probe.py "$DUMPS"             --json-out analysis/generated/preparation-emission-probe.json             --md-out analysis/generated/preparation-emission-probe.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: preparation-emission-probe
+          path: |
+            analysis/generated/preparation-emission-probe.json
+            analysis/generated/preparation-emission-probe.md
+            ${{ runner.temp }}/preparation-emission.log
+            ${{ runner.temp }}/preparation-emission-dumps/race-start-active-*.wram.bin
+            ${{ runner.temp }}/preparation-emission-dumps/race-start-active-*.ppuw.tsv
+          if-no-files-found: warn
+          retention-days: 7

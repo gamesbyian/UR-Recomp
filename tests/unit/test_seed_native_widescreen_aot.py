@@ -21,9 +21,10 @@ class NativeWidescreenAotSeedTests(unittest.TestCase):
                 encoding="utf-8",
             )
             first=MOD.ensure_seed(cfg)
-            self.assertEqual(first, {"symbols": True, "bank01": True})
+            self.assertEqual(first, {"symbols": True, "bank01": True, "bank02": True})
             st=symbols.read_text(encoding="utf-8")
             bank=(cfg/"bank01.cfg").read_text(encoding="utf-8")
+            bank2=(cfg/"bank02.cfg").read_text(encoding="utf-8")
             self.assertIn('name = "WidescreenPrepareWrapper"', st)
             self.assertIn('addr = "A52F"', st)
             self.assertIn('bank = 1', st)
@@ -31,11 +32,13 @@ class NativeWidescreenAotSeedTests(unittest.TestCase):
             self.assertIn("bank = 1", bank)
             self.assertIn("tier_down_stubs", bank)
             self.assertIn("func WidescreenPrepareWrapper A52F", bank)
+            self.assertIn("func WidescreenPostConsume D2D1", bank2)
 
             second=MOD.ensure_seed(cfg)
-            self.assertEqual(second, {"symbols": False, "bank01": False})
+            self.assertEqual(second, {"symbols": False, "bank01": False, "bank02": False})
             self.assertEqual(st,symbols.read_text(encoding="utf-8"))
             self.assertEqual(bank,(cfg/"bank01.cfg").read_text(encoding="utf-8"))
+            self.assertEqual(bank2,(cfg/"bank02.cfg").read_text(encoding="utf-8"))
 
 if __name__=="__main__":
     unittest.main()

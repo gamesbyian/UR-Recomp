@@ -5,6 +5,7 @@ from tools.extract_racer_presentation_family import (
     PALETTE_TABLE_ADDR,
     decode_bgr555,
     decode_frame_record,
+    decode_piece_mapping,
     frame_pointer,
     lorom_offset,
     palette_entry,
@@ -33,6 +34,20 @@ class RacerPresentationRoundTripTests(unittest.TestCase):
         self.assertEqual(record.renderer_prefix_length, 10)
         self.assertEqual(len(record.packed_words), 3)
         self.assertEqual(record.repack(), raw)
+
+    def test_piece_mapping_is_msb_first_30_cell_scan(self):
+        raw = bytes.fromhex("38c31c70") + b"".join(
+            x.to_bytes(2, "little")
+            for x in (0x1B00,0x1C00,0x1D00,0x1E00,0x1F00,0x2000,0x2100,0x2200,0xFE14,0xFF14,0x2500,0x0015,0x1407)
+        )
+        record = decode_frame_record(raw)
+        pieces = decode_piece_mapping(record)
+        self.assertEqual(len(pieces), 13)
+        self.assertEqual((pieces[0]["major_slot"], pieces[0]["minor_slot"], pieces[0]["word_hex"]), (0, 2, "0x1B00"))
+        self.assertEqual((pieces[-1]["major_slot"], pieces[-1]["minor_slot"], pieces[-1]["word_hex"]), (4, 3, "0x1407"))
+        self.assertEqual(pieces[0]["staged_1645_value"], "0x8360")
+        self.assertEqual(pieces[8]["staged_15a1_value"], "0x002C")
+        self.assertEqual(pieces[-1]["low2_renderer_ignored_value"], 3)
 
     def test_4bpp_tile_roundtrip(self):
         payload = bytes(range(64))

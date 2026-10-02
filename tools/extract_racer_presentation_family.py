@@ -32,6 +32,7 @@ RACER_GRAPHICS_RESOURCES = (
 )
 
 MASK_BITS = (0x04, 0x08, 0x10, 0x20, 0x40, 0x80)
+OCCUPANCY_BITS = tuple((byte, bit) for byte in range(4) for bit in range(7, -1, -1) if not (byte == 3 and bit < 2))
 
 # Promoted from the retained MesenCE ordinary-2P evidence run 36948109734.
 OBSERVED_STATES = (
@@ -145,6 +146,74 @@ def decode_frame_record(raw: bytes) -> FrameRecord:
     return record
 
 
+def decode_piece_mapping(record: FrameRecord) -> list[dict]:
+    occupied = []
+    for scan_index, (byte_index, bit_in_byte) in enumerate(OCCUPANCY_BITS):
+        if record.header[byte_index] & (1 << bit_in_byte):
+            occupied.append((scan_index, byte_index, bit_in_byte))
+    if len(occupied) != len(record.packed_words):
+        raise ValueError(
+            f"30-cell occupancy count {len(occupied)} != packed words {len(record.packed_words)}"
+        )
+    pieces = []
+    for word_index, ((scan_index, byte_index, bit_in_byte), raw) in enumerate(zip(occupied, record.packed_words)):
+        word = int.from_bytes(raw, "little")
+        pieces.append({
+            "word_index": word_index,
+            "occupancy_scan_index": scan_index,
+            "major_slot": scan_index // 6,
+            "minor_slot": scan_index % 6,
+            "header_byte": byte_index,
+            "header_bit_msb_first": bit_in_byte,
+            "global_lsb_bit": byte_index * 8 + bit_in_byte,
+            "word_hex": f"0x{word:04X}",
+            "word_high_byte": word >> 8,
+            "word_low_byte": word & 0xFF,
+            "staged_1645_value": f"0x{(0x8000 | ((word >> 8) << 5)) & 0xFFFF:04X}",
+            "staged_15a1_value": f"0x{0x27 + ((word & 0x00FC) >> 2):04X}",
+            "low2_renderer_ignored_value": word & 0x03,
+        })
+    return pieces
+
+
+def census_record_structure(rom: bytes) -> dict:
+    max_id = ((0x10000 - FRAME_TABLE_ADDR) // FRAME_ENTRY_SIZE) - 2
+    comparable = matches = reserved_nonzero = 0
+    for frame_id in range(max_id + 1):
+        try:
+            ptr = frame_pointer(rom, frame_id)
+            nxt = frame_pointer(rom, frame_id + 1)
+        except (ValueError, IndexError):
+            continue
+        if ptr.source_bank != nxt.source_bank:
+            continue
+        if ptr.source_addr < 0x8000 or nxt.source_addr < 0x8000:
+            continue
+        length = nxt.source_addr - ptr.source_addr
+        if length < 4 or length > 68 or (length - 4) % 2:
+            continue
+        try:
+            off = lorom_offset(ptr.source_bank, ptr.source_addr)
+            header = rom[off:off + 4]
+        except (ValueError, IndexError):
+            continue
+        if len(header) != 4:
+            continue
+        occupied = sum(
+            bool(header[byte] & (1 << bit))
+            for byte, bit in OCCUPANCY_BITS
+        )
+        words = (length - 4) // 2
+        comparable += 1
+        matches += occupied == words
+        reserved_nonzero += bool(header[3] & 0x03)
+    return {
+        "comparable_monotonic_records": comparable,
+        "matches_30_cell_popcount": matches,
+        "reserved_low2_nonzero_records": reserved_nonzero,
+    }
+
+
 def palette_entry(rom: bytes, asset_id: int) -> PaletteEntry:
     addr = PALETTE_TABLE_ADDR + asset_id * PALETTE_ENTRY_SIZE
     if addr + 4 > 0xFFFF:
@@ -221,6 +290,14 @@ def extract_frame(rom: bytes, frame_id: int) -> dict:
         "mask": record.header[0] & 0xFC,
         "renderer_prefix_length": record.renderer_prefix_length,
         "packed_word_count": len(record.packed_words),
+        "occupancy_layout": {
+            "major_slots": 5,
+            "minor_slots": 6,
+            "scan_order": "header bytes in storage order, MSB-first; byte3 bits1..0 excluded",
+            "reserved_zero_bits": ["byte3.bit1", "byte3.bit0"],
+            "reserved_zero_value": record.header[3] & 0x03,
+        },
+        "pieces": decode_piece_mapping(record),
         "roundtrip_equal": record.repack() == raw and ptr.repack() == ptr.entry,
     }
 
@@ -348,6 +425,46 @@ def build_manifest(rom: bytes) -> dict:
             "frame_records": all(x["roundtrip_equal"] for x in frames),
             "graphics_entries_and_4bpp_payloads": all(x["roundtrip_equal"] for x in graphics),
             "palette_entries_and_bgr555_payloads": all(x["roundtrip_equal"] for x in palettes),
+        },
+        "piece_semantics": {
+            "status": "mechanically_recovered_for_observed_family_with_retained_spatial_binding",
+            "occupancy_shape": "5 major slots x 6 minor slots",
+            "ordering": "30 occupancy positions scan MSB-first by header byte; each set position consumes the next packed 16-bit word",
+            "renderer_proof": [
+                "83:F338..F3C6 and 83:F441..F4CF reshape the header into six-bit masks",
+                "83:F1AE initializes the construction mask to $8000 and 83:F1DC..F270 shifts it once per slot",
+                "occupied slots read one 16-bit word and increment the selected frame pointer by two bytes",
+                "83:F20F..F227 derives staging values from the packed word high byte and low-byte bits7..2",
+                "83:F20F stores the full word in $2A; the only later $2A read at 83:F21D is immediately masked by AND #$00FC, so packed low-byte bits1..0 do not affect this renderer consumer",
+            ],
+            "packed_word_fields": {
+                "high_byte": "83:F20F..F21A -> $1645,Y = $8000 | (high_byte << 5)",
+                "low_byte_bits_7_2": "83:F21D..F227 -> $15A1,Y = $0027 + ((low_byte & $FC) >> 2)",
+                "low_byte_bits_1_0": "renderer-ignored in the bounded 83:F190..F290 consumer; producer-side meaning remains unresolved",
+            },
+            "corpus_check": {
+                **census_record_structure(rom),
+                "evidence_workflow_run": 36973753703,
+            },
+            "oam_binding": {
+                "layering": "packed records populate 8x8 racer subtile content before later 82:ACA5 OAM composition",
+                "retained_reference_run": 36943103609,
+                "obj_mode": "OBSEL 0x83 => 16x16 small / 64x64 large objects",
+                "spatial_layout": {
+                    "occupancy_rectangle_in_large_obj_tiles": [1, 0, 6, 5],
+                    "major_slot_semantics": "stored 8x8 tile row",
+                    "minor_slot_semantics": "stored 8x8 tile column",
+                    "orientation_rule": "OAM H/V flip is applied after packed-cell placement to obtain presented coordinates",
+                    "exact_persistent_id_bindings": 8,
+                    "retained_snapshots_inspected": 9,
+                    "all_exact_and_nearby_unique_bindings_at_same_offset": True,
+                    "evidence_workflow_run": 36978560724,
+                },
+                "checkpoints": {
+                    "two-player-race-1220": "persistent P1/P2 IDs 0x0541/0x0540; both exact occupancy matches use 5x6 offset (1,0) inside stable 64x64 OAM slots",
+                    "two-player-race-1420": "persistent P2 ID 0x0544 exactly matches the same 5x6 offset (1,0); P1 renderer/persistent timing differs at this endpoint",
+                },
+            },
         },
         "replacement_key": {
             "authoritative_state": "$0FE9/$0FEB",

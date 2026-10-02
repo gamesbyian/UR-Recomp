@@ -1,0 +1,66 @@
+name: Racer piece semantics probe
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "tools/analyze_racer_piece_semantics.py"
+      - "tools/extract_racer_presentation_family.py"
+      - "tests/unit/test_analyze_racer_piece_semantics.py"
+      - "tests/unit/test_extract_racer_presentation_family.py"
+      - "analysis/generated/racer-presentation-family.json"
+      - "analysis/data/presentation-assets.json"
+      - ".github/workflows/racer-piece-semantics.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Unit tests
+        run: |
+          python3 -m unittest tests.unit.test_analyze_racer_piece_semantics -v
+          python3 -m unittest tests.unit.test_extract_racer_presentation_family -v
+      - name: Regenerate racer family
+        run: |
+          python3 tools/extract_racer_presentation_family.py             "reference/roms/retail/Uniracers_USA.sfc"             --output /tmp/racer-presentation-family.json >/dev/null
+          python3 - <<'PY'
+          import json
+          expected=json.load(open("analysis/generated/racer-presentation-family.json"))
+          actual=json.load(open("/tmp/racer-presentation-family.json"))
+          if actual != expected:
+              for key in sorted(set(actual) | set(expected)):
+                  if actual.get(key) != expected.get(key):
+                      print("MISMATCH", key)
+                      print(" expected:", json.dumps(expected.get(key), sort_keys=True)[:12000])
+                      print(" actual:  ", json.dumps(actual.get(key), sort_keys=True)[:12000])
+              raise SystemExit(1)
+          PY
+      - name: Check consolidated presentation data
+        run: |
+          cp analysis/data/presentation-assets.json /tmp/presentation-assets.saved
+          cp analysis/generated/racer-presentation-family.json /tmp/racer-family.saved
+          python3 tools/build_consolidated_knowledge.py
+          python3 - <<'PY'
+          import json
+          assert json.load(open("/tmp/presentation-assets.saved")) == json.load(open("analysis/data/presentation-assets.json"))
+          assert json.load(open("/tmp/racer-family.saved")) == json.load(open("analysis/generated/racer-presentation-family.json"))
+          PY
+      - name: Inspect renderer proof
+        run: |
+          python3 tools/analyze_racer_piece_semantics.py             "reference/roms/retail/Uniracers_USA.sfc"             --output /tmp/racer-piece-semantics-probe.json >/dev/null
+          python3 - <<'PY'
+          import json
+          r=json.load(open("/tmp/racer-piece-semantics-probe.json"))
+          c=r["table_boundary_scan"]
+          assert c["comparable_monotonic_records"] == 5168
+          assert c["matches_30_cell_popcount"] == 5168
+          assert c["control_low2_nonzero_records"] == 0
+          PY

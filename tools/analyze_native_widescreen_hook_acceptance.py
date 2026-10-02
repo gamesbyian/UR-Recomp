@@ -93,6 +93,8 @@ def render(r: dict) -> str:
         f"- stock margin 0 inert: **{c['margin0_control_inert']}**",
         f"- +8 native preparation events: **{n['margin8_prepare_events']}**",
         f"- +8 cleanup events: **{n['margin8_cleanup_events']}**",
+        f"- +8 cleanup lifecycle valid: **{c['margin8_cleanup_lifecycle_valid']}**",
+        f"- +8 final payload live at process exit: **{n['margin8_final_payload_live_at_exit']}**",
         f"- +8 unique prepared edges: **{n['margin8_unique_edges']}**",
         f"- +8 protected gameplay/camera/progression state equal: **{c['margin8_protected_state_equal']}**",
         f"- +16 stopped at stock lane capacity: **{c['margin16_stops_at_capacity']}**",

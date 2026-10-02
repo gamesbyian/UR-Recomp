@@ -46,6 +46,9 @@ jobs:
                   assert p["large_oam_slots"]
                   assert p["large_oam_slots"][0]["size_pixels"] == [64,64]
           assert r["static_renderer"]["staging_xrefs"]
+          proven=r["derived"]["spatially_proven_frames"]
+          assert [(x["frame_id"], x["bound_piece_count"], x["match"]["x"], x["match"]["y"]) for x in proven] == [("0x0540", 13, 1, 0), ("0x0544", 15, 1, 0)]
+          assert all(x["all_bound_tiles_nonempty"] for x in proven)
           PY
       - uses: actions/upload-artifact@v4
         if: always()

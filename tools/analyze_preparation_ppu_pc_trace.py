@@ -88,6 +88,33 @@ def main() -> int:
     direct = quads(rows)
     writers = Counter((r["address"], r["pc"]) for r in rows)
     nonzero_count_writes = [r for r in rows if r["count_a"] or r["count_b"]]
+    f3_quads = [q for q in direct if 0x81F300 <= q["pc_after_2116"] <= 0x81F3FF]
+    f3_frames = {}
+    for q in f3_quads:
+        f3_frames.setdefault(q["frame"], []).append(q)
+    f3_bursts = []
+    for frame, qs in sorted(f3_frames.items()):
+        f3_bursts.append({
+            "frame": frame,
+            "v_first": min(q["v"] for q in qs),
+            "v_last": max(q["v"] for q in qs),
+            "quad_count": len(qs),
+            "destination_first": qs[0]["destination"],
+            "destination_last": qs[-1]["destination"],
+            "data_words": sorted({(q["write_2118"], q["write_2119"]) for q in qs}),
+            "camera_x": qs[0]["camera_x"],
+            "camera_y": qs[0]["camera_y"],
+            "camera_edge_x": qs[0]["camera_edge_x"],
+            "camera_edge_y": qs[0]["camera_edge_y"],
+            "camera_dx_raw": qs[0]["camera_dx_raw"],
+        })
+    edge_transitions = []
+    previous = None
+    for b in f3_bursts:
+        if previous is None or b["camera_edge_x"] != previous["camera_edge_x"] or b["camera_edge_y"] != previous["camera_edge_y"]:
+            edge_transitions.append(b)
+        previous = b
+
     report = {
         "schema_version": 1,
         "fixture": "preparation-emission-race",
@@ -97,6 +124,10 @@ def main() -> int:
         "direct_vram_quad_count": len(direct),
         "first_direct_vram_quad": direct[0] if direct else None,
         "nonzero_compact_count_ppu_writes": len(nonzero_count_writes),
+        "f3_quad_count": len(f3_quads),
+        "f3_burst_count": len(f3_bursts),
+        "f3_bursts": f3_bursts,
+        "f3_edge_transition_bursts": edge_transitions,
         "writer_counts": [
             {"address": addr, "pc": pc, "count": count}
             for (addr, pc), count in sorted(writers.items())
@@ -110,12 +141,29 @@ def main() -> int:
         f"- traced CPU-direct 2116-2119 writes after scroll start: **{len(rows)}**",
         f"- contiguous 2116/2117/2118/2119 quads: **{len(direct)}**",
         f"- PPU writes seeing non-zero compact counts: **{len(nonzero_count_writes)}**",
+        f"- 81:F3xx direct VRAM quads: **{len(f3_quads)}** across **{len(f3_bursts)}** frames",
         "",
         "| addr | PC after write | count |",
         "|---|---|---:|",
     ]
     for (addr, pc), count in sorted(writers.items()):
         lines.append(f"| {addr:04X} | {pc:06X} | {count} |")
+    if f3_bursts:
+        lines += [
+            "",
+            "## Motion-triggered 81:F3xx bursts",
+            "",
+            "| frame | V | quads | VRAM first..last | data words | camera X | edge X | dx raw |",
+            "|---:|---|---:|---|---|---:|---:|---:|",
+        ]
+        for b in f3_bursts:
+            words = ",".join(f"{lo:02X}{hi:02X}" for lo, hi in b["data_words"])
+            lines.append(
+                f"| {b['frame']} | {b['v_first']}..{b['v_last']} | {b['quad_count']} | "
+                f"{b['destination_first']:04X}..{b['destination_last']:04X} | {words} | "
+                f"{b['camera_x']} | {b['camera_edge_x']} | {b['camera_dx_raw']} |"
+            )
+
     if direct:
         q = direct[0]
         lines += [

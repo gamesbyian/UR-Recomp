@@ -21,7 +21,11 @@ if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
 
 from compare_europe_usa_snes2asm_homologs import cpu_to_offset, seed_entries, trace
-from extract_racer_presentation_family import lorom_offset
+from extract_racer_presentation_family import (
+    extract_frame,
+    lorom_offset,
+    packed_word_source,
+)
 from analyze_racer_piece_render_binding import (
     decode_obsel,
     decode_oam_slot,
@@ -199,6 +203,30 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
             continue
         consumer = "a" if wram[0x12EB] == 0 else "b"
         mode_0300 = u16(wram, 0x0300)
+        source_labels = {}
+        for label, fid in (
+            ("p1_primary", u16(wram, 0x0FE9)),
+            ("p2_primary", u16(wram, 0x0FEB)),
+            ("p1_companion", u16(wram, 0x0D3F)),
+            ("p2_companion", u16(wram, 0x0D41)),
+        ):
+            if not fid:
+                continue
+            try:
+                frame = extract_frame(rom, fid)
+            except Exception:
+                continue
+            for piece in frame["pieces"]:
+                key = packed_word_source(int(piece["word_hex"], 16))
+                source_labels.setdefault(key, []).append({
+                    "stream": label,
+                    "frame_id": f"0x{fid:04X}",
+                    "word_index": piece["word_index"],
+                    "major_slot": piece["major_slot"],
+                    "minor_slot": piece["minor_slot"],
+                })
+        source_labels.setdefault((0x27, 0x8000), []).append({"stream": "blank"})
+
         rows = []
         exact = 0
         valid = 0
@@ -236,6 +264,11 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
                 "effective_vram_word": f"0x{effective:04X}",
                 "vram_byte_offset": f"0x{vram_off:04X}",
                 "source_equals_vram": same,
+                "source_candidates": source_labels.get((bank, src), []),
+                "cache_grid": {
+                    "row": ((effective & 0x7FFF) - 0x6000) // 0x0100,
+                    "column": (((effective & 0x7FFF) - 0x6000) % 0x0100) // 0x0010,
+                } if 0x6000 <= (effective & 0x7FFF) < 0x6500 else None,
                 "object_tiles": object_destinations.get(effective & 0x7FFF, []),
             })
         out.append({
@@ -254,6 +287,25 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
             "valid_staging_entries": valid,
             "exact_source_vram_matches": exact,
             "entries": rows,
+            "cache_grid_streams": [
+                {
+                    "row": row,
+                    "columns": [
+                        next(
+                            (
+                                e["source_candidates"][0]["stream"]
+                                if len(e["source_candidates"]) == 1
+                                else "+".join(sorted({x["stream"] for x in e["source_candidates"]}))
+                            ),
+                            "unknown",
+                        )
+                        for col in range(14)
+                        for e in rows
+                        if e["cache_grid"] == {"row": row, "column": col}
+                    ],
+                }
+                for row in range(5)
+            ],
         })
     return out
 

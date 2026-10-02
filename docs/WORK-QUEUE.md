@@ -321,7 +321,7 @@ Treat these as must-do unless later technical evidence demonstrates a specific b
 - [ ] Prove one deterministic matched-frame RetroArch capture under Linux/headless automation; record exact runtime/backend requirements and cost.
 - [ ] Identify offline equivalents for bulk extracted-asset scaling so emulator/frontend startup is avoided where unnecessary.
 - [ ] Test bsnes-hd layer/sprite isolation on a concrete Uniracers scene; keep it specialist-only unless the evidence gain is real.
-- [~] Phase E extraction is ready for the first racer family: exact semantic frame/palette/OBJ-graphics provenance and reconstruction are proven. Build the visual reference dossier when replacement work begins, adding geometry anchors/contact points and selected processed interpretations then.
+- [~] Phase E extraction is ready for the first racer family: exact semantic frame/palette/OBJ-graphics provenance and reconstruction are proven. The first product-facing host-side replacement prototype now registers synchronized racer frame `0x0541`, renders a deterministic Original control plus one provenance-labelled 4x Remastered contract candidate, applies OAM orientation after selection, and proves exact disabled-replacement fallback. Before hand-authored racer replacements expand, promote explicit semantic pivot and wheel/contact anchors into registration metadata.
 - [ ] Add temporal-coherence checks for animated replacement sequences: contour/scale/pivot/contact drift, flicker and inconsistent invented detail.
 - [ ] Define deterministic sampling/render policy per presentation class rather than one global host texture filter.
 - [ ] Keep all processed images provenance-labelled and subordinate to native ROM/framebuffer evidence.

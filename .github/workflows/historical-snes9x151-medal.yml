@@ -136,7 +136,20 @@ jobs:
           test "$(stat -c %s /tmp/before-runtime.srm)" = 8192
           test -s /tmp/first-medal.srm
           test "$(stat -c %s /tmp/first-medal.srm)" = 8192
-          grep -q '^status=medal-captured
+          grep -Fxq "status=medal-captured" /tmp/first-medal.txt
+      - name: Inspect captured candidate
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          for name in ("before-runtime.srm", "first-medal.srm"):
+              p = Path("/tmp") / name
+              data = p.read_bytes()
+              if len(data) != 8192:
+                  raise SystemExit(f"{name}: expected 8192 bytes, got {len(data)}")
+              print(name, hashlib.sha256(data).hexdigest())
+          print(Path("/tmp/first-medal.txt").read_text(), end="")
+          PY
       - name: Build current reference harness
         run: |
           python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2

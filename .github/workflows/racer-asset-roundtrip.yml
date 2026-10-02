@@ -34,6 +34,7 @@ jobs:
             "reference/roms/retail/Uniracers_USA.sfc" \
             --output analysis/generated/racer-presentation-family.json \
             --all-confident \
+            --palette-assets 0x06 \
             --emit-images "$RUNNER_TEMP/racer-raster" \
             --bulk-manifest "$RUNNER_TEMP/racer-raster-manifest.json" \
             > racer-presentation-family.txt
@@ -46,7 +47,23 @@ jobs:
           assert all("oam_hflip" in s and "oam_vflip" in s for s in m["observed_states"])
           import os
           bulk=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-raster-manifest.json")))
-          assert bulk["count"] >= 8
+          assert bulk["count"] >= 4
+          assert bulk["palette_family"]["emitted_resource_ids"] == ["0x06"]
+          assert bulk["palette_family"]["available_resource_ids"] == [f"0x{x:02X}" for x in range(0x06,0x16)]
+          PY
+      - name: Retain complete racer palette-family provenance
+        run: |
+          python3 tools/extract_racer_asset_roundtrip.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --evidence-json analysis/evidence/racer-presentation-observed-states.json \
+            --json-out "$RUNNER_TEMP/racer-resource-roundtrip.json" \
+            >/dev/null
+          python3 - <<'PY'
+          import json, os
+          p=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-resource-roundtrip.json")))
+          assert p["palette_family"]["resource_ids"] == list(range(0x06,0x16))
+          assert len(p["palette_family"]["entries"]) == 16
+          assert p["roundtrip"]["palettes_all_equal"] is True
           PY
       - name: Download retained ordinary-2P reference
         env:
@@ -165,6 +182,7 @@ jobs:
             racer-presentation-family.generated.json
             racer-presentation-family.txt
             ${{ runner.temp }}/racer-raster-manifest.json
+            ${{ runner.temp }}/racer-resource-roundtrip.json
             ${{ runner.temp }}/racer-raster/*.png
             ${{ runner.temp }}/racer-spatial-generalization.json
             ${{ runner.temp }}/racer-next-family-generalization.json

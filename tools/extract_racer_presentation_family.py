@@ -31,6 +31,7 @@ TILE_BYTES_4BPP = 32
 RASTER_WIDTH = 64
 RASTER_HEIGHT = 64
 RASTER_TILE_OFFSET = (1, 0)
+RACER_PALETTE_RESOURCE_IDS = tuple(range(0x06, 0x16))
 RACER_GRAPHICS_RESOURCES = (
     (0x7F, 0x0000, "racer_obj_low_tiles"),
     (0x80, 0x1000, "racer_obj_high_tiles"),
@@ -418,13 +419,19 @@ def confident_frame_ids(rom: bytes) -> list[int]:
     return out
 
 
-def emit_frame_images(rom: bytes, frame_ids: Iterable[int], output_dir: Path) -> dict:
+def emit_frame_images(
+    rom: bytes,
+    frame_ids: Iterable[int],
+    output_dir: Path,
+    palette_asset_ids: Iterable[int] = (0x06,),
+) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
     manifest = []
     rom_digest = sha256(rom)
+    palette_asset_ids = tuple(palette_asset_ids)
     for frame_id in frame_ids:
         frame = extract_frame(rom, frame_id)
-        for palette_asset_id in (0x06, 0x07):
+        for palette_asset_id in palette_asset_ids:
             rgba = rasterize_frame_rgba(rom, frame, palette_asset_id)
             png = encode_png_rgba(RASTER_WIDTH, RASTER_HEIGHT, rgba)
             name = f"frame-{frame_id:04x}-pal{palette_asset_id:02x}.png"
@@ -459,6 +466,11 @@ def emit_frame_images(rom: bytes, frame_ids: Iterable[int], output_dir: Path) ->
             "every packed word resolves through the #216 DMA-source transform to a complete 32-byte ROM tile",
             "stable first-family lattice placement at object tile offset (1,0)",
         ],
+        "palette_family": {
+            "authority": "tools/extract_racer_asset_roundtrip.py",
+            "available_resource_ids": [f"0x{x:02X}" for x in RACER_PALETTE_RESOURCE_IDS],
+            "emitted_resource_ids": [f"0x{x:02X}" for x in palette_asset_ids],
+        },
         "orientation": {
             "canonical_images": "stored orientation",
             "runtime_rule": "apply OAM H/V flip afterward to the complete 64x64 object-local raster",
@@ -711,6 +723,22 @@ def build_manifest(rom: bytes) -> dict:
     }
 
 
+def parse_palette_assets(spec: str) -> tuple[int, ...]:
+    if spec.strip().lower() == "all":
+        return RACER_PALETTE_RESOURCE_IDS
+    out = []
+    for token in spec.split(","):
+        value = int(token.strip(), 0)
+        if value not in RACER_PALETTE_RESOURCE_IDS:
+            raise ValueError(
+                f"palette asset {value:#x} is outside established racer palette family 0x06..0x15"
+            )
+        out.append(value)
+    if not out:
+        raise ValueError("at least one palette asset is required")
+    return tuple(dict.fromkeys(out))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("rom", type=Path)
@@ -718,6 +746,11 @@ def main() -> int:
     ap.add_argument("--emit-images", type=Path, help="write deterministic transparent PNGs")
     ap.add_argument("--all-confident", action="store_true", help="rasterize every record satisfying the closed first-family contract")
     ap.add_argument("--bulk-manifest", type=Path, help="manifest for --emit-images output")
+    ap.add_argument(
+        "--palette-assets",
+        default="0x06",
+        help="comma-separated racer palette resource IDs, or 'all' (default: 0x06)",
+    )
     args = ap.parse_args()
     rom = args.rom.read_bytes()
     manifest = build_manifest(rom)
@@ -728,7 +761,9 @@ def main() -> int:
     print(text, end="")
     if args.emit_images:
         ids = confident_frame_ids(rom) if args.all_confident else sorted({row[3] for row in OBSERVED_STATES})
-        bulk = emit_frame_images(rom, ids, args.emit_images)
+        bulk = emit_frame_images(
+            rom, ids, args.emit_images, parse_palette_assets(args.palette_assets)
+        )
         if args.bulk_manifest:
             args.bulk_manifest.parent.mkdir(parents=True, exist_ok=True)
             args.bulk_manifest.write_text(json.dumps(bulk, indent=2, sort_keys=True) + "\n", encoding="utf-8")

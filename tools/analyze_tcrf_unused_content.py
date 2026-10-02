@@ -11,6 +11,11 @@ ROM_SIZE = 0x200000
 VERSION_OFFSET = 0x18000
 BUILD_DATE_OFFSET = 0x0541
 COMBO_SET_OFFSET = 0x0BD679
+TRACK_TYPE_TABLE_CPU = (0x83, 0xA254)
+TRACK_TYPE_TABLE_LENGTH = 50
+NORMAL_TRACK_COUNT = 45
+NORMAL_SELECTOR_WRAP_CPU = (0x80, 0xAE8C)
+TRACK_TYPE_LOAD_CPU = (0x83, 0x9996)
 
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -101,6 +106,17 @@ def analyze(rom: bytes) -> dict:
     combo_pointer_24 = combo_addr.to_bytes(2, "little") + bytes([combo_bank])
     combo_window = window(rom, COMBO_SET_OFFSET, 256)
     combo_backscan = window(rom, COMBO_SET_OFFSET - 0x800, 0x900)
+
+    track_table_offset = lorom_to_file(*TRACK_TYPE_TABLE_CPU)
+    track_table = rom[track_table_offset:track_table_offset + TRACK_TYPE_TABLE_LENGTH]
+    selector_wrap_offset = lorom_to_file(*NORMAL_SELECTOR_WRAP_CPU)
+    selector_wrap_bytes = rom[selector_wrap_offset:selector_wrap_offset + 8]
+    track_load_offset = lorom_to_file(*TRACK_TYPE_LOAD_CPU)
+    track_load_bytes = rom[track_load_offset:track_load_offset + 4]
+    after_track_table = rom[
+        track_table_offset + TRACK_TYPE_TABLE_LENGTH:
+        track_table_offset + TRACK_TYPE_TABLE_LENGTH + 4
+    ]
     return {
         "schema_version": 1,
         "purpose": "Mechanically reconcile fixed-offset claims from TCRF's Uniracers article against the canonical USA ROM.",
@@ -123,6 +139,43 @@ def analyze(rom: bytes) -> dict:
                 "reported_offset": BUILD_DATE_OFFSET,
                 "reported_offset_hex": f"0x{BUILD_DATE_OFFSET:06X}",
                 "window": window(rom, BUILD_DATE_OFFSET, 128),
+            },
+            "error_tour_selector_boundary": {
+                "current_track_wram": "7E:00CE",
+                "normal_track_count": NORMAL_TRACK_COUNT,
+                "normal_id_range": [0, NORMAL_TRACK_COUNT - 1],
+                "reported_hidden_id_range": [0x2D, 0x31],
+                "normal_selector_wrap": {
+                    "cpu_address": "80:AE8C",
+                    "file_offset": selector_wrap_offset,
+                    "bytes_hex": selector_wrap_bytes.hex(),
+                    "matches_cmp_2d_then_wrap_zero": selector_wrap_bytes
+                    == bytes.fromhex("c92d9004a9008500"),
+                },
+                "track_type_indexed_load": {
+                    "cpu_address": "83:9996",
+                    "file_offset": track_load_offset,
+                    "bytes_hex": track_load_bytes.hex(),
+                    "matches_lda_long_x_83a254": track_load_bytes
+                    == bytes.fromhex("bf54a283"),
+                },
+                "track_type_table": {
+                    "cpu_address": "83:A254",
+                    "file_offset": track_table_offset,
+                    "length": len(track_table),
+                    "all_50_values": list(track_table),
+                    "normal_45_values": list(track_table[:NORMAL_TRACK_COUNT]),
+                    "hidden_tail_5_values": list(track_table[NORMAL_TRACK_COUNT:]),
+                    "bytes_after_table_hex": after_track_table.hex(),
+                    "next_bytes_form_plausible_php_rep_prologue": after_track_table[:3]
+                    == bytes.fromhex("08c220"),
+                },
+                "interpretation": (
+                    "The ordinary selector wraps before 0x2D, but the same track-indexed "
+                    "type table contains five additional entries at indices 0x2D..0x31. "
+                    "This mechanically supports a deliberately addressable five-track "
+                    "out-of-range selector family; names and runtime presentation remain open."
+                ),
             },
             "unused_combo_message_set_9": {
                 "reported_offset": COMBO_SET_OFFSET,
@@ -156,7 +209,7 @@ def analyze(rom: bytes) -> dict:
             ),
             "limitations": [
                 "Fixed-offset presence does not by itself prove runtime reachability.",
-                "The Error Tour, boot-graphic overwrite, combo-message table cardinality/runtime reachability, and music selector reachability require separate structural or runtime checks.",
+                "Error Tour placeholder names/runtime presentation, boot-graphic overwrite, combo-message table cardinality/runtime reachability, and music selector reachability require separate structural or runtime checks.",
             ],
         },
     }

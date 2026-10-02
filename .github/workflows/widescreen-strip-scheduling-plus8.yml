@@ -237,6 +237,40 @@ jobs:
             --md-out analysis/generated/widescreen-secondary-prehelper.md
           cat analysis/generated/widescreen-secondary-prehelper.md
 
+      - name: Probe double-pass stock helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script"
+          ROOT="$RUNNER_TEMP/ws-doublepass"
+          mkdir -p "$ROOT/control/dumps" "$ROOT/doublepass/dumps" analysis/generated
+
+          URRECOMP_WS_MARGIN=0 \
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$SCRIPT" \
+          SNESREF_DUMP_DIR="$ROOT/control/dumps" \
+            "$EXE" "$CORE" "$ROM" >"$ROOT/control/run.log" 2>&1
+
+          URRECOMP_WS_MARGIN=8 \
+          URRECOMP_WS_MODE=doublepass \
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$SCRIPT" \
+          SNESREF_DUMP_DIR="$ROOT/doublepass/dumps" \
+            "$EXE" "$CORE" "$ROM" >"$ROOT/doublepass/run.log" 2>&1
+
+          python3 tools/analyze_widescreen_secondary_lane.py \
+            "$ROOT/control/run.log" "$ROOT/doublepass/run.log" \
+            --json-out analysis/generated/widescreen-doublepass.json \
+            --md-out analysis/generated/widescreen-doublepass.md
+          cat analysis/generated/widescreen-doublepass.md
+
       - name: Trace A59E strip preparation internals
         shell: bash
         run: |
@@ -283,6 +317,8 @@ jobs:
             analysis/generated/widescreen-secondary-lane.md
             analysis/generated/widescreen-secondary-prehelper.json
             analysis/generated/widescreen-secondary-prehelper.md
+            analysis/generated/widescreen-doublepass.json
+            analysis/generated/widescreen-doublepass.md
             ${{ runner.temp }}/ws-boundary/
             ${{ runner.temp }}/ws-edge-helper/
             ${{ runner.temp }}/ws-count32/
@@ -290,5 +326,6 @@ jobs:
             ${{ runner.temp }}/ws-xphase/
             ${{ runner.temp }}/ws-secondary/
             ${{ runner.temp }}/ws-secondary-pre/
+            ${{ runner.temp }}/ws-doublepass/
           if-no-files-found: warn
           retention-days: 7

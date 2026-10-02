@@ -99,6 +99,42 @@ jobs:
           test -n "$BEFORE"
           cp "$BEFORE" "$RUNNER_TEMP/before.srm"
 
+          python3 - "$DUMPS" "$RUNNER_TEMP/scan-summary.json" <<'PY'
+          from pathlib import Path
+          import json, re, sys
+          dumps, out = map(Path, sys.argv[1:])
+          rows = []
+          for p in sorted(dumps.glob("progression-*.wram.bin")):
+              w = p.read_bytes()
+              if len(w) != 0x20000:
+                  continue
+              m = re.search(r"progression-(before|scan-\d+)", p.name)
+              if not m:
+                  continue
+              rows.append({
+                  "tag": m.group(1),
+                  "menu_009f": w[0x009f],
+                  "selected_option_009b": w[0x009b],
+                  "track_00ce": w[0x00ce],
+                  "in_race_0313": w[0x0313],
+                  "tour_row_d0": w[0x00d0],
+                  "rider_017d": w[0x017d],
+                  "tour_progress": {
+                      "crawler_0a03": w[0x0a03],
+                      "jumper_0a07": w[0x0a07],
+                      "shuffler_0a0b": w[0x0a0b],
+                      "bounder_0a0f": w[0x0a0f],
+                      "walker_0a13": w[0x0a13],
+                      "runner_0a17": w[0x0a17],
+                      "hopper_0a1b": w[0x0a1b],
+                      "sprinter_0a1f": w[0x0a1f],
+                      "hunter_0a23": w[0x0a23],
+                  },
+              })
+          out.write_text(json.dumps(rows, indent=2) + "\n")
+          print(out.read_text())
+          PY
+
           python3 - "$RUNNER_TEMP/before.srm" "$DUMPS" "$RUNNER_TEMP/after.srm" "$RUNNER_TEMP/selected.txt" analysis/data/progression-model.json <<'PY'
           from pathlib import Path
           import json, sys
@@ -171,6 +207,7 @@ jobs:
           name: progression-sram-acceptance
           path: |
             ${{ runner.temp }}/smv.json
+            ${{ runner.temp }}/scan-summary.json
             ${{ runner.temp }}/before.srm
             ${{ runner.temp }}/after.srm
             ${{ runner.temp }}/selected.txt

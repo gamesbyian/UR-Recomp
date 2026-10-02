@@ -11,6 +11,8 @@ on:
       - "tools/analyze_racer_piece_render_binding.py"
       - "tools/analyze_racer_spatial_generalization.py"
       - "tools/analyze_racer_tile_upload_path.py"
+      - "tools/analyze_racer_composition_trace.py"
+      - "tools/instrument_snesref_racer_composition_trace.py"
       - "tools/extract_racer_asset_roundtrip.py"
       - "analysis/evidence/racer-presentation-observed-states.json"
 
@@ -76,6 +78,52 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/ordinary-2p"
           gh run download 36943103609 -n ordinary-2p-reference -D "$RUNNER_TEMP/ordinary-2p"
+      - name: Build synchronized racer composition reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qy
+          sudo apt-get install -qy build-essential cmake ninja-build pkg-config libsdl2-dev
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --tool snes9x-libretro --jobs 2
+          python3 tools/instrument_snesref_racer_composition_trace.py .tools/src/snes9x-libretro/cpuexec.cpp
+          make -C .tools/src/snes9x-libretro/libretro -j2
+          test -x .tools/src/snesrecomp/build-snesref/snesref
+          test -f .tools/src/snes9x-libretro/libretro/snes9x_libretro.so
+
+      - name: Capture synchronized racer composition
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/racer-composition-dumps"
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input" \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/racer-composition-dumps" \
+            .tools/src/snesrecomp/build-snesref/snesref \
+            .tools/src/snes9x-libretro/libretro/snes9x_libretro.so \
+            reference/roms/retail/Uniracers_USA.sfc \
+            >"$RUNNER_TEMP/racer-composition.log" 2>&1
+          grep 'RACERCOMP' "$RUNNER_TEMP/racer-composition.log" | tail -n 40 || true
+          python3 tools/analyze_racer_composition_trace.py \
+            "$RUNNER_TEMP/racer-composition.log" \
+            reference/roms/retail/Uniracers_USA.sfc \
+            --json-out "$RUNNER_TEMP/racer-composition-trace.json" \
+            --md-out "$RUNNER_TEMP/racer-composition-trace.md"
+          cat "$RUNNER_TEMP/racer-composition-trace.md"
+          python3 - <<'PY'
+          import json, os
+          p=json.load(open(os.path.join(os.environ["RUNNER_TEMP"],"racer-composition-trace.json")))
+          assert p["event_count"] > 0
+          assert all(str(x) in p["nearest_anchor_events"] for x in (1220,1420,1470,1520,1570,1620))
+          print("synchronized events", p["event_count"])
+          print("source exact", p["all_events_source_exact"])
+          print("anchor mismatches", {
+              k:v["mismatch_count"] for k,v in p["nearest_anchor_events"].items()
+          })
+          PY
+
       - name: Trace racer tile upload path
         run: |
           python3 tools/analyze_racer_tile_upload_path.py \
@@ -349,6 +397,9 @@ jobs:
             ${{ runner.temp }}/racer-primary-companion-overlay.json
             ${{ runner.temp }}/racer-tile-upload-path.json
             ${{ runner.temp }}/racer-tile-upload-path.md
+            ${{ runner.temp }}/racer-composition.log
+            ${{ runner.temp }}/racer-composition-trace.json
+            ${{ runner.temp }}/racer-composition-trace.md
             ${{ runner.temp }}/racer-raster/*.png
             ${{ runner.temp }}/racer-spatial-generalization.json
             ${{ runner.temp }}/racer-next-family-generalization.json

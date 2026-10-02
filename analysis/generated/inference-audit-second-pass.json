@@ -345,6 +345,53 @@
         "analysis/generated/sram-medal-progression-static-model-2026-10-01.md"
       ],
       "next_action": "Include this predicted checksum contribution in the next medal-winning save/load oracle."
+    },
+    {
+      "id": "IA2-R02",
+      "class": "cross_build_invariant",
+      "title": "Resource bundles are conserved across all four preserved builds",
+      "result": {
+        "builds": [
+          "usa-retail",
+          "europe-retail",
+          "legacy-beta",
+          "pal-prototype-1994-11-29"
+        ],
+        "conserved_carrier_counts": {
+          "0x03-0x08": 43,
+          "0x09-0x0B": 42,
+          "0x01-0x02": 45,
+          "0x16-0x18": 39,
+          "0x24": 36
+        },
+        "europe_changed_streams": [
+          4,
+          16,
+          20,
+          26,
+          27,
+          35,
+          36
+        ],
+        "europe_high_level_deltas": {
+          "same_resource_lists": [
+            4,
+            16,
+            20,
+            27,
+            35
+          ],
+          "switcher": "same dimensions/resources; spawn A Y changes 26 -> 22",
+          "down_up": "same dimensions/spawns; appends resource 0x22",
+          "vertical": "same dimensions/spawns; appends resource 0x22"
+        },
+        "implication": "Most PAL-retail course differences lie inside course-local content rather than the high-level resource-selection envelope."
+      },
+      "evidence": [
+        "analysis/data/course-resource-catalog.json",
+        "analysis/generated/course-resource-list-manifest.json"
+      ],
+      "next_action": "For regional fidelity, compare decoded fine/coarse course content first on streams 4/16/20/27/35; treat streams 26/36 as the bounded resource-selection exceptions."
     }
   ],
   "consolidation_changes": [

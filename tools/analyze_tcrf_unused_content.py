@@ -11,6 +11,8 @@ ROM_SIZE = 0x200000
 VERSION_OFFSET = 0x18000
 BUILD_DATE_OFFSET = 0x0541
 COMBO_SET_OFFSET = 0x0BD679
+COMBO_REGION_START = COMBO_SET_OFFSET - 0x800
+COMBO_REGION_SIZE = 0x900
 TRACK_TYPE_TABLE_CPU = (0x83, 0xA254)
 TRACK_TYPE_TABLE_LENGTH = 50
 NORMAL_TRACK_COUNT = 45
@@ -104,8 +106,11 @@ def analyze(rom: bytes) -> dict:
     combo_bank, combo_addr = file_to_lorom(COMBO_SET_OFFSET)
     combo_pointer_16 = combo_addr.to_bytes(2, "little")
     combo_pointer_24 = combo_addr.to_bytes(2, "little") + bytes([combo_bank])
+    combo_base_bank, combo_base_addr = file_to_lorom(COMBO_REGION_START)
+    combo_base_pointer_16 = combo_base_addr.to_bytes(2, "little")
+    combo_base_pointer_24 = combo_base_addr.to_bytes(2, "little") + bytes([combo_base_bank])
     combo_window = window(rom, COMBO_SET_OFFSET, 256)
-    combo_backscan = window(rom, COMBO_SET_OFFSET - 0x800, 0x900)
+    combo_backscan = window(rom, COMBO_REGION_START, COMBO_REGION_SIZE)
 
     track_table_offset = lorom_to_file(*TRACK_TYPE_TABLE_CPU)
     track_table = rom[track_table_offset:track_table_offset + TRACK_TYPE_TABLE_LENGTH]
@@ -185,6 +190,18 @@ def analyze(rom: bytes) -> dict:
                 "backscan_0x800_plus_window": combo_backscan,
                 "set_9_16bit_pointer_contexts": pointer_contexts(rom, combo_pointer_16),
                 "set_9_24bit_pointer_contexts": pointer_contexts(rom, combo_pointer_24),
+                "region_start": {
+                    "file_offset": COMBO_REGION_START,
+                    "file_offset_hex": f"0x{COMBO_REGION_START:06X}",
+                    "cpu_address": f"{combo_base_bank:02X}:{combo_base_addr:04X}",
+                    "size": COMBO_REGION_SIZE,
+                    "16bit_pointer_contexts": pointer_contexts(rom, combo_base_pointer_16),
+                    "24bit_pointer_contexts": pointer_contexts(rom, combo_base_pointer_24),
+                    "all_printable_ascii": len(combo_backscan["ascii_runs"]) == 1
+                    and combo_backscan["ascii_runs"][0]["offset"] == 0
+                    and combo_backscan["ascii_runs"][0]["length"] == COMBO_REGION_SIZE,
+                    "compatible_with_nine_0x100_groups": COMBO_REGION_SIZE == 9 * 0x100,
+                },
                 "reported_offset_begins_printable_message_text": bool(
                     combo_window["ascii_runs"]
                     and combo_window["ascii_runs"][0]["offset"] == 0

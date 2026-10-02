@@ -30,6 +30,7 @@ static const SnesDesktopHostGame kGameHost = {
         self.assertIn("RtlRollbackSaveToMemory", patched)
         self.assertIn("RtlRollbackSnapshotBound", patched)
         self.assertIn("RtlRollbackLoadFromMemory", patched)
+        self.assertIn("RtlSetRewindAudioTimingLock(true)", patched)
         self.assertIn('#include "netplay/snes_state_digest.h"', patched)
         self.assertIn("snes_state_digest_parts", patched)
         self.assertIn("snes_state_digest_first_diff", patched)

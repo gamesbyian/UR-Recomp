@@ -1,0 +1,77 @@
+name: Medal progression bounded search
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - chatgpt/medal-progression-acceptance-2026-10-02
+    paths:
+      - ".github/workflows/medal-progression-search.yml"
+      - "tests/input/medal-progression-search.script"
+      - "tools/locate_first_medal_award.py"
+
+concurrency:
+  group: medal-progression-search-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Extract exact historical input through 80k
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/extract_smv_input.py             reference/imported/tas-bots/dessyreqt-4250-submission.smv             --input-out "$RUNNER_TEMP/full.input"             --sram-out "$RUNNER_TEMP/start.srm"             --sram-size 8192             --json-out "$RUNNER_TEMP/smv.json" >/dev/null
+          python3 - "$RUNNER_TEMP/full.input" "$RUNNER_TEMP/first-81000.input" <<'PY'
+          from pathlib import Path
+          import sys
+          from tools.controller_input import load_controller_runs
+          src,out=map(Path,sys.argv[1:])
+          horizon=81000
+          lines=["# Exact historical controller input through medal search horizon."]
+          for run in load_controller_runs(src):
+              if run.start>=horizon: break
+              duration=min(run.duration,horizon-run.start)
+              if duration<=0: continue
+              row=f"{run.start}:{duration}:{run.p1_mask:03x}"
+              if run.p2_mask: row+=f":{run.p2_mask:03x}"
+              lines.append(row)
+          out.write_text("\n".join(lines)+"\n")
+          PY
+      - name: Build reference harness and Snes9x core
+        run: |
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+      - name: Run bounded medal search
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DUMPS="$RUNNER_TEMP/medal-dumps"
+          mkdir -p "$DUMPS" analysis/generated
+          SNESREF_HEADLESS=1           SNESREF_FAST=1           SNESREF_WRAM_FILL=0           SNESREF_SRAM_IN="$RUNNER_TEMP/start.srm"           SNESREF_INPUT_FILE="$RUNNER_TEMP/first-81000.input"           SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/medal-progression-search.script"           SNESREF_DUMP_DIR="$DUMPS"             "$EXE" "$CORE" "$ROM" | tee "$RUNNER_TEMP/medal-search.log"
+          python3 tools/locate_first_medal_award.py "$DUMPS"             --json-out analysis/generated/medal-progression-search.json
+      - name: Upload discriminator evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: medal-progression-search
+          path: |
+            analysis/generated/medal-progression-search.json
+            ${{ runner.temp }}/medal-search.log
+            ${{ runner.temp }}/medal-dumps/medal-*.sram.bin
+          if-no-files-found: warn
+          retention-days: 7

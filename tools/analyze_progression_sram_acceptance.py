@@ -28,6 +28,7 @@ def main():
     ap.add_argument("--after",type=Path,required=True)
     ap.add_argument("--reload",type=Path,required=True)
     ap.add_argument("--out",type=Path)
+    ap.add_argument("--require-medal",action="store_true")
     args=ap.parse_args()
     before=args.before.read_bytes(); after=args.after.read_bytes(); reload=args.reload.read_bytes()
     for name,data in [("before",before),("after",after),("reload",reload)]:
@@ -74,6 +75,13 @@ def main():
     if args.out:
         args.out.parent.mkdir(parents=True,exist_ok=True)
         args.out.write_text(payload,encoding="utf-8")
+    if args.require_medal:
+        report["checks"]["required_medal_change_observed"]=bool(medals) and medal_shape
+        report["all_checks_pass"]=all(report["checks"].values())
+        payload=json.dumps(report,indent=2)+"\n"
+        print("require-medal: "+("PASS" if report["all_checks_pass"] else "FAIL"))
+        if args.out:
+            args.out.write_text(payload,encoding="utf-8")
     if not report["all_checks_pass"]: return 1
     return 0
 if __name__=="__main__": raise SystemExit(main())

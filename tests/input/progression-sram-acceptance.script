@@ -1,9 +1,19 @@
-# Historical 2014 bot progression acceptance.
+# Historical 2014 bot medal-progression acceptance.
 # Controller input comes from SNESREF_INPUT_FILE.
-# Sample after SRAM initialization, then run far enough to cross at least one
-# game-authored medal-awarding result transition without poking state.
+# Baseline is after SRAM/frontend initialization but before first race entry (frame 794).
+# Later dumps form a bounded scan; workflow selects the first snapshot with a medal-matrix mutation.
 wait 750
 dump progression-before
-wait 9250
-dump progression-after
+wait 2250
+dump progression-scan-03000
+wait 3000
+dump progression-scan-06000
+wait 3000
+dump progression-scan-09000
+wait 3000
+dump progression-scan-12000
+wait 3000
+dump progression-scan-15000
+wait 3000
+dump progression-scan-18000
 quit

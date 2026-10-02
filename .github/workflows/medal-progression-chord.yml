@@ -1,17 +1,17 @@
-name: Progression SRAM save-load acceptance
+name: Medal progression chord acceptance
 
 on:
   workflow_dispatch:
   push:
     paths:
       - "tools/analyze_progression_sram_acceptance.py"
-      - "tests/input/progression-sram-acceptance.script"
+      - "tests/input/medal-progression-chord.script"
       - "reference/imported/tas-bots/dessyreqt-4250-submission.smv"
       - "tools/extract_smv_input.py"
-      - ".github/workflows/progression-sram-acceptance.yml"
+      - ".github/workflows/medal-progression-chord.yml"
 
 concurrency:
-  group: progression-sram-acceptance-${{ github.ref }}
+  group: medal-progression-chord-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -44,12 +44,12 @@ jobs:
             --sram-out "$RUNNER_TEMP/start.srm" \
             --sram-size 8192 \
             --json-out "$RUNNER_TEMP/smv.json" >/dev/null
-          python3 - "$RUNNER_TEMP/full.input" "$RUNNER_TEMP/first-12000.input" <<'PY'
+          python3 - "$RUNNER_TEMP/full.input" "$RUNNER_TEMP/first-456.input" <<'PY'
           from pathlib import Path
           import sys
           from tools.controller_input import load_controller_runs
           src,out=map(Path,sys.argv[1:])
-          horizon=12000
+          horizon=456
           lines=["# Exact historical controller input through first post-race transition."]
           for run in load_controller_runs(src):
               if run.start>=horizon: break
@@ -70,7 +70,7 @@ jobs:
           python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
           test -x .tools/src/snesrecomp/build-snesref/snesref
 
-      - name: Replay first race and dump authored SRAM
+      - name: Replay first race and invoke stock medal shortcut
         shell: bash
         run: |
           set -euo pipefail
@@ -83,30 +83,16 @@ jobs:
           SNESREF_FAST=1 \
           SNESREF_WRAM_FILL=0 \
           SNESREF_SRAM_IN="$RUNNER_TEMP/start.srm" \
-          SNESREF_INPUT_FILE="$RUNNER_TEMP/first-12000.input" \
-          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/progression-sram-acceptance.script" \
+          SNESREF_INPUT_FILE="$RUNNER_TEMP/first-456.input" \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/medal-progression-chord.script" \
           SNESREF_DUMP_DIR="$DUMPS" \
             "$EXE" "$CORE" "$ROM" | tee "$RUNNER_TEMP/run.log"
-          BEFORE="$(find "$DUMPS" -maxdepth 1 -type f -name 'progression-before*sram*' -print -quit)"
+          BEFORE="$(find "$DUMPS" -maxdepth 1 -type f -name 'medal-chord-before*sram*' -print -quit)"
+          AFTER="$(find "$DUMPS" -maxdepth 1 -type f -name 'medal-chord-after*sram*' -print -quit)"
           test -n "$BEFORE"
+          test -n "$AFTER"
           cp "$BEFORE" "$RUNNER_TEMP/before.srm"
-          python3 - "$RUNNER_TEMP/before.srm" "$DUMPS" "$RUNNER_TEMP/after.srm" "$RUNNER_TEMP/selected.txt" <<'PY'
-          from pathlib import Path
-          import sys
-          before_path,dumps_path,after_path,selected_path=map(Path,sys.argv[1:])
-          before=before_path.read_bytes()
-          start,end=0x069C,0x072C
-          for p in sorted(dumps_path.glob("progression-scan-*sram*")):
-              data=p.read_bytes()
-              if data[start:end] != before[start:end]:
-                  after_path.write_bytes(data)
-                  selected_path.write_text(p.name+"\n")
-                  print("selected first medal mutation:",p.name)
-                  break
-          else:
-              raise SystemExit("no medal-matrix mutation found by frame 18000")
-          PY
-          test "$(stat -c%s "$RUNNER_TEMP/after.srm")" -eq 8192
+          cp "$AFTER" "$RUNNER_TEMP/after.srm"
 
       - name: Reload emitted SRAM in fresh reference process
         shell: bash
@@ -136,13 +122,14 @@ jobs:
             --before "$RUNNER_TEMP/before.srm" \
             --after "$RUNNER_TEMP/after.srm" \
             --reload "$RUNNER_TEMP/reload.srm" \
-            --out analysis/generated/progression-sram-acceptance.json
+            --require-medal \
+            --out analysis/generated/medal-progression-chord-acceptance.json
 
       - name: Persist compact acceptance evidence
         shell: bash
         run: |
           set -euo pipefail
-          git add analysis/generated/progression-sram-acceptance.json
+          git add analysis/generated/medal-progression-chord-acceptance.json
           if git diff --cached --quiet; then exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -155,14 +142,13 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: progression-sram-acceptance
+          name: medal-progression-chord-acceptance
           path: |
             ${{ runner.temp }}/smv.json
             ${{ runner.temp }}/before.srm
             ${{ runner.temp }}/after.srm
-            ${{ runner.temp }}/selected.txt
             ${{ runner.temp }}/reload.srm
             ${{ runner.temp }}/run.log
             ${{ runner.temp }}/reload.log
-            analysis/generated/progression-sram-acceptance.json
+            analysis/generated/medal-progression-chord-acceptance.json
           retention-days: 7

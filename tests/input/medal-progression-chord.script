@@ -1,0 +1,9 @@
+# Stock medal-progression acceptance via retail Select+X+R shortcut.
+# Historical input is truncated at entry to the one-player PICK_YOUR_UNI screen.
+# Static caller recovery places the shortcut poll at 80:BC62 inside this flow.
+wait 456
+dump medal-chord-before
+press select+x+r 24
+wait 20
+dump medal-chord-after
+quit

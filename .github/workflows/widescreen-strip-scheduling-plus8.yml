@@ -72,11 +72,14 @@ jobs:
           b=d["stable_boundary"]
           if not b or b["later_camera_x_change"]:
               raise SystemExit("no isolated post-camera preparation hook")
+          if not b.get("a_equals_camera_x"):
+              raise SystemExit("settled camera X is not carried in A at the preparation seam")
           print(f"0x{b['candidate_hook_pc'] & 0xffff:04X}")
           PY
           )"
           echo "URRECOMP_WS_HOOK_PC=$HOOK" >> "$GITHUB_ENV"
-          echo "selected Widescreen preparation hook: $HOOK"
+          echo "URRECOMP_WS_BIAS_TARGET=A" >> "$GITHUB_ENV"
+          echo "selected Widescreen preparation hook: $HOOK target=A"
 
       - name: Run matched strip-preparation fixtures
         shell: bash
@@ -92,6 +95,7 @@ jobs:
             if [ "$MARGIN" = 0 ]; then SIDE=control; else SIDE=plus8; fi
             URRECOMP_WS_MARGIN="$MARGIN" \
             URRECOMP_WS_HOOK_PC="$URRECOMP_WS_HOOK_PC" \
+            URRECOMP_WS_BIAS_TARGET="$URRECOMP_WS_BIAS_TARGET" \
             SNESREF_HEADLESS=1             SNESREF_FAST=1             SNESREF_WRAM_FILL=0             SNESREF_SCRIPT="$SCRIPT"             SNESREF_DUMP_DIR="$ROOT/$SIDE/dumps"               "$EXE" "$CORE" "$ROM" >"$ROOT/$SIDE/run.log" 2>&1
             grep 'WSDMA\|WSPATCH' "$ROOT/$SIDE/run.log" | tail -n 20 || true
           done
@@ -111,6 +115,7 @@ jobs:
             if [ "$MARGIN" = 0 ]; then SIDE=control; else SIDE=plus8; fi
             URRECOMP_WS_MARGIN="$MARGIN" \
             URRECOMP_WS_HOOK_PC="$URRECOMP_WS_HOOK_PC" \
+            URRECOMP_WS_BIAS_TARGET="$URRECOMP_WS_BIAS_TARGET" \
             SNESREF_HEADLESS=1             SNESREF_FAST=1             SNESREF_WRAM_FILL=0             SNESREF_SCRIPT="$SCRIPT"             SNESREF_DUMP_DIR="$ROOT/$SIDE/dumps"               "$EXE" "$CORE" "$ROM" >"$ROOT/$SIDE/run.log" 2>&1
             python3 tools/summarize_object_liveness_probe.py               "$ROOT/$SIDE/dumps" --json-out "$ROOT/$SIDE/summary.json"               >"$ROOT/$SIDE/summary.txt"
           done

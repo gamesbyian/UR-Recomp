@@ -202,3 +202,7 @@ Do not run broad sweeps merely because instrumentation exists.
 ## First pass closeout — 2026-10-02
 
 The first audit is retained in `analysis/generated/inference-audit.{json,md}`. It closes the 45-course resource-cursor relationship, reduces shipped geometry to six fixed-area dimension families, identifies exact track-kind resource scaffolds and universal resource anchors, derives regional racer-slot spacing invariants, validates the presentation-record container equation, and defines a six-course generalization corpus. Renderer/preparation and +8 composition synthesis remain deferred to active PRs #203 and #206; progression prediction remains a later extension after that evidence stabilizes.
+
+## Second pass closeout — 2026-10-02
+
+The second audit is retained in `analysis/generated/inference-audit-second-pass.{json,md}`. It corrects the canonical RNC tour order, derives the 43/45 start-coordinate relation, identifies a three-signal stunt-course signature, expands the persistent P1/P2 interleaving model, rejects global regional-WRAM offsetting, normalizes progression for exact future predictions, and adds a presentation-header mask constraint.

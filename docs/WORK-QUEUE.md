@@ -12,6 +12,7 @@ The structural-island program has crossed from scarce capability into abundant c
 
 1. Finish the renderer-facing causal chain already underway: camera/window state → preparation/streaming → sprite/OAM/PPU emission → race rendering.
 2. Resolve the remaining separation between gameplay/object activation and presentation visibility. This is the highest-value semantic blocker for safe Widescreen.
+   - Immediate discriminator: choose the cheapest deterministic fixture where a known world object crosses the classic camera edge and record first `exists`, first behaviorally `active`, first preparation/update-list membership, first `drawn`, and first `visible` frame. Reuse the same capture to measure the preparation horizon. Stop after one representative object if the activation/preparation/render boundaries become mechanically distinguishable; generalize only when the first widened probe demands it.
 3. Close the finite stock-fidelity matrix: representative 1P movement/stunt/contact/finish, ordinary 2P isolated + simultaneous input, VS, save/load/progression, and the active-display OAM/raster seam. Treat event-relative authoritative agreement as the relevant invariant when host-frame cut points differ harmlessly.
 4. Define a **presentation-complete** course/rendering contract. Do not wait for an editor-complete course model.
 5. Start tiny deterministic Widescreen exposure probes (+8/+16/+24 source pixels where practical) once failures can be interpreted. Use the first failure to choose the next reverse-engineering task.

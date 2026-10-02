@@ -3,6 +3,7 @@ import unittest
 from tools.prototype_racer_hd_replacement import (
     alpha_bounds,
     flip_rgba,
+    lock_alpha,
     nearest_rgba,
     scale2x_rgba,
     scaled_bounds,
@@ -19,7 +20,7 @@ class RacerHdReplacementPrototypeTests(unittest.TestCase):
         src = red * 4
         self.assertEqual(scale2x_rgba(src, 2, 2), red * 16)
 
-    def test_scale2x_smooths_corner_without_changing_extent(self):
+    def test_alpha_lock_preserves_scaled_stock_extent(self):
         t = px(0, 0, 0, 0)
         w = px(255, 255, 255)
         src = b"".join([
@@ -27,7 +28,9 @@ class RacerHdReplacementPrototypeTests(unittest.TestCase):
             w, w, t,
             t, t, t,
         ])
-        out = scale2x_rgba(src, 3, 3)
+        candidate = scale2x_rgba(src, 3, 3)
+        reference = nearest_rgba(src, 3, 3, 2)
+        out = lock_alpha(candidate, reference)
         self.assertEqual(len(out), 6 * 6 * 4)
         self.assertEqual(alpha_bounds(out, 6, 6), scaled_bounds(alpha_bounds(src, 3, 3), 2))
 

@@ -26,7 +26,7 @@ jobs:
             --json-out "$RUNNER_TEMP/query.json" \
             --md-out "$RUNNER_TEMP/query.md"
       - name: Run focused regression
-        run: python3 -m pytest -q tests/unit/test_course_presentation_contract.py
+        run: python3 -m unittest discover -s tests/unit -p 'test_course_presentation_contract.py' -v
       - name: Persist generated contract
         shell: bash
         run: |

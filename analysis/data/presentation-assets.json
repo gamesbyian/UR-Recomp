@@ -1135,7 +1135,33 @@
           "82:B180 resolves palette assets through 5-byte table at 82:B32F"
         ],
         "runtime_fixture": "MesenCE ordinary 2P evidence",
-        "workflow_run": 36948109734
+        "workflow_run": 36948109734,
+        "widescreen_plus8_sequence_boundary": {
+          "status": "closed_for_current_widescreen_decision",
+          "event": "object-tail-141",
+          "control_sequence_selector": 1,
+          "plus8_sequence_selector": 3,
+          "sequence_cursor_both": 1,
+          "sequence_writer": "83:EB57 -> 82:8952/8956 -> STA $0DE9,Y; Y=2 targets P2 $0DEB",
+          "selector_source": "$7710B1 six-state presentation/frontend counter; 83:EB3F..EB51 maps 0/1->1, 2/3->3, 4/5->5",
+          "counter_raw_classes": {
+            "control": "0/1",
+            "plus8": "2/3"
+          },
+          "counter_writers": [
+            "83:C8EF..C8FB clamp/reset",
+            "83:C9E2..C9F2 modulo-6 advance"
+          ],
+          "control_frame_id": "0x0A45",
+          "plus8_frame_id": "0x0A8D",
+          "persistent_chain": "$0DEB -> $0F4F -> $0F97 -> $0FEB",
+          "first_vram_divergence": "object-tail-142",
+          "upload_chain": "83:F0BB -> 83:F296 -> 83:F2BB -> NMI DMA",
+          "oam_equal_through_early_gap": true,
+          "raw_counter_note": "Exact member within each two-value raw class is not directly dumped; that ambiguity cannot alter the selected sequence or causal conclusion.",
+          "evidence": "analysis/generated/widescreen-plus8-presentation-sequence-closure-2026-10-02.md",
+          "workflow_run": 36978866214
+        }
       },
       "inferred_record_structure": {
         "status": "mechanically_recovered",

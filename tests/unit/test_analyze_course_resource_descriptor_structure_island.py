@@ -21,6 +21,8 @@ class CourseResourceDescriptorIslandTest(unittest.TestCase):
         self.assertEqual(result["usa_end"], "82:B32E")
         self.assertEqual(result["next_region"], "82:B32F")
         self.assertEqual(result["relationship"]["descriptor_record_stride"], 5)
+        self.assertEqual(result["relationship"]["decompression_selector"], "descriptor flag $4D == $80")
+        self.assertEqual(result["relationship"]["decompression_target"], "81:B8F1")
         self.assertEqual(len(result["regions"]), 4)
         if mod.OUTJ.exists():
             import json

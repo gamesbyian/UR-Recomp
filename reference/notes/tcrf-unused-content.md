@@ -57,3 +57,17 @@ TCRF page text is CC BY 3.0 unless otherwise noted by the site. Media embedded o
 ## Manual duplicate cleanup
 
 The root-level `Uniracers_USA.pdf` supplied alongside this intake was byte-identical to the already preserved `reference/imported/manuals/Uniracers-USA-manual.pdf` (Git blob `a52da4f94a75e3e76fd61a759cb8e0c3a4fbc5d3`, SHA-256 `50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235`). The duplicate root copy was removed; the existing archived manual remains authoritative.
+
+## Completed binary intake
+
+The first TCRF-direct runner attempt was blocked by HTTP 403 before writing binaries. The repaired intake preserved the source-quality audio corpus from Zophar's copy of the same KungFuFurby rip, including the complete SPC archive. The chat-supplied MP3 derivatives remain fingerprinted above for identity comparison.
+
+| Repository file | Bytes | SHA-256 |
+|---|---:|---|
+| \`reference/imported/audio/zophar/91 Unused Song 1.mp3\` | 2766175 | \`dc61b18399fc24a21de3b9be264a6a0ae37deb82f7f16f7a71ff501b4cb9e76e\` |
+| \`reference/imported/audio/zophar/91 Unused Song 2.mp3\` | 9203791 | \`c1ead84f99aa30d41ead5537af03d3748d5a81e7c0e40e789537d39686322959\` |
+| \`reference/imported/audio/zophar/Uniracers (EMU).zophar.zip\` | 491821 | \`85a3f00cfe46cddd18caa714374ef54da6835f0d293557ce499de352b8d4fdb0\` |
+
+TCRF continued to block automated retrieval of the raw \`Uniracers-Decomp.png\` media file. The user-supplied rendered copy remains fingerprinted in this note; the ROM itself remains the authority for reproducing the underlying unused tile graphic.
+
+Musical Artifacts blocked automated retrieval of artifact 8387 from the runner. The exact user-supplied SoundFont remains fingerprinted above pending direct-byte ingestion through a binary-capable route.

@@ -71,7 +71,7 @@ jobs:
             --no-build
           PROJECT="$ROOT/UniracersSNESRecomp"
           python3 tools/seed_native_widescreen_aot.py "$PROJECT/recomp"
-          python3 -c 'from pathlib import Path; p=Path("'"$PROJECT/recomp/bank02.cfg"'"); p.write_text("bank = 2\\ntier_down_stubs\\n\\nfunc WidescreenPostConsume " + format(0xD000 + 0x2D1, "04X") + "\\n", encoding="utf-8")'
+          python3 -c 'from pathlib import Path; p=Path("'"$PROJECT/recomp/bank02.cfg"'"); s=p.read_text(encoding="utf-8") if p.exists() else "bank = 2\\ntier_down_stubs\\n"; m="func WidescreenPostConsume " + format(0xD000 + 0x2D1, "04X"); p.write_text(s if m in s else s + ("\\n" if s and not s.endswith("\\n") else "") + "\\n" + m + "\\n", encoding="utf-8")'
           python3 "$FRAMEWORK/snesrecomp_cli.py" generate \
             --rom "$ROM" \
             --project-root "$PROJECT" \

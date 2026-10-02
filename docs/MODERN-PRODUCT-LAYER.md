@@ -87,11 +87,30 @@ The pause integration therefore has a clean ownership chain:
 
 At no point does the pause path write guest memory or reinterpret stock pause/menu state.
 
+### Race-restart anchor
+
+Modern **Restart Race** is a host-product feature; the original pause flow exposes Continue/ Quit rather than a stock restart command. The implementation should therefore reproduce a valid initialized race state, not invent a guest input chord or reinterpret console reset.
+
+`native/product/race_restart_anchor.{hpp,cpp}` owns one exact in-memory machine snapshot for the current attempt. It is intentionally ignorant of Uniracers WRAM layout. Its lifecycle owner decides when a race has reached the accepted restart boundary, then calls `capture()` once. Later `restart()` restores those exact bytes through runtime-supplied snapshot hooks.
+
+The intended native binding is the existing SNESRecomp whole-machine API:
+
+- `RtlSaveSnapshotToMemory()` for capture;
+- `RtlLoadSnapshotFromMemory()` for restart.
+
+That path includes the machine/save-state domains already owned by the runtime instead of reconstructing race state field by field. The anchor uses the same conservative 2 MiB first-probe ceiling as the framework rewind/state tests and fails closed if capture does not fit or the runtime refuses it.
+
+For Uniracers, the current candidate lifecycle edge is the already established transition into active gameplay, `7E:0313 = 0 -> 1`, observed at a completed host frame through the title-specific `after_run_frame` hook. The exact capture frame still requires a native acceptance fixture before this becomes the shipping restart boundary. The anchor itself does not hard-code `$0313`, because state detection belongs to the title adapter rather than the storage primitive.
+
+A restart anchor is immutable for one attempt. Repeated capture requests do not silently move the restart point. Leaving/replacing the race must explicitly clear the anchor before the next race may capture one.
+
+`SessionRuntimeHooks::restart_race` is now optional. If no proven restart implementation is attached, the dispatcher returns `MissingHook`; if the runtime refuses a restore, it returns `RejectedByRuntime`. This keeps a UI button from becoming evidence that restart semantics are actually available.
+
 ## Extension points
 
 Do not add these systems to `HostProductState` merely because they are planned. Add narrow interfaces when there is a concrete runtime consumer:
 
-- **pause/restart:** connect the established `SessionControl` actions to an owned runtime adapter; prove suspend/resume cadence and deterministic race re-entry before treating restart as complete;
+- **pause/restart:** pause is connected to the owned host frame gate; wire the restart anchor into the generated Uniracers title hook and prove deterministic race re-entry before treating restart as complete;
 - **autosave/resume:** a coordinator that owns host save metadata while preserving guest SRAM as guest data;
 - **records/ghosts:** append-only run artifacts keyed by profile and course identity, sourced from observed authoritative race state;
 - **racer identity:** product data associated with a profile, explicitly separate from the original save-slot/unicycle coupling;
@@ -109,7 +128,9 @@ Every host-state schema or transition must have deterministic tests. At minimum:
 4. Authentic policy exposes no host profile/settings/modern-command capability;
 5. no new host schema field may silently acquire guest simulation or cartridge-save authority;
 6. Authentic session control rejects every modern command without changing phase;
-7. session actions are emitted deterministically, one at a time, and redundant pause/resume requests are explicit no-ops.
+7. session actions are emitted deterministically, one at a time, and redundant pause/resume requests are explicit no-ops;
+8. a race-restart anchor is captured at most once until explicitly cleared;
+9. failed capture/restore attempts fail closed without replacing a valid anchor or synthesizing guest state.
 
 The host-state and session-control C++ contracts are compiled and executed from `tests/unit/test_host_product_state_cpp.py` and `tests/unit/test_session_control_cpp.py`, so both participate in the lightweight project tooling test surface without requiring the external SNESRecomp build.
 

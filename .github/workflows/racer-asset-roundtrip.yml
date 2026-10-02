@@ -1,13 +1,26 @@
 name: Racer asset round-trip probe
 
 on:
-  push:
+  pull_request:
     branches:
-      - chatgpt/racer-asset-roundtrip-2026-10-01
+      - main
     paths:
       - "tools/extract_racer_presentation_family.py"
       - "tests/unit/test_extract_racer_presentation_family.py"
       - ".github/workflows/racer-asset-roundtrip.yml"
+      - "tools/analyze_racer_piece_render_binding.py"
+      - "tools/analyze_racer_spatial_generalization.py"
+      - "tools/analyze_racer_tile_upload_path.py"
+      - "tools/extract_racer_asset_roundtrip.py"
+      - "analysis/evidence/racer-presentation-observed-states.json"
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: racer-raster-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   probe:
@@ -19,16 +32,325 @@ jobs:
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
       - name: Run unit tests
         run: python3 -m unittest tests.unit.test_extract_racer_presentation_family -v
-      - name: Extract and round-trip representative racer family
+      - name: Extract, rasterize, and round-trip representative racer family
         run: |
-          python3 tools/extract_racer_presentation_family.py             "reference/roms/retail/Uniracers_USA.sfc"             --output analysis/generated/racer-presentation-family.json             | tee racer-presentation-family.txt
+          cp analysis/generated/racer-presentation-family.json "$RUNNER_TEMP/racer-presentation-family.committed.json"
+          python3 tools/extract_racer_presentation_family.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --output analysis/generated/racer-presentation-family.json \
+            --all-confident \
+            --palette-assets 0x06 \
+            --emit-images "$RUNNER_TEMP/racer-raster" \
+            --bulk-manifest "$RUNNER_TEMP/racer-raster-manifest.json" \
+            > racer-presentation-family.txt
+          python3 - <<'PY'
+          import json
+          m=json.load(open("analysis/generated/racer-presentation-family.json"))
+          import os
+          expected=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-presentation-family.committed.json")))
+          assert m == expected
+          bulk=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-raster-manifest.json")))
+          assert bulk["count"] >= 4
+          assert bulk["palette_family"]["emitted_resource_ids"] == ["0x06"]
+          assert bulk["palette_family"]["available_resource_ids"] == [f"0x{x:02X}" for x in range(0x06,0x16)]
+          assert all(img["piece_sources"] for img in bulk["images"])
+          assert all(p["source_sha256"] for img in bulk["images"] for p in img["piece_sources"])
+          PY
+      - name: Retain complete racer palette-family provenance
+        run: |
+          python3 tools/extract_racer_asset_roundtrip.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --evidence-json analysis/evidence/racer-presentation-observed-states.json \
+            --json-out "$RUNNER_TEMP/racer-resource-roundtrip.json" \
+            >/dev/null
+          python3 - <<'PY'
+          import json, os
+          p=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-resource-roundtrip.json")))
+          assert p["palette_family"]["resource_ids"] == list(range(0x06,0x16))
+          assert len(p["palette_family"]["entries"]) == 16
+          assert p["roundtrip"]["palettes_all_equal"] is True
+          PY
+      - name: Download retained ordinary-2P reference
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/ordinary-2p"
+          gh run download 36943103609 -n ordinary-2p-reference -D "$RUNNER_TEMP/ordinary-2p"
+      - name: Trace racer tile upload path
+        run: |
+          python3 tools/analyze_racer_tile_upload_path.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --dump-dir "$RUNNER_TEMP/ordinary-2p/native-dumps" \
+            --json-out "$RUNNER_TEMP/racer-tile-upload-path.json" \
+            --md-out "$RUNNER_TEMP/racer-tile-upload-path.md" \
+            > "$RUNNER_TEMP/racer-tile-upload-path.txt"
+          cat "$RUNNER_TEMP/racer-tile-upload-path.md"
+          python3 - <<'PY'
+          import json, os
+          p=json.load(open(os.path.join(os.environ["RUNNER_TEMP"],"racer-tile-upload-path.json")))
+          assert p["runtime_staging_checks"]
+          print("runtime staging byte matches:", [
+              (x["checkpoint"], x["exact_source_vram_matches"], x["valid_staging_entries"])
+              for x in p["runtime_staging_checks"]
+          ])
+          PY
+      - name: Test racer primary-companion composition
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          from tools.analyze_racer_piece_render_binding import (
+              decode_obsel, decode_oam_slot, object_tile_number, object_tile_vram_byte_address
+          )
+          from tools.extract_racer_presentation_family import extract_frame, piece_source_tile
+
+          root=Path(os.environ["RUNNER_TEMP"]) / "ordinary-2p" / "native-dumps"
+          rom=Path("reference/roms/retail/Uniracers_USA.sfc").read_bytes()
+          rows=[]
+
+          def u16(data,off): return data[off] | (data[off+1]<<8)
+          def layer(fid):
+              if fid == 0:
+                  return {}
+              f=extract_frame(rom,fid)
+              return {
+                  (1+p["minor_slot"],p["major_slot"]): piece_source_tile(rom,int(p["word_hex"],16))[0]
+                  for p in f["pieces"]
+              }
+
+          for wp in sorted(root.glob("two-player-*.wram.bin")):
+              tag=wp.name[:-9]
+              vp=root/f"{tag}.vram.bin"; op=root/f"{tag}.oam.bin"; rp=root/f"{tag}.regs.json"
+              if not (vp.exists() and op.exists() and rp.exists()): continue
+              wram=wp.read_bytes(); vram=vp.read_bytes(); oam=op.read_bytes()
+              obsel=decode_obsel(int(json.loads(rp.read_text())["obsel"]))
+              slots=[decode_oam_slot(oam,s,obsel) for s in (96,97,98,99)]
+              for player,(pri_off,comp_off,attr) in enumerate(((0x0FE9,0x0D3F,0x66),(0x0FEB,0x0D41,0x68)),1):
+                  primary=u16(wram,pri_off); companion=u16(wram,comp_off)
+                  pmap=layer(primary); cmap=layer(companion)
+                  for slot in [s for s in slots if s["large"] and s["attr"]==attr]:
+                      actual={}
+                      for gy in range(8):
+                          for gx in range(8):
+                              tn=object_tile_number(slot["tile"],gx,gy)
+                              addr=object_tile_vram_byte_address(obsel,slot,tn)
+                              raw=vram[addr:addr+32]
+                              if any(raw):
+                                  actual[(gx,gy)]=raw
+                      variants={}
+                      for name,first,second in (
+                          ("primary_then_companion",pmap,cmap),
+                          ("companion_then_primary",cmap,pmap),
+                      ):
+                          merged=dict(first); merged.update(second)
+                          merged={k:v for k,v in merged.items() if any(v)}
+                          variants[name]={
+                              "position_and_bytes_equal": merged==actual,
+                              "occupancy_equal": set(merged)==set(actual),
+                              "tile_multiset_equal": sorted(x.hex() for x in merged.values())==sorted(x.hex() for x in actual.values()),
+                              "tile_count":len(merged),
+                          }
+                      rows.append({
+                          "checkpoint":tag,"player":player,
+                          "primary_id":f"0x{primary:04X}","companion_id":f"0x{companion:04X}",
+                          "oam_slot":slot["slot"],"actual_tile_count":len(actual),
+                          "variants":variants,
+                      })
+          out={"schema_version":1,"rows":rows}
+          out["exact_variant_matches"]=sum(
+              v["position_and_bytes_equal"] for r in rows for v in r["variants"].values()
+          )
+          Path(os.environ["RUNNER_TEMP"],"racer-primary-companion-overlay.json").write_text(
+              json.dumps(out,indent=2,sort_keys=True)+"\n"
+          )
+          print(json.dumps(out,indent=2,sort_keys=True))
+          PY
+      - name: Resolve retained VRAM byte phase
+        run: |
+          python3 tools/analyze_racer_piece_render_binding.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --dump-dir "$RUNNER_TEMP/ordinary-2p/native-dumps" \
+            --json-out "$RUNNER_TEMP/racer-piece-binding.json" \
+            >/dev/null
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          from tools.analyze_racer_piece_render_binding import (
+              object_nonzero_grid,
+              object_tile_number,
+              object_tile_vram_byte_address,
+          )
+          from tools.extract_racer_presentation_family import (
+              confident_frame_ids,
+              extract_frame,
+              piece_source_tile,
+          )
+
+          binding=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-piece-binding.json")))
+          dump_dir=Path(os.environ["RUNNER_TEMP"]) / "ordinary-2p" / "native-dumps"
+          rom=Path("reference/roms/retail/Uniracers_USA.sfc").read_bytes()
+          ids=confident_frame_ids(rom)
+
+          # Precompute candidate object-local tile maps once.
+          candidates=[]
+          for fid in ids:
+              frame=extract_frame(rom,fid)
+              tiles={}
+              for piece in frame["pieces"]:
+                  pos=(1+piece["minor_slot"],piece["major_slot"])
+                  raw,_=piece_source_tile(rom,int(piece["word_hex"],16))
+                  tiles[pos]=raw
+              candidates.append((fid,tiles))
+
+          rows=[]
+          total_exact=0
+          total_multiset_exact=0
+          for cp in binding["checkpoints"]:
+              vram=(dump_dir / f"{cp['checkpoint']}.vram.bin").read_bytes()
+              for player in cp["players"]:
+                  persistent=int(player["frame_id"],16)
+                  for slot in player["large_oam_slots"]:
+                      actual_grid=object_nonzero_grid(vram, cp["obsel"], slot)
+                      actual_positions={
+                          (gx,gy)
+                          for gy,row in enumerate(actual_grid)
+                          for gx,present in enumerate(row)
+                          if present
+                      }
+                      actual_tiles={}
+                      for gx,gy in actual_positions:
+                          tile_num=object_tile_number(slot["tile"],gx,gy)
+                          addr=object_tile_vram_byte_address(cp["obsel"],slot,tile_num)
+                          actual_tiles[(gx,gy)]=vram[addr:addr+32]
+
+                      matches=[]
+                      multiset_matches=[]
+                      occupancy_candidates=0
+                      actual_multiset=sorted(raw.hex() for raw in actual_tiles.values())
+                      for fid,tiles in candidates:
+                          if len(tiles) == len(actual_tiles):
+                              candidate_multiset=sorted(raw.hex() for raw in tiles.values())
+                              if candidate_multiset == actual_multiset:
+                                  multiset_matches.append({
+                                      "frame_id":f"0x{fid:04X}",
+                                      "delta_from_persistent":fid-persistent,
+                                  })
+                          if set(tiles) != actual_positions:
+                              continue
+                          occupancy_candidates += 1
+                          if all(actual_tiles[pos] == raw for pos,raw in tiles.items()):
+                              matches.append({
+                                  "frame_id":f"0x{fid:04X}",
+                                  "delta_from_persistent":fid-persistent,
+                              })
+                      total_exact += len(matches)
+                      total_multiset_exact += len(multiset_matches)
+                      rows.append({
+                          "checkpoint":cp["checkpoint"],
+                          "player":player["player"],
+                          "persistent_frame_id":player["frame_id"],
+                          "oam_slot":slot["slot"],
+                          "occupied_tiles":len(actual_positions),
+                          "occupancy_compatible_frame_count":occupancy_candidates,
+                          "exact_byte_matches":matches,
+                          "position_independent_tile_multiset_matches":multiset_matches,
+                      })
+
+          out={
+              "schema_version":2,
+              "purpose":"Exhaustively test whether retained racer VRAM objects equal any contract-compatible packed-word ROM source reconstruction.",
+              "candidate_frame_count":len(ids),
+              "exact_match_count":total_exact,
+              "position_independent_multiset_match_count":total_multiset_exact,
+              "rows":rows,
+              "interpretation":(
+                  "at least one packed-word source reconstruction exactly matches retained VRAM"
+                  if total_exact
+                  else (
+                      "no positioned byte match exists, but one or more records contain the exact tile payload multiset"
+                      if total_multiset_exact
+                      else "no contract-compatible frame even contains the exact retained tile payload multiset; multi-record composition or a different source interpretation is required"
+                  )
+              ),
+          }
+          Path(os.environ["RUNNER_TEMP"],"racer-vram-byte-phase.json").write_text(
+              json.dumps(out,indent=2,sort_keys=True)+"\n"
+          )
+          print(json.dumps(out,indent=2,sort_keys=True))
+          assert len(ids) >= 5000
+          assert rows
+          PY
+      - name: Generalize across distinct retained racer states
+        run: |
+          python3 tools/analyze_racer_spatial_generalization.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --dump-dir "$RUNNER_TEMP/ordinary-2p/native-dumps" \
+            --json-out "$RUNNER_TEMP/racer-spatial-generalization.json" \
+            >/dev/null
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          from tools.extract_racer_presentation_family import (
+              extract_frame,
+              rasterize_frame_rgba,
+          )
+
+          report=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-spatial-generalization.json")))
+          assert report["summary"]["exact_persistent_id_bindings"] >= 8
+          assert report["summary"]["all_unique_bindings_at_1_0"] is True
+
+          exact=[]
+          for cp in report["checkpoints"]:
+              for player in cp["players"]:
+                  for binding in player["unique_nearby_bindings"]:
+                      if binding["delta_from_persistent"] == 0:
+                          exact.append({
+                              "checkpoint": cp["checkpoint"],
+                              "player": player["player"],
+                              **binding,
+                          })
+
+          ids=sorted({row["frame_id"] for row in exact})
+          assert any(fid < 0x0500 for fid in ids), ids
+          rom_path=Path("reference/roms/retail/Uniracers_USA.sfc")
+          rom=rom_path.read_bytes()
+          raster_hashes={}
+          for fid in ids:
+              frame=extract_frame(rom, fid)
+              rgba=rasterize_frame_rgba(rom, frame, 0x06)
+              raster_hashes[f"0x{fid:04X}"]=hashlib.sha256(rgba).hexdigest()
+
+          out={
+              "schema_version": 1,
+              "purpose": "Cheap retained-evidence generalization beyond the initial 0x054x racer presentation cluster.",
+              "exact_persistent_frame_ids": [f"0x{x:04X}" for x in ids],
+              "all_exact_frames_rasterized": len(raster_hashes) == len(ids),
+              "all_unique_spatial_bindings_at_1_0": report["summary"]["all_unique_bindings_at_1_0"],
+              "palette_0x06_rgba_sha256": raster_hashes,
+          }
+          out_path=Path(os.environ["RUNNER_TEMP"]) / "racer-next-family-generalization.json"
+          out_path.write_text(json.dumps(out, indent=2, sort_keys=True) + "\n")
+          print(json.dumps(out, indent=2, sort_keys=True))
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: racer-presentation-roundtrip
           path: |
             analysis/generated/racer-presentation-family.json
-            racer-presentation-family.generated.json
             racer-presentation-family.txt
+            ${{ runner.temp }}/racer-raster-manifest.json
+            ${{ runner.temp }}/racer-resource-roundtrip.json
+            ${{ runner.temp }}/racer-vram-byte-phase.json
+            ${{ runner.temp }}/racer-primary-companion-overlay.json
+            ${{ runner.temp }}/racer-tile-upload-path.json
+            ${{ runner.temp }}/racer-tile-upload-path.md
+            ${{ runner.temp }}/racer-raster/*.png
+            ${{ runner.temp }}/racer-spatial-generalization.json
+            ${{ runner.temp }}/racer-next-family-generalization.json
           retention-days: 7
           if-no-files-found: error

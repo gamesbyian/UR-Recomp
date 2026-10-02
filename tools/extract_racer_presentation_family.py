@@ -14,6 +14,8 @@ import argparse
 from dataclasses import dataclass
 import hashlib
 import json
+import struct
+import zlib
 from pathlib import Path
 from typing import Iterable
 
@@ -26,6 +28,10 @@ PALETTE_TABLE_BANK = 0x82
 PALETTE_TABLE_ADDR = 0xB32F
 PALETTE_ENTRY_SIZE = 5
 TILE_BYTES_4BPP = 32
+RASTER_WIDTH = 64
+RASTER_HEIGHT = 64
+RASTER_TILE_OFFSET = (1, 0)
+RACER_PALETTE_RESOURCE_IDS = tuple(range(0x06, 0x16))
 RACER_GRAPHICS_RESOURCES = (
     (0x7F, 0x0000, "racer_obj_low_tiles"),
     (0x80, 0x1000, "racer_obj_high_tiles"),
@@ -266,6 +272,243 @@ def decode_bgr555(payload: bytes) -> list[dict[str, int]]:
     return colors
 
 
+
+def decode_4bpp_tile(data: bytes) -> list[list[int]]:
+    """Decode one SNES planar 4bpp tile to 8x8 palette indices."""
+    if len(data) != TILE_BYTES_4BPP:
+        raise ValueError("SNES 4bpp tile must be exactly 32 bytes")
+    rows: list[list[int]] = []
+    for y in range(8):
+        p0, p1 = data[y * 2:y * 2 + 2]
+        p2, p3 = data[16 + y * 2:16 + y * 2 + 2]
+        row = []
+        for x in range(8):
+            bit = 7 - x
+            row.append(
+                ((p0 >> bit) & 1)
+                | (((p1 >> bit) & 1) << 1)
+                | (((p2 >> bit) & 1) << 2)
+                | (((p3 >> bit) & 1) << 3)
+            )
+        rows.append(row)
+    return rows
+
+
+def packed_word_source(word: int) -> tuple[int, int]:
+    """Recover the exact 32-byte DMA source selected by 83:F20F..F227.
+
+    #216 proves $15A1 supplies DMA source bank and $1645 supplies source
+    address. Packed low bits 1..0 are intentionally absent from this mapping.
+    """
+    source_addr = 0x8000 | (((word >> 8) & 0xFF) << 5)
+    source_bank = 0x27 + (((word & 0x00FC) >> 2) & 0x3F)
+    return source_bank, source_addr
+
+
+def piece_source_tile(rom: bytes, word: int) -> tuple[bytes, dict]:
+    bank, addr = packed_word_source(word)
+    off = lorom_offset(bank, addr)
+    raw = rom[off:off + TILE_BYTES_4BPP]
+    if len(raw) != TILE_BYTES_4BPP:
+        raise ValueError(f"piece tile source {snes(bank, addr)} is outside ROM")
+    return raw, {
+        "source_snes": snes(bank, addr),
+        "source_rom_offset": off,
+        "source_length": TILE_BYTES_4BPP,
+        "source_sha256": sha256(raw),
+    }
+
+
+def bgr555_rgba(word: int, transparent: bool = False) -> tuple[int, int, int, int]:
+    r5 = word & 0x1F
+    g5 = (word >> 5) & 0x1F
+    b5 = (word >> 10) & 0x1F
+    expand = lambda v: (v << 3) | (v >> 2)
+    return (expand(r5), expand(g5), expand(b5), 0 if transparent else 255)
+
+
+def rgba_palette(rom: bytes, asset_id: int) -> list[tuple[int, int, int, int]]:
+    ent = palette_entry(rom, asset_id)
+    if ent.compressed_flag:
+        raise ValueError("racer palette unexpectedly uses compressed loader path")
+    off = lorom_offset(ent.source_bank, ent.source_addr)
+    payload = rom[off:off + ent.length]
+    colors = decode_bgr555(payload)
+    if len(colors) < 16:
+        raise ValueError("racer palette has fewer than 16 colors")
+    return [bgr555_rgba(c["word"], transparent=(i == 0)) for i, c in enumerate(colors[:16])]
+
+
+def rasterize_frame_rgba(
+    rom: bytes,
+    frame: dict,
+    palette_asset_id: int,
+    *,
+    hflip: bool = False,
+    vflip: bool = False,
+) -> bytes:
+    """Rasterize one frame in its 64x64 large-OBJ local coordinate system."""
+    palette = rgba_palette(rom, palette_asset_id)
+    pixels = bytearray(RASTER_WIDTH * RASTER_HEIGHT * 4)
+    ox, oy = RASTER_TILE_OFFSET
+    for piece in frame["pieces"]:
+        raw, _ = piece_source_tile(rom, int(piece["word_hex"], 16))
+        tile = decode_4bpp_tile(raw)
+        gx = ox + piece["minor_slot"]
+        gy = oy + piece["major_slot"]
+        for ty, row in enumerate(tile):
+            for tx, ci in enumerate(row):
+                x = gx * 8 + tx
+                y = gy * 8 + ty
+                if hflip:
+                    x = RASTER_WIDTH - 1 - x
+                if vflip:
+                    y = RASTER_HEIGHT - 1 - y
+                q = (y * RASTER_WIDTH + x) * 4
+                pixels[q:q + 4] = bytes(palette[ci])
+    return bytes(pixels)
+
+
+def encode_png_rgba(width: int, height: int, rgba: bytes) -> bytes:
+    """Deterministic dependency-free PNG encoder for 8-bit RGBA."""
+    if len(rgba) != width * height * 4:
+        raise ValueError("RGBA payload length does not match dimensions")
+    sig = b"\x89PNG\r\n\x1a\n"
+    def chunk(kind: bytes, payload: bytes) -> bytes:
+        body = kind + payload
+        return struct.pack(">I", len(payload)) + body + struct.pack(">I", zlib.crc32(body) & 0xFFFFFFFF)
+    rows = b"".join(
+        b"\x00" + rgba[y * width * 4:(y + 1) * width * 4]
+        for y in range(height)
+    )
+    return (
+        sig
+        + chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0))
+        + chunk(b"IDAT", zlib.compress(rows, 9))
+        + chunk(b"IEND", b"")
+    )
+
+
+def frame_raster_metadata(rom: bytes, frame: dict, palette_asset_id: int) -> dict:
+    rgba = rasterize_frame_rgba(rom, frame, palette_asset_id)
+    png = encode_png_rgba(RASTER_WIDTH, RASTER_HEIGHT, rgba)
+    return {
+        "palette_asset_id": f"0x{palette_asset_id:02X}",
+        "dimensions": [RASTER_WIDTH, RASTER_HEIGHT],
+        "origin": [0, 0],
+        "occupancy_tile_offset": list(RASTER_TILE_OFFSET),
+        "stored_orientation": {"hflip": False, "vflip": False},
+        "rgba_sha256": sha256(rgba),
+        "png_sha256": sha256(png),
+        "transparent_palette_index": 0,
+    }
+
+
+def confident_frame_ids(rom: bytes) -> list[int]:
+    """Enumerate records satisfying the closed 30-cell contract and valid tile sources."""
+    max_id = ((0x10000 - FRAME_TABLE_ADDR) // FRAME_ENTRY_SIZE) - 2
+    out = []
+    for frame_id in range(max_id + 1):
+        try:
+            frame = extract_frame(rom, frame_id)
+            for piece in frame["pieces"]:
+                piece_source_tile(rom, int(piece["word_hex"], 16))
+        except (ValueError, IndexError):
+            continue
+        out.append(frame_id)
+    return out
+
+
+def emit_frame_images(
+    rom: bytes,
+    frame_ids: Iterable[int],
+    output_dir: Path,
+    palette_asset_ids: Iterable[int] = (0x06,),
+) -> dict:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    manifest = []
+    rom_digest = sha256(rom)
+    palette_asset_ids = tuple(palette_asset_ids)
+    runtime_observed_ids = {row[3] for row in OBSERVED_STATES}
+    for frame_id in frame_ids:
+        frame = extract_frame(rom, frame_id)
+        for palette_asset_id in palette_asset_ids:
+            rgba = rasterize_frame_rgba(rom, frame, palette_asset_id)
+            png = encode_png_rgba(RASTER_WIDTH, RASTER_HEIGHT, rgba)
+            name = f"frame-{frame_id:04x}-pal{palette_asset_id:02x}.png"
+            path = output_dir / name
+            path.write_bytes(png)
+            piece_sources = []
+            for piece in frame["pieces"]:
+                _, provenance = piece_source_tile(rom, int(piece["word_hex"], 16))
+                piece_sources.append({
+                    "word_index": piece["word_index"],
+                    "word_hex": piece["word_hex"],
+                    "major_slot": piece["major_slot"],
+                    "minor_slot": piece["minor_slot"],
+                    **provenance,
+                })
+            manifest.append({
+                "frame_id": f"0x{frame_id:04X}",
+                "palette_asset_id": f"0x{palette_asset_id:02X}",
+                "path": name,
+                "png_sha256": sha256(png),
+                "rgba_sha256": sha256(rgba),
+                "dimensions": [RASTER_WIDTH, RASTER_HEIGHT],
+                "origin": [0, 0],
+                "occupancy_header": frame["record_header_hex"],
+                "source_record": {
+                    "snes": frame["source_snes"],
+                    "rom_offset": frame["source_rom_offset"],
+                    "sha256": frame["record_sha256"],
+                },
+                "piece_sources": piece_sources,
+                "rom_sha256": rom_digest,
+                "orientation": {"hflip": False, "vflip": False},
+                "semantic_role": (
+                    "retained ordinary-2P runtime-observed frame"
+                    if frame_id in runtime_observed_ids
+                    else None
+                ),
+                "uncertainty": (
+                    None
+                    if frame_id in runtime_observed_ids
+                    else {
+                        "semantic_role": "not yet classified by a retained runtime observation",
+                        "raster_reconstruction": None,
+                    }
+                ),
+            })
+    return {
+        "schema_version": 2,
+        "family": "racer-presentation-contract-compatible-corpus",
+        "rom_sha256": rom_digest,
+        "confidence_scope": {
+            "raster_reconstruction": "mechanically decoded from packed-word DMA source candidates; retained VRAM phase matching is reported separately by CI",
+            "semantic_animation_role": "known only for retained runtime-observed IDs; otherwise intentionally unclassified",
+        },
+        "confidence_basis": [
+            "monotonic same-bank frame boundary",
+            "four-byte 30-cell occupancy header",
+            "record length equals header popcount-derived packed-word count",
+            "every packed word resolves through the #216 staging transform to a complete 32-byte ROM source candidate",
+            "stable first-family lattice placement at object tile offset (1,0)",
+        ],
+        "palette_family": {
+            "authority": "tools/extract_racer_asset_roundtrip.py",
+            "available_resource_ids": [f"0x{x:02X}" for x in RACER_PALETTE_RESOURCE_IDS],
+            "emitted_resource_ids": [f"0x{x:02X}" for x in palette_asset_ids],
+        },
+        "orientation": {
+            "canonical_images": "stored orientation",
+            "runtime_rule": "apply OAM H/V flip afterward to the complete 64x64 object-local raster",
+        },
+        "count": len(manifest),
+        "images": manifest,
+    }
+
+
+
 def extract_frame(rom: bytes, frame_id: int) -> dict:
     ptr = frame_pointer(rom, frame_id)
     length, next_boundary = infer_record_length(rom, frame_id, ptr)
@@ -274,6 +517,7 @@ def extract_frame(rom: bytes, frame_id: int) -> dict:
     if len(raw) != length:
         raise ValueError("truncated racer presentation record")
     record = decode_frame_record(raw)
+    pieces = decode_piece_mapping(record)
     return {
         "frame_id": frame_id,
         "frame_id_hex": f"0x{frame_id:04X}",
@@ -297,7 +541,7 @@ def extract_frame(rom: bytes, frame_id: int) -> dict:
             "reserved_zero_bits": ["byte3.bit1", "byte3.bit0"],
             "reserved_zero_value": record.header[3] & 0x03,
         },
-        "pieces": decode_piece_mapping(record),
+        "pieces": pieces,
         "roundtrip_equal": record.repack() == raw and ptr.repack() == ptr.entry,
     }
 
@@ -476,10 +720,34 @@ def build_manifest(rom: bytes) -> dict:
     }
 
 
+def parse_palette_assets(spec: str) -> tuple[int, ...]:
+    if spec.strip().lower() == "all":
+        return RACER_PALETTE_RESOURCE_IDS
+    out = []
+    for token in spec.split(","):
+        value = int(token.strip(), 0)
+        if value not in RACER_PALETTE_RESOURCE_IDS:
+            raise ValueError(
+                f"palette asset {value:#x} is outside established racer palette family 0x06..0x15"
+            )
+        out.append(value)
+    if not out:
+        raise ValueError("at least one palette asset is required")
+    return tuple(dict.fromkeys(out))
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("rom", type=Path)
     ap.add_argument("--output", type=Path)
+    ap.add_argument("--emit-images", type=Path, help="write deterministic transparent PNGs")
+    ap.add_argument("--all-confident", action="store_true", help="rasterize every record satisfying the closed first-family contract")
+    ap.add_argument("--bulk-manifest", type=Path, help="manifest for --emit-images output")
+    ap.add_argument(
+        "--palette-assets",
+        default="0x06",
+        help="comma-separated racer palette resource IDs, or 'all' (default: 0x06)",
+    )
     args = ap.parse_args()
     rom = args.rom.read_bytes()
     manifest = build_manifest(rom)
@@ -488,6 +756,15 @@ def main() -> int:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(text, encoding="utf-8")
     print(text, end="")
+    if args.emit_images:
+        ids = confident_frame_ids(rom) if args.all_confident else sorted({row[3] for row in OBSERVED_STATES})
+        bulk = emit_frame_images(
+            rom, ids, args.emit_images, parse_palette_assets(args.palette_assets)
+        )
+        if args.bulk_manifest:
+            args.bulk_manifest.parent.mkdir(parents=True, exist_ok=True)
+            args.bulk_manifest.write_text(json.dumps(bulk, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        print(f"emitted {bulk['count']} PNGs from {len(ids)} confident frames", file=__import__("sys").stderr)
     return 0
 
 

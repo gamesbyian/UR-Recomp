@@ -121,6 +121,15 @@ def main() -> int:
         raise SystemExit(f"expected 2 Run frameadvance sites, found {text.count(call)}")
     text = text.replace(call, call + "\n            URProgressionMonitor()")
 
+    tail = "--snes9x.speedmode(\"nothrottle\")\nRun()"
+    if text.count(tail) != 1:
+        raise SystemExit("historical Run invocation changed")
+    text = text.replace(
+        tail,
+        'snes9x.speedmode("maximum")\nRun()',
+        1,
+    )
+
     args.output.write_text(text, encoding="utf-8")
     print(args.output)
     return 0

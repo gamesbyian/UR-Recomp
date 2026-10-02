@@ -54,12 +54,19 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p analysis/generated
+          rc=0
           python3 tools/inspect_native_widescreen_prep_anchor.py \
             "$RUNNER_TEMP/native/UniracersSNESRecomp/src/gen" \
             --radius 32 \
             --json-out analysis/generated/widescreen-native-prep-anchor.json \
-            --md-out analysis/generated/widescreen-native-prep-anchor.md
+            --md-out analysis/generated/widescreen-native-prep-anchor.md || rc=$?
           cat analysis/generated/widescreen-native-prep-anchor.md
+          # Exit 2 means the requested seam is not in the current generated
+          # AOT closure. That is a valid reconnaissance result, not a runner
+          # failure. Preserve the evidence and fail only on unexpected errors.
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then
+            exit "$rc"
+          fi
 
       - name: Upload compact anchor evidence
         if: always()

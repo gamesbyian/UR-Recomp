@@ -34,6 +34,7 @@ static const SnesDesktopHostGame kGameHost = {
         self.assertIn(".after_run_frame", patched)
         self.assertIn("UR_RESTART_PROBE %s replay_equal=%d window=%u", patched)
         self.assertIn('ok ? "PASS" : "FAIL"', patched)
+        self.assertNotIn(r";\\nstatic", patched)
 
     def test_idempotent(self):
         source = """#include "host_main.h"

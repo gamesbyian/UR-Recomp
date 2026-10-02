@@ -523,7 +523,7 @@
         },
         {
           "path": "tools/patches/snesrecomp-rewind-audio-timing-lock.patch",
-          "sha256": "98e5dcf9a75c0ba1820d7c43587385832480fb102dc190938077654161173146"
+          "sha256": "96ed056e8139d51daf2a4ee440b58cc215694d6e6084f609aebac2f11a3991f1"
         }
       ]
     }

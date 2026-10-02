@@ -233,6 +233,14 @@
       "summary": "Recovered the paired race-control/state routines called directly from the race-frame orchestrator at 83:CD3A and 83:CD32. The primary routine is 466 bytes at 83:E066..E237; the companion is 776 bytes at 83:E238..E53F. Both are fully analyzer-reached. USA/beta are byte-identical; PAL prototype preserves both at shift -10 and Europe at +28. Across the pair all 463 aligned opcode positions match in every non-USA build with zero analyzer role disagreements.",
       "priority": "low",
       "next_evidence": "Refine individual flag semantics only where needed by native race-control or multiplayer behavior. Structural work should move to another uncovered race-loop dependency."
+    },
+    {
+      "id": "resolved-race-state-980d-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 82:980D..98BD and homologs",
+      "summary": "Recovered a 177-byte long-entry race-state bridge called directly from the accepted race-frame orchestrator. The 4-byte wrapper and 173-byte body derive mirrored $0FCB/$0FCD outputs from paired $0FC3/$0FC5 values, $0FBB/$0FBD bitfields, and availability/mode flags. USA/beta are byte-identical; PAL prototype relocates the island by -5 and Europe by +17. All 69 aligned opcode positions match in every non-USA build with zero analyzer role disagreements.",
+      "priority": "low",
+      "next_evidence": "Name $0FCB/$0FCD more specifically only when a concrete race-state, stunt, HUD, or recomp implementation question requires it. Comparative structure work should continue at another unresolved frontier."
     }
   ]
 }

@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "island": "RaceStateBridge980D",
+  "usa_start": "82:980D",
+  "usa_end": "82:98BD",
+  "next_entry": "82:98BE",
+  "bounded_bytes": 177,
+  "boundary_basis": {
+    "entry": "82:980D is the uncovered long-entry target called from the accepted race-frame orchestrator.",
+    "exit": "82:98BD is RTS; 82:98BE begins a distinct routine."
+  },
+  "accepted_caller_edges": [
+    {
+      "callsite": "83:CD59",
+      "kind": "JSL",
+      "source": "race-frame-orchestrator",
+      "region": "loop_body_after_sep_cleanup"
+    }
+  ],
+  "observed_dataflow": [
+    "compares paired values $0FC3/$0FC5 after halving",
+    "derives mirrored outputs $0FCB/$0FCD from paired bitfields $0FBB/$0FBD",
+    "forces either output to $FFFF when paired availability/state flags $0EF5/$0EF7 are active",
+    "forces both outputs to $FFFF outside the accepted $77074B mode range"
+  ],
+  "regions": [
+    {
+      "name": "long_entry_wrapper",
+      "kind": "code",
+      "usa_start": "82:980D",
+      "usa_end": "82:9810",
+      "size": 4,
+      "builds": {
+        "usa-retail": {
+          "start": "82:980D",
+          "end": "82:9810",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 4,
+          "size_delta": 0,
+          "sha256": "60bb1d45b7575743d61fbe387d17461b297d83f7628f64d92fdee09beb3c6b7c",
+          "opcode_bytes": 2,
+          "operand_bytes": 2,
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:9808",
+          "end": "82:980B",
+          "shift": -5,
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0,
+          "sha256": "b4c37b5ab0ddbc0abe37b84e63e4624579f5dcafa6f4b87b67527ea4a9a87a9e",
+          "opcode_bytes": 2,
+          "operand_bytes": 2,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 2,
+          "aligned_equal_opcode_pairs": 2,
+          "aligned_role_disagreements": 0
+        },
+        "europe-retail": {
+          "start": "82:981E",
+          "end": "82:9821",
+          "shift": 17,
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0,
+          "sha256": "4ccdef726ce367e1802a869733f2727d2333cffe11ec963ec6994a809c2fb40d",
+          "opcode_bytes": 2,
+          "operand_bytes": 2,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 2,
+          "aligned_equal_opcode_pairs": 2,
+          "aligned_role_disagreements": 0
+        },
+        "legacy-beta": {
+          "start": "82:980D",
+          "end": "82:9810",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 4,
+          "size_delta": 0,
+          "sha256": "60bb1d45b7575743d61fbe387d17461b297d83f7628f64d92fdee09beb3c6b7c",
+          "opcode_bytes": 2,
+          "operand_bytes": 2,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 2,
+          "aligned_equal_opcode_pairs": 2,
+          "aligned_role_disagreements": 0
+        }
+      }
+    },
+    {
+      "name": "mirrored_state_bridge",
+      "kind": "code",
+      "usa_start": "82:9811",
+      "usa_end": "82:98BD",
+      "size": 173,
+      "builds": {
+        "usa-retail": {
+          "start": "82:9811",
+          "end": "82:98BD",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 173,
+          "size_delta": 0,
+          "sha256": "95ebe1b61d4ca1a173c6356d8d1cded9a8c2cb2ae56e1d3c205c5f9008ef5847",
+          "opcode_bytes": 67,
+          "operand_bytes": 106,
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:980C",
+          "end": "82:98B8",
+          "shift": -5,
+          "similarity": 0.895954,
+          "size": 173,
+          "size_delta": 0,
+          "sha256": "38a84e652a76988339c999d5f80dd5069a331cac660db2c12c578fcdb1703821",
+          "opcode_bytes": 67,
+          "operand_bytes": 106,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 67,
+          "aligned_equal_opcode_pairs": 67,
+          "aligned_role_disagreements": 0
+        },
+        "europe-retail": {
+          "start": "82:9822",
+          "end": "82:98CE",
+          "shift": 17,
+          "similarity": 0.890173,
+          "size": 173,
+          "size_delta": 0,
+          "sha256": "330f4da156a1fdbd51a3176619ac010b0d18b1254bba27c0576b35de45426dcd",
+          "opcode_bytes": 67,
+          "operand_bytes": 106,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 67,
+          "aligned_equal_opcode_pairs": 67,
+          "aligned_role_disagreements": 0
+        },
+        "legacy-beta": {
+          "start": "82:9811",
+          "end": "82:98BD",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 173,
+          "size_delta": 0,
+          "sha256": "95ebe1b61d4ca1a173c6356d8d1cded9a8c2cb2ae56e1d3c205c5f9008ef5847",
+          "opcode_bytes": 67,
+          "operand_bytes": 106,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 67,
+          "aligned_equal_opcode_pairs": 67,
+          "aligned_role_disagreements": 0
+        }
+      }
+    }
+  ]
+}

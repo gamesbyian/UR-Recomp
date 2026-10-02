@@ -60,20 +60,24 @@
       "path": "analysis/generated/collision-resolution-structure-island.json"
     },
     {
+      "id": "geometry-precompute",
+      "path": "analysis/generated/geometry-precompute-structure-island.json"
+    },
+    {
       "id": "contact-geometry",
       "path": "analysis/generated/contact-geometry-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 103,
-    "code_regions": 95,
-    "data_regions": 8,
-    "bounded_bytes": 15094,
-    "bounded_code_region_bytes": 13949,
-    "bounded_data_region_bytes": 1145,
-    "analyzer_opcode_bytes": 5911,
-    "analyzer_operand_bytes": 7923,
-    "analyzer_unreached_or_data_bytes": 1260,
+    "regions": 107,
+    "code_regions": 97,
+    "data_regions": 10,
+    "bounded_bytes": 16202,
+    "bounded_code_region_bytes": 14929,
+    "bounded_data_region_bytes": 1273,
+    "analyzer_opcode_bytes": 6365,
+    "analyzer_operand_bytes": 8449,
+    "analyzer_unreached_or_data_bytes": 1388,
     "banks": [
       "81",
       "82",
@@ -1737,6 +1741,190 @@
           "shift": 0,
           "similarity": 1,
           "size": 93,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "geometry-precompute",
+      "source_path": "analysis/generated/geometry-precompute-structure-island.json",
+      "name": "long_entry_wrapper",
+      "kind": "code",
+      "usa_start": "81:99D6",
+      "usa_end": "81:99D9",
+      "size": 4,
+      "usa_opcode_bytes": 2,
+      "usa_operand_bytes": 2,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:99C7",
+          "end": "81:99CA",
+          "shift": -15,
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:99D6",
+          "end": "81:99D9",
+          "shift": 0,
+          "similarity": 1,
+          "size": 4,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:99B6",
+          "end": "81:99B9",
+          "shift": -32,
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:99D6",
+          "end": "81:99D9",
+          "shift": 0,
+          "similarity": 1,
+          "size": 4,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "geometry-precompute",
+      "source_path": "analysis/generated/geometry-precompute-structure-island.json",
+      "name": "geometry_lookup_a",
+      "kind": "data",
+      "usa_start": "81:99DA",
+      "usa_end": "81:9A19",
+      "size": 64,
+      "usa_opcode_bytes": 0,
+      "usa_operand_bytes": 0,
+      "usa_unreached_or_data_bytes": 64,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:99CB",
+          "end": "81:9A0A",
+          "shift": -15,
+          "similarity": 1,
+          "size": 64,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:99DA",
+          "end": "81:9A19",
+          "shift": 0,
+          "similarity": 1,
+          "size": 64,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:99BA",
+          "end": "81:99F9",
+          "shift": -32,
+          "similarity": 1,
+          "size": 64,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:99DA",
+          "end": "81:9A19",
+          "shift": 0,
+          "similarity": 1,
+          "size": 64,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "geometry-precompute",
+      "source_path": "analysis/generated/geometry-precompute-structure-island.json",
+      "name": "geometry_lookup_b",
+      "kind": "data",
+      "usa_start": "81:9A1A",
+      "usa_end": "81:9A59",
+      "size": 64,
+      "usa_opcode_bytes": 0,
+      "usa_operand_bytes": 0,
+      "usa_unreached_or_data_bytes": 64,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:9A0B",
+          "end": "81:9A4A",
+          "shift": -15,
+          "similarity": 1,
+          "size": 64,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:9A1A",
+          "end": "81:9A59",
+          "shift": 0,
+          "similarity": 1,
+          "size": 64,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:99FA",
+          "end": "81:9A39",
+          "shift": -32,
+          "similarity": 1,
+          "size": 64,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:9A1A",
+          "end": "81:9A59",
+          "shift": 0,
+          "similarity": 1,
+          "size": 64,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "geometry-precompute",
+      "source_path": "analysis/generated/geometry-precompute-structure-island.json",
+      "name": "geometry_precompute_body",
+      "kind": "code",
+      "usa_start": "81:9A5A",
+      "usa_end": "81:9E29",
+      "size": 976,
+      "usa_opcode_bytes": 452,
+      "usa_operand_bytes": 524,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:9A4B",
+          "end": "81:9E1A",
+          "shift": -15,
+          "similarity": 0.946721,
+          "size": 976,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:9A5A",
+          "end": "81:9E29",
+          "shift": 0,
+          "similarity": 1,
+          "size": 976,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:9A3A",
+          "end": "81:9E09",
+          "shift": -32,
+          "similarity": 0.981557,
+          "size": 976,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:9A5A",
+          "end": "81:9E29",
+          "shift": 0,
+          "similarity": 1,
+          "size": 976,
           "size_delta": 0
         }
       }

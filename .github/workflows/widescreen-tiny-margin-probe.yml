@@ -107,7 +107,7 @@ jobs:
             SNESRECOMP_WS_EXTRA="$margin" \
             SNESRECOMP_DUMP_DIR="$STATE" \
             SNESRECOMP_FRAMEDUMP_PIXELS=1 \
-            SNESRECOMP_FRAMEDUMP_START=2779 \
+            SNESRECOMP_FRAMEDUMP_START=2778 \
             SNESRECOMP_FRAMEDUMP_END=2919 \
             SDL_AUDIODRIVER=dummy \
               timeout 210s xvfb-run -a "$EXE" "$ROM" --config "$CONFIG" --no-launcher --script "$SCRIPT" --framedump "$FRAMES" \
@@ -115,8 +115,8 @@ jobs:
             tail -n 30 "$ROOT/margin-$margin.log"
             test -s "$STATE/object-tail-060.info.json"
             test -s "$STATE/object-tail-174.info.json"
-            test -s "$FRAMES/frame_002789.bmp"
-            test -s "$FRAMES/frame_002903.bmp"
+            test -s "$FRAMES/frame_002788.bmp"
+            test -s "$FRAMES/frame_002902.bmp"
             # The wide BMPs are the useful presentation evidence. The generic
             # per-frame WRAM copies are redundant with tagged state dumps.
             rm -f "$FRAMES"/frame_*_wram.bin "$FRAMES"/frame_*.json

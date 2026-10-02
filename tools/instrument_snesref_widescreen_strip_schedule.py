@@ -33,6 +33,12 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 				}();
 				static uint16 ur_ws_saved_count_x = 0;
 				static bool ur_ws_count_patched = false;
+				static int ur_ws_x_delta = []() -> int {
+					const char *m = getenv("URRECOMP_WS_X_DELTA");
+					return m ? atoi(m) : 0;
+				}();
+				static uint16 ur_ws_saved_x = 0;
+				static bool ur_ws_x_patched = false;
 				static bool ur_ws_bias_a = []() -> bool {
 					const char *t = getenv("URRECOMP_WS_BIAS_TARGET");
 					return t && (t[0] == 'A' || t[0] == 'a');
@@ -161,6 +167,26 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 					else
 						ur_ws_set16(0x0419, (uint16)(ur_ws_w16(0x0419) + 8));
 					ur_ws_camera_shifted = true;
+				}
+
+				/* Transient A59E input-phase discriminator. Preserve the wrapper's
+				   incoming X after the helper returns so only helper-produced
+				   preparation state can survive into AB88. */
+				if (ur_ws_margin == 8 && ur_ws_x_delta != 0 &&
+				    Registers.PB == 0x81 && ur_ws_pcw == 0xA597 &&
+				    !ur_ws_x_patched)
+				{
+					ur_ws_saved_x = Registers.X.W;
+					Registers.X.W = (uint16)(Registers.X.W + ur_ws_x_delta);
+					ur_ws_x_patched = true;
+					fprintf(stderr, "WSXDELTA frame=%u delta=%d before=%04X after=%04X\n",
+						(unsigned)ICPU.Frame, ur_ws_x_delta,
+						(unsigned)ur_ws_saved_x, (unsigned)Registers.X.W);
+				}
+				if (Registers.PB == 0x81 && ur_ws_pcw == 0xA59A && ur_ws_x_patched)
+				{
+					Registers.X.W = ur_ws_saved_x;
+					ur_ws_x_patched = false;
 				}
 
 				/* Count-only discriminator: widen the already-prepared horizontal

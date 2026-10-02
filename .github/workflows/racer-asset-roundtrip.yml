@@ -4,10 +4,15 @@ on:
   push:
     branches:
       - chatgpt/racer-asset-roundtrip-2026-10-01
+      - chatgpt/racer-raster-extraction-2026-10-02
+  pull_request:
+    branches:
+      - main
     paths:
       - "tools/extract_racer_presentation_family.py"
       - "tests/unit/test_extract_racer_presentation_family.py"
       - ".github/workflows/racer-asset-roundtrip.yml"
+      - "tools/analyze_racer_piece_render_binding.py"
 
 jobs:
   probe:
@@ -19,9 +24,54 @@ jobs:
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
       - name: Run unit tests
         run: python3 -m unittest tests.unit.test_extract_racer_presentation_family -v
-      - name: Extract and round-trip representative racer family
+      - name: Extract, rasterize, and round-trip representative racer family
         run: |
-          python3 tools/extract_racer_presentation_family.py             "reference/roms/retail/Uniracers_USA.sfc"             --output analysis/generated/racer-presentation-family.json             | tee racer-presentation-family.txt
+          python3 tools/extract_racer_presentation_family.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --output analysis/generated/racer-presentation-family.json \
+            --all-confident \
+            --emit-images "$RUNNER_TEMP/racer-raster" \
+            --bulk-manifest "$RUNNER_TEMP/racer-raster-manifest.json" \
+            > racer-presentation-family.txt
+          python3 - <<'PY'
+          import json
+          m=json.load(open("analysis/generated/racer-presentation-family.json"))
+          assert all(f["raster_exports"] for f in m["frames"])
+          assert all(p["source_tile"]["source_sha256"] for f in m["frames"] for p in f["pieces"])
+          bulk=json.load(open("/tmp/racer-raster-manifest.json"))
+          assert bulk["count"] >= 8
+          PY
+      - name: Download retained ordinary-2P reference
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/ordinary-2p"
+          gh run download 36943103609 -n ordinary-2p-reference -D "$RUNNER_TEMP/ordinary-2p"
+      - name: Prove source tiles against retained VRAM
+        run: |
+          python3 tools/analyze_racer_piece_render_binding.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --dump-dir "$RUNNER_TEMP/ordinary-2p/native-dumps" \
+            --json-out "$RUNNER_TEMP/racer-piece-binding.json" \
+            >/dev/null
+          python3 - <<'PY'
+          import json
+          fam=json.load(open("analysis/generated/racer-presentation-family.json"))
+          frames={f["frame_id_hex"]:f for f in fam["frames"]}
+          binding=json.load(open("/tmp/racer-piece-binding.json"))
+          checked=0
+          for cp in binding["checkpoints"]:
+              for player in cp["players"]:
+                  frame=frames.get(player["frame_id"])
+                  if not frame: continue
+                  by_index={p["word_index"]:p for p in frame["pieces"]}
+                  for spatial in player["spatial_binding"]:
+                      for b in spatial.get("piece_vram_bindings",[]):
+                          assert by_index[b["word_index"]]["source_tile"]["source_sha256"] == b["tile_sha256"]
+                          checked += 1
+          assert checked >= 28, checked
+          print(f"validated {checked} source tiles byte-for-byte against retained VRAM")
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -30,5 +80,7 @@ jobs:
             analysis/generated/racer-presentation-family.json
             racer-presentation-family.generated.json
             racer-presentation-family.txt
+            ${{ runner.temp }}/racer-raster-manifest.json
+            ${{ runner.temp }}/racer-raster/*.png
           retention-days: 7
           if-no-files-found: error

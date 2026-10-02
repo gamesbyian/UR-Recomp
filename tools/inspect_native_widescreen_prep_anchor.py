@@ -20,7 +20,7 @@ def canon(pc: int) -> int:
 def inspect(gen_dir: Path, radius: int = 24) -> dict:
     hits = []
     for path in sorted(gen_dir.glob("bank*_v2.c")):
-        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        lines = path.read_text(encoding="utf-8", errors="replace").replace("\\n", "\n").splitlines()
         for idx, line in enumerate(lines):
             match = TRACE_RE.search(line)
             if not match:

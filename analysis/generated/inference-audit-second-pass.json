@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "scope": "second-pass inference audit emphasizing omitted cross-source joins and under-normalized domains",
+  "findings": [
+    {
+      "id": "IA2-C01",
+      "class": "cross_source_reconciliation",
+      "title": "Canonical RNC stream tour order follows progression rows, not player-facing tour order",
+      "result": {
+        "stream_groups": [
+          "Crawler",
+          "Jumper",
+          "Shuffler",
+          "Bounder",
+          "Walker",
+          "Runner",
+          "Hopper",
+          "Sprinter",
+          "Hunter"
+        ],
+        "medal_row_order": [
+          "Crawler",
+          "Jumper",
+          "Shuffler",
+          "Bounder",
+          "Walker",
+          "Runner",
+          "Hopper",
+          "Sprinter",
+          "Hunter"
+        ],
+        "consequence": "For all 45 courses, medal/progression tour_row = floor((stream_index - 1) / 5)."
+      },
+      "evidence": [
+        "analysis/data/course-corpus.json",
+        "analysis/data/progression-model.json",
+        "analysis/generated/dessyreqt-course-landmarks.json",
+        "analysis/generated/sram-medal-progression-static-model-2026-10-01.md"
+      ],
+      "falsifier": "A runtime course load or progression lookup proving a different named stream identity."
+    },
+    {
+      "id": "IA2-C02",
+      "class": "strong_semantic_inference",
+      "title": "Decoded header landmark A.x is the course start/spawn X coordinate at 16-unit scale",
+      "result": {
+        "matches": 43,
+        "total": 45,
+        "exceptions": [
+          "Zoom Zoo",
+          "Jumps"
+        ],
+        "equation": "historical_start_x = header.spawn_or_landmark_a.x * 16"
+      },
+      "evidence": [
+        "analysis/data/course-corpus.json",
+        "analysis/generated/dessyreqt-course-landmarks.json"
+      ],
+      "falsifier": "Direct runtime spawn evidence contradicting the relation on currently matched courses.",
+      "next_action": "Promote A.x to start/spawn-X semantics with explicit exceptions/provisional Y semantics; investigate Zoom Zoo/Jumps as special-coordinate cases rather than weakening the 43-course relation."
+    },
+    {
+      "id": "IA2-C03",
+      "class": "derived_invariant",
+      "title": "Stunt courses have an independent three-signal identity",
+      "result": {
+        "signals": [
+          "tour slot = 3 for all 9 stunt streams",
+          "decoded stunt_time_or_mode = 45 for all 9",
+          "historical start_x = finish_x for all 9"
+        ],
+        "non_stunt_start_finish_equal_count": 0
+      },
+      "evidence": [
+        "analysis/data/course-corpus.json",
+        "reference/notes/course-order-and-stunt-timer.md",
+        "analysis/generated/dessyreqt-course-landmarks.json"
+      ],
+      "next_action": "Use the combined signature as a semantic sanity check when course identities are regenerated."
+    },
+    {
+      "id": "IA2-S01",
+      "class": "derived_invariant",
+      "title": "Persistent racer state is interleaved P1/P2 at +2 bytes across many fields",
+      "result": {
+        "historical_pairs": [
+          [
+            "XPosition",
+            "7E:0411",
+            "7E:0413"
+          ],
+          [
+            "YPosition",
+            "7E:0415",
+            "7E:0417"
+          ],
+          [
+            "XSpeed",
+            "7E:04B7",
+            "7E:04B9"
+          ],
+          [
+            "YSpeed",
+            "7E:04BB",
+            "7E:04BD"
+          ],
+          [
+            "Facing",
+            "7E:0BA1",
+            "7E:0BA3"
+          ],
+          [
+            "TabletopDuration",
+            "7E:042F",
+            "7E:0431"
+          ],
+          [
+            "ZFlipCount",
+            "7E:042B",
+            "7E:042D"
+          ],
+          [
+            "RollCount",
+            "7E:11F9",
+            "7E:11FB"
+          ],
+          [
+            "FlipCount",
+            "7E:11FD",
+            "7E:11FF"
+          ],
+          [
+            "NextCheckpoint",
+            "7E:1199",
+            "7E:119B"
+          ],
+          [
+            "CameraXSpeed",
+            "7E:04F5",
+            "7E:04F7"
+          ]
+        ],
+        "delta_bytes": 2
+      },
+      "evidence": [
+        "analysis/data/state-schema.json",
+        "analysis/generated/dessyreqt-workspace-index.json",
+        "analysis/generated/nitrodon-reconciliation.json"
+      ],
+      "next_action": "Mine adjacent unknown P1 words for +2 P2 siblings, then validate via marshal readers/writers before naming."
+    },
+    {
+      "id": "IA2-S02",
+      "class": "negative_result",
+      "title": "Regional WRAM relocation is clustered, not one global offset",
+      "result": {
+        "europe_observed_cluster_deltas": [
+          10,
+          4,
+          0,
+          6
+        ],
+        "implication": "A single Europe-vs-USA WRAM delta is invalid even inside high-value racer/camera/render state."
+      },
+      "evidence": [
+        "analysis/data/state-schema.json",
+        "analysis/generated/wram-motion-atlas.json"
+      ],
+      "next_action": "Use anchor/cluster-specific regional mappings rather than arithmetic global relocation."
+    },
+    {
+      "id": "IA2-G01",
+      "class": "consolidation_gap_closed",
+      "title": "Progression model is now queryable rather than prose-only",
+      "result": {
+        "medal_matrix": "9x16 at 77:069C, 16-byte row stride",
+        "medal_values": "0 none, 1 bronze, 2 silver, 3 gold",
+        "hunter_row_excluded_from_tier_prerequisite_scan": true,
+        "tiers": [
+          "4 nonzero => tier 1",
+          "6 >= silver => tier 2",
+          "8 gold => tier 3"
+        ],
+        "checksum": "medal matrix lies inside 77:05E8..073B protected region; checksum at 77:073C"
+      },
+      "evidence": [
+        "analysis/data/progression-model.json"
+      ],
+      "next_action": "Build exact expected SRAM delta oracle before the next real medal-winning acceptance fixture."
+    },
+    {
+      "id": "IA2-P01",
+      "class": "derived_constraint",
+      "title": "Presentation frame mask equals first record-header byte in every recovered frame",
+      "result": {
+        "observed_frames": 4,
+        "holds": true,
+        "examples": [
+          "0x0540: 0x70",
+          "0x0542: 0x38",
+          "0x0544: 0x38",
+          "0x057E: 0x70"
+        ]
+      },
+      "evidence": [
+        "analysis/data/presentation-assets.json"
+      ],
+      "next_action": "Treat byte 0 as a candidate explicit mask/control field and vary it against OAM piece eligibility before decoding deeper packed words."
+    }
+  ],
+  "consolidation_changes": [
+    "Corrected stream-to-name/tour identity in analysis/data/course-corpus.json.",
+    "Attached all 45 historical named start/finish landmarks to course records.",
+    "Added analysis/data/progression-model.json.",
+    "Enriched analysis/data/state-schema.json with Dessyreqt P2 leads, WRAM regional motion clusters, and Nitrodon reconciled semantic overrides.",
+    "Corrected reference/notes/course-order-and-stunt-timer.md so the old player-facing tour order is not mistaken for canonical RNC order."
+  ],
+  "deferred": [
+    {
+      "area": "preparation/emission causal joins",
+      "owner": "PR #203"
+    },
+    {
+      "area": "+8 composition causal joins",
+      "owner": "PR #206"
+    }
+  ]
+}

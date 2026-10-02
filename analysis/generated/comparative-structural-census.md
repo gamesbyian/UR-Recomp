@@ -2,9 +2,9 @@
 
 This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **129** (117 code, 12 data)
-- bounded bytes: **20789** (19356 code-region bytes, 1433 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **8151**
+- bounded regions: **132** (120 code, 12 data)
+- bounded bytes: **21836** (20403 code-region bytes, 1433 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **8723**
 - represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -138,6 +138,9 @@ This is the first machine-queryable census for the comparative structure-recover
 | `83:E7A5..83:EBCB` | code | 1063 | race-loop-e7a5 | race_loop_e7a5_body | 83:E79B..83:EBEF (-10->+36; size 1109; sim 0.846) | 83:E7C1..83:EC13 (+28->+72; size 1107; sim 0.786) | 83:E7A5..83:EBCB (+0; size 1063; sim 1.000) |
 | `83:EBE6..83:EC45` | data | 96 | ec46-coordinate-window | coordinate_step_table | 83:EC0A..83:EC69 (+36; size 96; sim 1.000) | 83:EC2E..83:EC8D (+72; size 96; sim 1.000) | 83:EBE6..83:EC45 (+0; size 96; sim 1.000) |
 | `83:EC46..83:ED2E` | code | 233 | ec46-coordinate-window | coordinate_window_update | 83:EC6A..83:ED52 (+36; size 233; sim 0.983) | 83:EC8E..83:ED76 (+72; size 233; sim 0.880) | 83:EC46..83:ED2E (+0; size 233; sim 1.000) |
+| `83:F0BB..83:F295` | code | 475 | race-render-f0bb | race_render_body | 83:F0DB..83:F2B5 (+32; size 475; sim 0.962) | 83:F0FF..83:F2D9 (+68; size 475; sim 0.937) | 83:F0BB..83:F295 (+0; size 475; sim 1.000) |
+| `83:F296..83:F2BA` | code | 37 | race-render-f0bb | address_decode_helper | 83:F2B6..83:F2DA (+32; size 37; sim 1.000) | 83:F2DA..83:F2FE (+68; size 37; sim 1.000) | 83:F296..83:F2BA (+0; size 37; sim 1.000) |
+| `83:F2BB..83:F4D1` | code | 535 | race-render-f0bb | tile_pair_decode_helper | 83:F2DB..83:F4F1 (+32; size 535; sim 1.000) | 83:F2FF..83:F515 (+68; size 535; sim 0.985) | 83:F2BB..83:F4D1 (+0; size 535; sim 1.000) |
 
 ## Selection rule for the next island
 

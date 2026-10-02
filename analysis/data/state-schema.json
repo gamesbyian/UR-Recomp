@@ -1,0 +1,726 @@
+{
+  "schema_version": 1,
+  "generated_by": "tools/build_consolidated_knowledge.py",
+  "purpose": "Normalized promoted state semantics plus cross-build racer relations.",
+  "entries": [
+    {
+      "id": "state:7E:009F",
+      "kind": "ram",
+      "address": "7E:009F",
+      "name": "Frontend_CurrentMenu",
+      "width": "8-bit",
+      "confidence": 5,
+      "notes": "Verified in both native and Snes9x/snesref deterministic runs: `0xD7` main menu, `0x3C` one-player rider select, `0x6D` first one-player tours page, `0xF6` one-player track select, `0x16` now-playing screen, then `0x00` after race entry.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:009B",
+      "kind": "ram",
+      "address": "7E:009B",
+      "name": "Frontend_SelectedOption",
+      "width": "8-bit",
+      "confidence": 4,
+      "notes": "Recovered bot uses it for main-menu/tour selection. Native captures show `0x00` at clean main menu and first tours page, consistent with bot policy.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:000E",
+      "kind": "ram",
+      "address": "7E:000E",
+      "name": "Frontend_SelectedRow",
+      "width": "8-bit",
+      "confidence": 3,
+      "notes": "Recovered bot label; native route captures row `0x00` through the verified clean frontend route. Exact semantics outside these menus not yet tested.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0C63",
+      "kind": "ram",
+      "address": "7E:0C63",
+      "name": "Frontend_SelectedColumn",
+      "width": "8-bit",
+      "confidence": 3,
+      "notes": "Recovered bot label; native captures change with frontend scene/selection. Rider-select ready state captures `0x06`, matching the bot's left-column target value.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0313",
+      "kind": "ram",
+      "address": "7E:0313",
+      "name": "Race_ActiveState",
+      "width": "8-bit",
+      "confidence": 5,
+      "notes": "Recovered bot label `inRace`; verified as `0x01` after deterministic race entry in both native and Snes9x/snesref runs. Non-race screens can contain other transient values, so only `0x01 = active race` is currently asserted.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7F:0000",
+      "kind": "ram",
+      "address": "7F:0000",
+      "name": "Course_ActiveDecodedPayload",
+      "width": "variable / stream-sized",
+      "confidence": 5,
+      "notes": "Confirmed by run 36514985916: active Dragster decoded stream 1 matches 33,814/33,815 bytes from this address; only decoded byte 11 is runtime-mutated.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0411",
+      "kind": "ram",
+      "address": "7E:0411",
+      "name": "Player1_XPosition",
+      "width": "16-bit",
+      "confidence": 5,
+      "notes": "Effective recovered-bot word key `xPos`. Race-acceleration run 36512546762 moves it identically in native/reference from 1088 at rest to 1655 under staged Right input, alongside positive X speed.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0415",
+      "kind": "ram",
+      "address": "7E:0415",
+      "name": "Player1_YPosition",
+      "width": "16-bit",
+      "confidence": 5,
+      "notes": "Effective recovered-bot word key `yPos`. Sustained-B run 36514981164 causally changes player 1 from ground Y=859 in the matched no-B control to Y=797 while airborne; native and Snes9x match exactly.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:04B7",
+      "kind": "ram",
+      "address": "7E:04B7",
+      "name": "Player1_XSpeed",
+      "width": "signed 16-bit",
+      "confidence": 5,
+      "notes": "Effective recovered-bot word key `xSpeed`; bot explicitly sign-converts it. Race-acceleration run 36512546762 changes it identically from 0 to +447 under Right input while X position increases.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:04BB",
+      "kind": "ram",
+      "address": "7E:04BB",
+      "name": "Player1_YSpeed",
+      "width": "signed 16-bit",
+      "confidence": 5,
+      "notes": "Effective recovered-bot word key `ySpeed`; bot sign-converts it. In run 36514981164 sustained B changes it causally from 0 in the matched control to -21 while player 1 is airborne; native and Snes9x match exactly.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0545",
+      "kind": "ram",
+      "address": "7E:0545",
+      "name": "Player1_AirTime",
+      "width": "16-bit slot; low byte observed",
+      "confidence": 5,
+      "notes": "Dynamic run 36514981164 causally changes the low byte from 0 to 9 under sustained B while Y position/speed enter the airborne trajectory. Nitrodon's WRAM map identifies the slot as time in air with a 9-frame maximum, and bank-82 stunt code reads it as a word (`LDA $0545,Y`). Historical bots read only the low byte.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:04C7",
+      "kind": "ram",
+      "address": "7E:04C7",
+      "name": "Player1_PitchAngle",
+      "width": "16-bit slot; low 6 bits observed",
+      "confidence": 5,
+      "notes": "Persistent player-1 pitch/orientation. From control angle `0x07`, eight L frames produce `0x37` (= 7−16 mod 64) and eight R frames produce `0x17` (= 7+16 mod 64), identically native/reference. ROM `02:8D84` copies working `$0F49` into this slot.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:04C9",
+      "kind": "ram",
+      "address": "7E:04C9",
+      "name": "Player2_PitchAngle",
+      "width": "16-bit slot; low 6 bits observed",
+      "confidence": 5,
+      "notes": "Paired player-2 pitch/orientation slot. Sibling ROM routine at `02:9272` executes `LDY $0F49; STY $04C9`; surrounding destinations shift coherently to player-2 fields.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0F49",
+      "kind": "ram",
+      "address": "7E:0F49",
+      "name": "CurrentPlayer_PitchScratch",
+      "width": "16-bit working value",
+      "confidence": 4,
+      "notes": "Historical bot reads this as `pitch`, but static sibling routines copy the same working value into persistent player-1 `$04C7` or player-2 `$04C9` slots. L-vs-control checkpoints leave `$0F49` unchanged while `$04C7` changes causally, so it should not be treated as stable player-1 storage.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0F61",
+      "kind": "ram",
+      "address": "7E:0F61",
+      "name": "CurrentPlayer_HalfTwistCount",
+      "width": "16-bit working slot",
+      "confidence": 4,
+      "notes": "Nitrodon's map identifies this as the current-player number of half-twists. The stunt finalizer at `02:9C2E` shifts it right once to derive full twists, caps the result at 4, and feeds that into the stunt-combination index. Writer analysis independently shows current-player copy/clear/increment behavior.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:042F",
+      "kind": "ram",
+      "address": "7E:042F",
+      "name": "Player1_TabletopDuration",
+      "width": "16-bit slot; low byte observed",
+      "confidence": 5,
+      "notes": "Nitrodon's map and annotated bank-82 code identify this as tabletop duration; `INC $042F,X` at `02:9582` advances it and `02:9C87` requires duration >= 3 to emit the Tabletop message. Dynamic run 36776825024 independently observes X input driving low-byte `0→1→2→3→4→0` at a two-frame cadence in native and pinned Snes9x. This supersedes the older accumulated-count label.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:042B",
+      "kind": "ram",
+      "address": "7E:042B",
+      "name": "Player1_ZFlipCount",
+      "width": "16-bit slot; low byte used by USJO",
+      "confidence": 4,
+      "notes": "Nitrodon's map identifies the player-specific slot as Z-flip count. Bank-82 code reads/writes it under 16-bit accumulator mode, caps the landing result at 4, and uses it directly in the stunt-combination index. USJO v8 reads only the low byte.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:11F9",
+      "kind": "ram",
+      "address": "7E:11F9",
+      "name": "Player1_RollCount",
+      "width": "16-bit slot; low byte used by USJO",
+      "confidence": 4,
+      "notes": "Nitrodon's map explicitly records a 2-byte player-1 roll count. The stunt routine increments it with 16-bit `INC $11F9,X` after four quarter-turn progress steps, and may credit a 3/4 roll on landing. USJO v8 reads only the low byte.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:11FD",
+      "kind": "ram",
+      "address": "7E:11FD",
+      "name": "Player1_FlipCount",
+      "width": "16-bit slot; low byte used by USJO",
+      "confidence": 4,
+      "notes": "Nitrodon's map explicitly records a 2-byte player-1 flip count. The stunt routine increments it with 16-bit `INC $11FD,X` after four quarter-turn progress steps, and may credit a 3/4 flip on landing. USJO v8 reads only the low byte.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:11CD",
+      "kind": "ram",
+      "address": "7E:11CD",
+      "name": "CurrentPlayer_BoostMeterWorking",
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Nitrodon's map distinguishes this shared current-player boost meter from stable player slots at `$11CF/$11D1`. Bank-82 code zeroes it on wipeout, subtracts 16 in an off-screen penalty path, clamps computed boost to `0x0180`, and feeds half the value into velocity limiting. USJO v8 reads only its low byte as a zero/nonzero gate.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0DFD",
+      "kind": "ram",
+      "address": "7E:0DFD",
+      "name": "Player1_ZRotationState",
+      "width": "16-bit slot; low byte used by USJO",
+      "confidence": 4,
+      "notes": "Static scan run 36769525945 exposes paired copy structure: `02:8AB2` loads `$0DFD` and stores it to shared working `$0F57`, while `02:8FBA` loads paired `$0DFF` into the same working slot and `02:8DB2` copies `$0F57` back to `$0DFD`. This strongly supports `$0DFD/$0DFF` as paired persistent racer Z-state slots; exact physical interpretation remains open.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0F57",
+      "kind": "ram",
+      "address": "7E:0F57",
+      "name": "CurrentPlayer_ZRotationWorking",
+      "width": "16-bit working slot; low byte used by USJO",
+      "confidence": 4,
+      "notes": "Static scan run 36769525945 shows `$0F57` as shared current-player working state: `02:8AB2` copies player-1 `$0DFD` into it, `02:8FBA` copies paired `$0DFF` into it, `02:8DB2` writes it back to `$0DFD`, and later bank-02 code mutates/clears it. USJO v8 calls the low byte `zprerotation`; exact physical semantics remain open.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0F9F",
+      "kind": "ram",
+      "address": "7E:0F9F",
+      "name": "CurrentPlayer_XVelocityWorking",
+      "width": "signed 16-bit working slot",
+      "confidence": 4,
+      "notes": "Nitrodon's map identifies current-player X velocity here. Bank-81 collision/transform code reads `$0F9F/$0FA1`, transforms both through matrix terms, and stores the new X/Y pair back; bank-82 movement and boost paths also mutate `$0F9F`. This resolves USJO's old “alternative speed” comment as shared current-player working state rather than a second player-1 field.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0FA1",
+      "kind": "ram",
+      "address": "7E:0FA1",
+      "name": "CurrentPlayer_YVelocityWorking",
+      "width": "signed 16-bit working slot",
+      "confidence": 4,
+      "notes": "Nitrodon's map and bank-81 velocity transform pair this with `$0F9F`; bank-82 vertical-acceleration code at `02:A968` updates this slot directly.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0FEF",
+      "kind": "ram",
+      "address": "7E:0FEF",
+      "name": "CurrentPlayer_Index",
+      "width": "16-bit selector",
+      "confidence": 4,
+      "notes": "Nitrodon's map records `0 = player 1`, `2 = player 2`. Bank-82 stunt/movement code repeatedly loads it into X/Y to index paired 16-bit player slots.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:11CF",
+      "kind": "ram",
+      "address": "7E:11CF",
+      "name": "Player1_BoostMeter",
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Nitrodon's map identifies the stable player-1 boost slot, distinct from shared current-player working `$11CD`. Local copy-in/copy-out path should still be named explicitly.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:11D1",
+      "kind": "ram",
+      "address": "7E:11D1",
+      "name": "Player2_BoostMeter",
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Nitrodon's map identifies the paired player-2 boost slot.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0413",
+      "kind": "ram",
+      "address": "7E:0413",
+      "name": "Player2_XPosition",
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 X position; paired structure with verified player-1 `$0411` and the existing player-2 pitch/copy routines supports the assignment. Dynamic 2P causal validation remains desirable.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0417",
+      "kind": "ram",
+      "address": "7E:0417",
+      "name": "Player2_YPosition",
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 Y position; it is the paired word after verified player-1 `$0415`. Dynamic 2P causal validation remains desirable.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:04B9",
+      "kind": "ram",
+      "address": "7E:04B9",
+      "name": "Player2_XSpeed",
+      "width": "signed 16-bit",
+      "confidence": 4,
+      "notes": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 X speed, paired with verified player-1 `$04B7`.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:04BD",
+      "kind": "ram",
+      "address": "7E:04BD",
+      "name": "Player2_YSpeed",
+      "width": "signed 16-bit",
+      "confidence": 4,
+      "notes": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 Y speed, paired with verified player-1 `$04BB`.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0BA3",
+      "kind": "ram",
+      "address": "7E:0BA3",
+      "name": "Player2_FacedDirection",
+      "width": "8-bit",
+      "confidence": 3,
+      "notes": "Independently present in Nitrodon's WRAM map and Dessyreqt's recovered Tabletop bot as player-2 facing; historical convention is 1 = right, 0 = left.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0431",
+      "kind": "ram",
+      "address": "7E:0431",
+      "name": "Player2_TabletopDuration",
+      "width": "16-bit slot; low byte watched",
+      "confidence": 4,
+      "notes": "Nitrodon's WRAM map identifies player-2 tabletop duration here; Dessyreqt's Tabletop bot and `Races2.wch` independently use the same paired address.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:042D",
+      "kind": "ram",
+      "address": "7E:042D",
+      "name": "Player2_ZFlipCount",
+      "width": "16-bit slot; low byte watched",
+      "confidence": 4,
+      "notes": "Nitrodon's WRAM map identifies the paired player-2 Z-flip field; Dessyreqt's `Races2.wch` independently labels it Z-Flips.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:11FB",
+      "kind": "ram",
+      "address": "7E:11FB",
+      "name": "Player2_RollCount",
+      "width": "16-bit slot; low byte watched",
+      "confidence": 4,
+      "notes": "Nitrodon's WRAM map identifies a two-byte player-2 roll count; Dessyreqt's `Races2.wch` independently labels the same address Rolls.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:11FF",
+      "kind": "ram",
+      "address": "7E:11FF",
+      "name": "Player2_FlipCount",
+      "width": "16-bit slot; low byte watched",
+      "confidence": 4,
+      "notes": "Nitrodon's WRAM map identifies a two-byte player-2 flip count; Dessyreqt's `Races2.wch` independently labels the same address Flips.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:119B",
+      "kind": "ram",
+      "address": "7E:119B",
+      "name": "Player2_NextCheckpoint",
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Nitrodon's WRAM map and Dessyreqt's `Races2.wch` independently identify the paired player-2 checkpoint slot.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:04F5",
+      "kind": "ram",
+      "address": "7E:04F5",
+      "name": "Player1_CameraXSpeed",
+      "width": "signed 8-bit",
+      "confidence": 3,
+      "notes": "Nitrodon's map calls this player-1 camera X velocity; Dessyreqt's `Races.wch` and SCUM independently use it as Camera X Speed. SCUM sign-converts the byte.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:04F7",
+      "kind": "ram",
+      "address": "7E:04F7",
+      "name": "Player2_CameraXSpeed",
+      "width": "signed 8-bit",
+      "confidence": 2,
+      "notes": "Dessyreqt's `Races2.wch` identifies this paired player-2 Camera X Speed slot. Pairing with corroborated player-1 `$04F5` is strong, but direct runtime validation is still open.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:1201",
+      "kind": "ram",
+      "address": "7E:1201",
+      "name": "Player1_RollQuarterProgress",
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Bank-82 stunt code increments this progress value and converts it into one roll when it reaches 4, then resets it; paired player-2 slot is `$1203`.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:1205",
+      "kind": "ram",
+      "address": "7E:1205",
+      "name": "Player1_FlipQuarterProgress",
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Bank-82 stunt code increments this progress value and converts it into one flip when it reaches 4, then resets it; paired player-2 slot is `$1207`.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:033B",
+      "kind": "ram",
+      "address": "7E:033B",
+      "name": "Player1_FacingAtTakeoff",
+      "width": "16-bit slot",
+      "confidence": 4,
+      "notes": "Nitrodon's map says this records whether the racer was facing right when leaving the ground. The stunt finalizer uses it to decide whether accumulated quarter-turn direction maps to flip versus roll; paired player-2 slot is `$033D`.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:1199",
+      "kind": "ram",
+      "address": "7E:1199",
+      "name": "Player1_NextCheckpoint",
+      "width": "16-bit",
+      "confidence": 3,
+      "notes": "Nitrodon's map identifies the next-checkpoint field; paired player-2 slot is `$119B`. High-value race-finish fixture target.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:119D",
+      "kind": "ram",
+      "address": "7E:119D",
+      "name": "Player1_FinishGateState",
+      "width": "16-bit",
+      "confidence": 3,
+      "notes": "Nitrodon's map records `0` when player 1 can cross the finish line; paired player-2 slot is `$119F`. Exact nonzero state meanings remain open.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0EF1",
+      "kind": "ram",
+      "address": "7E:0EF1",
+      "name": "Player1_LapsRemaining",
+      "width": "16-bit",
+      "confidence": 3,
+      "notes": "Nitrodon's map identifies laps remaining; paired player-2 slot is `$0EF3`.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:12AF",
+      "kind": "ram",
+      "address": "7E:12AF",
+      "name": "Stunt_CurrentScore",
+      "width": "16-bit",
+      "confidence": 3,
+      "notes": "Nitrodon's map identifies the current score on stunt tracks. Score update semantics remain to be traced.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:1361",
+      "kind": "ram",
+      "address": "7E:1361",
+      "name": "Player1_StuntAirLatch",
+      "width": "16-bit slot",
+      "confidence": 3,
+      "notes": "Olivier retained this as an “Air flag”; Nitrodon's stunt disassembly shows `02:9A97` setting indexed `$1361` to 1 during stunt-air initialization and `02:9D88` clearing it during finalization. Exact relationship to ordinary air-time `$0545` remains open.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:1509",
+      "kind": "ram",
+      "address": "7E:1509",
+      "name": "Camera_ScreenXPosition",
+      "width": "8-bit",
+      "confidence": 3,
+      "notes": "Historical TAS watch list labels this “Screen X Position.” Not consumed by v8; local camera/unit semantics still need validation.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0BA1",
+      "kind": "ram",
+      "address": "7E:0BA1",
+      "name": "Player1_FacedDirection",
+      "width": "8-bit",
+      "confidence": 2,
+      "notes": "Recovered bot: 1 = right, 0 = left. Not yet independently validated.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0FCC",
+      "kind": "ram",
+      "address": "7E:0FCC",
+      "name": "Player1_ArrowsVisible",
+      "width": "8-bit",
+      "confidence": 2,
+      "notes": "Effective duplicate-key address used by recovered bot; 0 means direction arrows showing.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:0FCB",
+      "kind": "ram",
+      "address": "7E:0FCB",
+      "name": "Player1_ArrowDirection",
+      "width": "8-bit",
+      "confidence": 2,
+      "notes": "Effective duplicate-key address used by recovered bot; 0 = right, 1 = left.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:11BA",
+      "kind": "ram",
+      "address": "7E:11BA",
+      "name": "Race_CountdownTimer",
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Recovered bot word key shared by players. In run 36512546762 it decreases identically in native/reference by exactly `0x0100` per guest frame across the staged pre-start/acceleration checkpoints. Exact game-facing units/threshold meanings remain to be named.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "state:7E:132B",
+      "kind": "ram",
+      "address": "7E:132B",
+      "name": "Race_ReverseControls",
+      "width": "8-bit",
+      "confidence": 2,
+      "notes": "Recovered bot: 2 = controls reversed, 0 = normal. Not yet independently validated.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    }
+  ],
+  "regional_racer_relations": [
+    {
+      "build": "europe-retail",
+      "semantic_name": "Player1_BoostMeter",
+      "persistent": "7E:11D9",
+      "working": "7E:11D7",
+      "bidirectional": true,
+      "routine": "82:89CC",
+      "source": "analysis/generated/regional-racer-state-relations.json"
+    },
+    {
+      "build": "europe-retail",
+      "semantic_name": "Player1_XSpeed",
+      "persistent": "7E:04BB",
+      "working": "7E:0FA9",
+      "bidirectional": true,
+      "routine": "82:89CC",
+      "source": "analysis/generated/regional-racer-state-relations.json"
+    },
+    {
+      "build": "europe-retail",
+      "semantic_name": "Player1_YSpeed",
+      "persistent": "7E:04BF",
+      "working": "7E:0FAB",
+      "bidirectional": true,
+      "routine": "82:89CC",
+      "source": "analysis/generated/regional-racer-state-relations.json"
+    },
+    {
+      "build": "pal-prototype-1994-11-29",
+      "semantic_name": "Player1_BoostMeter",
+      "persistent": "7E:11D3",
+      "working": "7E:11D1",
+      "bidirectional": true,
+      "routine": "82:89B6",
+      "source": "analysis/generated/regional-racer-state-relations.json"
+    },
+    {
+      "build": "pal-prototype-1994-11-29",
+      "semantic_name": "Player1_XSpeed",
+      "persistent": "7E:04B7",
+      "working": "7E:0FA3",
+      "bidirectional": true,
+      "routine": "82:89B6",
+      "source": "analysis/generated/regional-racer-state-relations.json"
+    },
+    {
+      "build": "pal-prototype-1994-11-29",
+      "semantic_name": "Player1_YSpeed",
+      "persistent": "7E:04BB",
+      "working": "7E:0FA5",
+      "bidirectional": true,
+      "routine": "82:89B6",
+      "source": "analysis/generated/regional-racer-state-relations.json"
+    },
+    {
+      "build": "usa-retail",
+      "semantic_name": "Player1_BoostMeter",
+      "persistent": "7E:11CF",
+      "working": "7E:11CD",
+      "bidirectional": true,
+      "routine": "82:89B9",
+      "source": "analysis/generated/regional-racer-state-relations.json"
+    },
+    {
+      "build": "usa-retail",
+      "semantic_name": "Player1_XSpeed",
+      "persistent": "7E:04B7",
+      "working": "7E:0F9F",
+      "bidirectional": true,
+      "routine": "82:89B9",
+      "source": "analysis/generated/regional-racer-state-relations.json"
+    },
+    {
+      "build": "usa-retail",
+      "semantic_name": "Player1_YSpeed",
+      "persistent": "7E:04BB",
+      "working": "7E:0FA1",
+      "bidirectional": true,
+      "routine": "82:89B9",
+      "source": "analysis/generated/regional-racer-state-relations.json"
+    }
+  ]
+}

@@ -18,4 +18,4 @@ USA `81:B6C0..B712` is a long-entry wrapper plus the shared geometry math body c
 - 81:9D71 from geometry-precompute
 - 81:9D81 from geometry-precompute
 
-The 79-byte body is byte-identical across all four preserved ROMs. Only the 4-byte long-entry wrapper's call operand relocates with the surrounding bank-81 layout.
+The 79-byte body is byte-identical across all four preserved ROMs. Only the 4-byte long-entry wrapper call operand relocates with the surrounding bank-81 layout.

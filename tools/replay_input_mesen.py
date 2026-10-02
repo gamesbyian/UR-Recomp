@@ -12,7 +12,7 @@ from controller_input import ControllerRun, load_controller_runs, masks_at
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MESEN_REPO = ROOT / ".tools" / "src" / "mesen-for-ai"
-CLIENT = Path("skills/mesen-emulator/scripts/mesen_client.py")
+CLIENT = ROOT / "tools" / "mesen_client.py"
 
 MASK_BUTTONS = (
     ("b", 0x001), ("y", 0x002), ("select", 0x004), ("start", 0x008),

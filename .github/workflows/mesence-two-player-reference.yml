@@ -1,0 +1,183 @@
+name: MesenCE ordinary 2P evidence
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/mesence-two-player-reference.yml"
+      - "tests/input/two-player-first-race.input"
+      - "tests/input/two-player-first-race-observe.script"
+      - "tools/run_fixture_mesen.py"
+      - "tools/replay_input_mesen.py"
+      - "tools/summarize_paired_player_slots.py"
+      - "third_party/src/mesen-for-ai/**"
+      - "tools/toolchain-entries/mesence.json"
+
+concurrency:
+  group: mesence-ordinary-2p-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  MESENCE_REVISION: a60e79feb4d6dcced5922d636f9211837d01e381
+  MESENCE_INPUT_PATCH_REV: v2
+
+jobs:
+  mesence-two-player:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.x
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update -qy
+          sudo apt-get install -qy libsdl2-dev xvfb unzip curl clang
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Restore pinned MesenCE binary cache
+        id: mesence-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/mesence-cache
+          key: mesence-linux-x64-${{ env.MESENCE_REVISION }}-${{ env.MESENCE_INPUT_PATCH_REV }}
+
+      - name: Fetch pinned MesenCE source
+        if: steps.mesence-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none https://github.com/nesdev-org/MesenCE.git "$RUNNER_TEMP/MesenCE"
+          git -C "$RUNNER_TEMP/MesenCE" checkout --detach "$MESENCE_REVISION"
+          test "$(git -C "$RUNNER_TEMP/MesenCE" rev-parse HEAD)" = "$MESENCE_REVISION"
+          git -C "$RUNNER_TEMP/MesenCE" apply --unidiff-zero "$GITHUB_WORKSPACE/third_party/src/mesen-for-ai/patches/mesence-lua-input-subport.patch"
+          if grep -q "lua_settop(lua, 4);" "$RUNNER_TEMP/MesenCE/Core/Debugger/LuaApi.cpp"; then
+            echo "MesenCE SetInput compatibility patch did not remove lua_settop(lua, 4)" >&2
+            exit 1
+          fi
+
+      - name: Stage MesenCE librashader dependency
+        if: steps.mesence-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/MesenCE"
+          curl -fL --retry 3             "https://nightly.link/SourMesen/librashader/workflows/build/Mesen/librashader-x64-ubuntu.zip"             -o "$RUNNER_TEMP/librashader.zip"
+          rm -rf "$RUNNER_TEMP/librashader"
+          mkdir -p "$RUNNER_TEMP/librashader"
+          unzip -q "$RUNNER_TEMP/librashader.zip" -d "$RUNNER_TEMP/librashader"
+          LIB="$(find "$RUNNER_TEMP/librashader" -type f -name librashader.so -print -quit)"
+          test -n "$LIB"
+          mkdir -p UI/Dependencies
+          cp "$LIB" UI/Dependencies/librashader.so
+
+      - name: Build pinned MesenCE
+        if: steps.mesence-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          make -C "$RUNNER_TEMP/MesenCE" -j2 -O LTO=true STATICLINK=true SYSTEM_LIBEVDEV=false
+          PUBLISH="$RUNNER_TEMP/MesenCE/bin/linux-x64/Release/linux-x64/publish"
+          test -x "$PUBLISH/Mesen"
+          rm -rf "$RUNNER_TEMP/mesence-cache"
+          mkdir -p "$RUNNER_TEMP/mesence-cache"
+          cp -a "$PUBLISH/." "$RUNNER_TEMP/mesence-cache/"
+
+      - name: Select pinned MesenCE binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          MESEN="$RUNNER_TEMP/mesence-cache/Mesen"
+          test -x "$MESEN"
+          echo "MESEN_BIN=$MESEN" >> "$GITHUB_ENV"
+
+      - name: Replay ordinary 2P fixture in MesenCE
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x "$GITHUB_WORKSPACE/third_party/src/mesen-for-ai/scripts/run_headless.sh"
+          mkdir -p "$RUNNER_TEMP/mesen-dumps"
+          export MESEN_FOR_AI_REPO="$GITHUB_WORKSPACE/third_party/src/mesen-for-ai"
+          timeout 240s xvfb-run -a             python3 tools/run_fixture_mesen.py               "reference/roms/retail/Uniracers_USA.sfc"               --input-file tests/input/two-player-first-race.input               --script tests/input/two-player-first-race-observe.script               --dump-dir "$RUNNER_TEMP/mesen-dumps"             | tee "$RUNNER_TEMP/mesen-two-player.log"
+
+      - name: Summarize MesenCE paired-player checkpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHECKPOINTS=(
+            --checkpoint two-player-race-1220
+            --checkpoint two-player-race-1420
+            --checkpoint two-player-p1-pre-1470
+            --checkpoint two-player-p1-post-1520
+            --checkpoint two-player-p2-post-1570
+            --checkpoint two-player-both-post-1620
+          )
+          python3 tools/summarize_paired_player_slots.py             "$RUNNER_TEMP/mesen-dumps" "${CHECKPOINTS[@]}"             --json-out "$RUNNER_TEMP/mesen-two-player-state.json"             | tee "$RUNNER_TEMP/mesen-two-player-state.txt"
+
+      - name: Assert MesenCE ordinary 2P semantic parity
+        shell: bash
+        run: |
+          python3 - "$RUNNER_TEMP/mesen-dumps" "$RUNNER_TEMP/mesen-two-player-state.json" <<'PY'
+          from pathlib import Path
+          import json,sys
+          root=Path(sys.argv[1])
+          report=json.loads(Path(sys.argv[2]).read_text())
+          checkpoints=(
+              "two-player-race-1220",
+              "two-player-race-1420",
+              "two-player-p1-pre-1470",
+              "two-player-p1-post-1520",
+              "two-player-p2-post-1570",
+              "two-player-both-post-1620",
+          )
+          for tag in checkpoints:
+              wr=(root/f"{tag}.wram.bin").read_bytes()
+              assert len(wr) == 0x20000, (tag, len(wr))
+              assert wr[0x0313] == 1, f"{tag}: inRace=0x{wr[0x0313]:02X}"
+              assert wr[0x0DDB] == 1, f"{tag}: split-screen gate=0x{wr[0x0DDB]:02X}"
+
+          # Run 36948109734 established exact MesenCE/Snes9x agreement for
+          # these promoted semantic checkpoints. Preserve that independent
+          # emulator oracle rather than comparing Mesen to the native host's
+          # already-explained post-P2 frame-boundary drift.
+          expected={
+              "two-player-race-1220": ((1088,0),(1088,0),(984,0),(984,0),(0,0,2),(0,0,2)),
+              "two-player-race-1420": ((1088,0),(1088,0),(984,0),(984,0),(0,0,2),(0,0,2)),
+              "two-player-p1-pre-1470": ((1088,0),(1088,0),(984,0),(984,0),(0,0,2),(0,0,2)),
+              "two-player-p1-post-1520": ((1519,432),(1088,0),(1455,15),(984,0),(0,0,2),(0,0,2)),
+              "two-player-p2-post-1570": ((2154,382),(1187,305),(2097,12),(1089,10),(1,1,1),(0,0,2)),
+              "two-player-both-post-1620": ((2825,432),(1141,-266),(2775,14),(1039,-9),(1,1,1),(0,0,2)),
+          }
+          for tag,exp in expected.items():
+              row=report[tag]
+              actual=(
+                  (row["slot1"]["x_pos"],row["slot1"]["x_speed"]),
+                  (row["slot2"]["x_pos"],row["slot2"]["x_speed"]),
+                  (row["camera_and_viewport"]["camera"]["player1_x"],row["camera_and_viewport"]["camera"]["player1_x_velocity"]),
+                  (row["camera_and_viewport"]["camera"]["player2_x"],row["camera_and_viewport"]["camera"]["player2_x_velocity"]),
+                  tuple(row["race_progress"]["player1"][k] for k in ("next_checkpoint","finish_gate","laps_remaining")),
+                  tuple(row["race_progress"]["player2"][k] for k in ("next_checkpoint","finish_gate","laps_remaining")),
+              )
+              assert actual == exp, f"{tag}: MesenCE/Snes9x semantic parity regression: {actual} != {exp}"
+          print("MESENCE_SNES9X_SEMANTIC_PARITY_CONFIRMED")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mesence-ordinary-2p-evidence
+          path: |
+            ${{ runner.temp }}/mesen-two-player.log
+            ${{ runner.temp }}/mesen-two-player-state.json
+            ${{ runner.temp }}/mesen-two-player-state.txt
+            ${{ runner.temp }}/mesen-dumps/
+          retention-days: 7

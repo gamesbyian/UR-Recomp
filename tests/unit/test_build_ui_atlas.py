@@ -304,5 +304,48 @@ class BuildUiAtlasTests(unittest.TestCase):
             self.assertEqual(capture["classification_status"], "unclassified")
 
 
+    def test_filters_by_source_fixture(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            dumps = root / "dumps"
+            dumps.mkdir()
+            fields = {
+                "current_menu": {"wram_offset": "0x009F", "width": 1},
+                "selected_option": {"wram_offset": "0x009B", "width": 1},
+                "menu_row": {"wram_offset": "0x000E", "width": 1},
+                "menu_col": {"wram_offset": "0x0C63", "width": 1},
+                "in_race": {"wram_offset": "0x0313", "width": 1},
+            }
+            manifest = {
+                "schema_version": 1,
+                "fields": fields,
+                "captures": [
+                    {"tag": "one", "state_id": "GAMEPLAY", "source_fixture": "fixture-a"},
+                    {"tag": "two", "state_id": "GAMEPLAY", "source_fixture": "fixture-b"},
+                ],
+            }
+            manifest_path = root / "manifest.json"
+            manifest_path.write_text(json.dumps(manifest))
+            wram = bytearray(0x20000)
+            (dumps / "one.wram.bin").write_bytes(wram)
+            _write_bmp(dumps / "one.fb.bmp")
+            out_json = root / "atlas.json"
+            proc = subprocess.run(
+                [
+                    sys.executable, str(TOOL),
+                    "--manifest", str(manifest_path),
+                    "--source-fixture", "fixture-a",
+                    "--dump-dir", str(dumps),
+                    "--out-json", str(out_json),
+                    "--strict",
+                ],
+                check=False, capture_output=True, text=True,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            report = json.loads(out_json.read_text())
+            self.assertEqual(report["summary"]["declared"], 1)
+            self.assertEqual([c["tag"] for c in report["captures"]], ["one"])
+
+
 if __name__ == "__main__":
     unittest.main()

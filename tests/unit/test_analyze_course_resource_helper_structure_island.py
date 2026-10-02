@@ -2,6 +2,7 @@ import json,sys,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]; sys.path.insert(0,str(ROOT/"tools"))
 import analyze_course_resource_helper_structure_island as mod
+import build_comparative_structural_census as census_mod
 
 class CourseResourceHelperTests(unittest.TestCase):
  def test_rom_probe(self):
@@ -11,6 +12,7 @@ class CourseResourceHelperTests(unittest.TestCase):
   self.assertEqual(r["usa_end"],"82:B32E")
   self.assertEqual(r["next_data"],"82:B32F")
   self.assertEqual(sum(x["size"] for x in r["regions"]),156)
+  self.assertEqual(r["decompression_edge"]["target"],"81:B8F1")
   self.assertEqual({x["callsite"] for x in r["known_callers"]},{"82:E18C","82:E1F5"})
   for region in r["regions"]:
    self.assertEqual(region["builds"]["legacy-beta"]["similarity"],1.0,region["name"])
@@ -19,5 +21,10 @@ class CourseResourceHelperTests(unittest.TestCase):
     item=region["builds"][build]
     self.assertEqual(item["aligned_opcode_pairs"],item["aligned_equal_opcode_pairs"],(region["name"],build))
     self.assertEqual(item["aligned_role_disagreements"],0,(region["name"],build))
+  self.assertEqual(json.loads(mod.OUTJ.read_text()),r)
+  self.assertEqual(mod.OUTM.read_text(),mod.render(r))
+  rebuilt=census_mod.build(ROOT)
+  self.assertEqual(json.loads((ROOT/"analysis/generated/comparative-structural-census.json").read_text()),rebuilt)
+  self.assertEqual((ROOT/"analysis/generated/comparative-structural-census.md").read_text(),census_mod.render(rebuilt))
   print("COURSE_RESOURCE_HELPER_JSON="+json.dumps(r,sort_keys=True))
 if __name__=="__main__": unittest.main()

@@ -39,7 +39,7 @@
     },
     {
       "path": "tools/patches/snesrecomp-rewind-audio-timing-lock.patch",
-      "sha256": "27a689b177bbcf6b5615aacd581734f50279ebdd9a01475946c25a72ea89a54b"
+      "sha256": "6f5fb28cea93cd0788aa9a0520eef469cf90bd87fd822cf41e9399b30b6051fc"
     }
   ],
   "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive. UR-Recomp's permanent native build uses host SDL2, disables SDL3 source fetching, carries a narrow project patch for exact neutral controller-stream replay, exposes the existing host-owned pause gate for modern session control, and exposes the framework's guest-frame APU timing lock needed by deterministic host-owned race restart.",

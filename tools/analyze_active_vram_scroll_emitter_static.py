@@ -29,14 +29,18 @@ def main() -> int:
         raise SystemExit("snes2asm did not recover code in 81:F2E0..F380")
 
     d.decode(START, END + 1)
+    decoded = [
+        (off, ins)
+        for off, ins in d.code.item_range(START, END + 1)
+        if d.code_map[off] & d.OP_CODE
+    ]
     rows = []
-    for off, ins in d.code.item_range(START, END + 1):
-        if not (d.code_map[off] & d.OP_CODE):
-            continue
+    for i, (off, ins) in enumerate(decoded):
+        next_off = decoded[i + 1][0] if i + 1 < len(decoded) else min(END + 1, off + 4)
         rows.append({
             "cpu": offset_to_cpu(off),
             "offset": off,
-            "bytes": data[off:off + d.opSize(data[off])].hex(" "),
+            "bytes": data[off:next_off].hex(" "),
             "text": ins.text(),
         })
 

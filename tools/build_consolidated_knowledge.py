@@ -39,7 +39,7 @@ def courses():
         "rom":{"offset":s["offset"],"packed_size":s["packed_size"],"decoded_size":s["unpacked_size"],"packed_sha256":s["packed_sha256"],"decoded_sha256":s["unpacked_sha256"],"compression_ratio":round(s["packed_size"]/s["unpacked_size"],8)},
         "header":{"layout_dims":[w,h],"dimension_product":c["layout_dim_product"],"stunt_time_or_mode":c["stunt_time_or_mode"],"spawn_or_landmark_a":c["spawn_or_landmark_a"],"spawn_or_landmark_b":c["spawn_or_landmark_b"],"resource_cursor_initial":c["resource_cursor_initial"]},
         "derived_presentation_geometry":{"basis":"promoted course-family presentation contract","status":"derived_from_promoted","coarse_sector_world_units":64,"fine_cell_world_units":16,"coarse_grid":[w*4,h*4],"coarse_entry_count":w*h*16,"world_extent":[w*256,h*256],"aspect_ratio":round(w/h,8)},
-        "resources":{"ids":c["resource_ids"],"count":c["resource_count"],"terminator_offset":c["resource_terminator_offset"],"bytes_after_terminator":c["bytes_after_terminator"],"bytes_from_initial_cursor_through_eof":c["decoded_size"]-c["resource_cursor_initial"],"sequence_sha256":hashlib.sha256(bytes(c["resource_ids"])).hexdigest()},
+        "resources":{"ids":c["resource_ids"],"count":c["resource_count"],"terminator_offset":c["resource_terminator_offset"],"bytes_after_terminator":c["bytes_after_terminator"],"bytes_from_initial_cursor_through_eof":c["decoded_size"]-c["resource_cursor_initial"]},
         "sources":["analysis/generated/rnc-stream-manifest.json","analysis/generated/course-resource-list-manifest.json","reference/notes/course-order-and-stunt-timer.md"]}
         if i in sample:
             q=sample[i];r["presentation_contract_sample"]={"status":"static_proven","fine_record_count":q["fine_record_count"],"resource_count":q["resource_count"],"c000_total":q["c000_total"],"a000_total":q["a000_total"],"normal_surface_word_count":q["normal_surface_word_count"],"checks":q["checks"],"source":"analysis/generated/course-presentation-contract-sample.json"}
@@ -56,7 +56,6 @@ def state():
     for build,b in rel.items():
         for name,q in b["relations"].items():
             x={"build":build,"semantic_name":name,"persistent":q["persistent"],"working":q["working"],"bidirectional":q["bidirectional"],"routine":b["routine"],"source":"analysis/generated/regional-racer-state-relations.json"};rr.append(x)
-            if name in by:by[name].setdefault("regional_relations",[]).append(x)
     return {"schema_version":1,"generated_by":"tools/build_consolidated_knowledge.py","purpose":"Normalized promoted state semantics plus cross-build racer relations.","entries":out,"regional_racer_relations":rr}
 def code():
     sy=load("analysis/generated/symbols.json");co=load("analysis/generated/cross-build-symbol-correspondence.json");ce=load("analysis/generated/comparative-structural-census.json");cb=defaultdict(list)

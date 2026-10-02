@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "island": "CourseResourceDescriptorAndWramPortCopy",
+  "usa_start": "82:B293",
+  "usa_end": "82:B32E",
+  "next_region": "82:B32F",
+  "boundary_basis": {
+    "entry": "course materialization directly JSLs 82:B2A9 and 82:B2DA",
+    "internal_helpers": "82:B2A9 and 82:B2DA both converge on descriptor decoder 82:B2AD; copy loop calls stream reader 82:B293",
+    "exit": "82:B31F and 82:B32E are RTL exits; 82:B32F begins the following table/data block in the preserved listing"
+  },
+  "relationship": {
+    "caller": "course-materialization",
+    "caller_sites": [
+      "82:E18C -> 82:B2DA",
+      "82:E1F5 -> 82:B2A9"
+    ],
+    "descriptor_record_stride": 5,
+    "copy_destination": "SNES WRAM data port $2180 with address registers $2181..$2183"
+  },
+  "regions": [
+    {
+      "name": "stream_byte_reader",
+      "kind": "code",
+      "usa_start": "82:B293",
+      "usa_end": "82:B2A8",
+      "size": 22,
+      "builds": {
+        "usa-retail": {
+          "start": "82:B293",
+          "end": "82:B2A8",
+          "shift": 0,
+          "similarity": 1.0,
+          "sha256": "aac7c2c12b29ca69356a6313cc4652bbcf0a8f7a1350f1acf13ef9da29273ac4",
+          "opcode_bytes": 15,
+          "operand_bytes": 7,
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:B280",
+          "end": "82:B295",
+          "shift": -19,
+          "similarity": 1.0,
+          "sha256": "aac7c2c12b29ca69356a6313cc4652bbcf0a8f7a1350f1acf13ef9da29273ac4",
+          "opcode_bytes": 15,
+          "operand_bytes": 7,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 15,
+          "aligned_equal_opcode_pairs": 15,
+          "aligned_role_disagreements": 0
+        },
+        "europe-retail": {
+          "start": "82:B296",
+          "end": "82:B2AB",
+          "shift": 3,
+          "similarity": 1.0,
+          "sha256": "aac7c2c12b29ca69356a6313cc4652bbcf0a8f7a1350f1acf13ef9da29273ac4",
+          "opcode_bytes": 15,
+          "operand_bytes": 7,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 15,
+          "aligned_equal_opcode_pairs": 15,
+          "aligned_role_disagreements": 0
+        },
+        "legacy-beta": {
+          "start": "82:B293",
+          "end": "82:B2A8",
+          "shift": 0,
+          "similarity": 1.0,
+          "sha256": "aac7c2c12b29ca69356a6313cc4652bbcf0a8f7a1350f1acf13ef9da29273ac4",
+          "opcode_bytes": 15,
+          "operand_bytes": 7,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 15,
+          "aligned_equal_opcode_pairs": 15,
+          "aligned_role_disagreements": 0
+        }
+      }
+    },
+    {
+      "name": "descriptor_long_entry",
+      "kind": "code",
+      "usa_start": "82:B2A9",
+      "usa_end": "82:B2AC",
+      "size": 4,
+      "builds": {
+        "usa-retail": {
+          "start": "82:B2A9",
+          "end": "82:B2AC",
+          "shift": 0,
+          "similarity": 1.0,
+          "sha256": "c6545a6749868fe1f1185a27414ec46b8b9e815d69827b66de735b995001890d",
+          "opcode_bytes": 2,
+          "operand_bytes": 2,
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:B296",
+          "end": "82:B299",
+          "shift": -19,
+          "similarity": 0.75,
+          "sha256": "c0fb76966de1dfd0fae861298210e402dce90efe3e87bfc6bde34e38f1907158",
+          "opcode_bytes": 2,
+          "operand_bytes": 2,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 2,
+          "aligned_equal_opcode_pairs": 2,
+          "aligned_role_disagreements": 0
+        },
+        "europe-retail": {
+          "start": "82:B2AC",
+          "end": "82:B2AF",
+          "shift": 3,
+          "similarity": 0.75,
+          "sha256": "e6bedb9d8af476cc17aa4c770ce9fe2cfce6d84884b1156467af7980f38af53c",
+          "opcode_bytes": 2,
+          "operand_bytes": 2,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 2,
+          "aligned_equal_opcode_pairs": 2,
+          "aligned_role_disagreements": 0
+        },
+        "legacy-beta": {
+          "start": "82:B2A9",
+          "end": "82:B2AC",
+          "shift": 0,
+          "similarity": 1.0,
+          "sha256": "c6545a6749868fe1f1185a27414ec46b8b9e815d69827b66de735b995001890d",
+          "opcode_bytes": 2,
+          "operand_bytes": 2,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 2,
+          "aligned_equal_opcode_pairs": 2,
+          "aligned_role_disagreements": 0
+        }
+      }
+    },
+    {
+      "name": "descriptor_decode",
+      "kind": "code",
+      "usa_start": "82:B2AD",
+      "usa_end": "82:B2D9",
+      "size": 45,
+      "builds": {
+        "usa-retail": {
+          "start": "82:B2AD",
+          "end": "82:B2D9",
+          "shift": 0,
+          "similarity": 1.0,
+          "sha256": "13557e455cc562987d6b3a5b11358806c6e355366a43f200ade27ddc0fb2bd5b",
+          "opcode_bytes": 28,
+          "operand_bytes": 17,
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:B29A",
+          "end": "82:B2C6",
+          "shift": -19,
+          "similarity": 1.0,
+          "sha256": "13557e455cc562987d6b3a5b11358806c6e355366a43f200ade27ddc0fb2bd5b",
+          "opcode_bytes": 28,
+          "operand_bytes": 17,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 28,
+          "aligned_equal_opcode_pairs": 28,
+          "aligned_role_disagreements": 0
+        },
+        "europe-retail": {
+          "start": "82:B2B0",
+          "end": "82:B2DC",
+          "shift": 3,
+          "similarity": 1.0,
+          "sha256": "13557e455cc562987d6b3a5b11358806c6e355366a43f200ade27ddc0fb2bd5b",
+          "opcode_bytes": 28,
+          "operand_bytes": 17,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 28,
+          "aligned_equal_opcode_pairs": 28,
+          "aligned_role_disagreements": 0
+        },
+        "legacy-beta": {
+          "start": "82:B2AD",
+          "end": "82:B2D9",
+          "shift": 0,
+          "similarity": 1.0,
+          "sha256": "13557e455cc562987d6b3a5b11358806c6e355366a43f200ade27ddc0fb2bd5b",
+          "opcode_bytes": 28,
+          "operand_bytes": 17,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 28,
+          "aligned_equal_opcode_pairs": 28,
+          "aligned_role_disagreements": 0
+        }
+      }
+    },
+    {
+      "name": "wram_port_copy",
+      "kind": "code",
+      "usa_start": "82:B2DA",
+      "usa_end": "82:B32E",
+      "size": 85,
+      "builds": {
+        "usa-retail": {
+          "start": "82:B2DA",
+          "end": "82:B32E",
+          "shift": 0,
+          "similarity": 1.0,
+          "sha256": "44cbda70e48f4cd0689939fa853783138cd861a2532ebc7b99dbe9dae71d8577",
+          "opcode_bytes": 46,
+          "operand_bytes": 39,
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:B2C7",
+          "end": "82:B31B",
+          "shift": -19,
+          "similarity": 0.964706,
+          "sha256": "2faec848389c2a4eb41a0c8780a2178955a5c83930952958c084d62373667c30",
+          "opcode_bytes": 46,
+          "operand_bytes": 39,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 46,
+          "aligned_equal_opcode_pairs": 46,
+          "aligned_role_disagreements": 0
+        },
+        "europe-retail": {
+          "start": "82:B2DD",
+          "end": "82:B331",
+          "shift": 3,
+          "similarity": 0.964706,
+          "sha256": "f1782696104e09ac6aa8ca2d97b216fa4cddf6a47d9fe6a468d665d6a706c63c",
+          "opcode_bytes": 46,
+          "operand_bytes": 39,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 46,
+          "aligned_equal_opcode_pairs": 46,
+          "aligned_role_disagreements": 0
+        },
+        "legacy-beta": {
+          "start": "82:B2DA",
+          "end": "82:B32E",
+          "shift": 0,
+          "similarity": 1.0,
+          "sha256": "44cbda70e48f4cd0689939fa853783138cd861a2532ebc7b99dbe9dae71d8577",
+          "opcode_bytes": 46,
+          "operand_bytes": 39,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 46,
+          "aligned_equal_opcode_pairs": 46,
+          "aligned_role_disagreements": 0
+        }
+      }
+    }
+  ]
+}

@@ -25,6 +25,7 @@ DEFAULT_SOURCES = (
     ("contact-geometry", "analysis/generated/contact-geometry-structure-island.json", False),
     ("course-resource-descriptor", "analysis/generated/course-resource-descriptor-structure-island.json", False),
     ("course-sector-gather", "analysis/generated/course-sector-gather-structure-island.json", False),
+    ("ec46-coordinate-window", "analysis/generated/ec46-coordinate-window-structure-island.json", False),
 )
 
 def build(root: Path) -> dict:

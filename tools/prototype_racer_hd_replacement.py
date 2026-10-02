@@ -181,8 +181,11 @@ def build_remastered_candidate(stock_rgba: bytes, entry: dict) -> tuple[bytes, i
     return out, width, height
 
 
-def validate_against_family(entry: dict, family: dict) -> None:
-    proof = family["piece_semantics"]["composition_contract"]["synchronized_proof"]
+def validate_against_assets(entry: dict, assets: dict) -> None:
+    families = [x for x in assets["families"] if x["id"] == "ordinary-race-racer-presentation"]
+    if len(families) != 1:
+        raise ValueError("expected exactly one ordinary racer presentation family")
+    proof = families[0]["composition_contract"]["synchronized_proof"]
     guards = entry["composition_guards"]
     for key in ("p1_primary", "p2_primary", "p1_companion", "p2_companion"):
         if guards[key].lower() != proof["ids"][key].lower():
@@ -202,14 +205,14 @@ def validate_against_family(entry: dict, family: dict) -> None:
 def run(
     rom: bytes,
     registry: dict,
-    family: dict,
+    assets: dict,
     semantic_frame_id: str,
     output_dir: Path,
     hflip: bool,
     vflip: bool,
 ) -> dict:
     entry = load_entry(registry, semantic_frame_id)
-    validate_against_family(entry, family)
+    validate_against_assets(entry, assets)
 
     authoritative_before = json.dumps(entry["composition_guards"], sort_keys=True)
     stock = build_stock_rgba(rom, entry)
@@ -291,7 +294,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("rom", type=Path)
     ap.add_argument("--registry", type=Path, default=ROOT / "analysis/data/racer-hd-replacement-prototype.json")
-    ap.add_argument("--family", type=Path, default=ROOT / "analysis/generated/racer-presentation-family.json")
+    ap.add_argument("--assets", type=Path, default=ROOT / "analysis/data/presentation-assets.json")
     ap.add_argument("--semantic-frame-id", default="0x0541")
     ap.add_argument("--output-dir", type=Path, required=True)
     ap.add_argument("--hflip", action="store_true")
@@ -301,7 +304,7 @@ def main() -> int:
     result = run(
         args.rom.read_bytes(),
         json.loads(args.registry.read_text(encoding="utf-8")),
-        json.loads(args.family.read_text(encoding="utf-8")),
+        json.loads(args.assets.read_text(encoding="utf-8")),
         args.semantic_frame_id,
         args.output_dir,
         args.hflip,

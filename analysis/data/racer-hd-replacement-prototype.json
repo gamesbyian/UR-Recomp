@@ -24,9 +24,18 @@
       },
       "palette_asset_id": "0x06",
       "registration": {
-        "logical_canvas_pixels": [64, 64],
-        "object_origin": [0, 0],
-        "occupancy_tile_offset": [1, 0],
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
         "orientation_policy": "apply runtime OAM H/V flip after asset selection",
         "pivot_policy": "preserve the complete object-local canvas rigidly; no independent pivot coordinate is currently proven",
         "contact_policy": "no separately named wheel-contact anchor is currently proven; derived candidate preserves stock placement by whole-canvas scaling"
@@ -42,7 +51,9 @@
         "passes": 2,
         "density_scale": 4,
         "approval_status": "contract-only candidate; not approved shipping art",
-        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path."
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
       },
       "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset."
     }

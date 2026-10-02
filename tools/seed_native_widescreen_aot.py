@@ -29,6 +29,7 @@ func WidescreenPrepareWrapper A52F
 EXTRA_BANK = 2
 EXTRA_ADDR = "D2" + "D1"
 EXTRA_NAME = "WidescreenPostConsume"
+EXTRA_SYMBOL_MARKER = 'name = "WidescreenPostConsume"'
 
 def _append_once(path: Path, marker: str, entry: str, *, prefix: str = "") -> bool:
     text = path.read_text(encoding="utf-8") if path.exists() else prefix
@@ -46,8 +47,15 @@ def ensure_seed(cfg_dir: Path) -> dict[str, bool]:
     bank_extra = cfg_dir / f"bank{EXTRA_BANK:02d}.cfg"
     extra_marker = f"func {EXTRA_NAME} {EXTRA_ADDR}"
     extra_entry = f"# UR-Recomp Widescreen presentation-only consume root.\n{extra_marker}\n"
+    extra_symbol_entry = (
+        f"\n[[func]]\nname = \"{EXTRA_NAME}\"\naddr = \"{EXTRA_ADDR}\"\n"
+        f"bank = {EXTRA_BANK}\nemit = true\n"
+        "note = \"Presentation-only post-consume cleanup seam for native Widescreen staging\"\n"
+    )
+    symbol_prepare = _append_once(symbols, SYMBOL_MARKER, SYMBOL_ENTRY)
+    symbol_extra = _append_once(symbols, EXTRA_SYMBOL_MARKER, extra_symbol_entry)
     return {
-        "symbols": _append_once(symbols, SYMBOL_MARKER, SYMBOL_ENTRY),
+        "symbols": symbol_prepare or symbol_extra,
         "bank01": _append_once(
             bank01,
             CFG_MARKER,

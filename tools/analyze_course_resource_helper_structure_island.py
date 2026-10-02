@@ -82,7 +82,7 @@ def build():
 
 def render(r):
  lines=["# Course/resource helper structural island","",
- "USA `82:B293..B32E` is the compact helper cluster reached from the recovered course materialization loader: a stream-byte reader, a descriptor decoder/wrapper, and a resource transfer/materialization routine. The next span at `82:B32F` is table/data in the preserved listing.","",
+ "USA `82:B293..B32E` is the compact helper cluster reached from the recovered course materialization loader: a stream-byte reader, descriptor decoder/wrapper, and a resource transfer path that either writes directly through the SNES WRAM port or dispatches compressed resources to the map decompressor at `81:B8F1`. The next span at `82:B32F` is table/data in the preserved listing.","",
  "| Region | USA bytes | PAL prototype | Europe | Legacy beta |","|---|---:|---|---|---|"]
  for x in r["regions"]:
   def c(b):

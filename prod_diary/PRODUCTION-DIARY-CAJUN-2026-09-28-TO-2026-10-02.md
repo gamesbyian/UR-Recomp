@@ -4,423 +4,517 @@
 **Project:** UR-Recomp  
 **Repository:** `gamesbyian/UR-Recomp`
 
-Pull up a chair on the porch, cher. This here is the same production story told in the regular diary, only now it has got some cypress knees in the water, a cast-iron pot on the fire, and enough bayou philosophy to make a debugger wonder whether it ought to bring bug spray.
+Pull up dat chair, cher. Dis here be de same production story what got wrote down proper in de regular diary, only dis time it come crawlin’ out de cypress water with mud on its boots, a pot bubblin’ on de fire, an’ enough back-porch grammar to make a compiler start wonderin’ whether semicolons got souls.
 
-The technical facts remain the same. PRs, generated evidence, tests and repository artifacts are still the authority. This version is for the story of the work: what got hauled out the swamp, what bit back, what looked like a gator and turned out to be a floating log, and which logs turned out to be very definitely gators.
+Technical facts ain’t changin’. PRs, generated evidence, tests, traces, symbols, an’ repository artifacts still de law of de land. Dis copy just tellin’ de tale de way a swamp-dweller might tell it: what got dragged out de reeds, what bit somebody, what looked like a gator but was only a log, an’ what looked like a log till it opened its mouth.
 
 ---
 
-## 2026-09-28 — One little remake idea wanders into the swamp and comes back carrying a laboratory
+## 2026-09-28 — One little remake idea wander into de swamp an’ come back carryin’ a laboratory
 
-The whole business started innocent enough: would *Uniracers* make a good game to remake?
+Whole thing start innocent enough.
 
-Mais, that question did not stay innocent for long.
+Would *Uniracers* make a good game to remake?
 
-A regular remake would have been the obvious road. Put the thing in Godot, get a wheel rolling around, tune the jumps until they feel right, put some shiny new graphics on top, call it supper.
+Mais, dat question ain’t stay innocent long.
 
-UR-Recomp went the other direction entirely.
+Regular remake, you know how dat go. Put de thing in Godot, get dat wheel rollin’, tune de jump till it feel right, make de graphics nice an’ shiny, call everybody to supper.
 
-The visible game is small. One riderless unicycle. Little courses. Racing. Stunts. Menus. Not exactly *Final Fantasy VI* with seventeen opera houses and a moon full of accounting.
+UR-Recomp go wanderin’ off de other way entirely.
 
-But underneath? That little unicycle got physics, landing rules, stunt state, boost economy, camera behavior, CPU racers, collision, track geometry, timing and enough tiny interlocking state to fill a bait bucket.
+Visible game look small. One riderless unicycle. Little courses. Racing. Stunts. Menus. Ain’t exactly *Final Fantasy VI* with seventeen opera houses an’ a moon fulla paperwork.
 
-So the project made a decision early: do not imitate the game from the outside. Excavate it from the inside.
+But underneath? Cher, dat little unicycle ain’t got no business carryin’ dat much machinery.
 
-The job became:
+Physics. Landin’ rules. Stunt state. Boost economy. Camera behavior. CPU racers. Collision. Course geometry. Timin’. Whole mess packed in dere tighter’n crawfish in a trap.
 
-- extract evidence;
-- make deterministic fixtures;
-- run the same inputs against different implementations;
-- recover semantics instead of guessing;
-- keep provenance for every important claim;
-- rebuild only after the machinery is understood well enough to test the rebuild.
+So de project make a choice early:
 
-That was the first big turn in the river.
+Don’t imitate de game from outside.
 
-### The repo gets built like a field station
+Dig down in it.
 
-The repository became `gamesbyian/UR-Recomp`.
+Pull out evidence. Build deterministic experiments. Make two implementations eat de same inputs. Learn what de state actually mean. Then rebuild from what can be proved.
 
-Right away the work started looking less like “make a game” and more like “establish a research camp before the mosquitoes carry the scientists away.”
+Dat right dere be de first big bend in de bayou.
 
-The USA retail ROM was fingerprinted. It was confirmed as a 2 MiB LoROM with 8 KiB SRAM and no coprocessor. SNESRecomp work got a native build to a real title screen. Symbols and observations started getting written down in durable docs instead of being left to evaporate in chat.
+### Repo bootstrap: build de camp before huntin’ monsters
 
-The RNC compression work also started opening doors. Eventually the project would account for 45 valid Method-1 streams, and those streams would become one of the main trails through the game’s data.
+Repository get made as `gamesbyian/UR-Recomp`.
 
-A rule settled in early and never really left:
+First useful milestone ain’t some fancy mock-up. It a field station.
 
-> If a discovery might matter later, put it somewhere an agent can find it again.
+USA retail ROM get fingerprinted. Two MiB LoROM. Eight KiB SRAM. No coprocessor. SNESRecomp work get far enough to show a real title screen. Symbols start gettin’ written down. Research evidence stop livin’ only in chat where it liable to drift off downstream.
 
-That sounds obvious until you have six agents, three emulators, forty generated reports and one mysterious byte at `$0FE9` all trying to tell you different stories before breakfast.
+RNC compression turn out to be one of de big doors in de whole game. Eventually, project count 45 valid Method-1 streams.
 
-### PR #2: build the pantry before cooking the gumbo
+A rule settle in fast:
 
-PR #2 created the first proper external reference corpus.
+> If dat observation might matter later, put it somewhere somebody can find it again.
 
-Public reverse-engineering notes, emulator evidence, graphics references, historical materials and provenance records stopped being browser tabs and became repository knowledge.
+Sound obvious till you got six agents, three emulators, forty generated reports, an’ one suspicious byte at `$0FE9` all yellin’ different things before coffee.
 
-Anything with muddy redistribution rights got indexed and summarized instead of casually copied in. That kept the project useful without turning the reference directory into a legal crawfish trap.
+### PR #2: build de pantry before cookin’ de gumbo
 
-PR #3 reconciled repository hygiene and tooling.
+PR #2 make de first proper external reference corpus.
 
-PR #4 added the synthesized knowledge base under `docs/knowledge/`.
+Historical reverse-engineerin’ notes, emulator evidence, graphics references, public material, cheats, provenance. All dat quit bein’ browser-tab fog an’ become repository knowledge.
 
-And here the project made another smart distinction: the knowledge base was for orientation, not authority.
+Anything with muddy redistribution rights get indexed or summarized instead of tossed wholesale in de pot.
 
-Agents could read the short version first, but when the question got serious, they had to walk back to the source water: the research ledger, symbols, generated analysis, pinned references and actual runtime evidence.
+PR #3 clean up repo hygiene an’ research tooling.
 
-Because if you let summaries become truth, sooner or later somebody writes down “probably” on Monday and by Thursday three agents are citing it like Moses brought it down the mountain.
+PR #4 add a synthesized knowledge layer under `docs/knowledge/`.
 
-### PR #5: the first real oracle
+But project make one important distinction:
 
-Then the project got itself a proper measuring stick.
+Knowledge layer be for orientation.
 
-PR #5 recovered a controller-only route from clean boot into the first one-player race and ran it through both:
+Evidence layer be de authority.
 
-- the native SNESRecomp build;
-- a pinned Snes9x reference route.
+Agents can read de short version to get dey bearings. But when somebody wanna make a serious claim, dey gotta walk back to de source water: research ledger, symbols, generated analysis, pinned references, runtime evidence.
 
-No state pokes. No cheating the menus. Just inputs.
+Else Monday somebody write “probably,” Tuesday somebody paraphrase it, an’ by Thursday three agents swear it carved on stone tablets.
 
-Now both implementations could be driven through the same frontend states and into the same race, while the project dumped full WRAM at known checkpoints.
+### PR #5: now dis thing actin’ like science
 
-That changed everything.
+PR #5 where de whole operation quit just diggin’ bones an’ started performin’ experiments.
 
-Screenshots tell you what two things look like.
+Recovered a controller-only route from clean boot into de first one-player race.
 
-A deterministic replay with state capture tells you whether they are doing the same thing underneath.
+Run same route through:
 
-At first, the full comparisons looked ugly. Hundreds of differing bytes in frontend states. Seven still different at settled race entry.
+- native SNESRecomp;
+- pinned Snes9x reference.
 
-Easy conclusion: native is wrong.
+Ain’t pokin’ no game state.
 
-Actual conclusion after PR #6: not so fast, cher.
+Ain’t draggin’ de program by its suspenders.
 
-Four of those bytes were stale stack history in page `$01xx`. The remaining three were timing and phase counters running on slightly different cadence.
+Just controller input an’ whatever truth come spillin’ out.
 
-Meaningful race state was fine.
+Now both implementations can walk through de same frontend states, enter de same race, an’ dump full WRAM at known checkpoints.
 
-That taught the project one of its most important lessons:
+Dat changed de game.
 
-> Byte-for-byte equality can be a terrible oracle when the bytes include harmless machine residue.
+Screenshots tell you two things look alike.
 
-Sometimes you need exact equality. Asset reconstruction? Absolutely. SRAM round trip? You bet.
+Deterministic replay tell you whether dey thinkin’ alike underneath.
 
-Gameplay? Often the right question is whether the same semantic event produced the same meaningful state, not whether every timer and dead stack byte happened to match on host frame 1,044.
+First full comparison look ugly.
 
-### PR #7: make the unicycle actually do something
+Hundreds of bytes differ up front.
 
-Once race entry was trustworthy, the project started poking behavior.
+Seven still differ at settled race entry.
 
-First came straight-line acceleration. Nice and clean. Right input, staged checkpoints, recovered X position and signed X speed.
+Easy conclusion: native busted.
 
-Native and Snes9x matched.
+Actual conclusion after PR #6?
 
-Then came jumping, and here the swamp handed over a nice little lesson.
+Nah, cher.
 
-A short B press seemed to correlate with an airborne field.
+Four of dem seven bytes was stale stack mud in page `$01xx`.
 
-Could have stopped there and declared victory.
+Other three was timing an’ phase counters tickin’ a little outta step.
 
-Instead, the paired racer data showed the changing field belonged to the other racer.
+No unexplained persistent gameplay divergence.
 
-So the project ran a matched no-B control.
+An’ dere come one of de project’s biggest lessons:
 
-Result: player 1 had not jumped at all.
+> Whole-machine equality can holler wolf when all you got is swamp grass movin’.
 
-That “success” went straight into the bucket marked **NOPE**.
+Sometimes exact bytes matter. Asset round trip? You bet. SRAM persistence? Absolutely.
 
-The short pulse became useful negative evidence, the fixture got changed to a sustained B hold based on the recovered historical bot behavior, and *that* produced the real player-1 jump.
+Gameplay? Better ask whether de same semantic event produce de same meaningful state.
 
-Native and reference matched again.
+Don’t go worshippin’ every changed byte just ’cause it changed.
 
-This became the project’s preferred rhythm:
+### PR #7: make dat wheel actually move
 
-1. see something interesting;
-2. distrust the interesting thing;
-3. build the cheapest control that could embarrass the hypothesis;
-4. keep the hypothesis only if it survives.
+Once race entry trustworthy, project start pokin’ behavior.
 
-A good reverse-engineering project ought to be a little rude to its own ideas.
+First straight-line acceleration.
 
-### Digging through old sheds
+Low-confounder probe.
 
-Meanwhile, the archaeology spread outward.
+Hold Right.
 
-Old bots. TAS files. emulator notes. reverse-engineering scraps. SNES development tools. press material. abandoned utilities. strange old corners of the web where filenames go to die.
+Sample X position.
 
-PR #8 started auditing imported tools rather than assuming anything old and useful was also correct.
+Sample signed X speed.
 
-PR #10 made “research before reinvention” part of the operating method. If two or three different local approaches fail to reduce uncertainty, stop building fancier homemade contraptions and go see how emulator authors, ROM hackers, TAS people, decompilers and console developers solved related problems.
+Native an’ Snes9x match.
 
-Also, one naming rule got hammered in early:
+Then come jumpin’.
 
-“Widescreen” is a feature.
+First B-button poke look mighty promising. One air-state-looking byte start dancin’, so a fella coulda slapped a label on it an’ gone home happy.
 
-“HD” is a feature.
+But nah.
 
-Neither one is the name of the whole project.
+Closer comparison show dat changin’ field belong to de other racer.
 
-UR-Recomp is about recovering and modernizing the game faithfully. Widescreen is one pot on the stove, not the whole kitchen.
+So project run de same timing with no B.
+
+Other racer still jumpin’.
+
+Into de evidence pot dat theory go, lid an’ all.
+
+Short pulse get preserved as negative evidence.
+
+Fixture change to a sustained B hold based on recovered historical bot behavior.
+
+Dat finally launch player 1 proper.
+
+Native an’ reference match again.
+
+From here on, project got itself a rhythm:
+
+1. see somethin’ interesting;
+2. distrust it;
+3. build de cheapest experiment likely to embarrass it;
+4. keep it only if it survive.
+
+Good reverse-engineerin’ oughta be a little rude to its own ideas.
+
+### Old sheds, dead websites, an’ tools with snakes in de cooler
+
+Meanwhile archaeology spread out.
+
+Old bots. TAS files. Emulator notes. reverse-engineerin’ scraps. SNES dev tools. Press material. Dead links. Strange corners of de web where filenames go to die alone.
+
+PR #8 start auditin’ imported tooling instead of trustin’ whatever somebody uploaded in 2009.
+
+PR #10 formalize “research before reinvention.”
+
+If two or three genuinely different local approaches ain’t shrinkin’ uncertainty, stop buildin’ fancier homemade contraptions.
+
+Go see how emulator authors, ROM hackers, TAS folks, decompilers, an’ consoledev people solved related problems.
+
+Another naming rule get nailed down:
+
+“Widescreen” be a feature.
+
+“HD” be a feature.
+
+Neither one be de whole project.
+
+UR-Recomp about faithful reconstruction an’ deliberate modernization.
+
+Widescreen just one pot on de stove.
 
 ### End of September 28
 
-By bedtime, the project had gone from “maybe remake Uniracers” to:
+By sundown, project got:
 
-- native executable;
+- native executable reachin’ real states;
 - trusted reference path;
 - deterministic input;
-- full WRAM comparison;
+- full-WRAM comparison;
 - provenance-first research corpus;
-- symbol and knowledge systems;
-- audited tooling;
-- a working scientific method for testing fidelity.
+- symbols an’ knowledge docs;
+- audited toolin’;
+- a proper experimental method.
 
-Not bad for day one.
+Started de day askin’ whether *Uniracers* be fun to remake.
 
-The next problem was making sure all that machinery did not depend on half the internet being awake and cooperative.
+Ended it buildin’ a forensic lab around a SNES ROM.
+
+Dat escalated quick.
 
 ---
 
-## 2026-09-29 — Put the tools on dry land before the flood comes
+## 2026-09-29 — Get dem tools up on dry land before de flood come
 
-The second day was mostly about infrastructure, which means it looked less dramatic and mattered enormously.
+Second day less flashy.
 
-You can do brilliant archaeology with fragile tools right up until the tool disappears, the dependency changes, the CI image updates or a GUI decides it needs a window server at three in the morning.
+Also mighty important.
 
-UR-Recomp started fixing that before it became a crisis.
+You can do brilliant archaeology with fragile tools right up till de tool vanish, de dependency move, CI image change, or some GUI decide it need a display server at three in de mornin’.
 
-### Third-party tools get frisked at the door
+UR-Recomp start fixin’ dat before it become a proper mess.
 
-The tooling audit, eventually reconciled through PR #12, treated every imported script and external tool like a stranger arriving at the fishing camp carrying a locked cooler.
+### Third-party tools get frisked at de dock
 
-Could be useful.
+Tooling audit, later reconciled through PR #12, treat every imported script an’ external tool like a stranger walkin’ into camp carryin’ a locked cooler.
 
-Could also contain snakes.
+Might have beer in dere.
 
-The audit found:
+Might have snakes.
 
-- build assumptions tied to GUI environments;
-- shell invocation that did more magic than necessary;
-- historical scripts with duplicate-key and width assumptions;
-- emulator implementations that were useful references but poor independent corroborators in certain hardware seams.
+Audit turn up:
 
-One especially important example was Snes9x.
+- build recipes expectin’ GUI environments;
+- shell invocation doin’ more magic than necessary;
+- historical code with duplicate keys an’ width assumptions;
+- emulator implementations useful for behavior but poor as independent witnesses at certain hardware seams.
 
-Snes9x was tremendously useful for behavior comparison, but it explicitly carried special handling for *Uniracers*.
+Snes9x be de big example.
 
-So if native and Snes9x agreed around active-display OAM behavior, that did **not** automatically mean the implementation matched actual hardware. They might simply be sharing the same practical workaround.
+Snes9x mighty useful.
 
-That distinction between “good behavioral oracle” and “independent architectural witness” became part of the project’s evidence vocabulary.
+But it explicitly carry special handlin’ for *Uniracers*.
 
-PR #13 then made the toolchain more headless and CI-friendly, because agents do not need a gorgeous GUI if what they really want is one deterministic trace and a JSON file.
+So if native an’ Snes9x agree around active-display OAM behavior, dat ain’t independent proof of hardware truth.
 
-### Build an island before the bridge washes out
+Could just mean both routes got de same practical patch.
 
-Then came the offline-island push.
+Project start distinguishin’:
 
-The user wanted the core project usable even if external services vanished.
+- useful behavioral oracle;
+- independent architectural corroboration.
 
-Not “we have a lockfile.”
+Dat distinction save trouble later.
 
-Not “we pinned a Git hash.”
+PR #13 make toolchain more headless, more CI-friendly, less interested in drawin’ windows nobody watchin’.
 
-Actually islanded.
+Agents usually don’t need a pretty GUI.
 
-PR #15 made that Priority 0.
+Dey need one deterministic trace an’ a JSON file.
 
-PR #21 turned the idea into executable policy:
+### Build an island before de bridge wash out
 
-- a `third_party/` boundary;
+Then come de offline-island obsession.
+
+User want core research usable even if external services disappear.
+
+Not “we pinned a version.”
+
+Not “we got a lockfile.”
+
+Actually self-contained where practical.
+
+PR #15 make islandization Priority 0.
+
+PR #21 turn it into executable policy:
+
+- `third_party/` boundary;
 - machine-readable provenance;
-- explicit migration state;
+- explicit migration states;
 - validation;
-- an offline mode that fails instead of quietly fetching from the network.
+- offline mode what fail closed instead of sneakin’ off to de network.
 
-PR #23 brought in the first real vendored component: `mesen-for-ai`.
+PR #23 bring in first real vendored component: `mesen-for-ai`.
 
-The practical reason was reproducibility.
+Reason one be reproducibility.
 
-The more interesting reason was control.
+Reason two be power.
 
-If the tool source lives in the repo, agents can inspect it, patch it and adapt it to the project instead of inventing workarounds around some opaque upstream behavior.
+If source live in de repo, agents can inspect it, patch it, specialize it.
 
-That is a big difference in a project where the tools are part of the experiment.
+Ain’t gotta dance around upstream behavior like somebody tryin’ not to wake a gator.
 
-### UI, HD references and the danger of pretty pictures
+### UI, HD references, an’ de seduction of pretty wrong answers
 
-PR #11 mapped the frontend states into an evidence-labelled navigation model.
+PR #11 map frontend states into an evidence-labelled navigation model.
 
-That helped deterministic automation, but it also laid groundwork for future UI recreation.
+Useful for automation.
 
-The HD visual-reference work, brought in through PR #14 and later reconciled as #18, got a similar treatment.
+Useful later for rebuilding UI.
 
-Modern scalers, shaders and bsnes-hd were useful.
+HD visual-reference work, from PR #14 an’ reconciled as #18, get same disciplined treatment.
 
-But they were reference tools, not truth machines.
+Modern scalers, shaders, bsnes-hd?
 
-The ROM, framebuffer, extracted assets and known semantics remained the authority.
+Useful.
 
-Because a very pretty wrong answer is still wrong, no matter how many CRT bloom filters you put on it.
+Authoritative?
 
-### Course work starts turning into something you can reason with
+Nah.
 
-The course-format lane kept digging.
+ROM data, framebuffer evidence, extracted assets, known semantics remain de source water.
 
-One useful correction came when an interpreter bridge scope entry had been treated too literally as the actual store site.
+A very pretty wrong answer still wrong.
 
-Static source alignment showed it was not.
+You can put all de CRT glow on it you want.
 
-That led to another quiet rule:
+### Course work start showin’ its bones
 
-> Name instrumentation according to what it truly measures.
+Course-format lane keep diggin’.
 
-If you know you entered an interpreter scope, call it that.
+One useful correction come when an interpreter bridge scope entry got treated like exact store location.
 
-Do not name it `exact_store_that_proves_my_theory` just because that would make the markdown prettier.
+Static source alignment say otherwise.
 
-The course data work kept connecting RNC streams, decoded structures, cursor paths and runtime materialization.
+Project learn another rule:
 
-At the time it was “course archaeology.”
+> Name de instrument by what it actually measure.
 
-Later it would become one of the main reasons Widescreen could be approached safely.
+If you know you entered a scope, call it a scope.
 
-### GitHub Actions stops being just CI and starts being lab equipment
+Don’t name it `definitely_the_store_that_proves_everything` just ’cause dat make de report feel confident.
 
-The growing experiment count exposed another little swamp hole.
+Course work keep connectin’ RNC streams, decoded structures, cursor paths, runtime materialization.
 
-Some successful research jobs computed the right answer and then failed to save it because `analysis/generated/` had been caught by an over-broad ignore rule.
+At de time it just look like course archaeology.
 
-PR #22 fixed that and harvested the evidence.
+Later, dat work become one of de big reasons Widescreen could be investigated without accidentally rewritin’ gameplay.
 
-That was the point where the role of Actions became explicit:
+### GitHub Actions turn into lab machinery
 
-GitHub Actions was not just a test runner.
+More experiments mean more workflow weirdness.
 
-It was a research scheduler.
+One batch compute useful evidence, then fail to persist it because `analysis/generated/` got swallowed by a broad ignore rule.
 
-A laboratory needs working labels, clean sample storage and reproducible instruments. Same principle here.
+PR #22 fix dat.
+
+Harvest de already-computed evidence.
+
+An’ from dere, role of Actions get clearer.
+
+CI ain’t just tests no more.
+
+It a research scheduler.
+
+A laboratory need clean labels, sample storage, reproducible instruments.
+
+Same thing here.
 
 ### End of September 29
 
-By the end of the day:
+By end of day:
 
-- tooling had trust categories;
-- headless operation had priority;
-- offline operation was becoming real;
-- UI states had a durable map;
-- visual-reference work had a proper evidence hierarchy;
-- course structures were becoming useful for presentation reasoning;
-- experiment output persistence got treated as part of correctness.
+- tools got trust categories;
+- headless operation preferred;
+- offline-island work real;
+- UI states got durable map;
+- visual-reference work got proper hierarchy;
+- course structures gettin’ useful;
+- experiment persistence treated as correctness.
 
-Now the project had enough historical material to stop merely collecting it and start asking what old bots and reverse-engineering files actually knew.
+Now project got enough old evidence collected to start askin’ whether them historical bots know things de current code don’t.
 
 ---
 
-## 2026-09-30 — The old bot scripts start talking
+## 2026-09-30 — Them old bot scripts start talkin’
 
-September 30 was when the historical material turned from museum pieces into working evidence.
+September 30 where de museum pieces start givin’ testimony.
 
-There is a difference between finding an old RAM map and proving that an address still means what somebody said it meant fifteen years ago.
+Findin’ an old RAM map one thing.
 
-UR-Recomp started closing that gap.
+Provin’ what it mean now another.
 
-### Nitrodon, Dessyreqt and the old toolbox
+Project start closin’ dat gap.
 
-PR #93 preserved nine Nitrodon files with provenance.
+### Nitrodon, Dessyreqt, USJO, an’ de old toolbox
 
-PR #94 mined them.
+PR #93 preserve nine Nitrodon files with provenance.
 
-That archive did not merely confirm current ideas. It corrected some.
+PR #94 mine ’em.
 
-The project refined:
+Archive don’t just confirm ideas.
 
-- tabletop state into duration/progress rather than a simple count;
+It correct some.
+
+Project refine:
+
+- tabletop state as duration/progress instead of simple count;
 - stunt counter widths;
-- twist/Z-flip semantics;
-- shared working fields versus stable player fields;
-- routine seeds for stunt finalization, vertical acceleration, controller decode and HUD/message work;
-- the exact base-5 stunt-combination index into a 625-byte table.
+- twist an’ Z-flip semantics;
+- shared working slots versus stable player fields;
+- useful routine seeds;
+- exact base-5 stunt-combination index into a 625-byte table.
 
-Now, the project could have simply copied the historical names into the modern symbol table and gone fishing.
+Coulda copied historical labels straight into modern symbols.
 
-It did not.
+Didn’t.
 
-Historical labels stayed historical until corroborated.
+Historical label remain historical till corroborated.
 
-That saved the project from turning one person’s 2014 guess into a 2026 “fact” just because it came in a text file with hexadecimal numbers.
+Dat rule matter.
 
-### USJO v8 becomes a testable model
+Somebody’s 2014 note can be brilliant.
 
-PR #80 transformed USJO v8 from old source into a validation program.
+Can also be half-right in a way what waste three days if you treat it like scripture.
 
-Some fields became runtime-confirmed. Others received strong static support. Reward ladders, control state and stunt behavior got extracted into machine-readable outputs.
+### USJO v8 become a testable model
 
-PR #81 then poked those semantics at runtime.
+PR #80 turn recovered USJO v8 into a validation matrix.
 
-Native and Snes9x matched on the sampled fields.
+Some fields become runtime-confirmed.
 
-An X-button intervention produced no sampled difference.
+Some get strong static support.
 
-The project did not write “X is irrelevant.”
+Reward ladders, control model, stunt behavior get extracted into generated artifacts.
 
-It wrote, in effect:
+PR #81 poke dem semantics at runtime.
 
-> Under this particular timing and state, this intervention produced no observed change. The historical bot used state-dependent timing, so go test that instead.
+Native an’ Snes9x match on sampled recovered fields.
 
-That sort of sentence is ugly and correct, which is usually better than beautiful and wrong.
+One X-button intervention produce no sampled difference.
 
-### Historical replay gets cantankerous
+Project don’t write “X does nothin’.”
 
-Attempts to replay old TAS and bot inputs exactly ran into emulator-timing differences.
+Project write de narrower truth:
 
-The 2008 WIP material desynchronized under the modern reference route before reaching the expected race.
+Under dis state an’ dis timing, X produce no observed change.
 
-That might sound like failure.
+Historical bot use state-dependent timing.
 
-It was actually classification.
+So next experiment gotta reproduce dat cadence.
 
-The project learned that some historical artifacts were strong sources of:
+Ugly sentence.
+
+Good science.
+
+### Historical replay get cantankerous
+
+Attempts to replay old TAS/bot input exactly run into emulator timing trouble.
+
+2008 WIP desync before expected race under modern reference route.
+
+Ain’t useless.
+
+It tell project what kind of evidence de old file is.
+
+Maybe not a frame-perfect modern oracle.
+
+Still useful for:
 
 - controller policy;
 - RAM semantics;
 - intended transitions;
-- old emulator assumptions.
+- historical timing assumptions.
 
-But not necessarily frame-perfect modern regression oracles.
+Now future agents know how to use it without askin’ a crawfish trap to catch ducks.
 
-That is valuable because it tells future agents how to use the evidence without asking it to do a job it cannot do.
+### Audio lane fishin’ another canal
 
-### Audio lane goes fishing in a different canal
+PR #83 work audio while gameplay fidelity happen elsewhere.
 
-PR #83 worked on audio without tangling with the active race-fidelity lane.
+CPU-side record pool get reconciled.
 
-The CPU-side record pool got reconciled.
+Unreachable song records tied to preserved unused-song SPC captures.
 
-Unreachable song records were tied to preserved unused-song SPC captures.
+Package blocks mechanically correlated with known snapshots.
 
-Package blocks were mechanically correlated against known snapshots.
+Not de critical path.
 
-Not the main remaster bottleneck, but a nice demonstration of parallel research done right: separate lane, compact evidence, clear scope, merge cleanly.
+Still good research.
 
-### CI learns manners
+Separate lane.
 
-By now too many Actions workflows were waking up for the wrong reasons.
+Compact evidence.
 
-PRs #96 through #99 tightened triggers, added cancellation and separated true regression jobs from exploratory one-shot research.
+No tramplin’ on race work.
 
-The new social contract for CI was:
+### CI finally learn some manners
 
-- real regression? Run on PR and main;
-- expensive exploratory experiment? Manual dispatch;
-- superseded run? Cancel it;
-- docs-only edit? Do not wake a twenty-minute emulator build unless the doc is somehow executable.
+Too many workflows wakin’ up for nonsense.
 
-That cut noise and made the machine time useful again.
+PRs #96–#99 tighten triggers, add cancellation, split one-shot research from permanent regression.
 
-### The four ROMs become one comparative instrument
+New rules:
 
-PR #100 promoted the four preserved ROMs into a proper comparative archaeology corpus.
+- real regression? Run on PR an’ main;
+- expensive archaeology? Manual;
+- superseded run? Kill it;
+- docs-only change? Don’t wake a twenty-minute emulator build unless dat doc actually drives somethin’.
+
+Machine time stop gettin’ burned like wet firewood.
+
+### Four ROMs become one big comparative instrument
+
+PR #100 promote four preserved ROMs into a proper comparative corpus.
 
 USA retail.
 
@@ -430,209 +524,247 @@ PAL prototype.
 
 Legacy beta.
 
-Instead of comparing them only when convenient, the project began using them systematically to discover:
+Now differences ain’t occasional curiosities.
 
-- code/data boundaries;
+Dey become a systematic way to identify:
+
 - stable functions;
 - relocations;
+- code/data boundaries;
 - regional growth;
 - analyzer disagreements;
-- semantic continuity.
+- conserved semantics.
 
-This was the beginning of the structural-island era.
+Dis setup about to pay off heavy.
 
 ### End of September 30
 
-By then UR-Recomp had:
+By now UR-Recomp got:
 
-- old bot semantics being tested instead of worshipped;
-- historical recordings being classified by actual usefulness;
-- parallel research lanes operating safely;
-- CI tuned for experimentation;
-- four ROMs ready to act like multiple geological cores through the same buried machine.
+- old bot semantics gettin’ tested;
+- historical recordings classified by real usefulness;
+- parallel lanes runnin’ safely;
+- CI tuned for research;
+- four ROMs ready to act like geological cores through de same buried machine.
 
-The project was about to do a lot of digging.
+Tomorrow de digging get serious.
 
 ---
 
-## 2026-10-01 — Dig enough holes and eventually you find the plumbing
+## 2026-10-01 — Dig enough holes an’ eventually you find de plumbing
 
-October 1 was a wild one.
+October 1 be wild.
 
-The repo started accumulating structural islands, semantic bridges, course subsystems, renderer paths, multiplayer evidence and enough PR numbers to make a crawfish accountant nervous.
+PR numbers multiply like mosquitoes after rain.
 
-But underneath all that activity was one real transition:
+Structural islands.
 
-The project moved from isolated addresses to coherent systems.
+Race-control routines.
 
-### The method gets written down
+Course helpers.
 
-PR #119 codified the AI-assisted reverse-engineering method.
+Renderer paths.
 
-The big ideas were already visible in practice:
+Multiplayer clues.
+
+Whole repo start lookin’ like somebody dumped a tackle box on de floor.
+
+But underneath all dat activity, one real transition happen:
+
+Project stop askin’ only:
+
+> What dis address do?
+
+Start askin’:
+
+> What subsystem dis belong to, how it behave, an’ what can we safely do with dat knowledge?
+
+### Method get written down
+
+PR #119 codify de AI-assisted reverse-engineerin’ method.
+
+By now de project already know:
 
 - deterministic fixture before interpretation;
 - cheap discriminator before giant trace;
 - perturbation before speculation;
 - mechanical oracle whenever possible;
-- dead ends preserved;
-- external research used deliberately;
-- emulator and hardware evidence escalated when necessary.
+- preserve dead ends;
+- use external research deliberately;
+- escalate to emulator/test-ROM/hardware evidence when needed.
 
-The objective was never “let an AI stare at assembly until wisdom happens.”
+Goal never be “AI stare at assembly till magic happen.”
 
-The objective was to make a laboratory where bad guesses die young.
+Goal be buildin’ a lab where bad guesses die young.
 
-### Structural islands start lining up
+### Structural islands start linin’ up
 
-Across a long run of PRs, the comparative-ROM work recovered bounded executable regions in:
+Comparative-ROM program recover bounded executable regions in:
 
 - course materialization;
 - geometry;
 - race control;
 - race-loop support;
-- camera-related math;
+- camera math;
 - message/state bridges;
-- rendering and tile preparation.
+- rendering;
+- tile preparation.
 
-USA retail and the beta were often byte-identical.
+USA retail an’ beta often byte-identical.
 
-PAL prototype and Europe frequently relocated the same logic.
+PAL prototype an’ Europe frequently relocate same logic.
 
-Sometimes a regional version grew internally. When that happened, the analysis stopped pretending the whole region could be explained with one fixed offset.
+Sometimes regional build grow inside de routine.
 
-That was a quiet but important maturity upgrade.
+When dat happen, project stop forcin’ one constant offset across everything.
 
-Do not force tidy mathematics onto messy history.
+Record local shifts.
 
-Record the messy history.
+Record edit scripts.
 
-### Multiplayer gives the project a splinter
+Keep de messy history messy.
 
-A multiplayer lane exposed small native/reference drift in racer state.
+Ain’t no prize for makin’ de data prettier than de cartridge.
 
-Tiny numbers.
+### Multiplayer give de project a splinter
 
-Still real.
+Multiplayer lane find small native/reference drift in racer state.
 
-The project responded by separating:
+Tiny differences in position an’ velocity.
 
-- multiplayer HUD work;
-- viewpoint/camera evidence;
+Could dismiss ’em.
+
+Didn’t.
+
+Instead split work into separate lanes:
+
+- HUD;
+- viewpoint;
+- camera;
 - culling;
 - geometry;
 - fidelity state.
 
-That led to a practical habit that showed up in conversation after conversation: before starting new work, check what the other agents are touching and pick a separate lane.
+Dat lead to one practical operating habit:
 
-A repo full of clever agents is no help if everybody edits the same five files.
+Before startin’ new work, see what de other agents touchin’.
 
-### Course format becomes “enough” before it becomes “complete”
+Then pick another trail.
 
-This was one of the best decisions of the sprint.
+A swamp fulla brilliant hunters still no good if dey all shootin’ at de same duck.
 
-The project recovered enough Dragster spatial structure to support presentation and Widescreen reasoning without demanding a perfect authoring model first.
+### Course format become “enough” before it become “complete”
 
-The key model included:
+Dis one be important.
+
+Project recover enough Dragster spatial structure to support presentation reasoning without finishin’ de whole authoring model.
+
+Key structure:
 
 - 1024 × 16 coarse sectors;
-- 64-unit sector scale;
-- a 65,536 × 1,024 world domain;
-- a 16,384-entry coarse-sector-to-fine-record table;
+- 64-unit sector size;
+- 65,536 × 1,024 world domain;
+- 16,384-entry coarse-sector-to-fine-record table;
 - fine 4×4 cell structures;
 - runtime materialization;
 - neighborhood gathering;
 - surface sampling.
 
-That was declared **presentation-complete**.
+Call it **presentation-complete**.
 
 Not editor-complete.
 
-Different problem.
+Two different finish lines.
 
-Different finish line.
+Dis save project from spendin’ forever decode-everythin’ before touching Widescreen.
 
-Without that distinction the project could have spent weeks decoding every course-authoring edge case before touching Widescreen.
-
-Instead it learned exactly what the next decision required and stopped there.
+You don’t need to know how every plank in de dock was milled before you can tell whether de dock reach de boat.
 
 ### Racer graphics get a clean chain of custody
 
-The presentation lane also reached a useful stopping point.
+Presentation lane reach same kind of sufficiency.
 
-Persistent racer presentation IDs got tied to exact table entries and exact ROM asset streams.
+Persistent racer presentation IDs tied to exact table entries.
 
-Race-init OBJ resources were identified.
+Exact ROM streams identified.
 
-Original SNES 4bpp graphics could be extracted and reconstructed byte-for-byte.
+Race-init OBJ resources identified.
 
-Palette provenance was tied in.
+Original SNES 4bpp data extract an’ reconstruct byte-for-byte.
 
-Now “this racer frame” could mean a semantic game state *and* a precise source asset identity.
+Palette provenance tied in.
 
-That is much stronger than saying “this screenshot looks about right.”
+Now “dat racer frame” mean both:
 
-### Save/load works. Winning still needs proof.
+- de semantic state;
+- de exact original asset.
 
-PR #188 proved a game-authored SRAM round trip.
+Way stronger than eyeballin’ a screenshot an’ sayin’ “close enough.”
 
-The game wrote SRAM.
+### Save/load works. Winnin’ still need proof.
 
-The checksum was valid.
+PR #188 prove real game-authored SRAM round trip.
 
-The 8 KiB image reloaded in a fresh reference process.
+Game write SRAM.
 
-The bytes survived exactly.
+Checksum valid.
+
+8 KiB image reload in fresh reference process.
+
+Bytes survive exact.
 
 Good.
 
-But the run did not produce medal or tier progression.
+But run ain’t produce medal or tier mutation.
 
-So the progression acceptance item stayed open.
+So medal-winning progression acceptance stay open.
 
-PR #191 kept the negative medal/chord experiments instead of pretending the broader problem was solved.
+PR #191 preserve negative chord/search results.
 
-That is evidence hygiene right there:
+Dat evidence discipline right dere.
 
-- “SRAM persistence works” = proven.
-- “Meaningful medal progression survives save/load” = still needs a real medal-changing fixture.
+“SRAM persistence works” proven.
 
-Do not make one fact wear another fact’s hat.
+“Meaningful progression survives save/load” not yet.
 
-### PR #183: stop counting holes and ask whether they reach water
+Don’t make one fact wear another fact’s hat.
 
-By late in the day the structural census was getting huge.
+### PR #183: quit countin’ holes, ask whether any of ’em reach water
 
-That was productive, but dangerous.
+Structural census growin’ fast.
 
-The repo could easily have turned “number of recovered code bytes” into a vanity metric.
+Dat productive.
 
-PR #183 changed the project’s planning spine around **semantic sufficiency**.
+Also dangerous.
 
-The new model asked whether the project could:
+Easy to start thinkin’ “more recovered bytes” equal “more progress.”
 
-1. observe the relevant state;
-2. explain the causal mechanism;
-3. modify it safely;
-4. validate the result.
+PR #183 change de planning spine around **semantic sufficiency**.
 
-That gave structural recovery a stopping rule.
+New questions:
 
-Recover more code when it unlocks one of those capabilities.
+1. Can we observe de relevant state?
+2. Can we explain de mechanism?
+3. Can we modify it safely?
+4. Can we validate de result?
 
-Otherwise, maybe the next best experiment is somewhere else.
+If yes, maybe stop diggin’.
 
-That decision probably saved the project from becoming a magnificent decompilation swamp nobody could ever leave.
+Build de bridge.
+
+You can always come back later if somebody need de exact shape of a beam.
+
+Dat move probably save de project from becomin’ one magnificent endless decomp swamp.
 
 ---
 
-## 2026-10-02 — Eight extra pixels walk in and start a family argument
+## 2026-10-02 — Eight extra pixels walk in an’ start a family argument
 
-Now we get to the Widescreen story.
+Now come de Widescreen story.
 
-The project asked a tiny question:
+Project ask one tiny question:
 
-What if the presentation gets eight pixels wider?
+What happen if de presentation get eight pixels wider?
 
 Eight.
 
@@ -640,66 +772,71 @@ Not eighty.
 
 Eight.
 
-That little margin found exactly the kind of hidden coupling the project had spent four days preparing to investigate.
+Eight little pixels come sidlin’ in from de edge like dey ain’t fixin’ to bother nobody, an’ next thing you know de whole renderer got family troubles.
 
-### First, know what lives beyond the old screen edge
+### First, learn what lives past de old screen edge
 
-PR #184 finished the representative Dragster spatial/resource contract.
+PR #184 finish representative Dragster spatial/resource contract.
 
-PR #189 nailed down the object activation timeline.
+PR #189 nail down object activation timeline.
 
-And the important result was this:
+An’ here come de important rule:
 
-Presentation visibility and gameplay activation are not the same thing.
+Presentation visibility an’ gameplay activation ain’t de same boundary.
 
-The finish/checker content can enter presentation before the later gameplay/contact behavior activates.
+Finish/checker presentation can show up before later collision/contact behavior activate.
 
 Therefore:
 
-> A wider screen may reveal more of the world, but it must not make gameplay objects become authoritative earlier.
+> Wider renderer can reveal more world, but it must not make gameplay become authoritative sooner.
 
-That is the contract.
+Dat de contract.
 
-If a modern renderer accidentally expands the activation domain with the camera, the race itself can change.
+If Widescreen make offscreen objects “alive” earlier just because dey visible now, race logic can change.
 
-Now Widescreen has a real engineering rule instead of just “show more stuff.”
+Now Widescreen got a real engineering rule instead of “show more picture.”
 
-### PR #190: +8 goes red
+### PR #190: +8 go red
 
-The first tiny-margin harness captured 0, +8, +16 and +24.
+First tiny-margin harness capture:
 
-And +8 failed the initial authoritative-state equality check.
+- 0;
+- +8;
+- +16;
+- +24.
 
-Well now.
++8 fail initial authoritative-state equality gate.
 
-That looked bad.
+Well, now.
 
-Could have meant widening the renderer changed simulation.
+Look like eight pixels done changed simulation.
 
-Could have meant timing.
+Could be true.
 
-Could have meant the harness was comparing the wrong things.
+Could also be bad alignment.
 
-So the project did not scream “Widescreen is broken.”
+Could be harness bookkeeping.
 
-It classified.
+Could be host cadence.
 
-The next question became whether the difference was:
+So project classify before panic.
 
-- checkpoint alignment;
-- bookkeeping;
-- host-presentation cadence;
-- actual semantic simulation drift.
+Next question become:
 
-### PR #204: the scary divergence turns out to be mostly a clock problem
+1. checkpoint alignment?
+2. bookkeeping?
+3. presentation timing perturbation?
+4. real simulation dependency?
 
-The +8 run was already three guest frames ahead in the frontend.
+### PR #204: scary divergence turn out to be clocks wearin’ costumes
 
-Before the race.
++8 already three guest frames ahead in de frontend.
 
-That offset persisted.
+Before race start.
 
-Once checkpoints were aligned by semantic event rather than nominal frame, meaningful race state matched:
+Dat -3 offset persist all de way through retained checkpoints.
+
+Line de runs up by semantic event instead of nominal frame, an’ durable race state match:
 
 - position;
 - velocity;
@@ -708,319 +845,375 @@ Once checkpoints were aligned by semantic event rather than nominal frame, meani
 - laps;
 - progression transition.
 
-A transient field differed briefly, then reconverged without changing the race trajectory.
+One transient field wiggle, then come back.
 
-So the original equality gate had been too strict.
+No meaningful trajectory change.
 
-The widening changed host cadence.
+So whole-WRAM gate was hollerin’ at shadows.
 
-It did not meaningfully alter retained race simulation.
+Widening changed host cadence.
 
-There is that first-day lesson again, wearing a different hat:
+Didn’t meaningfully change retained race simulation.
 
-> Same nominal frame is not always same semantic moment.
+Same lesson from day one come paddlin’ back:
 
-### PR #205: then the project finds the real bug
+> Same frame number ain’t always same moment.
 
-Once the cadence problem was removed from the comparison, an actual presentation regression appeared.
+### PR #205: now dey find de real critter
+
+Once cadence noise come out de comparison, actual presentation regression show itself.
 
 Two pixels.
 
-At classic x=255.
+Right dere at classic x=255.
 
-At one specific object-tail checkpoint.
+Two raggedy little pixels causin’ more commotion than a raccoon in a bait shed.
 
-Now that is a proper bug. Small enough to corner.
+Project narrow it down:
 
-The project showed:
+- guest OAM still identical at onset;
+- BG-only still match;
+- OBJ-only still match;
+- composite don’t;
+- OBJ-only divergence come later;
+- OAM divergence later still;
+- SNES sprite-limit accounting ruled out;
+- pinned-window expansion ruled out.
 
-- guest OAM still matched at onset;
-- BG-only matched;
-- OBJ-only matched;
-- the combined frame did not;
-- OBJ-only diverged later;
-- OAM diverged later still;
-- sprite-limit accounting was not the cause;
-- pinned-window expansion was not the cause.
+Now de bug got a proper name:
 
-So the bug moved from “Widescreen does weird stuff” to:
+Host renderer composition / OBJ edge semantics at classic viewport boundary.
 
-> host renderer composition / OBJ edge semantics at the classic viewport boundary.
+Dat what good reverse-engineerin’ look like.
 
-That is what good reverse engineering looks like.
+Start with “Widescreen broke somethin’.”
 
-Take a vague monster and keep cutting away possibilities until all that is left is one muddy footprint.
+Keep cuttin’ away possibilities till all you got left one muddy footprint.
 
-### PR #206: the measuring stick bends
+### PR #206: measuring stick bend in de hand
 
-The next obvious test was a layer-mask matrix.
+Next obvious test: layer-mask matrix.
 
-Turn layers off, isolate the source.
+Turn off layers, isolate source.
 
-Except turning layers off changed guest cadence.
+Except changin’ layer mask change guest cadence.
 
-The instrumentation perturbed the phenomenon.
+Now de instrument alterin’ de thing it supposed to measure.
 
-So the matrix could not support causal claims.
+So dat matrix can’t support causal claims.
 
-The project kept the result anyway, as negative instrumentation evidence, and switched to a host-only trace that left the normal render path intact.
+Project keep it anyway.
 
-That belongs in the diary because it is one of the finest lessons of the sprint:
+Negative instrumentation evidence.
 
-> A debugger can absolutely lie to you by changing the thing you are debugging.
+Then switch to a bounded host-only trace what leave normal render path intact.
 
-Not maliciously.
+Dis one deserve paintin’ on de porch wall:
 
-Just mechanically.
+> Debugger can lie by changin’ de world it lookin’ at.
 
-### Meanwhile, the camera-to-VRAM chain finally closes
+Ain’t malicious.
 
-PR #192 had found compact update-list structures at `$0DCD/$0DCF`.
+Just mechanical.
 
-Runtime samples showed them staying at zero.
+### Meanwhile, camera-to-VRAM chain finally close
 
-Maybe bad fixture?
+PR #192 found compact update-list structures at `$0DCD/$0DCF`.
 
-Nope.
+Runtime samples show dem stayin’ zero.
 
-Later work showed they were simply not the active scrolling transport for this scene.
+Coulda blamed fixture.
 
-PR #203, later reconciled through #208, found the real path:
+Didn’t.
 
-1. camera state updates;
-2. window helper derives entering-edge coordinates;
-3. entering columns are built into a `$03xx` DMA descriptor family;
-4. NMI consumes the descriptors;
-5. horizontal presentation operates as a 32-column VRAM ring.
+Later work show dem structures real, just not de active Dragster scrolling transport.
 
-Two other plausible paths were ruled out:
+PR #203, later reconciled through #208, find de real path:
 
-- one was HUD/message tilemap work;
-- one was racer-presentation graphics prep.
+1. camera state update;
+2. camera/window helper derive entering-edge coordinates;
+3. entering columns build into `$03xx` DMA descriptor family;
+4. NMI consume descriptors;
+5. horizontal presentation run as a 32-column VRAM ring.
 
-That is semantic closure: not just “I found some code near the camera,” but a chain from camera movement to actual presentation data arriving in VRAM.
+Two tempting live paths get excluded:
 
-### PR #207: all them jars on the shelf finally get labels
+- one HUD/message tilemap path;
+- one racer-presentation graphics-prep path.
 
-By now the repo had a great deal of information spread across:
+Dat be causal closure.
+
+Not “some camera-ish code near some DMA-ish code.”
+
+A chain.
+
+Camera move.
+
+Edge computed.
+
+Column built.
+
+Descriptor queued.
+
+NMI send it.
+
+VRAM change.
+
+Now Widescreen work got plumbing diagram instead of folklore.
+
+### PR #207: label dem jars
+
+By now de repo got facts scattered across:
 
 - course headers;
 - track names;
-- historical landmarks;
+- landmarks;
 - SRAM progression;
 - racer state;
 - regional correspondence;
 - deterministic fixtures;
-- old reverse-engineering notes.
+- historical notes.
 
-PR #207 consolidated those into normalized queryable data and ran a two-pass inference audit.
+PR #207 consolidate dem into normalized queryable datasets an’ run a two-pass inference audit.
 
-That produced new knowledge, not just tidier files.
+An’ here’s de pretty part:
 
-Among the results:
+Organizin’ de facts create new facts.
+
+Results include:
 
 - corrected canonical RNC stream/name/tour order;
-- clean `dessyreqt_track_id = stream_index - 1` mapping across all 45 courses;
-- historical start/finish landmarks attached across the corpus;
-- paired header coordinates strengthened into a racer-spawn model;
-- cross-course relationships exposed;
-- progression, course-resource and fixture catalogs normalized;
-- state schema enriched with regional and historical semantics.
+- `dessyreqt_track_id = stream_index - 1` across all 45 courses;
+- historical start/finish landmarks attached across corpus;
+- paired header coordinates strengthened into racer-spawn model;
+- cross-course relationships become visible;
+- progression/course-resource/fixture catalogs normalized;
+- state schema enriched with regional an’ historical semantics.
 
-In plain bayou language:
+Plain bayou translation:
 
-The project stopped keeping every ingredient in a separate paper bag and finally made itself a proper pantry.
+Project stop keepin’ every ingredient in a separate paper sack.
 
-And once the jars were labelled, recipes started appearing that nobody could see before.
+Put ’em in jars.
 
-PRs #208 and #209 then updated the plans so future agents use that consolidated layer instead of wandering back through twenty old markdown files with a lantern.
+Label de jars.
 
-### Quiet-repo cleanup becomes a craft
+Then suddenly recipes start showin’ up.
 
-A bunch of PRs around #193–#201 were not glamorous research.
+PRs #208 an’ #209 update canonical plans so future agents use dat query layer instead of crawlin’ through twenty markdown files with a lantern.
 
-They were rescue work.
+### Quiet-repo cleanup turn into a proper craft
 
-Completed agent branches had useful evidence but stale history.
+PRs around #193–#201 mostly rescue useful completed work from stale or orphan branches.
 
-So the project developed a clean pattern:
+Pattern become:
 
-- identify what is genuinely unique;
-- replay it onto current main;
-- leave obsolete branch history behind;
-- supersede redundant PRs explicitly;
-- merge the evidence, not the confusion.
+- identify what genuinely unique;
+- replay onto current main;
+- leave stale history behind;
+- supersede redundant PRs;
+- merge evidence, not confusion.
 
-This matters when agents work in parallel.
+Dis be mundane.
 
-Otherwise the repo turns into a shrimp net full of branches and every one of them has caught the same boot.
+Also essential.
+
+A repo fulla parallel agents can produce useful work faster than branch history can stay civilized.
+
+Without cleanup, pretty soon every line got three cousins an’ nobody remember who own de boat.
 
 ---
 
-## What this first sprint taught
+## What dis first sprint teach
 
-By the end of October 2, the project had stopped looking like “somebody trying to remake Uniracers” and started looking like a reverse-engineering platform with a game attached.
+By end of October 2, UR-Recomp don’t look like “somebody makin’ a Uniracers remake” no more.
 
-It had:
+It look like a reverse-engineerin’ platform what happen to have *Uniracers* sittin’ in de middle.
 
-- deterministic frontend and race fixtures;
+Project now got:
+
+- deterministic frontend an’ race fixtures;
 - event-relative native/reference comparison;
-- confirmed movement and jump semantics;
-- SRAM round-trip acceptance;
-- large comparative structural coverage;
-- reconciled historical bot/RAM evidence;
-- presentation-complete course knowledge;
+- confirmed movement an’ jump semantics;
+- game-authored SRAM round-trip acceptance;
+- large comparative structural map;
+- reconciled historical bot/RAM semantics;
+- presentation-complete course model;
 - exact racer asset round trips;
-- a camera-to-VRAM scrolling chain;
-- an activation-versus-visibility contract;
+- camera-to-VRAM scrolling chain;
+- activation-vs-visibility contract;
 - Widescreen diagnostics strong enough to separate cadence from simulation;
-- a real two-pixel renderer bug narrowed to host composition behavior;
-- normalized data good enough to support cross-domain inference;
-- a semantic-sufficiency model for deciding when “enough reverse engineering” is actually enough.
+- real two-pixel host renderer bug narrowed down tight;
+- normalized data capable of inference;
+- semantic-sufficiency model for knowin’ when to stop diggin’.
 
-And the open questions had gotten much better.
+An’ de questions get better too.
 
-The project no longer had to ask:
+Project no longer ask:
 
-> Can we understand this game deeply enough?
+> Can dis game be understood deep enough?
 
-Now it could ask:
+Now it ask:
 
-- Why do those two pixels at x=255 compose differently?
-- How do we get a real medal-changing fixture?
-- Which multiplayer differences remain semantically meaningful?
-- How do we expose more world without activating more game?
-- Which consolidated datasets can answer the next question cheaper than another trace?
+- Why dem two pixels at x=255 compose different?
+- How we get a real medal-changing fixture?
+- Which multiplayer differences actually matter?
+- How we show more world without wakin’ up more gameplay?
+- Which consolidated dataset can answer de next question cheaper than another trace?
 
-Those are fine questions.
+Dat be fine questions.
 
-Fine questions mean the swamp is mapped.
+Fine questions mean de swamp mapped.
 
-Maybe not drained.
+Ain’t drained.
 
-Would not want to drain it anyway.
+Wouldn’t wanna drain it anyhow.
 
-That is where all the interesting critters live.
+Dat where all de interestin’ critters live.
 
 ---
 
 ## Bayou engineering rules
 
-A few lessons deserve to be painted right on the side of the pirogue.
+A few lessons deserve paintin’ right on de side of de pirogue.
 
-### A negative result is still supper
+### Negative result still feed somebody
 
-Short B pulse did not jump?
+Short B pulse ain’t jump?
 
-Good. Now you know.
+Good.
 
-X press did not change sampled stunt state?
+Now you know.
 
-Good. Narrower problem.
+X press ain’t change sampled stunt state?
 
-Medal chord did not mutate SRAM?
+Good.
 
-Good. Stop pretending that route works.
+Problem narrower.
 
-Compact update list stayed zero?
+Medal chord ain’t mutate SRAM?
 
-Good. Wrong transport.
+Good.
 
-Layer mask changed cadence?
+Quit wastin’ bait on dat hole.
 
-Excellent. Your instrument is dirty.
+Compact update list stay zero?
 
-A proper experiment either confirms something or kills something.
+Good.
 
-Both are progress.
+Wrong transport.
 
-### Compare meaning, not swamp bubbles
+Layer mask change cadence?
 
-Stack residue, phase counters and host timing can wiggle all day without changing the race.
+Excellent.
 
-Use exact equality where exact bytes are the contract.
+Instrument dirty.
 
-Use semantic/event-relative equality where gameplay meaning is the contract.
+Proper experiment either confirm somethin’ or kill somethin’.
 
-Do not chase every bubble like it is a catfish.
+Both progress.
 
-### Instruments can scare the wildlife
+### Don’t go worshippin’ every byte just ’cause it changed
 
-Trace hooks, layer masks, debug servers and alternate rendering modes can perturb timing.
+Some bytes gameplay.
 
-Always ask what the measuring tool itself changes.
+Some clocks.
 
-Sometimes the best probe is the one that touches almost nothing.
+Some stack leftovers.
 
-### Stop digging when you have enough for the next bridge
+Some machine scratchin’ itself.
 
-The comparative structural work was powerful.
+First ask what dat byte mean.
 
-It could also go forever.
+Second ask whether it mean anything at all.
+
+Exact equality where exact bytes be de contract.
+
+Semantic/event-relative equality where game behavior be de contract.
+
+Don’t chase every swamp bubble thinkin’ it a catfish.
+
+### Instrument can scare de wildlife
+
+Trace hooks, layer masks, debug servers, alternate render modes?
+
+All can perturb timing.
+
+Always ask what de measuring tool itself change.
+
+Sometimes best probe be de one what barely touch nothin’.
+
+### Stop diggin’ when you got enough for de next bridge
+
+Comparative structural work powerful.
+
+Could go forever.
 
 Semantic sufficiency put a gate on it:
 
-- can we observe?
-- can we explain?
-- can we modify safely?
-- can we validate?
+- can observe?
+- can explain?
+- can modify safely?
+- can validate?
 
-If yes, maybe build the bridge.
+If yes, maybe build de bridge.
 
-You can always come back and count more tree rings later.
+Count tree rings later.
 
-### Old notes are leads, not gospel
+### Old notes be leads, not gospel
 
-Historical bot authors knew a lot.
+Historical bot authors know plenty.
 
-They also worked with old emulators, incomplete models and practical shortcuts.
+Dey also work with old emulators, incomplete models, shortcuts, an’ practical hacks.
 
-Use their work to aim experiments.
+Use old work to aim experiments.
 
-Do not confuse “somebody wrote this in 2014” with “the hardware signed an affidavit.”
+Don’t confuse “somebody wrote dis in 2014” with “de hardware swore to it in court.”
 
-### Organizing data can create new facts
+### Organizin’ data can make new knowledge fall out
 
-Once course order, SRAM rows, header fields, landmarks and fixtures were lined up in compatible data structures, relationships appeared that had been invisible in prose.
+Once course order, SRAM rows, header fields, landmarks an’ fixtures line up in compatible structures, relationships appear what prose been hidin’.
 
-Sometimes the next reverse-engineering tool is not another emulator.
+Sometimes de next reverse-engineerin’ tool ain’t another emulator.
 
-Sometimes it is a better table.
+Sometimes it a better table.
 
-### The repo is the camp ledger
+### Repo be de camp ledger
 
-Chats are where ideas happen.
+Chats where ideas happen.
 
-PRs are where claims get argued.
+PRs where claims get argued.
 
-Generated data is where machines testify.
+Generated data where machines testify.
 
-Plans say what is still open.
+Plans say what still open.
 
-`prod_diary/` remembers why anybody cared.
+`prod_diary/` remember why anybody cared.
 
-That division of labor is worth keeping.
+Dat division worth keepin’.
 
 ---
 
 ## Production status at 2026-10-02
 
-At the beginning, the great big question was whether a compiled 1994 SNES ROM held enough recoverable truth to support an extremely faithful modern implementation.
+At de start, biggest question be whether a compiled 1994 SNES ROM still got enough recoverable truth inside it to support a deeply faithful modern implementation.
 
-After this first sprint, the answer looks mighty encouraging.
+After dis first sprint?
 
-The logic is recoverable.
+Look mighty encouraging.
 
-The data is tractable.
+Logic recoverable.
 
-The historical material is unusually rich.
+Data tractable.
 
-The runtime can be instrumented.
+Historical material rich.
 
-The agents can work in parallel without completely setting the dock on fire, provided their lanes stay separate and the repository keeps good evidence discipline.
+Runtime instrumentable.
 
-The biggest question has changed.
+Agents can work in parallel without settin’ de dock completely on fire, long as lanes stay separate an’ evidence discipline stay strict.
 
-Now the project has to decide where exact reproduction ends and deliberate modernization begins.
+Biggest question changed.
 
-And cher, that is a much nicer alligator to wrestle.
+Now project gotta decide where exact reproduction stop an’ deliberate modernization begin.
+
+An’ cher, dat be a much nicer alligator to wrestle.

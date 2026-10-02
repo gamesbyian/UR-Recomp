@@ -343,18 +343,22 @@ This means the representative stock renderer has **no multi-frame background-pre
 
 Evidence: `analysis/generated/camera-dma-preparation-causal-contract-2026-10-02.md`.
 
-## +8 presentation-phase gap after composition tracing
+## +8 presentation-sequence divergence closure
 
-PR #206 refined the earlier x=255 composition boundary with a full-renderer trace that leaves all layers enabled.
+PR #206 first established the event-relative boundary: meaningful P2 race state remains equal, P2 racer presentation first diverges at **`object-tail-141`**, VRAM first diverges at **`object-tail-142`**, and OAM remains equal through the retained early gap. PR #214 closes why.
 
-The important event-relative ordering is:
+The full-renderer selector/cursor discriminator shows that through `object-tail-140`, P2 sequence selector `$136B`, sequence cursor `$11DD`, sequence identity `$11E1`, initialized flag `$11E5`, persistent override `$0DEB`, and working override `$0F4F` all match. At `object-tail-141`, control initializes sequence **1** while +8 initializes sequence **3**. Both use the same cursor **1** and initialized flag **1**, so this is different sequence selection rather than the same sequence advancing at a different rate.
 
-- meaningful P2 race state remains equal throughout the retained gap;
-- P2 racer presentation ID first diverges at **`object-tail-141`**;
-- VRAM first diverges at **`object-tail-142`**;
-- OAM does **not** diverge in the retained presentation-gap interval;
-- at the later `object-tail-168` center failure, the traced x=255 inputs `main`, `sub`, `obj`, and color-window right boundary differ, while CGRAM and OAM still match.
+The hidden writer is `83:EB57 -> 82:8952/8956 -> STA $0DE9,Y`; for P2, `Y=2`, so the indexed store targets `$0DEB`. The sequence selector is derived from six-state presentation/frontend counter `$7710B1`: `83:EB3F..EB51` maps raw classes `0/1 -> sequence 1`, `2/3 -> sequence 3`, and `4/5 -> sequence 5`. The counter is bounded by `83:C8EF..C8FB` and advanced modulo six by `83:C9E2..C9F2`. Therefore the already-proven stable host/frontend cadence offset places control and +8 in different presentation-counter phase classes at the same semantic race event. The exact raw member within each two-value class is not needed to distinguish or explain the selected sequence.
 
-Therefore the `object-tail-168` two-pixel authentic-center regression is downstream of an earlier presentation-state phase divergence. The next discriminator should trace why the same meaningful racer state selects/advances a different P2 presentation ID three guest frames earlier under +8, and how that presentation choice reaches VRAM. Do not patch final color composition first merely because that is where the pixel error becomes visible.
+The resulting chain is:
 
-The failed layer-mask matrix remains useful negative instrumentation evidence: disabling renderer work changes guest cadence enough to invalidate causal comparison. Future diagnostics must preserve the full rendering workload unless they independently prove event-relative alignment.
+> Same authoritative P2 race state -> different `$7710B1` presentation/frontend phase class at `object-tail-141` -> P2 sequence 1 vs 3 -> `82:8956` emits `0x0A45` vs `0x0A8D` to indexed P2 `$0DEB` -> normal `$0F4F -> $0F97 -> $0FEB` presentation chain diverges at `141` -> `83:F0BB/F296/F2BB` resolves and stages different presentation data -> VRAM first diverges at `object-tail-142`.
+
+The contemporaneous `$040F/$0F7B` and `$0C75..$0C7F` differences are downstream presentation/render staging, not earlier causes. The later `object-tail-168` two-pixel authentic-center regression likewise remains downstream.
+
+This closes the first +8 presentation-state phase lane for the current Widescreen decision. Do not compensate by changing gameplay activation, collision, course semantics, or final x=255 composition policy. The next Widescreen experiment is the deliberate **earlier/additional `$03xx` strip scheduling** against the already-closed camera-demand -> descriptor -> NMI-DMA chain, with authoritative simulation held invariant.
+
+The failed layer-mask and paused trace-host experiments remain useful negative instrumentation evidence: diagnostics that change event-relative cadence cannot decide this seam.
+
+Evidence: `analysis/generated/widescreen-plus8-presentation-sequence-closure-2026-10-02.md` (clean full-renderer run `36978866214`).

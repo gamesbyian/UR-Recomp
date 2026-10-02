@@ -13,6 +13,7 @@ on:
       - "tests/unit/test_analyze_widescreen_strip_schedule.py"
       - "tests/unit/test_analyze_widescreen_preparation_boundary.py"
       - "tests/unit/test_analyze_widescreen_helper_staging.py"
+      - "tests/unit/test_analyze_widescreen_edge_helper.py"
       - "tests/input/preparation-emission-race.script"
       - "tests/input/object-liveness-dragster.script"
 

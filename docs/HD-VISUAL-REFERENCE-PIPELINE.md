@@ -113,6 +113,12 @@ Before bulk replacement art begins, maintain a project-owned visual-language spe
 
 A plausible image is not automatically a canonical reconstruction. When evidence permits multiple readings, record the design choice and its rationale.
 
+## First semantic replacement key
+
+The ordinary-race racer family now has a project-owned exact identity surface in `analysis/generated/racer-presentation-family.json`. HD Presentation should treat the authoritative 16-bit racer presentation ID in `$0FE9/$0FEB` as the primary replacement key, with the original lookup through `83:F296` / `20:8000` retained as the authentic fallback. The exact fallback graphics are also identified: race init loads OBJ assets `0x7F` and `0x80` to VRAM `$0000/$1000`, covering the stable racer OAM tile slots `00/08/80/88`. Player color is a separate semantic input: the fixture proves selectors `0/1` map to palette assets `0x06/0x07` and CGRAM `$B0/$C0`.
+
+This separation is intentional. A later HD asset can substitute presentation for a known frame ID and color identity while the original game continues to own animation timing and state transitions. Unknown frame IDs must fall back to the exact original path until explicitly mapped. The current manifest proves byte identity and provenance; it does not yet prescribe an HD raster/vector interpretation of every packed word.
+
 ## Geometry anchors
 
 A semantic asset dossier should carry geometry, not only imagery.

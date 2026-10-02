@@ -47,10 +47,16 @@ end
 local function ur_heartbeat(frame)
     local f = assert(io.open(UR_HEARTBEAT, "w"))
     f:write(string.format(
-        "frame=%d\nmenu=%d\ntrack=%d\nin_race=%d\nrider=%d\ntour=%d\nchecksum_valid=%s\n",
-        frame, memory.readbyte(0x7E009F), memory.readbyte(0x7E00CE),
-        memory.readbyte(0x7E0313), memory.readbyte(0x7E017D),
-        memory.readbyte(0x7E00D0), tostring(ur_checksum_valid())
+        "frame=%d\\nmenu=%d\\nselected_option=%d\\nselected_row=%d\\nselected_col=%d\\ntrack=%d\\nin_race=%d\\nrider=%d\\ntour=%d\\ncrawler_score=%d\\njumper_score=%d\\nshuffler_score=%d\\nbounder_score=%d\\nwalker_score=%d\\nrunner_score=%d\\nhopper_score=%d\\nsprinter_score=%d\\nhunter_score=%d\\nchecksum_valid=%s\\n",
+        frame, memory.readbyte(0x7E009F), memory.readbyte(0x7E009B),
+        memory.readbyte(0x7E000E), memory.readbyte(0x7E0C63),
+        memory.readbyte(0x7E00CE), memory.readbyte(0x7E0313),
+        memory.readbyte(0x7E017D), memory.readbyte(0x7E00D0),
+        memory.readbyte(0x7E0A03), memory.readbyte(0x7E0A07),
+        memory.readbyte(0x7E0A0B), memory.readbyte(0x7E0A0F),
+        memory.readbyte(0x7E0A13), memory.readbyte(0x7E0A17),
+        memory.readbyte(0x7E0A1B), memory.readbyte(0x7E0A1F),
+        memory.readbyte(0x7E0A23), tostring(ur_checksum_valid())
     ))
     f:close()
 end
@@ -126,7 +132,7 @@ def main() -> int:
         raise SystemExit("historical Run invocation changed")
     text = text.replace(
         tail,
-        'snes9x.speedmode("maximum")\nRun()',
+        'snes9x.speedmode("nothrottle")\nRun()',
         1,
     )
 

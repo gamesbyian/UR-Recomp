@@ -19,6 +19,7 @@ on:
       - "tests/unit/test_analyze_widescreen_helper_staging.py"
       - "tests/unit/test_analyze_widescreen_edge_helper.py"
       - "tests/unit/test_analyze_widescreen_count32_discriminator.py"
+      - "tests/unit/test_analyze_widescreen_a59e_trace.py"
       - "tests/unit/test_analyze_widescreen_xphase_discriminator.py"
       - "tests/unit/test_analyze_widescreen_secondary_lane.py"
       - "tests/input/preparation-emission-race.script"

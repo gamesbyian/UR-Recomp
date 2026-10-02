@@ -360,6 +360,26 @@ def main() -> int:
                 f"{state['p2_current_id']}/{state['p2_companion_id']}, "
                 f"selectors {state['p1_selector_0c83']}/{state['p2_selector_0c85']}."
             )
+            md.append("  cache-grid streams:")
+            for row in cp["cache_grid_streams"]:
+                md.append(
+                    f"    row {row['row']}: " + " | ".join(row["columns"])
+                )
+            bound_rows = [e for e in cp["entries"] if e["object_tiles"]]
+            md.append("  OAM-bound staged entries:")
+            for e in bound_rows:
+                labels = sorted({
+                    c["stream"] for c in e["source_candidates"]
+                }) or ["unknown"]
+                objects = ", ".join(
+                    f"slot{o['oam_slot']}[{o['grid_x']},{o['grid_y']}]"
+                    for o in e["object_tiles"]
+                )
+                md.append(
+                    f"    slot {e['slot']}: {e['source_bank']}:{e['source_addr']} -> "
+                    f"{e['effective_vram_word']} [{'+'.join(labels)}] -> {objects}; "
+                    f"bytes_equal={e['source_equals_vram']}"
+                )
         md.append("")
 
     for block in report["ranges"]:

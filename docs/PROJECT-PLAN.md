@@ -1,6 +1,6 @@
 # Uniracers Modern Port Plan
 
-Last updated: 2026-09-30
+Last updated: 2026-10-01
 
 This is the canonical product-development plan for turning the original SNES Uniracers / Unirally into a faithful modern native port.
 
@@ -1093,20 +1093,64 @@ Developer recollection says very little cartridge space remained. Treat apparent
 
 # Current critical path
 
-A fresh agent should derive this order from current evidence rather than replay the historical frame-440 investigation. That lead was reclassified in PR #111: the observed pre-race mismatch was frontend timing/scratch-state reuse, not an established gameplay-semantic divergence. The five original semantic-core placeholders are mapped, deterministic 1P Dragster completion is parity-certified, and the four-ROM comparative/cross-build correspondence surfaces are now durable.
+The last two days materially changed the shape of the project. Broad structural recovery is now a proven capability rather than the main uncertainty. The comparative-island pipeline has mapped enough race, collision, camera, course-resource, OAM, timing, message and rendering-adjacent structure that the scarce resource is **semantic sufficiency for deliberate modification**, not the ability to discover another valid code island.
 
-1. **Close the remaining stock 4:3 fidelity surface.** Extend deterministic reference/native coverage from the already-green 1P route to representative stunt behavior and ordinary two-player gameplay. Compare only state whose semantics are valid in both contexts, and localize the first meaningful divergence if one appears.
-2. **Verify the controller-poll/replay boundary once.** Establish the smallest invariant needed by deterministic fixtures: where canonical input is sampled, whether lag or multiple polls can invalidate simple frame-index assumptions, and how event-relative replay should be represented. Do not turn this into a broad emulator-input study.
-3. **Expand semantics only where fidelity or presentation needs them.** Use the mapped race update, course loader, camera/projection, OAM, collision, stunt, HUD/message and checkpoint/finish anchors plus the PAL/Europe correspondence surface. Prefer bounded propagation and cheap discriminators over uniform decompilation.
-4. **Finish the course and original graphics models needed by presentation.** Decode enough course structure, asset state, animation selection and raster behavior to render the original game deliberately rather than by framebuffer enlargement.
-5. **Implement stock-art Widescreen.** Expand the logical view while holding authoritative simulation and authentic 4:3 behavior constant. Validate information exposure, culling, camera, HUD, multiplayer and scene-specific raster behavior.
-6. **Implement HD Presentation.** Replace/render higher-resolution presentation from semantic game state while preserving animation/state timing, with authentic/raw fallback always available.
-7. **Build the modern product layer.** Contemporary controls/remapping, profiles, save/progression UX, pause/retry, ghosts/timing/statistics, accessibility and streamlined frontend behavior belong here, outside the authoritative simulation where possible.
-8. **Finish editor/analysis tooling and release packaging.** Course editing/custom content and public ROM-supply boundaries follow once the underlying semantic formats are stable.
+A fresh agent should therefore optimize for the shortest path to a safely altered presentation, not for island count, bounded-byte count, atlas percentage or archaeological completeness.
 
-Supporting research is pulled forward when it shortens one of these steps. It does not become critical merely because evidence exists or because an old workstream once had high priority.
+1. **Finish the renderer-facing causal chain already in motion.** Prioritize regions that connect camera/window state, world preparation/streaming, sprite/OAM construction, PPU output and race rendering. Current work around the `83:F0BB` race-render path is an example of the right kind of structural recovery because it directly constrains presentation work.
+2. **Separate gameplay activation from presentation visibility.** Establish when world objects/opponents/events become behaviorally active versus when their graphics are prepared, culled and emitted. This is a Widescreen safety requirement: widening must not silently advance simulation or reveal state that was not already authoritative.
+3. **Close a finite stock-fidelity matrix rather than continue generalized divergence hunting.** Required representative cases are: one-player acceleration/jump/rotation/landing/contact, stunt/reward behavior, finish/results, course transition, ordinary two-player isolated and simultaneous input, VS setup/play, save/load/progression, and the known active-display OAM/raster seam. Compare semantic/event-relative state where absolute host-frame phase is not itself gameplay state. Once this matrix is green, stock fidelity is sufficient for presentation work unless later evidence exposes a counterexample.
+4. **Define the minimum course/rendering contract needed for presentation.** Recover course bounds, spatial organization, materialized resources, graphics/tile streaming, object/event placement and the fields needed to render a wider view deliberately. Do not block Widescreen on an editor-complete reconstruction of every course structure.
+5. **Begin bounded Widescreen reconnaissance as a reverse-engineering instrument.** After the renderer-facing chain is coherent enough to interpret failures, test tiny horizontal exposure increments such as +8, +16 and +24 source pixels under deterministic fixtures. The purpose is to identify the first violated assumption. Do not preserve a widening change merely because it appears visually plausible.
+6. **Recover only the semantic structure demanded by those failures or by fidelity gates.** Structural islands remain valuable, but a new island must now satisfy at least one of these conditions: close a known fidelity uncertainty; unlock a concrete Widescreen/rendering/course requirement; connect or disambiguate an already high-value subsystem; or provide a cheap reusable semantic anchor with clear downstream leverage. Frontier rank alone is not sufficient.
+7. **Run deterministic original-asset extraction/reconstruction and animation-state mapping in parallel.** These can advance without waiting for full Widescreen and will later gate HD Presentation. Prioritize exact round trips, resource/animation identity and semantic state mapping, not aesthetic replacement work yet.
+8. **Implement stock-art Widescreen once the activation/preparation/render domains are understood.** Expand logical view while holding authoritative simulation and authentic 4:3 behavior constant. Validate information exposure, culling, camera, HUD, multiplayer and raster behavior.
+9. **Implement HD Presentation, then the modern product layer.** Higher-resolution presentation comes after semantic asset/state mapping. Contemporary controls, profiles, pause/retry, ghosts/timing/statistics, accessibility and streamlined frontend behavior should remain outside authoritative simulation wherever practical.
+10. **Finish editor/custom-content and release packaging after the underlying semantic formats are stable.**
 
-**Active research-lane clarification (2026-09-30):** the current VS/native replay work is preserved as a parallel fidelity lane in PR #133 and `docs/TWO-PLAYER-FIXTURE-PLAN.md`. Agents working that lane should finish stable active two-player parity and subsequent ordinary-2P/Mesen promotion. The active reverse-engineering lane returns to the four-ROM × multi-analyzer comparative code atlas: normalized PAL/prototype/Europe executable comparisons, analyzer disagreements, and propagation into the existing atlas/decomp-gap surfaces. Do not let discoveries from that comparative pass recursively turn into unrelated gameplay investigations; record them and continue the corpus unless interpretation requires the detour.
+Supporting research is pulled forward when it shortens one of these steps. It does not become critical merely because evidence exists, an analyzer can expose it, or a previous workstream had momentum.
+
+## Structural-recovery stop rule
+
+The comparative structural census is an instrument, not a completion metric.
+
+Before starting a new island, name the **decision it can change** and the **downstream gate it can unblock**. Continue only when at least one is concrete. Prefer an adjacent region that closes a causal chain over an isolated region with a slightly higher generic frontier score. Stop expanding a subsystem when the project can already observe the relevant state, explain the behavior needed by the product, modify it safely, and validate the result.
+
+Completed-island narratives belong in generated census/evidence artifacts and the research ledger. The active queue should retain only the current blocker, why it matters, the cheapest discriminator, success condition and stop condition.
+
+## Semantic-sufficiency model
+
+Canonical evidence-backed status: `docs/SEMANTIC-SUFFICIENCY.md`.
+
+Track major product-facing subsystems by capability rather than byte coverage. For each subsystem, ask whether the project can:
+
+- **observe** the authoritative state deterministically;
+- **explain** the causal behavior relevant to the product;
+- **modify safely** without accidentally changing neighboring simulation;
+- **validate** the modification against authentic/reference behavior.
+
+Use `unknown / partial / sufficient` for each dimension. A subsystem becomes a semantic research priority when a missing dimension blocks the current critical path.
+
+The first scoreboard should cover at minimum:
+
+| Subsystem | Observe | Explain | Modify safely | Validate | Current planning consequence |
+| --- | --- | --- | --- | --- | --- |
+| Racer simulation / core physics | sufficient | sufficient for current fidelity fixtures | sufficient for preservation; modification normally prohibited | sufficient for representative 1P/2P semantics | On-demand only unless a new discrepancy appears |
+| Camera / screen-relative projection | sufficient | sufficient | partial | sufficient in 1P/2P fixtures | Complete renderer-facing integration rather than map unrelated code |
+| Sprite/OAM construction and split-screen seam | sufficient | sufficient | partial | sufficient for known seam | Use as a Widescreen constraint |
+| Object/gameplay activation | partial | partial | unknown | partial | **Highest-value unresolved Widescreen semantic** |
+| World preparation / VRAM streaming | partial | partial | partial | partial | Follow renderer-facing causal chain and tiny-margin probes |
+| Course spatial/resource model | sufficient for known loader/materialization paths | partial | partial | partial | Recover presentation-complete contract; defer editor-complete tail |
+| Frontend / progression | sufficient for principal deterministic routes | sufficient for current fidelity needs | partial | sufficient for principal routes | Do not let tail completeness block presentation |
+| Original graphics / animation state | partial | partial | unknown | partial | Parallel extraction/round-trip lane |
+
+Update this table when evidence changes a capability class. Do not inflate a class merely because more bytes were bounded.
+
+## Fidelity closure rule
+
+Absolute host-frame identity is not itself a product requirement when runtimes cut the same guest transition on adjacent host boundaries and event-relative authoritative state agrees. Preserve frame-level diagnostics where they expose a real causal difference, but do not manufacture fidelity debt from harmless phase alignment.
+
+Conversely, any event-relative difference in authoritative simulation, progression, object activation, collision, timing, RNG or multiplayer causality remains a real blocker until explained or explicitly adopted as product policy.
 
 ## First useful HD Presentation prototype
 

@@ -8,7 +8,9 @@ The goal is not to make a pretty wide screenshot quickly. The goal is to discove
 
 Do not begin permanent widening until the authentic 4:3 deterministic route is trustworthy enough to detect simulation drift.
 
-The probe may be developed earlier if it remains read-only/diagnostic and does not alter stock behavior.
+Reconnaissance should begin earlier once the renderer-facing state is understood well enough to classify failures. Diagnostic runs may use disposable/non-shipping runtime modifications to expose +8/+16/+24 source-pixel margins, provided every experiment retains an untouched matched 4:3 control and no diagnostic patch is promoted into the shipping path without domain-specific justification and regression coverage.
+
+Use early probes to select reverse-engineering work: stop at the first interpretable failure, identify which horizontal domain owns it, recover only enough additional semantics to explain or safely change that domain, then rerun. Do not require a complete renderer decompilation before the first probe.
 
 ## Shared fixture input
 
@@ -45,6 +47,8 @@ A widescreen fix should name the domain it changes.
 
 ## Staged exposure sweep
 
+Use the smallest margins first. During early reconnaissance, +8/+16/+24 are the preferred discriminators because they minimize the number of simultaneously violated assumptions. Expand to larger margins only after the earlier failure class is understood.
+
 Initial source-pixel margins:
 
 ```
@@ -74,7 +78,9 @@ At minimum:
 
 ## Machine-readable output
 
-`tools/widescreen_probe.py` now owns the dependency-free report contract. It reads `analysis/widescreen-policy.yml`, can emit a complete default margin-sweep skeleton, and validates completed reports before evidence is promoted. It is deliberately read-only: emulator/runtime invocation remains a separate concern.\n\nTarget report shape:
+`tools/widescreen_probe.py` now owns the dependency-free report contract. It reads `analysis/widescreen-policy.yml`, can emit a complete default margin-sweep skeleton, and validates completed reports before evidence is promoted. It is deliberately read-only: emulator/runtime invocation remains a separate concern.
+
+Target report shape:
 
 ```json
 {
@@ -185,6 +191,22 @@ Widescreen reconnaissance is incomplete without:
 - 4:3 fallback comparison.
 
 The purpose is to determine whether stock-PPU widening remains viable for final split-screen presentation or whether host composition should eventually draw the two logical viewport sprite sets directly.
+
+
+## Reverse-engineering admission rule
+
+A widescreen failure should create a new semantic-recovery task only when the missing knowledge prevents classification or a safe fix. Prefer the smallest causal chain that answers the failure over broad neighboring-ROM excavation.
+
+For each failure-driven investigation record:
+
+- the first failing margin/frame;
+- the observed artifact class;
+- the horizontal domain believed to own it;
+- the state/routine/resource whose behavior remains unknown;
+- the smallest next discriminator;
+- the condition under which the investigation stops and the probe is rerun.
+
+Object/gameplay activation is currently the highest-value unresolved domain because an error there can change authoritative simulation rather than only presentation.
 
 ## Exit condition
 

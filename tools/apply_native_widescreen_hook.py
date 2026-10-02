@@ -24,7 +24,6 @@ TRACE_RE = re.compile(r"cpu_trace_block\(cpu,\s*0x([0-9A-Fa-f]+)\s*\);")
 PCS = {
     "wrapper_after_first_helper": 0x01A59A,
     "wrapper_after_descriptor_builder": 0x01A59D,
-    "helper_staging_pointer": 0x01A5A3,
     "nmi_post_consume": 0x02D2D1,
 }
 
@@ -166,10 +165,7 @@ SECOND_PASS = r'''
     }
 '''.strip("\n")
 
-STAGING = r'''
-    if (ur_ws_native_second_pass)
-      cpu->Y = 0x0453;
-'''.strip("\n")
+STAGE_INIT_RE = re.compile(r"(?P<indent>[ \\t]*)uint16 (?P<var>_v\\d+) = 0x433;\\n(?P=indent)cpu_write_y_x\\(cpu, \\(uint16\\)\\((?P=var)\\)\\);")
 
 AFTER_BUILDER = r'''
     ur_ws_native_after_builder(cpu);
@@ -259,7 +255,6 @@ def apply(gen_dir: Path) -> dict:
     required = [
         PCS["wrapper_after_first_helper"],
         PCS["wrapper_after_descriptor_builder"],
-        PCS["helper_staging_pointer"],
     ]
     hits = _trace_hits(wrapper_text)
     missing = [f"{pc:06X}" for pc in required if len(hits.get(pc, [])) != 1]
@@ -268,9 +263,21 @@ def apply(gen_dir: Path) -> dict:
     if "bank_01_A59E_M0X0(cpu)" not in wrapper_text:
         raise ValueError("accepted M0X0 A59E generated callee is absent")
 
+    stage_matches = list(STAGE_INIT_RE.finditer(wrapper_text))
+    if len(stage_matches) != 1:
+        raise ValueError(f"expected one A59E staging initializer, found {len(stage_matches)}")
+
     wrapper_text = _insert_before_first_function(wrapper_text, SUPPORT)
-    wrapper_text = _insert_after_deadline_guard(
-        wrapper_text, PCS["helper_staging_pointer"], STAGING)
+    stage_match = STAGE_INIT_RE.search(wrapper_text)
+    if stage_match is None:
+        raise ValueError("A59E staging initializer moved after support insertion")
+    indent = stage_match.group("indent")
+    var = stage_match.group("var")
+    stage_replacement = (
+        f"{indent}uint16 {var} = ur_ws_native_second_pass ? 0x453 : 0x433;\\n"
+        f"{indent}cpu_write_y_x(cpu, (uint16)({var}));"
+    )
+    wrapper_text = wrapper_text[:stage_match.start()] + stage_replacement + wrapper_text[stage_match.end():]
     wrapper_text = _insert_after_deadline_guard(
         wrapper_text, PCS["wrapper_after_first_helper"], SECOND_PASS)
     wrapper_text = _insert_after_deadline_guard(

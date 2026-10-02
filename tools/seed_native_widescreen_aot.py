@@ -2,8 +2,8 @@
 """Seed Uniracers' accepted Widescreen preparation wrapper into native AOT generation.
 
 The pinned SNESRecomp revision consumes bank*.cfg directly during generation.
-Keep symbols.toml in sync for newer framework revisions, but make the bank-01
-roots explicit so this project's pinned toolchain remains deterministic.
+Keep symbols.toml in sync for newer framework revisions, but make the live bank-03
+race-frame root explicit so this project's pinned toolchain remains deterministic.
 """
 from __future__ import annotations
 
@@ -28,6 +28,13 @@ def _append_once(path: Path, marker: str, entry: str, *, prefix: str = "") -> bo
 def ensure_seed(cfg_dir: Path) -> dict[str, bool]:
     symbols = cfg_dir / "symbols.toml"
     bank_caller = cfg_dir / f"bank{CALLER_BANK:02d}.cfg"
+    caller_marker = f"func {CALLER_NAME} {CALLER_ADDR}"
+    caller_entry = f"# UR-Recomp accepted race-frame orchestrator seed.\n{caller_marker}\n"
+    caller_symbol_entry = (
+        f"\n[[func]]\nname = \"{CALLER_NAME}\"\naddr = \"{CALLER_ADDR}\"\n"
+        f"bank = {CALLER_BANK}\nemit = true\n"
+        "note = \"Trusted race-frame orchestrator entry containing 83:CD55 -> 81:A52B\"\n"
+    )
     symbol_caller = _append_once(symbols, CALLER_SYMBOL_MARKER, caller_symbol_entry)
     return {
         "symbols": symbol_caller,

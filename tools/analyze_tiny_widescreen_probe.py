@@ -142,7 +142,7 @@ def checker_columns(sample: dict, x0: int, x1: int) -> int:
                 a[0] != b[0]
                 and b[0] != c[0]
                 and a[0] == c[0]
-                and all(3 <= run[1] <= 14 for run in (a, b, c))
+                and all(2 <= run[1] <= 14 for run in (a, b, c))
             ):
                 found = True
                 break

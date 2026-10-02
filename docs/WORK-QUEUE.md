@@ -14,7 +14,7 @@ The structural-island program has crossed from scarce capability into abundant c
 2. Resolve the remaining separation between gameplay/object activation and presentation visibility. This is the highest-value semantic blocker for safe Widescreen.
    - Immediate discriminator: choose the cheapest deterministic fixture where a known world object crosses the classic camera edge and record first `exists`, first behaviorally `active`, first preparation/update-list membership, first `drawn`, and first `visible` frame. Reuse the same capture to measure the preparation horizon. Stop after one representative object if the activation/preparation/render boundaries become mechanically distinguishable; generalize only when the first widened probe demands it.
 3. Close the finite stock-fidelity matrix: representative 1P movement/stunt/contact/finish, ordinary 2P isolated + simultaneous input, VS, save/load/progression, and the active-display OAM/raster seam. Treat event-relative authoritative agreement as the relevant invariant when host-frame cut points differ harmlessly.
-4. Define a **presentation-complete** course/rendering contract. Do not wait for an editor-complete course model.
+4. **Completed for representative Dragster:** use `analysis/generated/dragster-presentation-spatial-contract.json` as the presentation-complete course spatial/resource contract. Do not generalize all 45 courses unless a widened probe exposes a broken invariant.
 5. Start tiny deterministic Widescreen exposure probes (+8/+16/+24 source pixels where practical) once failures can be interpreted. Use the first failure to choose the next reverse-engineering task.
 6. Run original-asset extraction/reconstruction and animation-state mapping in parallel where it does not interfere with 1-5.
 
@@ -233,9 +233,9 @@ Maintain `SYMBOLS.md` and `RESEARCH-LEDGER.md`. `tools/export_symbols.py` genera
 
 - [~] Locate compressed blocks and pointer/index tables. All 45 Method-1 course payload blocks are located and verified; the selector/pointer/index structure remains open, with direct/split/relative/fixed-record encodings under mechanical search.
 - [x] Verify RNC Method 1 corpus and independently decompress all 45 streams with CRC validation.
-- [~] Reconstruct dimensions and primitives. Header bytes 13/14 form a confirmed 45/45 fixed-area structural invariant: zero-as-256 yields complementary pairs whose product is 1024. LE16@11 is now runtime-confirmed on Dragster and stream 11 as a mutable pre-trailer cursor that advances exactly through the variable trailing region to EOF−1; trailer grammar, dimension unit/consumer and geometry primitives remain open.
-- [ ] Produce structural documentation.
-- [ ] Build parser/tooling around the canonical ROM.
+- [~] Reconstruct dimensions and primitives. Header bytes 13/14 form a confirmed 45/45 fixed-area invariant; on representative Dragster, runtime code resolves `00 04` to a 1024×16 grid of 64-unit coarse sectors, a 65536×1024 world domain, a 16,384-entry u16 sector→record table at `7F:000F`, and 32×32-byte 4×4 fine-cell records at `7F:800F`. LE16@11 is the mutable tail/resource cursor. Packed control bits beyond the proven materialized-resource selection path remain editor-only debt unless a product question needs them.
+- [~] Produce structural documentation. `docs/COURSE-FORMAT.md` and the generated Dragster presentation contract now cover the representative Widescreen-facing spatial/resource model; full editor-format documentation remains deferred.
+- [~] Build parser/tooling around the canonical ROM. `tools/build_course_presentation_contract.py` deterministically maps Dragster world rectangles to coarse sectors, fine records, packed surface words, C000 slots, A000 blocks and owning resources. Generalize by invariant check, not by automatic 45-course expansion.
 
 ## Phase 8 — Widescreen
 

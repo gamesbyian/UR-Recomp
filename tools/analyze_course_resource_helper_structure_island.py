@@ -15,7 +15,7 @@ OUTM=ROOT/"analysis/generated/course-resource-helper-structure-island.md"
 REGIONS=[
  ("stream_byte_reader","82:B293","82:B2A8"),
  ("descriptor_wrapper_and_decoder","82:B2A9","82:B2D9"),
- ("resource_transfer_materializer","82:B2DA","82:B32E"),
+ ("resource_transfer_or_decompress","82:B2DA","82:B32E"),
 ]
 CALLS=[
  {"callsite":"82:E18C","kind":"JSL","target":"82:B2DA","source":"course-materialization"},
@@ -78,7 +78,7 @@ def build():
     info.update({"aligned_opcode_pairs":pairs,"aligned_equal_opcode_pairs":equal,"aligned_role_disagreements":bad,"opcode_mismatches":mismatches})
    row["builds"][build]=info
   rows.append(row)
- return {"schema_version":1,"island":"CourseResourceHelperCluster","usa_start":"82:B293","usa_end":"82:B32E","entries":["82:B293","82:B2A9","82:B2DA"],"next_data":"82:B32F","known_callers":CALLS,"regions":rows}
+ return {"schema_version":1,"island":"CourseResourceHelperCluster","usa_start":"82:B293","usa_end":"82:B32E","entries":["82:B293","82:B2A9","82:B2DA"],"next_data":"82:B32F","known_callers":CALLS,"decompression_edge":{"callsite":"82:B322","target":"81:B8F1","condition":"descriptor flag $4D == $80","evidence":"Preserved Nitrodon listing identifies 81:B8F1 as map decompression; the noncompressed path writes through SNES WRAM ports $2181..$2183/$2180."},"regions":rows}
 
 def render(r):
  lines=["# Course/resource helper structural island","",

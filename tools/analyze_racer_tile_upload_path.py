@@ -24,11 +24,12 @@ from compare_europe_usa_snes2asm_homologs import cpu_to_offset, seed_entries, tr
 from extract_racer_presentation_family import lorom_offset
 
 RANGES = (
+    ("race_render_body", "83:F0BB", "83:F2BA"),
     ("dma_consumer_a", "82:B8D1", "82:B980"),
     ("dma_consumer_b", "82:C53A", "82:C5E0"),
     ("tile_pair_helper", "83:F2BB", "83:F4D1"),
 )
-SEEDS = ("82:B8D1", "82:C53A", "83:F2BB")
+SEEDS = ("83:F0BB", "82:B8D1", "82:C53A", "83:F2BB")
 REGISTER_TARGETS = {
     "DMAP0": 0x4300,
     "BBAD0": 0x4301,
@@ -53,6 +54,7 @@ INTEREST = (
     "$1645", "$15A1", "$16E9",
     "$1647", "$15A3", "$16EB",
     "$1649", "$15A5", "$16ED",
+    "$76", "$79", "$7C", "$7F", "$0C83", "$0C85", "$F2BB",
 )
 
 

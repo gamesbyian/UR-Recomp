@@ -215,3 +215,13 @@ Examples include `reach-first-race`, `course-load-timeline`, `race-finish-dragst
 By contrast, the historical progression scan and older two-player observation fixture still depend primarily on absolute frame counts. Those are useful retained evidence, but they are weaker causal coordinate systems when host presentation can perturb guest cadence.
 
 Future progression and paired-racer acceptance work should therefore first recover a semantic event anchor and only then compare relative offsets. This turns the +8 cadence lesson into a general fixture-design rule rather than a one-off Widescreen exception.
+
+
+## Post-merge integration — 2026-10-02
+
+The formerly deferred renderer lanes have now landed and are incorporated into planning:
+
+- representative stock preparation is demand-driven and same-frame: camera state feeds the `$03xx` VRAM-strip descriptor queue, which NMI consumes in the same guest frame under steady Dragster motion. Do not search for a hidden multi-frame stock prefetch horizon;
+- the +8 authentic-center pixel regression at `object-tail-168` is downstream of an earlier presentation-only phase difference. Meaningful P2 race state remains equal, while P2 presentation ID first diverges at `object-tail-141` and VRAM at `142`; OAM remains equal throughout the retained gap.
+
+Current next step: trace presentation-ID selection/update timing under the full renderer, then use the known camera-strip queue for any widened earlier/additional preparation experiment.

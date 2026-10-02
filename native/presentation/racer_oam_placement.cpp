@@ -27,6 +27,47 @@ constexpr SizePair kSizePairs[8] = {
 
 }  // namespace
 
+std::optional<RacerOamPlacement> build_placement(
+    std::uint8_t slot,
+    std::uint8_t xlo,
+    std::uint8_t y,
+    std::uint8_t tile,
+    std::uint8_t attr,
+    std::uint8_t pair,
+    std::uint8_t obsel
+) noexcept {
+    return build_placement(slot, xlo, y, tile, attr, pair, obsel);
+}
+
+std::optional<RacerOamPlacement> decode_racer_ppu_placement(
+    const std::uint16_t* oam_words,
+    std::size_t oam_word_count,
+    const std::uint8_t* high_oam,
+    std::size_t high_oam_size,
+    std::uint8_t obsel,
+    std::uint8_t player
+) noexcept {
+    if (oam_words == nullptr || high_oam == nullptr ||
+        oam_word_count < 256 || high_oam_size < 32 ||
+        (player != 1 && player != 2)) {
+        return std::nullopt;
+    }
+
+    const std::uint8_t slot = player == 1 ? kP1Slot : kP2Slot;
+    const std::uint16_t pos = oam_words[static_cast<std::size_t>(slot) * 2];
+    const std::uint16_t chr = oam_words[static_cast<std::size_t>(slot) * 2 + 1];
+    const std::uint8_t xlo = static_cast<std::uint8_t>(pos & 0xFF);
+    const std::uint8_t y = static_cast<std::uint8_t>(pos >> 8);
+    const std::uint8_t tile = static_cast<std::uint8_t>(chr & 0xFF);
+    const std::uint8_t attr = static_cast<std::uint8_t>(chr >> 8);
+    const std::uint8_t pair =
+        static_cast<std::uint8_t>(
+            (high_oam[slot / 4] >> ((slot % 4) * 2)) & 0x03
+        );
+
+    return build_placement(slot, xlo, y, tile, attr, pair, obsel);
+}
+
 std::optional<RacerOamPlacement> decode_racer_oam_placement(
     const std::uint8_t* oam,
     std::size_t oam_size,

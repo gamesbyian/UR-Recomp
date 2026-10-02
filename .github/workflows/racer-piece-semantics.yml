@@ -34,9 +34,10 @@ jobs:
           diff -u analysis/generated/racer-presentation-family.json /tmp/racer-presentation-family.json
       - name: Check consolidated presentation data
         run: |
+          cp analysis/data/presentation-assets.json /tmp/presentation-assets.saved
           cp analysis/generated/racer-presentation-family.json /tmp/racer-family.saved
           python3 tools/build_consolidated_knowledge.py
-          diff -u analysis/data/presentation-assets.json analysis/data/presentation-assets.json
+          diff -u /tmp/presentation-assets.saved analysis/data/presentation-assets.json
           diff -u /tmp/racer-family.saved analysis/generated/racer-presentation-family.json
       - name: Inspect renderer proof
         run: |

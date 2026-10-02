@@ -165,7 +165,7 @@ def main() -> int:
         f"- additional/future strip observed early: **{report['additional_strip_prepared']}**",
         f"- matching descriptor consumed by NMI in same frame: **{report['expected_descriptor_consumed_by_nmi']}**",
         f"- +8 payload equals later stock payload: **{report['widened_edge_matches_future_stock_data']}**",
-        f"- authoritative gameplay sample equal on {len(common)} common frames: **{report['authoritative_gameplay_state_equal']}**",
+        f"- authoritative gameplay sample equal on {common_count} common frames: **{report['authoritative_gameplay_state_equal']}**",
         f"- camera restored outside preparation window: **{report['camera_state_restored']}**",
         f"- qualifying future-stock matches: **{len(success_matches)}**","",
     ]

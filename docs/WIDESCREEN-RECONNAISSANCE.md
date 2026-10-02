@@ -343,6 +343,32 @@ This means the representative stock renderer has **no multi-frame background-pre
 
 Evidence: `analysis/generated/camera-dma-preparation-causal-contract-2026-10-02.md`.
 
+## +8 adjacent future-column scheduling acceptance
+
+Run `37066327707` closes the first implementation-facing widened-preparation admission test on the deterministic Dragster fixture.
+
+The accepted diagnostic path deliberately reuses the stock `81:A59E` preparation helper to produce one additional horizontal column, preserves that second staged 32-byte payload in the secondary low-WRAM lane, and lets the existing `81:AB88` descriptor builder plus NMI consumer emit it through slot 3. The stock 4:3 path remains the matched control.
+
+Retained acceptance results:
+
+- **314** future-stock candidates were identified by exact descriptor/payload identity against later stock execution;
+- **309** candidates have the expected adjacent horizontal VRAM-column geometry, are consumed by NMI in the same guest frame, and match the exact post-NMI VRAM bytes;
+- the longest consecutive accepted interval is **14 frames**;
+- camera and protected gameplay state are equal throughout the 932-frame preparation comparison;
+- the independent object-liveness guardrail compares **61** common samples with **zero** protected differences;
+- control and widened runs first change checkpoint/finish/lap progress at the same semantic sample, `liveness-004`, guest frame **1225**;
+- therefore the widened preparation path does **not** activate gameplay earlier.
+
+Two negative discriminators remain useful:
+
+- widening `$052B` from 16 to 32 merely lengthens the existing VMAIN=`$81` vertical transfer and does not supply the adjacent future column;
+- simply biasing camera WRAM is invalid because it perturbs or lags authoritative camera state.
+
+The proven +8 seam is consequently **presentation preparation**, not simulation, activation, collision, or final composition. The current implementation is still a disposable diagnostic double-pass and should not be copied verbatim into shipping code. The next step is to express the same preparation intent as the smallest maintainable runtime hook, then test whether repeating that mechanism naturally supplies the additional columns required by +16/+24. Do not broaden into unrelated renderer archaeology before that bounded generalization is answered.
+
+Evidence: workflow run `37066327707`; retained artifact `widescreen-strip-scheduling-plus8-acceptance`.
+
+
 ## +8 presentation-sequence divergence closure
 
 PR #206 first established the event-relative boundary: meaningful P2 race state remains equal, P2 racer presentation first diverges at **`object-tail-141`**, VRAM first diverges at **`object-tail-142`**, and OAM remains equal through the retained early gap. The follow-up sequence discriminator closes why.
@@ -357,7 +383,7 @@ The resulting chain is:
 
 The contemporaneous `$040F/$0F7B` and `$0C75..$0C7F` differences are downstream presentation/render staging, not earlier causes. The later `object-tail-168` two-pixel authentic-center regression likewise remains downstream.
 
-This closes the first +8 presentation-state phase lane for the current Widescreen decision. Do not compensate by changing gameplay activation, collision, course semantics, or final x=255 composition policy. The next Widescreen experiment is the deliberate **earlier/additional `$03xx` strip scheduling** against the already-closed camera-demand -> descriptor -> NMI-DMA chain, with authoritative simulation held invariant.
+This closes the first +8 presentation-state phase lane for the current Widescreen decision. Do not compensate by changing gameplay activation, collision, course semantics, or final x=255 composition policy. The subsequent earlier/additional `$03xx` strip-scheduling experiment is now accepted as described below.
 
 The failed layer-mask and paused trace-host experiments remain useful negative instrumentation evidence: diagnostics that change event-relative cadence cannot decide this seam.
 

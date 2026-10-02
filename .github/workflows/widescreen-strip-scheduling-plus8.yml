@@ -1,0 +1,175 @@
+name: Widescreen +8 strip scheduling acceptance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/widescreen-strip-scheduling-plus8.yml"
+      - "tools/instrument_snesref_widescreen_strip_schedule.py"
+      - "tools/analyze_widescreen_doublepass_acceptance.py"
+      - "tests/unit/test_analyze_widescreen_doublepass_acceptance.py"
+      - "tests/input/preparation-emission-race.script"
+      - "tests/input/object-liveness-dragster.script"
+      - "tools/summarize_object_liveness_probe.py"
+
+concurrency:
+  group: widescreen-strip-scheduling-plus8-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config libsdl2-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Build instrumented reference harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --tool snes9x-libretro --jobs 2
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 tools/instrument_snesref_widescreen_strip_schedule.py "$CORE/cpuexec.cpp"
+          make -C "$CORE/libretro" -j2
+          test -x .tools/src/snesrecomp/build-snesref/snesref
+          test -f "$CORE/libretro/snes9x_libretro.so"
+
+      - name: Prove adjacent future strip and post-NMI VRAM
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script"
+          ROOT="$RUNNER_TEMP/ws-acceptance"
+          mkdir -p "$ROOT/control/dumps" "$ROOT/doublepass/dumps" analysis/generated
+
+          URRECOMP_WS_MARGIN=0 \
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$SCRIPT" \
+          SNESREF_DUMP_DIR="$ROOT/control/dumps" \
+            "$EXE" "$CORE" "$ROM" >"$ROOT/control/run.log" 2>&1
+
+          URRECOMP_WS_MARGIN=8 \
+          URRECOMP_WS_MODE=doublepass \
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$SCRIPT" \
+          SNESREF_DUMP_DIR="$ROOT/doublepass/dumps" \
+            "$EXE" "$CORE" "$ROM" >"$ROOT/doublepass/run.log" 2>&1
+
+          python3 tools/analyze_widescreen_doublepass_acceptance.py \
+            "$ROOT/control/run.log" "$ROOT/doublepass/run.log" \
+            --json-out analysis/generated/widescreen-doublepass-acceptance.json \
+            --md-out analysis/generated/widescreen-doublepass-acceptance.md
+          cat analysis/generated/widescreen-doublepass-acceptance.md
+
+      - name: Prove gameplay and activation invariance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/object-liveness-dragster.script"
+          ROOT="$RUNNER_TEMP/ws-liveness"
+          mkdir -p "$ROOT/control/dumps" "$ROOT/doublepass/dumps" analysis/generated
+
+          for SIDE in control doublepass; do
+            if [ "$SIDE" = control ]; then
+              MARGIN=0
+              MODE=""
+            else
+              MARGIN=8
+              MODE="doublepass"
+            fi
+            URRECOMP_WS_MARGIN="$MARGIN" \
+            URRECOMP_WS_MODE="$MODE" \
+            SNESREF_HEADLESS=1 \
+            SNESREF_FAST=1 \
+            SNESREF_WRAM_FILL=0 \
+            SNESREF_SCRIPT="$SCRIPT" \
+            SNESREF_DUMP_DIR="$ROOT/$SIDE/dumps" \
+              "$EXE" "$CORE" "$ROM" >"$ROOT/$SIDE/run.log" 2>&1
+            python3 tools/summarize_object_liveness_probe.py \
+              "$ROOT/$SIDE/dumps" --json-out "$ROOT/$SIDE/summary.json" \
+              >"$ROOT/$SIDE/summary.txt"
+          done
+
+          python3 - "$ROOT/control/summary.json" "$ROOT/doublepass/summary.json" \
+            analysis/generated/widescreen-doublepass-liveness.json <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          c=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          w=json.loads(pathlib.Path(sys.argv[2]).read_text())
+          cr={x["stem"]:x for x in c["rows"]}
+          wr={x["stem"]:x for x in w["rows"]}
+          common=sorted(set(cr)&set(wr))
+          diffs=[]
+          for stem in common:
+              a,b=cr[stem],wr[stem]
+              protected={
+                  "player_position":(
+                      {"x":a["player"]["x"],"y":a["player"]["y"]},
+                      {"x":b["player"]["x"],"y":b["player"]["y"]},
+                  ),
+                  "camera":(a["camera"],b["camera"]),
+                  "progress":(a["progress"],b["progress"]),
+                  "object_map_prefix_hex":(
+                      a["object_map_prefix_hex"],b["object_map_prefix_hex"]
+                  ),
+              }
+              bad={
+                  k:{"control":x,"doublepass":y}
+                  for k,(x,y) in protected.items() if x!=y
+              }
+              if bad:
+                  diffs.append({"stem":stem,"differences":bad})
+
+          out={
+              "common_samples":len(common),
+              "protected_differences":diffs,
+              "control_first_progress_change":c["first_progress_change"],
+              "doublepass_first_progress_change":w["first_progress_change"],
+              "no_earlier_gameplay_activation":(
+                  not diffs
+                  and c["first_progress_change"]==w["first_progress_change"]
+              ),
+              "collision_word_note":(
+                  "0x0E95 remains diagnostic-only per the established tiny-margin "
+                  "event-relative classification and is not used as an activation gate."
+              ),
+          }
+          pathlib.Path(sys.argv[3]).write_text(json.dumps(out,indent=2)+"\n")
+          print(json.dumps(out,indent=2))
+          if not out["no_earlier_gameplay_activation"]:
+              raise SystemExit("gameplay/liveness acceptance diverged")
+          PY
+
+      - name: Upload bounded acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: widescreen-strip-scheduling-plus8-acceptance
+          path: |
+            analysis/generated/widescreen-doublepass-acceptance.json
+            analysis/generated/widescreen-doublepass-acceptance.md
+            analysis/generated/widescreen-doublepass-liveness.json
+            ${{ runner.temp }}/ws-acceptance/
+            ${{ runner.temp }}/ws-liveness/
+          if-no-files-found: warn
+          retention-days: 7

@@ -14,8 +14,8 @@ MARKER = """\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();"""
 
 SNIPPET = r'''			/* UR-Recomp preparation-list causal probe. */
 			{
-				uint32 prep_pc = Registers.PBPC;
-				if (prep_pc == 0x81A8FF || prep_pc == 0x81AA34 || prep_pc == 0x82D37F)
+				uint16 prep_pcw = Registers.PCw;\n\t\t\t\tuint32 prep_pc = ((uint32)Registers.PB << 16) | prep_pcw;
+				if (prep_pcw == 0xA8FF || prep_pcw == 0xAA34 || prep_pcw == 0xD37F)
 				{
 					auto prep_w16 = [](uint16 a) -> uint16 {
 						return (uint16)(Memory.RAM[a] | (Memory.RAM[a + 1] << 8));

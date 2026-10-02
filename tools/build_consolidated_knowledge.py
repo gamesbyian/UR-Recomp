@@ -22,8 +22,14 @@ def addr(x):
     if x is None:return None
     s=str(x).replace(chr(96),"").strip();m=re.search(r"([0-9A-Fa-f]{2}):([0-9A-Fa-f]{4})",s)
     return f"{m.group(1).upper()}:{m.group(2).upper()}" if m else s
-def anum(x):
+def code_addr(x):
     x=addr(x)
+    if not x or ":" not in x:return x
+    b,o=x.split(":");bank=int(b,16)
+    if bank < 0x40: bank += 0x80
+    return f"{bank:02X}:{o}"
+def anum(x):
+    x=code_addr(x)
     if not x or ":" not in x:return None
     b,o=x.split(":");return (int(b,16)<<16)|int(o,16)
 def courses():
@@ -59,11 +65,11 @@ def state():
     return {"schema_version":1,"generated_by":"tools/build_consolidated_knowledge.py","purpose":"Normalized promoted state semantics plus cross-build racer relations.","entries":out,"regional_racer_relations":rr}
 def code():
     sy=load("analysis/generated/symbols.json");co=load("analysis/generated/cross-build-symbol-correspondence.json");ce=load("analysis/generated/comparative-structural-census.json");cb=defaultdict(list)
-    for x in co.get("functions",[]):cb[(x.get("name"),addr(x.get("usa")))].append(x)
+    for x in co.get("functions",[]):cb[(x.get("name"),code_addr(x.get("usa")))].append(x)
     fs=[]
     for s in sy["entries"]:
         if s.get("kind")!="function":continue
-        a=addr(s.get("address"));n=anum(a);inside=[]
+        a=code_addr(s.get("address"));n=anum(a);inside=[]
         for r in ce["regions"]:
             lo,hi=anum(r["usa_start"]),anum(r["usa_end"])
             if n is not None and lo is not None and lo<=n<=hi:inside.append({"source":r["source"],"region":r["name"],"usa_start":r["usa_start"],"usa_end":r["usa_end"]})

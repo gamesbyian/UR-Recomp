@@ -115,9 +115,9 @@ jobs:
           python3 - <<'PY'
           import json, os
           p=json.load(open(os.path.join(os.environ["RUNNER_TEMP"],"racer-composition-trace.json")))
-          assert p["event_count"] > 0
+          assert p["paired_event_count"] > 0
           assert all(str(x) in p["nearest_anchor_events"] for x in (1220,1420,1470,1520,1570,1620))
-          print("synchronized events", p["event_count"])
+          print("synchronized pairs", p["paired_event_count"])
           print("source exact", p["all_events_source_exact"])
           print("anchor mismatches", {
               k:v["mismatch_count"] for k,v in p["nearest_anchor_events"].items()

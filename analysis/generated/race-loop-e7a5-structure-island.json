@@ -1,0 +1,2503 @@
+{
+  "boundary_basis": {
+    "entry": "83:E7A5 is called directly from the accepted race-frame orchestrator at 83:CD3D.",
+    "regional_exit": "The accepted EC46 island fixes the following step-table start in each build; subtracting the 26-byte EBCC helper and one byte yields the regional E7A5 exit.",
+    "usa_exit": "83:EBCB is RTS; 83:EBCC begins a separate 26-byte helper."
+  },
+  "island": "RaceLoopE7A5",
+  "known_callers": [
+    {
+      "callsite": "83:CD3D",
+      "source": "race-frame-orchestrator"
+    }
+  ],
+  "next_entry": "83:EBCC",
+  "regions": [
+    {
+      "builds": {
+        "europe-retail": {
+          "edit_count": 130,
+          "edit_script": [
+            {
+              "other_end": "83:E7C4",
+              "other_size": 1,
+              "other_start": "83:E7C4",
+              "tag": "replace",
+              "usa_end": "83:E7A8",
+              "usa_size": 1,
+              "usa_start": "83:E7A8"
+            },
+            {
+              "other_end": "83:E7C9",
+              "other_size": 1,
+              "other_start": "83:E7C9",
+              "tag": "replace",
+              "usa_end": "83:E7AD",
+              "usa_size": 1,
+              "usa_start": "83:E7AD"
+            },
+            {
+              "other_end": "83:E7CF",
+              "other_size": 2,
+              "other_start": "83:E7CE",
+              "tag": "replace",
+              "usa_end": "83:E7B3",
+              "usa_size": 2,
+              "usa_start": "83:E7B2"
+            },
+            {
+              "other_end": "83:E7DF",
+              "other_size": 1,
+              "other_start": "83:E7DF",
+              "tag": "replace",
+              "usa_end": "83:E7C3",
+              "usa_size": 1,
+              "usa_start": "83:E7C3"
+            },
+            {
+              "other_end": "83:E7E2",
+              "other_size": 1,
+              "other_start": "83:E7E2",
+              "tag": "replace",
+              "usa_end": "83:E7C6",
+              "usa_size": 1,
+              "usa_start": "83:E7C6"
+            },
+            {
+              "other_end": "83:E7E7",
+              "other_size": 1,
+              "other_start": "83:E7E7",
+              "tag": "replace",
+              "usa_end": "83:E7CB",
+              "usa_size": 1,
+              "usa_start": "83:E7CB"
+            },
+            {
+              "other_end": "83:E7EB",
+              "other_size": 1,
+              "other_start": "83:E7EB",
+              "tag": "replace",
+              "usa_end": "83:E7CF",
+              "usa_size": 1,
+              "usa_start": "83:E7CF"
+            },
+            {
+              "other_end": "83:E804",
+              "other_size": 1,
+              "other_start": "83:E804",
+              "tag": "replace",
+              "usa_end": "83:E7E8",
+              "usa_size": 1,
+              "usa_start": "83:E7E8"
+            },
+            {
+              "other_end": "83:E815",
+              "other_size": 1,
+              "other_start": "83:E815",
+              "tag": "replace",
+              "usa_end": "83:E7F9",
+              "usa_size": 1,
+              "usa_start": "83:E7F9"
+            },
+            {
+              "other_end": "83:E81A",
+              "other_size": 1,
+              "other_start": "83:E81A",
+              "tag": "replace",
+              "usa_end": "83:E7FE",
+              "usa_size": 1,
+              "usa_start": "83:E7FE"
+            },
+            {
+              "other_end": "83:E81E",
+              "other_size": 1,
+              "other_start": "83:E81E",
+              "tag": "replace",
+              "usa_end": "83:E802",
+              "usa_size": 1,
+              "usa_start": "83:E802"
+            },
+            {
+              "other_end": "83:E838",
+              "other_size": 1,
+              "other_start": "83:E838",
+              "tag": "replace",
+              "usa_end": "83:E81C",
+              "usa_size": 1,
+              "usa_start": "83:E81C"
+            },
+            {
+              "other_end": "83:E83B",
+              "other_size": 1,
+              "other_start": "83:E83B",
+              "tag": "replace",
+              "usa_end": "83:E81F",
+              "usa_size": 1,
+              "usa_start": "83:E81F"
+            },
+            {
+              "other_end": "83:E84A",
+              "other_size": 1,
+              "other_start": "83:E84A",
+              "tag": "replace",
+              "usa_end": "83:E82E",
+              "usa_size": 1,
+              "usa_start": "83:E82E"
+            },
+            {
+              "other_end": "83:E84D",
+              "other_size": 1,
+              "other_start": "83:E84D",
+              "tag": "replace",
+              "usa_end": "83:E831",
+              "usa_size": 1,
+              "usa_start": "83:E831"
+            },
+            {
+              "other_end": "83:E852",
+              "other_size": 1,
+              "other_start": "83:E852",
+              "tag": "replace",
+              "usa_end": "83:E836",
+              "usa_size": 1,
+              "usa_start": "83:E836"
+            },
+            {
+              "other_end": "83:E85A",
+              "other_size": 1,
+              "other_start": "83:E85A",
+              "tag": "replace",
+              "usa_end": "83:E83E",
+              "usa_size": 1,
+              "usa_start": "83:E83E"
+            },
+            {
+              "other_end": "83:E85D",
+              "other_size": 1,
+              "other_start": "83:E85D",
+              "tag": "replace",
+              "usa_end": "83:E841",
+              "usa_size": 1,
+              "usa_start": "83:E841"
+            },
+            {
+              "other_end": "83:E868",
+              "other_size": 1,
+              "other_start": "83:E868",
+              "tag": "replace",
+              "usa_end": "83:E84C",
+              "usa_size": 1,
+              "usa_start": "83:E84C"
+            },
+            {
+              "other_end": "83:E86C",
+              "other_size": 2,
+              "other_start": "83:E86B",
+              "tag": "replace",
+              "usa_end": "83:E850",
+              "usa_size": 2,
+              "usa_start": "83:E84F"
+            },
+            {
+              "other_end": "83:E870",
+              "other_size": 1,
+              "other_start": "83:E870",
+              "tag": "replace",
+              "usa_end": "83:E854",
+              "usa_size": 1,
+              "usa_start": "83:E854"
+            },
+            {
+              "other_end": "83:E878",
+              "other_size": 1,
+              "other_start": "83:E878",
+              "tag": "replace",
+              "usa_end": "83:E85C",
+              "usa_size": 1,
+              "usa_start": "83:E85C"
+            },
+            {
+              "other_end": "83:E87B",
+              "other_size": 1,
+              "other_start": "83:E87B",
+              "tag": "replace",
+              "usa_end": "83:E85F",
+              "usa_size": 1,
+              "usa_start": "83:E85F"
+            },
+            {
+              "other_end": "83:E886",
+              "other_size": 1,
+              "other_start": "83:E886",
+              "tag": "replace",
+              "usa_end": "83:E86A",
+              "usa_size": 1,
+              "usa_start": "83:E86A"
+            },
+            {
+              "other_end": "83:E889",
+              "other_size": 1,
+              "other_start": "83:E889",
+              "tag": "replace",
+              "usa_end": "83:E86D",
+              "usa_size": 1,
+              "usa_start": "83:E86D"
+            },
+            {
+              "other_end": "83:E88F",
+              "other_size": 2,
+              "other_start": "83:E88E",
+              "tag": "replace",
+              "usa_end": "83:E873",
+              "usa_size": 2,
+              "usa_start": "83:E872"
+            },
+            {
+              "other_end": "83:E892",
+              "other_size": 2,
+              "other_start": "83:E891",
+              "tag": "replace",
+              "usa_end": "83:E876",
+              "usa_size": 2,
+              "usa_start": "83:E875"
+            },
+            {
+              "other_end": "83:E897",
+              "other_size": 2,
+              "other_start": "83:E896",
+              "tag": "replace",
+              "usa_end": "83:E87B",
+              "usa_size": 2,
+              "usa_start": "83:E87A"
+            },
+            {
+              "other_end": "83:E899",
+              "other_size": 1,
+              "other_start": "83:E899",
+              "tag": "replace",
+              "usa_end": "83:E87D",
+              "usa_size": 1,
+              "usa_start": "83:E87D"
+            },
+            {
+              "other_end": "83:E89F",
+              "other_size": 1,
+              "other_start": "83:E89F",
+              "tag": "replace",
+              "usa_end": "83:E883",
+              "usa_size": 1,
+              "usa_start": "83:E883"
+            },
+            {
+              "other_end": "83:E8A1",
+              "other_size": 1,
+              "other_start": "83:E8A1",
+              "tag": "replace",
+              "usa_end": "83:E885",
+              "usa_size": 1,
+              "usa_start": "83:E885"
+            },
+            {
+              "other_end": "83:E8AA",
+              "other_size": 2,
+              "other_start": "83:E8A9",
+              "tag": "replace",
+              "usa_end": "83:E88E",
+              "usa_size": 2,
+              "usa_start": "83:E88D"
+            },
+            {
+              "other_end": "83:E8AC",
+              "other_size": 1,
+              "other_start": "83:E8AC",
+              "tag": "replace",
+              "usa_end": "83:E890",
+              "usa_size": 1,
+              "usa_start": "83:E890"
+            },
+            {
+              "other_end": "83:E8BB",
+              "other_size": 8,
+              "other_start": "83:E8B4",
+              "tag": "replace",
+              "usa_end": "83:E899",
+              "usa_size": 2,
+              "usa_start": "83:E898"
+            },
+            {
+              "other_end": "83:E8BD",
+              "other_size": 1,
+              "other_start": "83:E8BD",
+              "tag": "replace",
+              "usa_end": "83:E89B",
+              "usa_size": 1,
+              "usa_start": "83:E89B"
+            },
+            {
+              "other_end": "83:E8C4",
+              "other_size": 1,
+              "other_start": "83:E8C4",
+              "tag": "replace",
+              "usa_end": "83:E8A2",
+              "usa_size": 1,
+              "usa_start": "83:E8A2"
+            },
+            {
+              "other_end": "83:E8CA",
+              "other_size": 2,
+              "other_start": "83:E8C9",
+              "tag": "replace",
+              "usa_end": "83:E8A8",
+              "usa_size": 2,
+              "usa_start": "83:E8A7"
+            },
+            {
+              "other_end": "83:E8CC",
+              "other_size": 1,
+              "other_start": "83:E8CC",
+              "tag": "replace",
+              "usa_end": "83:E8AA",
+              "usa_size": 1,
+              "usa_start": "83:E8AA"
+            },
+            {
+              "other_end": "83:E8D3",
+              "other_size": 1,
+              "other_start": "83:E8D3",
+              "tag": "replace",
+              "usa_end": "83:E8B1",
+              "usa_size": 1,
+              "usa_start": "83:E8B1"
+            },
+            {
+              "other_end": "83:E8D9",
+              "other_size": 2,
+              "other_start": "83:E8D8",
+              "tag": "replace",
+              "usa_end": "83:E8B7",
+              "usa_size": 2,
+              "usa_start": "83:E8B6"
+            },
+            {
+              "other_end": "83:E8DB",
+              "other_size": 1,
+              "other_start": "83:E8DB",
+              "tag": "replace",
+              "usa_end": "83:E8B9",
+              "usa_size": 1,
+              "usa_start": "83:E8B9"
+            },
+            {
+              "other_end": "83:E8DF",
+              "other_size": 2,
+              "other_start": "83:E8DE",
+              "tag": "replace",
+              "usa_end": "83:E8BD",
+              "usa_size": 2,
+              "usa_start": "83:E8BC"
+            },
+            {
+              "other_end": "83:E8E1",
+              "other_size": 1,
+              "other_start": "83:E8E1",
+              "tag": "replace",
+              "usa_end": "83:E8BF",
+              "usa_size": 1,
+              "usa_start": "83:E8BF"
+            },
+            {
+              "other_end": "83:E8E6",
+              "other_size": 1,
+              "other_start": "83:E8E6",
+              "tag": "replace",
+              "usa_end": "83:E8C4",
+              "usa_size": 1,
+              "usa_start": "83:E8C4"
+            },
+            {
+              "other_end": "83:E8EC",
+              "other_size": 1,
+              "other_start": "83:E8EC",
+              "tag": "replace",
+              "usa_end": "83:E8CA",
+              "usa_size": 1,
+              "usa_start": "83:E8CA"
+            },
+            {
+              "other_end": "83:E8F9",
+              "other_size": 1,
+              "other_start": "83:E8F9",
+              "tag": "replace",
+              "usa_end": "83:E8D7",
+              "usa_size": 1,
+              "usa_start": "83:E8D7"
+            },
+            {
+              "other_end": null,
+              "other_size": 0,
+              "other_start": "83:E8FD",
+              "tag": "delete",
+              "usa_end": "83:E8DD",
+              "usa_size": 3,
+              "usa_start": "83:E8DB"
+            },
+            {
+              "other_end": "83:E905",
+              "other_size": 3,
+              "other_start": "83:E903",
+              "tag": "insert",
+              "usa_end": null,
+              "usa_size": 0,
+              "usa_start": "83:E8E4"
+            },
+            {
+              "other_end": "83:E909",
+              "other_size": 1,
+              "other_start": "83:E909",
+              "tag": "replace",
+              "usa_end": "83:E8E7",
+              "usa_size": 1,
+              "usa_start": "83:E8E7"
+            },
+            {
+              "other_end": "83:E917",
+              "other_size": 2,
+              "other_start": "83:E916",
+              "tag": "replace",
+              "usa_end": "83:E8F5",
+              "usa_size": 2,
+              "usa_start": "83:E8F4"
+            },
+            {
+              "other_end": "83:E919",
+              "other_size": 1,
+              "other_start": "83:E919",
+              "tag": "replace",
+              "usa_end": "83:E8F7",
+              "usa_size": 1,
+              "usa_start": "83:E8F7"
+            },
+            {
+              "other_end": "83:E932",
+              "other_size": 1,
+              "other_start": "83:E932",
+              "tag": "replace",
+              "usa_end": "83:E910",
+              "usa_size": 1,
+              "usa_start": "83:E910"
+            },
+            {
+              "other_end": "83:E93F",
+              "other_size": 1,
+              "other_start": "83:E93F",
+              "tag": "replace",
+              "usa_end": "83:E91D",
+              "usa_size": 1,
+              "usa_start": "83:E91D"
+            },
+            {
+              "other_end": "83:E948",
+              "other_size": 1,
+              "other_start": "83:E948",
+              "tag": "replace",
+              "usa_end": "83:E926",
+              "usa_size": 1,
+              "usa_start": "83:E926"
+            },
+            {
+              "other_end": "83:E952",
+              "other_size": 1,
+              "other_start": "83:E952",
+              "tag": "replace",
+              "usa_end": "83:E930",
+              "usa_size": 1,
+              "usa_start": "83:E930"
+            },
+            {
+              "other_end": "83:E957",
+              "other_size": 4,
+              "other_start": "83:E954",
+              "tag": "replace",
+              "usa_end": "83:E934",
+              "usa_size": 3,
+              "usa_start": "83:E932"
+            },
+            {
+              "other_end": "83:E961",
+              "other_size": 1,
+              "other_start": "83:E961",
+              "tag": "replace",
+              "usa_end": "83:E93E",
+              "usa_size": 1,
+              "usa_start": "83:E93E"
+            },
+            {
+              "other_end": "83:E966",
+              "other_size": 4,
+              "other_start": "83:E963",
+              "tag": "replace",
+              "usa_end": "83:E942",
+              "usa_size": 3,
+              "usa_start": "83:E940"
+            },
+            {
+              "other_end": "83:E978",
+              "other_size": 1,
+              "other_start": "83:E978",
+              "tag": "replace",
+              "usa_end": "83:E954",
+              "usa_size": 1,
+              "usa_start": "83:E954"
+            },
+            {
+              "other_end": "83:E98C",
+              "other_size": 1,
+              "other_start": "83:E98C",
+              "tag": "replace",
+              "usa_end": "83:E968",
+              "usa_size": 1,
+              "usa_start": "83:E968"
+            },
+            {
+              "other_end": "83:E996",
+              "other_size": 1,
+              "other_start": "83:E996",
+              "tag": "replace",
+              "usa_end": "83:E972",
+              "usa_size": 1,
+              "usa_start": "83:E972"
+            },
+            {
+              "other_end": "83:E9A3",
+              "other_size": 12,
+              "other_start": "83:E998",
+              "tag": "replace",
+              "usa_end": "83:E974",
+              "usa_size": 1,
+              "usa_start": "83:E974"
+            },
+            {
+              "other_end": "83:E9AB",
+              "other_size": 1,
+              "other_start": "83:E9AB",
+              "tag": "replace",
+              "usa_end": "83:E97C",
+              "usa_size": 1,
+              "usa_start": "83:E97C"
+            },
+            {
+              "other_end": null,
+              "other_size": 0,
+              "other_start": "83:E9B0",
+              "tag": "delete",
+              "usa_end": "83:E985",
+              "usa_size": 5,
+              "usa_start": "83:E981"
+            },
+            {
+              "other_end": null,
+              "other_size": 0,
+              "other_start": "83:E9C3",
+              "tag": "delete",
+              "usa_end": "83:E99B",
+              "usa_size": 3,
+              "usa_start": "83:E999"
+            },
+            {
+              "other_end": "83:E9D2",
+              "other_size": 12,
+              "other_start": "83:E9C7",
+              "tag": "replace",
+              "usa_end": "83:E9A0",
+              "usa_size": 1,
+              "usa_start": "83:E9A0"
+            },
+            {
+              "other_end": "83:E9DA",
+              "other_size": 1,
+              "other_start": "83:E9DA",
+              "tag": "replace",
+              "usa_end": "83:E9A8",
+              "usa_size": 1,
+              "usa_start": "83:E9A8"
+            },
+            {
+              "other_end": "83:E9EA",
+              "other_size": 11,
+              "other_start": "83:E9E0",
+              "tag": "insert",
+              "usa_end": null,
+              "usa_size": 0,
+              "usa_start": "83:E9AE"
+            },
+            {
+              "other_end": "83:E9F3",
+              "other_size": 1,
+              "other_start": "83:E9F3",
+              "tag": "replace",
+              "usa_end": "83:E9B6",
+              "usa_size": 1,
+              "usa_start": "83:E9B6"
+            },
+            {
+              "other_end": null,
+              "other_size": 0,
+              "other_start": "83:E9F8",
+              "tag": "delete",
+              "usa_end": "83:E9BF",
+              "usa_size": 5,
+              "usa_start": "83:E9BB"
+            },
+            {
+              "other_end": null,
+              "other_size": 0,
+              "other_start": "83:EA0A",
+              "tag": "delete",
+              "usa_end": "83:E9D4",
+              "usa_size": 3,
+              "usa_start": "83:E9D2"
+            },
+            {
+              "other_end": "83:EA0E",
+              "other_size": 1,
+              "other_start": "83:EA0E",
+              "tag": "replace",
+              "usa_end": "83:E9D9",
+              "usa_size": 1,
+              "usa_start": "83:E9D9"
+            },
+            {
+              "other_end": "83:EA17",
+              "other_size": 1,
+              "other_start": "83:EA17",
+              "tag": "replace",
+              "usa_end": "83:E9E2",
+              "usa_size": 1,
+              "usa_start": "83:E9E2"
+            },
+            {
+              "other_end": "83:EA1B",
+              "other_size": 2,
+              "other_start": "83:EA1A",
+              "tag": "replace",
+              "usa_end": "83:E9E6",
+              "usa_size": 2,
+              "usa_start": "83:E9E5"
+            },
+            {
+              "other_end": "83:EA20",
+              "other_size": 2,
+              "other_start": "83:EA1F",
+              "tag": "replace",
+              "usa_end": "83:E9EB",
+              "usa_size": 2,
+              "usa_start": "83:E9EA"
+            },
+            {
+              "other_end": "83:EA28",
+              "other_size": 2,
+              "other_start": "83:EA27",
+              "tag": "replace",
+              "usa_end": "83:E9F3",
+              "usa_size": 2,
+              "usa_start": "83:E9F2"
+            },
+            {
+              "other_end": "83:EA2E",
+              "other_size": 2,
+              "other_start": "83:EA2D",
+              "tag": "replace",
+              "usa_end": "83:E9F9",
+              "usa_size": 2,
+              "usa_start": "83:E9F8"
+            },
+            {
+              "other_end": "83:EA33",
+              "other_size": 2,
+              "other_start": "83:EA32",
+              "tag": "replace",
+              "usa_end": "83:E9FE",
+              "usa_size": 2,
+              "usa_start": "83:E9FD"
+            },
+            {
+              "other_end": "83:EA36",
+              "other_size": 2,
+              "other_start": "83:EA35",
+              "tag": "replace",
+              "usa_end": "83:EA01",
+              "usa_size": 2,
+              "usa_start": "83:EA00"
+            },
+            {
+              "other_end": "83:EA3C",
+              "other_size": 2,
+              "other_start": "83:EA3B",
+              "tag": "replace",
+              "usa_end": "83:EA07",
+              "usa_size": 2,
+              "usa_start": "83:EA06"
+            },
+            {
+              "other_end": "83:EA4D",
+              "other_size": 2,
+              "other_start": "83:EA4C",
+              "tag": "replace",
+              "usa_end": "83:EA18",
+              "usa_size": 2,
+              "usa_start": "83:EA17"
+            },
+            {
+              "other_end": "83:EA51",
+              "other_size": 1,
+              "other_start": "83:EA51",
+              "tag": "replace",
+              "usa_end": "83:EA1C",
+              "usa_size": 1,
+              "usa_start": "83:EA1C"
+            },
+            {
+              "other_end": "83:EA59",
+              "other_size": 1,
+              "other_start": "83:EA59",
+              "tag": "replace",
+              "usa_end": "83:EA24",
+              "usa_size": 1,
+              "usa_start": "83:EA24"
+            },
+            {
+              "other_end": "83:EA6B",
+              "other_size": 2,
+              "other_start": "83:EA6A",
+              "tag": "replace",
+              "usa_end": "83:EA36",
+              "usa_size": 2,
+              "usa_start": "83:EA35"
+            },
+            {
+              "other_end": "83:EA70",
+              "other_size": 1,
+              "other_start": "83:EA70",
+              "tag": "replace",
+              "usa_end": "83:EA3B",
+              "usa_size": 1,
+              "usa_start": "83:EA3B"
+            },
+            {
+              "other_end": "83:EA74",
+              "other_size": 2,
+              "other_start": "83:EA73",
+              "tag": "replace",
+              "usa_end": "83:EA3F",
+              "usa_size": 2,
+              "usa_start": "83:EA3E"
+            },
+            {
+              "other_end": "83:EA79",
+              "other_size": 2,
+              "other_start": "83:EA78",
+              "tag": "replace",
+              "usa_end": "83:EA44",
+              "usa_size": 2,
+              "usa_start": "83:EA43"
+            },
+            {
+              "other_end": "83:EA7E",
+              "other_size": 1,
+              "other_start": "83:EA7E",
+              "tag": "replace",
+              "usa_end": "83:EA49",
+              "usa_size": 1,
+              "usa_start": "83:EA49"
+            },
+            {
+              "other_end": "83:EA8B",
+              "other_size": 1,
+              "other_start": "83:EA8B",
+              "tag": "replace",
+              "usa_end": "83:EA56",
+              "usa_size": 1,
+              "usa_start": "83:EA56"
+            },
+            {
+              "other_end": null,
+              "other_size": 0,
+              "other_start": "83:EA8F",
+              "tag": "delete",
+              "usa_end": "83:EA5C",
+              "usa_size": 3,
+              "usa_start": "83:EA5A"
+            },
+            {
+              "other_end": "83:EA97",
+              "other_size": 3,
+              "other_start": "83:EA95",
+              "tag": "insert",
+              "usa_end": null,
+              "usa_size": 0,
+              "usa_start": "83:EA63"
+            },
+            {
+              "other_end": "83:EA9B",
+              "other_size": 1,
+              "other_start": "83:EA9B",
+              "tag": "replace",
+              "usa_end": "83:EA66",
+              "usa_size": 1,
+              "usa_start": "83:EA66"
+            },
+            {
+              "other_end": "83:EAA8",
+              "other_size": 1,
+              "other_start": "83:EAA8",
+              "tag": "replace",
+              "usa_end": "83:EA73",
+              "usa_size": 1,
+              "usa_start": "83:EA73"
+            },
+            {
+              "other_end": "83:EAAB",
+              "other_size": 1,
+              "other_start": "83:EAAB",
+              "tag": "replace",
+              "usa_end": "83:EA76",
+              "usa_size": 1,
+              "usa_start": "83:EA76"
+            },
+            {
+              "other_end": "83:EAC4",
+              "other_size": 1,
+              "other_start": "83:EAC4",
+              "tag": "replace",
+              "usa_end": "83:EA8F",
+              "usa_size": 1,
+              "usa_start": "83:EA8F"
+            },
+            {
+              "other_end": "83:EAD1",
+              "other_size": 1,
+              "other_start": "83:EAD1",
+              "tag": "replace",
+              "usa_end": "83:EA9C",
+              "usa_size": 1,
+              "usa_start": "83:EA9C"
+            },
+            {
+              "other_end": "83:EADA",
+              "other_size": 1,
+              "other_start": "83:EADA",
+              "tag": "replace",
+              "usa_end": "83:EAA5",
+              "usa_size": 1,
+              "usa_start": "83:EAA5"
+            },
+            {
+              "other_end": "83:EAE4",
+              "other_size": 1,
+              "other_start": "83:EAE4",
+              "tag": "replace",
+              "usa_end": "83:EAAF",
+              "usa_size": 1,
+              "usa_start": "83:EAAF"
+            },
+            {
+              "other_end": "83:EAE9",
+              "other_size": 4,
+              "other_start": "83:EAE6",
+              "tag": "replace",
+              "usa_end": "83:EAB3",
+              "usa_size": 3,
+              "usa_start": "83:EAB1"
+            },
+            {
+              "other_end": "83:EAF3",
+              "other_size": 1,
+              "other_start": "83:EAF3",
+              "tag": "replace",
+              "usa_end": "83:EABD",
+              "usa_size": 1,
+              "usa_start": "83:EABD"
+            },
+            {
+              "other_end": "83:EAF8",
+              "other_size": 4,
+              "other_start": "83:EAF5",
+              "tag": "replace",
+              "usa_end": "83:EAC1",
+              "usa_size": 3,
+              "usa_start": "83:EABF"
+            },
+            {
+              "other_end": "83:EB0A",
+              "other_size": 1,
+              "other_start": "83:EB0A",
+              "tag": "replace",
+              "usa_end": "83:EAD3",
+              "usa_size": 1,
+              "usa_start": "83:EAD3"
+            },
+            {
+              "other_end": "83:EB18",
+              "other_size": 1,
+              "other_start": "83:EB18",
+              "tag": "replace",
+              "usa_end": "83:EAE1",
+              "usa_size": 1,
+              "usa_start": "83:EAE1"
+            },
+            {
+              "other_end": "83:EB28",
+              "other_size": 1,
+              "other_start": "83:EB28",
+              "tag": "replace",
+              "usa_end": "83:EAF1",
+              "usa_size": 1,
+              "usa_start": "83:EAF1"
+            },
+            {
+              "other_end": "83:EB35",
+              "other_size": 12,
+              "other_start": "83:EB2A",
+              "tag": "replace",
+              "usa_end": "83:EAF3",
+              "usa_size": 1,
+              "usa_start": "83:EAF3"
+            },
+            {
+              "other_end": "83:EB3D",
+              "other_size": 1,
+              "other_start": "83:EB3D",
+              "tag": "replace",
+              "usa_end": "83:EAFB",
+              "usa_size": 1,
+              "usa_start": "83:EAFB"
+            },
+            {
+              "other_end": null,
+              "other_size": 0,
+              "other_start": "83:EB42",
+              "tag": "delete",
+              "usa_end": "83:EB04",
+              "usa_size": 5,
+              "usa_start": "83:EB00"
+            },
+            {
+              "other_end": null,
+              "other_size": 0,
+              "other_start": "83:EB55",
+              "tag": "delete",
+              "usa_end": "83:EB1A",
+              "usa_size": 3,
+              "usa_start": "83:EB18"
+            },
+            {
+              "other_end": "83:EB64",
+              "other_size": 12,
+              "other_start": "83:EB59",
+              "tag": "replace",
+              "usa_end": "83:EB1F",
+              "usa_size": 1,
+              "usa_start": "83:EB1F"
+            },
+            {
+              "other_end": "83:EB6C",
+              "other_size": 1,
+              "other_start": "83:EB6C",
+              "tag": "replace",
+              "usa_end": "83:EB27",
+              "usa_size": 1,
+              "usa_start": "83:EB27"
+            },
+            {
+              "other_end": "83:EB7D",
+              "other_size": 12,
+              "other_start": "83:EB72",
+              "tag": "replace",
+              "usa_end": "83:EB2D",
+              "usa_size": 1,
+              "usa_start": "83:EB2D"
+            },
+            {
+              "other_end": "83:EB85",
+              "other_size": 1,
+              "other_start": "83:EB85",
+              "tag": "replace",
+              "usa_end": "83:EB35",
+              "usa_size": 1,
+              "usa_start": "83:EB35"
+            },
+            {
+              "other_end": null,
+              "other_size": 0,
+              "other_start": "83:EB8A",
+              "tag": "delete",
+              "usa_end": "83:EB3E",
+              "usa_size": 5,
+              "usa_start": "83:EB3A"
+            },
+            {
+              "other_end": null,
+              "other_size": 0,
+              "other_start": "83:EB9C",
+              "tag": "delete",
+              "usa_end": "83:EB53",
+              "usa_size": 3,
+              "usa_start": "83:EB51"
+            },
+            {
+              "other_end": "83:EBA0",
+              "other_size": 1,
+              "other_start": "83:EBA0",
+              "tag": "replace",
+              "usa_end": "83:EB58",
+              "usa_size": 1,
+              "usa_start": "83:EB58"
+            },
+            {
+              "other_end": "83:EBA9",
+              "other_size": 1,
+              "other_start": "83:EBA9",
+              "tag": "replace",
+              "usa_end": "83:EB61",
+              "usa_size": 1,
+              "usa_start": "83:EB61"
+            },
+            {
+              "other_end": "83:EBAD",
+              "other_size": 2,
+              "other_start": "83:EBAC",
+              "tag": "replace",
+              "usa_end": "83:EB65",
+              "usa_size": 2,
+              "usa_start": "83:EB64"
+            },
+            {
+              "other_end": "83:EBB2",
+              "other_size": 2,
+              "other_start": "83:EBB1",
+              "tag": "replace",
+              "usa_end": "83:EB6A",
+              "usa_size": 2,
+              "usa_start": "83:EB69"
+            },
+            {
+              "other_end": "83:EBBA",
+              "other_size": 2,
+              "other_start": "83:EBB9",
+              "tag": "replace",
+              "usa_end": "83:EB72",
+              "usa_size": 2,
+              "usa_start": "83:EB71"
+            },
+            {
+              "other_end": "83:EBC0",
+              "other_size": 2,
+              "other_start": "83:EBBF",
+              "tag": "replace",
+              "usa_end": "83:EB78",
+              "usa_size": 2,
+              "usa_start": "83:EB77"
+            },
+            {
+              "other_end": "83:EBC5",
+              "other_size": 2,
+              "other_start": "83:EBC4",
+              "tag": "replace",
+              "usa_end": "83:EB7D",
+              "usa_size": 2,
+              "usa_start": "83:EB7C"
+            },
+            {
+              "other_end": "83:EBC8",
+              "other_size": 2,
+              "other_start": "83:EBC7",
+              "tag": "replace",
+              "usa_end": "83:EB80",
+              "usa_size": 2,
+              "usa_start": "83:EB7F"
+            },
+            {
+              "other_end": "83:EBD8",
+              "other_size": 1,
+              "other_start": "83:EBD8",
+              "tag": "replace",
+              "usa_end": "83:EB90",
+              "usa_size": 1,
+              "usa_start": "83:EB90"
+            },
+            {
+              "other_end": "83:EBDE",
+              "other_size": 1,
+              "other_start": "83:EBDE",
+              "tag": "replace",
+              "usa_end": "83:EB96",
+              "usa_size": 1,
+              "usa_start": "83:EB96"
+            },
+            {
+              "other_end": "83:EBE5",
+              "other_size": 2,
+              "other_start": "83:EBE4",
+              "tag": "replace",
+              "usa_end": "83:EB9D",
+              "usa_size": 2,
+              "usa_start": "83:EB9C"
+            },
+            {
+              "other_end": "83:EBF6",
+              "other_size": 2,
+              "other_start": "83:EBF5",
+              "tag": "replace",
+              "usa_end": "83:EBAE",
+              "usa_size": 2,
+              "usa_start": "83:EBAD"
+            },
+            {
+              "other_end": "83:EBFA",
+              "other_size": 1,
+              "other_start": "83:EBFA",
+              "tag": "replace",
+              "usa_end": "83:EBB2",
+              "usa_size": 1,
+              "usa_start": "83:EBB2"
+            },
+            {
+              "other_end": "83:EC02",
+              "other_size": 1,
+              "other_start": "83:EC02",
+              "tag": "replace",
+              "usa_end": "83:EBBA",
+              "usa_size": 1,
+              "usa_start": "83:EBBA"
+            },
+            {
+              "other_end": "83:EC09",
+              "other_size": 1,
+              "other_start": "83:EC09",
+              "tag": "replace",
+              "usa_end": "83:EBC1",
+              "usa_size": 1,
+              "usa_start": "83:EBC1"
+            },
+            {
+              "other_end": "83:EC11",
+              "other_size": 1,
+              "other_start": "83:EC11",
+              "tag": "replace",
+              "usa_end": "83:EBC9",
+              "usa_size": 1,
+              "usa_start": "83:EBC9"
+            }
+          ],
+          "end": "83:EC13",
+          "local_shift_profile_48byte": [
+            {
+              "shift": 28,
+              "similarity": 0.833333,
+              "usa_end": "83:E7D4",
+              "usa_start": "83:E7A5"
+            },
+            {
+              "shift": 28,
+              "similarity": 0.916667,
+              "usa_end": "83:E804",
+              "usa_start": "83:E7D5"
+            },
+            {
+              "shift": 28,
+              "similarity": 0.916667,
+              "usa_end": "83:E834",
+              "usa_start": "83:E805"
+            },
+            {
+              "shift": 28,
+              "similarity": 0.8125,
+              "usa_end": "83:E864",
+              "usa_start": "83:E835"
+            },
+            {
+              "shift": 28,
+              "similarity": 0.708333,
+              "usa_end": "83:E894",
+              "usa_start": "83:E865"
+            },
+            {
+              "shift": 34,
+              "similarity": 0.625,
+              "usa_end": "83:E8C4",
+              "usa_start": "83:E895"
+            },
+            {
+              "shift": 34,
+              "similarity": 0.854167,
+              "usa_end": "83:E8F4",
+              "usa_start": "83:E8C5"
+            },
+            {
+              "shift": 34,
+              "similarity": 0.916667,
+              "usa_end": "83:E924",
+              "usa_start": "83:E8F5"
+            },
+            {
+              "shift": 36,
+              "similarity": 0.354167,
+              "usa_end": "83:E954",
+              "usa_start": "83:E925"
+            },
+            {
+              "shift": 36,
+              "similarity": 0.645833,
+              "usa_end": "83:E984",
+              "usa_start": "83:E955"
+            },
+            {
+              "shift": 42,
+              "similarity": 0.395833,
+              "usa_end": "83:E9B4",
+              "usa_start": "83:E985"
+            },
+            {
+              "shift": 56,
+              "similarity": 0.395833,
+              "usa_end": "83:E9E4",
+              "usa_start": "83:E9B5"
+            },
+            {
+              "shift": 53,
+              "similarity": 0.708333,
+              "usa_end": "83:EA14",
+              "usa_start": "83:E9E5"
+            },
+            {
+              "shift": 53,
+              "similarity": 0.770833,
+              "usa_end": "83:EA44",
+              "usa_start": "83:EA15"
+            },
+            {
+              "shift": 53,
+              "similarity": 0.854167,
+              "usa_end": "83:EA74",
+              "usa_start": "83:EA45"
+            },
+            {
+              "shift": 53,
+              "similarity": 0.9375,
+              "usa_end": "83:EAA4",
+              "usa_start": "83:EA75"
+            },
+            {
+              "shift": 55,
+              "similarity": 0.375,
+              "usa_end": "83:EAD4",
+              "usa_start": "83:EAA5"
+            },
+            {
+              "shift": 55,
+              "similarity": 0.625,
+              "usa_end": "83:EB04",
+              "usa_start": "83:EAD5"
+            },
+            {
+              "shift": 61,
+              "similarity": 0.395833,
+              "usa_end": "83:EB34",
+              "usa_start": "83:EB05"
+            },
+            {
+              "shift": 75,
+              "similarity": 0.395833,
+              "usa_end": "83:EB64",
+              "usa_start": "83:EB35"
+            },
+            {
+              "shift": 72,
+              "similarity": 0.75,
+              "usa_end": "83:EB94",
+              "usa_start": "83:EB65"
+            },
+            {
+              "shift": 72,
+              "similarity": 0.833333,
+              "usa_end": "83:EBC4",
+              "usa_start": "83:EB95"
+            },
+            {
+              "shift": 72,
+              "similarity": 0.857143,
+              "usa_end": "83:EBCB",
+              "usa_start": "83:EBC5"
+            }
+          ],
+          "matching_bytes": 870,
+          "opcode_bytes": 414,
+          "operand_bytes": 693,
+          "sha256": "48f5f67cf7c34d1f06443543005973fee4151e8def09c9f001de3c93519ec94d",
+          "shift": 28,
+          "shift_end": 72,
+          "shift_start": 28,
+          "similarity": 0.785908,
+          "size": 1107,
+          "size_delta": 44,
+          "start": "83:E7C1",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "edit_count": 0,
+          "edit_script": [],
+          "end": "83:EBCB",
+          "matching_bytes": 1063,
+          "opcode_bytes": 400,
+          "operand_bytes": 663,
+          "sha256": "afb2cf19758721c22d9d90603cd675cd3d9a20af9bbc8acd654ab6903f18e763",
+          "shift": 0,
+          "shift_end": 0,
+          "shift_start": 0,
+          "similarity": 1,
+          "size": 1063,
+          "size_delta": 0,
+          "start": "83:E7A5",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "edit_count": 106,
+          "edit_script": [
+            {
+              "other_end": "83:E7A3",
+              "other_size": 1,
+              "other_start": "83:E7A3",
+              "tag": "replace",
+              "usa_end": "83:E7AD",
+              "usa_size": 1,
+              "usa_start": "83:E7AD"
+            },
+            {
+              "other_end": "83:E7A8",
+              "other_size": 1,
+              "other_start": "83:E7A8",
+              "tag": "replace",
+              "usa_end": "83:E7B2",
+              "usa_size": 1,
+              "usa_start": "83:E7B2"
+            },
+            {
+              "other_end": "83:E7B9",
+              "other_size": 1,
+              "other_start": "83:E7B9",
+              "tag": "replace",
+              "usa_end": "83:E7C3",
+              "usa_size": 1,
+              "usa_start": "83:E7C3"
+            },
+            {
+              "other_end": "83:E7BC",
+              "other_size": 1,
+              "other_start": "83:E7BC",
+              "tag": "replace",
+              "usa_end": "83:E7C6",
+              "usa_size": 1,
+              "usa_start": "83:E7C6"
+            },
+            {
+              "other_end": "83:E7C1",
+              "other_size": 1,
+              "other_start": "83:E7C1",
+              "tag": "replace",
+              "usa_end": "83:E7CB",
+              "usa_size": 1,
+              "usa_start": "83:E7CB"
+            },
+            {
+              "other_end": "83:E7C5",
+              "other_size": 1,
+              "other_start": "83:E7C5",
+              "tag": "replace",
+              "usa_end": "83:E7CF",
+              "usa_size": 1,
+              "usa_start": "83:E7CF"
+            },
+            {
+              "other_end": "83:E7DE",
+              "other_size": 1,
+              "other_start": "83:E7DE",
+              "tag": "replace",
+              "usa_end": "83:E7E8",
+              "usa_size": 1,
+              "usa_start": "83:E7E8"
+            },
+            {
+              "other_end": "83:E7EF",
+              "other_size": 1,
+              "other_start": "83:E7EF",
+              "tag": "replace",
+              "usa_end": "83:E7F9",
+              "usa_size": 1,
+              "usa_start": "83:E7F9"
+            },
+            {
+              "other_end": "83:E7F4",
+              "other_size": 1,
+              "other_start": "83:E7F4",
+              "tag": "replace",
+              "usa_end": "83:E7FE",
+              "usa_size": 1,
+              "usa_start": "83:E7FE"
+            },
+            {
+              "other_end": "83:E7F8",
+              "other_size": 1,
+              "other_start": "83:E7F8",
+              "tag": "replace",
+              "usa_end": "83:E802",
+              "usa_size": 1,
+              "usa_start": "83:E802"
+            },
+            {
+              "other_end": "83:E824",
+              "other_size": 1,
+              "other_start": "83:E824",
+              "tag": "replace",
+              "usa_end": "83:E82E",
+              "usa_size": 1,
+              "usa_start": "83:E82E"
+            },
+            {
+              "other_end": "83:E827",
+              "other_size": 1,
+              "other_start": "83:E827",
+              "tag": "replace",
+              "usa_end": "83:E831",
+              "usa_size": 1,
+              "usa_start": "83:E831"
+            },
+            {
+              "other_end": "83:E82C",
+              "other_size": 1,
+              "other_start": "83:E82C",
+              "tag": "replace",
+              "usa_end": "83:E836",
+              "usa_size": 1,
+              "usa_start": "83:E836"
+            },
+            {
+              "other_end": "83:E842",
+              "other_size": 1,
+              "other_start": "83:E842",
+              "tag": "replace",
+              "usa_end": "83:E84C",
+              "usa_size": 1,
+              "usa_start": "83:E84C"
+            },
+            {
+              "other_end": "83:E845",
+              "other_size": 1,
+              "other_start": "83:E845",
+              "tag": "replace",
+              "usa_end": "83:E84F",
+              "usa_size": 1,
+              "usa_start": "83:E84F"
+            },
+            {
+              "other_end": "83:E84A",
+              "other_size": 1,
+              "other_start": "83:E84A",
+              "tag": "replace",
+              "usa_end": "83:E854",
+              "usa_size": 1,
+              "usa_start": "83:E854"
+            },
+            {
+              "other_end": "83:E860",
+              "other_size": 1,
+              "other_start": "83:E860",
+              "tag": "replace",
+              "usa_end": "83:E86A",
+              "usa_size": 1,
+              "usa_start": "83:E86A"
+            },
+            {
+              "other_end": "83:E863",
+              "other_size": 1,
+              "other_start": "83:E863",
+              "tag": "replace",
+              "usa_end": "83:E86D",
+              "usa_size": 1,
+              "usa_start": "83:E86D"
+            },
+            {
+              "other_end": "83:E868",
+              "other_size": 1,
+              "other_start": "83:E868",
+              "tag": "replace",
+              "usa_end": "83:E872",
+              "usa_size": 1,
+              "usa_start": "83:E872"
+            },
+            {
+              "other_end": "83:E86B",
+              "other_size": 1,
+              "other_start": "83:E86B",
+              "tag": "replace",
+              "usa_end": "83:E875",
+              "usa_size": 1,
+              "usa_start": "83:E875"
+            },
+            {
+              "other_end": "83:E870",
+              "other_size": 1,
+              "other_start": "83:E870",
+              "tag": "replace",
+              "usa_end": "83:E87A",
+              "usa_size": 1,
+              "usa_start": "83:E87A"
+            },
+            {
+              "other_end": "83:E873",
+              "other_size": 1,
+              "other_start": "83:E873",
+              "tag": "replace",
+              "usa_end": "83:E87D",
+              "usa_size": 1,
+              "usa_start": "83:E87D"
+            },
+            {
+              "other_end": "83:E879",
+              "other_size": 1,
+              "other_start": "83:E879",
+              "tag": "replace",
+              "usa_end": "83:E883",
+              "usa_size": 1,
+              "usa_start": "83:E883"
+            },
+            {
+              "other_end": "83:E883",
+              "other_size": 1,
+              "other_start": "83:E883",
+              "tag": "replace",
+              "usa_end": "83:E88D",
+              "usa_size": 1,
+              "usa_start": "83:E88D"
+            },
+            {
+              "other_end": "83:E88E",
+              "other_size": 1,
+              "other_start": "83:E88E",
+              "tag": "replace",
+              "usa_end": "83:E898",
+              "usa_size": 1,
+              "usa_start": "83:E898"
+            },
+            {
+              "other_end": "83:E895",
+              "other_size": 6,
+              "other_start": "83:E890",
+              "tag": "insert",
+              "usa_end": null,
+              "usa_size": 0,
+              "usa_start": "83:E89A"
+            },
+            {
+              "other_end": "83:E8A3",
+              "other_size": 1,
+              "other_start": "83:E8A3",
+              "tag": "replace",
+              "usa_end": "83:E8A7",
+              "usa_size": 1,
+              "usa_start": "83:E8A7"
+            },
+            {
+              "other_end": "83:E8B2",
+              "other_size": 1,
+              "other_start": "83:E8B2",
+              "tag": "replace",
+              "usa_end": "83:E8B6",
+              "usa_size": 1,
+              "usa_start": "83:E8B6"
+            },
+            {
+              "other_end": "83:E8B5",
+              "other_size": 1,
+              "other_start": "83:E8B5",
+              "tag": "replace",
+              "usa_end": "83:E8B9",
+              "usa_size": 1,
+              "usa_start": "83:E8B9"
+            },
+            {
+              "other_end": "83:E8B8",
+              "other_size": 1,
+              "other_start": "83:E8B8",
+              "tag": "replace",
+              "usa_end": "83:E8BC",
+              "usa_size": 1,
+              "usa_start": "83:E8BC"
+            },
+            {
+              "other_end": "83:E8BB",
+              "other_size": 1,
+              "other_start": "83:E8BB",
+              "tag": "replace",
+              "usa_end": "83:E8BF",
+              "usa_size": 1,
+              "usa_start": "83:E8BF"
+            },
+            {
+              "other_end": "83:E8C0",
+              "other_size": 1,
+              "other_start": "83:E8C0",
+              "tag": "replace",
+              "usa_end": "83:E8C4",
+              "usa_size": 1,
+              "usa_start": "83:E8C4"
+            },
+            {
+              "other_end": "83:E8C6",
+              "other_size": 1,
+              "other_start": "83:E8C6",
+              "tag": "replace",
+              "usa_end": "83:E8CA",
+              "usa_size": 1,
+              "usa_start": "83:E8CA"
+            },
+            {
+              "other_end": "83:E8F0",
+              "other_size": 1,
+              "other_start": "83:E8F0",
+              "tag": "replace",
+              "usa_end": "83:E8F4",
+              "usa_size": 1,
+              "usa_start": "83:E8F4"
+            },
+            {
+              "other_end": "83:E919",
+              "other_size": 1,
+              "other_start": "83:E919",
+              "tag": "replace",
+              "usa_end": "83:E91D",
+              "usa_size": 1,
+              "usa_start": "83:E91D"
+            },
+            {
+              "other_end": "83:E922",
+              "other_size": 1,
+              "other_start": "83:E922",
+              "tag": "replace",
+              "usa_end": "83:E926",
+              "usa_size": 1,
+              "usa_start": "83:E926"
+            },
+            {
+              "other_end": "83:E92C",
+              "other_size": 1,
+              "other_start": "83:E92C",
+              "tag": "replace",
+              "usa_end": "83:E930",
+              "usa_size": 1,
+              "usa_start": "83:E930"
+            },
+            {
+              "other_end": "83:E931",
+              "other_size": 4,
+              "other_start": "83:E92E",
+              "tag": "replace",
+              "usa_end": "83:E934",
+              "usa_size": 3,
+              "usa_start": "83:E932"
+            },
+            {
+              "other_end": "83:E93B",
+              "other_size": 1,
+              "other_start": "83:E93B",
+              "tag": "replace",
+              "usa_end": "83:E93E",
+              "usa_size": 1,
+              "usa_start": "83:E93E"
+            },
+            {
+              "other_end": "83:E940",
+              "other_size": 4,
+              "other_start": "83:E93D",
+              "tag": "replace",
+              "usa_end": "83:E942",
+              "usa_size": 3,
+              "usa_start": "83:E940"
+            },
+            {
+              "other_end": "83:E952",
+              "other_size": 1,
+              "other_start": "83:E952",
+              "tag": "replace",
+              "usa_end": "83:E954",
+              "usa_size": 1,
+              "usa_start": "83:E954"
+            },
+            {
+              "other_end": "83:E966",
+              "other_size": 1,
+              "other_start": "83:E966",
+              "tag": "replace",
+              "usa_end": "83:E968",
+              "usa_size": 1,
+              "usa_start": "83:E968"
+            },
+            {
+              "other_end": "83:E970",
+              "other_size": 1,
+              "other_start": "83:E970",
+              "tag": "replace",
+              "usa_end": "83:E972",
+              "usa_size": 1,
+              "usa_start": "83:E972"
+            },
+            {
+              "other_end": "83:E978",
+              "other_size": 7,
+              "other_start": "83:E972",
+              "tag": "replace",
+              "usa_end": "83:E974",
+              "usa_size": 1,
+              "usa_start": "83:E974"
+            },
+            {
+              "other_end": "83:E980",
+              "other_size": 1,
+              "other_start": "83:E980",
+              "tag": "replace",
+              "usa_end": "83:E97C",
+              "usa_size": 1,
+              "usa_start": "83:E97C"
+            },
+            {
+              "other_end": "83:E986",
+              "other_size": 1,
+              "other_start": "83:E986",
+              "tag": "replace",
+              "usa_end": "83:E982",
+              "usa_size": 1,
+              "usa_start": "83:E982"
+            },
+            {
+              "other_end": "83:E99E",
+              "other_size": 1,
+              "other_start": "83:E99E",
+              "tag": "replace",
+              "usa_end": "83:E99A",
+              "usa_size": 1,
+              "usa_start": "83:E99A"
+            },
+            {
+              "other_end": "83:E9AA",
+              "other_size": 7,
+              "other_start": "83:E9A4",
+              "tag": "replace",
+              "usa_end": "83:E9A0",
+              "usa_size": 1,
+              "usa_start": "83:E9A0"
+            },
+            {
+              "other_end": "83:E9B2",
+              "other_size": 1,
+              "other_start": "83:E9B2",
+              "tag": "replace",
+              "usa_end": "83:E9A8",
+              "usa_size": 1,
+              "usa_start": "83:E9A8"
+            },
+            {
+              "other_end": "83:E9BE",
+              "other_size": 7,
+              "other_start": "83:E9B8",
+              "tag": "replace",
+              "usa_end": "83:E9AE",
+              "usa_size": 1,
+              "usa_start": "83:E9AE"
+            },
+            {
+              "other_end": "83:E9C6",
+              "other_size": 1,
+              "other_start": "83:E9C6",
+              "tag": "replace",
+              "usa_end": "83:E9B6",
+              "usa_size": 1,
+              "usa_start": "83:E9B6"
+            },
+            {
+              "other_end": "83:E9CC",
+              "other_size": 1,
+              "other_start": "83:E9CC",
+              "tag": "replace",
+              "usa_end": "83:E9BC",
+              "usa_size": 1,
+              "usa_start": "83:E9BC"
+            },
+            {
+              "other_end": "83:E9E3",
+              "other_size": 1,
+              "other_start": "83:E9E3",
+              "tag": "replace",
+              "usa_end": "83:E9D3",
+              "usa_size": 1,
+              "usa_start": "83:E9D3"
+            },
+            {
+              "other_end": "83:E9E9",
+              "other_size": 1,
+              "other_start": "83:E9E9",
+              "tag": "replace",
+              "usa_end": "83:E9D9",
+              "usa_size": 1,
+              "usa_start": "83:E9D9"
+            },
+            {
+              "other_end": "83:E9F2",
+              "other_size": 1,
+              "other_start": "83:E9F2",
+              "tag": "replace",
+              "usa_end": "83:E9E2",
+              "usa_size": 1,
+              "usa_start": "83:E9E2"
+            },
+            {
+              "other_end": "83:E9F6",
+              "other_size": 2,
+              "other_start": "83:E9F5",
+              "tag": "replace",
+              "usa_end": "83:E9E6",
+              "usa_size": 2,
+              "usa_start": "83:E9E5"
+            },
+            {
+              "other_end": "83:E9FA",
+              "other_size": 1,
+              "other_start": "83:E9FA",
+              "tag": "replace",
+              "usa_end": "83:E9EA",
+              "usa_size": 1,
+              "usa_start": "83:E9EA"
+            },
+            {
+              "other_end": "83:EA03",
+              "other_size": 2,
+              "other_start": "83:EA02",
+              "tag": "replace",
+              "usa_end": "83:E9F3",
+              "usa_size": 2,
+              "usa_start": "83:E9F2"
+            },
+            {
+              "other_end": "83:EA09",
+              "other_size": 2,
+              "other_start": "83:EA08",
+              "tag": "replace",
+              "usa_end": "83:E9F9",
+              "usa_size": 2,
+              "usa_start": "83:E9F8"
+            },
+            {
+              "other_end": "83:EA0E",
+              "other_size": 2,
+              "other_start": "83:EA0D",
+              "tag": "replace",
+              "usa_end": "83:E9FE",
+              "usa_size": 2,
+              "usa_start": "83:E9FD"
+            },
+            {
+              "other_end": "83:EA11",
+              "other_size": 2,
+              "other_start": "83:EA10",
+              "tag": "replace",
+              "usa_end": "83:EA01",
+              "usa_size": 2,
+              "usa_start": "83:EA00"
+            },
+            {
+              "other_end": "83:EA17",
+              "other_size": 2,
+              "other_start": "83:EA16",
+              "tag": "replace",
+              "usa_end": "83:EA07",
+              "usa_size": 2,
+              "usa_start": "83:EA06"
+            },
+            {
+              "other_end": "83:EA27",
+              "other_size": 1,
+              "other_start": "83:EA27",
+              "tag": "replace",
+              "usa_end": "83:EA17",
+              "usa_size": 1,
+              "usa_start": "83:EA17"
+            },
+            {
+              "other_end": "83:EA2C",
+              "other_size": 1,
+              "other_start": "83:EA2C",
+              "tag": "replace",
+              "usa_end": "83:EA1C",
+              "usa_size": 1,
+              "usa_start": "83:EA1C"
+            },
+            {
+              "other_end": "83:EA34",
+              "other_size": 1,
+              "other_start": "83:EA34",
+              "tag": "replace",
+              "usa_end": "83:EA24",
+              "usa_size": 1,
+              "usa_start": "83:EA24"
+            },
+            {
+              "other_end": "83:EA45",
+              "other_size": 1,
+              "other_start": "83:EA45",
+              "tag": "replace",
+              "usa_end": "83:EA35",
+              "usa_size": 1,
+              "usa_start": "83:EA35"
+            },
+            {
+              "other_end": "83:EA4B",
+              "other_size": 1,
+              "other_start": "83:EA4B",
+              "tag": "replace",
+              "usa_end": "83:EA3B",
+              "usa_size": 1,
+              "usa_start": "83:EA3B"
+            },
+            {
+              "other_end": "83:EA4E",
+              "other_size": 1,
+              "other_start": "83:EA4E",
+              "tag": "replace",
+              "usa_end": "83:EA3E",
+              "usa_size": 1,
+              "usa_start": "83:EA3E"
+            },
+            {
+              "other_end": "83:EA53",
+              "other_size": 1,
+              "other_start": "83:EA53",
+              "tag": "replace",
+              "usa_end": "83:EA43",
+              "usa_size": 1,
+              "usa_start": "83:EA43"
+            },
+            {
+              "other_end": "83:EA59",
+              "other_size": 1,
+              "other_start": "83:EA59",
+              "tag": "replace",
+              "usa_end": "83:EA49",
+              "usa_size": 1,
+              "usa_start": "83:EA49"
+            },
+            {
+              "other_end": "83:EA83",
+              "other_size": 1,
+              "other_start": "83:EA83",
+              "tag": "replace",
+              "usa_end": "83:EA73",
+              "usa_size": 1,
+              "usa_start": "83:EA73"
+            },
+            {
+              "other_end": "83:EAAC",
+              "other_size": 1,
+              "other_start": "83:EAAC",
+              "tag": "replace",
+              "usa_end": "83:EA9C",
+              "usa_size": 1,
+              "usa_start": "83:EA9C"
+            },
+            {
+              "other_end": "83:EAB5",
+              "other_size": 1,
+              "other_start": "83:EAB5",
+              "tag": "replace",
+              "usa_end": "83:EAA5",
+              "usa_size": 1,
+              "usa_start": "83:EAA5"
+            },
+            {
+              "other_end": "83:EABF",
+              "other_size": 1,
+              "other_start": "83:EABF",
+              "tag": "replace",
+              "usa_end": "83:EAAF",
+              "usa_size": 1,
+              "usa_start": "83:EAAF"
+            },
+            {
+              "other_end": "83:EAC4",
+              "other_size": 4,
+              "other_start": "83:EAC1",
+              "tag": "replace",
+              "usa_end": "83:EAB3",
+              "usa_size": 3,
+              "usa_start": "83:EAB1"
+            },
+            {
+              "other_end": "83:EACE",
+              "other_size": 1,
+              "other_start": "83:EACE",
+              "tag": "replace",
+              "usa_end": "83:EABD",
+              "usa_size": 1,
+              "usa_start": "83:EABD"
+            },
+            {
+              "other_end": "83:EAD3",
+              "other_size": 4,
+              "other_start": "83:EAD0",
+              "tag": "replace",
+              "usa_end": "83:EAC1",
+              "usa_size": 3,
+              "usa_start": "83:EABF"
+            },
+            {
+              "other_end": "83:EAE5",
+              "other_size": 1,
+              "other_start": "83:EAE5",
+              "tag": "replace",
+              "usa_end": "83:EAD3",
+              "usa_size": 1,
+              "usa_start": "83:EAD3"
+            },
+            {
+              "other_end": "83:EAF3",
+              "other_size": 1,
+              "other_start": "83:EAF3",
+              "tag": "replace",
+              "usa_end": "83:EAE1",
+              "usa_size": 1,
+              "usa_start": "83:EAE1"
+            },
+            {
+              "other_end": "83:EB03",
+              "other_size": 1,
+              "other_start": "83:EB03",
+              "tag": "replace",
+              "usa_end": "83:EAF1",
+              "usa_size": 1,
+              "usa_start": "83:EAF1"
+            },
+            {
+              "other_end": "83:EB0B",
+              "other_size": 7,
+              "other_start": "83:EB05",
+              "tag": "replace",
+              "usa_end": "83:EAF3",
+              "usa_size": 1,
+              "usa_start": "83:EAF3"
+            },
+            {
+              "other_end": "83:EB13",
+              "other_size": 1,
+              "other_start": "83:EB13",
+              "tag": "replace",
+              "usa_end": "83:EAFB",
+              "usa_size": 1,
+              "usa_start": "83:EAFB"
+            },
+            {
+              "other_end": "83:EB19",
+              "other_size": 1,
+              "other_start": "83:EB19",
+              "tag": "replace",
+              "usa_end": "83:EB01",
+              "usa_size": 1,
+              "usa_start": "83:EB01"
+            },
+            {
+              "other_end": "83:EB31",
+              "other_size": 1,
+              "other_start": "83:EB31",
+              "tag": "replace",
+              "usa_end": "83:EB19",
+              "usa_size": 1,
+              "usa_start": "83:EB19"
+            },
+            {
+              "other_end": "83:EB3D",
+              "other_size": 7,
+              "other_start": "83:EB37",
+              "tag": "replace",
+              "usa_end": "83:EB1F",
+              "usa_size": 1,
+              "usa_start": "83:EB1F"
+            },
+            {
+              "other_end": "83:EB45",
+              "other_size": 1,
+              "other_start": "83:EB45",
+              "tag": "replace",
+              "usa_end": "83:EB27",
+              "usa_size": 1,
+              "usa_start": "83:EB27"
+            },
+            {
+              "other_end": "83:EB51",
+              "other_size": 7,
+              "other_start": "83:EB4B",
+              "tag": "replace",
+              "usa_end": "83:EB2D",
+              "usa_size": 1,
+              "usa_start": "83:EB2D"
+            },
+            {
+              "other_end": "83:EB59",
+              "other_size": 1,
+              "other_start": "83:EB59",
+              "tag": "replace",
+              "usa_end": "83:EB35",
+              "usa_size": 1,
+              "usa_start": "83:EB35"
+            },
+            {
+              "other_end": "83:EB5F",
+              "other_size": 1,
+              "other_start": "83:EB5F",
+              "tag": "replace",
+              "usa_end": "83:EB3B",
+              "usa_size": 1,
+              "usa_start": "83:EB3B"
+            },
+            {
+              "other_end": "83:EB76",
+              "other_size": 1,
+              "other_start": "83:EB76",
+              "tag": "replace",
+              "usa_end": "83:EB52",
+              "usa_size": 1,
+              "usa_start": "83:EB52"
+            },
+            {
+              "other_end": "83:EB7C",
+              "other_size": 1,
+              "other_start": "83:EB7C",
+              "tag": "replace",
+              "usa_end": "83:EB58",
+              "usa_size": 1,
+              "usa_start": "83:EB58"
+            },
+            {
+              "other_end": "83:EB85",
+              "other_size": 1,
+              "other_start": "83:EB85",
+              "tag": "replace",
+              "usa_end": "83:EB61",
+              "usa_size": 1,
+              "usa_start": "83:EB61"
+            },
+            {
+              "other_end": "83:EB89",
+              "other_size": 2,
+              "other_start": "83:EB88",
+              "tag": "replace",
+              "usa_end": "83:EB65",
+              "usa_size": 2,
+              "usa_start": "83:EB64"
+            },
+            {
+              "other_end": "83:EB8D",
+              "other_size": 1,
+              "other_start": "83:EB8D",
+              "tag": "replace",
+              "usa_end": "83:EB69",
+              "usa_size": 1,
+              "usa_start": "83:EB69"
+            },
+            {
+              "other_end": "83:EB96",
+              "other_size": 2,
+              "other_start": "83:EB95",
+              "tag": "replace",
+              "usa_end": "83:EB72",
+              "usa_size": 2,
+              "usa_start": "83:EB71"
+            },
+            {
+              "other_end": "83:EB9C",
+              "other_size": 2,
+              "other_start": "83:EB9B",
+              "tag": "replace",
+              "usa_end": "83:EB78",
+              "usa_size": 2,
+              "usa_start": "83:EB77"
+            },
+            {
+              "other_end": "83:EBA1",
+              "other_size": 2,
+              "other_start": "83:EBA0",
+              "tag": "replace",
+              "usa_end": "83:EB7D",
+              "usa_size": 2,
+              "usa_start": "83:EB7C"
+            },
+            {
+              "other_end": "83:EBA4",
+              "other_size": 2,
+              "other_start": "83:EBA3",
+              "tag": "replace",
+              "usa_end": "83:EB80",
+              "usa_size": 2,
+              "usa_start": "83:EB7F"
+            },
+            {
+              "other_end": "83:EBB4",
+              "other_size": 1,
+              "other_start": "83:EBB4",
+              "tag": "replace",
+              "usa_end": "83:EB90",
+              "usa_size": 1,
+              "usa_start": "83:EB90"
+            },
+            {
+              "other_end": "83:EBBA",
+              "other_size": 1,
+              "other_start": "83:EBBA",
+              "tag": "replace",
+              "usa_end": "83:EB96",
+              "usa_size": 1,
+              "usa_start": "83:EB96"
+            },
+            {
+              "other_end": "83:EBC1",
+              "other_size": 2,
+              "other_start": "83:EBC0",
+              "tag": "replace",
+              "usa_end": "83:EB9D",
+              "usa_size": 2,
+              "usa_start": "83:EB9C"
+            },
+            {
+              "other_end": "83:EBD1",
+              "other_size": 1,
+              "other_start": "83:EBD1",
+              "tag": "replace",
+              "usa_end": "83:EBAD",
+              "usa_size": 1,
+              "usa_start": "83:EBAD"
+            },
+            {
+              "other_end": "83:EBD6",
+              "other_size": 1,
+              "other_start": "83:EBD6",
+              "tag": "replace",
+              "usa_end": "83:EBB2",
+              "usa_size": 1,
+              "usa_start": "83:EBB2"
+            },
+            {
+              "other_end": "83:EBDE",
+              "other_size": 1,
+              "other_start": "83:EBDE",
+              "tag": "replace",
+              "usa_end": "83:EBBA",
+              "usa_size": 1,
+              "usa_start": "83:EBBA"
+            },
+            {
+              "other_end": "83:EBE5",
+              "other_size": 1,
+              "other_start": "83:EBE5",
+              "tag": "replace",
+              "usa_end": "83:EBC1",
+              "usa_size": 1,
+              "usa_start": "83:EBC1"
+            },
+            {
+              "other_end": "83:EBED",
+              "other_size": 1,
+              "other_start": "83:EBED",
+              "tag": "replace",
+              "usa_end": "83:EBC9",
+              "usa_size": 1,
+              "usa_start": "83:EBC9"
+            }
+          ],
+          "end": "83:EBEF",
+          "local_shift_profile_48byte": [
+            {
+              "shift": -10,
+              "similarity": 0.875,
+              "usa_end": "83:E7D4",
+              "usa_start": "83:E7A5"
+            },
+            {
+              "shift": -10,
+              "similarity": 0.916667,
+              "usa_end": "83:E804",
+              "usa_start": "83:E7D5"
+            },
+            {
+              "shift": -10,
+              "similarity": 0.958333,
+              "usa_end": "83:E834",
+              "usa_start": "83:E805"
+            },
+            {
+              "shift": -10,
+              "similarity": 0.916667,
+              "usa_end": "83:E864",
+              "usa_start": "83:E835"
+            },
+            {
+              "shift": -10,
+              "similarity": 0.833333,
+              "usa_end": "83:E894",
+              "usa_start": "83:E865"
+            },
+            {
+              "shift": -4,
+              "similarity": 0.770833,
+              "usa_end": "83:E8C4",
+              "usa_start": "83:E895"
+            },
+            {
+              "shift": -4,
+              "similarity": 0.958333,
+              "usa_end": "83:E8F4",
+              "usa_start": "83:E8C5"
+            },
+            {
+              "shift": -4,
+              "similarity": 0.979167,
+              "usa_end": "83:E924",
+              "usa_start": "83:E8F5"
+            },
+            {
+              "shift": -2,
+              "similarity": 0.354167,
+              "usa_end": "83:E954",
+              "usa_start": "83:E925"
+            },
+            {
+              "shift": -2,
+              "similarity": 0.645833,
+              "usa_end": "83:E984",
+              "usa_start": "83:E955"
+            },
+            {
+              "shift": 4,
+              "similarity": 0.583333,
+              "usa_end": "83:E9B4",
+              "usa_start": "83:E985"
+            },
+            {
+              "shift": 16,
+              "similarity": 0.895833,
+              "usa_end": "83:E9E4",
+              "usa_start": "83:E9B5"
+            },
+            {
+              "shift": 16,
+              "similarity": 0.729167,
+              "usa_end": "83:EA14",
+              "usa_start": "83:E9E5"
+            },
+            {
+              "shift": 16,
+              "similarity": 0.854167,
+              "usa_end": "83:EA44",
+              "usa_start": "83:EA15"
+            },
+            {
+              "shift": 16,
+              "similarity": 0.958333,
+              "usa_end": "83:EA74",
+              "usa_start": "83:EA45"
+            },
+            {
+              "shift": 16,
+              "similarity": 0.979167,
+              "usa_end": "83:EAA4",
+              "usa_start": "83:EA75"
+            },
+            {
+              "shift": 18,
+              "similarity": 0.375,
+              "usa_end": "83:EAD4",
+              "usa_start": "83:EAA5"
+            },
+            {
+              "shift": 18,
+              "similarity": 0.625,
+              "usa_end": "83:EB04",
+              "usa_start": "83:EAD5"
+            },
+            {
+              "shift": 24,
+              "similarity": 0.5625,
+              "usa_end": "83:EB34",
+              "usa_start": "83:EB05"
+            },
+            {
+              "shift": 36,
+              "similarity": 0.875,
+              "usa_end": "83:EB64",
+              "usa_start": "83:EB35"
+            },
+            {
+              "shift": 36,
+              "similarity": 0.770833,
+              "usa_end": "83:EB94",
+              "usa_start": "83:EB65"
+            },
+            {
+              "shift": 36,
+              "similarity": 0.854167,
+              "usa_end": "83:EBC4",
+              "usa_start": "83:EB95"
+            },
+            {
+              "shift": 36,
+              "similarity": 0.857143,
+              "usa_end": "83:EBCB",
+              "usa_start": "83:EBC5"
+            }
+          ],
+          "matching_bytes": 938,
+          "opcode_bytes": 414,
+          "operand_bytes": 695,
+          "sha256": "2ce30f924b38b026293e3dcd0f5497ff90fe65b475fcb5512c6061f1fdab2b64",
+          "shift": -10,
+          "shift_end": 36,
+          "shift_start": -10,
+          "similarity": 0.845807,
+          "size": 1109,
+          "size_delta": 46,
+          "start": "83:E79B",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "edit_count": 0,
+          "edit_script": [],
+          "end": "83:EBCB",
+          "matching_bytes": 1063,
+          "opcode_bytes": 400,
+          "operand_bytes": 663,
+          "sha256": "afb2cf19758721c22d9d90603cd675cd3d9a20af9bbc8acd654ab6903f18e763",
+          "shift": 0,
+          "shift_end": 0,
+          "shift_start": 0,
+          "similarity": 1,
+          "size": 1063,
+          "size_delta": 0,
+          "start": "83:E7A5",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "race_loop_e7a5_body",
+      "size": 1063,
+      "usa_end": "83:EBCB",
+      "usa_start": "83:E7A5"
+    }
+  ],
+  "schema_version": 1,
+  "usa_end": "83:EBCB",
+  "usa_start": "83:E7A5"
+}

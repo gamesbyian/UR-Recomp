@@ -29,6 +29,7 @@ DEFAULT_SOURCES = (
     ("ec46-coordinate-window", "analysis/generated/ec46-coordinate-window-structure-island.json", False),
     ("race-state-980d", "analysis/generated/race-state-980d-structure-island.json", False),
     ("race-loop-e580-control", "analysis/generated/race-loop-e580-control-structure-island.json", False),
+    ("race-loop-e7a5", "analysis/generated/race-loop-e7a5-structure-island.json", False),
     ("multiply-b668", "analysis/generated/multiply-b668-structure-island.json", False),
 )
 
@@ -65,6 +66,7 @@ def build(root: Path) -> dict:
                         "similarity": item["similarity"],
                         "size": item.get("size", region["size"]),
                         "size_delta": item.get("size_delta", 0),
+                        **({"shift_end": item["shift_end"]} if "shift_end" in item else {}),
                     }
                     for name, item in builds.items()
                 },
@@ -109,7 +111,10 @@ def render(census: dict) -> str:
         h = row["homologs"].get(build)
         if not h:
             return "—"
-        return f"{h['start']}..{h['end']} ({h['shift']:+d}; size {h['size']}; sim {h['similarity']:.3f})"
+        shift = f"{h['shift']:+d}"
+        if "shift_end" in h and h["shift_end"] != h["shift"]:
+            shift += f"->{h['shift_end']:+d}"
+        return f"{h['start']}..{h['end']} ({shift}; size {h['size']}; sim {h['similarity']:.3f})"
     for row in census["regions"]:
         lines.append(
             f"| `{row['usa_start']}..{row['usa_end']}` | {row['kind']} | {row['size']} | "

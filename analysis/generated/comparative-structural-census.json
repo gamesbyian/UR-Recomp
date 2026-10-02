@@ -96,19 +96,23 @@
       "path": "analysis/generated/race-loop-e580-control-structure-island.json"
     },
     {
+      "id": "race-loop-e7a5",
+      "path": "analysis/generated/race-loop-e7a5-structure-island.json"
+    },
+    {
       "id": "multiply-b668",
       "path": "analysis/generated/multiply-b668-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 124,
-    "code_regions": 112,
+    "regions": 125,
+    "code_regions": 113,
     "data_regions": 12,
-    "bounded_bytes": 19172,
-    "bounded_code_region_bytes": 17739,
+    "bounded_bytes": 20235,
+    "bounded_code_region_bytes": 18802,
     "bounded_data_region_bytes": 1433,
-    "analyzer_opcode_bytes": 7520,
-    "analyzer_operand_bytes": 10104,
+    "analyzer_opcode_bytes": 7920,
+    "analyzer_operand_bytes": 10767,
     "analyzer_unreached_or_data_bytes": 1548,
     "banks": [
       "81",
@@ -735,7 +739,7 @@
           "start": "81:82E2",
           "end": "81:82E5",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 4,
           "size_delta": 0
         },
@@ -759,7 +763,7 @@
           "start": "81:82E2",
           "end": "81:82E5",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 4,
           "size_delta": 0
         }
@@ -781,7 +785,7 @@
           "start": "81:82E6",
           "end": "81:831F",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 58,
           "size_delta": 0
         },
@@ -805,7 +809,7 @@
           "start": "81:82E6",
           "end": "81:831F",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 58,
           "size_delta": 0
         }
@@ -827,7 +831,7 @@
           "start": "81:8320",
           "end": "81:833D",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 30,
           "size_delta": 0
         },
@@ -851,7 +855,7 @@
           "start": "81:8320",
           "end": "81:833D",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 30,
           "size_delta": 0
         }
@@ -873,7 +877,7 @@
           "start": "81:833E",
           "end": "81:8340",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 3,
           "size_delta": 0
         },
@@ -881,7 +885,7 @@
           "start": "81:8321",
           "end": "81:8323",
           "shift": -29,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 3,
           "size_delta": 0
         },
@@ -889,7 +893,7 @@
           "start": "81:8313",
           "end": "81:8315",
           "shift": -43,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 3,
           "size_delta": 0
         },
@@ -897,7 +901,7 @@
           "start": "81:833E",
           "end": "81:8340",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 3,
           "size_delta": 0
         }
@@ -919,7 +923,7 @@
           "start": "81:8341",
           "end": "81:8371",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 49,
           "size_delta": 0
         },
@@ -943,7 +947,7 @@
           "start": "81:8341",
           "end": "81:8371",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 49,
           "size_delta": 0
         }
@@ -965,7 +969,7 @@
           "start": "81:8372",
           "end": "81:83A3",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 50,
           "size_delta": 0
         },
@@ -973,7 +977,7 @@
           "start": "81:8355",
           "end": "81:8386",
           "shift": -29,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 50,
           "size_delta": 0
         },
@@ -981,7 +985,7 @@
           "start": "81:834C",
           "end": "81:837D",
           "shift": -38,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 50,
           "size_delta": 0
         },
@@ -989,7 +993,7 @@
           "start": "81:8372",
           "end": "81:83A3",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 50,
           "size_delta": 0
         }
@@ -1011,7 +1015,7 @@
           "start": "81:83A4",
           "end": "81:84D1",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 302,
           "size_delta": 0
         },
@@ -1035,7 +1039,7 @@
           "start": "81:83A4",
           "end": "81:84D1",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 302,
           "size_delta": 0
         }
@@ -1057,7 +1061,7 @@
           "start": "81:8A4A",
           "end": "81:8B94",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 331,
           "size_delta": 0
         },
@@ -1081,7 +1085,7 @@
           "start": "81:8A4A",
           "end": "81:8B94",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 331,
           "size_delta": 0
         }
@@ -2345,7 +2349,7 @@
           "start": "81:B664",
           "end": "81:B667",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 4,
           "size_delta": 0
         },
@@ -2369,7 +2373,7 @@
           "start": "81:B664",
           "end": "81:B667",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 4,
           "size_delta": 0
         }
@@ -2391,7 +2395,7 @@
           "start": "81:B668",
           "end": "81:B68A",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 35,
           "size_delta": 0
         },
@@ -2399,7 +2403,7 @@
           "start": "81:B648",
           "end": "81:B66A",
           "shift": -32,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 35,
           "size_delta": 0
         },
@@ -2407,7 +2411,7 @@
           "start": "81:B659",
           "end": "81:B67B",
           "shift": -15,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 35,
           "size_delta": 0
         },
@@ -2415,7 +2419,7 @@
           "start": "81:B668",
           "end": "81:B68A",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 35,
           "size_delta": 0
         }
@@ -3103,7 +3107,7 @@
           "start": "82:980D",
           "end": "82:9810",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 4,
           "size_delta": 0
         },
@@ -3127,7 +3131,7 @@
           "start": "82:980D",
           "end": "82:9810",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 4,
           "size_delta": 0
         }
@@ -3149,7 +3153,7 @@
           "start": "82:9811",
           "end": "82:98BD",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 173,
           "size_delta": 0
         },
@@ -3173,7 +3177,7 @@
           "start": "82:9811",
           "end": "82:98BD",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 173,
           "size_delta": 0
         }
@@ -3639,7 +3643,7 @@
           "start": "82:A22B",
           "end": "82:A27B",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 81,
           "size_delta": 0
         },
@@ -3663,7 +3667,7 @@
           "start": "82:A22B",
           "end": "82:A27B",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 81,
           "size_delta": 0
         }
@@ -3685,7 +3689,7 @@
           "start": "82:A27C",
           "end": "82:A2D3",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 88,
           "size_delta": 0
         },
@@ -3709,7 +3713,7 @@
           "start": "82:A27C",
           "end": "82:A2D3",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 88,
           "size_delta": 0
         }
@@ -3731,7 +3735,7 @@
           "start": "82:A2D4",
           "end": "82:A353",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 128,
           "size_delta": 0
         },
@@ -3739,7 +3743,7 @@
           "start": "82:A2C5",
           "end": "82:A344",
           "shift": -15,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 128,
           "size_delta": 0
         },
@@ -3747,7 +3751,7 @@
           "start": "82:A2DB",
           "end": "82:A35A",
           "shift": 7,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 128,
           "size_delta": 0
         },
@@ -3755,7 +3759,7 @@
           "start": "82:A2D4",
           "end": "82:A353",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 128,
           "size_delta": 0
         }
@@ -3777,7 +3781,7 @@
           "start": "82:A354",
           "end": "82:A497",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 324,
           "size_delta": 0
         },
@@ -3801,7 +3805,7 @@
           "start": "82:A354",
           "end": "82:A497",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 324,
           "size_delta": 0
         }
@@ -3823,7 +3827,7 @@
           "start": "82:A498",
           "end": "82:A5F2",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 347,
           "size_delta": 0
         },
@@ -3847,7 +3851,7 @@
           "start": "82:A498",
           "end": "82:A5F2",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 347,
           "size_delta": 0
         }
@@ -3869,7 +3873,7 @@
           "start": "82:A5F3",
           "end": "82:A617",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 37,
           "size_delta": 0
         },
@@ -3893,7 +3897,7 @@
           "start": "82:A5F3",
           "end": "82:A617",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 37,
           "size_delta": 0
         }
@@ -3915,7 +3919,7 @@
           "start": "82:A618",
           "end": "82:A6F0",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 217,
           "size_delta": 0
         },
@@ -3939,7 +3943,7 @@
           "start": "82:A618",
           "end": "82:A6F0",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 217,
           "size_delta": 0
         }
@@ -3961,7 +3965,7 @@
           "start": "82:A6F1",
           "end": "82:A8C1",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 465,
           "size_delta": 0
         },
@@ -3985,7 +3989,7 @@
           "start": "82:A6F1",
           "end": "82:A8C1",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 465,
           "size_delta": 0
         }
@@ -4007,7 +4011,7 @@
           "start": "82:A8C2",
           "end": "82:A967",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 166,
           "size_delta": 0
         },
@@ -4031,7 +4035,7 @@
           "start": "82:A8C2",
           "end": "82:A967",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 166,
           "size_delta": 0
         }
@@ -4053,7 +4057,7 @@
           "start": "82:A968",
           "end": "82:A9AB",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 68,
           "size_delta": 0
         },
@@ -4077,7 +4081,7 @@
           "start": "82:A968",
           "end": "82:A9AB",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 68,
           "size_delta": 0
         }
@@ -4099,7 +4103,7 @@
           "start": "82:A9AC",
           "end": "82:AA08",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 93,
           "size_delta": 0
         },
@@ -4123,7 +4127,7 @@
           "start": "82:A9AC",
           "end": "82:AA08",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 93,
           "size_delta": 0
         }
@@ -4145,7 +4149,7 @@
           "start": "82:AA09",
           "end": "82:AA69",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 97,
           "size_delta": 0
         },
@@ -4169,7 +4173,7 @@
           "start": "82:AA09",
           "end": "82:AA69",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 97,
           "size_delta": 0
         }
@@ -4191,7 +4195,7 @@
           "start": "82:AA6A",
           "end": "82:AA6D",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 4,
           "size_delta": 0
         },
@@ -4215,7 +4219,7 @@
           "start": "82:AA6A",
           "end": "82:AA6D",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 4,
           "size_delta": 0
         }
@@ -5525,7 +5529,7 @@
           "start": "83:E540",
           "end": "83:E57F",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 64,
           "size_delta": 0
         },
@@ -5533,7 +5537,7 @@
           "start": "83:E536",
           "end": "83:E575",
           "shift": -10,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 64,
           "size_delta": 0
         },
@@ -5541,7 +5545,7 @@
           "start": "83:E55C",
           "end": "83:E59B",
           "shift": 28,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 64,
           "size_delta": 0
         },
@@ -5549,7 +5553,7 @@
           "start": "83:E540",
           "end": "83:E57F",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 64,
           "size_delta": 0
         }
@@ -5571,7 +5575,7 @@
           "start": "83:E580",
           "end": "83:E7A4",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 549,
           "size_delta": 0
         },
@@ -5595,9 +5599,59 @@
           "start": "83:E580",
           "end": "83:E7A4",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 549,
           "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "race-loop-e7a5",
+      "source_path": "analysis/generated/race-loop-e7a5-structure-island.json",
+      "name": "race_loop_e7a5_body",
+      "kind": "code",
+      "usa_start": "83:E7A5",
+      "usa_end": "83:EBCB",
+      "size": 1063,
+      "usa_opcode_bytes": 400,
+      "usa_operand_bytes": 663,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "83:E7C1",
+          "end": "83:EC13",
+          "shift": 28,
+          "similarity": 0.785908,
+          "size": 1107,
+          "size_delta": 44,
+          "shift_end": 72
+        },
+        "legacy-beta": {
+          "start": "83:E7A5",
+          "end": "83:EBCB",
+          "shift": 0,
+          "similarity": 1,
+          "size": 1063,
+          "size_delta": 0,
+          "shift_end": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "83:E79B",
+          "end": "83:EBEF",
+          "shift": -10,
+          "similarity": 0.845807,
+          "size": 1109,
+          "size_delta": 46,
+          "shift_end": 36
+        },
+        "usa-retail": {
+          "start": "83:E7A5",
+          "end": "83:EBCB",
+          "shift": 0,
+          "similarity": 1,
+          "size": 1063,
+          "size_delta": 0,
+          "shift_end": 0
         }
       }
     },
@@ -5617,7 +5671,7 @@
           "start": "83:EBE6",
           "end": "83:EC45",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 96,
           "size_delta": 0
         },
@@ -5625,7 +5679,7 @@
           "start": "83:EC0A",
           "end": "83:EC69",
           "shift": 36,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 96,
           "size_delta": 0
         },
@@ -5633,7 +5687,7 @@
           "start": "83:EC2E",
           "end": "83:EC8D",
           "shift": 72,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 96,
           "size_delta": 0
         },
@@ -5641,7 +5695,7 @@
           "start": "83:EBE6",
           "end": "83:EC45",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 96,
           "size_delta": 0
         }
@@ -5663,7 +5717,7 @@
           "start": "83:EC46",
           "end": "83:ED2E",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 233,
           "size_delta": 0
         },
@@ -5687,7 +5741,7 @@
           "start": "83:EC46",
           "end": "83:ED2E",
           "shift": 0,
-          "similarity": 1.0,
+          "similarity": 1,
           "size": 233,
           "size_delta": 0
         }

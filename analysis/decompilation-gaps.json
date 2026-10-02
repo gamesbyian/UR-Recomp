@@ -257,6 +257,14 @@
       "summary": "Recovered a 39-byte generic arithmetic island consisting of a 4-byte long-entry wrapper and the 35-byte B668 shift-and-add multiply helper called from recovered camera-control at 81:A511. The multiply body is byte-identical across all four preserved ROMs; PAL prototype relocates by -32 and Europe by -15. All 21 aligned opcode positions across wrapper/body match in every non-USA build with zero analyzer role disagreements.",
       "priority": "low",
       "next_evidence": "No deeper work is needed unless another subsystem requires exact calling/overflow semantics. Structural recovery should continue at a higher-impact unresolved frontier."
+    },
+    {
+      "id": "resolved-race-loop-e7a5-regional-growth",
+      "kind": "resolved_structural_island",
+      "region": "USA 83:E7A5..EBCB and regional homologs",
+      "summary": "Recovered the race-loop support routine called from 83:CD3D and established that the PAL-line variants are genuinely larger rather than constant-shift homologs. USA and legacy beta are byte-identical at 1,063 bytes. PAL prototype spans 83:E79B..EBEF (1,109 bytes, +46), moving from start shift -10 to end shift +36. Europe spans 83:E7C1..EC13 (1,107 bytes, +44), moving from +28 to +72. All four extents are fully analyzer-reached. Regional exits are anchored independently by the already-accepted EC46 step-table homologs and the intervening 26-byte helper.",
+      "priority": "low",
+      "next_evidence": "Use the recorded edit script to interpret individual PAL-line insertions only when a native race-loop behavior or regional-fidelity question needs them. Do not collapse this routine back to one constant shift."
     }
   ]
 }

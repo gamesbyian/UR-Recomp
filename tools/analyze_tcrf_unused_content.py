@@ -48,6 +48,17 @@ def window(rom: bytes, offset: int, length: int) -> dict:
         "ascii_runs": ascii_runs(blob),
     }
 
+def all_occurrences(data: bytes, needle: bytes) -> list[int]:
+    rows: list[int] = []
+    cursor = 0
+    while True:
+        found = data.find(needle, cursor)
+        if found < 0:
+            return rows
+        rows.append(found)
+        cursor = found + 1
+
+
 def pointer_contexts(rom: bytes, needle: bytes, radius: int = 16) -> list[dict]:
     rows = []
     cursor = 0
@@ -127,6 +138,15 @@ def analyze(rom: bytes) -> dict:
                 ),
                 "status": "reported_text_location_confirmed_table_cardinality_and_reachability_pending",
             },
+        },
+        "string_searches": {
+            key: all_occurrences(rom, value)
+            for key, value in {
+                "ASJIver3.30": b"ASJIver3.30",
+                "Unavailable": b"Unavailable",
+                "Error Tour": b"Error Tour",
+                "used by decomp": b"used by decomp",
+            }.items()
         },
         "interpretation": {
             "version_and_antipiracy_link": (

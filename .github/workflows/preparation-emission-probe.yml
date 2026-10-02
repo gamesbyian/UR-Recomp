@@ -140,6 +140,7 @@ jobs:
             ${{ runner.temp }}/preparation-discovery/replay.script
             ${{ runner.temp }}/preparation-discovery/replay.input
             ${{ runner.temp }}/preparation-discovery/dumps/
-            ${{ runner.temp }}/preparation-emission-dumps/\n            ${{ runner.temp }}/preparation-intraframe/
+            ${{ runner.temp }}/preparation-emission-dumps/
+            ${{ runner.temp }}/preparation-intraframe/
           if-no-files-found: warn
           retention-days: 7

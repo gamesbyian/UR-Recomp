@@ -1,0 +1,19 @@
+name: B668 multiply helper probe
+on:
+  push:
+    branches:
+      - chatgpt/b668-multiply-helper-2026-10-01
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m unittest tests.unit.test_analyze_multiply_b668_structure_island -v
+      - run: python3 tools/analyze_multiply_b668_structure_island.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: multiply-b668-island
+          path: |
+            analysis/generated/multiply-b668-structure-island.json
+            analysis/generated/multiply-b668-structure-island.md
+          if-no-files-found: error

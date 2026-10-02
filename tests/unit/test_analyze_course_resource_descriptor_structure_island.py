@@ -22,6 +22,10 @@ class CourseResourceDescriptorIslandTest(unittest.TestCase):
         self.assertEqual(result["next_region"], "82:B32F")
         self.assertEqual(result["relationship"]["descriptor_record_stride"], 5)
         self.assertEqual(len(result["regions"]), 4)
+        if mod.OUTJ.exists():
+            import json
+            self.assertEqual(json.loads(mod.OUTJ.read_text()), result)
+            self.assertEqual(mod.OUTM.read_text(), mod.render(result))
         for region in result["regions"]:
             self.assertEqual(region["builds"]["legacy-beta"]["similarity"], 1.0, region["name"])
             self.assertEqual(region["builds"]["usa-retail"]["unreached_or_data_bytes"], 0, region["name"])

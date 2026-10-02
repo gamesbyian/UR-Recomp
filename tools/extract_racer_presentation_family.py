@@ -175,9 +175,10 @@ def decode_piece_mapping(record: FrameRecord) -> list[dict]:
             "word_hex": f"0x{word:04X}",
             "word_high_byte": word >> 8,
             "word_low_byte": word & 0xFF,
-            "staged_1645_value": f"0x{(0x8000 | ((word >> 8) << 5)) & 0xFFFF:04X}",
+            "staged_1645_value": f"0x{(0x8000 | (((word >> 8) & 0xFF) << 5) | ((word & 0x0003) << 13)) & 0xFFFF:04X}",
             "staged_15a1_value": f"0x{0x27 + ((word & 0x00FC) >> 2):04X}",
-            "low2_renderer_ignored_value": word & 0x03,
+            "source_addr_page_bits_1_0": word & 0x03,
+            "source_addr_page_offset": f"0x{((word & 0x0003) << 13):04X}",
         })
     return pieces
 
@@ -464,9 +465,15 @@ def packed_word_source(word: int) -> tuple[int, int]:
     """Recover the exact 32-byte DMA source selected by 83:F20F..F227.
 
     #216 proves $15A1 supplies DMA source bank and $1645 supplies source
-    address. Packed low bits 1..0 are intentionally absent from this mapping.
+    address. The live 16-bit XBA + ASL x5 path also carries packed low bits
+    1..0 into source-address bits 14..13; low bit 2 lands on bit 15, which is
+    already forced by OR #$8000.
     """
-    source_addr = 0x8000 | (((word >> 8) & 0xFF) << 5)
+    source_addr = (
+        0x8000
+        | (((word >> 8) & 0xFF) << 5)
+        | ((word & 0x0003) << 13)
+    ) & 0xFFFF
     source_bank = 0x27 + (((word & 0x00FC) >> 2) & 0x3F)
     return source_bank, source_addr
 
@@ -881,13 +888,15 @@ def build_manifest(rom: bytes) -> dict:
                 "83:F338..F3C6 and 83:F441..F4CF reshape the header into six-bit masks",
                 "83:F1AE initializes the construction mask to $8000 and 83:F1DC..F270 shifts it once per slot",
                 "occupied slots read one 16-bit word and increment the selected frame pointer by two bytes",
-                "83:F20F..F227 derives staging values from the packed word high byte and low-byte bits7..2",
-                "83:F20F stores the full word in $2A; the only later $2A read at 83:F21D is immediately masked by AND #$00FC, so packed low-byte bits1..0 do not affect this renderer consumer",
+                "83:F20F..F21A keeps the full packed word live in 16-bit A; XBA followed by five ASLs maps the original high byte to $1645 bits12..5 and packed low bits1..0 to $1645 bits14..13 before OR #$8000",
+                "83:F20F also stores the full word in $2A; 83:F21D masks $2A with #$00FC so low-byte bits7..2 select the $15A1 DMA source-bank offset independently of the address-page bits",
             ],
             "packed_word_fields": {
-                "high_byte": "83:F20F..F21A -> $1645,Y = $8000 | (high_byte << 5)",
+                "high_byte": "83:F20F..F21A -> $1645,Y bits12..5 = high_byte << 5",
                 "low_byte_bits_7_2": "83:F21D..F227 -> $15A1,Y = $0027 + ((low_byte & $FC) >> 2)",
-                "low_byte_bits_1_0": "renderer-ignored in the bounded 83:F190..F290 consumer; producer-side meaning remains unresolved",
+                "low_byte_bits_1_0": "83:F20F..F21A -> $1645,Y bits14..13 = (low_byte & $03) << 13",
+                "low_byte_bit_2": "also reaches shifted address bit15 but OR #$8000 already forces that bit; bit2 still participates in the bank calculation via $00FC",
+                "source_address_formula": "$8000 | (high_byte << 5) | ((low_byte & $03) << 13)",
             },
             "corpus_check": {
                 **census_record_structure(rom),

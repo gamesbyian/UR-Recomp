@@ -1,6 +1,6 @@
 # Inference Audit Plan
 
-Status: two-pass audit complete; inference-first admission is now repository policy
+Status: three-pass audit complete; inference-first admission is now repository policy
 Date: 2026-10-02
 
 ## Purpose
@@ -208,12 +208,18 @@ The first audit is retained in `analysis/generated/inference-audit.{json,md}`. I
 The second audit is retained in `analysis/generated/inference-audit-second-pass.{json,md}`. It corrects the canonical RNC tour order, derives the 43/45 start-coordinate relation, identifies a three-signal stunt-course signature, expands the persistent P1/P2 interleaving model, rejects global regional-WRAM offsetting, normalizes progression for exact future predictions, and adds a presentation-header mask constraint.
 
 
+## Third pass closeout — 2026-10-02
+
+The third audit is retained in `analysis/generated/inference-audit-third-pass.{json,md}`. It separates racer semantic replacement identity from live OAM placement, confirms the first HD replacement seam can remain read-only over guest state, turns the recovered 1P/2P Widescreen policy into a viewport/domain ownership rule, preserves guest SRAM as the sole progression authority for future host autosave/profile work, records the APU-only forward-replay failure that currently blocks Restart Race, and identifies +8 as the natural one-spare-lane boundary of the accepted stock-helper Widescreen mechanism.
+
+Open-PR runtime findings remain explicitly labeled as evidence, not merged implementation acceptance.
+
 ## Mandatory consumption rule — 2026-10-02
 
 Before opening a new inference-driven investigation:
 
 1. query the relevant normalized surface in `analysis/data/`;
-2. check `analysis/generated/inference-audit.json` and `inference-audit-second-pass.json` for an existing invariant, prediction, negative result or cheapest falsifier;
+2. check `analysis/generated/inference-audit.json`, `inference-audit-second-pass.json`, and `inference-audit-third-pass.json` for an existing invariant, prediction, negative result or cheapest falsifier;
 3. use `fixture-corpus.json` to choose a semantic/event-relative fixture before inventing a new absolute-frame comparison;
 4. if the required fact is repeatedly useful but absent from the query layer, extend `tools/build_consolidated_knowledge.py` or add a provenance-bearing normalized dataset before launching a broad trace.
 

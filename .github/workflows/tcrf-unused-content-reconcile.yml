@@ -1,0 +1,71 @@
+name: TCRF unused-content ROM reconciliation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - chatgpt/tcrf-rom-reconciliation-2026-10-02
+    paths:
+      - "tools/analyze_tcrf_unused_content.py"
+      - "tests/unit/test_analyze_tcrf_unused_content.py"
+      - ".github/workflows/tcrf-unused-content-reconcile.yml"
+
+concurrency:
+  group: tcrf-unused-content-reconcile-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify canonical ROM and analyzer
+        run: |
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python3 -m unittest tests.unit.test_analyze_tcrf_unused_content
+
+      - name: Reconcile fixed-offset claims
+        run: |
+          mkdir -p analysis/generated
+          python3 tools/analyze_tcrf_unused_content.py             "reference/roms/retail/Uniracers_USA.sfc"             --output analysis/generated/tcrf-unused-content-rom-reconciliation.json
+
+      - name: Assert high-confidence fixed-offset facts
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("analysis/generated/tcrf-unused-content-rom-reconciliation.json")
+          d=json.loads(p.read_text())
+          assert d["rom"]["sha256"] == "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
+          assert d["claims"]["bank_83_8000_mapping"]["file_offset"] == 0x18000
+          assert d["claims"]["bank_83_8000_mapping"]["matches_reported_version_offset"]
+          assert d["claims"]["version_string"]["starts_with_ASJIver3_30"]
+          print("version:", d["claims"]["version_string"]["decoded"])
+          print("build-date strings:", d["claims"]["build_date_area"]["window"]["ascii_runs"])
+          print("combo-window sha256:", d["claims"]["unused_combo_message_set_9"]["window"]["sha256"])
+          PY
+
+      - name: Persist reconciliation evidence
+        run: |
+          set -euo pipefail
+          git add analysis/generated/tcrf-unused-content-rom-reconciliation.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Record TCRF ROM reconciliation evidence"
+          git fetch origin "$GITHUB_REF_NAME"
+          git rebase "origin/$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"
+
+      - name: Upload reconciliation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tcrf-unused-content-rom-reconciliation
+          path: analysis/generated/tcrf-unused-content-rom-reconciliation.json
+          retention-days: 7

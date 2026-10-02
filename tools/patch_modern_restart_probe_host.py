@@ -19,7 +19,8 @@ PROBE = r'''
 
 enum { kUrRestartProbeWindow = 60 };
 
-static size_t g_ur_restart_probe_cap;\nstatic uint8_t *g_ur_restart_anchor;
+static size_t g_ur_restart_probe_cap;
+static uint8_t *g_ur_restart_anchor;
 static size_t g_ur_restart_anchor_len;
 static uint8_t *g_ur_restart_expected;
 static size_t g_ur_restart_expected_len;

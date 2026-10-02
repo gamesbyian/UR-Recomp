@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "island": "MultiplyB668",
+  "usa_start": "81:B664",
+  "usa_end": "81:B68A",
+  "next_entry": "81:B68B",
+  "bounded_bytes": 39,
+  "boundary_basis": {
+    "entry": "81:B664 is the long-entry wrapper for the B668 helper.",
+    "body": "81:B668 implements unsigned shift-and-add multiplication of X by Y and returns the product in X.",
+    "exit": "81:B68A is RTS; 81:B68B begins a different long-entry multiply helper."
+  },
+  "accepted_caller_edges": [
+    {
+      "callsite": "81:A511",
+      "kind": "JSR",
+      "source": "camera-control",
+      "region": "camera_scale_config"
+    }
+  ],
+  "regions": [
+    {
+      "name": "long_entry_wrapper",
+      "kind": "code",
+      "usa_start": "81:B664",
+      "usa_end": "81:B667",
+      "size": 4,
+      "builds": {
+        "usa-retail": {
+          "start": "81:B664",
+          "end": "81:B667",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 4,
+          "size_delta": 0,
+          "sha256": "00bd006e59e5a41a1e6f02311467055533a9c6e673fdb5ceadef909b1c5a5716",
+          "opcode_bytes": 2,
+          "operand_bytes": 2,
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:B644",
+          "end": "81:B647",
+          "shift": -32,
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0,
+          "sha256": "3cce71861a7c12be0bb254efe5103bd05ea3eb81bcd5b33357fa3260d4bef658",
+          "opcode_bytes": 2,
+          "operand_bytes": 2,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 2,
+          "aligned_equal_opcode_pairs": 2,
+          "aligned_role_disagreements": 0
+        },
+        "europe-retail": {
+          "start": "81:B655",
+          "end": "81:B658",
+          "shift": -15,
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0,
+          "sha256": "b8b2e8ff4bb53a39e9154602d33269e6dcfde06ad6e668da2de71eae36a2adfd",
+          "opcode_bytes": 2,
+          "operand_bytes": 2,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 2,
+          "aligned_equal_opcode_pairs": 2,
+          "aligned_role_disagreements": 0
+        },
+        "legacy-beta": {
+          "start": "81:B664",
+          "end": "81:B667",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 4,
+          "size_delta": 0,
+          "sha256": "00bd006e59e5a41a1e6f02311467055533a9c6e673fdb5ceadef909b1c5a5716",
+          "opcode_bytes": 2,
+          "operand_bytes": 2,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 2,
+          "aligned_equal_opcode_pairs": 2,
+          "aligned_role_disagreements": 0
+        }
+      }
+    },
+    {
+      "name": "multiply_x_by_y",
+      "kind": "code",
+      "usa_start": "81:B668",
+      "usa_end": "81:B68A",
+      "size": 35,
+      "builds": {
+        "usa-retail": {
+          "start": "81:B668",
+          "end": "81:B68A",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 35,
+          "size_delta": 0,
+          "sha256": "52bb8d4fbf5b7795bb515240a8223a9b9ce9cd7563aadce36442edb7e9e80ed5",
+          "opcode_bytes": 19,
+          "operand_bytes": 16,
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:B648",
+          "end": "81:B66A",
+          "shift": -32,
+          "similarity": 1.0,
+          "size": 35,
+          "size_delta": 0,
+          "sha256": "52bb8d4fbf5b7795bb515240a8223a9b9ce9cd7563aadce36442edb7e9e80ed5",
+          "opcode_bytes": 19,
+          "operand_bytes": 16,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 19,
+          "aligned_equal_opcode_pairs": 19,
+          "aligned_role_disagreements": 0
+        },
+        "europe-retail": {
+          "start": "81:B659",
+          "end": "81:B67B",
+          "shift": -15,
+          "similarity": 1.0,
+          "size": 35,
+          "size_delta": 0,
+          "sha256": "52bb8d4fbf5b7795bb515240a8223a9b9ce9cd7563aadce36442edb7e9e80ed5",
+          "opcode_bytes": 19,
+          "operand_bytes": 16,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 19,
+          "aligned_equal_opcode_pairs": 19,
+          "aligned_role_disagreements": 0
+        },
+        "legacy-beta": {
+          "start": "81:B668",
+          "end": "81:B68A",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 35,
+          "size_delta": 0,
+          "sha256": "52bb8d4fbf5b7795bb515240a8223a9b9ce9cd7563aadce36442edb7e9e80ed5",
+          "opcode_bytes": 19,
+          "operand_bytes": 16,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 19,
+          "aligned_equal_opcode_pairs": 19,
+          "aligned_role_disagreements": 0
+        }
+      }
+    }
+  ]
+}

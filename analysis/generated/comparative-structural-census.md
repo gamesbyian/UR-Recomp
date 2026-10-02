@@ -2,9 +2,9 @@
 
 This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **122** (110 code, 12 data)
-- bounded bytes: **19133** (17700 code-region bytes, 1433 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **7499**
+- bounded regions: **124** (112 code, 12 data)
+- bounded bytes: **19172** (17739 code-region bytes, 1433 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **7520**
 - represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -59,6 +59,8 @@ This is the first machine-queryable census for the comparative structure-recover
 | `81:A2E5..81:A30E` | code | 42 | camera-control | camera_smoothing_helper | 81:A2C5..81:A2EE (-32; size 42; sim 1.000) | 81:A2D6..81:A2FF (-15; size 42; sim 1.000) | 81:A2E5..81:A30E (+0; size 42; sim 1.000) |
 | `81:A30F..81:A52A` | code | 540 | camera-control | camera_scale_config | 81:A2EF..81:A50A (-32; size 540; sim 0.963) | 81:A300..81:A51B (-15; size 540; sim 0.841) | 81:A30F..81:A52A (+0; size 540; sim 1.000) |
 | `81:A52B..81:A59D` | code | 115 | camera-control | camera_update_wrapper | 81:A50B..81:A57D (-32; size 115; sim 0.965) | 81:A51C..81:A58E (-15; size 115; sim 0.800) | 81:A52B..81:A59D (+0; size 115; sim 1.000) |
+| `81:B664..81:B667` | code | 4 | multiply-b668 | long_entry_wrapper | 81:B644..81:B647 (-32; size 4; sim 0.750) | 81:B655..81:B658 (-15; size 4; sim 0.750) | 81:B664..81:B667 (+0; size 4; sim 1.000) |
+| `81:B668..81:B68A` | code | 35 | multiply-b668 | multiply_x_by_y | 81:B648..81:B66A (-32; size 35; sim 1.000) | 81:B659..81:B67B (-15; size 35; sim 1.000) | 81:B668..81:B68A (+0; size 35; sim 1.000) |
 | `81:B6C0..81:B6C3` | code | 4 | geometry-math-helper | long_entry_wrapper | 81:B6A0..81:B6A3 (-32; size 4; sim 0.750) | 81:B6B1..81:B6B4 (-15; size 4; sim 0.750) | 81:B6C0..81:B6C3 (+0; size 4; sim 1.000) |
 | `81:B6C4..81:B712` | code | 79 | geometry-math-helper | hardware_multiply_geometry_body | 81:B6A4..81:B6F2 (-32; size 79; sim 1.000) | 81:B6B5..81:B703 (-15; size 79; sim 1.000) | 81:B6C4..81:B712 (+0; size 79; sim 1.000) |
 | `81:C0DD..81:C24A` | code | 366 | stunt-message-pipeline | message_consume_pre_cleanup | 81:C0BD..81:C22A (-32; size 366; sim 0.940) | 81:C0CE..81:C23B (-15; size 366; sim 0.915) | 81:C0DD..81:C24A (+0; size 366; sim 1.000) |

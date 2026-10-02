@@ -80,10 +80,20 @@ jobs:
         run: |
           python3 tools/analyze_racer_tile_upload_path.py \
             "reference/roms/retail/Uniracers_USA.sfc" \
+            --dump-dir "$RUNNER_TEMP/ordinary-2p/native-dumps" \
             --json-out "$RUNNER_TEMP/racer-tile-upload-path.json" \
             --md-out "$RUNNER_TEMP/racer-tile-upload-path.md" \
             > "$RUNNER_TEMP/racer-tile-upload-path.txt"
           cat "$RUNNER_TEMP/racer-tile-upload-path.md"
+          python3 - <<'PY'
+          import json, os
+          p=json.load(open(os.path.join(os.environ["RUNNER_TEMP"],"racer-tile-upload-path.json")))
+          assert p["runtime_staging_checks"]
+          print("runtime staging byte matches:", [
+              (x["checkpoint"], x["exact_source_vram_matches"], x["valid_staging_entries"])
+              for x in p["runtime_staging_checks"]
+          ])
+          PY
       - name: Resolve retained VRAM byte phase
         run: |
           python3 tools/analyze_racer_piece_render_binding.py \

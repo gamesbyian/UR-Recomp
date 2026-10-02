@@ -156,7 +156,7 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 						(unsigned)ICPU.Frame, ur_ws_bias_a ? 'A' : 'W');
 				}
 
-				if (ur_ws_margin == 8 && !ur_ws_count32 &&
+				if (ur_ws_margin == 8 && !ur_ws_count32 && ur_ws_x_delta == 0 &&
 				    Registers.PB == 0x81 && ur_ws_pcw == ur_ws_hook_pc)
 				{
 					if (ur_ws_bias_a)

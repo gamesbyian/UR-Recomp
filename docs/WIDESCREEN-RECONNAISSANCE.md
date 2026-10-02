@@ -222,7 +222,7 @@ For each failure-driven investigation record:
 - the smallest next discriminator;
 - the condition under which the investigation stops and the probe is rerun.
 
-Object/gameplay activation is currently the highest-value unresolved domain because an error there can change authoritative simulation rather than only presentation.
+Representative checkpoint/finish activation is now mechanically separated from presentation and is no longer the default blocker. The highest-value unresolved domain is preparation/streaming and renderer-facing causal closure: use the first tiny-margin failure to decide whether the next work belongs to preparation, render/culling, camera/composition, or UI. Reopen gameplay activation only if a widened probe or a different object family actually changes authoritative simulation.
 
 ## Exit condition
 

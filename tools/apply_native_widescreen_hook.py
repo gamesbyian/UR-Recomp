@@ -174,10 +174,6 @@ AFTER_BUILDER = r'''
     ur_ws_native_after_builder(cpu);
 '''.strip("\n")
 
-NMI_DECL = "extern void ur_ws_native_cleanup_after_nmi(CpuState *cpu);"
-NMI_CLEANUP = r'''
-    ur_ws_native_cleanup_after_nmi(cpu);
-'''.strip("\n")
 
 
 def canon(pc: int) -> int:

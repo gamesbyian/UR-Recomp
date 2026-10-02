@@ -72,10 +72,12 @@ jobs:
 
           ROOT="$TMP/UniracersSNESRecomp"
           python3 "$GITHUB_WORKSPACE/tools/patch_modern_restart_probe_host.py" \
-            "$ROOT/src/main.c"
+            "$ROOT/src/main.c" \
+            --cmake "$ROOT/CMakeLists.txt"
 
           grep -q "UR_RESTART_PROBE captured=1" "$ROOT/src/main.c"
           grep -q "UrRestartProbeAfterRunFrame" "$ROOT/src/main.c"
+          grep -q "snes_state_digest.c" "$ROOT/CMakeLists.txt"
 
       - name: Build patched native target
         shell: bash

@@ -3,28 +3,12 @@
 
 The pinned SNESRecomp revision consumes bank*.cfg directly during generation.
 Keep symbols.toml in sync for newer framework revisions, but make the bank-01
-root explicit so this project's pinned toolchain remains deterministic.
+roots explicit so this project's pinned toolchain remains deterministic.
 """
 from __future__ import annotations
 
 import argparse
 from pathlib import Path
-
-SYMBOL_MARKER = 'name = "WidescreenPrepareWrapper"'
-SYMBOL_ENTRY = """
-[[func]]
-name = "WidescreenPrepareWrapper"
-addr = "A52F"
-bank = 1
-emit = true
-note = "Presentation-only strip preparation wrapper; native +8 hook seam at 81:A597..A59E"
-""".lstrip()
-
-CFG_MARKER = "func WidescreenPrepareWrapper A52F"
-CFG_ENTRY = """
-# UR-Recomp Widescreen presentation-only AOT root.
-func WidescreenPrepareWrapper A52F
-""".lstrip()
 
 EXTRA_BANK = 2
 EXTRA_ADDR = "D2" + "D1"
@@ -48,7 +32,6 @@ def _append_once(path: Path, marker: str, entry: str, *, prefix: str = "") -> bo
 
 def ensure_seed(cfg_dir: Path) -> dict[str, bool]:
     symbols = cfg_dir / "symbols.toml"
-    bank01 = cfg_dir / "bank01.cfg"
     bank_extra = cfg_dir / f"bank{EXTRA_BANK:02d}.cfg"
     bank_caller = cfg_dir / f"bank{CALLER_BANK:02d}.cfg"
     extra_marker = f"func {EXTRA_NAME} {EXTRA_ADDR}"
@@ -58,7 +41,6 @@ def ensure_seed(cfg_dir: Path) -> dict[str, bool]:
         f"bank = {EXTRA_BANK}\nemit = true\n"
         "note = \"Presentation-only post-consume cleanup seam for native Widescreen staging\"\n"
     )
-    symbol_prepare = _append_once(symbols, SYMBOL_MARKER, SYMBOL_ENTRY)
     caller_marker = f"func {CALLER_NAME} {CALLER_ADDR}"
     caller_entry = f"# UR-Recomp accepted race-frame orchestrator seed.\n{caller_marker}\n"
     caller_symbol_entry = (
@@ -69,13 +51,7 @@ def ensure_seed(cfg_dir: Path) -> dict[str, bool]:
     symbol_extra = _append_once(symbols, EXTRA_SYMBOL_MARKER, extra_symbol_entry)
     symbol_caller = _append_once(symbols, CALLER_SYMBOL_MARKER, caller_symbol_entry)
     return {
-        "symbols": symbol_prepare or symbol_extra or symbol_caller,
-        "bank01": _append_once(
-            bank01,
-            CFG_MARKER,
-            CFG_ENTRY,
-            prefix="bank = 1\ntier_down_stubs\n",
-        ),
+        "symbols": symbol_extra or symbol_caller,
         "bank02": _append_once(
             bank_extra,
             extra_marker,

@@ -58,8 +58,14 @@ jobs:
         run: |
           set -euo pipefail
           PROJ="$RUNNER_TEMP/native/UniracersSNESRecomp"
-          echo "== generated references to 0F4F / relevant guest PCs =="
-          grep -RniE '0[Ff]4[Ff]|00961[Dd]|00[Aa]45[Aa]|009543|0096[Dd]6|008[Ff]95|009284'             "$PROJ" --include='*.c' --include='*.h' | head -n 300 || true
+          OUT="$RUNNER_TEMP/generated-presentation-sites.txt"
+          {
+            echo "== broad generated references =="
+            grep -RniEi '0f4f|9385|961d|a45a|9543|96d6|8f95|9284|829385|82961d|82a45a' "$PROJ" --include='*.c' --include='*.h' || true
+            echo "== generated source inventory =="
+            find "$PROJ" -type f \( -name '*.c' -o -name '*.h' \) | sort
+          } >"$OUT"
+          sed -n '1,500p' "$OUT"
 
       - name: Capture matched full-renderer 0 and +8 traces
         shell: bash
@@ -175,5 +181,6 @@ jobs:
             ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-169.oam.bin
             analysis/generated/widescreen-plus8-composition-trace.*
             analysis/generated/widescreen-plus8-presentation-phase-gap.*
+            ${{ runner.temp }}/generated-presentation-sites.txt
           if-no-files-found: warn
           retention-days: 5

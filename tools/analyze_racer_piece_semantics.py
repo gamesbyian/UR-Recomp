@@ -85,12 +85,15 @@ def table_boundary_scan(rom: bytes) -> dict:
             nxt, _ = frame_pointer(rom, frame_id + 1)
         except (IndexError, ValueError):
             continue
-        if (ptr >> 16) != (nxt >> 16):
+        if (ptr >> 16) != (nxt >> 16) or (ptr & 0xFFFF) < 0x8000 or (nxt & 0xFFFF) < 0x8000:
             continue
         length = (nxt & 0xFFFF) - (ptr & 0xFFFF)
         if length < 4 or length > 68 or (length - 4) % 2:
             continue
-        header = read_linear(rom, ptr, 4)
+        try:
+            header = read_linear(rom, ptr, 4)
+        except (IndexError, ValueError):
+            continue
         words = (length - 4) // 2
         occ30 = sum(cell["set"] for cell in occupancy_scan_positions(header))
         all32 = sum(x.bit_count() for x in header)

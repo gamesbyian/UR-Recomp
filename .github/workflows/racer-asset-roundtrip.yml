@@ -134,6 +134,7 @@ jobs:
 
           rows=[]
           total_exact=0
+          total_multiset_exact=0
           for cp in binding["checkpoints"]:
               vram=(dump_dir / f"{cp['checkpoint']}.vram.bin").read_bytes()
               for player in cp["players"]:
@@ -153,8 +154,17 @@ jobs:
                           actual_tiles[(gx,gy)]=vram[addr:addr+32]
 
                       matches=[]
+                      multiset_matches=[]
                       occupancy_candidates=0
+                      actual_multiset=sorted(raw.hex() for raw in actual_tiles.values())
                       for fid,tiles in candidates:
+                          if len(tiles) == len(actual_tiles):
+                              candidate_multiset=sorted(raw.hex() for raw in tiles.values())
+                              if candidate_multiset == actual_multiset:
+                                  multiset_matches.append({
+                                      "frame_id":f"0x{fid:04X}",
+                                      "delta_from_persistent":fid-persistent,
+                                  })
                           if set(tiles) != actual_positions:
                               continue
                           occupancy_candidates += 1
@@ -164,6 +174,7 @@ jobs:
                                   "delta_from_persistent":fid-persistent,
                               })
                       total_exact += len(matches)
+                      total_multiset_exact += len(multiset_matches)
                       rows.append({
                           "checkpoint":cp["checkpoint"],
                           "player":player["player"],
@@ -172,6 +183,7 @@ jobs:
                           "occupied_tiles":len(actual_positions),
                           "occupancy_compatible_frame_count":occupancy_candidates,
                           "exact_byte_matches":matches,
+                          "position_independent_tile_multiset_matches":multiset_matches,
                       })
 
           out={
@@ -179,11 +191,16 @@ jobs:
               "purpose":"Exhaustively test whether retained racer VRAM objects equal any contract-compatible packed-word ROM source reconstruction.",
               "candidate_frame_count":len(ids),
               "exact_match_count":total_exact,
+              "position_independent_multiset_match_count":total_multiset_exact,
               "rows":rows,
               "interpretation":(
                   "at least one packed-word source reconstruction exactly matches retained VRAM"
                   if total_exact
-                  else "no contract-compatible frame exactly matches retained VRAM bytes; a downstream layout/transform or different source interpretation remains unresolved"
+                  else (
+                      "no positioned byte match exists, but one or more records contain the exact tile payload multiset"
+                      if total_multiset_exact
+                      else "no contract-compatible frame even contains the exact retained tile payload multiset; multi-record composition or a different source interpretation is required"
+                  )
               ),
           }
           Path(os.environ["RUNNER_TEMP"],"racer-vram-byte-phase.json").write_text(

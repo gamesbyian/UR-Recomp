@@ -1,6 +1,6 @@
 # Knowledge Consolidation Plan
 
-Status: initial consolidation complete
+Status: two-pass consolidation complete; query layer is canonical for cross-domain planning
 Date: 2026-10-02
 
 ## Purpose
@@ -22,6 +22,8 @@ Detailed source artifacts remain authoritative evidence. Consolidated datasets c
 7. **Schemas are additive.** Downstream inference tools should survive new optional fields.
 
 ## Canonical normalized datasets
+
+These files are planning/query surfaces, not optional convenience artifacts. When a plan or task asks a question covered here, consume the normalized dataset first and follow its provenance back to raw evidence only when needed.
 
 ### `analysis/data/course-corpus.json`
 
@@ -78,6 +80,18 @@ Normalize semantic frame/asset/palette identity into a multi-family container.
 
 The first family is the retained ordinary-race racer presentation manifest. Future sprite/background/UI families append without creating incompatible one-off schemas.
 
+### `analysis/data/course-resource-catalog.json`
+
+Promoted course-resource semantics, conserved resource bundles, list-level invariants, and regional resource-selection deltas.
+
+### `analysis/data/progression-model.json`
+
+Medal matrix, tour-row order, tier derivation, checksum coverage, runtime acceptance state, and predictive checksum contribution rules.
+
+### `analysis/data/fixture-corpus.json`
+
+Curated deterministic fixtures with semantic/event-relative anchors, ownership and known caveats. Use it to avoid treating absolute guest frame as a universal coordinate.
+
 ### `analysis/data/evidence-claims.json`
 
 Atomic, provenance-bearing claims that originate in external/historical material or cross-source reconciliation.
@@ -104,7 +118,7 @@ The builder should:
 1. read existing canonical/generated sources;
 2. perform deterministic joins;
 3. derive only explicitly documented quantities;
-4. emit the five datasets;
+4. emit the generated normalized datasets owned by the builder;
 5. fail on duplicate stable IDs or broken required joins;
 6. preserve source paths in every output.
 
@@ -181,3 +195,17 @@ The initial consolidation pass is complete and protected by unit tests. The quer
 ## Second pass closeout — 2026-10-02
 
 A second consolidation pass corrected canonical course stream identity by reconciling decoded header coordinates, the complete historical landmark corpus, and SRAM progression row order. It also attached all 45 historical landmarks to course records, normalized the progression model, and enriched state data with paired-racer leads, regional motion clusters, and reconciled Nitrodon semantics. The key maintenance lesson is that player-facing order, storage order, and historical tool track IDs are separate coordinate systems and must never be joined by ordinal position without an explicit mapping.
+
+
+## Plan-document integration rule — 2026-10-02
+
+Canonical planning documents must reference the normalized query layer rather than duplicating large factual inventories.
+
+- `PROJECT-PLAN.md` owns product architecture and points to `analysis/data/` for durable cross-domain knowledge.
+- `WORK-QUEUE.md` owns execution priority and should name the normalized input a pending task must consume.
+- `SEMANTIC-SUFFICIENCY.md` owns readiness/gates and should summarize conclusions, not replicate datasets.
+- `WIDESCREEN-RECONNAISSANCE.md` owns Widescreen causal policy and should use `fixture-corpus.json`, course/resource/state data, and inference findings as its evidence lookup layer.
+- `COURSE-FORMAT.md` remains the human technical narrative; machine joins belong in `course-corpus.json` and `course-resource-catalog.json`.
+- `SYMBOLS.md` remains the human symbol ledger; normalized state/code joins belong in `state-schema.json` and `code-semantics.json`.
+
+When merged work changes an inference-relevant source, regenerate or update the normalized dataset in the same lane whenever practical. If it cannot be updated immediately, record the dataset as stale explicitly rather than allowing silent contradiction.

@@ -8,7 +8,9 @@ on:
     paths:
       - ".github/workflows/preparation-emission-probe.yml"
       - "tools/analyze_preparation_stream_trace.py"
-      - "tools/analyze_preparation_emission_probe.py"\n      - "tools/analyze_preparation_ppu_pc_trace.py"\n      - "tools/instrument_snesref_ppu_pc_trace.py"
+      - "tools/analyze_preparation_emission_probe.py"
+      - "tools/analyze_preparation_ppu_pc_trace.py"
+      - "tools/instrument_snesref_ppu_pc_trace.py"
       - "tests/input/preparation-emission-race.script"
   pull_request:
     paths:

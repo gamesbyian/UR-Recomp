@@ -11,6 +11,7 @@ on:
       - "tools/analyze_racer_piece_render_binding.py"
       - "tools/analyze_racer_spatial_generalization.py"
       - "tools/analyze_racer_tile_upload_path.py"
+      - "tools/export_racer_composed_snapshots.py"
       - "tools/extract_racer_asset_roundtrip.py"
       - "analysis/evidence/racer-presentation-observed-states.json"
 
@@ -96,97 +97,21 @@ jobs:
           PY
       - name: Emit composed racer player PNGs
         run: |
+          python3 tools/export_racer_composed_snapshots.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --dump-dir "$RUNNER_TEMP/ordinary-2p/native-dumps" \
+            --staging-report "$RUNNER_TEMP/racer-tile-upload-path.json" \
+            --output-dir "$RUNNER_TEMP/racer-composed" \
+            --manifest "$RUNNER_TEMP/racer-composed/manifest.json" \
+            > "$RUNNER_TEMP/racer-composed-manifest.txt"
           python3 - <<'PY'
           import json, os
-          from pathlib import Path
-          from tools.extract_racer_presentation_family import (
-              compose_racer_staging,
-              encode_png_rgba,
-              extract_frame,
-              rasterize_composed_player_rgba,
-              sha256,
-          )
-
-          root=Path(os.environ["RUNNER_TEMP"]) / "ordinary-2p" / "native-dumps"
-          outdir=Path(os.environ["RUNNER_TEMP"]) / "racer-composed"
-          outdir.mkdir(parents=True, exist_ok=True)
-          rom_path=Path("reference/roms/retail/Uniracers_USA.sfc")
-          rom=rom_path.read_bytes()
-          trace=json.load(open(Path(os.environ["RUNNER_TEMP"]) / "racer-tile-upload-path.json"))
-          by_tag={x["checkpoint"]:x for x in trace["runtime_staging_checks"]}
-          manifest=[]
-
-          def u16(data,off): return data[off] | (data[off+1] << 8)
-
-          for wp in sorted(root.glob("two-player-*.wram.bin")):
-              tag=wp.name[:-9]
-              if tag not in by_tag:
-                  continue
-              wram=wp.read_bytes()
-              cp=by_tag[tag]
-              ids={
-                  "p1_primary":u16(wram,0x0FE9),
-                  "p2_primary":u16(wram,0x0FEB),
-                  "p1_companion":u16(wram,0x0D3F),
-                  "p2_companion":u16(wram,0x0D41),
-              }
-              frames={k:extract_frame(rom,v) for k,v in ids.items()}
-              selectors={"p1":u16(wram,0x0C83),"p2":u16(wram,0x0C85)}
-              comp=compose_racer_staging(
-                  frames["p1_primary"],frames["p2_primary"],
-                  frames["p1_companion"],frames["p2_companion"],
-                  p1_selector=selectors["p1"],p2_selector=selectors["p2"],
-              )
-              replay=cp.get("composition_replay") or {}
-              for player,slot_num,color_off in (("p1",98,0x017D),("p2",99,0x017F)):
-                  palette_asset=0x06 + wram[color_off]
-                  slot=next((x for x in cp["racer_object_slots"] if x["slot"]==slot_num),None)
-                  hflip=bool(slot and slot["hflip"])
-                  vflip=bool(slot and slot["vflip"])
-                  stored=rasterize_composed_player_rgba(rom,comp,player,palette_asset)
-                  display=rasterize_composed_player_rgba(
-                      rom,comp,player,palette_asset,hflip=hflip,vflip=vflip
-                  )
-                  stored_png=encode_png_rgba(64,64,stored)
-                  display_png=encode_png_rgba(64,64,display)
-                  stem=f"{tag}-{player}"
-                  (outdir/f"{stem}-stored.png").write_bytes(stored_png)
-                  (outdir/f"{stem}-display.png").write_bytes(display_png)
-                  manifest.append({
-                      "checkpoint":tag,
-                      "player":player,
-                      "source_frame_ids":{k:f"0x{v:04X}" for k,v in ids.items()},
-                      "selectors":selectors,
-                      "palette_asset_id":f"0x{palette_asset:02X}",
-                      "oam_slot":slot_num,
-                      "oam_hflip":hflip,
-                      "oam_vflip":vflip,
-                      "dimensions":[64,64],
-                      "origin":[0,0],
-                      "occupancy_tile_offset":[1,0],
-                      "stored_png":f"{stem}-stored.png",
-                      "stored_png_sha256":sha256(stored_png),
-                      "display_png":f"{stem}-display.png",
-                      "display_png_sha256":sha256(display_png),
-                      "staging_replay_mode":replay.get("comparison_mode"),
-                      "staging_replay_source_exact_cells":replay.get("source_exact_cells"),
-                      "staging_replay_occupied_cells":replay.get("occupied_cells"),
-                      "staging_replay_destinations_present":replay.get("destinations_present"),
-                      "uncertainty":(
-                          None if replay.get("all_occupied_sources_exact") is True
-                          else "snapshot frame IDs/selectors are not proven source-exact for every composed occupied staging destination"
-                      ),
-                  })
-
-          payload={
-              "schema_version":1,
-              "family":"ordinary-2p-composed-racer-objects",
-              "rom_sha256":sha256(rom),
-              "images":manifest,
-          }
-          (outdir/"manifest.json").write_text(json.dumps(payload,indent=2,sort_keys=True)+"\n")
-          print(json.dumps(payload,indent=2,sort_keys=True))
-          assert manifest
+          p=json.load(open(os.path.join(os.environ["RUNNER_TEMP"],"racer-composed","manifest.json")))
+          assert p["images"]
+          assert all(x["source_records"] for x in p["images"])
+          assert all(x["stored_png_sha256"] for x in p["images"])
+          assert all(x["display_png_sha256"] for x in p["images"])
+          print("composed racer images", len(p["images"]))
           PY
 
       - name: Test racer primary-companion composition

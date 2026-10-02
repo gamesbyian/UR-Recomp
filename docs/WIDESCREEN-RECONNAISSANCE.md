@@ -242,13 +242,33 @@ Only then should permanent widening hooks graduate from experiments into the shi
 
 The first retained native-host probe ran matched 0 / +8 / +16 / +24
 pixel-per-side presentation margins on the deterministic Dragster tail. The
-probe successfully produced full presented-frame captures at every margin, but
-the +8 run failed the authoritative-state equality check against the 4:3
-control.
+retained workflow artifact from run `36957020940` contains the per-margin
+state and framebuffer evidence.
 
-Treat this as a blocking discriminator, not as a successful widening result.
-The next Widescreen task must determine whether the divergence is caused by
-host presentation cadence / fixture alignment or by a genuine simulation
-dependency on the widened host path. Do not widen shipping presentation until
-that distinction is closed. The retained workflow artifact from run
-`36957020940` contains the per-margin state and framebuffer evidence.
+The apparent +8 authoritative-state failure is now classified as a
+**cadence/alignment plus transient-contact harness false positive**, not as a
+meaningful simulation divergence:
+
+- every retained +8 script tag is exactly **3 guest frames earlier** than its
+  4:3 control tag;
+- racer position, racer velocity, camera X and checkpoint/finish/lap state are
+  identical at every event-relative retained tag;
+- the checkpoint/finish progression transition occurs at the same scripted
+  event, `object-tail-174`;
+- only the diagnostic contact word `$0E95` differs, at
+  `object-tail-176/177/178/180`, and it reconverges by the final retained
+  sample without changing trajectory or progression;
+- whole-WRAM inequality begins earlier in host/global-phase bookkeeping and is
+  therefore not a valid equality gate for this presentation experiment.
+
+The probe analyzer now separates durable event-relative race state from the
+transient contact diagnostic, reports the absolute guest-frame cadence delta,
+and emits its report before applying the CI gate. +8 is considered a valid
+matched simulation comparison only when durable trajectory/progression agrees
+and the cadence offset is stable; transient contact differences remain visible
+in the report rather than being discarded.
+
+This closes the +8 simulation-divergence blocker. The next +8 work should
+classify the first **presentation** failure or success boundary. Do not widen
+beyond the already-captured tiny-margin experiment merely because the harness
+gate is repaired, and do not widen gameplay activation bounds.

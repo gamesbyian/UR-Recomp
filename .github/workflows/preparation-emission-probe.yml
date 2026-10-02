@@ -145,6 +145,42 @@ jobs:
             --json-out analysis/generated/camera-dma-queue-trace.json \
             --md-out analysis/generated/camera-dma-queue-trace.md
 
+      - name: Assert camera-demand to same-frame DMA contract
+        if: always() && steps.discover.outcome != 'success'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          q=json.loads(Path("analysis/generated/camera-dma-queue-trace.json").read_text())
+          candidates=[
+              p for p in q["pairs"]
+              if p["build_frame"] >= 1005
+              and p["camera_dx"] > 0
+              and p["frame_delta"] == 0
+              and len(p["descriptors"]) == 1
+              and p["descriptors"][0]["slot"] == 2
+              and p["descriptors"][0]["source"] == 0x0433
+              and p["descriptors"][0]["size"] == 0x20
+              and p["descriptors"][0]["vmain"] == 0x81
+              and p["descriptors"][0]["vram"] == 0x0C00 + p["edge_x"]
+          ]
+          if not candidates:
+              raise SystemExit("no same-frame camera-driven horizontal strip DMA contract observed")
+          wrap=next((p for p in candidates if p["edge_x"] == 0x0180 and p["descriptors"][0]["vram"] == 0x0D80),None)
+          if wrap is None:
+              raise SystemExit("camera-driven 32-column VRAM ring wrap was not observed")
+
+          pc=json.loads(Path("analysis/generated/preparation-ppu-pc-trace.json").read_text())
+          writer=next((w for w in pc["writer_counts"] if w["address"] == 0x2116 and w["pc"] == 0x82D276),None)
+          if writer is None or writer["count"] <= 0:
+              raise SystemExit("slot-2 DMA consumer did not reach the proven 82:D276 $2116 write")
+          print("same-frame strip event:", candidates[0])
+          print("ring-wrap event:", wrap)
+          print("82:D276 $2116 writes:", writer["count"])
+          PY
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:

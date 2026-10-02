@@ -10,6 +10,8 @@ on:
       - "tests/input/two-player-phase-entry-microtrace.script"
       - "tests/input/two-player-phase-origin-microtrace.script"
       - "tools/summarize_paired_player_slots.py"
+      - "tools/build_ui_atlas.py"
+      - "analysis/ui-capture-manifest.json"
       - "tools/assert_uniracers_vs_oam_seam.py"
       - ".github/workflows/two-player-reference.yml"
 
@@ -320,6 +322,20 @@ jobs:
           print("RACE_RELATIVE_ALIGNMENT_CONFIRMED")
           PY
 
+      - name: Build ordinary 2P HUD atlas reports
+        shell: bash
+        run: |
+          set -euo pipefail
+          for label in native snes9x; do
+            python3 tools/build_ui_atlas.py \
+              --manifest analysis/ui-capture-manifest.json \
+              --source-fixture two-player-first-race \
+              --dump-dir "$RUNNER_TEMP/$label-dumps" \
+              --out-json "$RUNNER_TEMP/$label-two-player-ui-atlas.json" \
+              --out-md "$RUNNER_TEMP/$label-two-player-ui-atlas.md" \
+              --strict
+          done
+
       - name: Assert ordinary 2P active-display OAM seam
         run: |
           python3 tools/assert_uniracers_vs_oam_seam.py             "$RUNNER_TEMP/snes9x-dumps/two-player-race-1220.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-race-1420.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-p1-pre-1470.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-p2-post-1570.ppuw.tsv"             "$RUNNER_TEMP/snes9x-dumps/two-player-both-post-1620.ppuw.tsv"
@@ -342,6 +358,8 @@ jobs:
             ${{ runner.temp }}/snes9x.log
             ${{ runner.temp }}/*-two-player-state.json
             ${{ runner.temp }}/*-two-player-state.txt
+            ${{ runner.temp }}/*-two-player-ui-atlas.json
+            ${{ runner.temp }}/*-two-player-ui-atlas.md
             ${{ runner.temp }}/native-dumps/
             ${{ runner.temp }}/snes9x-dumps/
             ${{ runner.temp }}/phase-native/

@@ -23,7 +23,7 @@ if str(TOOLS) not in sys.path:
 from controller_input import ControllerRun, load_controller_runs, masks_at
 
 DEFAULT_MESEN_REPO = ROOT / ".tools" / "src" / "mesen-for-ai"
-CLIENT = Path("skills/mesen-emulator/scripts/mesen_client.py")
+CLIENT = ROOT / "tools" / "mesen_client.py"
 MASK_BUTTONS = (
     ("b", 0x001), ("y", 0x002), ("select", 0x004), ("start", 0x008),
     ("up", 0x010), ("down", 0x020), ("left", 0x040), ("right", 0x080),

@@ -28,6 +28,31 @@
       "sram_offset": "0x0743",
       "width": 1,
       "note": "Raw physical SRAM byte observed in harvested multiplayer captures: 0x04 on VS PICK PLAYER ONE and 0x02 on PICK PLAYER TWO. Interpretation versus historical bot 5/3/1 values remains open."
+    },
+    "multiplayer_camera_enable": {
+      "wram_offset": "0x0DDB",
+      "width": 1,
+      "note": "Raw split-screen/multiplayer camera-path enable."
+    },
+    "camera1_x": {
+      "wram_offset": "0x0419",
+      "width": 2,
+      "note": "Recovered camera 1 X position."
+    },
+    "camera2_x": {
+      "wram_offset": "0x041B",
+      "width": 2,
+      "note": "Recovered camera 2 X position."
+    },
+    "screen2_player1_x": {
+      "wram_offset": "0x1505",
+      "width": 1,
+      "note": "Screen-2 staged X coordinate for player 1; off-screen sentinel may be 0x30."
+    },
+    "screen1_player2_x": {
+      "wram_offset": "0x150D",
+      "width": 1,
+      "note": "Screen-1 staged X coordinate for player 2; off-screen sentinel may be 0x70."
     }
   },
   "captures": [
@@ -1254,6 +1279,108 @@
       "expect": {
         "current_menu": "0x16"
       }
+    },
+    {
+      "tag": "two-player-race-1220",
+      "state_id": "GAMEPLAY",
+      "variant": "split-screen-baseline-early",
+      "source_fixture": "two-player-first-race",
+      "required": true,
+      "expect": {
+        "in_race": "0x01"
+      },
+      "discover": [
+        "multiplayer_camera_enable",
+        "camera1_x",
+        "camera2_x",
+        "screen2_player1_x",
+        "screen1_player2_x"
+      ]
+    },
+    {
+      "tag": "two-player-race-1420",
+      "state_id": "GAMEPLAY",
+      "variant": "split-screen-baseline-settled",
+      "source_fixture": "two-player-first-race",
+      "required": true,
+      "expect": {
+        "in_race": "0x01"
+      },
+      "discover": [
+        "multiplayer_camera_enable",
+        "camera1_x",
+        "camera2_x",
+        "screen2_player1_x",
+        "screen1_player2_x"
+      ]
+    },
+    {
+      "tag": "two-player-p1-pre-1470",
+      "state_id": "GAMEPLAY",
+      "variant": "pre-causal-movement",
+      "source_fixture": "two-player-first-race",
+      "required": true,
+      "expect": {
+        "in_race": "0x01"
+      },
+      "discover": [
+        "multiplayer_camera_enable",
+        "camera1_x",
+        "camera2_x",
+        "screen2_player1_x",
+        "screen1_player2_x"
+      ]
+    },
+    {
+      "tag": "two-player-p1-post-1520",
+      "state_id": "GAMEPLAY",
+      "variant": "p1-only-movement",
+      "source_fixture": "two-player-first-race",
+      "required": true,
+      "expect": {
+        "in_race": "0x01"
+      },
+      "discover": [
+        "multiplayer_camera_enable",
+        "camera1_x",
+        "camera2_x",
+        "screen2_player1_x",
+        "screen1_player2_x"
+      ]
+    },
+    {
+      "tag": "two-player-p2-post-1570",
+      "state_id": "GAMEPLAY",
+      "variant": "p2-only-movement",
+      "source_fixture": "two-player-first-race",
+      "required": true,
+      "expect": {
+        "in_race": "0x01"
+      },
+      "discover": [
+        "multiplayer_camera_enable",
+        "camera1_x",
+        "camera2_x",
+        "screen2_player1_x",
+        "screen1_player2_x"
+      ]
+    },
+    {
+      "tag": "two-player-both-post-1620",
+      "state_id": "GAMEPLAY",
+      "variant": "simultaneous-opposed-movement",
+      "source_fixture": "two-player-first-race",
+      "required": true,
+      "expect": {
+        "in_race": "0x01"
+      },
+      "discover": [
+        "multiplayer_camera_enable",
+        "camera1_x",
+        "camera2_x",
+        "screen2_player1_x",
+        "screen1_player2_x"
+      ]
     }
   ]
 }

@@ -282,6 +282,8 @@ def main() -> int:
                     help="Optional analysis/ui-transition-contract.json")
     ap.add_argument("--include-unclassified", action="store_true",
                     help="include dump tags not declared in the capture manifest as UNCLASSIFIED cards")
+    ap.add_argument("--source-fixture", action="append",
+                    help="only include captures owned by this source_fixture; repeatable")
     ap.add_argument("--out-json", type=Path)
     ap.add_argument("--out-md", type=Path)
     ap.add_argument("--strict", action="store_true",
@@ -291,7 +293,13 @@ def main() -> int:
     manifest = json.loads(args.manifest.read_text())
     fields = manifest["fields"]
     roots = args.dump_dir
-    captures = [analyze_capture(c, fields, roots) for c in manifest["captures"]]
+    selected_captures = manifest["captures"]
+    if args.source_fixture:
+        wanted_fixtures = set(args.source_fixture)
+        selected_captures = [
+            c for c in selected_captures if c.get("source_fixture") in wanted_fixtures
+        ]
+    captures = [analyze_capture(c, fields, roots) for c in selected_captures]
     if args.include_unclassified:
         declared_tags = {c["tag"] for c in manifest["captures"]}
         captures.extend(discover_unclassified_captures(declared_tags, fields, roots))
@@ -338,7 +346,7 @@ def main() -> int:
         "dump_dirs": [str(p) for p in roots],
         "captures": captures,
         "summary": {
-            "declared": len(manifest["captures"]),
+            "declared": len(selected_captures),
             "unclassified": sum(1 for c in captures if c.get("classification_status") == "unclassified"),
             "total_cards": len(captures),
             "states_with_visual_references": len(refs_by_state),

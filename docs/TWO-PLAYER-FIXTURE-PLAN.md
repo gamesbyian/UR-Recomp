@@ -4,9 +4,9 @@ Status: deterministic VS and ordinary-2P routes are both reproduced. Ordinary 2P
 
 ## Why this exists
 
-The project has an established engine-neutral player-2 controller transport plus deterministic VS and ordinary-2P routes from clean boot into active split-screen gameplay. `TWO_PLAYER_SELECT = 0x3D`, `VS_SELECT = 0x3E`, two-controller rider selection, deeper setup states, first race entry, paired racer-state assertions, simultaneous input, and the active-display OAM seam now have local evidence. Remaining work is full Mesen runtime promotion, richer split-screen/HUD interaction coverage, multiplayer camera/object activation, and downstream widescreen validation. Do not reopen the closed frame-1532 arithmetic/timing seam unless an event-relative fixture produces a semantic mismatch.
+The project has an established engine-neutral player-2 controller transport plus deterministic VS and ordinary-2P routes from clean boot into active split-screen gameplay. `TWO_PLAYER_SELECT = 0x3D`, `VS_SELECT = 0x3E`, two-controller rider selection, deeper setup states, first race entry, paired racer-state assertions, simultaneous input, and the active-display OAM seam now have local evidence. Remaining work is multiplayer gameplay-object activation and downstream widescreen validation; MesenCE runtime promotion and the richer split-screen/HUD atlas are now complete. Do not reopen the closed frame-1532 arithmetic/timing seam unless an event-relative fixture produces a semantic mismatch.
 
-The former frontend reachability blockers are now covered by frozen routes. Remaining promotion work is no longer basic reachability: it is cross-runtime breadth and deeper behavior, especially Mesen execution, split-screen/HUD interaction, multiplayer camera/object activation, and eventual widescreen validation.
+The former frontend reachability blockers are now covered by frozen routes. Remaining promotion work is no longer basic reachability or emulator breadth: pinned MesenCE execution and split-screen/HUD evidence are now promoted. The next deeper behavior target is gameplay-object activation, followed by eventual widescreen validation.
 
 This is a tooling dependency, not permission to neglect multiplayer work.
 
@@ -102,9 +102,9 @@ Current promotion-gate status:
 - [x] `analysis/ui-state-map.yml` reflects the reproduced ordinary-2P handoff;
 - [x] native and Snes9x share the neutral input stream plus named checkpoint schedule;
 - [x] the Mesen adapter can synchronize that same neutral stream with named checkpoint scripts, with ROM-free two-pad timing coverage;
-- [ ] run the promoted ordinary-2P fixture against a compatible Mesen/MesenCE binary and compare the named semantic checkpoints;
+- [x] the promoted ordinary-2P fixture now runs under pinned MesenCE and matches Snes9x exactly across all six named semantic checkpoints; run `36948109734`, evidence in `analysis/generated/mesence-ordinary-2p-parity-2026-10-01.md`;
 - [x] `analysis/ui-menu-index.json` now points `0x3D` at the durable ordinary-2P fixture and promotes two-player `0x91` from historical to verified;
-- [ ] harvest any richer framebuffer/HUD atlas evidence that materially benefits from the promoted route.
+- [x] richer framebuffer/HUD atlas evidence is promoted from ordinary 2P. Run `36943103609` produced 6/6 green native and Snes9x visual cards spanning stable race, isolated P1/P2 movement and simultaneous movement; see `analysis/generated/ordinary-2p-hud-atlas-2026-10-01.md`. Raw same-host-frame framebuffer identity is deliberately not a parity gate because the already-closed frame-boundary offset changes racer animation/timer presentation phase.
 
 ## Multiplayer camera / viewport observability
 
@@ -149,10 +149,10 @@ With the grammar now available, implement and verify:
 1. [x] P2-only causality/confirmation in the initial ordinary-2P route;
 2. [x] VS challenger and challenge-track reachability after P2 confirm;
 3. [x] first ordinary-2P race entry;
-4. [ ] richer split-screen/HUD atlas states;
+4. [x] richer split-screen/HUD atlas states: six ordinary-2P gameplay checkpoints are now captured and documented across native/Snes9x;
 5. [x] two-player OAM compatibility coverage for the canonical scanline split and high-OAM routing;
 6. [x] native/Snes9x deterministic multiplayer checkpoints, with exact stable pre-intervention parity and bounded post-input drift;
-7. [ ] promoted Mesen/MesenCE runtime parity using the synchronized neutral-stream + named-checkpoint adapter;
+7. [x] promoted Mesen/MesenCE runtime parity using the synchronized neutral-stream + named-checkpoint adapter; MesenCE matches Snes9x exactly at all six promoted checkpoints;
 8. [ ] two-player effects on camera, object activation, and later widescreen behavior.
 
 Do not allow completion of general fidelity work to imply multiplayer fidelity if these items remain open.

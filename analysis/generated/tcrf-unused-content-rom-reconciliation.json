@@ -1,0 +1,100 @@
+{
+  "claims": {
+    "bank_83_8000_mapping": {
+      "cpu_address": "83:8000",
+      "file_offset": 98304,
+      "file_offset_hex": "0x018000",
+      "matches_reported_version_offset": true
+    },
+    "build_date_area": {
+      "reported_offset": 1345,
+      "reported_offset_hex": "0x000541",
+      "window": {
+        "ascii_runs": [
+          {
+            "length": 60,
+            "offset": 0,
+            "text": "Uniracer Shell, assembled 10:50am on Tuesday the 11/10/1994 "
+          }
+        ],
+        "hex": "556e697261636572205368656c6c2c20617373656d626c65642031303a3530616d206f6e2054756573646179207468652031312f31302f31393934200a0d1a5c0b8070dc73006b8b0bc238da5a48e220a90048abf400002bdc5300c230687afa2bab4040e220c2102c124250fba9808d0021a9ff8557a9018d3312a9008d0e21",
+        "length": 128,
+        "offset": 1345,
+        "offset_hex": "0x000541",
+        "sha256": "a93a4d6f84915a5879f9ebe6cea68ebe67e7f49d0105c11a4d1f62ce7447bdf1"
+      }
+    },
+    "unused_combo_message_set_9": {
+      "reported_offset": 775801,
+      "reported_offset_hex": "0x0BD679",
+      "status": "fingerprinted_only_pending_table-structure reconciliation",
+      "window": {
+        "ascii_runs": [
+          {
+            "length": 256,
+            "offset": 0,
+            "text": "yes!           cool!           funky!       check that out    fight on!       ride on!         yeah!          done that!     no problem!    that was easy!    nailed it!     slammed \"em!       bingo!         crusin\"!        banzai!                          "
+          }
+        ],
+        "hex": "796573212020202020202020202020636f6f6c21202020202020202020202066756e6b792120202020202020636865636b2074686174206f7574202020206669676874206f6e212020202020202072696465206f6e21202020202020202020796561682120202020202020202020646f6e6520746861742120202020206e6f2070726f626c656d21202020207468617420776173206561737921202020206e61696c6564206974212020202020736c616d6d65642022656d212020202020202062696e676f2120202020202020202063727573696e2221202020202020202062616e7a6169212020202020202020202020202020202020202020202020202020",
+        "length": 256,
+        "offset": 775801,
+        "offset_hex": "0x0BD679",
+        "sha256": "f52985dc47c96c4282568d8f13ce0c1a7d4cde466b2ebb3700f2299b3eb5de8d"
+      }
+    },
+    "version_string": {
+      "decoded": "ASJIver3.30\ufffdmike____\ufffd\ufffd______andr",
+      "reported_offset": 98304,
+      "reported_offset_hex": "0x018000",
+      "starts_with_ASJIver3_30": true,
+      "window": {
+        "ascii_runs": [
+          {
+            "length": 11,
+            "offset": 0,
+            "text": "ASJIver3.30"
+          },
+          {
+            "length": 8,
+            "offset": 12,
+            "text": "mike____"
+          },
+          {
+            "length": 14,
+            "offset": 22,
+            "text": "______andrew__"
+          },
+          {
+            "length": 14,
+            "offset": 38,
+            "text": "______martin__"
+          },
+          {
+            "length": 10,
+            "offset": 54,
+            "text": "______meli"
+          }
+        ],
+        "hex": "41534a49766572332e3330ff6d696b655f5f5f5fffff5f5f5f5f5f5f616e647265775f5fffff5f5f5f5f5f5f6d617274696e5f5fffff5f5f5f5f5f5f6d656c69",
+        "length": 64,
+        "offset": 98304,
+        "offset_hex": "0x018000",
+        "sha256": "49aabedcdf09d49f2a81a65f8ad2c0823ebe346893faf817c2f3f33942e02962"
+      }
+    }
+  },
+  "interpretation": {
+    "limitations": [
+      "Fixed-offset presence does not by itself prove runtime reachability.",
+      "The Error Tour, boot-graphic overwrite, combo-message table semantics, and music selector reachability require separate structural or runtime checks."
+    ],
+    "version_and_antipiracy_link": "LoROM CPU address 83:8000 maps exactly to file offset 0x18000. If the reported SRAM anti-piracy comparison reads ROM 83:8000, it is reading from the same location as the reported ASJIver3.30 payload."
+  },
+  "purpose": "Mechanically reconcile fixed-offset claims from TCRF's Uniracers article against the canonical USA ROM.",
+  "rom": {
+    "sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "size": 2097152
+  },
+  "schema_version": 1
+}

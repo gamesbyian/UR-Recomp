@@ -1,0 +1,26 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -259,6 +259,8 @@
+ int snesrecomp_desktop_frame_width(void) { return g_snes_width > 0 ? g_snes_width : 256; }
+ int snesrecomp_desktop_frame_height(void) { return g_snes_height > 0 ? g_snes_height : 224; }
+ void snesrecomp_desktop_request_clock_reset(void) { g_reset_clock = true; }
++void snesrecomp_desktop_set_paused(int paused) { g_paused = paused ? 1 : 0; }
++int snesrecomp_desktop_is_paused(void) { return g_paused != 0; }
+ 
+ static double MonotonicSeconds(void) {
+ #if defined(__linux__)
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -194,6 +194,12 @@
+ int snesrecomp_desktop_frame_height(void);
+ void snesrecomp_desktop_set_widescreen(int enabled);
+ 
++/* Host-owned pause control. A paused desktop host continues pumping events and
++ * presenting host UI, but does not call RtlRunFrame; guest state therefore
++ * remains unchanged until resumed. */
++void snesrecomp_desktop_set_paused(int paused);
++int snesrecomp_desktop_is_paused(void);
++
+ /* Ask the host to reset its pacing clock at the next opportunity (a title
+  * that just changed its presentation settings). */
+ void snesrecomp_desktop_request_clock_reset(void);

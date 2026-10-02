@@ -68,6 +68,25 @@ This gives the eventual native host a narrow integration point:
 
 In particular, `RuntimeAction::RestartRace` does **not** mean "write known starting values into WRAM." The future implementation must re-establish a valid race start through an owned runtime lifecycle boundary, with authoritative simulation initialized by the guest/runtime path.
 
+### Pinned SNESRecomp pause adapter
+
+The pinned SNESRecomp desktop host already owns a suitable pause mechanism. Its existing `g_paused` path:
+
+- keeps pumping host events while paused;
+- pauses host audio;
+- resets presentation pacing debt;
+- skips `RtlRunFrame`, so the guest does not advance.
+
+`tools/patches/snesrecomp-session-pause.patch` exposes only that existing host state through `snesrecomp_desktop_set_paused()` and `snesrecomp_desktop_is_paused()`. It does not introduce a new emulation mechanism.
+
+`native/product/session_runtime_adapter.{hpp,cpp}` maps `SuspendGuest` and `ResumeGuest` onto this narrow host hook. The same adapter explicitly refuses `RestartRace` and `ExitToFrontend` until those operations have owned runtime semantics. This is intentional: the framework's machine reset/save-state facilities are not evidence that a product-level "restart this race" command is correct.
+
+The pause integration therefore has a clean ownership chain:
+
+`modern UI/policy -> SessionControl -> RuntimeAction -> pause runtime adapter -> existing host frame gate`
+
+At no point does the pause path write guest memory or reinterpret stock pause/menu state.
+
 ## Extension points
 
 Do not add these systems to `HostProductState` merely because they are planned. Add narrow interfaces when there is a concrete runtime consumer:

@@ -99,6 +99,8 @@ local race_results_entries = 0
 local circuit_results_entries = 0
 local stunt_results_entries = 0
 local track_changes = 0
+local pending_award = nil
+local MAX_SETTLE_FRAMES = 600
 
 local function write_heartbeat(current)
     local f = assert(io.open(heartbeat, "w"))
@@ -194,36 +196,70 @@ while true do
         -- Medal writes persist. Probe one cell per frame, cycling across all 144
         -- cells, instead of crossing the Lua memory bridge 144 times every frame.
         -- Any authentic mutation is therefore detected within at most 144 frames.
-        local current_value = memory.readbyte(MEDAL_BASE + probe_index)
-        if current_value ~= baseline_medals[probe_index + 1] then
-            local current_medals = read_medals()
-            local index, before_value, after_value =
-                first_medal_change(baseline_medals, current_medals)
-            if index ~= nil then
+        if pending_award == nil then
+            local current_value = memory.readbyte(MEDAL_BASE + probe_index)
+            if current_value ~= baseline_medals[probe_index + 1] then
+                local current_medals = read_medals()
+                local index, before_value, after_value =
+                    first_medal_change(baseline_medals, current_medals)
+                if index ~= nil then
+                    pending_award = {
+                        detected_frame = current.frame,
+                        index = index,
+                        before_value = before_value,
+                        after_value = after_value,
+                        previous = previous,
+                        detected = current,
+                    }
+                end
+            end
+            probe_index = (probe_index + 1) % MEDAL_COUNT
+        else
+            local settled_medals = read_medals()
+            local index = pending_award.index
+            local expected_value = pending_award.after_value
+            if settled_medals[index + 1] ~= expected_value then
+                error("detected medal mutation did not persist while transaction settled")
+            end
+
+            if checksum_valid() then
                 dump_sram(out)
                 local row = math.floor(index / MEDAL_COLS)
                 local rider_col = index % MEDAL_COLS
                 local f = assert(io.open(meta, "w"))
                 f:write(string.format(
-                    "status=medal-captured\nbaseline_frame=%d\nframe=%d\ndetection_lag_max_frames=%d\n" ..
+                    "status=medal-captured-settled\nbaseline_frame=%d\ndetected_frame=%d\nsettled_frame=%d\n" ..
+                    "settlement_frames=%d\ndetection_lag_max_frames=%d\n" ..
                     "medal_index=%d\ntour_row=%d\nrider_column=%d\n" ..
                     "medal_before=%d\nmedal_after=%d\n" ..
-                    "previous_frame=%d\nprevious_menu=%d\nprevious_track=%d\nprevious_in_race=%d\n" ..
-                    "previous_rider=%d\nprevious_tour=%d\nprevious_tier=%d\n" ..
-                    "current_menu=%d\ncurrent_track=%d\ncurrent_in_race=%d\n" ..
-                    "current_rider=%d\ncurrent_tour=%d\ncurrent_tier=%d\n",
-                    baseline.frame, current.frame, MEDAL_COUNT - 1,
-                    index, row, rider_col, before_value, after_value,
-                    previous.frame, previous.menu, previous.track, previous.in_race,
-                    previous.rider, previous.tour, previous.tier,
+                    "detected_menu=%d\ndetected_track=%d\ndetected_in_race=%d\n" ..
+                    "settled_menu=%d\nsettled_track=%d\nsettled_in_race=%d\n" ..
+                    "settled_rider=%d\nsettled_tour=%d\nsettled_tier=%d\n" ..
+                    "tour_pass_flags=%s\n",
+                    baseline.frame, pending_award.detected_frame, current.frame,
+                    current.frame - pending_award.detected_frame, MEDAL_COUNT - 1,
+                    index, row, rider_col, pending_award.before_value, expected_value,
+                    pending_award.detected.menu, pending_award.detected.track, pending_award.detected.in_race,
                     current.menu, current.track, current.in_race,
-                    current.rider, current.tour, current.tier
+                    current.rider, current.tour, current.tier,
+                    flags_csv(tour_pass_flags(current.tour))
                 ))
                 f:close()
                 os.exit(0)
             end
+
+            if current.frame - pending_award.detected_frame >= MAX_SETTLE_FRAMES then
+                local f = assert(io.open(meta, "w"))
+                f:write(string.format(
+                    "status=medal-captured-checksum-did-not-settle\ndetected_frame=%d\nframe=%d\n" ..
+                    "medal_index=%d\nmedal_before=%d\nmedal_after=%d\n",
+                    pending_award.detected_frame, current.frame, index,
+                    pending_award.before_value, expected_value
+                ))
+                f:close()
+                os.exit(4)
+            end
         end
-        probe_index = (probe_index + 1) % MEDAL_COUNT
     end
     previous = current
 end

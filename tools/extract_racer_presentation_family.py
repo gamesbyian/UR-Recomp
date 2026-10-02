@@ -421,6 +421,7 @@ def confident_frame_ids(rom: bytes) -> list[int]:
 def emit_frame_images(rom: bytes, frame_ids: Iterable[int], output_dir: Path) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
     manifest = []
+    rom_digest = sha256(rom)
     for frame_id in frame_ids:
         frame = extract_frame(rom, frame_id)
         for palette_asset_id in (0x06, 0x07):
@@ -443,14 +444,14 @@ def emit_frame_images(rom: bytes, frame_ids: Iterable[int], output_dir: Path) ->
                     "rom_offset": frame["source_rom_offset"],
                     "sha256": frame["record_sha256"],
                 },
-                "rom_sha256": sha256(rom),
+                "rom_sha256": rom_digest,
                 "orientation": {"hflip": False, "vflip": False},
                 "uncertainty": None,
             })
     return {
         "schema_version": 2,
         "family": "ordinary-race-racer-presentation-contract-compatible-corpus",
-        "rom_sha256": sha256(rom),
+        "rom_sha256": rom_digest,
         "confidence_basis": [
             "monotonic same-bank frame boundary",
             "four-byte 30-cell occupancy header",

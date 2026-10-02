@@ -86,17 +86,21 @@
     {
       "id": "ec46-coordinate-window",
       "path": "analysis/generated/ec46-coordinate-window-structure-island.json"
+    },
+    {
+      "id": "race-state-980d",
+      "path": "analysis/generated/race-state-980d-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 118,
-    "code_regions": 107,
+    "regions": 120,
+    "code_regions": 109,
     "data_regions": 11,
-    "bounded_bytes": 18343,
-    "bounded_code_region_bytes": 16974,
+    "bounded_bytes": 18520,
+    "bounded_code_region_bytes": 17151,
     "bounded_data_region_bytes": 1369,
-    "analyzer_opcode_bytes": 7231,
-    "analyzer_operand_bytes": 9628,
+    "analyzer_opcode_bytes": 7300,
+    "analyzer_operand_bytes": 9736,
     "analyzer_unreached_or_data_bytes": 1484,
     "banks": [
       "81",
@@ -723,7 +727,7 @@
           "start": "81:82E2",
           "end": "81:82E5",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 4,
           "size_delta": 0
         },
@@ -747,7 +751,7 @@
           "start": "81:82E2",
           "end": "81:82E5",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 4,
           "size_delta": 0
         }
@@ -769,7 +773,7 @@
           "start": "81:82E6",
           "end": "81:831F",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 58,
           "size_delta": 0
         },
@@ -793,7 +797,7 @@
           "start": "81:82E6",
           "end": "81:831F",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 58,
           "size_delta": 0
         }
@@ -815,7 +819,7 @@
           "start": "81:8320",
           "end": "81:833D",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 30,
           "size_delta": 0
         },
@@ -839,7 +843,7 @@
           "start": "81:8320",
           "end": "81:833D",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 30,
           "size_delta": 0
         }
@@ -861,7 +865,7 @@
           "start": "81:833E",
           "end": "81:8340",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 3,
           "size_delta": 0
         },
@@ -869,7 +873,7 @@
           "start": "81:8321",
           "end": "81:8323",
           "shift": -29,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 3,
           "size_delta": 0
         },
@@ -877,7 +881,7 @@
           "start": "81:8313",
           "end": "81:8315",
           "shift": -43,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 3,
           "size_delta": 0
         },
@@ -885,7 +889,7 @@
           "start": "81:833E",
           "end": "81:8340",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 3,
           "size_delta": 0
         }
@@ -907,7 +911,7 @@
           "start": "81:8341",
           "end": "81:8371",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 49,
           "size_delta": 0
         },
@@ -931,7 +935,7 @@
           "start": "81:8341",
           "end": "81:8371",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 49,
           "size_delta": 0
         }
@@ -953,7 +957,7 @@
           "start": "81:8372",
           "end": "81:83A3",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 50,
           "size_delta": 0
         },
@@ -961,7 +965,7 @@
           "start": "81:8355",
           "end": "81:8386",
           "shift": -29,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 50,
           "size_delta": 0
         },
@@ -969,7 +973,7 @@
           "start": "81:834C",
           "end": "81:837D",
           "shift": -38,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 50,
           "size_delta": 0
         },
@@ -977,7 +981,7 @@
           "start": "81:8372",
           "end": "81:83A3",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 50,
           "size_delta": 0
         }
@@ -999,7 +1003,7 @@
           "start": "81:83A4",
           "end": "81:84D1",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 302,
           "size_delta": 0
         },
@@ -1023,7 +1027,7 @@
           "start": "81:83A4",
           "end": "81:84D1",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 302,
           "size_delta": 0
         }
@@ -1045,7 +1049,7 @@
           "start": "81:8A4A",
           "end": "81:8B94",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 331,
           "size_delta": 0
         },
@@ -1069,7 +1073,7 @@
           "start": "81:8A4A",
           "end": "81:8B94",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 331,
           "size_delta": 0
         }
@@ -2984,6 +2988,98 @@
       }
     },
     {
+      "source": "race-state-980d",
+      "source_path": "analysis/generated/race-state-980d-structure-island.json",
+      "name": "long_entry_wrapper",
+      "kind": "code",
+      "usa_start": "82:980D",
+      "usa_end": "82:9810",
+      "size": 4,
+      "usa_opcode_bytes": 2,
+      "usa_operand_bytes": 2,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "usa-retail": {
+          "start": "82:980D",
+          "end": "82:9810",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 4,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:9808",
+          "end": "82:980B",
+          "shift": -5,
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0
+        },
+        "europe-retail": {
+          "start": "82:981E",
+          "end": "82:9821",
+          "shift": 17,
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:980D",
+          "end": "82:9810",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 4,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "race-state-980d",
+      "source_path": "analysis/generated/race-state-980d-structure-island.json",
+      "name": "mirrored_state_bridge",
+      "kind": "code",
+      "usa_start": "82:9811",
+      "usa_end": "82:98BD",
+      "size": 173,
+      "usa_opcode_bytes": 67,
+      "usa_operand_bytes": 106,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "usa-retail": {
+          "start": "82:9811",
+          "end": "82:98BD",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 173,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:980C",
+          "end": "82:98B8",
+          "shift": -5,
+          "similarity": 0.895954,
+          "size": 173,
+          "size_delta": 0
+        },
+        "europe-retail": {
+          "start": "82:9822",
+          "end": "82:98CE",
+          "shift": 17,
+          "similarity": 0.890173,
+          "size": 173,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:9811",
+          "end": "82:98BD",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 173,
+          "size_delta": 0
+        }
+      }
+    },
+    {
       "source": "stunt-finalizer",
       "source_path": "analysis/generated/stunt-finalizer-structure-island.json",
       "name": "air_state_and_rotation_progress",
@@ -3443,7 +3539,7 @@
           "start": "82:A22B",
           "end": "82:A27B",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 81,
           "size_delta": 0
         },
@@ -3467,7 +3563,7 @@
           "start": "82:A22B",
           "end": "82:A27B",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 81,
           "size_delta": 0
         }
@@ -3489,7 +3585,7 @@
           "start": "82:A27C",
           "end": "82:A2D3",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 88,
           "size_delta": 0
         },
@@ -3513,7 +3609,7 @@
           "start": "82:A27C",
           "end": "82:A2D3",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 88,
           "size_delta": 0
         }
@@ -3535,7 +3631,7 @@
           "start": "82:A2D4",
           "end": "82:A353",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 128,
           "size_delta": 0
         },
@@ -3543,7 +3639,7 @@
           "start": "82:A2C5",
           "end": "82:A344",
           "shift": -15,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 128,
           "size_delta": 0
         },
@@ -3551,7 +3647,7 @@
           "start": "82:A2DB",
           "end": "82:A35A",
           "shift": 7,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 128,
           "size_delta": 0
         },
@@ -3559,7 +3655,7 @@
           "start": "82:A2D4",
           "end": "82:A353",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 128,
           "size_delta": 0
         }
@@ -3581,7 +3677,7 @@
           "start": "82:A354",
           "end": "82:A497",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 324,
           "size_delta": 0
         },
@@ -3605,7 +3701,7 @@
           "start": "82:A354",
           "end": "82:A497",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 324,
           "size_delta": 0
         }
@@ -3627,7 +3723,7 @@
           "start": "82:A498",
           "end": "82:A5F2",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 347,
           "size_delta": 0
         },
@@ -3651,7 +3747,7 @@
           "start": "82:A498",
           "end": "82:A5F2",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 347,
           "size_delta": 0
         }
@@ -3673,7 +3769,7 @@
           "start": "82:A5F3",
           "end": "82:A617",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 37,
           "size_delta": 0
         },
@@ -3697,7 +3793,7 @@
           "start": "82:A5F3",
           "end": "82:A617",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 37,
           "size_delta": 0
         }
@@ -3719,7 +3815,7 @@
           "start": "82:A618",
           "end": "82:A6F0",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 217,
           "size_delta": 0
         },
@@ -3743,7 +3839,7 @@
           "start": "82:A618",
           "end": "82:A6F0",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 217,
           "size_delta": 0
         }
@@ -3765,7 +3861,7 @@
           "start": "82:A6F1",
           "end": "82:A8C1",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 465,
           "size_delta": 0
         },
@@ -3789,7 +3885,7 @@
           "start": "82:A6F1",
           "end": "82:A8C1",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 465,
           "size_delta": 0
         }
@@ -3811,7 +3907,7 @@
           "start": "82:A8C2",
           "end": "82:A967",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 166,
           "size_delta": 0
         },
@@ -3835,7 +3931,7 @@
           "start": "82:A8C2",
           "end": "82:A967",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 166,
           "size_delta": 0
         }
@@ -3857,7 +3953,7 @@
           "start": "82:A968",
           "end": "82:A9AB",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 68,
           "size_delta": 0
         },
@@ -3881,7 +3977,7 @@
           "start": "82:A968",
           "end": "82:A9AB",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 68,
           "size_delta": 0
         }
@@ -3903,7 +3999,7 @@
           "start": "82:A9AC",
           "end": "82:AA08",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 93,
           "size_delta": 0
         },
@@ -3927,7 +4023,7 @@
           "start": "82:A9AC",
           "end": "82:AA08",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 93,
           "size_delta": 0
         }
@@ -3949,7 +4045,7 @@
           "start": "82:AA09",
           "end": "82:AA69",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 97,
           "size_delta": 0
         },
@@ -3973,7 +4069,7 @@
           "start": "82:AA09",
           "end": "82:AA69",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 97,
           "size_delta": 0
         }
@@ -3995,7 +4091,7 @@
           "start": "82:AA6A",
           "end": "82:AA6D",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 4,
           "size_delta": 0
         },
@@ -4019,7 +4115,7 @@
           "start": "82:AA6A",
           "end": "82:AA6D",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 4,
           "size_delta": 0
         }
@@ -5329,7 +5425,7 @@
           "start": "83:EBE6",
           "end": "83:EC45",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 96,
           "size_delta": 0
         },
@@ -5337,7 +5433,7 @@
           "start": "83:EC0A",
           "end": "83:EC69",
           "shift": 36,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 96,
           "size_delta": 0
         },
@@ -5345,7 +5441,7 @@
           "start": "83:EC2E",
           "end": "83:EC8D",
           "shift": 72,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 96,
           "size_delta": 0
         },
@@ -5353,7 +5449,7 @@
           "start": "83:EBE6",
           "end": "83:EC45",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 96,
           "size_delta": 0
         }
@@ -5375,7 +5471,7 @@
           "start": "83:EC46",
           "end": "83:ED2E",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 233,
           "size_delta": 0
         },
@@ -5399,7 +5495,7 @@
           "start": "83:EC46",
           "end": "83:ED2E",
           "shift": 0,
-          "similarity": 1,
+          "similarity": 1.0,
           "size": 233,
           "size_delta": 0
         }

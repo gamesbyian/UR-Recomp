@@ -40,7 +40,7 @@ def sector_record(decoded,plane_count,index):
 
 def build(query_start=None,query_end=None):
     rom=ROM.read_bytes()
-    streams=find_streams(rom)
+    streams=list(find_streams(rom))
     if len(streams)!=45: raise SystemExit(f"expected 45 streams, got {len(streams)}")
     rom_off,packed,_=streams[0]
     decoded=unpack_method1(packed)

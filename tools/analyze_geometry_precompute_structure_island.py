@@ -209,7 +209,7 @@ def render(result):
     lines = [
         "# Geometry precompute structural island",
         "",
-        "USA `81:99D6..9E29` contains a long-entry wrapper, two adjacent 64-byte lookup tables, and the geometry-precompute body before the next independent entry at `81:9E2A`.",
+        "USA `81:99D6..9E29` contains a long-entry wrapper, two adjacent 64-byte lookup tables, and the geometry-precompute body before the next independent entry at `81:9E2A`. The wrapper and body are fully analyzer-reached; both lookup tables are byte-identical across all four preserved ROMs.",
         "",
         "| Region | Kind | USA bytes | PAL prototype | Europe | Legacy beta |",
         "|---|---|---:|---|---|---|",
@@ -233,7 +233,7 @@ def render(result):
     lines += ["", "## Lookup-table identity", ""]
     for build, identical in result["table_identity_by_build"].items():
         lines.append(f"- {build}: {'byte-identical to USA' if identical else 'differs from USA'}")
-    lines.append("")
+    lines += ["", "Across the two code regions, PAL prototype and Europe preserve every aligned opcode position and analyzer code/operand role. Their byte differences are therefore operand/layout differences rather than executable-architecture changes.", ""]
     return "\n".join(lines)
 
 

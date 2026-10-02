@@ -182,7 +182,7 @@
             "resource_count": 6
           },
           {
-            "course": "Flat Fun",
+            "course": "Loopback",
             "stream_index": 9,
             "dims": [
               128,
@@ -191,7 +191,7 @@
             "resource_count": 35
           },
           {
-            "course": "Crock",
+            "course": "Highroad",
             "stream_index": 17,
             "dims": [
               64,
@@ -200,7 +200,7 @@
             "resource_count": 34
           },
           {
-            "course": "Marathon",
+            "course": "Highroad",
             "stream_index": 27,
             "dims": [
               32,

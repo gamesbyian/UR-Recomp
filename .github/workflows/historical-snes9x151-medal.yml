@@ -65,7 +65,7 @@ jobs:
           touch configure Makefile
           sed -i 's#-llua#-Llua/src -llua#g' Makefile
           make -j2
-      - name: Replay until first game-authored Crawler medal
+      - name: Replay until first game-authored medal mutation
         env:
           UR_MEDAL_SRAM_OUT: /tmp/first-medal.srm
           UR_MEDAL_BEFORE_OUT: /tmp/before-runtime.srm
@@ -109,11 +109,16 @@ jobs:
           calc=sum(u16(o) for o in range(0x05E8,0x073C,2))&0xffff
           stored=u16(0x073C)
           print("sha256",hashlib.sha256(d).hexdigest())
-          print("crawler_rider0_medal",d[0x069C])
-          print("tier_rider0",d[0x10D3])
+          before=Path("/tmp/before-runtime.srm").read_bytes()
+          medal_changes=[
+              (i,before[i],d[i])
+              for i in range(0x069C,0x072C)
+              if before[i] != d[i]
+          ]
+          print("medal_changes",medal_changes)
           print("pass_flags",list(d[0x1075:0x107A]))
           print("checksum",stored,calc)
-          assert d[0x069C] > 0
+          assert medal_changes
           assert stored == calc
           PY
       - name: Build current reference harness

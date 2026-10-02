@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import struct
 from pathlib import Path
 
 MARGINS = (0, 8, 16, 24)
@@ -21,27 +22,46 @@ def sha(blob: bytes) -> str:
     return hashlib.sha256(blob).hexdigest()
 
 
+def read_bmp32(path: Path) -> tuple[bytes, int, int]:
+    """Read the runner's top-down 32-bit BGRA framedump into BGRX bytes."""
+    blob = path.read_bytes()
+    if len(blob) < 54 or blob[:2] != b"BM":
+        raise ValueError(f"{path}: not a BMP")
+    offset = struct.unpack_from("<I", blob, 10)[0]
+    width = struct.unpack_from("<i", blob, 18)[0]
+    signed_height = struct.unpack_from("<i", blob, 22)[0]
+    bpp = struct.unpack_from("<H", blob, 28)[0]
+    if width <= 0 or signed_height == 0 or bpp != 32:
+        raise ValueError(f"{path}: unsupported BMP geometry/bpp")
+    height = abs(signed_height)
+    raw = blob[offset : offset + width * height * 4]
+    if len(raw) != width * height * 4:
+        raise ValueError(f"{path}: truncated pixel payload")
+    if signed_height > 0:
+        rows = [raw[y * width * 4 : (y + 1) * width * 4] for y in range(height)]
+        raw = b"".join(reversed(rows))
+    return raw, width, height
+
+
 def load_sample(root: Path, margin: int, tag: str) -> dict:
     d = root / f"margin-{margin}"
-    info_path = d / f"{tag}.info.json"
-    wram_path = d / f"{tag}.wram.bin"
-    fb_path = d / f"{tag}.fb.bgrx"
-    if not (info_path.is_file() and wram_path.is_file() and fb_path.is_file()):
-        raise FileNotFoundError(f"missing sample margin={margin} tag={tag}")
+    info_path = d / "state" / f"{tag}.info.json"
+    wram_path = d / "state" / f"{tag}.wram.bin"
+    if not (info_path.is_file() and wram_path.is_file()):
+        raise FileNotFoundError(f"missing state sample margin={margin} tag={tag}")
     info = json.loads(info_path.read_text(encoding="utf-8"))
-    wram = wram_path.read_bytes()
-    fb = fb_path.read_bytes()
-    width = int(info["fb_width"])
-    height = int(info["fb_height"])
-    if len(fb) != width * height * 4:
-        raise ValueError(f"{fb_path}: unexpected framebuffer size")
+    frame = int(info["frame"])
+    fb_path = d / "frames" / f"frame_{frame:06d}.bmp"
+    if not fb_path.is_file():
+        raise FileNotFoundError(f"missing wide framedump margin={margin} frame={frame}")
+    fb, width, height = read_bmp32(fb_path)
     return {
         "info": info,
-        "wram": wram,
+        "wram": wram_path.read_bytes(),
         "fb": fb,
         "width": width,
         "height": height,
-        "frame": int(info["frame"]),
+        "frame": frame,
     }
 
 
@@ -118,6 +138,7 @@ def main() -> int:
         "fixture": "tests/input/object-activation-dragster-tail.script",
         "margins": list(MARGINS),
         "control_width": 256,
+        "pixel_source": "SNESRecomp FrameDump_Present full presented framebuffer",
         "results": {},
     }
 

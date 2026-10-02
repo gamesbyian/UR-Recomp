@@ -47,6 +47,7 @@ class RacerPresentationRoundTripTests(unittest.TestCase):
         self.assertEqual((pieces[-1]["major_slot"], pieces[-1]["minor_slot"], pieces[-1]["word_hex"]), (4, 3, "0x1407"))
         self.assertEqual(pieces[0]["staged_1645_value"], "0x8360")
         self.assertEqual(pieces[8]["staged_15a1_value"], "0x002C")
+        self.assertEqual(pieces[-1]["low2_renderer_ignored_value"], 3)
 
     def test_4bpp_tile_roundtrip(self):
         payload = bytes(range(64))

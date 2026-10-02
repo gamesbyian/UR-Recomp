@@ -19,6 +19,20 @@ TARGETS={
     "piece_position_stage":0x16E9,
 }
 SEEDS=("83:F0BB","83:F2BB","82:ACA5","82:D197")
+RAW_OPS={
+    0xAD:"LDA abs",0xBD:"LDA abs,X",0xB9:"LDA abs,Y",
+    0x8D:"STA abs",0x9D:"STA abs,X",0x99:"STA abs,Y",
+    0xAE:"LDX abs",0xBE:"LDX abs,Y",0x8E:"STX abs",
+    0xAC:"LDY abs",0xBC:"LDY abs,X",0x8C:"STY abs",
+    0x6D:"ADC abs",0x7D:"ADC abs,X",0x79:"ADC abs,Y",
+    0xED:"SBC abs",0xFD:"SBC abs,X",0xF9:"SBC abs,Y",
+    0xCD:"CMP abs",0xDD:"CMP abs,X",0xD9:"CMP abs,Y",
+    0x2D:"AND abs",0x3D:"AND abs,X",0x39:"AND abs,Y",
+    0x0D:"ORA abs",0x1D:"ORA abs,X",0x19:"ORA abs,Y",
+    0x4D:"EOR abs",0x5D:"EOR abs,X",0x59:"EOR abs,Y",
+    0x2C:"BIT abs",
+    0xAF:"LDA long",0xBF:"LDA long,X",0x8F:"STA long",0x9F:"STA long,X",
+}
 
 def references(rom:bytes)->dict:
     d=trace(rom)
@@ -48,6 +62,31 @@ def references(rom:bytes)->dict:
                 })
     return out
 
+
+def raw_references(rom:bytes, d)->dict:
+    out={k:[] for k in TARGETS}
+    for name,target in TARGETS.items():
+        lo=target&0xff; hi=(target>>8)&0xff
+        for operand in range(1,len(rom)-2):
+            if rom[operand]!=lo or rom[operand+1]!=hi:
+                continue
+            opoff=operand-1; op=rom[opoff]
+            if op not in RAW_OPS:
+                continue
+            long_mode=op in (0xAF,0xBF,0x8F,0x9F)
+            if long_mode and (operand+2>=len(rom) or rom[operand+2]!=0x7E):
+                continue
+            status=d.code_map[opoff] if opoff<len(d.code_map) else 0
+            out[name].append({
+                "cpu":offset_to_cpu(opoff),
+                "opcode":f"0x{op:02X}",
+                "mnemonic":RAW_OPS[op],
+                "bytes":rom[opoff:opoff+(4 if long_mode else 3)].hex(" "),
+                "snes2asm_executable":bool(status & d.OP_CODE),
+                "snes2asm_role":status,
+            })
+    return out
+
 def decoded_contexts(rom:bytes,refs:dict)->dict:
     d=trace(rom)
     seed_entries(d,[cpu_to_offset(x) for x in SEEDS])
@@ -73,11 +112,16 @@ def main()->int:
     args=ap.parse_args()
     rom=args.rom.read_bytes()
     refs=references(rom)
+    d=trace(rom); seed_entries(d,[cpu_to_offset(x) for x in SEEDS])
+    raw=raw_references(rom,d)
     ctx=decoded_contexts(rom,refs)
-    report={"schema_version":1,"targets":{k:f"0x{v:04X}" for k,v in TARGETS.items()},"references":refs,"contexts":ctx}
+    report={"schema_version":2,"targets":{k:f"0x{v:04X}" for k,v in TARGETS.items()},"references":refs,"raw_operand_candidates":raw,"contexts":ctx}
     md=["# Racer staging-array executable references",""]
     for name,target in TARGETS.items():
-        md += [f"## {name} (\`0x{target:04X}\`)","",f"Executable references: **{len(refs[name])}**.",""]
+        md += [f"## {name} (\`0x{target:04X}\`)","",f"Executable references: **{len(refs[name])}**.",f"Raw plausible operand references: **{len(raw[name])}**.",""]
+        for rr in raw[name]:
+            md.append(f"- raw {rr['cpu']} {rr['mnemonic']} bytes \`{rr['bytes']}\` executable={rr['snes2asm_executable']}")
+        md.append("")
         for block in ctx[name]:
             r=block["reference"]
             md.append(f"### {r['cpu']} bytes \`{r['bytes']}\`")

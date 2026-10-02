@@ -120,6 +120,53 @@ def decode_indexed_png(path: Path) -> tuple[dict, list[list[int]]]:
     return meta, rows
 
 
+def _tile_stream_analysis(rom: bytes, encoded: bytes, tile_columns: int, tile_rows: int) -> dict:
+    tiles = [encoded[i:i + 32] for i in range(0, len(encoded), 32)]
+    hit_lists: list[list[int]] = []
+    for tile in tiles:
+        # Blank/repeated tiles can occur extremely often. Retain a bounded sample
+        # while preserving the exact total hit count separately.
+        hits = all_occurrences(rom, tile)
+        hit_lists.append(hits)
+
+    def longest_run(order: list[int]) -> dict:
+        best = {"length": 0, "start_tile": None, "rom_offset": None}
+        position_sets = [set(hit_lists[i]) for i in order]
+        for order_index, tile_index in enumerate(order):
+            for pos in hit_lists[tile_index][:256]:
+                length = 1
+                while (
+                    order_index + length < len(order)
+                    and pos + 32 * length in position_sets[order_index + length]
+                ):
+                    length += 1
+                if length > best["length"]:
+                    best = {
+                        "length": length,
+                        "start_tile": tile_index,
+                        "rom_offset": pos,
+                    }
+        return best
+
+    row_order = list(range(len(tiles)))
+    column_order = [
+        ty * tile_columns + tx
+        for tx in range(tile_columns)
+        for ty in range(tile_rows)
+    ]
+    column_stream = b"".join(tiles[i] for i in column_order)
+
+    return {
+        "distinct_tile_count": len(set(tiles)),
+        "tiles_with_any_rom_match": sum(bool(hits) for hits in hit_lists),
+        "tile_hit_counts": [len(hits) for hits in hit_lists],
+        "tile_hit_samples": [hits[:8] for hits in hit_lists],
+        "row_major_longest_contiguous_run": longest_run(row_order),
+        "column_major_exact_rom_occurrences": all_occurrences(rom, column_stream),
+        "column_major_longest_contiguous_run": longest_run(column_order),
+    }
+
+
 def encode_snes_4bpp_tiles(pixels: list[list[int]]) -> bytes:
     height = len(pixels)
     width = len(pixels[0]) if height else 0
@@ -376,13 +423,18 @@ def main() -> int:
     boot_meta, boot_pixels = decode_indexed_png(args.boot_graphic)
     boot_tiles = encode_snes_4bpp_tiles(boot_pixels)
     boot_occurrences = all_occurrences(rom, boot_tiles)
+    tile_columns = boot_meta["ihdr"]["width"] // 8
+    tile_rows = boot_meta["ihdr"]["height"] // 8
     boot_meta["snes_4bpp"] = {
-        "tile_columns": boot_meta["ihdr"]["width"] // 8,
-        "tile_rows": boot_meta["ihdr"]["height"] // 8,
+        "tile_columns": tile_columns,
+        "tile_rows": tile_rows,
         "tile_count": len(boot_tiles) // 32,
         "encoded_size": len(boot_tiles),
         "encoded_sha256": sha256(boot_tiles),
         "exact_rom_occurrences": boot_occurrences,
+        "tile_analysis": _tile_stream_analysis(
+            rom, boot_tiles, tile_columns, tile_rows
+        ),
     }
     report["boot_graphic_reference"] = boot_meta
     rendered = json.dumps(report, indent=2, sort_keys=True) + "\n"

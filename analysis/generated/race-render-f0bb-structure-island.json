@@ -1,0 +1,221 @@
+{
+  "accepted_caller_edges": [
+    {
+      "callsite": "83:CD7F",
+      "kind": "JSR",
+      "source": "race-frame-orchestrator",
+      "target": "83:F0BB"
+    }
+  ],
+  "boundary_basis": {
+    "entry": "83:F0BB is called directly from the accepted race-frame orchestrator at 83:CD7F.",
+    "exit": "83:F4D1 is RTS; 83:F4D2 begins a distinct helper and F4DA begins text data.",
+    "internal": "83:F296 and 83:F2BB are JSR targets reached from the main routine."
+  },
+  "bounded_bytes": 1047,
+  "island": "RaceRenderF0BB",
+  "next_entry": "83:F4D2",
+  "regions": [
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 218,
+          "aligned_opcode_pairs": 218,
+          "aligned_role_disagreements": 0,
+          "end": "83:F2D9",
+          "opcode_bytes": 218,
+          "operand_bytes": 257,
+          "sha256": "d63112db4899df0ed4062eb85d32f258f6449537a971fdebf1a9b0d8006fff51",
+          "shift": 68,
+          "similarity": 0.936842,
+          "size": 475,
+          "size_delta": 0,
+          "start": "83:F0FF",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 218,
+          "aligned_opcode_pairs": 218,
+          "aligned_role_disagreements": 0,
+          "end": "83:F295",
+          "opcode_bytes": 218,
+          "operand_bytes": 257,
+          "sha256": "c09c4e43d74f29e5f8553301ad3a3cd8383a4279e68e18cb1f2576e22c317b33",
+          "shift": 0,
+          "similarity": 1,
+          "size": 475,
+          "size_delta": 0,
+          "start": "83:F0BB",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 218,
+          "aligned_opcode_pairs": 218,
+          "aligned_role_disagreements": 0,
+          "end": "83:F2B5",
+          "opcode_bytes": 218,
+          "operand_bytes": 257,
+          "sha256": "4a5d82af675d5fa97e91cf7c538cf67e37c897892c0c038fb69f5b8883a4782b",
+          "shift": 32,
+          "similarity": 0.962105,
+          "size": 475,
+          "size_delta": 0,
+          "start": "83:F0DB",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "83:F295",
+          "opcode_bytes": 218,
+          "operand_bytes": 257,
+          "sha256": "c09c4e43d74f29e5f8553301ad3a3cd8383a4279e68e18cb1f2576e22c317b33",
+          "shift": 0,
+          "similarity": 1,
+          "size": 475,
+          "size_delta": 0,
+          "start": "83:F0BB",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "race_render_body",
+      "size": 475,
+      "usa_end": "83:F295",
+      "usa_start": "83:F0BB"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 23,
+          "aligned_opcode_pairs": 23,
+          "aligned_role_disagreements": 0,
+          "end": "83:F2FE",
+          "opcode_bytes": 23,
+          "operand_bytes": 14,
+          "sha256": "2ac06cd3ae1c8b736685a4d03c7d7ac3a03ae57d0d03ccfdf89d28bc151f3dbf",
+          "shift": 68,
+          "similarity": 1,
+          "size": 37,
+          "size_delta": 0,
+          "start": "83:F2DA",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 23,
+          "aligned_opcode_pairs": 23,
+          "aligned_role_disagreements": 0,
+          "end": "83:F2BA",
+          "opcode_bytes": 23,
+          "operand_bytes": 14,
+          "sha256": "2ac06cd3ae1c8b736685a4d03c7d7ac3a03ae57d0d03ccfdf89d28bc151f3dbf",
+          "shift": 0,
+          "similarity": 1,
+          "size": 37,
+          "size_delta": 0,
+          "start": "83:F296",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 23,
+          "aligned_opcode_pairs": 23,
+          "aligned_role_disagreements": 0,
+          "end": "83:F2DA",
+          "opcode_bytes": 23,
+          "operand_bytes": 14,
+          "sha256": "2ac06cd3ae1c8b736685a4d03c7d7ac3a03ae57d0d03ccfdf89d28bc151f3dbf",
+          "shift": 32,
+          "similarity": 1,
+          "size": 37,
+          "size_delta": 0,
+          "start": "83:F2B6",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "83:F2BA",
+          "opcode_bytes": 23,
+          "operand_bytes": 14,
+          "sha256": "2ac06cd3ae1c8b736685a4d03c7d7ac3a03ae57d0d03ccfdf89d28bc151f3dbf",
+          "shift": 0,
+          "similarity": 1,
+          "size": 37,
+          "size_delta": 0,
+          "start": "83:F296",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "address_decode_helper",
+      "size": 37,
+      "usa_end": "83:F2BA",
+      "usa_start": "83:F296"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 331,
+          "aligned_opcode_pairs": 331,
+          "aligned_role_disagreements": 0,
+          "end": "83:F515",
+          "opcode_bytes": 331,
+          "operand_bytes": 204,
+          "sha256": "8467d4851633489e018ac5b5048520ce87a43ce0d9de740415b13889c84d8d6e",
+          "shift": 68,
+          "similarity": 0.985047,
+          "size": 535,
+          "size_delta": 0,
+          "start": "83:F2FF",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 331,
+          "aligned_opcode_pairs": 331,
+          "aligned_role_disagreements": 0,
+          "end": "83:F4D1",
+          "opcode_bytes": 331,
+          "operand_bytes": 204,
+          "sha256": "befab48359dcc536fc6dcc676f3c9945e7c2c457c6808e73e801bccbcb63ed0a",
+          "shift": 0,
+          "similarity": 1,
+          "size": 535,
+          "size_delta": 0,
+          "start": "83:F2BB",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 331,
+          "aligned_opcode_pairs": 331,
+          "aligned_role_disagreements": 0,
+          "end": "83:F4F1",
+          "opcode_bytes": 331,
+          "operand_bytes": 204,
+          "sha256": "befab48359dcc536fc6dcc676f3c9945e7c2c457c6808e73e801bccbcb63ed0a",
+          "shift": 32,
+          "similarity": 1,
+          "size": 535,
+          "size_delta": 0,
+          "start": "83:F2DB",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "83:F4D1",
+          "opcode_bytes": 331,
+          "operand_bytes": 204,
+          "sha256": "befab48359dcc536fc6dcc676f3c9945e7c2c457c6808e73e801bccbcb63ed0a",
+          "shift": 0,
+          "similarity": 1,
+          "size": 535,
+          "size_delta": 0,
+          "start": "83:F2BB",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "tile_pair_decode_helper",
+      "size": 535,
+      "usa_end": "83:F4D1",
+      "usa_start": "83:F2BB"
+    }
+  ],
+  "schema_version": 1,
+  "usa_end": "83:F4D1",
+  "usa_start": "83:F0BB"
+}

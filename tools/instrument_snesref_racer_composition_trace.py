@@ -11,39 +11,32 @@ MARKER = """			Registers.PCw++;
 SNIPPET = r'''			/* UR-Recomp synchronized racer cache-composition probe. */
 			{
 				uint16 rc_pcw = Registers.PCw;
-				if (Registers.PB == 0x83 && rc_pcw == 0xF292)
+				if (Registers.PB == 0x83 && (rc_pcw == 0xF129 || rc_pcw == 0xF292))
 				{
 					unsigned f = (unsigned)ICPU.Frame;
-					bool near_anchor =
-						(f >= 1218 && f <= 1222) ||
-						(f >= 1418 && f <= 1422) ||
-						(f >= 1468 && f <= 1472) ||
-						(f >= 1518 && f <= 1522) ||
-						(f >= 1568 && f <= 1572) ||
-						(f >= 1618 && f <= 1622);
-					if (near_anchor)
+					auto rc_w16 = [](uint16 a) -> uint16 {
+						return (uint16)(Memory.RAM[a] | (Memory.RAM[a + 1] << 8));
+					};
+					fprintf(stderr,
+						"RACERCOMP frame=%u pc=83%04X "
+						"ids=%04X,%04X,%04X,%04X sel=%04X,%04X "
+						"pm=%04X,%04X,%04X,%04X,%04X "
+						"um=%04X,%04X,%04X,%04X,%04X "
+						"off=%04X,%04X,%04X,%04X stage=",
+						f, (unsigned)rc_pcw,
+						(unsigned)rc_w16(0x0FE9), (unsigned)rc_w16(0x0FEB),
+						(unsigned)rc_w16(0x0D3F), (unsigned)rc_w16(0x0D41),
+						(unsigned)rc_w16(0x0C83), (unsigned)rc_w16(0x0C85),
+						(unsigned)rc_w16(0x0000), (unsigned)rc_w16(0x0002),
+						(unsigned)rc_w16(0x0004), (unsigned)rc_w16(0x0006),
+						(unsigned)rc_w16(0x0008),
+						(unsigned)rc_w16(0x000A), (unsigned)rc_w16(0x000C),
+						(unsigned)rc_w16(0x000E), (unsigned)rc_w16(0x0010),
+						(unsigned)rc_w16(0x0012),
+						(unsigned)rc_w16(0x002C), (unsigned)rc_w16(0x002E),
+						(unsigned)rc_w16(0x0018), (unsigned)rc_w16(0x001A));
+					if (rc_pcw == 0xF292)
 					{
-						auto rc_w16 = [](uint16 a) -> uint16 {
-							return (uint16)(Memory.RAM[a] | (Memory.RAM[a + 1] << 8));
-						};
-						fprintf(stderr,
-							"RACERCOMP frame=%u pc=83F292 "
-							"ids=%04X,%04X,%04X,%04X sel=%04X,%04X "
-							"pm=%04X,%04X,%04X,%04X,%04X "
-							"um=%04X,%04X,%04X,%04X,%04X "
-							"off=%04X,%04X,%04X,%04X stage=",
-							f,
-							(unsigned)rc_w16(0x0FE9), (unsigned)rc_w16(0x0FEB),
-							(unsigned)rc_w16(0x0D3F), (unsigned)rc_w16(0x0D41),
-							(unsigned)rc_w16(0x0C83), (unsigned)rc_w16(0x0C85),
-							(unsigned)rc_w16(0x0000), (unsigned)rc_w16(0x0002),
-							(unsigned)rc_w16(0x0004), (unsigned)rc_w16(0x0006),
-							(unsigned)rc_w16(0x0008),
-							(unsigned)rc_w16(0x000A), (unsigned)rc_w16(0x000C),
-							(unsigned)rc_w16(0x000E), (unsigned)rc_w16(0x0010),
-							(unsigned)rc_w16(0x0012),
-							(unsigned)rc_w16(0x002C), (unsigned)rc_w16(0x002E),
-							(unsigned)rc_w16(0x0018), (unsigned)rc_w16(0x001A));
 						for (unsigned i = 0; i < 82; i++)
 						{
 							uint16 q = (uint16)(i * 2);
@@ -56,8 +49,8 @@ SNIPPET = r'''			/* UR-Recomp synchronized racer cache-composition probe. */
 								(unsigned)rc_w16((uint16)(0x1645 + q)),
 								(unsigned)rc_w16((uint16)(0x16E9 + q)));
 						}
-						fprintf(stderr, "\n");
 					}
+					fprintf(stderr, "\n");
 				}
 			}
 '''

@@ -1,0 +1,154 @@
+name: Medal progression chord acceptance
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/analyze_progression_sram_acceptance.py"
+      - "tests/input/medal-progression-chord.script"
+      - "reference/imported/tas-bots/dessyreqt-4250-submission.smv"
+      - "tools/extract_smv_input.py"
+      - ".github/workflows/medal-progression-chord.yml"
+
+concurrency:
+  group: medal-progression-chord-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Extract historical bot input and anchored SRAM
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/extract_smv_input.py \
+            reference/imported/tas-bots/dessyreqt-4250-submission.smv \
+            --input-out "$RUNNER_TEMP/full.input" \
+            --sram-out "$RUNNER_TEMP/start.srm" \
+            --sram-size 8192 \
+            --json-out "$RUNNER_TEMP/smv.json" >/dev/null
+          python3 - "$RUNNER_TEMP/full.input" "$RUNNER_TEMP/first-2874.input" <<'PY'
+          from pathlib import Path
+          import sys
+          from tools.controller_input import load_controller_runs
+          src,out=map(Path,sys.argv[1:])
+          horizon=2874
+          lines=["# Exact historical controller input through first post-race transition."]
+          for run in load_controller_runs(src):
+              if run.start>=horizon: break
+              duration=min(run.duration,horizon-run.start)
+              if duration<=0: continue
+              row=f"{run.start}:{duration}:{run.p1_mask:03x}"
+              if run.p2_mask: row+=f":{run.p2_mask:03x}"
+              lines.append(row)
+          out.write_text("\n".join(lines)+"\n")
+          PY
+          test "$(stat -c%s "$RUNNER_TEMP/start.srm")" -eq 8192
+
+      - name: Build reference harness and Snes9x core
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          test -x .tools/src/snesrecomp/build-snesref/snesref
+
+      - name: Replay first race and invoke stock medal shortcut
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DUMPS="$RUNNER_TEMP/run-dumps"
+          mkdir -p "$DUMPS"
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SRAM_IN="$RUNNER_TEMP/start.srm" \
+          SNESREF_INPUT_FILE="$RUNNER_TEMP/first-2874.input" \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/medal-progression-chord.script" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" | tee "$RUNNER_TEMP/run.log"
+          BEFORE="$(find "$DUMPS" -maxdepth 1 -type f -name 'medal-chord-before*sram*' -print -quit)"
+          AFTER="$(find "$DUMPS" -maxdepth 1 -type f -name 'medal-chord-after*sram*' -print -quit)"
+          test -n "$BEFORE"
+          test -n "$AFTER"
+          cp "$BEFORE" "$RUNNER_TEMP/before.srm"
+          cp "$AFTER" "$RUNNER_TEMP/after.srm"
+
+      - name: Reload emitted SRAM in fresh reference process
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DUMPS="$RUNNER_TEMP/reload-dumps"
+          mkdir -p "$DUMPS"
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SRAM_IN="$RUNNER_TEMP/after.srm" \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/sram-roundtrip.script" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" | tee "$RUNNER_TEMP/reload.log"
+          RELOAD="$(find "$DUMPS" -maxdepth 1 -type f -name 'sram-roundtrip*sram*' -print -quit)"
+          test -n "$RELOAD"
+          cp "$RELOAD" "$RUNNER_TEMP/reload.srm"
+
+      - name: Assert progression and checksum survive reload
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/analyze_progression_sram_acceptance.py \
+            --before "$RUNNER_TEMP/before.srm" \
+            --after "$RUNNER_TEMP/after.srm" \
+            --reload "$RUNNER_TEMP/reload.srm" \
+            --require-medal \
+            --out analysis/generated/medal-progression-chord-acceptance.json
+
+      - name: Persist compact acceptance evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add analysis/generated/medal-progression-chord-acceptance.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Record progression SRAM acceptance evidence"
+          git fetch origin "$GITHUB_REF_NAME"
+          git rebase "origin/$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"
+
+      - name: Upload transient SRAM evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: medal-progression-chord-acceptance
+          path: |
+            ${{ runner.temp }}/smv.json
+            ${{ runner.temp }}/before.srm
+            ${{ runner.temp }}/after.srm
+            ${{ runner.temp }}/reload.srm
+            ${{ runner.temp }}/run.log
+            ${{ runner.temp }}/reload.log
+            analysis/generated/medal-progression-chord-acceptance.json
+          retention-days: 7

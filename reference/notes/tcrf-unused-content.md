@@ -6,11 +6,13 @@ This intake preserves the externally published files as **reference evidence**, 
 
 ## Preserved artifacts
 
-Expected repository paths after the one-shot intake workflow completes:
+Repository paths retained by this intake:
 
 - `reference/imported/tcrf/Uniracers-Decomp.png` — unused boot graphics containing the text `used by decomp`.
-- `reference/imported/tcrf/Uniracers1.ogg` — TCRF unused song 1.
-- `reference/imported/tcrf/Uniracers2.ogg` — TCRF unused song 2.
+- `reference/imported/tcrf/Uniracers1.ogg` — preferred upstream TCRF unused song 1 when the one-shot upstream fetch succeeds.
+- `reference/imported/tcrf/Uniracers2.ogg` — preferred upstream TCRF unused song 2 when the one-shot upstream fetch succeeds.
+- `reference/imported/tcrf/user-supplied-transcodes/Uniracers1.ogg.mp3` — user-supplied MP3 derivative retained for provenance/reference, not canonical audio evidence.
+- `reference/imported/tcrf/user-supplied-transcodes/Uniracers2.ogg.mp3` — user-supplied MP3 derivative retained for provenance/reference, not canonical audio evidence.
 - `reference/imported/audio/Uniracers.sf2` — Musical Artifacts artifact 8387, a fan-made Uniracers SoundFont supplied separately by the user.
 
 The intake workflow records exact upstream SHA-256 values in the imported-corpus manifest. The user-supplied copies seen in chat had these hashes:
@@ -20,7 +22,7 @@ The intake workflow records exact upstream SHA-256 values in the imported-corpus
 - `Uniracers1.ogg.mp3`: `2d604a47c06fddbbbad53f064c289faa07e454182be7597f9bdd3ae364e95173`
 - `Uniracers2.ogg.mp3`: `00cd6be4330ffb503fd5726858734a2ebf5e16825ae2424d3e580ca25c06711e`
 
-The two chat audio copies are MP3 transcodes/wrappers; preserve the upstream TCRF OGG files in Git instead of treating those chat derivatives as canonical.
+The two chat audio copies are MP3 transcodes/wrappers. They are preserved under `user-supplied-transcodes/` so the supplied evidence is not lost, but the upstream TCRF OGG files remain the preferred canonical reference whenever acquired.
 
 ## Claims to reconcile locally
 
@@ -51,3 +53,7 @@ TCRF's reported title-screen PAR patches therefore serve as independent corrobor
 ## Rights/provenance posture
 
 TCRF page text is CC BY 3.0 unless otherwise noted by the site. Media embedded on the page may retain separate underlying rights. Musical Artifacts metadata and hosted files likewise have file-specific licensing. All imported binaries here are quarantined research references pending any separate redistribution/shipping review.
+
+## Manual duplicate cleanup
+
+The root-level `Uniracers_USA.pdf` supplied alongside this intake was byte-identical to the already preserved `reference/imported/manuals/Uniracers-USA-manual.pdf` (Git blob `a52da4f94a75e3e76fd61a759cb8e0c3a4fbc5d3`, SHA-256 `50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235`). The duplicate root copy was removed; the existing archived manual remains authoritative.

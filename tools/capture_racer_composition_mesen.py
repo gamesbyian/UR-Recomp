@@ -169,6 +169,14 @@ def main() -> int:
         "p2_companion": u16(pre, 0x0D41),
     }
     selectors = {"p1": u16(pre, 0x0C83), "p2": u16(pre, 0x0C85)}
+    companion_gate_words = {
+        "p1": u16(pre, 0x0D1B),
+        "p2": u16(pre, 0x0D1D),
+    }
+    companion_enabled = {
+        "p1": companion_gate_words["p1"] != 0,
+        "p2": companion_gate_words["p2"] != 0,
+    }
     frames = {name: extract_frame(rom, fid) for name, fid in ids.items()}
     composed = compose_racer_staging(
         frames["p1_primary"],
@@ -177,17 +185,20 @@ def main() -> int:
         frames["p2_companion"],
         p1_selector=selectors["p1"],
         p2_selector=selectors["p2"],
+        p1_companion_enabled=companion_enabled["p1"],
+        p2_companion_enabled=companion_enabled["p2"],
     )
 
     actual_primary = [f"0x{u16(pre, 0x00 + 2*i):04X}" for i in range(5)]
     actual_companion = [f"0x{u16(pre, 0x0A + 2*i):04X}" for i in range(5)]
     mask_checks = {
         "primary_exact": actual_primary == composed["primary_row_masks"],
-        "companion_exact": actual_companion == composed["companion_row_masks"],
+        "companion_raw_exact": actual_companion == composed["companion_row_masks_raw"],
         "actual_primary": actual_primary,
         "expected_primary": composed["primary_row_masks"],
-        "actual_companion": actual_companion,
-        "expected_companion": composed["companion_row_masks"],
+        "actual_companion_raw": actual_companion,
+        "expected_companion_raw": composed["companion_row_masks_raw"],
+        "expected_companion_effective": composed["companion_row_masks"],
     }
 
     descriptors = []
@@ -243,6 +254,8 @@ def main() -> int:
         },
         "ids": {k: f"0x{v:04X}" for k, v in ids.items()},
         "selectors": selectors,
+        "companion_gate_words": {k: f"0x{v:04X}" for k, v in companion_gate_words.items()},
+        "companion_enabled": companion_enabled,
         "mask_checks": mask_checks,
         "staging": {
             "descriptor_count": len(descriptors),
@@ -261,7 +274,8 @@ def main() -> int:
         f"IDs: {report['ids']}",
         f"Selectors: {selectors}",
         f"Primary masks exact: {mask_checks['primary_exact']}",
-        f"Companion masks exact: {mask_checks['companion_exact']}",
+        f"Companion masks exact before F12B/F140 gates: {mask_checks['companion_raw_exact']}",
+        f"Companion gates: {report['companion_gate_words']} -> {companion_enabled}",
         (
             "Occupied staging sources exact: "
             f"{exact}/{len(occupied)}; destinations present {destinations}/{len(occupied)}"

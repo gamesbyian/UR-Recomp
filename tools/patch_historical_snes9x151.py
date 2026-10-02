@@ -48,6 +48,26 @@ text = text.replace(old_ctor, new_ctor, 1)
 
 path.write_text(text)
 
+lua_engine = Path("lua-engine.cpp")
+lua_text = lua_engine.read_text()
+old_refresh = """	// And run it right now. :)
+	S9xLuaFrameBoundary();
+	S9xReRefresh();
+
+	// We're done."""
+new_refresh = """	// And run it right now. :)
+	S9xLuaFrameBoundary();
+	// The command-line -loadlua path can execute before the Unix/X11 display
+	// has created a valid XImage. Refreshing here then enters XPutImage with
+	// uninitialized presentation state. The refresh is presentation-only; omit
+	// this one eager refresh for deterministic headless movie playback.
+	// S9xReRefresh();
+
+	// We're done."""
+if old_refresh not in lua_text:
+    raise SystemExit("S9xLoadLuaCode eager-refresh compatibility site not found")
+lua_engine.write_text(lua_text.replace(old_refresh, new_refresh, 1))
+
 cpu = Path("cpuexec.cpp")
 cpu_text = cpu.read_text()
 old_trace = """		//S9xUnpackStatus();
@@ -62,4 +82,4 @@ if old_trace not in cpu_text:
     raise SystemExit("non-debug trace compatibility site not found")
 cpu.write_text(cpu_text.replace(old_trace, new_trace, 1))
 
-print("patched historical Snes9x build seams for modern GCC without changing emulation semantics")
+print("patched historical Snes9x build/compiler and pre-display Lua refresh seams without changing emulation semantics")

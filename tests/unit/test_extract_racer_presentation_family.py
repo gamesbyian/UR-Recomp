@@ -141,7 +141,7 @@ class RacerPresentationRoundTripTests(unittest.TestCase):
             frame("30000000", (0xAA00, 0xBB00)),
             p2_companion_enabled=False,
         )
-        self.assertEqual(result["companion_row_masks_raw"][0], "0x00C0")
+        self.assertEqual(result["companion_row_masks_raw"][0], "0x0030")
         self.assertEqual(result["companion_row_masks"][0], "0x0000")
         self.assertFalse(result["companion_enabled"]["p2"])
         p2_cells = result["cells"][8:14]

@@ -44,6 +44,19 @@ class TcrfUnusedContentTests(unittest.TestCase):
         rom[table:table + tcrf.TRACK_TYPE_TABLE_LENGTH] = bytes(range(tcrf.TRACK_TYPE_TABLE_LENGTH))
         rom[table + tcrf.TRACK_TYPE_TABLE_LENGTH:table + tcrf.TRACK_TYPE_TABLE_LENGTH + 4] = bytes.fromhex("08c22048")
 
+        anti_copy = tcrf.lorom_to_file(*tcrf.ANTI_PIRACY_COPY_CPU)
+        rom[anti_copy:anti_copy + 24] = bytes.fromhex(
+            "a20000a00500bf0080839f000077e8e88810f3000000000000"
+        )
+        anti_compare = tcrf.lorom_to_file(*tcrf.ANTI_PIRACY_COMPARE_CPU)
+        rom[anti_compare:anti_compare + 24] = bytes.fromhex(
+            "a20000a00500bf000077df008083d007e8e88810f100000000"
+        )
+        anti_wipe = tcrf.lorom_to_file(*tcrf.ANTI_PIRACY_WIPE_CPU)
+        rom[anti_wipe:anti_wipe + 20] = bytes.fromhex(
+            "c230a90000a2fe1f9f000077caca10f860000000"
+        )
+
         report = tcrf.analyze(bytes(rom))
         self.assertTrue(report["claims"]["bank_83_8000_mapping"]["matches_reported_version_offset"])
         self.assertTrue(report["claims"]["version_string"]["starts_with_ASJIver3_30"])
@@ -64,6 +77,13 @@ class TcrfUnusedContentTests(unittest.TestCase):
         self.assertTrue(error["track_type_indexed_load"]["matches_lda_long_x_83a254"])
         self.assertEqual(error["track_type_table"]["hidden_tail_5_values"], [45, 46, 47, 48, 49])
         self.assertTrue(error["track_type_table"]["next_bytes_form_plausible_php_rep_prologue"])
+        guard = report["claims"]["sram_integrity_guard"]
+        self.assertTrue(guard["initial_copy"]["contains_source_load"])
+        self.assertTrue(guard["initial_copy"]["contains_sram_store"])
+        self.assertTrue(guard["later_compare"]["contains_sram_load"])
+        self.assertTrue(guard["later_compare"]["contains_rom_compare"])
+        self.assertTrue(guard["later_compare"]["branches_on_mismatch"])
+        self.assertTrue(guard["mismatch_target"]["wipes_full_8kib_sram"])
 
 
 if __name__ == "__main__":

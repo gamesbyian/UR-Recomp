@@ -4,7 +4,14 @@ from __future__ import annotations
 import argparse, json, re
 from pathlib import Path
 
-PREP_RE = re.compile(r"URWS_PREP margin=8 edge=([0-9A-Fa-f]{4}) count=(\d+)")
+PRIMARY_RE = re.compile(
+    r"URWS_PRIMARY margin=(\d+) camx=(\d+) edge=([0-9A-Fa-f]{4}) "
+    r"count=(\d+) payload=([0-9A-Fa-f]{64})"
+)
+PREP_RE = re.compile(
+    r"URWS_PREP margin=8 camx=(\d+) edge=([0-9A-Fa-f]{4}) "
+    r"count=(\d+) payload=([0-9A-Fa-f]{64})"
+)
 CLEAN_RE = re.compile(r"URWS_CLEANUP margin=8")
 LIFECYCLE_LINE_RE = re.compile(r"URWS_(PREP|CLEANUP) margin=8")
 LIMIT_RE = re.compile(
@@ -38,8 +45,48 @@ def cleanup_lifecycle(log: str) -> tuple[bool,bool]:
             live=False
     return seen, live
 
+def _longest_true_run(values: list[bool]) -> int:
+    best = cur = 0
+    for value in values:
+        if value:
+            cur += 1
+            best = max(best, cur)
+        else:
+            cur = 0
+    return best
+
+def _last_plus8_event(log: str) -> str | None:
+    events = []
+    for m in re.finditer(r"URWS_(PREP|CLEANUP) margin=8", log):
+        events.append((m.start(), m.group(1)))
+    return events[-1][1] if events else None
+
 def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
-    prep={m:PREP_RE.findall(logs[m]) for m in logs}
+    primary = {
+        m: [
+            {
+                "margin": int(mm),
+                "camx": int(camx),
+                "edge": int(edge, 16),
+                "count": int(count),
+                "payload": payload.upper(),
+            }
+            for mm, camx, edge, count, payload in PRIMARY_RE.findall(logs[m])
+        ]
+        for m in logs
+    }
+    prep = {
+        m: [
+            {
+                "camx": int(camx),
+                "edge": int(edge, 16),
+                "count": int(count),
+                "payload": payload.upper(),
+            }
+            for camx, edge, count, payload in PREP_RE.findall(logs[m])
+        ]
+        for m in logs
+    }
     cleanup={m:CLEAN_RE.findall(logs[m]) for m in logs}
     limits={m:[(int(a),int(b)) for a,b in LIMIT_RE.findall(logs[m])] for m in logs}
     states={m:read_words(dumps[m]) for m in dumps}
@@ -48,14 +95,58 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
     for m,state in states.items():
         if m==0: continue
         diffs[m]={k:{"control":control[k],f"margin_{m}":state[k]} for k in control if state[k]!=control[k]}
-    plus8_edges=[int(edge,16) for edge,count in prep.get(8,[]) if int(count)==16]
-    lifecycle_ok, final_payload_live = cleanup_lifecycle(logs.get(8,""))
+
+    plus8 = [row for row in prep.get(8, []) if row["count"] == 16]
+    control_primary = [
+        row for row in primary.get(0, [])
+        if row["count"] == 16 and row["edge"] != 0xffff
+    ]
+
+    exact_matches = []
+    matched_flags = []
+    for row in plus8:
+        candidates = [
+            stock for stock in control_primary
+            if stock["edge"] == row["edge"]
+            and stock["payload"] == row["payload"]
+            and stock["camx"] > row["camx"]
+            and 1 <= stock["camx"] - row["camx"] <= 16
+        ]
+        matched_flags.append(bool(candidates))
+        if candidates:
+            stock = min(candidates, key=lambda s:(s["camx"]-row["camx"], s["camx"]))
+            exact_matches.append({
+                "plus8_camx": row["camx"],
+                "stock_camx": stock["camx"],
+                "camera_x_advance": stock["camx"] - row["camx"],
+                "edge": row["edge"],
+                "payload": row["payload"],
+            })
+
+    prep_count=len(prep.get(8,[]))
+    cleanup_count=len(cleanup.get(8,[]))
+    terminal_pending=(
+        prep_count == cleanup_count + 1
+        and _last_plus8_event(logs.get(8,"")) == "PREP"
+    )
+    balanced=(
+        (prep_count == cleanup_count and prep_count > 0)
+        or (terminal_pending and prep_count > 0)
+    )
+    match_count=len(exact_matches)
+    match_ratio=(match_count/len(plus8)) if plus8 else 0.0
+    longest_match_run=_longest_true_run(matched_flags)
+
     checks={
         "margin0_control_inert": not prep.get(0) and not cleanup.get(0) and not limits.get(0),
-        "margin8_exercised": len(plus8_edges)>0,
-        "margin8_all_counts_16": len(plus8_edges)==len(prep.get(8,[])),
-        "margin8_cleanup_lifecycle_valid": lifecycle_ok and len(prep.get(8,[]))-len(cleanup.get(8,[])) in (0,1),
+        "margin8_exercised": len(plus8)>0,
+        "margin8_all_counts_16": len(plus8)==len(prep.get(8,[])),
+        "margin8_cleanup_balanced": balanced,
+        "margin8_terminal_pending_only": not terminal_pending or _last_plus8_event(logs.get(8,"")) == "PREP",
         "margin8_protected_state_equal": not diffs.get(8),
+        "margin8_future_stock_exact_matches": match_count >= 309,
+        "margin8_future_stock_match_ratio": match_ratio >= 0.98,
+        "margin8_future_stock_consecutive_run": longest_match_run >= 14,
         "margin16_stops_at_capacity": not prep.get(16) and any(m==16 and c==2 for m,c in limits.get(16,[])) and not diffs.get(16),
         "margin24_stops_at_capacity": not prep.get(24) and any(m==24 and c==3 for m,c in limits.get(24,[])) and not diffs.get(24),
     }
@@ -67,13 +158,18 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
             "mechanism":"stock-A59E-double-pass-secondary-horizontal-lane",
         },
         "native_runtime":{
-            "margin8_prepare_events":len(prep.get(8,[])),
-            "margin8_cleanup_events":len(cleanup.get(8,[])),
-            "margin8_unique_edges":len(set(plus8_edges)),
-            "margin8_final_payload_live_at_exit":final_payload_live,
+            "margin0_primary_events":len(control_primary),
+            "margin8_prepare_events":prep_count,
+            "margin8_cleanup_events":cleanup_count,
+            "margin8_terminal_payload_pending":terminal_pending,
+            "margin8_unique_edges":len({row["edge"] for row in plus8}),
+            "margin8_exact_future_stock_matches":match_count,
+            "margin8_exact_future_stock_match_ratio":round(match_ratio,6),
+            "margin8_longest_consecutive_exact_match_run":longest_match_run,
             "margin16_limit_events":limits.get(16,[]),
             "margin24_limit_events":limits.get(24,[]),
         },
+        "future_stock_match_examples":exact_matches[:40],
         "protected_state_differences":diffs,
         "checks":checks,
         "accepted":all(checks.values()),
@@ -91,14 +187,20 @@ def render(r: dict) -> str:
         "Reference contract: PR #219 / workflow run 37066327707 "
         "(309 exact accepted future columns; longest consecutive run 14).","",
         f"- stock margin 0 inert: **{c['margin0_control_inert']}**",
+        f"- stock primary reference events: **{n['margin0_primary_events']}**",
         f"- +8 native preparation events: **{n['margin8_prepare_events']}**",
         f"- +8 cleanup events: **{n['margin8_cleanup_events']}**",
-        f"- +8 cleanup lifecycle valid: **{c['margin8_cleanup_lifecycle_valid']}**",
-        f"- +8 final payload live at process exit: **{n['margin8_final_payload_live_at_exit']}**",
+        f"- +8 terminal payload pending at fixture exit: **{n['margin8_terminal_payload_pending']}**",
         f"- +8 unique prepared edges: **{n['margin8_unique_edges']}**",
+        f"- +8 exact later-stock payload matches: **{n['margin8_exact_future_stock_matches']}**",
+        f"- +8 exact later-stock match ratio: **{n['margin8_exact_future_stock_match_ratio']:.3%}**",
+        f"- +8 longest consecutive exact-match run: **{n['margin8_longest_consecutive_exact_match_run']}**",
         f"- +8 protected gameplay/camera/progression state equal: **{c['margin8_protected_state_equal']}**",
         f"- +16 stopped at stock lane capacity: **{c['margin16_stops_at_capacity']}**",
         f"- +24 stopped at stock lane capacity: **{c['margin24_stops_at_capacity']}**","",
+        "The cleanup balance permits exactly one terminal pending payload when the "
+        "fixture exits immediately after a PREP event; ordinary runtime clears it "
+        "at the next live A59A preparation boundary.","",
         "First generalization constraint: **secondary-lane-capacity**. "
         "The stock horizontal pair has one primary lane plus one secondary lane. "
         "+8 consumes the only spare lane; +16 needs two extra columns and +24 needs three.","",

@@ -38,7 +38,19 @@ def recorded_events(path:Path)->list[dict]:
         if not line or line.startswith("#"):
             continue
         f=line.split("\t")
-        # Native dumps use: frame, line, addr, value, source.\n        # Patched snesref dumps use: frame, vcounter, hcounter, addr, value, source.\n        if len(f) >= 6:\n            addr_index, value_index = 3, 4\n        elif len(f) >= 5:\n            addr_index, value_index = 2, 3\n        else:\n            continue\n        try: value=int(f[value_index],16)\n        except ValueError: continue\n        rows.append((f[addr_index].upper(),value))
+        # Native dumps use: frame, line, addr, value, source.
+        # Patched snesref dumps use: frame, vcounter, hcounter, addr, value, source.
+        if len(f) >= 6:
+            addr_index, value_index = 3, 4
+        elif len(f) >= 5:
+            addr_index, value_index = 2, 3
+        else:
+            continue
+        try:
+            value=int(f[value_index],16)
+        except ValueError:
+            continue
+        rows.append((f[addr_index].upper(),value))
     out=[]
     for i in range(len(rows)-3):
         regs=[rows[i+j][0] for j in range(4)]

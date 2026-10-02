@@ -63,22 +63,44 @@ jobs:
             >/dev/null
           python3 - <<'PY'
           import json
+          import os
+          from pathlib import Path
+          from tools.analyze_racer_piece_render_binding import object_nonzero_grid
+
           fam=json.load(open("analysis/generated/racer-presentation-family.json"))
           frames={f["frame_id_hex"]:f for f in fam["frames"]}
-          import os
           binding=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-piece-binding.json")))
+          dump_dir=Path(os.environ["RUNNER_TEMP"]) / "ordinary-2p" / "native-dumps"
           checked=0
+          full_grid_checks=0
           for cp in binding["checkpoints"]:
               for player in cp["players"]:
                   frame=frames.get(player["frame_id"])
                   if not frame: continue
                   by_index={p["word_index"]:p for p in frame["pieces"]}
                   for spatial in player["spatial_binding"]:
-                      for b in spatial.get("piece_vram_bindings",[]):
+                      pieces=spatial.get("piece_vram_bindings",[])
+                      for b in pieces:
                           assert by_index[b["word_index"]]["source_tile"]["source_sha256"] == b["tile_sha256"]
                           checked += 1
+                      if pieces:
+                          slot=next(s for s in player["large_oam_slots"] if s["slot"] == spatial["slot"])
+                          vram=(dump_dir / f"{cp['checkpoint']}.vram.bin").read_bytes()
+                          actual=object_nonzero_grid(vram, cp["obsel"], slot)
+                          expected=[[False] * 8 for _ in range(8)]
+                          for b in pieces:
+                              expected[b["object_tile_grid_y"]][b["object_tile_grid_x"]]=True
+                          assert actual == expected, {
+                              "checkpoint": cp["checkpoint"],
+                              "player": player["player"],
+                              "frame": player["frame_id"],
+                              "actual": actual,
+                              "expected": expected,
+                          }
+                          full_grid_checks += 1
           assert checked >= 28, checked
-          print(f"validated {checked} source tiles byte-for-byte against retained VRAM")
+          assert full_grid_checks >= 2, full_grid_checks
+          print(f"validated {checked} source tiles and {full_grid_checks} complete 64x64 tile grids against retained VRAM")
           PY
       - name: Generalize across distinct retained racer states
         run: |

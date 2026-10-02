@@ -28,6 +28,21 @@ class PreparationEmissionTests(unittest.TestCase):
             [(0x5678,0xC3,0xD4),(0x1234,0xA1,0xB2)],
         )
 
+    def test_recorded_events_recognizes_snesref_ppu_shape(self):
+        with tempfile.TemporaryDirectory() as td:
+            p=Path(td)/"x.tsv"
+            p.write_text(
+                "1\t12\t34\t2116\t78\tcpu\n"
+                "1\t12\t35\t2117\t56\tcpu\n"
+                "1\t12\t36\t2118\tC3\tcpu\n"
+                "1\t12\t37\t2119\tD4\tcpu\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                MOD.recorded_events(p),
+                [{"destination":0x5678,"write_2118":0xC3,"write_2119":0xD4}],
+            )
+
     def test_recorded_events_recognizes_exact_ppu_shape(self):
         with tempfile.TemporaryDirectory() as td:
             p=Path(td)/"x.tsv"

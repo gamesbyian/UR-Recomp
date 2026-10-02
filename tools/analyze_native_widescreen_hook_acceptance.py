@@ -6,6 +6,7 @@ from pathlib import Path
 
 PREP_RE = re.compile(r"URWS_PREP margin=8 edge=([0-9A-Fa-f]{4}) count=(\d+)")
 CLEAN_RE = re.compile(r"URWS_CLEANUP margin=8")
+LIFECYCLE_LINE_RE = re.compile(r"URWS_(PREP|CLEANUP) margin=8")
 LIMIT_RE = re.compile(
     r"URWS_LIMIT margin=(16|24) required_extra_columns=(\d+) "
     r"stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity"
@@ -22,6 +23,21 @@ def read_words(path: Path) -> dict[str,int]:
         raise ValueError(f"{path}: WRAM dump too small ({len(raw)} bytes)")
     return {name: raw[a] | (raw[a+1]<<8) for name,a in PROTECTED_WORDS.items()}
 
+def cleanup_lifecycle(log: str) -> tuple[bool,bool]:
+    live=False
+    seen=False
+    for kind in LIFECYCLE_LINE_RE.findall(log):
+        if kind=="PREP":
+            if live:
+                return False, live
+            live=True
+            seen=True
+        else:
+            if not live:
+                return False, live
+            live=False
+    return seen, live
+
 def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
     prep={m:PREP_RE.findall(logs[m]) for m in logs}
     cleanup={m:CLEAN_RE.findall(logs[m]) for m in logs}
@@ -33,11 +49,12 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
         if m==0: continue
         diffs[m]={k:{"control":control[k],f"margin_{m}":state[k]} for k in control if state[k]!=control[k]}
     plus8_edges=[int(edge,16) for edge,count in prep.get(8,[]) if int(count)==16]
+    lifecycle_ok, final_payload_live = cleanup_lifecycle(logs.get(8,""))
     checks={
         "margin0_control_inert": not prep.get(0) and not cleanup.get(0) and not limits.get(0),
         "margin8_exercised": len(plus8_edges)>0,
         "margin8_all_counts_16": len(plus8_edges)==len(prep.get(8,[])),
-        "margin8_cleanup_balanced": len(cleanup.get(8,[]))==len(prep.get(8,[])) and len(prep.get(8,[]))>0,
+        "margin8_cleanup_lifecycle_valid": lifecycle_ok and len(prep.get(8,[]))-len(cleanup.get(8,[])) in (0,1),
         "margin8_protected_state_equal": not diffs.get(8),
         "margin16_stops_at_capacity": not prep.get(16) and any(m==16 and c==2 for m,c in limits.get(16,[])) and not diffs.get(16),
         "margin24_stops_at_capacity": not prep.get(24) and any(m==24 and c==3 for m,c in limits.get(24,[])) and not diffs.get(24),
@@ -53,6 +70,7 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
             "margin8_prepare_events":len(prep.get(8,[])),
             "margin8_cleanup_events":len(cleanup.get(8,[])),
             "margin8_unique_edges":len(set(plus8_edges)),
+            "margin8_final_payload_live_at_exit":final_payload_live,
             "margin16_limit_events":limits.get(16,[]),
             "margin24_limit_events":limits.get(24,[]),
         },

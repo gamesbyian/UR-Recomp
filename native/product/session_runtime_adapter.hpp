@@ -10,15 +10,17 @@ enum class RuntimeDispatchStatus : std::uint8_t {
     Applied = 0,
     UnsupportedAction = 1,
     MissingHook = 2,
+    RejectedByRuntime = 3,
 };
 
-struct PauseRuntimeHooks {
+struct SessionRuntimeHooks {
     void (*set_paused)(int paused) = nullptr;
     int (*is_paused)(void) = nullptr;
+    bool (*restart_race)(void) = nullptr;
 };
 
 RuntimeDispatchStatus dispatch_runtime_action(
     RuntimeAction action,
-    const PauseRuntimeHooks& hooks) noexcept;
+    const SessionRuntimeHooks& hooks) noexcept;
 
 }  // namespace ur::product

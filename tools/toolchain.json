@@ -519,7 +519,7 @@
         },
         {
           "path": "tools/patches/snesrecomp-session-pause.patch",
-          "sha256": "5709524c0ae9378aff8e430dd03c5a4cb959c998e72c72ade909e7bb7a378c22"
+          "sha256": "12b3c6b3936a27c7f006380cfa40df9be5087fa809db99a2354b6cccd6f9b923"
         }
       ]
     }

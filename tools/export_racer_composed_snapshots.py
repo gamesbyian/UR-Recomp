@@ -69,6 +69,11 @@ def export_snapshots(
         }
         frames = {name: extract_frame(rom, fid) for name, fid in ids.items()}
         selectors = {"p1": u16(wram, 0x0C83), "p2": u16(wram, 0x0C85)}
+        companion_gate_words = {"p1": u16(wram, 0x0D1B), "p2": u16(wram, 0x0D1D)}
+        companion_enabled = {
+            "p1": companion_gate_words["p1"] != 0,
+            "p2": companion_gate_words["p2"] != 0,
+        }
         composition = compose_racer_staging(
             frames["p1_primary"],
             frames["p2_primary"],
@@ -76,6 +81,8 @@ def export_snapshots(
             frames["p2_companion"],
             p1_selector=selectors["p1"],
             p2_selector=selectors["p2"],
+            p1_companion_enabled=companion_enabled["p1"],
+            p2_companion_enabled=companion_enabled["p2"],
         )
         replay = cp.get("composition_replay") or {}
 
@@ -128,6 +135,10 @@ def export_snapshots(
                     k: frame_provenance(v) for k, v in frames.items()
                 },
                 "selectors": selectors,
+                "companion_gate_words": {
+                    k: f"0x{v:04X}" for k, v in companion_gate_words.items()
+                },
+                "companion_enabled": companion_enabled,
                 "palette_asset_id": f"0x{palette_asset:02X}",
                 "palette_formula": "0x06 + player color selector",
                 "player_color_selector_address": (

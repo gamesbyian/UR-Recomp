@@ -28,6 +28,7 @@ DEFAULT_SOURCES = (
     ("course-sector-gather", "analysis/generated/course-sector-gather-structure-island.json", False),
     ("ec46-coordinate-window", "analysis/generated/ec46-coordinate-window-structure-island.json", False),
     ("race-state-980d", "analysis/generated/race-state-980d-structure-island.json", False),
+    ("race-loop-e580-control", "analysis/generated/race-loop-e580-control-structure-island.json", False),
 )
 
 def build(root: Path) -> dict:

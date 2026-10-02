@@ -100,7 +100,7 @@ def analyze_rows(control_rows: list[dict], plus8_rows: list[dict]) -> tuple[dict
         sig = signature(widened["descriptor"])
         future = [
             control for control in control_by_sig.get(sig, [])
-            if control["camera_x"] >= widened["camera_x"]
+            if control["camera_x"] > widened["camera_x"]
         ]
         if not future:
             continue

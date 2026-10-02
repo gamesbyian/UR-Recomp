@@ -104,17 +104,20 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
 
     exact_matches = []
     matched_flags = []
+    future_stock_candidates = 0
     for row in plus8:
         candidates = [
             stock for stock in control_primary
             if stock["edge"] == row["edge"]
-            and stock["payload"] == row["payload"]
             and stock["camx"] > row["camx"]
             and 1 <= stock["camx"] - row["camx"] <= 16
         ]
-        matched_flags.append(bool(candidates))
         if candidates:
-            stock = min(candidates, key=lambda s:(s["camx"]-row["camx"], s["camx"]))
+            future_stock_candidates += 1
+        exact = [stock for stock in candidates if stock["payload"] == row["payload"]]
+        matched_flags.append(bool(exact))
+        if exact:
+            stock = min(exact, key=lambda s:(s["camx"]-row["camx"], s["camx"]))
             exact_matches.append({
                 "plus8_camx": row["camx"],
                 "stock_camx": stock["camx"],
@@ -134,7 +137,7 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
         or (terminal_pending and prep_count > 0)
     )
     match_count=len(exact_matches)
-    match_ratio=(match_count/len(plus8)) if plus8 else 0.0
+    match_ratio=(match_count/future_stock_candidates) if future_stock_candidates else 0.0
     longest_match_run=_longest_true_run(matched_flags)
 
     checks={
@@ -162,6 +165,7 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
             "margin8_cleanup_events":cleanup_count,
             "margin8_terminal_payload_pending":terminal_pending,
             "margin8_unique_edges":len({row["edge"] for row in plus8}),
+            "margin8_future_stock_candidates":future_stock_candidates,
             "margin8_exact_future_stock_matches":match_count,
             "margin8_exact_future_stock_match_ratio":round(match_ratio,6),
             "margin8_longest_consecutive_exact_match_run":longest_match_run,
@@ -191,6 +195,7 @@ def render(r: dict) -> str:
         f"- +8 cleanup events: **{n['margin8_cleanup_events']}**",
         f"- +8 terminal payload pending at fixture exit: **{n['margin8_terminal_payload_pending']}**",
         f"- +8 unique prepared edges: **{n['margin8_unique_edges']}**",
+        f"- +8 future-stock candidates: **{n['margin8_future_stock_candidates']}**",
         f"- +8 exact later-stock payload matches: **{n['margin8_exact_future_stock_matches']}**",
         f"- +8 exact later-stock matches / all prep attempts (diagnostic only): **{n['margin8_exact_future_stock_match_ratio']:.3%}**",
         f"- +8 longest consecutive exact-match run: **{n['margin8_longest_consecutive_exact_match_run']}**",

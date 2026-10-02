@@ -195,6 +195,39 @@ def _insert_before_first_function(text: str, block: str) -> str:
     return text[:match.start()] + block + "\n\n" + text[match.start():]
 
 
+def _insert_before_postcall_variant_split(text: str, start_pc: int, end_pc: int, snippet: str) -> str:
+    hits = _trace_hits(text)
+    starts = hits.get(start_pc, [])
+    ends = hits.get(end_pc, [])
+    if len(starts) != 1 or not ends:
+        raise ValueError(
+            f"post-call region not exact: start={len(starts)} end={len(ends)}"
+        )
+    start = starts[0]
+    end = min(pos for pos in ends if pos > start)
+    region = text[start:end]
+    anchor = "switch (((cpu->m_flag & 1) << 1) | (cpu->x_flag & 1)) {"
+    positions = []
+    off = 0
+    while True:
+        rel = region.find(anchor, off)
+        if rel < 0:
+            break
+        positions.append(rel)
+        off = rel + len(anchor)
+    if len(positions) < 2:
+        raise ValueError(
+            f"expected call dispatch plus post-call variant split, found {len(positions)}"
+        )
+    pos = start + positions[-1]
+    line_start = text.rfind("\n", 0, pos) + 1
+    indent = re.match(r"[ \t]*", text[line_start:pos]).group(0)
+    rendered = "\n".join(
+        indent + line if line else line for line in snippet.splitlines()
+    ) + "\n"
+    return text[:pos] + rendered + text[pos:]
+
+
 def _insert_after_deadline_guard(text: str, pc: int, snippet: str) -> str:
     hits = _trace_hits(text).get(pc, [])
     if len(hits) != 1:
@@ -254,7 +287,6 @@ def apply(gen_dir: Path) -> dict:
 
     required = [
         PCS["wrapper_after_first_helper"],
-        PCS["wrapper_after_descriptor_builder"],
     ]
     hits = _trace_hits(wrapper_text)
     missing = [f"{pc:06X}" for pc in required if len(hits.get(pc, [])) != 1]
@@ -280,8 +312,12 @@ def apply(gen_dir: Path) -> dict:
     wrapper_text = wrapper_text[:stage_match.start()] + stage_replacement + wrapper_text[stage_match.end():]
     wrapper_text = _insert_after_deadline_guard(
         wrapper_text, PCS["wrapper_after_first_helper"], SECOND_PASS)
-    wrapper_text = _insert_after_deadline_guard(
-        wrapper_text, PCS["wrapper_after_descriptor_builder"], AFTER_BUILDER)
+    wrapper_text = _insert_before_postcall_variant_split(
+        wrapper_text,
+        PCS["wrapper_after_first_helper"],
+        PCS["wrapper_after_descriptor_builder"],
+        AFTER_BUILDER,
+    )
     wrapper.write_text(wrapper_text, encoding="utf-8")
 
     nmi_text = nmi.read_text(encoding="utf-8")

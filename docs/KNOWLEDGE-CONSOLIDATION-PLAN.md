@@ -177,3 +177,7 @@ A later pass can expand claim extraction and progression-specific normalization 
 ## Initial pass closeout — 2026-10-02
 
 The initial consolidation pass is complete and protected by unit tests. The query layer now contains the full 45-course corpus, normalized promoted state semantics with regional racer relations, semantic-function/structural-census joins, the first reusable presentation family, and an initial atomic claim surface. The first inference audit consumed these files successfully and exposed one representation bug during validation: low mirror ROM code banks from the symbol ledger must be canonicalized to their high CPU mirrors before structural joins. That normalization is now part of the builder.
+
+## Second pass closeout — 2026-10-02
+
+A second consolidation pass corrected canonical course stream identity by reconciling decoded header coordinates, the complete historical landmark corpus, and SRAM progression row order. It also attached all 45 historical landmarks to course records, normalized the progression model, and enriched state data with paired-racer leads, regional motion clusters, and reconciled Nitrodon semantics. The key maintenance lesson is that player-facing order, storage order, and historical tool track IDs are separate coordinate systems and must never be joined by ordinal position without an explicit mapping.

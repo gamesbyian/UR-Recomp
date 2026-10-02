@@ -18,7 +18,7 @@ TARGETS={
     "piece_selector_stage":0x15A1,
     "piece_position_stage":0x16E9,
 }
-SEEDS=("83:F0BB","83:F2BB","82:ACA5","82:D197")
+SEEDS=("83:F0BB","83:F2BB","82:ACA5","82:D197","82:B8E3","82:C53E")
 RAW_OPS={
     0xAD:"LDA abs",0xBD:"LDA abs,X",0xB9:"LDA abs,Y",
     0x8D:"STA abs",0x9D:"STA abs,X",0x99:"STA abs,Y",
@@ -104,6 +104,20 @@ def decoded_contexts(rom:bytes,refs:dict)->dict:
             contexts[name].append({"reference":row,"context":ins})
     return contexts
 
+
+def consumer_clusters(rom:bytes)->list[dict]:
+    d=trace(rom)
+    seed_entries(d,[cpu_to_offset(x) for x in SEEDS])
+    clusters=[]
+    for start_cpu,end_cpu in (("82:B8C0","82:B940"),("82:C51B","82:C59B")):
+        start=cpu_to_offset(start_cpu); end=cpu_to_offset(end_cpu)+1
+        d.decode(start,end)
+        rows=[]
+        for off,ins in d.code.item_range(start,end):
+            rows.append({"cpu":offset_to_cpu(off),"text":ins.text(),"bytes":rom[off:off+d.opSize(rom[off])].hex(" ")})
+        clusters.append({"start":start_cpu,"end":end_cpu,"rows":rows})
+    return clusters
+
 def main()->int:
     ap=argparse.ArgumentParser()
     ap.add_argument("rom",type=Path)
@@ -115,7 +129,8 @@ def main()->int:
     d=trace(rom); seed_entries(d,[cpu_to_offset(x) for x in SEEDS])
     raw=raw_references(rom,d)
     ctx=decoded_contexts(rom,refs)
-    report={"schema_version":2,"targets":{k:f"0x{v:04X}" for k,v in TARGETS.items()},"references":refs,"raw_operand_candidates":raw,"contexts":ctx}
+    clusters=consumer_clusters(rom)
+    report={"schema_version":3,"targets":{k:f"0x{v:04X}" for k,v in TARGETS.items()},"references":refs,"raw_operand_candidates":raw,"contexts":ctx,"consumer_clusters":clusters}
     md=["# Racer staging-array executable references",""]
     for name,target in TARGETS.items():
         md += [f"## {name} (\`0x{target:04X}\`)","",f"Executable references: **{len(refs[name])}**.",f"Raw plausible operand references: **{len(raw[name])}**.",""]
@@ -129,6 +144,13 @@ def main()->int:
             for x in block["context"]:
                 md.append(f"    {x['cpu']}  {x['text']}")
             md.append("")
+    md += ["## Candidate consumer clusters",""]
+    for cl in clusters:
+        md.append(f"### {cl['start']}..{cl['end']}")
+        md.append("")
+        for row in cl["rows"]:
+            md.append(f"    {row['cpu']}  {row['text']}    ; {row['bytes']}")
+        md.append("")
     text="\n".join(md)+"\n"
     js=json.dumps(report,indent=2,sort_keys=True)+"\n"
     if args.json_out:

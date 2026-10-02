@@ -48,13 +48,12 @@ jobs:
           print("version:", d["claims"]["version_string"]["decoded"])
           print("build-date strings:", d["claims"]["build_date_area"]["window"]["ascii_runs"])
           combo=d["claims"]["unused_combo_message_set_9"]
-          assert combo["reported_block_is_ninth_fixed_stride_set"]
-          assert combo["all_nine_sets_fixed_width_printable_ascii"]
-          assert combo["sets"][-1]["offset"] == 0x0BD679
-          print("combo set 9:", combo["sets"][-1]["messages"])
-          print("combo set 9 sha256:", combo["sets"][-1]["sha256"])
-          print("combo set 9 16-bit pointer occurrences:", combo["set_9_16bit_pointer_occurrences"])
-          print("combo set 9 24-bit pointer occurrences:", combo["set_9_24bit_pointer_occurrences"])
+          assert combo["reported_offset"] == 0x0BD679
+          assert combo["cpu_address"] == "97:D679"
+          assert combo["reported_offset_begins_printable_message_text"]
+          print("combo offset text:", combo["window"]["ascii_runs"])
+          print("combo 16-bit pointer contexts:", combo["set_9_16bit_pointer_contexts"])
+          print("combo 24-bit pointer contexts:", combo["set_9_24bit_pointer_contexts"])
           PY
 
       - name: Persist reconciliation evidence

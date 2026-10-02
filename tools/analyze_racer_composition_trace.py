@@ -10,7 +10,7 @@ from pathlib import Path
 from extract_racer_presentation_family import extract_frame, packed_word_source
 
 LINE_RE = re.compile(
-    r"RACERCOMP frame=(?P<frame>\d+) pc=83(?P<pc>[0-9A-F]{4}) "
+    r"RACERCOMP frame=(?P<frame>\d+) bank=(?P<bank>[0-9A-F]{2}) pc=(?P<pc>[0-9A-F]{4}) "
     r"ids=(?P<ids>[0-9A-F,]+) sel=(?P<sel>[0-9A-F,]+) "
     r"pm=(?P<pm>[0-9A-F,]+) um=(?P<um>[0-9A-F,]+) "
     r"off=(?P<off>[0-9A-F,]+) stage=(?P<stage>.*)$"
@@ -154,6 +154,7 @@ def main() -> int:
             continue
         raw.append({
             "frame": int(m.group("frame")),
+            "bank": int(m.group("bank"), 16),
             "pc": int(m.group("pc"), 16),
             "ids": parse_hex_list(m.group("ids")),
             "selectors": parse_hex_list(m.group("sel")),

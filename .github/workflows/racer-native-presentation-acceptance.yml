@@ -78,7 +78,7 @@ jobs:
           mkdir -p "$DUMPS"
 
           set +e
-          SNESRECOMP_DUMP_DIR="$DUMPS" INPUT_FILE="$INPUT" SDL_AUDIODRIVER=dummy \
+          SNESRECOMP_DUMP_DIR="$DUMPS" SNESRECOMP_INPUT_FILE="$INPUT" SDL_AUDIODRIVER=dummy \
             timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1
           STATUS=$?
           set -e

@@ -1,0 +1,19 @@
+name: Course sector gather probe
+on:
+  push:
+    branches:
+      - chatgpt/course-sector-gather-island-2026-10-01
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m unittest tests.unit.test_analyze_course_sector_gather_structure_island -v
+      - run: python3 tools/analyze_course_sector_gather_structure_island.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: course-sector-gather-island
+          path: |
+            analysis/generated/course-sector-gather-structure-island.json
+            analysis/generated/course-sector-gather-structure-island.md
+          if-no-files-found: error

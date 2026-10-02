@@ -16,6 +16,8 @@ from pathlib import Path
 FRAME_TABLE = 0x208000
 FRAME_BANK_BASE = 0x23
 FRAME_IDS = (0x0540, 0x0542, 0x0544, 0x057E)
+RACE_RENDER_START = 0x83F0BB
+RACE_RENDER_END = 0x83F295
 RENDERER_START = 0x83F2BB
 RENDERER_END = 0x83F4D1
 
@@ -105,6 +107,7 @@ def main() -> int:
     rom = args.rom.read_bytes()
     frames = [frame_record(rom, fid) for fid in FRAME_IDS]
     byid = {x["frame_id"]: x for x in frames}
+    race_render = read_linear(rom, RACE_RENDER_START, RACE_RENDER_END - RACE_RENDER_START + 1)
     renderer = read_linear(rom, RENDERER_START, RENDERER_END - RENDERER_START + 1)
     report = {
         "schema_version": 1,
@@ -115,6 +118,13 @@ def main() -> int:
             compare(byid["0x0542"], byid["0x0544"]),
             compare(byid["0x0540"], byid["0x057E"]),
         ],
+        "race_render_body": {
+            "start": "83:F0BB",
+            "end": "83:F295",
+            "length": len(race_render),
+            "sha256": hashlib.sha256(race_render).hexdigest(),
+            "hex": race_render.hex(),
+        },
         "renderer": {
             "start": "83:F2BB",
             "end": "83:F4D1",

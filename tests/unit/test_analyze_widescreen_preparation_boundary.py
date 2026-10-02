@@ -50,13 +50,13 @@ class WidescreenPreparationBoundaryTests(unittest.TestCase):
 
     def test_parser_accepts_multiple_observations_in_one_physical_line(self):
         sample=(
-            "WSBND frame=1188 v=48 cycles=1 pc=81A53E op=EA "
+            "WSBND frame=1188 v=48 cycles=1 pc=81A53E op=EA b1=00 b2=00 "
             "a=0064 x=0000 y=0000 d=0000 p=0000 "
             "camx=100 camy=20 camdx=8 camdy=0 edgex=10 edgex2=20 edgey=30 edgey2=40 cnt=0,0,0,0\\n"
-            "WSBND frame=1188 v=48 cycles=2 pc=81A541 op=29 "
+            "WSBND frame=1188 v=48 cycles=2 pc=81A541 op=29 b1=00 b2=00 "
             "a=006C x=0000 y=0000 d=0000 p=0000 "
             "camx=108 camy=20 camdx=8 camdy=0 edgex=10 edgex2=20 edgey=30 edgey2=40 cnt=0,0,0,0\\n"
-            "WSBND frame=1188 v=48 cycles=3 pc=81A59A op=20 "
+            "WSBND frame=1188 v=48 cycles=3 pc=81A59A op=20 b1=88 b2=AB "
             "a=006C x=0000 y=0000 d=0000 p=0000 "
             "camx=108 camy=20 camdx=8 camdy=0 edgex=11 edgex2=20 edgey=30 edgey2=40 cnt=1,0,0,0"
         )

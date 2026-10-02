@@ -26,6 +26,10 @@ CFG_ENTRY = """
 func WidescreenPrepareWrapper A52F
 """.lstrip()
 
+EXTRA_BANK = 2
+EXTRA_ADDR = "D2" + "D1"
+EXTRA_NAME = "WidescreenPostConsume"
+
 def _append_once(path: Path, marker: str, entry: str, *, prefix: str = "") -> bool:
     text = path.read_text(encoding="utf-8") if path.exists() else prefix
     if marker in text:

@@ -1,0 +1,33 @@
+name: Racer piece semantics probe
+
+on:
+  push:
+    branches:
+      - chatgpt/racer-piece-semantics-2026-10-02
+    paths:
+      - "tools/analyze_racer_piece_semantics.py"
+      - "tests/unit/test_analyze_racer_piece_semantics.py"
+      - ".github/workflows/racer-piece-semantics.yml"
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Unit tests
+        run: python3 -m unittest tests.unit.test_analyze_racer_piece_semantics -v
+      - name: Inspect racer frame records and renderer bytes
+        run: |
+          python3 tools/analyze_racer_piece_semantics.py             "reference/roms/retail/Uniracers_USA.sfc"             --output analysis/generated/racer-piece-semantics-probe.json             | tee racer-piece-semantics-probe.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: racer-piece-semantics-probe
+          path: |
+            analysis/generated/racer-piece-semantics-probe.json
+            racer-piece-semantics-probe.txt
+          retention-days: 7
+          if-no-files-found: error

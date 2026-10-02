@@ -36,7 +36,26 @@ std::optional<RacerOamPlacement> build_placement(
     std::uint8_t pair,
     std::uint8_t obsel
 ) noexcept {
-    return build_placement(slot, xlo, y, tile, attr, pair, obsel);
+    const std::uint16_t x =
+        static_cast<std::uint16_t>(
+            xlo | ((pair & 0x01) != 0 ? 0x100 : 0x000)
+        );
+    const bool large = (pair & 0x02) != 0;
+    const SizePair sizes = kSizePairs[(obsel >> 5) & 0x07];
+
+    RacerOamPlacement out{};
+    out.slot = slot;
+    out.x_raw_9bit = x;
+    out.x_signed = static_cast<std::int16_t>(x >= 256 ? x - 512 : x);
+    out.y_raw_8bit = y;
+    out.tile = tile;
+    out.attr = attr;
+    out.hflip = (attr & 0x40) != 0;
+    out.vflip = (attr & 0x80) != 0;
+    out.large = large;
+    out.width_pixels = large ? sizes.large_w : sizes.small_w;
+    out.height_pixels = large ? sizes.large_h : sizes.small_h;
+    return out;
 }
 
 std::optional<RacerOamPlacement> decode_racer_ppu_placement(
@@ -89,26 +108,7 @@ std::optional<RacerOamPlacement> decode_racer_oam_placement(
         static_cast<std::uint8_t>(
             (oam[0x200 + slot / 4] >> ((slot % 4) * 2)) & 0x03
         );
-    const std::uint16_t x =
-        static_cast<std::uint16_t>(
-            xlo | ((pair & 0x01) != 0 ? 0x100 : 0x000)
-        );
-    const bool large = (pair & 0x02) != 0;
-    const SizePair sizes = kSizePairs[(obsel >> 5) & 0x07];
-
-    RacerOamPlacement out{};
-    out.slot = slot;
-    out.x_raw_9bit = x;
-    out.x_signed = static_cast<std::int16_t>(x >= 256 ? x - 512 : x);
-    out.y_raw_8bit = y;
-    out.tile = tile;
-    out.attr = attr;
-    out.hflip = (attr & 0x40) != 0;
-    out.vflip = (attr & 0x80) != 0;
-    out.large = large;
-    out.width_pixels = large ? sizes.large_w : sizes.small_w;
-    out.height_pixels = large ? sizes.large_h : sizes.small_h;
-    return out;
+    return build_placement(slot, xlo, y, tile, attr, pair, obsel);
 }
 
 }  // namespace ur::presentation

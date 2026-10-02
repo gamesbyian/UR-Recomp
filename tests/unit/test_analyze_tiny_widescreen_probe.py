@@ -40,7 +40,7 @@ class TinyWidescreenProbeAnalyzerTests(unittest.TestCase):
         ]
         self.assertEqual(
             classify_margin(rows),
-            "cadence-aligned-transient-contact-only",
+            "host-presentation-cadence-transient-contact-only",
         )
 
     def test_trajectory_difference_remains_hard_failure(self):

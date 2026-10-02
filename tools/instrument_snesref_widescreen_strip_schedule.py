@@ -31,6 +31,10 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 					const char *m = getenv("URRECOMP_WS_MODE");
 					return m && strcmp(m, "count32") == 0;
 				}();
+				static bool ur_ws_secondary = []() -> bool {
+					const char *m = getenv("URRECOMP_WS_MODE");
+					return m && strcmp(m, "secondary") == 0;
+				}();
 				static uint16 ur_ws_saved_count_x = 0;
 				static bool ur_ws_count_patched = false;
 				static int ur_ws_x_delta = []() -> int {
@@ -39,6 +43,9 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 				}();
 				static uint16 ur_ws_saved_x = 0;
 				static bool ur_ws_x_patched = false;
+				static uint16 ur_ws_saved_edge2 = 0;
+				static uint16 ur_ws_saved_count2 = 0;
+				static bool ur_ws_secondary_patched = false;
 				static bool ur_ws_bias_a = []() -> bool {
 					const char *t = getenv("URRECOMP_WS_BIAS_TARGET");
 					return t && (t[0] == 'A' || t[0] == 'a');
@@ -156,7 +163,8 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 						(unsigned)ICPU.Frame, ur_ws_bias_a ? 'A' : 'W');
 				}
 
-				if (ur_ws_margin == 8 && !ur_ws_count32 && ur_ws_x_delta == 0 &&
+				if (ur_ws_margin == 8 && !ur_ws_count32 && !ur_ws_secondary &&
+				    ur_ws_x_delta == 0 &&
 				    Registers.PB == 0x81 && ur_ws_pcw == ur_ws_hook_pc)
 				{
 					if (ur_ws_bias_a)
@@ -189,6 +197,29 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 					ur_ws_x_patched = false;
 				}
 
+				/* Secondary-lane discriminator: leave the stock primary column
+				   untouched and ask AB88 to materialize the adjacent ring column
+				   through the otherwise-idle secondary horizontal edge/count pair. */
+				if (ur_ws_margin == 8 && ur_ws_secondary &&
+				    Registers.PB == 0x81 && ur_ws_pcw == 0xA59A &&
+				    !ur_ws_secondary_patched)
+				{
+					uint16 edge = ur_ws_w16(0x0505);
+					uint16 count = ur_ws_w16(0x052B);
+					if (edge != 0xffff && count == 16)
+					{
+						ur_ws_saved_edge2 = ur_ws_w16(0x0509);
+						ur_ws_saved_count2 = ur_ws_w16(0x052F);
+						uint16 next_edge = (uint16)(0x0180 + ((edge - 0x0180 + 1) & 0x001f));
+						ur_ws_set16(0x0509, next_edge);
+						ur_ws_set16(0x052F, 16);
+						ur_ws_secondary_patched = true;
+						fprintf(stderr,
+							"WSSECONDARY frame=%u primary=%04X secondary=%04X count=16\n",
+							(unsigned)ICPU.Frame, (unsigned)edge, (unsigned)next_edge);
+					}
+				}
+
 				/* Count-only discriminator: widen the already-prepared horizontal
 				   demand after A59E returns, then restore it after AB88. */
 				if (ur_ws_margin == 8 && ur_ws_count32 &&
@@ -206,6 +237,12 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 				}
 
 				/* A59D is reached after the A59A JSR to the proven strip builder. */
+				if (Registers.PB == 0x81 && ur_ws_pcw == 0xA59D && ur_ws_secondary_patched)
+				{
+					ur_ws_set16(0x0509, ur_ws_saved_edge2);
+					ur_ws_set16(0x052F, ur_ws_saved_count2);
+					ur_ws_secondary_patched = false;
+				}
 				if (Registers.PB == 0x81 && ur_ws_pcw == 0xA59D && ur_ws_count_patched)
 				{
 					ur_ws_set16(0x052B, ur_ws_saved_count_x);

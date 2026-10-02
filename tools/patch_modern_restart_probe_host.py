@@ -148,18 +148,18 @@ def patch_cmake_text(source: str) -> str:
     if marker in source:
         return source
 
-    match = re.search(r"add_executable\\(([^\\s\\)]+)", source)
+    match = re.search(r"add_executable\(([^\s\)]+)", source)
     if not match:
         raise ValueError("generated CMake target anchor not found")
 
     target = match.group(1)
     return (
         source.rstrip()
-        + "\\n\\n"
+        + "\n\n"
         + marker
-        + "\\n"
+        + "\n"
         + f'target_sources({target} PRIVATE '
-        + '"\${SNESRECOMP_ROOT}/runner/src/netplay/snes_state_digest.c")\\n'
+        + '"${SNESRECOMP_ROOT}/runner/src/netplay/snes_state_digest.c")\n'
     )
 
 def main() -> int:

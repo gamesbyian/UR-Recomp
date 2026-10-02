@@ -12094,6 +12094,41 @@
         ]
       }
     },
+    "sram_integrity_guard": {
+      "initial_copy": {
+        "bytes_hex": "a20000a00500bf0080839f000077e8e88810f3a20000a003",
+        "contains_source_load": true,
+        "contains_sram_store": true,
+        "contains_word_count_6_minus_1": true,
+        "cpu_address": "83:94A8",
+        "file_offset": 103592
+      },
+      "interpretation": "Initialization copies six 16-bit words (12 bytes) from ROM 83:8000 to SRAM 77:0000. A later guard compares the same six words and calls 83:FAC0/83:FAC4 on mismatch; that routine zero-fills SRAM offsets 0x0000..0x1FFF in 16-bit steps. This confirms the integrity guard and destructive SRAM response statically, without executing the path.",
+      "later_compare": {
+        "branches_on_mismatch": true,
+        "bytes_hex": "a20000a00500bf000077df008083d007e8e88810f1286022",
+        "contains_rom_compare": true,
+        "contains_sram_load": true,
+        "contains_word_count_6_minus_1": true,
+        "cpu_address": "80:8C5D",
+        "file_offset": 3165
+      },
+      "mismatch_target": {
+        "bytes_hex": "c230a90000a2fe1f9f000077caca10f860001827",
+        "cpu_address": "83:FAC4",
+        "decrements_x_by_two": true,
+        "file_offset": 129732,
+        "loops_while_nonnegative": true,
+        "sets_zero": true,
+        "starts_at_sram_offset_0x1ffe": true,
+        "stores_to_77_0000_x": true,
+        "wipes_full_8kib_sram": true
+      },
+      "signature_bytes": 12,
+      "signature_source_cpu": "83:8000",
+      "signature_sram_cpu": "77:0000",
+      "signature_words": 6
+    },
     "unused_combo_message_set_9": {
       "backscan_0x800_plus_window": {
         "ascii_runs": [

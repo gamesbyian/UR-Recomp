@@ -47,6 +47,10 @@ jobs:
               for p in hits:
                   d=p.read_bytes()
                   print("OAM",tag,str(p.relative_to(root)), "len",len(d),"high218",f"{d[0x218]:02X}")
+                  wr=(p.parent/f"{tag}.wram.bin").read_bytes() if (p.parent/f"{tag}.wram.bin").exists() else None
+                  if wr is not None:
+                      vals=[wr[o] | (wr[o+1]<<8) for o in (0x0200,0x0202,0x0204,0x0206,0x0FE9,0x0FEB)]
+                      print(" FRAME_INPUTS",tag,[f"{v:04X}" for v in vals],"mode0C83",f"{wr[0x0C83]:02X}","mode0C85",f"{wr[0x0C85]:02X}")
                   for s in range(96,100):
                       q=s*4
                       x,y,tile,attr=d[q:q+4]

@@ -123,7 +123,7 @@ class RacerPresentationRoundTripTests(unittest.TestCase):
         self.assertEqual(result["final_word_cursors"]["p1_companion"], 2)
         self.assertEqual(
             [cell["staged_vram_word"] for cell in first_row],
-            [0x6000 + i * 0x10 for i in range(14)],
+            [0x6010 + i * 0x10 for i in range(14)],
         )
 
     def test_4bpp_tile_roundtrip(self):

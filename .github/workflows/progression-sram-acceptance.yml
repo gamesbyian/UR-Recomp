@@ -6,7 +6,7 @@ on:
     paths:
       - "tools/analyze_progression_sram_acceptance.py"
       - "tests/input/progression-sram-acceptance.script"
-      - "references/imported/tas-bots/dessyreqt-4250-submission.smv"
+      - "reference/imported/tas-bots/dessyreqt-4250-submission.smv"
       - "tools/extract_smv_input.py"
       - ".github/workflows/progression-sram-acceptance.yml"
 
@@ -39,7 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/extract_smv_input.py \
-            references/imported/tas-bots/dessyreqt-4250-submission.smv \
+            reference/imported/tas-bots/dessyreqt-4250-submission.smv \
             --input-out "$RUNNER_TEMP/full.input" \
             --sram-out "$RUNNER_TEMP/start.srm" \
             --sram-size 8192 \

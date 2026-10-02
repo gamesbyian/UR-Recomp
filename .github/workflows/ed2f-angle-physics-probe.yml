@@ -1,0 +1,20 @@
+name: ED2F angle physics probe
+on:
+  push:
+    branches:
+      - chatgpt/ed2f-angle-physics-2026-10-01
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/analyze_angle_physics_ed2f_structure_island.py
+      - run: python3 -m unittest tests.unit.test_analyze_angle_physics_ed2f_structure_island -v
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ed2f-angle-physics-island
+          path: |
+            analysis/generated/angle-physics-ed2f-structure-island.json
+            analysis/generated/angle-physics-ed2f-structure-island.md
+          if-no-files-found: error

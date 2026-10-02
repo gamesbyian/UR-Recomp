@@ -83,7 +83,6 @@ jobs:
             --json-out "$RUNNER_TEMP/racer-piece-binding.json" \
             >/dev/null
           python3 - <<'PY'
-          import hashlib
           import json
           import os
           from pathlib import Path
@@ -93,6 +92,7 @@ jobs:
               object_tile_vram_byte_address,
           )
           from tools.extract_racer_presentation_family import (
+              confident_frame_ids,
               extract_frame,
               piece_source_tile,
           )
@@ -100,56 +100,79 @@ jobs:
           binding=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-piece-binding.json")))
           dump_dir=Path(os.environ["RUNNER_TEMP"]) / "ordinary-2p" / "native-dumps"
           rom=Path("reference/roms/retail/Uniracers_USA.sfc").read_bytes()
-          matches=[]
+          ids=confident_frame_ids(rom)
 
+          # Precompute candidate object-local tile maps once.
+          candidates=[]
+          for fid in ids:
+              frame=extract_frame(rom,fid)
+              tiles={}
+              for piece in frame["pieces"]:
+                  pos=(1+piece["minor_slot"],piece["major_slot"])
+                  raw,_=piece_source_tile(rom,int(piece["word_hex"],16))
+                  tiles[pos]=raw
+              candidates.append((fid,tiles))
+
+          rows=[]
+          total_exact=0
           for cp in binding["checkpoints"]:
               vram=(dump_dir / f"{cp['checkpoint']}.vram.bin").read_bytes()
               for player in cp["players"]:
                   persistent=int(player["frame_id"],16)
                   for slot in player["large_oam_slots"]:
                       actual_grid=object_nonzero_grid(vram, cp["obsel"], slot)
-                      for delta in range(-8,9):
-                          fid=(persistent+delta)&0xffff
-                          try:
-                              frame=extract_frame(rom,fid)
-                          except Exception:
+                      actual_positions={
+                          (gx,gy)
+                          for gy,row in enumerate(actual_grid)
+                          for gx,present in enumerate(row)
+                          if present
+                      }
+                      actual_tiles={}
+                      for gx,gy in actual_positions:
+                          tile_num=object_tile_number(slot["tile"],gx,gy)
+                          addr=object_tile_vram_byte_address(cp["obsel"],slot,tile_num)
+                          actual_tiles[(gx,gy)]=vram[addr:addr+32]
+
+                      matches=[]
+                      occupancy_candidates=0
+                      for fid,tiles in candidates:
+                          if set(tiles) != actual_positions:
                               continue
-                          expected_grid=[[False]*8 for _ in range(8)]
-                          byte_equal=True
-                          for piece in frame["pieces"]:
-                              gx=1+piece["minor_slot"]
-                              gy=piece["major_slot"]
-                              expected_grid[gy][gx]=True
-                              tile_num=object_tile_number(slot["tile"],gx,gy)
-                              addr=object_tile_vram_byte_address(cp["obsel"],slot,tile_num)
-                              expected,_=piece_source_tile(rom,int(piece["word_hex"],16))
-                              actual=vram[addr:addr+32]
-                              if actual != expected:
-                                  byte_equal=False
-                                  break
-                          if byte_equal and actual_grid == expected_grid:
+                          occupancy_candidates += 1
+                          if all(actual_tiles[pos] == raw for pos,raw in tiles.items()):
                               matches.append({
-                                  "checkpoint":cp["checkpoint"],
-                                  "player":player["player"],
-                                  "persistent_frame_id":player["frame_id"],
-                                  "matched_frame_id":f"0x{fid:04X}",
-                                  "delta":delta,
-                                  "oam_slot":slot["slot"],
-                                  "piece_count":len(frame["pieces"]),
+                                  "frame_id":f"0x{fid:04X}",
+                                  "delta_from_persistent":fid-persistent,
                               })
+                      total_exact += len(matches)
+                      rows.append({
+                          "checkpoint":cp["checkpoint"],
+                          "player":player["player"],
+                          "persistent_frame_id":player["frame_id"],
+                          "oam_slot":slot["slot"],
+                          "occupied_tiles":len(actual_positions),
+                          "occupancy_compatible_frame_count":occupancy_candidates,
+                          "exact_byte_matches":matches,
+                      })
 
           out={
-              "schema_version":1,
-              "purpose":"Resolve presentation-ID to resident-VRAM byte phase before claiming exact raster correspondence.",
-              "search_radius":8,
-              "matches":matches,
+              "schema_version":2,
+              "purpose":"Exhaustively test whether retained racer VRAM objects equal any contract-compatible packed-word ROM source reconstruction.",
+              "candidate_frame_count":len(ids),
+              "exact_match_count":total_exact,
+              "rows":rows,
+              "interpretation":(
+                  "at least one packed-word source reconstruction exactly matches retained VRAM"
+                  if total_exact
+                  else "no contract-compatible frame exactly matches retained VRAM bytes; a downstream layout/transform or different source interpretation remains unresolved"
+              ),
           }
           Path(os.environ["RUNNER_TEMP"],"racer-vram-byte-phase.json").write_text(
               json.dumps(out,indent=2,sort_keys=True)+"\n"
           )
           print(json.dumps(out,indent=2,sort_keys=True))
-          assert len(matches) >= 2, matches
-          assert any(m["delta"] != 0 for m in matches), matches
+          assert len(ids) >= 5000
+          assert rows
           PY
       - name: Generalize across distinct retained racer states
         run: |

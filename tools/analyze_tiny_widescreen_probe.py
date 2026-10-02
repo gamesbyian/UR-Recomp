@@ -184,7 +184,7 @@ def classify_margin(rows: list[dict]) -> str:
     deltas = {r["guest_frame_delta"] for r in rows}
     contact_diffs = [r for r in rows if not r["contact_equal"]]
     if len(deltas) == 1 and contact_diffs:
-        return "cadence-aligned-transient-contact-only"
+        return "host-presentation-cadence-transient-contact-only"
     if len(deltas) == 1:
         return "event-relative-match"
     return "event-relative-match-with-variable-host-cadence"
@@ -318,6 +318,14 @@ def main() -> int:
             for name, frame in milestones.items()
             if name in control_milestones
         }
+        earliest_cadence_anchor = next(
+            (
+                {"name": name, "guest_frame_delta": milestone_deltas[name]}
+                for name in ("first_main_menu_until", "race_entered_dump", "finish_probe_start_dump")
+                if milestone_deltas.get(name, 0) != 0
+            ),
+            None,
+        )
         report["results"][str(margin)] = {
             "expected_width": expected_width,
             "classification": classify_margin(rows),
@@ -329,6 +337,11 @@ def main() -> int:
             "constant_guest_frame_delta": len(frame_deltas) == 1,
             "script_milestones": milestones,
             "script_milestone_frame_deltas": milestone_deltas,
+            "earliest_cadence_anchor": earliest_cadence_anchor,
+            "cadence_shift_precedes_race": bool(
+                earliest_cadence_anchor
+                and earliest_cadence_anchor["name"] == "first_main_menu_until"
+            ),
             "all_full_wram_equal": all(r["full_wram_equal"] for r in rows),
             "all_center_256_equal": all(r["center_256_equal"] for r in rows),
             "first_center_regression": first_center,

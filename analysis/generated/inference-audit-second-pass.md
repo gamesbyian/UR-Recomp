@@ -198,3 +198,20 @@ The seven Europe-retail course payloads known to differ from USA also separate c
 - stream 26 (Down+Up) and stream 36 (Vertical) retain dimensions/spawns but append resource `0x22`.
 
 So only two of the seven known PAL course changes alter the high-level resource list. Most regional course differences should be sought in course-local spatial/content data first.
+
+
+## 14. Semantic events are the robust fixture coordinate system
+
+The fixture consolidation reveals a methodological pattern that is now important enough to make explicit.
+
+The strongest reusable deterministic fixtures follow:
+
+```
+semantic state wait → settle/confirm → event-relative samples
+```
+
+Examples include `reach-first-race`, `course-load-timeline`, `race-finish-dragster`, and the object-activation tail fixture.
+
+By contrast, the historical progression scan and older two-player observation fixture still depend primarily on absolute frame counts. Those are useful retained evidence, but they are weaker causal coordinate systems when host presentation can perturb guest cadence.
+
+Future progression and paired-racer acceptance work should therefore first recover a semantic event anchor and only then compare relative offsets. This turns the +8 cadence lesson into a general fixture-design rule rather than a one-off Widescreen exception.

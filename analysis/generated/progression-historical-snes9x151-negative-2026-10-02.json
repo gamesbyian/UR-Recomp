@@ -64,7 +64,7 @@
       "The verified historical movie producing authentic medal awards under its required APU/sound-sync configuration.",
       "The period-compatible Snes9x 1.51 v7.1 path itself."
     ],
-    "next_discriminator": "Replay the same movie in Snes9x 1.51 v7.1 with APU emulation enabled, explicit -soundsync, and host output muted via -mute; accept only a model-valid game-authored medal mutation followed by fresh-process reload.",
+    "next_discriminator": "On the corrected sound-sync replay, retain the five per-tour completion bytes at 77:1075 + 5*tour and count race/circuit/stunt result states. Distinguish failure to satisfy the five-track tour gate from a completed tour that fails to reach the medal writer; accept only a model-valid game-authored medal mutation followed by fresh-process reload.",
     "exact_incompatibility": {
       "status": "identified",
       "cause": "The historical workflow launched Snes9x 1.51 v7.1 with -nosound. In this emulator, -nosound sets Settings.NextAPUEnabled = FALSE. Submission #4250 is verified with sound synchronization enabled, while the movie loader does not restore Settings.SoundSync from the movie flags. The resulting replay therefore disabled APU emulation on a sound-sync-sensitive movie and desynchronized during the first race.",
@@ -81,5 +81,30 @@
       ],
       "note": "-mute suppresses host audio output without disabling APU emulation."
     }
+  },
+  "additional_bounded_run": {
+    "workflow_run_id": 37052833591,
+    "workflow_artifact_id": 11248131185,
+    "head_sha": "ad4de342150f1d32a98a8c84ac27c9c289476e59",
+    "configuration": "period-compatible Snes9x 1.51 v7.1, pre-sound-sync-fix invocation",
+    "baseline_frame": 403,
+    "guest_frame_limit": 100000,
+    "status": "no-medal-mutation",
+    "terminal_state": {
+      "menu": 0,
+      "track": 0,
+      "in_race": 1,
+      "rider": 0,
+      "tour": 0,
+      "race_entries": 7,
+      "race_results_entries": 6,
+      "track_changes": 0,
+      "checksum_valid": true
+    },
+    "interpretation": [
+      "The historical movie was not merely frozen in its first race: six race-results transitions and seven race entries were observed.",
+      "No medal-matrix mutation occurred despite those completed race-result transitions.",
+      "Individual race completion is not sufficient for a medal; stock progression requires all five tracks in a tour to be passed."
+    ]
   }
 }

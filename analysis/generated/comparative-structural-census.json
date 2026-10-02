@@ -104,19 +104,23 @@
       "path": "analysis/generated/race-loop-e7a5-structure-island.json"
     },
     {
+      "id": "race-render-f0bb",
+      "path": "analysis/generated/race-render-f0bb-structure-island.json"
+    },
+    {
       "id": "multiply-b668",
       "path": "analysis/generated/multiply-b668-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 129,
-    "code_regions": 117,
+    "regions": 132,
+    "code_regions": 120,
     "data_regions": 12,
-    "bounded_bytes": 20789,
-    "bounded_code_region_bytes": 19356,
+    "bounded_bytes": 21836,
+    "bounded_code_region_bytes": 20403,
     "bounded_data_region_bytes": 1433,
-    "analyzer_opcode_bytes": 8151,
-    "analyzer_operand_bytes": 11090,
+    "analyzer_opcode_bytes": 8723,
+    "analyzer_operand_bytes": 11565,
     "analyzer_unreached_or_data_bytes": 1548,
     "banks": [
       "81",
@@ -5931,6 +5935,144 @@
           "shift": 0,
           "similarity": 1,
           "size": 233,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "race-render-f0bb",
+      "source_path": "analysis/generated/race-render-f0bb-structure-island.json",
+      "name": "race_render_body",
+      "kind": "code",
+      "usa_start": "83:F0BB",
+      "usa_end": "83:F295",
+      "size": 475,
+      "usa_opcode_bytes": 218,
+      "usa_operand_bytes": 257,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "83:F0FF",
+          "end": "83:F2D9",
+          "shift": 68,
+          "similarity": 0.936842,
+          "size": 475,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "83:F0BB",
+          "end": "83:F295",
+          "shift": 0,
+          "similarity": 1,
+          "size": 475,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "83:F0DB",
+          "end": "83:F2B5",
+          "shift": 32,
+          "similarity": 0.962105,
+          "size": 475,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "83:F0BB",
+          "end": "83:F295",
+          "shift": 0,
+          "similarity": 1,
+          "size": 475,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "race-render-f0bb",
+      "source_path": "analysis/generated/race-render-f0bb-structure-island.json",
+      "name": "address_decode_helper",
+      "kind": "code",
+      "usa_start": "83:F296",
+      "usa_end": "83:F2BA",
+      "size": 37,
+      "usa_opcode_bytes": 23,
+      "usa_operand_bytes": 14,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "83:F2DA",
+          "end": "83:F2FE",
+          "shift": 68,
+          "similarity": 1,
+          "size": 37,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "83:F296",
+          "end": "83:F2BA",
+          "shift": 0,
+          "similarity": 1,
+          "size": 37,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "83:F2B6",
+          "end": "83:F2DA",
+          "shift": 32,
+          "similarity": 1,
+          "size": 37,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "83:F296",
+          "end": "83:F2BA",
+          "shift": 0,
+          "similarity": 1,
+          "size": 37,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "race-render-f0bb",
+      "source_path": "analysis/generated/race-render-f0bb-structure-island.json",
+      "name": "tile_pair_decode_helper",
+      "kind": "code",
+      "usa_start": "83:F2BB",
+      "usa_end": "83:F4D1",
+      "size": 535,
+      "usa_opcode_bytes": 331,
+      "usa_operand_bytes": 204,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "83:F2FF",
+          "end": "83:F515",
+          "shift": 68,
+          "similarity": 0.985047,
+          "size": 535,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "83:F2BB",
+          "end": "83:F4D1",
+          "shift": 0,
+          "similarity": 1,
+          "size": 535,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "83:F2DB",
+          "end": "83:F4F1",
+          "shift": 32,
+          "similarity": 1,
+          "size": 535,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "83:F2BB",
+          "end": "83:F4D1",
+          "shift": 0,
+          "similarity": 1,
+          "size": 535,
           "size_delta": 0
         }
       }

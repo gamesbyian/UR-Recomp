@@ -2,15 +2,6 @@ name: Counterfactual Unused Song 2 APU trace
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - chatgpt/unused-audio-counterfactual-2026-10-02
-    paths:
-      - ".github/workflows/audio-unused-song2-counterfactual.yml"
-      - "tools/patch_unused_audio_counterfactual.py"
-      - "tools/verify_unused_audio_trace.py"
-      - "tools/trace_apu_ports.py"
-      - "tests/input/reach-first-race.script"
 
 permissions:
   contents: read

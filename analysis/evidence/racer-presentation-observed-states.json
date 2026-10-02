@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "source": {
+    "workflow_run": 36948109734,
+    "artifact_id": 11202293294,
+    "artifact_name": "mesence-ordinary-2p-evidence",
+    "fixture": "tests/input/two-player-first-race.input",
+    "engine": "MesenCE"
+  },
+  "checkpoints": [
+    {
+      "checkpoint": "two-player-race-1220",
+      "frame_ids": [
+        1346,
+        1344
+      ],
+      "oam_attrs": [
+        104,
+        102,
+        102,
+        104
+      ]
+    },
+    {
+      "checkpoint": "two-player-race-1420",
+      "frame_ids": [
+        1406,
+        1348
+      ],
+      "oam_attrs": [
+        104,
+        102,
+        102,
+        104
+      ]
+    },
+    {
+      "checkpoint": "two-player-p1-pre-1470",
+      "frame_ids": [
+        1346,
+        1407
+      ],
+      "oam_attrs": [
+        104,
+        102,
+        102,
+        104
+      ]
+    },
+    {
+      "checkpoint": "two-player-p1-post-1520",
+      "frame_ids": [
+        570,
+        1351
+      ],
+      "oam_attrs": [
+        104,
+        102,
+        102,
+        104
+      ]
+    },
+    {
+      "checkpoint": "two-player-p2-post-1570",
+      "frame_ids": [
+        315,
+        580
+      ],
+      "oam_attrs": [
+        40,
+        102,
+        102,
+        40
+      ]
+    },
+    {
+      "checkpoint": "two-player-both-post-1620",
+      "frame_ids": [
+        826,
+        764
+      ],
+      "oam_attrs": [
+        40,
+        102,
+        102,
+        40
+      ]
+    }
+  ]
+}

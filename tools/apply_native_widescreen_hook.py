@@ -78,6 +78,20 @@ static void ur_ws_native_write16(CpuState *cpu, uint16 addr, uint16 value) {
   cpu->ram[(uint16)(addr + 1)] = (uint8)(value >> 8);
 }
 
+static void ur_ws_native_trace_primary(CpuState *cpu) {
+  const uint16 edge = ur_ws_native_read16(cpu, 0x0505);
+  const uint16 count = ur_ws_native_read16(cpu, 0x052b);
+  if (!ur_ws_native_trace() || edge == 0xffff || count != 16)
+    return;
+  fprintf(stderr, "URWS_PRIMARY margin=%d camx=%u edge=%04X count=%u payload=",
+          ur_ws_native_margin(),
+          (unsigned)ur_ws_native_read16(cpu, 0x0419),
+          (unsigned)edge, (unsigned)count);
+  for (unsigned j = 0; j < 32; j++)
+    fprintf(stderr, "%02X", (unsigned)cpu->ram[0x0433 + j]);
+  fprintf(stderr, "\n");
+}
+
 static int ur_ws_native_should_prepare(CpuState *cpu) {
   const int margin = ur_ws_native_margin();
   if (margin == 16 || margin == 24) {
@@ -124,9 +138,14 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
          sizeof(ur_ws_native_future_payload));
   ur_ws_native_payload_live = 1;
 
-  if (ur_ws_native_trace())
-    fprintf(stderr, "URWS_PREP margin=8 edge=%04X count=%u\n",
+  if (ur_ws_native_trace()) {
+    fprintf(stderr, "URWS_PREP margin=8 camx=%u edge=%04X count=%u payload=",
+            (unsigned)ur_ws_native_read16(cpu, 0x0419),
             (unsigned)second_edge, (unsigned)second_count);
+    for (unsigned j = 0; j < 32; j++)
+      fprintf(stderr, "%02X", (unsigned)ur_ws_native_future_payload[j]);
+    fprintf(stderr, "\n");
+  }
 }
 
 static void ur_ws_native_after_builder(CpuState *cpu) {
@@ -154,6 +173,7 @@ static void ur_ws_native_cleanup_previous_payload(CpuState *cpu) {
 '''.strip()
 
 SECOND_PASS = r'''
+    ur_ws_native_trace_primary(cpu);
     ur_ws_native_cleanup_previous_payload(cpu);
     if (ur_ws_native_should_prepare(cpu)) {
       ur_ws_native_begin_second_pass(cpu);

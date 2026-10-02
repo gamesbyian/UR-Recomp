@@ -70,9 +70,32 @@ SPC RAM can retain prior data, so controlled reconstruction remains useful for c
 confirmation, but the package attribution is now strongly evidence-backed rather than a
 three-marker ranking.
 
+## Counterfactual result: 0x3D + 03:FB55 is not sufficient
+
+Run `37067407565` tested the smallest direct reconstruction implied by the package
+correlation: change only the reachable `0x3E` selector byte to `0x3D` while keeping
+its existing `03:FB55` package setup intact.
+
+The patched ROM changed exactly one byte and reached the first-race audio transfer
+successfully. The observed APU-port transcript contained four counter-contiguous
+data segments of 767, 41, 2,120 and 416 bytes. The final two total 2,536 bytes,
+exactly the framed length of the preserved Unused Song 2 record, but they are not
+that record: 2,525 of 2,536 bytes differ, with neither a common prefix nor suffix.
+
+Durable evidence:
+`analysis/generated/audio-unused-song2-fb55-counterfactual-negative-2026-10-02.json`.
+
+This rules out the **one-byte selector substitution** as a sufficient reconstruction.
+It does not invalidate the strong `03:FB55` package-signature correlation; instead it
+shows that additional dormant setup state, sequencing, preloaded APU state or another
+control parameter is required.
+
 ## Next discriminator
 
-Reconstruct `0x3B + 03:FB15` and `0x3D + 03:FB55` in a reference harness and
-compare resulting APU RAM against the preserved unused-song SPCs. Retain
-`0x3B + 03:FC15` as the near-twin-sequence control and `0x3B + 03:FB95` as the
-orphan-table control.
+Do not repeat `0x3D + 03:FB55` unchanged. Prefer either:
+
+1. identify the setup/control-state difference between the preserved Unused Song 2
+   snapshot and the reachable `0x3E + 03:FB55` path; or
+2. run the independent `0x3B + 03:FB15` reconstruction, retaining
+   `0x3B + 03:FC15` as the near-twin-sequence control and `0x3B + 03:FB95` as the
+   orphan-table control.

@@ -21,7 +21,7 @@
    if (snes_rb_probe_armed())
 --- a/runner/src/common_rtl.h
 +++ b/runner/src/common_rtl.h
-@@ -304,6 +304,12 @@
+@@ -304,7 +304,13 @@
   * presentation policy needed to discard stale PCM after fast-forward. */
  void RtlAudioSetFastForward(bool active);
  /* Reset the netplay frame-locked SPC sample accumulator (call on session start). */

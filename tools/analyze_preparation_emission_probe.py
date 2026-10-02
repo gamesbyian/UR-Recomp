@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse,json,re
 from pathlib import Path
 
-TAG_RE=re.compile(r"race-start-active-(\d{3})$")
+TAG_RE=re.compile(r"prep-emission-(\d{3})")
 
 def u16(blob:bytes,addr:int)->int:
     return blob[addr] | (blob[addr+1]<<8)

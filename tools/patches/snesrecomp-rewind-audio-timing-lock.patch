@@ -1,0 +1,36 @@
+--- a/runner/src/common_rtl.c
++++ b/runner/src/common_rtl.c
+@@ -129,10 +129,17 @@
+ #include "netplay/snes_rb_probe.h"
+ #endif
+ 
++static int g_rewind_audio_timing_lock;
++
++void RtlSetRewindAudioTimingLock(bool active) {
++  g_rewind_audio_timing_lock = active ? 1 : 0;
++}
++
+ /* Netplay suppresses the pre-frame wall-clock fallback below. Once frames
+  * begin, every runner uses the same guest-frame/APU coupling, and the audio
+  * callback only consumes samples without advancing emulation. */
+ static int rtl_netplay_locks_audio(void) {
++  if (g_rewind_audio_timing_lock)
++    return 1;
+ #if defined(SNESRECOMP_NET_ROLLBACK)
+   /* An armed rollback probe is held to the same rule: see snes_rb_probe.c. */
+   if (snes_rb_probe_armed())
+--- a/runner/src/common_rtl.h
++++ b/runner/src/common_rtl.h
+@@ -304,6 +304,12 @@
+  * presentation policy needed to discard stale PCM after fast-forward. */
+ void RtlAudioSetFastForward(bool active);
+ /* Reset the netplay frame-locked SPC sample accumulator (call on session start). */
+ void RtlNetplayAudioReset(void);
++/* Keep APU progression guest-frame-owned while a host-owned rewindable
++ * timeline is active. This is the same timing rule used by netplay, run-ahead
++ * and the rollback probe: once the frame loop is running, wall-clock fallback
++ * must not leak host elapsed time into state that may later be restored. */
++void RtlSetRewindAudioTimingLock(bool active);
+ bool RtlUploadSpcImageFromDp(CpuState *cpu);
+ bool RtlUploadSpcImageFromDpLive(CpuState *cpu);
+ bool RtlRunFrame(uint32 inputs);

@@ -165,6 +165,7 @@ jobs:
           git push origin "HEAD:$GITHUB_REF_NAME"
 
       - name: Upload captured evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: historical-first-medal
@@ -175,5 +176,6 @@ jobs:
             /tmp/first-medal.srm
             /tmp/first-medal.txt
             /tmp/reload.srm
+            /tmp/reload.log
             analysis/generated/progression-sram-acceptance.json
           retention-days: 7

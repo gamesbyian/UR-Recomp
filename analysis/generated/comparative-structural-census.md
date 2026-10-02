@@ -2,9 +2,9 @@
 
 This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **103** (95 code, 8 data)
-- bounded bytes: **15094** (13949 code-region bytes, 1145 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **5911**
+- bounded regions: **107** (97 code, 10 data)
+- bounded bytes: **16202** (14929 code-region bytes, 1273 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **6365**
 - represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -47,6 +47,10 @@ This is the first machine-queryable census for the comparative structure-recover
 | `81:983B..81:9971` | code | 311 | collision-resolution | geometry_helper_live_prefix | 81:981B..81:9951 (-32; size 311; sim 0.987) | 81:982C..81:9962 (-15; size 311; sim 0.977) | 81:983B..81:9971 (+0; size 311; sim 1.000) |
 | `81:9972..81:9978` | code | 7 | collision-resolution | geometry_helper_usa_dormant | 81:9952..81:9958 (-32; size 7; sim 1.000) | 81:9963..81:9969 (-15; size 7; sim 0.857) | 81:9972..81:9978 (+0; size 7; sim 1.000) |
 | `81:9979..81:99D5` | code | 93 | collision-resolution | geometry_helper_live_tail | 81:9959..81:99B5 (-32; size 93; sim 0.968) | 81:996A..81:99C6 (-15; size 93; sim 0.968) | 81:9979..81:99D5 (+0; size 93; sim 1.000) |
+| `81:99D6..81:99D9` | code | 4 | geometry-precompute | long_entry_wrapper | 81:99B6..81:99B9 (-32; size 4; sim 0.750) | 81:99C7..81:99CA (-15; size 4; sim 0.750) | 81:99D6..81:99D9 (+0; size 4; sim 1.000) |
+| `81:99DA..81:9A19` | data | 64 | geometry-precompute | geometry_lookup_a | 81:99BA..81:99F9 (-32; size 64; sim 1.000) | 81:99CB..81:9A0A (-15; size 64; sim 1.000) | 81:99DA..81:9A19 (+0; size 64; sim 1.000) |
+| `81:9A1A..81:9A59` | data | 64 | geometry-precompute | geometry_lookup_b | 81:99FA..81:9A39 (-32; size 64; sim 1.000) | 81:9A0B..81:9A4A (-15; size 64; sim 1.000) | 81:9A1A..81:9A59 (+0; size 64; sim 1.000) |
+| `81:9A5A..81:9E29` | code | 976 | geometry-precompute | geometry_precompute_body | 81:9A3A..81:9E09 (-32; size 976; sim 0.982) | 81:9A4B..81:9E1A (-15; size 976; sim 0.947) | 81:9A5A..81:9E29 (+0; size 976; sim 1.000) |
 | `81:9E2A..81:9E7C` | code | 83 | contact-geometry | angle_and_source_record_setup | 81:9E0A..81:9E5C (-32; size 83; sim 0.988) | 81:9E1B..81:9E6D (-15; size 83; sim 0.988) | 81:9E2A..81:9E7C (+0; size 83; sim 1.000) |
 | `81:9E7D..81:9F1C` | code | 160 | contact-geometry | vertex_expansion_and_orientation | 81:9E5D..81:9EFC (-32; size 160; sim 1.000) | 81:9E6E..81:9F0D (-15; size 160; sim 1.000) | 81:9E7D..81:9F1C (+0; size 160; sim 1.000) |
 | `81:9F1D..81:9FBE` | code | 162 | contact-geometry | mirror_offset_and_collision_anchor_finalize | 81:9EFD..81:9F9E (-32; size 162; sim 0.981) | 81:9F0E..81:9FAF (-15; size 162; sim 0.981) | 81:9F1D..81:9FBE (+0; size 162; sim 1.000) |

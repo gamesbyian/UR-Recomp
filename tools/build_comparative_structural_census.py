@@ -20,6 +20,7 @@ DEFAULT_SOURCES = (
     ("race-timer", "analysis/generated/race-timer-structure-island.json", False),
     ("player-state-marshal", "analysis/generated/player-state-marshal-structure-island.json", False),
     ("collision-resolution", "analysis/generated/collision-resolution-structure-island.json", False),
+    ("geometry-precompute", "analysis/generated/geometry-precompute-structure-island.json", False),
     ("contact-geometry", "analysis/generated/contact-geometry-structure-island.json", False),
 )
 

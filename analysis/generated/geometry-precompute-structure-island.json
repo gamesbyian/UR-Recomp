@@ -1,0 +1,513 @@
+{
+  "body_entry": "81:9A5A",
+  "island": "GeometryPrecomputeAndLookupTables",
+  "long_entry": "81:99D6",
+  "next_entry": "81:9E2A",
+  "regions": [
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 2,
+          "aligned_opcode_pairs": 2,
+          "aligned_role_disagreements": 0,
+          "end": "81:99CA",
+          "local_shift_profile_64byte": [
+            {
+              "shift": -15,
+              "similarity": 0.75,
+              "usa_end": "81:99D9",
+              "usa_start": "81:99D6"
+            }
+          ],
+          "opcode_bytes": 2,
+          "opcode_mismatches": [],
+          "operand_bytes": 2,
+          "sha256": "42c0885d7ecb874956c092747c371b3ae50c58658eff2b968b94aadc06defd15",
+          "shift": -15,
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0,
+          "start": "81:99C7",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 2,
+          "aligned_opcode_pairs": 2,
+          "aligned_role_disagreements": 0,
+          "end": "81:99D9",
+          "opcode_bytes": 2,
+          "opcode_mismatches": [],
+          "operand_bytes": 2,
+          "sha256": "7dbc9f7ec76066ee1ddac312371525eec69b038c385af19dcddf7d55bef88165",
+          "shift": 0,
+          "similarity": 1,
+          "size": 4,
+          "size_delta": 0,
+          "start": "81:99D6",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 2,
+          "aligned_opcode_pairs": 2,
+          "aligned_role_disagreements": 0,
+          "end": "81:99B9",
+          "local_shift_profile_64byte": [
+            {
+              "shift": -32,
+              "similarity": 0.75,
+              "usa_end": "81:99D9",
+              "usa_start": "81:99D6"
+            }
+          ],
+          "opcode_bytes": 2,
+          "opcode_mismatches": [],
+          "operand_bytes": 2,
+          "sha256": "465fc3a7e0edff34ccc62b107e02e8eaafb90e7641b5f2e15b18f57e2b47fd36",
+          "shift": -32,
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0,
+          "start": "81:99B6",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:99D9",
+          "opcode_bytes": 2,
+          "operand_bytes": 2,
+          "sha256": "7dbc9f7ec76066ee1ddac312371525eec69b038c385af19dcddf7d55bef88165",
+          "shift": 0,
+          "similarity": 1,
+          "size": 4,
+          "size_delta": 0,
+          "start": "81:99D6",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "long_entry_wrapper",
+      "size": 4,
+      "usa_end": "81:99D9",
+      "usa_start": "81:99D6"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:9A0A",
+          "local_shift_profile_64byte": [
+            {
+              "shift": -15,
+              "similarity": 1,
+              "usa_end": "81:9A19",
+              "usa_start": "81:99DA"
+            }
+          ],
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "sha256": "c5d0e16df3da62191f876589e96922387303f1eff9ee0f4a006887c39dcb9301",
+          "shift": -15,
+          "similarity": 1,
+          "size": 64,
+          "size_delta": 0,
+          "start": "81:99CB",
+          "unreached_or_data_bytes": 64
+        },
+        "legacy-beta": {
+          "end": "81:9A19",
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "sha256": "c5d0e16df3da62191f876589e96922387303f1eff9ee0f4a006887c39dcb9301",
+          "shift": 0,
+          "similarity": 1,
+          "size": 64,
+          "size_delta": 0,
+          "start": "81:99DA",
+          "unreached_or_data_bytes": 64
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:99F9",
+          "local_shift_profile_64byte": [
+            {
+              "shift": -32,
+              "similarity": 1,
+              "usa_end": "81:9A19",
+              "usa_start": "81:99DA"
+            }
+          ],
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "sha256": "c5d0e16df3da62191f876589e96922387303f1eff9ee0f4a006887c39dcb9301",
+          "shift": -32,
+          "similarity": 1,
+          "size": 64,
+          "size_delta": 0,
+          "start": "81:99BA",
+          "unreached_or_data_bytes": 64
+        },
+        "usa-retail": {
+          "end": "81:9A19",
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "sha256": "c5d0e16df3da62191f876589e96922387303f1eff9ee0f4a006887c39dcb9301",
+          "shift": 0,
+          "similarity": 1,
+          "size": 64,
+          "size_delta": 0,
+          "start": "81:99DA",
+          "unreached_or_data_bytes": 64
+        }
+      },
+      "kind": "data",
+      "name": "geometry_lookup_a",
+      "size": 64,
+      "usa_end": "81:9A19",
+      "usa_start": "81:99DA"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "end": "81:9A4A",
+          "local_shift_profile_64byte": [
+            {
+              "shift": -15,
+              "similarity": 1,
+              "usa_end": "81:9A59",
+              "usa_start": "81:9A1A"
+            }
+          ],
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "sha256": "fc77528f0c7e37e60e683eee67455c33deb4d4af70ddb829a60a0afd66d6ef2a",
+          "shift": -15,
+          "similarity": 1,
+          "size": 64,
+          "size_delta": 0,
+          "start": "81:9A0B",
+          "unreached_or_data_bytes": 64
+        },
+        "legacy-beta": {
+          "end": "81:9A59",
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "sha256": "fc77528f0c7e37e60e683eee67455c33deb4d4af70ddb829a60a0afd66d6ef2a",
+          "shift": 0,
+          "similarity": 1,
+          "size": 64,
+          "size_delta": 0,
+          "start": "81:9A1A",
+          "unreached_or_data_bytes": 64
+        },
+        "pal-prototype-1994-11-29": {
+          "end": "81:9A39",
+          "local_shift_profile_64byte": [
+            {
+              "shift": -32,
+              "similarity": 1,
+              "usa_end": "81:9A59",
+              "usa_start": "81:9A1A"
+            }
+          ],
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "sha256": "fc77528f0c7e37e60e683eee67455c33deb4d4af70ddb829a60a0afd66d6ef2a",
+          "shift": -32,
+          "similarity": 1,
+          "size": 64,
+          "size_delta": 0,
+          "start": "81:99FA",
+          "unreached_or_data_bytes": 64
+        },
+        "usa-retail": {
+          "end": "81:9A59",
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "sha256": "fc77528f0c7e37e60e683eee67455c33deb4d4af70ddb829a60a0afd66d6ef2a",
+          "shift": 0,
+          "similarity": 1,
+          "size": 64,
+          "size_delta": 0,
+          "start": "81:9A1A",
+          "unreached_or_data_bytes": 64
+        }
+      },
+      "kind": "data",
+      "name": "geometry_lookup_b",
+      "size": 64,
+      "usa_end": "81:9A59",
+      "usa_start": "81:9A1A"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 452,
+          "aligned_opcode_pairs": 452,
+          "aligned_role_disagreements": 0,
+          "end": "81:9E1A",
+          "local_shift_profile_64byte": [
+            {
+              "shift": -15,
+              "similarity": 0.96875,
+              "usa_end": "81:9A99",
+              "usa_start": "81:9A5A"
+            },
+            {
+              "shift": -15,
+              "similarity": 0.984375,
+              "usa_end": "81:9AD9",
+              "usa_start": "81:9A9A"
+            },
+            {
+              "shift": -15,
+              "similarity": 1,
+              "usa_end": "81:9B19",
+              "usa_start": "81:9ADA"
+            },
+            {
+              "shift": -15,
+              "similarity": 0.96875,
+              "usa_end": "81:9B59",
+              "usa_start": "81:9B1A"
+            },
+            {
+              "shift": -15,
+              "similarity": 1,
+              "usa_end": "81:9B99",
+              "usa_start": "81:9B5A"
+            },
+            {
+              "shift": -15,
+              "similarity": 0.984375,
+              "usa_end": "81:9BD9",
+              "usa_start": "81:9B9A"
+            },
+            {
+              "shift": -15,
+              "similarity": 1,
+              "usa_end": "81:9C19",
+              "usa_start": "81:9BDA"
+            },
+            {
+              "shift": -15,
+              "similarity": 1,
+              "usa_end": "81:9C59",
+              "usa_start": "81:9C1A"
+            },
+            {
+              "shift": -15,
+              "similarity": 0.984375,
+              "usa_end": "81:9C99",
+              "usa_start": "81:9C5A"
+            },
+            {
+              "shift": -15,
+              "similarity": 0.9375,
+              "usa_end": "81:9CD9",
+              "usa_start": "81:9C9A"
+            },
+            {
+              "shift": -15,
+              "similarity": 0.9375,
+              "usa_end": "81:9D19",
+              "usa_start": "81:9CDA"
+            },
+            {
+              "shift": -15,
+              "similarity": 0.921875,
+              "usa_end": "81:9D59",
+              "usa_start": "81:9D1A"
+            },
+            {
+              "shift": -15,
+              "similarity": 0.921875,
+              "usa_end": "81:9D99",
+              "usa_start": "81:9D5A"
+            },
+            {
+              "shift": -15,
+              "similarity": 0.8125,
+              "usa_end": "81:9DD9",
+              "usa_start": "81:9D9A"
+            },
+            {
+              "shift": -15,
+              "similarity": 0.78125,
+              "usa_end": "81:9E19",
+              "usa_start": "81:9DDA"
+            },
+            {
+              "shift": -15,
+              "similarity": 0.9375,
+              "usa_end": "81:9E29",
+              "usa_start": "81:9E1A"
+            }
+          ],
+          "opcode_bytes": 452,
+          "opcode_mismatches": [],
+          "operand_bytes": 524,
+          "sha256": "e04a97c0dcc9a456c4913555aa4defc2fb6f1244c23e82dc19b9eab0e9cca47f",
+          "shift": -15,
+          "similarity": 0.946721,
+          "size": 976,
+          "size_delta": 0,
+          "start": "81:9A4B",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 452,
+          "aligned_opcode_pairs": 452,
+          "aligned_role_disagreements": 0,
+          "end": "81:9E29",
+          "opcode_bytes": 452,
+          "opcode_mismatches": [],
+          "operand_bytes": 524,
+          "sha256": "be82eb49e87ae3d5c2f32be2d1d0514eed203405cf9074a3e93e553170e285bd",
+          "shift": 0,
+          "similarity": 1,
+          "size": 976,
+          "size_delta": 0,
+          "start": "81:9A5A",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 452,
+          "aligned_opcode_pairs": 452,
+          "aligned_role_disagreements": 0,
+          "end": "81:9E09",
+          "local_shift_profile_64byte": [
+            {
+              "shift": -32,
+              "similarity": 0.953125,
+              "usa_end": "81:9A99",
+              "usa_start": "81:9A5A"
+            },
+            {
+              "shift": -32,
+              "similarity": 0.984375,
+              "usa_end": "81:9AD9",
+              "usa_start": "81:9A9A"
+            },
+            {
+              "shift": -32,
+              "similarity": 1,
+              "usa_end": "81:9B19",
+              "usa_start": "81:9ADA"
+            },
+            {
+              "shift": -32,
+              "similarity": 0.953125,
+              "usa_end": "81:9B59",
+              "usa_start": "81:9B1A"
+            },
+            {
+              "shift": -32,
+              "similarity": 1,
+              "usa_end": "81:9B99",
+              "usa_start": "81:9B5A"
+            },
+            {
+              "shift": -32,
+              "similarity": 0.984375,
+              "usa_end": "81:9BD9",
+              "usa_start": "81:9B9A"
+            },
+            {
+              "shift": -32,
+              "similarity": 1,
+              "usa_end": "81:9C19",
+              "usa_start": "81:9BDA"
+            },
+            {
+              "shift": -32,
+              "similarity": 1,
+              "usa_end": "81:9C59",
+              "usa_start": "81:9C1A"
+            },
+            {
+              "shift": -32,
+              "similarity": 0.984375,
+              "usa_end": "81:9C99",
+              "usa_start": "81:9C5A"
+            },
+            {
+              "shift": -32,
+              "similarity": 0.984375,
+              "usa_end": "81:9CD9",
+              "usa_start": "81:9C9A"
+            },
+            {
+              "shift": -32,
+              "similarity": 0.96875,
+              "usa_end": "81:9D19",
+              "usa_start": "81:9CDA"
+            },
+            {
+              "shift": -32,
+              "similarity": 0.96875,
+              "usa_end": "81:9D59",
+              "usa_start": "81:9D1A"
+            },
+            {
+              "shift": -32,
+              "similarity": 0.96875,
+              "usa_end": "81:9D99",
+              "usa_start": "81:9D5A"
+            },
+            {
+              "shift": -32,
+              "similarity": 1,
+              "usa_end": "81:9DD9",
+              "usa_start": "81:9D9A"
+            },
+            {
+              "shift": -32,
+              "similarity": 0.984375,
+              "usa_end": "81:9E19",
+              "usa_start": "81:9DDA"
+            },
+            {
+              "shift": -32,
+              "similarity": 0.9375,
+              "usa_end": "81:9E29",
+              "usa_start": "81:9E1A"
+            }
+          ],
+          "opcode_bytes": 452,
+          "opcode_mismatches": [],
+          "operand_bytes": 524,
+          "sha256": "016b807b9309523d0f4e917f11852fd35157fc558acd26ea127400b473b69727",
+          "shift": -32,
+          "similarity": 0.981557,
+          "size": 976,
+          "size_delta": 0,
+          "start": "81:9A3A",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "81:9E29",
+          "opcode_bytes": 452,
+          "operand_bytes": 524,
+          "sha256": "be82eb49e87ae3d5c2f32be2d1d0514eed203405cf9074a3e93e553170e285bd",
+          "shift": 0,
+          "similarity": 1,
+          "size": 976,
+          "size_delta": 0,
+          "start": "81:9A5A",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "geometry_precompute_body",
+      "size": 976,
+      "usa_end": "81:9E29",
+      "usa_start": "81:9A5A"
+    }
+  ],
+  "schema_version": 1,
+  "table_identity_by_build": {
+    "europe-retail": true,
+    "legacy-beta": true,
+    "pal-prototype-1994-11-29": true,
+    "usa-retail": true
+  },
+  "usa_end": "81:9E29",
+  "usa_start": "81:99D6"
+}

@@ -1,0 +1,103 @@
+name: Native racer presentation acceptance
+
+on:
+  pull_request:
+    paths:
+      - "native/presentation/**"
+      - "tools/apply_native_racer_presentation_probe.py"
+      - "tests/unit/test_apply_native_racer_presentation_probe.py"
+      - "tests/input/two-player-first-race-observe.script"
+      - ".github/workflows/racer-native-presentation-acceptance.yml"
+
+concurrency:
+  group: racer-native-presentation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
+            libxi-dev libxfixes-dev libxkbcommon-dev libwayland-dev libasound2-dev \
+            libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Stage pinned SNESRecomp
+        run: python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+
+      - name: Scaffold and inject presentation probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/racer-presentation-acceptance"
+          mkdir -p "$TMP"
+
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --dir "$TMP" \
+              --name "Uniracers" \
+              --players 2 \
+              --yes --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay \
+              --no-github --no-submodules --generate --no-build
+
+          ROOT="$TMP/UniracersSNESRecomp"
+          python3 tools/apply_native_racer_presentation_probe.py "$ROOT"
+
+          cmake -S "$ROOT" -B "$ROOT/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF \
+            -DUR_RECOMP_SOURCE_ROOT="$GITHUB_WORKSPACE"
+          cmake --build "$ROOT/build" -j2
+          test -x "$ROOT/build/UniracersSNESRecomp"
+
+      - name: Run ordinary two-player acceptance route
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/racer-presentation-acceptance/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"
+          LOG="$RUNNER_TEMP/racer-presentation-acceptance.log"
+          DUMPS="$RUNNER_TEMP/racer-presentation-dumps"
+          mkdir -p "$DUMPS"
+
+          set +e
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1
+          STATUS=$?
+          set -e
+
+          cat "$LOG"
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::error::Native route exited with status $STATUS"
+            exit "$STATUS"
+          fi
+          grep -F "UR_RACER_PRESENTATION_PROBE PASS" "$LOG"
+          grep -F "p1_primary=0541" "$LOG"
+          grep -F "p2_primary=0540" "$LOG"
+          grep -F "p1_companion=0D0D" "$LOG"
+          grep -F "p1_gate=0001" "$LOG"
+          grep -F "selected=remastered" "$LOG"
+
+      - name: Upload compact acceptance log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-racer-presentation-acceptance
+          path: ${{ runner.temp }}/racer-presentation-acceptance.log
+          if-no-files-found: warn
+          retention-days: 7

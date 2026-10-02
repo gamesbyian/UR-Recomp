@@ -99,19 +99,56 @@ def nonblack_margin_pixels(sample: dict, margin: int, side: str) -> int:
     return count
 
 
-def checker_pixels(sample: dict, x0: int, x1: int) -> int:
+def checker_columns(sample: dict, x0: int, x1: int) -> int:
+    """Count columns containing the finish stripe's black/white/black stack.
+
+    The known Dragster stripe is vertically checkered where it enters from the
+    right. Requiring three contiguous alternating near-black/near-white runs
+    rejects a solid dark backdrop, ordinary rail, and isolated bright pixels.
+    """
+
     width, height, fb = sample["width"], sample["height"], sample["fb"]
     x0 = max(0, min(width, x0))
     x1 = max(x0, min(width, x1))
-    y0, y1 = min(145, height), min(165, height)
-    count = 0
-    for y in range(y0, y1):
-        row = y * width * 4
-        for x in range(x0, x1):
+    y0, y1 = min(140, height), min(170, height)
+    matched = 0
+    for x in range(x0, x1):
+        classes: list[int] = []
+        for y in range(y0, y1):
+            row = y * width * 4
             b, g, r, _ = fb[row + x * 4 : row + x * 4 + 4]
-            if max(r, g, b) < 40 or min(r, g, b) > 210:
-                count += 1
-    return count
+            if max(r, g, b) < 40:
+                classes.append(0)
+            elif min(r, g, b) > 210:
+                classes.append(1)
+            else:
+                classes.append(-1)
+
+        runs: list[tuple[int, int]] = []
+        i = 0
+        while i < len(classes):
+            cls = classes[i]
+            j = i + 1
+            while j < len(classes) and classes[j] == cls:
+                j += 1
+            if cls in (0, 1):
+                runs.append((cls, j - i))
+            i = j
+
+        found = False
+        for i in range(len(runs) - 2):
+            a, b, c = runs[i : i + 3]
+            if (
+                a[0] != b[0]
+                and b[0] != c[0]
+                and a[0] == c[0]
+                and all(3 <= run[1] <= 14 for run in (a, b, c))
+            ):
+                found = True
+                break
+        if found:
+            matched += 1
+    return matched
 
 
 def state_tuple(wram: bytes) -> dict:
@@ -159,7 +196,7 @@ def main() -> int:
             full_wram_equal = sample["wram"] == ctrl["wram"]
             center_equal = center_crop(sample, margin) == center_crop(ctrl, 0)
             classic_right = margin + 256
-            right_checker = checker_pixels(sample, classic_right, sample["width"])
+            right_checker = checker_columns(sample, classic_right, sample["width"])
             row = {
                 "tag": tag,
                 "frame": sample["frame"],
@@ -171,8 +208,8 @@ def main() -> int:
                 "center_256_equal": center_equal,
                 "left_margin_nonblack": nonblack_margin_pixels(sample, margin, "left"),
                 "right_margin_nonblack": nonblack_margin_pixels(sample, margin, "right"),
-                "right_margin_checker_pixels": right_checker,
-                "finish_checker_in_extra_margin": right_checker >= 16,
+                "right_margin_checker_columns": right_checker,
+                "finish_checker_in_extra_margin": right_checker >= 1,
             }
             rows.append(row)
 

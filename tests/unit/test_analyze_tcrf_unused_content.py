@@ -45,17 +45,20 @@ class TcrfUnusedContentTests(unittest.TestCase):
         rom[table + tcrf.TRACK_TYPE_TABLE_LENGTH:table + tcrf.TRACK_TYPE_TABLE_LENGTH + 4] = bytes.fromhex("08c22048")
 
         anti_copy = tcrf.lorom_to_file(*tcrf.ANTI_PIRACY_COPY_CPU)
-        rom[anti_copy:anti_copy + 24] = bytes.fromhex(
+        anti_copy_data = bytes.fromhex(
             "a20000a00500bf0080839f000077e8e88810f3000000000000"
         )
+        rom[anti_copy:anti_copy + len(anti_copy_data)] = anti_copy_data
         anti_compare = tcrf.lorom_to_file(*tcrf.ANTI_PIRACY_COMPARE_CPU)
-        rom[anti_compare:anti_compare + 24] = bytes.fromhex(
+        anti_compare_data = bytes.fromhex(
             "a20000a00500bf000077df008083d007e8e88810f100000000"
         )
+        rom[anti_compare:anti_compare + len(anti_compare_data)] = anti_compare_data
         anti_wipe = tcrf.lorom_to_file(*tcrf.ANTI_PIRACY_WIPE_CPU)
-        rom[anti_wipe:anti_wipe + 20] = bytes.fromhex(
+        anti_wipe_data = bytes.fromhex(
             "c230a90000a2fe1f9f000077caca10f860000000"
         )
+        rom[anti_wipe:anti_wipe + len(anti_wipe_data)] = anti_wipe_data
 
         report = tcrf.analyze(bytes(rom))
         self.assertTrue(report["claims"]["bank_83_8000_mapping"]["matches_reported_version_offset"])

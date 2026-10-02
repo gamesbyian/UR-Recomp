@@ -20,10 +20,10 @@ EDGE_KEYS = ("edgex","edgex2","edgey","edgey2","c0","c1","c2","c3")
 
 def parse(path: Path) -> list[dict]:
     rows=[]
-    for line in path.read_text(encoding="utf-8",errors="replace").splitlines():
-        m=RX.search(line)
-        if not m:
-            continue
+    text=path.read_text(encoding="utf-8",errors="replace")
+    # finditer is intentionally tolerant of legacy probe output that embedded
+    # literal "\\n" separators instead of physical newlines.
+    for m in RX.finditer(text):
         g=m.groupdict()
         row={k:int(v,16) if k=="pc" else int(v) for k,v in g.items()}
         rows.append(row)

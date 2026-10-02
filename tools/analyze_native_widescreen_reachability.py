@@ -6,7 +6,10 @@ import argparse
 import json
 from pathlib import Path
 
-from verify_europe_semantic_edges import find_call_refs
+try:
+    from tools.verify_europe_semantic_edges import find_call_refs
+except ModuleNotFoundError:
+    from verify_europe_semantic_edges import find_call_refs
 
 TARGETS = {
     "long_wrapper": "81:A52B",

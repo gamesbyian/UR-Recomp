@@ -65,7 +65,10 @@ def state():
     for build,b in rel.items():
         for name,q in b["relations"].items():
             x={"build":build,"semantic_name":name,"persistent":q["persistent"],"working":q["working"],"bidirectional":q["bidirectional"],"routine":b["routine"],"source":"analysis/generated/regional-racer-state-relations.json"};rr.append(x)
-    return {"schema_version":1,"generated_by":"tools/build_consolidated_knowledge.py","purpose":"Normalized promoted state semantics plus cross-build racer relations.","entries":out,"regional_racer_relations":rr}
+    desk=load("analysis/generated/dessyreqt-workspace-index.json")
+    motion=load("analysis/generated/wram-motion-atlas.json")
+    nitro=load("analysis/generated/nitrodon-reconciliation.json")
+    return {"schema_version":1,"generated_by":"tools/build_consolidated_knowledge.py","purpose":"Normalized promoted state semantics plus cross-build racer relations.","entries":out,"regional_racer_relations":rr,"historical_paired_racer_leads":{"status":"historical_independent","fields":desk["paired_racer_leads"],"source":"analysis/generated/dessyreqt-workspace-index.json"},"regional_motion_clusters":{"status":"cross_build_supported","clusters":[{"build":x["build"],"delta":x["delta"],"anchor_count":x["anchor_count"],"field_count":x["field_count"],"usa_words":x["usa_words"],"candidate_words":x["candidate_words"]} for x in motion["clusters"]],"source":"analysis/generated/wram-motion-atlas.json"},"reconciled_semantic_overrides":{"status":"reconciled","fields":nitro["corrected_symbols"],"source":"analysis/generated/nitrodon-reconciliation.json"}}
 def code():
     sy=load("analysis/generated/symbols.json");co=load("analysis/generated/cross-build-symbol-correspondence.json");ce=load("analysis/generated/comparative-structural-census.json");cb=defaultdict(list)
     for x in co.get("functions",[]):cb[(x.get("name"),code_addr(x.get("usa")))].append(x)

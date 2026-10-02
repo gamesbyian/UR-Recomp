@@ -9,10 +9,12 @@ on:
       - "tools/inspect_native_widescreen_prep_anchor.py"
       - "tools/apply_native_widescreen_hook.py"
       - "tools/analyze_native_widescreen_hook_acceptance.py"
+      - "tools/analyze_native_widescreen_reachability.py"
       - "tests/unit/test_seed_native_widescreen_aot.py"
       - "tests/unit/test_inspect_native_widescreen_prep_anchor.py"
       - "tests/unit/test_apply_native_widescreen_hook.py"
       - "tests/unit/test_analyze_native_widescreen_hook_acceptance.py"
+      - "tests/unit/test_analyze_native_widescreen_reachability.py"
       - "tests/input/preparation-emission-race.script"
 
 concurrency:
@@ -41,10 +43,22 @@ jobs:
             tests.unit.test_seed_native_widescreen_aot \
             tests.unit.test_inspect_native_widescreen_prep_anchor \
             tests.unit.test_apply_native_widescreen_hook \
-            tests.unit.test_analyze_native_widescreen_hook_acceptance
+            tests.unit.test_analyze_native_widescreen_hook_acceptance \
+            tests.unit.test_analyze_native_widescreen_reachability
 
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Report preparation-entry call references
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p analysis/generated
+          python3 tools/analyze_native_widescreen_reachability.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --json-out analysis/generated/widescreen-native-reachability.json \
+            --md-out analysis/generated/widescreen-native-reachability.md
+          cat analysis/generated/widescreen-native-reachability.md
 
       - name: Generate native project and seed preparation wrapper
         shell: bash
@@ -160,6 +174,8 @@ jobs:
         with:
           name: widescreen-native-hook-evidence
           path: |
+            analysis/generated/widescreen-native-reachability.json
+            analysis/generated/widescreen-native-reachability.md
             analysis/generated/widescreen-native-prep-anchor.json
             analysis/generated/widescreen-native-prep-anchor.md
             analysis/generated/widescreen-native-hook-apply.json

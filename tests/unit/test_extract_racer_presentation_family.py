@@ -7,6 +7,10 @@ from tools.extract_racer_presentation_family import (
     decode_bgr555,
     encode_png_rgba,
     packed_word_source,
+    occupancy_rows_from_header,
+    selected_occupancy_rows,
+    pack_player_row_masks,
+    compose_racer_staging,
     parse_palette_assets,
     rasterize_frame_rgba,
     decode_frame_record,
@@ -53,6 +57,70 @@ class RacerPresentationRoundTripTests(unittest.TestCase):
         self.assertEqual(pieces[0]["staged_1645_value"], "0x8360")
         self.assertEqual(pieces[8]["staged_15a1_value"], "0x002C")
         self.assertEqual(pieces[-1]["low2_renderer_ignored_value"], 3)
+
+    def test_f2bb_row_packing_matches_recovered_14_bit_layout(self):
+        p1 = bytes.fromhex("30c31c70")
+        p2 = bytes.fromhex("70c31e30")
+        self.assertEqual(
+            occupancy_rows_from_header(p1),
+            (0x0C, 0x0C, 0x0C, 0x1C, 0x1C),
+        )
+        self.assertEqual(
+            occupancy_rows_from_header(p2),
+            (0x1C, 0x0C, 0x0C, 0x1E, 0x0C),
+        )
+        self.assertEqual(
+            pack_player_row_masks(
+                occupancy_rows_from_header(p1),
+                occupancy_rows_from_header(p2),
+            ),
+            (0x3070, 0x3030, 0x3030, 0x7078, 0x7030),
+        )
+
+    def test_f2bb_selector_clipping(self):
+        header = bytes.fromhex("30c31c70")
+        rows, cursor = selected_occupancy_rows(header, 1)
+        self.assertEqual(rows, (0, 0x0C, 0x0C, 0x1C, 0x1C))
+        self.assertEqual(cursor, 2)
+        rows, cursor = selected_occupancy_rows(header, 2)
+        self.assertEqual(rows, (0x0C, 0x0C, 0x0C, 0x1C, 0))
+        self.assertEqual(cursor, 0)
+
+    def test_companion_overlap_wins_but_consumes_primary_word(self):
+        def frame(header_hex, words):
+            return {
+                "record_header_hex": header_hex,
+                "pieces": [{"word_hex": f"0x{x:04X}"} for x in words],
+            }
+
+        result = compose_racer_staging(
+            frame("fc000000", (0x0100, 0x0200, 0x0300, 0x0400, 0x0500, 0x0600)),
+            frame("00000000", ()),
+            frame("30000000", (0xAA00, 0xBB00)),
+            frame("00000000", ()),
+        )
+        first_row = result["cells"][:14]
+        self.assertEqual(
+            [cell["choice"] for cell in first_row[:6]],
+            [
+                "p1_primary",
+                "p1_primary",
+                "p1_companion",
+                "p1_companion",
+                "p1_primary",
+                "p1_primary",
+            ],
+        )
+        self.assertEqual(
+            [cell["word_hex"] for cell in first_row[:6]],
+            ["0x0100", "0x0200", "0xAA00", "0xBB00", "0x0500", "0x0600"],
+        )
+        self.assertEqual(result["final_word_cursors"]["p1_primary"], 6)
+        self.assertEqual(result["final_word_cursors"]["p1_companion"], 2)
+        self.assertEqual(
+            [cell["staged_vram_word"] for cell in first_row],
+            [0x6000 + i * 0x10 for i in range(14)],
+        )
 
     def test_4bpp_tile_roundtrip(self):
         payload = bytes(range(64))

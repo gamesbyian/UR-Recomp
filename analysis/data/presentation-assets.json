@@ -1246,7 +1246,7 @@
           "source": "tools/analyze_racer_spatial_generalization.py"
         },
         "packed_word_low2": {
-          "renderer_use": "source-address page selector in the bounded 83:F190..F290 consumer",
+          "renderer_use": "source-address page selector in bounded 83:F190..F290 consumer",
           "proof": "83:F20F keeps the full word in 16-bit A; XBA then five ASLs maps original low bits1..0 into $1645 bits14..13 before OR #$8000. The separate $2A & $00FC path feeds the DMA source-bank offset.",
           "source_address_effect": "(low_byte & $03) << 13",
           "bank_effect": "bits7..2 feed $15A1 via ($00FC >> 2); bit2's shifted address contribution is subsumed by forced $8000",

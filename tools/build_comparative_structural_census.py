@@ -22,6 +22,7 @@ DEFAULT_SOURCES = (
     ("collision-resolution", "analysis/generated/collision-resolution-structure-island.json", False),
     ("geometry-precompute", "analysis/generated/geometry-precompute-structure-island.json", False),
     ("contact-geometry", "analysis/generated/contact-geometry-structure-island.json", False),
+    ("course-resource-helper", "analysis/generated/course-resource-helper-structure-island.json", False),
 )
 
 def build(root: Path) -> dict:

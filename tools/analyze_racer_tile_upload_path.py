@@ -21,6 +21,7 @@ if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
 
 from compare_europe_usa_snes2asm_homologs import cpu_to_offset, seed_entries, trace
+from extract_racer_presentation_family import lorom_offset
 
 RANGES = (
     ("dma_consumer_a", "82:B8D1", "82:B980"),
@@ -146,11 +147,82 @@ def nearby_register_setup(rom: bytes, writes: list[dict]) -> list[dict]:
     return out
 
 
+
+def u16(data: bytes, off: int) -> int:
+    return data[off] | (data[off + 1] << 8)
+
+
+def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
+    """Compare live staging tuples to the VRAM bytes at their programmed destination."""
+    if dump_dir is None:
+        return []
+    out = []
+    for wram_path in sorted(dump_dir.glob("*.wram.bin")):
+        tag = wram_path.name[:-9]
+        vram_path = dump_dir / f"{tag}.vram.bin"
+        if not vram_path.exists():
+            continue
+        wram = wram_path.read_bytes()
+        vram = vram_path.read_bytes()
+        if len(wram) < 0x1800 or len(vram) < 0x10000:
+            continue
+        consumer = "a" if wram[0x12EB] == 0 else "b"
+        mode_0300 = u16(wram, 0x0300)
+        rows = []
+        exact = 0
+        valid = 0
+        for i in range(82):
+            q = i * 2
+            bank = wram[0x15A1 + q]
+            src = u16(wram, 0x1645 + q)
+            dest = u16(wram, 0x16E9 + q)
+            if bank & 0x80 or src < 0x8000:
+                continue
+            try:
+                source_off = lorom_offset(bank, src)
+            except ValueError:
+                continue
+            source = rom[source_off:source_off + 0x20]
+            if len(source) != 0x20:
+                continue
+            effective = dest
+            if consumer == "a":
+                if dest & 0x0080:
+                    effective = (dest + 0x0800) & 0xFFFF
+            elif mode_0300:
+                effective = (dest + 0x0800) & 0xFFFF
+            vram_off = (effective & 0x7FFF) * 2
+            actual = vram[vram_off:vram_off + 0x20]
+            same = len(actual) == 0x20 and actual == source
+            valid += 1
+            exact += int(same)
+            rows.append({
+                "slot": i,
+                "source_bank": f"0x{bank:02X}",
+                "source_addr": f"0x{src:04X}",
+                "source_rom_offset": source_off,
+                "staged_vram_word": f"0x{dest:04X}",
+                "effective_vram_word": f"0x{effective:04X}",
+                "vram_byte_offset": f"0x{vram_off:04X}",
+                "source_equals_vram": same,
+            })
+        out.append({
+            "checkpoint": tag,
+            "consumer": consumer,
+            "mode_0300": f"0x{mode_0300:04X}",
+            "valid_staging_entries": valid,
+            "exact_source_vram_matches": exact,
+            "entries": rows,
+        })
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("rom", type=Path)
     ap.add_argument("--json-out", type=Path)
     ap.add_argument("--md-out", type=Path)
+    ap.add_argument("--dump-dir", type=Path)
     args = ap.parse_args()
 
     rom = args.rom.read_bytes()
@@ -161,6 +233,7 @@ def main() -> int:
         "ranges": decoded_ranges(rom),
         "register_write_sites": writes,
         "bank82_register_write_contexts": nearby_register_setup(rom, writes),
+        "runtime_staging_checks": runtime_staging_checks(rom, args.dump_dir),
     }
     md = ["# Racer tile-upload path", ""]
     md += ["## Literal DMA/VRAM control-register writes", ""]
@@ -178,6 +251,16 @@ def main() -> int:
         md.append("")
         for ctx in block["context"]:
             md.append(f"    {ctx['cpu']}  {ctx['text']}    ; {ctx['bytes']}")
+        md.append("")
+
+    if report["runtime_staging_checks"]:
+        md += ["## Retained runtime staging -> VRAM byte checks", ""]
+        for cp in report["runtime_staging_checks"]:
+            md.append(
+                f"- {cp['checkpoint']}: consumer {cp['consumer']}, "
+                f"{cp['exact_source_vram_matches']}/{cp['valid_staging_entries']} "
+                "live staging entries match the programmed VRAM destination byte-for-byte."
+            )
         md.append("")
 
     for block in report["ranges"]:

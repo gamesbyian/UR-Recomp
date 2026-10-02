@@ -46,6 +46,11 @@ class DoublepassAcceptanceTests(unittest.TestCase):
         self.assertTrue(report["success"])
         self.assertGreaterEqual(report["longest_consecutive_acceptance_run"],8)
 
+    def test_ring_next_generalizes_beyond_d80_page(self):
+        self.assertEqual(MOD.ring_next(0x0D9F),0x0D80)
+        self.assertEqual(MOD.ring_next(0x0DAE),0x0DAF)
+        self.assertEqual(MOD.ring_next(0x0DBF),0x0DA0)
+
     def test_parse_vram(self):
         with tempfile.TemporaryDirectory() as td:
             p=Path(td)/"x.log"

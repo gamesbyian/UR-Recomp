@@ -34,6 +34,28 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 				uint16 ur_ws_pcw = Registers.PCw;
 				uint32 ur_ws_pc = ((uint32)Registers.PB << 16) | ur_ws_pcw;
 
+				static bool ur_ws_boundary_trace = []() -> bool {
+					return getenv("URRECOMP_WS_BOUNDARY_TRACE") != nullptr;
+				}();
+				if (ur_ws_boundary_trace && Registers.PB == 0x81 &&
+				    ur_ws_pcw >= 0xA52F && ur_ws_pcw <= 0xA59D &&
+				    ICPU.Frame >= 1178 && ICPU.Frame <= 1192)
+				{
+					fprintf(stderr,
+						"WSBND frame=%u v=%u cycles=%d pc=%06X "
+						"camx=%u camy=%u camdx=%d camdy=%d "
+						"edgex=%u edgex2=%u edgey=%u edgey2=%u "
+						"cnt=%u,%u,%u,%u\\n",
+						(unsigned)ICPU.Frame, (unsigned)CPU.V_Counter, CPU.Cycles,
+						(unsigned)ur_ws_pc,
+						(unsigned)ur_ws_w16(0x0419), (unsigned)ur_ws_w16(0x041D),
+						(int16)ur_ws_w16(0x04F5), (int16)ur_ws_w16(0x04F9),
+						(unsigned)ur_ws_w16(0x0505), (unsigned)ur_ws_w16(0x0509),
+						(unsigned)ur_ws_w16(0x050D), (unsigned)ur_ws_w16(0x0511),
+						(unsigned)ur_ws_w16(0x052B), (unsigned)ur_ws_w16(0x052F),
+						(unsigned)ur_ws_w16(0x0533), (unsigned)ur_ws_w16(0x0537));
+				}
+
 				/* Defensive recovery: never carry a temporary bias across entries. */
 				if (Registers.PB == 0x81 && ur_ws_pcw == 0xA52F && ur_ws_camera_shifted)
 				{
@@ -65,6 +87,7 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 						ur_ws_margin, (unsigned)ICPU.Frame, (unsigned)CPU.V_Counter, CPU.Cycles,
 						(unsigned)ur_ws_pc,
 						(unsigned)ur_ws_w16(0x0419), (unsigned)ur_ws_w16(0x041D),
+						(int16)ur_ws_w16(0x04F5), (int16)ur_ws_w16(0x04F9),
 						(unsigned)ur_ws_w16(0x0411), (unsigned)ur_ws_w16(0x0415),
 						(int16)ur_ws_w16(0x04B7), (int16)ur_ws_w16(0x04BB),
 						(unsigned)ur_ws_w16(0x04C7), (unsigned)ur_ws_w16(0x0E95),

@@ -9,20 +9,18 @@ This intake preserves the externally published files as **reference evidence**, 
 Repository paths retained by this intake:
 
 - `reference/imported/tcrf/Uniracers-Decomp.png` — unused boot graphics containing the text `used by decomp`.
-- `reference/imported/tcrf/Uniracers1.ogg` — preferred upstream TCRF unused song 1 when the one-shot upstream fetch succeeds.
-- `reference/imported/tcrf/Uniracers2.ogg` — preferred upstream TCRF unused song 2 when the one-shot upstream fetch succeeds.
 - `reference/imported/tcrf/user-supplied-transcodes/Uniracers1.ogg.mp3` — user-supplied MP3 derivative retained for provenance/reference, not canonical audio evidence.
 - `reference/imported/tcrf/user-supplied-transcodes/Uniracers2.ogg.mp3` — user-supplied MP3 derivative retained for provenance/reference, not canonical audio evidence.
 - `reference/imported/audio/Uniracers.sf2` — Musical Artifacts artifact 8387, a fan-made Uniracers SoundFont supplied separately by the user.
 
 The intake workflow records exact upstream SHA-256 values in the imported-corpus manifest. The user-supplied copies seen in chat had these hashes:
 
-- `Uniracers-Decomp.png`: `e632ad3a504f52c6ecc8076010c2538d6741115b73fc1cea4c161ff34cd03625`
+- `Uniracers-Decomp.png` preserved raw reference: `a8775e55e486484842e7d3343763a6f96ddf189618488d112ea280e76f51d813` (1,785 bytes; Git blob `17dc786435e4259fc3a37d337425b9eebfc031e1`). The chat-rendered 1536×960 JPEG preview was a transformed display derivative, SHA-256 `e632ad3a504f52c6ecc8076010c2538d6741115b73fc1cea4c161ff34cd03625`, and is not treated as the source graphic.
 - `Uniracers.sf2`: `e6e05bd70a6d04dd131c2aa579622a22f589d0f7886f3af3ef6a24f7c819c2c4`
 - `Uniracers1.ogg.mp3`: `2d604a47c06fddbbbad53f064c289faa07e454182be7597f9bdd3ae364e95173`
 - `Uniracers2.ogg.mp3`: `00cd6be4330ffb503fd5726858734a2ebf5e16825ae2424d3e580ca25c06711e`
 
-The two chat audio copies are MP3 transcodes/wrappers. They are preserved under `user-supplied-transcodes/` so the supplied evidence is not lost, but the upstream TCRF OGG files remain the preferred canonical reference whenever acquired.
+The two chat audio copies are MP3 transcodes/wrappers. They are preserved byte-for-byte under `user-supplied-transcodes/` so the supplied evidence is not lost. Zophar's independently hosted renders and complete SPC archive are preserved alongside them as source-quality/corroborating audio references.
 
 ## Claims to reconcile locally
 
@@ -68,6 +66,4 @@ The first TCRF-direct runner attempt was blocked by HTTP 403 before writing bina
 | \`reference/imported/audio/zophar/91 Unused Song 2.mp3\` | 9203791 | \`c1ead84f99aa30d41ead5537af03d3748d5a81e7c0e40e789537d39686322959\` |
 | \`reference/imported/audio/zophar/Uniracers (EMU).zophar.zip\` | 491821 | \`85a3f00cfe46cddd18caa714374ef54da6835f0d293557ce499de352b8d4fdb0\` |
 
-TCRF continued to block automated retrieval of the raw \`Uniracers-Decomp.png\` media file. The user-supplied rendered copy remains fingerprinted in this note; the ROM itself remains the authority for reproducing the underlying unused tile graphic.
-
-Musical Artifacts blocked automated retrieval of artifact 8387 from the runner. The exact user-supplied SoundFont remains fingerprinted above pending direct-byte ingestion through a binary-capable route.
+TCRF continued to block the runner's direct media request, but the raw `Uniracers-Decomp.png` reference had already been filed from the user-supplied intake and was restored after the fallback run. Musical Artifacts likewise blocked automated retrieval, but the exact user-supplied `Uniracers.sf2` had already been filed and was restored. Both are present on `main`; the temporary intake workflow has removed itself.

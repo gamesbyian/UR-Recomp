@@ -11,6 +11,7 @@ TARGETS = {
     0x01A59D: "wrapper_return",
     0x01A59E: "prep_helper_entry",
     0x01A5A3: "prep_helper_staging_pointer",
+    0x02D2D1: "nmi_post_consume_cleanup",
 }
 
 def canon(pc: int) -> int:

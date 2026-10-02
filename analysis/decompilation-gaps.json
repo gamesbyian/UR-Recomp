@@ -273,6 +273,14 @@
       "summary": "Recovered the 554-byte race-frame message/state bridge called from 83:CD61, split into a 4-byte long-entry wrapper plus three RTS-bounded helpers. The bridge handles mirrored P1/P2 state/message materialization into $0E9D/$0EBD, sets ready flags $0EDD/$0EDF, and feeds the already-recovered stunt-message consumer beginning at 81:C0DD. USA/beta are byte-identical; PAL prototype preserves the corridor at -32 and Europe at -15. All aligned opcode positions match with zero analyzer role disagreements.",
       "priority": "low",
       "next_evidence": "Refine payload character semantics or cooldown policy only if native UI/stunt-message behavior needs it; the structural handoff into 81:C0DD is closed."
+    },
+    {
+      "id": "resolved-race-render-f0bb",
+      "kind": "resolved_structural_island",
+      "region": "USA 83:F0BB..F4D1 and homologs",
+      "summary": "Recovered a 1,047-byte race-loop rendering/geometry service called from 83:CD7F, partitioned into a 475-byte main body plus 37-byte address decoder and 535-byte tile-pair decoder. All four regional extents are fully analyzer-reached. USA/beta are byte-identical; PAL prototype preserves the three regions at +32 and Europe at +68. All 572 aligned opcode positions match with zero role disagreements. The service ends at F4D1 before a distinct F4D2 helper and F4DA text data.",
+      "priority": "low",
+      "next_evidence": "Use the recovered fields and decode tables when implementing native race rendering or investigating a concrete presentation mismatch. The structural boundary is closed."
     }
   ]
 }

@@ -31,6 +31,7 @@ DEFAULT_SOURCES = (
     ("race-state-980d", "analysis/generated/race-state-980d-structure-island.json", False),
     ("race-loop-e580-control", "analysis/generated/race-loop-e580-control-structure-island.json", False),
     ("race-loop-e7a5", "analysis/generated/race-loop-e7a5-structure-island.json", False),
+    ("race-render-f0bb", "analysis/generated/race-render-f0bb-structure-island.json", False),
     ("multiply-b668", "analysis/generated/multiply-b668-structure-island.json", False),
 )
 

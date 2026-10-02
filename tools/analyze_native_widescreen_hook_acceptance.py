@@ -45,6 +45,9 @@ def cleanup_lifecycle(log: str) -> tuple[bool,bool]:
             live=False
     return seen, live
 
+def _ring_next(edge: int) -> int:
+    return (edge & ~0x1F) | ((edge + 1) & 0x1F)
+
 def _longest_true_run(values: list[bool]) -> int:
     best = cur = 0
     for value in values:
@@ -101,6 +104,18 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
         row for row in primary.get(0, [])
         if row["count"] == 16 and row["edge"] != 0xffff
     ]
+    widened_primary = [
+        row for row in primary.get(8, [])
+        if row["count"] == 16 and row["edge"] != 0xffff
+    ]
+
+    adjacent_count = 0
+    for row in plus8:
+        if any(
+            stock["camx"] == row["camx"] and _ring_next(stock["edge"]) == row["edge"]
+            for stock in widened_primary
+        ):
+            adjacent_count += 1
 
     exact_matches = []
     matched_flags = []
@@ -146,6 +161,7 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
         "margin8_all_counts_16": len(plus8)==len(prep.get(8,[])),
         "margin8_cleanup_balanced": balanced,
         "margin8_terminal_pending_only": not terminal_pending or _last_plus8_event(logs.get(8,"")) == "PREP",
+        "margin8_all_prepared_edges_adjacent": adjacent_count == len(plus8) and bool(plus8),
         "margin8_protected_state_equal": not diffs.get(8),
         "margin8_future_stock_exact_matches": match_count >= 309,
         "margin8_future_stock_consecutive_run": longest_match_run >= 14,
@@ -165,6 +181,7 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
             "margin8_cleanup_events":cleanup_count,
             "margin8_terminal_payload_pending":terminal_pending,
             "margin8_unique_edges":len({row["edge"] for row in plus8}),
+            "margin8_adjacent_prepared_edges":adjacent_count,
             "margin8_future_stock_candidates":future_stock_candidates,
             "margin8_exact_future_stock_matches":match_count,
             "margin8_exact_future_stock_match_ratio":round(match_ratio,6),
@@ -195,7 +212,8 @@ def render(r: dict) -> str:
         f"- +8 cleanup events: **{n['margin8_cleanup_events']}**",
         f"- +8 terminal payload pending at fixture exit: **{n['margin8_terminal_payload_pending']}**",
         f"- +8 unique prepared edges: **{n['margin8_unique_edges']}**",
-        f"- +8 future-stock candidates: **{n['margin8_future_stock_candidates']}**",
+        f"- +8 geometrically adjacent prepared edges: **{n['margin8_adjacent_prepared_edges']}/{n['margin8_prepare_events']}**",
+        f"- +8 edge-compatible later-stock observations: **{n['margin8_future_stock_candidates']}**",
         f"- +8 exact later-stock payload matches: **{n['margin8_exact_future_stock_matches']}**",
         f"- +8 exact-match ratio among future-stock candidates: **{n['margin8_exact_future_stock_match_ratio']:.3%}**",
         f"- +8 longest consecutive exact-match run: **{n['margin8_longest_consecutive_exact_match_run']}**",

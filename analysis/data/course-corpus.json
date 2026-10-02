@@ -4346,5 +4346,14 @@
         "source": "analysis/generated/dessyreqt-course-landmarks.json"
       }
     }
-  ]
+  ],
+  "identity_mapping": {
+    "historical_track_id_rule": "dessyreqt_track_id = stream_index - 1",
+    "holds_for_all_45": true,
+    "status": "cross_source_reconciled",
+    "sources": [
+      "analysis/generated/dessyreqt-course-landmarks.json",
+      "analysis/generated/course-resource-list-manifest.json"
+    ]
+  }
 }

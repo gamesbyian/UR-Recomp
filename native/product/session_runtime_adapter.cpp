@@ -4,7 +4,7 @@ namespace ur::product {
 
 RuntimeDispatchStatus dispatch_runtime_action(
     RuntimeAction action,
-    const PauseRuntimeHooks& hooks) noexcept {
+    const SessionRuntimeHooks& hooks) noexcept {
     switch (action) {
     case RuntimeAction::SuspendGuest:
         if (!hooks.set_paused) {
@@ -21,6 +21,13 @@ RuntimeDispatchStatus dispatch_runtime_action(
         return RuntimeDispatchStatus::Applied;
 
     case RuntimeAction::RestartRace:
+        if (!hooks.restart_race) {
+            return RuntimeDispatchStatus::MissingHook;
+        }
+        return hooks.restart_race()
+            ? RuntimeDispatchStatus::Applied
+            : RuntimeDispatchStatus::RejectedByRuntime;
+
     case RuntimeAction::ExitToFrontend:
         return RuntimeDispatchStatus::UnsupportedAction;
     }

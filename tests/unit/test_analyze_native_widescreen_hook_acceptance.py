@@ -26,6 +26,9 @@ class NativeWidescreenHookAcceptanceTests(unittest.TestCase):
             primary.append(
                 f"URWS_PRIMARY margin=0 camx={stock_camx} edge=0D81 count=16 payload={payload}\n"
             )
+            widened.append(
+                f"URWS_PRIMARY margin=8 camx={wide_camx} edge=0D80 count=16 payload={PAYLOAD}\n"
+            )
             if i:
                 widened.append("URWS_CLEANUP margin=8\n")
             widened.append(
@@ -56,6 +59,8 @@ class NativeWidescreenHookAcceptanceTests(unittest.TestCase):
             self.assertTrue(r["native_runtime"]["margin8_terminal_payload_pending"])
             self.assertGreaterEqual(r["native_runtime"]["margin8_exact_future_stock_matches"],309)
             self.assertGreaterEqual(r["native_runtime"]["margin8_longest_consecutive_exact_match_run"],14)
+            self.assertEqual(r["native_runtime"]["margin8_adjacent_prepared_edges"],320)
+            self.assertTrue(r["checks"]["margin8_all_prepared_edges_adjacent"])
             self.assertEqual(r["first_generalization_constraint"],"secondary-lane-capacity")
 
     def test_accepts_fully_cleaned_final_payload(self):
@@ -64,6 +69,15 @@ class NativeWidescreenHookAcceptanceTests(unittest.TestCase):
             r=MOD.analyze(self.logs(terminal_pending=False),self.dumps(root))
             self.assertTrue(r["accepted"])
             self.assertFalse(r["native_runtime"]["margin8_terminal_payload_pending"])
+
+    def test_rejects_nonadjacent_prepared_edge(self):
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td)
+            logs=self.logs()
+            logs[8]=logs[8].replace("edge=0D80 count=16", "edge=0D7F count=16", 1)
+            r=MOD.analyze(logs,self.dumps(root))
+            self.assertFalse(r["accepted"])
+            self.assertFalse(r["checks"]["margin8_all_prepared_edges_adjacent"])
 
     def test_rejects_protected_state_change(self):
         with tempfile.TemporaryDirectory() as td:

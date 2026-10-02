@@ -7,6 +7,7 @@ on:
     paths:
       - "analysis/data/racer-hd-replacement-prototype.json"
       - "analysis/generated/racer-presentation-family.json"
+      - "analysis/data/presentation-assets.json"
       - "tools/prototype_racer_hd_replacement.py"
       - "tools/extract_racer_presentation_family.py"
       - "tests/unit/test_racer_hd_replacement_prototype.py"

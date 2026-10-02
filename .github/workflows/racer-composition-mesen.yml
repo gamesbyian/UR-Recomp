@@ -101,12 +101,13 @@ jobs:
           import json, os
           p=json.load(open(os.path.join(os.environ["RUNNER_TEMP"],"racer-composition-mesen.json")))
           assert p["mask_checks"]["primary_exact"], p["mask_checks"]
-          assert p["mask_checks"]["companion_exact"], p["mask_checks"]
+          assert p["mask_checks"]["companion_raw_exact"], p["mask_checks"]
           assert p["staging"]["all_occupied_destinations_present"], p["staging"]
           assert p["staging"]["all_occupied_sources_exact"], p["staging"]
           print("SYNCHRONIZED_RACER_COMPOSITION_CONFIRMED")
           print("ids", p["ids"])
           print("selectors", p["selectors"])
+          print("companion gates", p["companion_gate_words"], p["companion_enabled"])
           print("occupied", p["staging"]["occupied_sources_exact"], "/", p["staging"]["occupied_cells"])
           PY
 

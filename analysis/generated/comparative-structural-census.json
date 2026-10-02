@@ -66,17 +66,21 @@
     {
       "id": "contact-geometry",
       "path": "analysis/generated/contact-geometry-structure-island.json"
+    },
+    {
+      "id": "course-resource-helper",
+      "path": "analysis/generated/course-resource-helper-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 107,
-    "code_regions": 97,
+    "regions": 110,
+    "code_regions": 100,
     "data_regions": 10,
-    "bounded_bytes": 16202,
-    "bounded_code_region_bytes": 14929,
+    "bounded_bytes": 16358,
+    "bounded_code_region_bytes": 15085,
     "bounded_data_region_bytes": 1273,
-    "analyzer_opcode_bytes": 6365,
-    "analyzer_operand_bytes": 8449,
+    "analyzer_opcode_bytes": 6456,
+    "analyzer_operand_bytes": 8514,
     "analyzer_unreached_or_data_bytes": 1388,
     "banks": [
       "81",
@@ -4553,6 +4557,144 @@
           "shift": 0,
           "similarity": 1,
           "size": 47,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "course-resource-helper",
+      "source_path": "analysis/generated/course-resource-helper-structure-island.json",
+      "name": "stream_byte_reader",
+      "kind": "code",
+      "usa_start": "82:B293",
+      "usa_end": "82:B2A8",
+      "size": 22,
+      "usa_opcode_bytes": 15,
+      "usa_operand_bytes": 7,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:B296",
+          "end": "82:B2AB",
+          "shift": 3,
+          "similarity": 1,
+          "size": 22,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:B293",
+          "end": "82:B2A8",
+          "shift": 0,
+          "similarity": 1,
+          "size": 22,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:B280",
+          "end": "82:B295",
+          "shift": -19,
+          "similarity": 1,
+          "size": 22,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:B293",
+          "end": "82:B2A8",
+          "shift": 0,
+          "similarity": 1,
+          "size": 22,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "course-resource-helper",
+      "source_path": "analysis/generated/course-resource-helper-structure-island.json",
+      "name": "descriptor_wrapper_and_decoder",
+      "kind": "code",
+      "usa_start": "82:B2A9",
+      "usa_end": "82:B2D9",
+      "size": 49,
+      "usa_opcode_bytes": 30,
+      "usa_operand_bytes": 19,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:B2AC",
+          "end": "82:B2DC",
+          "shift": 3,
+          "similarity": 0.979592,
+          "size": 49,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:B2A9",
+          "end": "82:B2D9",
+          "shift": 0,
+          "similarity": 1,
+          "size": 49,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:B296",
+          "end": "82:B2C6",
+          "shift": -19,
+          "similarity": 0.979592,
+          "size": 49,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:B2A9",
+          "end": "82:B2D9",
+          "shift": 0,
+          "similarity": 1,
+          "size": 49,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "course-resource-helper",
+      "source_path": "analysis/generated/course-resource-helper-structure-island.json",
+      "name": "resource_transfer_or_decompress",
+      "kind": "code",
+      "usa_start": "82:B2DA",
+      "usa_end": "82:B32E",
+      "size": 85,
+      "usa_opcode_bytes": 46,
+      "usa_operand_bytes": 39,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "82:B2DD",
+          "end": "82:B331",
+          "shift": 3,
+          "similarity": 0.964706,
+          "size": 85,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "82:B2DA",
+          "end": "82:B32E",
+          "shift": 0,
+          "similarity": 1,
+          "size": 85,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "82:B2C7",
+          "end": "82:B31B",
+          "shift": -19,
+          "similarity": 0.964706,
+          "size": 85,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "82:B2DA",
+          "end": "82:B32E",
+          "shift": 0,
+          "similarity": 1,
+          "size": 85,
           "size_delta": 0
         }
       }

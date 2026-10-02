@@ -54,7 +54,6 @@
       },
       "pieces": [
         {
-          "scan_index": 1,
           "major_slot": 0,
           "minor_slot": 1,
           "header_byte": 0,
@@ -66,10 +65,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8040",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 1
         },
         {
-          "scan_index": 2,
           "major_slot": 0,
           "minor_slot": 2,
           "header_byte": 0,
@@ -81,10 +80,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8060",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 2
         },
         {
-          "scan_index": 3,
           "major_slot": 0,
           "minor_slot": 3,
           "header_byte": 0,
@@ -96,10 +95,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8080",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 3
         },
         {
-          "scan_index": 8,
           "major_slot": 1,
           "minor_slot": 2,
           "header_byte": 1,
@@ -111,10 +110,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x80A0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 8
         },
         {
-          "scan_index": 9,
           "major_slot": 1,
           "minor_slot": 3,
           "header_byte": 1,
@@ -126,10 +125,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x80C0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 9
         },
         {
-          "scan_index": 14,
           "major_slot": 2,
           "minor_slot": 2,
           "header_byte": 1,
@@ -141,10 +140,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x80E0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 14
         },
         {
-          "scan_index": 15,
           "major_slot": 2,
           "minor_slot": 3,
           "header_byte": 1,
@@ -156,10 +155,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8100",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 15
         },
         {
-          "scan_index": 19,
           "major_slot": 3,
           "minor_slot": 1,
           "header_byte": 2,
@@ -171,10 +170,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8120",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 19
         },
         {
-          "scan_index": 20,
           "major_slot": 3,
           "minor_slot": 2,
           "header_byte": 2,
@@ -186,10 +185,10 @@
           "word_low_byte": 20,
           "staged_1645_value": "0x9F00",
           "staged_15a1_value": "0x002C",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 20
         },
         {
-          "scan_index": 21,
           "major_slot": 3,
           "minor_slot": 3,
           "header_byte": 2,
@@ -201,10 +200,10 @@
           "word_low_byte": 20,
           "staged_1645_value": "0x9F20",
           "staged_15a1_value": "0x002C",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 21
         },
         {
-          "scan_index": 22,
           "major_slot": 3,
           "minor_slot": 4,
           "header_byte": 2,
@@ -216,10 +215,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8180",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 22
         },
         {
-          "scan_index": 26,
           "major_slot": 4,
           "minor_slot": 2,
           "header_byte": 3,
@@ -231,10 +230,10 @@
           "word_low_byte": 20,
           "staged_1645_value": "0x9F40",
           "staged_15a1_value": "0x002C",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 26
         },
         {
-          "scan_index": 27,
           "major_slot": 4,
           "minor_slot": 3,
           "header_byte": 3,
@@ -246,7 +245,8 @@
           "word_low_byte": 19,
           "staged_1645_value": "0x8920",
           "staged_15a1_value": "0x002B",
-          "low2_unresolved": 3
+          "low2_renderer_ignored_value": 3,
+          "occupancy_scan_index": 27
         }
       ]
     },
@@ -279,7 +279,6 @@
       },
       "pieces": [
         {
-          "scan_index": 2,
           "major_slot": 0,
           "minor_slot": 2,
           "header_byte": 0,
@@ -291,10 +290,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8360",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 2
         },
         {
-          "scan_index": 3,
           "major_slot": 0,
           "minor_slot": 3,
           "header_byte": 0,
@@ -306,10 +305,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8380",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 3
         },
         {
-          "scan_index": 4,
           "major_slot": 0,
           "minor_slot": 4,
           "header_byte": 0,
@@ -321,10 +320,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x83A0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 4
         },
         {
-          "scan_index": 8,
           "major_slot": 1,
           "minor_slot": 2,
           "header_byte": 1,
@@ -336,10 +335,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x83C0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 8
         },
         {
-          "scan_index": 9,
           "major_slot": 1,
           "minor_slot": 3,
           "header_byte": 1,
@@ -351,10 +350,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x83E0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 9
         },
         {
-          "scan_index": 14,
           "major_slot": 2,
           "minor_slot": 2,
           "header_byte": 1,
@@ -366,10 +365,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8400",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 14
         },
         {
-          "scan_index": 15,
           "major_slot": 2,
           "minor_slot": 3,
           "header_byte": 1,
@@ -381,10 +380,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8420",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 15
         },
         {
-          "scan_index": 19,
           "major_slot": 3,
           "minor_slot": 1,
           "header_byte": 2,
@@ -396,10 +395,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8440",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 19
         },
         {
-          "scan_index": 20,
           "major_slot": 3,
           "minor_slot": 2,
           "header_byte": 2,
@@ -411,10 +410,10 @@
           "word_low_byte": 20,
           "staged_1645_value": "0x9FC0",
           "staged_15a1_value": "0x002C",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 20
         },
         {
-          "scan_index": 21,
           "major_slot": 3,
           "minor_slot": 3,
           "header_byte": 2,
@@ -426,10 +425,10 @@
           "word_low_byte": 20,
           "staged_1645_value": "0x9FE0",
           "staged_15a1_value": "0x002C",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 21
         },
         {
-          "scan_index": 25,
           "major_slot": 4,
           "minor_slot": 1,
           "header_byte": 3,
@@ -441,10 +440,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x84A0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 25
         },
         {
-          "scan_index": 26,
           "major_slot": 4,
           "minor_slot": 2,
           "header_byte": 3,
@@ -456,10 +455,10 @@
           "word_low_byte": 21,
           "staged_1645_value": "0x8000",
           "staged_15a1_value": "0x002C",
-          "low2_unresolved": 1
+          "low2_renderer_ignored_value": 1,
+          "occupancy_scan_index": 26
         },
         {
-          "scan_index": 27,
           "major_slot": 4,
           "minor_slot": 3,
           "header_byte": 3,
@@ -471,7 +470,8 @@
           "word_low_byte": 7,
           "staged_1645_value": "0x8280",
           "staged_15a1_value": "0x0028",
-          "low2_unresolved": 3
+          "low2_renderer_ignored_value": 3,
+          "occupancy_scan_index": 27
         }
       ]
     },
@@ -504,7 +504,6 @@
       },
       "pieces": [
         {
-          "scan_index": 2,
           "major_slot": 0,
           "minor_slot": 2,
           "header_byte": 0,
@@ -516,10 +515,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x86C0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 2
         },
         {
-          "scan_index": 3,
           "major_slot": 0,
           "minor_slot": 3,
           "header_byte": 0,
@@ -531,10 +530,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x86E0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 3
         },
         {
-          "scan_index": 4,
           "major_slot": 0,
           "minor_slot": 4,
           "header_byte": 0,
@@ -546,10 +545,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8700",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 4
         },
         {
-          "scan_index": 8,
           "major_slot": 1,
           "minor_slot": 2,
           "header_byte": 1,
@@ -561,10 +560,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8720",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 8
         },
         {
-          "scan_index": 9,
           "major_slot": 1,
           "minor_slot": 3,
           "header_byte": 1,
@@ -576,10 +575,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8740",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 9
         },
         {
-          "scan_index": 10,
           "major_slot": 1,
           "minor_slot": 4,
           "header_byte": 1,
@@ -591,10 +590,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8760",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 10
         },
         {
-          "scan_index": 13,
           "major_slot": 2,
           "minor_slot": 1,
           "header_byte": 1,
@@ -606,10 +605,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8780",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 13
         },
         {
-          "scan_index": 14,
           "major_slot": 2,
           "minor_slot": 2,
           "header_byte": 1,
@@ -621,10 +620,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x87A0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 14
         },
         {
-          "scan_index": 15,
           "major_slot": 2,
           "minor_slot": 3,
           "header_byte": 1,
@@ -636,10 +635,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x87C0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 15
         },
         {
-          "scan_index": 19,
           "major_slot": 3,
           "minor_slot": 1,
           "header_byte": 2,
@@ -651,10 +650,10 @@
           "word_low_byte": 2,
           "staged_1645_value": "0x9A60",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 2
+          "low2_renderer_ignored_value": 2,
+          "occupancy_scan_index": 19
         },
         {
-          "scan_index": 20,
           "major_slot": 3,
           "minor_slot": 2,
           "header_byte": 2,
@@ -666,10 +665,10 @@
           "word_low_byte": 21,
           "staged_1645_value": "0x8080",
           "staged_15a1_value": "0x002C",
-          "low2_unresolved": 1
+          "low2_renderer_ignored_value": 1,
+          "occupancy_scan_index": 20
         },
         {
-          "scan_index": 21,
           "major_slot": 3,
           "minor_slot": 3,
           "header_byte": 2,
@@ -681,10 +680,10 @@
           "word_low_byte": 2,
           "staged_1645_value": "0x9AA0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 2
+          "low2_renderer_ignored_value": 2,
+          "occupancy_scan_index": 21
         },
         {
-          "scan_index": 25,
           "major_slot": 4,
           "minor_slot": 1,
           "header_byte": 3,
@@ -696,10 +695,10 @@
           "word_low_byte": 0,
           "staged_1645_value": "0x8840",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 0
+          "low2_renderer_ignored_value": 0,
+          "occupancy_scan_index": 25
         },
         {
-          "scan_index": 26,
           "major_slot": 4,
           "minor_slot": 2,
           "header_byte": 3,
@@ -711,10 +710,10 @@
           "word_low_byte": 21,
           "staged_1645_value": "0x80A0",
           "staged_15a1_value": "0x002C",
-          "low2_unresolved": 1
+          "low2_renderer_ignored_value": 1,
+          "occupancy_scan_index": 26
         },
         {
-          "scan_index": 27,
           "major_slot": 4,
           "minor_slot": 3,
           "header_byte": 3,
@@ -726,7 +725,8 @@
           "word_low_byte": 2,
           "staged_1645_value": "0x9AE0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 2
+          "low2_renderer_ignored_value": 2,
+          "occupancy_scan_index": 27
         }
       ]
     },
@@ -759,7 +759,6 @@
       },
       "pieces": [
         {
-          "scan_index": 1,
           "major_slot": 0,
           "minor_slot": 1,
           "header_byte": 0,
@@ -771,10 +770,10 @@
           "word_low_byte": 2,
           "staged_1645_value": "0x9CA0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 2
+          "low2_renderer_ignored_value": 2,
+          "occupancy_scan_index": 1
         },
         {
-          "scan_index": 2,
           "major_slot": 0,
           "minor_slot": 2,
           "header_byte": 0,
@@ -786,10 +785,10 @@
           "word_low_byte": 2,
           "staged_1645_value": "0x9CC0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 2
+          "low2_renderer_ignored_value": 2,
+          "occupancy_scan_index": 2
         },
         {
-          "scan_index": 3,
           "major_slot": 0,
           "minor_slot": 3,
           "header_byte": 0,
@@ -801,10 +800,10 @@
           "word_low_byte": 2,
           "staged_1645_value": "0x9CE0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 2
+          "low2_renderer_ignored_value": 2,
+          "occupancy_scan_index": 3
         },
         {
-          "scan_index": 8,
           "major_slot": 1,
           "minor_slot": 2,
           "header_byte": 1,
@@ -816,10 +815,10 @@
           "word_low_byte": 2,
           "staged_1645_value": "0x9D00",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 2
+          "low2_renderer_ignored_value": 2,
+          "occupancy_scan_index": 8
         },
         {
-          "scan_index": 9,
           "major_slot": 1,
           "minor_slot": 3,
           "header_byte": 1,
@@ -831,10 +830,10 @@
           "word_low_byte": 2,
           "staged_1645_value": "0x9D20",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 2
+          "low2_renderer_ignored_value": 2,
+          "occupancy_scan_index": 9
         },
         {
-          "scan_index": 14,
           "major_slot": 2,
           "minor_slot": 2,
           "header_byte": 1,
@@ -846,10 +845,10 @@
           "word_low_byte": 2,
           "staged_1645_value": "0x9D40",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 2
+          "low2_renderer_ignored_value": 2,
+          "occupancy_scan_index": 14
         },
         {
-          "scan_index": 15,
           "major_slot": 2,
           "minor_slot": 3,
           "header_byte": 1,
@@ -861,10 +860,10 @@
           "word_low_byte": 2,
           "staged_1645_value": "0x9D60",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 2
+          "low2_renderer_ignored_value": 2,
+          "occupancy_scan_index": 15
         },
         {
-          "scan_index": 20,
           "major_slot": 3,
           "minor_slot": 2,
           "header_byte": 2,
@@ -876,10 +875,10 @@
           "word_low_byte": 21,
           "staged_1645_value": "0x98E0",
           "staged_15a1_value": "0x002C",
-          "low2_unresolved": 1
+          "low2_renderer_ignored_value": 1,
+          "occupancy_scan_index": 20
         },
         {
-          "scan_index": 21,
           "major_slot": 3,
           "minor_slot": 3,
           "header_byte": 2,
@@ -891,10 +890,10 @@
           "word_low_byte": 21,
           "staged_1645_value": "0x9900",
           "staged_15a1_value": "0x002C",
-          "low2_unresolved": 1
+          "low2_renderer_ignored_value": 1,
+          "occupancy_scan_index": 21
         },
         {
-          "scan_index": 22,
           "major_slot": 3,
           "minor_slot": 4,
           "header_byte": 2,
@@ -906,10 +905,10 @@
           "word_low_byte": 2,
           "staged_1645_value": "0x9DC0",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 2
+          "low2_renderer_ignored_value": 2,
+          "occupancy_scan_index": 22
         },
         {
-          "scan_index": 26,
           "major_slot": 4,
           "minor_slot": 2,
           "header_byte": 3,
@@ -921,10 +920,10 @@
           "word_low_byte": 21,
           "staged_1645_value": "0x9920",
           "staged_15a1_value": "0x002C",
-          "low2_unresolved": 1
+          "low2_renderer_ignored_value": 1,
+          "occupancy_scan_index": 26
         },
         {
-          "scan_index": 27,
           "major_slot": 4,
           "minor_slot": 3,
           "header_byte": 3,
@@ -936,10 +935,10 @@
           "word_low_byte": 21,
           "staged_1645_value": "0x9940",
           "staged_15a1_value": "0x002C",
-          "low2_unresolved": 1
+          "low2_renderer_ignored_value": 1,
+          "occupancy_scan_index": 27
         },
         {
-          "scan_index": 28,
           "major_slot": 4,
           "minor_slot": 4,
           "header_byte": 3,
@@ -951,7 +950,8 @@
           "word_low_byte": 2,
           "staged_1645_value": "0x9E20",
           "staged_15a1_value": "0x0027",
-          "low2_unresolved": 2
+          "low2_renderer_ignored_value": 2,
+          "occupancy_scan_index": 28
         }
       ]
     }
@@ -1134,19 +1134,20 @@
   },
   "schema_version": 1,
   "piece_semantics": {
-    "status": "mechanically_recovered_for_observed_family",
+    "status": "mechanically_recovered_for_observed_family_with_retained_spatial_binding",
     "occupancy_shape": "5 major slots x 6 minor slots",
     "ordering": "30 occupancy positions scan MSB-first by header byte; each set position consumes the next packed 16-bit word",
     "renderer_proof": [
       "83:F338..F3C6 and 83:F441..F4CF reshape the header into six-bit masks",
       "83:F1AE initializes the construction mask to $8000 and 83:F1DC..F270 shifts it once per slot",
       "occupied slots read one 16-bit word and increment the selected frame pointer by two bytes",
-      "83:F20F..F227 derives staging values from the packed word high byte and low-byte bits7..2"
+      "83:F20F..F227 derives staging values from the packed word high byte and low-byte bits7..2",
+      "83:F20F stores the full word in $2A; the only later $2A read at 83:F21D is immediately masked by AND #$00FC, so packed low-byte bits1..0 do not affect this renderer consumer"
     ],
     "packed_word_fields": {
       "high_byte": "83:F20F..F21A -> $1645,Y = $8000 | (high_byte << 5)",
       "low_byte_bits_7_2": "83:F21D..F227 -> $15A1,Y = $0027 + ((low_byte & $FC) >> 2)",
-      "low_byte_bits_1_0": "unresolved"
+      "low_byte_bits_1_0": "renderer-ignored in the bounded 83:F190..F290 consumer; producer-side meaning remains unresolved"
     },
     "corpus_check": {
       "comparable_monotonic_records": 5168,
@@ -1155,11 +1156,27 @@
       "evidence_workflow_run": 36973753703
     },
     "oam_binding": {
-      "layering": "packed records populate racer tile/presentation staging before 82:ACA5 OAM composition",
+      "layering": "packed records populate 8x8 racer subtile content before later 82:ACA5 OAM composition",
       "retained_reference_run": 36943103609,
+      "obj_mode": "OBSEL 0x83 => 16x16 small / 64x64 large objects",
+      "spatial_layout": {
+        "occupancy_rectangle_in_large_obj_tiles": [
+          1,
+          0,
+          6,
+          5
+        ],
+        "major_slot_semantics": "stored 8x8 tile row",
+        "minor_slot_semantics": "stored 8x8 tile column",
+        "orientation_rule": "OAM H/V flip is applied after packed-cell placement to obtain presented coordinates",
+        "exact_persistent_id_bindings": 8,
+        "retained_snapshots_inspected": 9,
+        "all_exact_and_nearby_unique_bindings_at_same_offset": true,
+        "evidence_workflow_run": 36978560724
+      },
       "checkpoints": {
-        "two-player-race-1220": "frame IDs 0x0542/0x0540; OAM sprites 96..99 use stable tiles 0x88/0x00 with split-screen staging",
-        "two-player-race-1420": "frame IDs 0x057E/0x0544; same OAM tile identities while encoded frame content changes"
+        "two-player-race-1220": "persistent P1/P2 IDs 0x0541/0x0540; both exact occupancy matches use 5x6 offset (1,0) inside stable 64x64 OAM slots",
+        "two-player-race-1420": "persistent P2 ID 0x0544 exactly matches the same 5x6 offset (1,0); P1 renderer/persistent timing differs at this endpoint"
       }
     }
   }

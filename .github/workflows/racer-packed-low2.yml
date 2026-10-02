@@ -1,0 +1,53 @@
+name: Racer packed low2 audit
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "tools/analyze_racer_packed_low2.py"
+      - "tests/unit/test_analyze_racer_packed_low2.py"
+      - ".github/workflows/racer-packed-low2.yml"
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Unit tests
+        run: python3 -m unittest tests.unit.test_analyze_racer_packed_low2 -v
+      - name: Download retained ordinary-2P reference
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/ordinary-2p"
+          gh run download 36943103609 -n ordinary-2p-reference -D "$RUNNER_TEMP/ordinary-2p"
+      - name: Audit low bits and renderer use
+        run: |
+          python3 tools/analyze_racer_packed_low2.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --json-out analysis/generated/racer-packed-low2-audit.json \
+            --md-out analysis/generated/racer-packed-low2-audit.md
+          python3 tools/analyze_racer_spatial_generalization.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --dump-dir "$RUNNER_TEMP/ordinary-2p/native-dumps" \
+            --json-out analysis/generated/racer-spatial-generalization.json \
+            --md-out analysis/generated/racer-spatial-generalization.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: racer-packed-low2-audit
+          path: |
+            analysis/generated/racer-packed-low2-audit.json
+            analysis/generated/racer-packed-low2-audit.md
+            analysis/generated/racer-spatial-generalization.json
+            analysis/generated/racer-spatial-generalization.md
+          retention-days: 7
+          if-no-files-found: error

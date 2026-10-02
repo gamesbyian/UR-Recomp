@@ -322,6 +322,12 @@ def compose_racer_staging(
                 "row": row,
                 "column": column,
                 "player": player,
+                "major_slot": row if player is not None else None,
+                "minor_slot": (
+                    column if player == "p1"
+                    else column - 8 if player == "p2"
+                    else None
+                ),
                 "primary_occupied": primary_occupied,
                 "companion_occupied": companion_occupied,
                 "choice": choice,
@@ -516,6 +522,43 @@ def rasterize_frame_rgba(
         tile = decode_4bpp_tile(raw)
         gx = ox + piece["minor_slot"]
         gy = oy + piece["major_slot"]
+        for ty, row in enumerate(tile):
+            for tx, ci in enumerate(row):
+                x = gx * 8 + tx
+                y = gy * 8 + ty
+                if hflip:
+                    x = RASTER_WIDTH - 1 - x
+                if vflip:
+                    y = RASTER_HEIGHT - 1 - y
+                q = (y * RASTER_WIDTH + x) * 4
+                pixels[q:q + 4] = bytes(palette[ci])
+    return bytes(pixels)
+
+
+
+def rasterize_composed_player_rgba(
+    rom: bytes,
+    composition: dict,
+    player: str,
+    palette_asset_id: int,
+    *,
+    hflip: bool = False,
+    vflip: bool = False,
+) -> bytes:
+    """Rasterize one player's final composed 64x64 object-local image."""
+    if player not in {"p1", "p2"}:
+        raise ValueError("player must be 'p1' or 'p2'")
+    palette = rgba_palette(rom, palette_asset_id)
+    pixels = bytearray(RASTER_WIDTH * RASTER_HEIGHT * 4)
+    ox, oy = RASTER_TILE_OFFSET
+    for cell in composition["cells"]:
+        if cell["player"] != player or cell["word_hex"] is None:
+            continue
+        word = int(cell["word_hex"], 16)
+        raw, _ = piece_source_tile(rom, word)
+        tile = decode_4bpp_tile(raw)
+        gx = ox + int(cell["minor_slot"])
+        gy = oy + int(cell["major_slot"])
         for ty, row in enumerate(tile):
             for tx, ci in enumerate(row):
                 x = gx * 8 + tx

@@ -304,12 +304,14 @@
     {
       "phase": "renderer/preparation synthesis",
       "owner": "PR #203",
-      "reason": "Active preparation/emission lane; avoid duplicate investigation."
+      "reason": "Representative stock preparation/emission closure reconciled: camera-derived $03xx strip descriptors are consumed same-frame by NMI; widened earlier/additional scheduling remains an implementation experiment.",
+      "status": "integrated_2026-10-02"
     },
     {
       "phase": "+8 host composition",
       "owner": "PR #206",
-      "reason": "Active composition-edge lane; avoid duplicate investigation."
+      "reason": "+8 full-renderer tracing shows P2 presentation ID diverges at object-tail-141 and VRAM at 142 while meaningful P2 state remains equal; later center regression is downstream.",
+      "status": "integrated_2026-10-02"
     },
     {
       "phase": "progression prediction",

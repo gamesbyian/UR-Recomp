@@ -171,7 +171,7 @@ def decode_piece_mapping(record: FrameRecord) -> list[dict]:
             "word_low_byte": word & 0xFF,
             "staged_1645_value": f"0x{(0x8000 | ((word >> 8) << 5)) & 0xFFFF:04X}",
             "staged_15a1_value": f"0x{0x27 + ((word & 0x00FC) >> 2):04X}",
-            "low2_unresolved": word & 0x03,
+            "low2_renderer_ignored_value": word & 0x03,
         })
     return pieces
 
@@ -427,7 +427,7 @@ def build_manifest(rom: bytes) -> dict:
             "palette_entries_and_bgr555_payloads": all(x["roundtrip_equal"] for x in palettes),
         },
         "piece_semantics": {
-            "status": "mechanically_recovered_for_observed_family",
+            "status": "mechanically_recovered_for_observed_family_with_retained_spatial_binding",
             "occupancy_shape": "5 major slots x 6 minor slots",
             "ordering": "30 occupancy positions scan MSB-first by header byte; each set position consumes the next packed 16-bit word",
             "renderer_proof": [
@@ -435,22 +435,34 @@ def build_manifest(rom: bytes) -> dict:
                 "83:F1AE initializes the construction mask to $8000 and 83:F1DC..F270 shifts it once per slot",
                 "occupied slots read one 16-bit word and increment the selected frame pointer by two bytes",
                 "83:F20F..F227 derives staging values from the packed word high byte and low-byte bits7..2",
+                "83:F20F stores the full word in $2A; the only later $2A read at 83:F21D is immediately masked by AND #$00FC, so packed low-byte bits1..0 do not affect this renderer consumer",
             ],
             "packed_word_fields": {
                 "high_byte": "83:F20F..F21A -> $1645,Y = $8000 | (high_byte << 5)",
                 "low_byte_bits_7_2": "83:F21D..F227 -> $15A1,Y = $0027 + ((low_byte & $FC) >> 2)",
-                "low_byte_bits_1_0": "unresolved",
+                "low_byte_bits_1_0": "renderer-ignored in the bounded 83:F190..F290 consumer; producer-side meaning remains unresolved",
             },
             "corpus_check": {
                 **census_record_structure(rom),
                 "evidence_workflow_run": 36973753703,
             },
             "oam_binding": {
-                "layering": "packed records populate racer tile/presentation staging before 82:ACA5 OAM composition",
+                "layering": "packed records populate 8x8 racer subtile content before later 82:ACA5 OAM composition",
                 "retained_reference_run": 36943103609,
+                "obj_mode": "OBSEL 0x83 => 16x16 small / 64x64 large objects",
+                "spatial_layout": {
+                    "occupancy_rectangle_in_large_obj_tiles": [1, 0, 6, 5],
+                    "major_slot_semantics": "stored 8x8 tile row",
+                    "minor_slot_semantics": "stored 8x8 tile column",
+                    "orientation_rule": "OAM H/V flip is applied after packed-cell placement to obtain presented coordinates",
+                    "exact_persistent_id_bindings": 8,
+                    "retained_snapshots_inspected": 9,
+                    "all_exact_and_nearby_unique_bindings_at_same_offset": True,
+                    "evidence_workflow_run": 36978560724,
+                },
                 "checkpoints": {
-                    "two-player-race-1220": "frame IDs 0x0542/0x0540; OAM sprites 96..99 use stable tiles 0x88/0x00 with split-screen staging",
-                    "two-player-race-1420": "frame IDs 0x057E/0x0544; same OAM tile identities while encoded frame content changes",
+                    "two-player-race-1220": "persistent P1/P2 IDs 0x0541/0x0540; both exact occupancy matches use 5x6 offset (1,0) inside stable 64x64 OAM slots",
+                    "two-player-race-1420": "persistent P2 ID 0x0544 exactly matches the same 5x6 offset (1,0); P1 renderer/persistent timing differs at this endpoint",
                 },
             },
         },

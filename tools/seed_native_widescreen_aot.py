@@ -43,6 +43,9 @@ def _append_once(path: Path, marker: str, entry: str, *, prefix: str = "") -> bo
 def ensure_seed(cfg_dir: Path) -> dict[str, bool]:
     symbols = cfg_dir / "symbols.toml"
     bank01 = cfg_dir / "bank01.cfg"
+    bank_extra = cfg_dir / f"bank{EXTRA_BANK:02d}.cfg"
+    extra_marker = f"func {EXTRA_NAME} {EXTRA_ADDR}"
+    extra_entry = f"# UR-Recomp Widescreen presentation-only consume root.\n{extra_marker}\n"
     return {
         "symbols": _append_once(symbols, SYMBOL_MARKER, SYMBOL_ENTRY),
         "bank01": _append_once(
@@ -50,6 +53,12 @@ def ensure_seed(cfg_dir: Path) -> dict[str, bool]:
             CFG_MARKER,
             CFG_ENTRY,
             prefix="bank = 1\ntier_down_stubs\n",
+        ),
+        "bank02": _append_once(
+            bank_extra,
+            extra_marker,
+            extra_entry,
+            prefix=f"bank = {EXTRA_BANK}\ntier_down_stubs\n",
         ),
     }
 

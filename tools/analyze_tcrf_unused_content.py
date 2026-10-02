@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import json
 import struct
+import zlib
 from pathlib import Path
 
 ROM_SIZE = 0x200000
@@ -20,41 +21,132 @@ NORMAL_TRACK_COUNT = 45
 NORMAL_SELECTOR_WRAP_CPU = (0x80, 0xAE8C)
 TRACK_TYPE_LOAD_CPU = (0x83, 0x9996)
 
-def png_metadata(path: Path) -> dict:
-    data = path.read_bytes()
+def _png_chunks(data: bytes) -> list[tuple[str, bytes]]:
     if data[:8] != b"\x89PNG\r\n\x1a\n":
-        raise ValueError(f"not a PNG: {path}")
+        raise ValueError("not a PNG")
+    rows: list[tuple[str, bytes]] = []
     pos = 8
-    ihdr = None
-    chunks = []
     while pos + 12 <= len(data):
         length = int.from_bytes(data[pos:pos + 4], "big")
         kind = data[pos + 4:pos + 8].decode("ascii", "replace")
         payload = data[pos + 8:pos + 8 + length]
-        chunks.append({"type": kind, "length": length})
-        if kind == "IHDR":
-            width, height, bit_depth, color_type, compression, filtering, interlace = struct.unpack(
-                ">IIBBBBB", payload
-            )
-            ihdr = {
-                "width": width,
-                "height": height,
-                "bit_depth": bit_depth,
-                "color_type": color_type,
-                "compression": compression,
-                "filter": filtering,
-                "interlace": interlace,
-            }
+        rows.append((kind, payload))
         pos += 12 + length
         if kind == "IEND":
             break
-    return {
+    return rows
+
+
+def _paeth(a: int, b: int, c: int) -> int:
+    p = a + b - c
+    pa = abs(p - a)
+    pb = abs(p - b)
+    pc = abs(p - c)
+    if pa <= pb and pa <= pc:
+        return a
+    if pb <= pc:
+        return b
+    return c
+
+
+def decode_indexed_png(path: Path) -> tuple[dict, list[list[int]]]:
+    data = path.read_bytes()
+    chunks = _png_chunks(data)
+    ihdr_payload = next(payload for kind, payload in chunks if kind == "IHDR")
+    width, height, bit_depth, color_type, compression, filtering, interlace = struct.unpack(
+        ">IIBBBBB", ihdr_payload
+    )
+    if (bit_depth, color_type, compression, filtering, interlace) != (4, 3, 0, 0, 0):
+        raise ValueError(
+            "boot-graphic decoder currently expects non-interlaced indexed PNG, 4bpp"
+        )
+    plte = next(payload for kind, payload in chunks if kind == "PLTE")
+    palette = [list(plte[i:i + 3]) for i in range(0, len(plte), 3)]
+    compressed = b"".join(payload for kind, payload in chunks if kind == "IDAT")
+    raw = zlib.decompress(compressed)
+    row_bytes = (width * bit_depth + 7) // 8
+    stride = row_bytes + 1
+    if len(raw) != height * stride:
+        raise ValueError(f"unexpected decoded PNG byte count: {len(raw)}")
+    prior = bytearray(row_bytes)
+    rows: list[list[int]] = []
+    filter_counts = {str(i): 0 for i in range(5)}
+    for y in range(height):
+        base = y * stride
+        filter_type = raw[base]
+        filter_counts[str(filter_type)] = filter_counts.get(str(filter_type), 0) + 1
+        src = raw[base + 1:base + 1 + row_bytes]
+        recon = bytearray(row_bytes)
+        for x, value in enumerate(src):
+            left = recon[x - 1] if x else 0
+            up = prior[x]
+            up_left = prior[x - 1] if x else 0
+            if filter_type == 0:
+                decoded = value
+            elif filter_type == 1:
+                decoded = (value + left) & 0xFF
+            elif filter_type == 2:
+                decoded = (value + up) & 0xFF
+            elif filter_type == 3:
+                decoded = (value + ((left + up) // 2)) & 0xFF
+            elif filter_type == 4:
+                decoded = (value + _paeth(left, up, up_left)) & 0xFF
+            else:
+                raise ValueError(f"unsupported PNG filter {filter_type}")
+            recon[x] = decoded
+        pixels: list[int] = []
+        for value in recon:
+            pixels.extend([(value >> 4) & 0x0F, value & 0x0F])
+        rows.append(pixels[:width])
+        prior = recon
+    meta = {
         "path": str(path),
         "size": len(data),
         "sha256": sha256(data),
-        "ihdr": ihdr,
-        "chunks": chunks,
+        "ihdr": {
+            "width": width,
+            "height": height,
+            "bit_depth": bit_depth,
+            "color_type": color_type,
+            "compression": compression,
+            "filter": filtering,
+            "interlace": interlace,
+        },
+        "palette_rgb": palette,
+        "palette_entries": len(palette),
+        "filter_counts": filter_counts,
+        "chunks": [{"type": kind, "length": len(payload)} for kind, payload in chunks],
     }
+    return meta, rows
+
+
+def encode_snes_4bpp_tiles(pixels: list[list[int]]) -> bytes:
+    height = len(pixels)
+    width = len(pixels[0]) if height else 0
+    if width % 8 or height % 8:
+        raise ValueError("pixel dimensions must be multiples of 8")
+    out = bytearray()
+    for tile_y in range(0, height, 8):
+        for tile_x in range(0, width, 8):
+            low = bytearray()
+            high = bytearray()
+            for row in range(8):
+                planes = [0, 0, 0, 0]
+                for col in range(8):
+                    value = pixels[tile_y + row][tile_x + col]
+                    bit = 7 - col
+                    for plane in range(4):
+                        planes[plane] |= ((value >> plane) & 1) << bit
+                low.extend([planes[0], planes[1]])
+                high.extend([planes[2], planes[3]])
+            out.extend(low)
+            out.extend(high)
+    return bytes(out)
+
+
+def png_metadata(path: Path) -> dict:
+    meta, _ = decode_indexed_png(path)
+    return meta
 
 
 def sha256(data: bytes) -> str:
@@ -279,8 +371,20 @@ def main() -> int:
         default=Path("reference/imported/tcrf/Uniracers-Decomp.png"),
     )
     args = ap.parse_args()
-    report = analyze(args.rom.read_bytes())
-    report["boot_graphic_reference"] = png_metadata(args.boot_graphic)
+    rom = args.rom.read_bytes()
+    report = analyze(rom)
+    boot_meta, boot_pixels = decode_indexed_png(args.boot_graphic)
+    boot_tiles = encode_snes_4bpp_tiles(boot_pixels)
+    boot_occurrences = all_occurrences(rom, boot_tiles)
+    boot_meta["snes_4bpp"] = {
+        "tile_columns": boot_meta["ihdr"]["width"] // 8,
+        "tile_rows": boot_meta["ihdr"]["height"] // 8,
+        "tile_count": len(boot_tiles) // 32,
+        "encoded_size": len(boot_tiles),
+        "encoded_sha256": sha256(boot_tiles),
+        "exact_rom_occurrences": boot_occurrences,
+    }
+    report["boot_graphic_reference"] = boot_meta
     rendered = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

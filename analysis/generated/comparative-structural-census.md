@@ -2,9 +2,9 @@
 
 This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **120** (109 code, 11 data)
-- bounded bytes: **18520** (17151 code-region bytes, 1369 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **7300**
+- bounded regions: **122** (110 code, 12 data)
+- bounded bytes: **19133** (17700 code-region bytes, 1433 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **7499**
 - represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -127,6 +127,8 @@ This is the first machine-queryable census for the comparative structure-recover
 | `83:CC87..83:CD9F` | code | 281 | race-frame-orchestrator | loop_body_after_sep_cleanup | 83:CC85..83:CD9D (-2; size 281; sim 0.833) | 83:CCAB..83:CDC3 (+36; size 281; sim 0.790) | 83:CC87..83:CD9F (+0; size 281; sim 1.000) |
 | `83:E066..83:E237` | code | 466 | race-control-state | race_control_state_primary | 83:E05C..83:E22D (-10; size 466; sim 0.916) | 83:E082..83:E253 (+28; size 466; sim 0.830) | 83:E066..83:E237 (+0; size 466; sim 1.000) |
 | `83:E238..83:E53F` | code | 776 | race-control-state | race_control_state_companion | 83:E22E..83:E535 (-10; size 776; sim 0.927) | 83:E254..83:E55B (+28; size 776; sim 0.807) | 83:E238..83:E53F (+0; size 776; sim 1.000) |
+| `83:E540..83:E57F` | data | 64 | race-loop-e580-control | race_control_lookup | 83:E536..83:E575 (-10; size 64; sim 1.000) | 83:E55C..83:E59B (+28; size 64; sim 1.000) | 83:E540..83:E57F (+0; size 64; sim 1.000) |
+| `83:E580..83:E7A4` | code | 549 | race-loop-e580-control | race_loop_control | 83:E576..83:E79A (-10; size 549; sim 0.869) | 83:E59C..83:E7C0 (+28; size 549; sim 0.836) | 83:E580..83:E7A4 (+0; size 549; sim 1.000) |
 | `83:EBE6..83:EC45` | data | 96 | ec46-coordinate-window | coordinate_step_table | 83:EC0A..83:EC69 (+36; size 96; sim 1.000) | 83:EC2E..83:EC8D (+72; size 96; sim 1.000) | 83:EBE6..83:EC45 (+0; size 96; sim 1.000) |
 | `83:EC46..83:ED2E` | code | 233 | ec46-coordinate-window | coordinate_window_update | 83:EC6A..83:ED52 (+36; size 233; sim 0.983) | 83:EC8E..83:ED76 (+72; size 233; sim 0.880) | 83:EC46..83:ED2E (+0; size 233; sim 1.000) |
 

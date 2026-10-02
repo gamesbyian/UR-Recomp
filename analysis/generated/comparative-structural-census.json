@@ -90,18 +90,22 @@
     {
       "id": "race-state-980d",
       "path": "analysis/generated/race-state-980d-structure-island.json"
+    },
+    {
+      "id": "race-loop-e580-control",
+      "path": "analysis/generated/race-loop-e580-control-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 120,
-    "code_regions": 109,
-    "data_regions": 11,
-    "bounded_bytes": 18520,
-    "bounded_code_region_bytes": 17151,
-    "bounded_data_region_bytes": 1369,
-    "analyzer_opcode_bytes": 7300,
-    "analyzer_operand_bytes": 9736,
-    "analyzer_unreached_or_data_bytes": 1484,
+    "regions": 122,
+    "code_regions": 110,
+    "data_regions": 12,
+    "bounded_bytes": 19133,
+    "bounded_code_region_bytes": 17700,
+    "bounded_data_region_bytes": 1433,
+    "analyzer_opcode_bytes": 7499,
+    "analyzer_operand_bytes": 10086,
+    "analyzer_unreached_or_data_bytes": 1548,
     "banks": [
       "81",
       "82",
@@ -5405,6 +5409,98 @@
           "shift": 0,
           "similarity": 1,
           "size": 776,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "race-loop-e580-control",
+      "source_path": "analysis/generated/race-loop-e580-control-structure-island.json",
+      "name": "race_control_lookup",
+      "kind": "data",
+      "usa_start": "83:E540",
+      "usa_end": "83:E57F",
+      "size": 64,
+      "usa_opcode_bytes": 0,
+      "usa_operand_bytes": 0,
+      "usa_unreached_or_data_bytes": 64,
+      "homologs": {
+        "usa-retail": {
+          "start": "83:E540",
+          "end": "83:E57F",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 64,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "83:E536",
+          "end": "83:E575",
+          "shift": -10,
+          "similarity": 1.0,
+          "size": 64,
+          "size_delta": 0
+        },
+        "europe-retail": {
+          "start": "83:E55C",
+          "end": "83:E59B",
+          "shift": 28,
+          "similarity": 1.0,
+          "size": 64,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "83:E540",
+          "end": "83:E57F",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 64,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "race-loop-e580-control",
+      "source_path": "analysis/generated/race-loop-e580-control-structure-island.json",
+      "name": "race_loop_control",
+      "kind": "code",
+      "usa_start": "83:E580",
+      "usa_end": "83:E7A4",
+      "size": 549,
+      "usa_opcode_bytes": 199,
+      "usa_operand_bytes": 350,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "usa-retail": {
+          "start": "83:E580",
+          "end": "83:E7A4",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 549,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "83:E576",
+          "end": "83:E79A",
+          "shift": -10,
+          "similarity": 0.868852,
+          "size": 549,
+          "size_delta": 0
+        },
+        "europe-retail": {
+          "start": "83:E59C",
+          "end": "83:E7C0",
+          "shift": 28,
+          "similarity": 0.836066,
+          "size": 549,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "83:E580",
+          "end": "83:E7A4",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 549,
           "size_delta": 0
         }
       }

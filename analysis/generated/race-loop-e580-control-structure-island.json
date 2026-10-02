@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "island": "RaceLoopE580Control",
+  "usa_start": "83:E540",
+  "usa_end": "83:E7A4",
+  "next_entry": "83:E7A5",
+  "bounded_bytes": 613,
+  "boundary_basis": {
+    "table": "83:E540..E57F is a 64-byte/32-word table read as 16-bit values through LDA $83E540,X.",
+    "entry": "83:E580 is called directly from accepted race-frame orchestration at 83:CD47.",
+    "exit": "83:E7A4 is RTS; 83:E7A5 begins the separate routine owned by parallel PR #176."
+  },
+  "accepted_caller_edges": [
+    {
+      "callsite": "83:CD47",
+      "kind": "JSR",
+      "source": "race-frame-orchestrator",
+      "region": "loop_body_after_sep_cleanup"
+    }
+  ],
+  "observed_dataflow": [
+    "selects and writes a paired control/resource value through $11F3/$11F5",
+    "branches on race state $11BB, mode $77074B, and phase $0FE7",
+    "queues APU/control commands through $82:8000 and services them through $82:8035",
+    "updates paired race lifecycle state in $0315..$032F and accumulators $11CF/$11D1"
+  ],
+  "regions": [
+    {
+      "name": "race_control_lookup",
+      "kind": "data",
+      "usa_start": "83:E540",
+      "usa_end": "83:E57F",
+      "size": 64,
+      "builds": {
+        "usa-retail": {
+          "start": "83:E540",
+          "end": "83:E57F",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 64,
+          "size_delta": 0,
+          "sha256": "883e30d54c06784fb1f6759455f1de92a1129014617b24e1c5f9672dfdf46369",
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "unreached_or_data_bytes": 64
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "83:E536",
+          "end": "83:E575",
+          "shift": -10,
+          "similarity": 1.0,
+          "size": 64,
+          "size_delta": 0,
+          "sha256": "883e30d54c06784fb1f6759455f1de92a1129014617b24e1c5f9672dfdf46369",
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "unreached_or_data_bytes": 64
+        },
+        "europe-retail": {
+          "start": "83:E55C",
+          "end": "83:E59B",
+          "shift": 28,
+          "similarity": 1.0,
+          "size": 64,
+          "size_delta": 0,
+          "sha256": "883e30d54c06784fb1f6759455f1de92a1129014617b24e1c5f9672dfdf46369",
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "unreached_or_data_bytes": 64
+        },
+        "legacy-beta": {
+          "start": "83:E540",
+          "end": "83:E57F",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 64,
+          "size_delta": 0,
+          "sha256": "883e30d54c06784fb1f6759455f1de92a1129014617b24e1c5f9672dfdf46369",
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "unreached_or_data_bytes": 64
+        }
+      }
+    },
+    {
+      "name": "race_loop_control",
+      "kind": "code",
+      "usa_start": "83:E580",
+      "usa_end": "83:E7A4",
+      "size": 549,
+      "builds": {
+        "usa-retail": {
+          "start": "83:E580",
+          "end": "83:E7A4",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 549,
+          "size_delta": 0,
+          "sha256": "3d2a97b279a32bfec213aa4995a9d9d6ed8af4bc9a9bf56fa016a5d8767b7782",
+          "opcode_bytes": 199,
+          "operand_bytes": 350,
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "83:E576",
+          "end": "83:E79A",
+          "shift": -10,
+          "similarity": 0.868852,
+          "size": 549,
+          "size_delta": 0,
+          "sha256": "5f754e2e63eda4d14be4f5d684fabcedc0b3f14d20e29fcc7588e890455592ee",
+          "opcode_bytes": 199,
+          "operand_bytes": 350,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 199,
+          "aligned_equal_opcode_pairs": 199,
+          "aligned_role_disagreements": 0
+        },
+        "europe-retail": {
+          "start": "83:E59C",
+          "end": "83:E7C0",
+          "shift": 28,
+          "similarity": 0.836066,
+          "size": 549,
+          "size_delta": 0,
+          "sha256": "b141eda2840eb3a26cc4d63104685810d2dc1177814f2472adbe8be6798c3835",
+          "opcode_bytes": 199,
+          "operand_bytes": 350,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 199,
+          "aligned_equal_opcode_pairs": 199,
+          "aligned_role_disagreements": 0
+        },
+        "legacy-beta": {
+          "start": "83:E580",
+          "end": "83:E7A4",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 549,
+          "size_delta": 0,
+          "sha256": "3d2a97b279a32bfec213aa4995a9d9d6ed8af4bc9a9bf56fa016a5d8767b7782",
+          "opcode_bytes": 199,
+          "operand_bytes": 350,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 199,
+          "aligned_equal_opcode_pairs": 199,
+          "aligned_role_disagreements": 0
+        }
+      }
+    }
+  ]
+}

@@ -10,7 +10,6 @@ TARGETS = {
     0x01A59A: "wrapper_call_ab88",
     0x01A59D: "wrapper_return",
     0x01A59E: "prep_helper_entry",
-    0x01A5A3: "prep_helper_staging_pointer",
     0x02D2D1: "nmi_post_consume_cleanup",
 }
 
@@ -19,8 +18,12 @@ def canon(pc: int) -> int:
 
 def inspect(gen_dir: Path, radius: int = 24) -> dict:
     hits = []
+    staging_initializers = []
     for path in sorted(gen_dir.glob("bank*_v2.c")):
-        lines = path.read_text(encoding="utf-8", errors="replace").replace("\\n", "\n").splitlines()
+        raw_text = path.read_text(encoding="utf-8", errors="replace").replace("\\n", "\n")
+        for match in STAGE_INIT_RE.finditer(raw_text):
+            staging_initializers.append({"file": path.name, "offset": match.start()})
+        lines = raw_text.splitlines()
         for idx, line in enumerate(lines):
             match = TRACE_RE.search(line)
             if not match:
@@ -45,13 +48,16 @@ def inspect(gen_dir: Path, radius: int = 24) -> dict:
         "schema_version": 1,
         "targets": by_target,
         "target_counts": {name: len(by_target.get(name, [])) for name in TARGETS.values()},
-        "all_required_found": all(by_target.get(name) for name in TARGETS.values()),
+        "staging_initializer_count": len(staging_initializers),
+        "staging_initializers": staging_initializers,
+        "all_required_found": all(by_target.get(name) for name in TARGETS.values()) and len(staging_initializers) == 1,
     }
 
 def render(report: dict) -> str:
     lines = ["# Native +8 preparation override anchors", ""]
     for name in TARGETS.values():
         lines.append(f"- {name}: **{len(report['targets'].get(name, []))}** emitted block(s)")
+    lines.append(f"- prep_helper_staging_initializer: **{report['staging_initializer_count']}** semantic match(es)")
     lines += ["", f"All required anchors found: **{report['all_required_found']}**", ""]
     for name in TARGETS.values():
         for hit in report["targets"].get(name, []):

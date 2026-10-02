@@ -13,12 +13,10 @@ if str(TOOLS_DIR) not in sys.path:
 
 try:
     from tools.verify_europe_semantic_edges import find_call_refs
-    from tools.compare_europe_usa_snes2asm_homologs import trace
-    from tools.compare_semantic_anchors import cpu_to_lorom_file
+    from tools.compare_europe_usa_snes2asm_homologs import trace, seed_entries, cpu_to_offset
 except ModuleNotFoundError:
     from verify_europe_semantic_edges import find_call_refs
-    from compare_europe_usa_snes2asm_homologs import trace
-    from compare_semantic_anchors import cpu_to_lorom_file
+    from compare_europe_usa_snes2asm_homologs import trace, seed_entries, cpu_to_offset
 
 TARGETS = {
     "long_wrapper": "81:A52B",
@@ -41,19 +39,23 @@ def _classify_refs(blob: bytes, cpu: str, disasm) -> dict:
 def report(rom: Path) -> dict:
     blob = rom.read_bytes()
     disasm = trace(blob)
+    trusted = [cpu_to_offset("83:CBCC"), cpu_to_offset("81:A52B")]
+    seed_entries(disasm, trusted)
     refs = {name: {"target": cpu, **_classify_refs(blob, cpu, disasm)}
             for name, cpu in TARGETS.items()}
     return {
         "schema_version": 1,
         "rom": str(rom),
         "targets": refs,
+        "trusted_trace_seeds": ["83:CBCC", "81:A52B"],
         "direct_reference_count": sum(
             len(v["jsr"]) + len(v["jsl"]) for v in refs.values()
         ),
     }
 
 def render(data: dict) -> str:
-    lines = ["# Native Widescreen preparation reachability", ""]
+    lines = ["# Native Widescreen preparation reachability", "",
+             "Static code-role classification is seeded from trusted entries `83:CBCC` and `81:A52B`.", ""]
     for name, item in data["targets"].items():
         lines.append(f"## {name} ({item['target']})")
         lines.append("")

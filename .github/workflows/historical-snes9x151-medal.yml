@@ -24,7 +24,7 @@ jobs:
       - name: Install Snes9x 1.51 build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev git libx11-dev libxext-dev libpng-dev zlib1g-dev xvfb unzip
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev git libx11-dev libxext-dev libpng-dev zlib1g-dev xvfb unzip gdb
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
       - name: Extract verified historical movie and blank anchored SRAM
@@ -69,6 +69,7 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/s9x-home/.snes96_snapshots
           export HOME=/tmp/s9x-home
+          set +e
           xvfb-run -a /tmp/snes9x-rr/snes9x \
             -nostdconf \
             -nosound \
@@ -76,6 +77,17 @@ jobs:
             -autodemo /tmp/100-percent-run.smv \
             -loadlua "$GITHUB_WORKSPACE/tools/capture_first_medal.lua" \
             "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          rc=$?
+          if [ "$rc" -eq 139 ]; then
+            echo "historical frontend crashed; collecting one diagnostic backtrace"
+            xvfb-run -a gdb -batch -ex run -ex "thread apply all bt" --args /tmp/snes9x-rr/snes9x \
+              -nostdconf -nosound -nojoy \
+              -autodemo /tmp/100-percent-run.smv \
+              -loadlua "$GITHUB_WORKSPACE/tools/capture_first_medal.lua" \
+              "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" || true
+          fi
+          set -e
+          test "$rc" -eq 0
           test -s /tmp/first-medal.srm
           test "$(stat -c %s /tmp/first-medal.srm)" = 8192
           cat /tmp/first-medal.txt

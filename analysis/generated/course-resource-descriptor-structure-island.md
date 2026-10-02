@@ -14,7 +14,7 @@ USA `82:B293..B32E` is the compact helper cluster called by the recovered course
 - `82:B2A9` is a long-entry wrapper over the shared descriptor decoder at `82:B2AD`.
 - The decoder indexes a five-byte descriptor record, returns one byte in A, a word through Y, stores a word in DP `$4B`, and preserves the descriptor high-bit flag in DP `$4D`.
 - `82:B2DA` saves the caller's WRAM destination, reuses the same descriptor decoder, programs `$2181..$2183`, and emits `$4B` bytes through `$2180` using the stream reader at `82:B293`.
-- The high-bit descriptor path diverts through `81:B8F1` before returning, so that branch remains an external dependency rather than being absorbed into this island.
+- The selector is exact: `82:B2F6 CMP #$80; BEQ $B320` tests DP `$4D`, so `$4D == $80` diverts to `81:B8F1`, the preserved map/resource decompressor. Other descriptor values continue through the direct WRAM-port path.
 - `82:B32F` is intentionally excluded: the preserved disassembly immediately changes character into table/data-like bytes.
 
 This is a bounded structural result. The names describe observed dataflow and hardware effects, not a claim that every descriptor field's game-level meaning is known.

@@ -22,6 +22,7 @@ if str(TOOLS) not in sys.path:
 
 from compare_europe_usa_snes2asm_homologs import cpu_to_offset, seed_entries, trace
 from extract_racer_presentation_family import (
+    compose_racer_staging,
     extract_frame,
     lorom_offset,
     packed_word_source,
@@ -210,8 +211,6 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
             ("p1_companion", u16(wram, 0x0D3F)),
             ("p2_companion", u16(wram, 0x0D41)),
         ):
-            if not fid:
-                continue
             try:
                 frame = extract_frame(rom, fid)
             except Exception:
@@ -283,6 +282,122 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
             streams = sorted({x["stream"] for x in e["source_candidates"]})
             return "+".join(streams)
 
+        frame_headers = {}
+        frame_objects = {}
+        for label, fid in (
+            ("p1_primary", u16(wram, 0x0FE9)),
+            ("p2_primary", u16(wram, 0x0FEB)),
+            ("p1_companion", u16(wram, 0x0D3F)),
+            ("p2_companion", u16(wram, 0x0D41)),
+        ):
+            try:
+                frame_objects[label] = extract_frame(rom, fid)
+                frame_headers[label] = frame_objects[label]["record_header_hex"]
+            except Exception:
+                frame_headers[label] = None
+
+        composition_replay = None
+        if len(frame_objects) == 4:
+            try:
+                composed = compose_racer_staging(
+                    frame_objects["p1_primary"],
+                    frame_objects["p2_primary"],
+                    frame_objects["p1_companion"],
+                    frame_objects["p2_companion"],
+                    p1_selector=u16(wram, 0x0C83),
+                    p2_selector=u16(wram, 0x0C85),
+                    p1_companion_enabled=(u16(wram, 0x0D1B) != 0),
+                    p2_companion_enabled=(u16(wram, 0x0D1D) != 0),
+                )
+
+                # F1DD..F275 walks all 70 cache cells, but Y advances only
+                # when a DMA descriptor is actually emitted. Occupied cells
+                # always emit; empty cells may be skipped at F24A..F256
+                # depending on the prior-occupancy clear mask. Therefore
+                # validate composed occupied cells by raw destination rather
+                # than assuming cell index == staging-array index.
+                actual_by_dest = {}
+                for i in range(82):
+                    q = i * 2
+                    bank = wram[0x15A1 + q]
+                    src = u16(wram, 0x1645 + q)
+                    dest = u16(wram, 0x16E9 + q)
+                    if bank == 0xFF:
+                        continue
+                    actual_by_dest.setdefault(dest, []).append({
+                        "slot": i,
+                        "source_bank": bank,
+                        "source_addr": src,
+                    })
+
+                comparisons = []
+                occupied_total = 0
+                destination_present = 0
+                source_exact = 0
+                ambiguous_exact = 0
+                for expected in composed["cells"]:
+                    if expected["word_hex"] is None:
+                        continue
+                    occupied_total += 1
+                    dest = expected["staged_vram_word"]
+                    candidates = actual_by_dest.get(dest, [])
+                    present = bool(candidates)
+                    destination_present += int(present)
+                    matches = [
+                        a for a in candidates
+                        if a["source_bank"] == expected["source_bank"]
+                        and a["source_addr"] == expected["source_addr"]
+                    ]
+                    source_match = bool(matches)
+                    source_exact += int(source_match)
+                    ambiguous_exact += int(len(matches) > 1)
+                    comparisons.append({
+                        "row": expected["row"],
+                        "column": expected["column"],
+                        "player": expected["player"],
+                        "choice": expected["choice"],
+                        "expected_source": expected["source_snes"],
+                        "expected_vram_word": f"0x{dest:04X}",
+                        "destination_present": present,
+                        "source_exact": source_match,
+                        "matching_slots": [a["slot"] for a in matches],
+                        "actual_candidates": [
+                            {
+                                "slot": a["slot"],
+                                "source": f"{a['source_bank']:02X}:{a['source_addr']:04X}",
+                            }
+                            for a in candidates
+                        ],
+                    })
+
+                composition_replay = {
+                    "comparison_mode": "occupied-cells-keyed-by-raw-vram-destination",
+                    "occupied_cells": occupied_total,
+                    "destinations_present": destination_present,
+                    "source_exact_cells": source_exact,
+                    "all_occupied_sources_exact": (
+                        occupied_total > 0 and source_exact == occupied_total
+                    ),
+                    "destinations_with_duplicate_exact_source": ambiguous_exact,
+                    "primary_row_masks": composed["primary_row_masks"],
+                    "companion_row_masks_raw": composed["companion_row_masks_raw"],
+                    "companion_row_masks": composed["companion_row_masks"],
+                    "companion_gate_words": {
+                        "p1": f"0x{u16(wram, 0x0D1B):04X}",
+                        "p2": f"0x{u16(wram, 0x0D1D):04X}",
+                    },
+                    "companion_enabled": composed["companion_enabled"],
+                    "final_word_cursors": composed["final_word_cursors"],
+                    "stream_word_counts": composed["stream_word_counts"],
+                    "comparisons": comparisons,
+                    "excluded_from_check": (
+                        "blank/clear descriptors: F24A..F256 can suppress them "
+                        "according to prior-occupancy state in $0C7F"
+                    ),
+                }
+            except Exception as exc:
+                composition_replay = {"error": str(exc)}
+
         out.append({
             "checkpoint": tag,
             "consumer": consumer,
@@ -294,8 +409,18 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
                 "p2_companion_id": f"0x{u16(wram, 0x0D41):04X}",
                 "p1_selector_0c83": f"0x{u16(wram, 0x0C83):04X}",
                 "p2_selector_0c85": f"0x{u16(wram, 0x0C85):04X}",
+                "frame_headers": frame_headers,
+                "primary_row_masks_after_build": [f"0x{u16(wram, 0x00 + 2*r):04X}" for r in range(5)],
+                "merged_row_masks_after_build": [f"0x{u16(wram, 0x0A + 2*r):04X}" for r in range(5)],
+                "stream_byte_offsets": {
+                    "p1_primary": f"0x{u16(wram, 0x2C):04X}",
+                    "p2_primary": f"0x{u16(wram, 0x2E):04X}",
+                    "p1_companion": f"0x{u16(wram, 0x18):04X}",
+                    "p2_companion": f"0x{u16(wram, 0x1A):04X}",
+                },
             },
             "racer_object_slots": oam_slots,
+            "composition_replay": composition_replay,
             "valid_staging_entries": valid,
             "exact_source_vram_matches": exact,
             "entries": rows,
@@ -360,6 +485,67 @@ def main() -> int:
                 f"{state['p2_current_id']}/{state['p2_companion_id']}, "
                 f"selectors {state['p1_selector_0c83']}/{state['p2_selector_0c85']}."
             )
+            replay = cp.get("composition_replay")
+            if replay and "occupied_cells" in replay:
+                md.append(
+                    f"  static F2BB/F1DD occupied-cell replay: "
+                    f"{replay['source_exact_cells']}/{replay['occupied_cells']} "
+                    "composed occupied sources found at their raw staging destinations; "
+                    f"{replay['destinations_present']}/{replay['occupied_cells']} "
+                    "destinations present."
+                )
+                mismatches = [
+                    c for c in replay["comparisons"] if not c["source_exact"]
+                ]
+                for c in mismatches[:12]:
+                    actual = ", ".join(
+                        f"slot{x['slot']}={x['source']}"
+                        for x in c["actual_candidates"]
+                    ) or "missing"
+                    md.append(
+                        f"    mismatch row {c['row']} col {c['column']} "
+                        f"{c['player']} {c['choice']}: expected "
+                        f"{c['expected_source']} at {c['expected_vram_word']}; "
+                        f"actual {actual}"
+                    )
+            elif replay:
+                md.append(f"  static composition replay error: {replay.get('error')}")
+            md.append(
+                "  headers: " + ", ".join(
+                    f"{k}={v}" for k, v in state["frame_headers"].items()
+                )
+            )
+            md.append(
+                "  primary masks: " + " ".join(state["primary_row_masks_after_build"])
+            )
+            md.append(
+                "  merged masks: " + " ".join(state["merged_row_masks_after_build"])
+            )
+            md.append(
+                "  stream offsets: " + ", ".join(
+                    f"{k}={v}" for k, v in state["stream_byte_offsets"].items()
+                )
+            )
+            md.append("  cache-grid streams:")
+            for row in cp["cache_grid_streams"]:
+                md.append(
+                    f"    row {row['row']}: " + " | ".join(row["columns"])
+                )
+            bound_rows = [e for e in cp["entries"] if e["object_tiles"]]
+            md.append("  OAM-bound staged entries:")
+            for e in bound_rows:
+                labels = sorted({
+                    c["stream"] for c in e["source_candidates"]
+                }) or ["unknown"]
+                objects = ", ".join(
+                    f"slot{o['oam_slot']}[{o['grid_x']},{o['grid_y']}]"
+                    for o in e["object_tiles"]
+                )
+                md.append(
+                    f"    slot {e['slot']}: {e['source_bank']}:{e['source_addr']} -> "
+                    f"{e['effective_vram_word']} [{'+'.join(labels)}] -> {objects}; "
+                    f"bytes_equal={e['source_equals_vram']}"
+                )
         md.append("")
 
     for block in report["ranges"]:

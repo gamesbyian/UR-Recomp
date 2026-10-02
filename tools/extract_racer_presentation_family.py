@@ -175,11 +175,195 @@ def decode_piece_mapping(record: FrameRecord) -> list[dict]:
             "word_hex": f"0x{word:04X}",
             "word_high_byte": word >> 8,
             "word_low_byte": word & 0xFF,
-            "staged_1645_value": f"0x{(0x8000 | ((word >> 8) << 5)) & 0xFFFF:04X}",
+            "staged_1645_value": f"0x{(0x8000 | (((word >> 8) & 0xFF) << 5) | ((word & 0x0003) << 13)) & 0xFFFF:04X}",
             "staged_15a1_value": f"0x{0x27 + ((word & 0x00FC) >> 2):04X}",
-            "low2_renderer_ignored_value": word & 0x03,
+            "source_addr_page_bits_1_0": word & 0x03,
+            "source_addr_page_offset": f"0x{((word & 0x0003) << 13):04X}",
         })
     return pieces
+
+
+def occupancy_rows_from_header(header: bytes) -> tuple[int, ...]:
+    """Decode the 30-cell header into five six-bit rows, left-to-right.
+
+    This is the same lattice already used by decode_piece_mapping(), expressed
+    in the row form consumed by 83:F2BB. Bit 5 is minor slot 0 and bit 0 is
+    minor slot 5.
+    """
+    if len(header) != 4:
+        raise ValueError("racer presentation header must be exactly four bytes")
+    bits = [
+        1 if header[byte_index] & (1 << bit_in_byte) else 0
+        for byte_index, bit_in_byte in OCCUPANCY_BITS
+    ]
+    rows = []
+    for start in range(0, 30, 6):
+        value = 0
+        for bit in bits[start:start + 6]:
+            value = (value << 1) | bit
+        rows.append(value)
+    return tuple(rows)
+
+
+def selected_occupancy_rows(header: bytes, selector: int) -> tuple[tuple[int, ...], int]:
+    """Apply the bounded selector behavior recovered at 83:F2BB.
+
+    Selector 1 suppresses the first six-cell row and skips its packed words.
+    Selector 2 suppresses the final row. Other selector values preserve all
+    five rows. The returned cursor is a packed-word index.
+    """
+    rows = list(occupancy_rows_from_header(header))
+    cursor = 0
+    if selector == 1:
+        cursor = rows[0].bit_count()
+        rows[0] = 0
+    elif selector == 2:
+        rows[4] = 0
+    return tuple(rows), cursor
+
+
+def pack_player_row_masks(
+    p1_rows: tuple[int, ...],
+    p2_rows: tuple[int, ...],
+) -> tuple[int, ...]:
+    """Pack two six-cell racers into the 14-bit row mask used by F1DD..F275.
+
+    P1 occupies bits 15..10, bits 9..8 are an intentional two-cell gap, and
+    P2 occupies bits 7..2. The inner loop walks exactly those 14 bits.
+    """
+    if len(p1_rows) != 5 or len(p2_rows) != 5:
+        raise ValueError("racer row masks must contain exactly five rows")
+    if any(x & ~0x3F for x in (*p1_rows, *p2_rows)):
+        raise ValueError("racer row masks must be six-bit values")
+    return tuple((a << 10) | (b << 2) for a, b in zip(p1_rows, p2_rows))
+
+
+def _frame_word_stream(frame: dict) -> list[int]:
+    return [int(piece["word_hex"], 16) for piece in frame["pieces"]]
+
+
+def compose_racer_staging(
+    p1_primary: dict,
+    p2_primary: dict,
+    p1_companion: dict,
+    p2_companion: dict,
+    *,
+    p1_selector: int = 0,
+    p2_selector: int = 0,
+    p1_companion_enabled: bool = True,
+    p2_companion_enabled: bool = True,
+) -> dict:
+    """Reproduce the bounded four-record staging composition at 83:F0BB..F295.
+
+    Companion occupancy wins when both enabled streams occupy the same cache
+    cell. The hidden primary packed word is still consumed, matching F1F3/F205.
+    After F2BB, 83:F12B..F153 gates the companion mask halves through $0D1B
+    (P1/high byte) and $0D1D (P2/low byte); callers with runtime state must pass
+    those enables explicitly. Empty cells use the proven blank source 27:8000.
+    """
+    frames = {
+        "p1_primary": p1_primary,
+        "p2_primary": p2_primary,
+        "p1_companion": p1_companion,
+        "p2_companion": p2_companion,
+    }
+    selectors = {"p1": p1_selector, "p2": p2_selector}
+    rows = {}
+    cursors = {}
+    streams = {}
+    for player in ("p1", "p2"):
+        selector = selectors[player]
+        for role in ("primary", "companion"):
+            key = f"{player}_{role}"
+            header = bytes.fromhex(frames[key]["record_header_hex"])
+            rows[key], cursors[key] = selected_occupancy_rows(header, selector)
+            streams[key] = _frame_word_stream(frames[key])
+
+    primary_masks = pack_player_row_masks(rows["p1_primary"], rows["p2_primary"])
+    companion_masks_raw = pack_player_row_masks(rows["p1_companion"], rows["p2_companion"])
+    companion_masks = []
+    for mask in companion_masks_raw:
+        effective = mask
+        if not p1_companion_enabled:
+            effective &= 0x00FF
+        if not p2_companion_enabled:
+            effective &= 0xFF00
+        companion_masks.append(effective)
+
+    cells = []
+    for row in range(5):
+        for column in range(14):
+            bit = 0x8000 >> column
+            if column < 6:
+                player = "p1"
+            elif column < 8:
+                player = None
+            else:
+                player = "p2"
+
+            primary_occupied = bool(primary_masks[row] & bit)
+            companion_occupied = bool(companion_masks[row] & bit)
+            choice = "blank"
+            word = None
+
+            if player is not None and companion_occupied:
+                pkey = f"{player}_primary"
+                ckey = f"{player}_companion"
+                if primary_occupied:
+                    if cursors[pkey] >= len(streams[pkey]):
+                        raise ValueError(f"{pkey} packed-word cursor exceeded record")
+                    cursors[pkey] += 1
+                if cursors[ckey] >= len(streams[ckey]):
+                    raise ValueError(f"{ckey} packed-word cursor exceeded record")
+                word = streams[ckey][cursors[ckey]]
+                cursors[ckey] += 1
+                choice = ckey
+            elif player is not None and primary_occupied:
+                pkey = f"{player}_primary"
+                if cursors[pkey] >= len(streams[pkey]):
+                    raise ValueError(f"{pkey} packed-word cursor exceeded record")
+                word = streams[pkey][cursors[pkey]]
+                cursors[pkey] += 1
+                choice = pkey
+
+            if word is None:
+                source_bank, source_addr = 0x27, 0x8000
+            else:
+                source_bank, source_addr = packed_word_source(word)
+
+            cells.append({
+                "row": row,
+                "column": column,
+                "player": player,
+                "major_slot": row if player is not None else None,
+                "minor_slot": (
+                    column if player == "p1"
+                    else column - 8 if player == "p2"
+                    else None
+                ),
+                "primary_occupied": primary_occupied,
+                "companion_occupied": companion_occupied,
+                "choice": choice,
+                "word_hex": None if word is None else f"0x{word:04X}",
+                "source_bank": source_bank,
+                "source_addr": source_addr,
+                "source_snes": snes(source_bank, source_addr),
+                "staged_vram_word": 0x6010 + row * 0x0100 + column * 0x0010,
+            })
+
+    return {
+        "primary_row_masks": [f"0x{x:04X}" for x in primary_masks],
+        "companion_row_masks_raw": [f"0x{x:04X}" for x in companion_masks_raw],
+        "companion_row_masks": [f"0x{x:04X}" for x in companion_masks],
+        "selectors": {"p1": p1_selector, "p2": p2_selector},
+        "companion_enabled": {
+            "p1": bool(p1_companion_enabled),
+            "p2": bool(p2_companion_enabled),
+        },
+        "cells": cells,
+        "final_word_cursors": dict(cursors),
+        "stream_word_counts": {key: len(value) for key, value in streams.items()},
+    }
 
 
 def census_record_structure(rom: bytes) -> dict:
@@ -298,9 +482,15 @@ def packed_word_source(word: int) -> tuple[int, int]:
     """Recover the exact 32-byte DMA source selected by 83:F20F..F227.
 
     #216 proves $15A1 supplies DMA source bank and $1645 supplies source
-    address. Packed low bits 1..0 are intentionally absent from this mapping.
+    address. The live 16-bit XBA + ASL x5 path also carries packed low bits
+    1..0 into source-address bits 14..13; low bit 2 lands on bit 15, which is
+    already forced by OR #$8000.
     """
-    source_addr = 0x8000 | (((word >> 8) & 0xFF) << 5)
+    source_addr = (
+        0x8000
+        | (((word >> 8) & 0xFF) << 5)
+        | ((word & 0x0003) << 13)
+    ) & 0xFFFF
     source_bank = 0x27 + (((word & 0x00FC) >> 2) & 0x3F)
     return source_bank, source_addr
 
@@ -356,6 +546,43 @@ def rasterize_frame_rgba(
         tile = decode_4bpp_tile(raw)
         gx = ox + piece["minor_slot"]
         gy = oy + piece["major_slot"]
+        for ty, row in enumerate(tile):
+            for tx, ci in enumerate(row):
+                x = gx * 8 + tx
+                y = gy * 8 + ty
+                if hflip:
+                    x = RASTER_WIDTH - 1 - x
+                if vflip:
+                    y = RASTER_HEIGHT - 1 - y
+                q = (y * RASTER_WIDTH + x) * 4
+                pixels[q:q + 4] = bytes(palette[ci])
+    return bytes(pixels)
+
+
+
+def rasterize_composed_player_rgba(
+    rom: bytes,
+    composition: dict,
+    player: str,
+    palette_asset_id: int,
+    *,
+    hflip: bool = False,
+    vflip: bool = False,
+) -> bytes:
+    """Rasterize one player's final composed 64x64 object-local image."""
+    if player not in {"p1", "p2"}:
+        raise ValueError("player must be 'p1' or 'p2'")
+    palette = rgba_palette(rom, palette_asset_id)
+    pixels = bytearray(RASTER_WIDTH * RASTER_HEIGHT * 4)
+    ox, oy = RASTER_TILE_OFFSET
+    for cell in composition["cells"]:
+        if cell["player"] != player or cell["word_hex"] is None:
+            continue
+        word = int(cell["word_hex"], 16)
+        raw, _ = piece_source_tile(rom, word)
+        tile = decode_4bpp_tile(raw)
+        gx = ox + int(cell["minor_slot"])
+        gy = oy + int(cell["major_slot"])
         for ty, row in enumerate(tile):
             for tx, ci in enumerate(row):
                 x = gx * 8 + tx
@@ -678,13 +905,15 @@ def build_manifest(rom: bytes) -> dict:
                 "83:F338..F3C6 and 83:F441..F4CF reshape the header into six-bit masks",
                 "83:F1AE initializes the construction mask to $8000 and 83:F1DC..F270 shifts it once per slot",
                 "occupied slots read one 16-bit word and increment the selected frame pointer by two bytes",
-                "83:F20F..F227 derives staging values from the packed word high byte and low-byte bits7..2",
-                "83:F20F stores the full word in $2A; the only later $2A read at 83:F21D is immediately masked by AND #$00FC, so packed low-byte bits1..0 do not affect this renderer consumer",
+                "83:F20F..F21A keeps the full packed word live in 16-bit A; XBA followed by five ASLs maps the original high byte to $1645 bits12..5 and packed low bits1..0 to $1645 bits14..13 before OR #$8000",
+                "83:F20F also stores the full word in $2A; 83:F21D masks $2A with #$00FC so low-byte bits7..2 select the $15A1 DMA source-bank offset independently of the address-page bits",
             ],
             "packed_word_fields": {
-                "high_byte": "83:F20F..F21A -> $1645,Y = $8000 | (high_byte << 5)",
+                "high_byte": "83:F20F..F21A -> $1645,Y bits12..5 = high_byte << 5",
                 "low_byte_bits_7_2": "83:F21D..F227 -> $15A1,Y = $0027 + ((low_byte & $FC) >> 2)",
-                "low_byte_bits_1_0": "renderer-ignored in the bounded 83:F190..F290 consumer; producer-side meaning remains unresolved",
+                "low_byte_bits_1_0": "83:F20F..F21A -> $1645,Y bits14..13 = (low_byte & $03) << 13",
+                "low_byte_bit_2": "also reaches shifted address bit15 but OR #$8000 already forces that bit; bit2 still participates in the bank calculation via $00FC",
+                "source_address_formula": "$8000 | (high_byte << 5) | ((low_byte & $03) << 13)",
             },
             "corpus_check": {
                 **census_record_structure(rom),

@@ -11,6 +11,7 @@ on:
       - "tools/analyze_racer_piece_render_binding.py"
       - "tools/analyze_racer_spatial_generalization.py"
       - "tools/analyze_racer_tile_upload_path.py"
+      - "tools/export_racer_composed_snapshots.py"
       - "tools/extract_racer_asset_roundtrip.py"
       - "analysis/evidence/racer-presentation-observed-states.json"
 
@@ -94,6 +95,25 @@ jobs:
               for x in p["runtime_staging_checks"]
           ])
           PY
+      - name: Emit composed racer player PNGs
+        run: |
+          python3 tools/export_racer_composed_snapshots.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --dump-dir "$RUNNER_TEMP/ordinary-2p/native-dumps" \
+            --staging-report "$RUNNER_TEMP/racer-tile-upload-path.json" \
+            --output-dir "$RUNNER_TEMP/racer-composed" \
+            --manifest "$RUNNER_TEMP/racer-composed/manifest.json" \
+            > "$RUNNER_TEMP/racer-composed-manifest.txt"
+          python3 - <<'PY'
+          import json, os
+          p=json.load(open(os.path.join(os.environ["RUNNER_TEMP"],"racer-composed","manifest.json")))
+          assert p["images"]
+          assert all(x["source_records"] for x in p["images"])
+          assert all(x["stored_png_sha256"] for x in p["images"])
+          assert all(x["display_png_sha256"] for x in p["images"])
+          print("composed racer images", len(p["images"]))
+          PY
+
       - name: Test racer primary-companion composition
         run: |
           python3 - <<'PY'
@@ -111,8 +131,6 @@ jobs:
 
           def u16(data,off): return data[off] | (data[off+1]<<8)
           def layer(fid):
-              if fid == 0:
-                  return {}
               f=extract_frame(rom,fid)
               return {
                   (1+p["minor_slot"],p["major_slot"]): piece_source_tile(rom,int(p["word_hex"],16))[0]
@@ -352,5 +370,6 @@ jobs:
             ${{ runner.temp }}/racer-raster/*.png
             ${{ runner.temp }}/racer-spatial-generalization.json
             ${{ runner.temp }}/racer-next-family-generalization.json
+            ${{ runner.temp }}/racer-composed/
           retention-days: 7
           if-no-files-found: error

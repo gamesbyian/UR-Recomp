@@ -1,0 +1,122 @@
+name: Synchronized racer composition proof
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - chatgpt/racer-raster-composition-2026-10-02
+    paths:
+      - ".github/workflows/racer-composition-mesen.yml"
+      - "tools/capture_racer_composition_mesen.py"
+      - "tools/extract_racer_presentation_family.py"
+      - "tests/input/two-player-first-race.input"
+
+concurrency:
+  group: racer-composition-mesen-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  MESENCE_REVISION: a60e79feb4d6dcced5922d636f9211837d01e381
+  MESENCE_INPUT_PATCH_REV: v2
+
+jobs:
+  proof:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.x
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update -qy
+          sudo apt-get install -qy libsdl2-dev xvfb unzip curl clang
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Restore pinned MesenCE binary cache
+        id: mesence-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/mesence-cache
+          key: mesence-linux-x64-${{ env.MESENCE_REVISION }}-${{ env.MESENCE_INPUT_PATCH_REV }}
+
+      - name: Fetch pinned MesenCE source
+        if: steps.mesence-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --filter=blob:none https://github.com/nesdev-org/MesenCE.git "$RUNNER_TEMP/MesenCE"
+          git -C "$RUNNER_TEMP/MesenCE" checkout --detach "$MESENCE_REVISION"
+          test "$(git -C "$RUNNER_TEMP/MesenCE" rev-parse HEAD)" = "$MESENCE_REVISION"
+          git -C "$RUNNER_TEMP/MesenCE" apply --unidiff-zero             "$GITHUB_WORKSPACE/third_party/src/mesen-for-ai/patches/mesence-lua-input-subport.patch"
+
+      - name: Stage MesenCE librashader dependency
+        if: steps.mesence-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/MesenCE"
+          curl -fL --retry 3             "https://nightly.link/SourMesen/librashader/workflows/build/Mesen/librashader-x64-ubuntu.zip"             -o "$RUNNER_TEMP/librashader.zip"
+          rm -rf "$RUNNER_TEMP/librashader"
+          mkdir -p "$RUNNER_TEMP/librashader"
+          unzip -q "$RUNNER_TEMP/librashader.zip" -d "$RUNNER_TEMP/librashader"
+          LIB="$(find "$RUNNER_TEMP/librashader" -type f -name librashader.so -print -quit)"
+          test -n "$LIB"
+          mkdir -p UI/Dependencies
+          cp "$LIB" UI/Dependencies/librashader.so
+
+      - name: Build pinned MesenCE
+        if: steps.mesence-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          make -C "$RUNNER_TEMP/MesenCE" -j2 -O LTO=true STATICLINK=true SYSTEM_LIBEVDEV=false
+          PUBLISH="$RUNNER_TEMP/MesenCE/bin/linux-x64/Release/linux-x64/publish"
+          test -x "$PUBLISH/Mesen"
+          rm -rf "$RUNNER_TEMP/mesence-cache"
+          mkdir -p "$RUNNER_TEMP/mesence-cache"
+          cp -a "$PUBLISH/." "$RUNNER_TEMP/mesence-cache/"
+
+      - name: Capture one exact composition invocation
+        shell: bash
+        run: |
+          set -euo pipefail
+          export MESEN_BIN="$RUNNER_TEMP/mesence-cache/Mesen"
+          export MESEN_FOR_AI_REPO="$GITHUB_WORKSPACE/third_party/src/mesen-for-ai"
+          timeout 240s xvfb-run -a             python3 tools/capture_racer_composition_mesen.py               "reference/roms/retail/Uniracers_USA.sfc"               --input-file tests/input/two-player-first-race.input               --advance-frames 1218               --json-out "$RUNNER_TEMP/racer-composition-mesen.json"               --md-out "$RUNNER_TEMP/racer-composition-mesen.md"
+          cat "$RUNNER_TEMP/racer-composition-mesen.md"
+
+      - name: Require synchronized mask and occupied-source agreement
+        run: |
+          python3 - <<'PY'
+          import json, os
+          p=json.load(open(os.path.join(os.environ["RUNNER_TEMP"],"racer-composition-mesen.json")))
+          assert p["mask_checks"]["primary_exact"], p["mask_checks"]
+          assert p["mask_checks"]["companion_raw_exact"], p["mask_checks"]
+          assert p["staging"]["all_occupied_destinations_present"], p["staging"]
+          assert p["staging"]["all_occupied_sources_exact"], p["staging"]
+          print("SYNCHRONIZED_RACER_COMPOSITION_CONFIRMED")
+          print("ids", p["ids"])
+          print("selectors", p["selectors"])
+          print("companion gates", p["companion_gate_words"], p["companion_enabled"])
+          print("occupied", p["staging"]["occupied_sources_exact"], "/", p["staging"]["occupied_cells"])
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: synchronized-racer-composition
+          path: |
+            ${{ runner.temp }}/racer-composition-mesen.json
+            ${{ runner.temp }}/racer-composition-mesen.md
+          retention-days: 14
+          if-no-files-found: warn

@@ -7,6 +7,8 @@ on:
       - "tools/patch_widescreen_probe_composition_trace.py"
       - "tools/analyze_widescreen_composition_trace.py"
       - "tests/unit/test_widescreen_probe_composition_trace.py"
+      - "tests/input/widescreen-presentation-phase-gap.script"
+      - "tools/analyze_widescreen_presentation_phase_gap.py"
       - ".github/workflows/widescreen-composition-matrix.yml"
 
 concurrency:
@@ -57,7 +59,7 @@ jobs:
           set -euo pipefail
           EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          SCRIPT="$GITHUB_WORKSPACE/tests/input/object-activation-dragster-tail.script"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/widescreen-presentation-phase-gap.script"
           ROOT="$RUNNER_TEMP/widescreen-composition-trace"
           CONFIG="$RUNNER_TEMP/widescreen-trace.ini"
           cat >"$CONFIG" <<'EOF'
@@ -116,6 +118,31 @@ jobs:
                 target["margins"]["8"]["obj_candidates"])
           PY
 
+      - name: Locate presentation-phase onset
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/analyze_widescreen_presentation_phase_gap.py \
+            "$RUNNER_TEMP/widescreen-composition-trace" \
+            --json-out analysis/generated/widescreen-plus8-presentation-phase-gap.json \
+            --md-out analysis/generated/widescreen-plus8-presentation-phase-gap.md
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("analysis/generated/widescreen-plus8-presentation-phase-gap.json").read_text())
+          if not d["all_p2_meaningful_state_equal"]:
+              raise SystemExit("P2 meaningful race state diverged in presentation gap")
+          print("first P2 presentation divergence:",
+                None if d["first_p2_presentation_divergence"] is None
+                else d["first_p2_presentation_divergence"]["tag"])
+          print("first VRAM divergence:",
+                None if d["first_vram_divergence"] is None
+                else d["first_vram_divergence"]["tag"])
+          print("first OAM divergence:",
+                None if d["first_oam_divergence"] is None
+                else d["first_oam_divergence"]["tag"])
+          PY
+
       - name: Upload compact trace evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -139,5 +166,6 @@ jobs:
             ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-168.oam.bin
             ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-169.oam.bin
             analysis/generated/widescreen-plus8-composition-trace.*
+            analysis/generated/widescreen-plus8-presentation-phase-gap.*
           if-no-files-found: warn
           retention-days: 5

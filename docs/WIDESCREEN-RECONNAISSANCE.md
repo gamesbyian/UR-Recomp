@@ -236,3 +236,19 @@ Phase F0 is complete when a representative race plus split-screen/Vs. fixture se
 - no unexplained simulation divergence.
 
 Only then should permanent widening hooks graduate from experiments into the shipping path.
+
+
+## First tiny-margin probe result
+
+The first retained native-host probe ran matched 0 / +8 / +16 / +24
+pixel-per-side presentation margins on the deterministic Dragster tail. The
+probe successfully produced full presented-frame captures at every margin, but
+the +8 run failed the authoritative-state equality check against the 4:3
+control.
+
+Treat this as a blocking discriminator, not as a successful widening result.
+The next Widescreen task must determine whether the divergence is caused by
+host presentation cadence / fixture alignment or by a genuine simulation
+dependency on the widened host path. Do not widen shipping presentation until
+that distinction is closed. The retained workflow artifact from run
+`36957020940` contains the per-margin state and framebuffer evidence.

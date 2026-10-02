@@ -140,6 +140,23 @@ jobs:
               >"$CASE/run.log" 2>&1
           done
 
+          BG="$RUNNER_TEMP/widescreen-plus8-oam-bg"
+          mkdir -p "$BG"
+          for margin in 0 8; do
+            CASE="$BG/margin-$margin"
+            mkdir -p "$CASE/state" "$CASE/frames"
+            SNESRECOMP_WS_EXTRA="$margin" \
+            SNESRECOMP_LAYER_MASK=15 \
+            SNESRECOMP_DUMP_DIR="$CASE/state" \
+            SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+            SNESRECOMP_FRAMEDUMP_START=2888 \
+            SNESRECOMP_FRAMEDUMP_END=2910 \
+            SDL_AUDIODRIVER=dummy \
+              timeout 210s xvfb-run -a "$EXE" "$ROM" --config "$CONFIG" \
+              --no-launcher --script "$SCRIPT" --framedump "$CASE/frames" \
+              >"$CASE/run.log" 2>&1
+          done
+
       - name: Analyze first sprite/OAM divergence
         shell: bash
         run: |
@@ -151,7 +168,8 @@ jobs:
             --md-out analysis/generated/widescreen-plus8-oam-boundary.md \
             --unlimited-root "$RUNNER_TEMP/widescreen-plus8-oam-unlimited" \
             --obj-root "$RUNNER_TEMP/widescreen-plus8-oam-obj" \
-            --window-root "$RUNNER_TEMP/widescreen-plus8-oam-window"
+            --window-root "$RUNNER_TEMP/widescreen-plus8-oam-window" \
+            --bg-root "$RUNNER_TEMP/widescreen-plus8-oam-bg"
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -166,6 +184,7 @@ jobs:
           print("sprite-limit discriminator:", d["sprite_limit_discriminator"])
           print("OBJ discriminator:", d["obj_discriminator"])
           print("pinned-window discriminator:", d["window_discriminator"])
+          print("BG discriminator:", d["bg_discriminator"])
           PY
 
       - name: Upload bounded evidence
@@ -192,6 +211,11 @@ jobs:
             ${{ runner.temp }}/widescreen-plus8-oam-obj/margin-*/state/object-tail-17*.info.json
             ${{ runner.temp }}/widescreen-plus8-oam-obj/margin-*/state/object-tail-180.info.json
             ${{ runner.temp }}/widescreen-plus8-oam-obj/margin-*/frames/frame_*.bmp
+            ${{ runner.temp }}/widescreen-plus8-oam-bg/margin-*/run.log
+            ${{ runner.temp }}/widescreen-plus8-oam-bg/margin-*/state/object-tail-16*.info.json
+            ${{ runner.temp }}/widescreen-plus8-oam-bg/margin-*/state/object-tail-17*.info.json
+            ${{ runner.temp }}/widescreen-plus8-oam-bg/margin-*/state/object-tail-180.info.json
+            ${{ runner.temp }}/widescreen-plus8-oam-bg/margin-*/frames/frame_*.bmp
             analysis/generated/widescreen-plus8-oam-boundary.*
           if-no-files-found: warn
           retention-days: 5

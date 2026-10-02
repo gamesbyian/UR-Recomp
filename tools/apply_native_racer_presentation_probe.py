@@ -39,11 +39,38 @@ extern "C" void UrRacerPresentationProbeAfterRunFrame(
             0x20000,
             1
         );
-    if (!selection.uses_replacement()) return;
-
     const auto snapshot =
         ur::presentation::read_racer_guest_snapshot(g_ram, 0x20000);
     if (!snapshot.has_value()) return;
+
+    const unsigned frame = stats ? stats->frame : 0u;
+    const bool primary_match =
+        snapshot->composition.p1_primary == 0x0541 &&
+        snapshot->composition.p2_primary == 0x0540;
+    const bool checkpoint_window = frame >= 1216u && frame <= 1224u;
+    if (checkpoint_window || primary_match) {
+        std::fprintf(
+            stderr,
+            "UR_RACER_PRESENTATION_OBS frame=%u "
+            "p1_primary=%04X p2_primary=%04X "
+            "p1_companion=%04X p2_companion=%04X "
+            "p1_selector=%04X p2_selector=%04X "
+            "p1_gate=%04X p2_gate=%04X uses_replacement=%d reason=%u\n",
+            frame,
+            snapshot->composition.p1_primary,
+            snapshot->composition.p2_primary,
+            snapshot->composition.p1_companion,
+            snapshot->composition.p2_companion,
+            snapshot->composition.p1_selector,
+            snapshot->composition.p2_selector,
+            snapshot->composition.p1_companion_gate_word,
+            snapshot->composition.p2_companion_gate_word,
+            selection.uses_replacement() ? 1 : 0,
+            static_cast<unsigned>(selection.fallback_reason)
+        );
+    }
+
+    if (!selection.uses_replacement()) return;
 
     std::fprintf(
         stderr,
@@ -52,7 +79,7 @@ extern "C" void UrRacerPresentationProbeAfterRunFrame(
         "p1_companion=%04X p2_companion=%04X "
         "p1_selector=%04X p2_selector=%04X "
         "p1_gate=%04X p2_gate=%04X selected=remastered\n",
-        stats ? stats->frame : 0u,
+        frame,
         snapshot->composition.p1_primary,
         snapshot->composition.p2_primary,
         snapshot->composition.p1_companion,

@@ -46,6 +46,8 @@ def comparable_records(rom: bytes):
             continue
         if ptr.source_bank != nxt.source_bank:
             continue
+        if ptr.source_addr < 0x8000 or nxt.source_addr < 0x8000:
+            continue
         length = nxt.source_addr - ptr.source_addr
         if length < 4 or length > 68 or (length - 4) % 2:
             continue

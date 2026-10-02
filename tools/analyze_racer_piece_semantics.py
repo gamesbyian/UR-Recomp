@@ -73,7 +73,7 @@ def occupancy_scan_positions(header: bytes) -> list[dict]:
 
 
 def table_boundary_scan(rom: bytes) -> dict:
-    max_id = ((0x10000 - FRAME_TABLE) // 3) - 2
+    max_id = ((0x10000 - (FRAME_TABLE & 0xFFFF)) // 3) - 2
     comparable = 0
     match30 = 0
     match32 = 0

@@ -78,7 +78,7 @@ class RacerPresentationRoundTripTests(unittest.TestCase):
         a = encode_png_rgba(2, 2, rgba)
         b = encode_png_rgba(2, 2, rgba)
         self.assertEqual(a, b)
-        self.assertTrue(a.startswith(b"\\x89PNG\\r\\n\\x1a\\n"))
+        self.assertTrue(a.startswith(b"\x89PNG\r\n\x1a\n"))
 
     def test_palette_entry_and_bgr555_roundtrip(self):
         rom = bytearray(0x20000)

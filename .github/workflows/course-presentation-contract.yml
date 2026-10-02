@@ -1,0 +1,53 @@
+name: Course presentation spatial contract
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/build_course_presentation_contract.py"
+      - "tests/unit/test_course_presentation_contract.py"
+      - "analysis/generated/dessyreqt-course-landmarks.json"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - ".github/workflows/course-presentation-contract.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Dragster contract
+        run: |
+          python3 tools/build_course_presentation_contract.py
+          python3 tools/build_course_presentation_contract.py --query-x 1088 1408 \
+            --json-out "$RUNNER_TEMP/query.json" \
+            --md-out "$RUNNER_TEMP/query.md"
+      - name: Run focused regression
+        run: python3 -m pytest -q tests/unit/test_course_presentation_contract.py
+      - name: Persist generated contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add analysis/generated/dragster-presentation-spatial-contract.json
+          git add analysis/generated/dragster-presentation-spatial-contract.md
+          if git diff --cached --quiet; then
+            echo "contract already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Generate Dragster presentation spatial contract"
+          git fetch origin "${{ github.ref_name }}"
+          git rebase "origin/${{ github.ref_name }}"
+          git push origin HEAD:${{ github.ref_name }}
+      - name: Upload query sample
+        uses: actions/upload-artifact@v4
+        with:
+          name: dragster-presentation-contract-query
+          path: |
+            ${{ runner.temp }}/query.json
+            ${{ runner.temp }}/query.md
+          retention-days: 7

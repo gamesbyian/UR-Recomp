@@ -10,6 +10,7 @@ on:
       - ".github/workflows/racer-asset-roundtrip.yml"
       - "tools/analyze_racer_piece_render_binding.py"
       - "tools/analyze_racer_spatial_generalization.py"
+      - "tools/analyze_racer_tile_upload_path.py"
       - "tools/extract_racer_asset_roundtrip.py"
       - "analysis/evidence/racer-presentation-observed-states.json"
 
@@ -75,6 +76,14 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/ordinary-2p"
           gh run download 36943103609 -n ordinary-2p-reference -D "$RUNNER_TEMP/ordinary-2p"
+      - name: Trace racer tile upload path
+        run: |
+          python3 tools/analyze_racer_tile_upload_path.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --json-out "$RUNNER_TEMP/racer-tile-upload-path.json" \
+            --md-out "$RUNNER_TEMP/racer-tile-upload-path.md" \
+            > "$RUNNER_TEMP/racer-tile-upload-path.txt"
+          cat "$RUNNER_TEMP/racer-tile-upload-path.md"
       - name: Resolve retained VRAM byte phase
         run: |
           python3 tools/analyze_racer_piece_render_binding.py \
@@ -238,6 +247,8 @@ jobs:
             ${{ runner.temp }}/racer-raster-manifest.json
             ${{ runner.temp }}/racer-resource-roundtrip.json
             ${{ runner.temp }}/racer-vram-byte-phase.json
+            ${{ runner.temp }}/racer-tile-upload-path.json
+            ${{ runner.temp }}/racer-tile-upload-path.md
             ${{ runner.temp }}/racer-raster/*.png
             ${{ runner.temp }}/racer-spatial-generalization.json
             ${{ runner.temp }}/racer-next-family-generalization.json

@@ -1,6 +1,6 @@
 --- a/runner/src/common_rtl.c
 +++ b/runner/src/common_rtl.c
-@@ -129,10 +129,17 @@
+@@ -129,9 +129,16 @@
  #include "netplay/snes_rb_probe.h"
  #endif
  

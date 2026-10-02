@@ -113,11 +113,11 @@ Current interpretation, with confidence separated:
 The provisional stream-to-name mapping is recorded in `reference/notes/course-order-and-stunt-timer.md`. Under that mapping, the seven PAL-retail content changes correspond to stream candidates:
 
 - 4 Crawler / Switcher
-- 16 Hopper / Wario Paint
-- 20 Hopper / Hairpin Hill
-- 26 Bounder / Last One
-- 27 Bounder / Marathon
-- 35 Runner / Fire Escape
+- 16 Bounder / Last One
+- 20 Bounder / Jumpover
+- 26 Runner / Down+Up
+- 27 Runner / Highroad
+- 35 Hopper / Hairpin Hill
 - 36 Sprinter / Vertical
 
 Those names remain provisional until a runtime course-load trace or an in-ROM selector independently confirms stream ordinal identity.

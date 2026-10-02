@@ -40,6 +40,10 @@
       "path": "analysis/generated/stunt-finalizer-structure-island.json"
     },
     {
+      "id": "race-message-bridge",
+      "path": "analysis/generated/race-message-bridge-beb3-structure-island.json"
+    },
+    {
       "id": "stunt-message-pipeline",
       "path": "analysis/generated/stunt-message-pipeline-structure-island.json"
     },
@@ -105,14 +109,14 @@
     }
   ],
   "totals": {
-    "regions": 125,
-    "code_regions": 113,
+    "regions": 129,
+    "code_regions": 117,
     "data_regions": 12,
-    "bounded_bytes": 20235,
-    "bounded_code_region_bytes": 18802,
+    "bounded_bytes": 20789,
+    "bounded_code_region_bytes": 19356,
     "bounded_data_region_bytes": 1433,
-    "analyzer_opcode_bytes": 7920,
-    "analyzer_operand_bytes": 10767,
+    "analyzer_opcode_bytes": 8151,
+    "analyzer_operand_bytes": 11090,
     "analyzer_unreached_or_data_bytes": 1548,
     "banks": [
       "81",
@@ -2513,6 +2517,190 @@
           "shift": 0,
           "similarity": 1,
           "size": 79,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "race-message-bridge",
+      "source_path": "analysis/generated/race-message-bridge-beb3-structure-island.json",
+      "name": "long_entry_wrapper",
+      "kind": "code",
+      "usa_start": "81:BEB3",
+      "usa_end": "81:BEB6",
+      "size": 4,
+      "usa_opcode_bytes": 2,
+      "usa_operand_bytes": 2,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:BEA4",
+          "end": "81:BEA7",
+          "shift": -15,
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:BEB3",
+          "end": "81:BEB6",
+          "shift": 0,
+          "similarity": 1,
+          "size": 4,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:BE93",
+          "end": "81:BE96",
+          "shift": -32,
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:BEB3",
+          "end": "81:BEB6",
+          "shift": 0,
+          "similarity": 1,
+          "size": 4,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "race-message-bridge",
+      "source_path": "analysis/generated/race-message-bridge-beb3-structure-island.json",
+      "name": "race_message_dispatch",
+      "kind": "code",
+      "usa_start": "81:BEB7",
+      "usa_end": "81:BF40",
+      "size": 138,
+      "usa_opcode_bytes": 53,
+      "usa_operand_bytes": 85,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:BEA8",
+          "end": "81:BF31",
+          "shift": -15,
+          "similarity": 0.876812,
+          "size": 138,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:BEB7",
+          "end": "81:BF40",
+          "shift": 0,
+          "similarity": 1,
+          "size": 138,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:BE97",
+          "end": "81:BF20",
+          "shift": -32,
+          "similarity": 0.942029,
+          "size": 138,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:BEB7",
+          "end": "81:BF40",
+          "shift": 0,
+          "similarity": 1,
+          "size": 138,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "race-message-bridge",
+      "source_path": "analysis/generated/race-message-bridge-beb3-structure-island.json",
+      "name": "mirrored_commit_helper",
+      "kind": "code",
+      "usa_start": "81:BF41",
+      "usa_end": "81:BFE2",
+      "size": 162,
+      "usa_opcode_bytes": 70,
+      "usa_operand_bytes": 92,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:BF32",
+          "end": "81:BFD3",
+          "shift": -15,
+          "similarity": 0.907407,
+          "size": 162,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:BF41",
+          "end": "81:BFE2",
+          "shift": 0,
+          "similarity": 1,
+          "size": 162,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:BF21",
+          "end": "81:BFC2",
+          "shift": -32,
+          "similarity": 0.907407,
+          "size": 162,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:BF41",
+          "end": "81:BFE2",
+          "shift": 0,
+          "similarity": 1,
+          "size": 162,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "race-message-bridge",
+      "source_path": "analysis/generated/race-message-bridge-beb3-structure-island.json",
+      "name": "mirrored_materialize_helper",
+      "kind": "code",
+      "usa_start": "81:BFE3",
+      "usa_end": "81:C0DC",
+      "size": 250,
+      "usa_opcode_bytes": 106,
+      "usa_operand_bytes": 144,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "europe-retail": {
+          "start": "81:BFD4",
+          "end": "81:C0CD",
+          "shift": -15,
+          "similarity": 0.952,
+          "size": 250,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:BFE3",
+          "end": "81:C0DC",
+          "shift": 0,
+          "similarity": 1,
+          "size": 250,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:BFC3",
+          "end": "81:C0BC",
+          "shift": -32,
+          "similarity": 0.968,
+          "size": 250,
+          "size_delta": 0
+        },
+        "usa-retail": {
+          "start": "81:BFE3",
+          "end": "81:C0DC",
+          "shift": 0,
+          "similarity": 1,
+          "size": 250,
           "size_delta": 0
         }
       }

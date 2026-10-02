@@ -27,6 +27,12 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 					const char *s = getenv("URRECOMP_WS_HOOK_PC");
 					return s ? (int)strtol(s, nullptr, 0) : 0xA52F;
 				}();
+				static bool ur_ws_count32 = []() -> bool {
+					const char *m = getenv("URRECOMP_WS_MODE");
+					return m && strcmp(m, "count32") == 0;
+				}();
+				static uint16 ur_ws_saved_count_x = 0;
+				static bool ur_ws_count_patched = false;
 				static bool ur_ws_bias_a = []() -> bool {
 					const char *t = getenv("URRECOMP_WS_BIAS_TARGET");
 					return t && (t[0] == 'A' || t[0] == 'a');
@@ -144,7 +150,8 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 						(unsigned)ICPU.Frame, ur_ws_bias_a ? 'A' : 'W');
 				}
 
-				if (ur_ws_margin == 8 && Registers.PB == 0x81 && ur_ws_pcw == ur_ws_hook_pc)
+				if (ur_ws_margin == 8 && !ur_ws_count32 &&
+				    Registers.PB == 0x81 && ur_ws_pcw == ur_ws_hook_pc)
 				{
 					if (ur_ws_bias_a)
 					{
@@ -156,7 +163,28 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 					ur_ws_camera_shifted = true;
 				}
 
+				/* Count-only discriminator: widen the already-prepared horizontal
+				   demand after A59E returns, then restore it after AB88. */
+				if (ur_ws_margin == 8 && ur_ws_count32 &&
+				    Registers.PB == 0x81 && ur_ws_pcw == 0xA59A &&
+				    !ur_ws_count_patched)
+				{
+					ur_ws_saved_count_x = ur_ws_w16(0x052B);
+					if (ur_ws_saved_count_x == 16)
+					{
+						ur_ws_set16(0x052B, 32);
+						ur_ws_count_patched = true;
+						fprintf(stderr, "WSCOUNT32 frame=%u before=%u after=32\n",
+							(unsigned)ICPU.Frame, (unsigned)ur_ws_saved_count_x);
+					}
+				}
+
 				/* A59D is reached after the A59A JSR to the proven strip builder. */
+				if (Registers.PB == 0x81 && ur_ws_pcw == 0xA59D && ur_ws_count_patched)
+				{
+					ur_ws_set16(0x052B, ur_ws_saved_count_x);
+					ur_ws_count_patched = false;
+				}
 				if (Registers.PB == 0x81 && ur_ws_pcw == 0xA59D && ur_ws_camera_shifted)
 				{
 					if (ur_ws_bias_a)

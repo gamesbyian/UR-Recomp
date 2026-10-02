@@ -61,6 +61,34 @@ class InferenceAuditTests(unittest.TestCase):
         for expected in {"IA-C01", "IA-C02", "IA-C03", "IA-C04", "IA-S01", "IA-P01"}:
             self.assertIn(expected, ids)
 
+    def test_second_pass_stream_order_matches_progression_rows(self):
+        progression = json.loads(
+            (ROOT / "analysis/data/progression-model.json").read_text(encoding="utf-8")
+        )
+        expected = progression["medal_matrix"]["row_order"]
+        actual = [self.courses[i * 5]["tour"] for i in range(9)]
+        self.assertEqual(actual, expected)
+
+    def test_second_pass_header_start_relation_is_43_of_45(self):
+        self.assertEqual(
+            sum(
+                1 for row in self.courses
+                if row["historical_landmarks"]["start_matches_header_a_x16"]
+            ),
+            43,
+        )
+
+    def test_second_pass_stunt_start_finish_signature(self):
+        stunt = [row for row in self.courses if row["track_kind"] == "stunt"]
+        non_stunt = [row for row in self.courses if row["track_kind"] != "stunt"]
+        self.assertTrue(all(
+            row["historical_landmarks"]["start_x"] == row["historical_landmarks"]["finish_x"]
+            for row in stunt
+        ))
+        self.assertFalse(any(
+            row["historical_landmarks"]["start_x"] == row["historical_landmarks"]["finish_x"]
+            for row in non_stunt
+        ))
 
 if __name__ == "__main__":
     unittest.main()

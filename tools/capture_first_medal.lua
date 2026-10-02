@@ -3,6 +3,7 @@
 local out = os.getenv("UR_MEDAL_SRAM_OUT") or "first-medal.srm"
 local before_out = os.getenv("UR_MEDAL_BEFORE_OUT") or "before-runtime.srm"
 local meta = os.getenv("UR_MEDAL_META_OUT") or "first-medal.txt"
+local heartbeat = os.getenv("UR_MEDAL_HEARTBEAT_OUT") or "medal-heartbeat.txt"
 
 -- Host throttling/rendering is irrelevant to the deterministic movie state.
 snes9x.speedmode("maximum")
@@ -81,6 +82,16 @@ local previous = state_snapshot()
 local next_status = STATUS_INTERVAL
 local probe_index = 0
 
+local function write_heartbeat(current)
+    local f = assert(io.open(heartbeat, "w"))
+    f:write(string.format(
+        "frame=%d\nmenu=%d\ntrack=%d\nin_race=%d\nrider=%d\ntour=%d\nchecksum_valid=%s\n",
+        current.frame, current.menu, current.track, current.in_race,
+        current.rider, current.tour, tostring(checksum_valid())
+    ))
+    f:close()
+end
+
 while true do
     emu.frameadvance()
     local current = state_snapshot()
@@ -101,6 +112,7 @@ while true do
         end
     else
         if current.frame >= next_status then
+            write_heartbeat(current)
             print(string.format(
                 "progression-watch frame=%d menu=%d track=%d in_race=%d rider=%d tour=%d checksum_valid=%s",
                 current.frame, current.menu, current.track, current.in_race,

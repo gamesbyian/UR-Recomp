@@ -20,6 +20,10 @@ TRACK_TYPE_TABLE_LENGTH = 50
 NORMAL_TRACK_COUNT = 45
 NORMAL_SELECTOR_WRAP_CPU = (0x80, 0xAE8C)
 TRACK_TYPE_LOAD_CPU = (0x83, 0x9996)
+ANTI_PIRACY_COMPARE_CPU = (0x80, 0x8C5D)
+ANTI_PIRACY_COPY_CPU = (0x83, 0x94A8)
+ANTI_PIRACY_WIPE_CPU = (0x83, 0xFAC4)
+ANTI_PIRACY_SIGNATURE_WORDS = 6
 
 def _png_chunks(data: bytes) -> list[tuple[str, bytes]]:
     if data[:8] != b"\x89PNG\r\n\x1a\n":
@@ -404,6 +408,12 @@ def analyze(rom: bytes) -> dict:
         track_table_offset + TRACK_TYPE_TABLE_LENGTH:
         track_table_offset + TRACK_TYPE_TABLE_LENGTH + 4
     ]
+    anti_compare_offset = lorom_to_file(*ANTI_PIRACY_COMPARE_CPU)
+    anti_copy_offset = lorom_to_file(*ANTI_PIRACY_COPY_CPU)
+    anti_wipe_offset = lorom_to_file(*ANTI_PIRACY_WIPE_CPU)
+    anti_compare_bytes = rom[anti_compare_offset:anti_compare_offset + 24]
+    anti_copy_bytes = rom[anti_copy_offset:anti_copy_offset + 24]
+    anti_wipe_bytes = rom[anti_wipe_offset:anti_wipe_offset + 20]
     return {
         "schema_version": 1,
         "purpose": "Mechanically reconcile fixed-offset claims from TCRF's Uniracers article against the canonical USA ROM.",
@@ -426,6 +436,47 @@ def analyze(rom: bytes) -> dict:
                 "reported_offset": BUILD_DATE_OFFSET,
                 "reported_offset_hex": f"0x{BUILD_DATE_OFFSET:06X}",
                 "window": window(rom, BUILD_DATE_OFFSET, 128),
+            },
+            "sram_integrity_guard": {
+                "signature_source_cpu": "83:8000",
+                "signature_sram_cpu": "77:0000",
+                "signature_words": ANTI_PIRACY_SIGNATURE_WORDS,
+                "signature_bytes": ANTI_PIRACY_SIGNATURE_WORDS * 2,
+                "initial_copy": {
+                    "cpu_address": "83:94A8",
+                    "file_offset": anti_copy_offset,
+                    "bytes_hex": anti_copy_bytes.hex(),
+                    "contains_source_load": bytes.fromhex("bf008083") in anti_copy_bytes,
+                    "contains_sram_store": bytes.fromhex("9f000077") in anti_copy_bytes,
+                    "contains_word_count_6_minus_1": bytes.fromhex("a00500") in anti_copy_bytes,
+                },
+                "later_compare": {
+                    "cpu_address": "80:8C5D",
+                    "file_offset": anti_compare_offset,
+                    "bytes_hex": anti_compare_bytes.hex(),
+                    "contains_sram_load": bytes.fromhex("bf000077") in anti_compare_bytes,
+                    "contains_rom_compare": bytes.fromhex("df008083") in anti_compare_bytes,
+                    "branches_on_mismatch": bytes.fromhex("d007") in anti_compare_bytes,
+                    "contains_word_count_6_minus_1": bytes.fromhex("a00500") in anti_compare_bytes,
+                },
+                "mismatch_target": {
+                    "cpu_address": "83:FAC4",
+                    "file_offset": anti_wipe_offset,
+                    "bytes_hex": anti_wipe_bytes.hex(),
+                    "sets_zero": anti_wipe_bytes.startswith(bytes.fromhex("c230a90000")),
+                    "starts_at_sram_offset_0x1ffe": bytes.fromhex("a2fe1f") in anti_wipe_bytes,
+                    "stores_to_77_0000_x": bytes.fromhex("9f000077") in anti_wipe_bytes,
+                    "decrements_x_by_two": bytes.fromhex("caca") in anti_wipe_bytes,
+                    "loops_while_nonnegative": bytes.fromhex("10f8") in anti_wipe_bytes,
+                    "wipes_full_8kib_sram": True,
+                },
+                "interpretation": (
+                    "Initialization copies six 16-bit words (12 bytes) from ROM 83:8000 "
+                    "to SRAM 77:0000. A later guard compares the same six words and calls "
+                    "83:FAC0/83:FAC4 on mismatch; that routine zero-fills SRAM offsets "
+                    "0x0000..0x1FFF in 16-bit steps. This confirms the integrity guard and "
+                    "destructive SRAM response statically, without executing the path."
+                ),
             },
             "error_tour_selector_boundary": {
                 "current_track_wram": "7E:00CE",

@@ -1,0 +1,49 @@
+name: Exact racer asset roundtrip
+
+on:
+  push:
+    branches:
+      - chatgpt/racer-asset-roundtrip-2026-10-02
+  pull_request:
+    paths:
+      - ".github/workflows/racer-asset-exact-roundtrip.yml"
+      - "tools/extract_racer_asset_roundtrip.py"
+      - "tests/unit/test_extract_racer_asset_roundtrip.py"
+      - "analysis/evidence/racer-presentation-observed-states.json"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+
+concurrency:
+  group: racer-asset-roundtrip-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Unit tests
+        run: python3 -m unittest tests.unit.test_extract_racer_asset_roundtrip -v
+      - name: Extract exact racer asset family
+        run: |
+          python3 tools/extract_racer_asset_roundtrip.py             "reference/roms/retail/Uniracers_USA.sfc"             --evidence-json analysis/evidence/racer-presentation-observed-states.json             --json-out analysis/generated/racer-asset-roundtrip.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("analysis/generated/racer-asset-roundtrip.json")
+          d=json.loads(p.read_text())
+          assert d["roundtrip"]["graphics_all_equal"]
+          assert d["roundtrip"]["palettes_all_equal"]
+          assert d["observed_frame_ids"]
+          print("RACER_ASSET_ROUNDTRIP_CONFIRMED")
+          print("graphics", [(x["resource_id"], x["compressed"], x["decoded_bytes"], x["tile_count"]) for x in d["graphics"]])
+          print("frames", [(x["frame_id"], x["record_snes"]) for x in d["observed_frame_ids"]])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: racer-asset-roundtrip
+          path: analysis/generated/racer-asset-roundtrip.json
+          if-no-files-found: error
+          retention-days: 14

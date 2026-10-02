@@ -22,6 +22,7 @@ if str(TOOLS) not in sys.path:
 
 from compare_europe_usa_snes2asm_homologs import cpu_to_offset, seed_entries, trace
 from extract_racer_presentation_family import (
+    compose_racer_staging,
     extract_frame,
     lorom_offset,
     packed_word_source,
@@ -282,19 +283,68 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
             return "+".join(streams)
 
         frame_headers = {}
+        frame_objects = {}
         for label, fid in (
             ("p1_primary", u16(wram, 0x0FE9)),
             ("p2_primary", u16(wram, 0x0FEB)),
             ("p1_companion", u16(wram, 0x0D3F)),
             ("p2_companion", u16(wram, 0x0D41)),
         ):
-            if not fid:
-                frame_headers[label] = None
-                continue
             try:
-                frame_headers[label] = extract_frame(rom, fid)["record_header_hex"]
+                frame_objects[label] = extract_frame(rom, fid)
+                frame_headers[label] = frame_objects[label]["record_header_hex"]
             except Exception:
                 frame_headers[label] = None
+
+        composition_replay = None
+        if len(frame_objects) == 4:
+            try:
+                composed = compose_racer_staging(
+                    frame_objects["p1_primary"],
+                    frame_objects["p2_primary"],
+                    frame_objects["p1_companion"],
+                    frame_objects["p2_companion"],
+                    p1_selector=u16(wram, 0x0C83),
+                    p2_selector=u16(wram, 0x0C85),
+                )
+                comparisons = []
+                exact_cells = 0
+                for i, expected in enumerate(composed["cells"]):
+                    q = i * 2
+                    actual = {
+                        "source_bank": wram[0x15A1 + q],
+                        "source_addr": u16(wram, 0x1645 + q),
+                        "staged_vram_word": u16(wram, 0x16E9 + q),
+                    }
+                    same = (
+                        actual["source_bank"] == expected["source_bank"]
+                        and actual["source_addr"] == expected["source_addr"]
+                        and actual["staged_vram_word"] == expected["staged_vram_word"]
+                    )
+                    exact_cells += int(same)
+                    comparisons.append({
+                        "index": i,
+                        "row": expected["row"],
+                        "column": expected["column"],
+                        "choice": expected["choice"],
+                        "expected_source": expected["source_snes"],
+                        "expected_vram_word": f"0x{expected['staged_vram_word']:04X}",
+                        "actual_source": f"{actual['source_bank']:02X}:{actual['source_addr']:04X}",
+                        "actual_vram_word": f"0x{actual['staged_vram_word']:04X}",
+                        "exact": same,
+                    })
+                composition_replay = {
+                    "exact_cells": exact_cells,
+                    "total_cells": len(comparisons),
+                    "all_exact": exact_cells == len(comparisons),
+                    "primary_row_masks": composed["primary_row_masks"],
+                    "companion_row_masks": composed["companion_row_masks"],
+                    "final_word_cursors": composed["final_word_cursors"],
+                    "stream_word_counts": composed["stream_word_counts"],
+                    "comparisons": comparisons,
+                }
+            except Exception as exc:
+                composition_replay = {"error": str(exc)}
 
         out.append({
             "checkpoint": tag,
@@ -318,6 +368,7 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
                 },
             },
             "racer_object_slots": oam_slots,
+            "composition_replay": composition_replay,
             "valid_staging_entries": valid,
             "exact_source_vram_matches": exact,
             "entries": rows,
@@ -382,6 +433,14 @@ def main() -> int:
                 f"{state['p2_current_id']}/{state['p2_companion_id']}, "
                 f"selectors {state['p1_selector_0c83']}/{state['p2_selector_0c85']}."
             )
+            replay = cp.get("composition_replay")
+            if replay and "exact_cells" in replay:
+                md.append(
+                    f"  static F2BB/F1DD composition replay: "
+                    f"{replay['exact_cells']}/{replay['total_cells']} raw staging cells exact."
+                )
+            elif replay:
+                md.append(f"  static composition replay error: {replay.get('error')}")
             md.append(
                 "  headers: " + ", ".join(
                     f"{k}={v}" for k, v in state["frame_headers"].items()

@@ -71,12 +71,13 @@ jobs:
           EXE="$ROOT/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"
+          INPUT="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
           LOG="$RUNNER_TEMP/racer-presentation-acceptance.log"
           DUMPS="$RUNNER_TEMP/racer-presentation-dumps"
           mkdir -p "$DUMPS"
 
           set +e
-          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          SNESRECOMP_DUMP_DIR="$DUMPS" INPUT_FILE="$INPUT" SDL_AUDIODRIVER=dummy \
             timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1
           STATUS=$?
           set -e

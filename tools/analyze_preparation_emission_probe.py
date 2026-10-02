@@ -93,7 +93,7 @@ def main()->int:
             "exact_match":bool(expected) and match is not None,
         })
     if not samples:
-        raise SystemExit("no race-start-active WRAM dumps found")
+        raise SystemExit("no prep-emission WRAM dumps found")
     first_nonzero=next((x for x in samples if x["expected_events"]),None)
     first_match=next((x for x in samples if x["exact_match"]),None)
     report={

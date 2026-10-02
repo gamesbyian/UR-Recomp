@@ -11,6 +11,7 @@ from pathlib import Path
 RX = re.compile(
     r"WSBND frame=(?P<frame>\d+) v=(?P<v>\d+) cycles=(?P<cycles>-?\d+) "
     r"pc=(?P<pc>[0-9A-Fa-f]{6}) op=(?P<op>[0-9A-Fa-f]{2}) "
+    r"b1=(?P<b1>[0-9A-Fa-f]{2}) b2=(?P<b2>[0-9A-Fa-f]{2}) "
     r"a=(?P<a>[0-9A-Fa-f]{4}) x=(?P<x>[0-9A-Fa-f]{4}) y=(?P<y>[0-9A-Fa-f]{4}) "
     r"d=(?P<d>[0-9A-Fa-f]{4}) p=(?P<p>[0-9A-Fa-f]{4}) "
     r"camx=(?P<camx>\d+) camy=(?P<camy>\d+) "
@@ -28,7 +29,7 @@ def parse(path: Path) -> list[dict]:
     # literal "\\n" separators instead of physical newlines.
     for m in RX.finditer(text):
         g=m.groupdict()
-        hex_keys={"pc","op","a","x","y","d","p"}
+        hex_keys={"pc","op","b1","b2","a","x","y","d","p"}
         row={k:int(v,16) if k in hex_keys else int(v) for k,v in g.items()}
         rows.append(row)
     if not rows:
@@ -72,6 +73,7 @@ def analyze(rows: list[dict]) -> dict:
             "camera_dx":hook["camdx"],
             "hook_opcode":hook["op"],
             "hook_opcode_hex":f"{hook['op']:02X}",
+            "hook_operand_bytes":[hook["b1"],hook["b2"]],
             "hook_a":hook["a"],
             "hook_x":hook["x"],
             "hook_y":hook["y"],

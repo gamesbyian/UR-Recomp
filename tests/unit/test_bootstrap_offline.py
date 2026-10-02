@@ -138,6 +138,41 @@ class BootstrapOfflineTests(unittest.TestCase):
             self.assertTrue((crate / ".cargo" / "config.toml").is_file())
             self.assertEqual((crate / "Cargo.lock").read_bytes(), lock)
 
+    def test_clone_only_applies_registered_patches_before_skipping_build(self) -> None:
+        tool = {
+            "id": "example",
+            "group": "core",
+            "revision": "0" * 40,
+            "purpose": "test",
+            "headless": {"status": "native"},
+            "install_mode": "build",
+            "build": [["should-not-run"]],
+            "patches": [],
+        }
+        manifest = {"tools": [tool], "install_root": ".tools"}
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            dest = root / ".tools" / "src" / "example"
+            dest.mkdir(parents=True)
+            with (
+                mock.patch.object(bootstrap, "ROOT", root),
+                mock.patch.object(bootstrap, "load_manifest", return_value=manifest),
+                mock.patch.object(bootstrap, "load_island_manifest", return_value={}),
+                mock.patch.object(bootstrap, "ensure_source", return_value=dest),
+                mock.patch.object(bootstrap, "apply_patches") as apply_patches,
+                mock.patch.object(bootstrap, "run") as run,
+                mock.patch.object(
+                    bootstrap.sys,
+                    "argv",
+                    ["bootstrap_toolchain.py", "--tool", "example", "--clone-only"],
+                ),
+            ):
+                self.assertEqual(bootstrap.main(), 0)
+
+            apply_patches.assert_called_once_with(tool, dest)
+            run.assert_not_called()
+
+
     def test_vendored_patch_targets_staged_copy_without_git_metadata(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

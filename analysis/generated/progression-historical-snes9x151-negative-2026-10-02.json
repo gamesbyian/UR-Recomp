@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "purpose": "Durable negative evidence from the corrected period-compatible Snes9x 1.51 progression replay before the final acceptance discriminator.",
+  "source": {
+    "workflow_run_id": 36977228337,
+    "workflow_artifact_id": 11214526048,
+    "head_sha": "b6ce5e847918678a110d9cfafab3643b664d144c",
+    "workflow": ".github/workflows/historical-snes9x151-medal.yml",
+    "movie": "reference/imported/tas-bots/dessyreqt-4250-submission.smv",
+    "capture": "tools/capture_first_medal.lua"
+  },
+  "baseline": {
+    "armed_frame": 403,
+    "checksum_valid": true,
+    "ordinary_medal_rows_0_through_7": {
+      "nonzero_cells": 0
+    },
+    "hunter_row_8": {
+      "values": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    "note": "The armed runtime baseline rules out an already-completed ordinary medal matrix as the explanation for the bounded negative result."
+  },
+  "bounded_result": {
+    "guest_frame_limit": 200000,
+    "status": "no-medal-mutation",
+    "terminal_state": {
+      "menu": 0,
+      "track": 0,
+      "in_race": 1,
+      "rider": 1,
+      "tour": 0,
+      "checksum_valid": true
+    },
+    "wall_clock_watchdog_minutes": 6,
+    "frontend_behavior_after_lua_terminal_status": "The historical Lua bridge terminated its Lua thread, while the emulator frontend remained alive at the terminal guest frame until the workflow watchdog."
+  },
+  "related_retained_evidence": {
+    "current_core_raw_input_fidelity": "analysis/generated/historical-2014-first-race-replay.json records divergence beginning at sampled frame 440; raw current-core replay is therefore not an equivalent substitute for the period-compatible movie path.",
+    "period_reference": "analysis/generated/historical-2014-first-race-reference.json records first active race at frame 794 and first race-results state at frame 2874."
+  },
+  "interpretation": {
+    "rules_out": [
+      "A medal award occurring at or before guest frame 200000 on this exact corrected Snes9x 1.51 replay.",
+      "An already-completed ordinary rows 0..7 medal matrix at the armed runtime baseline."
+    ],
+    "does_not_rule_out": [
+      "A later game-authored medal award in the same historical movie.",
+      "A replay that reaches authentic races but does not yet complete the award-producing tour/accomplishment before the previous bound."
+    ],
+    "next_discriminator": "Extend the same period-compatible replay under a bounded watchdog while retaining race-entry, race-results-entry and track-transition counters, then accept only a model-valid game-authored medal mutation followed by fresh-process reload."
+  }
+}

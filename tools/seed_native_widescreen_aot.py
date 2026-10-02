@@ -10,11 +10,6 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-EXTRA_BANK = 2
-EXTRA_ADDR = "D2" + "D1"
-EXTRA_NAME = "WidescreenPostConsume"
-EXTRA_SYMBOL_MARKER = 'name = "WidescreenPostConsume"'
-
 CALLER_BANK = 3
 CALLER_ADDR = "CBCC"
 CALLER_NAME = "RaceFrameOrchestratorLoop"
@@ -32,32 +27,10 @@ def _append_once(path: Path, marker: str, entry: str, *, prefix: str = "") -> bo
 
 def ensure_seed(cfg_dir: Path) -> dict[str, bool]:
     symbols = cfg_dir / "symbols.toml"
-    bank_extra = cfg_dir / f"bank{EXTRA_BANK:02d}.cfg"
     bank_caller = cfg_dir / f"bank{CALLER_BANK:02d}.cfg"
-    extra_marker = f"func {EXTRA_NAME} {EXTRA_ADDR}"
-    extra_entry = f"# UR-Recomp Widescreen presentation-only consume root.\n{extra_marker}\n"
-    extra_symbol_entry = (
-        f"\n[[func]]\nname = \"{EXTRA_NAME}\"\naddr = \"{EXTRA_ADDR}\"\n"
-        f"bank = {EXTRA_BANK}\nemit = true\n"
-        "note = \"Presentation-only post-consume cleanup seam for native Widescreen staging\"\n"
-    )
-    caller_marker = f"func {CALLER_NAME} {CALLER_ADDR}"
-    caller_entry = f"# UR-Recomp accepted race-frame orchestrator seed.\n{caller_marker}\n"
-    caller_symbol_entry = (
-        f"\n[[func]]\nname = \"{CALLER_NAME}\"\naddr = \"{CALLER_ADDR}\"\n"
-        f"bank = {CALLER_BANK}\nemit = true\n"
-        "note = \"Trusted race-frame orchestrator entry containing 83:CD55 -> 81:A52B\"\n"
-    )
-    symbol_extra = _append_once(symbols, EXTRA_SYMBOL_MARKER, extra_symbol_entry)
     symbol_caller = _append_once(symbols, CALLER_SYMBOL_MARKER, caller_symbol_entry)
     return {
-        "symbols": symbol_extra or symbol_caller,
-        "bank02": _append_once(
-            bank_extra,
-            extra_marker,
-            extra_entry,
-            prefix=f"bank = {EXTRA_BANK}\ntier_down_stubs\n",
-        ),
+        "symbols": symbol_caller,
         "bank03": _append_once(
             bank_caller,
             caller_marker,

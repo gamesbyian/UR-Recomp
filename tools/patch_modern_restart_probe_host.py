@@ -34,32 +34,6 @@ static int UrRestartProbeSave(uint8_t *dst, size_t *len) {
     return 1;
 }
 
-static void UrRestartProbeBeforeRunFrame(void) {
-    if (g_ur_restart_probe_phase != 2) return;
-
-    if (!RtlLoadSnapshotFromMemory(g_ur_restart_anchor, g_ur_restart_anchor_len)) {
-        fprintf(stderr, "UR_RESTART_PROBE FAIL restore-refused\n");
-        g_ur_restart_probe_phase = 4;
-        return;
-    }
-
-    uint8_t *immediate = (uint8_t *)malloc(kUrRestartProbeCap);
-    size_t immediate_len = 0;
-    if (!immediate || !UrRestartProbeSave(immediate, &immediate_len) ||
-        immediate_len != g_ur_restart_anchor_len ||
-        memcmp(immediate, g_ur_restart_anchor, immediate_len) != 0) {
-        fprintf(stderr, "UR_RESTART_PROBE FAIL immediate-restore-mismatch\n");
-        free(immediate);
-        g_ur_restart_probe_phase = 4;
-        return;
-    }
-    free(immediate);
-
-    fprintf(stderr, "UR_RESTART_PROBE immediate_equal=1\n");
-    g_ur_restart_probe_count = 0;
-    g_ur_restart_probe_phase = 3;
-}
-
 static void UrRestartProbeAfterRunFrame(const SnesDesktopHostFrameStats *stats) {
     const int in_race = g_ram[0x0313] == 1;
 
@@ -82,10 +56,30 @@ static void UrRestartProbeAfterRunFrame(const SnesDesktopHostFrameStats *stats) 
         if (++g_ur_restart_probe_count == kUrRestartProbeWindow) {
             if (!UrRestartProbeSave(
                     g_ur_restart_expected, &g_ur_restart_expected_len)) {
-                fprintf(stderr, "UR_RESTART_PROBE FAIL expected-capture\n");
+                fprintf(stderr, "UR_RESTART_PROBE FAIL expected-capture\\n");
+                g_ur_restart_probe_phase = 4;
+            } else if (!RtlLoadSnapshotFromMemory(
+                           g_ur_restart_anchor, g_ur_restart_anchor_len)) {
+                fprintf(stderr, "UR_RESTART_PROBE FAIL restore-refused\\n");
                 g_ur_restart_probe_phase = 4;
             } else {
-                g_ur_restart_probe_phase = 2;
+                uint8_t *immediate = (uint8_t *)malloc(kUrRestartProbeCap);
+                size_t immediate_len = 0;
+                const int immediate_ok =
+                    immediate &&
+                    UrRestartProbeSave(immediate, &immediate_len) &&
+                    immediate_len == g_ur_restart_anchor_len &&
+                    memcmp(immediate, g_ur_restart_anchor, immediate_len) == 0;
+                free(immediate);
+                if (!immediate_ok) {
+                    fprintf(stderr,
+                            "UR_RESTART_PROBE FAIL immediate-restore-mismatch\\n");
+                    g_ur_restart_probe_phase = 4;
+                } else {
+                    fprintf(stderr, "UR_RESTART_PROBE immediate_equal=1\\n");
+                    g_ur_restart_probe_count = 0;
+                    g_ur_restart_probe_phase = 3;
+                }
             }
         }
     } else if (g_ur_restart_probe_phase == 3) {

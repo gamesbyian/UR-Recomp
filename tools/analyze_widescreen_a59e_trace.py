@@ -84,6 +84,7 @@ def analyze(rows: list[dict]) -> dict:
         ]
 
     edge_modes=modes("edge"); count_modes=modes("count"); payload_modes=modes("payload")
+    stable_payload=payload_modes[0] if payload_modes else None
     return {
         "schema_version":1,
         "frames_observed":len(by_frame),
@@ -93,12 +94,14 @@ def analyze(rows: list[dict]) -> dict:
         "frames":frame_reports,
         "stable_edge_site":edge_modes[0] if edge_modes else None,
         "stable_count_site":count_modes[0] if count_modes else None,
-        "stable_payload_site":payload_modes[0] if payload_modes else None,
+        "stable_payload_site":stable_payload,
+        "classification":"payload-staged-inside-a59e" if stable_payload else "payload-not-staged-before-ab88",
     }
 
 def render(d):
     lines=["# A59E strip-preparation instruction trace","",
-           f"- frames observed: **{d['frames_observed']}**"]
+           f"- frames observed: **{d['frames_observed']}**",
+           f"- classification: **{d['classification']}**"]
     for label,key in (("edge","stable_edge_site"),("count","stable_count_site"),("payload","stable_payload_site")):
         x=d[key]
         lines.append(
@@ -126,7 +129,7 @@ def main():
         args.md_out.parent.mkdir(parents=True,exist_ok=True)
         args.md_out.write_text(md,encoding="utf-8")
     print(md,end="")
-    return 0 if d["stable_edge_site"] and d["stable_payload_site"] else 2
+    return 0 if d["stable_edge_site"] else 2
 
 if __name__=="__main__":
     raise SystemExit(main())

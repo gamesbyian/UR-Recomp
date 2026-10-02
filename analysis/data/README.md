@@ -12,6 +12,8 @@ Current surfaces:
 - `presentation-assets.json` — reusable container for semantic presentation/graphics families.
 - `evidence-claims.json` — selective atomic claims whose provenance matters for cross-source inference.
 - `progression-model.json` — normalized medal matrix, tier derivation, checksum coverage, and current runtime-acceptance status.
+- `course-resource-catalog.json` — promoted resource semantics, conserved bundles, and cross-build resource-selection deltas.
+- `fixture-corpus.json` — curated semantic/event anchoring and suitability metadata for the most important deterministic fixtures.
 
 Regenerate with:
 

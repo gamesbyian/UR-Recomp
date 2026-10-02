@@ -39,6 +39,21 @@ static const SnesDesktopHostGame kGameHost = {
         self.assertIn("UR_RESTART_PROBE FAIL replay_equal=0 window=%u", patched)
         self.assertNotIn(r";\\nstatic", patched)
 
+    def test_links_digest_source_into_generated_target(self):
+        cmake = """cmake_minimum_required(VERSION 3.20)
+project(UniracersSNESRecomp C CXX)
+add_executable(UniracersSNESRecomp
+    src/main.c
+)
+"""
+        patched = mod.patch_cmake_text(cmake)
+        self.assertIn(
+            'target_sources(UniracersSNESRecomp PRIVATE '
+            '"${SNESRECOMP_ROOT}/runner/src/netplay/snes_state_digest.c")',
+            patched,
+        )
+        self.assertEqual(mod.patch_cmake_text(patched), patched)
+
     def test_idempotent(self):
         source = """#include "host_main.h"
 #include "game_rtl.h"

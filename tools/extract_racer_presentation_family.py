@@ -176,6 +176,44 @@ def decode_piece_mapping(record: FrameRecord) -> list[dict]:
     return pieces
 
 
+def census_record_structure(rom: bytes) -> dict:
+    max_id = ((0x10000 - FRAME_TABLE_ADDR) // FRAME_ENTRY_SIZE) - 2
+    comparable = matches = reserved_nonzero = 0
+    for frame_id in range(max_id + 1):
+        try:
+            ptr = frame_pointer(rom, frame_id)
+            nxt = frame_pointer(rom, frame_id + 1)
+        except (ValueError, IndexError):
+            continue
+        if ptr.source_bank != nxt.source_bank:
+            continue
+        if ptr.source_addr < 0x8000 or nxt.source_addr < 0x8000:
+            continue
+        length = nxt.source_addr - ptr.source_addr
+        if length < 4 or length > 68 or (length - 4) % 2:
+            continue
+        try:
+            off = lorom_offset(ptr.source_bank, ptr.source_addr)
+            header = rom[off:off + 4]
+        except (ValueError, IndexError):
+            continue
+        if len(header) != 4:
+            continue
+        occupied = sum(
+            bool(header[byte] & (1 << bit))
+            for byte, bit in OCCUPANCY_BITS
+        )
+        words = (length - 4) // 2
+        comparable += 1
+        matches += occupied == words
+        reserved_nonzero += bool(header[3] & 0x03)
+    return {
+        "comparable_monotonic_records": comparable,
+        "matches_30_cell_popcount": matches,
+        "reserved_low2_nonzero_records": reserved_nonzero,
+    }
+
+
 def palette_entry(rom: bytes, asset_id: int) -> PaletteEntry:
     addr = PALETTE_TABLE_ADDR + asset_id * PALETTE_ENTRY_SIZE
     if addr + 4 > 0xFFFF:
@@ -402,6 +440,10 @@ def build_manifest(rom: bytes) -> dict:
                 "high_byte": "83:F20F..F21A -> $1645,Y = $8000 | (high_byte << 5)",
                 "low_byte_bits_7_2": "83:F21D..F227 -> $15A1,Y = $0027 + ((low_byte & $FC) >> 2)",
                 "low_byte_bits_1_0": "unresolved",
+            },
+            "corpus_check": {
+                **census_record_structure(rom),
+                "evidence_workflow_run": 36973753703,
             },
             "oam_binding": {
                 "layering": "packed records populate racer tile/presentation staging before 82:ACA5 OAM composition",

@@ -250,12 +250,16 @@ def compose_racer_staging(
     *,
     p1_selector: int = 0,
     p2_selector: int = 0,
+    p1_companion_enabled: bool = True,
+    p2_companion_enabled: bool = True,
 ) -> dict:
     """Reproduce the bounded four-record staging composition at 83:F0BB..F295.
 
-    Companion occupancy wins when both streams occupy the same cache cell.
-    The hidden primary packed word is still consumed, matching F1F3/F205.
-    Empty cache cells use the renderer's proven blank tile source 27:8000.
+    Companion occupancy wins when both enabled streams occupy the same cache
+    cell. The hidden primary packed word is still consumed, matching F1F3/F205.
+    After F2BB, 83:F12B..F153 gates the companion mask halves through $0D1B
+    (P1/high byte) and $0D1D (P2/low byte); callers with runtime state must pass
+    those enables explicitly. Empty cells use the proven blank source 27:8000.
     """
     frames = {
         "p1_primary": p1_primary,
@@ -276,7 +280,15 @@ def compose_racer_staging(
             streams[key] = _frame_word_stream(frames[key])
 
     primary_masks = pack_player_row_masks(rows["p1_primary"], rows["p2_primary"])
-    companion_masks = pack_player_row_masks(rows["p1_companion"], rows["p2_companion"])
+    companion_masks_raw = pack_player_row_masks(rows["p1_companion"], rows["p2_companion"])
+    companion_masks = []
+    for mask in companion_masks_raw:
+        effective = mask
+        if not p1_companion_enabled:
+            effective &= 0x00FF
+        if not p2_companion_enabled:
+            effective &= 0xFF00
+        companion_masks.append(effective)
 
     cells = []
     for row in range(5):
@@ -341,8 +353,13 @@ def compose_racer_staging(
 
     return {
         "primary_row_masks": [f"0x{x:04X}" for x in primary_masks],
+        "companion_row_masks_raw": [f"0x{x:04X}" for x in companion_masks_raw],
         "companion_row_masks": [f"0x{x:04X}" for x in companion_masks],
         "selectors": {"p1": p1_selector, "p2": p2_selector},
+        "companion_enabled": {
+            "p1": bool(p1_companion_enabled),
+            "p2": bool(p2_companion_enabled),
+        },
         "cells": cells,
         "final_word_cursors": dict(cursors),
         "stream_word_counts": {key: len(value) for key, value in streams.items()},

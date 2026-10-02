@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "purpose": "Durable negative evidence from the corrected period-compatible Snes9x 1.51 progression replay before the final acceptance discriminator.",
+  "source": {
+    "workflow_run_id": 36977228337,
+    "workflow_artifact_id": 11214526048,
+    "head_sha": "b6ce5e847918678a110d9cfafab3643b664d144c",
+    "workflow": ".github/workflows/historical-snes9x151-medal.yml",
+    "movie": "reference/imported/tas-bots/dessyreqt-4250-submission.smv",
+    "capture": "tools/capture_first_medal.lua"
+  },
+  "baseline": {
+    "armed_frame": 403,
+    "checksum_valid": true,
+    "ordinary_medal_rows_0_through_7": {
+      "nonzero_cells": 0
+    },
+    "hunter_row_8": {
+      "values": [
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    "note": "The armed runtime baseline rules out an already-completed ordinary medal matrix as the explanation for the bounded negative result."
+  },
+  "bounded_result": {
+    "guest_frame_limit": 200000,
+    "status": "no-medal-mutation",
+    "terminal_state": {
+      "menu": 0,
+      "track": 0,
+      "in_race": 1,
+      "rider": 1,
+      "tour": 0,
+      "checksum_valid": true
+    },
+    "wall_clock_watchdog_minutes": 6,
+    "frontend_behavior_after_lua_terminal_status": "The historical Lua bridge terminated its Lua thread, while the emulator frontend remained alive at the terminal guest frame until the workflow watchdog."
+  },
+  "related_retained_evidence": {
+    "current_core_raw_input_fidelity": "analysis/generated/historical-2014-first-race-replay.json records divergence beginning at sampled frame 440; raw current-core replay is therefore not an equivalent substitute for the period-compatible movie path.",
+    "period_reference": "analysis/generated/historical-2014-first-race-reference.json records first active race at frame 794 and first race-results state at frame 2874."
+  },
+  "interpretation": {
+    "rules_out": [
+      "A medal award occurring at or before guest frame 200000 under the now-known-incompatible -nosound replay configuration.",
+      "An already-completed ordinary rows 0..7 medal matrix at the armed runtime baseline."
+    ],
+    "does_not_rule_out": [
+      "The verified historical movie producing authentic medal awards under its required APU/sound-sync configuration.",
+      "The period-compatible Snes9x 1.51 v7.1 path itself."
+    ],
+    "next_discriminator": "On the corrected sound-sync replay, retain the five per-tour completion bytes at 77:1075 + 5*tour and count race/circuit/stunt result states. Distinguish failure to satisfy the five-track tour gate from a completed tour that fails to reach the medal writer; accept only a model-valid game-authored medal mutation followed by fresh-process reload.",
+    "exact_incompatibility": {
+      "status": "identified",
+      "cause": "The historical workflow launched Snes9x 1.51 v7.1 with -nosound. In this emulator, -nosound sets Settings.NextAPUEnabled = FALSE. Submission #4250 is verified with sound synchronization enabled, while the movie loader does not restore Settings.SoundSync from the movie flags. The resulting replay therefore disabled APU emulation on a sound-sync-sensitive movie and desynchronized during the first race.",
+      "evidence": [
+        "TASVideos submission #4250 identifies Snes9x 1.51 v17 and sync verification in Snes9x 1.51 v7.1 with Sync samples enabled.",
+        "TASEmulators/snes9x-rr tag snes9x-151-v7.1 resolves to e0b6a74, confirming the branch already used the correct emulator release.",
+        "Snes9x 1.51 v7.1 command-line parsing sets Settings.NextAPUEnabled = FALSE for -nosound; -soundsync explicitly enables Settings.SoundSync.",
+        "The previous replay remained in the first active-race state at guest frame 200000 instead of following the retained verified reference path to race results near frame 2874."
+      ],
+      "corrective_configuration": [
+        "-sound",
+        "-soundsync",
+        "-mute"
+      ],
+      "note": "-mute suppresses host audio output without disabling APU emulation."
+    }
+  },
+  "additional_bounded_run": {
+    "workflow_run_id": 37052833591,
+    "workflow_artifact_id": 11248131185,
+    "head_sha": "ad4de342150f1d32a98a8c84ac27c9c289476e59",
+    "configuration": "period-compatible Snes9x 1.51 v7.1, pre-sound-sync-fix invocation",
+    "baseline_frame": 403,
+    "guest_frame_limit": 100000,
+    "status": "no-medal-mutation",
+    "terminal_state": {
+      "menu": 0,
+      "track": 0,
+      "in_race": 1,
+      "rider": 0,
+      "tour": 0,
+      "race_entries": 7,
+      "race_results_entries": 6,
+      "track_changes": 0,
+      "checksum_valid": true
+    },
+    "interpretation": [
+      "The historical movie was not merely frozen in its first race: six race-results transitions and seven race entries were observed.",
+      "No medal-matrix mutation occurred despite those completed race-result transitions.",
+      "Individual race completion is not sufficient for a medal; stock progression requires all five tracks in a tour to be passed."
+    ]
+  }
+}

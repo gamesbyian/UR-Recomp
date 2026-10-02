@@ -1,7 +1,7 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "purpose": "Normalized progression/SRAM model for inference and acceptance testing.",
-  "status": "static model complete; real medal-changing runtime acceptance remains open",
+  "status": "static model complete; gameplay-authored medal save/load acceptance proven",
   "medal_matrix": {
     "base": "77:069C",
     "rows": 9,
@@ -25,7 +25,12 @@
       "2": "silver",
       "3": "gold"
     },
-    "update_rule": "increment by one and saturate at 3"
+    "update_rule": "increment by one and saturate at 3",
+    "update_rule_machine": {
+      "operation": "increment",
+      "amount": 1,
+      "maximum": 3
+    }
   },
   "derived_tiers": {
     "prerequisite_rows": [
@@ -42,15 +47,29 @@
     "thresholds": [
       {
         "tier": 1,
-        "condition": "at least 4 nonzero medals among rows 0..7"
+        "condition": "at least 4 nonzero medals among rows 0..7",
+        "machine_rule": {
+          "kind": "count_at_least",
+          "medal_value_gte": 1,
+          "count_gte": 4
+        }
       },
       {
         "tier": 2,
-        "condition": "at least 6 medals >= 2 among rows 0..7"
+        "condition": "at least 6 medals >= 2 among rows 0..7",
+        "machine_rule": {
+          "kind": "count_at_least",
+          "medal_value_gte": 2,
+          "count_gte": 6
+        }
       },
       {
         "tier": 3,
-        "condition": "sum of rows 0..7 medal values = 24 (all eight gold)"
+        "condition": "sum of rows 0..7 medal values = 24 (all eight gold)",
+        "machine_rule": {
+          "kind": "sum_equals",
+          "sum_equals": 24
+        }
       }
     ],
     "primary_table": "77:10D3..10E2",
@@ -60,16 +79,23 @@
     "protected_region": "77:05E8..073B",
     "word_count": 170,
     "stored_at": "77:073C",
+    "algorithm": "sum little-endian 16-bit words modulo 0x10000",
     "medal_matrix_inside_region": true
   },
   "runtime_acceptance": {
     "game_authored_sram_mutation": true,
     "checksum_valid_after_write": true,
     "reload_preserves_full_sram": true,
-    "medal_change_observed": false,
+    "medal_change_observed": true,
     "tier_change_observed": false,
     "stock_select_x_r_shortcut_static_path": true,
-    "stock_select_x_r_shortcut_runtime_trigger": false
+    "stock_select_x_r_shortcut_runtime_trigger": false,
+    "model_tier_prediction_matches": true,
+    "single_medal_cell_changed": true,
+    "gameplay_authored_medal_acceptance": true,
+    "fresh_process_reload_preserves_full_sram": true,
+    "accepting_run_id": 37055966541,
+    "accepting_evidence": "analysis/generated/progression-sram-acceptance.json"
   },
   "sources": [
     "analysis/generated/sram-medal-progression-static-model-2026-10-01.md",

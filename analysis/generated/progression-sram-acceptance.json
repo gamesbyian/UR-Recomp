@@ -1,42 +1,71 @@
 {
-  "schema_version": 1,
-  "changed_byte_count": 152,
+  "schema_version": 2,
+  "oracle": "analysis/data/progression-model.json",
+  "changed_byte_count": 312,
   "protected_region_changes": [
     {
       "offset": 1560,
       "before": 0,
-      "after": 222
+      "after": 117
     },
     {
       "offset": 1561,
       "before": 0,
-      "after": 29
+      "after": 33
     },
     {
       "offset": 1562,
       "before": 0,
-      "after": 71
+      "after": 96
     },
     {
       "offset": 1563,
       "before": 0,
-      "after": 31
+      "after": 234
+    },
+    {
+      "offset": 1692,
+      "before": 0,
+      "after": 1
     }
   ],
-  "medal_changes": [],
+  "medal_changes": [
+    {
+      "offset": 1692,
+      "before": 0,
+      "after": 1
+    }
+  ],
+  "awards": [
+    {
+      "offset": 1692,
+      "before": 0,
+      "after": 1,
+      "tour_row": 0,
+      "tour": "Crawler",
+      "rider_column": 0,
+      "expected_after": 1,
+      "matches_model_update": true,
+      "predicted_tier_before": 0,
+      "predicted_tier_after": 0,
+      "actual_primary_tier_after": 0,
+      "actual_mirror_tier_after": 0
+    }
+  ],
   "tier_primary_changes": [],
   "tier_mirror_changes": [],
   "checksum": {
     "before_stored": 37360,
     "before_computed": 37360,
-    "after_stored": 53013,
-    "after_computed": 53013,
-    "reload_stored": 53013,
-    "reload_computed": 53013
+    "after_stored": 40390,
+    "after_computed": 40390,
+    "reload_stored": 40390,
+    "reload_computed": 40390
   },
   "observations": {
-    "game_authored_medal_change_observed": false,
-    "medal_changes_are_single_step_saturating": false,
+    "game_authored_medal_change_observed": true,
+    "medal_changes_match_model_update": true,
+    "tier_predictions_match_model": true,
     "tier_change_observed": false
   },
   "checks": {
@@ -45,8 +74,12 @@
     "after_checksum_valid": true,
     "reload_checksum_valid": true,
     "full_sram_survives_reload": true,
-    "checksum_survives_reload": true
+    "checksum_survives_reload": true,
+    "model_tier_prediction_matches": true,
+    "required_medal_change_observed": true,
+    "single_medal_cell_changed": true,
+    "medal_change_matches_model": true
   },
-  "scope_note": "This acceptance proves real game-authored SRAM mutation/reload fidelity. Medal/tier mutation remains an explicit observation, not a prerequisite; a medal-winning fixture is still required to close progression-changing acceptance.",
+  "scope_note": "Synthetic SRAM may be used only as a pre-run setup. Every medal/tier change reported here is measured between the pre-gameplay baseline and the game-authored post-accomplishment SRAM.",
   "all_checks_pass": true
 }

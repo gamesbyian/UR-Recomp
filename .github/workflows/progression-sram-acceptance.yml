@@ -1,14 +1,8 @@
 name: Progression SRAM save-load acceptance
 
+# Retained negative/diagnostic route. Run manually when revisiting this hypothesis.
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "tools/analyze_progression_sram_acceptance.py"
-      - "tests/input/progression-sram-acceptance.script"
-      - "reference/imported/tas-bots/dessyreqt-4250-submission.smv"
-      - "tools/extract_smv_input.py"
-      - ".github/workflows/progression-sram-acceptance.yml"
 
 concurrency:
   group: progression-sram-acceptance-${{ github.ref }}
@@ -31,8 +25,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
 
-      - name: Verify canonical ROM
-        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Verify canonical ROM and unit tests
+        run: |
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python3 -m unittest tests.unit.test_analyze_progression_sram_acceptance
 
       - name: Extract historical bot input and anchored SRAM
         shell: bash
@@ -44,21 +40,24 @@ jobs:
             --sram-out "$RUNNER_TEMP/start.srm" \
             --sram-size 8192 \
             --json-out "$RUNNER_TEMP/smv.json" >/dev/null
-          python3 - "$RUNNER_TEMP/full.input" "$RUNNER_TEMP/first-12000.input" <<'PY'
+          python3 - "$RUNNER_TEMP/full.input" "$RUNNER_TEMP/first-40000.input" <<'PY'
           from pathlib import Path
           import sys
           from tools.controller_input import load_controller_runs
-          src,out=map(Path,sys.argv[1:])
-          horizon=12000
-          lines=["# Exact historical controller input through first post-race transition."]
+          src, out = map(Path, sys.argv[1:])
+          horizon = 40000
+          lines = ["# Exact historical 2014 bot input through the first bounded progression window."]
           for run in load_controller_runs(src):
-              if run.start>=horizon: break
-              duration=min(run.duration,horizon-run.start)
-              if duration<=0: continue
-              row=f"{run.start}:{duration}:{run.p1_mask:03x}"
-              if run.p2_mask: row+=f":{run.p2_mask:03x}"
+              if run.start >= horizon:
+                  break
+              duration = min(run.duration, horizon - run.start)
+              if duration <= 0:
+                  continue
+              row = f"{run.start}:{duration}:{run.p1_mask:03x}"
+              if run.p2_mask:
+                  row += f":{run.p2_mask:03x}"
               lines.append(row)
-          out.write_text("\n".join(lines)+"\n")
+          out.write_text("\n".join(lines) + "\n")
           PY
           test "$(stat -c%s "$RUNNER_TEMP/start.srm")" -eq 8192
 
@@ -70,7 +69,7 @@ jobs:
           python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
           test -x .tools/src/snesrecomp/build-snesref/snesref
 
-      - name: Replay first race and dump authored SRAM
+      - name: Replay gameplay and select first authentic medal mutation
         shell: bash
         run: |
           set -euo pipefail
@@ -83,28 +82,68 @@ jobs:
           SNESREF_FAST=1 \
           SNESREF_WRAM_FILL=0 \
           SNESREF_SRAM_IN="$RUNNER_TEMP/start.srm" \
-          SNESREF_INPUT_FILE="$RUNNER_TEMP/first-12000.input" \
+          SNESREF_INPUT_FILE="$RUNNER_TEMP/first-40000.input" \
           SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/progression-sram-acceptance.script" \
           SNESREF_DUMP_DIR="$DUMPS" \
             "$EXE" "$CORE" "$ROM" | tee "$RUNNER_TEMP/run.log"
+
           BEFORE="$(find "$DUMPS" -maxdepth 1 -type f -name 'progression-before*sram*' -print -quit)"
           test -n "$BEFORE"
           cp "$BEFORE" "$RUNNER_TEMP/before.srm"
-          python3 - "$RUNNER_TEMP/before.srm" "$DUMPS" "$RUNNER_TEMP/after.srm" "$RUNNER_TEMP/selected.txt" <<'PY'
+
+          python3 - "$DUMPS" "$RUNNER_TEMP/scan-summary.json" <<'PY'
           from pathlib import Path
-          import sys
-          before_path,dumps_path,after_path,selected_path=map(Path,sys.argv[1:])
-          before=before_path.read_bytes()
-          start,end=0x069C,0x072C
+          import json, re, sys
+          dumps, out = map(Path, sys.argv[1:])
+          rows = []
+          for p in sorted(dumps.glob("progression-*.wram.bin")):
+              w = p.read_bytes()
+              if len(w) != 0x20000:
+                  continue
+              m = re.search(r"progression-(before|scan-\d+)", p.name)
+              if not m:
+                  continue
+              rows.append({
+                  "tag": m.group(1),
+                  "menu_009f": w[0x009f],
+                  "selected_option_009b": w[0x009b],
+                  "track_00ce": w[0x00ce],
+                  "in_race_0313": w[0x0313],
+                  "tour_row_d0": w[0x00d0],
+                  "rider_017d": w[0x017d],
+                  "tour_progress": {
+                      "crawler_0a03": w[0x0a03],
+                      "jumper_0a07": w[0x0a07],
+                      "shuffler_0a0b": w[0x0a0b],
+                      "bounder_0a0f": w[0x0a0f],
+                      "walker_0a13": w[0x0a13],
+                      "runner_0a17": w[0x0a17],
+                      "hopper_0a1b": w[0x0a1b],
+                      "sprinter_0a1f": w[0x0a1f],
+                      "hunter_0a23": w[0x0a23],
+                  },
+              })
+          out.write_text(json.dumps(rows, indent=2) + "\n")
+          print(out.read_text())
+          PY
+
+          python3 - "$RUNNER_TEMP/before.srm" "$DUMPS" "$RUNNER_TEMP/after.srm" "$RUNNER_TEMP/selected.txt" analysis/data/progression-model.json <<'PY'
+          from pathlib import Path
+          import json, sys
+          before_path, dumps_path, after_path, selected_path, model_path = map(Path, sys.argv[1:])
+          model = json.loads(model_path.read_text())
+          base = int(model["medal_matrix"]["base"].split(":")[1], 16)
+          end = base + model["medal_matrix"]["rows"] * model["medal_matrix"]["row_stride"]
+          before = before_path.read_bytes()
           for p in sorted(dumps_path.glob("progression-scan-*sram*")):
-              data=p.read_bytes()
-              if data[start:end] != before[start:end]:
+              data = p.read_bytes()
+              if data[base:end] != before[base:end]:
                   after_path.write_bytes(data)
-                  selected_path.write_text(p.name+"\n")
-                  print("selected first medal mutation:",p.name)
+                  selected_path.write_text(p.name + "\n")
+                  print("selected first medal mutation:", p.name)
                   break
           else:
-              raise SystemExit("no medal-matrix mutation found by frame 18000")
+              raise SystemExit("no medal-matrix mutation found by frame 40000")
           PY
           test "$(stat -c%s "$RUNNER_TEMP/after.srm")" -eq 8192
 
@@ -128,7 +167,7 @@ jobs:
           test -n "$RELOAD"
           cp "$RELOAD" "$RUNNER_TEMP/reload.srm"
 
-      - name: Assert progression and checksum survive reload
+      - name: Assert model-predicted progression survives reload
         shell: bash
         run: |
           set -euo pipefail
@@ -136,6 +175,8 @@ jobs:
             --before "$RUNNER_TEMP/before.srm" \
             --after "$RUNNER_TEMP/after.srm" \
             --reload "$RUNNER_TEMP/reload.srm" \
+            --model analysis/data/progression-model.json \
+            --require-medal \
             --out analysis/generated/progression-sram-acceptance.json
 
       - name: Persist compact acceptance evidence
@@ -146,18 +187,19 @@ jobs:
           if git diff --cached --quiet; then exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Record progression SRAM acceptance evidence"
+          git commit -m "Record gameplay progression acceptance evidence"
           git fetch origin "$GITHUB_REF_NAME"
           git rebase "origin/$GITHUB_REF_NAME"
           git push origin "HEAD:$GITHUB_REF_NAME"
 
-      - name: Upload transient SRAM evidence
+      - name: Upload transient acceptance evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: progression-sram-acceptance
           path: |
             ${{ runner.temp }}/smv.json
+            ${{ runner.temp }}/scan-summary.json
             ${{ runner.temp }}/before.srm
             ${{ runner.temp }}/after.srm
             ${{ runner.temp }}/selected.txt

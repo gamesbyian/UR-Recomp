@@ -8,7 +8,7 @@ on:
     paths:
       - ".github/workflows/preparation-emission-probe.yml"
       - "tools/analyze_preparation_emission_probe.py"
-      - "tests/input/race-visible-onset.script"
+      - "tests/input/preparation-emission-race.script"
   pull_request:
     paths:
       - ".github/workflows/preparation-emission-probe.yml"
@@ -50,7 +50,7 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           DUMPS="$RUNNER_TEMP/preparation-emission-dumps"
           mkdir -p "$DUMPS" analysis/generated
-          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy             timeout 180s xvfb-run -a "$EXE" "$ROM"             --script "$GITHUB_WORKSPACE/tests/input/race-visible-onset.script"             >"$RUNNER_TEMP/preparation-emission.log" 2>&1
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy             timeout 180s xvfb-run -a "$EXE" "$ROM"             --script "$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script"             >"$RUNNER_TEMP/preparation-emission.log" 2>&1
           tail -n 120 "$RUNNER_TEMP/preparation-emission.log"
           python3 tools/analyze_preparation_emission_probe.py "$DUMPS"             --json-out analysis/generated/preparation-emission-probe.json             --md-out analysis/generated/preparation-emission-probe.md
       - uses: actions/upload-artifact@v4
@@ -61,7 +61,7 @@ jobs:
             analysis/generated/preparation-emission-probe.json
             analysis/generated/preparation-emission-probe.md
             ${{ runner.temp }}/preparation-emission.log
-            ${{ runner.temp }}/preparation-emission-dumps/race-start-active-*.wram.bin
-            ${{ runner.temp }}/preparation-emission-dumps/race-start-active-*.ppuw.tsv
+            ${{ runner.temp }}/preparation-emission-dumps/prep-emission-*.wram.bin
+            ${{ runner.temp }}/preparation-emission-dumps/prep-emission-*.ppuw.tsv
           if-no-files-found: warn
           retention-days: 7

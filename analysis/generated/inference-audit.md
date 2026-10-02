@@ -47,7 +47,7 @@ The exact longest common prefixes by track kind are:
 - circuit-b: `[1..11]`
 - stunt: `[1]`
 
-Resources 1 and 2 occur somewhere in every course, and resource 1 is first in all 45. Downer is the sole exception to resource 2 being second: it uses `[1,18,2,...]`.
+Resources 1 and 2 occur somewhere in every course, and resource 1 is first in all 45. Circle is the sole exception to resource 2 being second: it uses `[1,18,2,...]`.
 
 This supports a reusable base-resource scaffold model. It does not yet justify semantic names for individual resource IDs.
 

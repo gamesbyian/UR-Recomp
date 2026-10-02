@@ -136,8 +136,7 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 					fprintf(stderr,
 						"WSA59E frame=%u pc=%06X op=%02X b1=%02X b2=%02X "
 						"a=%04X x=%04X y=%04X d=%04X p=%04X "
-						"e0505=%04X e0521=%04X c052B=%04X "
-						"s0433=%02X%02X%02X%02X%02X%02X%02X%02X\n",
+						"e0505=%04X e0521=%04X c052B=%04X s0433=",
 						(unsigned)ICPU.Frame, (unsigned)ur_ws_pc, (unsigned)Op,
 						(unsigned)CPU.PCBase[(uint16)(ur_ws_pcw + 1)],
 						(unsigned)CPU.PCBase[(uint16)(ur_ws_pcw + 2)],
@@ -145,11 +144,10 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 						(unsigned)Registers.Y.W, (unsigned)Registers.D.W,
 						(unsigned)Registers.P.W,
 						(unsigned)ur_ws_w16(0x0505), (unsigned)ur_ws_w16(0x0521),
-						(unsigned)ur_ws_w16(0x052B),
-						(unsigned)Memory.RAM[0x0433], (unsigned)Memory.RAM[0x0434],
-						(unsigned)Memory.RAM[0x0435], (unsigned)Memory.RAM[0x0436],
-						(unsigned)Memory.RAM[0x0437], (unsigned)Memory.RAM[0x0438],
-						(unsigned)Memory.RAM[0x0439], (unsigned)Memory.RAM[0x043A]);
+						(unsigned)ur_ws_w16(0x052B));
+					for (unsigned j = 0; j < 32; j++)
+						fprintf(stderr, "%02X", (unsigned)Memory.RAM[0x0433 + j]);
+					fprintf(stderr, "\n");
 				}
 
 				if (ur_ws_boundary_trace && Registers.PB == 0x81 &&

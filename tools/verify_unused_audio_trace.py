@@ -84,6 +84,41 @@ def counter_segments(trace: dict) -> tuple[list[bytes], list[dict]]:
     return [bytes(data for data, _ in seg) for seg in segments], anomalies
 
 
+def _same_prefix_length(a: bytes, b: bytes) -> int:
+    n = 0
+    for x, y in zip(a, b):
+        if x != y:
+            break
+        n += 1
+    return n
+
+
+def _same_suffix_length(a: bytes, b: bytes) -> int:
+    n = 0
+    for x, y in zip(reversed(a), reversed(b)):
+        if x != y:
+            break
+        n += 1
+    return n
+
+
+def _equal_length_diff(a: bytes, b: bytes) -> dict | None:
+    if len(a) != len(b):
+        return None
+    mismatches = [i for i, (x, y) in enumerate(zip(a, b)) if x != y]
+    return {
+        "mismatch_count": len(mismatches),
+        "match_count": len(a) - len(mismatches),
+        "match_fraction": ((len(a) - len(mismatches)) / len(a)) if a else 1.0,
+        "same_prefix_length": _same_prefix_length(a, b),
+        "same_suffix_length": _same_suffix_length(a, b),
+        "first_mismatch": mismatches[0] if mismatches else None,
+        "last_mismatch": mismatches[-1] if mismatches else None,
+        "first_mismatch_expected": b[mismatches[0]] if mismatches else None,
+        "first_mismatch_actual": a[mismatches[0]] if mismatches else None,
+    }
+
+
 def verify(rom: bytes, trace: dict, selector: int) -> dict:
     expected = expected_song_body(rom, selector)
     framed = bytes.fromhex("00 04 00 1d") + expected
@@ -108,6 +143,11 @@ def verify(rom: bytes, trace: dict, selector: int) -> dict:
                 "equals_framed_record": blob == framed,
                 "drop_first_4_equals_body": len(blob) == len(expected) + 4 and blob[4:] == expected,
                 "drop_last_4_equals_body": len(blob) == len(expected) + 4 and blob[:-4] == expected,
+                "framed_diff": _equal_length_diff(blob, framed),
+                "drop_first_4_body_diff": _equal_length_diff(blob[4:], expected)
+                if len(blob) == len(expected) + 4 else None,
+                "drop_last_4_body_diff": _equal_length_diff(blob[:-4], expected)
+                if len(blob) == len(expected) + 4 else None,
             }
             if row["equals_expected_body"] and exact_segment_body is None:
                 exact_segment_body = [start, end]

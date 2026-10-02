@@ -11,6 +11,7 @@ on:
       - "tools/analyze_widescreen_helper_staging.py"
       - "tools/analyze_widescreen_edge_helper.py"
       - "tools/analyze_widescreen_count32_discriminator.py"
+      - "tools/analyze_widescreen_xphase_discriminator.py"
       - "tests/unit/test_analyze_widescreen_strip_schedule.py"
       - "tests/unit/test_analyze_widescreen_preparation_boundary.py"
       - "tests/unit/test_analyze_widescreen_helper_staging.py"
@@ -118,6 +119,51 @@ jobs:
             --md-out analysis/generated/widescreen-count32-discriminator.md
           cat analysis/generated/widescreen-count32-discriminator.md
 
+      - name: Probe A59E X-phase deltas
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script"
+          ROOT="$RUNNER_TEMP/ws-xphase"
+          mkdir -p "$ROOT/control/dumps" analysis/generated
+
+          URRECOMP_WS_MARGIN=0 \
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$SCRIPT" \
+          SNESREF_DUMP_DIR="$ROOT/control/dumps" \
+            "$EXE" "$CORE" "$ROM" >"$ROOT/control/run.log" 2>&1
+
+          VARIANTS=()
+          for DELTA in 1 -1 8 -8; do
+            case "$DELTA" in
+              1) NAME=xplus1 ;;
+              -1) NAME=xminus1 ;;
+              8) NAME=xplus8 ;;
+              -8) NAME=xminus8 ;;
+            esac
+            mkdir -p "$ROOT/$NAME/dumps"
+            URRECOMP_WS_MARGIN=8 \
+            URRECOMP_WS_X_DELTA="$DELTA" \
+            SNESREF_HEADLESS=1 \
+            SNESREF_FAST=1 \
+            SNESREF_WRAM_FILL=0 \
+            SNESREF_SCRIPT="$SCRIPT" \
+            SNESREF_DUMP_DIR="$ROOT/$NAME/dumps" \
+              "$EXE" "$CORE" "$ROM" >"$ROOT/$NAME/run.log" 2>&1
+            VARIANTS+=("$ROOT/$NAME/run.log")
+          done
+
+          python3 tools/analyze_widescreen_xphase_discriminator.py \
+            "$ROOT/control/run.log" "${VARIANTS[@]}" \
+            --json-out analysis/generated/widescreen-xphase-discriminator.json \
+            --md-out analysis/generated/widescreen-xphase-discriminator.md
+          cat analysis/generated/widescreen-xphase-discriminator.md
+
       - name: Upload bounded experiment evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -133,5 +179,6 @@ jobs:
             ${{ runner.temp }}/ws-boundary/
             ${{ runner.temp }}/ws-edge-helper/
             ${{ runner.temp }}/ws-count32/
+            ${{ runner.temp }}/ws-xphase/
           if-no-files-found: warn
           retention-days: 7

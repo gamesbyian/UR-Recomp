@@ -77,6 +77,7 @@ def main() -> int:
     ap.add_argument("--json-out", type=Path)
     ap.add_argument("--md-out", type=Path)
     ap.add_argument("--unlimited-root", type=Path)
+    ap.add_argument("--obj-root", type=Path)
     args = ap.parse_args()
 
     rows = []
@@ -174,6 +175,50 @@ def main() -> int:
             else "width-divergence-persists-without-sprite-limits"
         )
 
+    obj_first_pixel = None
+    if args.obj_root:
+        for tag in TAGS:
+            centers = {}
+            frames = {}
+            for margin in (0, 8):
+                d = args.obj_root / f"margin-{margin}"
+                info_path = d / "state" / f"{tag}.info.json"
+                if not info_path.is_file():
+                    centers = {}
+                    break
+                info = json.loads(info_path.read_text())
+                frame = int(info["frame"])
+                fb_path = d / "frames" / f"frame_{frame - 1:06d}.bmp"
+                if not fb_path.is_file():
+                    centers = {}
+                    break
+                fb, width, height = read_bmp32(fb_path)
+                centers[margin] = center_crop(fb, width, height, margin)
+                frames[margin] = frame
+            if len(centers) != 2:
+                continue
+            diff = sum(
+                centers[0][i:i+4] != centers[8][i:i+4]
+                for i in range(0, len(centers[0]), 4)
+            )
+            if diff:
+                obj_first_pixel = {
+                    "tag": tag,
+                    "center_diff_pixels": diff,
+                    "control_frame": frames[0],
+                    "plus8_frame": frames[8],
+                    "guest_frame_delta": frames[8] - frames[0],
+                }
+                break
+
+    obj_discriminator = None
+    if args.obj_root and first_pixel is not None:
+        obj_discriminator = (
+            "divergence-present-in-obj-raster"
+            if obj_first_pixel is not None
+            else "obj-raster-matches-composite-stage-diverges"
+        )
+
     report = {
         "fixture": "tests/input/object-activation-dragster-tail.script",
         "margins": [0, 8],
@@ -182,6 +227,8 @@ def main() -> int:
         "first_oam_divergence": first_oam,
         "unlimited_first_center_divergence": unlimited_first_pixel,
         "sprite_limit_discriminator": sprite_limit_discriminator,
+        "obj_first_center_divergence": obj_first_pixel,
+        "obj_discriminator": obj_discriminator,
         "samples": rows,
     }
 
@@ -214,6 +261,14 @@ def main() -> int:
             f"Sprite-limit discriminator: **{sprite_limit_discriminator}**.",
             "Unlimited first center divergence: "
             + ("none in sampled window" if unlimited_first_pixel is None else unlimited_first_pixel["tag"]),
+        ]
+
+    if obj_discriminator:
+        lines += [
+            "",
+            f"OBJ-only discriminator: **{obj_discriminator}**.",
+            "OBJ-only first center divergence: "
+            + ("none in sampled window" if obj_first_pixel is None else obj_first_pixel["tag"]),
         ]
 
     if args.json_out:

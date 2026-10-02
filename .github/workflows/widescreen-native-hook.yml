@@ -1,0 +1,70 @@
+name: Native +8 Widescreen hook reconnaissance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/widescreen-native-hook.yml"
+      - "tools/inspect_native_widescreen_prep_anchor.py"
+      - "tests/unit/test_inspect_native_widescreen_prep_anchor.py"
+
+concurrency:
+  group: widescreen-native-hook-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Generate native project
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          ROOT="$RUNNER_TEMP/native"
+          mkdir -p "$ROOT"
+          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --no-submodules \
+            --generate \
+            --no-build
+          test -d "$ROOT/UniracersSNESRecomp/src/gen"
+
+      - name: Inspect accepted preparation seam
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p analysis/generated
+          python3 tools/inspect_native_widescreen_prep_anchor.py \
+            "$RUNNER_TEMP/native/UniracersSNESRecomp/src/gen" \
+            --radius 32 \
+            --json-out analysis/generated/widescreen-native-prep-anchor.json \
+            --md-out analysis/generated/widescreen-native-prep-anchor.md
+          cat analysis/generated/widescreen-native-prep-anchor.md
+
+      - name: Upload compact anchor evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: widescreen-native-prep-anchor
+          path: |
+            analysis/generated/widescreen-native-prep-anchor.json
+            analysis/generated/widescreen-native-prep-anchor.md
+          if-no-files-found: warn
+          retention-days: 7

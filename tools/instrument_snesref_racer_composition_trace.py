@@ -11,6 +11,14 @@ MARKER = """			Registers.PCw++;
 SNIPPET = r'''			/* UR-Recomp synchronized racer cache-composition probe. */
 			{
 				uint16 rc_pcw = Registers.PCw;
+				static unsigned rc_discovery = 0;
+				if (rc_discovery < 400 && Memory.RAM[0x0313] &&
+				    rc_pcw >= 0xF000 && rc_pcw <= 0xF500)
+				{
+					fprintf(stderr, "RACERPC frame=%u bank=%02X pc=%04X\n",
+						(unsigned)ICPU.Frame, (unsigned)Registers.PB, (unsigned)rc_pcw);
+					rc_discovery++;
+				}
 				if ((Registers.PB & 0x7F) == 0x03 && (rc_pcw == 0xF129 || rc_pcw == 0xF292))
 				{
 					unsigned f = (unsigned)ICPU.Frame;

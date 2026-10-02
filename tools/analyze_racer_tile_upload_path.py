@@ -346,8 +346,8 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
                         if a["source_bank"] == expected["source_bank"]
                         and a["source_addr"] == expected["source_addr"]
                     ]
-                    exact = bool(matches)
-                    source_exact += int(exact)
+                    source_match = bool(matches)
+                    source_exact += int(source_match)
                     ambiguous_exact += int(len(matches) > 1)
                     comparisons.append({
                         "row": expected["row"],
@@ -357,7 +357,7 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
                         "expected_source": expected["source_snes"],
                         "expected_vram_word": f"0x{dest:04X}",
                         "destination_present": present,
-                        "source_exact": exact,
+                        "source_exact": source_match,
                         "matching_slots": [a["slot"] for a in matches],
                         "actual_candidates": [
                             {
@@ -486,6 +486,20 @@ def main() -> int:
                     f"{replay['destinations_present']}/{replay['occupied_cells']} "
                     "destinations present."
                 )
+                mismatches = [
+                    c for c in replay["comparisons"] if not c["source_exact"]
+                ]
+                for c in mismatches[:12]:
+                    actual = ", ".join(
+                        f"slot{x['slot']}={x['source']}"
+                        for x in c["actual_candidates"]
+                    ) or "missing"
+                    md.append(
+                        f"    mismatch row {c['row']} col {c['column']} "
+                        f"{c['player']} {c['choice']}: expected "
+                        f"{c['expected_source']} at {c['expected_vram_word']}; "
+                        f"actual {actual}"
+                    )
             elif replay:
                 md.append(f"  static composition replay error: {replay.get('error')}")
             md.append(

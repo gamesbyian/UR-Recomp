@@ -223,11 +223,13 @@ jobs:
                       "stored_png_sha256":sha256(stored_png),
                       "display_png":f"{stem}-display.png",
                       "display_png_sha256":sha256(display_png),
-                      "staging_replay_exact_cells":replay.get("exact_cells"),
-                      "staging_replay_total_cells":replay.get("total_cells"),
+                      "staging_replay_mode":replay.get("comparison_mode"),
+                      "staging_replay_source_exact_cells":replay.get("source_exact_cells"),
+                      "staging_replay_occupied_cells":replay.get("occupied_cells"),
+                      "staging_replay_destinations_present":replay.get("destinations_present"),
                       "uncertainty":(
-                          None if replay.get("all_exact") is True
-                          else "snapshot frame IDs/selectors are not exactly synchronized with all retained staging cells"
+                          None if replay.get("all_occupied_sources_exact") is True
+                          else "snapshot frame IDs/selectors are not proven source-exact for every composed occupied staging destination"
                       ),
                   })
 

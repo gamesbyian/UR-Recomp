@@ -210,8 +210,6 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
             ("p1_companion", u16(wram, 0x0D3F)),
             ("p2_companion", u16(wram, 0x0D41)),
         ):
-            if not fid:
-                continue
             try:
                 frame = extract_frame(rom, fid)
             except Exception:

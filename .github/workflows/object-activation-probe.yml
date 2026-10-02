@@ -1,0 +1,134 @@
+name: Dragster object activation probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "tests/input/object-activation-dragster-tail.script"
+      - "tools/analyze_object_activation_probe.py"
+      - ".github/workflows/object-activation-probe.yml"
+
+concurrency:
+  group: object-activation-probe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Stage repository-owned SNESRecomp framework
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
+
+      - name: Build native target
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          ROOT="$RUNNER_TEMP/native"
+          mkdir -p "$ROOT"
+          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --no-submodules \
+            --generate \
+            --no-build
+          PROJ="$ROOT/UniracersSNESRecomp"
+          cmake -S "$PROJ" -B "$PROJ/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF
+          cmake --build "$PROJ/build" -j2
+          test -x "$PROJ/build/UniracersSNESRecomp"
+
+      - name: Run bounded coarse tail probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/object-activation-dragster-tail.script"
+          DUMPS="$RUNNER_TEMP/object-activation-dumps"
+          mkdir -p "$DUMPS" analysis/generated
+
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$RUNNER_TEMP/object-activation.log" 2>&1
+          tail -n 160 "$RUNNER_TEMP/object-activation.log"
+
+          python3 tools/analyze_object_activation_probe.py "$DUMPS" \
+            --json-out analysis/generated/object-activation-coarse-probe.json \
+            --md-out analysis/generated/object-activation-coarse-probe.md
+          test -s analysis/generated/object-activation-coarse-probe.json
+
+      - name: Assert fixture stayed on the known behavior plane
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("analysis/generated/object-activation-coarse-probe.json")
+          d = json.loads(p.read_text())
+          if not d["checkpoint_cells_stable"]:
+              raise SystemExit("Dragster C000[6..14] no longer remain nine 0x14 checkpoint cells")
+          if d["first_progress_change"] is None:
+              raise SystemExit("dense tail probe did not observe checkpoint/finish progression")
+          if d["first_progress_change"]["sample"] != "object-tail-174":
+              raise SystemExit(f"checkpoint/finish behavior boundary moved: {d['first_progress_change']['sample']}")
+          first_edge = d.get("first_finish_edge_visible")
+          if first_edge is None or first_edge["sample"] != "object-tail-060":
+              raise SystemExit(f"finish-stripe visibility boundary moved: {(first_edge or {}).get('sample')}")
+          if first_edge["frame"] >= d["first_progress_change"]["frame"]:
+              raise SystemExit("finish presentation no longer precedes gameplay behavior event")
+          print("first finish-stripe framebuffer ingress:", first_edge["sample"], first_edge["frame"])
+          print("first sampled progression:", d["first_progress_change"]["sample"], d["first_progress_change"]["frame"])
+          print("first sampled direct 2118 write:", (d["first_sample_with_direct_2118_write"] or {}).get("sample"))
+          PY
+
+      - name: Upload bounded evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-object-activation
+          path: |
+            ${{ runner.temp }}/object-activation.log
+            analysis/generated/object-activation-coarse-probe.json
+            analysis/generated/object-activation-coarse-probe.md
+            ${{ runner.temp }}/object-activation-dumps/object-tail-*.info.json
+            ${{ runner.temp }}/object-activation-dumps/object-tail-*.wram.bin
+            ${{ runner.temp }}/object-activation-dumps/object-tail-*.fb.bgrx
+            ${{ runner.temp }}/object-activation-dumps/object-tail-*.fb.bmp
+            ${{ runner.temp }}/object-activation-dumps/object-tail-*.vram.bin
+            ${{ runner.temp }}/object-activation-dumps/object-tail-*.dma.tsv
+            ${{ runner.temp }}/object-activation-dumps/object-tail-*.ppuw.tsv
+          if-no-files-found: warn
+          retention-days: 7

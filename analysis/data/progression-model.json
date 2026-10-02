@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "purpose": "Normalized progression/SRAM model for inference and acceptance testing.",
+  "status": "static model complete; real medal-changing runtime acceptance remains open",
+  "medal_matrix": {
+    "base": "77:069C",
+    "rows": 9,
+    "columns": 16,
+    "row_stride": 16,
+    "row_order": [
+      "Crawler",
+      "Jumper",
+      "Shuffler",
+      "Bounder",
+      "Walker",
+      "Runner",
+      "Hopper",
+      "Sprinter",
+      "Hunter"
+    ],
+    "index_formula": "16 * tour_row + rider_column",
+    "values": {
+      "0": "none",
+      "1": "bronze",
+      "2": "silver",
+      "3": "gold"
+    },
+    "update_rule": "increment by one and saturate at 3"
+  },
+  "derived_tiers": {
+    "prerequisite_rows": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "excludes_row": 8,
+    "thresholds": [
+      {
+        "tier": 1,
+        "condition": "at least 4 nonzero medals among rows 0..7"
+      },
+      {
+        "tier": 2,
+        "condition": "at least 6 medals >= 2 among rows 0..7"
+      },
+      {
+        "tier": 3,
+        "condition": "sum of rows 0..7 medal values = 24 (all eight gold)"
+      }
+    ],
+    "primary_table": "77:10D3..10E2",
+    "mirror_table": "77:10FD..110C"
+  },
+  "checksum": {
+    "protected_region": "77:05E8..073B",
+    "word_count": 170,
+    "stored_at": "77:073C",
+    "medal_matrix_inside_region": true
+  },
+  "runtime_acceptance": {
+    "game_authored_sram_mutation": true,
+    "checksum_valid_after_write": true,
+    "reload_preserves_full_sram": true,
+    "medal_change_observed": false,
+    "tier_change_observed": false,
+    "stock_select_x_r_shortcut_static_path": true,
+    "stock_select_x_r_shortcut_runtime_trigger": false
+  },
+  "sources": [
+    "analysis/generated/sram-medal-progression-static-model-2026-10-01.md",
+    "analysis/generated/progression-sram-acceptance.json",
+    "analysis/generated/medal-progression-chord-static-2026-10-02.md"
+  ]
+}

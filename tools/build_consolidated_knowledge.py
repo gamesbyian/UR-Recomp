@@ -42,7 +42,7 @@ def courses():
     out=[]
     for c in rows:
         i=c["index"];s=sb[i];w,h=c["layout_dims"]
-        r={"id":f"course:{i:02d}","stream_index":i,"name":NAMES[i-1],"name_status":"historical_independent","tour":TOURS[c["tour_index"]-1],"tour_index":c["tour_index"],"tour_slot":c["tour_slot"],"track_kind":c["track_kind"],
+        r={"id":f"course:{i:02d}","stream_index":i,"name":NAMES[i-1],"name_status":"cross_source_reconciled","tour":TOURS[c["tour_index"]-1],"tour_index":c["tour_index"],"tour_slot":c["tour_slot"],"track_kind":c["track_kind"],
         "rom":{"offset":s["offset"],"packed_size":s["packed_size"],"decoded_size":s["unpacked_size"],"packed_sha256":s["packed_sha256"],"decoded_sha256":s["unpacked_sha256"],"compression_ratio":round(s["packed_size"]/s["unpacked_size"],8)},
         "header":{"layout_dims":[w,h],"dimension_product":c["layout_dim_product"],"stunt_time_or_mode":c["stunt_time_or_mode"],"spawn_or_landmark_a":c["spawn_or_landmark_a"],"spawn_or_landmark_b":c["spawn_or_landmark_b"],"resource_cursor_initial":c["resource_cursor_initial"]},
         "derived_presentation_geometry":{"basis":"promoted course-family presentation contract","status":"derived_from_promoted","coarse_sector_world_units":64,"fine_cell_world_units":16,"coarse_grid":[w*4,h*4],"coarse_entry_count":w*h*16,"world_extent":[w*256,h*256],"aspect_ratio":round(w/h,8)},
@@ -50,7 +50,7 @@ def courses():
         "sources":["analysis/generated/rnc-stream-manifest.json","analysis/generated/course-resource-list-manifest.json","reference/notes/course-order-and-stunt-timer.md"]}
         landmark=landmarks[re.sub(r"[^a-z0-9]","",r["name"].lower())]
         r["historical_landmarks"]={"status":"historical_independent","track_id":landmark["track_id"],"start_x":landmark["start_x"],"finish_x":landmark["finish_x"],"start_matches_header_a_x16":landmark["start_x"]==c["spawn_or_landmark_a"][0]*16,"source":"analysis/generated/dessyreqt-course-landmarks.json"}
-                if i in sample:
+        if i in sample:
             q=sample[i];r["presentation_contract_sample"]={"status":"static_proven","fine_record_count":q["fine_record_count"],"resource_count":q["resource_count"],"c000_total":q["c000_total"],"a000_total":q["a000_total"],"normal_surface_word_count":q["normal_surface_word_count"],"checks":q["checks"],"source":"analysis/generated/course-presentation-contract-sample.json"}
         if i==1:r["runtime_landmarks"]={"spawn_world":[1088,800],"historical_finish_x_probe":25278,"source":"analysis/generated/dragster-presentation-spatial-contract.json"}
         out.append(r)

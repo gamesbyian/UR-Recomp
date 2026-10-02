@@ -102,7 +102,11 @@ That path includes the machine/save-state domains already owned by the runtime i
 
 For Uniracers, the current candidate lifecycle edge is the already established transition into active gameplay, `7E:0313 = 0 -> 1`, observed at a completed host frame through the title-specific `after_run_frame` hook. The exact capture frame still requires a native acceptance fixture before this becomes the shipping restart boundary. The anchor itself does not hard-code `$0313`, because state detection belongs to the title adapter rather than the storage primitive.
 
-A restart anchor is immutable for one attempt. Repeated capture requests do not silently move the restart point. Leaving/replacing the race must explicitly clear the anchor before the next race may capture one.
+A restart anchor is immutable for one attempt. Repeated capture requests do not silently move the restart point.
+
+`RaceRestartLifecycle` owns the attempt-to-attempt policy above that storage primitive. A false→true active-race edge clears any previous anchor and captures the newly initialized race. A true→false edge does **not** clear the anchor: the just-finished attempt remains restartable through results or other post-race host UI. The next actual race entry supersedes it. If that new capture fails, the previous race is not retained as a misleading fallback.
+
+The lifecycle receives only an `active` boolean; it does not know the Uniracers WRAM address that supplies it. That title-specific binding remains outside the reusable product layer.
 
 `SessionRuntimeHooks::restart_race` is now optional. If no proven restart implementation is attached, the dispatcher returns `MissingHook`; if the runtime refuses a restore, it returns `RejectedByRuntime`. This keeps a UI button from becoming evidence that restart semantics are actually available.
 

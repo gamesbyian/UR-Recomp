@@ -35,6 +35,20 @@ The TCRF article provides concrete, falsifiable leads:
 - banned-name behavior and unused names/content;
 - unused music PAR patches selecting records `$3B` and `$3D`.
 
+## Canonical-ROM reconciliation
+
+The first fixed-offset pass is now mechanically reproduced by `tools/analyze_tcrf_unused_content.py`, with durable evidence in `analysis/generated/tcrf-unused-content-rom-reconciliation.json`.
+
+Confirmed against the canonical 2 MiB USA ROM:
+
+- file offset `0x18000` contains the unique literal `ASJIver3.30`; LoROM CPU address `83:8000` maps exactly to that file offset. This mechanically links TCRF's version-string location to the ROM address named by the reported SRAM anti-piracy comparison, while leaving the runtime comparison itself to separate tracing;
+- file offset `0x541` begins the exact 60-byte printable string `Uniracer Shell, assembled 10:50am on Tuesday the 11/10/1994 `;
+- file offset `0x0BD679` maps to CPU address `97:D679` and begins a 256-byte printable message block containing `yes!`, `cool!`, `funky!`, `check that out`, `fight on!`, `ride on!`, `nailed it!`, `bingo!`, `banzai!` and related lines;
+- the 0x800 bytes immediately preceding that block plus the block itself form one continuous 0x900-byte printable message region. That is structurally compatible with nine 0x100-byte groups, but table cardinality and runtime selection are intentionally not promoted until pointer/control-flow evidence establishes them;
+- literal ASCII searches find no `Error Tour`, `Unavailable`, or `used by decomp` strings in the ROM. Their absence does not contradict the external claims: frontend text may use game-specific encoding, and the boot graphic is graphical data rather than expected literal ASCII.
+
+The reported combo-block address has several 16-bit pointer-value lookalikes elsewhere in ROM but no direct 24-bit `97:D679` pointer. Those matches remain context leads, not reachability proof.
+
 ## Audio convergence
 
 The external music selectors are particularly valuable because they independently converge with the project's ROM-derived audio archaeology.

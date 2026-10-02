@@ -135,6 +135,20 @@ while true do
             ))
             next_status = next_status + STATUS_INTERVAL
         end
+        if current.frame >= 10000 and race_entries > 0 and race_results_entries == 0 then
+            local f = assert(io.open(meta, "w"))
+            f:write(string.format(
+                "status=replay-desync-no-first-results\nbaseline_frame=%d\nframe=%d\n" ..
+                "menu=%d\ntrack=%d\nin_race=%d\nrider=%d\ntour=%d\n" ..
+                "race_entries=%d\nrace_results_entries=%d\ntrack_changes=%d\n",
+                baseline.frame, current.frame, current.menu, current.track,
+                current.in_race, current.rider, current.tour,
+                race_entries, race_results_entries, track_changes
+            ))
+            f:close()
+            os.exit(3)
+        end
+
         if current.frame >= MAX_FRAME then
             local f = assert(io.open(meta, "w"))
             f:write(string.format(

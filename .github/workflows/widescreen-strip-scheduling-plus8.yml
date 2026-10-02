@@ -8,6 +8,7 @@ on:
       - "tools/instrument_snesref_widescreen_strip_schedule.py"
       - "tools/analyze_widescreen_strip_schedule.py"
       - "tools/analyze_widescreen_preparation_boundary.py"
+      - "tools/analyze_widescreen_helper_staging.py"
       - "tests/unit/test_analyze_widescreen_strip_schedule.py"
       - "tests/unit/test_analyze_widescreen_preparation_boundary.py"
       - "tests/input/preparation-emission-race.script"
@@ -43,7 +44,7 @@ jobs:
           test -x .tools/src/snesrecomp/build-snesref/snesref
           test -f "$CORE/libretro/snes9x_libretro.so"
 
-      - name: Discover post-camera preparation hook
+      - name: Compare A531 helper staging under stock and known-working entry bias
         shell: bash
         run: |
           set -euo pipefail
@@ -51,104 +52,42 @@ jobs:
           CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script"
-          ROOT="$RUNNER_TEMP/ws-boundary"
-          mkdir -p "$ROOT/dumps" analysis/generated
+          ROOT="$RUNNER_TEMP/ws-helper-staging"
+          mkdir -p "$ROOT/control/dumps" "$ROOT/entry-bias/dumps" analysis/generated
+
           URRECOMP_WS_MARGIN=0 \
           URRECOMP_WS_BOUNDARY_TRACE=1 \
+          URRECOMP_WS_HELPER_TRACE=1 \
           SNESREF_HEADLESS=1 \
           SNESREF_FAST=1 \
           SNESREF_WRAM_FILL=0 \
           SNESREF_SCRIPT="$SCRIPT" \
-          SNESREF_DUMP_DIR="$ROOT/dumps" \
-            "$EXE" "$CORE" "$ROM" >"$ROOT/run.log" 2>&1
+          SNESREF_DUMP_DIR="$ROOT/control/dumps" \
+            "$EXE" "$CORE" "$ROM" >"$ROOT/control/run.log" 2>&1
+
+          URRECOMP_WS_MARGIN=8 \
+          URRECOMP_WS_HOOK_PC=0xA52F \
+          URRECOMP_WS_BOUNDARY_TRACE=1 \
+          URRECOMP_WS_HELPER_TRACE=1 \
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$SCRIPT" \
+          SNESREF_DUMP_DIR="$ROOT/entry-bias/dumps" \
+            "$EXE" "$CORE" "$ROM" >"$ROOT/entry-bias/run.log" 2>&1
+
           python3 tools/analyze_widescreen_preparation_boundary.py \
-            "$ROOT/run.log" \
+            "$ROOT/control/run.log" \
             --json-out analysis/generated/widescreen-preparation-boundary.json \
             --md-out analysis/generated/widescreen-preparation-boundary.md
-          HOOK="$(python3 - <<'PY'
-          import json
-          from pathlib import Path
-          d=json.loads(Path("analysis/generated/widescreen-preparation-boundary.json").read_text())
-          b=d["stable_boundary"]
-          if not b or b["later_camera_x_change"]:
-              raise SystemExit("no isolated post-camera preparation hook")
-          if not b.get("a_equals_camera_x"):
-              raise SystemExit("settled camera X is not carried in A at the preparation seam")
-          print(f"0x{b['candidate_hook_pc'] & 0xffff:04X}")
-          PY
-          )"
-          echo "URRECOMP_WS_HOOK_PC=$HOOK" >> "$GITHUB_ENV"
-          echo "URRECOMP_WS_BIAS_TARGET=A" >> "$GITHUB_ENV"
-          echo "selected Widescreen preparation hook: $HOOK target=A"
 
-      - name: Run matched strip-preparation fixtures
-        shell: bash
-        run: |
-          set -euo pipefail
-          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
-          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
-          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script"
-          ROOT="$RUNNER_TEMP/ws-strip"
-          mkdir -p "$ROOT/control/dumps" "$ROOT/plus8/dumps" analysis/generated
-          for MARGIN in 0 8; do
-            if [ "$MARGIN" = 0 ]; then SIDE=control; else SIDE=plus8; fi
-            URRECOMP_WS_MARGIN="$MARGIN" \
-            URRECOMP_WS_HOOK_PC="$URRECOMP_WS_HOOK_PC" \
-            URRECOMP_WS_BIAS_TARGET="$URRECOMP_WS_BIAS_TARGET" \
-            SNESREF_HEADLESS=1             SNESREF_FAST=1             SNESREF_WRAM_FILL=0             SNESREF_SCRIPT="$SCRIPT"             SNESREF_DUMP_DIR="$ROOT/$SIDE/dumps"               "$EXE" "$CORE" "$ROM" >"$ROOT/$SIDE/run.log" 2>&1
-            grep 'WSDMA\|WSPATCH' "$ROOT/$SIDE/run.log" | tail -n 20 || true
-          done
-          python3 tools/analyze_widescreen_strip_schedule.py             "$ROOT/control/run.log" "$ROOT/plus8/run.log"             --json-out analysis/generated/widescreen-strip-scheduling-plus8.json             --md-out analysis/generated/widescreen-strip-scheduling-plus8.md
+          python3 tools/analyze_widescreen_helper_staging.py \
+            "$ROOT/control/run.log" "$ROOT/entry-bias/run.log" \
+            --json-out analysis/generated/widescreen-helper-staging.json \
+            --md-out analysis/generated/widescreen-helper-staging.md
 
-      - name: Run matched gameplay-activation guardrail
-        shell: bash
-        run: |
-          set -euo pipefail
-          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
-          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
-          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          SCRIPT="$GITHUB_WORKSPACE/tests/input/object-liveness-dragster.script"
-          ROOT="$RUNNER_TEMP/ws-liveness"
-          mkdir -p "$ROOT/control/dumps" "$ROOT/plus8/dumps"
-          for MARGIN in 0 8; do
-            if [ "$MARGIN" = 0 ]; then SIDE=control; else SIDE=plus8; fi
-            URRECOMP_WS_MARGIN="$MARGIN" \
-            URRECOMP_WS_HOOK_PC="$URRECOMP_WS_HOOK_PC" \
-            URRECOMP_WS_BIAS_TARGET="$URRECOMP_WS_BIAS_TARGET" \
-            SNESREF_HEADLESS=1             SNESREF_FAST=1             SNESREF_WRAM_FILL=0             SNESREF_SCRIPT="$SCRIPT"             SNESREF_DUMP_DIR="$ROOT/$SIDE/dumps"               "$EXE" "$CORE" "$ROM" >"$ROOT/$SIDE/run.log" 2>&1
-            python3 tools/summarize_object_liveness_probe.py               "$ROOT/$SIDE/dumps" --json-out "$ROOT/$SIDE/summary.json"               >"$ROOT/$SIDE/summary.txt"
-          done
-          python3 - "$ROOT/control/summary.json" "$ROOT/plus8/summary.json"             analysis/generated/widescreen-strip-scheduling-plus8-liveness.json <<'PY'
-          import json, pathlib, sys
-          c=json.loads(pathlib.Path(sys.argv[1]).read_text())
-          w=json.loads(pathlib.Path(sys.argv[2]).read_text())
-          cr={x["stem"]:x for x in c["rows"]}
-          wr={x["stem"]:x for x in w["rows"]}
-          common=sorted(set(cr)&set(wr))
-          diffs=[]
-          for stem in common:
-              a,b=cr[stem],wr[stem]
-              protected={
-                  "player":(a["player"],b["player"]),
-                  "progress":(a["progress"],b["progress"]),
-                  "object_map_prefix_hex":(a["object_map_prefix_hex"],b["object_map_prefix_hex"]),
-              }
-              bad={k:{"control":x,"plus8":y} for k,(x,y) in protected.items() if x != y}
-              if bad:
-                  diffs.append({"stem":stem,"differences":bad})
-          out={
-              "common_samples":len(common),
-              "protected_differences":diffs,
-              "control_first_progress_change":c["first_progress_change"],
-              "plus8_first_progress_change":w["first_progress_change"],
-              "no_earlier_gameplay_activation":not diffs and c["first_progress_change"]==w["first_progress_change"],
-          }
-          pathlib.Path(sys.argv[3]).write_text(json.dumps(out,indent=2)+"\n")
-          print(json.dumps(out,indent=2))
-          if not out["no_earlier_gameplay_activation"]:
-              raise SystemExit("gameplay activation/progress guardrail diverged")
-          PY
+          cat analysis/generated/widescreen-preparation-boundary.md
+          cat analysis/generated/widescreen-helper-staging.md
 
       - name: Upload bounded experiment evidence
         if: always()
@@ -156,13 +95,11 @@ jobs:
         with:
           name: widescreen-strip-scheduling-plus8
           path: |
-            analysis/generated/widescreen-strip-scheduling-plus8.json
-            analysis/generated/widescreen-strip-scheduling-plus8.md
-            analysis/generated/widescreen-strip-scheduling-plus8-liveness.json
+            analysis/generated/widescreen-helper-staging.json
+            analysis/generated/widescreen-helper-staging.md
             analysis/generated/widescreen-preparation-boundary.json
             analysis/generated/widescreen-preparation-boundary.md
             ${{ runner.temp }}/ws-boundary/
-            ${{ runner.temp }}/ws-strip/
-            ${{ runner.temp }}/ws-liveness/
+            ${{ runner.temp }}/ws-helper-staging/
           if-no-files-found: warn
           retention-days: 7

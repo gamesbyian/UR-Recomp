@@ -29,7 +29,14 @@ class NativeWidescreenHookTests(unittest.TestCase):
             "RecompReturn proto(CpuState *cpu);\n"
             "RecompReturn WidescreenPrepareWrapper_M0X0(CpuState *cpu) {\n"
             + block("01A59A")
-            + "      RecompReturn _r = bank_01_A59E_M0X0(cpu);\n"
+            + "    switch (((cpu->m_flag & 1) << 1) | (cpu->x_flag & 1)) {\n"
+            + "      case 0: { RecompReturn _r = bank_01_A59E_M0X0(cpu); break; }\n"
+            + "      default: break;\n"
+            + "    }\n"
+            + "    switch (((cpu->m_flag & 1) << 1) | (cpu->x_flag & 1)) {\n"
+            + "      case 0: goto L_01A59D;\n"
+            + "      default: goto L_01A59D;\n"
+            + "    }\n"
             + block("01A59D")
             + "    uint16 _v7 = 0x433;\n"
             + "    cpu_write_y_x(cpu, (uint16)(_v7));\n"

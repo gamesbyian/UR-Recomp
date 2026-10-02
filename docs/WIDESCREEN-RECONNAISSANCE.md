@@ -277,3 +277,40 @@ simulation or finish preparation. This closes the +8 simulation-divergence block
 classify the first **presentation** failure or success boundary. Do not widen
 beyond the already-captured tiny-margin experiment merely because the harness
 gate is repaired, and do not widen gameplay activation bounds.
+
+
+## +8 first presentation boundary
+
+Follow-up run `36964990868` closes the first true +8 presentation-failure
+ownership question without changing guest code or promoting a shipping
+Widescreen hook.
+
+Event-relative 0/+8 comparison gives the following boundary:
+
+- the authentic center 256 is pixel-identical through `object-tail-167`;
+- `object-tail-168` is the first center regression, only **2 pixels**, both at
+  classic x=255;
+- guest OAM is byte-identical at that onset and remains identical through
+  `object-tail-171`;
+- background-only rendering remains matched throughout the sampled window;
+- OBJ-only rendering is still matched at `object-tail-168` and first diverges
+  at `object-tail-169`;
+- the first OAM difference does not appear until `object-tail-172`, where one
+  slot differs by one Y pixel, so it cannot cause the earlier failure;
+- disabling the SNES 34-sliver sprite limit does not move the first center
+  divergence;
+- suppressing the host policy that expands 0/255-pinned hardware windows into
+  the widened margins also does not move the first center divergence.
+
+Therefore the first +8 failure belongs to the **host renderer**, not simulation,
+object activation, course preparation, or the compact preparation/emission
+lists. At `object-tail-168`, individually matching BG and OBJ surfaces compose
+differently at the classic right edge. One event later, widened OBJ rasterization
+also diverges despite still-identical guest OAM.
+
+The product invariant is now sharper: widening may reveal additional pixels
+outside the classic viewport, but it must not change the authentic 256-column
+center when supplied the same event-relative guest presentation state. Future
+renderer work should preserve that center before expanding margins. This result
+does not require or justify widening gameplay activation or reopening course
+format archaeology.

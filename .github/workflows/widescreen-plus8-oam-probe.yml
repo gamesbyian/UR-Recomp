@@ -1,0 +1,221 @@
+name: +8 Widescreen OAM boundary probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "tools/analyze_widescreen_plus8_oam.py"
+      - "tests/unit/test_analyze_widescreen_plus8_oam.py"
+      - "tools/patch_widescreen_probe_window_policy.py"
+      - "tests/unit/test_widescreen_probe_window_policy.py"
+      - ".github/workflows/widescreen-plus8-oam-probe.yml"
+
+concurrency:
+  group: widescreen-plus8-oam-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Stage and build diagnostic target
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          ROOT="$RUNNER_TEMP/native"
+          mkdir -p "$ROOT"
+          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" --name "Uniracers" --players 2 --yes --no-ci \
+            --no-fetch-boxart --no-recomp-ui --no-netplay --no-github \
+            --no-submodules --generate --no-build
+          PROJ="$ROOT/UniracersSNESRecomp"
+          python3 tools/patch_widescreen_probe_host.py "$PROJ/src/main.c"
+          python3 tools/patch_widescreen_probe_window_policy.py "$FRAMEWORK/runner/src/snes/ppu.c"
+          cmake -S "$PROJ" -B "$PROJ/build" -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF
+          cmake --build "$PROJ/build" -j2
+
+      - name: Capture matched 0 and +8 event-relative OAM
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/object-activation-dragster-tail.script"
+          ROOT="$RUNNER_TEMP/widescreen-plus8-oam"
+          CONFIG="$RUNNER_TEMP/widescreen-plus8.ini"
+          mkdir -p "$ROOT"
+          cat >"$CONFIG" <<'EOF'
+          [Graphics]
+          NewRenderer = 1
+          NoSpriteLimits = 0
+          [General]
+          DisableFrameDelay = 1
+          Autosave = 0
+          SkipLauncher = 1
+          [Sound]
+          EnableAudio = 0
+          EOF
+          for margin in 0 8; do
+            CASE="$ROOT/margin-$margin"
+            mkdir -p "$CASE/state" "$CASE/frames"
+            SNESRECOMP_WS_EXTRA="$margin" \
+            SNESRECOMP_DUMP_DIR="$CASE/state" \
+            SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+            SNESRECOMP_FRAMEDUMP_START=2888 \
+            SNESRECOMP_FRAMEDUMP_END=2910 \
+            SDL_AUDIODRIVER=dummy \
+              timeout 210s xvfb-run -a "$EXE" "$ROM" --config "$CONFIG" \
+              --no-launcher --script "$SCRIPT" --framedump "$CASE/frames" \
+              >"$CASE/run.log" 2>&1
+          done
+
+          CONFIG_UNLIMITED="$RUNNER_TEMP/widescreen-plus8-unlimited.ini"
+          sed 's/NoSpriteLimits = 0/NoSpriteLimits = 1/' "$CONFIG" >"$CONFIG_UNLIMITED"
+          UNLIMITED="$RUNNER_TEMP/widescreen-plus8-oam-unlimited"
+          mkdir -p "$UNLIMITED"
+          for margin in 0 8; do
+            CASE="$UNLIMITED/margin-$margin"
+            mkdir -p "$CASE/state" "$CASE/frames"
+            SNESRECOMP_WS_EXTRA="$margin" \
+            SNESRECOMP_DUMP_DIR="$CASE/state" \
+            SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+            SNESRECOMP_FRAMEDUMP_START=2888 \
+            SNESRECOMP_FRAMEDUMP_END=2910 \
+            SDL_AUDIODRIVER=dummy \
+              timeout 210s xvfb-run -a "$EXE" "$ROM" --config "$CONFIG_UNLIMITED" \
+              --no-launcher --script "$SCRIPT" --framedump "$CASE/frames" \
+              >"$CASE/run.log" 2>&1
+          done
+
+
+          OBJ="$RUNNER_TEMP/widescreen-plus8-oam-obj"
+          mkdir -p "$OBJ"
+          for margin in 0 8; do
+            CASE="$OBJ/margin-$margin"
+            mkdir -p "$CASE/state" "$CASE/frames"
+            SNESRECOMP_WS_EXTRA="$margin" \
+            SNESRECOMP_LAYER_MASK=16 \
+            SNESRECOMP_DUMP_DIR="$CASE/state" \
+            SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+            SNESRECOMP_FRAMEDUMP_START=2888 \
+            SNESRECOMP_FRAMEDUMP_END=2910 \
+            SDL_AUDIODRIVER=dummy \
+              timeout 210s xvfb-run -a "$EXE" "$ROM" --config "$CONFIG" \
+              --no-launcher --script "$SCRIPT" --framedump "$CASE/frames" \
+              >"$CASE/run.log" 2>&1
+          done
+
+          WINDOW="$RUNNER_TEMP/widescreen-plus8-oam-window"
+          mkdir -p "$WINDOW"
+          for margin in 0 8; do
+            CASE="$WINDOW/margin-$margin"
+            mkdir -p "$CASE/state" "$CASE/frames"
+            SNESRECOMP_WS_EXTRA="$margin" \
+            SNESRECOMP_WS_KEEP_PINNED_WINDOWS=1 \
+            SNESRECOMP_DUMP_DIR="$CASE/state" \
+            SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+            SNESRECOMP_FRAMEDUMP_START=2888 \
+            SNESRECOMP_FRAMEDUMP_END=2910 \
+            SDL_AUDIODRIVER=dummy \
+              timeout 210s xvfb-run -a "$EXE" "$ROM" --config "$CONFIG" \
+              --no-launcher --script "$SCRIPT" --framedump "$CASE/frames" \
+              >"$CASE/run.log" 2>&1
+          done
+
+          BG="$RUNNER_TEMP/widescreen-plus8-oam-bg"
+          mkdir -p "$BG"
+          for margin in 0 8; do
+            CASE="$BG/margin-$margin"
+            mkdir -p "$CASE/state" "$CASE/frames"
+            SNESRECOMP_WS_EXTRA="$margin" \
+            SNESRECOMP_LAYER_MASK=15 \
+            SNESRECOMP_DUMP_DIR="$CASE/state" \
+            SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+            SNESRECOMP_FRAMEDUMP_START=2888 \
+            SNESRECOMP_FRAMEDUMP_END=2910 \
+            SDL_AUDIODRIVER=dummy \
+              timeout 210s xvfb-run -a "$EXE" "$ROM" --config "$CONFIG" \
+              --no-launcher --script "$SCRIPT" --framedump "$CASE/frames" \
+              >"$CASE/run.log" 2>&1
+          done
+
+      - name: Analyze first sprite/OAM divergence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p analysis/generated
+          python3 tools/analyze_widescreen_plus8_oam.py \
+            "$RUNNER_TEMP/widescreen-plus8-oam" \
+            --json-out analysis/generated/widescreen-plus8-oam-boundary.json \
+            --md-out analysis/generated/widescreen-plus8-oam-boundary.md \
+            --unlimited-root "$RUNNER_TEMP/widescreen-plus8-oam-unlimited" \
+            --obj-root "$RUNNER_TEMP/widescreen-plus8-oam-obj" \
+            --window-root "$RUNNER_TEMP/widescreen-plus8-oam-window" \
+            --bg-root "$RUNNER_TEMP/widescreen-plus8-oam-bg"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path("analysis/generated/widescreen-plus8-oam-boundary.json").read_text())
+          first = d["first_center_divergence"]
+          if first is None or first["tag"] != "object-tail-168":
+              raise SystemExit(f"unexpected first +8 center divergence: {None if first is None else first['tag']}")
+          if set(r["guest_frame_delta"] for r in d["samples"]) != {-3}:
+              raise SystemExit("event-relative cadence alignment changed")
+          print("classification:", d["classification"])
+          print("first OAM divergence:", None if d["first_oam_divergence"] is None else d["first_oam_divergence"]["tag"])
+          print("sprite-limit discriminator:", d["sprite_limit_discriminator"])
+          print("OBJ discriminator:", d["obj_discriminator"])
+          print("pinned-window discriminator:", d["window_discriminator"])
+          print("BG discriminator:", d["bg_discriminator"])
+          PY
+
+      - name: Upload bounded evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-widescreen-plus8-oam
+          path: |
+            ${{ runner.temp }}/widescreen-plus8-oam/margin-*/run.log
+            ${{ runner.temp }}/widescreen-plus8-oam/margin-*/state/object-tail-16*.info.json
+            ${{ runner.temp }}/widescreen-plus8-oam/margin-*/state/object-tail-17*.info.json
+            ${{ runner.temp }}/widescreen-plus8-oam/margin-*/state/object-tail-180.info.json
+            ${{ runner.temp }}/widescreen-plus8-oam/margin-*/state/object-tail-16*.oam.bin
+            ${{ runner.temp }}/widescreen-plus8-oam/margin-*/state/object-tail-17*.oam.bin
+            ${{ runner.temp }}/widescreen-plus8-oam/margin-*/state/object-tail-180.oam.bin
+            ${{ runner.temp }}/widescreen-plus8-oam/margin-*/frames/frame_*.bmp
+            ${{ runner.temp }}/widescreen-plus8-oam-unlimited/margin-*/run.log
+            ${{ runner.temp }}/widescreen-plus8-oam-unlimited/margin-*/state/object-tail-16*.info.json
+            ${{ runner.temp }}/widescreen-plus8-oam-unlimited/margin-*/state/object-tail-17*.info.json
+            ${{ runner.temp }}/widescreen-plus8-oam-unlimited/margin-*/state/object-tail-180.info.json
+            ${{ runner.temp }}/widescreen-plus8-oam-unlimited/margin-*/frames/frame_*.bmp
+            ${{ runner.temp }}/widescreen-plus8-oam-obj/margin-*/run.log
+            ${{ runner.temp }}/widescreen-plus8-oam-obj/margin-*/state/object-tail-16*.info.json
+            ${{ runner.temp }}/widescreen-plus8-oam-obj/margin-*/state/object-tail-17*.info.json
+            ${{ runner.temp }}/widescreen-plus8-oam-obj/margin-*/state/object-tail-180.info.json
+            ${{ runner.temp }}/widescreen-plus8-oam-obj/margin-*/frames/frame_*.bmp
+            ${{ runner.temp }}/widescreen-plus8-oam-bg/margin-*/run.log
+            ${{ runner.temp }}/widescreen-plus8-oam-bg/margin-*/state/object-tail-16*.info.json
+            ${{ runner.temp }}/widescreen-plus8-oam-bg/margin-*/state/object-tail-17*.info.json
+            ${{ runner.temp }}/widescreen-plus8-oam-bg/margin-*/state/object-tail-180.info.json
+            ${{ runner.temp }}/widescreen-plus8-oam-bg/margin-*/frames/frame_*.bmp
+            analysis/generated/widescreen-plus8-oam-boundary.*
+          if-no-files-found: warn
+          retention-days: 5

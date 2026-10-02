@@ -27,6 +27,11 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 					const char *s = getenv("URRECOMP_WS_HOOK_PC");
 					return s ? (int)strtol(s, nullptr, 0) : 0xA52F;
 				}();
+				static bool ur_ws_bias_a = []() -> bool {
+					const char *t = getenv("URRECOMP_WS_BIAS_TARGET");
+					return t && (t[0] == 'A' || t[0] == 'a');
+				}();
+				static uint16 ur_ws_saved_a = 0;
 				static bool ur_ws_camera_shifted = false;
 				auto ur_ws_w16 = [](uint16 a) -> uint16 {
 					return (uint16)(Memory.RAM[a] | (Memory.RAM[a + 1] << 8));
@@ -67,21 +72,34 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 				/* Defensive recovery: never carry a temporary bias across entries. */
 				if (Registers.PB == 0x81 && ur_ws_pcw == 0xA52F && ur_ws_camera_shifted)
 				{
-					ur_ws_set16(0x0419, (uint16)(ur_ws_w16(0x0419) - 8));
+					if (ur_ws_bias_a)
+						Registers.A.W = ur_ws_saved_a;
+					else
+						ur_ws_set16(0x0419, (uint16)(ur_ws_w16(0x0419) - 8));
 					ur_ws_camera_shifted = false;
-					fprintf(stderr, "WSPATCH stale-bias-recovered frame=%u\n", (unsigned)ICPU.Frame);
+					fprintf(stderr, "WSPATCH stale-bias-recovered frame=%u target=%c\n",
+						(unsigned)ICPU.Frame, ur_ws_bias_a ? 'A' : 'W');
 				}
 
 				if (ur_ws_margin == 8 && Registers.PB == 0x81 && ur_ws_pcw == ur_ws_hook_pc)
 				{
-					ur_ws_set16(0x0419, (uint16)(ur_ws_w16(0x0419) + 8));
+					if (ur_ws_bias_a)
+					{
+						ur_ws_saved_a = Registers.A.W;
+						Registers.A.W = (uint16)(Registers.A.W + 8);
+					}
+					else
+						ur_ws_set16(0x0419, (uint16)(ur_ws_w16(0x0419) + 8));
 					ur_ws_camera_shifted = true;
 				}
 
 				/* A59D is reached after the A59A JSR to the proven strip builder. */
 				if (Registers.PB == 0x81 && ur_ws_pcw == 0xA59D && ur_ws_camera_shifted)
 				{
-					ur_ws_set16(0x0419, (uint16)(ur_ws_w16(0x0419) - 8));
+					if (ur_ws_bias_a)
+						Registers.A.W = ur_ws_saved_a;
+					else
+						ur_ws_set16(0x0419, (uint16)(ur_ws_w16(0x0419) - 8));
 					ur_ws_camera_shifted = false;
 				}
 

@@ -373,6 +373,30 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 						(uint16)(ur_ws_doublepass_snapshot[0x052F] |
 						(ur_ws_doublepass_snapshot[0x0530] << 8)));
 				}
+				if (Registers.PB == 0x82 && ur_ws_pcw == 0xD2D1)
+				{
+					fprintf(stderr, "WSVRAM frame=%u cols=",
+						(unsigned)ICPU.Frame);
+					bool first_col = true;
+					for (unsigned i = 0; i < 8; i++)
+					{
+						uint16 o = (uint16)(i * 2);
+						uint16 dest = ur_ws_w16((uint16)(0x03C9 + o));
+						uint16 size = ur_ws_w16((uint16)(0x03A9 + o));
+						uint16 vmain = ur_ws_w16((uint16)(0x03D9 + o));
+						if (size != 0x20 || vmain != 0x81 || dest == 0)
+							continue;
+						fprintf(stderr, "%s%u:%04X:",
+							first_col ? "" : ",", i, (unsigned)dest);
+						first_col = false;
+						uint32 base = ((uint32)dest << 1) & 0xffff;
+						for (unsigned j = 0; j < 32; j++)
+							fprintf(stderr, "%02X",
+								(unsigned)Memory.VRAM[(base + j) & 0xffff]);
+					}
+					fprintf(stderr, "\n");
+				}
+
 				if (ur_ws_margin == 8 && ur_ws_doublepass &&
 				    Registers.PB == 0x82 && ur_ws_pcw == 0xD2D1 &&
 				    ur_ws_doublepass_buffer_live)

@@ -12,6 +12,10 @@ on:
       - "analysis/data/progression-model.json"
       - "tools/analyze_progression_sram_acceptance.py"
 
+concurrency:
+  group: historical-snes9x-medal-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 

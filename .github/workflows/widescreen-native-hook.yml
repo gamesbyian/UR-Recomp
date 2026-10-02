@@ -1,12 +1,16 @@
-name: Native +8 Widescreen hook reconnaissance
+name: Native Widescreen runtime hook
 
 on:
   workflow_dispatch:
   pull_request:
     paths:
       - ".github/workflows/widescreen-native-hook.yml"
+      - "tools/seed_native_widescreen_aot.py"
       - "tools/inspect_native_widescreen_prep_anchor.py"
+      - "tools/apply_native_widescreen_hook.py"
+      - "tests/unit/test_seed_native_widescreen_aot.py"
       - "tests/unit/test_inspect_native_widescreen_prep_anchor.py"
+      - "tests/unit/test_apply_native_widescreen_hook.py"
 
 concurrency:
   group: widescreen-native-hook-${{ github.ref }}
@@ -22,51 +26,36 @@ jobs:
       - name: Install generation dependencies
         run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
 
+      - name: Run focused unit coverage
+        run: |
+          python3 -m unittest             tests.unit.test_seed_native_widescreen_aot             tests.unit.test_inspect_native_widescreen_prep_anchor
+
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
-      - name: Generate native project
+      - name: Generate native project and seed preparation wrapper
         shell: bash
         run: |
           set -euo pipefail
           python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
           FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
           ROOT="$RUNNER_TEMP/native"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           mkdir -p "$ROOT"
-          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
-            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            --dir "$ROOT" \
-            --name "Uniracers" \
-            --players 2 \
-            --yes \
-            --no-ci \
-            --no-fetch-boxart \
-            --no-recomp-ui \
-            --no-netplay \
-            --no-github \
-            --no-submodules \
-            --generate \
-            --no-build
-          test -d "$ROOT/UniracersSNESRecomp/src/gen"
+          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh"             --rom "$ROM"             --dir "$ROOT"             --name "Uniracers"             --players 2             --yes             --no-ci             --no-fetch-boxart             --no-recomp-ui             --no-netplay             --no-github             --no-submodules             --generate             --no-build
+          PROJECT="$ROOT/UniracersSNESRecomp"
+          python3 tools/seed_native_widescreen_aot.py "$PROJECT/recomp/symbols.toml"
+          python3 "$FRAMEWORK/snesrecomp_cli.py" generate             --rom "$ROM"             --project-root "$PROJECT"             --cfg-dir recomp             --out-dir src/gen             --funcs-h recomp/funcs.h             --cfg-roots
+          test -d "$PROJECT/src/gen"
 
       - name: Inspect accepted preparation seam
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p analysis/generated
-          rc=0
-          python3 tools/inspect_native_widescreen_prep_anchor.py \
-            "$RUNNER_TEMP/native/UniracersSNESRecomp/src/gen" \
-            --radius 32 \
-            --json-out analysis/generated/widescreen-native-prep-anchor.json \
-            --md-out analysis/generated/widescreen-native-prep-anchor.md || rc=$?
+          PROJECT="$RUNNER_TEMP/native/UniracersSNESRecomp"
+          python3 tools/inspect_native_widescreen_prep_anchor.py             "$PROJECT/src/gen"             --radius 48             --json-out analysis/generated/widescreen-native-prep-anchor.json             --md-out analysis/generated/widescreen-native-prep-anchor.md
           cat analysis/generated/widescreen-native-prep-anchor.md
-          # Exit 2 means the requested seam is not in the current generated
-          # AOT closure. That is a valid reconnaissance result, not a runner
-          # failure. Preserve the evidence and fail only on unexpected errors.
-          if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ]; then
-            exit "$rc"
-          fi
 
       - name: Upload compact anchor evidence
         if: always()

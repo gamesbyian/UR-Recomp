@@ -89,6 +89,33 @@ class InferenceAuditTests(unittest.TestCase):
             row["historical_landmarks"]["start_x"] == row["historical_landmarks"]["finish_x"]
             for row in non_stunt
         ))
+    def test_historical_track_id_matches_stream_minus_one(self):
+        self.assertTrue(all(
+            row["historical_landmarks"]["track_id"] == row["stream_index"] - 1
+            for row in self.courses
+        ))
+
+    def test_resource_bundles_are_ordered_and_adjacent(self):
+        catalog = json.loads(
+            (ROOT / "analysis/data/course-resource-catalog.json").read_text(encoding="utf-8")
+        )
+        bundles = {x["id"]: x for x in catalog["structural_bundles"]}
+        self.assertTrue(bundles["bundle-03-08"]["all_carriers_preserve_order"])
+        self.assertTrue(bundles["bundle-03-08"]["all_carriers_preserve_adjacency"])
+        self.assertTrue(bundles["bundle-09-0B"]["all_carriers_preserve_order"])
+        self.assertTrue(bundles["bundle-09-0B"]["all_carriers_preserve_adjacency"])
+        self.assertTrue(catalog["list_level_invariants"]["stunt_lists_have_no_duplicate_resource_ids"])
+
+    def test_racer_frame_header_popcount_matches_word_count(self):
+        presentation = json.loads(
+            (ROOT / "analysis/data/presentation-assets.json").read_text(encoding="utf-8")
+        )
+        frames = presentation["families"][0]["frames"]
+        for frame in frames:
+            header = bytes.fromhex(frame["record_header_hex"])
+            popcount = sum(byte.bit_count() for byte in header)
+            self.assertEqual(popcount, frame["packed_word_count"])
+            self.assertEqual(frame["record_length"], 4 + 2 * popcount)
 
 if __name__ == "__main__":
     unittest.main()

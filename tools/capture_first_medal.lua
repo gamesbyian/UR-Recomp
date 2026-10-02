@@ -87,10 +87,12 @@ while true do
 
     if not armed then
         -- The reset movie's embedded SRAM bytes are not necessarily the game's
-        -- initialized save image at Lua startup. Arm only once the game has
-        -- authored a checksum-valid save whose medal matrix is legal.
+        -- initialized save image at Lua startup. Arm only at the verified
+        -- stock main-menu state, once the game has authored a checksum-valid
+        -- save whose medal matrix is legal. This excludes a zero-filled
+        -- pre-initialization image whose zero checksum would otherwise pass.
         local medals = read_medals()
-        if legal_medals(medals) and checksum_valid() then
+        if current.menu == 0xD7 and legal_medals(medals) and checksum_valid() then
             armed = true
             baseline = current
             baseline_medals = medals

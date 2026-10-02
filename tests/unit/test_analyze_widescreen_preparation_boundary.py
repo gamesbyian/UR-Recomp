@@ -17,6 +17,8 @@ def row(frame, pc, op, a, camx, edgex, c0):
         "frame":frame,
         "pc":pc,
         "op":op,
+        "b1":0,
+        "b2":0,
         "a":a,
         "x":0,
         "y":0,

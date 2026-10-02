@@ -51,6 +51,11 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 				}();
 				static uint8 ur_ws_helper_before[0x2000];
 				static bool ur_ws_helper_snapshot = false;
+				static bool ur_ws_edge_helper_trace = []() -> bool {
+					return getenv("URRECOMP_WS_EDGE_HELPER_TRACE") != nullptr;
+				}();
+				static uint8 ur_ws_edge_before[0x2000];
+				static bool ur_ws_edge_snapshot = false;
 				if (ur_ws_helper_trace && Registers.PB == 0x81 &&
 				    ur_ws_pcw == 0xA531 && ICPU.Frame >= 1178 && ICPU.Frame <= 1192)
 				{
@@ -76,18 +81,46 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 					fprintf(stderr, "\n");
 					ur_ws_helper_snapshot = false;
 				}
+				if (ur_ws_edge_helper_trace && Registers.PB == 0x81 &&
+				    ur_ws_pcw == 0xA597 && ICPU.Frame >= 1178 && ICPU.Frame <= 1192)
+				{
+					for (unsigned i = 0; i < 0x2000; i++)
+						ur_ws_edge_before[i] = Memory.RAM[i];
+					ur_ws_edge_snapshot = true;
+				}
+				if (ur_ws_edge_helper_trace && Registers.PB == 0x81 &&
+				    ur_ws_pcw == 0xA59A && ur_ws_edge_snapshot)
+				{
+					fprintf(stderr, "WSEDGEHELP frame=%u pc=%06X changes=",
+						(unsigned)ICPU.Frame, (unsigned)ur_ws_pc);
+					bool first = true;
+					for (unsigned i = 0; i < 0x2000; i++)
+					{
+						if (ur_ws_edge_before[i] == Memory.RAM[i])
+							continue;
+						fprintf(stderr, "%s%04X:%02X:%02X",
+							first ? "" : ",", i,
+							(unsigned)ur_ws_edge_before[i], (unsigned)Memory.RAM[i]);
+						first = false;
+					}
+					fprintf(stderr, "\n");
+					ur_ws_edge_snapshot = false;
+				}
+
 				if (ur_ws_boundary_trace && Registers.PB == 0x81 &&
 				    ur_ws_pcw >= 0xA52F && ur_ws_pcw <= 0xA59D &&
 				    ICPU.Frame >= 1178 && ICPU.Frame <= 1192)
 				{
 					fprintf(stderr,
-						"WSBND frame=%u v=%u cycles=%d pc=%06X op=%02X "
+						"WSBND frame=%u v=%u cycles=%d pc=%06X op=%02X b1=%02X b2=%02X "
 						"a=%04X x=%04X y=%04X d=%04X p=%04X "
 						"camx=%u camy=%u camdx=%d camdy=%d "
 						"edgex=%u edgex2=%u edgey=%u edgey2=%u "
 						"cnt=%u,%u,%u,%u\n",
 						(unsigned)ICPU.Frame, (unsigned)CPU.V_Counter, CPU.Cycles,
 						(unsigned)ur_ws_pc, (unsigned)Op,
+						(unsigned)CPU.PCBase[(uint16)(ur_ws_pcw + 1)],
+						(unsigned)CPU.PCBase[(uint16)(ur_ws_pcw + 2)],
 						(unsigned)Registers.A.W, (unsigned)Registers.X.W,
 						(unsigned)Registers.Y.W, (unsigned)Registers.D.W,
 						(unsigned)Registers.P.W,

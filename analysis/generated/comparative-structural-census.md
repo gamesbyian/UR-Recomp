@@ -2,9 +2,9 @@
 
 This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **125** (113 code, 12 data)
-- bounded bytes: **20235** (18802 code-region bytes, 1433 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **7920**
+- bounded regions: **129** (117 code, 12 data)
+- bounded bytes: **20789** (19356 code-region bytes, 1433 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **8151**
 - represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -63,6 +63,10 @@ This is the first machine-queryable census for the comparative structure-recover
 | `81:B668..81:B68A` | code | 35 | multiply-b668 | multiply_x_by_y | 81:B648..81:B66A (-32; size 35; sim 1.000) | 81:B659..81:B67B (-15; size 35; sim 1.000) | 81:B668..81:B68A (+0; size 35; sim 1.000) |
 | `81:B6C0..81:B6C3` | code | 4 | geometry-math-helper | long_entry_wrapper | 81:B6A0..81:B6A3 (-32; size 4; sim 0.750) | 81:B6B1..81:B6B4 (-15; size 4; sim 0.750) | 81:B6C0..81:B6C3 (+0; size 4; sim 1.000) |
 | `81:B6C4..81:B712` | code | 79 | geometry-math-helper | hardware_multiply_geometry_body | 81:B6A4..81:B6F2 (-32; size 79; sim 1.000) | 81:B6B5..81:B703 (-15; size 79; sim 1.000) | 81:B6C4..81:B712 (+0; size 79; sim 1.000) |
+| `81:BEB3..81:BEB6` | code | 4 | race-message-bridge | long_entry_wrapper | 81:BE93..81:BE96 (-32; size 4; sim 0.750) | 81:BEA4..81:BEA7 (-15; size 4; sim 0.750) | 81:BEB3..81:BEB6 (+0; size 4; sim 1.000) |
+| `81:BEB7..81:BF40` | code | 138 | race-message-bridge | race_message_dispatch | 81:BE97..81:BF20 (-32; size 138; sim 0.942) | 81:BEA8..81:BF31 (-15; size 138; sim 0.877) | 81:BEB7..81:BF40 (+0; size 138; sim 1.000) |
+| `81:BF41..81:BFE2` | code | 162 | race-message-bridge | mirrored_commit_helper | 81:BF21..81:BFC2 (-32; size 162; sim 0.907) | 81:BF32..81:BFD3 (-15; size 162; sim 0.907) | 81:BF41..81:BFE2 (+0; size 162; sim 1.000) |
+| `81:BFE3..81:C0DC` | code | 250 | race-message-bridge | mirrored_materialize_helper | 81:BFC3..81:C0BC (-32; size 250; sim 0.968) | 81:BFD4..81:C0CD (-15; size 250; sim 0.952) | 81:BFE3..81:C0DC (+0; size 250; sim 1.000) |
 | `81:C0DD..81:C24A` | code | 366 | stunt-message-pipeline | message_consume_pre_cleanup | 81:C0BD..81:C22A (-32; size 366; sim 0.940) | 81:C0CE..81:C23B (-15; size 366; sim 0.915) | 81:C0DD..81:C24A (+0; size 366; sim 1.000) |
 | `81:C24B..81:C24D` | code | 3 | stunt-message-pipeline | pal_line_removed_nops | — | — | 81:C24B..81:C24D (+0; size 3; sim 1.000) |
 | `81:C24E..81:C368` | code | 283 | stunt-message-pipeline | message_consume_post_cleanup | 81:C22B..81:C345 (-35; size 283; sim 0.940) | 81:C23C..81:C356 (-18; size 283; sim 0.943) | 81:C24E..81:C368 (+0; size 283; sim 1.000) |

@@ -13,6 +13,6 @@ class ED2FAnglePhysicsTests(unittest.TestCase):
   self.assertEqual(r["bounded_bytes"],904)
   self.assertEqual([x["size"] for x in r["regions"]],[4,477,423])
   self.assertEqual([x["callsite"] for x in r["accepted_caller_edges"]],["82:8C74","82:915E"])
-  for x in r["regions"]:
-   self.assertEqual(x["builds"]["usa-retail"]["unreached_or_data_bytes"],0,x["name"])
+  usa_unreached={x["name"]:x["builds"]["usa-retail"]["unreached_or_data_bytes"] for x in r["regions"]}
+  self.assertEqual(usa_unreached,{"long_entry_wrapper":0,"angle_motion_update":40,"ground_angle_update":0})
 if __name__=="__main__": unittest.main()

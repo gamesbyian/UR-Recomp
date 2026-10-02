@@ -7,7 +7,7 @@
       "id": "course:01",
       "stream_index": 1,
       "name": "Dragster",
-      "name_status": "historical_independent",
+      "name_status": "cross_source_reconciled",
       "tour": "Crawler",
       "tour_index": 1,
       "tour_slot": 1,
@@ -97,13 +97,21 @@
         ],
         "historical_finish_x_probe": 25278,
         "source": "analysis/generated/dragster-presentation-spatial-contract.json"
+      },
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 0,
+        "start_x": 1088,
+        "finish_x": 25278,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
       }
     },
     {
       "id": "course:02",
       "stream_index": 2,
       "name": "Zoom Zoo",
-      "name_status": "historical_independent",
+      "name_status": "cross_source_reconciled",
       "tour": "Crawler",
       "tour_index": 1,
       "tour_slot": 2,
@@ -185,13 +193,21 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 1,
+        "start_x": 8961,
+        "finish_x": 8881,
+        "start_matches_header_a_x16": false,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:03",
       "stream_index": 3,
       "name": "Bowl",
-      "name_status": "historical_independent",
+      "name_status": "cross_source_reconciled",
       "tour": "Crawler",
       "tour_index": 1,
       "tour_slot": 3,
@@ -266,13 +282,21 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 2,
+        "start_x": 5776,
+        "finish_x": 5776,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:04",
       "stream_index": 4,
       "name": "Switcher",
-      "name_status": "historical_independent",
+      "name_status": "cross_source_reconciled",
       "tour": "Crawler",
       "tour_index": 1,
       "tour_slot": 4,
@@ -350,13 +374,21 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 3,
+        "start_x": 1584,
+        "finish_x": 63062,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:05",
       "stream_index": 5,
       "name": "Monster",
-      "name_status": "historical_independent",
+      "name_status": "cross_source_reconciled",
       "tour": "Crawler",
       "tour_index": 1,
       "tour_slot": 5,
@@ -457,14 +489,22 @@
           "a000_is_32_bytes_per_c000_slot": true
         },
         "source": "analysis/generated/course-presentation-contract-sample.json"
+      },
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 4,
+        "start_x": 4640,
+        "finish_x": 4719,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
       }
     },
     {
       "id": "course:06",
       "stream_index": 6,
-      "name": "Looper",
-      "name_status": "historical_independent",
-      "tour": "Shuffler",
+      "name": "Wobble",
+      "name_status": "cross_source_reconciled",
+      "tour": "Jumper",
       "tour_index": 2,
       "tour_slot": 1,
       "track_kind": "race-a",
@@ -557,14 +597,22 @@
           "a000_is_32_bytes_per_c000_slot": true
         },
         "source": "analysis/generated/course-presentation-contract-sample.json"
+      },
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 5,
+        "start_x": 2272,
+        "finish_x": 2678,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
       }
     },
     {
       "id": "course:07",
       "stream_index": 7,
-      "name": "MegaJump",
-      "name_status": "historical_independent",
-      "tour": "Shuffler",
+      "name": "Twinpeak",
+      "name_status": "cross_source_reconciled",
+      "tour": "Jumper",
       "tour_index": 2,
       "tour_slot": 2,
       "track_kind": "circuit-a",
@@ -644,14 +692,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 6,
+        "start_x": 7120,
+        "finish_x": 7210,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:08",
       "stream_index": 8,
-      "name": "Jumps",
-      "name_status": "historical_independent",
-      "tour": "Shuffler",
+      "name": "Skier",
+      "name_status": "cross_source_reconciled",
+      "tour": "Jumper",
       "tour_index": 2,
       "tour_slot": 3,
       "track_kind": "stunt",
@@ -724,14 +780,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 7,
+        "start_x": 128,
+        "finish_x": 128,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:09",
       "stream_index": 9,
-      "name": "Flat Fun",
-      "name_status": "historical_independent",
-      "tour": "Shuffler",
+      "name": "Loopback",
+      "name_status": "cross_source_reconciled",
+      "tour": "Jumper",
       "tour_index": 2,
       "tour_slot": 4,
       "track_kind": "race-b",
@@ -841,14 +905,22 @@
           "a000_is_32_bytes_per_c000_slot": true
         },
         "source": "analysis/generated/course-presentation-contract-sample.json"
+      },
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 8,
+        "start_x": 576,
+        "finish_x": 1590,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
       }
     },
     {
       "id": "course:10",
       "stream_index": 10,
-      "name": "Infinity",
-      "name_status": "historical_independent",
-      "tour": "Shuffler",
+      "name": "Small Cut",
+      "name_status": "cross_source_reconciled",
+      "tour": "Jumper",
       "tour_index": 2,
       "tour_slot": 5,
       "track_kind": "circuit-b",
@@ -932,14 +1004,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 9,
+        "start_x": 7696,
+        "finish_x": 7920,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:11",
       "stream_index": 11,
-      "name": "Dragrace",
-      "name_status": "historical_independent",
-      "tour": "Walker",
+      "name": "Looper",
+      "name_status": "cross_source_reconciled",
+      "tour": "Shuffler",
       "tour_index": 3,
       "tour_slot": 1,
       "track_kind": "race-a",
@@ -1016,14 +1096,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 10,
+        "start_x": 1776,
+        "finish_x": 2439,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:12",
       "stream_index": 12,
-      "name": "Ping Pong",
-      "name_status": "historical_independent",
-      "tour": "Walker",
+      "name": "MegaJump",
+      "name_status": "cross_source_reconciled",
+      "tour": "Shuffler",
       "tour_index": 3,
       "tour_slot": 2,
       "track_kind": "circuit-a",
@@ -1106,14 +1194,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 11,
+        "start_x": 9488,
+        "finish_x": 9704,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:13",
       "stream_index": 13,
-      "name": "Hill Climb",
-      "name_status": "historical_independent",
-      "tour": "Walker",
+      "name": "Jumps",
+      "name_status": "cross_source_reconciled",
+      "tour": "Shuffler",
       "tour_index": 3,
       "tour_slot": 3,
       "track_kind": "stunt",
@@ -1186,14 +1282,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 12,
+        "start_x": 0,
+        "finish_x": 0,
+        "start_matches_header_a_x16": false,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:14",
       "stream_index": 14,
-      "name": "Hybrid",
-      "name_status": "historical_independent",
-      "tour": "Walker",
+      "name": "Flat Fun",
+      "name_status": "cross_source_reconciled",
+      "tour": "Shuffler",
       "tour_index": 3,
       "tour_slot": 4,
       "track_kind": "race-b",
@@ -1269,14 +1373,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 13,
+        "start_x": 2192,
+        "finish_x": 5206,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:15",
       "stream_index": 15,
-      "name": "Short Cut",
-      "name_status": "historical_independent",
-      "tour": "Walker",
+      "name": "Infinity",
+      "name_status": "cross_source_reconciled",
+      "tour": "Shuffler",
       "tour_index": 3,
       "tour_slot": 5,
       "track_kind": "circuit-b",
@@ -1359,14 +1471,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 14,
+        "start_x": 720,
+        "finish_x": 721,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:16",
       "stream_index": 16,
-      "name": "Wario Paint",
-      "name_status": "historical_independent",
-      "tour": "Hopper",
+      "name": "Last One",
+      "name_status": "cross_source_reconciled",
+      "tour": "Bounder",
       "tour_index": 4,
       "tour_slot": 1,
       "track_kind": "race-a",
@@ -1452,14 +1572,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 15,
+        "start_x": 16208,
+        "finish_x": 15660,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:17",
       "stream_index": 17,
-      "name": "Crock",
-      "name_status": "historical_independent",
-      "tour": "Hopper",
+      "name": "Marathon",
+      "name_status": "cross_source_reconciled",
+      "tour": "Bounder",
       "tour_index": 4,
       "tour_slot": 2,
       "track_kind": "circuit-a",
@@ -1550,14 +1678,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 16,
+        "start_x": 4992,
+        "finish_x": 5189,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:18",
       "stream_index": 18,
-      "name": "Downer",
-      "name_status": "historical_independent",
-      "tour": "Hopper",
+      "name": "Circle",
+      "name_status": "cross_source_reconciled",
+      "tour": "Bounder",
       "tour_index": 4,
       "tour_slot": 3,
       "track_kind": "stunt",
@@ -1623,14 +1759,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 17,
+        "start_x": 2464,
+        "finish_x": 2464,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:19",
       "stream_index": 19,
-      "name": "East",
-      "name_status": "historical_independent",
-      "tour": "Hopper",
+      "name": "Plinkey",
+      "name_status": "cross_source_reconciled",
+      "tour": "Bounder",
       "tour_index": 4,
       "tour_slot": 4,
       "track_kind": "race-b",
@@ -1712,14 +1856,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 18,
+        "start_x": 32,
+        "finish_x": 229,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:20",
       "stream_index": 20,
-      "name": "Hairpin Hill",
-      "name_status": "historical_independent",
-      "tour": "Hopper",
+      "name": "Jumpover",
+      "name_status": "cross_source_reconciled",
+      "tour": "Bounder",
       "tour_index": 4,
       "tour_slot": 5,
       "track_kind": "circuit-b",
@@ -1809,14 +1961,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 19,
+        "start_x": 816,
+        "finish_x": 1000,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:21",
       "stream_index": 21,
-      "name": "Wobble",
-      "name_status": "historical_independent",
-      "tour": "Jumper",
+      "name": "Dragrace",
+      "name_status": "cross_source_reconciled",
+      "tour": "Walker",
       "tour_index": 5,
       "tour_slot": 1,
       "track_kind": "race-a",
@@ -1895,14 +2055,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 20,
+        "start_x": 3264,
+        "finish_x": 30547,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:22",
       "stream_index": 22,
-      "name": "Twinpeak",
-      "name_status": "historical_independent",
-      "tour": "Jumper",
+      "name": "Ping Pong",
+      "name_status": "cross_source_reconciled",
+      "tour": "Walker",
       "tour_index": 5,
       "tour_slot": 2,
       "track_kind": "circuit-a",
@@ -1987,14 +2155,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 21,
+        "start_x": 7920,
+        "finish_x": 8150,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:23",
       "stream_index": 23,
-      "name": "Skier",
-      "name_status": "historical_independent",
-      "tour": "Jumper",
+      "name": "Hill Climb",
+      "name_status": "cross_source_reconciled",
+      "tour": "Walker",
       "tour_index": 5,
       "tour_slot": 3,
       "track_kind": "stunt",
@@ -2064,14 +2240,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 22,
+        "start_x": 0,
+        "finish_x": 0,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:24",
       "stream_index": 24,
-      "name": "Loopback",
-      "name_status": "historical_independent",
-      "tour": "Jumper",
+      "name": "Hybrid",
+      "name_status": "cross_source_reconciled",
+      "tour": "Walker",
       "tour_index": 5,
       "tour_slot": 4,
       "track_kind": "race-b",
@@ -2145,14 +2329,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 23,
+        "start_x": 112,
+        "finish_x": 300,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:25",
       "stream_index": 25,
-      "name": "Small Cut",
-      "name_status": "historical_independent",
-      "tour": "Jumper",
+      "name": "Short Cut",
+      "name_status": "cross_source_reconciled",
+      "tour": "Walker",
       "tour_index": 5,
       "tour_slot": 5,
       "track_kind": "circuit-b",
@@ -2230,14 +2422,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 24,
+        "start_x": 7936,
+        "finish_x": 7710,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:26",
       "stream_index": 26,
-      "name": "Last One",
-      "name_status": "historical_independent",
-      "tour": "Bounder",
+      "name": "Down+Up",
+      "name_status": "cross_source_reconciled",
+      "tour": "Runner",
       "tour_index": 6,
       "tour_slot": 1,
       "track_kind": "race-a",
@@ -2320,14 +2520,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 25,
+        "start_x": 672,
+        "finish_x": 1325,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:27",
       "stream_index": 27,
-      "name": "Marathon",
-      "name_status": "historical_independent",
-      "tour": "Bounder",
+      "name": "Highroad",
+      "name_status": "cross_source_reconciled",
+      "tour": "Runner",
       "tour_index": 6,
       "tour_slot": 2,
       "track_kind": "circuit-a",
@@ -2414,14 +2622,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 26,
+        "start_x": 1264,
+        "finish_x": 1400,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:28",
       "stream_index": 28,
-      "name": "Circle",
-      "name_status": "historical_independent",
-      "tour": "Bounder",
+      "name": "Spine",
+      "name_status": "cross_source_reconciled",
+      "tour": "Runner",
       "tour_index": 6,
       "tour_slot": 3,
       "track_kind": "stunt",
@@ -2496,14 +2712,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 27,
+        "start_x": 2048,
+        "finish_x": 2048,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:29",
       "stream_index": 29,
-      "name": "Plinkey",
-      "name_status": "historical_independent",
-      "tour": "Bounder",
+      "name": "Boo!",
+      "name_status": "cross_source_reconciled",
+      "tour": "Runner",
       "tour_index": 6,
       "tour_slot": 4,
       "track_kind": "race-b",
@@ -2584,14 +2808,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 28,
+        "start_x": 160,
+        "finish_x": 5278,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:30",
       "stream_index": 30,
-      "name": "Jumpover",
-      "name_status": "historical_independent",
-      "tour": "Bounder",
+      "name": "Fire Escape",
+      "name_status": "cross_source_reconciled",
+      "tour": "Runner",
       "tour_index": 6,
       "tour_slot": 5,
       "track_kind": "circuit-b",
@@ -2666,14 +2898,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 29,
+        "start_x": 1760,
+        "finish_x": 1900,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:31",
       "stream_index": 31,
-      "name": "Down+Up",
-      "name_status": "historical_independent",
-      "tour": "Runner",
+      "name": "Wario Paint",
+      "name_status": "cross_source_reconciled",
+      "tour": "Hopper",
       "tour_index": 7,
       "tour_slot": 1,
       "track_kind": "race-a",
@@ -2757,14 +2997,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 30,
+        "start_x": 1408,
+        "finish_x": 47100,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:32",
       "stream_index": 32,
-      "name": "Highroad",
-      "name_status": "historical_independent",
-      "tour": "Runner",
+      "name": "Crock",
+      "name_status": "cross_source_reconciled",
+      "tour": "Hopper",
       "tour_index": 7,
       "tour_slot": 2,
       "track_kind": "circuit-a",
@@ -2847,14 +3095,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 31,
+        "start_x": 8896,
+        "finish_x": 9120,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:33",
       "stream_index": 33,
-      "name": "Spine",
-      "name_status": "historical_independent",
-      "tour": "Runner",
+      "name": "Downer",
+      "name_status": "cross_source_reconciled",
+      "tour": "Hopper",
       "tour_index": 7,
       "tour_slot": 3,
       "track_kind": "stunt",
@@ -2927,14 +3183,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 32,
+        "start_x": 464,
+        "finish_x": 464,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:34",
       "stream_index": 34,
-      "name": "Boo!",
-      "name_status": "historical_independent",
-      "tour": "Runner",
+      "name": "East",
+      "name_status": "cross_source_reconciled",
+      "tour": "Hopper",
       "tour_index": 7,
       "tour_slot": 4,
       "track_kind": "race-b",
@@ -3009,14 +3273,22 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 33,
+        "start_x": 3088,
+        "finish_x": 58090,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:35",
       "stream_index": 35,
-      "name": "Fire Escape",
-      "name_status": "historical_independent",
-      "tour": "Runner",
+      "name": "Hairpin Hill",
+      "name_status": "cross_source_reconciled",
+      "tour": "Hopper",
       "tour_index": 7,
       "tour_slot": 5,
       "track_kind": "circuit-b",
@@ -3100,13 +3372,21 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 34,
+        "start_x": 7968,
+        "finish_x": 7813,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:36",
       "stream_index": 36,
       "name": "Vertical",
-      "name_status": "historical_independent",
+      "name_status": "cross_source_reconciled",
       "tour": "Sprinter",
       "tour_index": 8,
       "tour_slot": 1,
@@ -3197,13 +3477,21 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 35,
+        "start_x": 576,
+        "finish_x": 3860,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:37",
       "stream_index": 37,
       "name": "Flash",
-      "name_status": "historical_independent",
+      "name_status": "cross_source_reconciled",
       "tour": "Sprinter",
       "tour_index": 8,
       "tour_slot": 2,
@@ -3284,13 +3572,21 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 36,
+        "start_x": 5440,
+        "finish_x": 5200,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:38",
       "stream_index": 38,
       "name": "Little Dipper",
-      "name_status": "historical_independent",
+      "name_status": "cross_source_reconciled",
       "tour": "Sprinter",
       "tour_index": 8,
       "tour_slot": 3,
@@ -3367,13 +3663,21 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 37,
+        "start_x": 480,
+        "finish_x": 480,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:39",
       "stream_index": 39,
       "name": "Fruitbat",
-      "name_status": "historical_independent",
+      "name_status": "cross_source_reconciled",
       "tour": "Sprinter",
       "tour_index": 8,
       "tour_slot": 4,
@@ -3456,13 +3760,21 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 38,
+        "start_x": 352,
+        "finish_x": 3900,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:40",
       "stream_index": 40,
       "name": "123 Jump",
-      "name_status": "historical_independent",
+      "name_status": "cross_source_reconciled",
       "tour": "Sprinter",
       "tour_index": 8,
       "tour_slot": 5,
@@ -3544,13 +3856,21 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 39,
+        "start_x": 2304,
+        "finish_x": 2470,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:41",
       "stream_index": 41,
       "name": "Griller",
-      "name_status": "historical_independent",
+      "name_status": "cross_source_reconciled",
       "tour": "Hunter",
       "tour_index": 9,
       "tour_slot": 1,
@@ -3633,13 +3953,21 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 40,
+        "start_x": 2160,
+        "finish_x": 4550,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:42",
       "stream_index": 42,
       "name": "Two Loops",
-      "name_status": "historical_independent",
+      "name_status": "cross_source_reconciled",
       "tour": "Hunter",
       "tour_index": 9,
       "tour_slot": 2,
@@ -3719,13 +4047,21 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 41,
+        "start_x": 1552,
+        "finish_x": 1730,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:43",
       "stream_index": 43,
       "name": "Neon",
-      "name_status": "historical_independent",
+      "name_status": "cross_source_reconciled",
       "tour": "Hunter",
       "tour_index": 9,
       "tour_slot": 3,
@@ -3803,13 +4139,21 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 42,
+        "start_x": 5696,
+        "finish_x": 5696,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:44",
       "stream_index": 44,
       "name": "Hamster",
-      "name_status": "historical_independent",
+      "name_status": "cross_source_reconciled",
       "tour": "Hunter",
       "tour_index": 9,
       "tour_slot": 4,
@@ -3889,13 +4233,21 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 43,
+        "start_x": 384,
+        "finish_x": 1005,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     },
     {
       "id": "course:45",
       "stream_index": 45,
       "name": "To and Fro",
-      "name_status": "historical_independent",
+      "name_status": "cross_source_reconciled",
       "tour": "Hunter",
       "tour_index": 9,
       "tour_slot": 5,
@@ -3984,7 +4336,15 @@
         "analysis/generated/rnc-stream-manifest.json",
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
-      ]
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 44,
+        "start_x": 3168,
+        "finish_x": 3540,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
     }
   ]
 }

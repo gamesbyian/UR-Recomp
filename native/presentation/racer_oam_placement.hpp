@@ -27,4 +27,13 @@ std::optional<RacerOamPlacement> decode_racer_oam_placement(
     std::uint8_t player
 ) noexcept;
 
+std::optional<RacerOamPlacement> decode_racer_ppu_placement(
+    const std::uint16_t* oam_words,
+    std::size_t oam_word_count,
+    const std::uint8_t* high_oam,
+    std::size_t high_oam_size,
+    std::uint8_t obsel,
+    std::uint8_t player
+) noexcept;
+
 }  // namespace ur::presentation

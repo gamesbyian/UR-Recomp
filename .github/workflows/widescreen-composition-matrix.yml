@@ -1,20 +1,22 @@
-name: +8 Widescreen composition matrix
+name: +8 Widescreen composition edge trace
 
 on:
   workflow_dispatch:
   pull_request:
     paths:
-      - "tools/analyze_widescreen_composition_matrix.py"
+      - "tools/patch_widescreen_probe_composition_trace.py"
+      - "tools/analyze_widescreen_composition_trace.py"
+      - "tests/unit/test_widescreen_probe_composition_trace.py"
       - ".github/workflows/widescreen-composition-matrix.yml"
 
 concurrency:
-  group: widescreen-composition-matrix-${{ github.ref }}
+  group: widescreen-composition-trace-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -27,7 +29,7 @@ jobs:
             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
 
-      - name: Build diagnostic target
+      - name: Build traced diagnostic target
         shell: bash
         run: |
           set -euo pipefail
@@ -43,20 +45,21 @@ jobs:
             --no-submodules --generate --no-build
           PROJ="$ROOT/UniracersSNESRecomp"
           python3 tools/patch_widescreen_probe_host.py "$PROJ/src/main.c"
+          python3 tools/patch_widescreen_probe_composition_trace.py "$FRAMEWORK/runner/src/snes/ppu.c"
           cmake -S "$PROJ" -B "$PROJ/build" -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_ROOT="$FRAMEWORK" -DSNESRECOMP_SDL_BACKEND=SDL2 \
             -DSNESRECOMP_SDL3_FETCH=OFF
           cmake --build "$PROJ/build" -j2
 
-      - name: Capture layer interaction matrix
+      - name: Capture matched full-renderer 0 and +8 traces
         shell: bash
         run: |
           set -euo pipefail
           EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/object-activation-dragster-tail.script"
-          ROOT="$RUNNER_TEMP/widescreen-composition-matrix"
-          CONFIG="$RUNNER_TEMP/widescreen-matrix.ini"
+          ROOT="$RUNNER_TEMP/widescreen-composition-trace"
+          CONFIG="$RUNNER_TEMP/widescreen-trace.ini"
           cat >"$CONFIG" <<'EOF'
           [Graphics]
           NewRenderer = 1
@@ -68,50 +71,55 @@ jobs:
           [Sound]
           EnableAudio = 0
           EOF
-          for mask in 16 17 18 19 20 21 22 23; do
-            for margin in 0 8; do
-              CASE="$ROOT/mask-$mask/margin-$margin"
-              mkdir -p "$CASE/state" "$CASE/frames"
-              SNESRECOMP_WS_EXTRA="$margin" \
-              SNESRECOMP_LAYER_MASK="$mask" \
-              SNESRECOMP_DUMP_DIR="$CASE/state" \
-              SNESRECOMP_FRAMEDUMP_PIXELS=1 \
-              SNESRECOMP_FRAMEDUMP_START=2888 \
-              SNESRECOMP_FRAMEDUMP_END=2902 \
-              SDL_AUDIODRIVER=dummy \
-                timeout 210s xvfb-run -a "$EXE" "$ROM" --config "$CONFIG" \
-                --no-launcher --script "$SCRIPT" --framedump "$CASE/frames" \
-                >"$CASE/run.log" 2>&1
-            done
+          for margin in 0 8; do
+            CASE="$ROOT/margin-$margin"
+            mkdir -p "$CASE/state" "$CASE/frames"
+            SNESRECOMP_WS_EXTRA="$margin" \
+            SNESRECOMP_WS_EDGE_TRACE=1 \
+            SNESRECOMP_DUMP_DIR="$CASE/state" \
+            SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+            SNESRECOMP_FRAMEDUMP_START=2890 \
+            SNESRECOMP_FRAMEDUMP_END=2900 \
+            SDL_AUDIODRIVER=dummy \
+              timeout 210s xvfb-run -a "$EXE" "$ROM" --config "$CONFIG" \
+              --no-launcher --script "$SCRIPT" --framedump "$CASE/frames" \
+              >"$CASE/run.log" 2>&1
           done
 
-      - name: Analyze minimal reproducing layer set
+      - name: Align composition inputs to event-relative tags
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p analysis/generated
-          python3 tools/analyze_widescreen_composition_matrix.py \
-            "$RUNNER_TEMP/widescreen-composition-matrix" \
-            --json-out analysis/generated/widescreen-plus8-composition-matrix.json \
-            --md-out analysis/generated/widescreen-plus8-composition-matrix.md
+          python3 tools/analyze_widescreen_composition_trace.py \
+            "$RUNNER_TEMP/widescreen-composition-trace" \
+            --json-out analysis/generated/widescreen-plus8-composition-trace.json \
+            --md-out analysis/generated/widescreen-plus8-composition-trace.md
           python3 - <<'PY'
           import json
           from pathlib import Path
-          d = json.loads(Path("analysis/generated/widescreen-plus8-composition-matrix.json").read_text())
-          if any(r["guest_frame_delta"] != -3 for r in d["rows"]):
-              raise SystemExit("event-relative cadence changed")
-          if 23 not in d["reproducing_masks_at_168"]:
-              raise SystemExit("full race layer set no longer reproduces object-tail-168")
-          print("minimal reproducing masks:", d["minimal_reproducing_masks_at_168"])
+          d = json.loads(Path("analysis/generated/widescreen-plus8-composition-trace.json").read_text())
+          rows = {r["tag"]: r for r in d["rows"]}
+          if rows["object-tail-168"]["guest_frame_delta"] != -3:
+              raise SystemExit("full-renderer event-relative cadence changed")
+          c = d["comparisons"]["object-tail-168"]
+          print("object-tail-168 y144 differences:", c["144"]["different_fields"])
+          print("object-tail-168 y145 differences:", c["145"]["different_fields"])
           PY
 
-      - name: Upload compact evidence
+      - name: Upload compact trace evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: uniracers-widescreen-composition-matrix
+          name: uniracers-widescreen-composition-trace
           path: |
-            ${{ runner.temp }}/widescreen-composition-matrix/mask-*/margin-*/run.log
-            analysis/generated/widescreen-plus8-composition-matrix.*
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/run.log
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-167.info.json
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-168.info.json
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-169.info.json
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-167.regs.json
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-168.regs.json
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-169.regs.json
+            analysis/generated/widescreen-plus8-composition-trace.*
           if-no-files-found: warn
           retention-days: 5

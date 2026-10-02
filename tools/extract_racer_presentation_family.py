@@ -429,6 +429,7 @@ def emit_frame_images(
     manifest = []
     rom_digest = sha256(rom)
     palette_asset_ids = tuple(palette_asset_ids)
+    runtime_observed_ids = {row[3] for row in OBSERVED_STATES}
     for frame_id in frame_ids:
         frame = extract_frame(rom, frame_id)
         for palette_asset_id in palette_asset_ids:
@@ -453,12 +454,28 @@ def emit_frame_images(
                 },
                 "rom_sha256": rom_digest,
                 "orientation": {"hflip": False, "vflip": False},
-                "uncertainty": None,
+                "semantic_role": (
+                    "retained ordinary-2P runtime-observed frame"
+                    if frame_id in runtime_observed_ids
+                    else None
+                ),
+                "uncertainty": (
+                    None
+                    if frame_id in runtime_observed_ids
+                    else {
+                        "semantic_role": "not yet classified by a retained runtime observation",
+                        "raster_reconstruction": None,
+                    }
+                ),
             })
     return {
         "schema_version": 2,
-        "family": "ordinary-race-racer-presentation-contract-compatible-corpus",
+        "family": "racer-presentation-contract-compatible-corpus",
         "rom_sha256": rom_digest,
+        "confidence_scope": {
+            "raster_reconstruction": "mechanically decoded for admitted records",
+            "semantic_animation_role": "known only for retained runtime-observed IDs; otherwise intentionally unclassified",
+        },
         "confidence_basis": [
             "monotonic same-bank frame boundary",
             "four-byte 30-cell occupancy header",

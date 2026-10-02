@@ -283,6 +283,21 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
             streams = sorted({x["stream"] for x in e["source_candidates"]})
             return "+".join(streams)
 
+        frame_headers = {}
+        for label, fid in (
+            ("p1_primary", u16(wram, 0x0FE9)),
+            ("p2_primary", u16(wram, 0x0FEB)),
+            ("p1_companion", u16(wram, 0x0D3F)),
+            ("p2_companion", u16(wram, 0x0D41)),
+        ):
+            if not fid:
+                frame_headers[label] = None
+                continue
+            try:
+                frame_headers[label] = extract_frame(rom, fid)["record_header_hex"]
+            except Exception:
+                frame_headers[label] = None
+
         out.append({
             "checkpoint": tag,
             "consumer": consumer,
@@ -294,6 +309,15 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
                 "p2_companion_id": f"0x{u16(wram, 0x0D41):04X}",
                 "p1_selector_0c83": f"0x{u16(wram, 0x0C83):04X}",
                 "p2_selector_0c85": f"0x{u16(wram, 0x0C85):04X}",
+                "frame_headers": frame_headers,
+                "primary_row_masks_after_build": [f"0x{u16(wram, 0x00 + 2*r):04X}" for r in range(5)],
+                "merged_row_masks_after_build": [f"0x{u16(wram, 0x0A + 2*r):04X}" for r in range(5)],
+                "stream_byte_offsets": {
+                    "p1_primary": f"0x{u16(wram, 0x2C):04X}",
+                    "p2_primary": f"0x{u16(wram, 0x2E):04X}",
+                    "p1_companion": f"0x{u16(wram, 0x18):04X}",
+                    "p2_companion": f"0x{u16(wram, 0x1A):04X}",
+                },
             },
             "racer_object_slots": oam_slots,
             "valid_staging_entries": valid,
@@ -359,6 +383,22 @@ def main() -> int:
                 f"IDs {state['p1_current_id']}/{state['p1_companion_id']} and "
                 f"{state['p2_current_id']}/{state['p2_companion_id']}, "
                 f"selectors {state['p1_selector_0c83']}/{state['p2_selector_0c85']}."
+            )
+            md.append(
+                "  headers: " + ", ".join(
+                    f"{k}={v}" for k, v in state["frame_headers"].items()
+                )
+            )
+            md.append(
+                "  primary masks: " + " ".join(state["primary_row_masks_after_build"])
+            )
+            md.append(
+                "  merged masks: " + " ".join(state["merged_row_masks_after_build"])
+            )
+            md.append(
+                "  stream offsets: " + ", ".join(
+                    f"{k}={v}" for k, v in state["stream_byte_offsets"].items()
+                )
             )
             md.append("  cache-grid streams:")
             for row in cp["cache_grid_streams"]:

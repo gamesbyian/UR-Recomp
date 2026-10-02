@@ -1,0 +1,241 @@
+{
+  "entries": [
+    "82:B293",
+    "82:B2A9",
+    "82:B2DA"
+  ],
+  "island": "CourseResourceHelperCluster",
+  "known_callers": [
+    {
+      "callsite": "82:E18C",
+      "kind": "JSL",
+      "source": "course-materialization",
+      "target": "82:B2DA"
+    },
+    {
+      "callsite": "82:E1F5",
+      "kind": "JSL",
+      "source": "course-materialization",
+      "target": "82:B2A9"
+    }
+  ],
+  "next_data": "82:B32F",
+  "regions": [
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 15,
+          "aligned_opcode_pairs": 15,
+          "aligned_role_disagreements": 0,
+          "end": "82:B2AB",
+          "opcode_bytes": 15,
+          "opcode_mismatches": [],
+          "operand_bytes": 7,
+          "sha256": "aac7c2c12b29ca69356a6313cc4652bbcf0a8f7a1350f1acf13ef9da29273ac4",
+          "shift": 3,
+          "similarity": 1,
+          "size": 22,
+          "size_delta": 0,
+          "start": "82:B296",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 15,
+          "aligned_opcode_pairs": 15,
+          "aligned_role_disagreements": 0,
+          "end": "82:B2A8",
+          "opcode_bytes": 15,
+          "opcode_mismatches": [],
+          "operand_bytes": 7,
+          "sha256": "aac7c2c12b29ca69356a6313cc4652bbcf0a8f7a1350f1acf13ef9da29273ac4",
+          "shift": 0,
+          "similarity": 1,
+          "size": 22,
+          "size_delta": 0,
+          "start": "82:B293",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 15,
+          "aligned_opcode_pairs": 15,
+          "aligned_role_disagreements": 0,
+          "end": "82:B295",
+          "opcode_bytes": 15,
+          "opcode_mismatches": [],
+          "operand_bytes": 7,
+          "sha256": "aac7c2c12b29ca69356a6313cc4652bbcf0a8f7a1350f1acf13ef9da29273ac4",
+          "shift": -19,
+          "similarity": 1,
+          "size": 22,
+          "size_delta": 0,
+          "start": "82:B280",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:B2A8",
+          "opcode_bytes": 15,
+          "operand_bytes": 7,
+          "sha256": "aac7c2c12b29ca69356a6313cc4652bbcf0a8f7a1350f1acf13ef9da29273ac4",
+          "shift": 0,
+          "similarity": 1,
+          "size": 22,
+          "size_delta": 0,
+          "start": "82:B293",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "stream_byte_reader",
+      "size": 22,
+      "usa_end": "82:B2A8",
+      "usa_start": "82:B293"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 30,
+          "aligned_opcode_pairs": 30,
+          "aligned_role_disagreements": 0,
+          "end": "82:B2DC",
+          "opcode_bytes": 30,
+          "opcode_mismatches": [],
+          "operand_bytes": 19,
+          "sha256": "78562716c8aa6c8e71e788daea1ea5c38795729a6269f2cc4453b96a2a2c823f",
+          "shift": 3,
+          "similarity": 0.979592,
+          "size": 49,
+          "size_delta": 0,
+          "start": "82:B2AC",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 30,
+          "aligned_opcode_pairs": 30,
+          "aligned_role_disagreements": 0,
+          "end": "82:B2D9",
+          "opcode_bytes": 30,
+          "opcode_mismatches": [],
+          "operand_bytes": 19,
+          "sha256": "57761595c5e1f9b1de691206e9c64b871a58d5171097f2dace0383130af14ab3",
+          "shift": 0,
+          "similarity": 1,
+          "size": 49,
+          "size_delta": 0,
+          "start": "82:B2A9",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 30,
+          "aligned_opcode_pairs": 30,
+          "aligned_role_disagreements": 0,
+          "end": "82:B2C6",
+          "opcode_bytes": 30,
+          "opcode_mismatches": [],
+          "operand_bytes": 19,
+          "sha256": "04488cdbbe5deca774f67a4aa14e6d9b743f34617a0230ba1fa3bdc53ec7140f",
+          "shift": -19,
+          "similarity": 0.979592,
+          "size": 49,
+          "size_delta": 0,
+          "start": "82:B296",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:B2D9",
+          "opcode_bytes": 30,
+          "operand_bytes": 19,
+          "sha256": "57761595c5e1f9b1de691206e9c64b871a58d5171097f2dace0383130af14ab3",
+          "shift": 0,
+          "similarity": 1,
+          "size": 49,
+          "size_delta": 0,
+          "start": "82:B2A9",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "descriptor_wrapper_and_decoder",
+      "size": 49,
+      "usa_end": "82:B2D9",
+      "usa_start": "82:B2A9"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 46,
+          "aligned_opcode_pairs": 46,
+          "aligned_role_disagreements": 0,
+          "end": "82:B331",
+          "opcode_bytes": 46,
+          "opcode_mismatches": [],
+          "operand_bytes": 39,
+          "sha256": "f1782696104e09ac6aa8ca2d97b216fa4cddf6a47d9fe6a468d665d6a706c63c",
+          "shift": 3,
+          "similarity": 0.964706,
+          "size": 85,
+          "size_delta": 0,
+          "start": "82:B2DD",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 46,
+          "aligned_opcode_pairs": 46,
+          "aligned_role_disagreements": 0,
+          "end": "82:B32E",
+          "opcode_bytes": 46,
+          "opcode_mismatches": [],
+          "operand_bytes": 39,
+          "sha256": "44cbda70e48f4cd0689939fa853783138cd861a2532ebc7b99dbe9dae71d8577",
+          "shift": 0,
+          "similarity": 1,
+          "size": 85,
+          "size_delta": 0,
+          "start": "82:B2DA",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 46,
+          "aligned_opcode_pairs": 46,
+          "aligned_role_disagreements": 0,
+          "end": "82:B31B",
+          "opcode_bytes": 46,
+          "opcode_mismatches": [],
+          "operand_bytes": 39,
+          "sha256": "2faec848389c2a4eb41a0c8780a2178955a5c83930952958c084d62373667c30",
+          "shift": -19,
+          "similarity": 0.964706,
+          "size": 85,
+          "size_delta": 0,
+          "start": "82:B2C7",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "82:B32E",
+          "opcode_bytes": 46,
+          "operand_bytes": 39,
+          "sha256": "44cbda70e48f4cd0689939fa853783138cd861a2532ebc7b99dbe9dae71d8577",
+          "shift": 0,
+          "similarity": 1,
+          "size": 85,
+          "size_delta": 0,
+          "start": "82:B2DA",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "resource_transfer_or_decompress",
+      "size": 85,
+      "usa_end": "82:B32E",
+      "usa_start": "82:B2DA"
+    }
+  ],
+  "schema_version": 1,
+  "usa_end": "82:B32E",
+  "usa_start": "82:B293",
+  "decompression_edge": {
+    "callsite": "82:B322",
+    "target": "81:B8F1",
+    "condition": "descriptor flag $4D == $80",
+    "evidence": "Preserved Nitrodon listing labels 81:B8F1 'Decompress map?' and its implementation is a resource decompressor; the noncompressed path writes through SNES WRAM ports $2181..$2183/$2180."
+  }
+}

@@ -1,0 +1,95 @@
+name: One-shot unused-content reference intake
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/import-uniracers-unused-content.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download upstream reference artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reference/imported/tcrf reference/imported/audio
+
+          curl -A "Mozilla/5.0 UR-Recomp research preservation" -fL --retry 3 \
+            "https://tcrf.net/images/4/43/Uniracers-Decomp.png" \
+            -o reference/imported/tcrf/Uniracers-Decomp.png
+          curl -A "Mozilla/5.0 UR-Recomp research preservation" -fL --retry 3 \
+            "https://tcrf.net/images/3/3b/Uniracers1.ogg" \
+            -o reference/imported/tcrf/Uniracers1.ogg
+          curl -A "Mozilla/5.0 UR-Recomp research preservation" -fL --retry 3 \
+            "https://tcrf.net/images/c/cd/Uniracers2.ogg" \
+            -o reference/imported/tcrf/Uniracers2.ogg
+          curl -A "Mozilla/5.0 UR-Recomp research preservation" -fL --retry 3 \
+            "https://musical-artifacts.com/artifacts/8387/Uniracers.sf2" \
+            -o reference/imported/audio/Uniracers.sf2
+
+      - name: Validate known user-supplied identities
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(sha256sum reference/imported/tcrf/Uniracers-Decomp.png | cut -d' ' -f1)" = \
+            "e632ad3a504f52c6ecc8076010c2538d6741115b73fc1cea4c161ff34cd03625"
+          test "$(sha256sum reference/imported/audio/Uniracers.sf2 | cut -d' ' -f1)" = \
+            "e6e05bd70a6d04dd131c2aa579622a22f589d0f7886f3af3ef6a24f7c819c2c4"
+          file reference/imported/tcrf/Uniracers1.ogg | grep -qi 'ogg'
+          file reference/imported/tcrf/Uniracers2.ogg | grep -qi 'ogg'
+
+      - name: Update imported-corpus manifest
+        shell: python
+        run: |
+          import hashlib
+          import json
+          import pathlib
+          import subprocess
+
+          root = pathlib.Path(".")
+          manifest_path = root / "reference/imported/MANIFEST.json"
+          manifest = json.loads(manifest_path.read_text())
+          additions = {
+              "reference/imported/tcrf/Uniracers-Decomp.png": "graphics-reference",
+              "reference/imported/tcrf/Uniracers1.ogg": "unused-audio-reference",
+              "reference/imported/tcrf/Uniracers2.ogg": "unused-audio-reference",
+              "reference/imported/audio/Uniracers.sf2": "soundfont-reference",
+          }
+          by_path = {entry["path"]: entry for entry in manifest["entries"]}
+          for rel, category in additions.items():
+              p = root / rel
+              data = p.read_bytes()
+              entry = {
+                  "path": rel,
+                  "category": category,
+                  "size": len(data),
+                  "git_blob_sha1": subprocess.check_output(
+                      ["git", "hash-object", rel], text=True
+                  ).strip(),
+                  "external_sha256": hashlib.sha256(data).hexdigest(),
+                  "review_status": "preservation-only",
+              }
+              by_path[rel] = entry
+          manifest["entries"] = sorted(by_path.values(), key=lambda e: e["path"])
+          manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+
+      - name: Remove one-shot workflow and commit preserved evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/import-uniracers-unused-content.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reference/imported reference/notes/tcrf-unused-content.md .github/workflows/import-uniracers-unused-content.yml
+          git commit -m "reference: preserve Uniracers unused-content artifacts"
+          git push origin HEAD:main

@@ -91,13 +91,13 @@ def build():
 
 def render(r):
  lines=["# Race-message bridge BEB3 structural island","",
- "USA 81:BEB3..C0DC is a race-frame message/state bridge called from 83:CD61, ending immediately before the accepted stunt-message pipeline at 81:C0DD. It contains the long-entry wrapper and three bounded executable helpers.","",
+ "USA `81:BEB3..C0DC` is a race-frame message/state bridge called from `83:CD61`, ending immediately before the accepted stunt-message pipeline at `81:C0DD`. It contains the long-entry wrapper and three bounded executable helpers.","",
  "| Region | USA bytes | PAL prototype | Europe | Legacy beta |","|---|---:|---|---|---|"]
  for x in r["regions"]:
   def cell(b):
    q=x["builds"][b]; return f"{q['start']}..{q['end']} ({q['shift']:+d}; sim {q['similarity']:.3f}; op {q['opcode_bytes']}; other {q['unreached_or_data_bytes']})"
   lines.append(f"| {x['name']} | {x['size']} | {cell('pal-prototype-1994-11-29')} | {cell('europe-retail')} | {cell('legacy-beta')} |")
- lines += ["","The bridge exposes a paired P1/P2 handoff into the already-recovered stunt-message queue: mirrored state/ready flags and mirrored 16-byte payload buffers are updated before 81:C0DD consumes them.",""]
+ lines += ["","The bridge exposes a paired P1/P2 handoff into the already-recovered stunt-message queue: mirrored state/ready flags and mirrored 16-byte payload buffers are updated before `81:C0DD` consumes them.",""]
  return "\n".join(lines)
 
 def main():

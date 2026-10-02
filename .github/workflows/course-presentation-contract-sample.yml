@@ -1,0 +1,38 @@
+name: Course presentation contract sample
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/analyze_course_presentation_contract_sample.py"
+      - "tools/build_course_presentation_contract.py"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - ".github/workflows/course-presentation-contract-sample.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  sample:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate sampled course-family invariants
+        run: python3 tools/analyze_course_presentation_contract_sample.py
+      - name: Persist generated sample evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add analysis/generated/course-presentation-contract-sample.json
+          git add analysis/generated/course-presentation-contract-sample.md
+          if git diff --cached --quiet; then
+            echo "sample evidence already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Generate course presentation contract sample"
+          git fetch origin "$GITHUB_REF_NAME"
+          git rebase "origin/$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"

@@ -56,11 +56,11 @@ static void UrRestartProbeAfterRunFrame(const SnesDesktopHostFrameStats *stats) 
         if (++g_ur_restart_probe_count == kUrRestartProbeWindow) {
             if (!UrRestartProbeSave(
                     g_ur_restart_expected, &g_ur_restart_expected_len)) {
-                fprintf(stderr, "UR_RESTART_PROBE FAIL expected-capture\\n");
+                fprintf(stderr, "UR_RESTART_PROBE FAIL expected-capture\n");
                 g_ur_restart_probe_phase = 4;
             } else if (!RtlLoadSnapshotFromMemory(
                            g_ur_restart_anchor, g_ur_restart_anchor_len)) {
-                fprintf(stderr, "UR_RESTART_PROBE FAIL restore-refused\\n");
+                fprintf(stderr, "UR_RESTART_PROBE FAIL restore-refused\n");
                 g_ur_restart_probe_phase = 4;
             } else {
                 uint8_t *immediate = (uint8_t *)malloc(kUrRestartProbeCap);
@@ -73,10 +73,10 @@ static void UrRestartProbeAfterRunFrame(const SnesDesktopHostFrameStats *stats) 
                 free(immediate);
                 if (!immediate_ok) {
                     fprintf(stderr,
-                            "UR_RESTART_PROBE FAIL immediate-restore-mismatch\\n");
+                            "UR_RESTART_PROBE FAIL immediate-restore-mismatch\n");
                     g_ur_restart_probe_phase = 4;
                 } else {
-                    fprintf(stderr, "UR_RESTART_PROBE immediate_equal=1\\n");
+                    fprintf(stderr, "UR_RESTART_PROBE immediate_equal=1\n");
                     g_ur_restart_probe_count = 0;
                     g_ur_restart_probe_phase = 3;
                 }

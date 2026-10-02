@@ -94,17 +94,21 @@
     {
       "id": "race-loop-e580-control",
       "path": "analysis/generated/race-loop-e580-control-structure-island.json"
+    },
+    {
+      "id": "multiply-b668",
+      "path": "analysis/generated/multiply-b668-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 122,
-    "code_regions": 110,
+    "regions": 124,
+    "code_regions": 112,
     "data_regions": 12,
-    "bounded_bytes": 19133,
-    "bounded_code_region_bytes": 17700,
+    "bounded_bytes": 19172,
+    "bounded_code_region_bytes": 17739,
     "bounded_data_region_bytes": 1433,
-    "analyzer_opcode_bytes": 7499,
-    "analyzer_operand_bytes": 10086,
+    "analyzer_opcode_bytes": 7520,
+    "analyzer_operand_bytes": 10104,
     "analyzer_unreached_or_data_bytes": 1548,
     "banks": [
       "81",
@@ -2321,6 +2325,98 @@
           "shift": 0,
           "similarity": 1,
           "size": 115,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "multiply-b668",
+      "source_path": "analysis/generated/multiply-b668-structure-island.json",
+      "name": "long_entry_wrapper",
+      "kind": "code",
+      "usa_start": "81:B664",
+      "usa_end": "81:B667",
+      "size": 4,
+      "usa_opcode_bytes": 2,
+      "usa_operand_bytes": 2,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "usa-retail": {
+          "start": "81:B664",
+          "end": "81:B667",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 4,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:B644",
+          "end": "81:B647",
+          "shift": -32,
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0
+        },
+        "europe-retail": {
+          "start": "81:B655",
+          "end": "81:B658",
+          "shift": -15,
+          "similarity": 0.75,
+          "size": 4,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:B664",
+          "end": "81:B667",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 4,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "multiply-b668",
+      "source_path": "analysis/generated/multiply-b668-structure-island.json",
+      "name": "multiply_x_by_y",
+      "kind": "code",
+      "usa_start": "81:B668",
+      "usa_end": "81:B68A",
+      "size": 35,
+      "usa_opcode_bytes": 19,
+      "usa_operand_bytes": 16,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "usa-retail": {
+          "start": "81:B668",
+          "end": "81:B68A",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 35,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:B648",
+          "end": "81:B66A",
+          "shift": -32,
+          "similarity": 1.0,
+          "size": 35,
+          "size_delta": 0
+        },
+        "europe-retail": {
+          "start": "81:B659",
+          "end": "81:B67B",
+          "shift": -15,
+          "similarity": 1.0,
+          "size": 35,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:B668",
+          "end": "81:B68A",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 35,
           "size_delta": 0
         }
       }

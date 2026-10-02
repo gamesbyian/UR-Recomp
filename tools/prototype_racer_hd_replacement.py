@@ -135,6 +135,39 @@ def parse_hex(value: str) -> int:
     return int(value, 16)
 
 
+def normalized_guard_value(value):
+    if isinstance(value, str) and value.lower().startswith("0x"):
+        return int(value, 16)
+    return value
+
+
+def guards_match(expected: dict, live: dict) -> bool:
+    if set(expected) != set(live):
+        return False
+    return all(
+        normalized_guard_value(expected[key]) == normalized_guard_value(live[key])
+        for key in expected
+    )
+
+
+def select_representation(
+    registry: dict,
+    semantic_frame_id: str,
+    live_guards: dict,
+    replacement_enabled: bool,
+) -> tuple[str, dict | None]:
+    hits = [
+        x for x in registry["entries"]
+        if x["semantic_frame_id"].lower() == semantic_frame_id.lower()
+    ]
+    if not replacement_enabled or len(hits) != 1:
+        return "original", hits[0] if len(hits) == 1 else None
+    entry = hits[0]
+    if not guards_match(entry["composition_guards"], live_guards):
+        return "original", entry
+    return "remastered_candidate", entry
+
+
 def build_stock_rgba(rom: bytes, entry: dict) -> bytes:
     g = entry["composition_guards"]
     ids = {
@@ -214,7 +247,19 @@ def run(
     entry = load_entry(registry, semantic_frame_id)
     validate_against_assets(entry, assets)
 
-    authoritative_before = json.dumps(entry["composition_guards"], sort_keys=True)
+    live_guards = dict(entry["composition_guards"])
+    selected, selected_entry = select_representation(
+        registry, semantic_frame_id, live_guards, True
+    )
+    if selected != "remastered_candidate" or selected_entry is not entry:
+        raise AssertionError("exact registered state did not select replacement")
+    disabled_selected, _ = select_representation(
+        registry, semantic_frame_id, live_guards, False
+    )
+    if disabled_selected != "original":
+        raise AssertionError("disabled replacement did not select Original")
+
+    authoritative_before = json.dumps(live_guards, sort_keys=True)
     stock = build_stock_rgba(rom, entry)
     remastered, rw, rh = build_remastered_candidate(stock, entry)
     stock4 = nearest_rgba(stock, W, H, 4)
@@ -223,7 +268,7 @@ def run(
     remastered_display = flip_rgba(remastered, rw, rh, hflip, vflip)
     fallback_display = flip_rgba(stock4, W * 4, H * 4, hflip, vflip)
 
-    authoritative_after = json.dumps(entry["composition_guards"], sort_keys=True)
+    authoritative_after = json.dumps(live_guards, sort_keys=True)
     if authoritative_before != authoritative_after:
         raise AssertionError("prototype mutated semantic state")
 
@@ -252,6 +297,12 @@ def run(
         "representation_id": entry["representation_id"],
         "lookup_primary_key": registry["lookup"]["primary_key"],
         "composition_guards": entry["composition_guards"],
+        "selection": {
+            "enabled_exact_state": selected,
+            "disabled_exact_state": disabled_selected,
+            "mismatch_policy": "original",
+            "missing_registration_policy": "original"
+        },
         "authoritative_state_mutated": False,
         "orientation": {"hflip": hflip, "vflip": vflip, "applied_after_selection": True},
         "registration": entry["registration"],
@@ -280,6 +331,7 @@ def run(
             "whole_canvas_registration_preserved": True,
             "orientation_applied_post_selection": True,
             "fallback_exact": True,
+            "selector_fails_closed_to_original": True,
             "missing_registration_metadata": [
                 "explicit semantic pivot coordinate",
                 "explicit wheel/contact anchor coordinate"

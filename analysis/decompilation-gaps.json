@@ -225,6 +225,14 @@
       "summary": "Recovered a 329-byte race-frame support island consisting of a byte-identical 48-word step table at 83:EBE6..EC45 and a fully reached 233-byte mirrored coordinate/window update at 83:EC46..ED2E. The accepted race-frame orchestrator calls the code directly at 83:CD52. USA/beta are byte-identical; PAL prototype relocates the island by +36 and Europe by +72. All 107 aligned opcode positions match in each non-USA build with zero analyzer role disagreements.",
       "priority": "low",
       "next_evidence": "Promote higher-level gameplay semantics for $0D3F/$0D41 or the table only if a rendering, camera, HUD, or recomp implementation question requires it. Comparative structure work should continue at another unresolved frontier."
+    },
+    {
+      "id": "resolved-race-control-state-pair",
+      "kind": "resolved_structural_island",
+      "region": "USA 83:E066..E53F and homologs",
+      "summary": "Recovered the paired race-control/state routines called directly from the race-frame orchestrator at 83:CD3A and 83:CD32. The primary routine is 466 bytes at 83:E066..E237; the companion is 776 bytes at 83:E238..E53F. Both are fully analyzer-reached. USA/beta are byte-identical; PAL prototype preserves both at shift -10 and Europe at +28. Across the pair all 463 aligned opcode positions match in every non-USA build with zero analyzer role disagreements.",
+      "priority": "low",
+      "next_evidence": "Refine individual flag semantics only where needed by native race-control or multiplayer behavior. Structural work should move to another uncovered race-loop dependency."
     }
   ]
 }

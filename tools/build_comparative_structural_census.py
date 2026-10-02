@@ -12,6 +12,7 @@ DEFAULT_SOURCES = (
     ("racer-oam", "analysis/generated/racer-oam-structure-island.json", False),
     ("course-surface-sampler", "analysis/generated/course-surface-sampler-structure-island.json", False),
     ("race-frame-orchestrator", "analysis/generated/race-frame-orchestrator-structure-island.json", False),
+    ("race-control-state", "analysis/generated/race-control-state-e066-structure-island.json", False),
     ("checkpoint-finish", "analysis/generated/checkpoint-finish-structure-island.json", False),
     ("stunt-finalizer", "analysis/generated/stunt-finalizer-structure-island.json", False),
     ("stunt-message-pipeline", "analysis/generated/stunt-message-pipeline-structure-island.json", False),

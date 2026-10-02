@@ -115,6 +115,10 @@ class RacerPresentationRoundTripTests(unittest.TestCase):
             [cell["word_hex"] for cell in first_row[:6]],
             ["0x0100", "0x0200", "0xAA00", "0xBB00", "0x0500", "0x0600"],
         )
+        self.assertEqual(
+            [(cell["major_slot"], cell["minor_slot"]) for cell in first_row[:6]],
+            [(0, i) for i in range(6)],
+        )
         self.assertEqual(result["final_word_cursors"]["p1_primary"], 6)
         self.assertEqual(result["final_word_cursors"]["p1_companion"], 2)
         self.assertEqual(

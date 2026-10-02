@@ -178,6 +178,53 @@
         "sha256": "10dff325c7406d7d0010c1b9686df8c4aea35d5743f6e5c6c56ebb255a53889b"
       },
       "cpu_address": "97:D679",
+      "region_start": {
+        "16bit_pointer_contexts": [
+          {
+            "context_ascii_runs": [],
+            "context_hex": "00000000000000000000000000ff027b79ce00000000000000000000000200fd0031",
+            "context_start": 199157,
+            "context_start_hex": "0x0309F5",
+            "cpu_address": "86:8A05",
+            "file_offset": 199173,
+            "file_offset_hex": "0x030A05"
+          },
+          {
+            "context_ascii_runs": [],
+            "context_hex": "d508ef51402cca2aca28c224ca22ca2079ce544f93055272c2cb9fc25a137136024d",
+            "context_start": 808063,
+            "context_start_hex": "0x0C547F",
+            "cpu_address": "98:D48F",
+            "file_offset": 808079,
+            "file_offset_hex": "0x0C548F"
+          },
+          {
+            "context_ascii_runs": [],
+            "context_hex": "5fcc40e4482f83a65fe248e1ce03bd9d79ce08069f99f3e20881fdb40f40fbdde008",
+            "context_start": 821615,
+            "context_start_hex": "0x0C896F",
+            "cpu_address": "99:897F",
+            "file_offset": 821631,
+            "file_offset_hex": "0x0C897F"
+          },
+          {
+            "context_ascii_runs": [],
+            "context_hex": "240228022a022c440a465c8e0e0acb2c79ce1c82a3a6cbad6e56a6c80d1fe1f62705",
+            "context_start": 971943,
+            "context_start_hex": "0x0ED4A7",
+            "cpu_address": "9D:D4B7",
+            "file_offset": 971959,
+            "file_offset_hex": "0x0ED4B7"
+          }
+        ],
+        "24bit_pointer_contexts": [],
+        "all_printable_ascii": true,
+        "compatible_with_nine_0x100_groups": true,
+        "cpu_address": "97:CE79",
+        "file_offset": 773753,
+        "file_offset_hex": "0x0BCE79",
+        "size": 2304
+      },
       "reported_offset": 775801,
       "reported_offset_begins_printable_message_text": true,
       "reported_offset_hex": "0x0BD679",

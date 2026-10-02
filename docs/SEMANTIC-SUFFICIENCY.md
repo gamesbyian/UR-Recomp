@@ -14,9 +14,9 @@ Status values are `sufficient`, `partial`, `unknown`, or `not applicable`. `Suff
 | Sprite/OAM + active-display split-screen seam | sufficient | sufficient | partial | sufficient | Hard authentic-mode and Widescreen constraint |
 | Gameplay object activation / liveness | partial | partial | unknown | partial | **Highest-value unresolved Widescreen semantic** |
 | World preparation / VRAM streaming | partial | partial | partial | partial | Recover horizon from camera demand to prepared graphics |
-| Course spatial/resource model | sufficient at loader/runtime surfaces | partial | partial | partial | Build presentation-complete contract; defer editor-complete tail |
+| Course spatial/resource model | sufficient | sufficient for representative presentation questions | partial | sufficient on representative contract + sampled family invariants | **Presentation-sufficient; four header shapes preserve the same two-level spatial/resource contract** |
 | Frontend / principal progression | sufficient | sufficient for principal stock flow | partial | partial | Close finite save/load/progression acceptance only |
-| Original graphics / animation-state identity | partial | partial | unknown | partial | Parallel exact extraction/round-trip lane |
+| Original graphics / animation-state identity | sufficient for first racer family | sufficient for first racer family | partial | sufficient for first racer family | Phase E family expansion is unblocked; extend exact mappings on demand |
 | Toolchain / deterministic execution apparatus | sufficient | sufficient | sufficient | sufficient | Maintenance only |
 
 ## Evidence basis
@@ -29,20 +29,19 @@ Status values are `sufficient`, `partial`, `unknown`, or `not applicable`. `Suff
 
 **Preparation / streaming:** course loading and the camera/window work expose real VRAM-update construction and `$2116/$2118` emission, but the project cannot yet predict a general preparation horizon for additional horizontal visibility.
 
-**Course model:** all 45 RNC streams are independently decoded and CRC-validated. The active decoded payload, resource-list cursor, reusable resource descriptors, `A000/C000` materialization, sector-neighborhood gather, surface sampler and checkpoint/finish resource family are grounded. The missing piece for Widescreen is a neutral presentation-spatial contract, not a complete editor format.
+**Course model:** all 45 RNC streams are independently decoded and CRC-validated. Dragster now has a presentation-complete neutral contract: the header dimensions resolve to a 1024×16 grid of 64-unit sectors and a 65536×1024 world domain; a 16,384-entry u16 coarse table maps sectors to 32-byte fine records; each fine record maps 16×16 world cells through packed surface words to exact C000 slots, paired A000 blocks and owning tail resources. Resource `0x24` therefore has mechanically located checkpoint/finish-bearing cells in world space. `tools/build_course_presentation_contract.py` provides deterministic rectangle queries and preserves the map/landmark corpus as validation surfaces. Editor-complete packed-field naming remains intentionally deferred.
 
 **Progression:** principal 1P/VS/2P routes are deterministic. The medal matrix, medal values, derived unicycle tiers and checksum boundary are statically resolved and reconciled with recovered SRAM snapshots. The remaining acceptance gap is a real progression-changing save/load fixture, not generic SRAM archaeology.
 
-**Graphics / animation:** deterministic framebuffer/OAM evidence and historical source-pipeline evidence exist, but there is not yet a project-owned semantic asset manifest that maps authoritative animation state to extracted sprite/tile identities with an exact unchanged reconstruction regression.
+**Graphics / animation:** the retained ordinary-2P MesenCE fixture now binds persistent racer presentation IDs `$0FE9/$0FEB` to concrete frame identities `0x0540`, `0x0542`, `0x0544` and `0x057E`. `83:F296` resolves those IDs through the three-byte table at `20:8000`; `tools/extract_racer_presentation_family.py` extracts the exact table-bounded 30/34-byte packed presentation streams, losslessly reconstructs them, and resolves the fixture's player-color selectors to exact 32-byte BGR555 palette assets `0x06/0x07` loaded at CGRAM `$B0/$C0`. `analysis/generated/racer-presentation-family.json` is the compact semantic manifest/regression surface. Full meanings of every packed word inside the frame stream remain an on-demand extension, not a blocker for original asset identity.
 
 ## Highest-value next discriminators
 
 1. **Activation timeline:** use the cheapest deterministic fixture in which a known world object crosses the classic camera edge. Capture the first frames at which it exists, becomes behaviorally processed, enters preparation/update lists, is drawn, and becomes visible.
 2. **Preparation horizon:** in the same fixture, correlate camera/window edges with first VRAM/update-list membership. Prove one resource family before generalizing.
-3. **Presentation-complete course contract:** on one representative course, recover world extent, runtime resource/chunk placement, camera-visible resource ownership, and object/event placement well enough to predict what a wider viewport needs.
-4. **Tiny-margin Widescreen probe:** once those boundaries are interpretable, expose +8/+16/+24 source pixels and let the first failure choose the next semantic task.
-5. **Graphics round trip:** choose one small racer/presentation asset family, extract tiles/palette, reconstruct unchanged data exactly, and tie selected frame/tile identity to named runtime/OAM state.
-6. **Save/load progression acceptance:** create one real progression-changing run, persist it, reload it, and assert medal/tier/checksum state.
+3. **Tiny-margin Widescreen probe:** with Dragster's presentation spatial/resource contract now sufficient, expose +8/+16/+24 source pixels and let the first failure choose whether further course generalization is actually required.
+4. **Graphics round trip (closed for the first racer family):** the ordinary-race racer family now has deterministic semantic frame IDs, exact packed-stream and palette extraction, byte-identical reconstruction and a compact manifest. Extend to additional frame IDs or decode deeper packed-word/tile semantics only when an HD/native-rendering task requires them.
+5. **Save/load progression acceptance:** create one real progression-changing run, persist it, reload it, and assert medal/tier/checksum state.
 
 ## Promotion rules
 
@@ -50,7 +49,7 @@ Object activation becomes sufficient when at least one representative ordinary o
 
 Preparation/streaming becomes sufficient for the first Widescreen implementation when one representative scrolling scene can deliberately shift preparation earlier for a requested margin without changing authoritative simulation.
 
-The course model becomes presentation-sufficient when one representative course can answer: world extent relevant to camera travel, resource/chunk spatial placement, which resources own a visible region, where object/event cells sit relative to that region, and how those claims are validated at runtime.
+The course model is presentation-sufficient for current Widescreen work: Dragster answers world extent relevant to camera travel, resource/chunk spatial placement, which materialized resources own a queried world region, where checkpoint/finish-bearing cells sit relative to that region, and how those claims trace through runtime lookup/materialization. A four-course sample spanning `256×4`, `128×8`, `32×32`, and `16×64` confirms the same coarse-table, 32-byte fine-record, packed-slot, and 32:1 A000/C000 ownership invariants. Reopen course-format semantics only when a widened probe or another course violates this contract.
 
 Graphics/animation identity becomes sufficient for Phase E expansion when one animated family has deterministic extraction, unchanged reconstruction, semantic state/frame identity, and a compact regression.
 

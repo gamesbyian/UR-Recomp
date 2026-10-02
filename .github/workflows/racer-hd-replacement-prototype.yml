@@ -1,0 +1,64 @@
+name: Racer HD replacement prototype
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "analysis/data/racer-hd-replacement-prototype.json"
+      - "analysis/generated/racer-presentation-family.json"
+      - "tools/prototype_racer_hd_replacement.py"
+      - "tools/extract_racer_presentation_family.py"
+      - "tests/unit/test_racer_hd_replacement_prototype.py"
+      - ".github/workflows/racer-hd-replacement-prototype.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: racer-hd-replacement-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prototype:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Run focused unit tests
+        run: python3 -m unittest tests.unit.test_racer_hd_replacement_prototype -v
+      - name: Render semantic replacement prototype
+        run: |
+          python3 tools/prototype_racer_hd_replacement.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --semantic-frame-id 0x0541 \
+            --output-dir "$RUNNER_TEMP/racer-hd-prototype" \
+            > "$RUNNER_TEMP/racer-hd-prototype.json"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "racer-hd-prototype"
+          m = json.loads((root / "manifest.json").read_text())
+          assert m["semantic_frame_id"] == "0x0541"
+          assert m["authoritative_state_mutated"] is False
+          assert m["fallback"]["byte_exact_to_original_control"] is True
+          assert m["validation"]["whole_canvas_registration_preserved"] is True
+          assert m["validation"]["orientation_applied_post_selection"] is True
+          assert m["remastered_candidate"]["dimensions"] == [256, 256]
+          assert (root / m["original"]["comparison_png"]).is_file()
+          assert (root / m["remastered_candidate"]["png"]).is_file()
+          print(json.dumps(m["validation"], indent=2, sort_keys=True))
+          PY
+      - name: Upload compact visual proof
+        uses: actions/upload-artifact@v4
+        with:
+          name: racer-hd-replacement-prototype
+          path: |
+            ${{ runner.temp }}/racer-hd-prototype/manifest.json
+            ${{ runner.temp }}/racer-hd-prototype/original-control-4x.png
+            ${{ runner.temp }}/racer-hd-prototype/remastered-candidate-scale2x4.png
+            ${{ runner.temp }}/racer-hd-prototype/replacement-disabled-control.png
+          if-no-files-found: error

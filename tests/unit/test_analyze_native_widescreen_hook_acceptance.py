@@ -30,6 +30,42 @@ class NativeWidescreenHookAcceptanceTests(unittest.TestCase):
             self.assertTrue(r["accepted"])
             self.assertEqual(r["first_generalization_constraint"],"secondary-lane-capacity")
 
+    def test_accepts_one_final_live_payload_at_fixture_exit(self):
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td); dumps={}
+            for m in (0,8,16,24):
+                p=root/f"{m}.bin"; self.dump(p); dumps[m]=p
+            logs={
+                0:"",
+                8:(
+                    "URWS_PREP margin=8 edge=0D81 count=16\n"
+                    "URWS_CLEANUP margin=8\n"
+                    "URWS_PREP margin=8 edge=0D82 count=16\n"
+                ),
+                16:"URWS_LIMIT margin=16 required_extra_columns=2 stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n",
+                24:"URWS_LIMIT margin=24 required_extra_columns=3 stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n",
+            }
+            r=MOD.analyze(logs,dumps)
+            self.assertTrue(r["accepted"])
+            self.assertTrue(r["native_runtime"]["margin8_final_payload_live_at_exit"])
+            self.assertTrue(r["checks"]["margin8_cleanup_lifecycle_valid"])
+
+    def test_rejects_double_prepare_without_cleanup(self):
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td); dumps={}
+            for m in (0,8,16,24):
+                p=root/f"{m}.bin"; self.dump(p); dumps[m]=p
+            logs={
+                0:"",
+                8:(
+                    "URWS_PREP margin=8 edge=0D81 count=16\n"
+                    "URWS_PREP margin=8 edge=0D82 count=16\n"
+                ),
+                16:"URWS_LIMIT margin=16 required_extra_columns=2 stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n",
+                24:"URWS_LIMIT margin=24 required_extra_columns=3 stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n",
+            }
+            self.assertFalse(MOD.analyze(logs,dumps)["accepted"])
+
     def test_rejects_protected_state_change(self):
         with tempfile.TemporaryDirectory() as td:
             root=Path(td); dumps={}

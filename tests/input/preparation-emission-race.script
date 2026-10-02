@@ -1,4 +1,6 @@
-# Deterministic stock first-race route, then short camera-moving acceleration.
+# Deterministic stock first-race route, then dense camera-moving capture.
+# One guest-frame cadence is intentional: the prior nine-frame probe could miss
+# short-lived preparation/update-list episodes around tile/window crossings.
 until 009F == D7 3600
 wait 60
 press a 2
@@ -17,65 +19,726 @@ until 009F == 16 1200
 wait 60
 press a 2
 until 0313 == 01 1200
+wait 30
 dump prep-emission-000
-press right 9
+press right 1
+dump prep-emission-001
+press right 1
+dump prep-emission-002
+press right 1
+dump prep-emission-003
+press right 1
+dump prep-emission-004
+press right 1
+dump prep-emission-005
+press right 1
+dump prep-emission-006
+press right 1
+dump prep-emission-007
+press right 1
+dump prep-emission-008
+press right 1
+dump prep-emission-009
+press right 1
 dump prep-emission-010
-press right 9
+press right 1
+dump prep-emission-011
+press right 1
+dump prep-emission-012
+press right 1
+dump prep-emission-013
+press right 1
+dump prep-emission-014
+press right 1
+dump prep-emission-015
+press right 1
+dump prep-emission-016
+press right 1
+dump prep-emission-017
+press right 1
+dump prep-emission-018
+press right 1
+dump prep-emission-019
+press right 1
 dump prep-emission-020
-press right 9
+press right 1
+dump prep-emission-021
+press right 1
+dump prep-emission-022
+press right 1
+dump prep-emission-023
+press right 1
+dump prep-emission-024
+press right 1
+dump prep-emission-025
+press right 1
+dump prep-emission-026
+press right 1
+dump prep-emission-027
+press right 1
+dump prep-emission-028
+press right 1
+dump prep-emission-029
+press right 1
 dump prep-emission-030
-press right 9
+press right 1
+dump prep-emission-031
+press right 1
+dump prep-emission-032
+press right 1
+dump prep-emission-033
+press right 1
+dump prep-emission-034
+press right 1
+dump prep-emission-035
+press right 1
+dump prep-emission-036
+press right 1
+dump prep-emission-037
+press right 1
+dump prep-emission-038
+press right 1
+dump prep-emission-039
+press right 1
 dump prep-emission-040
-press right 9
+press right 1
+dump prep-emission-041
+press right 1
+dump prep-emission-042
+press right 1
+dump prep-emission-043
+press right 1
+dump prep-emission-044
+press right 1
+dump prep-emission-045
+press right 1
+dump prep-emission-046
+press right 1
+dump prep-emission-047
+press right 1
+dump prep-emission-048
+press right 1
+dump prep-emission-049
+press right 1
 dump prep-emission-050
-press right 9
+press right 1
+dump prep-emission-051
+press right 1
+dump prep-emission-052
+press right 1
+dump prep-emission-053
+press right 1
+dump prep-emission-054
+press right 1
+dump prep-emission-055
+press right 1
+dump prep-emission-056
+press right 1
+dump prep-emission-057
+press right 1
+dump prep-emission-058
+press right 1
+dump prep-emission-059
+press right 1
 dump prep-emission-060
-press right 9
+press right 1
+dump prep-emission-061
+press right 1
+dump prep-emission-062
+press right 1
+dump prep-emission-063
+press right 1
+dump prep-emission-064
+press right 1
+dump prep-emission-065
+press right 1
+dump prep-emission-066
+press right 1
+dump prep-emission-067
+press right 1
+dump prep-emission-068
+press right 1
+dump prep-emission-069
+press right 1
 dump prep-emission-070
-press right 9
+press right 1
+dump prep-emission-071
+press right 1
+dump prep-emission-072
+press right 1
+dump prep-emission-073
+press right 1
+dump prep-emission-074
+press right 1
+dump prep-emission-075
+press right 1
+dump prep-emission-076
+press right 1
+dump prep-emission-077
+press right 1
+dump prep-emission-078
+press right 1
+dump prep-emission-079
+press right 1
 dump prep-emission-080
-press right 9
+press right 1
+dump prep-emission-081
+press right 1
+dump prep-emission-082
+press right 1
+dump prep-emission-083
+press right 1
+dump prep-emission-084
+press right 1
+dump prep-emission-085
+press right 1
+dump prep-emission-086
+press right 1
+dump prep-emission-087
+press right 1
+dump prep-emission-088
+press right 1
+dump prep-emission-089
+press right 1
 dump prep-emission-090
-press right 9
+press right 1
+dump prep-emission-091
+press right 1
+dump prep-emission-092
+press right 1
+dump prep-emission-093
+press right 1
+dump prep-emission-094
+press right 1
+dump prep-emission-095
+press right 1
+dump prep-emission-096
+press right 1
+dump prep-emission-097
+press right 1
+dump prep-emission-098
+press right 1
+dump prep-emission-099
+press right 1
 dump prep-emission-100
-press right 9
+press right 1
+dump prep-emission-101
+press right 1
+dump prep-emission-102
+press right 1
+dump prep-emission-103
+press right 1
+dump prep-emission-104
+press right 1
+dump prep-emission-105
+press right 1
+dump prep-emission-106
+press right 1
+dump prep-emission-107
+press right 1
+dump prep-emission-108
+press right 1
+dump prep-emission-109
+press right 1
 dump prep-emission-110
-press right 9
+press right 1
+dump prep-emission-111
+press right 1
+dump prep-emission-112
+press right 1
+dump prep-emission-113
+press right 1
+dump prep-emission-114
+press right 1
+dump prep-emission-115
+press right 1
+dump prep-emission-116
+press right 1
+dump prep-emission-117
+press right 1
+dump prep-emission-118
+press right 1
+dump prep-emission-119
+press right 1
 dump prep-emission-120
-press right 9
+press right 1
+dump prep-emission-121
+press right 1
+dump prep-emission-122
+press right 1
+dump prep-emission-123
+press right 1
+dump prep-emission-124
+press right 1
+dump prep-emission-125
+press right 1
+dump prep-emission-126
+press right 1
+dump prep-emission-127
+press right 1
+dump prep-emission-128
+press right 1
+dump prep-emission-129
+press right 1
 dump prep-emission-130
-press right 9
+press right 1
+dump prep-emission-131
+press right 1
+dump prep-emission-132
+press right 1
+dump prep-emission-133
+press right 1
+dump prep-emission-134
+press right 1
+dump prep-emission-135
+press right 1
+dump prep-emission-136
+press right 1
+dump prep-emission-137
+press right 1
+dump prep-emission-138
+press right 1
+dump prep-emission-139
+press right 1
 dump prep-emission-140
-press right 9
+press right 1
+dump prep-emission-141
+press right 1
+dump prep-emission-142
+press right 1
+dump prep-emission-143
+press right 1
+dump prep-emission-144
+press right 1
+dump prep-emission-145
+press right 1
+dump prep-emission-146
+press right 1
+dump prep-emission-147
+press right 1
+dump prep-emission-148
+press right 1
+dump prep-emission-149
+press right 1
 dump prep-emission-150
-press right 9
+press right 1
+dump prep-emission-151
+press right 1
+dump prep-emission-152
+press right 1
+dump prep-emission-153
+press right 1
+dump prep-emission-154
+press right 1
+dump prep-emission-155
+press right 1
+dump prep-emission-156
+press right 1
+dump prep-emission-157
+press right 1
+dump prep-emission-158
+press right 1
+dump prep-emission-159
+press right 1
 dump prep-emission-160
-press right 9
+press right 1
+dump prep-emission-161
+press right 1
+dump prep-emission-162
+press right 1
+dump prep-emission-163
+press right 1
+dump prep-emission-164
+press right 1
+dump prep-emission-165
+press right 1
+dump prep-emission-166
+press right 1
+dump prep-emission-167
+press right 1
+dump prep-emission-168
+press right 1
+dump prep-emission-169
+press right 1
 dump prep-emission-170
-press right 9
+press right 1
+dump prep-emission-171
+press right 1
+dump prep-emission-172
+press right 1
+dump prep-emission-173
+press right 1
+dump prep-emission-174
+press right 1
+dump prep-emission-175
+press right 1
+dump prep-emission-176
+press right 1
+dump prep-emission-177
+press right 1
+dump prep-emission-178
+press right 1
+dump prep-emission-179
+press right 1
 dump prep-emission-180
-press right 9
+press right 1
+dump prep-emission-181
+press right 1
+dump prep-emission-182
+press right 1
+dump prep-emission-183
+press right 1
+dump prep-emission-184
+press right 1
+dump prep-emission-185
+press right 1
+dump prep-emission-186
+press right 1
+dump prep-emission-187
+press right 1
+dump prep-emission-188
+press right 1
+dump prep-emission-189
+press right 1
 dump prep-emission-190
-press right 9
+press right 1
+dump prep-emission-191
+press right 1
+dump prep-emission-192
+press right 1
+dump prep-emission-193
+press right 1
+dump prep-emission-194
+press right 1
+dump prep-emission-195
+press right 1
+dump prep-emission-196
+press right 1
+dump prep-emission-197
+press right 1
+dump prep-emission-198
+press right 1
+dump prep-emission-199
+press right 1
 dump prep-emission-200
-press right 9
+press right 1
+dump prep-emission-201
+press right 1
+dump prep-emission-202
+press right 1
+dump prep-emission-203
+press right 1
+dump prep-emission-204
+press right 1
+dump prep-emission-205
+press right 1
+dump prep-emission-206
+press right 1
+dump prep-emission-207
+press right 1
+dump prep-emission-208
+press right 1
+dump prep-emission-209
+press right 1
 dump prep-emission-210
-press right 9
+press right 1
+dump prep-emission-211
+press right 1
+dump prep-emission-212
+press right 1
+dump prep-emission-213
+press right 1
+dump prep-emission-214
+press right 1
+dump prep-emission-215
+press right 1
+dump prep-emission-216
+press right 1
+dump prep-emission-217
+press right 1
+dump prep-emission-218
+press right 1
+dump prep-emission-219
+press right 1
 dump prep-emission-220
-press right 9
+press right 1
+dump prep-emission-221
+press right 1
+dump prep-emission-222
+press right 1
+dump prep-emission-223
+press right 1
+dump prep-emission-224
+press right 1
+dump prep-emission-225
+press right 1
+dump prep-emission-226
+press right 1
+dump prep-emission-227
+press right 1
+dump prep-emission-228
+press right 1
+dump prep-emission-229
+press right 1
 dump prep-emission-230
-press right 9
+press right 1
+dump prep-emission-231
+press right 1
+dump prep-emission-232
+press right 1
+dump prep-emission-233
+press right 1
+dump prep-emission-234
+press right 1
+dump prep-emission-235
+press right 1
+dump prep-emission-236
+press right 1
+dump prep-emission-237
+press right 1
+dump prep-emission-238
+press right 1
+dump prep-emission-239
+press right 1
 dump prep-emission-240
-press right 9
+press right 1
+dump prep-emission-241
+press right 1
+dump prep-emission-242
+press right 1
+dump prep-emission-243
+press right 1
+dump prep-emission-244
+press right 1
+dump prep-emission-245
+press right 1
+dump prep-emission-246
+press right 1
+dump prep-emission-247
+press right 1
+dump prep-emission-248
+press right 1
+dump prep-emission-249
+press right 1
 dump prep-emission-250
-press right 9
+press right 1
+dump prep-emission-251
+press right 1
+dump prep-emission-252
+press right 1
+dump prep-emission-253
+press right 1
+dump prep-emission-254
+press right 1
+dump prep-emission-255
+press right 1
+dump prep-emission-256
+press right 1
+dump prep-emission-257
+press right 1
+dump prep-emission-258
+press right 1
+dump prep-emission-259
+press right 1
 dump prep-emission-260
-press right 9
+press right 1
+dump prep-emission-261
+press right 1
+dump prep-emission-262
+press right 1
+dump prep-emission-263
+press right 1
+dump prep-emission-264
+press right 1
+dump prep-emission-265
+press right 1
+dump prep-emission-266
+press right 1
+dump prep-emission-267
+press right 1
+dump prep-emission-268
+press right 1
+dump prep-emission-269
+press right 1
 dump prep-emission-270
-press right 9
+press right 1
+dump prep-emission-271
+press right 1
+dump prep-emission-272
+press right 1
+dump prep-emission-273
+press right 1
+dump prep-emission-274
+press right 1
+dump prep-emission-275
+press right 1
+dump prep-emission-276
+press right 1
+dump prep-emission-277
+press right 1
+dump prep-emission-278
+press right 1
+dump prep-emission-279
+press right 1
 dump prep-emission-280
-press right 9
+press right 1
+dump prep-emission-281
+press right 1
+dump prep-emission-282
+press right 1
+dump prep-emission-283
+press right 1
+dump prep-emission-284
+press right 1
+dump prep-emission-285
+press right 1
+dump prep-emission-286
+press right 1
+dump prep-emission-287
+press right 1
+dump prep-emission-288
+press right 1
+dump prep-emission-289
+press right 1
 dump prep-emission-290
-press right 9
+press right 1
+dump prep-emission-291
+press right 1
+dump prep-emission-292
+press right 1
+dump prep-emission-293
+press right 1
+dump prep-emission-294
+press right 1
+dump prep-emission-295
+press right 1
+dump prep-emission-296
+press right 1
+dump prep-emission-297
+press right 1
+dump prep-emission-298
+press right 1
+dump prep-emission-299
+press right 1
 dump prep-emission-300
+press right 1
+dump prep-emission-301
+press right 1
+dump prep-emission-302
+press right 1
+dump prep-emission-303
+press right 1
+dump prep-emission-304
+press right 1
+dump prep-emission-305
+press right 1
+dump prep-emission-306
+press right 1
+dump prep-emission-307
+press right 1
+dump prep-emission-308
+press right 1
+dump prep-emission-309
+press right 1
+dump prep-emission-310
+press right 1
+dump prep-emission-311
+press right 1
+dump prep-emission-312
+press right 1
+dump prep-emission-313
+press right 1
+dump prep-emission-314
+press right 1
+dump prep-emission-315
+press right 1
+dump prep-emission-316
+press right 1
+dump prep-emission-317
+press right 1
+dump prep-emission-318
+press right 1
+dump prep-emission-319
+press right 1
+dump prep-emission-320
+press right 1
+dump prep-emission-321
+press right 1
+dump prep-emission-322
+press right 1
+dump prep-emission-323
+press right 1
+dump prep-emission-324
+press right 1
+dump prep-emission-325
+press right 1
+dump prep-emission-326
+press right 1
+dump prep-emission-327
+press right 1
+dump prep-emission-328
+press right 1
+dump prep-emission-329
+press right 1
+dump prep-emission-330
+press right 1
+dump prep-emission-331
+press right 1
+dump prep-emission-332
+press right 1
+dump prep-emission-333
+press right 1
+dump prep-emission-334
+press right 1
+dump prep-emission-335
+press right 1
+dump prep-emission-336
+press right 1
+dump prep-emission-337
+press right 1
+dump prep-emission-338
+press right 1
+dump prep-emission-339
+press right 1
+dump prep-emission-340
+press right 1
+dump prep-emission-341
+press right 1
+dump prep-emission-342
+press right 1
+dump prep-emission-343
+press right 1
+dump prep-emission-344
+press right 1
+dump prep-emission-345
+press right 1
+dump prep-emission-346
+press right 1
+dump prep-emission-347
+press right 1
+dump prep-emission-348
+press right 1
+dump prep-emission-349
+press right 1
+dump prep-emission-350
+press right 1
+dump prep-emission-351
+press right 1
+dump prep-emission-352
+press right 1
+dump prep-emission-353
+press right 1
+dump prep-emission-354
+press right 1
+dump prep-emission-355
+press right 1
+dump prep-emission-356
+press right 1
+dump prep-emission-357
+press right 1
+dump prep-emission-358
+press right 1
+dump prep-emission-359
+press right 1
+dump prep-emission-360
 quit

@@ -76,6 +76,7 @@ def main() -> int:
     ap.add_argument("root", type=Path)
     ap.add_argument("--json-out", type=Path)
     ap.add_argument("--md-out", type=Path)
+    ap.add_argument("--unlimited-root", type=Path)
     args = ap.parse_args()
 
     rows = []

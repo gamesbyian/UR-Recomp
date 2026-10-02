@@ -123,5 +123,57 @@
   "sources": [
     "analysis/data/course-corpus.json",
     "analysis/generated/course-resource-list-manifest.json"
-  ]
+  ],
+  "cross_build_conservation": {
+    "builds": [
+      "usa-retail",
+      "europe-retail",
+      "legacy-beta",
+      "pal-prototype-1994-11-29"
+    ],
+    "exact_bundle_carrier_counts": {
+      "0x03-0x08": 43,
+      "0x09-0x0B": 42,
+      "0x01-0x02": 45,
+      "0x16-0x18": 39,
+      "0x24": 36
+    },
+    "note": "Carrier counts and ordering/adjacency behavior for these structural groups are preserved across all four builds."
+  },
+  "europe_retail_changed_course_resource_deltas": {
+    "known_changed_streams": [
+      4,
+      16,
+      20,
+      26,
+      27,
+      35,
+      36
+    ],
+    "unchanged_resource_lists": [
+      4,
+      16,
+      20,
+      27,
+      35
+    ],
+    "changed_resource_lists": [
+      {
+        "stream_index": 26,
+        "course": "Down+Up",
+        "change": "append resource 0x22"
+      },
+      {
+        "stream_index": 36,
+        "course": "Vertical",
+        "change": "append resource 0x22"
+      }
+    ],
+    "other_header_delta": {
+      "stream_index": 4,
+      "course": "Switcher",
+      "change": "spawn A Y 26 -> 22; dimensions and resource list unchanged"
+    },
+    "implication": "Most Europe-retail course payload changes are internal to course-local content rather than high-level resource selection."
+  }
 }

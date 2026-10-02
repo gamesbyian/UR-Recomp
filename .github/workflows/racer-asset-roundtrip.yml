@@ -9,6 +9,9 @@ on:
       - "tests/unit/test_extract_racer_presentation_family.py"
       - ".github/workflows/racer-asset-roundtrip.yml"
       - "tools/analyze_racer_piece_render_binding.py"
+      - "tools/analyze_racer_spatial_generalization.py"
+      - "tools/extract_racer_asset_roundtrip.py"
+      - "analysis/evidence/racer-presentation-observed-states.json"
 
 permissions:
   actions: read

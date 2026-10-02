@@ -7,6 +7,7 @@ from tools.extract_racer_presentation_family import (
     decode_bgr555,
     encode_png_rgba,
     packed_word_source,
+    parse_palette_assets,
     rasterize_frame_rgba,
     decode_frame_record,
     decode_piece_mapping,
@@ -79,6 +80,13 @@ class RacerPresentationRoundTripTests(unittest.TestCase):
         b = encode_png_rgba(2, 2, rgba)
         self.assertEqual(a, b)
         self.assertTrue(a.startswith(b"\x89PNG\r\n\x1a\n"))
+
+    def test_palette_asset_spec(self):
+        self.assertEqual(parse_palette_assets("0x06,0x15"), (0x06, 0x15))
+        self.assertEqual(parse_palette_assets("0x06,0x06"), (0x06,))
+        self.assertEqual(parse_palette_assets("all"), tuple(range(0x06, 0x16)))
+        with self.assertRaises(ValueError):
+            parse_palette_assets("0x16")
 
     def test_palette_entry_and_bgr555_roundtrip(self):
         rom = bytearray(0x20000)

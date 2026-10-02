@@ -10,7 +10,6 @@ on:
       - "tools/analyze_preparation_stream_trace.py"
       - "tools/analyze_preparation_emission_probe.py"
       - "tools/analyze_preparation_ppu_pc_trace.py"
-      - "tools/analyze_active_vram_scroll_emitter_static.py"
       - "tools/instrument_snesref_stream_queue_trace.py"
       - "tools/analyze_stream_queue_trace.py"
       - "tools/instrument_snesref_ppu_pc_trace.py"
@@ -21,7 +20,6 @@ on:
       - "tools/analyze_preparation_stream_trace.py"
       - "tools/analyze_preparation_emission_probe.py"
       - "tools/analyze_preparation_ppu_pc_trace.py"
-      - "tools/analyze_active_vram_scroll_emitter_static.py"
       - "tools/instrument_snesref_stream_queue_trace.py"
       - "tools/analyze_stream_queue_trace.py"
       - "tools/instrument_snesref_ppu_pc_trace.py"
@@ -104,15 +102,8 @@ jobs:
             --json-out analysis/generated/preparation-emission-probe.json \
             --md-out analysis/generated/preparation-emission-probe.md
 
-      - name: Bound active VRAM scroll emitter statically
-        if: steps.discover.outcome != 'success'
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 tools/analyze_active_vram_scroll_emitter_static.py
-
       - name: Instrument active race streaming queue
-        if: steps.discover.outcome != 'success'
+        if: always() && steps.discover.outcome != 'success'
         shell: bash
         run: |
           set -euo pipefail
@@ -120,7 +111,7 @@ jobs:
           python3 tools/instrument_snesref_stream_queue_trace.py "$CORE/cpuexec.cpp"
 
       - name: Instrument active CPU-direct VRAM emitter
-        if: steps.discover.outcome != 'success'
+        if: always() && steps.discover.outcome != 'success'
         shell: bash
         run: |
           set -euo pipefail
@@ -130,7 +121,7 @@ jobs:
           test -f "$CORE/libretro/snes9x_libretro.so"
 
       - name: Trace active CPU-direct VRAM emitter
-        if: steps.discover.outcome != 'success'
+        if: always() && steps.discover.outcome != 'success'
         shell: bash
         run: |
           set -euo pipefail
@@ -164,8 +155,6 @@ jobs:
             analysis/generated/preparation-emission-probe.md
             analysis/generated/preparation-ppu-pc-trace.json
             analysis/generated/preparation-ppu-pc-trace.md
-            analysis/generated/active-vram-scroll-emitter-static.json
-            analysis/generated/active-vram-scroll-emitter-static.md
             analysis/generated/stream-queue-trace.json
             analysis/generated/stream-queue-trace.md
             ${{ runner.temp }}/preparation-discovery/run.log

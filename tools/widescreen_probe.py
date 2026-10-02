@@ -15,8 +15,6 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_POLICY = ROOT / "analysis" / "widescreen-policy.yml"
 
-_LIST_RE = re.compile(r"^\\s+- (.+)$")
-_ID_RE = re.compile(r"^\\s+- id: (.+)$")
 _MARGINS_RE = re.compile(r"^  source_pixel_margins: \[(.*)\]$")
 
 
@@ -46,21 +44,21 @@ def load_policy(path: Path) -> dict[str, Any]:
                 section = "probe_artifact_classes"
                 continue
         elif section == "probe_artifact_classes":
-            m = _LIST_RE.match(line)
-            if m:
-                artifact_classes.append(m.group(1).strip().strip('"'))
+            stripped = line.strip()
+            if stripped.startswith("- "):
+                artifact_classes.append(stripped[2:].strip().strip('"'))
                 continue
             if line.startswith("  ") and not line.startswith("    "):
                 section = "probe"
 
         if section == "aspect_policies":
-            m = _ID_RE.match(line)
-            if m:
-                aspect_policies.append(m.group(1).strip().strip('"'))
+            stripped = line.strip()
+            if stripped.startswith("- id: "):
+                aspect_policies.append(stripped[len("- id: "):].strip().strip('"'))
         elif section == "scenes":
-            m = _ID_RE.match(line)
-            if m:
-                scenes.append(m.group(1).strip().strip('"'))
+            stripped = line.strip()
+            if stripped.startswith("- id: "):
+                scenes.append(stripped[len("- id: "):].strip().strip('"'))
 
     if not margins:
         raise ValueError(f"{path}: source_pixel_margins not found")

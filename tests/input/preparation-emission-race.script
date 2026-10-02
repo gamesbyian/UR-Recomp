@@ -1,0 +1,81 @@
+# Deterministic stock first-race route, then short camera-moving acceleration.
+until 009F == D7 3600
+wait 60
+press a 2
+until 009F == 3C 1200
+wait 60
+press a 2
+until 009F == 6D 1200
+wait 60
+press a 2
+until 009F == F6 1200
+wait 60
+press a 2
+until 009F != F6 1200
+wait 60
+until 009F == 16 1200
+wait 60
+press a 2
+until 0313 == 01 1200
+dump prep-emission-000
+press right 9
+dump prep-emission-010
+press right 9
+dump prep-emission-020
+press right 9
+dump prep-emission-030
+press right 9
+dump prep-emission-040
+press right 9
+dump prep-emission-050
+press right 9
+dump prep-emission-060
+press right 9
+dump prep-emission-070
+press right 9
+dump prep-emission-080
+press right 9
+dump prep-emission-090
+press right 9
+dump prep-emission-100
+press right 9
+dump prep-emission-110
+press right 9
+dump prep-emission-120
+press right 9
+dump prep-emission-130
+press right 9
+dump prep-emission-140
+press right 9
+dump prep-emission-150
+press right 9
+dump prep-emission-160
+press right 9
+dump prep-emission-170
+press right 9
+dump prep-emission-180
+press right 9
+dump prep-emission-190
+press right 9
+dump prep-emission-200
+press right 9
+dump prep-emission-210
+press right 9
+dump prep-emission-220
+press right 9
+dump prep-emission-230
+press right 9
+dump prep-emission-240
+press right 9
+dump prep-emission-250
+press right 9
+dump prep-emission-260
+press right 9
+dump prep-emission-270
+press right 9
+dump prep-emission-280
+press right 9
+dump prep-emission-290
+press right 9
+dump prep-emission-300
+quit

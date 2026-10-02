@@ -38,10 +38,14 @@ def horiz(row):
 def sig(d):
     return (d["vram"],d["size"],d["vmain"],d["payload_hex"])
 
-def ring_next(dest: int) -> int | None:
-    if not (0x0D80 <= dest <= 0x0D9F):
-        return None
-    return 0x0D80 + ((dest-0x0D80+1)&0x1f)
+def ring_next(dest: int) -> int:
+    """Advance one tilemap column while preserving the current 32-word row page.
+
+    VMAIN=$81 walks vertically from this starting word, so horizontal adjacency
+    is encoded in the low five bits. The retained $0D9F->$0D80 wrap is one
+    instance of this general rule, not a globally fixed $0D80..$0D9F range.
+    """
+    return (dest & ~0x1F) | ((dest + 1) & 0x1F)
 
 def longest_run(frames: list[int]) -> int:
     if not frames:

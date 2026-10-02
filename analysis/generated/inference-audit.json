@@ -1,0 +1,375 @@
+{
+  "schema_version": 1,
+  "scope": "initial derive-first audit over consolidated course/state/code/presentation evidence",
+  "summary": {
+    "course_count": 45,
+    "dimension_family_count": 6,
+    "course_tail_relation_exact": true,
+    "normalized_header_product": 1024,
+    "derived_coarse_entry_count": 16384,
+    "derived_world_area_square_units": 67108864,
+    "universal_resource_ids": [
+      1,
+      2
+    ],
+    "presentation_frame_container_relation_exact": true
+  },
+  "findings": [
+    {
+      "id": "IA-C01",
+      "class": "strong_prediction",
+      "title": "Fixed-area course canvas family",
+      "result": "All 45 normalized headers have product 1024. Applying the promoted 4x coarse-grid / 256x world transform yields 16,384 coarse sectors and 67,108,864 square world units for every course.",
+      "evidence": [
+        "analysis/data/course-corpus.json",
+        "analysis/generated/course-presentation-contract-sample.json"
+      ],
+      "falsifier": "Any direct runtime/materialization check on an unsampled course that violates the promoted transform.",
+      "next_action": "Use the six-shape representative set before attempting corpus-wide runtime validation."
+    },
+    {
+      "id": "IA-C02",
+      "class": "derived_invariant",
+      "title": "Resource cursor is the resource-list start",
+      "result": {
+        "courses_checked": 45,
+        "equations": [
+          "decoded_size - resource_cursor_initial = resource_count + 2",
+          "resource_terminator_offset = resource_cursor_initial + resource_count",
+          "exactly one byte follows the terminator"
+        ]
+      },
+      "evidence": [
+        "analysis/data/course-corpus.json",
+        "analysis/generated/course-resource-list-manifest.json"
+      ],
+      "falsifier": "A canonical stream violating any equation.",
+      "next_action": "Promote the field to resource-list start/boundary semantics; leave the post-terminator byte separately unnamed."
+    },
+    {
+      "id": "IA-C03",
+      "class": "derived_invariant",
+      "title": "Only six course dimension families occur",
+      "result": {
+        "256x4": 4,
+        "128x8": 3,
+        "64x16": 22,
+        "32x32": 11,
+        "16x64": 4,
+        "4x256": 1
+      },
+      "evidence": [
+        "analysis/data/course-corpus.json"
+      ],
+      "falsifier": "A canonical decoded stream with another normalized dimension pair.",
+      "next_action": "Use one representative per family for geometry-sensitive validation."
+    },
+    {
+      "id": "IA-C04",
+      "class": "derived_invariant",
+      "title": "Track-kind resource scaffolds",
+      "result": {
+        "race-a": [
+          1,
+          2
+        ],
+        "circuit-a": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "stunt": [
+          1
+        ],
+        "race-b": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "circuit-b": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      },
+      "evidence": [
+        "analysis/data/course-corpus.json"
+      ],
+      "falsifier": "A canonical course of the same track kind violating its exact common prefix.",
+      "next_action": "Treat the stable prefix as a base-resource scaffold candidate; do not assign resource semantics from order alone."
+    },
+    {
+      "id": "IA-C05",
+      "class": "derived_invariant",
+      "title": "Universal resource core",
+      "result": {
+        "resource_ids_present_in_all_45": [
+          1,
+          2
+        ],
+        "resource_1_first_in_all_45": true,
+        "exception_to_resource_2_second": "Circle places resource 18 second and resource 2 third"
+      },
+      "evidence": [
+        "analysis/data/course-corpus.json"
+      ],
+      "falsifier": "A canonical course missing resource 1 or 2.",
+      "next_action": "Prioritize resources 1 and 2 as cross-course semantic anchors."
+    },
+    {
+      "id": "IA-C06",
+      "class": "negative_result",
+      "title": "Compression and resource count do not classify track kind",
+      "result": {
+        "stunt_compression_range": [
+          0.02073065,
+          0.10403897
+        ],
+        "non_stunt_compression_range": [
+          0.01091232,
+          0.20668972
+        ],
+        "stunt_resource_count_range": [
+          9,
+          20
+        ],
+        "non_stunt_resource_count_range": [
+          6,
+          35
+        ],
+        "notable_counterexample": "Dragster has the lowest compression ratio in the entire corpus."
+      },
+      "evidence": [
+        "analysis/data/course-corpus.json"
+      ],
+      "next_action": "Do not use RNC compression ratio, decoded size, or resource count alone as semantic classifiers."
+    },
+    {
+      "id": "IA-C07",
+      "class": "derived_selection",
+      "title": "Minimal geometry stress corpus",
+      "result": {
+        "policy": "Keep Dragster as the instrumented 256x4 baseline; for each other dimension family choose the highest-resource-count representative.",
+        "courses": [
+          {
+            "course": "Dragster",
+            "stream_index": 1,
+            "dims": [
+              256,
+              4
+            ],
+            "resource_count": 6
+          },
+          {
+            "course": "Loopback",
+            "stream_index": 9,
+            "dims": [
+              128,
+              8
+            ],
+            "resource_count": 35
+          },
+          {
+            "course": "Marathon",
+            "stream_index": 17,
+            "dims": [
+              64,
+              16
+            ],
+            "resource_count": 34
+          },
+          {
+            "course": "Highroad",
+            "stream_index": 27,
+            "dims": [
+              32,
+              32
+            ],
+            "resource_count": 30
+          },
+          {
+            "course": "Vertical",
+            "stream_index": 36,
+            "dims": [
+              16,
+              64
+            ],
+            "resource_count": 33
+          },
+          {
+            "course": "Little Dipper",
+            "stream_index": 38,
+            "dims": [
+              4,
+              256
+            ],
+            "resource_count": 19
+          }
+        ],
+        "optional_complexity_extreme": {
+          "course": "Griller",
+          "stream_index": 41,
+          "decoded_size": 65354,
+          "compression_ratio": 0.20668972
+        }
+      },
+      "evidence": [
+        "analysis/data/course-corpus.json"
+      ],
+      "next_action": "Use this set for first cross-shape presentation/geometry generalization."
+    },
+    {
+      "id": "IA-S01",
+      "class": "derived_invariant",
+      "title": "Regional racer slot spacing is preserved",
+      "result": {
+        "usa-retail": {
+          "persistent_x_to_y_delta": 4,
+          "working_x_to_y_delta": 2,
+          "boost_persistent_minus_working": 2
+        },
+        "pal-prototype-1994-11-29": {
+          "persistent_x_to_y_delta": 4,
+          "working_x_to_y_delta": 2,
+          "boost_persistent_minus_working": 2
+        },
+        "europe-retail": {
+          "persistent_x_to_y_delta": 4,
+          "working_x_to_y_delta": 2,
+          "boost_persistent_minus_working": 2
+        }
+      },
+      "evidence": [
+        "analysis/data/state-schema.json",
+        "analysis/generated/regional-racer-state-relations.json"
+      ],
+      "falsifier": "A recovered homolog relation contradicting the repeated spacing.",
+      "next_action": "Use these deltas as search constraints for adjacent unnamed racer-state relations without naming them from spacing alone."
+    },
+    {
+      "id": "IA-K01",
+      "class": "derived_invariant",
+      "title": "Low-bank symbol mirrors must canonicalize to CPU banks for joins",
+      "result": {
+        "rule": "00-3F ROM code symbols canonicalize to 80-BF mirror banks before structural-census joining",
+        "joined_named_functions_after_normalization": 4,
+        "named_functions_with_cross_build_correspondence": 4
+      },
+      "evidence": [
+        "analysis/data/code-semantics.json",
+        "analysis/generated/symbols.json",
+        "analysis/generated/comparative-structural-census.json"
+      ],
+      "next_action": "Keep canonical code-address normalization in all future cross-source tooling."
+    },
+    {
+      "id": "IA-P01",
+      "class": "derived_invariant",
+      "title": "Observed racer presentation records share one container equation",
+      "result": {
+        "observed_frames": 4,
+        "equation": "record_length = 4 + 2 * packed_word_count",
+        "holds_for_all_observed_frames": true
+      },
+      "evidence": [
+        "analysis/data/presentation-assets.json",
+        "analysis/generated/racer-presentation-family.json"
+      ],
+      "falsifier": "A newly recovered frame in the same family violating the equation.",
+      "next_action": "Use the 4-byte header plus u16-word boundary as a fixed constraint for differential packed-word decoding."
+    }
+  ],
+  "deferred": [
+    {
+      "phase": "renderer/preparation synthesis",
+      "owner": "PR #203",
+      "reason": "Active preparation/emission lane; avoid duplicate investigation."
+    },
+    {
+      "phase": "+8 host composition",
+      "owner": "PR #206",
+      "reason": "Active composition-edge lane; avoid duplicate investigation."
+    },
+    {
+      "phase": "progression prediction",
+      "reason": "Useful but not prerequisite to the first course/state inference pass; normalize after the active progression acceptance lane changes evidence."
+    }
+  ],
+  "stress_corpus": [
+    {
+      "course": "Dragster",
+      "stream_index": 1,
+      "dims": [
+        256,
+        4
+      ],
+      "resource_count": 6
+    },
+    {
+      "course": "Loopback",
+      "stream_index": 9,
+      "dims": [
+        128,
+        8
+      ],
+      "resource_count": 35
+    },
+    {
+      "course": "Marathon",
+      "stream_index": 17,
+      "dims": [
+        64,
+        16
+      ],
+      "resource_count": 34
+    },
+    {
+      "course": "Highroad",
+      "stream_index": 27,
+      "dims": [
+        32,
+        32
+      ],
+      "resource_count": 30
+    },
+    {
+      "course": "Vertical",
+      "stream_index": 36,
+      "dims": [
+        16,
+        64
+      ],
+      "resource_count": 33
+    },
+    {
+      "course": "Little Dipper",
+      "stream_index": 38,
+      "dims": [
+        4,
+        256
+      ],
+      "resource_count": 19
+    }
+  ]
+}

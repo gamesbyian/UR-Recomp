@@ -113,11 +113,11 @@ Current interpretation, with confidence separated:
 The provisional stream-to-name mapping is recorded in `reference/notes/course-order-and-stunt-timer.md`. Under that mapping, the seven PAL-retail content changes correspond to stream candidates:
 
 - 4 Crawler / Switcher
-- 16 Hopper / Wario Paint
-- 20 Hopper / Hairpin Hill
-- 26 Bounder / Last One
-- 27 Bounder / Marathon
-- 35 Runner / Fire Escape
+- 16 Bounder / Last One
+- 20 Bounder / Jumpover
+- 26 Runner / Down+Up
+- 27 Runner / Highroad
+- 35 Hopper / Hairpin Hill
 - 36 Sprinter / Vertical
 
 Those names remain provisional until a runtime course-load trace or an in-ROM selector independently confirms stream ordinal identity.
@@ -499,3 +499,19 @@ This falsifies the tempting corpus-wide “size minus eight” interpretation, b
 A deterministic second-tour route is now encoded in `tests/input/course-load-timeline-tour2.script`. It selects tour index 2 by moving the recovered tour-menu selection from `selectedOption=0` to `selectedOption=2`, then reuses the proven course-load timeline. The corresponding runtime workflow focuses stream 11 and persists `analysis/generated/course-runtime-tour2-tail-cursor.json` with the decoded cursor, live cursor, trailer length and whether the live cursor reaches EOF−1.
 
 Until that capture lands, “variable trailer cursor” remains a testable hypothesis rather than a field name.
+
+
+### Cross-corpus spawn-pair strengthening — 2026-10-02
+
+The corrected 45-course identity map plus Dessyreqt landmarks strengthens the two header coordinate pairs substantially.
+
+For Dragster, dense loader evidence already proves both header pairs `(68,50)` initialize the two racer slots to `(1088,800)`, exactly ×16 in both axes.
+
+Across the full course corpus:
+
+- all 36 non-stunt courses have equal A/B X coordinates;
+- non-stunt A/B Y coordinates are either equal or differ by small offsets;
+- four stunt courses use distinct A/B X coordinates;
+- historical start X matches header pair A.x ×16 on 43/45 courses.
+
+The strongest current interpretation is therefore that decoded offsets 3/5 and 7/9 are the two racer spawn coordinate pairs, with pair-to-player assignment still requiring one unequal-pair runtime discriminator. Keep Zoom Zoo and Jumps as explicit historical-coordinate exceptions rather than weakening the broader relation.

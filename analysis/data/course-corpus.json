@@ -1,0 +1,4359 @@
+{
+  "schema_version": 1,
+  "generated_by": "tools/build_consolidated_knowledge.py",
+  "purpose": "Normalized one-record-per-course query surface.",
+  "courses": [
+    {
+      "id": "course:01",
+      "stream_index": 1,
+      "name": "Dragster",
+      "name_status": "cross_source_reconciled",
+      "tour": "Crawler",
+      "tour_index": 1,
+      "tour_slot": 1,
+      "track_kind": "race-a",
+      "rom": {
+        "offset": 786432,
+        "packed_size": 369,
+        "decoded_size": 33815,
+        "packed_sha256": "eed0a0bfed5684152ca0d2f2a8c352d2b1f1e763d3edf093dfc4b3094501f5e3",
+        "decoded_sha256": "8f5cef67dc57977af8ff614b8178514a26e9fe0059e02ed27aad5978185580d4",
+        "compression_ratio": 0.01091232
+      },
+      "header": {
+        "layout_dims": [
+          256,
+          4
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          68,
+          50
+        ],
+        "spawn_or_landmark_b": [
+          68,
+          50
+        ],
+        "resource_cursor_initial": 33807
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          1024,
+          16
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          65536,
+          1024
+        ],
+        "aspect_ratio": 64
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          20,
+          36,
+          22,
+          24
+        ],
+        "count": 6,
+        "terminator_offset": 33813,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 8
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "presentation_contract_sample": {
+        "status": "static_proven",
+        "fine_record_count": 32,
+        "resource_count": 6,
+        "c000_total": 20,
+        "a000_total": 640,
+        "normal_surface_word_count": 116,
+        "checks": {
+          "header_product_1024": true,
+          "runtime_coarse_entries_16384": true,
+          "coarse_table_exactly_0x8000": true,
+          "fine_region_32_byte_aligned": true,
+          "coarse_record_refs_in_range": true,
+          "normal_surface_slots_in_materialized_range": true,
+          "a000_is_32_bytes_per_c000_slot": true
+        },
+        "source": "analysis/generated/course-presentation-contract-sample.json"
+      },
+      "runtime_landmarks": {
+        "spawn_world": [
+          1088,
+          800
+        ],
+        "historical_finish_x_probe": 25278,
+        "source": "analysis/generated/dragster-presentation-spatial-contract.json"
+      },
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 0,
+        "start_x": 1088,
+        "finish_x": 25278,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:02",
+      "stream_index": 2,
+      "name": "Zoom Zoo",
+      "name_status": "cross_source_reconciled",
+      "tour": "Crawler",
+      "tour_index": 1,
+      "tour_slot": 2,
+      "track_kind": "circuit-a",
+      "rom": {
+        "offset": 786819,
+        "packed_size": 6581,
+        "decoded_size": 50665,
+        "packed_sha256": "3a8b470c673d0db36bc842f16b61b5a72575fac002c09e795112d747ea940646",
+        "decoded_sha256": "db6770152e399f9d16fc6937b5d56588a8f67e825ae70d6578b77d36053fdd28",
+        "compression_ratio": 0.12989243
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          575,
+          93
+        ],
+        "spawn_or_landmark_b": [
+          575,
+          93
+        ],
+        "resource_cursor_initial": 50639
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          30,
+          13,
+          15,
+          14,
+          16,
+          22,
+          24,
+          20,
+          13,
+          36,
+          29,
+          17
+        ],
+        "count": 24,
+        "terminator_offset": 50663,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 26
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 1,
+        "start_x": 8961,
+        "finish_x": 8881,
+        "start_matches_header_a_x16": false,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:03",
+      "stream_index": 3,
+      "name": "Bowl",
+      "name_status": "cross_source_reconciled",
+      "tour": "Crawler",
+      "tour_index": 1,
+      "tour_slot": 3,
+      "track_kind": "stunt",
+      "rom": {
+        "offset": 793418,
+        "packed_size": 1314,
+        "decoded_size": 35810,
+        "packed_sha256": "38555f6ddd7b317996ba761bdd1a748f3435806046e7cba6cc30536f0da0b111",
+        "decoded_sha256": "09b580858db72b03da0a54203b51383215efcad95dbffc408a8b8620446c8400",
+        "compression_ratio": 0.03669366
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 45,
+        "spawn_or_landmark_a": [
+          361,
+          89
+        ],
+        "spawn_or_landmark_b": [
+          323,
+          90
+        ],
+        "resource_cursor_initial": 35791
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          19,
+          34,
+          25,
+          29,
+          13
+        ],
+        "count": 17,
+        "terminator_offset": 35808,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 19
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 2,
+        "start_x": 5776,
+        "finish_x": 5776,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:04",
+      "stream_index": 4,
+      "name": "Switcher",
+      "name_status": "cross_source_reconciled",
+      "tour": "Crawler",
+      "tour_index": 1,
+      "tour_slot": 4,
+      "track_kind": "race-b",
+      "rom": {
+        "offset": 794750,
+        "packed_size": 9802,
+        "decoded_size": 62789,
+        "packed_sha256": "769deab2af638f3775c909f3fad896e84f34bbe8d0958c8d78aff1da1347326d",
+        "decoded_sha256": "520311b963be9c90229001f7e097286d3592855a767acad8797a9749e44ef24f",
+        "compression_ratio": 0.15611015
+      },
+      "header": {
+        "layout_dims": [
+          256,
+          4
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          99,
+          26
+        ],
+        "spawn_or_landmark_b": [
+          99,
+          34
+        ],
+        "resource_cursor_initial": 62767
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          1024,
+          16
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          65536,
+          1024
+        ],
+        "aspect_ratio": 64
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          13,
+          15,
+          14,
+          22,
+          24,
+          23,
+          26,
+          20,
+          36
+        ],
+        "count": 20,
+        "terminator_offset": 62787,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 22
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 3,
+        "start_x": 1584,
+        "finish_x": 63062,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:05",
+      "stream_index": 5,
+      "name": "Monster",
+      "name_status": "cross_source_reconciled",
+      "tour": "Crawler",
+      "tour_index": 1,
+      "tour_slot": 5,
+      "track_kind": "circuit-b",
+      "rom": {
+        "offset": 804570,
+        "packed_size": 7950,
+        "decoded_size": 52234,
+        "packed_sha256": "f1a2b719fca6881609264462b5220a3f92cb0898dde7b3d7dce461d01549332f",
+        "decoded_sha256": "4c05e160bf29160650eea327edfec640de42604b67208db798f4fbaef9a36cbb",
+        "compression_ratio": 0.15219972
+      },
+      "header": {
+        "layout_dims": [
+          32,
+          32
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          290,
+          26
+        ],
+        "spawn_or_landmark_b": [
+          290,
+          28
+        ],
+        "resource_cursor_initial": 52207
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          128,
+          128
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          8192,
+          8192
+        ],
+        "aspect_ratio": 1
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          30,
+          15,
+          22,
+          24,
+          25,
+          19,
+          29,
+          17,
+          13,
+          36,
+          20,
+          12,
+          34
+        ],
+        "count": 25,
+        "terminator_offset": 52232,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 27
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "presentation_contract_sample": {
+        "status": "static_proven",
+        "fine_record_count": 607,
+        "resource_count": 25,
+        "c000_total": 199,
+        "a000_total": 6368,
+        "normal_surface_word_count": 2622,
+        "checks": {
+          "header_product_1024": true,
+          "runtime_coarse_entries_16384": true,
+          "coarse_table_exactly_0x8000": true,
+          "fine_region_32_byte_aligned": true,
+          "coarse_record_refs_in_range": true,
+          "normal_surface_slots_in_materialized_range": true,
+          "a000_is_32_bytes_per_c000_slot": true
+        },
+        "source": "analysis/generated/course-presentation-contract-sample.json"
+      },
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 4,
+        "start_x": 4640,
+        "finish_x": 4719,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:06",
+      "stream_index": 6,
+      "name": "Wobble",
+      "name_status": "cross_source_reconciled",
+      "tour": "Jumper",
+      "tour_index": 2,
+      "tour_slot": 1,
+      "track_kind": "race-a",
+      "rom": {
+        "offset": 812538,
+        "packed_size": 6299,
+        "decoded_size": 47619,
+        "packed_sha256": "e13a791640254947bc51a485e6c6afbea9e340d7aadd26a0c6d966d6c457c535",
+        "decoded_sha256": "24d5b6163c456da21a8027f6cbd3fbcf87ad54726b96d4159cf180d215431924",
+        "compression_ratio": 0.13227913
+      },
+      "header": {
+        "layout_dims": [
+          16,
+          64
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          142,
+          32
+        ],
+        "spawn_or_landmark_b": [
+          142,
+          30
+        ],
+        "resource_cursor_initial": 47599
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          64,
+          256
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          4096,
+          16384
+        ],
+        "aspect_ratio": 0.25
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          22,
+          24,
+          13,
+          14,
+          16,
+          20,
+          36
+        ],
+        "count": 18,
+        "terminator_offset": 47617,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 20
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "presentation_contract_sample": {
+        "status": "static_proven",
+        "fine_record_count": 463,
+        "resource_count": 18,
+        "c000_total": 144,
+        "a000_total": 4608,
+        "normal_surface_word_count": 2130,
+        "checks": {
+          "header_product_1024": true,
+          "runtime_coarse_entries_16384": true,
+          "coarse_table_exactly_0x8000": true,
+          "fine_region_32_byte_aligned": true,
+          "coarse_record_refs_in_range": true,
+          "normal_surface_slots_in_materialized_range": true,
+          "a000_is_32_bytes_per_c000_slot": true
+        },
+        "source": "analysis/generated/course-presentation-contract-sample.json"
+      },
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 5,
+        "start_x": 2272,
+        "finish_x": 2678,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:07",
+      "stream_index": 7,
+      "name": "Twinpeak",
+      "name_status": "cross_source_reconciled",
+      "tour": "Jumper",
+      "tour_index": 2,
+      "tour_slot": 2,
+      "track_kind": "circuit-a",
+      "rom": {
+        "offset": 818855,
+        "packed_size": 6287,
+        "decoded_size": 48168,
+        "packed_sha256": "75407b2242ef2d3c6e3321d76db4be5d76f6308759ab2a5237a40021a151a19a",
+        "decoded_sha256": "b783de52aac4591ab7d5a20df19a6f6760cf9b6b348099fa9df64b2f2313c5a8",
+        "compression_ratio": 0.13052234
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          445,
+          244
+        ],
+        "spawn_or_landmark_b": [
+          445,
+          243
+        ],
+        "resource_cursor_initial": 48143
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          18,
+          22,
+          24,
+          20,
+          36,
+          13,
+          15,
+          16,
+          30,
+          29,
+          34
+        ],
+        "count": 23,
+        "terminator_offset": 48166,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 25
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 6,
+        "start_x": 7120,
+        "finish_x": 7210,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:08",
+      "stream_index": 8,
+      "name": "Skier",
+      "name_status": "cross_source_reconciled",
+      "tour": "Jumper",
+      "tour_index": 2,
+      "tour_slot": 3,
+      "track_kind": "stunt",
+      "rom": {
+        "offset": 825160,
+        "packed_size": 1349,
+        "decoded_size": 35617,
+        "packed_sha256": "5cc92f3a67092b56f1ea892fbbf3d75024b967ff54b48e37b61a86dacf5a052d",
+        "decoded_sha256": "49e5b593705325a5f66685f9b743eec790533556019f9fb94632a95a5b081024",
+        "compression_ratio": 0.03787517
+      },
+      "header": {
+        "layout_dims": [
+          32,
+          32
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 45,
+        "spawn_or_landmark_a": [
+          8,
+          22
+        ],
+        "spawn_or_landmark_b": [
+          8,
+          22
+        ],
+        "resource_cursor_initial": 35599
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          128,
+          128
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          8192,
+          8192
+        ],
+        "aspect_ratio": 1
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          16,
+          18,
+          37,
+          22,
+          24
+        ],
+        "count": 16,
+        "terminator_offset": 35615,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 18
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 7,
+        "start_x": 128,
+        "finish_x": 128,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:09",
+      "stream_index": 9,
+      "name": "Loopback",
+      "name_status": "cross_source_reconciled",
+      "tour": "Jumper",
+      "tour_index": 2,
+      "tour_slot": 4,
+      "track_kind": "race-b",
+      "rom": {
+        "offset": 826527,
+        "packed_size": 9466,
+        "decoded_size": 56372,
+        "packed_sha256": "0caaf2c34d89f3ff2a5426cfc3a553cfb62249d45512459694b042dcf93583ee",
+        "decoded_sha256": "2919362dfaaf0759f3fe3e3caba448579c6b3e65997274ba0d672723bbdbb376",
+        "compression_ratio": 0.16792024
+      },
+      "header": {
+        "layout_dims": [
+          128,
+          8
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          36,
+          104
+        ],
+        "spawn_or_landmark_b": [
+          36,
+          104
+        ],
+        "resource_cursor_initial": 56335
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          512,
+          32
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          32768,
+          2048
+        ],
+        "aspect_ratio": 16
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          17,
+          18,
+          19,
+          25,
+          29,
+          34,
+          22,
+          24,
+          30,
+          13,
+          20,
+          36,
+          13,
+          34,
+          34,
+          34,
+          20,
+          20,
+          20,
+          34,
+          34,
+          34,
+          34
+        ],
+        "count": 35,
+        "terminator_offset": 56370,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 37
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "presentation_contract_sample": {
+        "status": "static_proven",
+        "fine_record_count": 736,
+        "resource_count": 35,
+        "c000_total": 216,
+        "a000_total": 6912,
+        "normal_surface_word_count": 3337,
+        "checks": {
+          "header_product_1024": true,
+          "runtime_coarse_entries_16384": true,
+          "coarse_table_exactly_0x8000": true,
+          "fine_region_32_byte_aligned": true,
+          "coarse_record_refs_in_range": true,
+          "normal_surface_slots_in_materialized_range": true,
+          "a000_is_32_bytes_per_c000_slot": true
+        },
+        "source": "analysis/generated/course-presentation-contract-sample.json"
+      },
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 8,
+        "start_x": 576,
+        "finish_x": 1590,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:10",
+      "stream_index": 10,
+      "name": "Small Cut",
+      "name_status": "cross_source_reconciled",
+      "tour": "Jumper",
+      "tour_index": 2,
+      "tour_slot": 5,
+      "track_kind": "circuit-b",
+      "rom": {
+        "offset": 836011,
+        "packed_size": 4374,
+        "decoded_size": 45036,
+        "packed_sha256": "af3d4e73ad8436587b3d738c5691f891167a71070c273299eec0b4ed53866249",
+        "decoded_sha256": "52b7a307264af08c5b3b1972e5ecc79773c0a02360d0fd6dfddc6da47baca11f",
+        "compression_ratio": 0.0971223
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          481,
+          190
+        ],
+        "spawn_or_landmark_b": [
+          481,
+          190
+        ],
+        "resource_cursor_initial": 45007
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          30,
+          13,
+          15,
+          14,
+          16,
+          20,
+          29,
+          25,
+          19,
+          22,
+          24,
+          23,
+          26,
+          36,
+          34
+        ],
+        "count": 27,
+        "terminator_offset": 45034,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 29
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 9,
+        "start_x": 7696,
+        "finish_x": 7920,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:11",
+      "stream_index": 11,
+      "name": "Looper",
+      "name_status": "cross_source_reconciled",
+      "tour": "Shuffler",
+      "tour_index": 3,
+      "tour_slot": 1,
+      "track_kind": "race-a",
+      "rom": {
+        "offset": 840403,
+        "packed_size": 11968,
+        "decoded_size": 63397,
+        "packed_sha256": "085c122d33f2ab91299254f6a3d34943410fbccf113092c2eb2c986bc17881ae",
+        "decoded_sha256": "ac7a8c483c1db8201c241afde90497a58dcddf1cb084e3203ee127fa41efe239",
+        "compression_ratio": 0.18877865
+      },
+      "header": {
+        "layout_dims": [
+          16,
+          64
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          111,
+          40
+        ],
+        "spawn_or_landmark_b": [
+          111,
+          38
+        ],
+        "resource_cursor_initial": 63375
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          64,
+          256
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          4096,
+          16384
+        ],
+        "aspect_ratio": 0.25
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          13,
+          22,
+          24,
+          14,
+          15,
+          29,
+          20,
+          36
+        ],
+        "count": 20,
+        "terminator_offset": 63395,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 22
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 10,
+        "start_x": 1776,
+        "finish_x": 2439,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:12",
+      "stream_index": 12,
+      "name": "MegaJump",
+      "name_status": "cross_source_reconciled",
+      "tour": "Shuffler",
+      "tour_index": 3,
+      "tour_slot": 2,
+      "track_kind": "circuit-a",
+      "rom": {
+        "offset": 852389,
+        "packed_size": 5313,
+        "decoded_size": 45899,
+        "packed_sha256": "02cd6fdbf024e16e92ccf3904f85e99c60ac1a11fe5ae2770a59cd4ca487639d",
+        "decoded_sha256": "9eb49c560717454a9ece3a8cd4f1e5a07ac13a00b9d98fe18f77b0e6f9aa49ff",
+        "compression_ratio": 0.11575416
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          593,
+          202
+        ],
+        "spawn_or_landmark_b": [
+          593,
+          202
+        ],
+        "resource_cursor_initial": 45871
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          18,
+          25,
+          19,
+          29,
+          20,
+          36,
+          22,
+          24,
+          30,
+          16,
+          17,
+          15,
+          34
+        ],
+        "count": 26,
+        "terminator_offset": 45897,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 28
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 11,
+        "start_x": 9488,
+        "finish_x": 9704,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:13",
+      "stream_index": 13,
+      "name": "Jumps",
+      "name_status": "cross_source_reconciled",
+      "tour": "Shuffler",
+      "tour_index": 3,
+      "tour_slot": 3,
+      "track_kind": "stunt",
+      "rom": {
+        "offset": 857720,
+        "packed_size": 2888,
+        "decoded_size": 38625,
+        "packed_sha256": "e719f1a58141ae3a34177a5666080942e2ff9c67dd72a20afe0b4fdd9a5c3bec",
+        "decoded_sha256": "71d1842a55e19dd51f35410215ab35ecabc46f7798a07fd781c836b43e80ab53",
+        "compression_ratio": 0.07477023
+      },
+      "header": {
+        "layout_dims": [
+          32,
+          32
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 45,
+        "spawn_or_landmark_a": [
+          262,
+          393
+        ],
+        "spawn_or_landmark_b": [
+          137,
+          394
+        ],
+        "resource_cursor_initial": 38607
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          128,
+          128
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          8192,
+          8192
+        ],
+        "aspect_ratio": 1
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          17,
+          29,
+          14,
+          13
+        ],
+        "count": 16,
+        "terminator_offset": 38623,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 18
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 12,
+        "start_x": 0,
+        "finish_x": 0,
+        "start_matches_header_a_x16": false,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:14",
+      "stream_index": 14,
+      "name": "Flat Fun",
+      "name_status": "cross_source_reconciled",
+      "tour": "Shuffler",
+      "tour_index": 3,
+      "tour_slot": 4,
+      "track_kind": "race-b",
+      "rom": {
+        "offset": 860626,
+        "packed_size": 6612,
+        "decoded_size": 49156,
+        "packed_sha256": "b9d4aba7a3b1612ba9c169830ab8466d895c6a9b41e7b0ea0381baa0234733dd",
+        "decoded_sha256": "733690266fec100076f38b14dfb5814e74afbd360c3c18b489e489628be7027b",
+        "compression_ratio": 0.13451054
+      },
+      "header": {
+        "layout_dims": [
+          128,
+          8
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          137,
+          2
+        ],
+        "spawn_or_landmark_b": [
+          137,
+          4
+        ],
+        "resource_cursor_initial": 49135
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          512,
+          32
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          32768,
+          2048
+        ],
+        "aspect_ratio": 16
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          22,
+          24,
+          15,
+          18,
+          29,
+          13,
+          20,
+          36
+        ],
+        "count": 19,
+        "terminator_offset": 49154,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 21
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 13,
+        "start_x": 2192,
+        "finish_x": 5206,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:15",
+      "stream_index": 15,
+      "name": "Infinity",
+      "name_status": "cross_source_reconciled",
+      "tour": "Shuffler",
+      "tour_index": 3,
+      "tour_slot": 5,
+      "track_kind": "circuit-b",
+      "rom": {
+        "offset": 867256,
+        "packed_size": 2046,
+        "decoded_size": 38219,
+        "packed_sha256": "9dd571711be12fea6f7f9010f6f0a6a1d95af30d3146d3ede4f0aa357dca891f",
+        "decoded_sha256": "88e1a5b683e173659dab30791263bda1fb99c6125942d46d31c7ae2c3bac9f36",
+        "compression_ratio": 0.05353358
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          45,
+          81
+        ],
+        "spawn_or_landmark_b": [
+          45,
+          81
+        ],
+        "resource_cursor_initial": 38191
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          22,
+          24,
+          20,
+          32,
+          29,
+          36,
+          34,
+          37
+        ],
+        "count": 26,
+        "terminator_offset": 38217,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 28
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 14,
+        "start_x": 720,
+        "finish_x": 721,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:16",
+      "stream_index": 16,
+      "name": "Last One",
+      "name_status": "cross_source_reconciled",
+      "tour": "Bounder",
+      "tour_index": 4,
+      "tour_slot": 1,
+      "track_kind": "race-a",
+      "rom": {
+        "offset": 869320,
+        "packed_size": 8454,
+        "decoded_size": 54318,
+        "packed_sha256": "84cbc3f5002651150ebd1c16049e0ada53a734cc292846c5c2ae97923955a3e4",
+        "decoded_sha256": "b36dcf23e95cfe3a02d4c10bd9f7e4429b619ec598c43a246e53fbad577ee647",
+        "compression_ratio": 0.15563901
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          1013,
+          3
+        ],
+        "spawn_or_landmark_b": [
+          1013,
+          3
+        ],
+        "resource_cursor_initial": 54287
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          20,
+          36,
+          18,
+          19,
+          34,
+          25,
+          29,
+          22,
+          24,
+          15,
+          30,
+          38,
+          39,
+          13,
+          37,
+          17,
+          40
+        ],
+        "count": 29,
+        "terminator_offset": 54316,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 31
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 15,
+        "start_x": 16208,
+        "finish_x": 15660,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:17",
+      "stream_index": 17,
+      "name": "Marathon",
+      "name_status": "cross_source_reconciled",
+      "tour": "Bounder",
+      "tour_index": 4,
+      "tour_slot": 2,
+      "track_kind": "circuit-a",
+      "rom": {
+        "offset": 877792,
+        "packed_size": 7732,
+        "decoded_size": 53331,
+        "packed_sha256": "ecd787f1735a69e5f87f9fe401f120c5064d111520dd4e171f5971a1b7495a6d",
+        "decoded_sha256": "d27621f9bfa8f0dca0fff18dcf90ed32caa14cf7e99a85fad39fde2c171081fd",
+        "compression_ratio": 0.14498134
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          312,
+          44
+        ],
+        "spawn_or_landmark_b": [
+          312,
+          44
+        ],
+        "resource_cursor_initial": 53295
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          23,
+          26,
+          30,
+          25,
+          29,
+          22,
+          24,
+          31,
+          36,
+          20,
+          20,
+          20,
+          20,
+          34
+        ],
+        "count": 34,
+        "terminator_offset": 53329,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 36
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 16,
+        "start_x": 4992,
+        "finish_x": 5189,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:18",
+      "stream_index": 18,
+      "name": "Circle",
+      "name_status": "cross_source_reconciled",
+      "tour": "Bounder",
+      "tour_index": 4,
+      "tour_slot": 3,
+      "track_kind": "stunt",
+      "rom": {
+        "offset": 885542,
+        "packed_size": 715,
+        "decoded_size": 34490,
+        "packed_sha256": "1051704476c5df2ed66ad6ed0cb4f648c426a14963d4a2c95386f7a87653d312",
+        "decoded_sha256": "4d5542b633c69cf54c718e36ec2ba05550fb1b3fe9ad71a7c779cf34baa8569c",
+        "compression_ratio": 0.02073065
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 45,
+        "spawn_or_landmark_a": [
+          154,
+          113
+        ],
+        "spawn_or_landmark_b": [
+          157,
+          113
+        ],
+        "resource_cursor_initial": 34479
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          18,
+          2,
+          29,
+          34,
+          19,
+          25,
+          22,
+          24
+        ],
+        "count": 9,
+        "terminator_offset": 34488,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 11
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 17,
+        "start_x": 2464,
+        "finish_x": 2464,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:19",
+      "stream_index": 19,
+      "name": "Plinkey",
+      "name_status": "cross_source_reconciled",
+      "tour": "Bounder",
+      "tour_index": 4,
+      "tour_slot": 4,
+      "track_kind": "race-b",
+      "rom": {
+        "offset": 886275,
+        "packed_size": 6299,
+        "decoded_size": 49258,
+        "packed_sha256": "130fba6e588293b585f6b6d09e5d7ab68de4940d55a651ecf26e1f29cc034920",
+        "decoded_sha256": "31c75fee7b265c5af2d7190b39a7350ad835466ed154516ff204f27db74430df",
+        "compression_ratio": 0.12787771
+      },
+      "header": {
+        "layout_dims": [
+          32,
+          32
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          2,
+          2
+        ],
+        "spawn_or_landmark_b": [
+          2,
+          2
+        ],
+        "resource_cursor_initial": 49231
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          128,
+          128
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          8192,
+          8192
+        ],
+        "aspect_ratio": 1
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          30,
+          13,
+          15,
+          14,
+          16,
+          22,
+          24,
+          30,
+          20,
+          36,
+          29,
+          23,
+          26
+        ],
+        "count": 25,
+        "terminator_offset": 49256,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 27
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 18,
+        "start_x": 32,
+        "finish_x": 229,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:20",
+      "stream_index": 20,
+      "name": "Jumpover",
+      "name_status": "cross_source_reconciled",
+      "tour": "Bounder",
+      "tour_index": 4,
+      "tour_slot": 5,
+      "track_kind": "circuit-b",
+      "rom": {
+        "offset": 892592,
+        "packed_size": 7608,
+        "decoded_size": 52114,
+        "packed_sha256": "9a0623f534b346efc51d19f200c62059f512c0805eed0178a7620be3dfbfea73",
+        "decoded_sha256": "961d0132f06c9275df7d2182b77d80e497c2834b2ec65ad9a5292db542a01024",
+        "compression_ratio": 0.14598764
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          51,
+          28
+        ],
+        "spawn_or_landmark_b": [
+          51,
+          28
+        ],
+        "resource_cursor_initial": 52079
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          31,
+          22,
+          24,
+          29,
+          36,
+          30,
+          34
+        ],
+        "count": 33,
+        "terminator_offset": 52112,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 35
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 19,
+        "start_x": 816,
+        "finish_x": 1000,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:21",
+      "stream_index": 21,
+      "name": "Dragrace",
+      "name_status": "cross_source_reconciled",
+      "tour": "Walker",
+      "tour_index": 5,
+      "tour_slot": 1,
+      "track_kind": "race-a",
+      "rom": {
+        "offset": 900218,
+        "packed_size": 4300,
+        "decoded_size": 42663,
+        "packed_sha256": "33c125b0798775b35da34f3c2802dce43623e952220bad0f2ab77565f205567b",
+        "decoded_sha256": "ecc4e63b0802aff3a364cdec9c1b32577dadbd1f5855e9d112d365d4f6dd71c9",
+        "compression_ratio": 0.10078991
+      },
+      "header": {
+        "layout_dims": [
+          128,
+          8
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          204,
+          20
+        ],
+        "spawn_or_landmark_b": [
+          204,
+          22
+        ],
+        "resource_cursor_initial": 42639
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          512,
+          32
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          32768,
+          2048
+        ],
+        "aspect_ratio": 16
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          30,
+          36,
+          20,
+          22,
+          24,
+          29,
+          13,
+          23,
+          26,
+          14
+        ],
+        "count": 22,
+        "terminator_offset": 42661,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 24
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 20,
+        "start_x": 3264,
+        "finish_x": 30547,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:22",
+      "stream_index": 22,
+      "name": "Ping Pong",
+      "name_status": "cross_source_reconciled",
+      "tour": "Walker",
+      "tour_index": 5,
+      "tour_slot": 2,
+      "track_kind": "circuit-a",
+      "rom": {
+        "offset": 904536,
+        "packed_size": 5552,
+        "decoded_size": 46893,
+        "packed_sha256": "9b2004659f4432b051f018ce884bfb088a8cd248b0c09d19ff3a3d731a200f96",
+        "decoded_sha256": "eff789427c19a4b5694c23b53f10c29c5de4ef026091267ab7127f3e485ca5c7",
+        "compression_ratio": 0.1183972
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          495,
+          92
+        ],
+        "spawn_or_landmark_b": [
+          495,
+          92
+        ],
+        "resource_cursor_initial": 46863
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          30,
+          13,
+          15,
+          14,
+          16,
+          29,
+          22,
+          24,
+          20,
+          23,
+          26,
+          37,
+          17,
+          2,
+          36,
+          34
+        ],
+        "count": 28,
+        "terminator_offset": 46891,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 30
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 21,
+        "start_x": 7920,
+        "finish_x": 8150,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:23",
+      "stream_index": 23,
+      "name": "Hill Climb",
+      "name_status": "cross_source_reconciled",
+      "tour": "Walker",
+      "tour_index": 5,
+      "tour_slot": 3,
+      "track_kind": "stunt",
+      "rom": {
+        "offset": 910106,
+        "packed_size": 897,
+        "decoded_size": 34622,
+        "packed_sha256": "33d51c7a14c6f0be815774e3691b08c1e11f755f15e746f71d389454ba6e2d8a",
+        "decoded_sha256": "24092404332793733e9ed93a058b6e0283c23eea0b67c045e5e5f98ef4729d66",
+        "compression_ratio": 0.02590838
+      },
+      "header": {
+        "layout_dims": [
+          32,
+          32
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 45,
+        "spawn_or_landmark_a": [
+          0,
+          60
+        ],
+        "spawn_or_landmark_b": [
+          0,
+          60
+        ],
+        "resource_cursor_initial": 34607
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          128,
+          128
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          8192,
+          8192
+        ],
+        "aspect_ratio": 1
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          22,
+          24
+        ],
+        "count": 13,
+        "terminator_offset": 34620,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 15
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 22,
+        "start_x": 0,
+        "finish_x": 0,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:24",
+      "stream_index": 24,
+      "name": "Hybrid",
+      "name_status": "cross_source_reconciled",
+      "tour": "Walker",
+      "tour_index": 5,
+      "tour_slot": 4,
+      "track_kind": "race-b",
+      "rom": {
+        "offset": 911021,
+        "packed_size": 6095,
+        "decoded_size": 47906,
+        "packed_sha256": "6e13b4c7a0b298da7d882cc390fa7afa16dc7cfad30532f74b5d69fcef04adea",
+        "decoded_sha256": "c2a4ab9d80e8e0011ec46077848187d14da8bd9928aa62c81842a19c73a1f8d3",
+        "compression_ratio": 0.12722832
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          7,
+          8
+        ],
+        "spawn_or_landmark_b": [
+          7,
+          8
+        ],
+        "resource_cursor_initial": 47887
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          15,
+          18,
+          20,
+          36
+        ],
+        "count": 17,
+        "terminator_offset": 47904,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 19
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 23,
+        "start_x": 112,
+        "finish_x": 300,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:25",
+      "stream_index": 25,
+      "name": "Short Cut",
+      "name_status": "cross_source_reconciled",
+      "tour": "Walker",
+      "tour_index": 5,
+      "tour_slot": 5,
+      "track_kind": "circuit-b",
+      "rom": {
+        "offset": 917134,
+        "packed_size": 5441,
+        "decoded_size": 47078,
+        "packed_sha256": "1b5b558babd8e2c6e6efb56ac51647ae9b7aac075a260ac92a261ea0c5da557f",
+        "decoded_sha256": "75caf67770db9698ae055baa02a83f32e75ed2f69431e3505f6c203bc96b7b40",
+        "compression_ratio": 0.11557415
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          496,
+          159
+        ],
+        "spawn_or_landmark_b": [
+          496,
+          159
+        ],
+        "resource_cursor_initial": 47055
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          13,
+          22,
+          24,
+          30,
+          18,
+          14,
+          20,
+          36,
+          29,
+          34
+        ],
+        "count": 21,
+        "terminator_offset": 47076,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 23
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 24,
+        "start_x": 7936,
+        "finish_x": 7710,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:26",
+      "stream_index": 26,
+      "name": "Down+Up",
+      "name_status": "cross_source_reconciled",
+      "tour": "Runner",
+      "tour_index": 6,
+      "tour_slot": 1,
+      "track_kind": "race-a",
+      "rom": {
+        "offset": 922593,
+        "packed_size": 6773,
+        "decoded_size": 50443,
+        "packed_sha256": "3f8bfdad5e48ea240678d5056b24e207ad28b40967ffc4232ad8c038a1fbd9ae",
+        "decoded_sha256": "685487e47c2306adffb360ac76c7024dbbf4f9d6013019ed7df597b3007fb3a9",
+        "compression_ratio": 0.13427036
+      },
+      "header": {
+        "layout_dims": [
+          32,
+          32
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          42,
+          62
+        ],
+        "spawn_or_landmark_b": [
+          42,
+          62
+        ],
+        "resource_cursor_initial": 50415
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          128,
+          128
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          8192,
+          8192
+        ],
+        "aspect_ratio": 1
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          18,
+          29,
+          30,
+          37,
+          38,
+          39,
+          20,
+          36,
+          22,
+          24,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          13,
+          9,
+          10,
+          11,
+          25,
+          19,
+          15,
+          40
+        ],
+        "count": 26,
+        "terminator_offset": 50441,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 28
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 25,
+        "start_x": 672,
+        "finish_x": 1325,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:27",
+      "stream_index": 27,
+      "name": "Highroad",
+      "name_status": "cross_source_reconciled",
+      "tour": "Runner",
+      "tour_index": 6,
+      "tour_slot": 2,
+      "track_kind": "circuit-a",
+      "rom": {
+        "offset": 929384,
+        "packed_size": 5661,
+        "decoded_size": 47023,
+        "packed_sha256": "ff20b6cba2147fa3bfab0333545b9c7ab9972c3b38df616cdc9fca58391d9ea0",
+        "decoded_sha256": "2f16e292fc379cbe2d26c883e930d929c732b052357f09a99c7a801b83bd3d43",
+        "compression_ratio": 0.1203879
+      },
+      "header": {
+        "layout_dims": [
+          32,
+          32
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          79,
+          30
+        ],
+        "spawn_or_landmark_b": [
+          79,
+          30
+        ],
+        "resource_cursor_initial": 46991
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          128,
+          128
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          8192,
+          8192
+        ],
+        "aspect_ratio": 1
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          19,
+          34,
+          25,
+          29,
+          15,
+          15,
+          17,
+          14,
+          13,
+          11,
+          16,
+          14,
+          13,
+          12,
+          20,
+          36,
+          22,
+          24
+        ],
+        "count": 30,
+        "terminator_offset": 47021,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 32
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 26,
+        "start_x": 1264,
+        "finish_x": 1400,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:28",
+      "stream_index": 28,
+      "name": "Spine",
+      "name_status": "cross_source_reconciled",
+      "tour": "Runner",
+      "tour_index": 6,
+      "tour_slot": 3,
+      "track_kind": "stunt",
+      "rom": {
+        "offset": 935063,
+        "packed_size": 2830,
+        "decoded_size": 39267,
+        "packed_sha256": "a35c541fb7960b29053470879c1dba99a4bf934d05de2bde9e5c6e616b41caa2",
+        "decoded_sha256": "840f8ded32239c3588a6db101081b09f46e1f2b1b8f6c2963822fed6a5f38683",
+        "compression_ratio": 0.0720707
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 45,
+        "spawn_or_landmark_a": [
+          128,
+          64
+        ],
+        "spawn_or_landmark_b": [
+          128,
+          64
+        ],
+        "resource_cursor_initial": 39247
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          25,
+          19,
+          13,
+          29,
+          17,
+          34
+        ],
+        "count": 18,
+        "terminator_offset": 39265,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 20
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 27,
+        "start_x": 2048,
+        "finish_x": 2048,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:29",
+      "stream_index": 29,
+      "name": "Boo!",
+      "name_status": "cross_source_reconciled",
+      "tour": "Runner",
+      "tour_index": 6,
+      "tour_slot": 4,
+      "track_kind": "race-b",
+      "rom": {
+        "offset": 937911,
+        "packed_size": 7255,
+        "decoded_size": 53001,
+        "packed_sha256": "6755a21175d53d3cdaed659ed87abac3015b2c6f6bd8bec7bc3df56784c13831",
+        "decoded_sha256": "c072d1604facbd01f48ffb380849bbfbe33dd36cf56c08bab15b0ee5d701ad42",
+        "compression_ratio": 0.13688421
+      },
+      "header": {
+        "layout_dims": [
+          32,
+          32
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          10,
+          2
+        ],
+        "spawn_or_landmark_b": [
+          10,
+          2
+        ],
+        "resource_cursor_initial": 52975
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          128,
+          128
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          8192,
+          8192
+        ],
+        "aspect_ratio": 1
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          30,
+          13,
+          15,
+          14,
+          16,
+          29,
+          22,
+          24,
+          20,
+          36,
+          23,
+          26
+        ],
+        "count": 24,
+        "terminator_offset": 52999,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 26
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 28,
+        "start_x": 160,
+        "finish_x": 5278,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:30",
+      "stream_index": 30,
+      "name": "Fire Escape",
+      "name_status": "cross_source_reconciled",
+      "tour": "Runner",
+      "tour_index": 6,
+      "tour_slot": 5,
+      "track_kind": "circuit-b",
+      "rom": {
+        "offset": 945184,
+        "packed_size": 3600,
+        "decoded_size": 44483,
+        "packed_sha256": "043a299011017dc8fb403ef4420968b08c40ba36f7bfefabf04575c2800b9128",
+        "decoded_sha256": "7c27db5e9793287f142a633f8658f8a9c3f5a0a672779a1ff71e2900a3beeceb",
+        "compression_ratio": 0.08092979
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          110,
+          28
+        ],
+        "spawn_or_landmark_b": [
+          110,
+          24
+        ],
+        "resource_cursor_initial": 44463
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          15,
+          18,
+          13,
+          22,
+          24,
+          36,
+          20
+        ],
+        "count": 18,
+        "terminator_offset": 44481,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 20
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 29,
+        "start_x": 1760,
+        "finish_x": 1900,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:31",
+      "stream_index": 31,
+      "name": "Wario Paint",
+      "name_status": "cross_source_reconciled",
+      "tour": "Hopper",
+      "tour_index": 7,
+      "tour_slot": 1,
+      "track_kind": "race-a",
+      "rom": {
+        "offset": 948802,
+        "packed_size": 6288,
+        "decoded_size": 49932,
+        "packed_sha256": "ac4cd1a8a83c8ac1ccf55d50170bfb78390814c8b192ff2b39b3c25fd1eb816a",
+        "decoded_sha256": "ff2863f48ce66f06a62b0f754da836220aab164658d38ee9516aa2c4d819a451",
+        "compression_ratio": 0.12593127
+      },
+      "header": {
+        "layout_dims": [
+          256,
+          4
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          88,
+          2
+        ],
+        "spawn_or_landmark_b": [
+          88,
+          2
+        ],
+        "resource_cursor_initial": 49903
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          1024,
+          16
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          65536,
+          1024
+        ],
+        "aspect_ratio": 64
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          30,
+          13,
+          15,
+          14,
+          16,
+          22,
+          24,
+          23,
+          26,
+          29,
+          25,
+          19,
+          20,
+          36,
+          34
+        ],
+        "count": 27,
+        "terminator_offset": 49930,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 29
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 30,
+        "start_x": 1408,
+        "finish_x": 47100,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:32",
+      "stream_index": 32,
+      "name": "Crock",
+      "name_status": "cross_source_reconciled",
+      "tour": "Hopper",
+      "tour_index": 7,
+      "tour_slot": 2,
+      "track_kind": "circuit-a",
+      "rom": {
+        "offset": 955108,
+        "packed_size": 7619,
+        "decoded_size": 52171,
+        "packed_sha256": "9307130ba625ed923177a36ff1d8859504c7b390ae60fb358cf065f6da110f65",
+        "decoded_sha256": "5d039870a8c51150cd7d0d0abbcf398fec99fd4039d5f151657e19c5cfa3ccf7",
+        "compression_ratio": 0.14603899
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          556,
+          90
+        ],
+        "spawn_or_landmark_b": [
+          556,
+          90
+        ],
+        "resource_cursor_initial": 52143
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          29,
+          22,
+          24,
+          25,
+          19,
+          17,
+          13,
+          15,
+          14,
+          16,
+          20,
+          36,
+          37,
+          34
+        ],
+        "count": 26,
+        "terminator_offset": 52169,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 28
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 31,
+        "start_x": 8896,
+        "finish_x": 9120,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:33",
+      "stream_index": 33,
+      "name": "Downer",
+      "name_status": "cross_source_reconciled",
+      "tour": "Hopper",
+      "tour_index": 7,
+      "tour_slot": 3,
+      "track_kind": "stunt",
+      "rom": {
+        "offset": 962745,
+        "packed_size": 1000,
+        "decoded_size": 34497,
+        "packed_sha256": "a0e39f4157814251923c69b3bffe216c263c4940ae68e58d631d4963c1224b5a",
+        "decoded_sha256": "67a6f31f05f0554730838f8ab2aec5f1809e68133340337a599527dad916deb0",
+        "compression_ratio": 0.02898803
+      },
+      "header": {
+        "layout_dims": [
+          16,
+          64
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 45,
+        "spawn_or_landmark_a": [
+          29,
+          6
+        ],
+        "spawn_or_landmark_b": [
+          29,
+          6
+        ],
+        "resource_cursor_initial": 34479
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          64,
+          256
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          4096,
+          16384
+        ],
+        "aspect_ratio": 0.25
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          16,
+          22,
+          24,
+          20
+        ],
+        "count": 16,
+        "terminator_offset": 34495,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 18
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 32,
+        "start_x": 464,
+        "finish_x": 464,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:34",
+      "stream_index": 34,
+      "name": "East",
+      "name_status": "cross_source_reconciled",
+      "tour": "Hopper",
+      "tour_index": 7,
+      "tour_slot": 4,
+      "track_kind": "race-b",
+      "rom": {
+        "offset": 963763,
+        "packed_size": 5977,
+        "decoded_size": 48099,
+        "packed_sha256": "6a692bafad193b03a8a19d41b36aa96c9e180dbeb928ce1da5e806f0ffcfc77b",
+        "decoded_sha256": "7d111873717e65cd94afb5713414ee25960d62fd4c0f0ea51b9f4f36474a40e9",
+        "compression_ratio": 0.12426454
+      },
+      "header": {
+        "layout_dims": [
+          256,
+          4
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          193,
+          26
+        ],
+        "spawn_or_landmark_b": [
+          193,
+          28
+        ],
+        "resource_cursor_initial": 48079
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          1024,
+          16
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          65536,
+          1024
+        ],
+        "aspect_ratio": 64
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          22,
+          24,
+          14,
+          13,
+          16,
+          20,
+          36
+        ],
+        "count": 18,
+        "terminator_offset": 48097,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 20
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 33,
+        "start_x": 3088,
+        "finish_x": 58090,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:35",
+      "stream_index": 35,
+      "name": "Hairpin Hill",
+      "name_status": "cross_source_reconciled",
+      "tour": "Hopper",
+      "tour_index": 7,
+      "tour_slot": 5,
+      "track_kind": "circuit-b",
+      "rom": {
+        "offset": 969758,
+        "packed_size": 4350,
+        "decoded_size": 43276,
+        "packed_sha256": "2bc23e78ca82e37f51fecbe0ed5bd6888888c5d802bd963b2699093ce1e2f398",
+        "decoded_sha256": "c452ed8be1a70a00cf94b017b044042abe9c1ac8860aacd22d1659eb1bcaf036",
+        "compression_ratio": 0.10051761
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          498,
+          175
+        ],
+        "spawn_or_landmark_b": [
+          498,
+          173
+        ],
+        "resource_cursor_initial": 43247
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          30,
+          13,
+          15,
+          14,
+          16,
+          20,
+          22,
+          24,
+          29,
+          17,
+          23,
+          26,
+          37,
+          36,
+          34
+        ],
+        "count": 27,
+        "terminator_offset": 43274,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 29
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 34,
+        "start_x": 7968,
+        "finish_x": 7813,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:36",
+      "stream_index": 36,
+      "name": "Vertical",
+      "name_status": "cross_source_reconciled",
+      "tour": "Sprinter",
+      "tour_index": 8,
+      "tour_slot": 1,
+      "track_kind": "race-a",
+      "rom": {
+        "offset": 974126,
+        "packed_size": 9100,
+        "decoded_size": 57106,
+        "packed_sha256": "0152898dd7ceef53c7fa15261ddd49c83d79829bf9400ebf109ea3703c14b0a1",
+        "decoded_sha256": "ba620357a73165d1296ad8eec6bdfc6558743dd6f6ce0317dbd4ceb71a60bded",
+        "compression_ratio": 0.15935278
+      },
+      "header": {
+        "layout_dims": [
+          16,
+          64
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          36,
+          1008
+        ],
+        "spawn_or_landmark_b": [
+          36,
+          1008
+        ],
+        "resource_cursor_initial": 57071
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          64,
+          256
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          4096,
+          16384
+        ],
+        "aspect_ratio": 0.25
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          20,
+          36,
+          18,
+          29,
+          13,
+          13,
+          16,
+          14,
+          15,
+          17,
+          22,
+          24,
+          37,
+          38,
+          39,
+          14,
+          19,
+          25,
+          30,
+          34,
+          40
+        ],
+        "count": 33,
+        "terminator_offset": 57104,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 35
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 35,
+        "start_x": 576,
+        "finish_x": 3860,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:37",
+      "stream_index": 37,
+      "name": "Flash",
+      "name_status": "cross_source_reconciled",
+      "tour": "Sprinter",
+      "tour_index": 8,
+      "tour_slot": 2,
+      "track_kind": "circuit-a",
+      "rom": {
+        "offset": 983244,
+        "packed_size": 3624,
+        "decoded_size": 41512,
+        "packed_sha256": "28d4b15fe6d6f7b5160b55a2cc8b97816c193de962ab9cd6230560ce606e9ce2",
+        "decoded_sha256": "f2cbc9e4cb64f994801435a07b591b6b4012de8d00fd36345c7d88b3f44e61f3",
+        "compression_ratio": 0.08730006
+      },
+      "header": {
+        "layout_dims": [
+          32,
+          32
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          340,
+          181
+        ],
+        "spawn_or_landmark_b": [
+          340,
+          181
+        ],
+        "resource_cursor_initial": 41487
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          128,
+          128
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          8192,
+          8192
+        ],
+        "aspect_ratio": 1
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          22,
+          24,
+          18,
+          29,
+          13,
+          36,
+          20,
+          17,
+          16,
+          25,
+          34,
+          19
+        ],
+        "count": 23,
+        "terminator_offset": 41510,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 25
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 36,
+        "start_x": 5440,
+        "finish_x": 5200,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:38",
+      "stream_index": 38,
+      "name": "Little Dipper",
+      "name_status": "cross_source_reconciled",
+      "tour": "Sprinter",
+      "tour_index": 8,
+      "tour_slot": 3,
+      "track_kind": "stunt",
+      "rom": {
+        "offset": 986886,
+        "packed_size": 1184,
+        "decoded_size": 35364,
+        "packed_sha256": "97cac838c8b648a0e661ee6e4079a00e46657ebf3b1d127955ea1afad02514aa",
+        "decoded_sha256": "f5866b4ff3bdb54d924d1ae5227c8ad4be2685a8491e8bf4efc35331d49f636d",
+        "compression_ratio": 0.03348038
+      },
+      "header": {
+        "layout_dims": [
+          4,
+          256
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 45,
+        "spawn_or_landmark_a": [
+          30,
+          499
+        ],
+        "spawn_or_landmark_b": [
+          33,
+          499
+        ],
+        "resource_cursor_initial": 35343
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          16,
+          1024
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          1024,
+          65536
+        ],
+        "aspect_ratio": 0.015625
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          16,
+          18,
+          34,
+          29,
+          19,
+          17,
+          25,
+          13
+        ],
+        "count": 19,
+        "terminator_offset": 35362,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 21
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 37,
+        "start_x": 480,
+        "finish_x": 480,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:39",
+      "stream_index": 39,
+      "name": "Fruitbat",
+      "name_status": "cross_source_reconciled",
+      "tour": "Sprinter",
+      "tour_index": 8,
+      "tour_slot": 4,
+      "track_kind": "race-b",
+      "rom": {
+        "offset": 988088,
+        "packed_size": 5550,
+        "decoded_size": 47242,
+        "packed_sha256": "8e26dba9efa5f9258375ff0221a0952e164f8a9def59b4788b948c800b05f78f",
+        "decoded_sha256": "75d377e405bd2c580c3559a403409e033d849aa78100d5d3491c78b16e998932",
+        "compression_ratio": 0.11748021
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          22,
+          2
+        ],
+        "spawn_or_landmark_b": [
+          22,
+          2
+        ],
+        "resource_cursor_initial": 47215
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          30,
+          13,
+          15,
+          14,
+          16,
+          22,
+          24,
+          29,
+          23,
+          26,
+          20,
+          36,
+          17
+        ],
+        "count": 25,
+        "terminator_offset": 47240,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 27
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 38,
+        "start_x": 352,
+        "finish_x": 3900,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:40",
+      "stream_index": 40,
+      "name": "123 Jump",
+      "name_status": "cross_source_reconciled",
+      "tour": "Sprinter",
+      "tour_index": 8,
+      "tour_slot": 5,
+      "track_kind": "circuit-b",
+      "rom": {
+        "offset": 993656,
+        "packed_size": 7255,
+        "decoded_size": 51273,
+        "packed_sha256": "f461cbae7a577f8dc54734a4da26cbec43f73c0dfa5557ac432832ae90e4474e",
+        "decoded_sha256": "95c3f44fc1c92869c9af12b1aa2b711c9bdab99452c35e384f8c23641c57f9cd",
+        "compression_ratio": 0.14149747
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          144,
+          58
+        ],
+        "spawn_or_landmark_b": [
+          144,
+          58
+        ],
+        "resource_cursor_initial": 51247
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          16,
+          17,
+          18,
+          20,
+          22,
+          24,
+          29,
+          36,
+          19,
+          37,
+          34
+        ],
+        "count": 24,
+        "terminator_offset": 51271,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 26
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 39,
+        "start_x": 2304,
+        "finish_x": 2470,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:41",
+      "stream_index": 41,
+      "name": "Griller",
+      "name_status": "cross_source_reconciled",
+      "tour": "Hunter",
+      "tour_index": 9,
+      "tour_slot": 1,
+      "track_kind": "race-a",
+      "rom": {
+        "offset": 1000929,
+        "packed_size": 13508,
+        "decoded_size": 65354,
+        "packed_sha256": "058d37e30b012f93b02c146656adf7c25170dcae5708361f74b634601e8b5e8f",
+        "decoded_sha256": "47ae70fab8eafcbce52de0776dc0c0805a09d253661a901ab823715f94e9b435",
+        "compression_ratio": 0.20668972
+      },
+      "header": {
+        "layout_dims": [
+          32,
+          32
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          135,
+          11
+        ],
+        "spawn_or_landmark_b": [
+          135,
+          9
+        ],
+        "resource_cursor_initial": 65327
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          128,
+          128
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          8192,
+          8192
+        ],
+        "aspect_ratio": 1
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          20,
+          36,
+          30,
+          22,
+          24,
+          37,
+          14,
+          15,
+          29,
+          13,
+          17,
+          19,
+          34
+        ],
+        "count": 25,
+        "terminator_offset": 65352,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 27
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 40,
+        "start_x": 2160,
+        "finish_x": 4550,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:42",
+      "stream_index": 42,
+      "name": "Two Loops",
+      "name_status": "cross_source_reconciled",
+      "tour": "Hunter",
+      "tour_index": 9,
+      "tour_slot": 2,
+      "track_kind": "circuit-a",
+      "rom": {
+        "offset": 1014455,
+        "packed_size": 4247,
+        "decoded_size": 43463,
+        "packed_sha256": "11b7e83b36033211e7065fa57653efc0b8b7b767574bbf79e2fe3481c87090ab",
+        "decoded_sha256": "7b586e0badf8f2668ca480f1a238cb137a7b93a6b8cfb631083ea18fdf4b4626",
+        "compression_ratio": 0.0977153
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          97,
+          96
+        ],
+        "spawn_or_landmark_b": [
+          97,
+          96
+        ],
+        "resource_cursor_initial": 43439
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          18,
+          29,
+          22,
+          24,
+          15,
+          17,
+          13,
+          14,
+          20,
+          36,
+          30,
+          25,
+          19,
+          13
+        ],
+        "count": 22,
+        "terminator_offset": 43461,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 24
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 41,
+        "start_x": 1552,
+        "finish_x": 1730,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:43",
+      "stream_index": 43,
+      "name": "Neon",
+      "name_status": "cross_source_reconciled",
+      "tour": "Hunter",
+      "tour_index": 9,
+      "tour_slot": 3,
+      "track_kind": "stunt",
+      "rom": {
+        "offset": 1018720,
+        "packed_size": 5041,
+        "decoded_size": 48453,
+        "packed_sha256": "032f7444704d458e1ba0b63a799dddf5313c1160783dba678f6a76725e30becf",
+        "decoded_sha256": "f64852b8e307f4f47a4b185ead39a5d477677f49a7eee0f148291305faf5fbd2",
+        "compression_ratio": 0.10403897
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 45,
+        "spawn_or_landmark_a": [
+          356,
+          168
+        ],
+        "spawn_or_landmark_b": [
+          356,
+          168
+        ],
+        "resource_cursor_initial": 48431
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          25,
+          19,
+          13,
+          29,
+          17,
+          34,
+          14,
+          20
+        ],
+        "count": 20,
+        "terminator_offset": 48451,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 22
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 42,
+        "start_x": 5696,
+        "finish_x": 5696,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:44",
+      "stream_index": 44,
+      "name": "Hamster",
+      "name_status": "cross_source_reconciled",
+      "tour": "Hunter",
+      "tour_index": 9,
+      "tour_slot": 4,
+      "track_kind": "race-b",
+      "rom": {
+        "offset": 1023779,
+        "packed_size": 6818,
+        "decoded_size": 49607,
+        "packed_sha256": "7afbcee06da043ff72b4c3b03aee706dc8c8715a5c49f7f03907ed60ce9defbf",
+        "decoded_sha256": "2b58ac1c4a4cfd4920fbce8a7f63e86da3397619bf38ffc23e2fb9909659aec7",
+        "compression_ratio": 0.13744028
+      },
+      "header": {
+        "layout_dims": [
+          32,
+          32
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          24,
+          0
+        ],
+        "spawn_or_landmark_b": [
+          24,
+          0
+        ],
+        "resource_cursor_initial": 49583
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          128,
+          128
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          8192,
+          8192
+        ],
+        "aspect_ratio": 1
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          18,
+          30,
+          13,
+          15,
+          14,
+          16,
+          29,
+          22,
+          24,
+          20,
+          36
+        ],
+        "count": 22,
+        "terminator_offset": 49605,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 24
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 43,
+        "start_x": 384,
+        "finish_x": 1005,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    },
+    {
+      "id": "course:45",
+      "stream_index": 45,
+      "name": "To and Fro",
+      "name_status": "cross_source_reconciled",
+      "tour": "Hunter",
+      "tour_index": 9,
+      "tour_slot": 5,
+      "track_kind": "circuit-b",
+      "rom": {
+        "offset": 1030615,
+        "packed_size": 4032,
+        "decoded_size": 44592,
+        "packed_sha256": "95a910137d2734583bdf8d1d1ebc55c9b168a6569da21faf49bb4df1e07fc561",
+        "decoded_sha256": "10ec4e242dc63546fb5dd07b29401f3528ff9e8411775d85696cdba4995b71cf",
+        "compression_ratio": 0.09041981
+      },
+      "header": {
+        "layout_dims": [
+          64,
+          16
+        ],
+        "dimension_product": 1024,
+        "stunt_time_or_mode": 0,
+        "spawn_or_landmark_a": [
+          198,
+          156
+        ],
+        "spawn_or_landmark_b": [
+          198,
+          156
+        ],
+        "resource_cursor_initial": 44559
+      },
+      "derived_presentation_geometry": {
+        "basis": "promoted course-family presentation contract",
+        "status": "derived_from_promoted",
+        "coarse_sector_world_units": 64,
+        "fine_cell_world_units": 16,
+        "coarse_grid": [
+          256,
+          64
+        ],
+        "coarse_entry_count": 16384,
+        "world_extent": [
+          16384,
+          4096
+        ],
+        "aspect_ratio": 4
+      },
+      "resources": {
+        "ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          34,
+          36
+        ],
+        "count": 31,
+        "terminator_offset": 44590,
+        "bytes_after_terminator": 1,
+        "bytes_from_initial_cursor_through_eof": 33
+      },
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "analysis/generated/course-resource-list-manifest.json",
+        "reference/notes/course-order-and-stunt-timer.md"
+      ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 44,
+        "start_x": 3168,
+        "finish_x": 3540,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      }
+    }
+  ],
+  "identity_mapping": {
+    "historical_track_id_rule": "dessyreqt_track_id = stream_index - 1",
+    "holds_for_all_45": true,
+    "status": "cross_source_reconciled",
+    "sources": [
+      "analysis/generated/dessyreqt-course-landmarks.json",
+      "analysis/generated/course-resource-list-manifest.json"
+    ]
+  }
+}

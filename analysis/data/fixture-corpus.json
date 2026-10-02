@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "purpose": "Normalized catalog of deterministic fixtures and their semantic/event-relative anchoring.",
+  "comparison_rule": "Prefer semantic checkpoints and event-relative tags over absolute guest-frame equality when host presentation can perturb cadence.",
+  "fixtures": [
+    {
+      "id": "reach-first-race",
+      "path": "tests/input/reach-first-race.script",
+      "domain": [
+        "frontend",
+        "race-entry",
+        "course-load"
+      ],
+      "anchor_type": "semantic_state_waits",
+      "robust_event_anchors": [
+        "main-menu-ready",
+        "rider-select-ready",
+        "tours-ready",
+        "tracks-ready",
+        "after-track-confirm",
+        "now-playing-ready",
+        "race-entered"
+      ],
+      "suitability": [
+        "stock-fidelity",
+        "course-load-entry",
+        "event-relative-comparison"
+      ],
+      "caveat": "Menu state can become visible before accepting confirm; fixture deliberately settles 60 guest frames before A."
+    },
+    {
+      "id": "course-load-timeline",
+      "path": "tests/input/course-load-timeline.script",
+      "domain": [
+        "course-load",
+        "spawn-initialization"
+      ],
+      "anchor_type": "semantic_entry_plus_relative_timeline",
+      "parent_anchor": "now-playing-ready final confirm",
+      "robust_event_anchors": [
+        "post-confirm-000",
+        "post-confirm-032",
+        "post-confirm-040",
+        "post-confirm-044",
+        "post-confirm-048",
+        "race-active"
+      ],
+      "suitability": [
+        "course-payload-install",
+        "resource-cursor-timing",
+        "spawn-initialization"
+      ],
+      "caveat": "Relative offsets are meaningful only after the semantic Now Playing anchor."
+    },
+    {
+      "id": "race-finish-dragster",
+      "path": "tests/input/race-finish-dragster.script",
+      "domain": [
+        "race",
+        "finish",
+        "results"
+      ],
+      "anchor_type": "semantic_entry_plus_deterministic_input",
+      "robust_event_anchors": [
+        "race-entered",
+        "finish-probe-start",
+        "finish-probe-terminal",
+        "race-results"
+      ],
+      "suitability": [
+        "whole-race-reachability",
+        "finish-state",
+        "result-transition"
+      ]
+    },
+    {
+      "id": "object-activation-dragster-tail",
+      "path": "tests/input/object-activation-dragster-tail.script",
+      "domain": [
+        "activation",
+        "visibility",
+        "course-object"
+      ],
+      "anchor_type": "semantic_entry_plus_event_relative_tail",
+      "parent_anchor": "finish-probe-terminal",
+      "robust_event_anchors": [
+        "object-tail-050..090",
+        "object-tail-150..190"
+      ],
+      "suitability": [
+        "activation-vs-visibility",
+        "widescreen-authoritative-separation"
+      ],
+      "caveat": "Dense windows are intentionally localized around previously discovered information-bearing boundaries."
+    },
+    {
+      "id": "preparation-emission-race",
+      "path": "tests/input/preparation-emission-race.script",
+      "domain": [
+        "camera",
+        "preparation",
+        "emission"
+      ],
+      "anchor_type": "semantic_race_entry_plus_periodic_relative_samples",
+      "robust_event_anchors": [
+        "prep-emission-000",
+        "prep-emission-010..300"
+      ],
+      "suitability": [
+        "camera-motion-preparation",
+        "renderer-emission"
+      ],
+      "owner_note": "Active causal interpretation belongs to PR #203."
+    },
+    {
+      "id": "progression-sram-acceptance",
+      "path": "tests/input/progression-sram-acceptance.script",
+      "domain": [
+        "progression",
+        "sram"
+      ],
+      "anchor_type": "historical_absolute_frame_scan",
+      "robust_event_anchors": [
+        "progression-before",
+        "progression-scan-03000..18000"
+      ],
+      "suitability": [
+        "bounded-historical-search"
+      ],
+      "caveat": "Absolute historical frame offsets are less portable than semantic event anchors; convert to event-relative acceptance once a medal-winning event is identified."
+    },
+    {
+      "id": "two-player-first-race-observe",
+      "path": "tests/input/two-player-first-race-observe.script",
+      "domain": [
+        "two-player",
+        "racer-state"
+      ],
+      "anchor_type": "absolute_wait_sequence",
+      "robust_event_anchors": [
+        "two-player-select-560",
+        "two-player-race-1220",
+        "two-player-p1-pre-1470",
+        "two-player-p2-post-1570"
+      ],
+      "suitability": [
+        "paired-racer-observation"
+      ],
+      "caveat": "Useful retained fixture, but future causal comparisons should add semantic state guards before relying on frame numbers."
+    }
+  ],
+  "sources": [
+    "tests/input/",
+    "analysis/generated/inference-audit-second-pass.json"
+  ]
+}

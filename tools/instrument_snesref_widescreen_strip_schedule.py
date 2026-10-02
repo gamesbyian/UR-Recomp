@@ -46,6 +46,36 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 				static bool ur_ws_boundary_trace = []() -> bool {
 					return getenv("URRECOMP_WS_BOUNDARY_TRACE") != nullptr;
 				}();
+				static bool ur_ws_helper_trace = []() -> bool {
+					return getenv("URRECOMP_WS_HELPER_TRACE") != nullptr;
+				}();
+				static uint8 ur_ws_helper_before[0x2000];
+				static bool ur_ws_helper_snapshot = false;
+				if (ur_ws_helper_trace && Registers.PB == 0x81 &&
+				    ur_ws_pcw == 0xA531 && ICPU.Frame >= 1178 && ICPU.Frame <= 1192)
+				{
+					for (unsigned i = 0; i < 0x2000; i++)
+						ur_ws_helper_before[i] = Memory.RAM[i];
+					ur_ws_helper_snapshot = true;
+				}
+				if (ur_ws_helper_trace && Registers.PB == 0x81 &&
+				    ur_ws_pcw == 0xA534 && ur_ws_helper_snapshot)
+				{
+					fprintf(stderr, "WSHELP frame=%u pc=%06X changes=",
+						(unsigned)ICPU.Frame, (unsigned)ur_ws_pc);
+					bool first = true;
+					for (unsigned i = 0; i < 0x2000; i++)
+					{
+						if (ur_ws_helper_before[i] == Memory.RAM[i])
+							continue;
+						fprintf(stderr, "%s%04X:%02X:%02X",
+							first ? "" : ",", i,
+							(unsigned)ur_ws_helper_before[i], (unsigned)Memory.RAM[i]);
+						first = false;
+					}
+					fprintf(stderr, "\n");
+					ur_ws_helper_snapshot = false;
+				}
 				if (ur_ws_boundary_trace && Registers.PB == 0x81 &&
 				    ur_ws_pcw >= 0xA52F && ur_ws_pcw <= 0xA59D &&
 				    ICPU.Frame >= 1178 && ICPU.Frame <= 1192)

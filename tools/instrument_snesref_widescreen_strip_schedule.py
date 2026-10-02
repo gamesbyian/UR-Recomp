@@ -46,12 +46,16 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 				    ICPU.Frame >= 1178 && ICPU.Frame <= 1192)
 				{
 					fprintf(stderr,
-						"WSBND frame=%u v=%u cycles=%d pc=%06X "
+						"WSBND frame=%u v=%u cycles=%d pc=%06X op=%02X "
+						"a=%04X x=%04X y=%04X d=%04X p=%04X "
 						"camx=%u camy=%u camdx=%d camdy=%d "
 						"edgex=%u edgex2=%u edgey=%u edgey2=%u "
 						"cnt=%u,%u,%u,%u\n",
 						(unsigned)ICPU.Frame, (unsigned)CPU.V_Counter, CPU.Cycles,
-						(unsigned)ur_ws_pc,
+						(unsigned)ur_ws_pc, (unsigned)Op,
+						(unsigned)Registers.A.W, (unsigned)Registers.X.W,
+						(unsigned)Registers.Y.W, (unsigned)Registers.D.W,
+						(unsigned)Registers.P.W,
 						(unsigned)ur_ws_w16(0x0419), (unsigned)ur_ws_w16(0x041D),
 						(int16)ur_ws_w16(0x04F5), (int16)ur_ws_w16(0x04F9),
 						(unsigned)ur_ws_w16(0x0505), (unsigned)ur_ws_w16(0x0509),

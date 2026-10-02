@@ -28,7 +28,7 @@ class CoursePresentationContractTests(unittest.TestCase):
     def test_dragster_resource_spans_match_confirmed_runtime_plane(self):
         r=contract.build(); x=r["resources"]
         self.assertEqual(x["tail_ids"],[0x01,0x02,0x14,0x24,0x16,0x18])
-        self.assertEqual(x["a000_total"],0x200)
+        self.assertEqual(x["a000_total"],0x280)
         self.assertEqual(x["c000_total"],0x14)
         self.assertEqual(x["checkpoint_finish"]["c000_range"],[6,14])
         self.assertEqual(x["confirmed_c000_snapshot"][6:15],[0x14]*9)

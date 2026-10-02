@@ -10,7 +10,7 @@ from pathlib import Path
 
 RX = re.compile(
     r"WSDMA margin=(?P<margin>\d+) frame=(?P<frame>\d+) v=(?P<v>\d+) cycles=(?P<cycles>-?\d+) "
-    r"pc=(?P<pc>[0-9A-Fa-f]{6}) camx=(?P<camx>\d+) camy=(?P<camy>\d+) "
+    r"pc=(?P<pc>[0-9A-Fa-f]{6}) camx=(?P<camx>\d+) camy=(?P<camy>\d+) camdx=(?P<camdx>-?\d+) camdy=(?P<camdy>-?\d+) "
     r"px=(?P<px>\d+) py=(?P<py>\d+) xs=(?P<xs>-?\d+) ys=(?P<ys>-?\d+) pitch=(?P<pitch>\d+) "
     r"contact=(?P<contact>\d+) laps=(?P<laps>\d+) checkpoint=(?P<checkpoint>\d+) "
     r"finish=(?P<finish>\d+) edgex=(?P<edgex>\d+) edgey=(?P<edgey>\d+) desc=(?P<desc>.*)$"
@@ -42,7 +42,7 @@ def parse(path: Path) -> list[dict]:
             continue
         g = m.groupdict()
         row = {k:int(g[k]) for k in (
-            "margin","frame","v","cycles","camx","camy","px","py","xs","ys","pitch",
+            "margin","frame","v","cycles","camx","camy","camdx","camdy","px","py","xs","ys","pitch",
             "contact","laps","checkpoint","finish","edgex","edgey"
         )}
         row["pc"] = int(g["pc"], 16)

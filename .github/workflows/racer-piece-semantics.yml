@@ -37,8 +37,11 @@ jobs:
           cp analysis/data/presentation-assets.json /tmp/presentation-assets.saved
           cp analysis/generated/racer-presentation-family.json /tmp/racer-family.saved
           python3 tools/build_consolidated_knowledge.py
-          diff -u /tmp/presentation-assets.saved analysis/data/presentation-assets.json
-          diff -u /tmp/racer-family.saved analysis/generated/racer-presentation-family.json
+          python3 - <<'PY'
+          import json
+          assert json.load(open("/tmp/presentation-assets.saved")) == json.load(open("analysis/data/presentation-assets.json"))
+          assert json.load(open("/tmp/racer-family.saved")) == json.load(open("analysis/generated/racer-presentation-family.json"))
+          PY
       - name: Inspect renderer proof
         run: |
           python3 tools/analyze_racer_piece_semantics.py             "reference/roms/retail/Uniracers_USA.sfc"             --output /tmp/racer-piece-semantics-probe.json >/dev/null

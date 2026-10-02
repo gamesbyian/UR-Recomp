@@ -11,6 +11,8 @@ local MEDAL_BASE = 0x70069C
 local MEDAL_ROWS = 9
 local MEDAL_COLS = 16
 local MEDAL_COUNT = MEDAL_ROWS * MEDAL_COLS
+local MAX_FRAME = 200000
+local STATUS_INTERVAL = 10000
 
 local function dump_sram(path)
     local f = assert(io.open(path, "wb"))
@@ -59,37 +61,39 @@ local function first_medal_change(before, after)
     return nil, nil, nil
 end
 
-local function snapshot()
+local function state_snapshot()
+    local rider = memory.readbyte(0x7E017D)
     return {
         frame = snes9x.framecount(),
         menu = memory.readbyte(0x7E009F),
         track = memory.readbyte(0x7E00CE),
         in_race = memory.readbyte(0x7E0313),
-        rider = memory.readbyte(0x7E017D),
+        rider = rider,
         tour = memory.readbyte(0x7E00D0),
-        tier = memory.readbyte(0x7010D3 + (memory.readbyte(0x7E017D) % 16)),
-        medals = read_medals(),
+        tier = memory.readbyte(0x7010D3 + (rider % 16)),
     }
 end
 
 local armed = false
 local baseline = nil
-local previous = snapshot()
-local MAX_FRAME = 200000
-local STATUS_INTERVAL = 10000
+local baseline_medals = nil
+local previous = state_snapshot()
 local next_status = STATUS_INTERVAL
+local probe_index = 0
 
 while true do
     emu.frameadvance()
-    local current = snapshot()
+    local current = state_snapshot()
 
     if not armed then
         -- The reset movie's embedded SRAM bytes are not necessarily the game's
         -- initialized save image at Lua startup. Arm only once the game has
         -- authored a checksum-valid save whose medal matrix is legal.
-        if legal_medals(current.medals) and checksum_valid() then
+        local medals = read_medals()
+        if legal_medals(medals) and checksum_valid() then
             armed = true
             baseline = current
+            baseline_medals = medals
             previous = current
             dump_sram(before_out)
         end
@@ -113,31 +117,40 @@ while true do
             f:close()
             error("no medal-matrix mutation observed by frame " .. tostring(current.frame))
         end
-        local index, before_value, after_value =
-            first_medal_change(baseline.medals, current.medals)
-        if index ~= nil then
-            dump_sram(out)
-            local row = math.floor(index / MEDAL_COLS)
-            local rider_col = index % MEDAL_COLS
-            local previous_value = previous.medals[index + 1]
-            local f = assert(io.open(meta, "w"))
-            f:write(string.format(
-                "baseline_frame=%d\nframe=%d\nmedal_index=%d\ntour_row=%d\nrider_column=%d\n" ..
-                "medal_before=%d\nmedal_previous=%d\nmedal_after=%d\n" ..
-                "previous_frame=%d\nprevious_menu=%d\nprevious_track=%d\nprevious_in_race=%d\n" ..
-                "previous_rider=%d\nprevious_tour=%d\nprevious_tier=%d\n" ..
-                "current_menu=%d\ncurrent_track=%d\ncurrent_in_race=%d\n" ..
-                "current_rider=%d\ncurrent_tour=%d\ncurrent_tier=%d\n",
-                baseline.frame, current.frame, index, row, rider_col,
-                before_value, previous_value, after_value,
-                previous.frame, previous.menu, previous.track, previous.in_race,
-                previous.rider, previous.tour, previous.tier,
-                current.menu, current.track, current.in_race,
-                current.rider, current.tour, current.tier
-            ))
-            f:close()
-            os.exit(0)
+
+        -- Medal writes persist. Probe one cell per frame, cycling across all 144
+        -- cells, instead of crossing the Lua memory bridge 144 times every frame.
+        -- Any authentic mutation is therefore detected within at most 144 frames.
+        local current_value = memory.readbyte(MEDAL_BASE + probe_index)
+        if current_value ~= baseline_medals[probe_index + 1] then
+            local current_medals = read_medals()
+            local index, before_value, after_value =
+                first_medal_change(baseline_medals, current_medals)
+            if index ~= nil then
+                dump_sram(out)
+                local row = math.floor(index / MEDAL_COLS)
+                local rider_col = index % MEDAL_COLS
+                local f = assert(io.open(meta, "w"))
+                f:write(string.format(
+                    "baseline_frame=%d\nframe=%d\ndetection_lag_max_frames=%d\n" ..
+                    "medal_index=%d\ntour_row=%d\nrider_column=%d\n" ..
+                    "medal_before=%d\nmedal_after=%d\n" ..
+                    "previous_frame=%d\nprevious_menu=%d\nprevious_track=%d\nprevious_in_race=%d\n" ..
+                    "previous_rider=%d\nprevious_tour=%d\nprevious_tier=%d\n" ..
+                    "current_menu=%d\ncurrent_track=%d\ncurrent_in_race=%d\n" ..
+                    "current_rider=%d\ncurrent_tour=%d\ncurrent_tier=%d\n",
+                    baseline.frame, current.frame, MEDAL_COUNT - 1,
+                    index, row, rider_col, before_value, after_value,
+                    previous.frame, previous.menu, previous.track, previous.in_race,
+                    previous.rider, previous.tour, previous.tier,
+                    current.menu, current.track, current.in_race,
+                    current.rider, current.tour, current.tier
+                ))
+                f:close()
+                os.exit(0)
+            end
         end
+        probe_index = (probe_index + 1) % MEDAL_COUNT
     end
     previous = current
 end

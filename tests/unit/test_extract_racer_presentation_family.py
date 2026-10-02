@@ -127,6 +127,34 @@ class RacerPresentationRoundTripTests(unittest.TestCase):
             [0x6010 + i * 0x10 for i in range(14)],
         )
 
+    def test_companion_gate_disables_player_half_without_changing_raw_mask(self):
+        def frame(header_hex, words):
+            return {
+                "record_header_hex": header_hex,
+                "pieces": [{"word_hex": f"0x{x:04X}"} for x in words],
+            }
+
+        result = compose_racer_staging(
+            frame("00000000", ()),
+            frame("30000000", (0x1100, 0x2200)),
+            frame("00000000", ()),
+            frame("30000000", (0xAA00, 0xBB00)),
+            p2_companion_enabled=False,
+        )
+        self.assertEqual(result["companion_row_masks_raw"][0], "0x00C0")
+        self.assertEqual(result["companion_row_masks"][0], "0x0000")
+        self.assertFalse(result["companion_enabled"]["p2"])
+        p2_cells = result["cells"][8:14]
+        self.assertEqual(
+            [cell["choice"] for cell in p2_cells],
+            ["blank", "blank", "p2_primary", "p2_primary", "blank", "blank"],
+        )
+        self.assertEqual(
+            [cell["word_hex"] for cell in p2_cells],
+            [None, None, "0x1100", "0x2200", None, None],
+        )
+        self.assertEqual(result["final_word_cursors"]["p2_companion"], 0)
+
     def test_4bpp_tile_roundtrip(self):
         payload = bytes(range(64))
         tiles = split_4bpp_tiles(payload)

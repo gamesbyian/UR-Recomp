@@ -79,7 +79,9 @@ jobs:
           timeout --signal=TERM --kill-after=10s 6m \
             xvfb-run -a /tmp/snes9x-rr/snes9x \
               -nostdconf \
-              -nosound \
+              -sound \
+              -soundsync \
+              -mute \
               -nojoy \
               -autodemo /tmp/100-percent-run.smv \
               -loadlua "$GITHUB_WORKSPACE/tools/capture_first_medal.lua" \

@@ -21,6 +21,7 @@ DEFAULT_SOURCES = (
     ("player-state-marshal", "analysis/generated/player-state-marshal-structure-island.json", False),
     ("collision-resolution", "analysis/generated/collision-resolution-structure-island.json", False),
     ("geometry-precompute", "analysis/generated/geometry-precompute-structure-island.json", False),
+    ("geometry-math-helper", "analysis/generated/geometry-math-helper-structure-island.json", False),
     ("contact-geometry", "analysis/generated/contact-geometry-structure-island.json", False),
     ("course-resource-descriptor", "analysis/generated/course-resource-descriptor-structure-island.json", False),
     ("course-sector-gather", "analysis/generated/course-sector-gather-structure-island.json", False),

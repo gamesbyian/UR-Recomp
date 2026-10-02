@@ -46,6 +46,8 @@ Confirmed against the canonical 2 MiB USA ROM:
 - file offset `0x0BD679` maps to CPU address `97:D679` and begins a 256-byte printable message block containing `yes!`, `cool!`, `funky!`, `check that out`, `fight on!`, `ride on!`, `nailed it!`, `bingo!`, `banzai!` and related lines;
 - the 0x800 bytes immediately preceding that block plus the block itself form one continuous 0x900-byte printable message region. That is structurally compatible with nine 0x100-byte groups, but table cardinality and runtime selection are intentionally not promoted until pointer/control-flow evidence establishes them;
 - literal ASCII searches find no `Error Tour`, `Unavailable`, or `used by decomp` strings in the ROM. Their absence does not contradict the external claims: frontend text may use game-specific encoding, and the boot graphic is graphical data rather than expected literal ASCII.
+- the ordinary track selector at `80:AE8C` compares the incremented current-track byte against `0x2D` and wraps to zero there, mechanically bounding normal selection to IDs `0x00..0x2C` (45 tracks);
+- the downstream track-indexed load at `83:9996` reads byte table `83:A254,X`. That table is exactly 50 bytes before the next plausible function prologue and therefore contains five additional entries at indices `0x2D..0x31`, with values `00 05 00 00 05`. This statically confirms the five-value hidden selector family reported for Error Tour, while the player-facing names/presentation remain runtime-open.
 
 The reported combo-block address has several 16-bit pointer-value lookalikes elsewhere in ROM but no direct 24-bit `97:D679` pointer. Those matches remain context leads, not reachability proof.
 

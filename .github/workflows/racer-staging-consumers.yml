@@ -1,0 +1,32 @@
+name: Racer staging consumer audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "tools/analyze_racer_staging_consumers.py"
+      - "tests/unit/test_analyze_racer_staging_consumers.py"
+      - ".github/workflows/racer-staging-consumers.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - run: python3 -m unittest tests.unit.test_analyze_racer_staging_consumers -v
+      - run: |
+          python3 tools/analyze_racer_staging_consumers.py             "reference/roms/retail/Uniracers_USA.sfc"             --json-out analysis/generated/racer-staging-consumers.json             --md-out analysis/generated/racer-staging-consumers.md
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: racer-staging-consumers
+          path: |
+            analysis/generated/racer-staging-consumers.json
+            analysis/generated/racer-staging-consumers.md
+          retention-days: 7
+          if-no-files-found: error

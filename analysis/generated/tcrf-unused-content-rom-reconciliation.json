@@ -24,6 +24,144 @@
         "sha256": "a93a4d6f84915a5879f9ebe6cea68ebe67e7f49d0105c11a4d1f62ce7447bdf1"
       }
     },
+    "error_tour_selector_boundary": {
+      "current_track_wram": "7E:00CE",
+      "interpretation": "The ordinary selector wraps before 0x2D, but the same track-indexed type table contains five additional entries at indices 0x2D..0x31. This mechanically supports a deliberately addressable five-track out-of-range selector family; names and runtime presentation remain open.",
+      "normal_id_range": [
+        0,
+        44
+      ],
+      "normal_selector_wrap": {
+        "bytes_hex": "c92d9004a9008500",
+        "cpu_address": "80:AE8C",
+        "file_offset": 11916,
+        "matches_cmp_2d_then_wrap_zero": true
+      },
+      "normal_track_count": 45,
+      "reported_hidden_id_range": [
+        45,
+        49
+      ],
+      "track_type_indexed_load": {
+        "bytes_hex": "bf54a283",
+        "cpu_address": "83:9996",
+        "file_offset": 104854,
+        "matches_lda_long_x_83a254": true
+      },
+      "track_type_table": {
+        "all_50_values": [
+          0,
+          3,
+          0,
+          0,
+          3,
+          0,
+          3,
+          0,
+          0,
+          5,
+          0,
+          3,
+          0,
+          0,
+          7,
+          0,
+          3,
+          0,
+          0,
+          5,
+          0,
+          3,
+          0,
+          0,
+          3,
+          0,
+          3,
+          0,
+          0,
+          3,
+          0,
+          3,
+          0,
+          0,
+          5,
+          0,
+          5,
+          0,
+          0,
+          2,
+          0,
+          5,
+          0,
+          0,
+          3,
+          0,
+          5,
+          0,
+          0,
+          5
+        ],
+        "bytes_after_table_hex": "08c22048",
+        "cpu_address": "83:A254",
+        "file_offset": 107092,
+        "hidden_tail_5_values": [
+          0,
+          5,
+          0,
+          0,
+          5
+        ],
+        "length": 50,
+        "next_bytes_form_plausible_php_rep_prologue": true,
+        "normal_45_values": [
+          0,
+          3,
+          0,
+          0,
+          3,
+          0,
+          3,
+          0,
+          0,
+          5,
+          0,
+          3,
+          0,
+          0,
+          7,
+          0,
+          3,
+          0,
+          0,
+          5,
+          0,
+          3,
+          0,
+          0,
+          3,
+          0,
+          3,
+          0,
+          0,
+          3,
+          0,
+          3,
+          0,
+          0,
+          5,
+          0,
+          5,
+          0,
+          0,
+          2,
+          0,
+          5,
+          0,
+          0,
+          3
+        ]
+      }
+    },
     "unused_combo_message_set_9": {
       "backscan_0x800_plus_window": {
         "ascii_runs": [
@@ -157,7 +295,7 @@
   "interpretation": {
     "limitations": [
       "Fixed-offset presence does not by itself prove runtime reachability.",
-      "The Error Tour, boot-graphic overwrite, combo-message table cardinality/runtime reachability, and music selector reachability require separate structural or runtime checks."
+      "Error Tour placeholder names/runtime presentation, boot-graphic overwrite, combo-message table cardinality/runtime reachability, and music selector reachability require separate structural or runtime checks."
     ],
     "version_and_antipiracy_link": "LoROM CPU address 83:8000 maps exactly to file offset 0x18000. If the reported SRAM anti-piracy comparison reads ROM 83:8000, it is reading from the same location as the reported ASJIver3.30 payload."
   },

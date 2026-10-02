@@ -1,59 +1,178 @@
 {
-  "schema_version": 1,
-  "rom": {
-    "path": "reference/roms/retail/Uniracers_USA.sfc",
-    "size": 2097152,
-    "sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
-  },
   "claims": {
+    "bank_83_8000_mapping": {
+      "cpu_address": "83:8000",
+      "file_offset": 98304,
+      "file_offset_hex": "0x018000",
+      "matches_reported_version_offset": true
+    },
+    "build_date_area": {
+      "reported_offset": 1345,
+      "reported_offset_hex": "0x000541",
+      "window": {
+        "ascii_runs": [
+          {
+            "length": 60,
+            "offset": 0,
+            "text": "Uniracer Shell, assembled 10:50am on Tuesday the 11/10/1994 "
+          }
+        ],
+        "hex": "556e697261636572205368656c6c2c20617373656d626c65642031303a3530616d206f6e2054756573646179207468652031312f31302f31393934200a0d1a5c0b8070dc73006b8b0bc238da5a48e220a90048abf400002bdc5300c230687afa2bab4040e220c2102c124250fba9808d0021a9ff8557a9018d3312a9008d0e21",
+        "length": 128,
+        "offset": 1345,
+        "offset_hex": "0x000541",
+        "sha256": "a93a4d6f84915a5879f9ebe6cea68ebe67e7f49d0105c11a4d1f62ce7447bdf1"
+      }
+    },
+    "unused_combo_message_set_9": {
+      "backscan_0x800_plus_window": {
+        "ascii_runs": [
+          {
+            "length": 2304,
+            "offset": 0,
+            "text": "ockin         excellent        radical        thrashin\"       air head        huh  huh       heavy pedal       jammin\"      head bangin\"       later           dude           intense          brutal                       huh  huh  huh     righteous     what a rush!     happenin\"!       groovy!        daisy rage!    outta sight!     smmmmokin!        peace!           cool!          neato!           hip!          far out!      flower power!                                                                    waaaaahhh!!!    oh  please!     toooo fast!      i\"m dizzy     i almost fell      woooah!       shoot me now!   slow me down!   i hate races!   huahhh  wahh!   my innertube!  !!!!!!!!!!!!!!                                                                    da\" bomb!    ain\"t no thang!    all that!       it\"s on!        whasuuup!        slammin\"         phat!          smooth!      born to roll!  it\"s a z-thang!  cool like dat!                                                                                   outrageous!      i\"m sure!       tubular!         radical!        stellar!        gnarly!        awesome!          mondo!        fer sure!         sweet!          snaz!          cruis\"n!       like wow!         snaz!          snazzy!                          ultra!          super!         monster!        blaster!        killer!        ultimate!        phoenix!       tomahawk!         hyper!         brutal!          combo!         spinal!                                                                           rad!           vert!          killer!         awesome!        gnarly!         wailin\"!         grok!          boogie!          raw!           snakin\"!        trippy!         thrash!         wicked!                                                         shazam!       great scott!       biff!            pow!            zap!          galactic!        cosmic!         ta dow!      up and away!      ka boom!      all you can!     super uni!                                                                        yes!           cool!           funky!       check that out    fight on!       ride on!         yeah!          done that!     no problem!    that was easy!    nailed it!     slammed \"em!       bingo!         crusin\"!        banzai!                          "
+          }
+        ],
+        "hex": "6f636b696e202020202020202020657863656c6c656e7420202020202020207261646963616c2020202020202020746872617368696e222020202020202061697220686561642020202020202020687568202068756820202020202020686561767920706564616c202020202020206a616d6d696e22202020202020686561642062616e67696e22202020202020206c617465722020202020202020202020647564652020202020202020202020696e74656e73652020202020202020202062727574616c20202020202020202020202020202020202020202020206875682020687568202068756820202020207269676874656f75732020202020776861742061207275736821202020202068617070656e696e22212020202020202067726f6f76792120202020202020206461697379207261676521202020206f75747461207369676874212020202020736d6d6d6d6f6b696e2120202020202020207065616365212020202020202020202020636f6f6c21202020202020202020206e6561746f2120202020202020202020206869702120202020202020202020666172206f757421202020202020666c6f77657220706f776572212020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020776161616161686868212121202020206f682020706c65617365212020202020746f6f6f6f20666173742120202020202069226d2064697a7a7920202020206920616c6d6f73742066656c6c202020202020776f6f6f6168212020202020202073686f6f74206d65206e6f7721202020736c6f77206d6520646f776e2120202069206861746520726163657321202020687561686868202077616868212020206d7920696e6e6572747562652120202121212121212121212121212121202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202064612220626f6d62212020202061696e2274206e6f207468616e672120202020616c6c2074686174212020202020202069742273206f6e2120202020202020207768617375757570212020202020202020736c616d6d696e22202020202020202020706861742120202020202020202020736d6f6f746821202020202020626f726e20746f20726f6c6c212020697422732061207a2d7468616e67212020636f6f6c206c696b65206461742120202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020206f7574726167656f75732120202020202069226d20737572652120202020202020747562756c6172212020202020202020207261646963616c2120202020202020207374656c6c6172212020202020202020676e61726c79212020202020202020617765736f6d6521202020202020202020206d6f6e646f21202020202020202066657220737572652120202020202020202073776565742120202020202020202020736e617a21202020202020202020206372756973226e21202020202020206c696b6520776f7721202020202020202020736e617a2120202020202020202020736e617a7a79212020202020202020202020202020202020202020202020202020756c74726121202020202020202020207375706572212020202020202020206d6f6e73746572212020202020202020626c61737465722120202020202020206b696c6c6572212020202020202020756c74696d61746521202020202020202070686f656e69782120202020202020746f6d616861776b2120202020202020202068797065722120202020202020202062727574616c2120202020202020202020636f6d626f212020202020202020207370696e616c212020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020207261642120202020202020202020207665727421202020202020202020206b696c6c657221202020202020202020617765736f6d65212020202020202020676e61726c79212020202020202020207761696c696e222120202020202020202067726f6b2120202020202020202020626f6f6769652120202020202020202020726177212020202020202020202020736e616b696e2221202020202020202074726970707921202020202020202020746872617368212020202020202020207769636b6564212020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020207368617a616d212020202020202067726561742073636f747421202020202020206269666621202020202020202020202020706f77212020202020202020202020207a6170212020202020202020202067616c6163746963212020202020202020636f736d696321202020202020202020746120646f7721202020202020757020616e642061776179212020202020206b6120626f6f6d21202020202020616c6c20796f752063616e212020202020737570657220756e6921202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020796573212020202020202020202020636f6f6c21202020202020202020202066756e6b792120202020202020636865636b2074686174206f7574202020206669676874206f6e212020202020202072696465206f6e21202020202020202020796561682120202020202020202020646f6e6520746861742120202020206e6f2070726f626c656d21202020207468617420776173206561737921202020206e61696c6564206974212020202020736c616d6d65642022656d212020202020202062696e676f2120202020202020202063727573696e2221202020202020202062616e7a6169212020202020202020202020202020202020202020202020202020",
+        "length": 2304,
+        "offset": 773753,
+        "offset_hex": "0x0BCE79",
+        "sha256": "10dff325c7406d7d0010c1b9686df8c4aea35d5743f6e5c6c56ebb255a53889b"
+      },
+      "cpu_address": "97:D679",
+      "reported_offset": 775801,
+      "reported_offset_begins_printable_message_text": true,
+      "reported_offset_hex": "0x0BD679",
+      "set_9_16bit_pointer_contexts": [
+        {
+          "context_ascii_runs": [],
+          "context_hex": "7fdf097c2b00efd802010337e304010579d607b306010701080109010a010b010c01",
+          "context_start": 827576,
+          "context_start_hex": "0x0CA0B8",
+          "cpu_address": "99:A0C8",
+          "file_offset": 827592,
+          "file_offset_hex": "0x0CA0C8"
+        },
+        {
+          "context_ascii_runs": [],
+          "context_hex": "2b012bb9a36f2e170e930b2c01ab5b9d79d603c2e12d012e017fcd2f7fca01643018",
+          "context_start": 946081,
+          "context_start_hex": "0x0E6FA1",
+          "cpu_address": "9C:EFB1",
+          "file_offset": 946097,
+          "file_offset_hex": "0x0E6FB1"
+        },
+        {
+          "context_ascii_runs": [],
+          "context_hex": "14c0ffa4f827c0c5d3c005febea0438079d6e1bf5835af03fe07cd21314fcb5cd396",
+          "context_start": 1008500,
+          "context_start_hex": "0x0F6374",
+          "cpu_address": "9E:E384",
+          "file_offset": 1008516,
+          "file_offset_hex": "0x0F6384"
+        },
+        {
+          "context_ascii_runs": [],
+          "context_hex": "2e042d38be040f068e0786ca87221cd779d6397c821c030f814fc07f3000003f1eff",
+          "context_start": 1354723,
+          "context_start_hex": "0x14ABE3",
+          "cpu_address": "A9:ABF3",
+          "file_offset": 1354739,
+          "file_offset_hex": "0x14ABF3"
+        },
+        {
+          "context_ascii_runs": [
+            {
+              "length": 4,
+              "offset": 8,
+              "text": ",L<l"
+            }
+          ],
+          "context_hex": "2e042d38bc9c65d52c4c3c6c1c621cd779d6397e82200500820081c3817e3c81817e",
+          "context_start": 1442347,
+          "context_start_hex": "0x16022B",
+          "cpu_address": "AC:823B",
+          "file_offset": 1442363,
+          "file_offset_hex": "0x16023B"
+        }
+      ],
+      "set_9_24bit_pointer_contexts": [],
+      "status": "reported_text_location_confirmed_table_cardinality_and_reachability_pending",
+      "window": {
+        "ascii_runs": [
+          {
+            "length": 256,
+            "offset": 0,
+            "text": "yes!           cool!           funky!       check that out    fight on!       ride on!         yeah!          done that!     no problem!    that was easy!    nailed it!     slammed \"em!       bingo!         crusin\"!        banzai!                          "
+          }
+        ],
+        "hex": "796573212020202020202020202020636f6f6c21202020202020202020202066756e6b792120202020202020636865636b2074686174206f7574202020206669676874206f6e212020202020202072696465206f6e21202020202020202020796561682120202020202020202020646f6e6520746861742120202020206e6f2070726f626c656d21202020207468617420776173206561737921202020206e61696c6564206974212020202020736c616d6d65642022656d212020202020202062696e676f2120202020202020202063727573696e2221202020202020202062616e7a6169212020202020202020202020202020202020202020202020202020",
+        "length": 256,
+        "offset": 775801,
+        "offset_hex": "0x0BD679",
+        "sha256": "f52985dc47c96c4282568d8f13ce0c1a7d4cde466b2ebb3700f2299b3eb5de8d"
+      }
+    },
     "version_string": {
-      "reported_file_offset": 98304,
-      "reported_cpu_address": "83:8000",
-      "computed_lorom_file_offset": 98304,
-      "expected_ascii": "ASJIver3.30",
-      "bytes_at_offset_hex": "41534a49766572332e3330",
-      "matches_expected": true,
-      "all_rom_occurrences": [
-        98304
-      ]
-    },
-    "build_date_window": {
-      "offset": 1345,
-      "length": 96,
-      "sha256": "58232e2ea7fae78c500864661242ca64dd6538ee01b3c4643196e935b54bab25",
-      "hex": "556e697261636572205368656c6c2c20617373656d626c65642031303a3530616d206f6e2054756573646179207468652031312f31302f31393934200a0d1a5c0b8070dc73006b8b0bc238da5a48e220a90048abf400002bdc5300c230687afa",
-      "printable_runs": [
-        {
-          "relative_offset": 0,
-          "length": 60,
-          "text": "Uniracer Shell, assembled 10:50am on Tuesday the 11/10/1994 "
-        }
-      ]
-    },
-    "unused_combo_message_set_window": {
-      "offset": 775801,
-      "length": 160,
-      "sha256": "a4de813f7d0b328de188349df5afc7aad7633046806e3348222ea2f4215ab75a",
-      "hex": "796573212020202020202020202020636f6f6c21202020202020202020202066756e6b792120202020202020636865636b2074686174206f7574202020206669676874206f6e212020202020202072696465206f6e21202020202020202020796561682120202020202020202020646f6e6520746861742120202020206e6f2070726f626c656d21202020207468617420776173206561737921202020206e61",
-      "printable_runs": [
-        {
-          "relative_offset": 0,
-          "length": 160,
-          "text": "yes!           cool!           funky!       check that out    fight on!       ride on!         yeah!          done that!     no problem!    that was easy!    na"
-        }
-      ]
+      "decoded": "ASJIver3.30\ufffdmike____\ufffd\ufffd______andr",
+      "reported_offset": 98304,
+      "reported_offset_hex": "0x018000",
+      "starts_with_ASJIver3_30": true,
+      "window": {
+        "ascii_runs": [
+          {
+            "length": 11,
+            "offset": 0,
+            "text": "ASJIver3.30"
+          },
+          {
+            "length": 8,
+            "offset": 12,
+            "text": "mike____"
+          },
+          {
+            "length": 14,
+            "offset": 22,
+            "text": "______andrew__"
+          },
+          {
+            "length": 14,
+            "offset": 38,
+            "text": "______martin__"
+          },
+          {
+            "length": 10,
+            "offset": 54,
+            "text": "______meli"
+          }
+        ],
+        "hex": "41534a49766572332e3330ff6d696b655f5f5f5fffff5f5f5f5f5f5f616e647265775f5fffff5f5f5f5f5f5f6d617274696e5f5fffff5f5f5f5f5f5f6d656c69",
+        "length": 64,
+        "offset": 98304,
+        "offset_hex": "0x018000",
+        "sha256": "49aabedcdf09d49f2a81a65f8ad2c0823ebe346893faf817c2f3f33942e02962"
+      }
     }
   },
+  "interpretation": {
+    "limitations": [
+      "Fixed-offset presence does not by itself prove runtime reachability.",
+      "The Error Tour, boot-graphic overwrite, combo-message table cardinality/runtime reachability, and music selector reachability require separate structural or runtime checks."
+    ],
+    "version_and_antipiracy_link": "LoROM CPU address 83:8000 maps exactly to file offset 0x18000. If the reported SRAM anti-piracy comparison reads ROM 83:8000, it is reading from the same location as the reported ASJIver3.30 payload."
+  },
+  "purpose": "Mechanically reconcile fixed-offset claims from TCRF's Uniracers article against the canonical USA ROM.",
+  "rom": {
+    "sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "size": 2097152
+  },
+  "schema_version": 1,
   "string_searches": {
     "ASJIver3.30": [
       98304
     ],
-    "Unavailable": [],
     "Error Tour": [],
+    "Unavailable": [],
     "used by decomp": []
-  },
-  "interpretation": {
-    "version_mapping_consistent": true,
-    "scope": "This report mechanically validates fixed ROM offsets, byte windows and literal strings only. Runtime reachability, SRAM-copy behavior, graphics decode semantics and music selector behavior require separate evidence."
   }
 }

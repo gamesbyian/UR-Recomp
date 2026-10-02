@@ -12,7 +12,7 @@ local MEDAL_BASE = 0x70069C
 local MEDAL_ROWS = 9
 local MEDAL_COLS = 16
 local MEDAL_COUNT = MEDAL_ROWS * MEDAL_COLS
-local MAX_FRAME = 200000
+local MAX_FRAME = 1200000
 local STATUS_INTERVAL = 10000
 
 local function dump_sram(path)
@@ -81,13 +81,18 @@ local baseline_medals = nil
 local previous = state_snapshot()
 local next_status = STATUS_INTERVAL
 local probe_index = 0
+local race_entries = 0
+local race_results_entries = 0
+local track_changes = 0
 
 local function write_heartbeat(current)
     local f = assert(io.open(heartbeat, "w"))
     f:write(string.format(
-        "frame=%d\nmenu=%d\ntrack=%d\nin_race=%d\nrider=%d\ntour=%d\nchecksum_valid=%s\n",
+        "frame=%d\nmenu=%d\ntrack=%d\nin_race=%d\nrider=%d\ntour=%d\n" ..
+        "race_entries=%d\nrace_results_entries=%d\ntrack_changes=%d\nchecksum_valid=%s\n",
         current.frame, current.menu, current.track, current.in_race,
-        current.rider, current.tour, tostring(checksum_valid())
+        current.rider, current.tour, race_entries, race_results_entries,
+        track_changes, tostring(checksum_valid())
     ))
     f:close()
 end
@@ -111,6 +116,16 @@ while true do
             dump_sram(before_out)
         end
     else
+        if previous.in_race ~= 1 and current.in_race == 1 then
+            race_entries = race_entries + 1
+        end
+        if previous.menu ~= 0x99 and current.menu == 0x99 then
+            race_results_entries = race_results_entries + 1
+        end
+        if current.track ~= previous.track then
+            track_changes = track_changes + 1
+        end
+
         if current.frame >= next_status then
             write_heartbeat(current)
             print(string.format(
@@ -124,12 +139,17 @@ while true do
             local f = assert(io.open(meta, "w"))
             f:write(string.format(
                 "status=no-medal-mutation\nbaseline_frame=%d\nlimit_frame=%d\n" ..
-                "menu=%d\ntrack=%d\nin_race=%d\nrider=%d\ntour=%d\n",
+                "menu=%d\ntrack=%d\nin_race=%d\nrider=%d\ntour=%d\n" ..
+                "race_entries=%d\nrace_results_entries=%d\ntrack_changes=%d\n",
                 baseline.frame, current.frame, current.menu, current.track,
-                current.in_race, current.rider, current.tour
+                current.in_race, current.rider, current.tour,
+                race_entries, race_results_entries, track_changes
             ))
             f:close()
-            error("no medal-matrix mutation observed by frame " .. tostring(current.frame))
+            -- On this historical frontend os.exit terminates the Lua thread,
+            -- not the emulator process. The workflow watches the status file
+            -- and terminates the bounded replay process immediately.
+            os.exit(2)
         end
 
         -- Medal writes persist. Probe one cell per frame, cycling across all 144
@@ -146,7 +166,7 @@ while true do
                 local rider_col = index % MEDAL_COLS
                 local f = assert(io.open(meta, "w"))
                 f:write(string.format(
-                    "baseline_frame=%d\nframe=%d\ndetection_lag_max_frames=%d\n" ..
+                    "status=medal-captured\nbaseline_frame=%d\nframe=%d\ndetection_lag_max_frames=%d\n" ..
                     "medal_index=%d\ntour_row=%d\nrider_column=%d\n" ..
                     "medal_before=%d\nmedal_after=%d\n" ..
                     "previous_frame=%d\nprevious_menu=%d\nprevious_track=%d\nprevious_in_race=%d\n" ..

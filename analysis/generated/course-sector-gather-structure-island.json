@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "island": "CourseSectorNeighborhoodGather",
+  "usa_start": "81:8A4A",
+  "usa_end": "81:8B94",
+  "size": 331,
+  "next_region": "81:8B95",
+  "boundary_basis": {
+    "entry": "81:8A4A begins with explicit 16-bit coordinate/sector setup.",
+    "exit": "81:8B94 is RTS; 81:8B95 begins the already-censused course-surface sampler."
+  },
+  "observed_dataflow": [
+    "reduces X/Y coordinates to 64-unit sector coordinates",
+    "loads four neighboring sector entries from $7F000F",
+    "selects/interpolates a local entry using within-sector coordinates",
+    "reads the selected payload through $7F800F and writes the 20-byte workspace at $0260..$0272"
+  ],
+  "regions": [
+    {
+      "name": "sector_neighborhood_gather",
+      "kind": "code",
+      "usa_start": "81:8A4A",
+      "usa_end": "81:8B94",
+      "size": 331,
+      "builds": {
+        "usa-retail": {
+          "start": "81:8A4A",
+          "end": "81:8B94",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 331,
+          "sha256": "210c9a48afda7d85ff4442edb4c5345d0e5a190481ed5f437ab7da198c8fe260",
+          "opcode_bytes": 168,
+          "operand_bytes": 163,
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:8A2A",
+          "end": "81:8B74",
+          "shift": -32,
+          "similarity": 0.993958,
+          "size": 331,
+          "sha256": "50241031297333c06ff108ed4e16f480bc00d57b96b4f693f74a2c5af5614b83",
+          "opcode_bytes": 168,
+          "operand_bytes": 163,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 168,
+          "aligned_equal_opcode_pairs": 168,
+          "aligned_role_disagreements": 0
+        },
+        "europe-retail": {
+          "start": "81:8A2A",
+          "end": "81:8B74",
+          "shift": -32,
+          "similarity": 0.960725,
+          "size": 331,
+          "sha256": "d8ad7cb9d775a83db6829e4c5e710eb1107860aa34cf6564f7c116d5cfea29b3",
+          "opcode_bytes": 168,
+          "operand_bytes": 163,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 168,
+          "aligned_equal_opcode_pairs": 168,
+          "aligned_role_disagreements": 0
+        },
+        "legacy-beta": {
+          "start": "81:8A4A",
+          "end": "81:8B94",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 331,
+          "sha256": "210c9a48afda7d85ff4442edb4c5345d0e5a190481ed5f437ab7da198c8fe260",
+          "opcode_bytes": 168,
+          "operand_bytes": 163,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 168,
+          "aligned_equal_opcode_pairs": 168,
+          "aligned_role_disagreements": 0
+        }
+      }
+    }
+  ]
+}

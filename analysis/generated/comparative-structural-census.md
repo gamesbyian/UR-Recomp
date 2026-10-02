@@ -2,9 +2,9 @@
 
 This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **111** (101 code, 10 data)
-- bounded bytes: **16358** (15085 code-region bytes, 1273 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **6456**
+- bounded regions: **112** (102 code, 10 data)
+- bounded bytes: **16689** (15416 code-region bytes, 1273 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **6624**
 - represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -31,6 +31,7 @@ This is the first machine-queryable census for the comparative structure-recover
 | `81:8341..81:8371` | code | 49 | object-collision | handler_8341 | 81:8324..81:8354 (-29; size 49; sim 0.898) | 81:831B..81:834B (-38; size 49; sim 0.857) | 81:8341..81:8371 (+0; size 49; sim 1.000) |
 | `81:8372..81:83A3` | data | 50 | object-collision | lookup_8372 | 81:8355..81:8386 (-29; size 50; sim 1.000) | 81:834C..81:837D (-38; size 50; sim 1.000) | 81:8372..81:83A3 (+0; size 50; sim 1.000) |
 | `81:83A4..81:84D1` | code | 302 | object-collision | handler_83A4 | 81:8387..81:84B4 (-29; size 302; sim 0.871) | 81:837E..81:84AB (-38; size 302; sim 0.828) | 81:83A4..81:84D1 (+0; size 302; sim 1.000) |
+| `81:8A4A..81:8B94` | code | 331 | course-sector-gather | sector_neighborhood_gather | 81:8A2A..81:8B74 (-32; size 331; sim 0.994) | 81:8A2A..81:8B74 (-32; size 331; sim 0.961) | 81:8A4A..81:8B94 (+0; size 331; sim 1.000) |
 | `81:8B95..81:8D13` | code | 383 | course-surface-sampler | Course_SampleRuntimeSurface | 81:8B75..81:8CF3 (-32; size 383; sim 0.971) | 81:8B75..81:8CF3 (-32; size 383; sim 0.971) | 81:8B95..81:8D13 (+0; size 383; sim 1.000) |
 | `81:8D14..81:8D17` | code | 4 | player-state-marshal | long_entry_wrapper | 81:8CF4..81:8CF7 (-32; size 4; sim 0.500) | 81:8CF4..81:8CF7 (-32; size 4; sim 0.500) | 81:8D14..81:8D17 (+0; size 4; sim 1.000) |
 | `81:8D18..81:8E62` | code | 331 | player-state-marshal | player1_marshal_and_sim_bridge | 81:8CF8..81:8E42 (-32; size 331; sim 0.822) | 81:8CF8..81:8E42 (-32; size 331; sim 0.692) | 81:8D18..81:8E62 (+0; size 331; sim 1.000) |

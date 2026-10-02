@@ -201,6 +201,14 @@
       "summary": "Recovered the 156-byte course/resource descriptor helper cluster reached directly from the accepted course materialization loader: stream-byte reader, five-byte descriptor decoder/wrapper, and WRAM-port transfer path. USA/beta are byte-identical; PAL prototype preserves the island at shift -19 and Europe at +3. All 91 aligned opcode positions match with zero analyzer role disagreements. The normal transfer path writes through SNES WRAM ports 2181..2183/2180; descriptor flag 0x80 diverts to the existing 81:B8F1 map/resource decompressor.",
       "priority": "low",
       "next_evidence": "Revisit descriptor-field semantics or decompressor inputs only for a concrete course-format/editor implementation need. Comparative structure work should move to another unresolved high-connectivity frontier."
+    },
+    {
+      "id": "resolved-course-sector-gather-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:8A4A..8B94 and homologs",
+      "summary": "Recovered the 331-byte course-sector neighborhood gather immediately upstream of the accepted course-surface sampler. It reduces current X/Y coordinates to 64-unit sector coordinates, gathers four neighboring sector entries from $7F000F, selects a local payload through $7F800F, and fills the $0260..$0272 workspace consumed by 81:8B95. USA/beta are byte-identical; PAL prototype and Europe preserve the full function at shift -32. All 168 aligned opcode positions match in every non-USA build with zero analyzer role disagreements.",
+      "priority": "low",
+      "next_evidence": "Decode individual sector/payload field semantics only for a concrete course-format, editor, collision, or recomp implementation need. Comparative structure work should move to another unresolved high-connectivity frontier."
     }
   ]
 }

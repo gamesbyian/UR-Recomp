@@ -70,17 +70,21 @@
     {
       "id": "course-resource-descriptor",
       "path": "analysis/generated/course-resource-descriptor-structure-island.json"
+    },
+    {
+      "id": "course-sector-gather",
+      "path": "analysis/generated/course-sector-gather-structure-island.json"
     }
   ],
   "totals": {
-    "regions": 111,
-    "code_regions": 101,
+    "regions": 112,
+    "code_regions": 102,
     "data_regions": 10,
-    "bounded_bytes": 16358,
-    "bounded_code_region_bytes": 15085,
+    "bounded_bytes": 16689,
+    "bounded_code_region_bytes": 15416,
     "bounded_data_region_bytes": 1273,
-    "analyzer_opcode_bytes": 6456,
-    "analyzer_operand_bytes": 8514,
+    "analyzer_opcode_bytes": 6624,
+    "analyzer_operand_bytes": 8677,
     "analyzer_unreached_or_data_bytes": 1388,
     "banks": [
       "81",
@@ -1009,6 +1013,52 @@
           "shift": 0,
           "similarity": 1.0,
           "size": 302,
+          "size_delta": 0
+        }
+      }
+    },
+    {
+      "source": "course-sector-gather",
+      "source_path": "analysis/generated/course-sector-gather-structure-island.json",
+      "name": "sector_neighborhood_gather",
+      "kind": "code",
+      "usa_start": "81:8A4A",
+      "usa_end": "81:8B94",
+      "size": 331,
+      "usa_opcode_bytes": 168,
+      "usa_operand_bytes": 163,
+      "usa_unreached_or_data_bytes": 0,
+      "homologs": {
+        "usa-retail": {
+          "start": "81:8A4A",
+          "end": "81:8B94",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 331,
+          "size_delta": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "81:8A2A",
+          "end": "81:8B74",
+          "shift": -32,
+          "similarity": 0.993958,
+          "size": 331,
+          "size_delta": 0
+        },
+        "europe-retail": {
+          "start": "81:8A2A",
+          "end": "81:8B74",
+          "shift": -32,
+          "similarity": 0.960725,
+          "size": 331,
+          "size_delta": 0
+        },
+        "legacy-beta": {
+          "start": "81:8A4A",
+          "end": "81:8B94",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 331,
           "size_delta": 0
         }
       }

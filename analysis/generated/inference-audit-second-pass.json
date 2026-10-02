@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "scope": "second-pass inference audit emphasizing omitted cross-source joins and under-normalized domains",
+  "scope": "continued second-pass inference audit emphasizing omitted cross-source joins, structural bundles, spawn semantics, and predictive progression arithmetic",
   "findings": [
     {
       "id": "IA2-C01",
@@ -206,6 +206,121 @@
         "analysis/data/presentation-assets.json"
       ],
       "next_action": "Treat byte 0 as a candidate explicit mask/control field and vary it against OAM piece eligibility before decoding deeper packed words."
+    },
+    {
+      "id": "IA2-C04",
+      "class": "derived_invariant",
+      "title": "Historical numeric track IDs map directly to RNC stream ordinals",
+      "result": {
+        "equation": "dessyreqt_track_id = stream_index - 1",
+        "holds_for_all_45": true
+      },
+      "evidence": [
+        "analysis/data/course-corpus.json",
+        "analysis/generated/dessyreqt-course-landmarks.json"
+      ],
+      "next_action": "Use this mapping when importing old bot/map/script evidence that names only a numeric track ID."
+    },
+    {
+      "id": "IA2-C05",
+      "class": "strong_semantic_inference",
+      "title": "Header coordinate pairs are paired racer spawn positions",
+      "result": {
+        "directly_proven_course": "Dragster",
+        "dragster_header_pairs": [
+          [
+            68,
+            50
+          ],
+          [
+            68,
+            50
+          ]
+        ],
+        "dragster_initial_runtime_positions": [
+          [
+            1088,
+            800
+          ],
+          [
+            1088,
+            800
+          ]
+        ],
+        "scale": "16 world units per header coordinate unit",
+        "cross_corpus_pattern": "All 36 non-stunt courses have identical A/B X coordinates; A/B Y may differ. Four stunt courses use distinct A/B X coordinates as well.",
+        "interpretation": "The two pairs are strongly predicted to be player-1/player-2 spawn coordinates rather than start/finish landmarks."
+      },
+      "evidence": [
+        "docs/COURSE-FORMAT.md",
+        "analysis/data/course-corpus.json"
+      ],
+      "falsifier": "A second-course runtime initialization showing one header pair does not map to one racer slot.",
+      "next_action": "Use a course with unequal A/B coordinates as the cheapest direct discriminator; no broad course trace is required."
+    },
+    {
+      "id": "IA2-R01",
+      "class": "derived_invariant",
+      "title": "Course resources contain ordered reusable bundles",
+      "result": {
+        "bundles": [
+          {
+            "ids": [
+              "0x03",
+              "0x04",
+              "0x05",
+              "0x06",
+              "0x07",
+              "0x08"
+            ],
+            "carrier_courses": 43,
+            "ordered_in_all": true,
+            "adjacent_in_all": true,
+            "absent": [
+              "Dragster",
+              "Circle"
+            ]
+          },
+          {
+            "ids": [
+              "0x09",
+              "0x0A",
+              "0x0B"
+            ],
+            "carrier_courses": 42,
+            "ordered_in_all": true,
+            "adjacent_in_all": true,
+            "absent": [
+              "Dragster",
+              "Circle",
+              "Two Loops"
+            ]
+          }
+        ],
+        "stunt_resource_lists_are_duplicate_free": true
+      },
+      "evidence": [
+        "analysis/data/course-resource-catalog.json",
+        "analysis/data/course-corpus.json"
+      ],
+      "next_action": "Treat each adjacency-preserving group as a structural bundle during resource-semantic mining; inspect descriptor/content relationships before naming the bundle."
+    },
+    {
+      "id": "IA2-G02",
+      "class": "derived_prediction",
+      "title": "A one-step medal increment has a rider-parity checksum contribution",
+      "result": {
+        "medal_base": "77:069C",
+        "row_stride": 16,
+        "checksum_words": "little-endian 16-bit words over 77:05E8..073B",
+        "rule": "For a non-saturating +1 medal-cell update, the medal cell contributes +1 to checksum 77:073C for even rider columns and +0x0100 for odd rider columns, modulo 0x10000.",
+        "limitation": "This is the medal-cell contribution; the full award transaction may change other checksum-covered fields."
+      },
+      "evidence": [
+        "analysis/data/progression-model.json",
+        "analysis/generated/sram-medal-progression-static-model-2026-10-01.md"
+      ],
+      "next_action": "Include this predicted checksum contribution in the next medal-winning save/load oracle."
     }
   ],
   "consolidation_changes": [

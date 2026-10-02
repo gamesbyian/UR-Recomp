@@ -225,6 +225,14 @@
       "summary": "Recovered a 329-byte race-frame support island consisting of a byte-identical 48-word step table at 83:EBE6..EC45 and a fully reached 233-byte mirrored coordinate/window update at 83:EC46..ED2E. The accepted race-frame orchestrator calls the code directly at 83:CD52. USA/beta are byte-identical; PAL prototype relocates the island by +36 and Europe by +72. All 107 aligned opcode positions match in each non-USA build with zero analyzer role disagreements.",
       "priority": "low",
       "next_evidence": "Promote higher-level gameplay semantics for $0D3F/$0D41 or the table only if a rendering, camera, HUD, or recomp implementation question requires it. Comparative structure work should continue at another unresolved frontier."
+    },
+    {
+      "id": "resolved-race-state-980d-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 82:980D..98BD and homologs",
+      "summary": "Recovered a 177-byte long-entry race-state bridge called directly from the accepted race-frame orchestrator. The 4-byte wrapper and 173-byte body derive mirrored $0FCB/$0FCD outputs from paired $0FC3/$0FC5 values, $0FBB/$0FBD bitfields, and availability/mode flags. USA/beta are byte-identical; PAL prototype relocates the island by -5 and Europe by +17. All 69 aligned opcode positions match in every non-USA build with zero analyzer role disagreements.",
+      "priority": "low",
+      "next_evidence": "Name $0FCB/$0FCD more specifically only when a concrete race-state, stunt, HUD, or recomp implementation question requires it. Comparative structure work should continue at another unresolved frontier."
     }
   ]
 }

@@ -51,9 +51,15 @@ def load_sample(root: Path, margin: int, tag: str) -> dict:
         raise FileNotFoundError(f"missing state sample margin={margin} tag={tag}")
     info = json.loads(info_path.read_text(encoding="utf-8"))
     frame = int(info["frame"])
-    fb_path = d / "frames" / f"frame_{frame:06d}.bmp"
+    # Scripted state dumps are taken at a simulation boundary labelled with
+    # snes_frame_counter. FrameDump_Present names the already-completed raster
+    # as snes_frame_counter - 1. Pair the state tag with that exact picture.
+    presented_frame = frame - 1
+    fb_path = d / "frames" / f"frame_{presented_frame:06d}.bmp"
     if not fb_path.is_file():
-        raise FileNotFoundError(f"missing wide framedump margin={margin} frame={frame}")
+        raise FileNotFoundError(
+            f"missing wide framedump margin={margin} presented_frame={presented_frame}"
+        )
     fb, width, height = read_bmp32(fb_path)
     return {
         "info": info,
@@ -62,6 +68,7 @@ def load_sample(root: Path, margin: int, tag: str) -> dict:
         "width": width,
         "height": height,
         "frame": frame,
+        "presented_frame": presented_frame,
     }
 
 

@@ -105,6 +105,15 @@ jobs:
           c = d["comparisons"]["object-tail-168"]
           print("object-tail-168 y144 differences:", c["144"]["different_fields"])
           print("object-tail-168 y145 differences:", c["145"]["different_fields"])
+          target = rows["object-tail-168"]
+          h0 = target["margins"]["0"]["state_hashes"]
+          h8 = target["margins"]["8"]["state_hashes"]
+          print("object-tail-168 state hash equality:",
+                {k: h0[k] == h8[k] for k in h0})
+          print("object-tail-168 margin0 OBJ candidates:",
+                target["margins"]["0"]["obj_candidates"])
+          print("object-tail-168 margin8 OBJ candidates:",
+                target["margins"]["8"]["obj_candidates"])
           PY
 
       - name: Upload compact trace evidence
@@ -120,6 +129,15 @@ jobs:
             ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-167.regs.json
             ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-168.regs.json
             ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-169.regs.json
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-167.vram.bin
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-168.vram.bin
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-169.vram.bin
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-167.cgram.bin
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-168.cgram.bin
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-169.cgram.bin
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-167.oam.bin
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-168.oam.bin
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-169.oam.bin
             analysis/generated/widescreen-plus8-composition-trace.*
           if-no-files-found: warn
           retention-days: 5

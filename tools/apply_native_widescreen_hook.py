@@ -21,6 +21,8 @@ from pathlib import Path
 MARKER = "UR-Recomp native Widescreen +8 strip hook"
 TRACE_RE = re.compile(r"cpu_trace_block\(cpu,\s*0x([0-9A-Fa-f]+)\s*\);")
 
+A59E_CALLEE_RE = re.compile(r"case 0: _r = (?P<callee>bank_[0-9A-Fa-f]{2}_A59E_M0X0)\(cpu\); break;")
+
 PCS = {
     "wrapper_after_first_helper": 0x01A59A,
     "wrapper_after_descriptor_builder": 0x01A59D,

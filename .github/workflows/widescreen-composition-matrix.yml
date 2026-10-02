@@ -53,6 +53,14 @@ jobs:
             -DSNESRECOMP_SDL3_FETCH=OFF
           cmake --build "$PROJ/build" -j2
 
+      - name: Locate generated presentation override instructions
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJ="$RUNNER_TEMP/native/UniracersSNESRecomp"
+          echo "== generated references to 0F4F / relevant guest PCs =="
+          grep -RniE '0[Ff]4[Ff]|00961[Dd]|00[Aa]45[Aa]|009543|0096[Dd]6|008[Ff]95|009284'             "$PROJ" --include='*.c' --include='*.h' | head -n 300 || true
+
       - name: Capture matched full-renderer 0 and +8 traces
         shell: bash
         run: |

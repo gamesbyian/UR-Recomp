@@ -35,6 +35,10 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 					const char *m = getenv("URRECOMP_WS_MODE");
 					return m && strcmp(m, "secondary") == 0;
 				}();
+				static bool ur_ws_secondary_pre = []() -> bool {
+					const char *m = getenv("URRECOMP_WS_MODE");
+					return m && strcmp(m, "secondary_pre") == 0;
+				}();
 				static uint16 ur_ws_saved_count_x = 0;
 				static bool ur_ws_count_patched = false;
 				static int ur_ws_x_delta = []() -> int {
@@ -188,7 +192,7 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 				}
 
 				if (ur_ws_margin == 8 && !ur_ws_count32 && !ur_ws_secondary &&
-				    ur_ws_x_delta == 0 &&
+				    !ur_ws_secondary_pre && ur_ws_x_delta == 0 &&
 				    Registers.PB == 0x81 && ur_ws_pcw == ur_ws_hook_pc)
 				{
 					if (ur_ws_bias_a)
@@ -199,6 +203,29 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 					else
 						ur_ws_set16(0x0419, (uint16)(ur_ws_w16(0x0419) + 8));
 					ur_ws_camera_shifted = true;
+				}
+
+				/* Pre-helper secondary-lane discriminator. Arm the adjacent
+				   horizontal lane before A59E so the stock preparation helper has
+				   a chance to populate the paired $0453 staging buffer. */
+				if (ur_ws_margin == 8 && ur_ws_secondary_pre &&
+				    Registers.PB == 0x81 && ur_ws_pcw == 0xA597 &&
+				    !ur_ws_secondary_patched)
+				{
+					uint16 edge = ur_ws_w16(0x0505);
+					uint16 count = ur_ws_w16(0x052B);
+					if (edge != 0xffff && count == 16)
+					{
+						ur_ws_saved_edge2 = ur_ws_w16(0x0509);
+						ur_ws_saved_count2 = ur_ws_w16(0x052F);
+						uint16 next_edge = (uint16)(0x0180 + ((edge - 0x0180 + 1) & 0x001f));
+						ur_ws_set16(0x0509, next_edge);
+						ur_ws_set16(0x052F, 16);
+						ur_ws_secondary_patched = true;
+						fprintf(stderr,
+							"WSSECONDARYPRE frame=%u primary=%04X secondary=%04X count=16\n",
+							(unsigned)ICPU.Frame, (unsigned)edge, (unsigned)next_edge);
+					}
 				}
 
 				/* Transient A59E input-phase discriminator. Preserve the wrapper's

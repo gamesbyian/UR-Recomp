@@ -12,7 +12,7 @@ local MEDAL_BASE = 0x70069C
 local MEDAL_ROWS = 9
 local MEDAL_COLS = 16
 local MEDAL_COUNT = MEDAL_ROWS * MEDAL_COLS
-local MAX_FRAME = 1200000
+local MAX_FRAME = 100000
 local STATUS_INTERVAL = 10000
 
 local function dump_sram(path)

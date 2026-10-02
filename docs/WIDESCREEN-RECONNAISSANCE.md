@@ -4,6 +4,18 @@ Status: Phase F preparation authority. This document defines the research harnes
 
 The goal is not to make a pretty wide screenshot quickly. The goal is to discover every place where stock Uniracers equates "outside the classic viewport" with "irrelevant."
 
+## Evidence lookup rule
+
+Before opening or extending a Widescreen investigation, query the normalized evidence surfaces first:
+
+- `analysis/data/fixture-corpus.json` for the semantic/event-relative fixture and known cadence caveats;
+- `analysis/data/course-corpus.json` and `course-resource-catalog.json` for world geometry, spawn/resource structure, and conserved course-resource facts;
+- `analysis/data/state-schema.json` and `code-semantics.json` for promoted state/function relationships;
+- `analysis/data/presentation-assets.json` for recovered presentation identities and frame-format constraints;
+- `analysis/generated/inference-audit*.{json,md}` for existing invariants, negative results, and cheapest remaining falsifiers.
+
+Use raw traces, prose notes, or fresh archaeology to answer questions the normalized surfaces do not already settle. If a new Widescreen result establishes a reusable cross-domain fact, feed it back into the appropriate normalized dataset or inference report so the next experiment begins from the new state of knowledge.
+
 ## Dependency rule
 
 Do not begin permanent widening until the authentic 4:3 deterministic route is trustworthy enough to detect simulation drift.

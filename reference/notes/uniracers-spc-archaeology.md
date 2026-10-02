@@ -71,3 +71,10 @@ The SPC snapshots do not by themselves identify:
 - whether either unused song is referenced by dormant retail code, data, debug paths or only by otherwise unreachable table entries.
 
 Those are now the useful next discriminators. The compact SPC fingerprints give local tests something precise to hunt for rather than treating the soundtrack as an opaque asset blob.
+
+
+## Fan SoundFont comparison reference
+
+The user supplied Musical Artifacts artifact 8387, preserved at `reference/imported/audio/Uniracers.sf2`. It is a SoundFont 2.x fan reconstruction, not an authority for the game's audio engine. Use it as an independent comparison surface once ROM-derived BRR extraction exposes sample identities, loop points, tuning/root-note assumptions and instrument groupings.
+
+Do not promote SoundFont mappings into canonical audio semantics without matching them mechanically to the ROM/APU evidence. Disagreements are useful leads. The intended eventual comparison is SoundFont preset/sample -> probable ROM BRR sample -> loop/tuning match -> confidence.

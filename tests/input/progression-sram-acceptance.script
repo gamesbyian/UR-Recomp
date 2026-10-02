@@ -1,19 +1,27 @@
-# Historical 2014 bot medal-progression acceptance.
+# Historical 2014 bot progression acceptance.
 # Controller input comes from SNESREF_INPUT_FILE.
 # Baseline is after SRAM/frontend initialization but before first race entry (frame 794).
-# Later dumps form a bounded scan; workflow selects the first snapshot with a medal-matrix mutation.
+# The bot targets Crawler first; bounded snapshots stop as soon as the workflow sees a medal mutation.
 wait 750
 dump progression-before
-wait 2250
-dump progression-scan-03000
-wait 3000
-dump progression-scan-06000
-wait 3000
-dump progression-scan-09000
-wait 3000
+wait 3250
+dump progression-scan-04000
+wait 4000
+dump progression-scan-08000
+wait 4000
 dump progression-scan-12000
-wait 3000
-dump progression-scan-15000
-wait 3000
-dump progression-scan-18000
+wait 4000
+dump progression-scan-16000
+wait 4000
+dump progression-scan-20000
+wait 4000
+dump progression-scan-24000
+wait 4000
+dump progression-scan-28000
+wait 4000
+dump progression-scan-32000
+wait 4000
+dump progression-scan-36000
+wait 4000
+dump progression-scan-40000
 quit

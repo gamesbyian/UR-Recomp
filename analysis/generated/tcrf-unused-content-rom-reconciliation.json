@@ -1,4 +1,36 @@
 {
+  "boot_graphic_reference": {
+    "chunks": [
+      {
+        "length": 13,
+        "type": "IHDR"
+      },
+      {
+        "length": 48,
+        "type": "PLTE"
+      },
+      {
+        "length": 1668,
+        "type": "IDAT"
+      },
+      {
+        "length": 0,
+        "type": "IEND"
+      }
+    ],
+    "ihdr": {
+      "bit_depth": 4,
+      "color_type": 3,
+      "compression": 0,
+      "filter": 0,
+      "height": 80,
+      "interlace": 0,
+      "width": 128
+    },
+    "path": "reference/imported/tcrf/Uniracers-Decomp.png",
+    "sha256": "a8775e55e486484842e7d3343763a6f96ddf189618488d112ea280e76f51d813",
+    "size": 1785
+  },
   "claims": {
     "bank_83_8000_mapping": {
       "cpu_address": "83:8000",

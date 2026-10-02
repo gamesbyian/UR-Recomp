@@ -416,6 +416,42 @@
         "analysis/generated/inference-audit.json"
       ],
       "next_action": "When revisiting progression or paired-racer acceptance, add semantic state/event guards before using historical absolute frame offsets as causal evidence."
+    },
+    {
+      "id": "IA2-W01",
+      "class": "runtime_proven",
+      "title": "Representative stock camera-strip preparation is same-frame demand-driven",
+      "result": {
+        "producer": "81:A52F -> 81:AB88/ACB1",
+        "descriptor_surface": "$0399..$03E7",
+        "consumer": "80:87E1 -> 82:D197/D19B..D2D0",
+        "horizontal_strip_bytes": 32,
+        "horizon": "built and consumed in same guest frame during steady rightward Dragster motion",
+        "ring": "32 horizontal VRAM columns"
+      },
+      "evidence": [
+        "analysis/generated/camera-dma-preparation-causal-contract-2026-10-02.md"
+      ],
+      "next_action": "Do not search for a stock multi-frame prefetch horizon; test deliberately earlier/additional strip scheduling only when Widescreen presentation-state ownership is settled."
+    },
+    {
+      "id": "IA2-W02",
+      "class": "runtime_proven",
+      "title": "+8 authentic-center regression is downstream of presentation-ID phase divergence",
+      "result": {
+        "meaningful_p2_state_equal": true,
+        "first_p2_presentation_id_divergence": "object-tail-141",
+        "first_vram_divergence": "object-tail-142",
+        "oam_divergence_in_retained_gap": null,
+        "later_center_regression": "object-tail-168",
+        "cadence_delta_guest_frames": -3
+      },
+      "evidence": [
+        "merged PR #206",
+        "workflow run 36967629874",
+        "analysis/data/fixture-corpus.json"
+      ],
+      "next_action": "Trace P2 presentation-ID selection/update timing and VRAM consequences with full renderer enabled before patching final composition."
     }
   ],
   "consolidation_changes": [
@@ -425,14 +461,5 @@
     "Enriched analysis/data/state-schema.json with Dessyreqt P2 leads, WRAM regional motion clusters, and Nitrodon reconciled semantic overrides.",
     "Corrected reference/notes/course-order-and-stunt-timer.md so the old player-facing tour order is not mistaken for canonical RNC order."
   ],
-  "deferred": [
-    {
-      "area": "preparation/emission causal joins",
-      "owner": "PR #203"
-    },
-    {
-      "area": "+8 composition causal joins",
-      "owner": "PR #206"
-    }
-  ]
+  "deferred": []
 }

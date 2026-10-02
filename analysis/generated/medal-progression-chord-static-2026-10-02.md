@@ -24,3 +24,16 @@ save/load acceptance trigger if runtime evidence confirms the medal matrix
 changes and the resulting SRAM reloads with its checksum intact.
 
 The runtime fixture is `tests/input/medal-progression-chord.script`.
+
+
+## Runtime disposition
+
+The bounded runtime acceptance reached the intended controller chord but did
+not mutate SRAM. In run `36957806366`, the before/after 8 KiB SRAM images were
+byte-identical, checksums remained valid, reload was byte-identical, and no
+medal/tier change was observed.
+
+Therefore the shortcut is **not** accepted as a medal-winning black-box
+trigger in the tested fixture. Retain the recovered static path and bounded
+search tooling as evidence, but keep real game-authored medal mutation/reload
+acceptance open for a future fixture.

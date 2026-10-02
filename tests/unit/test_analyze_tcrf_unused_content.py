@@ -44,9 +44,8 @@ class TcrfUnusedContentTests(unittest.TestCase):
             [r["text"] for r in report["claims"]["build_date_area"]["window"]["ascii_runs"]],
         )
         combo = report["claims"]["unused_combo_message_set_9"]
-        self.assertTrue(combo["reported_block_is_ninth_fixed_stride_set"])
-        self.assertTrue(combo["all_nine_sets_fixed_width_printable_ascii"])
-        self.assertEqual(combo["sets"][-1]["messages"][0], "S09M01")
+        self.assertTrue(combo["reported_offset_begins_printable_message_text"])
+        self.assertEqual(combo["cpu_address"], "97:D679")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,402 @@
+# Deterministic first-race route derived from Dessyreqt's 2014 state-driven bot.
+# Addresses are WRAM offsets (7E:xxxx -> xxxx).
+#
+# This first whole-race probe intentionally stays simple. It reuses the verified
+# clean frontend and acceleration path, then repeats the already-validated
+# 24-frame sustained-B / 24-frame release jump rhythm while holding Right.
+# If this does not finish Dragster, the terminal/progress dumps make the missing
+# steering/rotation/timing requirement measurable rather than speculative.
+
+until 009F == D7 3600
+wait 60
+dump main-menu-ready
+press a 2
+
+until 009F == 3C 1200
+wait 60
+dump rider-select-ready
+press a 2
+
+until 009F == 6D 1200
+wait 60
+dump tours-ready
+press a 2
+
+until 009F == F6 1200
+wait 60
+dump tracks-ready
+press a 2
+
+until 009F != F6 1200
+wait 60
+dump after-track-confirm
+until 009F == 16 1200
+wait 60
+dump now-playing-ready
+press a 2
+
+until 0313 == 01 1800
+wait 60
+dump race-entered
+
+press right 30
+press right 30
+press right 30
+press right 30
+press right 60
+dump finish-probe-start
+
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump finish-probe-05
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump finish-probe-10
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump finish-probe-15
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump finish-probe-20
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump finish-probe-25
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump finish-probe-30
+
+dump finish-probe-terminal
+# Dense only where the coarse pass localized information-bearing boundaries:
+# +60..+80 contains finish-surface entry; +160..+180 contains the 0x14
+# checkpoint/finish activation. Keep the middle sparse.
+wait 50
+dump object-tail-050
+wait 1
+dump object-tail-051
+wait 1
+dump object-tail-052
+wait 1
+dump object-tail-053
+wait 1
+dump object-tail-054
+wait 1
+dump object-tail-055
+wait 1
+dump object-tail-056
+wait 1
+dump object-tail-057
+wait 1
+dump object-tail-058
+wait 1
+dump object-tail-059
+wait 1
+dump object-tail-060
+wait 1
+dump object-tail-061
+wait 1
+dump object-tail-062
+wait 1
+dump object-tail-063
+wait 1
+dump object-tail-064
+wait 1
+dump object-tail-065
+wait 1
+dump object-tail-066
+wait 1
+dump object-tail-067
+wait 1
+dump object-tail-068
+wait 1
+dump object-tail-069
+wait 1
+dump object-tail-070
+wait 1
+dump object-tail-071
+wait 1
+dump object-tail-072
+wait 1
+dump object-tail-073
+wait 1
+dump object-tail-074
+wait 1
+dump object-tail-075
+wait 1
+dump object-tail-076
+wait 1
+dump object-tail-077
+wait 1
+dump object-tail-078
+wait 1
+dump object-tail-079
+wait 1
+dump object-tail-080
+wait 1
+dump object-tail-081
+wait 1
+dump object-tail-082
+wait 1
+dump object-tail-083
+wait 1
+dump object-tail-084
+wait 1
+dump object-tail-085
+wait 1
+dump object-tail-086
+wait 1
+dump object-tail-087
+wait 1
+dump object-tail-088
+wait 1
+dump object-tail-089
+wait 1
+dump object-tail-090
+wait 1
+dump object-tail-091
+wait 1
+dump object-tail-092
+wait 1
+dump object-tail-093
+wait 1
+dump object-tail-094
+wait 1
+dump object-tail-095
+wait 1
+dump object-tail-096
+wait 1
+dump object-tail-097
+wait 1
+dump object-tail-098
+wait 1
+dump object-tail-099
+wait 1
+dump object-tail-100
+wait 1
+dump object-tail-101
+wait 1
+dump object-tail-102
+wait 1
+dump object-tail-103
+wait 1
+dump object-tail-104
+wait 1
+dump object-tail-105
+wait 1
+dump object-tail-106
+wait 1
+dump object-tail-107
+wait 1
+dump object-tail-108
+wait 1
+dump object-tail-109
+wait 1
+dump object-tail-110
+wait 1
+dump object-tail-111
+wait 1
+dump object-tail-112
+wait 1
+dump object-tail-113
+wait 1
+dump object-tail-114
+wait 1
+dump object-tail-115
+wait 1
+dump object-tail-116
+wait 1
+dump object-tail-117
+wait 1
+dump object-tail-118
+wait 1
+dump object-tail-119
+wait 1
+dump object-tail-120
+wait 1
+dump object-tail-121
+wait 1
+dump object-tail-122
+wait 1
+dump object-tail-123
+wait 1
+dump object-tail-124
+wait 1
+dump object-tail-125
+wait 1
+dump object-tail-126
+wait 1
+dump object-tail-127
+wait 1
+dump object-tail-128
+wait 1
+dump object-tail-129
+wait 1
+dump object-tail-130
+wait 1
+dump object-tail-131
+wait 1
+dump object-tail-132
+wait 1
+dump object-tail-133
+wait 1
+dump object-tail-134
+wait 1
+dump object-tail-135
+wait 1
+dump object-tail-136
+wait 1
+dump object-tail-137
+wait 1
+dump object-tail-138
+wait 1
+dump object-tail-139
+wait 1
+dump object-tail-140
+wait 1
+dump object-tail-141
+wait 1
+dump object-tail-142
+wait 1
+dump object-tail-143
+wait 1
+dump object-tail-144
+wait 1
+dump object-tail-145
+wait 1
+dump object-tail-146
+wait 1
+dump object-tail-147
+wait 1
+dump object-tail-148
+wait 1
+dump object-tail-149
+wait 1
+dump object-tail-150
+wait 1
+dump object-tail-151
+wait 1
+dump object-tail-152
+wait 1
+dump object-tail-153
+wait 1
+dump object-tail-154
+wait 1
+dump object-tail-155
+wait 1
+dump object-tail-156
+wait 1
+dump object-tail-157
+wait 1
+dump object-tail-158
+wait 1
+dump object-tail-159
+wait 1
+dump object-tail-160
+wait 1
+dump object-tail-161
+wait 1
+dump object-tail-162
+wait 1
+dump object-tail-163
+wait 1
+dump object-tail-164
+wait 1
+dump object-tail-165
+wait 1
+dump object-tail-166
+wait 1
+dump object-tail-167
+wait 1
+dump object-tail-168
+wait 1
+dump object-tail-169
+wait 1
+dump object-tail-170
+wait 1
+dump object-tail-171
+wait 1
+dump object-tail-172
+wait 1
+dump object-tail-173
+wait 1
+dump object-tail-174
+wait 1
+dump object-tail-175
+wait 1
+dump object-tail-176
+wait 1
+dump object-tail-177
+wait 1
+dump object-tail-178
+wait 1
+dump object-tail-179
+wait 1
+dump object-tail-180
+wait 1
+dump object-tail-181
+wait 1
+dump object-tail-182
+wait 1
+dump object-tail-183
+wait 1
+dump object-tail-184
+wait 1
+dump object-tail-185
+wait 1
+dump object-tail-186
+wait 1
+dump object-tail-187
+wait 1
+dump object-tail-188
+wait 1
+dump object-tail-189
+wait 1
+dump object-tail-190
+quit

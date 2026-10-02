@@ -222,7 +222,7 @@ For each failure-driven investigation record:
 - the smallest next discriminator;
 - the condition under which the investigation stops and the probe is rerun.
 
-Object/gameplay activation is currently the highest-value unresolved domain because an error there can change authoritative simulation rather than only presentation.
+Representative checkpoint/finish activation is now mechanically separated from presentation and is no longer the default blocker. The highest-value unresolved domain is preparation/streaming and renderer-facing causal closure: use the first tiny-margin failure to decide whether the next work belongs to preparation, render/culling, camera/composition, or UI. Reopen gameplay activation only if a widened probe or a different object family actually changes authoritative simulation.
 
 ## Exit condition
 
@@ -236,3 +236,19 @@ Phase F0 is complete when a representative race plus split-screen/Vs. fixture se
 - no unexplained simulation divergence.
 
 Only then should permanent widening hooks graduate from experiments into the shipping path.
+
+
+## First tiny-margin probe result
+
+The first retained native-host probe ran matched 0 / +8 / +16 / +24
+pixel-per-side presentation margins on the deterministic Dragster tail. The
+probe successfully produced full presented-frame captures at every margin, but
+the +8 run failed the authoritative-state equality check against the 4:3
+control.
+
+Treat this as a blocking discriminator, not as a successful widening result.
+The next Widescreen task must determine whether the divergence is caused by
+host presentation cadence / fixture alignment or by a genuine simulation
+dependency on the widened host path. Do not widen shipping presentation until
+that distinction is closed. The retained workflow artifact from run
+`36957020940` contains the per-margin state and framebuffer evidence.

@@ -1,6 +1,6 @@
 # Uniracers Modern Port Plan
 
-Last updated: 2026-10-01
+Last updated: 2026-10-02
 
 This is the canonical product-development plan for turning the original SNES Uniracers / Unirally into a faithful modern native port.
 
@@ -201,6 +201,23 @@ Generated C is disposable implementation output. Durable game-specific knowledge
 - deterministic tests;
 - compact evidence reports.
 
+### Consolidated knowledge/query layer
+
+The project now has a normalized cross-domain query surface under `analysis/data/`. Treat it as the default starting point for planning and reverse-engineering decisions, while retaining the underlying generated/runtime/historical artifacts as provenance-bearing evidence.
+
+Canonical query surfaces are:
+
+- `course-corpus.json` for the reconciled 45-course identity, geometry, header, landmark and resource-list view;
+- `course-resource-catalog.json` for promoted resource semantics, conserved resource bundles and regional resource-selection deltas;
+- `state-schema.json` for promoted RAM/SRAM semantics, paired-racer relations, regional motion clusters and historical/reconciled state leads;
+- `code-semantics.json` for named functions joined to structural/cross-build correspondence;
+- `presentation-assets.json` for exact semantic presentation families and derived record constraints;
+- `progression-model.json` for medal/tier/checksum semantics and predictive acceptance rules;
+- `fixture-corpus.json` for deterministic fixture ownership and semantic/event-relative anchoring;
+- `evidence-claims.json` for selective atomic cross-source claims.
+
+Planning rule: query these surfaces and `analysis/generated/inference-audit*.{json,md}` before commissioning a new trace, structural island, course sweep or historical-source reconciliation. If a required relationship is scattered but repeatedly useful, extend the consolidation builder instead of adding another parallel ledger.
+
 ## What the project already has
 
 The plan begins from a much stronger baseline than a normal blind SNES port.
@@ -221,7 +238,7 @@ The current smoke proves:
 - a real presented frame can be captured;
 - frame 300 has been visually identified as the coherent stock title screen.
 
-Deterministic menu navigation and playable-race bring-up are complete. The current execution target is **first-divergence fidelity**: bracket the exact 2014 native/reference replay mismatch around guest frame 440, identify the responsible code/state transition, and feed that evidence into the comparative decompilation atlas.
+Deterministic menu navigation and playable-race bring-up are complete. Broad first-divergence archaeology is no longer the active target: event-relative race fidelity is strong across the representative 1P/2P/VS matrix, and pre-race absolute-frame seams are treated as cadence/alignment leads unless semantically anchored state disagrees. The active product-facing execution target is the Widescreen presentation-phase seam plus the remaining real progression-changing save/load acceptance.
 
 ### Four-ROM differential corpus
 
@@ -262,7 +279,7 @@ There are exactly 45 validated RNC Method 1 streams in each preserved build.
 
 The repository owns an independent Method 1 decoder. All 180 stream decodes pass their packed and unpacked CRC16 checks.
 
-Evidence now strongly supports one decoded payload per shipped track in tour order. In particular, decoded byte 2 equals decimal 45 on exactly the nine third-position tracks in the nine five-track tours, matching the game's 45-second stunt events.
+Evidence now strongly supports one decoded payload per shipped track. The RNC storage order is explicitly reconciled as Crawler, Jumper, Shuffler, Bounder, Walker, Runner, Hopper, Sprinter, Hunter, which matches the SRAM progression-row order rather than the player-facing/manual tour ordering. Dessyreqt historical track IDs map exactly as `track_id = stream_index - 1`. Decoded byte 2 equals decimal 45 on exactly the nine third-position tracks in the nine five-track stream groups, matching the game's 45-second stunt events.
 
 The shipped Rob Northen Method 1 unpacker has also been identified in ROM code:
 

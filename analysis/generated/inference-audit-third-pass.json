@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "scope": "third-pass inference audit over the post-#239/#241 racer-native seams, recovered Widescreen scene policy, closed gameplay-authored progression acceptance, and the latest native Restart Race negative",
+  "findings": [
+    {
+      "id": "IA3-P01",
+      "class": "derived_invariant",
+      "title": "Racer replacement identity and screen placement are independent presentation coordinates",
+      "result": {
+        "identity_source": "authoritative WRAM composition/frame state through the native read-only racer guest snapshot and replacement selector",
+        "placement_source": "live SNES PPU OAM/high-OAM/OBSEL through the native placement decoder",
+        "consequence": "replacement asset selection can be cached/keyed by semantic racer presentation identity while position, size and H/V orientation are applied from live OAM each frame; screen coordinates do not belong in the semantic asset key"
+      },
+      "evidence": [
+        "analysis/data/presentation-assets.json",
+        "analysis/data/racer-oam-placement-reference.json",
+        "native/presentation/racer_guest_snapshot.{hpp,cpp}",
+        "native/presentation/racer_replacement_selector.{hpp,cpp}",
+        "native/presentation/racer_oam_placement.{hpp,cpp}",
+        "merged PR #239",
+        "merged PR #241"
+      ],
+      "falsifier": "A retained runtime state in the same racer family where the same semantic presentation tuple requires a different replacement raster before OAM/OBSEL transforms are applied.",
+      "next_action": "Keep replacement lookup and placement transform as separate interfaces in the first pixel-substitution hook."
+    },
+    {
+      "id": "IA3-P02",
+      "class": "derived_invariant",
+      "title": "The first HD racer replacement seam can remain zero-authority over guest state",
+      "result": {
+        "selector_input": "const/read-only guest WRAM snapshot",
+        "placement_input": "public live PPU storage (oam/highOam/obsel)",
+        "required_guest_writes": 0,
+        "implication": "A draw-frame replacement prototype does not need to patch WRAM, animation timing, OAM, or simulation to choose and position a remastered racer."
+      },
+      "evidence": [
+        "merged PR #239",
+        "merged PR #241",
+        "docs/HD-VISUAL-REFERENCE-PIPELINE.md",
+        "analysis/data/presentation-assets.json"
+      ],
+      "falsifier": "A required replacement decision that cannot be derived from the retained semantic WRAM tuple plus live PPU presentation state without modifying authoritative state.",
+      "next_action": "Make Original fallback the only failure mode for unknown/unregistered presentation tuples."
+    },
+    {
+      "id": "IA3-W01",
+      "class": "architectural_invariant",
+      "title": "Widescreen policy is domain-specific and viewport-local, not one global widen switch",
+      "result": {
+        "representative_1p": "mixed, evidence-backed",
+        "ordinary_2p": "mixed, evidence-backed",
+        "preserved_domain": "simulation_activation",
+        "widenable_domains": [
+          "preparation_streaming",
+          "camera_composition",
+          "render_culling/presentation as evidence permits"
+        ],
+        "implication": "The implementation should widen presentation per viewport while preserving stock activation/simulation boundaries; split-screen does not justify widening authoritative world liveness."
+      },
+      "evidence": [
+        "analysis/widescreen-policy.yml",
+        "analysis/generated/camera-dma-preparation-causal-contract-2026-10-02.md",
+        "analysis/generated/widescreen-strip-scheduling-plus8-acceptance-2026-10-02.md"
+      ],
+      "falsifier": "An event-relative fixture proving that correct widened presentation requires earlier authoritative object activation or changed race simulation.",
+      "next_action": "Use the existing VS-mode discriminator to decide whether VS shares ordinary-2P presentation policy, without changing the ownership model."
+    },
+    {
+      "id": "IA3-G01",
+      "class": "derived_product_constraint",
+      "title": "Modern profile state should coordinate guest SRAM, not absorb progression semantics",
+      "result": {
+        "guest_owned": "8 KiB SRAM medal/tier/checksum state with gameplay-authored save/reload acceptance",
+        "host_owned": "profile identity and modern administrative settings",
+        "implication": "Future autosave/resume metadata should reference or snapshot guest-owned SRAM as an opaque authoritative payload; medal/tier fields should not be duplicated into HostProductState as a second source of truth."
+      },
+      "evidence": [
+        "analysis/data/progression-model.json",
+        "docs/MODERN-PRODUCT-LAYER.md",
+        "merged PR #213"
+      ],
+      "falsifier": "A concrete modern feature that cannot preserve stock progression authority while storing only host metadata plus guest SRAM/save artifacts.",
+      "next_action": "Design autosave catalog metadata around guest save provenance/versioning rather than a parallel medal database."
+    },
+    {
+      "id": "IA3-R01",
+      "class": "runtime_negative",
+      "title": "Immediate whole-machine snapshot equality is insufficient to certify Restart Race",
+      "result": {
+        "workflow_run": 37079739225,
+        "artifact_id": 11258355231,
+        "capture_frame": 925,
+        "snapshot_bytes": 324142,
+        "immediate_restore_equal": true,
+        "replay_window_frames": 60,
+        "replay_equal": false,
+        "first_reported_partition": "apu",
+        "implication": "A restart acceptance must prove forward deterministic replay across APU as well as immediate serialized-state equality; the current restart implementation is not accepted."
+      },
+      "evidence": [
+        "PR #235 workflow run 37079739225",
+        "PR #235 comment recording the result",
+        "docs/MODERN-PRODUCT-LAYER.md"
+      ],
+      "falsifier": "A corrected lifecycle/state implementation that restores and replays the same accepted window with all compared partitions equal.",
+      "next_action": "Audit which APU timing/runtime state is outside the restored snapshot or is advanced asymmetrically around restore; keep Restart Race disabled until replay equality closes."
+    },
+    {
+      "id": "IA3-W02",
+      "class": "bounded_runtime_inference",
+      "title": "The accepted stock-helper Widescreen mechanism has a natural one-column (+8 px) capacity boundary",
+      "result": {
+        "accepted_unit_pixels": 8,
+        "stock_spare_horizontal_lanes": 1,
+        "latest_native_hook_observation": {
+          "workflow_run": 37078584156,
+          "margin8_prepares": 617,
+          "margin8_exact_later_stock_matches": 317,
+          "margin8_longest_consecutive_exact_match_run": 25,
+          "protected_state_equal": true,
+          "margin16_first_constraint": "secondary-lane-capacity",
+          "margin24_first_constraint": "secondary-lane-capacity",
+          "caveat": "native-hook PR #228 remains unmerged because 11 of 617 +8 PREP events failed the strict immediate-adjacency predicate"
+        },
+        "implication": "+16/+24 cannot be obtained merely by consuming more of the same single spare stock lane at one preparation boundary; generalization needs additional queue/storage capacity or a different scheduling strategy."
+      },
+      "evidence": [
+        "analysis/generated/widescreen-strip-scheduling-plus8-acceptance-2026-10-02.md",
+        "PR #228 workflow run 37078584156",
+        "PR #228 artifact 11257807236"
+      ],
+      "falsifier": "A stock-compatible scheduling construction that prepares two or more additional horizontal columns at the same required boundary without expanding lane capacity and while preserving protected state.",
+      "next_action": "Resolve the 11 non-adjacent +8 events before promoting the native hook; treat +16/+24 as an explicit capacity-extension problem rather than a parameter tweak."
+    }
+  ],
+  "audit_conclusions": {
+    "new_runtime_work_admission": [
+      "HD racer pixel substitution can proceed without new guest-state mutation research; identity and placement inputs are already separated.",
+      "Restart Race needs a targeted APU restore/replay discriminator, not broader snapshot experimentation.",
+      "Widescreen beyond +8 should investigate queue/lane capacity only after the +8 adjacency exceptions are explained.",
+      "Modern autosave/profile work should preserve guest SRAM as the authoritative progression substrate."
+    ],
+    "canonical_status_note": "IA3-R01 and the detailed native-hook observations in IA3-W02 are retained run evidence from still-open PRs and must not be mistaken for merged implementation acceptance."
+  }
+}

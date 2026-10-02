@@ -44,20 +44,12 @@ class NativeWidescreenHookTests(unittest.TestCase):
             "RecompReturn bank_01_A59E_M0X0(CpuState *cpu) { return RECOMP_RETURN_NORMAL; }\n",
             encoding="utf-8",
         )
-        nmi = root/"bank02_v2.c"
-        nmi.write_text(
-            "#include \"cpu_state.h\"\n"
-            "RecompReturn I_NMI(CpuState *cpu) {\n"
-            + block("02D2D1")
-            + "    return RECOMP_RETURN_NORMAL;\n}\n",
-            encoding="utf-8",
-        )
-        return wrapper,nmi
+        return wrapper
 
     def test_injects_exact_accepted_seams_and_is_idempotent(self):
         with tempfile.TemporaryDirectory() as td:
             root=Path(td)
-            wrapper,nmi=self.make_tree(root)
+            wrapper=self.make_tree(root)
             report=MOD.apply(root)
             self.assertTrue(report["changed"])
             self.assertTrue(report["margin0_control"])
@@ -66,23 +58,21 @@ class NativeWidescreenHookTests(unittest.TestCase):
             self.assertEqual(report["first_constraint"],"secondary-lane-capacity")
 
             w=wrapper.read_text(encoding="utf-8")
-            n=nmi.read_text(encoding="utf-8")
             self.assertIn(MOD.MARKER,w)
             self.assertIn("bank_01_A59E_M0X0(cpu)",w)
             self.assertIn("ur_ws_native_second_pass ? 0x453 : 0x433",w)
             self.assertIn("ur_ws_native_after_builder(cpu)",w)
-            self.assertIn("ur_ws_native_cleanup_after_nmi(cpu)",n)
+            self.assertIn("ur_ws_native_cleanup_previous_payload(cpu)",w)
             self.assertFalse(MOD.apply(root)["changed"])
 
-    def test_fails_closed_without_nmi_cleanup_anchor(self):
+    def test_fails_closed_without_live_wrapper(self):
         with tempfile.TemporaryDirectory() as td:
             root=Path(td)
-            self.make_tree(root)
-            (root/"bank02_v2.c").write_text(
+            (root/"bank81_v2.c").write_text(
                 "#include \"cpu_state.h\"\nRecompReturn x(CpuState *cpu){return RECOMP_RETURN_NORMAL;}\n",
                 encoding="utf-8",
             )
-            with self.assertRaisesRegex(ValueError,"NMI cleanup TU"):
+            with self.assertRaisesRegex(ValueError,"wrapper TU"):
                 MOD.apply(root)
 
 if __name__=="__main__":

@@ -1,24 +1,19 @@
 name: Racer piece semantics probe
 
 on:
-  push:
-    branches:
-      - chatgpt/racer-piece-semantics-2026-10-02
-    paths:
-      - "tools/analyze_racer_piece_semantics.py"
-      - "tests/unit/test_analyze_racer_piece_semantics.py"
-      - ".github/workflows/racer-piece-semantics.yml"
-
   pull_request:
     branches:
       - main
     paths:
       - "tools/analyze_racer_piece_semantics.py"
+      - "tools/extract_racer_presentation_family.py"
       - "tests/unit/test_analyze_racer_piece_semantics.py"
+      - "tests/unit/test_extract_racer_presentation_family.py"
+      - "analysis/generated/racer-presentation-family.json"
+      - "analysis/data/presentation-assets.json"
       - ".github/workflows/racer-piece-semantics.yml"
 
 permissions:
-  actions: read
   contents: read
 
 jobs:
@@ -30,51 +25,27 @@ jobs:
       - name: Verify ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
       - name: Unit tests
-        run: python3 -m unittest tests.unit.test_analyze_racer_piece_semantics -v
-      - name: Download retained ordinary-2P OAM evidence
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p "$RUNNER_TEMP/ordinary-2p"
-          gh run download 36943103609 -n ordinary-2p-reference -D "$RUNNER_TEMP/ordinary-2p"
-          python3 - "$RUNNER_TEMP/ordinary-2p" <<'PY'
-          from pathlib import Path
-          import sys
-          root=Path(sys.argv[1])
-          print("MODE_SCAN_BEGIN")
-          for wp in sorted(root.rglob("*.wram.bin")):
-              w=wp.read_bytes()
-              if len(w) < 0x1000: continue
-              m83,m85=w[0x0C83],w[0x0C85]
-              if m83 or m85:
-                  vals=[w[o] | (w[o+1]<<8) for o in (0x0200,0x0202,0x0204,0x0206,0x0FE9,0x0FEB)]
-                  print(" MODE",str(wp.relative_to(root)),f"{m83:02X}",f"{m85:02X}",[f"{v:04X}" for v in vals])
-          print("MODE_SCAN_END")
-          for tag in ("two-player-race-1220","two-player-race-1420"):
-              hits=list(root.rglob(f"{tag}.oam.bin"))
-              print("OAM_FILE", tag, [str(p.relative_to(root)) for p in hits])
-              for p in hits:
-                  d=p.read_bytes()
-                  print("OAM",tag,str(p.relative_to(root)), "len",len(d),"high218",f"{d[0x218]:02X}")
-                  wr=(p.parent/f"{tag}.wram.bin").read_bytes() if (p.parent/f"{tag}.wram.bin").exists() else None
-                  if wr is not None:
-                      vals=[wr[o] | (wr[o+1]<<8) for o in (0x0200,0x0202,0x0204,0x0206,0x0FE9,0x0FEB)]
-                      print(" FRAME_INPUTS",tag,[f"{v:04X}" for v in vals],"mode0C83",f"{wr[0x0C83]:02X}","mode0C85",f"{wr[0x0C85]:02X}")
-                  for s in range(96,100):
-                      q=s*4
-                      x,y,tile,attr=d[q:q+4]
-                      hb=(d[0x200+s//4] >> ((s%4)*2)) & 3
-                      print(" SPR",s,"x",x | ((hb&1)<<8),"y",y,"tile",f"{tile:02X}","attr",f"{attr:02X}","size",(hb>>1)&1)
+          python3 -m unittest tests.unit.test_analyze_racer_piece_semantics -v
+          python3 -m unittest tests.unit.test_extract_racer_presentation_family -v
+      - name: Regenerate racer family
+        run: |
+          python3 tools/extract_racer_presentation_family.py             "reference/roms/retail/Uniracers_USA.sfc"             --output /tmp/racer-presentation-family.json >/dev/null
+          diff -u analysis/generated/racer-presentation-family.json /tmp/racer-presentation-family.json
+      - name: Check consolidated presentation data
+        run: |
+          cp analysis/generated/racer-presentation-family.json /tmp/racer-family.saved
+          python3 tools/build_consolidated_knowledge.py
+          diff -u analysis/data/presentation-assets.json analysis/data/presentation-assets.json
+          diff -u /tmp/racer-family.saved analysis/generated/racer-presentation-family.json
+      - name: Inspect renderer proof
+        run: |
+          python3 tools/analyze_racer_piece_semantics.py             "reference/roms/retail/Uniracers_USA.sfc"             --output /tmp/racer-piece-semantics-probe.json >/dev/null
+          python3 - <<'PY'
+          import json
+          r=json.load(open("/tmp/racer-piece-semantics-probe.json"))
+          c=r["table_boundary_scan"]
+          assert c["comparable_monotonic_records"] == 5168
+          assert c["matches_30_cell_popcount"] == 5168
+          assert c["control_low2_nonzero_records"] == 0
           PY
-      - name: Inspect racer frame records and renderer bytes
-        run: |
-          python3 tools/analyze_racer_piece_semantics.py             "reference/roms/retail/Uniracers_USA.sfc"             --output analysis/generated/racer-piece-semantics-probe.json             | tee racer-piece-semantics-probe.txt
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: racer-piece-semantics-probe
-          path: |
-            analysis/generated/racer-piece-semantics-probe.json
-            racer-piece-semantics-probe.txt
-          retention-days: 7
-          if-no-files-found: error

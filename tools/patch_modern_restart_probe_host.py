@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 from pathlib import Path
 
 
@@ -141,14 +142,40 @@ def patch_text(source: str) -> str:
     return source
 
 
+
+def patch_cmake_text(source: str) -> str:
+    marker = "# UR_RESTART_PROBE_DIGEST_SOURCE"
+    if marker in source:
+        return source
+
+    match = re.search(r"add_executable\\(([^\\s\\)]+)", source)
+    if not match:
+        raise ValueError("generated CMake target anchor not found")
+
+    target = match.group(1)
+    return (
+        source.rstrip()
+        + "\\n\\n"
+        + marker
+        + "\\n"
+        + f'target_sources({target} PRIVATE '
+        + '"\${SNESRECOMP_ROOT}/runner/src/netplay/snes_state_digest.c")\\n'
+    )
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("main_c", type=Path)
+    parser.add_argument("--cmake", type=Path)
     args = parser.parse_args()
 
     original = args.main_c.read_text(encoding="utf-8")
     patched = patch_text(original)
     args.main_c.write_text(patched, encoding="utf-8")
+
+    if args.cmake is not None:
+        cmake_original = args.cmake.read_text(encoding="utf-8")
+        cmake_patched = patch_cmake_text(cmake_original)
+        args.cmake.write_text(cmake_patched, encoding="utf-8")
     return 0
 
 

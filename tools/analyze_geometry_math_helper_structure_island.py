@@ -88,7 +88,7 @@ def build():
 
 def render(r):
  lines=["# Geometry hardware-multiply helper structural island","",
- "USA 81:B6C0..B712 is a long-entry wrapper plus the shared geometry math body called eight times by the recovered geometry-precompute island. The body uses the SNES hardware multiply registers $211B/$211C and reads $2135/$2136; 81:B713 begins a separate routine.","",
+ "USA `81:B6C0..B712` is a long-entry wrapper plus the shared geometry math body called eight times by the recovered geometry-precompute island. The body uses the SNES hardware multiply registers `$211B/$211C` and reads `$2135/$2136`; `81:B713` begins a separate routine.","",
  "| Region | USA bytes | PAL prototype | Europe | Legacy beta |","|---|---:|---|---|---|"]
  for x in r["regions"]:
   def c(b):

@@ -13,7 +13,7 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-BEFORE_RE = re.compile(r"script f=(\d+) dump prep-emission-before-scroll ok")
+BEFORE_RE = re.compile(r"script f=(\\d+) dump prep-emission-before-scroll(?:\\s|$)")
 
 WATCH = {
     "count_a": 0x0DCD,

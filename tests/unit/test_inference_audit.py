@@ -116,6 +116,27 @@ class InferenceAuditTests(unittest.TestCase):
             popcount = sum(byte.bit_count() for byte in header)
             self.assertEqual(popcount, frame["packed_word_count"])
             self.assertEqual(frame["record_length"], 4 + 2 * popcount)
+    def test_fixture_corpus_distinguishes_semantic_and_absolute_anchors(self):
+        fixtures = json.loads(
+            (ROOT / "analysis/data/fixture-corpus.json").read_text(encoding="utf-8")
+        )["fixtures"]
+        by_id = {x["id"]: x for x in fixtures}
+        self.assertEqual(
+            by_id["reach-first-race"]["anchor_type"],
+            "semantic_state_waits",
+        )
+        self.assertEqual(
+            by_id["course-load-timeline"]["anchor_type"],
+            "semantic_entry_plus_relative_timeline",
+        )
+        self.assertEqual(
+            by_id["progression-sram-acceptance"]["anchor_type"],
+            "historical_absolute_frame_scan",
+        )
+        self.assertEqual(
+            by_id["two-player-first-race-observe"]["anchor_type"],
+            "absolute_wait_sequence",
+        )
 
 if __name__ == "__main__":
     unittest.main()

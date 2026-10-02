@@ -25,23 +25,268 @@
       }
     },
     "unused_combo_message_set_9": {
+      "all_nine_sets_fixed_width_printable_ascii": true,
+      "cpu_address": "97:D679",
+      "message_count": 16,
+      "message_size": 16,
+      "reported_block_is_ninth_fixed_stride_set": true,
       "reported_offset": 775801,
       "reported_offset_hex": "0x0BD679",
-      "status": "fingerprinted_only_pending_table-structure reconciliation",
-      "window": {
-        "ascii_runs": [
-          {
-            "length": 256,
-            "offset": 0,
-            "text": "yes!           cool!           funky!       check that out    fight on!       ride on!         yeah!          done that!     no problem!    that was easy!    nailed it!     slammed \"em!       bingo!         crusin\"!        banzai!                          "
-          }
-        ],
-        "hex": "796573212020202020202020202020636f6f6c21202020202020202020202066756e6b792120202020202020636865636b2074686174206f7574202020206669676874206f6e212020202020202072696465206f6e21202020202020202020796561682120202020202020202020646f6e6520746861742120202020206e6f2070726f626c656d21202020207468617420776173206561737921202020206e61696c6564206974212020202020736c616d6d65642022656d212020202020202062696e676f2120202020202020202063727573696e2221202020202020202062616e7a6169212020202020202020202020202020202020202020202020202020",
-        "length": 256,
-        "offset": 775801,
-        "offset_hex": "0x0BD679",
-        "sha256": "f52985dc47c96c4282568d8f13ce0c1a7d4cde466b2ebb3700f2299b3eb5de8d"
-      }
+      "set_9_16bit_pointer_occurrences": [
+        827592,
+        946097,
+        1008516,
+        1354739,
+        1442363
+      ],
+      "set_9_24bit_pointer_occurrences": [],
+      "set_size": 256,
+      "sets": [
+        {
+          "all_bytes_printable_ascii": true,
+          "fixed_width": 16,
+          "index": 1,
+          "message_count": 16,
+          "messages": [
+            "ockin         ex",
+            "cellent        r",
+            "adical        th",
+            "rashin\"       ai",
+            "r head        hu",
+            "h  huh       hea",
+            "vy pedal       j",
+            "ammin\"      head",
+            " bangin\"       l",
+            "ater           d",
+            "ude           in",
+            "tense          b",
+            "rutal",
+            "            huh",
+            " huh  huh     ri",
+            "ghteous     what"
+          ],
+          "offset": 773753,
+          "offset_hex": "0x0BCE79",
+          "sha256": "f98fefee2990f83a820277f6546c8dbd4764522f14f43186b0d734dc1b609a79"
+        },
+        {
+          "all_bytes_printable_ascii": true,
+          "fixed_width": 16,
+          "index": 2,
+          "message_count": 16,
+          "messages": [
+            " a rush!     hap",
+            "penin\"!       gr",
+            "oovy!        dai",
+            "sy rage!    outt",
+            "a sight!     smm",
+            "mmokin!        p",
+            "eace!",
+            "cool!          n",
+            "eato!",
+            "hip!          fa",
+            "r out!      flow",
+            "er power!",
+            "",
+            "",
+            "",
+            "             waa"
+          ],
+          "offset": 774009,
+          "offset_hex": "0x0BCF79",
+          "sha256": "739c339b7cb384a239287c15060e039bf040e4c8cc4eb19285128b451a828034"
+        },
+        {
+          "all_bytes_printable_ascii": true,
+          "fixed_width": 16,
+          "index": 3,
+          "message_count": 16,
+          "messages": [
+            "aaahhh!!!    oh",
+            " please!     too",
+            "oo fast!      i\"",
+            "m dizzy     i al",
+            "most fell      w",
+            "oooah!       sho",
+            "ot me now!   slo",
+            "w me down!   i h",
+            "ate races!   hua",
+            "hhh  wahh!   my",
+            "innertube!  !!!!",
+            "!!!!!!!!!!",
+            "",
+            "",
+            "",
+            "              da"
+          ],
+          "offset": 774265,
+          "offset_hex": "0x0BD079",
+          "sha256": "262b736e6145d116f407b57ad699c4cf0a5df4786a1e41ef8d16b00f8610b0e0"
+        },
+        {
+          "all_bytes_printable_ascii": true,
+          "fixed_width": 16,
+          "index": 4,
+          "message_count": 16,
+          "messages": [
+            "\" bomb!    ain\"t",
+            " no thang!    al",
+            "l that!       it",
+            "\"s on!        wh",
+            "asuuup!        s",
+            "lammin\"",
+            "phat!          s",
+            "mooth!      born",
+            " to roll!  it\"s",
+            "a z-thang!  cool",
+            " like dat!",
+            "",
+            "",
+            "",
+            "",
+            "             out"
+          ],
+          "offset": 774521,
+          "offset_hex": "0x0BD179",
+          "sha256": "6edc9cd49c64a5565963e2d39a50fc8c84bb65db5c4a01d67ac124e849d3d2ca"
+        },
+        {
+          "all_bytes_printable_ascii": true,
+          "fixed_width": 16,
+          "index": 5,
+          "message_count": 16,
+          "messages": [
+            "rageous!      i\"",
+            "m sure!       tu",
+            "bular!         r",
+            "adical!        s",
+            "tellar!        g",
+            "narly!        aw",
+            "esome!",
+            "mondo!        fe",
+            "r sure!",
+            "sweet!",
+            "snaz!          c",
+            "ruis\"n!       li",
+            "ke wow!",
+            "snaz!          s",
+            "nazzy!",
+            ""
+          ],
+          "offset": 774777,
+          "offset_hex": "0x0BD279",
+          "sha256": "d5903727484a9ee585a5043b5568b879756b7a1579629de20d2f42a742efb0be"
+        },
+        {
+          "all_bytes_printable_ascii": true,
+          "fixed_width": 16,
+          "index": 6,
+          "message_count": 16,
+          "messages": [
+            "ultra!",
+            "super!         m",
+            "onster!        b",
+            "laster!        k",
+            "iller!        ul",
+            "timate!        p",
+            "hoenix!       to",
+            "mahawk!",
+            "hyper!         b",
+            "rutal!",
+            "combo!         s",
+            "pinal!",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "offset": 775033,
+          "offset_hex": "0x0BD379",
+          "sha256": "56d7c513b119730129304354de16767a3ac55bf4ba4313044afc63827491032d"
+        },
+        {
+          "all_bytes_printable_ascii": true,
+          "fixed_width": 16,
+          "index": 7,
+          "message_count": 16,
+          "messages": [
+            " rad!",
+            "vert!          k",
+            "iller!         a",
+            "wesome!        g",
+            "narly!         w",
+            "ailin\"!",
+            "grok!          b",
+            "oogie!",
+            "raw!           s",
+            "nakin\"!        t",
+            "rippy!         t",
+            "hrash!         w",
+            "icked!",
+            "",
+            "",
+            "               s"
+          ],
+          "offset": 775289,
+          "offset_hex": "0x0BD479",
+          "sha256": "70c9cddeebbbcfb04a2b551d27a7a4c746a74ca99e2bb2aa7017f4f05a972a61"
+        },
+        {
+          "all_bytes_printable_ascii": true,
+          "fixed_width": 16,
+          "index": 8,
+          "message_count": 16,
+          "messages": [
+            "hazam!       gre",
+            "at scott!",
+            "biff!",
+            " pow!",
+            " zap!          g",
+            "alactic!",
+            "cosmic!",
+            "ta dow!      up",
+            "and away!      k",
+            "a boom!      all",
+            " you can!     su",
+            "per uni!",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "offset": 775545,
+          "offset_hex": "0x0BD579",
+          "sha256": "906413f6573d19d91abafe3134011f22de0fcdc26863dbbe40d1a9512dd151af"
+        },
+        {
+          "all_bytes_printable_ascii": true,
+          "fixed_width": 16,
+          "index": 9,
+          "message_count": 16,
+          "messages": [
+            "yes!           c",
+            "ool!           f",
+            "unky!       chec",
+            "k that out    fi",
+            "ght on!       ri",
+            "de on!         y",
+            "eah!          do",
+            "ne that!     no",
+            "problem!    that",
+            " was easy!    na",
+            "iled it!     sla",
+            "mmed \"em!",
+            "bingo!         c",
+            "rusin\"!        b",
+            "anzai!",
+            ""
+          ],
+          "offset": 775801,
+          "offset_hex": "0x0BD679",
+          "sha256": "f52985dc47c96c4282568d8f13ce0c1a7d4cde466b2ebb3700f2299b3eb5de8d"
+        }
+      ],
+      "status": "fixed_stride_table_structure_confirmed"
     },
     "version_string": {
       "decoded": "ASJIver3.30\ufffdmike____\ufffd\ufffd______andr",
@@ -87,7 +332,7 @@
   "interpretation": {
     "limitations": [
       "Fixed-offset presence does not by itself prove runtime reachability.",
-      "The Error Tour, boot-graphic overwrite, combo-message table semantics, and music selector reachability require separate structural or runtime checks."
+      "The Error Tour, boot-graphic overwrite, combo-message runtime reachability, and music selector reachability require separate structural or runtime checks."
     ],
     "version_and_antipiracy_link": "LoROM CPU address 83:8000 maps exactly to file offset 0x18000. If the reported SRAM anti-piracy comparison reads ROM 83:8000, it is reading from the same location as the reported ASJIver3.30 payload."
   },

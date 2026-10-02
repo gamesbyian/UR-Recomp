@@ -1,6 +1,6 @@
 # Inference Audit Plan
 
-Status: active research plan
+Status: first audit pass complete; later phases remain evidence-gated
 Date: 2026-10-02
 
 ## Purpose
@@ -198,3 +198,7 @@ Do not run broad sweeps merely because instrumentation exists.
 5. Extend presentation-frame differential analysis.
 6. Add progression prediction.
 7. Join course/preparation/render evidence once the active preparation lane lands.
+
+## First pass closeout — 2026-10-02
+
+The first audit is retained in `analysis/generated/inference-audit.{json,md}`. It closes the 45-course resource-cursor relationship, reduces shipped geometry to six fixed-area dimension families, identifies exact track-kind resource scaffolds and universal resource anchors, derives regional racer-slot spacing invariants, validates the presentation-record container equation, and defines a six-course generalization corpus. Renderer/preparation and +8 composition synthesis remain deferred to active PRs #203 and #206; progression prediction remains a later extension after that evidence stabilizes.

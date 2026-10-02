@@ -54,9 +54,14 @@ class DoublepassAcceptanceTests(unittest.TestCase):
     def test_parse_vram(self):
         with tempfile.TemporaryDirectory() as td:
             p=Path(td)/"x.log"
-            p.write_text("WSVRAM frame=4 cols=2:0D80:"+"AA"*32+",3:0D81:"+"BB"*32+"\n")
+            p.write_text(
+                "WSVRAM frame=4 cols=2:0D80:"+"AA"*32+",3:0D81:"+"BB"*32+"\n"
+                "noise\n"
+                "WSVRAM frame=5 cols=2:0D81:"+"CC"*32+",3:0D82:"+"DD"*32+"\n"
+            )
             parsed=MOD.parse_vram(p)
             self.assertEqual(parsed[4][(3,0x0D81)],"BB"*32)
+            self.assertEqual(parsed[5][(3,0x0D82)],"DD"*32)
 
 if __name__=="__main__":
     unittest.main()

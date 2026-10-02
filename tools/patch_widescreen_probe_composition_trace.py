@@ -42,7 +42,37 @@ def patch_ppu(path: Path) -> None:
 '''
     if needle not in text:
         raise SystemExit(f"{path}: composition insertion point not found")
-    path.write_text(text.replace(needle, insert + needle, 1), encoding="utf-8")
+    text = text.replace(needle, insert + needle, 1)
+
+    write_needle = """        // Lower OAM indices are processed later and overwrite higher ones.
+                dst[0] = z + pixel;
+"""
+    write_insert = r'''        // Lower OAM indices are processed later and overwrite higher ones.
+        {
+          static int ws_obj_trace = -1;
+          if (ws_obj_trace < 0)
+            ws_obj_trace = getenv("SNESRECOMP_WS_EDGE_TRACE") ? 1 : 0;
+          const int screen_x = col + x + px;
+          if (ws_obj_trace && screen_x == 255 &&
+              line >= 143 && line <= 144 &&
+              snes_frame_counter >= 2888 && snes_frame_counter <= 2905) {
+            int rawx = ppu->oam[index] & 0xff;
+            rawx |= ((ppu->highOam[index >> 3] >> (index & 7)) & 1) << 8;
+            fprintf(stderr,
+                    "WS_OBJ_WRITE frame=%d line=%d slot=%d rawx=%d x=%d "
+                    "size=%d col=%d px=%d row=%u oam1=%04X z=%04X "
+                    "pixel=%02X tiles=%d extraL=%u extraR=%u\n",
+                    snes_frame_counter, line, slot, rawx, x, spriteSize,
+                    col, px, row, oam1, z, pixel, tilesFound,
+                    ppu->extraLeftCur, ppu->extraRightCur);
+          }
+        }
+                dst[0] = z + pixel;
+'''
+    if write_needle not in text:
+        raise SystemExit(f"{path}: OBJ write insertion point not found")
+    text = text.replace(write_needle, write_insert, 1)
+    path.write_text(text, encoding="utf-8")
 
 
 def main() -> int:

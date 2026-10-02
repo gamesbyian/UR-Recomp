@@ -12,7 +12,7 @@ Status values are `sufficient`, `partial`, `unknown`, or `not applicable`. `Suff
 | Stunt / reward / in-race progression | sufficient | sufficient | partial | sufficient | On-demand for product statistics/UI needs |
 | Camera / screen-relative projection | sufficient | sufficient | partial | sufficient | Complete renderer-facing integration, not generic mapping |
 | Sprite/OAM + active-display split-screen seam | sufficient | sufficient | partial | sufficient | Hard authentic-mode and Widescreen constraint |
-| Gameplay object activation / liveness | partial | partial | unknown | partial | **Highest-value unresolved Widescreen semantic** |
+| Gameplay object activation / liveness | sufficient for representative checkpoint/finish family | sufficient | partial | sufficient | Preserve collision/contact activation independently of widened presentation; reopen on discrepant object family |
 | World preparation / VRAM streaming | partial | partial | partial | partial | Recover horizon from camera demand to prepared graphics |
 | Course spatial/resource model | sufficient | sufficient for representative presentation questions | partial | sufficient on representative contract + sampled family invariants | **Presentation-sufficient; four header shapes preserve the same two-level spatial/resource contract** |
 | Frontend / principal progression | sufficient | sufficient for principal stock flow | partial | partial | Close finite save/load/progression acceptance only |
@@ -25,7 +25,7 @@ Status values are `sufficient`, `partial`, `unknown`, or `not applicable`. `Suff
 
 **Camera and OAM:** the 2P fixture causally separates camera ownership and exposes per-camera position/velocity, split-screen mode, screen-relative racer coordinates and offscreen sentinels. The camera-control island and `Race_BuildRacerOAMState` connect world coordinates through projection/culling into OAM-facing state. The authentic active-display `$2104` seam is reproduced at scanlines 0 and 112 and has independent emulator/historical corroboration.
 
-**Object activation:** the runtime `7E:C000` behavior plane feeds the bank-81 object/collision dispatcher, and object code `0x14` reaches the confirmed checkpoint/finish handler. What remains unknown is the general boundary at which ordinary objects/hazards/opponents become behaviorally active versus merely present, prepared or drawable. The recovered camera-filtered VRAM update lists are presentation/preparation evidence and must not be treated as gameplay-activation evidence.
+**Object activation:** the runtime `7E:C000` behavior plane feeds the bank-81 object/collision dispatcher, and object code `0x14` reaches the confirmed checkpoint/finish handler. The deterministic Dragster tail now proves the representative family is materially present before the race, becomes framebuffer-visible at guest frame 2789, and does not trigger its checkpoint/finish behavior transition until guest frame 2903, when collision/contact-derived C000 index 8 selects code `0x14`. Camera position and the `$0DCD/$0DCF` presentation-update lists do not participate in that activation decision. This is sufficient for the current Widescreen rule: exposure may widen without widening gameplay activation. Generalize only if another object family demonstrates a different mechanism.
 
 **Preparation / streaming:** course loading and the camera/window work expose real VRAM-update construction and `$2116/$2118` emission, but the project cannot yet predict a general preparation horizon for additional horizontal visibility.
 
@@ -37,8 +37,8 @@ Status values are `sufficient`, `partial`, `unknown`, or `not applicable`. `Suff
 
 ## Highest-value next discriminators
 
-1. **Activation timeline:** use the cheapest deterministic fixture in which a known world object crosses the classic camera edge. Capture the first frames at which it exists, becomes behaviorally processed, enters preparation/update lists, is drawn, and becomes visible.
-2. **Preparation horizon:** in the same fixture, correlate camera/window edges with first VRAM/update-list membership. Prove one resource family before generalizing.
+1. **Preparation horizon / first widened probe:** the activation/visibility split is now closed for the representative checkpoint/finish family. Use the same evidence to interpret the first +8/+16/+24 exposure failure, and recover more preparation semantics only if that probe actually needs them.
+2. **Renderer-facing causal closure:** preserve the now-proven separation among authoritative object existence, collision/contact activation, resource preparation, and framebuffer visibility while completing the camera/window → preparation → emission chain.
 3. **Tiny-margin Widescreen probe:** with Dragster's presentation spatial/resource contract now sufficient, expose +8/+16/+24 source pixels and let the first failure choose whether further course generalization is actually required.
 4. **Graphics round trip (closed for the first racer family):** the ordinary-race racer family now has deterministic semantic frame IDs, exact packed-stream and palette extraction, byte-identical reconstruction and a compact manifest. Extend to additional frame IDs or decode deeper packed-word/tile semantics only when an HD/native-rendering task requires them.
 5. **Save/load progression acceptance:** create one real progression-changing run, persist it, reload it, and assert medal/tier/checksum state.

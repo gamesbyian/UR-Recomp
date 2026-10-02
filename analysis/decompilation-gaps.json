@@ -209,6 +209,14 @@
       "summary": "Recovered the 331-byte course-sector neighborhood gather immediately upstream of the accepted course-surface sampler. It reduces current X/Y coordinates to 64-unit sector coordinates, gathers four neighboring sector entries from $7F000F, selects a local payload through $7F800F, and fills the $0260..$0272 workspace consumed by 81:8B95. USA/beta are byte-identical; PAL prototype and Europe preserve the full function at shift -32. All 168 aligned opcode positions match in every non-USA build with zero analyzer role disagreements.",
       "priority": "low",
       "next_evidence": "Decode individual sector/payload field semantics only for a concrete course-format, editor, collision, or recomp implementation need. Comparative structure work should move to another unresolved high-connectivity frontier."
+    },
+    {
+      "id": "resolved-geometry-hardware-multiply-helper",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:B6C0..B712 and homologs",
+      "summary": "Recovered the hardware-multiply geometry helper called eight times by the geometry-precompute body. The island is an 83-byte long-entry wrapper plus 79-byte body; the body is byte-identical across all four preserved ROMs, while the wrapper relocates with bank-81 layout (PAL prototype -32, Europe -15). All 37 aligned opcode positions match with zero analyzer role disagreements. The body uses SNES multiplication registers $211B/$211C and reads $2135/$2136.",
+      "priority": "low",
+      "next_evidence": "Revisit the exact fixed-point interpretation only if collision/geometry implementation needs it. Otherwise move to a different uncovered frontier."
     }
   ]
 }

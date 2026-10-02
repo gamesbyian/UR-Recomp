@@ -94,13 +94,37 @@ jobs:
             --json-out analysis/generated/preparation-emission-probe.json \
             --md-out analysis/generated/preparation-emission-probe.md
 
-      - name: Require a live boundary
+      - name: Instrument intra-frame preparation seam
         if: steps.discover.outcome != 'success'
         shell: bash
         run: |
-          echo "No frame-boundary non-zero update-list state was observed."
-          echo "The retained trace remains useful negative evidence; next probe must observe intra-frame writes."
-          exit 1
+          set -euo pipefail
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 tools/instrument_snesref_preparation_trace.py "$CORE/cpuexec.cpp"
+          make -C "$CORE/libretro" -j2
+          test -f "$CORE/libretro/snes9x_libretro.so"
+
+      - name: Run intra-frame producer and consumer trace
+        if: steps.discover.outcome != 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/preparation-intraframe"
+          DUMPS="$ROOT/dumps"
+          mkdir -p "$DUMPS" analysis/generated
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            .tools/src/snesrecomp/build-snesref/snesref \
+            .tools/src/snes9x-libretro/libretro/snes9x_libretro.so \
+            reference/roms/retail/Uniracers_USA.sfc \
+            >"$ROOT/run.log" 2>&1
+          grep 'PREPTRACE' "$ROOT/run.log" | head -n 40 || true
+          python3 tools/analyze_preparation_intraframe_trace.py "$ROOT/run.log" \
+            --json-out analysis/generated/preparation-intraframe-trace.json \
+            --md-out analysis/generated/preparation-intraframe-trace.md
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -116,6 +140,6 @@ jobs:
             ${{ runner.temp }}/preparation-discovery/replay.script
             ${{ runner.temp }}/preparation-discovery/replay.input
             ${{ runner.temp }}/preparation-discovery/dumps/
-            ${{ runner.temp }}/preparation-emission-dumps/
+            ${{ runner.temp }}/preparation-emission-dumps/\n            ${{ runner.temp }}/preparation-intraframe/
           if-no-files-found: warn
           retention-days: 7

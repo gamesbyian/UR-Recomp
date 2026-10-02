@@ -1,0 +1,125 @@
+name: Modern race restart native acceptance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "native/product/race_restart_anchor.*"
+      - "native/product/session_runtime_adapter.*"
+      - "tools/patch_modern_restart_probe_host.py"
+      - "tests/unit/test_patch_modern_restart_probe_host.py"
+      - "tests/input/modern-restart-acceptance.script"
+      - ".github/workflows/modern-race-restart-acceptance.yml"
+      - "docs/MODERN-PRODUCT-LAYER.md"
+      - "docs/SEMANTIC-SUFFICIENCY.md"
+      - "docs/PROJECT-PLAN.md"
+
+concurrency:
+  group: modern-race-restart-acceptance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  restart-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install focused desktop build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Stage repository-owned SNESRecomp framework
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
+
+      - name: Scaffold and patch generated Uniracers host
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/ur-restart-acceptance"
+          mkdir -p "$TMP"
+
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --dir "$TMP" \
+              --name "Uniracers" \
+              --players 2 \
+              --yes \
+              --no-ci \
+              --no-fetch-boxart \
+              --no-recomp-ui \
+              --no-netplay \
+              --no-github \
+              --no-submodules \
+              --generate \
+              --no-build
+
+          ROOT="$TMP/UniracersSNESRecomp"
+          python3 "$GITHUB_WORKSPACE/tools/patch_modern_restart_probe_host.py" \
+            "$ROOT/src/main.c"
+
+          grep -q "UR_RESTART_PROBE captured=1" "$ROOT/src/main.c"
+          grep -q "UrRestartProbeAfterRunFrame" "$ROOT/src/main.c"
+
+      - name: Build patched native target
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          ROOT="$RUNNER_TEMP/ur-restart-acceptance/UniracersSNESRecomp"
+          cmake -S "$ROOT" -B "$ROOT/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF
+          cmake --build "$ROOT/build" -j2
+          test -x "$ROOT/build/UniracersSNESRecomp"
+
+      - name: Prove exact race-entry restore and replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-restart-acceptance/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-restart-acceptance.script"
+          LOG="$RUNNER_TEMP/modern-restart-acceptance.log"
+
+          set +e
+          SDL_AUDIODRIVER=dummy \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          set -e
+
+          cat "$LOG"
+          test "$STATUS" -eq 0
+          grep -q "UR_RESTART_PROBE captured=1" "$LOG"
+          grep -q "UR_RESTART_PROBE immediate_equal=1" "$LOG"
+          grep -q "UR_RESTART_PROBE PASS replay_equal=1 window=60" "$LOG"
+          ! grep -q "UR_RESTART_PROBE FAIL" "$LOG"
+
+      - name: Upload restart acceptance log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-race-restart-acceptance
+          path: ${{ runner.temp }}/modern-restart-acceptance.log
+          if-no-files-found: warn
+          retention-days: 7

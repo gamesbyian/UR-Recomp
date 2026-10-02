@@ -236,6 +236,6 @@
     "callsite": "82:B322",
     "target": "81:B8F1",
     "condition": "descriptor flag $4D == $80",
-    "evidence": "Preserved Nitrodon listing labels 81:B8F1 'Decompress map?' and its implementation is a resource decompressor; the noncompressed path writes through SNES WRAM ports $2181..$2183/$2180."
+    "evidence": "Preserved Nitrodon listing identifies 81:B8F1 as map decompression; the noncompressed path writes through SNES WRAM ports $2181..$2183/$2180."
   }
 }

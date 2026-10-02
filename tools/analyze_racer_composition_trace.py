@@ -10,7 +10,7 @@ from pathlib import Path
 from extract_racer_presentation_family import extract_frame, packed_word_source
 
 LINE_RE = re.compile(
-    r"RACERCOMP frame=(?P<frame>\d+) pc=83F292 "
+    r"RACERCOMP frame=(?P<frame>\d+) pc=83(?P<pc>[0-9A-F]{4}) "
     r"ids=(?P<ids>[0-9A-F,]+) sel=(?P<sel>[0-9A-F,]+) "
     r"pm=(?P<pm>[0-9A-F,]+) um=(?P<um>[0-9A-F,]+) "
     r"off=(?P<off>[0-9A-F,]+) stage=(?P<stage>.*)$"
@@ -147,13 +147,14 @@ def main() -> int:
     ap.add_argument("--md-out", type=Path)
     args = ap.parse_args()
 
-    rows = []
+    raw = []
     for line in args.log.read_text(errors="replace").splitlines():
         m = LINE_RE.search(line)
         if not m:
             continue
-        rows.append({
+        raw.append({
             "frame": int(m.group("frame")),
+            "pc": int(m.group("pc"), 16),
             "ids": parse_hex_list(m.group("ids")),
             "selectors": parse_hex_list(m.group("sel")),
             "primary_masks": parse_hex_list(m.group("pm")),
@@ -161,19 +162,44 @@ def main() -> int:
             "offsets": parse_hex_list(m.group("off")),
             "stage": parse_stage(m.group("stage")),
         })
-    if not rows:
+    if not raw:
         raise SystemExit("no RACERCOMP lines found")
 
+    pending = {}
+    pairs = []
+    for row in raw:
+        key = row["frame"]
+        if row["pc"] == 0xF129:
+            pending[key] = row
+        elif row["pc"] == 0xF292 and key in pending:
+            pre = pending.pop(key)
+            pairs.append({
+                "frame": key,
+                "ids": pre["ids"],
+                "selectors": pre["selectors"],
+                "primary_masks": pre["primary_masks"],
+                "union_masks": pre["union_masks"],
+                "offsets": pre["offsets"],
+                "stage": row["stage"],
+                "post_masks": {
+                    "primary": row["primary_masks"],
+                    "union": row["union_masks"],
+                },
+            })
+    if not pairs:
+        raise SystemExit("no paired F129/F292 RACERCOMP events found")
+
     rom = args.rom.read_bytes()
-    analyzed = [analyze_event(rom, row) for row in rows]
+    analyzed = [analyze_event(rom, row) for row in pairs]
     nearest = {}
     for anchor in ANCHORS:
         nearest[str(anchor)] = min(analyzed, key=lambda r: abs(r["frame"] - anchor))
 
     report = {
-        "schema_version": 1,
-        "purpose": "Synchronize racer composition inputs with F292 staging output and infer primary/companion selection per cache cell.",
-        "event_count": len(analyzed),
+        "schema_version": 2,
+        "purpose": "Synchronize untouched F129 racer composition masks/cursors with the same-frame F292 staging output.",
+        "raw_event_count": len(raw),
+        "paired_event_count": len(analyzed),
         "events": analyzed,
         "nearest_anchor_events": nearest,
         "all_events_source_exact": all(r["mismatch_count"] == 0 for r in analyzed),
@@ -182,8 +208,9 @@ def main() -> int:
     lines = [
         "# Synchronized racer cache composition",
         "",
-        f"Captured events: {len(analyzed)}",
-        f"All events source-exact: {report['all_events_source_exact']}",
+        f"Raw trace events: {len(raw)}",
+        f"Paired F129/F292 events: {len(analyzed)}",
+        f"All paired events source-exact: {report['all_events_source_exact']}",
         "",
         "| anchor | frame | ids | selectors | mismatches |",
         "|---:|---:|---|---|---:|",
@@ -202,9 +229,9 @@ def main() -> int:
         r = nearest[str(anchor)]
         lines.append(f"## Anchor {anchor}, captured frame {r['frame']}")
         lines.append("")
-        lines.append("Primary masks: " + " ".join(f"0x{x:04X}" for x in r["primary_masks"]))
-        lines.append("Union masks: " + " ".join(f"0x{x:04X}" for x in r["union_masks"]))
-        lines.append("Offsets: " + " ".join(f"0x{x:04X}" for x in r["offsets"]))
+        lines.append("Primary masks @F129: " + " ".join(f"0x{x:04X}" for x in r["primary_masks"]))
+        lines.append("Union masks @F129: " + " ".join(f"0x{x:04X}" for x in r["union_masks"]))
+        lines.append("Offsets @F129: " + " ".join(f"0x{x:04X}" for x in r["offsets"]))
         for rr in range(5):
             choices = [
                 c["choice"].replace("p1_", "1:").replace("p2_", "2:")

@@ -1167,7 +1167,7 @@ Detailed comparison: `docs/CANOE-COMPATIBILITY-PATCH.md`.
 
 ### R-SEED-049 — Unused-song records are ordinary but unreachable CPU audio records
 
-**Status:** static/replay-corpus reconciliation confirmed; unused-song package attribution strongly supported; causal reconstruction open  
+**Status:** static/replay-corpus reconciliation confirmed; unused-song selector identity independently corroborated by TCRF; package attribution strongly supported; causal reconstruction open  
 **Date:** 2026-09-30  
 **Area:** audio | APU | CPU | unused content
 
@@ -1180,6 +1180,7 @@ The six known package tables contain one orphan, `03:FB95`. It has no direct `JS
 **Interpretation:** full package/SPC correlation run `36777071311` (artifact `11126836085`, digest `sha256:64944bcb5437dd0858ad71d07759b639d30734aa03de0f0635f7963710d92496`) correlates all 50 package blocks against the ten preserved SPC snapshots. Block `0x00` is the sole mechanically untestable record because its 22-byte payload is below the correlator's 32-byte minimum. Excluding only that block, the method reproduces every known reachable package association exactly: Title=`03:FBD5`, Demo=`03:FB15`, Celebration=`03:FAD5`, and all five numbered races=`03:FB55`. It then gives Unused Song 1 the exact same 18-block correlatable signature as Demo Race, strongly supporting `03:FB15` reuse, and Unused Song 2 the exact same 23-block signature as every numbered race, strongly supporting `03:FB55` reuse. Independent live FB55 transfer evidence corroborates the second attribution. `03:FB95` remains an intentional orphan/reduced package variant but is not supported as the complete package of either preserved unused song. The `0x3B/0x3C` near-duplicate keeps `03:FC15` as a useful sequence-sibling control for Unused Song 1.
 
 **Evidence:** `analysis/generated/audio-setup-selector-map.json`; `analysis/generated/audio-package-map.json`; `analysis/generated/audio-extended-block-correlation.json`; `analysis/generated/audio-package-spc-signatures.json`; `analysis/generated/audio-unused-path-analysis.{json,md}`; `analysis/generated/audio-record-pool-reconciliation.md`.
+Independent secondary-source corroboration: The Cutting Room Floor's Uniracers article reports title-screen PAR substitutions selecting audio records `$3B` and `$3D` for its two preserved unused tracks. This agrees with the project's independently derived record identities. Source registry: `reference/catalog.yml` entry `tcrf-uniracers-unused-content`; reconciliation note: `reference/notes/tcrf-unused-content.md`. Treat the PAR patch semantics beyond the selector identity as a lead until locally reproduced.
 
 **Discriminating test:** reconstruct the evidence-backed primary pairs `0x3B + 03:FB15` and `0x3D + 03:FB55` in a reference APU harness and compare resulting RAM against the preserved unused-song SPCs. Retain `0x3B + 03:FC15` as the near-twin-sequence control and `0x3B + 03:FB95` as the orphan-table control.
 

@@ -1,0 +1,159 @@
+{
+  "island": "RaceControlStatePair",
+  "known_callers": [
+    {
+      "callsite": "83:CD3A",
+      "source": "race-frame-orchestrator",
+      "target": "83:E066"
+    },
+    {
+      "callsite": "83:CD32",
+      "source": "race-frame-orchestrator",
+      "target": "83:E238"
+    }
+  ],
+  "next_entry": "83:E540",
+  "regions": [
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 176,
+          "aligned_opcode_pairs": 176,
+          "aligned_role_disagreements": 0,
+          "end": "83:E253",
+          "opcode_bytes": 176,
+          "opcode_mismatches": [],
+          "operand_bytes": 290,
+          "sha256": "0dbd08305ed38e53bf950e1da286d20ab7ef2314c7ed97b52d42822c39a435f9",
+          "shift": 28,
+          "similarity": 0.830472,
+          "size": 466,
+          "size_delta": 0,
+          "start": "83:E082",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 176,
+          "aligned_opcode_pairs": 176,
+          "aligned_role_disagreements": 0,
+          "end": "83:E237",
+          "opcode_bytes": 176,
+          "opcode_mismatches": [],
+          "operand_bytes": 290,
+          "sha256": "41c54b8d37532c263883b747339ad717cc0812a9a281e400fb3b1f9b920ee5bb",
+          "shift": 0,
+          "similarity": 1,
+          "size": 466,
+          "size_delta": 0,
+          "start": "83:E066",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 176,
+          "aligned_opcode_pairs": 176,
+          "aligned_role_disagreements": 0,
+          "end": "83:E22D",
+          "opcode_bytes": 176,
+          "opcode_mismatches": [],
+          "operand_bytes": 290,
+          "sha256": "f5717e24b78e18ba8d146f7b01bff634dd98e38c5a39f6daed06250514dec5b2",
+          "shift": -10,
+          "similarity": 0.916309,
+          "size": 466,
+          "size_delta": 0,
+          "start": "83:E05C",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "83:E237",
+          "opcode_bytes": 176,
+          "operand_bytes": 290,
+          "sha256": "41c54b8d37532c263883b747339ad717cc0812a9a281e400fb3b1f9b920ee5bb",
+          "shift": 0,
+          "similarity": 1,
+          "size": 466,
+          "size_delta": 0,
+          "start": "83:E066",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "race_control_state_primary",
+      "size": 466,
+      "usa_end": "83:E237",
+      "usa_start": "83:E066"
+    },
+    {
+      "builds": {
+        "europe-retail": {
+          "aligned_equal_opcode_pairs": 287,
+          "aligned_opcode_pairs": 287,
+          "aligned_role_disagreements": 0,
+          "end": "83:E55B",
+          "opcode_bytes": 287,
+          "opcode_mismatches": [],
+          "operand_bytes": 489,
+          "sha256": "b94679a4b1e7c47b94d34a2248b09d86b768a287e746d65ca2205e15aad9319d",
+          "shift": 28,
+          "similarity": 0.806701,
+          "size": 776,
+          "size_delta": 0,
+          "start": "83:E254",
+          "unreached_or_data_bytes": 0
+        },
+        "legacy-beta": {
+          "aligned_equal_opcode_pairs": 287,
+          "aligned_opcode_pairs": 287,
+          "aligned_role_disagreements": 0,
+          "end": "83:E53F",
+          "opcode_bytes": 287,
+          "opcode_mismatches": [],
+          "operand_bytes": 489,
+          "sha256": "3c1e33402084eac1d3293718ac958e645bc9e0199d3844a683c3349102a9357a",
+          "shift": 0,
+          "similarity": 1,
+          "size": 776,
+          "size_delta": 0,
+          "start": "83:E238",
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "aligned_equal_opcode_pairs": 287,
+          "aligned_opcode_pairs": 287,
+          "aligned_role_disagreements": 0,
+          "end": "83:E535",
+          "opcode_bytes": 287,
+          "opcode_mismatches": [],
+          "operand_bytes": 489,
+          "sha256": "1029e8c978fcc3066898188fc6e97c62b94e2fd0905a99c87930da89da3a4c16",
+          "shift": -10,
+          "similarity": 0.926546,
+          "size": 776,
+          "size_delta": 0,
+          "start": "83:E22E",
+          "unreached_or_data_bytes": 0
+        },
+        "usa-retail": {
+          "end": "83:E53F",
+          "opcode_bytes": 287,
+          "operand_bytes": 489,
+          "sha256": "3c1e33402084eac1d3293718ac958e645bc9e0199d3844a683c3349102a9357a",
+          "shift": 0,
+          "similarity": 1,
+          "size": 776,
+          "size_delta": 0,
+          "start": "83:E238",
+          "unreached_or_data_bytes": 0
+        }
+      },
+      "kind": "code",
+      "name": "race_control_state_companion",
+      "size": 776,
+      "usa_end": "83:E53F",
+      "usa_start": "83:E238"
+    }
+  ],
+  "schema_version": 1,
+  "usa_end": "83:E53F",
+  "usa_start": "83:E066"
+}

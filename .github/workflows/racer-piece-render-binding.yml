@@ -1,0 +1,58 @@
+name: Racer piece render binding
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "tools/analyze_racer_piece_render_binding.py"
+      - "tests/unit/test_analyze_racer_piece_render_binding.py"
+      - ".github/workflows/racer-piece-render-binding.yml"
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  bind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Unit tests
+        run: python3 -m unittest tests.unit.test_analyze_racer_piece_render_binding -v
+      - name: Download retained ordinary-2P reference
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/ordinary-2p"
+          gh run download 36943103609 -n ordinary-2p-reference -D "$RUNNER_TEMP/ordinary-2p"
+      - name: Bind packed cells to OAM presentation layer
+        run: |
+          python3 tools/analyze_racer_piece_render_binding.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --dump-dir "$RUNNER_TEMP/ordinary-2p/native-dumps" \
+            --json-out analysis/generated/racer-piece-render-binding.json \
+            --md-out analysis/generated/racer-piece-render-binding.md
+          python3 - <<'PY'
+          import json
+          r=json.load(open("analysis/generated/racer-piece-render-binding.json"))
+          assert r["derived"]["one_packed_cell_per_oam_object"] is False
+          for cp in r["checkpoints"]:
+              assert cp["obsel"]["raw"] == 0x83
+              for p in cp["players"]:
+                  assert p["large_oam_slots"]
+                  assert p["large_oam_slots"][0]["size_pixels"] == [64,64]
+          assert r["static_renderer"]["staging_xrefs"]
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: racer-piece-render-binding
+          path: |
+            analysis/generated/racer-piece-render-binding.json
+            analysis/generated/racer-piece-render-binding.md
+          retention-days: 7
+          if-no-files-found: error

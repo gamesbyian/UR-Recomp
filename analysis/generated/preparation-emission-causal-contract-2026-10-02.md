@@ -99,3 +99,26 @@ end-to-end. The cheapest follow-up is therefore a bounded stock-race capture
 that stops on the first non-zero update-list count, retaining WRAM plus PPU
 writes. One such sample is enough to check the static one-to-one emission
 contract dynamically; do not broaden into generic PPU tracing.
+
+
+## Runtime discriminator disposition
+
+The bounded stock-race probe was repaired and rerun through guest-relative
+samples `prep-emission-000` through `prep-emission-300`. Run
+`36961500327` confirms the analyzer is reading the intended WRAM/PPU dump
+family, but both compact list counts remain zero at every retained sample:
+
+- list A `$0DCD = 0`;
+- list B `$0DCF = 0`;
+- therefore there are no predicted compact-list emissions and no matching
+  D383-shaped `$2116/$2118` event sequence in this window.
+
+This is useful negative evidence, but it does **not** dynamically close the
+preparation-list → PPU-emission seam. The static representation and direct
+consumer remain established; runtime closure still requires a deterministic
+fixture or stopping condition that actually observes a non-zero compact list.
+
+Retain `tools/analyze_preparation_emission_probe.py` and the workflow as the
+bounded discriminator. The next attempt should stop on the first non-zero
+`$0DCD/$0DCF` state rather than extending this zero-list sampling window
+blindly.

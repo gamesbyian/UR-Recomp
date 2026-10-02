@@ -1,0 +1,171 @@
+name: +8 Widescreen composition edge trace
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "tools/patch_widescreen_probe_composition_trace.py"
+      - "tools/analyze_widescreen_composition_trace.py"
+      - "tests/unit/test_widescreen_probe_composition_trace.py"
+      - "tests/input/widescreen-presentation-phase-gap.script"
+      - "tools/analyze_widescreen_presentation_phase_gap.py"
+      - ".github/workflows/widescreen-composition-matrix.yml"
+
+concurrency:
+  group: widescreen-composition-trace-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Build traced diagnostic target
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          ROOT="$RUNNER_TEMP/native"
+          mkdir -p "$ROOT"
+          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" --name "Uniracers" --players 2 --yes --no-ci \
+            --no-fetch-boxart --no-recomp-ui --no-netplay --no-github \
+            --no-submodules --generate --no-build
+          PROJ="$ROOT/UniracersSNESRecomp"
+          python3 tools/patch_widescreen_probe_host.py "$PROJ/src/main.c"
+          python3 tools/patch_widescreen_probe_composition_trace.py "$FRAMEWORK/runner/src/snes/ppu.c"
+          cmake -S "$PROJ" -B "$PROJ/build" -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF
+          cmake --build "$PROJ/build" -j2
+
+      - name: Capture matched full-renderer 0 and +8 traces
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/widescreen-presentation-phase-gap.script"
+          ROOT="$RUNNER_TEMP/widescreen-composition-trace"
+          CONFIG="$RUNNER_TEMP/widescreen-trace.ini"
+          cat >"$CONFIG" <<'EOF'
+          [Graphics]
+          NewRenderer = 1
+          NoSpriteLimits = 0
+          [General]
+          DisableFrameDelay = 1
+          Autosave = 0
+          SkipLauncher = 1
+          [Sound]
+          EnableAudio = 0
+          EOF
+          for margin in 0 8; do
+            CASE="$ROOT/margin-$margin"
+            mkdir -p "$CASE/state" "$CASE/frames"
+            SNESRECOMP_WS_EXTRA="$margin" \
+            SNESRECOMP_WS_EDGE_TRACE=1 \
+            SNESRECOMP_DUMP_DIR="$CASE/state" \
+            SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+            SNESRECOMP_FRAMEDUMP_START=2890 \
+            SNESRECOMP_FRAMEDUMP_END=2900 \
+            SDL_AUDIODRIVER=dummy \
+              timeout 210s xvfb-run -a "$EXE" "$ROM" --config "$CONFIG" \
+              --no-launcher --script "$SCRIPT" --framedump "$CASE/frames" \
+              >"$CASE/run.log" 2>&1
+          done
+
+      - name: Align composition inputs to event-relative tags
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p analysis/generated
+          python3 tools/analyze_widescreen_composition_trace.py \
+            "$RUNNER_TEMP/widescreen-composition-trace" \
+            --json-out analysis/generated/widescreen-plus8-composition-trace.json \
+            --md-out analysis/generated/widescreen-plus8-composition-trace.md
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          d = json.loads(Path("analysis/generated/widescreen-plus8-composition-trace.json").read_text())
+          rows = {r["tag"]: r for r in d["rows"]}
+          if rows["object-tail-168"]["guest_frame_delta"] != -3:
+              raise SystemExit("full-renderer event-relative cadence changed")
+          c = d["comparisons"]["object-tail-168"]
+          print("object-tail-168 y144 differences:", c["144"]["different_fields"])
+          print("object-tail-168 y145 differences:", c["145"]["different_fields"])
+          target = rows["object-tail-168"]
+          h0 = target["margins"]["0"]["state_hashes"]
+          h8 = target["margins"]["8"]["state_hashes"]
+          print("object-tail-168 state hash equality:",
+                {k: h0[k] == h8[k] for k in h0})
+          print("object-tail-168 margin0 OBJ candidates:",
+                target["margins"]["0"]["obj_candidates"])
+          print("object-tail-168 margin8 OBJ candidates:",
+                target["margins"]["8"]["obj_candidates"])
+          PY
+
+      - name: Locate presentation-phase onset
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/analyze_widescreen_presentation_phase_gap.py \
+            "$RUNNER_TEMP/widescreen-composition-trace" \
+            --json-out analysis/generated/widescreen-plus8-presentation-phase-gap.json \
+            --md-out analysis/generated/widescreen-plus8-presentation-phase-gap.md
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          d=json.loads(Path("analysis/generated/widescreen-plus8-presentation-phase-gap.json").read_text())
+          if not d["all_p2_meaningful_state_equal"]:
+              raise SystemExit("P2 meaningful race state diverged in presentation gap")
+          print("first P2 presentation divergence:",
+                None if d["first_p2_presentation_divergence"] is None
+                else d["first_p2_presentation_divergence"]["tag"])
+          print("first VRAM divergence:",
+                None if d["first_vram_divergence"] is None
+                else d["first_vram_divergence"]["tag"])
+          print("first OAM divergence:",
+                None if d["first_oam_divergence"] is None
+                else d["first_oam_divergence"]["tag"])
+          PY
+
+      - name: Upload compact trace evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-widescreen-composition-trace
+          path: |
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/run.log
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-167.info.json
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-168.info.json
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-169.info.json
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-167.regs.json
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-168.regs.json
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-169.regs.json
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-167.vram.bin
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-168.vram.bin
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-169.vram.bin
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-167.cgram.bin
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-168.cgram.bin
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-169.cgram.bin
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-167.oam.bin
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-168.oam.bin
+            ${{ runner.temp }}/widescreen-composition-trace/margin-*/state/object-tail-169.oam.bin
+            analysis/generated/widescreen-plus8-composition-trace.*
+            analysis/generated/widescreen-plus8-presentation-phase-gap.*
+          if-no-files-found: warn
+          retention-days: 5

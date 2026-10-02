@@ -3,7 +3,8 @@
 
 This is workflow-only instrumentation. It observes the already-recovered
 producer stores at 81:A8FF / 81:AA34 and consumer entry at 82:D37F without
-changing guest ROM state.
+changing guest ROM state. The 16-bit PC match deliberately accepts LoROM bank
+mirrors while the log retains the actual PB:PC used at runtime.
 """
 from __future__ import annotations
 
@@ -14,14 +15,15 @@ MARKER = """\t\t\tRegisters.PCw++;\n\t\t\t(*Opcodes[Op].S9xOpcode)();"""
 
 SNIPPET = r'''			/* UR-Recomp preparation-list causal probe. */
 			{
-				uint16 prep_pcw = Registers.PCw;\n\t\t\t\tuint32 prep_pc = ((uint32)Registers.PB << 16) | prep_pcw;
+				uint16 prep_pcw = Registers.PCw;
+				uint32 prep_pc = ((uint32)Registers.PB << 16) | prep_pcw;
 				if (prep_pcw == 0xA8FF || prep_pcw == 0xAA34 || prep_pcw == 0xD37F)
 				{
 					auto prep_w16 = [](uint16 a) -> uint16 {
 						return (uint16)(Memory.RAM[a] | (Memory.RAM[a + 1] << 8));
 					};
-					uint16 ca = prep_pc == 0x81A8FF ? Registers.Y.W : prep_w16(0x0DCD);
-					uint16 cb = prep_pc == 0x81AA34 ? Registers.Y.W : prep_w16(0x0DCF);
+					uint16 ca = prep_pcw == 0xA8FF ? Registers.Y.W : prep_w16(0x0DCD);
+					uint16 cb = prep_pcw == 0xAA34 ? Registers.Y.W : prep_w16(0x0DCF);
 					fprintf(stderr,
 						"PREPTRACE frame=%u v=%u cycles=%d pc=%06X y=%04X ca=%u cb=%u "
 						"camx=%u camy=%u edgex=%u edgey=%u camdx=%u ",
@@ -33,14 +35,22 @@ SNIPPET = r'''			/* UR-Recomp preparation-list causal probe. */
 						(unsigned)Memory.RAM[0x04F5]);
 					fprintf(stderr, "a=");
 					for (unsigned i = 0; i < ca && i < 16; i++)
-						fprintf(stderr, "%s%04X:%02X", i ? "," : "",
+					{
+						uint8 selector = Memory.RAM[0x0D6D + i];
+						fprintf(stderr, "%s%04X:%02X:%04X", i ? "," : "",
 							(unsigned)prep_w16((uint16)(0x0D8D + i * 2)),
-							(unsigned)Memory.RAM[0x0D6D + i]);
+							(unsigned)selector,
+							(unsigned)prep_w16((uint16)(0x2132 + selector * 2)));
+					}
 					fprintf(stderr, " b=");
 					for (unsigned i = 0; i < cb && i < 16; i++)
-						fprintf(stderr, "%s%04X:%02X", i ? "," : "",
+					{
+						uint8 selector = Memory.RAM[0x0D7D + i];
+						fprintf(stderr, "%s%04X:%02X:%04X", i ? "," : "",
 							(unsigned)prep_w16((uint16)(0x0DAD + i * 2)),
-							(unsigned)Memory.RAM[0x0D7D + i]);
+							(unsigned)selector,
+							(unsigned)prep_w16((uint16)(0x2132 + selector * 2)));
+					}
 					fprintf(stderr, "\n");
 				}
 			}

@@ -10,6 +10,7 @@ on:
       - "tools/analyze_widescreen_preparation_boundary.py"
       - "tools/analyze_widescreen_helper_staging.py"
       - "tools/analyze_widescreen_edge_helper.py"
+      - "tools/analyze_widescreen_count32_discriminator.py"
       - "tests/unit/test_analyze_widescreen_strip_schedule.py"
       - "tests/unit/test_analyze_widescreen_preparation_boundary.py"
       - "tests/unit/test_analyze_widescreen_helper_staging.py"
@@ -81,6 +82,41 @@ jobs:
           cat analysis/generated/widescreen-preparation-boundary.md
           cat analysis/generated/widescreen-edge-helper.md
 
+      - name: Test count-only two-strip demand
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script"
+          ROOT="$RUNNER_TEMP/ws-count32"
+          mkdir -p "$ROOT/control/dumps" "$ROOT/count32/dumps" analysis/generated
+
+          for SIDE in control count32; do
+            if [ "$SIDE" = control ]; then
+              MARGIN=0
+              MODE=""
+            else
+              MARGIN=8
+              MODE="count32"
+            fi
+            URRECOMP_WS_MARGIN="$MARGIN" \
+            URRECOMP_WS_MODE="$MODE" \
+            SNESREF_HEADLESS=1 \
+            SNESREF_FAST=1 \
+            SNESREF_WRAM_FILL=0 \
+            SNESREF_SCRIPT="$SCRIPT" \
+            SNESREF_DUMP_DIR="$ROOT/$SIDE/dumps" \
+              "$EXE" "$CORE" "$ROM" >"$ROOT/$SIDE/run.log" 2>&1
+          done
+
+          python3 tools/analyze_widescreen_count32_discriminator.py \
+            "$ROOT/control/run.log" "$ROOT/count32/run.log" \
+            --json-out analysis/generated/widescreen-count32-discriminator.json \
+            --md-out analysis/generated/widescreen-count32-discriminator.md
+          cat analysis/generated/widescreen-count32-discriminator.md
+
       - name: Upload bounded experiment evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -91,7 +127,10 @@ jobs:
             analysis/generated/widescreen-edge-helper.md
             analysis/generated/widescreen-preparation-boundary.json
             analysis/generated/widescreen-preparation-boundary.md
+            analysis/generated/widescreen-count32-discriminator.json
+            analysis/generated/widescreen-count32-discriminator.md
             ${{ runner.temp }}/ws-boundary/
             ${{ runner.temp }}/ws-edge-helper/
+            ${{ runner.temp }}/ws-count32/
           if-no-files-found: warn
           retention-days: 7

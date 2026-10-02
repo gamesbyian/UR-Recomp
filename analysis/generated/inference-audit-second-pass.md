@@ -177,3 +177,24 @@ Examples:
 Combined with `record_length = 4 + 2*N`, this strongly indicates a 32-bit occupancy/piece mask followed by one 16-bit packed word for each set bit.
 
 The next decoder step should map set-bit positions to packed-word order and compare bit changes against OAM piece changes. That is a finite correspondence problem, not an open-ended format search.
+
+
+## 13. Resource bundles survive all preserved builds
+
+The ordered resource patterns are conserved in USA retail, Europe retail, the legacy beta, and the 1994-11-29 PAL prototype with the same carrier counts:
+
+- `0x03..0x08`: 43 courses;
+- `0x09..0x0B`: 42;
+- `0x01/0x02`: 45;
+- `0x16/0x18`: 39;
+- checkpoint/finish resource `0x24`: 36.
+
+That makes the first two groups especially strong structural resource bundles rather than one-build coincidences.
+
+The seven Europe-retail course payloads known to differ from USA also separate cleanly:
+
+- streams 16, 20, 27 and 35 retain dimensions, spawn pairs and identical resource lists;
+- stream 4 (Switcher) retains dimensions/resource selection but changes spawn-A Y from 26 to 22;
+- stream 26 (Down+Up) and stream 36 (Vertical) retain dimensions/spawns but append resource `0x22`.
+
+So only two of the seven known PAL course changes alter the high-level resource list. Most regional course differences should be sought in course-local spatial/content data first.

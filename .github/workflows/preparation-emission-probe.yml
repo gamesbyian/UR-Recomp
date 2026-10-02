@@ -13,7 +13,7 @@ on:
     paths:
       - ".github/workflows/preparation-emission-probe.yml"
       - "tools/analyze_preparation_emission_probe.py"
-      - "tests/input/race-visible-onset.script"
+      - "tests/input/preparation-emission-race.script"
 
 concurrency:
   group: preparation-emission-${{ github.ref }}

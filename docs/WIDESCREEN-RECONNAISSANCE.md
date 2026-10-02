@@ -45,6 +45,22 @@ A widescreen fix should name the domain it changes.
 
 "Increase viewport width" is not sufficient justification for changing simulation/activation.
 
+### Proven representative activation boundary
+
+The deterministic Dragster checkpoint/finish tail provides the first concrete
+cross-domain constraint. Its checkpoint/finish resource graphics and
+`7E:C000[6..14]` behavior cells are already present before active racing.
+Actual finish/checker pixels first enter the framebuffer at guest frame **2789**,
+while the checkpoint/finish behavior transition occurs at guest frame **2903**
+when collision/contact-derived C000 index 8 selects code `0x14`.
+
+The `$0DCD/$0DCF` camera-filtered update lists are not the gameplay activation
+gate. A widened view may expose the finish presentation earlier, but it must not
+cause the collision/contact object dispatcher to trigger earlier. Treat this as
+a regression invariant for the first +8/+16/+24 probes.
+
+Evidence: `analysis/generated/object-activation-runtime-boundary-2026-10-02.md`.
+
 ## Staged exposure sweep
 
 Use the smallest margins first. During early reconnaissance, +8/+16/+24 are the preferred discriminators because they minimize the number of simultaneously violated assumptions. Expand to larger margins only after the earlier failure class is understood.

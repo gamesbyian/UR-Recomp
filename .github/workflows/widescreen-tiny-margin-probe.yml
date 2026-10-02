@@ -138,7 +138,6 @@ jobs:
           d = json.loads(Path("analysis/generated/widescreen-tiny-margin-dragster.json").read_text())
           # This lane closes the first +8 discriminator only. Later margins
           # remain captured for evidence but must not block this classification.
-          control = d["results"]["0"]
           plus8 = d["results"]["8"]
           if not plus8["all_meaningful_authoritative_state_equal"]:
               raise SystemExit("+8: meaningful authoritative trajectory diverged")
@@ -148,11 +147,12 @@ jobs:
               raise SystemExit("+8: probe did not expose any presentation pixels")
           if plus8["classification"] not in {
               "event-relative-match",
-              "cadence-aligned-transient-contact-only",
+              "host-presentation-cadence-transient-contact-only",
           }:
               raise SystemExit(f"+8: unresolved classification {plus8['classification']}")
           print("+8 classification:", plus8["classification"])
           print("+8 guest-frame delta:", plus8["guest_frame_deltas"])
+          print("+8 earliest cadence anchor:", plus8["earliest_cadence_anchor"])
           print("+8 contact mismatches:", plus8["contact_mismatch_tags"])
           PY
 

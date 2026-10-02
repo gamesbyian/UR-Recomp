@@ -75,6 +75,9 @@ end
 local armed = false
 local baseline = nil
 local previous = snapshot()
+local MAX_FRAME = 200000
+local STATUS_INTERVAL = 10000
+local next_status = STATUS_INTERVAL
 
 while true do
     emu.frameadvance()
@@ -91,6 +94,25 @@ while true do
             dump_sram(before_out)
         end
     else
+        if current.frame >= next_status then
+            print(string.format(
+                "progression-watch frame=%d menu=%d track=%d in_race=%d rider=%d tour=%d checksum_valid=%s",
+                current.frame, current.menu, current.track, current.in_race,
+                current.rider, current.tour, tostring(checksum_valid())
+            ))
+            next_status = next_status + STATUS_INTERVAL
+        end
+        if current.frame >= MAX_FRAME then
+            local f = assert(io.open(meta, "w"))
+            f:write(string.format(
+                "status=no-medal-mutation\nbaseline_frame=%d\nlimit_frame=%d\n" ..
+                "menu=%d\ntrack=%d\nin_race=%d\nrider=%d\ntour=%d\n",
+                baseline.frame, current.frame, current.menu, current.track,
+                current.in_race, current.rider, current.tour
+            ))
+            f:close()
+            error("no medal-matrix mutation observed by frame " .. tostring(current.frame))
+        end
         local index, before_value, after_value =
             first_medal_change(baseline.medals, current.medals)
         if index ~= nil then

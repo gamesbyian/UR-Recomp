@@ -33,7 +33,15 @@ jobs:
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
       - name: Stage pinned SNESRecomp
-        run: python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          PATCH="$GITHUB_WORKSPACE/tools/patches/snesrecomp-input-file.patch"
+          git -C "$FRAMEWORK" apply --check "$PATCH"
+          git -C "$FRAMEWORK" apply "$PATCH"
+          grep -F 'HostGetenv("INPUT_FILE")' "$FRAMEWORK/runner/src/desktop/host_main.c"
 
       - name: Scaffold and inject presentation probe
         shell: bash

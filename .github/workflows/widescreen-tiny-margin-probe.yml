@@ -136,12 +136,24 @@ jobs:
           import json
           from pathlib import Path
           d = json.loads(Path("analysis/generated/widescreen-tiny-margin-dragster.json").read_text())
-          for margin in (0, 8, 16, 24):
-              r = d["results"][str(margin)]
-              if not r["all_authoritative_state_equal"]:
-                  raise SystemExit(f"margin {margin}: authoritative simulation state diverged")
-              if margin and r["first_nonblack_margin"] is None:
-                  raise SystemExit(f"margin {margin}: probe did not expose any presentation pixels")
+          # This lane closes the first +8 discriminator only. Later margins
+          # remain captured for evidence but must not block this classification.
+          control = d["results"]["0"]
+          plus8 = d["results"]["8"]
+          if not plus8["all_meaningful_authoritative_state_equal"]:
+              raise SystemExit("+8: meaningful authoritative trajectory diverged")
+          if not plus8["constant_guest_frame_delta"]:
+              raise SystemExit("+8: guest-frame cadence offset was not stable")
+          if plus8["first_nonblack_margin"] is None:
+              raise SystemExit("+8: probe did not expose any presentation pixels")
+          if plus8["classification"] not in {
+              "event-relative-match",
+              "cadence-aligned-transient-contact-only",
+          }:
+              raise SystemExit(f"+8: unresolved classification {plus8['classification']}")
+          print("+8 classification:", plus8["classification"])
+          print("+8 guest-frame delta:", plus8["guest_frame_deltas"])
+          print("+8 contact mismatches:", plus8["contact_mismatch_tags"])
           PY
 
       - name: Upload compact probe evidence

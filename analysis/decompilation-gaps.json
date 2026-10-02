@@ -217,6 +217,14 @@
       "summary": "Recovered the hardware-multiply geometry helper called eight times by the geometry-precompute body. The island is an 83-byte long-entry wrapper plus 79-byte body; the body is byte-identical across all four preserved ROMs, while the wrapper relocates with bank-81 layout (PAL prototype -32, Europe -15). All 37 aligned opcode positions match with zero analyzer role disagreements. The body uses SNES multiplication registers $211B/$211C and reads $2135/$2136.",
       "priority": "low",
       "next_evidence": "Revisit the exact fixed-point interpretation only if collision/geometry implementation needs it. Otherwise move to a different uncovered frontier."
+    },
+    {
+      "id": "resolved-ec46-coordinate-window-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 83:EBE6..ED2E and homologs",
+      "summary": "Recovered a 329-byte race-frame support island consisting of a byte-identical 48-word step table at 83:EBE6..EC45 and a fully reached 233-byte mirrored coordinate/window update at 83:EC46..ED2E. The accepted race-frame orchestrator calls the code directly at 83:CD52. USA/beta are byte-identical; PAL prototype relocates the island by +36 and Europe by +72. All 107 aligned opcode positions match in each non-USA build with zero analyzer role disagreements.",
+      "priority": "low",
+      "next_evidence": "Promote higher-level gameplay semantics for $0D3F/$0D41 or the table only if a rendering, camera, HUD, or recomp implementation question requires it. Comparative structure work should continue at another unresolved frontier."
     }
   ]
 }

@@ -2,9 +2,9 @@
 
 This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **114** (104 code, 10 data)
-- bounded bytes: **16772** (15499 code-region bytes, 1273 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **6661**
+- bounded regions: **116** (105 code, 11 data)
+- bounded bytes: **17101** (15732 code-region bytes, 1369 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **6768**
 - represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -123,6 +123,8 @@ This is the first machine-queryable census for the comparative structure-recover
 | `82:E388..82:E395` | code | 14 | course-materialization | exit | 82:E324..82:E331 (-100; size 14; sim 0.929) | 82:E34E..82:E35B (-58; size 14; sim 0.929) | 82:E388..82:E395 (+0; size 14; sim 1.000) |
 | `83:CBCC..83:CC86` | code | 187 | race-frame-orchestrator | setup_loop_prefix | 83:CBCC..83:CC84 (+0; size 185; sim 0.882) | 83:CBF2..83:CCAA (+38; size 185; sim 0.872) | 83:CBCC..83:CC86 (+0; size 187; sim 1.000) |
 | `83:CC87..83:CD9F` | code | 281 | race-frame-orchestrator | loop_body_after_sep_cleanup | 83:CC85..83:CD9D (-2; size 281; sim 0.833) | 83:CCAB..83:CDC3 (+36; size 281; sim 0.790) | 83:CC87..83:CD9F (+0; size 281; sim 1.000) |
+| `83:EBE6..83:EC45` | data | 96 | ec46-coordinate-window | coordinate_step_table | 83:EC0A..83:EC69 (+36; size 96; sim 1.000) | 83:EC2E..83:EC8D (+72; size 96; sim 1.000) | 83:EBE6..83:EC45 (+0; size 96; sim 1.000) |
+| `83:EC46..83:ED2E` | code | 233 | ec46-coordinate-window | coordinate_window_update | 83:EC6A..83:ED52 (+36; size 233; sim 0.983) | 83:EC8E..83:ED76 (+72; size 233; sim 0.880) | 83:EC46..83:ED2E (+0; size 233; sim 1.000) |
 
 ## Selection rule for the next island
 

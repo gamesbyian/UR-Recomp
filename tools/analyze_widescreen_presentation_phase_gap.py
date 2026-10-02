@@ -57,6 +57,11 @@ PRESENTATION_PHASE_FIELDS = {
     "working_misc_0f7b": 0x0F7B,
     "global_swap_0c7b": 0x0C7B,
     "p2_persistent_override_0deb": 0x0DEB,
+    # 83:EB57 -> 82:8952 sequence selector/cursor state for P2 (Y=2).
+    "p2_sequence_selector_136b": 0x136B,
+    "p2_sequence_cursor_11dd": 0x11DD,
+    "p2_sequence_identity_11e1": 0x11E1,
+    "p2_sequence_initialized_11e5": 0x11E5,
 }
 P1_PRESENTATION = 0x0FE9
 P2_PRESENTATION = 0x0FEB

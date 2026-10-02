@@ -1,0 +1,150 @@
+# Fine-grained Dragster checkpoint/object-liveness probe.
+# Reuses the deterministic finish route, but samples the first five jump cycles every four guest frames.
+# No guest-state pokes. Addresses are WRAM offsets (7E:xxxx -> xxxx).
+
+until 009F == D7 3600
+wait 60
+press a 2
+until 009F == 3C 1200
+wait 60
+press a 2
+until 009F == 6D 1200
+wait 60
+press a 2
+until 009F == F6 1200
+wait 60
+press a 2
+until 009F != F6 1200
+wait 60
+until 009F == 16 1200
+wait 60
+press a 2
+until 0313 == 01 1800
+wait 60
+press right 30
+press right 30
+press right 30
+press right 30
+press right 60
+dump liveness-000
+press right+b 4
+dump liveness-004
+press right+b 4
+dump liveness-008
+press right+b 4
+dump liveness-012
+press right+b 4
+dump liveness-016
+press right+b 4
+dump liveness-020
+press right+b 4
+dump liveness-024
+press right 4
+dump liveness-028
+press right 4
+dump liveness-032
+press right 4
+dump liveness-036
+press right 4
+dump liveness-040
+press right 4
+dump liveness-044
+press right 4
+dump liveness-048
+press right+b 4
+dump liveness-052
+press right+b 4
+dump liveness-056
+press right+b 4
+dump liveness-060
+press right+b 4
+dump liveness-064
+press right+b 4
+dump liveness-068
+press right+b 4
+dump liveness-072
+press right 4
+dump liveness-076
+press right 4
+dump liveness-080
+press right 4
+dump liveness-084
+press right 4
+dump liveness-088
+press right 4
+dump liveness-092
+press right 4
+dump liveness-096
+press right+b 4
+dump liveness-100
+press right+b 4
+dump liveness-104
+press right+b 4
+dump liveness-108
+press right+b 4
+dump liveness-112
+press right+b 4
+dump liveness-116
+press right+b 4
+dump liveness-120
+press right 4
+dump liveness-124
+press right 4
+dump liveness-128
+press right 4
+dump liveness-132
+press right 4
+dump liveness-136
+press right 4
+dump liveness-140
+press right 4
+dump liveness-144
+press right+b 4
+dump liveness-148
+press right+b 4
+dump liveness-152
+press right+b 4
+dump liveness-156
+press right+b 4
+dump liveness-160
+press right+b 4
+dump liveness-164
+press right+b 4
+dump liveness-168
+press right 4
+dump liveness-172
+press right 4
+dump liveness-176
+press right 4
+dump liveness-180
+press right 4
+dump liveness-184
+press right 4
+dump liveness-188
+press right 4
+dump liveness-192
+press right+b 4
+dump liveness-196
+press right+b 4
+dump liveness-200
+press right+b 4
+dump liveness-204
+press right+b 4
+dump liveness-208
+press right+b 4
+dump liveness-212
+press right+b 4
+dump liveness-216
+press right 4
+dump liveness-220
+press right 4
+dump liveness-224
+press right 4
+dump liveness-228
+press right 4
+dump liveness-232
+press right 4
+dump liveness-236
+press right 4
+dump liveness-240
+quit

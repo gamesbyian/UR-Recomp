@@ -1,0 +1,98 @@
+name: Dragster object liveness probe
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tests/input/object-liveness-dragster.script"
+      - "tools/summarize_object_liveness_probe.py"
+      - ".github/workflows/object-liveness-dragster.yml"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain.json"
+      - "tools/patches/snes9x-snesref-debug-exports.patch"
+
+concurrency:
+  group: object-liveness-dragster-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Build repository-owned reference harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          test -x .tools/src/snesrecomp/build-snesref/snesref
+          test -f .tools/src/snes9x-libretro/libretro/snes9x_libretro.so
+
+      - name: Run fine-grained Dragster liveness fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/object-liveness-dragster.script"
+          DUMPS="$RUNNER_TEMP/object-liveness-dumps"
+          mkdir -p "$DUMPS"
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$SCRIPT" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" >"$RUNNER_TEMP/object-liveness.log" 2>&1
+          cat "$RUNNER_TEMP/object-liveness.log"
+          test -s "$DUMPS/liveness-000.wram.bin"
+          test -s "$DUMPS/liveness-240.wram.bin"
+
+      - name: Summarize activation and presentation surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/summarize_object_liveness_probe.py \
+            "$RUNNER_TEMP/object-liveness-dumps" \
+            --json-out "$RUNNER_TEMP/object-liveness-summary.json" \
+            | tee "$RUNNER_TEMP/object-liveness-summary.txt"
+
+      - name: Assert representative checkpoint event is observed
+        shell: bash
+        run: |
+          python3 - "$RUNNER_TEMP/object-liveness-summary.json" <<'PY'
+          import json, pathlib, sys
+          d=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          if not d["object_map_prefix_stable"]:
+              raise SystemExit("runtime object-map prefix mutated during bounded probe")
+          event=d["first_progress_change"]
+          if event is None:
+              raise SystemExit("checkpoint/finish progress did not change in bounded probe")
+          print("first checkpoint/finish progress change:", event)
+          PY
+
+      - name: Upload bounded liveness evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-object-liveness-dragster
+          path: |
+            ${{ runner.temp }}/object-liveness.log
+            ${{ runner.temp }}/object-liveness-summary.json
+            ${{ runner.temp }}/object-liveness-summary.txt
+            ${{ runner.temp }}/object-liveness-dumps/
+          if-no-files-found: warn
+          retention-days: 7

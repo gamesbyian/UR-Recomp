@@ -6,6 +6,8 @@ on:
     paths:
       - "tools/analyze_widescreen_plus8_oam.py"
       - "tests/unit/test_analyze_widescreen_plus8_oam.py"
+      - "tools/patch_widescreen_probe_window_policy.py"
+      - "tests/unit/test_widescreen_probe_window_policy.py"
       - ".github/workflows/widescreen-plus8-oam-probe.yml"
 
 concurrency:
@@ -44,6 +46,7 @@ jobs:
             --no-submodules --generate --no-build
           PROJ="$ROOT/UniracersSNESRecomp"
           python3 tools/patch_widescreen_probe_host.py "$PROJ/src/main.c"
+          python3 tools/patch_widescreen_probe_window_policy.py "$FRAMEWORK/runner/src/snes/ppu.c"
           cmake -S "$PROJ" -B "$PROJ/build" -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_ROOT="$FRAMEWORK" -DSNESRECOMP_SDL_BACKEND=SDL2 \
             -DSNESRECOMP_SDL3_FETCH=OFF
@@ -120,6 +123,23 @@ jobs:
               >"$CASE/run.log" 2>&1
           done
 
+          WINDOW="$RUNNER_TEMP/widescreen-plus8-oam-window"
+          mkdir -p "$WINDOW"
+          for margin in 0 8; do
+            CASE="$WINDOW/margin-$margin"
+            mkdir -p "$CASE/state" "$CASE/frames"
+            SNESRECOMP_WS_EXTRA="$margin" \
+            SNESRECOMP_WS_KEEP_PINNED_WINDOWS=1 \
+            SNESRECOMP_DUMP_DIR="$CASE/state" \
+            SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+            SNESRECOMP_FRAMEDUMP_START=2888 \
+            SNESRECOMP_FRAMEDUMP_END=2910 \
+            SDL_AUDIODRIVER=dummy \
+              timeout 210s xvfb-run -a "$EXE" "$ROM" --config "$CONFIG" \
+              --no-launcher --script "$SCRIPT" --framedump "$CASE/frames" \
+              >"$CASE/run.log" 2>&1
+          done
+
       - name: Analyze first sprite/OAM divergence
         shell: bash
         run: |
@@ -130,7 +150,8 @@ jobs:
             --json-out analysis/generated/widescreen-plus8-oam-boundary.json \
             --md-out analysis/generated/widescreen-plus8-oam-boundary.md \
             --unlimited-root "$RUNNER_TEMP/widescreen-plus8-oam-unlimited" \
-            --obj-root "$RUNNER_TEMP/widescreen-plus8-oam-obj"
+            --obj-root "$RUNNER_TEMP/widescreen-plus8-oam-obj" \
+            --window-root "$RUNNER_TEMP/widescreen-plus8-oam-window"
           python3 - <<'PY'
           import json
           from pathlib import Path
@@ -144,6 +165,7 @@ jobs:
           print("first OAM divergence:", None if d["first_oam_divergence"] is None else d["first_oam_divergence"]["tag"])
           print("sprite-limit discriminator:", d["sprite_limit_discriminator"])
           print("OBJ discriminator:", d["obj_discriminator"])
+          print("pinned-window discriminator:", d["window_discriminator"])
           PY
 
       - name: Upload bounded evidence

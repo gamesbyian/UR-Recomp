@@ -37,9 +37,9 @@ Status values are `sufficient`, `partial`, `unknown`, or `not applicable`. `Suff
 
 ## Highest-value next discriminators
 
-1. **Preparation horizon / first widened probe:** the activation/visibility split is now closed for the representative checkpoint/finish family. Use the same evidence to interpret the first +8/+16/+24 exposure failure, and recover more preparation semantics only if that probe actually needs them.
+1. **Resolve the +8 Widescreen authoritative-state divergence:** the first 0/+8/+16/+24 Dragster probe is complete and +8 already differs from the 4:3 control. Determine whether the mismatch comes from host presentation/capture cadence or from a real simulation dependency on the widened host path. Only after that classification should the first true presentation failure drive additional preparation/rendering recovery.
 2. **Renderer-facing causal closure:** preserve the now-proven separation among authoritative object existence, collision/contact activation, resource preparation, and framebuffer visibility while completing the camera/window → preparation → emission chain.
-3. **Tiny-margin Widescreen probe:** with Dragster's presentation spatial/resource contract now sufficient, expose +8/+16/+24 source pixels and let the first failure choose whether further course generalization is actually required.
+3. **Tiny-margin Widescreen follow-through:** retain the working matched-capture harness, but do not widen beyond the existing +8/+16/+24 experiment until the +8 authoritative-state mismatch is explained. If cadence/alignment is the cause, repair the harness and rerun; if simulation genuinely changes, localize the first causal divergence before any shipping Widescreen hook.
 4. **Graphics round trip (closed for the first racer family):** the ordinary-race racer family now has deterministic semantic frame IDs, exact packed-stream and palette extraction, byte-identical reconstruction and a compact manifest. Extend to additional frame IDs or decode deeper packed-word/tile semantics only when an HD/native-rendering task requires them.
 5. **Save/load progression acceptance:** create one real progression-changing run, persist it, reload it, and assert medal/tier/checksum state.
 

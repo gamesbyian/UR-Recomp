@@ -87,22 +87,26 @@ def main() -> int:
             frame = int(info["frame"])
             presented = frame - 1
             oam = (d / "state" / f"{tag}.oam.bin").read_bytes()
-            fb, width, height = read_bmp32(
-                d / "frames" / f"frame_{presented:06d}.bmp"
-            )
+            fb_path = d / "frames" / f"frame_{presented:06d}.bmp"
+            center = None
+            if fb_path.is_file():
+                fb, width, height = read_bmp32(fb_path)
+                center = center_crop(fb, width, height, margin)
             samples[margin] = {
                 "frame": frame,
                 "presented": presented,
                 "oam": oam,
-                "center": center_crop(fb, width, height, margin),
+                "center": center,
             }
 
         ctrl, wide = samples[0], samples[8]
         slot_diffs = changed_slots(ctrl["oam"], wide["oam"])
-        pixel_diff = sum(
-            ctrl["center"][i:i+4] != wide["center"][i:i+4]
-            for i in range(0, len(ctrl["center"]), 4)
-        )
+        pixel_diff = None
+        if ctrl["center"] is not None and wide["center"] is not None:
+            pixel_diff = sum(
+                ctrl["center"][i:i+4] != wide["center"][i:i+4]
+                for i in range(0, len(ctrl["center"]), 4)
+            )
         rows.append({
             "tag": tag,
             "control_frame": ctrl["frame"],
@@ -113,7 +117,10 @@ def main() -> int:
             "changed_oam_slots": slot_diffs,
         })
 
-    first_pixel = next((r for r in rows if r["center_diff_pixels"]), None)
+    first_pixel = next(
+        (r for r in rows if (r["center_diff_pixels"] or 0) > 0),
+        None,
+    )
     first_oam = next((r for r in rows if not r["oam_equal"]), None)
     if first_pixel is None:
         classification = "no-center-divergence-in-window"
@@ -122,12 +129,58 @@ def main() -> int:
     else:
         classification = "guest-oam-presentation-state-divergence"
 
+    unlimited_first_pixel = None
+    if args.unlimited_root:
+        for tag in TAGS:
+            centers = {}
+            frames = {}
+            for margin in (0, 8):
+                d = args.unlimited_root / f"margin-{margin}"
+                info_path = d / "state" / f"{tag}.info.json"
+                if not info_path.is_file():
+                    centers = {}
+                    break
+                info = json.loads(info_path.read_text())
+                frame = int(info["frame"])
+                fb_path = d / "frames" / f"frame_{frame - 1:06d}.bmp"
+                if not fb_path.is_file():
+                    centers = {}
+                    break
+                fb, width, height = read_bmp32(fb_path)
+                centers[margin] = center_crop(fb, width, height, margin)
+                frames[margin] = frame
+            if len(centers) != 2:
+                continue
+            diff = sum(
+                centers[0][i:i+4] != centers[8][i:i+4]
+                for i in range(0, len(centers[0]), 4)
+            )
+            if diff:
+                unlimited_first_pixel = {
+                    "tag": tag,
+                    "center_diff_pixels": diff,
+                    "control_frame": frames[0],
+                    "plus8_frame": frames[8],
+                    "guest_frame_delta": frames[8] - frames[0],
+                }
+                break
+
+    sprite_limit_discriminator = None
+    if args.unlimited_root and first_pixel is not None:
+        sprite_limit_discriminator = (
+            "width-divergence-eliminated-without-sprite-limits"
+            if unlimited_first_pixel is None
+            else "width-divergence-persists-without-sprite-limits"
+        )
+
     report = {
         "fixture": "tests/input/object-activation-dragster-tail.script",
         "margins": [0, 8],
         "classification": classification,
         "first_center_divergence": first_pixel,
         "first_oam_divergence": first_oam,
+        "unlimited_first_center_divergence": unlimited_first_pixel,
+        "sprite_limit_discriminator": sprite_limit_discriminator,
         "samples": rows,
     }
 
@@ -142,7 +195,7 @@ def main() -> int:
     for r in rows:
         lines.append(
             f"| {r['tag']} | {r['guest_frame_delta']} | "
-            f"{r['center_diff_pixels']} | "
+            f"{'-' if r['center_diff_pixels'] is None else r['center_diff_pixels']} | "
             f"{'match' if r['oam_equal'] else 'DIFF'} | "
             f"{len(r['changed_oam_slots'])} |"
         )
@@ -153,6 +206,13 @@ def main() -> int:
             f"First center divergence: {first_pixel['tag']} "
             f"({first_pixel['center_diff_pixels']} pixels).",
             f"OAM at that event is {'identical' if first_pixel['oam_equal'] else 'different'}.",
+        ]
+    if sprite_limit_discriminator:
+        lines += [
+            "",
+            f"Sprite-limit discriminator: **{sprite_limit_discriminator}**.",
+            "Unlimited first center divergence: "
+            + ("none in sampled window" if unlimited_first_pixel is None else unlimited_first_pixel["tag"]),
         ]
 
     if args.json_out:

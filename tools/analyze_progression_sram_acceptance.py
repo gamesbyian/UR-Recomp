@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Analyze a game-authored Uniracers SRAM progression mutation and reload."""
+"""Analyze game-authored Uniracers SRAM mutation, checksum, and reload fidelity."""
 
 from __future__ import annotations
 import argparse, json
@@ -36,11 +36,15 @@ def main():
     tier_a=region_changes(before,after,TIER_A_START,TIER_A_END)
     tier_b=region_changes(before,after,TIER_B_START,TIER_B_END)
     medal_shape=all(c["after"]==min(3,c["before"]+1) for c in medals)
+    protected_changes=region_changes(before,after,CHECKSUM_START,CHECKSUM_ADDR)
+    all_changes=region_changes(before,after,0,len(before))
     stored_before=int.from_bytes(before[CHECKSUM_ADDR:CHECKSUM_ADDR+2],"little")
     stored_after=int.from_bytes(after[CHECKSUM_ADDR:CHECKSUM_ADDR+2],"little")
     stored_reload=int.from_bytes(reload[CHECKSUM_ADDR:CHECKSUM_ADDR+2],"little")
     report={
       "schema_version":1,
+      "changed_byte_count":len(all_changes),
+      "protected_region_changes":protected_changes,
       "medal_changes":medals,
       "tier_primary_changes":tier_a,
       "tier_mirror_changes":tier_b,
@@ -49,17 +53,20 @@ def main():
         "after_stored":stored_after,"after_computed":checksum(after),
         "reload_stored":stored_reload,"reload_computed":checksum(reload),
       },
-      "checks":{
+      "observations":{
         "game_authored_medal_change_observed":bool(medals),
         "medal_changes_are_single_step_saturating":bool(medals) and medal_shape,
+        "tier_change_observed":bool(tier_a or tier_b),
+      },
+      "checks":{
+        "game_authored_sram_change_observed":bool(all_changes),
+        "checksum_protected_change_observed":bool(protected_changes),
         "after_checksum_valid":stored_after==checksum(after),
         "reload_checksum_valid":stored_reload==checksum(reload),
-        "progression_regions_survive_reload":
-          after[MEDAL_START:MEDAL_END]==reload[MEDAL_START:MEDAL_END]
-          and after[TIER_A_START:TIER_A_END]==reload[TIER_A_START:TIER_A_END]
-          and after[TIER_B_START:TIER_B_END]==reload[TIER_B_START:TIER_B_END],
+        "full_sram_survives_reload":after==reload,
         "checksum_survives_reload":stored_after==stored_reload,
-      }
+      },
+      "scope_note":"This acceptance proves real game-authored SRAM mutation/reload fidelity. Medal/tier mutation remains an explicit observation, not a prerequisite; a medal-winning fixture is still required to close progression-changing acceptance."
     }
     report["all_checks_pass"]=all(report["checks"].values())
     payload=json.dumps(report,indent=2)+"\n"

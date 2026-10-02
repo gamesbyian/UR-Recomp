@@ -44,10 +44,12 @@ def patch_ppu(path: Path) -> None:
         raise SystemExit(f"{path}: composition insertion point not found")
     text = text.replace(needle, insert + needle, 1)
 
-    write_needle = """        // Lower OAM indices are processed later and overwrite higher ones.
-                dst[0] = z + pixel;
+    candidate_needle = """        int pixel = (bits >> 0) & 1 | (bits >> 7) & 2 |
+                    (bits >> 14) & 4 | (bits >> 21) & 8;
+        if (pixel == 0) continue;
 """
-    write_insert = r'''        // Lower OAM indices are processed later and overwrite higher ones.
+    candidate_insert = r'''        int pixel = (bits >> 0) & 1 | (bits >> 7) & 2 |
+                    (bits >> 14) & 4 | (bits >> 21) & 8;
         {
           static int ws_obj_trace = -1;
           if (ws_obj_trace < 0)
@@ -59,19 +61,19 @@ def patch_ppu(path: Path) -> None:
             int rawx = ppu->oam[index] & 0xff;
             rawx |= ((ppu->highOam[index >> 3] >> (index & 7)) & 1) << 8;
             fprintf(stderr,
-                    "WS_OBJ_WRITE frame=%d line=%d slot=%d rawx=%d x=%d "
-                    "size=%d col=%d px=%d row=%u oam1=%04X z=%04X "
-                    "pixel=%02X tiles=%d extraL=%u extraR=%u\n",
+                    "WS_OBJ_CAND frame=%d line=%d slot=%d rawx=%d x=%d "
+                    "size=%d col=%d px=%d row=%u oam1=%04X usedTile=%d "
+                    "plane=%08X z=%04X pixel=%02X tiles=%d extraL=%u extraR=%u\\n",
                     snes_frame_counter, line, slot, rawx, x, spriteSize,
-                    col, px, row, oam1, z, pixel, tilesFound,
+                    col, px, row, oam1, usedTile, plane, z, pixel, tilesFound,
                     ppu->extraLeftCur, ppu->extraRightCur);
           }
         }
-                dst[0] = z + pixel;
+        if (pixel == 0) continue;
 '''
-    if write_needle not in text:
-        raise SystemExit(f"{path}: OBJ write insertion point not found")
-    text = text.replace(write_needle, write_insert, 1)
+    if candidate_needle not in text:
+        raise SystemExit(f"{path}: OBJ candidate insertion point not found")
+    text = text.replace(candidate_needle, candidate_insert, 1)
     path.write_text(text, encoding="utf-8")
 
 

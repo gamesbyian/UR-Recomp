@@ -1,0 +1,83 @@
+name: TCRF boot graphic VRAM probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - chatgpt/tcrf-rom-reconciliation-2026-10-02
+    paths:
+      - "tools/analyze_tcrf_boot_vram.py"
+      - "tools/analyze_tcrf_unused_content.py"
+      - "tests/input/ui-startup-timeline.script"
+      - ".github/workflows/tcrf-boot-vram.yml"
+
+concurrency:
+  group: tcrf-boot-vram-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Install reference harness dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+
+      - name: Build reference harness and core
+        run: |
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+
+      - name: Capture startup VRAM timeline
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DUMPS="$RUNNER_TEMP/tcrf-startup-dumps"
+          mkdir -p "$DUMPS"
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-startup-timeline.script" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" | tee "$RUNNER_TEMP/tcrf-startup.log"
+          test -n "$(find "$DUMPS" -name '*.vram.bin' -print -quit)"
+
+      - name: Match preserved boot graphic against VRAM
+        run: |
+          python3 tools/analyze_tcrf_boot_vram.py \
+            --dump-dir "$RUNNER_TEMP/tcrf-startup-dumps" \
+            --out analysis/generated/tcrf-boot-vram-timeline.json
+
+      - name: Persist compact evidence
+        run: |
+          set -euo pipefail
+          git add analysis/generated/tcrf-boot-vram-timeline.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Record TCRF boot graphic VRAM timeline"
+          git fetch origin "$GITHUB_REF_NAME"
+          git rebase "origin/$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"
+
+      - name: Upload boot VRAM evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: tcrf-boot-vram
+          path: |
+            ${{ runner.temp }}/tcrf-startup.log
+            ${{ runner.temp }}/tcrf-startup-dumps/*.vram.bin
+            analysis/generated/tcrf-boot-vram-timeline.json
+          retention-days: 7

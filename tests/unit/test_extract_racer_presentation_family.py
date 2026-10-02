@@ -3,7 +3,11 @@ import unittest
 from tools.extract_racer_presentation_family import (
     FRAME_TABLE_ADDR,
     PALETTE_TABLE_ADDR,
+    decode_4bpp_tile,
     decode_bgr555,
+    encode_png_rgba,
+    packed_word_source,
+    rasterize_frame_rgba,
     decode_frame_record,
     decode_piece_mapping,
     frame_pointer,
@@ -54,6 +58,27 @@ class RacerPresentationRoundTripTests(unittest.TestCase):
         tiles = split_4bpp_tiles(payload)
         self.assertEqual(len(tiles), 2)
         self.assertEqual(b"".join(tiles), payload)
+
+    def test_4bpp_decode_known_planes(self):
+        tile = bytearray(32)
+        tile[0] = 0x80
+        tile[1] = 0x40
+        tile[16] = 0x20
+        tile[17] = 0x10
+        px = decode_4bpp_tile(bytes(tile))
+        self.assertEqual(px[0][:4], [1, 2, 4, 8])
+
+    def test_packed_word_source_matches_staging_consumer(self):
+        self.assertEqual(packed_word_source(0x1B00), (0x27, 0x8360))
+        self.assertEqual(packed_word_source(0xFF14), (0x2C, 0x9FE0))
+        self.assertEqual(packed_word_source(0x1407), (0x28, 0x8280))
+
+    def test_png_encoder_is_deterministic(self):
+        rgba = bytes([255, 0, 0, 255]) * 4
+        a = encode_png_rgba(2, 2, rgba)
+        b = encode_png_rgba(2, 2, rgba)
+        self.assertEqual(a, b)
+        self.assertTrue(a.startswith(b"\\x89PNG\\r\\n\\x1a\\n"))
 
     def test_palette_entry_and_bgr555_roundtrip(self):
         rom = bytearray(0x20000)

@@ -57,13 +57,29 @@
   },
   "interpretation": {
     "rules_out": [
-      "A medal award occurring at or before guest frame 200000 on this exact corrected Snes9x 1.51 replay.",
+      "A medal award occurring at or before guest frame 200000 under the now-known-incompatible -nosound replay configuration.",
       "An already-completed ordinary rows 0..7 medal matrix at the armed runtime baseline."
     ],
     "does_not_rule_out": [
-      "A later game-authored medal award in the same historical movie.",
-      "A replay that reaches authentic races but does not yet complete the award-producing tour/accomplishment before the previous bound."
+      "The verified historical movie producing authentic medal awards under its required APU/sound-sync configuration.",
+      "The period-compatible Snes9x 1.51 v7.1 path itself."
     ],
-    "next_discriminator": "Extend the same period-compatible replay under a bounded watchdog while retaining race-entry, race-results-entry and track-transition counters, then accept only a model-valid game-authored medal mutation followed by fresh-process reload."
+    "next_discriminator": "Replay the same movie in Snes9x 1.51 v7.1 with APU emulation enabled, explicit -soundsync, and host output muted via -mute; accept only a model-valid game-authored medal mutation followed by fresh-process reload.",
+    "exact_incompatibility": {
+      "status": "identified",
+      "cause": "The historical workflow launched Snes9x 1.51 v7.1 with -nosound. In this emulator, -nosound sets Settings.NextAPUEnabled = FALSE. Submission #4250 is verified with sound synchronization enabled, while the movie loader does not restore Settings.SoundSync from the movie flags. The resulting replay therefore disabled APU emulation on a sound-sync-sensitive movie and desynchronized during the first race.",
+      "evidence": [
+        "TASVideos submission #4250 identifies Snes9x 1.51 v17 and sync verification in Snes9x 1.51 v7.1 with Sync samples enabled.",
+        "TASEmulators/snes9x-rr tag snes9x-151-v7.1 resolves to e0b6a74, confirming the branch already used the correct emulator release.",
+        "Snes9x 1.51 v7.1 command-line parsing sets Settings.NextAPUEnabled = FALSE for -nosound; -soundsync explicitly enables Settings.SoundSync.",
+        "The previous replay remained in the first active-race state at guest frame 200000 instead of following the retained verified reference path to race results near frame 2874."
+      ],
+      "corrective_configuration": [
+        "-sound",
+        "-soundsync",
+        "-mute"
+      ],
+      "note": "-mute suppresses host audio output without disabling APU emulation."
+    }
   }
 }

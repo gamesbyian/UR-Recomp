@@ -1,0 +1,7 @@
+# Historical 2014 bot first-race progression acceptance.
+# Controller input comes from SNESREF_INPUT_FILE.
+wait 1
+dump progression-before
+wait 2999
+dump progression-after
+quit

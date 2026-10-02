@@ -241,6 +241,14 @@
       "summary": "Recovered a 177-byte long-entry race-state bridge called directly from the accepted race-frame orchestrator. The 4-byte wrapper and 173-byte body derive mirrored $0FCB/$0FCD outputs from paired $0FC3/$0FC5 values, $0FBB/$0FBD bitfields, and availability/mode flags. USA/beta are byte-identical; PAL prototype relocates the island by -5 and Europe by +17. All 69 aligned opcode positions match in every non-USA build with zero analyzer role disagreements.",
       "priority": "low",
       "next_evidence": "Name $0FCB/$0FCD more specifically only when a concrete race-state, stunt, HUD, or recomp implementation question requires it. Comparative structure work should continue at another unresolved frontier."
+    },
+    {
+      "id": "resolved-race-loop-e580-control-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 83:E540..E7A4 and homologs",
+      "summary": "Recovered the seam-bounded race-loop E580 support island between the accepted E066..E53F pair and the separate E7A5 routine: a byte-identical 64-byte/32-word lookup table plus a fully reached 549-byte control body called directly from race-frame orchestration at 83:CD47. USA/beta are byte-identical; PAL prototype preserves the island at shift -10 and Europe at +28. All 199 aligned opcode positions match in every non-USA build with zero analyzer role disagreements.",
+      "priority": "low",
+      "next_evidence": "Refine $11F3/$11F5 and race-phase/audio semantics only for a concrete race-control or audio implementation need. Keep the parallel E7A5 island separate."
     }
   ]
 }

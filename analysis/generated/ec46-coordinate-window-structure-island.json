@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "island": "CoordinateWindowUpdate",
+  "usa_start": "83:EBE6",
+  "usa_end": "83:ED2E",
+  "next_entry": "83:ED2F",
+  "bounded_bytes": 329,
+  "boundary_basis": {
+    "table": "83:EBE6..EC45 is a 48-word monotonic step table referenced by the executable body.",
+    "entry": "83:EC46 is the direct race-frame caller target.",
+    "exit": "83:ED2E is RTS; 83:ED2F begins a separate JSR/RTL long-entry wrapper."
+  },
+  "accepted_caller_edges": [
+    {
+      "callsite": "83:CD52",
+      "kind": "JSR",
+      "source": "race-frame-orchestrator",
+      "region": "loop_body_after_sep_cleanup"
+    }
+  ],
+  "observed_dataflow": [
+    "updates two mirrored coordinate/window outputs at $0D3F and $0D41",
+    "uses state bytes at $0DE9/$0DEB, selectors at $0D43/$0D45, and values at $0DE3/$0DE5",
+    "indexes the preceding 48-word table and adds base $100C for the mid-range path",
+    "sets validity flags $0D1B/$0D1D when an output coordinate is active"
+  ],
+  "regions": [
+    {
+      "name": "coordinate_step_table",
+      "kind": "data",
+      "usa_start": "83:EBE6",
+      "usa_end": "83:EC45",
+      "size": 96,
+      "builds": {
+        "usa-retail": {
+          "start": "83:EBE6",
+          "end": "83:EC45",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 96,
+          "size_delta": 0,
+          "sha256": "931111eb7cdc29e7dc944f9da0b495581b07d8bb614784e6c77c0be0cd3342bd",
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "unreached_or_data_bytes": 96
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "83:EC0A",
+          "end": "83:EC69",
+          "shift": 36,
+          "similarity": 1.0,
+          "size": 96,
+          "size_delta": 0,
+          "sha256": "931111eb7cdc29e7dc944f9da0b495581b07d8bb614784e6c77c0be0cd3342bd",
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "unreached_or_data_bytes": 96
+        },
+        "europe-retail": {
+          "start": "83:EC2E",
+          "end": "83:EC8D",
+          "shift": 72,
+          "similarity": 1.0,
+          "size": 96,
+          "size_delta": 0,
+          "sha256": "931111eb7cdc29e7dc944f9da0b495581b07d8bb614784e6c77c0be0cd3342bd",
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "unreached_or_data_bytes": 96
+        },
+        "legacy-beta": {
+          "start": "83:EBE6",
+          "end": "83:EC45",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 96,
+          "size_delta": 0,
+          "sha256": "931111eb7cdc29e7dc944f9da0b495581b07d8bb614784e6c77c0be0cd3342bd",
+          "opcode_bytes": 0,
+          "operand_bytes": 0,
+          "unreached_or_data_bytes": 96
+        }
+      }
+    },
+    {
+      "name": "coordinate_window_update",
+      "kind": "code",
+      "usa_start": "83:EC46",
+      "usa_end": "83:ED2E",
+      "size": 233,
+      "builds": {
+        "usa-retail": {
+          "start": "83:EC46",
+          "end": "83:ED2E",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 233,
+          "size_delta": 0,
+          "sha256": "bf0f268df3d82fbf043f6205384214ea2fe5a92802ed420864d637ce5dfa38eb",
+          "opcode_bytes": 107,
+          "operand_bytes": 126,
+          "unreached_or_data_bytes": 0
+        },
+        "pal-prototype-1994-11-29": {
+          "start": "83:EC6A",
+          "end": "83:ED52",
+          "shift": 36,
+          "similarity": 0.982833,
+          "size": 233,
+          "size_delta": 0,
+          "sha256": "8e8bfcee946568591a7b5a2da4e44804855cca84d92fbd70322c228daccca56f",
+          "opcode_bytes": 107,
+          "operand_bytes": 126,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 107,
+          "aligned_equal_opcode_pairs": 107,
+          "aligned_role_disagreements": 0
+        },
+        "europe-retail": {
+          "start": "83:EC8E",
+          "end": "83:ED76",
+          "shift": 72,
+          "similarity": 0.879828,
+          "size": 233,
+          "size_delta": 0,
+          "sha256": "e8796994491b5592545f4ea97854ed96dba04828180244bba1763a30a5e51950",
+          "opcode_bytes": 107,
+          "operand_bytes": 126,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 107,
+          "aligned_equal_opcode_pairs": 107,
+          "aligned_role_disagreements": 0
+        },
+        "legacy-beta": {
+          "start": "83:EC46",
+          "end": "83:ED2E",
+          "shift": 0,
+          "similarity": 1.0,
+          "size": 233,
+          "size_delta": 0,
+          "sha256": "bf0f268df3d82fbf043f6205384214ea2fe5a92802ed420864d637ce5dfa38eb",
+          "opcode_bytes": 107,
+          "operand_bytes": 126,
+          "unreached_or_data_bytes": 0,
+          "aligned_opcode_pairs": 107,
+          "aligned_equal_opcode_pairs": 107,
+          "aligned_role_disagreements": 0
+        }
+      }
+    }
+  ]
+}

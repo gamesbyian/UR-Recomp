@@ -104,3 +104,76 @@ Combined with the first pass's fixed `4 + 2*N` record container, byte 0 is now a
 This pass corrected course identities, attached all 45 historical landmarks to course records, added the normalized progression model, enriched the state schema with paired-racer and regional-motion evidence, and corrected the historical course-order note.
 
 The active preparation/emission and +8 composition PRs remain deliberately outside this audit until their evidence lands.
+
+
+## 8. Historical numeric track IDs bridge directly to RNC streams
+
+After correcting the canonical stream order, Dessyreqt's historical numeric IDs satisfy:
+
+```
+track_id = stream_index - 1
+```
+
+for all 45 courses.
+
+This is a useful interoperability result because many recovered bot/map scripts identify courses numerically without carrying the modern stream index or canonical name. Those artifacts can now be joined without a hand-maintained lookup table.
+
+## 9. The two header coordinate pairs are strongly constrained as racer spawns
+
+Existing dense loader evidence already proves that Dragster's header pairs `(68,50)`, `(68,50)` become the two racer slots at `(1088,800)`, `(1088,800)` during initialization, exactly at ×16 scale.
+
+The full corrected corpus strengthens that model:
+
+- all 36 non-stunt courses have identical A/B X coordinates;
+- their A/B Y coordinates are usually identical and otherwise differ by small lane-like offsets;
+- four stunt courses use distinct A/B X coordinates as well.
+
+This is much more consistent with paired racer spawn positions than with start/finish metadata. A single runtime initialization on a course with unequal A/B coordinates should be enough to separate P1 from P2 and close the assignment.
+
+## 10. Course resources contain exact ordered bundles
+
+Two particularly strong resource groups emerge from the full 45-course lists:
+
+- `0x03..0x08` occur together in 43 courses and are consecutive, ascending and adjacent in every carrier;
+- `0x09..0x0B` occur together in 42 courses and are likewise consecutive, ascending and adjacent in every carrier.
+
+All nine stunt-course resource lists are duplicate-free, while several race/circuit lists intentionally repeat resource IDs.
+
+These are structural facts, not semantic labels. The right next move is to inspect descriptor/content relationships for each bundle rather than naming them from incidence alone.
+
+The already-promoted `0x24` checkpoint/finish family is now represented in the normalized resource catalog as a semantic anchor for that work.
+
+## 11. Medal checksum behavior can be predicted before the next acceptance run
+
+The medal matrix begins at even address `77:069C`, uses a 16-byte row stride, and the checksum sums little-endian 16-bit words.
+
+Therefore, for a non-saturating one-step medal increment:
+
+- even rider column → medal cell contributes `+1` to checksum `77:073C`;
+- odd rider column → medal cell contributes `+0x0100`;
+- arithmetic is modulo `0x10000`.
+
+That is only the medal-cell contribution, because a real award transaction may mutate other protected fields too. Still, it gives the next progression acceptance fixture an exact checksum expectation rather than a vague “checksum should change.”
+
+## 12. Racer presentation header is a 32-bit occupancy mask candidate
+
+The strongest new presentation pattern is:
+
+```
+popcount(4-byte record header) = packed_word_count
+```
+
+for all four recovered racer frames.
+
+Examples:
+
+| Frame | Header | Header popcount | Packed words |
+|---|---|---:|---:|
+| 0540 | 70 C3 1E 30 | 13 | 13 |
+| 0542 | 38 C3 1C 70 | 13 | 13 |
+| 0544 | 38 E7 1C 70 | 15 | 15 |
+| 057E | 70 C3 0E 38 | 13 | 13 |
+
+Combined with `record_length = 4 + 2*N`, this strongly indicates a 32-bit occupancy/piece mask followed by one 16-bit packed word for each set bit.
+
+The next decoder step should map set-bit positions to packed-word order and compare bit changes against OAM piece changes. That is a finite correspondence problem, not an open-ended format search.

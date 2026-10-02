@@ -73,7 +73,7 @@ def main()->int:
     args=ap.parse_args()
 
     samples=[]
-    for wram_path in sorted(args.dump_dir.glob("race-start-active-*.wram.bin")):
+    for wram_path in sorted(args.dump_dir.glob("prep-emission-*.wram.bin")):
         tag=wram_path.name.removesuffix(".wram.bin")
         m=TAG_RE.match(tag)
         if not m: continue
@@ -98,7 +98,7 @@ def main()->int:
     first_match=next((x for x in samples if x["exact_match"]),None)
     report={
         "schema_version":1,
-        "fixture":"race-visible-onset",
+        "fixture":"preparation-emission-race",
         "first_nonzero_update_list_sample":first_nonzero,
         "first_exact_emission_match_sample":first_match,
         "samples":samples,

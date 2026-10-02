@@ -236,3 +236,12 @@ The Original control is reconstructed deterministically from the ROM. The protot
 Selection happens entirely after semantic state has been chosen. Runtime H/V orientation is applied after Original/Remastered selection. The selector fails closed: replacement disabled, an unregistered semantic ID, or any composition-guard mismatch selects Original. Disabling replacement must emit a PNG byte-identical to the Original 4x control. The focused workflow uploads only the Original control, one Remastered candidate, the disabled-replacement control and a compact manifest.
 
 This prototype also identifies the next registration metadata needed before hand-authored HD racer art is safe: an explicit semantic pivot coordinate and an explicit wheel/contact anchor. The current mechanically derived candidate does not need invented values because rigid whole-canvas registration preserves stock placement exactly; future independently drawn assets should not rely on that shortcut.
+
+
+## Native replacement-selection seam
+
+The artifact-side prototype is now mirrored by a dependency-free native presentation contract in `native/presentation/racer_replacement_selector.{hpp,cpp}`. This is intentionally a selector, not a renderer rewrite: it consumes already-authoritative semantic presentation state and returns which graphics pack may represent that state.
+
+For the first registration, semantic frame `0x0541` plus the synchronized composition tuple selects the Remastered pack. Original always remains available. Unknown IDs, composition mismatches, and presently unavailable packs such as Reimagined fail closed to Original. The selector carries only presentation registration metadata and has no WRAM/SRAM mutation interface.
+
+The native registration keeps the currently proven geometry explicit: 64×64 logical canvas, occupancy offset `(1,0)`, palette asset `0x06`, and 4× candidate density. Pivot and wheel/contact anchors remain explicitly absent rather than guessed. A focused native test compiles the selector independently and verifies exact-selection and all fallback paths.

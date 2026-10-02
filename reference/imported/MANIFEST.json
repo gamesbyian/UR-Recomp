@@ -3,6 +3,14 @@
   "policy": "Every tracked file under reference/imported/ except this manifest must be classified here. git_blob_sha1 pins repository bytes; upstream_git_blob_sha1 additionally proves byte identity with a known upstream Git blob; external_sha256 records source-distribution hashes where known. review_status records whether an artifact is audited, a lead, immutable input, or archive-only; it is not a license statement.",
   "entries": [
     {
+      "path": "reference/imported/audio/Uniracers.sf2",
+      "category": "soundfont-reference",
+      "size": 177772,
+      "git_blob_sha1": "5b2bcd961cb611c9624a4b5d186b459fe58c33ad",
+      "external_sha256": "e6e05bd70a6d04dd131c2aa579622a22f589d0f7886f3af3ef6a24f7c819c2c4",
+      "review_status": "preservation-only"
+    },
+    {
       "path": "reference/imported/emulators/ATTRIBUTION.md",
       "category": "emulator-history",
       "size": 2133,
@@ -103,6 +111,14 @@
       "review_status": "unverified-leads"
     },
     {
+      "path": "reference/imported/manuals/Uniracers-USA-manual.pdf",
+      "category": "manual-scan",
+      "size": 6006270,
+      "git_blob_sha1": "a52da4f94a75e3e76fd61a759cb8e0c3a4fbc5d3",
+      "external_sha256": "50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235",
+      "review_status": "preservation-only"
+    },
+    {
       "path": "reference/imported/metadata/GameDB-SNES/c362c7b1/checksum.txt",
       "category": "metadata",
       "size": 7,
@@ -110,17 +126,17 @@
       "review_status": "preservation-only"
     },
     {
-      "path": "reference/imported/metadata/GameDB-SNES/c362c7b1/crc32.txt",
-      "category": "metadata",
-      "size": 11,
-      "git_blob_sha1": "b3cda8a0a838563f6e6082c0ae75edbd6271ec31",
-      "review_status": "preservation-only"
-    },
-    {
       "path": "reference/imported/metadata/GameDB-SNES/c362c7b1/crc32_128kb.txt",
       "category": "metadata",
       "size": 11,
       "git_blob_sha1": "428627438c97dc4d1a48dc109e27129878b5ee1b",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "reference/imported/metadata/GameDB-SNES/c362c7b1/crc32.txt",
+      "category": "metadata",
+      "size": 11,
+      "git_blob_sha1": "b3cda8a0a838563f6e6082c0ae75edbd6271ec31",
       "review_status": "preservation-only"
     },
     {
@@ -187,6 +203,23 @@
       "review_status": "preservation-only"
     },
     {
+      "path": "reference/imported/patches/sayans-uniracers-2002/Uniraceresp.ips",
+      "category": "translation-patch",
+      "size": 1678,
+      "git_blob_sha1": "0c6b89d94c8e1b06f940c14f70a9ea952315c4c3",
+      "external_sha256": "db68d50f647db678c31ee2d1ac84d9108292684d444d3b899abbbca88664bdd7",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "reference/imported/patches/sayans-uniracers-2002/uniracers_esp.zip",
+      "category": "translation-patch-archive",
+      "size": 1261,
+      "git_blob_sha1": "b3a25f6e3f00f2314b4ce83804c0d2902ca3c2dc",
+      "upstream_git_blob_sha1": "b3a25f6e3f00f2314b4ce83804c0d2902ca3c2dc",
+      "external_sha256": "828f65e6c0362f0050fbcf54925fa51c4ad43fb4750dbf2ce849b6c48b20f6c2",
+      "review_status": "analyzed-reference"
+    },
+    {
       "path": "reference/imported/patches/uniracers_canoe.ips",
       "category": "compatibility-patch",
       "size": 295,
@@ -215,300 +248,6 @@
       "git_blob_sha1": "a4df9eb523048143deb790c84b9e31a460d0e90e",
       "upstream_git_blob_sha1": "a4df9eb523048143deb790c84b9e31a460d0e90e",
       "review_status": "unverified-leads"
-    },
-    {
-      "path": "reference/imported/tas-bots/README.md",
-      "category": "provenance",
-      "size": 1489,
-      "git_blob_sha1": "3caad301a02e95f272a29fa2516ec8998829cf62",
-      "review_status": "preservation-only"
-    },
-    {
-      "path": "reference/imported/tas-bots/SHA256SUMS",
-      "category": "provenance",
-      "size": 383,
-      "git_blob_sha1": "72a7c9091e1400f79ad0082c7f0d046bc45a7033",
-      "review_status": "preservation-only"
-    },
-    {
-      "path": "reference/imported/tas-bots/dessyreqt-4250-submission.smv",
-      "category": "emulator-movie",
-      "size": 507032,
-      "git_blob_sha1": "100be190913ca5aa5fe7eca49cdc329fd8448a3e",
-      "external_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
-      "review_status": "immutable-input-corpus"
-    },
-    {
-      "path": "reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv",
-      "category": "emulator-movie",
-      "size": 10542,
-      "git_blob_sha1": "f7a538082eb09fd9210e6870102e34d944e8ca2b",
-      "external_sha256": "61cafb40a32d13bc691e93034449f31c6537736aa6caa0e7d933450e2df269a0",
-      "review_status": "immutable-input-corpus"
-    },
-    {
-      "path": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua",
-      "category": "bot-source",
-      "size": 30047,
-      "git_blob_sha1": "6afa5490b4947f170f2731c950e7363c4df56159",
-      "external_sha256": "9183b89f27e153b5db450134c00fb98f47d67c47e979a189ae51bcd8c06629c6",
-      "review_status": "audited-known-defects"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/LIST",
-      "category": "tool-documentation",
-      "size": 1051,
-      "git_blob_sha1": "f550d40e10953a2c3616cfa6349e5d16a92aa556",
-      "review_status": "preservation-only"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/PPAMI.EXE",
-      "category": "historical-executable",
-      "size": 28820,
-      "git_blob_sha1": "6c7871675d983685c87460c5942759645aed302e",
-      "upstream_git_blob_sha1": "6c7871675d983685c87460c5942759645aed302e",
-      "review_status": "archive-only-never-execute"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/PPIBM.EXE",
-      "category": "historical-executable",
-      "size": 35193,
-      "git_blob_sha1": "7f713d2df0ee67bcf5cb0f7c3aa695c8d119fe39",
-      "upstream_git_blob_sha1": "7f713d2df0ee67bcf5cb0f7c3aa695c8d119fe39",
-      "review_status": "archive-only-never-execute"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/PROPACK.DOC",
-      "category": "tool-documentation",
-      "size": 16688,
-      "git_blob_sha1": "a832bbbdae344b6befc28263a75cc1f5eec298e4",
-      "review_status": "preservation-only"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/PROPACK.TXT",
-      "category": "tool-documentation",
-      "size": 16688,
-      "git_blob_sha1": "a832bbbdae344b6befc28263a75cc1f5eec298e4",
-      "review_status": "preservation-only"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/GAMEBOY/RNC_1.ASM",
-      "category": "historical-source",
-      "size": 14706,
-      "git_blob_sha1": "b3a085204a7a1bfd4662516b50071ea997823a83",
-      "review_status": "reference-only"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/GAMEBOY/RNC_2.S",
-      "category": "historical-source",
-      "size": 4879,
-      "git_blob_sha1": "8ac47b00a47b45aed8b7c0e8b681052876fa4cec",
-      "review_status": "reference-only"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/IBMPC/RNC_1.ASM",
-      "category": "historical-source",
-      "size": 17362,
-      "git_blob_sha1": "e6d7d664fe8e91a39b934a8f6ef836a4b851d06a",
-      "review_status": "reference-only"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/IBMPC/RNC_2.ASM",
-      "category": "historical-source",
-      "size": 14391,
-      "git_blob_sha1": "df60b41870e752818805c8e5f04b371b09e50c6c",
-      "review_status": "reference-only"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC.MAC",
-      "category": "historical-source",
-      "size": 1001,
-      "git_blob_sha1": "971920b9bffe4254563cfeddfaa89b17ee6047dd",
-      "review_status": "reference-only"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC_1.BAK",
-      "category": "historical-source",
-      "size": 11874,
-      "git_blob_sha1": "431bb5b2edd8038e767fd3341d17338ca0d10f9b",
-      "review_status": "reference-only"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC_1.SRC",
-      "category": "historical-source",
-      "size": 11876,
-      "git_blob_sha1": "ac80d8c27e728db38835eed108309eebc022e70a",
-      "review_status": "reference-only"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC_2.SRC",
-      "category": "historical-source",
-      "size": 10465,
-      "git_blob_sha1": "fa8464debccee77062643b3d66cf1b77d2f0fd02",
-      "review_status": "reference-only"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_1.S",
-      "category": "historical-source",
-      "size": 8063,
-      "git_blob_sha1": "77c3ce2ca02d55b48a09f2c83615abe1e68adf2d",
-      "review_status": "reference-only"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_1C.S",
-      "category": "historical-source",
-      "size": 4876,
-      "git_blob_sha1": "ea813b85d4af30a06b00172ca1d547f86afebbd0",
-      "review_status": "reference-only"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_2.S",
-      "category": "historical-source",
-      "size": 7627,
-      "git_blob_sha1": "a5e85e2035ef1c803c0dba8c8506c2f190402714",
-      "review_status": "reference-only"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_2C.S",
-      "category": "historical-source",
-      "size": 4393,
-      "git_blob_sha1": "b7776608c7b3d5e0bff44558092373cfded238e9",
-      "review_status": "reference-only"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/MIPS/RNC_1.ASM",
-      "category": "historical-source",
-      "size": 8477,
-      "git_blob_sha1": "b1d2bc46dd6d7a3650d8f6bfbcbc6da8a059dec7",
-      "review_status": "reference-only"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/SUPERNES/RNC_1.S",
-      "category": "historical-source",
-      "size": 8465,
-      "git_blob_sha1": "ad4f5c58590dcc1357fb01c138084ff78ad22d75",
-      "upstream_git_blob_sha1": "ad4f5c58590dcc1357fb01c138084ff78ad22d75",
-      "review_status": "audited-reference"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/SUPERNES/RNC_2.S",
-      "category": "historical-source",
-      "size": 7081,
-      "git_blob_sha1": "0055f7fad678ef226757b3b7fa9fb06e48fc8929",
-      "upstream_git_blob_sha1": "0055f7fad678ef226757b3b7fa9fb06e48fc8929",
-      "review_status": "audited-reference"
-    },
-    {
-      "path": "reference/imported/tools/rnc_propack-2.14/UR-RECOMP-PROVENANCE.md",
-      "category": "tool-documentation",
-      "size": 1356,
-      "git_blob_sha1": "960849df2b8419a10280d5dbbfc84e360ccdf6ac",
-      "review_status": "preservation-only"
-    },
-    {
-      "path": "reference/imported/patches/sayans-uniracers-2002/uniracers_esp.zip",
-      "category": "translation-patch-archive",
-      "size": 1261,
-      "git_blob_sha1": "b3a25f6e3f00f2314b4ce83804c0d2902ca3c2dc",
-      "upstream_git_blob_sha1": "b3a25f6e3f00f2314b4ce83804c0d2902ca3c2dc",
-      "external_sha256": "828f65e6c0362f0050fbcf54925fa51c4ad43fb4750dbf2ce849b6c48b20f6c2",
-      "review_status": "analyzed-reference"
-    },
-    {
-      "path": "reference/imported/patches/sayans-uniracers-2002/Uniraceresp.ips",
-      "category": "translation-patch",
-      "size": 1678,
-      "git_blob_sha1": "0c6b89d94c8e1b06f940c14f70a9ea952315c4c3",
-      "external_sha256": "db68d50f647db678c31ee2d1ac84d9108292684d444d3b899abbbca88664bdd7",
-      "review_status": "analyzed-reference"
-    },
-    {
-      "path": "reference/imported/manuals/Uniracers-USA-manual.pdf",
-      "category": "manual-scan",
-      "size": 6006270,
-      "git_blob_sha1": "a52da4f94a75e3e76fd61a759cb8e0c3a4fbc5d3",
-      "external_sha256": "50d5d02a3f8f04b9a38a1dac7ff05fd96f5583fbdf1d0afc201bbaea454e2235",
-      "review_status": "preservation-only"
-    },
-    {
-      "path": "reference/imported/tas-bots/usjo8.lua",
-      "category": "historical-source",
-      "size": 62406,
-      "git_blob_sha1": "d78962aae7ca6a63bf94113f68680e730dade3fb",
-      "external_sha256": "64b1a26966490a619a6557adee79d6ee0463e534fa2488cf3b5913d55a316ffc",
-      "review_status": "analyzed-reference"
-    },
-    {
-      "path": "reference/imported/reverse-engineering/nitrodon/RAM addresses.txt",
-      "category": "historical-reverse-engineering",
-      "size": 7262,
-      "git_blob_sha1": "afc5316a79bedc2c1dcee3880eb87718f308a5a8",
-      "external_sha256": "28ab4d64068ec04c0a935c62b4afff6e55911e0cca49fb319fd676eb00984cef",
-      "review_status": "analyzed-reference"
-    },
-    {
-      "path": "reference/imported/reverse-engineering/nitrodon/ROM addresses.txt",
-      "category": "historical-reverse-engineering",
-      "size": 95,
-      "git_blob_sha1": "ce541cc9cc396ca09c8ff97ede87a6a8176f05fe",
-      "external_sha256": "6fc02a65f6bb763831c4d8ae18833a1ce43dbf467b6de9118ab47d104503866a",
-      "review_status": "analyzed-reference"
-    },
-    {
-      "path": "reference/imported/reverse-engineering/nitrodon/bank 80.txt",
-      "category": "historical-reverse-engineering",
-      "size": 453892,
-      "git_blob_sha1": "714acd07db5209831f79b5d5b5be020184fb4b97",
-      "external_sha256": "226885604478a95640770151fddce39b2de6ec8e9d1e514c0439ad8a2f54d84a",
-      "review_status": "analyzed-reference"
-    },
-    {
-      "path": "reference/imported/reverse-engineering/nitrodon/bank 81.txt",
-      "category": "historical-reverse-engineering",
-      "size": 425721,
-      "git_blob_sha1": "968f9755824911d32455910b881b2f38ab0239d5",
-      "external_sha256": "29efc3981cf128b96e41c3a59cc4073cdf2319e7afcc84373562b89c852af3ed",
-      "review_status": "analyzed-reference"
-    },
-    {
-      "path": "reference/imported/reverse-engineering/nitrodon/bank 82.txt",
-      "category": "historical-reverse-engineering",
-      "size": 327774,
-      "git_blob_sha1": "f8a06d20e74b5bb6968cc92ffa5a4e63ea863561",
-      "external_sha256": "f45ad8d6ee6f57f7ee20a84bc16f18260afa91560e04bc08d08e468a6842ee7e",
-      "review_status": "analyzed-reference"
-    },
-    {
-      "path": "reference/imported/reverse-engineering/nitrodon/bank 83.txt",
-      "category": "historical-reverse-engineering",
-      "size": 446890,
-      "git_blob_sha1": "7aba0c7bad2d40fd61a8828d61d11813d97084e1",
-      "external_sha256": "0e3fd554bddaa5c56af5095d35d6d26cc0b6f129ec80c01bc7892cef17867df5",
-      "review_status": "analyzed-reference"
-    },
-    {
-      "path": "reference/imported/reverse-engineering/nitrodon/bounce tracelog.txt",
-      "category": "historical-reverse-engineering",
-      "size": 314506,
-      "git_blob_sha1": "fa63e052d18f42955951a988c7f90aae3f96729b",
-      "external_sha256": "95406a7377c476230c74e68963ff7528e2016b81007b3760b3b1ee751fd0c759",
-      "review_status": "analyzed-reference"
-    },
-    {
-      "path": "reference/imported/reverse-engineering/nitrodon/messages.txt",
-      "category": "historical-reverse-engineering",
-      "size": 1930,
-      "git_blob_sha1": "142c8aa94b70665c5c36e58d674f92225713ce06",
-      "external_sha256": "aba7aeeb1fd01b31225f95c3bb3232d7c397d1e944c68fa0d8f719ceacde2897",
-      "review_status": "analyzed-reference"
-    },
-    {
-      "path": "reference/imported/reverse-engineering/nitrodon/stunts.txt",
-      "category": "historical-reverse-engineering",
-      "size": 10048,
-      "git_blob_sha1": "415eccc9e1b1cc890a52d34bc5190b2c0aa7928b",
-      "external_sha256": "8b18c8c72f886837c847ea60673714b721ea430337e9f001904c87cc416455bb",
-      "review_status": "analyzed-reference"
     },
     {
       "path": "reference/imported/reverse-engineering/dessyreqt/Docs/High Scores.txt",
@@ -917,27 +656,6 @@
       "review_status": "direct-recovery-unreviewed"
     },
     {
-      "path": "reference/imported/reverse-engineering/dessyreqt/SRAM/All Silvers - No Hunter.srm",
-      "category": "historical-save-state",
-      "size": 8192,
-      "git_blob_sha1": "4ae110e31277a55b1ba804fd043057d56bf93fe9",
-      "review_status": "direct-recovery-unreviewed"
-    },
-    {
-      "path": "reference/imported/reverse-engineering/dessyreqt/SRAM/All Silvers - With Hunter.srm",
-      "category": "historical-save-state",
-      "size": 8192,
-      "git_blob_sha1": "70ae6b34d30397921a1b1323d7421247e9a4261d",
-      "review_status": "direct-recovery-unreviewed"
-    },
-    {
-      "path": "reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm",
-      "category": "historical-save-state",
-      "size": 8192,
-      "git_blob_sha1": "f5c722385bca6c08fd27e47999684b05036bea4b",
-      "review_status": "direct-recovery-unreviewed"
-    },
-    {
       "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/cpucam.lua",
       "category": "historical-bot-source",
       "size": 128,
@@ -1036,6 +754,13 @@
       "review_status": "direct-recovery-unreviewed"
     },
     {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/usjo14a_test.lua",
+      "category": "historical-bot-source",
+      "size": 78528,
+      "git_blob_sha1": "590f2f1500b06db0eb5be1d9ef915c965ad8315d",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
       "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/usjo14a.lua",
       "category": "historical-bot-source",
       "size": 70383,
@@ -1050,10 +775,24 @@
       "review_status": "direct-recovery-unreviewed"
     },
     {
-      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/usjo14a_test.lua",
-      "category": "historical-bot-source",
-      "size": 78528,
-      "git_blob_sha1": "590f2f1500b06db0eb5be1d9ef915c965ad8315d",
+      "path": "reference/imported/reverse-engineering/dessyreqt/SRAM/All Silvers - No Hunter.srm",
+      "category": "historical-save-state",
+      "size": 8192,
+      "git_blob_sha1": "4ae110e31277a55b1ba804fd043057d56bf93fe9",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/SRAM/All Silvers - With Hunter.srm",
+      "category": "historical-save-state",
+      "size": 8192,
+      "git_blob_sha1": "70ae6b34d30397921a1b1323d7421247e9a4261d",
+      "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm",
+      "category": "historical-save-state",
+      "size": 8192,
+      "git_blob_sha1": "f5c722385bca6c08fd27e47999684b05036bea4b",
       "review_status": "direct-recovery-unreviewed"
     },
     {
@@ -1069,6 +808,299 @@
       "size": 558,
       "git_blob_sha1": "906cc4868d68f6917f1faeba1b1342774aa809cc",
       "review_status": "direct-recovery-unreviewed"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/nitrodon/bank 80.txt",
+      "category": "historical-reverse-engineering",
+      "size": 453892,
+      "git_blob_sha1": "714acd07db5209831f79b5d5b5be020184fb4b97",
+      "external_sha256": "226885604478a95640770151fddce39b2de6ec8e9d1e514c0439ad8a2f54d84a",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/nitrodon/bank 81.txt",
+      "category": "historical-reverse-engineering",
+      "size": 425721,
+      "git_blob_sha1": "968f9755824911d32455910b881b2f38ab0239d5",
+      "external_sha256": "29efc3981cf128b96e41c3a59cc4073cdf2319e7afcc84373562b89c852af3ed",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/nitrodon/bank 82.txt",
+      "category": "historical-reverse-engineering",
+      "size": 327774,
+      "git_blob_sha1": "f8a06d20e74b5bb6968cc92ffa5a4e63ea863561",
+      "external_sha256": "f45ad8d6ee6f57f7ee20a84bc16f18260afa91560e04bc08d08e468a6842ee7e",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/nitrodon/bank 83.txt",
+      "category": "historical-reverse-engineering",
+      "size": 446890,
+      "git_blob_sha1": "7aba0c7bad2d40fd61a8828d61d11813d97084e1",
+      "external_sha256": "0e3fd554bddaa5c56af5095d35d6d26cc0b6f129ec80c01bc7892cef17867df5",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/nitrodon/bounce tracelog.txt",
+      "category": "historical-reverse-engineering",
+      "size": 314506,
+      "git_blob_sha1": "fa63e052d18f42955951a988c7f90aae3f96729b",
+      "external_sha256": "95406a7377c476230c74e68963ff7528e2016b81007b3760b3b1ee751fd0c759",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/nitrodon/messages.txt",
+      "category": "historical-reverse-engineering",
+      "size": 1930,
+      "git_blob_sha1": "142c8aa94b70665c5c36e58d674f92225713ce06",
+      "external_sha256": "aba7aeeb1fd01b31225f95c3bb3232d7c397d1e944c68fa0d8f719ceacde2897",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/nitrodon/RAM addresses.txt",
+      "category": "historical-reverse-engineering",
+      "size": 7262,
+      "git_blob_sha1": "afc5316a79bedc2c1dcee3880eb87718f308a5a8",
+      "external_sha256": "28ab4d64068ec04c0a935c62b4afff6e55911e0cca49fb319fd676eb00984cef",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/nitrodon/ROM addresses.txt",
+      "category": "historical-reverse-engineering",
+      "size": 95,
+      "git_blob_sha1": "ce541cc9cc396ca09c8ff97ede87a6a8176f05fe",
+      "external_sha256": "6fc02a65f6bb763831c4d8ae18833a1ce43dbf467b6de9118ab47d104503866a",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/nitrodon/stunts.txt",
+      "category": "historical-reverse-engineering",
+      "size": 10048,
+      "git_blob_sha1": "415eccc9e1b1cc890a52d34bc5190b2c0aa7928b",
+      "external_sha256": "8b18c8c72f886837c847ea60673714b721ea430337e9f001904c87cc416455bb",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "reference/imported/tas-bots/dessyreqt-4250-submission.smv",
+      "category": "emulator-movie",
+      "size": 507032,
+      "git_blob_sha1": "100be190913ca5aa5fe7eca49cdc329fd8448a3e",
+      "external_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+      "review_status": "immutable-input-corpus"
+    },
+    {
+      "path": "reference/imported/tas-bots/README.md",
+      "category": "provenance",
+      "size": 1489,
+      "git_blob_sha1": "3caad301a02e95f272a29fa2516ec8998829cf62",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "reference/imported/tas-bots/SHA256SUMS",
+      "category": "provenance",
+      "size": 383,
+      "git_blob_sha1": "72a7c9091e1400f79ad0082c7f0d046bc45a7033",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv",
+      "category": "emulator-movie",
+      "size": 10542,
+      "git_blob_sha1": "f7a538082eb09fd9210e6870102e34d944e8ca2b",
+      "external_sha256": "61cafb40a32d13bc691e93034449f31c6537736aa6caa0e7d933450e2df269a0",
+      "review_status": "immutable-input-corpus"
+    },
+    {
+      "path": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua",
+      "category": "bot-source",
+      "size": 30047,
+      "git_blob_sha1": "6afa5490b4947f170f2731c950e7363c4df56159",
+      "external_sha256": "9183b89f27e153b5db450134c00fb98f47d67c47e979a189ae51bcd8c06629c6",
+      "review_status": "audited-known-defects"
+    },
+    {
+      "path": "reference/imported/tas-bots/usjo8.lua",
+      "category": "historical-source",
+      "size": 62406,
+      "git_blob_sha1": "d78962aae7ca6a63bf94113f68680e730dade3fb",
+      "external_sha256": "64b1a26966490a619a6557adee79d6ee0463e534fa2488cf3b5913d55a316ffc",
+      "review_status": "analyzed-reference"
+    },
+    {
+      "path": "reference/imported/tcrf/Uniracers-Decomp.png",
+      "category": "graphics-reference",
+      "size": 1785,
+      "git_blob_sha1": "17dc786435e4259fc3a37d337425b9eebfc031e1",
+      "external_sha256": "e632ad3a504f52c6ecc8076010c2538d6741115b73fc1cea4c161ff34cd03625",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "reference/imported/tcrf/user-supplied-transcodes/Uniracers1.ogg.mp3",
+      "category": "unused-audio-reference-transcode",
+      "size": 1979939,
+      "git_blob_sha1": "81faf842fcd3d25aaaacff4407023d7a60bca2de",
+      "external_sha256": "2d604a47c06fddbbbad53f064c289faa07e454182be7597f9bdd3ae364e95173",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "reference/imported/tcrf/user-supplied-transcodes/Uniracers2.ogg.mp3",
+      "category": "unused-audio-reference-transcode",
+      "size": 7000881,
+      "git_blob_sha1": "bb72fc93fb4434227eb0c07a5cce62151c8ba9aa",
+      "external_sha256": "00cd6be4330ffb503fd5726858734a2ebf5e16825ae2424d3e580ca25c06711e",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/LIST",
+      "category": "tool-documentation",
+      "size": 1051,
+      "git_blob_sha1": "f550d40e10953a2c3616cfa6349e5d16a92aa556",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/PPAMI.EXE",
+      "category": "historical-executable",
+      "size": 28820,
+      "git_blob_sha1": "6c7871675d983685c87460c5942759645aed302e",
+      "upstream_git_blob_sha1": "6c7871675d983685c87460c5942759645aed302e",
+      "review_status": "archive-only-never-execute"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/PPIBM.EXE",
+      "category": "historical-executable",
+      "size": 35193,
+      "git_blob_sha1": "7f713d2df0ee67bcf5cb0f7c3aa695c8d119fe39",
+      "upstream_git_blob_sha1": "7f713d2df0ee67bcf5cb0f7c3aa695c8d119fe39",
+      "review_status": "archive-only-never-execute"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/PROPACK.DOC",
+      "category": "tool-documentation",
+      "size": 16688,
+      "git_blob_sha1": "a832bbbdae344b6befc28263a75cc1f5eec298e4",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/PROPACK.TXT",
+      "category": "tool-documentation",
+      "size": 16688,
+      "git_blob_sha1": "a832bbbdae344b6befc28263a75cc1f5eec298e4",
+      "review_status": "preservation-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/GAMEBOY/RNC_1.ASM",
+      "category": "historical-source",
+      "size": 14706,
+      "git_blob_sha1": "b3a085204a7a1bfd4662516b50071ea997823a83",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/GAMEBOY/RNC_2.S",
+      "category": "historical-source",
+      "size": 4879,
+      "git_blob_sha1": "8ac47b00a47b45aed8b7c0e8b681052876fa4cec",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/IBMPC/RNC_1.ASM",
+      "category": "historical-source",
+      "size": 17362,
+      "git_blob_sha1": "e6d7d664fe8e91a39b934a8f6ef836a4b851d06a",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/IBMPC/RNC_2.ASM",
+      "category": "historical-source",
+      "size": 14391,
+      "git_blob_sha1": "df60b41870e752818805c8e5f04b371b09e50c6c",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC_1.BAK",
+      "category": "historical-source",
+      "size": 11874,
+      "git_blob_sha1": "431bb5b2edd8038e767fd3341d17338ca0d10f9b",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC_1.SRC",
+      "category": "historical-source",
+      "size": 11876,
+      "git_blob_sha1": "ac80d8c27e728db38835eed108309eebc022e70a",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC_2.SRC",
+      "category": "historical-source",
+      "size": 10465,
+      "git_blob_sha1": "fa8464debccee77062643b3d66cf1b77d2f0fd02",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/LYNX/RNC.MAC",
+      "category": "historical-source",
+      "size": 1001,
+      "git_blob_sha1": "971920b9bffe4254563cfeddfaa89b17ee6047dd",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_1.S",
+      "category": "historical-source",
+      "size": 8063,
+      "git_blob_sha1": "77c3ce2ca02d55b48a09f2c83615abe1e68adf2d",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_1C.S",
+      "category": "historical-source",
+      "size": 4876,
+      "git_blob_sha1": "ea813b85d4af30a06b00172ca1d547f86afebbd0",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_2.S",
+      "category": "historical-source",
+      "size": 7627,
+      "git_blob_sha1": "a5e85e2035ef1c803c0dba8c8506c2f190402714",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/MC68000/RNC_2C.S",
+      "category": "historical-source",
+      "size": 4393,
+      "git_blob_sha1": "b7776608c7b3d5e0bff44558092373cfded238e9",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/MIPS/RNC_1.ASM",
+      "category": "historical-source",
+      "size": 8477,
+      "git_blob_sha1": "b1d2bc46dd6d7a3650d8f6bfbcbc6da8a059dec7",
+      "review_status": "reference-only"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/SUPERNES/RNC_1.S",
+      "category": "historical-source",
+      "size": 8465,
+      "git_blob_sha1": "ad4f5c58590dcc1357fb01c138084ff78ad22d75",
+      "upstream_git_blob_sha1": "ad4f5c58590dcc1357fb01c138084ff78ad22d75",
+      "review_status": "audited-reference"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/SOURCE/SUPERNES/RNC_2.S",
+      "category": "historical-source",
+      "size": 7081,
+      "git_blob_sha1": "0055f7fad678ef226757b3b7fa9fb06e48fc8929",
+      "upstream_git_blob_sha1": "0055f7fad678ef226757b3b7fa9fb06e48fc8929",
+      "review_status": "audited-reference"
+    },
+    {
+      "path": "reference/imported/tools/rnc_propack-2.14/UR-RECOMP-PROVENANCE.md",
+      "category": "tool-documentation",
+      "size": 1356,
+      "git_blob_sha1": "960849df2b8419a10280d5dbbfc84e360ccdf6ac",
+      "review_status": "preservation-only"
     }
   ]
 }

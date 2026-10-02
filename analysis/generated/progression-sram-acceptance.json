@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "changed_byte_count": 152,
+  "protected_region_changes": [
+    {
+      "offset": 1560,
+      "before": 0,
+      "after": 222
+    },
+    {
+      "offset": 1561,
+      "before": 0,
+      "after": 29
+    },
+    {
+      "offset": 1562,
+      "before": 0,
+      "after": 71
+    },
+    {
+      "offset": 1563,
+      "before": 0,
+      "after": 31
+    }
+  ],
+  "medal_changes": [],
+  "tier_primary_changes": [],
+  "tier_mirror_changes": [],
+  "checksum": {
+    "before_stored": 37360,
+    "before_computed": 37360,
+    "after_stored": 53013,
+    "after_computed": 53013,
+    "reload_stored": 53013,
+    "reload_computed": 53013
+  },
+  "observations": {
+    "game_authored_medal_change_observed": false,
+    "medal_changes_are_single_step_saturating": false,
+    "tier_change_observed": false
+  },
+  "checks": {
+    "game_authored_sram_change_observed": true,
+    "checksum_protected_change_observed": true,
+    "after_checksum_valid": true,
+    "reload_checksum_valid": true,
+    "full_sram_survives_reload": true,
+    "checksum_survives_reload": true
+  },
+  "scope_note": "This acceptance proves real game-authored SRAM mutation/reload fidelity. Medal/tier mutation remains an explicit observation, not a prerequisite; a medal-winning fixture is still required to close progression-changing acceptance.",
+  "all_checks_pass": true
+}

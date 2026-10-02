@@ -1,0 +1,9 @@
+# Historical 2014 bot progression acceptance.
+# Controller input comes from SNESREF_INPUT_FILE.
+# Sample after SRAM initialization, then run far enough to cross at least one
+# game-authored medal-awarding result transition without poking state.
+wait 750
+dump progression-before
+wait 9250
+dump progression-after
+quit

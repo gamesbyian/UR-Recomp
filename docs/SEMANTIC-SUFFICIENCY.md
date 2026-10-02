@@ -40,7 +40,7 @@ Status values are `sufficient`, `partial`, `unknown`, or `not applicable`. `Suff
 1. **Activation timeline:** use the cheapest deterministic fixture in which a known world object crosses the classic camera edge. Capture the first frames at which it exists, becomes behaviorally processed, enters preparation/update lists, is drawn, and becomes visible.
 2. **Preparation horizon:** in the same fixture, correlate camera/window edges with first VRAM/update-list membership. Prove one resource family before generalizing.
 3. **Tiny-margin Widescreen probe:** with Dragster's presentation spatial/resource contract now sufficient, expose +8/+16/+24 source pixels and let the first failure choose whether further course generalization is actually required.
-4. **Graphics round trip:** once those boundaries are interpretable, expose +8/+16/+24 source pixels and let the first failure choose the next semantic task.
+4. **Graphics round trip:** choose one small racer/presentation asset family, extract tiles/palette, reconstruct unchanged data exactly, and tie selected frame/tile identity to named runtime/OAM state.
 5. **Save/load progression acceptance:** create one real progression-changing run, persist it, reload it, and assert medal/tier/checksum state.
 
 ## Promotion rules

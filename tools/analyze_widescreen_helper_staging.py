@@ -5,8 +5,12 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 from pathlib import Path
 
+TOOLS_DIR=Path(__file__).resolve().parent
+if str(TOOLS_DIR) not in sys.path:
+    sys.path.insert(0,str(TOOLS_DIR))
 import analyze_widescreen_preparation_boundary as boundary
 
 HELP_RE=re.compile(r"WSHELP frame=(?P<frame>\d+) pc=(?P<pc>[0-9A-Fa-f]{6}) changes=(?P<changes>[^\n\r]*)")

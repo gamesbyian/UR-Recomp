@@ -307,50 +307,85 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
                     p1_selector=u16(wram, 0x0C83),
                     p2_selector=u16(wram, 0x0C85),
                 )
-                comparisons = []
-                exact_cells = 0
-                source_exact_cells = 0
-                destination_exact_cells = 0
-                for i, expected in enumerate(composed["cells"]):
+
+                # F1DD..F275 walks all 70 cache cells, but Y advances only
+                # when a DMA descriptor is actually emitted. Occupied cells
+                # always emit; empty cells may be skipped at F24A..F256
+                # depending on the prior-occupancy clear mask. Therefore
+                # validate composed occupied cells by raw destination rather
+                # than assuming cell index == staging-array index.
+                actual_by_dest = {}
+                for i in range(82):
                     q = i * 2
-                    actual = {
-                        "source_bank": wram[0x15A1 + q],
-                        "source_addr": u16(wram, 0x1645 + q),
-                        "staged_vram_word": u16(wram, 0x16E9 + q),
-                    }
-                    source_same = (
-                        actual["source_bank"] == expected["source_bank"]
-                        and actual["source_addr"] == expected["source_addr"]
-                    )
-                    destination_same = actual["staged_vram_word"] == expected["staged_vram_word"]
-                    same = source_same and destination_same
-                    source_exact_cells += int(source_same)
-                    destination_exact_cells += int(destination_same)
-                    exact_cells += int(same)
+                    bank = wram[0x15A1 + q]
+                    src = u16(wram, 0x1645 + q)
+                    dest = u16(wram, 0x16E9 + q)
+                    if bank == 0xFF:
+                        continue
+                    actual_by_dest.setdefault(dest, []).append({
+                        "slot": i,
+                        "source_bank": bank,
+                        "source_addr": src,
+                    })
+
+                comparisons = []
+                occupied_total = 0
+                destination_present = 0
+                source_exact = 0
+                ambiguous_exact = 0
+                for expected in composed["cells"]:
+                    if expected["word_hex"] is None:
+                        continue
+                    occupied_total += 1
+                    dest = expected["staged_vram_word"]
+                    candidates = actual_by_dest.get(dest, [])
+                    present = bool(candidates)
+                    destination_present += int(present)
+                    matches = [
+                        a for a in candidates
+                        if a["source_bank"] == expected["source_bank"]
+                        and a["source_addr"] == expected["source_addr"]
+                    ]
+                    exact = bool(matches)
+                    source_exact += int(exact)
+                    ambiguous_exact += int(len(matches) > 1)
                     comparisons.append({
-                        "index": i,
                         "row": expected["row"],
                         "column": expected["column"],
+                        "player": expected["player"],
                         "choice": expected["choice"],
                         "expected_source": expected["source_snes"],
-                        "expected_vram_word": f"0x{expected['staged_vram_word']:04X}",
-                        "actual_source": f"{actual['source_bank']:02X}:{actual['source_addr']:04X}",
-                        "actual_vram_word": f"0x{actual['staged_vram_word']:04X}",
-                        "source_exact": source_same,
-                        "destination_exact": destination_same,
-                        "exact": same,
+                        "expected_vram_word": f"0x{dest:04X}",
+                        "destination_present": present,
+                        "source_exact": exact,
+                        "matching_slots": [a["slot"] for a in matches],
+                        "actual_candidates": [
+                            {
+                                "slot": a["slot"],
+                                "source": f"{a['source_bank']:02X}:{a['source_addr']:04X}",
+                            }
+                            for a in candidates
+                        ],
                     })
+
                 composition_replay = {
-                    "exact_cells": exact_cells,
-                    "source_exact_cells": source_exact_cells,
-                    "destination_exact_cells": destination_exact_cells,
-                    "total_cells": len(comparisons),
-                    "all_exact": exact_cells == len(comparisons),
+                    "comparison_mode": "occupied-cells-keyed-by-raw-vram-destination",
+                    "occupied_cells": occupied_total,
+                    "destinations_present": destination_present,
+                    "source_exact_cells": source_exact,
+                    "all_occupied_sources_exact": (
+                        occupied_total > 0 and source_exact == occupied_total
+                    ),
+                    "destinations_with_duplicate_exact_source": ambiguous_exact,
                     "primary_row_masks": composed["primary_row_masks"],
                     "companion_row_masks": composed["companion_row_masks"],
                     "final_word_cursors": composed["final_word_cursors"],
                     "stream_word_counts": composed["stream_word_counts"],
                     "comparisons": comparisons,
+                    "excluded_from_check": (
+                        "blank/clear descriptors: F24A..F256 can suppress them "
+                        "according to prior-occupancy state in $0C7F"
+                    ),
                 }
             except Exception as exc:
                 composition_replay = {"error": str(exc)}
@@ -443,12 +478,13 @@ def main() -> int:
                 f"selectors {state['p1_selector_0c83']}/{state['p2_selector_0c85']}."
             )
             replay = cp.get("composition_replay")
-            if replay and "exact_cells" in replay:
+            if replay and "occupied_cells" in replay:
                 md.append(
-                    f"  static F2BB/F1DD composition replay: "
-                    f"{replay['exact_cells']}/{replay['total_cells']} raw staging cells exact "
-                    f"(sources {replay['source_exact_cells']}/{replay['total_cells']}, "
-                    f"destinations {replay['destination_exact_cells']}/{replay['total_cells']})."
+                    f"  static F2BB/F1DD occupied-cell replay: "
+                    f"{replay['source_exact_cells']}/{replay['occupied_cells']} "
+                    "composed occupied sources found at their raw staging destinations; "
+                    f"{replay['destinations_present']}/{replay['occupied_cells']} "
+                    "destinations present."
                 )
             elif replay:
                 md.append(f"  static composition replay error: {replay.get('error')}")

@@ -392,6 +392,30 @@
         "analysis/generated/course-resource-list-manifest.json"
       ],
       "next_action": "For regional fidelity, compare decoded fine/coarse course content first on streams 4/16/20/27/35; treat streams 26/36 as the bounded resource-selection exceptions."
+    },
+    {
+      "id": "IA2-F01",
+      "class": "methodological_invariant",
+      "title": "Semantic-event anchoring is the robust fixture coordinate system",
+      "result": {
+        "strong_fixture_pattern": "semantic state wait -> settle/confirm -> event-relative sample tags",
+        "robust_examples": [
+          "reach-first-race",
+          "course-load-timeline",
+          "race-finish-dragster",
+          "object-activation-dragster-tail"
+        ],
+        "weaker_absolute_frame_examples": [
+          "progression-sram-acceptance",
+          "two-player-first-race-observe"
+        ],
+        "implication": "Absolute guest frame is not a safe universal join key when host presentation can perturb cadence; semantic checkpoints plus relative offsets are."
+      },
+      "evidence": [
+        "analysis/data/fixture-corpus.json",
+        "analysis/generated/inference-audit.json"
+      ],
+      "next_action": "When revisiting progression or paired-racer acceptance, add semantic state/event guards before using historical absolute frame offsets as causal evidence."
     }
   ],
   "consolidation_changes": [

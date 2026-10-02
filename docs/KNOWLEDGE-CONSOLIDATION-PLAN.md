@@ -1,6 +1,6 @@
 # Knowledge Consolidation Plan
 
-Status: implementation underway
+Status: initial consolidation complete
 Date: 2026-10-02
 
 ## Purpose
@@ -173,3 +173,7 @@ This consolidation pass is complete when:
 - both plans point future work at the normalized surfaces rather than requiring ad hoc prose joins.
 
 A later pass can expand claim extraction and progression-specific normalization without blocking the inference audit.
+
+## Initial pass closeout — 2026-10-02
+
+The initial consolidation pass is complete and protected by unit tests. The query layer now contains the full 45-course corpus, normalized promoted state semantics with regional racer relations, semantic-function/structural-census joins, the first reusable presentation family, and an initial atomic claim surface. The first inference audit consumed these files successfully and exposed one representation bug during validation: low mirror ROM code banks from the symbol ledger must be canonicalized to their high CPU mirrors before structural joins. That normalization is now part of the builder.

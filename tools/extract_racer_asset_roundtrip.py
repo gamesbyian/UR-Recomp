@@ -128,7 +128,21 @@ def frame_pointer(rom: bytes, frame_id: int) -> dict:
     }
 
 
-def observed_states(dump_dir: Path | None) -> list[dict]:
+def observed_states(dump_dir: Path | None, evidence_json: Path | None = None) -> list[dict]:
+    if evidence_json is not None:
+        payload = json.loads(evidence_json.read_text(encoding="utf-8"))
+        rows = []
+        for row in payload.get("checkpoints", []):
+            attrs = list(row["oam_attrs"])
+            rows.append({
+                "checkpoint": row["checkpoint"],
+                "frame_ids": list(row["frame_ids"]),
+                "oam_attrs": attrs,
+                "oam_palettes": [((v >> 1) & 0x07) for v in attrs],
+                "oam_hflip": [bool(v & 0x40) for v in attrs],
+                "oam_vflip": [bool(v & 0x80) for v in attrs],
+            })
+        return rows
     if dump_dir is None:
         return []
     rows = []
@@ -152,7 +166,7 @@ def observed_states(dump_dir: Path | None) -> list[dict]:
     return rows
 
 
-def build_manifest(rom: bytes, dump_dir: Path | None) -> dict:
+def build_manifest(rom: bytes, dump_dir: Path | None, evidence_json: Path | None = None) -> dict:
     graphics = []
     for item in RACE_GRAPHICS:
         desc, packed, decoded = decode_resource(rom, item["resource_id"])
@@ -189,7 +203,7 @@ def build_manifest(rom: bytes, dump_dir: Path | None) -> dict:
             "roundtrip_equal": rebuilt == decoded,
         })
 
-    states = observed_states(dump_dir)
+    states = observed_states(dump_dir, evidence_json)
     ids = sorted({fid for row in states for fid in row["frame_ids"]})
     return {
         "schema_version": 1,
@@ -230,10 +244,11 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("rom", type=Path)
     ap.add_argument("--wram-dump-dir", type=Path)
+    ap.add_argument("--evidence-json", type=Path)
     ap.add_argument("--json-out", type=Path)
     args = ap.parse_args()
 
-    manifest = build_manifest(args.rom.read_bytes(), args.wram_dump_dir)
+    manifest = build_manifest(args.rom.read_bytes(), args.wram_dump_dir, args.evidence_json)
     text = json.dumps(manifest, indent=2, sort_keys=True) + "\n"
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)

@@ -10,13 +10,15 @@ class CourseSectorGatherTests(unittest.TestCase):
   if not all(p.exists() for p in mod.ROMS.values()): self.skipTest("ROM corpus absent")
   r=mod.build()
   self.assertEqual(r["next_region"],"81:8B95")
-  self.assertEqual(r["builds"]["legacy-beta"]["similarity"],1.0)
-  self.assertEqual(r["builds"]["usa-retail"]["unreached_or_data_bytes"],0)
+  self.assertEqual(len(r["regions"]),1)
+  region=r["regions"][0]
+  self.assertEqual(region["builds"]["legacy-beta"]["similarity"],1.0)
+  self.assertEqual(region["builds"]["usa-retail"]["unreached_or_data_bytes"],0)
   if mod.OUTJ.exists():
    self.assertEqual(json.loads(mod.OUTJ.read_text()),r)
    self.assertEqual(mod.OUTM.read_text(),mod.render(r))
   for name in ("pal-prototype-1994-11-29","europe-retail","legacy-beta"):
-   b=r["builds"][name]
+   b=region["builds"][name]
    self.assertEqual(b["aligned_role_disagreements"],0,name)
    self.assertEqual(b["aligned_opcode_pairs"],b["aligned_equal_opcode_pairs"],name)
 if __name__=="__main__": unittest.main()

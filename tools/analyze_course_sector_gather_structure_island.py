@@ -74,7 +74,14 @@ def build(root:Path=ROOT):
    "selects/interpolates a local entry using within-sector coordinates",
    "reads the selected payload through $7F800F and writes the 20-byte workspace at $0260..$0272"
   ],
-  "builds":builds,
+  "regions":[{
+   "name":"sector_neighborhood_gather",
+   "kind":"code",
+   "usa_start":START,
+   "usa_end":END,
+   "size":ue-us+1,
+   "builds":builds,
+  }],
  }
 
 def render(r):
@@ -82,8 +89,9 @@ def render(r):
   "USA 81:8A4A..8B94 is the function immediately upstream of the existing course-surface sampler. It converts the current X/Y coordinates into coarse 64-unit sector coordinates, gathers the neighboring sector entries, selects a local payload, and fills the $0260..$0272 workspace consumed by the next stage.","",
   "| Build | Range | Shift | Similarity | Opcodes | Operands | Unreached/data |",
   "|---|---|---:|---:|---:|---:|---:|"]
+ region=r["regions"][0]
  for name in ("usa-retail","pal-prototype-1994-11-29","europe-retail","legacy-beta"):
-  b=r["builds"][name]
+  b=region["builds"][name]
   lines.append(f"| {name} | {b['start']}..{b['end']} | {b['shift']:+d} | {b['similarity']:.3f} | {b['opcode_bytes']} | {b['operand_bytes']} | {b['unreached_or_data_bytes']} |")
  lines+=["","Boundary: 81:8B94 is the RTS; 81:8B95 begins the already-censused surface sampler.","",
  "The label is intentionally structural. It describes the observed sector-neighborhood/dataflow role without claiming that every $7F000F/$7F800F field is semantically decoded.",""]

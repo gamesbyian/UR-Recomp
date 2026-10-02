@@ -32,7 +32,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/extract_smv_input.py             reference/imported/tas-bots/dessyreqt-4250-submission.smv             --input-out "$RUNNER_TEMP/full.input"             --sram-out "$RUNNER_TEMP/start.srm"             --sram-size 8192 >/dev/null
+          python3 tools/extract_smv_input.py             reference/imported/tas-bots/dessyreqt-4250-submission.smv             --input-out "$RUNNER_TEMP/full.input"             --sram-out "$RUNNER_TEMP/start.srm"             --sram-size 8192             --json-out "$RUNNER_TEMP/smv.json" >/dev/null
           python3 - "$RUNNER_TEMP/full.input" "$RUNNER_TEMP/first-81000.input" <<'PY'
           from pathlib import Path
           import sys

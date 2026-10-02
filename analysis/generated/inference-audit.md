@@ -84,9 +84,9 @@ A six-course set covers every shipped dimension family while preserving Dragster
 | Course | Stream | Shape | Resources |
 |---|---:|---:|---:|
 | Dragster | 1 | 256×4 | 6 |
-| Flat Fun | 9 | 128×8 | 35 |
-| Crock | 17 | 64×16 | 34 |
-| Marathon | 27 | 32×32 | 30 |
+| Loopback | 9 | 128×8 | 35 |
+| Marathon | 17 | 64×16 | 34 |
+| Highroad | 27 | 32×32 | 30 |
 | Vertical | 36 | 16×64 | 33 |
 | Little Dipper | 38 | 4×256 | 19 |
 

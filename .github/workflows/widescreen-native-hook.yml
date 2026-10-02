@@ -8,27 +8,40 @@ on:
       - "tools/seed_native_widescreen_aot.py"
       - "tools/inspect_native_widescreen_prep_anchor.py"
       - "tools/apply_native_widescreen_hook.py"
+      - "tools/analyze_native_widescreen_hook_acceptance.py"
       - "tests/unit/test_seed_native_widescreen_aot.py"
       - "tests/unit/test_inspect_native_widescreen_prep_anchor.py"
       - "tests/unit/test_apply_native_widescreen_hook.py"
+      - "tests/unit/test_analyze_native_widescreen_hook_acceptance.py"
+      - "tests/input/preparation-emission-race.script"
 
 concurrency:
   group: widescreen-native-hook-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  inspect:
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install generation dependencies
-        run: sudo apt-get update && sudo apt-get install -y libsdl2-dev
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
 
       - name: Run focused unit coverage
         run: |
-          python3 -m unittest             tests.unit.test_seed_native_widescreen_aot             tests.unit.test_inspect_native_widescreen_prep_anchor
+          python3 -m unittest \
+            tests.unit.test_seed_native_widescreen_aot \
+            tests.unit.test_inspect_native_widescreen_prep_anchor \
+            tests.unit.test_apply_native_widescreen_hook \
+            tests.unit.test_analyze_native_widescreen_hook_acceptance
 
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
@@ -42,28 +55,115 @@ jobs:
           ROOT="$RUNNER_TEMP/native"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           mkdir -p "$ROOT"
-          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh"             --rom "$ROM"             --dir "$ROOT"             --name "Uniracers"             --players 2             --yes             --no-ci             --no-fetch-boxart             --no-recomp-ui             --no-netplay             --no-github             --no-submodules             --generate             --no-build
+          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+            --rom "$ROM" \
+            --dir "$ROOT" \
+            --name "Uniracers" \
+            --players 2 \
+            --yes \
+            --no-ci \
+            --no-fetch-boxart \
+            --no-recomp-ui \
+            --no-netplay \
+            --no-github \
+            --no-submodules \
+            --generate \
+            --no-build
           PROJECT="$ROOT/UniracersSNESRecomp"
           python3 tools/seed_native_widescreen_aot.py "$PROJECT/recomp"
-          python3 "$FRAMEWORK/snesrecomp_cli.py" generate             --rom "$ROM"             --project-root "$PROJECT"             --cfg-dir recomp             --out-dir src/gen             --funcs-h recomp/funcs.h             --cfg-roots
+          python3 "$FRAMEWORK/snesrecomp_cli.py" generate \
+            --rom "$ROM" \
+            --project-root "$PROJECT" \
+            --cfg-dir recomp \
+            --out-dir src/gen \
+            --funcs-h recomp/funcs.h \
+            --cfg-roots
           test -d "$PROJECT/src/gen"
 
-      - name: Inspect accepted preparation seam
+      - name: Inspect and apply accepted preparation hook
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p analysis/generated
           PROJECT="$RUNNER_TEMP/native/UniracersSNESRecomp"
-          python3 tools/inspect_native_widescreen_prep_anchor.py             "$PROJECT/src/gen"             --radius 48             --json-out analysis/generated/widescreen-native-prep-anchor.json             --md-out analysis/generated/widescreen-native-prep-anchor.md
+          python3 tools/inspect_native_widescreen_prep_anchor.py \
+            "$PROJECT/src/gen" \
+            --radius 48 \
+            --json-out analysis/generated/widescreen-native-prep-anchor.json \
+            --md-out analysis/generated/widescreen-native-prep-anchor.md
+          python3 tools/apply_native_widescreen_hook.py \
+            "$PROJECT/src/gen" \
+            --json-out analysis/generated/widescreen-native-hook-apply.json
           cat analysis/generated/widescreen-native-prep-anchor.md
+          cat analysis/generated/widescreen-native-hook-apply.json
 
-      - name: Upload compact anchor evidence
+      - name: Build hooked native target
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          PROJECT="$RUNNER_TEMP/native/UniracersSNESRecomp"
+          cmake -S "$PROJECT" -B "$PROJECT/build" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF
+          cmake --build "$PROJECT/build" -j2
+          test -x "$PROJECT/build/UniracersSNESRecomp"
+
+      - name: Exercise stock, +8, +16 and +24
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT="$RUNNER_TEMP/native/UniracersSNESRecomp"
+          EXE="$PROJECT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script"
+          ROOT="$RUNNER_TEMP/ws-native-runs"
+          mkdir -p "$ROOT"
+
+          for margin in 0 8 16 24; do
+            OUT="$ROOT/$margin"
+            mkdir -p "$OUT/dumps"
+            echo "== native Widescreen margin $margin =="
+            SDL_AUDIODRIVER=dummy \
+            URRECOMP_WS_MARGIN="$margin" \
+            URRECOMP_WS_NATIVE_TRACE=1 \
+            SNESRECOMP_DUMP_DIR="$OUT/dumps" \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+              >"$OUT/run.log" 2>&1
+            test -s "$OUT/dumps/prep-emission-after-scroll.wram.bin"
+            tail -n 30 "$OUT/run.log" || true
+          done
+
+      - name: Compare against accepted +8 contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ws-native-runs"
+          python3 tools/analyze_native_widescreen_hook_acceptance.py \
+            --log-0 "$ROOT/0/run.log" \
+            --dump-0 "$ROOT/0/dumps/prep-emission-after-scroll.wram.bin" \
+            --log-8 "$ROOT/8/run.log" \
+            --dump-8 "$ROOT/8/dumps/prep-emission-after-scroll.wram.bin" \
+            --log-16 "$ROOT/16/run.log" \
+            --dump-16 "$ROOT/16/dumps/prep-emission-after-scroll.wram.bin" \
+            --log-24 "$ROOT/24/run.log" \
+            --dump-24 "$ROOT/24/dumps/prep-emission-after-scroll.wram.bin" \
+            --json-out analysis/generated/widescreen-native-hook-acceptance.json \
+            --md-out analysis/generated/widescreen-native-hook-acceptance.md
+          cat analysis/generated/widescreen-native-hook-acceptance.md
+
+      - name: Upload compact native-hook evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: widescreen-native-prep-anchor
+          name: widescreen-native-hook-evidence
           path: |
             analysis/generated/widescreen-native-prep-anchor.json
             analysis/generated/widescreen-native-prep-anchor.md
+            analysis/generated/widescreen-native-hook-apply.json
+            analysis/generated/widescreen-native-hook-acceptance.json
+            analysis/generated/widescreen-native-hook-acceptance.md
           if-no-files-found: warn
           retention-days: 7

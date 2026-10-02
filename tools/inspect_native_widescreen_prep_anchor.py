@@ -5,6 +5,8 @@ import argparse, json, re
 from pathlib import Path
 
 TRACE_RE = re.compile(r"cpu_trace_block\(cpu,\s*(0x[0-9A-Fa-f]+)")
+STAGE_INIT_RE = re.compile(r"uint16 _v\d+ = 0x433;\s+cpu_write_y_x\(cpu, \(uint16\)\(_v\d+\)\);")
+
 TARGETS = {
     0x01A597: "wrapper_call_a59e",
     0x01A59A: "wrapper_call_ab88",

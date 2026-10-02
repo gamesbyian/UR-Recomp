@@ -6,6 +6,8 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 
 ## Active execution order — 2026-10-01
 
+Canonical capability/readiness status: `docs/SEMANTIC-SUFFICIENCY.md`. Use that scoreboard to decide whether a semantic task is actually blocking a product decision.
+
 The structural-island program has crossed from scarce capability into abundant capability. Do **not** choose another island merely because the frontier ranker can name one. The active ordering is now:
 
 1. Finish the renderer-facing causal chain already underway: camera/window state → preparation/streaming → sprite/OAM/PPU emission → race rendering.

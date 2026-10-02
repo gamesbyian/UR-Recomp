@@ -33,6 +33,7 @@ jobs:
         run: python3 -m unittest tests.unit.test_extract_racer_presentation_family -v
       - name: Extract, rasterize, and round-trip representative racer family
         run: |
+          cp analysis/generated/racer-presentation-family.json "$RUNNER_TEMP/racer-presentation-family.committed.json"
           python3 tools/extract_racer_presentation_family.py \
             "reference/roms/retail/Uniracers_USA.sfc" \
             --output analysis/generated/racer-presentation-family.json \
@@ -44,9 +45,9 @@ jobs:
           python3 - <<'PY'
           import json
           m=json.load(open("analysis/generated/racer-presentation-family.json"))
-          expected=json.load(open("racer-presentation-family.generated.json"))
-          assert m == expected
           import os
+          expected=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-presentation-family.committed.json")))
+          assert m == expected
           bulk=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-raster-manifest.json")))
           assert bulk["count"] >= 4
           assert bulk["palette_family"]["emitted_resource_ids"] == ["0x06"]
@@ -210,7 +211,6 @@ jobs:
           name: racer-presentation-roundtrip
           path: |
             analysis/generated/racer-presentation-family.json
-            racer-presentation-family.generated.json
             racer-presentation-family.txt
             ${{ runner.temp }}/racer-raster-manifest.json
             ${{ runner.temp }}/racer-resource-roundtrip.json

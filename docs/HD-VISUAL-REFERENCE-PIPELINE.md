@@ -223,3 +223,16 @@ The same tools can help earlier work when justified:
 - **documentation:** curated processed examples can explain why tiny source pixels are ambiguous, provided originals are shown alongside them.
 
 These uses are opportunistic. Do not turn the visual-reference stack into a dependency for unrelated reverse-engineering tasks.
+
+
+## First product-facing replacement prototype
+
+The first bounded replacement contract is now implemented by `tools/prototype_racer_hd_replacement.py` and `analysis/data/racer-hd-replacement-prototype.json`. It deliberately covers one synchronized ordinary-race racer object only.
+
+The primary lookup remains the authoritative 16-bit racer presentation ID. The prototype registers `0x0541`, then verifies the retained synchronized composition tuple before substitution: P1/P2 primary IDs, companion IDs, selector values and companion gate words must match the exact composition proof promoted into `analysis/data/presentation-assets.json` from the retained synchronized racer evidence. This guard is important because the visible 64x64 racer object can be composed from more than the primary packed record alone.
+
+The Original control is reconstructed deterministically from the ROM. The prototype Remastered candidate is intentionally modest: two deterministic Scale2x passes produce a 4x-density contract-only candidate, and its final alpha is locked to the nearest-scaled Original footprint. That keeps the object-local origin, silhouette coverage and contact edge exact while exercising a genuinely different host-side raster path. It is provenance-labelled as a prototype and is not approved shipping art.
+
+Selection happens entirely after semantic state has been chosen. Runtime H/V orientation is applied after Original/Remastered selection. The selector fails closed: replacement disabled, an unregistered semantic ID, or any composition-guard mismatch selects Original. Disabling replacement must emit a PNG byte-identical to the Original 4x control. The focused workflow uploads only the Original control, one Remastered candidate, the disabled-replacement control and a compact manifest.
+
+This prototype also identifies the next registration metadata needed before hand-authored HD racer art is safe: an explicit semantic pivot coordinate and an explicit wheel/contact anchor. The current mechanically derived candidate does not need invented values because rigid whole-canvas registration preserves stock placement exactly; future independently drawn assets should not rely on that shortcut.

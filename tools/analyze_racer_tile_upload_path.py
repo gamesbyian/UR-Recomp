@@ -271,6 +271,18 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
                 } if 0x6000 <= (effective & 0x7FFF) < 0x6500 else None,
                 "object_tiles": object_destinations.get(effective & 0x7FFF, []),
             })
+        grid_entries = {
+            (e["cache_grid"]["row"], e["cache_grid"]["column"]): e
+            for e in rows
+            if e["cache_grid"] is not None
+        }
+        def grid_label(row: int, col: int) -> str:
+            e = grid_entries.get((row, col))
+            if e is None or not e["source_candidates"]:
+                return "unknown"
+            streams = sorted({x["stream"] for x in e["source_candidates"]})
+            return "+".join(streams)
+
         out.append({
             "checkpoint": tag,
             "consumer": consumer,
@@ -290,19 +302,7 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
             "cache_grid_streams": [
                 {
                     "row": row,
-                    "columns": [
-                        next(
-                            (
-                                e["source_candidates"][0]["stream"]
-                                if len(e["source_candidates"]) == 1
-                                else "+".join(sorted({x["stream"] for x in e["source_candidates"]}))
-                            ),
-                            "unknown",
-                        )
-                        for col in range(14)
-                        for e in rows
-                        if e["cache_grid"] == {"row": row, "column": col}
-                    ],
+                    "columns": [grid_label(row, col) for col in range(14)],
                 }
                 for row in range(5)
             ],

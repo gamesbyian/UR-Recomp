@@ -1302,6 +1302,80 @@
             "two-player-race-1420": "persistent P2 ID 0x0544 exactly matches the same 5x6 offset (1,0); P1 renderer/persistent timing differs at this endpoint"
           }
         }
+      },
+      "composition_contract": {
+        "status": "synchronized_reference_confirmed",
+        "renderer": "83:F0BB..F295",
+        "records": {
+          "p1_primary": "$0FE9",
+          "p2_primary": "$0FEB",
+          "p1_companion": "$0D3F",
+          "p2_companion": "$0D41"
+        },
+        "selectors": {
+          "p1": "$0C83",
+          "p2": "$0C85",
+          "semantics": "F2BB selector clipping adjusts occupied rows and packed-word cursor before composition"
+        },
+        "row_packing": {
+          "width_cells": 14,
+          "p1_bits": "15..10",
+          "gap_bits": "9..8",
+          "p2_bits": "7..2",
+          "rows": 5
+        },
+        "companion_gates": {
+          "p1": "$0D1B nonzero enables high-byte/P1 companion half; zero clears it at 83:F12B..F13C",
+          "p2": "$0D1D nonzero enables low-byte/P2 companion half; zero clears it at 83:F140..F151"
+        },
+        "overlap_rule": "enabled companion wins; overlapping primary packed word is still consumed/skipped before the companion word is loaded",
+        "staging_grid": {
+          "rows": 5,
+          "columns": 14,
+          "base_vram_word": "0x6010",
+          "row_stride_words": "0x0100",
+          "column_stride_words": "0x0010"
+        },
+        "source_transform": {
+          "address": "$8000 | (high_byte << 5) | ((low_byte & $03) << 13)",
+          "bank": "$27 + ((low_byte & $FC) >> 2)"
+        },
+        "raster": {
+          "canvas_pixels": [
+            64,
+            64
+          ],
+          "occupancy_tile_offset": [
+            1,
+            0
+          ],
+          "canonical_orientation": "stored object-local orientation",
+          "runtime_postprocess": "OAM H/V flips"
+        },
+        "synchronized_proof": {
+          "workflow_run": 37067549570,
+          "artifact_id": 11253537756,
+          "artifact_name": "synchronized-racer-composition",
+          "ids": {
+            "p1_primary": "0x0541",
+            "p2_primary": "0x0540",
+            "p1_companion": "0x0D0D",
+            "p2_companion": "0x0000"
+          },
+          "selectors": {
+            "p1": 0,
+            "p2": 0
+          },
+          "companion_gate_words": {
+            "p1": "0x0001",
+            "p2": "0x0000"
+          },
+          "primary_masks_exact": true,
+          "companion_raw_masks_exact": true,
+          "occupied_sources_exact": "25/25",
+          "occupied_destinations_present": "25/25",
+          "source": "tools/capture_racer_composition_mesen.py"
+        }
       }
     }
   ]

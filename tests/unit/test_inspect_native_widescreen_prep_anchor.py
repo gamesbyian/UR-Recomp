@@ -27,8 +27,7 @@ class NativeWidescreenPrepAnchorTests(unittest.TestCase):
                 "d\\n"
                 "uint16 _v1 = 0x433;\\n"
                 "cpu_write_y_x(cpu, (uint16)(_v1));\\n"
-                "e\\n"
-                "cpu_trace_block(cpu, 0x82D2D1);\\n",
+                "e\\n",
                 encoding="utf-8",
             )
             report=MOD.inspect(root, radius=1)

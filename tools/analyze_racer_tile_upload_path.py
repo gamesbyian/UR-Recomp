@@ -309,6 +309,8 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
                 )
                 comparisons = []
                 exact_cells = 0
+                source_exact_cells = 0
+                destination_exact_cells = 0
                 for i, expected in enumerate(composed["cells"]):
                     q = i * 2
                     actual = {
@@ -316,11 +318,14 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
                         "source_addr": u16(wram, 0x1645 + q),
                         "staged_vram_word": u16(wram, 0x16E9 + q),
                     }
-                    same = (
+                    source_same = (
                         actual["source_bank"] == expected["source_bank"]
                         and actual["source_addr"] == expected["source_addr"]
-                        and actual["staged_vram_word"] == expected["staged_vram_word"]
                     )
+                    destination_same = actual["staged_vram_word"] == expected["staged_vram_word"]
+                    same = source_same and destination_same
+                    source_exact_cells += int(source_same)
+                    destination_exact_cells += int(destination_same)
                     exact_cells += int(same)
                     comparisons.append({
                         "index": i,
@@ -331,10 +336,14 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
                         "expected_vram_word": f"0x{expected['staged_vram_word']:04X}",
                         "actual_source": f"{actual['source_bank']:02X}:{actual['source_addr']:04X}",
                         "actual_vram_word": f"0x{actual['staged_vram_word']:04X}",
+                        "source_exact": source_same,
+                        "destination_exact": destination_same,
                         "exact": same,
                     })
                 composition_replay = {
                     "exact_cells": exact_cells,
+                    "source_exact_cells": source_exact_cells,
+                    "destination_exact_cells": destination_exact_cells,
                     "total_cells": len(comparisons),
                     "all_exact": exact_cells == len(comparisons),
                     "primary_row_masks": composed["primary_row_masks"],
@@ -437,7 +446,9 @@ def main() -> int:
             if replay and "exact_cells" in replay:
                 md.append(
                     f"  static F2BB/F1DD composition replay: "
-                    f"{replay['exact_cells']}/{replay['total_cells']} raw staging cells exact."
+                    f"{replay['exact_cells']}/{replay['total_cells']} raw staging cells exact "
+                    f"(sources {replay['source_exact_cells']}/{replay['total_cells']}, "
+                    f"destinations {replay['destination_exact_cells']}/{replay['total_cells']})."
                 )
             elif replay:
                 md.append(f"  static composition replay error: {replay.get('error')}")

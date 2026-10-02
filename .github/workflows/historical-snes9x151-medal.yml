@@ -1,0 +1,154 @@
+name: Historical Snes9x medal capture
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - chatgpt/progression-gameplay-acceptance-2026-10-02
+    paths:
+      - ".github/workflows/historical-snes9x151-medal.yml"
+      - "tools/capture_first_medal.lua"
+      - "tools/patch_historical_snes9x151.py"
+      - "analysis/data/progression-model.json"
+      - "tools/analyze_progression_sram_acceptance.py"
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Snes9x 1.51 build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev git libx11-dev libxext-dev libpng-dev zlib1g-dev xvfb unzip
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Extract verified historical movie and blank anchored SRAM
+        run: |
+          python3 tools/extract_smv_input.py \
+            reference/imported/tas-bots/dessyreqt-4250-submission.smv \
+            --input-out /tmp/historical.input \
+            --sram-out /tmp/before.srm \
+            --sram-size 8192 \
+            --json-out /tmp/historical-smv.json >/dev/null
+          python3 - <<'PY'
+          from pathlib import Path
+          import zipfile
+          src=Path("reference/imported/tas-bots/dessyreqt-4250-submission.smv")
+          out=Path("/tmp/100-percent-run.smv")
+          with zipfile.ZipFile(src) as z:
+              names=z.namelist()
+              assert names == ["100% run.smv"], names
+              out.write_bytes(z.read(names[0]))
+          print(out, out.stat().st_size)
+          PY
+      - name: Build verified Snes9x 1.51 rerecording environment
+        run: |
+          git clone --filter=blob:none --no-checkout https://github.com/TASEmulators/snes9x-rr.git /tmp/snes9x-rr
+          cd /tmp/snes9x-rr
+          git checkout e0b6a74
+          git submodule update --init --recursive
+          git clone https://github.com/rce-incorporated/lua51.git lua
+          git -C lua checkout 528486bda7ae480307738721a314f33575553e55
+          make -C lua/src liblua.a
+          python3 "$GITHUB_WORKSPACE/tools/patch_historical_snes9x151.py"
+          chmod +x configure
+          CXX='g++ -std=gnu++98' ./configure --without-assembler --without-opengl --without-extensions
+          touch configure Makefile
+          sed -i 's#-llua#-Llua/src -llua#g' Makefile
+          make -j2
+      - name: Replay until first game-authored Crawler medal
+        env:
+          UR_MEDAL_SRAM_OUT: /tmp/first-medal.srm
+          UR_MEDAL_META_OUT: /tmp/first-medal.txt
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/s9x-home/.snes96_snapshots
+          export HOME=/tmp/s9x-home
+          xvfb-run -a /tmp/snes9x-rr/snes9x \
+            -nostdconf \
+            -nosound \
+            -nojoy \
+            -autodemo /tmp/100-percent-run.smv \
+            -loadlua "$GITHUB_WORKSPACE/tools/capture_first_medal.lua" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          test -s /tmp/first-medal.srm
+          test "$(stat -c %s /tmp/first-medal.srm)" = 8192
+          cat /tmp/first-medal.txt
+      - name: Validate captured medal and checksum
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          p=Path("/tmp/first-medal.srm")
+          d=p.read_bytes()
+          u16=lambda o:d[o]|(d[o+1]<<8)
+          calc=sum(u16(o) for o in range(0x05E8,0x073C,2))&0xffff
+          stored=u16(0x073C)
+          print("sha256",hashlib.sha256(d).hexdigest())
+          print("crawler_rider0_medal",d[0x069C])
+          print("tier_rider0",d[0x10D3])
+          print("pass_flags",list(d[0x1075:0x107A]))
+          print("checksum",stored,calc)
+          assert d[0x069C] > 0
+          assert stored == calc
+          PY
+      - name: Build current reference harness
+        run: |
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+
+      - name: Reload medal-bearing SRAM in a fresh reference process
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DUMPS="$RUNNER_TEMP/reload-dumps"
+          mkdir -p "$DUMPS" analysis/generated
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SRAM_IN=/tmp/first-medal.srm \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/sram-roundtrip.script" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" | tee /tmp/reload.log
+          RELOAD="$(find "$DUMPS" -maxdepth 1 -type f -name 'sram-roundtrip*sram*' -print -quit)"
+          test -n "$RELOAD"
+          cp "$RELOAD" /tmp/reload.srm
+          python3 tools/analyze_progression_sram_acceptance.py \
+            --before /tmp/before.srm \
+            --after /tmp/first-medal.srm \
+            --reload /tmp/reload.srm \
+            --model analysis/data/progression-model.json \
+            --require-medal \
+            --out analysis/generated/progression-sram-acceptance.json
+
+      - name: Persist compact medal acceptance evidence
+        run: |
+          set -euo pipefail
+          git add analysis/generated/progression-sram-acceptance.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Record game-authored medal save-load acceptance"
+          git fetch origin "$GITHUB_REF_NAME"
+          git rebase "origin/$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"
+
+      - name: Upload captured evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-first-medal
+          path: |
+            /tmp/historical-smv.json
+            /tmp/before.srm
+            /tmp/first-medal.srm
+            /tmp/first-medal.txt
+            /tmp/reload.srm
+            analysis/generated/progression-sram-acceptance.json
+          retention-days: 7

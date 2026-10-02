@@ -106,7 +106,7 @@ The following are **must-do modern product requirements** unless later technical
 - accessibility-oriented presentation/input options where they can be implemented without changing authoritative simulation, including remapping, vibration control, readable text support, reduced flashing and similar host-layer accommodations;
 - fast local multiplayer setup, rematch and track rotation without requiring legacy League administration;
 - native widescreen, modern resolutions including 4K, arbitrary-window support and authentic 4:3 fallback;
-- display/presentation presets including authentic/raw-pixel and modern/HD-oriented choices, with optional CRT/NTSC-style presentation where useful;
+- three first-class graphics modes backed by swappable presentation assets: **Original** (literal/authentic SNES artwork), **Remastered** (faithful high-resolution reconstruction that preserves the original art decisions while removing low-resolution pixel-grid limitations), and **Reimagined** (new modern artwork closely derived from the original design language); optional CRT/NTSC-style presentation may sit on top of Original where useful;
 - fast navigation conveniences such as recent track, rematch, next event and direct practice access;
 - localization-ready text/UI architecture even if only one language is initially shipped;
 - preservation of attract/demo behavior, with room for a modern showcase/demo presentation using recorded local runs;
@@ -148,7 +148,7 @@ The end-state should support:
 - authentic 4:3 presentation as a permanent regression/reference mode;
 - the **Widescreen** feature, providing true additional horizontal view rather than stretched 4:3;
 - modern window sizes including 4K output;
-- high-resolution replacement art while preserving original animation/state timing;
+- a three-tier graphics system: original SNES art, faithful high-resolution remaster art, and closely derived modern reinterpretation art, all preserving authoritative animation/state timing and selectable without changing simulation;
 - original courses and simulation behavior;
 - deterministic validation against the original ROM;
 - eventual documented course tooling and custom courses;
@@ -238,7 +238,7 @@ The current smoke proves:
 - a real presented frame can be captured;
 - frame 300 has been visually identified as the coherent stock title screen.
 
-Deterministic menu navigation and playable-race bring-up are complete. Broad first-divergence archaeology is no longer the active target: event-relative race fidelity is strong across the representative 1P/2P/VS matrix, and pre-race absolute-frame seams are treated as cadence/alignment leads unless semantically anchored state disagrees. The +8 presentation-phase seam is now causally closed for the current Widescreen decision. Meaningful P2 race state remains equal, but the stable host/frontend cadence shift changes the sampled class of six-state presentation/frontend counter `$7710B1` at `object-tail-141`. `83:EB3F..EB51` therefore initializes P2 presentation sequence 3 instead of 1; `82:8952/8956` writes frame `0x0A8D` instead of `0x0A45` through indexed P2 `$0DEB`, the ordinary marshal carries that through `$0F4F -> $0F97 -> $0FEB`, and `83:F0BB/F296/F2BB` stages the different presentation before VRAM first diverges at `object-tail-142`. OAM remains equal through the early gap, and the later two-pixel authentic-center regression at `168` is downstream. The next Widescreen execution target is the controlled earlier/additional `$03xx` strip-scheduling experiment with authoritative simulation held invariant, alongside the remaining real progression-changing save/load acceptance.
+Deterministic menu navigation and playable-race bring-up are complete. Broad first-divergence archaeology is no longer the active target: event-relative race fidelity is strong across the representative 1P/2P/VS matrix, and pre-race absolute-frame seams are treated as cadence/alignment leads unless semantically anchored state disagrees. The +8 presentation-phase seam is now causally closed for the current Widescreen decision. Meaningful P2 race state remains equal, but the stable host/frontend cadence shift changes the sampled class of six-state presentation/frontend counter `$7710B1` at `object-tail-141`. `83:EB3F..EB51` therefore initializes P2 presentation sequence 3 instead of 1; `82:8952/8956` writes frame `0x0A8D` instead of `0x0A45` through indexed P2 `$0DEB`, the ordinary marshal carries that through `$0F4F -> $0F97 -> $0FEB`, and `83:F0BB/F296/F2BB` stages the different presentation before VRAM first diverges at `object-tail-142`. OAM remains equal through the early gap, and the later two-pixel authentic-center regression at `168` is downstream. The first controlled +8 Widescreen strip-scheduling experiment is now accepted. Run `37066327707` uses the stock preparation machinery twice in a bounded diagnostic path to stage an adjacent future horizontal column into the secondary `$03xx` lane before NMI: 309 future-stock columns match exact later-stock payloads, adjacent VRAM geometry and post-NMI bytes, with a 14-frame consecutive acceptance run. Camera/gameplay state remains equal, and the separate liveness guardrail finds zero protected differences across 61 samples with the first progression event unchanged at frame 1225. The next Widescreen execution target is to turn this proven preparation mechanism into the smallest maintainable runtime hook, then test whether it generalizes naturally to +16/+24 before widening scope. Stock progression-changing save/load acceptance is now closed: run `37055966541` captured a gameplay-authored Crawler bronze (`0→1`), validated the model-predicted tier state and checksum, and reloaded the entire 8 KiB SRAM byte-for-byte in a fresh current reference process.
 
 ### Four-ROM differential corpus
 
@@ -647,6 +647,8 @@ The desired output is a stable semantic asset key such as an original animation/
 
 A high-resolution unicycle should be chosen by the same original state that chose the low-resolution sprite. That preserves exact animation cadence, stunt poses and gameplay timing while allowing the host to substitute a higher-resolution render.
 
+The semantic asset identity established here must be shared by all three eventual graphics packs. Extraction should therefore produce canonical source assets and registration metadata once, then allow **Original**, **Remastered** and **Reimagined** representations to hang from that same identity instead of growing into disconnected inventories.
+
 ### Gate
 
 Original rendered elements can be deterministically identified from authoritative game state and reproduced through an extraction manifest.
@@ -807,7 +809,27 @@ A representative one-player course and the two-player/Vs. path display true addi
 
 ### Goal
 
-Replace selected low-resolution presentation with high-resolution equivalents without replacing gameplay logic.
+Provide three interchangeable graphics modes without replacing gameplay logic:
+
+1. **Original** — the canonical SNES-derived artwork, retained permanently as the authentic visual-reference mode. It may be presented as raw/nearest pixels or with optional display-only CRT/NTSC treatment, but the underlying art remains the original art.
+2. **Remastered** — faithful high-resolution reconstruction of the original artwork. Preserve composition, silhouettes, proportions, palette relationships, shading intent, animation poses, pivots/contact points and other deliberate art decisions while removing the visible limitations of the original pixel grid. At 4K it should read as the same art, only cleanly resolved.
+3. **Reimagined** — new modern artwork closely based on the original assets and Uniracers design language. It may add detail, richer materials, smoother illustration and contemporary production value, but should remain recognizably derived from the original rather than drifting into a generic modern visual style.
+
+These are parallel shipping targets, not a ladder where the later mode supersedes the earlier one. A player must be able to choose among all three, and changing the graphics pack must not alter authoritative simulation, collision, RNG, race timing or animation-state selection.
+
+The preferred production lineage is:
+
+```
+canonical ROM-derived semantic asset
+        |
+        +--> Original presentation
+        |
+        +--> faithful HD reconstruction --> Remastered presentation
+                                      |
+                                      +--> reference/conditioning input for Reimagined artwork
+```
+
+The Remastered asset is therefore both a final product asset and a clean geometric/style reference for Reimagined work. Generative or manual reinterpretation should begin from extracted canonical assets and, where useful, approved faithful reconstructions rather than from screenshots alone.
 
 The evidence/capture contract lives in `HD-VISUAL-REFERENCE-PIPELINE.md`. The coherent-art decision authority lives in `HD-ART-DIRECTION.md`. The production restoration/toolchain contract lives in `ASSET-RESTORATION-PIPELINE.md`. A processed reference may help explain ambiguous source pixels, but no scaler or generated output becomes canonical art by default.
 
@@ -838,6 +860,8 @@ This is the natural boundary for the HD Presentation feature.
 
 Create a versioned manifest mapping semantic original assets/states to replacements.
 
+Every semantic asset family should map cleanly across **Original**, **Remastered** and **Reimagined** representations. Keep enough provenance that future tools/models can reproduce or re-evaluate the derived artwork without rediscovering the source mapping.
+
 Every replacement should have:
 
 - stable semantic ID;
@@ -850,13 +874,16 @@ Every replacement should have:
 - palette/color policy;
 - sampling/render policy;
 - intended blend/transparency mode;
-- provenance;
+- provenance, including model/workflow/settings, masks/reference inputs and meaningful candidate history when generation or AI assistance is used;
 - checksum;
-- fallback behavior.
+- fallback behavior;
+- graphics-pack role: Original, Remastered or Reimagined.
 
 Do not key important gameplay art solely on fuzzy image matching.
 
 Animated replacements must be reviewed as sequences as well as stills. Reject contour breathing, scale/pivot/contact drift, inconsistent invented detail or material/highlight flicker even when individual frames look plausible. Generate comparison dossiers spanning raw source, conventional/pixel-art scalers, selected neural upscalers and constrained generative candidates where useful; retain exact model/workflow provenance for every candidate.
+
+Tooling should make side-by-side and rapid-toggle review among all three graphics modes straightforward. Original remains the visual oracle; Remastered must preserve its authored design decisions; Reimagined may depart in surface detail but must retain semantic registration, frame relationships and gameplay-facing geometry unless an explicit presentation-only exception is documented.
 
 ### Unicycle strategy for HD Presentation
 

@@ -4,6 +4,9 @@ local out = os.getenv("UR_MEDAL_SRAM_OUT") or "first-medal.srm"
 local before_out = os.getenv("UR_MEDAL_BEFORE_OUT") or "before-runtime.srm"
 local meta = os.getenv("UR_MEDAL_META_OUT") or "first-medal.txt"
 
+-- Host throttling/rendering is irrelevant to the deterministic movie state.
+snes9x.speedmode("maximum")
+
 local function dump_sram(path)
     local f = assert(io.open(path, "wb"))
     for i = 0, 8191 do

@@ -245,3 +245,12 @@ The artifact-side prototype is now mirrored by a dependency-free native presenta
 For the first registration, semantic frame `0x0541` plus the synchronized composition tuple selects the Remastered pack. Original always remains available. Unknown IDs, composition mismatches, and presently unavailable packs such as Reimagined fail closed to Original. The selector carries only presentation registration metadata and has no WRAM/SRAM mutation interface.
 
 The native registration keeps the currently proven geometry explicit: 64×64 logical canvas, occupancy offset `(1,0)`, palette asset `0x06`, and 4× candidate density. Pivot and wheel/contact anchors remain explicitly absent rather than guessed. A focused native test compiles the selector independently and verifies exact-selection and all fallback paths. A second parity check derives expected registration values from `analysis/data/racer-hd-replacement-prototype.json`, so the native table cannot silently drift from the canonical prototype registry.
+
+
+## Read-only guest-state bridge
+
+`native/presentation/racer_guest_snapshot.{hpp,cpp}` closes the next runtime boundary without giving presentation code write authority. It reads the eight synchronized racer composition words from a caller-supplied WRAM view, exposes the P1/P2 primary IDs as semantic frame identities, and feeds the resulting immutable composition snapshot into the native replacement selector.
+
+The bridge reads the established addresses for primary IDs, companion IDs, selector words and companion-gate words. It rejects null or undersized WRAM views and therefore fails back to Original through the selector rather than reading partial state. It does not retain a mutable WRAM pointer and provides no write operation.
+
+The address constants are exposed as presentation metadata and a focused CI parity test derives the expected values from `analysis/data/presentation-assets.json`. This prevents the native guest-state bridge from silently drifting away from the canonical composition contract.

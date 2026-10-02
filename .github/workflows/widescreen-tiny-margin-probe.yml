@@ -107,7 +107,7 @@ jobs:
             SNESRECOMP_WS_EXTRA="$margin" \
             SNESRECOMP_DUMP_DIR="$STATE" \
             SNESRECOMP_FRAMEDUMP_PIXELS=1 \
-            SNESRECOMP_FRAMEDUMP_START=2778 \
+            SNESRECOMP_FRAMEDUMP_START=2740 \
             SNESRECOMP_FRAMEDUMP_END=2919 \
             SDL_AUDIODRIVER=dummy \
               timeout 210s xvfb-run -a "$EXE" "$ROM" --config "$CONFIG" --no-launcher --script "$SCRIPT" --framedump "$FRAMES" \

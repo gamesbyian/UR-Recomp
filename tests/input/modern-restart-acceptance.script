@@ -1,0 +1,27 @@
+# Reach the ordinary 1P race through stock frontend input, then remain idle
+# long enough for the host-side restart probe to capture, advance, restore and
+# replay its fixed 60-frame window. No guest state is poked.
+
+until 009F == D7 3600
+wait 60
+press a 2
+
+until 009F == 3C 1200
+wait 60
+press a 2
+
+until 009F == 6D 1200
+wait 60
+press a 2
+
+until 009F == F6 1200
+wait 60
+press a 2
+
+until 009F == 16 1200
+wait 60
+press a 2
+
+until 0313 == 01 1800
+wait 180
+quit

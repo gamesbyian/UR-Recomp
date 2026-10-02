@@ -31,7 +31,8 @@ class NativeWidescreenHookTests(unittest.TestCase):
             + block("01A59A")
             + "      RecompReturn _r = bank_01_A59E_M0X0(cpu);\n"
             + block("01A59D")
-            + block("01A5A3")
+            + "    uint16 _v7 = 0x433;\n"
+            + "    cpu_write_y_x(cpu, (uint16)(_v7));\n"
             + "    return RECOMP_RETURN_NORMAL;\n}\n"
             "RecompReturn bank_01_A59E_M0X0(CpuState *cpu) { return RECOMP_RETURN_NORMAL; }\n",
             encoding="utf-8",
@@ -61,7 +62,7 @@ class NativeWidescreenHookTests(unittest.TestCase):
             n=nmi.read_text(encoding="utf-8")
             self.assertIn(MOD.MARKER,w)
             self.assertIn("bank_01_A59E_M0X0(cpu)",w)
-            self.assertIn("cpu->Y = 0x0453",w)
+            self.assertIn("ur_ws_native_second_pass ? 0x453 : 0x433",w)
             self.assertIn("ur_ws_native_after_builder(cpu)",w)
             self.assertIn("ur_ws_native_cleanup_after_nmi(cpu)",n)
             self.assertFalse(MOD.apply(root)["changed"])

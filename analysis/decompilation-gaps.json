@@ -193,6 +193,14 @@
       "summary": "Recovered the 1,108-byte geometry-precompute island between collision resolution and the contact-geometry constructor: a 4-byte long-entry wrapper, two adjacent 64-byte lookup tables, and a 976-byte fully reached precompute body. Both tables are byte-identical across all four ROMs. USA/beta are byte-identical; PAL prototype preserves the structure at shift -32 and Europe at -15. Across the two code regions all 454 aligned opcode positions match and analyzer code/operand roles agree.",
       "priority": "low",
       "next_evidence": "Name individual geometry fields/table semantics only for a concrete collision, course, editor, or recomp implementation need. Comparative structure work should continue with another high-connectivity unresolved frontier."
+    },
+    {
+      "id": "resolved-course-resource-descriptor-structure",
+      "kind": "resolved_structural_island",
+      "region": "USA 82:B293..B32E and homologs",
+      "summary": "Recovered the 156-byte course/resource descriptor helper cluster reached directly from the accepted course materialization loader: stream-byte reader, five-byte descriptor decoder/wrapper, and WRAM-port transfer path. USA/beta are byte-identical; PAL prototype preserves the island at shift -19 and Europe at +3. All 91 aligned opcode positions match with zero analyzer role disagreements. The normal transfer path writes through SNES WRAM ports 2181..2183/2180; descriptor flag 0x80 diverts to the existing 81:B8F1 map/resource decompressor.",
+      "priority": "low",
+      "next_evidence": "Revisit descriptor-field semantics or decompressor inputs only for a concrete course-format/editor implementation need. Comparative structure work should move to another unresolved high-connectivity frontier."
     }
   ]
 }

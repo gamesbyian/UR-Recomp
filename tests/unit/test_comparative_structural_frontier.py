@@ -53,6 +53,7 @@ class TestComparativeFrontierRanker(unittest.TestCase):
             result["candidates"],
             key=lambda x:(-x["score"], -x["incoming_calls"], x["usa_target"])
         ))
+        print("FRONTIER_RANKING_JSON=" + __import__("json").dumps(result, sort_keys=True))
 
 if __name__ == "__main__":
     unittest.main()

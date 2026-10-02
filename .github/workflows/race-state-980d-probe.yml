@@ -1,0 +1,19 @@
+name: 980D race-state probe
+on:
+  push:
+    branches:
+      - chatgpt/980d-race-state-bridge-2026-10-01
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m unittest tests.unit.test_analyze_race_state_980d_structure_island -v
+      - run: python3 tools/analyze_race_state_980d_structure_island.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: race-state-980d-island
+          path: |
+            analysis/generated/race-state-980d-structure-island.json
+            analysis/generated/race-state-980d-structure-island.md
+          if-no-files-found: error

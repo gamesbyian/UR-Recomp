@@ -31,6 +31,26 @@ def main()->int:
     base=dumps["baseline"]
     if len(base)!=8192:
         raise SystemExit("baseline SRAM is not 8192 bytes")
+    def wram_state(tag):
+        candidates=list(args.dump_dir.glob(f"medal-{tag}*.wram.bin"))
+        if not candidates:
+            return None
+        w=candidates[0].read_bytes()
+        if len(w)!=0x20000:
+            return {"error":f"unexpected WRAM size {len(w)}"}
+        return {
+            "menu":w[0x009F], "track":w[0x00CE], "in_race":w[0x0313],
+            "tour_progress":{
+                "crawler":w[0x0A03], "jumper":w[0x0A07], "shuffler":w[0x0A0B],
+                "bounder":w[0x0A0F], "walker":w[0x0A13], "runner":w[0x0A17],
+                "hopper":w[0x0A1B], "sprinter":w[0x0A1F], "hunter":w[0x0A23],
+            },
+        }
+    baseline_values=list(base[MEDAL_START:MEDAL_END])
+    baseline_summary={
+        "value_counts":{str(v):baseline_values.count(v) for v in sorted(set(baseline_values))},
+        "wram":wram_state("baseline"),
+    }
     rows=[]
     order=[("010k",10000),("020k",20000),("040k",40000),("080k",80000)]
     for tag,frame in order:
@@ -40,12 +60,13 @@ def main()->int:
         if len(data)!=8192:
             raise SystemExit(f"{tag}: SRAM is not 8192 bytes")
         changes=medal_changes(base,data)
-        rows.append({"tag":tag,"frame":frame,"medal_changes":changes})
+        rows.append({"tag":tag,"frame":frame,"medal_changes":changes,"wram":wram_state(tag)})
     first=next((r for r in rows if r["medal_changes"]),None)
     report={
       "schema_version":1,
       "fixture":"Dessyreqt 2014 reset-anchored 100% bot",
       "baseline_frame":750,
+      "baseline":baseline_summary,
       "samples":rows,
       "first_observed_medal_mutation":first,
       "search_complete_through_frame":max((r["frame"] for r in rows),default=750),

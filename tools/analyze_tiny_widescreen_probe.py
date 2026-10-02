@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import struct
 from pathlib import Path
 
@@ -193,6 +194,25 @@ def first_tag(rows: list[dict], key: str) -> dict | None:
     return next((r for r in rows if r[key]), None)
 
 
+def script_milestones(root: Path, margin: int) -> dict[str, int]:
+    """Extract cheap frontend/race cadence anchors from the retained host log."""
+    path = root / f"margin-{margin}.log"
+    if not path.is_file():
+        return {}
+    text = path.read_text(encoding="utf-8", errors="replace")
+    patterns = {
+        "first_main_menu_until": r"script f=(\d+) until 0009F ok after",
+        "race_entered_dump": r"script f=(\d+) dump race-entered ok",
+        "finish_probe_start_dump": r"script f=(\d+) dump finish-probe-start ok",
+    }
+    out = {}
+    for name, pattern in patterns.items():
+        match = re.search(pattern, text)
+        if match:
+            out[name] = int(match.group(1))
+    return out
+
+
 def scan_presented_frames(root: Path, margin: int) -> dict:
     frames = root / f"margin-{margin}" / "frames"
     expected_width = 256 + 2 * margin
@@ -241,6 +261,7 @@ def main() -> int:
     args = ap.parse_args()
 
     control = {tag: load_sample(args.root, 0, tag) for tag in TAGS}
+    control_milestones = script_milestones(args.root, 0)
     report = {
         "fixture": "tests/input/object-activation-dragster-tail.script",
         "margins": list(MARGINS),
@@ -291,6 +312,12 @@ def main() -> int:
         first_center = first_tag([{**r, "_bad": not r["center_256_equal"]} for r in rows], "_bad")
         contact_diffs = [r for r in rows if not r["contact_equal"]]
         frame_deltas = sorted({r["guest_frame_delta"] for r in rows})
+        milestones = script_milestones(args.root, margin)
+        milestone_deltas = {
+            name: frame - control_milestones[name]
+            for name, frame in milestones.items()
+            if name in control_milestones
+        }
         report["results"][str(margin)] = {
             "expected_width": expected_width,
             "classification": classify_margin(rows),
@@ -300,6 +327,8 @@ def main() -> int:
             "contact_reconverged_by_final_sample": bool(rows[-1]["contact_equal"]),
             "guest_frame_deltas": frame_deltas,
             "constant_guest_frame_delta": len(frame_deltas) == 1,
+            "script_milestones": milestones,
+            "script_milestone_frame_deltas": milestone_deltas,
             "all_full_wram_equal": all(r["full_wram_equal"] for r in rows),
             "all_center_256_equal": all(r["center_256_equal"] for r in rows),
             "first_center_regression": first_center,
@@ -336,7 +365,7 @@ def main() -> int:
         "Interpretation guardrails:",
         "",
         "- durable trajectory/progression equality at the same scripted event is the hard simulation invariant;",
-        "- guest-frame deltas are reported explicitly because host presentation can shift absolute frame numbering;",
+        "- guest-frame deltas and frontend/race log milestones are reported explicitly because host presentation can shift absolute guest cadence;",
         "- $0E95 contact words remain a diagnostic surface: transient differences are recorded, never silently ignored;",
         "- full-WRAM equality is supporting evidence only; host/render bookkeeping and global phase bytes are expected to differ;",
         "- center-256 equality checks that widening did not disturb the authentic viewport;",

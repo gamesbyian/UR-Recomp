@@ -110,7 +110,7 @@
         "camera-motion-preparation",
         "renderer-emission"
       ],
-      "owner_note": "Active causal interpretation belongs to PR #203."
+      "owner_note": "Representative stock preparation/emission closure retained from reconciled PR #203; future widened scheduling is a separate implementation experiment."
     },
     {
       "id": "progression-sram-acceptance",
@@ -147,6 +147,28 @@
         "paired-racer-observation"
       ],
       "caveat": "Useful retained fixture, but future causal comparisons should add semantic state guards before relying on frame numbers."
+    },
+    {
+      "id": "widescreen-presentation-phase-gap",
+      "path": "tests/input/widescreen-presentation-phase-gap.script",
+      "domain": [
+        "widescreen",
+        "presentation",
+        "renderer",
+        "vram"
+      ],
+      "anchor_type": "semantic_entry_plus_event_relative_tail",
+      "parent_anchor": "object-activation Dragster tail semantic sequence",
+      "robust_event_anchors": [
+        "object-tail-090..150",
+        "object-tail-167..169"
+      ],
+      "suitability": [
+        "presentation-id phase comparison",
+        "VRAM divergence localization",
+        "full-renderer +8 control comparison"
+      ],
+      "caveat": "Do not disable renderer layers for causal comparison; layer-mask diagnostics changed guest cadence. Meaningful P2 state stays equal while P2 presentation ID diverges at object-tail-141 and VRAM at 142."
     }
   ],
   "sources": [

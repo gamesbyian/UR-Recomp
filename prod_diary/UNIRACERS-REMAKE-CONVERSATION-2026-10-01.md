@@ -1,14 +1,15 @@
-# Uniracers remake and AI-assisted SNES excavation conversation capture
+# Uniracers remake and AI-assisted SNES excavation conversation transcript
 
 Captured: 2026-10-01
+Updated: 2026-10-01
 
-Source: ChatGPT conversation with Ian Wallace. This document preserves the useful project reasoning from the chat in a transcript-style form for future agents. It is not an implementation plan by itself, and it does not supersede `docs/PROJECT-PLAN.md`, `docs/WORK-QUEUE.md`, `docs/SEMANTIC-SUFFICIENCY.md`, or `docs/AI-ASSISTED-REVERSE-ENGINEERING.md`.
+Source: ChatGPT conversation with Ian Wallace. This document preserves the useful project reasoning and repo-management turns from the conversation in transcript-style form for future agents. It is not an implementation plan by itself, and it does not supersede `docs/PROJECT-PLAN.md`, `docs/WORK-QUEUE.md`, `docs/SEMANTIC-SUFFICIENCY.md`, or `docs/AI-ASSISTED-REVERSE-ENGINEERING.md`.
 
 Treat external factual claims below as leads unless already corroborated by repository evidence. URLs are included where the chat referenced public sources, but repository-local deterministic evidence remains the authority.
 
 ## Conversation arc
 
-The conversation began as a casual evaluation of whether Uniracers would be a good Godot remake candidate and turned into a broader project thesis:
+The conversation began as a casual evaluation of whether Uniracers would be a good Godot remake candidate and became a broader project thesis:
 
 > Can a determined non-specialist, using 2026 AI coding agents plus modern emulator/reverse-engineering tooling, build a rigorous behavioral excavation pipeline for an under-documented SNES game, then use the recovered facts to make an extremely faithful Uniracers recreation and eventual modern expansion?
 
@@ -19,6 +20,10 @@ The recurring distinction was between a casual remake and a forensic reconstruct
 - inventory the game’s behavior and assets with evidence provenance;
 - implement a faithful Godot recreation against trace-derived tests;
 - then expand into widescreen, 4K, level editing, submission/review tooling, and community infrastructure.
+
+The later repository-management turns moved this conversation capture into the root-level `prod_diary/` directory and then updated it directly on `main` under the same filename convention:
+
+`prod_diary/UNIRACERS-REMAKE-CONVERSATION-2026-10-01.md`
 
 ## Transcript-style notes
 
@@ -463,6 +468,48 @@ Minimal proof loop:
 
 That loop proves the methodology. Once it exists, everything else becomes iteration instead of fog.
 
+### 12. Saving the conversation into the repo
+
+Ian asked whether the transcript of the conversation could be saved to the repo.
+
+The assistant used the GitHub connector, confirmed access to `gamesbyian/UR-Recomp`, and created an initial conversation capture under:
+
+`docs/UNIRACERS-REMAKE-CONVERSATION-2026-10-01.md`
+
+The file was committed directly to `main` with commit:
+
+`50cf7960c4ffbefef0fcf7cf26eb6952be00ecd0`
+
+The assistant described the initial file as preserving the reasoning thread, tool leads, project thesis, and candidate next steps rather than raw chat UI metadata.
+
+### 13. Moving the diary file into `prod_diary/`
+
+Ian asked to move the file into a root directory named `prod_diary` and merge it to `main`.
+
+The assistant moved the conversation capture to:
+
+`prod_diary/UNIRACERS-REMAKE-CONVERSATION-2026-10-01.md`
+
+The old path was removed:
+
+`docs/UNIRACERS-REMAKE-CONVERSATION-2026-10-01.md`
+
+The move was committed directly to `main` with commit:
+
+`e920d012673521b51557240d1ef0c7b46648eb28`
+
+The assistant verified that the new path loaded and the old docs path returned 404.
+
+### 14. Updating this transcript under the filename convention
+
+Ian then asked to save a transcript of this conversation to the `prod_diary` directory with a filename matching the convention and commit it directly to `main`.
+
+The assistant interpreted the existing convention as:
+
+`UNIRACERS-REMAKE-CONVERSATION-YYYY-MM-DD.md`
+
+Because a same-day file already existed, the assistant updated the existing diary file rather than creating a near-duplicate sibling. The update preserved the earlier project reasoning and added the repo-save/move/update turns.
+
 ## Project implications for UR-Recomp
 
 This conversation reinforces several existing UR-Recomp priorities:
@@ -475,6 +522,7 @@ This conversation reinforces several existing UR-Recomp priorities:
 - Separate observation, interpretation, confidence and implementation status.
 - Keep ROMs/assets/data governance explicit.
 - Treat public historical/community claims as leads until reproduced locally.
+- Keep production diary entries in `prod_diary/` when they are conversation/process captures rather than durable design authorities.
 
 ## Candidate next work items
 
@@ -487,6 +535,7 @@ These are not automatically approved work items. They are candidate seeds for fu
 5. Identify what current UR-Recomp artifacts already satisfy this structure before adding duplicate infrastructure.
 6. Gather existing Uniracers-specific historical/community leads into a contact/source ledger.
 7. Keep exact remake/public-distribution risk separate from private technical reconstruction.
+8. Decide whether future ChatGPT/project conversation captures should append to same-day `prod_diary` files or create new topic-specific dated entries.
 
 ## Memorable framing from the conversation
 

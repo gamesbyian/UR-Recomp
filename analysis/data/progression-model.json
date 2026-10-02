@@ -75,5 +75,11 @@
     "analysis/generated/sram-medal-progression-static-model-2026-10-01.md",
     "analysis/generated/progression-sram-acceptance.json",
     "analysis/generated/medal-progression-chord-static-2026-10-02.md"
-  ]
+  ],
+  "predicted_medal_checksum_contribution": {
+    "status": "derived_prediction",
+    "rule": "For a non-saturating +1 medal-cell update, contribution to checksum 77:073C is +1 for even rider columns and +0x0100 for odd rider columns, modulo 0x10000.",
+    "derivation": "medal base 77:069C and row stride 16 are even; checksum sums little-endian 16-bit words, so column parity selects low versus high byte of the containing checksum word.",
+    "limitation": "Full award transactions may change other checksum-covered fields."
+  }
 }

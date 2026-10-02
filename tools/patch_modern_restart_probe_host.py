@@ -13,6 +13,7 @@ FIELD_ANCHOR = '    .game_info           = &kGameInfo,\n'
 
 PROBE = r'''
 #include "common_rtl.h"
+#include "netplay/snes_state_digest.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,8 +23,8 @@ enum { kUrRestartProbeWindow = 60 };
 static size_t g_ur_restart_probe_cap;
 static uint8_t *g_ur_restart_anchor;
 static size_t g_ur_restart_anchor_len;
-static uint8_t *g_ur_restart_expected;
-static size_t g_ur_restart_expected_len;
+static SnesStateDigestParts g_ur_restart_anchor_digest;
+static SnesStateDigestParts g_ur_restart_expected_digest;
 static unsigned g_ur_restart_probe_count;
 static int g_ur_restart_probe_phase;
 static int g_ur_restart_prev_in_race;
@@ -43,45 +44,45 @@ static void UrRestartProbeAfterRunFrame(const SnesDesktopHostFrameStats *stats) 
     if (g_ur_restart_probe_phase == 0 && in_race && !g_ur_restart_prev_in_race) {
         g_ur_restart_probe_cap = RtlRollbackSnapshotBound();
         g_ur_restart_anchor = (uint8_t *)malloc(g_ur_restart_probe_cap);
-        g_ur_restart_expected = (uint8_t *)malloc(g_ur_restart_probe_cap);
         if (!g_ur_restart_probe_cap ||
-            !g_ur_restart_anchor || !g_ur_restart_expected ||
+            !g_ur_restart_anchor ||
             !UrRestartProbeSave(g_ur_restart_anchor, &g_ur_restart_anchor_len)) {
             fprintf(stderr, "UR_RESTART_PROBE FAIL capture\n");
             g_ur_restart_probe_phase = 4;
         } else {
+            snes_state_digest_parts(&g_ur_restart_anchor_digest);
             fprintf(stderr,
-                    "UR_RESTART_PROBE captured=1 frame=%u bytes=%zu\n",
+                    "UR_RESTART_PROBE captured=1 frame=%u bytes=%zu digest=%08x\n",
                     stats ? stats->frame : 0u,
-                    g_ur_restart_anchor_len);
+                    g_ur_restart_anchor_len,
+                    (unsigned)g_ur_restart_anchor_digest.master);
             g_ur_restart_probe_count = 0;
             g_ur_restart_probe_phase = 1;
         }
     } else if (g_ur_restart_probe_phase == 1) {
         if (++g_ur_restart_probe_count == kUrRestartProbeWindow) {
-            if (!UrRestartProbeSave(
-                    g_ur_restart_expected, &g_ur_restart_expected_len)) {
-                fprintf(stderr, "UR_RESTART_PROBE FAIL expected-capture\n");
-                g_ur_restart_probe_phase = 4;
-            } else if (!RtlRollbackLoadFromMemory(
-                           g_ur_restart_anchor, g_ur_restart_anchor_len)) {
+            snes_state_digest_parts(&g_ur_restart_expected_digest);
+            if (!RtlRollbackLoadFromMemory(
+                    g_ur_restart_anchor, g_ur_restart_anchor_len)) {
                 fprintf(stderr, "UR_RESTART_PROBE FAIL restore-refused\n");
                 g_ur_restart_probe_phase = 4;
             } else {
-                uint8_t *immediate = (uint8_t *)malloc(g_ur_restart_probe_cap);
-                size_t immediate_len = 0;
-                const int immediate_ok =
-                    immediate &&
-                    UrRestartProbeSave(immediate, &immediate_len) &&
-                    immediate_len == g_ur_restart_anchor_len &&
-                    memcmp(immediate, g_ur_restart_anchor, immediate_len) == 0;
-                free(immediate);
-                if (!immediate_ok) {
+                SnesStateDigestParts immediate;
+                snes_state_digest_parts(&immediate);
+                if (immediate.master != g_ur_restart_anchor_digest.master) {
+                    const uint32_t part = snes_state_digest_first_diff(
+                        &g_ur_restart_anchor_digest, &immediate);
                     fprintf(stderr,
-                            "UR_RESTART_PROBE FAIL immediate-restore-mismatch\n");
+                            "UR_RESTART_PROBE FAIL immediate-digest-mismatch "
+                            "part=%s expected=%08x actual=%08x\n",
+                            snes_state_digest_part_name(part),
+                            (unsigned)g_ur_restart_anchor_digest.master,
+                            (unsigned)immediate.master);
                     g_ur_restart_probe_phase = 4;
                 } else {
-                    fprintf(stderr, "UR_RESTART_PROBE immediate_equal=1\n");
+                    fprintf(stderr,
+                            "UR_RESTART_PROBE immediate_equal=1 digest=%08x\n",
+                            (unsigned)immediate.master);
                     g_ur_restart_probe_count = 0;
                     g_ur_restart_probe_phase = 3;
                 }
@@ -89,21 +90,30 @@ static void UrRestartProbeAfterRunFrame(const SnesDesktopHostFrameStats *stats) 
         }
     } else if (g_ur_restart_probe_phase == 3) {
         if (++g_ur_restart_probe_count == kUrRestartProbeWindow) {
-            uint8_t *actual = (uint8_t *)malloc(g_ur_restart_probe_cap);
-            size_t actual_len = 0;
+            SnesStateDigestParts actual;
+            snes_state_digest_parts(&actual);
             const int ok =
-                actual &&
-                UrRestartProbeSave(actual, &actual_len) &&
-                actual_len == g_ur_restart_expected_len &&
-                memcmp(actual, g_ur_restart_expected, actual_len) == 0;
-            fprintf(stderr,
-                    "UR_RESTART_PROBE %s replay_equal=%d window=%u\n",
-                    ok ? "PASS" : "FAIL",
-                    ok ? 1 : 0,
-                    (unsigned)kUrRestartProbeWindow);
-            free(actual);
+                actual.master == g_ur_restart_expected_digest.master;
+            if (!ok) {
+                const uint32_t part = snes_state_digest_first_diff(
+                    &g_ur_restart_expected_digest, &actual);
+                fprintf(stderr,
+                        "UR_RESTART_PROBE FAIL replay_equal=0 window=%u "
+                        "part=%s expected=%08x actual=%08x\n",
+                        (unsigned)kUrRestartProbeWindow,
+                        snes_state_digest_part_name(part),
+                        (unsigned)g_ur_restart_expected_digest.master,
+                        (unsigned)actual.master);
+            } else {
+                fprintf(stderr,
+                        "UR_RESTART_PROBE PASS replay_equal=1 window=%u "
+                        "digest=%08x\n",
+                        (unsigned)kUrRestartProbeWindow,
+                        (unsigned)actual.master);
+            }
             g_ur_restart_probe_phase = 4;
         }
+
     }
 
     g_ur_restart_prev_in_race = in_race;

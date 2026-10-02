@@ -75,6 +75,19 @@ local function state_snapshot()
     }
 end
 
+local function tour_pass_flags(tour)
+    local values = {}
+    local base = 0x701075 + ((tour % 9) * 5)
+    for i = 0, 4 do
+        values[i + 1] = memory.readbyte(base + i)
+    end
+    return values
+end
+
+local function flags_csv(values)
+    return string.format("%d,%d,%d,%d,%d", values[1], values[2], values[3], values[4], values[5])
+end
+
 local armed = false
 local baseline = nil
 local baseline_medals = nil
@@ -83,16 +96,20 @@ local next_status = STATUS_INTERVAL
 local probe_index = 0
 local race_entries = 0
 local race_results_entries = 0
+local circuit_results_entries = 0
+local stunt_results_entries = 0
 local track_changes = 0
 
 local function write_heartbeat(current)
     local f = assert(io.open(heartbeat, "w"))
     f:write(string.format(
         "frame=%d\nmenu=%d\ntrack=%d\nin_race=%d\nrider=%d\ntour=%d\n" ..
-        "race_entries=%d\nrace_results_entries=%d\ntrack_changes=%d\nchecksum_valid=%s\n",
+        "race_entries=%d\nrace_results_entries=%d\ncircuit_results_entries=%d\n" ..
+        "stunt_results_entries=%d\ntrack_changes=%d\ntour_pass_flags=%s\nchecksum_valid=%s\n",
         current.frame, current.menu, current.track, current.in_race,
         current.rider, current.tour, race_entries, race_results_entries,
-        track_changes, tostring(checksum_valid())
+        circuit_results_entries, stunt_results_entries, track_changes,
+        flags_csv(tour_pass_flags(current.tour)), tostring(checksum_valid())
     ))
     f:close()
 end
@@ -122,6 +139,12 @@ while true do
         if previous.menu ~= 0x99 and current.menu == 0x99 then
             race_results_entries = race_results_entries + 1
         end
+        if previous.menu ~= 0xBC and current.menu == 0xBC then
+            circuit_results_entries = circuit_results_entries + 1
+        end
+        if previous.menu ~= 0x18 and current.menu == 0x18 then
+            stunt_results_entries = stunt_results_entries + 1
+        end
         if current.track ~= previous.track then
             track_changes = track_changes + 1
         end
@@ -140,10 +163,12 @@ while true do
             f:write(string.format(
                 "status=replay-desync-no-first-results\nbaseline_frame=%d\nframe=%d\n" ..
                 "menu=%d\ntrack=%d\nin_race=%d\nrider=%d\ntour=%d\n" ..
-                "race_entries=%d\nrace_results_entries=%d\ntrack_changes=%d\n",
+                "race_entries=%d\nrace_results_entries=%d\ncircuit_results_entries=%d\n" ..
+                "stunt_results_entries=%d\ntrack_changes=%d\ntour_pass_flags=%s\n",
                 baseline.frame, current.frame, current.menu, current.track,
                 current.in_race, current.rider, current.tour,
-                race_entries, race_results_entries, track_changes
+                race_entries, race_results_entries, circuit_results_entries,
+                stunt_results_entries, track_changes, flags_csv(tour_pass_flags(current.tour))
             ))
             f:close()
             os.exit(3)

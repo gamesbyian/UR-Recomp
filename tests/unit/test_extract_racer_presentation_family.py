@@ -56,7 +56,8 @@ class RacerPresentationRoundTripTests(unittest.TestCase):
         self.assertEqual((pieces[-1]["major_slot"], pieces[-1]["minor_slot"], pieces[-1]["word_hex"]), (4, 3, "0x1407"))
         self.assertEqual(pieces[0]["staged_1645_value"], "0x8360")
         self.assertEqual(pieces[8]["staged_15a1_value"], "0x002C")
-        self.assertEqual(pieces[-1]["low2_renderer_ignored_value"], 3)
+        self.assertEqual(pieces[-1]["source_addr_page_bits_1_0"], 3)
+        self.assertEqual(pieces[-1]["source_addr_page_offset"], "0x6000")
 
     def test_f2bb_row_packing_matches_recovered_14_bit_layout(self):
         p1 = bytes.fromhex("30c31c70")
@@ -144,7 +145,11 @@ class RacerPresentationRoundTripTests(unittest.TestCase):
     def test_packed_word_source_matches_staging_consumer(self):
         self.assertEqual(packed_word_source(0x1B00), (0x27, 0x8360))
         self.assertEqual(packed_word_source(0xFF14), (0x2C, 0x9FE0))
-        self.assertEqual(packed_word_source(0x1407), (0x28, 0x8280))
+        self.assertEqual(packed_word_source(0x1407), (0x28, 0xE280))
+        self.assertEqual(packed_word_source(0x1404), (0x28, 0x8280))
+        self.assertEqual(packed_word_source(0x1405), (0x28, 0xA280))
+        self.assertEqual(packed_word_source(0x1406), (0x28, 0xC280))
+        self.assertEqual(packed_word_source(0x1407), (0x28, 0xE280))
 
     def test_png_encoder_is_deterministic(self):
         rgba = bytes([255, 0, 0, 255]) * 4

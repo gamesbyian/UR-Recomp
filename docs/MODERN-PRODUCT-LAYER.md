@@ -43,11 +43,36 @@ Keep these domains separate:
 
 A modern profile is not a renamed unicycle/save slot. Racer identity and progression can later be associated with a profile by higher-level product policy, but the storage primitives remain independent.
 
+## Session-control seam
+
+`native/product/session_control.{hpp,cpp}` defines the first runtime-facing modern control contract without implementing runtime side effects.
+
+The contract accepts four modern administrative commands:
+
+- pause;
+- resume;
+- restart race;
+- exit to frontend.
+
+A successful command emits exactly one typed `RuntimeAction` for a future runtime adapter to consume. The contract itself never writes guest memory, SRAM, timers, physics, menu state or progression. Pause/resume maintain only a host-owned running/paused phase. Restart and exit are requests, not implementations.
+
+The queue is deliberately single-action and fail-closed: while one action is awaiting consumption, later requests return `Busy` rather than being reordered or coalesced implicitly. Redundant pause/resume requests return `NoOp`. Authentic mode rejects every session command by policy and never changes host session phase.
+
+This gives the eventual native host a narrow integration point:
+
+1. the product/UI layer requests a command;
+2. `SessionControl` validates modern policy and transition ordering;
+3. the runtime adapter consumes the emitted action;
+4. the adapter performs the platform/runtime operation;
+5. runtime-specific restart semantics receive their own deterministic acceptance before shipping.
+
+In particular, `RuntimeAction::RestartRace` does **not** mean "write known starting values into WRAM." The future implementation must re-establish a valid race start through an owned runtime lifecycle boundary, with authoritative simulation initialized by the guest/runtime path.
+
 ## Extension points
 
 Do not add these systems to `HostProductState` merely because they are planned. Add narrow interfaces when there is a concrete runtime consumer:
 
-- **pause/restart:** a session-control adapter that can suspend host execution or re-establish a deterministic guest starting state without ad-hoc WRAM edits;
+- **pause/restart:** connect the established `SessionControl` actions to an owned runtime adapter; prove suspend/resume cadence and deterministic race re-entry before treating restart as complete;
 - **autosave/resume:** a coordinator that owns host save metadata while preserving guest SRAM as guest data;
 - **records/ghosts:** append-only run artifacts keyed by profile and course identity, sourced from observed authoritative race state;
 - **racer identity:** product data associated with a profile, explicitly separate from the original save-slot/unicycle coupling;
@@ -63,9 +88,11 @@ Every host-state schema or transition must have deterministic tests. At minimum:
 2. encode → decode → encode is byte-stable;
 3. malformed, duplicate and unknown fields fail closed;
 4. Authentic policy exposes no host profile/settings/modern-command capability;
-5. no new host schema field may silently acquire guest simulation or cartridge-save authority.
+5. no new host schema field may silently acquire guest simulation or cartridge-save authority;
+6. Authentic session control rejects every modern command without changing phase;
+7. session actions are emitted deterministically, one at a time, and redundant pause/resume requests are explicit no-ops.
 
-The current unit test is compiled and executed from `tests/unit/test_host_product_state_cpp.py`, so the contract participates in the lightweight project tooling test surface without requiring the external SNESRecomp build.
+The host-state and session-control C++ contracts are compiled and executed from `tests/unit/test_host_product_state_cpp.py` and `tests/unit/test_session_control_cpp.py`, so both participate in the lightweight project tooling test surface without requiring the external SNESRecomp build.
 
 ## Fidelity versus product policy
 

@@ -5,8 +5,8 @@ from collections import defaultdict
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/"analysis"/"data"
-NAMES=["Dragster","Zoom Zoo","Bowl","Switcher","Monster","Looper","MegaJump","Jumps","Flat Fun","Infinity","Dragrace","Ping Pong","Hill Climb","Hybrid","Short Cut","Wario Paint","Crock","Downer","East","Hairpin Hill","Wobble","Twinpeak","Skier","Loopback","Small Cut","Last One","Marathon","Circle","Plinkey","Jumpover","Down+Up","Highroad","Spine","Boo!","Fire Escape","Vertical","Flash","Little Dipper","Fruitbat","123 Jump","Griller","Two Loops","Neon","Hamster","To and Fro"]
-TOURS=["Crawler","Shuffler","Walker","Hopper","Jumper","Bounder","Runner","Sprinter","Hunter"]
+NAMES=["Dragster","Zoom Zoo","Bowl","Switcher","Monster","Wobble","Twinpeak","Skier","Loopback","Small Cut","Looper","MegaJump","Jumps","Flat Fun","Infinity","Last One","Marathon","Circle","Plinkey","Jumpover","Dragrace","Ping Pong","Hill Climb","Hybrid","Short Cut","Down+Up","Highroad","Spine","Boo!","Fire Escape","Wario Paint","Crock","Downer","East","Hairpin Hill","Vertical","Flash","Little Dipper","Fruitbat","123 Jump","Griller","Two Loops","Neon","Hamster","To and Fro"]
+TOURS=["Crawler","Jumper","Shuffler","Bounder","Walker","Runner","Hopper","Sprinter","Hunter"]
 CLAIMS=[
 {"id":"course-ordinal-track-order","subject":"course-corpus","predicate":"stream_order_matches_shipped_track_order","value":True,"status":"cross_build_supported","sources":["reference/notes/course-order-and-stunt-timer.md","analysis/generated/course-resource-list-manifest.json"]},
 {"id":"course-stunt-duration-45","subject":"course-type:stunt","predicate":"duration_seconds","value":45,"status":"historical_independent","sources":["reference/notes/course-order-and-stunt-timer.md"]},
@@ -36,6 +36,7 @@ def courses():
     streams=load("analysis/generated/rnc-stream-manifest.json")["roms"]["usa-retail"]["streams"]
     rows=load("analysis/generated/course-resource-list-manifest.json")["builds"]["usa-retail"]["courses"]
     sample={x["index"]:x for x in load("analysis/generated/course-presentation-contract-sample.json")["courses"]}
+    landmarks={re.sub(r"[^a-z0-9]","",x["name"].lower()):x for x in load("analysis/generated/dessyreqt-course-landmarks.json")["tracks"]}
     sb={x["index"]:x for x in streams}
     assert len(rows)==len(streams)==45
     out=[]
@@ -47,7 +48,9 @@ def courses():
         "derived_presentation_geometry":{"basis":"promoted course-family presentation contract","status":"derived_from_promoted","coarse_sector_world_units":64,"fine_cell_world_units":16,"coarse_grid":[w*4,h*4],"coarse_entry_count":w*h*16,"world_extent":[w*256,h*256],"aspect_ratio":round(w/h,8)},
         "resources":{"ids":c["resource_ids"],"count":c["resource_count"],"terminator_offset":c["resource_terminator_offset"],"bytes_after_terminator":c["bytes_after_terminator"],"bytes_from_initial_cursor_through_eof":c["decoded_size"]-c["resource_cursor_initial"]},
         "sources":["analysis/generated/rnc-stream-manifest.json","analysis/generated/course-resource-list-manifest.json","reference/notes/course-order-and-stunt-timer.md"]}
-        if i in sample:
+        landmark=landmarks[re.sub(r"[^a-z0-9]","",r["name"].lower())]
+        r["historical_landmarks"]={"status":"historical_independent","track_id":landmark["track_id"],"start_x":landmark["start_x"],"finish_x":landmark["finish_x"],"start_matches_header_a_x16":landmark["start_x"]==c["spawn_or_landmark_a"][0]*16,"source":"analysis/generated/dessyreqt-course-landmarks.json"}
+                if i in sample:
             q=sample[i];r["presentation_contract_sample"]={"status":"static_proven","fine_record_count":q["fine_record_count"],"resource_count":q["resource_count"],"c000_total":q["c000_total"],"a000_total":q["a000_total"],"normal_surface_word_count":q["normal_surface_word_count"],"checks":q["checks"],"source":"analysis/generated/course-presentation-contract-sample.json"}
         if i==1:r["runtime_landmarks"]={"spawn_world":[1088,800],"historical_finish_x_probe":25278,"source":"analysis/generated/dragster-presentation-spatial-contract.json"}
         out.append(r)

@@ -1,5 +1,5 @@
 schema_version: 1
-status: seed
+status: evidence-tracked
 authority: docs/WIDESCREEN-RECONNAISSANCE.md
 
 horizontal_domains:
@@ -16,6 +16,12 @@ scene_classes:
   - edge-anchored-ui
   - mixed
   - special-scripted
+
+evidence_statuses:
+  - control
+  - evidence-backed
+  - provisional
+  - unresolved
 
 probe:
   source_pixel_margins: [0, 8, 16, 24, 32, 48, 64]
@@ -47,20 +53,45 @@ aspect_policies:
 
 scenes:
   - id: title-frontend
-    class: unresolved
+    class: fixed-center
+    evidence_status: provisional
     fixture: unresolved
+    rationale: "Treat the original frontend as centered fixed presentation until a deterministic probe demonstrates intentional world expansion or edge anchoring."
   - id: representative-one-player-race
-    class: unresolved
-    fixture: unresolved
+    class: mixed
+    evidence_status: evidence-backed
+    fixture: dragster-representative-race
+    rationale: "Authoritative simulation/activation remains stock while camera-facing preparation and presentation may widen; the retained +8 admission test proves adjacent future-column preparation without moving gameplay/camera state."
   - id: results
-    class: unresolved
+    class: fixed-center
+    evidence_status: provisional
     fixture: unresolved
+    rationale: "Preserve the recognizable original results presentation centered by default; no retained evidence yet requires expanded world presentation."
   - id: two-player-race
-    class: unresolved
-    fixture: unresolved
+    class: mixed
+    evidence_status: evidence-backed
+    fixture: ordinary-two-player-first-race
+    rationale: "Retained 2P evidence establishes independent authoritative player state plus split-screen camera/OAM presentation boundaries, so widening must preserve stock activation while composing presentation per viewport."
   - id: vs-mode
-    class: unresolved
+    class: mixed
+    evidence_status: provisional
     fixture: unresolved
+    rationale: "Principal VS simulation fidelity is closed, but a dedicated event-relative Widescreen fixture has not yet proved that its presentation policy matches ordinary 2P."
+
+next_discriminator:
+  id: vs-widescreen-policy
+  goal: "Determine whether VS satisfies the ordinary-2P mixed policy or requires a distinct scene exception."
+  method:
+    - "Retain one deterministic VS fixture with semantic/event-relative anchors."
+    - "Compare stock 4:3 against the smallest accepted widened presentation margin without changing authoritative simulation/activation."
+    - "Classify camera/view composition, preparation/streaming and UI behavior independently."
+  success:
+    - "Authoritative VS state remains event-relative equal while widened presentation follows the ordinary-2P ownership boundaries."
+    - "Promote vs-mode from provisional to evidence-backed mixed."
+  stop_or_split:
+    - "If VS differs, record the smallest concrete presentation exception instead of broadening the policy class speculatively."
 
 notes:
-  - "This file seeds vocabulary and probe defaults only. Do not promote unresolved scene/aspect policies without deterministic evidence."
+  - "Evidence-backed scene policies may guide implementation; provisional policies remain explicit hypotheses."
+  - "Do not widen gameplay activation semantics merely because presentation width increases."
+  - "The +8 preparation/runtime-hook lane may proceed independently of this scene-policy classification."

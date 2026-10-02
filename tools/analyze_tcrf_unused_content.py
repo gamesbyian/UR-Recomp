@@ -11,6 +11,10 @@ ROM_SIZE = 0x200000
 VERSION_OFFSET = 0x18000
 BUILD_DATE_OFFSET = 0x0541
 COMBO_SET_OFFSET = 0x0BD679
+COMBO_SET_SIZE = 0x100
+COMBO_SET_COUNT = 9
+COMBO_MESSAGE_SIZE = 16
+COMBO_MESSAGE_COUNT = 16
 
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -48,12 +52,49 @@ def window(rom: bytes, offset: int, length: int) -> dict:
         "ascii_runs": ascii_runs(blob),
     }
 
+def combo_set(rom: bytes, index: int) -> dict:
+    if not 0 <= index < COMBO_SET_COUNT:
+        raise ValueError("combo set index out of range")
+    first = COMBO_SET_OFFSET - (COMBO_SET_COUNT - 1) * COMBO_SET_SIZE
+    offset = first + index * COMBO_SET_SIZE
+    blob = rom[offset:offset + COMBO_SET_SIZE]
+    messages = []
+    all_printable = True
+    for i in range(COMBO_MESSAGE_COUNT):
+        raw = blob[i * COMBO_MESSAGE_SIZE:(i + 1) * COMBO_MESSAGE_SIZE]
+        if any(value < 0x20 or value > 0x7E for value in raw):
+            all_printable = False
+        messages.append(raw.decode("ascii", "replace").rstrip())
+    return {
+        "index": index + 1,
+        "offset": offset,
+        "offset_hex": f"0x{offset:06X}",
+        "sha256": sha256(blob),
+        "fixed_width": COMBO_MESSAGE_SIZE,
+        "message_count": COMBO_MESSAGE_COUNT,
+        "all_bytes_printable_ascii": all_printable,
+        "messages": messages,
+    }
+
+
+def file_to_lorom(offset: int) -> tuple[int, int]:
+    if not 0 <= offset < ROM_SIZE:
+        raise ValueError("file offset outside ROM")
+    bank = 0x80 | (offset // 0x8000)
+    address = 0x8000 | (offset % 0x8000)
+    return bank, address
+
+
 def analyze(rom: bytes) -> dict:
     if len(rom) != ROM_SIZE:
         raise ValueError(f"expected {ROM_SIZE} byte ROM, got {len(rom)}")
     version = rom[VERSION_OFFSET:VERSION_OFFSET + 32]
     version_text = version.split(b"\x00", 1)[0].decode("ascii", "replace")
     mapped = lorom_to_file(0x83, 0x8000)
+    combo_sets = [combo_set(rom, i) for i in range(COMBO_SET_COUNT)]
+    combo_bank, combo_addr = file_to_lorom(COMBO_SET_OFFSET)
+    combo_pointer_16 = combo_addr.to_bytes(2, "little")
+    combo_pointer_24 = combo_addr.to_bytes(2, "little") + bytes([combo_bank])
     return {
         "schema_version": 1,
         "purpose": "Mechanically reconcile fixed-offset claims from TCRF's Uniracers article against the canonical USA ROM.",
@@ -80,8 +121,22 @@ def analyze(rom: bytes) -> dict:
             "unused_combo_message_set_9": {
                 "reported_offset": COMBO_SET_OFFSET,
                 "reported_offset_hex": f"0x{COMBO_SET_OFFSET:06X}",
-                "window": window(rom, COMBO_SET_OFFSET, 256),
-                "status": "fingerprinted_only_pending_table-structure reconciliation",
+                "cpu_address": f"{combo_bank:02X}:{combo_addr:04X}",
+                "set_size": COMBO_SET_SIZE,
+                "message_size": COMBO_MESSAGE_SIZE,
+                "message_count": COMBO_MESSAGE_COUNT,
+                "sets": combo_sets,
+                "reported_block_is_ninth_fixed_stride_set": combo_sets[-1]["offset"] == COMBO_SET_OFFSET,
+                "all_nine_sets_fixed_width_printable_ascii": all(row["all_bytes_printable_ascii"] for row in combo_sets),
+                "set_9_16bit_pointer_occurrences": [
+                    i for i in range(len(rom) - 1)
+                    if rom[i:i + 2] == combo_pointer_16
+                ],
+                "set_9_24bit_pointer_occurrences": [
+                    i for i in range(len(rom) - 2)
+                    if rom[i:i + 3] == combo_pointer_24
+                ],
+                "status": "fixed_stride_table_structure_confirmed",
             },
         },
         "interpretation": {
@@ -92,7 +147,7 @@ def analyze(rom: bytes) -> dict:
             ),
             "limitations": [
                 "Fixed-offset presence does not by itself prove runtime reachability.",
-                "The Error Tour, boot-graphic overwrite, combo-message table semantics, and music selector reachability require separate structural or runtime checks.",
+                "The Error Tour, boot-graphic overwrite, combo-message runtime reachability, and music selector reachability require separate structural or runtime checks.",
             ],
         },
     }

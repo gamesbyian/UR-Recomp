@@ -766,3 +766,31 @@ sources:
     rights: "Public forum posts; index and summarize only."
     relevance: "Records an accidental cross-region replay where a USA movie on PAL Unirally diverged immediately, providing an independent historical deterministic-input version discriminator."
 
+
+  - id: tcrf-uniracers-unused-content
+    title: "The Cutting Room Floor — Uniracers"
+    type: unused_content_research
+    url: "https://tcrf.net/Uniracers"
+    retrieved: "2026-10-02"
+    imported:
+      - "reference/imported/tcrf/Uniracers-Decomp.png"
+      - "reference/imported/tcrf/user-supplied-transcodes/Uniracers1.ogg.mp3"
+      - "reference/imported/tcrf/user-supplied-transcodes/Uniracers2.ogg.mp3"
+    preferred_upstream_audio:
+      - "reference/imported/tcrf/Uniracers1.ogg"
+      - "reference/imported/tcrf/Uniracers2.ogg"
+    local: "reference/notes/tcrf-unused-content.md"
+    rights: "TCRF page text is CC BY 3.0 unless otherwise noted; embedded game-derived media may retain separate underlying rights. Preserve as quarantined research evidence."
+    relevance: "Concrete falsifiable anchors for anti-piracy SRAM behavior, unused boot graphics, placeholder tour data, unused combo text, build/version strings, banned names, regional differences and unused music selectors."
+
+  - id: musical-artifacts-uniracers-soundfont-8387
+    title: "Uniracers SoundFont"
+    type: soundfont_reference
+    url: "https://musical-artifacts.com/artifacts/8387"
+    retrieved: "2026-10-02"
+    imported: "reference/imported/audio/Uniracers.sf2"
+    size_bytes: 177772
+    sha256: "e6e05bd70a6d04dd131c2aa579622a22f589d0f7886f3af3ef6a24f7c819c2c4"
+    embedded_author: "Justaguy95"
+    rights: "File-specific redistribution/license status not established; preserve as research reference and do not treat as shipping audio."
+    relevance: "Independent fan reconstruction of the game's instrument/sample mappings. Useful for BRR loop/tuning/instrument-group comparisons against ROM-derived audio, but not an authority."

@@ -1,7 +1,9 @@
 # Historical 2014 bot first-race progression acceptance.
 # Controller input comes from SNESREF_INPUT_FILE.
-wait 1
+# Historical reference enters the first race at guest frame 794.
+# Sample after frontend/save initialization but before race entry, then after results.
+wait 750
 dump progression-before
-wait 2999
+wait 2250
 dump progression-after
 quit

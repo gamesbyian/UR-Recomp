@@ -9,6 +9,14 @@ on:
       - "tests/unit/test_analyze_racer_piece_semantics.py"
       - ".github/workflows/racer-piece-semantics.yml"
 
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "tools/analyze_racer_piece_semantics.py"
+      - "tests/unit/test_analyze_racer_piece_semantics.py"
+      - ".github/workflows/racer-piece-semantics.yml"
+
 jobs:
   probe:
     runs-on: ubuntu-latest

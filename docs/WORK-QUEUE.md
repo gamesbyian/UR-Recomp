@@ -4,9 +4,37 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 
 **How to choose work:** treat the sections below as evidence/status, not equal-priority buckets. The shipping critical path is: first causal divergence → semantic core map → stock 4:3 race/2P fidelity → course/rendering model → Widescreen → HD Presentation → modern product/editor. Prefer tasks that retire uncertainty on that chain or unlock several later stages at once. Historical/acquisition/tooling work is supporting unless it directly blocks the chain.
 
+## Active execution order — 2026-10-01
+
+The structural-island program has crossed from scarce capability into abundant capability. Do **not** choose another island merely because the frontier ranker can name one. The active ordering is now:
+
+1. Finish the renderer-facing causal chain already underway: camera/window state → preparation/streaming → sprite/OAM/PPU emission → race rendering.
+2. Resolve the remaining separation between gameplay/object activation and presentation visibility. This is the highest-value semantic blocker for safe Widescreen.
+3. Close the finite stock-fidelity matrix: representative 1P movement/stunt/contact/finish, ordinary 2P isolated + simultaneous input, VS, save/load/progression, and the active-display OAM/raster seam. Treat event-relative authoritative agreement as the relevant invariant when host-frame cut points differ harmlessly.
+4. Define a **presentation-complete** course/rendering contract. Do not wait for an editor-complete course model.
+5. Start tiny deterministic Widescreen exposure probes (+8/+16/+24 source pixels where practical) once failures can be interpreted. Use the first failure to choose the next reverse-engineering task.
+6. Run original-asset extraction/reconstruction and animation-state mapping in parallel where it does not interfere with 1-5.
+
+### New structural-island admission rule
+
+A new island is P0 only when it does at least one of the following:
+
+- closes a known fidelity uncertainty;
+- unlocks a concrete Widescreen/rendering/course requirement;
+- connects or disambiguates an already high-value causal chain;
+- supplies a cheap reusable semantic anchor with clear downstream leverage.
+
+Generic frontier score, bounded-byte growth, analyzer cleanliness, or geographical adjacency in ROM are not sufficient reasons by themselves.
+
+For each proposed island, state: **decision changed**, **downstream gate**, **cheapest discriminator**, **success condition**, and **stop condition**. If those cannot be named, choose another task.
+
+### Queue maintenance rule
+
+`WORK-QUEUE.md` is an execution surface, not the permanent home for every completed investigation. New completed-island detail should preferentially live in the structural census/generated report and `RESEARCH-LEDGER.md`; keep only enough summary here to prevent repeated work and explain current dependencies. Existing historical detail can be compacted opportunistically in a dedicated cleanup, not mixed into active technical PRs.
+
 ## Priority 0 — Fidelity divergence + semantic decompilation
 
-**This is the current highest-leverage workstream.** The native game already boots, reaches races, and the core offline toolchain is proven. The largest remaining risk to a faithful modern port is now hidden semantic/runtime disagreement, not infrastructure availability.
+**This remains a supporting P0 workstream, but broad semantic expansion is no longer the default highest-leverage action.** The native game boots, reaches races, the core offline toolchain is proven, and repeated structural recovery is now routine. Prioritize semantic work only when it advances the active execution order above.
 
 Immediate order:
 
@@ -208,7 +236,7 @@ Maintain `SYMBOLS.md` and `RESEARCH-LEDGER.md`. `tools/export_symbols.py` genera
 
 ## Phase 8 — Widescreen
 
-Only after deterministic stock behavior is established. Canonical reconnaissance contract: `docs/WIDESCREEN-RECONNAISSANCE.md`.
+Permanent widening still waits for a trustworthy stock baseline. **Reconnaissance no longer has to wait for every stock-fidelity tail item to close.** Once the renderer-facing chain is coherent enough to interpret a failure, use tiny deterministic exposure probes as diagnostic experiments while preserving the untouched 4:3 path. Canonical reconnaissance contract: `docs/WIDESCREEN-RECONNAISSANCE.md`.
 
 - [x] Pin and summarize concrete widescreen/recomp prior art without turning it into implementation authority.
 - [x] Seed machine-readable widescreen domain/scene/probe vocabulary in `analysis/widescreen-policy.yml`.

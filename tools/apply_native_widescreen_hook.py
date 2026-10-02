@@ -3,7 +3,7 @@
 
 Generated code is ROM-derived and is intentionally not committed. This injector
 is the durable source: it fails closed unless the exact accepted preparation
-and post-NMI boundaries are present.
+and live preparation boundaries are present.
 
 Runtime contract:
   URRECOMP_WS_MARGIN unset/0 -> untouched stock behavior
@@ -26,7 +26,6 @@ A59E_CALLEE_RE = re.compile(r"(?P<callee>bank_[0-9A-Fa-f]{2}_A59E_M0X0)\(cpu\)")
 PCS = {
     "wrapper_after_first_helper": 0x01A59A,
     "wrapper_after_descriptor_builder": 0x01A59D,
-    "nmi_post_consume": 0x02D2D1,
 }
 
 SUPPORT = r'''
@@ -38,7 +37,8 @@ SUPPORT = r'''
  * restore that snapshot and retain only:
  *   - the future 32-byte strip at $0453;
  *   - the secondary horizontal edge/count pair $0509/$052F until AB88 reads it.
- * $0453 is restored after NMI consumes the descriptor.
+ * $0453 remains live through the intervening NMI and is restored at the next
+ * live A59A preparation boundary, before another secondary strip is staged.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -142,7 +142,7 @@ static void ur_ws_native_after_builder(CpuState *cpu) {
                ((uint16)ur_ws_native_low_wram_snapshot[0x0530] << 8)));
 }
 
-void ur_ws_native_cleanup_after_nmi(CpuState *cpu) {
+static void ur_ws_native_cleanup_previous_payload(CpuState *cpu) {
   if (!ur_ws_native_payload_live)
     return;
   memcpy(cpu->ram + 0x0453,
@@ -154,6 +154,7 @@ void ur_ws_native_cleanup_after_nmi(CpuState *cpu) {
 '''.strip()
 
 SECOND_PASS = r'''
+    ur_ws_native_cleanup_previous_payload(cpu);
     if (ur_ws_native_should_prepare(cpu)) {
       ur_ws_native_begin_second_pass(cpu);
 
@@ -254,24 +255,16 @@ def apply(gen_dir: Path) -> dict:
         raise ValueError(f"no generated bank*_v2.c files under {gen_dir}")
 
     wrapper_pc = PCS["wrapper_after_first_helper"]
-    nmi_pc = PCS["nmi_post_consume"]
     wrapper_candidates = []
-    nmi_candidates = []
     for path in files:
         text = path.read_text(encoding="utf-8", errors="strict")
         hits = _trace_hits(text)
         if wrapper_pc in hits:
             wrapper_candidates.append(path)
-        if nmi_pc in hits:
-            nmi_candidates.append(path)
 
     if len(wrapper_candidates) != 1:
         raise ValueError(f"expected one wrapper TU, found {len(wrapper_candidates)}")
-    if len(nmi_candidates) != 1:
-        raise ValueError(f"expected one NMI cleanup TU, found {len(nmi_candidates)}")
-
     wrapper = wrapper_candidates[0]
-    nmi = nmi_candidates[0]
     wrapper_text = wrapper.read_text(encoding="utf-8")
 
     if MARKER in wrapper_text:
@@ -279,7 +272,6 @@ def apply(gen_dir: Path) -> dict:
             "schema_version": 1,
             "changed": False,
             "wrapper_file": wrapper.name,
-            "nmi_file": nmi.name,
             "margin0_control": True,
             "margin8_hook": True,
             "margin16_supported": False,
@@ -326,17 +318,10 @@ def apply(gen_dir: Path) -> dict:
     )
     wrapper.write_text(wrapper_text, encoding="utf-8")
 
-    nmi_text = nmi.read_text(encoding="utf-8")
-    if NMI_DECL not in nmi_text:
-        nmi_text = _insert_before_first_function(nmi_text, NMI_DECL)
-    nmi_text = _insert_after_deadline_guard(nmi_text, nmi_pc, NMI_CLEANUP)
-    nmi.write_text(nmi_text, encoding="utf-8")
-
     return {
         "schema_version": 1,
         "changed": True,
         "wrapper_file": wrapper.name,
-        "nmi_file": nmi.name,
         "margin0_control": True,
         "margin8_hook": True,
         "margin16_supported": False,

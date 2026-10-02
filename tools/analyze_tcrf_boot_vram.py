@@ -8,6 +8,7 @@ from pathlib import Path
 
 from analyze_tcrf_unused_content import (
     _canonical_color_signature,
+    _palette_mapping_for_pair,
     decode_indexed_png,
     decode_snes_4bpp_tile,
     encode_snes_4bpp_tiles,
@@ -17,6 +18,65 @@ from analyze_tcrf_unused_content import (
 
 def aligned_tiles(data: bytes) -> list[bytes]:
     return [data[i:i + 32] for i in range(0, len(data) - 31, 32)]
+
+
+def _mapping_key(mapping: dict[int, int]) -> str:
+    return ",".join(f"{k}>{v}" for k, v in sorted(mapping.items()))
+
+
+def _global_palette_mapping_candidates(
+    vram_tiles: list[bytes], target_tiles: list[bytes]
+) -> list[dict]:
+    sig_index: dict[tuple[int, ...], list[tuple[int, list[list[int]]]]] = {}
+    for index, tile in enumerate(vram_tiles):
+        pixels = decode_snes_4bpp_tile(tile)
+        sig_index.setdefault(_canonical_color_signature(pixels), []).append((index, pixels))
+
+    support: dict[str, dict] = {}
+    for target_index, tile in enumerate(target_tiles):
+        source = decode_snes_4bpp_tile(tile)
+        if len({v for row in source for v in row}) < 3:
+            continue
+        sig = _canonical_color_signature(source)
+        for vram_index, target in sig_index.get(sig, []):
+            mapping = _palette_mapping_for_pair(source, target)
+            if mapping is None:
+                continue
+            key = _mapping_key(mapping)
+            row = support.setdefault(
+                key,
+                {
+                    "mapping": {str(k): v for k, v in sorted(mapping.items())},
+                    "target_tile_indices": set(),
+                    "vram_tile_indices": set(),
+                    "pairs": [],
+                },
+            )
+            row["target_tile_indices"].add(target_index)
+            row["vram_tile_indices"].add(vram_index)
+            if len(row["pairs"]) < 32:
+                row["pairs"].append(
+                    {"target_tile_index": target_index, "vram_tile_index": vram_index}
+                )
+
+    rows = []
+    for row in support.values():
+        rows.append({
+            "mapping": row["mapping"],
+            "distinct_target_tile_support": len(row["target_tile_indices"]),
+            "distinct_vram_tile_support": len(row["vram_tile_indices"]),
+            "target_tile_indices": sorted(row["target_tile_indices"]),
+            "vram_tile_indices": sorted(row["vram_tile_indices"]),
+            "pairs": row["pairs"],
+        })
+    rows.sort(
+        key=lambda x: (
+            x["distinct_target_tile_support"],
+            x["distinct_vram_tile_support"],
+        ),
+        reverse=True,
+    )
+    return rows[:16]
 
 
 def snapshot_match(vram: bytes, target_tiles: list[bytes]) -> dict:
@@ -43,6 +103,8 @@ def snapshot_match(vram: bytes, target_tiles: list[bytes]) -> dict:
         if sig in sig_index:
             invariant_matches.append(tile)
 
+    mapping_candidates = _global_palette_mapping_candidates(vram_tiles, distinct_targets)
+
     return {
         "vram_size": len(vram),
         "vram_sha256": sha256(vram),
@@ -57,6 +119,7 @@ def snapshot_match(vram: bytes, target_tiles: list[bytes]) -> dict:
             len(invariant_matches) / len(nontrivial_targets)
             if nontrivial_targets else 0
         ),
+        "global_palette_mapping_candidates": mapping_candidates,
         "exact_target_tile_vram_indices": {
             str(i): exact_index[tile][:16]
             for i, tile in enumerate(target_tiles)

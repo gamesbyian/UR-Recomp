@@ -182,5 +182,8 @@ jobs:
             analysis/generated/widescreen-plus8-composition-trace.*
             analysis/generated/widescreen-plus8-presentation-phase-gap.*
             ${{ runner.temp }}/generated-presentation-sites.txt
+            ${{ runner.temp }}/native/UniracersSNESRecomp/src/gen/bank82_v2.c
+            ${{ runner.temp }}/native/UniracersSNESRecomp/src/gen/bank83_v2.c
+            ${{ runner.temp }}/native/UniracersSNESRecomp/recomp/funcs.h
           if-no-files-found: warn
           retention-days: 5

@@ -49,7 +49,7 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 						"WSBND frame=%u v=%u cycles=%d pc=%06X "
 						"camx=%u camy=%u camdx=%d camdy=%d "
 						"edgex=%u edgex2=%u edgey=%u edgey2=%u "
-						"cnt=%u,%u,%u,%u\\n",
+						"cnt=%u,%u,%u,%u\n",
 						(unsigned)ICPU.Frame, (unsigned)CPU.V_Counter, CPU.Cycles,
 						(unsigned)ur_ws_pc,
 						(unsigned)ur_ws_w16(0x0419), (unsigned)ur_ws_w16(0x041D),

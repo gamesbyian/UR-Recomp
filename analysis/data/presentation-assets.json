@@ -1144,7 +1144,7 @@
         "rule": "five six-position major groups, scanned MSB-first; every set occupancy position consumes the next packed 16-bit word",
         "observed_frames": 4,
         "holds_for_all_observed_frames": true,
-        "implication": "header position -> packed-word index is now directly queryable for the retained racer family; packed records feed tile/presentation staging before fixed-slot OAM composition",
+        "implication": "header position -> packed-word index is directly queryable; packed records construct 8x8 subtile content inside stable 64x64 racer OAM objects",
         "source": "tools/extract_racer_presentation_family.py",
         "spatial_layout": {
           "status": "runtime_bound_on_retained_ordinary_2p_snapshots",

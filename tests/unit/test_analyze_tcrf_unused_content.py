@@ -29,12 +29,13 @@ class TcrfUnusedContentTests(unittest.TestCase):
         rom = bytearray(tcrf.ROM_SIZE)
         rom[tcrf.VERSION_OFFSET:tcrf.VERSION_OFFSET + 12] = b"ASJIver3.30\x00"
         rom[tcrf.BUILD_DATE_OFFSET:tcrf.BUILD_DATE_OFFSET + 10] = b"1994-11-29"
-        first = tcrf.COMBO_SET_OFFSET - (tcrf.COMBO_SET_COUNT - 1) * tcrf.COMBO_SET_SIZE
-        for set_index in range(tcrf.COMBO_SET_COUNT):
-            base = first + set_index * tcrf.COMBO_SET_SIZE
-            for message_index in range(tcrf.COMBO_MESSAGE_COUNT):
-                label = f"S{set_index + 1:02}M{message_index + 1:02}".ljust(tcrf.COMBO_MESSAGE_SIZE)
-                rom[base + message_index * tcrf.COMBO_MESSAGE_SIZE:base + (message_index + 1) * tcrf.COMBO_MESSAGE_SIZE] = label.encode("ascii")
+        rom[tcrf.COMBO_SET_OFFSET:tcrf.COMBO_SET_OFFSET + 32] = (
+            b"yes!            cool!           "
+        )
+        combo_bank, combo_addr = tcrf.file_to_lorom(tcrf.COMBO_SET_OFFSET)
+        rom[0x1000:0x1002] = combo_addr.to_bytes(2, "little")
+        rom[0x2000:0x2003] = combo_addr.to_bytes(2, "little") + bytes([combo_bank])
+
         report = tcrf.analyze(bytes(rom))
         self.assertTrue(report["claims"]["bank_83_8000_mapping"]["matches_reported_version_offset"])
         self.assertTrue(report["claims"]["version_string"]["starts_with_ASJIver3_30"])
@@ -46,6 +47,10 @@ class TcrfUnusedContentTests(unittest.TestCase):
         combo = report["claims"]["unused_combo_message_set_9"]
         self.assertTrue(combo["reported_offset_begins_printable_message_text"])
         self.assertEqual(combo["cpu_address"], "97:D679")
+        self.assertEqual(combo["set_9_16bit_pointer_contexts"][0]["file_offset"], 0x1000)
+        self.assertEqual(combo["set_9_24bit_pointer_contexts"][0]["file_offset"], 0x2000)
+        self.assertEqual(report["string_searches"]["ASJIver3.30"], [tcrf.VERSION_OFFSET])
+        self.assertEqual(report["string_searches"]["Unavailable"], [])
 
 
 if __name__ == "__main__":

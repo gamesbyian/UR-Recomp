@@ -306,6 +306,8 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
                     frame_objects["p2_companion"],
                     p1_selector=u16(wram, 0x0C83),
                     p2_selector=u16(wram, 0x0C85),
+                    p1_companion_enabled=(u16(wram, 0x0D1B) != 0),
+                    p2_companion_enabled=(u16(wram, 0x0D1D) != 0),
                 )
 
                 # F1DD..F275 walks all 70 cache cells, but Y advances only
@@ -378,7 +380,13 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
                     ),
                     "destinations_with_duplicate_exact_source": ambiguous_exact,
                     "primary_row_masks": composed["primary_row_masks"],
+                    "companion_row_masks_raw": composed["companion_row_masks_raw"],
                     "companion_row_masks": composed["companion_row_masks"],
+                    "companion_gate_words": {
+                        "p1": f"0x{u16(wram, 0x0D1B):04X}",
+                        "p2": f"0x{u16(wram, 0x0D1D):04X}",
+                    },
+                    "companion_enabled": composed["companion_enabled"],
                     "final_word_cursors": composed["final_word_cursors"],
                     "stream_word_counts": composed["stream_word_counts"],
                     "comparisons": comparisons,

@@ -231,7 +231,8 @@ def render(result):
         )
 
     lines += ["", "## Lookup-table identity", ""]
-    for build, identical in result["table_identity_by_build"].items():
+    for build in sorted(result["table_identity_by_build"]):
+        identical = result["table_identity_by_build"][build]
         lines.append(f"- {build}: {'byte-identical to USA' if identical else 'differs from USA'}")
     lines += ["", "Across the two code regions, PAL prototype and Europe preserve every aligned opcode position and analyzer code/operand role. Their byte differences are therefore operand/layout differences rather than executable-architecture changes.", ""]
     return "\n".join(lines)

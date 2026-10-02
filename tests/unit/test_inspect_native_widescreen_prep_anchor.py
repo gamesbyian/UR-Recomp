@@ -25,7 +25,8 @@ class NativeWidescreenPrepAnchorTests(unittest.TestCase):
                 "c\\n"
                 "cpu_trace_block(cpu, 0x01A59E);\\n"
                 "d\\n"
-                "cpu_trace_block(cpu, 0x81A5A3);\\n"
+                "uint16 _v1 = 0x433;\\n"
+                "cpu_write_y_x(cpu, (uint16)(_v1));\\n"
                 "e\\n"
                 "cpu_trace_block(cpu, 0x82D2D1);\\n",
                 encoding="utf-8",
@@ -34,7 +35,7 @@ class NativeWidescreenPrepAnchorTests(unittest.TestCase):
             self.assertTrue(report["all_required_found"])
             self.assertEqual(report["target_counts"]["wrapper_call_a59e"],1)
             self.assertEqual(report["target_counts"]["prep_helper_entry"],1)
-            self.assertEqual(report["target_counts"]["prep_helper_staging_pointer"],1)
+            self.assertEqual(report["staging_initializer_count"],1)
             self.assertEqual(report["target_counts"]["nmi_post_consume_cleanup"],1)
 
     def test_missing_target_fails_contract(self):

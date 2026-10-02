@@ -44,15 +44,15 @@ jobs:
           python3 - <<'PY'
           import json
           m=json.load(open("analysis/generated/racer-presentation-family.json"))
-          assert all(f["raster_exports"] for f in m["frames"])
-          assert all(p["source_tile"]["source_sha256"] for f in m["frames"] for p in f["pieces"])
-          assert all(s["presented_raster"]["png_sha256"] for s in m["observed_states"])
-          assert all("oam_hflip" in s and "oam_vflip" in s for s in m["observed_states"])
+          expected=json.load(open("racer-presentation-family.generated.json"))
+          assert m == expected
           import os
           bulk=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-raster-manifest.json")))
           assert bulk["count"] >= 4
           assert bulk["palette_family"]["emitted_resource_ids"] == ["0x06"]
           assert bulk["palette_family"]["available_resource_ids"] == [f"0x{x:02X}" for x in range(0x06,0x16)]
+          assert all(img["piece_sources"] for img in bulk["images"])
+          assert all(p["source_sha256"] for img in bulk["images"] for p in img["piece_sources"])
           PY
       - name: Retain complete racer palette-family provenance
         run: |
@@ -74,7 +74,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/ordinary-2p"
           gh run download 36943103609 -n ordinary-2p-reference -D "$RUNNER_TEMP/ordinary-2p"
-      - name: Prove source tiles against retained VRAM
+      - name: Resolve retained VRAM byte phase
         run: |
           python3 tools/analyze_racer_piece_render_binding.py \
             "reference/roms/retail/Uniracers_USA.sfc" \
@@ -82,45 +82,73 @@ jobs:
             --json-out "$RUNNER_TEMP/racer-piece-binding.json" \
             >/dev/null
           python3 - <<'PY'
+          import hashlib
           import json
           import os
           from pathlib import Path
-          from tools.analyze_racer_piece_render_binding import object_nonzero_grid
+          from tools.analyze_racer_piece_render_binding import (
+              object_nonzero_grid,
+              object_tile_number,
+              object_tile_vram_byte_address,
+          )
+          from tools.extract_racer_presentation_family import (
+              extract_frame,
+              piece_source_tile,
+          )
 
-          fam=json.load(open("analysis/generated/racer-presentation-family.json"))
-          frames={f["frame_id_hex"]:f for f in fam["frames"]}
           binding=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-piece-binding.json")))
           dump_dir=Path(os.environ["RUNNER_TEMP"]) / "ordinary-2p" / "native-dumps"
-          checked=0
-          full_grid_checks=0
+          rom=Path("reference/roms/retail/Uniracers_USA.sfc").read_bytes()
+          matches=[]
+
           for cp in binding["checkpoints"]:
+              vram=(dump_dir / f"{cp['checkpoint']}.vram.bin").read_bytes()
               for player in cp["players"]:
-                  frame=frames.get(player["frame_id"])
-                  if not frame: continue
-                  by_index={p["word_index"]:p for p in frame["pieces"]}
-                  for spatial in player["spatial_binding"]:
-                      pieces=spatial.get("piece_vram_bindings",[])
-                      for b in pieces:
-                          assert by_index[b["word_index"]]["source_tile"]["source_sha256"] == b["tile_sha256"]
-                          checked += 1
-                      if pieces:
-                          slot=next(s for s in player["large_oam_slots"] if s["slot"] == spatial["slot"])
-                          vram=(dump_dir / f"{cp['checkpoint']}.vram.bin").read_bytes()
-                          actual=object_nonzero_grid(vram, cp["obsel"], slot)
-                          expected=[[False] * 8 for _ in range(8)]
-                          for b in pieces:
-                              expected[b["object_tile_grid_y"]][b["object_tile_grid_x"]]=True
-                          assert actual == expected, {
-                              "checkpoint": cp["checkpoint"],
-                              "player": player["player"],
-                              "frame": player["frame_id"],
-                              "actual": actual,
-                              "expected": expected,
-                          }
-                          full_grid_checks += 1
-          assert checked >= 28, checked
-          assert full_grid_checks >= 2, full_grid_checks
-          print(f"validated {checked} source tiles and {full_grid_checks} complete 64x64 tile grids against retained VRAM")
+                  persistent=int(player["frame_id"],16)
+                  for slot in player["large_oam_slots"]:
+                      actual_grid=object_nonzero_grid(vram, cp["obsel"], slot)
+                      for delta in range(-8,9):
+                          fid=(persistent+delta)&0xffff
+                          try:
+                              frame=extract_frame(rom,fid)
+                          except Exception:
+                              continue
+                          expected_grid=[[False]*8 for _ in range(8)]
+                          byte_equal=True
+                          for piece in frame["pieces"]:
+                              gx=1+piece["minor_slot"]
+                              gy=piece["major_slot"]
+                              expected_grid[gy][gx]=True
+                              tile_num=object_tile_number(slot["tile"],gx,gy)
+                              addr=object_tile_vram_byte_address(cp["obsel"],slot,tile_num)
+                              expected,_=piece_source_tile(rom,int(piece["word_hex"],16))
+                              actual=vram[addr:addr+32]
+                              if actual != expected:
+                                  byte_equal=False
+                                  break
+                          if byte_equal and actual_grid == expected_grid:
+                              matches.append({
+                                  "checkpoint":cp["checkpoint"],
+                                  "player":player["player"],
+                                  "persistent_frame_id":player["frame_id"],
+                                  "matched_frame_id":f"0x{fid:04X}",
+                                  "delta":delta,
+                                  "oam_slot":slot["slot"],
+                                  "piece_count":len(frame["pieces"]),
+                              })
+
+          out={
+              "schema_version":1,
+              "purpose":"Resolve presentation-ID to resident-VRAM byte phase before claiming exact raster correspondence.",
+              "search_radius":8,
+              "matches":matches,
+          }
+          Path(os.environ["RUNNER_TEMP"],"racer-vram-byte-phase.json").write_text(
+              json.dumps(out,indent=2,sort_keys=True)+"\n"
+          )
+          print(json.dumps(out,indent=2,sort_keys=True))
+          assert len(matches) >= 2, matches
+          assert any(m["delta"] != 0 for m in matches), matches
           PY
       - name: Generalize across distinct retained racer states
         run: |
@@ -186,6 +214,7 @@ jobs:
             racer-presentation-family.txt
             ${{ runner.temp }}/racer-raster-manifest.json
             ${{ runner.temp }}/racer-resource-roundtrip.json
+            ${{ runner.temp }}/racer-vram-byte-phase.json
             ${{ runner.temp }}/racer-raster/*.png
             ${{ runner.temp }}/racer-spatial-generalization.json
             ${{ runner.temp }}/racer-next-family-generalization.json

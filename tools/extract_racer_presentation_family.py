@@ -438,6 +438,16 @@ def emit_frame_images(
             name = f"frame-{frame_id:04x}-pal{palette_asset_id:02x}.png"
             path = output_dir / name
             path.write_bytes(png)
+            piece_sources = []
+            for piece in frame["pieces"]:
+                _, provenance = piece_source_tile(rom, int(piece["word_hex"], 16))
+                piece_sources.append({
+                    "word_index": piece["word_index"],
+                    "word_hex": piece["word_hex"],
+                    "major_slot": piece["major_slot"],
+                    "minor_slot": piece["minor_slot"],
+                    **provenance,
+                })
             manifest.append({
                 "frame_id": f"0x{frame_id:04X}",
                 "palette_asset_id": f"0x{palette_asset_id:02X}",
@@ -452,6 +462,7 @@ def emit_frame_images(
                     "rom_offset": frame["source_rom_offset"],
                     "sha256": frame["record_sha256"],
                 },
+                "piece_sources": piece_sources,
                 "rom_sha256": rom_digest,
                 "orientation": {"hflip": False, "vflip": False},
                 "semantic_role": (
@@ -473,14 +484,14 @@ def emit_frame_images(
         "family": "racer-presentation-contract-compatible-corpus",
         "rom_sha256": rom_digest,
         "confidence_scope": {
-            "raster_reconstruction": "mechanically decoded for admitted records",
+            "raster_reconstruction": "mechanically decoded from packed-word DMA source candidates; retained VRAM phase matching is reported separately by CI",
             "semantic_animation_role": "known only for retained runtime-observed IDs; otherwise intentionally unclassified",
         },
         "confidence_basis": [
             "monotonic same-bank frame boundary",
             "four-byte 30-cell occupancy header",
             "record length equals header popcount-derived packed-word count",
-            "every packed word resolves through the #216 DMA-source transform to a complete 32-byte ROM tile",
+            "every packed word resolves through the #216 staging transform to a complete 32-byte ROM source candidate",
             "stable first-family lattice placement at object tile offset (1,0)",
         ],
         "palette_family": {
@@ -507,9 +518,6 @@ def extract_frame(rom: bytes, frame_id: int) -> dict:
         raise ValueError("truncated racer presentation record")
     record = decode_frame_record(raw)
     pieces = decode_piece_mapping(record)
-    for piece in pieces:
-        _, provenance = piece_source_tile(rom, int(piece["word_hex"], 16))
-        piece["source_tile"] = provenance
     return {
         "frame_id": frame_id,
         "frame_id_hex": f"0x{frame_id:04X}",
@@ -603,8 +611,6 @@ def extract_palette(rom: bytes, asset_id: int, cgram_addr: int) -> dict:
 def build_manifest(rom: bytes) -> dict:
     unique_frames = sorted({row[3] for row in OBSERVED_STATES})
     frames = [extract_frame(rom, frame_id) for frame_id in unique_frames]
-    for frame in frames:
-        frame["raster_exports"] = [frame_raster_metadata(rom, frame, p) for p in (0x06, 0x07)]
     graphics = [
         extract_graphics_resource(rom, asset_id, vram_word, role)
         for asset_id, vram_word, role in RACER_GRAPHICS_RESOURCES
@@ -612,13 +618,6 @@ def build_manifest(rom: bytes) -> dict:
     palettes = [extract_palette(rom, 0x06, 0xB0), extract_palette(rom, 0x07, 0xC0)]
     observed = []
     for checkpoint, frame, player, frame_id, attr, color_index, palette_asset, cgram in OBSERVED_STATES:
-        observed_frame = next(x for x in frames if x["frame_id"] == frame_id)
-        hflip = bool(attr & 0x40)
-        vflip = bool(attr & 0x80)
-        presented_rgba = rasterize_frame_rgba(
-            rom, observed_frame, palette_asset, hflip=hflip, vflip=vflip
-        )
-        presented_png = encode_png_rgba(RASTER_WIDTH, RASTER_HEIGHT, presented_rgba)
         observed.append({
             "checkpoint": checkpoint,
             "emulator_frame": frame,
@@ -627,20 +626,11 @@ def build_manifest(rom: bytes) -> dict:
             "frame_id": f"0x{frame_id:04X}",
             "oam_attribute": f"0x{attr:02X}",
             "oam_palette_number": (attr >> 1) & 0x07,
-            "oam_hflip": hflip,
-            "oam_vflip": vflip,
             "cgram_start": f"0x{cgram:02X}",
             "player_color_selector": "$017D" if player == 1 else "$017F",
             "player_color_index": color_index,
             "palette_asset_formula": "0x06 + player_color_index",
             "palette_asset_id": f"0x{palette_asset:02X}",
-            "presented_raster": {
-                "dimensions": [RASTER_WIDTH, RASTER_HEIGHT],
-                "origin": [0, 0],
-                "rgba_sha256": sha256(presented_rgba),
-                "png_sha256": sha256(presented_png),
-                "orientation_rule": "OAM H/V flip applied to complete 64x64 object-local raster",
-            },
         })
     return {
         "schema_version": 1,
@@ -719,16 +709,6 @@ def build_manifest(rom: bytes) -> dict:
                     "two-player-race-1420": "persistent P2 ID 0x0544 exactly matches the same 5x6 offset (1,0); P1 renderer/persistent timing differs at this endpoint",
                 },
             },
-        },
-        "rasterization": {
-            "status": "automated_first_family_original_art_extraction",
-            "canvas": {"width": RASTER_WIDTH, "height": RASTER_HEIGHT, "origin": [0, 0]},
-            "occupancy_tile_offset": list(RASTER_TILE_OFFSET),
-            "source_tile_rule": "$1645/$15A1 DMA source recovered in PR #216: address=$8000|(high_byte<<5), bank=$27+((low_byte&$FC)>>2)",
-            "palette_assets": ["0x06", "0x07"],
-            "transparent_palette_index": 0,
-            "oam_orientation": "canonical exports are stored orientation; observed OAM H/V flips apply afterward to the full 64x64 object-local raster",
-            "bulk_policy": "use --all-confident --emit-images; bulk PNGs are workflow artifacts, not committed",
         },
         "replacement_key": {
             "authoritative_state": "$0FE9/$0FEB",

@@ -79,6 +79,7 @@ def main() -> int:
     ap.add_argument("--unlimited-root", type=Path)
     ap.add_argument("--obj-root", type=Path)
     ap.add_argument("--window-root", type=Path)
+    ap.add_argument("--bg-root", type=Path)
     args = ap.parse_args()
 
     rows = []
@@ -265,6 +266,50 @@ def main() -> int:
         else:
             window_discriminator = "earliest-divergence-persists"
 
+    bg_first_pixel = None
+    if args.bg_root:
+        for tag in TAGS:
+            centers = {}
+            frames = {}
+            for margin in (0, 8):
+                d = args.bg_root / f"margin-{margin}"
+                info_path = d / "state" / f"{tag}.info.json"
+                if not info_path.is_file():
+                    centers = {}
+                    break
+                info = json.loads(info_path.read_text())
+                frame = int(info["frame"])
+                fb_path = d / "frames" / f"frame_{frame - 1:06d}.bmp"
+                if not fb_path.is_file():
+                    centers = {}
+                    break
+                fb, width, height = read_bmp32(fb_path)
+                centers[margin] = center_crop(fb, width, height, margin)
+                frames[margin] = frame
+            if len(centers) != 2:
+                continue
+            diff = sum(
+                centers[0][i:i+4] != centers[8][i:i+4]
+                for i in range(0, len(centers[0]), 4)
+            )
+            if diff:
+                bg_first_pixel = {
+                    "tag": tag,
+                    "center_diff_pixels": diff,
+                    "control_frame": frames[0],
+                    "plus8_frame": frames[8],
+                    "guest_frame_delta": frames[8] - frames[0],
+                }
+                break
+
+    bg_discriminator = None
+    if args.bg_root and first_pixel is not None:
+        bg_discriminator = (
+            "divergence-present-in-bg-raster"
+            if bg_first_pixel is not None
+            else "bg-raster-matches"
+        )
+
     report = {
         "fixture": "tests/input/object-activation-dragster-tail.script",
         "margins": [0, 8],
@@ -277,6 +322,8 @@ def main() -> int:
         "obj_discriminator": obj_discriminator,
         "window_first_center_divergence": window_first_pixel,
         "window_discriminator": window_discriminator,
+        "bg_first_center_divergence": bg_first_pixel,
+        "bg_discriminator": bg_discriminator,
         "samples": rows,
     }
 
@@ -325,6 +372,14 @@ def main() -> int:
             f"Pinned-window discriminator: **{window_discriminator}**.",
             "Keep-pinned first center divergence: "
             + ("none in sampled window" if window_first_pixel is None else window_first_pixel["tag"]),
+        ]
+
+    if bg_discriminator:
+        lines += [
+            "",
+            f"BG-only discriminator: **{bg_discriminator}**.",
+            "BG-only first center divergence: "
+            + ("none in sampled window" if bg_first_pixel is None else bg_first_pixel["tag"]),
         ]
 
     if args.json_out:

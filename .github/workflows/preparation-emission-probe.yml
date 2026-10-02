@@ -11,6 +11,8 @@ on:
       - "tools/analyze_preparation_emission_probe.py"
       - "tools/analyze_preparation_ppu_pc_trace.py"
       - "tools/analyze_active_vram_scroll_emitter_static.py"
+      - "tools/instrument_snesref_stream_queue_trace.py"
+      - "tools/analyze_stream_queue_trace.py"
       - "tools/instrument_snesref_ppu_pc_trace.py"
       - "tests/input/preparation-emission-race.script"
   pull_request:
@@ -20,6 +22,8 @@ on:
       - "tools/analyze_preparation_emission_probe.py"
       - "tools/analyze_preparation_ppu_pc_trace.py"
       - "tools/analyze_active_vram_scroll_emitter_static.py"
+      - "tools/instrument_snesref_stream_queue_trace.py"
+      - "tools/analyze_stream_queue_trace.py"
       - "tools/instrument_snesref_ppu_pc_trace.py"
       - "tests/input/preparation-emission-race.script"
 
@@ -107,6 +111,14 @@ jobs:
           set -euo pipefail
           python3 tools/analyze_active_vram_scroll_emitter_static.py
 
+      - name: Instrument active race streaming queue
+        if: steps.discover.outcome != 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 tools/instrument_snesref_stream_queue_trace.py "$CORE/cpuexec.cpp"
+
       - name: Instrument active CPU-direct VRAM emitter
         if: steps.discover.outcome != 'success'
         shell: bash
@@ -138,6 +150,9 @@ jobs:
           python3 tools/analyze_preparation_ppu_pc_trace.py "$ROOT/run.log" \
             --json-out analysis/generated/preparation-ppu-pc-trace.json \
             --md-out analysis/generated/preparation-ppu-pc-trace.md
+          python3 tools/analyze_stream_queue_trace.py "$ROOT/run.log" \
+            --json-out analysis/generated/stream-queue-trace.json \
+            --md-out analysis/generated/stream-queue-trace.md
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -151,6 +166,8 @@ jobs:
             analysis/generated/preparation-ppu-pc-trace.md
             analysis/generated/active-vram-scroll-emitter-static.json
             analysis/generated/active-vram-scroll-emitter-static.md
+            analysis/generated/stream-queue-trace.json
+            analysis/generated/stream-queue-trace.md
             ${{ runner.temp }}/preparation-discovery/run.log
             ${{ runner.temp }}/preparation-discovery/replay.log
             ${{ runner.temp }}/preparation-discovery/wram.jsonl

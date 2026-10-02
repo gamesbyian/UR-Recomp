@@ -170,6 +170,46 @@ def first_tag(rows: list[dict], key: str) -> dict | None:
     return next((r for r in rows if r[key]), None)
 
 
+def scan_presented_frames(root: Path, margin: int) -> dict:
+    frames = root / f"margin-{margin}" / "frames"
+    expected_width = 256 + 2 * margin
+    first_checker = None
+    first_nonblack = None
+    scanned = 0
+    for path in sorted(frames.glob("frame_*.bmp")):
+        try:
+            frame = int(path.stem.split("_")[-1])
+        except ValueError:
+            continue
+        fb, width, height = read_bmp32(path)
+        if width != expected_width:
+            raise ValueError(
+                f"{path}: expected presented width {expected_width}, got {width}"
+            )
+        sample = {"fb": fb, "width": width, "height": height}
+        scanned += 1
+        if margin:
+            left = nonblack_margin_pixels(sample, margin, "left")
+            right = nonblack_margin_pixels(sample, margin, "right")
+            if first_nonblack is None and (left or right):
+                first_nonblack = {
+                    "presented_frame": frame,
+                    "left_margin_nonblack": left,
+                    "right_margin_nonblack": right,
+                }
+            cols = checker_columns(sample, margin + 256, width)
+            if first_checker is None and cols:
+                first_checker = {
+                    "presented_frame": frame,
+                    "right_margin_checker_columns": cols,
+                }
+    return {
+        "scanned_frames": scanned,
+        "first_nonblack_margin": first_nonblack,
+        "first_finish_checker_in_extra_margin": first_checker,
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("root", type=Path)
@@ -219,7 +259,8 @@ def main() -> int:
         if any(not r["state_equal"] for r in rows):
             raise SystemExit(f"margin {margin}: authoritative state diverged from 4:3 control")
 
-        first_checker = first_tag(rows, "finish_checker_in_extra_margin")
+        presentation_scan = scan_presented_frames(args.root, margin)
+        first_checker = presentation_scan["first_finish_checker_in_extra_margin"]
         first_center = first_tag([{**r, "_bad": not r["center_256_equal"]} for r in rows], "_bad")
         report["results"][str(margin)] = {
             "expected_width": expected_width,
@@ -227,15 +268,9 @@ def main() -> int:
             "all_full_wram_equal": all(r["full_wram_equal"] for r in rows),
             "all_center_256_equal": all(r["center_256_equal"] for r in rows),
             "first_center_regression": first_center,
+            "presentation_scan": presentation_scan,
             "first_finish_checker_in_extra_margin": first_checker,
-            "first_nonblack_margin": next(
-                (
-                    r
-                    for r in rows
-                    if r["left_margin_nonblack"] or r["right_margin_nonblack"]
-                ),
-                None,
-            ),
+            "first_nonblack_margin": presentation_scan["first_nonblack_margin"],
             "samples": rows,
         }
 
@@ -251,7 +286,7 @@ def main() -> int:
     for margin in MARGINS:
         r = report["results"][str(margin)]
         first = r["first_finish_checker_in_extra_margin"]
-        first_text = "none" if first is None else f"{first['tag']} / f{first['frame']}"
+        first_text = "none" if first is None else f"presented f{first['presented_frame']}"
         lines.append(
             f"| {margin} | {r['expected_width']} | "
             f"{'match' if r['all_authoritative_state_equal'] else 'DIVERGE'} | "

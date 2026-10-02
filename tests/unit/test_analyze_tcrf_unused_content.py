@@ -36,6 +36,14 @@ class TcrfUnusedContentTests(unittest.TestCase):
         rom[0x1000:0x1002] = combo_addr.to_bytes(2, "little")
         rom[0x2000:0x2003] = combo_addr.to_bytes(2, "little") + bytes([combo_bank])
 
+        wrap = tcrf.lorom_to_file(*tcrf.NORMAL_SELECTOR_WRAP_CPU)
+        rom[wrap:wrap + 8] = bytes.fromhex("c92d9004a9008500")
+        load = tcrf.lorom_to_file(*tcrf.TRACK_TYPE_LOAD_CPU)
+        rom[load:load + 4] = bytes.fromhex("bf54a283")
+        table = tcrf.lorom_to_file(*tcrf.TRACK_TYPE_TABLE_CPU)
+        rom[table:table + tcrf.TRACK_TYPE_TABLE_LENGTH] = bytes(range(tcrf.TRACK_TYPE_TABLE_LENGTH))
+        rom[table + tcrf.TRACK_TYPE_TABLE_LENGTH:table + tcrf.TRACK_TYPE_TABLE_LENGTH + 4] = bytes.fromhex("08c22048")
+
         report = tcrf.analyze(bytes(rom))
         self.assertTrue(report["claims"]["bank_83_8000_mapping"]["matches_reported_version_offset"])
         self.assertTrue(report["claims"]["version_string"]["starts_with_ASJIver3_30"])
@@ -51,6 +59,11 @@ class TcrfUnusedContentTests(unittest.TestCase):
         self.assertEqual(combo["set_9_24bit_pointer_contexts"][0]["file_offset"], 0x2000)
         self.assertEqual(report["string_searches"]["ASJIver3.30"], [tcrf.VERSION_OFFSET])
         self.assertEqual(report["string_searches"]["Unavailable"], [])
+        error = report["claims"]["error_tour_selector_boundary"]
+        self.assertTrue(error["normal_selector_wrap"]["matches_cmp_2d_then_wrap_zero"])
+        self.assertTrue(error["track_type_indexed_load"]["matches_lda_long_x_83a254"])
+        self.assertEqual(error["track_type_table"]["hidden_tail_5_values"], [45, 46, 47, 48, 49])
+        self.assertTrue(error["track_type_table"]["next_bytes_form_plausible_php_rep_prologue"])
 
 
 if __name__ == "__main__":

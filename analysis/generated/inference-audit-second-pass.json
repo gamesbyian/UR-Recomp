@@ -190,22 +190,46 @@
     },
     {
       "id": "IA2-P01",
-      "class": "derived_constraint",
-      "title": "Presentation frame mask equals first record-header byte in every recovered frame",
+      "class": "strong_semantic_inference",
+      "title": "Racer frame header is a 32-bit occupancy/piece mask",
       "result": {
         "observed_frames": 4,
-        "holds": true,
+        "rule": "popcount(all four record-header bytes) = packed_word_count",
         "examples": [
-          "0x0540: 0x70",
-          "0x0542: 0x38",
-          "0x0544: 0x38",
-          "0x057E: 0x70"
-        ]
+          {
+            "frame": "0x0540",
+            "header": "70 C3 1E 30",
+            "popcount": 13,
+            "packed_words": 13
+          },
+          {
+            "frame": "0x0542",
+            "header": "38 C3 1C 70",
+            "popcount": 13,
+            "packed_words": 13
+          },
+          {
+            "frame": "0x0544",
+            "header": "38 E7 1C 70",
+            "popcount": 15,
+            "packed_words": 15
+          },
+          {
+            "frame": "0x057E",
+            "header": "70 C3 0E 38",
+            "popcount": 13,
+            "packed_words": 13
+          }
+        ],
+        "derived_record_size_rule": "record_length = 4 + 2 * popcount(header)",
+        "implication": "Each set header bit strongly predicts one following 16-bit packed piece word."
       },
       "evidence": [
-        "analysis/data/presentation-assets.json"
+        "analysis/data/presentation-assets.json",
+        "analysis/generated/racer-presentation-family.json"
       ],
-      "next_action": "Treat byte 0 as a candidate explicit mask/control field and vary it against OAM piece eligibility before decoding deeper packed words."
+      "falsifier": "A recovered frame in the same family whose header popcount differs from packed-word count.",
+      "next_action": "Map packed words to set-bit positions and compare changed bits against changed OAM pieces; this is now a constrained correspondence problem rather than open-format decoding."
     },
     {
       "id": "IA2-C04",

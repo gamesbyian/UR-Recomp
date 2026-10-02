@@ -83,7 +83,28 @@ def code():
     return {"schema_version":1,"generated_by":"tools/build_consolidated_knowledge.py","purpose":"Queryable semantic-function and bounded-region join.","functions":fs,"regions":ce["regions"],"census_totals":ce["totals"]}
 def presentation():
     r=load("analysis/generated/racer-presentation-family.json")
-    return {"schema_version":1,"generated_by":"tools/build_consolidated_knowledge.py","purpose":"Multi-family semantic presentation-asset query surface.","families":[{"id":r["family"],"source":"analysis/generated/racer-presentation-family.json","replacement_key":r["replacement_key"],"frames":r["frames"],"graphics":r["graphics"],"palettes":r["palettes"],"observed_states":r["observed_states"],"roundtrip":r["roundtrip"],"evidence":r["evidence"],"piece_semantics":r["piece_semantics"],"inferred_record_structure":{"status":"mechanically_recovered","header_bytes":4,"header_role":"30-cell occupancy lattice plus two reserved-zero bits","rule":"five six-position major groups, scanned MSB-first; every set occupancy position consumes the next packed 16-bit word","observed_frames":len(r["frames"]),"holds_for_all_observed_frames":all(x["occupancy_layout"]["reserved_zero_value"]==0 and len(x["pieces"])==x["packed_word_count"] for x in r["frames"]),"implication":"header position -> packed-word index is now directly queryable for the retained racer family; packed records feed tile/presentation staging before fixed-slot OAM composition","source":"tools/extract_racer_presentation_family.py"}}]}
+    evidence=dict(r["evidence"])
+    evidence["widescreen_plus8_sequence_boundary"]={
+        "status":"closed_for_current_widescreen_decision",
+        "event":"object-tail-141",
+        "control_sequence_selector":1,
+        "plus8_sequence_selector":3,
+        "sequence_cursor_both":1,
+        "sequence_writer":"83:EB57 -> 82:8952/8956 -> STA $0DE9,Y; Y=2 targets P2 $0DEB",
+        "selector_source":"$7710B1 six-state presentation/frontend counter; 83:EB3F..EB51 maps 0/1->1, 2/3->3, 4/5->5",
+        "counter_raw_classes":{"control":"0/1","plus8":"2/3"},
+        "counter_writers":["83:C8EF..C8FB clamp/reset","83:C9E2..C9F2 modulo-6 advance"],
+        "control_frame_id":"0x0A45",
+        "plus8_frame_id":"0x0A8D",
+        "persistent_chain":"$0DEB -> $0F4F -> $0F97 -> $0FEB",
+        "first_vram_divergence":"object-tail-142",
+        "upload_chain":"83:F0BB -> 83:F296 -> 83:F2BB -> NMI DMA",
+        "oam_equal_through_early_gap":True,
+        "raw_counter_note":"Exact member within each two-value raw class is not directly dumped; that ambiguity cannot alter the selected sequence or causal conclusion.",
+        "evidence":"analysis/generated/widescreen-plus8-presentation-sequence-closure-2026-10-02.md",
+        "workflow_run":36978866214,
+    }
+    return {"schema_version":1,"generated_by":"tools/build_consolidated_knowledge.py","purpose":"Multi-family semantic presentation-asset query surface.","families":[{"id":r["family"],"source":"analysis/generated/racer-presentation-family.json","replacement_key":r["replacement_key"],"frames":r["frames"],"graphics":r["graphics"],"palettes":r["palettes"],"observed_states":r["observed_states"],"roundtrip":r["roundtrip"],"evidence":evidence,"piece_semantics":r["piece_semantics"],"inferred_record_structure":{"status":"mechanically_recovered","header_bytes":4,"header_role":"30-cell occupancy lattice plus two reserved-zero bits","rule":"five six-position major groups, scanned MSB-first; every set occupancy position consumes the next packed 16-bit word","observed_frames":len(r["frames"]),"holds_for_all_observed_frames":all(x["occupancy_layout"]["reserved_zero_value"]==0 and len(x["pieces"])==x["packed_word_count"] for x in r["frames"]),"implication":"header position -> packed-word index is now directly queryable for the retained racer family; packed records feed tile/presentation staging before fixed-slot OAM composition","source":"tools/extract_racer_presentation_family.py"}}]}
 
 def resource_catalog():
     cs=courses()["courses"]

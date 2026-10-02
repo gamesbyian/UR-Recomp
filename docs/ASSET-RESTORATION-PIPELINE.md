@@ -61,6 +61,22 @@ Large model weights are not committed. Commit manifests, exact model/version ide
 
 ### Deterministic plumbing
 
+#### First exact semantic round trip: ordinary-race racer presentation
+
+The first completed project-owned loop is `tools/extract_racer_presentation_family.py` with `analysis/generated/racer-presentation-family.json`. It uses the game's own presentation identity rather than a guessed sprite-sheet boundary:
+
+- persistent racer state `$0FE9/$0FEB` supplies the 16-bit presentation/frame ID;
+- `83:F296` resolves that ID through the three-byte pointer table at `20:8000`;
+- the next pointer is the authoritative boundary for the selected packed presentation stream, which is reconstructed byte-for-byte before any interpretation is accepted;
+- race init at `82:E02E` loads exact OBJ graphics assets `0x7F` and `0x80` to VRAM `$0000` and `$1000`; they are raw 2,400-byte/75-tile and 960-byte/30-tile SNES 4bpp payloads, and splitting/rejoining them at the native 32-byte tile boundary is byte-identical;
+- racer OAM uses stable tile slots `00/08/80/88`, which fall inside those two loaded VRAM ranges, tying the semantic frame path to exact original graphics bytes rather than only to an abstract frame record;
+- player color selectors `$017D/$017F` flow through `$770748/$770749` into race palette assets `0x06 + selector`, loaded at CGRAM `$B0/$C0`;
+- palette table entries and their 32-byte BGR555 payloads are independently decoded and reconstructed exactly.
+
+For the representative ordinary-2P checkpoints, frame IDs `0x0540`, `0x0542`, `0x0544` and `0x057E` are sufficient to prove the reusable method. The same manifest also carries the two exact race-init OBJ graphics resources and their ROM/VRAM provenance. The packed streams are 30 or 34 bytes. Their first renderer-selected subsection is 10 bytes, but the extractor deliberately preserves the whole table-bounded stream rather than claiming that subsection is the complete asset.
+
+Extension policy: add frame IDs encountered by deterministic fixtures and reuse this extractor. Do not bulk-process the entire table merely to increase coverage. Recover additional `83:F2BB` packed-word/tile semantics only when a renderer, dossier or HD substitution needs them. The older snes2asm/SuperFamiconv round-trip remains useful for native planar graphics families, but it is not a prerequisite for this custom packed racer presentation format.
+
 Prefer scriptable tools for bulk and regression work:
 
 - ImageMagick;

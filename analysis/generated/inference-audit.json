@@ -129,7 +129,7 @@
           2
         ],
         "resource_1_first_in_all_45": true,
-        "exception_to_resource_2_second": "Downer places resource 18 second and resource 2 third"
+        "exception_to_resource_2_second": "Circle places resource 18 second and resource 2 third"
       },
       "evidence": [
         "analysis/data/course-corpus.json"
@@ -191,7 +191,7 @@
             "resource_count": 35
           },
           {
-            "course": "Highroad",
+            "course": "Marathon",
             "stream_index": 17,
             "dims": [
               64,
@@ -314,6 +314,62 @@
     {
       "phase": "progression prediction",
       "reason": "Useful but not prerequisite to the first course/state inference pass; normalize after the active progression acceptance lane changes evidence."
+    }
+  ],
+  "stress_corpus": [
+    {
+      "course": "Dragster",
+      "stream_index": 1,
+      "dims": [
+        256,
+        4
+      ],
+      "resource_count": 6
+    },
+    {
+      "course": "Loopback",
+      "stream_index": 9,
+      "dims": [
+        128,
+        8
+      ],
+      "resource_count": 35
+    },
+    {
+      "course": "Marathon",
+      "stream_index": 17,
+      "dims": [
+        64,
+        16
+      ],
+      "resource_count": 34
+    },
+    {
+      "course": "Highroad",
+      "stream_index": 27,
+      "dims": [
+        32,
+        32
+      ],
+      "resource_count": 30
+    },
+    {
+      "course": "Vertical",
+      "stream_index": 36,
+      "dims": [
+        16,
+        64
+      ],
+      "resource_count": 33
+    },
+    {
+      "course": "Little Dipper",
+      "stream_index": 38,
+      "dims": [
+        4,
+        256
+      ],
+      "resource_count": 19
     }
   ]
 }

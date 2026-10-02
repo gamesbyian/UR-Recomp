@@ -52,7 +52,7 @@ For Dragster's six resources:
 
 Total predicted spans:
 
-- A000: `0x200` bytes;
+- A000: `0x280` bytes;
 - C000: `0x14` bytes.
 
 The final runtime snapshot contains exactly a 20-byte C000 course-object span:

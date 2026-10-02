@@ -1,0 +1,13 @@
+# Locate the first game-authored medal mutation in the historical 2014 bot run.
+# Input comes from SNESREF_INPUT_FILE.
+wait 750
+dump medal-baseline
+wait 9250
+dump medal-010k
+wait 10000
+dump medal-020k
+wait 20000
+dump medal-040k
+wait 40000
+dump medal-080k
+quit

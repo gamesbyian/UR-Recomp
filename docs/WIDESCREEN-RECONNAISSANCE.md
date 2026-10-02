@@ -74,7 +74,7 @@ At minimum:
 
 ## Machine-readable output
 
-Target report shape for `tools/widescreen_probe.py`:
+`tools/widescreen_probe.py` now owns the dependency-free report contract. It reads `analysis/widescreen-policy.yml`, can emit a complete default margin-sweep skeleton, and validates completed reports before evidence is promoted. It is deliberately read-only: emulator/runtime invocation remains a separate concern.\n\nTarget report shape:
 
 ```json
 {
@@ -94,7 +94,7 @@ Target report shape for `tools/widescreen_probe.py`:
 }
 ```
 
-Exact filenames may evolve, but the report must preserve enough provenance to reproduce the observation.
+Exact filenames may evolve, but the report must preserve enough provenance to reproduce the observation. The implemented validator additionally requires runtime revision plus checkpoint-range, pixel-aspect, overscan, and layer/sprite/window policy provenance, and requires every default margin including the margin-0 matched 4:3 control. Intermediate margins are allowed for failure-boundary refinement.
 
 Do not commit a giant screenshot corpus by default. Keep compact manifests/results plus selected explanatory captures; use workflow artifacts for bulky transient matrices where appropriate.
 

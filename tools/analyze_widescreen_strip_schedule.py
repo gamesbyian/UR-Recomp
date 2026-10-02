@@ -131,11 +131,15 @@ def analyze_rows(control_rows: list[dict], plus8_rows: list[dict]) -> tuple[dict
                 "control":control["gameplay"],
                 "plus8":widened["gameplay"],
             })
-        if (control["camx"], control["camy"]) != (widened["camx"], widened["camy"]):
+        if (
+            control["camx"], control["camy"], control["camdx"], control["camdy"]
+        ) != (
+            widened["camx"], widened["camy"], widened["camdx"], widened["camdy"]
+        ):
             camera_restore_diffs.append({
                 "frame":frame,
-                "control":[control["camx"], control["camy"]],
-                "plus8":[widened["camx"], widened["camy"]],
+                "control":[control["camx"], control["camy"], control["camdx"], control["camdy"]],
+                "plus8":[widened["camx"], widened["camy"], widened["camdx"], widened["camdy"]],
             })
 
     success_matches = [

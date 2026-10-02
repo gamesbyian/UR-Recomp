@@ -14,7 +14,7 @@ Status values are `sufficient`, `partial`, `unknown`, or `not applicable`. `Suff
 | Sprite/OAM + active-display split-screen seam | sufficient | sufficient | partial | sufficient | Hard authentic-mode and Widescreen constraint |
 | Gameplay object activation / liveness | partial | partial | unknown | partial | **Highest-value unresolved Widescreen semantic** |
 | World preparation / VRAM streaming | partial | partial | partial | partial | Recover horizon from camera demand to prepared graphics |
-| Course spatial/resource model | sufficient | sufficient for representative presentation questions | partial | sufficient on Dragster contract | **Presentation-sufficient on Dragster; generalize only when a wider probe demands it** |
+| Course spatial/resource model | sufficient | sufficient for representative presentation questions | partial | sufficient on representative contract + sampled family invariants | **Presentation-sufficient; four header shapes preserve the same two-level spatial/resource contract** |
 | Frontend / principal progression | sufficient | sufficient for principal stock flow | partial | partial | Close finite save/load/progression acceptance only |
 | Original graphics / animation-state identity | sufficient for first racer family | sufficient for first racer family | partial | sufficient for first racer family | Phase E family expansion is unblocked; extend exact mappings on demand |
 | Toolchain / deterministic execution apparatus | sufficient | sufficient | sufficient | sufficient | Maintenance only |
@@ -49,7 +49,7 @@ Object activation becomes sufficient when at least one representative ordinary o
 
 Preparation/streaming becomes sufficient for the first Widescreen implementation when one representative scrolling scene can deliberately shift preparation earlier for a requested margin without changing authoritative simulation.
 
-The course model is presentation-sufficient for Dragster: it answers world extent relevant to camera travel, resource/chunk spatial placement, which materialized resources own a queried world region, where checkpoint/finish-bearing cells sit relative to that region, and how those claims trace through runtime lookup/materialization. Reopen course-format semantics only when another course or a widened probe violates this representative contract.
+The course model is presentation-sufficient for current Widescreen work: Dragster answers world extent relevant to camera travel, resource/chunk spatial placement, which materialized resources own a queried world region, where checkpoint/finish-bearing cells sit relative to that region, and how those claims trace through runtime lookup/materialization. A four-course sample spanning `256×4`, `128×8`, `32×32`, and `16×64` confirms the same coarse-table, 32-byte fine-record, packed-slot, and 32:1 A000/C000 ownership invariants. Reopen course-format semantics only when a widened probe or another course violates this contract.
 
 Graphics/animation identity becomes sufficient for Phase E expansion when one animated family has deterministic extraction, unchanged reconstruction, semantic state/frame identity, and a compact regression.
 

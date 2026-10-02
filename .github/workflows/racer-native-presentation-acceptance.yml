@@ -86,6 +86,27 @@ jobs:
             echo "::error::Native route exited with status $STATUS"
             exit "$STATUS"
           fi
+          python3 - "$DUMPS/two-player-race-1220.wram.bin" <<'PY'
+          import pathlib, sys
+          p = pathlib.Path(sys.argv[1])
+          if not p.is_file():
+              raise SystemExit(f"missing WRAM checkpoint: {p}")
+          w = p.read_bytes()
+          def u16(off):
+              return w[off] | (w[off + 1] << 8)
+          print(
+              "UR_RACER_PRESENTATION_DUMP frame=1220 "
+              f"p1_primary={u16(0x0FE9):04X} "
+              f"p2_primary={u16(0x0FEB):04X} "
+              f"p1_companion={u16(0x0D3F):04X} "
+              f"p2_companion={u16(0x0D41):04X} "
+              f"p1_selector={u16(0x0C83):04X} "
+              f"p2_selector={u16(0x0C85):04X} "
+              f"p1_gate={u16(0x0D1B):04X} "
+              f"p2_gate={u16(0x0D1D):04X}"
+          )
+          PY
+
           grep -F "UR_RACER_PRESENTATION_PROBE PASS" "$LOG"
           grep -F "p1_primary=0541" "$LOG"
           grep -F "p2_primary=0540" "$LOG"

@@ -265,6 +265,14 @@
       "summary": "Recovered the race-loop support routine called from 83:CD3D and established that the PAL-line variants are genuinely larger rather than constant-shift homologs. USA and legacy beta are byte-identical at 1,063 bytes. PAL prototype spans 83:E79B..EBEF (1,109 bytes, +46), moving from start shift -10 to end shift +36. Europe spans 83:E7C1..EC13 (1,107 bytes, +44), moving from +28 to +72. All four extents are fully analyzer-reached. Regional exits are anchored independently by the already-accepted EC46 step-table homologs and the intervening 26-byte helper.",
       "priority": "low",
       "next_evidence": "Use the recorded edit script to interpret individual PAL-line insertions only when a native race-loop behavior or regional-fidelity question needs them. Do not collapse this routine back to one constant shift."
+    },
+    {
+      "id": "resolved-race-message-bridge-beb3",
+      "kind": "resolved_structural_island",
+      "region": "USA 81:BEB3..C0DC and homologs",
+      "summary": "Recovered the 554-byte race-frame message/state bridge called from 83:CD61, split into a 4-byte long-entry wrapper plus three RTS-bounded helpers. The bridge handles mirrored P1/P2 state/message materialization into $0E9D/$0EBD, sets ready flags $0EDD/$0EDF, and feeds the already-recovered stunt-message consumer beginning at 81:C0DD. USA/beta are byte-identical; PAL prototype preserves the corridor at -32 and Europe at -15. All aligned opcode positions match with zero analyzer role disagreements.",
+      "priority": "low",
+      "next_evidence": "Refine payload character semantics or cooldown policy only if native UI/stunt-message behavior needs it; the structural handoff into 81:C0DD is closed."
     }
   ]
 }

@@ -15,6 +15,7 @@ DEFAULT_SOURCES = (
     ("race-control-state", "analysis/generated/race-control-state-e066-structure-island.json", False),
     ("checkpoint-finish", "analysis/generated/checkpoint-finish-structure-island.json", False),
     ("stunt-finalizer", "analysis/generated/stunt-finalizer-structure-island.json", False),
+    ("race-message-bridge", "analysis/generated/race-message-bridge-beb3-structure-island.json", False),
     ("stunt-message-pipeline", "analysis/generated/stunt-message-pipeline-structure-island.json", False),
     ("input-normalization", "analysis/generated/input-normalization-structure-island.json", False),
     ("camera-control", "analysis/generated/camera-control-structure-island.json", False),

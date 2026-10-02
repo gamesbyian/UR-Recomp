@@ -254,3 +254,10 @@ The native registration keeps the currently proven geometry explicit: 64×64 log
 The bridge reads the established addresses for primary IDs, companion IDs, selector words and companion-gate words. It rejects null or undersized WRAM views and therefore fails back to Original through the selector rather than reading partial state. It does not retain a mutable WRAM pointer and provides no write operation.
 
 The address constants are exposed as presentation metadata and a focused CI parity test derives the expected values from `analysis/data/presentation-assets.json`. This prevents the native guest-state bridge from silently drifting away from the canonical composition contract.
+
+
+## Dynamic OAM placement contract
+
+The first synchronized ordinary-2P placement reference is retained compactly in `analysis/data/racer-oam-placement-reference.json`, sourced from workflow run `36943103609`, artifact `11200911852`, checkpoint `two-player-race-1220`. At that exact state, P1 uses large OAM slot 98 at raw `(104,40)`, 64×64, H-flipped and not V-flipped; P2 uses slot 99 with the same geometry and its own tile/palette attributes.
+
+Those coordinates are a regression reference, not replacement policy. `native/presentation/racer_oam_placement.{hpp,cpp}` decodes the live slot every frame from a caller-supplied OAM snapshot plus OBSEL, including the SNES 9-bit X coordinate, object size and H/V flip bits. This keeps movement and orientation guest-authored while giving the eventual host compositor the screen-space registration it needs.

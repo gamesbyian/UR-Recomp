@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "purpose": "Compact retained screen-placement reference for the first synchronized ordinary-2P racer replacement state.",
+  "source": {
+    "workflow_run": 36943103609,
+    "artifact_id": 11200911852,
+    "artifact_name": "ordinary-2p-reference",
+    "checkpoint": "two-player-race-1220",
+    "fixture_input": "tests/input/two-player-first-race.input"
+  },
+  "composition": {
+    "p1_primary": "0x0541",
+    "p2_primary": "0x0540",
+    "p1_companion": "0x0D0D",
+    "p2_companion": "0x0000",
+    "p1_selector": "0x0000",
+    "p2_selector": "0x0000",
+    "p1_companion_gate_word": "0x0001",
+    "p2_companion_gate_word": "0x0000"
+  },
+  "obsel": "0x83",
+  "slots": {
+    "p1": {
+      "slot": 98,
+      "x_raw_9bit": 104,
+      "y_raw_8bit": 40,
+      "tile": "0x00",
+      "attr": "0x66",
+      "hflip": true,
+      "vflip": false,
+      "large": true,
+      "size_pixels": [64, 64]
+    },
+    "p2": {
+      "slot": 99,
+      "x_raw_9bit": 104,
+      "y_raw_8bit": 40,
+      "tile": "0x88",
+      "attr": "0x68",
+      "hflip": true,
+      "vflip": false,
+      "large": true,
+      "size_pixels": [64, 64]
+    }
+  },
+  "interpretation": "This is a regression reference, not a fixed runtime position. Replacement presentation must decode live OAM each frame so movement remains guest-authored."
+}

@@ -60,7 +60,7 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 				{
 					fprintf(stderr,
 						"WSDMA margin=%d frame=%u v=%u cycles=%d pc=%06X "
-						"camx=%u camy=%u px=%u py=%u xs=%d ys=%d pitch=%u "
+						"camx=%u camy=%u camdx=%d camdy=%d px=%u py=%u xs=%d ys=%d pitch=%u "
 						"contact=%u laps=%u checkpoint=%u finish=%u edgex=%u edgey=%u desc=",
 						ur_ws_margin, (unsigned)ICPU.Frame, (unsigned)CPU.V_Counter, CPU.Cycles,
 						(unsigned)ur_ws_pc,

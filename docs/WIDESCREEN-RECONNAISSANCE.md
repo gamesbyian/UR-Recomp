@@ -246,11 +246,15 @@ retained workflow artifact from run `36957020940` contains the per-margin
 state and framebuffer evidence.
 
 The apparent +8 authoritative-state failure is now classified as a
-**cadence/alignment plus transient-contact harness false positive**, not as a
-meaningful simulation divergence:
+**host-presentation cadence perturbation plus transient-contact harness false positive**.
+This is category 3 from the investigation taxonomy: widening perturbs absolute guest
+execution cadence without changing meaningful simulation in the retained race:
 
-- every retained +8 script tag is exactly **3 guest frames earlier** than its
-  4:3 control tag;
+- the timing shift is already present at the first frontend milestone: the +8
+  run reaches `$009F` readiness at guest frame **443** versus **446** in the 4:3
+  control, before the race or widened finish presentation can be causal;
+- every retained +8 race-tail script tag remains exactly **3 guest frames earlier**
+  than its 4:3 control tag;
 - racer position, racer velocity, camera X and checkpoint/finish/lap state are
   identical at every event-relative retained tag;
 - the checkpoint/finish progression transition occurs at the same scripted
@@ -268,7 +272,8 @@ matched simulation comparison only when durable trajectory/progression agrees
 and the cadence offset is stable; transient contact differences remain visible
 in the report rather than being discarded.
 
-This closes the +8 simulation-divergence blocker. The next +8 work should
+The earliest causal divergence is therefore host/frontend cadence, not Dragster
+simulation or finish preparation. This closes the +8 simulation-divergence blocker. The next +8 work should
 classify the first **presentation** failure or success boundary. Do not widen
 beyond the already-captured tiny-margin experiment merely because the harness
 gate is repaired, and do not widen gameplay activation bounds.

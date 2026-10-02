@@ -60,6 +60,27 @@ int main() {
     assert(p2->width_pixels == 64);
     assert(p2->height_pixels == 64);
 
+
+    std::array<std::uint16_t, 256> ppu_oam{};
+    std::array<std::uint8_t, 32> ppu_high{};
+    ppu_oam[98 * 2] = static_cast<std::uint16_t>((40u << 8) | 104u);
+    ppu_oam[98 * 2 + 1] = static_cast<std::uint16_t>((0x66u << 8) | 0x00u);
+    ppu_high[98 / 4] = static_cast<std::uint8_t>(2u << ((98 % 4) * 2));
+
+    const auto ppu_p1 = decode_racer_ppu_placement(
+        ppu_oam.data(), ppu_oam.size(),
+        ppu_high.data(), ppu_high.size(),
+        0x83, 1
+    );
+    assert(ppu_p1.has_value());
+    assert(ppu_p1->slot == 98);
+    assert(ppu_p1->x_signed == 104);
+    assert(ppu_p1->y_raw_8bit == 40);
+    assert(ppu_p1->hflip);
+    assert(!ppu_p1->vflip);
+    assert(ppu_p1->width_pixels == 64);
+    assert(ppu_p1->height_pixels == 64);
+
     set_slot(oam, 98, 500, 200, 0x00, 0x00, false);
     const auto wrapped = decode_racer_oam_placement(oam.data(), oam.size(), 0x00, 1);
     assert(wrapped.has_value());
@@ -72,5 +93,8 @@ int main() {
     assert(!decode_racer_oam_placement(nullptr, 544, 0x83, 1).has_value());
     assert(!decode_racer_oam_placement(oam.data(), 100, 0x83, 1).has_value());
     assert(!decode_racer_oam_placement(oam.data(), oam.size(), 0x83, 3).has_value());
+    assert(!decode_racer_ppu_placement(nullptr, 256, ppu_high.data(), ppu_high.size(), 0x83, 1).has_value());
+    assert(!decode_racer_ppu_placement(ppu_oam.data(), 100, ppu_high.data(), ppu_high.size(), 0x83, 1).has_value());
+    assert(!decode_racer_ppu_placement(ppu_oam.data(), ppu_oam.size(), nullptr, 32, 0x83, 1).has_value());
     return 0;
 }

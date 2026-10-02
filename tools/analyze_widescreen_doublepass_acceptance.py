@@ -14,7 +14,7 @@ if str(TOOLS) not in sys.path:
     sys.path.insert(0,str(TOOLS))
 import analyze_widescreen_strip_schedule as base
 
-VRX=re.compile(r"WSVRAM frame=(?P<frame>\d+) cols=(?P<cols>.*)$")
+VRX=re.compile(r"WSVRAM frame=(?P<frame>\d+) cols=(?P<cols>.*)$", re.M)
 
 def parse_vram(path: Path) -> dict[int,dict[tuple[int,int],str]]:
     out=defaultdict(dict)

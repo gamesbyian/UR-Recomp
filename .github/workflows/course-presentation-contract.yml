@@ -22,7 +22,7 @@ jobs:
       - name: Build Dragster contract
         run: |
           python3 tools/build_course_presentation_contract.py
-          python3 tools/build_course_presentation_contract.py --query-x 1088 1408 \
+          python3 tools/build_course_presentation_contract.py --query-rect 1088 768 1408 896 \
             --json-out "$RUNNER_TEMP/query.json" \
             --md-out "$RUNNER_TEMP/query.md"
       - name: Run focused regression

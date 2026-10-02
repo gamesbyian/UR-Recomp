@@ -41,6 +41,15 @@ jobs:
           from pathlib import Path
           import sys
           root=Path(sys.argv[1])
+          print("MODE_SCAN_BEGIN")
+          for wp in sorted(root.rglob("*.wram.bin")):
+              w=wp.read_bytes()
+              if len(w) < 0x1000: continue
+              m83,m85=w[0x0C83],w[0x0C85]
+              if m83 or m85:
+                  vals=[w[o] | (w[o+1]<<8) for o in (0x0200,0x0202,0x0204,0x0206,0x0FE9,0x0FEB)]
+                  print(" MODE",str(wp.relative_to(root)),f"{m83:02X}",f"{m85:02X}",[f"{v:04X}" for v in vals])
+          print("MODE_SCAN_END")
           for tag in ("two-player-race-1220","two-player-race-1420"):
               hits=list(root.rglob(f"{tag}.oam.bin"))
               print("OAM_FILE", tag, [str(p.relative_to(root)) for p in hits])

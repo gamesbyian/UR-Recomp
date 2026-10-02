@@ -94,6 +94,78 @@ jobs:
               for x in p["runtime_staging_checks"]
           ])
           PY
+      - name: Test racer primary-companion composition
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          from tools.analyze_racer_piece_render_binding import (
+              decode_obsel, decode_oam_slot, object_tile_number, object_tile_vram_byte_address
+          )
+          from tools.extract_racer_presentation_family import extract_frame, piece_source_tile
+
+          root=Path(os.environ["RUNNER_TEMP"]) / "ordinary-2p" / "native-dumps"
+          rom=Path("reference/roms/retail/Uniracers_USA.sfc").read_bytes()
+          rows=[]
+
+          def u16(data,off): return data[off] | (data[off+1]<<8)
+          def layer(fid):
+              if fid == 0:
+                  return {}
+              f=extract_frame(rom,fid)
+              return {
+                  (1+p["minor_slot"],p["major_slot"]): piece_source_tile(rom,int(p["word_hex"],16))[0]
+                  for p in f["pieces"]
+              }
+
+          for wp in sorted(root.glob("two-player-*.wram.bin")):
+              tag=wp.name[:-9]
+              vp=root/f"{tag}.vram.bin"; op=root/f"{tag}.oam.bin"; rp=root/f"{tag}.regs.json"
+              if not (vp.exists() and op.exists() and rp.exists()): continue
+              wram=wp.read_bytes(); vram=vp.read_bytes(); oam=op.read_bytes()
+              obsel=decode_obsel(int(json.loads(rp.read_text())["obsel"]))
+              slots=[decode_oam_slot(oam,s,obsel) for s in (96,97,98,99)]
+              for player,(pri_off,comp_off,attr) in enumerate(((0x0FE9,0x0D3F,0x66),(0x0FEB,0x0D41,0x68)),1):
+                  primary=u16(wram,pri_off); companion=u16(wram,comp_off)
+                  pmap=layer(primary); cmap=layer(companion)
+                  for slot in [s for s in slots if s["large"] and s["attr"]==attr]:
+                      actual={}
+                      for gy in range(8):
+                          for gx in range(8):
+                              tn=object_tile_number(slot["tile"],gx,gy)
+                              addr=object_tile_vram_byte_address(obsel,slot,tn)
+                              raw=vram[addr:addr+32]
+                              if any(raw):
+                                  actual[(gx,gy)]=raw
+                      variants={}
+                      for name,first,second in (
+                          ("primary_then_companion",pmap,cmap),
+                          ("companion_then_primary",cmap,pmap),
+                      ):
+                          merged=dict(first); merged.update(second)
+                          merged={k:v for k,v in merged.items() if any(v)}
+                          variants[name]={
+                              "position_and_bytes_equal": merged==actual,
+                              "occupancy_equal": set(merged)==set(actual),
+                              "tile_multiset_equal": sorted(x.hex() for x in merged.values())==sorted(x.hex() for x in actual.values()),
+                              "tile_count":len(merged),
+                          }
+                      rows.append({
+                          "checkpoint":tag,"player":player,
+                          "primary_id":f"0x{primary:04X}","companion_id":f"0x{companion:04X}",
+                          "oam_slot":slot["slot"],"actual_tile_count":len(actual),
+                          "variants":variants,
+                      })
+          out={"schema_version":1,"rows":rows}
+          out["exact_variant_matches"]=sum(
+              v["position_and_bytes_equal"] for r in rows for v in r["variants"].values()
+          )
+          Path(os.environ["RUNNER_TEMP"],"racer-primary-companion-overlay.json").write_text(
+              json.dumps(out,indent=2,sort_keys=True)+"\n"
+          )
+          print(json.dumps(out,indent=2,sort_keys=True))
+          PY
       - name: Resolve retained VRAM byte phase
         run: |
           python3 tools/analyze_racer_piece_render_binding.py \
@@ -274,6 +346,7 @@ jobs:
             ${{ runner.temp }}/racer-raster-manifest.json
             ${{ runner.temp }}/racer-resource-roundtrip.json
             ${{ runner.temp }}/racer-vram-byte-phase.json
+            ${{ runner.temp }}/racer-primary-companion-overlay.json
             ${{ runner.temp }}/racer-tile-upload-path.json
             ${{ runner.temp }}/racer-tile-upload-path.md
             ${{ runner.temp }}/racer-raster/*.png

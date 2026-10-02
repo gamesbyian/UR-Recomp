@@ -120,7 +120,6 @@ def patch_text(source: str) -> str:
     source = source.replace(
         FIELD_ANCHOR,
         FIELD_ANCHOR
-        + "    .before_run_frame    = &UrRestartProbeBeforeRunFrame,\n"
         + "    .after_run_frame     = &UrRestartProbeAfterRunFrame,\n",
         1,
     )

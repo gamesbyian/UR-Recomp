@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "generated_by": "tools/build_consolidated_knowledge.py",
   "purpose": "Normalized course-resource incidence, ordering, and promoted semantic anchors.",
   "corpus": {
     "course_count": 45,

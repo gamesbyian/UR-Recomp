@@ -48,7 +48,8 @@ def build():
    sh,sim=(0,1.0) if build=="usa-retail" else best_shift(usa,blob,us,ue,centers[build])
    aligns[build][name]={"shift":sh,"similarity":round(sim,6),"start":offset_to_cpu(us+sh),"end":offset_to_cpu(ue+sh)}
   d=trace(blob)
-  seed_entries(d,[cpu_to_offset("81:BEB7")+aligns[build]["race_message_dispatch"]["shift"],
+  seed_entries(d,[cpu_to_offset("81:BEB3")+aligns[build]["long_entry_wrapper"]["shift"],
+                  cpu_to_offset("81:BEB7")+aligns[build]["race_message_dispatch"]["shift"],
                   cpu_to_offset("81:BF41")+aligns[build]["mirrored_commit_helper"]["shift"],
                   cpu_to_offset("81:BFE3")+aligns[build]["mirrored_materialize_helper"]["shift"]])
   ds[build]=d

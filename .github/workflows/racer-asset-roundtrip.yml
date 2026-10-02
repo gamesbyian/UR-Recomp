@@ -1,10 +1,6 @@
 name: Racer asset round-trip probe
 
 on:
-  push:
-    branches:
-      - chatgpt/racer-asset-roundtrip-2026-10-01
-      - chatgpt/racer-raster-extraction-2026-10-02
   pull_request:
     branches:
       - main
@@ -38,6 +34,8 @@ jobs:
           m=json.load(open("analysis/generated/racer-presentation-family.json"))
           assert all(f["raster_exports"] for f in m["frames"])
           assert all(p["source_tile"]["source_sha256"] for f in m["frames"] for p in f["pieces"])
+          assert all(s["presented_raster"]["png_sha256"] for s in m["observed_states"])
+          assert all("oam_hflip" in s and "oam_vflip" in s for s in m["observed_states"])
           import os
           bulk=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-raster-manifest.json")))
           assert bulk["count"] >= 8

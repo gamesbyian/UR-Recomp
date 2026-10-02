@@ -438,10 +438,33 @@ def emit_frame_images(rom: bytes, frame_ids: Iterable[int], output_dir: Path) ->
                 "dimensions": [RASTER_WIDTH, RASTER_HEIGHT],
                 "origin": [0, 0],
                 "occupancy_header": frame["record_header_hex"],
-                "source_record_sha256": frame["record_sha256"],
+                "source_record": {
+                    "snes": frame["source_snes"],
+                    "rom_offset": frame["source_rom_offset"],
+                    "sha256": frame["record_sha256"],
+                },
+                "rom_sha256": sha256(rom),
+                "orientation": {"hflip": False, "vflip": False},
                 "uncertainty": None,
             })
-    return {"schema_version": 1, "count": len(manifest), "images": manifest}
+    return {
+        "schema_version": 2,
+        "family": "ordinary-race-racer-presentation-contract-compatible-corpus",
+        "rom_sha256": sha256(rom),
+        "confidence_basis": [
+            "monotonic same-bank frame boundary",
+            "four-byte 30-cell occupancy header",
+            "record length equals header popcount-derived packed-word count",
+            "every packed word resolves through the #216 DMA-source transform to a complete 32-byte ROM tile",
+            "stable first-family lattice placement at object tile offset (1,0)",
+        ],
+        "orientation": {
+            "canonical_images": "stored orientation",
+            "runtime_rule": "apply OAM H/V flip afterward to the complete 64x64 object-local raster",
+        },
+        "count": len(manifest),
+        "images": manifest,
+    }
 
 
 
@@ -559,6 +582,13 @@ def build_manifest(rom: bytes) -> dict:
     palettes = [extract_palette(rom, 0x06, 0xB0), extract_palette(rom, 0x07, 0xC0)]
     observed = []
     for checkpoint, frame, player, frame_id, attr, color_index, palette_asset, cgram in OBSERVED_STATES:
+        observed_frame = next(x for x in frames if x["frame_id"] == frame_id)
+        hflip = bool(attr & 0x40)
+        vflip = bool(attr & 0x80)
+        presented_rgba = rasterize_frame_rgba(
+            rom, observed_frame, palette_asset, hflip=hflip, vflip=vflip
+        )
+        presented_png = encode_png_rgba(RASTER_WIDTH, RASTER_HEIGHT, presented_rgba)
         observed.append({
             "checkpoint": checkpoint,
             "emulator_frame": frame,
@@ -567,11 +597,20 @@ def build_manifest(rom: bytes) -> dict:
             "frame_id": f"0x{frame_id:04X}",
             "oam_attribute": f"0x{attr:02X}",
             "oam_palette_number": (attr >> 1) & 0x07,
+            "oam_hflip": hflip,
+            "oam_vflip": vflip,
             "cgram_start": f"0x{cgram:02X}",
             "player_color_selector": "$017D" if player == 1 else "$017F",
             "player_color_index": color_index,
             "palette_asset_formula": "0x06 + player_color_index",
             "palette_asset_id": f"0x{palette_asset:02X}",
+            "presented_raster": {
+                "dimensions": [RASTER_WIDTH, RASTER_HEIGHT],
+                "origin": [0, 0],
+                "rgba_sha256": sha256(presented_rgba),
+                "png_sha256": sha256(presented_png),
+                "orientation_rule": "OAM H/V flip applied to complete 64x64 object-local raster",
+            },
         })
     return {
         "schema_version": 1,

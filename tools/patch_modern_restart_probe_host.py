@@ -17,9 +17,9 @@ PROBE = r'''
 #include <stdlib.h>
 #include <string.h>
 
-enum { kUrRestartProbeCap = 2 * 1024 * 1024, kUrRestartProbeWindow = 60 };
+enum { kUrRestartProbeWindow = 60 };
 
-static uint8_t *g_ur_restart_anchor;
+static size_t g_ur_restart_probe_cap;\nstatic uint8_t *g_ur_restart_anchor;
 static size_t g_ur_restart_anchor_len;
 static uint8_t *g_ur_restart_expected;
 static size_t g_ur_restart_expected_len;
@@ -28,7 +28,9 @@ static int g_ur_restart_probe_phase;
 static int g_ur_restart_prev_in_race;
 
 static int UrRestartProbeSave(uint8_t *dst, size_t *len) {
-    const size_t n = RtlSaveSnapshotToMemory(dst, kUrRestartProbeCap);
+    if (!g_ur_restart_probe_cap) return 0;
+    const size_t n =
+        RtlRollbackSaveToMemory(dst, g_ur_restart_probe_cap);
     if (!n) return 0;
     *len = n;
     return 1;
@@ -38,9 +40,11 @@ static void UrRestartProbeAfterRunFrame(const SnesDesktopHostFrameStats *stats) 
     const int in_race = g_ram[0x0313] == 1;
 
     if (g_ur_restart_probe_phase == 0 && in_race && !g_ur_restart_prev_in_race) {
-        g_ur_restart_anchor = (uint8_t *)malloc(kUrRestartProbeCap);
-        g_ur_restart_expected = (uint8_t *)malloc(kUrRestartProbeCap);
-        if (!g_ur_restart_anchor || !g_ur_restart_expected ||
+        g_ur_restart_probe_cap = RtlRollbackSnapshotBound();
+        g_ur_restart_anchor = (uint8_t *)malloc(g_ur_restart_probe_cap);
+        g_ur_restart_expected = (uint8_t *)malloc(g_ur_restart_probe_cap);
+        if (!g_ur_restart_probe_cap ||
+            !g_ur_restart_anchor || !g_ur_restart_expected ||
             !UrRestartProbeSave(g_ur_restart_anchor, &g_ur_restart_anchor_len)) {
             fprintf(stderr, "UR_RESTART_PROBE FAIL capture\n");
             g_ur_restart_probe_phase = 4;
@@ -58,12 +62,12 @@ static void UrRestartProbeAfterRunFrame(const SnesDesktopHostFrameStats *stats) 
                     g_ur_restart_expected, &g_ur_restart_expected_len)) {
                 fprintf(stderr, "UR_RESTART_PROBE FAIL expected-capture\n");
                 g_ur_restart_probe_phase = 4;
-            } else if (!RtlLoadSnapshotFromMemory(
+            } else if (!RtlRollbackLoadFromMemory(
                            g_ur_restart_anchor, g_ur_restart_anchor_len)) {
                 fprintf(stderr, "UR_RESTART_PROBE FAIL restore-refused\n");
                 g_ur_restart_probe_phase = 4;
             } else {
-                uint8_t *immediate = (uint8_t *)malloc(kUrRestartProbeCap);
+                uint8_t *immediate = (uint8_t *)malloc(g_ur_restart_probe_cap);
                 size_t immediate_len = 0;
                 const int immediate_ok =
                     immediate &&
@@ -84,7 +88,7 @@ static void UrRestartProbeAfterRunFrame(const SnesDesktopHostFrameStats *stats) 
         }
     } else if (g_ur_restart_probe_phase == 3) {
         if (++g_ur_restart_probe_count == kUrRestartProbeWindow) {
-            uint8_t *actual = (uint8_t *)malloc(kUrRestartProbeCap);
+            uint8_t *actual = (uint8_t *)malloc(g_ur_restart_probe_cap);
             size_t actual_len = 0;
             const int ok =
                 actual &&

@@ -16,7 +16,7 @@ Status values are `sufficient`, `partial`, `unknown`, or `not applicable`. `Suff
 | World preparation / VRAM streaming | partial | partial | partial | partial | Recover horizon from camera demand to prepared graphics |
 | Course spatial/resource model | sufficient | sufficient for representative presentation questions | partial | sufficient on Dragster contract | **Presentation-sufficient on Dragster; generalize only when a wider probe demands it** |
 | Frontend / principal progression | sufficient | sufficient for principal stock flow | partial | partial | Close finite save/load/progression acceptance only |
-| Original graphics / animation-state identity | partial | partial | unknown | partial | Parallel exact extraction/round-trip lane |
+| Original graphics / animation-state identity | sufficient for first racer family | sufficient for first racer family | partial | sufficient for first racer family | Phase E family expansion is unblocked; extend exact mappings on demand |
 | Toolchain / deterministic execution apparatus | sufficient | sufficient | sufficient | sufficient | Maintenance only |
 
 ## Evidence basis
@@ -33,14 +33,14 @@ Status values are `sufficient`, `partial`, `unknown`, or `not applicable`. `Suff
 
 **Progression:** principal 1P/VS/2P routes are deterministic. The medal matrix, medal values, derived unicycle tiers and checksum boundary are statically resolved and reconciled with recovered SRAM snapshots. The remaining acceptance gap is a real progression-changing save/load fixture, not generic SRAM archaeology.
 
-**Graphics / animation:** deterministic framebuffer/OAM evidence and historical source-pipeline evidence exist, but there is not yet a project-owned semantic asset manifest that maps authoritative animation state to extracted sprite/tile identities with an exact unchanged reconstruction regression.
+**Graphics / animation:** the retained ordinary-2P MesenCE fixture now binds persistent racer presentation IDs `$0FE9/$0FEB` to concrete frame identities `0x0540`, `0x0542`, `0x0544` and `0x057E`. `83:F296` resolves those IDs through the three-byte table at `20:8000`; `tools/extract_racer_presentation_family.py` extracts the exact table-bounded 30/34-byte packed presentation streams, losslessly reconstructs them, and resolves the fixture's player-color selectors to exact 32-byte BGR555 palette assets `0x06/0x07` loaded at CGRAM `$B0/$C0`. `analysis/generated/racer-presentation-family.json` is the compact semantic manifest/regression surface. Full meanings of every packed word inside the frame stream remain an on-demand extension, not a blocker for original asset identity.
 
 ## Highest-value next discriminators
 
 1. **Activation timeline:** use the cheapest deterministic fixture in which a known world object crosses the classic camera edge. Capture the first frames at which it exists, becomes behaviorally processed, enters preparation/update lists, is drawn, and becomes visible.
 2. **Preparation horizon:** in the same fixture, correlate camera/window edges with first VRAM/update-list membership. Prove one resource family before generalizing.
 3. **Tiny-margin Widescreen probe:** with Dragster's presentation spatial/resource contract now sufficient, expose +8/+16/+24 source pixels and let the first failure choose whether further course generalization is actually required.
-4. **Graphics round trip:** choose one small racer/presentation asset family, extract tiles/palette, reconstruct unchanged data exactly, and tie selected frame/tile identity to named runtime/OAM state.
+4. **Graphics round trip (closed for the first racer family):** the ordinary-race racer family now has deterministic semantic frame IDs, exact packed-stream and palette extraction, byte-identical reconstruction and a compact manifest. Extend to additional frame IDs or decode deeper packed-word/tile semantics only when an HD/native-rendering task requires them.
 5. **Save/load progression acceptance:** create one real progression-changing run, persist it, reload it, and assert medal/tier/checksum state.
 
 ## Promotion rules

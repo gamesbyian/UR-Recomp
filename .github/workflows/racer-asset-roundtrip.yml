@@ -1,0 +1,34 @@
+name: Racer asset round-trip probe
+
+on:
+  push:
+    branches:
+      - chatgpt/racer-asset-roundtrip-2026-10-01
+    paths:
+      - "tools/extract_racer_presentation_family.py"
+      - "tests/unit/test_extract_racer_presentation_family.py"
+      - ".github/workflows/racer-asset-roundtrip.yml"
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Run unit tests
+        run: python3 -m unittest tests.unit.test_extract_racer_presentation_family -v
+      - name: Extract and round-trip representative racer family
+        run: |
+          python3 tools/extract_racer_presentation_family.py             "reference/roms/retail/Uniracers_USA.sfc"             --output analysis/generated/racer-presentation-family.json             | tee racer-presentation-family.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: racer-presentation-roundtrip
+          path: |
+            analysis/generated/racer-presentation-family.json
+            racer-presentation-family.generated.json
+            racer-presentation-family.txt
+          retention-days: 7
+          if-no-files-found: error

@@ -1,0 +1,145 @@
+name: Historical bot bronze progression acceptance
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - chatgpt/progression-gameplay-acceptance-2026-10-02
+    paths:
+      - ".github/workflows/progression-bot-medal.yml"
+      - "tools/instrument_progression_bot.py"
+      - "tools/patch_historical_snes9x151.py"
+      - "tools/analyze_progression_sram_acceptance.py"
+      - "analysis/data/progression-model.json"
+      - "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+
+concurrency:
+  group: progression-bot-medal-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install historical Snes9x build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config libsdl2-dev git libx11-dev libxext-dev libpng-dev zlib1g-dev xvfb
+
+      - name: Verify canonical ROM and instrument historical bot
+        run: |
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python3 tools/instrument_progression_bot.py             reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua             /tmp/progression-bot.lua
+          grep -q 'targetMedal = 17' /tmp/progression-bot.lua
+          grep -q 'URProgressionMonitor' /tmp/progression-bot.lua
+
+      - name: Build verified Snes9x 1.51 rerecording environment
+        run: |
+          git clone --filter=blob:none --no-checkout https://github.com/TASEmulators/snes9x-rr.git /tmp/snes9x-rr
+          cd /tmp/snes9x-rr
+          git checkout e0b6a74
+          git submodule update --init --recursive
+          git clone https://github.com/rce-incorporated/lua51.git lua
+          git -C lua checkout 528486bda7ae480307738721a314f33575553e55
+          make -C lua/src liblua.a
+          python3 "$GITHUB_WORKSPACE/tools/patch_historical_snes9x151.py"
+          chmod +x configure
+          CXX='g++ -std=gnu++98' ./configure --without-assembler --without-opengl --without-extensions
+          touch configure Makefile
+          sed -i 's#-llua#-Llua/src -llua#g' Makefile
+          make -j2
+
+      - name: Let historical bot earn first bronze medal
+        env:
+          UR_MEDAL_SRAM_OUT: /tmp/first-medal.srm
+          UR_MEDAL_BEFORE_OUT: /tmp/before-runtime.srm
+          UR_MEDAL_META_OUT: /tmp/first-medal.txt
+          UR_MEDAL_HEARTBEAT_OUT: /tmp/medal-heartbeat.txt
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/s9x-home/.snes96_snapshots
+          export HOME=/tmp/s9x-home
+
+          set +e
+          timeout --signal=TERM --kill-after=10s 6m             xvfb-run -a /tmp/snes9x-rr/snes9x               -nostdconf -nosound -nojoy               -loadlua /tmp/progression-bot.lua               "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" &
+          bot_pid=$!
+
+          while kill -0 "$bot_pid" 2>/dev/null; do
+            sleep 30
+            if [ -f /tmp/medal-heartbeat.txt ]; then
+              echo "---- progression bot heartbeat ----"
+              cat /tmp/medal-heartbeat.txt
+            else
+              echo "progression bot alive; waiting for initialized main-menu baseline"
+            fi
+          done
+          wait "$bot_pid"
+          rc=$?
+          set -e
+
+          if [ "$rc" -eq 124 ] || [ "$rc" -eq 137 ]; then
+            echo "progression bot exceeded 6-minute wall-clock bound"
+            [ -f /tmp/medal-heartbeat.txt ] && cat /tmp/medal-heartbeat.txt
+          fi
+          test "$rc" -eq 0
+          test "$(stat -c %s /tmp/before-runtime.srm)" = 8192
+          test "$(stat -c %s /tmp/first-medal.srm)" = 8192
+          cat /tmp/first-medal.txt
+
+      - name: Build current reference harness
+        run: |
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+
+      - name: Reload captured SRAM in fresh current reference process
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DUMPS="$RUNNER_TEMP/reload-dumps"
+          mkdir -p "$DUMPS" analysis/generated
+          SNESREF_HEADLESS=1           SNESREF_FAST=1           SNESREF_WRAM_FILL=0           SNESREF_SRAM_IN=/tmp/first-medal.srm           SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/sram-roundtrip.script"           SNESREF_DUMP_DIR="$DUMPS"             "$EXE" "$CORE" "$ROM" | tee /tmp/reload.log
+          RELOAD="$(find "$DUMPS" -maxdepth 1 -type f -name 'sram-roundtrip*sram*' -print -quit)"
+          test -n "$RELOAD"
+          cp "$RELOAD" /tmp/reload.srm
+
+          python3 tools/analyze_progression_sram_acceptance.py             --before /tmp/before-runtime.srm             --after /tmp/first-medal.srm             --reload /tmp/reload.srm             --model analysis/data/progression-model.json             --require-medal             --out analysis/generated/progression-sram-acceptance.json
+
+      - name: Persist compact progression acceptance evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add analysis/generated/progression-sram-acceptance.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Record bot-authored bronze progression acceptance"
+          git fetch origin "$GITHUB_REF_NAME"
+          git rebase "origin/$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"
+
+      - name: Upload progression bot evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: progression-bot-first-medal
+          path: |
+            /tmp/progression-bot.lua
+            /tmp/before-runtime.srm
+            /tmp/first-medal.srm
+            /tmp/first-medal.txt
+            /tmp/medal-heartbeat.txt
+            /tmp/reload.srm
+            /tmp/reload.log
+            analysis/generated/progression-sram-acceptance.json
+          if-no-files-found: warn
+          retention-days: 7

@@ -17,7 +17,7 @@ def line(margin: int, frame: int, pc: int, camx: int, payload: str = PAYLOAD) ->
     desc = f"0:0:0000:0000:0000:0000:,1:0:0000:0000:0000:0000:,2:1:0D80:0433:0020:0081:{payload},3:0:0000:0000:0000:0000:,4:0:0000:0000:0000:0000:,5:0:0000:0000:0000:0000:,6:0:0000:0000:0000:0000:,7:0:0000:0000:0000:0000:"
     return (
         f"WSDMA margin={margin} frame={frame} v=200 cycles=100 pc={pc:06X} "
-        f"camx={camx} camy=10 px=100 py=20 xs=3 ys=0 pitch=0 "
+        f"camx={camx} camy=10 camdx=3 camdy=0 px=100 py=20 xs=3 ys=0 pitch=0 "
         f"contact=1 laps=2 checkpoint=3 finish=4 edgex=384 edgey=0 desc={desc}\n"
     )
 

@@ -341,7 +341,7 @@ Developer history says the unicycle was a detailed 3D model rendered down into t
 
 Therefore the unicycle graphics should be treated as a multidimensional animation system, not merely a sprite sheet.
 
-A major HD Presentation goal is to recover the dimensions and indexing of that corpus so high-resolution assets can be selected from the same original game state that selects the SNES frame.
+A major HD Presentation goal is to recover the dimensions and indexing of that corpus so high-resolution assets can be selected from the same original game state that selects the SNES frame. The first racer family now has a mechanically decoded 30-cell, five-by-six occupancy lattice, exact set-cell → packed-record ordering, and concrete packed-word → renderer-staging transforms. Treat that as the reusable semantic boundary for replacement work; expand to other animation families only when the product needs them.
 
 ### Toolkit capabilities already available
 

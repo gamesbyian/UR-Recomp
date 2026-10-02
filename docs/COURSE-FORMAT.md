@@ -426,6 +426,19 @@ The machine-readable hand-off is `analysis/generated/dragster-presentation-spati
 
 This is the current **presentation-complete** boundary for one representative course. It deliberately does not name every packed control bit, infer gameplay activation, decode graphics assets, or define an editor schema. Generalization should first test the same table boundaries, dimension transform, and packed-word/resource-ownership invariant on a small cross-course sample; do not mechanically census all 45 courses unless a product question demands it.
 
+That small cross-course check is now complete. `tools/analyze_course_presentation_contract_sample.py` samples four distinct header shapes: stream 1 (`256x4`), stream 9 (`128x8`), stream 5 (`32x32`) and stream 6 (`16x64`). All four satisfy the same presentation-facing invariants:
+
+- runtime expansion produces exactly 16,384 coarse 64x64 sectors, hence the same fixed `0x8000`-byte u16 coarse table;
+- the region from `0x800F` to the course resource cursor is an integral number of 32-byte fine records;
+- every coarse-table record reference stays inside that fine-record table;
+- every normal packed surface word resolves to a C000 slot inside the materialized resource span;
+- total A000 materialization is exactly 32 bytes per C000 slot.
+
+The sample spans 32, 736, 607 and 463 fine-record tables respectively, so the Dragster result is not an artifact of its unusually small 32-record second stage. Generated evidence is preserved in `analysis/generated/course-presentation-contract-sample.{json,md}`.
+
+**Promotion:** the two-level coarse-sector → 32-byte fine-record → packed surface word → materialized resource shape is now a reusable course-family presentation contract. Per-course record counts, resource lists and world aspect vary; packed control-bit semantics beyond the proven resource selector remain intentionally unresolved. This is sufficient for Widescreen-facing spatial/resource queries without an editor-complete format.
+
+
 
 ### Attribution correction: interpreter scope entries, not literal store PCs
 

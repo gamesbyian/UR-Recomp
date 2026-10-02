@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Inject a disposable +8 preparation-only camera bias and narrow descriptor trace.
 
-The diagnostic patch temporarily biases WRAM camera X at the entry to the
-representative camera/preparation routine (81:A52F) and restores it immediately
-after the strip builder returns at 81:A59D.  The authoritative camera value is
-therefore unchanged outside that preparation window.
+The diagnostic patch temporarily biases WRAM camera X at a runtime-selected
+instruction inside the representative camera/preparation routine and restores it
+immediately after the strip builder returns at 81:A59D. The workflow first
+discovers a post-camera-update, pre-edge-derivation hook from a stock trace.
 
-Set URRECOMP_WS_MARGIN=8 to enable the bias.  Any other value is the matched
-stock control.
+Set URRECOMP_WS_MARGIN=8 to enable the bias. URRECOMP_WS_HOOK_PC selects the
+16-bit bank-81 hook PC (default 0xA52F). Any other margin is the matched control.
 """
 from __future__ import annotations
 
@@ -22,6 +22,10 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 				static int ur_ws_margin = []() -> int {
 					const char *s = getenv("URRECOMP_WS_MARGIN");
 					return s ? atoi(s) : 0;
+				}();
+				static int ur_ws_hook_pc = []() -> int {
+					const char *s = getenv("URRECOMP_WS_HOOK_PC");
+					return s ? (int)strtol(s, nullptr, 0) : 0xA52F;
 				}();
 				static bool ur_ws_camera_shifted = false;
 				auto ur_ws_w16 = [](uint16 a) -> uint16 {
@@ -64,7 +68,7 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 					fprintf(stderr, "WSPATCH stale-bias-recovered frame=%u\n", (unsigned)ICPU.Frame);
 				}
 
-				if (ur_ws_margin == 8 && Registers.PB == 0x81 && ur_ws_pcw == 0xA52F)
+				if (ur_ws_margin == 8 && Registers.PB == 0x81 && ur_ws_pcw == ur_ws_hook_pc)
 				{
 					ur_ws_set16(0x0419, (uint16)(ur_ws_w16(0x0419) + 8));
 					ur_ws_camera_shifted = true;

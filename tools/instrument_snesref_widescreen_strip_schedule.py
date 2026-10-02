@@ -389,10 +389,17 @@ SNIPPET = r'''			/* UR-Recomp disposable Widescreen strip-scheduling experiment.
 						fprintf(stderr, "%s%u:%04X:",
 							first_col ? "" : ",", i, (unsigned)dest);
 						first_col = false;
-						uint32 base = ((uint32)dest << 1) & 0xffff;
-						for (unsigned j = 0; j < 32; j++)
-							fprintf(stderr, "%02X",
-								(unsigned)Memory.VRAM[(base + j) & 0xffff]);
+						/* VMAIN=$81: increment VRAM word address by 32
+						   after each high-byte write. A 32-byte DMA is therefore
+						   16 little-endian words down one tilemap column. */
+						for (unsigned word = 0; word < 16; word++)
+						{
+							uint16 wa = (uint16)(dest + word * 32);
+							uint32 base = ((uint32)wa << 1) & 0xffff;
+							fprintf(stderr, "%02X%02X",
+								(unsigned)Memory.VRAM[base],
+								(unsigned)Memory.VRAM[(base + 1) & 0xffff]);
+						}
 					}
 					fprintf(stderr, "\n");
 				}

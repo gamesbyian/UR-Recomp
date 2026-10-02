@@ -14,16 +14,28 @@ SPEC.loader.exec_module(MOD)
 class NativeWidescreenAotSeedTests(unittest.TestCase):
     def test_adds_bank1_a52f_emit_root_once(self):
         with tempfile.TemporaryDirectory() as td:
-            p=Path(td)/"symbols.toml"
-            p.write_text('[[func]]\nname = "I_RESET"\naddr = "8000"\nbank = 0\nemit = false\n',encoding="utf-8")
-            self.assertTrue(MOD.ensure_seed(p))
-            first=p.read_text(encoding="utf-8")
-            self.assertIn('name = "WidescreenPrepareWrapper"', first)
-            self.assertIn('addr = "A52F"', first)
-            self.assertIn('bank = 1', first)
-            self.assertIn('emit = true', first)
-            self.assertFalse(MOD.ensure_seed(p))
-            self.assertEqual(first,p.read_text(encoding="utf-8"))
+            cfg=Path(td)
+            symbols=cfg/"symbols.toml"
+            symbols.write_text(
+                '[[func]]\nname = "I_RESET"\naddr = "8000"\nbank = 0\nemit = false\n',
+                encoding="utf-8",
+            )
+            first=MOD.ensure_seed(cfg)
+            self.assertEqual(first, {"symbols": True, "bank01": True})
+            st=symbols.read_text(encoding="utf-8")
+            bank=(cfg/"bank01.cfg").read_text(encoding="utf-8")
+            self.assertIn('name = "WidescreenPrepareWrapper"', st)
+            self.assertIn('addr = "A52F"', st)
+            self.assertIn('bank = 1', st)
+            self.assertIn('emit = true', st)
+            self.assertIn("bank = 1", bank)
+            self.assertIn("tier_down_stubs", bank)
+            self.assertIn("func WidescreenPrepareWrapper A52F", bank)
+
+            second=MOD.ensure_seed(cfg)
+            self.assertEqual(second, {"symbols": False, "bank01": False})
+            self.assertEqual(st,symbols.read_text(encoding="utf-8"))
+            self.assertEqual(bank,(cfg/"bank01.cfg").read_text(encoding="utf-8"))
 
 if __name__=="__main__":
     unittest.main()

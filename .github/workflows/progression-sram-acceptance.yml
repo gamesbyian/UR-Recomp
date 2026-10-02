@@ -1,16 +1,8 @@
 name: Progression SRAM save-load acceptance
 
+# Retained negative/diagnostic route. Run manually when revisiting this hypothesis.
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "analysis/data/progression-model.json"
-      - "tools/analyze_progression_sram_acceptance.py"
-      - "tests/unit/test_analyze_progression_sram_acceptance.py"
-      - "tests/input/progression-sram-acceptance.script"
-      - "reference/imported/tas-bots/dessyreqt-4250-submission.smv"
-      - "tools/extract_smv_input.py"
-      - ".github/workflows/progression-sram-acceptance.yml"
 
 concurrency:
   group: progression-sram-acceptance-${{ github.ref }}

@@ -165,7 +165,7 @@ SECOND_PASS = r'''
     }
 '''.strip("\n")
 
-STAGE_INIT_RE = re.compile(r"(?P<indent>[ \\t]*)uint16 (?P<var>_v\\d+) = 0x433;\\n(?P=indent)cpu_write_y_x\\(cpu, \\(uint16\\)\\((?P=var)\\)\\);")
+STAGE_INIT_RE = re.compile(r"(?P<indent>[ \t]*)uint16 (?P<var>_v\d+) = 0x433;\n(?P=indent)cpu_write_y_x\(cpu, \(uint16\)\((?P=var)\)\);")
 
 AFTER_BUILDER = r'''
     ur_ws_native_after_builder(cpu);
@@ -274,7 +274,7 @@ def apply(gen_dir: Path) -> dict:
     indent = stage_match.group("indent")
     var = stage_match.group("var")
     stage_replacement = (
-        f"{indent}uint16 {var} = ur_ws_native_second_pass ? 0x453 : 0x433;\\n"
+        f"{indent}uint16 {var} = ur_ws_native_second_pass ? 0x453 : 0x433;\n"
         f"{indent}cpu_write_y_x(cpu, (uint16)({var}));"
     )
     wrapper_text = wrapper_text[:stage_match.start()] + stage_replacement + wrapper_text[stage_match.end():]

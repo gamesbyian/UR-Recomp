@@ -38,7 +38,8 @@ jobs:
           m=json.load(open("analysis/generated/racer-presentation-family.json"))
           assert all(f["raster_exports"] for f in m["frames"])
           assert all(p["source_tile"]["source_sha256"] for f in m["frames"] for p in f["pieces"])
-          import os\n          bulk=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-raster-manifest.json")))
+          import os
+          bulk=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-raster-manifest.json")))
           assert bulk["count"] >= 8
           PY
       - name: Download retained ordinary-2P reference
@@ -58,7 +59,8 @@ jobs:
           import json
           fam=json.load(open("analysis/generated/racer-presentation-family.json"))
           frames={f["frame_id_hex"]:f for f in fam["frames"]}
-          import os\n          binding=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-piece-binding.json")))
+          import os
+          binding=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-piece-binding.json")))
           checked=0
           for cp in binding["checkpoints"]:
               for player in cp["players"]:

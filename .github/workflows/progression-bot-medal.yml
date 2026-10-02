@@ -1,17 +1,8 @@
 name: Historical bot bronze progression acceptance
 
+# Retained negative/diagnostic route. Run manually when revisiting this hypothesis.
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - chatgpt/progression-gameplay-acceptance-2026-10-02
-    paths:
-      - ".github/workflows/progression-bot-medal.yml"
-      - "tools/instrument_progression_bot.py"
-      - "tools/patch_historical_snes9x151.py"
-      - "tools/analyze_progression_sram_acceptance.py"
-      - "analysis/data/progression-model.json"
-      - "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
 
 concurrency:
   group: progression-bot-medal-${{ github.ref }}

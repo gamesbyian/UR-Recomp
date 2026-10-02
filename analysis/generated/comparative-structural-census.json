@@ -64,6 +64,10 @@
       "path": "analysis/generated/geometry-precompute-structure-island.json"
     },
     {
+      "id": "geometry-math-helper",
+      "path": "analysis/generated/geometry-math-helper-structure-island.json"
+    },
+    {
       "id": "contact-geometry",
       "path": "analysis/generated/contact-geometry-structure-island.json"
     },
@@ -74,10 +78,6 @@
     {
       "id": "course-sector-gather",
       "path": "analysis/generated/course-sector-gather-structure-island.json"
-    },
-    {
-      "id": "geometry-math-helper",
-      "path": "analysis/generated/geometry-math-helper-structure-island.json"
     }
   ],
   "totals": {

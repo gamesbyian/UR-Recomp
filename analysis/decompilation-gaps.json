@@ -193,7 +193,7 @@
       "summary": "Recovered the 1,108-byte geometry-precompute island between collision resolution and the contact-geometry constructor: a 4-byte long-entry wrapper, two adjacent 64-byte lookup tables, and a 976-byte fully reached precompute body. Both tables are byte-identical across all four ROMs. USA/beta are byte-identical; PAL prototype preserves the structure at shift -32 and Europe at -15. Across the two code regions all 454 aligned opcode positions match and analyzer code/operand roles agree.",
       "priority": "low",
       "next_evidence": "Name individual geometry fields/table semantics only for a concrete collision, course, editor, or recomp implementation need. Comparative structure work should continue with another high-connectivity unresolved frontier."
-    ,
+    },
     {
       "id": "resolved-course-resource-descriptor-structure",
       "kind": "resolved_structural_island",

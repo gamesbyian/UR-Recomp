@@ -114,6 +114,8 @@ The following are **must-do modern product requirements** unless later technical
 
 These requirements should be implemented at the layer that owns them. Do not move timing, ghost, replay, menu or accessibility concerns into the original simulation when host/runtime policy can provide them cleanly.
 
+The first project-owned modern product seam is defined in `MODERN-PRODUCT-LAYER.md`: host profile selection and typed host settings live in an isolated, versioned host-state envelope with an explicit Authentic/Modern policy switch. Authentic mode grants no host-profile, host-setting or modern-command authority. The envelope deliberately contains no WRAM/SRAM, racer-slot, medal, course or simulation state; future pause/restart, autosave, records, ghosts and racer identity should attach through narrow host/runtime interfaces rather than expanding cartridge-era save semantics.
+
 ### Decide when the relevant subsystem is mature
 
 The following are desirable but should be evaluated when the underlying state model, renderer, frontend or course model is sufficiently understood. Do not force them early:

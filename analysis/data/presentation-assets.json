@@ -1192,11 +1192,12 @@
           "source": "tools/analyze_racer_spatial_generalization.py"
         },
         "packed_word_low2": {
-          "renderer_use": "ignored by bounded 83:F190..F290 consumer",
-          "proof": "full word stored to $2A at 83:F20F; only later read at 83:F21D is masked with #$00FC",
-          "producer_semantics": "unresolved",
+          "renderer_use": "source-address page selector in the bounded 83:F190..F290 consumer",
+          "proof": "83:F20F keeps the full word in 16-bit A; XBA then five ASLs maps original low bits1..0 into $1645 bits14..13 before OR #$8000. The separate $2A & $00FC path feeds the DMA source-bank offset.",
+          "source_address_effect": "(low_byte & $03) << 13",
+          "bank_effect": "bits7..2 feed $15A1 via ($00FC >> 2); bit2's shifted address contribution is subsumed by forced $8000",
           "corpus_words": 51629,
-          "source": "tools/analyze_racer_packed_low2.py"
+          "source": "tools/extract_racer_presentation_family.py"
         }
       },
       "piece_semantics": {
@@ -1207,13 +1208,15 @@
           "83:F338..F3C6 and 83:F441..F4CF reshape the header into six-bit masks",
           "83:F1AE initializes the construction mask to $8000 and 83:F1DC..F270 shifts it once per slot",
           "occupied slots read one 16-bit word and increment the selected frame pointer by two bytes",
-          "83:F20F..F227 derives staging values from the packed word high byte and low-byte bits7..2",
-          "83:F20F stores the full word in $2A; the only later $2A read at 83:F21D is immediately masked by AND #$00FC, so packed low-byte bits1..0 do not affect this renderer consumer"
+          "83:F20F..F21A keeps the full packed word live in 16-bit A; XBA followed by five ASLs maps the original high byte to $1645 bits12..5 and packed low bits1..0 to $1645 bits14..13 before OR #$8000",
+          "83:F20F also stores the full word in $2A; 83:F21D masks $2A with #$00FC so low-byte bits7..2 select the $15A1 DMA source-bank offset independently of the address-page bits"
         ],
         "packed_word_fields": {
-          "high_byte": "83:F20F..F21A -> $1645,Y = $8000 | (high_byte << 5)",
+          "high_byte": "83:F20F..F21A -> $1645,Y bits12..5 = high_byte << 5",
           "low_byte_bits_7_2": "83:F21D..F227 -> $15A1,Y = $0027 + ((low_byte & $FC) >> 2)",
-          "low_byte_bits_1_0": "renderer-ignored in the bounded 83:F190..F290 consumer; producer-side meaning remains unresolved"
+          "low_byte_bits_1_0": "83:F20F..F21A -> $1645,Y bits14..13 = (low_byte & $03) << 13",
+          "low_byte_bit_2": "also reaches shifted address bit15 but OR #$8000 already forces that bit; bit2 still participates in the bank calculation via $00FC",
+          "source_address_formula": "$8000 | (high_byte << 5) | ((low_byte & $03) << 13)"
         },
         "corpus_check": {
           "comparable_monotonic_records": 5168,

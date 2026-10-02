@@ -222,7 +222,7 @@ For each failure-driven investigation record:
 - the smallest next discriminator;
 - the condition under which the investigation stops and the probe is rerun.
 
-Representative checkpoint/finish activation is now mechanically separated from presentation and is no longer the default blocker. The highest-value unresolved domain is preparation/streaming and renderer-facing causal closure: use the first tiny-margin failure to decide whether the next work belongs to preparation, render/culling, camera/composition, or UI. Reopen gameplay activation only if a widened probe or a different object family actually changes authoritative simulation.
+Representative checkpoint/finish activation is mechanically separated from presentation and is no longer the default blocker. The representative stock preparation/streaming chain is also mechanically closed: camera demand builds `$03xx` VRAM-strip descriptors and NMI consumes them the same guest frame. The current highest-value unresolved domain is the +8 presentation-state phase seam. Use semantic/event-relative anchors to decide whether a failure belongs to presentation-ID selection, VRAM preparation/content, render/culling, final composition, or UI. Reopen gameplay activation only if a widened probe or a different object family actually changes authoritative simulation.
 
 ## Exit condition
 
@@ -314,3 +314,35 @@ center when supplied the same event-relative guest presentation state. Future
 renderer work should preserve that center before expanding margins. This result
 does not require or justify widening gameplay activation or reopening course
 format archaeology.
+
+
+## Representative camera-strip preparation closure
+
+The reconciled preparation/emission work closes the authentic Dragster scrolling path:
+
+1. `81:A52F` updates camera state from `$04F5/$04F9`;
+2. its camera/window logic derives entering-edge coordinates and split counts;
+3. `81:A59A -> 81:AB88/ACB1` builds up to eight descriptors in the `$0399..$03E7` family;
+4. NMI `80:87E1 -> 82:D197/D19B..D2D0` clears ready flags, programs `$2116/$4302/$4305/$2115`, and triggers DMA through `$420B` to `$2118`.
+
+Run `36966728136` records 681 non-empty build events, 676 non-empty NMI-consume observations and 680 paired build→consume events. Under steady rightward motion, an entering 16-word / 32-byte column is prepared from the settled current-frame camera edge and consumed in that same guest frame. Horizontal destinations form a 32-column VRAM ring and wrap `$0D9F -> $0D80`.
+
+This means the representative stock renderer has **no multi-frame background-prefetch horizon to preserve**. Widescreen preparation work should operate against the known descriptor queue by deliberately scheduling additional/earlier entering strips, after the current presentation-phase divergence is classified. Do not reopen the zero-valued `$0DCD/$0DCF` lists as the primary scrolling transport for this scene.
+
+Evidence: `analysis/generated/camera-dma-preparation-causal-contract-2026-10-02.md`.
+
+## +8 presentation-phase gap after composition tracing
+
+PR #206 refined the earlier x=255 composition boundary with a full-renderer trace that leaves all layers enabled.
+
+The important event-relative ordering is:
+
+- meaningful P2 race state remains equal throughout the retained gap;
+- P2 racer presentation ID first diverges at **`object-tail-141`**;
+- VRAM first diverges at **`object-tail-142`**;
+- OAM does **not** diverge in the retained presentation-gap interval;
+- at the later `object-tail-168` center failure, the traced x=255 inputs `main`, `sub`, `obj`, and color-window right boundary differ, while CGRAM and OAM still match.
+
+Therefore the `object-tail-168` two-pixel authentic-center regression is downstream of an earlier presentation-state phase divergence. The next discriminator should trace why the same meaningful racer state selects/advances a different P2 presentation ID three guest frames earlier under +8, and how that presentation choice reaches VRAM. Do not patch final color composition first merely because that is where the pixel error becomes visible.
+
+The failed layer-mask matrix remains useful negative instrumentation evidence: disabling renderer work changes guest cadence enough to invalidate causal comparison. Future diagnostics must preserve the full rendering workload unless they independently prove event-relative alignment.

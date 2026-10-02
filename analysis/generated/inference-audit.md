@@ -120,3 +120,13 @@ When those lanes land, their new evidence should be normalized and the relevant 
 The course resource cursor can be promoted without another runtime trace. Cross-course geometry tests can use six representatives rather than 45. Resource archaeology can focus on the universal/scaffold IDs, and racer-state mining can use exact regional slot arithmetic as a constraint.
 
 Future runtime experiments from this audit should exist only where two or more models remain compatible with these derived relations.
+
+
+## Post-merge integration — 2026-10-02
+
+The formerly deferred renderer lanes have now landed and are incorporated into planning:
+
+- representative stock preparation is demand-driven and same-frame: camera state feeds the `$03xx` VRAM-strip descriptor queue, which NMI consumes in the same guest frame under steady Dragster motion. Do not search for a hidden multi-frame stock prefetch horizon;
+- the +8 authentic-center pixel regression at `object-tail-168` is downstream of an earlier presentation-only phase difference. Meaningful P2 race state remains equal, while P2 presentation ID first diverges at `object-tail-141` and VRAM at `142`; OAM remains equal throughout the retained gap.
+
+Current next step: trace presentation-ID selection/update timing under the full renderer, then use the known camera-strip queue for any widened earlier/additional preparation experiment.

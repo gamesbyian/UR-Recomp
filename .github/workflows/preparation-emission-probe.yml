@@ -7,12 +7,22 @@ on:
       - chatgpt/preparation-emission-causal-closure-2026-10-02
     paths:
       - ".github/workflows/preparation-emission-probe.yml"
+      - "tools/analyze_preparation_stream_trace.py"
       - "tools/analyze_preparation_emission_probe.py"
+      - "tools/analyze_preparation_ppu_pc_trace.py"
+      - "tools/instrument_snesref_camera_dma_queue_trace.py"
+      - "tools/analyze_camera_dma_queue_trace.py"
+      - "tools/instrument_snesref_ppu_pc_trace.py"
       - "tests/input/preparation-emission-race.script"
   pull_request:
     paths:
       - ".github/workflows/preparation-emission-probe.yml"
+      - "tools/analyze_preparation_stream_trace.py"
       - "tools/analyze_preparation_emission_probe.py"
+      - "tools/analyze_preparation_ppu_pc_trace.py"
+      - "tools/instrument_snesref_camera_dma_queue_trace.py"
+      - "tools/analyze_camera_dma_queue_trace.py"
+      - "tools/instrument_snesref_ppu_pc_trace.py"
       - "tests/input/preparation-emission-race.script"
 
 concurrency:
@@ -25,43 +35,172 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y             build-essential cmake ninja-build pkg-config xvfb libsdl2-dev             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config libsdl2-dev
+
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
-      - name: Build native reference target
+
+      - name: Build repository-owned reference harness
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
-          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
-          ROOT="$RUNNER_TEMP/native"
-          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh"             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"             --dir "$ROOT" --name "Uniracers" --players 2 --yes --no-ci             --no-fetch-boxart --no-recomp-ui --no-netplay --no-github             --no-submodules --generate --no-build
-          PROJ="$ROOT/UniracersSNESRecomp"
-          cmake -S "$PROJ" -B "$PROJ/build"             -DCMAKE_BUILD_TYPE=Release             -DSNESRECOMP_ROOT="$FRAMEWORK"             -DSNESRECOMP_SDL_BACKEND=SDL2             -DSNESRECOMP_SDL3_FETCH=OFF
-          cmake --build "$PROJ/build" -j2
-      - name: Capture stock race onset and match emission
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --tool snes9x-libretro --jobs 2
+          test -x .tools/src/snesrecomp/build-snesref/snesref
+          test -f .tools/src/snes9x-libretro/libretro/snes9x_libretro.so
+
+      - name: Discover first live preparation-list boundary
+        id: discover
         shell: bash
+        continue-on-error: true
         run: |
           set -euo pipefail
-          EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
-          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          DUMPS="$RUNNER_TEMP/preparation-emission-dumps"
+          ROOT="$RUNNER_TEMP/preparation-discovery"
+          DUMPS="$ROOT/dumps"
           mkdir -p "$DUMPS" analysis/generated
-          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy             timeout 180s xvfb-run -a "$EXE" "$ROM"             --script "$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script"             >"$RUNNER_TEMP/preparation-emission.log" 2>&1
-          tail -n 120 "$RUNNER_TEMP/preparation-emission.log"
-          python3 tools/analyze_preparation_emission_probe.py "$DUMPS"             --json-out analysis/generated/preparation-emission-probe.json             --md-out analysis/generated/preparation-emission-probe.md
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+          SNESREF_TRACE_FILE="$ROOT/wram.jsonl" \
+            .tools/src/snesrecomp/build-snesref/snesref \
+            .tools/src/snes9x-libretro/libretro/snes9x_libretro.so \
+            reference/roms/retail/Uniracers_USA.sfc \
+            >"$ROOT/run.log" 2>&1
+          tail -n 100 "$ROOT/run.log"
+          python3 tools/analyze_preparation_stream_trace.py \
+            "$ROOT/wram.jsonl" "$ROOT/run.log" \
+            --json-out analysis/generated/preparation-stream-trace.json \
+            --source-script tests/input/preparation-emission-race.script \
+            --replay-script "$ROOT/replay.script" \
+            --replay-input "$ROOT/replay.input"
+
+      - name: Replay first live boundary with PPU journal
+        if: steps.discover.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/preparation-discovery"
+          DUMPS="$RUNNER_TEMP/preparation-emission-dumps"
+          mkdir -p "$DUMPS"
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$ROOT/replay.script" \
+          SNESREF_INPUT_FILE="$ROOT/replay.input" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            .tools/src/snesrecomp/build-snesref/snesref \
+            .tools/src/snes9x-libretro/libretro/snes9x_libretro.so \
+            reference/roms/retail/Uniracers_USA.sfc \
+            >"$ROOT/replay.log" 2>&1
+          cat "$ROOT/replay.log"
+          python3 tools/analyze_preparation_emission_probe.py "$DUMPS" \
+            --json-out analysis/generated/preparation-emission-probe.json \
+            --md-out analysis/generated/preparation-emission-probe.md
+
+      - name: Instrument camera-driven DMA preparation queue
+        if: always() && steps.discover.outcome != 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 tools/instrument_snesref_camera_dma_queue_trace.py "$CORE/cpuexec.cpp"
+
+      - name: Instrument active CPU-direct VRAM emitter
+        if: always() && steps.discover.outcome != 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 tools/instrument_snesref_ppu_pc_trace.py "$CORE/ppu.cpp"
+          make -C "$CORE/libretro" -j2
+          test -f "$CORE/libretro/snes9x_libretro.so"
+
+      - name: Trace active CPU-direct VRAM emitter
+        if: always() && steps.discover.outcome != 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/preparation-ppu-pc"
+          DUMPS="$ROOT/dumps"
+          mkdir -p "$DUMPS" analysis/generated
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            .tools/src/snesrecomp/build-snesref/snesref \
+            .tools/src/snes9x-libretro/libretro/snes9x_libretro.so \
+            reference/roms/retail/Uniracers_USA.sfc \
+            >"$ROOT/run.log" 2>&1
+          grep 'PPUPCTRACE' "$ROOT/run.log" | tail -n 40 || true
+          python3 tools/analyze_preparation_ppu_pc_trace.py "$ROOT/run.log" \
+            --json-out analysis/generated/preparation-ppu-pc-trace.json \
+            --md-out analysis/generated/preparation-ppu-pc-trace.md
+          python3 tools/analyze_camera_dma_queue_trace.py "$ROOT/run.log" \
+            --json-out analysis/generated/camera-dma-queue-trace.json \
+            --md-out analysis/generated/camera-dma-queue-trace.md
+
+      - name: Assert camera-demand to same-frame DMA contract
+        if: always() && steps.discover.outcome != 'success'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          q=json.loads(Path("analysis/generated/camera-dma-queue-trace.json").read_text())
+          candidates=[
+              p for p in q["pairs"]
+              if p["build_frame"] >= 1005
+              and p["camera_dx"] > 0
+              and p["frame_delta"] == 0
+              and len(p["descriptors"]) == 1
+              and p["descriptors"][0]["slot"] == 2
+              and p["descriptors"][0]["source"] == 0x0433
+              and p["descriptors"][0]["size"] == 0x20
+              and p["descriptors"][0]["vmain"] == 0x81
+              and p["descriptors"][0]["vram"] == 0x0C00 + p["edge_x"]
+          ]
+          if not candidates:
+              raise SystemExit("no same-frame camera-driven horizontal strip DMA contract observed")
+          wrap=next((p for p in candidates if p["edge_x"] == 0x0180 and p["descriptors"][0]["vram"] == 0x0D80),None)
+          if wrap is None:
+              raise SystemExit("camera-driven 32-column VRAM ring wrap was not observed")
+
+          pc=json.loads(Path("analysis/generated/preparation-ppu-pc-trace.json").read_text())
+          writer=next((w for w in pc["writer_counts"] if w["address"] == 0x2116 and w["pc"] == 0x82D276),None)
+          if writer is None or writer["count"] <= 0:
+              raise SystemExit("slot-2 DMA consumer did not reach the proven 82:D276 $2116 write")
+          print("same-frame strip event:", candidates[0])
+          print("ring-wrap event:", wrap)
+          print("82:D276 $2116 writes:", writer["count"])
+          PY
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: preparation-emission-probe
           path: |
+            analysis/generated/preparation-stream-trace.json
             analysis/generated/preparation-emission-probe.json
             analysis/generated/preparation-emission-probe.md
-            ${{ runner.temp }}/preparation-emission.log
-            ${{ runner.temp }}/preparation-emission-dumps/prep-emission-*.wram.bin
-            ${{ runner.temp }}/preparation-emission-dumps/prep-emission-*.ppuw.tsv
+            analysis/generated/preparation-ppu-pc-trace.json
+            analysis/generated/preparation-ppu-pc-trace.md
+            analysis/generated/camera-dma-queue-trace.json
+            analysis/generated/camera-dma-queue-trace.md
+            ${{ runner.temp }}/preparation-discovery/run.log
+            ${{ runner.temp }}/preparation-discovery/replay.log
+            ${{ runner.temp }}/preparation-discovery/wram.jsonl
+            ${{ runner.temp }}/preparation-discovery/replay.script
+            ${{ runner.temp }}/preparation-discovery/replay.input
+            ${{ runner.temp }}/preparation-discovery/dumps/
+            ${{ runner.temp }}/preparation-emission-dumps/
+            ${{ runner.temp }}/preparation-intraframe/
+            ${{ runner.temp }}/preparation-ppu-pc/
           if-no-files-found: warn
           retention-days: 7

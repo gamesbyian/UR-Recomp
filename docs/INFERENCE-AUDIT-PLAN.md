@@ -1,6 +1,6 @@
 # Inference Audit Plan
 
-Status: first audit pass complete; later phases remain evidence-gated
+Status: two-pass audit complete; inference-first admission is now repository policy
 Date: 2026-10-02
 
 ## Purpose
@@ -156,7 +156,7 @@ The runtime fixture should then test an exact predicted logical delta rather tha
 
 ## Phase 6 — renderer/preparation synthesis
 
-After the active preparation/emission lane closes, join:
+The representative preparation/emission lane is now closed. Join:
 
 `course cell/resource → camera/window → preparation queue → VRAM destination → emitted layer/OBJ → framebuffer`
 
@@ -197,7 +197,7 @@ Do not run broad sweeps merely because instrumentation exists.
 4. Build code-semantic graph joins.
 5. Extend presentation-frame differential analysis.
 6. Add progression prediction.
-7. Join course/preparation/render evidence once the active preparation lane lands.
+7. **Completed for representative stock scheduling:** join course/preparation/render evidence using the camera-strip DMA contract. The remaining widening task is an implementation experiment against the known descriptor queue, not further stock-horizon archaeology.
 
 ## First pass closeout — 2026-10-02
 
@@ -206,3 +206,28 @@ The first audit is retained in `analysis/generated/inference-audit.{json,md}`. I
 ## Second pass closeout — 2026-10-02
 
 The second audit is retained in `analysis/generated/inference-audit-second-pass.{json,md}`. It corrects the canonical RNC tour order, derives the 43/45 start-coordinate relation, identifies a three-signal stunt-course signature, expands the persistent P1/P2 interleaving model, rejects global regional-WRAM offsetting, normalizes progression for exact future predictions, and adds a presentation-header mask constraint.
+
+
+## Mandatory consumption rule — 2026-10-02
+
+Before opening a new inference-driven investigation:
+
+1. query the relevant normalized surface in `analysis/data/`;
+2. check `analysis/generated/inference-audit.json` and `inference-audit-second-pass.json` for an existing invariant, prediction, negative result or cheapest falsifier;
+3. use `fixture-corpus.json` to choose a semantic/event-relative fixture before inventing a new absolute-frame comparison;
+4. if the required fact is repeatedly useful but absent from the query layer, extend `tools/build_consolidated_knowledge.py` or add a provenance-bearing normalized dataset before launching a broad trace.
+
+Current high-value inference consequences that must shape pending work:
+
+- course storage order is reconciled and differs from player-facing/manual tour order;
+- the course resource cursor and six fixed-area geometry families are closed;
+- header coordinate pairs are strongly constrained as paired racer spawns at ×16 scale;
+- resources `0x03..0x08` and `0x09..0x0B` are conserved structural bundles across all preserved builds;
+- persistent racer state is strongly interleaved P1/P2 at +2 for many fields;
+- regional WRAM motion uses multiple clusters, not one global offset;
+- the first racer-frame header behaves as a 32-bit occupancy/piece mask;
+- progression acceptance has a normalized medal/tier/checksum oracle;
+- the stock camera-strip preparation path is same-frame and demand-driven;
+- +8 Widescreen now diverges in P2 presentation ID before VRAM and before the later authentic-center pixel regression.
+
+Any new task that ignores one of these constraints should explain why.

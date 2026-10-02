@@ -1817,3 +1817,48 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 **Discriminating test:** no further generic activation archaeology is required before first Widescreen exposure. Reopen only if +8/+16/+24 probes or another object family demonstrate a distinct activation mechanism.
 
 **Propagation:** gameplay object activation/liveness is promoted to sufficient for the representative checkpoint/finish family in `docs/SEMANTIC-SUFFICIENCY.md`; the active queue no longer treats it as the highest unresolved blocker; `docs/WIDESCREEN-RECONNAISSANCE.md` records the invariant that widened presentation must not widen collision/contact activation. The object-activation workflow now asserts both the frame-2789 visibility boundary and frame-2903 behavior boundary.
+
+
+---
+
+### R-2026-10-02-206 — +8 presentation-phase divergence precedes center regression
+
+**Status:** merged / retained  
+**Date:** 2026-10-02  
+**Area:** Widescreen | presentation | renderer
+
+**Observation:** Full-renderer 0/+8 tracing preserves meaningful P2 race state event-relatively but finds the first P2 presentation-ID divergence at `object-tail-141`, followed by the first VRAM divergence at `142`; OAM remains equal throughout the retained presentation-gap interval. The previously retained two-pixel x=255 authentic-center regression at `object-tail-168` therefore occurs downstream of an earlier presentation-state phase difference. At `168`, x=255 main/sub/OBJ composition inputs and the right color-window boundary differ while CGRAM/OAM remain matched.
+
+**Evidence:** merged PR #206; workflow run `36967629874`; `.github/workflows/widescreen-composition-matrix.yml`; `tools/analyze_widescreen_composition_trace.py`; `tools/analyze_widescreen_presentation_phase_gap.py`.
+
+**Interpretation:** Do not patch final composition first. The next causal discriminator is why +8 advances/selects a different P2 presentation ID under otherwise equal meaningful racer state, and how that reaches VRAM. Layer-disabling diagnostics are not causally trustworthy because they perturb guest cadence.
+
+**Next discriminator:** trace the P2 presentation-ID update/selection path around `object-tail-140..142` using full-renderer semantic/event-relative anchors.
+
+### R-2026-10-02-207 — consolidated knowledge layer and two-pass inference audit
+
+**Status:** merged / canonical query layer  
+**Date:** 2026-10-02  
+**Area:** research method | course | state | progression | presentation
+
+**Observation:** Cross-domain evidence is normalized under `analysis/data/`, including course identity/geometry, course resources, state semantics, code correspondence, presentation assets, progression, deterministic fixtures and atomic claims. Two inference passes produced and guarded several exact or high-confidence relations: canonical RNC storage order matches progression-row order; Dessyreqt track IDs equal stream index minus one; the course resource cursor is exactly tied to resource-list length; only six fixed-area geometry families ship; header pair A.x matches historical start X ×1/16 on 43/45 tracks and the paired header coordinates are strongly constrained as racer spawns; conserved resource bundles survive all four preserved builds; persistent racer state shows repeated +2-byte P1/P2 interleaving; regional WRAM relocation is clustered rather than global; racer frame-header popcount equals packed-word count; and progression now has a predictive medal/tier/checksum model.
+
+**Evidence:** merged PR #207; `analysis/data/*.json`; `analysis/generated/inference-audit*.{json,md}`; `docs/INFERENCE-AUDIT-PLAN.md`; `docs/KNOWLEDGE-CONSOLIDATION-PLAN.md`.
+
+**Interpretation:** New research must query normalized evidence before launching broad traces or prose-side reconciliation. Extend the query layer when reusable joins are missing instead of creating another disconnected ledger.
+
+**Next discriminator:** use the retained cheapest falsifiers only where a product-facing question remains open, especially unequal-pair spawn assignment, racer mask-bit→piece mapping, and real medal-changing save/load acceptance.
+
+### R-2026-10-02-203 — representative camera-strip preparation/emission closure
+
+**Status:** reconciled for merge after branch drift  
+**Date:** 2026-10-02  
+**Area:** camera | VRAM preparation | PPU
+
+**Observation:** The representative Dragster scrolling path is demand-driven and strip based. `81:A52F` updates camera state and entering-edge coordinates; `81:AB88/ACB1` builds up to eight `$03xx` DMA descriptors; NMI `82:D19B..D2D0` consumes active descriptors through `$2116` and channel-0 DMA to `$2118`. Run `36966728136` observes 681 non-empty builds, 676 non-empty NMI-consume observations and 680 paired build→consume events. During steady rightward motion, one 16-word / 32-byte column is prepared and consumed in the same guest frame. Horizontal VRAM destinations form a 32-column ring. The older `$0DCD/$0DCF` lists stay zero and are not the active streaming path for this scene.
+
+**Evidence:** recovered PR #203 work; `analysis/generated/camera-dma-preparation-causal-contract-2026-10-02.md`; camera-DMA/PPU trace tools and regression workflow.
+
+**Interpretation:** There is no representative multi-frame stock background-prefetch horizon to reverse engineer. Widescreen preparation should be tested by deliberately scheduling earlier/additional strips against this known queue while preserving authoritative state.
+
+**Next discriminator:** only after the current +8 presentation-ID phase seam is classified, prototype one bounded additional/earlier entering-column schedule and validate event-relative simulation invariance.

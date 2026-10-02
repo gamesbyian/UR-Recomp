@@ -2,9 +2,9 @@
 
 This is the first machine-queryable census for the comparative structure-recovery phase. It aggregates only already-supported boundaries, so the counts below are a **floor**, not a whole-ROM coverage percentage.
 
-- bounded regions: **107** (97 code, 10 data)
-- bounded bytes: **16202** (14929 code-region bytes, 1273 data bytes)
-- analyzer-classified USA opcode bytes inside code regions: **6365**
+- bounded regions: **111** (101 code, 10 data)
+- bounded bytes: **16358** (15085 code-region bytes, 1273 data bytes)
+- analyzer-classified USA opcode bytes inside code regions: **6456**
 - represented USA banks: **81, 82, 83**
 
 | USA range | Kind | Bytes | Source | Region | PAL prototype | Europe retail | Legacy beta |
@@ -109,6 +109,10 @@ This is the first machine-queryable census for the comparative structure-recover
 | `82:B07B..82:B0E5` | code | 107 | racer-oam | post_p2_adjust | 82:B068..82:B0D2 (-19; size 107; sim 0.907) | 82:B07E..82:B0E8 (+3; size 107; sim 0.897) | 82:B07B..82:B0E5 (+0; size 107; sim 1.000) |
 | `82:B0E6..82:B150` | code | 107 | racer-oam | post_p1_adjust | 82:B0D3..82:B13D (-19; size 107; sim 0.907) | 82:B0E9..82:B153 (+3; size 107; sim 0.897) | 82:B0E6..82:B150 (+0; size 107; sim 1.000) |
 | `82:B151..82:B17F` | code | 47 | racer-oam | post_final_flags | 82:B13E..82:B16C (-19; size 47; sim 0.872) | 82:B154..82:B182 (+3; size 47; sim 0.872) | 82:B151..82:B17F (+0; size 47; sim 1.000) |
+| `82:B293..82:B2A8` | code | 22 | course-resource-descriptor | stream_byte_reader | 82:B280..82:B295 (-19; size 22; sim 1.000) | 82:B296..82:B2AB (+3; size 22; sim 1.000) | 82:B293..82:B2A8 (+0; size 22; sim 1.000) |
+| `82:B2A9..82:B2AC` | code | 4 | course-resource-descriptor | descriptor_long_entry | 82:B296..82:B299 (-19; size 4; sim 0.750) | 82:B2AC..82:B2AF (+3; size 4; sim 0.750) | 82:B2A9..82:B2AC (+0; size 4; sim 1.000) |
+| `82:B2AD..82:B2D9` | code | 45 | course-resource-descriptor | descriptor_decode | 82:B29A..82:B2C6 (-19; size 45; sim 1.000) | 82:B2B0..82:B2DC (+3; size 45; sim 1.000) | 82:B2AD..82:B2D9 (+0; size 45; sim 1.000) |
+| `82:B2DA..82:B32E` | code | 85 | course-resource-descriptor | wram_port_copy | 82:B2C7..82:B31B (-19; size 85; sim 0.965) | 82:B2DD..82:B331 (+3; size 85; sim 0.965) | 82:B2DA..82:B32E (+0; size 85; sim 1.000) |
 | `82:E165..82:E1CF` | code | 107 | course-materialization | setup | 82:E101..82:E16B (-100; size 107; sim 0.944) | 82:E12B..82:E195 (-58; size 107; sim 0.944) | 82:E165..82:E1CF (+0; size 107; sim 1.000) |
 | `82:E1D1..82:E213` | code | 67 | course-materialization | resource_record_header | 82:E16D..82:E1AF (-100; size 67; sim 0.896) | 82:E197..82:E1D9 (-58; size 67; sim 0.896) | 82:E1D1..82:E213 (+0; size 67; sim 1.000) |
 | `82:E216..82:E2FF` | code | 234 | course-materialization | dma_row_loop | 82:E1B2..82:E29B (-100; size 234; sim 0.885) | 82:E1DC..82:E2C5 (-58; size 234; sim 0.885) | 82:E216..82:E2FF (+0; size 234; sim 1.000) |

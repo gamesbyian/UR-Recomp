@@ -86,20 +86,39 @@ jobs:
               "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" &
           replay_pid=$!
 
-          # GitHub otherwise sees an opaque silent step. Publish the latest
-          # guest-frame state every 30 seconds and enforce the wall-clock bound.
+          # The historical Lua bridge exits only its Lua thread. Poll the
+          # explicit terminal-status file so success or a guest-frame bound
+          # terminates the emulator wrapper promptly instead of burning the
+          # remainder of the watchdog window.
+          heartbeat_ticks=0
+          terminal_status=""
           while kill -0 "$replay_pid" 2>/dev/null; do
-            sleep 30
-            if [ -f /tmp/medal-heartbeat.txt ]; then
+            sleep 5
+            heartbeat_ticks=$((heartbeat_ticks + 1))
+            if [ -s /tmp/first-medal.txt ]; then
+              terminal_status="$(sed -n 's/^status=//p' /tmp/first-medal.txt | head -1)"
+              echo "---- historical replay terminal status ----"
+              cat /tmp/first-medal.txt
+              kill "$replay_pid" 2>/dev/null || true
+              break
+            fi
+            if [ $((heartbeat_ticks % 6)) -eq 0 ]; then
               echo "---- historical replay heartbeat ----"
-              cat /tmp/medal-heartbeat.txt
-            else
-              echo "historical replay alive; no 10k-frame heartbeat reached yet"
+              if [ -f /tmp/medal-heartbeat.txt ]; then
+                cat /tmp/medal-heartbeat.txt
+              else
+                echo "historical replay alive; no 10k-frame heartbeat reached yet"
+              fi
             fi
           done
           wait "$replay_pid"
           rc=$?
-          if [ "$rc" -eq 124 ] || [ "$rc" -eq 137 ]; then
+          if [ "$terminal_status" = "medal-captured" ]; then
+            rc=0
+          elif [ "$terminal_status" = "no-medal-mutation" ]; then
+            echo "historical replay reached its guest-frame bound without a medal mutation"
+            rc=2
+          elif [ "$rc" -eq 124 ] || [ "$rc" -eq 137 ]; then
             echo "historical replay exceeded 6-minute wall-clock bound"
             [ -f /tmp/medal-heartbeat.txt ] && cat /tmp/medal-heartbeat.txt
           fi
@@ -117,29 +136,79 @@ jobs:
           test "$(stat -c %s /tmp/before-runtime.srm)" = 8192
           test -s /tmp/first-medal.srm
           test "$(stat -c %s /tmp/first-medal.srm)" = 8192
-          cat /tmp/first-medal.txt
-      - name: Validate captured medal and checksum
+          grep -q '^status=medal-captured
+      - name: Build current reference harness
+        run: |
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+
+      - name: Reload medal-bearing SRAM in a fresh reference process
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DUMPS="$RUNNER_TEMP/reload-dumps"
+          mkdir -p "$DUMPS" analysis/generated
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_SRAM_IN=/tmp/first-medal.srm \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/sram-roundtrip.script" \
+          SNESREF_DUMP_DIR="$DUMPS" \
+            "$EXE" "$CORE" "$ROM" | tee /tmp/reload.log
+          RELOAD="$(find "$DUMPS" -maxdepth 1 -type f -name 'sram-roundtrip*sram*' -print -quit)"
+          test -n "$RELOAD"
+          cp "$RELOAD" /tmp/reload.srm
+          python3 tools/analyze_progression_sram_acceptance.py \
+            --before /tmp/before-runtime.srm \
+            --after /tmp/first-medal.srm \
+            --reload /tmp/reload.srm \
+            --model analysis/data/progression-model.json \
+            --require-medal \
+            --out analysis/generated/progression-sram-acceptance.json
+
+      - name: Persist compact medal acceptance evidence
+        run: |
+          set -euo pipefail
+          git add analysis/generated/progression-sram-acceptance.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Record game-authored medal save-load acceptance"
+          git fetch origin "$GITHUB_REF_NAME"
+          git rebase "origin/$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"
+
+      - name: Upload captured evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-first-medal
+          path: |
+            /tmp/historical-smv.json
+            /tmp/before.srm
+            /tmp/before-runtime.srm
+            /tmp/first-medal.srm
+            /tmp/first-medal.txt
+            /tmp/medal-heartbeat.txt
+            /tmp/reload.srm
+            /tmp/reload.log
+            analysis/generated/progression-sram-acceptance.json
+          retention-days: 7
+ /tmp/first-medal.txt
+      - name: Inspect captured candidate
         run: |
           python3 - <<'PY'
           from pathlib import Path
           import hashlib
-          p=Path("/tmp/first-medal.srm")
-          d=p.read_bytes()
-          u16=lambda o:d[o]|(d[o+1]<<8)
-          calc=sum(u16(o) for o in range(0x05E8,0x073C,2))&0xffff
-          stored=u16(0x073C)
-          print("sha256",hashlib.sha256(d).hexdigest())
-          before=Path("/tmp/before-runtime.srm").read_bytes()
-          medal_changes=[
-              (i,before[i],d[i])
-              for i in range(0x069C,0x072C)
-              if before[i] != d[i]
-          ]
-          print("medal_changes",medal_changes)
-          print("pass_flags",list(d[0x1075:0x107A]))
-          print("checksum",stored,calc)
-          assert medal_changes
-          assert stored == calc
+          for name in ("before-runtime.srm", "first-medal.srm"):
+              p=Path("/tmp") / name
+              data=p.read_bytes()
+              if len(data) != 8192:
+                  raise SystemExit(f"{name}: expected 8192 bytes, got {len(data)}")
+              print(name, hashlib.sha256(data).hexdigest())
+          print(Path("/tmp/first-medal.txt").read_text(), end="")
           PY
       - name: Build current reference harness
         run: |

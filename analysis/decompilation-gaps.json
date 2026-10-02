@@ -184,7 +184,7 @@
       "region": "USA 81:9E2A..9FBE and homologs",
       "summary": "Recovered the 405-byte P1/P2 contact-geometry constructor feeding course-surface sampling and collision resolution. USA/beta are identical; PAL prototype stays at -32 and Europe at -15, with all 246 aligned opcodes preserved and zero role disagreements.",
       "priority": "low",
-      "next_evidence": "Name individual contact-geometry inputs/tables only for a concrete collision/editor implementation need. Reconcile the adjacent fifteenth island from PR #159 before selecting the next comparative subsystem."
+      "next_evidence": "Name individual contact-geometry inputs/tables only for a concrete collision/editor implementation need. The adjacent geometry-precompute island is now reconciled; comparative structure work should move to another unresolved frontier."
     },
     {
       "id": "resolved-geometry-precompute-structure",

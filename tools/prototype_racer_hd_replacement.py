@@ -85,6 +85,15 @@ def scale2x_rgba(rgba: bytes, width: int, height: int) -> bytes:
     return flatten(out)
 
 
+def lock_alpha(candidate: bytes, reference: bytes) -> bytes:
+    if len(candidate) != len(reference):
+        raise ValueError("alpha lock requires equal-sized RGBA buffers")
+    out = bytearray(candidate)
+    for i in range(3, len(out), 4):
+        out[i] = reference[i]
+    return bytes(out)
+
+
 def flip_rgba(rgba: bytes, width: int, height: int, hflip: bool, vflip: bool) -> bytes:
     src = pixels(rgba, width, height)
     ys = range(height - 1, -1, -1) if vflip else range(height)
@@ -164,6 +173,11 @@ def build_remastered_candidate(stock_rgba: bytes, entry: dict) -> tuple[bytes, i
     expected_scale = int(cfg["density_scale"])
     if width != W * expected_scale or height != H * expected_scale:
         raise ValueError("candidate density scale does not match generator passes")
+    # Keep the stock transparency footprint exact at HD density. Scale2x may
+    # otherwise grow opaque pixels into neighboring transparent source cells,
+    # which would move the gameplay-facing silhouette/contact edge.
+    alpha_reference = nearest_rgba(stock_rgba, W, H, expected_scale)
+    out = lock_alpha(out, alpha_reference)
     return out, width, height
 
 

@@ -47,7 +47,14 @@ jobs:
           assert d["claims"]["version_string"]["starts_with_ASJIver3_30"]
           print("version:", d["claims"]["version_string"]["decoded"])
           print("build-date strings:", d["claims"]["build_date_area"]["window"]["ascii_runs"])
-          print("combo-window sha256:", d["claims"]["unused_combo_message_set_9"]["window"]["sha256"])
+          combo=d["claims"]["unused_combo_message_set_9"]
+          assert combo["reported_block_is_ninth_fixed_stride_set"]
+          assert combo["all_nine_sets_fixed_width_printable_ascii"]
+          assert combo["sets"][-1]["offset"] == 0x0BD679
+          print("combo set 9:", combo["sets"][-1]["messages"])
+          print("combo set 9 sha256:", combo["sets"][-1]["sha256"])
+          print("combo set 9 16-bit pointer occurrences:", combo["set_9_16bit_pointer_occurrences"])
+          print("combo set 9 24-bit pointer occurrences:", combo["set_9_24bit_pointer_occurrences"])
           PY
 
       - name: Persist reconciliation evidence

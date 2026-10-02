@@ -238,7 +238,7 @@ The current smoke proves:
 - a real presented frame can be captured;
 - frame 300 has been visually identified as the coherent stock title screen.
 
-Deterministic menu navigation and playable-race bring-up are complete. Broad first-divergence archaeology is no longer the active target: event-relative race fidelity is strong across the representative 1P/2P/VS matrix, and pre-race absolute-frame seams are treated as cadence/alignment leads unless semantically anchored state disagrees. The active product-facing execution target is the Widescreen presentation-phase seam plus the remaining real progression-changing save/load acceptance.
+Deterministic menu navigation and playable-race bring-up are complete. Broad first-divergence archaeology is no longer the active target: event-relative race fidelity is strong across the representative 1P/2P/VS matrix, and pre-race absolute-frame seams are treated as cadence/alignment leads unless semantically anchored state disagrees. The active product-facing execution target is the Widescreen presentation-phase seam plus the remaining real progression-changing save/load acceptance. In the current +8 evidence, meaningful P2 race state remains equal while P2 presentation ID first diverges at `object-tail-141` and VRAM at `142`; the later two-pixel authentic-center regression at `168` is downstream and should not be treated as the root cause.
 
 ### Four-ROM differential corpus
 

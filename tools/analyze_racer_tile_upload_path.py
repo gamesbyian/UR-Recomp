@@ -22,6 +22,12 @@ if str(TOOLS) not in sys.path:
 
 from compare_europe_usa_snes2asm_homologs import cpu_to_offset, seed_entries, trace
 from extract_racer_presentation_family import lorom_offset
+from analyze_racer_piece_render_binding import (
+    decode_obsel,
+    decode_oam_slot,
+    object_tile_number,
+    object_tile_vram_byte_address,
+)
 
 RANGES = (
     ("race_render_body", "83:F0BB", "83:F2BA"),
@@ -162,10 +168,33 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
     for wram_path in sorted(dump_dir.glob("*.wram.bin")):
         tag = wram_path.name[:-9]
         vram_path = dump_dir / f"{tag}.vram.bin"
-        if not vram_path.exists():
+        oam_path = dump_dir / f"{tag}.oam.bin"
+        regs_path = dump_dir / f"{tag}.regs.json"
+        if not (vram_path.exists() and oam_path.exists() and regs_path.exists()):
             continue
         wram = wram_path.read_bytes()
         vram = vram_path.read_bytes()
+        oam = oam_path.read_bytes()
+        regs = json.loads(regs_path.read_text(encoding="utf-8"))
+        obsel = decode_obsel(int(regs["obsel"]))
+        oam_slots = [decode_oam_slot(oam, slot, obsel) for slot in (96, 97, 98, 99)]
+        object_destinations = {}
+        for slot in oam_slots:
+            if slot["size_pixels"] != [64, 64]:
+                continue
+            for gy in range(8):
+                for gx in range(8):
+                    tile = object_tile_number(slot["tile"], gx, gy)
+                    byte_addr = object_tile_vram_byte_address(obsel, slot, tile)
+                    object_destinations.setdefault(byte_addr // 2, []).append({
+                        "oam_slot": slot["slot"],
+                        "grid_x": gx,
+                        "grid_y": gy,
+                        "tile": f"0x{tile:02X}",
+                        "hflip": slot["hflip"],
+                        "vflip": slot["vflip"],
+                        "palette_number": slot["palette_number"],
+                    })
         if len(wram) < 0x1800 or len(vram) < 0x10000:
             continue
         consumer = "a" if wram[0x12EB] == 0 else "b"
@@ -207,11 +236,21 @@ def runtime_staging_checks(rom: bytes, dump_dir: Path | None) -> list[dict]:
                 "effective_vram_word": f"0x{effective:04X}",
                 "vram_byte_offset": f"0x{vram_off:04X}",
                 "source_equals_vram": same,
+                "object_tiles": object_destinations.get(effective & 0x7FFF, []),
             })
         out.append({
             "checkpoint": tag,
             "consumer": consumer,
             "mode_0300": f"0x{mode_0300:04X}",
+            "composition_state": {
+                "p1_current_id": f"0x{u16(wram, 0x0FE9):04X}",
+                "p2_current_id": f"0x{u16(wram, 0x0FEB):04X}",
+                "p1_companion_id": f"0x{u16(wram, 0x0D3F):04X}",
+                "p2_companion_id": f"0x{u16(wram, 0x0D41):04X}",
+                "p1_selector_0c83": f"0x{u16(wram, 0x0C83):04X}",
+                "p2_selector_0c85": f"0x{u16(wram, 0x0C85):04X}",
+            },
+            "racer_object_slots": oam_slots,
             "valid_staging_entries": valid,
             "exact_source_vram_matches": exact,
             "entries": rows,
@@ -258,10 +297,16 @@ def main() -> int:
     if report["runtime_staging_checks"]:
         md += ["## Retained runtime staging -> VRAM byte checks", ""]
         for cp in report["runtime_staging_checks"]:
+            state = cp["composition_state"]
+            bound = sum(bool(e["object_tiles"]) for e in cp["entries"])
             md.append(
                 f"- {cp['checkpoint']}: consumer {cp['consumer']}, "
                 f"{cp['exact_source_vram_matches']}/{cp['valid_staging_entries']} "
-                "live staging entries match the programmed VRAM destination byte-for-byte."
+                "live staging entries match the programmed VRAM destination byte-for-byte; "
+                f"{bound} staging entries bind to retained racer OAM tiles; "
+                f"IDs {state['p1_current_id']}/{state['p1_companion_id']} and "
+                f"{state['p2_current_id']}/{state['p2_companion_id']}, "
+                f"selectors {state['p1_selector_0c83']}/{state['p2_selector_0c85']}."
             )
         md.append("")
 

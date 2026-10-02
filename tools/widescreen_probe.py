@@ -15,8 +15,8 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_POLICY = ROOT / "analysis" / "widescreen-policy.yml"
 
-_LIST_RE = re.compile(r"^  - (.+)$")
-_ID_RE = re.compile(r"^  - id: (.+)$")
+_LIST_RE = re.compile(r"^\\s+- (.+)$")
+_ID_RE = re.compile(r"^\\s+- id: (.+)$")
 _MARGINS_RE = re.compile(r"^  source_pixel_margins: \[(.*)\]$")
 
 

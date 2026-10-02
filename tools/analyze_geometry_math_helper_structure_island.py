@@ -96,7 +96,7 @@ def render(r):
   lines.append(f"| {x['name']} | {x['size']} | {c('pal-prototype-1994-11-29')} | {c('europe-retail')} | {c('legacy-beta')} |")
  lines+=["","## Accepted callers",""]
  for x in r["known_callers"]: lines.append(f"- {x['callsite']} from {x['source']}")
- lines.append("")
+ lines += ["", "The 79-byte body is byte-identical across all four preserved ROMs. Only the 4-byte long-entry wrapper call operand relocates with the surrounding bank-81 layout.", ""]
  return "\n".join(lines)
 
 def main():

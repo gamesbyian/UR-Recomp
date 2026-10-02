@@ -1,0 +1,19 @@
+name: E580 race-loop control probe
+on:
+  push:
+    branches:
+      - chatgpt/e580-race-loop-control-2026-10-01
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m unittest tests.unit.test_analyze_race_loop_e580_control_structure_island -v
+      - run: python3 tools/analyze_race_loop_e580_control_structure_island.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e580-race-loop-control-island
+          path: |
+            analysis/generated/race-loop-e580-control-structure-island.json
+            analysis/generated/race-loop-e580-control-structure-island.md
+          if-no-files-found: error

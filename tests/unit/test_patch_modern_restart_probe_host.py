@@ -30,10 +30,13 @@ static const SnesDesktopHostGame kGameHost = {
         self.assertIn("RtlRollbackSaveToMemory", patched)
         self.assertIn("RtlRollbackSnapshotBound", patched)
         self.assertIn("RtlRollbackLoadFromMemory", patched)
+        self.assertIn('#include "netplay/snes_state_digest.h"', patched)
+        self.assertIn("snes_state_digest_parts", patched)
+        self.assertIn("snes_state_digest_first_diff", patched)
         self.assertNotIn(".before_run_frame", patched)
         self.assertIn(".after_run_frame", patched)
-        self.assertIn("UR_RESTART_PROBE %s replay_equal=%d window=%u", patched)
-        self.assertIn('ok ? "PASS" : "FAIL"', patched)
+        self.assertIn("UR_RESTART_PROBE PASS replay_equal=1 window=%u", patched)
+        self.assertIn("UR_RESTART_PROBE FAIL replay_equal=0 window=%u", patched)
         self.assertNotIn(r";\\nstatic", patched)
 
     def test_idempotent(self):

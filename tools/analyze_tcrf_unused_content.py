@@ -120,6 +120,110 @@ def decode_indexed_png(path: Path) -> tuple[dict, list[list[int]]]:
     return meta, rows
 
 
+def decode_snes_4bpp_tile(tile: bytes) -> list[list[int]]:
+    if len(tile) != 32:
+        raise ValueError("SNES 4bpp tile must be 32 bytes")
+    rows: list[list[int]] = []
+    for y in range(8):
+        p0, p1 = tile[y * 2:y * 2 + 2]
+        p2, p3 = tile[16 + y * 2:16 + y * 2 + 2]
+        row = []
+        for x in range(8):
+            bit = 7 - x
+            row.append(
+                ((p0 >> bit) & 1)
+                | (((p1 >> bit) & 1) << 1)
+                | (((p2 >> bit) & 1) << 2)
+                | (((p3 >> bit) & 1) << 3)
+            )
+        rows.append(row)
+    return rows
+
+
+def _flip_tile(pixels: list[list[int]], h: bool, v: bool) -> list[list[int]]:
+    rows = pixels[::-1] if v else pixels
+    if h:
+        return [row[::-1] for row in rows]
+    return [list(row) for row in rows]
+
+
+def _canonical_color_signature(pixels: list[list[int]]) -> tuple[int, ...]:
+    mapping: dict[int, int] = {}
+    next_value = 0
+    out: list[int] = []
+    for row in pixels:
+        for value in row:
+            if value not in mapping:
+                mapping[value] = next_value
+                next_value += 1
+            out.append(mapping[value])
+    return tuple(out)
+
+
+def _palette_mapping_for_pair(
+    source: list[list[int]], target: list[list[int]]
+) -> dict[int, int] | None:
+    forward: dict[int, int] = {}
+    reverse: dict[int, int] = {}
+    for srow, trow in zip(source, target):
+        for src, dst in zip(srow, trow):
+            old = forward.get(src)
+            if old is not None and old != dst:
+                return None
+            old_rev = reverse.get(dst)
+            if old_rev is not None and old_rev != src:
+                return None
+            forward[src] = dst
+            reverse[dst] = src
+    return forward
+
+
+def _palette_invariant_tile_matches(rom: bytes, encoded: bytes) -> dict:
+    rom_index: dict[tuple[int, ...], list[tuple[int, list[list[int]]]]] = {}
+    for offset in range(0, len(rom) - 31, 32):
+        pixels = decode_snes_4bpp_tile(rom[offset:offset + 32])
+        sig = _canonical_color_signature(pixels)
+        rom_index.setdefault(sig, []).append((offset, pixels))
+
+    tiles = [encoded[i:i + 32] for i in range(0, len(encoded), 32)]
+    rows = []
+    for tile_index, tile in enumerate(tiles):
+        pixels = decode_snes_4bpp_tile(tile)
+        variants = []
+        for label, h, v in (("none", False, False), ("h", True, False), ("v", False, True), ("hv", True, True)):
+            oriented = _flip_tile(pixels, h, v)
+            sig = _canonical_color_signature(oriented)
+            matches = rom_index.get(sig, [])
+            samples = []
+            for offset, target in matches[:8]:
+                mapping = _palette_mapping_for_pair(oriented, target)
+                samples.append({
+                    "rom_offset": offset,
+                    "palette_mapping": {str(k): value for k, value in sorted((mapping or {}).items())},
+                })
+            variants.append({
+                "orientation": label,
+                "match_count": len(matches),
+                "samples": samples,
+            })
+        rows.append({
+            "tile_index": tile_index,
+            "source_color_count": len({v for row in pixels for v in row}),
+            "variants": variants,
+        })
+    return {
+        "tiles_with_palette_invariant_match": sum(
+            any(v["match_count"] for v in row["variants"]) for row in rows
+        ),
+        "tiles_with_nontrivial_palette_invariant_match": sum(
+            row["source_color_count"] >= 3
+            and any(v["match_count"] for v in row["variants"])
+            for row in rows
+        ),
+        "per_tile": rows,
+    }
+
+
 def _tile_stream_analysis(rom: bytes, encoded: bytes, tile_columns: int, tile_rows: int) -> dict:
     tiles = [encoded[i:i + 32] for i in range(0, len(encoded), 32)]
     hit_lists: list[list[int]] = []
@@ -164,6 +268,7 @@ def _tile_stream_analysis(rom: bytes, encoded: bytes, tile_columns: int, tile_ro
         "row_major_longest_contiguous_run": longest_run(row_order),
         "column_major_exact_rom_occurrences": all_occurrences(rom, column_stream),
         "column_major_longest_contiguous_run": longest_run(column_order),
+        "palette_invariant": _palette_invariant_tile_matches(rom, encoded),
     }
 
 

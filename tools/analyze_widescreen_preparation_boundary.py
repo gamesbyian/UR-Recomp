@@ -10,7 +10,10 @@ from pathlib import Path
 
 RX = re.compile(
     r"WSBND frame=(?P<frame>\d+) v=(?P<v>\d+) cycles=(?P<cycles>-?\d+) "
-    r"pc=(?P<pc>[0-9A-Fa-f]{6}) camx=(?P<camx>\d+) camy=(?P<camy>\d+) "
+    r"pc=(?P<pc>[0-9A-Fa-f]{6}) op=(?P<op>[0-9A-Fa-f]{2}) "
+    r"a=(?P<a>[0-9A-Fa-f]{4}) x=(?P<x>[0-9A-Fa-f]{4}) y=(?P<y>[0-9A-Fa-f]{4}) "
+    r"d=(?P<d>[0-9A-Fa-f]{4}) p=(?P<p>[0-9A-Fa-f]{4}) "
+    r"camx=(?P<camx>\d+) camy=(?P<camy>\d+) "
     r"camdx=(?P<camdx>-?\d+) camdy=(?P<camdy>-?\d+) "
     r"edgex=(?P<edgex>\d+) edgex2=(?P<edgex2>\d+) edgey=(?P<edgey>\d+) edgey2=(?P<edgey2>\d+) "
     r"cnt=(?P<c0>\d+),(?P<c1>\d+),(?P<c2>\d+),(?P<c3>\d+)"
@@ -25,7 +28,8 @@ def parse(path: Path) -> list[dict]:
     # literal "\\n" separators instead of physical newlines.
     for m in RX.finditer(text):
         g=m.groupdict()
-        row={k:int(v,16) if k=="pc" else int(v) for k,v in g.items()}
+        hex_keys={"pc","op","a","x","y","d","p"}
+        row={k:int(v,16) if k in hex_keys else int(v) for k,v in g.items()}
         rows.append(row)
     if not rows:
         raise SystemExit("no WSBND observations")
@@ -66,6 +70,13 @@ def analyze(rows: list[dict]) -> dict:
             "candidate_hook_pc_hex":f"{hook['pc']:06X}",
             "camera_x_after_update":hook["camx"],
             "camera_dx":hook["camdx"],
+            "hook_opcode":hook["op"],
+            "hook_opcode_hex":f"{hook['op']:02X}",
+            "hook_a":hook["a"],
+            "hook_x":hook["x"],
+            "hook_y":hook["y"],
+            "a_equals_camera_x":hook["a"] == hook["camx"],
+            "a_minus_camera_x":(hook["a"] - hook["camx"]) & 0xffff,
             "first_edge_change_pc":first_edge["pc"],
             "first_edge_change_pc_hex":f"{first_edge['pc']:06X}",
             "edge_state_before":baseline,
@@ -75,12 +86,19 @@ def analyze(rows: list[dict]) -> dict:
 
     stable={}
     for c in candidates:
-        key=(c["candidate_hook_pc"],c["first_edge_change_pc"],c["later_camera_x_change"])
+        key=(
+            c["candidate_hook_pc"],
+            c["first_edge_change_pc"],
+            c["later_camera_x_change"],
+            c["hook_opcode"],
+            c["a_equals_camera_x"],
+            c["a_minus_camera_x"],
+        )
         stable[key]=stable.get(key,0)+1
     ranked=sorted(stable.items(), key=lambda kv:(-kv[1],kv[0]))
     best=None
     if ranked:
-        (hook,edge,later),count=ranked[0]
+        (hook,edge,later,opcode,a_eq,a_delta),count=ranked[0]
         best={
             "candidate_hook_pc":hook,
             "candidate_hook_pc_hex":f"{hook:06X}",
@@ -88,6 +106,10 @@ def analyze(rows: list[dict]) -> dict:
             "first_edge_change_pc_hex":f"{edge:06X}",
             "supporting_frames":count,
             "later_camera_x_change":later,
+            "hook_opcode":opcode,
+            "hook_opcode_hex":f"{opcode:02X}",
+            "a_equals_camera_x":a_eq,
+            "a_minus_camera_x":a_delta,
         }
     return {
         "schema_version":1,
@@ -111,6 +133,9 @@ def main() -> int:
             f"- candidate post-camera hook: **{best['candidate_hook_pc_hex']}**",
             f"- first subsequent edge/count change: **{best['first_edge_change_pc_hex']}**",
             f"- supporting moving frames: **{best['supporting_frames']}**",
+            f"- hook opcode: **{best['hook_opcode_hex']}**",
+            f"- A equals camera X at hook: **{best['a_equals_camera_x']}**",
+            f"- A-camera delta: **{best['a_minus_camera_x']}**",
             f"- later camera-X change after hook: **{best['later_camera_x_change']}**",
             "",
         ]

@@ -44,6 +44,23 @@ class UnusedAudioTraceVerifierTests(unittest.TestCase):
         report = MODULE.verify(rom, {"events": events}, 0x3B)
         self.assertFalse(report["exact_body_found"])
 
+    def test_counter_segments_split_on_counter_discontinuity(self):
+        events = [
+            {"address": 0x2143, "value": 0x10},
+            {"address": 0x2142, "value": 0xFE},
+            {"address": 0x2143, "value": 0x11},
+            {"address": 0x2142, "value": 0xFF},
+            {"address": 0x2143, "value": 0x12},
+            {"address": 0x2142, "value": 0x00},
+            {"address": 0x2142, "value": 0x7A},
+            {"address": 0x2143, "value": 0x20},
+            {"address": 0x2142, "value": 0x80},
+        ]
+        segments, anomalies = MODULE.counter_segments({"events": events})
+        self.assertEqual(segments, [bytes([0x10, 0x11, 0x12]), bytes([0x20])])
+        self.assertEqual(len(anomalies), 1)
+
+
 
 if __name__ == "__main__":
     unittest.main()

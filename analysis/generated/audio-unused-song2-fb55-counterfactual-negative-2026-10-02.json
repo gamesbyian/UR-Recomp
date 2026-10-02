@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "purpose": "Retain the failed one-byte Unused Song 2 reconstruction using selector 0x3D with race-family package 03:FB55.",
+  "source_run": {
+    "workflow": "Counterfactual Unused Song 2 APU trace",
+    "run_id": 37067407565,
+    "artifact_id": 11252648937,
+    "head_sha": "9502ff14129dd0a8b4f8fff49a626abe55811f2b"
+  },
+  "patch": {
+    "changed_byte_count": 1,
+    "ldx_file_offset": "0x01CA60",
+    "patched_file_offset": "0x01CA61",
+    "from_selector": "0x3E",
+    "to_selector": "0x3D",
+    "package_seed": "0xFB55",
+    "input_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "output_sha256": "c1101d76048fe4e560f695ca5926d9aac9858bae39ab5495419ea6a891cdd693"
+  },
+  "trace": {
+    "event_count": 6691,
+    "race_active_frame": 984,
+    "frames_with_writes": 6,
+    "port_2143_bytes": 3344,
+    "counter_segment_lengths": [
+      767,
+      41,
+      2120,
+      416
+    ],
+    "counter_anomaly_count": 3
+  },
+  "expected_unused_song_2": {
+    "selector": "0x3D",
+    "body_length": 2532,
+    "body_sha256": "36400ca88adcfac03cb4dd0391ff4bce3a1688364f64394dcf84c3361704ae15",
+    "framed_length": 2536,
+    "framed_sha256": "8c28b93d0f51aae758d93030bf493c362b98d2bc052f09f7e2ab299ab452461a"
+  },
+  "closest_length_candidate": {
+    "segments": [
+      2,
+      3
+    ],
+    "length": 2536,
+    "sha256": "13a35834e583963b3bcddddffa155fadc0f9c22d9a84b76d74748a4e9f7bec92",
+    "framed_mismatch_count": 2525,
+    "framed_match_count": 11,
+    "framed_match_fraction": 0.004337539432176656,
+    "same_prefix_length": 0,
+    "same_suffix_length": 0
+  },
+  "conclusion": {
+    "status": "negative",
+    "statement": "Replacing reachable selector 0x3E with unused selector 0x3D while retaining package table 03:FB55 does not reproduce the preserved Unused Song 2 record on the observed APU transfer path.",
+    "what_it_rules_out": [
+      "A one-byte selector substitution into the ordinary 0x3E + 03:FB55 setup/package pair as a sufficient reconstruction of preserved Unused Song 2."
+    ],
+    "what_it_does_not_rule_out": [
+      "03:FB55 contributing reusable package/sample state to Unused Song 2.",
+      "A different dormant setup wrapper, preloaded APU state, additional package sequencing, or another control parameter being required alongside selector 0x3D."
+    ]
+  }
+}

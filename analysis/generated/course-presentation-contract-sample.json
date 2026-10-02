@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "sample_policy": "one representative from four distinct header shapes; stop before corpus-wide expansion",
+  "sample_indices": [
+    1,
+    9,
+    5,
+    6
+  ],
+  "courses": [
+    {
+      "index": 1,
+      "label": "Dragster baseline",
+      "header_dims": [
+        256,
+        4
+      ],
+      "coarse_grid": [
+        1024,
+        16
+      ],
+      "coarse_entry_count": 16384,
+      "resource_list_offset": 33807,
+      "fine_record_bytes": 1024,
+      "fine_record_count": 32,
+      "used_record_id_min": 0,
+      "used_record_id_max": 31,
+      "used_record_id_count": 32,
+      "resource_count": 6,
+      "c000_total": 20,
+      "a000_total": 640,
+      "normal_surface_word_count": 116,
+      "invalid_surface_slots": [],
+      "checks": {
+        "header_product_1024": true,
+        "runtime_coarse_entries_16384": true,
+        "coarse_table_exactly_0x8000": true,
+        "fine_region_32_byte_aligned": true,
+        "coarse_record_refs_in_range": true,
+        "normal_surface_slots_in_materialized_range": true,
+        "a000_is_32_bytes_per_c000_slot": true
+      }
+    },
+    {
+      "index": 9,
+      "label": "128x8 race",
+      "header_dims": [
+        128,
+        8
+      ],
+      "coarse_grid": [
+        512,
+        32
+      ],
+      "coarse_entry_count": 16384,
+      "resource_list_offset": 56335,
+      "fine_record_bytes": 23552,
+      "fine_record_count": 736,
+      "used_record_id_min": 0,
+      "used_record_id_max": 735,
+      "used_record_id_count": 736,
+      "resource_count": 35,
+      "c000_total": 216,
+      "a000_total": 6912,
+      "normal_surface_word_count": 3337,
+      "invalid_surface_slots": [],
+      "checks": {
+        "header_product_1024": true,
+        "runtime_coarse_entries_16384": true,
+        "coarse_table_exactly_0x8000": true,
+        "fine_region_32_byte_aligned": true,
+        "coarse_record_refs_in_range": true,
+        "normal_surface_slots_in_materialized_range": true,
+        "a000_is_32_bytes_per_c000_slot": true
+      }
+    },
+    {
+      "index": 5,
+      "label": "32x32 circuit",
+      "header_dims": [
+        32,
+        32
+      ],
+      "coarse_grid": [
+        128,
+        128
+      ],
+      "coarse_entry_count": 16384,
+      "resource_list_offset": 52207,
+      "fine_record_bytes": 19424,
+      "fine_record_count": 607,
+      "used_record_id_min": 0,
+      "used_record_id_max": 606,
+      "used_record_id_count": 607,
+      "resource_count": 25,
+      "c000_total": 199,
+      "a000_total": 6368,
+      "normal_surface_word_count": 2622,
+      "invalid_surface_slots": [],
+      "checks": {
+        "header_product_1024": true,
+        "runtime_coarse_entries_16384": true,
+        "coarse_table_exactly_0x8000": true,
+        "fine_region_32_byte_aligned": true,
+        "coarse_record_refs_in_range": true,
+        "normal_surface_slots_in_materialized_range": true,
+        "a000_is_32_bytes_per_c000_slot": true
+      }
+    },
+    {
+      "index": 6,
+      "label": "16x64 race",
+      "header_dims": [
+        16,
+        64
+      ],
+      "coarse_grid": [
+        64,
+        256
+      ],
+      "coarse_entry_count": 16384,
+      "resource_list_offset": 47599,
+      "fine_record_bytes": 14816,
+      "fine_record_count": 463,
+      "used_record_id_min": 0,
+      "used_record_id_max": 462,
+      "used_record_id_count": 463,
+      "resource_count": 18,
+      "c000_total": 144,
+      "a000_total": 4608,
+      "normal_surface_word_count": 2130,
+      "invalid_surface_slots": [],
+      "checks": {
+        "header_product_1024": true,
+        "runtime_coarse_entries_16384": true,
+        "coarse_table_exactly_0x8000": true,
+        "fine_region_32_byte_aligned": true,
+        "coarse_record_refs_in_range": true,
+        "normal_surface_slots_in_materialized_range": true,
+        "a000_is_32_bytes_per_c000_slot": true
+      }
+    }
+  ],
+  "all_checks_pass": true
+}

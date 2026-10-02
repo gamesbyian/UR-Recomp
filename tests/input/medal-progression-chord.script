@@ -1,12 +1,9 @@
-# Stock medal-progression acceptance via retail controller shortcut.
-# Historical controller input is truncated at the known first race-results entry.
-# The stock results routine reads $4218 and branches directly to its ordinary
-# medal writer when P1 input is $2050 = Select + X + R.
-wait 2840
+# Stock medal-progression acceptance via retail Select+X+R shortcut.
+# Historical input is truncated at entry to the one-player PICK_YOUR_UNI screen.
+# Static caller recovery places the shortcut poll at 80:BC62 inside this flow.
+wait 456
 dump medal-chord-before
-wait 34
-dump medal-chord-results
-press select+x+r 8
+press select+x+r 24
 wait 20
 dump medal-chord-after
 quit

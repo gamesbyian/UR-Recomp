@@ -29,9 +29,10 @@ static const SnesDesktopHostGame kGameHost = {
         self.assertIn("g_ram[0x0313] == 1", patched)
         self.assertIn("RtlSaveSnapshotToMemory", patched)
         self.assertIn("RtlLoadSnapshotFromMemory", patched)
-        self.assertIn(".before_run_frame", patched)
+        self.assertNotIn(".before_run_frame", patched)
         self.assertIn(".after_run_frame", patched)
-        self.assertIn("UR_RESTART_PROBE PASS", patched)
+        self.assertIn("UR_RESTART_PROBE %s replay_equal=%d window=%u", patched)
+        self.assertIn('ok ? "PASS" : "FAIL"', patched)
 
     def test_idempotent(self):
         source = """#include "host_main.h"

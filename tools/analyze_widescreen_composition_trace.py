@@ -12,19 +12,24 @@ LINE_RE = re.compile(r"WS_EDGE (.*)")
 KV_RE = re.compile(r"(\w+)=(-?\w+)")
 
 
-def read_trace(path: Path) -> dict[tuple[int, int], dict]:
-    out = {}
+def read_trace(path: Path) -> tuple[dict[tuple[int, int], dict], dict[tuple[int, int], list[dict]]]:
+    comp = {}
+    obj = {}
     for line in path.read_text(errors="replace").splitlines():
         m = LINE_RE.search(line)
-        if not m:
+        if m:
+            row = {k: v for k, v in KV_RE.findall(m.group(1))}
+            row["frame"] = int(row["frame"])
+            row["y"] = int(row["y"])
+            comp[(row["frame"], row["y"])] = row
             continue
-        row = {}
-        for k, v in KV_RE.findall(m.group(1)):
-            row[k] = v
-        row["frame"] = int(row["frame"])
-        row["y"] = int(row["y"])
-        out[(row["frame"], row["y"])] = row
-    return out
+        m = OBJ_RE.search(line)
+        if m:
+            row = {k: v for k, v in KV_RE.findall(m.group(1))}
+            row["frame"] = int(row["frame"])
+            row["line"] = int(row["line"])
+            obj.setdefault((row["frame"], row["line"]), []).append(row)
+    return comp, obj
 
 
 def main() -> int:
@@ -34,7 +39,9 @@ def main() -> int:
     ap.add_argument("--md-out", type=Path)
     args = ap.parse_args()
 
-    traces = {m: read_trace(args.root / f"margin-{m}" / "run.log") for m in (0, 8)}
+    parsed = {m: read_trace(args.root / f"margin-{m}" / "run.log") for m in (0, 8)}
+    traces = {m: parsed[m][0] for m in (0, 8)}
+    obj_traces = {m: parsed[m][1] for m in (0, 8)}
     rows = []
     for tag in TAGS:
         item = {"tag": tag, "margins": {}}
@@ -48,7 +55,15 @@ def main() -> int:
                 if key not in traces[margin]:
                     raise SystemExit(f"missing trace margin={margin} tag={tag} frame={frame} y={y}")
                 lines[str(y)] = traces[margin][key]
-            item["margins"][str(margin)] = {"frame": frame, "lines": lines}
+            obj_lines = {
+                "143": obj_traces[margin].get((frame, 143), []),
+                "144": obj_traces[margin].get((frame, 144), []),
+            }
+            item["margins"][str(margin)] = {
+                "frame": frame,
+                "lines": lines,
+                "obj_writes": obj_lines,
+            }
         item["guest_frame_delta"] = item["margins"]["8"]["frame"] - item["margins"]["0"]["frame"]
         rows.append(item)
 
@@ -79,6 +94,11 @@ def main() -> int:
         for y in ("144", "145"):
             diffs = comparisons[row["tag"]][y]["different_fields"]
             lines.append(f"| {row['tag']} | {y} | {', '.join(diffs) if diffs else 'none'} |")
+    lines += ["", "OBJ writes to logical x=255 at object-tail-168:"]
+    target = next(r for r in rows if r["tag"] == "object-tail-168")
+    for margin in ("0", "8"):
+        writes = target["margins"][margin]["obj_writes"]
+        lines.append(f"- margin {margin}: line143={writes['143']} line144={writes['144']}")
 
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)

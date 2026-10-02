@@ -1800,3 +1800,20 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 **Propagation:** added three code regions to the branch-local comparative census, expanding it to **103 regions / 15,094 bounded USA bytes**, including **13,949 code-region bytes**, **1,145 data bytes**, and **5,911 analyzer opcode bytes**. The adjacent fifteenth geometry-precompute island remains independently owned by PR #159.
 
+### R-WIDE-001 — Dragster checkpoint/finish visibility and gameplay activation are separate domains
+
+**Status:** confirmed  
+**Date:** 2026-10-02  
+**Area:** Widescreen | gameplay activation | presentation | collision/contact
+
+**Observation:** the deterministic Dragster finish-tail probe gives a representative cross-domain timeline. Resource `0x24` graphics and its nine `7E:C000[6..14] = 0x14` checkpoint/finish behavior cells are prepared/materialized before active racing. In the retained dense tail, actual finish/checker pixels first enter the right edge of the framebuffer at guest frame **2789** (`object-tail-060`). The checkpoint/finish semantic transition does not occur until guest frame **2903** (`object-tail-174`), 114 frames later.
+
+**Evidence:** workflow run `36954104693`; `analysis/generated/object-activation-static-boundary-2026-10-01.md`; `analysis/generated/object-activation-runtime-boundary-2026-10-02.md`; `tools/analyze_object_activation_probe.py`. At the behavior event, persistent collision/contact is `0x2020`, the dispatcher-derived C000 index is 8, code `0x14` is selected, and checkpoint/gate/laps changes `3/0/1 -> 1/1/0`. The preceding frame remains `3/0/1`.
+
+**Interpretation:** camera exposure and gameplay activation are not the same liveness decision for this representative family. Static code proves `81:82E6` selects the behavior cell from current-player collision/contact state `$0F09`; it does not consume camera position, camera edges, or `$0DCD/$0DCF` update-list state. The compact camera-filtered VRAM lists are therefore presentation/preparation machinery, not an activation gate.
+
+**Limits:** the per-frame dumps do not isolate a separate object-specific "draw eligible but not visible" state, and absence of direct `$2118`/DMA-to-`$2118` rows at the sampled event does not imply absence of presentation work. Ordinary PPU/VRAM course rendering continues. The proven boundary is resource prepared / behavior exists before race → framebuffer visible at 2789 → collision/contact behavior event at 2903.
+
+**Discriminating test:** no further generic activation archaeology is required before first Widescreen exposure. Reopen only if +8/+16/+24 probes or another object family demonstrate a distinct activation mechanism.
+
+**Propagation:** gameplay object activation/liveness is promoted to sufficient for the representative checkpoint/finish family in `docs/SEMANTIC-SUFFICIENCY.md`; the active queue no longer treats it as the highest unresolved blocker; `docs/WIDESCREEN-RECONNAISSANCE.md` records the invariant that widened presentation must not widen collision/contact activation. The object-activation workflow now asserts both the frame-2789 visibility boundary and frame-2903 behavior boundary.

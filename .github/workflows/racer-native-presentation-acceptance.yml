@@ -7,6 +7,7 @@ on:
       - "tools/apply_native_racer_presentation_probe.py"
       - "tests/unit/test_apply_native_racer_presentation_probe.py"
       - "tests/input/two-player-first-race-observe.script"
+      - "tests/input/two-player-first-race.input"
       - ".github/workflows/racer-native-presentation-acceptance.yml"
 
 concurrency:

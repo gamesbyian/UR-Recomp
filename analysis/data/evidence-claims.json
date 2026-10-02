@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "generated_by": "tools/build_consolidated_knowledge.py",
+  "purpose": "Selective atomic claims for cross-source inference.",
+  "claims": [
+    {
+      "id": "course-ordinal-track-order",
+      "subject": "course-corpus",
+      "predicate": "stream_order_matches_shipped_track_order",
+      "value": true,
+      "status": "cross_build_supported",
+      "sources": [
+        "reference/notes/course-order-and-stunt-timer.md",
+        "analysis/generated/course-resource-list-manifest.json"
+      ]
+    },
+    {
+      "id": "course-stunt-duration-45",
+      "subject": "course-type:stunt",
+      "predicate": "duration_seconds",
+      "value": 45,
+      "status": "historical_independent",
+      "sources": [
+        "reference/notes/course-order-and-stunt-timer.md"
+      ]
+    },
+    {
+      "id": "course-header-product-1024",
+      "subject": "course-corpus",
+      "predicate": "normalized_header_dimension_product",
+      "value": 1024,
+      "status": "static_proven",
+      "sources": [
+        "analysis/generated/course-resource-list-manifest.json",
+        "docs/COURSE-FORMAT.md"
+      ]
+    },
+    {
+      "id": "course-historical-64-unit-block",
+      "subject": "course-storage",
+      "predicate": "historical_block_size_world_units",
+      "value": [
+        64,
+        64
+      ],
+      "status": "external_unreproduced",
+      "sources": [
+        "reference/notes/course-layout-history.md",
+        "reference/notes/course-reverse-engineering-history.md"
+      ]
+    },
+    {
+      "id": "state-04b7-signed-speed",
+      "subject": "7E:04B7",
+      "predicate": "historical_semantics",
+      "value": "player 1 signed X speed",
+      "status": "runtime_proven",
+      "sources": [
+        "reference/notes/tas-and-sram-research.md",
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
+      "id": "active-display-oam-uniracers",
+      "subject": "renderer:oam",
+      "predicate": "uses_active_display_oam_behavior",
+      "value": true,
+      "status": "historical_independent",
+      "sources": [
+        "reference/notes/oam-active-display.md",
+        "reference/catalog.yml"
+      ]
+    },
+    {
+      "id": "rnc-method1-course-corpus",
+      "subject": "course-corpus",
+      "predicate": "compression",
+      "value": "RNC Method 1",
+      "status": "static_proven",
+      "sources": [
+        "analysis/generated/rnc-stream-manifest.json",
+        "docs/COURSE-FORMAT.md"
+      ]
+    },
+    {
+      "id": "dragster-activation-after-visibility",
+      "subject": "course:01:checkpoint-finish",
+      "predicate": "visibility_precedes_behavior_activation",
+      "value": true,
+      "status": "runtime_proven",
+      "sources": [
+        "analysis/generated/object-activation-runtime-boundary-2026-10-02.md"
+      ]
+    }
+  ]
+}

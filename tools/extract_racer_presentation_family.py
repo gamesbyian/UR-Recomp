@@ -335,7 +335,7 @@ def compose_racer_staging(
                 "source_bank": source_bank,
                 "source_addr": source_addr,
                 "source_snes": snes(source_bank, source_addr),
-                "staged_vram_word": 0x6000 + row * 0x0100 + column * 0x0010,
+                "staged_vram_word": 0x6010 + row * 0x0100 + column * 0x0010,
             })
 
     return {

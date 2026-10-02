@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+"""Locate the post-camera, pre-edge scheduling boundary inside 81:A52F..A59D."""
+from __future__ import annotations
+
+import argparse
+import json
+import re
+from collections import defaultdict
+from pathlib import Path
+
+RX = re.compile(
+    r"WSBND frame=(?P<frame>\d+) v=(?P<v>\d+) cycles=(?P<cycles>-?\d+) "
+    r"pc=(?P<pc>[0-9A-Fa-f]{6}) op=(?P<op>[0-9A-Fa-f]{2}) "
+    r"b1=(?P<b1>[0-9A-Fa-f]{2}) b2=(?P<b2>[0-9A-Fa-f]{2}) "
+    r"a=(?P<a>[0-9A-Fa-f]{4}) x=(?P<x>[0-9A-Fa-f]{4}) y=(?P<y>[0-9A-Fa-f]{4}) "
+    r"d=(?P<d>[0-9A-Fa-f]{4}) p=(?P<p>[0-9A-Fa-f]{4}) "
+    r"camx=(?P<camx>\d+) camy=(?P<camy>\d+) "
+    r"camdx=(?P<camdx>-?\d+) camdy=(?P<camdy>-?\d+) "
+    r"edgex=(?P<edgex>\d+) edgex2=(?P<edgex2>\d+) edgey=(?P<edgey>\d+) edgey2=(?P<edgey2>\d+) "
+    r"cnt=(?P<c0>\d+),(?P<c1>\d+),(?P<c2>\d+),(?P<c3>\d+)"
+)
+
+EDGE_KEYS = ("edgex","edgex2","edgey","edgey2","c0","c1","c2","c3")
+
+def parse(path: Path) -> list[dict]:
+    rows=[]
+    text=path.read_text(encoding="utf-8",errors="replace")
+    # finditer is intentionally tolerant of legacy probe output that embedded
+    # literal "\\n" separators instead of physical newlines.
+    for m in RX.finditer(text):
+        g=m.groupdict()
+        hex_keys={"pc","op","b1","b2","a","x","y","d","p"}
+        row={k:int(v,16) if k in hex_keys else int(v) for k,v in g.items()}
+        rows.append(row)
+    if not rows:
+        raise SystemExit("no WSBND observations")
+    return rows
+
+def analyze(rows: list[dict]) -> dict:
+    by_frame=defaultdict(list)
+    for row in rows:
+        by_frame[row["frame"]].append(row)
+
+    candidates=[]
+    for frame, seq in sorted(by_frame.items()):
+        if len(seq) < 3 or max(r["camdx"] for r in seq) <= 0:
+            continue
+        last_cam_change_index=None
+        first_edge_change_index=None
+        for i in range(1,len(seq)):
+            if seq[i]["camx"] != seq[i-1]["camx"]:
+                last_cam_change_index=i
+        if last_cam_change_index is None:
+            continue
+        baseline={k:seq[last_cam_change_index][k] for k in EDGE_KEYS}
+        for i in range(last_cam_change_index+1,len(seq)):
+            if any(seq[i][k] != baseline[k] for k in EDGE_KEYS):
+                first_edge_change_index=i
+                break
+        if first_edge_change_index is None:
+            continue
+        hook=seq[last_cam_change_index]
+        first_edge=seq[first_edge_change_index]
+        later_cam_change=any(
+            seq[i]["camx"] != hook["camx"]
+            for i in range(last_cam_change_index+1,len(seq))
+        )
+        candidates.append({
+            "frame":frame,
+            "candidate_hook_pc":hook["pc"],
+            "candidate_hook_pc_hex":f"{hook['pc']:06X}",
+            "camera_x_after_update":hook["camx"],
+            "camera_dx":hook["camdx"],
+            "hook_opcode":hook["op"],
+            "hook_opcode_hex":f"{hook['op']:02X}",
+            "hook_operand_bytes":[hook["b1"],hook["b2"]],
+            "hook_a":hook["a"],
+            "hook_x":hook["x"],
+            "hook_y":hook["y"],
+            "a_equals_camera_x":hook["a"] == hook["camx"],
+            "a_minus_camera_x":(hook["a"] - hook["camx"]) & 0xffff,
+            "first_edge_change_pc":first_edge["pc"],
+            "first_edge_change_pc_hex":f"{first_edge['pc']:06X}",
+            "edge_state_before":baseline,
+            "edge_state_after":{k:first_edge[k] for k in EDGE_KEYS},
+            "later_camera_x_change":later_cam_change,
+        })
+
+    stable={}
+    for c in candidates:
+        key=(
+            c["candidate_hook_pc"],
+            c["first_edge_change_pc"],
+            c["later_camera_x_change"],
+            c["hook_opcode"],
+            c["a_equals_camera_x"],
+            c["a_minus_camera_x"],
+        )
+        stable[key]=stable.get(key,0)+1
+    ranked=sorted(stable.items(), key=lambda kv:(-kv[1],kv[0]))
+    best=None
+    if ranked:
+        (hook,edge,later,opcode,a_eq,a_delta),count=ranked[0]
+        best={
+            "candidate_hook_pc":hook,
+            "candidate_hook_pc_hex":f"{hook:06X}",
+            "first_edge_change_pc":edge,
+            "first_edge_change_pc_hex":f"{edge:06X}",
+            "supporting_frames":count,
+            "later_camera_x_change":later,
+            "hook_opcode":opcode,
+            "hook_opcode_hex":f"{opcode:02X}",
+            "a_equals_camera_x":a_eq,
+            "a_minus_camera_x":a_delta,
+        }
+    return {
+        "schema_version":1,
+        "frames_observed":len(by_frame),
+        "candidate_frames":candidates,
+        "stable_boundary":best,
+        "boundary_isolation_supported":bool(best) and not best["later_camera_x_change"],
+    }
+
+def main() -> int:
+    ap=argparse.ArgumentParser()
+    ap.add_argument("log",type=Path)
+    ap.add_argument("--json-out",type=Path)
+    ap.add_argument("--md-out",type=Path)
+    args=ap.parse_args()
+    report=analyze(parse(args.log))
+    best=report["stable_boundary"]
+    lines=["# Camera-to-strip preparation boundary",""]
+    if best:
+        lines += [
+            f"- candidate post-camera hook: **{best['candidate_hook_pc_hex']}**",
+            f"- first subsequent edge/count change: **{best['first_edge_change_pc_hex']}**",
+            f"- supporting moving frames: **{best['supporting_frames']}**",
+            f"- hook opcode: **{best['hook_opcode_hex']}**",
+            f"- A equals camera X at hook: **{best['a_equals_camera_x']}**",
+            f"- A-camera delta: **{best['a_minus_camera_x']}**",
+            f"- later camera-X change after hook: **{best['later_camera_x_change']}**",
+            "",
+        ]
+    else:
+        lines += ["- no stable boundary recovered",""]
+    payload=json.dumps(report,indent=2)+"\n"
+    md="\n".join(lines)
+    if args.json_out:
+        args.json_out.parent.mkdir(parents=True,exist_ok=True)
+        args.json_out.write_text(payload,encoding="utf-8")
+    if args.md_out:
+        args.md_out.parent.mkdir(parents=True,exist_ok=True)
+        args.md_out.write_text(md,encoding="utf-8")
+    print(md,end="")
+    return 0 if report["boundary_isolation_supported"] else 2
+
+if __name__=="__main__":
+    raise SystemExit(main())

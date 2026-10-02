@@ -159,7 +159,7 @@ SECOND_PASS = r'''
       cpu_write8(cpu, 0x00, cpu->S, 0xa5); cpu->S = (uint16)(cpu->S - 1);
       cpu_write8(cpu, 0x00, cpu->S, 0x99); cpu->S = (uint16)(cpu->S - 1);
       cpu->host_return_valid = 2;
-      RecompReturn _ur_ws_result = bank_01_A59E_M0X0(cpu);
+      RecompReturn _ur_ws_result = __A59E_CALLEE__(cpu);
 
       ur_ws_native_finish_second_pass(cpu, _ur_ws_result);
     }
@@ -292,8 +292,11 @@ def apply(gen_dir: Path) -> dict:
     missing = [f"{pc:06X}" for pc in required if len(hits.get(pc, [])) != 1]
     if missing:
         raise ValueError("wrapper seam not exact: " + ", ".join(missing))
-    if "bank_01_A59E_M0X0(cpu)" not in wrapper_text:
-        raise ValueError("accepted M0X0 A59E generated callee is absent")
+    callee_matches = A59E_CALLEE_RE.findall(wrapper_text)
+    callee_names = sorted(set(callee_matches))
+    if len(callee_names) != 1:
+        raise ValueError(f"expected one generated M0X0 A59E callee, found {callee_names}")
+    a59e_callee = callee_names[0]
 
     stage_matches = list(STAGE_INIT_RE.finditer(wrapper_text))
     if len(stage_matches) != 1:
@@ -310,8 +313,9 @@ def apply(gen_dir: Path) -> dict:
         f"{indent}cpu_write_y_x(cpu, (uint16)({var}));"
     )
     wrapper_text = wrapper_text[:stage_match.start()] + stage_replacement + wrapper_text[stage_match.end():]
+    second_pass = SECOND_PASS.replace("__A59E_CALLEE__", a59e_callee)
     wrapper_text = _insert_after_deadline_guard(
-        wrapper_text, PCS["wrapper_after_first_helper"], SECOND_PASS)
+        wrapper_text, PCS["wrapper_after_first_helper"], second_pass)
     wrapper_text = _insert_before_postcall_variant_split(
         wrapper_text,
         PCS["wrapper_after_first_helper"],

@@ -197,7 +197,7 @@ def render(r: dict) -> str:
         f"- +8 unique prepared edges: **{n['margin8_unique_edges']}**",
         f"- +8 future-stock candidates: **{n['margin8_future_stock_candidates']}**",
         f"- +8 exact later-stock payload matches: **{n['margin8_exact_future_stock_matches']}**",
-        f"- +8 exact later-stock matches / all prep attempts (diagnostic only): **{n['margin8_exact_future_stock_match_ratio']:.3%}**",
+        f"- +8 exact-match ratio among future-stock candidates: **{n['margin8_exact_future_stock_match_ratio']:.3%}**",
         f"- +8 longest consecutive exact-match run: **{n['margin8_longest_consecutive_exact_match_run']}**",
         f"- +8 protected gameplay/camera/progression state equal: **{c['margin8_protected_state_equal']}**",
         f"- +16 stopped at stock lane capacity: **{c['margin16_stops_at_capacity']}**",

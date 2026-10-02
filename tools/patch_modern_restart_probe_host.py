@@ -43,6 +43,7 @@ static void UrRestartProbeAfterRunFrame(const SnesDesktopHostFrameStats *stats) 
     const int in_race = g_ram[0x0313] == 1;
 
     if (g_ur_restart_probe_phase == 0 && in_race && !g_ur_restart_prev_in_race) {
+        RtlSetRewindAudioTimingLock(true);
         g_ur_restart_probe_cap = RtlRollbackSnapshotBound();
         g_ur_restart_anchor = (uint8_t *)malloc(g_ur_restart_probe_cap);
         if (!g_ur_restart_probe_cap ||

@@ -1120,6 +1120,8 @@ Completed-island narratives belong in generated census/evidence artifacts and th
 
 ## Semantic-sufficiency model
 
+Canonical evidence-backed status: `docs/SEMANTIC-SUFFICIENCY.md`.
+
 Track major product-facing subsystems by capability rather than byte coverage. For each subsystem, ask whether the project can:
 
 - **observe** the authoritative state deterministically;
@@ -1137,7 +1139,7 @@ The first scoreboard should cover at minimum:
 | Camera / screen-relative projection | sufficient | sufficient | partial | sufficient in 1P/2P fixtures | Complete renderer-facing integration rather than map unrelated code |
 | Sprite/OAM construction and split-screen seam | sufficient | sufficient | partial | sufficient for known seam | Use as a Widescreen constraint |
 | Object/gameplay activation | partial | partial | unknown | partial | **Highest-value unresolved Widescreen semantic** |
-| World preparation / VRAM streaming | sufficient to observe key structures | partial | partial | partial | Follow renderer-facing causal chain and tiny-margin probes |
+| World preparation / VRAM streaming | partial | partial | partial | partial | Follow renderer-facing causal chain and tiny-margin probes |
 | Course spatial/resource model | sufficient for known loader/materialization paths | partial | partial | partial | Recover presentation-complete contract; defer editor-complete tail |
 | Frontend / progression | sufficient for principal deterministic routes | sufficient for current fidelity needs | partial | sufficient for principal routes | Do not let tail completeness block presentation |
 | Original graphics / animation state | partial | partial | unknown | partial | Parallel extraction/round-trip lane |

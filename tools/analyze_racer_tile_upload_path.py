@@ -28,6 +28,25 @@ RANGES = (
     ("tile_pair_helper", "83:F2BB", "83:F4D1"),
 )
 SEEDS = ("82:B8D1", "82:C53A", "83:F2BB")
+REGISTER_TARGETS = {
+    "DMAP0": 0x4300,
+    "BBAD0": 0x4301,
+    "DMASRC0L": 0x4302,
+    "DMASRC0B": 0x4304,
+    "DMALEN0L": 0x4305,
+    "VMAIN": 0x2115,
+    "VMADDL": 0x2116,
+    "VMDATAL": 0x2118,
+    "VMDATAH": 0x2119,
+    "MDMAEN": 0x420B,
+}
+WRITE_OPS = {
+    0x8D: "STA abs",
+    0x8E: "STX abs",
+    0x8C: "STY abs",
+    0x9C: "STZ abs",
+}
+
 INTEREST = (
     "VMAIN", "VMADD", "VMDATA", "DMA", "MDMAEN",
     "$1645", "$15A1", "$16E9",
@@ -64,6 +83,69 @@ def decoded_ranges(rom: bytes) -> list[dict]:
     return out
 
 
+
+def register_write_sites(rom: bytes) -> list[dict]:
+    """Find literal absolute writes to DMA/VRAM control registers.
+
+    Keep raw candidates as evidence even when the static tracer does not mark
+    the surrounding code reachable from the narrow racer seeds.
+    """
+    d = trace(rom)
+    seed_entries(d, [cpu_to_offset(x) for x in SEEDS])
+    rows = []
+    by_addr = {addr: name for name, addr in REGISTER_TARGETS.items()}
+    for off in range(len(rom) - 2):
+        op = rom[off]
+        if op not in WRITE_OPS:
+            continue
+        addr = rom[off + 1] | (rom[off + 2] << 8)
+        if addr not in by_addr:
+            continue
+        status = d.code_map[off] if off < len(d.code_map) else 0
+        rows.append({
+            "cpu": f"{(off // 0x8000) | 0x80:02X}:{0x8000 + (off % 0x8000):04X}",
+            "register": by_addr[addr],
+            "address": f"0x{addr:04X}",
+            "mnemonic": WRITE_OPS[op],
+            "bytes": rom[off:off + 3].hex(" "),
+            "tracer_executable": bool(status & d.OP_CODE),
+        })
+    return rows
+
+
+def nearby_register_setup(rom: bytes, writes: list[dict]) -> list[dict]:
+    """Decode bounded context around candidate control-register writes."""
+    d = trace(rom)
+    seed_entries(d, [cpu_to_offset(x) for x in SEEDS])
+    out = []
+    # Prefer bank-82 candidates because both racer DMA consumers live there.
+    for row in writes:
+        if not row["cpu"].startswith("82:"):
+            continue
+        off = cpu_to_offset(row["cpu"])
+        bank_start = (off // 0x8000) * 0x8000
+        bank_end = bank_start + 0x8000
+        start = max(bank_start, off - 24)
+        end = min(bank_end, off + 32)
+        try:
+            d.decode(start, end)
+        except Exception:
+            pass
+        ctx = []
+        for q, ins in d.code.item_range(start, end):
+            try:
+                size = d.opSize(rom[q])
+            except Exception:
+                size = 1
+            ctx.append({
+                "cpu": f"{(q // 0x8000) | 0x80:02X}:{0x8000 + (q % 0x8000):04X}",
+                "text": ins.text(),
+                "bytes": rom[q:q + size].hex(" "),
+            })
+        out.append({"write": row, "context": ctx})
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("rom", type=Path)
@@ -71,12 +153,33 @@ def main() -> int:
     ap.add_argument("--md-out", type=Path)
     args = ap.parse_args()
 
+    rom = args.rom.read_bytes()
+    writes = register_write_sites(rom)
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "purpose": "Bound racer presentation staging -> DMA/VRAM upload semantics.",
-        "ranges": decoded_ranges(args.rom.read_bytes()),
+        "ranges": decoded_ranges(rom),
+        "register_write_sites": writes,
+        "bank82_register_write_contexts": nearby_register_setup(rom, writes),
     }
     md = ["# Racer tile-upload path", ""]
+    md += ["## Literal DMA/VRAM control-register writes", ""]
+    for row in report["register_write_sites"]:
+        md.append(
+            f"- \`{row['cpu']}\` {row['mnemonic']} -> {row['register']} "
+            f"({row['address']}), bytes \`{row['bytes']}\`, "
+            f"tracer_executable={row['tracer_executable']}"
+        )
+    md.append("")
+    md += ["## Bank-82 setup contexts", ""]
+    for block in report["bank82_register_write_contexts"]:
+        row = block["write"]
+        md.append(f"### {row['cpu']} -> {row['register']}")
+        md.append("")
+        for ctx in block["context"]:
+            md.append(f"    {ctx['cpu']}  {ctx['text']}    ; {ctx['bytes']}")
+        md.append("")
+
     for block in report["ranges"]:
         md += [f"## {block['name']} ({block['start']}..{block['end']})", ""]
         md.append("### PPU/DMA/staging references")

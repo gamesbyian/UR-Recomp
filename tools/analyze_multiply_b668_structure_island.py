@@ -40,7 +40,7 @@ def roles(d,s,e):
 def caller_edges(usa,census):
  target=cpu_to_offset("81:B668")
  d=trace(usa)
- code=[r for r in census["regions"] if r["kind"]=="code"]
+ code=[r for r in census["regions"] if r["kind"]=="code" and r["source"]!="multiply-b668"]
  seed_entries(d,sorted({cpu_to_offset(r["usa_start"]) for r in code}))
  out=[]
  for r in code:

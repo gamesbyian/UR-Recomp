@@ -182,6 +182,166 @@ def decode_piece_mapping(record: FrameRecord) -> list[dict]:
     return pieces
 
 
+def occupancy_rows_from_header(header: bytes) -> tuple[int, ...]:
+    """Decode the 30-cell header into five six-bit rows, left-to-right.
+
+    This is the same lattice already used by decode_piece_mapping(), expressed
+    in the row form consumed by 83:F2BB. Bit 5 is minor slot 0 and bit 0 is
+    minor slot 5.
+    """
+    if len(header) != 4:
+        raise ValueError("racer presentation header must be exactly four bytes")
+    bits = [
+        1 if header[byte_index] & (1 << bit_in_byte) else 0
+        for byte_index, bit_in_byte in OCCUPANCY_BITS
+    ]
+    rows = []
+    for start in range(0, 30, 6):
+        value = 0
+        for bit in bits[start:start + 6]:
+            value = (value << 1) | bit
+        rows.append(value)
+    return tuple(rows)
+
+
+def selected_occupancy_rows(header: bytes, selector: int) -> tuple[tuple[int, ...], int]:
+    """Apply the bounded selector behavior recovered at 83:F2BB.
+
+    Selector 1 suppresses the first six-cell row and skips its packed words.
+    Selector 2 suppresses the final row. Other selector values preserve all
+    five rows. The returned cursor is a packed-word index.
+    """
+    rows = list(occupancy_rows_from_header(header))
+    cursor = 0
+    if selector == 1:
+        cursor = rows[0].bit_count()
+        rows[0] = 0
+    elif selector == 2:
+        rows[4] = 0
+    return tuple(rows), cursor
+
+
+def pack_player_row_masks(
+    p1_rows: tuple[int, ...],
+    p2_rows: tuple[int, ...],
+) -> tuple[int, ...]:
+    """Pack two six-cell racers into the 14-bit row mask used by F1DD..F275.
+
+    P1 occupies bits 15..10, bits 9..8 are an intentional two-cell gap, and
+    P2 occupies bits 7..2. The inner loop walks exactly those 14 bits.
+    """
+    if len(p1_rows) != 5 or len(p2_rows) != 5:
+        raise ValueError("racer row masks must contain exactly five rows")
+    if any(x & ~0x3F for x in (*p1_rows, *p2_rows)):
+        raise ValueError("racer row masks must be six-bit values")
+    return tuple((a << 10) | (b << 2) for a, b in zip(p1_rows, p2_rows))
+
+
+def _frame_word_stream(frame: dict) -> list[int]:
+    return [int(piece["word_hex"], 16) for piece in frame["pieces"]]
+
+
+def compose_racer_staging(
+    p1_primary: dict,
+    p2_primary: dict,
+    p1_companion: dict,
+    p2_companion: dict,
+    *,
+    p1_selector: int = 0,
+    p2_selector: int = 0,
+) -> dict:
+    """Reproduce the bounded four-record staging composition at 83:F0BB..F295.
+
+    Companion occupancy wins when both streams occupy the same cache cell.
+    The hidden primary packed word is still consumed, matching F1F3/F205.
+    Empty cache cells use the renderer's proven blank tile source 27:8000.
+    """
+    frames = {
+        "p1_primary": p1_primary,
+        "p2_primary": p2_primary,
+        "p1_companion": p1_companion,
+        "p2_companion": p2_companion,
+    }
+    selectors = {"p1": p1_selector, "p2": p2_selector}
+    rows = {}
+    cursors = {}
+    streams = {}
+    for player in ("p1", "p2"):
+        selector = selectors[player]
+        for role in ("primary", "companion"):
+            key = f"{player}_{role}"
+            header = bytes.fromhex(frames[key]["record_header_hex"])
+            rows[key], cursors[key] = selected_occupancy_rows(header, selector)
+            streams[key] = _frame_word_stream(frames[key])
+
+    primary_masks = pack_player_row_masks(rows["p1_primary"], rows["p2_primary"])
+    companion_masks = pack_player_row_masks(rows["p1_companion"], rows["p2_companion"])
+
+    cells = []
+    for row in range(5):
+        for column in range(14):
+            bit = 0x8000 >> column
+            if column < 6:
+                player = "p1"
+            elif column < 8:
+                player = None
+            else:
+                player = "p2"
+
+            primary_occupied = bool(primary_masks[row] & bit)
+            companion_occupied = bool(companion_masks[row] & bit)
+            choice = "blank"
+            word = None
+
+            if player is not None and companion_occupied:
+                pkey = f"{player}_primary"
+                ckey = f"{player}_companion"
+                if primary_occupied:
+                    if cursors[pkey] >= len(streams[pkey]):
+                        raise ValueError(f"{pkey} packed-word cursor exceeded record")
+                    cursors[pkey] += 1
+                if cursors[ckey] >= len(streams[ckey]):
+                    raise ValueError(f"{ckey} packed-word cursor exceeded record")
+                word = streams[ckey][cursors[ckey]]
+                cursors[ckey] += 1
+                choice = ckey
+            elif player is not None and primary_occupied:
+                pkey = f"{player}_primary"
+                if cursors[pkey] >= len(streams[pkey]):
+                    raise ValueError(f"{pkey} packed-word cursor exceeded record")
+                word = streams[pkey][cursors[pkey]]
+                cursors[pkey] += 1
+                choice = pkey
+
+            if word is None:
+                source_bank, source_addr = 0x27, 0x8000
+            else:
+                source_bank, source_addr = packed_word_source(word)
+
+            cells.append({
+                "row": row,
+                "column": column,
+                "player": player,
+                "primary_occupied": primary_occupied,
+                "companion_occupied": companion_occupied,
+                "choice": choice,
+                "word_hex": None if word is None else f"0x{word:04X}",
+                "source_bank": source_bank,
+                "source_addr": source_addr,
+                "source_snes": snes(source_bank, source_addr),
+                "staged_vram_word": 0x6000 + row * 0x0100 + column * 0x0010,
+            })
+
+    return {
+        "primary_row_masks": [f"0x{x:04X}" for x in primary_masks],
+        "companion_row_masks": [f"0x{x:04X}" for x in companion_masks],
+        "selectors": {"p1": p1_selector, "p2": p2_selector},
+        "cells": cells,
+        "final_word_cursors": dict(cursors),
+        "stream_word_counts": {key: len(value) for key, value in streams.items()},
+    }
+
+
 def census_record_structure(rom: bytes) -> dict:
     max_id = ((0x10000 - FRAME_TABLE_ADDR) // FRAME_ENTRY_SIZE) - 2
     comparable = matches = reserved_nonzero = 0

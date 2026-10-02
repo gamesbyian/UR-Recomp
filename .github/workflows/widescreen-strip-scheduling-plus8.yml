@@ -1,0 +1,118 @@
+name: Widescreen +8 strip scheduling experiment
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/widescreen-strip-scheduling-plus8.yml"
+      - "tools/instrument_snesref_widescreen_strip_schedule.py"
+      - "tools/analyze_widescreen_strip_schedule.py"
+      - "tests/input/preparation-emission-race.script"
+      - "tests/input/object-liveness-dragster.script"
+
+concurrency:
+  group: widescreen-strip-scheduling-plus8-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  experiment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build pkg-config libsdl2-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Build and instrument reference harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --tool snes9x-libretro --jobs 2
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 tools/instrument_snesref_widescreen_strip_schedule.py "$CORE/cpuexec.cpp"
+          make -C "$CORE/libretro" -j2
+          test -x .tools/src/snesrecomp/build-snesref/snesref
+          test -f "$CORE/libretro/snes9x_libretro.so"
+
+      - name: Run matched strip-preparation fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script"
+          ROOT="$RUNNER_TEMP/ws-strip"
+          mkdir -p "$ROOT/control/dumps" "$ROOT/plus8/dumps" analysis/generated
+          for MARGIN in 0 8; do
+            if [ "$MARGIN" = 0 ]; then SIDE=control; else SIDE=plus8; fi
+            URRECOMP_WS_MARGIN="$MARGIN"             SNESREF_HEADLESS=1             SNESREF_FAST=1             SNESREF_WRAM_FILL=0             SNESREF_SCRIPT="$SCRIPT"             SNESREF_DUMP_DIR="$ROOT/$SIDE/dumps"               "$EXE" "$CORE" "$ROM" >"$ROOT/$SIDE/run.log" 2>&1
+            grep 'WSDMA\|WSPATCH' "$ROOT/$SIDE/run.log" | tail -n 20 || true
+          done
+          python3 tools/analyze_widescreen_strip_schedule.py             "$ROOT/control/run.log" "$ROOT/plus8/run.log"             --json-out analysis/generated/widescreen-strip-scheduling-plus8.json             --md-out analysis/generated/widescreen-strip-scheduling-plus8.md
+
+      - name: Run matched gameplay-activation guardrail
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/object-liveness-dragster.script"
+          ROOT="$RUNNER_TEMP/ws-liveness"
+          mkdir -p "$ROOT/control/dumps" "$ROOT/plus8/dumps"
+          for MARGIN in 0 8; do
+            if [ "$MARGIN" = 0 ]; then SIDE=control; else SIDE=plus8; fi
+            URRECOMP_WS_MARGIN="$MARGIN"             SNESREF_HEADLESS=1             SNESREF_FAST=1             SNESREF_WRAM_FILL=0             SNESREF_SCRIPT="$SCRIPT"             SNESREF_DUMP_DIR="$ROOT/$SIDE/dumps"               "$EXE" "$CORE" "$ROM" >"$ROOT/$SIDE/run.log" 2>&1
+            python3 tools/summarize_object_liveness_probe.py               "$ROOT/$SIDE/dumps" --json-out "$ROOT/$SIDE/summary.json"               >"$ROOT/$SIDE/summary.txt"
+          done
+          python3 - "$ROOT/control/summary.json" "$ROOT/plus8/summary.json"             analysis/generated/widescreen-strip-scheduling-plus8-liveness.json <<'PY'
+          import json, pathlib, sys
+          c=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          w=json.loads(pathlib.Path(sys.argv[2]).read_text())
+          cr={x["stem"]:x for x in c["rows"]}
+          wr={x["stem"]:x for x in w["rows"]}
+          common=sorted(set(cr)&set(wr))
+          diffs=[]
+          for stem in common:
+              a,b=cr[stem],wr[stem]
+              protected={
+                  "player":(a["player"],b["player"]),
+                  "progress":(a["progress"],b["progress"]),
+                  "object_map_prefix_hex":(a["object_map_prefix_hex"],b["object_map_prefix_hex"]),
+              }
+              bad={k:{"control":x,"plus8":y} for k,(x,y) in protected.items() if x != y}
+              if bad:
+                  diffs.append({"stem":stem,"differences":bad})
+          out={
+              "common_samples":len(common),
+              "protected_differences":diffs,
+              "control_first_progress_change":c["first_progress_change"],
+              "plus8_first_progress_change":w["first_progress_change"],
+              "no_earlier_gameplay_activation":not diffs and c["first_progress_change"]==w["first_progress_change"],
+          }
+          pathlib.Path(sys.argv[3]).write_text(json.dumps(out,indent=2)+"\n")
+          print(json.dumps(out,indent=2))
+          if not out["no_earlier_gameplay_activation"]:
+              raise SystemExit("gameplay activation/progress guardrail diverged")
+          PY
+
+      - name: Upload bounded experiment evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: widescreen-strip-scheduling-plus8
+          path: |
+            analysis/generated/widescreen-strip-scheduling-plus8.json
+            analysis/generated/widescreen-strip-scheduling-plus8.md
+            analysis/generated/widescreen-strip-scheduling-plus8-liveness.json
+            ${{ runner.temp }}/ws-strip/
+            ${{ runner.temp }}/ws-liveness/
+          if-no-files-found: warn
+          retention-days: 7

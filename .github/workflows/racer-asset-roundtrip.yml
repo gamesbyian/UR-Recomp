@@ -72,6 +72,60 @@ jobs:
           assert checked >= 28, checked
           print(f"validated {checked} source tiles byte-for-byte against retained VRAM")
           PY
+      - name: Generalize across distinct retained racer states
+        run: |
+          python3 tools/analyze_racer_spatial_generalization.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --dump-dir "$RUNNER_TEMP/ordinary-2p/native-dumps" \
+            --json-out "$RUNNER_TEMP/racer-spatial-generalization.json" \
+            >/dev/null
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          from tools.extract_racer_presentation_family import (
+              extract_frame,
+              rasterize_frame_rgba,
+          )
+
+          report=json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "racer-spatial-generalization.json")))
+          assert report["summary"]["exact_persistent_id_bindings"] >= 8
+          assert report["summary"]["all_unique_bindings_at_1_0"] is True
+
+          exact=[]
+          for cp in report["checkpoints"]:
+              for player in cp["players"]:
+                  for binding in player["unique_nearby_bindings"]:
+                      if binding["delta_from_persistent"] == 0:
+                          exact.append({
+                              "checkpoint": cp["checkpoint"],
+                              "player": player["player"],
+                              **binding,
+                          })
+
+          ids=sorted({row["frame_id"] for row in exact})
+          assert any(fid < 0x0500 for fid in ids), ids
+          rom_path=Path("reference/roms/retail/Uniracers_USA.sfc")
+          rom=rom_path.read_bytes()
+          raster_hashes={}
+          for fid in ids:
+              frame=extract_frame(rom, fid)
+              rgba=rasterize_frame_rgba(rom, frame, 0x06)
+              raster_hashes[f"0x{fid:04X}"]=hashlib.sha256(rgba).hexdigest()
+
+          out={
+              "schema_version": 1,
+              "purpose": "Cheap retained-evidence generalization beyond the initial 0x054x racer presentation cluster.",
+              "exact_persistent_frame_ids": [f"0x{x:04X}" for x in ids],
+              "all_exact_frames_rasterized": len(raster_hashes) == len(ids),
+              "all_unique_spatial_bindings_at_1_0": report["summary"]["all_unique_bindings_at_1_0"],
+              "palette_0x06_rgba_sha256": raster_hashes,
+          }
+          out_path=Path(os.environ["RUNNER_TEMP"]) / "racer-next-family-generalization.json"
+          out_path.write_text(json.dumps(out, indent=2, sort_keys=True) + "\n")
+          print(json.dumps(out, indent=2, sort_keys=True))
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -82,5 +136,7 @@ jobs:
             racer-presentation-family.txt
             ${{ runner.temp }}/racer-raster-manifest.json
             ${{ runner.temp }}/racer-raster/*.png
+            ${{ runner.temp }}/racer-spatial-generalization.json
+            ${{ runner.temp }}/racer-next-family-generalization.json
           retention-days: 7
           if-no-files-found: error

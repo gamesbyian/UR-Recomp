@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import struct
 from pathlib import Path
 
 ROM_SIZE = 0x200000
@@ -18,6 +19,43 @@ TRACK_TYPE_TABLE_LENGTH = 50
 NORMAL_TRACK_COUNT = 45
 NORMAL_SELECTOR_WRAP_CPU = (0x80, 0xAE8C)
 TRACK_TYPE_LOAD_CPU = (0x83, 0x9996)
+
+def png_metadata(path: Path) -> dict:
+    data = path.read_bytes()
+    if data[:8] != b"\x89PNG\r\n\x1a\n":
+        raise ValueError(f"not a PNG: {path}")
+    pos = 8
+    ihdr = None
+    chunks = []
+    while pos + 12 <= len(data):
+        length = int.from_bytes(data[pos:pos + 4], "big")
+        kind = data[pos + 4:pos + 8].decode("ascii", "replace")
+        payload = data[pos + 8:pos + 8 + length]
+        chunks.append({"type": kind, "length": length})
+        if kind == "IHDR":
+            width, height, bit_depth, color_type, compression, filtering, interlace = struct.unpack(
+                ">IIBBBBB", payload
+            )
+            ihdr = {
+                "width": width,
+                "height": height,
+                "bit_depth": bit_depth,
+                "color_type": color_type,
+                "compression": compression,
+                "filter": filtering,
+                "interlace": interlace,
+            }
+        pos += 12 + length
+        if kind == "IEND":
+            break
+    return {
+        "path": str(path),
+        "size": len(data),
+        "sha256": sha256(data),
+        "ihdr": ihdr,
+        "chunks": chunks,
+    }
+
 
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -235,8 +273,14 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("rom", type=Path)
     ap.add_argument("--output", type=Path)
+    ap.add_argument(
+        "--boot-graphic",
+        type=Path,
+        default=Path("reference/imported/tcrf/Uniracers-Decomp.png"),
+    )
     args = ap.parse_args()
     report = analyze(args.rom.read_bytes())
+    report["boot_graphic_reference"] = png_metadata(args.boot_graphic)
     rendered = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

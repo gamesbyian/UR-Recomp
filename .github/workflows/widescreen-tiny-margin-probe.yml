@@ -82,7 +82,21 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/object-activation-dragster-tail.script"
           ROOT="$RUNNER_TEMP/widescreen-tiny-margin"
+          CONFIG="$RUNNER_TEMP/widescreen-probe-config.ini"
           mkdir -p "$ROOT"
+          cat >"$CONFIG" <<'EOF'
+          [Graphics]
+          NewRenderer = 1
+          NoSpriteLimits = 0
+
+          [General]
+          DisableFrameDelay = 1
+          Autosave = 0
+          SkipLauncher = 1
+
+          [Sound]
+          EnableAudio = 0
+          EOF
 
           for margin in 0 8 16 24; do
             echo "=== margin $margin ==="
@@ -96,7 +110,7 @@ jobs:
             SNESRECOMP_FRAMEDUMP_START=2779 \
             SNESRECOMP_FRAMEDUMP_END=2919 \
             SDL_AUDIODRIVER=dummy \
-              timeout 210s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" --framedump "$FRAMES" \
+              timeout 210s xvfb-run -a "$EXE" "$ROM" --config "$CONFIG" --no-launcher --script "$SCRIPT" --framedump "$FRAMES" \
               >"$ROOT/margin-$margin.log" 2>&1
             tail -n 30 "$ROOT/margin-$margin.log"
             test -s "$STATE/object-tail-060.info.json"

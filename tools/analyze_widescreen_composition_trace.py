@@ -12,14 +12,6 @@ LINE_RE = re.compile(r"WS_EDGE (.*)")
 KV_RE = re.compile(r"(\w+)=(-?\w+)")
 
 
-def parse_value(v: str) -> int:
-    if v.startswith("-"):
-        return int(v)
-    if any(c in "ABCDEFabcdef" for c in v):
-        return int(v, 16)
-    return int(v)
-
-
 def read_trace(path: Path) -> dict[tuple[int, int], dict]:
     out = {}
     for line in path.read_text(errors="replace").splitlines():
@@ -28,7 +20,9 @@ def read_trace(path: Path) -> dict[tuple[int, int], dict]:
             continue
         row = {}
         for k, v in KV_RE.findall(m.group(1)):
-            row[k] = parse_value(v)
+            row[k] = v
+        row["frame"] = int(row["frame"])
+        row["y"] = int(row["y"])
         out[(row["frame"], row["y"])] = row
     return out
 

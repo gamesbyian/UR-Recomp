@@ -3,7 +3,7 @@ name: Imported reference audit
 on:
   pull_request:
     paths:
-      - "references/imported/**"
+      - "reference/imported/**"
       - "tools/audit_imported_references.py"
       - "tools/audit_imported_code.py"
       - "analysis/generated/third-party-code-audit.md"
@@ -13,7 +13,7 @@ on:
     branches:
       - main
     paths:
-      - "references/imported/**"
+      - "reference/imported/**"
       - "tools/audit_imported_references.py"
       - "tools/audit_imported_code.py"
       - "analysis/generated/third-party-code-audit.md"

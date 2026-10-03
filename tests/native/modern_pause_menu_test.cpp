@@ -9,10 +9,10 @@ int main() {
     assert(ur_modern_pause_menu_selected(&menu, 1) == UR_MODERN_PAUSE_RESUME);
 
     // Without Restart:
-    // Resume -> Focus Pause -> Controls -> Run Data -> Quit -> Resume.
+    // Resume -> Options -> Controls -> Run Data -> Quit -> Resume.
     ur_modern_pause_menu_move(&menu, 1, 0);
     assert(ur_modern_pause_menu_selected(&menu, 0) ==
-           UR_MODERN_PAUSE_FOCUS_PAUSE);
+           UR_MODERN_PAUSE_OPTIONS);
     ur_modern_pause_menu_move(&menu, 1, 0);
     assert(ur_modern_pause_menu_selected(&menu, 0) ==
            UR_MODERN_PAUSE_CONTROLS);
@@ -31,12 +31,12 @@ int main() {
     ur_modern_pause_menu_reset(&menu);
 
     // With Restart:
-    // Resume -> Restart -> Focus Pause -> Controls -> Run Data -> Quit -> Resume.
+    // Resume -> Restart -> Options -> Controls -> Run Data -> Quit -> Resume.
     ur_modern_pause_menu_move(&menu, 1, 1);
     assert(ur_modern_pause_menu_selected(&menu, 1) == UR_MODERN_PAUSE_RESTART);
     ur_modern_pause_menu_move(&menu, 1, 1);
     assert(ur_modern_pause_menu_selected(&menu, 1) ==
-           UR_MODERN_PAUSE_FOCUS_PAUSE);
+           UR_MODERN_PAUSE_OPTIONS);
     ur_modern_pause_menu_move(&menu, 1, 1);
     assert(ur_modern_pause_menu_selected(&menu, 1) ==
            UR_MODERN_PAUSE_CONTROLS);
@@ -60,7 +60,7 @@ int main() {
            UR_MODERN_PAUSE_CONTROLS);
     ur_modern_pause_menu_move(&menu, -1, 1);
     assert(ur_modern_pause_menu_selected(&menu, 1) ==
-           UR_MODERN_PAUSE_FOCUS_PAUSE);
+           UR_MODERN_PAUSE_OPTIONS);
     ur_modern_pause_menu_move(&menu, -1, 1);
     assert(ur_modern_pause_menu_selected(&menu, 1) == UR_MODERN_PAUSE_RESTART);
 
@@ -70,10 +70,10 @@ int main() {
     assert(menu.selected == UR_MODERN_PAUSE_RESUME);
 
     // Host-owned rows remain valid if Restart disappears.
-    menu.selected = UR_MODERN_PAUSE_FOCUS_PAUSE;
+    menu.selected = UR_MODERN_PAUSE_OPTIONS;
     ur_modern_pause_menu_move(&menu, 0, 0);
     assert(ur_modern_pause_menu_selected(&menu, 0) ==
-           UR_MODERN_PAUSE_FOCUS_PAUSE);
+           UR_MODERN_PAUSE_OPTIONS);
     menu.selected = UR_MODERN_PAUSE_CONTROLS;
     ur_modern_pause_menu_move(&menu, 0, 0);
     assert(ur_modern_pause_menu_selected(&menu, 0) ==
@@ -86,6 +86,11 @@ int main() {
     ur_modern_pause_menu_move(&menu, 0, 0);
     assert(ur_modern_pause_menu_selected(&menu, 0) ==
            UR_MODERN_PAUSE_QUIT);
+
+    // A stale direct Focus Pause selection normalizes into Options.
+    menu.selected = UR_MODERN_PAUSE_FOCUS_PAUSE;
+    assert(ur_modern_pause_menu_selected(&menu, 0) ==
+           UR_MODERN_PAUSE_OPTIONS);
 
     return 0;
 }

@@ -5,15 +5,15 @@
 | BOOT_STARTUP | 2 |  | 0 | 10 | 0 |  | 0 | 1 | hypothesis |
 | SPLASH | 2 | 0x84 | 0 | 1 | 0 |  | 1 | 2 | documented |
 | DEMO | 3 | 0x00? | 0 | 1 | 0 |  | 1 | 1 | verified |
-| MAIN_MENU | 1 | 0xD7 | 1 | 13 | 2 |  | 7 | 7 | verified |
+| MAIN_MENU | 1 | 0xD7 | 1 | 13 | 2 |  | 8 | 7 | verified |
 | PLAYER_SELECT_P1 | 1 | 0x3C | 1 | 0 | 3 |  | 1 | 1 | verified |
 | TWO_PLAYER_SELECT | 1 | 0x3D | 0 | 1 | 1 |  | 1 | 2 | verified |
 | VS_SELECT | 1 | 0x3E | 0 | 3 | 1 |  | 2 | 2 | verified |
 | VS_CHALLENGER | 1 | 0x3F | 0 | 1 | 0 |  | 1 | 1 | verified |
-| VS_CHALLENGE_TRACK | 1 | 0x5A | 0 | 1 | 0 |  | 1 | 1 | verified |
-| TOUR_SELECT | 1 | 0x6D, 0x10 | 1 | 1 | 2 |  | 4 | 1 | verified |
-| TRACK_SELECT | 1 | 0xF6, 0x91, 0x96? | 1 | 3 | 2 |  | 5 | 2 | verified |
-| PRE_RACE_CARD | 1 | 0x16 | 1 | 4 | 0 |  | 5 | 1 | verified |
+| VS_CHALLENGE_TRACK | 1 | 0x5A | 0 | 1 | 0 |  | 1 | 5 | verified |
+| TOUR_SELECT | 1 | 0x6D, 0x10 | 1 | 1 | 2 |  | 5 | 1 | verified |
+| TRACK_SELECT | 1 | 0xF6, 0x91, 0x96? | 1 | 3 | 2 |  | 6 | 2 | verified |
+| PRE_RACE_CARD | 1 | 0x16 | 1 | 4 | 0 |  | 6 | 1 | verified |
 | GAMEPLAY | 1 |  | 7 | 4 | 2 |  | 2 | 4 | verified |
 | PAUSE | 1 |  | 0 | 1 | 0 |  | 1 | 1 | verified |
 | RESULT_BY_TRACK_TYPE | 1 |  | 0 | 0 | 0 |  | 0 | 0 |  |
@@ -52,7 +52,7 @@
 ## Summary
 
 - conceptual states: 35
-- executable transitions: 67
+- executable transitions: 71
 - capture contracts: 115
 - menu-index entries: 32
 - locally verified menu-index entries: 22

@@ -33,6 +33,8 @@ CHECKPOINTS = ["vsc-result", "vsc-champions", "vsc-pick-challenger", "vsc-pick-a
 DRAW_INPUT = ROOT / "tests/input/vs-first-race.input"
 DRAW_SCRIPT = ROOT / "tests/input/vs-draw-rematch-observe.script"
 DRAW_CHECKPOINTS = ["vsd-result", "vsd-rematch", "vsd-after"]
+BRANCH_EXPECT = {1: (0x16, "NOW PLAYING"), 2: (0x91, "PICK TRACK"), 3: (0x6D, "PICK TOUR"), 4: (0xD7, "1P")}
+BRANCH_SCRIPT = "wait 4580\ndump vsb-pre\nwait 300\ndump vsb-post\nquit\n"
 TRACK_CHOICES = ["NEXT TRACK", "SAME TRACK", "SELECT TRACK", "SELECT TOUR", "QUIT"]
 
 
@@ -43,6 +45,22 @@ def evaluate_draw(obs: dict[str, dict]) -> dict:
         "draw_shows_rematch_banner_0xB7": rm["menu"] == 0xB7 and rm["texts"] == ["REMATCH"],
         "rematch_returns_to_now_playing": after["menu"] == 0x16 and "NOW PLAYING" in after["texts"],
     }
+
+
+def branch_input(base_lines: list[str], downs: int) -> str:
+    """The challenger route with the final NEXT TRACK confirm replaced by P2 Down x downs + A."""
+    keep = [l for l in base_lines if l and not l.startswith("#") and not l.startswith("4620:")]
+    ev = [f"{4600 + 30 * i}:2:000:020" for i in range(downs)] + [f"{4600 + 30 * downs + 20}:2:000:100"]
+    return "\n".join(keep + ev) + "\n"
+
+
+def evaluate_branches(branches: dict[int, dict]) -> dict:
+    checks = {}
+    for downs, obs in branches.items():
+        menu, label = BRANCH_EXPECT[downs]
+        name = TRACK_CHOICES[downs].lower().replace(" ", "_")
+        checks[f"track_choice_{name}_reaches_0x{menu:02X}"] = obs["menu"] == menu and label in obs["texts"]
+    return checks
 
 
 def evaluate(obs: dict[str, dict]) -> dict:
@@ -91,8 +109,17 @@ def main() -> int:
 
     obs = run(INPUT, SCRIPT, CHECKPOINTS)
     draw = run(DRAW_INPUT, DRAW_SCRIPT, DRAW_CHECKPOINTS)
-    checks = {**evaluate(obs), **evaluate_draw(draw)}
+    branches = {}
+    with tempfile.TemporaryDirectory() as bd:
+        base = INPUT.read_text().splitlines()
+        for downs in BRANCH_EXPECT:
+            inp, scr = Path(bd) / f"b{downs}.input", Path(bd) / f"b{downs}.script"
+            inp.write_text(branch_input(base, downs))
+            scr.write_text(BRANCH_SCRIPT)
+            branches[downs] = run(inp, scr, ["vsb-post"])["vsb-post"]
+    checks = {**evaluate(obs), **evaluate_draw(draw), **evaluate_branches(branches)}
     obs.update(draw)
+    obs.update({f"branch-{TRACK_CHOICES[k].lower().replace(' ', '-')}": v for k, v in branches.items()})
     report = {
         "schema_version": 1,
         "question": "What follows a decided VS race, and who controls it?",

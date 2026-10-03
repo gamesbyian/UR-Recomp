@@ -220,9 +220,18 @@ states:
       - input: "NEXT TRACK confirm (challenger's pad)"
         to: PRE_RACE_CARD
         confidence: high
-      - input: "other options"
+      - input: "SAME TRACK"
         to: PRE_RACE_CARD
-        confidence: inferred
+        confidence: high
+      - input: "SELECT TRACK"
+        to: TRACK_SELECT
+        confidence: high
+      - input: "SELECT TOUR"
+        to: TOUR_SELECT
+        confidence: high
+      - input: "QUIT"
+        to: MAIN_MENU
+        confidence: high
       - input: "Y or X"
         to: VS_CHALLENGER
         confidence: inferred

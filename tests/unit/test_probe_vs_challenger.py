@@ -29,6 +29,16 @@ class VsChallengerTests(unittest.TestCase):
         bad["vsc-pick-after-p1"] = o(0x3F, ["PICK CHALLENGER"], column=0x07)
         self.assertFalse(probe.evaluate(bad)["p1_inert_on_pick_challenger"])
 
+    def test_branch_input_replaces_final_confirm(self) -> None:
+        out = probe.branch_input(["# c", "4460:2:000:100", "4620:2:000:100"], 2).splitlines()
+        self.assertEqual(out, ["4460:2:000:100", "4600:2:000:020", "4630:2:000:020", "4680:2:000:100"])
+
+    def test_branches(self) -> None:
+        ok = {1: o(0x16, ["NOW PLAYING"]), 2: o(0x91, ["PICK TRACK"]), 3: o(0x6D, ["PICK TOUR"]), 4: o(0xD7, ["1P"])}
+        self.assertTrue(all(probe.evaluate_branches(ok).values()))
+        ok[4] = o(0x16, ["NOW PLAYING"])
+        self.assertFalse(probe.evaluate_branches(ok)["track_choice_quit_reaches_0xD7"])
+
     def test_draw(self) -> None:
         draw = {"vsd-result": o(0xF9, ["COMPLETE", "NO TIME", "NO TIME"]),
                 "vsd-rematch": o(0xB7, ["REMATCH"]), "vsd-after": o(0x16, ["NOW PLAYING"])}

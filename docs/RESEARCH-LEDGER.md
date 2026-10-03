@@ -2037,7 +2037,7 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 
 **Harness note:** `tools/patches/snesrecomp-dual-controller-input.patch` applies to the pinned submodule in CI. Against the bootstrap-staged `.tools/src/snesrecomp` its last hunk (port-1 `retro_set_controller_port_device`) fails and must be applied by hand. The pinned snesref without the patch silently ignores the P2 column.
 
-**Uncertainty:** native-recomp and Mesen have not run this route, so `multiplayer_behavioral_verification` stays open. The bot's `0xD3` stunt-summing label is unconfirmed (`0xD3` here is VS CHAMPIONS). The SAME/SELECT TRACK, SELECT TOUR and QUIT branches are untested.
+**Uncertainty:** native-recomp and Mesen have not run this route, so `multiplayer_behavioral_verification` stays open. The bot's `0xD3` stunt-summing label is unconfirmed (`0xD3` here is VS CHAMPIONS). Track-choice branches were later verified: SAME TRACK → NOW PLAYING on the same course (now showing the winner's record), SELECT TRACK → TRACK_SELECT `0x91`, SELECT TOUR → TOUR_SELECT `0x6D`, QUIT → MAIN_MENU (14 checks).
 
 ### R-2026-10-03-UI-11 — Records sub-screen exits classified; 009F goes stale on Records
 

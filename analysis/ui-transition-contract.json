@@ -542,6 +542,42 @@
       "status": "verified",
       "fixture": "ui-records-submenus",
       "source_note": "snesref run of ui-records-submenus: ui-record-high-back shows the RECORDS list (BG2 strip 512) while 7E:009F keeps a stale 0xBF."
+    },
+    {
+      "id": "vs-track-same",
+      "from": "VS_CHALLENGE_TRACK",
+      "to": "PRE_RACE_CARD",
+      "trigger": "SAME TRACK confirm",
+      "status": "verified",
+      "fixture": "vs-challenger-route",
+      "source_note": "tools/probe_vs_challenger.py branch run (challenger's pad Down x N + A)."
+    },
+    {
+      "id": "vs-track-select-track",
+      "from": "VS_CHALLENGE_TRACK",
+      "to": "TRACK_SELECT",
+      "trigger": "SELECT TRACK confirm (two-player TRACK_SELECT 0x91)",
+      "status": "verified",
+      "fixture": "vs-challenger-route",
+      "source_note": "tools/probe_vs_challenger.py branch run (challenger's pad Down x N + A)."
+    },
+    {
+      "id": "vs-track-select-tour",
+      "from": "VS_CHALLENGE_TRACK",
+      "to": "TOUR_SELECT",
+      "trigger": "SELECT TOUR confirm (0x6D)",
+      "status": "verified",
+      "fixture": "vs-challenger-route",
+      "source_note": "tools/probe_vs_challenger.py branch run (challenger's pad Down x N + A)."
+    },
+    {
+      "id": "vs-track-quit",
+      "from": "VS_CHALLENGE_TRACK",
+      "to": "MAIN_MENU",
+      "trigger": "QUIT confirm",
+      "status": "verified",
+      "fixture": "vs-challenger-route",
+      "source_note": "tools/probe_vs_challenger.py branch run (challenger's pad Down x N + A)."
     }
   ],
   "capture_exempt_states": [

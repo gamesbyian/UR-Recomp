@@ -38,7 +38,7 @@ def patch_host(path: Path) -> None:
 
     const char *view = getenv("URRECOMP_WS_VIEW");
     if (view && view[0])
-        return strcmp(view, "authentic-16x9-candidate") == 0 ? 48 : 0;
+        return strcmp(view, "authentic-16x9-candidate") == 0 ? 43 : 0;
 
     int extra = PpuWsExtraOverride();
     return extra > 0 ? extra : 0;

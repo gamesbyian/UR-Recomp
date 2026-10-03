@@ -352,11 +352,18 @@ jobs:
             xdotool key Escape
             sleep 0.3
 
-            # Active race exposes Resume -> Restart -> Focus Pause.
-            # Navigate through the real pause menu and activate the persisted
-            # setting with the ordinary Accept key.
+            # Active race exposes Resume -> Restart -> Options.
+            # Enter Options, then toggle Focus Pause through the nested
+            # host-owned settings view with the ordinary Accept key.
             xdotool key Down
             xdotool key Down
+            xdotool key Return
+            for _ in $(seq 1 100); do
+              grep -q "UR_PAUSE_OPTIONS OPENED" "'"$SAVE_LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PAUSE_OPTIONS OPENED" "'"$SAVE_LOG"'"
             xdotool key Return
 
             for _ in $(seq 1 100); do
@@ -402,7 +409,7 @@ jobs:
           cat "$LOAD_LOG"
           echo "== authentic diagnostics =="
           cat "$AUTH_LOG"
-          echo "UR_PAUSE_SETTINGS_ROW_RESULT=navigated_saved_loaded_and_authentic_inert"
+          echo "UR_PAUSE_OPTIONS_RESULT=opened_toggled_saved_loaded_and_authentic_inert"
 
       - name: Modern pause controls panel acceptance
         shell: bash

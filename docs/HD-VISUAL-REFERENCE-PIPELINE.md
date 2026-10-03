@@ -118,9 +118,9 @@ The reversed frame-1218 predecessor now adds a third authored checkpoint. Unlike
 
 Retained dossier comparison proves the frame-1217 P1 stock raster is byte-for-byte identical to frame 1218 despite its separate synchronized composition registration. That reuse is now implemented and accepted: both exact guards remain distinct, but their stock RGBA hashes, authored RGBA hashes and gameplay-scale review metrics are required to match. Native run `37151848274` / artifact `11284007664` closes the live split-screen proof.
 
-This establishes an additional pipeline rule: **do not equate exact-state registration count with required art count**. When independently registered contexts reconstruct to identical stock pixels and geometry, one reviewed authored asset should be reused under multiple exact guards. The next actual visual change in the retained sequence is the repeated frame-1215/1216 P1 representation `057F/0542 + 0D4A/0000`, with stock envelope `[22,2]..[41,38]` and contact `[65,76]`.
+This establishes an additional pipeline rule: **do not equate exact-state registration count with required art count**. When independently registered contexts reconstruct to identical stock pixels and geometry, one reviewed authored asset should be reused under multiple exact guards. The repeated frame-1215/1216 P1 representation `057F/0542 + 0D4A/0000` is now the next authored visual change. Both temporal occurrences consume one 4x asset; gameplay-scale review is locked to the recovered stock envelope `[22,2]..[41,38]` and contact `[65,76]`, while material, lighting and edge treatment remain inherited from the reviewed sequence.
 
-This closes the **first three-pose plus context-reuse motion-review pass**, not final shipping-art approval. Recovered gameplay-scale envelope/contact and temporal continuity remain acceptance constraints, while smooth geometry/material interpretation stays free inside those constraints.
+This extends the **first motion-reviewed sequence to four visual poses plus one context reuse**, pending native/artifact acceptance for the new repeated pose, and still does not constitute final shipping-art approval. Recovered gameplay-scale envelope/contact and temporal continuity remain acceptance constraints, while smooth geometry/material interpretation stays free inside those constraints.
 
 ## Reconstruction decision policy
 

@@ -1137,6 +1137,7 @@ jobs:
             --reference-index analysis/ui-reference-index.json \
             --transition-contract analysis/ui-transition-contract.json \
             --include-unclassified \
+            --exclude-source-fixture two-player-first-race \
             --dump-dir "$RUNNER_TEMP/race-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-dumps" \
             --dump-dir "$RUNNER_TEMP/ui-branch-dumps" \

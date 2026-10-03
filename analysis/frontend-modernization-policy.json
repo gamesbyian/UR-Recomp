@@ -123,7 +123,7 @@
       ],
       "class": "presentation_artifact",
       "modern": "preserve_and_augment",
-      "rationale": "Every named/color-coded unicycle remains an exact preset and may also serve as AI/ghost/tournament cast; player-created racers are added beside them.",
+      "rationale": "Every named/color-coded unicycle remains an exact preset and may also serve as AI/ghost/tournament cast; player-created racers are added beside them. Exact preset data (index, default name, grid slot, medal column, ROM palette) is analysis/generated/legacy-cast-presets.json.",
       "policy_source": "docs/PROJECT-PLAN.md#racer-identity-and-legacy-cast"
     },
     {

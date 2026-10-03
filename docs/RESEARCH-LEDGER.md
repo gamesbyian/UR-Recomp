@@ -1931,3 +1931,17 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 - **WRAM sampling:** per-frame sampling of `$0000-$1FFF` shows only stack churn at input frames, so the request is transient.
 
 **Next discriminator:** log CPU writes to `$2140-$2143` (SNESRecomp native `audio_events` via `tools/analyze_audio_port_events.py`, or a core with the cosim memory IDs) across the same script, and only when a modern menu surface needs exact stock SFX.
+
+### R-2026-10-03-UI-05 — The 16 classic racers are fully specified by rider index
+
+**Status:** reproduced locally (reference harness + ROM table), preset table committed  
+**Date:** 2026-10-03  
+**Area:** frontend | racer identity | presentation
+
+**Observation:** On PLAYER_SELECT_P1 the cursor walks `7E:000E` rows 0..7 and `7E:0C63` columns `0x06/0x07`. Confirming writes `$017D = 2 * row + column`, checked at five positions. Palette assets `0x06..0x15` from the `82:B32F` table differ only in a seven-entry body ramp (2, 4, 6, 7, 9, 11, 13). The end-of-frame rider-select OBJ palettes 0..7 equal assets `0x0E..0x15` byte-for-byte. HDMA (CGADD/CGDATA, channels 0/1) loads the bottom four grid rows mid-frame, so the menu icons reuse the in-race palettes.
+
+**Evidence:** `tools/build_legacy_cast_presets.py` → `analysis/generated/legacy-cast-presets.json` (six checks), built from the `menu-visual-language.script` rider dump and the canonical ROM.
+
+**Interpretation:** A classic preset is fully specified by its rider index: default name, grid slot, medal column and exact palette. Modern racer presets, ghosts and AI cast can key on that index without new archaeology.
+
+**Uncertainty:** Default names are clean-boot values; RENAME PLAYER stores edits in SRAM, at an SRAM offset not yet mapped. The menu HDMA table decode (`00:CD36/00:CD73`) was not completed; it was unnecessary once the end-of-frame cross-check matched. Bronsen, Silverton and Goldwyn are not in this roster.

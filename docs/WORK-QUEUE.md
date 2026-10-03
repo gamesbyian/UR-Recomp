@@ -254,7 +254,7 @@ Permanent widening still waits for a trustworthy stock baseline. **Reconnaissanc
 - [ ] Implement `tools/widescreen_probe.py` on the shared fixture grammar once the capture route is proven; sweep staged margins and emit first-failure reports.
 - [ ] Classify representative title/frontend, one-player, results, two-player and Vs. scenes by explicit presentation policy.
 - [ ] Separate simulation/activation, preparation/streaming, render/culling, camera/composition and UI-composition widths.
-- [~] Validate the accepted viewport/PAR/overscan architecture in `docs/DISPLAY-PRESENTATION-POLICY.md`: retain separate Display Geometry and View axes, prove the exact Uniracers Authentic 4:3 transform/overscan constants from reference captures, and derive the first 16:9 logical margin without hard-coding a magic source width.
+- [~] Validate the accepted viewport/PAR/overscan architecture in `docs/DISPLAY-PRESENTATION-POLICY.md`: retain separate Display Geometry and View axes and prove the exact Uniracers Authentic 4:3 transform/overscan constants from reference captures. Margin derivation is now implemented in `tools/widescreen_probe.py derive-margin`; once those inputs are pinned, use it to select the first 16:9 logical margin and compare it with the validated +64 provider capacity.
 - [ ] Widen render/culling paths deliberately while keeping stock simulation timing unchanged.
 - [ ] Measure object/opponent/event information exposure between matched 4:3 and 16:9 runs.
 - [ ] Exercise player-1/player-2 split-screen and Vs. behavior independently, including the authentic sprite-ripping path.

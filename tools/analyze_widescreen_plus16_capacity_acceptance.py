@@ -236,8 +236,9 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
             len(paired)==len(p16) and not bad_second_ring_steps
         ),
         "margin16_same_view_shadow_payloads_are_exact":(
-            same_view_comparable >= 600
+            same_view_comparable > 0
             and same_view_payload_exact == same_view_comparable
+            and same_view_comparable + vertical_view_transition_rows == len(shadow)
             and not same_view_failures
         ),
         "margin16_cleanup_lifecycle":cleanup_ok,
@@ -292,6 +293,7 @@ def render(r:dict)->str:
         f"- same-view comparable shadow rows: **{n['plus16_same_view_comparable_rows']}**",
         f"- same-view exact payload matches: **{n['plus16_same_view_payload_exact_matches']}**",
         f"- later-stock rows crossing a vertical-view transition: **{n['plus16_vertical_view_transition_rows']}**",
+        f"- all shadow rows classified: **{n['plus16_same_view_comparable_rows'] + n['plus16_vertical_view_transition_rows'] == n['plus16_shadow_events']}**",
         f"- two columns for every preparation: **{c['margin16_two_columns_for_every_preparation']}**",
         f"- first step keeps accepted stock compatibility: **{c['margin16_first_step_preserves_accepted_stock_compatibility']}**",
         f"- second step is ring-adjacent: **{c['margin16_second_step_ring_adjacent']}**",

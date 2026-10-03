@@ -33,7 +33,7 @@ jobs:
         run: python3 -m unittest tests.unit.test_racer_hd_replacement_prototype -v
       - name: Render synchronized semantic replacement prototypes
         run: |
-          for frame in 0541 0540; do
+          for frame in 0541 0540 057E 0544; do
             python3 tools/prototype_racer_hd_replacement.py \
               "reference/roms/retail/Uniracers_USA.sfc" \
               --semantic-frame-id "0x$frame" \
@@ -48,6 +48,8 @@ jobs:
           expected_contacts = {
               "0541": [61, 76],
               "0540": [63, 76],
+              "057E": [67, 76],
+              "0544": [55, 76],
           }
           for frame, contact in expected_contacts.items():
               out = root / f"racer-hd-prototype-{frame}"
@@ -95,4 +97,6 @@ jobs:
           path: |
             ${{ runner.temp }}/racer-hd-prototype-0541/
             ${{ runner.temp }}/racer-hd-prototype-0540/
+            ${{ runner.temp }}/racer-hd-prototype-057E/
+            ${{ runner.temp }}/racer-hd-prototype-0544/
           if-no-files-found: error

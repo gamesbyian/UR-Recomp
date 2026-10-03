@@ -1,6 +1,6 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -3982,8 +3982,15 @@
+@@ -3982,8 +3982,13 @@
          }
          break;
        case SDL_KEYDOWN:
@@ -19,7 +19,7 @@
          HandleInput(SNESRECOMP_SDL_EVENT_KEY(event),
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -185,6 +185,16 @@
+@@ -185,5 +185,14 @@
     * exactly where they left off. Zero keeps today's behaviour exactly. */
    int in_game_launcher;
 +

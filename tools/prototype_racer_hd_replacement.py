@@ -124,6 +124,52 @@ def scaled_bounds(bounds: list[int] | None, scale: int) -> list[int] | None:
     return [x0 * scale, y0 * scale, (x1 + 1) * scale - 1, (y1 + 1) * scale - 1]
 
 
+def object_flip_pivot_x2_y2(width: int, height: int) -> list[int]:
+    """Return the exact OBJ flip centre in half-pixel fixed-point units."""
+    if width <= 0 or height <= 0:
+        raise ValueError("object dimensions must be positive")
+    return [width - 1, height - 1]
+
+
+def alpha_contact_anchor_x2_y2(
+    rgba: bytes,
+    width: int,
+    height: int,
+) -> list[int] | None:
+    """Center the lowest occupied alpha span in half-pixel fixed-point units.
+
+    Coordinates use pixel centres with a fixed-point scale of two. This keeps
+    half-pixel centres exact while deriving the contact point only from the
+    deterministic stock raster, not from replacement art.
+    """
+    if len(rgba) != width * height * 4:
+        raise ValueError("unexpected RGBA byte length")
+    for y in range(height - 1, -1, -1):
+        xs = [
+            x for x in range(width)
+            if rgba[(y * width + x) * 4 + 3]
+        ]
+        if xs:
+            return [min(xs) + max(xs), 2 * y]
+    return None
+
+
+def transform_anchor_x2_y2(
+    anchor: list[int],
+    width: int,
+    height: int,
+    hflip: bool,
+    vflip: bool,
+) -> list[int]:
+    """Apply the same object-local H/V reflection used by the raster."""
+    x2, y2 = anchor
+    if hflip:
+        x2 = 2 * (width - 1) - x2
+    if vflip:
+        y2 = 2 * (height - 1) - y2
+    return [x2, y2]
+
+
 def load_entry(registry: dict, semantic_frame_id: str) -> dict:
     hits = [x for x in registry["entries"] if x["semantic_frame_id"].lower() == semantic_frame_id.lower()]
     if len(hits) != 1:
@@ -274,6 +320,27 @@ def run(
 
     stock_bounds = alpha_bounds(stock, W, H)
     remastered_bounds = alpha_bounds(remastered, rw, rh)
+    flip_pivot = object_flip_pivot_x2_y2(W, H)
+    stock_contact = alpha_contact_anchor_x2_y2(stock, W, H)
+    anchors = entry["registration"].get("semantic_anchors")
+    if not isinstance(anchors, dict):
+        raise ValueError("registered semantic anchors are required")
+    if int(anchors.get("fixed_point_scale", 0)) != 2:
+        raise ValueError("semantic anchors must use fixed-point scale 2")
+    if anchors.get("flip_pivot_x2_y2") != flip_pivot:
+        raise ValueError(
+            f"registered flip pivot disagrees with OBJ geometry: "
+            f"{anchors.get('flip_pivot_x2_y2')} != {flip_pivot}"
+        )
+    if anchors.get("wheel_contact_x2_y2") != stock_contact:
+        raise ValueError(
+            f"registered wheel/contact anchor disagrees with stock raster: "
+            f"{anchors.get('wheel_contact_x2_y2')} != {stock_contact}"
+        )
+    display_contact = (
+        transform_anchor_x2_y2(stock_contact, W, H, hflip, vflip)
+        if stock_contact is not None else None
+    )
     if remastered_bounds != scaled_bounds(stock_bounds, 4):
         raise AssertionError(
             f"replacement registration drifted: stock={stock_bounds} remastered={remastered_bounds}"
@@ -306,6 +373,14 @@ def run(
         "authoritative_state_mutated": False,
         "orientation": {"hflip": hflip, "vflip": vflip, "applied_after_selection": True},
         "registration": entry["registration"],
+        "derived_anchor_probe": {
+            "coordinate_space": "object-local pixel centres",
+            "fixed_point_scale": 2,
+            "flip_pivot_x2_y2": flip_pivot,
+            "stock_contact_x2_y2": stock_contact,
+            "display_contact_x2_y2": display_contact,
+            "contact_derivation": "centre of lowest occupied stock alpha span",
+        },
         "original": {
             "logical_dimensions": [W, H],
             "comparison_dimensions": [W * 4, H * 4],
@@ -332,10 +407,8 @@ def run(
             "orientation_applied_post_selection": True,
             "fallback_exact": True,
             "selector_fails_closed_to_original": True,
-            "missing_registration_metadata": [
-                "explicit semantic pivot coordinate",
-                "explicit wheel/contact anchor coordinate"
-            ],
+            "semantic_anchor_metadata_exact": True,
+            "missing_registration_metadata": [],
         },
     }
     (output_dir / "manifest.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")

@@ -2,13 +2,16 @@ import unittest
 
 from tools.prototype_racer_hd_replacement import (
     alpha_bounds,
+    alpha_contact_anchor_x2_y2,
     flip_rgba,
     lock_alpha,
     nearest_rgba,
+    object_flip_pivot_x2_y2,
     scale2x_rgba,
     scaled_bounds,
     guards_match,
     select_representation,
+    transform_anchor_x2_y2,
 )
 
 
@@ -35,6 +38,21 @@ class RacerHdReplacementPrototypeTests(unittest.TestCase):
         out = lock_alpha(candidate, reference)
         self.assertEqual(len(out), 6 * 6 * 4)
         self.assertEqual(alpha_bounds(out, 6, 6), scaled_bounds(alpha_bounds(src, 3, 3), 2))
+
+    def test_anchor_geometry_is_exact_and_flip_stable(self):
+        t = px(0, 0, 0, 0)
+        w = px(255, 255, 255)
+        src = b"".join([
+            t, t, t, t,
+            t, w, w, t,
+            w, w, w, t,
+        ])
+        self.assertEqual(object_flip_pivot_x2_y2(4, 3), [3, 2])
+        contact = alpha_contact_anchor_x2_y2(src, 4, 3)
+        self.assertEqual(contact, [2, 4])
+        self.assertEqual(transform_anchor_x2_y2(contact, 4, 3, True, False), [4, 4])
+        self.assertEqual(transform_anchor_x2_y2(contact, 4, 3, False, True), [2, 0])
+        self.assertEqual(transform_anchor_x2_y2(contact, 4, 3, True, True), [4, 0])
 
     def test_selector_fails_closed_to_original(self):
         registry = {

@@ -60,6 +60,9 @@ class RacerReplacementSelectorCppTests(unittest.TestCase):
         player = {"p1": 1, "p2": 2}[entry["player"]]
         logical_w, logical_h = entry["registration"]["logical_canvas_pixels"]
         occ_x, occ_y = entry["registration"]["occupancy_tile_offset"]
+        anchors = entry["registration"]["semantic_anchors"]
+        pivot_x2, pivot_y2 = anchors["flip_pivot_x2_y2"]
+        contact_x2, contact_y2 = anchors["wheel_contact_x2_y2"]
         source = f"""
 #include "racer_replacement_selector.hpp"
 #include <cassert>
@@ -84,8 +87,13 @@ int main() {{
     assert(r->occupancy_tile_x == {occ_x});
     assert(r->occupancy_tile_y == {occ_y});
     assert(r->remastered_density_scale == {int(entry["remastered_candidate"]["density_scale"])});
-    assert(!r->has_explicit_pivot);
-    assert(!r->has_explicit_contact_anchor);
+    assert(r->anchor_fixed_point_scale == {int(anchors["fixed_point_scale"])});
+    assert(r->has_explicit_pivot);
+    assert(r->has_explicit_contact_anchor);
+    assert(r->semantic_pivot.x2 == {int(pivot_x2)});
+    assert(r->semantic_pivot.y2 == {int(pivot_y2)});
+    assert(r->contact_anchor.x2 == {int(contact_x2)});
+    assert(r->contact_anchor.y2 == {int(contact_y2)});
     return 0;
 }}
 """

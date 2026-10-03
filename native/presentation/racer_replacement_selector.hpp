@@ -29,6 +29,31 @@ struct RacerCompositionState {
     std::uint16_t p2_companion_gate_word;
 };
 
+struct RacerAnchor2 {
+    std::int16_t x2;
+    std::int16_t y2;
+};
+
+constexpr RacerAnchor2 transform_racer_anchor(
+    RacerAnchor2 anchor,
+    std::uint16_t logical_width,
+    std::uint16_t logical_height,
+    bool hflip,
+    bool vflip
+) noexcept {
+    if (hflip) {
+        anchor.x2 = static_cast<std::int16_t>(
+            2 * (static_cast<int>(logical_width) - 1) - anchor.x2
+        );
+    }
+    if (vflip) {
+        anchor.y2 = static_cast<std::int16_t>(
+            2 * (static_cast<int>(logical_height) - 1) - anchor.y2
+        );
+    }
+    return anchor;
+}
+
 struct RacerRegistration {
     std::uint16_t semantic_frame_id;
     std::uint8_t player;
@@ -39,6 +64,9 @@ struct RacerRegistration {
     std::uint8_t occupancy_tile_x;
     std::uint8_t occupancy_tile_y;
     std::uint8_t remastered_density_scale;
+    std::uint8_t anchor_fixed_point_scale;
+    RacerAnchor2 semantic_pivot;
+    RacerAnchor2 contact_anchor;
     bool has_explicit_pivot;
     bool has_explicit_contact_anchor;
 };

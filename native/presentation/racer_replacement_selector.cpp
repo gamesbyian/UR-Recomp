@@ -25,8 +25,11 @@ constexpr RacerRegistration kRegistrations[] = {
         1,
         0,
         4,
-        false,
-        false,
+        2,
+        {63, 63},
+        {61, 76},
+        true,
+        true,
     },
 };
 

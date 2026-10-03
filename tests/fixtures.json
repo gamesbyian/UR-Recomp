@@ -956,6 +956,29 @@
       ],
       "status": "validated",
       "validation": "analysis/generated/vs-challenger-probe.json (10 checks) via tools/probe_vs_challenger.py with a dual-controller snesref build"
+    },
+    {
+      "id": "ui-record-track-exit",
+      "input_script": "tests/input/ui-record-track-exit.script",
+      "purpose": "Track Records exit: the first X during the progressive table build is swallowed; the second returns to the RECORDS list with a stale 009F (0x5A). snesref sweep: A/B/Y/Start behave like X, Select and the D-pad stay.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "ui-record-track-building",
+        "ui-record-track-built",
+        "ui-record-track-exit"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "bg2-scroll",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu"
+      ],
+      "status": "validated",
+      "validation": "Decoded locally: building/built frames show TRACK RECORDS at BG2 vofs 261; the exit frame shows the five-item RECORDS list at vofs 0."
     }
   ]
 }

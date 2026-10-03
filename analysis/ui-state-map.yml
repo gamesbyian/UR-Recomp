@@ -504,7 +504,7 @@ states:
       local_fixture: "tests/input/ui-records-submenus.script"
     description: "Track Records screen: all-time track bests with Gold/Silver/Bronze records and player-color star markers."
     notes:
-      - "The harvested X discriminator did not return to Records: the next frame remains visibly in Track Records while currentMenu changes to 0x5A. Treat this as internal score-screen behavior until classified."
+      - "Classified 2026-10-03: the table draws progressively and the first button press during the build is swallowed. A second A/B/X/Y/Start returns to RECORDS (BG2 vofs 261 -> 0) while currentMenu stays a stale 0x5A (tests/input/ui-record-track-exit.script). Select and the D-pad do not exit."
 
   - id: RECORD_HIGH_SCORES
     family: records

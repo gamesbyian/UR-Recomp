@@ -524,6 +524,24 @@
       "status": "verified",
       "fixture": "vs-challenger-route",
       "source_note": "tests/input/vs-first-race.input left to time out (~37670 frames) with tests/input/vs-draw-rematch-observe.script."
+    },
+    {
+      "id": "record-track-back",
+      "from": "RECORD_TRACK",
+      "to": "RECORDS",
+      "trigger": "A/B/X/Y/Start once the table has finished drawing (an earlier press is swallowed)",
+      "status": "verified",
+      "fixture": "ui-record-track-exit",
+      "source_note": "snesref: BG2 vofs 261 -> 0 and the five-item RECORDS list is visible; 7E:009F stays a stale 0x5A, so do not use it as the state signal here."
+    },
+    {
+      "id": "record-high-back",
+      "from": "RECORD_HIGH_SCORES",
+      "to": "RECORDS",
+      "trigger": "X",
+      "status": "verified",
+      "fixture": "ui-records-submenus",
+      "source_note": "snesref run of ui-records-submenus: ui-record-high-back shows the RECORDS list (BG2 strip 512) while 7E:009F keeps a stale 0xBF."
     }
   ],
   "capture_exempt_states": [

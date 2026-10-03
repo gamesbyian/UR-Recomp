@@ -1401,6 +1401,17 @@
         "current_menu": "0x5A"
       },
       "note": "snesref-only (dual-controller patch); tools/probe_vs_challenger.py."
+    },
+    {
+      "tag": "ui-record-track-exit",
+      "state_id": "RECORDS",
+      "variant": "after-track-records-exit",
+      "source_fixture": "ui-record-track-exit",
+      "required": false,
+      "expect": {
+        "current_menu": "0x5A"
+      },
+      "note": "Stale 009F after the Track Records exit; the visible screen is the RECORDS list."
     }
   ]
 }

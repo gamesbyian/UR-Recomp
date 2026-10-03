@@ -2038,3 +2038,16 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 **Harness note:** `tools/patches/snesrecomp-dual-controller-input.patch` applies to the pinned submodule in CI. Against the bootstrap-staged `.tools/src/snesrecomp` its last hunk (port-1 `retro_set_controller_port_device`) fails and must be applied by hand. The pinned snesref without the patch silently ignores the P2 column.
 
 **Uncertainty:** native-recomp and Mesen have not run this route, so `multiplayer_behavioral_verification` stays open. The bot's `0xD3` stunt-summing label is unconfirmed (`0xD3` here is VS CHAMPIONS). The SAME/SELECT TRACK, SELECT TOUR and QUIT branches are untested.
+
+### R-2026-10-03-UI-11 — Records sub-screen exits classified; 009F goes stale on Records
+
+**Status:** reproduced locally (reference harness)  
+**Date:** 2026-10-03  
+**Area:** frontend | records
+
+**Observation:**
+- **Track Records** (`0xCC`) draws its table progressively, and a button pressed during the build is swallowed. Once the table is complete, A/B/X/Y/Start return to the RECORDS list (BG2 vofs 261 → 0); Select and the D-pad do not.
+- **High Scores** returns to the RECORDS list on X.
+- **Stale `7E:009F`:** after both exits `7E:009F` keeps a stale value (`0x5A` and `0xBF`), so on Records sub-screens the visible screen and BG2 scroll, not `009F`, identify the state. This resolves the earlier "Track Records X shows 0x5A" note.
+
+**Evidence:** `tests/input/ui-record-track-exit.script` (fixture `ui-record-track-exit`) and an 11-button sweep; `ui-records-submenus` snesref run for High Scores. UI edges `record-track-back` and `record-high-back` are verified. The coverage report's only remaining Tier 1 gap is ENDING (`0x5B`).

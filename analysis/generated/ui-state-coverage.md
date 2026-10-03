@@ -24,9 +24,9 @@
 | LEAGUE_SELECT | 2 |  | 0 | 3 | 1 |  | 1 | 1 | documented |
 | LEAGUE_TABLE | 2 |  | 0 | 1 | 0 |  | 1 | 1 | documented |
 | OPTIONS_MENU | 1 | 0x57 | 0 | 11 | 1 |  | 7 | 5 | verified |
-| RECORDS | 1 | 0x5D | 0 | 17 | 2 |  | 1 | 6 | verified |
-| RECORD_TRACK | 1 | 0xCC | 0 | 1 | 1 |  | 1 | 0 | verified |
-| RECORD_HIGH_SCORES | 1 |  | 0 | 1 | 1 |  | 1 | 0 | documented |
+| RECORDS | 1 | 0x5D | 0 | 18 | 2 |  | 3 | 6 | verified |
+| RECORD_TRACK | 1 | 0xCC | 0 | 1 | 1 |  | 1 | 1 | verified |
+| RECORD_HIGH_SCORES | 1 |  | 0 | 1 | 1 |  | 1 | 1 | verified |
 | RECORD_PLAYER_SCORES | 1 |  | 0 | 1 | 1 |  | 2 | 2 | documented |
 | RECORD_GROUP_TABLES | 1 |  | 0 | 1 | 1 |  | 2 | 1 | documented |
 | DEFINE_PLAYER | 2 |  | 0 | 1 | 1 |  | 1 | 1 | documented |
@@ -40,15 +40,11 @@
 
 ## Tier 1 gaps
 
-- RECORD_TRACK: no outgoing transition in executable contract
-- RECORD_HIGH_SCORES: no outgoing transition in executable contract
 - ENDING: menu id remains historical/unverified
 
 ## All evidence gaps
 
 - DEMO: menu id remains historical/unverified
-- RECORD_TRACK: no outgoing transition in executable contract
-- RECORD_HIGH_SCORES: no outgoing transition in executable contract
 - FORBIDDEN_NAME_REJECTION: no capture contract
 - FORBIDDEN_NAME_REJECTION: blocked by open capability name_entry_cursor_mapping
 - ENDING: menu id remains historical/unverified
@@ -56,13 +52,13 @@
 ## Summary
 
 - conceptual states: 35
-- executable transitions: 65
-- capture contracts: 114
+- executable transitions: 67
+- capture contracts: 115
 - menu-index entries: 32
 - locally verified menu-index entries: 22
 - states with at least one capture contract: 33
 - states with at least one public visual lead: 24
 - Tier 1 states: 23
-- Tier 1 gap observations: 3
+- Tier 1 gap observations: 1
 - incomplete capability dependencies: 2
-- raw gap observations: 6
+- raw gap observations: 4

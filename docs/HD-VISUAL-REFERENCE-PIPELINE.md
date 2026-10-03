@@ -116,9 +116,11 @@ The immediately preceding exact frame-1219 representation `ordinary-racer-0x0541
 
 The reversed frame-1218 predecessor now adds a third authored checkpoint. Unlike the seven-pixel 1219→1220 stock change, the 1218 pose has a distinct stock silhouette, so the authored form is locally re-fitted rather than translated. It matches stock envelope `[23,2]..[40,38]`, contact `[63,76]`, and reaches 270/365 alpha intersection/union (IoU `0.7397260274`). Native run `37151331456` / artifact `11284028173` is green through the live split-screen presenter and guest-state invariants.
 
-Retained dossier comparison also proves the frame-1217 P1 stock raster is byte-for-byte identical to frame 1218 despite its separate synchronized composition registration. Therefore the next authored step should reuse the reviewed 1218 representation under the exact 1217 guard rather than draw a fourth visual pose.
+Retained dossier comparison proves the frame-1217 P1 stock raster is byte-for-byte identical to frame 1218 despite its separate synchronized composition registration. That reuse is now implemented and accepted: both exact guards remain distinct, but their stock RGBA hashes, authored RGBA hashes and gameplay-scale review metrics are required to match. Native run `37151848274` / artifact `11284007664` closes the live split-screen proof.
 
-This closes the **first three-pose motion-review pass**, not final shipping-art approval. Recovered gameplay-scale envelope/contact and temporal continuity remain acceptance constraints, while smooth geometry/material interpretation stays free inside those constraints.
+This establishes an additional pipeline rule: **do not equate exact-state registration count with required art count**. When independently registered contexts reconstruct to identical stock pixels and geometry, one reviewed authored asset should be reused under multiple exact guards. The next actual visual change in the retained sequence is the repeated frame-1215/1216 P1 representation `057F/0542 + 0D4A/0000`, with stock envelope `[22,2]..[41,38]` and contact `[65,76]`.
+
+This closes the **first three-pose plus context-reuse motion-review pass**, not final shipping-art approval. Recovered gameplay-scale envelope/contact and temporal continuity remain acceptance constraints, while smooth geometry/material interpretation stays free inside those constraints.
 
 ## Reconstruction decision policy
 

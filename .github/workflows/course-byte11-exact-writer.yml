@@ -9,7 +9,6 @@ on:
       - "snesrecomp"
       - "tests/input/reach-first-race.script"
       - "tools/summarize_course_byte11_wlog.py"
-      - ".github/workflows/course-byte11-exact-writer.yml"
 
 permissions:
   contents: write

@@ -50,8 +50,27 @@ void product_diagnostic(const char* message) {
 }
 
 const char* display_mode_name(ur::product::HostDisplayMode mode) {
-    return mode == ur::product::HostDisplayMode::BorderlessFullscreen
-        ? "borderless" : "windowed";
+    switch (mode) {
+    case ur::product::HostDisplayMode::BorderlessFullscreen:
+        return "borderless";
+    case ur::product::HostDisplayMode::Fullscreen:
+        return "fullscreen";
+    case ur::product::HostDisplayMode::Windowed:
+    default:
+        return "windowed";
+    }
+}
+
+int display_mode_value(ur::product::HostDisplayMode mode) {
+    switch (mode) {
+    case ur::product::HostDisplayMode::BorderlessFullscreen:
+        return SNES_DESKTOP_DISPLAY_BORDERLESS;
+    case ur::product::HostDisplayMode::Fullscreen:
+        return SNES_DESKTOP_DISPLAY_FULLSCREEN;
+    case ur::product::HostDisplayMode::Windowed:
+    default:
+        return SNES_DESKTOP_DISPLAY_WINDOWED;
+    }
 }
 
 const char* vsync_mode_name(ur::product::HostVSyncMode mode) {
@@ -97,29 +116,18 @@ bool apply_vsync_setting(const ur::product::HostSettings& settings) {
 
 bool apply_display_mode_setting(const ur::product::HostSettings& settings) {
     if (!modern_mode()) return false;
-    SDL_Window* window = SDL_GetKeyboardFocus();
-    if (!window) {
-        window = SDL_GetMouseFocus();
-    }
-    if (!window) {
-        product_diagnostic("UR_DISPLAY_MODE APPLY_FAILED no_window");
-        return false;
-    }
-
-    const Uint32 flags =
-        settings.display_mode == ur::product::HostDisplayMode::BorderlessFullscreen
-            ? SDL_WINDOW_FULLSCREEN_DESKTOP
-            : 0u;
-    if (SDL_SetWindowFullscreen(window, flags) != 0) {
-        product_diagnostic("UR_DISPLAY_MODE APPLY_FAILED sdl");
+    if (!snesrecomp_desktop_set_display_mode(
+            display_mode_value(settings.display_mode))) {
+        product_diagnostic("UR_DISPLAY_MODE APPLY_FAILED");
         return false;
     }
 
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
             stderr,
-            "UR_DISPLAY_MODE APPLIED mode=%s\n",
-            display_mode_name(settings.display_mode));
+            "UR_DISPLAY_MODE APPLIED mode=%s host=%d\n",
+            display_mode_name(settings.display_mode),
+            snesrecomp_desktop_get_display_mode());
         std::fflush(stderr);
     }
     return true;
@@ -208,11 +216,20 @@ bool toggle_display_mode_setting() {
     if (!modern_mode()) return false;
 
     ur::product::HostProductState candidate = g_product_state;
-    candidate.settings.display_mode =
-        candidate.settings.display_mode ==
-                ur::product::HostDisplayMode::Windowed
-            ? ur::product::HostDisplayMode::BorderlessFullscreen
-            : ur::product::HostDisplayMode::Windowed;
+    switch (candidate.settings.display_mode) {
+    case ur::product::HostDisplayMode::Windowed:
+        candidate.settings.display_mode =
+            ur::product::HostDisplayMode::BorderlessFullscreen;
+        break;
+    case ur::product::HostDisplayMode::BorderlessFullscreen:
+        candidate.settings.display_mode =
+            ur::product::HostDisplayMode::Fullscreen;
+        break;
+    case ur::product::HostDisplayMode::Fullscreen:
+        candidate.settings.display_mode =
+            ur::product::HostDisplayMode::Windowed;
+        break;
+    }
 
     if (!apply_display_mode_setting(candidate.settings)) {
         return false;
@@ -626,7 +643,10 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 g_product_state.settings.display_mode ==
                         ur::product::HostDisplayMode::BorderlessFullscreen
                     ? "DISPLAY  BORDERLESS"
-                    : "DISPLAY  WINDOWED";
+                    : (g_product_state.settings.display_mode ==
+                               ur::product::HostDisplayMode::Fullscreen
+                           ? "DISPLAY  FULLSCREEN"
+                           : "DISPLAY  WINDOWED");
             const char* vsync_text =
                 g_product_state.settings.vsync_mode ==
                         ur::product::HostVSyncMode::Adaptive

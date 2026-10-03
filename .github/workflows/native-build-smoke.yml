@@ -23,6 +23,7 @@ on:
       - "native/title/uniracers_restart_policy.*"
       - "tests/input/reach-first-race.script"
       - "tests/input/modern-focus-pause.script"
+      - "tests/input/modern-exit-frontend-results.script"
 
 concurrency:
   group: native-build-smoke-${{ github.ref }}
@@ -602,6 +603,116 @@ jobs:
           cat "$LOG"
           echo "UR_PAUSE_RUN_DATA_RESULT=authoritative_timer_opened_and_closed"
 
+      - name: Modern Exit to Frontend acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+
+          run_exit_case() {
+            local NAME="$1"
+            local SCRIPT="$2"
+            local READY_DUMP="$3"
+            local LOG="$RUNNER_TEMP/exit-frontend-${NAME}.log"
+            local DUMPS="$RUNNER_TEMP/exit-frontend-${NAME}-dumps"
+            rm -rf "$DUMPS"
+            mkdir -p "$DUMPS"
+
+            SDL_AUDIODRIVER=dummy \
+            UR_PRODUCT_DIAGNOSTICS=1 \
+            SNESRECOMP_DUMP_DIR="$DUMPS" \
+            timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+              >"$LOG" 2>&1 &
+            local PID=$!
+
+            for _ in $(seq 1 900); do
+              [ -s "$DUMPS/$READY_DUMP" ] && break
+              kill -0 "$PID" 2>/dev/null || {
+                cat "$LOG"
+                return 1
+              }
+              sleep 0.1
+            done
+            [ -s "$DUMPS/$READY_DUMP" ]
+
+            local WIN=""
+            for _ in $(seq 1 100); do
+              WIN=$(xdotool search --pid "$PID" 2>/dev/null | head -n1 || true)
+              [ -n "$WIN" ] && break
+              sleep 0.1
+            done
+            [ -n "$WIN" ]
+
+            xdotool windowfocus "$WIN"
+            xdotool key Escape
+            sleep 0.2
+
+            # Active-race and results surfaces both expose:
+            # Resume -> Restart -> Options -> Controls -> Run Data ->
+            # Exit Frontend -> Quit Desktop.
+            for _ in 1 2 3 4 5; do xdotool key Down; done
+            xdotool key Return
+
+            for _ in $(seq 1 300); do
+              grep -q "UR_EXIT_FRONTEND FRONTEND_READY menu=D7" "$LOG" && break
+              kill -0 "$PID" 2>/dev/null || {
+                cat "$LOG"
+                return 1
+              }
+              sleep 0.1
+            done
+            grep -q "UR_EXIT_FRONTEND REQUESTED" "$LOG"
+            grep -q "UR_EXIT_FRONTEND FRONTEND_READY menu=D7" "$LOG"
+            kill -0 "$PID"
+
+            local BEFORE
+            local READY
+            BEFORE=$(grep "UR_EXIT_FRONTEND REQUESTED" "$LOG" | tail -n1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')
+            READY=$(grep "UR_EXIT_FRONTEND FRONTEND_READY" "$LOG" | tail -n1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')
+            test -n "$BEFORE"
+            test "$BEFORE" = "$READY"
+
+            # P1 A is keyboard X in the framework defaults. Prove the returned
+            # stock main menu accepts real guest input and enters rider select.
+            sleep 1.2
+            xdotool key x
+            for _ in $(seq 1 200); do
+              grep -q "UR_EXIT_FRONTEND FRONTEND_USABLE menu=3C" "$LOG" && break
+              kill -0 "$PID" 2>/dev/null || {
+                cat "$LOG"
+                return 1
+              }
+              sleep 0.1
+            done
+            grep -q "UR_EXIT_FRONTEND FRONTEND_USABLE menu=3C" "$LOG"
+            local USABLE
+            USABLE=$(grep "UR_EXIT_FRONTEND FRONTEND_USABLE" "$LOG" | tail -n1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')
+            test "$BEFORE" = "$USABLE"
+
+            if grep -q "UR_PAUSE_QUIT REQUESTED" "$LOG"; then
+              echo "::error::Exit to Frontend crossed into Quit Desktop"
+              cat "$LOG"
+              return 1
+            fi
+
+            kill "$PID" 2>/dev/null || true
+            wait "$PID" 2>/dev/null || true
+            cat "$LOG"
+            echo "UR_EXIT_FRONTEND_CASE=${NAME} preserved_sram=${BEFORE}"
+          }
+
+          run_exit_case \
+            active-race \
+            "$GITHUB_WORKSPACE/tests/input/modern-focus-pause.script" \
+            race-entered.wram.bin
+          run_exit_case \
+            results-pause \
+            "$GITHUB_WORKSPACE/tests/input/modern-exit-frontend-results.script" \
+            race-results.wram.bin
+
+          echo "UR_EXIT_FRONTEND_RESULT=active_and_results_returned_to_usable_frontend_with_sram_preserved"
+
       - name: Modern pause Quit to Desktop acceptance
         shell: bash
         run: |
@@ -641,8 +752,9 @@ jobs:
             sleep 0.2
 
             # Active race rows:
-            # Resume -> Restart -> Focus Pause -> Controls -> Run Data -> Quit.
-            for _ in 1 2 3 4 5; do xdotool key Down; done
+            # Resume -> Restart -> Options -> Controls -> Run Data ->
+            # Exit Frontend -> Quit Desktop.
+            for _ in 1 2 3 4 5 6; do xdotool key Down; done
             xdotool key Return
 
             for _ in $(seq 1 100); do
@@ -713,6 +825,10 @@ jobs:
             ${{ runner.temp }}/host-state-authentic.log
             ${{ runner.temp }}/pause-controls.log
             ${{ runner.temp }}/pause-run-data.log
+            ${{ runner.temp }}/exit-frontend-active-race.log
+            ${{ runner.temp }}/exit-frontend-active-race-dumps/
+            ${{ runner.temp }}/exit-frontend-results-pause.log
+            ${{ runner.temp }}/exit-frontend-results-pause-dumps/
             ${{ runner.temp }}/pause-quit.log
           if-no-files-found: warn
           retention-days: 7

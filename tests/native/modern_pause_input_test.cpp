@@ -101,6 +101,11 @@ int main() {
                session, &menu, UR_MODERN_PAUSE_PREVIOUS) ==
            UR_MODERN_SESSION_APPLIED);
     assert(ur_modern_pause_menu_selected(&menu, 0) ==
+           UR_MODERN_PAUSE_RUN_DATA);
+    assert(ur_modern_pause_handle_action(
+               session, &menu, UR_MODERN_PAUSE_PREVIOUS) ==
+           UR_MODERN_SESSION_APPLIED);
+    assert(ur_modern_pause_menu_selected(&menu, 0) ==
            UR_MODERN_PAUSE_CONTROLS);
     assert(ur_modern_pause_handle_action(
                session, &menu, UR_MODERN_PAUSE_PREVIOUS) ==

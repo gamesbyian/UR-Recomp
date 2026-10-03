@@ -13,7 +13,6 @@ on:
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tools/toolchain-entries/_global.json"
-      - ".github/workflows/race-landing-differential.yml"
 
 concurrency:
   group: race-landing-differential-${{ github.ref }}

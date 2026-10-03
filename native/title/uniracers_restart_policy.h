@@ -22,13 +22,16 @@ typedef enum UrUniracersRestartSurface {
  *   - $0313 == 1: active race
  *   - $009F == 0x99, 0xBC, 0x18 while not active: race/circuit/stunt results
  *
- * Known stable frontend/pre-race states retire a prior attempt:
+ * Known stable frontend/pre-race states are retirement candidates after a
+ * results surface has been observed:
  *   - 0xD7 main menu
  *   - 0x3C rider select
  *   - 0x6D tours
  *   - 0xF6 tracks
  *   - 0x16 now playing / committed pre-race
  *
+ * The stateful title host must retain the anchor across the race-exit ->
+ * results transition and only apply a retirement candidate after results.
  * Unknown/transient states are unsupported but do not retire an anchor. This
  * fails closed for UI exposure without inventing lifecycle meaning for bytes
  * whose semantics are not established.

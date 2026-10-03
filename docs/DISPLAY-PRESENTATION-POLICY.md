@@ -216,7 +216,7 @@ This candidate is preferred over the centered 216-line discriminator because the
 - source/display pixel aspect;
 - materializer strip granularity.
 
-The calculation uses exact rational arithmetic and reports both the exact per-side logical margin and the first strip-granular margin that can cover it. It also compares that requirement with the currently validated materializer capacity recorded in `analysis/widescreen-policy.yml` (+64 pixels per side at 8-pixel granularity).
+The calculation uses exact rational arithmetic and reports both the exact per-side logical margin and the first strip-granular margin that can cover it. It also compares that requirement with the currently validated materializer capacity recorded in `analysis/widescreen-policy.yml` (+72 pixels per side at 8-pixel granularity).
 
 Illustrative 16:9 consequences, **not title-final constants**, are:
 

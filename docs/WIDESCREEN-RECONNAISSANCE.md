@@ -391,6 +391,48 @@ This closes the current implementation-facing +8 task and the bounded +16/+24 ge
 Evidence: final native workflow run `37081391730`; PR #228.
 
 
+## +16 host-capacity replay stop
+
+PR #247 tested whether the accepted one-column guest preparation machinery could
+also serve as a host-owned source for the second +16 future column without
+inventing guest `$03xx` lanes. Two bounded mechanisms were rejected.
+
+Run `37083769287` repeated stock `A59E` inside the accepted snapshot replay.
+The real first future column remained healthy (617 events, 317 exact later-stock
+matches, longest exact run 25), but the second host-shadow call produced only
+557 candidates, failed structurally on 60 events, and only **31** candidates
+matched exact later-stock content. Its longest exact run was 22.
+
+Run `37084288683` moved the experiment to the complete stock preparation
+boundary: it cloned CPU plus low WRAM at `81:A52F` entry, applied +16 only to
+the clone's camera X, ran the complete stock preparation routine on the
+disposable state, harvested the resulting shadow strip, and restored the real
+state. The accepted first future column again remained healthy, but the cloned
+query produced only 314 second-column candidates and **zero** exact later-stock
+matches.
+
+Both experiments kept the sampled protected gameplay/camera/progression state
+equal, and neither manufactured an additional guest descriptor lane. Because
+the +16 preparation gate failed, the downstream liveness gate was not used to
+promote either mechanism.
+
+The architectural stop is therefore explicit: do not treat recursive `A59E`
+or a camera-biased replay of `A52F` as a random-access future-column API.
+The accepted +8 hook remains unchanged. Wider presentation still belongs in
+host/native capacity, but the second and later columns need a semantic
+presentation source that can address future world/resource columns directly.
+
+The next controlled prototype on the rebased PR uses an independent later-stock
+oracle only to prove that host-owned column +2 capacity can satisfy the exact
+adjacency/content/lifecycle contract. That oracle is test scaffolding, not the
+production content source. If accepted, the production follow-up is a bounded
+host-side strip materializer backed by the recovered course/resource
+presentation model.
+
+Evidence:
+`analysis/generated/widescreen-plus16-capacity-negative-2026-10-02.{json,md}`.
+
+
 ## +8 presentation-sequence divergence closure
 
 PR #206 first established the event-relative boundary: meaningful P2 race state remains equal, P2 racer presentation first diverges at **`object-tail-141`**, VRAM first diverges at **`object-tail-142`**, and OAM remains equal through the retained early gap. The follow-up sequence discriminator closes why.

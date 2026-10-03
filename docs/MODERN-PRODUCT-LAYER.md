@@ -57,7 +57,9 @@ This state is administrative host state. It has no WRAM addresses, SRAM layout, 
 
 The current codec is intentionally dependency-free and deterministic. Version 1 writes one canonical byte representation and rejects duplicate, unknown or malformed fields. The platform-specific file location and write strategy are left to the eventual shipping host shell.
 
-The first real runtime consumer of a typed setting is now `pause_on_focus_loss`. `native/product/focus_pause_policy.hpp` reduces the decision to four explicit inputs: execution mode, typed host settings, current focus state and current host-pause state. In Modern mode, the ordinary Uniracers desktop binding samples SDL keyboard focus from its existing completed-frame callback and routes a qualifying focus loss through the same `ur_modern_session_pause()` command path used by player pause input. The policy is title-gated to the established active-race/results surfaces, never writes guest state, and is inert in Authentic mode. While paused in Modern mode, `F` toggles the setting in the current host session and the overlay shows its current ON/OFF state. Persistent settings-file ownership remains intentionally unimplemented; this slice does not invent a storage path merely to make the toggle durable.
+The first real runtime consumer of a typed setting is now `pause_on_focus_loss`. `native/product/focus_pause_policy.hpp` reduces the decision to four explicit inputs: execution mode, typed host settings, current focus state and current host-pause state. In Modern mode, the ordinary Uniracers desktop binding samples SDL keyboard focus from its existing completed-frame callback and routes a qualifying focus loss through the same `ur_modern_session_pause()` command path used by player pause input. The policy is title-gated to the established active-race/results surfaces, never writes guest state, and is inert in Authentic mode. While paused in Modern mode, `F` toggles the setting and the overlay shows its current ON/OFF state.
+
+`native/product/host_product_store.{hpp,cpp}` now gives the existing versioned codec its first persistence backend without changing the schema. The shared store accepts an explicit path, bounds reads, and rejects unsupported, malformed or oversized state. The desktop host owns placement: `UR_HOST_STATE_PATH` is an explicit development/acceptance override, otherwise SDL's platform preference directory supplies `host-state-v1.txt`. Modern mode loads once before session creation and commits the in-session focus-pause toggle only after the canonical state saves successfully. Authentic mode does not load the file at all. Ordinary native run `37099469171` proves save from real desktop input, load in a fresh process, and Authentic inertness against the same file.
 
 ## Authentic versus Modern policy
 
@@ -182,7 +184,7 @@ Do not add these systems to `HostProductState` merely because they are planned. 
 - **autosave/resume:** a coordinator that owns host save metadata while preserving guest SRAM as guest data;
 - **records/ghosts:** append-only run artifacts keyed by profile and course identity, sourced from observed authoritative race state;
 - **racer identity:** product data associated with a profile, explicitly separate from the original save-slot/unicycle coupling;
-- **settings:** the typed `pause_on_focus_loss` option now has a real production consumer through the ordinary native host. Modern mode pauses through the existing host frame gate when focus is lost on an established race/results surface; Authentic mode is inert. The pause overlay exposes an in-session `F` toggle and current ON/OFF state. Vibration remains schema-only, and persistent settings-file ownership remains future work rather than being improvised here.
+- **settings:** the typed `pause_on_focus_loss` option now has a real production consumer and durable desktop persistence through the ordinary native host. Modern mode pauses through the existing host frame gate when focus is lost on an established race/results surface; the pause overlay exposes an `F` toggle and current ON/OFF state; the canonical versioned host-state file survives a fresh-process relaunch. Authentic mode does not load or apply that file. Vibration remains schema-only, and profiles/broader settings UI remain future work.
 
 Network transport, accounts, cloud persistence and hosted leaderboards remain outside this architecture.
 
@@ -199,7 +201,8 @@ Every host-state schema or transition must have deterministic tests. At minimum:
 7. session actions are emitted deterministically, one at a time, and redundant pause/resume requests are explicit no-ops;
 8. a race-restart anchor is captured at most once until explicitly cleared;
 9. failed capture/restore attempts fail closed without replacing a valid anchor or synthesizing guest state;
-10. focus-loss pause policy is enabled only by Modern host-settings authority, respects the typed setting and current pause state, and is inert in Authentic mode.
+10. focus-loss pause policy is enabled only by Modern host-settings authority, respects the typed setting and current pause state, and is inert in Authentic mode;
+11. persisted host state must decode through the exact versioned schema, reject malformed/oversized content, and remain entirely unread by Authentic product policy.
 
 The host-state and session-control C++ contracts are compiled and executed from `tests/unit/test_host_product_state_cpp.py` and `tests/unit/test_session_control_cpp.py`, so both participate in the lightweight project tooling test surface without requiring the external SNESRecomp build.
 

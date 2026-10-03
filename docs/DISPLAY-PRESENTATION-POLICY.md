@@ -191,16 +191,16 @@ The logical Authentic transform is now closed for implementation. The evidence c
 
 The unresolved work is therefore measurement and title-specific validation, not a need to invent the architecture.
 
-## Preferred provisional Authentic binding
+## Accepted Authentic binding
 
 Native Widescreen run `37146519813` closes the host-owned provider through **+72 logical source pixels per side** while preserving the accepted ownership split: margin 0 is untouched stock, column +1 is the accepted guest +8 lane, and every deeper column is host presentation state sourced from the live course tables.
 
-The smallest defensible title-specific binding is therefore recorded as a **provisional candidate**, not a shipping constant:
+The title-specific logical binding is now accepted for implementation:
 
 - source raster: 256×224, full height;
 - horizontal pixel aspect: 7:6;
 - resulting stock display aspect: exactly 4:3;
-- overscan crop: none in the provisional binding;
+- logical overscan crop: none; preserve all 224 authored rows;
 - derived exact 16:9 per-side logical margin: 128/3 source pixels;
 - materializer strip margin: +48 per side at the established 8-pixel granularity;
 - provider: the accepted live-course-runtime host materializer.

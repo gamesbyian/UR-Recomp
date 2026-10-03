@@ -11,6 +11,7 @@ reference ROMs using the project-owned RNC Method 1 decoder.
 """
 from __future__ import annotations
 
+import argparse
 from collections import Counter, defaultdict
 from hashlib import sha256
 import json
@@ -19,8 +20,9 @@ from pathlib import Path
 from analyze_rnc_streams import ROMS, find_streams
 from rnc_method1 import unpack_method1
 
-JSON_OUT = Path("analysis/generated/course-resource-list-manifest.json")
-MD_OUT = Path("analysis/generated/course-resource-list-manifest.md")
+ROOT = Path(__file__).resolve().parents[1]
+JSON_OUT = ROOT / "analysis/generated/course-resource-list-manifest.json"
+MD_OUT = ROOT / "analysis/generated/course-resource-list-manifest.md"
 
 TRACK_SLOT = {
     1: "race-a",
@@ -161,11 +163,56 @@ def build_cross_build_matches(builds: dict[str, dict]) -> list[dict]:
     return matches
 
 
-def main() -> None:
+COMPARISON_FIELDS = (
+    "stunt_time_or_mode",
+    "spawn_or_landmark_a",
+    "spawn_or_landmark_b",
+    "resource_ids",
+    "layout_dims",
+)
+
+
+def classify_resource_list_change(before: list[int], after: list[int]) -> dict:
+    """Describe the cheapest exact edit when one list is a prefix of the other."""
+    if before == after:
+        return {"kind": "unchanged"}
+    if after[: len(before)] == before:
+        return {"kind": "append", "values": after[len(before) :]}
+    if before[: len(after)] == after:
+        return {"kind": "remove_suffix", "values": before[len(after) :]}
+    return {"kind": "replace", "before": before, "after": after}
+
+
+def compare_course_headers(reference: list[dict], candidate: list[dict]) -> list[dict]:
+    """Return exact high-level course differences in stream-index order."""
+    if len(reference) != len(candidate):
+        raise ValueError("course corpora have different lengths")
+
+    changes = []
+    for expected, actual in zip(reference, candidate, strict=True):
+        if expected["index"] != actual["index"]:
+            raise ValueError("course corpora have different stream ordering")
+        fields = {
+            field: {"before": expected[field], "after": actual[field]}
+            for field in COMPARISON_FIELDS
+            if expected[field] != actual[field]
+        }
+        if fields:
+            change = {"index": expected["index"], "fields": fields}
+            if "resource_ids" in fields:
+                change["resource_list_change"] = classify_resource_list_change(
+                    expected["resource_ids"], actual["resource_ids"]
+                )
+            changes.append(change)
+    return changes
+
+
+def build_manifest() -> dict:
     builds: dict[str, dict] = {}
 
     for build_name, path in ROMS.items():
-        rom = path.read_bytes()
+        rom_path = path if path.is_absolute() else ROOT / path
+        rom = rom_path.read_bytes()
         courses = []
         for index, (_off, packed, _header) in enumerate(find_streams(rom), 1):
             decoded = unpack_method1(packed)
@@ -192,8 +239,16 @@ def main() -> None:
             "resource_usage": summarize_build(courses),
         }
 
-    output = {
-        "schema_version": 1,
+    reference_name = "usa-retail"
+    reference_courses = builds[reference_name]["courses"]
+    course_deltas = {
+        build_name: compare_course_headers(reference_courses, build["courses"])
+        for build_name, build in builds.items()
+        if build_name != reference_name
+    }
+
+    return {
+        "schema_version": 2,
         "method": {
             "resource_identity_rule": (
                 "candidate equivalence is based on usage shape across courses, "
@@ -207,12 +262,16 @@ def main() -> None:
             ),
         },
         "builds": builds,
+        "course_header_and_resource_deltas": {
+            "reference_build": reference_name,
+            "fields_compared": list(COMPARISON_FIELDS),
+            "builds": course_deltas,
+        },
         "cross_build_usage_matches": build_cross_build_matches(builds),
     }
 
-    JSON_OUT.parent.mkdir(parents=True, exist_ok=True)
-    JSON_OUT.write_text(json.dumps(output, indent=2) + "\n", encoding="utf-8")
-
+def render_markdown(output: dict) -> str:
+    builds = output["builds"]
     lines = [
         "# Course Resource-List Structural Fingerprints",
         "",
@@ -238,6 +297,31 @@ def main() -> None:
             f"| {build_name} | {len(build['courses'])} | "
             f"{build['resource_usage']['distinct_resource_ids']} | "
             f"{min(counts)}..{max(counts)} |"
+        )
+
+    lines += [
+        "",
+        "## Course header and resource-list deltas",
+        "",
+        "Compared exactly against USA retail. An empty row means that all tracked "
+        "header fields and resource-list IDs match in all 45 stream positions.",
+        "",
+        "| Build | Changed courses | Exact changes |",
+        "|---|---:|---|",
+    ]
+    deltas = output["course_header_and_resource_deltas"]["builds"]
+    for build_name, changes in deltas.items():
+        descriptions = []
+        for change in changes:
+            fields = ", ".join(change["fields"])
+            resource_change = change.get("resource_list_change")
+            if resource_change and resource_change["kind"] == "append":
+                values = " ".join(f"{value:02X}" for value in resource_change["values"])
+                fields += f" (append `{values}`)"
+            descriptions.append(f"#{change['index']}: {fields}")
+        lines.append(
+            f"| {build_name} | {len(changes)} | "
+            f"{'<br>'.join(descriptions) if descriptions else 'none'} |"
         )
 
     lines += [
@@ -278,7 +362,51 @@ def main() -> None:
             f"{'yes' if match['same_numeric_ids'] else '**no**'} |"
         )
 
-    MD_OUT.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return "\n".join(lines) + "\n"
+
+
+def generated_contents(output: dict) -> dict[Path, str]:
+    """Return every generated artifact and its canonical serialized content."""
+    return {
+        JSON_OUT: json.dumps(output, indent=2) + "\n",
+        MD_OUT: render_markdown(output),
+    }
+
+
+def stale_outputs(expected: dict[Path, str]) -> list[Path]:
+    """Return missing or stale artifacts without modifying the filesystem."""
+    return [
+        path
+        for path, content in expected.items()
+        if not path.is_file() or path.read_text(encoding="utf-8") != content
+    ]
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Regenerate or verify course resource-list manifests."
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="fail if the checked-in manifests do not match the preserved ROM corpus",
+    )
+    args = parser.parse_args()
+
+    output = build_manifest()
+    expected = generated_contents(output)
+    if args.check:
+        stale = stale_outputs(expected)
+        if stale:
+            names = ", ".join(str(path.relative_to(ROOT)) for path in stale)
+            raise SystemExit(f"stale course resource-list manifests: {names}")
+        for path in expected:
+            print(path.relative_to(ROOT))
+        return
+
+    JSON_OUT.parent.mkdir(parents=True, exist_ok=True)
+    for path, content in expected.items():
+        path.write_text(content, encoding="utf-8")
     print(JSON_OUT)
     print(MD_OUT)
 

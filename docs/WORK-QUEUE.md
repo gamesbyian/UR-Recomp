@@ -4,6 +4,10 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 
 **How to choose work:** treat the sections below as evidence/status, not equal-priority buckets. The shipping critical path is: first causal divergence → semantic core map → stock 4:3 race/2P fidelity → course/rendering model → Widescreen → HD Presentation → modern product/editor. Prefer tasks that retire uncertainty on that chain or unlock several later stages at once. Historical/acquisition/tooling work is supporting unless it directly blocks the chain.
 
+## Platform portability guardrail
+
+Windows x64 is the primary eventual consumer build, with macOS, Web, Switch homebrew and PS5 host ports planned behind the same simulation/product interfaces. While current Widescreen, HD and modern-product work continues, reject new desktop-only assumptions when an equally small portable seam exists. Do not divert the active critical path into full ports yet; the immediate platform task is bounded reconnaissance and compile-only feasibility, beginning with the public Switch devkitPro/libnx/SDL2 stack documented in `SWITCH-HOMEBREW-PORT.md`.
+
 ## Active execution order — 2026-10-03
 
 Canonical capability/readiness status: `docs/SEMANTIC-SUFFICIENCY.md`. Use that scoreboard to decide whether a semantic task is actually blocking a product decision.

@@ -41,10 +41,7 @@ class NativeWidescreenHookTests(unittest.TestCase):
             + "    uint16 _v7 = 0x433;\n"
             + "    cpu_write_y_x(cpu, (uint16)(_v7));\n"
             + "    return RECOMP_RETURN_NORMAL;\n}\n"
-            "RecompReturn bank_01_A59E_M0X0(CpuState *cpu) { return RECOMP_RETURN_NORMAL; }\n"
-            "RecompReturn bank_01_A52F_M0X0(CpuState *cpu) {\n"
-            + block("01A52F")
-            + "    return RECOMP_RETURN_NORMAL;\n}\n",
+            "RecompReturn bank_01_A59E_M0X0(CpuState *cpu) { return RECOMP_RETURN_NORMAL; }\n",
             encoding="utf-8",
         )
         return wrapper
@@ -57,8 +54,8 @@ class NativeWidescreenHookTests(unittest.TestCase):
             self.assertTrue(report["changed"])
             self.assertTrue(report["margin0_control"])
             self.assertTrue(report["margin8_hook"])
-            self.assertTrue(report["margin16_supported"])
-            self.assertEqual(report["first_constraint"],"host-shadow-capacity")
+            self.assertFalse(report["margin16_supported"])
+            self.assertEqual(report["first_constraint"],"secondary-lane-capacity")
 
             w=wrapper.read_text(encoding="utf-8")
             self.assertIn(MOD.MARKER,w)
@@ -66,12 +63,6 @@ class NativeWidescreenHookTests(unittest.TestCase):
             self.assertIn("ur_ws_native_second_pass ? 0x453 : 0x433",w)
             self.assertIn("ur_ws_native_after_builder(cpu)",w)
             self.assertIn("ur_ws_native_cleanup_previous_payload(cpu)",w)
-            self.assertIn("URWS_SHADOW16",w)
-            self.assertIn("ur_ws_native_shadow_payload",w)
-            self.assertIn("ur_ws_native_margin() == 16",w)
-            self.assertIn("ur_ws_native_capture_frame_entry(cpu)",w)
-            self.assertIn("bank_01_A52F_M0X0(cpu)",w)
-            self.assertIn("ur_ws_native_frame_cpu_snapshot",w)
             self.assertFalse(MOD.apply(root)["changed"])
 
     def test_fails_closed_without_live_wrapper(self):

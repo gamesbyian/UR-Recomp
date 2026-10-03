@@ -52,7 +52,7 @@ def stock_primary(text:str)->list[dict]:
 def stock_primary_view(text:str)->list[dict]:
     return [
         {"camx":int(c),"edge":int(e,16),"count":int(n),"payload":p.upper(),
-         "camy":int(y),"finey":int(y)>>4}
+         "camy":int(y),"finey":(int(y)+4)>>4}
         for c,e,n,p,y in PRIMARY_VIEW_RE.findall(text)
         if int(n)==16 and int(e,16)!=0xffff
     ]

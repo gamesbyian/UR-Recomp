@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "generated_by": "tools/build_consolidated_knowledge.py",
   "purpose": "Normalized course-resource incidence, ordering, and promoted semantic anchors.",
   "corpus": {
@@ -162,19 +162,42 @@
       {
         "stream_index": 26,
         "course": "Down+Up",
-        "change": "append resource 0x22"
+        "edit": {
+          "kind": "append",
+          "values": [
+            34
+          ]
+        }
       },
       {
         "stream_index": 36,
         "course": "Vertical",
-        "change": "append resource 0x22"
+        "edit": {
+          "kind": "append",
+          "values": [
+            34
+          ]
+        }
       }
     ],
-    "other_header_delta": {
-      "stream_index": 4,
-      "course": "Switcher",
-      "change": "spawn A Y 26 -> 22; dimensions and resource list unchanged"
-    },
+    "other_header_deltas": [
+      {
+        "stream_index": 4,
+        "course": "Switcher",
+        "fields": {
+          "spawn_or_landmark_a": {
+            "before": [
+              99,
+              26
+            ],
+            "after": [
+              99,
+              22
+            ]
+          }
+        }
+      }
+    ],
     "implication": "Most Europe-retail course payload changes are internal to course-local content rather than high-level resource selection."
   }
 }

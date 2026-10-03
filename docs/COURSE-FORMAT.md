@@ -207,8 +207,9 @@ course-header and resource-list differences relative to USA retail. It records
 no tracked-field differences for the legacy beta or PAL prototype; Europe
 retail changes Switcher's first coordinate pair and appends resource `0x22` to
 Down+Up and Vertical. `build_consolidated_knowledge.py` derives the normalized
-resource-catalog summary from these exact deltas rather than restating them as
-an independent mutable fact.
+resource-catalog summary from these exact deltas and the decoded-stream hashes
+in `rnc-stream-manifest.json`, rather than restating stream numbers or expected
+edit forms as independent mutable facts.
 
 Derived closeout:
 - `analysis/generated/checkpoint-resource-family-2026-10-01.md`

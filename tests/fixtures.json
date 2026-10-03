@@ -928,6 +928,34 @@
       ],
       "status": "validated",
       "validation": "analysis/generated/result-screens-probe.json (9 checks) via tools/probe_result_screens.py"
+    },
+    {
+      "id": "vs-challenger-route",
+      "input_file": "tests/input/vs-challenger-route.input",
+      "checkpoint_script": "tests/input/vs-challenger-route-observe.script",
+      "purpose": "VS route whose first race P1 wins (P2 idles), then the post-race VS flow: result 0xF9, VS CHAMPIONS 0xD3, PICK CHALLENGER 0x3F (loser's pad), track choice 0x5A, NOW PLAYING. A companion drawn-race run (vs-first-race.input + vs-draw-rematch-observe.script) covers the REMATCH banner 0xB7.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "vsc-result",
+        "vsc-champions",
+        "vsc-pick-challenger",
+        "vsc-pick-after-p1",
+        "vsc-track-choice",
+        "vsc-next"
+      ],
+      "compare_surfaces": [
+        "menu-state-fields",
+        "framebuffer"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:0C63 selectedColumn",
+        "7E:017D/017F rider indices"
+      ],
+      "status": "validated",
+      "validation": "analysis/generated/vs-challenger-probe.json (10 checks) via tools/probe_vs_challenger.py with a dual-controller snesref build"
     }
   ]
 }

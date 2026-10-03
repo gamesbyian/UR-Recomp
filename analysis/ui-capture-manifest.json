@@ -1381,6 +1381,26 @@
         "screen2_player1_x",
         "screen1_player2_x"
       ]
+    },
+    {
+      "tag": "vsc-pick-challenger",
+      "state_id": "VS_CHALLENGER",
+      "source_fixture": "vs-challenger-route",
+      "required": false,
+      "expect": {
+        "current_menu": "0x3F"
+      },
+      "note": "snesref-only (dual-controller patch); tools/probe_vs_challenger.py. Optional so native strict atlas runs are unaffected."
+    },
+    {
+      "tag": "vsc-track-choice",
+      "state_id": "VS_CHALLENGE_TRACK",
+      "source_fixture": "vs-challenger-route",
+      "required": false,
+      "expect": {
+        "current_menu": "0x5A"
+      },
+      "note": "snesref-only (dual-controller patch); tools/probe_vs_challenger.py."
     }
   ]
 }

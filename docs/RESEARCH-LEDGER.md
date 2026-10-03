@@ -2021,3 +2021,20 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 **Evidence:** `tools/probe_result_screens.py` → `analysis/generated/result-screens-probe.json` (9 checks, ~1 minute). Fixture `result-screens`; UI edges `game-circuit-result`, `game-stunt-result`, `circuit-result-track` and `stunt-result-track` are verified, and menu-index `0x84/0x10/0xBC/0x2F/0x18` are now verified.
 
 **Uncertainty:** The advance came from movie input, so automatic timeouts on these screens are not measured. The other bot-listed stunt summing values (`0xAD`, `0xAF`, `0xB3`, `0xD3`, `0xD8`, `0xED`, `0xF3`) were not observed; `0xF3` is also the GROUP SCORES screen ID, so DP `$9F` reuse makes that list unreliable.
+
+### R-2026-10-03-UI-10 — VS challenger flow appears only after a decided race; the loser picks
+
+**Status:** reproduced on snesref (dual-controller patch); native/Mesen pending  
+**Date:** 2026-10-03  
+**Area:** frontend | multiplayer
+
+**Observation:** The frozen `vs-first-race` route goes VS_SELECT (`0x3E`) → TOUR_SELECT (`0x6D`) → TRACK_SELECT (`0x91`) → NOW PLAYING. Its `vs-challenger`/`vs-challenge-track` checkpoint names are historical, not those states.
+- **Decided race:** extending it with a P1 Dragster drive (from `ui-race-result-route.script`, plus right+B/right pulses) makes P1 finish at 0:28.76 while P2 idles. The race ends and shows the VS result `0xF9` (MIKE time, ANDREW NO TIME), then VS CHAMPIONS `0xD3` (wins / today / %), then PICK CHALLENGER `0x3F`.
+- **Challenger pick:** on PICK CHALLENGER, P1 (winner) Right/A is inert. P2 Right/A picks a challenger and opens `0x5A`: NEXT TRACK / SAME TRACK / SELECT TRACK / SELECT TOUR / QUIT. NEXT TRACK reaches NOW PLAYING for Zoom Zoo.
+- **Drawn race:** a drawn race (both idle until the ~37670-frame timeout) shows `0xF9` with both NO TIME, then a REMATCH banner `0xB7` that waits for any button and returns to NOW PLAYING on the same track.
+
+**Evidence:** `tests/input/vs-challenger-route.input` + `vs-challenger-route-observe.script`, and `vs-first-race.input` + `vs-draw-rematch-observe.script`. `tools/probe_vs_challenger.py --snesref <dual-controller build>` → `analysis/generated/vs-challenger-probe.json` (10 checks, ~40 s). UI edges `vs-challenger`, `vs-track`, `vs-prerace` and `vs-draw-rematch` are verified, and menu index `0x3F/0x5A/0xF9/0xD3/0xB7` added or promoted.
+
+**Harness note:** `tools/patches/snesrecomp-dual-controller-input.patch` applies to the pinned submodule in CI. Against the bootstrap-staged `.tools/src/snesrecomp` its last hunk (port-1 `retro_set_controller_port_device`) fails and must be applied by hand. The pinned snesref without the patch silently ignores the P2 column.
+
+**Uncertainty:** native-recomp and Mesen have not run this route, so `multiplayer_behavioral_verification` stays open. The bot's `0xD3` stunt-summing label is unconfirmed (`0xD3` here is VS CHAMPIONS). The SAME/SELECT TRACK, SELECT TOUR and QUIT branches are untested.

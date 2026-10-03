@@ -1,0 +1,218 @@
+{
+ "schema_version": 1,
+ "question": "What follows a decided VS race, and who controls it?",
+ "harness": "snesref (dual-controller patch) + pinned snes9x-libretro, clean boot, frozen two-pad input",
+ "fixtures": [
+  "tests/input/vs-challenger-route.input",
+  "tests/input/vs-challenger-route-observe.script",
+  "tests/input/vs-first-race.input",
+  "tests/input/vs-draw-rematch-observe.script"
+ ],
+ "flow": "VS race result 0xF9 -> VS CHAMPIONS 0xD3 -> PICK CHALLENGER 0x3F (loser's pad) -> track choice 0x5A -> NOW PLAYING; a drawn race (both NO TIME) instead shows a REMATCH banner 0xB7 that advances to NOW PLAYING on a button",
+ "checkpoints": {
+  "vsc-result": {
+   "menu": "0xF9",
+   "column": "0xFD",
+   "row": 0,
+   "p1_rider": 0,
+   "p2_rider": 1,
+   "texts": [
+    "DRAGSTER",
+    "COMPLETE",
+    "PLAYER     TIME",
+    "MIKE",
+    "0:28.76",
+    "ANDREW",
+    "NO TIME",
+    "SOMEONE",
+    "NO TIME",
+    "SOMEONE",
+    "NO TIME",
+    "SOMEONE",
+    "NO TIME"
+   ]
+  },
+  "vsc-champions": {
+   "menu": "0xD3",
+   "column": "0xFD",
+   "row": 0,
+   "p1_rider": 0,
+   "p2_rider": 1,
+   "texts": [
+    "VS CHAMPIONS",
+    "PLAYER  UNI  WINS TODAY  (%)",
+    "MIKE",
+    "1",
+    "1 100%",
+    "ANDREW",
+    "0",
+    "0   0%",
+    "MARTIN",
+    "0",
+    "0   0%",
+    "MELISSA",
+    "0",
+    "0   0%",
+    "AMY",
+    "0",
+    "0   0%",
+    "MALCOLM",
+    "0",
+    "0   0%",
+    "MICHELLE",
+    "0",
+    "0   0%",
+    "COLIN",
+    "0",
+    "0   0%"
+   ]
+  },
+  "vsc-pick-challenger": {
+   "menu": "0x3F",
+   "column": "0x06",
+   "row": 0,
+   "p1_rider": 0,
+   "p2_rider": 1,
+   "texts": [
+    "PICK CHALLENGER",
+    "MIKE",
+    "ANDREW",
+    "MARTIN",
+    "MELISSA",
+    "AMY",
+    "MALCOLM",
+    "MICHELLE",
+    "COLIN",
+    "DAVE",
+    "TONY",
+    "CAROL",
+    "CRAIG",
+    "KEN",
+    "ROBBIE",
+    "ALICE",
+    "STEVE"
+   ]
+  },
+  "vsc-pick-after-p1": {
+   "menu": "0x3F",
+   "column": "0x06",
+   "row": 0,
+   "p1_rider": 0,
+   "p2_rider": 1,
+   "texts": [
+    "PICK CHALLENGER",
+    "MIKE",
+    "ANDREW",
+    "MARTIN",
+    "MELISSA",
+    "AMY",
+    "MALCOLM",
+    "MICHELLE",
+    "COLIN",
+    "DAVE",
+    "TONY",
+    "CAROL",
+    "CRAIG",
+    "KEN",
+    "ROBBIE",
+    "ALICE",
+    "STEVE"
+   ]
+  },
+  "vsc-track-choice": {
+   "menu": "0x5A",
+   "column": "0x01",
+   "row": 0,
+   "p1_rider": 0,
+   "p2_rider": 1,
+   "texts": [
+    "NEXT TRACK",
+    "SAME TRACK",
+    "SELECT TRACK",
+    "SELECT TOUR",
+    "QUIT"
+   ]
+  },
+  "vsc-next": {
+   "menu": "0x16",
+   "column": "0x03",
+   "row": 0,
+   "p1_rider": 0,
+   "p2_rider": 1,
+   "texts": [
+    "NOW PLAYING",
+    "MIKE   (9:59.99)",
+    "VS",
+    "ANDREW   (9:59.99)",
+    "OVER 3 LAPS ON ZOOM ZOO",
+    "RECORD: SOMEONE",
+    "R E",
+    "ACE",
+    "XIT"
+   ]
+  },
+  "vsd-result": {
+   "menu": "0xF9",
+   "column": "0xFD",
+   "row": 0,
+   "p1_rider": 0,
+   "p2_rider": 1,
+   "texts": [
+    "DRAGSTER",
+    "COMPLETE",
+    "PLAYER     TIME",
+    "MIKE",
+    "NO TIME",
+    "ANDREW",
+    "NO TIME",
+    "SOMEONE",
+    "NO TIME",
+    "SOMEONE",
+    "NO TIME",
+    "SOMEONE",
+    "NO TIME"
+   ]
+  },
+  "vsd-rematch": {
+   "menu": "0xB7",
+   "column": "0xFD",
+   "row": 0,
+   "p1_rider": 0,
+   "p2_rider": 1,
+   "texts": [
+    "REMATCH"
+   ]
+  },
+  "vsd-after": {
+   "menu": "0x16",
+   "column": "0x03",
+   "row": 0,
+   "p1_rider": 0,
+   "p2_rider": 1,
+   "texts": [
+    "NOW PLAYING",
+    "MIKE   (9:59.99)",
+    "VS",
+    "ANDREW   (9:59.99)",
+    "RACING ON DRAGSTER",
+    "RECORD: SOMEONE",
+    "R E",
+    "ACE",
+    "XIT"
+   ]
+  }
+ },
+ "checks": {
+  "result_is_vs_race_result_0xF9": true,
+  "p1_finished_p2_no_time": true,
+  "champions_table_0xD3": true,
+  "pick_challenger_0x3F": true,
+  "p1_inert_on_pick_challenger": true,
+  "p2_pick_opens_track_choice_0x5A": true,
+  "next_track_reaches_now_playing": true,
+  "draw_result_both_no_time": true,
+  "draw_shows_rematch_banner_0xB7": true,
+  "rematch_returns_to_now_playing": true
+ },
+ "all_checks_pass": true
+}

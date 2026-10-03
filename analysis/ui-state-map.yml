@@ -178,9 +178,10 @@ states:
         to: VS_SELECT
         side_effect: "visible selector handoff to Player Two"
         confidence: high
-      - event: "all initial VS riders confirmed"
-        to: VS_CHALLENGER
-        confidence: inferred
+      - event: "both initial VS riders confirmed (P2 A)"
+        to: TOUR_SELECT
+        confidence: high
+        note: "tests/input/vs-first-race.input reaches TOUR_SELECT 0x6D then two-player TRACK_SELECT 0x91; its checkpoints named vs-challenger/vs-challenge-track are those setup screens, not VS_CHALLENGER/VS_CHALLENGE_TRACK."
       - input: "Y or X"
         to: MAIN_MENU
         confidence: medium
@@ -188,15 +189,18 @@ states:
   - id: VS_CHALLENGER
     family: race_setup
     kind: menu
-    confidence: low
-    evidence: []
+    confidence: high
+    evidence: [reproduced_runtime]
     recovered_menu_labels:
       currentMenu_7E009F: "0x3F"
-    description: "Recovered 2014 bot label for the VS challenger-selection phase."
+    runtime_signatures:
+      currentMenu_7E009F: "0x3F (PICK CHALLENGER rider grid)"
+      local_fixture: "tests/input/vs-challenger-route.input (snesref with the dual-controller patch)"
+    description: "PICK CHALLENGER: reached only after a decided VS race, via the VS race result (0xF9) and the VS CHAMPIONS table (0xD3). The losing player's pad controls it; P1 (winner) input is inert. A drawn race skips it and shows a REMATCH banner (0xB7) instead. Reproduced on snesref only (tools/probe_vs_challenger.py)."
     transitions:
-      - input: "A or B by active participant"
+      - input: "loser's pad: move to a rider, A"
         to: VS_CHALLENGE_TRACK
-        confidence: inferred
+        confidence: high
       - input: "Y or X"
         to: VS_SELECT
         confidence: inferred
@@ -204,13 +208,19 @@ states:
   - id: VS_CHALLENGE_TRACK
     family: race_setup
     kind: menu
-    confidence: low
-    evidence: []
+    confidence: high
+    evidence: [reproduced_runtime]
     recovered_menu_labels:
       currentMenu_7E009F: "0x5A"
-    description: "Recovered 2014 bot label for the VS challenge-track phase."
+    runtime_signatures:
+      currentMenu_7E009F: "0x5A (NEXT TRACK / SAME TRACK / SELECT TRACK / SELECT TOUR / QUIT)"
+      local_fixture: "tests/input/vs-challenger-route.input (snesref with the dual-controller patch)"
+    description: "VS track-choice menu after the challenger pick: NEXT TRACK, SAME TRACK, SELECT TRACK, SELECT TOUR, QUIT. NEXT TRACK (default) goes to NOW PLAYING on the next track of the tour. 0x5A is also seen as transient DP scratch on Track Records, so require the visible menu. Reproduced on snesref only."
     transitions:
-      - input: "selection/confirm"
+      - input: "NEXT TRACK confirm (challenger's pad)"
+        to: PRE_RACE_CARD
+        confidence: high
+      - input: "other options"
         to: PRE_RACE_CARD
         confidence: inferred
       - input: "Y or X"

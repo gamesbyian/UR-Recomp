@@ -70,14 +70,18 @@
     {
       "value": "0x3F",
       "state_id": "VS_CHALLENGER",
-      "status": "historical",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "tests/input/vs-challenger-route.input",
+      "fixture": "vs-challenger-route",
+      "note": "PICK CHALLENGER after a decided VS race; loser's pad controls it."
     },
     {
       "value": "0x5A",
       "state_id": "VS_CHALLENGE_TRACK",
-      "status": "historical",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "tests/input/vs-challenger-route.input",
+      "fixture": "vs-challenger-route",
+      "note": "VS track-choice menu (NEXT/SAME/SELECT TRACK, SELECT TOUR, QUIT). Also transient DP scratch on Track Records."
     },
     {
       "value": "0x10",
@@ -212,6 +216,33 @@
       "source": "analysis/generated/ui-atlas-native-harvest-2026-09-29.md",
       "fixture": "ui-records-submenus",
       "capture": "ui-record-track-entry"
+    },
+    {
+      "value": "0xF9",
+      "state_id": "RESULT_RACE",
+      "variant": "vs-race",
+      "status": "verified",
+      "source": "tests/input/vs-challenger-route.input",
+      "fixture": "vs-challenger-route",
+      "note": "VS race result (both players' times; NO TIME for a non-finisher)."
+    },
+    {
+      "value": "0xD3",
+      "state_id": "POST_RESULT_DECISION",
+      "variant": "vs-champions-table",
+      "status": "verified",
+      "source": "tests/input/vs-challenger-route.input",
+      "fixture": "vs-challenger-route",
+      "note": "VS CHAMPIONS table (wins / today / %) after a decided VS race. The bot's stunt-summing 0xD3 label is unconfirmed."
+    },
+    {
+      "value": "0xB7",
+      "state_id": "POST_RESULT_DECISION",
+      "variant": "vs-draw-rematch-banner",
+      "status": "verified",
+      "source": "tests/input/vs-draw-rematch-observe.script",
+      "fixture": "vs-challenger-route",
+      "note": "REMATCH banner after a drawn VS race (both NO TIME); any button continues to NOW PLAYING."
     }
   ]
 }

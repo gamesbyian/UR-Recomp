@@ -179,27 +179,29 @@
     },
     {
       "id": "vs-challenger",
-      "from": "VS_SELECT",
+      "from": "RESULT_RACE",
       "to": "VS_CHALLENGER",
-      "trigger": "all initial VS riders confirmed",
-      "status": "historical",
-      "blocked_by": "multiplayer_behavioral_verification",
-      "source_note": "First P1 confirm is now locally observed to remain in VS_SELECT and hand presentation to PICK PLAYER TWO; transition to VS_CHALLENGER remains historical until P2 confirmation is reproduced."
+      "trigger": "decided VS race: advance through the VS result 0xF9 and VS CHAMPIONS 0xD3",
+      "status": "verified",
+      "fixture": "vs-challenger-route",
+      "source_note": "snesref (dual-controller patch). The earlier VS_SELECT -> VS_CHALLENGER edge was wrong: both rider confirms lead to TOUR_SELECT (vs-p2-rider-confirm)."
     },
     {
       "id": "vs-track",
       "from": "VS_CHALLENGER",
       "to": "VS_CHALLENGE_TRACK",
-      "trigger": "challenger confirm",
-      "status": "historical",
-      "blocked_by": "multiplayer_behavioral_verification"
+      "trigger": "loser's pad picks a challenger and confirms (P1/winner input inert)",
+      "status": "verified",
+      "fixture": "vs-challenger-route"
     },
     {
       "id": "vs-prerace",
       "from": "VS_CHALLENGE_TRACK",
       "to": "PRE_RACE_CARD",
-      "trigger": "track confirm",
-      "status": "historical"
+      "trigger": "NEXT TRACK confirm",
+      "status": "verified",
+      "fixture": "vs-challenger-route",
+      "source_note": "Reaches NOW PLAYING for the next Crawler track (OVER 3 LAPS ON ZOOM ZOO)."
     },
     {
       "id": "game-race-result",
@@ -513,6 +515,15 @@
       "status": "verified",
       "fixture": "result-screens",
       "source_note": "Movie input advances 0xBC / 0x18 directly to TRACK_SELECT 0xF6, as with RESULT_RACE; POST_RESULT_DECISION is not on this 1P path."
+    },
+    {
+      "id": "vs-draw-rematch",
+      "from": "RESULT_RACE",
+      "to": "PRE_RACE_CARD",
+      "trigger": "drawn VS race (both NO TIME): REMATCH banner 0xB7, any button",
+      "status": "verified",
+      "fixture": "vs-challenger-route",
+      "source_note": "tests/input/vs-first-race.input left to time out (~37670 frames) with tests/input/vs-draw-rematch-observe.script."
     }
   ],
   "capture_exempt_states": [
@@ -548,7 +559,7 @@
       "transport_format": "start:duration:p1-mask[:p2-mask]",
       "transport_status": "complete",
       "integration_note": "PR #31 already provides the shared P1/P2 transport across native, snesref, and Mesen. This dependency now tracks only behavioral proof: P2-only causality, P1->P2 rider-selection handoff, stable multiplayer checkpoints, and deeper VS navigation.",
-      "note": "2P entry/back and VS_SELECT plus the visual P1->P2 VS handoff are locally reproduced. Remaining acceptance work is P2-only causality/confirmation, 2P handoff through TOUR_SELECT, deeper VS challenger/track checkpoints, and multiplayer gameplay/split-screen evidence."
+      "note": "2P entry/back and VS_SELECT plus the visual P1->P2 VS handoff are locally reproduced. Remaining acceptance work is P2-only causality/confirmation, 2P handoff through TOUR_SELECT, deeper VS challenger/track checkpoints, and multiplayer gameplay/split-screen evidence. 2026-10-03: VS_CHALLENGER (0x3F) and VS_CHALLENGE_TRACK (0x5A) are now reproduced on snesref (dual-controller patch) after a decided VS race (tools/probe_vs_challenger.py, analysis/generated/vs-challenger-probe.json); native-recomp and Mesen confirmation of that route remain."
     }
   },
   "completion_tiers": {

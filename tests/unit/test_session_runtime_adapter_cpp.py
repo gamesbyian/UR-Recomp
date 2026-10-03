@@ -22,6 +22,8 @@ class SessionRuntimeAdapterCppTests(unittest.TestCase):
                     "-I",
                     str(ROOT / "native" / "product"),
                     str(ROOT / "native" / "product" / "session_runtime_adapter.cpp"),
+                    str(ROOT / "native" / "product" / "race_restart_anchor.cpp"),
+                    str(ROOT / "native" / "product" / "race_restart_lifecycle.cpp"),
                     str(ROOT / "tests" / "native" / "session_runtime_adapter_test.cpp"),
                     "-o",
                     str(exe),

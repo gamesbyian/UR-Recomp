@@ -110,5 +110,26 @@ int main() {
     assert(!p2_mismatch.uses_replacement());
     assert(p2_mismatch.fallback_reason == FallbackReason::CompositionMismatch);
 
+    const auto* p1_second = find_racer_registration(0x057E);
+    const auto* p2_second = find_racer_registration(0x0544);
+    assert(p1_second != nullptr);
+    assert(p2_second != nullptr);
+    assert(p1_second->player == 1);
+    assert(p2_second->player == 2);
+    assert(p1_second->contact_anchor.x2 == 67);
+    assert(p1_second->contact_anchor.y2 == 76);
+    assert(p2_second->contact_anchor.x2 == 55);
+    assert(p2_second->contact_anchor.y2 == 76);
+    assert(composition_equal(p1_second->composition, p2_second->composition));
+
+    const auto p1_second_selected = select_racer_presentation(
+        GraphicsPack::Remastered, 0x057E, p1_second->composition
+    );
+    const auto p2_second_selected = select_racer_presentation(
+        GraphicsPack::Remastered, 0x0544, p2_second->composition
+    );
+    assert(p1_second_selected.uses_replacement());
+    assert(p2_second_selected.uses_replacement());
+
     return 0;
 }

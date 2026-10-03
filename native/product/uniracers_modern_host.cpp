@@ -10,6 +10,7 @@ extern "C" {
 #include "desktop/sdl_compat.h"
 #include "focus_pause_policy.hpp"
 #include "host_product_state.hpp"
+#include "host_product_store.hpp"
 #include "modern_pause_input.h"
 #include "modern_pause_menu.h"
 #include "modern_session_c_api.h"
@@ -18,11 +19,14 @@ extern "C" {
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
+#include <string>
 
 namespace {
 
 UrModernSession* g_session;
 ur::product::HostProductState g_product_state;
+bool g_product_state_initialized;
+std::string g_product_state_path;
 UrModernPauseMenu g_pause_menu;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
@@ -30,6 +34,75 @@ UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
 bool modern_mode() {
     const char* mode = std::getenv("UR_EXECUTION_MODE");
     return !(mode && std::strcmp(mode, "authentic") == 0);
+}
+
+void product_diagnostic(const char* message) {
+    if (!std::getenv("UR_PRODUCT_DIAGNOSTICS")) return;
+    std::fprintf(stderr, "%s\n", message);
+    std::fflush(stderr);
+}
+
+std::string resolve_product_state_path() {
+    const char* override_path = std::getenv("UR_HOST_STATE_PATH");
+    if (override_path && *override_path) {
+        return override_path;
+    }
+
+    char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
+    if (!pref_path) {
+        return {};
+    }
+    std::string path(pref_path);
+    SDL_free(pref_path);
+    path += "host-state-v1.txt";
+    return path;
+}
+
+void ensure_product_state() {
+    if (g_product_state_initialized) return;
+    g_product_state_initialized = true;
+
+    if (!modern_mode()) {
+        product_diagnostic("UR_HOST_STATE AUTHENTIC_INERT");
+        return;
+    }
+
+    g_product_state_path = resolve_product_state_path();
+    if (g_product_state_path.empty()) {
+        product_diagnostic("UR_HOST_STATE PATH_UNAVAILABLE");
+        return;
+    }
+
+    const auto loaded =
+        ur::product::load_host_product_state_file(g_product_state_path);
+    if (loaded.loaded()) {
+        g_product_state = *loaded.state;
+        if (g_product_state.settings.pause_on_focus_loss) {
+            product_diagnostic("UR_HOST_STATE LOADED pause_on_focus_loss=1");
+        } else {
+            product_diagnostic("UR_HOST_STATE LOADED pause_on_focus_loss=0");
+        }
+    } else if (loaded.status == ur::product::HostProductLoadStatus::Missing) {
+        product_diagnostic("UR_HOST_STATE MISSING_DEFAULTS");
+    } else if (loaded.status == ur::product::HostProductLoadStatus::Rejected) {
+        product_diagnostic("UR_HOST_STATE REJECTED_DEFAULTS");
+    } else {
+        product_diagnostic("UR_HOST_STATE IO_ERROR_DEFAULTS");
+    }
+}
+
+bool persist_product_state(const ur::product::HostProductState& candidate) {
+    if (!modern_mode() || g_product_state_path.empty()) {
+        return false;
+    }
+    const auto status = ur::product::save_host_product_state_file(
+        g_product_state_path, candidate);
+    if (status != ur::product::HostProductSaveStatus::Saved) {
+        product_diagnostic("UR_HOST_STATE SAVE_FAILED");
+        return false;
+    }
+    product_diagnostic("UR_HOST_STATE SAVED");
+    return true;
 }
 
 std::size_t save_snapshot(void* dst, std::size_t capacity) {
@@ -56,6 +129,7 @@ void reconcile_presentation() {
 
 bool ensure_session() {
     if (g_session) return true;
+    ensure_product_state();
     const std::size_t capacity = RtlRollbackSnapshotBound();
     if (!capacity) return false;
 
@@ -141,8 +215,13 @@ extern "C" int ur_uniracers_modern_system_key_down(
     if (repeat || !ensure_session()) return 0;
 
     if (paused() && key == SDLK_f && modern_mode()) {
-        g_product_state.settings.pause_on_focus_loss =
-            !g_product_state.settings.pause_on_focus_loss;
+        ur::product::HostProductState candidate = g_product_state;
+        candidate.settings.pause_on_focus_loss =
+            !candidate.settings.pause_on_focus_loss;
+        if (!persist_product_state(candidate)) {
+            return 1;
+        }
+        g_product_state = candidate;
         return 1;
     }
 

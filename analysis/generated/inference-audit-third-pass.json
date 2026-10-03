@@ -136,11 +136,17 @@
   "audit_conclusions": {
     "new_runtime_work_admission": [
       "HD racer pixel substitution can proceed without new guest-state mutation research; identity and placement inputs are already separated.",
+      "Restart Race runtime restore/replay semantics are accepted; remaining work is product/UI integration and attempt policy.",
+      "+8 native Widescreen preparation is accepted; +16 production host materialization is now accepted and +24/final 16:9 remains the next capacity generalization.",
+      "Modern autosave/profile work should preserve guest SRAM as the authoritative progression substrate."
+    ],
+    "canonical_status_note": "IA3-R01 and IA3-W02 preserve the original third-pass evidence state; post_audit_resolutions and later retained acceptance evidence are authoritative for their current merged disposition.",
+    "historical_runtime_work_admission": [
+      "HD racer pixel substitution can proceed without new guest-state mutation research; identity and placement inputs are already separated.",
       "Restart Race needs a targeted APU restore/replay discriminator, not broader snapshot experimentation.",
       "Widescreen beyond +8 should investigate queue/lane capacity only after the +8 adjacency exceptions are explained.",
       "Modern autosave/profile work should preserve guest SRAM as the authoritative progression substrate."
-    ],
-    "canonical_status_note": "IA3-R01 and the detailed native-hook observations in IA3-W02 are retained run evidence from still-open PRs and must not be mistaken for merged implementation acceptance."
+    ]
   },
   "post_audit_resolutions": {
     "date": "2026-10-03",
@@ -163,7 +169,7 @@
         "margin16_first_constraint": "secondary-lane-capacity",
         "margin24_first_constraint": "secondary-lane-capacity"
       },
-      "current_consequence": "+8 native hook is accepted; wider margins require deliberate presentation-capacity expansion."
+      "current_consequence": "+8 native hook is accepted; the +16 host-owned random-access course materializer is also accepted by run 37094022986; additional host columns toward +24/final 16:9 remain."
     }
   }
 }

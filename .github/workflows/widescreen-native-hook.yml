@@ -8,6 +8,8 @@ on:
       - "tools/seed_native_widescreen_aot.py"
       - "tools/inspect_native_widescreen_prep_anchor.py"
       - "tools/apply_native_widescreen_hook.py"
+      - "tools/patch_widescreen_probe_host.py"
+      - "tests/unit/test_widescreen_probe_host_patch.py"
       - "tools/analyze_native_widescreen_hook_acceptance.py"
       - "tools/analyze_widescreen_plus16_capacity_acceptance.py"
       - "tools/build_widescreen_shadow_oracle.py"
@@ -49,6 +51,7 @@ jobs:
             tests.unit.test_seed_native_widescreen_aot \
             tests.unit.test_inspect_native_widescreen_prep_anchor \
             tests.unit.test_apply_native_widescreen_hook \
+            tests.unit.test_widescreen_probe_host_patch \
             tests.unit.test_analyze_native_widescreen_hook_acceptance \
             tests.unit.test_analyze_widescreen_plus16_capacity_acceptance \
             tests.unit.test_build_widescreen_shadow_oracle \
@@ -101,6 +104,7 @@ jobs:
             --funcs-h recomp/funcs.h \
             --cfg-roots
           test -d "$PROJECT/src/gen"
+          python3 tools/patch_widescreen_probe_host.py "$PROJECT/src/main.c"
 
       - name: Inspect and apply accepted preparation hook
         shell: bash
@@ -167,14 +171,17 @@ jobs:
 
           for margin in 0 8 16 24 32 48 64 72; do
             OUT="$ROOT/$margin"
-            mkdir -p "$OUT/dumps"
+            mkdir -p "$OUT/dumps" "$OUT/frames"
             echo "== native Widescreen margin $margin =="
             SDL_AUDIODRIVER=dummy \
             URRECOMP_WS_MARGIN="$margin" \
             URRECOMP_WS_NATIVE_TRACE=1 \
             SNESRECOMP_DUMP_DIR="$OUT/dumps" \
+            SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+            SNESRECOMP_FRAMEDUMP_START=300 \
+            SNESRECOMP_FRAMEDUMP_END=300 \
             timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
-              >"$OUT/run.log" 2>&1
+              --framedump "$OUT/frames" >"$OUT/run.log" 2>&1
             test -s "$OUT/dumps/prep-emission-after-scroll.wram.bin"
             tail -n 30 "$OUT/run.log" || true
           done
@@ -188,15 +195,47 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script"
           OUT="$RUNNER_TEMP/ws-native-runs/policy-authentic-16x9-candidate"
-          mkdir -p "$OUT/dumps"
+          mkdir -p "$OUT/dumps" "$OUT/frames" analysis/generated
           SDL_AUDIODRIVER=dummy \
           URRECOMP_WS_VIEW=authentic-16x9-candidate \
           URRECOMP_WS_NATIVE_TRACE=1 \
           SNESRECOMP_DUMP_DIR="$OUT/dumps" \
+          SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+          SNESRECOMP_FRAMEDUMP_START=300 \
+          SNESRECOMP_FRAMEDUMP_END=300 \
           timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
-            >"$OUT/run.log" 2>&1
+            --framedump "$OUT/frames" >"$OUT/run.log" 2>&1
           grep -q "URWS_PREP_EXT margin=48" "$OUT/run.log"
           grep -q "URWS_SHADOW_EXT provider=course-runtime margin=48" "$OUT/run.log"
+          python3 - "$RUNNER_TEMP/ws-native-runs/0/frames/frame_000300.bmp" \
+            "$OUT/frames/frame_000300.bmp" \
+            analysis/generated/widescreen-host-viewport-binding.json <<'PY'
+          import json, pathlib, struct, sys
+
+          def dimensions(path):
+              data=pathlib.Path(path).read_bytes()
+              if data[:2] != b"BM" or len(data) < 26:
+                  raise SystemExit(f"{path}: not a retained BMP")
+              width=struct.unpack_from("<i", data, 18)[0]
+              height=abs(struct.unpack_from("<i", data, 22)[0])
+              return width, height
+
+          control=dimensions(sys.argv[1])
+          candidate=dimensions(sys.argv[2])
+          out={
+              "schema_version":1,
+              "selector":"authentic-16x9-candidate",
+              "provider_margin_pixels_per_side":48,
+              "stock_control":{"frame_width":control[0],"frame_height":control[1]},
+              "candidate":{"frame_width":candidate[0],"frame_height":candidate[1]},
+              "expected_candidate_logical_width":342,
+              "accepted":control==(256,224) and candidate==(342,224),
+          }
+          pathlib.Path(sys.argv[3]).write_text(json.dumps(out,indent=2)+"\n")
+          print(json.dumps(out,indent=2))
+          if not out["accepted"]:
+              raise SystemExit("named Widescreen policy did not bind the expected host viewport")
+          PY
 
       - name: Prove host presentation depth through +72
         shell: bash
@@ -335,6 +374,9 @@ jobs:
             analysis/generated/widescreen-host-depth-acceptance.json
             analysis/generated/widescreen-host-depth-acceptance.md
             analysis/generated/widescreen-host-depth-liveness.json
+            analysis/generated/widescreen-host-viewport-binding.json
+            ${{ runner.temp }}/ws-native-runs/0/frames/frame_000300.bmp
+            ${{ runner.temp }}/ws-native-runs/policy-authentic-16x9-candidate/frames/frame_000300.bmp
             ${{ runner.temp }}/ws-native-runs/oracle/run.log
             ${{ runner.temp }}/ws-native-runs/oracle/stock-strips.txt
             ${{ runner.temp }}/ws-native-runs/0/run.log

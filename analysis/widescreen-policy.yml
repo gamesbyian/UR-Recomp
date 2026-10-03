@@ -60,6 +60,12 @@ display_binding:
     provider_validated_capacity_margin_pixels: 72
     runtime_selector: authentic-16x9-candidate
     diagnostic_margin_override: URRECOMP_WS_MARGIN
+    host_viewport_binding: native-widescreen-prepare-frame
+    host_viewport_margin_pixels: 43
+    host_logical_width_pixels: 342
+    host_logical_height_pixels: 224
+    host_display_aspect_at_candidate_par: "57:32"
+    host_display_aspect_error_percent_vs_16x9: 0.1953125
     status: provisional
     rationale: "Derived mechanically from the preferred Authentic candidate; no new guest descriptor lane is implied."
 

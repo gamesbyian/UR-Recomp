@@ -6,7 +6,6 @@ on:
     branches:
       - chatgpt/preparation-emission-causal-closure-2026-10-02
     paths:
-      - ".github/workflows/preparation-emission-probe.yml"
       - "tools/analyze_preparation_stream_trace.py"
       - "tools/analyze_preparation_emission_probe.py"
       - "tools/analyze_preparation_ppu_pc_trace.py"
@@ -23,6 +22,7 @@ on:
       - "tools/analyze_camera_dma_queue_trace.py"
       - "tools/instrument_snesref_ppu_pc_trace.py"
       - "tests/input/preparation-emission-race.script"
+      - ".github/workflows/preparation-emission-probe.yml"
 
 concurrency:
   group: preparation-emission-${{ github.ref }}

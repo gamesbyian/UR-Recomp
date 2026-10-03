@@ -430,11 +430,23 @@ capacity contract itself:
   transition with identical progression state. Its absolute guest frame is one
   frame later (1232 vs 1231), so activation is not earlier.
 
-The oracle is test scaffolding, not a production content source. The next
-Widescreen implementation step is to replace it with a host-owned random-access
-strip materializer backed by the recovered course/resource presentation model.
-Do not widen final composition, HUD, racer graphics, or gameplay activation as
-part of that materializer task.
+The oracle was test scaffolding only. Native workflow run `37094022986` closes the production content follow-up without changing the accepted +8 guest path. Column +2 is now materialized directly in host/native presentation storage from the live `7F:000F` coarse-sector table and `7F:800F` packed-surface fine records. The implementation never reads future-stock data and never invents an additional guest descriptor lane.
+
+Retained production-materializer acceptance records:
+
+- 617 +16 first-column events and 617 host-shadow second-column events;
+- zero provider misses;
+- 599 same-effective-view rows independently comparable to later stock and **599/599 exact 32-byte payload matches**;
+- 18 remaining rows explicitly classified as vertical-view transitions, so all 617 shadow rows are accounted for without comparing different camera-Y viewports;
+- first widened step stock-compatible and second step ring-adjacent for all comparable preparation pairs;
+- deterministic cleanup and protected preparation state equal;
+- transient live non-record/off-course cells blank-fill to the stock presentation result instead of aborting the host strip;
+- the liveness fixture again has zero protected differences across 61 common samples and reaches the identical `liveness-004` progression state at frame 1232 versus 1231 in control, so gameplay activation is not earlier.
+
+This closes the +16 production strip-provider seam for the representative Dragster path. The next bounded preparation experiment is additional host-owned columns: generalize the same materializer to +24 and then toward the final 16:9 exposure target. Keep stock 4:3 and the accepted +8 guest path as controls; do not widen gameplay activation, final composition, HUD, or racer-HD logic as part of that preparation experiment.
+
+Positive evidence:
+`analysis/generated/widescreen-plus16-materializer-acceptance-2026-10-03.{json,md}` and `analysis/generated/widescreen-plus16-materializer-liveness-2026-10-03.json`.
 
 Negative evidence:
 `analysis/generated/widescreen-plus16-capacity-negative-2026-10-02.{json,md}`.

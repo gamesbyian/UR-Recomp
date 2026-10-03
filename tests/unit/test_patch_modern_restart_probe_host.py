@@ -13,7 +13,7 @@ spec.loader.exec_module(mod)
 
 
 class RestartProbeHostPatchTests(unittest.TestCase):
-    def test_injects_product_command_path_and_probe(self):
+    def test_injects_product_command_path_and_results_policy(self):
         source = """#include "host_main.h"
 #include "game_rtl.h"
 #include "snesrecomp_rom_identity.h"  /* generated from rom_identity.txt */
@@ -26,9 +26,14 @@ static const SnesDesktopHostGame kGameHost = {
 """
         patched = mod.patch_text(source)
         self.assertIn('#include "modern_session_c_api.h"', patched)
-        self.assertIn("g_ram[0x0313] == 1", patched)
+        self.assertIn('#include "uniracers_restart_policy.h"', patched)
+        self.assertIn("g_ram[0x0313]", patched)
+        self.assertIn("g_ram[0x009F]", patched)
+        self.assertIn("ur_uniracers_restart_policy_observe", patched)
         self.assertIn("ur_modern_session_observe_race_active", patched)
+        self.assertIn("ur_modern_session_retire_race_attempt", patched)
         self.assertIn("ur_modern_session_restart_race", patched)
+        self.assertIn("ur_modern_session_load_preserving_persistent_bytes", patched)
         self.assertIn("RtlRollbackSaveToMemory", patched)
         self.assertIn("RtlRollbackSnapshotBound", patched)
         self.assertIn("RtlRollbackLoadFromMemory", patched)
@@ -36,16 +41,13 @@ static const SnesDesktopHostGame kGameHost = {
         self.assertIn("RtlAudioSetFastForward(true)", patched)
         self.assertIn("RtlAudioSetFastForward(false)", patched)
         self.assertIn("sram_progression_unchanged=1", patched)
-        self.assertIn('#include "netplay/snes_state_digest.h"', patched)
-        self.assertIn("snes_state_digest_parts", patched)
-        self.assertIn("snes_state_digest_first_diff", patched)
+        self.assertIn("UR_RESTART_RESULTS PASS results_surface=1", patched)
         self.assertNotIn(".before_run_frame", patched)
         self.assertIn(".after_run_frame", patched)
         self.assertIn("UR_RESTART_PROBE PASS command_dispatch=1", patched)
-        self.assertIn("repeated_restart_equal=1", patched)
         self.assertNotIn(r";\nstatic", patched)
 
-    def test_links_product_runtime_and_digest_into_generated_target(self):
+    def test_links_product_title_policy_and_digest_into_generated_target(self):
         cmake = """cmake_minimum_required(VERSION 3.20)
 project(UniracersSNESRecomp C CXX)
 add_executable(UniracersSNESRecomp
@@ -54,11 +56,8 @@ add_executable(UniracersSNESRecomp
 """
         product_root = pathlib.Path("/tmp/ur-recomp")
         patched = mod.patch_cmake_text(cmake, product_root)
-        self.assertIn(
-            'target_include_directories(UniracersSNESRecomp PRIVATE '
-            '"/tmp/ur-recomp/native/product")',
-            patched,
-        )
+        self.assertIn('"/tmp/ur-recomp/native/product"', patched)
+        self.assertIn('"/tmp/ur-recomp/native/title"', patched)
         for name in (
             "session_control.cpp",
             "session_runtime_adapter.cpp",
@@ -66,6 +65,7 @@ add_executable(UniracersSNESRecomp
             "race_restart_lifecycle.cpp",
             "modern_session_runtime.cpp",
             "modern_session_c_api.cpp",
+            "uniracers_restart_policy.cpp",
         ):
             self.assertIn(name, patched)
         self.assertIn(

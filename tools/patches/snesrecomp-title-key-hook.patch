@@ -1,6 +1,6 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -3982,8 +3982,13 @@
+@@ -3982,8 +3982,14 @@
          }
          break;
        case SDL_KEYDOWN:

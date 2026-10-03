@@ -115,48 +115,52 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1(
     if (hflip) x = kRacerHdAssetSize - 1 - x;
     if (vflip) y = kRacerHdAssetSize - 1 - y;
 
-    // Wheel/contact geometry. Bottom point is y=155 (logical centre 38.5),
-    // matching the recovered contact target y2=76 after 4x sampling.
-    const int wheel_cx = 124;
-    const int wheel_cy = 116;
+    // Review-tuned wheel/contact geometry. Sampling this 4x asset at the
+    // native presenter's logical pixel centres reproduces the stock 22..39 x
+    // 3..38 occupied envelope and the recovered contact anchor x2/y2=61/76.
+    // Keeping the envelope stable matters more in motion than preserving the
+    // first pilot's oversized wheel mass.
+    const int wheel_cx = 123;
+    const int wheel_cy = 122;
     const int wx = x - wheel_cx;
     const int wy = y - wheel_cy;
     const int wr2 = wx * wx + wy * wy;
-    const bool tire = wr2 <= 39 * 39 && wr2 >= 31 * 31;
-    const bool rim = wr2 < 31 * 31 && wr2 >= 28 * 28;
-    const bool hub = wr2 <= 7 * 7;
+    const bool tire = wr2 <= 33 * 33 && wr2 >= 27 * 27;
+    const bool rim = wr2 < 27 * 27 && wr2 >= 24 * 24;
+    const bool hub = wr2 <= 6 * 6;
 
-    // Slender fork with a slight authored lean. This is the smooth high-density
-    // form that the contract placeholder could not express.
-    const int fork_center = 122 + (112 - y) / 18;
+    // Slender fork with the same object-local lighting, now fitted to the
+    // recovered gameplay-scale silhouette rather than the 64x64 OBJ canvas.
+    const int fork_center = 131 - (y - 60) / 14;
     const bool fork =
-        y >= 54 && y <= 111 &&
+        y >= 60 && y <= 117 &&
         x >= fork_center - 4 && x <= fork_center + 4;
 
     // Short crank and pedal. Neutral hardware may carry the brightest values.
     const bool crank =
-        y >= 108 && y <= 115 &&
-        x >= 111 && x <= 137;
+        y >= 116 && y <= 123 &&
+        x >= 112 && x <= 138;
     const bool pedal =
-        y >= 105 && y <= 110 &&
-        x >= 137 && x <= 149;
+        y >= 113 && y <= 118 &&
+        x >= 138 && x <= 150;
 
-    // Dark saddle, intentionally broad and low-detail at gameplay scale.
-    const int seat_dx = x - 116;
-    const int seat_dy = y - 43;
+    // The saddle is restored to the stock top-of-silhouette band. The original
+    // pilot started five logical pixels too low when sampled for gameplay.
+    const int seat_dx = x - 128;
+    const int seat_dy = y - 22;
     const bool seat =
-        ((seat_dx * seat_dx) * 9 + (seat_dy * seat_dy) * 64 <= 30 * 30 * 9) &&
-        y >= 34 && y <= 50;
+        ((seat_dx * seat_dx) * 11 + (seat_dy * seat_dy) * 30 <= 30 * 30 * 11) &&
+        y >= 12 && y <= 32;
 
-    // Colored upper frame/neck. Its silhouette is separate from the dark saddle
-    // and neutral hardware so the material hierarchy survives downscaling.
+    // Colored upper frame/neck. Geometry is still smooth and authored, but its
+    // sampled footprint follows the stock representation's scale and posture.
     const bool neck =
-        y >= 47 && y <= 70 &&
-        x >= 115 && x <= 130;
-    const int crown_dx = x - 123;
-    const int crown_dy = y - 67;
+        y >= 30 && y <= 60 &&
+        x >= 128 && x <= 136;
+    const int crown_dx = x - 132;
+    const int crown_dy = y - 60;
     const bool crown =
-        crown_dx * crown_dx + crown_dy * crown_dy <= 12 * 12;
+        crown_dx * crown_dx + crown_dy * crown_dy <= 10 * 10;
 
     if (hub || rim || crank || pedal) {
         return authored_metal_color(x, y);

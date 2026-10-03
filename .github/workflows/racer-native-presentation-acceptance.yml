@@ -158,6 +158,43 @@ jobs:
                   f"runs={len(reports[0]['players'][player]['runs'])} "
                   f"transitions={len(reports[0]['players'][player]['transitions'])}"
               )
+
+          neighborhoods = {
+              n["representation_id"]: n
+              for n in reports[0]["registered_state_neighborhoods"]
+          }
+          expected = {
+              "ordinary-racer-0x0541-p1-sync-reference": {
+                  "hit_frames": [1220, 1470],
+                  "previous_primary_counts": {"0x0541": 2},
+                  "next_primary_counts": {"0x0542": 2},
+              },
+              "ordinary-racer-0x0540-p2-sync-reference": {
+                  "hit_frames": [1220, 1470],
+                  "previous_primary_counts": {"0x0540": 2},
+                  "next_primary_counts": {"0x0540": 1, "0x057F": 1},
+              },
+              "ordinary-racer-0x057E-p1-sync-reference": {
+                  "hit_frames": [1305, 1385, 1421],
+                  "previous_primary_counts": {"0x057D": 2, "0x057F": 1},
+                  "next_primary_counts": {"0x057D": 1, "0x057E": 2},
+              },
+              "ordinary-racer-0x0544-p2-sync-reference": {
+                  "hit_frames": [1305, 1385, 1421],
+                  "previous_primary_counts": {"0x0543": 2, "0x0544": 1},
+                  "next_primary_counts": {"0x0543": 1, "0x0544": 2},
+              },
+          }
+          for representation_id, wanted in expected.items():
+              got = neighborhoods[representation_id]
+              for key, value in wanted.items():
+                  assert got[key] == value, (representation_id, key, got[key], value)
+              print(
+                  "UR_RACER_REGISTERED_NEIGHBORHOOD PASS "
+                  f"representation={representation_id} hits={got['hit_frames']} "
+                  f"before={got['previous_primary_counts']} "
+                  f"after={got['next_primary_counts']}"
+              )
           PY
 
           # Diagnose the fixture's own cross-process WRAM stability before

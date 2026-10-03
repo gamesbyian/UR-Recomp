@@ -88,7 +88,59 @@ def transition_counts(rows: list[dict], key: str) -> list[dict]:
     ]
 
 
-def build_report(rows: list[dict]) -> dict:
+def normalized_guard(value):
+    if isinstance(value, str) and value.lower().startswith("0x"):
+        return f"0x{int(value, 16):04X}"
+    return value
+
+
+def row_matches_registration(row: dict, entry: dict) -> bool:
+    guards = entry["composition_guards"]
+    mapping = {
+        "p1_primary": "p1_primary",
+        "p2_primary": "p2_primary",
+        "p1_companion": "p1_companion",
+        "p2_companion": "p2_companion",
+        "p1_selector": "p1_selector",
+        "p2_selector": "p2_selector",
+        "p1_companion_gate_word": "p1_gate",
+        "p2_companion_gate_word": "p2_gate",
+    }
+    return all(
+        normalized_guard(guards[key]) == normalized_guard(row[row_key])
+        for key, row_key in mapping.items()
+    )
+
+
+def registered_state_neighborhoods(rows: list[dict], registry: dict) -> list[dict]:
+    out = []
+    for entry in registry["entries"]:
+        player = entry["player"]
+        key = f"{player}_primary"
+        hit_frames = []
+        before = Counter()
+        after = Counter()
+        for i, row in enumerate(rows):
+            if not row_matches_registration(row, entry):
+                continue
+            hit_frames.append(row["frame"])
+            if i > 0 and rows[i - 1]["frame"] == row["frame"] - 1:
+                before[rows[i - 1][key]] += 1
+            if i + 1 < len(rows) and rows[i + 1]["frame"] == row["frame"] + 1:
+                after[rows[i + 1][key]] += 1
+        out.append({
+            "representation_id": entry["representation_id"],
+            "player": player,
+            "semantic_frame_id": entry["semantic_frame_id"],
+            "hit_frames": hit_frames,
+            "hit_count": len(hit_frames),
+            "previous_primary_counts": dict(sorted(before.items())),
+            "next_primary_counts": dict(sorted(after.items())),
+        })
+    return out
+
+
+def build_report(rows: list[dict], registry: dict | None = None) -> dict:
     frames = [r["frame"] for r in rows]
     contiguous = bool(rows) and frames == list(range(frames[0], frames[-1] + 1))
     players = {}
@@ -111,6 +163,10 @@ def build_report(rows: list[dict]) -> dict:
         "frames_observed": len(rows),
         "contiguous": contiguous,
         "players": players,
+        "registered_state_neighborhoods": (
+            registered_state_neighborhoods(rows, registry)
+            if registry is not None else []
+        ),
     }
 
 
@@ -118,9 +174,15 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("log", type=Path)
     ap.add_argument("--json-out", type=Path)
+    ap.add_argument(
+        "--registry",
+        type=Path,
+        default=Path(__file__).resolve().parents[1] / "analysis/data/racer-hd-replacement-prototype.json",
+    )
     args = ap.parse_args()
     rows = parse_trace(args.log.read_text(encoding="utf-8", errors="replace"))
-    report = build_report(rows)
+    registry = json.loads(args.registry.read_text(encoding="utf-8"))
+    report = build_report(rows, registry)
     if not report["contiguous"]:
         raise SystemExit("dense racer semantic trace is missing frames")
     payload = json.dumps(report, indent=2, sort_keys=True) + "\n"

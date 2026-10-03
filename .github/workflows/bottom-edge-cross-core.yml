@@ -18,7 +18,6 @@ on:
     paths:
       - "tools/summarize_presentation_geometry.py"
       - "tests/input/reach-first-race.script"
-      - ".github/workflows/bottom-edge-cross-core.yml"
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tools/toolchain-entries/beetle-bsnes-libretro.json"
       - "tools/toolchain-entries/_global.json"

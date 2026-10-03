@@ -37,19 +37,35 @@
 
 --- a/runner/src/common_rtl.c
 +++ b/runner/src/common_rtl.c
-@@ -1004 +1004 @@
+@@ -1002,5 +1002,5 @@
+ 
+ #define RTL_RB_RESIDUE_MAGIC 0x53524252u /* 'RBRS' */
 -#define RTL_RB_RESIDUE_VERSION 6u
 +#define RTL_RB_RESIDUE_VERSION 7u
-@@ -1015,3 +1015,4 @@
+ 
+ typedef struct RtlRollbackResidue {
+@@ -1012,7 +1012,8 @@
+   uint64_t apu_pace_cycles_estimate;
+   uint64_t apu_last_sync_cycles;
+   uint64_t apu_last_sync_master;
    uint64_t apu_frame_start_master;
 +  RtlApuFrameClock apu_frame_clock;
    uint64_t main_cpu_cycles_estimate;
    int      frame_counter;
-@@ -1161,2 +1162,3 @@
+   uint8    apu_frame_time_valid;
+@@ -1157,7 +1158,8 @@
+   rtl_apu_pace_resync_get(&r->apu_pace_cycles_estimate,
+                           &r->apu_last_sync_cycles, &r->apu_last_sync_master,
+                           &r->apu_frame_start_master,
+                           &r->main_cpu_cycles_estimate,
                            &r->apu_frame_time_valid);
 +  r->apu_frame_clock = g_apu_frame_clock;
    rtl_mmio_shadow_resync_get(&r->memsel, &r->last_hdmaen,
-@@ -1180,2 +1182,3 @@
+                              &r->interp_apu_driving);
+@@ -1178,5 +1180,6 @@
+   rtl_apu_pace_resync_set(r->apu_pace_cycles_estimate, r->apu_last_sync_cycles,
+                           r->apu_last_sync_master, r->apu_frame_start_master,
                            r->main_cpu_cycles_estimate, r->apu_frame_time_valid);
 +  g_apu_frame_clock = r->apu_frame_clock;
    rtl_mmio_shadow_resync_set(r->memsel, r->last_hdmaen,
+                              r->interp_apu_driving);

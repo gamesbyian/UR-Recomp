@@ -15,8 +15,32 @@ int main() {
     assert(registration->occupancy_tile_x == 1);
     assert(registration->occupancy_tile_y == 0);
     assert(registration->remastered_density_scale == 4);
-    assert(!registration->has_explicit_pivot);
-    assert(!registration->has_explicit_contact_anchor);
+    assert(registration->anchor_fixed_point_scale == 2);
+    assert(registration->has_explicit_pivot);
+    assert(registration->has_explicit_contact_anchor);
+    assert(registration->semantic_pivot.x2 == 63);
+    assert(registration->semantic_pivot.y2 == 63);
+    assert(registration->contact_anchor.x2 == 61);
+    assert(registration->contact_anchor.y2 == 76);
+
+    const auto h_contact = transform_racer_anchor(
+        registration->contact_anchor,
+        registration->logical_width,
+        registration->logical_height,
+        true,
+        false
+    );
+    assert(h_contact.x2 == 65);
+    assert(h_contact.y2 == 76);
+    const auto hv_contact = transform_racer_anchor(
+        registration->contact_anchor,
+        registration->logical_width,
+        registration->logical_height,
+        true,
+        true
+    );
+    assert(hv_contact.x2 == 65);
+    assert(hv_contact.y2 == 50);
 
     const RacerCompositionState exact = registration->composition;
 

@@ -1,0 +1,36 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -3982,8 +3982,15 @@
+         }
+         break;
+       case SDL_KEYDOWN:
+-        HandleInput(SNESRECOMP_SDL_EVENT_KEY(event),
+-                    SNESRECOMP_SDL_EVENT_MOD(event), true);
++        {
++          const int key = SNESRECOMP_SDL_EVENT_KEY(event);
++          const int mod = SNESRECOMP_SDL_EVENT_MOD(event);
++          const int repeat = SNESRECOMP_SDL_EVENT_REPEAT(event);
++          if (!game->system_key_down ||
++              !game->system_key_down(key, mod, repeat))
++            HandleInput(key, mod, true);
++        }
+         break;
+       case SDL_KEYUP:
+         HandleInput(SNESRECOMP_SDL_EVENT_KEY(event),
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -185,6 +185,16 @@
+    * exactly where they left off. Zero keeps today's behaviour exactly. */
+   int in_game_launcher;
++
++  /* Optional title-owned system-key seam. Called before the ordinary host
++   * keymap for SDL key-down events. Return nonzero to consume the press and
++   * keep it out of HandleInput; return zero to preserve the existing host
++   * mapping. `key` is the SDL keycode value, `mod` is the SDL modifier mask,
++   * and `repeat` is nonzero for an auto-repeat event. This is intended for
++   * narrow product commands such as a title-owned pause/retry overlay, not
++   * guest controller input. */
++  int (*system_key_down)(int key, int mod, int repeat);
+ } SnesDesktopHostGame;
+ 
+ /* The whole program. Returns the process exit code. */

@@ -16,7 +16,6 @@ on:
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tools/toolchain-entries/_global.json"
-      - ".github/workflows/course-runtime-payload.yml"
 
 concurrency:
   group: course-runtime-payload-${{ github.ref }}

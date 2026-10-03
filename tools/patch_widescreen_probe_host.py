@@ -3,8 +3,9 @@
 
 This patch is for CI/reconnaissance only. It changes presentation geometry, never
 Uniracers guest code or WRAM state. URRECOMP_WS_MARGIN remains the explicit
-diagnostic override, URRECOMP_WS_VIEW may select a named title policy, and the
-older SNESRECOMP_WS_EXTRA runner override remains available as a fallback.
+diagnostic override, URRECOMP_WS_VIEW may select a named title policy,
+URRECOMP_WS_SCENE may select the host-only composition class being exercised,
+and the older SNESRECOMP_WS_EXTRA runner override remains available as a fallback.
 """
 from __future__ import annotations
 
@@ -28,7 +29,23 @@ def patch_host(path: Path) -> None:
     if struct_anchor not in text:
         raise SystemExit(f"{path}: game-host anchor not found")
 
-    helper = """static int WidescreenProbeResolveExtra(void)
+    helper = """static int WidescreenProbeSceneAllowsExpansion(void)
+{
+    const char *scene = getenv("URRECOMP_WS_SCENE");
+    if (!scene || !scene[0])
+        return 1; /* compatibility: pre-scene-policy probes are race probes */
+
+    if (strcmp(scene, "representative-one-player-race") == 0 ||
+        strcmp(scene, "two-player-race") == 0)
+        return 1;
+
+    /* Fixed-center and unresolved scene classes fail closed to stock width.
+     * This keeps frontend/results/pre-race/VS framing conservative until each
+     * scene owns deterministic widening evidence. */
+    return 0;
+}
+
+static int WidescreenProbeResolveExtra(void)
 {
     const char *margin = getenv("URRECOMP_WS_MARGIN");
     if (margin && margin[0]) {
@@ -37,9 +54,12 @@ def patch_host(path: Path) -> None:
     }
 
     const char *view = getenv("URRECOMP_WS_VIEW");
-    if (view && view[0])
-        return (strcmp(view, "authentic-16x9") == 0 ||
-                strcmp(view, "authentic-16x9-candidate") == 0) ? 43 : 0;
+    if (view && view[0]) {
+        int authentic_16x9 =
+            strcmp(view, "authentic-16x9") == 0 ||
+            strcmp(view, "authentic-16x9-candidate") == 0;
+        return authentic_16x9 && WidescreenProbeSceneAllowsExpansion() ? 43 : 0;
+    }
 
     int extra = PpuWsExtraOverride();
     return extra > 0 ? extra : 0;

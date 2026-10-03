@@ -7,7 +7,6 @@ on:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "analysis/generated/rnc-stream-manifest.json"
       - "tools/find_course_stream_pointer_tables.py"
-      - ".github/workflows/course-stream-pointer-search.yml"
 
 permissions:
   contents: write

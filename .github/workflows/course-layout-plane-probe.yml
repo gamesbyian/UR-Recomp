@@ -7,7 +7,6 @@ on:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "tools/rnc_method1.py"
       - "tools/analyze_course_layout_planes.py"
-      - ".github/workflows/course-layout-plane-probe.yml"
 
 permissions:
   contents: write

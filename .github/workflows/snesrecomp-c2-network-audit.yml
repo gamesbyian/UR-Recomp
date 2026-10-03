@@ -17,7 +17,6 @@ on:
       - "third_party/cargo/snesrecomp-analyzer/**"
   pull_request:
     paths:
-      - ".github/workflows/snesrecomp-c2-network-audit.yml"
       - "tools/audit_network_trace.py"
       - "tests/unit/test_audit_network_trace.py"
       - "tools/bootstrap_toolchain.py"

@@ -6,7 +6,6 @@ on:
     branches:
       - chatgpt/medal-progression-acceptance-2026-10-02
     paths:
-      - ".github/workflows/medal-progression-search.yml"
       - "tests/input/medal-progression-search.script"
       - "tools/locate_first_medal_award.py"
 

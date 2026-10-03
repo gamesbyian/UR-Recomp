@@ -9,7 +9,6 @@ on:
       - "reference/roms/prototypes/Uniracers_Beta_legacy.sfc"
       - "reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc"
       - "tools/find_rnc_decoder_signature.py"
-      - ".github/workflows/rnc-writer-static-classification.yml"
 
 concurrency:
   group: rnc-static-integration-${{ github.ref }}

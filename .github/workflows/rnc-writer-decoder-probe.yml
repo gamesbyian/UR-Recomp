@@ -7,7 +7,6 @@ on:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "snesrecomp"
       - "tools/probe_rnc_writer_decode.py"
-      - ".github/workflows/rnc-writer-decoder-probe.yml"
 
 permissions:
   contents: write

@@ -9,7 +9,6 @@ on:
       - "snesrecomp"
       - "tests/input/reach-first-race.script"
       - "tools/trace_native_wram_writers.py"
-      - ".github/workflows/trace-course-buffer-writers.yml"
 
 concurrency:
   group: trace-course-buffer-writers-${{ github.ref }}

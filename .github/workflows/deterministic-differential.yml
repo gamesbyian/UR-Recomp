@@ -12,7 +12,6 @@ on:
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tools/toolchain-entries/_global.json"
-      - ".github/workflows/deterministic-differential.yml"
 
 concurrency:
   group: deterministic-differential-${{ github.ref }}

@@ -15,7 +15,6 @@ on:
       - "third_party/manifest.json"
       - "third_party/src/beetle-bsnes-libretro/**"
       - "tools/compare_wram_checkpoints.py"
-      - ".github/workflows/independent-reference-route.yml"
 
 concurrency:
   group: independent-reference-route-${{ github.ref }}

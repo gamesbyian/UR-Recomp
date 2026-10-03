@@ -18,7 +18,6 @@ on:
       - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
       - "third_party/cargo/snesrecomp-analyzer/**"
       - "third_party/manifest.json"
-      - ".github/workflows/historical-smv-first-race.yml"
 
 concurrency:
   group: historical-smv-first-race-${{ github.ref }}

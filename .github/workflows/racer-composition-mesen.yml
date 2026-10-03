@@ -6,7 +6,6 @@ on:
     branches:
       - chatgpt/racer-raster-composition-2026-10-02
     paths:
-      - ".github/workflows/racer-composition-mesen.yml"
       - "tools/capture_racer_composition_mesen.py"
       - "tools/extract_racer_presentation_family.py"
       - "tests/input/two-player-first-race.input"

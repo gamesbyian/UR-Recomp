@@ -9,7 +9,6 @@ on:
       - "tools/analyze_tcrf_boot_vram.py"
       - "tools/analyze_tcrf_unused_content.py"
       - "tests/input/ui-startup-timeline.script"
-      - ".github/workflows/tcrf-boot-vram.yml"
 
 concurrency:
   group: tcrf-boot-vram-${{ github.ref }}

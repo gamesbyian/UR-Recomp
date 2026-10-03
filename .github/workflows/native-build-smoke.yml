@@ -21,7 +21,6 @@ on:
       - "analysis/display-geometry-candidates.json"
       - "native/product/**"
       - "native/title/uniracers_restart_policy.*"
-      - ".github/workflows/native-build-smoke.yml"
       - "tests/input/reach-first-race.script"
       - "tests/input/modern-focus-pause.script"
 

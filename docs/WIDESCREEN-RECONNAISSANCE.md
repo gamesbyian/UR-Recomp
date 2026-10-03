@@ -483,6 +483,8 @@ Canonical validated provider capacity is therefore **+72 source pixels per side*
 
 The first viewport-policy binding is intentionally smaller than a renderer integration. `analysis/widescreen-policy.yml` now records the canonical 256×224 full-height 7:6 transform as the **preferred provisional** Authentic candidate. It maps the stock raster exactly to 4:3 without cropping authored rows, and its exact 16:9 extension is 128/3 logical source pixels per side, rounded to the provider's next complete strip at **+48**. That +48 view is provisionally bound to the accepted live-course-runtime provider. This is a data/policy contract only: it does not alter the stock 4:3 control, camera, simulation, activation, HUD, or final compositor. Retained/reference visual evidence still has authority to reject or tune the Authentic PAR/overscan constants before they become title-final.
 
+The next narrow runtime seam now exists as well: `URRECOMP_WS_VIEW=authentic-16x9-candidate` resolves that provisional policy to +48 inside the accepted provider, while an explicitly supplied `URRECOMP_WS_MARGIN` remains the low-level diagnostic override. Unset or unknown view selectors resolve to margin 0. The native Widescreen workflow exercises the named selector and requires live `provider=course-runtime margin=48` shadow output. This still does not widen the final host compositor or declare the 7:6/full-224 transform title-final; it establishes only the policy-to-provider handoff that later composition code can consume.
+
 
 Positive evidence:
 `analysis/generated/widescreen-plus16-materializer-acceptance-2026-10-03.{json,md}` and `analysis/generated/widescreen-plus16-materializer-liveness-2026-10-03.json`.

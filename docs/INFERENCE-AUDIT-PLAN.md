@@ -210,9 +210,9 @@ The second audit is retained in `analysis/generated/inference-audit-second-pass.
 
 ## Third pass closeout — 2026-10-02
 
-The third audit is retained in `analysis/generated/inference-audit-third-pass.{json,md}`. It separates racer semantic replacement identity from live OAM placement, confirms the first HD replacement seam can remain read-only over guest state, turns the recovered 1P/2P Widescreen policy into a viewport/domain ownership rule, preserves guest SRAM as the sole progression authority for future host autosave/profile work, records the APU-only forward-replay failure that currently blocks Restart Race, and identifies +8 as the natural one-spare-lane boundary of the accepted stock-helper Widescreen mechanism.
+The third audit is retained in `analysis/generated/inference-audit-third-pass.{json,md}`. It separates racer semantic replacement identity from live OAM placement, confirms the first HD replacement seam can remain read-only over guest state, turns the recovered 1P/2P Widescreen policy into a viewport/domain ownership rule, preserves guest SRAM as the sole progression authority for future host autosave/profile work, records the then-open APU-only forward-replay failure that subsequently led to the accepted Restart Race fix, and identifies +8 as the natural one-spare-lane boundary of the accepted stock-helper Widescreen mechanism.
 
-Open-PR runtime findings remain explicitly labeled as evidence, not merged implementation acceptance.
+The original runtime findings remain explicitly labeled as the evidence state at audit time; the 2026-10-03 resolution section and later retained acceptance evidence are authoritative for their current disposition.
 
 ## Post-third-pass resolution — 2026-10-03
 

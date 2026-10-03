@@ -1,0 +1,93 @@
+{
+ "schema_version": 1,
+ "question": "Which named opponent does each medal tier face?",
+ "harness": "snesref + pinned snes9x-libretro; synthetic SRAM medal cell set before boot only",
+ "fixture": "tests/input/tier-opponent-probe.script",
+ "observations": {
+  "0": {
+   "tier_label": "BRONZE",
+   "card_opponent_name": "BRONSEN",
+   "card_texts": [
+    "NOW PLAYING",
+    "MIKE",
+    "9",
+    "59",
+    "99",
+    "VS",
+    "BRONSEN",
+    "RACING ON DRAGSTER",
+    "RECORD",
+    "SOMEONE",
+    "R E",
+    "ACE",
+    "XIT"
+   ],
+   "p2_rider_index": 17,
+   "in_race": 1,
+   "p2_palette_matches_asset": true,
+   "p2_palette_asset": "0x17"
+  },
+  "1": {
+   "tier_label": "SILVER",
+   "card_opponent_name": "SILVIA",
+   "card_texts": [
+    "NOW PLAYING",
+    "MIKE",
+    "9",
+    "59",
+    "99",
+    "VS",
+    "SILVIA",
+    "RACING ON DRAGSTER",
+    "RECORD",
+    "SOMEONE",
+    "R E",
+    "ACE",
+    "XIT"
+   ],
+   "p2_rider_index": 18,
+   "in_race": 1,
+   "p2_palette_matches_asset": true,
+   "p2_palette_asset": "0x18"
+  },
+  "2": {
+   "tier_label": "GOLD",
+   "card_opponent_name": "GOLDWYN",
+   "card_texts": [
+    "NOW PLAYING",
+    "MIKE",
+    "9",
+    "59",
+    "99",
+    "VS",
+    "GOLDWYN",
+    "RACING ON DRAGSTER",
+    "RECORD",
+    "SOMEONE",
+    "R E",
+    "ACE",
+    "XIT"
+   ],
+   "p2_rider_index": 19,
+   "in_race": 1,
+   "p2_palette_matches_asset": true,
+   "p2_palette_asset": "0x19"
+  }
+ },
+ "rule": "opponent rider index = 17 + current medal value for the selected tour and rider (0 bronze-tier -> BRONSEN, 1 -> SILVIA, 2 -> GOLDWYN)",
+ "checks": {
+  "medal0_opponent_index_17": true,
+  "medal0_card_name_matches_table": true,
+  "medal0_p2_palette_matches_asset": true,
+  "medal0_tier_label": true,
+  "medal1_opponent_index_18": true,
+  "medal1_card_name_matches_table": true,
+  "medal1_p2_palette_matches_asset": true,
+  "medal1_tier_label": true,
+  "medal2_opponent_index_19": true,
+  "medal2_card_name_matches_table": true,
+  "medal2_p2_palette_matches_asset": true,
+  "medal2_tier_label": true
+ },
+ "all_checks_pass": true
+}

@@ -1281,7 +1281,7 @@
   },
   {
    "rider_index": 18,
-   "role": "Silver-tier opponent (inferred from table order and silver palette; not runtime-verified)",
+   "role": "Silver-tier opponent (runtime: medal 1 -> $017F=18, card VS SILVIA; analysis/generated/tier-opponent-probe.json)",
    "default_name": "SILVIA",
    "race_palette": {
     "asset_id_hex": "0x18",
@@ -1311,7 +1311,7 @@
   },
   {
    "rider_index": 19,
-   "role": "Gold-tier opponent (inferred from table order and gold palette; not runtime-verified)",
+   "role": "Gold-tier opponent (runtime: medal 2 -> $017F=19, card VS GOLDWYN; analysis/generated/tier-opponent-probe.json)",
    "default_name": "GOLDWYN",
    "race_palette": {
     "asset_id_hex": "0x19",

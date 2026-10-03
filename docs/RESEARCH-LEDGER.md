@@ -1948,7 +1948,7 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 ### R-2026-10-03-UI-06 — Tier opponents are rider indices 17–19; the silver opponent is Silvia
 
-**Status:** Bronsen reproduced at runtime; Silvia/Goldwyn roles inferred  
+**Status:** all three reproduced at runtime (Silvia/Goldwyn via the tier probe below)  
 **Date:** 2026-10-03  
 **Area:** racer identity | progression | frontend
 
@@ -1961,4 +1961,6 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 **Interpretation:** The planning docs' "Silverton" is not the shipped name; the ROM table and its SRAM copy say `silvia`. Preserving the legacy opponents means preserving indices 17–19, their names and palettes, and their use of the P2 racer slot.
 
-**Uncertainty:** Silvia/Goldwyn as Silver/Gold-tier opponents and Anti-Uni's role are inferred from table order and palettes, not observed in a Silver/Gold/Hunter race. The opponent-selection code was not traced.
+**Tier probe:** `tools/probe_tier_opponents.py` seeds only the Crawler/MIKE medal cell `77:069C` (0/1/2) plus the `73C` checksum before boot. TRACK_SELECT then shows BRONZE/SILVER/GOLD, the card shows `VS BRONSEN/SILVIA/GOLDWYN`, `$017F` is 17/18/19 and CGRAM `$C0` equals assets `0x17/0x18/0x19` (12 checks, `analysis/generated/tier-opponent-probe.json`). The opponent is therefore `17 + medal held for this tour and rider`.
+
+**Uncertainty:** Anti-Uni's role is not observed (Hunter tour not probed). The opponent-selection code was not traced; the rule is black-box over medal values 0–2 on one tour/rider.

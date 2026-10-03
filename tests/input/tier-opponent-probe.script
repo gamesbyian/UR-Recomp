@@ -1,0 +1,24 @@
+# Tier-opponent probe: 1P -> MIKE -> Crawler -> Dragster -> NOW PLAYING -> race.
+# Run with a pre-boot SRAM whose Crawler/MIKE medal cell selects the tier
+# (driven by tools/probe_tier_opponents.py). Documented input only.
+until 009F == D7 3600
+wait 60
+press a 2
+until 009F == 3C 1200
+wait 60
+press a 2
+until 009F == 6D 1200
+wait 60
+press a 2
+until 009F == F6 1200
+wait 60
+dump tier-track
+press a 2
+until 009F == 16 1200
+wait 60
+dump tier-card
+press a 2
+until 0313 == 01 1800
+wait 90
+dump tier-race
+quit

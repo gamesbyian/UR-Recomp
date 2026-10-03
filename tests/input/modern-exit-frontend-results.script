@@ -120,6 +120,7 @@ until 009F == 99 600
 dump race-results
 # The host-side results Retry probe restores the race-start anchor from this
 # frame boundary, then needs two deterministic 60-frame idle windows.
-# Keep the result surface alive for external native-product Exit-to-Frontend
+# Keep the result surface alive for external native-product Exit-to-Frontend.
+# Reverse tail-row navigation makes Restart arming timing irrelevant.
 # acceptance. The external harness owns the actual exit interaction.
 wait 3600

@@ -648,10 +648,11 @@ jobs:
             xdotool key Escape
             sleep 0.2
 
-            # Active-race and results surfaces both expose:
-            # Resume -> Restart -> Options -> Controls -> Run Data ->
-            # Exit Frontend -> Quit Desktop.
-            for _ in 1 2 3 4 5; do xdotool key Down; done
+            # Navigate from Resume backwards through the two stable tail rows:
+            # Resume <- Quit Desktop <- Exit Frontend. This is deliberately
+            # independent of whether Restart has armed on this exact frame.
+            xdotool key Up
+            xdotool key Up
             xdotool key Return
 
             for _ in $(seq 1 300); do

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply the accepted +8 Uniracers strip-preparation hook to generated AOT C.
+"""Apply the accepted +8 hook plus a host-owned +16 capacity prototype to generated AOT C.
 
 Generated code is ROM-derived and is intentionally not committed. This injector
 is the durable source: it fails closed unless the exact accepted preparation
@@ -7,9 +7,11 @@ and live preparation boundaries are present.
 
 Runtime contract:
   URRECOMP_WS_MARGIN unset/0 -> untouched stock behavior
-  URRECOMP_WS_MARGIN=8       -> one adjacent future horizontal strip
-  URRECOMP_WS_MARGIN=16/24   -> no mutation; emit a structural capacity limit
-                               when URRECOMP_WS_NATIVE_TRACE is enabled
+  URRECOMP_WS_MARGIN=8       -> accepted one-column guest staging path, unchanged
+  URRECOMP_WS_MARGIN=16      -> accepted first extra column plus a second adjacent
+                               stock-prepared column retained only in host shadow storage
+  URRECOMP_WS_MARGIN=24      -> no mutation beyond the bounded +16 prototype; emit
+                               the next explicit capacity limit when tracing
 """
 from __future__ import annotations
 
@@ -48,10 +50,16 @@ static int ur_ws_native_margin_cache = -32768;
 static int ur_ws_native_trace_cache = -1;
 static int ur_ws_native_second_pass = 0;
 static int ur_ws_native_payload_live = 0;
+static int ur_ws_native_shadow_live = 0;
 static int ur_ws_native_limit_reported = 0;
 static CpuState ur_ws_native_cpu_snapshot;
 static uint8 ur_ws_native_low_wram_snapshot[0x2000];
 static uint8 ur_ws_native_future_payload[32];
+static uint8 ur_ws_native_shadow_payload[32];
+static uint16 ur_ws_native_future_edge = 0xffff;
+static uint16 ur_ws_native_future_count = 0;
+static uint16 ur_ws_native_shadow_edge = 0xffff;
+static uint16 ur_ws_native_shadow_count = 0;
 
 static int ur_ws_native_margin(void) {
   if (ur_ws_native_margin_cache == -32768) {
@@ -94,17 +102,17 @@ static void ur_ws_native_trace_primary(CpuState *cpu) {
 
 static int ur_ws_native_should_prepare(CpuState *cpu) {
   const int margin = ur_ws_native_margin();
-  if (margin == 16 || margin == 24) {
+  if (margin == 24) {
     if (!ur_ws_native_limit_reported && ur_ws_native_trace()) {
       fprintf(stderr,
-              "URWS_LIMIT margin=%d required_extra_columns=%d "
-              "stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n",
-              margin, margin / 8);
+              "URWS_LIMIT margin=24 required_extra_columns=3 "
+              "guest_extra_horizontal_lanes=1 host_shadow_columns=1 "
+              "first_constraint=host-shadow-capacity\n");
       ur_ws_native_limit_reported = 1;
     }
     return 0;
   }
-  if (margin != 8 || ur_ws_native_payload_live)
+  if ((margin != 8 && margin != 16) || ur_ws_native_payload_live)
     return 0;
   return ur_ws_native_read16(cpu, 0x0505) != 0xffff &&
          ur_ws_native_read16(cpu, 0x052b) == 16;
@@ -117,34 +125,64 @@ static void ur_ws_native_begin_second_pass(CpuState *cpu) {
   ur_ws_native_second_pass = 1;
 }
 
-static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) {
-  const uint16 second_edge = ur_ws_native_read16(cpu, 0x0505);
-  const uint16 second_count = ur_ws_native_read16(cpu, 0x052b);
-  memcpy(ur_ws_native_future_payload, cpu->ram + 0x0453,
-         sizeof(ur_ws_native_future_payload));
+static int ur_ws_native_capture_pass(CpuState *cpu, RecompReturn result,
+                                     uint16 *edge, uint16 *count,
+                                     uint8 payload[32]) {
+  *edge = ur_ws_native_read16(cpu, 0x0505);
+  *count = ur_ws_native_read16(cpu, 0x052b);
+  memcpy(payload, cpu->ram + 0x0453, 32);
+  return result == RECOMP_RETURN_NORMAL && *edge != 0xffff && *count == 16;
+}
+
+static void ur_ws_native_finish_second_pass(CpuState *cpu,
+                                             int first_valid,
+                                             int shadow_valid) {
+  const int margin = ur_ws_native_margin();
 
   ur_ws_native_second_pass = 0;
   *cpu = ur_ws_native_cpu_snapshot;
   memcpy(cpu->ram, ur_ws_native_low_wram_snapshot,
          sizeof(ur_ws_native_low_wram_snapshot));
 
-  if (result != RECOMP_RETURN_NORMAL ||
-      second_edge == 0xffff || second_count != 16)
+  if (!first_valid)
     return;
 
-  ur_ws_native_write16(cpu, 0x0509, second_edge);
-  ur_ws_native_write16(cpu, 0x052f, second_count);
+  ur_ws_native_write16(cpu, 0x0509, ur_ws_native_future_edge);
+  ur_ws_native_write16(cpu, 0x052f, ur_ws_native_future_count);
   memcpy(cpu->ram + 0x0453, ur_ws_native_future_payload,
          sizeof(ur_ws_native_future_payload));
   ur_ws_native_payload_live = 1;
+  ur_ws_native_shadow_live = margin == 16 && shadow_valid;
 
   if (ur_ws_native_trace()) {
-    fprintf(stderr, "URWS_PREP margin=8 camx=%u edge=%04X count=%u payload=",
-            (unsigned)ur_ws_native_read16(cpu, 0x0419),
-            (unsigned)second_edge, (unsigned)second_count);
-    for (unsigned j = 0; j < 32; j++)
-      fprintf(stderr, "%02X", (unsigned)ur_ws_native_future_payload[j]);
-    fprintf(stderr, "\n");
+    if (margin == 8) {
+      fprintf(stderr, "URWS_PREP margin=8 camx=%u edge=%04X count=%u payload=",
+              (unsigned)ur_ws_native_read16(cpu, 0x0419),
+              (unsigned)ur_ws_native_future_edge,
+              (unsigned)ur_ws_native_future_count);
+      for (unsigned j = 0; j < 32; j++)
+        fprintf(stderr, "%02X", (unsigned)ur_ws_native_future_payload[j]);
+      fprintf(stderr, "\n");
+    } else if (margin == 16) {
+      fprintf(stderr, "URWS_PREP16 camx=%u edge=%04X count=%u payload=",
+              (unsigned)ur_ws_native_read16(cpu, 0x0419),
+              (unsigned)ur_ws_native_future_edge,
+              (unsigned)ur_ws_native_future_count);
+      for (unsigned j = 0; j < 32; j++)
+        fprintf(stderr, "%02X", (unsigned)ur_ws_native_future_payload[j]);
+      fprintf(stderr, "\n");
+      if (ur_ws_native_shadow_live) {
+        fprintf(stderr, "URWS_SHADOW16 camx=%u edge=%04X count=%u payload=",
+                (unsigned)ur_ws_native_read16(cpu, 0x0419),
+                (unsigned)ur_ws_native_shadow_edge,
+                (unsigned)ur_ws_native_shadow_count);
+        for (unsigned j = 0; j < 32; j++)
+          fprintf(stderr, "%02X", (unsigned)ur_ws_native_shadow_payload[j]);
+        fprintf(stderr, "\n");
+      } else {
+        fprintf(stderr, "URWS_STOP margin=16 reason=second-stock-pass-invalid\n");
+      }
+    }
   }
 }
 
@@ -167,8 +205,13 @@ static void ur_ws_native_cleanup_previous_payload(CpuState *cpu) {
   memcpy(cpu->ram + 0x0453,
          ur_ws_native_low_wram_snapshot + 0x0453, 32);
   ur_ws_native_payload_live = 0;
-  if (ur_ws_native_trace())
-    fprintf(stderr, "URWS_CLEANUP margin=8\n");
+  if (ur_ws_native_trace()) {
+    if (ur_ws_native_margin() == 8)
+      fprintf(stderr, "URWS_CLEANUP margin=8\n");
+    else if (ur_ws_native_margin() == 16)
+      fprintf(stderr, "URWS_CLEANUP16 shadow=%d\n", ur_ws_native_shadow_live);
+  }
+  ur_ws_native_shadow_live = 0;
 }
 '''.strip()
 
@@ -183,8 +226,27 @@ SECOND_PASS = r'''
       cpu_write8(cpu, 0x00, cpu->S, 0x99); cpu->S = (uint16)(cpu->S - 1);
       cpu->host_return_valid = 2;
       RecompReturn _ur_ws_result = __A59E_CALLEE__(cpu);
+      int _ur_ws_first_valid = ur_ws_native_capture_pass(
+          cpu, _ur_ws_result,
+          &ur_ws_native_future_edge, &ur_ws_native_future_count,
+          ur_ws_native_future_payload);
+      int _ur_ws_shadow_valid = 0;
 
-      ur_ws_native_finish_second_pass(cpu, _ur_ws_result);
+      if (_ur_ws_first_valid && ur_ws_native_margin() == 16) {
+        /* Continue only inside the snapshotted replay state. No second guest
+         * descriptor lane is created: the second result is host-owned evidence. */
+        cpu_write8(cpu, 0x00, cpu->S, 0xa5); cpu->S = (uint16)(cpu->S - 1);
+        cpu_write8(cpu, 0x00, cpu->S, 0x99); cpu->S = (uint16)(cpu->S - 1);
+        cpu->host_return_valid = 2;
+        RecompReturn _ur_ws_shadow_result = __A59E_CALLEE__(cpu);
+        _ur_ws_shadow_valid = ur_ws_native_capture_pass(
+            cpu, _ur_ws_shadow_result,
+            &ur_ws_native_shadow_edge, &ur_ws_native_shadow_count,
+            ur_ws_native_shadow_payload);
+      }
+
+      ur_ws_native_finish_second_pass(
+          cpu, _ur_ws_first_valid, _ur_ws_shadow_valid);
     }
 '''.strip("\n")
 
@@ -290,9 +352,9 @@ def apply(gen_dir: Path) -> dict:
             "wrapper_file": wrapper.name,
             "margin0_control": True,
             "margin8_hook": True,
-            "margin16_supported": False,
+            "margin16_supported": True,
             "margin24_supported": False,
-            "first_constraint": "secondary-lane-capacity",
+            "first_constraint": "host-shadow-capacity",
         }
 
     required = [
@@ -340,9 +402,9 @@ def apply(gen_dir: Path) -> dict:
         "wrapper_file": wrapper.name,
         "margin0_control": True,
         "margin8_hook": True,
-        "margin16_supported": False,
+        "margin16_supported": True,
         "margin24_supported": False,
-        "first_constraint": "secondary-lane-capacity",
+        "first_constraint": "host-shadow-capacity",
     }
 
 

@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
-  "question": "Does stock Uniracers lose unfinished tour progress across a power cycle?",
+  "question": "Do rider 0 lifetime PLAYED/WON stats (SRAM 0x0230/0x0232) persist and keep counting across a power cycle?",
+  "correction": "Originally framed as a tour-progress test; 0x0230 is the Player Scores PLAYED stat (R-2026-10-03-UI-19). Tour-progress persistence is unanswered.",
   "harness": "snesref + pinned snes9x-libretro, historical Dessyreqt 2014 movie input, anchored SRAM",
   "counter_offsets": [
     "0x0230",
@@ -138,10 +139,10 @@
     }
   },
   "checks": {
-    "baseline_counter_advances_by_one_per_win": true,
+    "baseline_counter_advances_by_one_per_race": true,
     "reload_boot_preserves_counter": true,
     "reload_counter_survives_frontend_and_race_entry": true,
-    "reload_next_win_increments_counter": true
+    "reload_next_race_increments_counter": true
   },
   "all_checks_pass": true,
   "limits": [

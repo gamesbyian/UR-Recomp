@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-"""Probe whether in-tour progress survives a power cycle in stock Uniracers.
+"""Regression: rider 0 lifetime PLAYED/WON stats persist across a power cycle.
 
-Decision served: analysis/frontend-modernization-policy.json feature
-``tour-progress-persistence`` (formerly the "unfinished-tour session loss"
-redesign candidate). The question is whether stock play actually loses
-unfinished tour progress when the console is switched off.
+CORRECTION (R-2026-10-03-UI-19): this probe was written to test whether unfinished
+tour progress survives power-off. The counter it follows (SRAM 0x0230) turned out to
+be the Player Scores PLAYED stat, so it does NOT answer the tour-progress question.
+
+It remains useful as a stat-persistence regression: the policy question it was
+built for (feature ``unfinished-tour-session-loss``) is still open.
 
 Method (reference harness only, no guest pokes):
 
 1. replay the historical 2014 Dessyreqt movie input from its anchored SRAM
    through the first in-session Crawler wins, dumping SRAM/WRAM every 250 frames;
 2. take the battery SRAM image at the first settled non-race frame after the
-   persistent tour-win counter reaches 2 and 3;
+   rider 0 PLAYED counter (0x0230) reaches 2 and 3;
 3. power each image on in a fresh process with the same movie input and record
    the counter across boot, frontend selection, race entry, and the next win.
 
@@ -34,8 +36,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Battery SRAM offsets (bank $70/$77 masked to 8 KiB) that advance once per
-# won tour race in the baseline replay. 0x0230 is treated as primary.
+# Battery SRAM offsets that advance once per race in the baseline replay:
+# 0x0230 rider-0 PLAYED, 0x0232 rider-0 WON (all movie races are wins), 0x10A9 unidentified.
 COUNTER_OFFSETS = (0x0230, 0x0232, 0x10A9)
 MEDAL_RANGE = (0x069C, 0x072C)
 WRAM_MENU = 0x009F
@@ -90,10 +92,10 @@ def summarize(baseline: dict[int, dict], reloads: dict[int, dict]) -> dict:
         "reloads": {},
     }
     checks = {
-        "baseline_counter_advances_by_one_per_win": primary == list(range(len(primary))) and len(primary) >= 3,
+        "baseline_counter_advances_by_one_per_race": primary == list(range(len(primary))) and len(primary) >= 3,
         "reload_boot_preserves_counter": True,
         "reload_counter_survives_frontend_and_race_entry": True,
-        "reload_next_win_increments_counter": True,
+        "reload_next_race_increments_counter": True,
     }
     for value, run in sorted(reloads.items()):
         samples = run["samples"]
@@ -116,7 +118,7 @@ def summarize(baseline: dict[int, dict], reloads: dict[int, dict]) -> dict:
         }
         checks["reload_boot_preserves_counter"] &= boot == run["input_counter"]
         checks["reload_counter_survives_frontend_and_race_entry"] &= entry == run["input_counter"]
-        checks["reload_next_win_increments_counter"] &= after == run["input_counter"] + 1
+        checks["reload_next_race_increments_counter"] &= after == run["input_counter"] + 1
     result["checks"] = checks
     result["all_checks_pass"] = all(checks.values()) and bool(reloads)
     return result
@@ -190,7 +192,7 @@ def main() -> int:
         for value in (2, 3):
             frame = snapshot_frame(baseline, value)
             if frame is None:
-                raise SystemExit(f"baseline never settled with tour-win counter {value}")
+                raise SystemExit(f"baseline never settled with PLAYED counter {value}")
             image = base_dir / f"base-{frame:05d}.sram.bin"
             run_dir = args.work / f"reload-{value}"
             run_snesref(args, image, args.work / "reload.script", run_dir)
@@ -208,7 +210,8 @@ def main() -> int:
         report["reloads"][str(value)]["snapshot_frame"] = run["snapshot_frame"]
     report = {
         "schema_version": 1,
-        "question": "Does stock Uniracers lose unfinished tour progress across a power cycle?",
+        "question": "Do rider 0 lifetime PLAYED/WON stats (SRAM 0x0230/0x0232) persist and keep counting across a power cycle?",
+        "correction": "Originally framed as a tour-progress test; 0x0230 is the Player Scores PLAYED stat (R-2026-10-03-UI-19). Tour-progress persistence is unanswered.",
         "harness": "snesref + pinned snes9x-libretro, historical Dessyreqt 2014 movie input, anchored SRAM",
         "counter_offsets": [f"0x{o:04x}" for o in COUNTER_OFFSETS],
         **report,

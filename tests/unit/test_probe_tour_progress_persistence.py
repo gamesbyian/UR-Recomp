@@ -35,7 +35,7 @@ class TourProgressPersistenceTests(unittest.TestCase):
 
     def test_win_without_increment_fails(self) -> None:
         report = probe.summarize(BASELINE, {2: reload_run(2, 2)})
-        self.assertFalse(report["checks"]["reload_next_win_increments_counter"])
+        self.assertFalse(report["checks"]["reload_next_race_increments_counter"])
 
     def test_snapshot_frame_requires_settled_agreeing_counters(self) -> None:
         samples = {100: s(2, 1), 200: {**s(2), "counters": [2, 2, 1]}, 300: s(2)}

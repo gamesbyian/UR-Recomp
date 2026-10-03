@@ -204,17 +204,16 @@
       "decision_gate": "Decide final modern medal/progression policy after original thresholds/state are mapped (WORK-QUEUE Phase 9)."
     },
     {
-      "id": "tour-progress-persistence",
+      "id": "unfinished-tour-session-loss",
       "states": [
         "TOUR_SELECT",
         "TRACK_SELECT",
         "POST_RESULT_DECISION"
       ],
       "class": "administrative",
-      "modern": "preserve_and_augment",
-      "rationale": "The assumed session loss is not stock behavior: the battery-SRAM tour-win counter survives power-off and the next win continues it (R-2026-10-03-UI-01). Modern mode keeps that persistence and may surface in-tour progress, which the stock TRACK_SELECT never displays.",
-      "policy_source": "docs/RESEARCH-LEDGER.md#r-2026-10-03-ui-01--in-tour-win-progress-persists-across-a-power-cycle",
-      "open_question": "Whether completing a tour resumed across a power cycle awards the medal is unobserved."
+      "modern": "redesign_candidate",
+      "rationale": "Losing unfinished tour progress at power-off may be a storage-era constraint. The earlier counter-persistence result was a lifetime Player Scores stat, not tour progress (R-2026-10-03-UI-19), so stock behavior is unknown. Modern per-event/tour persistence is planned unless testing shows the constraint is mechanically meaningful.",
+      "decision_gate": "Locate the in-session tour state and test whether a tour completed across a power cycle still awards its medal."
     },
     {
       "id": "pre-race-now-playing-card",

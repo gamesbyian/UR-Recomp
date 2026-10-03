@@ -1866,7 +1866,7 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 ### R-2026-10-03-UI-01 — In-tour win progress persists across a power cycle
 
-**Status:** reproduced locally (reference harness); medal award after a resumed tour still open  
+**Status:** SUPERSEDED by R-2026-10-03-UI-19. The persisted counter is the rider's lifetime Player Scores PLAYED stat, not tour progress. The observations below stand; the interpretation does not.  
 **Date:** 2026-10-03  
 **Area:** progression | SRAM | frontend product policy
 
@@ -2154,3 +2154,17 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 **Evidence:** `tools/probe_track_records_sram.py` → `analysis/generated/track-records-sram.json` (8 checks, ~40 s). SYMBOLS rows were added for the name table, tour-win counter, track records, checksum, holders and last-race slots.
 
 **Uncertainty:** group 9 of the ten five-track groups is unidentified (Hunter is group 8). Insertion and tie rules beyond equal times landing in the next rank are untested. The High Scores and Player Scores storage is not mapped.
+
+### R-2026-10-03-UI-19 — Correction: the "tour-win counter" is the Player Scores PLAYED stat
+
+**Status:** reproduced locally (reference harness); corrects R-2026-10-03-UI-01  
+**Date:** 2026-10-03  
+**Area:** SRAM | progression | product policy
+
+**Observation:** Two clean-save Dragster runs that MIKE *lost* to Bronsen (0:28.56 vs 0:27.98) leave SRAM `0x0230` = 2, `0x0232` = 0 and `0x0236` = 0, and Player Scores shows PLAYED 2, WON 0%, LOST 100%. The movie save after three won races and the Bowl stunt has `0x0230` = 3, `0x0232` = 3 and `0x0236` = 764, and Player Scores shows PLAYED 3, WON 100%, SCORE 764. So for rider 0, `0x0230` is PLAYED, `0x0232` WON and `0x0236` SCORE: lifetime per-rider stats, which naturally persist. `0x10A9` tracked the same count in the movie run but is not yet identified.
+
+**Interpretation:** R-2026-10-03-UI-01 showed only that a lifetime stat survives power-off and keeps counting. That says nothing about unfinished tour progress. Whether stock loses an unfinished tour on power-off is **unknown** again, and the planning premise ("loss of unfinished tour/session progress") is neither confirmed nor refuted. Weak hint: after a reload the movie's post-race route returned to TRACK_SELECT rather than advancing to the next track, but the movie was out of sync by then.
+
+**Consequences:** the policy feature reverts to the `unfinished-tour-session-loss` redesign candidate. PROJECT-PLAN, UI-STATE-MAP, WORK-QUEUE, the knowledge page and SYMBOLS are corrected. `tools/probe_tour_progress_persistence.py` remains a valid regression for stat persistence only.
+
+**Next discriminator:** find the in-session tour state (which tracks are complete) in WRAM. Win one Crawler track, reload, win a second, and check whether the tour medal is awarded after five wins spanning a power cycle.

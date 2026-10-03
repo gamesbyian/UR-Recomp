@@ -57,9 +57,11 @@ record the exact mapping rather than assuming they all share one enumeration.
 
 **Confirmed.** Battery SRAM holds 150 record words at `0x0422 + 2*(50*rank + 5*tour_row + track)`, with a 16-bit sum checksum at `0x054E` and one holder rider-index byte per record at `0x0550 + index`. The three ranks are the GOLD/SILVER/BRONZE rows of the Track Records screen, meaning 1st/2nd/3rd best, not medal tiers. Each value is the race finish time or circuit best lap in 1/100 s (60000 = NO TIME) or the stunt score. Ten five-track groups follow the medal-matrix tour order; the tenth is unidentified. (`analysis/generated/track-records-sram.json`.)
 
-## In-tour progress
+## Player stats and in-tour progress
 
-**Confirmed.** Battery SRAM `0x0230`, `0x0232` and `0x10A9` count won races in the current tour. They survive a power cycle, and the next win continues the count, so unfinished tour progress is not lost on power-off. The counter counts wins, not distinct tracks: re-winning an already-won track still advances it. **Unknown:** whether a resumed tour awards its medal, and whether a lost race changes the counter. (`analysis/generated/tour-progress-persistence.json`.)
+**Confirmed.** Per-rider lifetime stats start at SRAM `0x0230` for rider 0: PLAYED `0x0230`, WON `0x0232`, SCORE `0x0236`. They match the Player Scores screen and persist like any battery data. Field strides for other riders and the LOST/FAILED storage are not mapped.
+
+**Unknown.** Whether unfinished tour progress survives power-off. The earlier "tour-win counter" reading was this PLAYED stat (R-2026-10-03-UI-19).
 
 ## Result flow
 

@@ -87,7 +87,7 @@ The modern product layer should evaluate, rather than automatically inherit:
 - unicycles as save/profile slots;
 - persistent multi-league/player-management bureaucracy;
 - mandatory repeat clears of the same tour for Bronze, Silver and Gold tiers;
-- surfacing unfinished tour progress (stock already persists the in-tour win counter across power-off; see R-2026-10-03-UI-01);
+- loss of unfinished tour/session progress where no gameplay purpose depends on it (stock behavior still unknown; see R-2026-10-03-UI-19);
 - destructive/administrative controller chords;
 - the original forbidden-name rejection behavior, while preserving its detection list as an Easter-egg trigger for the modern **"COOL NAME!"** acknowledgement;
 - redundant score/record menu silos;

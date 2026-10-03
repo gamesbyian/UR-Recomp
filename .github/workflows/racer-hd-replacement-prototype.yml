@@ -52,6 +52,7 @@ jobs:
           assert (root / m["original"]["comparison_png"]).is_file()
           assert (root / m["remastered_candidate"]["png"]).is_file()
           print(json.dumps(m["validation"], indent=2, sort_keys=True))
+          print("UR_RACER_ANCHOR_PROBE " + json.dumps(m["derived_anchor_probe"], sort_keys=True))
           PY
       - name: Upload compact visual proof
         uses: actions/upload-artifact@v4

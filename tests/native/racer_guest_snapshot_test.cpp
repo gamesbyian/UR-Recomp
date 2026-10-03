@@ -46,9 +46,12 @@ int main() {
     const auto p2 = select_racer_presentation_from_wram(
         GraphicsPack::Remastered, wram.data(), wram.size(), 2
     );
-    assert(!p2.uses_replacement());
-    assert(p2.selected_pack == GraphicsPack::Original);
-    assert(p2.fallback_reason == FallbackReason::UnregisteredSemanticFrame);
+    assert(p2.uses_replacement());
+    assert(p2.selected_pack == GraphicsPack::Remastered);
+    assert(p2.fallback_reason == FallbackReason::None);
+    assert(p2.registration != nullptr);
+    assert(p2.registration->semantic_frame_id == 0x0540);
+    assert(p2.registration->player == 2);
 
     auto mismatch = wram;
     write_le16(mismatch, 0x0D1B, 0x0000);

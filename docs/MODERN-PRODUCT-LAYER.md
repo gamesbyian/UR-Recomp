@@ -54,7 +54,7 @@ The contract accepts four modern administrative commands:
 - restart race;
 - exit to frontend.
 
-A successful command emits exactly one typed `RuntimeAction` for a future runtime adapter to consume. The contract itself never writes guest memory, SRAM, timers, physics, menu state or progression. Pause/resume maintain only a host-owned running/paused phase. Restart and exit are requests, not implementations.
+A successful command emits exactly one typed `RuntimeAction` for a future runtime adapter to consume. The contract itself never writes guest memory, SRAM, timers, physics, menu state or progression. Pause/resume maintain only a host-owned running/paused phase. The contract itself remains request-only. Restart Race now has an accepted runtime implementation seam behind the optional `restart_race` hook; Exit to Frontend remains request-only/unsupported at the current runtime adapter.
 
 The queue is deliberately single-action and fail-closed: while one action is awaiting consumption, later requests return `Busy` rather than being reordered or coalesced implicitly. Redundant pause/resume requests return `NoOp`. Authentic mode rejects every session command by policy and never changes host session phase.
 
@@ -64,9 +64,9 @@ This gives the eventual native host a narrow integration point:
 2. `SessionControl` validates modern policy and transition ordering;
 3. the runtime adapter consumes the emitted action;
 4. the adapter performs the platform/runtime operation;
-5. runtime-specific restart semantics receive their own deterministic acceptance before shipping.
+5. runtime-specific actions must have deterministic acceptance before shipping; Restart Race now satisfies that requirement through PR #235, while Exit to Frontend does not yet have an implementation.
 
-In particular, `RuntimeAction::RestartRace` does **not** mean "write known starting values into WRAM." The future implementation must re-establish a valid race start through an owned runtime lifecycle boundary, with authoritative simulation initialized by the guest/runtime path.
+In particular, `RuntimeAction::RestartRace` does **not** mean "write known starting values into WRAM." The accepted implementation restores the exact rollback snapshot captured at the owned active-race lifecycle boundary, preserving authoritative guest/runtime initialization.
 
 ### Pinned SNESRecomp pause adapter
 
@@ -79,7 +79,7 @@ The pinned SNESRecomp desktop host already owns a suitable pause mechanism. Its 
 
 `tools/patches/snesrecomp-session-pause.patch` exposes only that existing host state through `snesrecomp_desktop_set_paused()` and `snesrecomp_desktop_is_paused()`. It does not introduce a new emulation mechanism.
 
-`native/product/session_runtime_adapter.{hpp,cpp}` maps `SuspendGuest` and `ResumeGuest` onto this narrow host hook. The same adapter explicitly refuses `RestartRace` and `ExitToFrontend` until those operations have owned runtime semantics. This is intentional: the framework's machine reset/save-state facilities are not evidence that a product-level "restart this race" command is correct.
+`native/product/session_runtime_adapter.{hpp,cpp}` maps `SuspendGuest` and `ResumeGuest` onto this narrow host hook and dispatches `RestartRace` only when a proven `restart_race` hook is attached. `ExitToFrontend` remains unsupported. This is intentional: generic machine reset/save-state facilities are not evidence that a product-level action is correct.
 
 The pause integration therefore has a clean ownership chain:
 
@@ -115,11 +115,17 @@ The lifecycle receives only an `active` boolean; it does not know the Uniracers 
 
 `SessionRuntimeHooks::restart_race` is now optional. If no proven restart implementation is attached, the dispatcher returns `MissingHook`; if the runtime refuses a restore, it returns `RejectedByRuntime`. This keeps a UI button from becoming evidence that restart semantics are actually available.
 
+### Native Restart Race acceptance
+
+PR #235 closes the title-specific restart-state question. Workflow run `37080761750` captures the active-race rollback snapshot, restores it exactly, and reproduces the same state after a 60-frame forward replay. The earlier APU-only replay failure was diagnostic: immediate snapshot equality had hidden one host-owned timing carrier. The desktop host enables extended APU frame timing, but rollback residue v6 did not preserve the corresponding `RtlApuFrameClock` (`start_master`, `start_guest`, `next_guest`, `last_duration`). Rollback residue v7 now saves/restores that clock along with the existing pacing state, and the unchanged replay acceptance passes.
+
+This strengthens the validation rule for future rewindable host features: exact load equality is necessary but insufficient. Any operation that restores authoritative machine state must also prove bounded forward replay across CPU/WRAM/APU/PPU/DMA/cart partitions before it is treated as deterministic.
+
 ## Extension points
 
 Do not add these systems to `HostProductState` merely because they are planned. Add narrow interfaces when there is a concrete runtime consumer:
 
-- **pause/restart:** pause is connected to the owned host frame gate; wire the restart anchor into the generated Uniracers title hook and prove deterministic race re-entry before treating restart as complete;
+- **pause/restart:** pause is connected to the owned host frame gate and the Uniracers restart anchor/replay semantics are accepted. Remaining work is to expose the proven restart action through the modern pause/race/results UI and define user-facing attempt policy without weakening the accepted lifecycle boundary;
 - **autosave/resume:** a coordinator that owns host save metadata while preserving guest SRAM as guest data;
 - **records/ghosts:** append-only run artifacts keyed by profile and course identity, sourced from observed authoritative race state;
 - **racer identity:** product data associated with a profile, explicitly separate from the original save-slot/unicycle coupling;

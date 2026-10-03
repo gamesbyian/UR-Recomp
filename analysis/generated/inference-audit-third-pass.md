@@ -74,3 +74,12 @@ The next useful work is narrower than before this audit:
 4. Autosave/profile work should preserve guest SRAM as the progression source of truth.
 
 The Restart and native-hook findings above are retained evidence from still-open PRs. They are audit inputs, not merged implementation acceptance.
+
+## Post-audit resolutions — 2026-10-03
+
+The two open runtime findings were subsequently resolved without weakening their original falsifiers.
+
+- **IA3-R01 / Restart Race:** PR #235 merged after workflow run `37080761750` passed the same capture → 60-frame advance → exact restore → 60-frame replay contract. Root cause of the earlier APU divergence was missing rollback ownership of the desktop host's extended `RtlApuFrameClock`; rollback residue v7 now preserves that clock. The historical negative remains useful because it established that immediate restore equality alone is insufficient.
+- **IA3-W02 / native +8 Widescreen hook:** PR #228 merged after final run `37081391730` accepted all 617 same-camera preparation steps. The earlier 606/617 result came from an incorrect analyzer model that treated the full edge word as a plain 5-bit ring counter. Raw traces show the +8 step shapes are 589× `+1`, 17× `-31`, and 11× `+33`; each shape is observed in stock control transitions. The independent 317 exact future-stock payload matches, 25-column consecutive run, protected-state equality, and +16/+24 capacity stop remain intact.
+
+Current consequence: neither finding is an open research blocker. Restart proceeds to product/UI integration; Widescreen beyond +8 proceeds as an explicit presentation-capacity design problem.

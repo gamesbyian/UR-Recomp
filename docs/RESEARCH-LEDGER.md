@@ -1969,3 +1969,19 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 - **Probe size:** 20 checks in total.
 
 **Uncertainty:** the opponent-selection code was not traced. The main-tour rule is black-box over medals 0–2 on two rider/tour pairs, and the Hunter tier label's source is unexplained.
+
+### R-2026-10-03-UI-07 — Records/results screens reuse the menu grammar; small-font punctuation decoded
+
+**Status:** reproduced locally (reference harness)  
+**Date:** 2026-10-03  
+**Area:** frontend presentation
+
+**Observation:** RESULT_RACE (`0x99`, DRAGSTER COMPLETE) and the four Records screens decode with the same two fonts, yellow titles over grey headings and data:
+- Track Records `0xCC` scrolls BG2 vertically (vofs 261).
+- High Scores `0xBF`, Player Scores `0xD0` and Group Scores `0xF3` complete the set; the GROUP TABLES menu item opens GROUP SCORES.
+- Small-font punctuation tiles are `0xA2 %`, `0xA4 (`, `0xA7 -`, `0xA8 .` and `0xCC :`. `)` is `0xA4` with the tilemap H-flip bit.
+- A clean save shows `NO TIME` / `SOMEONE` placeholders and zero stats.
+
+**Evidence:** `tools/extract_menu_visual_language.py --catalog` over the `ui-race-result-route` and `ui-records-submenus` captures → `screen_catalog` in `analysis/generated/menu-visual-language.json` (label checks per screen).
+
+**Interpretation:** A modern records/statistics surface can embed these as faithful views, since their composition is a small, regular extension of the menu contract.

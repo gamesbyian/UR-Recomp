@@ -170,6 +170,14 @@
    16
   ],
   "glyph_tiles_rule": "character tile t on top, t+0x3C below; '0'..'9' are 0xA9..0xB2, A-Z (no O) from 0xB3, space 0xCE",
+  "punctuation_tiles": {
+   "0xA2": "%",
+   "0xA4": "(",
+   "0xA7": "-",
+   "0xA8": ".",
+   "0xCC": ":"
+  },
+  "punctuation_note": "')' reuses the '(' tile with the tilemap H-flip bit; 0xA3/0xA5/0xA6 are unidentified",
   "bg_palette_index": 7,
   "pixel_value_usage": {
    "8": 700,
@@ -793,7 +801,6 @@
  },
  "background": "BG1 8bpp: UNIRACERS logo over a grey checkerboard with leaf motif; static across the menu slide",
  "not_covered": [
-  "results and records table compositions",
   "attract/fade transitions",
   "tour/rider BG art and animal icon animation",
   "menu SFX identity (timing only)"
@@ -811,9 +818,389 @@
   "tour_title_decodes": true,
   "tour_small_labels_decode": true,
   "track_title_decodes": true,
-  "track_small_labels_decode": true
+  "track_small_labels_decode": true,
+  "catalog_race-results_labels": true,
+  "catalog_ui-record-track-entry_labels": true,
+  "catalog_ui-record-high-entry_labels": true,
+  "catalog_ui-record-player-entry_labels": true,
+  "catalog_ui-record-group-entry_labels": true
  },
  "all_checks_pass": true,
+ "screen_catalog": {
+  "sources": [
+   "tests/input/ui-race-result-route.script",
+   "tests/input/ui-records-submenus.script"
+  ],
+  "screens": {
+   "race-results": {
+    "current_menu": "0x99",
+    "bg2_strip_offset_px": 0,
+    "bg2_vertical_offset_px": 0,
+    "big_font_rows": [
+     {
+      "text": "DRAGSTER",
+      "y": 16,
+      "center_x": 128
+     },
+     {
+      "text": "COMPLETE",
+      "y": 40,
+      "center_x": 128
+     }
+    ],
+    "small_font_runs": [
+     {
+      "text": "PLAYER     TIME",
+      "y": 64,
+      "x_left": 56
+     },
+     {
+      "text": "MIKE",
+      "y": 88,
+      "x_left": 56
+     },
+     {
+      "text": "0:28.56",
+      "y": 88,
+      "x_left": 144
+     },
+     {
+      "text": "SOMEONE",
+      "y": 112,
+      "x_left": 56
+     },
+     {
+      "text": "NO TIME",
+      "y": 112,
+      "x_left": 144
+     },
+     {
+      "text": "SOMEONE",
+      "y": 136,
+      "x_left": 56
+     },
+     {
+      "text": "NO TIME",
+      "y": 136,
+      "x_left": 144
+     },
+     {
+      "text": "SOMEONE",
+      "y": 160,
+      "x_left": 56
+     },
+     {
+      "text": "NO TIME",
+      "y": 160,
+      "x_left": 144
+     }
+    ],
+    "small_font_row_pitch_px": [
+     24
+    ],
+    "obj_count": 15
+   },
+   "ui-record-track-entry": {
+    "current_menu": "0xCC",
+    "bg2_strip_offset_px": 0,
+    "bg2_vertical_offset_px": 261,
+    "big_font_rows": [
+     {
+      "text": "TRACK RECORDS",
+      "y": 8,
+      "center_x": 128
+     },
+     {
+      "text": "ARROW_RIGHT ICON_CIRCUIT_LOOP ICON_STUNT_HOOK ARROW_RIGHT ICON_CIRCUIT_LOOP",
+      "y": 24,
+      "center_x": 184
+     }
+    ],
+    "small_font_runs": [
+     {
+      "text": "TOUR   MEDAL",
+      "y": 24,
+      "x_left": 16
+     },
+     {
+      "text": "0:00.00 BY",
+      "y": 176,
+      "x_left": 56
+     },
+     {
+      "text": "0:00.00 BY",
+      "y": 192,
+      "x_left": 56
+     },
+     {
+      "text": "0:00.00 BY",
+      "y": 208,
+      "x_left": 56
+     }
+    ],
+    "small_font_row_pitch_px": [
+     16,
+     152
+    ],
+    "obj_count": 2
+   },
+   "ui-record-high-entry": {
+    "current_menu": "0xBF",
+    "bg2_strip_offset_px": 768,
+    "bg2_vertical_offset_px": 0,
+    "big_font_rows": [
+     {
+      "text": "HIGH SCORES",
+      "y": 8,
+      "center_x": 128
+     }
+    ],
+    "small_font_runs": [
+     {
+      "text": "CATEGORY:  NUM   BY",
+      "y": 32,
+      "x_left": 48
+     },
+     {
+      "text": "MOST WINS:    0   SOMEONE",
+      "y": 56,
+      "x_left": 40
+     },
+     {
+      "text": "MOST LOSSES:    0   SOMEONE",
+      "y": 72,
+      "x_left": 24
+     },
+     {
+      "text": "MOST RACES:    0   SOMEONE",
+      "y": 88,
+      "x_left": 32
+     },
+     {
+      "text": "BEST WIN AVG:    0%  SOMEONE",
+      "y": 104,
+      "x_left": 16
+     },
+     {
+      "text": "WORST WIN AVG:    0%  SOMEONE",
+      "y": 120,
+      "x_left": 8
+     },
+     {
+      "text": "TOTAL SCORE:    0   SOMEONE",
+      "y": 136,
+      "x_left": 24
+     },
+     {
+      "text": "BEST AVG SC:    0   SOMEONE",
+      "y": 152,
+      "x_left": 24
+     },
+     {
+      "text": "WORST AVG SC:    0   SOMEONE",
+      "y": 168,
+      "x_left": 16
+     }
+    ],
+    "small_font_row_pitch_px": [
+     16,
+     24
+    ],
+    "obj_count": 10
+   },
+   "ui-record-player-entry": {
+    "current_menu": "0xD0",
+    "bg2_strip_offset_px": 768,
+    "bg2_vertical_offset_px": 0,
+    "big_font_rows": [
+     {
+      "text": "PLAYER SCORES",
+      "y": 8,
+      "center_x": 128
+     }
+    ],
+    "small_font_runs": [
+     {
+      "text": "PLAYER:  MIKE",
+      "y": 32,
+      "x_left": 8
+     },
+     {
+      "text": "PLAYED:",
+      "y": 48,
+      "x_left": 8
+     },
+     {
+      "text": ":    0",
+      "y": 48,
+      "x_left": 192
+     },
+     {
+      "text": "WON:",
+      "y": 64,
+      "x_left": 32
+     },
+     {
+      "text": ":    0%",
+      "y": 64,
+      "x_left": 192
+     },
+     {
+      "text": "LOST:",
+      "y": 80,
+      "x_left": 24
+     },
+     {
+      "text": ":    0%",
+      "y": 80,
+      "x_left": 192
+     },
+     {
+      "text": "FAILED:",
+      "y": 96,
+      "x_left": 8
+     },
+     {
+      "text": ":    0%",
+      "y": 96,
+      "x_left": 192
+     },
+     {
+      "text": "SCORE:",
+      "y": 112,
+      "x_left": 16
+     },
+     {
+      "text": ":    0",
+      "y": 112,
+      "x_left": 192
+     }
+    ],
+    "small_font_row_pitch_px": [
+     16
+    ],
+    "obj_count": 8
+   },
+   "ui-record-group-entry": {
+    "current_menu": "0xF3",
+    "bg2_strip_offset_px": 768,
+    "bg2_vertical_offset_px": 0,
+    "big_font_rows": [
+     {
+      "text": "GROUP SCORES",
+      "y": 8,
+      "center_x": 128
+     }
+    ],
+    "small_font_runs": [
+     {
+      "text": "DEFINE ME",
+      "y": 32,
+      "x_left": 96
+     },
+     {
+      "text": "PLAYER     0",
+      "y": 56,
+      "x_left": 16
+     },
+     {
+      "text": "0",
+      "y": 56,
+      "x_left": 224
+     },
+     {
+      "text": "-",
+      "y": 72,
+      "x_left": 16
+     },
+     {
+      "text": ":",
+      "y": 72,
+      "x_left": 96
+     },
+     {
+      "text": "-",
+      "y": 88,
+      "x_left": 16
+     },
+     {
+      "text": ":",
+      "y": 88,
+      "x_left": 96
+     },
+     {
+      "text": "-",
+      "y": 104,
+      "x_left": 16
+     },
+     {
+      "text": ":",
+      "y": 104,
+      "x_left": 96
+     },
+     {
+      "text": "-",
+      "y": 120,
+      "x_left": 16
+     },
+     {
+      "text": ":",
+      "y": 120,
+      "x_left": 96
+     },
+     {
+      "text": "-",
+      "y": 136,
+      "x_left": 16
+     },
+     {
+      "text": ":",
+      "y": 136,
+      "x_left": 96
+     },
+     {
+      "text": "-",
+      "y": 152,
+      "x_left": 16
+     },
+     {
+      "text": ":",
+      "y": 152,
+      "x_left": 96
+     },
+     {
+      "text": "-",
+      "y": 168,
+      "x_left": 16
+     },
+     {
+      "text": ":",
+      "y": 168,
+      "x_left": 96
+     },
+     {
+      "text": "-",
+      "y": 184,
+      "x_left": 16
+     },
+     {
+      "text": ":",
+      "y": 184,
+      "x_left": 96
+     }
+    ],
+    "small_font_row_pitch_px": [
+     16,
+     24
+    ],
+    "obj_count": 10
+   }
+  },
+  "observations": [
+   "results and records reuse the same grammar: yellow 16x16 titles, grey 8x16 headings and data, rider-coloured mini unicycle and medal OBJ icons",
+   "PLAYER SCORES and GROUP SCORES draw green/red ratio bars; the Records menu item GROUP TABLES opens a screen titled GROUP SCORES"
+  ]
+ },
  "sound_timing": {
   "method": "per-frame RMS of (menu run WAV - no-input control WAV); threshold 200",
   "inputs": [

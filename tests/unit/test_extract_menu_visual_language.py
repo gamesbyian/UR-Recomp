@@ -77,6 +77,18 @@ class MenuVisualLanguageTests(unittest.TestCase):
         self.assertEqual(bursts[1]["onset_offset_frames"], 3)
         self.assertFalse(bursts[2]["baseline_quiet"])
 
+    def test_letter_o_is_word_local(self) -> None:
+        self.assertEqual(mvl.letter_o("Z00M Z00"), "ZOOM ZOO")
+        self.assertEqual(mvl.letter_o("MOST WINS:    0"), "MOST WINS:    0")
+        self.assertEqual(mvl.letter_o("0:28.56 0%"), "0:28.56 0%")
+
+    def test_small_font_punctuation_and_flipped_paren(self) -> None:
+        self.assertEqual(mvl.small_char_for_tile(0xCC), ":")
+        self.assertEqual(mvl.small_char_for_tile(0xA4), "(")
+        self.assertEqual(mvl.small_char_for_tile(0xA4, hflip=True), ")")
+        self.assertEqual(mvl.small_char_for_tile(0xA7), "-")
+        self.assertIsNone(mvl.small_char_for_tile(0xA3))
+
     def test_run_lengths_and_deltas(self) -> None:
         self.assertEqual(mvl.run_lengths([8, 8, 4, 4, 0]), [[8, 2], [4, 2], [0, 1]])
         self.assertEqual(mvl.deltas([0, 1, 3, 6]), [1, 2, 3])

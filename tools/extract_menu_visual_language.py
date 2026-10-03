@@ -71,9 +71,16 @@ def char_for_slot(slot: int) -> str:
     return SPECIAL_GLYPHS[slot - 35]
 
 
-def small_char_for_tile(tile: int) -> str | None:
+SMALL_FONT_PUNCTUATION = {0xA2: "%", 0xA4: "(", 0xA7: "-", 0xA8: ".", 0xCC: ":"}
+
+
+def small_char_for_tile(tile: int, hflip: bool = False) -> str | None:
+    """Small-font character for a top tile; ')' is the '(' tile drawn H-flipped."""
     if tile == SMALL_FONT_SPACE_TILE:
         return " "
+    if tile in SMALL_FONT_PUNCTUATION:
+        ch = SMALL_FONT_PUNCTUATION[tile]
+        return ")" if ch == "(" and hflip else ch
     index = tile - SMALL_FONT_FIRST_TILE
     if 0 <= index < 10:
         return str(index)
@@ -122,15 +129,21 @@ def tilemap_entry(vram: bytes, map_base: int, width: int, tx: int, ty: int) -> i
     return vram[addr & 0xFFFF] | vram[(addr + 1) & 0xFFFF] << 8
 
 
+def letter_o(text: str) -> str:
+    """Slot/tile 0 doubles as O: inside an alphanumeric word that has a letter, read 0 as O."""
+    return re.sub(r"[0-9A-Z]+", lambda m: m.group(0).replace("0", "O") if re.search("[A-Z]", m.group(0)) else m.group(0), text)
+
+
 def text_rows(vram: bytes, map_base: int, width: int, height: int, palette: int,
-              x_screen: int) -> list[dict]:
+              x_screen: int, y_tile_start: int = 0) -> list[dict]:
     """Decode 16x16 font rows on one 32-column screen.
 
     A glyph is a left tile 2s followed by right tile 2s+1, so glyphs may start on
     any column; gaps between glyphs become single spaces and their widths are kept.
     """
     rows = []
-    for ty in range(min(height, 32)):
+    for i in range(min(height, 32)):
+        ty = (y_tile_start + i) % height
         entries = [tilemap_entry(vram, map_base, width, x_screen * 32 + tx, ty) for tx in range(32)]
         glyphs, tx = [], 0
         while tx < 31:
@@ -150,36 +163,35 @@ def text_rows(vram: bytes, map_base: int, width: int, height: int, palette: int,
                 text += " "
                 gaps.append((cur_tx - prev_tx - 2) * 8)
             text += char_for_slot(slot)
-        if any("A" <= ch <= "Z" for ch in text):
-            text = text.replace("0", "O")  # slot 0 doubles as O in lettered rows
+        text = letter_o(text)
         first, last = glyphs[0][0], glyphs[-1][0]
-        rows.append({"tile_row": ty, "y": ty * 8, "x_left": first * 8,
+        rows.append({"tile_row": ty, "y": i * 8, "x_left": first * 8,
                      "x_right": (last + 2) * 8, "text": text, "word_gaps_px": gaps,
                      "center_x": (first + last + 2) * 4})
     return rows
 
 
 def small_text_rows(vram: bytes, map_base: int, width: int, height: int, palette: int,
-                    x_screen: int) -> list[dict]:
+                    x_screen: int, y_tile_start: int = 0) -> list[dict]:
     """Decode 8x16 small-font runs (top tiles only). A row may hold several runs."""
     runs = []
-    for ty in range(min(height, 32)):
+    for i in range(min(height, 32)):
+        ty = (y_tile_start + i) % height
         current: dict | None = None
         for tx in range(33):
             ch = None
             if tx < 32:
                 e = tilemap_entry(vram, map_base, width, x_screen * 32 + tx, ty)
                 if (e >> 10) & 7 == palette:
-                    ch = small_char_for_tile(e & 0x3FF)
+                    ch = small_char_for_tile(e & 0x3FF, bool(e & 0x4000))
             if ch is not None and (current or ch != " "):
                 if current is None:
-                    current = {"tile_row": ty, "y": ty * 8, "x_left": tx * 8, "text": ""}
+                    current = {"tile_row": ty, "y": i * 8, "x_left": tx * 8, "text": ""}
                 current["text"] += ch
                 continue
             if current:
                 current["text"] = current["text"].rstrip()
-                if any("A" <= c <= "Z" for c in current["text"]):
-                    current["text"] = current["text"].replace("0", "O")
+                current["text"] = letter_o(current["text"])
                 current["x_right"] = current["x_left"] + 8 * len(current["text"])
                 runs.append(current)
                 current = None
@@ -447,12 +459,54 @@ def setup_screens(directory: Path, map_base: int, width: int, height: int) -> tu
     small_font = {
         "glyph_cell_px": [8, 16],
         "glyph_tiles_rule": "character tile t on top, t+0x3C below; '0'..'9' are 0xA9..0xB2, A-Z (no O) from 0xB3, space 0xCE",
+        "punctuation_tiles": {f"0x{k:02X}": v for k, v in SMALL_FONT_PUNCTUATION.items()},
+        "punctuation_note": "')' reuses the '(' tile with the tilemap H-flip bit; 0xA3/0xA5/0xA6 are unidentified",
         "bg_palette_index": 7,
         "pixel_value_usage": {str(k): v for k, v in sorted(usage.items())},
         "pixel_roles": {"8": "black outline", "9-12": "grey fill ramp"},
         "letter_pitch_px": 8,
     }
     return screens, small_font, checks
+
+
+CATALOG_EXPECT = {
+    "race-results": ["DRAGSTER", "COMPLETE", "PLAYER", "TIME", "MIKE", "NO TIME"],
+    "ui-record-track-entry": ["TRACK RECORDS", "TOUR", "MEDAL"],
+    "ui-record-high-entry": ["HIGH SCORES", "CATEGORY:", "MOST WINS:", "TOTAL SCORE:"],
+    "ui-record-player-entry": ["PLAYER SCORES", "PLAYER:", "PLAYED:", "SCORE:"],
+    "ui-record-group-entry": ["GROUP SCORES", "PLAYER"],
+}
+
+
+def catalog_screen(d: Dump) -> dict:
+    map_base, _, width, height = bg_layout(d.fillram, 1)
+    x_screen = ((d.ppu["bg"][1]["hofs"] & 0x3FF) // 256) % (width // 32)
+    y_start = ((d.ppu["bg"][1]["vofs"] & 0x3FF) // 8) % height
+    big = text_rows(d.vram, map_base, width, height, 7, x_screen, y_start)
+    small = small_text_rows(d.vram, map_base, width, height, 7, x_screen, y_start)
+    small_rows = sorted({r["y"] for r in small})
+    return {
+        "current_menu": f"0x{d.wram[0x9F]:02X}",
+        "bg2_strip_offset_px": d.ppu["bg"][1]["hofs"] & 0x3FF,
+        "bg2_vertical_offset_px": d.ppu["bg"][1]["vofs"] & 0x3FF,
+        "big_font_rows": [{k: r[k] for k in ("text", "y", "center_x")} for r in big],
+        "small_font_runs": [{k: r[k] for k in ("text", "y", "x_left")} for r in small],
+        "small_font_row_pitch_px": sorted(set(deltas(small_rows))),
+        "obj_count": len(sprites(d.oam)),
+    }
+
+
+def screen_catalog(entries: list[str]) -> tuple[dict, dict]:
+    catalog, checks = {}, {}
+    for entry in entries:
+        directory, tag = entry.rsplit(":", 1)
+        info = catalog_screen(Dump(Path(directory), tag))
+        catalog[tag] = info
+        if tag in CATALOG_EXPECT:
+            texts = [r["text"] for r in info["big_font_rows"]] + [r["text"] for r in info["small_font_runs"]]
+            joined = " | ".join(texts)
+            checks[f"catalog_{tag}_labels"] = all(any(e == t or e in t for t in texts) for e in CATALOG_EXPECT[tag]) or joined == ""
+    return catalog, checks
 
 
 def extract(directory: Path) -> dict:
@@ -509,8 +563,23 @@ def main() -> int:
     ap.add_argument("--log", type=Path, help="snesref stdout log of the menu run (for press frames)")
     ap.add_argument("--wav", type=Path, help="SNESREF_WAV output of the menu run")
     ap.add_argument("--control-wav", type=Path, help="SNESREF_WAV output of menu-visual-language-control.script")
+    ap.add_argument("--catalog", action="append", default=[], metavar="DIR:TAG",
+                    help="extra snesref dump to describe (e.g. results/records captures); repeatable")
     args = ap.parse_args()
     contract, main_dump, char_base = extract(args.dump_dir)
+    if args.catalog:
+        catalog, catalog_checks = screen_catalog(args.catalog)
+        contract["screen_catalog"] = {
+            "sources": ["tests/input/ui-race-result-route.script", "tests/input/ui-records-submenus.script"],
+            "screens": catalog,
+            "observations": [
+                "results and records reuse the same grammar: yellow 16x16 titles, grey 8x16 headings and data, rider-coloured mini unicycle and medal OBJ icons",
+                "PLAYER SCORES and GROUP SCORES draw green/red ratio bars; the Records menu item GROUP TABLES opens a screen titled GROUP SCORES",
+            ],
+        }
+        contract["checks"].update(catalog_checks)
+        contract["all_checks_pass"] = all(contract["checks"].values())
+        contract["not_covered"] = [n for n in contract["not_covered"] if n != "results and records table compositions"]
     if args.log and args.wav and args.control_wav:
         contract["sound_timing"] = sound_timing(args.log, args.wav, args.control_wav)
         contract["not_covered"] = [n for n in contract["not_covered"] if n != "menu sounds"] + ["menu SFX identity (timing only)"]

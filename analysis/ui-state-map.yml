@@ -602,7 +602,7 @@ states:
     kind: screen
     confidence: medium
     evidence: [observed_screenshot]
-    description: "Player-facing rejection/Easter-egg screen for forbidden names. Public references confirm SONIC/SEGA and other blacklist terms; at least one historical writeup says the filter applies to both individual and team names."
+    description: "Player-facing rejection/Easter-egg screen for forbidden names. Public references confirm SONIC/SEGA and other blacklist terms; at least one historical writeup says the filter applies to both individual and team names. Detection rule recovered statically: 71 FF-terminated lowercase words at 83:85C5 (pointer table 83:8537), matched as a substring anywhere in the stored name by 83:84DD / 83:8779 (analysis/generated/forbidden-name-table.json). The rejection screen itself is not yet reproduced."
     context_note: "Return target may depend on the text-entry context that triggered rejection."
     transitions:
       - input: "advance/back after player-name rejection"

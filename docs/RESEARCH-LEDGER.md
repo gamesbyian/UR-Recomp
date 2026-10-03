@@ -2102,3 +2102,20 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 **Evidence:** `tests/input/ui-erase-confirm.script`, `tests/input/ui-erase-reset.script` (seeded SRAM); edges `main-erase`, `erase-cancel-main` and `erase-confirm-reset` are verified, and menu index `0x58` added.
 
 **Policy consequence:** both destructive chords (erase-all, league redefine) are already guarded by a WARNING plus a SELECT+Y+A confirmation in stock. The modern `destructive-controller-chords` redesign replaces the chord entry and confirmation with explicit UI, not an unguarded action.
+
+### R-2026-10-03-UI-16 — Forbidden-name detection rule recovered from ROM
+
+**Status:** static decode, structurally checked; runtime rejection not yet reproduced  
+**Date:** 2026-10-03  
+**Area:** frontend | naming
+
+**Observation:** The canonical ROM holds 71 `FF`-terminated lowercase words at `83:85C5..8778`, mostly profanity plus `sega` and `sonic`, addressed by a 71-entry pointer table at `83:8537`.
+- **Matcher:** `83:8779` compares one table word against the name at the current position (a prefix test).
+- **Scanner:** `83:84DD` runs that test for all 71 words, then `INC $04` advances the name offset until the name's `FF`.
+- **Rule:** a name is rejected if any word occurs anywhere in the stored lowercase name. "SONICFAN" and "BASSIST" are rejected; none of the 16 default racer names are.
+
+**Evidence:** `tools/extract_forbidden_name_table.py` → `analysis/generated/forbidden-name-table.json` (6 structural checks). The report stores locations, count, length range and a SHA-256, not the words; `words_from_rom()` derives them and `--check NAME` applies the rule.
+
+**Policy consequence:** the decided modern COOL NAME! acknowledgement can reuse this exact rule, detecting like stock and then accepting the name.
+
+**Uncertainty:** which name buffers call `83:84DD` (player, League or both) is not traced, and runtime confirmation waits on the open `name_entry_cursor_mapping` capability.

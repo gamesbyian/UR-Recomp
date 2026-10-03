@@ -1,0 +1,29 @@
+{
+ "schema_version": 1,
+ "purpose": "Exact stock forbidden-name detection for the modern COOL NAME! acknowledgement (detect like stock, then accept).",
+ "rom": "reference/roms/retail/Uniracers_USA.sfc",
+ "scanner": "83:84DD",
+ "matcher": "83:8779",
+ "pointer_table": "83:8537",
+ "word_table": "83:85C5..83:8778",
+ "word_count": 71,
+ "word_length_range": [
+  3,
+  11
+ ],
+ "word_table_sha256": "5f36ff0acb1584e9073171d425cc3db05a28bff4519c199bba24b238a16b47bd",
+ "rule": "case-insensitive substring: a name is forbidden if any table word occurs at any position of the stored lowercase name",
+ "rule_evidence": "static decode of 83:84DD (outer INC $04 over name offsets until FF, inner loop over 71 pointers) and 83:8779 (prefix compare); not yet runtime-confirmed because name-entry cursor mapping is open",
+ "open": "which name buffers call 83:84DD (player names, League names or both) is not traced",
+ "words_committed": false,
+ "words_note": "Derive with tools/extract_forbidden_name_table.words_from_rom(); the list contains profanity plus 'sega' and 'sonic'.",
+ "checks": {
+  "matcher_signature_at_83_8779": true,
+  "scanner_calls_matcher_through_pointer_table": true,
+  "pointer_table_is_contiguous_words": true,
+  "word_table_ends_immediately_before_matcher": true,
+  "default_racer_names_are_not_forbidden": true,
+  "publicly_reported_examples_are_forbidden": true
+ },
+ "all_checks_pass": true
+}

@@ -2,6 +2,7 @@
 
 extern "C" {
 #include "common_rtl.h"
+#include "snes_overlay_draw.h"
 }
 
 #include "desktop/config.h"
@@ -10,7 +11,6 @@ extern "C" {
 #include "modern_pause_input.h"
 #include "modern_pause_menu.h"
 #include "modern_session_c_api.h"
-#include "snes_overlay_draw.h"
 #include "uniracers_restart_policy.h"
 
 #include <cstdlib>

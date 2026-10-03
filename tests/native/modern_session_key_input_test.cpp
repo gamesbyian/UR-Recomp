@@ -38,6 +38,7 @@ int main() {
         &set_paused,
         &is_paused,
         nullptr,
+        nullptr,
         nullptr);
     assert(session);
 
@@ -102,6 +103,7 @@ int main() {
         &load_snapshot,
         &set_paused,
         &is_paused,
+        nullptr,
         nullptr,
         nullptr);
     assert(authentic);

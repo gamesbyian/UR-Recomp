@@ -172,6 +172,12 @@ https://github.com/Zelda64Recomp/Zelda64Recomp
 
 Transferable lesson: presentation refresh, world aspect, HUD composition, and special-scene policy need separate ownership.
 
+## Canonical review harness
+
+PR #302 / native smoke run `37142393303` closes the review-tooling prerequisite. `tools/build_display_geometry_review.py` now consumes canonical 256×224 framebuffer BMPs from the ordinary 1P route, applies explicit diagnostic pixel-aspect/overscan candidates without mutating runtime state, and emits self-contained JSON/HTML review evidence. The current matrix in `analysis/display-geometry-candidates.json` includes raw square pixels, the community-reference 7:6 horizontal correction, and centered 216-line crop discriminators. Every candidate remains provisional.
+
+The same run proves the canonical `main-menu-ready`, `now-playing-ready`, and `race-entered` captures are 256×224 and that the review can be generated inside the normal native workflow. Artifact `uniracers-native-frame` id `11281695308` retains the generated review and source captures. The outstanding question is therefore which transform is best supported by Uniracers-specific visual/reference evidence, not whether the project can reproduce and compare the candidates.
+
 ## Validation required before declaring title-final constants
 
 Before closing the remaining Widescreen viewport/PAR/overscan queue item:

@@ -161,9 +161,11 @@ static int ur_ws_native_shadow_from_course(CpuState *cpu, uint16 first_edge) {
           (uint16)(((fine_y & 3) * 4) + (fine_x & 3));
       const uint32 fine_addr =
           0x800fu + (uint32)record * 32u + (uint32)local * 2u;
-      if (fine_addr > 0xfffeu)
-        return 0;
-      word = ur_ws_native_read16_bank(cpu, 0x7f, (uint16)fine_addr);
+      if (fine_addr <= 0xfffeu)
+        word = ur_ws_native_read16_bank(cpu, 0x7f, (uint16)fine_addr);
+      /* Live presentation can transiently expose a sentinel/non-record entry
+       * while the vertical edge moves. Stock renders that cell blank; mirror
+       * that presentation result instead of failing the whole host strip. */
     }
     ur_ws_native_shadow_payload[j * 2] = (uint8)(word & 0xff);
     ur_ws_native_shadow_payload[j * 2 + 1] = (uint8)(word >> 8);

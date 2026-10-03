@@ -86,6 +86,17 @@ int main() {
            UR_MODERN_SESSION_NO_OP);
     assert(paused == 1);
 
+    // Quit is host-owned and never becomes a session command.
+    assert(ur_modern_pause_handle_action(
+               session, &menu, UR_MODERN_PAUSE_NEXT) ==
+           UR_MODERN_SESSION_APPLIED);
+    assert(ur_modern_pause_menu_selected(&menu, 0) ==
+           UR_MODERN_PAUSE_QUIT);
+    assert(ur_modern_pause_handle_action(
+               session, &menu, UR_MODERN_PAUSE_ACTIVATE) ==
+           UR_MODERN_SESSION_NO_OP);
+    assert(paused == 1);
+
     assert(ur_modern_pause_handle_action(
                session, &menu, UR_MODERN_PAUSE_PREVIOUS) ==
            UR_MODERN_SESSION_APPLIED);
@@ -106,7 +117,7 @@ int main() {
            UR_MODERN_SESSION_APPLIED);
     assert(paused == 0);
 
-    // Arm Restart and prove the five-row model preserves Restart ordering.
+    // Arm Restart and prove the six-row model preserves Restart ordering.
     ur_modern_session_observe_race_active(session, 1);
     assert(ur_modern_session_restart_available(session));
 
@@ -150,6 +161,22 @@ int main() {
                session, &menu, UR_MODERN_PAUSE_ACTIVATE) ==
            UR_MODERN_SESSION_NO_OP);
     assert(paused == 1);
+
+    assert(ur_modern_pause_handle_action(
+               session, &menu, UR_MODERN_PAUSE_NEXT) ==
+           UR_MODERN_SESSION_APPLIED);
+    assert(ur_modern_pause_menu_selected(&menu, 1) ==
+           UR_MODERN_PAUSE_QUIT);
+    assert(ur_modern_pause_handle_action(
+               session, &menu, UR_MODERN_PAUSE_ACTIVATE) ==
+           UR_MODERN_SESSION_NO_OP);
+    assert(paused == 1);
+
+    assert(ur_modern_pause_handle_action(
+               session, &menu, UR_MODERN_PAUSE_PREVIOUS) ==
+           UR_MODERN_SESSION_APPLIED);
+    assert(ur_modern_pause_menu_selected(&menu, 1) ==
+           UR_MODERN_PAUSE_RUN_DATA);
 
     assert(ur_modern_pause_handle_action(
                session, &menu, UR_MODERN_PAUSE_PREVIOUS) ==

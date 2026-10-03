@@ -238,7 +238,8 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
               (unsigned)second_edge, (unsigned)second_count);
       for (unsigned j = 0; j < 32; j++)
         fprintf(stderr, "%02X", (unsigned)ur_ws_native_future_payload[j]);
-      fprintf(stderr, "\n");
+      fprintf(stderr, " camy=%u\n",
+              (unsigned)ur_ws_native_read16(cpu, 0x041d));
       if (ur_ws_native_shadow_live) {
         fprintf(stderr, "URWS_SHADOW16 provider=course-runtime camx=%u edge=%04X count=%u payload=",
                 (unsigned)ur_ws_native_read16(cpu, 0x0419),

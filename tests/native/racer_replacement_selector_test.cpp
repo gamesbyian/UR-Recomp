@@ -85,5 +85,30 @@ int main() {
     assert(reimagined.fallback_reason == FallbackReason::PackUnavailable);
     assert(reimagined.registration == registration);
 
+    const auto* p2 = find_racer_registration(0x0540);
+    assert(p2 != nullptr);
+    assert(p2->semantic_frame_id == 0x0540);
+    assert(p2->player == 2);
+    assert(p2->palette_asset_id == 0x07);
+    assert(composition_equal(p2->composition, exact));
+    assert(p2->semantic_pivot.x2 == 63);
+    assert(p2->semantic_pivot.y2 == 63);
+    assert(p2->contact_anchor.x2 == 63);
+    assert(p2->contact_anchor.y2 == 76);
+
+    const auto p2_remastered = select_racer_presentation(
+        GraphicsPack::Remastered, 0x0540, exact
+    );
+    assert(p2_remastered.uses_replacement());
+    assert(p2_remastered.registration == p2);
+
+    auto p2_mismatch_state = exact;
+    p2_mismatch_state.p2_primary = 0x0544;
+    const auto p2_mismatch = select_racer_presentation(
+        GraphicsPack::Remastered, 0x0540, p2_mismatch_state
+    );
+    assert(!p2_mismatch.uses_replacement());
+    assert(p2_mismatch.fallback_reason == FallbackReason::CompositionMismatch);
+
     return 0;
 }

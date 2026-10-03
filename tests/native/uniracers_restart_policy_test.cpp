@@ -1,6 +1,7 @@
 #include "uniracers_restart_policy.h"
 
 #include <cassert>
+#include <initializer_list>
 
 int main() {
     // Active-race identity outranks incidental frontend scratch values.

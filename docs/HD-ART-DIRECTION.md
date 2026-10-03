@@ -76,6 +76,13 @@ The remaining tunable art question before a first production candidate is exact 
 
 Secondary appearance references include the official North American/European packaging scans and the 2010 developer feature. They agree with the stock dossier on dark wheel/saddle masses, colored glossy body/frame forms, and brighter neutral hardware. Do not copy marketing-only sparkle/star effects into ordinary gameplay frames merely because they appear in packaging art.
 
+Reference provenance:
+- developer recollection / source-model description: https://www.nintendolife.com/news/2010/03/feature_the_making_of_unirally
+- high-resolution North American packaging scan catalog: https://openretro.org/snes/uniracers/edit
+- additional packaging-image catalog used only as a visual cross-check: https://gamesdb.launchbox-app.com/games/images/2104-uniracers
+
+These web/scan references are supporting interpretation only. Canonical geometry, palette identity, timing and replacement registration remain ROM/runtime derived.
+
 ## Palette relationship
 
 HD Presentation does not need to remain limited to SNES palette precision, but colors should preserve recognizable relationships among:

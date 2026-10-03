@@ -85,6 +85,15 @@ class NativeWidescreenHookAcceptanceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             root=Path(td)
             logs=self.logs()
+            logs[0]=logs[0].replace(
+                "URWS_PRIMARY margin=0 camx=108 edge=0D81",
+                "URWS_PRIMARY margin=0 camx=108 edge=0031",
+                1,
+            ).replace(
+                "URWS_PRIMARY margin=0 camx=109 edge=0D81",
+                "URWS_PRIMARY margin=0 camx=109 edge=0052",
+                1,
+            )
             logs[8]=logs[8].replace(
                 "URWS_PRIMARY margin=8 camx=100 edge=0D80",
                 "URWS_PRIMARY margin=8 camx=100 edge=0031",
@@ -96,7 +105,8 @@ class NativeWidescreenHookAcceptanceTests(unittest.TestCase):
             )
             r=MOD.analyze(logs,self.dumps(root))
             self.assertTrue(r["accepted"])
-            self.assertTrue(r["checks"]["margin8_comparable_edges_all_adjacent"])
+            self.assertTrue(r["checks"]["margin8_all_preparation_steps_stock_compatible"])
+            self.assertEqual(r["native_runtime"]["margin8_prepared_step_delta_histogram"]["0x0021"],1)
 
     def test_rejects_nonadjacent_prepared_edge(self):
         with tempfile.TemporaryDirectory() as td:

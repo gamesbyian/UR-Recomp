@@ -54,8 +54,8 @@ class NativeWidescreenHookTests(unittest.TestCase):
             self.assertTrue(report["changed"])
             self.assertTrue(report["margin0_control"])
             self.assertTrue(report["margin8_hook"])
-            self.assertFalse(report["margin16_supported"])
-            self.assertEqual(report["first_constraint"],"secondary-lane-capacity")
+            self.assertTrue(report["margin16_supported"])
+            self.assertEqual(report["first_constraint"],"host-shadow-capacity")
 
             w=wrapper.read_text(encoding="utf-8")
             self.assertIn(MOD.MARKER,w)
@@ -63,6 +63,9 @@ class NativeWidescreenHookTests(unittest.TestCase):
             self.assertIn("ur_ws_native_second_pass ? 0x453 : 0x433",w)
             self.assertIn("ur_ws_native_after_builder(cpu)",w)
             self.assertIn("ur_ws_native_cleanup_previous_payload(cpu)",w)
+            self.assertIn("URWS_SHADOW16",w)
+            self.assertIn("ur_ws_native_shadow_payload",w)
+            self.assertIn("ur_ws_native_margin() == 16",w)
             self.assertFalse(MOD.apply(root)["changed"])
 
     def test_fails_closed_without_live_wrapper(self):

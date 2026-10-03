@@ -1,6 +1,7 @@
 #include "racer_replacement_selector.hpp"
 
 #include <cassert>
+#include <initializer_list>
 
 using namespace ur::presentation;
 

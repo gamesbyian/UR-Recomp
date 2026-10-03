@@ -24,8 +24,10 @@ MARKER = "UR-Recomp native Widescreen +8 strip hook"
 TRACE_RE = re.compile(r"cpu_trace_block\(cpu,\s*0x([0-9A-Fa-f]+)\s*\);")
 
 A59E_CALLEE_RE = re.compile(r"(?P<callee>bank_[0-9A-Fa-f]{2}_A59E_M0X0)\(cpu\)")
+A52F_CALLEE_RE = re.compile(r"RecompReturn\s+(?P<callee>bank_[0-9A-Fa-f]{2}_A52F_M0X0)\s*\(CpuState \*cpu\)")
 
 PCS = {
+    "frame_prepare_entry": 0x01A52F,
     "wrapper_after_first_helper": 0x01A59A,
     "wrapper_after_descriptor_builder": 0x01A59D,
 }
@@ -54,6 +56,9 @@ static int ur_ws_native_shadow_live = 0;
 static int ur_ws_native_limit_reported = 0;
 static CpuState ur_ws_native_cpu_snapshot;
 static uint8 ur_ws_native_low_wram_snapshot[0x2000];
+static CpuState ur_ws_native_frame_cpu_snapshot;
+static uint8 ur_ws_native_frame_low_wram_snapshot[0x2000];
+static int ur_ws_native_frame_snapshot_valid = 0;
 static uint8 ur_ws_native_future_payload[32];
 static uint8 ur_ws_native_shadow_payload[32];
 static uint16 ur_ws_native_future_edge = 0xffff;
@@ -102,6 +107,8 @@ static void ur_ws_native_trace_primary(CpuState *cpu) {
 
 static int ur_ws_native_should_prepare(CpuState *cpu) {
   const int margin = ur_ws_native_margin();
+  if (ur_ws_native_second_pass)
+    return 0;
   if (margin == 24) {
     if (!ur_ws_native_limit_reported && ur_ws_native_trace()) {
       fprintf(stderr,
@@ -116,6 +123,15 @@ static int ur_ws_native_should_prepare(CpuState *cpu) {
     return 0;
   return ur_ws_native_read16(cpu, 0x0505) != 0xffff &&
          ur_ws_native_read16(cpu, 0x052b) == 16;
+}
+
+static void ur_ws_native_capture_frame_entry(CpuState *cpu) {
+  if (ur_ws_native_margin() != 16 || ur_ws_native_second_pass)
+    return;
+  ur_ws_native_frame_cpu_snapshot = *cpu;
+  memcpy(ur_ws_native_frame_low_wram_snapshot, cpu->ram,
+         sizeof(ur_ws_native_frame_low_wram_snapshot));
+  ur_ws_native_frame_snapshot_valid = 1;
 }
 
 static void ur_ws_native_begin_second_pass(CpuState *cpu) {
@@ -232,13 +248,25 @@ SECOND_PASS = r'''
           ur_ws_native_future_payload);
       int _ur_ws_shadow_valid = 0;
 
-      if (_ur_ws_first_valid && ur_ws_native_margin() == 16) {
-        /* Continue only inside the snapshotted replay state. No second guest
-         * descriptor lane is created: the second result is host-owned evidence. */
+      if (_ur_ws_first_valid && ur_ws_native_margin() == 16 &&
+          ur_ws_native_frame_snapshot_valid) {
+        /* Query stock demand derivation on a disposable frame-entry clone.
+         * +16 is applied only to the clone's camera X. The complete A52F path
+         * then settles camera motion, derives the entering edge, prepares the
+         * strip and builds descriptors exactly as stock would. No cloned guest
+         * mutation survives this call. */
+        *cpu = ur_ws_native_frame_cpu_snapshot;
+        memcpy(cpu->ram, ur_ws_native_frame_low_wram_snapshot,
+               sizeof(ur_ws_native_frame_low_wram_snapshot));
+        ur_ws_native_write16(
+            cpu, 0x0419,
+            (uint16)(ur_ws_native_read16(cpu, 0x0419) + 16));
+        ur_ws_native_second_pass = 1;
+
         cpu_write8(cpu, 0x00, cpu->S, 0xa5); cpu->S = (uint16)(cpu->S - 1);
-        cpu_write8(cpu, 0x00, cpu->S, 0x99); cpu->S = (uint16)(cpu->S - 1);
+        cpu_write8(cpu, 0x00, cpu->S, 0x2d); cpu->S = (uint16)(cpu->S - 1);
         cpu->host_return_valid = 2;
-        RecompReturn _ur_ws_shadow_result = __A59E_CALLEE__(cpu);
+        RecompReturn _ur_ws_shadow_result = __A52F_CALLEE__(cpu);
         _ur_ws_shadow_valid = ur_ws_native_capture_pass(
             cpu, _ur_ws_shadow_result,
             &ur_ws_native_shadow_edge, &ur_ws_native_shadow_count,
@@ -369,12 +397,19 @@ def apply(gen_dir: Path) -> dict:
     if len(callee_names) != 1:
         raise ValueError(f"expected one generated M0X0 A59E callee, found {callee_names}")
     a59e_callee = callee_names[0]
+    a52f_names = sorted(set(A52F_CALLEE_RE.findall(wrapper_text)))
+    if len(a52f_names) != 1:
+        raise ValueError(f"expected one generated M0X0 A52F callee, found {a52f_names}")
+    a52f_callee = a52f_names[0]
 
     stage_matches = list(STAGE_INIT_RE.finditer(wrapper_text))
     if len(stage_matches) != 1:
         raise ValueError(f"expected one A59E staging initializer, found {len(stage_matches)}")
 
     wrapper_text = _insert_before_first_function(wrapper_text, SUPPORT)
+    wrapper_text = _insert_after_deadline_guard(
+        wrapper_text, PCS["frame_prepare_entry"],
+        "    ur_ws_native_capture_frame_entry(cpu);")
     stage_match = STAGE_INIT_RE.search(wrapper_text)
     if stage_match is None:
         raise ValueError("A59E staging initializer moved after support insertion")
@@ -386,6 +421,7 @@ def apply(gen_dir: Path) -> dict:
     )
     wrapper_text = wrapper_text[:stage_match.start()] + stage_replacement + wrapper_text[stage_match.end():]
     second_pass = SECOND_PASS.replace("__A59E_CALLEE__", a59e_callee)
+    second_pass = second_pass.replace("__A52F_CALLEE__", a52f_callee)
     wrapper_text = _insert_after_deadline_guard(
         wrapper_text, PCS["wrapper_after_first_helper"], second_pass)
     wrapper_text = _insert_before_postcall_variant_split(

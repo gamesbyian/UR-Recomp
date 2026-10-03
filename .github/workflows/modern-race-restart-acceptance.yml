@@ -16,7 +16,8 @@ on:
       - "native/product/modern_pause_input.*"
       - "tests/unit/test_modern_pause_input_cpp.py"
       - "tests/unit/test_modern_pause_menu_cpp.py"
-      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/_global.json"
       - "native/title/uniracers_restart_policy.*"
       - "tools/patch_modern_restart_probe_host.py"
       - "tests/unit/test_patch_modern_restart_probe_host.py"
@@ -29,9 +30,6 @@ on:
       - "tests/input/modern-restart-results-acceptance.script"
       - "tests/input/modern-restart-acceptance.script"
       - ".github/workflows/modern-race-restart-acceptance.yml"
-      - "docs/MODERN-PRODUCT-LAYER.md"
-      - "docs/SEMANTIC-SUFFICIENCY.md"
-      - "docs/PROJECT-PLAN.md"
 
 concurrency:
   group: modern-race-restart-acceptance-${{ github.ref }}

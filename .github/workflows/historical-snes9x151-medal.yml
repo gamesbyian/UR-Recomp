@@ -6,7 +6,6 @@ on:
     branches:
       - chatgpt/progression-gameplay-acceptance-2026-10-02
     paths:
-      - ".github/workflows/historical-snes9x151-medal.yml"
       - "tools/capture_first_medal.lua"
       - "tools/patch_historical_snes9x151.py"
       - "analysis/data/progression-model.json"

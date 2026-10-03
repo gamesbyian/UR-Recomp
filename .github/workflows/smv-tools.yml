@@ -12,6 +12,10 @@ on:
       - ".github/workflows/smv-tools.yml"
   workflow_dispatch:
 
+concurrency:
+  group: smv-tools-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest

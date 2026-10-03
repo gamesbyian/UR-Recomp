@@ -1,10 +1,13 @@
 #include "session_runtime_adapter.hpp"
 
+#include "race_restart_lifecycle.hpp"
+
 namespace ur::product {
 
 RuntimeDispatchStatus dispatch_runtime_action(
     RuntimeAction action,
-    const SessionRuntimeHooks& hooks) noexcept {
+    const SessionRuntimeHooks& hooks,
+    RaceRestartLifecycle* restart_lifecycle) noexcept {
     switch (action) {
     case RuntimeAction::SuspendGuest:
         if (!hooks.set_paused) {
@@ -21,6 +24,17 @@ RuntimeDispatchStatus dispatch_runtime_action(
         return RuntimeDispatchStatus::Applied;
 
     case RuntimeAction::RestartRace:
+        if (restart_lifecycle) {
+            switch (restart_lifecycle->restart()) {
+            case RestartAnchorRestoreStatus::Restored:
+                return RuntimeDispatchStatus::Applied;
+            case RestartAnchorRestoreStatus::MissingHook:
+                return RuntimeDispatchStatus::MissingHook;
+            case RestartAnchorRestoreStatus::NoAnchor:
+            case RestartAnchorRestoreStatus::RestoreFailed:
+                return RuntimeDispatchStatus::RejectedByRuntime;
+            }
+        }
         if (!hooks.restart_race) {
             return RuntimeDispatchStatus::MissingHook;
         }

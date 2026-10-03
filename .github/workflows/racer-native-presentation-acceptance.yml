@@ -245,14 +245,18 @@ jobs:
           ]
           repeated_candidate = repeated["art_review"]["authored_candidate"]
           assert repeated_candidate["approval_status"] == (
-              "gameplay-scale motion-review candidate; native acceptance pending"
+              "motion-reviewed repeated temporal pose; not approved shipping art"
           )
           assert repeated["observed_frames_in_window"] == [1215, 1216]
           repeated_review = repeated_candidate["gameplay_scale_review"]
           assert repeated_review["stock_alpha_bounds"] == [22, 2, 41, 38]
           assert repeated_review["candidate_alpha_bounds"] == [22, 2, 41, 38]
           assert repeated_review["candidate_contact_x2_y2"] == [65, 76]
+          assert repeated_review["stock_opaque_pixels"] == 327
           assert repeated_review["candidate_opaque_pixels"] == 321
+          assert repeated_review["alpha_intersection_pixels"] == 264
+          assert repeated_review["alpha_union_pixels"] == 384
+          assert abs(repeated_review["alpha_iou"] - 0.6875) < 1e-12
 
           for rep in (baseline, predecessor, reversed, reused, repeated):
               candidate_path = (

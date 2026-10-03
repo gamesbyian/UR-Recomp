@@ -8,6 +8,7 @@ typedef enum UrModernPauseItem {
     UR_MODERN_PAUSE_RESUME = 0,
     UR_MODERN_PAUSE_RESTART = 1,
     UR_MODERN_PAUSE_FOCUS_PAUSE = 2,
+    UR_MODERN_PAUSE_CONTROLS = 3,
 } UrModernPauseItem;
 
 typedef struct UrModernPauseMenu {

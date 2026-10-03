@@ -113,7 +113,7 @@ int main() {{
 """
             self.compile_and_run(
                 source,
-                f"racer-replacement-registry-parity-{entry['semantic_frame_id']}",
+                f"racer-replacement-registry-parity-{entry['representation_id']}",
             )
 
 

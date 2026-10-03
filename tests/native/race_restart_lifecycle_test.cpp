@@ -62,8 +62,16 @@ int main() {
     assert(lifecycle.restart() == RestartAnchorRestoreStatus::Restored);
     assert((machine == std::vector<std::uint8_t>{1, 2, 3}));
     assert(loads == 1);
+    assert(lifecycle.race_active());
 
-    // The next actual race entry replaces the prior attempt atomically.
+    // The restored active frame belongs to the same attempt and must not
+    // replace the immutable restart anchor.
+    assert(lifecycle.observe_race_active(true) == RestartLifecycleEvent::None);
+    assert(saves == 1);
+
+    // A later actual race entry replaces the prior attempt atomically only
+    // after the lifecycle has observed leaving that restored race.
+    assert(lifecycle.observe_race_active(false) == RestartLifecycleEvent::None);
     machine = {4, 5, 6, 7};
     assert(lifecycle.observe_race_active(true) ==
            RestartLifecycleEvent::AnchorCaptured);

@@ -35,7 +35,7 @@ jobs:
         run: python3 -m unittest tests.unit.test_racer_hd_replacement_prototype tests.unit.test_racer_hd_temporal_coherence -v
       - name: Render synchronized semantic replacement prototypes
         run: |
-          for frame in 0541 0540 057E 0544; do
+          for frame in 0541 0540 057D 0543 057E 0544; do
             python3 tools/prototype_racer_hd_replacement.py \
               "reference/roms/retail/Uniracers_USA.sfc" \
               --semantic-frame-id "0x$frame" \
@@ -50,6 +50,8 @@ jobs:
           expected_contacts = {
               "0541": [61, 76],
               "0540": [63, 76],
+              "057D": [69, 76],
+              "0543": [57, 76],
               "057E": [67, 76],
               "0544": [55, 76],
           }
@@ -135,6 +137,8 @@ jobs:
           path: |
             ${{ runner.temp }}/racer-hd-prototype-0541/
             ${{ runner.temp }}/racer-hd-prototype-0540/
+            ${{ runner.temp }}/racer-hd-prototype-057D/
+            ${{ runner.temp }}/racer-hd-prototype-0543/
             ${{ runner.temp }}/racer-hd-prototype-057E/
             ${{ runner.temp }}/racer-hd-prototype-0544/
             ${{ runner.temp }}/racer-hd-temporal-coherence.json

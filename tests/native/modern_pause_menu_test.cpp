@@ -9,7 +9,7 @@ int main() {
     assert(ur_modern_pause_menu_selected(&menu, 1) == UR_MODERN_PAUSE_RESUME);
 
     // Without Restart:
-    // Resume -> Focus Pause -> Controls -> Run Data -> Resume.
+    // Resume -> Focus Pause -> Controls -> Run Data -> Quit -> Resume.
     ur_modern_pause_menu_move(&menu, 1, 0);
     assert(ur_modern_pause_menu_selected(&menu, 0) ==
            UR_MODERN_PAUSE_FOCUS_PAUSE);
@@ -21,14 +21,17 @@ int main() {
            UR_MODERN_PAUSE_RUN_DATA);
     ur_modern_pause_menu_move(&menu, 1, 0);
     assert(ur_modern_pause_menu_selected(&menu, 0) ==
+           UR_MODERN_PAUSE_QUIT);
+    ur_modern_pause_menu_move(&menu, 1, 0);
+    assert(ur_modern_pause_menu_selected(&menu, 0) ==
            UR_MODERN_PAUSE_RESUME);
     ur_modern_pause_menu_move(&menu, -1, 0);
     assert(ur_modern_pause_menu_selected(&menu, 0) ==
-           UR_MODERN_PAUSE_RUN_DATA);
+           UR_MODERN_PAUSE_QUIT);
     ur_modern_pause_menu_reset(&menu);
 
     // With Restart:
-    // Resume -> Restart -> Focus Pause -> Controls -> Run Data -> Resume.
+    // Resume -> Restart -> Focus Pause -> Controls -> Run Data -> Quit -> Resume.
     ur_modern_pause_menu_move(&menu, 1, 1);
     assert(ur_modern_pause_menu_selected(&menu, 1) == UR_MODERN_PAUSE_RESTART);
     ur_modern_pause_menu_move(&menu, 1, 1);
@@ -41,8 +44,14 @@ int main() {
     assert(ur_modern_pause_menu_selected(&menu, 1) ==
            UR_MODERN_PAUSE_RUN_DATA);
     ur_modern_pause_menu_move(&menu, 1, 1);
+    assert(ur_modern_pause_menu_selected(&menu, 1) ==
+           UR_MODERN_PAUSE_QUIT);
+    ur_modern_pause_menu_move(&menu, 1, 1);
     assert(ur_modern_pause_menu_selected(&menu, 1) == UR_MODERN_PAUSE_RESUME);
 
+    ur_modern_pause_menu_move(&menu, -1, 1);
+    assert(ur_modern_pause_menu_selected(&menu, 1) ==
+           UR_MODERN_PAUSE_QUIT);
     ur_modern_pause_menu_move(&menu, -1, 1);
     assert(ur_modern_pause_menu_selected(&menu, 1) ==
            UR_MODERN_PAUSE_RUN_DATA);
@@ -73,6 +82,10 @@ int main() {
     ur_modern_pause_menu_move(&menu, 0, 0);
     assert(ur_modern_pause_menu_selected(&menu, 0) ==
            UR_MODERN_PAUSE_RUN_DATA);
+    menu.selected = UR_MODERN_PAUSE_QUIT;
+    ur_modern_pause_menu_move(&menu, 0, 0);
+    assert(ur_modern_pause_menu_selected(&menu, 0) ==
+           UR_MODERN_PAUSE_QUIT);
 
     return 0;
 }

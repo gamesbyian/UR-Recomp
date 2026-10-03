@@ -210,9 +210,16 @@ The second audit is retained in `analysis/generated/inference-audit-second-pass.
 
 ## Third pass closeout — 2026-10-02
 
-The third audit is retained in `analysis/generated/inference-audit-third-pass.{json,md}`. It separates racer semantic replacement identity from live OAM placement, confirms the first HD replacement seam can remain read-only over guest state, turns the recovered 1P/2P Widescreen policy into a viewport/domain ownership rule, preserves guest SRAM as the sole progression authority for future host autosave/profile work, records the APU-only forward-replay failure that currently blocks Restart Race, and identifies +8 as the natural one-spare-lane boundary of the accepted stock-helper Widescreen mechanism.
+The third audit is retained in `analysis/generated/inference-audit-third-pass.{json,md}`. It separates racer semantic replacement identity from live OAM placement, confirms the first HD replacement seam can remain read-only over guest state, turns the recovered 1P/2P Widescreen policy into a viewport/domain ownership rule, preserves guest SRAM as the sole progression authority for future host autosave/profile work, records the then-observed APU-only Restart Race replay failure, and identifies +8 as the natural one-spare-lane boundary of the accepted stock-helper Widescreen mechanism.
 
-Open-PR runtime findings remain explicitly labeled as evidence, not merged implementation acceptance.
+### Third-pass dispositions — 2026-10-03
+
+The two open-runtime falsifiers from that audit are now resolved and retained as historical evidence rather than active blockers:
+
+- **IA3-R01 / Restart Race:** PR #235 is merged. The failed run correctly proved that immediate restore equality was insufficient. The missing replay carrier was SNESRecomp's extended `RtlApuFrameClock`, which was not included in rollback residue. Residue v7 now restores it, and workflow run `37080761750` passes the same 60-frame forward-replay acceptance.
+- **IA3-W02 / +8 native hook:** PR #228 is merged. The 11 apparent adjacency failures were analyzer errors: their low five-bit 32-column ring coordinate advanced by one while upper edge bits legitimately changed across resource/segment boundaries. Final workflow run `37081391730` passes without relaxing payload, consecutive-run, protected-state, lifecycle, or +16/+24 capacity checks.
+
+The surviving deductions remain active: Restart acceptance must include forward replay; +16/+24 require a larger presentation-capacity seam; HD racer replacement stays read-only over guest state; and host profiles must not duplicate guest progression semantics.
 
 ## Mandatory consumption rule — 2026-10-02
 

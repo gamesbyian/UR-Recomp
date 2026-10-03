@@ -179,7 +179,7 @@ jobs:
             tail -n 30 "$OUT/run.log" || true
           done
 
-      - name: Prove host presentation depth through +64
+      - name: Prove host presentation depth through +72
         shell: bash
         run: |
           set -euo pipefail

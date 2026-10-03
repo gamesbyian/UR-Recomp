@@ -16,7 +16,6 @@ on:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "rom_identity.txt"
       - "tools/find_wram_store_sites.py"
-      - ".github/workflows/targeted-wram-store-scan.yml"
 
 concurrency:
   group: targeted-wram-store-scan-${{ github.ref }}

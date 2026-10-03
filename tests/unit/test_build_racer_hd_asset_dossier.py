@@ -2,14 +2,21 @@ import unittest
 
 from tools.build_racer_hd_asset_dossier import (
     FIRST_AUTHORED_REPRESENTATION_ID,
+    SECOND_AUTHORED_REPRESENTATION_ID,
+    THIRD_AUTHORED_REPRESENTATION_ID,
     PENDING_ART_DECISIONS,
     RESOLVED_VISUAL_LANGUAGE,
     build_first_authored_candidate_rgba,
+    build_second_authored_candidate_rgba,
+    build_third_authored_candidate_rgba,
     exact_window_rows,
+    gameplay_sampled_alpha_review,
     observation_map,
     registry_by_representation,
     safe_name,
     sample_authored_0541_p1_rgba,
+    sample_authored_0541_p1_companion_0d2d_rgba,
+    sample_authored_0540_p1_predecessor_rgba,
     transition_context,
 )
 
@@ -119,10 +126,10 @@ class RacerHdAssetDossierTests(unittest.TestCase):
             FIRST_AUTHORED_REPRESENTATION_ID,
             "ordinary-racer-0x0541-p1-sync-reference",
         )
-        self.assertEqual(sample_authored_0541_p1_rgba(100, 100), bytes((246, 244, 242, 255)))
-        self.assertEqual(sample_authored_0541_p1_rgba(100, 90), bytes((64, 60, 53, 255)))
-        self.assertEqual(sample_authored_0541_p1_rgba(108, 36), bytes((75, 71, 65, 255)))
-        self.assertEqual(sample_authored_0541_p1_rgba(115, 51), bytes((232, 83, 83, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(112, 116), bytes((217, 213, 208, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(123, 90), bytes((32, 29, 23, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(128, 22), bytes((75, 71, 65, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(132, 50), bytes((201, 52, 52, 255)))
         self.assertEqual(sample_authored_0541_p1_rgba(0, 0), bytes((0, 0, 0, 0)))
 
         rgba = build_first_authored_candidate_rgba()
@@ -131,6 +138,96 @@ class RacerHdAssetDossierTests(unittest.TestCase):
             sum(1 for i in range(3, len(rgba), 4) if rgba[i] != 0),
             1000,
         )
+
+        occupied = []
+        for ly in range(64):
+            for lx in range(64):
+                sx = lx * 4 + 2
+                sy = ly * 4 + 2
+                if sample_authored_0541_p1_rgba(sx, sy)[3] != 0:
+                    occupied.append((lx, ly))
+        self.assertEqual(
+            [
+                min(x for x, _ in occupied),
+                min(y for _, y in occupied),
+                max(x for x, _ in occupied),
+                max(y for _, y in occupied),
+            ],
+            [22, 3, 39, 38],
+        )
+        bottom = [x for x, y in occupied if y == 38]
+        self.assertEqual([min(bottom), max(bottom)], [29, 32])
+
+        stock = bytearray(64 * 64 * 4)
+        for y in range(3, 39):
+            for x in range(22, 40):
+                stock[((y * 64 + x) * 4) + 3] = 255
+        review = gameplay_sampled_alpha_review(rgba, bytes(stock))
+        self.assertEqual(review["candidate_alpha_bounds"], [22, 3, 39, 38])
+        self.assertEqual(review["candidate_contact_x2_y2"], [61, 76])
+        self.assertGreater(review["alpha_iou"], 0.3)
+
+    def test_second_authored_candidate_matches_predecessor_envelope(self):
+        self.assertEqual(
+            SECOND_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x0541-p1-companion-0D2D-reference",
+        )
+        rgba = build_second_authored_candidate_rgba()
+        self.assertEqual(len(rgba), 256 * 256 * 4)
+        self.assertNotEqual(
+            sample_authored_0541_p1_companion_0d2d_rgba(130, 10),
+            bytes((0, 0, 0, 0)),
+        )
+
+        occupied = []
+        for ly in range(64):
+            for lx in range(64):
+                sx = lx * 4 + 2
+                sy = ly * 4 + 2
+                if sample_authored_0541_p1_companion_0d2d_rgba(sx, sy)[3] != 0:
+                    occupied.append((lx, ly))
+        self.assertEqual(
+            [
+                min(x for x, _ in occupied),
+                min(y for _, y in occupied),
+                max(x for x, _ in occupied),
+                max(y for _, y in occupied),
+            ],
+            [22, 2, 39, 38],
+        )
+        bottom = [x for x, y in occupied if y == 38]
+        self.assertEqual([min(bottom), max(bottom)], [29, 32])
+
+    def test_third_authored_candidate_matches_reversed_predecessor(self):
+        self.assertEqual(
+            THIRD_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x0540-p1-predecessor-reference",
+        )
+        rgba = build_third_authored_candidate_rgba()
+        self.assertEqual(len(rgba), 256 * 256 * 4)
+        self.assertNotEqual(
+            sample_authored_0540_p1_predecessor_rgba(128, 120),
+            bytes((0, 0, 0, 0)),
+        )
+
+        occupied = []
+        for ly in range(64):
+            for lx in range(64):
+                sx = lx * 4 + 2
+                sy = ly * 4 + 2
+                if sample_authored_0540_p1_predecessor_rgba(sx, sy)[3] != 0:
+                    occupied.append((lx, ly))
+        self.assertEqual(
+            [
+                min(x for x, _ in occupied),
+                min(y for _, y in occupied),
+                max(x for x, _ in occupied),
+                max(y for _, y in occupied),
+            ],
+            [23, 2, 40, 38],
+        )
+        bottom = [x for x, y in occupied if y == 38]
+        self.assertEqual([min(bottom), max(bottom)], [30, 33])
 
     def test_safe_name_is_path_stable(self):
         self.assertEqual(safe_name("racer / 0x0541:p1"), "racer-0x0541-p1")

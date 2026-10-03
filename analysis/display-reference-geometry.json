@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "status": "evidence-backed-par-discriminator",
+  "source": {
+    "catalog_id": "uniracers-us-manual-pdf",
+    "title": "Uniracers USA instruction manual scan",
+    "retained_path": "reference/imported/manuals/Uniracers-USA-manual.pdf",
+    "page_render_width_pixels": 1024,
+    "page_render_height_pixels": 1536,
+    "measurement_method": "Outer visible in-game screenshot frame measured from fixed-size page renders. Rounded corners and scan softness make edges approximate.",
+    "edge_uncertainty_pixels_per_side": 5
+  },
+  "hypotheses": {
+    "intended_display_4x3": "4:3",
+    "raw_square_256x224": "8:7"
+  },
+  "samples": [
+    {
+      "id": "manual-p17-pick-your-uni",
+      "pdf_page_index": 16,
+      "printed_page": 17,
+      "x": 105,
+      "y": 907,
+      "width": 223,
+      "height": 163
+    },
+    {
+      "id": "manual-p17-pick-tour",
+      "pdf_page_index": 16,
+      "printed_page": 17,
+      "x": 399,
+      "y": 907,
+      "width": 223,
+      "height": 166
+    },
+    {
+      "id": "manual-p17-pick-track",
+      "pdf_page_index": 16,
+      "printed_page": 17,
+      "x": 690,
+      "y": 909,
+      "width": 223,
+      "height": 165
+    },
+    {
+      "id": "manual-p19-pick-your-uni",
+      "pdf_page_index": 18,
+      "printed_page": 19,
+      "x": 655,
+      "y": 731,
+      "width": 331,
+      "height": 246
+    },
+    {
+      "id": "manual-p19-pick-tour",
+      "pdf_page_index": 18,
+      "printed_page": 19,
+      "x": 655,
+      "y": 1137,
+      "width": 333,
+      "height": 246
+    },
+    {
+      "id": "manual-p21-track-records",
+      "pdf_page_index": 20,
+      "printed_page": 21,
+      "x": 650,
+      "y": 1025,
+      "width": 326,
+      "height": 243
+    },
+    {
+      "id": "manual-p23-race-result",
+      "pdf_page_index": 22,
+      "printed_page": 23,
+      "x": 715,
+      "y": 200,
+      "width": 259,
+      "height": 199
+    },
+    {
+      "id": "manual-p23-circuit-result",
+      "pdf_page_index": 22,
+      "printed_page": 23,
+      "x": 715,
+      "y": 529,
+      "width": 258,
+      "height": 198
+    },
+    {
+      "id": "manual-p23-stunt-result",
+      "pdf_page_index": 22,
+      "printed_page": 23,
+      "x": 715,
+      "y": 809,
+      "width": 258,
+      "height": 198
+    },
+    {
+      "id": "manual-p25-pick-league",
+      "pdf_page_index": 24,
+      "printed_page": 25,
+      "x": 647,
+      "y": 113,
+      "width": 319,
+      "height": 244
+    },
+    {
+      "id": "manual-p25-name-league",
+      "pdf_page_index": 24,
+      "printed_page": 25,
+      "x": 640,
+      "y": 797,
+      "width": 320,
+      "height": 247
+    }
+  ],
+  "interpretation": {
+    "supports_horizontal_4x3_display_geometry": true,
+    "rejects_raw_square_pixels_as_historical_display_shape": true,
+    "pixel_aspect_consequence_for_256_wide_source": "7:6",
+    "overscan_disposition": "unresolved",
+    "rationale": "All eleven uncertainty-expanded screenshot-frame measurements admit 4:3 and exclude raw 8:7. The printed screenshots therefore provide Uniracers-specific evidence for horizontal correction to the 4:3 family. Their rounded framing/cropping does not reliably discriminate full 224-line presentation from a modest vertical overscan crop."
+  }
+}

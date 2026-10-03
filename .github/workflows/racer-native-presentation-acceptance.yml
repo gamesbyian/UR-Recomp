@@ -180,13 +180,61 @@ jobs:
               rep for rep in dossier["representations"]
               if rep["art_review"]["authored_candidate"] is not None
           ]
-          assert len(authored) == 1
-          assert authored[0]["representation_id"] == "ordinary-racer-0x0541-p1-sync-reference"
-          candidate = authored[0]["art_review"]["authored_candidate"]
-          assert candidate["approval_status"] == "accepted for review; not approved shipping art"
-          candidate_path = pathlib.Path(sys.argv[1]).parent / candidate["png"]
-          assert candidate_path.is_file()
-          assert candidate_path.stat().st_size > 0
+          assert len(authored) == 3
+          authored_by_id = {rep["representation_id"]: rep for rep in authored}
+
+          baseline = authored_by_id["ordinary-racer-0x0541-p1-sync-reference"]
+          candidate = baseline["art_review"]["authored_candidate"]
+          assert candidate["approval_status"] == (
+              "motion-reviewed after gameplay-scale geometry tuning; not approved shipping art"
+          )
+          review = candidate["gameplay_scale_review"]
+          assert review["stock_alpha_bounds"] == [22, 3, 39, 38]
+          assert review["candidate_alpha_bounds"] == [22, 3, 39, 38]
+          assert review["candidate_contact_x2_y2"] == [61, 76]
+          assert review["alpha_intersection_pixels"] == 220
+          assert review["alpha_union_pixels"] == 347
+          assert abs(review["alpha_iou"] - 0.6340057636887608) < 1e-12
+
+          predecessor = authored_by_id[
+              "ordinary-racer-0x0541-p1-companion-0D2D-reference"
+          ]
+          neighbor = predecessor["art_review"]["authored_candidate"]
+          assert neighbor["approval_status"] == (
+              "motion-reviewed temporal neighbor; not approved shipping art"
+          )
+          neighbor_review = neighbor["gameplay_scale_review"]
+          assert neighbor_review["stock_alpha_bounds"] == [22, 2, 39, 38]
+          assert neighbor_review["candidate_alpha_bounds"] == [22, 2, 39, 38]
+          assert neighbor_review["candidate_contact_x2_y2"] == [61, 76]
+          assert neighbor_review["alpha_intersection_pixels"] == 226
+          assert neighbor_review["alpha_union_pixels"] == 349
+          assert abs(neighbor_review["alpha_iou"] - 0.6475644699140402) < 1e-12
+
+          reversed = authored_by_id[
+              "ordinary-racer-0x0540-p1-predecessor-reference"
+          ]
+          reversed_candidate = reversed["art_review"]["authored_candidate"]
+          assert reversed_candidate["approval_status"] == (
+              "motion-reviewed reversed predecessor; not approved shipping art"
+          )
+          reversed_review = reversed_candidate["gameplay_scale_review"]
+          assert reversed_review["stock_alpha_bounds"] == [23, 2, 40, 38]
+          assert reversed_review["candidate_alpha_bounds"] == [23, 2, 40, 38]
+          assert reversed_review["candidate_contact_x2_y2"] == [63, 76]
+          assert reversed_review["candidate_opaque_pixels"] == 305
+          assert reversed_review["stock_opaque_pixels"] == 330
+          assert reversed_review["alpha_intersection_pixels"] == 270
+          assert reversed_review["alpha_union_pixels"] == 365
+          assert abs(reversed_review["alpha_iou"] - 0.7397260273972602) < 1e-12
+
+          for rep in (baseline, predecessor, reversed):
+              candidate_path = (
+                  pathlib.Path(sys.argv[1]).parent
+                  / rep["art_review"]["authored_candidate"]["png"]
+              )
+              assert candidate_path.is_file()
+              assert candidate_path.stat().st_size > 0
           print(
               "UR_RACER_ASSET_DOSSIER PASS "
               f"frames={dossier['temporal_window']['frame_count']} "

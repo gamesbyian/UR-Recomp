@@ -48,7 +48,7 @@ Purpose: historical/reference presentation.
 - retain Original graphics;
 - optional CRT/NTSC display treatment may be layered on top without changing guest geometry or state.
 
-The current community reference point is SNESRecomp's 4:3 CRT policy using 7:6 horizontal pixel correction. UR-Recomp must validate the exact transform against its own retained reference evidence before treating any numeric constant as title-final.
+SNESRecomp's 7:6 horizontal correction remains useful community precedent, but UR-Recomp now has title-specific evidence for the same horizontal display family. Eleven in-game screenshots printed in the official USA manual measure near 4:3 rather than raw 8:7; even a conservative ±5-pixel-per-edge measurement envelope admits 4:3 for every sample and excludes 8:7 for every sample. For a 256-wide source, that supports a 7:6 horizontal pixel correction. The remaining title-final uncertainty is vertical overscan, not whether Authentic mode should display raw square source pixels.
 
 ### Raw Pixels
 
@@ -180,7 +180,7 @@ The same run proves the canonical `main-menu-ready`, `now-playing-ready`, and `r
 
 ## Validation required before declaring title-final constants
 
-Before closing the remaining Widescreen viewport/PAR/overscan queue item:
+Before declaring the remaining vertical visibility policy title-final:
 
 1. capture one or more retained stock Uniracers reference scenes under raw-square and historically corrected display transforms;
 2. compare recognizable geometry, UI proportions, circles/curves, racer proportions, and known emulator/reference output;
@@ -191,6 +191,28 @@ Before closing the remaining Widescreen viewport/PAR/overscan queue item:
 
 The unresolved work is therefore measurement and title-specific validation, not a need to invent the architecture.
 
+## Preferred provisional Authentic binding
+
+Native Widescreen run `37146519813` closes the host-owned provider through **+72 logical source pixels per side** while preserving the accepted ownership split: margin 0 is untouched stock, column +1 is the accepted guest +8 lane, and every deeper column is host presentation state sourced from the live course tables.
+
+The smallest defensible title-specific binding is therefore recorded as a **provisional candidate**, not a shipping constant:
+
+- source raster: 256×224, full height;
+- horizontal pixel aspect: 7:6;
+- resulting stock display aspect: exactly 4:3;
+- overscan crop: none in the provisional binding;
+- derived exact 16:9 per-side logical margin: 128/3 source pixels;
+- materializer strip margin: +48 per side at the established 8-pixel granularity;
+- provider: the accepted live-course-runtime host materializer.
+
+The horizontal part of this candidate is now evidence-backed. `analysis/display-reference-geometry.json` records eleven printed in-game screenshot frames from the official USA manual (pages 17, 19, 21, 23 and 25). Their measured mean aspect is about 1.329 and median about 1.342. With ±5 pixels of uncertainty on every measured edge, all eleven intervals still contain 4:3 and none contain raw 8:7. Because 256×224 requires 7:6 horizontal correction to land at 4:3 when all 224 rows are active, this is title-specific support for 7:6-style Authentic PAR rather than merely emulator convention.
+
+That evidence does **not** by itself close vertical overscan. Rounded printed screenshot masks and page-layout crops cannot reliably distinguish a full 224-line display from a modest crop such as 216 lines. A second title-specific discriminator now narrows that axis: `analysis/display-active-height-evidence.json` reuses the retained canonical `main-menu-ready`, `now-playing-ready`, and `race-entered` 256×224 framebuffers from run `37142393303` / artifact `11281695308`. A centered 216-line crop removes distinct rendered information in all three scenes: 791/2048 cropped pixels on the menu frame, 40/2048 on the transition frame, and 645/2048 on the race frame differ from the nearest retained boundary row, 1476/6144 in aggregate. Therefore 216 cannot be treated as a content-neutral overscan cleanup. Full 224 becomes the preservation-favoring candidate, while historical CRT visibility remains unresolved. Raw Pixels remains an independent square-pixel reference mode regardless of the final overscan result.
+
+A provisional runtime selector now carries this candidate through both sides of the presentation contract without coupling it to product UI. On the preparation side, `URRECOMP_WS_VIEW=authentic-16x9-candidate` resolves to the next complete provider strip boundary, **+48 source pixels per side**. On the host-view side, the exact 16:9 requirement is 128/3 = 42⅔ source pixels per side, so the nearest symmetric integer logical viewport is **+43 per side**, or **342×224**. At 7:6 PAR that discrete source viewport is 57:32 (1.78125), about +0.195% wider than exact 16:9; final output scaling can absorb that sub-pixel quantization without exposing the unused five prepared pixels at either edge. Explicit `URRECOMP_WS_MARGIN` remains a diagnostic override and unknown/unset selectors fail closed to stock margin 0.
+
+The distinction is architectural: **provider margin is backing coverage, not automatically visible camera extent**. The +48 materializer may prepare more data than the +43 host viewport exposes. Horizontal PAR now has title-specific manual evidence; title-final overscan remains separate presentation work. If overscan changes the active logical height, the exact 16:9 viewport margin must be re-derived from that height rather than preserving +43 by inertia.
+
 ## Policy-derived logical margin
 
 `tools/widescreen_probe.py derive-margin` now derives the required symmetric logical margin from four independent inputs:
@@ -200,16 +222,16 @@ The unresolved work is therefore measurement and title-specific validation, not 
 - source/display pixel aspect;
 - materializer strip granularity.
 
-The calculation uses exact rational arithmetic and reports both the exact per-side logical margin and the first strip-granular margin that can cover it. It also compares that requirement with the currently validated materializer capacity recorded in `analysis/widescreen-policy.yml` (+64 pixels per side at 8-pixel granularity).
+The calculation uses exact rational arithmetic and reports both the exact per-side logical margin and the first strip-granular margin that can cover it. It also compares that requirement with the currently validated materializer capacity recorded in `analysis/widescreen-policy.yml` (+72 pixels per side at 8-pixel granularity).
 
 Illustrative 16:9 consequences, **not title-final constants**, are:
 
-| Active logical height | Pixel aspect | Exact per-side margin | First 8-pixel materializer margin | Fits validated +64? |
+| Active logical height | Pixel aspect | Exact per-side margin | First 8-pixel materializer margin | Fits validated +72? |
 | ---: | ---: | ---: | ---: | --- |
 | 224 | 7:6 | 128/3 ≈ 42.67 px | +48 | yes |
 | 216 | 7:6 | 256/7 ≈ 36.57 px | +40 | yes |
-| 224 | 1:1 | 640/9 ≈ 71.11 px | +72 | no |
+| 224 | 1:1 | 640/9 ≈ 71.11 px | +72 | yes |
 | 216 | 1:1 | 64 px | +64 | yes |
 
-These rows show why pixel aspect and overscan must be validated before choosing the first shipping 16:9 logical margin. The existing +64 provider closes several plausible policies but does not cover every square-pixel/full-height combination.
+These rows show why pixel aspect and overscan remain separate from logical view width. The accepted +72 provider now covers every current diagnostic candidate, including square-pixel/full-height 16:9. The preferred provisional Authentic full-height 7:6 candidate selects +48; reference validation still decides whether that transform becomes title-final.
 

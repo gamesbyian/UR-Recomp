@@ -70,6 +70,38 @@ constexpr bool is_first_authored_remastered_registration(
            s.p2_companion_gate_word == 0x0000;
 }
 
+constexpr bool is_authored_0541_p1_companion_0d2d_registration(
+    const RacerRegistration& registration
+) noexcept {
+    const auto& s = registration.composition;
+    return registration.player == 1 &&
+           registration.semantic_frame_id == 0x0541 &&
+           s.p1_primary == 0x0541 &&
+           s.p2_primary == 0x0540 &&
+           s.p1_companion == 0x0D2D &&
+           s.p2_companion == 0x0000 &&
+           s.p1_selector == 0 &&
+           s.p2_selector == 0 &&
+           s.p1_companion_gate_word == 0x0001 &&
+           s.p2_companion_gate_word == 0x0000;
+}
+
+constexpr bool is_authored_0540_p1_predecessor_registration(
+    const RacerRegistration& registration
+) noexcept {
+    const auto& s = registration.composition;
+    return registration.player == 1 &&
+           registration.semantic_frame_id == 0x0540 &&
+           s.p1_primary == 0x0540 &&
+           s.p2_primary == 0x0541 &&
+           s.p1_companion == 0x0D2C &&
+           s.p2_companion == 0x0000 &&
+           s.p1_selector == 0 &&
+           s.p2_selector == 0 &&
+           s.p1_companion_gate_word == 0x0001 &&
+           s.p2_companion_gate_word == 0x0000;
+}
+
 constexpr std::uint32_t authored_red_frame_color(
     int x,
     int y
@@ -115,48 +147,189 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1(
     if (hflip) x = kRacerHdAssetSize - 1 - x;
     if (vflip) y = kRacerHdAssetSize - 1 - y;
 
-    // Wheel/contact geometry. Bottom point is y=155 (logical centre 38.5),
-    // matching the recovered contact target y2=76 after 4x sampling.
-    const int wheel_cx = 124;
-    const int wheel_cy = 116;
+    // Review-tuned wheel/contact geometry. Sampling this 4x asset at the
+    // native presenter's logical pixel centres reproduces the stock 22..39 x
+    // 3..38 occupied envelope and the recovered contact anchor x2/y2=61/76.
+    // Keeping the envelope stable matters more in motion than preserving the
+    // first pilot's oversized wheel mass.
+    const int wheel_cx = 123;
+    const int wheel_cy = 122;
     const int wx = x - wheel_cx;
     const int wy = y - wheel_cy;
     const int wr2 = wx * wx + wy * wy;
-    const bool tire = wr2 <= 39 * 39 && wr2 >= 31 * 31;
-    const bool rim = wr2 < 31 * 31 && wr2 >= 28 * 28;
-    const bool hub = wr2 <= 7 * 7;
+    const bool tire = wr2 <= 33 * 33 && wr2 >= 27 * 27;
+    const bool rim = wr2 < 27 * 27 && wr2 >= 24 * 24;
+    const bool hub = wr2 <= 6 * 6;
 
-    // Slender fork with a slight authored lean. This is the smooth high-density
-    // form that the contract placeholder could not express.
-    const int fork_center = 122 + (112 - y) / 18;
+    // Slender fork with the same object-local lighting, now fitted to the
+    // recovered gameplay-scale silhouette rather than the 64x64 OBJ canvas.
+    const int fork_center = 131 - (y - 60) / 14;
     const bool fork =
-        y >= 54 && y <= 111 &&
+        y >= 60 && y <= 117 &&
         x >= fork_center - 4 && x <= fork_center + 4;
 
     // Short crank and pedal. Neutral hardware may carry the brightest values.
     const bool crank =
-        y >= 108 && y <= 115 &&
-        x >= 111 && x <= 137;
+        y >= 116 && y <= 123 &&
+        x >= 112 && x <= 138;
     const bool pedal =
-        y >= 105 && y <= 110 &&
-        x >= 137 && x <= 149;
+        y >= 113 && y <= 118 &&
+        x >= 138 && x <= 150;
 
-    // Dark saddle, intentionally broad and low-detail at gameplay scale.
-    const int seat_dx = x - 116;
-    const int seat_dy = y - 43;
+    // The saddle is restored to the stock top-of-silhouette band. The original
+    // pilot started five logical pixels too low when sampled for gameplay.
+    const int seat_dx = x - 128;
+    const int seat_dy = y - 22;
     const bool seat =
-        ((seat_dx * seat_dx) * 9 + (seat_dy * seat_dy) * 64 <= 30 * 30 * 9) &&
-        y >= 34 && y <= 50;
+        ((seat_dx * seat_dx) * 11 + (seat_dy * seat_dy) * 30 <= 30 * 30 * 11) &&
+        y >= 12 && y <= 32;
 
-    // Colored upper frame/neck. Its silhouette is separate from the dark saddle
-    // and neutral hardware so the material hierarchy survives downscaling.
+    // Colored upper frame/neck. Geometry is still smooth and authored, but its
+    // sampled footprint follows the stock representation's scale and posture.
     const bool neck =
-        y >= 47 && y <= 70 &&
-        x >= 115 && x <= 130;
-    const int crown_dx = x - 123;
-    const int crown_dy = y - 67;
+        y >= 30 && y <= 60 &&
+        x >= 128 && x <= 136;
+    const int crown_dx = x - 132;
+    const int crown_dy = y - 60;
     const bool crown =
-        crown_dx * crown_dx + crown_dy * crown_dy <= 12 * 12;
+        crown_dx * crown_dx + crown_dy * crown_dy <= 10 * 10;
+
+    if (hub || rim || crank || pedal) {
+        return authored_metal_color(x, y);
+    }
+    if (seat) {
+        const int seat_light = (255 - x) + (255 - y);
+        return seat_light > 350 ? 0xFF41474Bu : 0xFF20272Bu;
+    }
+    if (fork || neck || crown) {
+        return authored_red_frame_color(x, y);
+    }
+    if (tire) {
+        const int tire_light = (255 - x) + (255 - y);
+        return tire_light > 310 ? 0xFF353C40u : 0xFF171D20u;
+    }
+    return 0;
+}
+
+constexpr std::uint32_t sample_racer_hd_authored_0541_p1_companion_0d2d(
+    int x,
+    int y,
+    bool hflip,
+    bool vflip
+) noexcept {
+    if (x < 0 || y < 0 || x >= kRacerHdAssetSize || y >= kRacerHdAssetSize) {
+        return 0;
+    }
+    if (hflip) x = kRacerHdAssetSize - 1 - x;
+    if (vflip) y = kRacerHdAssetSize - 1 - y;
+
+    // Frame 1219 differs from the reviewed 1220 reference by only seven stock
+    // logical pixels, all in the upper silhouette. Preserve the accepted lower
+    // geometry/contact and vary only the saddle profile.
+    const int wheel_cx = 123;
+    const int wheel_cy = 122;
+    const int wx = x - wheel_cx;
+    const int wy = y - wheel_cy;
+    const int wr2 = wx * wx + wy * wy;
+    const bool tire = wr2 <= 33 * 33 && wr2 >= 27 * 27;
+    const bool rim = wr2 < 27 * 27 && wr2 >= 24 * 24;
+    const bool hub = wr2 <= 6 * 6;
+
+    const int fork_center = 131 - (y - 60) / 14;
+    const bool fork =
+        y >= 60 && y <= 117 &&
+        x >= fork_center - 4 && x <= fork_center + 4;
+    const bool crank =
+        y >= 116 && y <= 123 &&
+        x >= 112 && x <= 138;
+    const bool pedal =
+        y >= 113 && y <= 118 &&
+        x >= 138 && x <= 150;
+
+    const int seat_dx = x - 130;
+    const int seat_dy = y - 23;
+    const bool seat =
+        (seat_dx * seat_dx) * 13 * 13 +
+            (seat_dy * seat_dy) * 32 * 32 <=
+            32 * 32 * 13 * 13 &&
+        y >= 8 && y <= 34;
+
+    const bool neck =
+        y >= 30 && y <= 60 &&
+        x >= 128 && x <= 136;
+    const int crown_dx = x - 132;
+    const int crown_dy = y - 60;
+    const bool crown =
+        crown_dx * crown_dx + crown_dy * crown_dy <= 10 * 10;
+
+    if (hub || rim || crank || pedal) {
+        return authored_metal_color(x, y);
+    }
+    if (seat) {
+        const int seat_light = (255 - x) + (255 - y);
+        return seat_light > 350 ? 0xFF41474Bu : 0xFF20272Bu;
+    }
+    if (fork || neck || crown) {
+        return authored_red_frame_color(x, y);
+    }
+    if (tire) {
+        const int tire_light = (255 - x) + (255 - y);
+        return tire_light > 310 ? 0xFF353C40u : 0xFF171D20u;
+    }
+    return 0;
+}
+
+constexpr std::uint32_t sample_racer_hd_authored_0540_p1_predecessor(
+    int x,
+    int y,
+    bool hflip,
+    bool vflip
+) noexcept {
+    if (x < 0 || y < 0 || x >= kRacerHdAssetSize || y >= kRacerHdAssetSize) {
+        return 0;
+    }
+    if (hflip) x = kRacerHdAssetSize - 1 - x;
+    if (vflip) y = kRacerHdAssetSize - 1 - y;
+
+    // Frame 1218 is a larger pose transition than 1219->1220. Retained stock
+    // evidence requires a one-logical-pixel rightward envelope/contact shift
+    // plus local wheel/frame/saddle deformation. Material and lighting rules
+    // remain identical to the two already-reviewed authored poses.
+    const int wheel_cx = 128;
+    const int wheel_cy = 120;
+    const int wx = x - wheel_cx;
+    const int wy = y - wheel_cy;
+    const int wr2 = wx * wx + wy * wy;
+    const bool tire = wr2 <= 35 * 35 && wr2 >= 25 * 25;
+    const bool rim = wr2 < 25 * 25 && wr2 >= 22 * 22;
+    const bool hub = wr2 <= 5 * 5;
+
+    const int fork_center = 126 - (y - 60) / 11;
+    const bool fork =
+        y >= 60 && y <= 117 &&
+        x >= fork_center - 5 && x <= fork_center + 5;
+    const bool crank =
+        y >= 116 && y <= 123 &&
+        x >= 111 && x <= 140;
+    const bool pedal =
+        y >= 113 && y <= 118 &&
+        x >= 141 && x <= 145;
+
+    const int seat_dx = x - 130;
+    const int seat_dy = y - 22;
+    const bool seat =
+        (seat_dx * seat_dx) * 12 * 12 +
+            (seat_dy * seat_dy) * 35 * 35 <=
+            35 * 35 * 12 * 12 &&
+        y >= 8 && y <= 36;
+
+    const bool neck =
+        y >= 30 && y <= 60 &&
+        x >= 124 && x <= 132;
+    const int crown_dx = x - 134;
+    const int crown_dy = y - 60;
+    const bool crown =
+        crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8;
 
     if (hub || rim || crank || pedal) {
         return authored_metal_color(x, y);
@@ -184,6 +357,16 @@ constexpr std::uint32_t sample_racer_hd_asset(
 ) noexcept {
     if (is_first_authored_remastered_registration(registration)) {
         return sample_racer_hd_authored_0541_p1(x, y, hflip, vflip);
+    }
+    if (is_authored_0541_p1_companion_0d2d_registration(registration)) {
+        return sample_racer_hd_authored_0541_p1_companion_0d2d(
+            x, y, hflip, vflip
+        );
+    }
+    if (is_authored_0540_p1_predecessor_registration(registration)) {
+        return sample_racer_hd_authored_0540_p1_predecessor(
+            x, y, hflip, vflip
+        );
     }
     return sample_racer_hd_contract_candidate(x, y, hflip, vflip);
 }

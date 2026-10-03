@@ -76,11 +76,37 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0541_p1",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_first_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "accepted for review; not approved shipping art",
+        "approval_status": "motion-reviewed after gameplay-scale geometry tuning; not approved shipping art",
         "shipping_art_approved": false,
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
-        "native_acceptance_run": 37142692369,
-        "native_acceptance_artifact_id": 11281156106
+        "initial_native_acceptance_run": 37142692369,
+        "initial_native_acceptance_artifact_id": 11281156106,
+        "native_acceptance_run": 37146779451,
+        "native_acceptance_artifact_id": 11283305196,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            22,
+            3,
+            39,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            22,
+            3,
+            39,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            61,
+            76
+          ],
+          "stock_opaque_pixels": 324,
+          "candidate_opaque_pixels": 243,
+          "alpha_intersection_pixels": 220,
+          "alpha_union_pixels": 347,
+          "alpha_iou": 0.6340057636887608
+        }
       }
     },
     {
@@ -977,7 +1003,43 @@
         "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
         "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
       },
-      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset."
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_candidate",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0541_p1_companion_0d2d",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_second_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "motion-reviewed temporal neighbor; not approved shipping art",
+        "shipping_art_approved": false,
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Extend the first motion-reviewed authored language to the exact frame-1219 predecessor with only the smallest evidence-backed upper-silhouette change; preserve the accepted lower geometry, contact, materials and object-local lighting.",
+        "native_acceptance_run": 37150356100,
+        "native_acceptance_artifact_id": 11283522741,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            22,
+            2,
+            39,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            22,
+            2,
+            39,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            61,
+            76
+          ],
+          "stock_opaque_pixels": 327,
+          "candidate_opaque_pixels": 248,
+          "alpha_intersection_pixels": 226,
+          "alpha_union_pixels": 349,
+          "alpha_iou": 0.6475644699140402
+        }
+      }
     },
     {
       "semantic_frame_id": "0x0540",
@@ -1105,7 +1167,43 @@
         "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
         "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
       },
-      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset."
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_candidate",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0540_p1_predecessor",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_third_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "motion-reviewed reversed predecessor; not approved shipping art",
+        "shipping_art_approved": false,
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Extend the reviewed first-family animation backward to exact frame 1218 using a stock-mask-fitted pose while preserving the established material, object-local lighting, edge, shadow and detail policies.",
+        "native_acceptance_run": 37151331456,
+        "native_acceptance_artifact_id": 11284028173,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            23,
+            2,
+            40,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            23,
+            2,
+            40,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            63,
+            76
+          ],
+          "stock_opaque_pixels": 330,
+          "candidate_opaque_pixels": 305,
+          "alpha_intersection_pixels": 270,
+          "alpha_union_pixels": 365,
+          "alpha_iou": 0.7397260273972602
+        }
+      }
     },
     {
       "semantic_frame_id": "0x0541",

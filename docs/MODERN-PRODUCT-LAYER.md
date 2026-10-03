@@ -15,6 +15,32 @@ In particular:
 
 The canonical target matrix is `PLATFORM-TARGETS.md`; Switch-specific feasibility work is `SWITCH-HOMEBREW-PORT.md`.
 
+## Video and presentation settings policy
+
+Video configuration is host-owned modern product state. It must control presentation only and must not change authoritative guest simulation timing.
+
+The eventual user-facing video settings should support, where the platform permits:
+
+- automatic/native-display resolution;
+- explicit common output resolutions;
+- arbitrary window sizing on desktop;
+- windowed, borderless-fullscreen and fullscreen presentation;
+- VSync;
+- presentation refresh/FPS targets such as 60, 90, 120 and 144 Hz, plus platform-appropriate uncapped/native-refresh options where useful;
+- internal render scale independent of output resolution when the HD compositor or post-processing path benefits from it;
+- aspect/presentation mode selection, including authentic 4:3 and true Widescreen;
+- graphics-pack selection and optional post-processing where available.
+
+The **guest simulation cadence is not a user setting**. Physics, collision, timers, AI, RNG, stunt timing, animation-state selection, records and deterministic replay remain driven by the original authoritative simulation cadence on every platform.
+
+A higher presentation refresh rate may therefore display the same guest state more than once, interpolate presentation-only transforms where technically safe, or otherwise pace host frames independently. Such interpolation must never feed values back into guest state or alter event timing.
+
+Authentic mode should retain a literal/reference presentation path suitable for fidelity comparison even on high-refresh displays. Modern mode may provide smoother presentation, but simulation equality remains the acceptance criterion.
+
+Output resolution and internal render scale are separate concepts. For example, a 3840x2160 output may use a lower internal HD render scale for performance and upscale to the display, while sufficiently capable hardware may render at or above output resolution for higher-quality downsampling.
+
+Platform adapters own the concrete list of modes exposed by Windows, macOS, Web or console hosts. Shared product code owns the semantic settings and must not encode platform-specific display APIs.
+
 ## First seam: host administrative state
 
 The first project-owned modern seam is deliberately small: independent host-side profile selection and settings.

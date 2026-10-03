@@ -154,7 +154,7 @@ static int ur_ws_native_shadow_from_oracle(uint16 camx, uint16 first_edge) {
     if ((row->edge & 0x1f) != wanted_ring || row->camx <= camx)
       continue;
     const unsigned delta = (unsigned)(row->camx - camx);
-    if (delta > 24 || delta >= best_delta)
+    if (delta > 32 || delta >= best_delta)
       continue;
     best = row;
     best_delta = delta;

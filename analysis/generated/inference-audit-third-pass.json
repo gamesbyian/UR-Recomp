@@ -162,13 +162,18 @@
         "status": "resolved-for-plus8",
         "merged_pr": 228,
         "acceptance_workflow_run": 37081391730,
-        "root_cause": "The 11 apparent adjacency failures came from comparing the full edge word; low five bits are the 32-column VRAM-ring coordinate and upper bits may change at resource/segment boundaries.",
+        "root_cause": "The 11 apparent adjacency failures came from treating the full 16-bit edge word as a plain ring counter. Its low five bits are the 32-column VRAM-ring coordinate while upper bits may change at resource/segment boundaries; the +1, -31 and +33 full-word step shapes all occur in stock control transitions.",
         "accepted_plus8": {
           "prepare_events": 617,
           "ring_adjacent_events": 617,
           "exact_later_stock_payload_matches": 317,
           "longest_consecutive_exact_match_run": 25,
-          "protected_state_equal": true
+          "protected_state_equal": true,
+          "full_edge_step_histogram": {
+            "+1": 589,
+            "-31": 17,
+            "+33": 11
+          }
         },
         "remaining_boundary": "+16/+24 still require more than the one spare secondary horizontal lane and remain a presentation-capacity extension problem."
       }

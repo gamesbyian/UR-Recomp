@@ -456,6 +456,30 @@ Retained production-materializer acceptance records:
 
 This closes the +16 production strip-provider seam for the representative Dragster path. The next bounded preparation experiment is additional host-owned columns: generalize the same materializer to +24 and then toward the final 16:9 exposure target. Keep stock 4:3 and the accepted +8 guest path as controls; do not widen gameplay activation, final composition, HUD, or racer-HD logic as part of that preparation experiment.
 
+
+## Host-materializer depth sweep through +64
+
+Native workflow run `37100420673` generalizes the accepted live course-table materializer parametrically through the current probe matrix rather than adding one special-case column at a time. Column +1 remains the single accepted guest secondary-lane result; columns +2 and beyond stay entirely host-owned.
+
+Accepted capacity results:
+
+- +16: 1 host column, 617 rows, 599/599 same-view exact;
+- +24: 2 host columns, 1,234 rows, 1,197/1,197 same-view exact;
+- +32: 3 host columns, 1,851 rows, 1,796/1,796 same-view exact;
+- +48: 5 host columns, 3,085 rows, 2,989/2,989 same-view exact;
+- +64: 7 host columns, 4,319 rows, 4,180/4,180 same-view exact.
+
+Every tested depth has zero provider misses, zero unmatched oracle rows, complete low-five-bit ring adjacency, deterministic cleanup and protected preparation state equality. Rows whose future stock control samples a different effective fine-Y viewport remain explicitly classified instead of forced into equality.
+
+The +32 discriminator exposed one real vertical-origin bug hidden by the shallower fixtures. When the stock vertical lane is inactive, source-row fallback is the unrounded camera cell `camY >> 4`, not `(camY + 4) >> 4`. Correcting that stock-derived rule closes +32/+48/+64 without special-casing any horizontal depth.
+
+The liveness route compares 61 common samples for +16, +24 and +64 with zero protected differences. All variants reach the same `liveness-004` semantic progression event; their absolute phase deltas are +1, -1 and 0 guest frames respectively, all within the established adjacent-boundary fidelity rule.
+
+This establishes that the random-access host materializer itself is not the near-term Widescreen capacity limit through +64. It still does **not** define the final 16:9 source width: `analysis/widescreen-policy.yml` deliberately leaves pixel-aspect policy unresolved. The next Widescreen architecture task should therefore move from strip-provider capacity toward explicit viewport/composition policy and determine the actual source width required by the chosen 16:9 pixel-aspect model, while retaining the same simulation/activation separation.
+
+Evidence: workflow run `37100420673`; artifact `widescreen-native-hook-evidence` (id `11266750089`); retained summaries `analysis/generated/widescreen-host-depth-acceptance-2026-10-03.{json,md}` and `analysis/generated/widescreen-host-depth-liveness-2026-10-03.json`.
+
+
 Positive evidence:
 `analysis/generated/widescreen-plus16-materializer-acceptance-2026-10-03.{json,md}` and `analysis/generated/widescreen-plus16-materializer-liveness-2026-10-03.json`.
 

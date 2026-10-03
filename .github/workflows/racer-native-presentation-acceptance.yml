@@ -95,13 +95,16 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"
           INPUT="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
-          ORIGINAL_LOG="$RUNNER_TEMP/racer-original.log"
+          ORIGINAL_A_LOG="$RUNNER_TEMP/racer-original-a.log"
+          ORIGINAL_B_LOG="$RUNNER_TEMP/racer-original-b.log"
           HD_LOG="$RUNNER_TEMP/racer-hd.log"
-          ORIGINAL_DUMPS="$RUNNER_TEMP/racer-original-dumps"
+          ORIGINAL_A_DUMPS="$RUNNER_TEMP/racer-original-a-dumps"
+          ORIGINAL_B_DUMPS="$RUNNER_TEMP/racer-original-b-dumps"
           HD_DUMPS="$RUNNER_TEMP/racer-hd-dumps"
-          ORIGINAL_SHOT="$RUNNER_TEMP/racer-original-1220.ppm"
+          ORIGINAL_A_SHOT="$RUNNER_TEMP/racer-original-a-1220.ppm"
+          ORIGINAL_B_SHOT="$RUNNER_TEMP/racer-original-b-1220.ppm"
           HD_SHOT="$RUNNER_TEMP/racer-hd-1220.ppm"
-          mkdir -p "$ORIGINAL_DUMPS" "$HD_DUMPS"
+          mkdir -p "$ORIGINAL_A_DUMPS" "$ORIGINAL_B_DUMPS" "$HD_DUMPS"
 
           run_route() {
             local mode="$1" log="$2" dumps="$3" shot="$4"
@@ -123,16 +126,46 @@ jobs:
             fi
           }
 
-          run_route Original "$ORIGINAL_LOG" "$ORIGINAL_DUMPS" "$ORIGINAL_SHOT"
+          run_route Original-A "$ORIGINAL_A_LOG" "$ORIGINAL_A_DUMPS" "$ORIGINAL_A_SHOT"
+          run_route Original-B "$ORIGINAL_B_LOG" "$ORIGINAL_B_DUMPS" "$ORIGINAL_B_SHOT"
           run_route HD "$HD_LOG" "$HD_DUMPS" "$HD_SHOT" UR_RACER_HD=1
 
-          # The same deterministic guest timeline must reach the exact same
-          # authoritative WRAM checkpoint with presentation substitution on/off.
-          cmp "$ORIGINAL_DUMPS/two-player-race-1220.wram.bin" \
-              "$HD_DUMPS/two-player-race-1220.wram.bin"
+          # Diagnose the fixture's own cross-process WRAM stability before
+          # attributing any byte to presentation mode.
+          python3 - \
+            "$ORIGINAL_A_DUMPS/two-player-race-1220.wram.bin" \
+            "$ORIGINAL_B_DUMPS/two-player-race-1220.wram.bin" \
+            "$HD_DUMPS/two-player-race-1220.wram.bin" <<'PY'
+          import pathlib
+          import sys
 
-          # The selector reaches the retained synchronized tuple in both runs.
-          grep -F "UR_RACER_PRESENTATION_PROBE PASS" "$ORIGINAL_LOG"
+          blobs = [pathlib.Path(p).read_bytes() for p in sys.argv[1:]]
+          labels = ["original-a", "original-b", "hd"]
+          if any(len(b) != len(blobs[0]) for b in blobs):
+              raise SystemExit("WRAM checkpoint sizes differ")
+
+          def diff(a, b):
+              return [(i, x, y) for i, (x, y) in enumerate(zip(a, b)) if x != y]
+
+          ab = diff(blobs[0], blobs[1])
+          ah = diff(blobs[0], blobs[2])
+          bh = diff(blobs[1], blobs[2])
+          for name, rows in [("original-a_vs_b", ab), ("original-a_vs_hd", ah), ("original-b_vs_hd", bh)]:
+              preview = ",".join(f"{i:04X}:{x:02X}>{y:02X}" for i, x, y in rows[:32])
+              print(f"UR_RACER_WRAM_DIFF {name} count={len(rows)} first={preview or 'none'}")
+          if ab:
+              raise SystemExit(
+                  "disabled control is not byte-stable across processes; "
+                  "classify baseline WRAM variability before defining HD cross-run equality"
+              )
+          if ah:
+              raise SystemExit("HD presentation changed deterministic WRAM checkpoint")
+          print("UR_RACER_WRAM_EQUAL PASS controls=byte-identical hd=byte-identical")
+          PY
+
+          # The selector reaches the retained synchronized tuple in all runs.
+          grep -F "UR_RACER_PRESENTATION_PROBE PASS" "$ORIGINAL_A_LOG"
+          grep -F "UR_RACER_PRESENTATION_PROBE PASS" "$ORIGINAL_B_LOG"
           grep -F "UR_RACER_PRESENTATION_PROBE PASS" "$HD_LOG"
           grep -F "p1_primary=0541" "$HD_LOG"
           grep -F "p2_primary=0540" "$HD_LOG"
@@ -141,7 +174,8 @@ jobs:
           grep -F "selected=remastered" "$HD_LOG"
 
           # Only the enabled run may enter the host draw-frame substitution.
-          if grep -F "UR_RACER_HD_DRAW PASS" "$ORIGINAL_LOG"; then
+          if grep -F "UR_RACER_HD_DRAW PASS" "$ORIGINAL_A_LOG" || \
+             grep -F "UR_RACER_HD_DRAW PASS" "$ORIGINAL_B_LOG"; then
             echo "::error::Original control unexpectedly drew an HD replacement"
             exit 1
           fi
@@ -149,7 +183,7 @@ jobs:
           grep -F "semantic=0541" "$HD_LOG"
           grep -F "guest_state_unchanged=1" "$HD_LOG"
 
-          python3 - "$ORIGINAL_SHOT" "$HD_SHOT" <<'PY'
+          python3 - "$ORIGINAL_A_SHOT" "$ORIGINAL_B_SHOT" "$HD_SHOT" <<'PY'
           import hashlib
           import pathlib
           import sys
@@ -163,13 +197,16 @@ jobs:
               dims = tuple(map(int, lines[1].split()))
               return dims, payload, hashlib.sha256(data).hexdigest()
 
-          od, op, oh = ppm(sys.argv[1])
-          hd, hp, hh = ppm(sys.argv[2])
-          assert od == (256, 224), od
+          ad, ap, ah = ppm(sys.argv[1])
+          bd, bp, bh = ppm(sys.argv[2])
+          hd, hp, hh = ppm(sys.argv[3])
+          assert ad == (256, 224), ad
+          assert bd == (256, 224), bd
           assert hd == (256, 224), hd
-          assert oh != hh, "enabled replacement screenshot is byte-identical to Original"
-          assert op != hp, "enabled replacement did not alter presented pixels"
-          print(f"UR_RACER_HD_VISUAL PASS original_sha256={oh} hd_sha256={hh}")
+          assert ah == bh and ap == bp, "disabled Original screenshots are not deterministic"
+          assert ah != hh, "enabled replacement screenshot is byte-identical to Original"
+          assert ap != hp, "enabled replacement did not alter presented pixels"
+          print(f"UR_RACER_HD_VISUAL PASS original_sha256={ah} hd_sha256={hh}")
           PY
 
       - name: Upload compact acceptance log
@@ -178,9 +215,11 @@ jobs:
         with:
           name: native-racer-presentation-acceptance
           path: |
-            ${{ runner.temp }}/racer-original.log
+            ${{ runner.temp }}/racer-original-a.log
+            ${{ runner.temp }}/racer-original-b.log
             ${{ runner.temp }}/racer-hd.log
-            ${{ runner.temp }}/racer-original-1220.ppm
+            ${{ runner.temp }}/racer-original-a-1220.ppm
+            ${{ runner.temp }}/racer-original-b-1220.ppm
             ${{ runner.temp }}/racer-hd-1220.ppm
           if-no-files-found: warn
           retention-days: 7

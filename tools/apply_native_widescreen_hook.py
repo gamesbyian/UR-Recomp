@@ -107,8 +107,8 @@ static uint16 ur_ws_native_read16_bank(CpuState *cpu, uint8 bank, uint16 addr) {
  *
  * The stock primary edge is camera-cell X + 12 on the retained Dragster
  * fixture. Column +1 is intentionally left on the accepted guest +8 path.
- * Host-owned column +2 is therefore camera-cell X + 14. The visible
- * vertical strip starts three fine cells above the camera-cell Y.
+ * Host-owned column +2 is therefore camera-cell X + 14. Camera Y at
+ * $041D already names the stock vertical strip's first fine-cell row.
  */
 static int ur_ws_native_shadow_from_course(CpuState *cpu, uint16 first_edge) {
   const uint16 camx = ur_ws_native_read16(cpu, 0x0419);
@@ -118,7 +118,7 @@ static int ur_ws_native_shadow_from_course(CpuState *cpu, uint16 first_edge) {
     return 0;
 
   const uint16 fine_x = (uint16)((camx >> 4) + 14);
-  const int fine_y0 = (int)(camy >> 4) - 3;
+  const int fine_y0 = (int)(camy >> 4);
   if (fine_y0 < 0)
     return 0;
 

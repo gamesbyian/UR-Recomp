@@ -23,6 +23,8 @@ int main() {
 
     assert(racer_hd_asset_available(0x0541));
     assert(racer_hd_asset_available(0x0540));
+    assert(racer_hd_asset_available(0x057D));
+    assert(racer_hd_asset_available(0x0543));
     assert(racer_hd_asset_available(0x057E));
     assert(racer_hd_asset_available(0x0544));
     assert(!racer_hd_asset_available(0x0999));

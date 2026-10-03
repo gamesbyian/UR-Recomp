@@ -35,7 +35,7 @@ jobs:
         run: python3 -m unittest tests.unit.test_racer_hd_replacement_prototype tests.unit.test_racer_hd_temporal_coherence -v
       - name: Render synchronized semantic replacement prototypes
         run: |
-          for frame in 0541 0540 057E 0544; do
+          for frame in 0541 0540 057D 0543 057E 0544; do
             python3 tools/prototype_racer_hd_replacement.py \
               "reference/roms/retail/Uniracers_USA.sfc" \
               --semantic-frame-id "0x$frame" \
@@ -50,6 +50,8 @@ jobs:
           expected_contacts = {
               "0541": [61, 76],
               "0540": [63, 76],
+              "057D": [69, 76],
+              "0543": [57, 76],
               "057E": [67, 76],
               "0544": [55, 76],
           }
@@ -109,6 +111,25 @@ jobs:
             --player p2 --palette-asset-id 0x07 \
             | tee "$RUNNER_TEMP/racer-second-sync-p2.json"
 
+      - name: Measure adjacent synchronized racer anchors
+        run: |
+          python3 tools/measure_racer_composed_anchor.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --p1-primary 0x057D --p2-primary 0x0543 \
+            --p1-companion 0x0D48 --p2-companion 0x0000 \
+            --p1-selector 0 --p2-selector 0 \
+            --p1-gate 0x0001 --p2-gate 0x0000 \
+            --player p1 --palette-asset-id 0x06 \
+            | tee "$RUNNER_TEMP/racer-adjacent-sync-p1.json"
+          python3 tools/measure_racer_composed_anchor.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --p1-primary 0x057D --p2-primary 0x0543 \
+            --p1-companion 0x0D48 --p2-companion 0x0000 \
+            --p1-selector 0 --p2-selector 0 \
+            --p1-gate 0x0001 --p2-gate 0x0000 \
+            --player p2 --palette-asset-id 0x07 \
+            | tee "$RUNNER_TEMP/racer-adjacent-sync-p2.json"
+
       - name: Upload compact visual proof
         uses: actions/upload-artifact@v4
         with:
@@ -116,8 +137,12 @@ jobs:
           path: |
             ${{ runner.temp }}/racer-hd-prototype-0541/
             ${{ runner.temp }}/racer-hd-prototype-0540/
+            ${{ runner.temp }}/racer-hd-prototype-057D/
+            ${{ runner.temp }}/racer-hd-prototype-0543/
             ${{ runner.temp }}/racer-hd-prototype-057E/
             ${{ runner.temp }}/racer-hd-prototype-0544/
             ${{ runner.temp }}/racer-hd-temporal-coherence.json
             ${{ runner.temp }}/racer-hd-temporal-coherence.txt
+            ${{ runner.temp }}/racer-adjacent-sync-p1.json
+            ${{ runner.temp }}/racer-adjacent-sync-p2.json
           if-no-files-found: error

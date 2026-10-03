@@ -1,6 +1,6 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -4607,5 +4607,8 @@
+@@ -4607,4 +4607,7 @@
  static void HandleGamepadInput(GamepadInfo *gi, int button, bool pressed) {
 +  if (g_game->system_gamepad_button &&
 +      g_game->system_gamepad_button(button, pressed))
@@ -10,7 +10,7 @@
    gi->modifiers ^= 1 << button;
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -199,5 +199,10 @@
+@@ -199,4 +199,9 @@
    int (*system_key_down)(int key, int mod, int repeat);
  
 +  /* Optional title-owned normalized gamepad-button seam. Called before the

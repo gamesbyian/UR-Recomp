@@ -6,6 +6,7 @@ from tools.build_racer_hd_asset_dossier import (
     RESOLVED_VISUAL_LANGUAGE,
     build_first_authored_candidate_rgba,
     exact_window_rows,
+    gameplay_sampled_alpha_review,
     observation_map,
     registry_by_representation,
     safe_name,
@@ -150,6 +151,15 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         )
         bottom = [x for x, y in occupied if y == 38]
         self.assertEqual([min(bottom), max(bottom)], [29, 32])
+
+        stock = bytearray(64 * 64 * 4)
+        for y in range(3, 39):
+            for x in range(22, 40):
+                stock[((y * 64 + x) * 4) + 3] = 255
+        review = gameplay_sampled_alpha_review(rgba, bytes(stock))
+        self.assertEqual(review["candidate_alpha_bounds"], [22, 3, 39, 38])
+        self.assertEqual(review["candidate_contact_x2_y2"], [61, 76])
+        self.assertGreater(review["alpha_iou"], 0.3)
 
     def test_safe_name_is_path_stable(self):
         self.assertEqual(safe_name("racer / 0x0541:p1"), "racer-0x0541-p1")

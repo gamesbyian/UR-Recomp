@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-02",
+  "lane": "widescreen-presentation-capacity-plus16",
+  "baseline": {
+    "margin0_control": "untouched",
+    "accepted_plus8": {
+      "pr": 228,
+      "workflow_run": 37081391730,
+      "prepare_events": 617,
+      "exact_later_stock_matches": 317,
+      "longest_exact_run": 25
+    }
+  },
+  "experiments": [
+    {
+      "hypothesis": "repeat-stock-A59E-inside-snapshotted-replay",
+      "workflow_run": 37083769287,
+      "artifact_id": 11258704967,
+      "result": "rejected",
+      "margin16_first_column_events": 617,
+      "margin16_shadow_candidates": 557,
+      "comparable_adjacent_pairs": 557,
+      "first_column_exact_later_stock_matches": 317,
+      "second_column_exact_later_stock_matches": 31,
+      "first_column_longest_exact_run": 25,
+      "second_column_longest_exact_run": 22,
+      "protected_state_equal": true,
+      "structural_stop_events": 60,
+      "reason": "The immediate repeated helper does not reliably represent the second future stock column."
+    },
+    {
+      "hypothesis": "clone-complete-A52F-entry-offset-clone-camera-plus16",
+      "workflow_run": 37084288683,
+      "artifact_id": 11259897420,
+      "result": "rejected",
+      "margin16_first_column_events": 617,
+      "margin16_shadow_candidates": 314,
+      "comparable_adjacent_pairs": 314,
+      "first_column_exact_later_stock_matches": 317,
+      "second_column_exact_later_stock_matches": 0,
+      "first_column_longest_exact_run": 25,
+      "second_column_longest_exact_run": 0,
+      "protected_state_equal": true,
+      "reason": "A disposable full stock preparation replay at a +16 cloned camera position still does not produce the required second future stock content."
+    }
+  ],
+  "conclusion": {
+    "direct_guest_preparation_replay_for_plus16": "rejected",
+    "synthetic_guest_descriptor_lanes": "forbidden",
+    "accepted_plus8_unchanged": true,
+    "authoritative_state_mutation_required": false,
+    "liveness_gate": "not_run_after_plus16_preparation_acceptance_failed",
+    "next_architecture_discriminator": "host-owned presentation data/capacity must obtain additional future columns from a semantic/random-access presentation source rather than recursively replaying the one-column guest demand scheduler"
+  }
+}

@@ -159,7 +159,7 @@
       ],
       "class": "gameplay_mechanic",
       "modern": "preserve",
-      "rationale": "Challenger and challenge-track selection define the VS mode contest structure. Runtime evidence is still historical-only (0x3F/0x5A bot labels), so promote it before any modern VS redesign is proposed."
+      "rationale": "PICK CHALLENGER appears only after a decided VS race and is driven by the loser's pad; the challenger then chooses the next track (five options); draws rematch automatically. This winner-stays contest structure is a mode rule. Reproduced on snesref (R-2026-10-03-UI-10); native/Mesen confirmation pending."
     },
     {
       "id": "tour-track-selection-presentation",
@@ -268,12 +268,16 @@
     {
       "id": "post-result-navigation",
       "states": [
-        "POST_RESULT_DECISION"
+        "POST_RESULT_DECISION",
+        "RESULT_RACE",
+        "RESULT_CIRCUIT",
+        "RESULT_STUNT",
+        "VS_CHALLENGE_TRACK"
       ],
       "class": "administrative",
       "modern": "redesign_candidate",
-      "rationale": "Next-track/do-not-advance navigation is menu routing. Modern rematch, next event and track rotation may replace it; its contents for Circuit/Stunt/2P/VS/League are still open (UIQ-005).",
-      "decision_gate": "Fast navigation affordances (recent track, rematch, next event) design."
+      "rationale": "Stock 1P results (race/circuit/stunt) drop straight to TRACK_SELECT. Stock VS already offers NEXT TRACK / SAME TRACK / SELECT TRACK / SELECT TOUR / QUIT after a decided race and an automatic REMATCH after a draw (R-2026-10-03-UI-10). The modern rematch/next-event affordance can therefore reuse VS's own choice set and visual grammar for 1P instead of inventing one.",
+      "decision_gate": "Fast navigation affordances design; candidate is to extend the stock VS track-choice set to 1P results."
     },
     {
       "id": "league-standings-presentation",

@@ -379,5 +379,40 @@ int main() {
     assert(find_racer_registration_for_state(0x0540, discriminator_a) !=
            find_racer_registration_for_state(0x0540, discriminator_b));
 
+    const RacerCompositionState p057f_p0542_context{
+        0x057F,
+        0x0542,
+        0x0D4A,
+        0x0000,
+        0,
+        0,
+        0x0001,
+        0x0000,
+    };
+    const auto* p1_057f_0542 =
+        find_racer_registration_for_state(0x057F, p057f_p0542_context);
+    const auto* p2_057f_0542 =
+        find_racer_registration_for_state(0x0542, p057f_p0542_context);
+    assert(p1_057f_0542 != nullptr);
+    assert(p2_057f_0542 != nullptr);
+    assert(p1_057f_0542->player == 1);
+    assert(p2_057f_0542->player == 2);
+    assert(p1_057f_0542->contact_anchor.x2 == 65);
+    assert(p1_057f_0542->contact_anchor.y2 == 76);
+    assert(p2_057f_0542->contact_anchor.x2 == 59);
+    assert(p2_057f_0542->contact_anchor.y2 == 76);
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x057F, p057f_p0542_context
+    ).registration == p1_057f_0542);
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0542, p057f_p0542_context
+    ).registration == p2_057f_0542);
+
+    auto p057f_p0542_mismatch = p057f_p0542_context;
+    p057f_p0542_mismatch.p1_companion = 0x0D49;
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x057F, p057f_p0542_mismatch
+    ).fallback_reason == FallbackReason::CompositionMismatch);
+
     return 0;
 }

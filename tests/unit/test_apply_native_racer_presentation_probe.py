@@ -14,6 +14,9 @@ class NativeRacerPresentationProbePatchTests(unittest.TestCase):
         patched = patch_main(source)
         self.assertIn("UrRacerPresentationProbeAfterRunFrame", patched)
         self.assertIn(".after_run_frame", patched)
+        self.assertIn(".prepare_frame", patched)
+        self.assertIn(".begin_sim_frame", patched)
+        self.assertIn(".draw_frame", patched)
         self.assertEqual(patch_main(patched), patched)
 
     def test_cmake_patch_targets_generated_game(self):
@@ -21,13 +24,16 @@ class NativeRacerPresentationProbePatchTests(unittest.TestCase):
         patched = patch_cmake(source)
         self.assertIn("racer_replacement_selector.cpp", patched)
         self.assertIn("racer_guest_snapshot.cpp", patched)
+        self.assertIn("racer_oam_placement.cpp", patched)
+        self.assertIn("racer_hd_presenter.cpp", patched)
         self.assertIn("ur_racer_presentation_probe.cpp", patched)
         self.assertIn("UR_RECOMP_SOURCE_ROOT", CMAKE_BLOCK)
         self.assertEqual(patch_cmake(patched), patched)
 
-    def test_probe_is_observer_only(self):
+    def test_probe_keeps_guest_state_read_only(self):
         body = PROBE_CPP.replace("extern std::uint8_t g_ram[0x20000];", "")
         self.assertIn("select_racer_presentation_from_wram", PROBE_CPP)
+        self.assertIn("racer_hd_draw_frame", PROBE_CPP)
         self.assertNotIn("g_ram[", body)
         self.assertNotIn("memcpy", PROBE_CPP)
         self.assertNotIn("RtlPoke", PROBE_CPP)

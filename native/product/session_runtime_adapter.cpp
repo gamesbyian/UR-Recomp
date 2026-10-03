@@ -27,6 +27,9 @@ RuntimeDispatchStatus dispatch_runtime_action(
         if (restart_lifecycle) {
             switch (restart_lifecycle->restart()) {
             case RestartAnchorRestoreStatus::Restored:
+                if (hooks.reconcile_after_restart) {
+                    hooks.reconcile_after_restart();
+                }
                 return RuntimeDispatchStatus::Applied;
             case RestartAnchorRestoreStatus::MissingHook:
                 return RuntimeDispatchStatus::MissingHook;

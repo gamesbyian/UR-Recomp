@@ -16,6 +16,8 @@ on:
       - "tests/unit/test_analyze_native_widescreen_hook_acceptance.py"
       - "tests/unit/test_analyze_native_widescreen_reachability.py"
       - "tests/input/preparation-emission-race.script"
+      - "tests/input/object-liveness-dragster.script"
+      - "tools/summarize_object_liveness_probe.py"
 
 concurrency:
   group: widescreen-native-hook-${{ github.ref }}

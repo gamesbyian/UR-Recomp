@@ -445,6 +445,27 @@ Retained production-materializer acceptance records:
 
 This closes the +16 production strip-provider seam for the representative Dragster path. The next bounded preparation experiment is additional host-owned columns: generalize the same materializer to +24 and then toward the final 16:9 exposure target. Keep stock 4:3 and the accepted +8 guest path as controls; do not widen gameplay activation, final composition, HUD, or racer-HD logic as part of that preparation experiment.
 
+
+## +24 host-materializer generalization
+
+Native workflow run `37097604758` generalizes the accepted production materializer from one host-owned column to two without adding any guest descriptor lane. Column +1 remains the accepted PR #228 guest secondary-lane result; columns +2 and +3 are retained only in host/native presentation storage and are generated from the same live `7F:000F` coarse-sector and `7F:800F` packed-surface tables.
+
+The retained +24 run records:
+
+- 617 guest preparation events;
+- 1,234 host-owned column events, exactly two for every preparation;
+- 1,197 same-effective-view rows independently comparable to later stock, with **1,197/1,197 exact 32-byte payload matches**;
+- 37 rows explicitly classified as vertical-view transitions;
+- zero unmatched oracle rows and zero provider misses;
+- a complete adjacent low-five-bit ring chain across guest column +1 and host columns +2/+3;
+- deterministic cleanup and no protected WRAM differences;
+- 61/61 liveness samples with no protected differences; +24 reaches the same `liveness-004` progression event on the same guest frame as control.
+
+The independent later-stock run remains acceptance-only and is never consulted by the production provider. This removes the previous one-host-column storage cap and establishes that the random-access host materializer naturally scales at least through +24. It does **not** yet prove the final 16:9 capacity ceiling. The next bounded Widescreen preparation experiment should extend the same host-owned representation toward the actual 16:9 column count, still without advancing camera, simulation, object activation, progression, collision or gameplay horizons.
+
+Evidence: workflow run `37097604758`; artifact `widescreen-native-hook-evidence`; retained summaries `analysis/generated/widescreen-plus24-materializer-acceptance-2026-10-03.{json,md}` and `analysis/generated/widescreen-plus24-materializer-liveness-2026-10-03.json`.
+
+
 Positive evidence:
 `analysis/generated/widescreen-plus16-materializer-acceptance-2026-10-03.{json,md}` and `analysis/generated/widescreen-plus16-materializer-liveness-2026-10-03.json`.
 

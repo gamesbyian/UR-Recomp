@@ -1,12 +1,15 @@
 import unittest
 
 from tools.build_racer_hd_asset_dossier import (
+    FIRST_AUTHORED_REPRESENTATION_ID,
     PENDING_ART_DECISIONS,
     RESOLVED_VISUAL_LANGUAGE,
+    build_first_authored_candidate_rgba,
     exact_window_rows,
     observation_map,
     registry_by_representation,
     safe_name,
+    sample_authored_0541_p1_rgba,
     transition_context,
 )
 
@@ -110,6 +113,24 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         )
         self.assertIn("specular_highlight_policy", RESOLVED_VISUAL_LANGUAGE)
         self.assertEqual(PENDING_ART_DECISIONS, [])
+
+    def test_first_authored_candidate_material_regions(self):
+        self.assertEqual(
+            FIRST_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x0541-p1-sync-reference",
+        )
+        self.assertEqual(sample_authored_0541_p1_rgba(100, 100), bytes((246, 244, 242, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(100, 90), bytes((64, 60, 53, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(108, 36), bytes((75, 71, 65, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(115, 51), bytes((232, 83, 83, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(0, 0), bytes((0, 0, 0, 0)))
+
+        rgba = build_first_authored_candidate_rgba()
+        self.assertEqual(len(rgba), 256 * 256 * 4)
+        self.assertGreater(
+            sum(1 for i in range(3, len(rgba), 4) if rgba[i] != 0),
+            1000,
+        )
 
     def test_safe_name_is_path_stable(self):
         self.assertEqual(safe_name("racer / 0x0541:p1"), "racer-0x0541-p1")

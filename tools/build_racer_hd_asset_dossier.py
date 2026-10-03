@@ -77,6 +77,85 @@ RESOLVED_VISUAL_LANGUAGE = {
 
 PENDING_ART_DECISIONS = []
 
+FIRST_AUTHORED_REPRESENTATION_ID = "ordinary-racer-0x0541-p1-sync-reference"
+
+
+def _rgba32(r: int, g: int, b: int, a: int = 255) -> bytes:
+    return bytes((r, g, b, a))
+
+
+def authored_red_frame_rgba(x: int, y: int) -> bytes:
+    light = (255 - x) + (255 - y)
+    if light > 335:
+        return _rgba32(232, 83, 83)
+    if light > 300:
+        return _rgba32(201, 52, 52)
+    if light > 260:
+        return _rgba32(163, 37, 37)
+    return _rgba32(120, 24, 24)
+
+
+def authored_metal_rgba(x: int, y: int) -> bytes:
+    light = (255 - x) + (255 - y)
+    if light > 305:
+        return _rgba32(246, 244, 242)
+    if light > 275:
+        return _rgba32(217, 213, 208)
+    return _rgba32(159, 153, 142)
+
+
+def sample_authored_0541_p1_rgba(x: int, y: int) -> bytes:
+    """Mirror the first native authored Remastered candidate exactly."""
+    if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
+        return b"\x00\x00\x00\x00"
+
+    wheel_cx = 124
+    wheel_cy = 116
+    wx = x - wheel_cx
+    wy = y - wheel_cy
+    wr2 = wx * wx + wy * wy
+    tire = wr2 <= 39 * 39 and wr2 >= 31 * 31
+    rim = wr2 < 31 * 31 and wr2 >= 28 * 28
+    hub = wr2 <= 7 * 7
+
+    fork_center = 122 + (112 - y) // 18
+    fork = y >= 54 and y <= 111 and x >= fork_center - 4 and x <= fork_center + 4
+
+    crank = y >= 108 and y <= 115 and x >= 111 and x <= 137
+    pedal = y >= 105 and y <= 110 and x >= 137 and x <= 149
+
+    seat_dx = x - 116
+    seat_dy = y - 43
+    seat = (
+        (seat_dx * seat_dx) * 9 + (seat_dy * seat_dy) * 64 <= 30 * 30 * 9
+        and y >= 34 and y <= 50
+    )
+
+    neck = y >= 47 and y <= 70 and x >= 115 and x <= 130
+    crown_dx = x - 123
+    crown_dy = y - 67
+    crown = crown_dx * crown_dx + crown_dy * crown_dy <= 12 * 12
+
+    if hub or rim or crank or pedal:
+        return authored_metal_rgba(x, y)
+    if seat:
+        seat_light = (255 - x) + (255 - y)
+        return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
+    if fork or neck or crown:
+        return authored_red_frame_rgba(x, y)
+    if tire:
+        tire_light = (255 - x) + (255 - y)
+        return _rgba32(64, 60, 53) if tire_light > 310 else _rgba32(32, 29, 23)
+    return b"\x00\x00\x00\x00"
+
+
+def build_first_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0541_p1_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
 
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
@@ -220,6 +299,30 @@ def build_dossier(
             "nearest4": nearest_png,
             "contract_candidate": candidate_png,
         }
+        authored_candidate = None
+        authored_meta = entry.get("authored_candidate")
+        if authored_meta is not None:
+            if rid != FIRST_AUTHORED_REPRESENTATION_ID:
+                raise ValueError(f"unsupported authored candidate registration: {rid}")
+            if authored_meta.get("artifact_generator") != (
+                "tools/build_racer_hd_asset_dossier.py::build_first_authored_candidate_rgba"
+            ):
+                raise ValueError(f"unsupported authored candidate generator for {rid}")
+            authored_rgba = build_first_authored_candidate_rgba()
+            authored_png = encode_png_rgba(W * 4, H * 4, authored_rgba)
+            assets[rid]["authored_candidate"] = authored_png
+            authored_candidate = {
+                **authored_meta,
+                "dimensions": [W * 4, H * 4],
+                "rgba_sha256": sha256(authored_rgba),
+                "png": f"authored-candidate/{safe_name(rid)}.png",
+                "png_sha256": sha256(authored_png),
+                "visual_language": dict(RESOLVED_VISUAL_LANGUAGE),
+                "native_parity": (
+                    "mirrors native/presentation/racer_hd_presenter.hpp "
+                    "sample_racer_hd_authored_0541_p1"
+                ),
+            }
 
         representations.append({
             "representation_id": rid,
@@ -269,6 +372,7 @@ def build_dossier(
             "art_review": {
                 "shipping_art_approved": False,
                 "evidence_packet_ready": True,
+                "authored_candidate": authored_candidate,
                 "resolved_decisions": dict(RESOLVED_VISUAL_LANGUAGE),
                 "pending_decisions": list(PENDING_ART_DECISIONS),
                 "visual_language_authority": "docs/HD-ART-DIRECTION.md",
@@ -334,13 +438,15 @@ def build_dossier(
 
 def write_dossier(output_dir: Path, dossier: dict, assets: dict[str, dict[str, bytes]]) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
-    for kind in ("stock", "nearest-4x", "contract-candidate"):
+    for kind in ("stock", "nearest-4x", "contract-candidate", "authored-candidate"):
         (output_dir / kind).mkdir(parents=True, exist_ok=True)
     for rid, payloads in assets.items():
         name = safe_name(rid) + ".png"
         (output_dir / "stock" / name).write_bytes(payloads["stock"])
         (output_dir / "nearest-4x" / name).write_bytes(payloads["nearest4"])
         (output_dir / "contract-candidate" / name).write_bytes(payloads["contract_candidate"])
+        if "authored_candidate" in payloads:
+            (output_dir / "authored-candidate" / name).write_bytes(payloads["authored_candidate"])
     (output_dir / "manifest.json").write_text(
         json.dumps(dossier, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",

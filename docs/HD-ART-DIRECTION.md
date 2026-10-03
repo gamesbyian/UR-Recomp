@@ -76,6 +76,14 @@ The conservative material baseline is now also constrained. This is a synthesis 
 
 With that rule, the first-family **visual-language baseline is closed enough to author a real Remastered candidate**. Candidate review may still tune numeric intensities, but it should do so inside these constraints rather than reopening material class, lighting space, edge treatment, shadow, or detail policy.
 
+### First authored review candidate
+
+The first actual Remastered racer candidate now exists for exact representation `ordinary-racer-0x0541-p1-sync-reference` (`0541/0540 + 0D0D/0000`, P1 palette `0x06`). It is a 4x-density procedural high-resolution asset using the closed baseline above rather than the generic Scale2x contract placeholder.
+
+Native acceptance run `37142692369` proves the authored representation flows through the real host selector and split-screen presenter at frame 1220 in both top and bottom viewports with `guest_state_unchanged=1`, zero stable WRAM differences, and unchanged Original control hash. The HD presented-frame hash is `dfd77dfb975e5f5117569a492196b5ee46ff90409d84994b005d87a577833c15`. Artifact `11281156106` retains the regenerated 16-frame / 14-representation dossier plus the authored review PNG.
+
+Status is **accepted for review, not approved shipping art**. The next decision is visual/in-motion review: keep, tune, or reject this candidate against the dossier and neighboring-frame motion before authoring the rest of the family. Do not scale production merely because the runtime path is green.
+
 Secondary appearance references include the official North American/European packaging scans and the 2010 developer feature. They agree with the stock dossier on dark wheel/saddle masses, colored glossy body/frame forms, and brighter neutral hardware. Do not copy marketing-only sparkle/star effects into ordinary gameplay frames merely because they appear in packaging art.
 
 Reference provenance:

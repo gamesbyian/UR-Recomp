@@ -19,8 +19,10 @@
          HandleInput(SNESRECOMP_SDL_EVENT_KEY(event),
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -186,2 +186,11 @@
+@@ -185,5 +185,14 @@
+    * exactly where they left off. Zero keeps today's behaviour exactly. */
    int in_game_launcher;
++
 +  /* Optional title-owned system-key seam. Called before the ordinary host
 +   * keymap for SDL key-down events. Return nonzero to consume the press and
 +   * keep it out of HandleInput; return zero to preserve the existing host
@@ -30,3 +32,5 @@
 +   * guest controller input. */
 +  int (*system_key_down)(int key, int mod, int repeat);
  } SnesDesktopHostGame;
+ 
+ /* The whole program. Returns the process exit code. */

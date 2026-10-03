@@ -37,6 +37,7 @@ class ModernPauseInputCppTests(unittest.TestCase):
                 cwd=ROOT,
                 check=True,
             )
+            self.assertTrue(exe.is_file())
             subprocess.run([str(exe)], cwd=ROOT, check=True)
 
 

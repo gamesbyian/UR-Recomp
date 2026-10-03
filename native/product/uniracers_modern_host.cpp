@@ -105,6 +105,18 @@ bool persist_product_state(const ur::product::HostProductState& candidate) {
     return true;
 }
 
+bool toggle_focus_pause_setting() {
+    if (!modern_mode()) return false;
+    ur::product::HostProductState candidate = g_product_state;
+    candidate.settings.pause_on_focus_loss =
+        !candidate.settings.pause_on_focus_loss;
+    if (!persist_product_state(candidate)) {
+        return false;
+    }
+    g_product_state = candidate;
+    return true;
+}
+
 std::size_t save_snapshot(void* dst, std::size_t capacity) {
     return RtlRollbackSaveToMemory(dst, capacity);
 }
@@ -183,6 +195,17 @@ bool dispatch(UrModernPauseAction action) {
            result == UR_MODERN_SESSION_NO_OP;
 }
 
+bool activate_pause_selection() {
+    if (!ensure_session() || !paused()) return false;
+    const int restart = ur_modern_session_restart_available(g_session);
+    const UrModernPauseItem selected =
+        ur_modern_pause_menu_selected(&g_pause_menu, restart);
+    if (selected == UR_MODERN_PAUSE_FOCUS_PAUSE) {
+        return toggle_focus_pause_setting();
+    }
+    return dispatch(UR_MODERN_PAUSE_ACTIVATE);
+}
+
 }  // namespace
 
 extern "C" void ur_uniracers_modern_after_run_frame(
@@ -215,13 +238,7 @@ extern "C" int ur_uniracers_modern_system_key_down(
     if (repeat || !ensure_session()) return 0;
 
     if (paused() && key == SDLK_f && modern_mode()) {
-        ur::product::HostProductState candidate = g_product_state;
-        candidate.settings.pause_on_focus_loss =
-            !candidate.settings.pause_on_focus_loss;
-        if (!persist_product_state(candidate)) {
-            return 1;
-        }
-        g_product_state = candidate;
+        (void)toggle_focus_pause_setting();
         return 1;
     }
 
@@ -236,7 +253,7 @@ extern "C" int ur_uniracers_modern_system_key_down(
         return dispatch(UR_MODERN_PAUSE_NEXT) ? 1 : 0;
     }
     if (paused() && (key == SDLK_RETURN || key == SDLK_KP_ENTER)) {
-        return dispatch(UR_MODERN_PAUSE_ACTIVATE) ? 1 : 0;
+        return activate_pause_selection() ? 1 : 0;
     }
     if (key == SDLK_r && (mod & KMOD_CTRL) &&
         restart_surface() &&
@@ -268,7 +285,7 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         return dispatch(UR_MODERN_PAUSE_NEXT) ? 1 : 0;
     }
     if (button == kGamepadBtn_A) {
-        return dispatch(UR_MODERN_PAUSE_ACTIVATE) ? 1 : 0;
+        return activate_pause_selection() ? 1 : 0;
     }
     if (button == kGamepadBtn_B) {
         return dispatch(UR_MODERN_PAUSE_CANCEL) ? 1 : 0;
@@ -293,7 +310,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
     const int panel_w = width < 220 ? width - 16 : 212;
-    const int panel_h = is_paused ? 69 : 30;
+    const int panel_h = is_paused ? (restart ? 69 : 54) : 30;
     const int x = (width - panel_w) / 2;
     const int y = is_paused ? (height - panel_h) / 2 : height - panel_h - 8;
 
@@ -320,10 +337,16 @@ extern "C" void ur_uniracers_modern_system_overlay(
                     ? "> RESTART" : "  RESTART",
                 0xFFFFFFFFu, 1);
         }
+        const int focus_y = restart ? y + 52 : y + 37;
+        const bool focus_selected =
+            selected == UR_MODERN_PAUSE_FOCUS_PAUSE;
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 52,
+            pixels, stride, height, x + 8, focus_y,
             g_product_state.settings.pause_on_focus_loss
-                ? "F  FOCUS PAUSE ON" : "F  FOCUS PAUSE OFF",
+                ? (focus_selected
+                    ? "> FOCUS PAUSE ON" : "  FOCUS PAUSE ON")
+                : (focus_selected
+                    ? "> FOCUS PAUSE OFF" : "  FOCUS PAUSE OFF"),
             0xFFFFFFFFu, 1);
     } else {
         snes_ovl_draw_text(

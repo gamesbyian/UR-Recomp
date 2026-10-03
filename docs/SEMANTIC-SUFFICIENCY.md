@@ -1,6 +1,6 @@
 # Semantic Sufficiency Scoreboard
 
-Last updated: 2026-10-02
+Last updated: 2026-10-03
 
 This is a product-facing readiness map, not a decompilation-completeness score. A subsystem is judged by whether the project can **observe** its authoritative state, **explain** the behavior needed by the product, **modify safely** at the correct ownership seam, and **validate** the result.
 

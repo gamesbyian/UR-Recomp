@@ -49,6 +49,10 @@ jobs:
           assert m["validation"]["whole_canvas_registration_preserved"] is True
           assert m["validation"]["orientation_applied_post_selection"] is True
           assert m["remastered_candidate"]["dimensions"] == [256, 256]
+          assert m["derived_anchor_probe"]["flip_pivot_x2_y2"] == [63, 63]
+          assert m["derived_anchor_probe"]["stock_contact_x2_y2"] == [61, 76]
+          assert m["validation"]["semantic_anchor_metadata_exact"] is True
+          assert m["validation"]["missing_registration_metadata"] == []
           assert (root / m["original"]["comparison_png"]).is_file()
           assert (root / m["remastered_candidate"]["png"]).is_file()
           print(json.dumps(m["validation"], indent=2, sort_keys=True))

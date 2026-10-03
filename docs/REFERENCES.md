@@ -58,3 +58,7 @@ Detailed technical history, source provenance, and acquisition status:
 High-value sources include Mike Dailly's own SNES tool/hardware notes, the 2010 developer retrospective, the archived level-viewer thread reporting Dailly correspondence, the 1994-11-29 PAL prototype record, and the DMA press-material archive. See SOURCE-INDEX.md for confidence labels and exact URLs.
 
 - External decomp/recomp/ROM reverse-engineering practice archaeology, including multilingual sources: `reference/notes/external-reverse-engineering-practices.md`.
+
+## Platform-port references
+
+For the personal-use Nintendo Switch homebrew feasibility lane, exact public-source pins are recorded in `third_party/platform/switch/pins.json`. A small provenance-managed subset of official libnx/switch-examples material is preserved under `reference/imported/platforms/switch/`, including the canonical application template and SDL2-simple example. These are portability references, not evidence about original Uniracers behavior.

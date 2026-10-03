@@ -7,6 +7,8 @@ The repository uses a single `reference/` root for all preserved research inputs
 - `reference/roms/` contains preserved ROM builds used as project inputs.
 - `reference/tools/` contains project-local historical/reference tool packages.
 - `reference/imported/` contains provenance-managed third-party research artifacts.
+
+- `reference/imported/platforms/` contains pinned public platform-port reference material used to design personal-use host ports; it must not contain proprietary SDKs, confidential documentation, keys, device secrets or circumvention payloads.
 - `reference/notes/` contains project-authored summaries and technical observations.
 - `reference/catalog.yml` and `reference/evidence-worklist.json` are the source registry and evidence queue.
 

@@ -22,6 +22,12 @@ Preserved development builds and source archives live under `reference/roms/` an
 
 See `docs/ROM-SAFETY.md`.
 
+## Platform targets
+
+The modern port is now explicitly host-portable. **Windows x64 is the primary consumer/reference build**, with planned peer targets for modern macOS, a best-effort macOS 10.13 High Sierra legacy build, WebAssembly/browser execution, Nintendo Switch homebrew, and a PlayStation 5 personal-use port when lawful tooling is available. All targets share the same authoritative recompiled simulation; platform-specific code stays in host adapters.
+
+See `docs/PLATFORM-TARGETS.md` and `docs/SWITCH-HOMEBREW-PORT.md`.
+
 ## Framework
 
 Target framework: https://github.com/RetroPortingToolKit/snesrecomp

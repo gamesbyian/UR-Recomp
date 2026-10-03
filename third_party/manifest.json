@@ -227,6 +227,45 @@
         "registry_packages": 11,
         "stage_into": "recompiler-rs"
       }
+    },
+    {
+      "id": "libnx",
+      "mode": "pending",
+      "upstream_url": "https://github.com/switchbrew/libnx.git",
+      "revision": "feebd026ca0f5dcc2119f46ad8e0d16ad3dd4973",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": "ISC",
+      "license_path": null,
+      "notes": "Pinned public source reference for the Switch homebrew feasibility lane. Runtime/build installation remains devkitPro-managed until a repository-owned closure is justified.",
+      "provenance_path": "third_party/platform/switch/pins.json"
+    },
+    {
+      "id": "switch-examples",
+      "mode": "pending",
+      "upstream_url": "https://github.com/switchbrew/switch-examples.git",
+      "revision": "669786898205b7beb25ff1731e72982e6d0397d3",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": "LicenseRef-Public-Domain-Mark",
+      "license_path": null,
+      "notes": "Pinned canonical public Switch usage examples, including SDL2 examples. Reference-only until a concrete port probe needs a repository-owned snapshot.",
+      "provenance_path": "third_party/platform/switch/pins.json"
+    },
+    {
+      "id": "switch-tools",
+      "mode": "pending",
+      "upstream_url": "https://github.com/switchbrew/switch-tools.git",
+      "revision": "22756068dd0ed6ff9734c59cb4f99ebd3f62555b",
+      "source_path": null,
+      "archive_path": null,
+      "source_sha256": null,
+      "license_spdx": null,
+      "license_path": null,
+      "notes": "Pinned public helper-tool source reference for future NRO/homebrew build needs; do not add to default toolchain until required.",
+      "provenance_path": "third_party/platform/switch/pins.json"
     }
   ]
 }

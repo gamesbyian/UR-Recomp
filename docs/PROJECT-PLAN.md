@@ -16,6 +16,14 @@ The project as a whole is the **UR-Recomp project**, **Uniracers modern port**, 
 
 Use those terms only when discussing those features or their implementation. Other work should be named for what it actually is: native execution, fidelity validation, reverse engineering, course decoding, asset extraction, tooling, audio modernization, custom courses, and so on.
 
+## Platform target policy
+
+The modern product is one authoritative recompiled game with multiple host implementations. **Windows x64 is the primary consumer/reference packaging target.** Planned peer/feasibility targets are modern macOS, a best-effort macOS 10.13 High Sierra legacy lane, WebAssembly/browser execution, Nintendo Switch homebrew, and a PlayStation 5 personal-use host port when lawful tooling is available.
+
+These are host targets, not separate gameplay rewrites. Platform-specific lifecycle, filesystem, graphics, audio, controller and packaging code must stay outside authoritative simulation, progression/SRAM semantics, Widescreen materialization, HD semantic replacement selection and modern product-state schemas. Linux may remain an engineering/CI host without becoming the product-definition target.
+
+Console builds are private personal-use feasibility targets, not commercial/storefront deliverables. Do not commit proprietary SDK material, confidential platform documentation, keys or device-unique secrets. The canonical matrix and portability rules live in `PLATFORM-TARGETS.md`; Switch-specific planning lives in `SWITCH-HOMEBREW-PORT.md`.
+
 ## Product definition
 
 The target is **Uniracers itself**, not a mechanically similar recreation.

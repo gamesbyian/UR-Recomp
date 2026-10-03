@@ -9,6 +9,10 @@ Last updated: 2026-09-28
 
 This document is the canonical plan for combining external-resource collection, original-development archaeology, ROM reverse engineering, and SNESRecomp bring-up. It replaces the earlier posture of broad collection-first research.
 
+## Platform-resource scope update — 2026-10-02
+
+Public platform-port references are now an explicit research class. For Nintendo Switch homebrew, the project has pinned current libnx, switch-examples and switch-tools revisions in `third_party/platform/switch/pins.json`, with devkitPro/devkitA64 and SDL2 portlibs identified as the initial build route. This lane is implementation-supporting rather than historical evidence: acquire only material that changes portability decisions, compile feasibility or host-interface design. Do not collect proprietary console SDKs, confidential documentation, keys or exploit material.
+
 ## Objective
 
 The end-to-end product architecture is owned by `docs/PROJECT-PLAN.md`. This document owns the research and evidence program that unlocks that plan.

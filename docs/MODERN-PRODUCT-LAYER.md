@@ -2,6 +2,19 @@
 
 This document owns intentional modern product policy and the host/runtime boundary that implements it. It does not redefine stock fidelity. Historical behavior remains documented by the existing UI, progression, SRAM and semantic evidence surfaces.
 
+## Cross-platform host contract
+
+The modern product layer is shared across Windows x64, macOS, Web and future console-homebrew hosts. Platform code may choose storage locations, create presentation/audio devices, translate physical controller APIs and report lifecycle events, but it must not redefine product semantics.
+
+In particular:
+- persisted host state must go through a platform-neutral storage boundary rather than hard-coded desktop paths;
+- semantic product inputs must not expose SDL scancodes, Win32 virtual keys, macOS keycodes, browser Gamepad indices or libnx HID enums above the host adapter;
+- pause/focus/suspend policy must enter through typed lifecycle/session interfaces;
+- vibration remains a host-owned setting whose physical implementation is platform-specific;
+- Authentic mode remains inert with respect to all modern host policy on every platform.
+
+The canonical target matrix is `PLATFORM-TARGETS.md`; Switch-specific feasibility work is `SWITCH-HOMEBREW-PORT.md`.
+
 ## First seam: host administrative state
 
 The first project-owned modern seam is deliberately small: independent host-side profile selection and settings.

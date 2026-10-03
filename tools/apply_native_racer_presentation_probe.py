@@ -14,16 +14,48 @@ PROBE_DECL = r'''
 extern "C"
 #endif
 void UrRacerPresentationProbeAfterRunFrame(const SnesDesktopHostFrameStats *stats);
+void UrRacerHdPrepareFrame(int drawable_w, int drawable_h, int *frame_w, int *frame_h);
+void UrRacerHdBeginSimFrame(unsigned number);
+int UrRacerHdDrawFrame(
+    uint8_t *dst, size_t pitch, const uint8_t *field,
+    int frame_w, int frame_h, double alpha
+);
 '''
 
 PROBE_CPP = r'''#include "host_main.h"
 #include "racer_guest_snapshot.hpp"
+#include "racer_hd_presenter.hpp"
 
 #include <cstdio>
 #include <cstdint>
 
 extern "C" {
 extern std::uint8_t g_ram[0x20000];
+}
+
+extern "C" void UrRacerHdPrepareFrame(
+    int drawable_w, int drawable_h, int *frame_w, int *frame_h
+) {
+    ur::presentation::racer_hd_prepare_frame(
+        drawable_w, drawable_h, frame_w, frame_h
+    );
+}
+
+extern "C" void UrRacerHdBeginSimFrame(unsigned number) {
+    ur::presentation::racer_hd_begin_sim_frame(number);
+}
+
+extern "C" int UrRacerHdDrawFrame(
+    std::uint8_t *dst,
+    std::size_t pitch,
+    const std::uint8_t *field,
+    int frame_w,
+    int frame_h,
+    double alpha
+) {
+    return ur::presentation::racer_hd_draw_frame(
+        dst, pitch, field, frame_w, frame_h, alpha
+    );
 }
 
 extern "C" void UrRacerPresentationProbeAfterRunFrame(
@@ -100,6 +132,8 @@ endif()
 target_sources(UniracersSNESRecomp PRIVATE
     "${UR_RECOMP_SOURCE_ROOT}/native/presentation/racer_replacement_selector.cpp"
     "${UR_RECOMP_SOURCE_ROOT}/native/presentation/racer_guest_snapshot.cpp"
+    "${UR_RECOMP_SOURCE_ROOT}/native/presentation/racer_oam_placement.cpp"
+    "${UR_RECOMP_SOURCE_ROOT}/native/presentation/racer_hd_presenter.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/ur_racer_presentation_probe.cpp"
 )
 target_include_directories(UniracersSNESRecomp PRIVATE
@@ -116,7 +150,11 @@ def patch_main(source: str) -> str:
     source = source.replace(INCLUDE_ANCHOR, INCLUDE_ANCHOR + PROBE_DECL + "\n", 1)
     return source.replace(
         FIELD_ANCHOR,
-        FIELD_ANCHOR + "    .after_run_frame     = &UrRacerPresentationProbeAfterRunFrame,\n",
+        FIELD_ANCHOR
+        + "    .after_run_frame     = &UrRacerPresentationProbeAfterRunFrame,\n"
+        + "    .prepare_frame       = &UrRacerHdPrepareFrame,\n"
+        + "    .begin_sim_frame     = &UrRacerHdBeginSimFrame,\n"
+        + "    .draw_frame          = &UrRacerHdDrawFrame,\n",
         1,
     )
 

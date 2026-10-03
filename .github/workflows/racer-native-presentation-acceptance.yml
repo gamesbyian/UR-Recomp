@@ -6,6 +6,9 @@ on:
       - "native/presentation/**"
       - "tools/apply_native_racer_presentation_probe.py"
       - "tests/unit/test_apply_native_racer_presentation_probe.py"
+      - "tests/native/racer_hd_presenter_test.cpp"
+      - "tests/native/racer_replacement_selector_test.cpp"
+      - "tests/native/racer_oam_placement_test.cpp"
       - "tests/input/two-player-first-race-observe.script"
       - "tests/input/two-player-first-race.input"
       - ".github/workflows/racer-native-presentation-acceptance.yml"
@@ -32,15 +35,26 @@ jobs:
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
+      - name: Verify selector, placement, and orientation contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          CXX="${CXX:-c++}"
+          "$CXX" -std=c++17 -I native/presentation             tests/native/racer_replacement_selector_test.cpp             native/presentation/racer_replacement_selector.cpp             -o "$RUNNER_TEMP/racer-selector-test"
+          "$RUNNER_TEMP/racer-selector-test"
+          "$CXX" -std=c++17 -I native/presentation             tests/native/racer_oam_placement_test.cpp             native/presentation/racer_oam_placement.cpp             -o "$RUNNER_TEMP/racer-oam-test"
+          "$RUNNER_TEMP/racer-oam-test"
+          "$CXX" -std=c++17 -I native/presentation             tests/native/racer_hd_presenter_test.cpp             native/presentation/racer_replacement_selector.cpp             -o "$RUNNER_TEMP/racer-hd-presenter-test"
+          "$RUNNER_TEMP/racer-hd-presenter-test"
+
       - name: Stage pinned SNESRecomp
         shell: bash
         run: |
           set -euo pipefail
           python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
           FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
-          PATCH="$GITHUB_WORKSPACE/tools/patches/snesrecomp-input-file.patch"
-          git -C "$FRAMEWORK" apply --check "$PATCH"
-          git -C "$FRAMEWORK" apply "$PATCH"
+          # bootstrap_toolchain now applies the repository-owned patch stack
+          # even for clone-only staging; do not apply input-file.patch twice.
           grep -F 'HostGetenv("INPUT_FILE")' "$FRAMEWORK/runner/src/desktop/host_main.c"
 
       - name: Scaffold and inject presentation probe
@@ -72,7 +86,7 @@ jobs:
           cmake --build "$ROOT/build" -j2
           test -x "$ROOT/build/UniracersSNESRecomp"
 
-      - name: Run ordinary two-player acceptance route
+      - name: Run Original and HD draw-frame acceptance routes
         shell: bash
         run: |
           set -euo pipefail
@@ -81,54 +95,92 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"
           INPUT="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
-          LOG="$RUNNER_TEMP/racer-presentation-acceptance.log"
-          DUMPS="$RUNNER_TEMP/racer-presentation-dumps"
-          mkdir -p "$DUMPS"
+          ORIGINAL_LOG="$RUNNER_TEMP/racer-original.log"
+          HD_LOG="$RUNNER_TEMP/racer-hd.log"
+          ORIGINAL_DUMPS="$RUNNER_TEMP/racer-original-dumps"
+          HD_DUMPS="$RUNNER_TEMP/racer-hd-dumps"
+          ORIGINAL_SHOT="$RUNNER_TEMP/racer-original-1220.ppm"
+          HD_SHOT="$RUNNER_TEMP/racer-hd-1220.ppm"
+          mkdir -p "$ORIGINAL_DUMPS" "$HD_DUMPS"
 
-          set +e
-          SNESRECOMP_DUMP_DIR="$DUMPS" SNESRECOMP_INPUT_FILE="$INPUT" SDL_AUDIODRIVER=dummy \
-            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1
-          STATUS=$?
-          set -e
+          run_route() {
+            local mode="$1" log="$2" dumps="$3" shot="$4"
+            shift 4
+            set +e
+            env "$@" \
+              SNESRECOMP_DUMP_DIR="$dumps" \
+              SNESRECOMP_INPUT_FILE="$INPUT" \
+              SNESRECOMP_SCREENSHOT="$shot" \
+              SNESRECOMP_SCREENSHOT_FRAME=1220 \
+              SDL_AUDIODRIVER=dummy \
+              timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$log" 2>&1
+            local status=$?
+            set -e
+            cat "$log"
+            if [ "$status" -ne 0 ]; then
+              echo "::error::$mode native route exited with status $status"
+              exit "$status"
+            fi
+          }
 
-          cat "$LOG"
-          if [ "$STATUS" -ne 0 ]; then
-            echo "::error::Native route exited with status $STATUS"
-            exit "$STATUS"
+          run_route Original "$ORIGINAL_LOG" "$ORIGINAL_DUMPS" "$ORIGINAL_SHOT"
+          run_route HD "$HD_LOG" "$HD_DUMPS" "$HD_SHOT" UR_RACER_HD=1
+
+          # The same deterministic guest timeline must reach the exact same
+          # authoritative WRAM checkpoint with presentation substitution on/off.
+          cmp "$ORIGINAL_DUMPS/two-player-race-1220.wram.bin" \
+              "$HD_DUMPS/two-player-race-1220.wram.bin"
+
+          # The selector reaches the retained synchronized tuple in both runs.
+          grep -F "UR_RACER_PRESENTATION_PROBE PASS" "$ORIGINAL_LOG"
+          grep -F "UR_RACER_PRESENTATION_PROBE PASS" "$HD_LOG"
+          grep -F "p1_primary=0541" "$HD_LOG"
+          grep -F "p2_primary=0540" "$HD_LOG"
+          grep -F "p1_companion=0D0D" "$HD_LOG"
+          grep -F "p1_gate=0001" "$HD_LOG"
+          grep -F "selected=remastered" "$HD_LOG"
+
+          # Only the enabled run may enter the host draw-frame substitution.
+          if grep -F "UR_RACER_HD_DRAW PASS" "$ORIGINAL_LOG"; then
+            echo "::error::Original control unexpectedly drew an HD replacement"
+            exit 1
           fi
-          python3 - "$DUMPS/two-player-race-1220.wram.bin" <<'PY'
-          import pathlib, sys
-          p = pathlib.Path(sys.argv[1])
-          if not p.is_file():
-              raise SystemExit(f"missing WRAM checkpoint: {p}")
-          w = p.read_bytes()
-          def u16(off):
-              return w[off] | (w[off + 1] << 8)
-          print(
-              "UR_RACER_PRESENTATION_DUMP frame=1220 "
-              f"p1_primary={u16(0x0FE9):04X} "
-              f"p2_primary={u16(0x0FEB):04X} "
-              f"p1_companion={u16(0x0D3F):04X} "
-              f"p2_companion={u16(0x0D41):04X} "
-              f"p1_selector={u16(0x0C83):04X} "
-              f"p2_selector={u16(0x0C85):04X} "
-              f"p1_gate={u16(0x0D1B):04X} "
-              f"p2_gate={u16(0x0D1D):04X}"
-          )
-          PY
+          grep -F "UR_RACER_HD_DRAW PASS" "$HD_LOG"
+          grep -F "semantic=0541" "$HD_LOG"
+          grep -F "guest_state_unchanged=1" "$HD_LOG"
 
-          grep -F "UR_RACER_PRESENTATION_PROBE PASS" "$LOG"
-          grep -F "p1_primary=0541" "$LOG"
-          grep -F "p2_primary=0540" "$LOG"
-          grep -F "p1_companion=0D0D" "$LOG"
-          grep -F "p1_gate=0001" "$LOG"
-          grep -F "selected=remastered" "$LOG"
+          python3 - "$ORIGINAL_SHOT" "$HD_SHOT" <<'PY'
+          import hashlib
+          import pathlib
+          import sys
+
+          def ppm(path):
+              data = pathlib.Path(path).read_bytes()
+              header, payload = data.split(b"\n255\n", 1)
+              lines = header.splitlines()
+              if lines[0] != b"P6":
+                  raise SystemExit(f"not P6: {path}")
+              dims = tuple(map(int, lines[1].split()))
+              return dims, payload, hashlib.sha256(data).hexdigest()
+
+          od, op, oh = ppm(sys.argv[1])
+          hd, hp, hh = ppm(sys.argv[2])
+          assert od == (256, 224), od
+          assert hd == (256, 224), hd
+          assert oh != hh, "enabled replacement screenshot is byte-identical to Original"
+          assert op != hp, "enabled replacement did not alter presented pixels"
+          print(f"UR_RACER_HD_VISUAL PASS original_sha256={oh} hd_sha256={hh}")
+          PY
 
       - name: Upload compact acceptance log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: native-racer-presentation-acceptance
-          path: ${{ runner.temp }}/racer-presentation-acceptance.log
+          path: |
+            ${{ runner.temp }}/racer-original.log
+            ${{ runner.temp }}/racer-hd.log
+            ${{ runner.temp }}/racer-original-1220.ppm
+            ${{ runner.temp }}/racer-hd-1220.ppm
           if-no-files-found: warn
           retention-days: 7

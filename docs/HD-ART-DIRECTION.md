@@ -88,6 +88,8 @@ Native acceptance run `37146779451` is green end to end for the tuned candidate,
 
 Status is **motion-reviewed and accepted as the first-family authored reference candidate, but still not approved shipping art**. Its immediate consequence is a stricter authoring rule for subsequent frames: match recovered gameplay-scale envelope/contact first, then add smooth high-resolution form inside that contract. Do not reopen the already-set material or lighting language merely to make neighboring frames novel.
 
+The first temporal-neighbor application is now also motion-reviewed. Exact frame-1219 representation `ordinary-racer-0x0541-p1-companion-0D2D-reference` keeps the reviewed 1220 wheel/fork/crank/contact/material/lighting solution and changes only the upper saddle profile required by the retained stock difference. Its gameplay-scale envelope exactly matches stock at `[22,2]..[39,38]`, contact remains `[61,76]`, and alpha overlap is 226 pixels over a 349-pixel union (IoU `0.6475644699`). Native run `37150356100` is green through live Original/HD split-screen acceptance with no guest-state mutation; artifact `11283522741` retains the two-authored-representation dossier. This validates the envelope-first rule across an actual adjacent animation transition, not only on the original reference frame. The neighbor remains review art, not approved shipping art.
+
 Secondary appearance references include the official North American/European packaging scans and the 2010 developer feature. They agree with the stock dossier on dark wheel/saddle masses, colored glossy body/frame forms, and brighter neutral hardware. Do not copy marketing-only sparkle/star effects into ordinary gameplay frames merely because they appear in packaging art.
 
 Reference provenance:

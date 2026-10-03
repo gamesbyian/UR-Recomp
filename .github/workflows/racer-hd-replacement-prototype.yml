@@ -245,6 +245,39 @@ jobs:
           print("UR_RACER_0541_COMPANION_PREDECESSOR PASS")
           PY
 
+      - name: Measure 0540/0541 predecessor anchors
+        run: |
+          python3 tools/measure_racer_composed_anchor.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --p1-primary 0x0540 --p2-primary 0x0541 \
+            --p1-companion 0x0D2C --p2-companion 0x0000 \
+            --p1-selector 0 --p2-selector 0 \
+            --p1-gate 0x0001 --p2-gate 0x0000 \
+            --player p1 --palette-asset-id 0x06 \
+            | tee "$RUNNER_TEMP/racer-0540-0541-predecessor-p1.json"
+          python3 tools/measure_racer_composed_anchor.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --p1-primary 0x0540 --p2-primary 0x0541 \
+            --p1-companion 0x0D2C --p2-companion 0x0000 \
+            --p1-selector 0 --p2-selector 0 \
+            --p1-gate 0x0001 --p2-gate 0x0000 \
+            --player p2 --palette-asset-id 0x07 \
+            | tee "$RUNNER_TEMP/racer-0540-0541-predecessor-p2.json"
+          python3 - "$RUNNER_TEMP/racer-0540-0541-predecessor-p1.json" "$RUNNER_TEMP/racer-0540-0541-predecessor-p2.json" <<'PY'
+          import json, pathlib, sys
+          p1 = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          p2 = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          assert p1["flip_pivot_x2_y2"] == [63, 63]
+          assert p1["wheel_contact_x2_y2"] == [63, 76]
+          assert p1["alpha_bounds"] == [23, 2, 40, 38]
+          assert p2["flip_pivot_x2_y2"] == [63, 63]
+          assert p2["wheel_contact_x2_y2"] == [61, 76]
+          assert p2["alpha_bounds"] == [22, 3, 39, 38]
+          assert p1["composition"]["p1_companion"] == "0x0D2C"
+          assert p2["composition"]["p1_companion"] == "0x0D2C"
+          print("UR_RACER_0540_0541_PREDECESSOR PASS")
+          PY
+
       - name: Upload compact visual proof
         uses: actions/upload-artifact@v4
         with:
@@ -255,6 +288,8 @@ jobs:
             ${{ runner.temp }}/racer-hd-temporal-coherence.txt
             ${{ runner.temp }}/racer-0541-companion-predecessor-p1.json
             ${{ runner.temp }}/racer-0541-companion-predecessor-p2.json
+            ${{ runner.temp }}/racer-0540-0541-predecessor-p1.json
+            ${{ runner.temp }}/racer-0540-0541-predecessor-p2.json
             ${{ runner.temp }}/racer-forward-p1.json
             ${{ runner.temp }}/racer-forward-p2.json
             ${{ runner.temp }}/racer-predecessor-p1.json

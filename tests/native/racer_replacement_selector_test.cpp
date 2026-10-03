@@ -303,5 +303,40 @@ int main() {
         GraphicsPack::Remastered, 0x0541, unregistered_companion_context
     ).fallback_reason == FallbackReason::CompositionMismatch);
 
+    const RacerCompositionState reverse_predecessor_context{
+        0x0540,
+        0x0541,
+        0x0D2C,
+        0x0000,
+        0,
+        0,
+        0x0001,
+        0x0000,
+    };
+    const auto* p1_reverse_predecessor =
+        find_racer_registration_for_state(0x0540, reverse_predecessor_context);
+    const auto* p2_reverse_predecessor =
+        find_racer_registration_for_state(0x0541, reverse_predecessor_context);
+    assert(p1_reverse_predecessor != nullptr);
+    assert(p2_reverse_predecessor != nullptr);
+    assert(p1_reverse_predecessor->player == 1);
+    assert(p2_reverse_predecessor->player == 2);
+    assert(p1_reverse_predecessor->contact_anchor.x2 == 63);
+    assert(p1_reverse_predecessor->contact_anchor.y2 == 76);
+    assert(p2_reverse_predecessor->contact_anchor.x2 == 61);
+    assert(p2_reverse_predecessor->contact_anchor.y2 == 76);
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0540, reverse_predecessor_context
+    ).registration == p1_reverse_predecessor);
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0541, reverse_predecessor_context
+    ).registration == p2_reverse_predecessor);
+
+    auto reverse_predecessor_mismatch = reverse_predecessor_context;
+    reverse_predecessor_mismatch.p1_companion = 0x0D2B;
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0540, reverse_predecessor_mismatch
+    ).fallback_reason == FallbackReason::CompositionMismatch);
+
     return 0;
 }

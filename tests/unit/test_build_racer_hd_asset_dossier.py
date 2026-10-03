@@ -99,7 +99,17 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         self.assertIn("edge_treatment", RESOLVED_VISUAL_LANGUAGE)
         self.assertNotIn("lighting_direction_and_environment", PENDING_ART_DECISIONS)
         self.assertNotIn("outline_and_edge_treatment", PENDING_ART_DECISIONS)
-        self.assertIn("material_interpretation", PENDING_ART_DECISIONS)
+        self.assertIn("material_classes", RESOLVED_VISUAL_LANGUAGE)
+        self.assertIn("cast_shadow_policy", RESOLVED_VISUAL_LANGUAGE)
+        self.assertIn("micro_detail_policy", RESOLVED_VISUAL_LANGUAGE)
+        self.assertNotIn("material_interpretation", PENDING_ART_DECISIONS)
+        self.assertNotIn("shadow_behavior", PENDING_ART_DECISIONS)
+        self.assertNotIn(
+            "micro_detail_budget_at_4k_1440p_1080p_and_split_screen",
+            PENDING_ART_DECISIONS,
+        )
+        self.assertIn("specular_highlight_policy", RESOLVED_VISUAL_LANGUAGE)
+        self.assertEqual(PENDING_ART_DECISIONS, [])
 
     def test_safe_name_is_path_stable(self):
         self.assertEqual(safe_name("racer / 0x0541:p1"), "racer-0x0541-p1")

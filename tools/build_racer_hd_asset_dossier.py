@@ -52,14 +52,30 @@ RESOLVED_VISUAL_LANGUAGE = {
         "retain the stock dark silhouette/value hierarchy on smooth contours; "
         "do not add a uniform new cartoon outline"
     ),
+    "material_classes": {
+        "tire": "dark rubber with broad stable highlights, never chrome-like",
+        "saddle": "dark vinyl/leather-like surface with restrained broad highlights",
+        "colored_frame": "glossy colored painted/anodized metal-like surface",
+        "neutral_hardware": "bright neutral metallic hub/fork/pedal hardware",
+    },
+    "cast_shadow_policy": (
+        "do not add a new host-authored ground/drop shadow to the faithful "
+        "Remastered racer baseline"
+    ),
+    "micro_detail_policy": (
+        "source assets may contain mechanically plausible detail, but details that "
+        "alias, flicker, alter the recovered silhouette, or disappear incoherently "
+        "at normal and split-screen gameplay scale must be suppressed"
+    ),
+    "specular_highlight_policy": (
+        "use broad baked highlights and the stock palette hierarchy as the relative "
+        "contrast reference: the brightest colored-frame tone is a restrained "
+        "minority accent above the dominant body tone; neutral metal may reach much "
+        "brighter values; do not add point sparkle/star glints"
+    ),
 }
 
-PENDING_ART_DECISIONS = [
-    "material_interpretation",
-    "specular_and_highlight_strength_within_baked_lighting",
-    "shadow_behavior",
-    "micro_detail_budget_at_4k_1440p_1080p_and_split_screen",
-]
+PENDING_ART_DECISIONS = []
 
 
 def sha256(data: bytes) -> str:
@@ -224,6 +240,17 @@ def build_dossier(
                 "kind": entry["original"]["kind"],
                 "source": entry["original"]["source"],
                 "alpha_bounds": alpha_bounds(stock, W, H),
+                "opaque_rgba_histogram": [
+                    {"rgba": list(rgba), "count": count}
+                    for rgba, count in sorted(
+                        __import__("collections").Counter(
+                            tuple(stock[i:i + 4])
+                            for i in range(0, len(stock), 4)
+                            if stock[i + 3] != 0
+                        ).items(),
+                        key=lambda item: (-item[1], item[0]),
+                    )
+                ],
                 "rgba_sha256": sha256(stock),
                 "png": f"stock/{safe_name(rid)}.png",
                 "png_sha256": sha256(stock_png),

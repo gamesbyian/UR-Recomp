@@ -106,7 +106,7 @@ For the current deterministic two-player window, the builder:
 - re-derives pivot/contact geometry and rejects registry drift;
 - records composition guards, palette identity, observed frames and trace-derived previous/next representation context;
 - emits literal stock PNGs, nearest-neighbor 4× controls and the current provenance-labelled contract-only Scale2x candidates with hashes;
-- records resolved geometry/lighting/edge rules separately from the still-open material/specular/shadow/detail decisions, and keeps `shipping_art_approved=false`.
+- records the resolved geometry/lighting/edge/material/shadow/detail/specular baseline, preserves exact stock opaque-color histograms as tone evidence, and keeps `shipping_art_approved=false` until an actual authored candidate passes review.
 
 This is the handoff surface for actual racer art review. A replacement candidate should be judged against this dossier rather than against an isolated screenshot or an inferred animation ordering.
 

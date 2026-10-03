@@ -10,7 +10,6 @@ on:
       - "tools/toolchain-entries/beetle-bsnes-libretro.json"
       - "tools/toolchain-entries/_global.json"
       - "tools/bootstrap_toolchain.py"
-      - ".github/workflows/audio-startup-cross-core.yml"
 
 concurrency:
   group: audio-startup-cross-core-${{ github.ref }}

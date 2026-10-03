@@ -226,6 +226,10 @@ jobs:
           grep -F "semantic=0540 viewport=top slot=99" "$HD_LOG"
           grep -F "semantic=0541 viewport=bottom slot=97" "$HD_LOG"
           grep -F "semantic=0540 viewport=bottom slot=96" "$HD_LOG"
+          grep -F "semantic=057E viewport=top slot=98" "$HD_LOG"
+          grep -F "semantic=0544 viewport=top slot=99" "$HD_LOG"
+          grep -F "semantic=057E viewport=bottom slot=97" "$HD_LOG"
+          grep -F "semantic=0544 viewport=bottom slot=96" "$HD_LOG"
           grep -F "guest_state_unchanged=1" "$HD_LOG"
 
           python3 - "$ORIGINAL_A_SHOT" "$ORIGINAL_B_SHOT" "$HD_SHOT" <<'PY'

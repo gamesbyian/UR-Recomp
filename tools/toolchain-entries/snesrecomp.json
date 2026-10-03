@@ -43,7 +43,7 @@
     },
     {
       "path": "tools/patches/snesrecomp-title-overlay-hook.patch",
-      "sha256": "cbbef7dd66a085a911a5ae3f5e8c0f3628b56a8ff3cc11da7982a11925c569bf"
+      "sha256": "a24d6c351de4e0a551c60903694bdacf183e05cc3148a49e396d13c9820952af"
     },
     {
       "path": "tools/patches/snesrecomp-rewind-audio-timing-lock.patch",

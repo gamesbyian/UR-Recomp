@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "retained_from": {
+    "workflow_run": 37097604758,
+    "artifact_id": 11265150778
+  },
+  "control": {
+    "common_samples": 61,
+    "first_progress_change": {
+      "stem": "liveness-004",
+      "frame": 1231,
+      "progress": {
+        "next_checkpoint": 1,
+        "finish_gate": 1,
+        "laps_remaining": 1
+      }
+    }
+  },
+  "plus16": {
+    "common_samples": 61,
+    "protected_differences": [],
+    "first_progress_change": {
+      "stem": "liveness-004",
+      "frame": 1232,
+      "progress": {
+        "next_checkpoint": 1,
+        "finish_gate": 1,
+        "laps_remaining": 1
+      }
+    },
+    "progress_change_frame_delta": 1,
+    "same_semantic_progress_event": true,
+    "no_earlier_gameplay_activation": true
+  },
+  "plus24": {
+    "common_samples": 61,
+    "protected_differences": [],
+    "first_progress_change": {
+      "stem": "liveness-004",
+      "frame": 1231,
+      "progress": {
+        "next_checkpoint": 1,
+        "finish_gate": 1,
+        "laps_remaining": 1
+      }
+    },
+    "progress_change_frame_delta": 0,
+    "same_semantic_progress_event": true,
+    "no_earlier_gameplay_activation": true
+  },
+  "accepted": true
+}

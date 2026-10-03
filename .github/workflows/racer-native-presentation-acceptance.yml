@@ -201,7 +201,7 @@ jobs:
           ]
           neighbor = predecessor["art_review"]["authored_candidate"]
           assert neighbor["approval_status"] == (
-              "temporal-neighbor authored candidate; pending native motion review"
+              "motion-reviewed temporal neighbor; not approved shipping art"
           )
           neighbor_review = neighbor["gameplay_scale_review"]
           assert neighbor_review["stock_alpha_bounds"] == [22, 2, 39, 38]

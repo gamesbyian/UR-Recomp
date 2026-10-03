@@ -11,6 +11,8 @@ on:
       - "third_party/manifest.json"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain.json"
+      - "tools/patches/snesrecomp-live-vsync.patch"
       - "tools/toolchain-entries/_global.json"
       - "tools/patch_modern_product_host.py"
       - "tools/build_display_geometry_review.py"

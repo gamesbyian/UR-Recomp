@@ -415,4 +415,19 @@ dump mvl-back-046
 wait 1
 dump mvl-back-047
 wait 1
+# X-back from OPTIONS lands on 1P (no selection memory); settle before the next edge.
+until 009B == 00 240
+wait 60
+press a 2
+until 009F == 3C 1200
+wait 60
+dump mvl-rider-000
+press a 2
+until 009F == 6D 1200
+wait 60
+dump mvl-tour-000
+press a 2
+until 009F == F6 1200
+wait 60
+dump mvl-track-000
 quit

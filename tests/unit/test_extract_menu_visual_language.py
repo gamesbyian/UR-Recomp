@@ -46,6 +46,25 @@ class MenuVisualLanguageTests(unittest.TestCase):
         self.assertEqual(rows[1]["center_x"], 128)
         self.assertEqual(rows[1]["x_left"], 24)
 
+    def test_text_rows_handle_single_tile_gaps(self) -> None:
+        vram = bytearray(0x10000)
+        write_label(vram, 0x1000, 4, 1, "PICK")
+        put_entry(vram, 0x1000, 12, 1, 0xCE, 7)  # 8-px small-font space between words
+        write_label(vram, 0x1000, 13, 1, "UNI")
+        rows = mvl.text_rows(bytes(vram), 0x1000, 64, 64, 7, 0)
+        self.assertEqual(rows[0]["text"], "PICK UNI")
+        self.assertEqual(rows[0]["word_gaps_px"], [8])
+
+    def test_small_font_runs(self) -> None:
+        vram = bytearray(0x10000)
+        for i, ch in enumerate("ZOOM ZOO"):
+            tile = 0xCE if ch == " " else (0xA9 if ch == "O" else 0xB3 + ord(ch) - ord("A") - (1 if ch > "O" else 0))
+            put_entry(vram, 0x1000, 10 + i, 11, tile, 7)
+        self.assertEqual(mvl.small_char_for_tile(0xBF), "M")
+        self.assertEqual(mvl.small_char_for_tile(0xCA), "Y")
+        runs = mvl.small_text_rows(bytes(vram), 0x1000, 64, 64, 7, 0)
+        self.assertEqual([(r["text"], r["x_left"]) for r in runs], [("ZOOM ZOO", 80)])
+
     def test_run_lengths_and_deltas(self) -> None:
         self.assertEqual(mvl.run_lengths([8, 8, 4, 4, 0]), [[8, 2], [4, 2], [0, 1]])
         self.assertEqual(mvl.deltas([0, 1, 3, 6]), [1, 2, 3])

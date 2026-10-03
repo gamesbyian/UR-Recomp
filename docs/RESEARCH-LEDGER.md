@@ -1896,3 +1896,19 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 **Interpretation:** Menu presentation is a small, fully specifiable grammar. The current modern host overlay draws generic white overlay text and does not yet follow it.
 
 **Next discriminator:** extend the same extractor to TRACK_SELECT (small font plus icon column) and capture menu SFX timing only when a modern menu surface needs them.
+
+### R-2026-10-03-UI-03 — Setup screens share one BG2 strip and a second 8×16 font
+
+**Status:** reproduced locally (reference harness), folded into the menu contract  
+**Date:** 2026-10-03  
+**Area:** frontend presentation | PPU
+
+**Observation:**
+- **Strip:** PLAYER_SELECT_P1, TOUR_SELECT and TRACK_SELECT sit at BG2 scroll 256, 512 and 768 of the same strip that holds MAIN_MENU at 0.
+- **Small font:** names and per-item data use an 8×16 font (top tile `t`, bottom `t+0x3C`). Digits are `0xA9..0xB2`, A–Z without O start at `0xB3`, and space is `0xCE`. It uses only outline value 8 and grey ramp 9–12 of BG palette 7.
+- **Mixed composition:** titles can separate words with a single 8-px `0xCE` space (PICK YOUR UNI) where MAIN_MENU/OPTIONS use 16-px gaps. TRACK_SELECT places big-font icon glyphs (slots 37–39) before small-font names left-aligned at x=80.
+- **Selection memory:** X-back from OPTIONS resets `7E:009B` to 0 and the cursor to 1P.
+
+**Evidence:** `tests/input/menu-visual-language.script`; `tools/extract_menu_visual_language.py` → `analysis/generated/menu-visual-language.json` (13 decode/state checks, including every expected title and small-font label on the three setup screens).
+
+**Interpretation:** The frontend's visual hierarchy is yellow-for-choices, grey-for-data, with track-type icons living in the font. Modern frontend surfaces can reproduce it from this contract without screen-by-screen guesswork.

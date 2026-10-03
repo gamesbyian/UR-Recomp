@@ -5,7 +5,10 @@
   "harness": "snesref + pinned snes9x-libretro, canonical USA ROM, clean boot",
   "states": [
    "MAIN_MENU (0xD7)",
-   "OPTIONS_MENU (0x57)"
+   "OPTIONS_MENU (0x57)",
+   "PLAYER_SELECT_P1 (0x3C)",
+   "TOUR_SELECT (0x6D)",
+   "TRACK_SELECT (0xF6)"
   ]
  },
  "typography": {
@@ -161,12 +164,290 @@
    "1-2": "present in the palette but unused by the 40 font glyphs"
   }
  },
+ "small_typography": {
+  "glyph_cell_px": [
+   8,
+   16
+  ],
+  "glyph_tiles_rule": "character tile t on top, t+0x3C below; '0'..'9' are 0xA9..0xB2, A-Z (no O) from 0xB3, space 0xCE",
+  "bg_palette_index": 7,
+  "pixel_value_usage": {
+   "8": 700,
+   "9": 354,
+   "10": 364,
+   "11": 336,
+   "12": 289
+  },
+  "pixel_roles": {
+   "8": "black outline",
+   "9-12": "grey fill ramp"
+  },
+  "letter_pitch_px": 8
+ },
+ "hierarchy": "yellow 16x16 font for titles, mode choices and tier labels; grey 8x16 font for names and per-item data; track-type icons are big-font glyphs placed before small-font track names",
+ "setup_strip": {
+  "mechanism": "MAIN_MENU, OPTIONS/rider, tour and track screens are successive 256-px BG2 strip positions; each forward step slides one screen",
+  "screens": {
+   "rider": {
+    "current_menu": "0x3C",
+    "bg2_strip_offset_px": 256,
+    "big_font_rows": [
+     {
+      "text": "PICK YOUR UNI",
+      "y": 8,
+      "x_left": 32,
+      "center_x": 128,
+      "word_gaps_px": [
+       8,
+       8
+      ]
+     }
+    ],
+    "small_font_runs": [
+     {
+      "text": "MIKE",
+      "y": 32,
+      "x_left": 40
+     },
+     {
+      "text": "ANDREW",
+      "y": 32,
+      "x_left": 152
+     },
+     {
+      "text": "MARTIN",
+      "y": 56,
+      "x_left": 40
+     },
+     {
+      "text": "MELISSA",
+      "y": 56,
+      "x_left": 152
+     },
+     {
+      "text": "AMY",
+      "y": 80,
+      "x_left": 40
+     },
+     {
+      "text": "MALCOLM",
+      "y": 80,
+      "x_left": 152
+     },
+     {
+      "text": "MICHELLE",
+      "y": 104,
+      "x_left": 40
+     },
+     {
+      "text": "COLIN",
+      "y": 104,
+      "x_left": 152
+     },
+     {
+      "text": "DAVE",
+      "y": 128,
+      "x_left": 40
+     },
+     {
+      "text": "TONY",
+      "y": 128,
+      "x_left": 152
+     },
+     {
+      "text": "CAROL",
+      "y": 152,
+      "x_left": 40
+     },
+     {
+      "text": "CRAIG",
+      "y": 152,
+      "x_left": 152
+     },
+     {
+      "text": "KEN",
+      "y": 176,
+      "x_left": 40
+     },
+     {
+      "text": "ROBBIE",
+      "y": 176,
+      "x_left": 152
+     },
+     {
+      "text": "ALICE",
+      "y": 200,
+      "x_left": 40
+     },
+     {
+      "text": "STEVE",
+      "y": 200,
+      "x_left": 152
+     }
+    ],
+    "small_font_left_edges_px": [
+     40,
+     152
+    ],
+    "arrow_palette_highlight_rgb": [
+     136,
+     200,
+     240
+    ]
+   },
+   "tour": {
+    "current_menu": "0x6D",
+    "bg2_strip_offset_px": 512,
+    "big_font_rows": [
+     {
+      "text": "PICK TOUR",
+      "y": 8,
+      "x_left": 56,
+      "center_x": 128,
+      "word_gaps_px": [
+       16
+      ]
+     }
+    ],
+    "small_font_runs": [
+     {
+      "text": "CRAWLER",
+      "y": 32,
+      "x_left": 56
+     },
+     {
+      "text": "SHUFFLER",
+      "y": 72,
+      "x_left": 56
+     },
+     {
+      "text": "WALKER",
+      "y": 112,
+      "x_left": 56
+     },
+     {
+      "text": "HOPPER",
+      "y": 152,
+      "x_left": 56
+     }
+    ],
+    "small_font_left_edges_px": [
+     56
+    ],
+    "arrow_palette_highlight_rgb": [
+     240,
+     160,
+     136
+    ]
+   },
+   "track": {
+    "current_menu": "0xF6",
+    "bg2_strip_offset_px": 768,
+    "big_font_rows": [
+     {
+      "text": "PICK TRACK",
+      "y": 16,
+      "x_left": 48,
+      "center_x": 128,
+      "word_gaps_px": [
+       16
+      ]
+     },
+     {
+      "text": "ARROW_RIGHT",
+      "y": 64,
+      "x_left": 56,
+      "center_x": 64,
+      "word_gaps_px": []
+     },
+     {
+      "text": "ICON_CIRCUIT_LOOP",
+      "y": 88,
+      "x_left": 56,
+      "center_x": 64,
+      "word_gaps_px": []
+     },
+     {
+      "text": "ICON_STUNT_HOOK",
+      "y": 112,
+      "x_left": 56,
+      "center_x": 64,
+      "word_gaps_px": []
+     },
+     {
+      "text": "ARROW_RIGHT",
+      "y": 136,
+      "x_left": 56,
+      "center_x": 64,
+      "word_gaps_px": []
+     },
+     {
+      "text": "ICON_CIRCUIT_LOOP",
+      "y": 160,
+      "x_left": 56,
+      "center_x": 64,
+      "word_gaps_px": []
+     },
+     {
+      "text": "BRONZE",
+      "y": 184,
+      "x_left": 80,
+      "center_x": 128,
+      "word_gaps_px": []
+     }
+    ],
+    "small_font_runs": [
+     {
+      "text": "CRAWLER",
+      "y": 32,
+      "x_left": 104
+     },
+     {
+      "text": "DRAGSTER",
+      "y": 64,
+      "x_left": 80
+     },
+     {
+      "text": "ZOOM ZOO",
+      "y": 88,
+      "x_left": 80
+     },
+     {
+      "text": "BOWL",
+      "y": 112,
+      "x_left": 80
+     },
+     {
+      "text": "SWITCHER",
+      "y": 136,
+      "x_left": 80
+     },
+     {
+      "text": "MONSTER",
+      "y": 160,
+      "x_left": 80
+     }
+    ],
+    "small_font_left_edges_px": [
+     80,
+     104
+    ],
+    "arrow_palette_highlight_rgb": [
+     240,
+     160,
+     136
+    ]
+   }
+  }
+ },
  "layout": {
   "row_pitch_px": [
    24
   ],
   "letter_pitch_px": 16,
-  "word_gap_px": 16,
+  "word_gap_px": [
+   16
+  ],
   "alignment": "each row centered on x=128",
   "row_centers_x": [
    128
@@ -179,6 +460,7 @@
     "x_left": 72,
     "x_right": 184,
     "text": "RECORDS",
+    "word_gaps_px": [],
     "center_x": 128
    },
    {
@@ -187,6 +469,9 @@
     "x_left": 24,
     "x_right": 232,
     "text": "DEFINE PLAYER",
+    "word_gaps_px": [
+     16
+    ],
     "center_x": 128
    },
    {
@@ -195,6 +480,9 @@
     "x_left": 24,
     "x_right": 232,
     "text": "RENAME PLAYER",
+    "word_gaps_px": [
+     16
+    ],
     "center_x": 128
    },
    {
@@ -203,6 +491,9 @@
     "x_left": 24,
     "x_right": 232,
     "text": "DEFINE LEAGUE",
+    "word_gaps_px": [
+     16
+    ],
     "center_x": 128
    },
    {
@@ -211,6 +502,9 @@
     "x_left": 56,
     "x_right": 200,
     "text": "MAIN MENU",
+    "word_gaps_px": [
+     16
+    ],
     "center_x": 128
    }
   ]
@@ -500,8 +794,9 @@
  "background": "BG1 8bpp: UNIRACERS logo over a grey checkerboard with leaf motif; static across the menu slide",
  "not_covered": [
   "menu sounds",
-  "other screen families (track select small font, results, records tables)",
-  "attract/fade transitions"
+  "results and records table compositions",
+  "attract/fade transitions",
+  "tour/rider BG art and animal icon animation"
  ],
  "checks": {
   "main_menu_labels_decode": true,
@@ -509,7 +804,14 @@
   "encoding_roundtrip": true,
   "main_menu_state_d7": true,
   "options_state_57": true,
-  "menu_switch_precedes_slide": true
+  "back_resets_selection_to_first_row": true,
+  "menu_switch_precedes_slide": true,
+  "rider_title_decodes": true,
+  "rider_small_labels_decode": true,
+  "tour_title_decodes": true,
+  "tour_small_labels_decode": true,
+  "track_title_decodes": true,
+  "track_small_labels_decode": true
  },
  "all_checks_pass": true
 }

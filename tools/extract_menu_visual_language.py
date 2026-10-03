@@ -32,7 +32,15 @@ SCRIPT = "tests/input/menu-visual-language.script"
 FONT_SLOTS = 40
 FONT_BOTTOM_ROW_OFFSET = 0x50
 SPECIAL_GLYPHS = ["OK", "ARROW_LEFT", "ARROW_RIGHT", "ICON_CIRCUIT_LOOP", "ICON_STUNT_HOOK"]
+SMALL_FONT_FIRST_TILE = 0xA9  # '0'; A-Z follow at 0xB3 with no O, space is 0xCE
+SMALL_FONT_SPACE_TILE = 0xCE
+SMALL_FONT_BOTTOM_OFFSET = 0x3C
 MAIN_MENU_LABELS = ["1P", "2P", "VS", "LEAGUE", "OPTIONS"]
+SETUP_SCREEN_LABELS = {
+    "rider": {"title": "PICK YOUR UNI", "small": ["MIKE", "ANDREW", "MARTIN", "MELISSA"]},
+    "tour": {"title": "PICK TOUR", "small": ["CRAWLER", "SHUFFLER", "WALKER", "HOPPER"]},
+    "track": {"title": "PICK TRACK", "small": ["CRAWLER", "DRAGSTER", "ZOOM ZOO", "BOWL", "SWITCHER", "MONSTER"]},
+}
 OPTIONS_LABELS = ["RECORDS", "DEFINE PLAYER", "RENAME PLAYER", "DEFINE LEAGUE", "MAIN MENU"]
 
 
@@ -57,6 +65,18 @@ def char_for_slot(slot: int) -> str:
         index = slot - 10
         return chr(ord("A") + index + (1 if index >= 14 else 0))
     return SPECIAL_GLYPHS[slot - 35]
+
+
+def small_char_for_tile(tile: int) -> str | None:
+    if tile == SMALL_FONT_SPACE_TILE:
+        return " "
+    index = tile - SMALL_FONT_FIRST_TILE
+    if 0 <= index < 10:
+        return str(index)
+    if 10 <= index < 35:
+        letter = index - 10
+        return chr(ord("A") + letter + (1 if letter >= 14 else 0))
+    return None
 
 
 def glyph_tiles(slot: int) -> list[int]:
@@ -100,28 +120,66 @@ def tilemap_entry(vram: bytes, map_base: int, width: int, tx: int, ty: int) -> i
 
 def text_rows(vram: bytes, map_base: int, width: int, height: int, palette: int,
               x_screen: int) -> list[dict]:
-    """Decode font rows on one 32-column screen. Spaces are two-tile gaps."""
+    """Decode 16x16 font rows on one 32-column screen.
+
+    A glyph is a left tile 2s followed by right tile 2s+1, so glyphs may start on
+    any column; gaps between glyphs become single spaces and their widths are kept.
+    """
     rows = []
     for ty in range(min(height, 32)):
-        cells = {}
-        for tx in range(32):
-            e = tilemap_entry(vram, map_base, width, x_screen * 32 + tx, ty)
+        entries = [tilemap_entry(vram, map_base, width, x_screen * 32 + tx, ty) for tx in range(32)]
+        glyphs, tx = [], 0
+        while tx < 31:
+            e, nxt = entries[tx], entries[tx + 1]
             tile = e & 0x3FF
-            if (e >> 10) & 7 == palette and tile < FONT_BOTTOM_ROW_OFFSET and tile % 2 == 0:
-                cells[tx] = tile // 2
-        if not cells:
+            if ((e >> 10) & 7 == palette and tile < FONT_BOTTOM_ROW_OFFSET and tile % 2 == 0
+                    and (nxt & 0x3FF) == tile + 1):
+                glyphs.append((tx, tile // 2))
+                tx += 2
+            else:
+                tx += 1
+        if not glyphs:
             continue
-        first, last = min(cells), max(cells)
-        text, tx = "", first
-        while tx <= last:
-            text += char_for_slot(cells[tx]) if tx in cells else " "
-            tx += 2
+        text, gaps = char_for_slot(glyphs[0][1]), []
+        for (prev_tx, _), (cur_tx, slot) in zip(glyphs, glyphs[1:]):
+            if cur_tx > prev_tx + 2:
+                text += " "
+                gaps.append((cur_tx - prev_tx - 2) * 8)
+            text += char_for_slot(slot)
         if any("A" <= ch <= "Z" for ch in text):
             text = text.replace("0", "O")  # slot 0 doubles as O in lettered rows
+        first, last = glyphs[0][0], glyphs[-1][0]
         rows.append({"tile_row": ty, "y": ty * 8, "x_left": first * 8,
-                     "x_right": (last + 2) * 8, "text": text,
+                     "x_right": (last + 2) * 8, "text": text, "word_gaps_px": gaps,
                      "center_x": (first + last + 2) * 4})
     return rows
+
+
+def small_text_rows(vram: bytes, map_base: int, width: int, height: int, palette: int,
+                    x_screen: int) -> list[dict]:
+    """Decode 8x16 small-font runs (top tiles only). A row may hold several runs."""
+    runs = []
+    for ty in range(min(height, 32)):
+        current: dict | None = None
+        for tx in range(33):
+            ch = None
+            if tx < 32:
+                e = tilemap_entry(vram, map_base, width, x_screen * 32 + tx, ty)
+                if (e >> 10) & 7 == palette:
+                    ch = small_char_for_tile(e & 0x3FF)
+            if ch is not None and (current or ch != " "):
+                if current is None:
+                    current = {"tile_row": ty, "y": ty * 8, "x_left": tx * 8, "text": ""}
+                current["text"] += ch
+                continue
+            if current:
+                current["text"] = current["text"].rstrip()
+                if any("A" <= c <= "Z" for c in current["text"]):
+                    current["text"] = current["text"].replace("0", "O")
+                current["x_right"] = current["x_left"] + 8 * len(current["text"])
+                runs.append(current)
+                current = None
+    return runs
 
 
 def sprites(oam: bytes) -> list[dict]:
@@ -210,7 +268,7 @@ def layout_contract(main_rows: list[dict], options_rows: list[dict]) -> dict:
     return {
         "row_pitch_px": sorted(set(deltas(ys))),
         "letter_pitch_px": 16,
-        "word_gap_px": 16,
+        "word_gap_px": sorted({g for r in main_rows + options_rows for g in r["word_gaps_px"]}),
         "alignment": "each row centered on x=128",
         "row_centers_x": sorted({r["center_x"] for r in main_rows + options_rows}),
         "first_row_y": ys[0] if ys else None,
@@ -301,6 +359,42 @@ def write_atlas(path: Path, d: Dump, char_base: int) -> None:
     write_png(path, width, height, bytes(buf))
 
 
+def setup_screens(directory: Path, map_base: int, width: int, height: int) -> tuple[dict, dict, dict]:
+    screens, checks, usage = {}, {}, Counter()
+    for name, expect in SETUP_SCREEN_LABELS.items():
+        d = series(directory, name)[-1]
+        hofs = d.ppu["bg"][1]["hofs"] & 0x3FF
+        x_screen = (hofs // 256) % (width // 32)
+        big = text_rows(d.vram, map_base, width, height, 7, x_screen)
+        small = small_text_rows(d.vram, map_base, width, height, 7, x_screen)
+        screens[name] = {
+            "current_menu": f"0x{d.wram[0x9F]:02X}",
+            "bg2_strip_offset_px": hofs,
+            "big_font_rows": [{k: r[k] for k in ("text", "y", "x_left", "center_x", "word_gaps_px")} for r in big],
+            "small_font_runs": [{k: r[k] for k in ("text", "y", "x_left")} for r in small],
+            "small_font_left_edges_px": sorted({r["x_left"] for r in small}),
+            "arrow_palette_highlight_rgb": bgr555(d.cgram, 128 + 7 * 16 + 13),
+        }
+        texts = [r["text"] for r in small]
+        checks[f"{name}_title_decodes"] = expect["title"] in [r["text"] for r in big]
+        checks[f"{name}_small_labels_decode"] = all(t in texts for t in expect["small"])
+        if name == "track":
+            mvl_char_base = bg_layout(d.fillram, 1)[1]
+            for t in range(SMALL_FONT_FIRST_TILE, SMALL_FONT_SPACE_TILE):
+                for tt in (t, t + SMALL_FONT_BOTTOM_OFFSET):
+                    for row in tile_pixels(d.vram, mvl_char_base, tt, 4):
+                        usage.update(v for v in row if v)
+    small_font = {
+        "glyph_cell_px": [8, 16],
+        "glyph_tiles_rule": "character tile t on top, t+0x3C below; '0'..'9' are 0xA9..0xB2, A-Z (no O) from 0xB3, space 0xCE",
+        "bg_palette_index": 7,
+        "pixel_value_usage": {str(k): v for k, v in sorted(usage.items())},
+        "pixel_roles": {"8": "black outline", "9-12": "grey fill ramp"},
+        "letter_pitch_px": 8,
+    }
+    return screens, small_font, checks
+
+
 def extract(directory: Path) -> dict:
     idle, move = series(directory, "idle"), series(directory, "move")
     enter, back = series(directory, "enter"), series(directory, "back")
@@ -317,21 +411,30 @@ def extract(directory: Path) -> dict:
                                   for c in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
         "main_menu_state_d7": main.wram[0x9F] == 0xD7,
         "options_state_57": settled.wram[0x9F] == 0x57,
+        "back_resets_selection_to_first_row": back[-1].wram[0x9B] == 0,
         "menu_switch_precedes_slide": enter[0].wram[0x9F] == 0x57 and back[0].wram[0x9F] == 0xD7,
     }
+    screens, small_font, screen_checks = setup_screens(directory, map_base, width, height)
+    checks.update(screen_checks)
     contract = {
         "schema_version": 1,
         "source": {
             "fixture": SCRIPT,
             "harness": "snesref + pinned snes9x-libretro, canonical USA ROM, clean boot",
-            "states": ["MAIN_MENU (0xD7)", "OPTIONS_MENU (0x57)"],
+            "states": ["MAIN_MENU (0xD7)", "OPTIONS_MENU (0x57)", "PLAYER_SELECT_P1 (0x3C)", "TOUR_SELECT (0x6D)", "TRACK_SELECT (0xF6)"],
         },
         "typography": font,
+        "small_typography": small_font,
+        "hierarchy": "yellow 16x16 font for titles, mode choices and tier labels; grey 8x16 font for names and per-item data; track-type icons are big-font glyphs placed before small-font track names",
+        "setup_strip": {
+            "mechanism": "MAIN_MENU, OPTIONS/rider, tour and track screens are successive 256-px BG2 strip positions; each forward step slides one screen",
+            "screens": screens,
+        },
         "layout": layout_contract(main_rows, options_rows),
         "cursor": cursor_contract(idle, move, main_rows),
         "transition_main_to_options": slide_contract(enter, back),
         "background": "BG1 8bpp: UNIRACERS logo over a grey checkerboard with leaf motif; static across the menu slide",
-        "not_covered": ["menu sounds", "other screen families (track select small font, results, records tables)", "attract/fade transitions"],
+        "not_covered": ["menu sounds", "results and records table compositions", "attract/fade transitions", "tour/rider BG art and animal icon animation"],
         "checks": checks,
     }
     contract["all_checks_pass"] = all(checks.values())

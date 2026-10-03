@@ -308,6 +308,10 @@ static void UrRestartProbeResults(
         }
     } else if (g_ur_restart_probe_phase == 10 &&
                surface == UR_UNIRACERS_RESTART_RESULTS) {
+        /* Leave one completed stock results frame visible to the input/script
+         * consumer before performing the host-owned Retry. */
+        g_ur_restart_probe_phase = 20;
+    } else if (g_ur_restart_probe_phase == 20) {
         if (!UrRestartSurfaceAllowsCommand(surface)) {
             fprintf(stderr,
                     "UR_RESTART_PROBE FAIL results-restart-not-supported\n");

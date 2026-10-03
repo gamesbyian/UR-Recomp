@@ -40,10 +40,14 @@ extern "C" UrModernSessionResult ur_modern_pause_handle_action(
         if (!paused) {
             return UR_MODERN_SESSION_NO_OP;
         }
-        if (ur_modern_pause_menu_selected(menu, restart) ==
-            UR_MODERN_PAUSE_RESTART) {
+        const UrModernPauseItem selected =
+            ur_modern_pause_menu_selected(menu, restart);
+        if (selected == UR_MODERN_PAUSE_RESTART) {
             return ur_modern_session_handle_key(
                 session, UR_MODERN_SESSION_KEY_RESTART);
+        }
+        if (selected == UR_MODERN_PAUSE_FOCUS_PAUSE) {
+            return UR_MODERN_SESSION_NO_OP;
         }
         return ur_modern_session_handle_key(
             session, UR_MODERN_SESSION_KEY_ACCEPT);

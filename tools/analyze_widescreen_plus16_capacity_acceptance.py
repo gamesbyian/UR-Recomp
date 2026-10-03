@@ -1,340 +1,376 @@
 #!/usr/bin/env python3
-"""Acceptance for the course-backed host-owned +16 Widescreen materializer."""
+"""Acceptance for the course-backed host-owned Widescreen materializer depth sweep."""
 from __future__ import annotations
-import argparse, importlib.util, json, re
+
+import argparse
+import importlib.util
+import json
+import re
 from pathlib import Path
 
-ROOT=Path(__file__).resolve().parents[1]
-SPEC=importlib.util.spec_from_file_location(
-    "ws_plus8", ROOT/"tools/analyze_native_widescreen_hook_acceptance.py"
+ROOT = Path(__file__).resolve().parents[1]
+SPEC = importlib.util.spec_from_file_location(
+    "ws_plus8", ROOT / "tools/analyze_native_widescreen_hook_acceptance.py"
 )
-BASE=importlib.util.module_from_spec(SPEC)
+BASE = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader
 SPEC.loader.exec_module(BASE)
 
-ROW_RE=lambda tag: re.compile(
-    tag + r" camx=(\d+) edge=([0-9A-Fa-f]{4}) count=(\d+) payload=([0-9A-Fa-f]{64})"
+MARGINS = (0, 8, 16, 24, 32, 48, 64)
+CAPACITY_MARGINS = tuple(m for m in MARGINS if m >= 16)
+PAYLOAD_RE = r"([0-9A-Fa-f]{64})"
+PRIMARY_VIEW_RE = re.compile(
+    r"URWS_PRIMARY margin=(\d+) camx=(\d+) edge=([0-9A-Fa-f]{4}) count=(\d+) "
+    r"payload=" + PAYLOAD_RE + r" camy=(\d+) edgey=([0-9A-Fa-f]{4}) county=(\d+)"
 )
-PREP16_RE=ROW_RE(r"URWS_PREP16")
-SHADOW16_RE=re.compile(
-    r"URWS_SHADOW16 provider=course-runtime camx=(\d+) edge=([0-9A-Fa-f]{4}) "
-    r"count=(\d+) payload=([0-9A-Fa-f]{64})(?: camy=(\d+))?"
-)
-PRIMARY_Y_RE=re.compile(
-    r"URWS_PRIMARY margin=0 camx=(\d+) edge=([0-9A-Fa-f]{4}) count=(\d+) "
-    r"payload=([0-9A-Fa-f]{64})(?: camy=(\d+))?"
-)
-PRIMARY_VIEW_RE=re.compile(
-    r"URWS_PRIMARY margin=0 camx=(\d+) edge=([0-9A-Fa-f]{4}) count=(\d+) "
-    r"payload=([0-9A-Fa-f]{64}) camy=(\d+) edgey=([0-9A-Fa-f]{4}) county=(\d+)"
-)
-SHADOW_VIEW_RE=re.compile(
-    r"URWS_SHADOW16 provider=course-runtime camx=(\d+) edge=([0-9A-Fa-f]{4}) "
-    r"count=(\d+) payload=([0-9A-Fa-f]{64}) camy=(\d+) finex=(\d+) finey=(\d+) "
-    r"edgey=([0-9A-Fa-f]{4}) county=(\d+)"
-)
-STOP_RE=re.compile(r"URWS_STOP margin=16 reason=([^\s]+)")
-CLEAN_RE=re.compile(r"URWS_CLEANUP16 shadow=(\d+)")
-LIMIT24_RE=re.compile(
-    r"URWS_LIMIT margin=24 required_extra_columns=3 "
-    r"guest_extra_horizontal_lanes=1 host_shadow_columns=1 "
-    r"first_constraint=host-shadow-capacity"
-)
+STOP_RE = re.compile(r"URWS_STOP margin=(\d+) column=(\d+) reason=([^\s]+)")
 
-def rows(rx:re.Pattern[str], text:str)->list[dict]:
-    out=[]
-    for match in rx.findall(text):
-        c,e,n,p,*rest=match
-        row={"camx":int(c),"edge":int(e,16),"count":int(n),"payload":p.upper()}
-        if rest and rest[0]:
-            row["camy"]=int(rest[0])
+
+def prep_re(margin: int) -> re.Pattern[str]:
+    if margin == 16:
+        prefix = r"URWS_PREP16"
+    elif margin == 24:
+        prefix = r"URWS_PREP24"
+    else:
+        prefix = rf"URWS_PREP_EXT margin={margin}"
+    return re.compile(
+        prefix + r" camx=(\d+) edge=([0-9A-Fa-f]{4}) count=(\d+) payload="
+        + PAYLOAD_RE + r"(?: camy=(\d+))?"
+    )
+
+
+def shadow_re(margin: int) -> re.Pattern[str]:
+    if margin == 16:
+        prefix = r"URWS_SHADOW16 provider=course-runtime"
+    elif margin == 24:
+        prefix = r"URWS_SHADOW24 provider=course-runtime"
+    else:
+        prefix = rf"URWS_SHADOW_EXT provider=course-runtime margin={margin}"
+    return re.compile(
+        prefix + r" column=(\d+) camx=(\d+) edge=([0-9A-Fa-f]{4}) "
+        r"count=(\d+) payload=" + PAYLOAD_RE +
+        r" camy=(\d+) finex=(\d+) finey=(\d+) edgey=([0-9A-Fa-f]{4}) county=(\d+)"
+    )
+
+
+def cleanup_re(margin: int) -> re.Pattern[str]:
+    if margin == 16:
+        return re.compile(r"URWS_CLEANUP16 shadows=(\d+)")
+    if margin == 24:
+        return re.compile(r"URWS_CLEANUP24 shadows=(\d+)")
+    return re.compile(rf"URWS_CLEANUP_EXT margin={margin} shadows=(\d+)")
+
+
+def effective_fine_y(camy: int, edgey: int, county: int) -> int:
+    approx = (camy + 4) >> 4
+    if edgey == 0xFFFF or county == 0:
+        return approx
+    phase = ((edgey & 0x1F) + 2) & 0x1F
+    candidate = (approx & ~0x1F) | phase
+    while candidate - approx > 16:
+        candidate -= 32
+    while approx - candidate > 16:
+        candidate += 32
+    return candidate
+
+
+def prep_rows(margin: int, text: str) -> list[dict]:
+    out = []
+    for c, e, n, p, y in prep_re(margin).findall(text):
+        row = {"camx": int(c), "edge": int(e, 16), "count": int(n), "payload": p.upper()}
+        if y:
+            row["camy"] = int(y)
         out.append(row)
     return out
 
-def stock_primary(text:str)->list[dict]:
-    rich=rows(PRIMARY_Y_RE,text)
-    if rich:
-        return [r for r in rich if r["edge"]!=0xffff and r["count"]==16]
-    out=[]
-    for mm,c,e,n,p in BASE.PRIMARY_RE.findall(text):
-        if int(mm)==0 and int(n)==16 and int(e,16)!=0xffff:
-            out.append({"camx":int(c),"edge":int(e,16),"count":16,"payload":p.upper()})
-    return out
 
-def effective_fine_y(camy:int,edgey:int,county:int)->int:
-    approx=(camy+4)>>4
-    if edgey==0xffff or county==0:
-        return approx
-    phase=((edgey&0x1f)+2)&0x1f
-    candidate=(approx&~0x1f)|phase
-    while candidate-approx>16:
-        candidate-=32
-    while approx-candidate>16:
-        candidate+=32
-    return candidate
-
-def stock_primary_view(text:str)->list[dict]:
-    out=[]
-    for c,e,n,p,y,ey,cy in PRIMARY_VIEW_RE.findall(text):
-        camy=int(y); edgey=int(ey,16); county=int(cy)
-        if int(n)!=16 or int(e,16)==0xffff:
-            continue
+def shadow_rows(margin: int, text: str) -> list[dict]:
+    out = []
+    for col, c, e, n, p, y, fx, fy, ey, cy in shadow_re(margin).findall(text):
         out.append({
-            "camx":int(c),"edge":int(e,16),"count":int(n),"payload":p.upper(),
-            "camy":camy,"edgey":edgey,"county":county,
-            "finey":effective_fine_y(camy,edgey,county),
+            "column": int(col), "camx": int(c), "edge": int(e, 16),
+            "count": int(n), "payload": p.upper(), "camy": int(y),
+            "finex": int(fx), "finey": int(fy), "edgey": int(ey, 16),
+            "county": int(cy),
         })
     return out
 
-def shadow_view(text:str)->list[dict]:
-    return [
-        {"camx":int(c),"edge":int(e,16),"count":int(n),"payload":p.upper(),
-         "camy":int(y),"finex":int(fx),"finey":int(fy),
-         "edgey":int(ey,16),"county":int(cy)}
-        for c,e,n,p,y,fx,fy,ey,cy in SHADOW_VIEW_RE.findall(text)
-    ]
 
-def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
-            dump0:Path,dump8:Path,dump16:Path,dump24:Path)->dict:
-    # Re-run the exact accepted +8 analyzer without asking the current +16/+24
-    # experiment to satisfy the old capacity-stop expectations.
-    fake16=(
+def primary_rows(text: str, margin: int) -> list[dict]:
+    out = []
+    for mm, c, e, n, p, y, ey, cy in PRIMARY_VIEW_RE.findall(text):
+        if int(mm) != margin or int(n) != 16 or int(e, 16) == 0xFFFF:
+            continue
+        camy = int(y)
+        edgey = int(ey, 16)
+        county = int(cy)
+        out.append({
+            "camx": int(c), "edge": int(e, 16), "count": int(n),
+            "payload": p.upper(), "camy": camy, "edgey": edgey,
+            "county": county, "finey": effective_fine_y(camy, edgey, county),
+        })
+    return out
+
+
+def _oracle_classify(shadow: dict, oracle: list[dict]) -> tuple[str, dict | None]:
+    wanted_ring = shadow["edge"] & 0x1F
+    bounded = [
+        r for r in oracle
+        if r["camx"] > shadow["camx"]
+        and 1 <= r["camx"] - shadow["camx"] <= 128
+        and (r["edge"] & 0x1F) == wanted_ring
+    ]
+    if not bounded:
+        return "unmatched", None
+    same_view = [r for r in bounded if r["finey"] == shadow["finey"]]
+    if not same_view:
+        return "vertical-view-transition", min(bounded, key=lambda r: r["camx"] - shadow["camx"])
+    return "same-view", min(same_view, key=lambda r: r["camx"] - shadow["camx"])
+
+
+def analyze_margin(margin: int, log: str, p8: list[dict], oracle: list[dict],
+                   control: list[dict], state0: dict, state: dict) -> dict:
+    expected_host_columns = margin // 8 - 1
+    expected_columns = list(range(2, 2 + expected_host_columns))
+    prep = prep_rows(margin, log)
+    shadows = shadow_rows(margin, log)
+    primary = primary_rows(log, margin)
+
+    p8_sig = [(r["camx"], r["edge"], r["count"], r["payload"]) for r in p8]
+    prep_sig = [(r["camx"], r["edge"], r["count"], r["payload"]) for r in prep]
+    stock_deltas = {
+        (b["edge"] - a["edge"]) & 0xFFFF for a, b in zip(control, control[1:])
+    } | {1}
+
+    primary_by_cam = {r["camx"]: r for r in primary}
+    shadow_by_key = {(r["camx"], r["column"]): r for r in shadows}
+    chain_failures = []
+    missing_columns = []
+    pairs = []
+
+    for first in prep:
+        base = primary_by_cam.get(first["camx"])
+        if base is None:
+            missing_columns.append({"camx": first["camx"], "missing": "primary"})
+            continue
+        d1 = (first["edge"] - base["edge"]) & 0xFFFF
+        first_ok = BASE._ring_adjacent(base["edge"], first["edge"]) and d1 in stock_deltas
+        previous = first
+        item = {
+            "camx": first["camx"], "primary_edge": base["edge"],
+            "guest_edge": first["edge"], "guest_stock_compatible": first_ok,
+            "hosts": [],
+        }
+        if not first_ok:
+            chain_failures.append({"camx": first["camx"], "column": 1, "reason": "guest-step"})
+        for col in expected_columns:
+            host = shadow_by_key.get((first["camx"], col))
+            if host is None:
+                missing_columns.append({"camx": first["camx"], "missing": col})
+                continue
+            adjacent = BASE._ring_adjacent(previous["edge"], host["edge"])
+            item["hosts"].append({
+                "column": col, "edge": host["edge"],
+                "delta": (host["edge"] - previous["edge"]) & 0xFFFF,
+                "ring_adjacent": adjacent,
+            })
+            if not adjacent:
+                chain_failures.append({"camx": first["camx"], "column": col, "reason": "ring-step"})
+            previous = host
+        pairs.append(item)
+
+    classifications = {"same-view": 0, "vertical-view-transition": 0, "unmatched": 0}
+    exact_same_view = 0
+    payload_failures = []
+    oracle_examples = []
+    for row in shadows:
+        cls, stock = _oracle_classify(row, oracle)
+        classifications[cls] += 1
+        if stock is None:
+            payload_failures.append({"shadow": row, "reason": "no-bounded-stock-oracle"})
+            continue
+        if len(oracle_examples) < 40:
+            oracle_examples.append({
+                "column": row["column"], "host_camx": row["camx"],
+                "host_edge": row["edge"], "host_finey": row["finey"],
+                "classification": cls, "stock_camx": stock["camx"],
+                "stock_edge": stock["edge"], "stock_finey": stock["finey"],
+                "payload_exact": row["payload"] == stock["payload"],
+            })
+        if cls == "same-view":
+            if row["payload"] == stock["payload"]:
+                exact_same_view += 1
+            elif len(payload_failures) < 40:
+                payload_failures.append({
+                    "shadow": row, "stock": stock, "reason": "same-view-payload-divergence"
+                })
+
+    clean = [int(x) for x in cleanup_re(margin).findall(log)]
+    terminal_pending = len(prep) == len(clean) + 1
+    cleanup_ok = (
+        len(prep) > 0
+        and (len(prep) == len(clean) or terminal_pending)
+        and all(x == expected_host_columns for x in clean)
+    )
+    stops = [
+        {"margin": int(m), "column": int(c), "reason": reason}
+        for m, c, reason in STOP_RE.findall(log) if int(m) == margin
+    ]
+    protected = {
+        k: {"control": state0[k], f"margin_{margin}": state[k]}
+        for k in state0 if state0[k] != state[k]
+    }
+    expected_shadow_rows = len(prep) * expected_host_columns
+
+    checks = {
+        f"margin{margin}_guest_column_exactly_matches_plus8_path": prep_sig == p8_sig,
+        f"margin{margin}_all_host_columns_materialized": (
+            len(prep) > 0 and len(shadows) == expected_shadow_rows and not missing_columns
+        ),
+        f"margin{margin}_no_provider_miss": not stops,
+        f"margin{margin}_all_counts_16": all(r["count"] == 16 for r in prep + shadows),
+        f"margin{margin}_ring_chain_adjacent": len(pairs) == len(prep) and not chain_failures,
+        f"margin{margin}_same_view_payloads_exact": (
+            classifications["same-view"] > 0
+            and exact_same_view == classifications["same-view"]
+            and classifications["unmatched"] == 0
+            and not payload_failures
+        ),
+        f"margin{margin}_all_oracle_rows_classified": (
+            sum(classifications.values()) == len(shadows)
+            and classifications["unmatched"] == 0
+        ),
+        f"margin{margin}_cleanup_lifecycle": cleanup_ok,
+        f"margin{margin}_protected_state_equal": not protected,
+    }
+    return {
+        "margin": margin,
+        "expected_host_columns": expected_host_columns,
+        "expected_columns": expected_columns,
+        "counts": {
+            "guest_prepare_events": len(prep),
+            "host_shadow_events": len(shadows),
+            "same_view_comparable_rows": classifications["same-view"],
+            "same_view_exact_payload_matches": exact_same_view,
+            "vertical_view_transition_rows": classifications["vertical-view-transition"],
+            "unmatched_oracle_rows": classifications["unmatched"],
+            "cleanup_events": len(clean),
+        },
+        "provider_misses": stops,
+        "protected_state_differences": protected,
+        "missing_columns": missing_columns[:40],
+        "chain_failures": chain_failures[:40],
+        "payload_failures": payload_failures[:40],
+        "pair_examples": pairs[:40],
+        "oracle_examples": oracle_examples[:40],
+        "checks": checks,
+        "accepted": all(checks.values()),
+    }
+
+
+def analyze(logs: dict[int, str], oracle_log: str, dumps: dict[int, Path]) -> dict:
+    fake16 = (
         "URWS_LIMIT margin=16 required_extra_columns=2 "
         "stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n"
     )
-    fake24=(
+    fake24 = (
         "URWS_LIMIT margin=24 required_extra_columns=3 "
         "stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n"
     )
-    plus8=BASE.analyze(
-        {0:log0,8:log8,16:fake16,24:fake24},
-        {0:dump0,8:dump8,16:dump0,24:dump0},
+    plus8 = BASE.analyze(
+        {0: logs[0], 8: logs[8], 16: fake16, 24: fake24},
+        {0: dumps[0], 8: dumps[8], 16: dumps[0], 24: dumps[0]},
     )
-
-    p8=[
-        {"camx":int(c),"edge":int(e,16),"count":int(n),"payload":p.upper()}
-        for c,e,n,p in BASE.PREP_RE.findall(log8)
+    p8 = [
+        {"camx": int(c), "edge": int(e, 16), "count": int(n), "payload": p.upper()}
+        for c, e, n, p in BASE.PREP_RE.findall(logs[8])
     ]
-    p16=rows(PREP16_RE,log16)
-    shadow=rows(SHADOW16_RE,log16)
-    shadow_views=shadow_view(log16)
-    primary16=[
-        {"camx":int(c),"edge":int(e,16),"count":int(n),"payload":p.upper()}
-        for mm,c,e,n,p in BASE.PRIMARY_RE.findall(log16)
-        if int(mm)==16 and int(n)==16 and int(e,16)!=0xffff
-    ]
-    oracle=stock_primary(oracle_log)
-    oracle_views=stock_primary_view(oracle_log)
-    control=stock_primary(log0)
-    stock_deltas={(b["edge"]-a["edge"])&0xffff for a,b in zip(control,control[1:])}|{1}
+    control = primary_rows(logs[0], 0)
+    oracle = primary_rows(oracle_log, 0)
+    states = {m: BASE.read_words(dumps[m]) for m in MARGINS}
 
-    primary_by_cam={r["camx"]:r for r in primary16}
-    shadow_by_cam={r["camx"]:r for r in shadow}
-    paired=[]
-    bad_first_steps=[]
-    bad_second_ring_steps=[]
-    oracle_payload_exact=0
-    oracle_full_edge_exact=0
-    same_view_payload_exact=0
-    same_view_comparable=0
-    vertical_view_transition_rows=0
-    same_view_failures=[]
-    oracle_advances=[]
-    oracle_examples=[]
-    for first in p16:
-        second=shadow_by_cam.get(first["camx"])
-        base=primary_by_cam.get(first["camx"])
-        if base is None or second is None:
-            continue
-
-        d1=(first["edge"]-base["edge"])&0xffff
-        first_ok=BASE._ring_adjacent(base["edge"],first["edge"]) and d1 in stock_deltas
-        second_ring_ok=BASE._ring_adjacent(first["edge"],second["edge"])
-        item={
-            "camx":first["camx"],
-            "primary_edge":base["edge"],
-            "first_edge":first["edge"],
-            "second_edge":second["edge"],
-            "first_delta":d1,
-            "second_delta":(second["edge"]-first["edge"])&0xffff,
-            "first_stock_compatible":first_ok,
-            "second_ring_adjacent":second_ring_ok,
-        }
-        paired.append(item)
-        if not first_ok:
-            bad_first_steps.append(item)
-        if not second_ring_ok:
-            bad_second_ring_steps.append(item)
-
-    shadow_view_by_cam={r["camx"]:r for r in shadow_views}
-    for first in p16:
-        second=shadow_view_by_cam.get(first["camx"])
-        if second is None:
-            continue
-        wanted_ring=second["edge"]&0x1f
-        bounded=[
-            r for r in oracle_views
-            if r["camx"]>second["camx"]
-            and 1 <= r["camx"]-second["camx"] <= 64
-            and (r["edge"]&0x1f)==wanted_ring
-        ]
-        if not bounded:
-            continue
-        nearest=min(bounded,key=lambda r:r["camx"]-second["camx"])
-        same_view=[
-            r for r in bounded
-            if r["finey"]==second["finey"]
-        ]
-        if nearest["finey"] != second["finey"]:
-            vertical_view_transition_rows += 1
-        if not same_view:
-            continue
-        best=min(same_view,key=lambda r:r["camx"]-second["camx"])
-        same_view_comparable += 1
-        if best["payload"]==second["payload"]:
-            same_view_payload_exact += 1
-        elif len(same_view_failures)<40:
-            same_view_failures.append({
-                "plus16_camx":second["camx"],
-                "plus16_camy":second["camy"],
-                "fine_x":second["finex"],
-                "fine_y":second["finey"],
-                "stock_camx":best["camx"],
-                "stock_camy":best["camy"],
-                "stock_fine_y":best["finey"],
-                "host_edge":second["edge"],
-                "stock_edge":best["edge"],
-                "host_payload":second["payload"],
-                "stock_payload":best["payload"],
-            })
-
-    states={0:BASE.read_words(dump0),8:BASE.read_words(dump8),
-            16:BASE.read_words(dump16),24:BASE.read_words(dump24)}
-    protected16={
-        k:{"control":states[0][k],"margin_16":states[16][k]}
-        for k in states[0] if states[0][k]!=states[16][k]
+    capacity = {
+        m: analyze_margin(m, logs[m], p8, oracle, control, states[0], states[m])
+        for m in CAPACITY_MARGINS
     }
-    clean=[int(x) for x in CLEAN_RE.findall(log16)]
-    terminal_pending=len(p16)==len(clean)+1
-    cleanup_ok=(
-        len(p16)>0 and (len(p16)==len(clean) or terminal_pending)
-        and all(x==1 for x in clean)
-    )
-    plus8_signature=[(r["camx"],r["edge"],r["count"],r["payload"]) for r in p8]
-    plus16_signature=[(r["camx"],r["edge"],r["count"],r["payload"]) for r in p16]
-
-    checks={
-        "accepted_plus8_unchanged":plus8["accepted"],
-        "margin16_first_column_exactly_matches_plus8_path":plus16_signature==plus8_signature,
-        "margin16_two_columns_for_every_preparation":len(p16)>0 and len(shadow)==len(p16),
-        "margin16_no_provider_miss":not STOP_RE.findall(log16),
-        "margin16_all_counts_16":all(r["count"]==16 for r in p16+shadow),
-        "margin16_first_step_preserves_accepted_stock_compatibility":(
-            len(paired)==len(p16) and not bad_first_steps
-        ),
-        "margin16_second_step_ring_adjacent":(
-            len(paired)==len(p16) and not bad_second_ring_steps
-        ),
-        "margin16_same_view_shadow_payloads_are_exact":(
-            same_view_comparable > 0
-            and same_view_payload_exact == same_view_comparable
-            and same_view_comparable + vertical_view_transition_rows == len(shadow)
-            and not same_view_failures
-        ),
-        "margin16_cleanup_lifecycle":cleanup_ok,
-        "margin16_protected_state_equal":not protected16,
-        "margin24_stops_at_bounded_host_capacity":(
-            bool(LIMIT24_RE.search(log24))
-            and not rows(PREP16_RE,log24)
-            and not rows(SHADOW16_RE,log24)
-        ),
+    checks = {
+        "accepted_plus8_unchanged": plus8["accepted"],
+        **{f"accepted_margin_{m}": capacity[m]["accepted"] for m in CAPACITY_MARGINS},
     }
+    accepted_margins = [m for m in CAPACITY_MARGINS if capacity[m]["accepted"]]
+    deepest = max(accepted_margins, default=8)
     return {
-        "schema_version":1,
-        "architecture":{
-            "guest_first_extra_column":"accepted PR #228 secondary lane",
-            "host_second_extra_column":"host-owned WideStrip provider",
-            "host_provider":"live 7F:000F coarse table + 7F:800F packed-surface fine records",
-            "acceptance_oracle":"independent later-stock control run only; never read by implementation",
-            "synthetic_guest_descriptor_lanes":0,
-            "production_provider_status":"first course-backed random-access materializer under acceptance",
+        "schema_version": 3,
+        "architecture": {
+            "guest_first_extra_column": "accepted PR #228 secondary lane",
+            "host_extra_columns": "columns +2 and beyond are host-owned presentation state",
+            "host_provider": "live 7F:000F coarse table + 7F:800F packed-surface fine records",
+            "acceptance_oracle": "independent later-stock control run only; never read by implementation",
+            "synthetic_guest_descriptor_lanes": 0,
+            "deepest_accepted_margin_pixels": deepest,
+            "deepest_accepted_host_columns": max(0, deepest // 8 - 1),
+            "aspect_policy_status": "unresolved; depth sweep is capacity evidence, not a hard-coded 16:9 width",
         },
-        "counts":{
-            "plus8_prepare_events":len(p8),
-            "plus16_first_column_events":len(p16),
-            "plus16_shadow_events":len(shadow),
-            "plus16_same_view_comparable_rows":same_view_comparable,
-            "plus16_same_view_payload_exact_matches":same_view_payload_exact,
-            "plus16_vertical_view_transition_rows":vertical_view_transition_rows,
-            "plus16_cleanup_events":len(clean),
-            "plus16_comparable_pairs":len(paired),
-        },
-        "provider_misses":STOP_RE.findall(log16),
-        "protected_state_differences":protected16,
-        "first_step_failures":bad_first_steps[:40],
-        "second_ring_failures":bad_second_ring_steps[:40],
-        "same_view_failures":same_view_failures,
-        "pair_examples":paired[:40],
-        "checks":checks,
-        "accepted":all(checks.values()),
+        "margins": {str(m): capacity[m] for m in CAPACITY_MARGINS},
+        "checks": checks,
+        "accepted": all(checks.values()),
     }
 
-def render(r:dict)->str:
-    c=r["checks"]; n=r["counts"]
-    return "\n".join([
-        "# +16 Widescreen host-capacity acceptance","",
-        "The accepted +8 guest path supplies column +1 unchanged. Column +2 is "
-        "retained only in host-owned presentation storage and is materialized directly "
-        "from the live course coarse/fine presentation tables. The independent later-stock "
-        "run is used only as an acceptance oracle.","",
-        f"- accepted +8 unchanged: **{c['accepted_plus8_unchanged']}**",
-        f"- +16 first-column events: **{n['plus16_first_column_events']}**",
-        f"- +16 host-shadow events: **{n['plus16_shadow_events']}**",
-        f"- same-view comparable shadow rows: **{n['plus16_same_view_comparable_rows']}**",
-        f"- same-view exact payload matches: **{n['plus16_same_view_payload_exact_matches']}**",
-        f"- later-stock rows crossing a vertical-view transition: **{n['plus16_vertical_view_transition_rows']}**",
-        f"- all shadow rows classified: **{n['plus16_same_view_comparable_rows'] + n['plus16_vertical_view_transition_rows'] == n['plus16_shadow_events']}**",
-        f"- two columns for every preparation: **{c['margin16_two_columns_for_every_preparation']}**",
-        f"- first step keeps accepted stock compatibility: **{c['margin16_first_step_preserves_accepted_stock_compatibility']}**",
-        f"- second step is ring-adjacent: **{c['margin16_second_step_ring_adjacent']}**",
-        f"- +16 protected state equal: **{c['margin16_protected_state_equal']}**",
-        f"- deterministic cleanup: **{c['margin16_cleanup_lifecycle']}**",
-        f"- provider misses: **{r['provider_misses']}**","",
-        "For column +2, the later-stock oracle is exact only when the future stock row "
-        "samples the same fine camera-Y viewport. Rows where the camera has moved vertically "
-        "are classified separately rather than asking a current-view random-access strip to "
-        "match a different future viewport. Every same-view comparable payload remains a hard "
-        "exactness gate. Full compound-edge equality and all-row payload equality are retained "
-        "as diagnostics. The oracle is deliberately never a runtime provider.","",
-        f"Overall accepted: **{r['accepted']}**",""
-    ])
 
-def main()->int:
-    ap=argparse.ArgumentParser()
-    for m in (0,8,16,24):
-        ap.add_argument(f"--log-{m}",type=Path,required=True)
-        ap.add_argument(f"--dump-{m}",type=Path,required=True)
-    ap.add_argument("--oracle-log",type=Path,required=True)
-    ap.add_argument("--json-out",type=Path)
-    ap.add_argument("--md-out",type=Path)
-    a=ap.parse_args()
-    r=analyze(
-        a.log_0.read_text(encoding="utf-8",errors="replace"),
-        a.log_8.read_text(encoding="utf-8",errors="replace"),
-        a.log_16.read_text(encoding="utf-8",errors="replace"),
-        a.log_24.read_text(encoding="utf-8",errors="replace"),
-        a.oracle_log.read_text(encoding="utf-8",errors="replace"),
-        a.dump_0,a.dump_8,a.dump_16,a.dump_24,
-    )
-    md=render(r)
+def render(r: dict) -> str:
+    lines = [
+        "# Widescreen host-materializer depth sweep", "",
+        "Column +1 remains on the accepted +8 guest path. Every deeper column is "
+        "host-owned and comes from the same live course presentation tables. "
+        "The later-stock run is acceptance-only.", "",
+        f"- accepted +8 unchanged: **{r['checks']['accepted_plus8_unchanged']}**",
+    ]
+    for m in CAPACITY_MARGINS:
+        x = r["margins"][str(m)]
+        n = x["counts"]
+        lines += [
+            f"- +{m}: accepted **{x['accepted']}**, host columns "
+            f"**{x['expected_host_columns']}**, host rows **{n['host_shadow_events']}**, "
+            f"same-view exact **{n['same_view_exact_payload_matches']}/{n['same_view_comparable_rows']}**, "
+            f"vertical transitions **{n['vertical_view_transition_rows']}**, "
+            f"unmatched **{n['unmatched_oracle_rows']}**, provider misses **{len(x['provider_misses'])}**"
+        ]
+    lines += [
+        "",
+        f"Deepest accepted probe: **+{r['architecture']['deepest_accepted_margin_pixels']}** "
+        f"with **{r['architecture']['deepest_accepted_host_columns']}** host-owned columns.",
+        "",
+        "This sweep deliberately does not declare a final 16:9 source width while pixel-aspect "
+        "policy remains unresolved. It answers only whether the host-owned random-access "
+        "materializer itself keeps scaling.",
+        "",
+        f"Overall accepted: **{r['accepted']}**", "",
+    ]
+    return "\n".join(lines)
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    for m in MARGINS:
+        ap.add_argument(f"--log-{m}", type=Path, required=True)
+        ap.add_argument(f"--dump-{m}", type=Path, required=True)
+    ap.add_argument("--oracle-log", type=Path, required=True)
+    ap.add_argument("--json-out", type=Path)
+    ap.add_argument("--md-out", type=Path)
+    a = ap.parse_args()
+    logs = {m: getattr(a, f"log_{m}").read_text(encoding="utf-8", errors="replace") for m in MARGINS}
+    dumps = {m: getattr(a, f"dump_{m}") for m in MARGINS}
+    r = analyze(logs, a.oracle_log.read_text(encoding="utf-8", errors="replace"), dumps)
+    md = render(r)
     if a.json_out:
-        a.json_out.parent.mkdir(parents=True,exist_ok=True)
-        a.json_out.write_text(json.dumps(r,indent=2)+"\n",encoding="utf-8")
+        a.json_out.parent.mkdir(parents=True, exist_ok=True)
+        a.json_out.write_text(json.dumps(r, indent=2) + "\n", encoding="utf-8")
     if a.md_out:
-        a.md_out.parent.mkdir(parents=True,exist_ok=True)
-        a.md_out.write_text(md,encoding="utf-8")
-    print(md,end="")
+        a.md_out.parent.mkdir(parents=True, exist_ok=True)
+        a.md_out.write_text(md, encoding="utf-8")
+    print(md, end="")
     return 0 if r["accepted"] else 2
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     raise SystemExit(main())

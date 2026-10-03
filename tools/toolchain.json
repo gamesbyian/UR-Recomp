@@ -522,6 +522,10 @@
           "sha256": "12b3c6b3936a27c7f006380cfa40df9be5087fa809db99a2354b6cccd6f9b923"
         },
         {
+          "path": "tools/patches/snesrecomp-title-key-hook.patch",
+          "sha256": "9e9339f7caae11213e5d4bb817b18a30418232056a8dd9e6c5c1f3e418ea16c0"
+        },
+        {
           "path": "tools/patches/snesrecomp-rewind-audio-timing-lock.patch",
           "sha256": "41068ef87d567c7bb961488effe03d38a36bd168d1e62a82baaa028da0619927"
         }

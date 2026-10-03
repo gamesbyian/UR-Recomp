@@ -17,6 +17,8 @@ UrModernPauseItem normalized_selection(
             : UR_MODERN_PAUSE_RESUME;
     case UR_MODERN_PAUSE_FOCUS_PAUSE:
         return UR_MODERN_PAUSE_FOCUS_PAUSE;
+    case UR_MODERN_PAUSE_CONTROLS:
+        return UR_MODERN_PAUSE_CONTROLS;
     default:
         return UR_MODERN_PAUSE_RESUME;
     }
@@ -49,13 +51,16 @@ extern "C" void ur_modern_pause_menu_move(
                 menu->selected = UR_MODERN_PAUSE_FOCUS_PAUSE;
                 break;
             case UR_MODERN_PAUSE_FOCUS_PAUSE:
+                menu->selected = UR_MODERN_PAUSE_CONTROLS;
+                break;
+            case UR_MODERN_PAUSE_CONTROLS:
                 menu->selected = UR_MODERN_PAUSE_RESUME;
                 break;
             }
         } else {
             switch (current) {
             case UR_MODERN_PAUSE_RESUME:
-                menu->selected = UR_MODERN_PAUSE_FOCUS_PAUSE;
+                menu->selected = UR_MODERN_PAUSE_CONTROLS;
                 break;
             case UR_MODERN_PAUSE_RESTART:
                 menu->selected = UR_MODERN_PAUSE_RESUME;
@@ -63,15 +68,31 @@ extern "C" void ur_modern_pause_menu_move(
             case UR_MODERN_PAUSE_FOCUS_PAUSE:
                 menu->selected = UR_MODERN_PAUSE_RESTART;
                 break;
+            case UR_MODERN_PAUSE_CONTROLS:
+                menu->selected = UR_MODERN_PAUSE_FOCUS_PAUSE;
+                break;
             }
         }
         return;
     }
 
-    menu->selected =
-        current == UR_MODERN_PAUSE_FOCUS_PAUSE
-            ? UR_MODERN_PAUSE_RESUME
-            : UR_MODERN_PAUSE_FOCUS_PAUSE;
+    if (delta > 0) {
+        if (current == UR_MODERN_PAUSE_RESUME) {
+            menu->selected = UR_MODERN_PAUSE_FOCUS_PAUSE;
+        } else if (current == UR_MODERN_PAUSE_FOCUS_PAUSE) {
+            menu->selected = UR_MODERN_PAUSE_CONTROLS;
+        } else {
+            menu->selected = UR_MODERN_PAUSE_RESUME;
+        }
+    } else {
+        if (current == UR_MODERN_PAUSE_RESUME) {
+            menu->selected = UR_MODERN_PAUSE_CONTROLS;
+        } else if (current == UR_MODERN_PAUSE_CONTROLS) {
+            menu->selected = UR_MODERN_PAUSE_FOCUS_PAUSE;
+        } else {
+            menu->selected = UR_MODERN_PAUSE_RESUME;
+        }
+    }
 }
 
 extern "C" UrModernPauseItem ur_modern_pause_menu_selected(

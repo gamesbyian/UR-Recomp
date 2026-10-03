@@ -341,6 +341,20 @@ jobs:
             --p1-gate 0x0001 --p2-gate 0x0000 \
             --player p2 --palette-asset-id 0x07 \
             | tee "$RUNNER_TEMP/racer-057f-0542-predecessor-p2.json"
+          python3 - "$RUNNER_TEMP/racer-057f-0542-predecessor-p1.json" "$RUNNER_TEMP/racer-057f-0542-predecessor-p2.json" <<'PY'
+          import json, pathlib, sys
+          p1 = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          p2 = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          assert p1["flip_pivot_x2_y2"] == [63, 63]
+          assert p1["wheel_contact_x2_y2"] == [65, 76]
+          assert p1["alpha_bounds"] == [22, 2, 41, 38]
+          assert p2["flip_pivot_x2_y2"] == [63, 63]
+          assert p2["wheel_contact_x2_y2"] == [59, 76]
+          assert p2["alpha_bounds"] == [21, 4, 40, 38]
+          assert p1["composition"]["p1_companion"] == "0x0D4A"
+          assert p2["composition"]["p1_companion"] == "0x0D4A"
+          print("UR_RACER_057F_0542_PREDECESSOR PASS")
+          PY
 
       - name: Upload compact visual proof
         uses: actions/upload-artifact@v4

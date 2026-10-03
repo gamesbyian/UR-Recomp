@@ -9,16 +9,22 @@ namespace {
 constexpr std::string_view kHeaderV1 = "UR-HOST-STATE/1";
 constexpr std::string_view kHeaderV2 = "UR-HOST-STATE/2";
 constexpr std::string_view kHeaderV3 = "UR-HOST-STATE/3";
+constexpr std::string_view kHeaderV4 = "UR-HOST-STATE/4";
 
 bool parse_display_mode(
     std::string_view text,
-    HostDisplayMode& out) noexcept {
+    HostDisplayMode& out,
+    bool allow_fullscreen) noexcept {
     if (text == "windowed") {
         out = HostDisplayMode::Windowed;
         return true;
     }
     if (text == "borderless") {
         out = HostDisplayMode::BorderlessFullscreen;
+        return true;
+    }
+    if (allow_fullscreen && text == "fullscreen") {
+        out = HostDisplayMode::Fullscreen;
         return true;
     }
     return false;
@@ -30,6 +36,8 @@ const char* display_mode_name(HostDisplayMode mode) noexcept {
         return "windowed";
     case HostDisplayMode::BorderlessFullscreen:
         return "borderless";
+    case HostDisplayMode::Fullscreen:
+        return "fullscreen";
     }
     return nullptr;
 }
@@ -105,7 +113,7 @@ std::string encode_host_product_state(const HostProductState& state) {
     }
 
     std::ostringstream out;
-    out << kHeaderV3 << '\n';
+    out << kHeaderV4 << '\n';
     out << "profile=";
     if (state.active_profile_id) {
         out << *state.active_profile_id;
@@ -126,7 +134,8 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
     }
     const bool legacy_v1 = line == kHeaderV1;
     const bool legacy_v2 = line == kHeaderV2;
-    if (!legacy_v1 && !legacy_v2 && line != kHeaderV3) {
+    const bool legacy_v3 = line == kHeaderV3;
+    if (!legacy_v1 && !legacy_v2 && !legacy_v3 && line != kHeaderV4) {
         return {std::nullopt, "unsupported or missing host-state header"};
     }
 
@@ -189,7 +198,10 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
         return {std::nullopt, "host-state booleans must be 0 or 1"};
     }
     if (!legacy_v1 &&
-        !parse_display_mode(fields.at("display_mode"), state.settings.display_mode)) {
+        !parse_display_mode(
+            fields.at("display_mode"),
+            state.settings.display_mode,
+            !legacy_v2 && !legacy_v3)) {
         return {std::nullopt, "invalid host display mode"};
     }
     if (!legacy_v1 && !legacy_v2 &&

@@ -50,6 +50,7 @@ jobs:
             tests.unit.test_inspect_native_widescreen_prep_anchor \
             tests.unit.test_apply_native_widescreen_hook \
             tests.unit.test_analyze_native_widescreen_hook_acceptance \
+            tests.unit.test_analyze_widescreen_plus16_capacity_acceptance \
             tests.unit.test_build_widescreen_shadow_oracle \
             tests.unit.test_analyze_native_widescreen_reachability
 
@@ -178,7 +179,7 @@ jobs:
             tail -n 30 "$OUT/run.log" || true
           done
 
-      - name: Prove +16 host presentation capacity
+      - name: Prove +24 host presentation capacity
         shell: bash
         run: |
           set -euo pipefail
@@ -193,11 +194,11 @@ jobs:
             --log-24 "$ROOT/24/run.log" \
             --dump-24 "$ROOT/24/dumps/prep-emission-after-scroll.wram.bin" \
             --oracle-log "$ROOT/oracle/run.log" \
-            --json-out analysis/generated/widescreen-plus16-capacity-acceptance.json \
-            --md-out analysis/generated/widescreen-plus16-capacity-acceptance.md
-          cat analysis/generated/widescreen-plus16-capacity-acceptance.md
+            --json-out analysis/generated/widescreen-plus24-capacity-acceptance.json \
+            --md-out analysis/generated/widescreen-plus24-capacity-acceptance.md
+          cat analysis/generated/widescreen-plus24-capacity-acceptance.md
 
-      - name: Prove +16 gameplay and activation invariance
+      - name: Prove +16/+24 gameplay and activation invariance
         shell: bash
         run: |
           set -euo pipefail
@@ -206,9 +207,9 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/object-liveness-dragster.script"
           ROOT="$RUNNER_TEMP/ws-native-liveness"
-          mkdir -p "$ROOT/0/dumps" "$ROOT/16/dumps" analysis/generated
+          mkdir -p "$ROOT/0/dumps" "$ROOT/16/dumps" "$ROOT/24/dumps" analysis/generated
 
-          for margin in 0 16; do
+          for margin in 0 16 24; do
             SDL_AUDIODRIVER=dummy \
             URRECOMP_WS_MARGIN="$margin" \
             URRECOMP_WS_NATIVE_TRACE=1 \
@@ -220,54 +221,64 @@ jobs:
               >"$ROOT/$margin/summary.txt"
           done
 
-          python3 - "$ROOT/0/summary.json" "$ROOT/16/summary.json" \
-            analysis/generated/widescreen-plus16-liveness.json <<'PY'
+          python3 - "$ROOT/0/summary.json" "$ROOT/16/summary.json" "$ROOT/24/summary.json" \
+            analysis/generated/widescreen-plus24-liveness.json <<'PY'
           import json, pathlib, sys
-          a=json.loads(pathlib.Path(sys.argv[1]).read_text())
-          b=json.loads(pathlib.Path(sys.argv[2]).read_text())
-          ar={x["stem"]:x for x in a["rows"]}; br={x["stem"]:x for x in b["rows"]}
-          common=sorted(set(ar)&set(br)); diffs=[]
-          for stem in common:
-              x,y=ar[stem],br[stem]
-              protected={
-                  "player":({"x":x["player"]["x"],"y":x["player"]["y"]},
-                            {"x":y["player"]["x"],"y":y["player"]["y"]}),
-                  "camera":(x["camera"],y["camera"]),
-                  "progress":(x["progress"],y["progress"]),
-                  "object_map_prefix_hex":(x["object_map_prefix_hex"],y["object_map_prefix_hex"]),
-              }
-              bad={k:{"control":u,"plus16":v} for k,(u,v) in protected.items() if u!=v}
-              if bad: diffs.append({"stem":stem,"differences":bad})
-          control_change=a["first_progress_change"]
-          wide_change=b["first_progress_change"]
-          same_progress_event=(
-              control_change is not None
-              and wide_change is not None
-              and control_change["stem"]==wide_change["stem"]
-              and control_change["progress"]==wide_change["progress"]
-          )
-          frame_delta=(
-              wide_change["frame"]-control_change["frame"]
-              if same_progress_event else None
-          )
-          out={
-              "common_samples":len(common),
-              "protected_differences":diffs,
-              "control_first_progress_change":control_change,
-              "plus16_first_progress_change":wide_change,
-              "progress_change_frame_delta":frame_delta,
-              "same_semantic_progress_event":same_progress_event,
-              "no_earlier_gameplay_activation":(
-                  not diffs
-                  and same_progress_event
-                  and frame_delta is not None
-                  and frame_delta >= 0
-              ),
+          control=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          variants={
+              "plus16":json.loads(pathlib.Path(sys.argv[2]).read_text()),
+              "plus24":json.loads(pathlib.Path(sys.argv[3]).read_text()),
           }
-          pathlib.Path(sys.argv[3]).write_text(json.dumps(out,indent=2)+"\n")
+          ar={x["stem"]:x for x in control["rows"]}
+          results={}
+          for label,wide in variants.items():
+              br={x["stem"]:x for x in wide["rows"]}
+              common=sorted(set(ar)&set(br)); diffs=[]
+              for stem in common:
+                  x,y=ar[stem],br[stem]
+                  protected={
+                      "player":({"x":x["player"]["x"],"y":x["player"]["y"]},
+                                {"x":y["player"]["x"],"y":y["player"]["y"]}),
+                      "camera":(x["camera"],y["camera"]),
+                      "progress":(x["progress"],y["progress"]),
+                      "object_map_prefix_hex":(x["object_map_prefix_hex"],y["object_map_prefix_hex"]),
+                  }
+                  bad={k:{"control":u,label:v} for k,(u,v) in protected.items() if u!=v}
+                  if bad: diffs.append({"stem":stem,"differences":bad})
+              control_change=control["first_progress_change"]
+              wide_change=wide["first_progress_change"]
+              same_progress_event=(
+                  control_change is not None
+                  and wide_change is not None
+                  and control_change["stem"]==wide_change["stem"]
+                  and control_change["progress"]==wide_change["progress"]
+              )
+              frame_delta=(
+                  wide_change["frame"]-control_change["frame"]
+                  if same_progress_event else None
+              )
+              results[label]={
+                  "common_samples":len(common),
+                  "protected_differences":diffs,
+                  "first_progress_change":wide_change,
+                  "progress_change_frame_delta":frame_delta,
+                  "same_semantic_progress_event":same_progress_event,
+                  "no_earlier_gameplay_activation":(
+                      not diffs
+                      and same_progress_event
+                      and frame_delta is not None
+                      and frame_delta >= 0
+                  ),
+              }
+          out={
+              "control_first_progress_change":control["first_progress_change"],
+              "variants":results,
+              "accepted":all(x["no_earlier_gameplay_activation"] for x in results.values()),
+          }
+          pathlib.Path(sys.argv[4]).write_text(json.dumps(out,indent=2)+"\n")
           print(json.dumps(out,indent=2))
-          if not out["no_earlier_gameplay_activation"]:
-              raise SystemExit("+16 liveness diverged")
+          if not out["accepted"]:
+              raise SystemExit("+16/+24 liveness diverged")
           PY
 
       - name: Upload compact native-hook evidence
@@ -281,9 +292,9 @@ jobs:
             analysis/generated/widescreen-native-prep-anchor.json
             analysis/generated/widescreen-native-prep-anchor.md
             analysis/generated/widescreen-native-hook-apply.json
-            analysis/generated/widescreen-plus16-capacity-acceptance.json
-            analysis/generated/widescreen-plus16-capacity-acceptance.md
-            analysis/generated/widescreen-plus16-liveness.json
+            analysis/generated/widescreen-plus24-capacity-acceptance.json
+            analysis/generated/widescreen-plus24-capacity-acceptance.md
+            analysis/generated/widescreen-plus24-liveness.json
             ${{ runner.temp }}/ws-native-runs/oracle/run.log
             ${{ runner.temp }}/ws-native-runs/oracle/stock-strips.txt
             ${{ runner.temp }}/ws-native-runs/0/run.log

@@ -181,5 +181,9 @@ jobs:
             analysis/generated/widescreen-native-hook-apply.json
             analysis/generated/widescreen-native-hook-acceptance.json
             analysis/generated/widescreen-native-hook-acceptance.md
+            ${{ runner.temp }}/ws-native-runs/0/run.log
+            ${{ runner.temp }}/ws-native-runs/8/run.log
+            ${{ runner.temp }}/ws-native-runs/16/run.log
+            ${{ runner.temp }}/ws-native-runs/24/run.log
           if-no-files-found: warn
           retention-days: 7

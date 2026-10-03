@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "method": {
     "resource_identity_rule": "candidate equivalence is based on usage shape across courses, tour slots, and list positions; numeric IDs and ROM addresses are not part of the fingerprint",
     "caution": "matching usage fingerprints are structural equivalence candidates, not semantic proof; promote only with descriptor, content, runtime, or behavior corroboration"
@@ -16560,6 +16560,191 @@
           }
         ]
       }
+    }
+  },
+  "course_header_and_resource_deltas": {
+    "reference_build": "usa-retail",
+    "fields_compared": [
+      "stunt_time_or_mode",
+      "spawn_or_landmark_a",
+      "spawn_or_landmark_b",
+      "resource_ids",
+      "layout_dims"
+    ],
+    "builds": {
+      "europe-retail": [
+        {
+          "index": 4,
+          "fields": {
+            "spawn_or_landmark_a": {
+              "before": [
+                99,
+                26
+              ],
+              "after": [
+                99,
+                22
+              ]
+            }
+          }
+        },
+        {
+          "index": 26,
+          "fields": {
+            "resource_ids": {
+              "before": [
+                1,
+                2,
+                18,
+                29,
+                30,
+                37,
+                38,
+                39,
+                20,
+                36,
+                22,
+                24,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                13,
+                9,
+                10,
+                11,
+                25,
+                19,
+                15,
+                40
+              ],
+              "after": [
+                1,
+                2,
+                18,
+                29,
+                30,
+                37,
+                38,
+                39,
+                20,
+                36,
+                22,
+                24,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                13,
+                9,
+                10,
+                11,
+                25,
+                19,
+                15,
+                40,
+                34
+              ]
+            }
+          },
+          "resource_list_change": {
+            "kind": "append",
+            "values": [
+              34
+            ]
+          }
+        },
+        {
+          "index": 36,
+          "fields": {
+            "resource_ids": {
+              "before": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                20,
+                36,
+                18,
+                29,
+                13,
+                13,
+                16,
+                14,
+                15,
+                17,
+                22,
+                24,
+                37,
+                38,
+                39,
+                14,
+                19,
+                25,
+                30,
+                34,
+                40
+              ],
+              "after": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                20,
+                36,
+                18,
+                29,
+                13,
+                13,
+                16,
+                14,
+                15,
+                17,
+                22,
+                24,
+                37,
+                38,
+                39,
+                14,
+                19,
+                25,
+                30,
+                34,
+                40,
+                34
+              ]
+            }
+          },
+          "resource_list_change": {
+            "kind": "append",
+            "values": [
+              34
+            ]
+          }
+        }
+      ],
+      "legacy-beta": [],
+      "pal-prototype-1994-11-29": []
     }
   },
   "cross_build_usage_matches": [

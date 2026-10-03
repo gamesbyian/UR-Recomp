@@ -14,6 +14,8 @@ std::vector<std::uint8_t> machine;
 unsigned saves = 0;
 unsigned loads = 0;
 int host_paused = 0;
+int rewind_lock = 0;
+unsigned reconciles = 0;
 
 std::size_t save_snapshot(void* dst, std::size_t capacity) {
     ++saves;
@@ -39,11 +41,21 @@ int is_paused() {
     return host_paused;
 }
 
+void set_rewind_lock(int active) {
+    rewind_lock = active ? 1 : 0;
+}
+
+void reconcile_after_restart() {
+    ++reconciles;
+}
+
 void reset_fixture() {
     machine.clear();
     saves = 0;
     loads = 0;
     host_paused = 0;
+    rewind_lock = 0;
+    reconciles = 0;
 }
 
 }  // namespace
@@ -56,12 +68,13 @@ int main() {
         ModernSessionRuntime authentic{
             ExecutionMode::Authentic,
             lifecycle,
-            {&set_paused, &is_paused, nullptr}};
+            {&set_paused, &is_paused, nullptr, &set_rewind_lock, &reconcile_after_restart}};
 
         machine = {1, 2, 3};
         assert(authentic.observe_race_active(true) == RestartLifecycleEvent::None);
         assert(!authentic.restart_available());
         assert(saves == 0);
+        assert(rewind_lock == 0);
 
         const auto restart = authentic.request(SessionCommand::RestartRace);
         assert(restart.request_status == SessionRequestStatus::RejectedByPolicy);
@@ -76,7 +89,7 @@ int main() {
         ModernSessionRuntime modern{
             ExecutionMode::Modern,
             lifecycle,
-            {&set_paused, &is_paused, nullptr}};
+            {&set_paused, &is_paused, nullptr, &set_rewind_lock, &reconcile_after_restart}};
 
         // Before an active-race anchor exists, the typed command reaches the
         // runtime adapter and fails closed at the real lifecycle restore.
@@ -92,6 +105,7 @@ int main() {
                RestartLifecycleEvent::AnchorCaptured);
         assert(modern.restart_available());
         assert(saves == 1);
+        assert(rewind_lock == 1);
 
         machine = {9, 9, 9};
         assert(modern.observe_race_active(true) == RestartLifecycleEvent::None);
@@ -103,6 +117,7 @@ int main() {
         assert(restart.applied());
         assert((machine == std::vector<std::uint8_t>{1, 2, 3, 4}));
         assert(loads == 1);
+        assert(reconciles == 1);
 
         // Repeated restart reuses the exact same anchor.
         machine = {8, 7, 6};
@@ -110,6 +125,7 @@ int main() {
         assert(repeated.applied());
         assert((machine == std::vector<std::uint8_t>{1, 2, 3, 4}));
         assert(loads == 2);
+        assert(reconciles == 2);
         assert(saves == 1);
 
         // Results/post-race keeps Retry available.
@@ -134,6 +150,7 @@ int main() {
         assert(modern.retire_race_attempt() ==
                RestartLifecycleEvent::AnchorRetired);
         assert(!modern.restart_available());
+        assert(rewind_lock == 0);
         machine = {7};
         const auto retired = modern.request(SessionCommand::RestartRace);
         assert(retired.dispatch_status == RuntimeDispatchStatus::RejectedByRuntime);

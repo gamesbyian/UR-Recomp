@@ -110,6 +110,8 @@ For the current deterministic two-player window, the builder:
 
 This is the handoff surface for actual racer art review. A replacement candidate should be judged against this dossier rather than against an isolated screenshot or an inferred animation ordering.
 
+The handoff is now exercised by the first authored candidate. Exact representation `ordinary-racer-0x0541-p1-sync-reference` carries registry-owned authored-candidate metadata, and the dossier emits its 4x review PNG alongside stock, nearest-4x and contract-only controls. Native run `37142692369` / artifact `11281156106` closes the plumbing from canonical registration through artifact review output and live host presentation. The candidate remains review-only; this proves the approval machinery, not final artistic approval.
+
 ## Reconstruction decision policy
 
 Reference generation and final-art selection are different jobs.

@@ -429,6 +429,102 @@ The project also accumulated several open questions that were now much sharper t
 
 ---
 
+## 2026-10-02, late — The first real modernization layers stop being hypothetical
+
+The earlier October 2 work had reduced Widescreen to causal seams and racer HD work to exact semantic assets. During the rest of the day those seams began turning into product code. This was the point where UR-Recomp started to look less like an excavation project preparing for a remake and more like a remake architecture that could already prove some of its hardest ownership boundaries.
+
+### Progression save/load finally closes
+
+The open progression gap from PR #191 did eventually close. PR #213 used a period-correct Snes9x 1.51 rerecording path and a verified historical 100% movie to obtain a genuine game-authored medal mutation rather than poking SRAM or synthesizing an expected save. The acceptance path watched the real medal matrix, waited for legal checksum-valid game state, captured the mutation, reloaded that SRAM in a fresh current reference process, and checked medal/tier/checksum behavior against the machine-readable progression model.
+
+That matters because the persistence claim is now complete in the form the project actually needed: not merely "an 8 KiB SRAM image can round-trip," but "real progression authored by the game can survive the save/load path and still satisfy the recovered progression/checksum rules."
+
+### Racer graphics move from extraction to a replacement system
+
+The racer lane closed several layers in quick succession.
+
+PRs #210, #212, #215 and #216 tightened the relationship between presentation records, packed cells, DMA source words, staging consumers and stable OAM presentation. PR #218 turned that into deterministic transparent raster extraction, and PR #224 closed the primary/companion composition rules strongly enough that exact composed racer images could be reconstructed from canonical ROM data rather than inferred from screenshots.
+
+PR #220 then made the intended graphics product explicit. The project now treats three representation families as first-class modes over shared semantic identity:
+
+- Original SNES art;
+- faithful high-resolution Remastered art;
+- a more freely modernized Reimagined art family.
+
+The important architectural decision is that those modes share semantic frame identity, placement contracts and gameplay authority. Art can change without inventing a second simulation.
+
+PRs #230, #236, #238, #239, #240 and #241 built the runtime half of that contract. Replacement selection reads authoritative WRAM without writing it; live position, orientation and object size come independently from the PPU/OAM path; and the native host can decide whether a known semantic composition has a replacement while failing closed for unknown or mismatched states.
+
+PR #249 crossed the line that the previous diary had only been preparing for: the native host actually removed one validated stock racer instance from the presented raster and substituted a deterministic high-density replacement in its place. WRAM, VRAM, OAM and CGRAM remained guest-owned and unchanged.
+
+From there the lane stopped being a single-frame demo and became a coverage program. PR #252 added explicit stock-derived pivot/contact anchors. PR #256 registered the synchronized P2 semantic state. PR #259 recovered the split-screen placement model and proved that both racers appear in both viewports through four host-side presentation instances. PRs #261, #263, #264 and #266 added another synchronized state, temporal-coherence checks, a dense semantic animation trace and exact registry-aware adjacency neighborhoods.
+
+That dense trace changed how coverage was chosen. Rather than selecting convenient sparse checkpoints, the project began registering states by observed adjacency. PR #268 added the first repeated adjacent state. PR #271 removed the assumption that one semantic ID maps to one representation and made registration composition-aware. Subsequent work added duplicate-context, predecessor and forward states, then continued backward through companion-context variants. By PRs #281/#282, #285 and #286, same-primary/different-companion states were being measured against canonical ROM geometry before registration, and distinct synchronized contexts remained distinct even when their visible geometry happened to match.
+
+The practical result is modest in screen area but important in architecture: racer HD is now a live, fail-closed, composition-aware replacement pipeline with deterministic geometry, split-screen placement, temporal evidence and growing adjacency-driven coverage.
+
+### Widescreen advances from diagnosis to native materialization
+
+The +8 work also crossed its implementation boundary.
+
+PR #217 finished classifying the earlier presentation-sequence divergence. The widened run sampled a different presentation/frontend phase class at the same semantic event, while authoritative race state remained aligned event-relatively. PR #219 then showed that the stock preparation path already had a useful neighboring strip schedule. PR #226 mapped the generation seam required to make that result survive SNESRecomp regeneration.
+
+PR #228 turned the accepted +8 experiment into a real native hook while preserving stock 4:3 as the untouched control. The implementation reused the stock preparation/helper path rather than building a parallel guest renderer.
+
+The next constraint appeared at +16. PR #257 established the ownership split that the project had been circling around: the first extra column can use the accepted guest +8 path, but further presentation capacity belongs to the host. The accepted +16 experiment proved a second host-owned column against later stock evidence while leaving camera, collision, activation, progression and simulation unchanged. Attempts to manufacture the second column by recursively replaying guest preparation were retained as negative evidence.
+
+PR #280 then rescued the actual course-backed +16 materializer from superseded branches and reconciled its retained liveness evidence into current main. That is a major architectural step. Further widening no longer needs a future-stock oracle as its intended content source; it can be derived from the recovered live course presentation model in host-owned state.
+
+The Widescreen question has therefore changed again. The project is no longer asking whether it can expose eight or sixteen extra logical pixels without changing gameplay. It is now testing how far the host-owned materializer can be generalized, with +24 as the next bounded discriminator and true 16:9 still downstream.
+
+### Restart Race becomes a real modern product feature
+
+The modern-product lane matured just as quickly.
+
+PRs #229 and #231 established host-owned product state and a pause/restart session contract. PR #232 bound Pause to the existing host frame gate. PRs #234, #235 and #237 established an exact race restart anchor, proved deterministic rollback/replay, and made the lifecycle safe across results.
+
+PR #248 then routed Restart Race through the actual modern product command stack rather than a test-only rollback call. PR #253 tightened the critical persistence boundary: Retry restores the race attempt while preserving the *current* 8 KiB SRAM, so retrying after results cannot rewind legitimate progression.
+
+The feature then acquired real player-facing controls. PR #258 added keyboard bindings without synthesizing guest controller input. PR #262 rendered the first host-owned Pause/Retry overlay. Controller navigation followed, and PRs #267 and #269 proved that gamepad-menu and keyboard-hotkey paths converge on the same semantic command policy. PR #273 promoted the whole accepted stack into the ordinary production native host rather than leaving it inside an acceptance harness.
+
+PR #284 added the first ordinary settings behavior on top of that substrate: pause on focus loss. The setting is typed and host-owned, uses the same pause gate, remains inert in Authentic mode, and never borrows racer/save-slot state for product configuration.
+
+This is the first genuinely modern UX surface in the project, and it preserves the core rule established at the beginning: the guest simulation and progression remain authoritative; modern convenience behavior belongs to the host.
+
+### The inference audit catches up with implementation
+
+PR #242 recovered an evidence-tracked scene policy for Widescreen rather than leaving scene assumptions implicit. PR #243 ran a third inference audit across the newly merged progression, racer-native, Widescreen and restart evidence. PR #245 then reconciled the plans after runtime closures, preserving the audit's historical negative findings while recording which issues had subsequently been resolved.
+
+This was another useful test of the project's documentation discipline. An audit finding is not silently erased when implementation closes it. The negative observation remains part of the intellectual history; current disposition is layered on top.
+
+### Platform and display policy become explicit product architecture
+
+Late in the day the project also answered a question that had remained oddly unspecified: what machines is this thing actually intended to run on?
+
+PR #287 made Windows x64 the primary consumer/reference target and recorded additional personal-use targets for macOS, a best-effort High Sierra-compatible legacy Mac build, Web, Switch homebrew and PlayStation 5. The Switch lane is explicitly based on public homebrew tooling and preserved reference examples, with no proprietary SDK material or platform secrets entering the repository. None of these targets get their own simulation fork.
+
+PR #288 separated output resolution, internal render scale and presentation refresh/FPS from the authoritative game cadence. High-refresh output may repeat or interpolate presentation frames, but it cannot accelerate the SNES-derived simulation.
+
+PR #291 then resolved the broader display-geometry policy. Authentic 4:3, raw square pixels and Remastered/Reimagined output are treated as different presentation transforms rather than one hard-coded width. Pixel aspect, overscan, logical view width, filtering, graphics representation, output resolution and presentation cadence are independent axes. Widescreen margins are derived from logical display policy instead of being baked into a single source-width assumption.
+
+That separation should save the project from a common remaster trap: using one convenient renderer setting to smuggle several unrelated design decisions into the same knob.
+
+### Late-day state
+
+By the end of the local October 2 session, several things that had been architectural sketches in the earlier diary were now real:
+
+- game-authored progression save/load acceptance was closed;
+- the +8 Widescreen path was a regeneration-safe native hook;
+- +16 had a host-owned, course-backed materialization architecture;
+- racer HD had performed real native draw-frame substitution and expanded into composition-aware, split-screen, adjacency-driven coverage;
+- Pause, Resume and Retry were production native-host features with keyboard/controller UI paths and SRAM-safe lifecycle behavior;
+- the first host-owned gameplay-adjacent setting was live;
+- platform targets, resolution/FPS policy and display geometry were explicit parts of the product contract.
+
+The center of gravity has moved again. Excavation is still active, but increasingly in service of bounded implementation questions. The project is now proving that modernization can be layered around the original game without quietly taking authority away from it.
+
+---
+
 ## Engineering notes from the sprint
 
 Several practices emerged strongly enough to preserve as production rules.
@@ -472,3 +568,5 @@ At project inception, the major uncertainty was whether enough of *Uniracers* co
 The harder remaining problem is deciding where exact reproduction ends and intentional modernization begins.
 
 That is a much better problem to have.
+
+Late-session work strengthened that conclusion. The project now has working examples of the intended layered architecture: authoritative guest simulation underneath host-owned Widescreen materialization, semantic HD substitution, modern session controls and display policy. The remaining difficulty is increasingly one of coverage, composition and productization rather than proving that the separation itself is possible.

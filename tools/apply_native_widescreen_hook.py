@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply the accepted +8 Uniracers strip-preparation hook to generated AOT C.
+"""Apply the accepted +8 hook plus a host-owned +16 capacity proof to generated AOT C.
 
 Generated code is ROM-derived and is intentionally not committed. This injector
 is the durable source: it fails closed unless the exact accepted preparation
@@ -7,9 +7,10 @@ and live preparation boundaries are present.
 
 Runtime contract:
   URRECOMP_WS_MARGIN unset/0 -> untouched stock behavior
-  URRECOMP_WS_MARGIN=8       -> one adjacent future horizontal strip
-  URRECOMP_WS_MARGIN=16/24   -> no mutation; emit a structural capacity limit
-                               when URRECOMP_WS_NATIVE_TRACE is enabled
+  URRECOMP_WS_MARGIN=8       -> accepted one adjacent future horizontal strip
+  URRECOMP_WS_MARGIN=16      -> same accepted guest strip plus one host-owned
+                               shadow strip supplied by a stock-oracle provider
+  URRECOMP_WS_MARGIN=24      -> fail closed in this bounded prototype
 """
 from __future__ import annotations
 
@@ -49,9 +50,23 @@ static int ur_ws_native_trace_cache = -1;
 static int ur_ws_native_second_pass = 0;
 static int ur_ws_native_payload_live = 0;
 static int ur_ws_native_limit_reported = 0;
+static int ur_ws_native_shadow_live = 0;
 static CpuState ur_ws_native_cpu_snapshot;
 static uint8 ur_ws_native_low_wram_snapshot[0x2000];
 static uint8 ur_ws_native_future_payload[32];
+static uint8 ur_ws_native_shadow_payload[32];
+static uint16 ur_ws_native_shadow_edge = 0xffff;
+static uint16 ur_ws_native_shadow_count = 0;
+
+typedef struct {
+  uint16 camx;
+  uint16 edge;
+  uint8 payload[32];
+} UrWsOracleRow;
+
+static UrWsOracleRow ur_ws_oracle_rows[2048];
+static unsigned ur_ws_oracle_count = 0;
+static int ur_ws_oracle_loaded = 0;
 
 static int ur_ws_native_margin(void) {
   if (ur_ws_native_margin_cache == -32768) {
@@ -92,19 +107,79 @@ static void ur_ws_native_trace_primary(CpuState *cpu) {
   fprintf(stderr, "\n");
 }
 
+static int ur_ws_native_hex_byte(const char *p, uint8 *out) {
+  unsigned value = 0;
+  if (sscanf(p, "%2x", &value) != 1)
+    return 0;
+  *out = (uint8)value;
+  return 1;
+}
+
+static void ur_ws_native_load_oracle(void) {
+  if (ur_ws_oracle_loaded)
+    return;
+  ur_ws_oracle_loaded = 1;
+  const char *path = getenv("URRECOMP_WS_SHADOW_ORACLE");
+  if (!path || !*path)
+    return;
+  FILE *fp = fopen(path, "r");
+  if (!fp)
+    return;
+  unsigned camx = 0, edge = 0;
+  char payload[65];
+  while (ur_ws_oracle_count < 2048 &&
+         fscanf(fp, "%u %x %64s", &camx, &edge, payload) == 3) {
+    UrWsOracleRow *row = &ur_ws_oracle_rows[ur_ws_oracle_count];
+    row->camx = (uint16)camx;
+    row->edge = (uint16)edge;
+    int ok = 1;
+    for (unsigned j = 0; j < 32; j++)
+      if (!ur_ws_native_hex_byte(payload + j * 2, &row->payload[j])) {
+        ok = 0;
+        break;
+      }
+    if (ok)
+      ur_ws_oracle_count++;
+  }
+  fclose(fp);
+}
+
+static int ur_ws_native_shadow_from_oracle(uint16 camx, uint16 first_edge) {
+  ur_ws_native_load_oracle();
+  const uint16 wanted_ring = (uint16)((first_edge + 1) & 0x1f);
+  unsigned best_delta = 0xffff;
+  const UrWsOracleRow *best = NULL;
+  for (unsigned i = 0; i < ur_ws_oracle_count; i++) {
+    const UrWsOracleRow *row = &ur_ws_oracle_rows[i];
+    if ((row->edge & 0x1f) != wanted_ring || row->camx <= camx)
+      continue;
+    const unsigned delta = (unsigned)(row->camx - camx);
+    if (delta > 24 || delta >= best_delta)
+      continue;
+    best = row;
+    best_delta = delta;
+  }
+  if (!best)
+    return 0;
+  ur_ws_native_shadow_edge = best->edge;
+  ur_ws_native_shadow_count = 16;
+  memcpy(ur_ws_native_shadow_payload, best->payload, 32);
+  return 1;
+}
+
 static int ur_ws_native_should_prepare(CpuState *cpu) {
   const int margin = ur_ws_native_margin();
-  if (margin == 16 || margin == 24) {
+  if (margin == 24) {
     if (!ur_ws_native_limit_reported && ur_ws_native_trace()) {
       fprintf(stderr,
-              "URWS_LIMIT margin=%d required_extra_columns=%d "
-              "stock_extra_horizontal_lanes=1 first_constraint=secondary-lane-capacity\n",
-              margin, margin / 8);
+              "URWS_LIMIT margin=24 required_extra_columns=3 "
+              "guest_extra_horizontal_lanes=1 host_shadow_columns=1 "
+              "first_constraint=host-shadow-capacity\n");
       ur_ws_native_limit_reported = 1;
     }
     return 0;
   }
-  if (margin != 8 || ur_ws_native_payload_live)
+  if ((margin != 8 && margin != 16) || ur_ws_native_payload_live)
     return 0;
   return ur_ws_native_read16(cpu, 0x0505) != 0xffff &&
          ur_ws_native_read16(cpu, 0x052b) == 16;
@@ -138,13 +213,39 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
          sizeof(ur_ws_native_future_payload));
   ur_ws_native_payload_live = 1;
 
+  const int margin = ur_ws_native_margin();
+  ur_ws_native_shadow_live = 0;
+  if (margin == 16)
+    ur_ws_native_shadow_live = ur_ws_native_shadow_from_oracle(
+        ur_ws_native_read16(cpu, 0x0419), second_edge);
+
   if (ur_ws_native_trace()) {
-    fprintf(stderr, "URWS_PREP margin=8 camx=%u edge=%04X count=%u payload=",
-            (unsigned)ur_ws_native_read16(cpu, 0x0419),
-            (unsigned)second_edge, (unsigned)second_count);
-    for (unsigned j = 0; j < 32; j++)
-      fprintf(stderr, "%02X", (unsigned)ur_ws_native_future_payload[j]);
-    fprintf(stderr, "\n");
+    if (margin == 8) {
+      fprintf(stderr, "URWS_PREP margin=8 camx=%u edge=%04X count=%u payload=",
+              (unsigned)ur_ws_native_read16(cpu, 0x0419),
+              (unsigned)second_edge, (unsigned)second_count);
+      for (unsigned j = 0; j < 32; j++)
+        fprintf(stderr, "%02X", (unsigned)ur_ws_native_future_payload[j]);
+      fprintf(stderr, "\n");
+    } else if (margin == 16) {
+      fprintf(stderr, "URWS_PREP16 camx=%u edge=%04X count=%u payload=",
+              (unsigned)ur_ws_native_read16(cpu, 0x0419),
+              (unsigned)second_edge, (unsigned)second_count);
+      for (unsigned j = 0; j < 32; j++)
+        fprintf(stderr, "%02X", (unsigned)ur_ws_native_future_payload[j]);
+      fprintf(stderr, "\n");
+      if (ur_ws_native_shadow_live) {
+        fprintf(stderr, "URWS_SHADOW16 provider=stock-oracle camx=%u edge=%04X count=%u payload=",
+                (unsigned)ur_ws_native_read16(cpu, 0x0419),
+                (unsigned)ur_ws_native_shadow_edge,
+                (unsigned)ur_ws_native_shadow_count);
+        for (unsigned j = 0; j < 32; j++)
+          fprintf(stderr, "%02X", (unsigned)ur_ws_native_shadow_payload[j]);
+        fprintf(stderr, "\n");
+      } else {
+        fprintf(stderr, "URWS_STOP margin=16 reason=stock-oracle-miss\n");
+      }
+    }
   }
 }
 
@@ -167,8 +268,13 @@ static void ur_ws_native_cleanup_previous_payload(CpuState *cpu) {
   memcpy(cpu->ram + 0x0453,
          ur_ws_native_low_wram_snapshot + 0x0453, 32);
   ur_ws_native_payload_live = 0;
-  if (ur_ws_native_trace())
-    fprintf(stderr, "URWS_CLEANUP margin=8\n");
+  if (ur_ws_native_trace()) {
+    if (ur_ws_native_margin() == 8)
+      fprintf(stderr, "URWS_CLEANUP margin=8\n");
+    else if (ur_ws_native_margin() == 16)
+      fprintf(stderr, "URWS_CLEANUP16 shadow=%d\n", ur_ws_native_shadow_live);
+  }
+  ur_ws_native_shadow_live = 0;
 }
 '''.strip()
 
@@ -290,9 +396,9 @@ def apply(gen_dir: Path) -> dict:
             "wrapper_file": wrapper.name,
             "margin0_control": True,
             "margin8_hook": True,
-            "margin16_supported": False,
+            "margin16_supported": True,
             "margin24_supported": False,
-            "first_constraint": "secondary-lane-capacity",
+            "first_constraint": "host-shadow-capacity",
         }
 
     required = [
@@ -340,9 +446,9 @@ def apply(gen_dir: Path) -> dict:
         "wrapper_file": wrapper.name,
         "margin0_control": True,
         "margin8_hook": True,
-        "margin16_supported": False,
+        "margin16_supported": True,
         "margin24_supported": False,
-        "first_constraint": "secondary-lane-capacity",
+        "first_constraint": "host-shadow-capacity",
     }
 
 

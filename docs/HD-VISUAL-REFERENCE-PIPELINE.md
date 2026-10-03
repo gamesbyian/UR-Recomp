@@ -235,7 +235,7 @@ The Original control is reconstructed deterministically from the ROM. The protot
 
 Selection happens entirely after semantic state has been chosen. Runtime H/V orientation is applied after Original/Remastered selection. The selector fails closed: replacement disabled, an unregistered semantic ID, or any composition-guard mismatch selects Original. Disabling replacement must emit a PNG byte-identical to the Original 4x control. The focused workflow uploads only the Original control, one Remastered candidate, the disabled-replacement control and a compact manifest.
 
-This prototype also identifies the next registration metadata needed before hand-authored HD racer art is safe: an explicit semantic pivot coordinate and an explicit wheel/contact anchor. The current mechanically derived candidate does not need invented values because rigid whole-canvas registration preserves stock placement exactly; future independently drawn assets should not rely on that shortcut.
+The first registration now carries explicit geometry anchors before hand-authored HD racer art expands. Coordinates use object-local pixel centres at fixed-point scale 2: the exact 64×64 OBJ reflection pivot is `[63,63]` = `(31.5,31.5)`, and the synchronized `0x0541` stock raster measures wheel/contact `[61,76]` = `(30.5,38.0)`. The contact coordinate is not artist-authored: it is the centre of the lowest occupied alpha span in the deterministic composed stock raster. Runtime OAM H/V reflection transforms these anchors only after semantic selection, matching the raster-orientation rule.
 
 
 ## Native replacement-selection seam
@@ -244,7 +244,7 @@ The artifact-side prototype is now mirrored by a dependency-free native presenta
 
 For the first registration, semantic frame `0x0541` plus the synchronized composition tuple selects the Remastered pack. Original always remains available. Unknown IDs, composition mismatches, and presently unavailable packs such as Reimagined fail closed to Original. The selector carries only presentation registration metadata and has no WRAM/SRAM mutation interface.
 
-The native registration keeps the currently proven geometry explicit: 64×64 logical canvas, occupancy offset `(1,0)`, palette asset `0x06`, and 4× candidate density. Pivot and wheel/contact anchors remain explicitly absent rather than guessed. A focused native test compiles the selector independently and verifies exact-selection and all fallback paths. A second parity check derives expected registration values from `analysis/data/racer-hd-replacement-prototype.json`, so the native table cannot silently drift from the canonical prototype registry.
+The native registration keeps the currently proven geometry explicit: 64×64 logical canvas, occupancy offset `(1,0)`, palette asset `0x06`, 4× candidate density, fixed-point anchor scale 2, semantic flip pivot `[63,63]`, and measured wheel/contact anchor `[61,76]`. Native tests verify exact H/V anchor transforms as well as selection/fallback behavior. The artifact-side prototype independently re-derives both anchors from OBJ geometry and the canonical stock raster and fails if the JSON registration drifts, so hand-authored assets inherit a checked registration target rather than a guessed one.
 
 
 ## Read-only guest-state bridge

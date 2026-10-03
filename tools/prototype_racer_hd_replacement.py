@@ -170,10 +170,27 @@ def transform_anchor_x2_y2(
     return [x2, y2]
 
 
-def load_entry(registry: dict, semantic_frame_id: str) -> dict:
-    hits = [x for x in registry["entries"] if x["semantic_frame_id"].lower() == semantic_frame_id.lower()]
+def load_entry(
+    registry: dict,
+    semantic_frame_id: str,
+    representation_id: str | None = None,
+    live_guards: dict | None = None,
+) -> dict:
+    hits = [
+        x for x in registry["entries"]
+        if x["semantic_frame_id"].lower() == semantic_frame_id.lower()
+    ]
+    if representation_id is not None:
+        hits = [x for x in hits if x["representation_id"] == representation_id]
+    if live_guards is not None:
+        hits = [x for x in hits if guards_match(x["composition_guards"], live_guards)]
     if len(hits) != 1:
-        raise ValueError(f"expected exactly one replacement entry for {semantic_frame_id}, found {len(hits)}")
+        detail = f"semantic={semantic_frame_id}"
+        if representation_id is not None:
+            detail += f" representation={representation_id}"
+        if live_guards is not None:
+            detail += " exact-composition"
+        raise ValueError(f"expected exactly one replacement entry for {detail}, found {len(hits)}")
     return hits[0]
 
 
@@ -206,12 +223,12 @@ def select_representation(
         x for x in registry["entries"]
         if x["semantic_frame_id"].lower() == semantic_frame_id.lower()
     ]
-    if not replacement_enabled or len(hits) != 1:
-        return "original", hits[0] if len(hits) == 1 else None
-    entry = hits[0]
-    if not guards_match(entry["composition_guards"], live_guards):
-        return "original", entry
-    return "remastered_candidate", entry
+    exact = [x for x in hits if guards_match(x["composition_guards"], live_guards)]
+    if not replacement_enabled:
+        return "original", exact[0] if len(exact) == 1 else (hits[0] if hits else None)
+    if len(exact) == 1:
+        return "remastered_candidate", exact[0]
+    return "original", hits[0] if hits else None
 
 
 def build_stock_rgba(rom: bytes, entry: dict) -> bytes:
@@ -301,8 +318,9 @@ def run(
     output_dir: Path,
     hflip: bool,
     vflip: bool,
+    representation_id: str | None = None,
 ) -> dict:
-    entry = load_entry(registry, semantic_frame_id)
+    entry = load_entry(registry, semantic_frame_id, representation_id=representation_id)
     validate_against_assets(entry, assets)
 
     live_guards = dict(entry["composition_guards"])
@@ -433,6 +451,7 @@ def main() -> int:
     ap.add_argument("--registry", type=Path, default=ROOT / "analysis/data/racer-hd-replacement-prototype.json")
     ap.add_argument("--assets", type=Path, default=ROOT / "analysis/data/presentation-assets.json")
     ap.add_argument("--semantic-frame-id", default="0x0541")
+    ap.add_argument("--representation-id")
     ap.add_argument("--output-dir", type=Path, required=True)
     ap.add_argument("--hflip", action="store_true")
     ap.add_argument("--vflip", action="store_true")
@@ -446,6 +465,7 @@ def main() -> int:
         args.output_dir,
         args.hflip,
         args.vflip,
+        args.representation_id,
     )
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0

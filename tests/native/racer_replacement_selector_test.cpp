@@ -43,6 +43,10 @@ int main() {
     assert(hv_contact.y2 == 50);
 
     const RacerCompositionState exact = registration->composition;
+    assert(find_racer_registration_for_state(0x0541, exact) == registration);
+    auto no_exact_state = exact;
+    no_exact_state.p2_primary = 0x0544;
+    assert(find_racer_registration_for_state(0x0541, no_exact_state) == nullptr);
 
     const auto original = select_racer_presentation(
         GraphicsPack::Original, 0x0541, exact
@@ -151,6 +155,35 @@ int main() {
     );
     assert(p1_second_selected.uses_replacement());
     assert(p2_second_selected.uses_replacement());
+
+    const RacerCompositionState duplicate_context{
+        0x057E,
+        0x0543,
+        0x0D49,
+        0x0000,
+        0,
+        0,
+        0x0001,
+        0x0000,
+    };
+    const auto* p1_duplicate =
+        find_racer_registration_for_state(0x057E, duplicate_context);
+    const auto* p2_duplicate =
+        find_racer_registration_for_state(0x0543, duplicate_context);
+    assert(p1_duplicate != nullptr);
+    assert(p2_duplicate != nullptr);
+    assert(p1_duplicate != p1_second);
+    assert(p2_duplicate != p2_adjacent);
+    assert(p1_duplicate->contact_anchor.x2 == 67);
+    assert(p1_duplicate->contact_anchor.y2 == 76);
+    assert(p2_duplicate->contact_anchor.x2 == 57);
+    assert(p2_duplicate->contact_anchor.y2 == 76);
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x057E, duplicate_context
+    ).registration == p1_duplicate);
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0543, duplicate_context
+    ).registration == p2_duplicate);
 
     return 0;
 }

@@ -81,11 +81,28 @@ class NativeWidescreenHookAcceptanceTests(unittest.TestCase):
             self.assertTrue(r["accepted"])
             self.assertFalse(r["native_runtime"]["margin8_terminal_payload_pending"])
 
+    def test_accepts_adjacent_ring_column_across_upper_edge_bits(self):
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td)
+            logs=self.logs()
+            logs[8]=logs[8].replace(
+                "URWS_PRIMARY margin=8 camx=100 edge=0D80",
+                "URWS_PRIMARY margin=8 camx=100 edge=0031",
+                1,
+            ).replace(
+                "URWS_PREP margin=8 camx=100 edge=0D81",
+                "URWS_PREP margin=8 camx=100 edge=0052",
+                1,
+            )
+            r=MOD.analyze(logs,self.dumps(root))
+            self.assertTrue(r["accepted"])
+            self.assertTrue(r["checks"]["margin8_comparable_edges_all_adjacent"])
+
     def test_rejects_nonadjacent_prepared_edge(self):
         with tempfile.TemporaryDirectory() as td:
             root=Path(td)
             logs=self.logs()
-            logs[8]=logs[8].replace("edge=0D80 count=16", "edge=0D7F count=16", 1)
+            logs[8]=logs[8].replace("edge=0D80 count=16", "edge=0D7E count=16", 1)
             r=MOD.analyze(logs,self.dumps(root))
             self.assertFalse(r["accepted"])
             self.assertFalse(r["checks"]["margin8_all_preparation_steps_stock_compatible"])

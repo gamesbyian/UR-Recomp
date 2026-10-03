@@ -5,7 +5,9 @@ on:
     paths:
       - "native/presentation/**"
       - "tools/apply_native_racer_presentation_probe.py"
+      - "tools/summarize_racer_semantic_trace.py"
       - "tests/unit/test_apply_native_racer_presentation_probe.py"
+      - "tests/unit/test_summarize_racer_semantic_trace.py"
       - "tests/native/racer_hd_presenter_test.cpp"
       - "tests/native/racer_replacement_selector_test.cpp"
       - "tests/native/racer_oam_placement_test.cpp"
@@ -129,6 +131,34 @@ jobs:
           run_route Original-A "$ORIGINAL_A_LOG" "$ORIGINAL_A_DUMPS" "$ORIGINAL_A_SHOT"
           run_route Original-B "$ORIGINAL_B_LOG" "$ORIGINAL_B_DUMPS" "$ORIGINAL_B_SHOT"
           run_route HD "$HD_LOG" "$HD_DUMPS" "$HD_SHOT" UR_RACER_HD=1
+
+          for stem in original-a original-b hd; do
+            python3 tools/summarize_racer_semantic_trace.py \
+              "$RUNNER_TEMP/racer-$stem.log" \
+              --json-out "$RUNNER_TEMP/racer-$stem-semantic-trace.json" \
+              > "$RUNNER_TEMP/racer-$stem-semantic-trace.txt"
+          done
+
+          python3 - \
+            "$RUNNER_TEMP/racer-original-a-semantic-trace.json" \
+            "$RUNNER_TEMP/racer-original-b-semantic-trace.json" \
+            "$RUNNER_TEMP/racer-hd-semantic-trace.json" <<'PY'
+          import json, pathlib, sys
+          reports = [json.loads(pathlib.Path(p).read_text()) for p in sys.argv[1:]]
+          assert all(r["contiguous"] for r in reports)
+          assert all(r["frame_window"] == [1180, 1650] for r in reports)
+          assert all(r["frames_observed"] == 471 for r in reports)
+          assert reports[0] == reports[1] == reports[2], (
+              "Original/HD semantic timelines diverged"
+          )
+          for player in ("p1", "p2"):
+              print(
+                  "UR_RACER_SEMANTIC_TRACE PASS "
+                  f"player={player} unique={len(reports[0]['players'][player]['unique_primary_ids'])} "
+                  f"runs={len(reports[0]['players'][player]['runs'])} "
+                  f"transitions={len(reports[0]['players'][player]['transitions'])}"
+              )
+          PY
 
           # Diagnose the fixture's own cross-process WRAM stability before
           # attributing any byte to presentation mode.
@@ -270,5 +300,11 @@ jobs:
             ${{ runner.temp }}/racer-original-a-1220.ppm
             ${{ runner.temp }}/racer-original-b-1220.ppm
             ${{ runner.temp }}/racer-hd-1220.ppm
+            ${{ runner.temp }}/racer-original-a-semantic-trace.json
+            ${{ runner.temp }}/racer-original-b-semantic-trace.json
+            ${{ runner.temp }}/racer-hd-semantic-trace.json
+            ${{ runner.temp }}/racer-original-a-semantic-trace.txt
+            ${{ runner.temp }}/racer-original-b-semantic-trace.txt
+            ${{ runner.temp }}/racer-hd-semantic-trace.txt
           if-no-files-found: warn
           retention-days: 7

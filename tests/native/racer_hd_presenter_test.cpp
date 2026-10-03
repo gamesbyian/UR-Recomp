@@ -20,8 +20,9 @@ int main() {
     assert(authored_tire != 0);
     assert(authored_tire != generic_tire);
 
-    // A different exact composition sharing semantic 0541 stays on the
-    // contract candidate until separately authored.
+    // The immediately preceding exact 0541/0D2D composition has its own
+    // authored temporal-neighbor candidate rather than falling through to the
+    // generic contract placeholder.
     RacerCompositionState companion_context{
         0x0541, 0x0540, 0x0D2D, 0x0000, 0, 0, 0x0001, 0x0000
     };
@@ -30,10 +31,41 @@ int main() {
     assert(companion != nullptr);
     assert(companion != registration);
     assert(!is_first_authored_remastered_registration(*companion));
+    assert(is_authored_0541_p1_companion_0d2d_registration(*companion));
     assert(
-        sample_racer_hd_asset(*companion, 144, 58, false, false) ==
-        sample_racer_hd_contract_candidate(144, 58, false, false)
+        sample_racer_hd_asset(*companion, 130, 10, false, false) !=
+        sample_racer_hd_contract_candidate(130, 10, false, false)
     );
+
+    int companion_min_lx = kRacerHdLogicalSize;
+    int companion_min_ly = kRacerHdLogicalSize;
+    int companion_max_lx = -1;
+    int companion_max_ly = -1;
+    int companion_bottom_min_lx = kRacerHdLogicalSize;
+    int companion_bottom_max_lx = -1;
+    for (int ly = 0; ly < kRacerHdLogicalSize; ++ly) {
+        for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+            const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            const int sy = ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            if (sample_racer_hd_asset(*companion, sx, sy, false, false) == 0) {
+                continue;
+            }
+            if (lx < companion_min_lx) companion_min_lx = lx;
+            if (ly < companion_min_ly) companion_min_ly = ly;
+            if (lx > companion_max_lx) companion_max_lx = lx;
+            if (ly > companion_max_ly) companion_max_ly = ly;
+            if (ly == 38) {
+                if (lx < companion_bottom_min_lx) companion_bottom_min_lx = lx;
+                if (lx > companion_bottom_max_lx) companion_bottom_max_lx = lx;
+            }
+        }
+    }
+    assert(companion_min_lx == 22);
+    assert(companion_min_ly == 2);
+    assert(companion_max_lx == 39);
+    assert(companion_max_ly == 38);
+    assert(companion_bottom_min_lx == 29);
+    assert(companion_bottom_max_lx == 32);
 
     // Object-local H/V reflection remains a post-selection presentation
     // transform for authored art.

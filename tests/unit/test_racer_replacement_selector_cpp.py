@@ -51,8 +51,8 @@ class RacerReplacementSelectorCppTests(unittest.TestCase):
             )
         )
         self.assertGreaterEqual(len(registry["entries"]), 2)
-        ids = [entry["semantic_frame_id"].lower() for entry in registry["entries"]]
-        self.assertEqual(len(ids), len(set(ids)))
+        representation_ids = [entry["representation_id"] for entry in registry["entries"]]
+        self.assertEqual(len(representation_ids), len(set(representation_ids)))
 
         def hx(value):
             return int(value, 16)
@@ -71,7 +71,19 @@ class RacerReplacementSelectorCppTests(unittest.TestCase):
 using namespace ur::presentation;
 
 int main() {{
-    const auto* r = find_racer_registration({hx(entry["semantic_frame_id"])});
+    RacerCompositionState state{{
+        {hx(guards["p1_primary"])},
+        {hx(guards["p2_primary"])},
+        {hx(guards["p1_companion"])},
+        {hx(guards["p2_companion"])},
+        {int(guards["p1_selector"])},
+        {int(guards["p2_selector"])},
+        {hx(guards["p1_companion_gate_word"])},
+        {hx(guards["p2_companion_gate_word"])},
+    }};
+    const auto* r = find_racer_registration_for_state(
+        {hx(entry["semantic_frame_id"])}, state
+    );
     assert(r != nullptr);
     assert(r->semantic_frame_id == {hx(entry["semantic_frame_id"])});
     assert(r->player == {player});

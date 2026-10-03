@@ -370,7 +370,7 @@ Evidence: workflow run `37066327707`; retained artifact `widescreen-strip-schedu
 
 ## Native +8 preparation-hook closure and +16/+24 stop
 
-Workflow run `37077924926` closes the smallest regeneration-safe native form of the accepted +8 mechanism. Rather than seeding the isolated preparation helper as a dead AOT island, generation starts from the trusted live race-frame orchestrator at `83:CBCC`; static caller validation confirms executable `83:CD55 -> 81:A52B`, followed by the stock short-call entry `81:A52B -> 81:A52F`. The generated live closure therefore owns the ordinary `81:A597/A59A/A59D/A59E` preparation seam without a parallel renderer protocol.
+Workflow run `37081391730` closes the smallest regeneration-safe native form of the accepted +8 mechanism. Rather than seeding the isolated preparation helper as a dead AOT island, generation starts from the trusted live race-frame orchestrator at `83:CBCC`; static caller validation confirms executable `83:CD55 -> 81:A52B`, followed by the stock short-call entry `81:A52B -> 81:A52F`. The generated live closure therefore owns the ordinary `81:A597/A59A/A59D/A59E` preparation seam without a parallel renderer protocol.
 
 With `URRECOMP_WS_MARGIN=0`, the hook is inert. At +8 it snapshots CPU plus low WRAM, reuses the generated stock `A59E` helper for a second presentation-only pass, redirects that pass's staging initializer from `$0433` to `$0453`, preserves only the adjacent strip plus the secondary horizontal edge/count lane for `AB88`, and restores the secondary edge/count after descriptor construction. The staged `$0453` payload remains live through the intervening NMI and is restored at the next live `A59A` preparation boundary before another strip is staged; the bounded fixture ends after one final PREP event, so one terminal payload is intentionally pending at process exit.
 
@@ -382,13 +382,13 @@ Retained native acceptance on the deterministic preparation fixture records:
 - at least **317** exact later-stock payload matches, exceeding the retained PR #219 proof window of 309;
 - a longest consecutive exact-match run of **25**, exceeding the retained 14-frame proof window;
 - protected gameplay, camera and progression state equal to the margin-0 control;
-- every prepared strip required to be the immediate ring-adjacent column to that frame's stock primary strip.
+- all **617/617** same-camera primary→prepared steps use edge-transition shapes also observed in the stock control: **589× `+1`**, **17× `-31`**, and **11× `+33`**. The `+33` transitions are therefore stock segment/coordinate behavior, not non-adjacent strips; the full 16-bit edge word is a compound preparation coordinate rather than a plain 5-bit ring counter.
 
 The +16 and +24 probes deliberately do not mutate presentation state. They stop at the first concrete generalization constraint: the stock horizontal preparation surface has one primary lane plus one spare secondary lane. +8 consumes that one spare lane; +16 would require two simultaneous extra columns and +24 three. The native hook therefore **does not** invent extra guest descriptor lanes or special-case additional columns.
 
 This closes the current implementation-facing +8 task and the bounded +16/+24 generalization question. Any wider stock-art design must introduce a larger presentation-capacity seam deliberately, while preserving the now-proven stock 4:3 control and the presentation-only ownership boundary.
 
-Evidence: native workflow run `37077924926`; PR #228.
+Evidence: final native workflow run `37081391730`; PR #228.
 
 
 ## +8 presentation-sequence divergence closure

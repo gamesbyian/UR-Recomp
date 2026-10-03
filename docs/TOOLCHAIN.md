@@ -290,3 +290,17 @@ A build-mode tool may declare hash-pinned patches under `tools/patches/`. Bootst
 6. build and verify typed artifacts.
 
 `--clone-only` stops before patching, so it always leaves an exact upstream source checkout for comparison. Keep patches small and purpose-specific; when an upstream pin changes, reconcile or remove them explicitly.
+
+
+## Nintendo Switch homebrew feasibility toolchain
+
+Switch is a personal-use homebrew target, not a storefront/release dependency. The public baseline is devkitPro's package-managed `switch-dev` / devkitA64 toolchain plus libnx and Switch portlibs. Exact public source-reference pins live in `third_party/platform/switch/pins.json`.
+
+Current source pins:
+- libnx `feebd026ca0f5dcc2119f46ad8e0d16ad3dd4973`;
+- switch-examples `669786898205b7beb25ff1731e72982e6d0397d3`;
+- switch-tools `22756068dd0ed6ff9734c59cb4f99ebd3f62555b`.
+
+The canonical examples include SDL2 graphics paths, so SDL2 is the first host-port experiment before considering a lower-level Switch-specific renderer. Do not vendor a developer's installed devkitPro tree into this repository. When a Switch build lane is added, record package versions and source pins in retained build metadata and keep hardware acceptance separate from compile-only CI.
+
+See `PLATFORM-TARGETS.md` and `SWITCH-HOMEBREW-PORT.md`.

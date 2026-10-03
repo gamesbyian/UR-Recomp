@@ -179,7 +179,8 @@ A future capture harness should accept a deterministic frame/state or extracted 
 - shader/scaler and exact parameters;
 - source dimensions;
 - output dimensions;
-- aspect/pixel-aspect assumptions;
+- display-geometry/pixel-aspect policy and logical-view policy as separate fields, following `DISPLAY-PRESENTATION-POLICY.md`;
+- overscan/safe-area policy;
 - color/display assumptions;
 - isolation/composition mode;
 - output hash.

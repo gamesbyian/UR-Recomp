@@ -6,7 +6,6 @@ on:
     paths:
       - "tests/input/object-liveness-dragster.script"
       - "tools/summarize_object_liveness_probe.py"
-      - ".github/workflows/object-liveness-dragster.yml"
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snesrecomp.json"

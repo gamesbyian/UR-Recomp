@@ -13,6 +13,7 @@ extern "C" {
 #include "host_product_store.hpp"
 #include "modern_pause_input.h"
 #include "modern_pause_menu.h"
+#include "modern_options_menu.h"
 #include "modern_session_c_api.h"
 #include "uniracers_restart_policy.h"
 #include "uniracers_run_data.h"
@@ -29,6 +30,7 @@ ur::product::HostProductState g_product_state;
 bool g_product_state_initialized;
 std::string g_product_state_path;
 UrModernPauseMenu g_pause_menu;
+UrModernOptionsMenu g_options_menu;
 bool g_options_visible;
 bool g_controls_visible;
 bool g_run_data_visible;
@@ -45,6 +47,41 @@ void product_diagnostic(const char* message) {
     if (!std::getenv("UR_PRODUCT_DIAGNOSTICS")) return;
     std::fprintf(stderr, "%s\n", message);
     std::fflush(stderr);
+}
+
+const char* display_mode_name(ur::product::HostDisplayMode mode) {
+    return mode == ur::product::HostDisplayMode::BorderlessFullscreen
+        ? "borderless" : "windowed";
+}
+
+bool apply_display_mode_setting(const ur::product::HostSettings& settings) {
+    if (!modern_mode()) return false;
+    SDL_Window* window = SDL_GetKeyboardFocus();
+    if (!window) {
+        window = SDL_GetMouseFocus();
+    }
+    if (!window) {
+        product_diagnostic("UR_DISPLAY_MODE APPLY_FAILED no_window");
+        return false;
+    }
+
+    const Uint32 flags =
+        settings.display_mode == ur::product::HostDisplayMode::BorderlessFullscreen
+            ? SDL_WINDOW_FULLSCREEN_DESKTOP
+            : 0u;
+    if (SDL_SetWindowFullscreen(window, flags) != 0) {
+        product_diagnostic("UR_DISPLAY_MODE APPLY_FAILED sdl");
+        return false;
+    }
+
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_DISPLAY_MODE APPLIED mode=%s\n",
+            display_mode_name(settings.display_mode));
+        std::fflush(stderr);
+    }
+    return true;
 }
 
 std::string resolve_product_state_path() {
@@ -82,10 +119,13 @@ void ensure_product_state() {
         ur::product::load_host_product_state_file(g_product_state_path);
     if (loaded.loaded()) {
         g_product_state = *loaded.state;
-        if (g_product_state.settings.pause_on_focus_loss) {
-            product_diagnostic("UR_HOST_STATE LOADED pause_on_focus_loss=1");
-        } else {
-            product_diagnostic("UR_HOST_STATE LOADED pause_on_focus_loss=0");
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_HOST_STATE LOADED pause_on_focus_loss=%d display_mode=%s\n",
+                g_product_state.settings.pause_on_focus_loss ? 1 : 0,
+                display_mode_name(g_product_state.settings.display_mode));
+            std::fflush(stderr);
         }
     } else if (loaded.status == ur::product::HostProductLoadStatus::Missing) {
         product_diagnostic("UR_HOST_STATE MISSING_DEFAULTS");
@@ -120,6 +160,38 @@ bool toggle_focus_pause_setting() {
     }
     g_product_state = candidate;
     return true;
+}
+
+bool toggle_display_mode_setting() {
+    if (!modern_mode()) return false;
+
+    ur::product::HostProductState candidate = g_product_state;
+    candidate.settings.display_mode =
+        candidate.settings.display_mode ==
+                ur::product::HostDisplayMode::Windowed
+            ? ur::product::HostDisplayMode::BorderlessFullscreen
+            : ur::product::HostDisplayMode::Windowed;
+
+    if (!apply_display_mode_setting(candidate.settings)) {
+        return false;
+    }
+    if (!persist_product_state(candidate)) {
+        (void)apply_display_mode_setting(g_product_state.settings);
+        return false;
+    }
+
+    g_product_state = candidate;
+    return true;
+}
+
+bool activate_options_selection() {
+    switch (ur_modern_options_menu_selected(&g_options_menu)) {
+    case UR_MODERN_OPTIONS_FOCUS_PAUSE:
+        return toggle_focus_pause_setting();
+    case UR_MODERN_OPTIONS_DISPLAY_MODE:
+        return toggle_display_mode_setting();
+    }
+    return false;
 }
 
 std::size_t save_snapshot(void* dst, std::size_t capacity) {
@@ -160,7 +232,11 @@ bool ensure_session() {
         &set_timing_lock,
         &reconcile_presentation);
     ur_modern_pause_menu_reset(&g_pause_menu);
+    ur_modern_options_menu_reset(&g_options_menu);
     ur_uniracers_restart_policy_reset(&g_title_policy);
+    if (g_session && modern_mode()) {
+        (void)apply_display_mode_setting(g_product_state.settings);
+    }
     return g_session != nullptr;
 }
 
@@ -254,6 +330,7 @@ bool activate_pause_selection() {
         g_run_data_visible = false;
         g_quit_confirm_visible = false;
         g_options_visible = true;
+        ur_modern_options_menu_reset(&g_options_menu);
         product_diagnostic("UR_PAUSE_OPTIONS OPENED");
         return true;
     }

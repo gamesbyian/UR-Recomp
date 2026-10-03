@@ -52,13 +52,25 @@ RESOLVED_VISUAL_LANGUAGE = {
         "retain the stock dark silhouette/value hierarchy on smooth contours; "
         "do not add a uniform new cartoon outline"
     ),
+    "material_classes": {
+        "tire": "dark rubber with broad stable highlights, never chrome-like",
+        "saddle": "dark vinyl/leather-like surface with restrained broad highlights",
+        "colored_frame": "glossy colored painted/anodized metal-like surface",
+        "neutral_hardware": "bright neutral metallic hub/fork/pedal hardware",
+    },
+    "cast_shadow_policy": (
+        "do not add a new host-authored ground/drop shadow to the faithful "
+        "Remastered racer baseline"
+    ),
+    "micro_detail_policy": (
+        "source assets may contain mechanically plausible detail, but details that "
+        "alias, flicker, alter the recovered silhouette, or disappear incoherently "
+        "at normal and split-screen gameplay scale must be suppressed"
+    ),
 }
 
 PENDING_ART_DECISIONS = [
-    "material_interpretation",
     "specular_and_highlight_strength_within_baked_lighting",
-    "shadow_behavior",
-    "micro_detail_budget_at_4k_1440p_1080p_and_split_screen",
 ]
 
 

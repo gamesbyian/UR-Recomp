@@ -10,6 +10,7 @@ from tools.prototype_racer_hd_replacement import (
     scale2x_rgba,
     scaled_bounds,
     guards_match,
+    load_entry,
     select_representation,
     transform_anchor_x2_y2,
 )
@@ -83,6 +84,35 @@ class RacerHdReplacementPrototypeTests(unittest.TestCase):
             select_representation(registry, "0x0999", exact, True)[0],
             "original",
         )
+
+    def test_duplicate_semantic_ids_select_by_full_composition(self):
+        registry = {
+            "entries": [
+                {
+                    "semantic_frame_id": "0x057E",
+                    "representation_id": "state-a",
+                    "composition_guards": {"p1_primary": "0x057E", "p2_primary": "0x0543"},
+                },
+                {
+                    "semantic_frame_id": "0x057E",
+                    "representation_id": "state-b",
+                    "composition_guards": {"p1_primary": "0x057E", "p2_primary": "0x0544"},
+                },
+            ]
+        }
+        state_a = {"p1_primary": "0x057E", "p2_primary": "0x0543"}
+        state_b = {"p1_primary": "0x057E", "p2_primary": "0x0544"}
+        selected_a = select_representation(registry, "0x057E", state_a, True)
+        selected_b = select_representation(registry, "0x057E", state_b, True)
+        self.assertEqual(selected_a[0], "remastered_candidate")
+        self.assertEqual(selected_a[1]["representation_id"], "state-a")
+        self.assertEqual(selected_b[1]["representation_id"], "state-b")
+        self.assertEqual(
+            load_entry(registry, "0x057E", representation_id="state-b")["representation_id"],
+            "state-b",
+        )
+        with self.assertRaises(ValueError):
+            load_entry(registry, "0x057E")
 
     def test_nearest_and_flip_are_deterministic(self):
         a, b, c, d = px(1, 0, 0), px(2, 0, 0), px(3, 0, 0), px(4, 0, 0)

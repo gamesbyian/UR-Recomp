@@ -98,6 +98,11 @@ constexpr bool composition_equal(
 
 const RacerRegistration* find_racer_registration(std::uint16_t semantic_frame_id) noexcept;
 
+const RacerRegistration* find_racer_registration_for_state(
+    std::uint16_t semantic_frame_id,
+    const RacerCompositionState& live_state
+) noexcept;
+
 SelectionResult select_racer_presentation(
     GraphicsPack requested_pack,
     std::uint16_t semantic_frame_id,

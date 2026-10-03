@@ -43,6 +43,10 @@ int main() {
     assert(hv_contact.y2 == 50);
 
     const RacerCompositionState exact = registration->composition;
+    assert(find_racer_registration_for_state(0x0541, exact) == registration);
+    auto no_exact_state = exact;
+    no_exact_state.p2_primary = 0x0544;
+    assert(find_racer_registration_for_state(0x0541, no_exact_state) == nullptr);
 
     const auto original = select_racer_presentation(
         GraphicsPack::Original, 0x0541, exact

@@ -3,9 +3,9 @@
   "family": "ordinary-race-racer-presentation",
   "purpose": "Product-facing HD substitution contracts for synchronized ordinary-race racer objects.",
   "lookup": {
-    "primary_key": "semantic_frame_id",
+    "primary_key": "semantic_frame_id + composition_guards",
     "authoritative_state": "$0FE9/$0FEB",
-    "note": "The primary 16-bit presentation ID remains the lookup key. Exact composed-object guards are required because the visible 64x64 object can also depend on companion presentation, selector clipping, companion gating, palette and OAM orientation."
+    "note": "The authoritative 16-bit presentation ID narrows the candidate set; the full synchronized composition guard selects the exact representation. Multiple registrations may therefore share one semantic_frame_id. Tooling may use representation_id as an explicit disambiguator. Unknown or ambiguous exact states fail closed to Original."
   },
   "entries": [
     {

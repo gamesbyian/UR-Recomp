@@ -19,7 +19,7 @@
       "target_aspect": "16:9",
       "crop_top": 0,
       "crop_bottom": 0,
-      "status": "provisional"
+      "status": "preferred-authentic-candidate"
     },
     {
       "id": "raw-square-216",
@@ -41,8 +41,9 @@
     }
   ],
   "notes": [
-    "Candidate transforms are review aids, not selected product constants.",
-    "7:6 is the current community reference cited by DISPLAY-PRESENTATION-POLICY.md and requires Uniracers-specific validation.",
-    "216-line rows are exploratory overscan discriminators only; no title-final crop is implied."
+    "Candidate transforms are review aids; only the preferred Authentic candidate is bound provisionally, not declared title-final.",
+    "The preferred 7:6 full-height candidate maps the canonical 256x224 framebuffer exactly to 4:3 without cropping authored rows; its 16:9 logical margin derives to +48 at 8-pixel granularity.",
+    "The host-owned provider is validated through +72, so every current candidate margin is within proven presentation capacity.",
+    "216-line rows remain exploratory overscan discriminators until retained/reference evidence justifies a crop."
   ]
 }

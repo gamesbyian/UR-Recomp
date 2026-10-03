@@ -10,8 +10,10 @@ on:
       - "analysis/data/presentation-assets.json"
       - "tools/prototype_racer_hd_replacement.py"
       - "tools/measure_racer_composed_anchor.py"
+      - "tools/check_racer_hd_temporal_coherence.py"
       - "tools/extract_racer_presentation_family.py"
       - "tests/unit/test_racer_hd_replacement_prototype.py"
+      - "tests/unit/test_racer_hd_temporal_coherence.py"
       - ".github/workflows/racer-hd-replacement-prototype.yml"
 
 permissions:
@@ -30,7 +32,7 @@ jobs:
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
       - name: Run focused unit tests
-        run: python3 -m unittest tests.unit.test_racer_hd_replacement_prototype -v
+        run: python3 -m unittest tests.unit.test_racer_hd_replacement_prototype tests.unit.test_racer_hd_temporal_coherence -v
       - name: Render synchronized semantic replacement prototypes
         run: |
           for frame in 0541 0540 057E 0544; do
@@ -71,6 +73,23 @@ jobs:
                   + json.dumps(m["derived_anchor_probe"], sort_keys=True)
               )
           PY
+      - name: Check replacement temporal coherence
+        run: |
+          python3 tools/check_racer_hd_temporal_coherence.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --json-out "$RUNNER_TEMP/racer-hd-temporal-coherence.json" \
+            | tee "$RUNNER_TEMP/racer-hd-temporal-coherence.txt"
+          python3 - "$RUNNER_TEMP/racer-hd-temporal-coherence.json" <<'PY'
+          import json, pathlib, sys
+          r = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          assert r["validation"]["shared_registration_basis"] is True
+          assert r["validation"]["candidate_alpha_transition_matches_stock"] is True
+          for player in ("p1", "p2"):
+              assert len(r["sequences"][player]["frames"]) >= 2
+              assert r["sequences"][player]["pairs"]
+          print("UR_RACER_TEMPORAL_COHERENCE PASS")
+          PY
+
       - name: Measure second synchronized racer anchors
         run: |
           python3 tools/measure_racer_composed_anchor.py \
@@ -99,4 +118,6 @@ jobs:
             ${{ runner.temp }}/racer-hd-prototype-0540/
             ${{ runner.temp }}/racer-hd-prototype-057E/
             ${{ runner.temp }}/racer-hd-prototype-0544/
+            ${{ runner.temp }}/racer-hd-temporal-coherence.json
+            ${{ runner.temp }}/racer-hd-temporal-coherence.txt
           if-no-files-found: error

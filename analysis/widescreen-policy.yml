@@ -47,10 +47,13 @@ display_binding:
     source_width_pixels: 256
     active_height_pixels: 224
     pixel_aspect: "7:6"
+    pixel_aspect_status: evidence-backed
+    pixel_aspect_evidence: analysis/display-reference-geometry.json
     crop_top: 0
     crop_bottom: 0
+    overscan_status: unresolved
     status: provisional
-    rationale: "Canonical Uniracers captures are 256x224; 7:6 maps that full active raster exactly to 4:3 without cropping authored rows. Retain as the preferred Authentic candidate until reference-capture validation makes it title-final."
+    rationale: "The official USA manual reproduces eleven in-game screenshots in the 4:3 display family and excludes raw 8:7 within a conservative scan/edge uncertainty envelope, supporting 7:6 horizontal correction for a 256-wide source. Full-224 versus modest vertical overscan remains unresolved, so the combined Authentic transform stays provisional."
   first_16x9_candidate:
     target_display_aspect: "16:9"
     source_geometry: community-7x6-full

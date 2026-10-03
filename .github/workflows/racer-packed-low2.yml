@@ -9,6 +9,10 @@ on:
       - "tests/unit/test_analyze_racer_packed_low2.py"
       - ".github/workflows/racer-packed-low2.yml"
 
+concurrency:
+  group: racer-packed-low2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   actions: read
   contents: read

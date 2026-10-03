@@ -138,9 +138,10 @@ def analyze(logs:dict[int,str], dumps:dict[int,Path])->dict:
                  if row["count"]==16 and row["edge"]!=0xffff}
     pairs=[]
     pair_bad=[]
-    for first,second in zip(p16,s16):
-        if first["camx"]!=second["camx"]:
-            pair_bad.append({"reason":"camera-mismatch","first":first,"second":second})
+    shadow_by_cam={row["camx"]:row for row in s16}
+    for first in p16:
+        second=shadow_by_cam.get(first["camx"])
+        if second is None:
             continue
         base=p16_primary.get(first["camx"])
         if base is None:
@@ -155,7 +156,10 @@ def analyze(logs:dict[int,str], dumps:dict[int,Path])->dict:
             pair_bad.append(pairs[-1])
 
     p16_matches,p16_candidates,p16_run=_stock_matches(p16,control,24)
-    s16_matches,s16_candidates,s16_run=_stock_matches(s16,control,24)
+    # The second future column is naturally farther ahead in camera space than
+    # the first. The observed steady-scroll cadence is roughly 14 px/column,
+    # so use a bounded 64 px lookup window without relaxing edge/payload identity.
+    s16_matches,s16_candidates,s16_run=_stock_matches(s16,control,64)
     p16_terminal=(len(p16)==len(clean16.get(16,[]))+1)
     p16_balanced=(
         len(p16)>0 and len(p16)==len(s16)

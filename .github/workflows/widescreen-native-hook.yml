@@ -11,6 +11,7 @@ on:
       - "tools/analyze_native_widescreen_hook_acceptance.py"
       - "tools/analyze_widescreen_plus16_capacity_acceptance.py"
       - "tools/build_widescreen_shadow_oracle.py"
+      - "tests/unit/test_build_widescreen_shadow_oracle.py"
       - "tools/analyze_native_widescreen_reachability.py"
       - "tests/unit/test_seed_native_widescreen_aot.py"
       - "tests/unit/test_inspect_native_widescreen_prep_anchor.py"
@@ -49,6 +50,7 @@ jobs:
             tests.unit.test_inspect_native_widescreen_prep_anchor \
             tests.unit.test_apply_native_widescreen_hook \
             tests.unit.test_analyze_native_widescreen_hook_acceptance \
+            tests.unit.test_build_widescreen_shadow_oracle \
             tests.unit.test_analyze_native_widescreen_reachability
 
       - name: Verify canonical ROM

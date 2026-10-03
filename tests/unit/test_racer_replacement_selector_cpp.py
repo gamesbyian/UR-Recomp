@@ -50,20 +50,22 @@ class RacerReplacementSelectorCppTests(unittest.TestCase):
                 encoding="utf-8"
             )
         )
-        self.assertEqual(len(registry["entries"]), 1)
-        entry = registry["entries"][0]
-        guards = entry["composition_guards"]
+        self.assertGreaterEqual(len(registry["entries"]), 2)
+        ids = [entry["semantic_frame_id"].lower() for entry in registry["entries"]]
+        self.assertEqual(len(ids), len(set(ids)))
 
         def hx(value):
             return int(value, 16)
 
-        player = {"p1": 1, "p2": 2}[entry["player"]]
-        logical_w, logical_h = entry["registration"]["logical_canvas_pixels"]
-        occ_x, occ_y = entry["registration"]["occupancy_tile_offset"]
-        anchors = entry["registration"]["semantic_anchors"]
-        pivot_x2, pivot_y2 = anchors["flip_pivot_x2_y2"]
-        contact_x2, contact_y2 = anchors["wheel_contact_x2_y2"]
-        source = f"""
+        for entry in registry["entries"]:
+            guards = entry["composition_guards"]
+            player = {"p1": 1, "p2": 2}[entry["player"]]
+            logical_w, logical_h = entry["registration"]["logical_canvas_pixels"]
+            occ_x, occ_y = entry["registration"]["occupancy_tile_offset"]
+            anchors = entry["registration"]["semantic_anchors"]
+            pivot_x2, pivot_y2 = anchors["flip_pivot_x2_y2"]
+            contact_x2, contact_y2 = anchors["wheel_contact_x2_y2"]
+            source = f"""
 #include "racer_replacement_selector.hpp"
 #include <cassert>
 using namespace ur::presentation;
@@ -97,7 +99,11 @@ int main() {{
     return 0;
 }}
 """
-        self.compile_and_run(source, "racer-replacement-registry-parity-test")
+            self.compile_and_run(
+                source,
+                f"racer-replacement-registry-parity-{entry['semantic_frame_id']}",
+            )
+
 
 
 if __name__ == "__main__":

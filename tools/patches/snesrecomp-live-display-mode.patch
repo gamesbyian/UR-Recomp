@@ -1,0 +1,60 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -378,6 +378,34 @@ int snesrecomp_desktop_get_vsync(void) {
+   return (int)g_config.vsync;
+ }
+ 
++int snesrecomp_desktop_set_display_mode(int mode) {
++  if (mode < SNES_DESKTOP_DISPLAY_WINDOWED ||
++      mode > SNES_DESKTOP_DISPLAY_FULLSCREEN ||
++      !g_window)
++    return 0;
++
++  const uint32 fs_mask =
++      SNESRECOMP_SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_FULLSCREEN;
++  const uint32 want =
++      mode == SNES_DESKTOP_DISPLAY_FULLSCREEN ? SDL_WINDOW_FULLSCREEN
++      : mode == SNES_DESKTOP_DISPLAY_BORDERLESS
++          ? SNESRECOMP_SDL_WINDOW_FULLSCREEN_DESKTOP
++          : 0;
++#if SNESRECOMP_SDL3
++  const bool ok = SDL_SetWindowFullscreen(g_window, want != 0);
++#else
++  const bool ok = SDL_SetWindowFullscreen(g_window, want) == 0;
++#endif
++  if (!ok) return 0;
++
++  g_config.fullscreen = (uint8)mode;
++  g_win_flags = (g_win_flags & ~fs_mask) | want;
++  g_cursor = want == 0;
++  snesrecomp_sdl_show_cursor(g_cursor);
++  return 1;
++}
++
++int snesrecomp_desktop_get_display_mode(void) {
++  return g_config.fullscreen <= 2 ? (int)g_config.fullscreen : 0;
++}
++
+ /* Set by the hotkeys; consumed once in the frame loop. */
+ static int g_savestate_menu_hotkey;
+ static int g_rewind_hotkey;
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -214,6 +214,21 @@ int snesrecomp_desktop_set_vsync(int mode);
+ int snesrecomp_desktop_get_vsync(void);
+ 
++/* Live desktop window-presentation policy. SDL2 distinguishes borderless
++ * desktop fullscreen from exclusive fullscreen. SDL3 intentionally collapses
++ * both fullscreen requests to its single fullscreen operation; product code
++ * keeps the semantic choice while platform capability remains host-owned. */
++enum {
++  SNES_DESKTOP_DISPLAY_WINDOWED = 0,
++  SNES_DESKTOP_DISPLAY_BORDERLESS = 1,
++  SNES_DESKTOP_DISPLAY_FULLSCREEN = 2,
++};
++int snesrecomp_desktop_set_display_mode(int mode);
++int snesrecomp_desktop_get_display_mode(void);
++
+ /* Ask the host to reset its pacing clock at the next opportunity (a title
+  * that just changed its presentation settings). */
+ void snesrecomp_desktop_request_clock_reset(void);

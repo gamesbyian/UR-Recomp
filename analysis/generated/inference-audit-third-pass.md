@@ -74,3 +74,17 @@ The next useful work is narrower than before this audit:
 4. Autosave/profile work should preserve guest SRAM as the progression source of truth.
 
 The Restart and native-hook findings above are retained evidence from still-open PRs. They are audit inputs, not merged implementation acceptance.
+
+## Subsequent disposition — 2026-10-03
+
+The third-pass findings above are preserved as the evidence state that existed when the audit ran. Their two open runtime falsifiers have since been resolved:
+
+- **IA3-R01 / Restart Race:** the negative result was real and useful. Immediate restore equality did not imply deterministic future execution because the rollback residue omitted the desktop host's extended `RtlApuFrameClock`. PR #235 added that carrier to residue v7. Workflow run **37080761750** now passes the same exact restore plus 60-frame forward-replay acceptance. The durable rule is unchanged: Restart Race is accepted only with forward replay, not snapshot equality alone.
+- **IA3-W02 / +8 Widescreen:** the 11 apparent non-adjacent events were not hook failures. The analyzer had treated the full edge word as the ring coordinate. In those events the low five bits, which encode the 32-column VRAM-ring position, advance by one while upper resource/segment bits change. PR #228 corrects the predicate and adds regression coverage. Final run **37081391730** passes with all 617 +8 preparations ring-adjacent, 317 exact later-stock payload matches, a longest exact-match run of 25, protected state unchanged, and +16/+24 still bounded by secondary-lane capacity.
+
+Accordingly, the active consequences are now:
+
+1. HD racer pixel substitution may proceed on the existing read-only semantic-identity/live-placement seam.
+2. Restart Race has an accepted runtime substrate; remaining work is product/UI integration and lifecycle policy around the proven anchor.
+3. +8 stock-helper Widescreen preparation is merged; wider margins must choose a larger presentation-capacity seam rather than manufacture guest descriptor lanes.
+4. Modern autosave/profile work should continue treating guest SRAM as the authoritative progression payload.

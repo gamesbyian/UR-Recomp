@@ -13,13 +13,13 @@
       "status": "reference"
     },
     {
-      "id": "community-7x6-full",
+      "id": "uniracers-7x6-full",
       "label": "Community-reference 7:6 PAR, full 224-line raster",
       "pixel_aspect": "7:6",
       "target_aspect": "16:9",
       "crop_top": 0,
       "crop_bottom": 0,
-      "status": "par-evidence-backed-preservation-preferred",
+      "status": "accepted-authentic",
       "par_evidence": "analysis/display-reference-geometry.json",
       "active_height_evidence": "analysis/display-active-height-evidence.json"
     },
@@ -46,7 +46,7 @@
   ],
   "notes": [
     "The official USA manual now provides Uniracers-specific evidence for the 4:3 display family and therefore 7:6 horizontal correction of a 256-wide source; see analysis/display-reference-geometry.json.",
-    "The manual evidence does not reliably discriminate full 224-line presentation from a modest vertical overscan crop. Canonical framebuffer evidence now proves that centered 216-line cropping is not content-neutral: it discards distinct rendered information in representative menu, transition and race captures.",
+    "Authentic logical presentation is accepted as the full 224-line raster with 7:6 horizontal correction. Official-manual evidence supports the 4:3/7:6 display family, while canonical framebuffer evidence proves centered 216-line cropping discards distinct rendered information in representative menu, transition and race captures. Any period-CRT edge loss belongs to optional display treatment rather than the logical raster.",
     "The host-owned provider is validated through +72, so every current candidate margin remains within proven presentation capacity."
   ]
 }

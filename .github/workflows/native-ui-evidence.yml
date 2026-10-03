@@ -48,9 +48,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ui-evidence:
+  capture:
+    name: capture-${{ matrix.shard }}
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [a, b, c, d]
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -150,6 +155,7 @@ jobs:
           echo "Selected game target: $EXE"
 
       - name: Deterministic native input route
+        if: matrix.shard == 'a'
         shell: bash
         run: |
           set +e
@@ -186,6 +192,7 @@ jobs:
           echo "INPUT_ROUTE_RESULT=reached_race"
 
       - name: UI state reconnaissance
+        if: matrix.shard == 'd'
         continue-on-error: true
         shell: bash
         run: |
@@ -236,6 +243,7 @@ jobs:
           PY
 
       - name: UI top-level branch reconnaissance
+        if: matrix.shard == 'd'
         continue-on-error: true
         shell: bash
         run: |
@@ -273,6 +281,7 @@ jobs:
           PY
 
       - name: UI isolated VS handoff reconnaissance
+        if: matrix.shard == 'c'
         continue-on-error: true
         shell: bash
         run: |
@@ -294,6 +303,7 @@ jobs:
           echo "UI_VS_HANDOFF_STATUS=$STATUS"
 
       - name: UI ending-shortcut reconnaissance
+        if: matrix.shard == 'b'
         continue-on-error: true
         shell: bash
         run: |
@@ -315,6 +325,7 @@ jobs:
           echo "UI_ENDING_PROBE_STATUS=$STATUS"
 
       - name: UI attract-mode reconnaissance
+        if: matrix.shard == 'd'
         continue-on-error: true
         shell: bash
         run: |
@@ -336,6 +347,7 @@ jobs:
           echo "UI_ATTRACT_PROBE_STATUS=$STATUS"
 
       - name: UI pause reconnaissance
+        if: matrix.shard == 'c'
         continue-on-error: true
         shell: bash
         run: |
@@ -357,6 +369,7 @@ jobs:
           echo "UI_PAUSE_PROBE_STATUS=$STATUS"
 
       - name: UI Options submenu reconnaissance
+        if: matrix.shard == 'd'
         continue-on-error: true
         shell: bash
         run: |
@@ -378,6 +391,7 @@ jobs:
           echo "UI_OPTIONS_SUBMENU_PROBE_STATUS=$STATUS"
 
       - name: UI erase-confirmation reconnaissance
+        if: matrix.shard == 'c'
         continue-on-error: true
         shell: bash
         run: |
@@ -399,6 +413,7 @@ jobs:
           echo "UI_ERASE_CONFIRM_PROBE_STATUS=$STATUS"
 
       - name: UI League table reconnaissance
+        if: matrix.shard == 'b'
         continue-on-error: true
         shell: bash
         run: |
@@ -420,6 +435,7 @@ jobs:
           echo "UI_LEAGUE_TABLE_PROBE_STATUS=$STATUS"
 
       - name: UI race-result continuation reconnaissance
+        if: matrix.shard == 'c'
         continue-on-error: true
         shell: bash
         run: |
@@ -441,6 +457,7 @@ jobs:
           echo "UI_RACE_RESULT_PROBE_STATUS=$STATUS"
 
       - name: UI Stunt result reconnaissance
+        if: matrix.shard == 'a'
         continue-on-error: true
         shell: bash
         run: |
@@ -462,6 +479,7 @@ jobs:
           echo "UI_STUNT_RESULT_PROBE_STATUS=$STATUS"
 
       - name: UI Records exploration
+        if: matrix.shard == 'd'
         continue-on-error: true
         shell: bash
         run: |
@@ -483,6 +501,7 @@ jobs:
           echo "UI_RECORDS_EXPLORE_STATUS=$STATUS"
 
       - name: UI Rename Player editor exploration
+        if: matrix.shard == 'b'
         continue-on-error: true
         shell: bash
         run: |
@@ -504,6 +523,7 @@ jobs:
           echo "UI_RENAME_EDITOR_EXPLORE_STATUS=$STATUS"
 
       - name: UI Circuit result reconnaissance
+        if: matrix.shard == 'b'
         continue-on-error: true
         shell: bash
         run: |
@@ -525,6 +545,7 @@ jobs:
           echo "UI_CIRCUIT_RESULT_PROBE_STATUS=$STATUS"
 
       - name: UI Records submenu capture
+        if: matrix.shard == 'c'
         continue-on-error: true
         shell: bash
         run: |
@@ -546,6 +567,7 @@ jobs:
           echo "UI_RECORDS_SUBMENU_STATUS=$STATUS"
 
       - name: UI isolated Records score captures
+        if: matrix.shard == 'c'
         continue-on-error: true
         shell: bash
         run: |
@@ -573,6 +595,7 @@ jobs:
           exit "$OVERALL"
 
       - name: UI League naming capture
+        if: matrix.shard == 'a'
         continue-on-error: true
         shell: bash
         run: |
@@ -591,6 +614,7 @@ jobs:
           echo "UI_NAME_LEAGUE_STATUS=$STATUS"
 
       - name: UI startup timeline capture
+        if: matrix.shard == 'a'
         continue-on-error: true
         shell: bash
         run: |
@@ -609,6 +633,7 @@ jobs:
           echo "UI_STARTUP_TIMELINE_STATUS=$STATUS"
 
       - name: UI Define Player exploration
+        if: matrix.shard == 'd'
         continue-on-error: true
         shell: bash
         run: |
@@ -627,6 +652,7 @@ jobs:
           echo "UI_DEFINE_PLAYER_EXPLORE_STATUS=$STATUS"
 
       - name: UI pre-race timing reconnaissance
+        if: matrix.shard == 'a'
         continue-on-error: true
         shell: bash
         run: |
@@ -643,6 +669,35 @@ jobs:
           STATUS=$?
           cat "$LOG"
           echo "UI_PRE_RACE_TIMING_STATUS=$STATUS"
+
+
+      - name: Upload shard evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-ui-capture-${{ matrix.shard }}
+          path: |
+            ${{ runner.temp }}/*-dumps/
+            ${{ runner.temp }}/*.log
+          if-no-files-found: warn
+          retention-days: 7
+
+  aggregate:
+    name: aggregate-ui-evidence
+    if: always()
+    needs: capture
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Download capture shards
+        uses: actions/download-artifact@v4
+        with:
+          pattern: native-ui-capture-*
+          path: ${{ runner.temp }}
+          merge-multiple: true
 
       - name: Build UI atlas report
         shell: bash
@@ -721,76 +776,19 @@ jobs:
             --out-md "$RUNNER_TEMP/ui-frame-comparisons.md"
           cat "$RUNNER_TEMP/ui-frame-comparisons.md"
 
-      - name: Upload native frame evidence
+
+      - name: Upload native UI evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: uniracers-native-frame
+          name: uniracers-native-ui-evidence
           path: |
-            ${{ runner.temp }}/native-frame-300.ppm
-            ${{ runner.temp }}/native-presents.csv
-            ${{ runner.temp }}/boot.log
-            ${{ runner.temp }}/race-smoke.log
-            ${{ runner.temp }}/race-dumps/
-            ${{ runner.temp }}/ui-options-route.log
-            ${{ runner.temp }}/ui-dumps/
-            ${{ runner.temp }}/ui-main-branches.log
-            ${{ runner.temp }}/ui-branch-dumps/
-            ${{ runner.temp }}/ui-vs-handoff.log
-            ${{ runner.temp }}/ui-vs-handoff-dumps/
-            ${{ runner.temp }}/ui-ending-shortcut.log
-            ${{ runner.temp }}/ui-ending-dumps/
-            ${{ runner.temp }}/ui-attract-route.log
-            ${{ runner.temp }}/ui-attract-dumps/
-            ${{ runner.temp }}/ui-pause-route.log
-            ${{ runner.temp }}/ui-pause-dumps/
-            ${{ runner.temp }}/ui-options-submenus.log
-            ${{ runner.temp }}/ui-options-submenu-dumps/
-            ${{ runner.temp }}/ui-erase-confirm.log
-            ${{ runner.temp }}/ui-erase-confirm-dumps/
-            ${{ runner.temp }}/ui-league-table.log
-            ${{ runner.temp }}/ui-league-dumps/
-            ${{ runner.temp }}/ui-race-result-route.log
-            ${{ runner.temp }}/ui-race-result-dumps/
-            ${{ runner.temp }}/ui-stunt-result-route.log
-            ${{ runner.temp }}/ui-stunt-result-dumps/
-            ${{ runner.temp }}/ui-records-explore.log
-            ${{ runner.temp }}/ui-records-explore-dumps/
-            ${{ runner.temp }}/ui-rename-editor-explore.log
-            ${{ runner.temp }}/ui-rename-editor-dumps/
-            ${{ runner.temp }}/ui-circuit-result-route.log
-            ${{ runner.temp }}/ui-circuit-result-dumps/
-            ${{ runner.temp }}/ui-records-submenus.log
-            ${{ runner.temp }}/ui-records-submenu-dumps/
-            ${{ runner.temp }}/ui-record-high.log
-            ${{ runner.temp }}/ui-record-player.log
-            ${{ runner.temp }}/ui-record-group.log
-            ${{ runner.temp }}/ui-records-isolated-dumps/
-            ${{ runner.temp }}/ui-name-league-route.log
-            ${{ runner.temp }}/ui-name-league-dumps/
-            ${{ runner.temp }}/ui-startup-timeline.log
-            ${{ runner.temp }}/ui-startup-timeline-dumps/
-            ${{ runner.temp }}/ui-define-player-explore.log
-            ${{ runner.temp }}/ui-define-player-dumps/
-            ${{ runner.temp }}/ui-pre-race-timing.log
-            ${{ runner.temp }}/ui-pre-race-timing-dumps/
+            ${{ runner.temp }}/*-dumps/
+            ${{ runner.temp }}/*.log
             ${{ runner.temp }}/ui-atlas.json
             ${{ runner.temp }}/ui-atlas.md
             ${{ runner.temp }}/ui-atlas.html
             ${{ runner.temp }}/ui-frame-comparisons.json
             ${{ runner.temp }}/ui-frame-comparisons.md
-            ${{ runner.temp }}/display-geometry-review.json
-            ${{ runner.temp }}/display-geometry-review.html
           if-no-files-found: warn
           retention-days: 7
-
-      - name: Build summary
-        if: always()
-        shell: bash
-        run: |
-          ROOT="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp"
-          echo "== generated source files =="
-          find "$ROOT/src/gen" -maxdepth 1 -type f -printf '%f\n' 2>/dev/null | sort || true
-          echo
-          echo "== binary metadata =="
-          find "$ROOT/build" -maxdepth 4 -type f -perm -111 -exec file {} \; 2>/dev/null || true

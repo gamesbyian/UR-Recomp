@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply the accepted +8 hook plus host-owned +16/+24 capacity to generated AOT C.
+"""Apply the accepted +8 hook plus host-owned random-access Widescreen capacity.
 
 Generated code is ROM-derived and is intentionally not committed. This injector
 is the durable source: it fails closed unless the exact accepted preparation
@@ -10,7 +10,7 @@ Runtime contract:
   URRECOMP_WS_MARGIN=8       -> accepted one adjacent future horizontal strip
   URRECOMP_WS_MARGIN=16      -> same accepted guest strip plus one host-owned
                                strip materialized from live course tables
-  URRECOMP_WS_MARGIN=24      -> same accepted guest strip plus two host-owned
+  URRECOMP_WS_MARGIN=24..64  -> same accepted guest strip plus N host-owned
                                strips materialized from live course tables
 """
 from __future__ import annotations
@@ -54,9 +54,10 @@ static unsigned ur_ws_native_shadow_live_count = 0;
 static CpuState ur_ws_native_cpu_snapshot;
 static uint8 ur_ws_native_low_wram_snapshot[0x2000];
 static uint8 ur_ws_native_future_payload[32];
-static uint8 ur_ws_native_shadow_payload[2][32];
-static uint16 ur_ws_native_shadow_edge[2] = {0xffff, 0xffff};
-static uint16 ur_ws_native_shadow_count[2] = {0, 0};
+#define UR_WS_NATIVE_MAX_HOST_COLUMNS 7u
+static uint8 ur_ws_native_shadow_payload[UR_WS_NATIVE_MAX_HOST_COLUMNS][32];
+static uint16 ur_ws_native_shadow_edge[UR_WS_NATIVE_MAX_HOST_COLUMNS];
+static uint16 ur_ws_native_shadow_count[UR_WS_NATIVE_MAX_HOST_COLUMNS];
 
 static int ur_ws_native_margin(void) {
   if (ur_ws_native_margin_cache == -32768) {
@@ -135,7 +136,7 @@ static int ur_ws_native_vertical_fine_y(CpuState *cpu) {
  */
 static int ur_ws_native_shadow_from_course(CpuState *cpu, uint16 first_edge,
                                            unsigned host_index) {
-  if (host_index >= 2)
+  if (host_index >= UR_WS_NATIVE_MAX_HOST_COLUMNS)
     return 0;
   const uint16 camx = ur_ws_native_read16(cpu, 0x0419);
   const uint16 camy = ur_ws_native_read16(cpu, 0x041d);
@@ -183,7 +184,7 @@ static int ur_ws_native_shadow_from_course(CpuState *cpu, uint16 first_edge,
 
 static int ur_ws_native_should_prepare(CpuState *cpu) {
   const int margin = ur_ws_native_margin();
-  if ((margin != 8 && margin != 16 && margin != 24) ||
+  if (margin < 8 || margin > 64 || (margin & 7) != 0 ||
       ur_ws_native_payload_live)
     return 0;
   return ur_ws_native_read16(cpu, 0x0505) != 0xffff &&
@@ -221,7 +222,7 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
   const int margin = ur_ws_native_margin();
   ur_ws_native_shadow_live_count = 0;
   const unsigned wanted_host_columns =
-      margin == 24 ? 2u : (margin == 16 ? 1u : 0u);
+      margin >= 16 ? (unsigned)(margin / 8 - 1) : 0u;
   for (unsigned i = 0; i < wanted_host_columns; i++) {
     if (!ur_ws_native_shadow_from_course(cpu, second_edge, i))
       break;
@@ -236,11 +237,21 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
       for (unsigned j = 0; j < 32; j++)
         fprintf(stderr, "%02X", (unsigned)ur_ws_native_future_payload[j]);
       fprintf(stderr, "\n");
-    } else if (margin == 16 || margin == 24) {
-      fprintf(stderr, margin == 16 ? "URWS_PREP16 camx=%u edge=%04X count=%u payload="
-                                   : "URWS_PREP24 camx=%u edge=%04X count=%u payload=",
-              (unsigned)ur_ws_native_read16(cpu, 0x0419),
-              (unsigned)second_edge, (unsigned)second_count);
+    } else if (margin >= 16) {
+      if (margin == 16)
+        fprintf(stderr, "URWS_PREP16 camx=%u edge=%04X count=%u payload=",
+                (unsigned)ur_ws_native_read16(cpu, 0x0419),
+                (unsigned)second_edge, (unsigned)second_count);
+      else if (margin == 24)
+        fprintf(stderr, "URWS_PREP24 camx=%u edge=%04X count=%u payload=",
+                (unsigned)ur_ws_native_read16(cpu, 0x0419),
+                (unsigned)second_edge, (unsigned)second_count);
+      else
+        fprintf(stderr, "URWS_PREP_EXT margin=%d camx=%u edge=%04X count=%u payload=",
+                margin,
+                (unsigned)ur_ws_native_read16(cpu, 0x0419),
+                (unsigned)second_edge, (unsigned)second_count);
+      }
       for (unsigned j = 0; j < 32; j++)
         fprintf(stderr, "%02X", (unsigned)ur_ws_native_future_payload[j]);
       fprintf(stderr, " camy=%u\n",
@@ -251,14 +262,27 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
                   margin, i + 2u);
           break;
         }
-        fprintf(stderr,
-                margin == 16
-                    ? "URWS_SHADOW16 provider=course-runtime column=%u camx=%u edge=%04X count=%u payload="
-                    : "URWS_SHADOW24 provider=course-runtime column=%u camx=%u edge=%04X count=%u payload=",
-                i + 2u,
-                (unsigned)ur_ws_native_read16(cpu, 0x0419),
-                (unsigned)ur_ws_native_shadow_edge[i],
-                (unsigned)ur_ws_native_shadow_count[i]);
+        if (margin == 16)
+          fprintf(stderr,
+                  "URWS_SHADOW16 provider=course-runtime column=%u camx=%u edge=%04X count=%u payload=",
+                  i + 2u,
+                  (unsigned)ur_ws_native_read16(cpu, 0x0419),
+                  (unsigned)ur_ws_native_shadow_edge[i],
+                  (unsigned)ur_ws_native_shadow_count[i]);
+        else if (margin == 24)
+          fprintf(stderr,
+                  "URWS_SHADOW24 provider=course-runtime column=%u camx=%u edge=%04X count=%u payload=",
+                  i + 2u,
+                  (unsigned)ur_ws_native_read16(cpu, 0x0419),
+                  (unsigned)ur_ws_native_shadow_edge[i],
+                  (unsigned)ur_ws_native_shadow_count[i]);
+        else
+          fprintf(stderr,
+                  "URWS_SHADOW_EXT provider=course-runtime margin=%d column=%u camx=%u edge=%04X count=%u payload=",
+                  margin, i + 2u,
+                  (unsigned)ur_ws_native_read16(cpu, 0x0419),
+                  (unsigned)ur_ws_native_shadow_edge[i],
+                  (unsigned)ur_ws_native_shadow_count[i]);
         for (unsigned j = 0; j < 32; j++)
           fprintf(stderr, "%02X", (unsigned)ur_ws_native_shadow_payload[i][j]);
         fprintf(stderr, " camy=%u finex=%u finey=%u edgey=%04X county=%u\n",
@@ -298,6 +322,9 @@ static void ur_ws_native_cleanup_previous_payload(CpuState *cpu) {
       fprintf(stderr, "URWS_CLEANUP16 shadows=%u\n", ur_ws_native_shadow_live_count);
     else if (ur_ws_native_margin() == 24)
       fprintf(stderr, "URWS_CLEANUP24 shadows=%u\n", ur_ws_native_shadow_live_count);
+    else if (ur_ws_native_margin() > 24)
+      fprintf(stderr, "URWS_CLEANUP_EXT margin=%d shadows=%u\n",
+              ur_ws_native_margin(), ur_ws_native_shadow_live_count);
   }
   ur_ws_native_shadow_live_count = 0;
 }
@@ -423,7 +450,8 @@ def apply(gen_dir: Path) -> dict:
             "margin8_hook": True,
             "margin16_supported": True,
             "margin24_supported": True,
-            "first_constraint": "none-through-plus24",
+            "margin64_probe_supported": True,
+            "first_constraint": "none-through-plus64-probe",
         }
 
     required = [
@@ -473,7 +501,8 @@ def apply(gen_dir: Path) -> dict:
         "margin8_hook": True,
         "margin16_supported": True,
         "margin24_supported": True,
-        "first_constraint": "none-through-plus24",
+            "margin64_probe_supported": True,
+        "first_constraint": "none-through-plus64-probe",
     }
 
 

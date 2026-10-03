@@ -28,6 +28,7 @@ ur::product::HostProductState g_product_state;
 bool g_product_state_initialized;
 std::string g_product_state_path;
 UrModernPauseMenu g_pause_menu;
+bool g_controls_visible;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
 
@@ -203,6 +204,11 @@ bool activate_pause_selection() {
     if (selected == UR_MODERN_PAUSE_FOCUS_PAUSE) {
         return toggle_focus_pause_setting();
     }
+    if (selected == UR_MODERN_PAUSE_CONTROLS) {
+        g_controls_visible = true;
+        product_diagnostic("UR_PAUSE_CONTROLS OPENED");
+        return true;
+    }
     return dispatch(UR_MODERN_PAUSE_ACTIVATE);
 }
 
@@ -237,6 +243,16 @@ extern "C" int ur_uniracers_modern_system_key_down(
     int repeat) {
     if (repeat || !ensure_session()) return 0;
 
+    if (g_controls_visible && key == SDLK_ESCAPE) {
+        g_controls_visible = false;
+        product_diagnostic("UR_PAUSE_CONTROLS CLOSED");
+        return 1;
+    }
+
+    if (g_controls_visible) {
+        return 1;
+    }
+
     if (paused() && key == SDLK_f && modern_mode()) {
         (void)toggle_focus_pause_setting();
         return 1;
@@ -270,6 +286,14 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
 
     if (!pressed) {
         return paused() ? 1 : 0;
+    }
+
+    if (g_controls_visible) {
+        if (button == kGamepadBtn_B || button == kGamepadBtn_Start) {
+            g_controls_visible = false;
+            product_diagnostic("UR_PAUSE_CONTROLS CLOSED");
+        }
+        return 1;
     }
 
     if (button == kGamepadBtn_Start) {
@@ -310,7 +334,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
     const int panel_w = width < 220 ? width - 16 : 212;
-    const int panel_h = is_paused ? (restart ? 69 : 54) : 30;
+    const int panel_h = is_paused ? (restart ? 84 : 69) : 30;
     const int x = (width - panel_w) / 2;
     const int y = is_paused ? (height - panel_h) / 2 : height - panel_h - 8;
 
@@ -320,6 +344,36 @@ extern "C" void ur_uniracers_modern_system_overlay(
         pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
 
     if (is_paused) {
+        if (g_controls_visible) {
+            const int controls_h = 99;
+            const int controls_y = (height - controls_h) / 2;
+            snes_ovl_fill_rect(
+                pixels, stride, height, x, controls_y, panel_w, controls_h,
+                0xE0202020u);
+            snes_ovl_stroke_rect(
+                pixels, stride, height, x, controls_y, panel_w, controls_h,
+                0xFFF0F0F0u);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, controls_y + 7,
+                "CONTROLS", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, controls_y + 22,
+                "MOVE   DPAD / ARROWS", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, controls_y + 37,
+                "ACTION A / ENTER", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, controls_y + 52,
+                "PAUSE  START / ESC", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, controls_y + 67,
+                "BACK   B / ESC", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, controls_y + 82,
+                "CTRL+R RETRY", 0xFFFFFFFFu, 1);
+            return;
+        }
+
         ur_modern_pause_menu_move(&g_pause_menu, 0, restart);
         const UrModernPauseItem selected =
             ur_modern_pause_menu_selected(&g_pause_menu, restart);
@@ -347,6 +401,12 @@ extern "C" void ur_uniracers_modern_system_overlay(
                     ? "> FOCUS PAUSE ON" : "  FOCUS PAUSE ON")
                 : (focus_selected
                     ? "> FOCUS PAUSE OFF" : "  FOCUS PAUSE OFF"),
+            0xFFFFFFFFu, 1);
+        const int controls_y = focus_y + 15;
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, controls_y,
+            selected == UR_MODERN_PAUSE_CONTROLS
+                ? "> CONTROLS" : "  CONTROLS",
             0xFFFFFFFFu, 1);
     } else {
         snes_ovl_draw_text(

@@ -29,7 +29,7 @@ static const SnesDesktopHostGame kGameHost = {
         self.assertIn('#include "uniracers_restart_policy.h"', patched)
         self.assertIn("g_ram[0x0313]", patched)
         self.assertIn("g_ram[0x009F]", patched)
-        self.assertIn("ur_uniracers_classify_restart_surface", patched)
+        self.assertIn("ur_uniracers_restart_policy_observe", patched)
         self.assertIn("ur_modern_session_observe_race_active", patched)
         self.assertIn("ur_modern_session_retire_race_attempt", patched)
         self.assertIn("ur_modern_session_restart_race", patched)

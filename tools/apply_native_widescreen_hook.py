@@ -9,7 +9,7 @@ Runtime contract:
   URRECOMP_WS_MARGIN unset/0 -> untouched stock behavior
   URRECOMP_WS_MARGIN=8       -> accepted one adjacent future horizontal strip
   URRECOMP_WS_MARGIN=16      -> same accepted guest strip plus one host-owned
-                               shadow strip supplied by a stock-oracle provider
+                               shadow strip materialized from live course tables
   URRECOMP_WS_MARGIN=24      -> fail closed in this bounded prototype
 """
 from __future__ import annotations
@@ -58,112 +58,56 @@ static uint8 ur_ws_native_shadow_payload[32];
 static uint16 ur_ws_native_shadow_edge = 0xffff;
 static uint16 ur_ws_native_shadow_count = 0;
 
-typedef struct {
-  uint16 camx;
-  uint16 edge;
-  uint8 payload[32];
-} UrWsOracleRow;
-
-static UrWsOracleRow ur_ws_oracle_rows[2048];
-static unsigned ur_ws_oracle_count = 0;
-static int ur_ws_oracle_loaded = 0;
-
-static int ur_ws_native_margin(void) {
-  if (ur_ws_native_margin_cache == -32768) {
-    const char *s = getenv("URRECOMP_WS_MARGIN");
-    ur_ws_native_margin_cache = (s && *s) ? atoi(s) : 0;
-  }
-  return ur_ws_native_margin_cache;
+static uint16 ur_ws_native_read16_bank(CpuState *cpu, uint8 bank, uint16 addr) {
+  return cpu_read16(cpu, bank, addr);
 }
 
-static int ur_ws_native_trace(void) {
-  if (ur_ws_native_trace_cache < 0) {
-    const char *s = getenv("URRECOMP_WS_NATIVE_TRACE");
-    ur_ws_native_trace_cache = (s && *s && strcmp(s, "0") != 0) ? 1 : 0;
-  }
-  return ur_ws_native_trace_cache;
-}
-
-static uint16 ur_ws_native_read16(CpuState *cpu, uint16 addr) {
-  return (uint16)(cpu->ram[addr] | ((uint16)cpu->ram[(uint16)(addr + 1)] << 8));
-}
-
-static void ur_ws_native_write16(CpuState *cpu, uint16 addr, uint16 value) {
-  cpu->ram[addr] = (uint8)(value & 0xff);
-  cpu->ram[(uint16)(addr + 1)] = (uint8)(value >> 8);
-}
-
-static void ur_ws_native_trace_primary(CpuState *cpu) {
-  const uint16 edge = ur_ws_native_read16(cpu, 0x0505);
-  const uint16 count = ur_ws_native_read16(cpu, 0x052b);
-  if (!ur_ws_native_trace() || edge == 0xffff || count != 16)
-    return;
-  fprintf(stderr, "URWS_PRIMARY margin=%d camx=%u edge=%04X count=%u payload=",
-          ur_ws_native_margin(),
-          (unsigned)ur_ws_native_read16(cpu, 0x0419),
-          (unsigned)edge, (unsigned)count);
-  for (unsigned j = 0; j < 32; j++)
-    fprintf(stderr, "%02X", (unsigned)cpu->ram[0x0433 + j]);
-  fprintf(stderr, "\n");
-}
-
-static int ur_ws_native_hex_byte(const char *p, uint8 *out) {
-  unsigned value = 0;
-  if (sscanf(p, "%2x", &value) != 1)
+/* Materialize one arbitrary vertical 16-cell strip directly from the live
+ * course presentation tables. 7F:000F is the u16 coarse-sector index;
+ * 7F:800F contains 32-byte / 4x4 fine records of packed surface words.
+ *
+ * The stock primary edge is camera-cell X + 12 on the retained Dragster
+ * fixture. Column +1 is intentionally left on the accepted guest +8 path.
+ * Host-owned column +2 is therefore camera-cell X + 14. The visible
+ * vertical strip starts three fine cells above the camera-cell Y.
+ */
+static int ur_ws_native_shadow_from_course(CpuState *cpu, uint16 first_edge) {
+  const uint16 camx = ur_ws_native_read16(cpu, 0x0419);
+  const uint16 camy = ur_ws_native_read16(cpu, 0x041b);
+  const uint16 coarse_width = ur_ws_native_read16(cpu, 0x04f1);
+  if (!coarse_width)
     return 0;
-  *out = (uint8)value;
-  return 1;
-}
 
-static void ur_ws_native_load_oracle(void) {
-  if (ur_ws_oracle_loaded)
-    return;
-  ur_ws_oracle_loaded = 1;
-  const char *path = getenv("URRECOMP_WS_SHADOW_ORACLE");
-  if (!path || !*path)
-    return;
-  FILE *fp = fopen(path, "r");
-  if (!fp)
-    return;
-  unsigned camx = 0, edge = 0;
-  char payload[65];
-  while (ur_ws_oracle_count < 2048 &&
-         fscanf(fp, "%u %x %64s", &camx, &edge, payload) == 3) {
-    UrWsOracleRow *row = &ur_ws_oracle_rows[ur_ws_oracle_count];
-    row->camx = (uint16)camx;
-    row->edge = (uint16)edge;
-    int ok = 1;
-    for (unsigned j = 0; j < 32; j++)
-      if (!ur_ws_native_hex_byte(payload + j * 2, &row->payload[j])) {
-        ok = 0;
-        break;
-      }
-    if (ok)
-      ur_ws_oracle_count++;
-  }
-  fclose(fp);
-}
-
-static int ur_ws_native_shadow_from_oracle(uint16 camx, uint16 first_edge) {
-  ur_ws_native_load_oracle();
-  const uint16 wanted_ring = (uint16)((first_edge + 1) & 0x1f);
-  unsigned best_delta = 0xffff;
-  const UrWsOracleRow *best = NULL;
-  for (unsigned i = 0; i < ur_ws_oracle_count; i++) {
-    const UrWsOracleRow *row = &ur_ws_oracle_rows[i];
-    if ((row->edge & 0x1f) != wanted_ring || row->camx <= camx)
-      continue;
-    const unsigned delta = (unsigned)(row->camx - camx);
-    if (delta >= best_delta)
-      continue;
-    best = row;
-    best_delta = delta;
-  }
-  if (!best)
+  const uint16 fine_x = (uint16)((camx >> 4) + 14);
+  const int fine_y0 = (int)(camy >> 4) - 3;
+  if (fine_y0 < 0)
     return 0;
-  ur_ws_native_shadow_edge = best->edge;
+
+  for (unsigned j = 0; j < 16; j++) {
+    const uint16 fine_y = (uint16)(fine_y0 + (int)j);
+    const uint16 sector_x = (uint16)(fine_x >> 2);
+    const uint16 sector_y = (uint16)(fine_y >> 2);
+    const uint32 coarse_index =
+        (uint32)sector_y * (uint32)coarse_width + (uint32)sector_x;
+    if (coarse_index >= 16384u)
+      return 0;
+    const uint16 record = ur_ws_native_read16_bank(
+        cpu, 0x7f, (uint16)(0x000f + coarse_index * 2u));
+    const uint16 local =
+        (uint16)(((fine_y & 3u) * 4u) + (fine_x & 3u));
+    const uint32 fine_addr =
+        0x800fu + (uint32)record * 32u + (uint32)local * 2u;
+    if (fine_addr > 0xfffeu)
+      return 0;
+    const uint16 word =
+        ur_ws_native_read16_bank(cpu, 0x7f, (uint16)fine_addr);
+    ur_ws_native_shadow_payload[j * 2] = (uint8)(word & 0xff);
+    ur_ws_native_shadow_payload[j * 2 + 1] = (uint8)(word >> 8);
+  }
+
+  ur_ws_native_shadow_edge =
+      (uint16)((first_edge & 0xffe0u) | ((first_edge + 1u) & 0x001fu));
   ur_ws_native_shadow_count = 16;
-  memcpy(ur_ws_native_shadow_payload, best->payload, 32);
   return 1;
 }
 
@@ -216,8 +160,7 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
   const int margin = ur_ws_native_margin();
   ur_ws_native_shadow_live = 0;
   if (margin == 16)
-    ur_ws_native_shadow_live = ur_ws_native_shadow_from_oracle(
-        ur_ws_native_read16(cpu, 0x0419), second_edge);
+    ur_ws_native_shadow_live = ur_ws_native_shadow_from_course(cpu, second_edge);
 
   if (ur_ws_native_trace()) {
     if (margin == 8) {
@@ -235,7 +178,7 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
         fprintf(stderr, "%02X", (unsigned)ur_ws_native_future_payload[j]);
       fprintf(stderr, "\n");
       if (ur_ws_native_shadow_live) {
-        fprintf(stderr, "URWS_SHADOW16 provider=stock-oracle camx=%u edge=%04X count=%u payload=",
+        fprintf(stderr, "URWS_SHADOW16 provider=course-runtime camx=%u edge=%04X count=%u payload=",
                 (unsigned)ur_ws_native_read16(cpu, 0x0419),
                 (unsigned)ur_ws_native_shadow_edge,
                 (unsigned)ur_ws_native_shadow_count);
@@ -243,7 +186,7 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
           fprintf(stderr, "%02X", (unsigned)ur_ws_native_shadow_payload[j]);
         fprintf(stderr, "\n");
       } else {
-        fprintf(stderr, "URWS_STOP margin=16 reason=stock-oracle-miss\n");
+        fprintf(stderr, "URWS_STOP margin=16 reason=course-materializer-miss\n");
       }
     }
   }

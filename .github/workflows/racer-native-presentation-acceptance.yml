@@ -216,7 +216,7 @@ jobs:
           ]
           reversed_candidate = reversed["art_review"]["authored_candidate"]
           assert reversed_candidate["approval_status"] == (
-              "reversed-predecessor authored candidate; pending native motion review"
+              "motion-reviewed reversed predecessor; not approved shipping art"
           )
           reversed_review = reversed_candidate["gameplay_scale_review"]
           assert reversed_review["stock_alpha_bounds"] == [23, 2, 40, 38]

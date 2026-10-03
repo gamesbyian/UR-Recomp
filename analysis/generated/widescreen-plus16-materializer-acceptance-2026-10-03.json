@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-03",
+  "workflow_run": 37094022986,
+  "source_pr": 260,
+  "architecture": {
+    "guest_first_extra_column": "accepted PR #228 secondary lane",
+    "host_second_extra_column": "host-owned random-access course materializer",
+    "live_coarse_table": "7F:000F",
+    "live_fine_table": "7F:800F",
+    "implementation_reads_future_stock": false,
+    "synthetic_guest_descriptor_lanes": 0,
+    "blank_policy": "off-course and transient non-record live cells zero-fill"
+  },
+  "counts": {
+    "plus8_prepare_events": 617,
+    "plus16_first_column_events": 617,
+    "plus16_shadow_events": 617,
+    "same_view_comparable": 599,
+    "same_view_exact": 599,
+    "vertical_view_transitions": 18,
+    "classified_total": 617,
+    "provider_misses": 0
+  },
+  "checks": {
+    "accepted_plus8_unchanged": true,
+    "two_columns_every_preparation": true,
+    "first_step_stock_compatible": true,
+    "second_step_ring_adjacent": true,
+    "same_view_payloads_exact": true,
+    "cleanup_lifecycle": true,
+    "protected_state_equal": true,
+    "margin24_fail_closed": true,
+    "accepted": true
+  },
+  "liveness": {
+    "common_samples": 61,
+    "protected_differences": 0,
+    "control_event": "liveness-004",
+    "control_frame": 1231,
+    "plus16_event": "liveness-004",
+    "plus16_frame": 1232,
+    "frame_delta": 1,
+    "same_progress_payload": true,
+    "no_earlier_gameplay_activation": true
+  }
+}

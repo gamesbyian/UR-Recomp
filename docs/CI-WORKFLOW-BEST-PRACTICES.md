@@ -58,6 +58,15 @@ The fast native gate owns boot, basic deterministic race entry, product-host san
 
 Use pull-request validation when the result is primarily needed before merge. Add a main-push run only when integrated-main validation provides additional value.
 
+**Do not include a workflow's own `.github/workflows/<name>.yml` path in its `push.paths` merely to prove that workflow edits execute.** That creates a redundant full rerun immediately after every workflow-maintenance merge.
+
+Use this pattern instead:
+
+- if the workflow already has a `pull_request` trigger, include its own YAML path there so workflow edits are exercised before merge;
+- if it is push-only research/evidence infrastructure, keep its own YAML out of `push.paths`; use `workflow_dispatch` for an explicit full execution when the workflow implementation itself needs proving;
+- keep main-push triggers restricted to real runtime/evidence inputs whose integrated state can change the result;
+- allow a workflow self-path on main only when there is a documented reason that the integrated-main execution proves something a PR execution cannot.
+
 Research/evidence workflows that can be run manually should not gain `push` merely for convenience.
 
 ## Concurrency
@@ -179,7 +188,7 @@ Before merging a workflow, answer all of these:
 
 ## Repository-wide audit baseline — 2026-10-03
 
-The audit that established this policy inventoried **78 workflow files**.
+The audit that established this policy inventoried **78 workflow files**; one obsolete branch-only workflow was removed, leaving **77 active workflow files**.
 
 Key findings and actions:
 
@@ -191,6 +200,7 @@ Key findings and actions:
 - native build smoke stopped watching UI-only capture scripts owned by `native-ui-evidence.yml`;
 - generated course-presentation writer workflows were given serialization groups;
 - the SMV tooling regression now cancels superseded automatic runs.
+- a follow-up post-merge audit removed workflow-self paths from main-push trigger sets across the suite; workflow edits are now validated pre-merge where PR validation exists, or explicitly via manual dispatch for push-only research/evidence jobs.
 
 Remaining expensive workflows are retained because they test distinct runtime/evidence seams. Optimize them further only from measured job timing or duplicated-build evidence, not by weakening coverage.
 

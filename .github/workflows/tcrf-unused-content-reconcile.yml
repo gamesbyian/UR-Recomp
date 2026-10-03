@@ -8,7 +8,6 @@ on:
     paths:
       - "tools/analyze_tcrf_unused_content.py"
       - "tests/unit/test_analyze_tcrf_unused_content.py"
-      - ".github/workflows/tcrf-unused-content-reconcile.yml"
 
 concurrency:
   group: tcrf-unused-content-reconcile-${{ github.ref }}

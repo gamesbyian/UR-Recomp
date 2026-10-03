@@ -419,7 +419,7 @@ The screenshot itself should not be copied into project-owned art unless rights 
 The wider public corpus and recovered bot labels add a few branches that are easy to miss if the model only follows the happy path:
 
 - `SPLASH`: recovered bot value `0x84`; public galleries independently show an Intro Screen.
-- `DEMO`: recovered bot value `0x00`; the exact Main Menu idle timeout and return behavior are still unknown.
+- `DEMO`: reproduced. After 503 idle frames MAIN_MENU fades to the title (`0x84`), then a split-screen two-player demo race of about 2190 frames runs on a course that advances each cycle. It returns via the title; Start exits early the same way (`tools/probe_attract_cycle.py` → `analysis/generated/attract-cycle.json`).
 - `ENDING`: recovered bot value `0x5B`; a secondary cheat reference describes a title/splash shortcut using Down+L+R+B, which is useful as a cheap local verification route.
 - `FORBIDDEN_NAME_REJECTION`: public screenshot sets include the "No Sonic Allowed" rejection/Easter-egg screen. This belongs in the graph because name validation is already an identified technical seam elsewhere in the project.
 

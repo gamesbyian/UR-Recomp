@@ -887,6 +887,27 @@
       ],
       "status": "validated",
       "validation": "VS split-screen reference regression: Snes9x and Beetle both have inRace=1/menu=0 at all five stable race checkpoints; patched Snes9x additionally records HDMA $2104 writes V=0->$A5 and V=112->$5A at each sampled race checkpoint."
+    },
+    {
+      "id": "attract-cycle",
+      "input_script": "tests/input/attract-cycle.script",
+      "purpose": "No-input MAIN_MENU idle through four attract cycles (title, split-screen demo race, return), plus a Start-press exit run (tests/input/attract-exit.script). Measured from the per-frame low-WRAM trace by tools/probe_attract_cycle.py.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [],
+      "compare_surfaces": [
+        "low-wram-trace",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:0313 inRace",
+        "7E:00CE track",
+        "7E:00D0 tourRow"
+      ],
+      "status": "validated",
+      "validation": "analysis/generated/attract-cycle.json (5 checks): 503-frame idle timeout, ~2190-frame demo races on varying courses, Start exits via the title."
     }
   ]
 }

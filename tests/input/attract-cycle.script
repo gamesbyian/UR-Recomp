@@ -1,0 +1,5 @@
+# Attract-cycle probe: clean boot to MAIN_MENU, then no input for four demo cycles.
+# Consumed by tools/probe_attract_cycle.py (per-frame low-WRAM trace).
+until 009F == D7 3600
+wait 13600
+quit

@@ -69,15 +69,19 @@ states:
   - id: DEMO
     family: startup
     kind: runtime
-    confidence: low
-    evidence: []
+    confidence: high
+    evidence: [reproduced_runtime]
     recovered_menu_labels:
       currentMenu_7E009F: "0x00"
-    description: "Recovered 2014 bot label for demo/attract behavior; trigger and return timing are not yet locally reproduced."
+    runtime_signatures:
+      inRace_7E0313: "0x01 during the demo race"
+      local_fixture: "tests/input/attract-cycle.script"
+    description: "Attract demo, reproduced locally (analysis/generated/attract-cycle.json). After 503 idle frames on MAIN_MENU the game fades to the title (0x84), loads a course and plays a ~2190-frame split-screen two-player demo race, then returns via the title to MAIN_MENU. A full cycle is about 3320-3350 frames, and the course advances between cycles (track 1, 3, 4, 5 observed)."
     transitions:
-      - event: "demo ends or player exits"
+      - event: "demo race ends, or Start pressed"
         to: MAIN_MENU
-        confidence: inferred
+        confidence: high
+        note: "Both paths pass through the title screen (0x84)."
 
   - id: MAIN_MENU
     family: frontend
@@ -118,9 +122,9 @@ states:
       - input: "hold Left + A + L + R"
         to: ERASE_ALL_CONFIRM
         confidence: high
-      - event: "idle timeout"
+      - event: "idle timeout (503 frames, via title 0x84)"
         to: DEMO
-        confidence: low
+        confidence: high
 
   - id: PLAYER_SELECT_P1
     family: race_setup

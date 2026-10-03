@@ -1,0 +1,7 @@
+# Attract exit probe: idle into the first demo race, press Start, observe the exit.
+# Consumed by tools/probe_attract_cycle.py.
+until 009F == D7 3600
+wait 1800
+press start 2
+wait 600
+quit

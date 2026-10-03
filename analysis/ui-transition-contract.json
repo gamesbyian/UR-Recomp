@@ -246,16 +246,17 @@
       "id": "main-demo",
       "from": "MAIN_MENU",
       "to": "DEMO",
-      "trigger": "idle timeout",
-      "status": "hypothesis",
-      "probe": "ui-attract-route"
+      "trigger": "idle timeout: 503 frames on MAIN_MENU, via the title screen (0x84)",
+      "status": "verified",
+      "probe": "attract-cycle"
     },
     {
       "id": "demo-main",
       "from": "DEMO",
       "to": "MAIN_MENU",
-      "trigger": "demo ends/player exits",
-      "status": "hypothesis"
+      "trigger": "demo race ends (~2190 frames) or Start; both return via the title screen (0x84)",
+      "status": "verified",
+      "probe": "attract-cycle"
     },
     {
       "id": "splash-ending",

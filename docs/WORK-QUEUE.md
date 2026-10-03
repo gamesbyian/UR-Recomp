@@ -300,7 +300,7 @@ Treat these as must-do unless later technical evidence demonstrates a specific b
 - [ ] Authentic/raw-pixel plus modern/HD presentation presets, with optional CRT/NTSC-style display choices where useful.
 - [ ] Fast navigation affordances such as recent track, rematch, next event and direct practice access.
 - [ ] Localization-ready text/UI architecture.
-- [ ] Preserve original attract/demo behavior and leave a clean hook for a local recorded-run showcase.
+- [~] Preserve original attract/demo behavior and leave a clean hook for a local recorded-run showcase. Stock behavior is measured in `analysis/generated/attract-cycle.json`: a 503-frame MAIN_MENU idle timeout, then title, then a ~2190-frame split-screen demo race on a course that advances per cycle, returning via the title; Start exits early. The showcase hook design remains.
 - [ ] Keep content/data boundaries friendly to future custom courses, local challenge packs and visual packs without making those all launch requirements.
 
 ### Decide when subsystem maturity allows

@@ -1985,3 +1985,20 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 **Evidence:** `tools/extract_menu_visual_language.py --catalog` over the `ui-race-result-route` and `ui-records-submenus` captures → `screen_catalog` in `analysis/generated/menu-visual-language.json` (label checks per screen).
 
 **Interpretation:** A modern records/statistics surface can embed these as faithful views, since their composition is a small, regular extension of the menu contract.
+
+### R-2026-10-03-UI-08 — Attract cycle: 503-frame idle, title, split-screen demo race
+
+**Status:** reproduced locally (reference harness), edges promoted to verified  
+**Date:** 2026-10-03  
+**Area:** frontend | attract
+
+**Observation:** From a clean-boot MAIN_MENU with no input, four consecutive cycles each:
+- idle exactly 503 frames, then fade to the title screen `0x84`;
+- spend 588–620 frames before the demo race starts (blanked course load in between, during which DP `$9F` is scratch);
+- run a split-screen two-player demo race for 2190–2192 frames, then return through the title to MAIN_MENU (cycles of 3318–3350 frames).
+
+Demo courses advanced `00CE`=1, 3, 4, 5 (tour row 0, 0, 0, 1). The first demo's HUD names were AMY and ALICE, while `$017D/$017F` read 3/1, so the demo stores racer identity elsewhere. Pressing Start mid-demo leaves through the title back to MAIN_MENU.
+
+**Evidence:** `tests/input/attract-cycle.script`, `tests/input/attract-exit.script`, `tools/probe_attract_cycle.py` → `analysis/generated/attract-cycle.json` (5 checks; ~20 s locally from snesref's per-frame low-WRAM trace). UI edges `main-demo` / `demo-main` are now `verified` under fixture `attract-cycle`.
+
+**Uncertainty:** The course-selection rule (it skipped stunt track 2 in this sample) and the demo's input source (recorded vs AI) are not established.

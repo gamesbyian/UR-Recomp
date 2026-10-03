@@ -9,6 +9,10 @@ on:
       - "tests/unit/test_analyze_racer_piece_render_binding.py"
       - ".github/workflows/racer-piece-render-binding.yml"
 
+concurrency:
+  group: racer-piece-render-binding-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   actions: read
   contents: read

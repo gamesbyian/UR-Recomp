@@ -50,6 +50,7 @@ concurrency:
 jobs:
   contract:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Verify per-tool trigger snapshots
@@ -75,6 +76,7 @@ jobs:
 
   build-smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:

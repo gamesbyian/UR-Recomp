@@ -8,6 +8,10 @@ on:
       - "tests/unit/test_analyze_racer_staging_consumers.py"
       - ".github/workflows/racer-staging-consumers.yml"
 
+concurrency:
+  group: racer-staging-consumers-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 

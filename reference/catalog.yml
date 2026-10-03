@@ -3,6 +3,22 @@ retrieved: 2026-09-28
 project: UR-Recomp
 
 sources:
+  - id: switch-homebrew-public-toolchain
+    title: "Nintendo Switch public homebrew toolchain references"
+    type: platform_homebrew_reference
+    url: "https://github.com/switchbrew"
+    revision: "libnx feebd026ca0f5dcc2119f46ad8e0d16ad3dd4973; switch-examples 669786898205b7beb25ff1731e72982e6d0397d3; switch-tools 22756068dd0ed6ff9734c59cb4f99ebd3f62555b"
+    retrieved: "2026-10-02"
+    rights: "libnx is ISC; switch-examples is marked Public Domain; switch-tools remains governed by its upstream repository. Imported files preserve upstream bytes and provenance."
+    local_paths:
+      - "reference/imported/platforms/switch/libnx/README.md"
+      - "reference/imported/platforms/switch/libnx/LICENSE.md"
+      - "reference/imported/platforms/switch/switch-examples/README.md"
+      - "reference/imported/platforms/switch/switch-examples/sdl2-simple/Makefile"
+      - "reference/imported/platforms/switch/switch-examples/sdl2-simple/main.cpp"
+      - "reference/imported/platforms/switch/switch-examples/application-template/main.c"
+    relevance: "Pinned public evidence for the planned personal-use Switch homebrew host port; establishes devkitA64/libnx application structure and an official SDL2 route without importing proprietary Nintendo SDK material."
+
   - id: wheelsprung-related-project
     title: "Wheelsprung source and level-editor pipeline"
     type: related_project_source

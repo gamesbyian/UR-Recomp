@@ -1863,3 +1863,19 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 **Interpretation:** There is no representative multi-frame stock background-prefetch horizon to reverse engineer. Widescreen preparation should be tested by deliberately scheduling earlier/additional strips against this known queue while preserving authoritative state.
 
 **Next discriminator:** only after the current +8 presentation-ID phase seam is classified, prototype one bounded additional/earlier entering-column schedule and validate event-relative simulation invariance.
+
+### R-2026-10-03-UI-01 — In-tour win progress persists across a power cycle
+
+**Status:** reproduced locally (reference harness); medal award after a resumed tour still open  
+**Date:** 2026-10-03  
+**Area:** progression | SRAM | frontend product policy
+
+**Observation:** Battery SRAM offsets `0x0230`, `0x0232` and `0x10A9` advance once per won Crawler race in the baseline replay (`0→1→2→3`). Power-on in a fresh process from the settled mid-tour images (counter 2 at frame 8500, 3 at frame 12000) changes only SRAM `0x0742`; the counter is unchanged through MAIN_MENU, PLAYER_SELECT, TOUR_SELECT, TRACK_SELECT, NOW PLAYING and race entry; the next won race increments it to 3 and 4 respectively. The reloaded run re-raced track 0, already won before the power cycle, and the counter still advanced, so it counts wins rather than distinct tracks. TRACK_SELECT shows the same five tracks with no completion markers with or without the persisted progress.
+
+**Evidence:** `tools/probe_tour_progress_persistence.py` → `analysis/generated/tour-progress-persistence.json` (snesref + pinned snes9x-libretro, Dessyreqt 2014 movie input from its anchored SRAM; ~1 minute locally).
+
+**Interpretation:** The planning premise that stock play loses unfinished tour progress on power-off is not supported. At least the win counter is battery-backed and resumes. Modern per-event/tour persistence is therefore a preservation of stock behavior, not a redesign.
+
+**Uncertainty:** Lost races were not exercised. Whether completing the tour after a power cycle awards the medal is not observed: the historical movie desyncs on the modern core after the first reloaded race, and the accepted medal fixture uses the Snes9x 1.51-rr path (`historical-snes9x151-medal.yml`). The modern-core replay of `progression-sram-acceptance.yml` reaches four in-session Crawler wins but no medal by frame 40000 locally.
+
+**Next discriminator:** only if a product decision needs it, resume the accepted Snes9x 1.51-rr medal route from a mid-tour SRAM image and check whether the medal cell still increments.

@@ -268,7 +268,7 @@ Optional authentic scaling, arbitrary windows, 16:9/ultrawide, high-resolution U
 
 Do this from the verified original UI state map, not from memory or generic modern-UI assumptions.
 
-- [x] Classify original frontend states/features as presentation artifact, gameplay mechanic, or administrative/hardware-era system. `analysis/frontend-modernization-policy.json` covers every conceptual state with 30 features. Presentation and mechanics are preserve-only, three administrative redesigns are decided and nine are open candidates, each with a named decision gate. `tools/validate_frontend_modernization_policy.py` enforces this; edit the policy file when a product decision changes rather than re-deriving it.
+- [x] Classify original frontend states/features as presentation artifact, gameplay mechanic, or administrative/hardware-era system. `analysis/frontend-modernization-policy.json` covers every conceptual state with 30 features. Presentation and mechanics are preserve-only, three administrative redesigns are decided and eight are open candidates, each with a named decision gate. `tools/validate_frontend_modernization_policy.py` enforces this; edit the policy file when a product decision changes rather than re-deriving it.
 - [ ] Preserve every original audiovisual indicator by default; add clearer labels, values, deltas or expanded views alongside it rather than deleting it.
 - [ ] Define the reusable menu visual-language contract from captured evidence: composition, typography, palette, animation/motion, cursor behavior, sounds and transitions.
 - [ ] Design a modern racer/profile model that separates save/profile storage from racer identity and supports create/name/customize. Preserve the original forbidden-name detection list only as an Easter egg: show **"COOL NAME!"** and then accept the entered name normally.
@@ -276,7 +276,7 @@ Do this from the verified original UI state map, not from memory or generic mode
 - [ ] Preserve Bronsen, Silverton and Goldwyn as named opponents independently of any Bronze/Silver/Gold progression redesign.
 - [ ] Prototype a simplified modern League/tournament path while keeping the original League flow reproducible in authentic/reference mode.
 - [ ] Evaluate performance-based medal awarding or selectable challenge tiers as alternatives to mandatory Bronze → Silver → Gold replay.
-- [ ] Add modern per-event/tour persistence unless evidence shows the original session constraint is mechanically meaningful.
+- [~] Add modern per-event/tour persistence unless evidence shows the original session constraint is mechanically meaningful. The premise is not supported: `tools/probe_tour_progress_persistence.py` shows the battery-SRAM tour-win counter survives a fresh-process power-on and the next win continues it (R-2026-10-03-UI-01). Modern work is therefore to preserve and surface stock persistence. Medal award after a resumed tour is unobserved; test it only if a product decision needs it.
 - [ ] Replace destructive controller-chord administration with explicit confirmed actions in modern mode while preserving the original behavior for reference.
 - [ ] Design a unified records/statistics surface that can embed or reproduce the original score/result presentations rather than erasing them.
 - [ ] Make basic controls/status self-explanatory in-game without exposing secrets or advanced discoveries that are intentionally hidden.

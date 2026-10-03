@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "question": "Does stock Uniracers lose unfinished tour progress across a power cycle?",
+  "harness": "snesref + pinned snes9x-libretro, historical Dessyreqt 2014 movie input, anchored SRAM",
+  "counter_offsets": [
+    "0x0230",
+    "0x0232",
+    "0x10a9"
+  ],
+  "baseline_counter_sequence": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "baseline_counter_changes": [
+    {
+      "frame": 750,
+      "menu": 0,
+      "track": 0,
+      "in_race": 0,
+      "counters": [
+        0,
+        0,
+        0
+      ],
+      "nonzero_medals_rows_0_7": 0
+    },
+    {
+      "frame": 3000,
+      "menu": 0,
+      "track": 1,
+      "in_race": 0,
+      "counters": [
+        1,
+        1,
+        1
+      ],
+      "nonzero_medals_rows_0_7": 0
+    },
+    {
+      "frame": 8500,
+      "menu": 138,
+      "track": 2,
+      "in_race": 0,
+      "counters": [
+        2,
+        2,
+        2
+      ],
+      "nonzero_medals_rows_0_7": 0
+    },
+    {
+      "frame": 12000,
+      "menu": 246,
+      "track": 2,
+      "in_race": 0,
+      "counters": [
+        3,
+        3,
+        3
+      ],
+      "nonzero_medals_rows_0_7": 0
+    }
+  ],
+  "reloads": {
+    "2": {
+      "input_counter": 2,
+      "boot_sram_bytes_changed": [
+        "0x0742"
+      ],
+      "counter_at_boot": 2,
+      "counter_at_first_race": 2,
+      "counter_after_first_race": 3,
+      "counter_changes": [
+        {
+          "frame": 300,
+          "menu": 132,
+          "track": 0,
+          "in_race": 0,
+          "counters": [
+            2,
+            2,
+            2
+          ],
+          "nonzero_medals_rows_0_7": 0
+        },
+        {
+          "frame": 3250,
+          "menu": 246,
+          "track": 0,
+          "in_race": 0,
+          "counters": [
+            3,
+            3,
+            3
+          ],
+          "nonzero_medals_rows_0_7": 0
+        }
+      ],
+      "snapshot_frame": 8500
+    },
+    "3": {
+      "input_counter": 3,
+      "boot_sram_bytes_changed": [
+        "0x0742"
+      ],
+      "counter_at_boot": 3,
+      "counter_at_first_race": 3,
+      "counter_after_first_race": 4,
+      "counter_changes": [
+        {
+          "frame": 300,
+          "menu": 132,
+          "track": 0,
+          "in_race": 0,
+          "counters": [
+            3,
+            3,
+            3
+          ],
+          "nonzero_medals_rows_0_7": 0
+        },
+        {
+          "frame": 3250,
+          "menu": 246,
+          "track": 0,
+          "in_race": 0,
+          "counters": [
+            4,
+            4,
+            4
+          ],
+          "nonzero_medals_rows_0_7": 0
+        }
+      ],
+      "snapshot_frame": 12000
+    }
+  },
+  "checks": {
+    "baseline_counter_advances_by_one_per_win": true,
+    "reload_boot_preserves_counter": true,
+    "reload_counter_survives_frontend_and_race_entry": true,
+    "reload_next_win_increments_counter": true
+  },
+  "all_checks_pass": true,
+  "limits": [
+    "Only won races were observed; whether a lost race changes the counter is untested.",
+    "Medal award after completing a tour resumed across a power cycle is not observed; the movie desyncs on the modern core after the first reloaded race.",
+    "Counter semantics beyond 'advances once per won tour race and persists' are not promoted."
+  ]
+}

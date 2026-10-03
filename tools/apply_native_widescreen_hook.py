@@ -6,12 +6,16 @@ is the durable source: it fails closed unless the exact accepted preparation
 and live preparation boundaries are present.
 
 Runtime contract:
-  URRECOMP_WS_MARGIN unset/0 -> untouched stock behavior
+  no Widescreen env          -> untouched stock behavior
+  URRECOMP_WS_VIEW=authentic-16x9-candidate
+                             -> provisional policy binding, resolved to +48
   URRECOMP_WS_MARGIN=8       -> accepted one adjacent future horizontal strip
   URRECOMP_WS_MARGIN=16      -> same accepted guest strip plus one host-owned
                                strip materialized from live course tables
   URRECOMP_WS_MARGIN=24..72  -> same accepted guest strip plus N host-owned
                                strips materialized from live course tables
+  URRECOMP_WS_MARGIN always wins when explicitly supplied; unknown view names
+  fail closed to stock margin 0.
 """
 from __future__ import annotations
 
@@ -61,8 +65,14 @@ static uint16 ur_ws_native_shadow_count[UR_WS_NATIVE_MAX_HOST_COLUMNS];
 
 static int ur_ws_native_margin(void) {
   if (ur_ws_native_margin_cache == -32768) {
-    const char *s = getenv("URRECOMP_WS_MARGIN");
-    ur_ws_native_margin_cache = (s && *s) ? atoi(s) : 0;
+    const char *margin = getenv("URRECOMP_WS_MARGIN");
+    if (margin && *margin) {
+      ur_ws_native_margin_cache = atoi(margin);
+    } else {
+      const char *view = getenv("URRECOMP_WS_VIEW");
+      ur_ws_native_margin_cache =
+          (view && strcmp(view, "authentic-16x9-candidate") == 0) ? 48 : 0;
+    }
   }
   return ur_ws_native_margin_cache;
 }

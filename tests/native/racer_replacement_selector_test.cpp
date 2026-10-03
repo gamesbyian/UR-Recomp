@@ -268,5 +268,40 @@ int main() {
         GraphicsPack::Remastered, 0x0543, forward_context
     ).registration == p2_forward);
 
+    const RacerCompositionState companion_predecessor_context{
+        0x0541,
+        0x0540,
+        0x0D2D,
+        0x0000,
+        0,
+        0,
+        0x0001,
+        0x0000,
+    };
+    const auto* p1_companion_predecessor =
+        find_racer_registration_for_state(0x0541, companion_predecessor_context);
+    const auto* p2_companion_predecessor =
+        find_racer_registration_for_state(0x0540, companion_predecessor_context);
+    assert(p1_companion_predecessor != nullptr);
+    assert(p2_companion_predecessor != nullptr);
+    assert(p1_companion_predecessor != registration);
+    assert(p2_companion_predecessor != p2);
+    assert(p1_companion_predecessor->contact_anchor.x2 == 61);
+    assert(p1_companion_predecessor->contact_anchor.y2 == 76);
+    assert(p2_companion_predecessor->contact_anchor.x2 == 63);
+    assert(p2_companion_predecessor->contact_anchor.y2 == 76);
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0541, companion_predecessor_context
+    ).registration == p1_companion_predecessor);
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0540, companion_predecessor_context
+    ).registration == p2_companion_predecessor);
+
+    auto unregistered_companion_context = companion_predecessor_context;
+    unregistered_companion_context.p1_companion = 0x0D2C;
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0541, unregistered_companion_context
+    ).fallback_reason == FallbackReason::CompositionMismatch);
+
     return 0;
 }

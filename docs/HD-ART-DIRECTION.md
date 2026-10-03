@@ -63,14 +63,18 @@ The material model is still partially open, but the faithful Remastered racer no
 
 **Edge treatment follows form, not source-pixel stair-steps.** Preserve the strong dark silhouette and internal value boundaries that survive across registered neighboring frames, but reconstruct them on smooth high-resolution contours consistent with the original 3D source-render pipeline. Do not impose a uniform new cartoon outline where the stock sequence does not support one.
 
-Still open before production replacement art is approved:
+The conservative material baseline is now also constrained. This is a synthesis of the ROM-derived dossier, developer testimony about the detailed 3D source model, and official packaging/promotional imagery. Packaging is a secondary appearance reference, not geometry authority.
 
-- wheel/frame/saddle/pedal material interpretation;
-- exact specular/highlight strength within the baked-lighting model;
-- any explicit shadow treatment;
-- maximum micro-detail appropriate to 4K, 1440p, 1080p, motion and split-screen.
+- **tire:** dark rubber, with broad stable highlights rather than a chrome/mirror response;
+- **saddle:** dark vinyl/leather-like surface, again with restrained broad highlights;
+- **colored frame:** glossy painted/anodized-metal-like surface carrying the racer color;
+- **neutral hardware:** bright neutral metallic hub/fork/pedal hardware;
+- **cast/drop shadow:** do not add a new host-authored ground shadow in the faithful Remastered baseline. Track contact is already a recovered geometry constraint and the stock racer has no separate host-space shadow layer;
+- **micro-detail:** mechanically plausible source detail is welcome only when it survives normal gameplay scale. Detail that aliases, flickers, changes the recovered silhouette, or disappears incoherently in motion/split-screen must be suppressed. The historical source model reportedly contained detail as fine as screw threads; that is evidence of source-model fidelity, not a requirement that every thread remain visible in the game render.
 
-Use original rendered frames, the generated racer dossier and developer-history evidence to constrain these choices.
+The remaining tunable art question before a first production candidate is exact **specular/highlight strength** inside this baked object-local material model.
+
+Secondary appearance references include the official North American/European packaging scans and the 2010 developer feature. They agree with the stock dossier on dark wheel/saddle masses, colored glossy body/frame forms, and brighter neutral hardware. Do not copy marketing-only sparkle/star effects into ordinary gameplay frames merely because they appear in packaging art.
 
 ## Palette relationship
 

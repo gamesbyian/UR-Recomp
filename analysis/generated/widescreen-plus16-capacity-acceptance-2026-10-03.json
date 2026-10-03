@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-03",
+  "lane": "widescreen-presentation-capacity-plus16",
+  "workflow_run": 37086273196,
+  "source_pr": 254,
+  "baseline": {
+    "margin0_control": "untouched",
+    "accepted_plus8": {
+      "pr": 228,
+      "workflow_run": 37081391730,
+      "prepare_events": 617,
+      "exact_later_stock_matches": 317,
+      "longest_exact_run": 25
+    }
+  },
+  "architecture": {
+    "first_extra_column": "accepted guest secondary lane",
+    "second_extra_column": "host-owned presentation shadow",
+    "prototype_provider": "independent later-stock oracle",
+    "synthetic_guest_descriptor_lanes": 0,
+    "production_provider": "not implemented; next step is course/resource random-access strip materializer"
+  },
+  "capacity_acceptance": {
+    "accepted_plus8_unchanged": true,
+    "margin16_first_column_events": 617,
+    "margin16_shadow_events": 617,
+    "exact_later_stock_shadow_matches": 617,
+    "second_step_ring_adjacent": true,
+    "provider_misses": 0,
+    "deterministic_cleanup": true,
+    "protected_state_equal": true,
+    "nearest_later_stock_advance_pixels": {
+      "min": 27,
+      "max": 46
+    },
+    "margin24": "fail-closed at bounded host-shadow capacity"
+  },
+  "liveness_acceptance": {
+    "common_semantic_samples": 61,
+    "protected_differences": 0,
+    "semantic_progress_event": "liveness-004",
+    "progress_payload": {
+      "next_checkpoint": 1,
+      "finish_gate": 1,
+      "laps_remaining": 1
+    },
+    "control_frame": 1231,
+    "plus16_frame": 1232,
+    "frame_delta": 1,
+    "no_earlier_activation": true,
+    "interpretation": "absolute guest cadence differs by +1 frame while the event-relative protected state and progression event remain identical"
+  },
+  "rejected_predecessors": [
+    {
+      "workflow_run": 37083769287,
+      "mechanism": "recursive A59E",
+      "second_candidates": 557,
+      "exact_matches": 31,
+      "structural_misses": 60
+    },
+    {
+      "workflow_run": 37084288683,
+      "mechanism": "camera-biased cloned A52F replay",
+      "second_candidates": 314,
+      "exact_matches": 0
+    }
+  ],
+  "conclusion": "Host-owned presentation capacity is sufficient to carry the second +16 future column without expanding authoritative guest descriptor state. Replace the oracle with a semantic course/resource strip materializer before production widening."
+}

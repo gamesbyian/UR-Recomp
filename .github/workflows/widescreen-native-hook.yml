@@ -247,13 +247,30 @@ jobs:
               }
               bad={k:{"control":u,"plus16":v} for k,(u,v) in protected.items() if u!=v}
               if bad: diffs.append({"stem":stem,"differences":bad})
+          control_change=a["first_progress_change"]
+          wide_change=b["first_progress_change"]
+          same_progress_event=(
+              control_change is not None
+              and wide_change is not None
+              and control_change["stem"]==wide_change["stem"]
+              and control_change["progress"]==wide_change["progress"]
+          )
+          frame_delta=(
+              wide_change["frame"]-control_change["frame"]
+              if same_progress_event else None
+          )
           out={
               "common_samples":len(common),
               "protected_differences":diffs,
-              "control_first_progress_change":a["first_progress_change"],
-              "plus16_first_progress_change":b["first_progress_change"],
+              "control_first_progress_change":control_change,
+              "plus16_first_progress_change":wide_change,
+              "progress_change_frame_delta":frame_delta,
+              "same_semantic_progress_event":same_progress_event,
               "no_earlier_gameplay_activation":(
-                  not diffs and a["first_progress_change"]==b["first_progress_change"]
+                  not diffs
+                  and same_progress_event
+                  and frame_delta is not None
+                  and frame_delta >= 0
               ),
           }
           pathlib.Path(sys.argv[3]).write_text(json.dumps(out,indent=2)+"\n")

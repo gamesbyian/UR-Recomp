@@ -40,7 +40,7 @@ static const SnesDesktopHostGame kGameHost = {
         self.assertIn("UrModernSystemGamepadButton", patched)
         self.assertIn("UR_SESSION_GAMEPAD PASS start_nav_cancel=1 restart_item=1", patched)
         self.assertIn("UR_SESSION_KEYBOARD_MENU PASS arrow_nav_activate=1", patched)
-        self.assertIn("modern_pause_input.cpp", patched)
+        self.assertIn('#include "modern_pause_input.h"', patched)
         self.assertIn(".system_overlay", patched)
         self.assertIn("UrModernSystemOverlay", patched)
         self.assertIn("snes_ovl_draw_text", patched)

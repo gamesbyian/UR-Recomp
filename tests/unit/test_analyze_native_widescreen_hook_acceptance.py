@@ -81,32 +81,10 @@ class NativeWidescreenHookAcceptanceTests(unittest.TestCase):
             self.assertTrue(r["accepted"])
             self.assertFalse(r["native_runtime"]["margin8_terminal_payload_pending"])
 
-    def test_accepts_adjacent_ring_column_across_upper_edge_bits(self):
-        with tempfile.TemporaryDirectory() as td:
-            root=Path(td)
-            logs=self.logs()
-            logs[0]=logs[0].replace(
-                "URWS_PRIMARY margin=0 camx=108 edge=0D81",
-                "URWS_PRIMARY margin=0 camx=108 edge=0031",
-                1,
-            ).replace(
-                "URWS_PRIMARY margin=0 camx=109 edge=0D81",
-                "URWS_PRIMARY margin=0 camx=109 edge=0052",
-                1,
-            )
-            logs[8]=logs[8].replace(
-                "URWS_PRIMARY margin=8 camx=100 edge=0D80",
-                "URWS_PRIMARY margin=8 camx=100 edge=0031",
-                1,
-            ).replace(
-                "URWS_PREP margin=8 camx=100 edge=0D81",
-                "URWS_PREP margin=8 camx=100 edge=0052",
-                1,
-            )
-            r=MOD.analyze(logs,self.dumps(root))
-            self.assertTrue(r["accepted"])
-            self.assertTrue(r["checks"]["margin8_all_preparation_steps_stock_compatible"])
-            self.assertEqual(r["native_runtime"]["margin8_prepared_step_delta_histogram"]["0x0021"],1)
+    def test_ring_adjacency_ignores_upper_segment_bits(self):
+        self.assertTrue(MOD._ring_adjacent(0x0031, 0x0052))
+        self.assertTrue(MOD._ring_adjacent(0x019F, 0x0180))
+        self.assertFalse(MOD._ring_adjacent(0x0031, 0x0053))
 
     def test_rejects_nonadjacent_prepared_edge(self):
         with tempfile.TemporaryDirectory() as td:

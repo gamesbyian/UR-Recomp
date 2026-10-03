@@ -13,7 +13,6 @@ on:
       - "tools/trace_rnc_loader_seeds.py"
       - "tools/analyze_course_header_cadence.py"
       - "reference/roms/**"
-      - ".github/workflows/analyze-reference-roms.yml"
   workflow_dispatch:
 permissions:
   contents: write

@@ -82,7 +82,8 @@
       ],
       "class": "presentation_artifact",
       "modern": "preserve",
-      "rationale": "Arrow cursor, menu art, motion, typography, palette and sounds are the recognizable menu character. Choices and grouping may change; the visual grammar may not be casually replaced. The reusable contract is a separate open queue item."
+      "rationale": "Arrow cursor, menu art, motion, typography, palette and sounds are the recognizable menu character. Choices and grouping may change; the visual grammar may not be casually replaced. The decoded contract for typography, layout, cursor and slide transitions is analysis/generated/menu-visual-language.json.",
+      "policy_source": "docs/UI-STATE-MAP.md#menu-visual-language-contract"
     },
     {
       "id": "menu-input-convention",

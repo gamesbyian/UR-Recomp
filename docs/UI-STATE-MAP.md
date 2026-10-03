@@ -99,6 +99,17 @@ The JSON is product policy, not fidelity evidence. Edit it when a product decisi
 The state-level classification is now encoded in `analysis/ui-transition-contract.json` under `completion_tiers`. `tools/validate_ui_state_model.py` requires every conceptual state to appear in exactly one tier, and `tools/report_ui_coverage.py` reports Tier 1 gaps separately from the full archaeological queue. Edge evidence status remains independent: a Tier 1 edge may still be `documented`, `historical`, or `hypothesis` until runtime evidence promotes it.
 
 
+### Menu visual-language contract
+
+`analysis/generated/menu-visual-language.json` is the mechanically decoded contract for the MAIN_MENU/OPTIONS menu grammar. Regenerate it by running `tests/input/menu-visual-language.script` through snesref, then `python3 tools/extract_menu_visual_language.py <dump-dir>`. Its checks decode every MAIN_MENU and OPTIONS label from VRAM.
+
+- **Typography:** a 40-slot, 16×16 uppercase font on BG2 palette 7 (4bpp, priority above the BG1 art). Slots are `0-9`, `A-Z` without `O` (O reuses the zero glyph), `OK`, left/right arrows, and the circuit-loop and stunt-hook icons. The track-type icons are glyphs in the same sheet. Fill is a five-step yellow vertical ramp with a black outline and a grey edge ramp.
+- **Layout:** letters and word gaps are 16 px, rows are 24 px apart, and every row is centered on x=128.
+- **Cursor:** a 32×32 blue 3D arrow (OBJ palette 7) with a flat drop shadow (OBJ palette 5) at +7,+7. It spins through a 16-tile cycle at 2 frames per tile (32-frame period). It rests left of the row text and eases about a quarter of the remaining distance per frame, settling in about 12 frames. Motion starts on the input frame.
+- **Transition:** MAIN_MENU→OPTIONS swaps the menu state first, then slides BG2 256 px in 39 frames (velocity 1..7, cruise 8, 7..1 px/frame). The logo/background layer stays fixed; Back mirrors the slide exactly.
+
+Modern host surfaces that present menus, such as the host pause/options overlay, should use this grammar (the stock glyphs or a faithful high-resolution redraw of them, the arrow cursor and the eased slide) rather than generic overlay text. Sounds, the smaller track-select font and the records/results layouts are not yet covered.
+
 ## Current high-level graph
 
 ```mermaid

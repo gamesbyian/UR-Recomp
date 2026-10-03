@@ -1879,3 +1879,20 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 **Uncertainty:** Lost races were not exercised. Whether completing the tour after a power cycle awards the medal is not observed: the historical movie desyncs on the modern core after the first reloaded race, and the accepted medal fixture uses the Snes9x 1.51-rr path (`historical-snes9x151-medal.yml`). The modern-core replay of `progression-sram-acceptance.yml` reaches four in-session Crawler wins but no medal by frame 40000 locally.
 
 **Next discriminator:** only if a product decision needs it, resume the accepted Snes9x 1.51-rr medal route from a mid-tour SRAM image and check whether the medal cell still increments.
+
+### R-2026-10-03-UI-02 — Stock menu typography, cursor and slide are mechanically decoded
+
+**Status:** reproduced locally (reference harness), compact contract committed  
+**Date:** 2026-10-03  
+**Area:** frontend presentation | PPU
+
+**Observation:**
+- **Font:** MAIN_MENU and OPTIONS text is BG2 palette 7 (mode 3, 4bpp, priority tiles) using a 40-slot 16×16 glyph sheet. Glyph slot `s` occupies tiles `2s, 2s+1, 2s+0x50, 2s+0x51`. The sheet holds digits, `A-Z` without `O`, `OK`, two arrows and the circuit/stunt track-type icons.
+- **Cursor:** two 32×32 OBJs (arrow on palette 7, shadow on palette 5 at +7,+7) spinning through 16 tiles at 2 frames each. On a one-row move it travels 6,4,3,3,2,1,1,1,1,0,0,1 px in y and settles in 12 frames.
+- **Slide:** MAIN_MENU→OPTIONS changes `7E:009F` to `0x57`, then scrolls BG2 0→256 with velocity 1..7, twenty-five frames at 8, then 7..1 px/frame (39 frames). BG1 stays fixed and X-back mirrors the slide exactly.
+
+**Evidence:** `tests/input/menu-visual-language.script`; `tools/extract_menu_visual_language.py` → `analysis/generated/menu-visual-language.json`. Its checks decode all ten MAIN_MENU/OPTIONS labels from VRAM.
+
+**Interpretation:** Menu presentation is a small, fully specifiable grammar. The current modern host overlay draws generic white overlay text and does not yet follow it.
+
+**Next discriminator:** extend the same extractor to TRACK_SELECT (small font plus icon column) and capture menu SFX timing only when a modern menu surface needs them.

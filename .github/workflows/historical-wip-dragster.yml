@@ -16,7 +16,6 @@ on:
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tools/toolchain-entries/_global.json"
       - "snesrecomp"
-      - ".github/workflows/historical-wip-dragster.yml"
 
 concurrency:
   group: historical-wip-dragster-${{ github.ref }}

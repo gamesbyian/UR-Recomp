@@ -322,6 +322,21 @@ def run(
     remastered_bounds = alpha_bounds(remastered, rw, rh)
     flip_pivot = object_flip_pivot_x2_y2(W, H)
     stock_contact = alpha_contact_anchor_x2_y2(stock, W, H)
+    anchors = entry["registration"].get("semantic_anchors")
+    if not isinstance(anchors, dict):
+        raise ValueError("registered semantic anchors are required")
+    if int(anchors.get("fixed_point_scale", 0)) != 2:
+        raise ValueError("semantic anchors must use fixed-point scale 2")
+    if anchors.get("flip_pivot_x2_y2") != flip_pivot:
+        raise ValueError(
+            f"registered flip pivot disagrees with OBJ geometry: "
+            f"{anchors.get('flip_pivot_x2_y2')} != {flip_pivot}"
+        )
+    if anchors.get("wheel_contact_x2_y2") != stock_contact:
+        raise ValueError(
+            f"registered wheel/contact anchor disagrees with stock raster: "
+            f"{anchors.get('wheel_contact_x2_y2')} != {stock_contact}"
+        )
     display_contact = (
         transform_anchor_x2_y2(stock_contact, W, H, hflip, vflip)
         if stock_contact is not None else None
@@ -392,10 +407,8 @@ def run(
             "orientation_applied_post_selection": True,
             "fallback_exact": True,
             "selector_fails_closed_to_original": True,
-            "missing_registration_metadata": [
-                "explicit semantic pivot coordinate",
-                "explicit wheel/contact anchor coordinate"
-            ],
+            "semantic_anchor_metadata_exact": True,
+            "missing_registration_metadata": [],
         },
     }
     (output_dir / "manifest.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")

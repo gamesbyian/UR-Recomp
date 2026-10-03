@@ -27,6 +27,7 @@ constexpr ProductPolicy policy_for(ExecutionMode mode) noexcept {
 enum class HostDisplayMode : std::uint8_t {
     Windowed = 0,
     BorderlessFullscreen = 1,
+    Fullscreen = 2,
 };
 
 enum class HostVSyncMode : std::uint8_t {
@@ -50,7 +51,7 @@ struct HostSettings {
 };
 
 struct HostProductState {
-    static constexpr std::uint32_t schema_version = 3;
+    static constexpr std::uint32_t schema_version = 4;
 
     std::optional<std::string> active_profile_id;
     HostSettings settings{};

@@ -16,9 +16,11 @@ FIELD_ANCHOR = '    .game_info           = &kGameInfo,\n'
 PROBE = r'''
 #include "common_rtl.h"
 #include "desktop/host_main.h"
+#include "desktop/config.h"
 #include "desktop/sdl_compat.h"
 #include "snes_overlay_draw.h"
 #include "modern_session_c_api.h"
+#include "modern_pause_menu.h"
 #include "uniracers_restart_policy.h"
 #include "netplay/snes_state_digest.h"
 #include <stdio.h>
@@ -38,6 +40,8 @@ static UrUniracersRestartPolicyState g_ur_restart_title_policy;
 static UrUniracersRestartSurface g_ur_restart_surface;
 static int g_ur_session_key_selftest_done;
 static int g_ur_session_overlay_selftest_pending;
+static int g_ur_session_gamepad_selftest_done;
+static UrModernPauseMenu g_ur_pause_menu;
 static uint8_t *g_ur_restart_before_sram;
 static size_t g_ur_restart_before_sram_len;
 
@@ -155,6 +159,50 @@ static int UrModernSystemKeyDown(int key, int mod, int repeat) {
     return 1;
 }
 
+static int UrModernSystemGamepadButton(int button, int pressed) {
+    if (!UrRestartEnsureSession())
+        return 0;
+
+    const int paused = ur_modern_session_is_paused(g_ur_restart_session);
+    if (!pressed)
+        return paused ? 1 : 0;
+
+    if (button == kGamepadBtn_Start) {
+        const UrModernSessionResult result =
+            ur_modern_session_handle_key(
+                g_ur_restart_session, UR_MODERN_SESSION_KEY_ESCAPE);
+        if (ur_modern_session_is_paused(g_ur_restart_session))
+            ur_modern_pause_menu_reset(&g_ur_pause_menu);
+        return result == UR_MODERN_SESSION_APPLIED ||
+               result == UR_MODERN_SESSION_NO_OP;
+    }
+
+    if (!paused)
+        return 0;
+
+    const int restart =
+        ur_modern_session_restart_available(g_ur_restart_session);
+    if (button == kGamepadBtn_DpadUp) {
+        ur_modern_pause_menu_move(&g_ur_pause_menu, -1, restart);
+    } else if (button == kGamepadBtn_DpadDown) {
+        ur_modern_pause_menu_move(&g_ur_pause_menu, 1, restart);
+    } else if (button == kGamepadBtn_A) {
+        const UrModernPauseItem item =
+            ur_modern_pause_menu_selected(&g_ur_pause_menu, restart);
+        if (item == UR_MODERN_PAUSE_RESTART) {
+            (void)ur_modern_session_handle_key(
+                g_ur_restart_session, UR_MODERN_SESSION_KEY_RESTART);
+        } else {
+            (void)ur_modern_session_handle_key(
+                g_ur_restart_session, UR_MODERN_SESSION_KEY_ACCEPT);
+        }
+    } else if (button == kGamepadBtn_B) {
+        (void)ur_modern_session_handle_key(
+            g_ur_restart_session, UR_MODERN_SESSION_KEY_ACCEPT);
+    }
+    return 1;
+}
+
 static int UrSessionKeySelftest(void) {
     if (g_ur_session_key_selftest_done)
         return 1;
@@ -203,16 +251,22 @@ static void UrModernSystemOverlay(
         pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
 
     if (paused) {
+        ur_modern_pause_menu_move(&g_ur_pause_menu, 0, restart);
+        const UrModernPauseItem selected =
+            ur_modern_pause_menu_selected(&g_ur_pause_menu, restart);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 7,
             "PAUSED", 0xFFFFFFFFu, 1);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 22,
-            "ENTER  RESUME", 0xFFFFFFFFu, 1);
+            selected == UR_MODERN_PAUSE_RESUME ? "> RESUME" : "  RESUME",
+            0xFFFFFFFFu, 1);
         if (restart) {
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, y + 37,
-                "CTRL+R RESTART", 0xFFFFFFFFu, 1);
+                selected == UR_MODERN_PAUSE_RESTART
+                    ? "> RESTART" : "  RESTART",
+                0xFFFFFFFFu, 1);
         }
     } else if (results && restart) {
         snes_ovl_draw_text(
@@ -268,6 +322,22 @@ static int UrRestartCaptureOracle(const SnesDesktopHostFrameStats *stats) {
         return 0;
 
     snes_state_digest_parts(&g_ur_restart_anchor_digest);
+    if (!g_ur_session_gamepad_selftest_done) {
+        ur_modern_pause_menu_reset(&g_ur_pause_menu);
+        if (!UrModernSystemGamepadButton(kGamepadBtn_Start, 1) ||
+            !ur_modern_session_is_paused(g_ur_restart_session) ||
+            !UrModernSystemGamepadButton(kGamepadBtn_DpadDown, 1) ||
+            ur_modern_pause_menu_selected(
+                &g_ur_pause_menu, 1) != UR_MODERN_PAUSE_RESTART ||
+            !UrModernSystemGamepadButton(kGamepadBtn_B, 1) ||
+            ur_modern_session_is_paused(g_ur_restart_session)) {
+            fprintf(stderr, "UR_SESSION_GAMEPAD FAIL navigation\n");
+            return 0;
+        }
+        g_ur_session_gamepad_selftest_done = 1;
+        fprintf(stderr,
+                "UR_SESSION_GAMEPAD PASS start_nav_cancel=1 restart_item=1\n");
+    }
     fprintf(stderr,
             "UR_RESTART_PROBE captured=1 frame=%u digest=%08x command_path=armed\n",
             stats ? stats->frame : 0u,
@@ -508,6 +578,7 @@ def patch_text(source: str) -> str:
         FIELD_ANCHOR
         + "    .after_run_frame     = &UrRestartProbeAfterRunFrame,\n"
         + "    .system_key_down     = &UrModernSystemKeyDown,\n"
+        + "    .system_gamepad_button = &UrModernSystemGamepadButton,\n"
         + "    .system_overlay      = &UrModernSystemOverlay,\n",
         1,
     )
@@ -533,6 +604,7 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         "race_restart_lifecycle.cpp",
         "modern_session_runtime.cpp",
         "modern_session_c_api.cpp",
+        "modern_pause_menu.cpp",
     ]
     source_lines = "\n".join(
         f'    "{product_dir}/{name}"' for name in product_sources

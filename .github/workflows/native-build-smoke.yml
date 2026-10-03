@@ -499,22 +499,7 @@ jobs:
             done
             [ -s "'"$DUMPS"'/race-entered.wram.bin" ]
 
-            EXPECTED=$(python3 - "'"$DUMPS"'/race-entered.wram.bin" <<'"'"'PY'"'"'
-import pathlib
-import sys
-w = pathlib.Path(sys.argv[1]).read_bytes()
-def u16(off):
-    return w[off] | (w[off + 1] << 8)
-m = u16(0x0E0F)
-ts = u16(0x0E13)
-s = u16(0x0E17)
-t = u16(0x0E1B)
-sub = u16(0x0E1F)
-if not (0 <= m <= 9 and 0 <= ts <= 5 and 0 <= s <= 9 and 0 <= t <= 9 and 0 <= sub <= 5):
-    raise SystemExit(f"invalid authoritative timer digits: {m},{ts},{s},{t},{sub}")
-print(f"{m}:{ts}{s}.{t} subtick={sub}")
-PY
-            )
+            EXPECTED=$(python3 -c '"'"'import pathlib,sys; w=pathlib.Path(sys.argv[1]).read_bytes(); u=lambda o:w[o]|(w[o+1]<<8); m,ts,sec,t,sub=(u(0x0E0F),u(0x0E13),u(0x0E17),u(0x0E1B),u(0x0E1F)); assert 0<=m<=9 and 0<=ts<=5 and 0<=sec<=9 and 0<=t<=9 and 0<=sub<=5; print(f"{m}:{ts}{sec}.{t} subtick={sub}")'"'"' "'"$DUMPS"'/race-entered.wram.bin")
 
             WIN=""
             for _ in $(seq 1 100); do

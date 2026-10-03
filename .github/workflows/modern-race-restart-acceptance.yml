@@ -6,8 +6,13 @@ on:
     paths:
       - "native/product/race_restart_anchor.*"
       - "native/product/session_runtime_adapter.*"
+      - "native/product/race_restart_lifecycle.*"
+      - "native/product/modern_session_runtime.*"
+      - "native/product/modern_session_c_api.*"
       - "tools/patch_modern_restart_probe_host.py"
       - "tests/unit/test_patch_modern_restart_probe_host.py"
+      - "tests/unit/test_modern_session_runtime_cpp.py"
+      - "tests/native/modern_session_runtime_test.cpp"
       - "tests/input/modern-restart-acceptance.script"
       - ".github/workflows/modern-race-restart-acceptance.yml"
       - "docs/MODERN-PRODUCT-LAYER.md"
@@ -77,7 +82,11 @@ jobs:
 
           grep -q "UR_RESTART_PROBE captured=1" "$ROOT/src/main.c"
           grep -q "UrRestartProbeAfterRunFrame" "$ROOT/src/main.c"
+          grep -q "modern_session_c_api.cpp" "$ROOT/CMakeLists.txt"
           grep -q "snes_state_digest.c" "$ROOT/CMakeLists.txt"
+
+      - name: Prove host-side product coordinator contract
+        run: python3 -m unittest tests.unit.test_modern_session_runtime_cpp tests.unit.test_patch_modern_restart_probe_host
 
       - name: Build patched native target
         shell: bash
@@ -93,7 +102,7 @@ jobs:
           cmake --build "$ROOT/build" -j2
           test -x "$ROOT/build/UniracersSNESRecomp"
 
-      - name: Prove exact race-entry restore and replay
+      - name: Prove product-command restart dispatch and repeated replay
         shell: bash
         run: |
           set -euo pipefail
@@ -113,8 +122,9 @@ jobs:
           cat "$LOG"
           test "$STATUS" -eq 0
           grep -q "UR_RESTART_PROBE captured=1" "$LOG"
-          grep -q "UR_RESTART_PROBE immediate_equal=1" "$LOG"
-          grep -q "UR_RESTART_PROBE PASS replay_equal=1 window=60" "$LOG"
+          grep -q "UR_RESTART_PROBE restart1_applied=1 immediate_equal=1 sram_progression_unchanged=1" "$LOG"
+          grep -q "UR_RESTART_PROBE restart2_applied=1 immediate_equal=1 sram_progression_unchanged=1" "$LOG"
+          grep -q "UR_RESTART_PROBE PASS command_dispatch=1 repeated_restart_equal=1 window=60" "$LOG"
           ! grep -q "UR_RESTART_PROBE FAIL" "$LOG"
 
       - name: Upload restart acceptance log

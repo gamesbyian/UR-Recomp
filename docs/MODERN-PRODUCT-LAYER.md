@@ -107,6 +107,8 @@ A rewindable attempt also needs the same APU timing-ownership rule SNESRecomp al
 
 For Uniracers, the candidate lifecycle edge remains the established transition into active gameplay, `7E:0313 = 0 -> 1`, observed at a completed host frame through the title-specific `after_run_frame` hook. The focused acceptance fixture captures there, advances a fixed 60-frame idle window, restores, and requires the simulation digest after replay to match the first pass exactly. The anchor itself does not hard-code `$0313`, because state detection belongs to the title adapter rather than the storage primitive.
 
+That acceptance is now closed by workflow run `37080761750`. An earlier run restored the snapshot byte-for-byte but diverged in the APU partition after replay. The missing carrier was the desktop host's extended `RtlApuFrameClock`: rollback residue restored the surrounding APU pacing counters but not `start_master/start_guest/next_guest/last_duration`. Residue v7 now captures/restores that clock, after which the same 60-frame forward replay matches exactly. This preserves the audit rule that immediate snapshot equality alone is insufficient evidence for Restart Race.
+
 A restart anchor is immutable for one attempt. Repeated capture requests do not silently move the restart point.
 
 `RaceRestartLifecycle` owns the attempt-to-attempt policy above that storage primitive. A false→true active-race edge clears any previous anchor and captures the newly initialized race. A true→false edge does **not** clear the anchor: the just-finished attempt remains restartable through results or other post-race host UI. The next actual race entry supersedes it. If that new capture fails, the previous race is not retained as a misleading fallback.
@@ -119,7 +121,7 @@ The lifecycle receives only an `active` boolean; it does not know the Uniracers 
 
 Do not add these systems to `HostProductState` merely because they are planned. Add narrow interfaces when there is a concrete runtime consumer:
 
-- **pause/restart:** pause is connected to the owned host frame gate; wire the restart anchor into the generated Uniracers title hook and prove deterministic race re-entry before treating restart as complete;
+- **pause/restart:** pause is connected to the owned host frame gate, and deterministic Uniracers race-entry restore/replay is accepted. Remaining work is to connect the proven restart substrate to the actual modern product/UI command path and define when an attempt anchor is retired;
 - **autosave/resume:** a coordinator that owns host save metadata while preserving guest SRAM as guest data;
 - **records/ghosts:** append-only run artifacts keyed by profile and course identity, sourced from observed authoritative race state;
 - **racer identity:** product data associated with a profile, explicitly separate from the original save-slot/unicycle coupling;

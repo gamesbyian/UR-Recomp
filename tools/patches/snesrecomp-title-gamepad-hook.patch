@@ -10,7 +10,7 @@
    gi->modifiers ^= 1 << button;
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -199,4 +199,9 @@
+@@ -199,4 +199,8 @@
    int (*system_key_down)(int key, int mod, int repeat);
  
 +  /* Optional title-owned normalized gamepad-button seam. Called before the

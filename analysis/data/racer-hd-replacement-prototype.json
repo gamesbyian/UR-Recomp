@@ -117,7 +117,7 @@
           "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
           "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed P2 raster"
         },
-        "native_draw_status": "blocked until raster-time split-screen P2 placement is represented; frame-end OAM is not sufficient"
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam"
       },
       "original": {
         "kind": "deterministic_rom_composition",
@@ -134,7 +134,7 @@
         "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
         "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
       },
-      "fallback": "Artifact replacement is registered. Native draw presentation must remain Original until raster-time P2 placement is available."
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset."
     },
     {
       "semantic_frame_id": "0x057E",

@@ -169,6 +169,19 @@ const RacerRegistration* find_racer_registration(std::uint16_t semantic_frame_id
     return nullptr;
 }
 
+const RacerRegistration* find_racer_registration_for_state(
+    std::uint16_t semantic_frame_id,
+    const RacerCompositionState& live_state
+) noexcept {
+    for (const auto& registration : kRegistrations) {
+        if (registration.semantic_frame_id == semantic_frame_id &&
+            composition_equal(registration.composition, live_state)) {
+            return &registration;
+        }
+    }
+    return nullptr;
+}
+
 SelectionResult select_racer_presentation(
     GraphicsPack requested_pack,
     std::uint16_t semantic_frame_id,
@@ -183,8 +196,9 @@ SelectionResult select_racer_presentation(
         };
     }
 
-    const RacerRegistration* registration = find_racer_registration(semantic_frame_id);
-    if (registration == nullptr) {
+    const RacerRegistration* first_registration =
+        find_racer_registration(semantic_frame_id);
+    if (first_registration == nullptr) {
         return {
             requested_pack,
             GraphicsPack::Original,
@@ -193,12 +207,14 @@ SelectionResult select_racer_presentation(
         };
     }
 
-    if (!composition_equal(registration->composition, live_state)) {
+    const RacerRegistration* registration =
+        find_racer_registration_for_state(semantic_frame_id, live_state);
+    if (registration == nullptr) {
         return {
             requested_pack,
             GraphicsPack::Original,
             FallbackReason::CompositionMismatch,
-            registration,
+            first_registration,
         };
     }
 

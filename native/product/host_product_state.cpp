@@ -6,7 +6,32 @@
 namespace ur::product {
 namespace {
 
-constexpr std::string_view kHeader = "UR-HOST-STATE/1";
+constexpr std::string_view kHeaderV1 = "UR-HOST-STATE/1";
+constexpr std::string_view kHeaderV2 = "UR-HOST-STATE/2";
+
+bool parse_display_mode(
+    std::string_view text,
+    HostDisplayMode& out) noexcept {
+    if (text == "windowed") {
+        out = HostDisplayMode::Windowed;
+        return true;
+    }
+    if (text == "borderless") {
+        out = HostDisplayMode::BorderlessFullscreen;
+        return true;
+    }
+    return false;
+}
+
+const char* display_mode_name(HostDisplayMode mode) noexcept {
+    switch (mode) {
+    case HostDisplayMode::Windowed:
+        return "windowed";
+    case HostDisplayMode::BorderlessFullscreen:
+        return "borderless";
+    }
+    return nullptr;
+}
 
 bool parse_bool(std::string_view text, bool& out) noexcept {
     if (text == "0") {
@@ -43,7 +68,7 @@ std::string encode_host_product_state(const HostProductState& state) {
     }
 
     std::ostringstream out;
-    out << kHeader << '\n';
+    out << kHeaderV2 << '\n';
     out << "profile=";
     if (state.active_profile_id) {
         out << *state.active_profile_id;
@@ -51,13 +76,22 @@ std::string encode_host_product_state(const HostProductState& state) {
     out << '\n';
     out << "pause_on_focus_loss=" << (state.settings.pause_on_focus_loss ? '1' : '0') << '\n';
     out << "vibration_enabled=" << (state.settings.vibration_enabled ? '1' : '0') << '\n';
+    const char* display_mode = display_mode_name(state.settings.display_mode);
+    if (!display_mode) {
+        return {};
+    }
+    out << "display_mode=" << display_mode << '\n';
     return out.str();
 }
 
 DecodeResult decode_host_product_state(std::string_view encoded) {
     std::istringstream in{std::string(encoded)};
     std::string line;
-    if (!std::getline(in, line) || line != kHeader) {
+    if (!std::getline(in, line)) {
+        return {std::nullopt, "unsupported or missing host-state header"};
+    }
+    const bool legacy_v1 = line == kHeaderV1;
+    if (!legacy_v1 && line != kHeaderV2) {
         return {std::nullopt, "unsupported or missing host-state header"};
     }
 
@@ -77,14 +111,19 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
         }
     }
 
-    static constexpr std::string_view required[] = {
+    static constexpr std::string_view required_v1[] = {
         "profile", "pause_on_focus_loss", "vibration_enabled"
     };
-    if (fields.size() != 3) {
+    static constexpr std::string_view required_v2[] = {
+        "profile", "pause_on_focus_loss", "vibration_enabled", "display_mode"
+    };
+    const auto* required = legacy_v1 ? required_v1 : required_v2;
+    const std::size_t required_count = legacy_v1 ? 3u : 4u;
+    if (fields.size() != required_count) {
         return {std::nullopt, "unexpected host-state field set"};
     }
-    for (const auto key : required) {
-        if (fields.find(std::string(key)) == fields.end()) {
+    for (std::size_t i = 0; i < required_count; ++i) {
+        if (fields.find(std::string(required[i])) == fields.end()) {
             return {std::nullopt, "missing host-state field"};
         }
     }
@@ -101,6 +140,10 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
     if (!parse_bool(fields.at("pause_on_focus_loss"), state.settings.pause_on_focus_loss) ||
         !parse_bool(fields.at("vibration_enabled"), state.settings.vibration_enabled)) {
         return {std::nullopt, "host-state booleans must be 0 or 1"};
+    }
+    if (!legacy_v1 &&
+        !parse_display_mode(fields.at("display_mode"), state.settings.display_mode)) {
+        return {std::nullopt, "invalid host display mode"};
     }
 
     return {state, {}};

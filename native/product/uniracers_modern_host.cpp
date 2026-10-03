@@ -13,6 +13,7 @@ extern "C" {
 #include "host_product_store.hpp"
 #include "modern_pause_input.h"
 #include "modern_pause_menu.h"
+#include "modern_options_menu.h"
 #include "modern_session_c_api.h"
 #include "uniracers_restart_policy.h"
 #include "uniracers_run_data.h"
@@ -29,6 +30,7 @@ ur::product::HostProductState g_product_state;
 bool g_product_state_initialized;
 std::string g_product_state_path;
 UrModernPauseMenu g_pause_menu;
+UrModernOptionsMenu g_options_menu;
 bool g_options_visible;
 bool g_controls_visible;
 bool g_run_data_visible;
@@ -45,6 +47,41 @@ void product_diagnostic(const char* message) {
     if (!std::getenv("UR_PRODUCT_DIAGNOSTICS")) return;
     std::fprintf(stderr, "%s\n", message);
     std::fflush(stderr);
+}
+
+const char* display_mode_name(ur::product::HostDisplayMode mode) {
+    return mode == ur::product::HostDisplayMode::BorderlessFullscreen
+        ? "borderless" : "windowed";
+}
+
+bool apply_display_mode_setting(const ur::product::HostSettings& settings) {
+    if (!modern_mode()) return false;
+    SDL_Window* window = SDL_GetKeyboardFocus();
+    if (!window) {
+        window = SDL_GetMouseFocus();
+    }
+    if (!window) {
+        product_diagnostic("UR_DISPLAY_MODE APPLY_FAILED no_window");
+        return false;
+    }
+
+    const Uint32 flags =
+        settings.display_mode == ur::product::HostDisplayMode::BorderlessFullscreen
+            ? SDL_WINDOW_FULLSCREEN_DESKTOP
+            : 0u;
+    if (SDL_SetWindowFullscreen(window, flags) != 0) {
+        product_diagnostic("UR_DISPLAY_MODE APPLY_FAILED sdl");
+        return false;
+    }
+
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_DISPLAY_MODE APPLIED mode=%s\n",
+            display_mode_name(settings.display_mode));
+        std::fflush(stderr);
+    }
+    return true;
 }
 
 std::string resolve_product_state_path() {
@@ -82,10 +119,13 @@ void ensure_product_state() {
         ur::product::load_host_product_state_file(g_product_state_path);
     if (loaded.loaded()) {
         g_product_state = *loaded.state;
-        if (g_product_state.settings.pause_on_focus_loss) {
-            product_diagnostic("UR_HOST_STATE LOADED pause_on_focus_loss=1");
-        } else {
-            product_diagnostic("UR_HOST_STATE LOADED pause_on_focus_loss=0");
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_HOST_STATE LOADED pause_on_focus_loss=%d display_mode=%s\n",
+                g_product_state.settings.pause_on_focus_loss ? 1 : 0,
+                display_mode_name(g_product_state.settings.display_mode));
+            std::fflush(stderr);
         }
     } else if (loaded.status == ur::product::HostProductLoadStatus::Missing) {
         product_diagnostic("UR_HOST_STATE MISSING_DEFAULTS");
@@ -120,6 +160,38 @@ bool toggle_focus_pause_setting() {
     }
     g_product_state = candidate;
     return true;
+}
+
+bool toggle_display_mode_setting() {
+    if (!modern_mode()) return false;
+
+    ur::product::HostProductState candidate = g_product_state;
+    candidate.settings.display_mode =
+        candidate.settings.display_mode ==
+                ur::product::HostDisplayMode::Windowed
+            ? ur::product::HostDisplayMode::BorderlessFullscreen
+            : ur::product::HostDisplayMode::Windowed;
+
+    if (!apply_display_mode_setting(candidate.settings)) {
+        return false;
+    }
+    if (!persist_product_state(candidate)) {
+        (void)apply_display_mode_setting(g_product_state.settings);
+        return false;
+    }
+
+    g_product_state = candidate;
+    return true;
+}
+
+bool activate_options_selection() {
+    switch (ur_modern_options_menu_selected(&g_options_menu)) {
+    case UR_MODERN_OPTIONS_FOCUS_PAUSE:
+        return toggle_focus_pause_setting();
+    case UR_MODERN_OPTIONS_DISPLAY_MODE:
+        return toggle_display_mode_setting();
+    }
+    return false;
 }
 
 std::size_t save_snapshot(void* dst, std::size_t capacity) {
@@ -160,7 +232,11 @@ bool ensure_session() {
         &set_timing_lock,
         &reconcile_presentation);
     ur_modern_pause_menu_reset(&g_pause_menu);
+    ur_modern_options_menu_reset(&g_options_menu);
     ur_uniracers_restart_policy_reset(&g_title_policy);
+    if (g_session && modern_mode()) {
+        (void)apply_display_mode_setting(g_product_state.settings);
+    }
     return g_session != nullptr;
 }
 
@@ -254,6 +330,7 @@ bool activate_pause_selection() {
         g_run_data_visible = false;
         g_quit_confirm_visible = false;
         g_options_visible = true;
+        ur_modern_options_menu_reset(&g_options_menu);
         product_diagnostic("UR_PAUSE_OPTIONS OPENED");
         return true;
     }
@@ -333,9 +410,18 @@ extern "C" int ur_uniracers_modern_system_key_down(
         return request_desktop_quit() ? 1 : 0;
     }
 
-    if (g_options_visible &&
-        (key == SDLK_RETURN || key == SDLK_KP_ENTER)) {
-        return toggle_focus_pause_setting() ? 1 : 0;
+    if (g_options_visible) {
+        if (key == SDLK_UP) {
+            ur_modern_options_menu_move(&g_options_menu, -1);
+            return 1;
+        }
+        if (key == SDLK_DOWN) {
+            ur_modern_options_menu_move(&g_options_menu, 1);
+            return 1;
+        }
+        if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
+            return activate_options_selection() ? 1 : 0;
+        }
     }
 
     if (host_subview_visible() && key == SDLK_ESCAPE) {
@@ -386,8 +472,18 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         return request_desktop_quit() ? 1 : 0;
     }
 
-    if (g_options_visible && button == kGamepadBtn_A) {
-        return toggle_focus_pause_setting() ? 1 : 0;
+    if (g_options_visible) {
+        if (button == kGamepadBtn_DpadUp) {
+            ur_modern_options_menu_move(&g_options_menu, -1);
+            return 1;
+        }
+        if (button == kGamepadBtn_DpadDown) {
+            ur_modern_options_menu_move(&g_options_menu, 1);
+            return 1;
+        }
+        if (button == kGamepadBtn_A) {
+            return activate_options_selection() ? 1 : 0;
+        }
     }
 
     if (host_subview_visible()) {
@@ -446,8 +542,28 @@ extern "C" void ur_uniracers_modern_system_overlay(
 
     if (is_paused) {
         if (g_options_visible) {
-            const int options_h = 84;
+            const int options_h = 99;
             const int options_y = (height - options_h) / 2;
+            const UrModernOptionsItem selected =
+                ur_modern_options_menu_selected(&g_options_menu);
+            const char* focus_text =
+                g_product_state.settings.pause_on_focus_loss
+                    ? "FOCUS PAUSE  ON" : "FOCUS PAUSE  OFF";
+            const char* display_text =
+                g_product_state.settings.display_mode ==
+                        ur::product::HostDisplayMode::BorderlessFullscreen
+                    ? "DISPLAY  BORDERLESS"
+                    : "DISPLAY  WINDOWED";
+            char focus_row[32];
+            char display_row[32];
+            std::snprintf(
+                focus_row, sizeof(focus_row), "%c %s",
+                selected == UR_MODERN_OPTIONS_FOCUS_PAUSE ? '>' : ' ',
+                focus_text);
+            std::snprintf(
+                display_row, sizeof(display_row), "%c %s",
+                selected == UR_MODERN_OPTIONS_DISPLAY_MODE ? '>' : ' ',
+                display_text);
             snes_ovl_fill_rect(
                 pixels, stride, height, x, options_y, panel_w, options_h,
                 0xE0202020u);
@@ -459,14 +575,15 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 "OPTIONS", 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, options_y + 27,
-                g_product_state.settings.pause_on_focus_loss
-                    ? "FOCUS PAUSE  ON" : "FOCUS PAUSE  OFF",
-                0xFFFFFFFFu, 1);
+                focus_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 47,
+                pixels, stride, height, x + 8, options_y + 42,
+                display_row, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, options_y + 62,
                 "A / ENTER  TOGGLE", 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 67,
+                pixels, stride, height, x + 8, options_y + 82,
                 "B / ESC    BACK", 0xFFFFFFFFu, 1);
             return;
         }

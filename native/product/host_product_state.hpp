@@ -24,18 +24,25 @@ constexpr ProductPolicy policy_for(ExecutionMode mode) noexcept {
         : ProductPolicy{false, false, false};
 }
 
+enum class HostDisplayMode : std::uint8_t {
+    Windowed = 0,
+    BorderlessFullscreen = 1,
+};
+
 struct HostSettings {
     bool vibration_enabled = true;
     bool pause_on_focus_loss = true;
+    HostDisplayMode display_mode = HostDisplayMode::Windowed;
 
     bool operator==(const HostSettings& other) const noexcept {
         return vibration_enabled == other.vibration_enabled &&
-               pause_on_focus_loss == other.pause_on_focus_loss;
+               pause_on_focus_loss == other.pause_on_focus_loss &&
+               display_mode == other.display_mode;
     }
 };
 
 struct HostProductState {
-    static constexpr std::uint32_t schema_version = 1;
+    static constexpr std::uint32_t schema_version = 2;
 
     std::optional<std::string> active_profile_id;
     HostSettings settings{};

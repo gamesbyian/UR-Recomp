@@ -19,6 +19,7 @@ int main(int argc, char** argv) {
     HostProductState state;
     state.settings.pause_on_focus_loss = false;
     state.settings.vibration_enabled = false;
+    state.settings.display_mode = HostDisplayMode::BorderlessFullscreen;
     state.active_profile_id = "local.profile";
     assert(save_host_product_state_file(path, state) == HostProductSaveStatus::Saved);
 
@@ -28,7 +29,7 @@ int main(int argc, char** argv) {
 
     {
         std::ofstream out(path, std::ios::binary | std::ios::trunc);
-        out << "UR-HOST-STATE/2\nprofile=\npause_on_focus_loss=0\nvibration_enabled=1\n";
+        out << "UR-HOST-STATE/3\nprofile=\npause_on_focus_loss=0\nvibration_enabled=1\ndisplay_mode=windowed\n";
     }
     const auto rejected = load_host_product_state_file(path);
     assert(rejected.status == HostProductLoadStatus::Rejected);

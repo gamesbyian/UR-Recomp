@@ -153,7 +153,7 @@ jobs:
             "$ROOT/run.log" "$ROOT/stock-strips.txt"
           test -s "$ROOT/stock-strips.txt"
 
-      - name: Exercise stock, +8, +16 and +24
+      - name: Exercise stock and Widescreen depth sweep
         shell: bash
         run: |
           set -euo pipefail
@@ -165,7 +165,7 @@ jobs:
           ORACLE="$ROOT/oracle/stock-strips.txt"
           mkdir -p "$ROOT"
 
-          for margin in 0 8 16 24; do
+          for margin in 0 8 16 24 32 48 64; do
             OUT="$ROOT/$margin"
             mkdir -p "$OUT/dumps"
             echo "== native Widescreen margin $margin =="
@@ -179,7 +179,7 @@ jobs:
             tail -n 30 "$OUT/run.log" || true
           done
 
-      - name: Prove +24 host presentation capacity
+      - name: Prove host presentation depth through +64
         shell: bash
         run: |
           set -euo pipefail
@@ -193,12 +193,18 @@ jobs:
             --dump-16 "$ROOT/16/dumps/prep-emission-after-scroll.wram.bin" \
             --log-24 "$ROOT/24/run.log" \
             --dump-24 "$ROOT/24/dumps/prep-emission-after-scroll.wram.bin" \
+            --log-32 "$ROOT/32/run.log" \
+            --dump-32 "$ROOT/32/dumps/prep-emission-after-scroll.wram.bin" \
+            --log-48 "$ROOT/48/run.log" \
+            --dump-48 "$ROOT/48/dumps/prep-emission-after-scroll.wram.bin" \
+            --log-64 "$ROOT/64/run.log" \
+            --dump-64 "$ROOT/64/dumps/prep-emission-after-scroll.wram.bin" \
             --oracle-log "$ROOT/oracle/run.log" \
-            --json-out analysis/generated/widescreen-plus24-capacity-acceptance.json \
-            --md-out analysis/generated/widescreen-plus24-capacity-acceptance.md
-          cat analysis/generated/widescreen-plus24-capacity-acceptance.md
+            --json-out analysis/generated/widescreen-host-depth-acceptance.json \
+            --md-out analysis/generated/widescreen-host-depth-acceptance.md
+          cat analysis/generated/widescreen-host-depth-acceptance.md
 
-      - name: Prove +16/+24 gameplay and activation invariance
+      - name: Prove +16/+24/+64 gameplay and activation invariance
         shell: bash
         run: |
           set -euo pipefail
@@ -207,9 +213,9 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/object-liveness-dragster.script"
           ROOT="$RUNNER_TEMP/ws-native-liveness"
-          mkdir -p "$ROOT/0/dumps" "$ROOT/16/dumps" "$ROOT/24/dumps" analysis/generated
+          mkdir -p "$ROOT/0/dumps" "$ROOT/16/dumps" "$ROOT/24/dumps" "$ROOT/64/dumps" analysis/generated
 
-          for margin in 0 16 24; do
+          for margin in 0 16 24 64; do
             SDL_AUDIODRIVER=dummy \
             URRECOMP_WS_MARGIN="$margin" \
             URRECOMP_WS_NATIVE_TRACE=1 \
@@ -221,13 +227,14 @@ jobs:
               >"$ROOT/$margin/summary.txt"
           done
 
-          python3 - "$ROOT/0/summary.json" "$ROOT/16/summary.json" "$ROOT/24/summary.json" \
-            analysis/generated/widescreen-plus24-liveness.json <<'PY'
+          python3 - "$ROOT/0/summary.json" "$ROOT/16/summary.json" "$ROOT/24/summary.json" "$ROOT/64/summary.json" \
+            analysis/generated/widescreen-host-depth-liveness.json <<'PY'
           import json, pathlib, sys
           control=json.loads(pathlib.Path(sys.argv[1]).read_text())
           variants={
               "plus16":json.loads(pathlib.Path(sys.argv[2]).read_text()),
               "plus24":json.loads(pathlib.Path(sys.argv[3]).read_text()),
+              "plus64":json.loads(pathlib.Path(sys.argv[4]).read_text()),
           }
           ar={x["stem"]:x for x in control["rows"]}
           results={}
@@ -275,10 +282,10 @@ jobs:
               "variants":results,
               "accepted":all(x["no_earlier_gameplay_activation"] for x in results.values()),
           }
-          pathlib.Path(sys.argv[4]).write_text(json.dumps(out,indent=2)+"\n")
+          pathlib.Path(sys.argv[5]).write_text(json.dumps(out,indent=2)+"\n")
           print(json.dumps(out,indent=2))
           if not out["accepted"]:
-              raise SystemExit("+16/+24 liveness diverged")
+              raise SystemExit("+16/+24/+64 liveness diverged")
           PY
 
       - name: Upload compact native-hook evidence
@@ -292,14 +299,17 @@ jobs:
             analysis/generated/widescreen-native-prep-anchor.json
             analysis/generated/widescreen-native-prep-anchor.md
             analysis/generated/widescreen-native-hook-apply.json
-            analysis/generated/widescreen-plus24-capacity-acceptance.json
-            analysis/generated/widescreen-plus24-capacity-acceptance.md
-            analysis/generated/widescreen-plus24-liveness.json
+            analysis/generated/widescreen-host-depth-acceptance.json
+            analysis/generated/widescreen-host-depth-acceptance.md
+            analysis/generated/widescreen-host-depth-liveness.json
             ${{ runner.temp }}/ws-native-runs/oracle/run.log
             ${{ runner.temp }}/ws-native-runs/oracle/stock-strips.txt
             ${{ runner.temp }}/ws-native-runs/0/run.log
             ${{ runner.temp }}/ws-native-runs/8/run.log
             ${{ runner.temp }}/ws-native-runs/16/run.log
             ${{ runner.temp }}/ws-native-runs/24/run.log
+            ${{ runner.temp }}/ws-native-runs/32/run.log
+            ${{ runner.temp }}/ws-native-runs/48/run.log
+            ${{ runner.temp }}/ws-native-runs/64/run.log
           if-no-files-found: warn
           retention-days: 7

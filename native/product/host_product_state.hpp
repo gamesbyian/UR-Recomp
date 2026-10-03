@@ -29,20 +29,28 @@ enum class HostDisplayMode : std::uint8_t {
     BorderlessFullscreen = 1,
 };
 
+enum class HostVSyncMode : std::uint8_t {
+    Off = 0,
+    On = 1,
+    Adaptive = 2,
+};
+
 struct HostSettings {
     bool vibration_enabled = true;
     bool pause_on_focus_loss = true;
     HostDisplayMode display_mode = HostDisplayMode::Windowed;
+    HostVSyncMode vsync_mode = HostVSyncMode::On;
 
     bool operator==(const HostSettings& other) const noexcept {
         return vibration_enabled == other.vibration_enabled &&
                pause_on_focus_loss == other.pause_on_focus_loss &&
-               display_mode == other.display_mode;
+               display_mode == other.display_mode &&
+               vsync_mode == other.vsync_mode;
     }
 };
 
 struct HostProductState {
-    static constexpr std::uint32_t schema_version = 2;
+    static constexpr std::uint32_t schema_version = 3;
 
     std::optional<std::string> active_profile_id;
     HostSettings settings{};

@@ -237,6 +237,8 @@ Selection happens entirely after semantic state has been chosen. Runtime H/V ori
 
 The synchronized registrations carry explicit geometry anchors before hand-authored HD racer art expands. Coordinates use object-local pixel centres at fixed-point scale 2: both use the exact 64×64 OBJ reflection pivot `[63,63]` = `(31.5,31.5)`; the stock-derived wheel/contact anchors are `[61,76]` for P1 `0x0541` and `[63,76]` for P2 `0x0540`. These contact coordinates are not artist-authored: each is the centre of the lowest occupied alpha span in its deterministic composed stock raster. Runtime OAM H/V reflection transforms anchors only after semantic selection.
 
+Split-screen placement is now modeled separately from semantic identity. In ordinary two-player play, each semantic racer has two OAM instances in the same frame: P1 uses slots 98 (top) and 97 (bottom), while P2 uses slots 99 (top) and 96 (bottom). The proven active-display high-OAM values `0xA5` before the line-112 split and `0x5A` after it select which pair is visible. Low-OAM position/tile/attribute data for both viewport pairs coexists, so host replacement should decode live low-OAM coordinates using this split-instance mapping rather than treating the frame-end high-OAM state as a single authoritative racer position.
+
 
 ## Native replacement-selection seam
 

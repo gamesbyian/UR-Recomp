@@ -13,6 +13,7 @@ on:
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/toolchain.json"
       - "tools/patches/snesrecomp-live-vsync.patch"
+      - "tools/patches/snesrecomp-live-display-mode.patch"
       - "tools/toolchain-entries/_global.json"
       - "tools/patch_modern_product_host.py"
       - "tools/build_display_geometry_review.py"
@@ -346,7 +347,7 @@ jobs:
           EXE="${{ steps.exe.outputs.exe }}"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-focus-pause.script"
-          STATE="$RUNNER_TEMP/host-state-v3.txt"
+          STATE="$RUNNER_TEMP/host-state-v4.txt"
           SAVE_LOG="$RUNNER_TEMP/host-state-save.log"
           LOAD_LOG="$RUNNER_TEMP/host-state-load.log"
           AUTH_LOG="$RUNNER_TEMP/host-state-authentic.log"
@@ -384,8 +385,8 @@ jobs:
 
             # Active race exposes Resume -> Restart -> Options.
             # Enter Options, toggle Focus Pause, then navigate to the
-            # host-owned Display row and select Borderless Fullscreen, then move
-            # to VSync and select Adaptive.
+            # host-owned Display row, advance through Borderless to Fullscreen,
+            # then move to VSync and select Adaptive.
             xdotool key Down
             xdotool key Down
             xdotool key Return
@@ -398,6 +399,7 @@ jobs:
             xdotool key Return
             xdotool key Down
             xdotool key Return
+            xdotool key Return
             xdotool key Down
             xdotool key Return
 
@@ -406,11 +408,11 @@ jobs:
               kill -0 "$PID" 2>/dev/null || exit 1
               sleep 0.1
             done
-            grep -q "^UR-HOST-STATE/3$" "'"$STATE"'"
+            grep -q "^UR-HOST-STATE/4$" "'"$STATE"'"
             grep -q "^pause_on_focus_loss=0$" "'"$STATE"'"
-            grep -q "^display_mode=borderless$" "'"$STATE"'"
+            grep -q "^display_mode=fullscreen$" "'"$STATE"'"
             grep -q "^vsync=adaptive$" "'"$STATE"'"
-            grep -q "UR_DISPLAY_MODE APPLIED mode=borderless" "'"$SAVE_LOG"'"
+            grep -q "UR_DISPLAY_MODE APPLIED mode=fullscreen host=2" "'"$SAVE_LOG"'"
             grep -q "UR_VSYNC APPLIED mode=adaptive host=2" "'"$SAVE_LOG"'"
             grep -q "UR_HOST_STATE SAVED" "'"$SAVE_LOG"'"
             kill "$PID" 2>/dev/null || true
@@ -425,8 +427,8 @@ jobs:
             cat "$LOAD_LOG"
             exit "$LOAD_STATUS"
           fi
-          grep -q "UR_HOST_STATE LOADED pause_on_focus_loss=0 display_mode=borderless vsync=adaptive" "$LOAD_LOG"
-          grep -q "UR_DISPLAY_MODE APPLIED mode=borderless" "$LOAD_LOG"
+          grep -q "UR_HOST_STATE LOADED pause_on_focus_loss=0 display_mode=fullscreen vsync=adaptive" "$LOAD_LOG"
+          grep -q "UR_DISPLAY_MODE APPLIED mode=fullscreen host=2" "$LOAD_LOG"
           grep -q "UR_VSYNC APPLIED mode=adaptive host=2" "$LOAD_LOG"
 
           set +e
@@ -459,7 +461,7 @@ jobs:
           cat "$LOAD_LOG"
           echo "== authentic diagnostics =="
           cat "$AUTH_LOG"
-          echo "UR_PAUSE_OPTIONS_RESULT=focus_display_vsync_saved_loaded_and_authentic_inert"
+          echo "UR_PAUSE_OPTIONS_RESULT=focus_fullscreen_vsync_saved_loaded_and_authentic_inert"
 
       - name: Modern pause controls panel acceptance
         shell: bash

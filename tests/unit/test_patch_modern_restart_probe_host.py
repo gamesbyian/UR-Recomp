@@ -36,6 +36,9 @@ static const SnesDesktopHostGame kGameHost = {
         self.assertIn("ur_modern_session_handle_key", patched)
         self.assertIn("UrModernSystemKeyDown", patched)
         self.assertIn(".system_key_down", patched)
+        self.assertIn(".system_gamepad_button", patched)
+        self.assertIn("UrModernSystemGamepadButton", patched)
+        self.assertIn("UR_SESSION_GAMEPAD PASS start_nav_cancel=1 restart_item=1", patched)
         self.assertIn(".system_overlay", patched)
         self.assertIn("UrModernSystemOverlay", patched)
         self.assertIn("snes_ovl_draw_text", patched)
@@ -75,6 +78,7 @@ add_executable(UniracersSNESRecomp
             "race_restart_lifecycle.cpp",
             "modern_session_runtime.cpp",
             "modern_session_c_api.cpp",
+            "modern_pause_menu.cpp",
             "uniracers_restart_policy.cpp",
         ):
             self.assertIn(name, patched)

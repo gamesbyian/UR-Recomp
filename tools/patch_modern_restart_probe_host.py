@@ -31,6 +31,7 @@ static unsigned g_ur_restart_probe_count;
 static int g_ur_restart_probe_phase;
 static int g_ur_restart_prev_in_race;
 static int g_ur_restart_results_mode = -1;
+static int g_ur_restart_seen_results;
 static uint8_t *g_ur_restart_before_sram;
 static size_t g_ur_restart_before_sram_len;
 
@@ -127,9 +128,13 @@ static UrUniracersRestartSurface UrRestartObserveTitleLifecycle(void) {
 
     if (surface == UR_UNIRACERS_RESTART_ACTIVE_RACE) {
         ur_modern_session_observe_race_active(g_ur_restart_session, 1);
+        g_ur_restart_seen_results = 0;
     } else {
         ur_modern_session_observe_race_active(g_ur_restart_session, 0);
-        if (surface == UR_UNIRACERS_RESTART_RETIRE_ATTEMPT) {
+        if (surface == UR_UNIRACERS_RESTART_RESULTS) {
+            g_ur_restart_seen_results = 1;
+        } else if (surface == UR_UNIRACERS_RESTART_RETIRE_ATTEMPT &&
+                   g_ur_restart_seen_results) {
             ur_modern_session_retire_race_attempt(g_ur_restart_session);
         }
     }

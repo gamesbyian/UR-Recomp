@@ -180,7 +180,7 @@ The horizontal PAR question now has title-specific evidence. `analysis/display-r
 
 The Authentic logical transform is now closed as full 256×224 at 7:6 PAR. Official-manual geometry supplies the horizontal evidence; retained canonical framebuffers supply the vertical preservation discriminator, with centered 216-line cropping discarding distinct rendered information in all three representative scenes (1476/6144 cropped pixels differ from the nearest retained boundary row). This is a product-level logical-geometry decision, not a claim that every CRT exposed all 224 rows: optional period-TV edge loss belongs to display treatment after composition. Existing +8 through +72 materializer evidence remains valid because it is expressed in logical source-pixel margins.
 
-The derivation itself is executable rather than prose-only: `tools/widescreen_probe.py derive-margin` accepts target aspect, active logical height and pixel aspect, uses exact rational arithmetic, rounds only at the materializer's 8-pixel strip boundary, and reports whether the result fits the validated +72 capacity. For the preferred provisional 256×224 + 7:6 Authentic candidate, 16:9 requires an exact symmetric margin of 128/3 source pixels per side and therefore a +48 materializer margin. That binding is provisional until title-specific reference validation closes PAR/overscan.
+The derivation itself is executable rather than prose-only: `tools/widescreen_probe.py derive-margin` accepts target aspect, active logical height and pixel aspect, uses exact rational arithmetic, rounds only at the materializer's 8-pixel strip boundary, and reports whether the result fits the validated +72 capacity. For the accepted 256×224 + 7:6 Authentic logical transform, 16:9 requires an exact symmetric margin of 128/3 source pixels per side. The visible host view rounds to +43 per side / 342×224, while the strip-granular provider rounds backing coverage to +48.
 
 Preserve named compatibility presets only when they reproduce useful historical or diagnostic interpretations.
 
@@ -475,7 +475,7 @@ This establishes that the random-access host materializer itself is not the near
 
 Evidence: workflow run `37100420673`; artifact `widescreen-native-hook-evidence` (id `11266750089`); retained summaries `analysis/generated/widescreen-host-depth-acceptance-2026-10-03.{json,md}` and `analysis/generated/widescreen-host-depth-liveness-2026-10-03.json`.
 
-## +72 acceptance and provisional viewport binding
+## +72 acceptance and viewport binding
 
 PR #310 extended the same live course-table materializer by one strip, from +64 to +72, because square-pixel full-height 256×224 is the widest current policy candidate and mechanically requires +72 at the established 8-pixel granularity. The first run and its failed-job rerun both exposed the same harness-only exception: already-accepted +16 reached the identical named `liveness-004` semantic progression event two host frames before control, with zero protected-state differences. +24, +64 and +72 remained inside the previous ±1-frame bound.
 

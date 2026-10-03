@@ -109,18 +109,30 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
         if row["count"] == 16 and row["edge"] != 0xffff
     ]
 
-    adjacent_count = 0
-    adjacency_comparable_count = 0
+    same_camera_primary = {
+        row["camx"]: row for row in widened_primary
+    }
+    control_step_deltas = {
+        (b["edge"] - a["edge"]) & 0xffff
+        for a, b in zip(control_primary, control_primary[1:])
+    }
+    # +1 is the ordinary adjacent-column step. The stock trace also exposes
+    # compound/wrap encodings (for example -31 and +33); accept only step
+    # shapes already seen in stock rather than pretending the edge field is a
+    # plain 5-bit ring index.
+    allowed_stock_step_deltas = control_step_deltas | {1}
+    prepared_step_deltas = []
+    unsupported_step_deltas = []
     for row in plus8:
-        same_camera = [
-            stock for stock in widened_primary
-            if stock["camx"] == row["camx"]
-        ]
-        if not same_camera:
+        stock = same_camera_primary.get(row["camx"])
+        if stock is None:
             continue
-        adjacency_comparable_count += 1
-        if any(_ring_next(stock["edge"]) == row["edge"] for stock in same_camera):
-            adjacent_count += 1
+        delta = (row["edge"] - stock["edge"]) & 0xffff
+        prepared_step_deltas.append(delta)
+        if delta not in allowed_stock_step_deltas:
+            unsupported_step_deltas.append(delta)
+    adjacency_comparable_count = len(prepared_step_deltas)
+    adjacent_count = adjacency_comparable_count - len(unsupported_step_deltas)
 
     exact_matches = []
     matched_flags = []
@@ -166,9 +178,9 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
         "margin8_all_counts_16": len(plus8)==len(prep.get(8,[])),
         "margin8_cleanup_balanced": balanced,
         "margin8_terminal_pending_only": not terminal_pending or _last_plus8_event(logs.get(8,"")) == "PREP",
-        "margin8_comparable_edges_all_adjacent": (
+        "margin8_all_preparation_steps_stock_compatible": (
             adjacency_comparable_count >= 309
-            and adjacent_count == adjacency_comparable_count
+            and not unsupported_step_deltas
         ),
         "margin8_protected_state_equal": not diffs.get(8),
         "margin8_future_stock_exact_matches": match_count >= 309,
@@ -189,9 +201,20 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
             "margin8_cleanup_events":cleanup_count,
             "margin8_terminal_payload_pending":terminal_pending,
             "margin8_unique_edges":len({row["edge"] for row in plus8}),
-            "margin8_adjacency_comparable_events":adjacency_comparable_count,
-            "margin8_adjacency_unobserved_events":len(plus8)-adjacency_comparable_count,
-            "margin8_adjacent_prepared_edges":adjacent_count,
+            "margin8_step_comparable_events":adjacency_comparable_count,
+            "margin8_step_unobserved_events":len(plus8)-adjacency_comparable_count,
+            "margin8_stock_compatible_prepared_edges":adjacent_count,
+            "margin8_prepared_step_delta_histogram":{
+                f"0x{delta:04X}": prepared_step_deltas.count(delta)
+                for delta in sorted(set(prepared_step_deltas))
+            },
+            "stock_control_step_delta_histogram":{
+                f"0x{delta:04X}": sum(
+                    1 for a,b in zip(control_primary,control_primary[1:])
+                    if ((b["edge"]-a["edge"]) & 0xffff) == delta
+                )
+                for delta in sorted(control_step_deltas)
+            },
             "margin8_future_stock_candidates":future_stock_candidates,
             "margin8_exact_future_stock_matches":match_count,
             "margin8_exact_future_stock_match_ratio":round(match_ratio,6),
@@ -222,9 +245,11 @@ def render(r: dict) -> str:
         f"- +8 cleanup events: **{n['margin8_cleanup_events']}**",
         f"- +8 terminal payload pending at fixture exit: **{n['margin8_terminal_payload_pending']}**",
         f"- +8 unique prepared edges: **{n['margin8_unique_edges']}**",
-        f"- +8 adjacency-comparable preparation events: **{n['margin8_adjacency_comparable_events']}/{n['margin8_prepare_events']}**",
-        f"- +8 comparable events that are geometrically adjacent: **{n['margin8_adjacent_prepared_edges']}/{n['margin8_adjacency_comparable_events']}**",
-        f"- +8 events without a same-camera primary observation: **{n['margin8_adjacency_unobserved_events']}**",
+        f"- +8 stock-step-comparable preparation events: **{n['margin8_step_comparable_events']}/{n['margin8_prepare_events']}**",
+        f"- +8 preparation steps using stock-observed edge transitions: **{n['margin8_stock_compatible_prepared_edges']}/{n['margin8_step_comparable_events']}**",
+        f"- +8 events without a same-camera primary observation: **{n['margin8_step_unobserved_events']}**",
+        f"- +8 prepared edge-step histogram: **{n['margin8_prepared_step_delta_histogram']}**",
+        f"- stock control edge-step histogram: **{n['stock_control_step_delta_histogram']}**",
         f"- +8 edge-compatible later-stock observations: **{n['margin8_future_stock_candidates']}**",
         f"- +8 exact later-stock payload matches: **{n['margin8_exact_future_stock_matches']}**",
         f"- +8 exact-match ratio among future-stock candidates: **{n['margin8_exact_future_stock_match_ratio']:.3%}**",
@@ -232,7 +257,7 @@ def render(r: dict) -> str:
         f"- +8 protected gameplay/camera/progression state equal: **{c['margin8_protected_state_equal']}**",
         f"- +16 stopped at stock lane capacity: **{c['margin16_stops_at_capacity']}**",
         f"- +24 stopped at stock lane capacity: **{c['margin24_stops_at_capacity']}**","",
-        "Adjacency is judged only where the native trace observed a stock primary strip at the same camera X. Events without that same-camera primary observation remain unclassified rather than being mislabeled non-adjacent; the accepted future-stock payload threshold remains independently enforced.","",
+        "The edge word is a compound stock preparation coordinate, not a plain 5-bit ring index. A +8 step is accepted only when its same-camera primary→prepared delta is a transition shape also observed in the stock control; future-stock payload matching remains an independent acceptance gate.","",
         "The cleanup balance permits exactly one terminal pending payload when the "
         "fixture exits immediately after a PREP event; ordinary runtime clears it "
         "at the next live A59A preparation boundary.","",

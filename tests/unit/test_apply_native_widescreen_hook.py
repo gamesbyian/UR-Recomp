@@ -41,7 +41,10 @@ class NativeWidescreenHookTests(unittest.TestCase):
             + "    uint16 _v7 = 0x433;\n"
             + "    cpu_write_y_x(cpu, (uint16)(_v7));\n"
             + "    return RECOMP_RETURN_NORMAL;\n}\n"
-            "RecompReturn bank_01_A59E_M0X0(CpuState *cpu) { return RECOMP_RETURN_NORMAL; }\n",
+            "RecompReturn bank_01_A59E_M0X0(CpuState *cpu) { return RECOMP_RETURN_NORMAL; }\n"
+            "RecompReturn bank_01_A52F_M0X0(CpuState *cpu) {\n"
+            + block("01A52F")
+            + "    return RECOMP_RETURN_NORMAL;\n}\n",
             encoding="utf-8",
         )
         return wrapper
@@ -66,6 +69,9 @@ class NativeWidescreenHookTests(unittest.TestCase):
             self.assertIn("URWS_SHADOW16",w)
             self.assertIn("ur_ws_native_shadow_payload",w)
             self.assertIn("ur_ws_native_margin() == 16",w)
+            self.assertIn("ur_ws_native_capture_frame_entry(cpu)",w)
+            self.assertIn("bank_01_A52F_M0X0(cpu)",w)
+            self.assertIn("ur_ws_native_frame_cpu_snapshot",w)
             self.assertFalse(MOD.apply(root)["changed"])
 
     def test_fails_closed_without_live_wrapper(self):

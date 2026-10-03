@@ -33,7 +33,7 @@ static const SnesDesktopHostGame kGameHost = {
         self.assertIn("ur_modern_session_observe_race_active", patched)
         self.assertIn("ur_modern_session_retire_race_attempt", patched)
         self.assertIn("ur_modern_session_restart_race", patched)
-        self.assertIn("ur_modern_session_handle_key", patched)
+        self.assertIn("ur_modern_pause_handle_action", patched)
         self.assertIn("UrModernSystemKeyDown", patched)
         self.assertIn(".system_key_down", patched)
         self.assertIn(".system_gamepad_button", patched)

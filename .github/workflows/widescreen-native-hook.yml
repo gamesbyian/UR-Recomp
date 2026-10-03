@@ -168,15 +168,9 @@ jobs:
             OUT="$ROOT/$margin"
             mkdir -p "$OUT/dumps"
             echo "== native Widescreen margin $margin =="
-            if [ "$margin" = 16 ]; then
-              ORACLE_ENV="$ORACLE"
-            else
-              ORACLE_ENV=""
-            fi
             SDL_AUDIODRIVER=dummy \
             URRECOMP_WS_MARGIN="$margin" \
             URRECOMP_WS_NATIVE_TRACE=1 \
-            URRECOMP_WS_SHADOW_ORACLE="$ORACLE_ENV" \
             SNESRECOMP_DUMP_DIR="$OUT/dumps" \
             timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
               >"$OUT/run.log" 2>&1
@@ -212,11 +206,9 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/object-liveness-dragster.script"
           ROOT="$RUNNER_TEMP/ws-native-liveness"
-          ORACLE="$RUNNER_TEMP/ws-native-runs/oracle/stock-strips.txt"
           mkdir -p "$ROOT/0/dumps" "$ROOT/16/dumps" analysis/generated
 
           for margin in 0 16; do
-            if [ "$margin" = 16 ]; then ORACLE_ENV="$ORACLE"; else ORACLE_ENV=""; fi
             SDL_AUDIODRIVER=dummy \
             URRECOMP_WS_MARGIN="$margin" \
             URRECOMP_WS_NATIVE_TRACE=1 \

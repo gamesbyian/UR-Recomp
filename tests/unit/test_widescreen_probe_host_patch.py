@@ -30,7 +30,7 @@ static const SnesDesktopHostGame kGameHost = {
         self.assertIn(".prepare_frame        = WidescreenProbePrepareFrame,", out)
         self.assertIn('getenv("URRECOMP_WS_MARGIN")', out)
         self.assertIn('getenv("URRECOMP_WS_VIEW")', out)
-        self.assertIn('strcmp(view, "authentic-16x9-candidate") == 0 ? 48 : 0', out)
+        self.assertIn('strcmp(view, "authentic-16x9-candidate") == 0 ? 43 : 0', out)
         self.assertIn("PpuWsExtraOverride()", out)
         self.assertIn("*frame_w = 256 + extra * 2;", out)
         self.assertNotIn("g_ram", out)

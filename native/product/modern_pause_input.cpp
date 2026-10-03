@@ -36,7 +36,7 @@ extern "C" UrModernSessionResult ur_modern_pause_handle_action(
         ur_modern_pause_menu_move(menu, 1, restart);
         return UR_MODERN_SESSION_APPLIED;
 
-    case UR_MODERN_PAUSE_ACTIVATE:
+    case UR_MODERN_PAUSE_ACTIVATE: {
         if (!paused) {
             return UR_MODERN_SESSION_NO_OP;
         }
@@ -51,6 +51,7 @@ extern "C" UrModernSessionResult ur_modern_pause_handle_action(
         }
         return ur_modern_session_handle_key(
             session, UR_MODERN_SESSION_KEY_ACCEPT);
+    }
 
     case UR_MODERN_PAUSE_CANCEL:
         return paused

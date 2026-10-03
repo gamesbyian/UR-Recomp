@@ -28,7 +28,9 @@ The eventual user-facing video settings should support, where the platform permi
 - VSync;
 - presentation refresh/FPS targets such as 60, 90, 120 and 144 Hz, plus platform-appropriate uncapped/native-refresh options where useful;
 - internal render scale independent of output resolution when the HD compositor or post-processing path benefits from it;
-- aspect/presentation mode selection, including authentic 4:3 and true Widescreen;
+- independent display-geometry/pixel-aspect selection and logical-view selection, following `DISPLAY-PRESENTATION-POLICY.md`;
+- initial display roles of Authentic 4:3, Raw Pixels, and modern square-pixel presentation where appropriate;
+- logical view choices including Original and true 16:9 Widescreen, with Adaptive/ultrawide admitted only when scene and renderer evidence supports them;
 - graphics-pack selection and optional post-processing where available.
 
 The **guest simulation cadence is not a user setting**. Physics, collision, timers, AI, RNG, stunt timing, animation-state selection, records and deterministic replay remain driven by the original authoritative simulation cadence on every platform.

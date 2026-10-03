@@ -79,17 +79,40 @@ The strongest current candidates for **modern product-layer simplification** are
 - named/color-coded racers should no longer double as save slots;
 - modern players should be able to create/name/customize a racer independently of profile/save storage;
 - all original named/color combinations remain faithful presets and may also be promoted into AI/ghost/tournament cast roles;
-- Bronsen, Silverton and Goldwyn remain named legacy opponents even if medal-tier progression changes;
+- Bronsen, Silvia and Goldwyn remain named legacy opponents even if medal-tier progression changes (the ROM default-name table at `83:800C` spells the silver opponent `silvia`; earlier project notes said "Silverton");
 - League setup/player-management should be evaluated for a much simpler modern tournament path while preserving the original League flow as reference behavior;
 - Bronze/Silver/Gold repeated-tour requirements should be evaluated for performance-based medal awarding or selectable challenge tiers rather than mandatory replay;
-- unfinished-tour/session persistence should be modernized unless testing shows a deliberate gameplay purpose;
+- unfinished-tour/session persistence should be modernized unless testing shows a deliberate gameplay purpose (stock behavior still unknown, R-2026-10-03-UI-19);
 - destructive controller chords should become explicit UI actions with confirmation in modern mode;
 - Records/score silos may be unified behind a modern records surface while retaining original table/indicator presentations as views;
 - basic control/status information should not depend on an instruction manual, while secrets and advanced discoveries can remain intentionally opaque;
 - preserve the original forbidden-name detection as a modern Easter egg: entering one of those names should show a special **"COOL NAME!"** acknowledgement and then accept the name rather than reject it.
 
+### Frontend modernization classification
+
+`analysis/frontend-modernization-policy.json` applies the PROJECT-PLAN subtraction rule to every conceptual state in this map. Each original feature is classed as a **presentation artifact**, **gameplay mechanic** or **administrative** system and given a Modern-mode disposition: `preserve`, `preserve_and_augment`, `redesign_decided` (policy already made; must cite the owning heading) or `redesign_candidate` (open; must name its decision gate). Only administrative features may be redesigned, and Authentic/reference mode reproduces stock behavior for all of them. A single state can carry several features, e.g. `PLAYER_SELECT_P1` keeps its roster presentation while the racer-as-save-slot administration is redesigned.
+
+Current shape: presentation (menu visual language, input convention, roster presets, tour/track icons, now-playing card, HUD, stock pause overlay, result rituals, record tables, name editor, attract/demo, ending) and mechanics (race simulation, VS challenge rules, tour unlock/Hunter, medal thresholds) are all preserved or augmented. Decided redesigns are racer-as-save-slot, destructive controller chords and forbidden-name rejection (→ **COOL NAME!**). Open candidates are the main-menu mode structure, sequential multiplayer rider claim, medal-tier repeat clears, unfinished-tour session loss, post-result navigation, League administration, the Options hub, the Records silo layout and the controller-grid name-entry method.
+
+The JSON is product policy, not fidelity evidence. Edit it when a product decision changes; `python3 tools/validate_frontend_modernization_policy.py --summary` checks coverage and prints the per-state table.
+
 The state-level classification is now encoded in `analysis/ui-transition-contract.json` under `completion_tiers`. `tools/validate_ui_state_model.py` requires every conceptual state to appear in exactly one tier, and `tools/report_ui_coverage.py` reports Tier 1 gaps separately from the full archaeological queue. Edge evidence status remains independent: a Tier 1 edge may still be `documented`, `historical`, or `hypothesis` until runtime evidence promotes it.
 
+
+### Menu visual-language contract
+
+`analysis/generated/menu-visual-language.json` is the mechanically decoded contract for the MAIN_MENU/OPTIONS menu grammar. Regenerate it by running `tests/input/menu-visual-language.script` (and, for sound timing, `menu-visual-language-control.script`) through snesref with `SNESREF_WAV`, then `python3 tools/extract_menu_visual_language.py <dump-dir> --log <menu.log> --wav <menu.wav> --control-wav <control.wav>`. Add `--catalog <dir>:<tag>` for the `ui-race-result-route` / `ui-records-submenus` captures. Its checks decode every MAIN_MENU and OPTIONS label from VRAM.
+
+- **Typography:** a 40-slot, 16×16 uppercase font on BG2 palette 7 (4bpp, priority above the BG1 art). Slots are `0-9`, `A-Z` without `O` (O reuses the zero glyph), `OK`, left/right arrows, and the circuit-loop and stunt-hook icons. The track-type icons are glyphs in the same sheet. Fill is a five-step yellow vertical ramp with a black outline and a grey edge ramp.
+- **Layout:** letters and word gaps are 16 px, rows are 24 px apart, and every row is centered on x=128.
+- **Cursor:** a 32×32 blue 3D arrow (OBJ palette 7) with a flat drop shadow (OBJ palette 5) at +7,+7. It spins through a 16-tile cycle at 2 frames per tile (32-frame period). It rests left of the row text and eases about a quarter of the remaining distance per frame, settling in about 12 frames. Motion starts on the input frame.
+- **Second font and hierarchy:** names and per-item data use an 8×16 grey font (outline plus a four-step grey ramp, same palette 7). Digits start at tile `0xA9`, A–Z without O at `0xB3`, and space is `0xCE`. Yellow 16×16 text is reserved for titles, mode choices and tier labels (e.g. BRONZE). On TRACK_SELECT the track-type icons are big-font glyphs placed before left-aligned small-font names at x=80; titles stay centered.
+- **Setup strip:** MAIN_MENU, rider select, tour select and track select are successive 256-px positions of one BG2 strip (scroll 0/256/512/768), so each forward step reuses the same slide. The arrow keeps its sprites but OBJ palette 7 is recolored per screen (blue on MAIN_MENU, salmon on tour/track).
+- **Records and results:** RESULT_RACE (`0x99`) and the four Records screens (Track `0xCC`, High `0xBF`, Player `0xD0`, Group `0xF3`) use the same split. Yellow titles sit over grey 8×16 column headings and data on a 16/24-px row grid. Rider-coloured mini unicycles and medal icons are OBJs; PLAYER/GROUP SCORES add green/red ratio bars. Track Records scrolls its table vertically (BG2 vofs). The small font has punctuation `% ( - . :`, and `)` is the H-flipped `(` tile. The menu item GROUP TABLES opens a screen titled GROUP SCORES.
+- **Sound timing:** measured by subtracting a no-input control run's audio, which works because the menu music is deterministic. A cursor move sounds on its input frame for about 10–15 frames. Confirm and Back sounds start 3 frames after the press; the Options confirm lasts about 38 frames. SFX identity (which sample) is not yet decoded.
+- **Transition:** MAIN_MENU→OPTIONS swaps the menu state first, then slides BG2 256 px in 39 frames (velocity 1..7, cruise 8, 7..1 px/frame). The logo/background layer stays fixed; Back mirrors the slide exactly and resets the selection to 1P (no selection memory).
+
+Modern host surfaces that present menus, such as the host pause/options overlay, should use this grammar (the stock glyphs or a faithful high-resolution redraw of them, the arrow cursor and the eased slide) rather than generic overlay text. SFX identity, the tour/rider BG art and the attract/fade transitions are not yet covered.
 
 ## Current high-level graph
 
@@ -396,7 +419,7 @@ The screenshot itself should not be copied into project-owned art unless rights 
 The wider public corpus and recovered bot labels add a few branches that are easy to miss if the model only follows the happy path:
 
 - `SPLASH`: recovered bot value `0x84`; public galleries independently show an Intro Screen.
-- `DEMO`: recovered bot value `0x00`; the exact Main Menu idle timeout and return behavior are still unknown.
+- `DEMO`: reproduced. After 503 idle frames MAIN_MENU fades to the title (`0x84`), then a split-screen two-player demo race of about 2190 frames runs on a course that advances each cycle. It returns via the title; Start exits early the same way (`tools/probe_attract_cycle.py` → `analysis/generated/attract-cycle.json`).
 - `ENDING`: recovered bot value `0x5B`; a secondary cheat reference describes a title/splash shortcut using Down+L+R+B, which is useful as a cheap local verification route.
 - `FORBIDDEN_NAME_REJECTION`: public screenshot sets include the "No Sonic Allowed" rejection/Easter-egg screen. This belongs in the graph because name validation is already an identified technical seam elsewhere in the project.
 

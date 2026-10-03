@@ -103,8 +103,10 @@
       "from": "MAIN_MENU",
       "to": "LEAGUE_SELECT",
       "trigger": "select LEAGUE; A/B",
-      "status": "documented",
-      "probe": "ui-main-branches"
+      "status": "verified",
+      "probe": "ui-main-branches",
+      "fixture": "ui-league-probe",
+      "source_note": "Clean save: six-slot list 0x56 (ONE..SIX : DEFINE ME). Undefined slots do not open a LEAGUE_TABLE."
     },
     {
       "id": "main-options",
@@ -136,14 +138,17 @@
       "from": "OPTIONS_MENU",
       "to": "RENAME_PLAYER",
       "trigger": "select RENAME PLAYER; A/B",
-      "status": "documented"
+      "status": "verified",
+      "fixture": "ui-rename-editor-explore"
     },
     {
       "id": "options-define-league",
       "from": "OPTIONS_MENU",
       "to": "DEFINE_LEAGUE",
-      "trigger": "select DEFINE LEAGUE; A/B",
-      "status": "documented"
+      "trigger": "select DEFINE LEAGUE; A -> slot list 0x56 -> A on a slot -> WARNING 0x9A -> SELECT+Y+A",
+      "status": "verified",
+      "fixture": "ui-league-probe",
+      "source_note": "Editor title PICK YOUR LEAGUE with a '2 MIN' membership banner."
     },
     {
       "id": "options-main",
@@ -179,27 +184,29 @@
     },
     {
       "id": "vs-challenger",
-      "from": "VS_SELECT",
+      "from": "RESULT_RACE",
       "to": "VS_CHALLENGER",
-      "trigger": "all initial VS riders confirmed",
-      "status": "historical",
-      "blocked_by": "multiplayer_behavioral_verification",
-      "source_note": "First P1 confirm is now locally observed to remain in VS_SELECT and hand presentation to PICK PLAYER TWO; transition to VS_CHALLENGER remains historical until P2 confirmation is reproduced."
+      "trigger": "decided VS race: advance through the VS result 0xF9 and VS CHAMPIONS 0xD3",
+      "status": "verified",
+      "fixture": "vs-challenger-route",
+      "source_note": "snesref (dual-controller patch). The earlier VS_SELECT -> VS_CHALLENGER edge was wrong: both rider confirms lead to TOUR_SELECT (vs-p2-rider-confirm)."
     },
     {
       "id": "vs-track",
       "from": "VS_CHALLENGER",
       "to": "VS_CHALLENGE_TRACK",
-      "trigger": "challenger confirm",
-      "status": "historical",
-      "blocked_by": "multiplayer_behavioral_verification"
+      "trigger": "loser's pad picks a challenger and confirms (P1/winner input inert)",
+      "status": "verified",
+      "fixture": "vs-challenger-route"
     },
     {
       "id": "vs-prerace",
       "from": "VS_CHALLENGE_TRACK",
       "to": "PRE_RACE_CARD",
-      "trigger": "track confirm",
-      "status": "historical"
+      "trigger": "NEXT TRACK confirm",
+      "status": "verified",
+      "fixture": "vs-challenger-route",
+      "source_note": "Reaches NOW PLAYING for the next Crawler track (OVER 3 LAPS ON ZOOM ZOO)."
     },
     {
       "id": "game-race-result",
@@ -215,14 +222,18 @@
       "from": "GAMEPLAY",
       "to": "RESULT_CIRCUIT",
       "trigger": "circuit finish",
-      "status": "historical"
+      "status": "verified",
+      "fixture": "result-screens",
+      "source_note": "Dessyreqt movie Zoom Zoo circuit finish reaches currentMenu 0xBC (LAPS ON ZOOM ZOO) on the canonical ROM."
     },
     {
       "id": "game-stunt-result",
       "from": "GAMEPLAY",
       "to": "RESULT_STUNT",
       "trigger": "stunt finish",
-      "status": "historical"
+      "status": "verified",
+      "fixture": "result-screens",
+      "source_note": "Dessyreqt movie Bowl stunt finish reaches summing 0x2F then results 0x18 (QUALIFY) on the canonical ROM."
     },
     {
       "id": "game-pause",
@@ -246,16 +257,17 @@
       "id": "main-demo",
       "from": "MAIN_MENU",
       "to": "DEMO",
-      "trigger": "idle timeout",
-      "status": "hypothesis",
-      "probe": "ui-attract-route"
+      "trigger": "idle timeout: 503 frames on MAIN_MENU, via the title screen (0x84)",
+      "status": "verified",
+      "probe": "attract-cycle"
     },
     {
       "id": "demo-main",
       "from": "DEMO",
       "to": "MAIN_MENU",
-      "trigger": "demo ends/player exits",
-      "status": "hypothesis"
+      "trigger": "demo race ends (~2190 frames) or Start; both return via the title screen (0x84)",
+      "status": "verified",
+      "probe": "attract-cycle"
     },
     {
       "id": "splash-ending",
@@ -270,7 +282,9 @@
       "from": "MAIN_MENU",
       "to": "ERASE_ALL_CONFIRM",
       "trigger": "hold Left+A+L+R",
-      "status": "documented"
+      "status": "verified",
+      "fixture": "ui-erase-confirm",
+      "source_note": "snesref: Left+A+L+R shows the two-option menu WIPE RAM / MAIN MENU at 0x58."
     },
     {
       "id": "two-player-tour",
@@ -344,8 +358,9 @@
       "id": "erase-cancel-main",
       "from": "ERASE_ALL_CONFIRM",
       "to": "MAIN_MENU",
-      "trigger": "cancel",
-      "status": "documented"
+      "trigger": "X (cancel)",
+      "status": "verified",
+      "fixture": "ui-erase-confirm"
     },
     {
       "id": "records-track",
@@ -444,7 +459,8 @@
       "from": "RENAME_PLAYER",
       "to": "PLAYER_NAME_EDITOR",
       "trigger": "select highlighted Uni; A/B",
-      "status": "documented"
+      "status": "verified",
+      "fixture": "ui-rename-editor-explore"
     },
     {
       "id": "rename-player-back",
@@ -457,8 +473,10 @@
       "id": "rename-editor-options",
       "from": "PLAYER_NAME_EDITOR",
       "to": "OPTIONS_MENU",
-      "trigger": "complete/OK text entry",
-      "status": "hypothesis"
+      "trigger": "OK on an allowed name (A at row 3, column 12)",
+      "status": "verified",
+      "fixture": "name-entry-probe",
+      "source_note": "Accepted name is written lowercase to the rider's SRAM name record (FF-terminated) and the menu returns to OPTIONS."
     },
     {
       "id": "rename-editor-back",
@@ -471,16 +489,18 @@
       "id": "rename-editor-rejection",
       "from": "PLAYER_NAME_EDITOR",
       "to": "FORBIDDEN_NAME_REJECTION",
-      "trigger": "accept blacklisted player name",
-      "status": "documented",
-      "blocked_by": "name_entry_cursor_mapping"
+      "trigger": "OK on a name containing any of the 71 table words",
+      "status": "verified",
+      "fixture": "name-entry-probe",
+      "source_note": "Inline 'NOT COOL ENOUGH' message under the name; not a separate screen."
     },
     {
       "id": "rejection-rename-editor",
       "from": "FORBIDDEN_NAME_REJECTION",
       "to": "PLAYER_NAME_EDITOR",
-      "trigger": "advance/back when rejection came from player naming",
-      "status": "hypothesis"
+      "trigger": "rejection is inline; the editor stays open with the typed name",
+      "status": "verified",
+      "fixture": "name-entry-probe"
     },
     {
       "id": "vs-p2-rider-confirm",
@@ -490,6 +510,115 @@
       "status": "verified",
       "source_note": "Neutral two-pad snesref route: menu stays 0x3E while P2 Right changes selector column 0x06->0x07; P2 A then reaches TOUR_SELECT 0x6D and raw SRAM ownership 0x0743 clears 0x02->0x00.",
       "fixture": "vs-first-race"
+    },
+    {
+      "id": "circuit-result-track",
+      "from": "RESULT_CIRCUIT",
+      "to": "TRACK_SELECT",
+      "trigger": "advance input after the 1P result",
+      "status": "verified",
+      "fixture": "result-screens",
+      "source_note": "Movie input advances 0xBC / 0x18 directly to TRACK_SELECT 0xF6, as with RESULT_RACE; POST_RESULT_DECISION is not on this 1P path."
+    },
+    {
+      "id": "stunt-result-track",
+      "from": "RESULT_STUNT",
+      "to": "TRACK_SELECT",
+      "trigger": "advance input after the 1P result",
+      "status": "verified",
+      "fixture": "result-screens",
+      "source_note": "Movie input advances 0xBC / 0x18 directly to TRACK_SELECT 0xF6, as with RESULT_RACE; POST_RESULT_DECISION is not on this 1P path."
+    },
+    {
+      "id": "vs-draw-rematch",
+      "from": "RESULT_RACE",
+      "to": "PRE_RACE_CARD",
+      "trigger": "drawn VS race (both NO TIME): REMATCH banner 0xB7, any button",
+      "status": "verified",
+      "fixture": "vs-challenger-route",
+      "source_note": "tests/input/vs-first-race.input left to time out (~37670 frames) with tests/input/vs-draw-rematch-observe.script."
+    },
+    {
+      "id": "record-track-back",
+      "from": "RECORD_TRACK",
+      "to": "RECORDS",
+      "trigger": "A/B/X/Y/Start once the table has finished drawing (an earlier press is swallowed)",
+      "status": "verified",
+      "fixture": "ui-record-track-exit",
+      "source_note": "snesref: BG2 vofs 261 -> 0 and the five-item RECORDS list is visible; 7E:009F stays a stale 0x5A, so do not use it as the state signal here."
+    },
+    {
+      "id": "record-high-back",
+      "from": "RECORD_HIGH_SCORES",
+      "to": "RECORDS",
+      "trigger": "X",
+      "status": "verified",
+      "fixture": "ui-records-submenus",
+      "source_note": "snesref run of ui-records-submenus: ui-record-high-back shows the RECORDS list (BG2 strip 512) while 7E:009F keeps a stale 0xBF."
+    },
+    {
+      "id": "vs-track-same",
+      "from": "VS_CHALLENGE_TRACK",
+      "to": "PRE_RACE_CARD",
+      "trigger": "SAME TRACK confirm",
+      "status": "verified",
+      "fixture": "vs-challenger-route",
+      "source_note": "tools/probe_vs_challenger.py branch run (challenger's pad Down x N + A)."
+    },
+    {
+      "id": "vs-track-select-track",
+      "from": "VS_CHALLENGE_TRACK",
+      "to": "TRACK_SELECT",
+      "trigger": "SELECT TRACK confirm (two-player TRACK_SELECT 0x91)",
+      "status": "verified",
+      "fixture": "vs-challenger-route",
+      "source_note": "tools/probe_vs_challenger.py branch run (challenger's pad Down x N + A)."
+    },
+    {
+      "id": "vs-track-select-tour",
+      "from": "VS_CHALLENGE_TRACK",
+      "to": "TOUR_SELECT",
+      "trigger": "SELECT TOUR confirm (0x6D)",
+      "status": "verified",
+      "fixture": "vs-challenger-route",
+      "source_note": "tools/probe_vs_challenger.py branch run (challenger's pad Down x N + A)."
+    },
+    {
+      "id": "vs-track-quit",
+      "from": "VS_CHALLENGE_TRACK",
+      "to": "MAIN_MENU",
+      "trigger": "QUIT confirm",
+      "status": "verified",
+      "fixture": "vs-challenger-route",
+      "source_note": "tools/probe_vs_challenger.py branch run (challenger's pad Down x N + A)."
+    },
+    {
+      "id": "two-player-result-decision",
+      "from": "RESULT_RACE",
+      "to": "POST_RESULT_DECISION",
+      "trigger": "ordinary 2P: advance from the multiplayer result 0xF9",
+      "status": "verified",
+      "fixture": "two-player-p1-win",
+      "source_note": "Goes straight to the five-option track choice 0x5A; no VS CHAMPIONS / PICK CHALLENGER."
+    },
+    {
+      "id": "two-player-decision-next",
+      "from": "POST_RESULT_DECISION",
+      "to": "PRE_RACE_CARD",
+      "trigger": "ordinary 2P: NEXT TRACK confirm",
+      "status": "verified",
+      "fixture": "two-player-p1-win",
+      "source_note": "NOW PLAYING shows OVER 3 LAPS ON ZOOM ZOO with a running win tally (MIKE 1, ANDREW 0)."
+    },
+    {
+      "id": "erase-confirm-reset",
+      "from": "ERASE_ALL_CONFIRM",
+      "to": "ERASE_ALL_CONFIRM",
+      "trigger": "A on WIPE RAM opens a full-screen WARNING; SELECT+Y+A then resets cartridge memory",
+      "side_effect": "SRAM returns to the fresh-format image (medals cleared, default names)",
+      "status": "verified",
+      "fixture": "ui-erase-reset",
+      "source_note": "Seeded Crawler/MIKE medal 2 -> 0 with a valid checksum; post-reset SRAM equals a clean-boot formatted image except live working bytes."
     }
   ],
   "capture_exempt_states": [
@@ -498,13 +627,14 @@
   ],
   "capability_dependencies": {
     "name_entry_cursor_mapping": {
-      "status": "open",
+      "status": "complete",
       "plan": "analysis/ui-text-entry-layout.json",
       "blocks_states": [
         "FORBIDDEN_NAME_REJECTION"
       ],
       "acceptance_fixture": "ui-rename-editor-explore",
-      "acceptance": "Bind runtime row/column/cursor deltas to the manual-proven alphanumeric grid, then generate and reproduce a blacklisted-name route without guessing cursor geometry."
+      "acceptance": "Bind runtime row/column/cursor deltas to the manual-proven alphanumeric grid, then generate and reproduce a blacklisted-name route without guessing cursor geometry.",
+      "evidence": "tools/probe_name_entry.py -> analysis/generated/name-entry-probe.json: grid bound from cursor OBJ deltas (13 columns, 16 px; rows 24 px; start T; OK at row 3 column 12); SONIC, XSEGAX and BASSIST are rejected inline and ZED is accepted and saved, matching the static rule in analysis/generated/forbidden-name-table.json."
     },
     "multiplayer_behavioral_verification": {
       "status": "open",
@@ -525,7 +655,7 @@
       "transport_format": "start:duration:p1-mask[:p2-mask]",
       "transport_status": "complete",
       "integration_note": "PR #31 already provides the shared P1/P2 transport across native, snesref, and Mesen. This dependency now tracks only behavioral proof: P2-only causality, P1->P2 rider-selection handoff, stable multiplayer checkpoints, and deeper VS navigation.",
-      "note": "2P entry/back and VS_SELECT plus the visual P1->P2 VS handoff are locally reproduced. Remaining acceptance work is P2-only causality/confirmation, 2P handoff through TOUR_SELECT, deeper VS challenger/track checkpoints, and multiplayer gameplay/split-screen evidence."
+      "note": "2P entry/back and VS_SELECT plus the visual P1->P2 VS handoff are locally reproduced. Remaining acceptance work is P2-only causality/confirmation, 2P handoff through TOUR_SELECT, deeper VS challenger/track checkpoints, and multiplayer gameplay/split-screen evidence. 2026-10-03: VS_CHALLENGER (0x3F) and VS_CHALLENGE_TRACK (0x5A) are now reproduced on snesref (dual-controller patch) after a decided VS race (tools/probe_vs_challenger.py, analysis/generated/vs-challenger-probe.json); native-recomp and Mesen confirmation of that route remain."
     }
   },
   "completion_tiers": {

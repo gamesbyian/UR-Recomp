@@ -147,7 +147,7 @@ This explicitly **does not close gameplay object activation**. The recovered RAM
 With the grammar now available, implement and verify:
 
 1. [x] P2-only causality/confirmation in the initial ordinary-2P route;
-2. [x] VS challenger and challenge-track reachability after P2 confirm;
+2. [x] VS setup reachability after P2 confirm. The `vs-first-race` checkpoints named `vs-challenger`/`vs-challenge-track` are TOUR_SELECT `0x6D` and TRACK_SELECT `0x91`. The real PICK CHALLENGER `0x3F` and track-choice `0x5A` states come only after a decided VS race and are reproduced on snesref by `tests/input/vs-challenger-route.input` (`tools/probe_vs_challenger.py`); native/Mesen confirmation remains;
 3. [x] first ordinary-2P race entry;
 4. [x] richer split-screen/HUD atlas states: six ordinary-2P gameplay checkpoints are now captured and documented across native/Snes9x;
 5. [x] two-player OAM compatibility coverage for the canonical scanline split and high-OAM routing;
@@ -332,8 +332,8 @@ The recovered sequence has now been frozen as:
 
 The route is deterministic from clean boot. P1 enters VS and confirms the first rider; P2 Right selects an unclaimed rider and P2 A confirms; subsequent setup advances reach active split-screen gameplay. Snes9x checkpoints show:
 
-- `vs-challenger`: menu `0x6D`
-- `vs-challenge-track`: menu `0x91`
+- `vs-challenger`: menu `0x6D` (TOUR_SELECT; the checkpoint name is historical)
+- `vs-challenge-track`: menu `0x91` (two-player TRACK_SELECT)
 - `vs-pre-race`: menu `0x16`
 - `vs-race-1140` onward: `inRace = 0x01`
 

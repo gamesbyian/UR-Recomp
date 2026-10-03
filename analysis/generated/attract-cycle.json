@@ -1,0 +1,82 @@
+{
+ "schema_version": 1,
+ "question": "What does stock Uniracers do when MAIN_MENU is left idle?",
+ "harness": "snesref + pinned snes9x-libretro, clean boot, no input; per-frame low-WRAM trace",
+ "fixtures": [
+  "tests/input/attract-cycle.script",
+  "tests/input/attract-exit.script"
+ ],
+ "frame_rate_note": "frames are guest NTSC frames (~60.1/s)",
+ "cycles": [
+  {
+   "main_menu_frame": 440,
+   "title_frame": 943,
+   "race_start_frame": 1531,
+   "track": 1,
+   "tour_row": 0,
+   "race_end_frame": 3722,
+   "next_main_menu_frame": 3759,
+   "idle_before_title_frames": 503,
+   "title_to_race_frames": 588,
+   "demo_race_frames": 2191,
+   "cycle_frames": 3319
+  },
+  {
+   "main_menu_frame": 3759,
+   "title_frame": 4262,
+   "race_start_frame": 4882,
+   "track": 3,
+   "tour_row": 0,
+   "race_end_frame": 7072,
+   "next_main_menu_frame": 7109,
+   "idle_before_title_frames": 503,
+   "title_to_race_frames": 620,
+   "demo_race_frames": 2190,
+   "cycle_frames": 3350
+  },
+  {
+   "main_menu_frame": 7109,
+   "title_frame": 7612,
+   "race_start_frame": 8208,
+   "track": 4,
+   "tour_row": 0,
+   "race_end_frame": 10400,
+   "next_main_menu_frame": 10437,
+   "idle_before_title_frames": 503,
+   "title_to_race_frames": 596,
+   "demo_race_frames": 2192,
+   "cycle_frames": 3328
+  },
+  {
+   "main_menu_frame": 10437,
+   "title_frame": 10940,
+   "race_start_frame": 11528,
+   "track": 5,
+   "tour_row": 1,
+   "race_end_frame": 13718,
+   "next_main_menu_frame": 13755,
+   "idle_before_title_frames": 503,
+   "title_to_race_frames": 588,
+   "demo_race_frames": 2190,
+   "cycle_frames": 3318
+  }
+ ],
+ "start_exit": {
+  "press_frame": 2240,
+  "title_frame": 2335,
+  "main_menu_frame": 2372
+ },
+ "observations": [
+  "each cycle fades MAIN_MENU to the title screen (0x84), loads a course, and plays a split-screen two-player demo race",
+  "the demo course advances between cycles; HUD names in the first demo were AMY and ALICE, which do not match $017D/$017F (3/1), so the demo keeps racer identity elsewhere",
+  "DP $9F is reused as scratch during the blanked course load, so short-lived values between title and race are not menu states"
+ ],
+ "checks": {
+  "at_least_three_cycles": true,
+  "idle_timeout_constant": true,
+  "every_cycle_runs_a_demo_race": true,
+  "demo_tracks_vary": true,
+  "start_exits_demo_via_title": true
+ },
+ "all_checks_pass": true
+}

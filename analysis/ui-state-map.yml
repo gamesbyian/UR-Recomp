@@ -69,15 +69,19 @@ states:
   - id: DEMO
     family: startup
     kind: runtime
-    confidence: low
-    evidence: []
+    confidence: high
+    evidence: [reproduced_runtime]
     recovered_menu_labels:
       currentMenu_7E009F: "0x00"
-    description: "Recovered 2014 bot label for demo/attract behavior; trigger and return timing are not yet locally reproduced."
+    runtime_signatures:
+      inRace_7E0313: "0x01 during the demo race"
+      local_fixture: "tests/input/attract-cycle.script"
+    description: "Attract demo, reproduced locally (analysis/generated/attract-cycle.json). After 503 idle frames on MAIN_MENU the game fades to the title (0x84), loads a course and plays a ~2190-frame split-screen two-player demo race, then returns via the title to MAIN_MENU. A full cycle is about 3320-3350 frames, and the course advances between cycles (track 1, 3, 4, 5 observed)."
     transitions:
-      - event: "demo ends or player exits"
+      - event: "demo race ends, or Start pressed"
         to: MAIN_MENU
-        confidence: inferred
+        confidence: high
+        note: "Both paths pass through the title screen (0x84)."
 
   - id: MAIN_MENU
     family: frontend
@@ -118,9 +122,9 @@ states:
       - input: "hold Left + A + L + R"
         to: ERASE_ALL_CONFIRM
         confidence: high
-      - event: "idle timeout"
+      - event: "idle timeout (503 frames, via title 0x84)"
         to: DEMO
-        confidence: low
+        confidence: high
 
   - id: PLAYER_SELECT_P1
     family: race_setup
@@ -174,9 +178,10 @@ states:
         to: VS_SELECT
         side_effect: "visible selector handoff to Player Two"
         confidence: high
-      - event: "all initial VS riders confirmed"
-        to: VS_CHALLENGER
-        confidence: inferred
+      - event: "both initial VS riders confirmed (P2 A)"
+        to: TOUR_SELECT
+        confidence: high
+        note: "tests/input/vs-first-race.input reaches TOUR_SELECT 0x6D then two-player TRACK_SELECT 0x91; its checkpoints named vs-challenger/vs-challenge-track are those setup screens, not VS_CHALLENGER/VS_CHALLENGE_TRACK."
       - input: "Y or X"
         to: MAIN_MENU
         confidence: medium
@@ -184,15 +189,18 @@ states:
   - id: VS_CHALLENGER
     family: race_setup
     kind: menu
-    confidence: low
-    evidence: []
+    confidence: high
+    evidence: [reproduced_runtime]
     recovered_menu_labels:
       currentMenu_7E009F: "0x3F"
-    description: "Recovered 2014 bot label for the VS challenger-selection phase."
+    runtime_signatures:
+      currentMenu_7E009F: "0x3F (PICK CHALLENGER rider grid)"
+      local_fixture: "tests/input/vs-challenger-route.input (snesref with the dual-controller patch)"
+    description: "PICK CHALLENGER: reached only after a decided VS race, via the VS race result (0xF9) and the VS CHAMPIONS table (0xD3). The losing player's pad controls it; P1 (winner) input is inert. A drawn race skips it and shows a REMATCH banner (0xB7) instead. Reproduced on snesref only (tools/probe_vs_challenger.py)."
     transitions:
-      - input: "A or B by active participant"
+      - input: "loser's pad: move to a rider, A"
         to: VS_CHALLENGE_TRACK
-        confidence: inferred
+        confidence: high
       - input: "Y or X"
         to: VS_SELECT
         confidence: inferred
@@ -200,15 +208,30 @@ states:
   - id: VS_CHALLENGE_TRACK
     family: race_setup
     kind: menu
-    confidence: low
-    evidence: []
+    confidence: high
+    evidence: [reproduced_runtime]
     recovered_menu_labels:
       currentMenu_7E009F: "0x5A"
-    description: "Recovered 2014 bot label for the VS challenge-track phase."
+    runtime_signatures:
+      currentMenu_7E009F: "0x5A (NEXT TRACK / SAME TRACK / SELECT TRACK / SELECT TOUR / QUIT)"
+      local_fixture: "tests/input/vs-challenger-route.input (snesref with the dual-controller patch)"
+    description: "VS track-choice menu after the challenger pick: NEXT TRACK, SAME TRACK, SELECT TRACK, SELECT TOUR, QUIT. NEXT TRACK (default) goes to NOW PLAYING on the next track of the tour. 0x5A is also seen as transient DP scratch on Track Records, so require the visible menu. Reproduced on snesref only."
     transitions:
-      - input: "selection/confirm"
+      - input: "NEXT TRACK confirm (challenger's pad)"
         to: PRE_RACE_CARD
-        confidence: inferred
+        confidence: high
+      - input: "SAME TRACK"
+        to: PRE_RACE_CARD
+        confidence: high
+      - input: "SELECT TRACK"
+        to: TRACK_SELECT
+        confidence: high
+      - input: "SELECT TOUR"
+        to: TOUR_SELECT
+        confidence: high
+      - input: "QUIT"
+        to: MAIN_MENU
+        confidence: high
       - input: "Y or X"
         to: VS_CHALLENGER
         confidence: inferred
@@ -220,7 +243,7 @@ states:
     evidence: [observed_screenshot, primary_manual, reproduced_runtime]
     runtime_signatures:
       onePlayerTours1_currentMenu_7E009F: "0x6D"
-      alternate_or_two_player_tours_7E009F: "0x10 (recovered bot label; context-dependent and not yet locally promoted)"
+      alternate_or_two_player_tours_7E009F: "0x10 reproduced as the two-column nine-tour page (all main tours plus HUNTER) once the rider tier is 3; tests/input/tier-opponent-hunter-probe.script. Two-player use of 0x10 remains historical."
       local_fixture: "tests/input/reach-first-race.script"
     visible_known_tours: ["CRAWLER", "SHUFFLER", "WALKER", "HOPPER", "JUMPER", "BOUNDER", "RUNNER", "SPRINTER", "HUNTER"]
     notes:
@@ -333,11 +356,17 @@ states:
     family: results
     kind: screen
     confidence: high
-    evidence: [primary_manual, observed_screenshot]
+    evidence: [primary_manual, observed_screenshot, reproduced_runtime]
     recovered_menu_labels:
       circuitResults_currentMenu_7E009F: "0xBC"
+    runtime_signatures:
+      currentMenu_7E009F: "0xBC (LAPS ON ZOOM ZOO lap-time graph, TOTAL / BEST LAP)"
+      local_fixture: "tools/probe_result_screens.py (Dessyreqt movie)"
     transitions:
-      - input: "advance/next"
+      - input: "advance after the 1P circuit result (movie input)"
+        to: TRACK_SELECT
+        confidence: high
+      - input: "advance/next in other contexts"
         to: POST_RESULT_DECISION
         confidence: medium
 
@@ -345,12 +374,18 @@ states:
     family: results
     kind: screen
     confidence: high
-    evidence: [primary_manual, observed_screenshot]
+    evidence: [primary_manual, observed_screenshot, reproduced_runtime]
     recovered_menu_labels:
       stuntResults_currentMenu_7E009F: "0x18"
       summing_states: ["0x2F", "0xAD", "0xAF", "0xB3", "0xD3", "0xD8", "0xED", "0xF3"]
+    runtime_signatures:
+      currentMenu_7E009F: "0x2F while tallying, then 0x18 (BOWL table with player score and QUALIFY)"
+      local_fixture: "tools/probe_result_screens.py (Dessyreqt movie)"
     transitions:
-      - input: "advance/next"
+      - input: "advance after the 1P stunt result (movie input)"
+        to: TRACK_SELECT
+        confidence: high
+      - input: "advance/next in other contexts"
         to: POST_RESULT_DECISION
         confidence: medium
 
@@ -359,7 +394,10 @@ states:
     kind: menu_or_prompt
     confidence: medium
     evidence: [primary_manual]
-    description: "Conceptual post-result choice/prompt retained for result families or progression contexts that still need reproduction. It is not present on the verified ordinary 1P Dragster path, which goes directly from RESULT_RACE to TRACK_SELECT."
+    description: "Post-result choice. Absent on every verified 1P path (race, circuit and stunt results go straight to TRACK_SELECT). In ordinary 2P it is the five-option track choice 0x5A (NEXT TRACK / SAME TRACK / SELECT TRACK / SELECT TOUR / QUIT), reached directly from the multiplayer result 0xF9 (tests/input/two-player-p1-win.input). VS reaches the same menu only after PICK CHALLENGER (VS_CHALLENGE_TRACK)."
+    runtime_signatures:
+      currentMenu_7E009F: "0x5A (two-player track choice)"
+      local_fixture: "tests/input/two-player-p1-win.input (snesref with the dual-controller patch)"
     transitions:
       - selection: "next track"
         input: "confirm"
@@ -478,7 +516,7 @@ states:
       local_fixture: "tests/input/ui-records-submenus.script"
     description: "Track Records screen: all-time track bests with Gold/Silver/Bronze records and player-color star markers."
     notes:
-      - "The harvested X discriminator did not return to Records: the next frame remains visibly in Track Records while currentMenu changes to 0x5A. Treat this as internal score-screen behavior until classified."
+      - "Classified 2026-10-03: the table draws progressively and the first button press during the build is swallowed. A second A/B/X/Y/Start returns to RECORDS (BG2 vofs 261 -> 0) while currentMenu stays a stale 0x5A (tests/input/ui-record-track-exit.script). Select and the D-pad do not exit."
 
   - id: RECORD_HIGH_SCORES
     family: records
@@ -561,10 +599,10 @@ states:
 
   - id: FORBIDDEN_NAME_REJECTION
     family: options
-    kind: screen
-    confidence: medium
-    evidence: [observed_screenshot]
-    description: "Player-facing rejection/Easter-egg screen for forbidden names. Public references confirm SONIC/SEGA and other blacklist terms; at least one historical writeup says the filter applies to both individual and team names."
+    kind: inline_message
+    confidence: high
+    evidence: [observed_screenshot, reproduced_runtime]
+    description: "Player-facing rejection/Easter-egg screen for forbidden names. Public references confirm SONIC/SEGA and other blacklist terms; at least one historical writeup says the filter applies to both individual and team names. Detection rule recovered statically: 71 FF-terminated lowercase words at 83:85C5 (pointer table 83:8537), matched as a substring anywhere in the stored name by 83:84DD / 83:8779 (analysis/generated/forbidden-name-table.json). Runtime (tools/probe_name_entry.py): OK on SONIC, XSEGAX or BASSIST shows an inline NOT COOL ENOUGH message under the name and keeps the editor open; it is not a separate screen. ZED is accepted."
     context_note: "Return target may depend on the text-entry context that triggered rejection."
     transitions:
       - input: "advance/back after player-name rejection"
@@ -583,6 +621,7 @@ states:
       - "Manual documents SELECT + Y + A as guarded destructive/redefinition action."
       - "League supports up to eight unicycles; up to six leagues."
       - "A/B adds the highlighted Unicycle; X/Y removes it; Start confirms."
+      - "Reproduced 2026-10-03 (tests/input/ui-league-probe.script): OPTIONS -> DEFINE LEAGUE shows the six-slot list 0x56; A on a slot shows WARNING 0x9A (THIS OPTION WILL REMOVE <league> / SELECT+Y+A TO REMOVE); the chord opens the PICK YOUR LEAGUE rider grid with a '2 MIN' banner. A toggles the highlighted rider (its unicycle icon animates; the cursor arrow takes the rider colour) and B/X show an X marker, but Start/B/X never reached NAME_LEAGUE in bounded sweeps (R-2026-10-03-UI-14); the confirm gesture is unknown."
     transitions:
       - input: "A or B"
         to: DEFINE_LEAGUE
@@ -621,7 +660,7 @@ states:
     evidence: []
     recovered_menu_labels:
       currentMenu_7E009F: "0x5B"
-    description: "Ending sequence/state. Recovered 2014 bot labels 0x5B as ending and advances it with A; public cheat references expose a shortcut from the title/splash."
+    description: "Ending sequence/state. Recovered 2014 bot labels 0x5B as ending and advances it with A; public cheat references expose a shortcut from the title/splash. 2026-10-03 negative result: on snesref the Down+L+R(+B) chord did not reach 0x5B in five timing variants (instant at 0x84 appearance, held 30/60 frames after the boot title fades in, double-tap, and at the attract title). A static search finds no immediate store of 0x5B to DP $9F (only LDA #$84 / STA $9F at 80:A18E), so menu values may be derived rather than literal. Retry only with a natural completion route or a traced writer of $9F."
     transitions:
       - input: "A / sequence completion"
         to: MAIN_MENU
@@ -631,8 +670,8 @@ states:
     family: destructive
     kind: confirmation
     confidence: high
-    evidence: [primary_manual]
-    description: "Confirmation reached from MAIN_MENU via Left+A+L+R; erases battery-backed records if accepted."
+    evidence: [primary_manual, reproduced_runtime]
+    description: "Reached from MAIN_MENU via Left+A+L+R: two-option menu WIPE RAM / MAIN MENU (0x58). WIPE RAM opens a full-screen WARNING (THIS OPTION WILL RESET YOUR GAME PAK'S MEMORY TO ITS FACTORY DEFAULT / SELECT+Y+A TO RESET). The chord resets SRAM to the fresh-format image; X cancels to MAIN_MENU. Reproduced 2026-10-03 (ui-erase-confirm, ui-erase-reset)."
     transitions:
       - input: "confirm"
         to: MAIN_MENU
@@ -663,6 +702,7 @@ open_questions:
     question: "Attract/demo behavior and idle timeout from MAIN_MENU; verify public ending-shortcut chord and ENDING=0x5B without treating cheat-site text as canonical."
   - id: UIQ-010
     question: "Hunter unlock transition and any Anti-Uni-specific frontend/results states."
+    note: "2026-10-03: with rider tier 3 seeded, TOUR_SELECT is page 0x10 listing HUNTER at 009B=08; Hunter tracks are GRILLER, TWO LOOPS, NEON, HAMSTER, TO AND FRO and the opponent is ANTI-UNI (rider index 20). The in-play unlock transition itself is still unobserved."
 
 # 2026-09-29 local two-pad promotion:
 # VS_SELECT P2 causality is now directly reproduced. After the verified P1->P2

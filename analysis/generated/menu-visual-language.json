@@ -1,0 +1,1289 @@
+{
+ "schema_version": 1,
+ "source": {
+  "fixture": "tests/input/menu-visual-language.script",
+  "harness": "snesref + pinned snes9x-libretro, canonical USA ROM, clean boot",
+  "states": [
+   "MAIN_MENU (0xD7)",
+   "OPTIONS_MENU (0x57)",
+   "PLAYER_SELECT_P1 (0x3C)",
+   "TOUR_SELECT (0x6D)",
+   "TRACK_SELECT (0xF6)"
+  ]
+ },
+ "typography": {
+  "layer": "BG2 (mode 3, 4bpp), tile priority bit set above the BG1 logo/background art",
+  "glyph_cell_px": [
+   16,
+   16
+  ],
+  "glyph_tiles_rule": "slot s uses 8x8 tiles 2s, 2s+1 (top) and 2s+0x50, 2s+0x51 (bottom)",
+  "slots": [
+   "0",
+   "1",
+   "2",
+   "3",
+   "4",
+   "5",
+   "6",
+   "7",
+   "8",
+   "9",
+   "A",
+   "B",
+   "C",
+   "D",
+   "E",
+   "F",
+   "G",
+   "H",
+   "I",
+   "J",
+   "K",
+   "L",
+   "M",
+   "N",
+   "P",
+   "Q",
+   "R",
+   "S",
+   "T",
+   "U",
+   "V",
+   "W",
+   "X",
+   "Y",
+   "Z",
+   "OK",
+   "ARROW_LEFT",
+   "ARROW_RIGHT",
+   "ICON_CIRCUIT_LOOP",
+   "ICON_STUNT_HOOK"
+  ],
+  "encoding_rule": "digit d -> slot d; letter -> 10 + (ch - 'A'), minus one after N; no O glyph, O renders with the 0 glyph (rows containing letters read slot 0 as O)",
+  "character_set_limits": "uppercase only; no punctuation or lowercase in this sheet",
+  "bg_palette_index": 7,
+  "palette_bgr555_as_rgb": [
+   [
+    128,
+    128,
+    128
+   ],
+   [
+    200,
+    0,
+    0
+   ],
+   [
+    152,
+    0,
+    0
+   ],
+   [
+    248,
+    248,
+    0
+   ],
+   [
+    200,
+    200,
+    0
+   ],
+   [
+    152,
+    152,
+    0
+   ],
+   [
+    104,
+    104,
+    0
+   ],
+   [
+    48,
+    48,
+    0
+   ],
+   [
+    0,
+    0,
+    0
+   ],
+   [
+    24,
+    24,
+    24
+   ],
+   [
+    48,
+    48,
+    48
+   ],
+   [
+    80,
+    80,
+    80
+   ],
+   [
+    104,
+    104,
+    104
+   ],
+   [
+    64,
+    64,
+    248
+   ],
+   [
+    152,
+    128,
+    128
+   ],
+   [
+    0,
+    128,
+    0
+   ]
+  ],
+  "pixel_value_usage": {
+   "3": 2023,
+   "4": 661,
+   "5": 582,
+   "6": 363,
+   "7": 257,
+   "8": 538,
+   "9": 276,
+   "10": 589,
+   "11": 518,
+   "12": 369
+  },
+  "pixel_roles": {
+   "3-7": "yellow fill, light to dark (vertical shading)",
+   "8": "black outline",
+   "9-12": "grey edge/shadow ramp",
+   "1-2": "present in the palette but unused by the 40 font glyphs"
+  }
+ },
+ "small_typography": {
+  "glyph_cell_px": [
+   8,
+   16
+  ],
+  "glyph_tiles_rule": "character tile t on top, t+0x3C below; '0'..'9' are 0xA9..0xB2, A-Z (no O) from 0xB3, space 0xCE",
+  "punctuation_tiles": {
+   "0xA2": "%",
+   "0xA3": "'",
+   "0xA4": "(",
+   "0xA5": "+",
+   "0xA7": "-",
+   "0xA8": ".",
+   "0xCC": ":"
+  },
+  "punctuation_note": "')' reuses the '(' tile with the tilemap H-flip bit; 0xA6 is unidentified",
+  "bg_palette_index": 7,
+  "pixel_value_usage": {
+   "8": 700,
+   "9": 354,
+   "10": 364,
+   "11": 336,
+   "12": 289
+  },
+  "pixel_roles": {
+   "8": "black outline",
+   "9-12": "grey fill ramp"
+  },
+  "letter_pitch_px": 8
+ },
+ "hierarchy": "yellow 16x16 font for titles, mode choices and tier labels; grey 8x16 font for names and per-item data; track-type icons are big-font glyphs placed before small-font track names",
+ "setup_strip": {
+  "mechanism": "MAIN_MENU, OPTIONS/rider, tour and track screens are successive 256-px BG2 strip positions; each forward step slides one screen",
+  "screens": {
+   "rider": {
+    "current_menu": "0x3C",
+    "bg2_strip_offset_px": 256,
+    "big_font_rows": [
+     {
+      "text": "PICK YOUR UNI",
+      "y": 8,
+      "x_left": 32,
+      "center_x": 128,
+      "word_gaps_px": [
+       8,
+       8
+      ]
+     }
+    ],
+    "small_font_runs": [
+     {
+      "text": "MIKE",
+      "y": 32,
+      "x_left": 40
+     },
+     {
+      "text": "ANDREW",
+      "y": 32,
+      "x_left": 152
+     },
+     {
+      "text": "MARTIN",
+      "y": 56,
+      "x_left": 40
+     },
+     {
+      "text": "MELISSA",
+      "y": 56,
+      "x_left": 152
+     },
+     {
+      "text": "AMY",
+      "y": 80,
+      "x_left": 40
+     },
+     {
+      "text": "MALCOLM",
+      "y": 80,
+      "x_left": 152
+     },
+     {
+      "text": "MICHELLE",
+      "y": 104,
+      "x_left": 40
+     },
+     {
+      "text": "COLIN",
+      "y": 104,
+      "x_left": 152
+     },
+     {
+      "text": "DAVE",
+      "y": 128,
+      "x_left": 40
+     },
+     {
+      "text": "TONY",
+      "y": 128,
+      "x_left": 152
+     },
+     {
+      "text": "CAROL",
+      "y": 152,
+      "x_left": 40
+     },
+     {
+      "text": "CRAIG",
+      "y": 152,
+      "x_left": 152
+     },
+     {
+      "text": "KEN",
+      "y": 176,
+      "x_left": 40
+     },
+     {
+      "text": "ROBBIE",
+      "y": 176,
+      "x_left": 152
+     },
+     {
+      "text": "ALICE",
+      "y": 200,
+      "x_left": 40
+     },
+     {
+      "text": "STEVE",
+      "y": 200,
+      "x_left": 152
+     }
+    ],
+    "small_font_left_edges_px": [
+     40,
+     152
+    ],
+    "arrow_palette_highlight_rgb": [
+     136,
+     200,
+     240
+    ]
+   },
+   "tour": {
+    "current_menu": "0x6D",
+    "bg2_strip_offset_px": 512,
+    "big_font_rows": [
+     {
+      "text": "PICK TOUR",
+      "y": 8,
+      "x_left": 56,
+      "center_x": 128,
+      "word_gaps_px": [
+       16
+      ]
+     }
+    ],
+    "small_font_runs": [
+     {
+      "text": "CRAWLER",
+      "y": 32,
+      "x_left": 56
+     },
+     {
+      "text": "SHUFFLER",
+      "y": 72,
+      "x_left": 56
+     },
+     {
+      "text": "WALKER",
+      "y": 112,
+      "x_left": 56
+     },
+     {
+      "text": "HOPPER",
+      "y": 152,
+      "x_left": 56
+     }
+    ],
+    "small_font_left_edges_px": [
+     56
+    ],
+    "arrow_palette_highlight_rgb": [
+     240,
+     160,
+     136
+    ]
+   },
+   "track": {
+    "current_menu": "0xF6",
+    "bg2_strip_offset_px": 768,
+    "big_font_rows": [
+     {
+      "text": "PICK TRACK",
+      "y": 16,
+      "x_left": 48,
+      "center_x": 128,
+      "word_gaps_px": [
+       16
+      ]
+     },
+     {
+      "text": "ARROW_RIGHT",
+      "y": 64,
+      "x_left": 56,
+      "center_x": 64,
+      "word_gaps_px": []
+     },
+     {
+      "text": "ICON_CIRCUIT_LOOP",
+      "y": 88,
+      "x_left": 56,
+      "center_x": 64,
+      "word_gaps_px": []
+     },
+     {
+      "text": "ICON_STUNT_HOOK",
+      "y": 112,
+      "x_left": 56,
+      "center_x": 64,
+      "word_gaps_px": []
+     },
+     {
+      "text": "ARROW_RIGHT",
+      "y": 136,
+      "x_left": 56,
+      "center_x": 64,
+      "word_gaps_px": []
+     },
+     {
+      "text": "ICON_CIRCUIT_LOOP",
+      "y": 160,
+      "x_left": 56,
+      "center_x": 64,
+      "word_gaps_px": []
+     },
+     {
+      "text": "BRONZE",
+      "y": 184,
+      "x_left": 80,
+      "center_x": 128,
+      "word_gaps_px": []
+     }
+    ],
+    "small_font_runs": [
+     {
+      "text": "CRAWLER",
+      "y": 32,
+      "x_left": 104
+     },
+     {
+      "text": "DRAGSTER",
+      "y": 64,
+      "x_left": 80
+     },
+     {
+      "text": "ZOOM ZOO",
+      "y": 88,
+      "x_left": 80
+     },
+     {
+      "text": "BOWL",
+      "y": 112,
+      "x_left": 80
+     },
+     {
+      "text": "SWITCHER",
+      "y": 136,
+      "x_left": 80
+     },
+     {
+      "text": "MONSTER",
+      "y": 160,
+      "x_left": 80
+     }
+    ],
+    "small_font_left_edges_px": [
+     80,
+     104
+    ],
+    "arrow_palette_highlight_rgb": [
+     240,
+     160,
+     136
+    ]
+   }
+  }
+ },
+ "layout": {
+  "row_pitch_px": [
+   24
+  ],
+  "letter_pitch_px": 16,
+  "word_gap_px": [
+   16
+  ],
+  "alignment": "each row centered on x=128",
+  "row_centers_x": [
+   128
+  ],
+  "first_row_y": 80,
+  "options_rows": [
+   {
+    "tile_row": 10,
+    "y": 80,
+    "x_left": 72,
+    "x_right": 184,
+    "text": "RECORDS",
+    "word_gaps_px": [],
+    "center_x": 128
+   },
+   {
+    "tile_row": 13,
+    "y": 104,
+    "x_left": 24,
+    "x_right": 232,
+    "text": "DEFINE PLAYER",
+    "word_gaps_px": [
+     16
+    ],
+    "center_x": 128
+   },
+   {
+    "tile_row": 16,
+    "y": 128,
+    "x_left": 24,
+    "x_right": 232,
+    "text": "RENAME PLAYER",
+    "word_gaps_px": [
+     16
+    ],
+    "center_x": 128
+   },
+   {
+    "tile_row": 19,
+    "y": 152,
+    "x_left": 24,
+    "x_right": 232,
+    "text": "DEFINE LEAGUE",
+    "word_gaps_px": [
+     16
+    ],
+    "center_x": 128
+   },
+   {
+    "tile_row": 22,
+    "y": 176,
+    "x_left": 56,
+    "x_right": 200,
+    "text": "MAIN MENU",
+    "word_gaps_px": [
+     16
+    ],
+    "center_x": 128
+   }
+  ]
+ },
+ "cursor": {
+  "sprites": "two 32x32 OBJs: arrow on OBJ palette 7, drop shadow on OBJ palette 5",
+  "shadow_offset_px": [
+   7,
+   7
+  ],
+  "arrow_palette_rgb": [
+   [
+    96,
+    96,
+    96
+   ],
+   [
+    40,
+    48,
+    88
+   ],
+   [
+    8,
+    32,
+    120
+   ],
+   [
+    48,
+    56,
+    120
+   ],
+   [
+    80,
+    88,
+    104
+   ],
+   [
+    80,
+    96,
+    160
+   ],
+   [
+    24,
+    48,
+    152
+   ],
+   [
+    32,
+    56,
+    176
+   ],
+   [
+    8,
+    16,
+    72
+   ],
+   [
+    40,
+    72,
+    200
+   ],
+   [
+    0,
+    0,
+    0
+   ],
+   [
+    56,
+    104,
+    248
+   ],
+   [
+    0,
+    0,
+    0
+   ],
+   [
+    104,
+    160,
+    248
+   ],
+   [
+    0,
+    0,
+    0
+   ],
+   [
+    160,
+    208,
+    248
+   ]
+  ],
+  "shadow_palette_rgb": [
+   72,
+   32,
+   48
+  ],
+  "spin_cycle_tiles": [
+   8,
+   4,
+   0,
+   204,
+   200,
+   196,
+   192,
+   140,
+   136,
+   132,
+   128,
+   76,
+   72,
+   68,
+   64,
+   12
+  ],
+  "spin_frames_per_tile": [
+   2
+  ],
+  "spin_period_frames": 32,
+  "rest_position_vs_row": {
+   "first_row": {
+    "arrow": [
+     79,
+     70
+    ],
+    "text_left": 112,
+    "row_y": 80
+   },
+   "second_row_after_move": {
+    "arrow": [
+     79,
+     93
+    ],
+    "text_left": 112,
+    "row_y": 104
+   }
+  },
+  "move_y_per_frame": [
+   6,
+   4,
+   3,
+   3,
+   2,
+   1,
+   1,
+   1,
+   1,
+   0,
+   0,
+   1
+  ],
+  "move_settle_frames": 12,
+  "move_response_same_frame": true,
+  "easing": "per-frame step of roughly one quarter of the remaining distance in both x and y; spin continues during motion"
+ },
+ "transition_main_to_options": {
+  "mechanism": "BG2 horizontal scroll between adjacent 256-px tilemap screens; BG1 logo/background stays fixed",
+  "distance_px": 256,
+  "enter_hofs": [
+   1,
+   3,
+   6,
+   10,
+   15,
+   21,
+   28,
+   36,
+   44,
+   52,
+   60,
+   68,
+   76,
+   84,
+   92,
+   100,
+   108,
+   116,
+   124,
+   132,
+   140,
+   148,
+   156,
+   164,
+   172,
+   180,
+   188,
+   196,
+   204,
+   212,
+   220,
+   228,
+   235,
+   241,
+   246,
+   250,
+   253,
+   255,
+   256
+  ],
+  "enter_velocity_px_per_frame": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   8,
+   7,
+   6,
+   5,
+   4,
+   3,
+   2,
+   1
+  ],
+  "enter_frames": 39,
+  "back_hofs": [
+   255,
+   253,
+   250,
+   246,
+   241,
+   235,
+   228,
+   220,
+   212,
+   204,
+   196,
+   188,
+   180,
+   172,
+   164,
+   156,
+   148,
+   140,
+   132,
+   124,
+   116,
+   108,
+   100,
+   92,
+   84,
+   76,
+   68,
+   60,
+   52,
+   44,
+   36,
+   28,
+   21,
+   15,
+   10,
+   6,
+   3,
+   1,
+   0
+  ],
+  "back_mirrors_enter": true,
+  "profile": "ease-in-out: velocity ramps 1..7 px/frame, cruises at 8 px/frame, ramps 7..1",
+  "bg1_static": true
+ },
+ "background": "BG1 8bpp: UNIRACERS logo over a grey checkerboard with leaf motif; static across the menu slide",
+ "not_covered": [
+  "attract/fade transitions",
+  "tour/rider BG art and animal icon animation",
+  "menu SFX identity (timing only)"
+ ],
+ "checks": {
+  "main_menu_labels_decode": true,
+  "options_labels_decode": true,
+  "encoding_roundtrip": true,
+  "main_menu_state_d7": true,
+  "options_state_57": true,
+  "back_resets_selection_to_first_row": true,
+  "menu_switch_precedes_slide": true,
+  "rider_title_decodes": true,
+  "rider_small_labels_decode": true,
+  "tour_title_decodes": true,
+  "tour_small_labels_decode": true,
+  "track_title_decodes": true,
+  "track_small_labels_decode": true,
+  "catalog_race-results_labels": true,
+  "catalog_ui-record-track-entry_labels": true,
+  "catalog_ui-record-high-entry_labels": true,
+  "catalog_ui-record-player-entry_labels": true,
+  "catalog_ui-record-group-entry_labels": true
+ },
+ "all_checks_pass": true,
+ "screen_catalog": {
+  "sources": [
+   "tests/input/ui-race-result-route.script",
+   "tests/input/ui-records-submenus.script"
+  ],
+  "screens": {
+   "race-results": {
+    "current_menu": "0x99",
+    "bg2_strip_offset_px": 0,
+    "bg2_vertical_offset_px": 0,
+    "big_font_rows": [
+     {
+      "text": "DRAGSTER",
+      "y": 16,
+      "center_x": 128
+     },
+     {
+      "text": "COMPLETE",
+      "y": 40,
+      "center_x": 128
+     }
+    ],
+    "small_font_runs": [
+     {
+      "text": "PLAYER     TIME",
+      "y": 64,
+      "x_left": 56
+     },
+     {
+      "text": "MIKE",
+      "y": 88,
+      "x_left": 56
+     },
+     {
+      "text": "0:28.56",
+      "y": 88,
+      "x_left": 144
+     },
+     {
+      "text": "SOMEONE",
+      "y": 112,
+      "x_left": 56
+     },
+     {
+      "text": "NO TIME",
+      "y": 112,
+      "x_left": 144
+     },
+     {
+      "text": "SOMEONE",
+      "y": 136,
+      "x_left": 56
+     },
+     {
+      "text": "NO TIME",
+      "y": 136,
+      "x_left": 144
+     },
+     {
+      "text": "SOMEONE",
+      "y": 160,
+      "x_left": 56
+     },
+     {
+      "text": "NO TIME",
+      "y": 160,
+      "x_left": 144
+     }
+    ],
+    "small_font_row_pitch_px": [
+     24
+    ],
+    "obj_count": 15
+   },
+   "ui-record-track-entry": {
+    "current_menu": "0xCC",
+    "bg2_strip_offset_px": 0,
+    "bg2_vertical_offset_px": 261,
+    "big_font_rows": [
+     {
+      "text": "TRACK RECORDS",
+      "y": 8,
+      "center_x": 128
+     },
+     {
+      "text": "ARROW_RIGHT ICON_CIRCUIT_LOOP ICON_STUNT_HOOK ARROW_RIGHT ICON_CIRCUIT_LOOP",
+      "y": 24,
+      "center_x": 184
+     }
+    ],
+    "small_font_runs": [
+     {
+      "text": "TOUR   MEDAL",
+      "y": 24,
+      "x_left": 16
+     },
+     {
+      "text": "0:00.00 BY",
+      "y": 176,
+      "x_left": 56
+     },
+     {
+      "text": "0:00.00 BY",
+      "y": 192,
+      "x_left": 56
+     },
+     {
+      "text": "0:00.00 BY",
+      "y": 208,
+      "x_left": 56
+     }
+    ],
+    "small_font_row_pitch_px": [
+     16,
+     152
+    ],
+    "obj_count": 2
+   },
+   "ui-record-high-entry": {
+    "current_menu": "0xBF",
+    "bg2_strip_offset_px": 768,
+    "bg2_vertical_offset_px": 0,
+    "big_font_rows": [
+     {
+      "text": "HIGH SCORES",
+      "y": 8,
+      "center_x": 128
+     }
+    ],
+    "small_font_runs": [
+     {
+      "text": "CATEGORY:  NUM   BY",
+      "y": 32,
+      "x_left": 48
+     },
+     {
+      "text": "MOST WINS:    0   SOMEONE",
+      "y": 56,
+      "x_left": 40
+     },
+     {
+      "text": "MOST LOSSES:    0   SOMEONE",
+      "y": 72,
+      "x_left": 24
+     },
+     {
+      "text": "MOST RACES:    0   SOMEONE",
+      "y": 88,
+      "x_left": 32
+     },
+     {
+      "text": "BEST WIN AVG:    0%  SOMEONE",
+      "y": 104,
+      "x_left": 16
+     },
+     {
+      "text": "WORST WIN AVG:    0%  SOMEONE",
+      "y": 120,
+      "x_left": 8
+     },
+     {
+      "text": "TOTAL SCORE:    0   SOMEONE",
+      "y": 136,
+      "x_left": 24
+     },
+     {
+      "text": "BEST AVG SC:    0   SOMEONE",
+      "y": 152,
+      "x_left": 24
+     },
+     {
+      "text": "WORST AVG SC:    0   SOMEONE",
+      "y": 168,
+      "x_left": 16
+     }
+    ],
+    "small_font_row_pitch_px": [
+     16,
+     24
+    ],
+    "obj_count": 10
+   },
+   "ui-record-player-entry": {
+    "current_menu": "0xD0",
+    "bg2_strip_offset_px": 768,
+    "bg2_vertical_offset_px": 0,
+    "big_font_rows": [
+     {
+      "text": "PLAYER SCORES",
+      "y": 8,
+      "center_x": 128
+     }
+    ],
+    "small_font_runs": [
+     {
+      "text": "PLAYER:  MIKE",
+      "y": 32,
+      "x_left": 8
+     },
+     {
+      "text": "PLAYED:",
+      "y": 48,
+      "x_left": 8
+     },
+     {
+      "text": ":    0",
+      "y": 48,
+      "x_left": 192
+     },
+     {
+      "text": "WON:",
+      "y": 64,
+      "x_left": 32
+     },
+     {
+      "text": ":    0%",
+      "y": 64,
+      "x_left": 192
+     },
+     {
+      "text": "LOST:",
+      "y": 80,
+      "x_left": 24
+     },
+     {
+      "text": ":    0%",
+      "y": 80,
+      "x_left": 192
+     },
+     {
+      "text": "FAILED:",
+      "y": 96,
+      "x_left": 8
+     },
+     {
+      "text": ":    0%",
+      "y": 96,
+      "x_left": 192
+     },
+     {
+      "text": "SCORE:",
+      "y": 112,
+      "x_left": 16
+     },
+     {
+      "text": ":    0",
+      "y": 112,
+      "x_left": 192
+     }
+    ],
+    "small_font_row_pitch_px": [
+     16
+    ],
+    "obj_count": 8
+   },
+   "ui-record-group-entry": {
+    "current_menu": "0xF3",
+    "bg2_strip_offset_px": 768,
+    "bg2_vertical_offset_px": 0,
+    "big_font_rows": [
+     {
+      "text": "GROUP SCORES",
+      "y": 8,
+      "center_x": 128
+     }
+    ],
+    "small_font_runs": [
+     {
+      "text": "DEFINE ME",
+      "y": 32,
+      "x_left": 96
+     },
+     {
+      "text": "PLAYER     0",
+      "y": 56,
+      "x_left": 16
+     },
+     {
+      "text": "0",
+      "y": 56,
+      "x_left": 224
+     },
+     {
+      "text": "-",
+      "y": 72,
+      "x_left": 16
+     },
+     {
+      "text": ":",
+      "y": 72,
+      "x_left": 96
+     },
+     {
+      "text": "-",
+      "y": 88,
+      "x_left": 16
+     },
+     {
+      "text": ":",
+      "y": 88,
+      "x_left": 96
+     },
+     {
+      "text": "-",
+      "y": 104,
+      "x_left": 16
+     },
+     {
+      "text": ":",
+      "y": 104,
+      "x_left": 96
+     },
+     {
+      "text": "-",
+      "y": 120,
+      "x_left": 16
+     },
+     {
+      "text": ":",
+      "y": 120,
+      "x_left": 96
+     },
+     {
+      "text": "-",
+      "y": 136,
+      "x_left": 16
+     },
+     {
+      "text": ":",
+      "y": 136,
+      "x_left": 96
+     },
+     {
+      "text": "-",
+      "y": 152,
+      "x_left": 16
+     },
+     {
+      "text": ":",
+      "y": 152,
+      "x_left": 96
+     },
+     {
+      "text": "-",
+      "y": 168,
+      "x_left": 16
+     },
+     {
+      "text": ":",
+      "y": 168,
+      "x_left": 96
+     },
+     {
+      "text": "-",
+      "y": 184,
+      "x_left": 16
+     },
+     {
+      "text": ":",
+      "y": 184,
+      "x_left": 96
+     }
+    ],
+    "small_font_row_pitch_px": [
+     16,
+     24
+    ],
+    "obj_count": 10
+   }
+  },
+  "observations": [
+   "results and records reuse the same grammar: yellow 16x16 titles, grey 8x16 headings and data, rider-coloured mini unicycle and medal OBJ icons",
+   "PLAYER SCORES and GROUP SCORES draw green/red ratio bars; the Records menu item GROUP TABLES opens a screen titled GROUP SCORES"
+  ]
+ },
+ "sound_timing": {
+  "method": "per-frame RMS of (menu run WAV - no-input control WAV); threshold 200",
+  "inputs": [
+   {
+    "press_frame": 564,
+    "button": "down",
+    "baseline_quiet": true,
+    "onset_offset_frames": 0,
+    "duration_frames": 10
+   },
+   {
+    "press_frame": 606,
+    "button": "down",
+    "baseline_quiet": true,
+    "onset_offset_frames": 1,
+    "duration_frames": 15
+   },
+   {
+    "press_frame": 628,
+    "button": "down",
+    "baseline_quiet": true,
+    "onset_offset_frames": 0,
+    "duration_frames": 12
+   },
+   {
+    "press_frame": 650,
+    "button": "down",
+    "baseline_quiet": false,
+    "onset_offset_frames": 0,
+    "duration_frames": 13
+   },
+   {
+    "press_frame": 672,
+    "button": "a",
+    "baseline_quiet": true,
+    "onset_offset_frames": 3,
+    "duration_frames": 38
+   },
+   {
+    "press_frame": 723,
+    "button": "x",
+    "baseline_quiet": true,
+    "onset_offset_frames": 3,
+    "duration_frames": 81
+   },
+   {
+    "press_frame": 834,
+    "button": "a",
+    "baseline_quiet": false,
+    "onset_offset_frames": 0,
+    "duration_frames": 43
+   },
+   {
+    "press_frame": 897,
+    "button": "a",
+    "baseline_quiet": false,
+    "onset_offset_frames": 0,
+    "duration_frames": 50
+   },
+   {
+    "press_frame": 967,
+    "button": "a",
+    "baseline_quiet": true,
+    "onset_offset_frames": 2,
+    "duration_frames": null
+   },
+   {
+    "press_frame": 1030,
+    "button": "a",
+    "baseline_quiet": false,
+    "onset_offset_frames": 0,
+    "duration_frames": null
+   },
+   {
+    "press_frame": 1095,
+    "button": "a",
+    "baseline_quiet": false,
+    "onset_offset_frames": 0,
+    "duration_frames": 35
+   }
+  ],
+  "unresolved": "SFX identity: this snesref core exposes neither APU RAM nor DSP registers, and per-frame WRAM sampling misses the transient request; a burst that never falls silent means the music itself diverged (e.g. a stolen voice)"
+ }
+}

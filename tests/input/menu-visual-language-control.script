@@ -1,0 +1,7 @@
+# Audio control for tests/input/menu-visual-language.script: same boot and
+# MAIN_MENU anchor, no input. The menu run's WAV minus this WAV isolates
+# input-triggered sound, because the menu music is deterministic.
+until 009F == D7 3600
+wait 60
+wait 900
+quit

@@ -1,0 +1,1386 @@
+{
+ "schema_version": 1,
+ "purpose": "Exact presets for the 16 classic racers: identity index, default name, select-grid slot, medal column and in-race palette.",
+ "sources": {
+  "rom": "reference/roms/retail/Uniracers_USA.sfc asset table 82:B32F, palette assets 0x06..0x15",
+  "runtime": "tests/input/menu-visual-language.script PLAYER_SELECT_P1 dump (clean boot, snesref + pinned snes9x-libretro)",
+  "grid_rule_confirmations": {
+   "row0-left": 0,
+   "row0-right": 1,
+   "row1-left": 2,
+   "row2-left": 4,
+   "row7-right": 15
+  },
+  "related": [
+   "analysis/data/progression-model.json",
+   "analysis/data/presentation-assets.json"
+  ]
+ },
+ "grid_rule": "rider_index = 2 * row + (0 left | 1 right); 8 rows x 2 columns on PLAYER_SELECT_P1",
+ "palette_layout": {
+  "body_ramp_entries": [
+   2,
+   4,
+   6,
+   7,
+   9,
+   11,
+   13
+  ],
+  "varying_entries_observed": [
+   2,
+   4,
+   6,
+   7,
+   8,
+   9,
+   11,
+   13,
+   14,
+   15
+  ],
+  "note": "remaining entries are a shared grey/black chassis; entries 8, 14 and 15 vary slightly for a few racers"
+ },
+ "default_names_are_renameable": "RENAME PLAYER edits names in battery SRAM; values here are clean-boot defaults",
+ "name_table": {
+  "rom": "83:800C",
+  "record_bytes": 16,
+  "sram_copy_offset": "0x000C",
+  "note": "indices 0..20 are names; later records are League slots ('define_me')"
+ },
+ "racers": [
+  {
+   "rider_index": 0,
+   "rider_index_ram": "$017D (P1) / $017F (P2)",
+   "default_name": "MIKE",
+   "select_grid": {
+    "row": 0,
+    "column": "left"
+   },
+   "medal_matrix_column": 0,
+   "race_palette": {
+    "asset_id_hex": "0x06",
+    "table_entry_snes": "82:B34D",
+    "source_snes": "04:8180",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0C63",
+     "0x0448",
+     "0x18C6",
+     "0x18EC",
+     "0x2529",
+     "0x088F",
+     "0x0495",
+     "0x0442",
+     "0x0898",
+     "0x39CE",
+     "0x10FC",
+     "0x5294",
+     "0x469E",
+     "0x6319",
+     "0x77BE"
+    ],
+    "payload_sha256": "36d2c1daa25deffe45c2f856b738b936e99f5e623b6639c6d4bf810eb3abc0b8"
+   },
+   "body_ramp_rgb": [
+    [
+     64,
+     16,
+     8
+    ],
+    [
+     96,
+     56,
+     48
+    ],
+    [
+     120,
+     32,
+     16
+    ],
+    [
+     168,
+     32,
+     8
+    ],
+    [
+     192,
+     32,
+     16
+    ],
+    [
+     224,
+     56,
+     32
+    ],
+    [
+     240,
+     160,
+     136
+    ]
+   ],
+   "colour_label_derived": "red"
+  },
+  {
+   "rider_index": 1,
+   "rider_index_ram": "$017D (P1) / $017F (P2)",
+   "default_name": "ANDREW",
+   "select_grid": {
+    "row": 0,
+    "column": "right"
+   },
+   "medal_matrix_column": 1,
+   "race_palette": {
+    "asset_id_hex": "0x07",
+    "table_entry_snes": "82:B352",
+    "source_snes": "04:81A0",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0C63",
+     "0x2021",
+     "0x18C6",
+     "0x30C6",
+     "0x2529",
+     "0x3C42",
+     "0x5421",
+     "0x0821",
+     "0x6062",
+     "0x39CE",
+     "0x70A4",
+     "0x5294",
+     "0x7A31",
+     "0x6718",
+     "0x7BBD"
+    ],
+    "payload_sha256": "346e7faeeb6c4e2ad101d22f464e9fe9077e0ba349da87e6b7efee4c1a04793b"
+   },
+   "body_ramp_rgb": [
+    [
+     8,
+     8,
+     64
+    ],
+    [
+     48,
+     48,
+     96
+    ],
+    [
+     16,
+     16,
+     120
+    ],
+    [
+     8,
+     8,
+     168
+    ],
+    [
+     16,
+     24,
+     192
+    ],
+    [
+     32,
+     40,
+     224
+    ],
+    [
+     136,
+     136,
+     240
+    ]
+   ],
+   "colour_label_derived": "blue"
+  },
+  {
+   "rider_index": 2,
+   "rider_index_ram": "$017D (P1) / $017F (P2)",
+   "default_name": "MARTIN",
+   "select_grid": {
+    "row": 1,
+    "column": "left"
+   },
+   "medal_matrix_column": 2,
+   "race_palette": {
+    "asset_id_hex": "0x08",
+    "table_entry_snes": "82:B357",
+    "source_snes": "04:81C0",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0C63",
+     "0x0862",
+     "0x18C6",
+     "0x0CA4",
+     "0x2529",
+     "0x04E1",
+     "0x0942",
+     "0x0442",
+     "0x09E3",
+     "0x39CE",
+     "0x12C6",
+     "0x5294",
+     "0x2B8C",
+     "0x6759",
+     "0x77BE"
+    ],
+    "payload_sha256": "2b1984513a60c382e74f917d1f1a6ea5a093dbc0f3bc8a704384beab1933d8aa"
+   },
+   "body_ramp_rgb": [
+    [
+     16,
+     24,
+     16
+    ],
+    [
+     32,
+     40,
+     24
+    ],
+    [
+     8,
+     56,
+     8
+    ],
+    [
+     16,
+     80,
+     16
+    ],
+    [
+     24,
+     120,
+     16
+    ],
+    [
+     48,
+     176,
+     32
+    ],
+    [
+     96,
+     224,
+     80
+    ]
+   ],
+   "colour_label_derived": "green"
+  },
+  {
+   "rider_index": 3,
+   "rider_index_ram": "$017D (P1) / $017F (P2)",
+   "default_name": "MELISSA",
+   "select_grid": {
+    "row": 1,
+    "column": "right"
+   },
+   "medal_matrix_column": 3,
+   "race_palette": {
+    "asset_id_hex": "0x09",
+    "table_entry_snes": "82:B35C",
+    "source_snes": "04:81E0",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0C63",
+     "0x0507",
+     "0x18C6",
+     "0x198C",
+     "0x2529",
+     "0x09AC",
+     "0x0693",
+     "0x0442",
+     "0x0337",
+     "0x39CE",
+     "0x07BB",
+     "0x5294",
+     "0x37DC",
+     "0x631A",
+     "0x77BE"
+    ],
+    "payload_sha256": "3f0535a59be05d3c3fd6de204f5350409235f3248c151b10bcbb3a2c5d670af6"
+   },
+   "body_ramp_rgb": [
+    [
+     56,
+     64,
+     8
+    ],
+    [
+     96,
+     96,
+     48
+    ],
+    [
+     96,
+     104,
+     16
+    ],
+    [
+     152,
+     160,
+     8
+    ],
+    [
+     184,
+     200,
+     0
+    ],
+    [
+     216,
+     232,
+     8
+    ],
+    [
+     224,
+     240,
+     104
+    ]
+   ],
+   "colour_label_derived": "yellow"
+  },
+  {
+   "rider_index": 4,
+   "rider_index_ram": "$017D (P1) / $017F (P2)",
+   "default_name": "AMY",
+   "select_grid": {
+    "row": 2,
+    "column": "left"
+   },
+   "medal_matrix_column": 4,
+   "race_palette": {
+    "asset_id_hex": "0x0A",
+    "table_entry_snes": "82:B361",
+    "source_snes": "04:8200",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0C63",
+     "0x04A8",
+     "0x18C6",
+     "0x192C",
+     "0x2529",
+     "0x010F",
+     "0x0174",
+     "0x0442",
+     "0x01B8",
+     "0x39CE",
+     "0x01DC",
+     "0x5294",
+     "0x42FE",
+     "0x6319",
+     "0x77BE"
+    ],
+    "payload_sha256": "402291ffc3dcdf0857609ea3baa58069e04c4fc0bca3a752708bf16f50a6e770"
+   },
+   "body_ramp_rgb": [
+    [
+     64,
+     40,
+     8
+    ],
+    [
+     96,
+     72,
+     48
+    ],
+    [
+     120,
+     64,
+     0
+    ],
+    [
+     160,
+     88,
+     0
+    ],
+    [
+     192,
+     104,
+     0
+    ],
+    [
+     224,
+     112,
+     0
+    ],
+    [
+     240,
+     184,
+     128
+    ]
+   ],
+   "colour_label_derived": "orange"
+  },
+  {
+   "rider_index": 5,
+   "rider_index_ram": "$017D (P1) / $017F (P2)",
+   "default_name": "MALCOLM",
+   "select_grid": {
+    "row": 2,
+    "column": "right"
+   },
+   "medal_matrix_column": 5,
+   "race_palette": {
+    "asset_id_hex": "0x0B",
+    "table_entry_snes": "82:B366",
+    "source_snes": "04:8220",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0C63",
+     "0x2100",
+     "0x18C6",
+     "0x3180",
+     "0x2529",
+     "0x3DE0",
+     "0x56A0",
+     "0x0442",
+     "0x6300",
+     "0x39CE",
+     "0x6F8A",
+     "0x5294",
+     "0x77B5",
+     "0x6319",
+     "0x77BE"
+    ],
+    "payload_sha256": "7c11b2ccfaa2f6de0457aba9745439222426998799c33d5cd21ab0779006ec38"
+   },
+   "body_ramp_rgb": [
+    [
+     0,
+     64,
+     64
+    ],
+    [
+     0,
+     96,
+     96
+    ],
+    [
+     0,
+     120,
+     120
+    ],
+    [
+     0,
+     168,
+     168
+    ],
+    [
+     0,
+     192,
+     192
+    ],
+    [
+     80,
+     224,
+     216
+    ],
+    [
+     168,
+     232,
+     232
+    ]
+   ],
+   "colour_label_derived": "cyan"
+  },
+  {
+   "rider_index": 6,
+   "rider_index_ram": "$017D (P1) / $017F (P2)",
+   "default_name": "MICHELLE",
+   "select_grid": {
+    "row": 3,
+    "column": "left"
+   },
+   "medal_matrix_column": 6,
+   "race_palette": {
+    "asset_id_hex": "0x0C",
+    "table_entry_snes": "82:B36B",
+    "source_snes": "04:8240",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0C63",
+     "0x0105",
+     "0x18C6",
+     "0x0188",
+     "0x2529",
+     "0x01EA",
+     "0x02AD",
+     "0x0442",
+     "0x038F",
+     "0x39CE",
+     "0x1393",
+     "0x5294",
+     "0x47D9",
+     "0x6319",
+     "0x77BE"
+    ],
+    "payload_sha256": "e798b3d6b4c50fd93990c05286e9ed46ce3fb467e101f26222d0cd82d17fe146"
+   },
+   "body_ramp_rgb": [
+    [
+     40,
+     64,
+     0
+    ],
+    [
+     64,
+     96,
+     0
+    ],
+    [
+     80,
+     120,
+     0
+    ],
+    [
+     104,
+     168,
+     0
+    ],
+    [
+     120,
+     224,
+     0
+    ],
+    [
+     152,
+     224,
+     32
+    ],
+    [
+     200,
+     240,
+     136
+    ]
+   ],
+   "colour_label_derived": "lime"
+  },
+  {
+   "rider_index": 7,
+   "rider_index_ram": "$017D (P1) / $017F (P2)",
+   "default_name": "COLIN",
+   "select_grid": {
+    "row": 3,
+    "column": "right"
+   },
+   "medal_matrix_column": 7,
+   "race_palette": {
+    "asset_id_hex": "0x0D",
+    "table_entry_snes": "82:B370",
+    "source_snes": "04:8260",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0C63",
+     "0x34A4",
+     "0x18C6",
+     "0x38E6",
+     "0x2529",
+     "0x3D07",
+     "0x4D8A",
+     "0x0442",
+     "0x6A30",
+     "0x39CE",
+     "0x7AB4",
+     "0x5294",
+     "0x7F59",
+     "0x673A",
+     "0x77BE"
+    ],
+    "payload_sha256": "72fd819f4f61d2c472455e0b23fac0e1af6548cd16e097340ee7047fbce99511"
+   },
+   "body_ramp_rgb": [
+    [
+     32,
+     40,
+     104
+    ],
+    [
+     48,
+     56,
+     112
+    ],
+    [
+     56,
+     64,
+     120
+    ],
+    [
+     80,
+     96,
+     152
+    ],
+    [
+     128,
+     136,
+     208
+    ],
+    [
+     160,
+     168,
+     240
+    ],
+    [
+     200,
+     208,
+     248
+    ]
+   ],
+   "colour_label_derived": "blue"
+  },
+  {
+   "rider_index": 8,
+   "rider_index_ram": "$017D (P1) / $017F (P2)",
+   "default_name": "DAVE",
+   "select_grid": {
+    "row": 4,
+    "column": "left"
+   },
+   "medal_matrix_column": 8,
+   "race_palette": {
+    "asset_id_hex": "0x0E",
+    "table_entry_snes": "82:B375",
+    "source_snes": "04:8280",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0C63",
+     "0x2108",
+     "0x18C6",
+     "0x318C",
+     "0x2529",
+     "0x3DEF",
+     "0x56B5",
+     "0x0442",
+     "0x6318",
+     "0x39CE",
+     "0x739C",
+     "0x5294",
+     "0x7BDE",
+     "0x6319",
+     "0x77BE"
+    ],
+    "payload_sha256": "f4ea7911d64d4aa17d21b788c5f9ce00b259a6d48eadec99c4da80691adb8e9d"
+   },
+   "body_ramp_rgb": [
+    [
+     64,
+     64,
+     64
+    ],
+    [
+     96,
+     96,
+     96
+    ],
+    [
+     120,
+     120,
+     120
+    ],
+    [
+     168,
+     168,
+     168
+    ],
+    [
+     192,
+     192,
+     192
+    ],
+    [
+     224,
+     224,
+     224
+    ],
+    [
+     240,
+     240,
+     240
+    ]
+   ],
+   "colour_label_derived": "white"
+  },
+  {
+   "rider_index": 9,
+   "rider_index_ram": "$017D (P1) / $017F (P2)",
+   "default_name": "TONY",
+   "select_grid": {
+    "row": 4,
+    "column": "right"
+   },
+   "medal_matrix_column": 9,
+   "race_palette": {
+    "asset_id_hex": "0x0F",
+    "table_entry_snes": "82:B37A",
+    "source_snes": "04:82A0",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0C63",
+     "0x0842",
+     "0x18C6",
+     "0x0C63",
+     "0x2529",
+     "0x0C63",
+     "0x2108",
+     "0x0442",
+     "0x1CE7",
+     "0x39CE",
+     "0x4210",
+     "0x5294",
+     "0x56B5",
+     "0x6319",
+     "0x77BE"
+    ],
+    "payload_sha256": "11852e42eb52de1c32b8df636a7c9d0054aae3bb19099d49652bc98039356fd8"
+   },
+   "body_ramp_rgb": [
+    [
+     16,
+     16,
+     16
+    ],
+    [
+     24,
+     24,
+     24
+    ],
+    [
+     24,
+     24,
+     24
+    ],
+    [
+     64,
+     64,
+     64
+    ],
+    [
+     56,
+     56,
+     56
+    ],
+    [
+     128,
+     128,
+     128
+    ],
+    [
+     168,
+     168,
+     168
+    ]
+   ],
+   "colour_label_derived": "black"
+  },
+  {
+   "rider_index": 10,
+   "rider_index_ram": "$017D (P1) / $017F (P2)",
+   "default_name": "CAROL",
+   "select_grid": {
+    "row": 5,
+    "column": "left"
+   },
+   "medal_matrix_column": 10,
+   "race_palette": {
+    "asset_id_hex": "0x10",
+    "table_entry_snes": "82:B37F",
+    "source_snes": "04:82C0",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0C63",
+     "0x0448",
+     "0x18C6",
+     "0x18EC",
+     "0x2529",
+     "0x3192",
+     "0x39F7",
+     "0x0442",
+     "0x423B",
+     "0x39CE",
+     "0x4E9C",
+     "0x5294",
+     "0x5F1E",
+     "0x6319",
+     "0x77BE"
+    ],
+    "payload_sha256": "598eb272c223e159a28e91418b38045ad21779b4d0873e894d5b17f970a09e01"
+   },
+   "body_ramp_rgb": [
+    [
+     64,
+     16,
+     8
+    ],
+    [
+     96,
+     56,
+     48
+    ],
+    [
+     144,
+     96,
+     96
+    ],
+    [
+     184,
+     120,
+     112
+    ],
+    [
+     216,
+     136,
+     128
+    ],
+    [
+     224,
+     160,
+     152
+    ],
+    [
+     240,
+     192,
+     184
+    ]
+   ],
+   "colour_label_derived": "pink"
+  },
+  {
+   "rider_index": 11,
+   "rider_index_ram": "$017D (P1) / $017F (P2)",
+   "default_name": "CRAIG",
+   "select_grid": {
+    "row": 5,
+    "column": "right"
+   },
+   "medal_matrix_column": 11,
+   "race_palette": {
+    "asset_id_hex": "0x11",
+    "table_entry_snes": "82:B384",
+    "source_snes": "04:82E0",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0C63",
+     "0x1901",
+     "0x18C6",
+     "0x2986",
+     "0x2529",
+     "0x29E2",
+     "0x3AA1",
+     "0x0442",
+     "0x4302",
+     "0x39CE",
+     "0x4F84",
+     "0x5294",
+     "0x67D0",
+     "0x673A",
+     "0x77BE"
+    ],
+    "payload_sha256": "ccff0947e4a7f12d19709fd817f658dc530fd59a587d2aa546f322d51e447892"
+   },
+   "body_ramp_rgb": [
+    [
+     8,
+     64,
+     48
+    ],
+    [
+     48,
+     96,
+     80
+    ],
+    [
+     16,
+     120,
+     80
+    ],
+    [
+     8,
+     168,
+     112
+    ],
+    [
+     16,
+     192,
+     128
+    ],
+    [
+     32,
+     224,
+     152
+    ],
+    [
+     128,
+     240,
+     200
+    ]
+   ],
+   "colour_label_derived": "teal"
+  },
+  {
+   "rider_index": 12,
+   "rider_index_ram": "$017D (P1) / $017F (P2)",
+   "default_name": "KEN",
+   "select_grid": {
+    "row": 6,
+    "column": "left"
+   },
+   "medal_matrix_column": 12,
+   "race_palette": {
+    "asset_id_hex": "0x12",
+    "table_entry_snes": "82:B389",
+    "source_snes": "04:8300",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0C63",
+     "0x2026",
+     "0x18C6",
+     "0x30CA",
+     "0x2529",
+     "0x3C4B",
+     "0x542F",
+     "0x0442",
+     "0x6051",
+     "0x39CE",
+     "0x7094",
+     "0x5294",
+     "0x7A1A",
+     "0x631A",
+     "0x77BE"
+    ],
+    "payload_sha256": "ed56ebd993dc549e71a5ba6aec24ef03098c7353b9eaf10655df2601b797dc9e"
+   },
+   "body_ramp_rgb": [
+    [
+     48,
+     8,
+     64
+    ],
+    [
+     80,
+     48,
+     96
+    ],
+    [
+     88,
+     16,
+     120
+    ],
+    [
+     120,
+     8,
+     168
+    ],
+    [
+     136,
+     16,
+     192
+    ],
+    [
+     160,
+     32,
+     224
+    ],
+    [
+     208,
+     128,
+     240
+    ]
+   ],
+   "colour_label_derived": "purple"
+  },
+  {
+   "rider_index": 13,
+   "rider_index_ram": "$017D (P1) / $017F (P2)",
+   "default_name": "ROBBIE",
+   "select_grid": {
+    "row": 6,
+    "column": "right"
+   },
+   "medal_matrix_column": 13,
+   "race_palette": {
+    "asset_id_hex": "0x13",
+    "table_entry_snes": "82:B38E",
+    "source_snes": "04:8320",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0C63",
+     "0x0024",
+     "0x18C6",
+     "0x10A9",
+     "0x2529",
+     "0x086B",
+     "0x046E",
+     "0x0442",
+     "0x0870",
+     "0x39CE",
+     "0x1912",
+     "0x5294",
+     "0x3E39",
+     "0x631A",
+     "0x77BE"
+    ],
+    "payload_sha256": "bba899c079335e75073b4503f5a60a6f01ebeaee829e1b789c0f9a8405437a6a"
+   },
+   "body_ramp_rgb": [
+    [
+     32,
+     8,
+     0
+    ],
+    [
+     72,
+     40,
+     32
+    ],
+    [
+     88,
+     24,
+     16
+    ],
+    [
+     112,
+     24,
+     8
+    ],
+    [
+     128,
+     24,
+     16
+    ],
+    [
+     144,
+     64,
+     48
+    ],
+    [
+     200,
+     136,
+     120
+    ]
+   ],
+   "colour_label_derived": "red"
+  },
+  {
+   "rider_index": 14,
+   "rider_index_ram": "$017D (P1) / $017F (P2)",
+   "default_name": "ALICE",
+   "select_grid": {
+    "row": 7,
+    "column": "left"
+   },
+   "medal_matrix_column": 14,
+   "race_palette": {
+    "asset_id_hex": "0x14",
+    "table_entry_snes": "82:B393",
+    "source_snes": "04:8340",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0C63",
+     "0x0501",
+     "0x18C6",
+     "0x1545",
+     "0x2529",
+     "0x09E2",
+     "0x06A1",
+     "0x0442",
+     "0x0F02",
+     "0x39CE",
+     "0x0380",
+     "0x5294",
+     "0x47D1",
+     "0x631A",
+     "0x77DD"
+    ],
+    "payload_sha256": "923886495d22f626c8ad2b3a534657a6ef2162a8c77efa4fb24857e560eea452"
+   },
+   "body_ramp_rgb": [
+    [
+     8,
+     64,
+     8
+    ],
+    [
+     40,
+     80,
+     40
+    ],
+    [
+     16,
+     120,
+     16
+    ],
+    [
+     8,
+     168,
+     8
+    ],
+    [
+     16,
+     192,
+     24
+    ],
+    [
+     0,
+     224,
+     0
+    ],
+    [
+     136,
+     240,
+     136
+    ]
+   ],
+   "colour_label_derived": "green"
+  },
+  {
+   "rider_index": 15,
+   "rider_index_ram": "$017D (P1) / $017F (P2)",
+   "default_name": "STEVE",
+   "select_grid": {
+    "row": 7,
+    "column": "right"
+   },
+   "medal_matrix_column": 15,
+   "race_palette": {
+    "asset_id_hex": "0x15",
+    "table_entry_snes": "82:B398",
+    "source_snes": "04:8360",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0C63",
+     "0x20A1",
+     "0x18C6",
+     "0x3146",
+     "0x2529",
+     "0x3D42",
+     "0x55A1",
+     "0x0442",
+     "0x61E2",
+     "0x39CE",
+     "0x7244",
+     "0x5294",
+     "0x7B31",
+     "0x673A",
+     "0x77BE"
+    ],
+    "payload_sha256": "e6b7ccb29d361d8c402a5f10d5d03cca91656faba474a61e03ff03656426a229"
+   },
+   "body_ramp_rgb": [
+    [
+     8,
+     40,
+     64
+    ],
+    [
+     48,
+     80,
+     96
+    ],
+    [
+     16,
+     80,
+     120
+    ],
+    [
+     8,
+     104,
+     168
+    ],
+    [
+     16,
+     120,
+     192
+    ],
+    [
+     32,
+     144,
+     224
+    ],
+    [
+     136,
+     200,
+     240
+    ]
+   ],
+   "colour_label_derived": "blue"
+  }
+ ],
+ "non_selectable_identities": [
+  {
+   "rider_index": 16,
+   "role": "record-holder placeholder (rendered as RECORD: SOMEONE on a clean NOW PLAYING card)",
+   "default_name": "SOMEONE",
+   "race_palette": {
+    "asset_id_hex": "0x16",
+    "table_entry_snes": "82:B39D",
+    "source_snes": "04:8380",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x6B5B",
+     "0x39CE",
+     "0x5AD6",
+     "0x318C",
+     "0x4A52",
+     "0x3DEF",
+     "0x5294",
+     "0x7BDF",
+     "0x5EF7",
+     "0x35AD",
+     "0x6F7B",
+     "0x2108",
+     "0x7FFF",
+     "0x14A5",
+     "0x0000"
+    ],
+    "payload_sha256": "dc19e3f415349382ca580033df6a25a9ccee6911d702ee347bcb718a40181c25"
+   }
+  },
+  {
+   "rider_index": 17,
+   "role": "Bronze-tier opponent (runtime: P2 slot $017F=17 with palette asset 0x17 in the Bronze Dragster race)",
+   "default_name": "BRONSEN",
+   "race_palette": {
+    "asset_id_hex": "0x17",
+    "table_entry_snes": "82:B3A2",
+    "source_snes": "04:83A0",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x739C",
+     "0x1174",
+     "0x5EF7",
+     "0x1152",
+     "0x4A53",
+     "0x1196",
+     "0x0DB7",
+     "0x7FFF",
+     "0x0E1A",
+     "0x39CE",
+     "0x26DD",
+     "0x2529",
+     "0x46DB",
+     "0x18C6",
+     "0x0000"
+    ],
+    "payload_sha256": "45fcaec6849e38e57046a444140508244ed1fc53d8ed521990a9176dbbfb0a56"
+   }
+  },
+  {
+   "rider_index": 18,
+   "role": "Silver-tier opponent (runtime: medal 1 -> $017F=18, card VS SILVIA; analysis/generated/tier-opponent-probe.json)",
+   "default_name": "SILVIA",
+   "race_palette": {
+    "asset_id_hex": "0x18",
+    "table_entry_snes": "82:B3A7",
+    "source_snes": "04:83C0",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x739C",
+     "0x49EE",
+     "0x5EF7",
+     "0x4E30",
+     "0x4E73",
+     "0x4E2E",
+     "0x5671",
+     "0x7FFF",
+     "0x6B15",
+     "0x39CE",
+     "0x7BBC",
+     "0x2529",
+     "0x7778",
+     "0x18C6",
+     "0x0000"
+    ],
+    "payload_sha256": "e1f7bd6ca99d90433586815037afe9b5bc60e23b6e34dd4b6821a09d9d08d1c3"
+   }
+  },
+  {
+   "rider_index": 19,
+   "role": "Gold-tier opponent (runtime: medal 2 -> $017F=19, card VS GOLDWYN; analysis/generated/tier-opponent-probe.json)",
+   "default_name": "GOLDWYN",
+   "race_palette": {
+    "asset_id_hex": "0x19",
+    "table_entry_snes": "82:B3AC",
+    "source_snes": "04:83E0",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x739C",
+     "0x11F6",
+     "0x5EF7",
+     "0x1E37",
+     "0x4E73",
+     "0x1E9C",
+     "0x0E7E",
+     "0x7FFF",
+     "0x1EBC",
+     "0x39CE",
+     "0x3B7F",
+     "0x2529",
+     "0x277E",
+     "0x18C6",
+     "0x0000"
+    ],
+    "payload_sha256": "49158e78a8479bc21c65bcfc8b9f6277fa23306a8e74f8abfa3f7b800c85a33f"
+   }
+  },
+  {
+   "rider_index": 20,
+   "role": "Hunter-tour opponent (runtime: Hunter row 8 -> $017F=20, card VS ANTI-UNI, P2 palette = asset 0x1A; its palette uses a dark, non-racer layout)",
+   "default_name": "ANTI-UNI",
+   "race_palette": {
+    "asset_id_hex": "0x1A",
+    "table_entry_snes": "82:B3B1",
+    "source_snes": "04:8400",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0004",
+     "0x0424",
+     "0x0C66",
+     "0x0425",
+     "0x18CA",
+     "0x0427",
+     "0x0C67",
+     "0x0422",
+     "0x042C",
+     "0x18CB",
+     "0x14AE",
+     "0x2110",
+     "0x2115",
+     "0x35B4",
+     "0x3E13"
+    ],
+    "payload_sha256": "a8d2de3b96ccc5a277cb3ffecaa92006913197e0887ccb76f27a7a25d41d6d8e"
+   }
+  }
+ ],
+ "checks": {
+  "sixteen_default_names_decoded": true,
+  "names_unique": true,
+  "body_ramp_entries_are_the_varying_set": true,
+  "rider_select_icons_use_race_palettes_8_15": true,
+  "grid_rule_matches_confirmations": true,
+  "selection_state_player_select": true,
+  "roster_names_match_rom_name_table": true,
+  "race_p2_slot_holds_bronze_opponent_17": true,
+  "race_p2_palette_is_asset_0x17": true,
+  "race_p1_palette_is_rider_asset": true
+ },
+ "all_checks_pass": true
+}

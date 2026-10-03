@@ -1,0 +1,14 @@
+# Named checkpoints for tests/input/vs-challenger-route.input (tools/probe_vs_challenger.py).
+wait 3900
+dump vsc-result
+wait 120
+dump vsc-champions
+wait 200
+dump vsc-pick-challenger
+wait 120
+dump vsc-pick-after-p1
+wait 220
+dump vsc-track-choice
+wait 240
+dump vsc-next
+quit

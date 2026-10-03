@@ -46,8 +46,9 @@
     {
       "value": "0x84",
       "state_id": "SPLASH",
-      "status": "historical",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "tests/input/attract-cycle.script",
+      "note": "Title screen in the attract cycle (frame-verified). Also appears for ~33 frames in the post-race fade before result screens, so it is a title/fade handler value rather than a unique screen ID."
     },
     {
       "value": "0x3D",
@@ -69,21 +70,27 @@
     {
       "value": "0x3F",
       "state_id": "VS_CHALLENGER",
-      "status": "historical",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "tests/input/vs-challenger-route.input",
+      "fixture": "vs-challenger-route",
+      "note": "PICK CHALLENGER after a decided VS race; loser's pad controls it."
     },
     {
       "value": "0x5A",
       "state_id": "VS_CHALLENGE_TRACK",
-      "status": "historical",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "tests/input/vs-challenger-route.input",
+      "fixture": "vs-challenger-route",
+      "note": "VS track-choice menu (NEXT/SAME/SELECT TRACK, SELECT TOUR, QUIT). Also transient DP scratch on Track Records.",
+      "variant": "vs-after-challenger-pick"
     },
     {
       "value": "0x10",
       "state_id": "TOUR_SELECT",
-      "variant": "one-player-tours-2-or-two-player-tours",
-      "status": "historical_ambiguous",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "variant": "one-player-nine-tours",
+      "status": "verified",
+      "source": "tests/input/tier-opponent-hunter-probe.script",
+      "note": "Two-column nine-tour page including HUNTER once the rider tier is 3; 009B holds the tour row. Two-player use remains historical."
     },
     {
       "value": "0x91",
@@ -113,21 +120,24 @@
     {
       "value": "0xBC",
       "state_id": "RESULT_CIRCUIT",
-      "status": "historical",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "tools/probe_result_screens.py",
+      "note": "Circuit results: per-lap time graph (LAPS ON ZOOM ZOO) with TOTAL / BEST LAP columns; advanced to TRACK_SELECT by the movie input."
     },
     {
       "value": "0x18",
       "state_id": "RESULT_STUNT",
-      "status": "historical",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "tools/probe_result_screens.py",
+      "note": "Final stunt results (BOWL table, player score and QUALIFY threshold); advanced to TRACK_SELECT by the movie input."
     },
     {
       "value": "0x2F",
       "state_id": "RESULT_STUNT",
       "variant": "summing-1",
-      "status": "historical",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "tools/probe_result_screens.py",
+      "note": "First stunt summing state: BOWL score table while tallying, before 0x18."
     },
     {
       "value": "0xAD",
@@ -207,6 +217,68 @@
       "source": "analysis/generated/ui-atlas-native-harvest-2026-09-29.md",
       "fixture": "ui-records-submenus",
       "capture": "ui-record-track-entry"
+    },
+    {
+      "value": "0xF9",
+      "state_id": "RESULT_RACE",
+      "variant": "vs-race",
+      "status": "verified",
+      "source": "tests/input/vs-challenger-route.input",
+      "fixture": "vs-challenger-route",
+      "note": "Multiplayer race result (VS and ordinary 2P): both players' times, NO TIME for a non-finisher."
+    },
+    {
+      "value": "0xD3",
+      "state_id": "POST_RESULT_DECISION",
+      "variant": "vs-champions-table",
+      "status": "verified",
+      "source": "tests/input/vs-challenger-route.input",
+      "fixture": "vs-challenger-route",
+      "note": "VS CHAMPIONS table (wins / today / %) after a decided VS race. The bot's stunt-summing 0xD3 label is unconfirmed."
+    },
+    {
+      "value": "0xB7",
+      "state_id": "POST_RESULT_DECISION",
+      "variant": "vs-draw-rematch-banner",
+      "status": "verified",
+      "source": "tests/input/vs-draw-rematch-observe.script",
+      "fixture": "vs-challenger-route",
+      "note": "REMATCH banner after a drawn VS race (both NO TIME); any button continues to NOW PLAYING."
+    },
+    {
+      "value": "0x5A",
+      "state_id": "POST_RESULT_DECISION",
+      "variant": "two-player-track-choice",
+      "status": "verified",
+      "source": "tests/input/two-player-p1-win.input",
+      "fixture": "two-player-p1-win",
+      "note": "Ordinary 2P post-result menu (NEXT/SAME/SELECT TRACK, SELECT TOUR, QUIT), reached directly from 0xF9."
+    },
+    {
+      "value": "0x56",
+      "state_id": "LEAGUE_SELECT",
+      "variant": "league-slot-list",
+      "status": "verified",
+      "source": "tests/input/ui-league-probe.script",
+      "fixture": "ui-league-probe",
+      "note": "Six league slots ONE..SIX (DEFINE ME on a clean save); the same list opens from OPTIONS -> DEFINE LEAGUE. A on an undefined slot from MAIN_MENU -> LEAGUE does not advance."
+    },
+    {
+      "value": "0x9A",
+      "state_id": "DEFINE_LEAGUE",
+      "variant": "redefine-warning",
+      "status": "verified",
+      "source": "tests/input/ui-league-probe.script",
+      "fixture": "ui-league-probe",
+      "note": "WARNING: THIS OPTION WILL REMOVE <league> / SELECT+Y+A TO REMOVE; the chord opens the PICK YOUR LEAGUE editor (whose 009F reads scratch values 0x3F/0x73)."
+    },
+    {
+      "value": "0x58",
+      "state_id": "ERASE_ALL_CONFIRM",
+      "status": "verified",
+      "source": "tests/input/ui-erase-confirm.script",
+      "fixture": "ui-erase-confirm",
+      "note": "Two-option menu WIPE RAM / MAIN MENU; WIPE RAM leads to a full-screen SELECT+Y+A WARNING whose 009F is scratch."
     }
   ]
 }

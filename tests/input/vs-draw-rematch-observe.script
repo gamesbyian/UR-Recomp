@@ -1,0 +1,11 @@
+# Drawn VS race: run tests/input/vs-first-race.input with no further input until the race times out
+# (both NO TIME), then advance past the result and the REMATCH banner (which waits for a button) (tools/probe_vs_challenger.py).
+wait 38200
+dump vsd-result
+press a 2
+wait 120
+dump vsd-rematch
+press a 2
+wait 120
+dump vsd-after
+quit

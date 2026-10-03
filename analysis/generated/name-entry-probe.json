@@ -1,0 +1,106 @@
+{
+ "schema_version": 1,
+ "question": "Does the stock editor reject exactly the names the recovered rule predicts?",
+ "harness": "snesref + pinned snes9x-libretro, clean boot, OPTIONS -> RENAME PLAYER -> MIKE",
+ "grid": {
+  "columns": 13,
+  "x": "24 + 16*col",
+  "y": "24 + 24*row",
+  "rows": [
+   "A-M",
+   "N-Z",
+   "delete arrow, 0-9 (from column 1)",
+   "punctuation, OK at column 12"
+  ],
+  "start_cell": "T (row 1, column 6)",
+  "enter": "A enters the highlighted cell",
+  "rejection": "inline 'NOT COOL ENOUGH' below the name; the editor stays open and SRAM is unchanged",
+  "saved_record": "accepted names are written lowercase to the rider's 16-byte SRAM name record, terminated by FF (older bytes beyond the terminator are left in place)"
+ },
+ "results": {
+  "SONIC": {
+   "editor_text": [
+    ".",
+    ": + - ( )",
+    "%",
+    "SONIC...",
+    "NOT COOL ENOUGH"
+   ],
+   "screen_titles": [
+    "ABCDEFGHIJKLM",
+    "NOPQRSTUVWXYZ",
+    "ARROW_LEFTO123456789",
+    "OK",
+    "WHAT IS YOUR",
+    "PLAYER CALLED"
+   ],
+   "rejected_message": true,
+   "still_in_editor": true,
+   "sram_name_rider0": "mike",
+   "static_rule_predicts_forbidden": true
+  },
+  "XSEGAX": {
+   "editor_text": [
+    ".",
+    ": + - ( )",
+    "%",
+    "XSEGAX..",
+    "NOT COOL ENOUGH"
+   ],
+   "screen_titles": [
+    "ABCDEFGHIJKLM",
+    "NOPQRSTUVWXYZ",
+    "ARROW_LEFTO123456789",
+    "OK",
+    "WHAT IS YOUR",
+    "PLAYER CALLED"
+   ],
+   "rejected_message": true,
+   "still_in_editor": true,
+   "sram_name_rider0": "mike",
+   "static_rule_predicts_forbidden": true
+  },
+  "BASSIST": {
+   "editor_text": [
+    ".",
+    ": + - ( )",
+    "%",
+    "BASSIST.",
+    "NOT COOL ENOUGH"
+   ],
+   "screen_titles": [
+    "ABCDEFGHIJKLM",
+    "NOPQRSTUVWXYZ",
+    "ARROW_LEFTO123456789",
+    "OK",
+    "WHAT IS YOUR",
+    "PLAYER CALLED"
+   ],
+   "rejected_message": true,
+   "still_in_editor": true,
+   "sram_name_rider0": "mike",
+   "static_rule_predicts_forbidden": true
+  },
+  "ZED": {
+   "editor_text": [],
+   "screen_titles": [
+    "RECORDS",
+    "DEFINE PLAYER",
+    "RENAME PLAYER",
+    "DEFINE LEAGUE",
+    "MAIN MENU"
+   ],
+   "rejected_message": false,
+   "still_in_editor": false,
+   "sram_name_rider0": "zed",
+   "static_rule_predicts_forbidden": false
+  }
+ },
+ "checks": {
+  "sonic_rejected_in_editor": true,
+  "xsegax_rejected_in_editor": true,
+  "bassist_rejected_in_editor": true,
+  "zed_accepted_and_saved": true
+ },
+ "all_checks_pass": true
+}

@@ -6,36 +6,30 @@
 
 The recovered 2014 Dessyreqt autonomous bot is especially valuable because it navigates the game from live state rather than following a fixed frame script. Its behavior implies a frontend state machine with stable RAM-visible states and selections.
 
-Important historical working addresses include:
+Core frontend addresses (see `docs/SYMBOLS.md` for confidence):
 
-- `7E:009F`: current menu/frontend state;
-- `7E:000E`: selected menu row;
-- `7E:0C63`: selected menu column;
-- `7E:009B`: selected menu/tour option;
-- `7E:00CE`: current track ID;
-- `7E:0313`: in-race flag;
-- progression/tour state around `7E:0A03` through `7E:0A23`.
-
-These labels should be treated as supported historical semantics until locally verified against the canonical USA ROM.
+- `7E:009F`: current menu/frontend value. **Confirmed** IDs include `0xD7` MAIN_MENU, `0x3C` rider select, `0x6D` / `0x10` tour pages, `0xF6` / `0x91` track select, `0x16` NOW PLAYING, and the result IDs. Two caveats: it doubles as DP scratch during text/course construction, and it goes stale on some Records sub-screens. Treat a value as a state only when it is stable and the screen agrees.
+- `7E:009B`: selected option. On TOUR_SELECT it is the tour row; `7E:00D0` holds the confirmed tour row.
+- `7E:000E` / `7E:0C63`: selected row / column (rider select: 8 rows × columns `0x06/0x07`).
+- `7E:017D` / `7E:017F`: P1 / P2 rider index (the CPU opponent uses P2).
+- `7E:0313`: in race (`0x01`). It also reads `0x3C/0x3D` on some result screens, so it is not a pure boolean.
 
 ## Runtime flow
 
-A useful working model is:
+**Confirmed** working model:
 
 ```
-boot
- -> title
- -> main menu
- -> player / name / mode selection
- -> tour / track selection
- -> "now playing" transition
- -> race / circuit / stunt event
- -> event results
- -> progression update
- -> next selection or ending
+boot -> title (0x84) -> MAIN_MENU
+  idle 503 frames -> title -> split-screen two-player demo race (~2190 frames) -> title -> MAIN_MENU
+1P: rider -> tour -> track -> NOW PLAYING -> race -> result (0x99 / 0xBC / 0x2F->0x18) -> TRACK_SELECT
+VS: P1 rider -> P2 rider -> tour -> track (0x91) -> NOW PLAYING -> race -> 0xF9
+      decided: VS CHAMPIONS (0xD3) -> PICK CHALLENGER (0x3F, loser's pad) -> track choice (0x5A) -> NOW PLAYING
+      drawn:   REMATCH (0xB7) -> NOW PLAYING
+2P: P1 rider -> P2 rider -> tour -> track (0x91) -> NOW PLAYING -> race (continues until both finish or timeout) -> 0xF9
+      -> track choice (0x5A: NEXT/SAME/SELECT TRACK, SELECT TOUR, QUIT) -> NOW PLAYING with win tally
 ```
 
-The bot recognizes concrete values for many of these states and already contains a state-driven policy for issuing controller input.
+The menus share one BG2 strip: MAIN_MENU, rider, tour and track select sit at scroll 0/256/512/768, and each step slides 256 px in 39 frames. Records/results screens reuse the same yellow-title / grey-data grammar (`analysis/generated/menu-visual-language.json`). `0x84` is also used during the post-race fade, so it is a title/fade value rather than a unique screen.
 
 ## Why this matters
 

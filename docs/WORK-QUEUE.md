@@ -268,15 +268,15 @@ Optional authentic scaling, arbitrary windows, 16:9/ultrawide, high-resolution U
 
 Do this from the verified original UI state map, not from memory or generic modern-UI assumptions.
 
-- [ ] Classify original frontend states/features as presentation artifact, gameplay mechanic, or administrative/hardware-era system.
+- [x] Classify original frontend states/features as presentation artifact, gameplay mechanic, or administrative/hardware-era system. `analysis/frontend-modernization-policy.json` covers every conceptual state with 30 features. Presentation and mechanics are preserve-only, three administrative redesigns are decided and nine are open candidates, each with a named decision gate. `tools/validate_frontend_modernization_policy.py` enforces this; edit the policy file when a product decision changes rather than re-deriving it.
 - [ ] Preserve every original audiovisual indicator by default; add clearer labels, values, deltas or expanded views alongside it rather than deleting it.
-- [ ] Define the reusable menu visual-language contract from captured evidence: composition, typography, palette, animation/motion, cursor behavior, sounds and transitions.
+- [~] Define the reusable menu visual-language contract from captured evidence: composition, typography, palette, animation/motion, cursor behavior, sounds and transitions. Typography, palette, layout, cursor animation/easing and the MAIN_MENU↔OPTIONS slide are decoded into `analysis/generated/menu-visual-language.json` (see `UI-STATE-MAP.md`). The rider/tour/track setup strip and the second (8×16) font are decoded too. Menu SFX onset and duration timing and the records/results compositions are measured too. SFX identity remains.
 - [ ] Design a modern racer/profile model that separates save/profile storage from racer identity and supports create/name/customize. Preserve the original forbidden-name detection list only as an Easter egg: show **"COOL NAME!"** and then accept the entered name normally.
-- [ ] Preserve every classic named/color racer as an exact preset; decide which also become AI opponents, ghosts or tournament cast.
-- [ ] Preserve Bronsen, Silverton and Goldwyn as named opponents independently of any Bronze/Silver/Gold progression redesign.
+- [~] Preserve every classic named/color racer as an exact preset; decide which also become AI opponents, ghosts or tournament cast. `tools/build_legacy_cast_presets.py` → `analysis/generated/legacy-cast-presets.json` now holds all 16 racers: rider index, default name, select-grid slot, medal column and exact in-race palette asset from ROM. The rider-select icons are cross-checked byte-exact against the race palettes. The cast-role decision remains.
+- [~] Preserve Bronsen, Silvia and Goldwyn as named opponents independently of any Bronze/Silver/Gold progression redesign. They are rider indices 17/18/19 in the ROM name table (`83:800C`, copied to SRAM `0x000C`) with palette assets `0x17..0x19`. All three are runtime-confirmed in the P2 racer slot: opponent = `17 + medal held for the tour/rider`, checked on two rider/tour pairs; the Hunter tour instead fields ANTI-UNI (index 20) (`tools/probe_tier_opponents.py`). The silver opponent is "Silvia", not "Silverton". See `analysis/generated/legacy-cast-presets.json`.
 - [ ] Prototype a simplified modern League/tournament path while keeping the original League flow reproducible in authentic/reference mode.
 - [ ] Evaluate performance-based medal awarding or selectable challenge tiers as alternatives to mandatory Bronze → Silver → Gold replay.
-- [ ] Add modern per-event/tour persistence unless evidence shows the original session constraint is mechanically meaningful.
+- [ ] Add modern per-event/tour persistence unless evidence shows the original session constraint is mechanically meaningful. Stock behavior is still unknown. The earlier persistence result measured the lifetime Player Scores PLAYED stat, not tour progress (R-2026-10-03-UI-19).
 - [ ] Replace destructive controller-chord administration with explicit confirmed actions in modern mode while preserving the original behavior for reference.
 - [ ] Design a unified records/statistics surface that can embed or reproduce the original score/result presentations rather than erasing them.
 - [ ] Make basic controls/status self-explanatory in-game without exposing secrets or advanced discoveries that are intentionally hidden.
@@ -292,7 +292,7 @@ Treat these as must-do unless later technical evidence demonstrates a specific b
 - [~] Modern pause menu: Resume/Restart, keyboard/controller parity and the production host overlay are implemented. Root navigation now exposes Options/Controls/Run Data/Quit; Options contains durably persisted Focus Pause, desktop Display Mode and VSync rows driven by one shared keyboard/controller cursor model. Native run `37150713464` proves Windowed → Borderless → Fullscreen, VSync On → Adaptive, schema-v4 save/reload and Authentic inertness through the generated host. Presentation refresh/FPS targets remain separate from VSync and must not alter guest cadence; output-resolution selection still needs a real display-mode enumeration contract. Richer run statistics/splits, additional proven settings and a true Exit-to-Frontend action remain.
 - [ ] Personal-best and previous-run ghosts using local storage only.
 - [ ] Local replay/run-record persistence sufficient to re-drive or review completed runs.
-- [ ] Exact timing, lap/split data, PB deltas and medal/target deltas shown alongside preserved original indicators.
+- [ ] Exact timing, lap/split data, PB deltas and medal/target deltas shown alongside preserved original indicators. Stock top-3 per-track records (times, circuit best laps, stunt scores, holders) are mapped in `analysis/generated/track-records-sram.json` and can seed or mirror PBs.
 - [ ] Practice/free-play route with rapid track selection and repeat attempts.
 - [ ] Concise onboarding/tutorial for fundamental controls, landing and stunt-to-speed behavior while preserving secrets/advanced discovery.
 - [ ] Accessibility/input presentation options that do not alter authoritative simulation, including remapping, vibration control, readable text support and reduced flashing where applicable.
@@ -300,7 +300,7 @@ Treat these as must-do unless later technical evidence demonstrates a specific b
 - [ ] Authentic/raw-pixel plus modern/HD presentation presets, with optional CRT/NTSC-style display choices where useful.
 - [ ] Fast navigation affordances such as recent track, rematch, next event and direct practice access.
 - [ ] Localization-ready text/UI architecture.
-- [ ] Preserve original attract/demo behavior and leave a clean hook for a local recorded-run showcase.
+- [~] Preserve original attract/demo behavior and leave a clean hook for a local recorded-run showcase. Stock behavior is measured in `analysis/generated/attract-cycle.json`: a 503-frame MAIN_MENU idle timeout, then title, then a ~2190-frame split-screen demo race on a course that advances per cycle, returning via the title; Start exits early. The showcase hook design remains.
 - [ ] Keep content/data boundaries friendly to future custom courses, local challenge packs and visual packs without making those all launch requirements.
 
 ### Decide when subsystem maturity allows

@@ -1,0 +1,10 @@
+# Checkpoints for tests/input/two-player-p1-win.input (tools/probe_vs_challenger.py).
+wait 38200
+dump tp-result
+press a 2
+wait 130
+dump tp-choice
+press a 2
+wait 130
+dump tp-next
+quit

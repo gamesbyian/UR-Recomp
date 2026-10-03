@@ -887,6 +887,193 @@
       ],
       "status": "validated",
       "validation": "VS split-screen reference regression: Snes9x and Beetle both have inRace=1/menu=0 at all five stable race checkpoints; patched Snes9x additionally records HDMA $2104 writes V=0->$A5 and V=112->$5A at each sampled race checkpoint."
+    },
+    {
+      "id": "attract-cycle",
+      "input_script": "tests/input/attract-cycle.script",
+      "purpose": "No-input MAIN_MENU idle through four attract cycles (title, split-screen demo race, return), plus a Start-press exit run (tests/input/attract-exit.script). Measured from the per-frame low-WRAM trace by tools/probe_attract_cycle.py.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [],
+      "compare_surfaces": [
+        "low-wram-trace",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:0313 inRace",
+        "7E:00CE track",
+        "7E:00D0 tourRow"
+      ],
+      "status": "validated",
+      "validation": "analysis/generated/attract-cycle.json (5 checks): 503-frame idle timeout, ~2190-frame demo races on varying courses, Start exits via the title."
+    },
+    {
+      "id": "result-screens",
+      "input_script": "tests/input/result-screens-probe.script",
+      "purpose": "Replays the Dessyreqt 2014 movie (anchored SRAM, extracted on the fly) through the first Crawler race, circuit and stunt to verify the three 1P result-screen families and their advance target.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [],
+      "compare_surfaces": [
+        "low-wram-trace",
+        "framebuffer",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:0313 inRace"
+      ],
+      "status": "validated",
+      "validation": "analysis/generated/result-screens-probe.json (9 checks) via tools/probe_result_screens.py"
+    },
+    {
+      "id": "vs-challenger-route",
+      "input_file": "tests/input/vs-challenger-route.input",
+      "checkpoint_script": "tests/input/vs-challenger-route-observe.script",
+      "purpose": "VS route whose first race P1 wins (P2 idles), then the post-race VS flow: result 0xF9, VS CHAMPIONS 0xD3, PICK CHALLENGER 0x3F (loser's pad), track choice 0x5A, NOW PLAYING. A companion drawn-race run (vs-first-race.input + vs-draw-rematch-observe.script) covers the REMATCH banner 0xB7.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "vsc-result",
+        "vsc-champions",
+        "vsc-pick-challenger",
+        "vsc-pick-after-p1",
+        "vsc-track-choice",
+        "vsc-next"
+      ],
+      "compare_surfaces": [
+        "menu-state-fields",
+        "framebuffer"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:0C63 selectedColumn",
+        "7E:017D/017F rider indices"
+      ],
+      "status": "validated",
+      "validation": "analysis/generated/vs-challenger-probe.json (10 checks) via tools/probe_vs_challenger.py with a dual-controller snesref build"
+    },
+    {
+      "id": "ui-record-track-exit",
+      "input_script": "tests/input/ui-record-track-exit.script",
+      "purpose": "Track Records exit: the first X during the progressive table build is swallowed; the second returns to the RECORDS list with a stale 009F (0x5A). snesref sweep: A/B/Y/Start behave like X, Select and the D-pad stay.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "ui-record-track-building",
+        "ui-record-track-built",
+        "ui-record-track-exit"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "bg2-scroll",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu"
+      ],
+      "status": "validated",
+      "validation": "Decoded locally: building/built frames show TRACK RECORDS at BG2 vofs 261; the exit frame shows the five-item RECORDS list at vofs 0."
+    },
+    {
+      "id": "two-player-p1-win",
+      "input_file": "tests/input/two-player-p1-win.input",
+      "checkpoint_script": "tests/input/two-player-p1-win-observe.script",
+      "purpose": "Ordinary 2P route whose first race P1 wins while P2 idles to the timeout; covers the multiplayer result 0xF9 -> track choice 0x5A -> NOW PLAYING with a win tally.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "tp-result",
+        "tp-choice",
+        "tp-next"
+      ],
+      "compare_surfaces": [
+        "menu-state-fields",
+        "framebuffer"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu"
+      ],
+      "status": "validated",
+      "validation": "analysis/generated/vs-challenger-probe.json two_player_* checks via tools/probe_vs_challenger.py"
+    },
+    {
+      "id": "ui-league-probe",
+      "input_script": "tests/input/ui-league-probe.script",
+      "purpose": "Clean-save League reconnaissance: MAIN_MENU -> LEAGUE slot list; OPTIONS -> DEFINE LEAGUE -> slot -> WARNING -> SELECT+Y+A -> PICK YOUR LEAGUE editor.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "ui-league-select",
+        "ui-league-options",
+        "ui-league-options-define-selected",
+        "ui-league-define-slots",
+        "ui-league-define-warning",
+        "ui-league-define-editor",
+        "ui-league-define-two-added",
+        "ui-league-define-start",
+        "ui-league-define-start2"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu"
+      ],
+      "status": "reconnaissance",
+      "validation": "Decoded locally with tools/extract_menu_visual_language.py catalog_screen; membership add/Start/naming not yet reproduced."
+    },
+    {
+      "id": "ui-erase-reset",
+      "input_script": "tests/input/ui-erase-reset.script",
+      "purpose": "Destructive erase-all path with a disposable seeded SRAM: menu 0x58 -> WARNING -> SELECT+Y+A reset; compare SRAM before/after.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "ui-erase-reset-before",
+        "ui-erase-reset-menu",
+        "ui-erase-reset-warning",
+        "ui-erase-reset-done"
+      ],
+      "compare_surfaces": [
+        "sram",
+        "framebuffer",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "77:069C medal matrix",
+        "77:073C checksum"
+      ],
+      "status": "validated",
+      "validation": "Locally: medal 2 -> 0, checksum valid, post-reset SRAM equals the fresh-format image except live bytes 0742..0750/1073/10A7/10AD."
+    },
+    {
+      "id": "name-entry-probe",
+      "input_script": "tests/input/ui-rename-editor-explore.script",
+      "purpose": "tools/probe_name_entry.py reuses this fixture's RENAME PLAYER route, types generated names (SONIC, XSEGAX, BASSIST, ZED) through the bound grid, confirms OK and checks rejection vs save.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [],
+      "compare_surfaces": [
+        "framebuffer",
+        "sram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "77:000C rider-0 name record"
+      ],
+      "status": "validated",
+      "validation": "analysis/generated/name-entry-probe.json (4 checks)"
     }
   ]
 }

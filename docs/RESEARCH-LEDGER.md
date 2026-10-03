@@ -1863,3 +1863,308 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 **Interpretation:** There is no representative multi-frame stock background-prefetch horizon to reverse engineer. Widescreen preparation should be tested by deliberately scheduling earlier/additional strips against this known queue while preserving authoritative state.
 
 **Next discriminator:** only after the current +8 presentation-ID phase seam is classified, prototype one bounded additional/earlier entering-column schedule and validate event-relative simulation invariance.
+
+### R-2026-10-03-UI-01 — In-tour win progress persists across a power cycle
+
+**Status:** SUPERSEDED by R-2026-10-03-UI-19. The persisted counter is the rider's lifetime Player Scores PLAYED stat, not tour progress. The observations below stand; the interpretation does not.  
+**Date:** 2026-10-03  
+**Area:** progression | SRAM | frontend product policy
+
+**Observation:** Battery SRAM offsets `0x0230`, `0x0232` and `0x10A9` advance once per won Crawler race in the baseline replay (`0→1→2→3`). Power-on in a fresh process from the settled mid-tour images (counter 2 at frame 8500, 3 at frame 12000) changes only SRAM `0x0742`; the counter is unchanged through MAIN_MENU, PLAYER_SELECT, TOUR_SELECT, TRACK_SELECT, NOW PLAYING and race entry; the next won race increments it to 3 and 4 respectively. The reloaded run re-raced track 0, already won before the power cycle, and the counter still advanced, so it counts wins rather than distinct tracks. TRACK_SELECT shows the same five tracks with no completion markers with or without the persisted progress.
+
+**Evidence:** `tools/probe_tour_progress_persistence.py` → `analysis/generated/tour-progress-persistence.json` (snesref + pinned snes9x-libretro, Dessyreqt 2014 movie input from its anchored SRAM; ~1 minute locally).
+
+**Interpretation:** The planning premise that stock play loses unfinished tour progress on power-off is not supported. At least the win counter is battery-backed and resumes. Modern per-event/tour persistence is therefore a preservation of stock behavior, not a redesign.
+
+**Uncertainty:** Lost races were not exercised. Whether completing the tour after a power cycle awards the medal is not observed: the historical movie desyncs on the modern core after the first reloaded race, and the accepted medal fixture uses the Snes9x 1.51-rr path (`historical-snes9x151-medal.yml`). The modern-core replay of `progression-sram-acceptance.yml` reaches four in-session Crawler wins but no medal by frame 40000 locally.
+
+**Next discriminator:** only if a product decision needs it, resume the accepted Snes9x 1.51-rr medal route from a mid-tour SRAM image and check whether the medal cell still increments.
+
+### R-2026-10-03-UI-02 — Stock menu typography, cursor and slide are mechanically decoded
+
+**Status:** reproduced locally (reference harness), compact contract committed  
+**Date:** 2026-10-03  
+**Area:** frontend presentation | PPU
+
+**Observation:**
+- **Font:** MAIN_MENU and OPTIONS text is BG2 palette 7 (mode 3, 4bpp, priority tiles) using a 40-slot 16×16 glyph sheet. Glyph slot `s` occupies tiles `2s, 2s+1, 2s+0x50, 2s+0x51`. The sheet holds digits, `A-Z` without `O`, `OK`, two arrows and the circuit/stunt track-type icons.
+- **Cursor:** two 32×32 OBJs (arrow on palette 7, shadow on palette 5 at +7,+7) spinning through 16 tiles at 2 frames each. On a one-row move it travels 6,4,3,3,2,1,1,1,1,0,0,1 px in y and settles in 12 frames.
+- **Slide:** MAIN_MENU→OPTIONS changes `7E:009F` to `0x57`, then scrolls BG2 0→256 with velocity 1..7, twenty-five frames at 8, then 7..1 px/frame (39 frames). BG1 stays fixed and X-back mirrors the slide exactly.
+
+**Evidence:** `tests/input/menu-visual-language.script`; `tools/extract_menu_visual_language.py` → `analysis/generated/menu-visual-language.json`. Its checks decode all ten MAIN_MENU/OPTIONS labels from VRAM.
+
+**Interpretation:** Menu presentation is a small, fully specifiable grammar. The current modern host overlay draws generic white overlay text and does not yet follow it.
+
+**Next discriminator:** extend the same extractor to TRACK_SELECT (small font plus icon column) and capture menu SFX timing only when a modern menu surface needs them.
+
+### R-2026-10-03-UI-03 — Setup screens share one BG2 strip and a second 8×16 font
+
+**Status:** reproduced locally (reference harness), folded into the menu contract  
+**Date:** 2026-10-03  
+**Area:** frontend presentation | PPU
+
+**Observation:**
+- **Strip:** PLAYER_SELECT_P1, TOUR_SELECT and TRACK_SELECT sit at BG2 scroll 256, 512 and 768 of the same strip that holds MAIN_MENU at 0.
+- **Small font:** names and per-item data use an 8×16 font (top tile `t`, bottom `t+0x3C`). Digits are `0xA9..0xB2`, A–Z without O start at `0xB3`, and space is `0xCE`. It uses only outline value 8 and grey ramp 9–12 of BG palette 7.
+- **Mixed composition:** titles can separate words with a single 8-px `0xCE` space (PICK YOUR UNI) where MAIN_MENU/OPTIONS use 16-px gaps. TRACK_SELECT places big-font icon glyphs (slots 37–39) before small-font names left-aligned at x=80.
+- **Selection memory:** X-back from OPTIONS resets `7E:009B` to 0 and the cursor to 1P.
+
+**Evidence:** `tests/input/menu-visual-language.script`; `tools/extract_menu_visual_language.py` → `analysis/generated/menu-visual-language.json` (13 decode/state checks, including every expected title and small-font label on the three setup screens).
+
+**Interpretation:** The frontend's visual hierarchy is yellow-for-choices, grey-for-data, with track-type icons living in the font. Modern frontend surfaces can reproduce it from this contract without screen-by-screen guesswork.
+
+### R-2026-10-03-UI-04 — Menu SFX timing measured; identity blocked on harness visibility
+
+**Status:** timing reproduced locally; identity open  
+**Date:** 2026-10-03  
+**Area:** frontend audio
+
+**Observation:** Subtracting a no-input control run's WAV from the menu-visual-language run isolates input-triggered sound, because the menu music is deterministic.
+- **Timing (inputs with a quiet baseline):** cursor-move sound begins on the input frame (0–1 frames) and lasts 10–15 frames. A into OPTIONS begins +3 frames and lasts about 38. X back begins +3 frames; its 81-frame burst likely includes a music change.
+- **Contamination:** after the X-back the runs keep differing between inputs, so later setup-screen confirms are flagged `baseline_quiet: false`.
+
+**Evidence:** `tests/input/menu-visual-language-control.script`; `tools/extract_menu_visual_language.py --log --wav --control-wav` → `sound_timing` in `analysis/generated/menu-visual-language.json`.
+
+**Uncertainty / dead end:** SFX identity was not recovered.
+- **Waveform correlation:** cross-correlating difference bursts gives only 0.16–0.27 even between identical cursor moves, because stolen music voices contaminate the difference.
+- **Harness:** the pinned snesref core produces no output for `SNESREF_DSPREG_TRACE_FILE` or `SNESREF_APURAM_TRACE_FILE` (it lacks the cosim memory IDs).
+- **WRAM sampling:** per-frame sampling of `$0000-$1FFF` shows only stack churn at input frames, so the request is transient.
+
+**Next discriminator:** log CPU writes to `$2140-$2143` (SNESRecomp native `audio_events` via `tools/analyze_audio_port_events.py`, or a core with the cosim memory IDs) across the same script, and only when a modern menu surface needs exact stock SFX.
+
+### R-2026-10-03-UI-05 — The 16 classic racers are fully specified by rider index
+
+**Status:** reproduced locally (reference harness + ROM table), preset table committed  
+**Date:** 2026-10-03  
+**Area:** frontend | racer identity | presentation
+
+**Observation:** On PLAYER_SELECT_P1 the cursor walks `7E:000E` rows 0..7 and `7E:0C63` columns `0x06/0x07`. Confirming writes `$017D = 2 * row + column`, checked at five positions. Palette assets `0x06..0x15` from the `82:B32F` table differ only in a seven-entry body ramp (2, 4, 6, 7, 9, 11, 13). The end-of-frame rider-select OBJ palettes 0..7 equal assets `0x0E..0x15` byte-for-byte. HDMA (CGADD/CGDATA, channels 0/1) loads the bottom four grid rows mid-frame, so the menu icons reuse the in-race palettes.
+
+**Evidence:** `tools/build_legacy_cast_presets.py` → `analysis/generated/legacy-cast-presets.json` (six checks), built from the `menu-visual-language.script` rider dump and the canonical ROM.
+
+**Interpretation:** A classic preset is fully specified by its rider index: default name, grid slot, medal column and exact palette. Modern racer presets, ghosts and AI cast can key on that index without new archaeology.
+
+**Uncertainty:** Default names are clean-boot values; the editable copy is the SRAM name table at offset `0x000C` (R-2026-10-03-UI-06). The menu HDMA table decode (`00:CD36/00:CD73`) was not completed; it was unnecessary once the end-of-frame cross-check matched. The tier opponents are covered in R-2026-10-03-UI-06.
+
+### R-2026-10-03-UI-06 — Tier opponents are rider indices 17–19; the silver opponent is Silvia
+
+**Status:** all three reproduced at runtime (Silvia/Goldwyn via the tier probe below)  
+**Date:** 2026-10-03  
+**Area:** racer identity | progression | frontend
+
+**Observation:**
+- **Name table:** the default player-name table at ROM `83:800C` uses 16-byte records (8 lowercase chars with `_` padding, `FF FF`, padding). It holds indices 0..15 for the selectable racers, then 16 `someone`, 17 `bronsen`, 18 `silvia`, 19 `goldwyn`, 20 `anti-uni`, then League `define_me` slots. A clean-boot SRAM image holds the identical table at offset `0x000C`, and all 16 rider-select names match it.
+- **Bronze race:** on the Bronze Crawler Dragster race the NOW PLAYING card shows `MIKE VS BRONSEN` and `RECORD: SOMEONE`. In race, `$017F` (the P2 racer slot) is 17 and CGRAM `$C0` equals palette asset `0x17` byte-for-byte, so the CPU opponent occupies the ordinary P2 racer identity/palette path.
+- **Palettes:** assets `0x17/0x18/0x19` use a brighter chassis than the 16 racer palettes, with bronze/orange, silver-white and gold ramps.
+
+**Evidence:** `tests/input/menu-visual-language.script` (extended through NOW PLAYING and race entry); `tools/build_legacy_cast_presets.py` → `non_selectable_identities` and checks in `analysis/generated/legacy-cast-presets.json`.
+
+**Interpretation:** The planning docs' "Silverton" is not the shipped name; the ROM table and its SRAM copy say `silvia`. Preserving the legacy opponents means preserving indices 17–19, their names and palettes, and their use of the P2 racer slot.
+
+**Tier probe:** `tools/probe_tier_opponents.py` seeds only the Crawler/MIKE medal cell `77:069C` (0/1/2) plus the `73C` checksum before boot. TRACK_SELECT then shows BRONZE/SILVER/GOLD, the card shows `VS BRONSEN/SILVIA/GOLDWYN`, `$017F` is 17/18/19 and CGRAM `$C0` equals assets `0x17/0x18/0x19` (12 checks, `analysis/generated/tier-opponent-probe.json`). The opponent is therefore `17 + medal held for this tour and rider`.
+
+**Hunter and generalisation:**
+- **Hunter:** with MIKE's eight main-tour medals gold and tier tables `10D3/10FD` = 3, TOUR_SELECT becomes the nine-tour page `0x10`, and HUNTER sits at `$009B`=8. TRACK_SELECT lists GRILLER, TWO LOOPS, NEON, HAMSTER and TO AND FRO under a GOLD label, although MIKE holds no Hunter medal. The card shows `VS ANTI-UNI`, `$017F`=20, and the P2 palette equals asset `0x1A`.
+- **Generalisation:** ANDREW (rider 1) on SHUFFLER (row 2) holding bronze faces SILVIA under a SILVER label, so the rule holds for a different rider column and tour row.
+- **Probe size:** 20 checks in total.
+
+**Uncertainty:** the opponent-selection code was not traced. The main-tour rule is black-box over medals 0–2 on two rider/tour pairs, and the Hunter tier label's source is unexplained.
+
+### R-2026-10-03-UI-07 — Records/results screens reuse the menu grammar; small-font punctuation decoded
+
+**Status:** reproduced locally (reference harness)  
+**Date:** 2026-10-03  
+**Area:** frontend presentation
+
+**Observation:** RESULT_RACE (`0x99`, DRAGSTER COMPLETE) and the four Records screens decode with the same two fonts, yellow titles over grey headings and data:
+- Track Records `0xCC` scrolls BG2 vertically (vofs 261).
+- High Scores `0xBF`, Player Scores `0xD0` and Group Scores `0xF3` complete the set; the GROUP TABLES menu item opens GROUP SCORES.
+- Small-font punctuation tiles are `0xA2 %`, `0xA4 (`, `0xA7 -`, `0xA8 .` and `0xCC :`. `)` is `0xA4` with the tilemap H-flip bit.
+- A clean save shows `NO TIME` / `SOMEONE` placeholders and zero stats.
+
+**Evidence:** `tools/extract_menu_visual_language.py --catalog` over the `ui-race-result-route` and `ui-records-submenus` captures → `screen_catalog` in `analysis/generated/menu-visual-language.json` (label checks per screen).
+
+**Interpretation:** A modern records/statistics surface can embed these as faithful views, since their composition is a small, regular extension of the menu contract.
+
+### R-2026-10-03-UI-08 — Attract cycle: 503-frame idle, title, split-screen demo race
+
+**Status:** reproduced locally (reference harness), edges promoted to verified  
+**Date:** 2026-10-03  
+**Area:** frontend | attract
+
+**Observation:** From a clean-boot MAIN_MENU with no input, four consecutive cycles each:
+- idle exactly 503 frames, then fade to the title screen `0x84`;
+- spend 588–620 frames before the demo race starts (blanked course load in between, during which DP `$9F` is scratch);
+- run a split-screen two-player demo race for 2190–2192 frames, then return through the title to MAIN_MENU (cycles of 3318–3350 frames).
+
+Demo courses advanced `00CE`=1, 3, 4, 5 (tour row 0, 0, 0, 1). The first demo's HUD names were AMY and ALICE, while `$017D/$017F` read 3/1, so the demo stores racer identity elsewhere. Pressing Start mid-demo leaves through the title back to MAIN_MENU.
+
+**Evidence:** `tests/input/attract-cycle.script`, `tests/input/attract-exit.script`, `tools/probe_attract_cycle.py` → `analysis/generated/attract-cycle.json` (5 checks; ~20 s locally from snesref's per-frame low-WRAM trace). UI edges `main-demo` / `demo-main` are now `verified` under fixture `attract-cycle`.
+
+**Uncertainty:** The course-selection rule (it skipped stunt track 2 in this sample) and the demo's input source (recorded vs AI) are not established.
+
+### R-2026-10-03-UI-09 — Circuit and stunt result IDs verified; 1P results advance to TRACK_SELECT
+
+**Status:** reproduced locally (reference harness), menu IDs and edges promoted  
+**Date:** 2026-10-03  
+**Area:** frontend | results
+
+**Observation:** Replaying the Dessyreqt 2014 movie, which stays in sync on the pinned modern core through the first Crawler tracks, reaches every result family:
+- RESULT_RACE `0x99` (DRAGSTER COMPLETE);
+- RESULT_CIRCUIT `0xBC`, a per-lap time graph "LAPS ON ZOOM ZOO" with TOTAL / BEST LAP columns;
+- RESULT_STUNT summing `0x2F`, then final `0x18` (BOWL table, player score, QUALIFY 68).
+
+The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so POST_RESULT_DECISION is not on the 1P path for any track type. Two harness notes:
+- `7E:0313` reads `0x3C/0x3D` on circuit/stunt result screens, so it is not a pure in-race boolean there.
+- `0x84` also appears for about 33 frames in the post-race fade, so it is a title/fade handler value rather than a unique SPLASH ID.
+
+**Evidence:** `tools/probe_result_screens.py` → `analysis/generated/result-screens-probe.json` (9 checks, ~1 minute). Fixture `result-screens`; UI edges `game-circuit-result`, `game-stunt-result`, `circuit-result-track` and `stunt-result-track` are verified, and menu-index `0x84/0x10/0xBC/0x2F/0x18` are now verified.
+
+**Uncertainty:** The advance came from movie input, so automatic timeouts on these screens are not measured. The other bot-listed stunt summing values (`0xAD`, `0xAF`, `0xB3`, `0xD3`, `0xD8`, `0xED`, `0xF3`) were not observed; `0xF3` is also the GROUP SCORES screen ID, so DP `$9F` reuse makes that list unreliable.
+
+### R-2026-10-03-UI-10 — VS challenger flow appears only after a decided race; the loser picks
+
+**Status:** reproduced on snesref (dual-controller patch); native/Mesen pending  
+**Date:** 2026-10-03  
+**Area:** frontend | multiplayer
+
+**Observation:** The frozen `vs-first-race` route goes VS_SELECT (`0x3E`) → TOUR_SELECT (`0x6D`) → TRACK_SELECT (`0x91`) → NOW PLAYING. Its `vs-challenger`/`vs-challenge-track` checkpoint names are historical, not those states.
+- **Decided race:** extending it with a P1 Dragster drive (from `ui-race-result-route.script`, plus right+B/right pulses) makes P1 finish at 0:28.76 while P2 idles. The race ends and shows the VS result `0xF9` (MIKE time, ANDREW NO TIME), then VS CHAMPIONS `0xD3` (wins / today / %), then PICK CHALLENGER `0x3F`.
+- **Challenger pick:** on PICK CHALLENGER, P1 (winner) Right/A is inert. P2 Right/A picks a challenger and opens `0x5A`: NEXT TRACK / SAME TRACK / SELECT TRACK / SELECT TOUR / QUIT. NEXT TRACK reaches NOW PLAYING for Zoom Zoo.
+- **Drawn race:** a drawn race (both idle until the ~37670-frame timeout) shows `0xF9` with both NO TIME, then a REMATCH banner `0xB7` that waits for any button and returns to NOW PLAYING on the same track.
+
+**Evidence:** `tests/input/vs-challenger-route.input` + `vs-challenger-route-observe.script`, and `vs-first-race.input` + `vs-draw-rematch-observe.script`. `tools/probe_vs_challenger.py --snesref <dual-controller build>` → `analysis/generated/vs-challenger-probe.json` (10 checks, ~40 s). UI edges `vs-challenger`, `vs-track`, `vs-prerace` and `vs-draw-rematch` are verified, and menu index `0x3F/0x5A/0xF9/0xD3/0xB7` added or promoted.
+
+**Harness note:** `tools/patches/snesrecomp-dual-controller-input.patch` applies to the pinned submodule in CI. Against the bootstrap-staged `.tools/src/snesrecomp` its last hunk (port-1 `retro_set_controller_port_device`) fails and must be applied by hand. The pinned snesref without the patch silently ignores the P2 column.
+
+**Uncertainty:** native-recomp and Mesen have not run this route, so `multiplayer_behavioral_verification` stays open. The bot's `0xD3` stunt-summing label is unconfirmed (`0xD3` here is VS CHAMPIONS). Track-choice branches were later verified: SAME TRACK → NOW PLAYING on the same course (now showing the winner's record), SELECT TRACK → TRACK_SELECT `0x91`, SELECT TOUR → TOUR_SELECT `0x6D`, QUIT → MAIN_MENU (14 checks).
+
+### R-2026-10-03-UI-11 — Records sub-screen exits classified; 009F goes stale on Records
+
+**Status:** reproduced locally (reference harness)  
+**Date:** 2026-10-03  
+**Area:** frontend | records
+
+**Observation:**
+- **Track Records** (`0xCC`) draws its table progressively, and a button pressed during the build is swallowed. Once the table is complete, A/B/X/Y/Start return to the RECORDS list (BG2 vofs 261 → 0); Select and the D-pad do not.
+- **High Scores** returns to the RECORDS list on X.
+- **Stale `7E:009F`:** after both exits `7E:009F` keeps a stale value (`0x5A` and `0xBF`), so on Records sub-screens the visible screen and BG2 scroll, not `009F`, identify the state. This resolves the earlier "Track Records X shows 0x5A" note.
+
+**Evidence:** `tests/input/ui-record-track-exit.script` (fixture `ui-record-track-exit`) and an 11-button sweep; `ui-records-submenus` snesref run for High Scores. UI edges `record-track-back` and `record-high-back` are verified. The coverage report's only remaining Tier 1 gap is ENDING (`0x5B`).
+
+### R-2026-10-03-UI-12 — Ending shortcut not reproduced (bounded negative)
+
+**Status:** negative, bounded; ENDING stays the only Tier 1 UI gap  
+**Date:** 2026-10-03  
+**Area:** frontend | ending
+
+**Observation:** On snesref, the publicly reported title-screen chord (hold Down+L+R, press B) never set `7E:009F = 0x5B`. Five timings were tried: the existing fixture firing at `0x84` appearance (frame 248, still blanked), held after the boot title fades in (30+4 and 60 frames), a double-tap, and on the attract title after the 503-frame idle. A static ROM search for `LDA #imm / STA $9F` finds only `LDA #$84 / STA $9F` at `80:A18E`, with no literal 0x5B, 0xD7 or 0x3F stores, so menu values are likely derived (e.g. handler-pointer low bytes).
+
+**Interpretation:** The cheat-site shortcut is either wrong for this ROM/region or needs an unmodelled precondition. It is not worth further timing sweeps.
+
+**Next discriminator (only if ENDING becomes product-relevant):** trace writers of DP `$9F` around a natural Hunter-gold completion, or find the ending entry by its unique graphics/music load rather than the menu byte.
+
+### R-2026-10-03-UI-13 — Ordinary 2P post-race flow differs from VS
+
+**Status:** reproduced on snesref (dual-controller patch)  
+**Date:** 2026-10-03  
+**Area:** frontend | multiplayer
+
+**Observation:** With the same P1 Dragster drive grafted onto `two-player-first-race.input`, P1 finishes (FINISH / WINNER 0:28.76), but the race continues: P2's idle half shows scrolling tips ("IN THE AIR", "MORE STUNTS") until the ~37670-frame timeout. The result is the shared multiplayer screen `0xF9`. One advance goes straight to the five-option track choice `0x5A`, with no VS CHAMPIONS and no PICK CHALLENGER. NEXT TRACK reaches NOW PLAYING with a running win tally (MIKE 1, ANDREW 0) on Zoom Zoo.
+
+**Interpretation:** POST_RESULT_DECISION is real for ordinary 2P and is the same `0x5A` menu VS uses after its challenger pick. A VS race ends at the first finish, whereas ordinary 2P waits for both racers or the timeout.
+
+**Evidence:** `tests/input/two-player-p1-win.input` + `two-player-p1-win-observe.script`; `tools/probe_vs_challenger.py` (17 checks in total). UI edges `two-player-result-decision` and `two-player-decision-next` are verified, and menu index `0x5A` is now variant-qualified for its VS and 2P meanings.
+
+### R-2026-10-03-UI-14 — League entry and the guarded redefine chord reproduced (Tier 2 harvest)
+
+**Status:** reproduced locally; membership/naming not yet driven  
+**Date:** 2026-10-03  
+**Area:** frontend | league
+
+**Observation:**
+- **Slot list:** from a clean save, MAIN_MENU → LEAGUE shows a six-slot list (`0x56`, ONE..SIX : DEFINE ME), and A on an undefined slot does not advance. OPTIONS → DEFINE LEAGUE opens the same list.
+- **Guard:** A on a slot shows WARNING `0x9A` ("THIS OPTION WILL REMOVE DEFINE ME / SELECT+Y+A TO REMOVE"). The SELECT+Y+A chord opens the PICK YOUR LEAGUE rider grid with a "2 MIN" banner, a two-rider minimum, so the manual's guarded destructive chord is real.
+- **Editor input:** in this probe, A presses and Start in the editor did not reach NAME_LEAGUE. The membership input sequence is unmapped, and `7E:009F` reads scratch values there (`0x3F`/`0x73`).
+
+**Evidence:** `tests/input/ui-league-probe.script` (fixture `ui-league-probe`), decoded with `extract_menu_visual_language.catalog_screen`. Edges `main-league` and `options-define-league` are verified, and menu index `0x56` / `0x9A` added.
+
+**Policy consequence:** `destructive-controller-chords` (redesign_decided) now has runtime evidence for both chords' guard screens: the erase-all confirmation (documented) and this league-redefine WARNING.
+
+**Bounded follow-up (negative):** in the editor the cursor arrow recolors to the highlighted rider, and A toggles that rider's unicycle icon into an animated "selected" pose (three riders added). B/X show an `X` removal marker. Start (2- and 12-frame holds), B and X never reached NAME_LEAGUE, and the "2 MIN" banner stayed. The confirm gesture is therefore unknown; one candidate is that Start must come from a different controller or after a specific cursor position. Do not repeat blind button sweeps; trace the editor's input handler if League naming becomes relevant.
+
+### R-2026-10-03-UI-15 — Erase-all is a two-stage guarded reset to the fresh-format image
+
+**Status:** reproduced locally (reference harness)  
+**Date:** 2026-10-03  
+**Area:** frontend | SRAM
+
+**Observation:** Left+A+L+R on MAIN_MENU shows the two-option menu WIPE RAM / MAIN MENU (`0x58`), and X cancels. A on WIPE RAM opens a full-screen WARNING ("THIS OPTION WILL RESET YOUR GAME PAK'S MEMORY TO ITS FACTORY DEFAULT / YOU WILL LOSE ALL YOUR RECORDS ETC. / SELECT+Y+A TO RESET"), where `7E:009F` reads scratch `0xF9`. SELECT+Y+A resets SRAM. From a save with Crawler/MIKE medal 2, the medal becomes 0, the checksum stays valid, and the result equals a clean-boot formatted image except the live working bytes (`0742..0750`, `1073`, `10A7`, `10AD`). The screen also identifies small-font tiles `0xA3` = `'` and `0xA5` = `+`.
+
+**Evidence:** `tests/input/ui-erase-confirm.script`, `tests/input/ui-erase-reset.script` (seeded SRAM); edges `main-erase`, `erase-cancel-main` and `erase-confirm-reset` are verified, and menu index `0x58` added.
+
+**Policy consequence:** both destructive chords (erase-all, league redefine) are already guarded by a WARNING plus a SELECT+Y+A confirmation in stock. The modern `destructive-controller-chords` redesign replaces the chord entry and confirmation with explicit UI, not an unguarded action.
+
+### R-2026-10-03-UI-16 — Forbidden-name detection rule recovered from ROM
+
+**Status:** static decode, structurally checked; runtime rejection not yet reproduced  
+**Date:** 2026-10-03  
+**Area:** frontend | naming
+
+**Observation:** The canonical ROM holds 71 `FF`-terminated lowercase words at `83:85C5..8778`, mostly profanity plus `sega` and `sonic`, addressed by a 71-entry pointer table at `83:8537`.
+- **Matcher:** `83:8779` compares one table word against the name at the current position (a prefix test).
+- **Scanner:** `83:84DD` runs that test for all 71 words, then `INC $04` advances the name offset until the name's `FF`.
+- **Rule:** a name is rejected if any word occurs anywhere in the stored lowercase name. "SONICFAN" and "BASSIST" are rejected; none of the 16 default racer names are.
+
+**Evidence:** `tools/extract_forbidden_name_table.py` → `analysis/generated/forbidden-name-table.json` (6 structural checks). The report stores locations, count, length range and a SHA-256, not the words; `words_from_rom()` derives them and `--check NAME` applies the rule.
+
+**Policy consequence:** the decided modern COOL NAME! acknowledgement can reuse this exact rule, detecting like stock and then accepting the name.
+
+**Uncertainty:** which name buffers call `83:84DD` (player, League or both) is not traced, and runtime confirmation waits on the open `name_entry_cursor_mapping` capability.
+
+### R-2026-10-03-UI-17 — Name editor bound; forbidden-name rule runtime-confirmed (inline NOT COOL ENOUGH)
+
+**Status:** reproduced locally (reference harness); `name_entry_cursor_mapping` capability complete  
+**Date:** 2026-10-03  
+**Area:** frontend | naming
+
+**Observation:**
+- **Grid:** in RENAME PLAYER → MIKE, the cursor OBJ moves 16 px per column and 24 px per row on a 13-column grid (x = 24 + 16·col, y = 24 + 24·row). It starts on T (row 1, column 6). Row 0 is A–M, row 1 N–Z, row 2 the delete arrow then 0–9, and row 3 punctuation with OK at column 12. A enters the highlighted cell, and `7E:009F` reads `0x0C` + typed length while editing.
+- **OK:** on SONIC, XSEGAX or BASSIST, OK shows an inline "NOT COOL ENOUGH" under the name, keeps the editor open, and leaves SRAM unchanged. The rejection is a message, not a separate screen. ZED is accepted: it is written lowercase and FF-terminated into the rider's SRAM name record (older bytes beyond the terminator remain), and the menu returns to OPTIONS.
+
+**Evidence:** `tools/probe_name_entry.py` → `analysis/generated/name-entry-probe.json` (4 checks, ~5 s). Edges `options-rename-player`, `rename-player-editor`, `rename-editor-options`, `rename-editor-rejection` and `rejection-rename-editor` are verified. The runtime binding is added to `analysis/ui-text-entry-layout.json`.
+
+**Policy consequence:** stock already frames the filter around "coolness" ("NOT COOL ENOUGH"), so the decided modern COOL NAME! acknowledgement is a direct inversion of the original message, applied with the identical detection rule.
+
+**Uncertainty:** NAME_LEAGUE parity, B-versus-A entry, and the delete arrow are unexercised.
+
+### R-2026-10-03-UI-18 — Track Records SRAM table decoded (top-3 per track with holders and checksum)
+
+**Status:** reproduced locally (reference harness)  
+**Date:** 2026-10-03  
+**Area:** SRAM | records
+
+**Observation:**
+- **Records:** 150 words at SRAM `0x0422`, indexed `50*rank + 5*tour_row + track`. Race tracks store the finish time and circuit tracks the best lap (both in 1/100 s, default 60000 = NO TIME); stunt tracks store the score (default 0).
+- **Checksum and holders:** `0x054E` is their 16-bit sum, and `0x0550 + index` holds the holder rider index (default 16 = `someone`).
+- **Ranks:** the first clean-save Dragster finish (2856 = 0:28.56) fills rank 0 for MIKE, and an equal second finish fills rank 1 (index 50). The Track Records screen then shows MIKE's red star on both the GOLD and SILVER rows, so those rows are 1st/2nd/3rd best, not medal tiers.
+- **Track types:** the Dessyreqt movie stores a Zoom Zoo best lap of 2510 (0:25.10, not the 1:16.46 total) and a Bowl score of 764.
+- **Last race:** `0x0618/0x061A` hold the last race's P1 and opponent result values.
+
+**Evidence:** `tools/probe_track_records_sram.py` → `analysis/generated/track-records-sram.json` (8 checks, ~40 s). SYMBOLS rows were added for the name table, tour-win counter, track records, checksum, holders and last-race slots.
+
+**Uncertainty:** group 9 of the ten five-track groups is unidentified (Hunter is group 8). Insertion and tie rules beyond equal times landing in the next rank are untested. The High Scores and Player Scores storage is not mapped.
+
+### R-2026-10-03-UI-19 — Correction: the "tour-win counter" is the Player Scores PLAYED stat
+
+**Status:** reproduced locally (reference harness); corrects R-2026-10-03-UI-01  
+**Date:** 2026-10-03  
+**Area:** SRAM | progression | product policy
+
+**Observation:** Two clean-save Dragster runs that MIKE *lost* to Bronsen (0:28.56 vs 0:27.98) leave SRAM `0x0230` = 2, `0x0232` = 0 and `0x0236` = 0, and Player Scores shows PLAYED 2, WON 0%, LOST 100%. The movie save after three won races and the Bowl stunt has `0x0230` = 3, `0x0232` = 3 and `0x0236` = 764, and Player Scores shows PLAYED 3, WON 100%, SCORE 764. So for rider 0, `0x0230` is PLAYED, `0x0232` WON and `0x0236` SCORE: lifetime per-rider stats, which naturally persist. `0x10A9` tracked the same count in the movie run but is not yet identified.
+
+**Interpretation:** R-2026-10-03-UI-01 showed only that a lifetime stat survives power-off and keeps counting. That says nothing about unfinished tour progress. Whether stock loses an unfinished tour on power-off is **unknown** again, and the planning premise ("loss of unfinished tour/session progress") is neither confirmed nor refuted. Weak hint: after a reload the movie's post-race route returned to TRACK_SELECT rather than advancing to the next track, but the movie was out of sync by then.
+
+**Consequences:** the policy feature reverts to the `unfinished-tour-session-loss` redesign candidate. PROJECT-PLAN, UI-STATE-MAP, WORK-QUEUE, the knowledge page and SYMBOLS are corrected. `tools/probe_tour_progress_persistence.py` remains a valid regression for stat persistence only.
+
+**Next discriminator:** find the in-session tour state (which tracks are complete) in WRAM. Win one Crawler track, reload, win a second, and check whether the tour medal is awarded after five wins spanning a power cycle.

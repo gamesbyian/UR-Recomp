@@ -1,0 +1,24 @@
+# Track Records exit probe. The table draws progressively for roughly the first 60+ frames;
+# a button pressed during the build is swallowed. A second X after the build returns to the
+# RECORDS list (BG2 vofs back to 0) while 7E:009F keeps a stale 0x5A.
+until 009F == D7 3600
+wait 60
+press down 1
+press down 1
+press down 1
+press down 1
+wait 30
+press a 2
+wait 60
+press a 2
+wait 60
+press a 2
+wait 60
+dump ui-record-track-building
+press x 2
+wait 60
+dump ui-record-track-built
+press x 2
+wait 60
+dump ui-record-track-exit
+quit

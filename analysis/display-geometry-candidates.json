@@ -19,8 +19,9 @@
       "target_aspect": "16:9",
       "crop_top": 0,
       "crop_bottom": 0,
-      "status": "par-evidence-backed-overscan-provisional",
-      "par_evidence": "analysis/display-reference-geometry.json"
+      "status": "par-evidence-backed-preservation-preferred",
+      "par_evidence": "analysis/display-reference-geometry.json",
+      "active_height_evidence": "analysis/display-active-height-evidence.json"
     },
     {
       "id": "raw-square-216",
@@ -38,13 +39,14 @@
       "target_aspect": "16:9",
       "crop_top": 4,
       "crop_bottom": 4,
-      "status": "par-evidence-backed-overscan-exploratory",
-      "par_evidence": "analysis/display-reference-geometry.json"
+      "status": "par-evidence-backed-content-loss-demonstrated",
+      "par_evidence": "analysis/display-reference-geometry.json",
+      "active_height_evidence": "analysis/display-active-height-evidence.json"
     }
   ],
   "notes": [
     "The official USA manual now provides Uniracers-specific evidence for the 4:3 display family and therefore 7:6 horizontal correction of a 256-wide source; see analysis/display-reference-geometry.json.",
-    "The manual evidence does not reliably discriminate full 224-line presentation from a modest vertical overscan crop, so 224-vs-216 remains the active title-specific display discriminator.",
+    "The manual evidence does not reliably discriminate full 224-line presentation from a modest vertical overscan crop. Canonical framebuffer evidence now proves that centered 216-line cropping is not content-neutral: it discards distinct rendered information in representative menu, transition and race captures.",
     "The host-owned provider is validated through +72, so every current candidate margin remains within proven presentation capacity."
   ]
 }

@@ -2091,6 +2091,8 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 
 **Policy consequence:** `destructive-controller-chords` (redesign_decided) now has runtime evidence for both chords' guard screens: the erase-all confirmation (documented) and this league-redefine WARNING.
 
+**Bounded follow-up (negative):** in the editor the cursor arrow recolors to the highlighted rider, and A toggles that rider's unicycle icon into an animated "selected" pose (three riders added). B/X show an `X` removal marker. Start (2- and 12-frame holds), B and X never reached NAME_LEAGUE, and the "2 MIN" banner stayed. The confirm gesture is therefore unknown; one candidate is that Start must come from a different controller or after a specific cursor position. Do not repeat blind button sweeps; trace the editor's input handler if League naming becomes relevant.
+
 ### R-2026-10-03-UI-15 — Erase-all is a two-stage guarded reset to the fresh-format image
 
 **Status:** reproduced locally (reference harness)  

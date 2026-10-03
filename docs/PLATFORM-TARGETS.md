@@ -47,17 +47,21 @@ Do not move platform assumptions into guest simulation, progression/SRAM semanti
 
 ## Display and refresh policy
 
-All graphical hosts should expose presentation settings appropriate to their platform without changing simulation semantics.
+All graphical hosts should expose presentation settings appropriate to their platform without changing simulation semantics. The cross-platform semantic contract is `DISPLAY-PRESENTATION-POLICY.md`; platform adapters translate that contract into concrete display APIs rather than redefining it.
 
 Shared expectations:
 
 - support native/automatic output resolution plus common explicit resolutions;
 - desktop hosts should support windowed, borderless and fullscreen modes;
 - output resolution and internal render scale are independent;
+- **display geometry / pixel aspect is independent from logical view width**;
+- Authentic 4:3, Raw Pixels, and modern square-pixel presentation must preserve their semantic meaning across hosts even when a platform exposes fewer knobs;
+- Original/16:9/possible Adaptive or ultrawide view choices must alter presentation extent only, never simulation authority;
+- overscan/safe-area treatment is independent from both pixel aspect and logical view;
 - VSync and presentation refresh/FPS targets are user-configurable where the platform allows;
 - 60/90/120/144 Hz and native/high-refresh presentation should be possible without speeding up or slowing down the game;
 - presentation interpolation, if introduced, is strictly host-side and may not become authoritative state;
-- Authentic mode must preserve a literal/reference presentation path;
+- Authentic mode must preserve a validated historical/reference presentation path;
 - console hosts may expose fewer choices when the platform fixes output modes, but they must preserve the same separation between simulation cadence and presentation cadence.
 
 The canonical simulation rate remains fixed to the original game. No platform may reinterpret a user-selected display FPS as a request to change physics, timers, AI, RNG, stunt windows, replay timing or records.

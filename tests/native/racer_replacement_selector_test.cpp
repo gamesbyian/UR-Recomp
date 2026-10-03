@@ -1,6 +1,7 @@
 #include "racer_replacement_selector.hpp"
 
 #include <cassert>
+#include <initializer_list>
 
 using namespace ur::presentation;
 
@@ -337,6 +338,46 @@ int main() {
     assert(select_racer_presentation(
         GraphicsPack::Remastered, 0x0540, reverse_predecessor_mismatch
     ).fallback_reason == FallbackReason::CompositionMismatch);
+
+    for (const std::uint16_t companion : {std::uint16_t{0x0D2C}, std::uint16_t{0x0D4C}}) {
+        const RacerCompositionState context{
+            0x0540,
+            0x0542,
+            companion,
+            0x0000,
+            0,
+            0,
+            0x0001,
+            0x0000,
+        };
+        const auto* p1_context =
+            find_racer_registration_for_state(0x0540, context);
+        const auto* p2_context =
+            find_racer_registration_for_state(0x0542, context);
+        assert(p1_context != nullptr);
+        assert(p2_context != nullptr);
+        assert(p1_context->player == 1);
+        assert(p2_context->player == 2);
+        assert(p1_context->contact_anchor.x2 == 63);
+        assert(p1_context->contact_anchor.y2 == 76);
+        assert(p2_context->contact_anchor.x2 == 59);
+        assert(p2_context->contact_anchor.y2 == 76);
+        assert(select_racer_presentation(
+            GraphicsPack::Remastered, 0x0540, context
+        ).registration == p1_context);
+        assert(select_racer_presentation(
+            GraphicsPack::Remastered, 0x0542, context
+        ).registration == p2_context);
+    }
+
+    const RacerCompositionState discriminator_a{
+        0x0540, 0x0542, 0x0D2C, 0x0000, 0, 0, 0x0001, 0x0000
+    };
+    const RacerCompositionState discriminator_b{
+        0x0540, 0x0542, 0x0D4C, 0x0000, 0, 0, 0x0001, 0x0000
+    };
+    assert(find_racer_registration_for_state(0x0540, discriminator_a) !=
+           find_racer_registration_for_state(0x0540, discriminator_b));
 
     return 0;
 }

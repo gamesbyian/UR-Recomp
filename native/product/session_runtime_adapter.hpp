@@ -19,6 +19,8 @@ struct SessionRuntimeHooks {
     void (*set_paused)(int paused) = nullptr;
     int (*is_paused)(void) = nullptr;
     bool (*restart_race)(void) = nullptr;
+    void (*set_rewind_audio_timing_lock)(int active) = nullptr;
+    void (*reconcile_after_restart)(void) = nullptr;
 };
 
 RuntimeDispatchStatus dispatch_runtime_action(

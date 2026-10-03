@@ -1414,6 +1414,30 @@
               "p1": "0x0001",
               "p2": "0x0000"
             }
+          },
+          {
+            "checkpoint": "native-dense-trace-1304-and-1384",
+            "workflow_run": 37091767790,
+            "artifact_id": 11262604464,
+            "frames": [
+              1304,
+              1384
+            ],
+            "ids": {
+              "p1_primary": "0x057D",
+              "p2_primary": "0x0543",
+              "p1_companion": "0x0D48",
+              "p2_companion": "0x0000"
+            },
+            "selectors": {
+              "p1": 0,
+              "p2": 0
+            },
+            "companion_gate_words": {
+              "p1": "0x0001",
+              "p2": "0x0000"
+            },
+            "source": "dense post-guest-frame WRAM trace; exact tuple repeats at both frames"
           }
         ]
       }

@@ -46,7 +46,8 @@ extern "C" UrModernSessionResult ur_modern_pause_handle_action(
             return ur_modern_session_handle_key(
                 session, UR_MODERN_SESSION_KEY_RESTART);
         }
-        if (selected == UR_MODERN_PAUSE_FOCUS_PAUSE) {
+        if (selected == UR_MODERN_PAUSE_FOCUS_PAUSE ||
+            selected == UR_MODERN_PAUSE_CONTROLS) {
             return UR_MODERN_SESSION_NO_OP;
         }
         return ur_modern_session_handle_key(

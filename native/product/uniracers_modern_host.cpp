@@ -1,6 +1,9 @@
 #include "uniracers_modern_host.h"
 
+extern "C" {
 #include "common_rtl.h"
+}
+
 #include "desktop/config.h"
 #include "desktop/host_main.h"
 #include "desktop/sdl_compat.h"

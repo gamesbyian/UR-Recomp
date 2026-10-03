@@ -102,6 +102,22 @@ constexpr bool is_authored_0540_p1_predecessor_registration(
            s.p2_companion_gate_word == 0x0000;
 }
 
+constexpr bool is_authored_0540_p1_companion_0d2c_with_p2_0542_registration(
+    const RacerRegistration& registration
+) noexcept {
+    const auto& s = registration.composition;
+    return registration.player == 1 &&
+           registration.semantic_frame_id == 0x0540 &&
+           s.p1_primary == 0x0540 &&
+           s.p2_primary == 0x0542 &&
+           s.p1_companion == 0x0D2C &&
+           s.p2_companion == 0x0000 &&
+           s.p1_selector == 0 &&
+           s.p2_selector == 0 &&
+           s.p1_companion_gate_word == 0x0001 &&
+           s.p2_companion_gate_word == 0x0000;
+}
+
 constexpr std::uint32_t authored_red_frame_color(
     int x,
     int y
@@ -363,7 +379,12 @@ constexpr std::uint32_t sample_racer_hd_asset(
             x, y, hflip, vflip
         );
     }
-    if (is_authored_0540_p1_predecessor_registration(registration)) {
+    if (is_authored_0540_p1_predecessor_registration(registration) ||
+        is_authored_0540_p1_companion_0d2c_with_p2_0542_registration(
+            registration
+        )) {
+        // The two exact synchronized contexts have byte-identical stock P1
+        // rasters, so they intentionally share one reviewed authored asset.
         return sample_racer_hd_authored_0540_p1_predecessor(
             x, y, hflip, vflip
         );

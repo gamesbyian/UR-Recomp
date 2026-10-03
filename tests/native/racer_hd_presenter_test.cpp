@@ -112,6 +112,29 @@ int main() {
     assert(reversed_bottom_min_lx == 30);
     assert(reversed_bottom_max_lx == 33);
 
+    // Frame 1217 has a distinct synchronized context but a byte-identical
+    // P1 stock raster, so it must resolve to the exact same reviewed authored
+    // sampler as frame 1218 rather than inventing another visual pose.
+    RacerCompositionState reused_context{
+        0x0540, 0x0542, 0x0D2C, 0x0000, 0, 0, 0x0001, 0x0000
+    };
+    const auto* reused =
+        find_racer_registration_for_state(0x0540, reused_context);
+    assert(reused != nullptr);
+    assert(
+        is_authored_0540_p1_companion_0d2c_with_p2_0542_registration(
+            *reused
+        )
+    );
+    for (int y = 0; y < kRacerHdAssetSize; y += 7) {
+        for (int x = 0; x < kRacerHdAssetSize; x += 7) {
+            assert(
+                sample_racer_hd_asset(*reused, x, y, false, false) ==
+                sample_racer_hd_asset(*reversed, x, y, false, false)
+            );
+        }
+    }
+
     // Object-local H/V reflection remains a post-selection presentation
     // transform for authored art.
     const std::uint32_t pedal =

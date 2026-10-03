@@ -141,5 +141,29 @@
       "Modern autosave/profile work should preserve guest SRAM as the authoritative progression substrate."
     ],
     "canonical_status_note": "IA3-R01 and the detailed native-hook observations in IA3-W02 are retained run evidence from still-open PRs and must not be mistaken for merged implementation acceptance."
+  },
+  "post_audit_resolutions": {
+    "date": "2026-10-03",
+    "IA3-R01": {
+      "status": "resolved",
+      "pr": 235,
+      "workflow_run": 37080761750,
+      "resolution": "Extended APU frame timing used RtlApuFrameClock outside rollback residue. Residue v7 now saves/restores it; unchanged 60-frame forward replay acceptance passes.",
+      "current_consequence": "Restart state semantics are closed; remaining work is product/UI integration."
+    },
+    "IA3-W02": {
+      "status": "resolved_for_plus8",
+      "pr": 228,
+      "workflow_run": 37081391730,
+      "resolution": "The prior 606/617 strict-adjacency result was an analyzer-model error. The 16-bit edge word is a compound preparation coordinate; all 617 same-camera +8 transitions use stock-observed step shapes (+1, -31, +33).",
+      "retained_acceptance": {
+        "exact_future_stock_matches": 317,
+        "longest_consecutive_exact_match_run": 25,
+        "protected_state_equal": true,
+        "margin16_first_constraint": "secondary-lane-capacity",
+        "margin24_first_constraint": "secondary-lane-capacity"
+      },
+      "current_consequence": "+8 native hook is accepted; wider margins require deliberate presentation-capacity expansion."
+    }
   }
 }

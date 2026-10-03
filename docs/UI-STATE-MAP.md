@@ -88,6 +88,14 @@ The strongest current candidates for **modern product-layer simplification** are
 - basic control/status information should not depend on an instruction manual, while secrets and advanced discoveries can remain intentionally opaque;
 - preserve the original forbidden-name detection as a modern Easter egg: entering one of those names should show a special **"COOL NAME!"** acknowledgement and then accept the name rather than reject it.
 
+### Frontend modernization classification
+
+`analysis/frontend-modernization-policy.json` applies the PROJECT-PLAN subtraction rule to every conceptual state in this map. Each original feature is classed as a **presentation artifact**, **gameplay mechanic** or **administrative** system and given a Modern-mode disposition: `preserve`, `preserve_and_augment`, `redesign_decided` (policy already made; must cite the owning heading) or `redesign_candidate` (open; must name its decision gate). Only administrative features may be redesigned, and Authentic/reference mode reproduces stock behavior for all of them. A single state can carry several features, e.g. `PLAYER_SELECT_P1` keeps its roster presentation while the racer-as-save-slot administration is redesigned.
+
+Current shape: presentation (menu visual language, input convention, roster presets, tour/track icons, now-playing card, HUD, stock pause overlay, result rituals, record tables, name editor, attract/demo, ending) and mechanics (race simulation, VS challenge rules, tour unlock/Hunter, medal thresholds) are all preserved or augmented. Decided redesigns are racer-as-save-slot, destructive controller chords and forbidden-name rejection (→ **COOL NAME!**). Open candidates are the main-menu mode structure, sequential multiplayer rider claim, medal-tier repeat clears, unfinished-tour session loss, post-result navigation, League administration, the Options hub, the Records silo layout and the controller-grid name-entry method.
+
+The JSON is product policy, not fidelity evidence. Edit it when a product decision changes; `python3 tools/validate_frontend_modernization_policy.py --summary` checks coverage and prints the per-state table.
+
 The state-level classification is now encoded in `analysis/ui-transition-contract.json` under `completion_tiers`. `tools/validate_ui_state_model.py` requires every conceptual state to appear in exactly one tier, and `tools/report_ui_coverage.py` reports Tier 1 gaps separately from the full archaeological queue. Edge evidence status remains independent: a Tier 1 edge may still be `documented`, `historical`, or `hypothesis` until runtime evidence promotes it.
 
 

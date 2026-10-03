@@ -1,0 +1,249 @@
+{
+  "schema_version": 1,
+  "description": "Product-policy classification of every original frontend conceptual state/feature for the modern product layer. Applies the PROJECT-PLAN.md modernization/subtraction rule: presentation artifacts and gameplay mechanics are preserved; administrative or hardware-era systems may be redesigned in Modern mode. Authentic/reference mode always reproduces stock behavior for every feature listed here. This file records product decisions and open questions; it is not fidelity evidence and never overrides analysis/ui-state-map.yml or analysis/ui-transition-contract.json.",
+  "owner": "docs/UI-STATE-MAP.md#frontend-modernization-classification",
+  "authentic_mode_invariant": "Every feature is reproduced as stock behavior in Authentic/reference mode. A Modern-mode disposition never authorizes guest WRAM/SRAM/simulation changes; redesigns attach through host/product interfaces (docs/MODERN-PRODUCT-LAYER.md).",
+  "classes": {
+    "presentation_artifact": "Player-visible communication: menu art, motion, typography, palette, icons, sounds, result rituals, indicators, secrets/discovery affordances. Preserve by default; elaboration may be added alongside.",
+    "gameplay_mechanic": "Rules that change what the player does or achieves: race simulation, scoring, medal thresholds, unlock conditions, mode rules. Preserve unless an evidence-backed product decision record exists.",
+    "administrative": "Systems whose main purpose came from shared-cartridge saves, limited storage, 1994 menu/controller conventions or content-padding repetition. Eligible for Modern-mode redesign or removal."
+  },
+  "dispositions": {
+    "preserve": "Modern mode keeps the original feature unchanged.",
+    "preserve_and_augment": "Modern mode keeps the original feature and adds clearer information, conveniences or host input alongside it.",
+    "redesign_decided": "Product policy already decided to redesign this administrative feature in Modern mode; implementation is pending. Requires policy_source.",
+    "redesign_candidate": "Administrative feature eligible for Modern-mode redesign; the decision is open. Requires decision_gate."
+  },
+  "allowed_dispositions_by_class": {
+    "presentation_artifact": ["preserve", "preserve_and_augment"],
+    "gameplay_mechanic": ["preserve", "preserve_and_augment"],
+    "administrative": ["preserve", "preserve_and_augment", "redesign_decided", "redesign_candidate"]
+  },
+  "features": [
+    {
+      "id": "startup-intro-presentation",
+      "states": ["BOOT_STARTUP", "SPLASH"],
+      "class": "presentation_artifact",
+      "modern": "preserve",
+      "rationale": "Startup and splash are original presentation with their own skip affordance; nothing about them is hardware-era administration."
+    },
+    {
+      "id": "attract-demo",
+      "states": ["DEMO"],
+      "class": "presentation_artifact",
+      "modern": "preserve_and_augment",
+      "rationale": "Baseline requirement: preserve original attract/demo behavior and leave a clean hook for a local recorded-run showcase.",
+      "policy_source": "docs/WORK-QUEUE.md#baseline-modern-product-requirements"
+    },
+    {
+      "id": "ending-sequence-and-shortcut",
+      "states": ["ENDING", "SPLASH"],
+      "class": "presentation_artifact",
+      "modern": "preserve",
+      "rationale": "The ending is a reward presentation and the title-screen chord is a secret; secrets and advanced discoveries stay intentionally opaque. The chord itself is not yet locally verified."
+    },
+    {
+      "id": "menu-visual-language",
+      "states": ["MAIN_MENU", "PLAYER_SELECT_P1", "TWO_PLAYER_SELECT", "VS_SELECT", "VS_CHALLENGER", "VS_CHALLENGE_TRACK", "TOUR_SELECT", "TRACK_SELECT", "LEAGUE_SELECT", "LEAGUE_TABLE", "OPTIONS_MENU", "RECORDS", "DEFINE_PLAYER", "RENAME_PLAYER", "DEFINE_LEAGUE"],
+      "class": "presentation_artifact",
+      "modern": "preserve",
+      "rationale": "Arrow cursor, menu art, motion, typography, palette and sounds are the recognizable menu character. Choices and grouping may change; the visual grammar may not be casually replaced. The reusable contract is a separate open queue item."
+    },
+    {
+      "id": "menu-input-convention",
+      "states": ["MAIN_MENU", "PLAYER_SELECT_P1", "TWO_PLAYER_SELECT", "VS_SELECT", "TOUR_SELECT", "TRACK_SELECT", "LEAGUE_SELECT", "LEAGUE_TABLE", "OPTIONS_MENU", "RECORDS", "RENAME_PLAYER"],
+      "class": "presentation_artifact",
+      "modern": "preserve_and_augment",
+      "rationale": "A/B forward, X/Y back and D-pad cursor are the documented interaction character. Modern mode adds host keyboard support and rebinding without changing the guest-visible convention."
+    },
+    {
+      "id": "main-menu-mode-structure",
+      "states": ["MAIN_MENU"],
+      "class": "administrative",
+      "modern": "redesign_candidate",
+      "rationale": "The five-entry 1P/2P/VS/LEAGUE/OPTIONS structure is navigation depth, not a mechanic. Modern practice/free-play, recent track and fast local multiplayer entry points may regroup it.",
+      "decision_gate": "Modern frontend information architecture: practice/free-play route and fast local multiplayer join/setup."
+    },
+    {
+      "id": "racer-roster-presets",
+      "states": ["PLAYER_SELECT_P1", "TWO_PLAYER_SELECT", "VS_SELECT"],
+      "class": "presentation_artifact",
+      "modern": "preserve_and_augment",
+      "rationale": "Every named/color-coded unicycle remains an exact preset and may also serve as AI/ghost/tournament cast; player-created racers are added beside them.",
+      "policy_source": "docs/PROJECT-PLAN.md#racer-identity-and-legacy-cast"
+    },
+    {
+      "id": "racer-as-save-slot",
+      "states": ["PLAYER_SELECT_P1", "TWO_PLAYER_SELECT", "VS_SELECT", "DEFINE_PLAYER", "RENAME_PLAYER"],
+      "class": "administrative",
+      "modern": "redesign_decided",
+      "rationale": "Named racers doubling as shared-cartridge save/profile slots is a storage-era constraint. Modern profiles separate save storage from racer identity.",
+      "policy_source": "docs/PROJECT-PLAN.md#racer-identity-and-legacy-cast"
+    },
+    {
+      "id": "multiplayer-sequential-rider-claim",
+      "states": ["TWO_PLAYER_SELECT", "VS_SELECT"],
+      "class": "administrative",
+      "modern": "redesign_candidate",
+      "rationale": "Sequential P1-then-P2 selector handoff and the claimed-rider exclusion boundary follow from racers being save slots and one shared selector. Modern simultaneous join may replace it; the authentic handoff remains a Tier 1 fidelity oracle.",
+      "decision_gate": "Fast local multiplayer join/setup design after the modern racer/profile model exists."
+    },
+    {
+      "id": "vs-challenge-rules",
+      "states": ["VS_CHALLENGER", "VS_CHALLENGE_TRACK"],
+      "class": "gameplay_mechanic",
+      "modern": "preserve",
+      "rationale": "Challenger and challenge-track selection define the VS mode contest structure. Runtime evidence is still historical-only (0x3F/0x5A bot labels), so promote it before any modern VS redesign is proposed."
+    },
+    {
+      "id": "tour-track-selection-presentation",
+      "states": ["TOUR_SELECT", "TRACK_SELECT"],
+      "class": "presentation_artifact",
+      "modern": "preserve_and_augment",
+      "rationale": "Animal tour icons and track-type icons are original indicators. Modern mode may add recent-track, practice and PB/medal information alongside."
+    },
+    {
+      "id": "tour-unlock-and-hidden-tour",
+      "states": ["TOUR_SELECT"],
+      "class": "gameplay_mechanic",
+      "modern": "preserve",
+      "rationale": "Tour availability and the hidden Hunter tour are progression rules and a discovery reward. Unlock transition evidence is still open (UIQ-010)."
+    },
+    {
+      "id": "medal-thresholds-and-targets",
+      "states": ["RESULT_RACE", "RESULT_CIRCUIT", "RESULT_STUNT", "RECORD_TRACK"],
+      "class": "gameplay_mechanic",
+      "modern": "preserve_and_augment",
+      "rationale": "Per-track medal thresholds define achievement. Modern mode shows exact target/medal deltas beside the original indicators; thresholds themselves are canonical in analysis/data/progression-model.json."
+    },
+    {
+      "id": "medal-tier-repeat-clears",
+      "states": ["TOUR_SELECT", "POST_RESULT_DECISION"],
+      "class": "administrative",
+      "modern": "redesign_candidate",
+      "rationale": "Mandatory Bronze then Silver then Gold re-clears of the same tour are content-padding repetition. Performance-based awarding or selectable challenge tiers are the candidates; Bronsen, Silverton and Goldwyn stay as named opponents regardless.",
+      "decision_gate": "Decide final modern medal/progression policy after original thresholds/state are mapped (WORK-QUEUE Phase 9)."
+    },
+    {
+      "id": "unfinished-tour-session-loss",
+      "states": ["TOUR_SELECT", "TRACK_SELECT", "POST_RESULT_DECISION"],
+      "class": "administrative",
+      "modern": "redesign_candidate",
+      "rationale": "Losing unfinished tour progress at session end appears to be a storage constraint. Modern per-event/tour persistence is planned unless testing shows the constraint is mechanically meaningful.",
+      "decision_gate": "Bounded test of whether the original session constraint affects tour scoring or unlock outcomes."
+    },
+    {
+      "id": "pre-race-now-playing-card",
+      "states": ["PRE_RACE_CARD"],
+      "class": "presentation_artifact",
+      "modern": "preserve_and_augment",
+      "rationale": "The sliding NOW PLAYING matchup card and RACE/EXIT choice are original race-entry ritual; modern mode may add rematch/next-event shortcuts around it."
+    },
+    {
+      "id": "race-simulation",
+      "states": ["GAMEPLAY"],
+      "class": "gameplay_mechanic",
+      "modern": "preserve",
+      "rationale": "Authoritative race simulation, timers, stunt scoring and AI are never altered by product policy."
+    },
+    {
+      "id": "in-race-hud-indicators",
+      "states": ["GAMEPLAY"],
+      "class": "presentation_artifact",
+      "modern": "preserve_and_augment",
+      "rationale": "Original HUD indicators stay; exact timing, splits and PB deltas are shown in addition."
+    },
+    {
+      "id": "stock-pause-overlay",
+      "states": ["PAUSE"],
+      "class": "presentation_artifact",
+      "modern": "preserve_and_augment",
+      "rationale": "The stock RACE/timer/CONTINUE GAME/QUIT overlay stays guest-owned. The modern host pause menu (Resume, Restart, Options, Controls, Run Data, Quit) is a separate host overlay that never writes guest memory or reinterprets stock pause state.",
+      "policy_source": "docs/MODERN-PRODUCT-LAYER.md#session-control-seam"
+    },
+    {
+      "id": "result-rituals-and-tallies",
+      "states": ["RESULT_BY_TRACK_TYPE", "RESULT_RACE", "RESULT_CIRCUIT", "RESULT_STUNT"],
+      "class": "presentation_artifact",
+      "modern": "preserve_and_augment",
+      "rationale": "Result screens, score tallies and summing animations are original result rituals. Modern PB/medal deltas, Retry and records links are added alongside."
+    },
+    {
+      "id": "post-result-navigation",
+      "states": ["POST_RESULT_DECISION"],
+      "class": "administrative",
+      "modern": "redesign_candidate",
+      "rationale": "Next-track/do-not-advance navigation is menu routing. Modern rematch, next event and track rotation may replace it; its contents for Circuit/Stunt/2P/VS/League are still open (UIQ-005).",
+      "decision_gate": "Fast navigation affordances (recent track, rematch, next event) design."
+    },
+    {
+      "id": "league-standings-presentation",
+      "states": ["LEAGUE_TABLE", "RECORD_GROUP_TABLES"],
+      "class": "presentation_artifact",
+      "modern": "preserve_and_augment",
+      "rationale": "League standings and group tables are original score presentations; keep them reproducible as views even if League administration changes."
+    },
+    {
+      "id": "league-administration",
+      "states": ["LEAGUE_SELECT", "LEAGUE_TABLE", "DEFINE_LEAGUE", "NAME_LEAGUE"],
+      "class": "administrative",
+      "modern": "redesign_candidate",
+      "rationale": "Persistent multi-league player management (up to six leagues of up to eight unicycles) is cartridge-era bureaucracy. A simplified modern tournament path is the candidate replacement.",
+      "decision_gate": "Prototype a simplified modern League/tournament path (WORK-QUEUE Phase 9)."
+    },
+    {
+      "id": "destructive-controller-chords",
+      "states": ["MAIN_MENU", "ERASE_ALL_CONFIRM", "DEFINE_LEAGUE"],
+      "class": "administrative",
+      "modern": "redesign_decided",
+      "rationale": "Left+A+L+R erase-all and SELECT+Y+A league redefinition become explicit, confirmed UI actions in Modern mode.",
+      "policy_source": "docs/UI-STATE-MAP.md#modern-frontend-contract"
+    },
+    {
+      "id": "options-hub",
+      "states": ["OPTIONS_MENU"],
+      "class": "administrative",
+      "modern": "redesign_candidate",
+      "rationale": "OPTIONS groups Records with player/league administration rather than settings. Modern settings are host-owned already; the hub may be regrouped once racer/profile and records surfaces exist.",
+      "decision_gate": "Modern racer/profile model and unified records surface."
+    },
+    {
+      "id": "records-silos",
+      "states": ["RECORDS"],
+      "class": "administrative",
+      "modern": "redesign_candidate",
+      "rationale": "Four separate score/record screens behind a menu are a storage-era silo layout. A unified modern records surface may embed them as views.",
+      "decision_gate": "Unified records/statistics surface design (WORK-QUEUE Phase 9)."
+    },
+    {
+      "id": "record-table-presentations",
+      "states": ["RECORD_TRACK", "RECORD_HIGH_SCORES", "RECORD_PLAYER_SCORES", "RECORD_GROUP_TABLES"],
+      "class": "presentation_artifact",
+      "modern": "preserve_and_augment",
+      "rationale": "Gold/Silver/Bronze record tables, player-color star markers and score layouts stay as original views inside any modern records browser."
+    },
+    {
+      "id": "name-editor-presentation",
+      "states": ["PLAYER_NAME_EDITOR", "NAME_LEAGUE"],
+      "class": "presentation_artifact",
+      "modern": "preserve",
+      "rationale": "The WHAT IS YOUR PLAYER CALLED screen and alphabet grid are original presentation."
+    },
+    {
+      "id": "name-entry-method",
+      "states": ["PLAYER_NAME_EDITOR", "NAME_LEAGUE"],
+      "class": "administrative",
+      "modern": "redesign_candidate",
+      "rationale": "Controller-only grid entry and fixed name lengths are hardware-era constraints. Keyboard entry and localization-ready text are the candidates.",
+      "decision_gate": "Modern racer/profile model, practical keyboard support and localization-ready text architecture."
+    },
+    {
+      "id": "forbidden-name-rejection",
+      "states": ["FORBIDDEN_NAME_REJECTION"],
+      "class": "administrative",
+      "modern": "redesign_decided",
+      "rationale": "Modern mode accepts forbidden names: the detection list triggers a COOL NAME! acknowledgement and then the name is kept. Rejection remains authentic/reference behavior only.",
+      "policy_source": "docs/PROJECT-PLAN.md#racer-identity-and-legacy-cast"
+    }
+  ]
+}

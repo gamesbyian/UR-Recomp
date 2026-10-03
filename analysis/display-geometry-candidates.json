@@ -19,7 +19,8 @@
       "target_aspect": "16:9",
       "crop_top": 0,
       "crop_bottom": 0,
-      "status": "preferred-authentic-candidate"
+      "status": "par-evidence-backed-overscan-provisional",
+      "par_evidence": "analysis/display-reference-geometry.json"
     },
     {
       "id": "raw-square-216",
@@ -37,13 +38,13 @@
       "target_aspect": "16:9",
       "crop_top": 4,
       "crop_bottom": 4,
-      "status": "exploratory"
+      "status": "par-evidence-backed-overscan-exploratory",
+      "par_evidence": "analysis/display-reference-geometry.json"
     }
   ],
   "notes": [
-    "Candidate transforms are review aids; only the preferred Authentic candidate is bound provisionally, not declared title-final.",
-    "The preferred 7:6 full-height candidate maps the canonical 256x224 framebuffer exactly to 4:3 without cropping authored rows; its 16:9 logical margin derives to +48 at 8-pixel granularity.",
-    "The host-owned provider is validated through +72, so every current candidate margin is within proven presentation capacity.",
-    "216-line rows remain exploratory overscan discriminators until retained/reference evidence justifies a crop."
+    "The official USA manual now provides Uniracers-specific evidence for the 4:3 display family and therefore 7:6 horizontal correction of a 256-wide source; see analysis/display-reference-geometry.json.",
+    "The manual evidence does not reliably discriminate full 224-line presentation from a modest vertical overscan crop, so 224-vs-216 remains the active title-specific display discriminator.",
+    "The host-owned provider is validated through +72, so every current candidate margin remains within proven presentation capacity."
   ]
 }

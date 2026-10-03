@@ -40,7 +40,7 @@
  static int g_rewind_hotkey;
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -214,6 +214,18 @@ int snesrecomp_desktop_set_vsync(int mode);
+@@ -214,5 +214,17 @@ int snesrecomp_desktop_set_vsync(int mode);
  int snesrecomp_desktop_get_vsync(void);
  
 +/* Live desktop window-presentation policy. SDL2 distinguishes borderless

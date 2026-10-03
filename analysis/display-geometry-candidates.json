@@ -19,8 +19,9 @@
       "target_aspect": "16:9",
       "crop_top": 0,
       "crop_bottom": 0,
-      "status": "par-evidence-backed-overscan-provisional",
-      "par_evidence": "analysis/display-reference-geometry.json"
+      "status": "accepted-authentic-reference",
+      "par_evidence": "analysis/display-reference-geometry.json",
+      "overscan_evidence": "canonical-display-edge-audit"
     },
     {
       "id": "raw-square-216",
@@ -29,7 +30,7 @@
       "target_aspect": "16:9",
       "crop_top": 4,
       "crop_bottom": 4,
-      "status": "exploratory"
+      "status": "diagnostic-crop-reference"
     },
     {
       "id": "community-7x6-216",
@@ -38,13 +39,15 @@
       "target_aspect": "16:9",
       "crop_top": 4,
       "crop_bottom": 4,
-      "status": "par-evidence-backed-overscan-exploratory",
-      "par_evidence": "analysis/display-reference-geometry.json"
+      "status": "optional-crt-treatment",
+      "par_evidence": "analysis/display-reference-geometry.json",
+      "overscan_evidence": "fixed-4+4-crop-discards-authored-edge-pixels"
     }
   ],
   "notes": [
-    "The official USA manual now provides Uniracers-specific evidence for the 4:3 display family and therefore 7:6 horizontal correction of a 256-wide source; see analysis/display-reference-geometry.json.",
-    "The manual evidence does not reliably discriminate full 224-line presentation from a modest vertical overscan crop, so 224-vs-216 remains the active title-specific display discriminator.",
-    "The host-owned provider is validated through +72, so every current candidate margin remains within proven presentation capacity."
+    "Official USA manual geometry provides Uniracers-specific evidence for 7:6 horizontal correction of the 256-wide source; see analysis/display-reference-geometry.json.",
+    "Canonical menu, pre-race and race captures contain nonuniform, non-repeated authored pixels in the outer four rows at both edges, so a fixed centered 216-line crop is not neutral padding removal.",
+    "Authentic/reference geometry therefore preserves all 224 active source rows. CRT-style overscan/crop remains a separate optional display treatment rather than part of the canonical logical raster.",
+    "The host-owned provider is validated through +72, so the accepted full-224 16:9 view remains within proven presentation capacity."
   ]
 }

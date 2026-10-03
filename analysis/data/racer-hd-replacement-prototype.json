@@ -519,6 +519,134 @@
         "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
       },
       "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset."
+    },
+    {
+      "semantic_frame_id": "0x057E",
+      "representation_id": "ordinary-racer-0x057E-p1-companion-0D69-reference",
+      "player": "p1",
+      "composition_guards": {
+        "p1_primary": "0x057E",
+        "p2_primary": "0x0544",
+        "p1_companion": "0x0D69",
+        "p2_companion": "0x0000",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0001",
+        "p2_companion_gate_word": "0x0000"
+      },
+      "palette_asset_id": "0x06",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            67,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed P1 raster"
+        },
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam"
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset."
+    },
+    {
+      "semantic_frame_id": "0x0544",
+      "representation_id": "ordinary-racer-0x0544-p2-with-p1-companion-0D69-reference",
+      "player": "p2",
+      "composition_guards": {
+        "p1_primary": "0x057E",
+        "p2_primary": "0x0544",
+        "p1_companion": "0x0D69",
+        "p2_companion": "0x0000",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0001",
+        "p2_companion_gate_word": "0x0000"
+      },
+      "palette_asset_id": "0x07",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            55,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed P2 raster"
+        },
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam"
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset."
     }
   ]
 }

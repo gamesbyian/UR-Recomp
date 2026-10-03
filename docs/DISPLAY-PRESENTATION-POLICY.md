@@ -48,7 +48,7 @@ Purpose: historical/reference presentation.
 - retain Original graphics;
 - optional CRT/NTSC display treatment may be layered on top without changing guest geometry or state.
 
-SNESRecomp's 7:6 horizontal correction remains useful community precedent, but UR-Recomp now has title-specific evidence for the same horizontal display family. Eleven in-game screenshots printed in the official USA manual measure near 4:3 rather than raw 8:7; even a conservative ±5-pixel-per-edge measurement envelope admits 4:3 for every sample and excludes 8:7 for every sample. For a 256-wide source, that supports a 7:6 horizontal pixel correction. The remaining title-final uncertainty is vertical overscan, not whether Authentic mode should display raw square source pixels.
+SNESRecomp's 7:6 horizontal correction remains useful community precedent, and UR-Recomp now has title-specific evidence for the same horizontal display family. Eleven in-game screenshots printed in the official USA manual measure near 4:3 rather than raw 8:7; even a conservative ±5-pixel-per-edge measurement envelope admits 4:3 for every sample and excludes 8:7 for every sample. For a 256-wide source, that supports a 7:6 horizontal pixel correction. The title-final logical Authentic transform is therefore full 256×224 at 7:6 PAR. Any optional simulation of period-TV edge loss belongs to display treatment, not destructive logical-raster cropping.
 
 ### Raw Pixels
 
@@ -174,20 +174,20 @@ Transferable lesson: presentation refresh, world aspect, HUD composition, and sp
 
 ## Canonical review harness
 
-PR #302 / native smoke run `37142393303` closes the review-tooling prerequisite. `tools/build_display_geometry_review.py` now consumes canonical 256×224 framebuffer BMPs from the ordinary 1P route, applies explicit diagnostic pixel-aspect/overscan candidates without mutating runtime state, and emits self-contained JSON/HTML review evidence. The current matrix in `analysis/display-geometry-candidates.json` includes raw square pixels, the community-reference 7:6 horizontal correction, and centered 216-line crop discriminators. Every candidate remains provisional.
+PR #302 / native smoke run `37142393303` closes the review-tooling prerequisite. `tools/build_display_geometry_review.py` consumes canonical 256×224 framebuffer BMPs from the ordinary 1P route and emits self-contained JSON/HTML review evidence. The current matrix in `analysis/display-geometry-candidates.json` retains raw-square and centered-216 alternatives as diagnostics, while full-height 7:6 is now the accepted Authentic logical geometry.
 
 The same run proves the canonical `main-menu-ready`, `now-playing-ready`, and `race-entered` captures are 256×224 and that the review can be generated inside the normal native workflow. Artifact `uniracers-native-frame` id `11281695308` retains the generated review and source captures. The outstanding question is therefore which transform is best supported by Uniracers-specific visual/reference evidence, not whether the project can reproduce and compare the candidates.
 
-## Validation required before declaring title-final constants
+## Title-specific transform closure
 
-Before declaring the remaining vertical visibility policy title-final:
+The logical Authentic transform is now closed for implementation. The evidence chain is:
 
-1. capture one or more retained stock Uniracers reference scenes under raw-square and historically corrected display transforms;
-2. compare recognizable geometry, UI proportions, circles/curves, racer proportions, and known emulator/reference output;
-3. pin the exact authentic overscan behavior;
-4. record the selected transform and tolerance in deterministic fixtures;
-5. derive the first 16:9 logical-margin target from that policy rather than entering a magic source width;
-6. retain Raw Pixels as an independent reference mode even after Authentic 4:3 is validated.
+1. official-manual screenshot geometry supports the 4:3 display family and excludes raw 8:7 within the retained uncertainty envelope;
+2. for the 256-wide source, that establishes 7:6 horizontal correction;
+3. canonical framebuffer evidence proves centered 216-line cropping discards rendered information in representative frontend, transition, and race scenes;
+4. therefore Authentic logical geometry preserves all 224 authored rows;
+5. period-TV edge loss, when desired, is optional display treatment layered after logical composition rather than a different guest/view geometry;
+6. Raw Pixels remains an independent reference mode.
 
 The unresolved work is therefore measurement and title-specific validation, not a need to invent the architecture.
 
@@ -207,11 +207,11 @@ The smallest defensible title-specific binding is therefore recorded as a **prov
 
 The horizontal part of this candidate is now evidence-backed. `analysis/display-reference-geometry.json` records eleven printed in-game screenshot frames from the official USA manual (pages 17, 19, 21, 23 and 25). Their measured mean aspect is about 1.329 and median about 1.342. With ±5 pixels of uncertainty on every measured edge, all eleven intervals still contain 4:3 and none contain raw 8:7. Because 256×224 requires 7:6 horizontal correction to land at 4:3 when all 224 rows are active, this is title-specific support for 7:6-style Authentic PAR rather than merely emulator convention.
 
-That evidence does **not** by itself close vertical overscan. Rounded printed screenshot masks and page-layout crops cannot reliably distinguish a full 224-line display from a modest crop such as 216 lines. A second title-specific discriminator now narrows that axis: `analysis/display-active-height-evidence.json` reuses the retained canonical `main-menu-ready`, `now-playing-ready`, and `race-entered` 256×224 framebuffers from run `37142393303` / artifact `11281695308`. A centered 216-line crop removes distinct rendered information in all three scenes: 791/2048 cropped pixels on the menu frame, 40/2048 on the transition frame, and 645/2048 on the race frame differ from the nearest retained boundary row, 1476/6144 in aggregate. Therefore 216 cannot be treated as a content-neutral overscan cleanup. Full 224 becomes the preservation-favoring candidate, while historical CRT visibility remains unresolved. Raw Pixels remains an independent square-pixel reference mode regardless of the final overscan result.
+Vertical logical presentation is now closed by a preservation rule grounded in title evidence. `analysis/display-active-height-evidence.json` reuses the retained canonical `main-menu-ready`, `now-playing-ready`, and `race-entered` 256×224 framebuffers from run `37142393303` / artifact `11281695308`. A centered 216-line crop removes distinct rendered information in all three scenes: 791/2048 cropped pixels on the menu frame, 40/2048 on the transition frame, and 645/2048 on the race frame differ from the nearest retained boundary row, 1476/6144 in aggregate. Because no stronger title-specific evidence requires throwing those authored rows away, Authentic logical geometry preserves all 224 rows. This does not claim every period CRT exposed every row; optional CRT/NTSC treatment may mask edges after logical composition without redefining the game view.
 
-A provisional runtime selector now carries this candidate through both sides of the presentation contract without coupling it to product UI. On the preparation side, `URRECOMP_WS_VIEW=authentic-16x9-candidate` resolves to the next complete provider strip boundary, **+48 source pixels per side**. On the host-view side, the exact 16:9 requirement is 128/3 = 42⅔ source pixels per side, so the nearest symmetric integer logical viewport is **+43 per side**, or **342×224**. At 7:6 PAR that discrete source viewport is 57:32 (1.78125), about +0.195% wider than exact 16:9; final output scaling can absorb that sub-pixel quantization without exposing the unused five prepared pixels at either edge. Explicit `URRECOMP_WS_MARGIN` remains a diagnostic override and unknown/unset selectors fail closed to stock margin 0.
+The accepted runtime selector carries this transform through both sides of the presentation contract without coupling it to product UI. On the preparation side, `URRECOMP_WS_VIEW=authentic-16x9` resolves to the next complete provider strip boundary, **+48 source pixels per side**. On the host-view side, exact 16:9 requires 128/3 = 42⅔ source pixels per side, so the nearest symmetric integer logical viewport is **+43 per side**, or **342×224**. At 7:6 PAR that discrete source viewport is 57:32 (1.78125), about +0.195% wider than exact 16:9; final output scaling absorbs that sub-pixel quantization without exposing the unused five prepared pixels at either edge. `authentic-16x9-candidate` remains a compatibility alias, explicit `URRECOMP_WS_MARGIN` remains a diagnostic override, and unknown/unset selectors fail closed to stock margin 0.
 
-The distinction is architectural: **provider margin is backing coverage, not automatically visible camera extent**. The +48 materializer may prepare more data than the +43 host viewport exposes. Horizontal PAR now has title-specific manual evidence; title-final overscan remains separate presentation work. If overscan changes the active logical height, the exact 16:9 viewport margin must be re-derived from that height rather than preserving +43 by inertia.
+The distinction is architectural: **provider margin is backing coverage, not automatically visible camera extent**. The +48 materializer prepares more data than the +43 host viewport exposes. With full 224 and 7:6 now fixed as the logical Authentic transform, +43 visible / +48 backing is the accepted 16:9 geometry contract.
 
 ## Policy-derived logical margin
 
@@ -224,7 +224,7 @@ The distinction is architectural: **provider margin is backing coverage, not aut
 
 The calculation uses exact rational arithmetic and reports both the exact per-side logical margin and the first strip-granular margin that can cover it. It also compares that requirement with the currently validated materializer capacity recorded in `analysis/widescreen-policy.yml` (+72 pixels per side at 8-pixel granularity).
 
-Illustrative 16:9 consequences, **not title-final constants**, are:
+The accepted full-height 7:6 row and retained diagnostic alternatives are:
 
 | Active logical height | Pixel aspect | Exact per-side margin | First 8-pixel materializer margin | Fits validated +72? |
 | ---: | ---: | ---: | ---: | --- |
@@ -233,5 +233,5 @@ Illustrative 16:9 consequences, **not title-final constants**, are:
 | 224 | 1:1 | 640/9 ≈ 71.11 px | +72 | yes |
 | 216 | 1:1 | 64 px | +64 | yes |
 
-These rows show why pixel aspect and overscan remain separate from logical view width. The accepted +72 provider now covers every current diagnostic candidate, including square-pixel/full-height 16:9. The preferred provisional Authentic full-height 7:6 candidate selects +48; reference validation still decides whether that transform becomes title-final.
+These rows show why pixel aspect and overscan remain separate from logical view width. The accepted +72 provider covers every retained diagnostic candidate. Full-height 7:6 is the title-final logical Authentic transform; its 16:9 view exposes +43 per side while the provider remains rounded to +48.
 

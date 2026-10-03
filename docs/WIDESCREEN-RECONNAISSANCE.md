@@ -176,7 +176,7 @@ Accepted product roles are:
 - **Raw Pixels:** literal square source pixels for preservation/debugging;
 - **Modern square-pixel presentation:** host geometry for Remastered/Reimagined assets, with view width selected independently.
 
-The remaining task is to validate the exact Uniracers authentic transform and overscan constants against retained reference captures, then derive the first 16:9 logical-margin target from that policy. Existing +8 through +64 materializer experiments remain valid because they are expressed in logical source-pixel margins rather than a hard-coded final aspect width.
+The remaining task is to choose the exact Uniracers authentic transform and overscan constants from retained/reference visual evidence, then derive the first 16:9 logical-margin target from that policy. The mechanical review path is now closed: PR #302 / run `37142393303` generates explicit candidate views from canonical 256×224 `main-menu-ready`, `now-playing-ready`, and `race-entered` framebuffer captures and retains them in artifact `uniracers-native-frame` id `11281695308`. Existing +8 through +64 materializer experiments remain valid because they are expressed in logical source-pixel margins rather than a hard-coded final aspect width.
 
 The derivation itself is now executable rather than prose-only: `tools/widescreen_probe.py derive-margin` accepts target aspect, active logical height and pixel aspect, uses exact rational arithmetic, rounds only at the materializer's 8-pixel strip boundary, and reports whether the result fits the validated +64 capacity. This deliberately does not choose the unresolved title-specific inputs.
 

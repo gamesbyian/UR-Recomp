@@ -2051,3 +2051,15 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 - **Stale `7E:009F`:** after both exits `7E:009F` keeps a stale value (`0x5A` and `0xBF`), so on Records sub-screens the visible screen and BG2 scroll, not `009F`, identify the state. This resolves the earlier "Track Records X shows 0x5A" note.
 
 **Evidence:** `tests/input/ui-record-track-exit.script` (fixture `ui-record-track-exit`) and an 11-button sweep; `ui-records-submenus` snesref run for High Scores. UI edges `record-track-back` and `record-high-back` are verified. The coverage report's only remaining Tier 1 gap is ENDING (`0x5B`).
+
+### R-2026-10-03-UI-12 — Ending shortcut not reproduced (bounded negative)
+
+**Status:** negative, bounded; ENDING stays the only Tier 1 UI gap  
+**Date:** 2026-10-03  
+**Area:** frontend | ending
+
+**Observation:** On snesref, the publicly reported title-screen chord (hold Down+L+R, press B) never set `7E:009F = 0x5B`. Five timings were tried: the existing fixture firing at `0x84` appearance (frame 248, still blanked), held after the boot title fades in (30+4 and 60 frames), a double-tap, and on the attract title after the 503-frame idle. A static ROM search for `LDA #imm / STA $9F` finds only `LDA #$84 / STA $9F` at `80:A18E`, with no literal 0x5B, 0xD7 or 0x3F stores, so menu values are likely derived (e.g. handler-pointer low bytes).
+
+**Interpretation:** The cheat-site shortcut is either wrong for this ROM/region or needs an unmodelled precondition. It is not worth further timing sweeps.
+
+**Next discriminator (only if ENDING becomes product-relevant):** trace writers of DP `$9F` around a natural Hunter-gold completion, or find the ending entry by its unique graphics/music load rather than the menu byte.

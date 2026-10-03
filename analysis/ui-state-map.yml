@@ -647,7 +647,7 @@ states:
     evidence: []
     recovered_menu_labels:
       currentMenu_7E009F: "0x5B"
-    description: "Ending sequence/state. Recovered 2014 bot labels 0x5B as ending and advances it with A; public cheat references expose a shortcut from the title/splash."
+    description: "Ending sequence/state. Recovered 2014 bot labels 0x5B as ending and advances it with A; public cheat references expose a shortcut from the title/splash. 2026-10-03 negative result: on snesref the Down+L+R(+B) chord did not reach 0x5B in five timing variants (instant at 0x84 appearance, held 30/60 frames after the boot title fades in, double-tap, and at the attract title). A static search finds no immediate store of 0x5B to DP $9F (only LDA #$84 / STA $9F at 80:A18E), so menu values may be derived rather than literal. Retry only with a natural completion route or a traced writer of $9F."
     transitions:
       - input: "A / sequence completion"
         to: MAIN_MENU

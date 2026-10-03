@@ -39,7 +39,7 @@ Keep these domains separate:
 | Stock persistence | original/recompiled guest | 8 KiB SRAM, medal matrix, derived tiers, checksum |
 | Modern administration | host product layer | profile identity, settings, future save catalog and UI policy |
 | Presentation | host/runtime presentation layer | window state, output scale, future overlays and graphics mode |
-| Session control | future explicit runtime adapter | pause/resume/restart/exit requests |
+| Session control | explicit host/runtime adapter | pause/resume/restart/exit requests |
 
 A modern profile is not a renamed unicycle/save slot. Racer identity and progression can later be associated with a profile by higher-level product policy, but the storage primitives remain independent.
 
@@ -54,7 +54,7 @@ The contract accepts four modern administrative commands:
 - restart race;
 - exit to frontend.
 
-A successful command emits exactly one typed `RuntimeAction` for a future runtime adapter to consume. The contract itself never writes guest memory, SRAM, timers, physics, menu state or progression. Pause/resume maintain only a host-owned running/paused phase. The contract itself remains request-only. Restart Race now has an accepted runtime implementation seam behind the optional `restart_race` hook; Exit to Frontend remains request-only/unsupported at the current runtime adapter.
+A successful command emits exactly one typed `RuntimeAction` for the runtime adapter to consume. The contract itself never writes guest memory, SRAM, timers, physics, menu state or progression. Pause/resume maintain only a host-owned running/paused phase. `ModernSessionRuntime` is the smallest product coordinator above that contract: it owns policy-gated lifecycle observation and dispatch, while `modern_session_c_api.{h,cpp}` exposes the same narrow surface to the generated C host and later pause/results UI. Exit to Frontend remains request-only/unsupported at the current runtime adapter.
 
 The queue is deliberately single-action and fail-closed: while one action is awaiting consumption, later requests return `Busy` rather than being reordered or coalesced implicitly. Redundant pause/resume requests return `NoOp`. Authentic mode rejects every session command by policy and never changes host session phase.
 
@@ -79,7 +79,7 @@ The pinned SNESRecomp desktop host already owns a suitable pause mechanism. Its 
 
 `tools/patches/snesrecomp-session-pause.patch` exposes only that existing host state through `snesrecomp_desktop_set_paused()` and `snesrecomp_desktop_is_paused()`. It does not introduce a new emulation mechanism.
 
-`native/product/session_runtime_adapter.{hpp,cpp}` maps `SuspendGuest` and `ResumeGuest` onto this narrow host hook and dispatches `RestartRace` only when a proven `restart_race` hook is attached. `ExitToFrontend` remains unsupported. This is intentional: generic machine reset/save-state facilities are not evidence that a product-level action is correct.
+`native/product/session_runtime_adapter.{hpp,cpp}` maps `SuspendGuest` and `ResumeGuest` onto this narrow host hook. For `RestartRace`, the adapter now accepts the proven `RaceRestartLifecycle` directly and invokes its exact rollback-backed restore path; the older callback slot remains only as a compatibility fallback for isolated consumers. After a successful restore the adapter calls the host reconciliation hook, which the native binding maps to the existing audio fast-forward recovery path so stale pre-restart PCM is discarded without mutating guest/APU state. `ExitToFrontend` remains unsupported.
 
 The pause integration therefore has a clean ownership chain:
 
@@ -109,11 +109,11 @@ For Uniracers, the candidate lifecycle edge remains the established transition i
 
 A restart anchor is immutable for one attempt. Repeated capture requests do not silently move the restart point.
 
-`RaceRestartLifecycle` owns the attempt-to-attempt policy above that storage primitive. A false→true active-race edge clears any previous anchor and captures the newly initialized race. A true→false edge does **not** clear the anchor: the just-finished attempt remains restartable through results or other post-race host UI. The next actual race entry supersedes it. If that new capture fails, the previous race is not retained as a misleading fallback.
+`RaceRestartLifecycle` owns the attempt-to-attempt policy above that storage primitive. A false→true active-race edge clears any previous anchor and captures the newly initialized race. A true→false edge does **not** clear the anchor: the just-finished attempt remains restartable through results. A confirmed course-selection/frontend transition calls `retire_attempt()`, which clears the anchor explicitly; the next actual race entry also supersedes it. If a new-race capture fails, the previous race is not retained as a misleading fallback. Repeated Restart Race requests restore the same immutable anchor. Restart while host-paused leaves the host pause gate paused, so the restored guest remains frozen until an explicit Resume command.
 
 The lifecycle receives only an `active` boolean; it does not know the Uniracers WRAM address that supplies it. That title-specific binding remains outside the reusable product layer.
 
-`SessionRuntimeHooks::restart_race` is now optional. If no proven restart implementation is attached, the dispatcher returns `MissingHook`; if the runtime refuses a restore, it returns `RejectedByRuntime`. This keeps a UI button from becoming evidence that restart semantics are actually available.
+`ModernSessionRuntime` exposes restart availability only in Modern mode and forwards `RestartRace` through `SessionControl -> RuntimeAction -> SessionRuntimeAdapter -> RaceRestartLifecycle -> RaceRestartAnchor`. Before an anchor exists, or after `retire_attempt()`, the command reaches the real runtime path and fails predictably as `RejectedByRuntime`; Authentic mode rejects the command before lifecycle or snapshot state can change. The runtime also owns the rewind-audio timing lock for exactly the lifetime of a restartable attempt: it is enabled after successful anchor capture, retained through results while Retry remains valid, and released when the attempt is retired or replacement capture fails.
 
 ### Native Restart Race acceptance
 
@@ -121,11 +121,13 @@ PR #235 closes the title-specific restart-state question. Workflow run `37080761
 
 This strengthens the validation rule for future rewindable host features: exact load equality is necessary but insufficient. Any operation that restores authoritative machine state must also prove bounded forward replay across CPU/WRAM/APU/PPU/DMA/cart partitions before it is treated as deterministic.
 
+The product-level acceptance now exercises that same native substrate through the actual typed command chain rather than calling rollback APIs directly. The generated host observes the accepted `7E:0313` active-race edge, arms `ModernSessionRuntime`, issues `RestartRace` through the C bridge, requires immediate full simulation-digest equality, verifies SRAM bytes are unchanged, replays the same 60-frame future, then repeats the restart and replay a second time. The host binding also toggles the existing audio recovery path after restore and keeps `RtlSetRewindAudioTimingLock` owned by the restartable-attempt lifecycle.
+
 ## Extension points
 
 Do not add these systems to `HostProductState` merely because they are planned. Add narrow interfaces when there is a concrete runtime consumer:
 
-- **pause/restart:** pause is connected to the owned host frame gate and the Uniracers restart anchor/replay semantics are accepted. Remaining work is to expose the proven restart action through the modern pause/race/results UI and define user-facing attempt policy without weakening the accepted lifecycle boundary;
+- **pause/restart:** pause is connected to the owned host frame gate and Restart Race is connected end-to-end through the typed product/runtime command surface. Remaining work is UI wiring for pause/race/results surfaces, not another runtime or snapshot seam;
 - **autosave/resume:** a coordinator that owns host save metadata while preserving guest SRAM as guest data;
 - **records/ghosts:** append-only run artifacts keyed by profile and course identity, sourced from observed authoritative race state;
 - **racer identity:** product data associated with a profile, explicitly separate from the original save-slot/unicycle coupling;

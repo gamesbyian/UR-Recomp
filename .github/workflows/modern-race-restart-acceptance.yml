@@ -150,7 +150,7 @@ jobs:
           grep -q "UR_RESTART_PROBE captured=1" "$LOG"
           grep -q "UR_RESTART_PROBE restart1_applied=1 immediate_equal=1 sram_progression_unchanged=1" "$LOG"
           grep -q "UR_RESTART_PROBE restart2_applied=1 immediate_equal=1 sram_progression_unchanged=1" "$LOG"
-          grep -q "UR_RESTART_PROBE PASS command_dispatch=1 repeated_restart_equal=1 window=60" "$LOG"
+          grep -q "UR_RESTART_PROBE PASS command_dispatch=1 player_input_dispatch=1 repeated_restart_equal=1 window=60" "$LOG"
           ! grep -q "UR_RESTART_PROBE FAIL" "$LOG"
 
       - name: Prove results-screen Retry preserves persistent SRAM
@@ -172,9 +172,9 @@ jobs:
 
           cat "$LOG"
           test "$STATUS" -eq 0
-          grep -q "UR_RESTART_PROBE results_restart1_applied=1 immediate_equal=1 sram_progression_unchanged=1 persistent_cart_preserved=1" "$LOG"
-          grep -q "UR_RESTART_PROBE results_restart2_applied=1 immediate_equal=1 sram_progression_unchanged=1 persistent_cart_preserved=1" "$LOG"
-          grep -q "UR_RESTART_RESULTS PASS results_surface=1 persistent_sram_preserved=1 repeated_restart_equal=1 window=60" "$LOG"
+          grep -q "UR_RESTART_PROBE results_restart1_applied=1 immediate_equal=1 sram_progression_unchanged=1 persistent_cart_preserved=1 input=gamepad-menu" "$LOG"
+          grep -q "UR_RESTART_PROBE results_restart2_applied=1 immediate_equal=1 sram_progression_unchanged=1 persistent_cart_preserved=1 input=keyboard-hotkey" "$LOG"
+          grep -q "UR_RESTART_RESULTS PASS results_surface=1 player_input_dispatch=1 persistent_sram_preserved=1 repeated_restart_equal=1 window=60" "$LOG"
           ! grep -q "UR_RESTART_PROBE FAIL" "$LOG"
 
       - name: Upload restart acceptance log

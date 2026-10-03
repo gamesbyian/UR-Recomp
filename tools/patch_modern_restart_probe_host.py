@@ -345,9 +345,51 @@ static int UrRestartCaptureOracle(const SnesDesktopHostFrameStats *stats) {
     return 1;
 }
 
+enum {
+    kUrRestartDispatchDirect = 0,
+    kUrRestartDispatchGamepad = 1,
+    kUrRestartDispatchKeyboard = 2,
+};
+
+static int UrRestartDispatchThroughPlayerInput(
+    int dispatch_mode,
+    const char **source_out) {
+    if (dispatch_mode == kUrRestartDispatchGamepad) {
+        ur_modern_pause_menu_reset(&g_ur_pause_menu);
+        if (!UrModernSystemGamepadButton(kGamepadBtn_Start, 1) ||
+            !ur_modern_session_is_paused(g_ur_restart_session) ||
+            !UrModernSystemGamepadButton(kGamepadBtn_DpadDown, 1) ||
+            ur_modern_pause_menu_selected(
+                &g_ur_pause_menu, 1) != UR_MODERN_PAUSE_RESTART ||
+            !UrModernSystemGamepadButton(kGamepadBtn_A, 1) ||
+            !ur_modern_session_is_paused(g_ur_restart_session) ||
+            !UrModernSystemGamepadButton(kGamepadBtn_B, 1) ||
+            ur_modern_session_is_paused(g_ur_restart_session)) {
+            return 0;
+        }
+        if (source_out) *source_out = "gamepad-menu";
+        return 1;
+    }
+
+    if (dispatch_mode == kUrRestartDispatchKeyboard) {
+        if (!UrModernSystemKeyDown(SDLK_r, KMOD_CTRL, 0))
+            return 0;
+        if (source_out) *source_out = "keyboard-hotkey";
+        return 1;
+    }
+
+    if (ur_modern_session_restart_race(g_ur_restart_session) !=
+        UR_MODERN_SESSION_APPLIED) {
+        return 0;
+    }
+    if (source_out) *source_out = "typed-command";
+    return 1;
+}
+
 static int UrRestartRequestAndValidateImmediate(
     const char *label,
-    int preserve_newer_cart) {
+    int preserve_newer_cart,
+    int dispatch_mode) {
     SnesStateDigestParts before;
     snes_state_digest_parts(&before);
     if (!UrRestartCopyCurrentSram()) {
@@ -355,13 +397,13 @@ static int UrRestartRequestAndValidateImmediate(
         return 0;
     }
 
-    const UrModernSessionResult result =
-        ur_modern_session_restart_race(g_ur_restart_session);
-    if (result != UR_MODERN_SESSION_APPLIED) {
+    const char *dispatch_source = NULL;
+    if (!UrRestartDispatchThroughPlayerInput(
+            dispatch_mode, &dispatch_source)) {
         fprintf(stderr,
-                "UR_RESTART_PROBE FAIL %s-dispatch result=%d\n",
+                "UR_RESTART_PROBE FAIL %s-dispatch mode=%d\n",
                 label,
-                (int)result);
+                dispatch_mode);
         return 0;
     }
 
@@ -400,8 +442,9 @@ static int UrRestartRequestAndValidateImmediate(
     fprintf(stderr,
             "UR_RESTART_PROBE %s_applied=1 immediate_equal=1 "
             "sram_progression_unchanged=1 persistent_cart_preserved=1 "
-            "digest=%08x\n",
+            "input=%s digest=%08x\n",
             label,
+            dispatch_source ? dispatch_source : "unknown",
             (unsigned)immediate.master);
     return 1;
 }
@@ -443,7 +486,7 @@ static void UrRestartProbeMidRace(
         if (++g_ur_restart_probe_count == kUrRestartProbeWindow) {
             snes_state_digest_parts(&g_ur_restart_expected_digest);
             if (!UrRestartSurfaceAllowsCommand(surface) ||
-                !UrRestartRequestAndValidateImmediate("restart1", 0)) {
+                !UrRestartRequestAndValidateImmediate("restart1", 0, kUrRestartDispatchGamepad)) {
                 g_ur_restart_probe_phase = 9;
             } else {
                 g_ur_restart_probe_count = 0;
@@ -454,7 +497,7 @@ static void UrRestartProbeMidRace(
         if (++g_ur_restart_probe_count == kUrRestartProbeWindow) {
             if (!UrRestartReplayMatchesExpected("restart1") ||
                 !UrRestartSurfaceAllowsCommand(surface) ||
-                !UrRestartRequestAndValidateImmediate("restart2", 0)) {
+                !UrRestartRequestAndValidateImmediate("restart2", 0, kUrRestartDispatchKeyboard)) {
                 g_ur_restart_probe_phase = 9;
             } else {
                 g_ur_restart_probe_count = 0;
@@ -468,7 +511,8 @@ static void UrRestartProbeMidRace(
             } else {
                 fprintf(stderr,
                         "UR_RESTART_PROBE PASS command_dispatch=1 "
-                        "repeated_restart_equal=1 window=%u\n",
+                        "player_input_dispatch=1 repeated_restart_equal=1 "
+                        "window=%u\n",
                         (unsigned)kUrRestartProbeWindow);
                 g_ur_restart_probe_phase = 9;
             }
@@ -502,7 +546,7 @@ static void UrRestartProbeResults(
                     "UR_RESTART_PROBE FAIL results-restart-not-supported\n");
             g_ur_restart_probe_phase = 19;
         } else if (!UrRestartRequestAndValidateImmediate(
-                       "results_restart1", 1)) {
+                       "results_restart1", 1, kUrRestartDispatchGamepad)) {
             g_ur_restart_probe_phase = 19;
         } else {
             g_ur_restart_probe_count = 0;
@@ -513,7 +557,7 @@ static void UrRestartProbeResults(
             snes_state_digest_parts(&g_ur_restart_expected_digest);
             if (!UrRestartSurfaceAllowsCommand(surface) ||
                 !UrRestartRequestAndValidateImmediate(
-                    "results_restart2", 1)) {
+                    "results_restart2", 1, kUrRestartDispatchKeyboard)) {
                 g_ur_restart_probe_phase = 19;
             } else {
                 g_ur_restart_probe_count = 0;
@@ -527,8 +571,8 @@ static void UrRestartProbeResults(
             } else {
                 fprintf(stderr,
                         "UR_RESTART_RESULTS PASS results_surface=1 "
-                        "persistent_sram_preserved=1 repeated_restart_equal=1 "
-                        "window=%u\n",
+                        "player_input_dispatch=1 persistent_sram_preserved=1 "
+                        "repeated_restart_equal=1 window=%u\n",
                         (unsigned)kUrRestartProbeWindow);
                 g_ur_restart_probe_phase = 19;
             }

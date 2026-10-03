@@ -382,7 +382,7 @@ Retained native acceptance on the deterministic preparation fixture records:
 - at least **317** exact later-stock payload matches, exceeding the retained PR #219 proof window of 309;
 - a longest consecutive exact-match run of **25**, exceeding the retained 14-frame proof window;
 - protected gameplay, camera and progression state equal to the margin-0 control;
-- all **617/617** same-camera primary→prepared steps use edge-transition shapes also observed in the stock control: **589× `+1`**, **17× `-31`**, and **11× `+33`**. The `+33` transitions are therefore stock segment/coordinate behavior, not non-adjacent strips; the full 16-bit edge word is a compound preparation coordinate rather than a plain 5-bit ring counter.
+- all **617/617** same-camera primary→prepared steps advance exactly one position in the low-five-bit 32-column VRAM-ring coordinate. Their full-word transition shapes are **589× `+1`**, **17× `-31`**, and **11× `+33`**, all observed in stock control transitions; the upper bits therefore carry compound resource/segment state rather than changing ring adjacency.
 
 The +16 and +24 probes deliberately do not mutate presentation state. They stop at the first concrete generalization constraint: the stock horizontal preparation surface has one primary lane plus one spare secondary lane. +8 consumes that one spare lane; +16 would require two simultaneous extra columns and +24 three. The native hook therefore **does not** invent extra guest descriptor lanes or special-case additional columns.
 

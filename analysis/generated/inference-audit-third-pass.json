@@ -155,7 +155,7 @@
       "status": "resolved_for_plus8",
       "pr": 228,
       "workflow_run": 37081391730,
-      "resolution": "The prior 606/617 strict-adjacency result was an analyzer-model error. The 16-bit edge word is a compound preparation coordinate; all 617 same-camera +8 transitions use stock-observed step shapes (+1, -31, +33).",
+      "resolution": "The prior 606/617 strict-adjacency result was an analyzer-model error. The low five bits of the 16-bit edge word are the 32-column VRAM-ring coordinate; all 617 same-camera +8 preparations advance that coordinate by exactly one. Full-word step shapes (+1, -31, +33) are also observed in stock control transitions because upper bits carry compound resource/segment state.",
       "retained_acceptance": {
         "exact_future_stock_matches": 317,
         "longest_consecutive_exact_match_run": 25,

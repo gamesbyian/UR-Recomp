@@ -60,7 +60,7 @@ class NativeWidescreenHookAcceptanceTests(unittest.TestCase):
             self.assertGreaterEqual(r["native_runtime"]["margin8_exact_future_stock_matches"],309)
             self.assertGreaterEqual(r["native_runtime"]["margin8_longest_consecutive_exact_match_run"],14)
             self.assertEqual(r["native_runtime"]["margin8_stock_compatible_prepared_edges"],320)
-            self.assertTrue(r["checks"]["margin8_all_preparation_steps_stock_compatible"])
+            self.assertTrue(r["checks"]["margin8_all_preparation_steps_ring_adjacent_and_stock_compatible"])
             self.assertEqual(r["first_generalization_constraint"],"secondary-lane-capacity")
 
     def test_accepts_unobserved_adjacency_event_when_comparable_contract_stays_closed(self):
@@ -86,6 +86,32 @@ class NativeWidescreenHookAcceptanceTests(unittest.TestCase):
         self.assertTrue(MOD._ring_adjacent(0x019F, 0x0180))
         self.assertFalse(MOD._ring_adjacent(0x0031, 0x0053))
 
+    def test_rejects_stock_observed_full_word_step_without_ring_advance(self):
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td)
+            logs=self.logs()
+            logs[0]=logs[0].replace(
+                "URWS_PRIMARY margin=0 camx=108 edge=0D81",
+                "URWS_PRIMARY margin=0 camx=108 edge=0D80",
+                1,
+            ).replace(
+                "URWS_PRIMARY margin=0 camx=109 edge=0D81",
+                "URWS_PRIMARY margin=0 camx=109 edge=0DA0",
+                1,
+            )
+            logs[8]=logs[8].replace(
+                "URWS_PRIMARY margin=8 camx=100 edge=0D80",
+                "URWS_PRIMARY margin=8 camx=100 edge=0D80",
+                1,
+            ).replace(
+                "URWS_PREP margin=8 camx=100 edge=0D81",
+                "URWS_PREP margin=8 camx=100 edge=0DA0",
+                1,
+            )
+            r=MOD.analyze(logs,self.dumps(root))
+            self.assertFalse(r["accepted"])
+            self.assertFalse(r["checks"]["margin8_all_preparation_steps_ring_adjacent_and_stock_compatible"])
+
     def test_rejects_nonadjacent_prepared_edge(self):
         with tempfile.TemporaryDirectory() as td:
             root=Path(td)
@@ -93,7 +119,7 @@ class NativeWidescreenHookAcceptanceTests(unittest.TestCase):
             logs[8]=logs[8].replace("edge=0D80 count=16", "edge=0D7E count=16", 1)
             r=MOD.analyze(logs,self.dumps(root))
             self.assertFalse(r["accepted"])
-            self.assertFalse(r["checks"]["margin8_all_preparation_steps_stock_compatible"])
+            self.assertFalse(r["checks"]["margin8_all_preparation_steps_ring_adjacent_and_stock_compatible"])
 
     def test_rejects_protected_state_change(self):
         with tempfile.TemporaryDirectory() as td:

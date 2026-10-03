@@ -134,7 +134,7 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
             continue
         delta = (row["edge"] - stock["edge"]) & 0xffff
         prepared_step_deltas.append(delta)
-        if delta not in allowed_stock_step_deltas:
+        if delta not in allowed_stock_step_deltas or not _ring_adjacent(stock["edge"], row["edge"]):
             unsupported_step_deltas.append(delta)
     adjacency_comparable_count = len(prepared_step_deltas)
     adjacent_count = adjacency_comparable_count - len(unsupported_step_deltas)
@@ -183,7 +183,7 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
         "margin8_all_counts_16": len(plus8)==len(prep.get(8,[])),
         "margin8_cleanup_balanced": balanced,
         "margin8_terminal_pending_only": not terminal_pending or _last_plus8_event(logs.get(8,"")) == "PREP",
-        "margin8_all_preparation_steps_stock_compatible": (
+        "margin8_all_preparation_steps_ring_adjacent_and_stock_compatible": (
             adjacency_comparable_count >= 309
             and not unsupported_step_deltas
         ),
@@ -262,7 +262,7 @@ def render(r: dict) -> str:
         f"- +8 protected gameplay/camera/progression state equal: **{c['margin8_protected_state_equal']}**",
         f"- +16 stopped at stock lane capacity: **{c['margin16_stops_at_capacity']}**",
         f"- +24 stopped at stock lane capacity: **{c['margin24_stops_at_capacity']}**","",
-        "The edge word is a compound stock preparation coordinate, not a plain 5-bit ring index. A +8 step is accepted only when its same-camera primary→prepared delta is a transition shape also observed in the stock control; future-stock payload matching remains an independent acceptance gate.","",
+        "The edge word is a compound stock preparation coordinate. Its low five bits are the 32-column VRAM-ring coordinate: every +8 preparation must advance that coordinate by exactly one, while the full 16-bit delta must also be a transition shape observed in the stock control. Future-stock payload matching remains an independent acceptance gate.","",
         "The cleanup balance permits exactly one terminal pending payload when the "
         "fixture exits immediately after a PREP event; ordinary runtime clears it "
         "at the next live A59A preparation boundary.","",

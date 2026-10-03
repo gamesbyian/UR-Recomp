@@ -612,6 +612,8 @@ At least one course is reproduced structurally from ROM data and matches indepen
 
 Understand what the SNES renderer is drawing well enough to replace presentation without changing animation decisions.
 
+**Current family-level status (2026-10-03):** the ordinary two-player race racer family has crossed this semantic-replacement gate. Authoritative presentation identity is read from guest state, duplicate primary IDs are disambiguated by full synchronized composition, stock geometry/pivot/contact anchors are reproducible from the canonical ROM, live placement/orientation comes independently from OAM, and the host-only replacement path now has exact fail-closed selection plus a continuous fully registered 16-frame window (`1205`–`1220`) in the deterministic two-player route. This does **not** close Phase E globally: track/background tiles, UI/fonts/effects, broader racer animation families, and approved final replacement art remain open.
+
 ### Asset extraction
 
 Build deterministic extraction for:
@@ -664,7 +666,9 @@ The semantic asset identity established here must be shared by all three eventua
 
 ### Gate
 
-Original rendered elements can be deterministically identified from authoritative game state and reproduced through an extraction manifest.
+For each presentation family, original rendered elements can be deterministically identified from authoritative game state and reproduced through an extraction/registration manifest.
+
+The ordinary-race racer family has passed this gate for the currently registered semantic window. Its next work is no longer generic identity/placement archaeology: prefer approval-ready asset dossiers and final visual-language decisions, or deliberately selected broader animation-family coverage when that coverage unlocks a specific art/product decision. Phase E as a whole remains open until the other required presentation families reach equivalent sufficiency.
 
 ## Phase F - Widescreen feature with stock art
 

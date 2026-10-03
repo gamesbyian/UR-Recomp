@@ -1,6 +1,6 @@
 # HD Presentation visual-language specification
 
-Status: Phase G design authority. This document starts conservative and should become more specific as original assets, animation indexing and historical source evidence are recovered.
+Status: Phase G design authority. The ordinary-race racer family now has sufficient semantic identity, exact composition guards, geometry anchors, live placement, fail-closed host substitution, and a continuous 16-frame registered temporal window to begin approval-ready asset dossiers. This document remains conservative where material/lighting/detail interpretation is not yet evidence-backed; other presentation families still await equivalent Phase E coverage.
 
 The job is to reconstruct Uniracers' presentation coherently at modern resolution without changing authoritative game behavior or turning every ambiguous source pixel into permission to invent detail.
 

@@ -25,6 +25,8 @@ boot -> title (0x84) -> MAIN_MENU
 VS: P1 rider -> P2 rider -> tour -> track (0x91) -> NOW PLAYING -> race -> 0xF9
       decided: VS CHAMPIONS (0xD3) -> PICK CHALLENGER (0x3F, loser's pad) -> track choice (0x5A) -> NOW PLAYING
       drawn:   REMATCH (0xB7) -> NOW PLAYING
+2P: P1 rider -> P2 rider -> tour -> track (0x91) -> NOW PLAYING -> race (continues until both finish or timeout) -> 0xF9
+      -> track choice (0x5A: NEXT/SAME/SELECT TRACK, SELECT TOUR, QUIT) -> NOW PLAYING with win tally
 ```
 
 The menus share one BG2 strip: MAIN_MENU, rider, tour and track select sit at scroll 0/256/512/768, and each step slides 256 px in 39 frames. Records/results screens reuse the same yellow-title / grey-data grammar (`analysis/generated/menu-visual-language.json`). `0x84` is also used during the post-race fade, so it is a title/fade value rather than a unique screen.

@@ -43,7 +43,7 @@ probe:
 
 display_binding:
   authentic_candidate:
-    id: community-7x6-full
+    id: uniracers-7x6-full
     source_width_pixels: 256
     active_height_pixels: 224
     pixel_aspect: "7:6"
@@ -51,18 +51,20 @@ display_binding:
     pixel_aspect_evidence: analysis/display-reference-geometry.json
     crop_top: 0
     crop_bottom: 0
-    overscan_status: preservation-evidence-backed-historical-visibility-unresolved
+    overscan_status: accepted-full-224-preservation
     overscan_evidence: analysis/display-active-height-evidence.json
-    status: provisional
-    rationale: "The official USA manual supports 7:6 horizontal correction. Canonical framebuffer evidence also proves a centered 216-line crop discards distinct rendered information in representative menu, transition and race scenes, so 216 cannot be treated as a content-neutral cleanup. Historical CRT visibility remains unresolved, keeping the combined Authentic transform provisional."
+    title_final_logical_transform: true
+    status: evidence-backed
+    rationale: "Authentic logical geometry is fixed at full 256x224 with 7:6 horizontal correction. Official-manual evidence supports the 4:3/7:6 display family, and canonical framebuffer evidence proves centered 216-line cropping discards rendered information in representative menu, transition and race scenes. Period-CRT edge loss remains a display-treatment concern rather than a destructive logical-raster crop."
   first_16x9_candidate:
     target_display_aspect: "16:9"
-    source_geometry: community-7x6-full
+    source_geometry: uniracers-7x6-full
     exact_symmetric_margin: "128/3"
     materializer_margin_pixels: 48
     provider: live-course-runtime
     provider_validated_capacity_margin_pixels: 72
-    runtime_selector: authentic-16x9-candidate
+    runtime_selector: authentic-16x9
+    compatibility_runtime_selector: authentic-16x9-candidate
     diagnostic_margin_override: URRECOMP_WS_MARGIN
     host_viewport_binding: native-widescreen-prepare-frame
     host_viewport_margin_pixels: 43
@@ -70,8 +72,9 @@ display_binding:
     host_logical_height_pixels: 224
     host_display_aspect_at_candidate_par: "57:32"
     host_display_aspect_error_percent_vs_16x9: 0.1953125
-    status: provisional
-    rationale: "Derived mechanically from the preferred Authentic candidate; no new guest descriptor lane is implied."
+    title_final_logical_view: true
+    status: evidence-backed
+    rationale: "Derived mechanically from the accepted full-224 7:6 Authentic transform. The host exposes +43 source pixels per side / 342x224 while the strip-granular provider prepares +48 per side. No new guest descriptor lane is implied."
 
 aspect_policies:
   - id: stock-4x3
@@ -83,9 +86,10 @@ aspect_policies:
     target_display_aspect: "16:9"
     pixel_aspect: "7:6"
     overscan: "full-224"
+    host_viewport_margin_pixels: 43
     derived_margin_pixels: 48
     provider: live-course-runtime
-    status: provisional
+    status: evidence-backed
 
 scenes:
   - id: title-frontend

@@ -7,8 +7,10 @@ and live preparation boundaries are present.
 
 Runtime contract:
   no Widescreen env          -> untouched stock behavior
+  URRECOMP_WS_VIEW=authentic-16x9
+                             -> accepted Authentic policy binding, resolved to +48
   URRECOMP_WS_VIEW=authentic-16x9-candidate
-                             -> provisional policy binding, resolved to +48
+                             -> compatibility alias for authentic-16x9
   URRECOMP_WS_MARGIN=8       -> accepted one adjacent future horizontal strip
   URRECOMP_WS_MARGIN=16      -> same accepted guest strip plus one host-owned
                                strip materialized from live course tables
@@ -71,7 +73,8 @@ static int ur_ws_native_margin(void) {
     } else {
       const char *view = getenv("URRECOMP_WS_VIEW");
       ur_ws_native_margin_cache =
-          (view && strcmp(view, "authentic-16x9-candidate") == 0) ? 48 : 0;
+          (view && (strcmp(view, "authentic-16x9") == 0 ||
+                    strcmp(view, "authentic-16x9-candidate") == 0)) ? 48 : 0;
     }
   }
   return ur_ws_native_margin_cache;

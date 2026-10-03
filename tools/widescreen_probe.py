@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+from fractions import Fraction
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +24,8 @@ def load_policy(path: Path) -> dict[str, Any]:
     lines = path.read_text(encoding="utf-8").splitlines()
     section: str | None = None
     margins: list[int] = []
+    materializer_granularity_pixels: int | None = None
+    validated_capacity_margin_pixels: int | None = None
     artifact_classes: list[str] = []
     aspect_policies: list[str] = []
     scenes: list[str] = []
@@ -40,6 +43,12 @@ def load_policy(path: Path) -> dict[str, Any]:
 
         if section == "probe":
             stripped = line.strip()
+            if stripped.startswith("materializer_granularity_pixels:"):
+                materializer_granularity_pixels = int(stripped.split(":", 1)[1].strip(), 0)
+                continue
+            if stripped.startswith("validated_capacity_margin_pixels:"):
+                validated_capacity_margin_pixels = int(stripped.split(":", 1)[1].strip(), 0)
+                continue
             if stripped == "artifact_classes:":
                 section = "probe_artifact_classes"
                 continue
@@ -71,10 +80,105 @@ def load_policy(path: Path) -> dict[str, Any]:
 
     return {
         "source_pixel_margins": margins,
+        "materializer_granularity_pixels": materializer_granularity_pixels,
+        "validated_capacity_margin_pixels": validated_capacity_margin_pixels,
         "artifact_classes": artifact_classes,
         "aspect_policies": aspect_policies,
         "scenes": scenes,
     }
+
+
+def parse_ratio(value: str) -> Fraction:
+    """Parse a positive ratio written as A:B, A/B or an integer."""
+    raw = value.strip()
+    if not raw:
+        raise ValueError("ratio must not be empty")
+    if ":" in raw:
+        parts = raw.split(":")
+    elif "/" in raw:
+        parts = raw.split("/")
+    else:
+        parts = [raw, "1"]
+    if len(parts) != 2:
+        raise ValueError(f"invalid ratio {value!r}")
+    try:
+        ratio = Fraction(int(parts[0].strip()), int(parts[1].strip()))
+    except (ValueError, ZeroDivisionError) as exc:
+        raise ValueError(f"invalid ratio {value!r}") from exc
+    if ratio <= 0:
+        raise ValueError(f"ratio must be positive: {value!r}")
+    return ratio
+
+
+def _fraction_payload(value: Fraction) -> dict[str, int | float]:
+    return {
+        "numerator": value.numerator,
+        "denominator": value.denominator,
+        "decimal": float(value),
+    }
+
+
+def _ceil_fraction_to_multiple(value: Fraction, multiple: int) -> int:
+    if multiple <= 0:
+        raise ValueError("granularity must be positive")
+    if value <= 0:
+        return 0
+    units = (value.numerator + value.denominator * multiple - 1) // (
+        value.denominator * multiple
+    )
+    return units * multiple
+
+
+def derive_symmetric_margin(
+    *,
+    base_logical_width: int,
+    logical_height: int,
+    target_aspect: Fraction,
+    pixel_aspect: Fraction,
+    granularity: int = 8,
+    capacity_margin: int | None = None,
+) -> dict[str, Any]:
+    """Derive logical widening from display geometry without magic source widths.
+
+    pixel_aspect is display-width/display-height for one logical source pixel.
+    logical_height is the active height after the selected overscan policy.
+    """
+    if base_logical_width <= 0 or logical_height <= 0:
+        raise ValueError("logical dimensions must be positive")
+    if target_aspect <= 0 or pixel_aspect <= 0:
+        raise ValueError("aspects must be positive")
+    if granularity <= 0:
+        raise ValueError("granularity must be positive")
+    if capacity_margin is not None and capacity_margin < 0:
+        raise ValueError("capacity margin must be non-negative")
+
+    required_width = Fraction(logical_height) * target_aspect / pixel_aspect
+    exact_margin = (required_width - base_logical_width) / 2
+    if exact_margin < 0:
+        exact_margin = Fraction(0)
+    materializer_margin = _ceil_fraction_to_multiple(exact_margin, granularity)
+    materialized_width = base_logical_width + materializer_margin * 2
+    achieved_aspect = (
+        Fraction(materialized_width) * pixel_aspect / Fraction(logical_height)
+    )
+
+    out: dict[str, Any] = {
+        "schema_version": 1,
+        "base_logical_width": base_logical_width,
+        "logical_height": logical_height,
+        "target_aspect": _fraction_payload(target_aspect),
+        "pixel_aspect": _fraction_payload(pixel_aspect),
+        "required_logical_width": _fraction_payload(required_width),
+        "symmetric_margin_exact": _fraction_payload(exact_margin),
+        "materializer_granularity_pixels": granularity,
+        "materializer_margin_pixels": materializer_margin,
+        "materialized_logical_width": materialized_width,
+        "materialized_display_aspect": _fraction_payload(achieved_aspect),
+    }
+    if capacity_margin is not None:
+        out["validated_capacity_margin_pixels"] = capacity_margin
+        out["capacity_sufficient"] = materializer_margin <= capacity_margin
+    return out
 
 
 def new_report(
@@ -230,6 +334,18 @@ def main() -> int:
     validate = sub.add_parser("validate", help="validate an existing report")
     validate.add_argument("report", type=Path)
 
+    derive = sub.add_parser(
+        "derive-margin",
+        help="derive logical per-side widening from aspect/PAR/active-height policy",
+    )
+    derive.add_argument("--base-width", type=int, default=256)
+    derive.add_argument("--logical-height", type=int, required=True)
+    derive.add_argument("--target-aspect", default="16:9")
+    derive.add_argument("--pixel-aspect", required=True)
+    derive.add_argument("--granularity", type=int)
+    derive.add_argument("--capacity-margin", type=int)
+    derive.add_argument("--out", type=Path)
+
     args = ap.parse_args()
     policy = load_policy(args.policy)
 
@@ -252,6 +368,31 @@ def main() -> int:
             args.out.write_text(text, encoding="utf-8")
         else:
             print(text, end="")
+        return 0
+
+    if args.command == "derive-margin":
+        result = derive_symmetric_margin(
+            base_logical_width=args.base_width,
+            logical_height=args.logical_height,
+            target_aspect=parse_ratio(args.target_aspect),
+            pixel_aspect=parse_ratio(args.pixel_aspect),
+            granularity=(
+                args.granularity
+                if args.granularity is not None
+                else policy.get("materializer_granularity_pixels") or 8
+            ),
+            capacity_margin=(
+                args.capacity_margin
+                if args.capacity_margin is not None
+                else policy.get("validated_capacity_margin_pixels")
+            ),
+        )
+        payload = json.dumps(result, indent=2, sort_keys=True) + "\n"
+        if args.out:
+            args.out.parent.mkdir(parents=True, exist_ok=True)
+            args.out.write_text(payload, encoding="utf-8")
+        else:
+            print(payload, end="")
         return 0
 
     report = json.loads(args.report.read_text(encoding="utf-8"))

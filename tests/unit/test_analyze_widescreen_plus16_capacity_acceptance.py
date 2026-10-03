@@ -106,25 +106,35 @@ class WidescreenCapacityTests(unittest.TestCase):
         self.assertTrue(r["checks"]["margin64_ring_chain_adjacent"])
         self.assertTrue(r["checks"]["margin64_same_view_payloads_exact"])
 
+    def test_accepts_eight_host_columns_at_plus72_policy_depth(self):
+        log, p8, control, oracle, state = self.fixture(72)
+        r = MOD.analyze_margin(72, log, p8, oracle, control, state, dict(state))
+        self.assertTrue(r["accepted"])
+        self.assertEqual(r["expected_host_columns"], 8)
+        self.assertEqual(r["counts"]["host_shadow_events"], 16)
+        self.assertTrue(r["checks"]["margin72_all_host_columns_materialized"])
+        self.assertTrue(r["checks"]["margin72_ring_chain_adjacent"])
+        self.assertTrue(r["checks"]["margin72_same_view_payloads_exact"])
+
     def test_rejects_missing_deep_host_column(self):
-        log, p8, control, oracle, state = self.fixture(64)
+        log, p8, control, oracle, state = self.fixture(72)
         needle = (
-            "URWS_SHADOW_EXT provider=course-runtime margin=64 column=8 camx=100 "
-            "edge=0D88 count=16 payload=" + PAYLOAD_A +
-            " camy=0 finex=24 finey=0 edgey=FFFF county=0\n"
+            "URWS_SHADOW_EXT provider=course-runtime margin=72 column=9 camx=100 "
+            "edge=0D89 count=16 payload=" + PAYLOAD_A +
+            " camy=0 finex=25 finey=0 edgey=FFFF county=0\n"
         )
         log = log.replace(needle, "", 1)
-        r = MOD.analyze_margin(64, log, p8, oracle, control, state, dict(state))
+        r = MOD.analyze_margin(72, log, p8, oracle, control, state, dict(state))
         self.assertFalse(r["accepted"])
-        self.assertFalse(r["checks"]["margin64_all_host_columns_materialized"])
+        self.assertFalse(r["checks"]["margin72_all_host_columns_materialized"])
 
     def test_rejects_authoritative_state_change(self):
-        log, p8, control, oracle, state = self.fixture(64)
+        log, p8, control, oracle, state = self.fixture(72)
         changed = dict(state)
         changed["progress"] = 4
-        r = MOD.analyze_margin(64, log, p8, oracle, control, state, changed)
+        r = MOD.analyze_margin(72, log, p8, oracle, control, state, changed)
         self.assertFalse(r["accepted"])
-        self.assertFalse(r["checks"]["margin64_protected_state_equal"])
+        self.assertFalse(r["checks"]["margin72_protected_state_equal"])
 
 
 if __name__ == "__main__":

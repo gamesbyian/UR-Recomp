@@ -10,7 +10,7 @@ Runtime contract:
   URRECOMP_WS_MARGIN=8       -> accepted one adjacent future horizontal strip
   URRECOMP_WS_MARGIN=16      -> same accepted guest strip plus one host-owned
                                strip materialized from live course tables
-  URRECOMP_WS_MARGIN=24..64  -> same accepted guest strip plus N host-owned
+  URRECOMP_WS_MARGIN=24..72  -> same accepted guest strip plus N host-owned
                                strips materialized from live course tables
 """
 from __future__ import annotations
@@ -54,7 +54,7 @@ static unsigned ur_ws_native_shadow_live_count = 0;
 static CpuState ur_ws_native_cpu_snapshot;
 static uint8 ur_ws_native_low_wram_snapshot[0x2000];
 static uint8 ur_ws_native_future_payload[32];
-#define UR_WS_NATIVE_MAX_HOST_COLUMNS 7u
+#define UR_WS_NATIVE_MAX_HOST_COLUMNS 8u
 static uint8 ur_ws_native_shadow_payload[UR_WS_NATIVE_MAX_HOST_COLUMNS][32];
 static uint16 ur_ws_native_shadow_edge[UR_WS_NATIVE_MAX_HOST_COLUMNS];
 static uint16 ur_ws_native_shadow_count[UR_WS_NATIVE_MAX_HOST_COLUMNS];
@@ -185,7 +185,7 @@ static int ur_ws_native_shadow_from_course(CpuState *cpu, uint16 first_edge,
 
 static int ur_ws_native_should_prepare(CpuState *cpu) {
   const int margin = ur_ws_native_margin();
-  if (margin < 8 || margin > 64 || (margin & 7) != 0 ||
+  if (margin < 8 || margin > 72 || (margin & 7) != 0 ||
       ur_ws_native_payload_live)
     return 0;
   return ur_ws_native_read16(cpu, 0x0505) != 0xffff &&
@@ -451,7 +451,8 @@ def apply(gen_dir: Path) -> dict:
             "margin16_supported": True,
             "margin24_supported": True,
         "margin64_probe_supported": True,
-            "first_constraint": "none-through-plus64-probe",
+            "margin72_probe_supported": True,
+            "first_constraint": "none-through-plus72-probe",
         }
 
     required = [
@@ -502,7 +503,8 @@ def apply(gen_dir: Path) -> dict:
         "margin16_supported": True,
         "margin24_supported": True,
             "margin64_probe_supported": True,
-        "first_constraint": "none-through-plus64-probe",
+            "margin72_probe_supported": True,
+        "first_constraint": "none-through-plus72-probe",
     }
 
 

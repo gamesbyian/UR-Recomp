@@ -35,7 +35,7 @@ class WidescreenProbeTests(unittest.TestCase):
         )
 
     def test_policy_vocab_is_loaded_from_authoritative_file(self):
-        self.assertEqual(self.policy["source_pixel_margins"], [0, 8, 16, 24, 32, 48, 64])
+        self.assertEqual(self.policy["source_pixel_margins"], [0, 8, 16, 24, 32, 48, 64, 72])
         self.assertEqual(self.policy["materializer_granularity_pixels"], 8)
         self.assertEqual(self.policy["validated_capacity_margin_pixels"], 64)
         self.assertIn("sprite-cull", self.policy["artifact_classes"])

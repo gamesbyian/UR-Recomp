@@ -1125,6 +1125,54 @@
       "size": 1356,
       "git_blob_sha1": "960849df2b8419a10280d5dbbfc84e360ccdf6ac",
       "review_status": "preservation-only"
+    },
+    {
+      "path": "reference/imported/platforms/switch/libnx/README.md",
+      "category": "platform-homebrew-reference",
+      "size": 266,
+      "git_blob_sha1": "479fea1a6027cf536178e494e96a2f79e93af84c",
+      "upstream_git_blob_sha1": "479fea1a6027cf536178e494e96a2f79e93af84c",
+      "review_status": "audited-reference"
+    },
+    {
+      "path": "reference/imported/platforms/switch/libnx/LICENSE.md",
+      "category": "platform-homebrew-license",
+      "size": 731,
+      "git_blob_sha1": "b8327e3f77c35baf0840797b542c67e5918367fe",
+      "upstream_git_blob_sha1": "b8327e3f77c35baf0840797b542c67e5918367fe",
+      "review_status": "audited-reference"
+    },
+    {
+      "path": "reference/imported/platforms/switch/switch-examples/README.md",
+      "category": "platform-homebrew-reference",
+      "size": 240,
+      "git_blob_sha1": "68916260baffc64de7c7d75241d683cc5e3c05be",
+      "upstream_git_blob_sha1": "68916260baffc64de7c7d75241d683cc5e3c05be",
+      "review_status": "audited-reference"
+    },
+    {
+      "path": "reference/imported/platforms/switch/switch-examples/sdl2-simple/Makefile",
+      "category": "platform-homebrew-example",
+      "size": 7693,
+      "git_blob_sha1": "1eb4f3e7a387491a4f69f0e32cf38fe653de8b99",
+      "upstream_git_blob_sha1": "1eb4f3e7a387491a4f69f0e32cf38fe653de8b99",
+      "review_status": "audited-reference"
+    },
+    {
+      "path": "reference/imported/platforms/switch/switch-examples/sdl2-simple/main.cpp",
+      "category": "platform-homebrew-example",
+      "size": 4160,
+      "git_blob_sha1": "1aef4894ae291f01273a24277e96caf9681a3800",
+      "upstream_git_blob_sha1": "1aef4894ae291f01273a24277e96caf9681a3800",
+      "review_status": "audited-reference"
+    },
+    {
+      "path": "reference/imported/platforms/switch/switch-examples/application-template/main.c",
+      "category": "platform-homebrew-example",
+      "size": 1820,
+      "git_blob_sha1": "bbf4035e4f5e9b9a846a996f0454772fe0e8350f",
+      "upstream_git_blob_sha1": "bbf4035e4f5e9b9a846a996f0454772fe0e8350f",
+      "review_status": "audited-reference"
     }
   ]
 }

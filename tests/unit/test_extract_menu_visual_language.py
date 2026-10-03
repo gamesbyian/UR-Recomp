@@ -87,7 +87,9 @@ class MenuVisualLanguageTests(unittest.TestCase):
         self.assertEqual(mvl.small_char_for_tile(0xA4), "(")
         self.assertEqual(mvl.small_char_for_tile(0xA4, hflip=True), ")")
         self.assertEqual(mvl.small_char_for_tile(0xA7), "-")
-        self.assertIsNone(mvl.small_char_for_tile(0xA3))
+        self.assertEqual(mvl.small_char_for_tile(0xA3), "'")
+        self.assertEqual(mvl.small_char_for_tile(0xA5), "+")
+        self.assertIsNone(mvl.small_char_for_tile(0xA6))
 
     def test_run_lengths_and_deltas(self) -> None:
         self.assertEqual(mvl.run_lengths([8, 8, 4, 4, 0]), [[8, 2], [4, 2], [0, 1]])

@@ -271,6 +271,14 @@
       "source": "tests/input/ui-league-probe.script",
       "fixture": "ui-league-probe",
       "note": "WARNING: THIS OPTION WILL REMOVE <league> / SELECT+Y+A TO REMOVE; the chord opens the PICK YOUR LEAGUE editor (whose 009F reads scratch values 0x3F/0x73)."
+    },
+    {
+      "value": "0x58",
+      "state_id": "ERASE_ALL_CONFIRM",
+      "status": "verified",
+      "source": "tests/input/ui-erase-confirm.script",
+      "fixture": "ui-erase-confirm",
+      "note": "Two-option menu WIPE RAM / MAIN MENU; WIPE RAM leads to a full-screen SELECT+Y+A WARNING whose 009F is scratch."
     }
   ]
 }

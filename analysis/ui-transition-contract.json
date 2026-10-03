@@ -281,7 +281,9 @@
       "from": "MAIN_MENU",
       "to": "ERASE_ALL_CONFIRM",
       "trigger": "hold Left+A+L+R",
-      "status": "documented"
+      "status": "verified",
+      "fixture": "ui-erase-confirm",
+      "source_note": "snesref: Left+A+L+R shows the two-option menu WIPE RAM / MAIN MENU at 0x58."
     },
     {
       "id": "two-player-tour",
@@ -355,8 +357,9 @@
       "id": "erase-cancel-main",
       "from": "ERASE_ALL_CONFIRM",
       "to": "MAIN_MENU",
-      "trigger": "cancel",
-      "status": "documented"
+      "trigger": "X (cancel)",
+      "status": "verified",
+      "fixture": "ui-erase-confirm"
     },
     {
       "id": "records-track",
@@ -600,6 +603,16 @@
       "status": "verified",
       "fixture": "two-player-p1-win",
       "source_note": "NOW PLAYING shows OVER 3 LAPS ON ZOOM ZOO with a running win tally (MIKE 1, ANDREW 0)."
+    },
+    {
+      "id": "erase-confirm-reset",
+      "from": "ERASE_ALL_CONFIRM",
+      "to": "ERASE_ALL_CONFIRM",
+      "trigger": "A on WIPE RAM opens a full-screen WARNING; SELECT+Y+A then resets cartridge memory",
+      "side_effect": "SRAM returns to the fresh-format image (medals cleared, default names)",
+      "status": "verified",
+      "fixture": "ui-erase-reset",
+      "source_note": "Seeded Crawler/MIKE medal 2 -> 0 with a valid checksum; post-reset SRAM equals a clean-boot formatted image except live working bytes."
     }
   ],
   "capture_exempt_states": [

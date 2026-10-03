@@ -2090,3 +2090,15 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 **Evidence:** `tests/input/ui-league-probe.script` (fixture `ui-league-probe`), decoded with `extract_menu_visual_language.catalog_screen`. Edges `main-league` and `options-define-league` are verified, and menu index `0x56` / `0x9A` added.
 
 **Policy consequence:** `destructive-controller-chords` (redesign_decided) now has runtime evidence for both chords' guard screens: the erase-all confirmation (documented) and this league-redefine WARNING.
+
+### R-2026-10-03-UI-15 — Erase-all is a two-stage guarded reset to the fresh-format image
+
+**Status:** reproduced locally (reference harness)  
+**Date:** 2026-10-03  
+**Area:** frontend | SRAM
+
+**Observation:** Left+A+L+R on MAIN_MENU shows the two-option menu WIPE RAM / MAIN MENU (`0x58`), and X cancels. A on WIPE RAM opens a full-screen WARNING ("THIS OPTION WILL RESET YOUR GAME PAK'S MEMORY TO ITS FACTORY DEFAULT / YOU WILL LOSE ALL YOUR RECORDS ETC. / SELECT+Y+A TO RESET"), where `7E:009F` reads scratch `0xF9`. SELECT+Y+A resets SRAM. From a save with Crawler/MIKE medal 2, the medal becomes 0, the checksum stays valid, and the result equals a clean-boot formatted image except the live working bytes (`0742..0750`, `1073`, `10A7`, `10AD`). The screen also identifies small-font tiles `0xA3` = `'` and `0xA5` = `+`.
+
+**Evidence:** `tests/input/ui-erase-confirm.script`, `tests/input/ui-erase-reset.script` (seeded SRAM); edges `main-erase`, `erase-cancel-main` and `erase-confirm-reset` are verified, and menu index `0x58` added.
+
+**Policy consequence:** both destructive chords (erase-all, league redefine) are already guarded by a WARNING plus a SELECT+Y+A confirmation in stock. The modern `destructive-controller-chords` redesign replaces the chord entry and confirmation with explicit UI, not an unguarded action.

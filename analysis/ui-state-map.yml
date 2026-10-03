@@ -670,8 +670,8 @@ states:
     family: destructive
     kind: confirmation
     confidence: high
-    evidence: [primary_manual]
-    description: "Confirmation reached from MAIN_MENU via Left+A+L+R; erases battery-backed records if accepted."
+    evidence: [primary_manual, reproduced_runtime]
+    description: "Reached from MAIN_MENU via Left+A+L+R: two-option menu WIPE RAM / MAIN MENU (0x58). WIPE RAM opens a full-screen WARNING (THIS OPTION WILL RESET YOUR GAME PAK'S MEMORY TO ITS FACTORY DEFAULT / SELECT+Y+A TO RESET). The chord resets SRAM to the fresh-format image; X cancels to MAIN_MENU. Reproduced 2026-10-03 (ui-erase-confirm, ui-erase-reset)."
     transitions:
       - input: "confirm"
         to: MAIN_MENU

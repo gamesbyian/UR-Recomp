@@ -71,7 +71,7 @@ def char_for_slot(slot: int) -> str:
     return SPECIAL_GLYPHS[slot - 35]
 
 
-SMALL_FONT_PUNCTUATION = {0xA2: "%", 0xA4: "(", 0xA7: "-", 0xA8: ".", 0xCC: ":"}
+SMALL_FONT_PUNCTUATION = {0xA2: "%", 0xA3: "'", 0xA4: "(", 0xA5: "+", 0xA7: "-", 0xA8: ".", 0xCC: ":"}
 
 
 def small_char_for_tile(tile: int, hflip: bool = False) -> str | None:
@@ -460,7 +460,7 @@ def setup_screens(directory: Path, map_base: int, width: int, height: int) -> tu
         "glyph_cell_px": [8, 16],
         "glyph_tiles_rule": "character tile t on top, t+0x3C below; '0'..'9' are 0xA9..0xB2, A-Z (no O) from 0xB3, space 0xCE",
         "punctuation_tiles": {f"0x{k:02X}": v for k, v in SMALL_FONT_PUNCTUATION.items()},
-        "punctuation_note": "')' reuses the '(' tile with the tilemap H-flip bit; 0xA3/0xA5/0xA6 are unidentified",
+        "punctuation_note": "')' reuses the '(' tile with the tilemap H-flip bit; 0xA6 is unidentified",
         "bg_palette_index": 7,
         "pixel_value_usage": {str(k): v for k, v in sorted(usage.items())},
         "pixel_roles": {"8": "black outline", "9-12": "grey fill ramp"},

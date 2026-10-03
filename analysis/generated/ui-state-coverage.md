@@ -36,7 +36,7 @@
 | DEFINE_LEAGUE | 2 | 0x9A | 0 | 1 | 1 |  | 1 | 1 | verified |
 | NAME_LEAGUE | 2 |  | 0 | 1 | 1 |  | 2 | 2 | documented |
 | ENDING | 1 | 0x5B? | 0 | 1 | 1 |  | 1 | 1 | hypothesis |
-| ERASE_ALL_CONFIRM | 2 |  | 0 | 1 | 0 |  | 1 | 1 | documented |
+| ERASE_ALL_CONFIRM | 2 | 0x58 | 0 | 1 | 0 |  | 2 | 2 | verified |
 
 ## Tier 1 gaps
 
@@ -52,10 +52,10 @@
 ## Summary
 
 - conceptual states: 35
-- executable transitions: 73
+- executable transitions: 74
 - capture contracts: 115
-- menu-index entries: 35
-- locally verified menu-index entries: 25
+- menu-index entries: 36
+- locally verified menu-index entries: 26
 - states with at least one capture contract: 33
 - states with at least one public visual lead: 24
 - Tier 1 states: 23

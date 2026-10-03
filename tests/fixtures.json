@@ -1030,6 +1030,31 @@
       ],
       "status": "reconnaissance",
       "validation": "Decoded locally with tools/extract_menu_visual_language.py catalog_screen; membership add/Start/naming not yet reproduced."
+    },
+    {
+      "id": "ui-erase-reset",
+      "input_script": "tests/input/ui-erase-reset.script",
+      "purpose": "Destructive erase-all path with a disposable seeded SRAM: menu 0x58 -> WARNING -> SELECT+Y+A reset; compare SRAM before/after.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "ui-erase-reset-before",
+        "ui-erase-reset-menu",
+        "ui-erase-reset-warning",
+        "ui-erase-reset-done"
+      ],
+      "compare_surfaces": [
+        "sram",
+        "framebuffer",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "77:069C medal matrix",
+        "77:073C checksum"
+      ],
+      "status": "validated",
+      "validation": "Locally: medal 2 -> 0, checksum valid, post-reset SRAM equals the fresh-format image except live bytes 0742..0750/1073/10A7/10AD."
     }
   ]
 }

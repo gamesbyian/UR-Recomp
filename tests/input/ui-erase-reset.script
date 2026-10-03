@@ -1,0 +1,17 @@
+# Erase-all full path. Destructive: run with a disposable pre-boot SRAM that holds progress
+# (e.g. tools/probe_tier_opponents.seeded(clean, 2)) and compare SRAM before/after.
+# Left+A+L+R -> 0x58 WIPE RAM / MAIN MENU -> A -> full-screen WARNING (009F reads scratch 0xF9)
+# -> SELECT+Y+A resets the cartridge memory to its factory (fresh-format) image.
+until 009F == D7 3600
+wait 60
+dump ui-erase-reset-before
+press left+a+l+r 2
+wait 60
+dump ui-erase-reset-menu
+press a 2
+wait 120
+dump ui-erase-reset-warning
+press select+y+a 3
+wait 600
+dump ui-erase-reset-done
+quit

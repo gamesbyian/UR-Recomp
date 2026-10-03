@@ -31,7 +31,7 @@ static unsigned g_ur_restart_probe_count;
 static int g_ur_restart_probe_phase;
 static int g_ur_restart_prev_in_race;
 static int g_ur_restart_results_mode = -1;
-static int g_ur_restart_seen_results;
+static UrUniracersRestartPolicyState g_ur_restart_title_policy;
 static uint8_t *g_ur_restart_before_sram;
 static size_t g_ur_restart_before_sram_len;
 
@@ -123,18 +123,16 @@ static int UrRestartEnsureSession(void) {
 static UrUniracersRestartSurface UrRestartObserveTitleLifecycle(void) {
     const uint8_t race = g_ram[0x0313];
     const uint8_t menu = g_ram[0x009F];
-    const UrUniracersRestartSurface surface =
-        ur_uniracers_classify_restart_surface(race, menu);
+    const UrUniracersRestartDecision decision =
+        ur_uniracers_restart_policy_observe(
+            &g_ur_restart_title_policy, race, menu);
+    const UrUniracersRestartSurface surface = decision.surface;
 
     if (surface == UR_UNIRACERS_RESTART_ACTIVE_RACE) {
         ur_modern_session_observe_race_active(g_ur_restart_session, 1);
-        g_ur_restart_seen_results = 0;
     } else {
         ur_modern_session_observe_race_active(g_ur_restart_session, 0);
-        if (surface == UR_UNIRACERS_RESTART_RESULTS) {
-            g_ur_restart_seen_results = 1;
-        } else if (surface == UR_UNIRACERS_RESTART_RETIRE_ATTEMPT &&
-                   g_ur_restart_seen_results) {
+        if (decision.retire_attempt) {
             ur_modern_session_retire_race_attempt(g_ur_restart_session);
         }
     }

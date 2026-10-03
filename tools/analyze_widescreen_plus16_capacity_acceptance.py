@@ -166,7 +166,7 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
         if not second_ring_ok:
             bad_second_ring_steps.append(item)
 
-            shadow_view_by_cam={r["camx"]:r for r in shadow_views}
+    shadow_view_by_cam={r["camx"]:r for r in shadow_views}
     for first in p16:
         second=shadow_view_by_cam.get(first["camx"])
         if second is None:

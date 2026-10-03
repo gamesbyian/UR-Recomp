@@ -235,10 +235,13 @@ class RacerHdAssetDossierTests(unittest.TestCase):
             FOURTH_AUTHORED_REPRESENTATION_ID,
             "ordinary-racer-0x0540-p1-companion-0D2C-with-p2-0542-reference",
         )
-        self.assertEqual(
-            build_third_authored_candidate_rgba(),
-            build_third_authored_candidate_rgba(),
+        self.assertNotEqual(
+            FOURTH_AUTHORED_REPRESENTATION_ID,
+            THIRD_AUTHORED_REPRESENTATION_ID,
         )
+        # Reuse deliberately has no fourth image generator: both exact
+        # composition IDs consume the already-reviewed third authored asset.
+        self.assertEqual(len(build_third_authored_candidate_rgba()), 256 * 256 * 4)
 
     def test_safe_name_is_path_stable(self):
         self.assertEqual(safe_name("racer / 0x0541:p1"), "racer-0x0541-p1")

@@ -157,6 +157,43 @@ def build_first_authored_candidate_rgba() -> bytes:
     )
 
 
+def gameplay_sampled_alpha_review(authored_rgba: bytes, stock_rgba: bytes) -> dict:
+    candidate = set()
+    stock = set()
+    for y in range(H):
+        for x in range(W):
+            authored_index = (((y * 4 + 2) * (W * 4)) + (x * 4 + 2)) * 4 + 3
+            stock_index = ((y * W) + x) * 4 + 3
+            if authored_rgba[authored_index] != 0:
+                candidate.add((x, y))
+            if stock_rgba[stock_index] != 0:
+                stock.add((x, y))
+
+    def bounds(points: set[tuple[int, int]]) -> list[int]:
+        return [
+            min(x for x, _ in points),
+            min(y for _, y in points),
+            max(x for x, _ in points),
+            max(y for _, y in points),
+        ]
+
+    bottom_y = max(y for _, y in candidate)
+    bottom_x = [x for x, y in candidate if y == bottom_y]
+    intersection = len(candidate & stock)
+    union = len(candidate | stock)
+    return {
+        "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+        "stock_alpha_bounds": bounds(stock),
+        "candidate_alpha_bounds": bounds(candidate),
+        "candidate_contact_x2_y2": [min(bottom_x) + max(bottom_x), bottom_y * 2],
+        "candidate_opaque_pixels": len(candidate),
+        "stock_opaque_pixels": len(stock),
+        "alpha_intersection_pixels": intersection,
+        "alpha_union_pixels": union,
+        "alpha_iou": intersection / union,
+    }
+
+
 def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -318,6 +355,9 @@ def build_dossier(
                 "png": f"authored-candidate/{safe_name(rid)}.png",
                 "png_sha256": sha256(authored_png),
                 "visual_language": dict(RESOLVED_VISUAL_LANGUAGE),
+                "gameplay_scale_review": gameplay_sampled_alpha_review(
+                    authored_rgba, stock
+                ),
                 "native_parity": (
                     "mirrors native/presentation/racer_hd_presenter.hpp "
                     "sample_racer_hd_authored_0541_p1"

@@ -193,6 +193,25 @@ jobs:
             --player p2 --palette-asset-id 0x07 \
             | tee "$RUNNER_TEMP/racer-predecessor-p2.json"
 
+      - name: Measure forward synchronized racer anchors
+        run: |
+          python3 tools/measure_racer_composed_anchor.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --p1-primary 0x057F --p2-primary 0x0543 \
+            --p1-companion 0x0D6A --p2-companion 0x0000 \
+            --p1-selector 0 --p2-selector 0 \
+            --p1-gate 0x0001 --p2-gate 0x0000 \
+            --player p1 --palette-asset-id 0x06 \
+            | tee "$RUNNER_TEMP/racer-forward-p1.json"
+          python3 tools/measure_racer_composed_anchor.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --p1-primary 0x057F --p2-primary 0x0543 \
+            --p1-companion 0x0D6A --p2-companion 0x0000 \
+            --p1-selector 0 --p2-selector 0 \
+            --p1-gate 0x0001 --p2-gate 0x0000 \
+            --player p2 --palette-asset-id 0x07 \
+            | tee "$RUNNER_TEMP/racer-forward-p2.json"
+
       - name: Upload compact visual proof
         uses: actions/upload-artifact@v4
         with:
@@ -201,6 +220,8 @@ jobs:
             ${{ runner.temp }}/racer-hd-prototype-*/
             ${{ runner.temp }}/racer-hd-temporal-coherence.json
             ${{ runner.temp }}/racer-hd-temporal-coherence.txt
+            ${{ runner.temp }}/racer-forward-p1.json
+            ${{ runner.temp }}/racer-forward-p2.json
             ${{ runner.temp }}/racer-predecessor-p1.json
             ${{ runner.temp }}/racer-predecessor-p2.json
             ${{ runner.temp }}/racer-companion-context-p1.json

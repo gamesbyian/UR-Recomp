@@ -241,5 +241,32 @@ int main() {
         GraphicsPack::Remastered, 0x0542, predecessor_context
     ).registration == p2_predecessor);
 
+    const RacerCompositionState forward_context{
+        0x057F,
+        0x0543,
+        0x0D6A,
+        0x0000,
+        0,
+        0,
+        0x0001,
+        0x0000,
+    };
+    const auto* p1_forward =
+        find_racer_registration_for_state(0x057F, forward_context);
+    const auto* p2_forward =
+        find_racer_registration_for_state(0x0543, forward_context);
+    assert(p1_forward != nullptr);
+    assert(p2_forward != nullptr);
+    assert(p1_forward->contact_anchor.x2 == 65);
+    assert(p1_forward->contact_anchor.y2 == 76);
+    assert(p2_forward->contact_anchor.x2 == 57);
+    assert(p2_forward->contact_anchor.y2 == 76);
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x057F, forward_context
+    ).registration == p1_forward);
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0543, forward_context
+    ).registration == p2_forward);
+
     return 0;
 }

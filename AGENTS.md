@@ -120,3 +120,10 @@ Do not use GUI-only observations as the sole basis for a fidelity claim when a d
 ## Long evidence workflows
 
 Do not set `cancel-in-progress: true` on long-running evidence workflows whose trigger paths are likely to be edited during the same active research session. That can starve the evidence run indefinitely while an agent makes legitimate incremental commits. Use non-cancelling concurrency for long historical replay, trace, and static-classification jobs; reserve cancellation for cheap superseded checks where losing an earlier run does not erase the only pending discriminator.
+
+
+## Platform-port tasks
+
+For Windows/macOS/Web/console-host portability work, read `docs/PLATFORM-TARGETS.md` first. For Nintendo Switch homebrew work, also read `docs/SWITCH-HOMEBREW-PORT.md`, `third_party/platform/switch/pins.json`, and the pinned examples under `reference/imported/platforms/switch/`.
+
+Platform agents must preserve the authoritative recompiled simulation and keep OS/console APIs below host interfaces. Do not introduce proprietary SDK files, confidential platform material, keys or device-specific secrets. Compile-only feasibility is not hardware acceptance.

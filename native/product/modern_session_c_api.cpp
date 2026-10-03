@@ -2,7 +2,9 @@
 
 #include "modern_session_runtime.hpp"
 
+#include <cstring>
 #include <new>
+#include <vector>
 
 using ur::product::ExecutionMode;
 using ur::product::ModernSessionDispatchResult;
@@ -102,6 +104,29 @@ extern "C" UrModernSession* ur_modern_session_create(
 
 extern "C" void ur_modern_session_destroy(UrModernSession* session) {
     delete session;
+}
+
+extern "C" bool ur_modern_session_load_preserving_persistent_bytes(
+    UrLoadSnapshotFn load_snapshot,
+    const void* snapshot,
+    size_t snapshot_size,
+    void* persistent_bytes,
+    size_t persistent_size) {
+    if (!load_snapshot || (!persistent_bytes && persistent_size != 0)) {
+        return false;
+    }
+
+    std::vector<unsigned char> preserved(persistent_size);
+    if (persistent_size != 0) {
+        std::memcpy(preserved.data(), persistent_bytes, persistent_size);
+    }
+
+    const bool loaded = load_snapshot(snapshot, snapshot_size);
+
+    if (persistent_size != 0) {
+        std::memcpy(persistent_bytes, preserved.data(), persistent_size);
+    }
+    return loaded;
 }
 
 extern "C" void ur_modern_session_observe_race_active(

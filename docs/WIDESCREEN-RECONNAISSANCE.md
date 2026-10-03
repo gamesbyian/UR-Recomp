@@ -197,6 +197,16 @@ Initial classes:
 
 Scene policy should be data-driven where practical so title/front-end/cutscene exceptions do not become scattered host-renderer conditionals.
 
+### First host-composition contract
+
+The accepted Authentic 16:9 logical view now has an explicit host-composition rule rather than a blanket "make every screen 342 pixels wide" assumption.
+
+For evidence-backed race scenes, the host may expose the accepted **342×224** logical viewport at 7:6 PAR over the +48 provider backing. That discrete viewport is 57:32 after PAR, so exact 16:9 output applies the deterministic horizontal fit correction **512/513** after logical composition. This is output scaling only; it does not change guest coordinates, simulation cadence, activation, camera state or prepared backing.
+
+For fixed-center or still-unresolved scenes, preserve the full **256×224** Authentic image and center it in the 16:9 output surface. At 7:6 PAR and full-height fit, that image occupies exactly **3/4** of the 16:9 output width. Title/frontend, pre-race and results currently use this conservative policy; VS also fails closed to centered width until its dedicated Widescreen discriminator closes. Ordinary 1P and 2P race scenes are the only currently evidence-backed widened classes.
+
+The native reconnaissance host accepts `URRECOMP_WS_SCENE` solely as a deterministic diagnostic selector for this composition policy. It deliberately does not read WRAM or infer guest state. Shipping scene selection still needs an evidence-backed host presentation seam; until then, the selector proves the composition contract without turning provisional scene recognition into runtime truth.
+
 ## Information-exposure measurement
 
 For selected hazards/opponents/events record, if recoverable:

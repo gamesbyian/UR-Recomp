@@ -5,11 +5,13 @@ from tools.build_racer_hd_asset_dossier import (
     SECOND_AUTHORED_REPRESENTATION_ID,
     THIRD_AUTHORED_REPRESENTATION_ID,
     FOURTH_AUTHORED_REPRESENTATION_ID,
+    FIFTH_AUTHORED_REPRESENTATION_ID,
     PENDING_ART_DECISIONS,
     RESOLVED_VISUAL_LANGUAGE,
     build_first_authored_candidate_rgba,
     build_second_authored_candidate_rgba,
     build_third_authored_candidate_rgba,
+    build_fourth_authored_candidate_rgba,
     exact_window_rows,
     gameplay_sampled_alpha_review,
     observation_map,
@@ -18,6 +20,7 @@ from tools.build_racer_hd_asset_dossier import (
     sample_authored_0541_p1_rgba,
     sample_authored_0541_p1_companion_0d2d_rgba,
     sample_authored_0540_p1_predecessor_rgba,
+    sample_authored_057f_p1_companion_0d4a_rgba,
     transition_context,
 )
 
@@ -242,6 +245,33 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         # Reuse deliberately has no fourth image generator: both exact
         # composition IDs consume the already-reviewed third authored asset.
         self.assertEqual(len(build_third_authored_candidate_rgba()), 256 * 256 * 4)
+
+    def test_fifth_registration_authors_repeated_1215_1216_pose(self):
+        self.assertEqual(
+            FIFTH_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x057f-p1-with-p2-0542-companion-0D4A-reference",
+        )
+        self.assertEqual(len(build_fourth_authored_candidate_rgba()), 256 * 256 * 4)
+
+        occupied = []
+        for ly in range(64):
+            for lx in range(64):
+                sx = lx * 4 + 2
+                sy = ly * 4 + 2
+                if sample_authored_057f_p1_companion_0d4a_rgba(sx, sy)[3] != 0:
+                    occupied.append((lx, ly))
+        self.assertEqual(
+            [
+                min(x for x, _ in occupied),
+                min(y for _, y in occupied),
+                max(x for x, _ in occupied),
+                max(y for _, y in occupied),
+            ],
+            [22, 2, 41, 38],
+        )
+        bottom = [x for x, y in occupied if y == 38]
+        self.assertEqual([min(bottom), max(bottom)], [31, 34])
+        self.assertEqual(len(occupied), 321)
 
     def test_safe_name_is_path_stable(self):
         self.assertEqual(safe_name("racer / 0x0541:p1"), "racer-0x0541-p1")

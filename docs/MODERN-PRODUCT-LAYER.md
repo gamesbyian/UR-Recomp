@@ -52,7 +52,7 @@ The implementation lives in `native/product/host_product_state.{hpp,cpp}`. Its p
 - an optional opaque host profile ID;
 - vibration enabled/disabled;
 - pause-on-focus-loss enabled/disabled;
-- desktop display mode (`windowed` / `borderless`);
+- desktop display mode (`windowed` / `borderless` / `fullscreen`);
 - presentation VSync mode (`off` / `on` / `adaptive`).
 
 This state is administrative host state. It has no WRAM addresses, SRAM layout, racer slots, medal values, league state, course state, timers, physics state or other cartridge-era semantics.

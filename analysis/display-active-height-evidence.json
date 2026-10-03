@@ -47,6 +47,6 @@
   "interpretation": {
     "supported": "A centered 216-line crop is not observationally neutral on canonical Uniracers output and discards rendered image information in representative frontend, transition and race scenes.",
     "not_supported": "These framebuffer measurements alone do not establish how much of the 224-line raster a period CRT or Nintendo capture chain exposed.",
-    "policy_consequence": "Do not adopt 216 active lines merely as a harmless overscan cleanup. Full 224 remains the preservation-favoring candidate unless independent historical visibility evidence justifies a crop."
+    "policy_consequence": "Authentic logical geometry preserves all 224 rows because the centered 216-line alternative demonstrably discards rendered information. Any desired period-display edge loss belongs to optional display treatment rather than a different logical raster."
   }
 }

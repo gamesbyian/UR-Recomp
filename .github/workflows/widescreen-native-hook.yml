@@ -212,7 +212,6 @@ jobs:
             SDL_AUDIODRIVER=dummy \
             URRECOMP_WS_MARGIN="$margin" \
             URRECOMP_WS_NATIVE_TRACE=1 \
-            URRECOMP_WS_SHADOW_ORACLE="$ORACLE_ENV" \
             SNESRECOMP_DUMP_DIR="$ROOT/$margin/dumps" \
             timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
               >"$ROOT/$margin/run.log" 2>&1

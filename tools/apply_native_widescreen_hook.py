@@ -105,9 +105,9 @@ static uint16 ur_ws_native_read16_bank(CpuState *cpu, uint8 bank, uint16 addr) {
  * course presentation tables. 7F:000F is the u16 coarse-sector index;
  * 7F:800F contains 32-byte / 4x4 fine records of packed surface words.
  *
- * The stock primary edge is camera-cell X + 12 on the retained Dragster
- * fixture. Column +1 is intentionally left on the accepted guest +8 path.
- * Host-owned column +2 is therefore camera-cell X + 14. Camera Y at
+ * The stock primary strip is camera-cell X + 16 on the retained Dragster
+ * fixture. Column +1 is intentionally left on the accepted guest +8 path
+ * at +17. Host-owned column +2 is therefore camera-cell X + 18. Camera Y at
  * $041D already names the stock vertical strip's first fine-cell row.
  */
 static int ur_ws_native_shadow_from_course(CpuState *cpu, uint16 first_edge) {
@@ -117,7 +117,7 @@ static int ur_ws_native_shadow_from_course(CpuState *cpu, uint16 first_edge) {
   if (!coarse_width)
     return 0;
 
-  const uint16 fine_x = (uint16)((camx >> 4) + 14);
+  const uint16 fine_x = (uint16)((camx >> 4) + 18);
   const int fine_y0 = (int)(camy >> 4);
   if (fine_y0 < 0)
     return 0;

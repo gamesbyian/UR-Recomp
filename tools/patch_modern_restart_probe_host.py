@@ -17,6 +17,7 @@ PROBE = r'''
 #include "common_rtl.h"
 #include "desktop/host_main.h"
 #include "desktop/sdl_compat.h"
+#include "snes_overlay_draw.h"
 #include "modern_session_c_api.h"
 #include "uniracers_restart_policy.h"
 #include "netplay/snes_state_digest.h"
@@ -34,7 +35,9 @@ static int g_ur_restart_probe_phase;
 static int g_ur_restart_prev_in_race;
 static int g_ur_restart_results_mode = -1;
 static UrUniracersRestartPolicyState g_ur_restart_title_policy;
+static UrUniracersRestartSurface g_ur_restart_surface;
 static int g_ur_session_key_selftest_done;
+static int g_ur_session_overlay_selftest_pending;
 static uint8_t *g_ur_restart_before_sram;
 static size_t g_ur_restart_before_sram_len;
 
@@ -160,14 +163,75 @@ static int UrSessionKeySelftest(void) {
         fprintf(stderr, "UR_SESSION_KEY FAIL pause-dispatch\n");
         return 0;
     }
-    if (!UrModernSystemKeyDown(SDLK_RETURN, 0, 0) ||
-        ur_modern_session_is_paused(g_ur_restart_session)) {
-        fprintf(stderr, "UR_SESSION_KEY FAIL resume-dispatch\n");
-        return 0;
-    }
+    /* Leave the host paused until the post-compose overlay has actually
+     * rendered once. The overlay callback resumes it, proving both hooks are
+     * on the real desktop presentation path. */
     g_ur_session_key_selftest_done = 1;
-    fprintf(stderr, "UR_SESSION_KEY PASS pause_resume_host_gate=1\n");
+    g_ur_session_overlay_selftest_pending = 1;
     return 1;
+}
+
+static void UrModernSystemOverlay(
+    uint8_t *dst,
+    size_t pitch,
+    int width,
+    int height) {
+    if (!dst || pitch < 4 || width <= 0 || height <= 0 ||
+        !UrRestartEnsureSession()) {
+        return;
+    }
+
+    const int paused =
+        ur_modern_session_is_paused(g_ur_restart_session);
+    const int results =
+        g_ur_restart_surface == UR_UNIRACERS_RESTART_RESULTS;
+    const int restart =
+        ur_modern_session_restart_available(g_ur_restart_session);
+    if (!paused && !results && !g_ur_session_overlay_selftest_pending)
+        return;
+
+    uint32_t *pixels = (uint32_t *)dst;
+    const int stride = (int)(pitch / 4u);
+    const int panel_w = width < 220 ? width - 16 : 212;
+    const int panel_h = paused ? 54 : 30;
+    const int x = (width - panel_w) / 2;
+    const int y = paused ? (height - panel_h) / 2 : height - panel_h - 8;
+
+    snes_ovl_fill_rect(
+        pixels, stride, height, x, y, panel_w, panel_h, 0xE0202020u);
+    snes_ovl_stroke_rect(
+        pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+
+    if (paused) {
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 7,
+            "PAUSED", 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 22,
+            "ENTER  RESUME", 0xFFFFFFFFu, 1);
+        if (restart) {
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + 37,
+                "CTRL+R RESTART", 0xFFFFFFFFu, 1);
+        }
+    } else if (results && restart) {
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 11,
+            "CTRL+R  RETRY", 0xFFFFFFFFu, 1);
+    }
+
+    if (g_ur_session_overlay_selftest_pending) {
+        g_ur_session_overlay_selftest_pending = 0;
+        if (!paused ||
+            !UrModernSystemKeyDown(SDLK_RETURN, 0, 0) ||
+            ur_modern_session_is_paused(g_ur_restart_session)) {
+            fprintf(stderr, "UR_SESSION_OVERLAY FAIL resume-after-present\n");
+            return;
+        }
+        fprintf(stderr,
+                "UR_SESSION_KEY PASS pause_resume_host_gate=1\n"
+                "UR_SESSION_OVERLAY PASS paused_panel_presented=1\n");
+    }
 }
 
 static UrUniracersRestartSurface UrRestartObserveTitleLifecycle(void) {
@@ -177,6 +241,7 @@ static UrUniracersRestartSurface UrRestartObserveTitleLifecycle(void) {
         ur_uniracers_restart_policy_observe(
             &g_ur_restart_title_policy, race, menu);
     const UrUniracersRestartSurface surface = decision.surface;
+    g_ur_restart_surface = surface;
 
     if (surface == UR_UNIRACERS_RESTART_ACTIVE_RACE) {
         ur_modern_session_observe_race_active(g_ur_restart_session, 1);
@@ -442,7 +507,8 @@ def patch_text(source: str) -> str:
         FIELD_ANCHOR,
         FIELD_ANCHOR
         + "    .after_run_frame     = &UrRestartProbeAfterRunFrame,\n"
-        + "    .system_key_down     = &UrModernSystemKeyDown,\n",
+        + "    .system_key_down     = &UrModernSystemKeyDown,\n"
+        + "    .system_overlay      = &UrModernSystemOverlay,\n",
         1,
     )
     return source

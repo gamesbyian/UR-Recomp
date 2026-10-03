@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "status": "retained-active-height-discriminator",
+  "source": {
+    "workflow_run": 37142393303,
+    "artifact_name": "uniracers-native-frame",
+    "artifact_id": 11281695308,
+    "captures": [
+      "race-dumps/main-menu-ready.fb.bmp",
+      "race-dumps/now-playing-ready.fb.bmp",
+      "race-dumps/race-entered.fb.bmp"
+    ],
+    "framebuffer_geometry": [256, 224]
+  },
+  "candidate_crop": {
+    "crop_top": 4,
+    "crop_bottom": 4,
+    "active_height": 216,
+    "method": "Compare each removed scanline pixel with the same-x pixel on the nearest retained boundary row. Any difference establishes rendered information that the centered crop discards."
+  },
+  "results": [
+    {
+      "capture": "main-menu-ready",
+      "cropped_pixels": 2048,
+      "distinct_cropped_pixels_vs_nearest_retained_boundary": 791,
+      "crop_content_neutral": false
+    },
+    {
+      "capture": "now-playing-ready",
+      "cropped_pixels": 2048,
+      "distinct_cropped_pixels_vs_nearest_retained_boundary": 40,
+      "crop_content_neutral": false
+    },
+    {
+      "capture": "race-entered",
+      "cropped_pixels": 2048,
+      "distinct_cropped_pixels_vs_nearest_retained_boundary": 645,
+      "crop_content_neutral": false
+    }
+  ],
+  "aggregate": {
+    "cropped_pixels": 6144,
+    "distinct_cropped_pixels_vs_nearest_retained_boundary": 1476,
+    "distinct_fraction": 0.240234375,
+    "all_captures_crop_content_neutral": false
+  },
+  "interpretation": {
+    "supported": "A centered 216-line crop is not observationally neutral on canonical Uniracers output and discards rendered image information in representative frontend, transition and race scenes.",
+    "not_supported": "These framebuffer measurements alone do not establish how much of the 224-line raster a period CRT or Nintendo capture chain exposed.",
+    "policy_consequence": "Do not adopt 216 active lines merely as a harmless overscan cleanup. Full 224 remains the preservation-favoring candidate unless independent historical visibility evidence justifies a crop."
+  }
+}

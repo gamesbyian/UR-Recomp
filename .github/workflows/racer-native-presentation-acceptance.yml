@@ -175,14 +175,14 @@ jobs:
                   "next_primary_counts": {"0x0540": 1, "0x057F": 1},
               },
               "ordinary-racer-0x057D-p1-adjacent-reference": {
-                  "hit_frames": [1304, 1382, 1383, 1384],
-                  "previous_primary_counts": {"0x057D": 4},
-                  "next_primary_counts": {"0x057D": 2, "0x057E": 2},
+                  "hit_frames": [1207, 1208, 1209, 1210, 1211, 1212, 1304, 1382, 1383, 1384],
+                  "previous_primary_counts": {"0x057D": 9, "0x057E": 1},
+                  "next_primary_counts": {"0x057D": 7, "0x057E": 3},
               },
               "ordinary-racer-0x0543-p2-adjacent-reference": {
-                  "hit_frames": [1304, 1382, 1383, 1384],
-                  "previous_primary_counts": {"0x0542": 2, "0x0543": 2},
-                  "next_primary_counts": {"0x0543": 2, "0x0544": 2},
+                  "hit_frames": [1207, 1208, 1209, 1210, 1211, 1212, 1304, 1382, 1383, 1384],
+                  "previous_primary_counts": {"0x0542": 2, "0x0543": 8},
+                  "next_primary_counts": {"0x0543": 8, "0x0544": 2},
               },
               "ordinary-racer-0x057E-p1-sync-reference": {
                   "hit_frames": [1305, 1385, 1421],

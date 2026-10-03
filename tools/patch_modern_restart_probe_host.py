@@ -418,7 +418,7 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         + source_lines
         + "\n"
         + f'    "{title_dir}/uniracers_restart_policy.cpp"\n'
-        + '    "\${SNESRECOMP_ROOT}/runner/src/netplay/snes_state_digest.c"\n'
+        + '    "${SNESRECOMP_ROOT}/runner/src/netplay/snes_state_digest.c"\n'
         + ")\n"
     )
 

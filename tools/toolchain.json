@@ -536,7 +536,7 @@
         },
         {
           "path": "tools/patches/snesrecomp-live-vsync.patch",
-          "sha256": "0fa0b84964c19d61b111908748df4fab03c36d0bb3587d9781fb090bf5f82d68"
+          "sha256": "39d3b75923208674e42a612d517c32ea48448efced65d16df5758c7fb56d333a"
         }
       ],
       "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive. UR-Recomp's permanent native build uses host SDL2, disables SDL3 source fetching, carries narrow project patches for exact neutral controller-stream replay and modern host integration, exposes the existing host-owned pause gate and live renderer VSync policy for modern product settings, and exposes the framework's guest-frame APU timing lock needed by deterministic host-owned race restart.",

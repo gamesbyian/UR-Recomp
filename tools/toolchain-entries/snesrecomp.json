@@ -52,9 +52,13 @@
     {
       "path": "tools/patches/snesrecomp-rewind-audio-timing-lock.patch",
       "sha256": "41068ef87d567c7bb961488effe03d38a36bd168d1e62a82baaa028da0619927"
+    },
+    {
+      "path": "tools/patches/snesrecomp-live-vsync.patch",
+      "sha256": "8ca278412b19058f0b9dda69ac95913ea9412bc9483f51d86d3d7c1d0a085e5b"
     }
   ],
-  "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive. UR-Recomp's permanent native build uses host SDL2, disables SDL3 source fetching, carries a narrow project patch for exact neutral controller-stream replay, exposes the existing host-owned pause gate for modern session control, and exposes the framework's guest-frame APU timing lock needed by deterministic host-owned race restart.",
+  "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive. UR-Recomp's permanent native build uses host SDL2, disables SDL3 source fetching, carries narrow project patches for exact neutral controller-stream replay and modern host integration, exposes the existing host-owned pause gate and live renderer VSync policy for modern product settings, and exposes the framework's guest-frame APU timing lock needed by deterministic host-owned race restart.",
   "revision": "cd5875cbdaf19f5e324272b1f8051d671fce9215",
   "url": "https://github.com/RetroPortingToolKit/snesrecomp.git"
 }

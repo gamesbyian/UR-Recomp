@@ -28,7 +28,7 @@
  static int g_savestate_menu_hotkey;
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -202,6 +202,19 @@ void snesrecomp_desktop_set_widescreen(int enabled);
+@@ -202,7 +202,20 @@ void snesrecomp_desktop_set_widescreen(int enabled);
  void snesrecomp_desktop_set_paused(int paused);
  int snesrecomp_desktop_is_paused(void);
  
@@ -47,3 +47,4 @@
  /* Ask the host to reset its pacing clock at the next opportunity (a title
   * that just changed its presentation settings). */
  void snesrecomp_desktop_request_clock_reset(void);
+ 

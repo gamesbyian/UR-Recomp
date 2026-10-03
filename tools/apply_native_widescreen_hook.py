@@ -196,7 +196,7 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu,
           fprintf(stderr, "%02X", (unsigned)ur_ws_native_shadow_payload[j]);
         fprintf(stderr, "\n");
       } else {
-        fprintf(stderr, "URWS_STOP margin=16 reason=second-stock-pass-invalid\n");
+        fprintf(stderr, "URWS_STOP margin=16 reason=shadow-camera-pass-invalid\n");
       }
     }
   }
@@ -260,7 +260,7 @@ SECOND_PASS = r'''
                sizeof(ur_ws_native_frame_low_wram_snapshot));
         ur_ws_native_write16(
             cpu, 0x0419,
-            (uint16)(ur_ws_native_read16(cpu, 0x0419) + 16));
+            (uint16)(ur_ws_native_read16(cpu, 0x0419) + 8));
         ur_ws_native_second_pass = 1;
 
         cpu_write8(cpu, 0x00, cpu->S, 0xa5); cpu->S = (uint16)(cpu->S - 1);

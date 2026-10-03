@@ -1,0 +1,21 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -1148,4 +1148,8 @@
+   }
+ #endif
++  if (g_game->system_overlay)
++    g_game->system_overlay(pixel_buffer, (size_t)pitch,
++                           g_snes_width * render_scale,
++                           g_snes_height * render_scale);
+   /* Keep a copy of what was just presented. An overlay freezes the guest, and
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -199,4 +199,9 @@
+   int (*system_key_down)(int key, int mod, int repeat);
++
++  /* Optional post-compose title overlay. Runs after the title frame and frame
++   * blend, before the framework OSD/screenshot path. Presentation-only. */
++  void (*system_overlay)(uint8_t *dst, size_t pitch, int width, int height);
+ } SnesDesktopHostGame;
+ 
+ /* The whole program. Returns the process exit code. */

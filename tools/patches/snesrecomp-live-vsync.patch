@@ -1,0 +1,50 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -359,6 +359,25 @@ static const char *g_active_config_file;
+ static int g_sdl_audio_mixer_volume = SNESRECOMP_SDL_MIX_MAXVOLUME;
+ 
+ static struct RendererFuncs g_renderer_funcs;
++
++int snesrecomp_desktop_set_vsync(int mode) {
++  if (mode < SNES_DESKTOP_VSYNC_OFF || mode > SNES_DESKTOP_VSYNC_ADAPTIVE)
++    return 0;
++
++  g_config.vsync = (uint8)mode;
++#ifndef __ANDROID__
++  snesrecomp_opengl_set_vsync(VSyncInterval());
++#endif
++  if (g_renderer_funcs.Reconfigure)
++    g_renderer_funcs.Reconfigure();
++  return 1;
++}
++
++int snesrecomp_desktop_get_vsync(void) {
++  if (g_config.vsync > kSnesVSync_Adaptive)
++    return SNES_DESKTOP_VSYNC_ON;
++  return (int)g_config.vsync;
++}
+ 
+ /* Set by the hotkeys; consumed once in the frame loop. */
+ static int g_savestate_menu_hotkey;
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -202,7 +202,19 @@ void snesrecomp_desktop_set_widescreen(int enabled);
+ void snesrecomp_desktop_set_paused(int paused);
+ int snesrecomp_desktop_is_paused(void);
+ 
++/* Live host presentation sync policy. These values deliberately match the
++ * desktop config's existing Off/On/Adaptive spellings while keeping title
++ * code independent from Config internals. The setter reconfigures the active
++ * renderer only; it never changes guest simulation cadence. */
++enum {
++  SNES_DESKTOP_VSYNC_OFF = 0,
++  SNES_DESKTOP_VSYNC_ON = 1,
++  SNES_DESKTOP_VSYNC_ADAPTIVE = 2,
++};
++int snesrecomp_desktop_set_vsync(int mode);
++int snesrecomp_desktop_get_vsync(void);
++
+ /* Ask the host to reset its pacing clock at the next opportunity (a title
+  * that just changed its presentation settings). */
+ void snesrecomp_desktop_request_clock_reset(void);
+ 

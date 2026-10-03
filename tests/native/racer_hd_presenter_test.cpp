@@ -22,10 +22,7 @@ int main() {
            sample_racer_hd_asset(144, 58, false, false));
 
     assert(racer_hd_asset_available(0x0541));
-    // 0x0540 is semantically registered, but native draw readiness is
-    // intentionally blocked until raster-time split-screen P2 placement is
-    // represented. Frame-end OAM alone is not a safe placement source.
-    assert(!racer_hd_asset_available(0x0540));
+    assert(racer_hd_asset_available(0x0540));
     assert(!racer_hd_asset_available(0x0999));
 
     // Position is a later presentation coordinate, not semantic identity.

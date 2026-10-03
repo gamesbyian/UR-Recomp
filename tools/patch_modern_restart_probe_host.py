@@ -21,6 +21,7 @@ PROBE = r'''
 #include "snes_overlay_draw.h"
 #include "modern_session_c_api.h"
 #include "modern_pause_menu.h"
+#include "modern_pause_input.h"
 #include "uniracers_restart_policy.h"
 #include "netplay/snes_state_digest.h"
 #include <stdio.h>
@@ -134,28 +135,40 @@ static int UrModernSystemKeyDown(int key, int mod, int repeat) {
     if (repeat || !UrRestartEnsureSession())
         return 0;
 
-    UrModernSessionKey semantic;
+    UrModernPauseAction action;
     if (key == SDLK_ESCAPE) {
-        semantic = UR_MODERN_SESSION_KEY_ESCAPE;
+        action = UR_MODERN_PAUSE_TOGGLE;
+    } else if (key == SDLK_UP &&
+               ur_modern_session_is_paused(g_ur_restart_session)) {
+        action = UR_MODERN_PAUSE_PREVIOUS;
+    } else if (key == SDLK_DOWN &&
+               ur_modern_session_is_paused(g_ur_restart_session)) {
+        action = UR_MODERN_PAUSE_NEXT;
     } else if ((key == SDLK_RETURN || key == SDLK_KP_ENTER) &&
                ur_modern_session_is_paused(g_ur_restart_session)) {
-        semantic = UR_MODERN_SESSION_KEY_ACCEPT;
+        action = UR_MODERN_PAUSE_ACTIVATE;
     } else if (key == SDLK_r && (mod & KMOD_CTRL) &&
                ur_modern_session_restart_available(g_ur_restart_session)) {
-        semantic = UR_MODERN_SESSION_KEY_RESTART;
+        action = UR_MODERN_PAUSE_RESTART_HOTKEY;
     } else {
         return 0;
     }
 
     const UrModernSessionResult result =
-        ur_modern_session_handle_key(g_ur_restart_session, semantic);
+        ur_modern_pause_handle_action(
+            g_ur_restart_session, &g_ur_pause_menu, action);
     fprintf(stderr,
-            "UR_SESSION_KEY key=%d semantic=%d result=%d paused=%d restart=%d\n",
+            "UR_SESSION_KEY key=%d action=%d result=%d paused=%d restart=%d "
+            "selected=%d\n",
             key,
-            (int)semantic,
+            (int)action,
             (int)result,
             ur_modern_session_is_paused(g_ur_restart_session),
-            ur_modern_session_restart_available(g_ur_restart_session));
+            ur_modern_session_restart_available(g_ur_restart_session),
+            (int)ur_modern_pause_menu_selected(
+                &g_ur_pause_menu,
+                ur_modern_session_restart_available(
+                    g_ur_restart_session)));
     return 1;
 }
 
@@ -167,40 +180,26 @@ static int UrModernSystemGamepadButton(int button, int pressed) {
     if (!pressed)
         return paused ? 1 : 0;
 
+    UrModernPauseAction action;
     if (button == kGamepadBtn_Start) {
-        const UrModernSessionResult result =
-            ur_modern_session_handle_key(
-                g_ur_restart_session, UR_MODERN_SESSION_KEY_ESCAPE);
-        if (ur_modern_session_is_paused(g_ur_restart_session))
-            ur_modern_pause_menu_reset(&g_ur_pause_menu);
-        return result == UR_MODERN_SESSION_APPLIED ||
-               result == UR_MODERN_SESSION_NO_OP;
-    }
-
-    if (!paused)
+        action = UR_MODERN_PAUSE_TOGGLE;
+    } else if (paused && button == kGamepadBtn_DpadUp) {
+        action = UR_MODERN_PAUSE_PREVIOUS;
+    } else if (paused && button == kGamepadBtn_DpadDown) {
+        action = UR_MODERN_PAUSE_NEXT;
+    } else if (paused && button == kGamepadBtn_A) {
+        action = UR_MODERN_PAUSE_ACTIVATE;
+    } else if (paused && button == kGamepadBtn_B) {
+        action = UR_MODERN_PAUSE_CANCEL;
+    } else {
         return 0;
-
-    const int restart =
-        ur_modern_session_restart_available(g_ur_restart_session);
-    if (button == kGamepadBtn_DpadUp) {
-        ur_modern_pause_menu_move(&g_ur_pause_menu, -1, restart);
-    } else if (button == kGamepadBtn_DpadDown) {
-        ur_modern_pause_menu_move(&g_ur_pause_menu, 1, restart);
-    } else if (button == kGamepadBtn_A) {
-        const UrModernPauseItem item =
-            ur_modern_pause_menu_selected(&g_ur_pause_menu, restart);
-        if (item == UR_MODERN_PAUSE_RESTART) {
-            (void)ur_modern_session_handle_key(
-                g_ur_restart_session, UR_MODERN_SESSION_KEY_RESTART);
-        } else {
-            (void)ur_modern_session_handle_key(
-                g_ur_restart_session, UR_MODERN_SESSION_KEY_ACCEPT);
-        }
-    } else if (button == kGamepadBtn_B) {
-        (void)ur_modern_session_handle_key(
-            g_ur_restart_session, UR_MODERN_SESSION_KEY_ACCEPT);
     }
-    return 1;
+
+    const UrModernSessionResult result =
+        ur_modern_pause_handle_action(
+            g_ur_restart_session, &g_ur_pause_menu, action);
+    return result == UR_MODERN_SESSION_APPLIED ||
+           result == UR_MODERN_SESSION_NO_OP;
 }
 
 static int UrSessionKeySelftest(void) {
@@ -649,6 +648,7 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         "modern_session_runtime.cpp",
         "modern_session_c_api.cpp",
         "modern_pause_menu.cpp",
+        "modern_pause_input.cpp",
     ]
     source_lines = "\n".join(
         f'    "{product_dir}/{name}"' for name in product_sources

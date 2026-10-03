@@ -168,3 +168,31 @@ extern "C" UrModernSessionResult ur_modern_session_restart_race(
     UrModernSession* session) {
     return request(session, SessionCommand::RestartRace);
 }
+
+extern "C" UrModernSessionResult ur_modern_session_handle_key(
+    UrModernSession* session,
+    UrModernSessionKey key) {
+    if (!session) {
+        return UR_MODERN_SESSION_REJECTED_BY_RUNTIME;
+    }
+
+    switch (key) {
+    case UR_MODERN_SESSION_KEY_ESCAPE:
+        return ur_modern_session_is_paused(session)
+            ? ur_modern_session_resume(session)
+            : ur_modern_session_pause(session);
+
+    case UR_MODERN_SESSION_KEY_ACCEPT:
+        return ur_modern_session_is_paused(session)
+            ? ur_modern_session_resume(session)
+            : UR_MODERN_SESSION_NO_OP;
+
+    case UR_MODERN_SESSION_KEY_RESTART:
+        if (!ur_modern_session_restart_available(session)) {
+            return UR_MODERN_SESSION_REJECTED_BY_RUNTIME;
+        }
+        return ur_modern_session_restart_race(session);
+    }
+
+    return UR_MODERN_SESSION_UNSUPPORTED;
+}

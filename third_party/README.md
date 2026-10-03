@@ -30,3 +30,8 @@ A component stays in `mode: "pending"` until its repository-owned copy has prove
 ## Current immutable archives
 
 - `snesrecomp`: exact deterministic source archive from pinned framework commit `cd5875cbdaf19f5e324272b1f8051d671fce9215`, PolyForm Noncommercial 1.0.0. Archive SHA-256 `cc5043c4477adaa31210efb88c3423344e2195044e4366795cf1c563e1014b56`; 5,251,351 compressed bytes; 942 archive entries. Optional nested gitlinks `lib/recomp-net` and `lib/retcomm-rbengine` are preserved by revision in provenance but intentionally not dereferenced into the baseline C1 archive. Its baseline `recompiler-rs` analyzer is paired with an 11-package / 476-file / 5,874,431-byte locked Cargo vendor closure under `third_party/cargo/snesrecomp-analyzer/`, overlaid only into disposable staged source so the immutable archive remains pristine.
+
+
+## Platform feasibility references
+
+`third_party/platform/switch/pins.json` records exact public source revisions for the Nintendo Switch homebrew feasibility lane (libnx, switch-examples and switch-tools). These are provenance/reproducibility pins, not claims that a local devkitPro SDK installation is vendored. Compiler/toolchain packages remain devkitPro-managed until a measured need justifies a repository-owned archive.

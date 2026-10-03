@@ -49,7 +49,7 @@ EXTRA_IDENTITIES = {
     17: "Bronze-tier opponent (runtime: P2 slot $017F=17 with palette asset 0x17 in the Bronze Dragster race)",
     18: "Silver-tier opponent (runtime: medal 1 -> $017F=18, card VS SILVIA; analysis/generated/tier-opponent-probe.json)",
     19: "Gold-tier opponent (runtime: medal 2 -> $017F=19, card VS GOLDWYN; analysis/generated/tier-opponent-probe.json)",
-    20: "Anti-Uni (role and palette format not runtime-verified; asset 0x1A is not a racer-format palette)",
+    20: "Hunter-tour opponent (runtime: Hunter row 8 -> $017F=20, card VS ANTI-UNI, P2 palette = asset 0x1A; its palette uses a dark, non-racer layout)",
 }
 
 

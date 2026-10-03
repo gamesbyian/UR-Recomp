@@ -29,6 +29,10 @@ import extract_menu_visual_language as mvl
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "tests/input/tier-opponent-probe.script"
+HUNTER_SCRIPT = ROOT / "tests/input/tier-opponent-hunter-probe.script"
+ALT_SCRIPT = ROOT / "tests/input/tier-opponent-alt-probe.script"
+ALT_RIDER, ALT_TOUR_ROW, ALT_MEDAL = 1, 2, 1  # ANDREW on SHUFFLER holding bronze
+TIER_TABLES = (0x10D3, 0x10FD)  # derived per-rider tier + mirror (83:9F49 / 83:9F81)
 MEDAL_CELL = 0x069C  # Crawler row, MIKE column
 CHECKSUM_START, CHECKSUM_WORDS, CHECKSUM_AT = 0x05E8, 170, 0x073C
 TIER_LABELS = {"BRONZE", "SILVER", "GOLD"}
@@ -39,9 +43,16 @@ def checksum(sram: bytes) -> int:
                for i in range(CHECKSUM_WORDS)) & 0xFFFF
 
 
-def seeded(sram: bytes, medal: int) -> bytes:
+def seeded(sram: bytes, medal: int, all_gold: bool = False, cell: int = MEDAL_CELL) -> bytes:
+    """Seed MIKE's Crawler medal, or (all_gold) rows 0..7 gold plus tier 3 as 83:885D would derive."""
     out = bytearray(sram)
-    out[MEDAL_CELL] = medal
+    if all_gold:
+        for row in range(8):
+            out[MEDAL_CELL + 16 * row] = 3
+        for table in TIER_TABLES:
+            out[table] = 3
+    else:
+        out[cell] = medal
     value = checksum(out)
     out[CHECKSUM_AT], out[CHECKSUM_AT + 1] = value & 0xFF, value >> 8
     return bytes(out)
@@ -58,12 +69,22 @@ def screen_texts(d: mvl.Dump) -> list[str]:
 def observe(dump_dir: Path, rom: bytes) -> dict:
     track, card, race = (mvl.Dump(dump_dir, t) for t in ("tier-track", "tier-card", "tier-race"))
     card_texts = screen_texts(card)
-    vs_name = card_texts[card_texts.index("VS") + 1] if "VS" in card_texts else None
+    vs_name = None
+    if "VS" in card_texts:
+        # The small font has no hyphen glyph decoder, so ANTI-UNI arrives as two runs.
+        after = card_texts[card_texts.index("VS") + 1:]
+        parts = []
+        for t in after:
+            if t.startswith("RACING"):
+                break
+            parts.append(t)
+        vs_name = "-".join(parts)
     opponent = race.wram[0x17F]
     cg = race.cgram
     p2 = [f"0x{cg[2 * (0xC0 + k)] | cg[2 * (0xC0 + k) + 1] << 8:04X}" for k in range(16)]
     asset = cast.palette_asset(rom, cast.FIRST_RACER_PALETTE_ASSET + opponent)
     return {
+        "tour_row": track.wram[0xD0],
         "tier_label": next((t for t in screen_texts(track) if t in TIER_LABELS), None),
         "card_opponent_name": vs_name,
         "card_texts": card_texts,
@@ -74,16 +95,28 @@ def observe(dump_dir: Path, rom: bytes) -> dict:
     }
 
 
-def summarize(observations: dict[int, dict], names: list[str]) -> dict:
+def summarize(observations: dict, names: list[str]) -> dict:
     checks = {}
-    for medal, o in observations.items():
+    alt = observations.get("alt")
+    if alt is not None:
+        checks["alt_andrew_shuffler_tour_row"] = alt["tour_row"] == ALT_TOUR_ROW
+        checks["alt_andrew_shuffler_opponent_index_18"] = alt["p2_rider_index"] == 17 + ALT_MEDAL and alt["in_race"] == 1
+        checks["alt_andrew_shuffler_card_name"] = alt["card_opponent_name"] == names[17 + ALT_MEDAL].upper()
+        checks["alt_andrew_shuffler_tier_label"] = alt["tier_label"] == "SILVER"
+    hunter = observations.get("hunter")
+    if hunter is not None:
+        checks["hunter_tour_row_8"] = hunter["tour_row"] == 8
+        checks["hunter_opponent_index_20"] = hunter["p2_rider_index"] == 20 and hunter["in_race"] == 1
+        checks["hunter_card_name_matches_table"] = hunter["card_opponent_name"] == names[20].upper()
+        checks["hunter_p2_palette_matches_asset"] = hunter["p2_palette_matches_asset"]
+    for medal, o in ((k, v) for k, v in observations.items() if k not in ("hunter", "alt")):
         expected_index = 17 + medal
         checks[f"medal{medal}_opponent_index_{expected_index}"] = o["p2_rider_index"] == expected_index and o["in_race"] == 1
         checks[f"medal{medal}_card_name_matches_table"] = o["card_opponent_name"] == names[expected_index].upper()
         checks[f"medal{medal}_p2_palette_matches_asset"] = o["p2_palette_matches_asset"]
         checks[f"medal{medal}_tier_label"] = o["tier_label"] == ("BRONZE", "SILVER", "GOLD")[medal]
-    return {"observations": {str(k): v for k, v in sorted(observations.items())},
-            "rule": "opponent rider index = 17 + current medal value for the selected tour and rider (0 bronze-tier -> BRONSEN, 1 -> SILVIA, 2 -> GOLDWYN)",
+    return {"observations": {str(k): v for k, v in observations.items()},
+            "rule": "main tours: opponent rider index = 17 + medal held for the selected tour and rider (0 -> BRONSEN, 1 -> SILVIA, 2 -> GOLDWYN); Hunter tour (row 8): ANTI-UNI (20)",
             "checks": checks, "all_checks_pass": all(checks.values()) and bool(observations)}
 
 
@@ -102,12 +135,18 @@ def main() -> int:
     rom = args.rom.read_bytes()
     observations = {}
     with tempfile.TemporaryDirectory() as td:
-        for medal in (0, 1, 2):
-            run = Path(td) / f"medal{medal}"
+        for medal in (0, 1, 2, "hunter", "alt"):
+            run = Path(td) / f"case-{medal}"
             run.mkdir()
-            (run / "in.srm").write_bytes(seeded(clean, medal))
+            hunter = medal == "hunter"
+            if medal == "alt":
+                (run / "in.srm").write_bytes(seeded(clean, ALT_MEDAL, cell=MEDAL_CELL + 16 * ALT_TOUR_ROW + ALT_RIDER))
+                script = ALT_SCRIPT
+            else:
+                (run / "in.srm").write_bytes(seeded(clean, 0, all_gold=True) if hunter else seeded(clean, medal))
+                script = HUNTER_SCRIPT if hunter else SCRIPT
             env = dict(os.environ, SNESREF_HEADLESS="1", SNESREF_FAST="1", SNESREF_WRAM_FILL="0",
-                       SNESREF_SRAM_IN=str(run / "in.srm"), SNESREF_SCRIPT=str(SCRIPT), SNESREF_DUMP_DIR=str(run))
+                       SNESREF_SRAM_IN=str(run / "in.srm"), SNESREF_SCRIPT=str(script), SNESREF_DUMP_DIR=str(run))
             with open(run / "snesref.log", "w") as log:
                 subprocess.run([str(args.snesref), str(args.core), str(args.rom)], env=env, cwd=run,
                                stdout=log, stderr=subprocess.STDOUT, check=True)
@@ -116,7 +155,7 @@ def main() -> int:
         "schema_version": 1,
         "question": "Which named opponent does each medal tier face?",
         "harness": "snesref + pinned snes9x-libretro; synthetic SRAM medal cell set before boot only",
-        "fixture": str(SCRIPT.relative_to(ROOT)),
+        "fixtures": [str(x.relative_to(ROOT)) for x in (SCRIPT, HUNTER_SCRIPT, ALT_SCRIPT)],
         **summarize(observations, cast.default_names(rom, 21)),
     }
     args.out.write_text(json.dumps(report, indent=1) + "\n")

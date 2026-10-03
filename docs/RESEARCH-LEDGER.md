@@ -1963,4 +1963,9 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 **Tier probe:** `tools/probe_tier_opponents.py` seeds only the Crawler/MIKE medal cell `77:069C` (0/1/2) plus the `73C` checksum before boot. TRACK_SELECT then shows BRONZE/SILVER/GOLD, the card shows `VS BRONSEN/SILVIA/GOLDWYN`, `$017F` is 17/18/19 and CGRAM `$C0` equals assets `0x17/0x18/0x19` (12 checks, `analysis/generated/tier-opponent-probe.json`). The opponent is therefore `17 + medal held for this tour and rider`.
 
-**Uncertainty:** Anti-Uni's role is not observed (Hunter tour not probed). The opponent-selection code was not traced; the rule is black-box over medal values 0–2 on one tour/rider.
+**Hunter and generalisation:**
+- **Hunter:** with MIKE's eight main-tour medals gold and tier tables `10D3/10FD` = 3, TOUR_SELECT becomes the nine-tour page `0x10`, and HUNTER sits at `$009B`=8. TRACK_SELECT lists GRILLER, TWO LOOPS, NEON, HAMSTER and TO AND FRO under a GOLD label, although MIKE holds no Hunter medal. The card shows `VS ANTI-UNI`, `$017F`=20, and the P2 palette equals asset `0x1A`.
+- **Generalisation:** ANDREW (rider 1) on SHUFFLER (row 2) holding bronze faces SILVIA under a SILVER label, so the rule holds for a different rider column and tour row.
+- **Probe size:** 20 checks in total.
+
+**Uncertainty:** the opponent-selection code was not traced. The main-tour rule is black-box over medals 0–2 on two rider/tour pairs, and the Hunter tier label's source is unexplained.

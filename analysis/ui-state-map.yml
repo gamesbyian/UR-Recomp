@@ -220,7 +220,7 @@ states:
     evidence: [observed_screenshot, primary_manual, reproduced_runtime]
     runtime_signatures:
       onePlayerTours1_currentMenu_7E009F: "0x6D"
-      alternate_or_two_player_tours_7E009F: "0x10 (recovered bot label; context-dependent and not yet locally promoted)"
+      alternate_or_two_player_tours_7E009F: "0x10 reproduced as the two-column nine-tour page (all main tours plus HUNTER) once the rider tier is 3; tests/input/tier-opponent-hunter-probe.script. Two-player use of 0x10 remains historical."
       local_fixture: "tests/input/reach-first-race.script"
     visible_known_tours: ["CRAWLER", "SHUFFLER", "WALKER", "HOPPER", "JUMPER", "BOUNDER", "RUNNER", "SPRINTER", "HUNTER"]
     notes:
@@ -663,6 +663,7 @@ open_questions:
     question: "Attract/demo behavior and idle timeout from MAIN_MENU; verify public ending-shortcut chord and ENDING=0x5B without treating cheat-site text as canonical."
   - id: UIQ-010
     question: "Hunter unlock transition and any Anti-Uni-specific frontend/results states."
+    note: "2026-10-03: with rider tier 3 seeded, TOUR_SELECT is page 0x10 listing HUNTER at 009B=08; Hunter tracks are GRILLER, TWO LOOPS, NEON, HAMSTER, TO AND FRO and the opponent is ANTI-UNI (rider index 20). The in-play unlock transition itself is still unobserved."
 
 # 2026-09-29 local two-pad promotion:
 # VS_SELECT P2 causality is now directly reproduced. After the verified P1->P2

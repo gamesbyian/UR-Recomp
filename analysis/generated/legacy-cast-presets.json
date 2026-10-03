@@ -1341,7 +1341,7 @@
   },
   {
    "rider_index": 20,
-   "role": "Anti-Uni (role and palette format not runtime-verified; asset 0x1A is not a racer-format palette)",
+   "role": "Hunter-tour opponent (runtime: Hunter row 8 -> $017F=20, card VS ANTI-UNI, P2 palette = asset 0x1A; its palette uses a dark, non-racer layout)",
    "default_name": "ANTI-UNI",
    "race_palette": {
     "asset_id_hex": "0x1A",

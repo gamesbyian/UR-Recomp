@@ -34,5 +34,23 @@ class TierOpponentTests(unittest.TestCase):
         self.assertFalse(report["checks"]["medal1_opponent_index_18"])
 
 
+class TierOpponentHunterTests(unittest.TestCase):
+    def test_hunter_and_alt_cases(self) -> None:
+        o = {0: obs(17, "BRONSEN", "BRONZE"),
+             "hunter": {**obs(20, "ANTI-UNI", "GOLD"), "tour_row": 8},
+             "alt": {**obs(18, "SILVIA", "SILVER"), "tour_row": 2}}
+        report = probe.summarize(o, NAMES)
+        self.assertTrue(report["all_checks_pass"], report["checks"])
+        o["hunter"] = {**obs(19, "GOLDWYN", "GOLD"), "tour_row": 8}
+        self.assertFalse(probe.summarize(o, NAMES)["checks"]["hunter_opponent_index_20"])
+
+    def test_all_gold_seed(self) -> None:
+        clean = bytes(0x2000)
+        out = probe.seeded(clean, 0, all_gold=True)
+        self.assertEqual([out[probe.MEDAL_CELL + 16 * r] for r in range(8)], [3] * 8)
+        self.assertEqual([out[t] for t in probe.TIER_TABLES], [3, 3])
+        self.assertEqual(out[probe.MEDAL_CELL + 16 * 8], 0)
+
+
 if __name__ == "__main__":
     unittest.main()

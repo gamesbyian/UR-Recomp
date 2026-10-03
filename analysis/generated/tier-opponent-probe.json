@@ -2,9 +2,14 @@
  "schema_version": 1,
  "question": "Which named opponent does each medal tier face?",
  "harness": "snesref + pinned snes9x-libretro; synthetic SRAM medal cell set before boot only",
- "fixture": "tests/input/tier-opponent-probe.script",
+ "fixtures": [
+  "tests/input/tier-opponent-probe.script",
+  "tests/input/tier-opponent-hunter-probe.script",
+  "tests/input/tier-opponent-alt-probe.script"
+ ],
  "observations": {
   "0": {
+   "tour_row": 0,
    "tier_label": "BRONZE",
    "card_opponent_name": "BRONSEN",
    "card_texts": [
@@ -28,6 +33,7 @@
    "p2_palette_asset": "0x17"
   },
   "1": {
+   "tour_row": 0,
    "tier_label": "SILVER",
    "card_opponent_name": "SILVIA",
    "card_texts": [
@@ -51,6 +57,7 @@
    "p2_palette_asset": "0x18"
   },
   "2": {
+   "tour_row": 0,
    "tier_label": "GOLD",
    "card_opponent_name": "GOLDWYN",
    "card_texts": [
@@ -72,10 +79,67 @@
    "in_race": 1,
    "p2_palette_matches_asset": true,
    "p2_palette_asset": "0x19"
+  },
+  "hunter": {
+   "tour_row": 8,
+   "tier_label": "GOLD",
+   "card_opponent_name": "ANTI-UNI",
+   "card_texts": [
+    "NOW PLAYING",
+    "MIKE",
+    "9",
+    "59",
+    "99",
+    "VS",
+    "ANTI",
+    "UNI",
+    "RACING ON GRILLER",
+    "RECORD",
+    "SOMEONE",
+    "R E",
+    "ACE",
+    "XIT"
+   ],
+   "p2_rider_index": 20,
+   "in_race": 1,
+   "p2_palette_matches_asset": true,
+   "p2_palette_asset": "0x1A"
+  },
+  "alt": {
+   "tour_row": 2,
+   "tier_label": "SILVER",
+   "card_opponent_name": "SILVIA",
+   "card_texts": [
+    "NOW PLAYING",
+    "ANDREW",
+    "9",
+    "59",
+    "99",
+    "VS",
+    "SILVIA",
+    "RACING ON LOOPER",
+    "RECORD",
+    "SOMEONE",
+    "R E",
+    "ACE",
+    "XIT"
+   ],
+   "p2_rider_index": 18,
+   "in_race": 1,
+   "p2_palette_matches_asset": true,
+   "p2_palette_asset": "0x18"
   }
  },
- "rule": "opponent rider index = 17 + current medal value for the selected tour and rider (0 bronze-tier -> BRONSEN, 1 -> SILVIA, 2 -> GOLDWYN)",
+ "rule": "main tours: opponent rider index = 17 + medal held for the selected tour and rider (0 -> BRONSEN, 1 -> SILVIA, 2 -> GOLDWYN); Hunter tour (row 8): ANTI-UNI (20)",
  "checks": {
+  "alt_andrew_shuffler_tour_row": true,
+  "alt_andrew_shuffler_opponent_index_18": true,
+  "alt_andrew_shuffler_card_name": true,
+  "alt_andrew_shuffler_tier_label": true,
+  "hunter_tour_row_8": true,
+  "hunter_opponent_index_20": true,
+  "hunter_card_name_matches_table": true,
+  "hunter_p2_palette_matches_asset": true,
   "medal0_opponent_index_17": true,
   "medal0_card_name_matches_table": true,
   "medal0_p2_palette_matches_asset": true,

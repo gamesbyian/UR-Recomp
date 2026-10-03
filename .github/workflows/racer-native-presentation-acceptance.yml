@@ -180,7 +180,7 @@ jobs:
               rep for rep in dossier["representations"]
               if rep["art_review"]["authored_candidate"] is not None
           ]
-          assert len(authored) == 3
+          assert len(authored) == 4
           authored_by_id = {rep["representation_id"]: rep for rep in authored}
 
           baseline = authored_by_id["ordinary-racer-0x0541-p1-sync-reference"]
@@ -228,7 +228,19 @@ jobs:
           assert reversed_review["alpha_union_pixels"] == 365
           assert abs(reversed_review["alpha_iou"] - 0.7397260273972602) < 1e-12
 
-          for rep in (baseline, predecessor, reversed):
+          reused = authored_by_id[
+              "ordinary-racer-0x0540-p1-companion-0D2C-with-p2-0542-reference"
+          ]
+          reused_candidate = reused["art_review"]["authored_candidate"]
+          assert reused_candidate["approval_status"] == (
+              "byte-identical stock context reuse; pending native acceptance"
+          )
+          reused_review = reused_candidate["gameplay_scale_review"]
+          assert reused_review == reversed_review
+          assert reused["stock_evidence"]["rgba_sha256"] == reversed["stock_evidence"]["rgba_sha256"]
+          assert reused_candidate["rgba_sha256"] == reversed_candidate["rgba_sha256"]
+
+          for rep in (baseline, predecessor, reversed, reused):
               candidate_path = (
                   pathlib.Path(sys.argv[1]).parent
                   / rep["art_review"]["authored_candidate"]["png"]

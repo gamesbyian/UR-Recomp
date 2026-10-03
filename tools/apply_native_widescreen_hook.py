@@ -94,8 +94,10 @@ static void ur_ws_native_trace_primary(CpuState *cpu) {
           (unsigned)edge, (unsigned)count);
   for (unsigned j = 0; j < 32; j++)
     fprintf(stderr, "%02X", (unsigned)cpu->ram[0x0433 + j]);
-  fprintf(stderr, " camy=%u\n",
-          (unsigned)ur_ws_native_read16(cpu, 0x041d));
+  fprintf(stderr, " camy=%u edgey=%04X county=%u\n",
+          (unsigned)ur_ws_native_read16(cpu, 0x041d),
+          (unsigned)ur_ws_native_read16(cpu, 0x050d),
+          (unsigned)ur_ws_native_read16(cpu, 0x0533));
 }
 
 static uint16 ur_ws_native_read16_bank(CpuState *cpu, uint8 bank, uint16 addr) {
@@ -225,10 +227,12 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
                 (unsigned)ur_ws_native_shadow_count);
         for (unsigned j = 0; j < 32; j++)
           fprintf(stderr, "%02X", (unsigned)ur_ws_native_shadow_payload[j]);
-        fprintf(stderr, " camy=%u finex=%u finey=%u\n",
+        fprintf(stderr, " camy=%u finex=%u finey=%u edgey=%04X county=%u\n",
                 (unsigned)ur_ws_native_read16(cpu, 0x041d),
                 (unsigned)((ur_ws_native_read16(cpu, 0x0419) >> 4) + 18),
-                (unsigned)((ur_ws_native_read16(cpu, 0x041d) + 4u) >> 4));
+                (unsigned)((ur_ws_native_read16(cpu, 0x041d) + 4u) >> 4),
+                (unsigned)ur_ws_native_read16(cpu, 0x050d),
+                (unsigned)ur_ws_native_read16(cpu, 0x0533));
       } else {
         fprintf(stderr, "URWS_STOP margin=16 reason=course-materializer-miss\n");
       }

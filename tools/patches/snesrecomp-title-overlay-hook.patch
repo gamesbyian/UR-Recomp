@@ -1,6 +1,6 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -1148,4 +1148,8 @@
+@@ -1148,3 +1148,7 @@
    }
  #endif
 +  if (g_game->system_overlay)
@@ -10,7 +10,7 @@
    /* Keep a copy of what was just presented. An overlay freezes the guest, and
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -199,4 +199,9 @@
+@@ -199,4 +199,8 @@
    int (*system_key_down)(int key, int mod, int repeat);
 +
 +  /* Optional post-compose title overlay. Runs after the title frame and frame

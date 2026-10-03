@@ -19,6 +19,17 @@ RestartLifecycleEvent RaceRestartLifecycle::observe_race_active(bool active) {
         : RestartLifecycleEvent::AnchorCaptureFailed;
 }
 
+RestartAnchorRestoreStatus RaceRestartLifecycle::restart() {
+    const auto status = anchor_.restart();
+    if (status == RestartAnchorRestoreStatus::Restored) {
+        // The restored snapshot is the active-race anchor. Mark that lifecycle
+        // state immediately so the next observed active frame is not mistaken
+        // for a new attempt and cannot replace the immutable restart point.
+        race_active_ = true;
+    }
+    return status;
+}
+
 RestartLifecycleEvent RaceRestartLifecycle::retire_attempt() noexcept {
     const bool had_attempt = race_active_ || anchor_.armed();
     race_active_ = false;

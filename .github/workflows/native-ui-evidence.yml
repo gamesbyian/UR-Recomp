@@ -1,0 +1,796 @@
+name: Native UI evidence
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "rom_identity.txt"
+      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/cargo/snesrecomp-analyzer/**"
+      - "third_party/manifest.json"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/_global.json"
+      - "tools/patch_modern_product_host.py"
+      - "tools/build_display_geometry_review.py"
+      - "analysis/display-geometry-candidates.json"
+      - "native/product/**"
+      - "native/title/uniracers_restart_policy.*"
+      - ".github/workflows/native-ui-evidence.yml"
+      - "tests/input/reach-first-race.script"
+      - "tests/input/modern-focus-pause.script"
+      - "tests/input/ui-options-route.script"
+      - "tests/input/ui-main-branches.script"
+      - "tests/input/ui-vs-handoff.script"
+      - "tests/input/ui-ending-shortcut.script"
+      - "tests/input/ui-attract-route.script"
+      - "tests/input/ui-pause-route.script"
+      - "tests/input/ui-options-submenus.script"
+      - "tests/input/ui-erase-confirm.script"
+      - "tests/input/ui-league-table.script"
+      - "tests/input/ui-race-result-route.script"
+      - "tests/input/ui-stunt-result-route.script"
+      - "tests/input/ui-records-explore.script"
+      - "tests/input/ui-rename-editor-explore.script"
+      - "tests/input/ui-circuit-result-route.script"
+      - "tests/input/ui-records-submenus.script"
+      - "tests/input/ui-record-high.script"
+      - "tests/input/ui-record-player.script"
+      - "tests/input/ui-record-group.script"
+      - "tests/input/ui-startup-timeline.script"
+      - "tests/input/ui-define-player-explore.script"
+      - "tests/input/ui-pre-race-timing.script"
+      - "tests/input/ui-name-league-route.script"
+
+concurrency:
+  group: native-ui-evidence-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ui-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install desktop build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake ninja-build pkg-config xvfb xdotool libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Stage repository-owned SNESRecomp framework
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
+          test -f .tools/src/snesrecomp/runner/runner.cmake
+          test ! -e .tools/src/snesrecomp/lib/recomp-net/CMakeLists.txt
+          test ! -e .tools/src/snesrecomp/lib/retcomm-rbengine/CMakeLists.txt
+
+      - name: Scaffold, generate and build
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/ur-recomp-build"
+          mkdir -p "$TMP"
+
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --dir "$TMP" \
+              --name "Uniracers" \
+              --players 2 \
+              --yes \
+              --no-ci \
+              --no-fetch-boxart \
+              --no-recomp-ui \
+              --no-netplay \
+              --no-github \
+              --no-submodules \
+              --generate \
+              --no-build
+
+          ROOT="$TMP/UniracersSNESRecomp"
+
+          python3 "$GITHUB_WORKSPACE/tools/patch_modern_product_host.py" \
+            "$ROOT/src/main.c" \
+            --cmake "$ROOT/CMakeLists.txt"
+          grep -q "ur_uniracers_modern_after_run_frame" "$ROOT/src/main.c"
+          grep -q "ur_uniracers_modern_system_key_down" "$ROOT/src/main.c"
+          grep -q "ur_uniracers_modern_system_gamepad_button" "$ROOT/src/main.c"
+          grep -q "ur_uniracers_modern_system_overlay" "$ROOT/src/main.c"
+          grep -q "uniracers_modern_host.cpp" "$ROOT/CMakeLists.txt"
+
+          cmake -S "$ROOT" -B "$ROOT/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF
+          cmake --build "$ROOT/build" -j2
+          test -x "$ROOT/build/UniracersSNESRecomp"
+
+      - name: Locate game executable
+        id: exe
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+
+          echo "== executable files under build/ =="
+          find "$ROOT/build" -maxdepth 4 -type f -perm -111 -print || true
+
+          if [ ! -f "$EXE" ] || [ ! -x "$EXE" ]; then
+            echo "::error::Expected generated game target is missing or not executable: $EXE"
+            echo "The scaffold contract names the CMake target UniracersSNESRecomp; do not fall back to arbitrary build-tree executables."
+            exit 1
+          fi
+
+          case "$EXE" in
+            */CMakeFiles/*|*/CompilerId*|*/a.out)
+              echo "::error::Refusing non-game build helper executable: $EXE"
+              exit 1
+              ;;
+          esac
+
+          file "$EXE"
+          echo "exe=$EXE" >> "$GITHUB_OUTPUT"
+          echo "Selected game target: $EXE"
+
+      - name: Deterministic native input route
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
+          LOG="$RUNNER_TEMP/race-smoke.log"
+          DUMPS="$RUNNER_TEMP/race-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted native input route =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+
+          for state in main-menu-ready rider-select-ready tours-ready tracks-ready after-track-confirm now-playing-ready race-entered; do
+            WRAM="$DUMPS/$state.wram.bin"
+            if [ -s "$WRAM" ]; then
+              python3 -c 'import pathlib,sys; name=sys.argv[1]; w=pathlib.Path(sys.argv[2]).read_bytes(); print(f"{name}: menu[009F]=0x{w[0x009F]:02X} selectedOption[009B]=0x{w[0x009B]:02X} row[000E]=0x{w[0x000E]:02X} col[0C63]=0x{w[0x0C63]:02X} track[00CE]=0x{w[0x00CE]:02X} inRace[0313]=0x{w[0x0313]:02X}")' "$state" "$WRAM"
+            fi
+          done
+
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::error::Scripted native route exited with status $STATUS"
+            exit "$STATUS"
+          fi
+          if [ ! -s "$DUMPS/now-playing-ready.wram.bin" ] || [ ! -s "$DUMPS/race-entered.wram.bin" ]; then
+            echo "::error::Route did not prove now-playing and race entry"
+            exit 1
+          fi
+          echo "INPUT_ROUTE_RESULT=reached_race"
+
+      - name: UI state reconnaissance
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-options-route.script"
+          LOG="$RUNNER_TEMP/ui-options-route.log"
+          DUMPS="$RUNNER_TEMP/ui-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted UI Options round-trip =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+
+          echo "== UI dump inventory =="
+          find "$DUMPS" -maxdepth 1 -type f -printf '%f\n' | sort || true
+
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::error::UI Options reconnaissance exited with status $STATUS"
+            exit "$STATUS"
+          fi
+
+          for required in \
+            ui-main-menu-1p.fb.bmp \
+            ui-main-menu-2p.fb.bmp \
+            ui-main-menu-vs.fb.bmp \
+            ui-main-menu-league.fb.bmp \
+            ui-main-menu-options.fb.bmp \
+            ui-options-entry.fb.bmp \
+            ui-options-back-main.fb.bmp; do
+            if [ ! -s "$DUMPS/$required" ]; then
+              echo "::error::Missing UI framebuffer dump: $required"
+              exit 1
+            fi
+          done
+
+          python3 - "$DUMPS/ui-options-entry.wram.bin" <<'PY'
+          import pathlib
+          import sys
+          w = pathlib.Path(sys.argv[1]).read_bytes()
+          print(f"UI_OPTIONS_OBSERVED_MENU_ID=0x{w[0x009F]:02X}")
+          print(f"UI_OPTIONS_OBSERVED_SELECTED_OPTION=0x{w[0x009B]:02X}")
+          PY
+
+      - name: UI top-level branch reconnaissance
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-main-branches.script"
+          LOG="$RUNNER_TEMP/ui-main-branches.log"
+          DUMPS="$RUNNER_TEMP/ui-branch-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted UI 2P / VS / League reconnaissance =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 150s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::error::Top-level UI branch reconnaissance exited with status $STATUS"
+            exit "$STATUS"
+          fi
+
+          python3 - "$DUMPS" <<'PY'
+          import pathlib
+          import sys
+          root = pathlib.Path(sys.argv[1])
+          for tag in ("ui-two-player-entry", "ui-vs-entry", "ui-league-entry"):
+              p = root / f"{tag}.wram.bin"
+              if not p.is_file():
+                  raise SystemExit(f"missing {p}")
+              w = p.read_bytes()
+              print(f"{tag}: currentMenu=0x{w[0x009F]:02X} selectedOption=0x{w[0x009B]:02X}")
+          PY
+
+      - name: UI isolated VS handoff reconnaissance
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-vs-handoff.script"
+          LOG="$RUNNER_TEMP/ui-vs-handoff.log"
+          DUMPS="$RUNNER_TEMP/ui-vs-handoff-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted reset-free VS handoff reconnaissance =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_VS_HANDOFF_STATUS=$STATUS"
+
+      - name: UI ending-shortcut reconnaissance
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-ending-shortcut.script"
+          LOG="$RUNNER_TEMP/ui-ending-shortcut.log"
+          DUMPS="$RUNNER_TEMP/ui-ending-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted splash / ending-shortcut reconnaissance =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_ENDING_PROBE_STATUS=$STATUS"
+
+      - name: UI attract-mode reconnaissance
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-attract-route.script"
+          LOG="$RUNNER_TEMP/ui-attract-route.log"
+          DUMPS="$RUNNER_TEMP/ui-attract-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted idle / attract reconnaissance =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_ATTRACT_PROBE_STATUS=$STATUS"
+
+      - name: UI pause reconnaissance
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-pause-route.script"
+          LOG="$RUNNER_TEMP/ui-pause-route.log"
+          DUMPS="$RUNNER_TEMP/ui-pause-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted UI pause / resume reconnaissance =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_PAUSE_PROBE_STATUS=$STATUS"
+
+      - name: UI Options submenu reconnaissance
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-options-submenus.script"
+          LOG="$RUNNER_TEMP/ui-options-submenus.log"
+          DUMPS="$RUNNER_TEMP/ui-options-submenu-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted UI Options submenu reconnaissance =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_OPTIONS_SUBMENU_PROBE_STATUS=$STATUS"
+
+      - name: UI erase-confirmation reconnaissance
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-erase-confirm.script"
+          LOG="$RUNNER_TEMP/ui-erase-confirm.log"
+          DUMPS="$RUNNER_TEMP/ui-erase-confirm-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted UI erase-confirmation reconnaissance =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_ERASE_CONFIRM_PROBE_STATUS=$STATUS"
+
+      - name: UI League table reconnaissance
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-league-table.script"
+          LOG="$RUNNER_TEMP/ui-league-table.log"
+          DUMPS="$RUNNER_TEMP/ui-league-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted UI League table reconnaissance =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_LEAGUE_TABLE_PROBE_STATUS=$STATUS"
+
+      - name: UI race-result continuation reconnaissance
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-race-result-route.script"
+          LOG="$RUNNER_TEMP/ui-race-result-route.log"
+          DUMPS="$RUNNER_TEMP/ui-race-result-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted UI race-result continuation reconnaissance =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_RACE_RESULT_PROBE_STATUS=$STATUS"
+
+      - name: UI Stunt result reconnaissance
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-stunt-result-route.script"
+          LOG="$RUNNER_TEMP/ui-stunt-result-route.log"
+          DUMPS="$RUNNER_TEMP/ui-stunt-result-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted UI Stunt result reconnaissance =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_STUNT_RESULT_PROBE_STATUS=$STATUS"
+
+      - name: UI Records exploration
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-records-explore.script"
+          LOG="$RUNNER_TEMP/ui-records-explore.log"
+          DUMPS="$RUNNER_TEMP/ui-records-explore-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted UI Records exploration =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_RECORDS_EXPLORE_STATUS=$STATUS"
+
+      - name: UI Rename Player editor exploration
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-rename-editor-explore.script"
+          LOG="$RUNNER_TEMP/ui-rename-editor-explore.log"
+          DUMPS="$RUNNER_TEMP/ui-rename-editor-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted UI Rename Player editor exploration =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_RENAME_EDITOR_EXPLORE_STATUS=$STATUS"
+
+      - name: UI Circuit result reconnaissance
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-circuit-result-route.script"
+          LOG="$RUNNER_TEMP/ui-circuit-result-route.log"
+          DUMPS="$RUNNER_TEMP/ui-circuit-result-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted UI Circuit result reconnaissance =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 240s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_CIRCUIT_RESULT_PROBE_STATUS=$STATUS"
+
+      - name: UI Records submenu capture
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-records-submenus.script"
+          LOG="$RUNNER_TEMP/ui-records-submenus.log"
+          DUMPS="$RUNNER_TEMP/ui-records-submenu-dumps"
+          mkdir -p "$DUMPS"
+
+          echo "== scripted UI Records submenu capture =="
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_RECORDS_SUBMENU_STATUS=$STATUS"
+
+      - name: UI isolated Records score captures
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DUMPS="$RUNNER_TEMP/ui-records-isolated-dumps"
+          mkdir -p "$DUMPS"
+          OVERALL=0
+
+          for NAME in high player group; do
+            SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-record-$NAME.script"
+            LOG="$RUNNER_TEMP/ui-record-$NAME.log"
+            echo "== scripted reset-free Records $NAME probe =="
+            SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+              timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+              >"$LOG" 2>&1
+            STATUS=$?
+            cat "$LOG"
+            echo "UI_RECORD_${NAME^^}_STATUS=$STATUS"
+            if [ "$STATUS" -ne 0 ]; then OVERALL=1; fi
+          done
+
+          exit "$OVERALL"
+
+      - name: UI League naming capture
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-name-league-route.script"
+          LOG="$RUNNER_TEMP/ui-name-league-route.log"
+          DUMPS="$RUNNER_TEMP/ui-name-league-dumps"
+          mkdir -p "$DUMPS"
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_NAME_LEAGUE_STATUS=$STATUS"
+
+      - name: UI startup timeline capture
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-startup-timeline.script"
+          LOG="$RUNNER_TEMP/ui-startup-timeline.log"
+          DUMPS="$RUNNER_TEMP/ui-startup-timeline-dumps"
+          mkdir -p "$DUMPS"
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_STARTUP_TIMELINE_STATUS=$STATUS"
+
+      - name: UI Define Player exploration
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-define-player-explore.script"
+          LOG="$RUNNER_TEMP/ui-define-player-explore.log"
+          DUMPS="$RUNNER_TEMP/ui-define-player-dumps"
+          mkdir -p "$DUMPS"
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_DEFINE_PLAYER_EXPLORE_STATUS=$STATUS"
+
+      - name: UI pre-race timing reconnaissance
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          set -uo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-pre-race-timing.script"
+          LOG="$RUNNER_TEMP/ui-pre-race-timing.log"
+          DUMPS="$RUNNER_TEMP/ui-pre-race-timing-dumps"
+          mkdir -p "$DUMPS"
+          SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
+          timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1
+          STATUS=$?
+          cat "$LOG"
+          echo "UI_PRE_RACE_TIMING_STATUS=$STATUS"
+
+      - name: Build UI atlas report
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/build_ui_atlas.py \
+            --manifest analysis/ui-capture-manifest.json \
+            --reference-index analysis/ui-reference-index.json \
+            --transition-contract analysis/ui-transition-contract.json \
+            --include-unclassified \
+            --exclude-source-fixture two-player-first-race \
+            --dump-dir "$RUNNER_TEMP/race-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-branch-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-vs-handoff-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-ending-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-attract-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-pause-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-options-submenu-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-erase-confirm-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-league-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-race-result-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-stunt-result-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-records-explore-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-rename-editor-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-circuit-result-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-records-submenu-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-records-isolated-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-name-league-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-startup-timeline-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-define-player-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-pre-race-timing-dumps" \
+            --out-json "$RUNNER_TEMP/ui-atlas.json" \
+            --out-md "$RUNNER_TEMP/ui-atlas.md" \
+            --strict
+          cat "$RUNNER_TEMP/ui-atlas.md"
+
+      - name: Build visual UI contact sheet
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/build_ui_contact_sheet.py \
+            --atlas "$RUNNER_TEMP/ui-atlas.json" \
+            --reference-index analysis/ui-reference-index.json \
+            --out "$RUNNER_TEMP/ui-atlas.html" \
+            --include-missing
+
+      - name: Compare UI framebuffer transitions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/compare_ui_frames.py \
+            --manifest analysis/ui-frame-comparisons.json \
+            --dump-dir "$RUNNER_TEMP/race-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-branch-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-vs-handoff-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-ending-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-attract-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-pause-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-options-submenu-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-erase-confirm-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-league-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-race-result-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-stunt-result-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-records-explore-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-rename-editor-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-circuit-result-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-records-submenu-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-records-isolated-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-name-league-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-startup-timeline-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-define-player-dumps" \
+            --dump-dir "$RUNNER_TEMP/ui-pre-race-timing-dumps" \
+            --out-json "$RUNNER_TEMP/ui-frame-comparisons.json" \
+            --out-md "$RUNNER_TEMP/ui-frame-comparisons.md"
+          cat "$RUNNER_TEMP/ui-frame-comparisons.md"
+
+      - name: Upload native frame evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-native-frame
+          path: |
+            ${{ runner.temp }}/native-frame-300.ppm
+            ${{ runner.temp }}/native-presents.csv
+            ${{ runner.temp }}/boot.log
+            ${{ runner.temp }}/race-smoke.log
+            ${{ runner.temp }}/race-dumps/
+            ${{ runner.temp }}/ui-options-route.log
+            ${{ runner.temp }}/ui-dumps/
+            ${{ runner.temp }}/ui-main-branches.log
+            ${{ runner.temp }}/ui-branch-dumps/
+            ${{ runner.temp }}/ui-vs-handoff.log
+            ${{ runner.temp }}/ui-vs-handoff-dumps/
+            ${{ runner.temp }}/ui-ending-shortcut.log
+            ${{ runner.temp }}/ui-ending-dumps/
+            ${{ runner.temp }}/ui-attract-route.log
+            ${{ runner.temp }}/ui-attract-dumps/
+            ${{ runner.temp }}/ui-pause-route.log
+            ${{ runner.temp }}/ui-pause-dumps/
+            ${{ runner.temp }}/ui-options-submenus.log
+            ${{ runner.temp }}/ui-options-submenu-dumps/
+            ${{ runner.temp }}/ui-erase-confirm.log
+            ${{ runner.temp }}/ui-erase-confirm-dumps/
+            ${{ runner.temp }}/ui-league-table.log
+            ${{ runner.temp }}/ui-league-dumps/
+            ${{ runner.temp }}/ui-race-result-route.log
+            ${{ runner.temp }}/ui-race-result-dumps/
+            ${{ runner.temp }}/ui-stunt-result-route.log
+            ${{ runner.temp }}/ui-stunt-result-dumps/
+            ${{ runner.temp }}/ui-records-explore.log
+            ${{ runner.temp }}/ui-records-explore-dumps/
+            ${{ runner.temp }}/ui-rename-editor-explore.log
+            ${{ runner.temp }}/ui-rename-editor-dumps/
+            ${{ runner.temp }}/ui-circuit-result-route.log
+            ${{ runner.temp }}/ui-circuit-result-dumps/
+            ${{ runner.temp }}/ui-records-submenus.log
+            ${{ runner.temp }}/ui-records-submenu-dumps/
+            ${{ runner.temp }}/ui-record-high.log
+            ${{ runner.temp }}/ui-record-player.log
+            ${{ runner.temp }}/ui-record-group.log
+            ${{ runner.temp }}/ui-records-isolated-dumps/
+            ${{ runner.temp }}/ui-name-league-route.log
+            ${{ runner.temp }}/ui-name-league-dumps/
+            ${{ runner.temp }}/ui-startup-timeline.log
+            ${{ runner.temp }}/ui-startup-timeline-dumps/
+            ${{ runner.temp }}/ui-define-player-explore.log
+            ${{ runner.temp }}/ui-define-player-dumps/
+            ${{ runner.temp }}/ui-pre-race-timing.log
+            ${{ runner.temp }}/ui-pre-race-timing-dumps/
+            ${{ runner.temp }}/ui-atlas.json
+            ${{ runner.temp }}/ui-atlas.md
+            ${{ runner.temp }}/ui-atlas.html
+            ${{ runner.temp }}/ui-frame-comparisons.json
+            ${{ runner.temp }}/ui-frame-comparisons.md
+            ${{ runner.temp }}/display-geometry-review.json
+            ${{ runner.temp }}/display-geometry-review.html
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Build summary
+        if: always()
+        shell: bash
+        run: |
+          ROOT="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp"
+          echo "== generated source files =="
+          find "$ROOT/src/gen" -maxdepth 1 -type f -printf '%f\n' 2>/dev/null | sort || true
+          echo
+          echo "== binary metadata =="
+          find "$ROOT/build" -maxdepth 4 -type f -perm -111 -exec file {} \; 2>/dev/null || true

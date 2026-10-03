@@ -2137,3 +2137,20 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 **Policy consequence:** stock already frames the filter around "coolness" ("NOT COOL ENOUGH"), so the decided modern COOL NAME! acknowledgement is a direct inversion of the original message, applied with the identical detection rule.
 
 **Uncertainty:** NAME_LEAGUE parity, B-versus-A entry, and the delete arrow are unexercised.
+
+### R-2026-10-03-UI-18 — Track Records SRAM table decoded (top-3 per track with holders and checksum)
+
+**Status:** reproduced locally (reference harness)  
+**Date:** 2026-10-03  
+**Area:** SRAM | records
+
+**Observation:**
+- **Records:** 150 words at SRAM `0x0422`, indexed `50*rank + 5*tour_row + track`. Race tracks store the finish time and circuit tracks the best lap (both in 1/100 s, default 60000 = NO TIME); stunt tracks store the score (default 0).
+- **Checksum and holders:** `0x054E` is their 16-bit sum, and `0x0550 + index` holds the holder rider index (default 16 = `someone`).
+- **Ranks:** the first clean-save Dragster finish (2856 = 0:28.56) fills rank 0 for MIKE, and an equal second finish fills rank 1 (index 50). The Track Records screen then shows MIKE's red star on both the GOLD and SILVER rows, so those rows are 1st/2nd/3rd best, not medal tiers.
+- **Track types:** the Dessyreqt movie stores a Zoom Zoo best lap of 2510 (0:25.10, not the 1:16.46 total) and a Bowl score of 764.
+- **Last race:** `0x0618/0x061A` hold the last race's P1 and opponent result values.
+
+**Evidence:** `tools/probe_track_records_sram.py` → `analysis/generated/track-records-sram.json` (8 checks, ~40 s). SYMBOLS rows were added for the name table, tour-win counter, track records, checksum, holders and last-race slots.
+
+**Uncertainty:** group 9 of the ten five-track groups is unidentified (Hunter is group 8). Insertion and tie rules beyond equal times landing in the next rank are untested. The High Scores and Player Scores storage is not mapped.

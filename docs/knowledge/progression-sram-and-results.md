@@ -53,6 +53,10 @@ record the exact mapping rather than assuming they all share one enumeration.
 
 **Confirmed.** In 1P tour play the CPU opponent occupies the ordinary P2 racer slot (`$017F`) and palette path. On the main tours it is `17 + medal already held for that tour and rider`: none → Bronsen, bronze → Silvia, silver → Goldwyn, with TRACK_SELECT labelling the run BRONZE / SILVER / GOLD. This was checked on MIKE/Crawler and ANDREW/Shuffler. The Hunter tour fields Anti-Uni (20) under a GOLD label regardless of the Hunter medal. Once a rider's tier is 3, TOUR_SELECT becomes the two-column nine-tour page `0x10` that lists HUNTER. (`analysis/generated/legacy-cast-presets.json`, `tier-opponent-probe.json`.)
 
+## Track records
+
+**Confirmed.** Battery SRAM holds 150 record words at `0x0422 + 2*(50*rank + 5*tour_row + track)`, with a 16-bit sum checksum at `0x054E` and one holder rider-index byte per record at `0x0550 + index`. The three ranks are the GOLD/SILVER/BRONZE rows of the Track Records screen, meaning 1st/2nd/3rd best, not medal tiers. Each value is the race finish time or circuit best lap in 1/100 s (60000 = NO TIME) or the stunt score. Ten five-track groups follow the medal-matrix tour order; the tenth is unidentified. (`analysis/generated/track-records-sram.json`.)
+
 ## In-tour progress
 
 **Confirmed.** Battery SRAM `0x0230`, `0x0232` and `0x10A9` count won races in the current tour. They survive a power cycle, and the next win continues the count, so unfinished tour progress is not lost on power-off. The counter counts wins, not distinct tracks: re-winning an already-won track still advances it. **Unknown:** whether a resumed tour awards its medal, and whether a lost race changes the counter. (`analysis/generated/tour-progress-persistence.json`.)

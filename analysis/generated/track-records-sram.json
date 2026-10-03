@@ -1,0 +1,92 @@
+{
+ "schema_version": 1,
+ "purpose": "Stock Track Records SRAM layout for modern PB deltas and records-surface embedding.",
+ "layout": {
+  "records": "0x0422 + 2*(50*rank + 5*tour_row + track), 150 LE words",
+  "checksum": "0x054E = 16-bit sum of the 150 record words",
+  "holders": "0x0550 + (50*rank + 5*tour_row + track), rider index (16 = someone)",
+  "ranks": "0/1/2 = GOLD/SILVER/BRONZE rows on Track Records = 1st/2nd/3rd best",
+  "tour_row": "medal-matrix order (Crawler 0, Jumper 1, Shuffler 2 ... Hunter 8); group 9 unidentified",
+  "values": "race: finish time, circuit: best lap (1/100 s, 60000 = NO TIME); stunt: score (0 = none)",
+  "last_race_slots": "0x0618 / 0x061A hold the last race's P1 / opponent result value"
+ },
+ "observed": {
+  "first_run": [
+   {
+    "rank": 0,
+    "tour_row": 0,
+    "track": 0,
+    "kind": "time_cs",
+    "value": 2856,
+    "empty": false,
+    "holder": 0,
+    "holder_name": "MIKE"
+   }
+  ],
+  "second_run": [
+   {
+    "rank": 0,
+    "tour_row": 0,
+    "track": 0,
+    "kind": "time_cs",
+    "value": 2856,
+    "empty": false,
+    "holder": 0,
+    "holder_name": "MIKE"
+   },
+   {
+    "rank": 1,
+    "tour_row": 0,
+    "track": 0,
+    "kind": "time_cs",
+    "value": 2856,
+    "empty": false,
+    "holder": 0,
+    "holder_name": "MIKE"
+   }
+  ],
+  "tas_after_bowl": [
+   {
+    "rank": 0,
+    "tour_row": 0,
+    "track": 0,
+    "kind": "time_cs",
+    "value": 2508,
+    "empty": false,
+    "holder": 0,
+    "holder_name": "MIKE"
+   },
+   {
+    "rank": 0,
+    "tour_row": 0,
+    "track": 1,
+    "kind": "time_cs",
+    "value": 2510,
+    "empty": false,
+    "holder": 0,
+    "holder_name": "MIKE"
+   },
+   {
+    "rank": 0,
+    "tour_row": 0,
+    "track": 2,
+    "kind": "stunt_score",
+    "value": 764,
+    "empty": false,
+    "holder": 0,
+    "holder_name": "MIKE"
+   }
+  ]
+ },
+ "checks": {
+  "clean_defaults": true,
+  "checksum_formula_holds_clean": true,
+  "first_finish_fills_rank0_dragster": true,
+  "checksum_formula_holds_after_records": true,
+  "equal_second_finish_fills_rank1": true,
+  "circuit_stores_best_lap_not_total": true,
+  "stunt_stores_score": true,
+  "checksum_formula_holds_tas": true
+ },
+ "all_checks_pass": true
+}

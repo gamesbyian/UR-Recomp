@@ -83,6 +83,20 @@ static void ur_ws_native_write16(CpuState *cpu, uint16 addr, uint16 value) {
   cpu->ram[(uint16)(addr + 1)] = (uint8)(value >> 8);
 }
 
+static void ur_ws_native_trace_primary(CpuState *cpu) {
+  const uint16 edge = ur_ws_native_read16(cpu, 0x0505);
+  const uint16 count = ur_ws_native_read16(cpu, 0x052b);
+  if (!ur_ws_native_trace() || edge == 0xffff || count != 16)
+    return;
+  fprintf(stderr, "URWS_PRIMARY margin=%d camx=%u edge=%04X count=%u payload=",
+          ur_ws_native_margin(),
+          (unsigned)ur_ws_native_read16(cpu, 0x0419),
+          (unsigned)edge, (unsigned)count);
+  for (unsigned j = 0; j < 32; j++)
+    fprintf(stderr, "%02X", (unsigned)cpu->ram[0x0433 + j]);
+  fprintf(stderr, "\n");
+}
+
 static uint16 ur_ws_native_read16_bank(CpuState *cpu, uint8 bank, uint16 addr) {
   return cpu_read16(cpu, bank, addr);
 }

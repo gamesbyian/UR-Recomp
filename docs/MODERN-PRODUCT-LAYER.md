@@ -115,11 +115,17 @@ The lifecycle receives only an `active` boolean; it does not know the Uniracers 
 
 `SessionRuntimeHooks::restart_race` is now optional. If no proven restart implementation is attached, the dispatcher returns `MissingHook`; if the runtime refuses a restore, it returns `RejectedByRuntime`. This keeps a UI button from becoming evidence that restart semantics are actually available.
 
+### Native Restart Race acceptance
+
+PR #235 closes the title-specific restart-state question. Workflow run `37080761750` captures the active-race rollback snapshot, restores it exactly, and reproduces the same state after a 60-frame forward replay. The earlier APU-only replay failure was diagnostic: immediate snapshot equality had hidden one host-owned timing carrier. The desktop host enables extended APU frame timing, but rollback residue v6 did not preserve the corresponding `RtlApuFrameClock` (`start_master`, `start_guest`, `next_guest`, `last_duration`). Rollback residue v7 now saves/restores that clock along with the existing pacing state, and the unchanged replay acceptance passes.
+
+This strengthens the validation rule for future rewindable host features: exact load equality is necessary but insufficient. Any operation that restores authoritative machine state must also prove bounded forward replay across CPU/WRAM/APU/PPU/DMA/cart partitions before it is treated as deterministic.
+
 ## Extension points
 
 Do not add these systems to `HostProductState` merely because they are planned. Add narrow interfaces when there is a concrete runtime consumer:
 
-- **pause/restart:** pause is connected to the owned host frame gate; wire the restart anchor into the generated Uniracers title hook and prove deterministic race re-entry before treating restart as complete;
+- **pause/restart:** pause is connected to the owned host frame gate and the Uniracers restart anchor/replay semantics are accepted. Remaining work is to expose the proven restart action through the modern pause/race/results UI and define user-facing attempt policy without weakening the accepted lifecycle boundary;
 - **autosave/resume:** a coordinator that owns host save metadata while preserving guest SRAM as guest data;
 - **records/ghosts:** append-only run artifacts keyed by profile and course identity, sourced from observed authoritative race state;
 - **racer identity:** product data associated with a profile, explicitly separate from the original save-slot/unicycle coupling;

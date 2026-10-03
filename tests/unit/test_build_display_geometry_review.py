@@ -45,7 +45,7 @@ class DisplayGeometryReviewTests(unittest.TestCase):
         self.assertEqual(row["derived_16x9"]["materializer_margin_pixels"], 48)
         self.assertTrue(row["derived_16x9"]["capacity_sufficient"])
 
-    def test_square_full_height_exposes_capacity_gap(self):
+    def test_square_full_height_fits_validated_plus72_capacity(self):
         row = candidate_report(
             width=256,
             height=224,
@@ -58,7 +58,7 @@ class DisplayGeometryReviewTests(unittest.TestCase):
             },
         )
         self.assertEqual(row["derived_16x9"]["materializer_margin_pixels"], 72)
-        self.assertFalse(row["derived_16x9"]["capacity_sufficient"])
+        self.assertTrue(row["derived_16x9"]["capacity_sufficient"])
 
     def test_rejects_invalid_crop(self):
         with self.assertRaises(ValueError):

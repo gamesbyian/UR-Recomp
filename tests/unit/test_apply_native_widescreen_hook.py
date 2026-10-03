@@ -56,9 +56,9 @@ class NativeWidescreenHookTests(unittest.TestCase):
             self.assertTrue(report["margin8_hook"])
             self.assertTrue(report["margin16_supported"])
             self.assertTrue(report["margin24_supported"])
-            self.assertTrue(report["margin64_probe_supported"])
-            self.assertTrue(report["margin72_probe_supported"])
-            self.assertEqual(report["first_constraint"],"none-through-plus72-probe")
+            self.assertTrue(report["margin64_supported"])
+            self.assertTrue(report["margin72_supported"])
+            self.assertEqual(report["first_constraint"],"none-through-plus72")
 
             w=wrapper.read_text(encoding="utf-8")
             self.assertIn(MOD.MARKER,w)

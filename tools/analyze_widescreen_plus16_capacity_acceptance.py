@@ -309,7 +309,7 @@ def analyze(logs: dict[int, str], oracle_log: str, dumps: dict[int, Path]) -> di
             "synthetic_guest_descriptor_lanes": 0,
             "deepest_accepted_margin_pixels": deepest,
             "deepest_accepted_host_columns": max(0, deepest // 8 - 1),
-            "aspect_policy_status": "unresolved; depth sweep is capacity evidence, not a hard-coded 16:9 width",
+            "aspect_policy_status": "preferred provisional Authentic full-224 7:6 derives +48; title-final reference validation remains open",
         },
         "margins": {str(m): capacity[m] for m in CAPACITY_MARGINS},
         "checks": checks,
@@ -340,9 +340,9 @@ def render(r: dict) -> str:
         f"Deepest accepted probe: **+{r['architecture']['deepest_accepted_margin_pixels']}** "
         f"with **{r['architecture']['deepest_accepted_host_columns']}** host-owned columns.",
         "",
-        "This sweep deliberately does not declare a final 16:9 source width while pixel-aspect "
-        "policy remains unresolved. It answers only whether the host-owned random-access "
-        "materializer itself keeps scaling.",
+        "This sweep does not make the preferred full-height 7:6 Authentic candidate title-final. "
+        "That candidate derives a +48 16:9 margin; this independent depth evidence proves the "
+        "host-owned random-access materializer through +72.",
         "",
         f"Overall accepted: **{r['accepted']}**", "",
     ]

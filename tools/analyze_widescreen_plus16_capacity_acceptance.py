@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Acceptance for the oracle-fed host-owned +16 Widescreen capacity seam."""
+"""Acceptance for the course-backed host-owned +16 Widescreen materializer."""
 from __future__ import annotations
 import argparse, importlib.util, json, re
 from pathlib import Path
@@ -17,7 +17,7 @@ ROW_RE=lambda tag: re.compile(
 )
 PREP16_RE=ROW_RE(r"URWS_PREP16")
 SHADOW16_RE=re.compile(
-    r"URWS_SHADOW16 provider=stock-oracle camx=(\d+) edge=([0-9A-Fa-f]{4}) "
+    r"URWS_SHADOW16 provider=course-runtime camx=(\d+) edge=([0-9A-Fa-f]{4}) "
     r"count=(\d+) payload=([0-9A-Fa-f]{64})"
 )
 STOP_RE=re.compile(r"URWS_STOP margin=16 reason=([^\s]+)")
@@ -78,7 +78,8 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
     paired=[]
     bad_first_steps=[]
     bad_second_ring_steps=[]
-    oracle_exact=0
+    oracle_payload_exact=0
+    oracle_full_edge_exact=0
     oracle_advances=[]
     oracle_examples=[]
     for first in p16:
@@ -119,8 +120,13 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
         ]
         if candidates:
             best=min(candidates,key=lambda r:r["camx"]-first["camx"])
-            if best["edge"]==second["edge"] and best["payload"]==second["payload"]:
-                oracle_exact+=1
+            payload_exact=best["payload"]==second["payload"]
+            full_edge_exact=best["edge"]==second["edge"]
+            if payload_exact:
+                oracle_payload_exact+=1
+            if payload_exact and full_edge_exact:
+                oracle_full_edge_exact+=1
+            if payload_exact:
                 advance=best["camx"]-first["camx"]
                 oracle_advances.append(advance)
                 if len(oracle_examples)<40:
@@ -128,7 +134,9 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
                         "plus16_camx":second["camx"],
                         "stock_camx":best["camx"],
                         "camera_x_advance":advance,
-                        "edge":second["edge"],
+                        "host_edge":second["edge"],
+                        "stock_edge":best["edge"],
+                        "full_edge_exact":full_edge_exact,
                         "payload":second["payload"],
                     })
 
@@ -159,8 +167,8 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
         "margin16_second_step_ring_adjacent":(
             len(paired)==len(p16) and not bad_second_ring_steps
         ),
-        "margin16_every_shadow_is_nearest_exact_later_stock":(
-            oracle_exact==len(shadow) and len(shadow)>0
+        "margin16_every_shadow_payload_is_nearest_exact_later_stock":(
+            oracle_payload_exact==len(shadow) and len(shadow)>0
         ),
         "margin16_cleanup_lifecycle":cleanup_ok,
         "margin16_protected_state_equal":not protected16,
@@ -175,15 +183,17 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
         "architecture":{
             "guest_first_extra_column":"accepted PR #228 secondary lane",
             "host_second_extra_column":"host-owned WideStrip provider",
-            "prototype_provider":"independent later-stock oracle",
+            "host_provider":"live 7F:000F coarse table + 7F:800F packed-surface fine records",
+            "acceptance_oracle":"independent later-stock control run only; never read by implementation",
             "synthetic_guest_descriptor_lanes":0,
-            "production_provider_status":"open; course/resource random-access materializer is next",
+            "production_provider_status":"first course-backed random-access materializer under acceptance",
         },
         "counts":{
             "plus8_prepare_events":len(p8),
             "plus16_first_column_events":len(p16),
             "plus16_shadow_events":len(shadow),
-            "plus16_oracle_exact_matches":oracle_exact,
+            "plus16_oracle_payload_exact_matches":oracle_payload_exact,
+            "plus16_oracle_full_edge_exact_matches":oracle_full_edge_exact,
             "plus16_cleanup_events":len(clean),
             "plus16_comparable_pairs":len(paired),
             "plus16_oracle_advance_min":min(oracle_advances) if oracle_advances else None,
@@ -204,12 +214,14 @@ def render(r:dict)->str:
     return "\n".join([
         "# +16 Widescreen host-capacity acceptance","",
         "The accepted +8 guest path supplies column +1 unchanged. Column +2 is "
-        "retained only in host-owned presentation storage and, for this controlled "
-        "prototype, is supplied by an independent later-stock oracle.","",
+        "retained only in host-owned presentation storage and is materialized directly "
+        "from the live course coarse/fine presentation tables. The independent later-stock "
+        "run is used only as an acceptance oracle.","",
         f"- accepted +8 unchanged: **{c['accepted_plus8_unchanged']}**",
         f"- +16 first-column events: **{n['plus16_first_column_events']}**",
         f"- +16 host-shadow events: **{n['plus16_shadow_events']}**",
-        f"- exact later-stock shadow matches: **{n['plus16_oracle_exact_matches']}**",
+        f"- exact later-stock shadow payload matches: **{n['plus16_oracle_payload_exact_matches']}**",
+        f"- exact later-stock compound-edge + payload matches: **{n['plus16_oracle_full_edge_exact_matches']}**",
         f"- two columns for every preparation: **{c['margin16_two_columns_for_every_preparation']}**",
         f"- first step keeps accepted stock compatibility: **{c['margin16_first_step_preserves_accepted_stock_compatibility']}**",
         f"- second step is ring-adjacent: **{c['margin16_second_step_ring_adjacent']}**",
@@ -217,12 +229,11 @@ def render(r:dict)->str:
         f"- +16 protected state equal: **{c['margin16_protected_state_equal']}**",
         f"- deterministic cleanup: **{c['margin16_cleanup_lifecycle']}**",
         f"- provider misses: **{r['provider_misses']}**","",
-        "For column +2, exact correspondence means the nearest later stock row with "
-        "the required next low-five-bit ring coordinate, including its exact compound "
-        "edge word and 32-byte payload. This proves the capacity/ownership seam only. "
-        "The oracle is deliberately "
-        "not a production content generator; the next producer should be the "
-        "course/resource random-access presentation materializer.","",
+        "For column +2, acceptance requires the exact 32-byte payload from the nearest "
+        "later stock row carrying the required next low-five-bit ring coordinate. Full "
+        "compound-edge equality is retained as a diagnostic because the upper edge bits "
+        "also encode stock scheduler/resource state; the host-owned materializer does not "
+        "use them as content input. The oracle is deliberately never a runtime provider.","",
         f"Overall accepted: **{r['accepted']}**",""
     ])
 

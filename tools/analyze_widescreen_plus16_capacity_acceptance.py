@@ -20,6 +20,14 @@ SHADOW16_RE=re.compile(
     r"URWS_SHADOW16 provider=course-runtime camx=(\d+) edge=([0-9A-Fa-f]{4}) "
     r"count=(\d+) payload=([0-9A-Fa-f]{64})"
 )
+PRIMARY_VIEW_RE=re.compile(
+    r"URWS_PRIMARY margin=0 camx=(\d+) edge=([0-9A-Fa-f]{4}) count=(\d+) "
+    r"payload=([0-9A-Fa-f]{64}) camy=(\d+)"
+)
+SHADOW_VIEW_RE=re.compile(
+    r"URWS_SHADOW16 provider=course-runtime camx=(\d+) edge=([0-9A-Fa-f]{4}) "
+    r"count=(\d+) payload=([0-9A-Fa-f]{64}) camy=(\d+) finex=(\d+) finey=(\d+)"
+)
 STOP_RE=re.compile(r"URWS_STOP margin=16 reason=([^\s]+)")
 CLEAN_RE=re.compile(r"URWS_CLEANUP16 shadow=(\d+)")
 LIMIT24_RE=re.compile(
@@ -40,6 +48,21 @@ def stock_primary(text:str)->list[dict]:
         if int(mm)==0 and int(n)==16 and int(e,16)!=0xffff:
             out.append({"camx":int(c),"edge":int(e,16),"count":16,"payload":p.upper()})
     return out
+
+def stock_primary_view(text:str)->list[dict]:
+    return [
+        {"camx":int(c),"edge":int(e,16),"count":int(n),"payload":p.upper(),
+         "camy":int(y),"finey":int(y)>>4}
+        for c,e,n,p,y in PRIMARY_VIEW_RE.findall(text)
+        if int(n)==16 and int(e,16)!=0xffff
+    ]
+
+def shadow_view(text:str)->list[dict]:
+    return [
+        {"camx":int(c),"edge":int(e,16),"count":int(n),"payload":p.upper(),
+         "camy":int(y),"finex":int(fx),"finey":int(fy)}
+        for c,e,n,p,y,fx,fy in SHADOW_VIEW_RE.findall(text)
+    ]
 
 def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
             dump0:Path,dump8:Path,dump16:Path,dump24:Path)->dict:
@@ -64,12 +87,14 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
     ]
     p16=rows(PREP16_RE,log16)
     shadow=rows(SHADOW16_RE,log16)
+    shadow_views=shadow_view(log16)
     primary16=[
         {"camx":int(c),"edge":int(e,16),"count":int(n),"payload":p.upper()}
         for mm,c,e,n,p in BASE.PRIMARY_RE.findall(log16)
         if int(mm)==16 and int(n)==16 and int(e,16)!=0xffff
     ]
     oracle=stock_primary(oracle_log)
+    oracle_views=stock_primary_view(oracle_log)
     control=stock_primary(log0)
     stock_deltas={(b["edge"]-a["edge"])&0xffff for a,b in zip(control,control[1:])}|{1}
 
@@ -80,6 +105,10 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
     bad_second_ring_steps=[]
     oracle_payload_exact=0
     oracle_full_edge_exact=0
+    same_view_payload_exact=0
+    same_view_comparable=0
+    vertical_view_transition_rows=0
+    same_view_failures=[]
     oracle_advances=[]
     oracle_examples=[]
     for first in p16:
@@ -140,6 +169,48 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
                         "payload":second["payload"],
                     })
 
+    shadow_view_by_cam={r["camx"]:r for r in shadow_views}
+    for first in p16:
+        second=shadow_view_by_cam.get(first["camx"])
+        if second is None:
+            continue
+        wanted_ring=second["edge"]&0x1f
+        bounded=[
+            r for r in oracle_views
+            if r["camx"]>second["camx"]
+            and 1 <= r["camx"]-second["camx"] <= 64
+            and (r["edge"]&0x1f)==wanted_ring
+        ]
+        if not bounded:
+            continue
+        nearest=min(bounded,key=lambda r:r["camx"]-second["camx"])
+        same_view=[
+            r for r in bounded
+            if r["finey"]==second["finey"]
+        ]
+        if nearest["finey"] != second["finey"]:
+            vertical_view_transition_rows += 1
+        if not same_view:
+            continue
+        best=min(same_view,key=lambda r:r["camx"]-second["camx"])
+        same_view_comparable += 1
+        if best["payload"]==second["payload"]:
+            same_view_payload_exact += 1
+        elif len(same_view_failures)<40:
+            same_view_failures.append({
+                "plus16_camx":second["camx"],
+                "plus16_camy":second["camy"],
+                "fine_x":second["finex"],
+                "fine_y":second["finey"],
+                "stock_camx":best["camx"],
+                "stock_camy":best["camy"],
+                "stock_fine_y":best["finey"],
+                "host_edge":second["edge"],
+                "stock_edge":best["edge"],
+                "host_payload":second["payload"],
+                "stock_payload":best["payload"],
+            })
+
     states={0:BASE.read_words(dump0),8:BASE.read_words(dump8),
             16:BASE.read_words(dump16),24:BASE.read_words(dump24)}
     protected16={
@@ -167,8 +238,10 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
         "margin16_second_step_ring_adjacent":(
             len(paired)==len(p16) and not bad_second_ring_steps
         ),
-        "margin16_every_shadow_payload_is_nearest_exact_later_stock":(
-            oracle_payload_exact==len(shadow) and len(shadow)>0
+        "margin16_same_view_shadow_payloads_are_exact":(
+            same_view_comparable >= 600
+            and same_view_payload_exact == same_view_comparable
+            and not same_view_failures
         ),
         "margin16_cleanup_lifecycle":cleanup_ok,
         "margin16_protected_state_equal":not protected16,
@@ -194,6 +267,9 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
             "plus16_shadow_events":len(shadow),
             "plus16_oracle_payload_exact_matches":oracle_payload_exact,
             "plus16_oracle_full_edge_exact_matches":oracle_full_edge_exact,
+            "plus16_same_view_comparable_rows":same_view_comparable,
+            "plus16_same_view_payload_exact_matches":same_view_payload_exact,
+            "plus16_vertical_view_transition_rows":vertical_view_transition_rows,
             "plus16_cleanup_events":len(clean),
             "plus16_comparable_pairs":len(paired),
             "plus16_oracle_advance_min":min(oracle_advances) if oracle_advances else None,
@@ -203,6 +279,7 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
         "protected_state_differences":protected16,
         "first_step_failures":bad_first_steps[:40],
         "second_ring_failures":bad_second_ring_steps[:40],
+        "same_view_failures":same_view_failures,
         "pair_examples":paired[:40],
         "oracle_match_examples":oracle_examples,
         "checks":checks,
@@ -221,7 +298,10 @@ def render(r:dict)->str:
         f"- +16 first-column events: **{n['plus16_first_column_events']}**",
         f"- +16 host-shadow events: **{n['plus16_shadow_events']}**",
         f"- exact later-stock shadow payload matches: **{n['plus16_oracle_payload_exact_matches']}**",
-        f"- exact later-stock compound-edge + payload matches: **{n['plus16_oracle_full_edge_exact_matches']}**",
+        f"- exact later-stock compound-edge + payload matches (all rows, diagnostic): **{n['plus16_oracle_full_edge_exact_matches']}**",
+        f"- same-view comparable shadow rows: **{n['plus16_same_view_comparable_rows']}**",
+        f"- same-view exact payload matches: **{n['plus16_same_view_payload_exact_matches']}**",
+        f"- later-stock rows crossing a vertical-view transition: **{n['plus16_vertical_view_transition_rows']}**",
         f"- two columns for every preparation: **{c['margin16_two_columns_for_every_preparation']}**",
         f"- first step keeps accepted stock compatibility: **{c['margin16_first_step_preserves_accepted_stock_compatibility']}**",
         f"- second step is ring-adjacent: **{c['margin16_second_step_ring_adjacent']}**",
@@ -229,11 +309,12 @@ def render(r:dict)->str:
         f"- +16 protected state equal: **{c['margin16_protected_state_equal']}**",
         f"- deterministic cleanup: **{c['margin16_cleanup_lifecycle']}**",
         f"- provider misses: **{r['provider_misses']}**","",
-        "For column +2, acceptance requires the exact 32-byte payload from the nearest "
-        "later stock row carrying the required next low-five-bit ring coordinate. Full "
-        "compound-edge equality is retained as a diagnostic because the upper edge bits "
-        "also encode stock scheduler/resource state; the host-owned materializer does not "
-        "use them as content input. The oracle is deliberately never a runtime provider.","",
+        "For column +2, the later-stock oracle is exact only when the future stock row "
+        "samples the same fine camera-Y viewport. Rows where the camera has moved vertically "
+        "are classified separately rather than asking a current-view random-access strip to "
+        "match a different future viewport. Every same-view comparable payload remains a hard "
+        "exactness gate. Full compound-edge equality and all-row payload equality are retained "
+        "as diagnostics. The oracle is deliberately never a runtime provider.","",
         f"Overall accepted: **{r['accepted']}**",""
     ])
 

@@ -155,19 +155,30 @@ Record exact bsnes-hd revision and every non-default parameter in each result.
 
 ## Aspect policy
 
-16:9 is the first supported widened target, not the engine's internal definition of widescreen.
+The architectural display policy is now owned by `docs/DISPLAY-PRESENTATION-POLICY.md`.
 
-Represent aspect using viewport bounds/policy rather than magic source widths.
+16:9 is the first supported widened target, not the engine's internal definition of widescreen. Keep **display geometry / pixel aspect** independent from **logical view width**. This follows both the upstream SNESRecomp model and useful bsnes-hd precedent: pixel shape, overscan, world exposure, sprite/window behavior, and output resolution are distinct controls.
+
+Represent widened views using viewport bounds/policy rather than magic source widths. In particular, do not make "16:9" synonymous with one fixed number of extra SNES columns.
 
 A policy must state:
 
-- target display aspect;
-- source pixel-aspect assumption;
+- target logical view aspect;
+- source/display pixel-aspect assumption;
 - overscan/safe-area behavior;
 - derived left/right logical margin;
-- any maximum supported margin imposed by the stock renderer.
+- any maximum supported margin imposed by the renderer/materializer;
+- scene policy for world, UI, and scripted presentation.
 
-Preserve named compatibility presets only when they are useful for reproducing prior art or known hardware/display interpretations.
+Accepted product roles are:
+
+- **Authentic 4:3:** historically corrected SNES/NTSC display geometry, pending title-specific transform validation;
+- **Raw Pixels:** literal square source pixels for preservation/debugging;
+- **Modern square-pixel presentation:** host geometry for Remastered/Reimagined assets, with view width selected independently.
+
+The remaining task is to validate the exact Uniracers authentic transform and overscan constants against retained reference captures, then derive the first 16:9 logical-margin target from that policy. Existing +8/+16/+24 experiments remain valid because they are expressed in logical source-pixel margins rather than a hard-coded final aspect width.
+
+Preserve named compatibility presets only when they reproduce useful historical or diagnostic interpretations.
 
 ## Scene policy
 

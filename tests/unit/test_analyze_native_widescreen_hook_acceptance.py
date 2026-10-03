@@ -88,7 +88,7 @@ class NativeWidescreenHookAcceptanceTests(unittest.TestCase):
             logs[8]=logs[8].replace("edge=0D80 count=16", "edge=0D7F count=16", 1)
             r=MOD.analyze(logs,self.dumps(root))
             self.assertFalse(r["accepted"])
-            self.assertFalse(r["checks"]["margin8_comparable_edges_all_adjacent"])
+            self.assertFalse(r["checks"]["margin8_all_preparation_steps_stock_compatible"])
 
     def test_rejects_protected_state_change(self):
         with tempfile.TemporaryDirectory() as td:

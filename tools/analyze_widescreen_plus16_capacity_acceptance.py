@@ -97,7 +97,7 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
         exact=[
             r for r in oracle
             if r["edge"]==second["edge"] and r["payload"]==second["payload"]
-            and r["camx"]>second["camx"] and 1<=r["camx"]-second["camx"]<=24
+            and r["camx"]>second["camx"] and 1<=r["camx"]-second["camx"]<=32
         ]
         if exact:
             best=min(exact,key=lambda r:r["camx"]-second["camx"])

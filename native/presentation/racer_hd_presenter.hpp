@@ -70,6 +70,22 @@ constexpr bool is_first_authored_remastered_registration(
            s.p2_companion_gate_word == 0x0000;
 }
 
+constexpr bool is_authored_0541_p1_companion_0d2d_registration(
+    const RacerRegistration& registration
+) noexcept {
+    const auto& s = registration.composition;
+    return registration.player == 1 &&
+           registration.semantic_frame_id == 0x0541 &&
+           s.p1_primary == 0x0541 &&
+           s.p2_primary == 0x0540 &&
+           s.p1_companion == 0x0D2D &&
+           s.p2_companion == 0x0000 &&
+           s.p1_selector == 0 &&
+           s.p2_selector == 0 &&
+           s.p1_companion_gate_word == 0x0001 &&
+           s.p2_companion_gate_word == 0x0000;
+}
+
 constexpr std::uint32_t authored_red_frame_color(
     int x,
     int y
@@ -179,6 +195,74 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1(
     return 0;
 }
 
+constexpr std::uint32_t sample_racer_hd_authored_0541_p1_companion_0d2d(
+    int x,
+    int y,
+    bool hflip,
+    bool vflip
+) noexcept {
+    if (x < 0 || y < 0 || x >= kRacerHdAssetSize || y >= kRacerHdAssetSize) {
+        return 0;
+    }
+    if (hflip) x = kRacerHdAssetSize - 1 - x;
+    if (vflip) y = kRacerHdAssetSize - 1 - y;
+
+    // Frame 1219 differs from the reviewed 1220 reference by only seven stock
+    // logical pixels, all in the upper silhouette. Preserve the accepted lower
+    // geometry/contact and vary only the saddle profile.
+    const int wheel_cx = 123;
+    const int wheel_cy = 122;
+    const int wx = x - wheel_cx;
+    const int wy = y - wheel_cy;
+    const int wr2 = wx * wx + wy * wy;
+    const bool tire = wr2 <= 33 * 33 && wr2 >= 27 * 27;
+    const bool rim = wr2 < 27 * 27 && wr2 >= 24 * 24;
+    const bool hub = wr2 <= 6 * 6;
+
+    const int fork_center = 131 - (y - 60) / 14;
+    const bool fork =
+        y >= 60 && y <= 117 &&
+        x >= fork_center - 4 && x <= fork_center + 4;
+    const bool crank =
+        y >= 116 && y <= 123 &&
+        x >= 112 && x <= 138;
+    const bool pedal =
+        y >= 113 && y <= 118 &&
+        x >= 138 && x <= 150;
+
+    const int seat_dx = x - 130;
+    const int seat_dy = y - 23;
+    const bool seat =
+        (seat_dx * seat_dx) * 13 * 13 +
+            (seat_dy * seat_dy) * 32 * 32 <=
+            32 * 32 * 13 * 13 &&
+        y >= 8 && y <= 34;
+
+    const bool neck =
+        y >= 30 && y <= 60 &&
+        x >= 128 && x <= 136;
+    const int crown_dx = x - 132;
+    const int crown_dy = y - 60;
+    const bool crown =
+        crown_dx * crown_dx + crown_dy * crown_dy <= 10 * 10;
+
+    if (hub || rim || crank || pedal) {
+        return authored_metal_color(x, y);
+    }
+    if (seat) {
+        const int seat_light = (255 - x) + (255 - y);
+        return seat_light > 350 ? 0xFF41474Bu : 0xFF20272Bu;
+    }
+    if (fork || neck || crown) {
+        return authored_red_frame_color(x, y);
+    }
+    if (tire) {
+        const int tire_light = (255 - x) + (255 - y);
+        return tire_light > 310 ? 0xFF353C40u : 0xFF171D20u;
+    }
+    return 0;
+}
+
 constexpr std::uint32_t sample_racer_hd_asset(
     const RacerRegistration& registration,
     int x,
@@ -188,6 +272,11 @@ constexpr std::uint32_t sample_racer_hd_asset(
 ) noexcept {
     if (is_first_authored_remastered_registration(registration)) {
         return sample_racer_hd_authored_0541_p1(x, y, hflip, vflip);
+    }
+    if (is_authored_0541_p1_companion_0d2d_registration(registration)) {
+        return sample_racer_hd_authored_0541_p1_companion_0d2d(
+            x, y, hflip, vflip
+        );
     }
     return sample_racer_hd_contract_candidate(x, y, hflip, vflip);
 }

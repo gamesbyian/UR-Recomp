@@ -48,7 +48,7 @@ It captures a 324,142-byte snapshot at frame 925 and restores it with exact imme
 - expected APU digest: **0848aa7e**
 - actual APU digest: **1b1b116b**
 
-This is a useful negative result. Restart certification must include forward replay, not merely “save then load returns identical bytes.” The next discriminator should focus on APU state/timing that is outside the restored snapshot or advanced asymmetrically around restore. Restart remains unaccepted.
+This is a useful negative result. Restart certification must include forward replay, not merely “save then load returns identical bytes.” The next discriminator should focus on APU state/timing that is outside the restored snapshot or advanced asymmetrically around restore. At audit time, Restart remained unaccepted; the post-audit resolution below records the later accepted fix.
 
 ## 6. The stock-helper Widescreen path has a natural +8 capacity boundary
 
@@ -60,7 +60,7 @@ The accepted PR #219 mechanism established one additional 8-pixel column through
 - protected gameplay/camera/progression state unchanged;
 - +16 and +24 stop at the secondary-lane-capacity boundary.
 
-The native hook itself is not accepted yet because 11/617 +8 PREP events fail the strict immediate-adjacency predicate. That caveat matters.
+At audit time, the native hook was not yet accepted because 11/617 +8 PREP events appeared to fail the strict immediate-adjacency predicate. The post-audit resolution below records that these were analyzer false negatives and the tightened final acceptance.
 
 The inference is nevertheless bounded: +16/+24 are not simply larger values for the same one-spare-lane mechanism. They require additional queue/storage capacity or a different scheduling strategy after the +8 exceptions are understood.
 
@@ -73,7 +73,7 @@ The next useful work is narrower than before this audit:
 3. Widescreen should explain the 11 +8 adjacency exceptions before promoting the native hook, then treat +16/+24 as a capacity-extension problem.
 4. Autosave/profile work should preserve guest SRAM as the progression source of truth.
 
-The Restart and native-hook findings above are retained evidence from still-open PRs. They are audit inputs, not merged implementation acceptance.
+The Restart and native-hook findings above preserve the then-open PR state at audit time. Their merged current dispositions are recorded below; later retained Widescreen evidence also closes the +16 host materializer seam.
 
 ## Post-audit resolutions — 2026-10-03
 

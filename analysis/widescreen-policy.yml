@@ -58,6 +58,8 @@ display_binding:
     materializer_margin_pixels: 48
     provider: live-course-runtime
     provider_validated_capacity_margin_pixels: 72
+    runtime_selector: authentic-16x9-candidate
+    diagnostic_margin_override: URRECOMP_WS_MARGIN
     status: provisional
     rationale: "Derived mechanically from the preferred Authentic candidate; no new guest descriptor lane is implied."
 

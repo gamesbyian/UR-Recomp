@@ -1,6 +1,7 @@
 #include "modern_pause_menu.h"
 
 #include <cassert>
+#include <initializer_list>
 
 int main() {
     UrModernPauseMenu menu{};

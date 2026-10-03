@@ -13,6 +13,8 @@ on:
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/toolchain-entries/_global.json"
       - "tools/patch_modern_product_host.py"
+      - "tools/build_display_geometry_review.py"
+      - "analysis/display-geometry-candidates.json"
       - "native/product/**"
       - "native/title/uniracers_restart_policy.*"
       - ".github/workflows/native-build-smoke.yml"
@@ -257,6 +259,32 @@ jobs:
             exit 1
           fi
           echo "INPUT_ROUTE_RESULT=reached_race"
+
+      - name: Build display-geometry review
+        shell: bash
+        run: |
+          set -euo pipefail
+          DUMPS="$RUNNER_TEMP/race-dumps"
+          for tag in main-menu-ready now-playing-ready race-entered; do
+            test -s "$DUMPS/$tag.fb.bmp"
+          done
+          python3 tools/build_display_geometry_review.py \
+            --candidates analysis/display-geometry-candidates.json \
+            --capture "$DUMPS/main-menu-ready.fb.bmp" \
+            --capture "$DUMPS/now-playing-ready.fb.bmp" \
+            --capture "$DUMPS/race-entered.fb.bmp" \
+            --json-out "$RUNNER_TEMP/display-geometry-review.json" \
+            --html-out "$RUNNER_TEMP/display-geometry-review.html"
+          python3 - "$RUNNER_TEMP/display-geometry-review.json" <<'PY'
+          import json, pathlib, sys
+          report=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          assert report["framebuffer_geometry"] == [256, 224], report["framebuffer_geometry"]
+          by_id={row["id"]:row for row in report["candidates"]}
+          assert by_id["community-7x6-full"]["derived_16x9"]["materializer_margin_pixels"] == 48
+          assert by_id["raw-square-full"]["derived_16x9"]["materializer_margin_pixels"] == 72
+          assert by_id["raw-square-216"]["derived_16x9"]["materializer_margin_pixels"] == 64
+          print("DISPLAY_GEOMETRY_REVIEW_READY candidates=", len(by_id))
+          PY
 
       - name: Modern focus-loss pause acceptance
         shell: bash
@@ -1234,6 +1262,8 @@ jobs:
             ${{ runner.temp }}/ui-atlas.html
             ${{ runner.temp }}/ui-frame-comparisons.json
             ${{ runner.temp }}/ui-frame-comparisons.md
+            ${{ runner.temp }}/display-geometry-review.json
+            ${{ runner.temp }}/display-geometry-review.html
           if-no-files-found: warn
           retention-days: 7
 

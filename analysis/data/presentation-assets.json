@@ -1472,6 +1472,33 @@
               "p2": "0x0000"
             },
             "source": "dense post-guest-frame WRAM trace; exact duplicate-ID composition occurs at four frames"
+          },
+          {
+            "checkpoint": "native-dense-trace-1306-1352-1386-1387-1465",
+            "workflow_run": 37093926556,
+            "artifact_id": 11263077861,
+            "frames": [
+              1306,
+              1352,
+              1386,
+              1387,
+              1465
+            ],
+            "ids": {
+              "p1_primary": "0x057E",
+              "p2_primary": "0x0544",
+              "p1_companion": "0x0D69",
+              "p2_companion": "0x0000"
+            },
+            "selectors": {
+              "p1": 0,
+              "p2": 0
+            },
+            "companion_gate_words": {
+              "p1": "0x0001",
+              "p2": "0x0000"
+            },
+            "source": "dense post-guest-frame WRAM trace; alternate active P1 companion context occurs at five frames"
           }
         ]
       }

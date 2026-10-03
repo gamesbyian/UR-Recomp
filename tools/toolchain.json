@@ -543,7 +543,7 @@
         },
         {
           "path": "tools/patches/snesrecomp-live-display-mode.patch",
-          "sha256": "05f1930294d63e3070385280ca2ce392f29906a147ea1a37ab559a3eef0dc0c9"
+          "sha256": "62b2f945738e7a595d6f4551d7c41c232c74ed5a7dfa62a7c346a24e309b52be"
         }
       ]
     }

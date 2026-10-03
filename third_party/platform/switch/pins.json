@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "retrieved": "2026-10-02",
+  "purpose": "Pinned public source references for the UR-Recomp Nintendo Switch homebrew feasibility lane.",
+  "components": [
+    {
+      "id": "libnx",
+      "url": "https://github.com/switchbrew/libnx.git",
+      "revision": "feebd026ca0f5dcc2119f46ad8e0d16ad3dd4973",
+      "license": "ISC",
+      "role": "Nintendo Switch AArch64 homebrew userland library"
+    },
+    {
+      "id": "switch-examples",
+      "url": "https://github.com/switchbrew/switch-examples.git",
+      "revision": "669786898205b7beb25ff1731e72982e6d0397d3",
+      "license": "Public Domain Mark",
+      "role": "Canonical public usage examples, including SDL2 graphics examples"
+    },
+    {
+      "id": "switch-tools",
+      "url": "https://github.com/switchbrew/switch-tools.git",
+      "revision": "22756068dd0ed6ff9734c59cb4f99ebd3f62555b",
+      "license": "See upstream",
+      "role": "Public helper tools for Switch homebrew development"
+    }
+  ],
+  "package_manager_dependencies": [
+    "devkitPro pacman",
+    "switch-dev / devkitA64",
+    "Switch portlibs as required, initially SDL2"
+  ],
+  "policy": "Pins are reproducibility/provenance references. Toolchain packages are installed through devkitPro; do not vendor an arbitrary SDK installation into Git."
+}

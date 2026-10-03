@@ -10,6 +10,7 @@ enum class RestartLifecycleEvent : std::uint8_t {
     None = 0,
     AnchorCaptured = 1,
     AnchorCaptureFailed = 2,
+    AnchorRetired = 3,
 };
 
 class RaceRestartLifecycle {
@@ -18,6 +19,7 @@ public:
         : anchor_(anchor) {}
 
     RestartLifecycleEvent observe_race_active(bool active);
+    RestartLifecycleEvent retire_attempt() noexcept;
     RestartAnchorRestoreStatus restart() { return anchor_.restart(); }
 
     bool race_active() const noexcept { return race_active_; }

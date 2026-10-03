@@ -1181,14 +1181,15 @@ The first scoreboard should cover at minimum:
 
 | Subsystem | Observe | Explain | Modify safely | Validate | Current planning consequence |
 | --- | --- | --- | --- | --- | --- |
-| Racer simulation / core physics | sufficient | sufficient for current fidelity fixtures | sufficient for preservation; modification normally prohibited | sufficient for representative 1P/2P semantics | On-demand only unless a new discrepancy appears |
-| Camera / screen-relative projection | sufficient | sufficient | partial | sufficient in 1P/2P fixtures | Complete renderer-facing integration rather than map unrelated code |
-| Sprite/OAM construction and split-screen seam | sufficient | sufficient | partial | sufficient for known seam | Use as a Widescreen constraint |
-| Object/gameplay activation | partial | partial | unknown | partial | **Highest-value unresolved Widescreen semantic** |
-| World preparation / VRAM streaming | partial | partial | partial | partial | Follow renderer-facing causal chain and tiny-margin probes |
-| Course spatial/resource model | sufficient for known loader/materialization paths | partial | partial | partial | Recover presentation-complete contract; defer editor-complete tail |
-| Frontend / progression | sufficient for principal deterministic routes | sufficient for current fidelity needs | partial | sufficient for principal routes | Do not let tail completeness block presentation |
-| Original graphics / animation state | partial | partial | unknown | partial | Parallel extraction/round-trip lane |
+| Racer simulation / core physics | sufficient | sufficient | sufficient for preservation; modification normally prohibited | sufficient | Reopen only for a new event-relative discrepancy |
+| Camera / screen-relative projection | sufficient | sufficient | partial | sufficient | Complete renderer-facing integration rather than map unrelated code |
+| Sprite/OAM construction and split-screen seam | sufficient | sufficient | partial | sufficient | Hard authentic-mode and Widescreen constraint |
+| Object/gameplay activation | sufficient for representative checkpoint/finish family | sufficient | partial | sufficient | Preserve activation independently of widened presentation; reopen on a discrepant object family |
+| World preparation / VRAM streaming | sufficient for representative stock schedule | sufficient for representative stock schedule | sufficient through +16 host-owned materialization | sufficient for stock schedule, +8 native scheduling, and +16 random-access materialization | Generalize the accepted host materializer to additional columns for +24/final 16:9 |
+| Course spatial/resource model | sufficient | sufficient for representative presentation questions | partial | sufficient on representative contract + sampled family invariants | Presentation-sufficient; defer editor-complete tail |
+| Frontend / progression | sufficient | sufficient for principal stock flow | partial | sufficient for stock save/load/progression | Stock persistence closed; reopen only for a concrete fidelity or product-policy need |
+| Modern product / host administrative state | sufficient for host state, pause, Retry and production native-host integration | sufficient ownership boundary | sufficient for current pause/restart slice | sufficient deterministic/native acceptance | Continue product-facing UI/results/settings integration without changing guest authority |
+| Original graphics / animation state | sufficient for the first composition-aware racer replacement neighborhood | sufficient for the registered racer family | sufficient for presentation-only substitution and Original fallback | sufficient for current registered states | Continue adjacency-driven semantic coverage and approved art; do not reopen identity/placement architecture |
 
 Update this table when evidence changes a capability class. Do not inflate a class merely because more bytes were bounded.
 

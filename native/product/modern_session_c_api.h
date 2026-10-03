@@ -38,6 +38,17 @@ UrModernSession* ur_modern_session_create(
 
 void ur_modern_session_destroy(UrModernSession* session);
 
+/* Load a restart snapshot while keeping the current persistent byte domain
+ * (for Uniracers, cartridge SRAM) byte-identical across the restore. The
+ * snapshot loader may transiently replace those bytes; this helper restores
+ * the exact pre-call contents before returning, including on load failure. */
+bool ur_modern_session_load_preserving_persistent_bytes(
+    UrLoadSnapshotFn load_snapshot,
+    const void* snapshot,
+    size_t snapshot_size,
+    void* persistent_bytes,
+    size_t persistent_size);
+
 void ur_modern_session_observe_race_active(
     UrModernSession* session,
     int active);

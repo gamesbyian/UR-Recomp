@@ -9,10 +9,14 @@ on:
       - "native/product/race_restart_lifecycle.*"
       - "native/product/modern_session_runtime.*"
       - "native/product/modern_session_c_api.*"
+      - "native/title/uniracers_restart_policy.*"
       - "tools/patch_modern_restart_probe_host.py"
       - "tests/unit/test_patch_modern_restart_probe_host.py"
       - "tests/unit/test_modern_session_runtime_cpp.py"
       - "tests/native/modern_session_runtime_test.cpp"
+      - "tests/unit/test_persistent_restart_restore_cpp.py"
+      - "tests/unit/test_uniracers_restart_policy_cpp.py"
+      - "tests/input/modern-restart-results-acceptance.script"
       - "tests/input/modern-restart-acceptance.script"
       - ".github/workflows/modern-race-restart-acceptance.yml"
       - "docs/MODERN-PRODUCT-LAYER.md"
@@ -83,10 +87,16 @@ jobs:
           grep -q "UR_RESTART_PROBE captured=1" "$ROOT/src/main.c"
           grep -q "UrRestartProbeAfterRunFrame" "$ROOT/src/main.c"
           grep -q "modern_session_c_api.cpp" "$ROOT/CMakeLists.txt"
+          grep -q "uniracers_restart_policy.cpp" "$ROOT/CMakeLists.txt"
           grep -q "snes_state_digest.c" "$ROOT/CMakeLists.txt"
 
-      - name: Prove host-side product coordinator contract
-        run: python3 -m unittest tests.unit.test_modern_session_runtime_cpp tests.unit.test_patch_modern_restart_probe_host
+      - name: Prove host-side product and title lifecycle contracts
+        run: |
+          python3 -m unittest \
+            tests.unit.test_modern_session_runtime_cpp \
+            tests.unit.test_persistent_restart_restore_cpp \
+            tests.unit.test_uniracers_restart_policy_cpp \
+            tests.unit.test_patch_modern_restart_probe_host
 
       - name: Build patched native target
         shell: bash
@@ -127,11 +137,37 @@ jobs:
           grep -q "UR_RESTART_PROBE PASS command_dispatch=1 repeated_restart_equal=1 window=60" "$LOG"
           ! grep -q "UR_RESTART_PROBE FAIL" "$LOG"
 
+      - name: Prove results-screen Retry preserves persistent SRAM
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-restart-acceptance/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-restart-results-acceptance.script"
+          LOG="$RUNNER_TEMP/modern-restart-results-acceptance.log"
+
+          set +e
+          UR_RESTART_PROBE_MODE=results SDL_AUDIODRIVER=dummy \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+          STATUS=$?
+          set -e
+
+          cat "$LOG"
+          test "$STATUS" -eq 0
+          grep -q "UR_RESTART_PROBE results_restart1_applied=1 immediate_equal=1 sram_progression_unchanged=1 persistent_cart_preserved=1" "$LOG"
+          grep -q "UR_RESTART_PROBE results_restart2_applied=1 immediate_equal=1 sram_progression_unchanged=1 persistent_cart_preserved=1" "$LOG"
+          grep -q "UR_RESTART_RESULTS PASS results_surface=1 persistent_sram_preserved=1 repeated_restart_equal=1 window=60" "$LOG"
+          ! grep -q "UR_RESTART_PROBE FAIL" "$LOG"
+
       - name: Upload restart acceptance log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: modern-race-restart-acceptance
-          path: ${{ runner.temp }}/modern-restart-acceptance.log
+          path: |
+            ${{ runner.temp }}/modern-restart-acceptance.log
+            ${{ runner.temp }}/modern-restart-results-acceptance.log
           if-no-files-found: warn
           retention-days: 7

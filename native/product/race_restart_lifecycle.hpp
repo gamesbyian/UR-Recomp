@@ -20,7 +20,7 @@ public:
 
     RestartLifecycleEvent observe_race_active(bool active);
     RestartLifecycleEvent retire_attempt() noexcept;
-    RestartAnchorRestoreStatus restart() { return anchor_.restart(); }
+    RestartAnchorRestoreStatus restart();
 
     bool race_active() const noexcept { return race_active_; }
     bool restart_available() const noexcept { return anchor_.armed(); }

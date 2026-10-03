@@ -58,6 +58,31 @@ static uint8 ur_ws_native_shadow_payload[32];
 static uint16 ur_ws_native_shadow_edge = 0xffff;
 static uint16 ur_ws_native_shadow_count = 0;
 
+static int ur_ws_native_margin(void) {
+  if (ur_ws_native_margin_cache == -32768) {
+    const char *s = getenv("URRECOMP_WS_MARGIN");
+    ur_ws_native_margin_cache = (s && *s) ? atoi(s) : 0;
+  }
+  return ur_ws_native_margin_cache;
+}
+
+static int ur_ws_native_trace(void) {
+  if (ur_ws_native_trace_cache < 0) {
+    const char *s = getenv("URRECOMP_WS_NATIVE_TRACE");
+    ur_ws_native_trace_cache = (s && *s && strcmp(s, "0") != 0) ? 1 : 0;
+  }
+  return ur_ws_native_trace_cache;
+}
+
+static uint16 ur_ws_native_read16(CpuState *cpu, uint16 addr) {
+  return (uint16)(cpu->ram[addr] | ((uint16)cpu->ram[(uint16)(addr + 1)] << 8));
+}
+
+static void ur_ws_native_write16(CpuState *cpu, uint16 addr, uint16 value) {
+  cpu->ram[addr] = (uint8)(value & 0xff);
+  cpu->ram[(uint16)(addr + 1)] = (uint8)(value >> 8);
+}
+
 static uint16 ur_ws_native_read16_bank(CpuState *cpu, uint8 bank, uint16 addr) {
   return cpu_read16(cpu, bank, addr);
 }

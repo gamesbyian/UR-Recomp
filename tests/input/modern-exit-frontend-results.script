@@ -124,3 +124,4 @@ dump race-results
 # Reverse tail-row navigation makes Restart arming timing irrelevant.
 # acceptance. The external harness owns the actual exit interaction.
 wait 3600
+# Acceptance note: X11 interaction runs inside the same xvfb-run shell as the game.

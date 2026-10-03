@@ -207,6 +207,8 @@ The smallest defensible title-specific binding is therefore recorded as a **prov
 
 This candidate is preferred over the centered 216-line discriminator because the canonical retained frames are authored and captured at 256×224, and 7:6 already yields exact 4:3 without discarding rows. That geometric fact is enough to bind the next architecture step, but not enough to declare historical intent. Retained/reference visual comparison still owns the title-final PAR and overscan decision. Raw Pixels remains an independent square-pixel reference mode regardless of that outcome.
 
+A provisional runtime selector now carries this candidate into the proven strip provider without coupling it to product UI: `URRECOMP_WS_VIEW=authentic-16x9-candidate` resolves to +48, while explicit `URRECOMP_WS_MARGIN` remains a diagnostic override and unknown/unset selectors fail closed to stock margin 0. This is the first policy-to-provider binding only. Actual host viewport width, PAR scaling and composition remain separate presentation work, and the candidate must still survive title-specific reference validation before becoming the Authentic default.
+
 ## Policy-derived logical margin
 
 `tools/widescreen_probe.py derive-margin` now derives the required symmetric logical margin from four independent inputs:

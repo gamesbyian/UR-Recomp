@@ -179,6 +179,25 @@ jobs:
             tail -n 30 "$OUT/run.log" || true
           done
 
+      - name: Exercise provisional Authentic 16:9 policy binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT="$RUNNER_TEMP/native/UniracersSNESRecomp"
+          EXE="$PROJECT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script"
+          OUT="$RUNNER_TEMP/ws-native-runs/policy-authentic-16x9-candidate"
+          mkdir -p "$OUT/dumps"
+          SDL_AUDIODRIVER=dummy \
+          URRECOMP_WS_VIEW=authentic-16x9-candidate \
+          URRECOMP_WS_NATIVE_TRACE=1 \
+          SNESRECOMP_DUMP_DIR="$OUT/dumps" \
+          timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$OUT/run.log" 2>&1
+          grep -q "URWS_PREP_EXT margin=48" "$OUT/run.log"
+          grep -q "URWS_SHADOW_EXT provider=course-runtime margin=48" "$OUT/run.log"
+
       - name: Prove host presentation depth through +72
         shell: bash
         run: |
@@ -326,5 +345,6 @@ jobs:
             ${{ runner.temp }}/ws-native-runs/48/run.log
             ${{ runner.temp }}/ws-native-runs/64/run.log
             ${{ runner.temp }}/ws-native-runs/72/run.log
+            ${{ runner.temp }}/ws-native-runs/policy-authentic-16x9-candidate/run.log
           if-no-files-found: warn
           retention-days: 7

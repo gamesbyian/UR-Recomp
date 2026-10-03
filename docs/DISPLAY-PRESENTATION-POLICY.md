@@ -191,6 +191,22 @@ Before closing the remaining Widescreen viewport/PAR/overscan queue item:
 
 The unresolved work is therefore measurement and title-specific validation, not a need to invent the architecture.
 
+## Preferred provisional Authentic binding
+
+Native Widescreen run `37146519813` closes the host-owned provider through **+72 logical source pixels per side** while preserving the accepted ownership split: margin 0 is untouched stock, column +1 is the accepted guest +8 lane, and every deeper column is host presentation state sourced from the live course tables.
+
+The smallest defensible title-specific binding is therefore recorded as a **provisional candidate**, not a shipping constant:
+
+- source raster: 256×224, full height;
+- horizontal pixel aspect: 7:6;
+- resulting stock display aspect: exactly 4:3;
+- overscan crop: none in the provisional binding;
+- derived exact 16:9 per-side logical margin: 128/3 source pixels;
+- materializer strip margin: +48 per side at the established 8-pixel granularity;
+- provider: the accepted live-course-runtime host materializer.
+
+This candidate is preferred over the centered 216-line discriminator because the canonical retained frames are authored and captured at 256×224, and 7:6 already yields exact 4:3 without discarding rows. That geometric fact is enough to bind the next architecture step, but not enough to declare historical intent. Retained/reference visual comparison still owns the title-final PAR and overscan decision. Raw Pixels remains an independent square-pixel reference mode regardless of that outcome.
+
 ## Policy-derived logical margin
 
 `tools/widescreen_probe.py derive-margin` now derives the required symmetric logical margin from four independent inputs:
@@ -200,16 +216,16 @@ The unresolved work is therefore measurement and title-specific validation, not 
 - source/display pixel aspect;
 - materializer strip granularity.
 
-The calculation uses exact rational arithmetic and reports both the exact per-side logical margin and the first strip-granular margin that can cover it. It also compares that requirement with the currently validated materializer capacity recorded in `analysis/widescreen-policy.yml` (+64 pixels per side at 8-pixel granularity).
+The calculation uses exact rational arithmetic and reports both the exact per-side logical margin and the first strip-granular margin that can cover it. It also compares that requirement with the currently validated materializer capacity recorded in `analysis/widescreen-policy.yml` (+72 pixels per side at 8-pixel granularity).
 
 Illustrative 16:9 consequences, **not title-final constants**, are:
 
-| Active logical height | Pixel aspect | Exact per-side margin | First 8-pixel materializer margin | Fits validated +64? |
+| Active logical height | Pixel aspect | Exact per-side margin | First 8-pixel materializer margin | Fits validated +72? |
 | ---: | ---: | ---: | ---: | --- |
 | 224 | 7:6 | 128/3 ≈ 42.67 px | +48 | yes |
 | 216 | 7:6 | 256/7 ≈ 36.57 px | +40 | yes |
-| 224 | 1:1 | 640/9 ≈ 71.11 px | +72 | no |
+| 224 | 1:1 | 640/9 ≈ 71.11 px | +72 | yes |
 | 216 | 1:1 | 64 px | +64 | yes |
 
-These rows show why pixel aspect and overscan must be validated before choosing the first shipping 16:9 logical margin. The existing +64 provider closes several plausible policies but does not cover every square-pixel/full-height combination.
+These rows show why pixel aspect and overscan remain separate from logical view width. The accepted +72 provider now covers every current diagnostic candidate, including square-pixel/full-height 16:9. The preferred provisional Authentic full-height 7:6 candidate selects +48; reference validation still decides whether that transform becomes title-final.
 

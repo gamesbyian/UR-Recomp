@@ -74,12 +74,19 @@ Do not add all tools to CI. CI belongs to durable merge-safety invariants. On-de
 
 ## 5. Workflows and CI
 
-Classify each workflow as durable validation, reproducible analysis, manual research infrastructure, or obsolete/one-off.
+Use `CI-WORKFLOW-BEST-PRACTICES.md` as the canonical workflow-design policy.
+
+Classify each workflow as durable validation, main-branch regression, reproducible analysis, manual research infrastructure, or obsolete/one-off.
 
 Check:
-- triggers still match the workflow's purpose;
-- expensive work is not selected by unrelated changes;
+- triggers still match the workflow's purpose and use the narrowest correct `paths`;
+- expensive work is not selected by unrelated changes or prose-only documentation;
+- specialist workflows use per-tool entry snapshots instead of `tools/toolchain.json` where possible;
+- automatic read-only work cancels superseded runs;
+- generated-evidence writers serialize instead of racing branch writes;
+- emulator/native/build jobs have explicit job-level timeouts;
 - temporary acquisition/research workflows were removed after use;
+- repeated build/package setup is justified by wall-time evidence rather than habit;
 - build caches and dependency installation remain reasonable;
 - artifact/log output contains enough bounded evidence for an agent to diagnose failure;
 - workflow names and docs match current behavior;

@@ -1073,6 +1073,192 @@ Dat where all de interestin’ critters live.
 
 ---
 
+## 2026-10-02, late — De modernization layers quit bein’ sketches an’ start bein’ product
+
+Earlier October 2 work had Widescreen boiled down to causal seams an’ Racer HD boiled down to exact semantic assets. Rest of de day, dem seams start turnin’ into real product code. Dis where UR-Recomp start lookin’ less like an excavation camp gettin’ ready to build a remake, an’ more like a remake architecture already provin’ some of its hardest ownership rules.
+
+### Progression save/load finally close proper
+
+Dat progression hole left open by PR #191 finally shut.
+
+PR #213 use a period-correct Snes9x 1.51 rerecordin’ path plus de verified historical 100% movie to get a real game-authored medal mutation. No pokin’ SRAM. No makin’ up de save we hoped de game would write.
+
+Acceptance watch de real medal matrix, wait for legal checksum-valid game state, catch de mutation, reload dat SRAM in a fresh current reference process, then check medal, tier an’ checksum behavior against de machine-readable progression model.
+
+So persistence claim got de form we actually needed now:
+
+Not just “8 KiB SRAM can go out an’ come back.”
+
+Real progression authored by de game can survive save/load an’ still obey de recovered rules.
+
+### Racer graphics go from extraction table to replacement machine
+
+Racer lane close a whole stack of layers fast.
+
+PRs #210, #212, #215 an’ #216 tighten up how presentation records, packed cells, DMA source words, staging consumers an’ stable OAM presentation fit together. PR #218 turn dat into deterministic transparent raster extraction. PR #224 close primary/companion composition strong enough dat exact composed racer images come straight outta canonical ROM evidence instead of somebody eyeballin’ screenshots.
+
+PR #220 also make de graphics product choice explicit. Three first-class representation families now sit on de same semantic identity:
+
+- Original SNES art;
+- faithful high-resolution Remastered art;
+- more freely modernized Reimagined art.
+
+Key rule ain’t “pick one art style forever.”
+
+Key rule be all three share semantic frame identity, placement contract an’ gameplay authority. Change de paint. Don’t invent another engine under it.
+
+PRs #230, #236, #238, #239, #240 an’ #241 build de runtime side. Replacement selector read authoritative WRAM but don’t write it. Live position, orientation an’ object size come separate from de PPU/OAM path. Native host can recognize one exact composition an’ fail closed on anything unknown or mismatched.
+
+Then PR #249 cross de line we been walkin’ toward: native host actually remove one validated stock racer from de *presented* raster an’ draw a deterministic high-density replacement in its place.
+
+WRAM untouched.
+
+VRAM untouched.
+
+OAM untouched.
+
+CGRAM untouched.
+
+Dat replacement belong to de host picture, not de guest machine.
+
+After dat, one frame ain’t enough.
+
+PR #252 add explicit stock-derived pivot an’ contact anchors. PR #256 add synchronized P2 semantic coverage. PR #259 recover de split-screen placement model an’ prove both racers appear in both viewports, four host-side instances total. PRs #261, #263, #264 an’ #266 add another synchronized state, temporal-coherence checks, dense semantic animation trace, an’ exact registry-aware neighborhoods.
+
+Dat dense trace change how we choose coverage.
+
+No more pickin’ a pretty checkpoint just ’cause it easy.
+
+Start registerin’ what de animation actually visit.
+
+PR #268 add de first repeated adjacent state. PR #271 kill de old assumption dat one semantic ID always mean one visual registration, makin’ lookup composition-aware. Then come duplicate-context, predecessor an’ forward states, followed by more backward adjacency. By PRs #281/#282, #285 an’ #286, same-primary/different-companion states get measured against canonical ROM geometry before dey earn a registration. If two contexts look geometrically identical, dey can still stay distinct identities if de synchronized composition say dey distinct.
+
+Screen area still small.
+
+Architecture ain’t.
+
+Racer HD now a live, fail-closed, composition-aware replacement pipeline with deterministic geometry, split-screen placement, temporal evidence an’ coverage growin’ from real adjacency.
+
+### Widescreen move from diagnosis into native materialization
+
++8 work cross its line too.
+
+PR #217 finish classifying dat earlier presentation-sequence divergence. Wider run sample a different presentation/frontend phase class at de same semantic event, while meaningful race state still line up event-relative.
+
+PR #219 show stock preparation already got a useful neighboring strip schedule. PR #226 map de generation seam needed so de result survive SNESRecomp regeneration.
+
+PR #228 turn accepted +8 experiment into a real native hook.
+
+Stock 4:3 stay untouched control.
+
+Hook reuse de stock preparation/helper path instead of growin’ a second guest renderer off de side.
+
+At +16, next wall show itself.
+
+PR #257 establish de ownership split: first extra column can ride de accepted guest +8 lane. Further presentation capacity belong to de host. Accepted +16 proof get a second host-owned column matched against later stock evidence while camera, collision, activation, progression an’ simulation stay put. Attempts to fake dat second column by recursively replayin’ guest preparation get saved as negative evidence instead of buried.
+
+PR #280 then rescue de actual course-backed +16 materializer from superseded branches an’ reconcile its liveness evidence onto current main.
+
+Dat be a real architecture change.
+
+Further widening ain’t supposed to depend on peekin’ at future stock frames forever. Host can derive what it need from de recovered live course presentation model.
+
+So de Widescreen question move again.
+
+Ain’t “can eight extra pixels survive?”
+
+Ain’t even “can sixteen?”
+
+Now it “how far can dis host-owned materializer generalize cleanly?” +24 be de next bounded discriminator. Real 16:9 still farther down de bayou.
+
+### Restart Race become a real modern product feature
+
+Modern-product lane grow teeth just as fast.
+
+PRs #229 an’ #231 establish host-owned product state an’ pause/restart session contract. PR #232 bind Pause to de existing host frame gate. PRs #234, #235 an’ #237 establish exact race restart anchor, prove deterministic rollback/replay, an’ make lifecycle safe across results.
+
+PR #248 route Restart Race through de actual modern product command stack instead of a test-only rollback shortcut.
+
+PR #253 close de dangerous persistence edge: Retry restore de race attempt while preservin’ de *current* 8 KiB SRAM. So hit Retry after results an’ it cannot quietly rewind legitimate progression.
+
+Then de feature get hands an’ buttons.
+
+PR #258 add keyboard bindings without synthesizin’ guest controller bits. PR #262 draw de first host-owned Pause/Retry overlay. Controller navigation follow. PRs #267 an’ #269 prove gamepad-menu an’ keyboard-hotkey paths end up at de same semantic command policy. PR #273 promote de accepted stack into de ordinary production native host instead of leavin’ it trapped in an acceptance harness.
+
+PR #284 add de first ordinary setting on top: pause on focus loss.
+
+Typed.
+
+Host-owned.
+
+Uses de same pause gate.
+
+Authentic mode ignore it.
+
+Never steal racer or save-slot memory to hold product configuration.
+
+Dis be de first genuinely modern UX surface in de project, an’ it keep de old rule intact: guest simulation an’ progression got authority; modern convenience belong to de host.
+
+### Inference audit catch up with all dis movin’
+
+PR #242 recover an evidence-tracked scene policy for Widescreen instead of lettin’ scene assumptions float around in people’s heads.
+
+PR #243 run a third inference audit across fresh progression, racer-native, Widescreen an’ restart evidence.
+
+PR #245 reconcile de plans after runtime closures while preservin’ de audit’s old negative findings an’ addin’ current dispositions on top.
+
+Dat matter.
+
+When later work solve a problem, project don’t rewrite history pretendin’ de problem never existed.
+
+Old observation stay.
+
+New answer get stacked above it.
+
+### Platform an’ display policy finally get names
+
+Late in de day we answer a question dat somehow stayed fuzzy while reverse-engineerin’ half de machine:
+
+What boxes dis thing actually supposed to run on?
+
+PR #287 make Windows x64 de primary consumer/reference target. Also record personal-use targets for macOS, best-effort High Sierra-compatible legacy Mac, Web, Switch homebrew an’ PlayStation 5.
+
+Switch lane stick to public homebrew tooling an’ preserved public examples. No proprietary SDK stash. No keys. No platform secrets. An’ none of dem platforms get their own simulation fork.
+
+PR #288 split output resolution, internal render scale an’ presentation refresh/FPS away from authoritative game cadence. High-refresh host can repeat or interpolate pictures if needed. It don’t get to make de SNES-derived simulation run faster just ’cause de monitor got ambition.
+
+PR #291 settle de bigger display-geometry policy.
+
+Authentic 4:3, literal raw square pixels, an’ Remastered/Reimagined output be separate presentation transforms.
+
+Pixel aspect, overscan, logical view width, filtering, graphics representation, output resolution an’ presentation cadence all stay separate axes.
+
+Widescreen margin come from logical display policy, not one magic hard-coded source width.
+
+Dat should save us from a classic remaster stew where one renderer checkbox secretly decide five unrelated things.
+
+### Late-day state
+
+By end of local October 2, a pile of stuff what used to be architecture sketches be real:
+
+- game-authored progression save/load acceptance closed;
+- +8 Widescreen be a regeneration-safe native hook;
+- +16 got host-owned, course-backed materialization;
+- Racer HD performed real native draw-frame substitution an’ grew into composition-aware, split-screen, adjacency-driven coverage;
+- Pause, Resume an’ Retry live in de production native host with keyboard/controller UI paths an’ SRAM-safe lifecycle;
+- first host-owned gameplay-adjacent setting be live;
+- platform targets, resolution/FPS policy an’ display geometry be explicit product contracts.
+
+Center of gravity move again.
+
+Still excavatin’, sure.
+
+But more an’ more, every shovel go in de dirt because some bounded implementation question ask for it.
+
+Project now provin’ modernization can wrap around de original game without quietly stealin’ authority from it.
+
+---
+
 ## Bayou engineering rules
 
 A few lessons deserve paintin’ right on de side of de pirogue.
@@ -1217,3 +1403,5 @@ Biggest question changed.
 Now project gotta decide where exact reproduction stop an’ deliberate modernization begin.
 
 An’ cher, dat be a much nicer alligator to wrestle.
+
+Late-session work make dat conclusion stronger. Project now got working examples of de layered architecture we been aiming at: authoritative guest simulation underneath host-owned Widescreen materialization, semantic HD substitution, modern session controls an’ display policy. What remain look more an’ more like coverage, composition an’ productization work, not a fight to prove de separation can exist at all.

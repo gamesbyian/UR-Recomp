@@ -14,9 +14,9 @@ int main() {
     // The authored baseline registration uses the real candidate, not the
     // generic contract placeholder.
     const std::uint32_t authored_tire =
-        sample_racer_hd_asset(*registration, 124, 78, false, false);
+        sample_racer_hd_asset(*registration, 123, 90, false, false);
     const std::uint32_t generic_tire =
-        sample_racer_hd_contract_candidate(124, 78, false, false);
+        sample_racer_hd_contract_candidate(123, 90, false, false);
     assert(authored_tire != 0);
     assert(authored_tire != generic_tire);
 
@@ -38,13 +38,13 @@ int main() {
     // Object-local H/V reflection remains a post-selection presentation
     // transform for authored art.
     const std::uint32_t pedal =
-        sample_racer_hd_asset(*registration, 143, 108, false, false);
+        sample_racer_hd_asset(*registration, 143, 116, false, false);
     assert(pedal != 0);
     assert(
-        sample_racer_hd_asset(*registration, 112, 108, true, false) == pedal
+        sample_racer_hd_asset(*registration, 112, 116, true, false) == pedal
     );
     assert(
-        sample_racer_hd_asset(*registration, 143, 147, false, true) == pedal
+        sample_racer_hd_asset(*registration, 143, 139, false, true) == pedal
     );
 
     // The candidate preserves the recovered logical contact row. Sampling the
@@ -59,6 +59,39 @@ int main() {
         }
     }
     assert(contact_row_occupied);
+
+    // Art review locks the sampled gameplay envelope to the deterministic
+    // stock representation. This prevents a visually smooth 4x asset from
+    // silently changing racer scale or contact posture at presentation size.
+    int min_lx = kRacerHdLogicalSize;
+    int min_ly = kRacerHdLogicalSize;
+    int max_lx = -1;
+    int max_ly = -1;
+    int bottom_min_lx = kRacerHdLogicalSize;
+    int bottom_max_lx = -1;
+    for (int ly = 0; ly < kRacerHdLogicalSize; ++ly) {
+        for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+            const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            const int sy = ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            if (sample_racer_hd_asset(*registration, sx, sy, false, false) == 0) {
+                continue;
+            }
+            if (lx < min_lx) min_lx = lx;
+            if (ly < min_ly) min_ly = ly;
+            if (lx > max_lx) max_lx = lx;
+            if (ly > max_ly) max_ly = ly;
+            if (ly == 38) {
+                if (lx < bottom_min_lx) bottom_min_lx = lx;
+                if (lx > bottom_max_lx) bottom_max_lx = lx;
+            }
+        }
+    }
+    assert(min_lx == 22);
+    assert(min_ly == 3);
+    assert(max_lx == 39);
+    assert(max_ly == 38);
+    assert(bottom_min_lx == 29);
+    assert(bottom_max_lx == 32);
 
     // Position remains an independent live presentation coordinate.
     const auto selected = select_racer_presentation(

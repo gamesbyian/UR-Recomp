@@ -54,6 +54,47 @@ const char* display_mode_name(ur::product::HostDisplayMode mode) {
         ? "borderless" : "windowed";
 }
 
+const char* vsync_mode_name(ur::product::HostVSyncMode mode) {
+    switch (mode) {
+    case ur::product::HostVSyncMode::Off:
+        return "off";
+    case ur::product::HostVSyncMode::Adaptive:
+        return "adaptive";
+    case ur::product::HostVSyncMode::On:
+    default:
+        return "on";
+    }
+}
+
+int vsync_mode_value(ur::product::HostVSyncMode mode) {
+    switch (mode) {
+    case ur::product::HostVSyncMode::Off:
+        return SNES_DESKTOP_VSYNC_OFF;
+    case ur::product::HostVSyncMode::Adaptive:
+        return SNES_DESKTOP_VSYNC_ADAPTIVE;
+    case ur::product::HostVSyncMode::On:
+    default:
+        return SNES_DESKTOP_VSYNC_ON;
+    }
+}
+
+bool apply_vsync_setting(const ur::product::HostSettings& settings) {
+    if (!modern_mode()) return false;
+    if (!snesrecomp_desktop_set_vsync(vsync_mode_value(settings.vsync_mode))) {
+        product_diagnostic("UR_VSYNC APPLY_FAILED");
+        return false;
+    }
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_VSYNC APPLIED mode=%s host=%d\n",
+            vsync_mode_name(settings.vsync_mode),
+            snesrecomp_desktop_get_vsync());
+        std::fflush(stderr);
+    }
+    return true;
+}
+
 bool apply_display_mode_setting(const ur::product::HostSettings& settings) {
     if (!modern_mode()) return false;
     SDL_Window* window = SDL_GetKeyboardFocus();
@@ -122,9 +163,10 @@ void ensure_product_state() {
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             std::fprintf(
                 stderr,
-                "UR_HOST_STATE LOADED pause_on_focus_loss=%d display_mode=%s\n",
+                "UR_HOST_STATE LOADED pause_on_focus_loss=%d display_mode=%s vsync=%s\n",
                 g_product_state.settings.pause_on_focus_loss ? 1 : 0,
-                display_mode_name(g_product_state.settings.display_mode));
+                display_mode_name(g_product_state.settings.display_mode),
+                vsync_mode_name(g_product_state.settings.vsync_mode));
             std::fflush(stderr);
         }
     } else if (loaded.status == ur::product::HostProductLoadStatus::Missing) {
@@ -184,12 +226,42 @@ bool toggle_display_mode_setting() {
     return true;
 }
 
+bool cycle_vsync_setting() {
+    if (!modern_mode()) return false;
+
+    ur::product::HostProductState candidate = g_product_state;
+    switch (candidate.settings.vsync_mode) {
+    case ur::product::HostVSyncMode::Off:
+        candidate.settings.vsync_mode = ur::product::HostVSyncMode::On;
+        break;
+    case ur::product::HostVSyncMode::On:
+        candidate.settings.vsync_mode = ur::product::HostVSyncMode::Adaptive;
+        break;
+    case ur::product::HostVSyncMode::Adaptive:
+        candidate.settings.vsync_mode = ur::product::HostVSyncMode::Off;
+        break;
+    }
+
+    if (!apply_vsync_setting(candidate.settings)) {
+        return false;
+    }
+    if (!persist_product_state(candidate)) {
+        (void)apply_vsync_setting(g_product_state.settings);
+        return false;
+    }
+
+    g_product_state = candidate;
+    return true;
+}
+
 bool activate_options_selection() {
     switch (ur_modern_options_menu_selected(&g_options_menu)) {
     case UR_MODERN_OPTIONS_FOCUS_PAUSE:
         return toggle_focus_pause_setting();
     case UR_MODERN_OPTIONS_DISPLAY_MODE:
         return toggle_display_mode_setting();
+    case UR_MODERN_OPTIONS_VSYNC:
+        return cycle_vsync_setting();
     }
     return false;
 }
@@ -236,6 +308,7 @@ bool ensure_session() {
     ur_uniracers_restart_policy_reset(&g_title_policy);
     if (g_session && modern_mode()) {
         (void)apply_display_mode_setting(g_product_state.settings);
+        (void)apply_vsync_setting(g_product_state.settings);
     }
     return g_session != nullptr;
 }
@@ -542,7 +615,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
 
     if (is_paused) {
         if (g_options_visible) {
-            const int options_h = 99;
+            const int options_h = 114;
             const int options_y = (height - options_h) / 2;
             const UrModernOptionsItem selected =
                 ur_modern_options_menu_selected(&g_options_menu);
@@ -554,8 +627,17 @@ extern "C" void ur_uniracers_modern_system_overlay(
                         ur::product::HostDisplayMode::BorderlessFullscreen
                     ? "DISPLAY  BORDERLESS"
                     : "DISPLAY  WINDOWED";
+            const char* vsync_text =
+                g_product_state.settings.vsync_mode ==
+                        ur::product::HostVSyncMode::Adaptive
+                    ? "VSYNC    ADAPTIVE"
+                    : (g_product_state.settings.vsync_mode ==
+                               ur::product::HostVSyncMode::Off
+                           ? "VSYNC    OFF"
+                           : "VSYNC    ON");
             char focus_row[32];
             char display_row[32];
+            char vsync_row[32];
             std::snprintf(
                 focus_row, sizeof(focus_row), "%c %s",
                 selected == UR_MODERN_OPTIONS_FOCUS_PAUSE ? '>' : ' ',
@@ -564,6 +646,10 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 display_row, sizeof(display_row), "%c %s",
                 selected == UR_MODERN_OPTIONS_DISPLAY_MODE ? '>' : ' ',
                 display_text);
+            std::snprintf(
+                vsync_row, sizeof(vsync_row), "%c %s",
+                selected == UR_MODERN_OPTIONS_VSYNC ? '>' : ' ',
+                vsync_text);
             snes_ovl_fill_rect(
                 pixels, stride, height, x, options_y, panel_w, options_h,
                 0xE0202020u);
@@ -580,10 +666,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 pixels, stride, height, x + 8, options_y + 42,
                 display_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 62,
-                "A / ENTER  TOGGLE", 0xFFFFFFFFu, 1);
+                pixels, stride, height, x + 8, options_y + 57,
+                vsync_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 82,
+                pixels, stride, height, x + 8, options_y + 77,
+                "A / ENTER  CHANGE", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, options_y + 97,
                 "B / ESC    BACK", 0xFFFFFFFFu, 1);
             return;
         }

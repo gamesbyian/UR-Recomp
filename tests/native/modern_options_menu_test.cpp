@@ -14,11 +14,15 @@ int main() {
 
     ur_modern_options_menu_move(&menu, 1);
     assert(ur_modern_options_menu_selected(&menu) ==
+           UR_MODERN_OPTIONS_VSYNC);
+
+    ur_modern_options_menu_move(&menu, 1);
+    assert(ur_modern_options_menu_selected(&menu) ==
            UR_MODERN_OPTIONS_FOCUS_PAUSE);
 
     ur_modern_options_menu_move(&menu, -1);
     assert(ur_modern_options_menu_selected(&menu) ==
-           UR_MODERN_OPTIONS_DISPLAY_MODE);
+           UR_MODERN_OPTIONS_VSYNC);
 
     menu.selected = 99;
     assert(ur_modern_options_menu_selected(&menu) ==

@@ -7,6 +7,7 @@ extern "C" {
 typedef enum UrModernOptionsItem {
     UR_MODERN_OPTIONS_FOCUS_PAUSE = 0,
     UR_MODERN_OPTIONS_DISPLAY_MODE = 1,
+    UR_MODERN_OPTIONS_VSYNC = 2,
 } UrModernOptionsItem;
 
 typedef struct UrModernOptionsMenu {

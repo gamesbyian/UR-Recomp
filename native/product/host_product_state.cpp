@@ -8,6 +8,7 @@ namespace {
 
 constexpr std::string_view kHeaderV1 = "UR-HOST-STATE/1";
 constexpr std::string_view kHeaderV2 = "UR-HOST-STATE/2";
+constexpr std::string_view kHeaderV3 = "UR-HOST-STATE/3";
 
 bool parse_display_mode(
     std::string_view text,
@@ -29,6 +30,36 @@ const char* display_mode_name(HostDisplayMode mode) noexcept {
         return "windowed";
     case HostDisplayMode::BorderlessFullscreen:
         return "borderless";
+    }
+    return nullptr;
+}
+
+bool parse_vsync_mode(
+    std::string_view text,
+    HostVSyncMode& out) noexcept {
+    if (text == "off") {
+        out = HostVSyncMode::Off;
+        return true;
+    }
+    if (text == "on") {
+        out = HostVSyncMode::On;
+        return true;
+    }
+    if (text == "adaptive") {
+        out = HostVSyncMode::Adaptive;
+        return true;
+    }
+    return false;
+}
+
+const char* vsync_mode_name(HostVSyncMode mode) noexcept {
+    switch (mode) {
+    case HostVSyncMode::Off:
+        return "off";
+    case HostVSyncMode::On:
+        return "on";
+    case HostVSyncMode::Adaptive:
+        return "adaptive";
     }
     return nullptr;
 }
@@ -67,8 +98,14 @@ std::string encode_host_product_state(const HostProductState& state) {
         return {};
     }
 
+    const char* display_mode = display_mode_name(state.settings.display_mode);
+    const char* vsync_mode = vsync_mode_name(state.settings.vsync_mode);
+    if (!display_mode || !vsync_mode) {
+        return {};
+    }
+
     std::ostringstream out;
-    out << kHeaderV2 << '\n';
+    out << kHeaderV3 << '\n';
     out << "profile=";
     if (state.active_profile_id) {
         out << *state.active_profile_id;
@@ -76,11 +113,8 @@ std::string encode_host_product_state(const HostProductState& state) {
     out << '\n';
     out << "pause_on_focus_loss=" << (state.settings.pause_on_focus_loss ? '1' : '0') << '\n';
     out << "vibration_enabled=" << (state.settings.vibration_enabled ? '1' : '0') << '\n';
-    const char* display_mode = display_mode_name(state.settings.display_mode);
-    if (!display_mode) {
-        return {};
-    }
     out << "display_mode=" << display_mode << '\n';
+    out << "vsync=" << vsync_mode << '\n';
     return out.str();
 }
 
@@ -91,7 +125,8 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
         return {std::nullopt, "unsupported or missing host-state header"};
     }
     const bool legacy_v1 = line == kHeaderV1;
-    if (!legacy_v1 && line != kHeaderV2) {
+    const bool legacy_v2 = line == kHeaderV2;
+    if (!legacy_v1 && !legacy_v2 && line != kHeaderV3) {
         return {std::nullopt, "unsupported or missing host-state header"};
     }
 
@@ -117,8 +152,20 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
     static constexpr std::string_view required_v2[] = {
         "profile", "pause_on_focus_loss", "vibration_enabled", "display_mode"
     };
-    const auto* required = legacy_v1 ? required_v1 : required_v2;
-    const std::size_t required_count = legacy_v1 ? 3u : 4u;
+    static constexpr std::string_view required_v3[] = {
+        "profile", "pause_on_focus_loss", "vibration_enabled", "display_mode", "vsync"
+    };
+
+    const std::string_view* required = required_v3;
+    std::size_t required_count = 5u;
+    if (legacy_v1) {
+        required = required_v1;
+        required_count = 3u;
+    } else if (legacy_v2) {
+        required = required_v2;
+        required_count = 4u;
+    }
+
     if (fields.size() != required_count) {
         return {std::nullopt, "unexpected host-state field set"};
     }
@@ -144,6 +191,10 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
     if (!legacy_v1 &&
         !parse_display_mode(fields.at("display_mode"), state.settings.display_mode)) {
         return {std::nullopt, "invalid host display mode"};
+    }
+    if (!legacy_v1 && !legacy_v2 &&
+        !parse_vsync_mode(fields.at("vsync"), state.settings.vsync_mode)) {
+        return {std::nullopt, "invalid host vsync mode"};
     }
 
     return {state, {}};

@@ -80,6 +80,9 @@ PENDING_ART_DECISIONS = []
 FIRST_AUTHORED_REPRESENTATION_ID = "ordinary-racer-0x0541-p1-sync-reference"
 SECOND_AUTHORED_REPRESENTATION_ID = "ordinary-racer-0x0541-p1-companion-0D2D-reference"
 THIRD_AUTHORED_REPRESENTATION_ID = "ordinary-racer-0x0540-p1-predecessor-reference"
+FOURTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0540-p1-companion-0D2C-with-p2-0542-reference"
+)
 
 
 def _rgba32(r: int, g: int, b: int, a: int = 255) -> bytes:
@@ -463,7 +466,10 @@ def build_dossier(
                 )
                 authored_rgba = build_second_authored_candidate_rgba()
                 native_sampler = "sample_racer_hd_authored_0541_p1_companion_0d2d"
-            elif rid == THIRD_AUTHORED_REPRESENTATION_ID:
+            elif rid in (
+                THIRD_AUTHORED_REPRESENTATION_ID,
+                FOURTH_AUTHORED_REPRESENTATION_ID,
+            ):
                 expected_generator = (
                     "tools/build_racer_hd_asset_dossier.py::"
                     "build_third_authored_candidate_rgba"

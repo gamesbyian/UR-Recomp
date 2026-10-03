@@ -30,9 +30,9 @@
 | RECORD_PLAYER_SCORES | 1 |  | 0 | 1 | 1 |  | 2 | 2 | documented |
 | RECORD_GROUP_TABLES | 1 |  | 0 | 1 | 1 |  | 2 | 1 | documented |
 | DEFINE_PLAYER | 2 |  | 0 | 1 | 1 |  | 1 | 1 | documented |
-| RENAME_PLAYER | 2 |  | 0 | 2 | 1 |  | 2 | 2 | documented |
-| PLAYER_NAME_EDITOR | 2 |  | 0 | 10 | 1 |  | 2 | 3 | documented |
-| FORBIDDEN_NAME_REJECTION | 3 |  | 0 | 0 | 2 | name_entry_cursor_mapping | 2 | 2 | documented |
+| RENAME_PLAYER | 2 |  | 0 | 2 | 1 |  | 2 | 2 | verified |
+| PLAYER_NAME_EDITOR | 2 |  | 0 | 10 | 1 |  | 2 | 3 | verified |
+| FORBIDDEN_NAME_REJECTION | 3 |  | 0 | 0 | 2 |  | 2 | 2 | verified |
 | DEFINE_LEAGUE | 2 | 0x9A | 0 | 1 | 1 |  | 1 | 1 | verified |
 | NAME_LEAGUE | 2 |  | 0 | 1 | 1 |  | 2 | 2 | documented |
 | ENDING | 1 | 0x5B? | 0 | 1 | 1 |  | 1 | 1 | hypothesis |
@@ -46,7 +46,6 @@
 
 - DEMO: menu id remains historical/unverified
 - FORBIDDEN_NAME_REJECTION: no capture contract
-- FORBIDDEN_NAME_REJECTION: blocked by open capability name_entry_cursor_mapping
 - ENDING: menu id remains historical/unverified
 
 ## Summary
@@ -60,5 +59,5 @@
 - states with at least one public visual lead: 24
 - Tier 1 states: 23
 - Tier 1 gap observations: 1
-- incomplete capability dependencies: 2
-- raw gap observations: 4
+- incomplete capability dependencies: 1
+- raw gap observations: 3

@@ -2119,3 +2119,19 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 **Policy consequence:** the decided modern COOL NAME! acknowledgement can reuse this exact rule, detecting like stock and then accepting the name.
 
 **Uncertainty:** which name buffers call `83:84DD` (player, League or both) is not traced, and runtime confirmation waits on the open `name_entry_cursor_mapping` capability.
+
+### R-2026-10-03-UI-17 — Name editor bound; forbidden-name rule runtime-confirmed (inline NOT COOL ENOUGH)
+
+**Status:** reproduced locally (reference harness); `name_entry_cursor_mapping` capability complete  
+**Date:** 2026-10-03  
+**Area:** frontend | naming
+
+**Observation:**
+- **Grid:** in RENAME PLAYER → MIKE, the cursor OBJ moves 16 px per column and 24 px per row on a 13-column grid (x = 24 + 16·col, y = 24 + 24·row). It starts on T (row 1, column 6). Row 0 is A–M, row 1 N–Z, row 2 the delete arrow then 0–9, and row 3 punctuation with OK at column 12. A enters the highlighted cell, and `7E:009F` reads `0x0C` + typed length while editing.
+- **OK:** on SONIC, XSEGAX or BASSIST, OK shows an inline "NOT COOL ENOUGH" under the name, keeps the editor open, and leaves SRAM unchanged. The rejection is a message, not a separate screen. ZED is accepted: it is written lowercase and FF-terminated into the rider's SRAM name record (older bytes beyond the terminator remain), and the menu returns to OPTIONS.
+
+**Evidence:** `tools/probe_name_entry.py` → `analysis/generated/name-entry-probe.json` (4 checks, ~5 s). Edges `options-rename-player`, `rename-player-editor`, `rename-editor-options`, `rename-editor-rejection` and `rejection-rename-editor` are verified. The runtime binding is added to `analysis/ui-text-entry-layout.json`.
+
+**Policy consequence:** stock already frames the filter around "coolness" ("NOT COOL ENOUGH"), so the decided modern COOL NAME! acknowledgement is a direct inversion of the original message, applied with the identical detection rule.
+
+**Uncertainty:** NAME_LEAGUE parity, B-versus-A entry, and the delete arrow are unexercised.

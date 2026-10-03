@@ -13,8 +13,8 @@
  ],
  "word_table_sha256": "5f36ff0acb1584e9073171d425cc3db05a28bff4519c199bba24b238a16b47bd",
  "rule": "case-insensitive substring: a name is forbidden if any table word occurs at any position of the stored lowercase name",
- "rule_evidence": "static decode of 83:84DD (outer INC $04 over name offsets until FF, inner loop over 71 pointers) and 83:8779 (prefix compare); not yet runtime-confirmed because name-entry cursor mapping is open",
- "open": "which name buffers call 83:84DD (player names, League names or both) is not traced",
+ "rule_evidence": "static decode of 83:84DD (outer INC $04 over name offsets until FF, inner loop over 71 pointers) and 83:8779 (prefix compare); runtime-confirmed for player names by tools/probe_name_entry.py (SONIC, XSEGAX, BASSIST rejected; ZED accepted)",
+ "open": "whether League names (NAME_LEAGUE) use the same check is not traced",
  "words_committed": false,
  "words_note": "Derive with tools/extract_forbidden_name_table.words_from_rom(); the list contains profanity plus 'sega' and 'sonic'.",
  "checks": {

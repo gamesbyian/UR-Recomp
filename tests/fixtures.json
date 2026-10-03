@@ -1055,6 +1055,25 @@
       ],
       "status": "validated",
       "validation": "Locally: medal 2 -> 0, checksum valid, post-reset SRAM equals the fresh-format image except live bytes 0742..0750/1073/10A7/10AD."
+    },
+    {
+      "id": "name-entry-probe",
+      "input_script": "tests/input/ui-rename-editor-explore.script",
+      "purpose": "tools/probe_name_entry.py reuses this fixture's RENAME PLAYER route, types generated names (SONIC, XSEGAX, BASSIST, ZED) through the bound grid, confirms OK and checks rejection vs save.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [],
+      "compare_surfaces": [
+        "framebuffer",
+        "sram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "77:000C rider-0 name record"
+      ],
+      "status": "validated",
+      "validation": "analysis/generated/name-entry-probe.json (4 checks)"
     }
   ]
 }

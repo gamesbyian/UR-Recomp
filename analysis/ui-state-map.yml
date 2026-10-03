@@ -599,10 +599,10 @@ states:
 
   - id: FORBIDDEN_NAME_REJECTION
     family: options
-    kind: screen
-    confidence: medium
-    evidence: [observed_screenshot]
-    description: "Player-facing rejection/Easter-egg screen for forbidden names. Public references confirm SONIC/SEGA and other blacklist terms; at least one historical writeup says the filter applies to both individual and team names. Detection rule recovered statically: 71 FF-terminated lowercase words at 83:85C5 (pointer table 83:8537), matched as a substring anywhere in the stored name by 83:84DD / 83:8779 (analysis/generated/forbidden-name-table.json). The rejection screen itself is not yet reproduced."
+    kind: inline_message
+    confidence: high
+    evidence: [observed_screenshot, reproduced_runtime]
+    description: "Player-facing rejection/Easter-egg screen for forbidden names. Public references confirm SONIC/SEGA and other blacklist terms; at least one historical writeup says the filter applies to both individual and team names. Detection rule recovered statically: 71 FF-terminated lowercase words at 83:85C5 (pointer table 83:8537), matched as a substring anywhere in the stored name by 83:84DD / 83:8779 (analysis/generated/forbidden-name-table.json). Runtime (tools/probe_name_entry.py): OK on SONIC, XSEGAX or BASSIST shows an inline NOT COOL ENOUGH message under the name and keeps the editor open; it is not a separate screen. ZED is accepted."
     context_note: "Return target may depend on the text-entry context that triggered rejection."
     transitions:
       - input: "advance/back after player-name rejection"

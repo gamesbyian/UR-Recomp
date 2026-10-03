@@ -138,7 +138,8 @@
       "from": "OPTIONS_MENU",
       "to": "RENAME_PLAYER",
       "trigger": "select RENAME PLAYER; A/B",
-      "status": "documented"
+      "status": "verified",
+      "fixture": "ui-rename-editor-explore"
     },
     {
       "id": "options-define-league",
@@ -458,7 +459,8 @@
       "from": "RENAME_PLAYER",
       "to": "PLAYER_NAME_EDITOR",
       "trigger": "select highlighted Uni; A/B",
-      "status": "documented"
+      "status": "verified",
+      "fixture": "ui-rename-editor-explore"
     },
     {
       "id": "rename-player-back",
@@ -471,8 +473,10 @@
       "id": "rename-editor-options",
       "from": "PLAYER_NAME_EDITOR",
       "to": "OPTIONS_MENU",
-      "trigger": "complete/OK text entry",
-      "status": "hypothesis"
+      "trigger": "OK on an allowed name (A at row 3, column 12)",
+      "status": "verified",
+      "fixture": "name-entry-probe",
+      "source_note": "Accepted name is written lowercase to the rider's SRAM name record (FF-terminated) and the menu returns to OPTIONS."
     },
     {
       "id": "rename-editor-back",
@@ -485,16 +489,18 @@
       "id": "rename-editor-rejection",
       "from": "PLAYER_NAME_EDITOR",
       "to": "FORBIDDEN_NAME_REJECTION",
-      "trigger": "accept blacklisted player name",
-      "status": "documented",
-      "blocked_by": "name_entry_cursor_mapping"
+      "trigger": "OK on a name containing any of the 71 table words",
+      "status": "verified",
+      "fixture": "name-entry-probe",
+      "source_note": "Inline 'NOT COOL ENOUGH' message under the name; not a separate screen."
     },
     {
       "id": "rejection-rename-editor",
       "from": "FORBIDDEN_NAME_REJECTION",
       "to": "PLAYER_NAME_EDITOR",
-      "trigger": "advance/back when rejection came from player naming",
-      "status": "hypothesis"
+      "trigger": "rejection is inline; the editor stays open with the typed name",
+      "status": "verified",
+      "fixture": "name-entry-probe"
     },
     {
       "id": "vs-p2-rider-confirm",
@@ -621,13 +627,14 @@
   ],
   "capability_dependencies": {
     "name_entry_cursor_mapping": {
-      "status": "open",
+      "status": "complete",
       "plan": "analysis/ui-text-entry-layout.json",
       "blocks_states": [
         "FORBIDDEN_NAME_REJECTION"
       ],
       "acceptance_fixture": "ui-rename-editor-explore",
-      "acceptance": "Bind runtime row/column/cursor deltas to the manual-proven alphanumeric grid, then generate and reproduce a blacklisted-name route without guessing cursor geometry."
+      "acceptance": "Bind runtime row/column/cursor deltas to the manual-proven alphanumeric grid, then generate and reproduce a blacklisted-name route without guessing cursor geometry.",
+      "evidence": "tools/probe_name_entry.py -> analysis/generated/name-entry-probe.json: grid bound from cursor OBJ deltas (13 columns, 16 px; rows 24 px; start T; OK at row 3 column 12); SONIC, XSEGAX and BASSIST are rejected inline and ZED is accepted and saved, matching the static rule in analysis/generated/forbidden-name-table.json."
     },
     "multiplayer_behavioral_verification": {
       "status": "open",

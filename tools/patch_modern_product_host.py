@@ -48,6 +48,8 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
     product_dir = (product_root / "native" / "product").as_posix()
     title_dir = (product_root / "native" / "title").as_posix()
     product_sources = [
+        "host_product_state.cpp",
+        "host_product_store.cpp",
         "session_control.cpp",
         "session_runtime_adapter.cpp",
         "race_restart_anchor.cpp",

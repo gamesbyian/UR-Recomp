@@ -12,7 +12,7 @@ inline constexpr int kRacerHdLogicalSize = 64;
 inline constexpr int kRacerHdAssetSize = kRacerHdLogicalSize * kRacerHdDensityScale;
 
 constexpr bool racer_hd_asset_available(std::uint16_t semantic_frame_id) noexcept {
-    return semantic_frame_id == 0x0541;
+    return semantic_frame_id == 0x0541 || semantic_frame_id == 0x0540;
 }
 
 // Deterministic contract-only art. Returning 0 means transparent.

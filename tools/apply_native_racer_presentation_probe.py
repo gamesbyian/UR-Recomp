@@ -62,7 +62,6 @@ extern "C" void UrRacerPresentationProbeAfterRunFrame(
     const SnesDesktopHostFrameStats *stats
 ) {
     static bool passed = false;
-    if (passed) return;
 
     const auto selection =
         ur::presentation::select_racer_presentation_from_wram(
@@ -76,6 +75,26 @@ extern "C" void UrRacerPresentationProbeAfterRunFrame(
     if (!snapshot.has_value()) return;
 
     const unsigned frame = stats ? stats->frame : 0u;
+    if (frame >= 1180u && frame <= 1620u) {
+        std::fprintf(
+            stderr,
+            "UR_RACER_PRESENTATION_TRACE frame=%u "
+            "p1_primary=%04X p2_primary=%04X "
+            "p1_companion=%04X p2_companion=%04X "
+            "p1_selector=%04X p2_selector=%04X "
+            "p1_gate=%04X p2_gate=%04X\n",
+            frame,
+            snapshot->composition.p1_primary,
+            snapshot->composition.p2_primary,
+            snapshot->composition.p1_companion,
+            snapshot->composition.p2_companion,
+            snapshot->composition.p1_selector,
+            snapshot->composition.p2_selector,
+            snapshot->composition.p1_companion_gate_word,
+            snapshot->composition.p2_companion_gate_word
+        );
+    }
+
     const bool primary_match =
         snapshot->composition.p1_primary == 0x0541 &&
         snapshot->composition.p2_primary == 0x0540;
@@ -102,7 +121,7 @@ extern "C" void UrRacerPresentationProbeAfterRunFrame(
         );
     }
 
-    if (!selection.uses_replacement()) return;
+    if (passed || !selection.uses_replacement()) return;
 
     std::fprintf(
         stderr,

@@ -114,6 +114,8 @@ The following are **must-do modern product requirements** unless later technical
 - accessibility-oriented presentation/input options where they can be implemented without changing authoritative simulation, including remapping, vibration control, readable text support, reduced flashing and similar host-layer accommodations;
 - fast local multiplayer setup, rematch and track rotation without requiring legacy League administration;
 - native widescreen, modern resolutions including 4K, arbitrary-window support and authentic 4:3 fallback;
+- user-configurable video output settings including automatic/native-display resolution, common explicit resolutions, windowed/borderless/fullscreen modes, VSync, presentation refresh/FPS targets, and internal render scale where the active graphics mode benefits from it;
+- presentation refresh/FPS settings must never alter authoritative guest simulation cadence, physics, timers, AI, RNG, animation-state selection, input semantics or records; higher-refresh presentation must use host-side frame pacing, repeated presentation frames and/or presentation-only interpolation as appropriate;
 - three first-class graphics modes backed by swappable presentation assets: **Original** (literal/authentic SNES artwork), **Remastered** (faithful high-resolution reconstruction that preserves the original art decisions while removing low-resolution pixel-grid limitations), and **Reimagined** (new modern artwork closely derived from the original design language); optional CRT/NTSC-style presentation may sit on top of Original where useful;
 - fast navigation conveniences such as recent track, rematch, next event and direct practice access;
 - localization-ready text/UI architecture even if only one language is initially shipped;

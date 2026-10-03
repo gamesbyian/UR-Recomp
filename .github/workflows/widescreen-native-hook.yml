@@ -186,7 +186,7 @@ jobs:
             tail -n 30 "$OUT/run.log" || true
           done
 
-      - name: Exercise provisional Authentic 16:9 policy binding
+      - name: Exercise accepted Authentic 16:9 policy binding
         shell: bash
         run: |
           set -euo pipefail
@@ -194,10 +194,10 @@ jobs:
           EXE="$PROJECT/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script"
-          OUT="$RUNNER_TEMP/ws-native-runs/policy-authentic-16x9-candidate"
+          OUT="$RUNNER_TEMP/ws-native-runs/policy-authentic-16x9"
           mkdir -p "$OUT/dumps" "$OUT/frames" analysis/generated
           SDL_AUDIODRIVER=dummy \
-          URRECOMP_WS_VIEW=authentic-16x9-candidate \
+          URRECOMP_WS_VIEW=authentic-16x9 \
           URRECOMP_WS_NATIVE_TRACE=1 \
           SNESRECOMP_DUMP_DIR="$OUT/dumps" \
           SNESRECOMP_FRAMEDUMP_PIXELS=1 \
@@ -224,7 +224,7 @@ jobs:
           candidate=dimensions(sys.argv[2])
           out={
               "schema_version":1,
-              "selector":"authentic-16x9-candidate",
+              "selector":"authentic-16x9",
               "provider_margin_pixels_per_side":48,
               "stock_control":{"frame_width":control[0],"frame_height":control[1]},
               "candidate":{"frame_width":candidate[0],"frame_height":candidate[1]},
@@ -376,7 +376,7 @@ jobs:
             analysis/generated/widescreen-host-depth-liveness.json
             analysis/generated/widescreen-host-viewport-binding.json
             ${{ runner.temp }}/ws-native-runs/0/frames/frame_000300.bmp
-            ${{ runner.temp }}/ws-native-runs/policy-authentic-16x9-candidate/frames/frame_000300.bmp
+            ${{ runner.temp }}/ws-native-runs/policy-authentic-16x9/frames/frame_000300.bmp
             ${{ runner.temp }}/ws-native-runs/oracle/run.log
             ${{ runner.temp }}/ws-native-runs/oracle/stock-strips.txt
             ${{ runner.temp }}/ws-native-runs/0/run.log
@@ -387,6 +387,6 @@ jobs:
             ${{ runner.temp }}/ws-native-runs/48/run.log
             ${{ runner.temp }}/ws-native-runs/64/run.log
             ${{ runner.temp }}/ws-native-runs/72/run.log
-            ${{ runner.temp }}/ws-native-runs/policy-authentic-16x9-candidate/run.log
+            ${{ runner.temp }}/ws-native-runs/policy-authentic-16x9/run.log
           if-no-files-found: warn
           retention-days: 7

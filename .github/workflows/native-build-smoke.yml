@@ -285,7 +285,7 @@ jobs:
           report=json.loads(pathlib.Path(sys.argv[1]).read_text())
           assert report["framebuffer_geometry"] == [256, 224], report["framebuffer_geometry"]
           by_id={row["id"]:row for row in report["candidates"]}
-          assert by_id["community-7x6-full"]["derived_16x9"]["materializer_margin_pixels"] == 48
+          assert by_id["uniracers-7x6-full"]["derived_16x9"]["materializer_margin_pixels"] == 48
           assert by_id["raw-square-full"]["derived_16x9"]["materializer_margin_pixels"] == 72
           assert by_id["raw-square-216"]["derived_16x9"]["materializer_margin_pixels"] == 64
           print("DISPLAY_GEOMETRY_REVIEW_READY candidates=", len(by_id))

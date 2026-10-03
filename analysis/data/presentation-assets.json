@@ -1446,6 +1446,32 @@
               "p2": "0x0000"
             },
             "source": "dense post-guest-frame WRAM trace; exact tuple occurs at frames 1207-1212, 1304, and 1382-1384"
+          },
+          {
+            "checkpoint": "native-dense-trace-1205-1206-and-1213-1214",
+            "workflow_run": 37093107086,
+            "artifact_id": 11263821746,
+            "frames": [
+              1205,
+              1206,
+              1213,
+              1214
+            ],
+            "ids": {
+              "p1_primary": "0x057E",
+              "p2_primary": "0x0543",
+              "p1_companion": "0x0D49",
+              "p2_companion": "0x0000"
+            },
+            "selectors": {
+              "p1": 0,
+              "p2": 0
+            },
+            "companion_gate_words": {
+              "p1": "0x0001",
+              "p2": "0x0000"
+            },
+            "source": "dense post-guest-frame WRAM trace; exact duplicate-ID composition occurs at four frames"
           }
         ]
       }

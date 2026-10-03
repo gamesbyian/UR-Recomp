@@ -24,3 +24,36 @@ extern "C" UrUniracersRestartSurface ur_uniracers_classify_restart_surface(
         return UR_UNIRACERS_RESTART_UNSUPPORTED;
     }
 }
+
+extern "C" void ur_uniracers_restart_policy_reset(
+    UrUniracersRestartPolicyState* state) {
+    if (state) {
+        state->seen_results = 0;
+    }
+}
+
+extern "C" UrUniracersRestartDecision ur_uniracers_restart_policy_observe(
+    UrUniracersRestartPolicyState* state,
+    uint8_t race_active_state,
+    uint8_t frontend_state) {
+    const UrUniracersRestartSurface surface =
+        ur_uniracers_classify_restart_surface(
+            race_active_state, frontend_state);
+
+    UrUniracersRestartDecision decision{surface, 0};
+    if (!state) {
+        return decision;
+    }
+
+    if (surface == UR_UNIRACERS_RESTART_ACTIVE_RACE) {
+        state->seen_results = 0;
+    } else if (surface == UR_UNIRACERS_RESTART_RESULTS) {
+        state->seen_results = 1;
+    } else if (surface == UR_UNIRACERS_RESTART_RETIRE_ATTEMPT &&
+               state->seen_results) {
+        decision.retire_attempt = 1;
+        state->seen_results = 0;
+    }
+
+    return decision;
+}

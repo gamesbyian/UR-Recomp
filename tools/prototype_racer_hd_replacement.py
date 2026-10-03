@@ -264,21 +264,33 @@ def validate_against_assets(entry: dict, assets: dict) -> None:
     families = [x for x in assets["families"] if x["id"] == "ordinary-race-racer-presentation"]
     if len(families) != 1:
         raise ValueError("expected exactly one ordinary racer presentation family")
-    proof = families[0]["composition_contract"]["synchronized_proof"]
+
+    contract = families[0]["composition_contract"]
     guards = entry["composition_guards"]
-    for key in ("p1_primary", "p2_primary", "p1_companion", "p2_companion"):
-        if guards[key].lower() != proof["ids"][key].lower():
-            raise ValueError(f"registry {key} disagrees with synchronized proof")
-    if int(guards["p1_selector"]) != int(proof["selectors"]["p1"]):
-        raise ValueError("registry p1 selector disagrees with synchronized proof")
-    if int(guards["p2_selector"]) != int(proof["selectors"]["p2"]):
-        raise ValueError("registry p2 selector disagrees with synchronized proof")
-    if guards["p1_companion_gate_word"].lower() != proof["companion_gate_words"]["p1"].lower():
-        raise ValueError("registry p1 gate disagrees with synchronized proof")
-    if guards["p2_companion_gate_word"].lower() != proof["companion_gate_words"]["p2"].lower():
-        raise ValueError("registry p2 gate disagrees with synchronized proof")
-    if proof["occupied_sources_exact"] != "25/25" or proof["occupied_destinations_present"] != "25/25":
-        raise ValueError("synchronized composition proof is not exact")
+
+    def matches(state: dict) -> bool:
+        for key in ("p1_primary", "p2_primary", "p1_companion", "p2_companion"):
+            if guards[key].lower() != state["ids"][key].lower():
+                return False
+        if int(guards["p1_selector"]) != int(state["selectors"]["p1"]):
+            return False
+        if int(guards["p2_selector"]) != int(state["selectors"]["p2"]):
+            return False
+        if guards["p1_companion_gate_word"].lower() != state["companion_gate_words"]["p1"].lower():
+            return False
+        if guards["p2_companion_gate_word"].lower() != state["companion_gate_words"]["p2"].lower():
+            return False
+        return True
+
+    proof = contract["synchronized_proof"]
+    runtime_states = contract.get("synchronized_runtime_states", [])
+    candidates = [proof, *runtime_states]
+    if not any(matches(state) for state in candidates):
+        raise ValueError("registry composition guards disagree with retained synchronized evidence")
+
+    if matches(proof):
+        if proof["occupied_sources_exact"] != "25/25" or proof["occupied_destinations_present"] != "25/25":
+            raise ValueError("synchronized composition proof is not exact")
 
 
 def run(

@@ -36,11 +36,27 @@ from prototype_racer_hd_replacement import (
 )
 
 
+RESOLVED_VISUAL_LANGUAGE = {
+    "geometry_basis": (
+        "smooth high-resolution form consistent with the developer-confirmed "
+        "3D source-render pipeline; do not preserve SNES pixel stair-steps as geometry"
+    ),
+    "lighting_space": (
+        "baked/object-local per representation and mirrored by the same runtime "
+        "H/V transform as the racer raster"
+    ),
+    "dynamic_world_lighting": (
+        "not part of the faithful Remastered racer baseline"
+    ),
+    "edge_treatment": (
+        "retain the stock dark silhouette/value hierarchy on smooth contours; "
+        "do not add a uniform new cartoon outline"
+    ),
+}
+
 PENDING_ART_DECISIONS = [
     "material_interpretation",
-    "lighting_direction_and_environment",
-    "specular_and_highlight_behavior",
-    "outline_and_edge_treatment",
+    "specular_and_highlight_strength_within_baked_lighting",
     "shadow_behavior",
     "micro_detail_budget_at_4k_1440p_1080p_and_split_screen",
 ]
@@ -226,6 +242,7 @@ def build_dossier(
             "art_review": {
                 "shipping_art_approved": False,
                 "evidence_packet_ready": True,
+                "resolved_decisions": dict(RESOLVED_VISUAL_LANGUAGE),
                 "pending_decisions": list(PENDING_ART_DECISIONS),
                 "visual_language_authority": "docs/HD-ART-DIRECTION.md",
                 "display_geometry_authority": "docs/DISPLAY-PRESENTATION-POLICY.md",

@@ -57,18 +57,20 @@ Evidence authority: `docs/original-development/DEVELOPER-TECHNICAL-HISTORY.md`, 
 
 ## Material and lighting
 
-The final material model is intentionally not fixed yet.
+The material model is still partially open, but the faithful Remastered racer now has two resolved presentation rules.
 
-Before production replacement art begins, choose and document:
+**Lighting space is object-local and baked into the representation.** Stock shading is part of the composed racer raster, and the accepted runtime applies H/V orientation after semantic selection. Faithful Remastered art should therefore carry its lighting/value pattern with the racer and let the same runtime transform mirror it. Do not add world-space or screen-space dynamic relighting to the baseline Remastered racer path; that would make highlights behave differently from the stock asset under flips.
+
+**Edge treatment follows form, not source-pixel stair-steps.** Preserve the strong dark silhouette and internal value boundaries that survive across registered neighboring frames, but reconstruct them on smooth high-resolution contours consistent with the original 3D source-render pipeline. Do not impose a uniform new cartoon outline where the stock sequence does not support one.
+
+Still open before production replacement art is approved:
 
 - wheel/frame/saddle/pedal material interpretation;
-- light direction/environment assumptions;
-- specular/highlight behavior;
-- outline/edge treatment;
-- shadow behavior;
-- maximum micro-detail appropriate to the game's scale and speed.
+- exact specular/highlight strength within the baked-lighting model;
+- any explicit shadow treatment;
+- maximum micro-detail appropriate to 4K, 1440p, 1080p, motion and split-screen.
 
-Use original rendered frames and developer-history evidence to constrain these choices.
+Use original rendered frames, the generated racer dossier and developer-history evidence to constrain these choices.
 
 ## Palette relationship
 

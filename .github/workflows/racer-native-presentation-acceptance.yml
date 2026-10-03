@@ -166,6 +166,9 @@ jobs:
           assert all(
               rep["art_review"]["evidence_packet_ready"]
               and not rep["art_review"]["shipping_art_approved"]
+              and "lighting_space" in rep["art_review"]["resolved_decisions"]
+              and "edge_treatment" in rep["art_review"]["resolved_decisions"]
+              and "material_interpretation" in rep["art_review"]["pending_decisions"]
               for rep in dossier["representations"]
           )
           print(

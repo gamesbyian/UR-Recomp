@@ -1,6 +1,8 @@
 import unittest
 
 from tools.build_racer_hd_asset_dossier import (
+    PENDING_ART_DECISIONS,
+    RESOLVED_VISUAL_LANGUAGE,
     exact_window_rows,
     observation_map,
     registry_by_representation,
@@ -91,6 +93,13 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(ValueError, "duplicate representation_id"):
             registry_by_representation(registry)
+
+    def test_visual_language_closes_lighting_and_edge_policy(self):
+        self.assertIn("lighting_space", RESOLVED_VISUAL_LANGUAGE)
+        self.assertIn("edge_treatment", RESOLVED_VISUAL_LANGUAGE)
+        self.assertNotIn("lighting_direction_and_environment", PENDING_ART_DECISIONS)
+        self.assertNotIn("outline_and_edge_treatment", PENDING_ART_DECISIONS)
+        self.assertIn("material_interpretation", PENDING_ART_DECISIONS)
 
     def test_safe_name_is_path_stable(self):
         self.assertEqual(safe_name("racer / 0x0541:p1"), "racer-0x0541-p1")

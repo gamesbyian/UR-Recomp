@@ -233,7 +233,7 @@ jobs:
           ]
           reused_candidate = reused["art_review"]["authored_candidate"]
           assert reused_candidate["approval_status"] == (
-              "byte-identical stock context reuse; pending native acceptance"
+              "accepted context-safe reuse of motion-reviewed frame-1218 asset; not approved shipping art"
           )
           reused_review = reused_candidate["gameplay_scale_review"]
           assert reused_review == reversed_review

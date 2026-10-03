@@ -104,6 +104,23 @@ static uint16 ur_ws_native_read16_bank(CpuState *cpu, uint8 bank, uint16 addr) {
   return cpu_read16(cpu, bank, addr);
 }
 
+static uint16 ur_ws_native_vertical_fine_y(CpuState *cpu) {
+  const uint16 camy = ur_ws_native_read16(cpu, 0x041d);
+  const uint16 approx = (uint16)((camy + 4u) >> 4);
+  const uint16 edgey = ur_ws_native_read16(cpu, 0x050d);
+  const uint16 county = ur_ws_native_read16(cpu, 0x0533);
+  if (edgey == 0xffff || county == 0)
+    return approx;
+
+  const uint16 phase = (uint16)(((edgey & 0x001fu) + 2u) & 0x001fu);
+  int candidate = (int)((approx & 0xffe0u) | phase);
+  while (candidate - (int)approx > 16)
+    candidate -= 32;
+  while ((int)approx - candidate > 16)
+    candidate += 32;
+  return (uint16)candidate;
+}
+
 /* Materialize one arbitrary vertical 16-cell strip directly from the live
  * course presentation tables. 7F:000F is the u16 coarse-sector index;
  * 7F:800F contains 32-byte / 4x4 fine records of packed surface words.
@@ -111,8 +128,10 @@ static uint16 ur_ws_native_read16_bank(CpuState *cpu, uint8 bank, uint16 addr) {
  * The stock primary strip is camera-cell X + 16 on the retained Dragster
  * fixture. Column +1 is intentionally left on the accepted guest +8 path
  * at +17. Host-owned column +2 is therefore camera-cell X + 18. Stock vertical
- * strip scheduling is phased four pixels ahead, so its fine row is
- * (cameraY + 4) / 16.
+ * strip scheduling owns an independent vertical ring coordinate at $050D.
+ * When that lane is live, its low-five-bit coordinate maps to the source
+ * fine row with +2 phase and is unwrapped near camera Y. Camera Y is only
+ * the coarse fallback while the vertical lane is inactive.
  */
 static int ur_ws_native_shadow_from_course(CpuState *cpu, uint16 first_edge) {
   const uint16 camx = ur_ws_native_read16(cpu, 0x0419);
@@ -122,7 +141,7 @@ static int ur_ws_native_shadow_from_course(CpuState *cpu, uint16 first_edge) {
     return 0;
 
   const uint16 fine_x = (uint16)((camx >> 4) + 18);
-  const int fine_y0 = (int)((camy + 4u) >> 4);
+  const int fine_y0 = (int)ur_ws_native_vertical_fine_y(cpu);
   if (fine_y0 < 0)
     return 0;
 
@@ -230,7 +249,7 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
         fprintf(stderr, " camy=%u finex=%u finey=%u edgey=%04X county=%u\n",
                 (unsigned)ur_ws_native_read16(cpu, 0x041d),
                 (unsigned)((ur_ws_native_read16(cpu, 0x0419) >> 4) + 18),
-                (unsigned)((ur_ws_native_read16(cpu, 0x041d) + 4u) >> 4),
+                (unsigned)ur_ws_native_vertical_fine_y(cpu),
                 (unsigned)ur_ws_native_read16(cpu, 0x050d),
                 (unsigned)ur_ws_native_read16(cpu, 0x0533));
       } else {

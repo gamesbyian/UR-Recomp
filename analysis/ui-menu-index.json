@@ -46,8 +46,9 @@
     {
       "value": "0x84",
       "state_id": "SPLASH",
-      "status": "historical",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "tests/input/attract-cycle.script",
+      "note": "Title screen in the attract cycle (frame-verified). Also appears for ~33 frames in the post-race fade before result screens, so it is a title/fade handler value rather than a unique screen ID."
     },
     {
       "value": "0x3D",
@@ -81,9 +82,10 @@
     {
       "value": "0x10",
       "state_id": "TOUR_SELECT",
-      "variant": "one-player-tours-2-or-two-player-tours",
-      "status": "historical_ambiguous",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "variant": "one-player-nine-tours",
+      "status": "verified",
+      "source": "tests/input/tier-opponent-hunter-probe.script",
+      "note": "Two-column nine-tour page including HUNTER once the rider tier is 3; 009B holds the tour row. Two-player use remains historical."
     },
     {
       "value": "0x91",
@@ -113,21 +115,24 @@
     {
       "value": "0xBC",
       "state_id": "RESULT_CIRCUIT",
-      "status": "historical",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "tools/probe_result_screens.py",
+      "note": "Circuit results: per-lap time graph (LAPS ON ZOOM ZOO) with TOTAL / BEST LAP columns; advanced to TRACK_SELECT by the movie input."
     },
     {
       "value": "0x18",
       "state_id": "RESULT_STUNT",
-      "status": "historical",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "tools/probe_result_screens.py",
+      "note": "Final stunt results (BOWL table, player score and QUALIFY threshold); advanced to TRACK_SELECT by the movie input."
     },
     {
       "value": "0x2F",
       "state_id": "RESULT_STUNT",
       "variant": "summing-1",
-      "status": "historical",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "tools/probe_result_screens.py",
+      "note": "First stunt summing state: BOWL score table while tallying, before 0x18."
     },
     {
       "value": "0xAD",

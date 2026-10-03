@@ -908,6 +908,26 @@
       ],
       "status": "validated",
       "validation": "analysis/generated/attract-cycle.json (5 checks): 503-frame idle timeout, ~2190-frame demo races on varying courses, Start exits via the title."
+    },
+    {
+      "id": "result-screens",
+      "input_script": "tests/input/result-screens-probe.script",
+      "purpose": "Replays the Dessyreqt 2014 movie (anchored SRAM, extracted on the fly) through the first Crawler race, circuit and stunt to verify the three 1P result-screen families and their advance target.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [],
+      "compare_surfaces": [
+        "low-wram-trace",
+        "framebuffer",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "7E:0313 inRace"
+      ],
+      "status": "validated",
+      "validation": "analysis/generated/result-screens-probe.json (9 checks) via tools/probe_result_screens.py"
     }
   ]
 }

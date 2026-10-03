@@ -3,23 +3,23 @@
 | State | Tier | Menu byte(s) | Required captures | Optional captures | Public visual leads | Blockers | In | Out | Strongest edge evidence |
 |---|---:|---|---:|---:|---:|---|---:|---:|---|
 | BOOT_STARTUP | 2 |  | 0 | 10 | 0 |  | 0 | 1 | hypothesis |
-| SPLASH | 2 | 0x84? | 0 | 1 | 0 |  | 1 | 2 | documented |
-| DEMO | 3 | 0x00? | 0 | 1 | 0 |  | 1 | 1 | hypothesis |
+| SPLASH | 2 | 0x84 | 0 | 1 | 0 |  | 1 | 2 | documented |
+| DEMO | 3 | 0x00? | 0 | 1 | 0 |  | 1 | 1 | verified |
 | MAIN_MENU | 1 | 0xD7 | 1 | 13 | 2 |  | 7 | 7 | verified |
 | PLAYER_SELECT_P1 | 1 | 0x3C | 1 | 0 | 3 |  | 1 | 1 | verified |
 | TWO_PLAYER_SELECT | 1 | 0x3D | 0 | 1 | 1 |  | 1 | 2 | verified |
-| VS_SELECT | 1 | 0x3E | 0 | 3 | 1 |  | 2 | 2 | verified |
+| VS_SELECT | 1 | 0x3E | 0 | 3 | 1 |  | 2 | 3 | verified |
 | VS_CHALLENGER | 1 | 0x3F? | 0 | 0 | 0 | multiplayer_behavioral_verification | 1 | 1 | historical |
 | VS_CHALLENGE_TRACK | 1 | 0x5A? | 0 | 0 | 0 | multiplayer_behavioral_verification | 1 | 1 | historical |
-| TOUR_SELECT | 1 | 0x6D, 0x10? | 1 | 1 | 2 |  | 3 | 1 | verified |
-| TRACK_SELECT | 1 | 0xF6, 0x91?, 0x96? | 1 | 3 | 2 |  | 3 | 2 | verified |
+| TOUR_SELECT | 1 | 0x6D, 0x10 | 1 | 1 | 2 |  | 4 | 1 | verified |
+| TRACK_SELECT | 1 | 0xF6, 0x91, 0x96? | 1 | 3 | 2 |  | 5 | 2 | verified |
 | PRE_RACE_CARD | 1 | 0x16 | 1 | 4 | 0 |  | 4 | 1 | verified |
-| GAMEPLAY | 1 |  | 1 | 4 | 2 |  | 2 | 4 | verified |
+| GAMEPLAY | 1 |  | 7 | 4 | 2 |  | 2 | 4 | verified |
 | PAUSE | 1 |  | 0 | 1 | 0 |  | 1 | 1 | verified |
 | RESULT_BY_TRACK_TYPE | 1 |  | 0 | 0 | 0 |  | 0 | 0 |  |
 | RESULT_RACE | 1 | 0x99 | 0 | 1 | 2 |  | 1 | 1 | verified |
-| RESULT_CIRCUIT | 1 | 0xBC? | 0 | 1 | 1 |  | 1 | 1 | documented |
-| RESULT_STUNT | 1 | 0x18?, 0x2F?, 0xAD?, 0xAF?, 0xB3?, 0xD3?, 0xD8?, 0xED?, 0xF3? | 0 | 1 | 1 |  | 1 | 1 | documented |
+| RESULT_CIRCUIT | 1 | 0xBC | 0 | 1 | 1 |  | 1 | 2 | verified |
+| RESULT_STUNT | 1 | 0x18, 0x2F, 0xAD?, 0xAF?, 0xB3?, 0xD3?, 0xD8?, 0xED?, 0xF3? | 0 | 1 | 1 |  | 1 | 2 | verified |
 | POST_RESULT_DECISION | 1 |  | 0 | 2 | 0 |  | 2 | 2 | documented |
 | LEAGUE_SELECT | 2 |  | 0 | 3 | 1 |  | 1 | 1 | documented |
 | LEAGUE_TABLE | 2 |  | 0 | 1 | 0 |  | 1 | 1 | documented |
@@ -48,15 +48,12 @@
 - VS_CHALLENGE_TRACK: no local capture or public visual lead
 - VS_CHALLENGE_TRACK: menu id remains historical/unverified
 - VS_CHALLENGE_TRACK: blocked by open capability multiplayer_behavioral_verification
-- RESULT_CIRCUIT: menu id remains historical/unverified
-- RESULT_STUNT: menu id remains historical/unverified
 - RECORD_TRACK: no outgoing transition in executable contract
 - RECORD_HIGH_SCORES: no outgoing transition in executable contract
 - ENDING: menu id remains historical/unverified
 
 ## All evidence gaps
 
-- SPLASH: menu id remains historical/unverified
 - DEMO: menu id remains historical/unverified
 - VS_CHALLENGER: no capture contract
 - VS_CHALLENGER: no local capture or public visual lead
@@ -66,8 +63,6 @@
 - VS_CHALLENGE_TRACK: no local capture or public visual lead
 - VS_CHALLENGE_TRACK: menu id remains historical/unverified
 - VS_CHALLENGE_TRACK: blocked by open capability multiplayer_behavioral_verification
-- RESULT_CIRCUIT: menu id remains historical/unverified
-- RESULT_STUNT: menu id remains historical/unverified
 - RECORD_TRACK: no outgoing transition in executable contract
 - RECORD_HIGH_SCORES: no outgoing transition in executable contract
 - FORBIDDEN_NAME_REJECTION: no capture contract
@@ -77,13 +72,13 @@
 ## Summary
 
 - conceptual states: 35
-- executable transitions: 61
-- capture contracts: 106
+- executable transitions: 64
+- capture contracts: 112
 - menu-index entries: 29
-- locally verified menu-index entries: 11
+- locally verified menu-index entries: 17
 - states with at least one capture contract: 31
 - states with at least one public visual lead: 24
 - Tier 1 states: 23
-- Tier 1 gap observations: 13
+- Tier 1 gap observations: 11
 - incomplete capability dependencies: 2
-- raw gap observations: 17
+- raw gap observations: 14

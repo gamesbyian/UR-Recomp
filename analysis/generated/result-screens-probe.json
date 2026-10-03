@@ -1,0 +1,121 @@
+{
+ "schema_version": 1,
+ "question": "Do the historical result-screen menu values hold on the canonical ROM?",
+ "harness": "snesref + pinned snes9x-libretro; Dessyreqt 2014 movie input from its anchored SRAM (in sync through the first Crawler tracks)",
+ "fixture": "tests/input/result-screens-probe.script (documentation stub; the tool generates its dump schedule from the trace)",
+ "note": "7E:0313 reads 0x3C/0x3D on circuit/stunt result screens, so it is not a pure in-race boolean there; 0x84 also appears for ~33 frames in the post-race fade",
+ "result_runs": [
+  {
+   "menu": "0x99",
+   "start": 2874,
+   "end": 2893,
+   "in_race": 0,
+   "state": "RESULT_RACE",
+   "next_menu": "0xF6",
+   "dump_frame": 2883,
+   "dump_menu": "0x99",
+   "texts": [
+    "DRAGSTER",
+    "COMPLETE",
+    "PLAYER     TIME",
+    "MIKE",
+    "0:25.08",
+    "SOMEONE",
+    "NO TIME",
+    "SOMEONE",
+    "NO TIME",
+    "SOMEONE",
+    "NO TIME"
+   ]
+  },
+  {
+   "menu": "0xBC",
+   "start": 8353,
+   "end": 8369,
+   "in_race": 61,
+   "state": "RESULT_CIRCUIT",
+   "next_menu": "0xF6",
+   "dump_frame": 8361,
+   "dump_menu": "0xBC",
+   "texts": [
+    "PLAYER",
+    "TOTAL",
+    "BEST LAP",
+    "MIKE",
+    "1:16.46",
+    "0:25.10",
+    "BRONSEN",
+    "1:20.07",
+    "0:26.45",
+    "0:26",
+    "T",
+    "I",
+    "M",
+    "E",
+    "0:24",
+    "LAPS ON ZOOM ZOO"
+   ]
+  },
+  {
+   "menu": "0x2F",
+   "start": 11915,
+   "end": 11979,
+   "in_race": 60,
+   "state": "RESULT_STUNT summing",
+   "next_menu": "0xF6",
+   "dump_frame": 11947,
+   "dump_menu": "0x2F",
+   "texts": [
+    "BOWL",
+    "X1    X2    X3    X4",
+    "1P 2P 1P 2P 1P 2P 1P 2P",
+    "ROLL: 0  -  0  -  0  -  0  -",
+    "FLIP: 0  -  0  -  0  -  0  -",
+    "TWST: 0  -  0  -  0  -  0  -",
+    "ZEE: 0  -  0  -  0  -  0  -",
+    "MEGA: 0  - 32  -  0  -  0  -",
+    "SOMEONE",
+    ":    0",
+    "MIKE",
+    ":    0"
+   ]
+  },
+  {
+   "menu": "0x18",
+   "start": 11985,
+   "end": 11997,
+   "in_race": 60,
+   "state": "RESULT_STUNT",
+   "next_menu": "0xF6",
+   "dump_frame": 11991,
+   "dump_menu": "0x18",
+   "texts": [
+    "BOWL",
+    "X1    X2    X3    X4",
+    "1P 2P 1P 2P 1P 2P 1P 2P",
+    "ROLL: 0  -  0  -  0  -  0  -",
+    "FLIP: 0  -  0  -  0  -  0  -",
+    "TWST: 0  -  0  -  0  -  0  -",
+    "ZEE: 0  -  0  -  0  -  0  -",
+    "MEGA: 0  - 64  -  0  -  0  -",
+    "SOMEONE",
+    ":    0",
+    "MIKE",
+    ":  764",
+    "QUALIFY   :   68"
+   ]
+  }
+ ],
+ "checks": {
+  "menu_99_observed": true,
+  "menu_99_labels": true,
+  "menu_bc_observed": true,
+  "menu_bc_labels": true,
+  "menu_2f_observed": true,
+  "menu_2f_labels": true,
+  "menu_18_observed": true,
+  "menu_18_labels": true,
+  "circuit_and_stunt_results_advance_to_track_select": true
+ },
+ "all_checks_pass": true
+}

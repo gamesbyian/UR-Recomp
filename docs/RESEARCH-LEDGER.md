@@ -2002,3 +2002,22 @@ Demo courses advanced `00CE`=1, 3, 4, 5 (tour row 0, 0, 0, 1). The first demo's 
 **Evidence:** `tests/input/attract-cycle.script`, `tests/input/attract-exit.script`, `tools/probe_attract_cycle.py` → `analysis/generated/attract-cycle.json` (5 checks; ~20 s locally from snesref's per-frame low-WRAM trace). UI edges `main-demo` / `demo-main` are now `verified` under fixture `attract-cycle`.
 
 **Uncertainty:** The course-selection rule (it skipped stunt track 2 in this sample) and the demo's input source (recorded vs AI) are not established.
+
+### R-2026-10-03-UI-09 — Circuit and stunt result IDs verified; 1P results advance to TRACK_SELECT
+
+**Status:** reproduced locally (reference harness), menu IDs and edges promoted  
+**Date:** 2026-10-03  
+**Area:** frontend | results
+
+**Observation:** Replaying the Dessyreqt 2014 movie, which stays in sync on the pinned modern core through the first Crawler tracks, reaches every result family:
+- RESULT_RACE `0x99` (DRAGSTER COMPLETE);
+- RESULT_CIRCUIT `0xBC`, a per-lap time graph "LAPS ON ZOOM ZOO" with TOTAL / BEST LAP columns;
+- RESULT_STUNT summing `0x2F`, then final `0x18` (BOWL table, player score, QUALIFY 68).
+
+The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so POST_RESULT_DECISION is not on the 1P path for any track type. Two harness notes:
+- `7E:0313` reads `0x3C/0x3D` on circuit/stunt result screens, so it is not a pure in-race boolean there.
+- `0x84` also appears for about 33 frames in the post-race fade, so it is a title/fade handler value rather than a unique SPLASH ID.
+
+**Evidence:** `tools/probe_result_screens.py` → `analysis/generated/result-screens-probe.json` (9 checks, ~1 minute). Fixture `result-screens`; UI edges `game-circuit-result`, `game-stunt-result`, `circuit-result-track` and `stunt-result-track` are verified, and menu-index `0x84/0x10/0xBC/0x2F/0x18` are now verified.
+
+**Uncertainty:** The advance came from movie input, so automatic timeouts on these screens are not measured. The other bot-listed stunt summing values (`0xAD`, `0xAF`, `0xB3`, `0xD3`, `0xD8`, `0xED`, `0xF3`) were not observed; `0xF3` is also the GROUP SCORES screen ID, so DP `$9F` reuse makes that list unreliable.

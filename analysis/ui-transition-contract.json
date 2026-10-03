@@ -215,14 +215,18 @@
       "from": "GAMEPLAY",
       "to": "RESULT_CIRCUIT",
       "trigger": "circuit finish",
-      "status": "historical"
+      "status": "verified",
+      "fixture": "result-screens",
+      "source_note": "Dessyreqt movie Zoom Zoo circuit finish reaches currentMenu 0xBC (LAPS ON ZOOM ZOO) on the canonical ROM."
     },
     {
       "id": "game-stunt-result",
       "from": "GAMEPLAY",
       "to": "RESULT_STUNT",
       "trigger": "stunt finish",
-      "status": "historical"
+      "status": "verified",
+      "fixture": "result-screens",
+      "source_note": "Dessyreqt movie Bowl stunt finish reaches summing 0x2F then results 0x18 (QUALIFY) on the canonical ROM."
     },
     {
       "id": "game-pause",
@@ -491,6 +495,24 @@
       "status": "verified",
       "source_note": "Neutral two-pad snesref route: menu stays 0x3E while P2 Right changes selector column 0x06->0x07; P2 A then reaches TOUR_SELECT 0x6D and raw SRAM ownership 0x0743 clears 0x02->0x00.",
       "fixture": "vs-first-race"
+    },
+    {
+      "id": "circuit-result-track",
+      "from": "RESULT_CIRCUIT",
+      "to": "TRACK_SELECT",
+      "trigger": "advance input after the 1P result",
+      "status": "verified",
+      "fixture": "result-screens",
+      "source_note": "Movie input advances 0xBC / 0x18 directly to TRACK_SELECT 0xF6, as with RESULT_RACE; POST_RESULT_DECISION is not on this 1P path."
+    },
+    {
+      "id": "stunt-result-track",
+      "from": "RESULT_STUNT",
+      "to": "TRACK_SELECT",
+      "trigger": "advance input after the 1P result",
+      "status": "verified",
+      "fixture": "result-screens",
+      "source_note": "Movie input advances 0xBC / 0x18 directly to TRACK_SELECT 0xF6, as with RESULT_RACE; POST_RESULT_DECISION is not on this 1P path."
     }
   ],
   "capture_exempt_states": [

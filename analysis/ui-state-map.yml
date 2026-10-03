@@ -337,11 +337,17 @@ states:
     family: results
     kind: screen
     confidence: high
-    evidence: [primary_manual, observed_screenshot]
+    evidence: [primary_manual, observed_screenshot, reproduced_runtime]
     recovered_menu_labels:
       circuitResults_currentMenu_7E009F: "0xBC"
+    runtime_signatures:
+      currentMenu_7E009F: "0xBC (LAPS ON ZOOM ZOO lap-time graph, TOTAL / BEST LAP)"
+      local_fixture: "tools/probe_result_screens.py (Dessyreqt movie)"
     transitions:
-      - input: "advance/next"
+      - input: "advance after the 1P circuit result (movie input)"
+        to: TRACK_SELECT
+        confidence: high
+      - input: "advance/next in other contexts"
         to: POST_RESULT_DECISION
         confidence: medium
 
@@ -349,12 +355,18 @@ states:
     family: results
     kind: screen
     confidence: high
-    evidence: [primary_manual, observed_screenshot]
+    evidence: [primary_manual, observed_screenshot, reproduced_runtime]
     recovered_menu_labels:
       stuntResults_currentMenu_7E009F: "0x18"
       summing_states: ["0x2F", "0xAD", "0xAF", "0xB3", "0xD3", "0xD8", "0xED", "0xF3"]
+    runtime_signatures:
+      currentMenu_7E009F: "0x2F while tallying, then 0x18 (BOWL table with player score and QUALIFY)"
+      local_fixture: "tools/probe_result_screens.py (Dessyreqt movie)"
     transitions:
-      - input: "advance/next"
+      - input: "advance after the 1P stunt result (movie input)"
+        to: TRACK_SELECT
+        confidence: high
+      - input: "advance/next in other contexts"
         to: POST_RESULT_DECISION
         confidence: medium
 

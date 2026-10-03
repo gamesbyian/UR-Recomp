@@ -1,0 +1,5 @@
+# Result-screen probe stub. tools/probe_result_screens.py replays the Dessyreqt 2014 movie
+# (SNESREF_INPUT_FILE from tools/extract_smv_input.py) for this many frames, then
+# generates its own dump schedule from the per-frame low-WRAM trace.
+wait 12100
+quit

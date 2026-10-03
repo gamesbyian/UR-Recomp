@@ -110,7 +110,9 @@ For the current deterministic two-player window, the builder:
 
 This is the handoff surface for actual racer art review. A replacement candidate should be judged against this dossier rather than against an isolated screenshot or an inferred animation ordering.
 
-The handoff is now exercised by the first authored candidate. Exact representation `ordinary-racer-0x0541-p1-sync-reference` carries registry-owned authored-candidate metadata, and the dossier emits its 4x review PNG alongside stock, nearest-4x and contract-only controls. Native run `37142692369` / artifact `11281156106` closes the plumbing from canonical registration through artifact review output and live host presentation. The candidate remains review-only; this proves the approval machinery, not final artistic approval.
+The handoff is now exercised by the first authored candidate. Exact representation `ordinary-racer-0x0541-p1-sync-reference` carries registry-owned authored-candidate metadata, and the dossier emits its 4x review PNG alongside stock, nearest-4x and contract-only controls. Initial run `37142692369` proved the plumbing but exposed a gameplay-scale silhouette mismatch during review. The dossier now also records a deterministic logical-centre alpha review so large 4x art cannot hide scale drift: stock and tuned candidate both occupy `[22,3]..[39,38]`, the candidate preserves contact `[61,76]`, and alpha IoU improved from the first pilot's roughly 0.377 to `0.6340057637`. Tuned native run `37146779451` / artifact `11283305196` is green through both live split-screen viewports with no guest-state mutation.
+
+This closes the **first motion-review pass**, not final shipping-art approval. The practical rule for subsequent authored frames is now evidence-backed: recovered gameplay-scale envelope and contact are acceptance constraints alongside temporal neighbors, while smooth geometry/material interpretation remains free inside those constraints.
 
 ## Reconstruction decision policy
 

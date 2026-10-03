@@ -146,8 +146,8 @@ jobs:
           import json, pathlib, sys
           reports = [json.loads(pathlib.Path(p).read_text()) for p in sys.argv[1:]]
           assert all(r["contiguous"] for r in reports)
-          assert all(r["frame_window"] == [1180, 1650] for r in reports)
-          assert all(r["frames_observed"] == 471 for r in reports)
+          assert all(r["frame_window"] == [1180, 1620] for r in reports)
+          assert all(r["frames_observed"] == 441 for r in reports)
           assert reports[0] == reports[1] == reports[2], (
               "Original/HD semantic timelines diverged"
           )

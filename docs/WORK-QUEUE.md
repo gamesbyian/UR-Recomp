@@ -4,7 +4,7 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 
 **How to choose work:** treat the sections below as evidence/status, not equal-priority buckets. The shipping critical path is: first causal divergence → semantic core map → stock 4:3 race/2P fidelity → course/rendering model → Widescreen → HD Presentation → modern product/editor. Prefer tasks that retire uncertainty on that chain or unlock several later stages at once. Historical/acquisition/tooling work is supporting unless it directly blocks the chain.
 
-## Active execution order — 2026-10-02
+## Active execution order — 2026-10-03
 
 Canonical capability/readiness status: `docs/SEMANTIC-SUFFICIENCY.md`. Use that scoreboard to decide whether a semantic task is actually blocking a product decision.
 

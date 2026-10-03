@@ -1,0 +1,333 @@
+#!/usr/bin/env python3
+"""Build an approval-oriented evidence dossier for a registered Racer HD window.
+
+The dossier is derived only from authoritative/reproducible project evidence:
+the canonical ROM, the composition-aware replacement registry, and an exact
+semantic trace report produced by summarize_racer_semantic_trace.py.
+
+It does not approve art. It packages the evidence needed to review art without
+guessing animation order, geometry, composition identity, or source pixels.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import re
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+TOOLS = ROOT / "tools"
+if str(TOOLS) not in sys.path:
+    sys.path.insert(0, str(TOOLS))
+
+from prototype_racer_hd_replacement import (
+    W,
+    H,
+    alpha_bounds,
+    alpha_contact_anchor_x2_y2,
+    build_remastered_candidate,
+    build_stock_rgba,
+    encode_png_rgba,
+    nearest_rgba,
+    object_flip_pivot_x2_y2,
+)
+
+
+PENDING_ART_DECISIONS = [
+    "material_interpretation",
+    "lighting_direction_and_environment",
+    "specular_and_highlight_behavior",
+    "outline_and_edge_treatment",
+    "shadow_behavior",
+    "micro_detail_budget_at_4k_1440p_1080p_and_split_screen",
+]
+
+
+def sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def safe_name(value: str) -> str:
+    return re.sub(r"[^A-Za-z0-9._-]+", "-", value).strip("-")
+
+
+def registry_by_representation(registry: dict) -> dict[str, dict]:
+    out: dict[str, dict] = {}
+    for entry in registry["entries"]:
+        rid = entry["representation_id"]
+        if rid in out:
+            raise ValueError(f"duplicate representation_id: {rid}")
+        out[rid] = entry
+    return out
+
+
+def exact_window_rows(trace_report: dict, start: int, end: int) -> list[dict]:
+    if start > end:
+        raise ValueError("window start must not exceed window end")
+    coverage = trace_report.get("registered_composition_coverage")
+    if not isinstance(coverage, dict):
+        raise ValueError("trace report lacks registered_composition_coverage")
+    rows = [
+        row for row in coverage.get("frames", [])
+        if start <= int(row["frame"]) <= end
+    ]
+    expected = list(range(start, end + 1))
+    frames = [int(row["frame"]) for row in rows]
+    if frames != expected:
+        raise ValueError(f"trace window is not exact/contiguous: {frames} != {expected}")
+    for row in rows:
+        if not row.get("fully_registered"):
+            raise ValueError(f"frame {row['frame']} is not fully registered")
+        for key in ("p1_representation_id", "p2_representation_id"):
+            if not row.get(key):
+                raise ValueError(f"frame {row['frame']} lacks {key}")
+    return rows
+
+
+def observation_map(rows: list[dict]) -> dict[str, dict]:
+    observed: dict[str, dict] = {}
+    for row in rows:
+        frame = int(row["frame"])
+        for player in ("p1", "p2"):
+            rid = row[f"{player}_representation_id"]
+            item = observed.setdefault(rid, {"player": player, "frames": []})
+            if item["player"] != player:
+                raise ValueError(f"representation {rid} appears for both players")
+            item["frames"].append(frame)
+    return observed
+
+
+def transition_context(rows: list[dict], representation_id: str, player: str) -> dict:
+    key = f"{player}_representation_id"
+    previous: dict[str, list[int]] = {}
+    following: dict[str, list[int]] = {}
+    for index, row in enumerate(rows):
+        if row[key] != representation_id:
+            continue
+        frame = int(row["frame"])
+        if index > 0:
+            rid = rows[index - 1][key]
+            if rid != representation_id:
+                previous.setdefault(rid, []).append(frame)
+        if index + 1 < len(rows):
+            rid = rows[index + 1][key]
+            if rid != representation_id:
+                following.setdefault(rid, []).append(frame)
+    return {
+        "previous_representations": [
+            {"representation_id": rid, "entry_frames": frames}
+            for rid, frames in sorted(previous.items())
+        ],
+        "next_representations": [
+            {"representation_id": rid, "exit_frames": frames}
+            for rid, frames in sorted(following.items())
+        ],
+    }
+
+
+def validate_entry_geometry(stock: bytes, entry: dict) -> dict:
+    anchors = entry["registration"]["semantic_anchors"]
+    pivot = object_flip_pivot_x2_y2(W, H)
+    contact = alpha_contact_anchor_x2_y2(stock, W, H)
+    if anchors["flip_pivot_x2_y2"] != pivot:
+        raise ValueError(
+            f"{entry['representation_id']} pivot mismatch: "
+            f"{anchors['flip_pivot_x2_y2']} != {pivot}"
+        )
+    if anchors["wheel_contact_x2_y2"] != contact:
+        raise ValueError(
+            f"{entry['representation_id']} contact mismatch: "
+            f"{anchors['wheel_contact_x2_y2']} != {contact}"
+        )
+    return {
+        "coordinate_space": anchors["coordinate_space"],
+        "fixed_point_scale": int(anchors["fixed_point_scale"]),
+        "flip_pivot_x2_y2": pivot,
+        "wheel_contact_x2_y2": contact,
+        "derivation": {
+            "flip_pivot": anchors["flip_pivot_derivation"],
+            "wheel_contact": anchors["wheel_contact_derivation"],
+        },
+    }
+
+
+def build_dossier(
+    rom: bytes,
+    registry: dict,
+    trace_report: dict,
+    start: int,
+    end: int,
+) -> tuple[dict, dict[str, dict[str, bytes]]]:
+    rows = exact_window_rows(trace_report, start, end)
+    entries = registry_by_representation(registry)
+    observed = observation_map(rows)
+    assets: dict[str, dict[str, bytes]] = {}
+    representations = []
+
+    for rid in sorted(observed):
+        if rid not in entries:
+            raise ValueError(f"trace references unregistered representation: {rid}")
+        entry = entries[rid]
+        player = observed[rid]["player"]
+        if entry["player"] != player:
+            raise ValueError(f"{rid} player mismatch between trace and registry")
+
+        stock = build_stock_rgba(rom, entry)
+        candidate, cw, ch = build_remastered_candidate(stock, entry)
+        nearest4 = nearest_rgba(stock, W, H, 4)
+        geometry = validate_entry_geometry(stock, entry)
+
+        stock_png = encode_png_rgba(W, H, stock)
+        nearest_png = encode_png_rgba(W * 4, H * 4, nearest4)
+        candidate_png = encode_png_rgba(cw, ch, candidate)
+        assets[rid] = {
+            "stock": stock_png,
+            "nearest4": nearest_png,
+            "contract_candidate": candidate_png,
+        }
+
+        representations.append({
+            "representation_id": rid,
+            "semantic_frame_id": entry["semantic_frame_id"],
+            "player": player,
+            "palette_asset_id": entry["palette_asset_id"],
+            "composition_guards": entry["composition_guards"],
+            "observed_frames_in_window": observed[rid]["frames"],
+            "temporal_context": transition_context(rows, rid, player),
+            "registration": {
+                "logical_canvas_pixels": entry["registration"]["logical_canvas_pixels"],
+                "object_origin": entry["registration"]["object_origin"],
+                "occupancy_tile_offset": entry["registration"]["occupancy_tile_offset"],
+                "orientation_policy": entry["registration"]["orientation_policy"],
+                "geometry": geometry,
+            },
+            "stock_evidence": {
+                "kind": entry["original"]["kind"],
+                "source": entry["original"]["source"],
+                "alpha_bounds": alpha_bounds(stock, W, H),
+                "rgba_sha256": sha256(stock),
+                "png": f"stock/{safe_name(rid)}.png",
+                "png_sha256": sha256(stock_png),
+                "nearest_4x_png": f"nearest-4x/{safe_name(rid)}.png",
+                "nearest_4x_png_sha256": sha256(nearest_png),
+            },
+            "current_contract_candidate": {
+                **entry["remastered_candidate"],
+                "dimensions": [cw, ch],
+                "alpha_bounds": alpha_bounds(candidate, cw, ch),
+                "rgba_sha256": sha256(candidate),
+                "png": f"contract-candidate/{safe_name(rid)}.png",
+                "png_sha256": sha256(candidate_png),
+            },
+            "fallback": entry["fallback"],
+            "art_review": {
+                "shipping_art_approved": False,
+                "evidence_packet_ready": True,
+                "pending_decisions": list(PENDING_ART_DECISIONS),
+                "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+                "display_geometry_authority": "docs/DISPLAY-PRESENTATION-POLICY.md",
+            },
+        })
+
+    timeline = [
+        {
+            "frame": int(row["frame"]),
+            "p1_representation_id": row["p1_representation_id"],
+            "p2_representation_id": row["p2_representation_id"],
+        }
+        for row in rows
+    ]
+
+    dossier = {
+        "schema_version": 1,
+        "family": registry["family"],
+        "purpose": (
+            "Approval-oriented evidence packet for the first continuously "
+            "registered ordinary-race Racer HD temporal window."
+        ),
+        "temporal_window": {
+            "start": start,
+            "end": end,
+            "frame_count": end - start + 1,
+            "source": "registered_composition_coverage from deterministic native semantic trace",
+            "all_frames_exactly_registered": True,
+        },
+        "authoritative_inputs": {
+            "semantic_identity": registry["lookup"]["primary_key"],
+            "animation_timing": "guest-authored; dossier records observed order only",
+            "stock_pixels": "canonical ROM deterministic composition",
+            "placement": "live OAM at runtime; not baked into asset identity",
+            "display_geometry": (
+                "replacement art targets modern square-pixel host geometry; "
+                "CRT pixel-aspect policy remains independent"
+            ),
+        },
+        "timeline": timeline,
+        "representations": representations,
+        "validation": {
+            "fully_registered_window": True,
+            "registry_representation_ids_unique": True,
+            "stock_geometry_rederived_from_rom": True,
+            "registered_anchors_match_rederived_stock": True,
+            "candidate_status_is_contract_only": all(
+                not rep["art_review"]["shipping_art_approved"]
+                for rep in representations
+            ),
+            "ready_for_art_review": True,
+        },
+        "remaining_scope": {
+            "phase_e_globally_complete": False,
+            "ordinary_race_racer_family_semantic_gate_reached": True,
+            "shipping_art_approved": False,
+            "broader_animation_families": "open; admit deliberately by product/art need",
+        },
+    }
+    return dossier, assets
+
+
+def write_dossier(output_dir: Path, dossier: dict, assets: dict[str, dict[str, bytes]]) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    for kind in ("stock", "nearest-4x", "contract-candidate"):
+        (output_dir / kind).mkdir(parents=True, exist_ok=True)
+    for rid, payloads in assets.items():
+        name = safe_name(rid) + ".png"
+        (output_dir / "stock" / name).write_bytes(payloads["stock"])
+        (output_dir / "nearest-4x" / name).write_bytes(payloads["nearest4"])
+        (output_dir / "contract-candidate" / name).write_bytes(payloads["contract_candidate"])
+    (output_dir / "manifest.json").write_text(
+        json.dumps(dossier, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("rom", type=Path)
+    ap.add_argument("--trace", type=Path, required=True)
+    ap.add_argument(
+        "--registry",
+        type=Path,
+        default=ROOT / "analysis/data/racer-hd-replacement-prototype.json",
+    )
+    ap.add_argument("--window-start", type=int, required=True)
+    ap.add_argument("--window-end", type=int, required=True)
+    ap.add_argument("--output-dir", type=Path, required=True)
+    args = ap.parse_args()
+
+    dossier, assets = build_dossier(
+        args.rom.read_bytes(),
+        json.loads(args.registry.read_text(encoding="utf-8")),
+        json.loads(args.trace.read_text(encoding="utf-8")),
+        args.window_start,
+        args.window_end,
+    )
+    write_dossier(args.output_dir, dossier, assets)
+    print(json.dumps(dossier, indent=2, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

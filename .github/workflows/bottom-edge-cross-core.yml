@@ -8,7 +8,6 @@ on:
     paths:
       - "tools/summarize_presentation_geometry.py"
       - "tests/input/reach-first-race.script"
-      - ".github/workflows/bottom-edge-cross-core.yml"
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tools/toolchain-entries/beetle-bsnes-libretro.json"
       - "tools/toolchain-entries/_global.json"
@@ -23,6 +22,7 @@ on:
       - "tools/toolchain-entries/_global.json"
       - "tools/bootstrap_toolchain.py"
       - "tools/patches/beetle-bsnes-ur-recomp.patch"
+      - ".github/workflows/bottom-edge-cross-core.yml"
 
 concurrency:
   group: bottom-edge-cross-core-${{ github.ref }}

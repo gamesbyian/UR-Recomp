@@ -9,13 +9,13 @@ on:
       - "tests/unit/**"
       - "analysis/ui-state-map.yml"
       - "analysis/frontend-modernization-policy.json"
-      - ".github/workflows/tooling-unit-tests.yml"
   pull_request:
     paths:
       - "tools/**"
       - "tests/unit/**"
       - "analysis/ui-state-map.yml"
       - "analysis/frontend-modernization-policy.json"
+      - ".github/workflows/tooling-unit-tests.yml"
   workflow_dispatch:
 
 concurrency:

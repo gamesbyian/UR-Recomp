@@ -6,7 +6,6 @@ on:
     branches:
       - main
     paths:
-      - ".github/workflows/snesrecomp-c2-network-audit.yml"
       - "tools/audit_network_trace.py"
       - "tests/unit/test_audit_network_trace.py"
       - "tools/bootstrap_toolchain.py"
@@ -25,6 +24,7 @@ on:
       - "third_party/manifest.json"
       - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
       - "third_party/cargo/snesrecomp-analyzer/**"
+      - ".github/workflows/snesrecomp-c2-network-audit.yml"
 
 concurrency:
   group: snesrecomp-c2-network-audit-${{ github.ref }}

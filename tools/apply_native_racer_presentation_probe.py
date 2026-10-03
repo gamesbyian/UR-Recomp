@@ -62,7 +62,6 @@ extern "C" void UrRacerPresentationProbeAfterRunFrame(
     const SnesDesktopHostFrameStats *stats
 ) {
     static bool passed = false;
-    if (passed) return;
 
     const auto selection =
         ur::presentation::select_racer_presentation_from_wram(
@@ -76,7 +75,7 @@ extern "C" void UrRacerPresentationProbeAfterRunFrame(
     if (!snapshot.has_value()) return;
 
     const unsigned frame = stats ? stats->frame : 0u;
-    if (frame >= 1180u && frame <= 1650u) {
+    if (frame >= 1180u && frame <= 1620u) {
         std::fprintf(
             stderr,
             "UR_RACER_PRESENTATION_TRACE frame=%u "
@@ -122,7 +121,7 @@ extern "C" void UrRacerPresentationProbeAfterRunFrame(
         );
     }
 
-    if (!selection.uses_replacement()) return;
+    if (passed || !selection.uses_replacement()) return;
 
     std::fprintf(
         stderr,

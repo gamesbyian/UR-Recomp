@@ -25,6 +25,25 @@ def _write_bmp(path: Path, width: int = 256, height: int = 224) -> None:
     path.write_bytes(hdr + bytes(row * height))
 
 
+def _fixture_manifest(captures: list[dict[str, object]]) -> dict[str, object]:
+    return {
+        "schema_version": 1,
+        "fields": {
+            "current_menu": {"wram_offset": "0x009F", "width": 1},
+            "selected_option": {"wram_offset": "0x009B", "width": 1},
+            "menu_row": {"wram_offset": "0x000E", "width": 1},
+            "menu_col": {"wram_offset": "0x0C63", "width": 1},
+            "in_race": {"wram_offset": "0x0313", "width": 1},
+        },
+        "captures": captures,
+    }
+
+
+def _write_ok_capture(dumps: Path, tag: str) -> None:
+    (dumps / f"{tag}.wram.bin").write_bytes(bytes(0x20000))
+    _write_bmp(dumps / f"{tag}.fb.bmp")
+
+
 class BuildUiAtlasTests(unittest.TestCase):
     def test_reports_state_and_discovery(self) -> None:
         with tempfile.TemporaryDirectory() as td:
@@ -345,6 +364,111 @@ class BuildUiAtlasTests(unittest.TestCase):
             report = json.loads(out_json.read_text())
             self.assertEqual(report["summary"]["declared"], 1)
             self.assertEqual([c["tag"] for c in report["captures"]], ["one"])
+
+
+    def test_excludes_one_source_fixture(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            dumps = root / "dumps"
+            dumps.mkdir()
+            manifest_path = root / "manifest.json"
+            manifest_path.write_text(json.dumps(_fixture_manifest([
+                {"tag": "owned-elsewhere", "state_id": "GAMEPLAY", "source_fixture": "fixture-a"},
+                {"tag": "owned-here", "state_id": "GAMEPLAY", "source_fixture": "fixture-b"},
+            ])))
+            _write_ok_capture(dumps, "owned-here")
+            out_json = root / "atlas.json"
+            proc = subprocess.run(
+                [
+                    sys.executable, str(TOOL),
+                    "--manifest", str(manifest_path),
+                    "--exclude-source-fixture", "fixture-a",
+                    "--dump-dir", str(dumps),
+                    "--out-json", str(out_json),
+                    "--strict",
+                ],
+                check=False, capture_output=True, text=True,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            report = json.loads(out_json.read_text())
+            self.assertEqual([c["tag"] for c in report["captures"]], ["owned-here"])
+
+    def test_repeated_fixture_exclusions_compose(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            dumps = root / "dumps"
+            dumps.mkdir()
+            manifest_path = root / "manifest.json"
+            manifest_path.write_text(json.dumps(_fixture_manifest([
+                {"tag": "a", "state_id": "GAMEPLAY", "source_fixture": "fixture-a"},
+                {"tag": "b", "state_id": "GAMEPLAY", "source_fixture": "fixture-b"},
+                {"tag": "c", "state_id": "GAMEPLAY", "source_fixture": "fixture-c"},
+            ])))
+            _write_ok_capture(dumps, "c")
+            out_json = root / "atlas.json"
+            proc = subprocess.run(
+                [
+                    sys.executable, str(TOOL),
+                    "--manifest", str(manifest_path),
+                    "--exclude-source-fixture", "fixture-a",
+                    "--exclude-source-fixture", "fixture-b",
+                    "--dump-dir", str(dumps),
+                    "--out-json", str(out_json),
+                    "--strict",
+                ],
+                check=False, capture_output=True, text=True,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            report = json.loads(out_json.read_text())
+            self.assertEqual([c["tag"] for c in report["captures"]], ["c"])
+
+    def test_exclusion_keeps_unrelated_capture_strict(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            dumps = root / "dumps"
+            dumps.mkdir()
+            manifest_path = root / "manifest.json"
+            manifest_path.write_text(json.dumps(_fixture_manifest([
+                {"tag": "excluded", "state_id": "GAMEPLAY", "source_fixture": "fixture-a"},
+                {"tag": "still-required", "state_id": "MAIN_MENU", "source_fixture": "fixture-b"},
+            ])))
+            proc = subprocess.run(
+                [
+                    sys.executable, str(TOOL),
+                    "--manifest", str(manifest_path),
+                    "--exclude-source-fixture", "fixture-a",
+                    "--dump-dir", str(dumps),
+                    "--strict",
+                ],
+                check=False, capture_output=True, text=True,
+            )
+            self.assertEqual(proc.returncode, 2)
+            report = json.loads(proc.stdout)
+            self.assertEqual([c["tag"] for c in report["captures"]], ["still-required"])
+            self.assertEqual(report["captures"][0]["status"], "missing")
+
+    def test_no_exclusion_preserves_normal_strict_behavior(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            dumps = root / "dumps"
+            dumps.mkdir()
+            manifest_path = root / "manifest.json"
+            manifest_path.write_text(json.dumps(_fixture_manifest([
+                {"tag": "required", "state_id": "GAMEPLAY", "source_fixture": "fixture-a"},
+            ])))
+            proc = subprocess.run(
+                [
+                    sys.executable, str(TOOL),
+                    "--manifest", str(manifest_path),
+                    "--dump-dir", str(dumps),
+                    "--strict",
+                ],
+                check=False, capture_output=True, text=True,
+            )
+            self.assertEqual(proc.returncode, 2)
+            report = json.loads(proc.stdout)
+            self.assertEqual([c["tag"] for c in report["captures"]], ["required"])
+            self.assertEqual(report["captures"][0]["status"], "missing")
 
 
 if __name__ == "__main__":

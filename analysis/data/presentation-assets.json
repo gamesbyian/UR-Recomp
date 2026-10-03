@@ -1776,6 +1776,63 @@
               }
             },
             "source": "dense host-frame adjacency frame 1467; canonical ROM geometry measured by Racer HD prototype run 37098511872"
+          },
+          {
+            "checkpoint": "native-dense-trace-1215-through-1216",
+            "workflow_run": 37099604317,
+            "frames": [
+              1215,
+              1216
+            ],
+            "ids": {
+              "p1_primary": "0x057F",
+              "p2_primary": "0x0542",
+              "p1_companion": "0x0D4A",
+              "p2_companion": "0x0000"
+            },
+            "selectors": {
+              "p1": 0,
+              "p2": 0
+            },
+            "companion_gate_words": {
+              "p1": "0x0001",
+              "p2": "0x0000"
+            },
+            "geometry": {
+              "p1": {
+                "flip_pivot_x2_y2": [
+                  63,
+                  63
+                ],
+                "wheel_contact_x2_y2": [
+                  65,
+                  76
+                ],
+                "alpha_bounds": [
+                  22,
+                  2,
+                  41,
+                  38
+                ]
+              },
+              "p2": {
+                "flip_pivot_x2_y2": [
+                  63,
+                  63
+                ],
+                "wheel_contact_x2_y2": [
+                  59,
+                  76
+                ],
+                "alpha_bounds": [
+                  21,
+                  4,
+                  40,
+                  38
+                ]
+              }
+            },
+            "source": "dense host-frame adjacency identifies repeated frames 1215-1216; canonical ROM geometry measured by Racer HD prototype run 37099604317"
           }
         ]
       }

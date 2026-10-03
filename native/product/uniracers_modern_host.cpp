@@ -35,6 +35,8 @@ bool g_options_visible;
 bool g_controls_visible;
 bool g_run_data_visible;
 bool g_quit_confirm_visible;
+bool g_exit_frontend_waiting_for_main;
+bool g_exit_frontend_waiting_for_usable;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
 
@@ -305,6 +307,18 @@ void reconcile_presentation() {
     RtlAudioSetFastForward(false);
 }
 
+bool exit_to_frontend();
+
+uint32_t current_sram_digest() {
+    uint32_t hash = 2166136261u;
+    if (!g_sram || g_sram_size <= 0) return hash;
+    for (int i = 0; i < g_sram_size; ++i) {
+        hash ^= g_sram[i];
+        hash *= 16777619u;
+    }
+    return hash;
+}
+
 bool ensure_session() {
     if (g_session) return true;
     ensure_product_state();
@@ -319,7 +333,8 @@ bool ensure_session() {
         &snesrecomp_desktop_set_paused,
         &snesrecomp_desktop_is_paused,
         &set_timing_lock,
-        &reconcile_presentation);
+        &reconcile_presentation,
+        &exit_to_frontend);
     ur_modern_pause_menu_reset(&g_pause_menu);
     ur_modern_options_menu_reset(&g_options_menu);
     ur_uniracers_restart_policy_reset(&g_title_policy);
@@ -333,6 +348,49 @@ bool ensure_session() {
 bool restart_surface() {
     return g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE ||
            g_surface == UR_UNIRACERS_RESTART_RESULTS;
+}
+
+bool exit_to_frontend() {
+    if (!modern_mode() || !restart_surface()) {
+        product_diagnostic("UR_EXIT_FRONTEND REJECTED_UNSAFE_SURFACE");
+        return false;
+    }
+
+    const int source_surface = static_cast<int>(g_surface);
+    const uint32_t before_sram = current_sram_digest();
+
+    // Use the framework's real console-reset lifecycle. Mode bit 0 preserves
+    // cartridge SRAM while the guest hardware, WRAM, pacing and audio state
+    // are reset and the title-owned hardware_reset hook is invoked.
+    RtlReset(1);
+    const uint32_t after_sram = current_sram_digest();
+    if (before_sram != after_sram) {
+        product_diagnostic("UR_EXIT_FRONTEND SRAM_CHANGED_UNEXPECTEDLY");
+        return false;
+    }
+
+    snesrecomp_desktop_request_clock_reset();
+    reconcile_presentation();
+    g_options_visible = false;
+    g_controls_visible = false;
+    g_run_data_visible = false;
+    g_quit_confirm_visible = false;
+    ur_modern_pause_menu_reset(&g_pause_menu);
+    ur_modern_options_menu_reset(&g_options_menu);
+    ur_uniracers_restart_policy_reset(&g_title_policy);
+    g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
+    g_exit_frontend_waiting_for_main = true;
+    g_exit_frontend_waiting_for_usable = false;
+
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_EXIT_FRONTEND REQUESTED source=%d sram=%08X\n",
+            source_surface,
+            static_cast<unsigned>(after_sram));
+        std::fflush(stderr);
+    }
+    return true;
 }
 
 bool paused() {
@@ -431,6 +489,9 @@ bool activate_pause_selection() {
         product_diagnostic("UR_PAUSE_CONTROLS OPENED");
         return true;
     }
+    if (selected == UR_MODERN_PAUSE_EXIT_FRONTEND) {
+        return dispatch(UR_MODERN_PAUSE_ACTIVATE);
+    }
     if (selected == UR_MODERN_PAUSE_RUN_DATA) {
         g_options_visible = false;
         g_controls_visible = false;
@@ -483,6 +544,31 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         ur_modern_session_observe_race_active(g_session, 0);
         if (decision.retire_attempt) {
             ur_modern_session_retire_race_attempt(g_session);
+        }
+    }
+
+    if (g_exit_frontend_waiting_for_main &&
+        g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7) {
+        g_exit_frontend_waiting_for_main = false;
+        g_exit_frontend_waiting_for_usable = true;
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_EXIT_FRONTEND FRONTEND_READY menu=%02X sram=%08X\n",
+                static_cast<unsigned>(g_ram[0x009F]),
+                static_cast<unsigned>(current_sram_digest()));
+            std::fflush(stderr);
+        }
+    } else if (g_exit_frontend_waiting_for_usable &&
+               g_ram[0x009F] == 0x3C) {
+        g_exit_frontend_waiting_for_usable = false;
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_EXIT_FRONTEND FRONTEND_USABLE menu=%02X sram=%08X\n",
+                static_cast<unsigned>(g_ram[0x009F]),
+                static_cast<unsigned>(current_sram_digest()));
+            std::fflush(stderr);
         }
     }
 
@@ -621,7 +707,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
     const int panel_w = width < 220 ? width - 16 : 212;
-    const int panel_h = is_paused ? (restart ? 114 : 99) : 30;
+    const int panel_h = is_paused ? (restart ? 129 : 114) : 30;
     const int x = (width - panel_w) / 2;
     const int y = is_paused ? (height - panel_h) / 2 : height - panel_h - 8;
 
@@ -834,7 +920,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
             selected == UR_MODERN_PAUSE_RUN_DATA
                 ? "> RUN DATA" : "  RUN DATA",
             0xFFFFFFFFu, 1);
-        const int quit_y = run_data_y + 15;
+        const int exit_y = run_data_y + 15;
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, exit_y,
+            selected == UR_MODERN_PAUSE_EXIT_FRONTEND
+                ? "> EXIT FRONTEND" : "  EXIT FRONTEND",
+            0xFFFFFFFFu, 1);
+        const int quit_y = exit_y + 15;
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, quit_y,
             selected == UR_MODERN_PAUSE_QUIT

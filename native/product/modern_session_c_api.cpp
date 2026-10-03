@@ -80,7 +80,8 @@ extern "C" UrModernSession* ur_modern_session_create(
     UrSetPausedFn set_paused,
     UrIsPausedFn is_paused,
     UrSetRewindAudioTimingLockFn set_rewind_audio_timing_lock,
-    UrReconcileAfterRestartFn reconcile_after_restart) {
+    UrReconcileAfterRestartFn reconcile_after_restart,
+    UrExitToFrontendFn exit_to_frontend) {
     const ExecutionMode mode =
         modern_mode ? ExecutionMode::Modern : ExecutionMode::Authentic;
     const SnapshotRuntimeHooks snapshot_hooks{
@@ -93,6 +94,7 @@ extern "C" UrModernSession* ur_modern_session_create(
         nullptr,
         set_rewind_audio_timing_lock,
         reconcile_after_restart,
+        exit_to_frontend,
     };
 
     return new (std::nothrow) UrModernSession(
@@ -167,6 +169,11 @@ extern "C" UrModernSessionResult ur_modern_session_resume(
 extern "C" UrModernSessionResult ur_modern_session_restart_race(
     UrModernSession* session) {
     return request(session, SessionCommand::RestartRace);
+}
+
+extern "C" UrModernSessionResult ur_modern_session_exit_to_frontend(
+    UrModernSession* session) {
+    return request(session, SessionCommand::ExitToFrontend);
 }
 
 extern "C" UrModernSessionResult ur_modern_session_handle_key(

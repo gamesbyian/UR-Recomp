@@ -85,9 +85,22 @@
         "native_acceptance_artifact_id": 11283305196,
         "gameplay_scale_review": {
           "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
-          "stock_alpha_bounds": [22, 3, 39, 38],
-          "candidate_alpha_bounds": [22, 3, 39, 38],
-          "candidate_contact_x2_y2": [61, 76],
+          "stock_alpha_bounds": [
+            22,
+            3,
+            39,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            22,
+            3,
+            39,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            61,
+            76
+          ],
           "stock_opaque_pixels": 324,
           "candidate_opaque_pixels": 243,
           "alpha_intersection_pixels": 220,
@@ -990,7 +1003,17 @@
         "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
         "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
       },
-      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset."
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_candidate",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0541_p1_companion_0d2d",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_second_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "temporal-neighbor authored candidate; pending native motion review",
+        "shipping_art_approved": false,
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Extend the first motion-reviewed authored language to the exact frame-1219 predecessor with only the smallest evidence-backed upper-silhouette change; preserve the accepted lower geometry, contact, materials and object-local lighting."
+      }
     },
     {
       "semantic_frame_id": "0x0540",

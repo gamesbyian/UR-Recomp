@@ -27,7 +27,7 @@ def candidate_report(
     width: int,
     height: int,
     candidate: dict[str, Any],
-    capacity_margin: int = 64,
+    capacity_margin: int = 72,
     granularity: int = 8,
 ) -> dict[str, Any]:
     crop_top = int(candidate.get("crop_top", 0))
@@ -68,7 +68,7 @@ def build_report(
     capture_paths: list[Path],
     candidates: list[dict[str, Any]],
     *,
-    capacity_margin: int = 64,
+    capacity_margin: int = 72,
     granularity: int = 8,
 ) -> dict[str, Any]:
     captures = []
@@ -171,7 +171,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--candidates", type=Path, required=True)
     ap.add_argument("--capture", action="append", type=Path, required=True)
-    ap.add_argument("--capacity-margin", type=int, default=64)
+    ap.add_argument("--capacity-margin", type=int, default=72)
     ap.add_argument("--granularity", type=int, default=8)
     ap.add_argument("--json-out", type=Path, required=True)
     ap.add_argument("--html-out", type=Path, required=True)

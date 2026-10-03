@@ -15,6 +15,16 @@ A matching fingerprint is a lead, not proof. Descriptor shape, content, runtime 
 | legacy-beta | 45 | 38 | 6..35 |
 | pal-prototype-1994-11-29 | 45 | 38 | 6..35 |
 
+## Course header and resource-list deltas
+
+Compared exactly against USA retail. An empty row means that all tracked header fields and resource-list IDs match in all 45 stream positions.
+
+| Build | Changed courses | Exact changes |
+|---|---:|---|
+| europe-retail | 3 | #4: spawn_or_landmark_a<br>#26: resource_ids (append `22`)<br>#36: resource_ids (append `22`) |
+| legacy-beta | 0 | none |
+| pal-prototype-1994-11-29 | 0 | none |
+
 ## Course tail lists
 
 | Build | Course | Slot | Cursor | IDs | FF offset | Bytes after FF | Dims |

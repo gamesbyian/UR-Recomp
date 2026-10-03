@@ -37,8 +37,22 @@
           0
         ],
         "orientation_policy": "apply runtime OAM H/V flip after asset selection",
-        "pivot_policy": "preserve the complete object-local canvas rigidly; no independent pivot coordinate is currently proven",
-        "contact_policy": "no separately named wheel-contact anchor is currently proven; derived candidate preserves stock placement by whole-canvas scaling"
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            61,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed raster"
+        }
       },
       "original": {
         "kind": "deterministic_rom_composition",

@@ -108,10 +108,8 @@ class RacerHdAssetDossierTests(unittest.TestCase):
             "micro_detail_budget_at_4k_1440p_1080p_and_split_screen",
             PENDING_ART_DECISIONS,
         )
-        self.assertEqual(
-            PENDING_ART_DECISIONS,
-            ["specular_and_highlight_strength_within_baked_lighting"],
-        )
+        self.assertIn("specular_highlight_policy", RESOLVED_VISUAL_LANGUAGE)
+        self.assertEqual(PENDING_ART_DECISIONS, [])
 
     def test_safe_name_is_path_stable(self):
         self.assertEqual(safe_name("racer / 0x0541:p1"), "racer-0x0541-p1")

@@ -110,11 +110,16 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
     ]
 
     adjacent_count = 0
+    adjacency_comparable_count = 0
     for row in plus8:
-        if any(
-            stock["camx"] == row["camx"] and _ring_next(stock["edge"]) == row["edge"]
-            for stock in widened_primary
-        ):
+        same_camera = [
+            stock for stock in widened_primary
+            if stock["camx"] == row["camx"]
+        ]
+        if not same_camera:
+            continue
+        adjacency_comparable_count += 1
+        if any(_ring_next(stock["edge"]) == row["edge"] for stock in same_camera):
             adjacent_count += 1
 
     exact_matches = []
@@ -161,7 +166,10 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
         "margin8_all_counts_16": len(plus8)==len(prep.get(8,[])),
         "margin8_cleanup_balanced": balanced,
         "margin8_terminal_pending_only": not terminal_pending or _last_plus8_event(logs.get(8,"")) == "PREP",
-        "margin8_all_prepared_edges_adjacent": adjacent_count == len(plus8) and bool(plus8),
+        "margin8_comparable_edges_all_adjacent": (
+            adjacency_comparable_count >= 309
+            and adjacent_count == adjacency_comparable_count
+        ),
         "margin8_protected_state_equal": not diffs.get(8),
         "margin8_future_stock_exact_matches": match_count >= 309,
         "margin8_future_stock_consecutive_run": longest_match_run >= 14,
@@ -181,6 +189,8 @@ def analyze(logs: dict[int,str], dumps: dict[int,Path]) -> dict:
             "margin8_cleanup_events":cleanup_count,
             "margin8_terminal_payload_pending":terminal_pending,
             "margin8_unique_edges":len({row["edge"] for row in plus8}),
+            "margin8_adjacency_comparable_events":adjacency_comparable_count,
+            "margin8_adjacency_unobserved_events":len(plus8)-adjacency_comparable_count,
             "margin8_adjacent_prepared_edges":adjacent_count,
             "margin8_future_stock_candidates":future_stock_candidates,
             "margin8_exact_future_stock_matches":match_count,
@@ -212,7 +222,9 @@ def render(r: dict) -> str:
         f"- +8 cleanup events: **{n['margin8_cleanup_events']}**",
         f"- +8 terminal payload pending at fixture exit: **{n['margin8_terminal_payload_pending']}**",
         f"- +8 unique prepared edges: **{n['margin8_unique_edges']}**",
-        f"- +8 geometrically adjacent prepared edges: **{n['margin8_adjacent_prepared_edges']}/{n['margin8_prepare_events']}**",
+        f"- +8 adjacency-comparable preparation events: **{n['margin8_adjacency_comparable_events']}/{n['margin8_prepare_events']}**",
+        f"- +8 comparable events that are geometrically adjacent: **{n['margin8_adjacent_prepared_edges']}/{n['margin8_adjacency_comparable_events']}**",
+        f"- +8 events without a same-camera primary observation: **{n['margin8_adjacency_unobserved_events']}**",
         f"- +8 edge-compatible later-stock observations: **{n['margin8_future_stock_candidates']}**",
         f"- +8 exact later-stock payload matches: **{n['margin8_exact_future_stock_matches']}**",
         f"- +8 exact-match ratio among future-stock candidates: **{n['margin8_exact_future_stock_match_ratio']:.3%}**",
@@ -220,6 +232,7 @@ def render(r: dict) -> str:
         f"- +8 protected gameplay/camera/progression state equal: **{c['margin8_protected_state_equal']}**",
         f"- +16 stopped at stock lane capacity: **{c['margin16_stops_at_capacity']}**",
         f"- +24 stopped at stock lane capacity: **{c['margin24_stops_at_capacity']}**","",
+        "Adjacency is judged only where the native trace observed a stock primary strip at the same camera X. Events without that same-camera primary observation remain unclassified rather than being mislabeled non-adjacent; the accepted future-stock payload threshold remains independently enforced.","",
         "The cleanup balance permits exactly one terminal pending payload when the "
         "fixture exits immediately after a PREP event; ordinary runtime clears it "
         "at the next live A59A preparation boundary.","",

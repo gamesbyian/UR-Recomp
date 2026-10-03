@@ -93,14 +93,19 @@ Modern **Restart Race** is a host-product feature; the original pause flow expos
 
 `native/product/race_restart_anchor.{hpp,cpp}` owns one exact in-memory machine snapshot for the current attempt. It is intentionally ignorant of Uniracers WRAM layout. Its lifecycle owner decides when a race has reached the accepted restart boundary, then calls `capture()` once. Later `restart()` restores those exact bytes through runtime-supplied snapshot hooks.
 
-The intended native binding is the existing SNESRecomp whole-machine API:
+The first native discriminator rejected ordinary user-facing savestate semantics as the restart substrate. Capturing with `RtlSaveSnapshotToMemory()`, idling for 60 frames, restoring with `RtlLoadSnapshotFromMemory()` and replaying the same idle window reproduced the saved blob immediately but did **not** reproduce the same 60-frame future state. That negative result is retained because it shows that a one-off savestate's intentional host-clock re-anchoring is insufficient for deterministic race retry.
 
-- `RtlSaveSnapshotToMemory()` for capture;
-- `RtlLoadSnapshotFromMemory()` for restart.
+The restart binding therefore uses SNESRecomp's in-process rollback-state API instead:
 
-That path includes the machine/save-state domains already owned by the runtime instead of reconstructing race state field by field. The anchor uses the same conservative 2 MiB first-probe ceiling as the framework rewind/state tests and fails closed if capture does not fit or the runtime refuses it.
+- `RtlRollbackSnapshotBound()` to size the allocation;
+- `RtlRollbackSaveToMemory()` for capture;
+- `RtlRollbackLoadFromMemory()` for restart.
 
-For Uniracers, the current candidate lifecycle edge is the already established transition into active gameplay, `7E:0313 = 0 -> 1`, observed at a completed host frame through the title-specific `after_run_frame` hook. The exact capture frame still requires a native acceptance fixture before this becomes the shipping restart boundary. The anchor itself does not hard-code `$0313`, because state detection belongs to the title adapter rather than the storage primitive.
+Rollback snapshots carry the simulation-residue state that deterministic resimulation requires, while deliberately excluding live presentation-consumer behavior such as the audio output ring from the comparison domain. Native acceptance uses the framework's own `SnesStateDigestParts` master digest rather than raw rollback-blob identity, matching the rollback engine's documented simulation-state contract.
+
+A rewindable attempt also needs the same APU timing-ownership rule SNESRecomp already applies to netplay, run-ahead and its rollback probe. `RtlSetRewindAudioTimingLock(true)` suppresses the offline wall-clock fallback once the race anchor is established, leaving guest-frame timing authoritative until that rewindable attempt is retired. Authentic mode never enables this host policy. This is required because host elapsed time cannot be restored as part of a deterministic guest timeline.
+
+For Uniracers, the candidate lifecycle edge remains the established transition into active gameplay, `7E:0313 = 0 -> 1`, observed at a completed host frame through the title-specific `after_run_frame` hook. The focused acceptance fixture captures there, advances a fixed 60-frame idle window, restores, and requires the simulation digest after replay to match the first pass exactly. The anchor itself does not hard-code `$0313`, because state detection belongs to the title adapter rather than the storage primitive.
 
 A restart anchor is immutable for one attempt. Repeated capture requests do not silently move the restart point.
 

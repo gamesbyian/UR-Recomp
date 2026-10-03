@@ -446,7 +446,7 @@ def main() -> int:
     parser.add_argument("--list", action="store_true", help="List pinned tools and exit")
     parser.add_argument("--group", action="append", default=[], help="Install a named group (default: core)")
     parser.add_argument("--tool", action="append", default=[], help="Install one tool by id")
-    parser.add_argument("--clone-only", action="store_true", help="Fetch exact sources but skip builds/installs")
+    parser.add_argument("--clone-only", action="store_true", help="Stage exact patched sources but skip builds/installs")
     parser.add_argument("--jobs", type=int, default=max(1, os.cpu_count() or 1))
     parser.add_argument("--system-packages", action="store_true", help="Print recommended Ubuntu packages and exit")
     parser.add_argument("--validate", action="store_true", help="Validate manifest and exit")
@@ -509,9 +509,9 @@ def main() -> int:
         python: Path | None = None
         print(f"\n== {tool['id']} ==")
         dest = ensure_source(tool, src_root, island, offline=args.offline)
+        apply_patches(tool, dest)
         if args.clone_only:
             continue
-        apply_patches(tool, dest)
         if tool["install_mode"] == "manual":
             print(f"{tool['id']}: source checkout pinned; manual build/install required")
             continue

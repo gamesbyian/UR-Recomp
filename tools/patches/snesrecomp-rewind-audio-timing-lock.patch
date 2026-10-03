@@ -1,0 +1,71 @@
+--- a/runner/src/common_rtl.c
++++ b/runner/src/common_rtl.c
+@@ -129,10 +129,18 @@
+ #include "netplay/snes_rb_probe.h"
+ #endif
+ 
++static int g_rewind_audio_timing_lock;
++
++void RtlSetRewindAudioTimingLock(bool active) {
++  g_rewind_audio_timing_lock = active ? 1 : 0;
++}
++
+ /* Netplay suppresses the pre-frame wall-clock fallback below. Once frames
+  * begin, every runner uses the same guest-frame/APU coupling, and the audio
+  * callback only consumes samples without advancing emulation. */
+ static int rtl_netplay_locks_audio(void) {
++  if (g_rewind_audio_timing_lock)
++    return 1;
+ #if defined(SNESRECOMP_NET_ROLLBACK)
+   /* An armed rollback probe is held to the same rule: see snes_rb_probe.c. */
+   if (snes_rb_probe_armed())
+--- a/runner/src/common_rtl.h
++++ b/runner/src/common_rtl.h
+@@ -304,7 +304,12 @@
+  * presentation policy needed to discard stale PCM after fast-forward. */
+ void RtlAudioSetFastForward(bool active);
+ /* Reset the netplay frame-locked SPC sample accumulator (call on session start). */
+ void RtlNetplayAudioReset(void);
++/* Keep APU progression guest-frame-owned while a host-owned rewindable
++ * timeline is active. This is the same timing rule used by netplay, run-ahead
++ * and the rollback probe: once the frame loop is running, wall-clock fallback
++ * must not leak host elapsed time into state that may later be restored. */
++void RtlSetRewindAudioTimingLock(bool active);
+ bool RtlUploadSpcImageFromDp(CpuState *cpu);
+ bool RtlUploadSpcImageFromDpLive(CpuState *cpu);
+ bool RtlRunFrame(uint32 inputs);
+
+--- a/runner/src/common_rtl.c
++++ b/runner/src/common_rtl.c
+@@ -1002,5 +1002,5 @@
+ 
+ #define RTL_RB_RESIDUE_MAGIC 0x53524252u /* 'RBRS' */
+-#define RTL_RB_RESIDUE_VERSION 6u
++#define RTL_RB_RESIDUE_VERSION 7u
+ 
+ typedef struct RtlRollbackResidue {
+@@ -1012,7 +1012,8 @@
+   uint64_t apu_pace_cycles_estimate;
+   uint64_t apu_last_sync_cycles;
+   uint64_t apu_last_sync_master;
+   uint64_t apu_frame_start_master;
++  RtlApuFrameClock apu_frame_clock;
+   uint64_t main_cpu_cycles_estimate;
+   int      frame_counter;
+   uint8    apu_frame_time_valid;
+@@ -1157,7 +1158,8 @@
+   rtl_apu_pace_resync_get(&r->apu_pace_cycles_estimate,
+                           &r->apu_last_sync_cycles, &r->apu_last_sync_master,
+                           &r->apu_frame_start_master,
+                           &r->main_cpu_cycles_estimate,
+                           &r->apu_frame_time_valid);
++  r->apu_frame_clock = g_apu_frame_clock;
+   rtl_mmio_shadow_resync_get(&r->memsel, &r->last_hdmaen,
+                              &r->interp_apu_driving);
+@@ -1178,5 +1180,6 @@
+   rtl_apu_pace_resync_set(r->apu_pace_cycles_estimate, r->apu_last_sync_cycles,
+                           r->apu_last_sync_master, r->apu_frame_start_master,
+                           r->main_cpu_cycles_estimate, r->apu_frame_time_valid);
++  g_apu_frame_clock = r->apu_frame_clock;
+   rtl_mmio_shadow_resync_set(r->memsel, r->last_hdmaen,
+                              r->interp_apu_driving);

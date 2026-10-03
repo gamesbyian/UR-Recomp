@@ -28,9 +28,9 @@
  static int g_savestate_menu_hotkey;
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -196,6 +196,19 @@ int snesrecomp_desktop_frame_width(void);
- int snesrecomp_desktop_frame_height(void);
- void snesrecomp_desktop_set_widescreen(int enabled);
+@@ -202,6 +202,19 @@ void snesrecomp_desktop_set_widescreen(int enabled);
+ void snesrecomp_desktop_set_paused(int paused);
+ int snesrecomp_desktop_is_paused(void);
  
 +/* Live host presentation sync policy. These values deliberately match the
 + * desktop config's existing Off/On/Adaptive spellings while keeping title

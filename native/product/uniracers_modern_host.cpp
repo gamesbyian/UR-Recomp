@@ -29,6 +29,7 @@ ur::product::HostProductState g_product_state;
 bool g_product_state_initialized;
 std::string g_product_state_path;
 UrModernPauseMenu g_pause_menu;
+bool g_options_visible;
 bool g_controls_visible;
 bool g_run_data_visible;
 bool g_quit_confirm_visible;
@@ -173,7 +174,10 @@ bool paused() {
 }
 
 bool host_subview_visible() {
-    return g_controls_visible || g_run_data_visible || g_quit_confirm_visible;
+    return g_options_visible ||
+           g_controls_visible ||
+           g_run_data_visible ||
+           g_quit_confirm_visible;
 }
 
 UrUniracersRunData current_run_data() {
@@ -181,6 +185,10 @@ UrUniracersRunData current_run_data() {
 }
 
 void close_host_subview() {
+    if (g_options_visible) {
+        g_options_visible = false;
+        product_diagnostic("UR_PAUSE_OPTIONS CLOSED");
+    }
     if (g_controls_visible) {
         g_controls_visible = false;
         product_diagnostic("UR_PAUSE_CONTROLS CLOSED");
@@ -241,13 +249,23 @@ bool activate_pause_selection() {
     if (selected == UR_MODERN_PAUSE_FOCUS_PAUSE) {
         return toggle_focus_pause_setting();
     }
+    if (selected == UR_MODERN_PAUSE_OPTIONS) {
+        g_controls_visible = false;
+        g_run_data_visible = false;
+        g_quit_confirm_visible = false;
+        g_options_visible = true;
+        product_diagnostic("UR_PAUSE_OPTIONS OPENED");
+        return true;
+    }
     if (selected == UR_MODERN_PAUSE_CONTROLS) {
+        g_options_visible = false;
         g_run_data_visible = false;
         g_controls_visible = true;
         product_diagnostic("UR_PAUSE_CONTROLS OPENED");
         return true;
     }
     if (selected == UR_MODERN_PAUSE_RUN_DATA) {
+        g_options_visible = false;
         g_controls_visible = false;
         g_quit_confirm_visible = false;
         g_run_data_visible = true;
@@ -269,6 +287,7 @@ bool activate_pause_selection() {
         return true;
     }
     if (selected == UR_MODERN_PAUSE_QUIT) {
+        g_options_visible = false;
         g_controls_visible = false;
         g_run_data_visible = false;
         g_quit_confirm_visible = true;
@@ -312,6 +331,11 @@ extern "C" int ur_uniracers_modern_system_key_down(
     if (g_quit_confirm_visible &&
         (key == SDLK_RETURN || key == SDLK_KP_ENTER)) {
         return request_desktop_quit() ? 1 : 0;
+    }
+
+    if (g_options_visible &&
+        (key == SDLK_RETURN || key == SDLK_KP_ENTER)) {
+        return toggle_focus_pause_setting() ? 1 : 0;
     }
 
     if (host_subview_visible() && key == SDLK_ESCAPE) {
@@ -360,6 +384,10 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
 
     if (g_quit_confirm_visible && button == kGamepadBtn_A) {
         return request_desktop_quit() ? 1 : 0;
+    }
+
+    if (g_options_visible && button == kGamepadBtn_A) {
+        return toggle_focus_pause_setting() ? 1 : 0;
     }
 
     if (host_subview_visible()) {
@@ -417,6 +445,32 @@ extern "C" void ur_uniracers_modern_system_overlay(
         pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
 
     if (is_paused) {
+        if (g_options_visible) {
+            const int options_h = 84;
+            const int options_y = (height - options_h) / 2;
+            snes_ovl_fill_rect(
+                pixels, stride, height, x, options_y, panel_w, options_h,
+                0xE0202020u);
+            snes_ovl_stroke_rect(
+                pixels, stride, height, x, options_y, panel_w, options_h,
+                0xFFF0F0F0u);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, options_y + 7,
+                "OPTIONS", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, options_y + 27,
+                g_product_state.settings.pause_on_focus_loss
+                    ? "FOCUS PAUSE  ON" : "FOCUS PAUSE  OFF",
+                0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, options_y + 47,
+                "A / ENTER  TOGGLE", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, options_y + 67,
+                "B / ESC    BACK", 0xFFFFFFFFu, 1);
+            return;
+        }
+
         if (g_controls_visible) {
             const int controls_h = 99;
             const int controls_y = (height - controls_h) / 2;
@@ -536,18 +590,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
                     ? "> RESTART" : "  RESTART",
                 0xFFFFFFFFu, 1);
         }
-        const int focus_y = restart ? y + 52 : y + 37;
-        const bool focus_selected =
-            selected == UR_MODERN_PAUSE_FOCUS_PAUSE;
+        const int options_y = restart ? y + 52 : y + 37;
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, focus_y,
-            g_product_state.settings.pause_on_focus_loss
-                ? (focus_selected
-                    ? "> FOCUS PAUSE ON" : "  FOCUS PAUSE ON")
-                : (focus_selected
-                    ? "> FOCUS PAUSE OFF" : "  FOCUS PAUSE OFF"),
+            pixels, stride, height, x + 8, options_y,
+            selected == UR_MODERN_PAUSE_OPTIONS
+                ? "> OPTIONS" : "  OPTIONS",
             0xFFFFFFFFu, 1);
-        const int controls_y = focus_y + 15;
+        const int controls_y = options_y + 15;
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, controls_y,
             selected == UR_MODERN_PAUSE_CONTROLS

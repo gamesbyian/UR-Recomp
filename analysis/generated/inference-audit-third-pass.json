@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "scope": "third-pass inference audit over the post-#239/#241 racer-native seams, recovered Widescreen scene policy, closed gameplay-authored progression acceptance, and the latest native Restart Race negative",
   "findings": [
     {
@@ -140,6 +140,38 @@
       "Widescreen beyond +8 should investigate queue/lane capacity only after the +8 adjacency exceptions are explained.",
       "Modern autosave/profile work should preserve guest SRAM as the authoritative progression substrate."
     ],
-    "canonical_status_note": "IA3-R01 and the detailed native-hook observations in IA3-W02 are retained run evidence from still-open PRs and must not be mistaken for merged implementation acceptance."
+    "canonical_status_note": "IA3-R01 and IA3-W02 preserve the original third-pass evidence, with their 2026-10-03 resolutions recorded in subsequent_disposition.",
+    "current_runtime_admission": [
+      "HD racer pixel substitution can proceed on the read-only semantic-identity/live-placement seam.",
+      "Restart Race runtime restore/replay semantics are accepted; remaining work is product/UI integration.",
+      "+8 native Widescreen preparation is accepted and merged; +16/+24 require a deliberate larger presentation-capacity seam.",
+      "Modern autosave/profile work should preserve guest SRAM as the authoritative progression substrate."
+    ]
+  },
+  "subsequent_disposition": {
+    "date": "2026-10-03",
+    "findings": {
+      "IA3-R01": {
+        "status": "resolved",
+        "merged_pr": 235,
+        "acceptance_workflow_run": 37080761750,
+        "root_cause": "SNESRecomp rollback residue restored APU pacing counters but omitted the extended RtlApuFrameClock; residue v7 now captures/restores it",
+        "durable_rule": "Immediate snapshot equality is insufficient; Restart Race acceptance requires deterministic forward replay."
+      },
+      "IA3-W02": {
+        "status": "resolved-for-plus8",
+        "merged_pr": 228,
+        "acceptance_workflow_run": 37081391730,
+        "root_cause": "The 11 apparent adjacency failures came from comparing the full edge word; low five bits are the 32-column VRAM-ring coordinate and upper bits may change at resource/segment boundaries.",
+        "accepted_plus8": {
+          "prepare_events": 617,
+          "ring_adjacent_events": 617,
+          "exact_later_stock_payload_matches": 317,
+          "longest_consecutive_exact_match_run": 25,
+          "protected_state_equal": true
+        },
+        "remaining_boundary": "+16/+24 still require more than the one spare secondary horizontal lane and remain a presentation-capacity extension problem."
+      }
+    }
   }
 }

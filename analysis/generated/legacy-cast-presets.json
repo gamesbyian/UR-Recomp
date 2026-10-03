@@ -42,7 +42,12 @@
   "note": "remaining entries are a shared grey/black chassis; entries 8, 14 and 15 vary slightly for a few racers"
  },
  "default_names_are_renameable": "RENAME PLAYER edits names in battery SRAM; values here are clean-boot defaults",
- "legacy_opponents_not_listed": "Bronsen, Silverton and Goldwyn are not in the selectable roster",
+ "name_table": {
+  "rom": "83:800C",
+  "record_bytes": 16,
+  "sram_copy_offset": "0x000C",
+  "note": "indices 0..20 are names; later records are League slots ('define_me')"
+ },
  "racers": [
   {
    "rider_index": 0,
@@ -1213,13 +1218,169 @@
    "colour_label_derived": "blue"
   }
  ],
+ "non_selectable_identities": [
+  {
+   "rider_index": 16,
+   "role": "record-holder placeholder (rendered as RECORD: SOMEONE on a clean NOW PLAYING card)",
+   "default_name": "SOMEONE",
+   "race_palette": {
+    "asset_id_hex": "0x16",
+    "table_entry_snes": "82:B39D",
+    "source_snes": "04:8380",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x6B5B",
+     "0x39CE",
+     "0x5AD6",
+     "0x318C",
+     "0x4A52",
+     "0x3DEF",
+     "0x5294",
+     "0x7BDF",
+     "0x5EF7",
+     "0x35AD",
+     "0x6F7B",
+     "0x2108",
+     "0x7FFF",
+     "0x14A5",
+     "0x0000"
+    ],
+    "payload_sha256": "dc19e3f415349382ca580033df6a25a9ccee6911d702ee347bcb718a40181c25"
+   }
+  },
+  {
+   "rider_index": 17,
+   "role": "Bronze-tier opponent (runtime: P2 slot $017F=17 with palette asset 0x17 in the Bronze Dragster race)",
+   "default_name": "BRONSEN",
+   "race_palette": {
+    "asset_id_hex": "0x17",
+    "table_entry_snes": "82:B3A2",
+    "source_snes": "04:83A0",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x739C",
+     "0x1174",
+     "0x5EF7",
+     "0x1152",
+     "0x4A53",
+     "0x1196",
+     "0x0DB7",
+     "0x7FFF",
+     "0x0E1A",
+     "0x39CE",
+     "0x26DD",
+     "0x2529",
+     "0x46DB",
+     "0x18C6",
+     "0x0000"
+    ],
+    "payload_sha256": "45fcaec6849e38e57046a444140508244ed1fc53d8ed521990a9176dbbfb0a56"
+   }
+  },
+  {
+   "rider_index": 18,
+   "role": "Silver-tier opponent (inferred from table order and silver palette; not runtime-verified)",
+   "default_name": "SILVIA",
+   "race_palette": {
+    "asset_id_hex": "0x18",
+    "table_entry_snes": "82:B3A7",
+    "source_snes": "04:83C0",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x739C",
+     "0x49EE",
+     "0x5EF7",
+     "0x4E30",
+     "0x4E73",
+     "0x4E2E",
+     "0x5671",
+     "0x7FFF",
+     "0x6B15",
+     "0x39CE",
+     "0x7BBC",
+     "0x2529",
+     "0x7778",
+     "0x18C6",
+     "0x0000"
+    ],
+    "payload_sha256": "e1f7bd6ca99d90433586815037afe9b5bc60e23b6e34dd4b6821a09d9d08d1c3"
+   }
+  },
+  {
+   "rider_index": 19,
+   "role": "Gold-tier opponent (inferred from table order and gold palette; not runtime-verified)",
+   "default_name": "GOLDWYN",
+   "race_palette": {
+    "asset_id_hex": "0x19",
+    "table_entry_snes": "82:B3AC",
+    "source_snes": "04:83E0",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x739C",
+     "0x11F6",
+     "0x5EF7",
+     "0x1E37",
+     "0x4E73",
+     "0x1E9C",
+     "0x0E7E",
+     "0x7FFF",
+     "0x1EBC",
+     "0x39CE",
+     "0x3B7F",
+     "0x2529",
+     "0x277E",
+     "0x18C6",
+     "0x0000"
+    ],
+    "payload_sha256": "49158e78a8479bc21c65bcfc8b9f6277fa23306a8e74f8abfa3f7b800c85a33f"
+   }
+  },
+  {
+   "rider_index": 20,
+   "role": "Anti-Uni (role and palette format not runtime-verified; asset 0x1A is not a racer-format palette)",
+   "default_name": "ANTI-UNI",
+   "race_palette": {
+    "asset_id_hex": "0x1A",
+    "table_entry_snes": "82:B3B1",
+    "source_snes": "04:8400",
+    "length": 32,
+    "bgr555_words": [
+     "0x318C",
+     "0x0004",
+     "0x0424",
+     "0x0C66",
+     "0x0425",
+     "0x18CA",
+     "0x0427",
+     "0x0C67",
+     "0x0422",
+     "0x042C",
+     "0x18CB",
+     "0x14AE",
+     "0x2110",
+     "0x2115",
+     "0x35B4",
+     "0x3E13"
+    ],
+    "payload_sha256": "a8d2de3b96ccc5a277cb3ffecaa92006913197e0887ccb76f27a7a25d41d6d8e"
+   }
+  }
+ ],
  "checks": {
   "sixteen_default_names_decoded": true,
   "names_unique": true,
   "body_ramp_entries_are_the_varying_set": true,
   "rider_select_icons_use_race_palettes_8_15": true,
   "grid_rule_matches_confirmations": true,
-  "selection_state_player_select": true
+  "selection_state_player_select": true,
+  "roster_names_match_rom_name_table": true,
+  "race_p2_slot_holds_bronze_opponent_17": true,
+  "race_p2_palette_is_asset_0x17": true,
+  "race_p1_palette_is_rider_asset": true
  },
  "all_checks_pass": true
 }

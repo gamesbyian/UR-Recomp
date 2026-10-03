@@ -76,7 +76,7 @@ Plan for a modern racer/profile model in which:
 - body color and any later-supported cosmetic dimensions are chosen independently;
 - every original named/color combination is available as a faithful preset;
 - original racers may also appear as AI opponents, ghosts, tournament entrants or other appropriate legacy cast roles;
-- Bronsen, Silverton and Goldwyn remain preserved as named opponents even if Bronze/Silver/Gold progression is redesigned.
+- Bronsen, Silvia and Goldwyn remain preserved as named opponents even if Bronze/Silver/Gold progression is redesigned.
 
 The exact customization surface should wait for Phase E asset/animation understanding so cosmetic freedom does not accidentally invalidate sprite-state fidelity.
 

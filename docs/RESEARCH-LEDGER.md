@@ -1944,4 +1944,21 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 
 **Interpretation:** A classic preset is fully specified by its rider index: default name, grid slot, medal column and exact palette. Modern racer presets, ghosts and AI cast can key on that index without new archaeology.
 
-**Uncertainty:** Default names are clean-boot values; RENAME PLAYER stores edits in SRAM, at an SRAM offset not yet mapped. The menu HDMA table decode (`00:CD36/00:CD73`) was not completed; it was unnecessary once the end-of-frame cross-check matched. Bronsen, Silverton and Goldwyn are not in this roster.
+**Uncertainty:** Default names are clean-boot values; the editable copy is the SRAM name table at offset `0x000C` (R-2026-10-03-UI-06). The menu HDMA table decode (`00:CD36/00:CD73`) was not completed; it was unnecessary once the end-of-frame cross-check matched. The tier opponents are covered in R-2026-10-03-UI-06.
+
+### R-2026-10-03-UI-06 — Tier opponents are rider indices 17–19; the silver opponent is Silvia
+
+**Status:** Bronsen reproduced at runtime; Silvia/Goldwyn roles inferred  
+**Date:** 2026-10-03  
+**Area:** racer identity | progression | frontend
+
+**Observation:**
+- **Name table:** the default player-name table at ROM `83:800C` uses 16-byte records (8 lowercase chars with `_` padding, `FF FF`, padding). It holds indices 0..15 for the selectable racers, then 16 `someone`, 17 `bronsen`, 18 `silvia`, 19 `goldwyn`, 20 `anti-uni`, then League `define_me` slots. A clean-boot SRAM image holds the identical table at offset `0x000C`, and all 16 rider-select names match it.
+- **Bronze race:** on the Bronze Crawler Dragster race the NOW PLAYING card shows `MIKE VS BRONSEN` and `RECORD: SOMEONE`. In race, `$017F` (the P2 racer slot) is 17 and CGRAM `$C0` equals palette asset `0x17` byte-for-byte, so the CPU opponent occupies the ordinary P2 racer identity/palette path.
+- **Palettes:** assets `0x17/0x18/0x19` use a brighter chassis than the 16 racer palettes, with bronze/orange, silver-white and gold ramps.
+
+**Evidence:** `tests/input/menu-visual-language.script` (extended through NOW PLAYING and race entry); `tools/build_legacy_cast_presets.py` → `non_selectable_identities` and checks in `analysis/generated/legacy-cast-presets.json`.
+
+**Interpretation:** The planning docs' "Silverton" is not the shipped name; the ROM table and its SRAM copy say `silvia`. Preserving the legacy opponents means preserving indices 17–19, their names and palettes, and their use of the P2 racer slot.
+
+**Uncertainty:** Silvia/Goldwyn as Silver/Gold-tier opponents and Anti-Uni's role are inferred from table order and palettes, not observed in a Silver/Gold/Hunter race. The opponent-selection code was not traced.

@@ -879,6 +879,20 @@
     "baseline_quiet": true,
     "onset_offset_frames": 2,
     "duration_frames": null
+   },
+   {
+    "press_frame": 1030,
+    "button": "a",
+    "baseline_quiet": false,
+    "onset_offset_frames": 0,
+    "duration_frames": null
+   },
+   {
+    "press_frame": 1095,
+    "button": "a",
+    "baseline_quiet": false,
+    "onset_offset_frames": 0,
+    "duration_frames": 35
    }
   ],
   "unresolved": "SFX identity: this snesref core exposes neither APU RAM nor DSP registers, and per-frame WRAM sampling misses the transient request; a burst that never falls silent means the music itself diverged (e.g. a stolen voice)"

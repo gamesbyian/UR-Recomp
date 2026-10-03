@@ -79,7 +79,7 @@ The strongest current candidates for **modern product-layer simplification** are
 - named/color-coded racers should no longer double as save slots;
 - modern players should be able to create/name/customize a racer independently of profile/save storage;
 - all original named/color combinations remain faithful presets and may also be promoted into AI/ghost/tournament cast roles;
-- Bronsen, Silverton and Goldwyn remain named legacy opponents even if medal-tier progression changes;
+- Bronsen, Silvia and Goldwyn remain named legacy opponents even if medal-tier progression changes (the ROM default-name table at `83:800C` spells the silver opponent `silvia`; earlier project notes said "Silverton");
 - League setup/player-management should be evaluated for a much simpler modern tournament path while preserving the original League flow as reference behavior;
 - Bronze/Silver/Gold repeated-tour requirements should be evaluated for performance-based medal awarding or selectable challenge tiers rather than mandatory replay;
 - unfinished-tour persistence is already partly stock behavior: the battery-SRAM tour-win counter survives power-off and resumes (R-2026-10-03-UI-01), so Modern mode preserves and surfaces it rather than replacing a supposed session loss;

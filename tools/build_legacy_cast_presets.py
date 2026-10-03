@@ -39,6 +39,18 @@ LABEL_ENTRY = 9
 LEFT_COLUMN_PX, RIGHT_COLUMN_PX = 40, 152
 # Grid confirmations run separately (see module docstring): (row, column) -> $017D.
 CONFIRMED_INDICES = {(0, 0): 0, (0, 1): 1, (1, 0): 2, (2, 0): 4, (7, 1): 15}
+# Default player-name table: 16-byte records (8 lowercase chars, '_' padding, FF FF).
+# The game copies it to battery SRAM offset 0x000C at format time.
+NAME_TABLE = (0x83, 0x800C)
+NAME_RECORD = 16
+NAME_TABLE_SRAM_OFFSET = 0x000C
+EXTRA_IDENTITIES = {
+    16: "record-holder placeholder (rendered as RECORD: SOMEONE on a clean NOW PLAYING card)",
+    17: "Bronze-tier opponent (runtime: P2 slot $017F=17 with palette asset 0x17 in the Bronze Dragster race)",
+    18: "Silver-tier opponent (inferred from table order and silver palette; not runtime-verified)",
+    19: "Gold-tier opponent (inferred from table order and gold palette; not runtime-verified)",
+    20: "Anti-Uni (role and palette format not runtime-verified; asset 0x1A is not a racer-format palette)",
+}
 
 
 def lorom(bank: int, addr: int) -> int:
@@ -58,6 +70,12 @@ def palette_asset(rom: bytes, asset_id: int) -> dict:
         "bgr555_words": [f"0x{data[i] | data[i + 1] << 8:04X}" for i in range(0, length, 2)],
         "payload_sha256": hashlib.sha256(data).hexdigest(),
     }
+
+
+def default_names(rom: bytes, count: int) -> list[str]:
+    base = lorom(*NAME_TABLE)
+    return [rom[base + NAME_RECORD * i:base + NAME_RECORD * i + 8].decode("latin1").rstrip("_")
+            for i in range(count)]
 
 
 def rgb(word: int) -> list[int]:
@@ -112,6 +130,18 @@ def build(dump_dir: Path, rom: bytes) -> dict:
             "body_ramp_rgb": [rgb(int(asset["bgr555_words"][k], 16)) for k in BODY_RAMP_ENTRIES],
             "colour_label_derived": colour_label(mid),
         })
+    table_names = default_names(rom, 21)
+    race = mvl.series(dump_dir, "race")[-1]
+    rcg = race.cgram
+
+    def cg_words(start: int) -> list[str]:
+        return [f"0x{rcg[2 * (start + k)] | rcg[2 * (start + k) + 1] << 8:04X}" for k in range(16)]
+
+    opponents = []
+    for index, role in EXTRA_IDENTITIES.items():
+        asset = palette_asset(rom, FIRST_RACER_PALETTE_ASSET + index)
+        opponents.append({"rider_index": index, "role": role, "default_name": table_names[index].upper(),
+                          "race_palette": asset})
     words = [r["race_palette"]["bgr555_words"] for r in racers]
     varying = [k for k in range(16) if len({w[k] for w in words}) > 1]
     checks = {
@@ -123,6 +153,10 @@ def build(dump_dir: Path, rom: bytes) -> dict:
             end_of_frame_obj[p][1:] == words[8 + p][1:] for p in range(8)),
         "grid_rule_matches_confirmations": all(2 * r + c == i for (r, c), i in CONFIRMED_INDICES.items()),
         "selection_state_player_select": rider.wram[0x9F] == 0x3C,
+        "roster_names_match_rom_name_table": [r["default_name"] for r in racers] == [n.upper() for n in table_names[:16]],
+        "race_p2_slot_holds_bronze_opponent_17": race.wram[0x313] == 1 and race.wram[0x17F] == 17,
+        "race_p2_palette_is_asset_0x17": cg_words(0xC0)[1:] == opponents[1]["race_palette"]["bgr555_words"][1:],
+        "race_p1_palette_is_rider_asset": cg_words(0xB0)[1:] == words[race.wram[0x17D]][1:],
     }
     return {
         "schema_version": 1,
@@ -140,8 +174,10 @@ def build(dump_dir: Path, rom: bytes) -> dict:
             "note": "remaining entries are a shared grey/black chassis; entries 8, 14 and 15 vary slightly for a few racers",
         },
         "default_names_are_renameable": "RENAME PLAYER edits names in battery SRAM; values here are clean-boot defaults",
-        "legacy_opponents_not_listed": "Bronsen, Silverton and Goldwyn are not in the selectable roster",
+        "name_table": {"rom": "83:800C", "record_bytes": NAME_RECORD, "sram_copy_offset": f"0x{NAME_TABLE_SRAM_OFFSET:04X}",
+                       "note": "indices 0..20 are names; later records are League slots ('define_me')"},
         "racers": racers,
+        "non_selectable_identities": opponents,
         "checks": checks,
         "all_checks_pass": all(checks.values()),
     }

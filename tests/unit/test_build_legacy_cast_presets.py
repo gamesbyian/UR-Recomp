@@ -19,6 +19,20 @@ class LegacyCastPresetTests(unittest.TestCase):
         self.assertEqual(asset["table_entry_snes"], "82:B34D")
         self.assertEqual(asset["bgr555_words"], ["0x318C", "0x0898"])
 
+    def test_default_names_read_sixteen_byte_records(self) -> None:
+        rom = bytearray(0x20000)
+        base = cast.lorom(0x83, 0x800C)
+        for i, name in enumerate(["mike", "andrew", "silvia"]):
+            rec = name.ljust(8, "_").encode() + b"\xff\xff" + b"_" * 6
+            rom[base + 16 * i:base + 16 * i + 16] = rec
+        self.assertEqual(cast.default_names(bytes(rom), 3), ["mike", "andrew", "silvia"])
+
+    def test_canonical_rom_name_table(self) -> None:
+        rom = cast.ROM.read_bytes()
+        names = cast.default_names(rom, 21)
+        self.assertEqual(names[:2], ["mike", "andrew"])
+        self.assertEqual(names[16:21], ["someone", "bronsen", "silvia", "goldwyn", "anti-uni"])
+
     def test_colour_labels(self) -> None:
         self.assertEqual(cast.colour_label(0x0898), "red")     # MIKE mid-ramp
         self.assertEqual(cast.colour_label(0x6062), "blue")    # ANDREW

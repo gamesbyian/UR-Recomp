@@ -430,4 +430,13 @@ press a 2
 until 009F == F6 1200
 wait 60
 dump mvl-track-000
+# Continue to the NOW PLAYING card and race entry (Bronze-tier opponent in the P2 slot).
+press a 2
+until 009F == 16 1200
+wait 60
+dump mvl-nowplaying-000
+press a 2
+until 0313 == 01 1800
+wait 90
+dump mvl-race-000
 quit

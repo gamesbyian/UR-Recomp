@@ -18,7 +18,11 @@ ROW_RE=lambda tag: re.compile(
 PREP16_RE=ROW_RE(r"URWS_PREP16")
 SHADOW16_RE=re.compile(
     r"URWS_SHADOW16 provider=course-runtime camx=(\d+) edge=([0-9A-Fa-f]{4}) "
-    r"count=(\d+) payload=([0-9A-Fa-f]{64})"
+    r"count=(\d+) payload=([0-9A-Fa-f]{64})(?: camy=(\d+))?"
+)
+PRIMARY_Y_RE=re.compile(
+    r"URWS_PRIMARY margin=0 camx=(\d+) edge=([0-9A-Fa-f]{4}) count=(\d+) "
+    r"payload=([0-9A-Fa-f]{64})(?: camy=(\d+))?"
 )
 PRIMARY_VIEW_RE=re.compile(
     r"URWS_PRIMARY margin=0 camx=(\d+) edge=([0-9A-Fa-f]{4}) count=(\d+) "
@@ -38,12 +42,19 @@ LIMIT24_RE=re.compile(
 )
 
 def rows(rx:re.Pattern[str], text:str)->list[dict]:
-    return [
-        {"camx":int(c),"edge":int(e,16),"count":int(n),"payload":p.upper()}
-        for c,e,n,p in rx.findall(text)
-    ]
+    out=[]
+    for match in rx.findall(text):
+        c,e,n,p,*rest=match
+        row={"camx":int(c),"edge":int(e,16),"count":int(n),"payload":p.upper()}
+        if rest and rest[0]:
+            row["camy"]=int(rest[0])
+        out.append(row)
+    return out
 
 def stock_primary(text:str)->list[dict]:
+    rich=rows(PRIMARY_Y_RE,text)
+    if rich:
+        return [r for r in rich if r["edge"]!=0xffff and r["count"]==16]
     out=[]
     for mm,c,e,n,p in BASE.PRIMARY_RE.findall(text):
         if int(mm)==0 and int(n)==16 and int(e,16)!=0xffff:
@@ -166,8 +177,13 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
             r for r in oracle
             if r["camx"]>first["camx"] and (r["edge"]&0x1f)==wanted_ring
         ]
-        if candidates:
-            best=min(candidates,key=lambda r:r["camx"]-first["camx"])
+        same_y=[
+            r for r in candidates
+            if second.get("camy") is not None and r.get("camy")==second.get("camy")
+        ]
+        if same_y:
+            oracle_same_y_comparable+=1
+            best=min(same_y,key=lambda r:r["camx"]-first["camx"])
             payload_exact=best["payload"]==second["payload"]
             full_edge_exact=best["edge"]==second["edge"]
             if payload_exact:
@@ -187,6 +203,8 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
                         "full_edge_exact":full_edge_exact,
                         "payload":second["payload"],
                     })
+        elif candidates:
+            oracle_vertical_transition_skips+=1
 
     shadow_view_by_cam={r["camx"]:r for r in shadow_views}
     for first in p16:
@@ -284,6 +302,8 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
             "plus8_prepare_events":len(p8),
             "plus16_first_column_events":len(p16),
             "plus16_shadow_events":len(shadow),
+            "plus16_oracle_same_y_comparable":oracle_same_y_comparable,
+            "plus16_oracle_vertical_transition_skips":oracle_vertical_transition_skips,
             "plus16_oracle_payload_exact_matches":oracle_payload_exact,
             "plus16_oracle_full_edge_exact_matches":oracle_full_edge_exact,
             "plus16_same_view_comparable_rows":same_view_comparable,
@@ -316,7 +336,9 @@ def render(r:dict)->str:
         f"- accepted +8 unchanged: **{c['accepted_plus8_unchanged']}**",
         f"- +16 first-column events: **{n['plus16_first_column_events']}**",
         f"- +16 host-shadow events: **{n['plus16_shadow_events']}**",
-        f"- exact later-stock shadow payload matches: **{n['plus16_oracle_payload_exact_matches']}**",
+        f"- same-Y oracle-comparable shadow events: **{n['plus16_oracle_same_y_comparable']}**",
+        f"- vertical-transition oracle skips: **{n['plus16_oracle_vertical_transition_skips']}**",
+        f"- exact same-Y later-stock shadow payload matches: **{n['plus16_oracle_payload_exact_matches']}**",
         f"- exact later-stock compound-edge + payload matches (all rows, diagnostic): **{n['plus16_oracle_full_edge_exact_matches']}**",
         f"- same-view comparable shadow rows: **{n['plus16_same_view_comparable_rows']}**",
         f"- same-view exact payload matches: **{n['plus16_same_view_payload_exact_matches']}**",

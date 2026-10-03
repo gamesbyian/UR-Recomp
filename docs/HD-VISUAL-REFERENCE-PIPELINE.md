@@ -120,7 +120,7 @@ Retained dossier comparison proves the frame-1217 P1 stock raster is byte-for-by
 
 This establishes an additional pipeline rule: **do not equate exact-state registration count with required art count**. When independently registered contexts reconstruct to identical stock pixels and geometry, one reviewed authored asset should be reused under multiple exact guards. The repeated frame-1215/1216 P1 representation `057F/0542 + 0D4A/0000` is now the next authored visual change. Both temporal occurrences consume one 4x asset; gameplay-scale review is locked to the recovered stock envelope `[22,2]..[41,38]` and contact `[65,76]`, while material, lighting and edge treatment remain inherited from the reviewed sequence.
 
-This extends the **first motion-reviewed sequence to four visual poses plus one context reuse**, pending native/artifact acceptance for the new repeated pose, and still does not constitute final shipping-art approval. Recovered gameplay-scale envelope/contact and temporal continuity remain acceptance constraints, while smooth geometry/material interpretation stays free inside those constraints.
+Native run `37159887643` closes that repeated-pose step through live top/bottom split-screen presentation with no guest-state mutation; artifact `11286898413` retains the dossier. Review measures 264/384 alpha intersection/union (IoU `0.6875`). This extends the **first motion-reviewed sequence to four visual poses plus one context reuse**, while still not constituting final shipping-art approval. Recovered gameplay-scale envelope/contact and temporal continuity remain acceptance constraints, while smooth geometry/material interpretation stays free inside those constraints.
 
 ## Reconstruction decision policy
 

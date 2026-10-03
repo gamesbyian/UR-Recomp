@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "retained_from": {
+    "workflow_run": 37100420673,
+    "artifact_id": 11266750089,
+    "artifact_name": "widescreen-native-hook-evidence",
+    "artifact_sha256": "528c730955d6df09f2014a6e11775bc764e284e7e66cbe47766dcd4c6b821e44"
+  },
+  "architecture": {
+    "stock_4_3_control": "untouched",
+    "guest_column_1": "accepted PR #228 secondary lane",
+    "host_columns": "columns +2 and beyond",
+    "provider": "live 7F:000F coarse table + 7F:800F packed-surface fine records",
+    "synthetic_guest_descriptor_lanes": 0,
+    "inactive_vertical_fallback": "camy >> 4",
+    "aspect_policy_status": "unresolved; this is capacity evidence, not a hard-coded 16:9 source width"
+  },
+  "margins": {
+    "16": {
+      "host_columns": 1,
+      "host_rows": 617,
+      "same_view_exact": "599/599",
+      "vertical_transitions": 18,
+      "unmatched": 0,
+      "provider_misses": 0,
+      "accepted": true
+    },
+    "24": {
+      "host_columns": 2,
+      "host_rows": 1234,
+      "same_view_exact": "1197/1197",
+      "vertical_transitions": 37,
+      "unmatched": 0,
+      "provider_misses": 0,
+      "accepted": true
+    },
+    "32": {
+      "host_columns": 3,
+      "host_rows": 1851,
+      "same_view_exact": "1796/1796",
+      "vertical_transitions": 55,
+      "unmatched": 0,
+      "provider_misses": 0,
+      "accepted": true
+    },
+    "48": {
+      "host_columns": 5,
+      "host_rows": 3085,
+      "same_view_exact": "2989/2989",
+      "vertical_transitions": 96,
+      "unmatched": 0,
+      "provider_misses": 0,
+      "accepted": true
+    },
+    "64": {
+      "host_columns": 7,
+      "host_rows": 4319,
+      "same_view_exact": "4180/4180",
+      "vertical_transitions": 139,
+      "unmatched": 0,
+      "provider_misses": 0,
+      "accepted": true
+    }
+  },
+  "deepest_accepted_margin_pixels": 64,
+  "deepest_accepted_host_columns": 7,
+  "accepted": true
+}

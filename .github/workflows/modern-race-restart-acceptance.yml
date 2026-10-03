@@ -9,10 +9,14 @@ on:
       - "native/product/race_restart_lifecycle.*"
       - "native/product/modern_session_runtime.*"
       - "native/product/modern_session_c_api.*"
+      - "tools/patches/snesrecomp-title-key-hook.patch"
+      - "tools/toolchain.json"
       - "native/title/uniracers_restart_policy.*"
       - "tools/patch_modern_restart_probe_host.py"
       - "tests/unit/test_patch_modern_restart_probe_host.py"
       - "tests/unit/test_modern_session_runtime_cpp.py"
+      - "tests/unit/test_modern_session_key_input_cpp.py"
+      - "tests/native/modern_session_key_input_test.cpp"
       - "tests/native/modern_session_runtime_test.cpp"
       - "tests/unit/test_persistent_restart_restore_cpp.py"
       - "tests/unit/test_uniracers_restart_policy_cpp.py"
@@ -86,6 +90,8 @@ jobs:
 
           grep -q "UR_RESTART_PROBE captured=1" "$ROOT/src/main.c"
           grep -q "UrRestartProbeAfterRunFrame" "$ROOT/src/main.c"
+          grep -q "UrModernSystemKeyDown" "$ROOT/src/main.c"
+          grep -q "system_key_down" "$ROOT/src/main.c"
           grep -q "modern_session_c_api.cpp" "$ROOT/CMakeLists.txt"
           grep -q "uniracers_restart_policy.cpp" "$ROOT/CMakeLists.txt"
           grep -q "snes_state_digest.c" "$ROOT/CMakeLists.txt"
@@ -94,6 +100,7 @@ jobs:
         run: |
           python3 -m unittest \
             tests.unit.test_modern_session_runtime_cpp \
+            tests.unit.test_modern_session_key_input_cpp \
             tests.unit.test_persistent_restart_restore_cpp \
             tests.unit.test_uniracers_restart_policy_cpp \
             tests.unit.test_patch_modern_restart_probe_host
@@ -131,6 +138,7 @@ jobs:
 
           cat "$LOG"
           test "$STATUS" -eq 0
+          grep -q "UR_SESSION_KEY PASS pause_resume_host_gate=1" "$LOG"
           grep -q "UR_RESTART_PROBE captured=1" "$LOG"
           grep -q "UR_RESTART_PROBE restart1_applied=1 immediate_equal=1 sram_progression_unchanged=1" "$LOG"
           grep -q "UR_RESTART_PROBE restart2_applied=1 immediate_equal=1 sram_progression_unchanged=1" "$LOG"

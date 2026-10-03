@@ -1,6 +1,6 @@
 # Uniracers Modern Port Plan
 
-Last updated: 2026-10-02
+Last updated: 2026-10-03
 
 This is the canonical product-development plan for turning the original SNES Uniracers / Unirally into a faithful modern native port.
 
@@ -114,7 +114,7 @@ The following are **must-do modern product requirements** unless later technical
 
 These requirements should be implemented at the layer that owns them. Do not move timing, ghost, replay, menu or accessibility concerns into the original simulation when host/runtime policy can provide them cleanly.
 
-The first project-owned modern product seam is defined in `MODERN-PRODUCT-LAYER.md`: host profile selection and typed host settings live in an isolated, versioned host-state envelope with an explicit Authentic/Modern policy switch. Authentic mode grants no host-profile, host-setting or modern-command authority. The envelope deliberately contains no WRAM/SRAM, racer-slot, medal, course or simulation state; future pause/restart, autosave, records, ghosts and racer identity should attach through narrow host/runtime interfaces rather than expanding cartridge-era save semantics. Pause is now bound to the existing host frame gate, and Restart Race has a project-owned exact-snapshot anchor/dispatch contract; the latter is not considered implemented until a deterministic Uniracers race-entry capture/restore fixture validates the title-specific lifecycle edge.
+The first project-owned modern product seam is defined in `MODERN-PRODUCT-LAYER.md`: host profile selection and typed host settings live in an isolated, versioned host-state envelope with an explicit Authentic/Modern policy switch. Authentic mode grants no host-profile, host-setting or modern-command authority. The envelope deliberately contains no WRAM/SRAM, racer-slot, medal, course or simulation state; future pause/restart, autosave, records, ghosts and racer identity should attach through narrow host/runtime interfaces rather than expanding cartridge-era save semantics. Pause is bound to the existing host frame gate. Restart Race now also has an accepted deterministic runtime substrate: the project-owned race-entry anchor uses SNESRecomp rollback snapshots, and workflow run `37080761750` proves exact restore plus a 60-frame forward replay from the Uniracers active-race edge after restoring the extended APU frame clock in rollback residue. Product/UI wiring remains separate from that runtime acceptance.
 
 ### Decide when the relevant subsystem is mature
 

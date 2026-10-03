@@ -1416,11 +1416,13 @@
             }
           },
           {
-            "checkpoint": "native-dense-trace-1304-and-1384",
+            "checkpoint": "native-dense-trace-1304-and-1382-through-1384",
             "workflow_run": 37091767790,
             "artifact_id": 11262604464,
             "frames": [
               1304,
+              1382,
+              1383,
               1384
             ],
             "ids": {
@@ -1437,7 +1439,7 @@
               "p1": "0x0001",
               "p2": "0x0000"
             },
-            "source": "dense post-guest-frame WRAM trace; exact tuple repeats at both frames"
+            "source": "dense post-guest-frame WRAM trace; exact tuple occurs at frame 1304 and frames 1382-1384"
           }
         ]
       }

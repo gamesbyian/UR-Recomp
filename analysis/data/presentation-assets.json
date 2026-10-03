@@ -1499,6 +1499,31 @@
               "p2": "0x0000"
             },
             "source": "dense post-guest-frame WRAM trace; alternate active P1 companion context occurs at five frames"
+          },
+          {
+            "checkpoint": "native-dense-trace-1302-1303-and-1381",
+            "workflow_run": 37094874533,
+            "artifact_id": 11264280442,
+            "frames": [
+              1302,
+              1303,
+              1381
+            ],
+            "ids": {
+              "p1_primary": "0x057D",
+              "p2_primary": "0x0542",
+              "p1_companion": "0x0D48",
+              "p2_companion": "0x0000"
+            },
+            "selectors": {
+              "p1": 0,
+              "p2": 0
+            },
+            "companion_gate_words": {
+              "p1": "0x0001",
+              "p2": "0x0000"
+            },
+            "source": "dense post-guest-frame WRAM trace; predecessor state occurs at frames 1302-1303 and 1381"
           }
         ]
       }

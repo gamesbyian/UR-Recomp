@@ -21,6 +21,8 @@ UrModernPauseItem normalized_selection(
         return UR_MODERN_PAUSE_CONTROLS;
     case UR_MODERN_PAUSE_RUN_DATA:
         return UR_MODERN_PAUSE_RUN_DATA;
+    case UR_MODERN_PAUSE_QUIT:
+        return UR_MODERN_PAUSE_QUIT;
     default:
         return UR_MODERN_PAUSE_RESUME;
     }
@@ -59,13 +61,16 @@ extern "C" void ur_modern_pause_menu_move(
                 menu->selected = UR_MODERN_PAUSE_RUN_DATA;
                 break;
             case UR_MODERN_PAUSE_RUN_DATA:
+                menu->selected = UR_MODERN_PAUSE_QUIT;
+                break;
+            case UR_MODERN_PAUSE_QUIT:
                 menu->selected = UR_MODERN_PAUSE_RESUME;
                 break;
             }
         } else {
             switch (current) {
             case UR_MODERN_PAUSE_RESUME:
-                menu->selected = UR_MODERN_PAUSE_RUN_DATA;
+                menu->selected = UR_MODERN_PAUSE_QUIT;
                 break;
             case UR_MODERN_PAUSE_RESTART:
                 menu->selected = UR_MODERN_PAUSE_RESUME;
@@ -79,6 +84,9 @@ extern "C" void ur_modern_pause_menu_move(
             case UR_MODERN_PAUSE_RUN_DATA:
                 menu->selected = UR_MODERN_PAUSE_CONTROLS;
                 break;
+            case UR_MODERN_PAUSE_QUIT:
+                menu->selected = UR_MODERN_PAUSE_RUN_DATA;
+                break;
             }
         }
         return;
@@ -91,11 +99,15 @@ extern "C" void ur_modern_pause_menu_move(
             menu->selected = UR_MODERN_PAUSE_CONTROLS;
         } else if (current == UR_MODERN_PAUSE_CONTROLS) {
             menu->selected = UR_MODERN_PAUSE_RUN_DATA;
+        } else if (current == UR_MODERN_PAUSE_RUN_DATA) {
+            menu->selected = UR_MODERN_PAUSE_QUIT;
         } else {
             menu->selected = UR_MODERN_PAUSE_RESUME;
         }
     } else {
         if (current == UR_MODERN_PAUSE_RESUME) {
+            menu->selected = UR_MODERN_PAUSE_QUIT;
+        } else if (current == UR_MODERN_PAUSE_QUIT) {
             menu->selected = UR_MODERN_PAUSE_RUN_DATA;
         } else if (current == UR_MODERN_PAUSE_RUN_DATA) {
             menu->selected = UR_MODERN_PAUSE_CONTROLS;

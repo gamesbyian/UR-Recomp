@@ -114,7 +114,11 @@ The handoff is now exercised by the first authored candidate. Exact representati
 
 The immediately preceding exact frame-1219 representation `ordinary-racer-0x0541-p1-companion-0D2D-reference` now exercises that rule as a second authored asset. The retained stock transition changes only seven logical pixels, all in the upper silhouette, so the authored neighbor preserves the reviewed lower geometry/material solution and changes only the saddle profile. Dossier review matches the stock envelope `[22,2]..[39,38]` and contact `[61,76]`, with 226/349 alpha intersection/union (IoU `0.6475644699`). Native run `37150356100` / artifact `11283522741` is green through the live split-screen presenter and guest-state invariants.
 
-This closes the **first adjacent-frame motion-review pass**, not final shipping-art approval. The practical rule for subsequent authored frames is now evidence-backed twice: recovered gameplay-scale envelope and contact are acceptance constraints alongside temporal neighbors, while smooth geometry/material interpretation remains free inside those constraints.
+The reversed frame-1218 predecessor now adds a third authored checkpoint. Unlike the seven-pixel 1219→1220 stock change, the 1218 pose has a distinct stock silhouette, so the authored form is locally re-fitted rather than translated. It matches stock envelope `[23,2]..[40,38]`, contact `[63,76]`, and reaches 270/365 alpha intersection/union (IoU `0.7397260274`). Native run `37151331456` / artifact `11284028173` is green through the live split-screen presenter and guest-state invariants.
+
+Retained dossier comparison also proves the frame-1217 P1 stock raster is byte-for-byte identical to frame 1218 despite its separate synchronized composition registration. Therefore the next authored step should reuse the reviewed 1218 representation under the exact 1217 guard rather than draw a fourth visual pose.
+
+This closes the **first three-pose motion-review pass**, not final shipping-art approval. Recovered gameplay-scale envelope/contact and temporal continuity remain acceptance constraints, while smooth geometry/material interpretation stays free inside those constraints.
 
 ## Reconstruction decision policy
 

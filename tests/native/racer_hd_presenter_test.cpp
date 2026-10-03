@@ -67,6 +67,51 @@ int main() {
     assert(companion_bottom_min_lx == 29);
     assert(companion_bottom_max_lx == 32);
 
+    // Frame 1218 exact reversed predecessor is independently authored and
+    // must match its recovered gameplay envelope/contact rather than reusing
+    // the 1219 silhouette.
+    RacerCompositionState reversed_context{
+        0x0540, 0x0541, 0x0D2C, 0x0000, 0, 0, 0x0001, 0x0000
+    };
+    const auto* reversed =
+        find_racer_registration_for_state(0x0540, reversed_context);
+    assert(reversed != nullptr);
+    assert(is_authored_0540_p1_predecessor_registration(*reversed));
+    assert(
+        sample_racer_hd_asset(*reversed, 128, 120, false, false) !=
+        sample_racer_hd_contract_candidate(128, 120, false, false)
+    );
+
+    int reversed_min_lx = kRacerHdLogicalSize;
+    int reversed_min_ly = kRacerHdLogicalSize;
+    int reversed_max_lx = -1;
+    int reversed_max_ly = -1;
+    int reversed_bottom_min_lx = kRacerHdLogicalSize;
+    int reversed_bottom_max_lx = -1;
+    for (int ly = 0; ly < kRacerHdLogicalSize; ++ly) {
+        for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+            const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            const int sy = ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            if (sample_racer_hd_asset(*reversed, sx, sy, false, false) == 0) {
+                continue;
+            }
+            if (lx < reversed_min_lx) reversed_min_lx = lx;
+            if (ly < reversed_min_ly) reversed_min_ly = ly;
+            if (lx > reversed_max_lx) reversed_max_lx = lx;
+            if (ly > reversed_max_ly) reversed_max_ly = ly;
+            if (ly == 38) {
+                if (lx < reversed_bottom_min_lx) reversed_bottom_min_lx = lx;
+                if (lx > reversed_bottom_max_lx) reversed_bottom_max_lx = lx;
+            }
+        }
+    }
+    assert(reversed_min_lx == 23);
+    assert(reversed_min_ly == 2);
+    assert(reversed_max_lx == 40);
+    assert(reversed_max_ly == 38);
+    assert(reversed_bottom_min_lx == 30);
+    assert(reversed_bottom_max_lx == 33);
+
     // Object-local H/V reflection remains a post-selection presentation
     // transform for authored art.
     const std::uint32_t pedal =

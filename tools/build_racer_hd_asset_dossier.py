@@ -79,6 +79,7 @@ PENDING_ART_DECISIONS = []
 
 FIRST_AUTHORED_REPRESENTATION_ID = "ordinary-racer-0x0541-p1-sync-reference"
 SECOND_AUTHORED_REPRESENTATION_ID = "ordinary-racer-0x0541-p1-companion-0D2D-reference"
+THIRD_AUTHORED_REPRESENTATION_ID = "ordinary-racer-0x0540-p1-predecessor-reference"
 
 
 def _rgba32(r: int, g: int, b: int, a: int = 255) -> bytes:
@@ -207,6 +208,60 @@ def sample_authored_0541_p1_companion_0d2d_rgba(x: int, y: int) -> bytes:
 def build_second_authored_candidate_rgba() -> bytes:
     return b"".join(
         sample_authored_0541_p1_companion_0d2d_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
+def sample_authored_0540_p1_predecessor_rgba(x: int, y: int) -> bytes:
+    """Mirror the authored frame-1218 reversed predecessor exactly."""
+    if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
+        return b"\x00\x00\x00\x00"
+
+    wheel_cx = 128
+    wheel_cy = 120
+    wx = x - wheel_cx
+    wy = y - wheel_cy
+    wr2 = wx * wx + wy * wy
+    tire = wr2 <= 35 * 35 and wr2 >= 25 * 25
+    rim = wr2 < 25 * 25 and wr2 >= 22 * 22
+    hub = wr2 <= 5 * 5
+
+    fork_center = 126 - (y - 60) // 11
+    fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
+    crank = y >= 116 and y <= 123 and x >= 111 and x <= 140
+    pedal = y >= 113 and y <= 118 and x >= 141 and x <= 145
+
+    seat_dx = x - 130
+    seat_dy = y - 22
+    seat = (
+        (seat_dx * seat_dx) * 12 * 12
+        + (seat_dy * seat_dy) * 35 * 35
+        <= 35 * 35 * 12 * 12
+        and y >= 8 and y <= 36
+    )
+
+    neck = y >= 30 and y <= 60 and x >= 124 and x <= 132
+    crown_dx = x - 134
+    crown_dy = y - 60
+    crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+
+    if hub or rim or crank or pedal:
+        return authored_metal_rgba(x, y)
+    if seat:
+        seat_light = (255 - x) + (255 - y)
+        return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
+    if fork or neck or crown:
+        return authored_red_frame_rgba(x, y)
+    if tire:
+        tire_light = (255 - x) + (255 - y)
+        return _rgba32(64, 60, 53) if tire_light > 310 else _rgba32(32, 29, 23)
+    return b"\x00\x00\x00\x00"
+
+
+def build_third_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0540_p1_predecessor_rgba(x, y)
         for y in range(H * 4)
         for x in range(W * 4)
     )
@@ -408,6 +463,13 @@ def build_dossier(
                 )
                 authored_rgba = build_second_authored_candidate_rgba()
                 native_sampler = "sample_racer_hd_authored_0541_p1_companion_0d2d"
+            elif rid == THIRD_AUTHORED_REPRESENTATION_ID:
+                expected_generator = (
+                    "tools/build_racer_hd_asset_dossier.py::"
+                    "build_third_authored_candidate_rgba"
+                )
+                authored_rgba = build_third_authored_candidate_rgba()
+                native_sampler = "sample_racer_hd_authored_0540_p1_predecessor"
             else:
                 raise ValueError(f"unsupported authored candidate registration: {rid}")
             if authored_meta.get("artifact_generator") != expected_generator:

@@ -180,7 +180,7 @@ The same run proves the canonical `main-menu-ready`, `now-playing-ready`, and `r
 
 ## Validation required before declaring title-final constants
 
-Before closing the remaining Widescreen viewport/PAR/overscan queue item:
+Before declaring the remaining vertical visibility policy title-final:
 
 1. capture one or more retained stock Uniracers reference scenes under raw-square and historically corrected display transforms;
 2. compare recognizable geometry, UI proportions, circles/curves, racer proportions, and known emulator/reference output;
@@ -207,7 +207,7 @@ The smallest defensible title-specific binding is therefore recorded as a **prov
 
 The horizontal part of this candidate is now evidence-backed. `analysis/display-reference-geometry.json` records eleven printed in-game screenshot frames from the official USA manual (pages 17, 19, 21, 23 and 25). Their measured mean aspect is about 1.329 and median about 1.342. With ±5 pixels of uncertainty on every measured edge, all eleven intervals still contain 4:3 and none contain raw 8:7. Because 256×224 requires 7:6 horizontal correction to land at 4:3 when all 224 rows are active, this is title-specific support for 7:6-style Authentic PAR rather than merely emulator convention.
 
-That evidence does **not** close vertical overscan. Rounded printed screenshot masks and page-layout crops cannot reliably distinguish a full 224-line display from a modest crop such as 216 lines. Accordingly, 7:6 PAR is now evidence-backed, while the full-224 overscan assumption remains provisional. Raw Pixels remains an independent square-pixel reference mode regardless of the final overscan result.
+That evidence does **not** by itself close vertical overscan. Rounded printed screenshot masks and page-layout crops cannot reliably distinguish a full 224-line display from a modest crop such as 216 lines. A second title-specific discriminator now narrows that axis: `analysis/display-active-height-evidence.json` reuses the retained canonical `main-menu-ready`, `now-playing-ready`, and `race-entered` 256×224 framebuffers from run `37142393303` / artifact `11281695308`. A centered 216-line crop removes distinct rendered information in all three scenes: 791/2048 cropped pixels on the menu frame, 40/2048 on the transition frame, and 645/2048 on the race frame differ from the nearest retained boundary row, 1476/6144 in aggregate. Therefore 216 cannot be treated as a content-neutral overscan cleanup. Full 224 becomes the preservation-favoring candidate, while historical CRT visibility remains unresolved. Raw Pixels remains an independent square-pixel reference mode regardless of the final overscan result.
 
 A provisional runtime selector now carries this candidate through both sides of the presentation contract without coupling it to product UI. On the preparation side, `URRECOMP_WS_VIEW=authentic-16x9-candidate` resolves to the next complete provider strip boundary, **+48 source pixels per side**. On the host-view side, the exact 16:9 requirement is 128/3 = 42⅔ source pixels per side, so the nearest symmetric integer logical viewport is **+43 per side**, or **342×224**. At 7:6 PAR that discrete source viewport is 57:32 (1.78125), about +0.195% wider than exact 16:9; final output scaling can absorb that sub-pixel quantization without exposing the unused five prepared pixels at either edge. Explicit `URRECOMP_WS_MARGIN` remains a diagnostic override and unknown/unset selectors fail closed to stock margin 0.
 

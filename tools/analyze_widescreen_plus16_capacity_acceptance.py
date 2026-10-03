@@ -22,11 +22,12 @@ SHADOW16_RE=re.compile(
 )
 PRIMARY_VIEW_RE=re.compile(
     r"URWS_PRIMARY margin=0 camx=(\d+) edge=([0-9A-Fa-f]{4}) count=(\d+) "
-    r"payload=([0-9A-Fa-f]{64}) camy=(\d+)"
+    r"payload=([0-9A-Fa-f]{64}) camy=(\d+) edgey=([0-9A-Fa-f]{4}) county=(\d+)"
 )
 SHADOW_VIEW_RE=re.compile(
     r"URWS_SHADOW16 provider=course-runtime camx=(\d+) edge=([0-9A-Fa-f]{4}) "
-    r"count=(\d+) payload=([0-9A-Fa-f]{64}) camy=(\d+) finex=(\d+) finey=(\d+)"
+    r"count=(\d+) payload=([0-9A-Fa-f]{64}) camy=(\d+) finex=(\d+) finey=(\d+) "
+    r"edgey=([0-9A-Fa-f]{4}) county=(\d+)"
 )
 STOP_RE=re.compile(r"URWS_STOP margin=16 reason=([^\s]+)")
 CLEAN_RE=re.compile(r"URWS_CLEANUP16 shadow=(\d+)")
@@ -49,19 +50,37 @@ def stock_primary(text:str)->list[dict]:
             out.append({"camx":int(c),"edge":int(e,16),"count":16,"payload":p.upper()})
     return out
 
+def effective_fine_y(camy:int,edgey:int,county:int)->int:
+    approx=(camy+4)>>4
+    if edgey==0xffff or county==0:
+        return approx
+    phase=((edgey&0x1f)+2)&0x1f
+    candidate=(approx&~0x1f)|phase
+    while candidate-approx>16:
+        candidate-=32
+    while approx-candidate>16:
+        candidate+=32
+    return candidate
+
 def stock_primary_view(text:str)->list[dict]:
-    return [
-        {"camx":int(c),"edge":int(e,16),"count":int(n),"payload":p.upper(),
-         "camy":int(y),"finey":(int(y)+4)>>4}
-        for c,e,n,p,y in PRIMARY_VIEW_RE.findall(text)
-        if int(n)==16 and int(e,16)!=0xffff
-    ]
+    out=[]
+    for c,e,n,p,y,ey,cy in PRIMARY_VIEW_RE.findall(text):
+        camy=int(y); edgey=int(ey,16); county=int(cy)
+        if int(n)!=16 or int(e,16)==0xffff:
+            continue
+        out.append({
+            "camx":int(c),"edge":int(e,16),"count":int(n),"payload":p.upper(),
+            "camy":camy,"edgey":edgey,"county":county,
+            "finey":effective_fine_y(camy,edgey,county),
+        })
+    return out
 
 def shadow_view(text:str)->list[dict]:
     return [
         {"camx":int(c),"edge":int(e,16),"count":int(n),"payload":p.upper(),
-         "camy":int(y),"finex":int(fx),"finey":int(fy)}
-        for c,e,n,p,y,fx,fy in SHADOW_VIEW_RE.findall(text)
+         "camy":int(y),"finex":int(fx),"finey":int(fy),
+         "edgey":int(ey,16),"county":int(cy)}
+        for c,e,n,p,y,fx,fy,ey,cy in SHADOW_VIEW_RE.findall(text)
     ]
 
 def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,

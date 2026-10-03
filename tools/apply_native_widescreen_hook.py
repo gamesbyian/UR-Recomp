@@ -450,9 +450,9 @@ def apply(gen_dir: Path) -> dict:
             "margin8_hook": True,
             "margin16_supported": True,
             "margin24_supported": True,
-        "margin64_probe_supported": True,
-            "margin72_probe_supported": True,
-            "first_constraint": "none-through-plus72-probe",
+        "margin64_supported": True,
+            "margin72_supported": True,
+            "first_constraint": "none-through-plus72",
         }
 
     required = [
@@ -502,9 +502,9 @@ def apply(gen_dir: Path) -> dict:
         "margin8_hook": True,
         "margin16_supported": True,
         "margin24_supported": True,
-            "margin64_probe_supported": True,
-            "margin72_probe_supported": True,
-        "first_constraint": "none-through-plus72-probe",
+            "margin64_supported": True,
+            "margin72_supported": True,
+        "first_constraint": "none-through-plus72",
     }
 
 

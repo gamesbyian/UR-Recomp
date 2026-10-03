@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "retained_from": {
+    "workflow_run": 37097604758,
+    "workflow": "Native Widescreen runtime hook",
+    "artifact_id": 11265150778,
+    "artifact_name": "widescreen-native-hook-evidence",
+    "artifact_sha256": "124ec1c4dae6ed88c73508e0ac74cc492877a5a3992b05b617cf6c746e348a07"
+  },
+  "architecture": {
+    "stock_4_3_control": "untouched",
+    "guest_column_1": "accepted PR #228 secondary lane",
+    "host_columns": [
+      2,
+      3
+    ],
+    "provider": "live 7F:000F coarse table + 7F:800F packed-surface fine records",
+    "future_stock_oracle_runtime_dependency": false,
+    "synthetic_guest_descriptor_lanes": 0,
+    "validated_margin_pixels": 24,
+    "conclusion": "The accepted random-access host materializer generalizes from one to two host-owned columns without additional guest lanes; final 16:9 capacity remains unproven."
+  },
+  "plus24": {
+    "guest_prepare_events": 617,
+    "host_shadow_events": 1234,
+    "same_view_comparable_rows": 1197,
+    "same_view_exact_payload_matches": 1197,
+    "vertical_view_transition_rows": 37,
+    "unmatched_oracle_rows": 0,
+    "provider_misses": [],
+    "two_host_columns_for_every_preparation": true,
+    "complete_adjacent_ring_chain": true,
+    "protected_state_equal": true,
+    "deterministic_cleanup": true
+  },
+  "regressions": {
+    "plus8_unchanged": true,
+    "plus16_unchanged": true
+  },
+  "accepted": true
+}

@@ -26,7 +26,7 @@ evidence_statuses:
 probe:
   source_pixel_margins: [0, 8, 16, 24, 32, 48, 64, 72]
   materializer_granularity_pixels: 8
-  validated_capacity_margin_pixels: 64
+  validated_capacity_margin_pixels: 72
   artifact_classes:
     - bg-stale
     - bg-wrap
@@ -41,6 +41,26 @@ probe:
     - ui-policy
     - unknown
 
+display_binding:
+  authentic_candidate:
+    id: community-7x6-full
+    source_width_pixels: 256
+    active_height_pixels: 224
+    pixel_aspect: "7:6"
+    crop_top: 0
+    crop_bottom: 0
+    status: provisional
+    rationale: "Canonical Uniracers captures are 256x224; 7:6 maps that full active raster exactly to 4:3 without cropping authored rows. Retain as the preferred Authentic candidate until reference-capture validation makes it title-final."
+  first_16x9_candidate:
+    target_display_aspect: "16:9"
+    source_geometry: community-7x6-full
+    exact_symmetric_margin: "128/3"
+    materializer_margin_pixels: 48
+    provider: live-course-runtime
+    provider_validated_capacity_margin_pixels: 72
+    status: provisional
+    rationale: "Derived mechanically from the preferred Authentic candidate; no new guest descriptor lane is implied."
+
 aspect_policies:
   - id: stock-4x3
     target_display_aspect: "4:3"
@@ -49,9 +69,11 @@ aspect_policies:
     status: control
   - id: first-16x9
     target_display_aspect: "16:9"
-    pixel_aspect: unresolved
-    overscan: unresolved
-    status: planned
+    pixel_aspect: "7:6"
+    overscan: "full-224"
+    derived_margin_pixels: 48
+    provider: live-course-runtime
+    status: provisional
 
 scenes:
   - id: title-frontend

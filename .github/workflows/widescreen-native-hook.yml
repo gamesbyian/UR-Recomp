@@ -198,6 +198,7 @@ jobs:
           mkdir -p "$OUT/dumps" "$OUT/frames" analysis/generated
           SDL_AUDIODRIVER=dummy \
           URRECOMP_WS_VIEW=authentic-16x9 \
+          URRECOMP_WS_SCENE=representative-one-player-race \
           URRECOMP_WS_NATIVE_TRACE=1 \
           SNESRECOMP_DUMP_DIR="$OUT/dumps" \
           SNESRECOMP_FRAMEDUMP_PIXELS=1 \
@@ -207,8 +208,38 @@ jobs:
             --framedump "$OUT/frames" >"$OUT/run.log" 2>&1
           grep -q "URWS_PREP_EXT margin=48" "$OUT/run.log"
           grep -q "URWS_SHADOW_EXT provider=course-runtime margin=48" "$OUT/run.log"
+
+          for scene in title-frontend pre-race results vs-mode; do
+            SCENE_OUT="$RUNNER_TEMP/ws-native-runs/policy-$scene"
+            mkdir -p "$SCENE_OUT/frames"
+            SDL_AUDIODRIVER=dummy \
+            URRECOMP_WS_VIEW=authentic-16x9 \
+            URRECOMP_WS_SCENE="$scene" \
+            SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+            SNESRECOMP_FRAMEDUMP_START=300 \
+            SNESRECOMP_FRAMEDUMP_END=300 \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+              --framedump "$SCENE_OUT/frames" >"$SCENE_OUT/run.log" 2>&1
+          done
+
+          TWO_OUT="$RUNNER_TEMP/ws-native-runs/policy-two-player-race"
+          mkdir -p "$TWO_OUT/frames"
+          SDL_AUDIODRIVER=dummy \
+          URRECOMP_WS_VIEW=authentic-16x9 \
+          URRECOMP_WS_SCENE=two-player-race \
+          SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+          SNESRECOMP_FRAMEDUMP_START=300 \
+          SNESRECOMP_FRAMEDUMP_END=300 \
+          timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            --framedump "$TWO_OUT/frames" >"$TWO_OUT/run.log" 2>&1
+
           python3 - "$RUNNER_TEMP/ws-native-runs/0/frames/frame_000300.bmp" \
             "$OUT/frames/frame_000300.bmp" \
+            "$RUNNER_TEMP/ws-native-runs/policy-title-frontend/frames/frame_000300.bmp" \
+            "$RUNNER_TEMP/ws-native-runs/policy-pre-race/frames/frame_000300.bmp" \
+            "$RUNNER_TEMP/ws-native-runs/policy-results/frames/frame_000300.bmp" \
+            "$TWO_OUT/frames/frame_000300.bmp" \
+            "$RUNNER_TEMP/ws-native-runs/policy-vs-mode/frames/frame_000300.bmp" \
             analysis/generated/widescreen-host-viewport-binding.json <<'PY'
           import json, pathlib, struct, sys
 
@@ -222,19 +253,53 @@ jobs:
 
           control=dimensions(sys.argv[1])
           candidate=dimensions(sys.argv[2])
+          title=dimensions(sys.argv[3])
+          pre_race=dimensions(sys.argv[4])
+          results=dimensions(sys.argv[5])
+          two_player=dimensions(sys.argv[6])
+          vs_mode=dimensions(sys.argv[7])
+          scenes={
+              "representative-one-player-race":candidate,
+              "title-frontend":title,
+              "pre-race":pre_race,
+              "results":results,
+              "two-player-race":two_player,
+              "vs-mode":vs_mode,
+          }
+          expected={
+              "representative-one-player-race":(342,224),
+              "title-frontend":(256,224),
+              "pre-race":(256,224),
+              "results":(256,224),
+              "two-player-race":(342,224),
+              "vs-mode":(256,224),
+          }
+          accepted=control==(256,224) and scenes==expected
           out={
-              "schema_version":1,
+              "schema_version":2,
               "selector":"authentic-16x9",
+              "scene_selector":"URRECOMP_WS_SCENE",
               "provider_margin_pixels_per_side":48,
               "stock_control":{"frame_width":control[0],"frame_height":control[1]},
-              "candidate":{"frame_width":candidate[0],"frame_height":candidate[1]},
-              "expected_candidate_logical_width":342,
-              "accepted":control==(256,224) and candidate==(342,224),
+              "scene_dimensions":{
+                  key:{"frame_width":value[0],"frame_height":value[1]}
+                  for key,value in scenes.items()
+              },
+              "expected_scene_dimensions":{
+                  key:{"frame_width":value[0],"frame_height":value[1]}
+                  for key,value in expected.items()
+              },
+              "output_composition":{
+                  "authentic_pixel_aspect":"7:6",
+                  "widened_horizontal_fit_correction":"512/513",
+                  "fixed_center_width_fraction_at_full_height":"3/4",
+              },
+              "accepted":accepted,
           }
-          pathlib.Path(sys.argv[3]).write_text(json.dumps(out,indent=2)+"\n")
+          pathlib.Path(sys.argv[8]).write_text(json.dumps(out,indent=2)+"\n")
           print(json.dumps(out,indent=2))
           if not out["accepted"]:
-              raise SystemExit("named Widescreen policy did not bind the expected host viewport")
+              raise SystemExit("named Widescreen scene policy did not bind expected host composition")
           PY
 
       - name: Prove host presentation depth through +72
@@ -377,6 +442,11 @@ jobs:
             analysis/generated/widescreen-host-viewport-binding.json
             ${{ runner.temp }}/ws-native-runs/0/frames/frame_000300.bmp
             ${{ runner.temp }}/ws-native-runs/policy-authentic-16x9/frames/frame_000300.bmp
+            ${{ runner.temp }}/ws-native-runs/policy-title-frontend/frames/frame_000300.bmp
+            ${{ runner.temp }}/ws-native-runs/policy-pre-race/frames/frame_000300.bmp
+            ${{ runner.temp }}/ws-native-runs/policy-results/frames/frame_000300.bmp
+            ${{ runner.temp }}/ws-native-runs/policy-two-player-race/frames/frame_000300.bmp
+            ${{ runner.temp }}/ws-native-runs/policy-vs-mode/frames/frame_000300.bmp
             ${{ runner.temp }}/ws-native-runs/oracle/run.log
             ${{ runner.temp }}/ws-native-runs/oracle/stock-strips.txt
             ${{ runner.temp }}/ws-native-runs/0/run.log

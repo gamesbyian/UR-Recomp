@@ -6,6 +6,29 @@ namespace {
 constexpr std::size_t kOamBytes = 544;
 constexpr std::uint8_t kP1Slot = 98;
 constexpr std::uint8_t kP2Slot = 99;
+constexpr std::uint8_t kTopSplitHigh = 0xA5;
+constexpr std::uint8_t kBottomSplitHigh = 0x5A;
+
+constexpr std::uint8_t split_slot(
+    std::uint8_t player,
+    RacerViewport viewport
+) noexcept {
+    if (viewport == RacerViewport::Top) {
+        return player == 1 ? 98 : 99;
+    }
+    return player == 1 ? 97 : 96;
+}
+
+constexpr std::uint8_t split_pair(
+    std::uint8_t slot,
+    RacerViewport viewport
+) noexcept {
+    const std::uint8_t high =
+        viewport == RacerViewport::Top ? kTopSplitHigh : kBottomSplitHigh;
+    return static_cast<std::uint8_t>(
+        (high >> ((slot % 4) * 2)) & 0x03
+    );
+}
 
 struct SizePair {
     std::uint8_t small_w;
@@ -85,6 +108,32 @@ std::optional<RacerOamPlacement> decode_racer_ppu_placement(
         );
 
     return build_placement(slot, xlo, y, tile, attr, pair, obsel);
+}
+
+std::optional<RacerOamPlacement> decode_racer_split_ppu_placement(
+    const std::uint16_t* oam_words,
+    std::size_t oam_word_count,
+    std::uint8_t obsel,
+    std::uint8_t player,
+    RacerViewport viewport
+) noexcept {
+    if (oam_words == nullptr || oam_word_count < 256 ||
+        (player != 1 && player != 2)) {
+        return std::nullopt;
+    }
+
+    const std::uint8_t slot = split_slot(player, viewport);
+    const std::uint16_t pos = oam_words[static_cast<std::size_t>(slot) * 2];
+    const std::uint16_t chr = oam_words[static_cast<std::size_t>(slot) * 2 + 1];
+    return build_placement(
+        slot,
+        static_cast<std::uint8_t>(pos & 0xFF),
+        static_cast<std::uint8_t>(pos >> 8),
+        static_cast<std::uint8_t>(chr & 0xFF),
+        static_cast<std::uint8_t>(chr >> 8),
+        split_pair(slot, viewport),
+        obsel
+    );
 }
 
 std::optional<RacerOamPlacement> decode_racer_oam_placement(

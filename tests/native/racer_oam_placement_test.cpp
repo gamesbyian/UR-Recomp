@@ -81,6 +81,39 @@ int main() {
     assert(ppu_p1->width_pixels == 64);
     assert(ppu_p1->height_pixels == 64);
 
+
+    // Uniracers' two-player raster presents both semantic racers twice:
+    // top viewport uses slots 98/99 under high-OAM 0xA5; bottom uses
+    // slots 97/96 under 0x5A. Low OAM retains both coordinate sets.
+    std::array<std::uint16_t, 256> split_oam{};
+    split_oam[98 * 2] = static_cast<std::uint16_t>((40u << 8) | 104u);
+    split_oam[98 * 2 + 1] = static_cast<std::uint16_t>((0x66u << 8) | 0x00u);
+    split_oam[99 * 2] = static_cast<std::uint16_t>((40u << 8) | 104u);
+    split_oam[99 * 2 + 1] = static_cast<std::uint16_t>((0x68u << 8) | 0x88u);
+    split_oam[97 * 2] = static_cast<std::uint16_t>((153u << 8) | 104u);
+    split_oam[97 * 2 + 1] = static_cast<std::uint16_t>((0x66u << 8) | 0x00u);
+    split_oam[96 * 2] = static_cast<std::uint16_t>((153u << 8) | 104u);
+    split_oam[96 * 2 + 1] = static_cast<std::uint16_t>((0x68u << 8) | 0x88u);
+
+    const auto p1_top = decode_racer_split_ppu_placement(
+        split_oam.data(), split_oam.size(), 0x83, 1, RacerViewport::Top
+    );
+    const auto p2_top = decode_racer_split_ppu_placement(
+        split_oam.data(), split_oam.size(), 0x83, 2, RacerViewport::Top
+    );
+    const auto p1_bottom = decode_racer_split_ppu_placement(
+        split_oam.data(), split_oam.size(), 0x83, 1, RacerViewport::Bottom
+    );
+    const auto p2_bottom = decode_racer_split_ppu_placement(
+        split_oam.data(), split_oam.size(), 0x83, 2, RacerViewport::Bottom
+    );
+    assert(p1_top && p1_top->slot == 98 && p1_top->large && p1_top->y_raw_8bit == 40);
+    assert(p2_top && p2_top->slot == 99 && p2_top->large && p2_top->tile == 0x88);
+    assert(p1_bottom && p1_bottom->slot == 97 && p1_bottom->large && p1_bottom->y_raw_8bit == 153);
+    assert(p2_bottom && p2_bottom->slot == 96 && p2_bottom->large && p2_bottom->tile == 0x88);
+    assert(p1_bottom->x_signed == 104);
+    assert(p2_bottom->x_signed == 104);
+
     set_slot(oam, 98, 500, 200, 0x00, 0x00, false);
     const auto wrapped = decode_racer_oam_placement(oam.data(), oam.size(), 0x00, 1);
     assert(wrapped.has_value());
@@ -96,5 +129,8 @@ int main() {
     assert(!decode_racer_ppu_placement(nullptr, 256, ppu_high.data(), ppu_high.size(), 0x83, 1).has_value());
     assert(!decode_racer_ppu_placement(ppu_oam.data(), 100, ppu_high.data(), ppu_high.size(), 0x83, 1).has_value());
     assert(!decode_racer_ppu_placement(ppu_oam.data(), ppu_oam.size(), nullptr, 32, 0x83, 1).has_value());
+    assert(!decode_racer_split_ppu_placement(nullptr, 256, 0x83, 1, RacerViewport::Top).has_value());
+    assert(!decode_racer_split_ppu_placement(split_oam.data(), 100, 0x83, 1, RacerViewport::Top).has_value());
+    assert(!decode_racer_split_ppu_placement(split_oam.data(), split_oam.size(), 0x83, 3, RacerViewport::Top).has_value());
     return 0;
 }

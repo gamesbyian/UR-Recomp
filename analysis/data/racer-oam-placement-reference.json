@@ -29,7 +29,10 @@
       "hflip": true,
       "vflip": false,
       "large": true,
-      "size_pixels": [64, 64]
+      "size_pixels": [
+        64,
+        64
+      ]
     },
     "p2": {
       "slot": 99,
@@ -40,8 +43,27 @@
       "hflip": true,
       "vflip": false,
       "large": true,
-      "size_pixels": [64, 64]
+      "size_pixels": [
+        64,
+        64
+      ]
     }
   },
-  "interpretation": "This is a regression reference, not a fixed runtime position. Replacement presentation must decode live OAM each frame so movement remains guest-authored."
+  "interpretation": "This is a regression reference, not a fixed runtime position. Replacement presentation must decode live low-OAM coordinates and apply the proven split-screen instance mapping; frame-end high OAM alone is not a complete placement model.",
+  "split_screen_instances": {
+    "high_oam_top": "0xA5",
+    "high_oam_bottom": "0x5A",
+    "split_scanline": 112,
+    "slots": {
+      "top": {
+        "p1": 98,
+        "p2": 99
+      },
+      "bottom": {
+        "p1": 97,
+        "p2": 96
+      }
+    },
+    "interpretation": "Both semantic racers have one OAM instance per viewport. The top half exposes slots 98/99 and the bottom half exposes 97/96; low-OAM coordinates for both pairs coexist, while the active-display high-OAM write swaps which pair is visible."
+  }
 }

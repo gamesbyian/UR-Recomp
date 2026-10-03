@@ -153,14 +153,56 @@ jobs:
           for name, rows in [("original-a_vs_b", ab), ("original-a_vs_hd", ah), ("original-b_vs_hd", bh)]:
               preview = ",".join(f"{i:04X}:{x:02X}>{y:02X}" for i, x, y in rows[:32])
               print(f"UR_RACER_WRAM_DIFF {name} count={len(rows)} first={preview or 'none'}")
-          if ab:
-              raise SystemExit(
-                  "disabled control is not byte-stable across processes; "
-                  "classify baseline WRAM variability before defining HD cross-run equality"
+
+          baseline_variable = {i for i, _, _ in ab}
+          hd_on_stable = [
+              (i, blobs[1][i], blobs[2][i])
+              for i in range(len(blobs[0]))
+              if i not in baseline_variable and blobs[1][i] != blobs[2][i]
+          ]
+          if hd_on_stable:
+              preview = ",".join(
+                  f"{i:04X}:{x:02X}>{y:02X}" for i, x, y in hd_on_stable[:32]
               )
-          if ah:
-              raise SystemExit("HD presentation changed deterministic WRAM checkpoint")
-          print("UR_RACER_WRAM_EQUAL PASS controls=byte-identical hd=byte-identical")
+              raise SystemExit(
+                  "HD changed WRAM outside the disabled-control variability set: " + preview
+              )
+
+          import json
+          schema = json.loads(
+              pathlib.Path("analysis/data/state-schema.json").read_text()
+          )
+          semantic_diffs = []
+          for entry in schema["entries"]:
+              addr = entry.get("address", "")
+              width = entry.get("width", "")
+              if not addr.startswith("7E:"):
+                  continue
+              try:
+                  off = int(addr[3:], 16)
+              except ValueError:
+                  continue
+              n = 1 if width.startswith("8-bit") else 2 if width.startswith(("16-bit", "signed 16-bit")) else 0
+              if not n or off + n > len(blobs[0]):
+                  continue
+              va = blobs[0][off:off+n]
+              vb = blobs[1][off:off+n]
+              vh = blobs[2][off:off+n]
+              if not (va == vb == vh):
+                  semantic_diffs.append(
+                      (entry["id"], va.hex(), vb.hex(), vh.hex())
+                  )
+          if semantic_diffs:
+              raise SystemExit(
+                  "promoted semantic WRAM differs across control/HD: "
+                  + repr(semantic_diffs[:20])
+              )
+
+          print(
+              "UR_RACER_WRAM_STABLE PASS "
+              f"baseline_variable_bytes={len(baseline_variable)} "
+              "hd_differences_outside_baseline=0 promoted_semantic_differences=0"
+          )
           PY
 
           # The selector reaches the retained synchronized tuple in all runs.

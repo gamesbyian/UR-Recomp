@@ -300,6 +300,29 @@ jobs:
               | tee "$RUNNER_TEMP/racer-0540-0542-$tag-p2.json"
           done
 
+          python3 - "$RUNNER_TEMP" <<'PY'
+          import json, pathlib, sys
+          root = pathlib.Path(sys.argv[1])
+          expected = {
+              "0x0d2c": {
+                  "p1": ([63, 63], [63, 76], [23, 2, 40, 38]),
+                  "p2": ([63, 63], [59, 76], [21, 4, 40, 38]),
+              },
+              "0x0d4c": {
+                  "p1": ([63, 63], [63, 76], [23, 2, 40, 38]),
+                  "p2": ([63, 63], [59, 76], [21, 4, 40, 38]),
+              },
+          }
+          for tag, players in expected.items():
+              for player, (pivot, contact, bounds) in players.items():
+                  r = json.loads((root / f"racer-0540-0542-{tag}-{player}.json").read_text())
+                  assert r["flip_pivot_x2_y2"] == pivot
+                  assert r["wheel_contact_x2_y2"] == contact
+                  assert r["alpha_bounds"] == bounds
+                  assert r["composition"]["p1_companion"].lower() == tag
+          print("UR_RACER_0540_0542_COMPANION_DISCRIMINATOR PASS")
+          PY
+
       - name: Upload compact visual proof
         uses: actions/upload-artifact@v4
         with:

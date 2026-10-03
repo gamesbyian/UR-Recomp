@@ -323,6 +323,25 @@ jobs:
           print("UR_RACER_0540_0542_COMPANION_DISCRIMINATOR PASS")
           PY
 
+      - name: Measure 057F/0542 predecessor anchors
+        run: |
+          python3 tools/measure_racer_composed_anchor.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --p1-primary 0x057F --p2-primary 0x0542 \
+            --p1-companion 0x0D4A --p2-companion 0x0000 \
+            --p1-selector 0 --p2-selector 0 \
+            --p1-gate 0x0001 --p2-gate 0x0000 \
+            --player p1 --palette-asset-id 0x06 \
+            | tee "$RUNNER_TEMP/racer-057f-0542-predecessor-p1.json"
+          python3 tools/measure_racer_composed_anchor.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --p1-primary 0x057F --p2-primary 0x0542 \
+            --p1-companion 0x0D4A --p2-companion 0x0000 \
+            --p1-selector 0 --p2-selector 0 \
+            --p1-gate 0x0001 --p2-gate 0x0000 \
+            --player p2 --palette-asset-id 0x07 \
+            | tee "$RUNNER_TEMP/racer-057f-0542-predecessor-p2.json"
+
       - name: Upload compact visual proof
         uses: actions/upload-artifact@v4
         with:
@@ -339,6 +358,8 @@ jobs:
             ${{ runner.temp }}/racer-0540-0542-0x0d2c-p2.json
             ${{ runner.temp }}/racer-0540-0542-0x0d4c-p1.json
             ${{ runner.temp }}/racer-0540-0542-0x0d4c-p2.json
+            ${{ runner.temp }}/racer-057f-0542-predecessor-p1.json
+            ${{ runner.temp }}/racer-057f-0542-predecessor-p2.json
             ${{ runner.temp }}/racer-forward-p1.json
             ${{ runner.temp }}/racer-forward-p2.json
             ${{ runner.temp }}/racer-predecessor-p1.json

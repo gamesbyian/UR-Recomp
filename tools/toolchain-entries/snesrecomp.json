@@ -59,7 +59,7 @@
     },
     {
       "path": "tools/patches/snesrecomp-live-display-mode.patch",
-      "sha256": "e95e22d3ea1dd266f2f1b654a02c7638d7a32260d5e7f0d18b1c11d9b0540393"
+      "sha256": "aeba06d536860cf73c74973593f0997d49f9854cef6f2edfd8af340c2a860b63"
     }
   ],
   "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive. UR-Recomp's permanent native build uses host SDL2, disables SDL3 source fetching, carries narrow project patches for exact neutral controller-stream replay and modern host integration, exposes the existing host-owned pause gate and live renderer VSync and desktop display-mode policy for modern product settings, and exposes the framework's guest-frame APU timing lock needed by deterministic host-owned race restart.",

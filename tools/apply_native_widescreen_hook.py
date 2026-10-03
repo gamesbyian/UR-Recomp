@@ -108,8 +108,9 @@ static uint16 ur_ws_native_read16_bank(CpuState *cpu, uint8 bank, uint16 addr) {
  *
  * The stock primary strip is camera-cell X + 16 on the retained Dragster
  * fixture. Column +1 is intentionally left on the accepted guest +8 path
- * at +17. Host-owned column +2 is therefore camera-cell X + 18. Camera Y at
- * $041D already names the stock vertical strip's first fine-cell row.
+ * at +17. Host-owned column +2 is therefore camera-cell X + 18. Stock vertical
+ * strip scheduling is phased four pixels ahead, so its fine row is
+ * (cameraY + 4) / 16.
  */
 static int ur_ws_native_shadow_from_course(CpuState *cpu, uint16 first_edge) {
   const uint16 camx = ur_ws_native_read16(cpu, 0x0419);
@@ -119,7 +120,7 @@ static int ur_ws_native_shadow_from_course(CpuState *cpu, uint16 first_edge) {
     return 0;
 
   const uint16 fine_x = (uint16)((camx >> 4) + 18);
-  const int fine_y0 = (int)(camy >> 4);
+  const int fine_y0 = (int)((camy + 4u) >> 4);
   if (fine_y0 < 0)
     return 0;
 
@@ -227,7 +228,7 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
         fprintf(stderr, " camy=%u finex=%u finey=%u\n",
                 (unsigned)ur_ws_native_read16(cpu, 0x041d),
                 (unsigned)((ur_ws_native_read16(cpu, 0x0419) >> 4) + 18),
-                (unsigned)(ur_ws_native_read16(cpu, 0x041d) >> 4));
+                (unsigned)((ur_ws_native_read16(cpu, 0x041d) + 4u) >> 4));
       } else {
         fprintf(stderr, "URWS_STOP margin=16 reason=course-materializer-miss\n");
       }

@@ -98,7 +98,7 @@ static uint16 ur_ws_native_read16_bank(CpuState *cpu, uint8 bank, uint16 addr) {
  */
 static int ur_ws_native_shadow_from_course(CpuState *cpu, uint16 first_edge) {
   const uint16 camx = ur_ws_native_read16(cpu, 0x0419);
-  const uint16 camy = ur_ws_native_read16(cpu, 0x041b);
+  const uint16 camy = ur_ws_native_read16(cpu, 0x041d);
   const uint16 coarse_width = ur_ws_native_read16(cpu, 0x04f1);
   if (!coarse_width)
     return 0;

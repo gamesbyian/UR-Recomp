@@ -24,6 +24,7 @@ ALLOWED_REVIEW_STATUS = {
     "unverified-leads",
     "immutable-input-corpus",
     "preservation-only",
+    "direct-recovery-unreviewed",
 }
 
 

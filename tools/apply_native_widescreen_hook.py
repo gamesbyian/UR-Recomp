@@ -251,7 +251,6 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
                 margin,
                 (unsigned)ur_ws_native_read16(cpu, 0x0419),
                 (unsigned)second_edge, (unsigned)second_count);
-      }
       for (unsigned j = 0; j < 32; j++)
         fprintf(stderr, "%02X", (unsigned)ur_ws_native_future_payload[j]);
       fprintf(stderr, " camy=%u\n",

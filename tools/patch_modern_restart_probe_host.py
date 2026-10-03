@@ -322,6 +322,22 @@ static int UrRestartCaptureOracle(const SnesDesktopHostFrameStats *stats) {
 
     snes_state_digest_parts(&g_ur_restart_anchor_digest);
     if (!g_ur_session_gamepad_selftest_done) {
+        if (!UrModernSystemKeyDown(SDLK_ESCAPE, 0, 0) ||
+            !ur_modern_session_is_paused(g_ur_restart_session) ||
+            !UrModernSystemKeyDown(SDLK_DOWN, 0, 0) ||
+            ur_modern_pause_menu_selected(
+                &g_ur_pause_menu, 1) != UR_MODERN_PAUSE_RESTART ||
+            !UrModernSystemKeyDown(SDLK_UP, 0, 0) ||
+            ur_modern_pause_menu_selected(
+                &g_ur_pause_menu, 1) != UR_MODERN_PAUSE_RESUME ||
+            !UrModernSystemKeyDown(SDLK_RETURN, 0, 0) ||
+            ur_modern_session_is_paused(g_ur_restart_session)) {
+            fprintf(stderr, "UR_SESSION_KEYBOARD_MENU FAIL navigation\n");
+            return 0;
+        }
+        fprintf(stderr,
+                "UR_SESSION_KEYBOARD_MENU PASS arrow_nav_activate=1\n");
+
         ur_modern_pause_menu_reset(&g_ur_pause_menu);
         if (!UrModernSystemGamepadButton(kGamepadBtn_Start, 1) ||
             !ur_modern_session_is_paused(g_ur_restart_session) ||

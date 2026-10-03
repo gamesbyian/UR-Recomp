@@ -6,6 +6,8 @@ on:
       - "native/presentation/**"
       - "tools/apply_native_racer_presentation_probe.py"
       - "tools/summarize_racer_semantic_trace.py"
+      - "tools/build_racer_hd_asset_dossier.py"
+      - "tests/unit/test_build_racer_hd_asset_dossier.py"
       - "tests/unit/test_apply_native_racer_presentation_probe.py"
       - "tests/unit/test_summarize_racer_semantic_trace.py"
       - "tests/native/racer_hd_presenter_test.cpp"
@@ -138,6 +140,40 @@ jobs:
               --json-out "$RUNNER_TEMP/racer-$stem-semantic-trace.json" \
               > "$RUNNER_TEMP/racer-$stem-semantic-trace.txt"
           done
+
+          python3 tools/build_racer_hd_asset_dossier.py \
+            "$ROM" \
+            --trace "$RUNNER_TEMP/racer-hd-semantic-trace.json" \
+            --window-start 1205 \
+            --window-end 1220 \
+            --output-dir "$RUNNER_TEMP/racer-hd-asset-dossier" \
+            > "$RUNNER_TEMP/racer-hd-asset-dossier.txt"
+
+          python3 - "$RUNNER_TEMP/racer-hd-asset-dossier/manifest.json" <<'PY'
+          import json, pathlib, sys
+          dossier = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          assert dossier["temporal_window"] == {
+              "start": 1205,
+              "end": 1220,
+              "frame_count": 16,
+              "source": "registered_composition_coverage from deterministic native semantic trace",
+              "all_frames_exactly_registered": True,
+          }
+          assert dossier["validation"]["ready_for_art_review"] is True
+          assert dossier["validation"]["registered_anchors_match_rederived_stock"] is True
+          assert dossier["remaining_scope"]["shipping_art_approved"] is False
+          assert dossier["representations"]
+          assert all(
+              rep["art_review"]["evidence_packet_ready"]
+              and not rep["art_review"]["shipping_art_approved"]
+              for rep in dossier["representations"]
+          )
+          print(
+              "UR_RACER_ASSET_DOSSIER PASS "
+              f"frames={dossier['temporal_window']['frame_count']} "
+              f"representations={len(dossier['representations'])}"
+          )
+          PY
 
           python3 - \
             "$RUNNER_TEMP/racer-original-a-semantic-trace.json" \
@@ -410,5 +446,7 @@ jobs:
             ${{ runner.temp }}/racer-original-a-semantic-trace.txt
             ${{ runner.temp }}/racer-original-b-semantic-trace.txt
             ${{ runner.temp }}/racer-hd-semantic-trace.txt
+            ${{ runner.temp }}/racer-hd-asset-dossier/
+            ${{ runner.temp }}/racer-hd-asset-dossier.txt
           if-no-files-found: warn
           retention-days: 7

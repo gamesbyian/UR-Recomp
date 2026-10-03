@@ -263,13 +263,18 @@ jobs:
           ]
           repeated_057e_candidate = repeated_057e["art_review"]["authored_candidate"]
           assert repeated_057e_candidate["approval_status"] == (
-              "gameplay-scale motion-review candidate; native acceptance pending"
+              "motion-reviewed repeated temporal pose; not approved shipping art"
           )
           assert repeated_057e["observed_frames_in_window"] == [1205, 1206, 1213, 1214]
           repeated_057e_review = repeated_057e_candidate["gameplay_scale_review"]
           assert repeated_057e_review["stock_alpha_bounds"] == [21, 2, 42, 38]
           assert repeated_057e_review["candidate_alpha_bounds"] == [21, 2, 42, 38]
           assert repeated_057e_review["candidate_contact_x2_y2"] == [67, 76]
+          assert repeated_057e_review["stock_opaque_pixels"] == 325
+          assert repeated_057e_review["candidate_opaque_pixels"] == 331
+          assert repeated_057e_review["alpha_intersection_pixels"] == 251
+          assert repeated_057e_review["alpha_union_pixels"] == 405
+          assert abs(repeated_057e_review["alpha_iou"] - 0.6197530864197531) < 1e-12
 
           for rep in (baseline, predecessor, reversed, reused, repeated, repeated_057e):
               candidate_path = (

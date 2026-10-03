@@ -15,6 +15,8 @@ FIELD_ANCHOR = '    .game_info           = &kGameInfo,\n'
 
 PROBE = r'''
 #include "common_rtl.h"
+#include "desktop/host_main.h"
+#include "desktop/sdl_compat.h"
 #include "modern_session_c_api.h"
 #include "uniracers_restart_policy.h"
 #include "netplay/snes_state_digest.h"
@@ -32,6 +34,7 @@ static int g_ur_restart_probe_phase;
 static int g_ur_restart_prev_in_race;
 static int g_ur_restart_results_mode = -1;
 static UrUniracersRestartPolicyState g_ur_restart_title_policy;
+static int g_ur_session_key_selftest_done;
 static uint8_t *g_ur_restart_before_sram;
 static size_t g_ur_restart_before_sram_len;
 
@@ -113,11 +116,58 @@ static int UrRestartEnsureSession(void) {
         cap,
         &UrRestartSave,
         &UrRestartLoad,
-        NULL,
-        NULL,
+        &snesrecomp_desktop_set_paused,
+        &snesrecomp_desktop_is_paused,
         &UrRestartTimingLock,
         &UrRestartReconcilePresentation);
     return g_ur_restart_session != NULL;
+}
+
+static int UrModernSystemKeyDown(int key, int mod, int repeat) {
+    if (repeat || !UrRestartEnsureSession())
+        return 0;
+
+    UrModernSessionKey semantic;
+    if (key == SDLK_ESCAPE) {
+        semantic = UR_MODERN_SESSION_KEY_ESCAPE;
+    } else if ((key == SDLK_RETURN || key == SDLK_KP_ENTER) &&
+               ur_modern_session_is_paused(g_ur_restart_session)) {
+        semantic = UR_MODERN_SESSION_KEY_ACCEPT;
+    } else if (key == SDLK_r && (mod & KMOD_CTRL) &&
+               ur_modern_session_restart_available(g_ur_restart_session)) {
+        semantic = UR_MODERN_SESSION_KEY_RESTART;
+    } else {
+        return 0;
+    }
+
+    const UrModernSessionResult result =
+        ur_modern_session_handle_key(g_ur_restart_session, semantic);
+    fprintf(stderr,
+            "UR_SESSION_KEY key=%d semantic=%d result=%d paused=%d restart=%d\n",
+            key,
+            (int)semantic,
+            (int)result,
+            ur_modern_session_is_paused(g_ur_restart_session),
+            ur_modern_session_restart_available(g_ur_restart_session));
+    return 1;
+}
+
+static int UrSessionKeySelftest(void) {
+    if (g_ur_session_key_selftest_done)
+        return 1;
+    if (!UrModernSystemKeyDown(SDLK_ESCAPE, 0, 0) ||
+        !ur_modern_session_is_paused(g_ur_restart_session)) {
+        fprintf(stderr, "UR_SESSION_KEY FAIL pause-dispatch\n");
+        return 0;
+    }
+    if (!UrModernSystemKeyDown(SDLK_RETURN, 0, 0) ||
+        ur_modern_session_is_paused(g_ur_restart_session)) {
+        fprintf(stderr, "UR_SESSION_KEY FAIL resume-dispatch\n");
+        return 0;
+    }
+    g_ur_session_key_selftest_done = 1;
+    fprintf(stderr, "UR_SESSION_KEY PASS pause_resume_host_gate=1\n");
+    return 1;
 }
 
 static UrUniracersRestartSurface UrRestartObserveTitleLifecycle(void) {
@@ -360,6 +410,11 @@ static void UrRestartProbeAfterRunFrame(const SnesDesktopHostFrameStats *stats) 
         return;
     }
 
+    if (!UrSessionKeySelftest()) {
+        g_ur_restart_probe_phase = 99;
+        return;
+    }
+
     const UrUniracersRestartSurface surface =
         UrRestartObserveTitleLifecycle();
 
@@ -386,7 +441,8 @@ def patch_text(source: str) -> str:
     source = source.replace(
         FIELD_ANCHOR,
         FIELD_ANCHOR
-        + "    .after_run_frame     = &UrRestartProbeAfterRunFrame,\n",
+        + "    .after_run_frame     = &UrRestartProbeAfterRunFrame,\n"
+        + "    .system_key_down     = &UrModernSystemKeyDown,\n",
         1,
     )
     return source

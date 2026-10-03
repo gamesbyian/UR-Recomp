@@ -16,6 +16,8 @@ on:
       - "tools/toolchain-entries/_global.json"
       - "tools/patch_modern_product_host.py"
       - "tools/build_display_geometry_review.py"
+      - "tools/analyze_display_active_height.py"
+      - "tests/unit/test_analyze_display_active_height.py"
       - "analysis/display-geometry-candidates.json"
       - "native/product/**"
       - "native/title/uniracers_restart_policy.*"
@@ -286,6 +288,26 @@ jobs:
           assert by_id["raw-square-full"]["derived_16x9"]["materializer_margin_pixels"] == 72
           assert by_id["raw-square-216"]["derived_16x9"]["materializer_margin_pixels"] == 64
           print("DISPLAY_GEOMETRY_REVIEW_READY candidates=", len(by_id))
+          PY
+          python3 tools/analyze_display_active_height.py \
+            --capture "$DUMPS/main-menu-ready.fb.bmp" \
+            --capture "$DUMPS/now-playing-ready.fb.bmp" \
+            --capture "$DUMPS/race-entered.fb.bmp" \
+            --crop-top 4 --crop-bottom 4 \
+            --json-out "$RUNNER_TEMP/display-active-height.json" \
+            --md-out "$RUNNER_TEMP/display-active-height.md"
+          python3 - "$RUNNER_TEMP/display-active-height.json" <<'PY'
+          import json, pathlib, sys
+          report=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          assert report["source_height"] == 224
+          assert report["active_height"] == 216
+          assert not report["all_captures_crop_content_neutral"]
+          assert all(not row["crop_content_neutral"] for row in report["captures"])
+          print(
+              "DISPLAY_ACTIVE_HEIGHT_DISCRIMINATOR",
+              "distinct=", report["total_distinct_cropped_pixels_vs_nearest_retained_boundary"],
+              "cropped=", report["total_cropped_pixels"],
+          )
           PY
 
       - name: Modern focus-loss pause acceptance
@@ -704,6 +726,8 @@ jobs:
             ${{ runner.temp }}/race-dumps/
             ${{ runner.temp }}/display-geometry-review.json
             ${{ runner.temp }}/display-geometry-review.html
+            ${{ runner.temp }}/display-active-height.json
+            ${{ runner.temp }}/display-active-height.md
             ${{ runner.temp }}/focus-pause.log
             ${{ runner.temp }}/host-state-v1.txt
             ${{ runner.temp }}/host-state-save.log

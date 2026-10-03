@@ -159,6 +159,22 @@ jobs:
                   f"transitions={len(reports[0]['players'][player]['transitions'])}"
               )
 
+          coverage = reports[0]["registered_composition_coverage"]
+          assert [1205, 1220] in coverage["fully_registered_runs"], (
+              "expected continuous exact Racer HD coverage for frames 1205-1220",
+              coverage["fully_registered_runs"],
+          )
+          window = [
+              row for row in coverage["frames"]
+              if 1205 <= row["frame"] <= 1220
+          ]
+          assert len(window) == 16
+          assert all(row["fully_registered"] for row in window)
+          print(
+              "UR_RACER_TEMPORAL_COVERAGE PASS "
+              "start=1205 end=1220 frames=16 exact_composition=1"
+          )
+
           neighborhoods = {
               n["representation_id"]: n
               for n in reports[0]["registered_state_neighborhoods"]

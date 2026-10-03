@@ -140,6 +140,63 @@ def registered_state_neighborhoods(rows: list[dict], registry: dict) -> list[dic
     return out
 
 
+
+def registered_composition_coverage(rows: list[dict], registry: dict) -> dict:
+    """Report frames where both racers resolve through exact composition guards."""
+    entries_by_player = {
+        player: [e for e in registry["entries"] if e["player"] == player]
+        for player in ("p1", "p2")
+    }
+    frames = []
+    for row in rows:
+        matched = {}
+        for player in ("p1", "p2"):
+            semantic_key = f"{player}_primary"
+            matches = [
+                entry["representation_id"]
+                for entry in entries_by_player[player]
+                if entry["semantic_frame_id"] == row[semantic_key]
+                and row_matches_registration(row, entry)
+            ]
+            if len(matches) > 1:
+                raise ValueError(
+                    f"ambiguous {player} registration at frame {row['frame']}: {matches}"
+                )
+            matched[player] = matches[0] if matches else None
+        frames.append({
+            "frame": row["frame"],
+            "fully_registered": all(matched.values()),
+            "p1_representation_id": matched["p1"],
+            "p2_representation_id": matched["p2"],
+        })
+
+    runs = []
+    start = None
+    previous = None
+    for item in frames:
+        frame = item["frame"]
+        if item["fully_registered"]:
+            if start is None or previous is None or frame != previous + 1:
+                if start is not None:
+                    runs.append([start, previous])
+                start = frame
+            previous = frame
+        elif start is not None:
+            runs.append([start, previous])
+            start = None
+            previous = None
+    if start is not None:
+        runs.append([start, previous])
+
+    return {
+        "fully_registered_frames": [
+            item["frame"] for item in frames if item["fully_registered"]
+        ],
+        "fully_registered_runs": runs,
+        "frames": frames,
+    }
+
+
 def build_report(rows: list[dict], registry: dict | None = None) -> dict:
     frames = [r["frame"] for r in rows]
     contiguous = bool(rows) and frames == list(range(frames[0], frames[-1] + 1))
@@ -166,6 +223,14 @@ def build_report(rows: list[dict], registry: dict | None = None) -> dict:
         "registered_state_neighborhoods": (
             registered_state_neighborhoods(rows, registry)
             if registry is not None else []
+        ),
+        "registered_composition_coverage": (
+            registered_composition_coverage(rows, registry)
+            if registry is not None else {
+                "fully_registered_frames": [],
+                "fully_registered_runs": [],
+                "frames": [],
+            }
         ),
     }
 

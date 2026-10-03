@@ -11,12 +11,21 @@ RestartLifecycleEvent RaceRestartLifecycle::observe_race_active(bool active) {
     }
 
     // A newly entered race supersedes any prior attempt. Keep the previous
-    // anchor through results/frontend transitions so Retry remains available
-    // until the next actual race begins.
+    // anchor through results so Retry remains available until a confirmed
+    // course/frontend transition retires the attempt or the next race begins.
     anchor_.clear();
     return anchor_.capture() == RestartAnchorCaptureStatus::Captured
         ? RestartLifecycleEvent::AnchorCaptured
         : RestartLifecycleEvent::AnchorCaptureFailed;
+}
+
+RestartLifecycleEvent RaceRestartLifecycle::retire_attempt() noexcept {
+    const bool had_attempt = race_active_ || anchor_.armed();
+    race_active_ = false;
+    anchor_.clear();
+    return had_attempt
+        ? RestartLifecycleEvent::AnchorRetired
+        : RestartLifecycleEvent::None;
 }
 
 }  // namespace ur::product

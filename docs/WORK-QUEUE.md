@@ -281,9 +281,9 @@ Do this from the verified original UI state map, not from memory or generic mode
 Treat these as must-do unless later technical evidence demonstrates a specific blocker.
 
 - [ ] Full controller hot-plug/rebinding support and practical keyboard support.
-- [ ] Robust autosave, independent profiles/settings and resumable progression.
+- [~] Robust autosave, independent profiles/settings and resumable progression. The first ordinary settings slice is live: Modern-mode pause-on-focus-loss is a typed host-owned setting with a visible in-session toggle; persistence, profiles, autosave and resume remain open.
 - [x] Instant restart/retry from race, pause and results flows where appropriate. The accepted player-input path is now promoted into the ordinary generated native product host; Authentic mode remains available through host policy.
-- [~] Modern pause menu: Resume/Restart, keyboard/controller parity and the production host overlay are implemented. Options, controls/run data and exit choices remain.
+- [~] Modern pause menu: Resume/Restart, keyboard/controller parity and the production host overlay are implemented. The first setting is also integrated: `F` toggles pause-on-focus-loss in Modern mode and the overlay reports its state. Broader Options, controls/run data and exit choices remain.
 - [ ] Personal-best and previous-run ghosts using local storage only.
 - [ ] Local replay/run-record persistence sufficient to re-drive or review completed runs.
 - [ ] Exact timing, lap/split data, PB deltas and medal/target deltas shown alongside preserved original indicators.

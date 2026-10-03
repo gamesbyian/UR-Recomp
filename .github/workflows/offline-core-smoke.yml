@@ -6,14 +6,21 @@ on:
       - ".github/workflows/offline-core-smoke.yml"
       - "tools/bootstrap_toolchain.py"
       - "tools/verify_rom.py"
-      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/_global.json"
       - "third_party/**"
       - "reference/roms/retail/Uniracers_USA.sfc"
   workflow_dispatch:
 
+concurrency:
+  group: offline-core-smoke-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   offline-native-build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 

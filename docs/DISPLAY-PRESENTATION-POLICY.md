@@ -184,3 +184,26 @@ Before closing the remaining Widescreen viewport/PAR/overscan queue item:
 6. retain Raw Pixels as an independent reference mode even after Authentic 4:3 is validated.
 
 The unresolved work is therefore measurement and title-specific validation, not a need to invent the architecture.
+
+## Policy-derived logical margin
+
+`tools/widescreen_probe.py derive-margin` now derives the required symmetric logical margin from four independent inputs:
+
+- target display aspect;
+- active logical height after the selected overscan policy;
+- source/display pixel aspect;
+- materializer strip granularity.
+
+The calculation uses exact rational arithmetic and reports both the exact per-side logical margin and the first strip-granular margin that can cover it. It also compares that requirement with the currently validated materializer capacity recorded in `analysis/widescreen-policy.yml` (+64 pixels per side at 8-pixel granularity).
+
+Illustrative 16:9 consequences, **not title-final constants**, are:
+
+| Active logical height | Pixel aspect | Exact per-side margin | First 8-pixel materializer margin | Fits validated +64? |
+| ---: | ---: | ---: | ---: | --- |
+| 224 | 7:6 | 128/3 ≈ 42.67 px | +48 | yes |
+| 216 | 7:6 | 256/7 ≈ 36.57 px | +40 | yes |
+| 224 | 1:1 | 640/9 ≈ 71.11 px | +72 | no |
+| 216 | 1:1 | 64 px | +64 | yes |
+
+These rows show why pixel aspect and overscan must be validated before choosing the first shipping 16:9 logical margin. The existing +64 provider closes several plausible policies but does not cover every square-pixel/full-height combination.
+

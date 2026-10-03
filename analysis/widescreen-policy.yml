@@ -25,6 +25,8 @@ evidence_statuses:
 
 probe:
   source_pixel_margins: [0, 8, 16, 24, 32, 48, 64]
+  materializer_granularity_pixels: 8
+  validated_capacity_margin_pixels: 64
   artifact_classes:
     - bg-stale
     - bg-wrap

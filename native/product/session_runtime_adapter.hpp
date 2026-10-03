@@ -6,6 +6,8 @@
 
 namespace ur::product {
 
+class RaceRestartLifecycle;
+
 enum class RuntimeDispatchStatus : std::uint8_t {
     Applied = 0,
     UnsupportedAction = 1,
@@ -21,6 +23,7 @@ struct SessionRuntimeHooks {
 
 RuntimeDispatchStatus dispatch_runtime_action(
     RuntimeAction action,
-    const SessionRuntimeHooks& hooks) noexcept;
+    const SessionRuntimeHooks& hooks,
+    RaceRestartLifecycle* restart_lifecycle = nullptr) noexcept;
 
 }  // namespace ur::product

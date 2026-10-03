@@ -39,7 +39,7 @@
     },
     {
       "path": "tools/patches/snesrecomp-title-key-hook.patch",
-      "sha256": "c784ec8566b78a4d1f7d86e851c68f89b7659c97c8ba9ef68c71646bd188b655"
+      "sha256": "07bc7ade79f9579779c980961dd787a4fe4e1c37e66845cee412a8a94f7d457b"
     },
     {
       "path": "tools/patches/snesrecomp-rewind-audio-timing-lock.patch",

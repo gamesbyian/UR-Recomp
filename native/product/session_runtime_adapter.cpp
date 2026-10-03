@@ -46,7 +46,14 @@ RuntimeDispatchStatus dispatch_runtime_action(
             : RuntimeDispatchStatus::RejectedByRuntime;
 
     case RuntimeAction::ExitToFrontend:
-        return RuntimeDispatchStatus::UnsupportedAction;
+        if (!hooks.exit_to_frontend || !hooks.set_paused) {
+            return RuntimeDispatchStatus::MissingHook;
+        }
+        if (!hooks.exit_to_frontend()) {
+            return RuntimeDispatchStatus::RejectedByRuntime;
+        }
+        hooks.set_paused(0);
+        return RuntimeDispatchStatus::Applied;
     }
 
     return RuntimeDispatchStatus::UnsupportedAction;

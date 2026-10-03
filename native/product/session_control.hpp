@@ -52,6 +52,10 @@ public:
 
     SessionRequestResult request(SessionCommand command) noexcept;
     std::optional<RuntimeAction> take_pending_action() noexcept;
+    void reconcile_frontend_return() noexcept {
+        phase_ = SessionPhase::Running;
+        pending_action_.reset();
+    }
 
 private:
     ExecutionMode mode_;

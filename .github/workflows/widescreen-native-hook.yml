@@ -168,6 +168,82 @@ jobs:
             --md-out analysis/generated/widescreen-native-hook-acceptance.md
           cat analysis/generated/widescreen-native-hook-acceptance.md
 
+      - name: Prove +16 gameplay and activation invariance
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT="$RUNNER_TEMP/native/UniracersSNESRecomp"
+          EXE="$PROJECT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/object-liveness-dragster.script"
+          ROOT="$RUNNER_TEMP/ws-native-liveness"
+          mkdir -p "$ROOT/0/dumps" "$ROOT/16/dumps" analysis/generated
+
+          for MARGIN in 0 16; do
+            SDL_AUDIODRIVER=dummy \
+            URRECOMP_WS_MARGIN="$MARGIN" \
+            URRECOMP_WS_NATIVE_TRACE=1 \
+            SNESRECOMP_DUMP_DIR="$ROOT/$MARGIN/dumps" \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+              >"$ROOT/$MARGIN/run.log" 2>&1
+            python3 tools/summarize_object_liveness_probe.py \
+              "$ROOT/$MARGIN/dumps" \
+              --json-out "$ROOT/$MARGIN/summary.json" \
+              >"$ROOT/$MARGIN/summary.txt"
+          done
+
+          python3 - "$ROOT/0/summary.json" "$ROOT/16/summary.json" \
+            analysis/generated/widescreen-native-plus16-liveness.json <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          control=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          wide=json.loads(pathlib.Path(sys.argv[2]).read_text())
+          cr={x["stem"]:x for x in control["rows"]}
+          wr={x["stem"]:x for x in wide["rows"]}
+          common=sorted(set(cr)&set(wr))
+          diffs=[]
+          for stem in common:
+              a,b=cr[stem],wr[stem]
+              protected={
+                  "player_position":(
+                      {"x":a["player"]["x"],"y":a["player"]["y"]},
+                      {"x":b["player"]["x"],"y":b["player"]["y"]},
+                  ),
+                  "camera":(a["camera"],b["camera"]),
+                  "progress":(a["progress"],b["progress"]),
+                  "object_map_prefix_hex":(
+                      a["object_map_prefix_hex"],b["object_map_prefix_hex"]
+                  ),
+              }
+              bad={
+                  k:{"control":x,"plus16":y}
+                  for k,(x,y) in protected.items() if x!=y
+              }
+              if bad:
+                  diffs.append({"stem":stem,"differences":bad})
+
+          out={
+              "common_samples":len(common),
+              "protected_differences":diffs,
+              "control_first_progress_change":control["first_progress_change"],
+              "plus16_first_progress_change":wide["first_progress_change"],
+              "no_earlier_gameplay_activation_or_collision_path":(
+                  not diffs
+                  and control["first_progress_change"]==wide["first_progress_change"]
+              ),
+              "collision_word_note":(
+                  "0x0E95 remains diagnostic-only under the established event-relative "
+                  "classification; object-map and progression ownership are the activation guardrails."
+              ),
+          }
+          pathlib.Path(sys.argv[3]).write_text(json.dumps(out,indent=2)+"\n")
+          print(json.dumps(out,indent=2))
+          if not out["no_earlier_gameplay_activation_or_collision_path"]:
+              raise SystemExit("+16 gameplay/liveness acceptance diverged")
+          PY
+
       - name: Upload compact native-hook evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -181,6 +257,7 @@ jobs:
             analysis/generated/widescreen-native-hook-apply.json
             analysis/generated/widescreen-native-hook-acceptance.json
             analysis/generated/widescreen-native-hook-acceptance.md
+            analysis/generated/widescreen-native-plus16-liveness.json
             ${{ runner.temp }}/ws-native-runs/0/run.log
             ${{ runner.temp }}/ws-native-runs/8/run.log
             ${{ runner.temp }}/ws-native-runs/16/run.log

@@ -104,13 +104,13 @@ static uint16 ur_ws_native_read16_bank(CpuState *cpu, uint8 bank, uint16 addr) {
   return cpu_read16(cpu, bank, addr);
 }
 
-static uint16 ur_ws_native_vertical_fine_y(CpuState *cpu) {
+static int ur_ws_native_vertical_fine_y(CpuState *cpu) {
   const uint16 camy = ur_ws_native_read16(cpu, 0x041d);
   const uint16 approx = (uint16)((camy + 4u) >> 4);
   const uint16 edgey = ur_ws_native_read16(cpu, 0x050d);
   const uint16 county = ur_ws_native_read16(cpu, 0x0533);
   if (edgey == 0xffff || county == 0)
-    return approx;
+    return (int)approx;
 
   const uint16 phase = (uint16)(((edgey & 0x001fu) + 2u) & 0x001fu);
   int candidate = (int)((approx & 0xffe0u) | phase);
@@ -118,7 +118,7 @@ static uint16 ur_ws_native_vertical_fine_y(CpuState *cpu) {
     candidate -= 32;
   while ((int)approx - candidate > 16)
     candidate += 32;
-  return (uint16)candidate;
+  return candidate;
 }
 
 /* Materialize one arbitrary vertical 16-cell strip directly from the live
@@ -137,32 +137,34 @@ static int ur_ws_native_shadow_from_course(CpuState *cpu, uint16 first_edge) {
   const uint16 camx = ur_ws_native_read16(cpu, 0x0419);
   const uint16 camy = ur_ws_native_read16(cpu, 0x041d);
   const uint16 coarse_width = ur_ws_native_read16(cpu, 0x04f1);
-  if (!coarse_width)
+  const uint16 coarse_height = ur_ws_native_read16(cpu, 0x04f3);
+  if (!coarse_width || !coarse_height)
     return 0;
 
-  const uint16 fine_x = (uint16)((camx >> 4) + 18);
-  const int fine_y0 = (int)ur_ws_native_vertical_fine_y(cpu);
-  if (fine_y0 < 0)
-    return 0;
+  const int fine_x = (int)(camx >> 4) + 18;
+  const int fine_y0 = ur_ws_native_vertical_fine_y(cpu);
+  const int fine_width = (int)coarse_width * 4;
+  const int fine_height = (int)coarse_height * 4;
 
   for (unsigned j = 0; j < 16; j++) {
-    const uint16 fine_y = (uint16)(fine_y0 + (int)j);
-    const uint16 sector_x = (uint16)(fine_x >> 2);
-    const uint16 sector_y = (uint16)(fine_y >> 2);
-    const uint32 coarse_index =
-        (uint32)sector_y * (uint32)coarse_width + (uint32)sector_x;
-    if (coarse_index >= 16384u)
-      return 0;
-    const uint16 record = ur_ws_native_read16_bank(
-        cpu, 0x7f, (uint16)(0x000f + coarse_index * 2u));
-    const uint16 local =
-        (uint16)(((fine_y & 3u) * 4u) + (fine_x & 3u));
-    const uint32 fine_addr =
-        0x800fu + (uint32)record * 32u + (uint32)local * 2u;
-    if (fine_addr > 0xfffeu)
-      return 0;
-    const uint16 word =
-        ur_ws_native_read16_bank(cpu, 0x7f, (uint16)fine_addr);
+    const int fine_y = fine_y0 + (int)j;
+    uint16 word = 0;
+    if (fine_x >= 0 && fine_x < fine_width &&
+        fine_y >= 0 && fine_y < fine_height) {
+      const uint16 sector_x = (uint16)(fine_x >> 2);
+      const uint16 sector_y = (uint16)(fine_y >> 2);
+      const uint32 coarse_index =
+          (uint32)sector_y * (uint32)coarse_width + (uint32)sector_x;
+      const uint16 record = ur_ws_native_read16_bank(
+          cpu, 0x7f, (uint16)(0x000f + coarse_index * 2u));
+      const uint16 local =
+          (uint16)(((fine_y & 3) * 4) + (fine_x & 3));
+      const uint32 fine_addr =
+          0x800fu + (uint32)record * 32u + (uint32)local * 2u;
+      if (fine_addr > 0xfffeu)
+        return 0;
+      word = ur_ws_native_read16_bank(cpu, 0x7f, (uint16)fine_addr);
+    }
     ur_ws_native_shadow_payload[j * 2] = (uint8)(word & 0xff);
     ur_ws_native_shadow_payload[j * 2 + 1] = (uint8)(word >> 8);
   }
@@ -250,7 +252,7 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
         fprintf(stderr, " camy=%u finex=%u finey=%u edgey=%04X county=%u\n",
                 (unsigned)ur_ws_native_read16(cpu, 0x041d),
                 (unsigned)((ur_ws_native_read16(cpu, 0x0419) >> 4) + 18),
-                (unsigned)ur_ws_native_vertical_fine_y(cpu),
+                (unsigned)(ur_ws_native_vertical_fine_y(cpu) & 0xffff),
                 (unsigned)ur_ws_native_read16(cpu, 0x050d),
                 (unsigned)ur_ws_native_read16(cpu, 0x0533));
       } else {

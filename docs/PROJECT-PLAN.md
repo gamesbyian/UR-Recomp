@@ -76,7 +76,7 @@ Plan for a modern racer/profile model in which:
 - body color and any later-supported cosmetic dimensions are chosen independently;
 - every original named/color combination is available as a faithful preset;
 - original racers may also appear as AI opponents, ghosts, tournament entrants or other appropriate legacy cast roles;
-- Bronsen, Silverton and Goldwyn remain preserved as named opponents even if Bronze/Silver/Gold progression is redesigned.
+- Bronsen, Silvia and Goldwyn remain preserved as named opponents even if Bronze/Silver/Gold progression is redesigned.
 
 The exact customization surface should wait for Phase E asset/animation understanding so cosmetic freedom does not accidentally invalidate sprite-state fidelity.
 
@@ -87,7 +87,7 @@ The modern product layer should evaluate, rather than automatically inherit:
 - unicycles as save/profile slots;
 - persistent multi-league/player-management bureaucracy;
 - mandatory repeat clears of the same tour for Bronze, Silver and Gold tiers;
-- loss of unfinished tour/session progress where no gameplay purpose depends on it;
+- loss of unfinished tour/session progress where no gameplay purpose depends on it (stock behavior still unknown; see R-2026-10-03-UI-19);
 - destructive/administrative controller chords;
 - the original forbidden-name rejection behavior, while preserving its detection list as an Easter-egg trigger for the modern **"COOL NAME!"** acknowledgement;
 - redundant score/record menu silos;

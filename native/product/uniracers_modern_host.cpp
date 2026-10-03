@@ -31,6 +31,7 @@ std::string g_product_state_path;
 UrModernPauseMenu g_pause_menu;
 bool g_controls_visible;
 bool g_run_data_visible;
+bool g_quit_confirm_visible;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
 
@@ -172,7 +173,7 @@ bool paused() {
 }
 
 bool host_subview_visible() {
-    return g_controls_visible || g_run_data_visible;
+    return g_controls_visible || g_run_data_visible || g_quit_confirm_visible;
 }
 
 UrUniracersRunData current_run_data() {
@@ -188,6 +189,21 @@ void close_host_subview() {
         g_run_data_visible = false;
         product_diagnostic("UR_PAUSE_RUN_DATA CLOSED");
     }
+    if (g_quit_confirm_visible) {
+        g_quit_confirm_visible = false;
+        product_diagnostic("UR_PAUSE_QUIT CANCELLED");
+    }
+}
+
+bool request_desktop_quit() {
+    SDL_Event event{};
+    event.type = SDL_QUIT;
+    if (SDL_PushEvent(&event) != 1) {
+        product_diagnostic("UR_PAUSE_QUIT REQUEST_FAILED");
+        return false;
+    }
+    product_diagnostic("UR_PAUSE_QUIT REQUESTED");
+    return true;
 }
 
 void apply_focus_pause_policy() {
@@ -233,6 +249,7 @@ bool activate_pause_selection() {
     }
     if (selected == UR_MODERN_PAUSE_RUN_DATA) {
         g_controls_visible = false;
+        g_quit_confirm_visible = false;
         g_run_data_visible = true;
         const UrUniracersRunData data = current_run_data();
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
@@ -249,6 +266,13 @@ bool activate_pause_selection() {
                 ur_modern_session_restart_available(g_session));
             std::fflush(stderr);
         }
+        return true;
+    }
+    if (selected == UR_MODERN_PAUSE_QUIT) {
+        g_controls_visible = false;
+        g_run_data_visible = false;
+        g_quit_confirm_visible = true;
+        product_diagnostic("UR_PAUSE_QUIT CONFIRM_OPENED");
         return true;
     }
     return dispatch(UR_MODERN_PAUSE_ACTIVATE);
@@ -284,6 +308,11 @@ extern "C" int ur_uniracers_modern_system_key_down(
     int mod,
     int repeat) {
     if (repeat || !ensure_session()) return 0;
+
+    if (g_quit_confirm_visible &&
+        (key == SDLK_RETURN || key == SDLK_KP_ENTER)) {
+        return request_desktop_quit() ? 1 : 0;
+    }
 
     if (host_subview_visible() && key == SDLK_ESCAPE) {
         close_host_subview();
@@ -327,6 +356,10 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
 
     if (!pressed) {
         return paused() ? 1 : 0;
+    }
+
+    if (g_quit_confirm_visible && button == kGamepadBtn_A) {
+        return request_desktop_quit() ? 1 : 0;
     }
 
     if (host_subview_visible()) {
@@ -374,7 +407,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
     const int panel_w = width < 220 ? width - 16 : 212;
-    const int panel_h = is_paused ? (restart ? 99 : 84) : 30;
+    const int panel_h = is_paused ? (restart ? 114 : 99) : 30;
     const int x = (width - panel_w) / 2;
     const int y = is_paused ? (height - panel_h) / 2 : height - panel_h - 8;
 
@@ -411,6 +444,27 @@ extern "C" void ur_uniracers_modern_system_overlay(
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, controls_y + 82,
                 "CTRL+R RETRY", 0xFFFFFFFFu, 1);
+            return;
+        }
+
+        if (g_quit_confirm_visible) {
+            const int quit_h = 69;
+            const int quit_y = (height - quit_h) / 2;
+            snes_ovl_fill_rect(
+                pixels, stride, height, x, quit_y, panel_w, quit_h,
+                0xE0202020u);
+            snes_ovl_stroke_rect(
+                pixels, stride, height, x, quit_y, panel_w, quit_h,
+                0xFFF0F0F0u);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, quit_y + 7,
+                "QUIT TO DESKTOP?", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, quit_y + 27,
+                "A / ENTER  CONFIRM", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, quit_y + 47,
+                "B / ESC    CANCEL", 0xFFFFFFFFu, 1);
             return;
         }
 
@@ -504,6 +558,12 @@ extern "C" void ur_uniracers_modern_system_overlay(
             pixels, stride, height, x + 8, run_data_y,
             selected == UR_MODERN_PAUSE_RUN_DATA
                 ? "> RUN DATA" : "  RUN DATA",
+            0xFFFFFFFFu, 1);
+        const int quit_y = run_data_y + 15;
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, quit_y,
+            selected == UR_MODERN_PAUSE_QUIT
+                ? "> QUIT DESKTOP" : "  QUIT DESKTOP",
             0xFFFFFFFFu, 1);
     } else {
         snes_ovl_draw_text(

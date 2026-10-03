@@ -39,6 +39,22 @@ For moving gameplay art, preserve:
 
 For the unicycle in particular, wheel-ground contact and stable frame-to-frame geometry are release criteria, not polish.
 
+## Racer source-production constraint
+
+The original unicycle imagery was not authored as pixel art from first principles. The project’s developer-history evidence identifies Martin Good as the CG artist responsible for the unicycle renders and records Robbie Graham describing a highly detailed **3D source model rendered down into very small 2D game frames**, with many pedal/wheel phases plus stunt rotation, tilt/stretch and saddle motion. Dedicated Unicycle Compression and A0 plotting tools independently fit that production model.
+
+For **Remastered** racer art, treat this as a strong reconstruction constraint:
+
+- preserve the recovered semantic pose, silhouette envelope, pivot/contact geometry, palette relationships and guest-authored animation cadence;
+- reconstruct curves and mechanical forms as coherent high-resolution geometry consistent with a smooth 3D source, rather than reproducing SNES pixel stair-steps as intentional edge design;
+- use neighboring registered frames to distinguish persistent model features from downsampling/quantization noise;
+- keep wheel, frame, saddle and pedal proportions temporally stable across the sequence;
+- do not infer fine material, surface or lighting details merely because the source was 3D. The original high-detail source model is not currently available, so those remain explicit design decisions.
+
+For **Original**, preserve the literal stock raster and its display treatments. **Reimagined** may depart further in surface treatment, but it still inherits the semantic pose/contact/timing contract unless a separate documented product decision says otherwise.
+
+Evidence authority: `docs/original-development/DEVELOPER-TECHNICAL-HISTORY.md`, “Graphics and animation pipeline”.
+
 ## Material and lighting
 
 The final material model is intentionally not fixed yet.

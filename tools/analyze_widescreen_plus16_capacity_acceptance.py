@@ -16,7 +16,7 @@ BASE = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader
 SPEC.loader.exec_module(BASE)
 
-MARGINS = (0, 8, 16, 24, 32, 48, 64)
+MARGINS = (0, 8, 16, 24, 32, 48, 64, 72)
 CAPACITY_MARGINS = tuple(m for m in MARGINS if m >= 16)
 PAYLOAD_RE = r"([0-9A-Fa-f]{64})"
 PRIMARY_VIEW_RE = re.compile(

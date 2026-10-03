@@ -9,7 +9,8 @@ Runtime contract:
   URRECOMP_WS_MARGIN unset/0 -> untouched stock behavior
   URRECOMP_WS_MARGIN=8       -> accepted one-column guest staging path, unchanged
   URRECOMP_WS_MARGIN=16      -> accepted first extra column plus a second adjacent
-                               stock-prepared column retained only in host shadow storage
+                               stock-prepared column queried from a disposable
+                               frame-entry clone and retained only in host shadow storage
   URRECOMP_WS_MARGIN=24      -> no mutation beyond the bounded +16 prototype; emit
                                the next explicit capacity limit when tracing
 """

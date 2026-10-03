@@ -123,6 +123,14 @@ This strengthens the validation rule for future rewindable host features: exact 
 
 The product-level acceptance exercises that same native substrate through the actual typed command chain rather than calling rollback APIs directly. The active-race fixture requires immediate full simulation-digest equality and repeated 60-frame replay. A second results-screen fixture reaches the stock `0x99` results state through gameplay, requests Retry through the title policy, requires CPU/WRAM/APU/PPU/DMA to return to the race-start anchor while the **current cart/SRAM partition remains unchanged**, and then repeats the restart from the same immutable anchor. Workflow run `37086197360` passes this path end-to-end: both results-screen requests report `persistent_cart_preserved=1`, and the final marker is `UR_RESTART_RESULTS PASS results_surface=1 persistent_sram_preserved=1 repeated_restart_equal=1 window=60`. A successful restore marks the lifecycle active immediately so the next observed restored race frame cannot be mistaken for a new attempt and silently replace the anchor. The host binding also toggles the existing audio recovery path after restore and keeps `RtlSetRewindAudioTimingLock` owned by the restartable-attempt lifecycle.
 
+## Production host integration
+
+The accepted pause/retry stack is no longer acceptance-harness-only. `native/product/uniracers_modern_host.{h,cpp}` is the durable Uniracers desktop binding. It owns only title/product coordination: completed-frame title observation, keyboard/controller translation, the host pause/retry overlay, rollback snapshot hooks, SRAM-preserving restore and presentation reconciliation.
+
+`tools/patch_modern_product_host.py` keeps generated SNESRecomp output disposable. It adds only the durable header/callback pointers to generated `src/main.c` and links the project-owned product/title sources through generated CMake. The ordinary `native-build-smoke.yml` now applies that patch before compiling, so the normal native executable includes the modern product surface rather than reserving it for the focused Restart acceptance workflow.
+
+Modern mode is the production default. Setting `UR_EXECUTION_MODE=authentic` creates the same host binding in Authentic policy mode; rejected product actions are not consumed, so ordinary frontend/guest input remains authoritative. Modern pause activation is intentionally title-gated to established active-race/results surfaces, which keeps frontend Start/Escape behavior out of the product overlay.
+
 ## Extension points
 
 Do not add these systems to `HostProductState` merely because they are planned. Add narrow interfaces when there is a concrete runtime consumer:

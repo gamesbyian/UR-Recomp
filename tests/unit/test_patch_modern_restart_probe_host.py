@@ -58,6 +58,9 @@ static const SnesDesktopHostGame kGameHost = {
         self.assertNotIn(".before_run_frame", patched)
         self.assertIn(".after_run_frame", patched)
         self.assertIn("UR_RESTART_PROBE PASS command_dispatch=1", patched)
+        self.assertIn("player_input_dispatch=1", patched)
+        self.assertIn("input=gamepad-menu", patched)
+        self.assertIn("input=keyboard-hotkey", patched)
         self.assertNotIn(r";\nstatic", patched)
 
     def test_links_product_title_policy_and_digest_into_generated_target(self):

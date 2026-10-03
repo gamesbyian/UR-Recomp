@@ -171,8 +171,9 @@ jobs:
               and "material_classes" in rep["art_review"]["resolved_decisions"]
               and "cast_shadow_policy" in rep["art_review"]["resolved_decisions"]
               and "micro_detail_policy" in rep["art_review"]["resolved_decisions"]
-              and rep["art_review"]["pending_decisions"]
-                  == ["specular_and_highlight_strength_within_baked_lighting"]
+              and "specular_highlight_policy" in rep["art_review"]["resolved_decisions"]
+              and rep["art_review"]["pending_decisions"] == []
+              and rep["stock_evidence"]["opaque_rgba_histogram"]
               for rep in dossier["representations"]
           )
           print(

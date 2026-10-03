@@ -15,6 +15,7 @@ extern "C" {
 #include "modern_pause_menu.h"
 #include "modern_session_c_api.h"
 #include "uniracers_restart_policy.h"
+#include "uniracers_run_data.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -29,6 +30,7 @@ bool g_product_state_initialized;
 std::string g_product_state_path;
 UrModernPauseMenu g_pause_menu;
 bool g_controls_visible;
+bool g_run_data_visible;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
 
@@ -169,6 +171,25 @@ bool paused() {
     return g_session && ur_modern_session_is_paused(g_session);
 }
 
+bool host_subview_visible() {
+    return g_controls_visible || g_run_data_visible;
+}
+
+UrUniracersRunData current_run_data() {
+    return ur_uniracers_read_run_data(g_ram, 0x20000u);
+}
+
+void close_host_subview() {
+    if (g_controls_visible) {
+        g_controls_visible = false;
+        product_diagnostic("UR_PAUSE_CONTROLS CLOSED");
+    }
+    if (g_run_data_visible) {
+        g_run_data_visible = false;
+        product_diagnostic("UR_PAUSE_RUN_DATA CLOSED");
+    }
+}
+
 void apply_focus_pause_policy() {
     if (!g_session || !restart_surface()) return;
     const bool focused = SDL_GetKeyboardFocus() != nullptr;
@@ -205,8 +226,29 @@ bool activate_pause_selection() {
         return toggle_focus_pause_setting();
     }
     if (selected == UR_MODERN_PAUSE_CONTROLS) {
+        g_run_data_visible = false;
         g_controls_visible = true;
         product_diagnostic("UR_PAUSE_CONTROLS OPENED");
+        return true;
+    }
+    if (selected == UR_MODERN_PAUSE_RUN_DATA) {
+        g_controls_visible = false;
+        g_run_data_visible = true;
+        const UrUniracersRunData data = current_run_data();
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_PAUSE_RUN_DATA OPENED valid=%d time=%d:%d%d.%d subtick=%d surface=%d retry=%d\n",
+                data.valid,
+                data.minutes,
+                data.tens_seconds,
+                data.seconds,
+                data.tenths,
+                data.sub_tick,
+                static_cast<int>(g_surface),
+                ur_modern_session_restart_available(g_session));
+            std::fflush(stderr);
+        }
         return true;
     }
     return dispatch(UR_MODERN_PAUSE_ACTIVATE);
@@ -243,13 +285,12 @@ extern "C" int ur_uniracers_modern_system_key_down(
     int repeat) {
     if (repeat || !ensure_session()) return 0;
 
-    if (g_controls_visible && key == SDLK_ESCAPE) {
-        g_controls_visible = false;
-        product_diagnostic("UR_PAUSE_CONTROLS CLOSED");
+    if (host_subview_visible() && key == SDLK_ESCAPE) {
+        close_host_subview();
         return 1;
     }
 
-    if (g_controls_visible) {
+    if (host_subview_visible()) {
         return 1;
     }
 
@@ -288,10 +329,9 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         return paused() ? 1 : 0;
     }
 
-    if (g_controls_visible) {
+    if (host_subview_visible()) {
         if (button == kGamepadBtn_B || button == kGamepadBtn_Start) {
-            g_controls_visible = false;
-            product_diagnostic("UR_PAUSE_CONTROLS CLOSED");
+            close_host_subview();
         }
         return 1;
     }
@@ -334,7 +374,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
     const int panel_w = width < 220 ? width - 16 : 212;
-    const int panel_h = is_paused ? (restart ? 84 : 69) : 30;
+    const int panel_h = is_paused ? (restart ? 99 : 84) : 30;
     const int x = (width - panel_w) / 2;
     const int y = is_paused ? (height - panel_h) / 2 : height - panel_h - 8;
 
@@ -374,6 +414,57 @@ extern "C" void ur_uniracers_modern_system_overlay(
             return;
         }
 
+        if (g_run_data_visible) {
+            const UrUniracersRunData data = current_run_data();
+            const int run_h = 84;
+            const int run_y = (height - run_h) / 2;
+            char time_text[32];
+            if (data.valid) {
+                std::snprintf(
+                    time_text,
+                    sizeof(time_text),
+                    "TIME   %d:%d%d.%d",
+                    data.minutes,
+                    data.tens_seconds,
+                    data.seconds,
+                    data.tenths);
+            } else {
+                std::snprintf(time_text, sizeof(time_text), "TIME   --:--.-");
+            }
+            const char* surface_text =
+                g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE
+                    ? "SURFACE RACE"
+                    : (g_surface == UR_UNIRACERS_RESTART_RESULTS
+                        ? "SURFACE RESULTS"
+                        : "SURFACE OTHER");
+            const char* retry_text =
+                ur_modern_session_restart_available(g_session)
+                    ? "RETRY  READY" : "RETRY  UNAVAILABLE";
+
+            snes_ovl_fill_rect(
+                pixels, stride, height, x, run_y, panel_w, run_h,
+                0xE0202020u);
+            snes_ovl_stroke_rect(
+                pixels, stride, height, x, run_y, panel_w, run_h,
+                0xFFF0F0F0u);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, run_y + 7,
+                "RUN DATA", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, run_y + 22,
+                time_text, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, run_y + 37,
+                surface_text, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, run_y + 52,
+                retry_text, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, run_y + 67,
+                "BACK   B / ESC", 0xFFFFFFFFu, 1);
+            return;
+        }
+
         ur_modern_pause_menu_move(&g_pause_menu, 0, restart);
         const UrModernPauseItem selected =
             ur_modern_pause_menu_selected(&g_pause_menu, restart);
@@ -407,6 +498,12 @@ extern "C" void ur_uniracers_modern_system_overlay(
             pixels, stride, height, x + 8, controls_y,
             selected == UR_MODERN_PAUSE_CONTROLS
                 ? "> CONTROLS" : "  CONTROLS",
+            0xFFFFFFFFu, 1);
+        const int run_data_y = controls_y + 15;
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, run_data_y,
+            selected == UR_MODERN_PAUSE_RUN_DATA
+                ? "> RUN DATA" : "  RUN DATA",
             0xFFFFFFFFu, 1);
     } else {
         snes_ovl_draw_text(

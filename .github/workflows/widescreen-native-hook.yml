@@ -9,6 +9,8 @@ on:
       - "tools/inspect_native_widescreen_prep_anchor.py"
       - "tools/apply_native_widescreen_hook.py"
       - "tools/analyze_native_widescreen_hook_acceptance.py"
+      - "tools/analyze_widescreen_plus16_capacity_acceptance.py"
+      - "tools/build_widescreen_shadow_oracle.py"
       - "tools/analyze_native_widescreen_reachability.py"
       - "tests/unit/test_seed_native_widescreen_aot.py"
       - "tests/unit/test_inspect_native_widescreen_prep_anchor.py"
@@ -16,6 +18,9 @@ on:
       - "tests/unit/test_analyze_native_widescreen_hook_acceptance.py"
       - "tests/unit/test_analyze_native_widescreen_reachability.py"
       - "tests/input/preparation-emission-race.script"
+      - "tests/input/preparation-emission-race-oracle.script"
+      - "tests/input/object-liveness-dragster.script"
+      - "tools/summarize_object_liveness_probe.py"
 
 concurrency:
   group: widescreen-native-hook-${{ github.ref }}
@@ -125,6 +130,26 @@ jobs:
           cmake --build "$PROJECT/build" -j2
           test -x "$PROJECT/build/UniracersSNESRecomp"
 
+      - name: Capture independent later-stock oracle
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT="$RUNNER_TEMP/native/UniracersSNESRecomp"
+          EXE="$PROJECT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race-oracle.script"
+          ROOT="$RUNNER_TEMP/ws-native-runs/oracle"
+          mkdir -p "$ROOT/dumps"
+          SDL_AUDIODRIVER=dummy \
+          URRECOMP_WS_MARGIN=0 \
+          URRECOMP_WS_NATIVE_TRACE=1 \
+          SNESRECOMP_DUMP_DIR="$ROOT/dumps" \
+          timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$ROOT/run.log" 2>&1
+          python3 tools/build_widescreen_shadow_oracle.py \
+            "$ROOT/run.log" "$ROOT/stock-strips.txt"
+          test -s "$ROOT/stock-strips.txt"
+
       - name: Exercise stock, +8, +16 and +24
         shell: bash
         run: |
@@ -134,15 +159,22 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/preparation-emission-race.script"
           ROOT="$RUNNER_TEMP/ws-native-runs"
+          ORACLE="$ROOT/oracle/stock-strips.txt"
           mkdir -p "$ROOT"
 
           for margin in 0 8 16 24; do
             OUT="$ROOT/$margin"
             mkdir -p "$OUT/dumps"
             echo "== native Widescreen margin $margin =="
+            if [ "$margin" = 16 ]; then
+              ORACLE_ENV="$ORACLE"
+            else
+              ORACLE_ENV=""
+            fi
             SDL_AUDIODRIVER=dummy \
             URRECOMP_WS_MARGIN="$margin" \
             URRECOMP_WS_NATIVE_TRACE=1 \
+            URRECOMP_WS_SHADOW_ORACLE="$ORACLE_ENV" \
             SNESRECOMP_DUMP_DIR="$OUT/dumps" \
             timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
               >"$OUT/run.log" 2>&1
@@ -150,12 +182,12 @@ jobs:
             tail -n 30 "$OUT/run.log" || true
           done
 
-      - name: Compare against accepted +8 contract
+      - name: Prove +16 host presentation capacity
         shell: bash
         run: |
           set -euo pipefail
           ROOT="$RUNNER_TEMP/ws-native-runs"
-          python3 tools/analyze_native_widescreen_hook_acceptance.py \
+          python3 tools/analyze_widescreen_plus16_capacity_acceptance.py \
             --log-0 "$ROOT/0/run.log" \
             --dump-0 "$ROOT/0/dumps/prep-emission-after-scroll.wram.bin" \
             --log-8 "$ROOT/8/run.log" \
@@ -164,9 +196,69 @@ jobs:
             --dump-16 "$ROOT/16/dumps/prep-emission-after-scroll.wram.bin" \
             --log-24 "$ROOT/24/run.log" \
             --dump-24 "$ROOT/24/dumps/prep-emission-after-scroll.wram.bin" \
-            --json-out analysis/generated/widescreen-native-hook-acceptance.json \
-            --md-out analysis/generated/widescreen-native-hook-acceptance.md
-          cat analysis/generated/widescreen-native-hook-acceptance.md
+            --oracle-log "$ROOT/oracle/run.log" \
+            --json-out analysis/generated/widescreen-plus16-capacity-acceptance.json \
+            --md-out analysis/generated/widescreen-plus16-capacity-acceptance.md
+          cat analysis/generated/widescreen-plus16-capacity-acceptance.md
+
+      - name: Prove +16 gameplay and activation invariance
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT="$RUNNER_TEMP/native/UniracersSNESRecomp"
+          EXE="$PROJECT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/object-liveness-dragster.script"
+          ROOT="$RUNNER_TEMP/ws-native-liveness"
+          ORACLE="$RUNNER_TEMP/ws-native-runs/oracle/stock-strips.txt"
+          mkdir -p "$ROOT/0/dumps" "$ROOT/16/dumps" analysis/generated
+
+          for margin in 0 16; do
+            if [ "$margin" = 16 ]; then ORACLE_ENV="$ORACLE"; else ORACLE_ENV=""; fi
+            SDL_AUDIODRIVER=dummy \
+            URRECOMP_WS_MARGIN="$margin" \
+            URRECOMP_WS_NATIVE_TRACE=1 \
+            URRECOMP_WS_SHADOW_ORACLE="$ORACLE_ENV" \
+            SNESRECOMP_DUMP_DIR="$ROOT/$margin/dumps" \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+              >"$ROOT/$margin/run.log" 2>&1
+            python3 tools/summarize_object_liveness_probe.py \
+              "$ROOT/$margin/dumps" --json-out "$ROOT/$margin/summary.json" \
+              >"$ROOT/$margin/summary.txt"
+          done
+
+          python3 - "$ROOT/0/summary.json" "$ROOT/16/summary.json" \
+            analysis/generated/widescreen-plus16-liveness.json <<'PY'
+          import json, pathlib, sys
+          a=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          b=json.loads(pathlib.Path(sys.argv[2]).read_text())
+          ar={x["stem"]:x for x in a["rows"]}; br={x["stem"]:x for x in b["rows"]}
+          common=sorted(set(ar)&set(br)); diffs=[]
+          for stem in common:
+              x,y=ar[stem],br[stem]
+              protected={
+                  "player":({"x":x["player"]["x"],"y":x["player"]["y"]},
+                            {"x":y["player"]["x"],"y":y["player"]["y"]}),
+                  "camera":(x["camera"],y["camera"]),
+                  "progress":(x["progress"],y["progress"]),
+                  "object_map_prefix_hex":(x["object_map_prefix_hex"],y["object_map_prefix_hex"]),
+              }
+              bad={k:{"control":u,"plus16":v} for k,(u,v) in protected.items() if u!=v}
+              if bad: diffs.append({"stem":stem,"differences":bad})
+          out={
+              "common_samples":len(common),
+              "protected_differences":diffs,
+              "control_first_progress_change":a["first_progress_change"],
+              "plus16_first_progress_change":b["first_progress_change"],
+              "no_earlier_gameplay_activation":(
+                  not diffs and a["first_progress_change"]==b["first_progress_change"]
+              ),
+          }
+          pathlib.Path(sys.argv[3]).write_text(json.dumps(out,indent=2)+"\n")
+          print(json.dumps(out,indent=2))
+          if not out["no_earlier_gameplay_activation"]:
+              raise SystemExit("+16 liveness diverged")
+          PY
 
       - name: Upload compact native-hook evidence
         if: always()
@@ -179,8 +271,11 @@ jobs:
             analysis/generated/widescreen-native-prep-anchor.json
             analysis/generated/widescreen-native-prep-anchor.md
             analysis/generated/widescreen-native-hook-apply.json
-            analysis/generated/widescreen-native-hook-acceptance.json
-            analysis/generated/widescreen-native-hook-acceptance.md
+            analysis/generated/widescreen-plus16-capacity-acceptance.json
+            analysis/generated/widescreen-plus16-capacity-acceptance.md
+            analysis/generated/widescreen-plus16-liveness.json
+            ${{ runner.temp }}/ws-native-runs/oracle/run.log
+            ${{ runner.temp }}/ws-native-runs/oracle/stock-strips.txt
             ${{ runner.temp }}/ws-native-runs/0/run.log
             ${{ runner.temp }}/ws-native-runs/8/run.log
             ${{ runner.temp }}/ws-native-runs/16/run.log

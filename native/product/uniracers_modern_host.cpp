@@ -8,6 +8,8 @@ extern "C" {
 #include "desktop/config.h"
 #include "desktop/host_main.h"
 #include "desktop/sdl_compat.h"
+#include "focus_pause_policy.hpp"
+#include "host_product_state.hpp"
 #include "modern_pause_input.h"
 #include "modern_pause_menu.h"
 #include "modern_session_c_api.h"
@@ -15,10 +17,12 @@ extern "C" {
 
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 
 namespace {
 
 UrModernSession* g_session;
+ur::product::HostProductState g_product_state;
 UrModernPauseMenu g_pause_menu;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
@@ -78,6 +82,25 @@ bool paused() {
     return g_session && ur_modern_session_is_paused(g_session);
 }
 
+void apply_focus_pause_policy() {
+    if (!g_session || !restart_surface()) return;
+    const bool focused = SDL_GetKeyboardFocus() != nullptr;
+    if (!ur::product::should_pause_on_focus_loss(
+            modern_mode() ? ur::product::ExecutionMode::Modern
+                          : ur::product::ExecutionMode::Authentic,
+            g_product_state.settings,
+            focused,
+            paused())) {
+        return;
+    }
+    const UrModernSessionResult result = ur_modern_session_pause(g_session);
+    if (result == UR_MODERN_SESSION_APPLIED &&
+        std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(stderr, "UR_FOCUS_PAUSE APPLIED focus=0 setting=1 modern=1\n");
+        std::fflush(stderr);
+    }
+}
+
 bool dispatch(UrModernPauseAction action) {
     if (!ensure_session()) return false;
     const UrModernSessionResult result =
@@ -114,6 +137,12 @@ extern "C" int ur_uniracers_modern_system_key_down(
     int mod,
     int repeat) {
     if (repeat || !ensure_session()) return 0;
+
+    if (paused() && key == SDLK_f && modern_mode()) {
+        g_product_state.settings.pause_on_focus_loss =
+            !g_product_state.settings.pause_on_focus_loss;
+        return 1;
+    }
 
     if (key == SDLK_ESCAPE) {
         if (!paused() && !restart_surface()) return 0;
@@ -175,6 +204,8 @@ extern "C" void ur_uniracers_modern_system_overlay(
         return;
     }
 
+    apply_focus_pause_policy();
+
     const int is_paused = paused() ? 1 : 0;
     const int results = g_surface == UR_UNIRACERS_RESTART_RESULTS;
     const int restart = ur_modern_session_restart_available(g_session);
@@ -183,7 +214,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
     const int panel_w = width < 220 ? width - 16 : 212;
-    const int panel_h = is_paused ? 54 : 30;
+    const int panel_h = is_paused ? 69 : 30;
     const int x = (width - panel_w) / 2;
     const int y = is_paused ? (height - panel_h) / 2 : height - panel_h - 8;
 
@@ -210,6 +241,11 @@ extern "C" void ur_uniracers_modern_system_overlay(
                     ? "> RESTART" : "  RESTART",
                 0xFFFFFFFFu, 1);
         }
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 52,
+            g_product_state.settings.pause_on_focus_loss
+                ? "F  FOCUS PAUSE ON" : "F  FOCUS PAUSE OFF",
+            0xFFFFFFFFu, 1);
     } else {
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 11,

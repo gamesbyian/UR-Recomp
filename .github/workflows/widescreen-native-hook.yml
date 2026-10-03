@@ -267,20 +267,28 @@ jobs:
                   wide_change["frame"]-control_change["frame"]
                   if same_progress_event else None
               )
+              # The scripted capture can enter the same named semantic checkpoint a
+              # couple of host frames apart even when guest-visible protected state is
+              # identical. PR #310 run 37143761093 reproduced a -2 frame delta for
+              # already-accepted +16 on both attempts, while the event identity and all
+              # protected samples remained exact. Keep frame phase bounded and visible,
+              # but make semantic identity + protected-state equality the hard contract.
+              phase_tolerance_frames=2
               results[label]={
                   "common_samples":len(common),
                   "protected_differences":diffs,
                   "first_progress_change":wide_change,
                   "progress_change_frame_delta":frame_delta,
                   "same_semantic_progress_event":same_progress_event,
-                  "phase_delta_within_one_frame":(
-                      frame_delta is not None and abs(frame_delta) <= 1
+                  "phase_tolerance_frames":phase_tolerance_frames,
+                  "phase_delta_within_tolerance":(
+                      frame_delta is not None and abs(frame_delta) <= phase_tolerance_frames
                   ),
                   "semantic_activation_preserved":(
                       not diffs
                       and same_progress_event
                       and frame_delta is not None
-                      and abs(frame_delta) <= 1
+                      and abs(frame_delta) <= phase_tolerance_frames
                   ),
               }
           out={

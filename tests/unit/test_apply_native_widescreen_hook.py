@@ -63,9 +63,11 @@ class NativeWidescreenHookTests(unittest.TestCase):
             self.assertIn("ur_ws_native_second_pass ? 0x453 : 0x433",w)
             self.assertIn("ur_ws_native_after_builder(cpu)",w)
             self.assertIn("ur_ws_native_cleanup_previous_payload(cpu)",w)
-            self.assertIn("URRECOMP_WS_SHADOW_ORACLE",w)
-            self.assertIn("URWS_SHADOW16 provider=stock-oracle",w)
-            self.assertIn("ur_ws_native_shadow_from_oracle",w)
+            self.assertIn("URWS_SHADOW16 provider=course-runtime",w)
+            self.assertIn("ur_ws_native_shadow_from_course",w)
+            self.assertIn("0x000f + coarse_index * 2u",w)
+            self.assertIn("0x800fu + (uint32)record * 32u",w)
+            self.assertNotIn("URRECOMP_WS_SHADOW_ORACLE",w)
             self.assertFalse(MOD.apply(root)["changed"])
 
     def test_fails_closed_without_live_wrapper(self):

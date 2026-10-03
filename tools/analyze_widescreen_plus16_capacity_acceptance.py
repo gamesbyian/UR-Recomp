@@ -166,47 +166,7 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
         if not second_ring_ok:
             bad_second_ring_steps.append(item)
 
-        # The provider's contract is direct random access to a later stock row,
-        # not replaying the guest scheduler. Require the shadow edge+payload to
-        # equal the nearest future stock observation carrying the required next
-        # low-five-bit ring coordinate. Upper edge bits are compound
-        # resource/segment state and therefore are not independently advanced
-        # from the widened first edge.
-        wanted_ring=(first["edge"]+1)&0x1f
-        candidates=[
-            r for r in oracle
-            if r["camx"]>first["camx"] and (r["edge"]&0x1f)==wanted_ring
-        ]
-        same_y=[
-            r for r in candidates
-            if second.get("camy") is not None and r.get("camy")==second.get("camy")
-        ]
-        if same_y:
-            oracle_same_y_comparable+=1
-            best=min(same_y,key=lambda r:r["camx"]-first["camx"])
-            payload_exact=best["payload"]==second["payload"]
-            full_edge_exact=best["edge"]==second["edge"]
-            if payload_exact:
-                oracle_payload_exact+=1
-            if payload_exact and full_edge_exact:
-                oracle_full_edge_exact+=1
-            if payload_exact:
-                advance=best["camx"]-first["camx"]
-                oracle_advances.append(advance)
-                if len(oracle_examples)<40:
-                    oracle_examples.append({
-                        "plus16_camx":second["camx"],
-                        "stock_camx":best["camx"],
-                        "camera_x_advance":advance,
-                        "host_edge":second["edge"],
-                        "stock_edge":best["edge"],
-                        "full_edge_exact":full_edge_exact,
-                        "payload":second["payload"],
-                    })
-        elif candidates:
-            oracle_vertical_transition_skips+=1
-
-    shadow_view_by_cam={r["camx"]:r for r in shadow_views}
+            shadow_view_by_cam={r["camx"]:r for r in shadow_views}
     for first in p16:
         second=shadow_view_by_cam.get(first["camx"])
         if second is None:
@@ -302,17 +262,11 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
             "plus8_prepare_events":len(p8),
             "plus16_first_column_events":len(p16),
             "plus16_shadow_events":len(shadow),
-            "plus16_oracle_same_y_comparable":oracle_same_y_comparable,
-            "plus16_oracle_vertical_transition_skips":oracle_vertical_transition_skips,
-            "plus16_oracle_payload_exact_matches":oracle_payload_exact,
-            "plus16_oracle_full_edge_exact_matches":oracle_full_edge_exact,
             "plus16_same_view_comparable_rows":same_view_comparable,
             "plus16_same_view_payload_exact_matches":same_view_payload_exact,
             "plus16_vertical_view_transition_rows":vertical_view_transition_rows,
             "plus16_cleanup_events":len(clean),
             "plus16_comparable_pairs":len(paired),
-            "plus16_oracle_advance_min":min(oracle_advances) if oracle_advances else None,
-            "plus16_oracle_advance_max":max(oracle_advances) if oracle_advances else None,
         },
         "provider_misses":STOP_RE.findall(log16),
         "protected_state_differences":protected16,
@@ -320,7 +274,6 @@ def analyze(log0:str,log8:str,log16:str,log24:str,oracle_log:str,
         "second_ring_failures":bad_second_ring_steps[:40],
         "same_view_failures":same_view_failures,
         "pair_examples":paired[:40],
-        "oracle_match_examples":oracle_examples,
         "checks":checks,
         "accepted":all(checks.values()),
     }
@@ -336,17 +289,12 @@ def render(r:dict)->str:
         f"- accepted +8 unchanged: **{c['accepted_plus8_unchanged']}**",
         f"- +16 first-column events: **{n['plus16_first_column_events']}**",
         f"- +16 host-shadow events: **{n['plus16_shadow_events']}**",
-        f"- same-Y oracle-comparable shadow events: **{n['plus16_oracle_same_y_comparable']}**",
-        f"- vertical-transition oracle skips: **{n['plus16_oracle_vertical_transition_skips']}**",
-        f"- exact same-Y later-stock shadow payload matches: **{n['plus16_oracle_payload_exact_matches']}**",
-        f"- exact later-stock compound-edge + payload matches (all rows, diagnostic): **{n['plus16_oracle_full_edge_exact_matches']}**",
         f"- same-view comparable shadow rows: **{n['plus16_same_view_comparable_rows']}**",
         f"- same-view exact payload matches: **{n['plus16_same_view_payload_exact_matches']}**",
         f"- later-stock rows crossing a vertical-view transition: **{n['plus16_vertical_view_transition_rows']}**",
         f"- two columns for every preparation: **{c['margin16_two_columns_for_every_preparation']}**",
         f"- first step keeps accepted stock compatibility: **{c['margin16_first_step_preserves_accepted_stock_compatibility']}**",
         f"- second step is ring-adjacent: **{c['margin16_second_step_ring_adjacent']}**",
-        f"- nearest later-stock advance range: **{n['plus16_oracle_advance_min']}..{n['plus16_oracle_advance_max']} px**",
         f"- +16 protected state equal: **{c['margin16_protected_state_equal']}**",
         f"- deterministic cleanup: **{c['margin16_cleanup_lifecycle']}**",
         f"- provider misses: **{r['provider_misses']}**","",

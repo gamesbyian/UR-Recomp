@@ -101,16 +101,17 @@ The state-level classification is now encoded in `analysis/ui-transition-contrac
 
 ### Menu visual-language contract
 
-`analysis/generated/menu-visual-language.json` is the mechanically decoded contract for the MAIN_MENU/OPTIONS menu grammar. Regenerate it by running `tests/input/menu-visual-language.script` through snesref, then `python3 tools/extract_menu_visual_language.py <dump-dir>`. Its checks decode every MAIN_MENU and OPTIONS label from VRAM.
+`analysis/generated/menu-visual-language.json` is the mechanically decoded contract for the MAIN_MENU/OPTIONS menu grammar. Regenerate it by running `tests/input/menu-visual-language.script` (and, for sound timing, `menu-visual-language-control.script`) through snesref with `SNESREF_WAV`, then `python3 tools/extract_menu_visual_language.py <dump-dir> --log <menu.log> --wav <menu.wav> --control-wav <control.wav>`. Its checks decode every MAIN_MENU and OPTIONS label from VRAM.
 
 - **Typography:** a 40-slot, 16×16 uppercase font on BG2 palette 7 (4bpp, priority above the BG1 art). Slots are `0-9`, `A-Z` without `O` (O reuses the zero glyph), `OK`, left/right arrows, and the circuit-loop and stunt-hook icons. The track-type icons are glyphs in the same sheet. Fill is a five-step yellow vertical ramp with a black outline and a grey edge ramp.
 - **Layout:** letters and word gaps are 16 px, rows are 24 px apart, and every row is centered on x=128.
 - **Cursor:** a 32×32 blue 3D arrow (OBJ palette 7) with a flat drop shadow (OBJ palette 5) at +7,+7. It spins through a 16-tile cycle at 2 frames per tile (32-frame period). It rests left of the row text and eases about a quarter of the remaining distance per frame, settling in about 12 frames. Motion starts on the input frame.
 - **Second font and hierarchy:** names and per-item data use an 8×16 grey font (outline plus a four-step grey ramp, same palette 7). Digits start at tile `0xA9`, A–Z without O at `0xB3`, and space is `0xCE`. Yellow 16×16 text is reserved for titles, mode choices and tier labels (e.g. BRONZE). On TRACK_SELECT the track-type icons are big-font glyphs placed before left-aligned small-font names at x=80; titles stay centered.
 - **Setup strip:** MAIN_MENU, rider select, tour select and track select are successive 256-px positions of one BG2 strip (scroll 0/256/512/768), so each forward step reuses the same slide. The arrow keeps its sprites but OBJ palette 7 is recolored per screen (blue on MAIN_MENU, salmon on tour/track).
+- **Sound timing:** measured by subtracting a no-input control run's audio, which works because the menu music is deterministic. A cursor move sounds on its input frame for about 10–15 frames. Confirm and Back sounds start 3 frames after the press; the Options confirm lasts about 38 frames. SFX identity (which sample) is not yet decoded.
 - **Transition:** MAIN_MENU→OPTIONS swaps the menu state first, then slides BG2 256 px in 39 frames (velocity 1..7, cruise 8, 7..1 px/frame). The logo/background layer stays fixed; Back mirrors the slide exactly and resets the selection to 1P (no selection memory).
 
-Modern host surfaces that present menus, such as the host pause/options overlay, should use this grammar (the stock glyphs or a faithful high-resolution redraw of them, the arrow cursor and the eased slide) rather than generic overlay text. Sounds, the records/results compositions, the tour/rider BG art and the attract/fade transitions are not yet covered.
+Modern host surfaces that present menus, such as the host pause/options overlay, should use this grammar (the stock glyphs or a faithful high-resolution redraw of them, the arrow cursor and the eased slide) rather than generic overlay text. SFX identity, the records/results compositions, the tour/rider BG art and the attract/fade transitions are not yet covered.
 
 ## Current high-level graph
 

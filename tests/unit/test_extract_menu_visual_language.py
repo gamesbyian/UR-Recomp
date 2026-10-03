@@ -65,6 +65,18 @@ class MenuVisualLanguageTests(unittest.TestCase):
         runs = mvl.small_text_rows(bytes(vram), 0x1000, 64, 64, 7, 0)
         self.assertEqual([(r["text"], r["x_left"]) for r in runs], [("ZOOM ZOO", 80)])
 
+    def test_sfx_bursts_onset_duration_and_quiet_baseline(self) -> None:
+        rms = [0.0] * 40
+        for f in range(10, 15):
+            rms[f] = 900.0  # move sound on the press frame
+        for f in range(23, 30):
+            rms[f] = 900.0  # confirm sound three frames late
+        bursts = mvl.sfx_bursts(rms, [(10, "down"), (20, "a"), (28, "x")])
+        self.assertEqual((bursts[0]["onset_offset_frames"], bursts[0]["duration_frames"]), (0, 5))
+        self.assertTrue(bursts[0]["baseline_quiet"])
+        self.assertEqual(bursts[1]["onset_offset_frames"], 3)
+        self.assertFalse(bursts[2]["baseline_quiet"])
+
     def test_run_lengths_and_deltas(self) -> None:
         self.assertEqual(mvl.run_lengths([8, 8, 4, 4, 0]), [[8, 2], [4, 2], [0, 1]])
         self.assertEqual(mvl.deltas([0, 1, 3, 6]), [1, 2, 3])

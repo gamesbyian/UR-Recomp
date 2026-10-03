@@ -793,10 +793,10 @@
  },
  "background": "BG1 8bpp: UNIRACERS logo over a grey checkerboard with leaf motif; static across the menu slide",
  "not_covered": [
-  "menu sounds",
   "results and records table compositions",
   "attract/fade transitions",
-  "tour/rider BG art and animal icon animation"
+  "tour/rider BG art and animal icon animation",
+  "menu SFX identity (timing only)"
  ],
  "checks": {
   "main_menu_labels_decode": true,
@@ -813,5 +813,74 @@
   "track_title_decodes": true,
   "track_small_labels_decode": true
  },
- "all_checks_pass": true
+ "all_checks_pass": true,
+ "sound_timing": {
+  "method": "per-frame RMS of (menu run WAV - no-input control WAV); threshold 200",
+  "inputs": [
+   {
+    "press_frame": 564,
+    "button": "down",
+    "baseline_quiet": true,
+    "onset_offset_frames": 0,
+    "duration_frames": 10
+   },
+   {
+    "press_frame": 606,
+    "button": "down",
+    "baseline_quiet": true,
+    "onset_offset_frames": 1,
+    "duration_frames": 15
+   },
+   {
+    "press_frame": 628,
+    "button": "down",
+    "baseline_quiet": true,
+    "onset_offset_frames": 0,
+    "duration_frames": 12
+   },
+   {
+    "press_frame": 650,
+    "button": "down",
+    "baseline_quiet": false,
+    "onset_offset_frames": 0,
+    "duration_frames": 13
+   },
+   {
+    "press_frame": 672,
+    "button": "a",
+    "baseline_quiet": true,
+    "onset_offset_frames": 3,
+    "duration_frames": 38
+   },
+   {
+    "press_frame": 723,
+    "button": "x",
+    "baseline_quiet": true,
+    "onset_offset_frames": 3,
+    "duration_frames": 81
+   },
+   {
+    "press_frame": 834,
+    "button": "a",
+    "baseline_quiet": false,
+    "onset_offset_frames": 0,
+    "duration_frames": 43
+   },
+   {
+    "press_frame": 897,
+    "button": "a",
+    "baseline_quiet": false,
+    "onset_offset_frames": 0,
+    "duration_frames": 50
+   },
+   {
+    "press_frame": 967,
+    "button": "a",
+    "baseline_quiet": true,
+    "onset_offset_frames": 2,
+    "duration_frames": null
+   }
+  ],
+  "unresolved": "SFX identity: this snesref core exposes neither APU RAM nor DSP registers, and per-frame WRAM sampling misses the transient request; a burst that never falls silent means the music itself diverged (e.g. a stolen voice)"
+ }
 }

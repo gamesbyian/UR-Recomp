@@ -18,7 +18,11 @@ Standard library only.
 from __future__ import annotations
 
 import argparse
+import array
 import json
+import math
+import re
+import wave
 import struct
 import zlib
 from collections import Counter
@@ -336,6 +340,62 @@ def slide_contract(enter: list[Dump], back: list[Dump]) -> dict:
     }
 
 
+NTSC_FRAME_RATE = 60.0988
+SFX_RMS_THRESHOLD = 200.0
+PRESS_RE = re.compile(r"script f=(\d+) press (\S+) (\d+)")
+
+
+def wav_mono(path: Path) -> tuple[array.array, int]:
+    with wave.open(str(path)) as w:
+        if w.getsampwidth() != 2 or w.getnchannels() != 2:
+            raise SystemExit(f"{path}: expected 16-bit stereo WAV")
+        return array.array("h", w.readframes(w.getnframes())), w.getframerate()
+
+
+def frame_diff_rms(menu: array.array, control: array.array, rate: int) -> list[float]:
+    spf = rate / NTSC_FRAME_RATE
+    frames = int(min(len(menu), len(control)) / 2 / spf) - 1
+    out = []
+    for f in range(frames):
+        s, e = int(f * spf) * 2, int((f + 1) * spf) * 2
+        out.append(math.sqrt(sum((menu[i] - control[i]) ** 2 for i in range(s, e)) / (e - s)))
+    return out
+
+
+def sfx_bursts(rms: list[float], presses: list[tuple[int, str]]) -> list[dict]:
+    """Per input: first frame at or after the press whose diff exceeds the threshold,
+    and how long the burst stays above it before falling silent for two frames.
+    ``baseline_quiet`` is false when the runs already differed just before the press,
+    so the entry may measure music drift rather than an input sound."""
+    out = []
+    for i, (frame, button) in enumerate(presses):
+        limit = presses[i + 1][0] if i + 1 < len(presses) else len(rms)
+        onset = next((f for f in range(frame, min(limit, frame + 8)) if rms[f] > SFX_RMS_THRESHOLD), None)
+        quiet = all(rms[f] <= SFX_RMS_THRESHOLD for f in range(max(0, frame - 4), frame))
+        entry = {"press_frame": frame, "button": button, "baseline_quiet": quiet,
+                 "onset_offset_frames": None, "duration_frames": None}
+        if onset is not None:
+            entry["onset_offset_frames"] = onset - frame
+            end = next((f for f in range(onset, limit - 1)
+                        if rms[f] <= SFX_RMS_THRESHOLD and rms[f + 1] <= SFX_RMS_THRESHOLD), None)
+            entry["duration_frames"] = None if end is None else end - onset
+        out.append(entry)
+    return out
+
+
+def sound_timing(log: Path, menu_wav: Path, control_wav: Path) -> dict:
+    presses = [(int(m.group(1)), m.group(2)) for m in PRESS_RE.finditer(log.read_text())]
+    menu, rate = wav_mono(menu_wav)
+    control, _ = wav_mono(control_wav)
+    rms = frame_diff_rms(menu, control, rate)
+    presses = [p for p in presses if p[0] < len(rms)]
+    return {
+        "method": "per-frame RMS of (menu run WAV - no-input control WAV); threshold %.0f" % SFX_RMS_THRESHOLD,
+        "inputs": sfx_bursts(rms, presses),
+        "unresolved": "SFX identity: this snesref core exposes neither APU RAM nor DSP registers, and per-frame WRAM sampling misses the transient request; a burst that never falls silent means the music itself diverged (e.g. a stolen voice)",
+    }
+
+
 def write_png(path: Path, width: int, height: int, rgba: bytes) -> None:
     raw = b"".join(b"\x00" + rgba[y * width * 4:(y + 1) * width * 4] for y in range(height))
 
@@ -446,8 +506,14 @@ def main() -> int:
     ap.add_argument("dump_dir", type=Path, help=f"snesref dump directory from {SCRIPT}")
     ap.add_argument("--out", type=Path, default=ROOT / "analysis/generated/menu-visual-language.json")
     ap.add_argument("--atlas-out", type=Path, help="optional PNG of the decoded glyph sheet (do not commit)")
+    ap.add_argument("--log", type=Path, help="snesref stdout log of the menu run (for press frames)")
+    ap.add_argument("--wav", type=Path, help="SNESREF_WAV output of the menu run")
+    ap.add_argument("--control-wav", type=Path, help="SNESREF_WAV output of menu-visual-language-control.script")
     args = ap.parse_args()
     contract, main_dump, char_base = extract(args.dump_dir)
+    if args.log and args.wav and args.control_wav:
+        contract["sound_timing"] = sound_timing(args.log, args.wav, args.control_wav)
+        contract["not_covered"] = [n for n in contract["not_covered"] if n != "menu sounds"] + ["menu SFX identity (timing only)"]
     args.out.write_text(json.dumps(contract, indent=1) + "\n")
     if args.atlas_out:
         write_atlas(args.atlas_out, main_dump, char_base)

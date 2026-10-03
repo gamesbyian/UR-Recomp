@@ -1912,3 +1912,22 @@ The 30-byte handler-pointer run is deliberately recorded as a **prefix**, not a 
 **Evidence:** `tests/input/menu-visual-language.script`; `tools/extract_menu_visual_language.py` → `analysis/generated/menu-visual-language.json` (13 decode/state checks, including every expected title and small-font label on the three setup screens).
 
 **Interpretation:** The frontend's visual hierarchy is yellow-for-choices, grey-for-data, with track-type icons living in the font. Modern frontend surfaces can reproduce it from this contract without screen-by-screen guesswork.
+
+### R-2026-10-03-UI-04 — Menu SFX timing measured; identity blocked on harness visibility
+
+**Status:** timing reproduced locally; identity open  
+**Date:** 2026-10-03  
+**Area:** frontend audio
+
+**Observation:** Subtracting a no-input control run's WAV from the menu-visual-language run isolates input-triggered sound, because the menu music is deterministic.
+- **Timing (inputs with a quiet baseline):** cursor-move sound begins on the input frame (0–1 frames) and lasts 10–15 frames. A into OPTIONS begins +3 frames and lasts about 38. X back begins +3 frames; its 81-frame burst likely includes a music change.
+- **Contamination:** after the X-back the runs keep differing between inputs, so later setup-screen confirms are flagged `baseline_quiet: false`.
+
+**Evidence:** `tests/input/menu-visual-language-control.script`; `tools/extract_menu_visual_language.py --log --wav --control-wav` → `sound_timing` in `analysis/generated/menu-visual-language.json`.
+
+**Uncertainty / dead end:** SFX identity was not recovered.
+- **Waveform correlation:** cross-correlating difference bursts gives only 0.16–0.27 even between identical cursor moves, because stolen music voices contaminate the difference.
+- **Harness:** the pinned snesref core produces no output for `SNESREF_DSPREG_TRACE_FILE` or `SNESREF_APURAM_TRACE_FILE` (it lacks the cosim memory IDs).
+- **WRAM sampling:** per-frame sampling of `$0000-$1FFF` shows only stack churn at input frames, so the request is transient.
+
+**Next discriminator:** log CPU writes to `$2140-$2143` (SNESRecomp native `audio_events` via `tools/analyze_audio_port_events.py`, or a core with the cosim memory IDs) across the same script, and only when a modern menu surface needs exact stock SFX.

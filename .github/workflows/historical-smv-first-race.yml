@@ -11,7 +11,9 @@ on:
       - "tools/compose_historical_reference_result.py"
       - "tools/compose_historical_replay_result.py"
       - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/_global.json"
       - "tools/patches/snesrecomp-input-file.patch"
       - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
       - "third_party/cargo/snesrecomp-analyzer/**"
@@ -20,6 +22,7 @@ on:
 
 concurrency:
   group: historical-smv-first-race-${{ github.ref }}
+  # This workflow may persist evidence on main; serialize rather than cancel writes.
   cancel-in-progress: false
 
 permissions:

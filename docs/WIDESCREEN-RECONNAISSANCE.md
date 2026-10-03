@@ -391,6 +391,55 @@ This closes the current implementation-facing +8 task and the bounded +16/+24 ge
 Evidence: final native workflow run `37081391730`; PR #228.
 
 
+## +16 host-capacity replay stop and ownership proof
+
+The accepted +8 guest hook remains the only widened strip written through stock
+guest staging. PR #247/its rebased successor tested two ways to reuse guest
+preparation for the second +16 column and rejected both.
+
+Run `37083769287` repeated stock `A59E` inside the accepted snapshot replay.
+Column +1 stayed healthy (617 events, 317 exact later-stock matches, longest run
+25), while column +2 produced only 557 candidates, missed structurally on 60
+events, and matched exact later-stock content only 31 times.
+
+Run `37084288683` replayed the complete stock `A52F` preparation path on a
+disposable cloned camera state. It produced 314 second-column candidates and
+zero exact later-stock matches. Both negative experiments preserved sampled
+protected gameplay/camera/progression state and created no synthetic guest
+descriptor lane.
+
+The architectural conclusion is bounded: stock guest preparation is a
+one-extra-column demand scheduler, not a random-access future-column API.
+
+A subsequent controlled capacity proof separates ownership from production
+content generation. Column +1 remains the accepted guest result unchanged;
+column +2 is stored only in host/native presentation capacity and is supplied
+by an independent later-stock oracle. Native run `37086273196` proves the
+capacity contract itself:
+
+- 617 +16 first-column events;
+- 617 host-shadow second-column events;
+- 617/617 exact matches to the nearest later stock row at the required next
+  low-five-bit ring coordinate, including the compound edge word and full
+  32-byte payload;
+- zero provider misses;
+- deterministic cleanup;
+- protected preparation-fixture state equal;
+- the independent liveness fixture has zero protected differences across 61
+  common semantic samples and reaches the same `liveness-004` progression
+  transition with identical progression state. Its absolute guest frame is one
+  frame later (1232 vs 1231), so activation is not earlier.
+
+The oracle is test scaffolding, not a production content source. The next
+Widescreen implementation step is to replace it with a host-owned random-access
+strip materializer backed by the recovered course/resource presentation model.
+Do not widen final composition, HUD, racer graphics, or gameplay activation as
+part of that materializer task.
+
+Negative evidence:
+`analysis/generated/widescreen-plus16-capacity-negative-2026-10-02.{json,md}`.
+
+
 ## +8 presentation-sequence divergence closure
 
 PR #206 first established the event-relative boundary: meaningful P2 race state remains equal, P2 racer presentation first diverges at **`object-tail-141`**, VRAM first diverges at **`object-tail-142`**, and OAM remains equal through the retained early gap. The follow-up sequence discriminator closes why.

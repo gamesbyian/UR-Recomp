@@ -16,7 +16,6 @@ on:
       - "tests/input/preparation-emission-race.script"
   pull_request:
     paths:
-      - ".github/workflows/preparation-emission-probe.yml"
       - "tools/analyze_preparation_stream_trace.py"
       - "tools/analyze_preparation_emission_probe.py"
       - "tools/analyze_preparation_ppu_pc_trace.py"

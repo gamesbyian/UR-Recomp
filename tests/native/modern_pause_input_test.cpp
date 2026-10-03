@@ -51,19 +51,30 @@ int main() {
     assert(ur_modern_pause_menu_selected(&menu, 0) ==
            UR_MODERN_PAUSE_RESUME);
 
-    // Without an anchor the menu stays Resume-only.
+    // Without an anchor the host-owned settings row is still navigable.
     assert(ur_modern_pause_handle_action(
                session, &menu, UR_MODERN_PAUSE_NEXT) ==
            UR_MODERN_SESSION_APPLIED);
     assert(ur_modern_pause_menu_selected(&menu, 0) ==
-           UR_MODERN_PAUSE_RESUME);
+           UR_MODERN_PAUSE_FOCUS_PAUSE);
 
+    // Generic session input deliberately does not own settings activation.
+    assert(ur_modern_pause_handle_action(
+               session, &menu, UR_MODERN_PAUSE_ACTIVATE) ==
+           UR_MODERN_SESSION_NO_OP);
+    assert(paused == 1);
+
+    assert(ur_modern_pause_handle_action(
+               session, &menu, UR_MODERN_PAUSE_PREVIOUS) ==
+           UR_MODERN_SESSION_APPLIED);
+    assert(ur_modern_pause_menu_selected(&menu, 0) ==
+           UR_MODERN_PAUSE_RESUME);
     assert(ur_modern_pause_handle_action(
                session, &menu, UR_MODERN_PAUSE_ACTIVATE) ==
            UR_MODERN_SESSION_APPLIED);
     assert(paused == 0);
 
-    // Arm Restart and prove both directions select the same two-row model.
+    // Arm Restart and prove the three-row model preserves Restart ordering.
     ur_modern_session_observe_race_active(session, 1);
     assert(ur_modern_session_restart_available(session));
 
@@ -74,6 +85,22 @@ int main() {
 
     assert(ur_modern_pause_handle_action(
                session, &menu, UR_MODERN_PAUSE_NEXT) ==
+           UR_MODERN_SESSION_APPLIED);
+    assert(ur_modern_pause_menu_selected(&menu, 1) ==
+           UR_MODERN_PAUSE_RESTART);
+
+    assert(ur_modern_pause_handle_action(
+               session, &menu, UR_MODERN_PAUSE_NEXT) ==
+           UR_MODERN_SESSION_APPLIED);
+    assert(ur_modern_pause_menu_selected(&menu, 1) ==
+           UR_MODERN_PAUSE_FOCUS_PAUSE);
+    assert(ur_modern_pause_handle_action(
+               session, &menu, UR_MODERN_PAUSE_ACTIVATE) ==
+           UR_MODERN_SESSION_NO_OP);
+    assert(paused == 1);
+
+    assert(ur_modern_pause_handle_action(
+               session, &menu, UR_MODERN_PAUSE_PREVIOUS) ==
            UR_MODERN_SESSION_APPLIED);
     assert(ur_modern_pause_menu_selected(&menu, 1) ==
            UR_MODERN_PAUSE_RESTART);

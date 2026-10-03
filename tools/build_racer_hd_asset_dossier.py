@@ -109,32 +109,32 @@ def sample_authored_0541_p1_rgba(x: int, y: int) -> bytes:
     if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
         return b"\x00\x00\x00\x00"
 
-    wheel_cx = 124
-    wheel_cy = 116
+    wheel_cx = 123
+    wheel_cy = 122
     wx = x - wheel_cx
     wy = y - wheel_cy
     wr2 = wx * wx + wy * wy
-    tire = wr2 <= 39 * 39 and wr2 >= 31 * 31
-    rim = wr2 < 31 * 31 and wr2 >= 28 * 28
-    hub = wr2 <= 7 * 7
+    tire = wr2 <= 33 * 33 and wr2 >= 27 * 27
+    rim = wr2 < 27 * 27 and wr2 >= 24 * 24
+    hub = wr2 <= 6 * 6
 
-    fork_center = 122 + (112 - y) // 18
-    fork = y >= 54 and y <= 111 and x >= fork_center - 4 and x <= fork_center + 4
+    fork_center = 131 - (y - 60) // 14
+    fork = y >= 60 and y <= 117 and x >= fork_center - 4 and x <= fork_center + 4
 
-    crank = y >= 108 and y <= 115 and x >= 111 and x <= 137
-    pedal = y >= 105 and y <= 110 and x >= 137 and x <= 149
+    crank = y >= 116 and y <= 123 and x >= 112 and x <= 138
+    pedal = y >= 113 and y <= 118 and x >= 138 and x <= 150
 
-    seat_dx = x - 116
-    seat_dy = y - 43
+    seat_dx = x - 128
+    seat_dy = y - 22
     seat = (
-        (seat_dx * seat_dx) * 9 + (seat_dy * seat_dy) * 64 <= 30 * 30 * 9
-        and y >= 34 and y <= 50
+        (seat_dx * seat_dx) * 11 + (seat_dy * seat_dy) * 30 <= 30 * 30 * 11
+        and y >= 12 and y <= 32
     )
 
-    neck = y >= 47 and y <= 70 and x >= 115 and x <= 130
-    crown_dx = x - 123
-    crown_dy = y - 67
-    crown = crown_dx * crown_dx + crown_dy * crown_dy <= 12 * 12
+    neck = y >= 30 and y <= 60 and x >= 128 and x <= 136
+    crown_dx = x - 132
+    crown_dy = y - 60
+    crown = crown_dx * crown_dx + crown_dy * crown_dy <= 10 * 10
 
     if hub or rim or crank or pedal:
         return authored_metal_rgba(x, y)

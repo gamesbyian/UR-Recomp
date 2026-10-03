@@ -31,9 +31,15 @@ constexpr std::size_t kOverlayBytes =
 std::array<std::uint8_t, kOverlayBytes> g_obj_overlay{};
 bool g_frame_active = false;
 unsigned g_logged_passes = 0;
-std::uint16_t g_semantic_frame_id = 0;
+struct RacerDrawInstance {
+    std::uint16_t semantic_frame_id;
+    RacerViewport viewport;
+    RacerOamPlacement placement;
+};
+
+std::array<RacerDrawInstance, 4> g_instances{};
+std::size_t g_instance_count = 0;
 unsigned g_sim_frame = 0;
-RacerOamPlacement g_placement{};
 
 bool env_enabled() noexcept {
     static const bool enabled = [] {
@@ -122,34 +128,60 @@ void racer_hd_prepare_frame(
 
 void racer_hd_begin_sim_frame(unsigned number) noexcept {
     g_frame_active = false;
+    g_instance_count = 0;
     g_sim_frame = number;
 
     if (!env_enabled() || g_ppu == nullptr) return;
 
     PpuClearOverlayCaptures(g_ppu);
 
-    const SelectionResult selection = select_racer_presentation_from_wram(
+    const SelectionResult p1 = select_racer_presentation_from_wram(
         GraphicsPack::Remastered,
         g_ram,
         0x20000,
         1
     );
-    if (!selection.uses_replacement() || selection.registration == nullptr) return;
-    if (!racer_hd_asset_available(selection.registration->semantic_frame_id)) return;
-
-    const auto placement = decode_racer_ppu_placement(
-        g_ppu->oam,
-        256,
-        g_ppu->highOam,
-        32,
-        g_ppu->obsel,
-        1
+    const SelectionResult p2 = select_racer_presentation_from_wram(
+        GraphicsPack::Remastered,
+        g_ram,
+        0x20000,
+        2
     );
-    if (!placement.has_value()) return;
-    if (!placement->large ||
-        placement->width_pixels != selection.registration->logical_width ||
-        placement->height_pixels != selection.registration->logical_height) {
+    if (!p1.uses_replacement() || !p2.uses_replacement() ||
+        p1.registration == nullptr || p2.registration == nullptr) {
         return;
+    }
+    if (!racer_hd_asset_available(p1.registration->semantic_frame_id) ||
+        !racer_hd_asset_available(p2.registration->semantic_frame_id)) {
+        return;
+    }
+
+    const auto p1_top = decode_racer_split_ppu_placement(
+        g_ppu->oam, 256, g_ppu->obsel, 1, RacerViewport::Top
+    );
+    const auto p2_top = decode_racer_split_ppu_placement(
+        g_ppu->oam, 256, g_ppu->obsel, 2, RacerViewport::Top
+    );
+    const auto p1_bottom = decode_racer_split_ppu_placement(
+        g_ppu->oam, 256, g_ppu->obsel, 1, RacerViewport::Bottom
+    );
+    const auto p2_bottom = decode_racer_split_ppu_placement(
+        g_ppu->oam, 256, g_ppu->obsel, 2, RacerViewport::Bottom
+    );
+    if (!p1_top || !p2_top || !p1_bottom || !p2_bottom) return;
+
+    const std::array<const RacerRegistration*, 4> registrations = {
+        p1.registration, p2.registration, p1.registration, p2.registration
+    };
+    const std::array<RacerOamPlacement, 4> placements = {
+        *p1_top, *p2_top, *p1_bottom, *p2_bottom
+    };
+    for (std::size_t i = 0; i < placements.size(); ++i) {
+        if (!placements[i].large ||
+            placements[i].width_pixels != registrations[i]->logical_width ||
+            placements[i].height_pixels != registrations[i]->logical_height) {
+            return;
+        }
     }
 
     const std::uint64_t before = guest_state_digest();
@@ -170,7 +202,7 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
         kBaseHeight,
         kPpuOverlayFlag_RemoveFromGame
     );
-    const bool ranged = captured && PpuSetOverlayOamRange(g_ppu, placement->slot, 1);
+    const bool ranged = captured && PpuSetOverlayOamRange(g_ppu, 96, 4);
     const std::uint64_t after = guest_state_digest();
 
     if (!ranged || before != after) {
@@ -185,8 +217,13 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
         return;
     }
 
-    g_placement = *placement;
-    g_semantic_frame_id = selection.registration->semantic_frame_id;
+    g_instances = {{
+        {p1.registration->semantic_frame_id, RacerViewport::Top, *p1_top},
+        {p2.registration->semantic_frame_id, RacerViewport::Top, *p2_top},
+        {p1.registration->semantic_frame_id, RacerViewport::Bottom, *p1_bottom},
+        {p2.registration->semantic_frame_id, RacerViewport::Bottom, *p2_bottom},
+    }};
+    g_instance_count = g_instances.size();
     g_frame_active = true;
 }
 
@@ -208,20 +245,27 @@ int racer_hd_draw_frame(
     }
 
     copy_field(dst, pitch, field);
-    draw_asset(dst, pitch, g_placement);
+    for (std::size_t i = 0; i < g_instance_count; ++i) {
+        draw_asset(dst, pitch, g_instances[i].placement);
+    }
 
     if (g_logged_passes < 8) {
-        std::fprintf(
-            stderr,
-            "UR_RACER_HD_DRAW PASS frame=%u semantic=%04X "
-            "x=%d y=%u hflip=%d vflip=%d density=4 guest_state_unchanged=1\n",
-            g_sim_frame,
-            static_cast<unsigned>(g_semantic_frame_id),
-            static_cast<int>(g_placement.x_signed),
-            static_cast<unsigned>(g_placement.y_raw_8bit),
-            g_placement.hflip ? 1 : 0,
-            g_placement.vflip ? 1 : 0
-        );
+        for (std::size_t i = 0; i < g_instance_count; ++i) {
+            const auto& instance = g_instances[i];
+            std::fprintf(
+                stderr,
+                "UR_RACER_HD_DRAW PASS frame=%u semantic=%04X viewport=%s slot=%u "
+                "x=%d y=%u hflip=%d vflip=%d density=4 guest_state_unchanged=1\n",
+                g_sim_frame,
+                static_cast<unsigned>(instance.semantic_frame_id),
+                instance.viewport == RacerViewport::Top ? "top" : "bottom",
+                static_cast<unsigned>(instance.placement.slot),
+                static_cast<int>(instance.placement.x_signed),
+                static_cast<unsigned>(instance.placement.y_raw_8bit),
+                instance.placement.hflip ? 1 : 0,
+                instance.placement.vflip ? 1 : 0
+            );
+        }
         ++g_logged_passes;
     }
     return 1;

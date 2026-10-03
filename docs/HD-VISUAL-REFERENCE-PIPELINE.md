@@ -94,6 +94,22 @@ The eventual HD-art process should be able to construct a compact dossier contai
 
 This dossier is suitable for human redraw, procedural reconstruction, model-assisted generation, or combinations of those approaches.
 
+## Generated racer approval dossier
+
+The first approval-oriented dossier path is now implemented by `tools/build_racer_hd_asset_dossier.py`. The native Racer HD acceptance route feeds it the exact composition-aware semantic trace rather than registry order, so animation neighbors are observed runtime facts.
+
+For the current deterministic two-player window, the builder:
+
+- requires every frame from `1205` through `1220` to resolve to one exact P1 and one exact P2 registration;
+- packages the 14 distinct representations observed in that continuous window;
+- re-renders each stock 64×64 racer from the canonical ROM;
+- re-derives pivot/contact geometry and rejects registry drift;
+- records composition guards, palette identity, observed frames and trace-derived previous/next representation context;
+- emits literal stock PNGs, nearest-neighbor 4× controls and the current provenance-labelled contract-only Scale2x candidates with hashes;
+- names the still-open art decisions explicitly and keeps `shipping_art_approved=false`.
+
+This is the handoff surface for actual racer art review. A replacement candidate should be judged against this dossier rather than against an isolated screenshot or an inferred animation ordering.
+
 ## Reconstruction decision policy
 
 Reference generation and final-art selection are different jobs.

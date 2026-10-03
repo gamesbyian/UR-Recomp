@@ -1,0 +1,21 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -4607,4 +4607,7 @@
+ static void HandleGamepadInput(GamepadInfo *gi, int button, bool pressed) {
++  if (g_game->system_gamepad_button &&
++      g_game->system_gamepad_button(button, pressed))
++    return;
+   if (!!(gi->modifiers & (1 << button)) == pressed)
+     return;
+   gi->modifiers ^= 1 << button;
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -199,4 +199,8 @@
+   int (*system_key_down)(int key, int mod, int repeat);
+ 
++  /* Optional title-owned normalized gamepad-button seam. Called before the
++   * configured GamepadMap/guest mapping. Return nonzero to consume. */
++  int (*system_gamepad_button)(int button, int pressed);
++
+   /* Optional post-compose title overlay. Runs after the title frame and frame
+    * blend, before the framework OSD/screenshot path. Presentation-only. */

@@ -378,3 +378,6 @@ See docs/original-development/.
 - [ ] Promote a RetroArch or bsnes-hd command/output contract into `tools/tool_interop.json` only after a real deterministic capture experiment establishes what another project tool can consume.
 
 Audit policy: `docs/THIRD-PARTY-CODE-AUDIT.md`. Remaining closeout scope and explicit defer/transfer rules: `docs/TOOLING-AUDIT-CLOSEOUT.md`.
+
+
+- **Modern pause UI follow-through:** keyboard pause/retry and the first post-compose overlay are merged. The current controller slice adds a deterministic two-row pause-menu model and a normalized title gamepad hook: Start toggles pause, D-pad navigates Resume/Restart, A activates, B cancels. Native acceptance must prove the Restart row is selectable only after the accepted anchor is armed and that the controller path remains presentation/host control rather than guest input.

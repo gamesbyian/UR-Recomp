@@ -47,11 +47,25 @@ When linking:
 
 record the exact mapping rather than assuming they all share one enumeration.
 
+## Identity, opponents and tiers
+
+**Confirmed.** Racer identity is a rider index. Indices 0–15 are the selectable racers (rider-select slot `2 * row + column`). The same index is the medal-matrix column, selects in-race palette asset `0x06 + index`, and selects the default name in the 16-byte player-name table at ROM `83:800C`. That table is copied to battery SRAM offset `0x000C` and is what the screens render. Indices 16–20 are `someone` (record-holder placeholder), `bronsen`, `silvia`, `goldwyn` and `anti-uni`. The silver opponent is **Silvia**; "Silverton" in older notes is wrong.
+
+**Confirmed.** In 1P tour play the CPU opponent occupies the ordinary P2 racer slot (`$017F`) and palette path. On the main tours it is `17 + medal already held for that tour and rider`: none → Bronsen, bronze → Silvia, silver → Goldwyn, with TRACK_SELECT labelling the run BRONZE / SILVER / GOLD. This was checked on MIKE/Crawler and ANDREW/Shuffler. The Hunter tour fields Anti-Uni (20) under a GOLD label regardless of the Hunter medal. Once a rider's tier is 3, TOUR_SELECT becomes the two-column nine-tour page `0x10` that lists HUNTER. (`analysis/generated/legacy-cast-presets.json`, `tier-opponent-probe.json`.)
+
+## In-tour progress
+
+**Confirmed.** Battery SRAM `0x0230`, `0x0232` and `0x10A9` count won races in the current tour. They survive a power cycle, and the next win continues the count, so unfinished tour progress is not lost on power-off. The counter counts wins, not distinct tracks: re-winning an already-won track still advances it. **Unknown:** whether a resumed tour awards its medal, and whether a lost race changes the counter. (`analysis/generated/tour-progress-persistence.json`.)
+
+## Result flow
+
+**Confirmed (1P).** Race results `0x99`, circuit results `0xBC` (per-lap time graph) and stunt results (`0x2F` tally, then `0x18` with the QUALIFY threshold) all advance to TRACK_SELECT. POST_RESULT_DECISION is not on the 1P path.
+
+**Confirmed (VS, snesref).** A VS race ends when a racer finishes or at the ~10-minute timeout and shows `0xF9`. A decided race continues to VS CHAMPIONS `0xD3` and then PICK CHALLENGER `0x3F`, which is driven by the loser's pad (the winner's input is inert). That leads to a track choice `0x5A` (NEXT TRACK / SAME TRACK / SELECT TRACK / SELECT TOUR / QUIT). A drawn race shows a REMATCH banner `0xB7` instead. (`analysis/generated/result-screens-probe.json`, `vs-challenger-probe.json`.)
+
 ## Controlled validation
 
-The recovered Dessyreqt workspace now supplies clean and all-silver 8 KiB SRAM images, so the historical model can be tested locally.
-
-A clean-SRAM deterministic Dragster run showed that merely reaching the results screen does not yet mutate the medal matrix. The bounded follow-up advances the stock results UI and compares SRAM immediately before and after that transition. Once one game-authored medal change confirms the expected matrix cell plus checksum response, no broad SRAM reverse-engineering sweep is warranted for the current port plan.
+**Confirmed.** A gameplay-authored Crawler bronze (`0→1`) with valid checksum and byte-exact fresh-process reload is accepted evidence (`analysis/generated/progression-sram-acceptance.json`, produced by the Snes9x 1.51-rr historical replay). Seeding a medal cell and recomputing the `0x073C` checksum before boot is a reliable black-box way to put the game into a chosen tier.
 
 ## Port requirement
 

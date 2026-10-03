@@ -30,7 +30,9 @@ constexpr std::size_t kOverlayBytes =
 
 std::array<std::uint8_t, kOverlayBytes> g_obj_overlay{};
 bool g_frame_active = false;
-unsigned g_logged_passes = 0;
+unsigned g_logged_state_transitions = 0;
+std::uint16_t g_last_logged_p1_semantic = 0xFFFF;
+std::uint16_t g_last_logged_p2_semantic = 0xFFFF;
 struct RacerDrawInstance {
     std::uint16_t semantic_frame_id;
     RacerViewport viewport;
@@ -249,7 +251,14 @@ int racer_hd_draw_frame(
         draw_asset(dst, pitch, g_instances[i].placement);
     }
 
-    if (g_logged_passes < 8) {
+    const std::uint16_t p1_semantic =
+        g_instance_count >= 1 ? g_instances[0].semantic_frame_id : 0xFFFF;
+    const std::uint16_t p2_semantic =
+        g_instance_count >= 2 ? g_instances[1].semantic_frame_id : 0xFFFF;
+    const bool semantic_pair_changed =
+        p1_semantic != g_last_logged_p1_semantic ||
+        p2_semantic != g_last_logged_p2_semantic;
+    if (semantic_pair_changed && g_logged_state_transitions < 32) {
         for (std::size_t i = 0; i < g_instance_count; ++i) {
             const auto& instance = g_instances[i];
             std::fprintf(
@@ -266,7 +275,9 @@ int racer_hd_draw_frame(
                 instance.placement.vflip ? 1 : 0
             );
         }
-        ++g_logged_passes;
+        g_last_logged_p1_semantic = p1_semantic;
+        g_last_logged_p2_semantic = p2_semantic;
+        ++g_logged_state_transitions;
     }
     return 1;
 }

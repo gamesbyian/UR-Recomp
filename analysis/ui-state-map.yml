@@ -394,7 +394,10 @@ states:
     kind: menu_or_prompt
     confidence: medium
     evidence: [primary_manual]
-    description: "Conceptual post-result choice/prompt retained for result families or progression contexts that still need reproduction. It is not present on the verified ordinary 1P Dragster path, which goes directly from RESULT_RACE to TRACK_SELECT."
+    description: "Post-result choice. Absent on every verified 1P path (race, circuit and stunt results go straight to TRACK_SELECT). In ordinary 2P it is the five-option track choice 0x5A (NEXT TRACK / SAME TRACK / SELECT TRACK / SELECT TOUR / QUIT), reached directly from the multiplayer result 0xF9 (tests/input/two-player-p1-win.input). VS reaches the same menu only after PICK CHALLENGER (VS_CHALLENGE_TRACK)."
+    runtime_signatures:
+      currentMenu_7E009F: "0x5A (two-player track choice)"
+      local_fixture: "tests/input/two-player-p1-win.input (snesref with the dual-controller patch)"
     transitions:
       - selection: "next track"
         input: "confirm"

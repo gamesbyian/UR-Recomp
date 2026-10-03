@@ -578,6 +578,24 @@
       "status": "verified",
       "fixture": "vs-challenger-route",
       "source_note": "tools/probe_vs_challenger.py branch run (challenger's pad Down x N + A)."
+    },
+    {
+      "id": "two-player-result-decision",
+      "from": "RESULT_RACE",
+      "to": "POST_RESULT_DECISION",
+      "trigger": "ordinary 2P: advance from the multiplayer result 0xF9",
+      "status": "verified",
+      "fixture": "two-player-p1-win",
+      "source_note": "Goes straight to the five-option track choice 0x5A; no VS CHAMPIONS / PICK CHALLENGER."
+    },
+    {
+      "id": "two-player-decision-next",
+      "from": "POST_RESULT_DECISION",
+      "to": "PRE_RACE_CARD",
+      "trigger": "ordinary 2P: NEXT TRACK confirm",
+      "status": "verified",
+      "fixture": "two-player-p1-win",
+      "source_note": "NOW PLAYING shows OVER 3 LAPS ON ZOOM ZOO with a running win tally (MIKE 1, ANDREW 0)."
     }
   ],
   "capture_exempt_states": [

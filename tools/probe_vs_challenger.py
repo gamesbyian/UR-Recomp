@@ -33,6 +33,9 @@ CHECKPOINTS = ["vsc-result", "vsc-champions", "vsc-pick-challenger", "vsc-pick-a
 DRAW_INPUT = ROOT / "tests/input/vs-first-race.input"
 DRAW_SCRIPT = ROOT / "tests/input/vs-draw-rematch-observe.script"
 DRAW_CHECKPOINTS = ["vsd-result", "vsd-rematch", "vsd-after"]
+TWO_P_INPUT = ROOT / "tests/input/two-player-p1-win.input"
+TWO_P_SCRIPT = ROOT / "tests/input/two-player-p1-win-observe.script"
+TWO_P_CHECKPOINTS = ["tp-result", "tp-choice", "tp-next"]
 BRANCH_EXPECT = {1: (0x16, "NOW PLAYING"), 2: (0x91, "PICK TRACK"), 3: (0x6D, "PICK TOUR"), 4: (0xD7, "1P")}
 BRANCH_SCRIPT = "wait 4580\ndump vsb-pre\nwait 300\ndump vsb-post\nquit\n"
 TRACK_CHOICES = ["NEXT TRACK", "SAME TRACK", "SELECT TRACK", "SELECT TOUR", "QUIT"]
@@ -52,6 +55,15 @@ def branch_input(base_lines: list[str], downs: int) -> str:
     keep = [l for l in base_lines if l and not l.startswith("#") and not l.startswith("4620:")]
     ev = [f"{4600 + 30 * i}:2:000:020" for i in range(downs)] + [f"{4600 + 30 * downs + 20}:2:000:100"]
     return "\n".join(keep + ev) + "\n"
+
+
+def evaluate_two_player(obs: dict[str, dict]) -> dict:
+    r, choice, nxt = (obs[c] for c in TWO_P_CHECKPOINTS)
+    return {
+        "two_player_result_is_0xF9": r["menu"] == 0xF9 and "COMPLETE" in r["texts"],
+        "two_player_result_goes_straight_to_track_choice_0x5A": choice["menu"] == 0x5A and choice["texts"][:5] == TRACK_CHOICES,
+        "two_player_next_track_now_playing": nxt["menu"] == 0x16 and "NOW PLAYING" in nxt["texts"],
+    }
 
 
 def evaluate_branches(branches: dict[int, dict]) -> dict:
@@ -117,14 +129,17 @@ def main() -> int:
             inp.write_text(branch_input(base, downs))
             scr.write_text(BRANCH_SCRIPT)
             branches[downs] = run(inp, scr, ["vsb-post"])["vsb-post"]
-    checks = {**evaluate(obs), **evaluate_draw(draw), **evaluate_branches(branches)}
+    two = run(TWO_P_INPUT, TWO_P_SCRIPT, TWO_P_CHECKPOINTS)
+    checks = {**evaluate(obs), **evaluate_draw(draw), **evaluate_branches(branches), **evaluate_two_player(two)}
+    obs.update(two)
     obs.update(draw)
     obs.update({f"branch-{TRACK_CHOICES[k].lower().replace(' ', '-')}": v for k, v in branches.items()})
     report = {
         "schema_version": 1,
         "question": "What follows a decided VS race, and who controls it?",
         "harness": "snesref (dual-controller patch) + pinned snes9x-libretro, clean boot, frozen two-pad input",
-        "fixtures": [str(x.relative_to(ROOT)) for x in (INPUT, SCRIPT, DRAW_INPUT, DRAW_SCRIPT)],
+        "fixtures": [str(x.relative_to(ROOT)) for x in (INPUT, SCRIPT, DRAW_INPUT, DRAW_SCRIPT, TWO_P_INPUT, TWO_P_SCRIPT)],
+        "two_player_flow": "ordinary 2P: the race continues after the first finisher until both finish or the timeout; result 0xF9 -> track choice 0x5A directly (no champions/challenger) -> NOW PLAYING with a running win tally",
         "flow": "VS race result 0xF9 -> VS CHAMPIONS 0xD3 -> PICK CHALLENGER 0x3F (loser's pad) -> track choice 0x5A -> NOW PLAYING; a drawn race (both NO TIME) instead shows a REMATCH banner 0xB7 that advances to NOW PLAYING on a button",
         "checkpoints": {k: {**v, "menu": f"0x{v['menu']:02X}", "column": f"0x{v['column']:02X}"} for k, v in obs.items()},
         "checks": checks,

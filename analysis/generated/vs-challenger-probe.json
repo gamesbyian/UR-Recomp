@@ -6,8 +6,11 @@
   "tests/input/vs-challenger-route.input",
   "tests/input/vs-challenger-route-observe.script",
   "tests/input/vs-first-race.input",
-  "tests/input/vs-draw-rematch-observe.script"
+  "tests/input/vs-draw-rematch-observe.script",
+  "tests/input/two-player-p1-win.input",
+  "tests/input/two-player-p1-win-observe.script"
  ],
+ "two_player_flow": "ordinary 2P: the race continues after the first finisher until both finish or the timeout; result 0xF9 -> track choice 0x5A directly (no champions/challenger) -> NOW PLAYING with a running win tally",
  "flow": "VS race result 0xF9 -> VS CHAMPIONS 0xD3 -> PICK CHALLENGER 0x3F (loser's pad) -> track choice 0x5A -> NOW PLAYING; a drawn race (both NO TIME) instead shows a REMATCH banner 0xB7 that advances to NOW PLAYING on a button",
  "checkpoints": {
   "vsc-result": {
@@ -151,6 +154,61 @@
     "XIT"
    ]
   },
+  "tp-result": {
+   "menu": "0xF9",
+   "column": "0xFD",
+   "row": 0,
+   "p1_rider": 0,
+   "p2_rider": 1,
+   "texts": [
+    "DRAGSTER",
+    "COMPLETE",
+    "PLAYER     TIME",
+    "MIKE",
+    "0:28.76",
+    "ANDREW",
+    "NO TIME",
+    "SOMEONE",
+    "NO TIME",
+    "SOMEONE",
+    "NO TIME",
+    "SOMEONE",
+    "NO TIME"
+   ]
+  },
+  "tp-choice": {
+   "menu": "0x5A",
+   "column": "0x01",
+   "row": 0,
+   "p1_rider": 0,
+   "p2_rider": 1,
+   "texts": [
+    "NEXT TRACK",
+    "SAME TRACK",
+    "SELECT TRACK",
+    "SELECT TOUR",
+    "QUIT"
+   ]
+  },
+  "tp-next": {
+   "menu": "0x16",
+   "column": "0x03",
+   "row": 0,
+   "p1_rider": 0,
+   "p2_rider": 1,
+   "texts": [
+    "NOW PLAYING",
+    "MIKE   (9:59.99)",
+    "1",
+    "VS",
+    "ANDREW   (9:59.99)    0",
+    "OVER 3 LAPS ON ZOOM ZOO",
+    "RECORD: SOMEONE",
+    "R E",
+    "ACE",
+    "XIT"
+   ]
+  },
   "vsd-result": {
    "menu": "0xF9",
    "column": "0xFD",
@@ -283,7 +341,10 @@
   "track_choice_same_track_reaches_0x16": true,
   "track_choice_select_track_reaches_0x91": true,
   "track_choice_select_tour_reaches_0x6D": true,
-  "track_choice_quit_reaches_0xD7": true
+  "track_choice_quit_reaches_0xD7": true,
+  "two_player_result_is_0xF9": true,
+  "two_player_result_goes_straight_to_track_choice_0x5A": true,
+  "two_player_next_track_now_playing": true
  },
  "all_checks_pass": true
 }

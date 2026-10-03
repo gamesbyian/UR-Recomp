@@ -2063,3 +2063,15 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 **Interpretation:** The cheat-site shortcut is either wrong for this ROM/region or needs an unmodelled precondition. It is not worth further timing sweeps.
 
 **Next discriminator (only if ENDING becomes product-relevant):** trace writers of DP `$9F` around a natural Hunter-gold completion, or find the ending entry by its unique graphics/music load rather than the menu byte.
+
+### R-2026-10-03-UI-13 — Ordinary 2P post-race flow differs from VS
+
+**Status:** reproduced on snesref (dual-controller patch)  
+**Date:** 2026-10-03  
+**Area:** frontend | multiplayer
+
+**Observation:** With the same P1 Dragster drive grafted onto `two-player-first-race.input`, P1 finishes (FINISH / WINNER 0:28.76), but the race continues: P2's idle half shows scrolling tips ("IN THE AIR", "MORE STUNTS") until the ~37670-frame timeout. The result is the shared multiplayer screen `0xF9`. One advance goes straight to the five-option track choice `0x5A`, with no VS CHAMPIONS and no PICK CHALLENGER. NEXT TRACK reaches NOW PLAYING with a running win tally (MIKE 1, ANDREW 0) on Zoom Zoo.
+
+**Interpretation:** POST_RESULT_DECISION is real for ordinary 2P and is the same `0x5A` menu VS uses after its challenger pick. A VS race ends at the first finish, whereas ordinary 2P waits for both racers or the timeout.
+
+**Evidence:** `tests/input/two-player-p1-win.input` + `two-player-p1-win-observe.script`; `tools/probe_vs_challenger.py` (17 checks in total). UI edges `two-player-result-decision` and `two-player-decision-next` are verified, and menu index `0x5A` is now variant-qualified for its VS and 2P meanings.

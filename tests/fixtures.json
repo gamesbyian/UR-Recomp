@@ -979,6 +979,29 @@
       ],
       "status": "validated",
       "validation": "Decoded locally: building/built frames show TRACK RECORDS at BG2 vofs 261; the exit frame shows the five-item RECORDS list at vofs 0."
+    },
+    {
+      "id": "two-player-p1-win",
+      "input_file": "tests/input/two-player-p1-win.input",
+      "checkpoint_script": "tests/input/two-player-p1-win-observe.script",
+      "purpose": "Ordinary 2P route whose first race P1 wins while P2 idles to the timeout; covers the multiplayer result 0xF9 -> track choice 0x5A -> NOW PLAYING with a win tally.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "tp-result",
+        "tp-choice",
+        "tp-next"
+      ],
+      "compare_surfaces": [
+        "menu-state-fields",
+        "framebuffer"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu"
+      ],
+      "status": "validated",
+      "validation": "analysis/generated/vs-challenger-probe.json two_player_* checks via tools/probe_vs_challenger.py"
     }
   ]
 }

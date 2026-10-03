@@ -13,14 +13,14 @@
 | VS_CHALLENGE_TRACK | 1 | 0x5A | 0 | 1 | 0 |  | 1 | 5 | verified |
 | TOUR_SELECT | 1 | 0x6D, 0x10 | 1 | 1 | 2 |  | 5 | 1 | verified |
 | TRACK_SELECT | 1 | 0xF6, 0x91, 0x96? | 1 | 3 | 2 |  | 6 | 2 | verified |
-| PRE_RACE_CARD | 1 | 0x16 | 1 | 4 | 0 |  | 6 | 1 | verified |
+| PRE_RACE_CARD | 1 | 0x16 | 1 | 4 | 0 |  | 7 | 1 | verified |
 | GAMEPLAY | 1 |  | 7 | 4 | 2 |  | 2 | 4 | verified |
 | PAUSE | 1 |  | 0 | 1 | 0 |  | 1 | 1 | verified |
 | RESULT_BY_TRACK_TYPE | 1 |  | 0 | 0 | 0 |  | 0 | 0 |  |
-| RESULT_RACE | 1 | 0x99, 0xF9 | 0 | 1 | 2 |  | 1 | 3 | verified |
+| RESULT_RACE | 1 | 0x99, 0xF9 | 0 | 1 | 2 |  | 1 | 4 | verified |
 | RESULT_CIRCUIT | 1 | 0xBC | 0 | 1 | 1 |  | 1 | 2 | verified |
 | RESULT_STUNT | 1 | 0x18, 0x2F, 0xAD?, 0xAF?, 0xB3?, 0xD3?, 0xD8?, 0xED?, 0xF3? | 0 | 1 | 1 |  | 1 | 2 | verified |
-| POST_RESULT_DECISION | 1 | 0xD3, 0xB7 | 0 | 2 | 0 |  | 2 | 2 | documented |
+| POST_RESULT_DECISION | 1 | 0xD3, 0xB7, 0x5A | 0 | 2 | 0 |  | 3 | 3 | verified |
 | LEAGUE_SELECT | 2 |  | 0 | 3 | 1 |  | 1 | 1 | documented |
 | LEAGUE_TABLE | 2 |  | 0 | 1 | 0 |  | 1 | 1 | documented |
 | OPTIONS_MENU | 1 | 0x57 | 0 | 11 | 1 |  | 7 | 5 | verified |
@@ -52,10 +52,10 @@
 ## Summary
 
 - conceptual states: 35
-- executable transitions: 71
+- executable transitions: 73
 - capture contracts: 115
-- menu-index entries: 32
-- locally verified menu-index entries: 22
+- menu-index entries: 33
+- locally verified menu-index entries: 23
 - states with at least one capture contract: 33
 - states with at least one public visual lead: 24
 - Tier 1 states: 23

@@ -81,7 +81,8 @@
       "status": "verified",
       "source": "tests/input/vs-challenger-route.input",
       "fixture": "vs-challenger-route",
-      "note": "VS track-choice menu (NEXT/SAME/SELECT TRACK, SELECT TOUR, QUIT). Also transient DP scratch on Track Records."
+      "note": "VS track-choice menu (NEXT/SAME/SELECT TRACK, SELECT TOUR, QUIT). Also transient DP scratch on Track Records.",
+      "variant": "vs-after-challenger-pick"
     },
     {
       "value": "0x10",
@@ -224,7 +225,7 @@
       "status": "verified",
       "source": "tests/input/vs-challenger-route.input",
       "fixture": "vs-challenger-route",
-      "note": "VS race result (both players' times; NO TIME for a non-finisher)."
+      "note": "Multiplayer race result (VS and ordinary 2P): both players' times, NO TIME for a non-finisher."
     },
     {
       "value": "0xD3",
@@ -243,6 +244,15 @@
       "source": "tests/input/vs-draw-rematch-observe.script",
       "fixture": "vs-challenger-route",
       "note": "REMATCH banner after a drawn VS race (both NO TIME); any button continues to NOW PLAYING."
+    },
+    {
+      "value": "0x5A",
+      "state_id": "POST_RESULT_DECISION",
+      "variant": "two-player-track-choice",
+      "status": "verified",
+      "source": "tests/input/two-player-p1-win.input",
+      "fixture": "two-player-p1-win",
+      "note": "Ordinary 2P post-result menu (NEXT/SAME/SELECT TRACK, SELECT TOUR, QUIT), reached directly from 0xF9."
     }
   ]
 }

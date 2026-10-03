@@ -31,10 +31,11 @@ constexpr std::size_t kOverlayBytes =
 std::array<std::uint8_t, kOverlayBytes> g_obj_overlay{};
 bool g_frame_active = false;
 unsigned g_logged_state_transitions = 0;
-std::uint16_t g_last_logged_p1_semantic = 0xFFFF;
-std::uint16_t g_last_logged_p2_semantic = 0xFFFF;
+const RacerRegistration* g_last_logged_p1_registration = nullptr;
+const RacerRegistration* g_last_logged_p2_registration = nullptr;
 struct RacerDrawInstance {
     std::uint16_t semantic_frame_id;
+    const RacerRegistration* registration;
     RacerViewport viewport;
     RacerOamPlacement placement;
 };
@@ -220,10 +221,10 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     }
 
     g_instances = {{
-        {p1.registration->semantic_frame_id, RacerViewport::Top, *p1_top},
-        {p2.registration->semantic_frame_id, RacerViewport::Top, *p2_top},
-        {p1.registration->semantic_frame_id, RacerViewport::Bottom, *p1_bottom},
-        {p2.registration->semantic_frame_id, RacerViewport::Bottom, *p2_bottom},
+        {p1.registration->semantic_frame_id, p1.registration, RacerViewport::Top, *p1_top},
+        {p2.registration->semantic_frame_id, p2.registration, RacerViewport::Top, *p2_top},
+        {p1.registration->semantic_frame_id, p1.registration, RacerViewport::Bottom, *p1_bottom},
+        {p2.registration->semantic_frame_id, p2.registration, RacerViewport::Bottom, *p2_bottom},
     }};
     g_instance_count = g_instances.size();
     g_frame_active = true;
@@ -251,14 +252,14 @@ int racer_hd_draw_frame(
         draw_asset(dst, pitch, g_instances[i].placement);
     }
 
-    const std::uint16_t p1_semantic =
-        g_instance_count >= 1 ? g_instances[0].semantic_frame_id : 0xFFFF;
-    const std::uint16_t p2_semantic =
-        g_instance_count >= 2 ? g_instances[1].semantic_frame_id : 0xFFFF;
-    const bool semantic_pair_changed =
-        p1_semantic != g_last_logged_p1_semantic ||
-        p2_semantic != g_last_logged_p2_semantic;
-    if (semantic_pair_changed && g_logged_state_transitions < 32) {
+    const RacerRegistration* p1_registration =
+        g_instance_count >= 1 ? g_instances[0].registration : nullptr;
+    const RacerRegistration* p2_registration =
+        g_instance_count >= 2 ? g_instances[1].registration : nullptr;
+    const bool registration_pair_changed =
+        p1_registration != g_last_logged_p1_registration ||
+        p2_registration != g_last_logged_p2_registration;
+    if (registration_pair_changed && g_logged_state_transitions < 32) {
         for (std::size_t i = 0; i < g_instance_count; ++i) {
             const auto& instance = g_instances[i];
             std::fprintf(
@@ -275,8 +276,8 @@ int racer_hd_draw_frame(
                 instance.placement.vflip ? 1 : 0
             );
         }
-        g_last_logged_p1_semantic = p1_semantic;
-        g_last_logged_p2_semantic = p2_semantic;
+        g_last_logged_p1_registration = p1_registration;
+        g_last_logged_p2_registration = p2_registration;
         ++g_logged_state_transitions;
     }
     return 1;

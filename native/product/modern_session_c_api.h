@@ -16,6 +16,12 @@ typedef int (*UrIsPausedFn)(void);
 typedef void (*UrSetRewindAudioTimingLockFn)(int active);
 typedef void (*UrReconcileAfterRestartFn)(void);
 
+typedef enum UrModernSessionKey {
+    UR_MODERN_SESSION_KEY_ESCAPE = 0,
+    UR_MODERN_SESSION_KEY_ACCEPT = 1,
+    UR_MODERN_SESSION_KEY_RESTART = 2,
+} UrModernSessionKey;
+
 typedef enum UrModernSessionResult {
     UR_MODERN_SESSION_APPLIED = 0,
     UR_MODERN_SESSION_REJECTED_BY_POLICY = 1,
@@ -61,6 +67,17 @@ int ur_modern_session_is_paused(const UrModernSession* session);
 UrModernSessionResult ur_modern_session_pause(UrModernSession* session);
 UrModernSessionResult ur_modern_session_resume(UrModernSession* session);
 UrModernSessionResult ur_modern_session_restart_race(UrModernSession* session);
+
+/* Minimal host-facing key policy. The platform host maps its own key codes to
+ * these semantic keys; this layer remains SDL/platform independent.
+ *
+ * Escape toggles host pause. Accept resumes only when paused. Restart issues
+ * Restart Race only when the validated anchor is available; it preserves the
+ * current host pause state.
+ */
+UrModernSessionResult ur_modern_session_handle_key(
+    UrModernSession* session,
+    UrModernSessionKey key);
 
 #ifdef __cplusplus
 }

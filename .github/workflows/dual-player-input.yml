@@ -24,7 +24,6 @@ on:
       - "tests/unit/test_controller_input.py"
       - "tests/unit/test_replay_input_via_lua.py"
       - "tests/unit/test_replay_input_mesen.py"
-      - ".github/workflows/dual-player-input.yml"
       - "snesrecomp"
 
 concurrency:

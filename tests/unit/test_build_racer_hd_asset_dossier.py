@@ -4,6 +4,7 @@ from tools.build_racer_hd_asset_dossier import (
     FIRST_AUTHORED_REPRESENTATION_ID,
     SECOND_AUTHORED_REPRESENTATION_ID,
     THIRD_AUTHORED_REPRESENTATION_ID,
+    FOURTH_AUTHORED_REPRESENTATION_ID,
     PENDING_ART_DECISIONS,
     RESOLVED_VISUAL_LANGUAGE,
     build_first_authored_candidate_rgba,
@@ -228,6 +229,16 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         )
         bottom = [x for x, y in occupied if y == 38]
         self.assertEqual([min(bottom), max(bottom)], [30, 33])
+
+    def test_fourth_registration_is_context_reuse(self):
+        self.assertEqual(
+            FOURTH_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x0540-p1-companion-0D2C-with-p2-0542-reference",
+        )
+        self.assertEqual(
+            build_third_authored_candidate_rgba(),
+            build_third_authored_candidate_rgba(),
+        )
 
     def test_safe_name_is_path_stable(self):
         self.assertEqual(safe_name("racer / 0x0541:p1"), "racer-0x0541-p1")

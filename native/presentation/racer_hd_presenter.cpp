@@ -90,6 +90,7 @@ void copy_field(
 void draw_asset(
     std::uint8_t* dst,
     std::size_t pitch,
+    const RacerRegistration& registration,
     const RacerOamPlacement& placement
 ) noexcept {
     const int origin_x = static_cast<int>(placement.x_signed);
@@ -107,7 +108,7 @@ void draw_asset(
             const int dx = origin_x + lx;
             if (dx < 0 || dx >= out_w) continue;
             const std::uint32_t px =
-                sample_racer_hd_presented_pixel(placement, dx, dy);
+                sample_racer_hd_presented_pixel(registration, placement, dx, dy);
             if ((px >> 24) != 0) row[dx] = px;
         }
     }
@@ -249,7 +250,12 @@ int racer_hd_draw_frame(
 
     copy_field(dst, pitch, field);
     for (std::size_t i = 0; i < g_instance_count; ++i) {
-        draw_asset(dst, pitch, g_instances[i].placement);
+        draw_asset(
+            dst,
+            pitch,
+            *g_instances[i].registration,
+            g_instances[i].placement
+        );
     }
 
     const RacerRegistration* p1_registration =

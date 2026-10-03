@@ -134,6 +134,22 @@ constexpr bool is_authored_057f_p1_companion_0d4a_registration(
            s.p2_companion_gate_word == 0x0000;
 }
 
+constexpr bool is_authored_057e_p1_with_p2_0543_registration(
+    const RacerRegistration& registration
+) noexcept {
+    const auto& s = registration.composition;
+    return registration.player == 1 &&
+           registration.semantic_frame_id == 0x057E &&
+           s.p1_primary == 0x057E &&
+           s.p2_primary == 0x0543 &&
+           s.p1_companion == 0x0D49 &&
+           s.p2_companion == 0x0000 &&
+           s.p1_selector == 0 &&
+           s.p2_selector == 0 &&
+           s.p1_companion_gate_word == 0x0001 &&
+           s.p2_companion_gate_word == 0x0000;
+}
+
 constexpr std::uint32_t authored_red_frame_color(
     int x,
     int y
@@ -452,6 +468,77 @@ constexpr std::uint32_t sample_racer_hd_authored_057f_p1_companion_0d4a(
     return 0;
 }
 
+constexpr std::uint32_t sample_racer_hd_authored_057e_p1_with_p2_0543(
+    int x,
+    int y,
+    bool hflip,
+    bool vflip
+) noexcept {
+    if (x < 0 || y < 0 || x >= kRacerHdAssetSize || y >= kRacerHdAssetSize) {
+        return 0;
+    }
+    if (hflip) x = kRacerHdAssetSize - 1 - x;
+    if (vflip) y = kRacerHdAssetSize - 1 - y;
+
+    // Frames 1213-1214 are the next retained visual change before the accepted
+    // 1215-1216 057F pose. The stock silhouette widens one logical pixel on
+    // both sides and shifts wheel contact one pixel right; preserve the
+    // established first-family materials and object-local baked lighting.
+    const int wheel_cx = 136;
+    const int wheel_cy = 120;
+    const int wx = x - wheel_cx;
+    const int wy = y - wheel_cy;
+    const int wr2 = wx * wx + wy * wy;
+    const bool tire = wr2 <= 35 * 35 && wr2 >= 25 * 25;
+    const bool rim = wr2 < 25 * 25 && wr2 >= 22 * 22;
+    const bool hub = wr2 <= 5 * 5;
+
+    const int fork_center = 134 - (y - 60) / 11;
+    const bool fork =
+        y >= 60 && y <= 117 &&
+        x >= fork_center - 5 && x <= fork_center + 5;
+    const bool crank =
+        y >= 116 && y <= 123 &&
+        x >= 119 && x <= 148;
+    const bool pedal =
+        y >= 113 && y <= 118 &&
+        x >= 149 && x <= 153;
+
+    // Widen only the upper silhouette enough to recover the stock x=21 edge.
+    // The wheel supplies x=42 and the recovered [67,76] contact anchor.
+    const int seat_dx = x - 124;
+    const int seat_dy = y - 22;
+    const bool seat =
+        (seat_dx * seat_dx) * 14 * 14 +
+            (seat_dy * seat_dy) * 39 * 39 <=
+            39 * 39 * 14 * 14 &&
+        y >= 8 && y <= 36;
+
+    const bool neck =
+        y >= 30 && y <= 60 &&
+        x >= 132 && x <= 140;
+    const int crown_dx = x - 140;
+    const int crown_dy = y - 60;
+    const bool crown =
+        crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8;
+
+    if (hub || rim || crank || pedal) {
+        return authored_metal_color(x, y);
+    }
+    if (seat) {
+        const int seat_light = (255 - x) + (255 - y);
+        return seat_light > 350 ? 0xFF41474Bu : 0xFF20272Bu;
+    }
+    if (fork || neck || crown) {
+        return authored_red_frame_color(x, y);
+    }
+    if (tire) {
+        const int tire_light = (255 - x) + (255 - y);
+        return tire_light > 310 ? 0xFF353C40u : 0xFF171D20u;
+    }
+    return 0;
+}
+
 constexpr std::uint32_t sample_racer_hd_asset(
     const RacerRegistration& registration,
     int x,
@@ -469,6 +556,11 @@ constexpr std::uint32_t sample_racer_hd_asset(
     }
     if (is_authored_057f_p1_companion_0d4a_registration(registration)) {
         return sample_racer_hd_authored_057f_p1_companion_0d4a(
+            x, y, hflip, vflip
+        );
+    }
+    if (is_authored_057e_p1_with_p2_0543_registration(registration)) {
+        return sample_racer_hd_authored_057e_p1_with_p2_0543(
             x, y, hflip, vflip
         );
     }

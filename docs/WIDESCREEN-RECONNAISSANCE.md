@@ -388,7 +388,9 @@ The +16 and +24 probes deliberately do not mutate presentation state. They stop 
 
 This closes the current implementation-facing +8 task and the bounded +16/+24 generalization question. Any wider stock-art design must introduce a larger presentation-capacity seam deliberately, while preserving the now-proven stock 4:3 control and the presentation-only ownership boundary.
 
-Evidence: native workflow run `37077924926`; PR #228.
+Evidence: native workflow run `37077924926`; final acceptance run `37081391730`; PR #228.
+
+Final revalidation also resolves the apparent 11/617 adjacency exceptions from the earlier analyzer. The edge word's low five bits are the 32-column VRAM-ring coordinate; upper bits may change when the prepared strip crosses a resource/segment boundary. All 617 +8 preparations advance exactly one ring column. The acceptance still independently requires the retained exact future-stock payload floor, consecutive-match floor, cleanup discipline, protected-state equality, and the +16/+24 capacity stop.
 
 
 ## +8 presentation-sequence divergence closure

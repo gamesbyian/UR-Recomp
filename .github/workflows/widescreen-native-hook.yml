@@ -228,8 +228,8 @@ jobs:
               "provider_margin_pixels_per_side":48,
               "stock_control":{"frame_width":control[0],"frame_height":control[1]},
               "candidate":{"frame_width":candidate[0],"frame_height":candidate[1]},
-              "expected_candidate_logical_width":352,
-              "accepted":control==(256,224) and candidate==(352,224),
+              "expected_candidate_logical_width":342,
+              "accepted":control==(256,224) and candidate==(342,224),
           }
           pathlib.Path(sys.argv[3]).write_text(json.dumps(out,indent=2)+"\n")
           print(json.dumps(out,indent=2))

@@ -214,6 +214,15 @@ The third audit is retained in `analysis/generated/inference-audit-third-pass.{j
 
 Open-PR runtime findings remain explicitly labeled as evidence, not merged implementation acceptance.
 
+## Post-third-pass resolution — 2026-10-03
+
+The two open runtime findings from the third pass are now resolved and retained as examples of successful inference-first follow-through:
+
+- Restart Race: PR #235 / run `37080761750` proves deterministic forward replay after adding the missing extended `RtlApuFrameClock` to rollback residue v7.
+- Native +8 Widescreen: PR #228 / run `37081391730` proves all 617 preparation transitions use stock-observed compound edge-step shapes; the old 606/617 result was a false negative from treating the full edge word as a simple ring index. +16/+24 remain correctly bounded at one-spare-lane capacity.
+
+The original third-pass findings remain in the report for provenance. Consumers must also read its `post_audit_resolutions` field before treating a negative finding as current work.
+
 ## Mandatory consumption rule — 2026-10-02
 
 Before opening a new inference-driven investigation:

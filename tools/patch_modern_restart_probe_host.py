@@ -127,7 +127,8 @@ static int UrRestartEnsureSession(void) {
         &snesrecomp_desktop_set_paused,
         &snesrecomp_desktop_is_paused,
         &UrRestartTimingLock,
-        &UrRestartReconcilePresentation);
+        &UrRestartReconcilePresentation,
+        NULL);
     return g_ur_restart_session != NULL;
 }
 

@@ -173,6 +173,22 @@ def analyze_capture(
 
 
 
+def select_captures(
+    captures: list[dict[str, Any]],
+    include_source_fixtures: list[str] | None = None,
+    exclude_source_fixtures: list[str] | None = None,
+) -> list[dict[str, Any]]:
+    """Select manifest captures by workflow-owned source fixtures."""
+    selected = list(captures)
+    if include_source_fixtures:
+        wanted = set(include_source_fixtures)
+        selected = [c for c in selected if c.get("source_fixture") in wanted]
+    if exclude_source_fixtures:
+        excluded = set(exclude_source_fixtures)
+        selected = [c for c in selected if c.get("source_fixture") not in excluded]
+    return selected
+
+
 def discover_unclassified_captures(
     declared_tags: set[str],
     fields: dict[str, dict[str, Any]],
@@ -284,6 +300,8 @@ def main() -> int:
                     help="include dump tags not declared in the capture manifest as UNCLASSIFIED cards")
     ap.add_argument("--source-fixture", action="append",
                     help="only include captures owned by this source_fixture; repeatable")
+    ap.add_argument("--exclude-source-fixture", action="append",
+                    help="exclude captures owned by this source_fixture; repeatable")
     ap.add_argument("--out-json", type=Path)
     ap.add_argument("--out-md", type=Path)
     ap.add_argument("--strict", action="store_true",
@@ -293,12 +311,11 @@ def main() -> int:
     manifest = json.loads(args.manifest.read_text())
     fields = manifest["fields"]
     roots = args.dump_dir
-    selected_captures = manifest["captures"]
-    if args.source_fixture:
-        wanted_fixtures = set(args.source_fixture)
-        selected_captures = [
-            c for c in selected_captures if c.get("source_fixture") in wanted_fixtures
-        ]
+    selected_captures = select_captures(
+        manifest["captures"],
+        include_source_fixtures=args.source_fixture,
+        exclude_source_fixtures=args.exclude_source_fixture,
+    )
     captures = [analyze_capture(c, fields, roots) for c in selected_captures]
     if args.include_unclassified:
         declared_tags = {c["tag"] for c in manifest["captures"]}

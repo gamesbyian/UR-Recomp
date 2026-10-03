@@ -13,6 +13,7 @@ inline constexpr int kRacerHdAssetSize = kRacerHdLogicalSize * kRacerHdDensitySc
 
 constexpr bool racer_hd_asset_available(std::uint16_t semantic_frame_id) noexcept {
     return semantic_frame_id == 0x0541 || semantic_frame_id == 0x0540 ||
+           semantic_frame_id == 0x057D || semantic_frame_id == 0x0543 ||
            semantic_frame_id == 0x057E || semantic_frame_id == 0x0544;
 }
 

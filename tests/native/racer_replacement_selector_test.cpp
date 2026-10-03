@@ -110,6 +110,27 @@ int main() {
     assert(!p2_mismatch.uses_replacement());
     assert(p2_mismatch.fallback_reason == FallbackReason::CompositionMismatch);
 
+    const auto* p1_adjacent = find_racer_registration(0x057D);
+    const auto* p2_adjacent = find_racer_registration(0x0543);
+    assert(p1_adjacent != nullptr);
+    assert(p2_adjacent != nullptr);
+    assert(p1_adjacent->player == 1);
+    assert(p2_adjacent->player == 2);
+    assert(p1_adjacent->contact_anchor.x2 == 69);
+    assert(p1_adjacent->contact_anchor.y2 == 76);
+    assert(p2_adjacent->contact_anchor.x2 == 57);
+    assert(p2_adjacent->contact_anchor.y2 == 76);
+    assert(composition_equal(p1_adjacent->composition, p2_adjacent->composition));
+
+    const auto p1_adjacent_selected = select_racer_presentation(
+        GraphicsPack::Remastered, 0x057D, p1_adjacent->composition
+    );
+    const auto p2_adjacent_selected = select_racer_presentation(
+        GraphicsPack::Remastered, 0x0543, p2_adjacent->composition
+    );
+    assert(p1_adjacent_selected.uses_replacement());
+    assert(p2_adjacent_selected.uses_replacement());
+
     const auto* p1_second = find_racer_registration(0x057E);
     const auto* p2_second = find_racer_registration(0x0544);
     assert(p1_second != nullptr);

@@ -45,8 +45,13 @@ def cleanup_lifecycle(log: str) -> tuple[bool,bool]:
             live=False
     return seen, live
 
-def _ring_next(edge: int) -> int:
-    return (edge & ~0x1F) | ((edge + 1) & 0x1F)
+def _ring_column(edge: int) -> int:
+    """Return the 32-column VRAM-ring coordinate encoded in an edge word."""
+    return edge & 0x1F
+
+def _ring_adjacent(primary_edge: int, prepared_edge: int) -> bool:
+    """The upper edge bits may change at resource/segment boundaries."""
+    return ((_ring_column(primary_edge) + 1) & 0x1F) == _ring_column(prepared_edge)
 
 def _longest_true_run(values: list[bool]) -> int:
     best = cur = 0

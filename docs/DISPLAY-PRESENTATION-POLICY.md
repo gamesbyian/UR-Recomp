@@ -48,7 +48,7 @@ Purpose: historical/reference presentation.
 - retain Original graphics;
 - optional CRT/NTSC display treatment may be layered on top without changing guest geometry or state.
 
-The current community reference point is SNESRecomp's 4:3 CRT policy using 7:6 horizontal pixel correction. UR-Recomp must validate the exact transform against its own retained reference evidence before treating any numeric constant as title-final.
+SNESRecomp's 7:6 horizontal correction remains useful community precedent, but UR-Recomp now has title-specific evidence for the same horizontal display family. Eleven in-game screenshots printed in the official USA manual measure near 4:3 rather than raw 8:7; even a conservative ±5-pixel-per-edge measurement envelope admits 4:3 for every sample and excludes 8:7 for every sample. For a 256-wide source, that supports a 7:6 horizontal pixel correction. The remaining title-final uncertainty is vertical overscan, not whether Authentic mode should display raw square source pixels.
 
 ### Raw Pixels
 
@@ -205,11 +205,13 @@ The smallest defensible title-specific binding is therefore recorded as a **prov
 - materializer strip margin: +48 per side at the established 8-pixel granularity;
 - provider: the accepted live-course-runtime host materializer.
 
-This candidate is preferred over the centered 216-line discriminator because the canonical retained frames are authored and captured at 256×224, and 7:6 already yields exact 4:3 without discarding rows. That geometric fact is enough to bind the next architecture step, but not enough to declare historical intent. Retained/reference visual comparison still owns the title-final PAR and overscan decision. Raw Pixels remains an independent square-pixel reference mode regardless of that outcome.
+The horizontal part of this candidate is now evidence-backed. `analysis/display-reference-geometry.json` records eleven printed in-game screenshot frames from the official USA manual (pages 17, 19, 21, 23 and 25). Their measured mean aspect is about 1.329 and median about 1.342. With ±5 pixels of uncertainty on every measured edge, all eleven intervals still contain 4:3 and none contain raw 8:7. Because 256×224 requires 7:6 horizontal correction to land at 4:3 when all 224 rows are active, this is title-specific support for 7:6-style Authentic PAR rather than merely emulator convention.
+
+That evidence does **not** close vertical overscan. Rounded printed screenshot masks and page-layout crops cannot reliably distinguish a full 224-line display from a modest crop such as 216 lines. Accordingly, 7:6 PAR is now evidence-backed, while the full-224 overscan assumption remains provisional. Raw Pixels remains an independent square-pixel reference mode regardless of the final overscan result.
 
 A provisional runtime selector now carries this candidate through both sides of the presentation contract without coupling it to product UI. On the preparation side, `URRECOMP_WS_VIEW=authentic-16x9-candidate` resolves to the next complete provider strip boundary, **+48 source pixels per side**. On the host-view side, the exact 16:9 requirement is 128/3 = 42⅔ source pixels per side, so the nearest symmetric integer logical viewport is **+43 per side**, or **342×224**. At 7:6 PAR that discrete source viewport is 57:32 (1.78125), about +0.195% wider than exact 16:9; final output scaling can absorb that sub-pixel quantization without exposing the unused five prepared pixels at either edge. Explicit `URRECOMP_WS_MARGIN` remains a diagnostic override and unknown/unset selectors fail closed to stock margin 0.
 
-The distinction is architectural: **provider margin is backing coverage, not automatically visible camera extent**. The +48 materializer may prepare more data than the +43 host viewport exposes. PAR scaling and title-final overscan remain separate presentation work, and the candidate must still survive title-specific reference validation before becoming the Authentic default.
+The distinction is architectural: **provider margin is backing coverage, not automatically visible camera extent**. The +48 materializer may prepare more data than the +43 host viewport exposes. Horizontal PAR now has title-specific manual evidence; title-final overscan remains separate presentation work. If overscan changes the active logical height, the exact 16:9 viewport margin must be re-derived from that height rather than preserving +43 by inertia.
 
 ## Policy-derived logical margin
 

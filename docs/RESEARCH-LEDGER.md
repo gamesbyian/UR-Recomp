@@ -2075,3 +2075,18 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 **Interpretation:** POST_RESULT_DECISION is real for ordinary 2P and is the same `0x5A` menu VS uses after its challenger pick. A VS race ends at the first finish, whereas ordinary 2P waits for both racers or the timeout.
 
 **Evidence:** `tests/input/two-player-p1-win.input` + `two-player-p1-win-observe.script`; `tools/probe_vs_challenger.py` (17 checks in total). UI edges `two-player-result-decision` and `two-player-decision-next` are verified, and menu index `0x5A` is now variant-qualified for its VS and 2P meanings.
+
+### R-2026-10-03-UI-14 — League entry and the guarded redefine chord reproduced (Tier 2 harvest)
+
+**Status:** reproduced locally; membership/naming not yet driven  
+**Date:** 2026-10-03  
+**Area:** frontend | league
+
+**Observation:**
+- **Slot list:** from a clean save, MAIN_MENU → LEAGUE shows a six-slot list (`0x56`, ONE..SIX : DEFINE ME), and A on an undefined slot does not advance. OPTIONS → DEFINE LEAGUE opens the same list.
+- **Guard:** A on a slot shows WARNING `0x9A` ("THIS OPTION WILL REMOVE DEFINE ME / SELECT+Y+A TO REMOVE"). The SELECT+Y+A chord opens the PICK YOUR LEAGUE rider grid with a "2 MIN" banner, a two-rider minimum, so the manual's guarded destructive chord is real.
+- **Editor input:** in this probe, A presses and Start in the editor did not reach NAME_LEAGUE. The membership input sequence is unmapped, and `7E:009F` reads scratch values there (`0x3F`/`0x73`).
+
+**Evidence:** `tests/input/ui-league-probe.script` (fixture `ui-league-probe`), decoded with `extract_menu_visual_language.catalog_screen`. Edges `main-league` and `options-define-league` are verified, and menu index `0x56` / `0x9A` added.
+
+**Policy consequence:** `destructive-controller-chords` (redesign_decided) now has runtime evidence for both chords' guard screens: the erase-all confirmation (documented) and this league-redefine WARNING.

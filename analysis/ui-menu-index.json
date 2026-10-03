@@ -253,6 +253,24 @@
       "source": "tests/input/two-player-p1-win.input",
       "fixture": "two-player-p1-win",
       "note": "Ordinary 2P post-result menu (NEXT/SAME/SELECT TRACK, SELECT TOUR, QUIT), reached directly from 0xF9."
+    },
+    {
+      "value": "0x56",
+      "state_id": "LEAGUE_SELECT",
+      "variant": "league-slot-list",
+      "status": "verified",
+      "source": "tests/input/ui-league-probe.script",
+      "fixture": "ui-league-probe",
+      "note": "Six league slots ONE..SIX (DEFINE ME on a clean save); the same list opens from OPTIONS -> DEFINE LEAGUE. A on an undefined slot from MAIN_MENU -> LEAGUE does not advance."
+    },
+    {
+      "value": "0x9A",
+      "state_id": "DEFINE_LEAGUE",
+      "variant": "redefine-warning",
+      "status": "verified",
+      "source": "tests/input/ui-league-probe.script",
+      "fixture": "ui-league-probe",
+      "note": "WARNING: THIS OPTION WILL REMOVE <league> / SELECT+Y+A TO REMOVE; the chord opens the PICK YOUR LEAGUE editor (whose 009F reads scratch values 0x3F/0x73)."
     }
   ]
 }

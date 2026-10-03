@@ -103,8 +103,10 @@
       "from": "MAIN_MENU",
       "to": "LEAGUE_SELECT",
       "trigger": "select LEAGUE; A/B",
-      "status": "documented",
-      "probe": "ui-main-branches"
+      "status": "verified",
+      "probe": "ui-main-branches",
+      "fixture": "ui-league-probe",
+      "source_note": "Clean save: six-slot list 0x56 (ONE..SIX : DEFINE ME). Undefined slots do not open a LEAGUE_TABLE."
     },
     {
       "id": "main-options",
@@ -142,8 +144,10 @@
       "id": "options-define-league",
       "from": "OPTIONS_MENU",
       "to": "DEFINE_LEAGUE",
-      "trigger": "select DEFINE LEAGUE; A/B",
-      "status": "documented"
+      "trigger": "select DEFINE LEAGUE; A -> slot list 0x56 -> A on a slot -> WARNING 0x9A -> SELECT+Y+A",
+      "status": "verified",
+      "fixture": "ui-league-probe",
+      "source_note": "Editor title PICK YOUR LEAGUE with a '2 MIN' membership banner."
     },
     {
       "id": "options-main",

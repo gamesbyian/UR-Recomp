@@ -1,0 +1,66 @@
+# League reconnaissance from a clean save (tools-free; decode with tools/extract_menu_visual_language.py --catalog).
+# MAIN_MENU -> LEAGUE shows the six-slot list 0x56 (ONE..SIX : DEFINE ME).
+# Then, after a reset, OPTIONS -> DEFINE LEAGUE -> slot ONE shows the WARNING screen 0x9A;
+# SELECT+Y+A opens the editor (PICK YOUR LEAGUE, '2 MIN' banner).
+until 009F == D7 3600
+wait 60
+press down 1
+until 009B == 01 240
+wait 20
+press down 1
+until 009B == 02 240
+wait 20
+press down 1
+until 009B == 03 240
+wait 20
+press a 2
+wait 90
+dump ui-league-select
+reset
+until 009F == D7 3600
+wait 60
+press down 1
+until 009B == 01 240
+wait 20
+press down 1
+until 009B == 02 240
+wait 20
+press down 1
+until 009B == 03 240
+wait 20
+press down 1
+until 009B == 04 240
+wait 20
+press a 2
+wait 90
+dump ui-league-options
+press down 1
+wait 20
+press down 1
+wait 20
+press down 1
+wait 20
+dump ui-league-options-define-selected
+press a 2
+wait 90
+dump ui-league-define-slots
+press a 2
+wait 40
+dump ui-league-define-warning
+press select+y+a 3
+wait 90
+dump ui-league-define-editor
+press a 2
+wait 40
+press right 1
+wait 20
+press a 2
+wait 40
+dump ui-league-define-two-added
+press start 2
+wait 90
+dump ui-league-define-start
+press start 2
+wait 90
+dump ui-league-define-start2
+quit

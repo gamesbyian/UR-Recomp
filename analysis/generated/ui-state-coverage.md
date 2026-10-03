@@ -21,7 +21,7 @@
 | RESULT_CIRCUIT | 1 | 0xBC | 0 | 1 | 1 |  | 1 | 2 | verified |
 | RESULT_STUNT | 1 | 0x18, 0x2F, 0xAD?, 0xAF?, 0xB3?, 0xD3?, 0xD8?, 0xED?, 0xF3? | 0 | 1 | 1 |  | 1 | 2 | verified |
 | POST_RESULT_DECISION | 1 | 0xD3, 0xB7, 0x5A | 0 | 2 | 0 |  | 3 | 3 | verified |
-| LEAGUE_SELECT | 2 |  | 0 | 3 | 1 |  | 1 | 1 | documented |
+| LEAGUE_SELECT | 2 | 0x56 | 0 | 3 | 1 |  | 1 | 1 | verified |
 | LEAGUE_TABLE | 2 |  | 0 | 1 | 0 |  | 1 | 1 | documented |
 | OPTIONS_MENU | 1 | 0x57 | 0 | 11 | 1 |  | 7 | 5 | verified |
 | RECORDS | 1 | 0x5D | 0 | 18 | 2 |  | 3 | 6 | verified |
@@ -33,7 +33,7 @@
 | RENAME_PLAYER | 2 |  | 0 | 2 | 1 |  | 2 | 2 | documented |
 | PLAYER_NAME_EDITOR | 2 |  | 0 | 10 | 1 |  | 2 | 3 | documented |
 | FORBIDDEN_NAME_REJECTION | 3 |  | 0 | 0 | 2 | name_entry_cursor_mapping | 2 | 2 | documented |
-| DEFINE_LEAGUE | 2 |  | 0 | 1 | 1 |  | 1 | 1 | documented |
+| DEFINE_LEAGUE | 2 | 0x9A | 0 | 1 | 1 |  | 1 | 1 | verified |
 | NAME_LEAGUE | 2 |  | 0 | 1 | 1 |  | 2 | 2 | documented |
 | ENDING | 1 | 0x5B? | 0 | 1 | 1 |  | 1 | 1 | hypothesis |
 | ERASE_ALL_CONFIRM | 2 |  | 0 | 1 | 0 |  | 1 | 1 | documented |
@@ -54,8 +54,8 @@
 - conceptual states: 35
 - executable transitions: 73
 - capture contracts: 115
-- menu-index entries: 33
-- locally verified menu-index entries: 23
+- menu-index entries: 35
+- locally verified menu-index entries: 25
 - states with at least one capture contract: 33
 - states with at least one public visual lead: 24
 - Tier 1 states: 23

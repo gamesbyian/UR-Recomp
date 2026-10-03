@@ -1002,6 +1002,34 @@
       ],
       "status": "validated",
       "validation": "analysis/generated/vs-challenger-probe.json two_player_* checks via tools/probe_vs_challenger.py"
+    },
+    {
+      "id": "ui-league-probe",
+      "input_script": "tests/input/ui-league-probe.script",
+      "purpose": "Clean-save League reconnaissance: MAIN_MENU -> LEAGUE slot list; OPTIONS -> DEFINE LEAGUE -> slot -> WARNING -> SELECT+Y+A -> PICK YOUR LEAGUE editor.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "ui-league-select",
+        "ui-league-options",
+        "ui-league-options-define-selected",
+        "ui-league-define-slots",
+        "ui-league-define-warning",
+        "ui-league-define-editor",
+        "ui-league-define-two-added",
+        "ui-league-define-start",
+        "ui-league-define-start2"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu"
+      ],
+      "status": "reconnaissance",
+      "validation": "Decoded locally with tools/extract_menu_visual_language.py catalog_screen; membership add/Start/naming not yet reproduced."
     }
   ]
 }

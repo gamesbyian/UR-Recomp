@@ -621,6 +621,7 @@ states:
       - "Manual documents SELECT + Y + A as guarded destructive/redefinition action."
       - "League supports up to eight unicycles; up to six leagues."
       - "A/B adds the highlighted Unicycle; X/Y removes it; Start confirms."
+      - "Reproduced 2026-10-03 (tests/input/ui-league-probe.script): OPTIONS -> DEFINE LEAGUE shows the six-slot list 0x56; A on a slot shows WARNING 0x9A (THIS OPTION WILL REMOVE <league> / SELECT+Y+A TO REMOVE); the chord opens the PICK YOUR LEAGUE rider grid with a '2 MIN' banner. In the probe, A presses and Start did not yet advance to NAME_LEAGUE; membership input remains unmapped."
     transitions:
       - input: "A or B"
         to: DEFINE_LEAGUE

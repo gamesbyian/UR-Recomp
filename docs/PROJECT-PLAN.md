@@ -668,7 +668,7 @@ The semantic asset identity established here must be shared by all three eventua
 
 For each presentation family, original rendered elements can be deterministically identified from authoritative game state and reproduced through an extraction/registration manifest.
 
-The ordinary-race racer family has passed this gate for the currently registered semantic window. Its next work is no longer generic identity/placement archaeology: prefer approval-ready asset dossiers and final visual-language decisions, or deliberately selected broader animation-family coverage when that coverage unlocks a specific art/product decision. Phase E as a whole remains open until the other required presentation families reach equivalent sufficiency.
+The ordinary-race racer family has passed this gate for the currently registered semantic window. Its exact `1205`–`1220` runtime window now also produces a generated approval dossier containing 14 observed representations, ROM-derived stock evidence, verified anchors and trace-derived temporal context. Its next work is no longer generic identity/placement archaeology: make final visual-language decisions against that packet, or deliberately select broader animation-family coverage when that coverage unlocks a specific art/product decision. Phase E as a whole remains open until the other required presentation families reach equivalent sufficiency.
 
 ## Phase F - Widescreen feature with stock art
 

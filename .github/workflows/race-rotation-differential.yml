@@ -51,7 +51,6 @@ on:
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tools/toolchain-entries/_global.json"
-      - ".github/workflows/race-rotation-differential.yml"
 
 concurrency:
   group: race-rotation-differential-${{ github.ref }}

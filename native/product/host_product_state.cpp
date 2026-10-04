@@ -1,5 +1,6 @@
 #include "host_product_state.hpp"
 
+#include <charconv>
 #include <map>
 #include <sstream>
 
@@ -11,6 +12,7 @@ constexpr std::string_view kHeaderV2 = "UR-HOST-STATE/2";
 constexpr std::string_view kHeaderV3 = "UR-HOST-STATE/3";
 constexpr std::string_view kHeaderV4 = "UR-HOST-STATE/4";
 constexpr std::string_view kHeaderV5 = "UR-HOST-STATE/5";
+constexpr std::string_view kHeaderV6 = "UR-HOST-STATE/6";
 
 bool parse_display_mode(
     std::string_view text,
@@ -122,6 +124,55 @@ const char* presentation_fps_mode_name(
     return nullptr;
 }
 
+bool parse_positive_int(std::string_view text, int& out) noexcept {
+    if (text.empty()) return false;
+    int value = 0;
+    const char* begin = text.data();
+    const char* end = begin + text.size();
+    const auto parsed = std::from_chars(begin, end, value);
+    if (parsed.ec != std::errc{} || parsed.ptr != end || value <= 0) {
+        return false;
+    }
+    out = value;
+    return true;
+}
+
+bool parse_output_resolution(
+    std::string_view text,
+    HostOutputResolution& out) noexcept {
+    if (text == "native") {
+        out = HostOutputResolution::native();
+        return true;
+    }
+    const auto split = text.find('x');
+    if (split == std::string_view::npos ||
+        split == 0 ||
+        split + 1 >= text.size() ||
+        text.find('x', split + 1) != std::string_view::npos) {
+        return false;
+    }
+    int width = 0;
+    int height = 0;
+    if (!parse_positive_int(text.substr(0, split), width) ||
+        !parse_positive_int(text.substr(split + 1), height)) {
+        return false;
+    }
+    out = HostOutputResolution::explicit_size(width, height);
+    return true;
+}
+
+std::string output_resolution_name(
+    const HostOutputResolution& resolution) {
+    if (!valid_output_resolution(resolution)) {
+        return {};
+    }
+    if (resolution.kind == HostOutputResolutionKind::Native) {
+        return "native";
+    }
+    return std::to_string(resolution.width) + "x" +
+           std::to_string(resolution.height);
+}
+
 bool parse_bool(std::string_view text, bool& out) noexcept {
     if (text == "0") {
         out = false;
@@ -160,12 +211,15 @@ std::string encode_host_product_state(const HostProductState& state) {
     const char* vsync_mode = vsync_mode_name(state.settings.vsync_mode);
     const char* presentation_fps =
         presentation_fps_mode_name(state.settings.presentation_fps_mode);
-    if (!display_mode || !vsync_mode || !presentation_fps) {
+    const std::string output_resolution =
+        output_resolution_name(state.settings.output_resolution);
+    if (!display_mode || !vsync_mode || !presentation_fps ||
+        output_resolution.empty()) {
         return {};
     }
 
     std::ostringstream out;
-    out << kHeaderV5 << '\n';
+    out << kHeaderV6 << '\n';
     out << "profile=";
     if (state.active_profile_id) {
         out << *state.active_profile_id;
@@ -176,6 +230,7 @@ std::string encode_host_product_state(const HostProductState& state) {
     out << "display_mode=" << display_mode << '\n';
     out << "vsync=" << vsync_mode << '\n';
     out << "presentation_fps=" << presentation_fps << '\n';
+    out << "output_resolution=" << output_resolution << '\n';
     return out.str();
 }
 
@@ -189,8 +244,9 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
     const bool legacy_v2 = line == kHeaderV2;
     const bool legacy_v3 = line == kHeaderV3;
     const bool legacy_v4 = line == kHeaderV4;
+    const bool legacy_v5 = line == kHeaderV5;
     if (!legacy_v1 && !legacy_v2 && !legacy_v3 && !legacy_v4 &&
-        line != kHeaderV5) {
+        !legacy_v5 && line != kHeaderV6) {
         return {std::nullopt, "unsupported or missing host-state header"};
     }
 
@@ -223,9 +279,13 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
         "profile", "pause_on_focus_loss", "vibration_enabled", "display_mode", "vsync",
         "presentation_fps"
     };
+    static constexpr std::string_view required_v6[] = {
+        "profile", "pause_on_focus_loss", "vibration_enabled", "display_mode", "vsync",
+        "presentation_fps", "output_resolution"
+    };
 
-    const std::string_view* required = required_v5;
-    std::size_t required_count = 6u;
+    const std::string_view* required = required_v6;
+    std::size_t required_count = 7u;
     if (legacy_v1) {
         required = required_v1;
         required_count = 3u;
@@ -235,6 +295,9 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
     } else if (legacy_v3 || legacy_v4) {
         required = required_v3_v4;
         required_count = 5u;
+    } else if (legacy_v5) {
+        required = required_v5;
+        required_count = 6u;
     }
 
     if (fields.size() != required_count) {
@@ -275,6 +338,13 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
             fields.at("presentation_fps"),
             state.settings.presentation_fps_mode)) {
         return {std::nullopt, "invalid host presentation fps mode"};
+    }
+    if (!legacy_v1 && !legacy_v2 && !legacy_v3 && !legacy_v4 &&
+        !legacy_v5 &&
+        !parse_output_resolution(
+            fields.at("output_resolution"),
+            state.settings.output_resolution)) {
+        return {std::nullopt, "invalid host output resolution"};
     }
 
     return {state, {}};

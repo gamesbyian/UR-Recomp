@@ -177,17 +177,18 @@ jobs:
           frame=json.loads(Path("analysis/generated/widescreen-vs-policy-frame.json").read_text())
           provider=json.loads(Path("analysis/generated/widescreen-vs-provider-activity.json").read_text())
 
-          assert policy["semantic_activation_preserved"] is True
-          assert policy["promotion_ready"] is True
-          assert policy["classification"] == "ordinary-2p-mixed-compatible"
+          assert policy["semantic_activation_preserved"] is retained["protected_state_equal_at_all_checkpoints"]
+          assert policy["promotion_ready"] is retained["promotion_ready_at_plus8"]
+          assert policy["classification"] == retained["classification"]
           assert frame["control"] == retained["control_frame_geometry"]
           assert frame["plus8"] == retained["plus8_frame_geometry"]
-          assert provider["control_vs_player1_provider_observed"] is False
-          assert provider["control_vs_player2_provider_observed"] is False
-          assert provider["plus8_vs_player1_provider_observed"] is True
-          assert provider["plus8_vs_player2_provider_observed"] is True
-          assert provider["plus8_preparation_hook_observed"] is True
-          print("VS_PLUS8_PROVIDER_ACCEPTED")
+          assert provider["control_vs_player1_provider_observed"] is retained["control_vs_player1_provider_observed"]
+          assert provider["control_vs_player2_provider_observed"] is retained["control_vs_player2_provider_observed"]
+          assert provider["plus8_vs_player1_provider_observed"] is retained["plus8_vs_player1_provider_observed"]
+          assert provider["plus8_vs_player2_provider_observed"] is retained["plus8_vs_player2_provider_observed"]
+          assert provider["plus8_preparation_hook_observed"] is retained["plus8_preparation_hook_observed"]
+          assert retained["full_authentic_16x9_ready"] is False
+          print("VS_PLUS8_RETAINED_EVIDENCE_MATCH")
           PY
 
       - name: Upload compact VS Widescreen evidence

@@ -19,7 +19,7 @@ void seed_context(
     std::uint8_t medal) {
     wram[0x017D] = rider;
     wram[0x00D0] = tour;
-    sram[0x10AD] = 1;
+    wram[0x10AD] = 1;
     sram[0x069C + 16 * tour + rider] = medal;
 }
 
@@ -92,7 +92,7 @@ int main() {
                sram.size()) == TourResumeApplyStatus::ExistingProgress);
 
     // VS is outside this Modern tour-resume contract.
-    sram[0x10AD] = 2;
+    wram[0x10AD] = 2;
     assert(!observe_tour_progress(
         wram.data(), wram.size(), sram.data(), sram.size()));
 

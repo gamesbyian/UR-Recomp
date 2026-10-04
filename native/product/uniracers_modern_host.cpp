@@ -1006,7 +1006,7 @@ void complete_run_record_capture() {
             stored_path + ".input", std::ios::binary | std::ios::trunc);
         const std::string replay_text =
             ur::product::encode_completed_run_input_file(
-                *record, g_run_capture_origin_frame + 1u);
+                *record, g_run_capture_origin_frame);
         replay.write(
             replay_text.data(),
             static_cast<std::streamsize>(replay_text.size()));

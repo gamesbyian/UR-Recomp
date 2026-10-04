@@ -350,6 +350,18 @@
       ]
     },
     {
+      "tag": "attract-demo-race",
+      "state_id": "DEMO",
+      "variant": "split-screen demo race",
+      "source_fixture": "attract-cycle",
+      "required": false,
+      "expect": {
+        "current_menu": "0x00",
+        "in_race": "0x01",
+        "multiplayer_camera_enable": "0x01"
+      }
+    },
+    {
       "tag": "ui-pause-before",
       "state_id": "GAMEPLAY",
       "variant": "before-pause",
@@ -1440,6 +1452,14 @@
         "current_menu": "0x5A"
       },
       "note": "Stale 009F after the Track Records exit; the visible screen is the RECORDS list."
+    },
+    {
+      "tag": "name-forbidden-rejected",
+      "state_id": "FORBIDDEN_NAME_REJECTION",
+      "variant": "NOT COOL ENOUGH inline message",
+      "source_fixture": "name-entry-probe",
+      "required": false,
+      "expect": {}
     }
   ]
 }

@@ -4,7 +4,7 @@
 |---|---:|---|---:|---:|---:|---|---:|---:|---|
 | BOOT_STARTUP | 2 |  | 0 | 10 | 0 |  | 0 | 1 | hypothesis |
 | SPLASH | 2 | 0x84 | 0 | 1 | 0 |  | 2 | 3 | verified |
-| DEMO | 3 | 0x00? | 0 | 1 | 0 |  | 1 | 1 | verified |
+| DEMO | 3 | 0x00 | 0 | 2 | 0 |  | 1 | 1 | verified |
 | MAIN_MENU | 1 | 0xD7 | 1 | 14 | 2 |  | 8 | 7 | verified |
 | PLAYER_SELECT_P1 | 1 | 0x3C | 1 | 0 | 3 |  | 1 | 1 | verified |
 | TWO_PLAYER_SELECT | 1 | 0x3D | 0 | 1 | 1 |  | 1 | 2 | verified |
@@ -33,7 +33,7 @@
 | DEFINE_PLAYER | 2 |  | 0 | 1 | 1 |  | 1 | 1 | documented |
 | RENAME_PLAYER | 2 |  | 0 | 2 | 1 |  | 2 | 2 | verified |
 | PLAYER_NAME_EDITOR | 2 |  | 0 | 10 | 1 |  | 2 | 3 | verified |
-| FORBIDDEN_NAME_REJECTION | 3 |  | 0 | 0 | 2 |  | 2 | 2 | verified |
+| FORBIDDEN_NAME_REJECTION | 3 |  | 0 | 1 | 2 |  | 2 | 2 | verified |
 | DEFINE_LEAGUE | 2 | 0x9A | 0 | 1 | 1 |  | 1 | 1 | verified |
 | NAME_LEAGUE | 2 |  | 0 | 1 | 1 |  | 2 | 2 | documented |
 | ENDING | 1 | 0x5B | 0 | 2 | 1 |  | 2 | 1 | verified |
@@ -45,19 +45,17 @@
 
 ## All evidence gaps
 
-- DEMO: menu id remains historical/unverified
-- FORBIDDEN_NAME_REJECTION: no capture contract
 
 ## Summary
 
 - conceptual states: 36
 - executable transitions: 78
-- capture contracts: 118
+- capture contracts: 120
 - menu-index entries: 36
-- locally verified menu-index entries: 27
-- states with at least one capture contract: 34
+- locally verified menu-index entries: 28
+- states with at least one capture contract: 35
 - states with at least one public visual lead: 24
 - Tier 1 states: 23
 - Tier 1 gap observations: 0
 - incomplete capability dependencies: 1
-- raw gap observations: 2
+- raw gap observations: 0

@@ -895,7 +895,9 @@
       "engines": [
         "snesref-snes9x"
       ],
-      "checkpoints": [],
+      "checkpoints": [
+        "attract-demo-race"
+      ],
       "compare_surfaces": [
         "low-wram-trace",
         "menu-state-fields"
@@ -1063,7 +1065,9 @@
       "engines": [
         "snesref-snes9x"
       ],
-      "checkpoints": [],
+      "checkpoints": [
+        "name-forbidden-rejected"
+      ],
       "compare_surfaces": [
         "framebuffer",
         "sram",

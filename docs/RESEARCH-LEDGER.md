@@ -2249,3 +2249,13 @@ Bank 80 frontend wrappers: `B13F` 1, `B12A` 2, `B0EB`/`B169` 3, `B115` 4, `B100`
 - name OK: SFX 4, plus SFX 1 when the name is saved and the screen slides back. A forbidden name gets SFX 4 alone and stays in the editor.
 
 **Consequences:** the menu visual-language contract now names its sounds by driver id, and a modern menu can trigger the same ids. The bank-83 scene sounds and the sample data behind each id remain unmapped.
+
+### R-2026-10-04-UI-24 — UI model evidence gaps closed (DEMO menu value, forbidden-name capture)
+
+**Status:** reproduced locally (snesref)  
+**Date:** 2026-10-04  
+**Area:** UI
+
+**Observation:** a dump 1500 frames after MAIN_MENU with no input lands mid first demo race. There `$9F` = 0x00, in-race (`0x0313`) = 1 and the split-screen camera enable (`0x0DDB`) = 1. The historical 2014 bot label DEMO = 0x00 therefore holds, with the caveat that 0x00 is the generic in-race value. The attract script now dumps `attract-demo-race`, and `analysis/generated/attract-cycle.json` is unchanged. The name-entry probe now also dumps `name-forbidden-rejected` for names it expects to be rejected.
+
+**Consequences:** the menu index marks 0x00/DEMO verified, and FORBIDDEN_NAME_REJECTION has a capture contract. `analysis/generated/ui-state-coverage.md` reports no Tier 1 gaps and no remaining evidence gaps.

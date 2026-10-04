@@ -54,6 +54,7 @@ struct HostSettings {
     HostVSyncMode vsync_mode = HostVSyncMode::On;
     HostPresentationFpsMode presentation_fps_mode =
         HostPresentationFpsMode::Game;
+    // Semantic output size only; monitor refresh remains a separate concern.
     HostOutputResolution output_resolution =
         HostOutputResolution::native();
 

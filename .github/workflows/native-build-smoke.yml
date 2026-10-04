@@ -165,6 +165,7 @@ jobs:
           g++ -std=c++17 -Wall -Wextra -Werror -pedantic \
             -I "$GITHUB_WORKSPACE/native/product" \
             "$GITHUB_WORKSPACE/native/product/host_product_state.cpp" \
+            "$GITHUB_WORKSPACE/native/product/output_resolution_policy.cpp" \
             "$GITHUB_WORKSPACE/native/product/host_profile_state.cpp" \
             "$GITHUB_WORKSPACE/native/product/host_profile_store.cpp" \
             "$GITHUB_WORKSPACE/tests/native/host_profile_store_acceptance.cpp" \

@@ -2226,3 +2226,26 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 **Addendum (per-tour gold scenes):** booking the win as the last track of each of the other seven tours (same pinning) gives eight distinct gold vignettes. Each is a short side-on scene of the rider's unicycle on a track with a tour-specific prop: a pink creature, a green worm, coloured blocks, a "10t" weight, a crowd of unicycles, a bicycle and so on. Each lasts about 300–500 frames after the result is dismissed and returns to TOUR_SELECT (`0x6D`). Dispatch: Crawler `83:C49C`, Jumper `83:BB80`, Shuffler `83:B1EB`, Bounder `83:B7D2`, Walker `83:B506`, Runner `83:C715`, Hopper `83:C11E`, Sprinter `83:BED0`. The probe now checks all nine tours.
 
 **Addendum (forbidden names in League naming, static):** the scanner's only long entry call (`JSL 83:84D9` at `80:A4A3`) sits in the OK path of the shared name editor `80:A1E3`. Exactly two places enter that editor: `80:9E7C` under the title "WHAT IS YOUR LEAGUE CALLED" and `80:D47E` under "WHAT IS YOUR PLAYER CALLED". League names are therefore filtered by the same substring rule. `tools/extract_forbidden_name_table.py` pins both facts to ROM bytes; the League path is not replayed.
+
+### R-2026-10-04-UI-23 — Frontend sound-effect identity from the WRAM sound queue
+
+**Status:** reproduced locally (snesref); static decode of the queue  
+**Date:** 2026-10-04  
+**Area:** UI | audio
+
+**Observation (static):** `82:8000` (JSL, A = `hhll`) appends to a 16-entry ring in WRAM: low bytes at `7E:2006+i`, high bytes at `7E:2016+i`, write index `7E:2002`. `82:8035` later sends the queued entries to the APU ports. The ROM has 159 literal call sites:
+- op `02nn` plays sound effect `nn` (ids 1–0x1F);
+- op `08vv` is a volume/priority word sent first;
+- ops `06`/`0B` take values in the music range, with `03`, `07` and `01` as further controls.
+
+Bank 80 frontend wrappers: `B13F` 1, `B12A` 2, `B0EB`/`B169` 3, `B115` 4, `B100` 6. Bank 83 holds one wrapper per id (`83:A286-A4BD`) for scenes.
+
+**Observation (runtime, `tools/probe_menu_sfx_ids.py`, 6 checks):**
+- cursor moves on the main menu, rider, tour and track selects and in the name editor: `087F 0203` (SFX 3);
+- forward slides (main→rider, tour→track): `084F 0202` (SFX 2);
+- back slides: `084F 0201` (SFX 1);
+- rider confirm: `083F 0204` then the slide (SFX 4, 2);
+- name-editor letter and delete: `083F 0206` (SFX 6);
+- name OK: SFX 4, plus SFX 1 when the name is saved and the screen slides back. A forbidden name gets SFX 4 alone and stays in the editor.
+
+**Consequences:** the menu visual-language contract now names its sounds by driver id, and a modern menu can trigger the same ids. The bank-83 scene sounds and the sample data behind each id remain unmapped.

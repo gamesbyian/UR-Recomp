@@ -2262,7 +2262,7 @@ Bank 80 frontend wrappers: `B13F` 1, `B12A` 2, `B0EB`/`B169` 3, `B115` 4, `B100`
 
 ### R-2026-10-04-UI-25 — Native target omits the finish time on result screens; native VS challenger route otherwise matches
 
-**Status:** reproduced locally (snesref vs generated native target, same scripts and inputs)  
+**Status:** fixed (framework patch `snesrecomp-nested-deadline-unwind.patch`; see final addendum)  
 **Date:** 2026-10-04  
 **Area:** native fidelity | UI | VS
 
@@ -2294,3 +2294,10 @@ So when the LLE master deadline lands on the prologue of a bounced compiled call
 **Owner:** pinned snesrecomp runner (`runner/src/snes/interp_bridge.c` deadline-unwind path for paired bounces), not the game code. Reproduce with `tools/compare_engine_screen_text.py` plus the trap-yield variable above.
 
 The VS result shows the same signature during its result build (`SNESRECOMP_TRAP_YIELD` on the VS challenger route: `f3798 resume=$80C3AB S=$01EF deadline=1 depth=2`).
+
+**Addendum (fixed, 2026-10-04):**
+- **Status:** closed. This was a framework fault, not a game divergence.
+- **Mechanism:** `depth=2` above is `s_interp_bounce_owner_depth`. The bounce owner was the nested tier-2 gap frame running the `0xF1` handler, not the scheduler frame. The pinned bridge cleared a deadline unwind whenever the owner depth matched and returned `1` (completed). The tier helper then saw no active unwind and returned `NORMAL` to its compiled caller, so the interpreted handler's remaining work, including the `JSR $C3AB` print, was dropped.
+- **Fix:** upstream snesrecomp `5ae0541` ("Propagate nested deadline unwinds to the scheduler owner") keeps the deadline sentinel live through every non-scheduler frame. Only the scheduler frame (`yield_pc != 0`) publishes the resume PC. It is a descendant of the pin `cd5875c`. The fix and its upstream regression test are carried as `tools/patches/snesrecomp-nested-deadline-unwind.patch`, applied after the existing patch stack.
+- **Unit test:** the framework's `tests/interp816/run.sh` passes 138/138 with the patch. Upstream's new case `S8g nested deadline preserves inner PC and guest stack` fails against the unpatched bridge with `resume=008006` and `outer continuation ran after deadline`. That is the same skipped-call signature seen in the game.
+- **Game check:** both generated targets were built locally the same way and run through `tools/compare_engine_screen_text.py` against a dual-controller snesref. Unpatched, both finish times (`0:28.56`, `0:28.76`) are missing. Patched, there are zero mismatches across all six checkpoints. `analysis/generated/native-screen-text-parity.json` is regenerated from the patched run.

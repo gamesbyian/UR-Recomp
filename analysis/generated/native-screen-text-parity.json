@@ -26,6 +26,7 @@
      "COMPLETE",
      "PLAYER     TIME",
      "MIKE",
+     "0:28.56",
      "SOMEONE",
      "NO TIME",
      "SOMEONE",
@@ -36,10 +37,8 @@
    },
    "comparison": {
     "race-results": {
-     "match": false,
-     "missing_on_native": [
-      "0:28.56"
-     ],
+     "match": true,
+     "missing_on_native": [],
      "extra_on_native": []
     }
    }
@@ -135,6 +134,7 @@
      "COMPLETE",
      "PLAYER     TIME",
      "MIKE",
+     "0:28.76",
      "ANDREW",
      "NO TIME",
      "SOMEONE",
@@ -212,10 +212,8 @@
    },
    "comparison": {
     "vsc-result": {
-     "match": false,
-     "missing_on_native": [
-      "0:28.76"
-     ],
+     "match": true,
+     "missing_on_native": [],
      "extra_on_native": []
     },
     "vsc-champions": {
@@ -241,9 +239,6 @@
    }
   }
  },
- "mismatches": [
-  "race-result/race-results",
-  "vs-challenger/vsc-result"
- ],
- "all_match": false
+ "mismatches": [],
+ "all_match": true
 }

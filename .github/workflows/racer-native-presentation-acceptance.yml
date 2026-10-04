@@ -653,6 +653,7 @@ jobs:
           grep -F "semantic=057E viewport=bottom slot=97" "$HD_LOG"
           grep -F "semantic=0544 viewport=bottom slot=96" "$HD_LOG"
           grep -F "guest_state_unchanged=1" "$HD_LOG"
+          grep -F "output_scale=4" "$HD_LOG"
 
           python3 - "$ORIGINAL_A_SHOT" "$ORIGINAL_B_SHOT" "$HD_SHOT" <<'PY'
           import hashlib
@@ -673,11 +674,36 @@ jobs:
           hd, hp, hh = ppm(sys.argv[3])
           assert ad == (256, 224), ad
           assert bd == (256, 224), bd
-          assert hd == (256, 224), hd
+          assert hd == (1024, 896), hd
           assert ah == bh and ap == bp, "disabled Original screenshots are not deterministic"
-          assert ah != hh, "enabled replacement screenshot is byte-identical to Original"
-          assert ap != hp, "enabled replacement did not alter presented pixels"
-          print(f"UR_RACER_HD_VISUAL PASS original_sha256={ah} hd_sha256={hh}")
+
+          # Sample one centre pixel from each 4x host block. The resulting
+          # 256x224 view must differ from Original because reviewed racer art
+          # replaced the removed stock OAM slots.
+          def rgb(payload, width, x, y):
+              i = (y * width + x) * 3
+              return payload[i:i + 3]
+
+          sampled = bytearray()
+          detailed_blocks = 0
+          for y in range(224):
+              for x in range(256):
+                  block = [
+                      rgb(hp, 1024, x * 4 + sx, y * 4 + sy)
+                      for sy in range(4)
+                      for sx in range(4)
+                  ]
+                  sampled += block[10]  # logical centre: +2,+2
+                  if any(px != block[0] for px in block[1:]):
+                      detailed_blocks += 1
+
+          assert bytes(sampled) != ap, "4x authored presentation downsample is byte-identical to Original"
+          assert detailed_blocks > 0, "HD output is only a nearest-scaled 1x frame"
+          print(
+              f"UR_RACER_HD_VISUAL PASS original_sha256={ah} "
+              f"hd_sha256={hh} hd_dims={hd[0]}x{hd[1]} "
+              f"detailed_blocks={detailed_blocks}"
+          )
           PY
 
       - name: Upload compact acceptance log

@@ -170,29 +170,46 @@ static int ur_ws_native_vs_vertical_fine_y(CpuState *cpu, unsigned player) {
   return candidate;
 }
 
-/* Split-screen uses 8-word vertical strips. Offset 9 is the accepted second
- * A59E pass (+8 pixels); offset 10 is the first host-owned deeper column
- * (+16 pixels). The +8 payload calibrates this live-course materializer in
- * the same frame before any deeper column is admitted as evidence. */
+/* Split-screen uses 8-word vertical strips. Depth 0 reproduces the accepted
+ * second A59E pass from the exact direction-dependent source coordinate;
+ * depth 1 is the first host-owned deeper course column. The accepted +8
+ * payload calibrates this live-course materializer in the same frame before
+ * any deeper column is admitted as evidence. */
 static int ur_ws_native_vs_column_from_course_adjusted(
-    CpuState *cpu, unsigned player, unsigned x_offset, int y_adjust,
+    CpuState *cpu, unsigned player, int depth, int y_adjust,
     uint8 out[16]) {
   const uint16 camx = ur_ws_native_read16(cpu, player ? 0x041b : 0x0419);
+  const int16 velocity =
+      (int16)ur_ws_native_read16(cpu, player ? 0x04f7 : 0x04f5);
   const uint16 coarse_width = ur_ws_native_read16(cpu, 0x04f1);
   const uint16 coarse_height = ur_ws_native_read16(cpu, 0x04f3);
-  if (!coarse_width || !coarse_height)
+  const uint16 world_mask = ur_ws_native_read16(cpu, 0x0d49);
+  if (!coarse_width || !coarse_height || velocity == 0)
     return 0;
 
-  const int fine_x = (int)(camx >> 4) + (int)x_offset;
-  const int fine_y0 = ur_ws_native_vs_vertical_fine_y(cpu, player) + y_adjust;
+  /* A59E's split-screen horizontal payload path is direction-dependent.
+   * Positive motion prepares from cameraX + $0100 (wrapped by $0D49);
+   * negative motion prepares from cameraX. B27F then samples the 16-pixel
+   * course cell derived from that coordinate. Deeper host capacity advances
+   * one live course column farther in the same motion direction. */
+  uint16 source_px = camx;
+  if (velocity > 0)
+    source_px = (uint16)((camx + 0x0100u) & world_mask);
+
   const int fine_width = (int)coarse_width * 4;
   const int fine_height = (int)coarse_height * 4;
+  int fine_x = (int)(source_px >> 4) + (velocity > 0 ? depth : -depth);
+  while (fine_x < 0)
+    fine_x += fine_width;
+  while (fine_x >= fine_width)
+    fine_x -= fine_width;
+
+  const int fine_y0 = ur_ws_native_vs_vertical_fine_y(cpu, player) + y_adjust;
 
   for (unsigned j = 0; j < 8; j++) {
     const int fine_y = fine_y0 + (int)j;
     uint16 word = 0;
-    if (fine_x >= 0 && fine_x < fine_width &&
-        fine_y >= 0 && fine_y < fine_height) {
+    if (fine_y >= 0 && fine_y < fine_height) {
       const uint16 sector_x = (uint16)(fine_x >> 2);
       const uint16 sector_y = (uint16)(fine_y >> 2);
       const uint32 coarse_index =
@@ -213,10 +230,9 @@ static int ur_ws_native_vs_column_from_course_adjusted(
 }
 
 static int ur_ws_native_vs_column_from_course(CpuState *cpu, unsigned player,
-                                               unsigned x_offset,
-                                               uint8 out[16]) {
+                                               int depth, uint8 out[16]) {
   return ur_ws_native_vs_column_from_course_adjusted(
-      cpu, player, x_offset, 0, out);
+      cpu, player, depth, 0, out);
 }
 
 /* Materialize one arbitrary vertical 16-cell strip directly from the live
@@ -372,13 +388,13 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
 
     if (p1_valid) {
       uint8 calibrated[16];
-      if (ur_ws_native_vs_column_from_course(cpu, 0, 9, calibrated) &&
+      if (ur_ws_native_vs_column_from_course(cpu, 0, 0, calibrated) &&
           memcmp(calibrated, ur_ws_native_vs_p1_future_payload, 16) == 0)
         ur_ws_native_vs_materializer_match[0] = 1;
     }
     if (p2_valid) {
       uint8 calibrated[16];
-      if (ur_ws_native_vs_column_from_course(cpu, 1, 9, calibrated) &&
+      if (ur_ws_native_vs_column_from_course(cpu, 1, 0, calibrated) &&
           memcmp(calibrated, ur_ws_native_vs_p2_future_payload, 16) == 0)
         ur_ws_native_vs_materializer_match[1] = 1;
     }
@@ -392,26 +408,26 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
                    : ur_ws_native_vs_p1_future_payload;
         if (!valid || matched)
           continue;
-        int found_x = -1;
+        int found_depth = -99;
         int found_y = 0;
         uint8 candidate[16];
-        for (unsigned xoff = 7; xoff <= 12 && found_x < 0; xoff++) {
+        for (int depth = -2; depth <= 3 && found_depth == -99; depth++) {
           for (int yadj = -4; yadj <= 4; yadj++) {
             if (ur_ws_native_vs_column_from_course_adjusted(
-                    cpu, player, xoff, yadj, candidate) &&
+                    cpu, player, depth, yadj, candidate) &&
                 memcmp(candidate, accepted, 16) == 0) {
-              found_x = (int)xoff;
+              found_depth = depth;
               found_y = yadj;
               break;
             }
           }
         }
         fprintf(stderr,
-                "URWS_VS_CALIBRATION_SEARCH margin=%d player=%u camx=%u camy=%u xoff=%d yadj=%d accepted=",
+                "URWS_VS_CALIBRATION_SEARCH margin=%d player=%u camx=%u camy=%u depth=%d yadj=%d accepted=",
                 ur_ws_native_margin(), player + 1u,
                 (unsigned)ur_ws_native_read16(cpu, player ? 0x041b : 0x0419),
                 (unsigned)ur_ws_native_read16(cpu, player ? 0x041f : 0x041d),
-                found_x, found_y);
+                found_depth, found_y);
         for (unsigned j = 0; j < 16; j++)
           fprintf(stderr, "%02X", (unsigned)accepted[j]);
         fprintf(stderr, "\n");
@@ -464,7 +480,7 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
         if (!valid || !ur_ws_native_vs_materializer_match[player])
           continue;
         if (!ur_ws_native_vs_column_from_course(
-                cpu, player, 10, ur_ws_native_vs_shadow_payload[player]))
+                cpu, player, 1, ur_ws_native_vs_shadow_payload[player]))
           continue;
         ur_ws_native_vs_shadow_edge[player] =
             (uint16)((first_edge & 0xffe0u) |

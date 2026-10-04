@@ -23,7 +23,8 @@ int main() {
         "display_mode=windowed\n"
         "vsync=on\n"
         "presentation_fps=game\n"
-        "output_resolution=native\n";
+        "output_resolution=native\n"
+        "internal_render_scale=4x\n";
     assert(encode_host_product_state(defaults) == expected_defaults);
 
     HostProductState customized;
@@ -35,6 +36,7 @@ int main() {
     customized.settings.presentation_fps_mode = HostPresentationFpsMode::Fps120;
     customized.settings.output_resolution =
         HostOutputResolution::explicit_size(1920, 1080);
+    customized.settings.internal_render_scale = HostInternalRenderScale::X2;
     const std::string encoded = encode_host_product_state(customized);
     assert(encoded ==
         "UR-HOST-STATE/6\n"
@@ -44,7 +46,8 @@ int main() {
         "display_mode=fullscreen\n"
         "vsync=adaptive\n"
         "presentation_fps=120\n"
-        "output_resolution=1920x1080\n");
+        "output_resolution=1920x1080\n"
+        "internal_render_scale=2x\n");
 
     const auto decoded = decode_host_product_state(encoded);
     assert(decoded);
@@ -68,8 +71,14 @@ int main() {
            HostPresentationFpsMode::Game);
     assert(sparse_v6.state->settings.output_resolution ==
            HostOutputResolution::native());
-    assert(encode_host_product_state(*sparse_v6.state).find(
+    assert(sparse_v6.state->settings.internal_render_scale ==
+           HostInternalRenderScale::X4);
+    const std::string normalized_sparse =
+        encode_host_product_state(*sparse_v6.state);
+    assert(normalized_sparse.find(
         "output_resolution=native\n") != std::string::npos);
+    assert(normalized_sparse.find(
+        "internal_render_scale=4x\n") != std::string::npos);
 
     const auto partial_v6 = decode_host_product_state(
         "UR-HOST-STATE/6\n"
@@ -77,7 +86,8 @@ int main() {
         "pause_on_focus_loss=1\n"
         "vibration_enabled=0\n"
         "display_mode=fullscreen\n"
-        "output_resolution=1280x720\n");
+        "output_resolution=1280x720\n"
+        "internal_render_scale=3x\n");
     assert(partial_v6);
     assert(partial_v6.state->settings.display_mode == HostDisplayMode::Fullscreen);
     assert(partial_v6.state->settings.vsync_mode == HostVSyncMode::On);
@@ -85,6 +95,8 @@ int main() {
            HostPresentationFpsMode::Game);
     assert(partial_v6.state->settings.output_resolution ==
            HostOutputResolution::explicit_size(1280, 720));
+    assert(partial_v6.state->settings.internal_render_scale ==
+           HostInternalRenderScale::X3);
 
     const auto legacy_v1 = decode_host_product_state(
         "UR-HOST-STATE/1\n"
@@ -98,6 +110,8 @@ int main() {
            HostPresentationFpsMode::Game);
     assert(legacy_v1.state->settings.output_resolution ==
            HostOutputResolution::native());
+    assert(legacy_v1.state->settings.internal_render_scale ==
+           HostInternalRenderScale::X4);
 
     const auto legacy_v2 = decode_host_product_state(
         "UR-HOST-STATE/2\n"
@@ -112,6 +126,8 @@ int main() {
            HostPresentationFpsMode::Game);
     assert(legacy_v2.state->settings.output_resolution ==
            HostOutputResolution::native());
+    assert(legacy_v2.state->settings.internal_render_scale ==
+           HostInternalRenderScale::X4);
 
     const auto legacy_v3 = decode_host_product_state(
         "UR-HOST-STATE/3\n"
@@ -125,6 +141,8 @@ int main() {
            HostPresentationFpsMode::Game);
     assert(legacy_v3.state->settings.output_resolution ==
            HostOutputResolution::native());
+    assert(legacy_v3.state->settings.internal_render_scale ==
+           HostInternalRenderScale::X4);
 
     const auto legacy_v4 = decode_host_product_state(
         "UR-HOST-STATE/4\n"
@@ -139,6 +157,8 @@ int main() {
            HostPresentationFpsMode::Game);
     assert(legacy_v4.state->settings.output_resolution ==
            HostOutputResolution::native());
+    assert(legacy_v4.state->settings.internal_render_scale ==
+           HostInternalRenderScale::X4);
 
     const auto legacy_v5 = decode_host_product_state(
         "UR-HOST-STATE/5\n"
@@ -153,6 +173,8 @@ int main() {
            HostPresentationFpsMode::Fps144);
     assert(legacy_v5.state->settings.output_resolution ==
            HostOutputResolution::native());
+    assert(legacy_v5.state->settings.internal_render_scale ==
+           HostInternalRenderScale::X4);
     assert(encode_host_product_state(*legacy_v5.state).find("UR-HOST-STATE/6\n") == 0);
 
     assert(is_valid_profile_id("profile_01"));
@@ -174,6 +196,10 @@ int main() {
     assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ndisplay_mode=windowed\nvsync=on\npresentation_fps=game\noutput_resolution=0x1080\n"));
     assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ndisplay_mode=windowed\nvsync=on\npresentation_fps=game\noutput_resolution=1920x0\n"));
     assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ndisplay_mode=windowed\nvsync=on\npresentation_fps=game\noutput_resolution=1920x1080x60\n"));
+    assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ninternal_render_scale=0x\n"));
+    assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ninternal_render_scale=5x\n"));
+    static_assert(internal_render_scale_value(HostInternalRenderScale::X1) == 1);
+    static_assert(internal_render_scale_value(HostInternalRenderScale::X4) == 4);
 
     return 0;
 }

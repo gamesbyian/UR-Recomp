@@ -55,5 +55,40 @@ int main() {
     assert(remastered_fixed.center_logical_view);
     assert(!remastered_fixed.expose_added_world);
 
+    HostWidescreenSceneState scene{};
+    assert(observe_widescreen_scene(&scene, 0x00, 0xD7) ==
+           HostSceneComposition::FixedCenter);
+    assert(observe_widescreen_scene(&scene, 0x01, 0x00) ==
+           HostSceneComposition::FixedCenter);
+
+    assert(observe_widescreen_scene(&scene, 0x00, 0x3C) ==
+           HostSceneComposition::FixedCenter);
+    assert(observe_widescreen_scene(&scene, 0x01, 0x00) ==
+           HostSceneComposition::WorldExpand);
+    // Incidental in-race scratch must not replace the latched 1P identity.
+    assert(observe_widescreen_scene(&scene, 0x01, 0x3E) ==
+           HostSceneComposition::WorldExpand);
+    // Results/pre-race remain centered even while the mode latch persists.
+    assert(observe_widescreen_scene(&scene, 0x00, 0x99) ==
+           HostSceneComposition::FixedCenter);
+    assert(observe_widescreen_scene(&scene, 0x01, 0x00) ==
+           HostSceneComposition::WorldExpand);
+
+    assert(observe_widescreen_scene(&scene, 0x00, 0x3D) ==
+           HostSceneComposition::FixedCenter);
+    assert(observe_widescreen_scene(&scene, 0x01, 0x00) ==
+           HostSceneComposition::WorldExpand);
+
+    assert(observe_widescreen_scene(&scene, 0x00, 0x3E) ==
+           HostSceneComposition::FixedCenter);
+    assert(observe_widescreen_scene(&scene, 0x01, 0x00) ==
+           HostSceneComposition::FixedCenter);
+
+    reset_widescreen_scene_state(&scene);
+    assert(observe_widescreen_scene(&scene, 0x01, 0x00) ==
+           HostSceneComposition::FixedCenter);
+    assert(observe_widescreen_scene(nullptr, 0x01, 0x00) ==
+           HostSceneComposition::FixedCenter);
+
     return 0;
 }

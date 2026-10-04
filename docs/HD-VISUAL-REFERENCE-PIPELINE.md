@@ -324,8 +324,3 @@ The deterministic replacement assets remain intentionally contract-only. Registe
 
 CI runs the same deterministic two-player route twice with replacement disabled and once enabled. Fresh-process controls expose 24 low-WRAM scratch bytes that are not byte-stable even with identical presentation, so acceptance first derives that control variability set, then requires HD to match every WRAM byte outside it and every promoted fixed-width `7E:` semantic state entry. The presenter also hashes full WRAM plus CGRAM/OAM/high-OAM/VRAM immediately before and after host capture setup and requires no change. The disabled runs must never enter the substitution path; their presented frame-1220 screenshots must be byte-identical to each other; the enabled screenshot must differ. Workflow run `37084977349` closes this acceptance. Focused native contracts retain unknown/composition/pack/absent-asset fallback to Original, prove semantic identity is independent of screen position, and exercise all H/V orientation combinations.
 
-
-
-## Internal presentation density
-
-The Racer HD compositor supports bounded 1x-4x host presentation density from the same authored 4x source assets. Four remains the default; lower densities centre-sample the source without changing guest geometry or simulation. Product-setting wiring remains separate.

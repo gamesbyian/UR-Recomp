@@ -5,4 +5,11 @@ GLOBAL {
 };
 SEGMENT { START $8000; END $FFFF; NAME "bank_00"; };
 
+LABEL { NAME "Interrupt_LongVector73"; ADDR $8584; };
+LABEL { NAME "Interrupt_LongVector53"; ADDR $8599; };
+LABEL { NAME "Main_StateDispatchLoop"; ADDR $8881; };
 LABEL { NAME "Text_TestCharacterMetadataBit7"; ADDR $8C41; };
+LABEL { NAME "Reset_Entry"; ADDR $91D1; };
+LABEL { NAME "Fatal_GamePakNotFound"; ADDR $94EB; };
+LABEL { NAME "Frontend_TextCommandStream"; ADDR $C3AB; };
+LABEL { NAME "Frontend_TextCommandDispatch"; ADDR $C3C8; };

@@ -1,0 +1,86 @@
+name: Switch S2 runtime-core portability
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "analysis/switch-s2-runtime-core-contract.json"
+      - "tools/build_switch_s2_runtime_probe.py"
+      - "tests/unit/test_switch_s2_runtime_core.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - ".github/workflows/switch-s2-runtime-core.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: switch-s2-runtime-core-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  stage-framework:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Stage pinned patched framework
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          test -s .tools/src/snesrecomp/runner/runner.cmake
+          test -s .tools/src/snesrecomp/runner/src/common_rtl.c
+
+      - name: Upload patched framework
+        uses: actions/upload-artifact@v4
+        with:
+          name: switch-s2-runtime-framework
+          path: .tools/src/snesrecomp/
+          retention-days: 1
+
+  cross-compile:
+    needs: stage-framework
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: devkitpro/devkita64:20260219
+
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Download patched framework
+        uses: actions/download-artifact@v4
+        with:
+          name: switch-s2-runtime-framework
+          path: /tmp/snesrecomp
+
+      - name: Validate contract
+        run: |
+          set -eu
+          python3 -m unittest tests.unit.test_switch_s2_runtime_core
+          python3 tools/build_switch_s2_runtime_probe.py \
+            --framework /tmp/snesrecomp \
+            --out-dir /tmp/unused \
+            --check-only
+
+      - name: Cross-compile authoritative runtime floor
+        run: |
+          set -eu
+          . "$DEVKITPRO/switchvars.sh"
+          python3 tools/build_switch_s2_runtime_probe.py \
+            --framework /tmp/snesrecomp \
+            --out-dir /tmp/switch-s2-runtime \
+            --jobs 2 \
+            --json-out /tmp/switch-s2-runtime-result.json
+          test "$(find /tmp/switch-s2-runtime -name '*.o' -type f | wc -l)" -ge 30
+          cat /tmp/switch-s2-runtime-result.json
+
+      - name: Upload runtime compile evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: switch-s2-runtime-core-result
+          path: /tmp/switch-s2-runtime-result.json
+          retention-days: 14

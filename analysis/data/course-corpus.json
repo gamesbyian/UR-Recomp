@@ -51,7 +51,7 @@
           65536,
           1024
         ],
-        "aspect_ratio": 64
+        "aspect_ratio": 64.0
       },
       "resources": {
         "ids": [
@@ -72,6 +72,14 @@
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
       ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 0,
+        "start_x": 1088,
+        "finish_x": 25278,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      },
       "presentation_contract_sample": {
         "status": "static_proven",
         "fine_record_count": 32,
@@ -97,14 +105,6 @@
         ],
         "historical_finish_x_probe": 25278,
         "source": "analysis/generated/dragster-presentation-spatial-contract.json"
-      },
-      "historical_landmarks": {
-        "status": "historical_independent",
-        "track_id": 0,
-        "start_x": 1088,
-        "finish_x": 25278,
-        "start_matches_header_a_x16": true,
-        "source": "analysis/generated/dessyreqt-course-landmarks.json"
       }
     },
     {
@@ -155,7 +155,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -251,7 +251,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -340,7 +340,7 @@
           65536,
           1024
         ],
-        "aspect_ratio": 64
+        "aspect_ratio": 64.0
       },
       "resources": {
         "ids": [
@@ -432,7 +432,7 @@
           8192,
           8192
         ],
-        "aspect_ratio": 1
+        "aspect_ratio": 1.0
       },
       "resources": {
         "ids": [
@@ -472,6 +472,14 @@
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
       ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 4,
+        "start_x": 4640,
+        "finish_x": 4719,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      },
       "presentation_contract_sample": {
         "status": "static_proven",
         "fine_record_count": 607,
@@ -489,14 +497,6 @@
           "a000_is_32_bytes_per_c000_slot": true
         },
         "source": "analysis/generated/course-presentation-contract-sample.json"
-      },
-      "historical_landmarks": {
-        "status": "historical_independent",
-        "track_id": 4,
-        "start_x": 4640,
-        "finish_x": 4719,
-        "start_matches_header_a_x16": true,
-        "source": "analysis/generated/dessyreqt-course-landmarks.json"
       }
     },
     {
@@ -580,6 +580,14 @@
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
       ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 5,
+        "start_x": 2272,
+        "finish_x": 2678,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      },
       "presentation_contract_sample": {
         "status": "static_proven",
         "fine_record_count": 463,
@@ -597,14 +605,6 @@
           "a000_is_32_bytes_per_c000_slot": true
         },
         "source": "analysis/generated/course-presentation-contract-sample.json"
-      },
-      "historical_landmarks": {
-        "status": "historical_independent",
-        "track_id": 5,
-        "start_x": 2272,
-        "finish_x": 2678,
-        "start_matches_header_a_x16": true,
-        "source": "analysis/generated/dessyreqt-course-landmarks.json"
       }
     },
     {
@@ -655,7 +655,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -750,7 +750,7 @@
           8192,
           8192
         ],
-        "aspect_ratio": 1
+        "aspect_ratio": 1.0
       },
       "resources": {
         "ids": [
@@ -838,7 +838,7 @@
           32768,
           2048
         ],
-        "aspect_ratio": 16
+        "aspect_ratio": 16.0
       },
       "resources": {
         "ids": [
@@ -888,6 +888,14 @@
         "analysis/generated/course-resource-list-manifest.json",
         "reference/notes/course-order-and-stunt-timer.md"
       ],
+      "historical_landmarks": {
+        "status": "historical_independent",
+        "track_id": 8,
+        "start_x": 576,
+        "finish_x": 1590,
+        "start_matches_header_a_x16": true,
+        "source": "analysis/generated/dessyreqt-course-landmarks.json"
+      },
       "presentation_contract_sample": {
         "status": "static_proven",
         "fine_record_count": 736,
@@ -905,14 +913,6 @@
           "a000_is_32_bytes_per_c000_slot": true
         },
         "source": "analysis/generated/course-presentation-contract-sample.json"
-      },
-      "historical_landmarks": {
-        "status": "historical_independent",
-        "track_id": 8,
-        "start_x": 576,
-        "finish_x": 1590,
-        "start_matches_header_a_x16": true,
-        "source": "analysis/generated/dessyreqt-course-landmarks.json"
       }
     },
     {
@@ -963,7 +963,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -1154,7 +1154,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -1252,7 +1252,7 @@
           8192,
           8192
         ],
-        "aspect_ratio": 1
+        "aspect_ratio": 1.0
       },
       "resources": {
         "ids": [
@@ -1340,7 +1340,7 @@
           32768,
           2048
         ],
-        "aspect_ratio": 16
+        "aspect_ratio": 16.0
       },
       "resources": {
         "ids": [
@@ -1431,7 +1431,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -1529,7 +1529,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -1630,7 +1630,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -1736,7 +1736,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -1817,7 +1817,7 @@
           8192,
           8192
         ],
-        "aspect_ratio": 1
+        "aspect_ratio": 1.0
       },
       "resources": {
         "ids": [
@@ -1914,7 +1914,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -2019,7 +2019,7 @@
           32768,
           2048
         ],
-        "aspect_ratio": 16
+        "aspect_ratio": 16.0
       },
       "resources": {
         "ids": [
@@ -2113,7 +2113,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -2213,7 +2213,7 @@
           8192,
           8192
         ],
-        "aspect_ratio": 1
+        "aspect_ratio": 1.0
       },
       "resources": {
         "ids": [
@@ -2298,7 +2298,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -2387,7 +2387,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -2480,7 +2480,7 @@
           8192,
           8192
         ],
-        "aspect_ratio": 1
+        "aspect_ratio": 1.0
       },
       "resources": {
         "ids": [
@@ -2578,7 +2578,7 @@
           8192,
           8192
         ],
-        "aspect_ratio": 1
+        "aspect_ratio": 1.0
       },
       "resources": {
         "ids": [
@@ -2680,7 +2680,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -2770,7 +2770,7 @@
           8192,
           8192
         ],
-        "aspect_ratio": 1
+        "aspect_ratio": 1.0
       },
       "resources": {
         "ids": [
@@ -2866,7 +2866,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -2956,7 +2956,7 @@
           65536,
           1024
         ],
-        "aspect_ratio": 64
+        "aspect_ratio": 64.0
       },
       "resources": {
         "ids": [
@@ -3055,7 +3055,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -3241,7 +3241,7 @@
           65536,
           1024
         ],
-        "aspect_ratio": 64
+        "aspect_ratio": 64.0
       },
       "resources": {
         "ids": [
@@ -3331,7 +3331,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -3535,7 +3535,7 @@
           8192,
           8192
         ],
-        "aspect_ratio": 1
+        "aspect_ratio": 1.0
       },
       "resources": {
         "ids": [
@@ -3721,7 +3721,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -3818,7 +3818,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -3914,7 +3914,7 @@
           8192,
           8192
         ],
-        "aspect_ratio": 1
+        "aspect_ratio": 1.0
       },
       "resources": {
         "ids": [
@@ -4011,7 +4011,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -4105,7 +4105,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [
@@ -4197,7 +4197,7 @@
           8192,
           8192
         ],
-        "aspect_ratio": 1
+        "aspect_ratio": 1.0
       },
       "resources": {
         "ids": [
@@ -4291,7 +4291,7 @@
           16384,
           4096
         ],
-        "aspect_ratio": 4
+        "aspect_ratio": 4.0
       },
       "resources": {
         "ids": [

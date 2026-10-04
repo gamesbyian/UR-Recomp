@@ -8,19 +8,43 @@
       "address": "7E000E",
       "name": "Frontend_SelectedRow",
       "kind": "ram",
-      "comment": "Recovered bot label; native route captures row `0x00` through the verified clean frontend route. Exact semantics outside these menus not yet tested."
+      "comment": "Recovered bot label. On PLAYER_SELECT_P1 the reference harness steps it `0x00..0x07` down the eight rider rows; confirming row r selects rider `2r + column`. Exact semantics outside these menus not yet tested."
     },
     {
       "address": "7E009B",
       "name": "Frontend_SelectedOption",
       "kind": "ram",
-      "comment": "Recovered bot uses it for main-menu/tour selection. Native captures show `0x00` at clean main menu and first tours page, consistent with bot policy."
+      "comment": "Recovered bot uses it for main-menu/tour selection. Native captures show `0x00` at clean main menu and first tours page, consistent with bot policy. On TOUR_SELECT it holds the medal-matrix tour row (Crawler 0, Jumper 1, Shuffler 2 … Hunter 8). Down steps it by 2 because even rows are the left column; confirmed on page `0x6D` (`00→02`) and on the nine-tour page `0x10` (`00→08`, HUNTER)."
     },
     {
       "address": "7E009F",
       "name": "Frontend_CurrentMenu",
       "kind": "ram",
-      "comment": "Verified in both native and Snes9x/snesref deterministic runs: `0xD7` main menu, `0x3C` one-player rider select, `0x6D` first one-player tours page, `0xF6` one-player track select, `0x16` now-playing screen, then `0x00` after race entry."
+      "comment": "Stable deterministic checkpoints correlate `0xD7` main menu, `0x3C` one-player rider select, `0x6D` first one-player tours page, `0xF6` one-player track select, `0x16` now-playing, then `0x00` after race entry. Do not treat it as continuously semantic: bank-80 text/layout handlers also reuse DP `$9F` as a tile/text position accumulator during frontend construction."
+    },
+    {
+      "address": "7E00D0",
+      "name": "Frontend_SelectedTourRow",
+      "kind": "ram",
+      "comment": "Tour row used by `83:9EB4` medal indexing (`16 * D0 + rider`). The tier probe reads `0` for Crawler, `2` for Shuffler and `8` for Hunter on TRACK_SELECT after confirming the matching `$009B`."
+    },
+    {
+      "address": "7E017D",
+      "name": "P1_RiderIndex",
+      "kind": "ram",
+      "comment": "Player-one rider identity 0..15, written on PLAYER_SELECT_P1 confirm as `2 * row + column` (confirmed for MIKE 0, ANDREW 1, MARTIN 2, AMY 4, STEVE 15). It is the medal-matrix column and selects in-race palette asset `0x06 + index`; `$017F` is the P2 counterpart. Preset table: `analysis/generated/legacy-cast-presets.json`."
+    },
+    {
+      "address": "7E0302",
+      "name": "Race_LoopParityPhase",
+      "kind": "ram",
+      "comment": "Race-loop code at `83:CC94-CC9A` computes `1 - $0302` and stores it back every loop iteration, so the byte alternates `0/1`. Racer-update branches at `82:8C3B` (P1) and `82:9122` (P2), plus common physics at `82:A39C/A3A4`, use this parity to choose alternating work. This is the former fixture label `phase2`."
+    },
+    {
+      "address": "7E0304",
+      "name": "Race_LoopModulo3Phase",
+      "kind": "ram",
+      "comment": "Race-loop code at `83:CC87-CC91` increments the byte and wraps `3 -> 0` every loop iteration. This is the former fixture label `phase3`; use it with `$0302` when diagnosing intra-frame race-loop alignment."
     },
     {
       "address": "7E0313",
@@ -35,6 +59,36 @@
       "comment": "Nitrodon's map says this records whether the racer was facing right when leaving the ground. The stunt finalizer uses it to decide whether accumulated quarter-turn direction maps to flip versus roll; paired player-2 slot is `$033D`."
     },
     {
+      "address": "7E0399",
+      "name": "CameraVramDmaSource",
+      "kind": "ram",
+      "comment": "Low-WRAM source addresses for camera-strip DMA descriptors. In the representative single-view horizontal path, slot 2 uses `$0433`."
+    },
+    {
+      "address": "7E03A9",
+      "name": "CameraVramDmaSize",
+      "kind": "ram",
+      "comment": "Byte counts for camera-strip DMA descriptors. Steady horizontal slot 2 uses `$0020`, one 16-word column; vertical row descriptors use count-derived sizes such as `$0022`."
+    },
+    {
+      "address": "7E03B9",
+      "name": "CameraVramDmaReady",
+      "kind": "ram",
+      "comment": "Ready flags for the camera-derived VRAM-strip descriptor queue. `81:ACB1` sets the selected slot to 1; NMI consumer `82:D19B..D2D0` clears the flag immediately before emission."
+    },
+    {
+      "address": "7E03C9",
+      "name": "CameraVramDmaDestination",
+      "kind": "ram",
+      "comment": "VRAM destinations for camera-strip DMA descriptors. For the single-view horizontal slot, `81:AB88` stores `$0C00 + $0505`; run `36966728136` observes the 32-column ring wrap `$0D9F -> $0D80`."
+    },
+    {
+      "address": "7E03D9",
+      "name": "CameraVramDmaVmain",
+      "kind": "ram",
+      "comment": "VMAIN modes for camera-strip DMA descriptors. Horizontal column slot 2 uses `$81` (VRAM increment 32 after the high-byte write); the complementary row path uses `$80`."
+    },
+    {
       "address": "7E0411",
       "name": "Player1_XPosition",
       "kind": "ram",
@@ -44,7 +98,7 @@
       "address": "7E0413",
       "name": "Player2_XPosition",
       "kind": "ram",
-      "comment": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 X position; paired structure with verified player-1 `$0411` and the existing player-2 pitch/copy routines supports the assignment. Dynamic 2P causal validation remains desirable."
+      "comment": "`Race_UpdateRacersFrame` copies this into the same DP/current-player X-position slot used by verified P1 `$0411` and writes the simulated value back after the P2 pass; recovered Dessyreqt tools independently use the same address. Cross-build equivalents recovered from the same bidirectional relation: PAL prototype `7E:0413`; Europe retail `7E:0417`."
     },
     {
       "address": "7E0415",
@@ -56,7 +110,7 @@
       "address": "7E0417",
       "name": "Player2_YPosition",
       "kind": "ram",
-      "comment": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 Y position; it is the paired word after verified player-1 `$0415`. Dynamic 2P causal validation remains desirable."
+      "comment": "`Race_UpdateRacersFrame` copies this into the same DP/current-player Y-position slot used by verified P1 `$0415` and writes the simulated value back after the P2 pass; recovered Dessyreqt tools independently use the same address. Cross-build equivalents: PAL prototype `7E:0417`; Europe retail `7E:041B`."
     },
     {
       "address": "7E042B",
@@ -86,25 +140,25 @@
       "address": "7E04B7",
       "name": "Player1_XSpeed",
       "kind": "ram",
-      "comment": "Effective recovered-bot word key `xSpeed`; bot explicitly sign-converts it. Race-acceleration run 36512546762 changes it identically from 0 to +447 under Right input while X position increases."
+      "comment": "Effective recovered-bot word key `xSpeed`; bot explicitly sign-converts it. Race-acceleration run 36512546762 changes it identically from 0 to +447 under Right input while X position increases. Cross-build equivalents proven by racer-update dataflow: PAL prototype `7E:04B7`; Europe retail `7E:04BB`."
     },
     {
       "address": "7E04B9",
       "name": "Player2_XSpeed",
       "kind": "ram",
-      "comment": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 X speed, paired with verified player-1 `$04B7`."
+      "comment": "`Race_UpdateRacersFrame` maps this to shared `CurrentPlayer_XVelocityWorking` `$0F9F` before the P2 simulation pass and writes it back afterward; Dessyreqt independently labels the same field. Cross-build equivalents recovered from the same relation: PAL prototype `7E:04B9`; Europe retail `7E:04BD`."
     },
     {
       "address": "7E04BB",
       "name": "Player1_YSpeed",
       "kind": "ram",
-      "comment": "Effective recovered-bot word key `ySpeed`; bot sign-converts it. In run 36514981164 sustained B changes it causally from 0 in the matched control to -21 while player 1 is airborne; native and Snes9x match exactly."
+      "comment": "Effective recovered-bot word key `ySpeed`; bot sign-converts it. In run 36514981164 sustained B changes it causally from 0 in the matched control to -21 while player 1 is airborne; native and Snes9x match exactly. Cross-build equivalents proven by racer-update dataflow: PAL prototype `7E:04BB`; Europe retail `7E:04BF`."
     },
     {
       "address": "7E04BD",
       "name": "Player2_YSpeed",
       "kind": "ram",
-      "comment": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 Y speed, paired with verified player-1 `$04BB`."
+      "comment": "`Race_UpdateRacersFrame` maps this to shared `CurrentPlayer_YVelocityWorking` `$0FA1` before the P2 simulation pass and writes it back afterward; Dessyreqt independently labels the same field. Cross-build equivalents: PAL prototype `7E:04BD`; Europe retail `7E:04C1`."
     },
     {
       "address": "7E04C7",
@@ -137,22 +191,58 @@
       "comment": "Dynamic run 36514981164 causally changes the low byte from 0 to 9 under sustained B while Y position/speed enter the airborne trajectory. Nitrodon's WRAM map identifies the slot as time in air with a 9-frame maximum, and bank-82 stunt code reads it as a word (`LDA $0545,Y`). Historical bots read only the low byte."
     },
     {
+      "address": "7E0547",
+      "name": "Player2_AirTime",
+      "kind": "ram",
+      "comment": "`Race_UpdateRacersFrame` copies this into shared current-player air-time `$0F29` for the P2 pass, exactly parallel to verified P1 `$0545`; the common stunt pipeline consumes the shared value."
+    },
+    {
       "address": "7E0BA1",
       "name": "Player1_FacedDirection",
       "kind": "ram",
-      "comment": "Recovered bot: 1 = right, 0 = left. Not yet independently validated."
+      "comment": "`Race_UpdateRacersFrame` copies this into shared `$0F47` for the P1 pass and writes it back afterward; recovered bot semantics give 1 = right, 0 = left. Exact value convention still lacks an isolated causal test."
     },
     {
       "address": "7E0BA3",
       "name": "Player2_FacedDirection",
       "kind": "ram",
-      "comment": "Independently present in Nitrodon's WRAM map and Dessyreqt's recovered Tabletop bot as player-2 facing; historical convention is 1 = right, 0 = left."
+      "comment": "`Race_UpdateRacersFrame` copies this into the same shared `$0F47` slot used by P1 facing and writes it back after the P2 pass; Nitrodon and Dessyreqt independently identify the field."
     },
     {
       "address": "7E0C63",
       "name": "Frontend_SelectedColumn",
       "kind": "ram",
-      "comment": "Recovered bot label; native captures change with frontend scene/selection. Rider-select ready state captures `0x06`, matching the bot's left-column target value."
+      "comment": "Recovered bot label; native captures change with frontend scene/selection. On PLAYER_SELECT_P1 `0x06` is the left column and `0x07` the right; other screens reuse it (e.g. `0xFD` after confirm)."
+    },
+    {
+      "address": "7E0CBB",
+      "name": "Player1_MessageQueue",
+      "kind": "ram",
+      "comment": "`81:C5B3` appends P1 messages at index `0CE3` with 5-bit wrap; `0CE1` is the opposing queue index. Dessyreqt v14a independently parses this ring for pending stunt credit."
+    },
+    {
+      "address": "7E0CE1",
+      "name": "Player1_MessageQueueReadIndex",
+      "kind": "ram",
+      "comment": "Opposing P1 ring index used by enqueue/full checks and historical v14a queue traversal. Exact consumer naming should be verified at the dequeue site."
+    },
+    {
+      "address": "7E0CE3",
+      "name": "Player1_MessageQueueWriteIndex",
+      "kind": "ram",
+      "comment": "`81:C5B3` writes at this index, then increments it modulo 32."
+    },
+    {
+      "address": "7E0CE5",
+      "name": "Player2_MessageQueue",
+      "kind": "ram",
+      "comment": "P2 ring used by the same enqueue routine; write index `0D0D`, opposing index `0D0B`."
+    },
+    {
+      "address": "7E0D0D",
+      "name": "Player2_MessageQueueWriteIndex",
+      "kind": "ram",
+      "comment": "P2 enqueue index; incremented modulo 32 by `81:C5B3`."
     },
     {
       "address": "7E0DFD",
@@ -161,16 +251,64 @@
       "comment": "Static scan run 36769525945 exposes paired copy structure: `02:8AB2` loads `$0DFD` and stores it to shared working `$0F57`, while `02:8FBA` loads paired `$0DFF` into the same working slot and `02:8DB2` copies `$0F57` back to `$0DFD`. This strongly supports `$0DFD/$0DFF` as paired persistent racer Z-state slots; exact physical interpretation remains open."
     },
     {
+      "address": "7E0E0F",
+      "name": "RaceTimer_MinutesDigit",
+      "kind": "ram",
+      "comment": "Shared race/stunt timer minutes digit. Count-up path `81:C74A-C74E` increments it; stunt countdown `81:C83A-C83E` decrements it. Finish handling snapshots it for the active player at `81:80BE-C1`."
+    },
+    {
+      "address": "7E0E13",
+      "name": "RaceTimer_TensSecondsDigit",
+      "kind": "ram",
+      "comment": "Timer tens-of-seconds digit, range 0-5 in normal operation. Count-up carries here at `81:C738-C747`; countdown borrows through it at `81:C82B-C837`."
+    },
+    {
+      "address": "7E0E17",
+      "name": "RaceTimer_SecondsDigit",
+      "kind": "ram",
+      "comment": "Timer ones-of-seconds digit, range 0-9. Count-up and countdown mutate it at `81:C723-C735` and `81:C819-C828`; finish handling includes it in the active-player time snapshot."
+    },
+    {
+      "address": "7E0E1B",
+      "name": "RaceTimer_TenthsDigit",
+      "kind": "ram",
+      "comment": "Timer tenths digit, range 0-9. The count-up path increments it after six sub-ticks; stunt countdown decrements it after six sub-ticks."
+    },
+    {
+      "address": "7E0E1F",
+      "name": "RaceTimer_SubTick",
+      "kind": "ram",
+      "comment": "Six-step timer phase. Both timer directions advance this field and roll it at 6 before changing the tenths digit, giving the timer its 1/10-second cadence."
+    },
+    {
       "address": "7E0EF1",
       "name": "Player1_LapsRemaining",
       "kind": "ram",
       "comment": "Nitrodon's map identifies laps remaining; paired player-2 slot is `$0EF3`."
     },
     {
+      "address": "7E0F09",
+      "name": "CurrentPlayer_CollisionContactWord",
+      "kind": "ram",
+      "comment": "Collision/contact result consumed by the course-object dispatcher. `81:82E6` computes C000 index `(($0F09 & $03F0) >> 2) + (($0F09 & $000F) >> 1)`. The collision resolver clears and reconstructs the value from gathered candidates; racer marshaling persists it through `$0E95/$0E97`. This is the gameplay activation boundary for the representative checkpoint/finish object family, distinct from camera-driven presentation preparation."
+    },
+    {
+      "address": "7E0F49",
+      "name": "CurrentPlayer_PitchAngleWorking",
+      "kind": "ram",
+      "comment": "Shared current-player pitch/orientation workspace. The player-state marshal loads it from persistent P1 `04C7` or P2 `04C9`; stunt finalization reads it to track quadrant transitions."
+    },
+    {
       "address": "7E0F49",
       "name": "CurrentPlayer_PitchScratch",
       "kind": "ram",
       "comment": "Historical bot reads this as `pitch`, but static sibling routines copy the same working value into persistent player-1 `$04C7` or player-2 `$04C9` slots. L-vs-control checkpoints leave `$0F49` unchanged while `$04C7` changes causally, so it should not be treated as stable player-1 storage."
+    },
+    {
+      "address": "7E0F4B",
+      "name": "CurrentPlayer_AngularVelocityWorking",
+      "kind": "ram",
+      "comment": "Shared current-player angular-velocity workspace. The bank-81 player-state bridge round-trips persistent `0BAD/0BAF` through this slot for the common simulation pass. Distinct from `0F4D`, which is a separate per-frame rotation delta used by stunt logic."
     },
     {
       "address": "7E0F57",
@@ -183,6 +321,12 @@
       "name": "CurrentPlayer_HalfTwistCount",
       "kind": "ram",
       "comment": "Nitrodon's map identifies this as the current-player number of half-twists. The stunt finalizer at `02:9C2E` shifts it right once to derive full twists, caps the result at 4, and feeds that into the stunt-combination index. Writer analysis independently shows current-player copy/clear/increment behavior."
+    },
+    {
+      "address": "7E0F97",
+      "name": "CurrentPlayer_RacerPresentationId",
+      "kind": "ram",
+      "comment": "Shared current-player presentation ID. Player 1 copies `0FE9→0F97→0FE9`; player 2 copies `0FEB→0F97→0FEB`; `83:ED2F` updates the working identity during the common racer pass."
     },
     {
       "address": "7E0F9F",
@@ -212,7 +356,7 @@
       "address": "7E0FEF",
       "name": "CurrentPlayer_Index",
       "kind": "ram",
-      "comment": "Nitrodon's map records `0 = player 1`, `2 = player 2`. Bank-82 stunt/movement code repeatedly loads it into X/Y to index paired 16-bit player slots."
+      "comment": "`Race_UpdateRacersFrame` explicitly stores `0` before the P1 simulation pass at `82:8C22-8C24` and `2` before the P2 pass at `82:910C-910E`; stunt/movement code then uses it to index paired player slots."
     },
     {
       "address": "7E1199",
@@ -242,19 +386,19 @@
       "address": "7E11CD",
       "name": "CurrentPlayer_BoostMeterWorking",
       "kind": "ram",
-      "comment": "Nitrodon's map distinguishes this shared current-player boost meter from stable player slots at `$11CF/$11D1`. Bank-82 code zeroes it on wipeout, subtracts 16 in an off-screen penalty path, clamps computed boost to `0x0180`, and feeds half the value into velocity limiting. USJO v8 reads only its low byte as a zero/nonzero gate."
+      "comment": "`Race_UpdateRacersFrame` proves this is the shared boost workspace: P1 `11CF → 11CD` at `82:8BA2-8BA5` and `11CD → 11CF` at `82:8CF1-8CF4`; P2 `11D1 → 11CD` at `82:8EB1-8EB4` and `11CD → 11D1` at `82:91D9-91DC`. Movement/stunt code then mutates the working value."
     },
     {
       "address": "7E11CF",
       "name": "Player1_BoostMeter",
       "kind": "ram",
-      "comment": "Nitrodon's map identifies the stable player-1 boost slot, distinct from shared current-player working `$11CD`. Local copy-in/copy-out path should still be named explicitly."
+      "comment": "Persistent P1 boost slot. `Race_UpdateRacersFrame` copies `11CF → 11CD` before the common P1 simulation pass and writes `11CD → 11CF` afterward. Independently, the P1 message consumer at `81:C167-C17D` applies nonnegative per-message rewards from the signed word table at `81:C4AA` directly to `11CF`, closing the delayed stunt-reward path. Cross-build equivalents: PAL prototype `7E:11D3` ↔ working `7E:11D1`; Europe retail `7E:11D9` ↔ working `7E:11D7`."
     },
     {
       "address": "7E11D1",
       "name": "Player2_BoostMeter",
       "kind": "ram",
-      "comment": "Nitrodon's map identifies the paired player-2 boost slot."
+      "comment": "Persistent P2 boost slot. `Race_UpdateRacersFrame` copies `11D1 → 11CD` before the common P2 simulation pass and writes `11CD → 11D1` afterward. The mirrored P2 message consumer at `81:C2AA-C2BF` applies the same nonnegative per-message reward table directly to `11D1`. Cross-build equivalents: PAL prototype `7E:11D5`; Europe retail `7E:11DB`, each recovered as the unique second boost slot paired with that build's shared boost workspace."
     },
     {
       "address": "7E11F9",
@@ -294,9 +438,9 @@
     },
     {
       "address": "7E12AF",
-      "name": "Stunt_CurrentScore",
+      "name": "Player1_StuntScoreDisplayCache",
       "kind": "ram",
-      "comment": "Nitrodon's map identifies the current score on stunt tracks. Score update semantics remain to be traced."
+      "comment": "Bank 81 proves this is a display-side cache rather than the score accumulator: `81:C37F` loads backing score `77:07BB`, `C383` compares it with `12AF`, `C388` stores a changed value, then `C38B-C3E7` decomposes it into decimal display digits. P1 queue consumption mutates `77:07BB` directly."
     },
     {
       "address": "7E132B",
@@ -312,9 +456,33 @@
     },
     {
       "address": "7E1509",
-      "name": "Camera_ScreenXPosition",
+      "name": "Player1_ScreenX",
       "kind": "ram",
-      "comment": "Historical TAS watch list labels this “Screen X Position.” Not consumed by v8; local camera/unit semantics still need validation."
+      "comment": "`Race_BuildRacerOAMState` computes this from P1 world X `0411` relative to camera X `0419`, after viewport scaling/culling and wrap masking. Offscreen fallback stores `0x70`. This corrects the older generic TAS label “Screen X Position.”"
+    },
+    {
+      "address": "7E150A",
+      "name": "Player1_ScreenY",
+      "kind": "ram",
+      "comment": "`Race_BuildRacerOAMState` stores projected P1 Y here from `0415 - 041D`; offscreen fallback stores `0x70`."
+    },
+    {
+      "address": "7E150D",
+      "name": "Player2_ScreenX",
+      "kind": "ram",
+      "comment": "P2 counterpart of `1509`, projected from `0413` relative to camera `0419` through the same horizontal policy."
+    },
+    {
+      "address": "7E150E",
+      "name": "Player2_ScreenY",
+      "kind": "ram",
+      "comment": "P2 counterpart of `150A`, projected from `0417 - 041D`; offscreen fallback stores `0x70`."
+    },
+    {
+      "address": "7EC000",
+      "name": "Course_RuntimeObjectMap",
+      "kind": "ram",
+      "comment": "Authoritative course behavior plane materialized during course load. `81:82E6` derives an index from `CurrentPlayer_CollisionContactWord` (`$0F09`), reads an object byte, clears bit 0, and dispatches through a bounded behavior jump table. Runtime object code `0x14` selects the confirmed checkpoint/finish handler. Camera position and the `$0DCD/$0DCF` VRAM-update lists do not participate in this activation decision. Exact dimensions/layout remain to be mapped."
     },
     {
       "address": "7F0000",
@@ -323,10 +491,88 @@
       "comment": "Confirmed by run 36514985916: active Dragster decoded stream 1 matches 33,814/33,815 bytes from this address; only decoded byte 11 is runtime-mutated."
     },
     {
+      "address": "7F000B",
+      "name": "Course_ResourceListCursor",
+      "kind": "ram",
+      "comment": "`Course_LoadAndMaterialize` reads this word as an offset from `7F:0000`, increments it once per resource ID consumed, and stops on `FF`. Dragster initializes it to `0x840F` and finishes at `0x8416`, exactly explaining the historical `0x0F→0x16` low-byte mutation."
+    },
+    {
+      "address": "808584",
+      "name": "Interrupt_LongVector73",
+      "kind": "function",
+      "comment": "Exact `JMP [$0073]`. The only explicit complete 24-bit construction found in banks 80-83 is `82:D73B-D742`, which sets `$73:$75 = 80:85A4` while interrupts are disabled during interrupt/HDMA setup."
+    },
+    {
+      "address": "808599",
+      "name": "Interrupt_LongVector53",
+      "kind": "function",
+      "comment": "Exact `JMP [$0053]`. Complete paired assignments set `$53:$55` to `80:F60C`, `80:8610`, or `80:85A5`; the same vector is invoked by wrapper `80:B0DE`. See `analysis/generated/remaining-indirect-vector-map.md`."
+    },
+    {
+      "address": "808881",
+      "name": "Main_StateDispatchLoop",
+      "kind": "function",
+      "comment": "Repeated top-level loop. After housekeeping it indexes state `$9B`, loads one of six handler addresses from the word table at `80:88B2`, pushes synthetic return `80:88AD` with `PER`, and `JMP ($005D)`s to the selected mode handler. Returning handlers land at `80:88AE` and branch back to `80:8881`."
+    },
+    {
       "address": "808C41",
       "name": "Text_TestCharacterMetadataBit7",
       "kind": "function",
-      "comment": "Shared helper reached from four text/layout loops including `03:8998`, `00:C4CB`, and `00:C510`. It indexes the byte table at `00:C6F8` by character code and tests bit 7. Printable-table inspection shows uppercase A-Z in the low half while lowercase a-z, digits and much punctuation usually carry bit 7; therefore this is a verified character-metadata class test, not yet a proven glyph-width flag."
+      "comment": "Shared helper reached from four text/layout loops including `03:8998`, `00:C4CB`, and `00:C510`. It indexes the byte table at `00:C6F8` by character code and tests bit 7. Printable-table inspection shows uppercase A-Z in the low half while lowercase a-z, digits and much punctuation usually carry bit 7; therefore this is a verified character-metadata class test, not yet a proven glyph-width flag. Structural equivalents: Europe retail `80:8C41` (supported, 84.6% byte similarity) and PAL prototype `80:8C3C` (strong, 92.3%)."
+    },
+    {
+      "address": "8091D1",
+      "name": "Reset_Entry",
+      "kind": "function",
+      "comment": "Reset vector `80:8858` jumps here. The routine executes `CLC; XCE`, establishes 8-bit A / 16-bit index mode, disables interrupts, then tail-jumps to `80:91DC` for stack/direct-page, PPU/CPU register and WRAM initialization before entering the normal startup chain."
+    },
+    {
+      "address": "8094EB",
+      "name": "Fatal_GamePakNotFound",
+      "kind": "function",
+      "comment": "Failure target of `CartridgeMemorySelfTest`. Its stream at `80:9505` uses resolved frontend controls `F9/FC/FF` around the literal `game_pak_not_found`, proving normal return from the `80:C3AB` call on this path."
+    },
+    {
+      "address": "80C3AB",
+      "name": "Frontend_TextCommandStream",
+      "kind": "function",
+      "comment": "Nitrodon bank-80 disassembly shows a byte-command parser with control bytes `>= 0xEE`, text/layout handlers, and returns through `80:C440`; bounded historical replay tracing executes this interpreter during frontend transition construction."
+    },
+    {
+      "address": "80C3C8",
+      "name": "Frontend_TextCommandDispatch",
+      "kind": "function",
+      "comment": "Exact instruction `JMP ($005D)`. Canonical-ROM decoding maps valid commands `FF..EF` to 17 concrete bank-80 handlers at `80:C3CB`; run `36795810324` proves live execution. `EE` is a boundary escape/sentinel whose computed next word is not a valid ROM handler, leaving only a range-proof invariant rather than unknown targets. See `analysis/generated/frontend-text-command-dispatch.md`."
+    },
+    {
+      "address": "818050",
+      "name": "Race_HandleCheckpointFinish",
+      "kind": "function",
+      "comment": "Runtime course-object code `0x14` dispatches here through `81:8320`. The handler gates on per-player `$119D/$119F`, snapshots race time, decrements `$0EF1/$0EF3` laps, and advances `$1199/$119B`. Run `36801728342` dynamically reproduces identical progression through stock Dragster results. Cross-build correspondence: PAL prototype `81:8050`; Europe retail `81:8050`, independently confirmed by the relocated object-code `0x14` dispatch table. Comparative analyzer evidence shows Europe retail alone contracts the frame-normalization sub-block at `81:8102` from the 22-byte USA/beta/PAL-prototype shape to 8 bytes, after which the handler continues at a -14-byte shift."
+    },
+    {
+      "address": "818B95",
+      "name": "Course_SampleRuntimeSurface",
+      "kind": "function",
+      "comment": "Common per-racer 383-byte routine called from both player paths after collision/contact-shape construction and before later collision handling. It transforms course-relative state and samples both materialized runtime planes at `7E:C000` and `7E:A000/A001`. Full four-ROM structure is proven: PAL prototype and Europe at shift -32; legacy beta byte-identical. Exact meanings of individual surface values remain intentionally open."
+    },
+    {
+      "address": "81A52F",
+      "name": "Race_UpdateCameraAndPrepareVramStrips",
+      "kind": "function",
+      "comment": "Race-frame camera update body called through long wrapper `81:A52B` from `83:CD55`. It advances camera position from `$04F5/$04F9`, derives entering-edge/ring coordinates and strip counts, then calls `81:AB88` at `81:A59A` to materialize pending VRAM-strip DMA descriptors."
+    },
+    {
+      "address": "81AA40",
+      "name": "Race_FilterVramUpdateListsByCameraWindow",
+      "kind": "function",
+      "comment": "Filters the two compact race VRAM update lists against camera/window edge classes. List A uses count `$0DCD`, destinations `$0D8D+2*i`, selectors `$0D6D+i`, and camera inputs `$0505/$050D/$04F5`; list B mirrors this at `$0DCF/$0DAD/$0D7D` with `$0507/$050F/$04F7`. Matching an edge clears the selector/eligibility byte; destination words remain intact."
+    },
+    {
+      "address": "81AB88",
+      "name": "Race_BuildCameraVramDmaDescriptors",
+      "kind": "function",
+      "comment": "Converts camera-derived edge coordinates (`$0505/$0509/$050D/$0511`) and split counts (`$052B/$052F/$0533/$0537`) into up to eight DMA descriptor slots. Each slot records a ready flag, low-WRAM source, byte count, VRAM destination and VMAIN mode in `$03B9/$0399/$03A9/$03C9/$03D9 + 2*n`. Run `36966728136` observes horizontal slot 2 preparing one 32-byte entering column during steady rightward scroll."
     },
     {
       "address": "81B8F1",
@@ -350,7 +596,7 @@
       "address": "81C5AF",
       "name": "HUD_QueueMessage",
       "kind": "function",
-      "comment": "Nitrodon's annotated stunt disassembly shows this long-call target receiving message IDs for Wipeout (`0x0E`), Head Bounce (`0x10`), Tabletop (`0x11`), flip/roll/twist/Z-flip result messages, and praise messages. Exact queue/render split still needs local call-graph validation."
+      "comment": "Long-entry wrapper for `81:C5B3`, the confirmed per-player 32-entry message-ring enqueue routine. P1 uses storage `0CBB+` with indices `0CE1/0CE3`; P2 uses `0CE5+` with `0D0B/0D0D`. Stunt finalization calls this with wipeout/head-bounce/tabletop/trick/praise IDs. Cross-build correspondence: PAL prototype `81:C590`; Europe retail `81:C59C`, independently corroborated by two coherent direct callers."
     },
     {
       "address": "82807E",
@@ -365,6 +611,12 @@
       "comment": "Exact static routine maps block ID X onto the packed audio-record pool beginning at `10:8000`. It walks X length-prefixed records, performing LoROM bank-wrap arithmetic, and returns the selected record pointer in DP `$63-$65`. Package-table IDs `$00-$31` address the first 50 records, but direct setup calls pass IDs through at least `$42`; the same contiguous parser resolves records `$32-$42`. Therefore `$00-$31` is the package-table ID universe, not the resolver's upper bound."
     },
     {
+      "address": "8289B9",
+      "name": "Race_UpdateRacersFrame",
+      "kind": "function",
+      "comment": "Frame-level racer orchestration. It marshals player 1 persistent state/input into the shared `$0Fxx` current-player workspace, runs collision/stunt/physics helpers including `Stunt_FinalizeAndScoreAirTricks` and `Player_ApplyVerticalAcceleration`, writes results back to player-1 slots, then conditionally repeats the same pipeline for player 2 before returning at `82:9384`."
+    },
+    {
       "address": "829A42",
       "name": "Stunt_FinalizeAndScoreAirTricks",
       "kind": "function",
@@ -374,19 +626,79 @@
       "address": "82A968",
       "name": "Player_ApplyVerticalAcceleration",
       "kind": "function",
-      "comment": "Nitrodon's bank-82 annotation is directly supported by the instruction flow: current-player Y velocity is capped below `0x0200`, upward motion receives +19, downward acceleration is `19 - Yvel/32`, the result is added to Y velocity, and current-player Y coordinate is incremented."
+      "comment": "Nitrodon's bank-82 annotation is directly supported by the instruction flow: current-player Y velocity is capped below `0x0200`, upward motion receives +19, downward acceleration is `19 - Yvel/32`, the result is added to Y velocity, and current-player Y coordinate is incremented. Structural equivalents: PAL prototype `82:A959` (strong, 91.2% byte similarity); Europe retail `82:A96F` (supported, 89.7%), with projected operands following established regional WRAM-motion families."
     },
     {
       "address": "82AA6E",
       "name": "Input_DecodePlayer1Buttons",
       "kind": "function",
-      "comment": "Nitrodon's bank-82 listing shows raw controller words `$030D/$030F` decoded into explicit A/X/L/R/B/Y/select/start flags and normalized vertical/horizontal direction fields at `$0311/$0315`."
+      "comment": "Nitrodon's bank-82 listing shows raw controller words `$030D/$030F` decoded into explicit A/X/L/R/B/Y/select/start flags and normalized vertical/horizontal direction fields at `$0311/$0315`. Structural equivalents: PAL prototype `82:AA5F` (strong, 98.8% byte similarity) and Europe retail `82:AA75` (strong, 84.6%); Europe coherently shifts the controller-state block by +4 (`030D→0311` through `0335→0339`)."
+    },
+    {
+      "address": "82ACA5",
+      "name": "Race_BuildRacerOAMState",
+      "kind": "function",
+      "comment": "Per-frame racer sprite/OAM composition, long-entry wrapper at `82:ACA1`, called from the race loop at `83:CD77` after racer simulation/state fetch. It projects both racers relative to camera/viewport bounds, writes screen-coordinate and sprite-attribute state under `$1501-$1510`, and constructs high-OAM control bytes at `7E:20A2/20A3`; later `82:D2xx-D34F` code commits assembled OAM data to `$2104`."
+    },
+    {
+      "address": "82B180",
+      "name": "PPU_LoadPaletteAssetToCGRAM",
+      "kind": "function",
+      "comment": "Writes the caller-supplied CGRAM start index X to `$2121`, resolves asset A through the five-byte table rooted at `82:B32F`, and streams the resolved payload to `$2122`. Race setup uses this path for racer palette assets `0x06 + selector`; the representative 2P fixture resolves exact assets `0x06/0x07`."
+    },
+    {
+      "address": "82B1D8",
+      "name": "PPU_LoadAssetToVRAM",
+      "kind": "function",
+      "comment": "Resolves asset A through the five-byte table at `82:B32F` and streams or dispatches the resource into caller-selected VRAM destination X. Race presentation setup at `82:E02E` uses this path for exact OBJ graphics assets `0x7F` → VRAM `$0000` and `0x80` → `$1000`; both are raw in the USA ROM and round-trip byte-for-byte as 75 and 30 native 4bpp tiles."
+    },
+    {
+      "address": "82D19B",
+      "name": "PPU_ConsumeCameraVramDmaDescriptors",
+      "kind": "function",
+      "comment": "NMI-side consumer reached from `80:87E1 -> 82:D197`. It scans the camera-strip descriptor ready flags in reverse slot order, clears each active flag, programs `$2116`, DMA source `$4302`, size `$4305` and `$2115`, then triggers channel 0 through `$420B` to B-bus `$2118`. In the retained Dragster scroll, steady horizontal descriptors are consumed in the same guest frame in which `81:AB88` builds them."
+    },
+    {
+      "address": "82D37F",
+      "name": "PPU_EmitFilteredVramUpdateLists",
+      "kind": "function",
+      "comment": "Direct hardware consumer for the two filtered update lists. Iterates each count in reverse, writes destination words from `$0D8D/$0DAD` to `$2116`, indexes the 16-bit data table at `7E:2132` from selector bytes `$0D6D/$0D7D`, applies `XBA`, and stores the result through `$2118`. This is the presentation-emission seam, not gameplay activation."
+    },
+    {
+      "address": "82E02E",
+      "name": "Race_LoadPresentationAssets",
+      "kind": "function",
+      "comment": "Race presentation setup for the proven racer family. Loads OBJ graphics resources `0x7F/0x80` to VRAM `$0000/$1000`, other race graphics resources to `$2000/$7000`, shared palettes, and player-colour palette assets `0x06 + selector` into OBJ CGRAM slots. Exact racer graphics/palette provenance is retained in `analysis/generated/racer-presentation-family.json`."
+    },
+    {
+      "address": "82E165",
+      "name": "Course_LoadAndMaterialize",
+      "kind": "function",
+      "comment": "Course-load orchestration called from race setup at `82:DE0F`. It selects the course resource from `77:074A`, invokes the generic resource loader with destination bank `$7F` so the RNC path decodes into `7F:0000`, then parses that payload into VRAM and runtime structures including `7E:A000` and `7E:C000`. This matches the independently verified active decoded-course payload."
     },
     {
       "address": "838971",
       "name": "Text_HandleFCPositionControl",
       "kind": "function",
       "comment": "Bounded static analysis of the Sayans translation-control grammar. The routine preserves A, recognizes low-byte `FC`, consumes the following parameter, scans subsequent character bytes until `FF` or `FB`, consults `Text_TestCharacterMetadataBit7` for ordinary bytes, then computes `parameter * 32 + horizontal adjustment` into DP `$9F`. The 32-column arithmetic and translated `FF FC xx` / `FB FC xx` sequences support a centered tilemap-position/layout role. Exact user-facing meaning of the parameter remains unpromoted."
+    },
+    {
+      "address": "838AF7",
+      "name": "CartridgeMemorySelfTest",
+      "kind": "function",
+      "comment": "Called during startup at `80:886D`. It probes mirrored/available memory through `77:0000/1FFF`; success restores the original byte and `RTL`s, while failure deliberately tail-jumps to `80:94EB`."
+    },
+    {
+      "address": "83F296",
+      "name": "RacerPresentation_ResolveFramePointer",
+      "kind": "function",
+      "comment": "Maps a 16-bit racer presentation ID to the three-byte table at `20:8000 + id*3`; the first two bytes are the source address and the third is added to bank base `0x23`. Exact ROM-backed round trips for fixture IDs `0540/0542/0544/057E` are recorded in `analysis/generated/racer-presentation-family.json`."
+    },
+    {
+      "address": "83F2BB",
+      "name": "RacerPresentation_DecodePackedFramePair",
+      "kind": "function",
+      "comment": "Consumes frame pointers resolved by `83:F296`, interprets mask/header fields and packed 16-bit words, and feeds the race-render tile/presentation construction path. Remaining packed-word meanings are intentionally left for on-demand renderer work."
     }
   ]
 }

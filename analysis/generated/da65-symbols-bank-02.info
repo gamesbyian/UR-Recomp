@@ -7,6 +7,14 @@ SEGMENT { START $8000; END $FFFF; NAME "bank_02"; };
 
 LABEL { NAME "APU_UploadBlockById_Wrapper"; ADDR $807E; };
 LABEL { NAME "APU_ResolveBlockPointer"; ADDR $812A; };
+LABEL { NAME "Race_UpdateRacersFrame"; ADDR $89B9; };
 LABEL { NAME "Stunt_FinalizeAndScoreAirTricks"; ADDR $9A42; };
 LABEL { NAME "Player_ApplyVerticalAcceleration"; ADDR $A968; };
 LABEL { NAME "Input_DecodePlayer1Buttons"; ADDR $AA6E; };
+LABEL { NAME "Race_BuildRacerOAMState"; ADDR $ACA5; };
+LABEL { NAME "PPU_LoadPaletteAssetToCGRAM"; ADDR $B180; };
+LABEL { NAME "PPU_LoadAssetToVRAM"; ADDR $B1D8; };
+LABEL { NAME "PPU_ConsumeCameraVramDmaDescriptors"; ADDR $D19B; };
+LABEL { NAME "PPU_EmitFilteredVramUpdateLists"; ADDR $D37F; };
+LABEL { NAME "Race_LoadPresentationAssets"; ADDR $E02E; };
+LABEL { NAME "Course_LoadAndMaterialize"; ADDR $E165; };

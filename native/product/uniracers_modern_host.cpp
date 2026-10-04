@@ -969,21 +969,33 @@ void reconcile_tour_resume() {
         }
     }
 
-    // Capture only real unfinished stock progress. A five-track completion is
-    // intentionally invalid here because stock awards the medal and clears the
-    // row; zero flags carry no continuation.
-    const bool settled_progress_surface =
-        g_ram[0x009F] == 0xF6 ||
-        g_surface == UR_UNIRACERS_RESTART_RESULTS;
+    // Every settled stock result is an autosave boundary. This durably
+    // publishes records/stats/medals as well as unfinished-tour flags. A
+    // five-track completion carries no continuation because stock has already
+    // awarded the medal and cleared the row.
+    const bool track_select = g_ram[0x009F] == 0xF6;
+    const bool results = g_surface == UR_UNIRACERS_RESTART_RESULTS;
     std::optional<ur::title::TourProgress> updated;
-    if (settled_progress_surface) {
+    if (track_select || results) {
         updated = ur::title::observe_tour_progress(
             g_ram,
             0x20000,
             g_sram,
             static_cast<std::size_t>(g_sram_size));
     }
-    if (updated && ur::title::valid_unfinished_tour_progress(*updated)) {
+
+    if (results && updated) {
+        std::optional<ur::product::HostTourContinuation> continuation;
+        if (ur::title::valid_unfinished_tour_progress(*updated)) {
+            continuation = product_continuation(*updated);
+        }
+        (void)save_active_profile_state(
+            continuation,
+            continuation
+                ? "UR_TOUR_RESUME CAPTURED"
+                : "UR_PROFILE_AUTOSAVE RESULT");
+    } else if (track_select && updated &&
+               ur::title::valid_unfinished_tour_progress(*updated)) {
         const auto continuation = product_continuation(*updated);
         if (!g_profile_state->tour_continuation ||
             *g_profile_state->tour_continuation != continuation) {

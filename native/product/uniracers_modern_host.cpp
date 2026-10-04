@@ -465,6 +465,15 @@ bool dispatch(UrModernPauseAction action) {
            result == UR_MODERN_SESSION_NO_OP;
 }
 
+void diagnose_pause_state() {
+    if (!std::getenv("UR_PRODUCT_DIAGNOSTICS") || !g_session) return;
+    std::fprintf(
+        stderr,
+        "UR_PAUSE_STATE paused=%d\n",
+        ur_modern_session_is_paused(g_session));
+    std::fflush(stderr);
+}
+
 void diagnose_pause_selection() {
     if (!std::getenv("UR_PRODUCT_DIAGNOSTICS") || !g_session) return;
     const int restart = ur_modern_session_restart_available(g_session);
@@ -641,7 +650,9 @@ extern "C" int ur_uniracers_modern_system_key_down(
 
     if (key == SDLK_ESCAPE) {
         if (!paused() && !restart_surface()) return 0;
-        return dispatch(UR_MODERN_PAUSE_TOGGLE) ? 1 : 0;
+        const bool handled = dispatch(UR_MODERN_PAUSE_TOGGLE);
+        diagnose_pause_state();
+        return handled ? 1 : 0;
     }
     if (paused() && key == SDLK_UP) {
         const bool handled = dispatch(UR_MODERN_PAUSE_PREVIOUS);
@@ -700,7 +711,9 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
 
     if (button == kGamepadBtn_Start) {
         if (!paused() && !restart_surface()) return 0;
-        return dispatch(UR_MODERN_PAUSE_TOGGLE) ? 1 : 0;
+        const bool handled = dispatch(UR_MODERN_PAUSE_TOGGLE);
+        diagnose_pause_state();
+        return handled ? 1 : 0;
     }
     if (!paused()) return 0;
 

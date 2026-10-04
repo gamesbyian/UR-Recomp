@@ -501,7 +501,13 @@ bool activate_pause_selection() {
         return true;
     }
     if (selected == UR_MODERN_PAUSE_EXIT_FRONTEND) {
-        product_diagnostic("UR_EXIT_FRONTEND SELECTED");
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_EXIT_FRONTEND SELECTED restart=%d\n",
+                restart);
+            std::fflush(stderr);
+        }
         return dispatch(UR_MODERN_PAUSE_ACTIVATE);
     }
     if (selected == UR_MODERN_PAUSE_RUN_DATA) {

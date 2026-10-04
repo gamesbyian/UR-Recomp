@@ -13,9 +13,9 @@ Example:
 
 ```bash
 python3 tools/compare_s2_execution_reports.py \
-  desktop-reference.txt \
+  analysis/s2-desktop-digest-reference.json \
   ur-recomp-s2-execution-report.txt \
   --json-out switch-s2-parity.json
 ```
 
-A zero exit status means all retained simulation checkpoints match. A non-zero exit status means either the report contract is incomplete or the first differing checkpoint has been identified. Presentation, audio-device timing and other host-only state are intentionally outside this digest domain.
+The reference argument may be either the checked-in JSON oracle or a raw desktop text report. A zero exit status means all retained simulation checkpoints match. A non-zero exit status means either the report contract is incomplete or the first differing checkpoint has been identified. Presentation, audio-device timing and other host-only state are intentionally outside this digest domain.

@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.compare_s2_execution_reports import compare, parse_report
+from tools.compare_s2_execution_reports import compare, parse_reference, parse_report
 
 BASE = """UR-S2-DESKTOP-REFERENCE/1
 snes_init=1
@@ -23,6 +23,23 @@ class S2ExecutionReportComparatorTest(unittest.TestCase):
     def test_identical_reports_match(self):
         parsed = self.parse(BASE)
         self.assertTrue(compare(parsed, parsed)["match"])
+
+    def test_retained_json_reference_is_accepted(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "reference.json"
+            checkpoints = {}
+            for line in BASE.splitlines():
+                if not line.startswith("checkpoint "):
+                    continue
+                parts = dict(item.split("=", 1) for item in line.split()[1:])
+                frame = parts.pop("frame")
+                checkpoints[frame] = parts
+            path.write_text(__import__("json").dumps({
+                "status": {"snes_init": 1, "execution_complete": 1},
+                "checkpoints": checkpoints,
+            }))
+            result = compare(parse_reference(path), self.parse(BASE))
+            self.assertTrue(result["match"])
 
     def test_first_partition_difference_is_named(self):
         observed = BASE.replace("frame=60 master=00000021", "frame=60 master=deadbeef")

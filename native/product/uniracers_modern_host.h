@@ -25,6 +25,7 @@ double ur_uniracers_modern_presentation_hz(double display_refresh);
 
 /* Widescreen presentation callbacks. They are inert unless the accepted
  * authentic-16x9 selector is active; scene ownership stays title-side. */
+int ur_uniracers_modern_native_widescreen_enabled(void);
 void ur_uniracers_modern_prepare_frame(
     int drawable_width,
     int drawable_height,

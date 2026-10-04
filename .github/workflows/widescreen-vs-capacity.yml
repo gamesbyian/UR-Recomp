@@ -6,7 +6,7 @@ on:
       margin:
         description: "Pixels per side; strip-granular +16..+48"
         required: true
-        default: "48"
+        default: "32"
   workflow_call:
     inputs:
       margin:

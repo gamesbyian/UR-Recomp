@@ -134,7 +134,7 @@ This result closes the executable-link question: no Switch-only simulation fork 
 
 **Build closed; hardware execution pending.** Run `37243544919` successfully regenerated the canonical Uniracers guest, embedded the verified USA ROM, linked the authoritative runtime + digest support with zero undefined symbols, and packaged the bounded S2 execution probe as a real NRO.
 
-Accepted probe NRO SHA-256: `d3f3439516379af0cac3b9d48c4118483c0dc359919d8f428c6a8fc483a3ef46`.
+Accepted probe NRO SHA-256: `ed68209641fe117be0f5ecc5a6aaa70ed8e8639c4bd929e8e87ec4c5c56c1c3d`.
 
 On hardware the probe calls `RtlRegisterGame(&kGameInfo)`, then `SnesInit`, then runs exactly 120 no-input frames through `RtlRunFrame(0)`. It records the framework's existing partitioned simulation digests at frames 0, 1, 60 and 120 into `ur-recomp-s2-execution-report.txt`.
 

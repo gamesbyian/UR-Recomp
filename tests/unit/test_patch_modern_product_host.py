@@ -77,12 +77,16 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "host_product_store.cpp",
             "host_profile_state.cpp",
             "host_profile_store.cpp",
+            "completed_run_record.cpp",
+            "completed_run_capture.cpp",
+            "completed_run_comparison.cpp",
             "modern_session_c_api.cpp",
             "modern_pause_menu.cpp",
             "modern_pause_input.cpp",
             "modern_options_menu.cpp",
             "uniracers_modern_host.cpp",
             "uniracers_restart_policy.cpp",
+            "uniracers_course_identity.cpp",
             "uniracers_run_data.cpp",
         ):
             self.assertIn(name, patched)

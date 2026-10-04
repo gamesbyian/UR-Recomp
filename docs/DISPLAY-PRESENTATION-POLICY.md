@@ -213,6 +213,8 @@ The accepted runtime selector carries this transform through both sides of the p
 
 The distinction is architectural: **provider margin is backing coverage, not automatically visible camera extent**. The +48 materializer prepares more data than the +43 host viewport exposes. With full 224 and 7:6 now fixed as the logical Authentic transform, +43 visible / +48 backing is the accepted 16:9 geometry contract.
 
+The product layer now represents final 16:9 composition explicitly in `native/product/widescreen_output_composition.*`. The contract carries logical view extent, display pixel aspect, target output aspect, final horizontal fit, centering, and world-exposure intent as separate fields. Original presentation therefore keeps 7:6 PAR and the 512/513 widened correction, while Remastered presentation uses square-pixel host geometry without inheriting CRT-era PAR. Output resolution remains a separate presenter concern, and scene recognition remains a separate title-host responsibility.
+
 ## Policy-derived logical margin
 
 `tools/widescreen_probe.py derive-margin` now derives the required symmetric logical margin from four independent inputs:

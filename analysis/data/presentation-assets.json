@@ -1217,43 +1217,6 @@
           "workflow_run": 36978866214
         }
       },
-      "inferred_record_structure": {
-        "status": "mechanically_recovered",
-        "header_bytes": 4,
-        "header_role": "30-cell occupancy lattice plus two reserved-zero bits",
-        "rule": "five six-position major groups, scanned MSB-first; every set occupancy position consumes the next packed 16-bit word",
-        "observed_frames": 4,
-        "holds_for_all_observed_frames": true,
-        "implication": "header position -> packed-word index is directly queryable; packed records construct 8x8 subtile content inside stable 64x64 racer OAM objects",
-        "source": "tools/extract_racer_presentation_family.py",
-        "spatial_layout": {
-          "status": "runtime_bound_on_retained_ordinary_2p_snapshots",
-          "large_obj_tile_grid": [
-            8,
-            8
-          ],
-          "occupancy_rectangle": [
-            1,
-            0,
-            6,
-            5
-          ],
-          "row_field": "major_slot",
-          "column_field": "minor_slot",
-          "postprocess": "OAM H/V flip controls presented orientation after stored-cell placement",
-          "exact_persistent_id_bindings": 8,
-          "snapshots_inspected": 9,
-          "source": "tools/analyze_racer_spatial_generalization.py"
-        },
-        "packed_word_low2": {
-          "renderer_use": "source-address page selector in bounded 83:F190..F290 consumer",
-          "proof": "83:F20F keeps the full packed word live in 16-bit A; XBA then five ASLs maps original low bits1..0 into $1645 bits14..13 before OR #$8000. The separate $2A & $00FC path feeds the DMA source-bank offset.",
-          "source_address_effect": "(low_byte & $03) << 13",
-          "bank_effect": "bits7..2 feed $15A1 via ($00FC >> 2); bit2's shifted address contribution is subsumed by forced $8000",
-          "corpus_words": 51629,
-          "source": "tools/extract_racer_presentation_family.py"
-        }
-      },
       "piece_semantics": {
         "status": "mechanically_recovered_for_observed_family_with_retained_spatial_binding",
         "occupancy_shape": "5 major slots x 6 minor slots",
@@ -1301,6 +1264,43 @@
             "two-player-race-1220": "persistent P1/P2 IDs 0x0541/0x0540; both exact occupancy matches use 5x6 offset (1,0) inside stable 64x64 OAM slots",
             "two-player-race-1420": "persistent P2 ID 0x0544 exactly matches the same 5x6 offset (1,0); P1 renderer/persistent timing differs at this endpoint"
           }
+        }
+      },
+      "inferred_record_structure": {
+        "status": "mechanically_recovered",
+        "header_bytes": 4,
+        "header_role": "30-cell occupancy lattice plus two reserved-zero bits",
+        "rule": "five six-position major groups, scanned MSB-first; every set occupancy position consumes the next packed 16-bit word",
+        "observed_frames": 4,
+        "holds_for_all_observed_frames": true,
+        "implication": "header position -> packed-word index is directly queryable; packed records construct 8x8 subtile content inside stable 64x64 racer OAM objects",
+        "source": "tools/extract_racer_presentation_family.py",
+        "spatial_layout": {
+          "status": "runtime_bound_on_retained_ordinary_2p_snapshots",
+          "large_obj_tile_grid": [
+            8,
+            8
+          ],
+          "occupancy_rectangle": [
+            1,
+            0,
+            6,
+            5
+          ],
+          "row_field": "major_slot",
+          "column_field": "minor_slot",
+          "postprocess": "OAM H/V flip controls presented orientation after stored-cell placement",
+          "exact_persistent_id_bindings": 8,
+          "snapshots_inspected": 9,
+          "source": "tools/analyze_racer_spatial_generalization.py"
+        },
+        "packed_word_low2": {
+          "renderer_use": "source-address page selector in bounded 83:F190..F290 consumer",
+          "proof": "83:F20F keeps the full packed word live in 16-bit A; XBA then five ASLs maps original low bits1..0 into $1645 bits14..13 before OR #$8000. The separate $2A & $00FC path feeds the DMA source-bank offset.",
+          "source_address_effect": "(low_byte & $03) << 13",
+          "bank_effect": "bits7..2 feed $15A1 via ($00FC >> 2); bit2's shifted address contribution is subsumed by forced $8000",
+          "corpus_words": 51629,
+          "source": "tools/extract_racer_presentation_family.py"
         }
       },
       "composition_contract": {

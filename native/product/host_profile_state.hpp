@@ -26,6 +26,10 @@ struct HostTourContinuation {
                medal_value == other.medal_value &&
                qualified == other.qualified;
     }
+
+    bool operator!=(const HostTourContinuation& other) const noexcept {
+        return !(*this == other);
+    }
 };
 
 bool valid_tour_continuation(const HostTourContinuation& value) noexcept;

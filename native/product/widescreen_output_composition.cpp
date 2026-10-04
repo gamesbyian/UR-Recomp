@@ -123,7 +123,8 @@ HostSceneComposition observe_widescreen_scene(
     }
 
     return state->race_mode == HostRacePresentationMode::OnePlayer ||
-           state->race_mode == HostRacePresentationMode::TwoPlayer
+           state->race_mode == HostRacePresentationMode::TwoPlayer ||
+           state->race_mode == HostRacePresentationMode::Vs
         ? HostSceneComposition::WorldExpand
         : HostSceneComposition::FixedCenter;
 }

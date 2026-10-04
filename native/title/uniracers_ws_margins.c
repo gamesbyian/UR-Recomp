@@ -41,23 +41,35 @@ int ur_ws_course_tile(const uint8_t* wram, int cell_x, int cell_y,
     return 1;
 }
 
+/* BG1 tile rows drawn for screen lines [first_line, first_line + count).
+ * The PPU numbers visible lines from 1, so screen line L samples BG row
+ * (scroll_y + L + 1) >> 4. */
+static void band_rows(uint16_t scroll_y, int first_line, int line_count,
+                      int* row_first, int* row_last) {
+    *row_first = (scroll_y + first_line + 1) >> UR_WS_BG1_TILE_SHIFT;
+    *row_last = (scroll_y + first_line + line_count) >> UR_WS_BG1_TILE_SHIFT;
+}
+
 static int view_matches(const uint8_t* wram, const uint16_t* vram,
                         uint16_t map_base_word, uint16_t scroll_x,
-                        uint16_t scroll_y, int offset_x, int offset_y,
-                        int* nonzero, int* mismatches) {
+                        uint16_t scroll_y, int first_line, int line_count,
+                        int offset_x, int offset_y, int* nonzero,
+                        int* mismatches) {
     const int sx = scroll_x >> UR_WS_BG1_TILE_SHIFT;
-    const int sy = scroll_y >> UR_WS_BG1_TILE_SHIFT;
+    int row_first = 0;
+    int row_last = 0;
+    band_rows(scroll_y, first_line, line_count, &row_first, &row_last);
     int matched_nonzero = 0;
     int bad = 0;
-    for (int row = 0; row < UR_WS_BG1_VIEW_ROWS; row++) {
+    for (int row = row_first; row <= row_last; row++) {
         for (int col = 0; col < UR_WS_BG1_VIEW_COLS; col++) {
             const uint16_t word = (uint16_t)(map_base_word +
-                                             (((sy + row) & 31) << 5) +
+                                             ((row & 31) << 5) +
                                              ((sx + col) & 31));
             const uint16_t live = vram[word & 0x7FFF];
             uint16_t course = 0;
             if (!ur_ws_course_tile(wram, sx + col + offset_x,
-                                   sy + row + offset_y, &course) ||
+                                   row + offset_y, &course) ||
                 course != live) {
                 bad++;
                 continue;
@@ -75,13 +87,16 @@ static int view_matches(const uint8_t* wram, const uint16_t* vram,
 
 int ur_ws_calibrate_bg1(const uint8_t* wram, const uint16_t* vram,
                         uint16_t map_base_word, uint16_t scroll_x,
-                        uint16_t scroll_y, int guess_cell_x, int guess_cell_y,
-                        int radius, int min_nonzero, int* offset_x,
-                        int* offset_y) {
-    if (!wram || !vram || radius < 0)
+                        uint16_t scroll_y, int first_line, int line_count,
+                        int guess_cell_x, int guess_cell_y, int radius,
+                        int min_nonzero, int* offset_x, int* offset_y) {
+    if (!wram || !vram || radius < 0 || line_count <= 0)
         return 0;
     const int base_x = guess_cell_x - (scroll_x >> UR_WS_BG1_TILE_SHIFT);
-    const int base_y = guess_cell_y - (scroll_y >> UR_WS_BG1_TILE_SHIFT);
+    /* The guess is the camera, which sits at the band's first line: a lower
+     * split-screen band scrolls up by its first line to show its own top. */
+    const int base_y = guess_cell_y -
+                       ((scroll_y + first_line) >> UR_WS_BG1_TILE_SHIFT);
     int found = 0;
     int best_x = 0;
     int best_y = 0;
@@ -89,7 +104,8 @@ int ur_ws_calibrate_bg1(const uint8_t* wram, const uint16_t* vram,
         for (int dx = -radius; dx <= radius; dx++) {
             int nonzero = 0;
             if (!view_matches(wram, vram, map_base_word, scroll_x, scroll_y,
-                              base_x + dx, base_y + dy, &nonzero, NULL) ||
+                              first_line, line_count, base_x + dx,
+                              base_y + dy, &nonzero, NULL) ||
                 nonzero < min_nonzero)
                 continue;
             if (found)
@@ -108,6 +124,50 @@ int ur_ws_calibrate_bg1(const uint8_t* wram, const uint16_t* vram,
     return 1;
 }
 
+int ur_ws_parse_bg1_bands(const uint8_t* wram, UrWsBg1Band* bands,
+                          int max_bands) {
+    if (!wram || !bands || max_bands <= 0)
+        return 0;
+    /* Channel 4 ($210D/$210E): count, H word, V word. Channel 2 ($2107):
+     * count, BG1SC byte. Both tables carry the same line counts. */
+    uint32_t scroll_at = UR_WS_BG1_SCROLL_TABLE;
+    uint32_t sc_at = UR_WS_BG1_SC_TABLE;
+    int line = 0;
+    int count = 0;
+    for (;;) {
+        const uint8_t lines = wram[scroll_at];
+        const uint8_t sc_lines = wram[sc_at];
+        if (lines == 0 || sc_lines == 0 || line >= 224)
+            break;
+        if ((lines & 0x80) || lines != sc_lines)
+            return 0; /* repeat-mode or misaligned tables: fail closed */
+        const uint16_t h = (uint16_t)(read16(wram, scroll_at + 1) & 0x3FF);
+        const uint16_t v = (uint16_t)(read16(wram, scroll_at + 3) & 0x3FF);
+        const uint16_t base = (uint16_t)((wram[sc_at + 1] & 0xFC) << 8);
+        if (count > 0 && bands[count - 1].scroll_x == h &&
+            bands[count - 1].scroll_y == v &&
+            bands[count - 1].map_base_word == base) {
+            /* Same origin continues: extend the previous band. */
+        } else {
+            if (count == max_bands)
+                return 0; /* more viewports than the store can hold */
+            bands[count].first_line = line;
+            bands[count].scroll_x = h;
+            bands[count].scroll_y = v;
+            bands[count].map_base_word = base;
+            count++;
+        }
+        line += lines;
+        scroll_at += 5;
+        sc_at += 2;
+    }
+    /* The last entry's values persist to the bottom of the screen. */
+    for (int i = 0; i < count; i++)
+        bands[i].line_count =
+            (i + 1 < count ? bands[i + 1].first_line : 224) - bands[i].first_line;
+    return count;
+}
+
 #ifndef UR_WS_MARGINS_NO_RUNTIME
 
 #include <stdio.h>
@@ -118,25 +178,30 @@ int ur_ws_calibrate_bg1(const uint8_t* wram, const uint16_t* vram,
 #include "snes/ppu.h"
 #include "snes/ws_shadow.h"
 
-/* BG1 scroll HDMA table (channel 4 -> $210D/$210E): line count, then H and
- * V words. The game rebuilds it each frame before the PPU frame runs. */
 enum {
-    kBg1ScrollTable = 0x2046,
-    kCameraX = 0x0419,
-    kCameraY = 0x041D,
     kCalibrationRadius = 3,
     kCalibrationMinNonzero = 4,
     /* Live views may transiently expose a stale cell while an edge streams;
      * margins stay presented through a few, a real drift trips this. */
     kMaxFrameMismatches = 8,
+    kMaxBands = 2,
 };
 
+/* Camera of the player each band shows: band 0 is P1, band 1 is P2. */
+static const uint16_t kCameraX[kMaxBands] = {0x0419, 0x041B};
+static const uint16_t kCameraY[kMaxBands] = {0x041D, 0x041F};
+
+typedef struct BandState {
+    int calibrated;
+    uint32_t world_x;
+    uint32_t world_y;
+    uint16_t prev_scroll_x;
+    uint16_t prev_scroll_y;
+} BandState;
+
+static BandState s_band[kMaxBands];
+static int s_band_count;
 static int s_ever_active;
-static int s_calibrated;
-static uint32_t s_world_x;
-static uint32_t s_world_y;
-static uint16_t s_prev_scroll_x;
-static uint16_t s_prev_scroll_y;
 static unsigned s_presented_frames;
 static unsigned s_mismatch_frames;
 static int s_max_mismatches;
@@ -150,119 +215,156 @@ static int trace_enabled(void) {
     return s_trace;
 }
 
-int ur_ws_margins_calibrated(void) { return s_calibrated; }
+int ur_ws_margins_calibrated(void) {
+    if (s_band_count <= 0)
+        return 0;
+    for (int i = 0; i < s_band_count; i++)
+        if (!s_band[i].calibrated)
+            return 0;
+    return 1;
+}
 
 static int32_t signed10(uint16_t delta) {
     delta &= 0x3FF;
     return delta >= 0x200 ? (int32_t)delta - 0x400 : (int32_t)delta;
 }
 
-static void prefill_margins(int extra_pixels) {
-    const int rows = UR_WS_BG1_VIEW_ROWS + 1;
-    const int ty0 = (int)(s_world_y >> UR_WS_BG1_TILE_SHIFT);
-    const int left_px = (int)s_world_x - extra_pixels;
-    const int right_px = (int)s_world_x + 256;
+/* Margins are served from the course model, which is the content the game
+ * itself streams; force it so stale captures never win. */
+static void force_margins(const UrWsBg1Band* band, const BandState* state,
+                          int extra_pixels) {
+    const int row_first = (int)(state->world_y + band->first_line + 1) >>
+                          UR_WS_BG1_TILE_SHIFT;
+    const int row_last = (int)(state->world_y + band->first_line +
+                               band->line_count) >> UR_WS_BG1_TILE_SHIFT;
+    const int left_px = (int)state->world_x - extra_pixels;
+    const int right_px = (int)state->world_x + 256;
     const int span = extra_pixels + 16;
     for (int side = 0; side < 2; side++) {
         const int start_px = side ? right_px : left_px;
         const int tx_first = start_px >> UR_WS_BG1_TILE_SHIFT;
         const int tx_last = (start_px + span - 1) >> UR_WS_BG1_TILE_SHIFT;
         for (int tx = tx_first; tx <= tx_last; tx++) {
-            for (int row = 0; row < rows; row++) {
+            for (int ty = row_first; ty <= row_last; ty++) {
                 uint16_t entry = 0;
-                if (tx < 0 || !ur_ws_course_tile(g_ram, tx, ty0 + row, &entry))
+                if (tx < 0 || ty < 0 || !ur_ws_course_tile(g_ram, tx, ty, &entry))
                     continue;
-                WsShadowPrefillTile(0, (uint32_t)tx, (uint32_t)(ty0 + row),
-                                    entry);
+                WsShadowForceTile(0, (uint32_t)tx, (uint32_t)ty, entry);
             }
         }
     }
 }
 
-void ur_ws_margins_prepare_frame(int enabled, int extra_pixels) {
-    if (!g_ppu)
-        return;
-    if (!enabled || extra_pixels <= 0) {
-        if (s_ever_active) {
-            if (trace_enabled())
-                fprintf(stderr,
-                        "URWS_MARGINS SUMMARY presented=%u mismatch_frames=%u max_mismatches=%d\n",
-                        s_presented_frames, s_mismatch_frames, s_max_mismatches);
-            s_presented_frames = 0;
-            s_mismatch_frames = 0;
-            s_max_mismatches = 0;
-            /* Leaving the race drops this course's world-keyed history. */
-            WsShadowReset();
-            WsShadowFrame(g_ppu);
-            s_ever_active = 0;
-        }
-        s_calibrated = 0;
-        return;
+static void deactivate(void) {
+    if (s_ever_active) {
+        if (trace_enabled())
+            fprintf(stderr,
+                    "URWS_MARGINS SUMMARY presented=%u mismatch_frames=%u max_mismatches=%d\n",
+                    s_presented_frames, s_mismatch_frames, s_max_mismatches);
+        s_presented_frames = 0;
+        s_mismatch_frames = 0;
+        s_max_mismatches = 0;
+        /* Leaving the race drops this course's world-keyed history. */
+        WsShadowReset();
+        WsShadowFrame(g_ppu);
+        s_ever_active = 0;
     }
+    memset(s_band, 0, sizeof(s_band));
+    s_band_count = 0;
+}
 
-    const uint16_t scroll_x = (uint16_t)(read16(g_ram, kBg1ScrollTable + 1) & 0x3FF);
-    const uint16_t scroll_y = (uint16_t)(read16(g_ram, kBg1ScrollTable + 3) & 0x3FF);
-    const uint16_t map_base = (uint16_t)PPU_bgTilemapAdr(g_ppu, 0);
-    const int big_tiles = PPU_bigTiles(g_ppu, 0) != 0;
-
-    if (s_calibrated) {
-        s_world_x = (uint32_t)((int32_t)s_world_x +
-                               signed10((uint16_t)(scroll_x - s_prev_scroll_x)));
-        s_world_y = (uint32_t)((int32_t)s_world_y +
-                               signed10((uint16_t)(scroll_y - s_prev_scroll_y)));
-        const int offset_x = (int)(s_world_x >> UR_WS_BG1_TILE_SHIFT) -
-                             (scroll_x >> UR_WS_BG1_TILE_SHIFT);
-        const int offset_y = (int)(s_world_y >> UR_WS_BG1_TILE_SHIFT) -
-                             (scroll_y >> UR_WS_BG1_TILE_SHIFT);
+static int update_band(int index, const UrWsBg1Band* band) {
+    BandState* state = &s_band[index];
+    if (state->calibrated) {
+        state->world_x = (uint32_t)((int32_t)state->world_x +
+            signed10((uint16_t)(band->scroll_x - state->prev_scroll_x)));
+        state->world_y = (uint32_t)((int32_t)state->world_y +
+            signed10((uint16_t)(band->scroll_y - state->prev_scroll_y)));
+        const int offset_x = (int)(state->world_x >> UR_WS_BG1_TILE_SHIFT) -
+                             (band->scroll_x >> UR_WS_BG1_TILE_SHIFT);
+        const int offset_y = (int)(state->world_y >> UR_WS_BG1_TILE_SHIFT) -
+                             (band->scroll_y >> UR_WS_BG1_TILE_SHIFT);
         int mismatches = 0;
-        view_matches(g_ram, g_ppu->vram, map_base, scroll_x, scroll_y,
+        view_matches(g_ram, g_ppu->vram, band->map_base_word, band->scroll_x,
+                     band->scroll_y, band->first_line, band->line_count,
                      offset_x, offset_y, NULL, &mismatches);
         if (mismatches) {
             s_mismatch_frames++;
             if (mismatches > s_max_mismatches)
                 s_max_mismatches = mismatches;
         }
-        if (!big_tiles || mismatches > kMaxFrameMismatches) {
-            s_calibrated = 0;
+        if (mismatches > kMaxFrameMismatches) {
+            state->calibrated = 0;
             if (trace_enabled())
-                fprintf(stderr, "URWS_MARGINS LOST mismatches=%d big_tiles=%d\n",
-                        mismatches, big_tiles);
+                fprintf(stderr, "URWS_MARGINS LOST band=%d mismatches=%d\n",
+                        index, mismatches);
         }
     }
-    if (!s_calibrated && big_tiles) {
+    if (!state->calibrated) {
         int offset_x = 0;
         int offset_y = 0;
-        if (ur_ws_calibrate_bg1(g_ram, g_ppu->vram, map_base, scroll_x,
-                                scroll_y, read16(g_ram, kCameraX) >> 4,
-                                read16(g_ram, kCameraY) >> 4,
+        if (ur_ws_calibrate_bg1(g_ram, g_ppu->vram, band->map_base_word,
+                                band->scroll_x, band->scroll_y,
+                                band->first_line, band->line_count,
+                                read16(g_ram, kCameraX[index]) >> 4,
+                                read16(g_ram, kCameraY[index]) >> 4,
                                 kCalibrationRadius, kCalibrationMinNonzero,
                                 &offset_x, &offset_y)) {
-            s_calibrated = 1;
-            s_world_x = (uint32_t)(((scroll_x >> UR_WS_BG1_TILE_SHIFT) + offset_x)
-                                   << UR_WS_BG1_TILE_SHIFT) | (scroll_x & 15u);
-            s_world_y = (uint32_t)(((scroll_y >> UR_WS_BG1_TILE_SHIFT) + offset_y)
-                                   << UR_WS_BG1_TILE_SHIFT) | (scroll_y & 15u);
+            state->calibrated = 1;
+            state->world_x = (uint32_t)(((band->scroll_x >> UR_WS_BG1_TILE_SHIFT) +
+                                         offset_x) << UR_WS_BG1_TILE_SHIFT) |
+                             (band->scroll_x & 15u);
+            state->world_y = (uint32_t)(((band->scroll_y >> UR_WS_BG1_TILE_SHIFT) +
+                                         offset_y) << UR_WS_BG1_TILE_SHIFT) |
+                             (band->scroll_y & 15u);
             if (trace_enabled())
                 fprintf(stderr,
-                        "URWS_MARGINS CALIBRATED offset=%d,%d world=%u,%u scroll=%u,%u\n",
-                        offset_x, offset_y, (unsigned)s_world_x,
-                        (unsigned)s_world_y, (unsigned)scroll_x,
-                        (unsigned)scroll_y);
+                        "URWS_MARGINS CALIBRATED band=%d lines=%d+%d offset=%d,%d world=%u,%u scroll=%u,%u\n",
+                        index, band->first_line, band->line_count, offset_x,
+                        offset_y, (unsigned)state->world_x,
+                        (unsigned)state->world_y, (unsigned)band->scroll_x,
+                        (unsigned)band->scroll_y);
         }
     }
-    s_prev_scroll_x = scroll_x;
-    s_prev_scroll_y = scroll_y;
+    state->prev_scroll_x = band->scroll_x;
+    state->prev_scroll_y = band->scroll_y;
+    return state->calibrated;
+}
 
-    if (!s_calibrated) {
+void ur_ws_margins_prepare_frame(int enabled, int extra_pixels) {
+    if (!g_ppu)
+        return;
+    UrWsBg1Band bands[kMaxBands];
+    const int count = (enabled && extra_pixels > 0 && PPU_bigTiles(g_ppu, 0))
+        ? ur_ws_parse_bg1_bands(g_ram, bands, kMaxBands) : 0;
+    if (count <= 0) {
+        deactivate();
+        return;
+    }
+    if (count != s_band_count) {
+        memset(s_band, 0, sizeof(s_band));
+        s_band_count = count;
+    }
+
+    int all_calibrated = 1;
+    for (int i = 0; i < count; i++)
+        all_calibrated &= update_band(i, &bands[i]);
+
+    if (!all_calibrated) {
         if (s_ever_active)
             WsShadowFrame(g_ppu); /* deactivate: nothing registered */
         return;
     }
 
-    WsShadowSetWorld(0, s_world_x, s_world_y);
-    WsShadowSetScroll(0, scroll_x, scroll_y);
+    WsShadowSetWorld(0, s_band[0].world_x, s_band[0].world_y);
+    WsShadowSetScroll(0, bands[0].scroll_x, bands[0].scroll_y);
+    if (count > 1)
+        WsShadowSetSplit(0, bands[1].first_line + UR_WS_PPU_FIRST_LINE,
+                         s_band[1].world_x, s_band[1].world_y,
+                         bands[1].scroll_x, bands[1].scroll_y);
     WsShadowFrame(g_ppu);
-    prefill_margins(extra_pixels);
+    for (int i = 0; i < count; i++)
+        force_margins(&bands[i], &s_band[i], extra_pixels);
     s_ever_active = 1;
     s_presented_frames++;
 }

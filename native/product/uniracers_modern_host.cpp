@@ -1289,14 +1289,10 @@ extern "C" void ur_uniracers_modern_prepare_frame(
     *frame_width = plan.logical_view_width;
     *frame_height = plan.logical_view_height;
 
-    // Margin presentation is single-viewport only: split-screen BG1 carries
-    // two scroll origins per frame, which one world-keyed layer cannot hold.
-    const bool one_player_world =
-        plan.expose_added_world &&
-        g_widescreen_scene_state.race_mode ==
-            ur::product::HostRacePresentationMode::OnePlayer;
+    // Every widened race presents its margins host-side; split-screen
+    // viewports each get their own band origin in the shared store.
     ur_ws_margins_prepare_frame(
-        one_player_world ? 1 : 0,
+        plan.expose_added_world ? 1 : 0,
         (plan.logical_view_width - 256) / 2);
 }
 

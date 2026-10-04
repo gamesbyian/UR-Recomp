@@ -28,6 +28,9 @@ class ModernProductHostPatchTests(unittest.TestCase):
         self.assertIn("ur_uniracers_modern_system_gamepad_button", patched)
         self.assertIn("ur_uniracers_modern_system_overlay", patched)
         self.assertIn("ur_uniracers_modern_presentation_hz", patched)
+        self.assertIn(".native_widescreen      = 1,", patched)
+        self.assertIn("ur_uniracers_modern_prepare_frame", patched)
+        self.assertIn("ur_uniracers_modern_compute_viewport", patched)
         self.assertNotIn("UR_RESTART_PROBE", patched)
         self.assertEqual(patch_main_text(patched), patched)
 
@@ -43,6 +46,8 @@ class ModernProductHostPatchTests(unittest.TestCase):
         )
         patched = patch_main_text(source)
         self.assertIn("ur_uniracers_modern_presentation_hz", patched)
+        self.assertIn("ur_uniracers_modern_prepare_frame", patched)
+        self.assertIn("ur_uniracers_modern_compute_viewport", patched)
         self.assertEqual(patch_main_text(patched), patched)
 
     def test_generated_game_rtl_wires_existing_session_reset_hook(self):
@@ -65,6 +70,7 @@ class ModernProductHostPatchTests(unittest.TestCase):
         for name in (
             "output_resolution_policy.cpp",
             "output_resolution_runtime_policy.cpp",
+            "widescreen_output_composition.cpp",
             "host_product_state.cpp",
             "host_product_store.cpp",
             "modern_session_c_api.cpp",

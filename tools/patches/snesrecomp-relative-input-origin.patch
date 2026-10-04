@@ -11,7 +11,7 @@
  int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv);
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -612,6 +612,8 @@ static int g_input_event_cap;
+@@ -612,6 +612,9 @@ static int g_input_event_cap;
  static int g_input_event_cursor;
  static uint16 g_input_p1_mask, g_input_p2_mask;
  static uint64 g_input_p1_end, g_input_p2_end;
@@ -20,7 +20,7 @@
 +static uint64 g_input_relative_origin;
  
  static int LoadInputFile(const char *path) {
-@@ -691,7 +693,14 @@ static int LoadInputFile(const char *path) {
+@@ -691,7 +694,17 @@ static int LoadInputFile(const char *path) {
    return 1;
  }
  
@@ -37,7 +37,7 @@
 +  }
    if (frame >= g_input_p1_end) g_input_p1_mask = 0;
    if (frame >= g_input_p2_end) g_input_p2_mask = 0;
-@@ -3530,6 +3539,8 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
+@@ -3530,6 +3543,8 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
    {
      const char *input_file = HostGetenv("INPUT_FILE");
      if (input_file && !LoadInputFile(input_file))

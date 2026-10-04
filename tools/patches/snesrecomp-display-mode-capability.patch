@@ -1,6 +1,6 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -409,6 +409,111 @@ int snesrecomp_desktop_get_display_mode(void) {
+@@ -409,6 +409,125 @@ int snesrecomp_desktop_get_display_mode(void) {
    return g_config.fullscreen <= 2 ? (int)g_config.fullscreen : 0;
  }
  
@@ -128,7 +128,7 @@
  static int g_rewind_hotkey;
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -226,5 +226,22 @@ int snesrecomp_desktop_set_display_mode(int mode);
+@@ -226,6 +226,26 @@ int snesrecomp_desktop_set_display_mode(int mode);
  int snesrecomp_desktop_get_display_mode(void);
  
 +/* Active-monitor fullscreen capability. The host normalizes SDL2/SDL3 mode

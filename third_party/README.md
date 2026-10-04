@@ -31,6 +31,7 @@ A component stays in `mode: "pending"` until its repository-owned copy has prove
 
 - `snesrecomp`: exact deterministic source archive from pinned framework commit `cd5875cbdaf19f5e324272b1f8051d671fce9215`, PolyForm Noncommercial 1.0.0. Archive SHA-256 `cc5043c4477adaa31210efb88c3423344e2195044e4366795cf1c563e1014b56`; 5,251,351 compressed bytes; 942 archive entries. Optional nested gitlinks `lib/recomp-net` and `lib/retcomm-rbengine` are preserved by revision in provenance but intentionally not dereferenced into the baseline C1 archive. Its baseline `recompiler-rs` analyzer is paired with an 11-package / 476-file / 5,874,431-byte locked Cargo vendor closure under `third_party/cargo/snesrecomp-analyzer/`, overlaid only into disposable staged source so the immutable archive remains pristine.
 
+- `sdl3`: unmodified upstream SDL 3.4.10 release tarball (`release-3.4.10`, commit `8e37db5e797b6167f3a00d697d816a684bd259c7`), Zlib. Archive SHA-256 `12b34280415ec8418c864408b93d008a20a6530687ee613d60bfbd20411f2785` is identical to the SNESRecomp framework pin; 15,606,216 compressed bytes. It is the canonical desktop backend source (see `docs/PLATFORM-TARGETS.md`) and is consumed via `SNESRECOMP_SDL3_SOURCE_DIR`, so native builds never reach SDL's FetchContent URL.
 
 ## Platform feasibility references
 

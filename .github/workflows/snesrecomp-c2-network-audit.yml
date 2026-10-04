@@ -13,6 +13,8 @@ on:
       - "tools/toolchain-entries/_global.json"
       - "third_party/manifest.json"
       - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/archives/SDL3-3.4.10.tar.gz"
+      - "tools/toolchain-entries/sdl3.json"
       - "third_party/cargo/snesrecomp-analyzer/**"
   pull_request:
     paths:
@@ -23,6 +25,8 @@ on:
       - "tools/toolchain-entries/_global.json"
       - "third_party/manifest.json"
       - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/archives/SDL3-3.4.10.tar.gz"
+      - "tools/toolchain-entries/sdl3.json"
       - "third_party/cargo/snesrecomp-analyzer/**"
       - ".github/workflows/snesrecomp-c2-network-audit.yml"
 
@@ -38,9 +42,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - label: sdl3-fetch-off
+          - label: sdl3-repo-source
             backend: SDL3
-            require_full_build: "0"
+            require_full_build: "1"
           - label: sdl2-system
             backend: SDL2
             require_full_build: "1"
@@ -70,6 +74,8 @@ jobs:
           test -f .tools/src/snesrecomp/snesrecomp_cli.py
           test ! -e .tools/src/snesrecomp/lib/recomp-net/CMakeLists.txt
           test ! -e .tools/src/snesrecomp/lib/retcomm-rbengine/CMakeLists.txt
+          python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+          test -f .tools/src/sdl3/SDL3-3.4.10/CMakeLists.txt
 
       - name: Prepare pinned host Rust toolchain
         shell: bash
@@ -143,13 +149,22 @@ jobs:
           CONFIG_LOG="$RUNNER_TEMP/configure-$LABEL.log"
           BUILD_LOG="$RUNNER_TEMP/build-$LABEL.log"
 
+          # SDL3 is the canonical backend and is built from the repository-owned
+          # source archive; fetching stays on only because SNESRECOMP_SDL3_SOURCE_DIR
+          # is supplied, so FetchContent never reaches its URL (traced below).
+          SDL_ARGS=(-DSNESRECOMP_SDL3_FETCH=OFF)
+          if [ "$BACKEND" = "SDL3" ]; then
+            SDL_ARGS=(-DSNESRECOMP_SDL3_FETCH=ON
+                      -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10")
+          fi
+
           set +e
           strace -ff -e trace=network -o "$RUNNER_TEMP/trace-configure-$LABEL" \
             cmake -S "$PROJECT_ROOT" -B "$PROJECT_ROOT/build" \
               -DCMAKE_BUILD_TYPE=Release \
               -DSNESRECOMP_ROOT="$FRAMEWORK" \
               -DSNESRECOMP_SDL_BACKEND="$BACKEND" \
-              -DSNESRECOMP_SDL3_FETCH=OFF \
+              "${SDL_ARGS[@]}" \
               >"$CONFIG_LOG" 2>&1
           CONFIG_STATUS=$?
           set -e
@@ -179,14 +194,8 @@ jobs:
             exit "$CONFIG_STATUS"
           fi
 
-          if [ "$BACKEND" = "SDL3" ] && [ "$CONFIG_STATUS" -ne 0 ]; then
-            if ! grep -Eqi 'SDL3.*(not found|was not found)|no SDL3 package found' "$CONFIG_LOG"; then
-              echo "::error::SDL3 fetch-off failed for an unclassified reason"
-              exit "$CONFIG_STATUS"
-            fi
-            echo "SDL3_FETCH_OFF_RESULT=missing_host_sdl3_classified"
-          elif [ "$BACKEND" = "SDL3" ]; then
-            echo "SDL3_FETCH_OFF_RESULT=host_sdl3_available_full_build_green"
+          if [ "$BACKEND" = "SDL3" ]; then
+            echo "SDL3_REPO_SOURCE_RESULT=full_build_green"
           else
             echo "SDL2_SYSTEM_RESULT=full_build_green"
           fi

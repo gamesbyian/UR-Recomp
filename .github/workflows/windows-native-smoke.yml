@@ -2,9 +2,11 @@ name: Windows native build and boot smoke
 
 # Windows x64 is the primary consumer target (docs/PLATFORM-TARGETS.md). This
 # gate proves that the same repository-owned framework stage, patch stack,
-# generation path and modern product host build with MSVC against the pinned
-# SDL2 VC package, then boots the canonical ROM to the main menu and replays
-# the race-result route headlessly.
+# generation path and modern product host build on Windows against the
+# canonical SDL3 backend (repository-owned SDL 3.4.10 source, no download),
+# then boots the canonical ROM to the main menu and replays the race-result
+# route headlessly. The Visual Studio ClangCL toolset is used because the
+# framework relies on GCC/Clang attributes that MSVC's cl.exe rejects.
 
 on:
   workflow_dispatch:
@@ -12,9 +14,11 @@ on:
     paths:
       - ".github/workflows/windows-native-smoke.yml"
       - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/archives/SDL3-3.4.10.tar.gz"
       - "third_party/cargo/snesrecomp-analyzer/**"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/sdl3.json"
       - "tools/toolchain-entries/_global.json"
       - "tools/patch_modern_product_host.py"
       - "tools/check_result_screen_time.py"
@@ -24,9 +28,11 @@ on:
     branches: [main]
     paths:
       - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/archives/SDL3-3.4.10.tar.gz"
       - "third_party/cargo/snesrecomp-analyzer/**"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/sdl3.json"
       - "tools/patch_modern_product_host.py"
       - "native/product/**"
       - "native/title/**"
@@ -45,9 +51,6 @@ jobs:
     defaults:
       run:
         shell: bash
-    env:
-      SDL2_VERSION: "2.32.10"
-      SDL2_SHA256: "af347939395a58b365846aaea27391e69f9ec9d4dd650d6ac40802159b418a6e"
     steps:
       # Project patches are hash-pinned; Windows Git's autocrlf would rewrite them.
       - name: Keep checkout bytes exact
@@ -63,21 +66,12 @@ jobs:
       - name: Verify canonical ROM
         run: python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
-      - name: Fetch pinned SDL2 VC development package
-        run: |
-          set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/sdl2"
-          ZIP="$RUNNER_TEMP/sdl2/SDL2-devel-${SDL2_VERSION}-VC.zip"
-          curl -sSfL -o "$ZIP" \
-            "https://github.com/libsdl-org/SDL/releases/download/release-${SDL2_VERSION}/SDL2-devel-${SDL2_VERSION}-VC.zip"
-          echo "${SDL2_SHA256}  $ZIP" | sha256sum -c -
-          unzip -q "$ZIP" -d "$RUNNER_TEMP/sdl2"
-          test -f "$RUNNER_TEMP/sdl2/SDL2-${SDL2_VERSION}/cmake/sdl2-config.cmake"
-
       - name: Stage repository-owned SNESRecomp framework
         run: |
           set -euo pipefail
           python tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          python tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+          test -f .tools/src/sdl3/SDL3-3.4.10/CMakeLists.txt
           test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
           test -f .tools/src/snesrecomp/runner/runner.cmake
 
@@ -110,16 +104,16 @@ jobs:
           grep -q "ur_uniracers_modern_after_run_frame" "$ROOT/src/main.c"
           grep -q "hardware_reset = &GameHardwareReset" "$ROOT/src/game_rtl.c"
 
-      - name: Configure and build with MSVC
+      - name: Configure and build (Visual Studio, ClangCL, SDL3)
         run: |
           set -euo pipefail
           FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
           ROOT="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp"
-          cmake -S "$ROOT" -B "$ROOT/build" -G "Visual Studio 17 2022" -A x64 \
+          cmake -S "$ROOT" -B "$ROOT/build" -G "Visual Studio 17 2022" -A x64 -T ClangCL \
             -DSNESRECOMP_ROOT="$FRAMEWORK" \
-            -DSNESRECOMP_SDL_BACKEND=SDL2 \
-            -DSNESRECOMP_SDL3_FETCH=OFF \
-            -DSDL2_DIR="$RUNNER_TEMP/sdl2/SDL2-${SDL2_VERSION}/cmake"
+            -DSNESRECOMP_SDL_BACKEND=SDL3 \
+            -DSNESRECOMP_SDL3_FETCH=ON \
+            -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
           cmake --build "$ROOT/build" --config Release --parallel 4
           EXE="$(find "$ROOT/build" -name 'UniracersSNESRecomp.exe' -path '*Release*' | head -n1)"
           test -n "$EXE"

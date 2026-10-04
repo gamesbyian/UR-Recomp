@@ -8,6 +8,8 @@ Work in dependency order. Later visual work is intentionally gated on a trustwor
 
 Windows x64 is the primary eventual consumer build, with macOS, Web, Switch homebrew and PS5 host ports planned behind the same simulation/product interfaces. While current Widescreen, HD and modern-product work continues, reject new desktop-only assumptions when an equally small portable seam exists. Do not divert the active critical path into full ports yet; the immediate platform task is bounded reconnaissance and compile-only feasibility, beginning with the public Switch devkitPro/libnx/SDL2 stack documented in `SWITCH-HOMEBREW-PORT.md`.
 
+SDL3 is the canonical desktop host backend; SDL2 is fallback-only (`PLATFORM-TARGETS.md`, "SDL backend policy"). Do not write new product/host glue against SDL2-only APIs.
+
 Video settings are now a baseline modern-product requirement: output resolution, display mode, VSync, presentation refresh/FPS target and internal render scale must remain host-owned. Do not implement variable guest simulation rate; high-refresh support is presentation-only and must preserve deterministic authoritative timing.
 
 ## Active execution order — 2026-10-03

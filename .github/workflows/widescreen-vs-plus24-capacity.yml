@@ -5,6 +5,10 @@ on:
   pull_request:
     paths:
       - ".github/workflows/widescreen-vs-plus24-capacity.yml"
+      - "analysis/widescreen-vs-plus24-capacity-evidence.json"
+      - "analysis/widescreen-policy.yml"
+      - "docs/WIDESCREEN-RECONNAISSANCE.md"
+      - "docs/WORK-QUEUE.md"
       - "tools/apply_native_widescreen_hook.py"
       - "tests/unit/test_apply_native_widescreen_hook.py"
       - "tools/seed_native_widescreen_aot.py"
@@ -184,25 +188,39 @@ jobs:
               raise SystemExit("VS +24 host geometry diverged")
           PY
 
-      - name: Verify complete +24 host capacity
+      - name: Verify retained +24 capacity evidence
         run: |
           python3 - "$RUNNER_TEMP/widescreen-vs-plus24/24/run.log" <<'PY'
-          import pathlib, re, sys
+          import json, pathlib, re, sys
+          retained=json.loads(pathlib.Path("analysis/widescreen-vs-plus24-capacity-evidence.json").read_text())
+          generated=json.loads(pathlib.Path("analysis/generated/widescreen-vs-plus24-capacity.json").read_text())
           log=pathlib.Path(sys.argv[1]).read_text(errors="replace")
-          for player, expected in ((1,84),(2,27)):
+
+          assert generated["capacity_classification"] == retained["capacity_classification"]
+          assert generated["protected_state_equal_at_all_checkpoints"] is retained["protected_state_equal_at_all_checkpoints"]
+          assert generated["control_frame_geometry"] == retained["control_frame_geometry"]
+          assert generated["plus24_frame_geometry"] == retained["plus24_frame_geometry"]
+
+          for player in (1,2):
               vals=re.findall(
                   rf"URWS_VS_MATERIALIZER margin=24 player={player} calibrated=(\d)",
                   log,
               )
+              expected=retained["calibration"][f"player{player}_events"]
               assert len(vals)==expected, (player,len(vals),expected)
               assert "0" not in vals, (player,"calibration miss")
-              for depth in (1,2):
+              assert vals.count("1")==retained["calibration"][f"player{player}_matches"]
+              for depth in retained["host_shadow_depths"]:
                   shadows=len(re.findall(
                       rf"URWS_VS_SHADOW_EXT provider=course-runtime margin=24 player={player} depth={depth}",
                       log,
                   ))
-                  assert shadows==expected, (player,depth,shadows,expected)
-          print("VS_PLUS24_COMPLETE_CAPACITY")
+                  key=f"player{player}_depth{depth}"
+                  assert shadows==retained["host_shadow_events"][key], (key,shadows)
+
+          assert retained["guest_descriptor_promotion"] is False
+          assert retained["full_authentic_16x9_ready"] is False
+          print("VS_PLUS24_RETAINED_EVIDENCE_MATCH")
           PY
 
       - name: Upload compact +24 evidence

@@ -590,7 +590,17 @@ bool cycle_output_resolution_setting() {
         return false;
     }
     if (!persist_product_state(candidate)) {
-        (void)apply_output_resolution_setting(g_product_state.settings);
+        const bool restored =
+            apply_output_resolution_setting(g_product_state.settings);
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_OUTPUT_RESOLUTION ROLLBACK restored=%d value=%s\n",
+                restored ? 1 : 0,
+                output_resolution_name(
+                    g_product_state.settings.output_resolution).c_str());
+            std::fflush(stderr);
+        }
         return false;
     }
 

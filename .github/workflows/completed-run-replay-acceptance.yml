@@ -7,6 +7,7 @@ on:
       - "native/product/completed_run_record.*"
       - "native/product/completed_run_capture.*"
       - "native/product/completed_run_comparison.*"
+      - "native/product/completed_run_ghost.*"
       - "native/product/uniracers_modern_host.*"
       - "native/title/uniracers_course_identity.*"
       - "native/title/uniracers_run_data.*"
@@ -17,6 +18,8 @@ on:
       - "tests/input/race-finish-dragster.script"
       - "tests/input/completed-run-replay-dragster.script"
       - "tests/native/completed_run_replay_compare.cpp"
+      - "tests/native/completed_run_ghost_test.cpp"
+      - "tests/unit/test_completed_run_ghost_cpp.py"
       - ".github/workflows/completed-run-replay-acceptance.yml"
 
 concurrency:
@@ -42,7 +45,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
-          python3 -m unittest tests.unit.test_completed_run_record_cpp tests.unit.test_completed_run_record_process tests.unit.test_completed_run_capture_cpp tests.unit.test_completed_run_comparison_cpp tests.unit.test_completed_run_store_cpp tests.unit.test_uniracers_course_identity_cpp tests.unit.test_uniracers_course_identity_corpus tests.unit.test_uniracers_run_data_cpp
+          python3 -m unittest tests.unit.test_completed_run_record_cpp tests.unit.test_completed_run_record_process tests.unit.test_completed_run_capture_cpp tests.unit.test_completed_run_comparison_cpp tests.unit.test_completed_run_store_cpp tests.unit.test_completed_run_ghost_cpp tests.unit.test_uniracers_course_identity_cpp tests.unit.test_uniracers_course_identity_corpus tests.unit.test_uniracers_run_data_cpp
 
       - name: Stage framework and SDL3
         shell: bash

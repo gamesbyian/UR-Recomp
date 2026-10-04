@@ -9,6 +9,7 @@ extern "C" {
 #include "desktop/host_main.h"
 #include "desktop/sdl_compat.h"
 #include "completed_run_capture.hpp"
+#include "completed_run_ghost.hpp"
 #include "completed_run_record.hpp"
 #include "completed_run_store.hpp"
 #include "focus_pause_policy.hpp"
@@ -63,6 +64,7 @@ bool g_exit_frontend_waiting_for_usable;
 bool g_exit_frontend_acceptance_fired;
 unsigned g_exit_frontend_acceptance_surface_frames;
 ur::product::CompletedRunCapture g_run_capture;
+ur::product::CompletedRunGhostState g_run_ghosts;
 bool g_run_capture_previous_active;
 uint64_t g_run_capture_origin_frame;
 uint16_t g_run_capture_checkpoint;
@@ -1112,6 +1114,52 @@ std::string default_run_record_directory() {
     return path;
 }
 
+ur::product::RunPlaybackTarget playback_target_for(
+    const ur::product::RunRecordProvenance& provenance) {
+    return {
+        provenance.game_id,
+        provenance.rom_sha256,
+        provenance.build_compat_id,
+        provenance.course_id,
+        provenance.mode,
+    };
+}
+
+void refresh_run_ghosts(
+    const ur::product::RunRecordProvenance& provenance) {
+    g_run_ghosts.clear();
+
+    // Acceptance capture writes an explicit artifact outside the ordinary
+    // profile catalog. Keep that plumbing isolated from product ghost state.
+    if (run_record_capture_override_path()) return;
+
+    const std::string directory = default_run_record_directory();
+    if (directory.empty()) return;
+
+    const auto target = playback_target_for(provenance);
+    const auto records =
+        ur::product::load_compatible_run_records(directory, target);
+    g_run_ghosts.bind(records, target);
+
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        const auto* previous = g_run_ghosts.record(
+            ur::product::CompletedRunGhostKind::Previous);
+        const auto* personal_best = g_run_ghosts.record(
+            ur::product::CompletedRunGhostKind::PersonalBest);
+        std::fprintf(
+            stderr,
+            "UR_RUN_GHOSTS BOUND compatible=%zu previous_ticks60=%llu pb_ticks60=%llu\n",
+            g_run_ghosts.compatible_count(),
+            previous
+                ? static_cast<unsigned long long>(previous->elapsed_ticks60)
+                : 0ull,
+            personal_best
+                ? static_cast<unsigned long long>(personal_best->elapsed_ticks60)
+                : 0ull);
+        std::fflush(stderr);
+    }
+}
+
 bool begin_run_record_capture(uint64_t host_frame) {
     if (!run_record_capture_enabled()) return false;
 
@@ -1142,6 +1190,7 @@ bool begin_run_record_capture(uint64_t host_frame) {
         product_diagnostic("UR_RUN_RECORD BEGIN_REJECTED");
         return false;
     }
+    refresh_run_ghosts(provenance);
     g_run_capture_origin_frame = host_frame;
     g_run_capture_checkpoint = read_run_word(0x1199u);
     return true;
@@ -1236,6 +1285,7 @@ void complete_run_record_capture() {
 void rearm_run_capture_after_retry() {
     if (!g_run_capture.capturing()) return;
     g_run_capture.abort_attempt();
+    g_run_ghosts.clear();
     g_run_capture_previous_active = false;
     product_diagnostic("UR_RUN_RECORD RETRY_REARMED");
 }

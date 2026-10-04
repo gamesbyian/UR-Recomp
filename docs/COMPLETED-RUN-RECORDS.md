@@ -1,6 +1,6 @@
 # Completed Run Records and Ghost Foundation
 
-Status: foundation implemented; production race-completion capture and ghost rendering remain follow-ons.
+Status: completed-run capture/replay foundation merged; previous-run/PB ghost selection is now host-owned presentation state, while actual ghost rendering remains a follow-on.
 
 ## Ownership
 
@@ -30,11 +30,9 @@ The explicit schema version and separate build compatibility id allow future cod
 
 tests/native/completed_run_record_test.cpp and tests/unit/test_completed_run_record_cpp.py prove a representative 1P Dragster-style input stream can be captured as authoritative per-frame controller words, compressed into canonical runs, serialized to a typed/versioned artifact, reloaded across a filesystem boundary, reproduced frame-for-frame, exported verbatim to the existing deterministic INPUT_FILE grammar, and rejected on corruption, future schema mismatch and course incompatibility. The run-data contract also tests exact timer conversion.
 
-## Next production seam
+## Next presentation seam
 
-The next step is deliberately narrow: observe the already-resolved guest controller words at the desktop host input boundary, start/retire the recorder at the same title-owned race lifecycle edge used by Restart Race, and finalize/persist only after an authoritative completed-run surface supplies valid time/course metadata. That wiring should not add a second input parser or write guest state.
-
-After live capture/replay is proven, PB and previous-run selection can simply choose compatible records. A ghost renderer should consume a deterministic replay/state stream derived from those records and remain presentation-only.
+Live capture, deterministic replay, durable selection, and profile-scoped previous/PB binding are now established. The next narrow step is to derive enough presentation state from a selected record to draw a non-authoritative ghost through an existing host presentation seam. That work must remain downstream of the authoritative guest simulation and must not add a second gameplay model, write guest state, or route ghost input into the live racer.
 
 
 ## Resolved-input observation seam
@@ -63,3 +61,10 @@ Current production eligibility is deliberately narrower than the file format: Cr
 ## Replay-equivalence note
 
 `frame_count` remains persisted because it is useful lifecycle metadata for the captured attempt, but it is not an input to replay and is not required to match across fresh-process replay. The retained Dragster acceptance evidence showed identical provenance, `elapsed_ticks60`, all four split IDs/ticks, and all 65 RLE input runs while the host-observed active-race lifecycle window differed by one frame (2290 vs 2289). That one-frame lifecycle observation difference does not alter the guest input stream or authoritative timing, so deterministic replay acceptance treats it as diagnostic metadata rather than simulation equivalence.
+
+
+## Presentation-only ghost selection
+
+`native/product/completed_run_ghost.{hpp,cpp}` is the first consumer of the persisted catalog. At an eligible Modern 1P race-entry edge, the host loads compatible records from the active profile namespace and binds two immutable selections: the most recent compatible run and the fastest compatible personal best. The state owns copies of those records and exposes race-relative controller lookup only.
+
+This is intentionally one layer short of drawing a ghost. The ghost state has no guest-memory pointer, no simulator callback, no WRAM writer, and no authority over controller input submitted to the real racer. A future renderer may read the selected record and its race-relative input/state projection, but gameplay continues to come exclusively from the authoritative guest simulation. Retry clears and rebinds this presentation state at the next race-entry edge. Deterministic acceptance capture overrides remain isolated from the ordinary profile ghost catalog.

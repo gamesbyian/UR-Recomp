@@ -10,6 +10,8 @@ extern "C" {
 #include "desktop/sdl_compat.h"
 #include "completed_run_capture.hpp"
 #include "completed_run_ghost.hpp"
+#include "completed_run_ghost_frame.hpp"
+#include "completed_run_ghost_policy.hpp"
 #include "completed_run_ghost_trace.hpp"
 #include "completed_run_ghost_world_sample.hpp"
 #include "completed_run_record.hpp"
@@ -31,6 +33,8 @@ extern "C" {
 #include "uniracers_ws_margins.h"
 #include "uniracers_tour_resume.hpp"
 #include "widescreen_output_composition.hpp"
+#include "../presentation/completed_run_ghost_racer_selector.hpp"
+#include "../presentation/completed_run_ghost_raster.hpp"
 
 #include <cstdlib>
 #include <fstream>
@@ -68,6 +72,9 @@ unsigned g_exit_frontend_acceptance_surface_frames;
 ur::product::CompletedRunCapture g_run_capture;
 ur::product::CompletedRunGhostState g_run_ghosts;
 ur::product::CompletedRunGhostTraceCapture g_run_ghost_trace_capture;
+std::optional<ur::product::CompletedRunGhostTrace> g_run_ghost_playback_trace;
+std::optional<ur::product::CompletedRunGhostPresentationFrame>
+    g_run_ghost_presentation_frame;
 bool g_run_capture_previous_active;
 uint64_t g_run_capture_origin_frame;
 uint16_t g_run_capture_checkpoint;
@@ -1163,6 +1170,56 @@ void refresh_run_ghosts(
     }
 }
 
+void refresh_run_ghost_playback_trace() {
+    g_run_ghost_playback_trace.reset();
+    g_run_ghost_presentation_frame.reset();
+    if (!modern_mode() || !g_profile_state) return;
+
+    const auto selection = ur::product::select_completed_run_ghost_target(
+        g_run_ghosts, g_profile_state->ghost_target);
+    if (!selection.active() || !selection.kind) return;
+
+    const auto loaded = ur::product::load_selected_completed_run_ghost_trace(
+        g_run_ghosts, *selection.kind);
+    if (!loaded.loaded()) {
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_RUN_GHOST_TRACE PLAYBACK_UNAVAILABLE target=%s detail=%s\n",
+                ur::product::completed_run_ghost_target_name(
+                    g_profile_state->ghost_target),
+                loaded.detail.c_str());
+            std::fflush(stderr);
+        }
+        return;
+    }
+
+    g_run_ghost_playback_trace = *loaded.trace;
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_RUN_GHOST_TRACE PLAYBACK_BOUND target=%s samples=%zu\n",
+            ur::product::completed_run_ghost_target_name(
+                g_profile_state->ghost_target),
+            g_run_ghost_playback_trace->samples.size());
+        std::fflush(stderr);
+    }
+}
+
+void resolve_run_ghost_presentation_frame(std::uint64_t race_frame) {
+    g_run_ghost_presentation_frame.reset();
+    if (!g_run_ghost_playback_trace || !modern_mode()) return;
+
+    const auto projection =
+        ur::product::read_completed_run_ghost_projection_context(
+            g_ram, 0x20000u);
+    if (!projection) return;
+
+    g_run_ghost_presentation_frame =
+        ur::product::resolve_completed_run_ghost_presentation_frame(
+            *g_run_ghost_playback_trace, race_frame, *projection);
+}
+
 bool begin_run_record_capture(uint64_t host_frame) {
     if (!run_record_capture_enabled()) return false;
 
@@ -1194,6 +1251,7 @@ bool begin_run_record_capture(uint64_t host_frame) {
         return false;
     }
     refresh_run_ghosts(provenance);
+    refresh_run_ghost_playback_trace();
     (void)g_run_ghost_trace_capture.begin_attempt();
     g_run_capture_origin_frame = host_frame;
     g_run_capture_checkpoint = read_run_word(0x1199u);
@@ -1330,6 +1388,8 @@ void rearm_run_capture_after_retry() {
     g_run_capture.abort_attempt();
     g_run_ghost_trace_capture.abort_attempt();
     g_run_ghosts.clear();
+    g_run_ghost_playback_trace.reset();
+    g_run_ghost_presentation_frame.reset();
     g_run_capture_previous_active = false;
     product_diagnostic("UR_RUN_RECORD RETRY_REARMED");
 }
@@ -1624,6 +1684,10 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     if (stats && g_run_capture_previous_active && g_run_capture.capturing()) {
         (void)g_run_capture.observe_guest_frame(stats->controller_word);
         observe_run_ghost_trace_sample();
+        if (g_run_capture.captured_frames() != 0) {
+            resolve_run_ghost_presentation_frame(
+                g_run_capture.captured_frames() - 1u);
+        }
     }
     if (stats && !g_run_capture_previous_active && run_active) {
         (void)begin_run_record_capture(stats->frame);
@@ -1638,6 +1702,8 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     if (decision.retire_attempt && g_run_capture.capturing()) {
         g_run_capture.abort_attempt();
         g_run_ghost_trace_capture.abort_attempt();
+        g_run_ghost_playback_trace.reset();
+        g_run_ghost_presentation_frame.reset();
     }
     g_run_capture_previous_active = run_active;
 
@@ -1818,6 +1884,35 @@ extern "C" void ur_uniracers_modern_system_overlay(
     int height) {
     if (!ensure_session() || !dst || pitch < 4 || width <= 0 || height <= 0) {
         return;
+    }
+
+    if (modern_mode() &&
+        g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE &&
+        g_run_ghost_presentation_frame &&
+        height % 224 == 0) {
+        const int scale = height / 224;
+        if (ur::presentation::valid_racer_hd_internal_render_scale(scale)) {
+            const auto selected =
+                ur::presentation::select_completed_run_ghost_racer_presentation(
+                    ur::presentation::GraphicsPack::Remastered,
+                    *g_run_ghost_presentation_frame);
+            if (selected.uses_replacement() && selected.registration) {
+                auto frame = *g_run_ghost_presentation_frame;
+                const int logical_width = width / scale;
+                if (logical_width > 256) {
+                    frame.screen_x += (logical_width - 256) / 2;
+                }
+                (void)ur::presentation::draw_completed_run_ghost_racer(
+                    dst,
+                    pitch,
+                    logical_width,
+                    224,
+                    scale,
+                    frame,
+                    *selected.registration,
+                    128);
+            }
+        }
     }
 
     const int is_paused = paused() ? 1 : 0;

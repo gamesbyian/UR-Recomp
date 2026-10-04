@@ -172,16 +172,16 @@ jobs:
 
           "$EXE" save "$STATE" | tee -a "$LOG"
           "$EXE" load "$STATE" | tee -a "$LOG"
-          "$EXE" old "$STATE" | tee -a "$LOG"
+          "$EXE" legacy-host-default "$STATE" | tee -a "$LOG"
           "$EXE" malformed "$STATE" | tee -a "$LOG"
           "$EXE" authentic "$STATE" | tee -a "$LOG"
 
           grep -q "PROFILE_ACCEPTANCE saved generation=1" "$LOG"
           grep -q "PROFILE_ACCEPTANCE fresh_process_load_ok" "$LOG"
-          grep -q "PROFILE_ACCEPTANCE old_state_migrated" "$LOG"
-          grep -q "PROFILE_ACCEPTANCE malformed_rejected" "$LOG"
+          grep -q "PROFILE_ACCEPTANCE legacy_host_defaulted" "$LOG"
+          grep -q "PROFILE_ACCEPTANCE malformed_defaulted_preserved" "$LOG"
           grep -q "PROFILE_ACCEPTANCE authentic_inert" "$LOG"
-          echo "UR_PROFILE_PERSISTENCE_RESULT=restart_migration_recovery_authentic_inert"
+          echo "UR_PROFILE_PERSISTENCE_RESULT=restart_legacy_default_recovery_authentic_inert"
 
       - name: Native boot smoke
         shell: bash

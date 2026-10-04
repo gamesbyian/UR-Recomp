@@ -174,9 +174,9 @@ static int ur_ws_native_vs_vertical_fine_y(CpuState *cpu, unsigned player) {
  * A59E pass (+8 pixels); offset 10 is the first host-owned deeper column
  * (+16 pixels). The +8 payload calibrates this live-course materializer in
  * the same frame before any deeper column is admitted as evidence. */
-static int ur_ws_native_vs_column_from_course(CpuState *cpu, unsigned player,
-                                               unsigned x_offset,
-                                               uint8 out[16]) {
+static int ur_ws_native_vs_column_from_course_adjusted(
+    CpuState *cpu, unsigned player, unsigned x_offset, int y_adjust,
+    uint8 out[16]) {
   const uint16 camx = ur_ws_native_read16(cpu, player ? 0x041b : 0x0419);
   const uint16 coarse_width = ur_ws_native_read16(cpu, 0x04f1);
   const uint16 coarse_height = ur_ws_native_read16(cpu, 0x04f3);
@@ -184,7 +184,7 @@ static int ur_ws_native_vs_column_from_course(CpuState *cpu, unsigned player,
     return 0;
 
   const int fine_x = (int)(camx >> 4) + (int)x_offset;
-  const int fine_y0 = ur_ws_native_vs_vertical_fine_y(cpu, player);
+  const int fine_y0 = ur_ws_native_vs_vertical_fine_y(cpu, player) + y_adjust;
   const int fine_width = (int)coarse_width * 4;
   const int fine_height = (int)coarse_height * 4;
 
@@ -210,6 +210,13 @@ static int ur_ws_native_vs_column_from_course(CpuState *cpu, unsigned player,
     out[j * 2 + 1] = (uint8)(word >> 8);
   }
   return 1;
+}
+
+static int ur_ws_native_vs_column_from_course(CpuState *cpu, unsigned player,
+                                               unsigned x_offset,
+                                               uint8 out[16]) {
+  return ur_ws_native_vs_column_from_course_adjusted(
+      cpu, player, x_offset, 0, out);
 }
 
 /* Materialize one arbitrary vertical 16-cell strip directly from the live
@@ -374,6 +381,41 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
       if (ur_ws_native_vs_column_from_course(cpu, 1, 9, calibrated) &&
           memcmp(calibrated, ur_ws_native_vs_p2_future_payload, 16) == 0)
         ur_ws_native_vs_materializer_match[1] = 1;
+    }
+
+    if (ur_ws_native_trace()) {
+      for (unsigned player = 0; player < 2; player++) {
+        const int valid = player ? p2_valid : p1_valid;
+        const int matched = ur_ws_native_vs_materializer_match[player];
+        const uint8 *accepted =
+            player ? ur_ws_native_vs_p2_future_payload
+                   : ur_ws_native_vs_p1_future_payload;
+        if (!valid || matched)
+          continue;
+        int found_x = -1;
+        int found_y = 0;
+        uint8 candidate[16];
+        for (unsigned xoff = 7; xoff <= 12 && found_x < 0; xoff++) {
+          for (int yadj = -4; yadj <= 4; yadj++) {
+            if (ur_ws_native_vs_column_from_course_adjusted(
+                    cpu, player, xoff, yadj, candidate) &&
+                memcmp(candidate, accepted, 16) == 0) {
+              found_x = (int)xoff;
+              found_y = yadj;
+              break;
+            }
+          }
+        }
+        fprintf(stderr,
+                "URWS_VS_CALIBRATION_SEARCH margin=%d player=%u camx=%u camy=%u xoff=%d yadj=%d accepted=",
+                ur_ws_native_margin(), player + 1u,
+                (unsigned)ur_ws_native_read16(cpu, player ? 0x041b : 0x0419),
+                (unsigned)ur_ws_native_read16(cpu, player ? 0x041f : 0x041d),
+                found_x, found_y);
+        for (unsigned j = 0; j < 16; j++)
+          fprintf(stderr, "%02X", (unsigned)accepted[j]);
+        fprintf(stderr, "\n");
+      }
     }
 
     if (p1_valid) {

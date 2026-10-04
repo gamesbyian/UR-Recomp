@@ -185,9 +185,22 @@
         "native_acceptance_artifact_id": 11290145680,
         "gameplay_scale_review": {
           "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
-          "stock_alpha_bounds": [23, 3, 40, 38],
-          "candidate_alpha_bounds": [23, 3, 40, 38],
-          "candidate_contact_x2_y2": [63, 76],
+          "stock_alpha_bounds": [
+            23,
+            3,
+            40,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            23,
+            3,
+            40,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            63,
+            76
+          ],
           "stock_opaque_pixels": 323,
           "candidate_opaque_pixels": 304,
           "alpha_intersection_pixels": 266,
@@ -272,9 +285,22 @@
         "native_acceptance_artifact_id": 11289251993,
         "gameplay_scale_review": {
           "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
-          "stock_alpha_bounds": [21, 3, 43, 38],
-          "candidate_alpha_bounds": [21, 3, 43, 38],
-          "candidate_contact_x2_y2": [69, 76],
+          "stock_alpha_bounds": [
+            21,
+            3,
+            43,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            21,
+            3,
+            43,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            69,
+            76
+          ],
           "stock_opaque_pixels": 321,
           "candidate_opaque_pixels": 322,
           "alpha_intersection_pixels": 246,
@@ -359,9 +385,22 @@
         "intent": "Represent the retained P2 0543 pose with one authored blue-player asset matching stock envelope [20,4]..[40,38], bottom span [26,31], contact [57,76], and the established P2 material/lighting language.",
         "gameplay_scale_review": {
           "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
-          "stock_alpha_bounds": [20, 4, 40, 38],
-          "candidate_alpha_bounds": [20, 4, 40, 38],
-          "candidate_contact_x2_y2": [57, 76],
+          "stock_alpha_bounds": [
+            20,
+            4,
+            40,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            20,
+            4,
+            40,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            57,
+            76
+          ],
           "stock_opaque_pixels": 319,
           "candidate_opaque_pixels": 311,
           "alpha_intersection_pixels": 242,
@@ -574,9 +613,22 @@
         "native_acceptance_artifact_id": 11288098806,
         "gameplay_scale_review": {
           "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
-          "stock_alpha_bounds": [21, 2, 42, 38],
-          "candidate_alpha_bounds": [21, 2, 42, 38],
-          "candidate_contact_x2_y2": [67, 76],
+          "stock_alpha_bounds": [
+            21,
+            2,
+            42,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            21,
+            2,
+            42,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            67,
+            76
+          ],
           "stock_opaque_pixels": 325,
           "candidate_opaque_pixels": 331,
           "alpha_intersection_pixels": 251,
@@ -662,9 +714,22 @@
         "intent": "Retain the distinct 057E/0D49 synchronized guard while reusing the authored P2 0543 asset because the deterministic stock raster is byte-identical across the retained contexts.",
         "gameplay_scale_review": {
           "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
-          "stock_alpha_bounds": [20, 4, 40, 38],
-          "candidate_alpha_bounds": [20, 4, 40, 38],
-          "candidate_contact_x2_y2": [57, 76],
+          "stock_alpha_bounds": [
+            20,
+            4,
+            40,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            20,
+            4,
+            40,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            57,
+            76
+          ],
           "stock_opaque_pixels": 319,
           "candidate_opaque_pixels": 311,
           "alpha_intersection_pixels": 242,
@@ -1234,9 +1299,22 @@
         "intent": "Retain the distinct frame-1219 synchronized guard while reusing the frame-1220 authored P2 asset because the deterministic stock P2 raster is byte-identical across the two contexts.",
         "gameplay_scale_review": {
           "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
-          "stock_alpha_bounds": [23, 3, 40, 38],
-          "candidate_alpha_bounds": [23, 3, 40, 38],
-          "candidate_contact_x2_y2": [63, 76],
+          "stock_alpha_bounds": [
+            23,
+            3,
+            40,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            23,
+            3,
+            40,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            63,
+            76
+          ],
           "stock_opaque_pixels": 323,
           "candidate_opaque_pixels": 304,
           "alpha_intersection_pixels": 266,
@@ -1421,9 +1499,22 @@
         "native_acceptance_artifact_id": 11290901577,
         "gameplay_scale_review": {
           "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
-          "stock_alpha_bounds": [22, 3, 39, 38],
-          "candidate_alpha_bounds": [22, 3, 39, 38],
-          "candidate_contact_x2_y2": [61, 76],
+          "stock_alpha_bounds": [
+            22,
+            3,
+            39,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            22,
+            3,
+            39,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            61,
+            76
+          ],
           "stock_opaque_pixels": 318,
           "candidate_opaque_pixels": 304,
           "alpha_intersection_pixels": 250,
@@ -1609,9 +1700,22 @@
         "intent": "Represent frame-1217 P2 0542 with one authored blue-player pose matching stock envelope [21,4]..[40,38] and contact [59,76], while preserving the established P2 material and object-local lighting language.",
         "gameplay_scale_review": {
           "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
-          "stock_alpha_bounds": [21, 4, 40, 38],
-          "candidate_alpha_bounds": [21, 4, 40, 38],
-          "candidate_contact_x2_y2": [59, 76],
+          "stock_alpha_bounds": [
+            21,
+            4,
+            40,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            21,
+            4,
+            40,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            59,
+            76
+          ],
           "stock_opaque_pixels": 325,
           "candidate_opaque_pixels": 313,
           "alpha_intersection_pixels": 254,
@@ -1824,9 +1928,22 @@
         "native_acceptance_artifact_id": 11286898413,
         "gameplay_scale_review": {
           "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
-          "stock_alpha_bounds": [22, 2, 41, 38],
-          "candidate_alpha_bounds": [22, 2, 41, 38],
-          "candidate_contact_x2_y2": [65, 76],
+          "stock_alpha_bounds": [
+            22,
+            2,
+            41,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            22,
+            2,
+            41,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            65,
+            76
+          ],
           "stock_opaque_pixels": 327,
           "candidate_opaque_pixels": 321,
           "alpha_intersection_pixels": 264,
@@ -1912,9 +2029,22 @@
         "intent": "Retain the distinct frames-1215-1216 synchronized guard while reusing the frame-1217 authored P2 0542 asset because the deterministic stock raster is byte-identical across the two contexts.",
         "gameplay_scale_review": {
           "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
-          "stock_alpha_bounds": [21, 4, 40, 38],
-          "candidate_alpha_bounds": [21, 4, 40, 38],
-          "candidate_contact_x2_y2": [59, 76],
+          "stock_alpha_bounds": [
+            21,
+            4,
+            40,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            21,
+            4,
+            40,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            59,
+            76
+          ],
           "stock_opaque_pixels": 325,
           "candidate_opaque_pixels": 313,
           "alpha_intersection_pixels": 254,
@@ -1923,5 +2053,103 @@
         }
       }
     }
-  ]
+  ],
+  "motion_review_sequence": {
+    "status": "candidate sequence-level gate; authored native acceptance pending",
+    "window_start": 1205,
+    "window_end": 1220,
+    "sampling": "authored 4x logical pixel centres (x*4+2, y*4+2)",
+    "acceptance": {
+      "require_all_frames_authored": true,
+      "require_exact_stock_bounds": true,
+      "require_exact_contact_anchor": true,
+      "require_static_edges_remain_static": true,
+      "require_dynamic_edges_remain_dynamic": true,
+      "dynamic_transition_ratio_min": 0.75,
+      "dynamic_transition_ratio_max": 2.25,
+      "rationale": "Measured completed authored strip has nonzero authored/stock changed-pixel ratios from 0.961 through 2.143; the upper endpoint is the seven-stock-pixel P1 1219->1220 saddle transition. The retained band adds small guard room while rejecting frozen motion and silhouette explosions."
+    },
+    "frames": [
+      {
+        "frame": 1205,
+        "p1_representation_id": "ordinary-racer-0x057E-p1-with-p2-0543-reference",
+        "p2_representation_id": "ordinary-racer-0x0543-p2-with-p1-057E-reference"
+      },
+      {
+        "frame": 1206,
+        "p1_representation_id": "ordinary-racer-0x057E-p1-with-p2-0543-reference",
+        "p2_representation_id": "ordinary-racer-0x0543-p2-with-p1-057E-reference"
+      },
+      {
+        "frame": 1207,
+        "p1_representation_id": "ordinary-racer-0x057D-p1-adjacent-reference",
+        "p2_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference"
+      },
+      {
+        "frame": 1208,
+        "p1_representation_id": "ordinary-racer-0x057D-p1-adjacent-reference",
+        "p2_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference"
+      },
+      {
+        "frame": 1209,
+        "p1_representation_id": "ordinary-racer-0x057D-p1-adjacent-reference",
+        "p2_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference"
+      },
+      {
+        "frame": 1210,
+        "p1_representation_id": "ordinary-racer-0x057D-p1-adjacent-reference",
+        "p2_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference"
+      },
+      {
+        "frame": 1211,
+        "p1_representation_id": "ordinary-racer-0x057D-p1-adjacent-reference",
+        "p2_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference"
+      },
+      {
+        "frame": 1212,
+        "p1_representation_id": "ordinary-racer-0x057D-p1-adjacent-reference",
+        "p2_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference"
+      },
+      {
+        "frame": 1213,
+        "p1_representation_id": "ordinary-racer-0x057E-p1-with-p2-0543-reference",
+        "p2_representation_id": "ordinary-racer-0x0543-p2-with-p1-057E-reference"
+      },
+      {
+        "frame": 1214,
+        "p1_representation_id": "ordinary-racer-0x057E-p1-with-p2-0543-reference",
+        "p2_representation_id": "ordinary-racer-0x0543-p2-with-p1-057E-reference"
+      },
+      {
+        "frame": 1215,
+        "p1_representation_id": "ordinary-racer-0x057f-p1-with-p2-0542-companion-0D4A-reference",
+        "p2_representation_id": "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference"
+      },
+      {
+        "frame": 1216,
+        "p1_representation_id": "ordinary-racer-0x057f-p1-with-p2-0542-companion-0D4A-reference",
+        "p2_representation_id": "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference"
+      },
+      {
+        "frame": 1217,
+        "p1_representation_id": "ordinary-racer-0x0540-p1-companion-0D2C-with-p2-0542-reference",
+        "p2_representation_id": "ordinary-racer-0x0542-p2-with-p1-companion-0D2C-reference"
+      },
+      {
+        "frame": 1218,
+        "p1_representation_id": "ordinary-racer-0x0540-p1-predecessor-reference",
+        "p2_representation_id": "ordinary-racer-0x0541-p2-predecessor-reference"
+      },
+      {
+        "frame": 1219,
+        "p1_representation_id": "ordinary-racer-0x0541-p1-companion-0D2D-reference",
+        "p2_representation_id": "ordinary-racer-0x0540-p2-with-p1-companion-0D2D-reference"
+      },
+      {
+        "frame": 1220,
+        "p1_representation_id": "ordinary-racer-0x0541-p1-sync-reference",
+        "p2_representation_id": "ordinary-racer-0x0540-p2-sync-reference"
+      }
+    ]
+  }
 }

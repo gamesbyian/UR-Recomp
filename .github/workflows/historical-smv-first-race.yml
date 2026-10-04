@@ -2,7 +2,7 @@ name: Historical SMV first-race replay
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     paths:
       - "reference/imported/tas-bots/dessyreqt-4250-submission.smv"
       - "reference/roms/retail/Uniracers_USA.sfc"
@@ -18,7 +18,25 @@ on:
       - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
       - "third_party/cargo/snesrecomp-analyzer/**"
       - "third_party/manifest.json"
-
+      - ".github/workflows/historical-smv-first-race.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "reference/imported/tas-bots/dessyreqt-4250-submission.smv"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "tools/extract_smv_input.py"
+      - "tools/summarize_wram_trace_checkpoints.py"
+      - "tools/compose_historical_reference_result.py"
+      - "tools/compose_historical_replay_result.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/_global.json"
+      - "tools/patches/snesrecomp-input-file.patch"
+      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/cargo/snesrecomp-analyzer/**"
+      - "third_party/manifest.json"
 concurrency:
   group: historical-smv-first-race-${{ github.ref }}
   # This workflow may persist evidence on main; serialize rather than cancel writes.

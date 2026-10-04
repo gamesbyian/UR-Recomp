@@ -61,7 +61,7 @@ record the exact mapping rather than assuming they all share one enumeration.
 
 **Confirmed.** Per-rider lifetime stats start at SRAM `0x0230` for rider 0: PLAYED `0x0230`, WON `0x0232`, SCORE `0x0236`. They match the Player Scores screen and persist like any battery data. Field strides for other riders and the LOST/FAILED storage are not mapped.
 
-**Unknown.** Whether unfinished tour progress survives power-off. The earlier "tour-win counter" reading was this PLAYED stat (R-2026-10-03-UI-19).
+**Confirmed.** In-tour progress is one flag per track at SRAM `0x1075 + 5*tour_row + track` (50 bytes, outside the `0x073C` checksum). A qualifying 1P result sets the flag (`83:87F5`). When the tour row sums to 5, `83:881B` clears it and increments the medal cell. Confirming a rider zeroes all 50 flags (`80:BBC1`), so an unfinished tour does not survive a power cycle or a rider change, although the bytes themselves persist. Leaving TRACK_SELECT for TOUR_SELECT clears the row unless the medal cell equals SRAM `0x10D1` (not decoded). (`analysis/generated/tour-progress-persistence.json`, R-2026-10-04-UI-20.) The earlier "tour-win counter" was the PLAYED stat; `0x10A9` is a persisted wins counter.
 
 ## Result flow
 

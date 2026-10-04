@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
-"""Regression: rider 0 lifetime PLAYED/WON stats persist across a power cycle.
+"""Power-cycle behaviour of rider stats and unfinished tour progress.
 
-CORRECTION (R-2026-10-03-UI-19): this probe was written to test whether unfinished
-tour progress survives power-off. The counter it follows (SRAM 0x0230) turned out to
-be the Player Scores PLAYED stat, so it does NOT answer the tour-progress question.
+Decision served: policy feature ``unfinished-tour-session-loss``. Two things are
+followed through a reload:
 
-It remains useful as a stat-persistence regression: the policy question it was
-built for (feature ``unfinished-tour-session-loss``) is still open.
+- rider 0 lifetime PLAYED/WON stats (SRAM 0x0230/0x0232), which persist (an earlier
+  reading of 0x0230 as tour progress was wrong, R-2026-10-03-UI-19);
+- the per-track tour completion flags at SRAM ``0x1075 + 5*tour_row + track``
+  (static decode, Nitrodon bank 83/80 listings): a qualifying 1P result sets the
+  track's flag (``83:87F5``), five set flags award the medal and clear the row
+  (``83:8805``/``83:881B``), and confirming a rider (``80:BBC1``) zeroes all 50 flags.
+  The flags are battery-backed, but every route into 1P tour play goes through
+  rider select, so unfinished tour progress does not survive a power cycle.
 
 Method (reference harness only, no guest pokes):
 
@@ -39,6 +44,8 @@ ROOT = Path(__file__).resolve().parents[1]
 # Battery SRAM offsets that advance once per race in the baseline replay:
 # 0x0230 rider-0 PLAYED, 0x0232 rider-0 WON (all movie races are wins), 0x10A9 unidentified.
 COUNTER_OFFSETS = (0x0230, 0x0232, 0x10A9)
+TOUR_FLAGS = 0x1075  # Crawler row: 0x1075..0x1079
+TOUR_TRACKS = 5
 MEDAL_RANGE = (0x069C, 0x072C)
 WRAM_MENU = 0x009F
 WRAM_TRACK = 0x00CE
@@ -59,6 +66,7 @@ def sample(sram: bytes, wram: bytes) -> dict:
         "track": wram[WRAM_TRACK],
         "in_race": wram[WRAM_IN_RACE],
         "counters": [sram[o] for o in COUNTER_OFFSETS],
+        "tour_flags": list(sram[TOUR_FLAGS:TOUR_FLAGS + TOUR_TRACKS]),
         "nonzero_medals_rows_0_7": sum(1 for i in range(MEDAL_RANGE[0], MEDAL_RANGE[0] + 0x80) if sram[i]),
     }
 
@@ -83,11 +91,18 @@ def snapshot_frame(samples: dict[int, dict], value: int) -> int | None:
 
 
 def summarize(baseline: dict[int, dict], reloads: dict[int, dict]) -> dict:
-    """reloads maps snapshot counter value -> {"input_counter", "boot_diff", "samples"}."""
+    """reloads maps snapshot counter value -> {"input_counter", "input_tour_flags", "boot_diff", "samples"}."""
     base_changes = counter_changes(baseline)
     primary = [c["counters"][0] for c in base_changes]
+    flag_seq = []
+    for frame in sorted(baseline):
+        flags = baseline[frame]["tour_flags"]
+        if not flag_seq or flags != flag_seq[-1]:
+            flag_seq.append(flags)
+    fill = [[1] * n + [0] * (TOUR_TRACKS - n) for n in range(len(flag_seq))]
     result = {
         "baseline_counter_sequence": primary,
+        "baseline_tour_flag_sequence": flag_seq,
         "baseline_counter_changes": base_changes,
         "reloads": {},
     }
@@ -96,6 +111,9 @@ def summarize(baseline: dict[int, dict], reloads: dict[int, dict]) -> dict:
         "reload_boot_preserves_counter": True,
         "reload_counter_survives_frontend_and_race_entry": True,
         "reload_next_race_increments_counter": True,
+        "baseline_tour_flags_fill_in_track_order": len(flag_seq) >= 3 and flag_seq == fill,
+        "reload_boot_preserves_tour_flags": True,
+        "reload_rider_select_clears_tour_flags": True,
     }
     for value, run in sorted(reloads.items()):
         samples = run["samples"]
@@ -108,8 +126,13 @@ def summarize(baseline: dict[int, dict], reloads: dict[int, dict]) -> dict:
             later = [f for f in frames if f > race_frames[0] and samples[f]["in_race"] != 1]
             if later:
                 after = samples[later[0]]["counters"][0]
+        boot_flags = samples[frames[0]]["tour_flags"]
+        entry_flags = samples[race_frames[0]]["tour_flags"] if race_frames else None
         result["reloads"][str(value)] = {
             "input_counter": run["input_counter"],
+            "input_tour_flags": run["input_tour_flags"],
+            "tour_flags_at_boot": boot_flags,
+            "tour_flags_at_first_race": entry_flags,
             "boot_sram_bytes_changed": run["boot_diff"],
             "counter_at_boot": boot,
             "counter_at_first_race": entry,
@@ -119,6 +142,8 @@ def summarize(baseline: dict[int, dict], reloads: dict[int, dict]) -> dict:
         checks["reload_boot_preserves_counter"] &= boot == run["input_counter"]
         checks["reload_counter_survives_frontend_and_race_entry"] &= entry == run["input_counter"]
         checks["reload_next_race_increments_counter"] &= after == run["input_counter"] + 1
+        checks["reload_boot_preserves_tour_flags"] &= any(run["input_tour_flags"]) and boot_flags == run["input_tour_flags"]
+        checks["reload_rider_select_clears_tour_flags"] &= entry_flags == [0] * TOUR_TRACKS
     result["checks"] = checks
     result["all_checks_pass"] = all(checks.values()) and bool(reloads)
     return result
@@ -200,6 +225,7 @@ def main() -> int:
             source = image.read_bytes()
             reloads[value] = {
                 "input_counter": source[COUNTER_OFFSETS[0]],
+                "input_tour_flags": list(source[TOUR_FLAGS:TOUR_FLAGS + TOUR_TRACKS]),
                 "snapshot_frame": frame,
                 "boot_diff": [f"0x{i:04x}" for i in range(SRAM_SIZE) if booted[i] != source[i]],
                 "samples": load_samples(run_dir, "reload"),
@@ -210,14 +236,20 @@ def main() -> int:
         report["reloads"][str(value)]["snapshot_frame"] = run["snapshot_frame"]
     report = {
         "schema_version": 1,
-        "question": "Do rider 0 lifetime PLAYED/WON stats (SRAM 0x0230/0x0232) persist and keep counting across a power cycle?",
-        "correction": "Originally framed as a tour-progress test; 0x0230 is the Player Scores PLAYED stat (R-2026-10-03-UI-19). Tour-progress persistence is unanswered.",
+        "question": "Across a power cycle, do rider 0 lifetime stats (SRAM 0x0230/0x0232) persist, and does unfinished tour progress (SRAM 0x1075 per-track flags) survive into the next tour run?",
+        "correction": "Originally framed as a tour-progress test on 0x0230, which is the Player Scores PLAYED stat (R-2026-10-03-UI-19). Tour progress is the 0x1075 flag table.",
+        "tour_flags": {"layout": "SRAM 0x1075 + 5*tour_row + track, 50 bytes, 1 = track qualified in the current tour run",
+                       "set": "83:87F5 on a qualifying 1P result",
+                       "award": "83:8805 sums the tour row; 5 -> 83:881B clears the row and increments the medal cell",
+                       "cleared": "80:BBC1 zeroes all 50 when a rider is confirmed; 83:8957 clears the row when TRACK_SELECT is left back to TOUR_SELECT unless the medal cell equals SRAM 0x10D1 (unidentified)",
+                       "checksum": "not covered by the 0x073C medal checksum (0x05E8-0x073B)"},
         "harness": "snesref + pinned snes9x-libretro, historical Dessyreqt 2014 movie input, anchored SRAM",
         "counter_offsets": [f"0x{o:04x}" for o in COUNTER_OFFSETS],
         **report,
         "limits": [
             "Only won races were observed; whether a lost race changes the counter is untested.",
-            "Medal award after completing a tour resumed across a power cycle is not observed; the movie desyncs on the modern core after the first reloaded race.",
+            "The flags survive in battery SRAM but are zeroed at rider select, so a resumed tour starts empty; the medal award after five qualifying results is statically decoded, not replayed across a reload.",
+            "The 0x10D1 comparison on leaving TRACK_SELECT is not decoded.",
             "Counter semantics beyond 'advances once per won tour race and persists' are not promoted.",
         ],
     }

@@ -1,7 +1,14 @@
 {
   "schema_version": 1,
-  "question": "Do rider 0 lifetime PLAYED/WON stats (SRAM 0x0230/0x0232) persist and keep counting across a power cycle?",
-  "correction": "Originally framed as a tour-progress test; 0x0230 is the Player Scores PLAYED stat (R-2026-10-03-UI-19). Tour-progress persistence is unanswered.",
+  "question": "Across a power cycle, do rider 0 lifetime stats (SRAM 0x0230/0x0232) persist, and does unfinished tour progress (SRAM 0x1075 per-track flags) survive into the next tour run?",
+  "correction": "Originally framed as a tour-progress test on 0x0230, which is the Player Scores PLAYED stat (R-2026-10-03-UI-19). Tour progress is the 0x1075 flag table.",
+  "tour_flags": {
+    "layout": "SRAM 0x1075 + 5*tour_row + track, 50 bytes, 1 = track qualified in the current tour run",
+    "set": "83:87F5 on a qualifying 1P result",
+    "award": "83:8805 sums the tour row; 5 -> 83:881B clears the row and increments the medal cell",
+    "cleared": "80:BBC1 zeroes all 50 when a rider is confirmed; 83:8957 clears the row when TRACK_SELECT is left back to TOUR_SELECT unless the medal cell equals SRAM 0x10D1 (unidentified)",
+    "checksum": "not covered by the 0x073C medal checksum (0x05E8-0x073B)"
+  },
   "harness": "snesref + pinned snes9x-libretro, historical Dessyreqt 2014 movie input, anchored SRAM",
   "counter_offsets": [
     "0x0230",
@@ -14,6 +21,36 @@
     2,
     3
   ],
+  "baseline_tour_flag_sequence": [
+    [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      1,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      1,
+      1,
+      0,
+      0
+    ]
+  ],
   "baseline_counter_changes": [
     {
       "frame": 750,
@@ -21,6 +58,13 @@
       "track": 0,
       "in_race": 0,
       "counters": [
+        0,
+        0,
+        0
+      ],
+      "tour_flags": [
+        0,
+        0,
         0,
         0,
         0
@@ -37,6 +81,13 @@
         1,
         1
       ],
+      "tour_flags": [
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
       "nonzero_medals_rows_0_7": 0
     },
     {
@@ -48,6 +99,13 @@
         2,
         2,
         2
+      ],
+      "tour_flags": [
+        1,
+        1,
+        0,
+        0,
+        0
       ],
       "nonzero_medals_rows_0_7": 0
     },
@@ -61,12 +119,40 @@
         3,
         3
       ],
+      "tour_flags": [
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
       "nonzero_medals_rows_0_7": 0
     }
   ],
   "reloads": {
     "2": {
       "input_counter": 2,
+      "input_tour_flags": [
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "tour_flags_at_boot": [
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "tour_flags_at_first_race": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
       "boot_sram_bytes_changed": [
         "0x0742"
       ],
@@ -84,6 +170,13 @@
             2,
             2
           ],
+          "tour_flags": [
+            1,
+            1,
+            0,
+            0,
+            0
+          ],
           "nonzero_medals_rows_0_7": 0
         },
         {
@@ -96,6 +189,13 @@
             3,
             3
           ],
+          "tour_flags": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
           "nonzero_medals_rows_0_7": 0
         }
       ],
@@ -103,6 +203,27 @@
     },
     "3": {
       "input_counter": 3,
+      "input_tour_flags": [
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "tour_flags_at_boot": [
+        1,
+        1,
+        1,
+        0,
+        0
+      ],
+      "tour_flags_at_first_race": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
       "boot_sram_bytes_changed": [
         "0x0742"
       ],
@@ -120,6 +241,13 @@
             3,
             3
           ],
+          "tour_flags": [
+            1,
+            1,
+            1,
+            0,
+            0
+          ],
           "nonzero_medals_rows_0_7": 0
         },
         {
@@ -132,6 +260,13 @@
             4,
             4
           ],
+          "tour_flags": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
           "nonzero_medals_rows_0_7": 0
         }
       ],
@@ -142,12 +277,16 @@
     "baseline_counter_advances_by_one_per_race": true,
     "reload_boot_preserves_counter": true,
     "reload_counter_survives_frontend_and_race_entry": true,
-    "reload_next_race_increments_counter": true
+    "reload_next_race_increments_counter": true,
+    "baseline_tour_flags_fill_in_track_order": true,
+    "reload_boot_preserves_tour_flags": true,
+    "reload_rider_select_clears_tour_flags": true
   },
   "all_checks_pass": true,
   "limits": [
     "Only won races were observed; whether a lost race changes the counter is untested.",
-    "Medal award after completing a tour resumed across a power cycle is not observed; the movie desyncs on the modern core after the first reloaded race.",
+    "The flags survive in battery SRAM but are zeroed at rider select, so a resumed tour starts empty; the medal award after five qualifying results is statically decoded, not replayed across a reload.",
+    "The 0x10D1 comparison on leaving TRACK_SELECT is not decoded.",
     "Counter semantics beyond 'advances once per won tour race and persists' are not promoted."
   ]
 }

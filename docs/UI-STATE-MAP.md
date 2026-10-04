@@ -82,7 +82,7 @@ The strongest current candidates for **modern product-layer simplification** are
 - Bronsen, Silvia and Goldwyn remain named legacy opponents even if medal-tier progression changes (the ROM default-name table at `83:800C` spells the silver opponent `silvia`; earlier project notes said "Silverton");
 - League setup/player-management should be evaluated for a much simpler modern tournament path while preserving the original League flow as reference behavior;
 - Bronze/Silver/Gold repeated-tour requirements should be evaluated for performance-based medal awarding or selectable challenge tiers rather than mandatory replay;
-- unfinished-tour/session persistence should be modernized unless testing shows a deliberate gameplay purpose (stock behavior still unknown, R-2026-10-03-UI-19);
+- unfinished-tour/session persistence should be modernized unless testing shows a deliberate gameplay purpose (stock wipes the battery-backed `0x1075` tour flags at rider select, R-2026-10-04-UI-20);
 - destructive controller chords should become explicit UI actions with confirmation in modern mode;
 - Records/score silos may be unified behind a modern records surface while retaining original table/indicator presentations as views;
 - basic control/status information should not depend on an instruction manual, while secrets and advanced discoveries can remain intentionally opaque;

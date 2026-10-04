@@ -465,6 +465,8 @@ bool dispatch(UrModernPauseAction action) {
            result == UR_MODERN_SESSION_NO_OP;
 }
 
+// Diagnostics also give native acceptance a semantic acknowledgement of
+// system-input delivery without exposing mutable product state.
 void diagnose_pause_state() {
     if (!std::getenv("UR_PRODUCT_DIAGNOSTICS") || !g_session) return;
     std::fprintf(

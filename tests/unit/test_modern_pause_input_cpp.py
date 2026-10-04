@@ -21,6 +21,7 @@ class ModernPauseInputCppTests(unittest.TestCase):
                     "-pedantic",
                     "-I",
                     str(ROOT / "native" / "product"),
+                    str(ROOT / "native" / "product" / "output_resolution_policy.cpp"),
                     str(ROOT / "native" / "product" / "host_product_state.cpp"),
                     str(ROOT / "native" / "product" / "session_control.cpp"),
                     str(ROOT / "native" / "product" / "session_runtime_adapter.cpp"),

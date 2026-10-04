@@ -21,6 +21,7 @@ class HostProductStateCppTests(unittest.TestCase):
                     "-pedantic",
                     "-I",
                     str(ROOT / "native" / "product"),
+                    str(ROOT / "native" / "product" / "output_resolution_policy.cpp"),
                     str(ROOT / "native" / "product" / "host_product_state.cpp"),
                     str(ROOT / "tests" / "native" / "host_product_state_test.cpp"),
                     "-o",

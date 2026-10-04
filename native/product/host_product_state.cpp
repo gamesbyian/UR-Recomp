@@ -345,7 +345,7 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
         for (const auto& field : fields) {
             bool known = field.first == "widescreen";
             for (std::size_t i = 0; !known && i < required_count; ++i) {
-                known = field.first == required[i];
+                known = field.first == std::string(required[i]);
             }
             if (!known) {
                 return {std::nullopt, "unexpected host-state field set"};

@@ -67,6 +67,8 @@ def check_contract(root: Path = ROOT) -> list[str]:
         if token in combined:
             errors.append(f"S0 probe must remain guest/product independent: {token}")
 
+    if 'source "$DEVKITPRO/switchvars.sh"' not in workflow:
+        errors.append("S0 workflow must explicitly source the devkitPro Switch environment")
     if "workflow_dispatch:" not in workflow:
         errors.append("S0 workflow must remain manually runnable")
     if "pull_request:" not in workflow:

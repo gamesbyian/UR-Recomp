@@ -1,0 +1,148 @@
+name: VS Widescreen capacity probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      margin:
+        description: "Pixels per side; strip-granular +16..+48"
+        required: true
+        default: "48"
+  workflow_call:
+    inputs:
+      margin:
+        required: true
+        type: number
+
+concurrency:
+  group: widescreen-vs-capacity-${{ github.ref }}-${{ inputs.margin }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate parameter
+        env:
+          MARGIN: ${{ inputs.margin }}
+        run: |
+          python3 - <<'PY'
+          import os
+          margin=int(os.environ["MARGIN"])
+          if margin < 16 or margin > 48 or margin % 8:
+              raise SystemExit("margin must be an 8-pixel multiple from 16 through 48")
+          PY
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+      - name: Run focused tooling tests
+        run: |
+          python3 -m unittest \
+            tests.unit.test_apply_native_widescreen_hook \
+            tests.unit.test_build_widescreen_capacity_result \
+            tests.unit.test_check_widescreen_capacity_evidence \
+            tests.unit.test_evaluate_widescreen_capacity_probe
+      - name: Generate hooked native target
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          ROOT="$RUNNER_TEMP/native"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          mkdir -p "$ROOT"
+          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+            --rom "$ROM" --dir "$ROOT" --name "Uniracers" --players 2 --yes \
+            --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay --no-github \
+            --no-submodules --generate --no-build
+          PROJECT="$ROOT/UniracersSNESRecomp"
+          python3 tools/seed_native_widescreen_aot.py "$PROJECT/recomp"
+          python3 "$FRAMEWORK/snesrecomp_cli.py" generate \
+            --rom "$ROM" --project-root "$PROJECT" --cfg-dir recomp \
+            --out-dir src/gen --funcs-h recomp/funcs.h --cfg-roots
+          python3 tools/patch_widescreen_probe_host.py "$PROJECT/src/main.c"
+          python3 tools/apply_native_widescreen_hook.py "$PROJECT/src/gen"
+          cmake -S "$PROJECT" -B "$PROJECT/build" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL2 -DSNESRECOMP_SDL3_FETCH=OFF
+          cmake --build "$PROJECT/build" -j2
+          test -x "$PROJECT/build/UniracersSNESRecomp"
+      - name: Run matched stock and candidate fixtures
+        env:
+          MARGIN: ${{ inputs.margin }}
+        run: |
+          set -euo pipefail
+          PROJECT="$RUNNER_TEMP/native/UniracersSNESRecomp"
+          EXE="$PROJECT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          INPUT="$GITHUB_WORKSPACE/tests/input/vs-first-race.input"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/vs-first-race-observe.script"
+          ROOT="$RUNNER_TEMP/widescreen-vs-capacity"
+          mkdir -p "$ROOT"
+          for margin in 0 "$MARGIN"; do
+            OUT="$ROOT/$margin"
+            mkdir -p "$OUT/dumps" "$OUT/frames"
+            rm -rf "$PROJECT/build/saves"
+            SNESRECOMP_INPUT_FILE="$INPUT" \
+            SNESRECOMP_DUMP_DIR="$OUT/dumps" \
+            SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+            SNESRECOMP_FRAMEDUMP_START=1340 \
+            SNESRECOMP_FRAMEDUMP_END=1340 \
+            URRECOMP_WS_MARGIN="$margin" \
+            URRECOMP_WS_NATIVE_TRACE=1 \
+            SDL_AUDIODRIVER=dummy \
+              timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+              --framedump "$OUT/frames" >"$OUT/run.log" 2>&1
+          done
+      - name: Compare protected state and geometry
+        env:
+          MARGIN: ${{ inputs.margin }}
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/widescreen-vs-capacity"
+          mkdir -p analysis/generated
+          CHECKPOINTS=(
+            --checkpoint vs-race-1240
+            --checkpoint vs-race-1340
+            --checkpoint vs-race-1440
+            --checkpoint vs-race-1620
+          )
+          for margin in 0 "$MARGIN"; do
+            python3 tools/summarize_paired_player_slots.py "$ROOT/$margin/dumps" "${CHECKPOINTS[@]}" \
+              --json-out "$ROOT/$margin/state.json" >"$ROOT/$margin/state.txt"
+          done
+          python3 tools/build_widescreen_capacity_result.py \
+            --control-state "$ROOT/0/state.json" \
+            --candidate-state "$ROOT/$MARGIN/state.json" \
+            --control-frame "$ROOT/0/frames/frame_001340.bmp" \
+            --candidate-frame "$ROOT/$MARGIN/frames/frame_001340.bmp" \
+            --margin "$MARGIN" \
+            --out analysis/generated/widescreen-vs-capacity-result.json
+      - name: Evaluate capacity assertions
+        env:
+          MARGIN: ${{ inputs.margin }}
+        run: |
+          python3 tools/evaluate_widescreen_capacity_probe.py \
+            --generated analysis/generated/widescreen-vs-capacity-result.json \
+            --log "$RUNNER_TEMP/widescreen-vs-capacity/$MARGIN/run.log" \
+            --margin "$MARGIN" \
+            --out analysis/generated/widescreen-vs-capacity-envelope.json
+      - name: Upload compact evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: widescreen-vs-capacity-${{ inputs.margin }}
+          path: |
+            analysis/generated/widescreen-vs-capacity-result.json
+            analysis/generated/widescreen-vs-capacity-envelope.json
+            ${{ runner.temp }}/widescreen-vs-capacity/*/state.json
+            ${{ runner.temp }}/widescreen-vs-capacity/*/run.log
+            ${{ runner.temp }}/widescreen-vs-capacity/*/frames/frame_001340.bmp
+          if-no-files-found: warn
+          retention-days: 7

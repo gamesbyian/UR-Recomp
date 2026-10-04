@@ -20,7 +20,7 @@
 +static uint64 g_input_relative_origin;
  
  static int LoadInputFile(const char *path) {
-@@ -691,7 +694,17 @@ static int LoadInputFile(const char *path) {
+@@ -691,6 +694,16 @@ static int LoadInputFile(const char *path) {
    return 1;
  }
  

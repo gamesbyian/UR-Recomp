@@ -150,6 +150,7 @@ int main() {
         find_racer_registration_for_state(0x057F, repeated_057f_context);
     assert(repeated_057f != nullptr);
     assert(is_authored_057f_p1_companion_0d4a_registration(*repeated_057f));
+    assert(sample_racer_hd_asset(*repeated_057f, 156, 22, false, false) == 0);
     assert(
         sample_racer_hd_asset(*repeated_057f, 132, 120, false, false) !=
         sample_racer_hd_contract_candidate(132, 120, false, false)
@@ -187,7 +188,7 @@ int main() {
     assert(repeated_bottom_min_lx == 31);
     assert(repeated_bottom_max_lx == 34);
     assert(repeated_bottom_min_lx + repeated_bottom_max_lx == 65);
-    assert(repeated_opaque == 321);
+    assert(repeated_opaque == 315);
 
     // Frames 1213-1214 and 1205-1206 share the exact 057E/0543 state and
     // therefore one authored pose. Lock the recovered gameplay envelope and
@@ -342,6 +343,7 @@ int main() {
         find_racer_registration_for_state(0x0541, p2_predecessor_context);
     assert(p2_predecessor != nullptr);
     assert(is_authored_0541_p2_predecessor_registration(*p2_predecessor));
+    assert(sample_racer_hd_asset(*p2_predecessor, 94, 22, false, false) == 0);
 
     int p2_predecessor_min_lx = kRacerHdLogicalSize;
     int p2_predecessor_min_ly = kRacerHdLogicalSize;

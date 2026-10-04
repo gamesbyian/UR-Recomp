@@ -47,6 +47,11 @@ enum class HostPresentationFpsMode : std::uint8_t {
     Native = 5,
 };
 
+enum class HostWidescreenMode : std::uint8_t {
+    Original = 0,
+    Authentic16x9 = 1,
+};
+
 enum class HostInternalRenderScale : std::uint8_t {
     X1 = 1,
     X2 = 2,
@@ -69,6 +74,7 @@ struct HostSettings {
     // Semantic output size only; monitor refresh remains a separate concern.
     HostOutputResolution output_resolution =
         HostOutputResolution::native();
+    HostWidescreenMode widescreen_mode = HostWidescreenMode::Original;
     // Host presentation density for the HD compositor. This is independent
     // of output resolution and never changes guest logical geometry.
     HostInternalRenderScale internal_render_scale =
@@ -81,6 +87,7 @@ struct HostSettings {
                vsync_mode == other.vsync_mode &&
                presentation_fps_mode == other.presentation_fps_mode &&
                output_resolution == other.output_resolution &&
+               widescreen_mode == other.widescreen_mode &&
                internal_render_scale == other.internal_render_scale;
     }
 };

@@ -2368,12 +2368,12 @@ Until then, use historical movies event-relatively, as WORK-QUEUE P0 item 1 alre
 - **Dumps were cropped to 256.** The framework `dump` command (`write_fb`) always cropped to the centred 256 columns, so race dumps stayed 256x224.
 
 **Change:**
-- **Hook margin.** With no diagnostic selector, the hook margin now follows the host's live raster (`g_ws_extra`, framework `widescreen.h`): `ceil8(extra)`, capped at +72. The 16:9 race (+43) resolves to +48, and stock 256 frames stay at 0. The env selectors keep their exact prior meaning.
-- **Dump width.** `tools/patches/snesrecomp-native-widescreen-state-dump.patch` keeps the whole presented field in native-widescreen dumps (`256 + 2*extra`, BMP rows 4-byte padded, `info.json` `fb_width` truthful). Stock dumps (`extra == 0`) are byte-identical.
+- **Hook margin.** #405 on main closes this half: the product mirrors persisted Widescreen into `URRECOMP_WS_VIEW`, and the hook no longer caches the unset state. This branch's alternative, the hook following the host's `g_ws_extra`, was dropped on merge so that only one mechanism remains.
+- **Dump width.** `tools/patches/snesrecomp-native-widescreen-state-dump.patch` keeps the whole presented field in native-widescreen dumps (`256 + 2*extra`, BMP rows 4-byte padded, `info.json` `fb_width` truthful). Stock dumps (`extra == 0`) are byte-identical. Without it, the acceptance's 342x224 assertion cannot pass.
 
 **Evidence:** product acceptance script, persisted v6 state:
 - dumps: frontend 256x224, race and after-scroll 342x224;
 - traces: 638 `URWS_PREP_EXT margin=48` and 3190 `URWS_SHADOW_EXT provider=course-runtime margin=48` lines;
 - the after-scroll frame shows clean course art across the full width.
 
-**Propagation:** none of the widescreen probe workflows read `.fb.*` from `dump` (they use `--framedump`), and parity tools run at `extra == 0`. Margin changes at scene boundaries (frontend 0 → race +48) are now live; reopen if a race-entry frame shows unprepared edge columns before the first scroll.
+**Propagation:** none of the widescreen probe workflows read `.fb.*` from `dump` (they use `--framedump`), and parity tools run at `extra == 0`. 

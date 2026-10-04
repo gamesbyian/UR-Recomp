@@ -2,7 +2,7 @@ name: Historical 2008 Dragster replay
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     paths:
       - "reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv"
       - "reference/roms/retail/Uniracers_USA.sfc"
@@ -15,11 +15,29 @@ on:
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tools/toolchain-entries/_global.json"
+      - "tools/patches/snesrecomp-desktop-lua-bridge.patch"
       - "snesrecomp"
-
+      - ".github/workflows/historical-wip-dragster.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "tools/extract_smv_input.py"
+      - "tools/replay_input_via_lua.py"
+      - "tools/summarize_wram_trace_checkpoints.py"
+      - "tools/compose_historical_replay_result.py"
+      - "tools/compose_historical_reference_result.py"
+      - "tests/input/historical-2008-wip.input"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/_global.json"
+      - "tools/patches/snesrecomp-desktop-lua-bridge.patch"
+      - "snesrecomp"
 concurrency:
   group: historical-wip-dragster-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: write
@@ -129,6 +147,9 @@ jobs:
         run: |
           set -euo pipefail
           ROOT="$RUNNER_TEMP/native"
+          LUA_PATCH="$GITHUB_WORKSPACE/tools/patches/snesrecomp-desktop-lua-bridge.patch"
+          git -C snesrecomp apply --check "$LUA_PATCH"
+          git -C snesrecomp apply "$LUA_PATCH"
           sh snesrecomp/tools/new_project/setup_project.sh \
             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
             --dir "$ROOT" \
@@ -172,6 +193,23 @@ jobs:
           ) >"$LOG" 2>&1 &
           PID=$!
           trap 'kill "$PID" 2>/dev/null || true' EXIT
+
+          for _ in $(seq 1 100); do
+            if grep -q "BizHawk-style Lua TCP listening on 127.0.0.1:4380" "$LOG" 2>/dev/null; then
+              break
+            fi
+            if ! kill -0 "$PID" 2>/dev/null; then
+              cat "$LOG"
+              echo "::error::Native runtime exited before the Lua bridge became ready"
+              exit 1
+            fi
+            sleep 0.1
+          done
+          if ! grep -q "BizHawk-style Lua TCP listening on 127.0.0.1:4380" "$LOG"; then
+            cat "$LOG"
+            echo "::error::Lua bridge did not listen on 127.0.0.1:4380"
+            exit 1
+          fi
 
           python3 tools/replay_input_via_lua.py "$INPUT" \
             --frames 3480 \

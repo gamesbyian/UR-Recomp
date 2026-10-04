@@ -2,7 +2,7 @@ name: Dragster deterministic finish differential
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     paths:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "rom_identity.txt"
@@ -14,7 +14,21 @@ on:
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/toolchain-entries/_global.json"
-
+      - ".github/workflows/race-finish-differential.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "rom_identity.txt"
+      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/cargo/snesrecomp-analyzer/**"
+      - "third_party/manifest.json"
+      - "tests/input/race-finish-dragster.script"
+      - "tools/summarize_paired_player_slots.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/_global.json"
 concurrency:
   group: race-finish-differential-${{ github.ref }}
   cancel-in-progress: true

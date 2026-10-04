@@ -6,11 +6,7 @@ is the durable source: it fails closed unless the exact accepted preparation
 and live preparation boundaries are present.
 
 Runtime contract:
-  no Widescreen env          -> follow the host's live widened raster:
-                               stock 256 frames stay untouched (margin 0);
-                               a product frame widened by persisted
-                               Widescreen prepares ceil8(extra) columns
-                               (16:9 race -> +48), capped at +72
+  no Widescreen env          -> untouched stock behavior
   URRECOMP_WS_VIEW=authentic-16x9
                              -> accepted Authentic policy binding, resolved to +48
   URRECOMP_WS_VIEW=authentic-16x9-candidate
@@ -58,7 +54,6 @@ SUPPORT = r'''
 #include <string.h>
 
 static int ur_ws_native_margin_cache = -32768;
-static int ur_ws_native_margin_dynamic = 0;
 static int ur_ws_native_trace_cache = -1;
 static int ur_ws_native_second_pass = 0;
 static int ur_ws_native_payload_live = 0;
@@ -82,31 +77,19 @@ static uint8 ur_ws_native_shadow_payload[UR_WS_NATIVE_MAX_HOST_COLUMNS][32];
 static uint16 ur_ws_native_shadow_edge[UR_WS_NATIVE_MAX_HOST_COLUMNS];
 static uint16 ur_ws_native_shadow_count[UR_WS_NATIVE_MAX_HOST_COLUMNS];
 
-/* Per-side widened raster columns for the current frame (framework
- * widescreen.h contract); 0 whenever the host presents the stock 256 field. */
-extern int g_ws_extra;
-
 static int ur_ws_native_margin(void) {
   if (ur_ws_native_margin_cache == -32768) {
     const char *margin = getenv("URRECOMP_WS_MARGIN");
-    const char *view = getenv("URRECOMP_WS_VIEW");
     if (margin && *margin) {
       ur_ws_native_margin_cache = atoi(margin);
-    } else if (view && *view) {
+    } else {
+      const char *view = getenv("URRECOMP_WS_VIEW");
+      if (!view || !*view)
+        return 0;
       ur_ws_native_margin_cache =
           (strcmp(view, "authentic-16x9") == 0 ||
            strcmp(view, "authentic-16x9-candidate") == 0) ? 48 : 0;
-    } else {
-      ur_ws_native_margin_dynamic = 1;
-      ur_ws_native_margin_cache = 0;
     }
-  }
-  if (ur_ws_native_margin_dynamic) {
-    /* No diagnostic selector: follow the host's live raster. A product frame
-     * widened by its persisted setting prepares the tile-aligned columns it
-     * exposes (16:9 race: 43 -> +48); stock frames stay at margin 0. */
-    int extra = g_ws_extra > 0 ? ((g_ws_extra + 7) / 8) * 8 : 0;
-    return extra > 72 ? 72 : extra;
   }
   return ur_ws_native_margin_cache;
 }

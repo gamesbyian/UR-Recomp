@@ -20,7 +20,7 @@
    g_ws_active = g_ws_extra != 0;
    g_new_ppu = (g_ppu_render_flags & kPpuRenderFlags_NewRenderer) != 0;
    if (g_config.no_sprite_limits)
-@@ -829,10 +833,10 @@ static void PreparePpuFrame(void) {
+@@ -829,10 +832,10 @@ static void PreparePpuFrame(void) {
      g_ppu_render_flags |= kPpuRenderFlags_NoSpriteLimits;
    else
      g_ppu_render_flags &= ~kPpuRenderFlags_NoSpriteLimits;

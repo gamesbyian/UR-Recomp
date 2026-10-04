@@ -53,5 +53,9 @@
       "cart": "d8f49994"
     }
   },
-  "claim": "Deterministic native Linux reference for the bounded S2 hardware-probe sequence; not Switch parity evidence by itself."
+  "claim": "Deterministic native Linux reference for the bounded S2 hardware-probe sequence; not Switch parity evidence by itself.",
+  "status": {
+    "snes_init": 1,
+    "execution_complete": 1
+  }
 }

@@ -3,6 +3,7 @@
 
 Human-readable logs are diagnostic output. Durable gates should exchange this
 structured envelope so later tools do not depend on grep-compatible prose.
+Subsystem-specific metrics remain free-form; named assertions are the stable API.
 """
 
 from __future__ import annotations

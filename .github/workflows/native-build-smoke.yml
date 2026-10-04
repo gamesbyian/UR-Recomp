@@ -30,6 +30,8 @@ on:
       - "tests/input/modern-exit-frontend-results.script"
       - "tests/input/modern-exit-frontend-active.script"
       - "tests/input/widescreen-product-acceptance.script"
+      - "tools/check_widescreen_product_parity.py"
+      - "tests/unit/test_check_widescreen_product_parity.py"
       - ".github/workflows/native-build-smoke.yml"
       - "third_party/archives/SDL3-3.4.10.tar.gz"
       - "tools/toolchain-entries/sdl3.json"
@@ -344,6 +346,44 @@ jobs:
           if race != (342, 224) or after != (342, 224):
               raise SystemExit(f"active 1P race did not hold accepted 342x224 view: {race} {after}")
           PY
+
+      - name: Shipping Widescreen stock-parity acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The widened view may add side columns only: its authored 256-wide
+          # centre must equal the matched Original-view frame, and guest WRAM
+          # may differ only inside the guest +8 lane.
+          python3 -m unittest tests.unit.test_check_widescreen_product_parity
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/widescreen-product-acceptance.script"
+          ROOT="$RUNNER_TEMP/widescreen-product-stock"
+          mkdir -p "$ROOT/dumps"
+          cat >"$ROOT/host-state-v6.txt" <<'STATEEOF'
+          UR-HOST-STATE/6
+          profile=
+          pause_on_focus_loss=1
+          vibration_enabled=1
+          display_mode=windowed
+          vsync=on
+          presentation_fps=game
+          output_resolution=native
+          widescreen=original
+          STATEEOF
+
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_HOST_STATE_PATH="$ROOT/host-state-v6.txt" \
+          SNESRECOMP_DUMP_DIR="$ROOT/dumps" \
+          SDL_AUDIODRIVER=dummy \
+          timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$ROOT/run.log" 2>&1
+
+          python3 tools/check_widescreen_product_parity.py \
+            --stock-dumps "$ROOT/dumps" \
+            --wide-dumps "$RUNNER_TEMP/widescreen-product/dumps" \
+            --checkpoint ws-product-after-scroll \
+            --out "$RUNNER_TEMP/widescreen-product-parity.json"
 
       - name: Build display-geometry review
         shell: bash

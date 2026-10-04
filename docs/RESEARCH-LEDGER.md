@@ -2377,3 +2377,26 @@ Until then, use historical movies event-relatively, as WORK-QUEUE P0 item 1 alre
 - the after-scroll frame shows clean course art across the full width.
 
 **Propagation:** none of the widescreen probe workflows read `.fb.*` from `dump` (they use `--framedump`), and parity tools run at `extra == 0`. 
+
+### R-2026-10-04-UI-29 — Widescreen second pass leaked the BG scroll HDMA tables; host columns are never presented
+
+**Status:** confirmed (local product build, matched Original/16:9 runs of `tests/input/widescreen-product-acceptance.script`); fix in `tools/apply_native_widescreen_hook.py`  
+**Date:** 2026-10-04  
+**Area:** Widescreen | presentation fidelity
+
+**Observation:** the shipping 16:9 view drew the 1P course wrongly for the whole race. The track strip sat at the top of the screen, or was missing, and the parallax backdrop was offset. VS showed the same defect at every margin from +8 to +48. Every existing gate passed anyway, because they check protected racer/camera state, provider calibration and frame dimensions, never pixels. UI-28's "clean course art across the full width" was a visual read of a frame that was in fact wrong.
+
+**Cause:** the guest +8 lane runs a second pass of `$A59E` with the camera advanced, then restores the CPU and low WRAM (`$0000-$1FFF`). `$A59E` also rebuilds the per-frame BG1/BG2 scroll HDMA tables at `$7E:2046..$2063` (channel 4 writes `$210D/$210E`; channel 3 writes `$210F/$2110`). Those writes sat outside the restored range, so HDMA presented the hypothetical camera's scroll: at the race-start dump, BG1 H/V was `$0130/$0162` instead of `$0098/$00CB`. Camera and simulation state were untouched, which is why the protected-state comparisons never saw it.
+
+**Change:** the second pass now snapshots and restores all 128 KiB of WRAM, so only the extracted payload survives it. `tools/check_widescreen_product_parity.py` adds a mechanical gate to native smoke. The widened frame's centred 256 columns must equal the matched Original-view frame, and WRAM may differ only inside the guest-lane descriptor table (`$0399..$03E0`) and strip staging (`$0433..$04B6`).
+
+**Evidence (local, frames 1030-1945 of the 1P route):**
+- before the fix, the after-scroll checkpoint had 40,563 differing centre pixels and 15 leaked WRAM bytes (`$7E:2026..$212E`);
+- after the fix, it has 0 and 0. WRAM differs on every frame only inside the lane ranges;
+- 716 of 916 race frames are centre-identical to stock.
+
+**Residual (open):** two windows still differ: frames 1030-1206 (the stationary race start, ≤240 px) and frames 1406-1429 (≤1,120 px). VRAM shows the cause. At the race-start dump, BG1 tilemap column 25 differs at rows 8, 22 and 24: stock holds track tiles where the widened run has zeros. The guest +8 lane DMA-writes a column prepared for a *hypothetical next camera position* into the shared 32-column VRAM ring. The pre-race pan moves diagonally, so that column covers a different row range. When the camera stops or turns, stock never rewrites the slot, and visible stock rows stay clobbered.
+
+**Second finding:** the host-owned "+16..+72" columns (`ur_ws_native_shadow_payload`, `ur_ws_native_vs_shadow_payload`) are computed and traced but **never consumed**. Margins beyond the +8 lane show whatever the 512-px VRAM ring holds. "Validated capacity through +72" (and VS through +48) therefore means the materializer can *compute* calibrated columns, not that the product *presents* them.
+
+**Next:** present the materialized columns through the framework's world-keyed `ws_shadow` store (`WsShadowPrefillTile`/`ForceTile`, already used by other titles for exactly this case), and retire the guest VRAM lane so the stock ring is never written. Gate it with the parity oracle at the race-start checkpoint plus a margin-correctness check. Do not promote VS to world-expand until that holds.

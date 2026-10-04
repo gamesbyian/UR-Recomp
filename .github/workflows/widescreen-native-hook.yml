@@ -173,17 +173,24 @@ jobs:
           run_margin() {
             local margin="$1"
             local out="$ROOT/$margin"
-            mkdir -p "$out/dumps" "$out/frames"
+            local cwd="$out/cwd"
+            mkdir -p "$out/dumps" "$out/frames" "$cwd"
+            # Concurrent runs must not share the exe-anchored saves/ and mods/
+            # state: an explicit --config keeps each process in its own cwd.
+            for f in config.ini keybinds.ini rom.cfg; do
+              if [ -f "$PROJECT/build/$f" ]; then cp "$PROJECT/build/$f" "$cwd/"; fi
+            done
             echo "== native Widescreen margin $margin =="
-            SDL_AUDIODRIVER=dummy \
-            URRECOMP_WS_MARGIN="$margin" \
-            URRECOMP_WS_NATIVE_TRACE=1 \
-            SNESRECOMP_DUMP_DIR="$out/dumps" \
-            SNESRECOMP_FRAMEDUMP_PIXELS=1 \
-            SNESRECOMP_FRAMEDUMP_START=300 \
-            SNESRECOMP_FRAMEDUMP_END=300 \
-            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
-              --framedump "$out/frames" >"$out/run.log" 2>&1
+            (cd "$cwd" && \
+              SDL_AUDIODRIVER=dummy \
+              URRECOMP_WS_MARGIN="$margin" \
+              URRECOMP_WS_NATIVE_TRACE=1 \
+              SNESRECOMP_DUMP_DIR="$out/dumps" \
+              SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+              SNESRECOMP_FRAMEDUMP_START=300 \
+              SNESRECOMP_FRAMEDUMP_END=300 \
+              timeout 120s xvfb-run -a "$EXE" "$ROM" --config "$cwd/config.ini" \
+                --script "$SCRIPT" --framedump "$out/frames" >"$out/run.log" 2>&1)
             test -s "$out/dumps/prep-emission-after-scroll.wram.bin"
           }
 
@@ -322,12 +329,19 @@ jobs:
 
           run_liveness() {
             local margin="$1"
-            SDL_AUDIODRIVER=dummy \
-            URRECOMP_WS_MARGIN="$margin" \
-            URRECOMP_WS_NATIVE_TRACE=1 \
-            SNESRECOMP_DUMP_DIR="$ROOT/$margin/dumps" \
-            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
-              >"$ROOT/$margin/run.log" 2>&1
+            local cwd="$ROOT/$margin/cwd"
+            mkdir -p "$cwd"
+            # Isolate exe-anchored saves/ and mods/ between concurrent runs.
+            for f in config.ini keybinds.ini rom.cfg; do
+              if [ -f "$PROJECT/build/$f" ]; then cp "$PROJECT/build/$f" "$cwd/"; fi
+            done
+            (cd "$cwd" && \
+              SDL_AUDIODRIVER=dummy \
+              URRECOMP_WS_MARGIN="$margin" \
+              URRECOMP_WS_NATIVE_TRACE=1 \
+              SNESRECOMP_DUMP_DIR="$ROOT/$margin/dumps" \
+              timeout 120s xvfb-run -a "$EXE" "$ROM" --config "$cwd/config.ini" \
+                --script "$SCRIPT" >"$ROOT/$margin/run.log" 2>&1)
             python3 tools/summarize_object_liveness_probe.py \
               "$ROOT/$margin/dumps" --json-out "$ROOT/$margin/summary.json" \
               >"$ROOT/$margin/summary.txt"

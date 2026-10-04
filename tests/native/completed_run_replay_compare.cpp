@@ -17,30 +17,82 @@ RunPlaybackTarget target_for(const CompletedRunRecord& record) {
     };
 }
 
-bool same_inputs(
+bool report_provenance(
     const CompletedRunRecord& a,
     const CompletedRunRecord& b) {
-    if (a.inputs.size() != b.inputs.size()) return false;
-    for (std::size_t i = 0; i < a.inputs.size(); ++i) {
-        const auto& x = a.inputs[i];
-        const auto& y = b.inputs[i];
-        if (x.start_frame != y.start_frame ||
-            x.duration != y.duration ||
-            x.p1_mask != y.p1_mask ||
-            x.p2_mask != y.p2_mask) return false;
-    }
-    return true;
+    bool same = true;
+    const auto report = [&](const char* field, const std::string& x, const std::string& y) {
+        if (x == y) return;
+        same = false;
+        std::cerr << "DIFF provenance." << field
+                  << " original=" << x
+                  << " replayed=" << y << "\n";
+    };
+    report("game_id", a.provenance.game_id, b.provenance.game_id);
+    report("rom_sha256", a.provenance.rom_sha256, b.provenance.rom_sha256);
+    report("build_compat_id", a.provenance.build_compat_id, b.provenance.build_compat_id);
+    report("course_id", a.provenance.course_id, b.provenance.course_id);
+    report("mode", a.provenance.mode, b.provenance.mode);
+    return same;
 }
 
-bool same_splits(
+bool report_inputs(
     const CompletedRunRecord& a,
     const CompletedRunRecord& b) {
-    if (a.splits.size() != b.splits.size()) return false;
-    for (std::size_t i = 0; i < a.splits.size(); ++i) {
-        if (a.splits[i].id != b.splits[i].id ||
-            a.splits[i].ticks60 != b.splits[i].ticks60) return false;
+    bool same = true;
+    if (a.inputs.size() != b.inputs.size()) {
+        same = false;
+        std::cerr << "DIFF inputs.size original=" << a.inputs.size()
+                  << " replayed=" << b.inputs.size() << "\n";
     }
-    return true;
+    const std::size_t count = a.inputs.size() < b.inputs.size()
+        ? a.inputs.size() : b.inputs.size();
+    for (std::size_t i = 0; i < count; ++i) {
+        const auto& x = a.inputs[i];
+        const auto& y = b.inputs[i];
+        if (x.start_frame == y.start_frame &&
+            x.duration == y.duration &&
+            x.p1_mask == y.p1_mask &&
+            x.p2_mask == y.p2_mask) {
+            continue;
+        }
+        same = false;
+        std::cerr << "DIFF input[" << i << "]"
+                  << " original={start=" << x.start_frame
+                  << ",duration=" << x.duration
+                  << ",p1=" << x.p1_mask
+                  << ",p2=" << x.p2_mask
+                  << "} replayed={start=" << y.start_frame
+                  << ",duration=" << y.duration
+                  << ",p1=" << y.p1_mask
+                  << ",p2=" << y.p2_mask
+                  << "}\n";
+    }
+    return same;
+}
+
+bool report_splits(
+    const CompletedRunRecord& a,
+    const CompletedRunRecord& b) {
+    bool same = true;
+    if (a.splits.size() != b.splits.size()) {
+        same = false;
+        std::cerr << "DIFF splits.size original=" << a.splits.size()
+                  << " replayed=" << b.splits.size() << "\n";
+    }
+    const std::size_t count = a.splits.size() < b.splits.size()
+        ? a.splits.size() : b.splits.size();
+    for (std::size_t i = 0; i < count; ++i) {
+        const auto& x = a.splits[i];
+        const auto& y = b.splits[i];
+        if (x.id == y.id && x.ticks60 == y.ticks60) continue;
+        same = false;
+        std::cerr << "DIFF split[" << i << "]"
+                  << " original={id=" << x.id << ",ticks60=" << x.ticks60
+                  << "} replayed={id=" << y.id << ",ticks60=" << y.ticks60
+                  << "}\n";
+    }
+    return same;
 }
 
 }  // namespace
@@ -57,13 +109,29 @@ int main(int argc, char** argv) {
     std::string detail;
     if (!compatible_for_playback(
             *replayed.record, target_for(*original.record), &detail)) {
-        std::cerr << detail << "\n";
+        std::cerr << "playback compatibility failed: " << detail << "\n";
+        (void)report_provenance(*original.record, *replayed.record);
         return 3;
     }
-    if (original.record->elapsed_ticks60 != replayed.record->elapsed_ticks60 ||
-        original.record->frame_count != replayed.record->frame_count ||
-        !same_splits(*original.record, *replayed.record) ||
-        !same_inputs(*original.record, *replayed.record)) {
+
+    bool same = true;
+    same = report_provenance(*original.record, *replayed.record) && same;
+    if (original.record->elapsed_ticks60 != replayed.record->elapsed_ticks60) {
+        same = false;
+        std::cerr << "DIFF elapsed_ticks60 original="
+                  << original.record->elapsed_ticks60
+                  << " replayed=" << replayed.record->elapsed_ticks60 << "\n";
+    }
+    if (original.record->frame_count != replayed.record->frame_count) {
+        same = false;
+        std::cerr << "DIFF frame_count original="
+                  << original.record->frame_count
+                  << " replayed=" << replayed.record->frame_count << "\n";
+    }
+    same = report_splits(*original.record, *replayed.record) && same;
+    same = report_inputs(*original.record, *replayed.record) && same;
+
+    if (!same) {
         std::cerr << "replayed run differs from captured run\n";
         return 4;
     }
@@ -72,6 +140,7 @@ int main(int argc, char** argv) {
         << "UR_RUN_REPLAY_COMPARE PASS course="
         << original.record->provenance.course_id
         << " elapsed_ticks60=" << original.record->elapsed_ticks60
+        << " frame_count=" << original.record->frame_count
         << " inputs=" << original.record->inputs.size()
         << " splits=" << original.record->splits.size()
         << "\n";

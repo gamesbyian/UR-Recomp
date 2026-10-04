@@ -3,8 +3,8 @@
   "host_state_codec_version": 6,
   "purpose": "Machine-readable catalog for host-owned modern settings. Runtime/source remains authoritative until each descriptor is generated from this catalog.",
   "versioning_policy": {
-    "current": "The v1-v5 codecs remain strict by version. v6 keeps seven required core keys and admits only explicitly known additive keys whose absence has a defined default.",
-    "target": "Use the v6 known-key/default pattern for future additive settings; bump only when the encoded grammar or compatibility contract changes.",
+    "current": "Versions 1-5 remain strict by version and exact field set. Version 6 has a required administrative core plus any number of explicitly known additive keys whose absence receives typed defaults; unknown keys remain rejected.",
+    "target": "Keep Version 6 as the stable additive envelope: extend the known-key/defaulting set for future optional settings and reserve schema changes for grammar or compatibility changes.",
     "rule": "Do not bump the host-state version solely because a new optional setting exists unless the encoded grammar or compatibility contract actually changes."
   },
   "settings": [
@@ -105,6 +105,23 @@
       "menu_symbol": "UR_MODERN_OPTIONS_WIDESCREEN",
       "menu_visible": true,
       "runtime_status": "integrated",
+      "authentic_inert": true
+    },
+    {
+      "id": "internal_render_scale",
+      "persisted_key": "internal_render_scale",
+      "storage_type": "enum",
+      "default": "4x",
+      "choices": [
+        "1x",
+        "2x",
+        "3x",
+        "4x"
+      ],
+      "introduced_codec_version": 6,
+      "menu_symbol": null,
+      "menu_visible": false,
+      "runtime_status": "policy-and-persistence-ready",
       "authentic_inert": true
     }
   ]

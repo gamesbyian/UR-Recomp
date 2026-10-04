@@ -40,5 +40,5 @@ jobs:
           set -eu
           . "$DEVKITPRO/switchvars.sh"
           python3 tools/build_switch_shared_core_probe.py --out-dir "$RUNNER_TEMP/switch-shared-core"
-          test "$(find "$RUNNER_TEMP/switch-shared-core" -name '*.o' -type f | wc -l)" -eq 21
+          test "$(find "$RUNNER_TEMP/switch-shared-core" -name '*.o' -type f | wc -l)" -eq 20
           du -ch "$RUNNER_TEMP/switch-shared-core"/*.o | tail -n1

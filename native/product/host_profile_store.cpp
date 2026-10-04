@@ -35,16 +35,14 @@ HostProfileLoadResult load_host_profile_state_file(
     std::string_view expected_profile_id) {
     if (!policy_for(mode).host_profiles) {
         return {
-            HostProfileLoadStatus::Rejected,
+            HostProfileLoadStatus::RejectedByPolicy,
             std::nullopt,
-            false,
             "profile persistence disabled by execution policy"};
     }
     if (path.empty() || !is_valid_profile_id(expected_profile_id)) {
         return {
-            HostProfileLoadStatus::Rejected,
+            HostProfileLoadStatus::Malformed,
             std::nullopt,
-            false,
             "invalid profile load request"};
     }
 
@@ -52,12 +50,11 @@ HostProfileLoadResult load_host_profile_state_file(
     std::FILE* file = std::fopen(path.c_str(), "rb");
     if (!file) {
         if (errno == ENOENT) {
-            return {HostProfileLoadStatus::Missing, std::nullopt, false, {}};
+            return {HostProfileLoadStatus::Missing, std::nullopt, {}};
         }
         return {
             HostProfileLoadStatus::IoError,
             std::nullopt,
-            false,
             "unable to open profile-state file"};
     }
 
@@ -66,16 +63,14 @@ HostProfileLoadResult load_host_profile_state_file(
         return {
             HostProfileLoadStatus::IoError,
             std::nullopt,
-            false,
             "unable to size profile-state file"};
     }
     const long size = std::ftell(file);
     if (size < 0 || size > kMaxProfileStateBytes) {
         std::fclose(file);
         return {
-            HostProfileLoadStatus::Rejected,
+            HostProfileLoadStatus::Malformed,
             std::nullopt,
-            false,
             "profile-state file size is invalid"};
     }
     if (std::fseek(file, 0, SEEK_SET) != 0) {
@@ -83,7 +78,6 @@ HostProfileLoadResult load_host_profile_state_file(
         return {
             HostProfileLoadStatus::IoError,
             std::nullopt,
-            false,
             "unable to rewind profile-state file"};
     }
 
@@ -96,7 +90,6 @@ HostProfileLoadResult load_host_profile_state_file(
             return {
                 HostProfileLoadStatus::IoError,
                 std::nullopt,
-                false,
                 "short profile-state read"};
         }
     }
@@ -104,31 +97,63 @@ HostProfileLoadResult load_host_profile_state_file(
         return {
             HostProfileLoadStatus::IoError,
             std::nullopt,
-            false,
             "unable to close profile-state file"};
     }
 
     const auto decoded = decode_host_profile_state(encoded);
     if (!decoded) {
         return {
-            HostProfileLoadStatus::Rejected,
+            HostProfileLoadStatus::Malformed,
             std::nullopt,
-            false,
             decoded.error};
     }
     if (decoded.state->profile_id != expected_profile_id) {
         return {
-            HostProfileLoadStatus::Rejected,
+            HostProfileLoadStatus::Malformed,
             std::nullopt,
-            decoded.migrated,
             "profile-state identifier mismatch"};
     }
 
+    return {HostProfileLoadStatus::Loaded, decoded.state, {}};
+}
+
+HostProfileResolveResult resolve_host_profile_state_file(
+    ExecutionMode mode,
+    const std::string& path,
+    std::string_view expected_profile_id) {
+    const auto loaded =
+        load_host_profile_state_file(mode, path, expected_profile_id);
+    if (loaded.loaded()) {
+        return {HostProfileResolveStatus::Loaded, loaded.state, {}};
+    }
+    if (loaded.status == HostProfileLoadStatus::RejectedByPolicy) {
+        return {
+            HostProfileResolveStatus::RejectedByPolicy,
+            std::nullopt,
+            loaded.error};
+    }
+    if (loaded.status == HostProfileLoadStatus::IoError) {
+        return {HostProfileResolveStatus::IoError, std::nullopt, loaded.error};
+    }
+
+    auto fallback = make_default_host_profile_state(expected_profile_id);
+    if (!fallback) {
+        return {
+            HostProfileResolveStatus::IoError,
+            std::nullopt,
+            "unable to construct default profile state"};
+    }
+
+    if (loaded.status == HostProfileLoadStatus::Missing) {
+        return {
+            HostProfileResolveStatus::DefaultedMissing,
+            fallback,
+            {}};
+    }
     return {
-        HostProfileLoadStatus::Loaded,
-        decoded.state,
-        decoded.migrated,
-        {}};
+        HostProfileResolveStatus::DefaultedMalformed,
+        fallback,
+        loaded.error};
 }
 
 HostProfileSaveStatus save_host_profile_state_file(

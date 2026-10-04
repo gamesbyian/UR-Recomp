@@ -222,6 +222,7 @@ Every host-state schema or transition must have deterministic tests. At minimum:
 9. failed capture/restore attempts fail closed without replacing a valid anchor or synthesizing guest state;
 10. focus-loss pause policy is enabled only by Modern host-settings authority, respects the typed setting and current pause state, and is inert in Authentic mode;
 11. persisted host state must decode through the exact versioned schema, reject malformed/oversized content, and remain entirely unread by Authentic product policy.
+12. per-profile persistence must round-trip exact stock-SRAM mirrors across process restart, default missing/malformed profiles deterministically without overwriting malformed files, and reject all load/save/capture/restore authority in Authentic mode.
 
 The host-state and session-control C++ contracts are compiled and executed from `tests/unit/test_host_product_state_cpp.py` and `tests/unit/test_session_control_cpp.py`, so both participate in the lightweight project tooling test surface without requiring the external SNESRecomp build.
 

@@ -788,7 +788,7 @@ def sample_authored_0542_p2_rgba(x: int, y: int) -> bytes:
     if seat:
         return authored_saddle_rgba(x, y, 130, 26)
     if crown:
-        return authored_frame_junction_rgba(x, y, 132, 60, True)
+        return authored_frame_junction_rgba(x, y, 126, 60, True)
     if fork or frame_brace or neck:
         return authored_blue_frame_rgba(x, y)
     if tire:
@@ -836,7 +836,7 @@ def sample_authored_0543_p2_rgba(x: int, y: int) -> bytes:
     if seat:
         return authored_saddle_rgba(x, y, 130, 30)
     if crown:
-        return authored_frame_junction_rgba(x, y, 128, 60, True)
+        return authored_frame_junction_rgba(x, y, 124, 60, True)
     if fork or frame_brace or neck:
         return authored_blue_frame_rgba(x, y)
     if tire:

@@ -2200,3 +2200,5 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 **Interpretation:** `+4` is FAILED (did not finish), LOST is derived, and `0x10A9`/`0x10AB` are the VS head-to-head tally. This explains R-2026-10-03-UI-19's observation that `0x10A9` counts 1P wins without gating the tour.
 
 **Consequences:** `tools/extract_progression_sram_semantics.py` pins 11 decoded routines to ROM bytes and optionally checks the VS dump (`--vs-sram`), producing `analysis/generated/progression-sram-semantics.json`. SYMBOLS and the knowledge page are updated. Modern Player Scores and VS-tally UI can read these fields directly.
+
+**Addendum (track-records group 9, static, bounded):** no decoded writer of `$CE` reaches indices 45–49. Tour confirm clamps `$D0` to ≤ 8 (`80:E69D`), the VS next-track cursor `0x067E,X` wraps at 44 (`80:AFF1`), and the attract demo track counter `0x10C8` (battery-backed) wraps at 40 (`80:949C`). Group 9 of `Save_TrackRecords` is therefore probably unused padding. The record insert at `80:C9C6` shifts ranks down through `+0x64` / `+0xC8`, confirming 50 words per rank.

@@ -55,7 +55,7 @@ record the exact mapping rather than assuming they all share one enumeration.
 
 ## Track records
 
-**Confirmed.** Battery SRAM holds 150 record words at `0x0422 + 2*(50*rank + 5*tour_row + track)`, with a 16-bit sum checksum at `0x054E` and one holder rider-index byte per record at `0x0550 + index`. The three ranks are the GOLD/SILVER/BRONZE rows of the Track Records screen, meaning 1st/2nd/3rd best, not medal tiers. Each value is the race finish time or circuit best lap in 1/100 s (60000 = NO TIME) or the stunt score. Ten five-track groups follow the medal-matrix tour order; the tenth is unidentified. (`analysis/generated/track-records-sram.json`.)
+**Confirmed.** Battery SRAM holds 150 record words at `0x0422 + 2*(50*rank + 5*tour_row + track)`, with a 16-bit sum checksum at `0x054E` and one holder rider-index byte per record at `0x0550 + index`. The three ranks are the GOLD/SILVER/BRONZE rows of the Track Records screen, meaning 1st/2nd/3rd best, not medal tiers. Each value is the race finish time or circuit best lap in 1/100 s (60000 = NO TIME) or the stunt score. Ten five-track groups follow the medal-matrix tour order. The tenth is probably unused padding: no decoded writer of the track index `$CE` reaches 45–49 (tour confirm clamps the row to ≤ 8 at `80:E69D`, the VS next-track cursor `0x067E,X` wraps at 44 at `80:AFF1`, and the attract demo counter `0x10C8` wraps at 40 at `80:949C`; static, bounded). (`analysis/generated/track-records-sram.json`.)
 
 ## Player stats and in-tour progress
 

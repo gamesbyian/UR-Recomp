@@ -6,7 +6,7 @@
   "checksum": "0x054E = 16-bit sum of the 150 record words",
   "holders": "0x0550 + (50*rank + 5*tour_row + track), rider index (16 = someone)",
   "ranks": "0/1/2 = GOLD/SILVER/BRONZE rows on Track Records = 1st/2nd/3rd best",
-  "tour_row": "medal-matrix order (Crawler 0, Jumper 1, Shuffler 2 ... Hunter 8); group 9 unidentified",
+  "tour_row": "medal-matrix order (Crawler 0, Jumper 1, Shuffler 2 ... Hunter 8); group 9 probably unused (no decoded writer reaches it)",
   "values": "race: finish time, circuit: best lap (1/100 s, 60000 = NO TIME); stunt: score (0 = none)",
   "last_race_slots": "0x0618 / 0x061A hold the last race's P1 / opponent result value"
  },

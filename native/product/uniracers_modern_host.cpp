@@ -940,7 +940,7 @@ bool begin_run_record_capture(uint64_t host_frame) {
     ur::product::RunRecordProvenance provenance{
         "uniracers-usa",
         "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
-        "ur-recomp-native-v1",
+        "snesrecomp-cd5875cbdaf19f5e324272b1f8051d671fce9215-ur-sim-v1",
         course_id,
         "race-1p",
     };

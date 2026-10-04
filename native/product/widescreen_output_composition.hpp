@@ -35,6 +35,18 @@ struct HostRational {
     }
 };
 
+struct HostOutputViewport {
+    int x = 0;
+    int y = 0;
+    int width = 0;
+    int height = 0;
+
+    constexpr bool operator==(const HostOutputViewport& other) const noexcept {
+        return x == other.x && y == other.y &&
+               width == other.width && height == other.height;
+    }
+};
+
 struct HostOutputCompositionPlan {
     int logical_view_width = 256;
     int logical_view_height = 224;
@@ -75,6 +87,16 @@ struct HostOutputCompositionPlan {
 HostOutputCompositionPlan resolve_16x9_output_composition(
     HostGraphicsRepresentation representation,
     HostSceneComposition scene) noexcept;
+
+/* Resolve the title-owned source rectangle inside the largest target-aspect
+ * canvas that fits the drawable. The renderer is expected to clear outside
+ * this viewport, so fixed-center scenes naturally gain side mattes while a
+ * world-expand plan whose display aspect equals 16:9 fills the canvas.
+ * Invalid drawable dimensions fail closed to an empty viewport. */
+HostOutputViewport resolve_output_viewport(
+    const HostOutputCompositionPlan& plan,
+    int drawable_width,
+    int drawable_height) noexcept;
 
 /* Evidence-backed runtime scene binding.
  *

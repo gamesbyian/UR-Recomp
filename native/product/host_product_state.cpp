@@ -124,6 +124,30 @@ const char* presentation_fps_mode_name(
     return nullptr;
 }
 
+bool parse_widescreen_mode(
+    std::string_view text,
+    HostWidescreenMode& out) noexcept {
+    if (text == "original") {
+        out = HostWidescreenMode::Original;
+        return true;
+    }
+    if (text == "16x9") {
+        out = HostWidescreenMode::Authentic16x9;
+        return true;
+    }
+    return false;
+}
+
+const char* widescreen_mode_name(HostWidescreenMode mode) noexcept {
+    switch (mode) {
+    case HostWidescreenMode::Original:
+        return "original";
+    case HostWidescreenMode::Authentic16x9:
+        return "16x9";
+    }
+    return nullptr;
+}
+
 bool parse_positive_int(std::string_view text, int& out) noexcept {
     if (text.empty()) return false;
     int value = 0;
@@ -213,7 +237,9 @@ std::string encode_host_product_state(const HostProductState& state) {
         presentation_fps_mode_name(state.settings.presentation_fps_mode);
     const std::string output_resolution =
         output_resolution_name(state.settings.output_resolution);
-    if (!display_mode || !vsync_mode || !presentation_fps ||
+    const char* widescreen =
+        widescreen_mode_name(state.settings.widescreen_mode);
+    if (!display_mode || !vsync_mode || !presentation_fps || !widescreen ||
         output_resolution.empty()) {
         return {};
     }
@@ -231,6 +257,7 @@ std::string encode_host_product_state(const HostProductState& state) {
     out << "vsync=" << vsync_mode << '\n';
     out << "presentation_fps=" << presentation_fps << '\n';
     out << "output_resolution=" << output_resolution << '\n';
+    out << "widescreen=" << widescreen << '\n';
     return out.str();
 }
 
@@ -300,12 +327,29 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
         required_count = 6u;
     }
 
-    if (fields.size() != required_count) {
+    const bool current_v6 =
+        !legacy_v1 && !legacy_v2 && !legacy_v3 && !legacy_v4 && !legacy_v5;
+    const std::size_t maximum_count = current_v6
+        ? required_count + 1u
+        : required_count;
+    if (fields.size() < required_count || fields.size() > maximum_count) {
         return {std::nullopt, "unexpected host-state field set"};
     }
     for (std::size_t i = 0; i < required_count; ++i) {
         if (fields.find(std::string(required[i])) == fields.end()) {
             return {std::nullopt, "missing host-state field"};
+        }
+    }
+
+    if (current_v6) {
+        for (const auto& field : fields) {
+            bool known = field.first == "widescreen";
+            for (std::size_t i = 0; !known && i < required_count; ++i) {
+                known = field.first == std::string(required[i]);
+            }
+            if (!known) {
+                return {std::nullopt, "unexpected host-state field set"};
+            }
         }
     }
 
@@ -345,6 +389,15 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
             fields.at("output_resolution"),
             state.settings.output_resolution)) {
         return {std::nullopt, "invalid host output resolution"};
+    }
+    if (current_v6) {
+        const auto widescreen = fields.find("widescreen");
+        if (widescreen != fields.end() &&
+            !parse_widescreen_mode(
+                widescreen->second,
+                state.settings.widescreen_mode)) {
+            return {std::nullopt, "invalid host widescreen mode"};
+        }
     }
 
     return {state, {}};

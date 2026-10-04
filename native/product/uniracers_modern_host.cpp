@@ -8,6 +8,8 @@ extern "C" {
 #include "desktop/config.h"
 #include "desktop/host_main.h"
 #include "desktop/sdl_compat.h"
+#include "completed_run_capture.hpp"
+#include "completed_run_record.hpp"
 #include "focus_pause_policy.hpp"
 #include "host_product_state.hpp"
 #include "host_product_store.hpp"
@@ -16,11 +18,13 @@ extern "C" {
 #include "modern_options_menu.h"
 #include "modern_session_c_api.h"
 #include "output_resolution_runtime_policy.hpp"
+#include "uniracers_course_identity.h"
 #include "uniracers_restart_policy.h"
 #include "uniracers_run_data.h"
 #include "widescreen_output_composition.hpp"
 
 #include <cstdlib>
+#include <fstream>
 #include <cstring>
 #include <cstdio>
 #include <string>
@@ -45,6 +49,10 @@ bool g_exit_frontend_waiting_for_main;
 bool g_exit_frontend_waiting_for_usable;
 bool g_exit_frontend_acceptance_fired;
 unsigned g_exit_frontend_acceptance_surface_frames;
+ur::product::CompletedRunCapture g_run_capture;
+bool g_run_capture_previous_active;
+uint64_t g_run_capture_origin_frame;
+uint16_t g_run_capture_checkpoint;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
 ur::product::HostWidescreenSceneState g_widescreen_scene_state;
@@ -839,6 +847,111 @@ UrUniracersRunData current_run_data() {
     return ur_uniracers_read_run_data(g_ram, 0x20000u);
 }
 
+uint16_t read_run_word(size_t offset) {
+    return static_cast<uint16_t>(
+        static_cast<uint16_t>(g_ram[offset]) |
+        (static_cast<uint16_t>(g_ram[offset + 1]) << 8));
+}
+
+const char* run_record_capture_path() {
+    if (!modern_mode()) return nullptr;
+    const char* path = std::getenv("UR_RUN_RECORD_CAPTURE_PATH");
+    return path && *path ? path : nullptr;
+}
+
+bool begin_run_record_capture(uint64_t host_frame) {
+    if (!run_record_capture_path()) return false;
+
+    const UrUniracersCourseIdentity course =
+        ur_uniracers_identify_course(g_ram + 0x10000u, 0x10000u);
+    if (!course.valid) {
+        product_diagnostic("UR_RUN_RECORD COURSE_IDENTITY_REJECTED");
+        return false;
+    }
+
+    char course_id[32];
+    std::snprintf(course_id, sizeof(course_id), "course:%02d", course.course_index);
+    ur::product::RunRecordProvenance provenance{
+        "uniracers-usa",
+        "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+        "ur-recomp-native-v1",
+        course_id,
+        "race-1p",
+    };
+    if (!g_run_capture.begin_attempt(provenance)) {
+        product_diagnostic("UR_RUN_RECORD BEGIN_REJECTED");
+        return false;
+    }
+    g_run_capture_origin_frame = host_frame;
+    g_run_capture_checkpoint = read_run_word(0x1199u);
+    return true;
+}
+
+void observe_run_record_split() {
+    if (!g_run_capture.capturing()) return;
+    const uint16_t checkpoint = read_run_word(0x1199u);
+    if (checkpoint == g_run_capture_checkpoint) return;
+
+    const int64_t ticks60 = ur_uniracers_run_data_ticks60(current_run_data());
+    if (ticks60 >= 0) {
+        const std::string id = "checkpoint-" + std::to_string(checkpoint);
+        (void)g_run_capture.observe_split(
+            id, static_cast<uint64_t>(ticks60));
+    }
+    g_run_capture_checkpoint = checkpoint;
+}
+
+void complete_run_record_capture() {
+    const char* path = run_record_capture_path();
+    if (!path || !g_run_capture.capturing()) return;
+
+    const int64_t ticks60 = ur_uniracers_run_data_ticks60(current_run_data());
+    if (ticks60 < 0) {
+        product_diagnostic("UR_RUN_RECORD FINISH_TIMER_REJECTED");
+        g_run_capture.abort_attempt();
+        return;
+    }
+
+    (void)g_run_capture.observe_split(
+        "finish", static_cast<uint64_t>(ticks60));
+    const auto record =
+        g_run_capture.complete(static_cast<uint64_t>(ticks60));
+    if (!record) {
+        product_diagnostic("UR_RUN_RECORD FINALIZE_REJECTED");
+        return;
+    }
+
+    std::string detail;
+    if (!ur::product::save_completed_run_record_file(path, *record, &detail)) {
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(stderr, "UR_RUN_RECORD SAVE_FAILED detail=%s\n", detail.c_str());
+            std::fflush(stderr);
+        }
+        return;
+    }
+
+    std::ofstream replay(std::string(path) + ".input",
+                         std::ios::binary | std::ios::trunc);
+    const std::string replay_text =
+        ur::product::encode_completed_run_input_file(
+            *record, g_run_capture_origin_frame + 1u);
+    replay.write(replay_text.data(),
+                 static_cast<std::streamsize>(replay_text.size()));
+    replay.close();
+
+    std::fprintf(
+        stderr,
+        "UR_RUN_RECORD CAPTURED path=%s course=%s elapsed_ticks60=%llu origin_frame=%llu inputs=%zu splits=%zu replay_input=%d\n",
+        path,
+        record->provenance.course_id.c_str(),
+        static_cast<unsigned long long>(record->elapsed_ticks60),
+        static_cast<unsigned long long>(g_run_capture_origin_frame),
+        record->inputs.size(),
+        record->splits.size(),
+        replay ? 1 : 0);
+    std::fflush(stderr);
+}
+
 void close_host_subview() {
     if (g_options_visible) {
         g_options_visible = false;
@@ -1082,7 +1195,7 @@ extern "C" double ur_uniracers_modern_presentation_hz(
 }
 
 extern "C" void ur_uniracers_modern_after_run_frame(
-    const SnesDesktopHostFrameStats*) {
+    const SnesDesktopHostFrameStats* stats) {
     report_display_capabilities_once();
     if (!ensure_session()) return;
 
@@ -1096,6 +1209,26 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         &g_widescreen_scene_state,
         g_ram[0x0313],
         g_ram[0x009F]);
+
+    const bool run_active =
+        g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE;
+    if (stats && g_run_capture_previous_active && g_run_capture.capturing()) {
+        (void)g_run_capture.observe_guest_frame(stats->controller_word);
+    }
+    if (stats && !g_run_capture_previous_active && run_active) {
+        (void)begin_run_record_capture(stats->frame);
+    }
+    if (run_active && g_run_capture.capturing()) {
+        observe_run_record_split();
+    }
+    if (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
+        g_run_capture.capturing()) {
+        complete_run_record_capture();
+    }
+    if (decision.retire_attempt && g_run_capture.capturing()) {
+        g_run_capture.abort_attempt();
+    }
+    g_run_capture_previous_active = run_active;
 
     if (g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE) {
         ur_modern_session_observe_race_active(g_session, 1);

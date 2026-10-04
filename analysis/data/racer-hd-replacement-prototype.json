@@ -1360,7 +1360,30 @@
         "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
         "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
       },
-      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset."
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0541_p2_predecessor",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_eighth_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "motion-reviewed P2 temporal neighbor; not approved shipping art",
+        "shipping_art_approved": false,
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Represent frame-1218 P2 0541 as the reviewed P2 baseline geometry translated one logical pixel left, preserving stock envelope [22,3]..[39,38], contact [61,76], and the established blue-player material/lighting language.",
+        "native_acceptance_run": 37169795518,
+        "native_acceptance_artifact_id": 11290901577,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [22, 3, 39, 38],
+          "candidate_alpha_bounds": [22, 3, 39, 38],
+          "candidate_contact_x2_y2": [61, 76],
+          "stock_opaque_pixels": 318,
+          "candidate_opaque_pixels": 304,
+          "alpha_intersection_pixels": 250,
+          "alpha_union_pixels": 372,
+          "alpha_iou": 0.6720430107526881
+        }
+      }
     },
     {
       "semantic_frame_id": "0x0540",

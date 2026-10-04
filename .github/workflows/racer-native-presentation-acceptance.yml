@@ -180,7 +180,7 @@ jobs:
               rep for rep in dossier["representations"]
               if rep["art_review"]["authored_candidate"] is not None
           ]
-          assert len(authored) == 9
+          assert len(authored) == 10
           authored_by_id = {rep["representation_id"]: rep for rep in authored}
 
           baseline = authored_by_id["ordinary-racer-0x0541-p1-sync-reference"]
@@ -309,6 +309,24 @@ jobs:
           assert p2_reused_candidate["png_sha256"] == p2_baseline_candidate["png_sha256"]
           assert p2_reused_candidate["gameplay_scale_review"] == p2_baseline_review
 
+          p2_predecessor = authored_by_id[
+              "ordinary-racer-0x0541-p2-predecessor-reference"
+          ]
+          p2_predecessor_candidate = p2_predecessor["art_review"]["authored_candidate"]
+          assert p2_predecessor_candidate["approval_status"] == (
+              "motion-reviewed P2 temporal neighbor; not approved shipping art"
+          )
+          p2_predecessor_review = p2_predecessor_candidate["gameplay_scale_review"]
+          assert p2_predecessor["observed_frames_in_window"] == [1218]
+          assert p2_predecessor_review["stock_alpha_bounds"] == [22, 3, 39, 38]
+          assert p2_predecessor_review["candidate_alpha_bounds"] == [22, 3, 39, 38]
+          assert p2_predecessor_review["candidate_contact_x2_y2"] == [61, 76]
+          assert p2_predecessor_review["stock_opaque_pixels"] == 318
+          assert p2_predecessor_review["candidate_opaque_pixels"] == 304
+          assert p2_predecessor_review["alpha_intersection_pixels"] == 250
+          assert p2_predecessor_review["alpha_union_pixels"] == 372
+          assert abs(p2_predecessor_review["alpha_iou"] - 0.6720430107526881) < 1e-12
+
           repeated_057d = authored_by_id[
               "ordinary-racer-0x057D-p1-adjacent-reference"
           ]
@@ -327,7 +345,7 @@ jobs:
           assert repeated_057d_review["alpha_union_pixels"] == 397
           assert abs(repeated_057d_review["alpha_iou"] - 0.6196473551637279) < 1e-12
 
-          for rep in (baseline, p2_baseline, p2_reused, predecessor, reversed, reused, repeated, repeated_057e, repeated_057d):
+          for rep in (baseline, p2_baseline, p2_reused, p2_predecessor, predecessor, reversed, reused, repeated, repeated_057e, repeated_057d):
               candidate_path = (
                   pathlib.Path(sys.argv[1]).parent
                   / rep["art_review"]["authored_candidate"]["png"]

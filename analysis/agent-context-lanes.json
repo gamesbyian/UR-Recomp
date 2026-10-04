@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "lanes": {
+    "widescreen": {
+      "authorities": ["docs/PROJECT-PLAN.md","docs/WORK-QUEUE.md","docs/SEMANTIC-SUFFICIENCY.md","docs/WIDESCREEN-RECONNAISSANCE.md","docs/DISPLAY-PRESENTATION-POLICY.md","analysis/widescreen-policy.yml"],
+      "keywords": ["Widescreen","viewport","capacity","composition","Authentic"]
+    },
+    "racer-hd": {
+      "authorities": ["docs/PROJECT-PLAN.md","docs/WORK-QUEUE.md","docs/SEMANTIC-SUFFICIENCY.md","docs/HD-VISUAL-REFERENCE-PIPELINE.md","docs/HD-ART-DIRECTION.md","analysis/data/racer-hd-replacement-prototype.json"],
+      "keywords": ["Racer HD","authored","pose","representation","motion-reviewed"]
+    },
+    "modern-product": {
+      "authorities": ["docs/PROJECT-PLAN.md","docs/WORK-QUEUE.md","docs/SEMANTIC-SUFFICIENCY.md","docs/MODERN-PRODUCT-LAYER.md","analysis/modern-product-settings.json"],
+      "keywords": ["Modern","Options","setting","host-state","pause","frontend"]
+    },
+    "ci": {
+      "authorities": ["docs/CI-WORKFLOW-BEST-PRACTICES.md","docs/PERIODIC-REPOSITORY-HYGIENE.md","docs/WORK-QUEUE.md"],
+      "keywords": ["workflow","CI","native","evidence","runner"]
+    }
+  }
+}

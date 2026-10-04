@@ -63,6 +63,8 @@ class ModernProductHostPatchTests(unittest.TestCase):
         source = "add_executable(UniracersSNESRecomp src/main.c)\n"
         patched = patch_cmake_text(source, ROOT)
         for name in (
+            "output_resolution_policy.cpp",
+            "output_resolution_runtime_policy.cpp",
             "host_product_state.cpp",
             "host_product_store.cpp",
             "modern_session_c_api.cpp",

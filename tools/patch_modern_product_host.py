@@ -20,6 +20,7 @@ def patch_main_text(source: str) -> str:
 
     widescreen_fields = (
         "    .native_widescreen      = 1,\n"
+        "    .native_widescreen_enabled = &ur_uniracers_modern_native_widescreen_enabled,\n"
         "    .prepare_frame          = &ur_uniracers_modern_prepare_frame,\n"
         "    .compute_viewport       = &ur_uniracers_modern_compute_viewport,\n"
     )

@@ -652,12 +652,14 @@ constexpr std::uint32_t sample_racer_hd_authored_057f_p1_companion_0d4a(
     // The repeated pose leans farther across the object-local canvas than the
     // 1217/1218 pose. Its saddle supplies the stock left envelope while the
     // wheel supplies the recovered right envelope/contact.
-    const int seat_dx = x - 124;
+    // True-density mismatch review showed a small right-heavy saddle block
+    // in this bridge pose. Shift/narrow it without touching envelope/contact.
+    const int seat_dx = x - 120;
     const int seat_dy = y - 22;
     const bool seat =
         (seat_dx * seat_dx) * 14 * 14 +
-            (seat_dy * seat_dy) * 35 * 35 <=
-            35 * 35 * 14 * 14 &&
+            (seat_dy * seat_dy) * 32 * 32 <=
+            32 * 32 * 14 * 14 &&
         y >= 8 && y <= 36;
 
     const bool neck =
@@ -917,13 +919,16 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p2_predecessor(
         y >= 113 && y <= 118 &&
         x >= 137 && x <= 141;
 
-    const int seat_dx = x - 126;
-    const int seat_dy = y - 22;
+    // The P2 0541 transition pose is over-broad on the left/top at true
+    // density. Shift right/down and narrow the saddle while preserving the
+    // stock-derived envelope/contact through the wheel/fork structure.
+    const int seat_dx = x - 130;
+    const int seat_dy = y - 26;
     const bool seat =
         (seat_dx * seat_dx) * 12 * 12 +
-            (seat_dy * seat_dy) * 35 * 35 <=
-            35 * 35 * 12 * 12 &&
-        y >= 12 && y <= 36;
+            (seat_dy * seat_dy) * 30 * 30 <=
+            30 * 30 * 12 * 12 &&
+        y >= 12 && y <= 40;
 
     const bool neck =
         y >= 30 && y <= 60 &&

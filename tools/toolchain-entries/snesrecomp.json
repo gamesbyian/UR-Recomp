@@ -63,10 +63,10 @@
     },
     {
       "path": "tools/patches/snesrecomp-console-reset-request.patch",
-      "sha256": "e6bb32c534cbca4766b40429e595ff99812313fd6bc16b2316231464dc61aa59"
+      "sha256": "7c15941bab6c58e0cdb939b90e57c83a3be36d624992849cedd62c92fe180a67"
     }
   ],
-  "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive. UR-Recomp's permanent native build uses host SDL2, disables SDL3 source fetching, carries narrow project patches for exact neutral controller-stream replay and modern host integration, exposes the existing host-owned pause gate and live renderer VSync and desktop display-mode policy for modern product settings, exposes the framework's guest-frame APU timing lock needed by deterministic host-owned race restart, and exposes a deferred full-session reboot seam that durably publishes SRAM, rebuilds the guest through snes_free + SnesInit + RtlReadSram, then invokes the title-owned hardware-reset lifecycle while preserving SRAM.",
+  "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive. UR-Recomp's permanent native build uses host SDL2, disables SDL3 source fetching, carries narrow project patches for exact neutral controller-stream replay and modern host integration, exposes the existing host-owned pause gate and live renderer VSync and desktop display-mode policy for modern product settings, exposes the framework's guest-frame APU timing lock needed by deterministic host-owned race restart, and exposes a deferred full-session reboot seam that durably publishes SRAM, rebuilds the guest through snes_free + SnesInit + RtlReadSram, then invokes the framework's complete SRAM-preserving RtlReset(1) lifecycle and title-owned hardware-reset hook.",
   "revision": "cd5875cbdaf19f5e324272b1f8051d671fce9215",
   "url": "https://github.com/RetroPortingToolKit/snesrecomp.git"
 }

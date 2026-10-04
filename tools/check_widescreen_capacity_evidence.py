@@ -13,7 +13,10 @@ import re
 from pathlib import Path
 from typing import Any
 
-from tools.evidence_contract import assertion, make_envelope
+try:
+    from tools.evidence_contract import assertion, make_envelope
+except ModuleNotFoundError:
+    from evidence_contract import assertion, make_envelope
 
 
 def expected_depths(margin: int) -> list[int]:

@@ -19,6 +19,8 @@ UrModernPauseItem normalized_selection(
         return UR_MODERN_PAUSE_CONTROLS;
     case UR_MODERN_PAUSE_RUN_DATA:
         return UR_MODERN_PAUSE_RUN_DATA;
+    case UR_MODERN_PAUSE_EXIT_FRONTEND:
+        return UR_MODERN_PAUSE_EXIT_FRONTEND;
     case UR_MODERN_PAUSE_QUIT:
         return UR_MODERN_PAUSE_QUIT;
     case UR_MODERN_PAUSE_OPTIONS:
@@ -48,47 +50,25 @@ extern "C" void ur_modern_pause_menu_move(
     if (restart_available) {
         if (delta > 0) {
             switch (current) {
-            case UR_MODERN_PAUSE_RESUME:
-                menu->selected = UR_MODERN_PAUSE_RESTART;
-                break;
-            case UR_MODERN_PAUSE_RESTART:
-                menu->selected = UR_MODERN_PAUSE_OPTIONS;
-                break;
+            case UR_MODERN_PAUSE_RESUME: menu->selected = UR_MODERN_PAUSE_RESTART; break;
+            case UR_MODERN_PAUSE_RESTART: menu->selected = UR_MODERN_PAUSE_OPTIONS; break;
             case UR_MODERN_PAUSE_OPTIONS:
-            case UR_MODERN_PAUSE_FOCUS_PAUSE:
-                menu->selected = UR_MODERN_PAUSE_CONTROLS;
-                break;
-            case UR_MODERN_PAUSE_CONTROLS:
-                menu->selected = UR_MODERN_PAUSE_RUN_DATA;
-                break;
-            case UR_MODERN_PAUSE_RUN_DATA:
-                menu->selected = UR_MODERN_PAUSE_QUIT;
-                break;
-            case UR_MODERN_PAUSE_QUIT:
-                menu->selected = UR_MODERN_PAUSE_RESUME;
-                break;
+            case UR_MODERN_PAUSE_FOCUS_PAUSE: menu->selected = UR_MODERN_PAUSE_CONTROLS; break;
+            case UR_MODERN_PAUSE_CONTROLS: menu->selected = UR_MODERN_PAUSE_RUN_DATA; break;
+            case UR_MODERN_PAUSE_RUN_DATA: menu->selected = UR_MODERN_PAUSE_EXIT_FRONTEND; break;
+            case UR_MODERN_PAUSE_EXIT_FRONTEND: menu->selected = UR_MODERN_PAUSE_QUIT; break;
+            case UR_MODERN_PAUSE_QUIT: menu->selected = UR_MODERN_PAUSE_RESUME; break;
             }
         } else {
             switch (current) {
-            case UR_MODERN_PAUSE_RESUME:
-                menu->selected = UR_MODERN_PAUSE_QUIT;
-                break;
-            case UR_MODERN_PAUSE_RESTART:
-                menu->selected = UR_MODERN_PAUSE_RESUME;
-                break;
+            case UR_MODERN_PAUSE_RESUME: menu->selected = UR_MODERN_PAUSE_QUIT; break;
+            case UR_MODERN_PAUSE_RESTART: menu->selected = UR_MODERN_PAUSE_RESUME; break;
             case UR_MODERN_PAUSE_OPTIONS:
-            case UR_MODERN_PAUSE_FOCUS_PAUSE:
-                menu->selected = UR_MODERN_PAUSE_RESTART;
-                break;
-            case UR_MODERN_PAUSE_CONTROLS:
-                menu->selected = UR_MODERN_PAUSE_OPTIONS;
-                break;
-            case UR_MODERN_PAUSE_RUN_DATA:
-                menu->selected = UR_MODERN_PAUSE_CONTROLS;
-                break;
-            case UR_MODERN_PAUSE_QUIT:
-                menu->selected = UR_MODERN_PAUSE_RUN_DATA;
-                break;
+            case UR_MODERN_PAUSE_FOCUS_PAUSE: menu->selected = UR_MODERN_PAUSE_RESTART; break;
+            case UR_MODERN_PAUSE_CONTROLS: menu->selected = UR_MODERN_PAUSE_OPTIONS; break;
+            case UR_MODERN_PAUSE_RUN_DATA: menu->selected = UR_MODERN_PAUSE_CONTROLS; break;
+            case UR_MODERN_PAUSE_EXIT_FRONTEND: menu->selected = UR_MODERN_PAUSE_RUN_DATA; break;
+            case UR_MODERN_PAUSE_QUIT: menu->selected = UR_MODERN_PAUSE_EXIT_FRONTEND; break;
             }
         }
         return;
@@ -96,43 +76,25 @@ extern "C" void ur_modern_pause_menu_move(
 
     if (delta > 0) {
         switch (current) {
-        case UR_MODERN_PAUSE_RESUME:
-            menu->selected = UR_MODERN_PAUSE_OPTIONS;
-            break;
+        case UR_MODERN_PAUSE_RESUME: menu->selected = UR_MODERN_PAUSE_OPTIONS; break;
         case UR_MODERN_PAUSE_OPTIONS:
-        case UR_MODERN_PAUSE_FOCUS_PAUSE:
-            menu->selected = UR_MODERN_PAUSE_CONTROLS;
-            break;
-        case UR_MODERN_PAUSE_CONTROLS:
-            menu->selected = UR_MODERN_PAUSE_RUN_DATA;
-            break;
-        case UR_MODERN_PAUSE_RUN_DATA:
-            menu->selected = UR_MODERN_PAUSE_QUIT;
-            break;
+        case UR_MODERN_PAUSE_FOCUS_PAUSE: menu->selected = UR_MODERN_PAUSE_CONTROLS; break;
+        case UR_MODERN_PAUSE_CONTROLS: menu->selected = UR_MODERN_PAUSE_RUN_DATA; break;
+        case UR_MODERN_PAUSE_RUN_DATA: menu->selected = UR_MODERN_PAUSE_EXIT_FRONTEND; break;
+        case UR_MODERN_PAUSE_EXIT_FRONTEND: menu->selected = UR_MODERN_PAUSE_QUIT; break;
         case UR_MODERN_PAUSE_QUIT:
-        case UR_MODERN_PAUSE_RESTART:
-            menu->selected = UR_MODERN_PAUSE_RESUME;
-            break;
+        case UR_MODERN_PAUSE_RESTART: menu->selected = UR_MODERN_PAUSE_RESUME; break;
         }
     } else {
         switch (current) {
-        case UR_MODERN_PAUSE_RESUME:
-            menu->selected = UR_MODERN_PAUSE_QUIT;
-            break;
-        case UR_MODERN_PAUSE_QUIT:
-            menu->selected = UR_MODERN_PAUSE_RUN_DATA;
-            break;
-        case UR_MODERN_PAUSE_RUN_DATA:
-            menu->selected = UR_MODERN_PAUSE_CONTROLS;
-            break;
-        case UR_MODERN_PAUSE_CONTROLS:
-            menu->selected = UR_MODERN_PAUSE_OPTIONS;
-            break;
+        case UR_MODERN_PAUSE_RESUME: menu->selected = UR_MODERN_PAUSE_QUIT; break;
+        case UR_MODERN_PAUSE_QUIT: menu->selected = UR_MODERN_PAUSE_EXIT_FRONTEND; break;
+        case UR_MODERN_PAUSE_EXIT_FRONTEND: menu->selected = UR_MODERN_PAUSE_RUN_DATA; break;
+        case UR_MODERN_PAUSE_RUN_DATA: menu->selected = UR_MODERN_PAUSE_CONTROLS; break;
+        case UR_MODERN_PAUSE_CONTROLS: menu->selected = UR_MODERN_PAUSE_OPTIONS; break;
         case UR_MODERN_PAUSE_OPTIONS:
         case UR_MODERN_PAUSE_FOCUS_PAUSE:
-        case UR_MODERN_PAUSE_RESTART:
-            menu->selected = UR_MODERN_PAUSE_RESUME;
-            break;
+        case UR_MODERN_PAUSE_RESTART: menu->selected = UR_MODERN_PAUSE_RESUME; break;
         }
     }
 }

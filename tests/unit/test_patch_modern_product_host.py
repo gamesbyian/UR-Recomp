@@ -2,7 +2,11 @@ import pathlib
 import tempfile
 import unittest
 
-from tools.patch_modern_product_host import patch_cmake_text, patch_main_text
+from tools.patch_modern_product_host import (
+    patch_cmake_text,
+    patch_game_rtl_text,
+    patch_main_text,
+)
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -40,6 +44,20 @@ class ModernProductHostPatchTests(unittest.TestCase):
         patched = patch_main_text(source)
         self.assertIn("ur_uniracers_modern_presentation_hz", patched)
         self.assertEqual(patch_main_text(patched), patched)
+
+    def test_generated_game_rtl_wires_existing_session_reset_hook(self):
+        source = (
+            "const RtlGameInfo kGameInfo = {\n"
+            '    .save_name_prefix = "save",\n'
+            "};\n\n"
+            "void GameSessionReset(void) {\n"
+            "    g_resume_pc = 0;\n"
+            "}\n"
+        )
+        patched = patch_game_rtl_text(source)
+        self.assertIn("void GameSessionReset(void);", patched)
+        self.assertIn(".session_reset = &GameSessionReset,", patched)
+        self.assertEqual(patch_game_rtl_text(patched), patched)
 
     def test_generated_cmake_links_project_owned_product_sources(self):
         source = "add_executable(UniracersSNESRecomp src/main.c)\n"

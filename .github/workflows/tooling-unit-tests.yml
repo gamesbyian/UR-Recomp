@@ -9,12 +9,18 @@ on:
       - "tests/unit/**"
       - "analysis/ui-state-map.yml"
       - "analysis/frontend-modernization-policy.json"
+      - "analysis/evidence-envelope.schema.json"
+      - "analysis/modern-product-settings.json"
+      - "analysis/agent-context-lanes.json"
   pull_request:
     paths:
       - "tools/**"
       - "tests/unit/**"
       - "analysis/ui-state-map.yml"
       - "analysis/frontend-modernization-policy.json"
+      - "analysis/evidence-envelope.schema.json"
+      - "analysis/modern-product-settings.json"
+      - "analysis/agent-context-lanes.json"
       - ".github/workflows/tooling-unit-tests.yml"
   workflow_dispatch:
 

@@ -457,14 +457,25 @@ constexpr bool authored_saddle_mount_contains(
     int mount_y
 ) noexcept {
     // A compact clamp is carved entirely from already-occupied saddle/neck
-    // pixels by callers. It therefore adds mechanical attachment/readability
-    // without changing alpha, silhouette or the recovered contact anchors.
+    // pixels by callers. Keep it deliberately narrower than the saddle mass
+    // so it reads as attachment hardware rather than a cutout in the seat.
     const int mount_cx = (neck_min_x + neck_max_x) / 2;
-    const int radius_x = ((neck_max_x - neck_min_x) / 2) + 2;
+    const int radius_x = ((neck_max_x - neck_min_x) / 2) + 1;
     const int dx = x - mount_cx;
     const int dy = y - mount_y;
-    return dx * dx * 9 + dy * dy * radius_x * radius_x <=
-           radius_x * radius_x * 9;
+    return dx * dx * 4 + dy * dy * radius_x * radius_x <=
+           radius_x * radius_x * 4;
+}
+
+constexpr std::uint32_t authored_saddle_mount_color(
+    int y,
+    int mount_y
+) noexcept {
+    // Restraint matters here: bright neutral hardware looked like a hole in
+    // the dark saddle at gameplay scale. Use a mid-metal upper lip and a
+    // darker underside instead.
+    if (y < mount_y) return 0xFFD0D5D9u;
+    return 0xFF8E999Fu;
 }
 
 constexpr bool authored_wheel_spokes(
@@ -610,7 +621,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1(
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
-        return authored_metal_color(x, y);
+        return authored_saddle_mount_color(y, 29);
     }
     if (seat) {
         return authored_saddle_color(x, y, 128, 22);
@@ -687,7 +698,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1_companion_0d2d(
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
-        return authored_metal_color(x, y);
+        return authored_saddle_mount_color(y, 30);
     }
     if (seat) {
         return authored_saddle_color(x, y, 130, 23);
@@ -769,7 +780,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p1_predecessor(
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
-        return authored_metal_color(x, y);
+        return authored_saddle_mount_color(y, 29);
     }
     if (seat) {
         return authored_saddle_color(x, y, 130, 22);
@@ -856,7 +867,7 @@ constexpr std::uint32_t sample_racer_hd_authored_057f_p1_companion_0d4a(
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
-        return authored_metal_color(x, y);
+        return authored_saddle_mount_color(y, 29);
     }
     if (seat) {
         return authored_saddle_color(x, y, 120, 22);
@@ -943,7 +954,7 @@ constexpr std::uint32_t sample_racer_hd_authored_057e_p1_with_p2_0543(
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
-        return authored_metal_color(x, y);
+        return authored_saddle_mount_color(y, 29);
     }
     if (seat) {
         return authored_saddle_color(x, y, 116, 22);
@@ -1028,7 +1039,7 @@ constexpr std::uint32_t sample_racer_hd_authored_057d_p1_with_p2_0543(
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
-        return authored_metal_color(x, y);
+        return authored_saddle_mount_color(y, 33);
     }
     if (seat) {
         return authored_saddle_color(x, y, 112, 26);
@@ -1093,7 +1104,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p2_baseline(
 
     if (hub || rim || crank || pedal || wheel_spokes) return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     if (saddle_mount) {
-        return authored_metal_color(x, y);
+        return authored_saddle_mount_color(y, 29);
     }
     if (seat) {
         return authored_saddle_color(x, y, 130, 22);
@@ -1174,7 +1185,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p2_predecessor(
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
-        return authored_metal_color(x, y);
+        return authored_saddle_mount_color(y, 33);
     }
     if (seat) {
         return authored_saddle_color(x, y, 130, 26);
@@ -1251,7 +1262,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0542_p2(
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
-        return authored_metal_color(x, y);
+        return authored_saddle_mount_color(y, 33);
     }
     if (seat) {
         return authored_saddle_color(x, y, 130, 26);
@@ -1325,7 +1336,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0543_p2(
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
-        return authored_metal_color(x, y);
+        return authored_saddle_mount_color(y, 37);
     }
     if (seat) {
         return authored_saddle_color(x, y, 130, 30);

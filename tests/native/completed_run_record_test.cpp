@@ -73,6 +73,12 @@ int main() {
 
     const std::string encoded = encode_completed_run_record(original);
     assert(!encoded.empty());
+    const std::string input_file = encode_completed_run_input_file(original);
+    assert(input_file ==
+           "0:180:100:0\n"
+           "180:24:101:0\n"
+           "204:24:100:0\n"
+           "228:24:101:0\n");
 
     const auto decoded = decode_completed_run_record(encoded);
     assert(decoded.loaded());

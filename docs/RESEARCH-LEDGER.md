@@ -2281,3 +2281,14 @@ Bank 80 frontend wrappers: `B13F` 1, `B12A` 2, `B0EB`/`B169` 3, `B115` 4, `B100`
 - **Shadow buffer, not VRAM:** per-frame native dumps show the result tilemap built in the WRAM shadow at `7E:0200` and DMA'd in one go. snesref writes the time glyphs at `7E:04E2-04F1`, while native leaves `004C` there. The fault is therefore in printing into the shadow buffer, not in the VRAM upload.
 - **Where the print runs:** the generated C (`src/gen/bank80_v2.c`) compiles `80:C3AB` (`bank_80_C3AB_M1X0`) but none of its command handlers. Handler `0xF1` (`80:C6AA`, time) therefore runs on the interpreter bridge: it calls the formatter `83:8C7B` (whose native output is correct), then re-enters the parser with `LDX #$00FF; JSR $C3AB` from inside an outer `C3AB` dispatch. "NO TIME" is printed through `83:8BC9`, not through a nested parser call, and renders correctly.
 - **Hypothesis:** nested re-entry of the recompiled text parser from an interpreted handler (host-return/stack-context bookkeeping) drops the inner string. To test it, trace `bank_80_C3AB_M1X0` entries and its writes to `7E:04E2` around the result build, or force the `0xF1` handler path to stay interpreted.
+
+**Addendum (root cause, framework):** the hypothesis above is refined and confirmed. The result-row template (`80:8C20`, copied to `$011F` by the WRAM MVN trampoline at `$0199`) prints the time through handler `0xF1`. That handler runs on the interpreter and calls the compiled `bank_80_C3AB_M1X0` through the bridge's paired-call bounce (`interp_bridge.c`, `cpu_dispatch_pc_paired`).
+
+Evidence, in order:
+- `SNESRECOMP_INTERP_PCTRACE=1` shows MIKE's row executing `JSR $C3AB` at `80:C6BD` at the end of a long interpreter session (step 3053). The next session starts at the return address `80:C6C0` (step=1), with nothing executed in between.
+- A local diagnostic print at the compiled entry never fires for that row, while it fires for the three NO TIME rows.
+- `SNESRECOMP_TRAP_YIELD=80C3AB-80C3AB` shows exactly one deadline yield at that entry: `f3274 resume=$80C3AB S=$01EF deadline=1 depth=2`.
+
+So when the LLE master deadline lands on the prologue of a bounced compiled callee at bridge depth 2, the unwind is recorded with resume `80:C3AB`, but execution resumes at the caller's return address and the call is skipped. The bug is timing-dependent (it hits whichever print happens to straddle the deadline), so other one-off missing UI updates may share this cause.
+
+**Owner:** pinned snesrecomp runner (`runner/src/snes/interp_bridge.c` deadline-unwind path for paired bounces), not the game code. Reproduce with `tools/compare_engine_screen_text.py` plus the trap-yield variable above.

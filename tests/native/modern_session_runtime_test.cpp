@@ -16,6 +16,8 @@ unsigned loads = 0;
 int host_paused = 0;
 int rewind_lock = 0;
 unsigned reconciles = 0;
+unsigned exits = 0;
+bool exit_result = true;
 
 std::size_t save_snapshot(void* dst, std::size_t capacity) {
     ++saves;
@@ -49,6 +51,11 @@ void reconcile_after_restart() {
     ++reconciles;
 }
 
+bool exit_to_frontend() {
+    ++exits;
+    return exit_result;
+}
+
 void reset_fixture() {
     machine.clear();
     saves = 0;
@@ -56,6 +63,8 @@ void reset_fixture() {
     host_paused = 0;
     rewind_lock = 0;
     reconciles = 0;
+    exits = 0;
+    exit_result = true;
 }
 
 }  // namespace
@@ -68,7 +77,8 @@ int main() {
         ModernSessionRuntime authentic{
             ExecutionMode::Authentic,
             lifecycle,
-            {&set_paused, &is_paused, nullptr, &set_rewind_lock, &reconcile_after_restart}};
+            {&set_paused, &is_paused, nullptr, &set_rewind_lock,
+             &reconcile_after_restart, &exit_to_frontend}};
 
         machine = {1, 2, 3};
         assert(authentic.observe_race_active(true) == RestartLifecycleEvent::None);
@@ -80,6 +90,11 @@ int main() {
         assert(restart.request_status == SessionRequestStatus::RejectedByPolicy);
         assert(!restart.dispatched);
         assert(loads == 0);
+
+        const auto exit = authentic.request(SessionCommand::ExitToFrontend);
+        assert(exit.request_status == SessionRequestStatus::RejectedByPolicy);
+        assert(!exit.dispatched);
+        assert(exits == 0);
     }
 
     {
@@ -89,7 +104,8 @@ int main() {
         ModernSessionRuntime modern{
             ExecutionMode::Modern,
             lifecycle,
-            {&set_paused, &is_paused, nullptr, &set_rewind_lock, &reconcile_after_restart}};
+            {&set_paused, &is_paused, nullptr, &set_rewind_lock,
+             &reconcile_after_restart, &exit_to_frontend}};
 
         // Before an active-race anchor exists, the typed command reaches the
         // runtime adapter and fails closed at the real lifecycle restore.
@@ -146,9 +162,31 @@ int main() {
         assert(modern.request(SessionCommand::Resume).applied());
         assert(host_paused == 0);
 
-        // A confirmed course/frontend transition retires stale Retry state.
-        assert(modern.retire_race_attempt() ==
-               RestartLifecycleEvent::AnchorRetired);
+        // A failed lifecycle hook leaves the paused session and retry anchor
+        // intact, so Exit to Frontend fails closed.
+        assert(modern.request(SessionCommand::Pause).applied());
+        assert(host_paused == 1);
+        exit_result = false;
+        const auto failed_exit = modern.request(SessionCommand::ExitToFrontend);
+        assert(failed_exit.dispatch_status == RuntimeDispatchStatus::RejectedByRuntime);
+        assert(host_paused == 1);
+        assert(modern.phase() == SessionPhase::Paused);
+        assert(modern.restart_available());
+        assert(rewind_lock == 1);
+
+        // Success resumes host execution, retires the obsolete race anchor and
+        // releases the rewind/audio timing lock.
+        exit_result = true;
+        const auto exit = modern.request(SessionCommand::ExitToFrontend);
+        assert(exit.applied());
+        assert(exits == 2);
+        assert(host_paused == 0);
+        assert(modern.phase() == SessionPhase::Running);
+        assert(!modern.restart_available());
+        assert(rewind_lock == 0);
+
+        // A later retirement observation is inert because Exit already retired it.
+        assert(modern.retire_race_attempt() == RestartLifecycleEvent::None);
         assert(!modern.restart_available());
         assert(rewind_lock == 0);
         machine = {7};

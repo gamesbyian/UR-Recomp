@@ -8,7 +8,10 @@ import html
 import json
 from pathlib import Path
 
-from tools.build_racer_hd_asset_dossier import encode_png_rgba
+try:
+    from tools.build_racer_hd_asset_dossier import encode_png_rgba
+except ModuleNotFoundError:  # direct tools/... execution
+    from build_racer_hd_asset_dossier import encode_png_rgba
 
 
 def read_ppm(path: Path) -> tuple[int, int, bytes]:
@@ -97,10 +100,13 @@ def render_html(manifest: dict, live: dict | None) -> str:
         frames = ", ".join(str(x) for x in pose["observed_frames"])
         reps = "<br>".join(html.escape(x) for x in pose["representation_ids"])
         authored = pose["authored_png"]
+        authored_href = f"../{authored}" if authored else None
+        stock_href = f"../{pose['stock_png']}"
+        nearest_href = f"../{pose['nearest_4x_png']}"
         authored_panels = (
-            f'<figure><img class="asset large" src="{html.escape(authored)}">'
+            f'<figure><img class="asset large" src="{html.escape(authored_href)}">'
             f'<figcaption>Authored 4×</figcaption></figure>'
-            f'<figure><img class="asset gameplay" src="{html.escape(authored)}">'
+            f'<figure><img class="asset gameplay" src="{html.escape(authored_href)}">'
             f'<figcaption>Authored at gameplay footprint</figcaption></figure>'
             if authored else
             '<figure class="missing">No authored asset</figure>'
@@ -113,8 +119,8 @@ def render_html(manifest: dict, live: dict | None) -> str:
     guards:<br>{reps}
   </div>
   <div class="panels">
-    <figure><img class="asset stock" src="{html.escape(pose["stock_png"])}"><figcaption>Stock 1×</figcaption></figure>
-    <figure><img class="asset large" src="{html.escape(pose["nearest_4x_png"])}"><figcaption>Stock nearest 4×</figcaption></figure>
+    <figure><img class="asset stock" src="{html.escape(stock_href)}"><figcaption>Stock 1×</figcaption></figure>
+    <figure><img class="asset large" src="{html.escape(nearest_href)}"><figcaption>Stock nearest 4×</figcaption></figure>
     {authored_panels}
   </div>
 </section>""")

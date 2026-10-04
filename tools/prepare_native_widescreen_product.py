@@ -1,0 +1,95 @@
+#!/usr/bin/env python3
+"""Promote the accepted Widescreen preparation provider into a generated product.
+
+A freshly scaffolded project has already emitted its default AOT set. Widescreen
+needs the accepted race-frame root before generation, then the validated
+presentation hook applied to that regenerated output. Keep those two operations
+together so every shipping native workflow gets the same fail-closed contract.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+from apply_native_widescreen_hook import apply as apply_widescreen_hook
+from seed_native_widescreen_aot import ensure_seed
+
+
+def generation_command(framework: Path, project: Path, rom: Path) -> list[str]:
+    return [
+        sys.executable,
+        str(framework / "snesrecomp_cli.py"),
+        "generate",
+        "--rom",
+        str(rom),
+        "--project-root",
+        str(project),
+        "--cfg-dir",
+        "recomp",
+        "--out-dir",
+        "src/gen",
+        "--funcs-h",
+        "recomp/funcs.h",
+        "--cfg-roots",
+    ]
+
+
+def prepare(
+    framework: Path,
+    project: Path,
+    rom: Path,
+    *,
+    run=subprocess.run,
+) -> dict:
+    framework = framework.resolve()
+    project = project.resolve()
+    rom = rom.resolve()
+
+    cli = framework / "snesrecomp_cli.py"
+    cfg = project / "recomp"
+    generated = project / "src" / "gen"
+    if not cli.is_file():
+        raise ValueError(f"SNESRecomp CLI missing: {cli}")
+    if not cfg.is_dir():
+        raise ValueError(f"generated project cfg missing: {cfg}")
+    if not rom.is_file():
+        raise ValueError(f"ROM missing: {rom}")
+
+    seeded = ensure_seed(cfg)
+    run(generation_command(framework, project, rom), check=True)
+    if not generated.is_dir():
+        raise ValueError(f"regenerated AOT directory missing: {generated}")
+    hook = apply_widescreen_hook(generated)
+
+    if not hook.get("margin72_supported"):
+        raise ValueError("accepted Widescreen provider did not retain +72 capacity")
+    return {
+        "schema_version": 1,
+        "seeded": seeded,
+        "hook": hook,
+        "product_ready": True,
+    }
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--framework", type=Path, required=True)
+    ap.add_argument("--project", type=Path, required=True)
+    ap.add_argument("--rom", type=Path, required=True)
+    ap.add_argument("--json-out", type=Path)
+    args = ap.parse_args()
+
+    report = prepare(args.framework, args.project, args.rom)
+    payload = json.dumps(report, indent=2) + "\n"
+    if args.json_out:
+        args.json_out.parent.mkdir(parents=True, exist_ok=True)
+        args.json_out.write_text(payload, encoding="utf-8")
+    print(payload, end="")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

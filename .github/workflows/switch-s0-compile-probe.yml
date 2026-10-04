@@ -31,16 +31,15 @@ jobs:
 
       - name: Validate repository contract
         run: |
-          set -euo pipefail
+          set -eu
           python3 tools/check_switch_s0_probe.py
           python3 -m unittest tests.unit.test_switch_s0_probe
 
       - name: Record toolchain inputs
-        shell: bash
         run: |
-          set -euo pipefail
+          set -eu
           test -n "${DEVKITPRO:-}"
-          source "$DEVKITPRO/switchvars.sh"
+          . "$DEVKITPRO/switchvars.sh"
           command -v aarch64-none-elf-gcc
           command -v elf2nro
           command -v sdl2-config
@@ -49,10 +48,9 @@ jobs:
           dkp-pacman -Q switch-sdl2
 
       - name: Build minimal libnx SDL2 NRO
-        shell: bash
         run: |
-          set -euo pipefail
-          source "$DEVKITPRO/switchvars.sh"
+          set -eu
+          . "$DEVKITPRO/switchvars.sh"
           make -C platform/switch/s0_probe -j2
           test -s platform/switch/s0_probe/ur-recomp-switch-s0.elf
           test -s platform/switch/s0_probe/ur-recomp-switch-s0.nacp
@@ -60,10 +58,9 @@ jobs:
           sha256sum platform/switch/s0_probe/ur-recomp-switch-s0.nro
 
       - name: Emit retained compiler and link metadata
-        shell: bash
         run: |
-          set -euo pipefail
-          source "$DEVKITPRO/switchvars.sh"
+          set -eu
+          . "$DEVKITPRO/switchvars.sh"
           mkdir -p switch-s0-evidence
           {
             echo "container=devkitpro/devkita64:20260219"

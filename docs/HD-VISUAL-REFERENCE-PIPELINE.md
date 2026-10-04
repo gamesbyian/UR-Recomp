@@ -130,7 +130,7 @@ The P1 review strip is now saturated across the retained 1205–1220 window. The
 
 The immediate frame-1219 P2 `0540` representation under the distinct `0D2D` synchronized context has byte-identical stock pixels to frame 1220. The pipeline therefore keeps the two registrations distinct but reuses the reviewed P2 authored asset, with CI locking both stock and authored hashes. Native run `37169313027` is green and artifact `11290454491` retains the accepted reuse evidence.
 
-Frame 1218 P2 `0541` is the next actual P2 visual change. A new authored blue-player candidate derives from the reviewed P2 baseline by the exact one-logical-pixel leftward displacement required to match stock envelope `[22,3]..[39,38]` and contact `[61,76]`; native/dossier acceptance remains pending. Recovered gameplay-scale envelope/contact and temporal continuity remain acceptance constraints, while smooth geometry/material interpretation stays free inside those constraints.
+Frame 1218 P2 `0541` is the next actual P2 visual change. Its authored blue-player asset derives from the reviewed P2 baseline by the exact one-logical-pixel leftward displacement required to match stock envelope `[22,3]..[39,38]` and contact `[61,76]`. Native run `37169795518` is green; artifact `11290901577` records 250/372 alpha intersection/union (IoU `0.6720430108`). Recovered gameplay-scale envelope/contact and temporal continuity remain acceptance constraints, while smooth geometry/material interpretation stays free inside those constraints.
 
 ## Reconstruction decision policy
 

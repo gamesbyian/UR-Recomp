@@ -1,7 +1,7 @@
 #pragma once
 
 #include "host_product_state.hpp"
-#include "completed_run_ghost_policy.hpp"
+#include "completed_run_ghost_target.hpp"
 
 #include <array>
 #include <cstddef>

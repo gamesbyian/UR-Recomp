@@ -375,6 +375,26 @@ constexpr std::uint32_t authored_saddle_color(
     return 0xFF262D31u;
 }
 
+constexpr bool authored_segment_contains(
+    int x,
+    int y,
+    int x1,
+    int y1,
+    int x2,
+    int y2,
+    int half_width
+) noexcept {
+    const int dx = x2 - x1;
+    const int dy = y2 - y1;
+    const int px = x - x1;
+    const int py = y - y1;
+    const int length2 = dx * dx + dy * dy;
+    const int dot = px * dx + py * dy;
+    if (dot < 0 || dot > length2) return false;
+    const int cross = dx * py - dy * px;
+    return cross * cross <= half_width * half_width * length2;
+}
+
 constexpr bool authored_wheel_spokes(
     int x,
     int y,
@@ -408,26 +428,6 @@ constexpr bool authored_frame_brace(
            authored_segment_contains(
                x, y, crown_x, crown_y, wheel_cx + 18, wheel_cy - 5, 3
            );
-}
-
-constexpr bool authored_segment_contains(
-    int x,
-    int y,
-    int x1,
-    int y1,
-    int x2,
-    int y2,
-    int half_width
-) noexcept {
-    const int dx = x2 - x1;
-    const int dy = y2 - y1;
-    const int px = x - x1;
-    const int py = y - y1;
-    const int length2 = dx * dx + dy * dy;
-    const int dot = px * dx + py * dy;
-    if (dot < 0 || dot > length2) return false;
-    const int cross = dx * py - dy * px;
-    return cross * cross <= half_width * half_width * length2;
 }
 
 constexpr bool authored_0541_p1_frame_brace(int x, int y) noexcept {

@@ -1,0 +1,179 @@
+name: Widescreen 4:3 regression gate
+
+# With Widescreen off, the shipping product must leave the authentic path
+# bit-identical: the same generated program without the Widescreen
+# presentation hook or product host, and the product in Original view, run
+# the same deterministic routes, and every per-frame framebuffer and WRAM
+# image plus every checkpoint dump must match exactly.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "tools/apply_native_widescreen_hook.py"
+      - "tools/prepare_native_widescreen_product.py"
+      - "tools/seed_native_widescreen_aot.py"
+      - "tools/patch_modern_product_host.py"
+      - "tools/patches/snesrecomp-ws-shadow-split-band.patch"
+      - "tools/patches/snesrecomp-dynamic-native-widescreen.patch"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "native/product/**"
+      - "native/title/**"
+      - "tools/check_framedump_identity.py"
+      - "tests/unit/test_check_framedump_identity.py"
+      - "tests/input/widescreen-product-acceptance.script"
+      - "tests/input/vs-first-race.input"
+      - "tests/input/vs-first-race-observe.script"
+      - "tests/input/two-player-first-race.input"
+      - "tests/input/two-player-first-race-observe.script"
+      - ".github/workflows/widescreen-4x3-regression.yml"
+concurrency:
+  group: widescreen-4x3-regression-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install desktop build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake ninja-build pkg-config xvfb \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Comparison tool tests
+        run: python3 -m unittest tests.unit.test_check_framedump_identity tests.unit.test_prepare_native_widescreen_product
+
+      - name: Stage repository-owned SNESRecomp framework
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+          test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
+
+      - name: Build baseline and product
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          scaffold() {
+            mkdir -p "$1"
+            SNESRECOMP_ROOT="$FRAMEWORK" \
+              sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+                --rom "$ROM" --dir "$1" --name "Uniracers" --players 2 --yes \
+                --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay \
+                --no-github --no-submodules --no-generate --no-build
+          }
+          build() {
+            cmake -S "$1" -B "$1/build" -G Ninja \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DSNESRECOMP_ROOT="$FRAMEWORK" \
+              -DSNESRECOMP_SDL_BACKEND=SDL3 \
+              -DSNESRECOMP_SDL3_FETCH=ON \
+              -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
+            cmake --build "$1/build" -j2
+            test -x "$1/build/UniracersSNESRecomp"
+          }
+
+          BASE="$RUNNER_TEMP/baseline/UniracersSNESRecomp"
+          scaffold "$RUNNER_TEMP/baseline"
+          python3 tools/prepare_native_widescreen_product.py \
+            --framework "$FRAMEWORK" --project "$BASE" --rom "$ROM" \
+            --regression-baseline --json-out "$RUNNER_TEMP/baseline-prepare.json"
+          grep -q '"regression_baseline": true' "$RUNNER_TEMP/baseline-prepare.json"
+          build "$BASE"
+
+          PROD="$RUNNER_TEMP/product/UniracersSNESRecomp"
+          scaffold "$RUNNER_TEMP/product"
+          python3 tools/prepare_native_widescreen_product.py \
+            --framework "$FRAMEWORK" --project "$PROD" --rom "$ROM" \
+            --json-out "$RUNNER_TEMP/product-prepare.json"
+          grep -q '"product_ready": true' "$RUNNER_TEMP/product-prepare.json"
+          python3 tools/patch_modern_product_host.py "$PROD/src/main.c" \
+            --game-rtl "$PROD/src/game_rtl.c" --cmake "$PROD/CMakeLists.txt"
+          build "$PROD"
+
+          # Same generated program; only the presentation hook may differ.
+          diff -rq "$BASE/recomp" "$PROD/recomp"
+
+      - name: Compare Original-view routes frame by frame
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          IN="$GITHUB_WORKSPACE/tests/input"
+          STATE="$RUNNER_TEMP/host-state-v6.txt"
+          cat >"$STATE" <<'STATEEOF'
+          UR-HOST-STATE/6
+          profile=
+          pause_on_focus_loss=1
+          vibration_enabled=1
+          display_mode=windowed
+          vsync=on
+          presentation_fps=game
+          output_resolution=native
+          widescreen=original
+          STATEEOF
+          mkdir -p "$RUNNER_TEMP/evidence"
+
+          run_route() {
+            local variant="$1" route="$2" script="$3" input="$4"
+            local exe="$RUNNER_TEMP/$variant/UniracersSNESRecomp/build/UniracersSNESRecomp"
+            local out="$RUNNER_TEMP/runs/$route-$variant"
+            mkdir -p "$out/frames" "$out/dumps"
+            rm -rf "$(dirname "$exe")/saves"
+            (
+              cd "$(dirname "$exe")"
+              if [ -n "$input" ]; then export SNESRECOMP_INPUT_FILE="$input"; fi
+              SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+              SNESRECOMP_FRAMEDUMP_START=0 \
+              SNESRECOMP_FRAMEDUMP_END=2000 \
+              UR_HOST_STATE_PATH="$STATE" \
+              SNESRECOMP_DUMP_DIR="$out/dumps" \
+              SDL_AUDIODRIVER=dummy \
+              timeout 600s xvfb-run -a "$exe" "$ROM" --script "$script" \
+                --framedump "$out/frames" >"$out/run.log" 2>&1
+            )
+          }
+
+          compare_route() {
+            local route="$1" script="$2" input="$3" min_frames="$4"
+            run_route baseline "$route" "$script" "$input"
+            run_route product "$route" "$script" "$input"
+            local r="$RUNNER_TEMP/runs/$route"
+            python3 tools/check_framedump_identity.py --route "$route" \
+              --baseline-frames "$r-baseline/frames" --candidate-frames "$r-product/frames" \
+              --baseline-dumps "$r-baseline/dumps" --candidate-dumps "$r-product/dumps" \
+              --min-frames "$min_frames" \
+              --out "$RUNNER_TEMP/evidence/$route-4x3-identity.json" | tail -n 40
+            rm -rf "$r-baseline/frames" "$r-product/frames"
+          }
+
+          compare_route one-player "$IN/widescreen-product-acceptance.script" "" 1900
+          compare_route vs "$IN/vs-first-race-observe.script" "$IN/vs-first-race.input" 1600
+          compare_route two-player "$IN/two-player-first-race-observe.script" "$IN/two-player-first-race.input" 1600
+          echo "WIDESCREEN_4X3_REGRESSION bit-identical routes=3"
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: widescreen-4x3-regression
+          path: |
+            ${{ runner.temp }}/evidence/
+            ${{ runner.temp }}/runs/**/run.log
+          if-no-files-found: ignore

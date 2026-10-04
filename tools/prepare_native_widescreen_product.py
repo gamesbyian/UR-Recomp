@@ -48,6 +48,7 @@ def prepare(
     rom: Path,
     *,
     run=subprocess.run,
+    regression_baseline: bool = False,
 ) -> dict:
     framework = framework.resolve()
     project = project.resolve()
@@ -67,6 +68,15 @@ def prepare(
     run(generation_command(framework, project, rom), check=True)
     if not generated.is_dir():
         raise ValueError(f"regenerated AOT directory missing: {generated}")
+    if regression_baseline:
+        # The 4:3 regression gate's reference: the identical generated program
+        # with no Widescreen presentation hook. Never a shipping product.
+        return {
+            "schema_version": 1,
+            "seeded": seeded,
+            "regression_baseline": True,
+            "product_ready": False,
+        }
     hook = apply_widescreen_hook(generated)
 
     if not hook.get("margin72_supported"):
@@ -85,9 +95,15 @@ def main() -> int:
     ap.add_argument("--project", type=Path, required=True)
     ap.add_argument("--rom", type=Path, required=True)
     ap.add_argument("--json-out", type=Path)
+    ap.add_argument(
+        "--regression-baseline",
+        action="store_true",
+        help="seed and generate only, without the presentation hook (4:3 regression gate reference)",
+    )
     args = ap.parse_args()
 
-    report = prepare(args.framework, args.project, args.rom)
+    report = prepare(args.framework, args.project, args.rom,
+                     regression_baseline=args.regression_baseline)
     payload = json.dumps(report, indent=2) + "\n"
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)

@@ -260,7 +260,7 @@ Permanent widening still waits for a trustworthy stock baseline. **Reconnaissanc
 - [ ] Widen render/culling paths deliberately while keeping stock simulation timing unchanged.
 - [ ] Measure object/opponent/event information exposure between matched 4:3 and 16:9 runs.
 - [ ] Exercise player-1/player-2 split-screen and Vs. behavior independently, including the authentic sprite-ripping path.
-- [ ] Preserve bit-identical 4:3 regression mode.
+- [x] Preserve bit-identical 4:3 regression mode. With Widescreen off, the product is bit-identical, frame by frame, to the same seeded program without the presentation layer on the 1P, VS and ordinary-2P routes. `widescreen-4x3-regression.yml` gates this (R-2026-10-04-UI-31). The AOT seed itself shifts tier timing against an unseeded, interpreter-heavy build; that is recorded there as a framework property, not a Widescreen effect.
 
 ## Phase 9 — Modern presentation
 

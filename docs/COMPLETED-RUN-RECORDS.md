@@ -46,3 +46,12 @@ This matters because completed-run capture must record what the guest actually r
 `CompletedRunCapture` is the host-independent lifecycle owner above that observation. The caller starts it after the authoritative race-entry frame, feeds each subsequent resolved guest word, supplies authoritative split/timer observations, and finalizes a typed `CompletedRunRecord`. Abort/reset clears the attempt completely. A small `select_fastest_compatible_run()` query is the first PB/ghost-selection seam and remains read-only/presentation-side.
 
 Fresh-process acceptance now writes a record in one process, reloads and verifies it in another, reconstructs the canonical deterministic input stream, and rejects a checksum-damaged artifact. Native race re-drive from a production-captured artifact remains the next integration proof once the currently active profile/autosave host changes are reconciled.
+
+
+## Production local persistence
+
+Ordinary Modern one-player races now use the already-proven rider-selection mode latch (0x3C = 1P, 0x3D = ordinary 2P, 0x3E = VS) to decide eligibility. A completed 1P run is appended beneath the app preference root as `runs/<active-profile>/run-<time>-<suffix>.urrun`. The active profile ID is host namespace only; record compatibility still depends on game/ROM/build/course/mode provenance inside the artifact.
+
+The local store loads only compatible, valid records in filename order. That directly supplies a previous-run selector, while the fastest-compatible selector supplies the PB candidate. Corrupt and incompatible files are skipped rather than poisoning the catalog. No record or ghost data can write guest state.
+
+For deterministic native acceptance, `UR_RUN_RECORD_CAPTURE_PATH` overrides the ordinary append-only destination with one exact path and writes a sibling `.input` file whose frame numbers are offset to the observed race-entry host frame. This sidecar is acceptance plumbing only; the portable record keeps race-relative input frames.

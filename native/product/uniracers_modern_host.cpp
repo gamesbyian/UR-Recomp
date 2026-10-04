@@ -15,6 +15,7 @@ extern "C" {
 #include "modern_pause_menu.h"
 #include "modern_options_menu.h"
 #include "modern_session_c_api.h"
+#include "output_resolution_runtime_policy.hpp"
 #include "uniracers_restart_policy.h"
 #include "uniracers_run_data.h"
 
@@ -22,6 +23,7 @@ extern "C" {
 #include <cstring>
 #include <cstdio>
 #include <string>
+#include <vector>
 
 namespace {
 
@@ -253,6 +255,122 @@ bool apply_display_mode_setting(const ur::product::HostSettings& settings) {
     return true;
 }
 
+ur::product::HostOutputMode product_output_mode(
+    const SnesDesktopOutputMode& mode) {
+    return {mode.width, mode.height, mode.refresh_millihz};
+}
+
+SnesDesktopOutputMode desktop_output_mode(
+    const ur::product::HostOutputMode& mode) {
+    return {mode.width, mode.height, mode.refresh_millihz};
+}
+
+std::vector<ur::product::HostOutputMode> active_output_modes() {
+    std::vector<ur::product::HostOutputMode> modes;
+    const int count = snesrecomp_desktop_output_mode_count();
+    if (count <= 0) return modes;
+    modes.reserve(static_cast<std::size_t>(count));
+    for (int index = 0; index < count; ++index) {
+        SnesDesktopOutputMode mode{};
+        if (snesrecomp_desktop_get_output_mode(index, &mode)) {
+            modes.push_back(product_output_mode(mode));
+        }
+    }
+    return modes;
+}
+
+bool active_native_output_mode(ur::product::HostOutputMode& out) {
+    SnesDesktopOutputMode mode{};
+    if (!snesrecomp_desktop_get_native_output_mode(&mode)) {
+        return false;
+    }
+    out = product_output_mode(mode);
+    return ur::product::valid_output_mode(out);
+}
+
+bool apply_concrete_output_mode(
+    void*,
+    const ur::product::HostOutputMode& mode) {
+    const SnesDesktopOutputMode host_mode = desktop_output_mode(mode);
+    return snesrecomp_desktop_set_output_mode(&host_mode) != 0;
+}
+
+const char* output_resolution_status_name(
+    ur::product::OutputResolutionApplyStatus status) {
+    switch (status) {
+    case ur::product::OutputResolutionApplyStatus::NotApplicable:
+        return "not-applicable";
+    case ur::product::OutputResolutionApplyStatus::Applied:
+        return "applied";
+    case ur::product::OutputResolutionApplyStatus::Unsupported:
+        return "unsupported";
+    case ur::product::OutputResolutionApplyStatus::HostRejected:
+        return "host-rejected";
+    }
+    return "unknown";
+}
+
+std::string output_resolution_name(
+    const ur::product::HostOutputResolution& resolution) {
+    if (resolution.kind == ur::product::HostOutputResolutionKind::Native) {
+        return "native";
+    }
+    return std::to_string(resolution.width) + "x" +
+           std::to_string(resolution.height);
+}
+
+bool apply_output_resolution_setting(
+    const ur::product::HostSettings& settings) {
+    if (!modern_mode()) return false;
+    if (settings.display_mode != ur::product::HostDisplayMode::Fullscreen) {
+        return true;
+    }
+
+    const auto modes = active_output_modes();
+    const auto choices = ur::product::build_output_resolution_choices(modes);
+    const auto effective = ur::product::select_supported_output_resolution(
+        settings.output_resolution, choices);
+    ur::product::HostOutputMode native_mode{};
+    if (!active_native_output_mode(native_mode)) {
+        product_diagnostic("UR_OUTPUT_RESOLUTION NATIVE_MODE_UNAVAILABLE");
+        return false;
+    }
+
+    const auto result = ur::product::apply_output_resolution_policy(
+        settings.display_mode,
+        effective,
+        modes,
+        native_mode,
+        &apply_concrete_output_mode,
+        nullptr);
+    if (!result) {
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_OUTPUT_RESOLUTION APPLY_FAILED requested=%s effective=%s status=%s\n",
+                output_resolution_name(settings.output_resolution).c_str(),
+                output_resolution_name(effective).c_str(),
+                output_resolution_status_name(result.status));
+            std::fflush(stderr);
+        }
+        return false;
+    }
+
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_OUTPUT_RESOLUTION APPLIED requested=%s effective=%s status=%s mode=%dx%d@%d\n",
+            output_resolution_name(settings.output_resolution).c_str(),
+            output_resolution_name(effective).c_str(),
+            output_resolution_status_name(result.status),
+            result.selected_mode ? result.selected_mode->width : 0,
+            result.selected_mode ? result.selected_mode->height : 0,
+            result.selected_mode ? result.selected_mode->refresh_millihz : 0);
+        std::fflush(stderr);
+    }
+    return true;
+}
+
 std::string resolve_product_state_path() {
     const char* override_path = std::getenv("UR_HOST_STATE_PATH");
     if (override_path && *override_path) {
@@ -291,12 +409,14 @@ void ensure_product_state() {
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             std::fprintf(
                 stderr,
-                "UR_HOST_STATE LOADED pause_on_focus_loss=%d display_mode=%s vsync=%s presentation_fps=%s\n",
+                "UR_HOST_STATE LOADED pause_on_focus_loss=%d display_mode=%s vsync=%s presentation_fps=%s output_resolution=%s\n",
                 g_product_state.settings.pause_on_focus_loss ? 1 : 0,
                 display_mode_name(g_product_state.settings.display_mode),
                 vsync_mode_name(g_product_state.settings.vsync_mode),
                 presentation_fps_mode_name(
-                    g_product_state.settings.presentation_fps_mode));
+                    g_product_state.settings.presentation_fps_mode),
+                output_resolution_name(
+                    g_product_state.settings.output_resolution).c_str());
             std::fflush(stderr);
         }
     } else if (loaded.status == ur::product::HostProductLoadStatus::Missing) {
@@ -337,6 +457,14 @@ bool toggle_focus_pause_setting() {
     return true;
 }
 
+bool restore_video_output_settings(
+    const ur::product::HostSettings& settings) {
+    if (!apply_display_mode_setting(settings)) {
+        return false;
+    }
+    return apply_output_resolution_setting(settings);
+}
+
 bool toggle_display_mode_setting() {
     if (!modern_mode()) return false;
 
@@ -359,8 +487,12 @@ bool toggle_display_mode_setting() {
     if (!apply_display_mode_setting(candidate.settings)) {
         return false;
     }
+    if (!apply_output_resolution_setting(candidate.settings)) {
+        (void)restore_video_output_settings(g_product_state.settings);
+        return false;
+    }
     if (!persist_product_state(candidate)) {
-        (void)apply_display_mode_setting(g_product_state.settings);
+        (void)restore_video_output_settings(g_product_state.settings);
         return false;
     }
 
@@ -439,6 +571,42 @@ bool cycle_presentation_fps_setting() {
     return true;
 }
 
+bool cycle_output_resolution_setting() {
+    if (!modern_mode()) return false;
+
+    const auto modes = active_output_modes();
+    const auto choices = ur::product::build_output_resolution_choices(modes);
+    if (choices.empty()) {
+        product_diagnostic("UR_OUTPUT_RESOLUTION CATALOG_EMPTY");
+        return false;
+    }
+
+    ur::product::HostProductState candidate = g_product_state;
+    candidate.settings.output_resolution =
+        ur::product::cycle_output_resolution(
+            g_product_state.settings.output_resolution, choices, 1);
+
+    if (!apply_output_resolution_setting(candidate.settings)) {
+        return false;
+    }
+    if (!persist_product_state(candidate)) {
+        (void)apply_output_resolution_setting(g_product_state.settings);
+        return false;
+    }
+
+    g_product_state = candidate;
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_OUTPUT_RESOLUTION SELECTED value=%s choices=%zu\n",
+            output_resolution_name(
+                g_product_state.settings.output_resolution).c_str(),
+            choices.size());
+        std::fflush(stderr);
+    }
+    return true;
+}
+
 bool activate_options_selection() {
     switch (ur_modern_options_menu_selected(&g_options_menu)) {
     case UR_MODERN_OPTIONS_FOCUS_PAUSE:
@@ -449,6 +617,8 @@ bool activate_options_selection() {
         return cycle_vsync_setting();
     case UR_MODERN_OPTIONS_PRESENTATION_FPS:
         return cycle_presentation_fps_setting();
+    case UR_MODERN_OPTIONS_OUTPUT_RESOLUTION:
+        return cycle_output_resolution_setting();
     }
     return false;
 }
@@ -508,6 +678,7 @@ bool ensure_session() {
     ur_uniracers_restart_policy_reset(&g_title_policy);
     if (g_session && modern_mode()) {
         (void)apply_display_mode_setting(g_product_state.settings);
+        (void)apply_output_resolution_setting(g_product_state.settings);
         (void)apply_presentation_fps_setting(g_product_state.settings);
         (void)apply_vsync_setting(g_product_state.settings);
     }
@@ -976,7 +1147,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
 
     if (is_paused) {
         if (g_options_visible) {
-            const int options_h = 129;
+            const int options_h = 144;
             const int options_y = (height - options_h) / 2;
             const UrModernOptionsItem selected =
                 ur_modern_options_menu_selected(&g_options_menu);
@@ -1016,10 +1187,20 @@ extern "C" void ur_uniracers_modern_system_overlay(
                         g_product_state.settings.presentation_fps_mode));
                 presentation_text = presentation_value;
             }
+            const auto resolution_choices =
+                ur::product::build_output_resolution_choices(
+                    active_output_modes());
+            const auto effective_resolution =
+                ur::product::select_supported_output_resolution(
+                    g_product_state.settings.output_resolution,
+                    resolution_choices);
+            const std::string resolution_value =
+                output_resolution_name(effective_resolution);
             char focus_row[32];
             char display_row[32];
             char vsync_row[32];
             char presentation_row[32];
+            char resolution_row[40];
             std::snprintf(
                 focus_row, sizeof(focus_row), "%c %s",
                 selected == UR_MODERN_OPTIONS_FOCUS_PAUSE ? '>' : ' ',
@@ -1036,6 +1217,10 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 presentation_row, sizeof(presentation_row), "%c %s",
                 selected == UR_MODERN_OPTIONS_PRESENTATION_FPS ? '>' : ' ',
                 presentation_text);
+            std::snprintf(
+                resolution_row, sizeof(resolution_row), "%c OUTPUT  %s",
+                selected == UR_MODERN_OPTIONS_OUTPUT_RESOLUTION ? '>' : ' ',
+                resolution_value.c_str());
             snes_ovl_fill_rect(
                 pixels, stride, height, x, options_y, panel_w, options_h,
                 0xE0202020u);
@@ -1058,10 +1243,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 pixels, stride, height, x + 8, options_y + 72,
                 presentation_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 92,
+                pixels, stride, height, x + 8, options_y + 87,
+                resolution_row, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, options_y + 107,
                 "A / ENTER  CHANGE", 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 112,
+                pixels, stride, height, x + 8, options_y + 127,
                 "B / ESC    BACK", 0xFFFFFFFFu, 1);
             return;
         }

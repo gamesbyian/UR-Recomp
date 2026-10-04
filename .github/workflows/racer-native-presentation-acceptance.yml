@@ -465,7 +465,7 @@ jobs:
           ]
           repeated_057d_candidate = repeated_057d["art_review"]["authored_candidate"]
           assert repeated_057d_candidate["approval_status"] == (
-              "true-density refinement pass 1: shifted/narrowed bridge saddle; still needs shipping-art refinement"
+              "true-density refinement pass 1: shifted/narrowed saddle mass; still needs shipping-art refinement"
           )
           assert repeated_057d["observed_frames_in_window"] == [1207, 1208, 1209, 1210, 1211, 1212]
           repeated_057d_review = repeated_057d_candidate["gameplay_scale_review"]

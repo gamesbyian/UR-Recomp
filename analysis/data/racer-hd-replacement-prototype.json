@@ -1172,7 +1172,29 @@
         "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
         "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
       },
-      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset."
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x_reuse",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0540_p2_baseline",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_seventh_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "accepted context-safe reuse of motion-reviewed P2 baseline; not approved shipping art",
+        "shipping_art_approved": false,
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "reuse_source_representation_id": "ordinary-racer-0x0540-p2-sync-reference",
+        "intent": "Retain the distinct frame-1219 synchronized guard while reusing the frame-1220 authored P2 asset because the deterministic stock P2 raster is byte-identical across the two contexts.",
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [23, 3, 40, 38],
+          "candidate_alpha_bounds": [23, 3, 40, 38],
+          "candidate_contact_x2_y2": [63, 76],
+          "stock_opaque_pixels": 323,
+          "candidate_opaque_pixels": 304,
+          "alpha_intersection_pixels": 266,
+          "alpha_union_pixels": 361,
+          "alpha_iou": 0.7368421052631579
+        }
+      }
     },
     {
       "semantic_frame_id": "0x0540",

@@ -14,6 +14,7 @@ on:
       - "tests/input/vs-first-race.input"
       - "tests/input/vs-first-race-observe.script"
       - "analysis/widescreen-policy.yml"
+      - "analysis/widescreen-vs-policy-evidence.json"
       - "docs/WIDESCREEN-RECONNAISSANCE.md"
       - "docs/WORK-QUEUE.md"
 
@@ -158,6 +159,24 @@ jobs:
           print(json.dumps(out,indent=2))
           if not out["accepted"]:
               raise SystemExit("VS +8 host viewport dimensions diverged")
+          PY
+
+      - name: Verify retained VS classification
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          retained=json.loads(Path("analysis/widescreen-vs-policy-evidence.json").read_text())
+          policy=json.loads(Path("analysis/generated/widescreen-vs-policy.json").read_text())
+          frame=json.loads(Path("analysis/generated/widescreen-vs-policy-frame.json").read_text())
+          provider=json.loads(Path("analysis/generated/widescreen-vs-provider-activity.json").read_text())
+          assert policy["semantic_activation_preserved"] is retained["protected_state_equal_at_all_checkpoints"]
+          assert policy["classification"] == retained["classification"]
+          assert frame["control"] == retained["control_frame_geometry"]
+          assert frame["plus8"] == retained["plus8_frame_geometry"]
+          assert provider["plus8_primary_trace_observed"] is retained["ordinary_race_primary_trace_observed_in_plus8_vs"]
+          assert provider["plus8_preparation_hook_observed"] is retained["ordinary_race_preparation_hook_observed_in_plus8_vs"]
+          print("VS_WIDESCREEN_RETAINED_EVIDENCE_MATCH")
           PY
 
       - name: Upload compact VS Widescreen evidence

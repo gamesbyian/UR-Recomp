@@ -1,10 +1,14 @@
-name: VS Widescreen +16 capacity
+name: VS Widescreen +24 capacity
 
 on:
   workflow_dispatch:
   pull_request:
     paths:
-      - ".github/workflows/widescreen-vs-plus16-capacity.yml"
+      - ".github/workflows/widescreen-vs-plus24-capacity.yml"
+      - "analysis/widescreen-vs-plus24-capacity-evidence.json"
+      - "analysis/widescreen-policy.yml"
+      - "docs/WIDESCREEN-RECONNAISSANCE.md"
+      - "docs/WORK-QUEUE.md"
       - "tools/apply_native_widescreen_hook.py"
       - "tests/unit/test_apply_native_widescreen_hook.py"
       - "tools/seed_native_widescreen_aot.py"
@@ -12,13 +16,13 @@ on:
       - "tools/summarize_paired_player_slots.py"
       - "tests/input/vs-first-race.input"
       - "tests/input/vs-first-race-observe.script"
-      - "analysis/widescreen-vs-plus16-capacity-evidence.json"
+      - "analysis/widescreen-vs-plus24-capacity-evidence.json"
       - "analysis/widescreen-policy.yml"
       - "docs/WIDESCREEN-RECONNAISSANCE.md"
       - "docs/WORK-QUEUE.md"
 
 concurrency:
-  group: widescreen-vs-plus16-capacity-${{ github.ref }}
+  group: widescreen-vs-plus24-capacity-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -67,7 +71,7 @@ jobs:
           cmake --build "$PROJECT/build" -j2
           test -x "$PROJECT/build/UniracersSNESRecomp"
 
-      - name: Run matched stock and +16 VS fixtures
+      - name: Run matched stock and +24 VS fixtures
         shell: bash
         run: |
           set -euo pipefail
@@ -76,9 +80,9 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           INPUT="$GITHUB_WORKSPACE/tests/input/vs-first-race.input"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/vs-first-race-observe.script"
-          ROOT="$RUNNER_TEMP/widescreen-vs-plus16"
+          ROOT="$RUNNER_TEMP/widescreen-vs-plus24"
           mkdir -p "$ROOT"
-          for margin in 0 16; do
+          for margin in 0 24; do
             OUT="$ROOT/$margin"
             mkdir -p "$OUT/dumps" "$OUT/frames"
             rm -rf "$PROJECT/build/saves"
@@ -96,26 +100,28 @@ jobs:
             test -s "$OUT/dumps/vs-race-1620.wram.bin"
             test -s "$OUT/frames/frame_001340.bmp"
           done
-          grep -q "URWS_VS_PREP margin=16 player=1" "$ROOT/16/run.log"
-          grep -q "URWS_VS_PREP margin=16 player=2" "$ROOT/16/run.log"
-          grep -q "URWS_VS_MATERIALIZER margin=16 player=1 calibrated=1" "$ROOT/16/run.log"
-          grep -q "URWS_VS_MATERIALIZER margin=16 player=2 calibrated=1" "$ROOT/16/run.log"
-          if grep -q "URWS_VS_MATERIALIZER margin=16 player=1 calibrated=0" "$ROOT/16/run.log"; then
-            echo "P1 live-course calibration missed at least one accepted +8 payload" >&2
+          grep -q "URWS_VS_PREP margin=24 player=1" "$ROOT/24/run.log"
+          grep -q "URWS_VS_PREP margin=24 player=2" "$ROOT/24/run.log"
+          grep -q "URWS_VS_MATERIALIZER margin=24 player=1 calibrated=1" "$ROOT/24/run.log"
+          grep -q "URWS_VS_MATERIALIZER margin=24 player=2 calibrated=1" "$ROOT/24/run.log"
+          if grep -q "URWS_VS_MATERIALIZER margin=24 player=1 calibrated=0" "$ROOT/24/run.log"; then
+            echo "P1 +24 live-course calibration missed at least one accepted +8 payload" >&2
             exit 1
           fi
-          if grep -q "URWS_VS_MATERIALIZER margin=16 player=2 calibrated=0" "$ROOT/16/run.log"; then
-            echo "P2 live-course calibration missed at least one accepted +8 payload" >&2
+          if grep -q "URWS_VS_MATERIALIZER margin=24 player=2 calibrated=0" "$ROOT/24/run.log"; then
+            echo "P2 +24 live-course calibration missed at least one accepted +8 payload" >&2
             exit 1
           fi
-          grep -q "URWS_VS_SHADOW_EXT provider=course-runtime margin=16 player=1 depth=1" "$ROOT/16/run.log"
-          grep -q "URWS_VS_SHADOW_EXT provider=course-runtime margin=16 player=2 depth=1" "$ROOT/16/run.log"
+          grep -q "URWS_VS_SHADOW_EXT provider=course-runtime margin=24 player=1 depth=1" "$ROOT/24/run.log"
+          grep -q "URWS_VS_SHADOW_EXT provider=course-runtime margin=24 player=1 depth=2" "$ROOT/24/run.log"
+          grep -q "URWS_VS_SHADOW_EXT provider=course-runtime margin=24 player=2 depth=1" "$ROOT/24/run.log"
+          grep -q "URWS_VS_SHADOW_EXT provider=course-runtime margin=24 player=2 depth=2" "$ROOT/24/run.log"
 
       - name: Compare protected state and geometry
         shell: bash
         run: |
           set -euo pipefail
-          ROOT="$RUNNER_TEMP/widescreen-vs-plus16"
+          ROOT="$RUNNER_TEMP/widescreen-vs-plus24"
           mkdir -p analysis/generated
           CHECKPOINTS=(
             --checkpoint vs-race-1240
@@ -123,15 +129,15 @@ jobs:
             --checkpoint vs-race-1440
             --checkpoint vs-race-1620
           )
-          for margin in 0 16; do
+          for margin in 0 24; do
             python3 tools/summarize_paired_player_slots.py \
               "$ROOT/$margin/dumps" "${CHECKPOINTS[@]}" \
               --json-out "$ROOT/$margin/state.json" >"$ROOT/$margin/state.txt"
           done
 
-          python3 - "$ROOT/0/state.json" "$ROOT/16/state.json" \
-            "$ROOT/0/frames/frame_001340.bmp" "$ROOT/16/frames/frame_001340.bmp" \
-            analysis/generated/widescreen-vs-plus16-capacity.json <<'PY'
+          python3 - "$ROOT/0/state.json" "$ROOT/24/state.json" \
+            "$ROOT/0/frames/frame_001340.bmp" "$ROOT/24/frames/frame_001340.bmp" \
+            analysis/generated/widescreen-vs-plus24-capacity.json <<'PY'
           import json, pathlib, struct, sys
 
           control=json.loads(pathlib.Path(sys.argv[1]).read_text())
@@ -145,7 +151,7 @@ jobs:
                   if control[checkpoint][section] != wide[checkpoint][section]:
                       diffs[section]={
                           "control":control[checkpoint][section],
-                          "plus16":wide[checkpoint][section],
+                          "plus24":wide[checkpoint][section],
                       }
               rows.append({"checkpoint":checkpoint,"protected_differences":diffs})
               accepted = accepted and not diffs
@@ -157,76 +163,78 @@ jobs:
                   abs(struct.unpack_from("<i",data,22)[0]),
               )
           control_dim=dims(sys.argv[3]); wide_dim=dims(sys.argv[4])
-          geometry_ok=control_dim==(256,224) and wide_dim==(288,224)
+          geometry_ok=control_dim==(256,224) and wide_dim==(304,224)
           out={
               "schema_version":1,
               "fixture":"vs-first-race",
-              "candidate_margin_pixels_per_side":16,
+              "candidate_margin_pixels_per_side":24,
               "control_frame_geometry":control_dim,
-              "plus16_frame_geometry":wide_dim,
+              "plus24_frame_geometry":wide_dim,
               "protected_sections":list(protected),
               "rows":rows,
               "protected_state_equal_at_all_checkpoints":accepted,
               "geometry_accepted":geometry_ok,
               "capacity_classification":(
-                  "vs-plus16-live-course-capacity-proven"
+                  "vs-plus24-live-course-capacity-proven"
                   if accepted and geometry_ok
-                  else "vs-plus16-capacity-rejected"
+                  else "vs-plus24-capacity-rejected"
               ),
           }
           pathlib.Path(sys.argv[5]).write_text(json.dumps(out,indent=2)+"\n")
           print(json.dumps(out,indent=2))
           if not accepted:
-              raise SystemExit("VS +16 protected state diverged")
+              raise SystemExit("VS +24 protected state diverged")
           if not geometry_ok:
-              raise SystemExit("VS +16 host geometry diverged")
+              raise SystemExit("VS +24 host geometry diverged")
           PY
 
-      - name: Verify retained +16 capacity evidence
+      - name: Verify retained +24 capacity evidence
         run: |
-          python3 - "$RUNNER_TEMP/widescreen-vs-plus16/16/run.log" <<'PY'
+          python3 - "$RUNNER_TEMP/widescreen-vs-plus24/24/run.log" <<'PY'
           import json, pathlib, re, sys
-          retained=json.loads(pathlib.Path("analysis/widescreen-vs-plus16-capacity-evidence.json").read_text())
-          generated=json.loads(pathlib.Path("analysis/generated/widescreen-vs-plus16-capacity.json").read_text())
+          retained=json.loads(pathlib.Path("analysis/widescreen-vs-plus24-capacity-evidence.json").read_text())
+          generated=json.loads(pathlib.Path("analysis/generated/widescreen-vs-plus24-capacity.json").read_text())
           log=pathlib.Path(sys.argv[1]).read_text(errors="replace")
 
           assert generated["capacity_classification"] == retained["capacity_classification"]
           assert generated["protected_state_equal_at_all_checkpoints"] is retained["protected_state_equal_at_all_checkpoints"]
           assert generated["control_frame_geometry"] == retained["control_frame_geometry"]
-          assert generated["plus16_frame_geometry"] == retained["plus16_frame_geometry"]
+          assert generated["plus24_frame_geometry"] == retained["plus24_frame_geometry"]
 
           for player in (1,2):
               vals=re.findall(
-                  rf"URWS_VS_MATERIALIZER margin=16 player={player} calibrated=(\d)",
+                  rf"URWS_VS_MATERIALIZER margin=24 player={player} calibrated=(\d)",
                   log,
               )
-              shadows=len(re.findall(
-                  rf"URWS_VS_SHADOW_EXT provider=course-runtime margin=16 player={player} depth=1",
-                  log,
-              ))
-              assert vals
-              assert "0" not in vals
-              assert len(vals) == retained["calibration"][f"player{player}_events"]
-              assert vals.count("1") == retained["calibration"][f"player{player}_matches"]
-              assert shadows == retained["plus16_host_shadow_events"][f"player{player}"]
+              expected=retained["calibration"][f"player{player}_events"]
+              assert len(vals)==expected, (player,len(vals),expected)
+              assert "0" not in vals, (player,"calibration miss")
+              assert vals.count("1")==retained["calibration"][f"player{player}_matches"]
+              for depth in retained["host_shadow_depths"]:
+                  shadows=len(re.findall(
+                      rf"URWS_VS_SHADOW_EXT provider=course-runtime margin=24 player={player} depth={depth}",
+                      log,
+                  ))
+                  key=f"player{player}_depth{depth}"
+                  assert shadows==retained["host_shadow_events"][key], (key,shadows)
 
           assert retained["guest_descriptor_promotion"] is False
           assert retained["full_authentic_16x9_ready"] is False
-          print("VS_PLUS16_RETAINED_EVIDENCE_MATCH")
+          print("VS_PLUS24_RETAINED_EVIDENCE_MATCH")
           PY
 
-      - name: Upload compact +16 evidence
+      - name: Upload compact +24 evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: widescreen-vs-plus16-capacity
+          name: widescreen-vs-plus24-capacity
           path: |
-            analysis/generated/widescreen-vs-plus16-capacity.json
-            ${{ runner.temp }}/widescreen-vs-plus16/0/state.json
-            ${{ runner.temp }}/widescreen-vs-plus16/16/state.json
-            ${{ runner.temp }}/widescreen-vs-plus16/0/run.log
-            ${{ runner.temp }}/widescreen-vs-plus16/16/run.log
-            ${{ runner.temp }}/widescreen-vs-plus16/0/frames/frame_001340.bmp
-            ${{ runner.temp }}/widescreen-vs-plus16/16/frames/frame_001340.bmp
+            analysis/generated/widescreen-vs-plus24-capacity.json
+            ${{ runner.temp }}/widescreen-vs-plus24/0/state.json
+            ${{ runner.temp }}/widescreen-vs-plus24/24/state.json
+            ${{ runner.temp }}/widescreen-vs-plus24/0/run.log
+            ${{ runner.temp }}/widescreen-vs-plus24/24/run.log
+            ${{ runner.temp }}/widescreen-vs-plus24/0/frames/frame_001340.bmp
+            ${{ runner.temp }}/widescreen-vs-plus24/24/frames/frame_001340.bmp
           if-no-files-found: warn
           retention-days: 7

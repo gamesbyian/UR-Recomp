@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "authority": "analysis/widescreen-policy.yml",
+  "fixture": "vs-first-race",
+  "workflow_run_id": 37175014114,
+  "workflow_artifact_id": 11292803618,
+  "candidate_margin_pixels_per_side": 24,
+  "control_frame_geometry": [256, 224],
+  "plus24_frame_geometry": [304, 224],
+  "protected_sections": [
+    "slot1",
+    "slot2",
+    "race_progress",
+    "camera_and_viewport"
+  ],
+  "protected_state_equal_at_all_checkpoints": true,
+  "calibration": {
+    "player1_events": 84,
+    "player1_matches": 84,
+    "player1_misses": 0,
+    "player2_events": 27,
+    "player2_matches": 27,
+    "player2_misses": 0
+  },
+  "host_shadow_depths": [1, 2],
+  "host_shadow_events": {
+    "player1_depth1": 84,
+    "player1_depth2": 84,
+    "player2_depth1": 27,
+    "player2_depth2": 27
+  },
+  "capacity_classification": "vs-plus24-live-course-capacity-proven",
+  "guest_descriptor_promotion": false,
+  "full_authentic_16x9_ready": false,
+  "conclusion": "The direction-aware VS live-course model remains fully calibrated at +24 and deterministically supplies two host-owned deeper course columns per viewport with exact protected state. This proves +24 backing capacity only; final +48 Authentic 16:9 backing remains unproven."
+}

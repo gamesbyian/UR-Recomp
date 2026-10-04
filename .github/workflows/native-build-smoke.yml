@@ -196,6 +196,10 @@ jobs:
           BETA_ROOT="$RUNNER_TEMP/profile-beta-saves"
           AUTH_ROOT="$RUNNER_TEMP/profile-authentic-ignored"
           mkdir -p "$ALPHA_ROOT" "$BETA_ROOT" "$AUTH_ROOT"
+          cp "$GITHUB_WORKSPACE/reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm" \
+            "$ALPHA_ROOT/save.srm"
+          cp "$GITHUB_WORKSPACE/reference/imported/reverse-engineering/dessyreqt/SRAM/All Silvers - No Hunter.srm" \
+            "$BETA_ROOT/save.srm"
 
           cat >"$ALPHA_STATE" <<'EOF'
           UR-HOST-STATE/6
@@ -222,6 +226,7 @@ jobs:
             UR_PRODUCT_DIAGNOSTICS=1 \
             UR_HOST_STATE_PATH="$STATE" \
             UR_PROFILE_SAVE_ROOT="$ROOT" \
+            UR_PROFILE_SRAM_DIAGNOSTICS=1 \
             UR_EXECUTION_MODE="$MODE" \
             SNESRECOMP_RUN_FRAMES=1 \
             timeout 12s xvfb-run -a "$EXE" "$ROM" >"$LOG" 2>&1
@@ -255,7 +260,22 @@ jobs:
           test -d "$BETA_ROOT"
           test "$ALPHA_ROOT" != "$BETA_ROOT"
 
-          echo "UR_PROFILE_SAVE_ROOT_RESULT=alpha_restart_stable_beta_isolated_authentic_default"
+          ALPHA_DIGEST=$(sed -n 's/.*UR_PROFILE_SRAM LOADED .*digest=\([0-9A-F]*\).*/\1/p' \
+            "$RUNNER_TEMP/profile-root-alpha-first.log" | tail -n1)
+          ALPHA_RESTART_DIGEST=$(sed -n 's/.*UR_PROFILE_SRAM LOADED .*digest=\([0-9A-F]*\).*/\1/p' \
+            "$RUNNER_TEMP/profile-root-alpha-restart.log" | tail -n1)
+          BETA_DIGEST=$(sed -n 's/.*UR_PROFILE_SRAM LOADED .*digest=\([0-9A-F]*\).*/\1/p' \
+            "$RUNNER_TEMP/profile-root-beta.log" | tail -n1)
+          test -n "$ALPHA_DIGEST"
+          test -n "$BETA_DIGEST"
+          test "$ALPHA_DIGEST" = "$ALPHA_RESTART_DIGEST"
+          test "$ALPHA_DIGEST" != "$BETA_DIGEST"
+          grep -q "UR_PROFILE_SRAM LOADED root=$ALPHA_ROOT .* size=8192" \
+            "$RUNNER_TEMP/profile-root-alpha-first.log"
+          grep -q "UR_PROFILE_SRAM LOADED root=$BETA_ROOT .* size=8192" \
+            "$RUNNER_TEMP/profile-root-beta.log"
+
+          echo "UR_PROFILE_SAVE_ROOT_RESULT=alpha_restart_byte_stable_beta_content_isolated_authentic_default"
 
       - name: Native boot smoke
         shell: bash

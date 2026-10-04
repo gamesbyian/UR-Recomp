@@ -1,0 +1,46 @@
+name: CI runtime report
+
+on:
+  workflow_dispatch:
+    inputs:
+      runs:
+        description: "Number of recent workflow runs to inspect (max 100)"
+        required: false
+        default: "100"
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Export recent workflow runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COUNT: ${{ inputs.runs }}
+        run: |
+          set -euo pipefail
+          count="$COUNT"
+          if [ "$count" -lt 1 ] || [ "$count" -gt 100 ]; then
+            echo "runs must be between 1 and 100" >&2
+            exit 2
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs?per_page=$count" > "$RUNNER_TEMP/runs.json"
+      - name: Build measured runtime report
+        run: |
+          mkdir -p analysis/generated
+          python3 tools/report_ci_runtime.py "$RUNNER_TEMP/runs.json" \
+            --since-hours 168 \
+            --json-out analysis/generated/ci-runtime-report.json \
+            --markdown-out analysis/generated/ci-runtime-report.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ci-runtime-report
+          path: |
+            analysis/generated/ci-runtime-report.json
+            analysis/generated/ci-runtime-report.md
+          retention-days: 14

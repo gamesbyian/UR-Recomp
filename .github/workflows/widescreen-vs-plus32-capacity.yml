@@ -14,6 +14,8 @@ on:
       - "docs/WIDESCREEN-RECONNAISSANCE.md"
       - "docs/WORK-QUEUE.md"
       - "tools/apply_native_widescreen_hook.py"
+      - "tools/check_widescreen_capacity_evidence.py"
+      - "tools/evidence_contract.py"
       - "tests/unit/test_apply_native_widescreen_hook.py"
       - "tools/seed_native_widescreen_aot.py"
       - "tools/patch_widescreen_probe_host.py"
@@ -196,37 +198,11 @@ jobs:
 
       - name: Verify retained +32 capacity evidence
         run: |
-          python3 - "$RUNNER_TEMP/widescreen-vs-plus32/32/run.log" <<'PY'
-          import json, pathlib, re, sys
-          retained=json.loads(pathlib.Path("analysis/widescreen-vs-plus32-capacity-evidence.json").read_text())
-          generated=json.loads(pathlib.Path("analysis/generated/widescreen-vs-plus32-capacity.json").read_text())
-          log=pathlib.Path(sys.argv[1]).read_text(errors="replace")
-
-          assert generated["capacity_classification"] == retained["capacity_classification"]
-          assert generated["protected_state_equal_at_all_checkpoints"] is retained["protected_state_equal_at_all_checkpoints"]
-          assert generated["control_frame_geometry"] == retained["control_frame_geometry"]
-          assert generated["plus32_frame_geometry"] == retained["plus32_frame_geometry"]
-
-          for player in (1,2):
-              vals=re.findall(
-                  rf"URWS_VS_MATERIALIZER margin=32 player={player} calibrated=(\d)",
-                  log,
-              )
-              expected=retained["calibration"][f"player{player}_events"]
-              assert len(vals)==expected, (player,len(vals),expected)
-              assert "0" not in vals
-              assert vals.count("1")==retained["calibration"][f"player{player}_matches"]
-              for depth in retained["host_shadow_depths"]:
-                  shadows=len(re.findall(
-                      rf"URWS_VS_SHADOW_EXT provider=course-runtime margin=32 player={player} depth={depth}",
-                      log,
-                  ))
-                  assert shadows==retained["host_shadow_events_per_depth"][f"player{player}"]
-
-          assert retained["guest_descriptor_promotion"] is False
-          assert retained["full_authentic_16x9_ready"] is False
-          print("VS_PLUS32_RETAINED_EVIDENCE_MATCH")
-          PY
+          python3 tools/check_widescreen_capacity_evidence.py \
+            --retained analysis/widescreen-vs-plus32-capacity-evidence.json \
+            --generated analysis/generated/widescreen-vs-plus32-capacity.json \
+            --log "$RUNNER_TEMP/widescreen-vs-plus32/32/run.log" \
+            --out analysis/generated/widescreen-vs-plus32-capacity-envelope.json
 
       - name: Upload compact +32 evidence
         if: always()
@@ -235,6 +211,7 @@ jobs:
           name: widescreen-vs-plus32-capacity
           path: |
             analysis/generated/widescreen-vs-plus32-capacity.json
+            analysis/generated/widescreen-vs-plus32-capacity-envelope.json
             ${{ runner.temp }}/widescreen-vs-plus32/0/state.json
             ${{ runner.temp }}/widescreen-vs-plus32/32/state.json
             ${{ runner.temp }}/widescreen-vs-plus32/0/run.log

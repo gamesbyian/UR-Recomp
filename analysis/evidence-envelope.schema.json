@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "analysis/evidence-envelope.schema.json",
+  "title": "UR-Recomp evidence envelope",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "evidence_type",
+    "producer",
+    "subject",
+    "inputs",
+    "assertions",
+    "outcome",
+    "provenance"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": {"const": 1},
+    "evidence_type": {"type": "string", "minLength": 1},
+    "producer": {"type": "string", "minLength": 1},
+    "subject": {"type": "object"},
+    "inputs": {"type": "object"},
+    "metrics": {"type": "object"},
+    "assertions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "passed"],
+        "additionalProperties": true,
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "details": {}
+        }
+      }
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["accepted", "rejected", "inconclusive"]
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["generated_at_utc"],
+      "additionalProperties": true,
+      "properties": {
+        "generated_at_utc": {"type": "string", "minLength": 1},
+        "workflow_run_id": {"type": ["integer", "null"]},
+        "workflow_artifact_id": {"type": ["integer", "null"]},
+        "git_sha": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

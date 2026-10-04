@@ -1,0 +1,27 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -1574,5 +1574,9 @@ static void DrawPpuFrameWithPerf(void) {
+   double profile_start = ProfileStart();
+   PreparePpuFrame();
+-  const int render_scale = 1;
++  int render_scale = g_game->presentation_scale
++      ? g_game->presentation_scale()
++      : 1;
++  if (render_scale < 1 || render_scale > 4)
++    render_scale = 1;
+   uint8 *present_buffer = 0;
+   int present_pitch = 0;
+ 
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -137,5 +137,10 @@ typedef struct SnesDesktopHostGame {
+   int (*draw_frame)(uint8_t *dst, size_t pitch, const uint8_t *field,
+                     int frame_w, int frame_h, double alpha);
++  /* Integer density for a title-owned compositor. The logical frame size and
++   * guest PPU field stay unchanged; this only scales the host presentation
++   * buffer passed to draw_frame. Zero/NULL/default is 1. Values outside 1..4
++   * fail closed to 1. */
++  int (*presentation_scale)(void);
+   /* Presentation rate. Return 0 to present every simulated frame at the
+    * simulation rate (the default). Return a rate to decouple presentation:
+    * the host then re-presents the captured frame between simulated ones,

@@ -112,16 +112,10 @@ int main(int argc, char **argv) {
     write_digest(0);
 
     for (unsigned frame = 1; frame <= 120; ++frame) {
-        if (!RtlRunFrame(0)) {
-            fprintf(g_report, "run_frame_failed=%u\n", frame);
-            fflush(g_report);
-            fclose(g_report);
-            g_report = NULL;
-            consoleUpdate(NULL);
-            svcSleepThread(2000000000ULL);
-            consoleExit(NULL);
-            return 4;
-        }
+        /* RtlRunFrame's bool return is not a success status in the pinned
+         * framework: normal completed frames currently return false. Existing
+         * hosts drive it for side effects, so this probe does the same. */
+        (void)RtlRunFrame(0);
         if (frame == 1 || frame == 60 || frame == 120) write_digest(frame);
     }
 

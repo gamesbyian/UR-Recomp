@@ -20,7 +20,7 @@ on:
 
 concurrency:
   group: historical-wip-dragster-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: write

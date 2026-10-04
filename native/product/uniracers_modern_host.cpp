@@ -888,6 +888,11 @@ bool begin_run_record_capture(uint64_t host_frame) {
         product_diagnostic("UR_RUN_RECORD COURSE_IDENTITY_REJECTED");
         return false;
     }
+    const int tour_slot = ((course.course_index - 1) % 5) + 1;
+    if (tour_slot != 1 && tour_slot != 4) {
+        product_diagnostic("UR_RUN_RECORD NON_RACE_TRACK_INERT");
+        return false;
+    }
 
     char course_id[32];
     std::snprintf(course_id, sizeof(course_id), "course:%02d", course.course_index);

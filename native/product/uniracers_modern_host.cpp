@@ -25,6 +25,7 @@ extern "C" {
 #include "uniracers_course_identity.h"
 #include "uniracers_restart_policy.h"
 #include "uniracers_run_data.h"
+#include "uniracers_ws_margins.h"
 #include "uniracers_tour_resume.hpp"
 #include "widescreen_output_composition.hpp"
 
@@ -1452,6 +1453,16 @@ extern "C" void ur_uniracers_modern_prepare_frame(
         g_widescreen_scene);
     *frame_width = plan.logical_view_width;
     *frame_height = plan.logical_view_height;
+
+    // Margin presentation is single-viewport only: split-screen BG1 carries
+    // two scroll origins per frame, which one world-keyed layer cannot hold.
+    const bool one_player_world =
+        plan.expose_added_world &&
+        g_widescreen_scene_state.race_mode ==
+            ur::product::HostRacePresentationMode::OnePlayer;
+    ur_ws_margins_prepare_frame(
+        one_player_world ? 1 : 0,
+        (plan.logical_view_width - 256) / 2);
 }
 
 extern "C" void ur_uniracers_modern_compute_viewport(

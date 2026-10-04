@@ -32,6 +32,66 @@ def matching_blocks(text: str, keywords: list[str], max_blocks: int = 8, max_cha
             break
     return out
 
+def matching_json_entries(
+    data: Any,
+    keywords: list[str],
+    max_entries: int = 12,
+    max_chars: int = 5000,
+    max_entry_chars: int = 1400,
+) -> list[str]:
+    """Return compact path-qualified JSON fragments that match lane keywords."""
+    lowered = [keyword.lower() for keyword in keywords]
+    out: list[str] = []
+    used = 0
+
+    def matches(value: Any, label: str = "") -> bool:
+        haystack = f"{label} {json.dumps(value, sort_keys=True, ensure_ascii=True)}".lower()
+        return any(keyword in haystack for keyword in lowered)
+
+    def add(path: str, value: Any) -> bool:
+        nonlocal used
+        rendered = json.dumps(value, sort_keys=True, ensure_ascii=True, separators=(",", ":"))
+        entry = f"{path}: {rendered}"
+        if len(entry) > max_entry_chars or used + len(entry) > max_chars:
+            return False
+        out.append(entry)
+        used += len(entry)
+        return len(out) >= max_entries
+
+    def walk(value: Any, path: str) -> bool:
+        if len(out) >= max_entries or used >= max_chars:
+            return True
+        if isinstance(value, dict):
+            for key, child in value.items():
+                child_path = f"{path}.{key}" if path else str(key)
+                if isinstance(child, (dict, list)):
+                    if matches(child, str(key)) and add(child_path, child):
+                        return True
+                    if len(json.dumps(child, sort_keys=True, ensure_ascii=True)) > max_entry_chars:
+                        if walk(child, child_path):
+                            return True
+                elif matches(child, str(key)):
+                    if add(child_path, child):
+                        return True
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                child_path = f"{path}[{index}]"
+                if isinstance(child, (dict, list)):
+                    if matches(child) and add(child_path, child):
+                        return True
+                    if len(json.dumps(child, sort_keys=True, ensure_ascii=True)) > max_entry_chars:
+                        if walk(child, child_path):
+                            return True
+                elif matches(child):
+                    if add(child_path, child):
+                        return True
+        elif matches(value):
+            add(path or "$", value)
+        return False
+
+    walk(data, "")
+    return out
+
 def build_context(config: dict[str, Any], lane: str) -> str:
     lane_cfg = config["lanes"][lane]
     authorities = lane_cfg["authorities"]
@@ -43,13 +103,22 @@ def build_context(config: dict[str, Any], lane: str) -> str:
     lines += [git_text("log","-n","12","--oneline","--",*paths) if paths else "unavailable","```","","## Current extracted state"]
     for path in authorities:
         file_path = ROOT / path
-        if not file_path.exists() or file_path.suffix not in {".md",".yml",".yaml"}:
+        if not file_path.exists():
             continue
-        blocks = matching_blocks(file_path.read_text(errors="replace"), keywords)
-        if blocks:
-            lines += ["",f"### {path}"]
-            for block in blocks:
-                lines += ["",block]
+        if file_path.suffix in {".md",".yml",".yaml"}:
+            blocks = matching_blocks(file_path.read_text(errors="replace"), keywords)
+            if blocks:
+                lines += ["",f"### {path}"]
+                for block in blocks:
+                    lines += ["",block]
+        elif file_path.suffix == ".json":
+            try:
+                data = json.loads(file_path.read_text(errors="replace"))
+            except json.JSONDecodeError:
+                continue
+            entries = matching_json_entries(data, keywords)
+            if entries:
+                lines += ["",f"### {path}","","```text",*entries,"```"]
     lines += ["","## Admission rule","","Before opening new investigation work, name the decision changed, downstream gate, cheapest discriminator, success condition, and stop condition. Prefer extending shared structured evidence or a parameterized harness over adding a sibling one-off workflow.",""]
     return "\n".join(lines)
 

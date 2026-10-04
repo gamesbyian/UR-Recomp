@@ -1,6 +1,6 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -398,5 +398,29 @@ static int g_rewind_hotkey;
+@@ -398,5 +398,30 @@ static int g_rewind_hotkey;
  static int g_rewind_hotkey;
  static int g_open_launcher_hotkey;   /* in_game_launcher only */
  static uint64_t g_state_generation;

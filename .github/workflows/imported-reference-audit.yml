@@ -9,15 +9,6 @@ on:
       - "analysis/generated/third-party-code-audit.md"
       - "tests/test_imported_reference_audit.py"
       - ".github/workflows/imported-reference-audit.yml"
-  push:
-    branches:
-      - main
-    paths:
-      - "reference/imported/**"
-      - "tools/audit_imported_references.py"
-      - "tools/audit_imported_code.py"
-      - "analysis/generated/third-party-code-audit.md"
-      - "tests/test_imported_reference_audit.py"
   workflow_dispatch:
 
 concurrency:

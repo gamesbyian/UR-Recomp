@@ -1,6 +1,6 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -814,14 +814,18 @@ static void PreparePpuFrame(void) {
+@@ -814,14 +814,16 @@ static void PreparePpuFrame(void) {
    int fw = g_game->frame_width > 0 ? g_game->frame_width : 256;
    int fh = g_game->frame_height > 0 ? g_game->frame_height : 224;
    if (g_game->prepare_frame)
@@ -20,7 +20,7 @@
    g_ws_active = g_ws_extra != 0;
    g_new_ppu = (g_ppu_render_flags & kPpuRenderFlags_NewRenderer) != 0;
    if (g_config.no_sprite_limits)
-@@ -829,10 +833,10 @@ static void PreparePpuFrame(void) {
+@@ -829,10 +831,10 @@ static void PreparePpuFrame(void) {
      g_ppu_render_flags |= kPpuRenderFlags_NoSpriteLimits;
    else
      g_ppu_render_flags &= ~kPpuRenderFlags_NoSpriteLimits;

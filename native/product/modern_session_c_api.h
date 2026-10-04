@@ -15,6 +15,7 @@ typedef void (*UrSetPausedFn)(int paused);
 typedef int (*UrIsPausedFn)(void);
 typedef void (*UrSetRewindAudioTimingLockFn)(int active);
 typedef void (*UrReconcileAfterRestartFn)(void);
+typedef bool (*UrExitToFrontendFn)(void);
 
 typedef enum UrModernSessionKey {
     UR_MODERN_SESSION_KEY_ESCAPE = 0,
@@ -40,7 +41,8 @@ UrModernSession* ur_modern_session_create(
     UrSetPausedFn set_paused,
     UrIsPausedFn is_paused,
     UrSetRewindAudioTimingLockFn set_rewind_audio_timing_lock,
-    UrReconcileAfterRestartFn reconcile_after_restart);
+    UrReconcileAfterRestartFn reconcile_after_restart,
+    UrExitToFrontendFn exit_to_frontend);
 
 void ur_modern_session_destroy(UrModernSession* session);
 
@@ -67,6 +69,7 @@ int ur_modern_session_is_paused(const UrModernSession* session);
 UrModernSessionResult ur_modern_session_pause(UrModernSession* session);
 UrModernSessionResult ur_modern_session_resume(UrModernSession* session);
 UrModernSessionResult ur_modern_session_restart_race(UrModernSession* session);
+UrModernSessionResult ur_modern_session_exit_to_frontend(UrModernSession* session);
 
 /* Minimal host-facing key policy. The platform host maps its own key codes to
  * these semantic keys; this layer remains SDL/platform independent.

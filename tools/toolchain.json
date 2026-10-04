@@ -547,7 +547,7 @@
         },
         {
           "path": "tools/patches/snesrecomp-console-reset-request.patch",
-          "sha256": "329e04dff963daeefc0297e2bc0b9e3e98fb0f62dcc8a4a14a9bc035f35f9e61"
+          "sha256": "17030eb4e2071ae5928164f6dc0eaed612a0628175c39c12a80520fccde074ab"
         }
       ]
     }

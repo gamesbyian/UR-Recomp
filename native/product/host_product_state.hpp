@@ -36,22 +36,34 @@ enum class HostVSyncMode : std::uint8_t {
     Adaptive = 2,
 };
 
+enum class HostPresentationFpsMode : std::uint8_t {
+    Game = 0,
+    Fps60 = 1,
+    Fps90 = 2,
+    Fps120 = 3,
+    Fps144 = 4,
+    Native = 5,
+};
+
 struct HostSettings {
     bool vibration_enabled = true;
     bool pause_on_focus_loss = true;
     HostDisplayMode display_mode = HostDisplayMode::Windowed;
     HostVSyncMode vsync_mode = HostVSyncMode::On;
+    HostPresentationFpsMode presentation_fps_mode =
+        HostPresentationFpsMode::Game;
 
     bool operator==(const HostSettings& other) const noexcept {
         return vibration_enabled == other.vibration_enabled &&
                pause_on_focus_loss == other.pause_on_focus_loss &&
                display_mode == other.display_mode &&
-               vsync_mode == other.vsync_mode;
+               vsync_mode == other.vsync_mode &&
+               presentation_fps_mode == other.presentation_fps_mode;
     }
 };
 
 struct HostProductState {
-    static constexpr std::uint32_t schema_version = 4;
+    static constexpr std::uint32_t schema_version = 5;
 
     std::optional<std::string> active_profile_id;
     HostSettings settings{};

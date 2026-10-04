@@ -2,14 +2,14 @@
   "schema_version": 1,
   "family": "ordinary-racer",
   "review_basis": {
-    "workflow_run": 37232075417,
-    "artifact_id": 11313998358,
+    "workflow_run": 37232871407,
+    "artifact_id": 11314637161,
     "temporal_window": [
       1205,
       1220
     ],
     "review_surface": "racer-hd-asset-dossier/review/index.html",
-    "disposition": "Sequence-level refinement materially improves wheel readability, material separation and detail consistency, but none of the ten unique poses is shipping-ready. Remaining blockers are shared saddle volume/attachment, frame-and-fork junction modeling, and hardware depth/integration."
+    "disposition": "Second sequence-level refinement adds tapered saddle silhouettes, quieter tire shading and lighter spokes while preserving the closed motion strip. None of the ten unique poses is shipping-ready yet; remaining blockers are frame/fork junction modeling and final hardware depth/integration, with saddle attachment still needing cleanup."
   },
   "family_blockers": [
     {
@@ -35,7 +35,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "ead32e4681b88d93449a6fc1df1939e93b6cec0dd4ebab8235c95f433cca9078"
+      "reviewed_authored_rgba_sha256": "db50dacd24738a15c9ed19800a0dd78b5bef8fee93ff0372ec07219a4e4c92b3"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x057D-p1-adjacent-reference",
@@ -46,7 +46,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "8057cb98cfe08f49a2334c9d747e4edc5638c37efe40e617dd39a7fd82bdca40"
+      "reviewed_authored_rgba_sha256": "8601ed90ef6e7dfb41948b41a3dcd700c19b2b9c1b39c5bf295cc69a31b94249"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0540-p1-companion-0D2C-with-p2-0542-reference",
@@ -57,7 +57,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "b5baafda3aab8c19a0226dc50580d6f67ce57020716b957ce75401b218d9f2c8"
+      "reviewed_authored_rgba_sha256": "a1e044530f008e2399189c1dc1523f7f3b45ea1950c0486541ba03aa592e8245"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x057E-p1-with-p2-0543-reference",
@@ -68,7 +68,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "81ae34a9db1c8cf23bab87b358316be8ac10a550edbc1780eff101a15beb1f74"
+      "reviewed_authored_rgba_sha256": "52864b1d069338d77629e931bcca5e81ce9c8730f018bdc44a65a8219099faa0"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0541-p1-companion-0D2D-reference",
@@ -79,7 +79,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "a1b8ae9764f7240654049b8cd2463f9ceb23e09989ea96de6f76771e21da2518"
+      "reviewed_authored_rgba_sha256": "b53df06fa7d42730192317e3330f924b70c9f8ee82e1afe652ec9d316e4c5295"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0541-p1-sync-reference",
@@ -90,7 +90,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "7087374ad1cdf6db64f14c65fe81ffe0a89efd01d03a29976a31a2143bb595c7"
+      "reviewed_authored_rgba_sha256": "600d91685a43b1d75d9fc9c04b60428d6b4024b46f635155ba7ea9ac0b176313"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0540-p2-sync-reference",
@@ -101,7 +101,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "7d5d96d98cf853f0ee08f219df79f826b6977539c41b0e7537b207b6df21640d"
+      "reviewed_authored_rgba_sha256": "f29544c689f006d474bdf77613b4c8c26849697ee6063d16b1b5852babb3448a"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0541-p2-predecessor-reference",
@@ -112,7 +112,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "ff5e1f1e6ae2fab15fee877106e25619fc5bf1a76906496d4731831583fac270"
+      "reviewed_authored_rgba_sha256": "5018d2ecb19a55f665416ef231b9eb314ec6ebeb236c86ef35519c777f3b91f4"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference",
@@ -123,7 +123,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "5594c8539ed6fdd905734cf113f3a52e34c24dfdb5784ec9f29d97cee360559c"
+      "reviewed_authored_rgba_sha256": "8101b9ef1cfa5d5175fa9e99081dfd021e5fcb5242512a0128a19941fe4207d3"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
@@ -134,7 +134,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "3a7718b5d01c6b2ee9e0215570dc9667cd80904e2020fb018ac44a19269a3496"
+      "reviewed_authored_rgba_sha256": "37d2148efff8d140bf8123721a54d016ed343bb8bb7881166760b82453b2c532"
     }
   ]
 }

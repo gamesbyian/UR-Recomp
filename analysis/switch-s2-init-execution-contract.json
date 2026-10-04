@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "gate": "S2-init-execution-probe",
+  "purpose": "Build an on-device Switch probe that initializes the canonical Uniracers ROM through the real SNESRecomp game/runtime path and executes a bounded no-input frame sequence with partitioned simulation digests.",
+  "report": "ur-recomp-s2-execution-report.txt",
+  "checkpoints": [
+    0,
+    1,
+    60,
+    120
+  ],
+  "digest_contract": "runner/src/netplay/snes_state_digest.c",
+  "runtime_actions": [
+    "RtlRegisterGame(&kGameInfo)",
+    "SnesInit(canonical embedded ROM)",
+    "RtlRunFrame(0) for 120 frames"
+  ],
+  "ci_claim": "compile/link/package only; execution evidence must come from Switch hardware",
+  "non_claims": [
+    "CI does not prove SnesInit succeeds on hardware",
+    "CI does not prove RtlRunFrame completes on hardware",
+    "The digest values are observations until compared with retained desktop references",
+    "No audio device/thread is created; the no-op APU lock is valid only for this single-threaded probe",
+    "Gate S2 is not closed by cross-compilation"
+  ]
+}

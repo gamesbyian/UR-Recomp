@@ -1,0 +1,115 @@
+name: Switch S2 initialization and execution probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "platform/switch/s2_execution_probe/**"
+      - "analysis/switch-s2-init-execution-contract.json"
+      - "tools/check_switch_s2_init_execution.py"
+      - "tests/unit/test_switch_s2_init_execution.py"
+      - "analysis/switch-s2-guest-aot-contract.json"
+      - "analysis/switch-s2-runtime-core-contract.json"
+      - "tools/build_switch_s2_guest_probe.py"
+      - "tools/build_switch_s2_runtime_probe.py"
+      - "tools/bootstrap_toolchain.py"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - ".github/workflows/switch-s2-init-execution.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: switch-s2-init-execution-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify ROM and stage framework
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+      - name: Generate canonical guest bundle
+        run: |
+          set -euo pipefail
+          F="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          T="$RUNNER_TEMP/s2exec"
+          R="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          mkdir -p "$T"
+          SNESRECOMP_ROOT="$F" sh "$F/tools/new_project/setup_project.sh" --rom "$R" --dir "$T" --name Uniracers --players 2 --yes --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay --no-github --no-submodules --no-generate --no-build
+          P="$T/UniracersSNESRecomp"
+          python3 "$F/snesrecomp_cli.py" generate --rom "$R" --project-root "$P" --cfg-dir recomp --out-dir src/gen --funcs-h recomp/funcs.h --cfg-roots
+          B="$RUNNER_TEMP/bundle"
+          mkdir -p "$B/project/src" "$B/project/recomp" "$B/framework/runner" "$B/rom"
+          cp "$P/src/game_rtl.c" "$P/src/host_contract.c" "$P/src/gen_stubs.c" "$P/src/"*.h "$B/project/src/"
+          cp -R "$P/src/gen" "$B/project/src/"
+          cp "$P/recomp/"*.h "$B/project/recomp/"
+          cp -R "$F/runner/src" "$B/framework/runner/"
+          cp "$R" "$B/rom/rom.sfc"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: switch-s2-exec-inputs
+          path: ${{ runner.temp }}/bundle/
+          retention-days: 1
+
+  build:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: devkitpro/devkita64:20260219
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: switch-s2-exec-inputs
+          path: /tmp/bundle
+      - name: Validate execution contract
+        run: |
+          set -eu
+          python3 tools/check_switch_s2_init_execution.py
+          python3 -m unittest tests.unit.test_switch_s2_init_execution
+      - name: Compile canonical guest runtime support and execution host
+        run: |
+          set -eu
+          . "$DEVKITPRO/switchvars.sh"
+          python3 tools/build_switch_s2_guest_probe.py --bundle /tmp/bundle --out-dir /tmp/guest --jobs 2
+          python3 tools/build_switch_s2_runtime_probe.py --framework /tmp/bundle/framework --out-dir /tmp/runtime --jobs 2
+          mkdir -p /tmp/support /tmp/romobj
+          CFLAGS="-std=gnu11 -D__SWITCH__ -DSNESRECOMP_TRACE=0 -DSNESRECOMP_ENABLE_MODS=0 -DSNESRECOMP_FRAME_FINGERPRINTS=0 -DSNESRECOMP_PPU_DMA_HISTORY=0 -DSNESRECOMP_DISPATCH_HISTORY=0 -DSNESRECOMP_FUNC_SNAPSHOT=0 -DSNESRECOMP_STACK_BALANCE_DIAGNOSTICS=0 -DSNESRECOMP_BOOT_WATCHDOG_DIAGNOSTICS=0 -DSNESRECOMP_CPU_HW_DIAGNOSTICS=0 -DSNESRECOMP_SPC_DIAGNOSTICS=0 -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE -O2 -I/tmp/bundle/framework/runner/src -I/tmp/bundle/framework/runner/src/snes -I/tmp/bundle/project/src -I/tmp/bundle/project/recomp"
+          for s in audio_trace.c ppu_dma_trace.c sha256.c mod_audio.c framedump.c snes_runahead.c crc32.c netplay/snes_state_digest.c; do
+            out="/tmp/support/$(echo "$s" | tr '/' '_').o"
+            aarch64-none-elf-gcc $CFLAGS -c "/tmp/bundle/framework/runner/src/$s" -o "$out"
+          done
+          aarch64-none-elf-gcc $CFLAGS -I"$DEVKITPRO/libnx/include" -c platform/switch/s2_execution_probe/source/main.c -o /tmp/support/switch_exec_host.o
+          cd /tmp/bundle/rom
+          aarch64-none-elf-objcopy -I binary -O elf64-littleaarch64 -B aarch64 rom.sfc /tmp/romobj/rom.o
+      - name: Link and package execution probe
+        run: |
+          set -eu
+          . "$DEVKITPRO/switchvars.sh"
+          aarch64-none-elf-gcc -specs="$DEVKITPRO/libnx/switch.specs" -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE \
+            -Wl,-Map,/tmp/ur-recomp-switch-s2-exec.map -o /tmp/ur-recomp-switch-s2-exec.elf \
+            /tmp/guest/*.o /tmp/runtime/*.o /tmp/support/*.o /tmp/romobj/rom.o \
+            -L"$DEVKITPRO/libnx/lib" -lnx -lm
+          test -s /tmp/ur-recomp-switch-s2-exec.elf
+          aarch64-none-elf-nm -u /tmp/ur-recomp-switch-s2-exec.elf > /tmp/undefined.txt || true
+          test ! -s /tmp/undefined.txt
+          nacptool --create "UR-Recomp Switch S2 Exec" "UR-Recomp" "0.1.0" /tmp/ur-recomp-switch-s2-exec.nacp
+          elf2nro /tmp/ur-recomp-switch-s2-exec.elf /tmp/ur-recomp-switch-s2-exec.nro --nacp=/tmp/ur-recomp-switch-s2-exec.nacp
+          test -s /tmp/ur-recomp-switch-s2-exec.nro
+          sha256sum /tmp/ur-recomp-switch-s2-exec.nro > /tmp/nro.sha256
+          cat /tmp/nro.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: switch-s2-execution-probe
+          path: |
+            /tmp/ur-recomp-switch-s2-exec.map
+            /tmp/undefined.txt
+            /tmp/nro.sha256
+          retention-days: 14

@@ -9,7 +9,7 @@
  } SnesDesktopHostFrameStats;
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -3938,16 +3938,17 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
+@@ -3938,19 +3938,20 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
      double profile_start = ProfileStart();
      double guest_start = MonotonicSeconds();
      if (game->before_run_frame) game->before_run_frame();

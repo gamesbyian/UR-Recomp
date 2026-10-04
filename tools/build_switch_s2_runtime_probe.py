@@ -78,9 +78,24 @@ def compile_framework(framework: Path, out_dir: Path, jobs: int, contract: dict)
     if errors:
         raise ValueError("; ".join(errors))
 
-    includes = [framework / rel for rel in contract["include_dirs"]]
-    definitions = list(contract["compile_definitions"])
     out_dir.mkdir(parents=True, exist_ok=True)
+    shim_dir = out_dir / "_probe_include"
+    shim_dir.mkdir(parents=True, exist_ok=True)
+    # The runtime floor consumes two title/desktop boundary headers by name:
+    # variables.h is scaffold-required and empty until a title names WRAM; config.h
+    # is included by common_rtl.c but no Config field is referenced there. Keep
+    # this compile probe honest by supplying only those narrow contracts rather
+    # than adding runner/src/desktop (and therefore SDL UI types) to the core.
+    (shim_dir / "variables.h").write_text(
+        '#ifndef VARIABLES_H\n#define VARIABLES_H\n#include "types.h"\n#endif\n'
+    )
+    (shim_dir / "config.h").write_text(
+        '#ifndef SNESRECOMP_SWITCH_RUNTIME_PROBE_CONFIG_H\n'
+        '#define SNESRECOMP_SWITCH_RUNTIME_PROBE_CONFIG_H\n'
+        '#endif\n'
+    )
+    includes = [shim_dir, *[framework / rel for rel in contract["include_dirs"]]]
+    definitions = list(contract["compile_definitions"])
 
     futures = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, jobs)) as pool:

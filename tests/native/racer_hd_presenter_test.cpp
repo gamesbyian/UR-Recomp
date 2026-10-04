@@ -19,6 +19,33 @@ int main() {
         sample_racer_hd_contract_candidate(123, 90, false, false);
     assert(authored_tire != 0);
     assert(authored_tire != generic_tire);
+
+
+    static_assert(valid_racer_hd_internal_render_scale(1));
+    static_assert(valid_racer_hd_internal_render_scale(4));
+    static_assert(!valid_racer_hd_internal_render_scale(0));
+    static_assert(!valid_racer_hd_internal_render_scale(5));
+    for (int x = 0; x < kRacerHdAssetSize; x += 17) {
+        assert(racer_hd_scaled_sample_coordinate(x, 4) == x);
+        assert(
+            sample_racer_hd_scaled_asset(
+                *registration, x, 0, 4, false, false
+            ) ==
+            sample_racer_hd_asset(*registration, x, 0, false, false)
+        );
+    }
+    for (int logical = 0; logical < kRacerHdLogicalSize; logical += 7) {
+        assert(
+            racer_hd_scaled_sample_coordinate(logical, 1) ==
+            logical * kRacerHdDensityScale + kRacerHdDensityScale / 2
+        );
+    }
+    for (int scale = 1; scale <= kRacerHdDensityScale; ++scale) {
+        const int last = kRacerHdLogicalSize * scale - 1;
+        const int sample = racer_hd_scaled_sample_coordinate(last, scale);
+        assert(sample >= 0);
+        assert(sample < kRacerHdAssetSize);
+    }
     // True-density refinement pass 1 restores internal structure that was
     // visibly absent in the first shipping review while staying inside the
     // accepted logical envelope/contact.

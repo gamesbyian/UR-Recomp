@@ -14,6 +14,7 @@ on:
       - "native/product/completed_run_ghost_projection.*"
       - "native/product/completed_run_ghost_frame.*"
       - "native/presentation/completed_run_ghost_racer_selector.*"
+      - "native/presentation/completed_run_ghost_raster.*"
       - "native/product/completed_run_ghost_trace.*"
       - "native/product/uniracers_modern_host.*"
       - "native/title/uniracers_course_identity.*"
@@ -31,6 +32,7 @@ on:
       - "tests/native/completed_run_ghost_projection_test.cpp"
       - "tests/native/completed_run_ghost_frame_test.cpp"
       - "tests/native/completed_run_ghost_racer_selector_test.cpp"
+      - "tests/native/completed_run_ghost_raster_test.cpp"
       - "tests/native/completed_run_ghost_trace_test.cpp"
       - "tests/native/completed_run_ghost_trace_check.cpp"
       - "tests/unit/test_completed_run_ghost_cpp.py"
@@ -39,6 +41,7 @@ on:
       - "tests/unit/test_completed_run_ghost_projection_cpp.py"
       - "tests/unit/test_completed_run_ghost_frame_cpp.py"
       - "tests/unit/test_completed_run_ghost_racer_selector_cpp.py"
+      - "tests/unit/test_completed_run_ghost_raster_cpp.py"
       - "tests/unit/test_completed_run_ghost_trace_cpp.py"
       - ".github/workflows/completed-run-replay-acceptance.yml"
 
@@ -65,7 +68,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
-          python3 -m unittest tests.unit.test_completed_run_record_cpp tests.unit.test_completed_run_record_process tests.unit.test_completed_run_capture_cpp tests.unit.test_completed_run_comparison_cpp tests.unit.test_completed_run_store_cpp tests.unit.test_completed_run_ghost_cpp tests.unit.test_completed_run_ghost_policy_cpp tests.unit.test_completed_run_ghost_world_sample_cpp tests.unit.test_completed_run_ghost_projection_cpp tests.unit.test_completed_run_ghost_frame_cpp tests.unit.test_completed_run_ghost_racer_selector_cpp tests.unit.test_completed_run_ghost_trace_cpp tests.unit.test_uniracers_course_identity_cpp tests.unit.test_uniracers_course_identity_corpus tests.unit.test_uniracers_run_data_cpp
+          python3 -m unittest tests.unit.test_completed_run_record_cpp tests.unit.test_completed_run_record_process tests.unit.test_completed_run_capture_cpp tests.unit.test_completed_run_comparison_cpp tests.unit.test_completed_run_store_cpp tests.unit.test_completed_run_ghost_cpp tests.unit.test_completed_run_ghost_policy_cpp tests.unit.test_completed_run_ghost_world_sample_cpp tests.unit.test_completed_run_ghost_projection_cpp tests.unit.test_completed_run_ghost_frame_cpp tests.unit.test_completed_run_ghost_racer_selector_cpp tests.unit.test_completed_run_ghost_raster_cpp tests.unit.test_completed_run_ghost_trace_cpp tests.unit.test_uniracers_course_identity_cpp tests.unit.test_uniracers_course_identity_corpus tests.unit.test_uniracers_run_data_cpp
 
       - name: Stage framework and SDL3
         shell: bash

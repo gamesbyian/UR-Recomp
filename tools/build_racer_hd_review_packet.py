@@ -91,10 +91,36 @@ def build_review_manifest(dossier: dict, equivalence: dict) -> dict:
     }
 
 
-def render_html(manifest: dict, live: dict | None) -> str:
+def alpha_diff_svg(review: dict) -> str:
+    stock_only = review.get("stock_only_pixels", [])
+    candidate_only = review.get("candidate_only_pixels", [])
+    cells = []
+    for x, y in stock_only:
+        cells.append(
+            f'<rect x="{x}" y="{y}" width="1" height="1" class="stock-only"/>'
+        )
+    for x, y in candidate_only:
+        cells.append(
+            f'<rect x="{x}" y="{y}" width="1" height="1" class="candidate-only"/>'
+        )
+    return (
+        '<svg class="alpha-diff" viewBox="0 0 64 64" '
+        'xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">'
+        '<rect width="64" height="64" class="diff-bg"/>'
+        + ''.join(cells)
+        + '</svg>'
+    )
+
+
+def render_html(manifest: dict, live: dict | None, readiness: dict | None = None) -> str:
+    readiness_by_pose = {
+        pose["pose_id"]: pose
+        for pose in (readiness or {}).get("poses", [])
+    }
     cards = []
     for pose in manifest["poses"]:
         review = pose["gameplay_scale_review"] or {}
+        shipping = readiness_by_pose.get(pose["pose_id"], {})
         iou = review.get("alpha_iou")
         iou_text = "n/a" if iou is None else f"{iou:.4f}"
         frames = ", ".join(str(x) for x in pose["observed_frames"])
@@ -111,17 +137,24 @@ def render_html(manifest: dict, live: dict | None) -> str:
             if authored else
             '<figure class="missing">No authored asset</figure>'
         )
+        shipping_status = shipping.get("review_status", "unreviewed")
+        blockers = ", ".join(shipping.get("blocker_codes", [])) or "none"
+        diff_svg = alpha_diff_svg(review)
+        stock_only_count = review.get("stock_only_pixel_count", "n/a")
+        candidate_only_count = review.get("candidate_only_pixel_count", "n/a")
         cards.append(f"""
 <section class="pose">
   <h2>{html.escape(pose["pose_id"])} · {html.escape(pose["player"])}</h2>
   <div class="meta">
     frames: {html.escape(frames)} · alpha IoU: {iou_text}<br>
+    shipping review: {html.escape(shipping_status)} · blockers: {html.escape(blockers)}<br>
     guards:<br>{reps}
   </div>
   <div class="panels">
     <figure><img class="asset stock" src="{html.escape(stock_href)}"><figcaption>Stock 1×</figcaption></figure>
     <figure><img class="asset large" src="{html.escape(nearest_href)}"><figcaption>Stock nearest 4×</figcaption></figure>
     {authored_panels}
+    <figure>{diff_svg}<figcaption>Alpha mismatch · stock-only {stock_only_count} · authored-only {candidate_only_count}</figcaption></figure>
   </div>
 </section>""")
 
@@ -137,12 +170,22 @@ def render_html(manifest: dict, live: dict | None) -> str:
   </div>
 </section>"""
 
+    shipping_summary = ""
+    if readiness is not None:
+        counts = readiness["counts"]
+        shipping_summary = (
+            f' · shipping ready: {str(readiness["shipping_ready"]).lower()}'
+            f' · approved {counts["approved"]}/{readiness["unique_pose_count"]}'
+            f' · needs refinement {counts["needs_refinement"]}'
+            f' · changed since review {counts.get("changed_since_review", 0)}'
+        )
     summary = (
         f'{manifest["semantic_representation_count"]} exact guards → '
         f'{manifest["unique_pose_count"]} unique poses · '
         f'{manifest["authored_pose_count"]} authored · '
         f'{manifest["unauthored_pose_count"]} unauthored · '
         f'{manifest["authored_conflict_count"]} authored conflicts'
+        + shipping_summary
     )
     return f"""<!doctype html>
 <html lang="en">
@@ -163,6 +206,10 @@ figcaption {{ margin-top: 6px; color: #bbb; font-size: 12px; }}
 .large {{ width: 256px; height: 256px; image-rendering: auto; }}
 .gameplay {{ width: 64px; height: 64px; image-rendering: auto; }}
 .frame {{ width: 256px; height: 224px; object-fit: fill; image-rendering: auto; }}
+.alpha-diff {{ width: 256px; height: 256px; border: 1px solid #555; }}
+.diff-bg {{ fill: #202020; }}
+.stock-only {{ fill: #ff5b5b; }}
+.candidate-only {{ fill: #55d8ff; }}
 .missing {{ width: 256px; height: 120px; display: grid; place-items: center; background: #311; }}
 </style>
 </head>
@@ -182,12 +229,22 @@ def build_review_packet(
     output_dir: Path,
     original_frame: Path | None = None,
     hd_frame: Path | None = None,
+    readiness_path: Path | None = None,
 ) -> dict:
     dossier = json.loads(dossier_path.read_text(encoding="utf-8"))
     equivalence = json.loads(equivalence_path.read_text(encoding="utf-8"))
+    readiness = (
+        json.loads(readiness_path.read_text(encoding="utf-8"))
+        if readiness_path is not None else None
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     manifest = build_review_manifest(dossier, equivalence)
+    if readiness is not None:
+        manifest["shipping_readiness"] = {
+            "shipping_ready": readiness["shipping_ready"],
+            "counts": readiness["counts"],
+        }
     live = None
     if (original_frame is None) != (hd_frame is None):
         raise ValueError("original and HD live frames must be supplied together")
@@ -213,7 +270,7 @@ def build_review_packet(
         encoding="utf-8",
     )
     (output_dir / "index.html").write_text(
-        render_html(manifest, live),
+        render_html(manifest, live, readiness),
         encoding="utf-8",
     )
     return manifest
@@ -226,6 +283,7 @@ def main() -> int:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--original-frame", type=Path)
     parser.add_argument("--hd-frame", type=Path)
+    parser.add_argument("--readiness", type=Path)
     args = parser.parse_args()
     manifest = build_review_packet(
         args.dossier,
@@ -233,6 +291,7 @@ def main() -> int:
         args.output_dir,
         args.original_frame,
         args.hd_frame,
+        args.readiness,
     )
     print(json.dumps(manifest, indent=2, sort_keys=True))
     return 0

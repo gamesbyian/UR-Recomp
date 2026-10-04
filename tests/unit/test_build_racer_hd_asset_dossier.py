@@ -155,6 +155,10 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         self.assertEqual(sample_authored_0541_p1_rgba(123, 90), bytes((32, 29, 23, 255)))
         self.assertEqual(sample_authored_0541_p1_rgba(128, 22), bytes((75, 71, 65, 255)))
         self.assertEqual(sample_authored_0541_p1_rgba(132, 50), bytes((201, 52, 52, 255)))
+        # Refinement pass 1 restores stock-supported internal structure with
+        # a second fork brace and restrained six-spoke wheel detail.
+        self.assertEqual(sample_authored_0541_p1_rgba(116, 88), bytes((201, 52, 52, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(110, 122), bytes((217, 213, 208, 255)))
         self.assertEqual(sample_authored_0541_p1_rgba(0, 0), bytes((0, 0, 0, 0)))
 
         rgba = build_first_authored_candidate_rgba()
@@ -191,6 +195,22 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         self.assertEqual(review["candidate_alpha_bounds"], [22, 3, 39, 38])
         self.assertEqual(review["candidate_contact_x2_y2"], [61, 76])
         self.assertGreater(review["alpha_iou"], 0.3)
+        self.assertEqual(
+            review["stock_only_pixel_count"],
+            review["stock_opaque_pixels"] - review["alpha_intersection_pixels"],
+        )
+        self.assertEqual(
+            review["candidate_only_pixel_count"],
+            review["candidate_opaque_pixels"] - review["alpha_intersection_pixels"],
+        )
+        self.assertEqual(
+            len(review["stock_only_pixels"]),
+            review["stock_only_pixel_count"],
+        )
+        self.assertEqual(
+            len(review["candidate_only_pixels"]),
+            review["candidate_only_pixel_count"],
+        )
 
     def test_second_authored_candidate_matches_predecessor_envelope(self):
         self.assertEqual(

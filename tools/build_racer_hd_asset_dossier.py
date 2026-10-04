@@ -150,6 +150,42 @@ def authored_metal_rgba(x: int, y: int) -> bytes:
     return _rgba32(159, 153, 142)
 
 
+def authored_segment_contains(
+    x: int,
+    y: int,
+    x1: int,
+    y1: int,
+    x2: int,
+    y2: int,
+    half_width: int,
+) -> bool:
+    """Integer-only filled segment shared with the native authored sampler."""
+    dx = x2 - x1
+    dy = y2 - y1
+    px = x - x1
+    py = y - y1
+    length2 = dx * dx + dy * dy
+    dot = px * dx + py * dy
+    if dot < 0 or dot > length2:
+        return False
+    cross = dx * py - dy * px
+    return cross * cross <= half_width * half_width * length2
+
+
+def authored_0541_p1_structural_detail(x: int, y: int) -> tuple[bool, bool]:
+    """Return (colored frame brace, neutral wheel spokes) for the 1219/1220 pair."""
+    frame_brace = (
+        authored_segment_contains(x, y, 132, 60, 100, 116, 3)
+        or authored_segment_contains(x, y, 132, 60, 150, 116, 3)
+    )
+    wheel_spokes = (
+        authored_segment_contains(x, y, 101, 122, 145, 122, 2)
+        or authored_segment_contains(x, y, 112, 103, 134, 141, 2)
+        or authored_segment_contains(x, y, 134, 103, 112, 141, 2)
+    )
+    return frame_brace, wheel_spokes
+
+
 def sample_authored_0541_p1_rgba(x: int, y: int) -> bytes:
     """Mirror the first native authored Remastered candidate exactly."""
     if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
@@ -181,13 +217,14 @@ def sample_authored_0541_p1_rgba(x: int, y: int) -> bytes:
     crown_dx = x - 132
     crown_dy = y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 10 * 10
+    frame_brace, wheel_spokes = authored_0541_p1_structural_detail(x, y)
 
-    if hub or rim or crank or pedal:
+    if hub or rim or crank or pedal or wheel_spokes:
         return authored_metal_rgba(x, y)
     if seat:
         seat_light = (255 - x) + (255 - y)
         return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
-    if fork or neck or crown:
+    if fork or frame_brace or neck or crown:
         return authored_red_frame_rgba(x, y)
     if tire:
         tire_light = (255 - x) + (255 - y)
@@ -235,13 +272,14 @@ def sample_authored_0541_p1_companion_0d2d_rgba(x: int, y: int) -> bytes:
     crown_dx = x - 132
     crown_dy = y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 10 * 10
+    frame_brace, wheel_spokes = authored_0541_p1_structural_detail(x, y)
 
-    if hub or rim or crank or pedal:
+    if hub or rim or crank or pedal or wheel_spokes:
         return authored_metal_rgba(x, y)
     if seat:
         seat_light = (255 - x) + (255 - y)
         return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
-    if fork or neck or crown:
+    if fork or frame_brace or neck or crown:
         return authored_red_frame_rgba(x, y)
     if tire:
         tire_light = (255 - x) + (255 - y)
@@ -754,7 +792,10 @@ def gameplay_sampled_alpha_review(authored_rgba: bytes, stock_rgba: bytes) -> di
 
     bottom_y = max(y for _, y in candidate)
     bottom_x = [x for x, y in candidate if y == bottom_y]
-    intersection = len(candidate & stock)
+    overlap = candidate & stock
+    stock_only = sorted(stock - candidate, key=lambda p: (p[1], p[0]))
+    candidate_only = sorted(candidate - stock, key=lambda p: (p[1], p[0]))
+    intersection = len(overlap)
     union = len(candidate | stock)
     return {
         "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
@@ -766,6 +807,10 @@ def gameplay_sampled_alpha_review(authored_rgba: bytes, stock_rgba: bytes) -> di
         "alpha_intersection_pixels": intersection,
         "alpha_union_pixels": union,
         "alpha_iou": intersection / union,
+        "stock_only_pixel_count": len(stock_only),
+        "candidate_only_pixel_count": len(candidate_only),
+        "stock_only_pixels": [list(point) for point in stock_only],
+        "candidate_only_pixels": [list(point) for point in candidate_only],
     }
 
 

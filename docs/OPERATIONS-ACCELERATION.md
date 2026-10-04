@@ -61,6 +61,14 @@ Use the manual `CI runtime report` workflow before undertaking another repositor
 
 This intentionally avoids automatic scheduling. The profiler should not become background CI tax.
 
+### Automatic-trigger and sharding policy
+
+Automatic `push`/merge workflows must remain path-scoped to inputs that can change their result. A change to the canonical `snesrecomp` toolchain entry or one of its registered framework patches is intentionally treated as execution-affecting by the bootstrap gate plus the small native/reference canary set; that fan-out is not accidental merge tax. Do not add broad `push` triggers to manual research probes merely for visibility.
+
+Use `concurrency` on every automatic workflow. Superseded branch/PR runs should cancel. Evidence-writing workflows may serialize `main`, but should still cancel stale non-main runs with `cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}`.
+
+Shard only independent expensive work. Current high-cost examples already using useful parallelism are Native UI capture (four shards), toolchain build-smoke (per-tool matrix), SNESRecomp C2 audit (backend matrix), and the independent Widescreen capacity probes. Long workflows such as the native Widescreen runtime hook and the 2P/VS reference replays intentionally reuse one generated/native build and then consume dependent evidence serially; do not duplicate that expensive build merely to claim sharding. If those become repeated merge-path costs, first split out a reusable build artifact, then fan independent replay/analysis jobs from that artifact.
+
 ## Integration-unit rule
 
 Choose the PR boundary to match the inference boundary. Independent architectures should stay separate, but monotonic capacity sweeps and batches of equivalent visual poses should not be split into tiny PRs solely because each parameter value or pose can be.

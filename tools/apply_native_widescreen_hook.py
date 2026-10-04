@@ -68,7 +68,7 @@ static uint16 ur_ws_native_vs_p2_payload_addr = 0;
 static unsigned ur_ws_native_vs_p1_payload_len = 0;
 static unsigned ur_ws_native_vs_p2_payload_len = 0;
 static int ur_ws_native_vs_payload_live = 0;
-#define UR_WS_NATIVE_MAX_VS_HOST_COLUMNS 2u
+#define UR_WS_NATIVE_MAX_VS_HOST_COLUMNS 3u
 static uint8 ur_ws_native_vs_shadow_payload[2][UR_WS_NATIVE_MAX_VS_HOST_COLUMNS][16];
 static uint16 ur_ws_native_vs_shadow_edge[2][UR_WS_NATIVE_MAX_VS_HOST_COLUMNS];
 static int ur_ws_native_vs_materializer_match[2];
@@ -312,7 +312,7 @@ static int ur_ws_native_should_prepare(CpuState *cpu) {
         ur_ws_native_read16(cpu, 0x052d) == 8;
     /* The accepted guest lane remains one adjacent strip. +16/+24 add only
      * host-owned live-course capacity behind that same split-screen seam. */
-    return (margin == 8 || margin == 16 || margin == 24) && (p1 || p2);
+    return (margin == 8 || margin == 16 || margin == 24 || margin == 32) && (p1 || p2);
   }
 
   return ur_ws_native_read16(cpu, 0x0505) != 0xffff &&
@@ -779,6 +779,7 @@ def apply(gen_dir: Path) -> dict:
             "vs_margin8_supported": True,
             "vs_margin16_capacity_probe": True,
             "vs_margin24_capacity_probe": True,
+            "vs_margin32_capacity_probe": True,
             "margin16_supported": True,
             "margin24_supported": True,
         "margin64_supported": True,
@@ -834,6 +835,7 @@ def apply(gen_dir: Path) -> dict:
         "vs_margin8_supported": True,
         "vs_margin16_capacity_probe": True,
         "vs_margin24_capacity_probe": True,
+        "vs_margin32_capacity_probe": True,
         "margin16_supported": True,
         "margin24_supported": True,
             "margin64_supported": True,

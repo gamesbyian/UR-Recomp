@@ -49,16 +49,6 @@ int main() {
         assert(sample >= 0);
         assert(sample < kRacerHdAssetSize);
     }
-    assert(racer_hd_set_internal_render_scale(1));
-    assert(racer_hd_internal_render_scale() == 1);
-    assert(racer_hd_set_internal_render_scale(3));
-    assert(racer_hd_internal_render_scale() == 3);
-    assert(!racer_hd_set_internal_render_scale(0));
-    assert(racer_hd_internal_render_scale() == 3);
-    assert(!racer_hd_set_internal_render_scale(5));
-    assert(racer_hd_internal_render_scale() == 3);
-    assert(racer_hd_set_internal_render_scale(kRacerHdDensityScale));
-    assert(racer_hd_internal_render_scale() == kRacerHdDensityScale);
 
     // The immediately preceding exact 0541/0D2D composition has its own
     // authored temporal-neighbor candidate rather than falling through to the

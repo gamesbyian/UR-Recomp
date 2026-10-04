@@ -51,6 +51,19 @@ bool valid_output_resolution(const HostOutputResolution& resolution) noexcept;
 std::vector<HostOutputResolution> build_output_resolution_choices(
     const std::vector<HostOutputMode>& modes);
 
+/* Keep a persisted request only while the active monitor still exposes it.
+ * Missing/invalid requests fall back to Native without implying persistence. */
+HostOutputResolution select_supported_output_resolution(
+    const HostOutputResolution& requested,
+    const std::vector<HostOutputResolution>& choices) noexcept;
+
+/* Cycle within the current monitor's semantic catalog. A stale persisted
+ * request first normalizes to Native, then moves in the requested direction. */
+HostOutputResolution cycle_output_resolution(
+    const HostOutputResolution& current,
+    const std::vector<HostOutputResolution>& choices,
+    int delta) noexcept;
+
 std::optional<HostOutputMode> resolve_fullscreen_output_mode(
     const HostOutputResolution& resolution,
     const std::vector<HostOutputMode>& modes,

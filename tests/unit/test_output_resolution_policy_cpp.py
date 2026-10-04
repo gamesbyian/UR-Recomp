@@ -8,6 +8,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
 class OutputResolutionPolicyCppTests(unittest.TestCase):
+    """Compile and execute the monitor-derived resolution policy contract."""
+
     def test_cpp_contract(self):
         with tempfile.TemporaryDirectory() as tmp:
             exe = pathlib.Path(tmp) / "output-resolution-policy-test"

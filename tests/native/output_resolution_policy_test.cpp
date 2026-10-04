@@ -37,6 +37,46 @@ int main() {
     assert(choices[2] == HostOutputResolution::explicit_size(1920, 1080));
     assert(choices[3] == HostOutputResolution::explicit_size(2560, 1440));
 
+    assert(select_supported_output_resolution(
+               HostOutputResolution::explicit_size(1920, 1080),
+               choices) ==
+           HostOutputResolution::explicit_size(1920, 1080));
+    assert(select_supported_output_resolution(
+               HostOutputResolution::explicit_size(3840, 2160),
+               choices) ==
+           HostOutputResolution::native());
+    assert(select_supported_output_resolution(
+               {HostOutputResolutionKind::Explicit, 0, 1080},
+               choices) ==
+           HostOutputResolution::native());
+
+    assert(cycle_output_resolution(
+               HostOutputResolution::native(), choices, 1) ==
+           HostOutputResolution::explicit_size(1280, 720));
+    assert(cycle_output_resolution(
+               HostOutputResolution::explicit_size(1280, 720), choices, -1) ==
+           HostOutputResolution::native());
+    assert(cycle_output_resolution(
+               HostOutputResolution::explicit_size(2560, 1440), choices, 1) ==
+           HostOutputResolution::native());
+    assert(cycle_output_resolution(
+               HostOutputResolution::explicit_size(3840, 2160), choices, 0) ==
+           HostOutputResolution::native());
+    assert(cycle_output_resolution(
+               HostOutputResolution::explicit_size(3840, 2160), choices, 1) ==
+           HostOutputResolution::explicit_size(1280, 720));
+
+    const std::vector<HostOutputResolution> empty_choices;
+    assert(select_supported_output_resolution(
+               HostOutputResolution::explicit_size(1920, 1080),
+               empty_choices) ==
+           HostOutputResolution::native());
+    assert(cycle_output_resolution(
+               HostOutputResolution::explicit_size(1920, 1080),
+               empty_choices,
+               1) ==
+           HostOutputResolution::native());
+
     const HostOutputMode native{1920, 1080, 59940};
 
     const auto native_selected = resolve_fullscreen_output_mode(

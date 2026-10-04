@@ -104,6 +104,11 @@ class NativeWidescreenHookTests(unittest.TestCase):
             self.assertIn('strcmp(view, "authentic-16x9") == 0',w)
             self.assertIn('strcmp(view, "authentic-16x9-candidate") == 0',w)
             self.assertIn("? 48 : 0",w)
+            # Without a diagnostic selector the margin follows the host's live
+            # widened raster, so persisted product Widescreen reaches +48.
+            self.assertIn("extern int g_ws_extra;",w)
+            self.assertIn("((g_ws_extra + 7) / 8) * 8",w)
+            self.assertIn("extra > 72 ? 72 : extra",w)
             self.assertIn("URWS_SHADOW_EXT provider=course-runtime",w)
             self.assertIn("0x000f + coarse_index * 2u",w)
             self.assertIn("0x800fu + (uint32)record * 32u",w)

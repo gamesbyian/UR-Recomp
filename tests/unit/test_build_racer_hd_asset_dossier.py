@@ -191,6 +191,22 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         self.assertEqual(review["candidate_alpha_bounds"], [22, 3, 39, 38])
         self.assertEqual(review["candidate_contact_x2_y2"], [61, 76])
         self.assertGreater(review["alpha_iou"], 0.3)
+        self.assertEqual(
+            review["stock_only_pixel_count"],
+            review["stock_opaque_pixels"] - review["alpha_intersection_pixels"],
+        )
+        self.assertEqual(
+            review["candidate_only_pixel_count"],
+            review["candidate_opaque_pixels"] - review["alpha_intersection_pixels"],
+        )
+        self.assertEqual(
+            len(review["stock_only_pixels"]),
+            review["stock_only_pixel_count"],
+        )
+        self.assertEqual(
+            len(review["candidate_only_pixels"]),
+            review["candidate_only_pixel_count"],
+        )
 
     def test_second_authored_candidate_matches_predecessor_envelope(self):
         self.assertEqual(

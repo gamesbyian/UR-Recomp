@@ -279,13 +279,20 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
         "profile", "pause_on_focus_loss", "vibration_enabled", "display_mode", "vsync",
         "presentation_fps"
     };
-    static constexpr std::string_view required_v6[] = {
+    // Version 6 is the stable additive envelope. Keep a small required core,
+    // allow only known additive keys, and let absent additive keys retain the
+    // typed HostSettings defaults. This avoids a schema bump for every new
+    // optional host setting while still rejecting typos/unknown fields.
+    static constexpr std::string_view required_v6_core[] = {
+        "profile", "pause_on_focus_loss", "vibration_enabled"
+    };
+    static constexpr std::string_view allowed_v6[] = {
         "profile", "pause_on_focus_loss", "vibration_enabled", "display_mode", "vsync",
         "presentation_fps", "output_resolution"
     };
 
-    const std::string_view* required = required_v6;
-    std::size_t required_count = 7u;
+    const std::string_view* required = required_v6_core;
+    std::size_t required_count = 3u;
     if (legacy_v1) {
         required = required_v1;
         required_count = 3u;
@@ -300,8 +307,24 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
         required_count = 6u;
     }
 
-    if (fields.size() != required_count) {
-        return {std::nullopt, "unexpected host-state field set"};
+    if (legacy_v1 || legacy_v2 || legacy_v3 || legacy_v4 || legacy_v5) {
+        if (fields.size() != required_count) {
+            return {std::nullopt, "unexpected host-state field set"};
+        }
+    } else {
+        for (const auto& [key, value] : fields) {
+            (void)value;
+            bool known = false;
+            for (const auto allowed : allowed_v6) {
+                if (std::string_view{key} == allowed) {
+                    known = true;
+                    break;
+                }
+            }
+            if (!known) {
+                return {std::nullopt, "unknown host-state field"};
+            }
+        }
     }
     for (std::size_t i = 0; i < required_count; ++i) {
         if (fields.find(std::string(required[i])) == fields.end()) {
@@ -322,27 +345,32 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
         !parse_bool(fields.at("vibration_enabled"), state.settings.vibration_enabled)) {
         return {std::nullopt, "host-state booleans must be 0 or 1"};
     }
-    if (!legacy_v1 &&
+    const auto display_mode = fields.find("display_mode");
+    if (!legacy_v1 && display_mode != fields.end() &&
         !parse_display_mode(
-            fields.at("display_mode"),
+            display_mode->second,
             state.settings.display_mode,
             !legacy_v2 && !legacy_v3)) {
         return {std::nullopt, "invalid host display mode"};
     }
-    if (!legacy_v1 && !legacy_v2 &&
-        !parse_vsync_mode(fields.at("vsync"), state.settings.vsync_mode)) {
+    const auto vsync = fields.find("vsync");
+    if (!legacy_v1 && !legacy_v2 && vsync != fields.end() &&
+        !parse_vsync_mode(vsync->second, state.settings.vsync_mode)) {
         return {std::nullopt, "invalid host vsync mode"};
     }
+    const auto presentation_fps = fields.find("presentation_fps");
     if (!legacy_v1 && !legacy_v2 && !legacy_v3 && !legacy_v4 &&
+        presentation_fps != fields.end() &&
         !parse_presentation_fps_mode(
-            fields.at("presentation_fps"),
+            presentation_fps->second,
             state.settings.presentation_fps_mode)) {
         return {std::nullopt, "invalid host presentation fps mode"};
     }
+    const auto output_resolution = fields.find("output_resolution");
     if (!legacy_v1 && !legacy_v2 && !legacy_v3 && !legacy_v4 &&
-        !legacy_v5 &&
+        !legacy_v5 && output_resolution != fields.end() &&
         !parse_output_resolution(
-            fields.at("output_resolution"),
+            output_resolution->second,
             state.settings.output_resolution)) {
         return {std::nullopt, "invalid host output resolution"};
     }

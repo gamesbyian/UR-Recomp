@@ -81,6 +81,8 @@ bool validate_completed_run_record(const CompletedRunRecord& record, std::string
 bool compatible_for_playback(const CompletedRunRecord& record, const RunPlaybackTarget& target, std::string* detail = nullptr);
 
 std::string encode_completed_run_record(const CompletedRunRecord& record);
+/* Return the canonical 16-hex artifact checksum used by the encoded record. */
+std::string completed_run_record_artifact_checksum(const CompletedRunRecord& record);
 /* Emit the existing deterministic INPUT_FILE grammar verbatim. */
 std::string encode_completed_run_input_file(
     const CompletedRunRecord& record,

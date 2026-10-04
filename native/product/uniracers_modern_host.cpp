@@ -10,6 +10,11 @@ extern "C" {
 #include "desktop/sdl_compat.h"
 #include "completed_run_capture.hpp"
 #include "completed_run_ghost.hpp"
+#include "completed_run_ghost_frame.hpp"
+#include "completed_run_ghost_policy.hpp"
+#include "completed_run_ghost_trace.hpp"
+#include "completed_run_presentation.hpp"
+#include "completed_run_ghost_world_sample.hpp"
 #include "completed_run_record.hpp"
 #include "completed_run_store.hpp"
 #include "focus_pause_policy.hpp"
@@ -29,6 +34,8 @@ extern "C" {
 #include "uniracers_ws_margins.h"
 #include "uniracers_tour_resume.hpp"
 #include "widescreen_output_composition.hpp"
+#include "../presentation/completed_run_ghost_racer_selector.hpp"
+#include "../presentation/completed_run_ghost_raster.hpp"
 
 #include <cstdlib>
 #include <fstream>
@@ -65,7 +72,12 @@ bool g_exit_frontend_acceptance_fired;
 unsigned g_exit_frontend_acceptance_surface_frames;
 ur::product::CompletedRunCapture g_run_capture;
 ur::product::CompletedRunGhostState g_run_ghosts;
+ur::product::CompletedRunGhostTraceCapture g_run_ghost_trace_capture;
+std::optional<ur::product::CompletedRunGhostTrace> g_run_ghost_playback_trace;
+std::optional<ur::product::CompletedRunGhostPresentationFrame>
+    g_run_ghost_presentation_frame;
 bool g_run_capture_previous_active;
+bool g_run_ghost_draw_reported;
 uint64_t g_run_capture_origin_frame;
 uint16_t g_run_capture_checkpoint;
 UrUniracersRestartPolicyState g_title_policy;
@@ -751,6 +763,8 @@ bool cycle_output_resolution_setting() {
     return true;
 }
 
+void refresh_run_ghost_playback_trace();
+
 bool cycle_widescreen_setting() {
     if (!modern_mode()) return false;
 
@@ -778,6 +792,48 @@ bool cycle_widescreen_setting() {
     return true;
 }
 
+bool cycle_ghost_target_setting() {
+    if (!modern_mode() || !g_profile_state || !g_profile_state_writable ||
+        g_profile_state_path.empty()) {
+        return false;
+    }
+
+    auto candidate = *g_profile_state;
+    switch (candidate.ghost_target) {
+    case ur::product::CompletedRunGhostTarget::Off:
+        candidate.ghost_target =
+            ur::product::CompletedRunGhostTarget::Previous;
+        break;
+    case ur::product::CompletedRunGhostTarget::Previous:
+        candidate.ghost_target =
+            ur::product::CompletedRunGhostTarget::PersonalBest;
+        break;
+    case ur::product::CompletedRunGhostTarget::PersonalBest:
+        candidate.ghost_target = ur::product::CompletedRunGhostTarget::Off;
+        break;
+    }
+
+    if (ur::product::save_host_profile_state_file(
+            ur::product::ExecutionMode::Modern,
+            g_profile_state_path,
+            candidate) != ur::product::HostProfileSaveStatus::Saved) {
+        product_diagnostic("UR_RUN_GHOST TARGET_SAVE_FAILED");
+        return false;
+    }
+
+    g_profile_state = candidate;
+    refresh_run_ghost_playback_trace();
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_RUN_GHOST TARGET_SELECTED target=%s\n",
+            ur::product::completed_run_ghost_target_name(
+                g_profile_state->ghost_target));
+        std::fflush(stderr);
+    }
+    return true;
+}
+
 bool activate_options_selection() {
     switch (ur_modern_options_menu_selected(&g_options_menu)) {
     case UR_MODERN_OPTIONS_FOCUS_PAUSE:
@@ -792,6 +848,8 @@ bool activate_options_selection() {
         return cycle_output_resolution_setting();
     case UR_MODERN_OPTIONS_WIDESCREEN:
         return cycle_widescreen_setting();
+    case UR_MODERN_OPTIONS_GHOST:
+        return cycle_ghost_target_setting();
     }
     return false;
 }
@@ -1095,6 +1153,27 @@ const char* run_record_capture_override_path() {
     return path && *path ? path : nullptr;
 }
 
+const char* run_ghost_acceptance_record_path() {
+    if (!run_record_capture_override_path()) return nullptr;
+    const char* path = std::getenv("UR_RUN_GHOST_ACCEPTANCE_RECORD");
+    return path && *path ? path : nullptr;
+}
+
+ur::product::CompletedRunGhostTarget active_run_ghost_target() {
+    if (run_record_capture_override_path()) {
+        const char* value = std::getenv("UR_RUN_GHOST_ACCEPTANCE_TARGET");
+        if (value && *value) {
+            const auto parsed =
+                ur::product::parse_completed_run_ghost_target(value);
+            if (parsed) return *parsed;
+        }
+        return ur::product::CompletedRunGhostTarget::Off;
+    }
+    return g_profile_state
+        ? g_profile_state->ghost_target
+        : ur::product::CompletedRunGhostTarget::Off;
+}
+
 bool run_record_capture_enabled() {
     return modern_mode() &&
            g_widescreen_scene_state.race_mode ==
@@ -1129,9 +1208,21 @@ void refresh_run_ghosts(
     const ur::product::RunRecordProvenance& provenance) {
     g_run_ghosts.clear();
 
-    // Acceptance capture writes an explicit artifact outside the ordinary
-    // profile catalog. Keep that plumbing isolated from product ghost state.
-    if (run_record_capture_override_path()) return;
+    // Acceptance capture writes explicit artifacts outside the ordinary
+    // profile catalog. An optional exact source record may be bound only when
+    // the capture override is active, keeping this plumbing isolated from
+    // ordinary profile ghost state.
+    if (run_record_capture_override_path()) {
+        const char* source_path = run_ghost_acceptance_record_path();
+        if (!source_path) return;
+        const auto loaded =
+            ur::product::load_completed_run_record_file(source_path);
+        if (!loaded.loaded()) return;
+        const auto target = playback_target_for(provenance);
+        g_run_ghosts.bind(
+            {{std::string(source_path), *loaded.record}}, target);
+        return;
+    }
 
     const std::string directory = default_run_record_directory();
     if (directory.empty()) return;
@@ -1158,6 +1249,57 @@ void refresh_run_ghosts(
                 : 0ull);
         std::fflush(stderr);
     }
+}
+
+void refresh_run_ghost_playback_trace() {
+    g_run_ghost_playback_trace.reset();
+    g_run_ghost_presentation_frame.reset();
+    if (!modern_mode()) return;
+
+    const auto ghost_target = active_run_ghost_target();
+    const auto selection = ur::product::select_completed_run_ghost_target(
+        g_run_ghosts, ghost_target);
+    if (!selection.active() || !selection.kind) return;
+
+    const auto loaded = ur::product::load_selected_completed_run_ghost_trace(
+        g_run_ghosts, *selection.kind);
+    if (!loaded.loaded()) {
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_RUN_GHOST_TRACE PLAYBACK_UNAVAILABLE target=%s detail=%s\n",
+                ur::product::completed_run_ghost_target_name(
+                    ghost_target),
+                loaded.detail.c_str());
+            std::fflush(stderr);
+        }
+        return;
+    }
+
+    g_run_ghost_playback_trace = *loaded.trace;
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_RUN_GHOST_TRACE PLAYBACK_BOUND target=%s samples=%zu\n",
+            ur::product::completed_run_ghost_target_name(
+                ghost_target),
+            g_run_ghost_playback_trace->samples.size());
+        std::fflush(stderr);
+    }
+}
+
+void resolve_run_ghost_presentation_frame(std::uint64_t race_frame) {
+    g_run_ghost_presentation_frame.reset();
+    if (!g_run_ghost_playback_trace || !modern_mode()) return;
+
+    const auto projection =
+        ur::product::read_completed_run_ghost_projection_context(
+            g_ram, 0x20000u);
+    if (!projection) return;
+
+    g_run_ghost_presentation_frame =
+        ur::product::resolve_completed_run_ghost_presentation_frame(
+            *g_run_ghost_playback_trace, race_frame, *projection);
 }
 
 bool begin_run_record_capture(uint64_t host_frame) {
@@ -1191,9 +1333,30 @@ bool begin_run_record_capture(uint64_t host_frame) {
         return false;
     }
     refresh_run_ghosts(provenance);
+    refresh_run_ghost_playback_trace();
+    g_run_ghost_draw_reported = false;
+    (void)g_run_ghost_trace_capture.begin_attempt();
     g_run_capture_origin_frame = host_frame;
     g_run_capture_checkpoint = read_run_word(0x1199u);
     return true;
+}
+
+void observe_run_ghost_trace_sample() {
+    if (!g_run_capture.capturing() ||
+        !g_run_ghost_trace_capture.capturing() ||
+        g_run_capture.captured_frames() == 0) {
+        return;
+    }
+
+    const std::uint64_t race_frame =
+        g_run_capture.captured_frames() - 1u;
+    const auto sample =
+        ur::product::read_completed_run_ghost_world_sample(
+            g_ram, 0x20000u, race_frame);
+    if (!sample || !g_run_ghost_trace_capture.observe(*sample)) {
+        g_run_ghost_trace_capture.abort_attempt();
+        product_diagnostic("UR_RUN_GHOST_TRACE SAMPLE_DISABLED");
+    }
 }
 
 void observe_run_record_split() {
@@ -1217,6 +1380,7 @@ void complete_run_record_capture() {
     if (ticks60 < 0) {
         product_diagnostic("UR_RUN_RECORD FINISH_TIMER_REJECTED");
         g_run_capture.abort_attempt();
+        g_run_ghost_trace_capture.abort_attempt();
         return;
     }
 
@@ -1226,8 +1390,12 @@ void complete_run_record_capture() {
         g_run_capture.complete(static_cast<uint64_t>(ticks60));
     if (!record) {
         product_diagnostic("UR_RUN_RECORD FINALIZE_REJECTED");
+        g_run_ghost_trace_capture.abort_attempt();
         return;
     }
+
+    const auto ghost_trace =
+        g_run_ghost_trace_capture.complete(*record);
 
     std::string detail;
     std::string stored_path;
@@ -1269,23 +1437,42 @@ void complete_run_record_capture() {
         }
     }
 
+    bool ghost_trace_written = false;
+    if (ghost_trace) {
+        std::string trace_detail;
+        ghost_trace_written =
+            ur::product::save_completed_run_ghost_trace_file(
+                stored_path + ".urghost", *ghost_trace, &trace_detail);
+        if (!ghost_trace_written && std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_RUN_GHOST_TRACE SAVE_FAILED detail=%s\n",
+                trace_detail.c_str());
+            std::fflush(stderr);
+        }
+    }
+
     std::fprintf(
         stderr,
-        "UR_RUN_RECORD CAPTURED path=%s course=%s elapsed_ticks60=%llu origin_frame=%llu inputs=%zu splits=%zu replay_input=%d\n",
+        "UR_RUN_RECORD CAPTURED path=%s course=%s elapsed_ticks60=%llu origin_frame=%llu inputs=%zu splits=%zu replay_input=%d ghost_trace=%d\n",
         stored_path.c_str(),
         record->provenance.course_id.c_str(),
         static_cast<unsigned long long>(record->elapsed_ticks60),
         static_cast<unsigned long long>(g_run_capture_origin_frame),
         record->inputs.size(),
         record->splits.size(),
-        replay_written ? 1 : 0);
+        replay_written ? 1 : 0,
+        ghost_trace_written ? 1 : 0);
     std::fflush(stderr);
 }
 
 void rearm_run_capture_after_retry() {
     if (!g_run_capture.capturing()) return;
     g_run_capture.abort_attempt();
+    g_run_ghost_trace_capture.abort_attempt();
     g_run_ghosts.clear();
+    g_run_ghost_playback_trace.reset();
+    g_run_ghost_presentation_frame.reset();
     g_run_capture_previous_active = false;
     product_diagnostic("UR_RUN_RECORD RETRY_REARMED");
 }
@@ -1579,6 +1766,11 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE;
     if (stats && g_run_capture_previous_active && g_run_capture.capturing()) {
         (void)g_run_capture.observe_guest_frame(stats->controller_word);
+        observe_run_ghost_trace_sample();
+        if (g_run_capture.captured_frames() != 0) {
+            resolve_run_ghost_presentation_frame(
+                g_run_capture.captured_frames() - 1u);
+        }
     }
     if (stats && !g_run_capture_previous_active && run_active) {
         (void)begin_run_record_capture(stats->frame);
@@ -1592,6 +1784,9 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     }
     if (decision.retire_attempt && g_run_capture.capturing()) {
         g_run_capture.abort_attempt();
+        g_run_ghost_trace_capture.abort_attempt();
+        g_run_ghost_playback_trace.reset();
+        g_run_ghost_presentation_frame.reset();
     }
     g_run_capture_previous_active = run_active;
 
@@ -1774,6 +1969,49 @@ extern "C" void ur_uniracers_modern_system_overlay(
         return;
     }
 
+    if (modern_mode() &&
+        g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE &&
+        g_run_ghost_presentation_frame &&
+        height % 224 == 0) {
+        const int scale = height / 224;
+        if (ur::presentation::valid_racer_hd_internal_render_scale(scale)) {
+            const auto selected =
+                ur::presentation::select_completed_run_ghost_racer_presentation(
+                    ur::presentation::GraphicsPack::Remastered,
+                    *g_run_ghost_presentation_frame);
+            if (selected.uses_replacement() && selected.registration) {
+                auto frame = *g_run_ghost_presentation_frame;
+                const int logical_width = width / scale;
+                if (logical_width > 256) {
+                    frame.screen_x += (logical_width - 256) / 2;
+                }
+                const bool drew =
+                    ur::presentation::draw_completed_run_ghost_racer(
+                        dst,
+                        pitch,
+                        logical_width,
+                        224,
+                        scale,
+                        frame,
+                        *selected.registration,
+                        128);
+                if (drew && !g_run_ghost_draw_reported &&
+                    std::getenv("UR_RUN_GHOST_DRAW_DIAGNOSTICS")) {
+                    g_run_ghost_draw_reported = true;
+                    std::fprintf(
+                        stderr,
+                        "UR_RUN_GHOST DRAWN race_frame=%llu semantic=%04X x=%d y=%d scale=%d\n",
+                        static_cast<unsigned long long>(frame.race_frame),
+                        static_cast<unsigned>(frame.semantic_frame_id),
+                        frame.screen_x,
+                        frame.screen_y,
+                        scale);
+                    std::fflush(stderr);
+                }
+            }
+        }
+    }
+
     const int is_paused = paused() ? 1 : 0;
     const int results = g_surface == UR_UNIRACERS_RESTART_RESULTS;
     const int restart = ur_modern_session_restart_available(g_session);
@@ -1793,7 +2031,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
 
     if (is_paused) {
         if (g_options_visible) {
-            const int options_h = 159;
+            const int options_h = 174;
             const int options_y = (height - options_h) / 2;
             const UrModernOptionsItem selected =
                 ur_modern_options_menu_selected(&g_options_menu);
@@ -1848,6 +2086,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
             char presentation_row[32];
             char resolution_row[40];
             char widescreen_row[32];
+            char ghost_row[32];
             std::snprintf(
                 focus_row, sizeof(focus_row), "%c %s",
                 selected == UR_MODERN_OPTIONS_FOCUS_PAUSE ? '>' : ' ',
@@ -1874,6 +2113,11 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 g_product_state.settings.widescreen_mode ==
                         ur::product::HostWidescreenMode::Authentic16x9
                     ? "16:9" : "ORIGINAL");
+            std::snprintf(
+                ghost_row, sizeof(ghost_row), "%c GHOST    %s",
+                selected == UR_MODERN_OPTIONS_GHOST ? '>' : ' ',
+                ur::product::completed_run_ghost_target_name(
+                    active_run_ghost_target()));
             snes_ovl_fill_rect(
                 pixels, stride, height, x, options_y, panel_w, options_h,
                 0xE0202020u);
@@ -1902,10 +2146,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 pixels, stride, height, x + 8, options_y + 102,
                 widescreen_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 122,
+                pixels, stride, height, x + 8, options_y + 117,
+                ghost_row, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, options_y + 137,
                 "A / ENTER  CHANGE", 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 142,
+                pixels, stride, height, x + 8, options_y + 157,
                 "B / ESC    BACK", 0xFFFFFFFFu, 1);
             return;
         }
@@ -1963,30 +2210,87 @@ extern "C" void ur_uniracers_modern_system_overlay(
 
         if (g_run_data_visible) {
             const UrUniracersRunData data = current_run_data();
-            const int run_h = 84;
+            const int run_h = 144;
             const int run_y = (height - run_h) / 2;
-            char time_text[32];
-            if (data.valid) {
+            char current_text[40];
+            char previous_text[40];
+            char pb_text[40];
+            char ghost_text[40];
+            char delta_text[40];
+
+            const int64_t current_ticks =
+                ur_uniracers_run_data_ticks60(data);
+            if (current_ticks >= 0) {
+                const std::string formatted =
+                    ur::product::format_run_ticks60(
+                        static_cast<std::uint64_t>(current_ticks));
                 std::snprintf(
-                    time_text,
-                    sizeof(time_text),
-                    "TIME   %d:%d%d.%d",
-                    data.minutes,
-                    data.tens_seconds,
-                    data.seconds,
-                    data.tenths);
+                    current_text, sizeof(current_text),
+                    "CURRENT  %s", formatted.c_str());
             } else {
-                std::snprintf(time_text, sizeof(time_text), "TIME   --:--.-");
+                std::snprintf(
+                    current_text, sizeof(current_text),
+                    "CURRENT  --:--.--/60");
             }
+
+            const auto* previous = g_run_ghosts.record(
+                ur::product::CompletedRunGhostKind::Previous);
+            const auto* personal_best = g_run_ghosts.record(
+                ur::product::CompletedRunGhostKind::PersonalBest);
+            const auto previous_presented = previous
+                ? ur::product::present_run_target(
+                    *previous, ur::product::RunDataTargetKind::Previous)
+                : std::nullopt;
+            const auto pb_presented = personal_best
+                ? ur::product::present_run_target(
+                    *personal_best,
+                    ur::product::RunDataTargetKind::PersonalBest)
+                : std::nullopt;
+            std::snprintf(
+                previous_text, sizeof(previous_text),
+                "PREVIOUS %s",
+                previous_presented
+                    ? previous_presented->time_text.c_str() : "--");
+            std::snprintf(
+                pb_text, sizeof(pb_text),
+                "PB       %s",
+                pb_presented ? pb_presented->time_text.c_str() : "--");
+
+            const auto ghost_target = active_run_ghost_target();
+            std::snprintf(
+                ghost_text, sizeof(ghost_text),
+                "GHOST    %s",
+                ur::product::completed_run_ghost_target_name(ghost_target));
+
+            std::snprintf(delta_text, sizeof(delta_text), "DELTA    --");
+            if (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
+                current_ticks >= 0) {
+                const auto selection =
+                    ur::product::select_completed_run_ghost_target(
+                        g_run_ghosts, ghost_target);
+                if (selection.active() && selection.record) {
+                    const auto delta =
+                        ur::product::present_run_finish_delta(
+                            *selection.record,
+                            static_cast<std::uint64_t>(current_ticks));
+                    if (delta) {
+                        std::snprintf(
+                            delta_text, sizeof(delta_text),
+                            "DELTA    %s",
+                            delta->delta_text.c_str());
+                    }
+                }
+            }
+
             const char* surface_text =
                 g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE
-                    ? "SURFACE RACE"
+                    ? "SURFACE  RACE"
                     : (g_surface == UR_UNIRACERS_RESTART_RESULTS
-                        ? "SURFACE RESULTS"
-                        : "SURFACE OTHER");
+                        ? "SURFACE  RESULTS"
+                        : "SURFACE  OTHER");
             const char* retry_text =
                 ur_modern_session_restart_available(g_session)
-                    ? "RETRY  READY" : "RETRY  UNAVAILABLE";
+                    ? "RETRY    READY" : "RETRY    UNAVAILABLE";
 
             snes_ovl_fill_rect(
                 pixels, stride, height, x, run_y, panel_w, run_h,
@@ -1999,16 +2303,28 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 "RUN DATA", 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, run_y + 22,
-                time_text, 0xFFFFFFFFu, 1);
+                current_text, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, run_y + 37,
-                surface_text, 0xFFFFFFFFu, 1);
+                previous_text, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, run_y + 52,
-                retry_text, 0xFFFFFFFFu, 1);
+                pb_text, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, run_y + 67,
-                "BACK   B / ESC", 0xFFFFFFFFu, 1);
+                ghost_text, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, run_y + 82,
+                delta_text, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, run_y + 97,
+                surface_text, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, run_y + 112,
+                retry_text, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, run_y + 127,
+                "BACK     B / ESC", 0xFFFFFFFFu, 1);
             return;
         }
 

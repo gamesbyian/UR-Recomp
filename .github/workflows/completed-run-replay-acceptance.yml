@@ -9,6 +9,13 @@ on:
       - "native/product/completed_run_comparison.*"
       - "native/product/completed_run_ghost.*"
       - "native/product/completed_run_ghost_policy.*"
+      - "native/product/completed_run_ghost_target.hpp"
+      - "native/product/completed_run_ghost_world_sample.*"
+      - "native/product/completed_run_ghost_projection.*"
+      - "native/product/completed_run_ghost_frame.*"
+      - "native/presentation/completed_run_ghost_racer_selector.*"
+      - "native/presentation/completed_run_ghost_raster.*"
+      - "native/product/completed_run_ghost_trace.*"
       - "native/product/uniracers_modern_host.*"
       - "native/title/uniracers_course_identity.*"
       - "native/title/uniracers_run_data.*"
@@ -21,8 +28,21 @@ on:
       - "tests/native/completed_run_replay_compare.cpp"
       - "tests/native/completed_run_ghost_test.cpp"
       - "tests/native/completed_run_ghost_policy_test.cpp"
+      - "tests/native/completed_run_ghost_world_sample_test.cpp"
+      - "tests/native/completed_run_ghost_projection_test.cpp"
+      - "tests/native/completed_run_ghost_frame_test.cpp"
+      - "tests/native/completed_run_ghost_racer_selector_test.cpp"
+      - "tests/native/completed_run_ghost_raster_test.cpp"
+      - "tests/native/completed_run_ghost_trace_test.cpp"
+      - "tests/native/completed_run_ghost_trace_check.cpp"
       - "tests/unit/test_completed_run_ghost_cpp.py"
       - "tests/unit/test_completed_run_ghost_policy_cpp.py"
+      - "tests/unit/test_completed_run_ghost_world_sample_cpp.py"
+      - "tests/unit/test_completed_run_ghost_projection_cpp.py"
+      - "tests/unit/test_completed_run_ghost_frame_cpp.py"
+      - "tests/unit/test_completed_run_ghost_racer_selector_cpp.py"
+      - "tests/unit/test_completed_run_ghost_raster_cpp.py"
+      - "tests/unit/test_completed_run_ghost_trace_cpp.py"
       - ".github/workflows/completed-run-replay-acceptance.yml"
 
 concurrency:
@@ -48,7 +68,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
-          python3 -m unittest tests.unit.test_completed_run_record_cpp tests.unit.test_completed_run_record_process tests.unit.test_completed_run_capture_cpp tests.unit.test_completed_run_comparison_cpp tests.unit.test_completed_run_store_cpp tests.unit.test_completed_run_ghost_cpp tests.unit.test_completed_run_ghost_policy_cpp tests.unit.test_uniracers_course_identity_cpp tests.unit.test_uniracers_course_identity_corpus tests.unit.test_uniracers_run_data_cpp
+          python3 -m unittest tests.unit.test_completed_run_record_cpp tests.unit.test_completed_run_record_process tests.unit.test_completed_run_capture_cpp tests.unit.test_completed_run_comparison_cpp tests.unit.test_completed_run_store_cpp tests.unit.test_completed_run_ghost_cpp tests.unit.test_completed_run_ghost_policy_cpp tests.unit.test_completed_run_ghost_world_sample_cpp tests.unit.test_completed_run_ghost_projection_cpp tests.unit.test_completed_run_ghost_frame_cpp tests.unit.test_completed_run_ghost_racer_selector_cpp tests.unit.test_completed_run_ghost_raster_cpp tests.unit.test_completed_run_ghost_trace_cpp tests.unit.test_uniracers_course_identity_cpp tests.unit.test_uniracers_course_identity_corpus tests.unit.test_uniracers_run_data_cpp
 
       - name: Stage framework and SDL3
         shell: bash
@@ -94,8 +114,10 @@ jobs:
           cat "$LOG"
           test -s "$RECORD"
           test -s "$RECORD.input"
+          test -s "$RECORD.urghost"
           grep -q "UR_RUN_RECORD CAPTURED" "$LOG"
           grep -q "course=course:01" "$LOG"
+          grep -q "ghost_trace=1" "$LOG"
 
       - name: Re-drive captured run in a fresh process
         shell: bash
@@ -108,16 +130,31 @@ jobs:
           REPLAYED="$RUNNER_TEMP/replayed.urrun"
           LOG="$RUNNER_TEMP/replayed.log"
 
-          SDL_AUDIODRIVER=dummy           SNESRECOMP_INPUT_FILE="$ORIGINAL.input"           SNESRECOMP_INPUT_RELATIVE=1           UR_RUN_RECORD_CAPTURE_PATH="$REPLAYED"           UR_PRODUCT_DIAGNOSTICS=1             timeout 180s xvfb-run -a "$EXE" "$ROM"               --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script"               >"$LOG" 2>&1
+          SDL_AUDIODRIVER=dummy           SNESRECOMP_INPUT_FILE="$ORIGINAL.input"           SNESRECOMP_INPUT_RELATIVE=1           UR_RUN_RECORD_CAPTURE_PATH="$REPLAYED"           UR_RUN_GHOST_ACCEPTANCE_RECORD="$ORIGINAL"           UR_RUN_GHOST_ACCEPTANCE_TARGET=previous           UR_RUN_GHOST_DRAW_DIAGNOSTICS=1           UR_PRODUCT_DIAGNOSTICS=1             timeout 180s xvfb-run -a "$EXE" "$ROM"               --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script"               >"$LOG" 2>&1
 
           cat "$LOG"
           test -s "$REPLAYED"
+          test -s "$REPLAYED.urghost"
           grep -q "UR_RUN_RECORD CAPTURED" "$LOG"
+          grep -q "ghost_trace=1" "$LOG"
+          grep -q "UR_RUN_GHOST DRAWN" "$LOG"
           grep -q "script .* dump replay-race-results ok" "$LOG"
 
           g++ -std=c++17 -Wall -Wextra -Werror -pedantic             -I "$GITHUB_WORKSPACE/native/product"             "$GITHUB_WORKSPACE/native/product/completed_run_record.cpp"             "$GITHUB_WORKSPACE/tests/native/completed_run_replay_compare.cpp"             -o "$RUNNER_TEMP/compare-runs"
           "$RUNNER_TEMP/compare-runs" "$ORIGINAL" "$REPLAYED" | tee "$RUNNER_TEMP/compare.log"
           grep -q "UR_RUN_REPLAY_COMPARE PASS course=course:01" "$RUNNER_TEMP/compare.log"
+
+          g++ -std=c++17 -Wall -Wextra -Werror -pedantic \
+            -I "$GITHUB_WORKSPACE/native/product" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_record.cpp" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_ghost.cpp" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_ghost_trace.cpp" \
+            "$GITHUB_WORKSPACE/tests/native/completed_run_ghost_trace_check.cpp" \
+            -o "$RUNNER_TEMP/check-ghost-trace"
+          "$RUNNER_TEMP/check-ghost-trace" "$ORIGINAL" "$ORIGINAL.urghost" | tee "$RUNNER_TEMP/original-ghost-trace.log"
+          "$RUNNER_TEMP/check-ghost-trace" "$REPLAYED" "$REPLAYED.urghost" | tee "$RUNNER_TEMP/replayed-ghost-trace.log"
+          grep -q "UR_RUN_GHOST_TRACE_CHECK PASS course=course:01" "$RUNNER_TEMP/original-ghost-trace.log"
+          grep -q "UR_RUN_GHOST_TRACE_CHECK PASS course=course:01" "$RUNNER_TEMP/replayed-ghost-trace.log"
 
       - name: Upload replay evidence
         if: always()
@@ -127,9 +164,13 @@ jobs:
           path: |
             ${{ runner.temp }}/original.urrun
             ${{ runner.temp }}/original.urrun.input
+            ${{ runner.temp }}/original.urrun.urghost
             ${{ runner.temp }}/replayed.urrun
+            ${{ runner.temp }}/replayed.urrun.urghost
             ${{ runner.temp }}/original.log
             ${{ runner.temp }}/replayed.log
             ${{ runner.temp }}/compare.log
+            ${{ runner.temp }}/original-ghost-trace.log
+            ${{ runner.temp }}/replayed-ghost-trace.log
           if-no-files-found: warn
           retention-days: 7

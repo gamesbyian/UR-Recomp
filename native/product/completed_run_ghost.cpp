@@ -18,11 +18,11 @@ void CompletedRunGhostState::bind(
         }
 
         ++compatible_count_;
-        previous_ = stored.record;
+        previous_ = stored;
 
         if (!personal_best_ ||
             stored.record.elapsed_ticks60 <= best_ticks) {
-            personal_best_ = stored.record;
+            personal_best_ = stored;
             best_ticks = stored.record.elapsed_ticks60;
         }
     }
@@ -38,7 +38,7 @@ bool CompletedRunGhostState::has(CompletedRunGhostKind kind) const {
     return record(kind) != nullptr;
 }
 
-const CompletedRunRecord* CompletedRunGhostState::record(
+const StoredRunRecord* CompletedRunGhostState::stored(
     CompletedRunGhostKind kind) const {
     switch (kind) {
     case CompletedRunGhostKind::Previous:
@@ -47,6 +47,12 @@ const CompletedRunRecord* CompletedRunGhostState::record(
         return personal_best_ ? &*personal_best_ : nullptr;
     }
     return nullptr;
+}
+
+const CompletedRunRecord* CompletedRunGhostState::record(
+    CompletedRunGhostKind kind) const {
+    const StoredRunRecord* selected = stored(kind);
+    return selected ? &selected->record : nullptr;
 }
 
 std::pair<std::uint16_t, std::uint16_t> CompletedRunGhostState::input_at(

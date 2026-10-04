@@ -29,6 +29,7 @@ public:
     void clear();
 
     bool has(CompletedRunGhostKind kind) const;
+    const StoredRunRecord* stored(CompletedRunGhostKind kind) const;
     const CompletedRunRecord* record(CompletedRunGhostKind kind) const;
 
     std::pair<std::uint16_t, std::uint16_t> input_at(
@@ -38,8 +39,8 @@ public:
     std::size_t compatible_count() const { return compatible_count_; }
 
 private:
-    std::optional<CompletedRunRecord> previous_;
-    std::optional<CompletedRunRecord> personal_best_;
+    std::optional<StoredRunRecord> previous_;
+    std::optional<StoredRunRecord> personal_best_;
     std::size_t compatible_count_ = 0;
 };
 

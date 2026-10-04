@@ -107,6 +107,7 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         raise ValueError("generated CMake target anchor not found")
     target = match.group(1)
     product_dir = (product_root / "native" / "product").as_posix()
+    presentation_dir = (product_root / "native" / "presentation").as_posix()
     title_dir = (product_root / "native" / "title").as_posix()
     product_sources = [
         "output_resolution_policy.cpp",
@@ -120,8 +121,14 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         "completed_run_record.cpp",
         "completed_run_capture.cpp",
         "completed_run_comparison.cpp",
+        "completed_run_presentation.cpp",
         "completed_run_store.cpp",
         "completed_run_ghost.cpp",
+        "completed_run_ghost_policy.cpp",
+        "completed_run_ghost_world_sample.cpp",
+        "completed_run_ghost_projection.cpp",
+        "completed_run_ghost_frame.cpp",
+        "completed_run_ghost_trace.cpp",
         "session_control.cpp",
         "session_runtime_adapter.cpp",
         "race_restart_anchor.cpp",
@@ -142,9 +149,13 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         + "\n\n"
         + marker
         + "\n"
-        + f'target_include_directories({target} PRIVATE "{product_dir}" "{title_dir}")\n'
+        + f'target_include_directories({target} PRIVATE "{product_dir}" "{presentation_dir}" "{title_dir}")\n'
         + f"target_sources({target} PRIVATE\n"
         + source_lines
+        + "\n"
+        + f'    "{presentation_dir}/racer_replacement_selector.cpp"\n'
+        + f'    "{presentation_dir}/completed_run_ghost_racer_selector.cpp"\n'
+        + f'    "{presentation_dir}/completed_run_ghost_raster.cpp"'
         + "\n"
         + f'    "{title_dir}/uniracers_restart_policy.cpp"\n'
         + f'    "{title_dir}/uniracers_course_identity.cpp"\n'

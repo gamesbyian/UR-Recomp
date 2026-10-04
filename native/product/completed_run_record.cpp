@@ -175,6 +175,15 @@ std::string encode_completed_run_record(const CompletedRunRecord& record) {
     return body + "checksum " + checksum_hex(body) + "\n";
 }
 
+std::string completed_run_record_artifact_checksum(
+    const CompletedRunRecord& record) {
+    const std::string encoded = encode_completed_run_record(record);
+    if (encoded.empty()) return {};
+    const auto pos = encoded.rfind("checksum ");
+    if (pos == std::string::npos || pos + 25 > encoded.size()) return {};
+    return encoded.substr(pos + 9, 16);
+}
+
 std::string encode_completed_run_input_file(
     const CompletedRunRecord& record,
     std::uint64_t frame_offset) {

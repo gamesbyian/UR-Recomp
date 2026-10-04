@@ -41,7 +41,14 @@ def build_shipping_readiness(
         else:
             expected_sources.append(source)
             decision = by_source.get(source)
-            status = decision["status"] if decision is not None else "unreviewed"
+            if decision is None:
+                status = "unreviewed"
+            elif decision.get("reviewed_authored_rgba_sha256") != pose.get(
+                "authored_asset_rgba_sha256"
+            ):
+                status = "changed-since-review"
+            else:
+                status = decision["status"]
         poses.append({
             "pose_id": pose["pose_id"],
             "player": pose["player"],
@@ -52,6 +59,11 @@ def build_shipping_readiness(
             "authored_asset_conflict": pose.get("authored_asset_conflict", False),
             "review_status": status,
             "shipping_art_approved": status == "approved",
+            "authored_asset_rgba_sha256": pose.get("authored_asset_rgba_sha256"),
+            "reviewed_authored_rgba_sha256": (
+                decision.get("reviewed_authored_rgba_sha256")
+                if decision is not None else None
+            ),
             "blocker_codes": (
                 list(decision.get("blocker_codes", []))
                 if decision is not None else []
@@ -74,6 +86,9 @@ def build_shipping_readiness(
         ),
         "rejected": sum(p["review_status"] == "rejected" for p in poses),
         "unreviewed": sum(p["review_status"] == "unreviewed" for p in poses),
+        "changed_since_review": sum(
+            p["review_status"] == "changed-since-review" for p in poses
+        ),
         "unauthored": sum(p["review_status"] == "unauthored" for p in poses),
         "authored_conflicts": sum(p["authored_asset_conflict"] for p in poses),
     }
@@ -83,6 +98,7 @@ def build_shipping_readiness(
         and counts["needs_refinement"] == 0
         and counts["rejected"] == 0
         and counts["unreviewed"] == 0
+        and counts["changed_since_review"] == 0
         and counts["unauthored"] == 0
         and counts["authored_conflicts"] == 0
     )
@@ -97,9 +113,11 @@ def build_shipping_readiness(
         "shipping_ready": shipping_ready,
         "poses": poses,
         "rule": (
-            "Shipping-art approval is owned once per unique byte-identical visual pose. "
-            "Distinct semantic/runtime guards retain independent identity and inherit "
-            "the approved or blocked visual asset only through the pose-equivalence proof."
+            "Shipping-art approval is owned once per unique byte-identical visual pose "
+            "and is bound to the exact authored RGBA hash reviewed. Distinct semantic/"
+            "runtime guards retain independent identity and inherit the approved or "
+            "blocked visual asset only through the pose-equivalence proof. Any authored "
+            "byte change invalidates the previous review disposition for that pose."
         ),
     }
 

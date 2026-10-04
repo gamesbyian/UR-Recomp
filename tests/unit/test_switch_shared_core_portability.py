@@ -20,6 +20,8 @@ class SwitchSharedCorePortabilityTest(unittest.TestCase):
         portable = set(contract["portable_translation_units"])
         self.assertIn("native/product/uniracers_modern_host.cpp", excluded)
         self.assertNotIn("native/product/uniracers_modern_host.cpp", portable)
+        self.assertIn("native/title/uniracers_ws_margins.c", excluded)
+        self.assertNotIn("native/title/uniracers_ws_margins.c", portable)
 
     def test_direct_sdl_leak_is_rejected(self):
         contract = json.loads(CONTRACT.read_text())

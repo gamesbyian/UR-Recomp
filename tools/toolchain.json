@@ -484,7 +484,7 @@
       "group": "core",
       "url": "https://github.com/RetroPortingToolKit/snesrecomp.git",
       "revision": "cd5875cbdaf19f5e324272b1f8051d671fce9215",
-      "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive. UR-Recomp's permanent native build uses host SDL2, disables SDL3 source fetching, carries narrow project patches for exact neutral controller-stream replay and modern host integration, exposes the existing host-owned pause gate and live renderer VSync and desktop display-mode policy plus normalized active-monitor mode enumeration/application for modern product settings, adds an optional title-owned presentation-density callback for host-only HD composition, and exposes the framework's guest-frame APU timing lock needed by deterministic host-owned race restart. It also exposes a deferred full-session reboot seam that durably publishes SRAM and rebuilds the guest through title session_reset, snes_free + SnesInit, and RtlReadSram.",
+      "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive. UR-Recomp's permanent native build uses host SDL2, disables SDL3 source fetching, carries narrow project patches for exact neutral controller-stream replay and modern host integration, exposes the existing host-owned pause gate and live renderer VSync and desktop display-mode policy plus normalized active-monitor mode enumeration/application for modern product settings, adds an optional title-owned presentation-density callback for host-only HD composition, and exposes the framework's guest-frame APU timing lock needed by deterministic host-owned race restart. It also exposes a deferred full-session reboot seam that durably publishes SRAM and rebuilds the guest through title session_reset, snes_free + SnesInit, and RtlReadSram. It backports upstream 5ae0541 so a master-deadline LLE unwind raised inside a nested non-scheduler bridge frame propagates to the scheduler owner instead of being consumed in the gap frame, which silently skipped the bounced call (R-2026-10-04-UI-25).",
       "build": [
         [
           "cmake",
@@ -556,6 +556,10 @@
         {
           "path": "tools/patches/snesrecomp-console-reset-request.patch",
           "sha256": "c97157fefcbe4c33badce0d641742a1e24e3850b65515e439d7d4fbaaea8c617"
+        },
+        {
+          "path": "tools/patches/snesrecomp-nested-deadline-unwind.patch",
+          "sha256": "572a3e15456c38a8261069a9dbe17b3706e9776ad80294f8c5406291a517c515"
         }
       ]
     }

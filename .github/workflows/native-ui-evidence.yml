@@ -14,6 +14,7 @@ on:
       - "tools/toolchain-entries/_global.json"
       - "tools/patch_modern_product_host.py"
       - "tools/build_display_geometry_review.py"
+      - "tools/check_result_screen_time.py"
       - "analysis/display-geometry-candidates.json"
       - "native/product/**"
       - "native/title/uniracers_restart_policy.*"
@@ -733,6 +734,16 @@ jobs:
             --out-md "$RUNNER_TEMP/ui-atlas.md" \
             --strict
           cat "$RUNNER_TEMP/ui-atlas.md"
+
+      - name: Assert race-result finish time is printed
+        shell: bash
+        run: |
+          set -euo pipefail
+          # R-2026-10-04-UI-25: a nested LLE deadline unwind once dropped this row.
+          cd tools
+          python3 check_result_screen_time.py \
+            --dump-dir "$RUNNER_TEMP/ui-race-result-dumps" \
+            --checkpoint race-results
 
       - name: Build visual UI contact sheet
         shell: bash

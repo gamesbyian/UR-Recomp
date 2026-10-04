@@ -9,9 +9,12 @@ on:
       - "tools/build_racer_hd_asset_dossier.py"
       - "tools/build_racer_pose_equivalence.py"
       - "tools/build_racer_hd_review_packet.py"
+      - "tools/build_racer_hd_shipping_readiness.py"
+      - "analysis/data/racer-hd-art-approval.json"
       - "tests/unit/test_build_racer_hd_asset_dossier.py"
       - "tests/unit/test_build_racer_pose_equivalence.py"
       - "tests/unit/test_build_racer_hd_review_packet.py"
+      - "tests/unit/test_build_racer_hd_shipping_readiness.py"
       - "tests/unit/test_apply_native_racer_presentation_probe.py"
       - "tests/unit/test_summarize_racer_semantic_trace.py"
       - "tests/native/racer_hd_presenter_test.cpp"
@@ -158,19 +161,27 @@ jobs:
             --out "$RUNNER_TEMP/racer-hd-asset-dossier/pose-equivalence.json" \
             > "$RUNNER_TEMP/racer-hd-pose-equivalence.txt"
 
+          python3 tools/build_racer_hd_shipping_readiness.py \
+            "$RUNNER_TEMP/racer-hd-asset-dossier/pose-equivalence.json" \
+            --decisions analysis/data/racer-hd-art-approval.json \
+            --out "$RUNNER_TEMP/racer-hd-asset-dossier/shipping-readiness.json" \
+            > "$RUNNER_TEMP/racer-hd-shipping-readiness.txt"
+
           python3 tools/build_racer_hd_review_packet.py \
             "$RUNNER_TEMP/racer-hd-asset-dossier/manifest.json" \
             "$RUNNER_TEMP/racer-hd-asset-dossier/pose-equivalence.json" \
             --output-dir "$RUNNER_TEMP/racer-hd-asset-dossier/review" \
             --original-frame "$ORIGINAL_A_SHOT" \
             --hd-frame "$HD_SHOT" \
+            --readiness "$RUNNER_TEMP/racer-hd-asset-dossier/shipping-readiness.json" \
             > "$RUNNER_TEMP/racer-hd-review-packet.txt"
 
-          python3 - "$RUNNER_TEMP/racer-hd-asset-dossier/manifest.json" "$RUNNER_TEMP/racer-hd-asset-dossier/pose-equivalence.json" "$RUNNER_TEMP/racer-hd-asset-dossier/review/review-manifest.json" <<'PY'
+          python3 - "$RUNNER_TEMP/racer-hd-asset-dossier/manifest.json" "$RUNNER_TEMP/racer-hd-asset-dossier/pose-equivalence.json" "$RUNNER_TEMP/racer-hd-asset-dossier/review/review-manifest.json" "$RUNNER_TEMP/racer-hd-asset-dossier/shipping-readiness.json" <<'PY'
           import json, pathlib, sys
           dossier = json.loads(pathlib.Path(sys.argv[1]).read_text())
           equivalence = json.loads(pathlib.Path(sys.argv[2]).read_text())
           review_packet = json.loads(pathlib.Path(sys.argv[3]).read_text())
+          readiness = json.loads(pathlib.Path(sys.argv[4]).read_text())
           assert dossier["temporal_window"] == {
               "start": 1205,
               "end": 1220,
@@ -215,6 +226,20 @@ jobs:
           assert review_packet["unauthored_pose_count"] == 0
           assert review_packet["authored_conflict_count"] == 0
           assert len(review_packet["poses"]) == 10
+          assert readiness["unique_pose_count"] == 10
+          assert readiness["shipping_ready"] is False
+          assert readiness["counts"] == {
+              "approved": 0,
+              "needs_refinement": 10,
+              "rejected": 0,
+              "unreviewed": 0,
+              "unauthored": 0,
+              "authored_conflicts": 0,
+          }
+          assert review_packet["shipping_readiness"] == {
+              "shipping_ready": False,
+              "counts": readiness["counts"],
+          }
           assert review_packet["live_reference"]["original_dimensions"] == [256, 224]
           assert review_packet["live_reference"]["hd_dimensions"] == [1024, 896]
           review_root = pathlib.Path(sys.argv[3]).parent
@@ -769,5 +794,6 @@ jobs:
             ${{ runner.temp }}/racer-hd-asset-dossier.txt
             ${{ runner.temp }}/racer-hd-pose-equivalence.txt
             ${{ runner.temp }}/racer-hd-review-packet.txt
+            ${{ runner.temp }}/racer-hd-shipping-readiness.txt
           if-no-files-found: warn
           retention-days: 7

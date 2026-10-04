@@ -111,6 +111,7 @@ jobs:
 
           python3 "$GITHUB_WORKSPACE/tools/patch_modern_product_host.py" \
             "$ROOT/src/main.c" \
+            --game-rtl "$ROOT/src/game_rtl.c" \
             --cmake "$ROOT/CMakeLists.txt"
           grep -q "ur_uniracers_modern_after_run_frame" "$ROOT/src/main.c"
           grep -q "ur_uniracers_modern_system_key_down" "$ROOT/src/main.c"

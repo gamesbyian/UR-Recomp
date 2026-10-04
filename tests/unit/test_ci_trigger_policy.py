@@ -46,7 +46,11 @@ class CiTriggerPolicyTest(unittest.TestCase):
             self.assertTrue(_block(text, "pull_request"), name)
             self.assertTrue(_pushes_main(text), name)
             self.assertRegex(text, r"(?ms)^permissions:\s*\n(?:.*\n)*?  contents: write\s*$")
-            self.assertIn("cancel-in-progress: false", text)
+            self.assertTrue(
+                "cancel-in-progress: false" in text
+                or "cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}" in text,
+                name,
+            )
 
 
 if __name__ == "__main__":

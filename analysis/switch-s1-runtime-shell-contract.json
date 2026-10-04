@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "gate": "S1-runtime-shell",
+  "purpose": "Build a hardware-observable Switch host capability shell with no guest simulation dependency.",
+  "toolchain": {
+    "container": "devkitpro/devkita64:20260219"
+  },
+  "probe": {
+    "source": "platform/switch/s1_runtime_shell/source/main.c",
+    "output": "platform/switch/s1_runtime_shell/ur-recomp-switch-s1.nro",
+    "report_path": "ur-recomp-s1-capability-report.txt"
+  },
+  "capabilities": {
+    "lifecycle": {
+      "ci": "compile-only",
+      "hardware": [
+        "process enters applet loop",
+        "Plus/quit exits cleanly"
+      ]
+    },
+    "display": {
+      "ci": "SDL2 video symbols link",
+      "hardware": [
+        "1280x720 handheld target",
+        "1920x1080 console target",
+        "operation-mode transition observed"
+      ]
+    },
+    "input": {
+      "ci": "libnx PadState/style symbols link",
+      "hardware": [
+        "handheld",
+        "Pro Controller",
+        "paired/single Joy-Con as available"
+      ]
+    },
+    "audio": {
+      "ci": "SDL2 audio symbols link",
+      "hardware": [
+        "audio device opens at runtime"
+      ]
+    },
+    "storage": {
+      "ci": "stdio probe compiles",
+      "hardware": [
+        "write/read/delete round trip succeeds on SD-backed app working directory"
+      ]
+    },
+    "suspend_resume": {
+      "ci": "SDL app lifecycle events compile",
+      "hardware": [
+        "background event observed",
+        "foreground event observed after resume"
+      ]
+    }
+  },
+  "non_claims": [
+    "CI does not prove a display mode exists on hardware",
+    "CI does not prove controller attachment behavior",
+    "CI does not prove audio output",
+    "CI does not prove storage write permission",
+    "CI does not prove suspend/resume",
+    "No Uniracers guest simulation is linked"
+  ]
+}

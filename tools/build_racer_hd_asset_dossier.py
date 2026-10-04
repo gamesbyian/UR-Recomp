@@ -171,6 +171,98 @@ def authored_segment_contains(
     cross = dx * py - dy * px
     return cross * cross <= half_width * half_width * length2
 
+def authored_rim_hardware_rgba(
+    x: int,
+    y: int,
+    wheel_cx: int,
+    wheel_cy: int,
+) -> bytes:
+    dx = x - wheel_cx
+    dy = y - wheel_cy
+    directional = (wheel_cx - x) + (wheel_cy - y)
+    facet = (dx * 3 - dy * 2) & 0x0F
+    if directional > 24 and facet < 9:
+        return _rgba32(249, 248, 247)
+    if directional > -4:
+        return _rgba32(224, 221, 216)
+    return _rgba32(156, 150, 138)
+
+
+def authored_rubber_rgba(
+    x: int,
+    y: int,
+    wheel_cx: int,
+    wheel_cy: int,
+) -> bytes:
+    dx = x - wheel_cx
+    dy = y - wheel_cy
+    directional = -(dx + dy)
+    tread = ((x * 3 + y * 5) >> 3) & 0x03
+    if directional > 34 and tread != 0:
+        return _rgba32(78, 73, 64)
+    if tread == 1 and dy > 8:
+        return _rgba32(44, 40, 32)
+    return _rgba32(30, 27, 21)
+
+
+def authored_saddle_rgba(
+    x: int,
+    y: int,
+    seat_cx: int,
+    seat_cy: int,
+) -> bytes:
+    dx = x - seat_cx
+    dy = y - seat_cy
+    directional = -(dx + dy)
+    center_seam = dx >= -2 and dx <= 1 and dy >= -7 and dy <= 8
+    underside = dy >= 6
+    if center_seam:
+        return _rgba32(103, 97, 89)
+    if directional > 28 and not underside:
+        return _rgba32(82, 77, 69)
+    if underside:
+        return _rgba32(33, 30, 24)
+    return _rgba32(49, 45, 38)
+
+
+def authored_wheel_spokes(
+    x: int,
+    y: int,
+    wheel_cx: int,
+    wheel_cy: int,
+) -> bool:
+    return (
+        authored_segment_contains(
+            x, y, wheel_cx - 22, wheel_cy, wheel_cx + 22, wheel_cy, 2
+        )
+        or authored_segment_contains(
+            x, y, wheel_cx - 11, wheel_cy - 19,
+            wheel_cx + 11, wheel_cy + 19, 2
+        )
+        or authored_segment_contains(
+            x, y, wheel_cx + 11, wheel_cy - 19,
+            wheel_cx - 11, wheel_cy + 19, 2
+        )
+    )
+
+
+def authored_frame_brace(
+    x: int,
+    y: int,
+    crown_x: int,
+    crown_y: int,
+    wheel_cx: int,
+    wheel_cy: int,
+) -> bool:
+    return (
+        authored_segment_contains(
+            x, y, crown_x, crown_y, wheel_cx - 18, wheel_cy - 5, 3
+        )
+        or authored_segment_contains(
+            x, y, crown_x, crown_y, wheel_cx + 18, wheel_cy - 5, 3
+        )
+    )
+
 
 def authored_0541_p1_structural_detail(x: int, y: int) -> tuple[bool, bool]:
     """Return (colored frame brace, neutral wheel spokes) for the 1219/1220 pair."""
@@ -178,11 +270,7 @@ def authored_0541_p1_structural_detail(x: int, y: int) -> tuple[bool, bool]:
         authored_segment_contains(x, y, 132, 60, 100, 116, 3)
         or authored_segment_contains(x, y, 132, 60, 150, 116, 3)
     )
-    wheel_spokes = (
-        authored_segment_contains(x, y, 101, 122, 145, 122, 2)
-        or authored_segment_contains(x, y, 112, 103, 134, 141, 2)
-        or authored_segment_contains(x, y, 134, 103, 112, 141, 2)
-    )
+    wheel_spokes = authored_wheel_spokes(x, y, 123, 122)
     return frame_brace, wheel_spokes
 
 
@@ -199,17 +287,7 @@ def authored_p2_structural_detail(
     frame_brace = authored_segment_contains(
         x, y, crown_x, 60, wheel_cx + 20, 116, 3
     )
-    wheel_spokes = (
-        authored_segment_contains(
-            x, y, wheel_cx - 22, 120, wheel_cx + 22, 120, 2
-        )
-        or authored_segment_contains(
-            x, y, wheel_cx - 11, 101, wheel_cx + 11, 139, 2
-        )
-        or authored_segment_contains(
-            x, y, wheel_cx + 11, 101, wheel_cx - 11, 139, 2
-        )
-    )
+    wheel_spokes = authored_wheel_spokes(x, y, wheel_cx, 120)
     return frame_brace, wheel_spokes
 
 
@@ -247,15 +325,13 @@ def sample_authored_0541_p1_rgba(x: int, y: int) -> bytes:
     frame_brace, wheel_spokes = authored_0541_p1_structural_detail(x, y)
 
     if hub or rim or crank or pedal or wheel_spokes:
-        return authored_metal_rgba(x, y)
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
-        seat_light = (255 - x) + (255 - y)
-        return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
+        return authored_saddle_rgba(x, y, 128, 22)
     if fork or frame_brace or neck or crown:
         return authored_red_frame_rgba(x, y)
     if tire:
-        tire_light = (255 - x) + (255 - y)
-        return _rgba32(64, 60, 53) if tire_light > 310 else _rgba32(32, 29, 23)
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
     return b"\x00\x00\x00\x00"
 
 
@@ -302,15 +378,13 @@ def sample_authored_0541_p1_companion_0d2d_rgba(x: int, y: int) -> bytes:
     frame_brace, wheel_spokes = authored_0541_p1_structural_detail(x, y)
 
     if hub or rim or crank or pedal or wheel_spokes:
-        return authored_metal_rgba(x, y)
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
-        seat_light = (255 - x) + (255 - y)
-        return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
+        return authored_saddle_rgba(x, y, 130, 23)
     if fork or frame_brace or neck or crown:
         return authored_red_frame_rgba(x, y)
     if tire:
-        tire_light = (255 - x) + (255 - y)
-        return _rgba32(64, 60, 53) if tire_light > 310 else _rgba32(32, 29, 23)
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
     return b"\x00\x00\x00\x00"
 
 
@@ -354,17 +428,17 @@ def sample_authored_0540_p1_predecessor_rgba(x: int, y: int) -> bytes:
     crown_dx = x - 134
     crown_dy = y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+    frame_brace = authored_frame_brace(x, y, 134, 60, wheel_cx, wheel_cy)
+    wheel_spokes = authored_wheel_spokes(x, y, wheel_cx, wheel_cy)
 
-    if hub or rim or crank or pedal:
-        return authored_metal_rgba(x, y)
+    if hub or rim or crank or pedal or wheel_spokes:
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
-        seat_light = (255 - x) + (255 - y)
-        return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
-    if fork or neck or crown:
+        return authored_saddle_rgba(x, y, 130, 22)
+    if fork or frame_brace or neck or crown:
         return authored_red_frame_rgba(x, y)
     if tire:
-        tire_light = (255 - x) + (255 - y)
-        return _rgba32(64, 60, 53) if tire_light > 310 else _rgba32(32, 29, 23)
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
     return b"\x00\x00\x00\x00"
 
 
@@ -411,17 +485,17 @@ def sample_authored_057f_p1_companion_0d4a_rgba(x: int, y: int) -> bytes:
     crown_dx = x - 136
     crown_dy = y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+    frame_brace = authored_frame_brace(x, y, 136, 60, wheel_cx, wheel_cy)
+    wheel_spokes = authored_wheel_spokes(x, y, wheel_cx, wheel_cy)
 
-    if hub or rim or crank or pedal:
-        return authored_metal_rgba(x, y)
+    if hub or rim or crank or pedal or wheel_spokes:
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
-        seat_light = (255 - x) + (255 - y)
-        return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
-    if fork or neck or crown:
+        return authored_saddle_rgba(x, y, 120, 22)
+    if fork or frame_brace or neck or crown:
         return authored_red_frame_rgba(x, y)
     if tire:
-        tire_light = (255 - x) + (255 - y)
-        return _rgba32(64, 60, 53) if tire_light > 310 else _rgba32(32, 29, 23)
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
     return b"\x00\x00\x00\x00"
 
 
@@ -468,17 +542,17 @@ def sample_authored_057e_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     crown_dx = x - 140
     crown_dy = y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+    frame_brace = authored_frame_brace(x, y, 140, 60, wheel_cx, wheel_cy)
+    wheel_spokes = authored_wheel_spokes(x, y, wheel_cx, wheel_cy)
 
-    if hub or rim or crank or pedal:
-        return authored_metal_rgba(x, y)
+    if hub or rim or crank or pedal or wheel_spokes:
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
-        seat_light = (255 - x) + (255 - y)
-        return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
-    if fork or neck or crown:
+        return authored_saddle_rgba(x, y, 116, 22)
+    if fork or frame_brace or neck or crown:
         return authored_red_frame_rgba(x, y)
     if tire:
-        tire_light = (255 - x) + (255 - y)
-        return _rgba32(64, 60, 53) if tire_light > 310 else _rgba32(32, 29, 23)
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
     return b"\x00\x00\x00\x00"
 
 
@@ -525,17 +599,17 @@ def sample_authored_057d_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     crown_dx = x - 144
     crown_dy = y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+    frame_brace = authored_frame_brace(x, y, 144, 60, wheel_cx, wheel_cy)
+    wheel_spokes = authored_wheel_spokes(x, y, wheel_cx, wheel_cy)
 
-    if hub or rim or crank or pedal:
-        return authored_metal_rgba(x, y)
+    if hub or rim or crank or pedal or wheel_spokes:
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
-        seat_light = (255 - x) + (255 - y)
-        return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
-    if fork or neck or crown:
+        return authored_saddle_rgba(x, y, 112, 26)
+    if fork or frame_brace or neck or crown:
         return authored_red_frame_rgba(x, y)
     if tire:
-        tire_light = (255 - x) + (255 - y)
-        return _rgba32(64, 60, 53) if tire_light > 310 else _rgba32(32, 29, 23)
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
     return b"\x00\x00\x00\x00"
 
 
@@ -579,17 +653,17 @@ def sample_authored_0540_p2_baseline_rgba(x: int, y: int) -> bytes:
     crown_dx = x - 134
     crown_dy = y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+    frame_brace = authored_frame_brace(x, y, 134, 60, wheel_cx, wheel_cy)
+    wheel_spokes = authored_wheel_spokes(x, y, wheel_cx, wheel_cy)
 
-    if hub or rim or crank or pedal:
-        return authored_metal_rgba(x, y)
+    if hub or rim or crank or pedal or wheel_spokes:
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
-        seat_light = (255 - x) + (255 - y)
-        return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
-    if fork or neck or crown:
+        return authored_saddle_rgba(x, y, 130, 22)
+    if fork or frame_brace or neck or crown:
         return authored_blue_frame_rgba(x, y)
     if tire:
-        tire_light = (255 - x) + (255 - y)
-        return _rgba32(64, 60, 53) if tire_light > 310 else _rgba32(32, 29, 23)
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
     return b"\x00\x00\x00\x00"
 
 
@@ -627,16 +701,16 @@ def sample_authored_0541_p2_predecessor_rgba(x: int, y: int) -> bytes:
     neck = y >= 30 and y <= 60 and x >= 120 and x <= 128
     crown_dx, crown_dy = x - 130, y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
-    if hub or rim or crank or pedal:
-        return authored_metal_rgba(x, y)
+    frame_brace = authored_frame_brace(x, y, 130, 60, wheel_cx, wheel_cy)
+    wheel_spokes = authored_wheel_spokes(x, y, wheel_cx, wheel_cy)
+    if hub or rim or crank or pedal or wheel_spokes:
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
-        seat_light = (255 - x) + (255 - y)
-        return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
-    if fork or neck or crown:
+        return authored_saddle_rgba(x, y, 130, 26)
+    if fork or frame_brace or neck or crown:
         return authored_blue_frame_rgba(x, y)
     if tire:
-        tire_light = (255 - x) + (255 - y)
-        return _rgba32(64, 60, 53) if tire_light > 310 else _rgba32(32, 29, 23)
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
     return b"\x00\x00\x00\x00"
 
 
@@ -681,15 +755,13 @@ def sample_authored_0542_p2_rgba(x: int, y: int) -> bytes:
     )
 
     if hub or rim or crank or pedal or wheel_spokes:
-        return authored_metal_rgba(x, y)
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
-        seat_light = (255 - x) + (255 - y)
-        return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
+        return authored_saddle_rgba(x, y, 130, 26)
     if fork or frame_brace or neck or crown:
         return authored_blue_frame_rgba(x, y)
     if tire:
-        tire_light = (255 - x) + (255 - y)
-        return _rgba32(64, 60, 53) if tire_light > 310 else _rgba32(32, 29, 23)
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
     return b"\x00\x00\x00\x00"
 
 
@@ -734,15 +806,13 @@ def sample_authored_0543_p2_rgba(x: int, y: int) -> bytes:
     )
 
     if hub or rim or crank or pedal or wheel_spokes:
-        return authored_metal_rgba(x, y)
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
-        seat_light = (255 - x) + (255 - y)
-        return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
+        return authored_saddle_rgba(x, y, 130, 30)
     if fork or frame_brace or neck or crown:
         return authored_blue_frame_rgba(x, y)
     if tire:
-        tire_light = (255 - x) + (255 - y)
-        return _rgba32(64, 60, 53) if tire_light > 310 else _rgba32(32, 29, 23)
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
     return b"\x00\x00\x00\x00"
 
 

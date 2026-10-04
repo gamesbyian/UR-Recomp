@@ -68,3 +68,14 @@
 +int snesrecomp_desktop_request_session_reboot(void);
 +
  /* Ask the host to reset its pacing clock at the next opportunity (a title
+--- a/runner/src/common_rtl.c
++++ b/runner/src/common_rtl.c
+@@ -469,7 +469,7 @@ void RtlReset(int mode) {
+   g_audio_recovery_anchor_r = 0;
+   g_audio_last_output_l = 0;
+   g_audio_last_output_r = 0;
+-  g_spc_player->initialize(g_spc_player);
++  if (g_spc_player) g_spc_player->initialize(g_spc_player);
+   RtlApuUnlock();
+   /* After the hardware, so the title reboots against the reset machine. */
+   if (g_rtl_game_info && g_rtl_game_info->hardware_reset)

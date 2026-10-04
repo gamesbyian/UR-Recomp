@@ -230,10 +230,10 @@ jobs:
           assert readiness["shipping_ready"] is False
           assert readiness["counts"] == {
               "approved": 0,
-              "needs_refinement": 8,
+              "needs_refinement": 6,
               "rejected": 0,
               "unreviewed": 0,
-              "changed_since_review": 2,
+              "changed_since_review": 4,
               "unauthored": 0,
               "authored_conflicts": 0,
           }
@@ -397,7 +397,7 @@ jobs:
           ]
           p2_0542_candidate = p2_0542["art_review"]["authored_candidate"]
           assert p2_0542_candidate["approval_status"] == (
-              "motion-reviewed shared P2 0542 pose; not approved shipping art"
+              "true-density refinement pass 1: lower-right brace/spoke detail; still needs shipping-art refinement"
           )
           p2_0542_review = p2_0542_candidate["gameplay_scale_review"]
           assert p2_0542["observed_frames_in_window"] == [1217]
@@ -405,17 +405,17 @@ jobs:
           assert p2_0542_review["candidate_alpha_bounds"] == [21, 4, 40, 38]
           assert p2_0542_review["candidate_contact_x2_y2"] == [59, 76]
           assert p2_0542_review["stock_opaque_pixels"] == 325
-          assert p2_0542_review["candidate_opaque_pixels"] == 313
-          assert p2_0542_review["alpha_intersection_pixels"] == 254
-          assert p2_0542_review["alpha_union_pixels"] == 384
-          assert abs(p2_0542_review["alpha_iou"] - 0.6614583333333334) < 1e-12
+          assert p2_0542_review["candidate_opaque_pixels"] == 343
+          assert p2_0542_review["alpha_intersection_pixels"] == 276
+          assert p2_0542_review["alpha_union_pixels"] == 392
+          assert abs(p2_0542_review["alpha_iou"] - 0.7040816326530612) < 1e-12
 
           p2_0542_reuse = authored_by_id[
               "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference"
           ]
           p2_0542_reuse_candidate = p2_0542_reuse["art_review"]["authored_candidate"]
           assert p2_0542_reuse_candidate["approval_status"] == (
-              "accepted context-safe reuse of motion-reviewed P2 0542 pose; not approved shipping art"
+              "context-safe reuse of refined P2 0542 asset; still needs shipping-art refinement"
           )
           assert p2_0542_reuse_candidate["reuse_source_representation_id"] == (
               "ordinary-racer-0x0542-p2-with-p1-companion-0D2C-reference"
@@ -431,7 +431,7 @@ jobs:
           ]
           p2_0543_candidate = p2_0543["art_review"]["authored_candidate"]
           assert p2_0543_candidate["approval_status"] == (
-              "motion-reviewed shared P2 0543 pose; not approved shipping art"
+              "true-density refinement pass 1: lower-right brace/spoke detail; still needs shipping-art refinement"
           )
           p2_0543_review = p2_0543_candidate["gameplay_scale_review"]
           assert p2_0543["observed_frames_in_window"] == [1207, 1208, 1209, 1210, 1211, 1212]
@@ -439,17 +439,17 @@ jobs:
           assert p2_0543_review["candidate_alpha_bounds"] == [20, 4, 40, 38]
           assert p2_0543_review["candidate_contact_x2_y2"] == [57, 76]
           assert p2_0543_review["stock_opaque_pixels"] == 319
-          assert p2_0543_review["candidate_opaque_pixels"] == 311
-          assert p2_0543_review["alpha_intersection_pixels"] == 242
-          assert p2_0543_review["alpha_union_pixels"] == 388
-          assert abs(p2_0543_review["alpha_iou"] - 0.6237113402061856) < 1e-12
+          assert p2_0543_review["candidate_opaque_pixels"] == 340
+          assert p2_0543_review["alpha_intersection_pixels"] == 263
+          assert p2_0543_review["alpha_union_pixels"] == 396
+          assert abs(p2_0543_review["alpha_iou"] - 0.6641414141414141) < 1e-12
 
           p2_0543_reuse = authored_by_id[
               "ordinary-racer-0x0543-p2-with-p1-057E-reference"
           ]
           p2_0543_reuse_candidate = p2_0543_reuse["art_review"]["authored_candidate"]
           assert p2_0543_reuse_candidate["approval_status"] == (
-              "accepted context-safe reuse of motion-reviewed P2 0543 pose; not approved shipping art"
+              "context-safe reuse of refined P2 0543 asset; still needs shipping-art refinement"
           )
           assert p2_0543_reuse_candidate["reuse_source_representation_id"] == (
               "ordinary-racer-0x0543-p2-adjacent-reference"

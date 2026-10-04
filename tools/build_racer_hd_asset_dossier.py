@@ -186,6 +186,33 @@ def authored_0541_p1_structural_detail(x: int, y: int) -> tuple[bool, bool]:
     return frame_brace, wheel_spokes
 
 
+def authored_p2_structural_detail(
+    x: int,
+    y: int,
+    wheel_cx: int,
+    crown_x: int,
+) -> tuple[bool, bool]:
+    """Return evidence-guided P2 brace/spokes for the 0542/0543 batch."""
+    # The retained mismatch maps put the strongest missing frame support on the
+    # lower-right run from crown toward the wheel/crank region. Add that brace
+    # once, then a restrained three-axis spoke set through the existing hub.
+    frame_brace = authored_segment_contains(
+        x, y, crown_x, 60, wheel_cx + 20, 116, 3
+    )
+    wheel_spokes = (
+        authored_segment_contains(
+            x, y, wheel_cx - 22, 120, wheel_cx + 22, 120, 2
+        )
+        or authored_segment_contains(
+            x, y, wheel_cx - 11, 101, wheel_cx + 11, 139, 2
+        )
+        or authored_segment_contains(
+            x, y, wheel_cx + 11, 101, wheel_cx - 11, 139, 2
+        )
+    )
+    return frame_brace, wheel_spokes
+
+
 def sample_authored_0541_p1_rgba(x: int, y: int) -> bytes:
     """Mirror the first native authored Remastered candidate exactly."""
     if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
@@ -632,13 +659,16 @@ def sample_authored_0542_p2_rgba(x: int, y: int) -> bytes:
     neck = y >= 30 and y <= 60 and x >= 116 and x <= 124
     crown_dx, crown_dy = x - 126, y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+    frame_brace, wheel_spokes = authored_p2_structural_detail(
+        x, y, 120, 126
+    )
 
-    if hub or rim or crank or pedal:
+    if hub or rim or crank or pedal or wheel_spokes:
         return authored_metal_rgba(x, y)
     if seat:
         seat_light = (255 - x) + (255 - y)
         return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
-    if fork or neck or crown:
+    if fork or frame_brace or neck or crown:
         return authored_blue_frame_rgba(x, y)
     if tire:
         tire_light = (255 - x) + (255 - y)
@@ -682,13 +712,16 @@ def sample_authored_0543_p2_rgba(x: int, y: int) -> bytes:
     neck = y >= 30 and y <= 60 and x >= 114 and x <= 122
     crown_dx, crown_dy = x - 124, y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+    frame_brace, wheel_spokes = authored_p2_structural_detail(
+        x, y, 116, 124
+    )
 
-    if hub or rim or crank or pedal:
+    if hub or rim or crank or pedal or wheel_spokes:
         return authored_metal_rgba(x, y)
     if seat:
         seat_light = (255 - x) + (255 - y)
         return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
-    if fork or neck or crown:
+    if fork or frame_brace or neck or crown:
         return authored_blue_frame_rgba(x, y)
     if tire:
         tire_light = (255 - x) + (255 - y)

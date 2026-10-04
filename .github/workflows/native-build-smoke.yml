@@ -275,7 +275,25 @@ jobs:
           grep -q "UR_PROFILE_SRAM LOADED root=$BETA_ROOT .* size=8192" \
             "$RUNNER_TEMP/profile-root-beta.log"
 
-          echo "UR_PROFILE_SAVE_ROOT_RESULT=alpha_restart_byte_stable_beta_content_isolated_authentic_default"
+          DEFAULT_STATE="$RUNNER_TEMP/profile-default-host-state.txt"
+          DEFAULT_LOG="$RUNNER_TEMP/profile-root-default.log"
+          cat >"$DEFAULT_STATE" <<'EOF'
+          UR-HOST-STATE/6
+          profile=default.gamma
+          pause_on_focus_loss=1
+          vibration_enabled=1
+          EOF
+          rm -rf "$(dirname "$EXE")/saves/profile-default.gamma"
+          SDL_AUDIODRIVER=dummy \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_HOST_STATE_PATH="$DEFAULT_STATE" \
+          SNESRECOMP_RUN_FRAMES=1 \
+          timeout 12s xvfb-run -a "$EXE" "$ROM" >"$DEFAULT_LOG" 2>&1
+          grep -Fq "UR_PROFILE_SAVE_ROOT APPLIED profile=default.gamma root=saves/profile-default.gamma" \
+            "$DEFAULT_LOG"
+          test -d "$(dirname "$EXE")/saves/profile-default.gamma"
+
+          echo "UR_PROFILE_SAVE_ROOT_RESULT=alpha_restart_byte_stable_beta_content_isolated_authentic_default_default_root_creatable"
 
       - name: Modern unfinished-tour resume acceptance
         shell: bash

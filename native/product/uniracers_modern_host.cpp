@@ -952,6 +952,13 @@ void complete_run_record_capture() {
     std::fflush(stderr);
 }
 
+void rearm_run_capture_after_retry() {
+    if (!g_run_capture.capturing()) return;
+    g_run_capture.abort_attempt();
+    g_run_capture_previous_active = false;
+    product_diagnostic("UR_RUN_RECORD RETRY_REARMED");
+}
+
 void close_host_subview() {
     if (g_options_visible) {
         g_options_visible = false;
@@ -1132,6 +1139,11 @@ bool activate_pause_selection() {
         g_quit_confirm_visible = true;
         product_diagnostic("UR_PAUSE_QUIT CONFIRM_OPENED");
         return true;
+    }
+    if (selected == UR_MODERN_PAUSE_RESTART) {
+        const bool handled = dispatch(UR_MODERN_PAUSE_ACTIVATE);
+        if (handled) rearm_run_capture_after_retry();
+        return handled;
     }
     return dispatch(UR_MODERN_PAUSE_ACTIVATE);
 }
@@ -1330,7 +1342,9 @@ extern "C" int ur_uniracers_modern_system_key_down(
     if (key == SDLK_r && (mod & KMOD_CTRL) &&
         restart_surface() &&
         ur_modern_session_restart_available(g_session)) {
-        return dispatch(UR_MODERN_PAUSE_RESTART_HOTKEY) ? 1 : 0;
+        const bool handled = dispatch(UR_MODERN_PAUSE_RESTART_HOTKEY);
+        if (handled) rearm_run_capture_after_retry();
+        return handled ? 1 : 0;
     }
     return 0;
 }

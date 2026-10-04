@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - ".github/workflows/historical-wip-dragster.yml"
       - "reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv"
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "tools/extract_smv_input.py"

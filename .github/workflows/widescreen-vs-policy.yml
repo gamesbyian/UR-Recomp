@@ -25,7 +25,7 @@ concurrency:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -62,9 +62,10 @@ jobs:
             --out-dir src/gen --funcs-h recomp/funcs.h --cfg-roots
           python3 tools/patch_widescreen_probe_host.py "$PROJECT/src/main.c"
           python3 tools/apply_native_widescreen_hook.py "$PROJECT/src/gen"
+          python3 "$GITHUB_WORKSPACE/tools/bootstrap_toolchain.py" --offline --tool sdl3 --clone-only
           cmake -S "$PROJECT" -B "$PROJECT/build" -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ROOT="$FRAMEWORK" \
-            -DSNESRECOMP_SDL_BACKEND=SDL2 -DSNESRECOMP_SDL3_FETCH=OFF
+            -DSNESRECOMP_SDL_BACKEND=SDL3 -DSNESRECOMP_SDL3_FETCH=ON -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
           cmake --build "$PROJECT/build" -j2
           test -x "$PROJECT/build/UniracersSNESRecomp"
 

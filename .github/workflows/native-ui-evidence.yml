@@ -51,7 +51,7 @@ jobs:
   capture:
     name: capture-${{ matrix.shard }}
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 17
     strategy:
       fail-fast: false
       matrix:
@@ -119,11 +119,12 @@ jobs:
           grep -q "ur_uniracers_modern_system_overlay" "$ROOT/src/main.c"
           grep -q "uniracers_modern_host.cpp" "$ROOT/CMakeLists.txt"
 
+          python3 "$GITHUB_WORKSPACE/tools/bootstrap_toolchain.py" --offline --tool sdl3 --clone-only
           cmake -S "$ROOT" -B "$ROOT/build" \
             -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_ROOT="$FRAMEWORK" \
-            -DSNESRECOMP_SDL_BACKEND=SDL2 \
-            -DSNESRECOMP_SDL3_FETCH=OFF
+            -DSNESRECOMP_SDL_BACKEND=SDL3 \
+            -DSNESRECOMP_SDL3_FETCH=ON -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
           cmake --build "$ROOT/build" -j2
           test -x "$ROOT/build/UniracersSNESRecomp"
 
@@ -688,7 +689,7 @@ jobs:
     if: always()
     needs: capture
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 13
     steps:
       - name: Check out project
         uses: actions/checkout@v4

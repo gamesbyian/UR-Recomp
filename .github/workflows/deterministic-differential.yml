@@ -20,7 +20,7 @@ concurrency:
 jobs:
   compare:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 50
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -58,8 +58,11 @@ jobs:
             --no-netplay \
             --no-github \
             --generate \
-            --build \
+            --no-build \
             --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+          python3 "$GITHUB_WORKSPACE/tools/bootstrap_toolchain.py" --offline --tool sdl3 --clone-only
+          cmake -S "$ROOT/UniracersSNESRecomp" -B "$ROOT/UniracersSNESRecomp/build" -DSNESRECOMP_SDL_BACKEND=SDL3 -DSNESRECOMP_SDL3_FETCH=ON -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$ROOT/UniracersSNESRecomp/build" -j2
           test -x "$ROOT/UniracersSNESRecomp/build/UniracersSNESRecomp"
 
       - name: Build pinned Snes9x and snesref

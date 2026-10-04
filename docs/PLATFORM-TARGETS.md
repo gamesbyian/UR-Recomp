@@ -85,7 +85,8 @@ This follows the pinned SNESRecomp framework, whose `runner.cmake` already defau
 Implementation rules:
 - **SDL source:** SDL3 comes from the repository-owned, hash-pinned SDL 3.4.10 source archive (`third_party/archives/SDL3-3.4.10.tar.gz`). It is byte-identical to the framework pin. Stage it with `python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only` and pass `-DSNESRECOMP_SDL_BACKEND=SDL3 -DSNESRECOMP_SDL3_FETCH=ON -DSNESRECOMP_SDL3_SOURCE_DIR=<repo>/.tools/src/sdl3/SDL3-3.4.10`. With a local source dir supplied, the build makes no network fetch; the network audit's `sdl3-repo-source` lane traces this.
 - **Version differences:** SDL2/SDL3 API differences stay inside framework/host shims (`desktop/sdl_compat.h` and the dual-path host patches). Product code (`native/product/`) speaks normalized host contracts, not SDL version-specific types.
-- **Fallback coverage:** the SDL2 fallback keeps compile coverage through the network audit's `sdl2-system` lane. Existing SDL2-based evidence workflows migrate opportunistically, when they are next touched.
+- **Workflow coverage:** every workflow that builds the native game uses SDL3 from the repository source; this was migrated on 2026-10-04. Builds that previously went through `setup_project.sh --build` (framework defaults, i.e. a network SDL3 fetch) now configure explicitly. The SDL2 fallback keeps compile coverage through the network audit's `sdl2-system` lane.
+- **snesref exception:** `libsdl2-dev` remains installed where workflows build `snesref`. That reference-emulator harness is a separate framework tool whose CMake requires SDL2; it is not the desktop host.
 - **Equivalence evidence (2026-10-04):** guest state is backend-independent. On the race-result route, the SDL3 and SDL2 builds produce byte-identical WRAM, VRAM, CGRAM and SRAM. The SDL3 build matches snesref at all 36 text-parity checkpoints.
 
 ## Reference platform policy

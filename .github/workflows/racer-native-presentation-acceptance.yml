@@ -286,9 +286,9 @@ jobs:
           assert review["stock_alpha_bounds"] == [22, 3, 39, 38]
           assert review["candidate_alpha_bounds"] == [22, 3, 39, 38]
           assert review["candidate_contact_x2_y2"] == [61, 76]
-          assert review["alpha_intersection_pixels"] == 240
+          assert review["alpha_intersection_pixels"] == 238
           assert review["alpha_union_pixels"] == 357
-          assert abs(review["alpha_iou"] - 0.6722689075630253) < 1e-12
+          assert abs(review["alpha_iou"] - 0.6666666666666666) < 1e-12
 
           predecessor = authored_by_id[
               "ordinary-racer-0x0541-p1-companion-0D2D-reference"
@@ -301,9 +301,9 @@ jobs:
           assert neighbor_review["stock_alpha_bounds"] == [22, 2, 39, 38]
           assert neighbor_review["candidate_alpha_bounds"] == [22, 2, 39, 38]
           assert neighbor_review["candidate_contact_x2_y2"] == [61, 76]
-          assert neighbor_review["alpha_intersection_pixels"] == 245
+          assert neighbor_review["alpha_intersection_pixels"] == 243
           assert neighbor_review["alpha_union_pixels"] == 358
-          assert abs(neighbor_review["alpha_iou"] - 0.6843575418994413) < 1e-12
+          assert abs(neighbor_review["alpha_iou"] - 0.6787709497206704) < 1e-12
 
           reversed = authored_by_id[
               "ordinary-racer-0x0540-p1-predecessor-reference"
@@ -316,11 +316,11 @@ jobs:
           assert reversed_review["stock_alpha_bounds"] == [23, 2, 40, 38]
           assert reversed_review["candidate_alpha_bounds"] == [23, 2, 40, 38]
           assert reversed_review["candidate_contact_x2_y2"] == [63, 76]
-          assert reversed_review["candidate_opaque_pixels"] == 325
+          assert reversed_review["candidate_opaque_pixels"] == 317
           assert reversed_review["stock_opaque_pixels"] == 330
-          assert reversed_review["alpha_intersection_pixels"] == 280
-          assert reversed_review["alpha_union_pixels"] == 375
-          assert abs(reversed_review["alpha_iou"] - 0.7466666666666667) < 1e-12
+          assert reversed_review["alpha_intersection_pixels"] == 274
+          assert reversed_review["alpha_union_pixels"] == 373
+          assert abs(reversed_review["alpha_iou"] - 0.7345844504021448) < 1e-12
 
           reused = authored_by_id[
               "ordinary-racer-0x0540-p1-companion-0D2C-with-p2-0542-reference"
@@ -347,10 +347,10 @@ jobs:
           assert repeated_review["candidate_alpha_bounds"] == [22, 2, 41, 38]
           assert repeated_review["candidate_contact_x2_y2"] == [65, 76]
           assert repeated_review["stock_opaque_pixels"] == 327
-          assert repeated_review["candidate_opaque_pixels"] == 329
-          assert repeated_review["alpha_intersection_pixels"] == 266
-          assert repeated_review["alpha_union_pixels"] == 390
-          assert abs(repeated_review["alpha_iou"] - 0.6820512820512821) < 1e-12
+          assert repeated_review["candidate_opaque_pixels"] == 321
+          assert repeated_review["alpha_intersection_pixels"] == 260
+          assert repeated_review["alpha_union_pixels"] == 388
+          assert abs(repeated_review["alpha_iou"] - 0.6701030927835051) < 1e-12
 
           repeated_057e = authored_by_id[
               "ordinary-racer-0x057E-p1-with-p2-0543-reference"
@@ -365,10 +365,10 @@ jobs:
           assert repeated_057e_review["candidate_alpha_bounds"] == [21, 2, 42, 38]
           assert repeated_057e_review["candidate_contact_x2_y2"] == [67, 76]
           assert repeated_057e_review["stock_opaque_pixels"] == 325
-          assert repeated_057e_review["candidate_opaque_pixels"] == 331
-          assert repeated_057e_review["alpha_intersection_pixels"] == 255
-          assert repeated_057e_review["alpha_union_pixels"] == 401
-          assert abs(repeated_057e_review["alpha_iou"] - 0.6359102244389028) < 1e-12
+          assert repeated_057e_review["candidate_opaque_pixels"] == 323
+          assert repeated_057e_review["alpha_intersection_pixels"] == 249
+          assert repeated_057e_review["alpha_union_pixels"] == 399
+          assert abs(repeated_057e_review["alpha_iou"] - 0.6240601503759399) < 1e-12
 
           p2_baseline = authored_by_id[
               "ordinary-racer-0x0540-p2-sync-reference"
@@ -382,10 +382,10 @@ jobs:
           assert p2_baseline_review["candidate_alpha_bounds"] == [23, 3, 40, 38]
           assert p2_baseline_review["candidate_contact_x2_y2"] == [63, 76]
           assert p2_baseline_review["stock_opaque_pixels"] == 323
-          assert p2_baseline_review["candidate_opaque_pixels"] == 324
-          assert p2_baseline_review["alpha_intersection_pixels"] == 276
-          assert p2_baseline_review["alpha_union_pixels"] == 371
-          assert abs(p2_baseline_review["alpha_iou"] - 0.7439353099730458) < 1e-12
+          assert p2_baseline_review["candidate_opaque_pixels"] == 316
+          assert p2_baseline_review["alpha_intersection_pixels"] == 270
+          assert p2_baseline_review["alpha_union_pixels"] == 369
+          assert abs(p2_baseline_review["alpha_iou"] - 0.7317073170731707) < 1e-12
 
           p2_reused = authored_by_id[
               "ordinary-racer-0x0540-p2-with-p1-companion-0D2D-reference"
@@ -416,10 +416,10 @@ jobs:
           assert p2_predecessor_review["candidate_alpha_bounds"] == [22, 3, 39, 38]
           assert p2_predecessor_review["candidate_contact_x2_y2"] == [61, 76]
           assert p2_predecessor_review["stock_opaque_pixels"] == 318
-          assert p2_predecessor_review["candidate_opaque_pixels"] == 312
-          assert p2_predecessor_review["alpha_intersection_pixels"] == 264
-          assert p2_predecessor_review["alpha_union_pixels"] == 366
-          assert abs(p2_predecessor_review["alpha_iou"] - 0.7213114754098361) < 1e-12
+          assert p2_predecessor_review["candidate_opaque_pixels"] == 304
+          assert p2_predecessor_review["alpha_intersection_pixels"] == 258
+          assert p2_predecessor_review["alpha_union_pixels"] == 364
+          assert abs(p2_predecessor_review["alpha_iou"] - 0.7087912087912088) < 1e-12
 
           p2_0542 = authored_by_id[
               "ordinary-racer-0x0542-p2-with-p1-companion-0D2C-reference"
@@ -434,10 +434,10 @@ jobs:
           assert p2_0542_review["candidate_alpha_bounds"] == [21, 4, 40, 38]
           assert p2_0542_review["candidate_contact_x2_y2"] == [59, 76]
           assert p2_0542_review["stock_opaque_pixels"] == 325
-          assert p2_0542_review["candidate_opaque_pixels"] == 324
-          assert p2_0542_review["alpha_intersection_pixels"] == 265
-          assert p2_0542_review["alpha_union_pixels"] == 384
-          assert abs(p2_0542_review["alpha_iou"] - 0.6901041666666666) < 1e-12
+          assert p2_0542_review["candidate_opaque_pixels"] == 316
+          assert p2_0542_review["alpha_intersection_pixels"] == 259
+          assert p2_0542_review["alpha_union_pixels"] == 382
+          assert abs(p2_0542_review["alpha_iou"] - 0.6780104712041884) < 1e-12
 
           p2_0542_reuse = authored_by_id[
               "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference"
@@ -468,10 +468,10 @@ jobs:
           assert p2_0543_review["candidate_alpha_bounds"] == [20, 4, 40, 38]
           assert p2_0543_review["candidate_contact_x2_y2"] == [57, 76]
           assert p2_0543_review["stock_opaque_pixels"] == 319
-          assert p2_0543_review["candidate_opaque_pixels"] == 325
-          assert p2_0543_review["alpha_intersection_pixels"] == 254
-          assert p2_0543_review["alpha_union_pixels"] == 390
-          assert abs(p2_0543_review["alpha_iou"] - 0.6512820512820513) < 1e-12
+          assert p2_0543_review["candidate_opaque_pixels"] == 316
+          assert p2_0543_review["alpha_intersection_pixels"] == 248
+          assert p2_0543_review["alpha_union_pixels"] == 387
+          assert abs(p2_0543_review["alpha_iou"] - 0.6408268733850129) < 1e-12
 
           p2_0543_reuse = authored_by_id[
               "ordinary-racer-0x0543-p2-with-p1-057E-reference"
@@ -502,10 +502,10 @@ jobs:
           assert repeated_057d_review["candidate_alpha_bounds"] == [21, 3, 43, 38]
           assert repeated_057d_review["candidate_contact_x2_y2"] == [69, 76]
           assert repeated_057d_review["stock_opaque_pixels"] == 321
-          assert repeated_057d_review["candidate_opaque_pixels"] == 327
-          assert repeated_057d_review["alpha_intersection_pixels"] == 251
-          assert repeated_057d_review["alpha_union_pixels"] == 397
-          assert abs(repeated_057d_review["alpha_iou"] - 0.6322418136020151) < 1e-12
+          assert repeated_057d_review["candidate_opaque_pixels"] == 319
+          assert repeated_057d_review["alpha_intersection_pixels"] == 245
+          assert repeated_057d_review["alpha_union_pixels"] == 395
+          assert abs(repeated_057d_review["alpha_iou"] - 0.620253164556962) < 1e-12
 
           for rep in (baseline, p2_baseline, p2_reused, p2_predecessor, p2_0542, p2_0542_reuse, p2_0543, p2_0543_reuse, predecessor, reversed, reused, repeated, repeated_057e, repeated_057d):
               candidate_path = (

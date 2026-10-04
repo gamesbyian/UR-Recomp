@@ -14,6 +14,17 @@ enum class HostSceneComposition : std::uint8_t {
     WorldExpand = 1,
 };
 
+enum class HostRacePresentationMode : std::uint8_t {
+    Unknown = 0,
+    OnePlayer = 1,
+    TwoPlayer = 2,
+    Vs = 3,
+};
+
+struct HostWidescreenSceneState {
+    HostRacePresentationMode race_mode = HostRacePresentationMode::Unknown;
+};
+
 struct HostRational {
     int numerator = 1;
     int denominator = 1;
@@ -64,5 +75,20 @@ struct HostOutputCompositionPlan {
 HostOutputCompositionPlan resolve_16x9_output_composition(
     HostGraphicsRepresentation representation,
     HostSceneComposition scene) noexcept;
+
+/* Evidence-backed runtime scene binding.
+ *
+ * The title's verified rider-selection states identify the durable race mode:
+ * 0x3C = 1P, 0x3D = ordinary 2P, 0x3E = VS. They are latched only outside
+ * active racing so incidental in-race frontend scratch values cannot change
+ * composition. 1P/ordinary-2P races may widen; VS and unknown races fail
+ * closed to fixed-center until their backing contract is accepted.
+ * Non-race scenes always remain fixed-center.
+ */
+void reset_widescreen_scene_state(HostWidescreenSceneState* state) noexcept;
+HostSceneComposition observe_widescreen_scene(
+    HostWidescreenSceneState* state,
+    std::uint8_t race_active_state,
+    std::uint8_t frontend_state) noexcept;
 
 }  // namespace ur::product

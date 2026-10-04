@@ -2,23 +2,23 @@
   "schema_version": 1,
   "family": "ordinary-racer",
   "review_basis": {
-    "workflow_run": 37235273866,
-    "artifact_id": 11315363483,
+    "workflow_run": 37237361292,
+    "artifact_id": 11316536338,
     "temporal_window": [
       1205,
       1220
     ],
     "review_surface": "racer-hd-asset-dossier/review/index.html",
-    "disposition": "Third sequence-level refinement adds a shared forged crown/junction collar treatment across all ten unique poses without changing recovered silhouette/contact. The junction read is improved but still not shipping-ready; frame-junction-modeling remains open alongside saddle-volume-attachment and hardware-depth-integration."
+    "disposition": "Fourth sequence-level refinement corrects P2 crown-material centers and adds a restrained shared saddle/post clamp using only already-occupied pixels. Attachment readability improves without alpha/envelope/contact changes. None of the ten unique poses is shipping-ready; saddle body/underside modeling, frame-junction integration and hardware depth remain open."
   },
   "family_blockers": [
     {
       "code": "saddle-volume-attachment",
-      "description": "Saddles still read as broad primitive caps with weak post/underside attachment; refine profile, thickness and connection while preserving the stock envelope."
+      "description": "The new restrained saddle/post clamp makes attachment readable, but the saddle bodies still read as broad primitive caps with limited underside thickness/profile modeling; refine the seat volume while preserving the stock envelope."
     },
     {
       "code": "frame-junction-modeling",
-      "description": "Fork, crown and frame intersections remain visibly rod-like or bulbous at true density; replace abrupt primitive overlaps with coherent high-resolution mechanical junctions without changing contacts or silhouette."
+      "description": "Shared crown collars improve fork/frame continuity and corrected P2 centers align material with geometry, but several intersections still read as simplified members meeting a collar rather than fully integrated high-resolution hardware."
     },
     {
       "code": "hardware-depth-integration",
@@ -35,7 +35,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "6feecd602c5febb3f085959b5a471a1ab3eb74a3c41dcdd1ef94e06d8c4edde1"
+      "reviewed_authored_rgba_sha256": "542914006de2a17331915d19a0ed570aa1eed42972792eeacf72f6f2a8ddaee4"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x057D-p1-adjacent-reference",
@@ -46,7 +46,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "47c3e4124bca569a9abf988b4119f296befdd1cf412377e7d4175b3e586e873b"
+      "reviewed_authored_rgba_sha256": "690c9ca62cccee233565512b175bf97212b681e82c03a019be416806634dfb97"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0540-p1-companion-0D2C-with-p2-0542-reference",
@@ -57,7 +57,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "f90557f31ce47c70ae4064f56a1f3fc018d92b6a9e979a713c22a1240047593f"
+      "reviewed_authored_rgba_sha256": "215081c79e97591d6af2826622d61a9cf25bf53006e9fb3e72742e1aadd2c3c3"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x057E-p1-with-p2-0543-reference",
@@ -68,7 +68,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "4d3d6695bfa58ab59ef8410358d49f0684d0aa4ee5e47d05a78ebe91d53e2e0c"
+      "reviewed_authored_rgba_sha256": "f77db2adf9d833848b27d70a9b09636482b873ee07bef6f9e91b125a8265d17b"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0541-p1-companion-0D2D-reference",
@@ -79,7 +79,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "8425a3e430710de721a141fda4297062bb6540335d381887d42e1185cd1f0df7"
+      "reviewed_authored_rgba_sha256": "da136bf1711ff5e4b1d878a7b3c44f5b2108921df4432d7ff15468a139e427fb"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0541-p1-sync-reference",
@@ -90,7 +90,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "768322873812135dd154614a5eb095b09ae374945c9191e681d4d0c562709102"
+      "reviewed_authored_rgba_sha256": "32d4f8ad46b64fe77e36d40e85986f9d064809dbb502024deb27b74e39d2eae1"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0540-p2-sync-reference",
@@ -101,7 +101,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "8bf8af5d715fa7c345389013a368c6de250a44de72275e595b77a88d7565b662"
+      "reviewed_authored_rgba_sha256": "4d2f12e910b03c62cc845fab9329ff91ddee7c845fa9b0b92704e4662d619b2f"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0541-p2-predecessor-reference",
@@ -112,7 +112,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "1c0298315a3a98942ba5e2e05aa2445bb19bafca412a014ee44430ea9c4ce3b8"
+      "reviewed_authored_rgba_sha256": "6262d0c04186cf9486d642691daeea57f55916f5c969be11c70d260d95c2aa32"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference",
@@ -123,7 +123,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "a86e230667b1ac67d6109f5c1540a469dd5f77be3be74665c9a43c2b7d366d99"
+      "reviewed_authored_rgba_sha256": "b06a823fda28295dec27b1cece0bfe972341b9e5daccebd412127c0f2d1c2237"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
@@ -134,7 +134,7 @@
         "frame-junction-modeling",
         "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "8cfbc1a81e1e72e80aceebea25daeda1b59957d25364855b00aa0d7f948974b8"
+      "reviewed_authored_rgba_sha256": "7f8592b4d8eb000b1afd5e7d72069c77e505e309647bc817195dd04f3b9af8d6"
     }
   ]
 }

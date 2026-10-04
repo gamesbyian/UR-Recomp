@@ -26,7 +26,13 @@ class RacerHdReviewPacketTest(unittest.TestCase):
                         "authored_candidate": {
                             "png": "authored-candidate/a.png",
                             "approval_status": "motion-reviewed",
-                            "gameplay_scale_review": {"alpha_iou": 0.75},
+                            "gameplay_scale_review": {
+                                "alpha_iou": 0.75,
+                                "stock_only_pixel_count": 1,
+                                "candidate_only_pixel_count": 1,
+                                "stock_only_pixels": [[2, 3]],
+                                "candidate_only_pixels": [[4, 5]],
+                            },
                         },
                     },
                 },
@@ -119,6 +125,9 @@ class RacerHdReviewPacketTest(unittest.TestCase):
             self.assertIn("2 exact guards → 1 unique poses", html)
             self.assertIn("Authored at gameplay footprint", html)
             self.assertIn("Live split-screen reference", html)
+            self.assertIn("Alpha mismatch", html)
+            self.assertIn('x="2" y="3"', html)
+            self.assertIn('x="4" y="5"', html)
 
 
 if __name__ == "__main__":

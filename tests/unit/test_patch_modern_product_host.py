@@ -75,6 +75,8 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "widescreen_output_composition.cpp",
             "host_product_state.cpp",
             "host_product_store.cpp",
+            "host_profile_state.cpp",
+            "host_profile_store.cpp",
             "modern_session_c_api.cpp",
             "modern_pause_menu.cpp",
             "modern_pause_input.cpp",

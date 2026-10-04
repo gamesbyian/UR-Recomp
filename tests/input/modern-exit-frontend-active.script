@@ -44,7 +44,8 @@ until 0313 == 01 1800
 wait 60
 dump race-entered
 
-# The env-gated native acceptance trigger requests Exit to Frontend from the
+# The env-gated native acceptance trigger requests Exit to Frontend only after
+# this retained checkpoint has settled, so it cannot pre-empt the proof below.
 # observed active-race surface. Follow the real guest lifecycle back to the
 # stock frontend, then prove it accepts ordinary guest input.
 until 009F == D7 1800

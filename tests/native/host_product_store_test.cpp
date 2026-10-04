@@ -22,6 +22,8 @@ int main(int argc, char** argv) {
     state.settings.display_mode = HostDisplayMode::Fullscreen;
     state.settings.vsync_mode = HostVSyncMode::Adaptive;
     state.settings.presentation_fps_mode = HostPresentationFpsMode::Fps144;
+    state.settings.output_resolution =
+        HostOutputResolution::explicit_size(2560, 1440);
     state.active_profile_id = "local.profile";
     assert(save_host_product_state_file(path, state) == HostProductSaveStatus::Saved);
 
@@ -31,7 +33,7 @@ int main(int argc, char** argv) {
 
     {
         std::ofstream out(path, std::ios::binary | std::ios::trunc);
-        out << "UR-HOST-STATE/6\nprofile=\npause_on_focus_loss=0\nvibration_enabled=1\ndisplay_mode=windowed\nvsync=on\npresentation_fps=game\n";
+        out << "UR-HOST-STATE/7\nprofile=\npause_on_focus_loss=0\nvibration_enabled=1\ndisplay_mode=windowed\nvsync=on\npresentation_fps=game\noutput_resolution=native\n";
     }
     const auto rejected = load_host_product_state_file(path);
     assert(rejected.status == HostProductLoadStatus::Rejected);

@@ -61,6 +61,7 @@ int main(int argc, char** argv) {
         return 3;
     }
     if (original.record->elapsed_ticks60 != replayed.record->elapsed_ticks60 ||
+        original.record->frame_count != replayed.record->frame_count ||
         !same_splits(*original.record, *replayed.record) ||
         !same_inputs(*original.record, *replayed.record)) {
         std::cerr << "replayed run differs from captured run\n";

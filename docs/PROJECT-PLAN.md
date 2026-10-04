@@ -1283,3 +1283,8 @@ Promote useful evidence into one or more durable forms:
 - explicit negative result that prevents repeated work.
 
 Do not preserve old task ordering merely because it once reflected active branches. The current critical path above outranks historical workstream momentum.
+
+
+### Completed-run record foundation (2026-10-04)
+
+The first records/ghost substrate now lives in native/product/completed_run_record.*. It defines a strict versioned host artifact with ROM/build/course/mode provenance, exact 60 Hz timing/splits, optional terminal simulation digest and controller runs that export directly to the existing deterministic INPUT_FILE grammar. This is deliberately not a second simulation model and stores no arbitrary guest snapshot as its primary replay representation. Production race-completion capture/selection and ghost rendering remain follow-ons; see COMPLETED-RUN-RECORDS.md.

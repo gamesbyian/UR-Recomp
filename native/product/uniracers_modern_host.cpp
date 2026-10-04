@@ -57,10 +57,13 @@ void report_display_capabilities_once() {
         count > 0 ? snesrecomp_desktop_get_output_mode(0, &first) : 0;
     const int apply_ok =
         first_ok ? snesrecomp_desktop_set_output_mode(&first) : 0;
+    const SnesDesktopOutputMode impossible{1, 1, 12345};
+    const int reject_ok =
+        !snesrecomp_desktop_set_output_mode(&impossible);
 
     std::fprintf(
         stderr,
-        "UR_DISPLAY_CAPS modes=%d native_ok=%d native=%dx%d@%d first_ok=%d first=%dx%d@%d apply_ok=%d\n",
+        "UR_DISPLAY_CAPS modes=%d native_ok=%d native=%dx%d@%d first_ok=%d first=%dx%d@%d apply_ok=%d reject_ok=%d\n",
         count,
         native_ok,
         native.width,
@@ -70,7 +73,8 @@ void report_display_capabilities_once() {
         first.width,
         first.height,
         first.refresh_millihz,
-        apply_ok);
+        apply_ok,
+        reject_ok);
     std::fflush(stderr);
 }
 

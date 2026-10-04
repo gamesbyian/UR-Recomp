@@ -12,23 +12,47 @@
 namespace ur::product {
 
 constexpr std::size_t kStockSramBytes = 8192;
+constexpr std::size_t kTourTrackCount = 5;
+
+struct HostTourContinuation {
+    std::uint8_t rider_index = 0;
+    std::uint8_t tour_row = 0;
+    std::uint8_t medal_value = 0;
+    std::array<std::uint8_t, kTourTrackCount> qualified{};
+
+    bool operator==(const HostTourContinuation& other) const noexcept {
+        return rider_index == other.rider_index &&
+               tour_row == other.tour_row &&
+               medal_value == other.medal_value &&
+               qualified == other.qualified;
+    }
+
+    bool operator!=(const HostTourContinuation& other) const noexcept {
+        return !(*this == other);
+    }
+};
+
+bool valid_tour_continuation(const HostTourContinuation& value) noexcept;
 
 struct HostProfileState {
-    static constexpr std::uint32_t schema_version = 1;
+    static constexpr std::uint32_t schema_version = 2;
 
     std::string profile_id;
     std::uint64_t autosave_generation = 0;
     std::optional<std::array<std::uint8_t, kStockSramBytes>> stock_sram;
+    std::optional<HostTourContinuation> tour_continuation;
 
     bool operator==(const HostProfileState& other) const noexcept {
         return profile_id == other.profile_id &&
                autosave_generation == other.autosave_generation &&
-               stock_sram == other.stock_sram;
+               stock_sram == other.stock_sram &&
+               tour_continuation == other.tour_continuation;
     }
 };
 
 struct HostProfileDecodeResult {
     std::optional<HostProfileState> state;
+    bool migrated = false;
     std::string error;
 
     explicit operator bool() const noexcept { return state.has_value(); }

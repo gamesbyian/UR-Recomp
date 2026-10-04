@@ -30,11 +30,42 @@ int main() {
     assert(state.autosave_generation == 1);
     assert(state.stock_sram.has_value());
 
+    HostTourContinuation continuation;
+    continuation.rider_index = 3;
+    continuation.tour_row = 4;
+    continuation.medal_value = 1;
+    continuation.qualified = {1, 0, 1, 0, 0};
+    assert(valid_tour_continuation(continuation));
+    state.tour_continuation = continuation;
+
     const std::string encoded = encode_host_profile_state(state);
     assert(!encoded.empty());
     const auto decoded = decode_host_profile_state(encoded);
     assert(decoded);
     assert(*decoded.state == state);
+    assert(!decoded.migrated);
+
+    const auto legacy = decode_host_profile_state(
+        "UR-HOST-PROFILE/1\n"
+        "profile=profile.alpha\n"
+        "generation=7\n"
+        "stock_sram=\n");
+    assert(legacy);
+    assert(legacy.migrated);
+    assert(legacy.state->autosave_generation == 7);
+    assert(!legacy.state->tour_continuation);
+    assert(encode_host_profile_state(*legacy.state).rfind(
+               "UR-HOST-PROFILE/2\n", 0) == 0);
+
+    HostTourContinuation no_progress = continuation;
+    no_progress.qualified = {0, 0, 0, 0, 0};
+    assert(!valid_tour_continuation(no_progress));
+    HostTourContinuation completed = continuation;
+    completed.qualified = {1, 1, 1, 1, 1};
+    assert(!valid_tour_continuation(completed));
+    HostTourContinuation bad_rider = continuation;
+    bad_rider.rider_index = 16;
+    assert(!valid_tour_continuation(bad_rider));
 
     std::array<std::uint8_t, kStockSramBytes> restored{};
     assert(restore_stock_sram_from_profile(

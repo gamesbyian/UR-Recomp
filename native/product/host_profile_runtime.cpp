@@ -28,7 +28,7 @@ HostProfileSaveRootDecision resolve_host_profile_save_root(
 
     return {
         HostProfileSaveRootStatus::IsolatedProfileRoot,
-        "saves/profiles/" + *active_profile_id,
+        "saves/profile-" + *active_profile_id,
         {}};
 }
 

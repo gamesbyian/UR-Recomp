@@ -368,7 +368,7 @@ jobs:
           EXE="${{ steps.exe.outputs.exe }}"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-focus-pause.script"
-          STATE="$RUNNER_TEMP/host-state-v5.txt"
+          STATE="$RUNNER_TEMP/host-state-v6.txt"
           SAVE_LOG="$RUNNER_TEMP/host-state-save.log"
           LOAD_LOG="$RUNNER_TEMP/host-state-load.log"
           AUTH_LOG="$RUNNER_TEMP/host-state-authentic.log"
@@ -433,7 +433,7 @@ jobs:
               kill -0 "$PID" 2>/dev/null || exit 1
               sleep 0.1
             done
-            grep -q "^UR-HOST-STATE/5$" "'"$STATE"'"
+            grep -q "^UR-HOST-STATE/6$" "'"$STATE"'"
             grep -q "^pause_on_focus_loss=0$" "'"$STATE"'"
             grep -q "^display_mode=fullscreen$" "'"$STATE"'"
             grep -q "^vsync=adaptive$" "'"$STATE"'"
@@ -501,7 +501,7 @@ jobs:
           set -euo pipefail
           EXE="${{ steps.exe.outputs.exe }}"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          STATE="$RUNNER_TEMP/host-state-v5.txt"
+          STATE="$RUNNER_TEMP/host-state-v6.txt"
           PRESENTS="$RUNNER_TEMP/presentation-120.csv"
           LOG="$RUNNER_TEMP/presentation-120.log"
 

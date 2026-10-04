@@ -177,6 +177,7 @@ def render_html(manifest: dict, live: dict | None, readiness: dict | None = None
             f' · shipping ready: {str(readiness["shipping_ready"]).lower()}'
             f' · approved {counts["approved"]}/{readiness["unique_pose_count"]}'
             f' · needs refinement {counts["needs_refinement"]}'
+            f' · changed since review {counts.get("changed_since_review", 0)}'
         )
     summary = (
         f'{manifest["semantic_representation_count"]} exact guards → '

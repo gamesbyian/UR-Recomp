@@ -587,6 +587,15 @@ bool activate_pause_selection() {
 
 }  // namespace
 
+extern "C" double ur_uniracers_modern_presentation_hz(
+    double display_refresh) {
+    if (!modern_mode()) return 0.0;
+    ensure_product_state();
+    return presentation_fps_target(
+        g_live_presentation_fps_mode,
+        display_refresh);
+}
+
 extern "C" void ur_uniracers_modern_after_run_frame(
     const SnesDesktopHostFrameStats*) {
     if (!ensure_session()) return;
@@ -753,7 +762,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
 
     if (is_paused) {
         if (g_options_visible) {
-            const int options_h = 114;
+            const int options_h = 129;
             const int options_y = (height - options_h) / 2;
             const UrModernOptionsItem selected =
                 ur_modern_options_menu_selected(&g_options_menu);
@@ -776,9 +785,27 @@ extern "C" void ur_uniracers_modern_system_overlay(
                                ur::product::HostVSyncMode::Off
                            ? "VSYNC    OFF"
                            : "VSYNC    ON");
+            const char* presentation_text =
+                g_product_state.settings.presentation_fps_mode ==
+                        ur::product::HostPresentationFpsMode::Native
+                    ? "PRESENT FPS  NATIVE"
+                    : (g_product_state.settings.presentation_fps_mode ==
+                               ur::product::HostPresentationFpsMode::Game
+                           ? "PRESENT FPS  GAME"
+                           : nullptr);
+            char presentation_value[32];
+            if (!presentation_text) {
+                std::snprintf(
+                    presentation_value, sizeof(presentation_value),
+                    "PRESENT FPS  %s",
+                    presentation_fps_mode_name(
+                        g_product_state.settings.presentation_fps_mode));
+                presentation_text = presentation_value;
+            }
             char focus_row[32];
             char display_row[32];
             char vsync_row[32];
+            char presentation_row[32];
             std::snprintf(
                 focus_row, sizeof(focus_row), "%c %s",
                 selected == UR_MODERN_OPTIONS_FOCUS_PAUSE ? '>' : ' ',
@@ -791,6 +818,10 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 vsync_row, sizeof(vsync_row), "%c %s",
                 selected == UR_MODERN_OPTIONS_VSYNC ? '>' : ' ',
                 vsync_text);
+            std::snprintf(
+                presentation_row, sizeof(presentation_row), "%c %s",
+                selected == UR_MODERN_OPTIONS_PRESENTATION_FPS ? '>' : ' ',
+                presentation_text);
             snes_ovl_fill_rect(
                 pixels, stride, height, x, options_y, panel_w, options_h,
                 0xE0202020u);
@@ -810,10 +841,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 pixels, stride, height, x + 8, options_y + 57,
                 vsync_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 77,
+                pixels, stride, height, x + 8, options_y + 72,
+                presentation_row, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, options_y + 92,
                 "A / ENTER  CHANGE", 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 97,
+                pixels, stride, height, x + 8, options_y + 112,
                 "B / ESC    BACK", 0xFFFFFFFFu, 1);
             return;
         }

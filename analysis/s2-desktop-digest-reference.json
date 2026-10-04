@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "framework_revision": "cd5875cbdaf19f5e324272b1f8051d671fce9215",
+  "rom": "reference/roms/retail/Uniracers_USA.sfc",
+  "run_id": 37243830766,
+  "sequence": {
+    "frames": 120,
+    "inputs": 0,
+    "checkpoints": [
+      0,
+      1,
+      60,
+      120
+    ]
+  },
+  "repeatability_runs": 2,
+  "repeatability": "byte-identical",
+  "checkpoints": {
+    "0": {
+      "master": "d2ebbc94",
+      "cpu": "7e470467",
+      "wram": "88cd1986",
+      "apu": "16f1c5a6",
+      "ppu": "1d1d9e1d",
+      "dma": "0a2f2586",
+      "cart": "d8f49994"
+    },
+    "1": {
+      "master": "572368f0",
+      "cpu": "7e470467",
+      "wram": "6dfe5d00",
+      "apu": "8987d177",
+      "ppu": "9f440c59",
+      "dma": "0a2f2586",
+      "cart": "d8f49994"
+    },
+    "60": {
+      "master": "4bbbc8c8",
+      "cpu": "7e470467",
+      "wram": "d8ad5739",
+      "apu": "e3eda5d2",
+      "ppu": "66396abe",
+      "dma": "0a2f2586",
+      "cart": "d8f49994"
+    },
+    "120": {
+      "master": "5702086f",
+      "cpu": "7e470467",
+      "wram": "082960e6",
+      "apu": "e4c8b6e7",
+      "ppu": "c587f0cb",
+      "dma": "76589d9c",
+      "cart": "d8f49994"
+    }
+  },
+  "claim": "Deterministic native Linux reference for the bounded S2 hardware-probe sequence; not Switch parity evidence by itself."
+}

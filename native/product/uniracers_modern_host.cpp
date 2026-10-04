@@ -15,6 +15,8 @@ extern "C" {
 #include "host_product_state.hpp"
 #include "host_product_store.hpp"
 #include "host_profile_runtime.hpp"
+#include "host_profile_state.hpp"
+#include "host_profile_store.hpp"
 #include "modern_pause_input.h"
 #include "modern_pause_menu.h"
 #include "modern_options_menu.h"
@@ -23,12 +25,14 @@ extern "C" {
 #include "uniracers_course_identity.h"
 #include "uniracers_restart_policy.h"
 #include "uniracers_run_data.h"
+#include "uniracers_tour_resume.hpp"
 #include "widescreen_output_composition.hpp"
 
 #include <cstdlib>
 #include <fstream>
 #include <cstring>
 #include <cstdio>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -40,6 +44,9 @@ ur::product::HostPresentationFpsMode g_live_presentation_fps_mode =
     ur::product::HostPresentationFpsMode::Game;
 bool g_product_state_initialized;
 std::string g_product_state_path;
+std::optional<ur::product::HostProfileState> g_profile_state;
+std::string g_profile_state_path;
+bool g_profile_state_writable;
 UrModernPauseMenu g_pause_menu;
 UrModernOptionsMenu g_options_menu;
 bool g_options_visible;
@@ -47,6 +54,7 @@ bool g_controls_visible;
 bool g_run_data_visible;
 bool g_quit_confirm_visible;
 bool g_display_caps_reported;
+bool g_profile_sram_reported;
 bool g_exit_frontend_waiting_for_main;
 bool g_exit_frontend_waiting_for_usable;
 bool g_exit_frontend_acceptance_fired;
@@ -141,6 +149,27 @@ void apply_profile_save_root() {
 
     RtlSetSaveRoot(decision.save_root.c_str());
     RtlEnsureSaveDir();
+
+    g_profile_state_path = std::string(RtlSaveRoot()) + "/host-profile.txt";
+    const auto resolved = ur::product::resolve_host_profile_state_file(
+        ur::product::ExecutionMode::Modern,
+        g_profile_state_path,
+        *g_product_state.active_profile_id);
+    if (resolved) {
+        g_profile_state = *resolved.state;
+        g_profile_state_writable =
+            resolved.status !=
+            ur::product::HostProfileResolveStatus::DefaultedMalformed;
+        if (!g_profile_state_writable) {
+            product_diagnostic("UR_PROFILE_STATE MALFORMED_READ_ONLY");
+        }
+    } else {
+        g_profile_state.reset();
+        g_profile_state_path.clear();
+        g_profile_state_writable = false;
+        product_diagnostic("UR_PROFILE_STATE LOAD_FAILED");
+    }
+
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
             stderr,
@@ -826,6 +855,166 @@ bool ensure_session() {
     return g_session != nullptr;
 }
 
+ur::product::HostTourContinuation product_continuation(
+    const ur::title::TourProgress& progress) {
+    ur::product::HostTourContinuation out;
+    out.rider_index = progress.rider_index;
+    out.tour_row = progress.tour_row;
+    out.medal_value = progress.medal_value;
+    out.qualified = progress.qualified;
+    return out;
+}
+
+ur::title::TourProgress title_continuation(
+    const ur::product::HostTourContinuation& continuation) {
+    ur::title::TourProgress out;
+    out.rider_index = continuation.rider_index;
+    out.tour_row = continuation.tour_row;
+    out.medal_value = continuation.medal_value;
+    out.qualified = continuation.qualified;
+    return out;
+}
+
+bool profile_snapshot_matches_live_sram(
+    const ur::product::HostProfileState& state) {
+    if (!state.stock_sram || !g_sram ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
+        return false;
+    }
+    return std::memcmp(
+        state.stock_sram->data(),
+        g_sram,
+        ur::product::kStockSramBytes) == 0;
+}
+
+bool save_active_profile_state(
+    const std::optional<ur::product::HostTourContinuation>& continuation,
+    const char* diagnostic) {
+    if (!modern_mode() || !g_profile_state || !g_profile_state_writable ||
+        g_profile_state_path.empty() || !g_sram ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
+        return false;
+    }
+
+    if (g_profile_state->tour_continuation == continuation &&
+        profile_snapshot_matches_live_sram(*g_profile_state)) {
+        return true;
+    }
+
+    if (!RtlTryWriteSram()) {
+        product_diagnostic("UR_TOUR_RESUME SRAM_SAVE_FAILED");
+        return false;
+    }
+
+    auto candidate = *g_profile_state;
+    candidate.tour_continuation = continuation;
+    if (ur::product::capture_stock_sram_for_profile(
+            ur::product::ExecutionMode::Modern,
+            candidate,
+            g_sram,
+            static_cast<std::size_t>(g_sram_size)) !=
+        ur::product::HostProfileTransferStatus::Applied) {
+        return false;
+    }
+    if (ur::product::save_host_profile_state_file(
+            ur::product::ExecutionMode::Modern,
+            g_profile_state_path,
+            candidate) != ur::product::HostProfileSaveStatus::Saved) {
+        product_diagnostic("UR_TOUR_RESUME PROFILE_SAVE_FAILED");
+        return false;
+    }
+
+    g_profile_state = candidate;
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS") && diagnostic) {
+        std::fprintf(
+            stderr,
+            "%s generation=%llu\n",
+            diagnostic,
+            static_cast<unsigned long long>(
+                g_profile_state->autosave_generation));
+        std::fflush(stderr);
+    }
+    return true;
+}
+
+void reconcile_tour_resume() {
+    if (!modern_mode() || !g_profile_state || !g_sram ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
+        return;
+    }
+
+    const auto current = ur::title::observe_tour_progress(
+        g_ram,
+        0x20000,
+        g_sram,
+        static_cast<std::size_t>(g_sram_size));
+    if (!current) return;
+
+    // Stock TRACK_SELECT is the first stable point after rider/tour
+    // confirmation. Rider select has already performed its historical wipe.
+    if (g_ram[0x009F] == 0xF6 && g_profile_state->tour_continuation) {
+        const auto saved =
+            title_continuation(*g_profile_state->tour_continuation);
+
+        if (current->rider_index == saved.rider_index &&
+            current->tour_row == saved.tour_row &&
+            current->medal_value != saved.medal_value) {
+            (void)save_active_profile_state(
+                std::nullopt,
+                "UR_TOUR_RESUME CLEARED_STALE_MEDAL");
+            return;
+        }
+
+        const auto applied = ur::title::apply_tour_resume(
+            saved,
+            g_ram,
+            0x20000,
+            g_sram,
+            static_cast<std::size_t>(g_sram_size));
+        if (applied == ur::title::TourResumeApplyStatus::Applied) {
+            (void)save_active_profile_state(
+                g_profile_state->tour_continuation,
+                "UR_TOUR_RESUME APPLIED");
+        }
+    }
+
+    // Every settled stock result is an autosave boundary. This durably
+    // publishes records/stats/medals as well as unfinished-tour flags. A
+    // five-track completion carries no continuation because stock has already
+    // awarded the medal and cleared the row.
+    const bool track_select = g_ram[0x009F] == 0xF6;
+    const bool results = g_surface == UR_UNIRACERS_RESTART_RESULTS;
+    std::optional<ur::title::TourProgress> updated;
+    if (track_select || results) {
+        updated = ur::title::observe_tour_progress(
+            g_ram,
+            0x20000,
+            g_sram,
+            static_cast<std::size_t>(g_sram_size));
+    }
+
+    if (results && updated) {
+        std::optional<ur::product::HostTourContinuation> continuation;
+        if (ur::title::valid_unfinished_tour_progress(*updated)) {
+            continuation = product_continuation(*updated);
+        }
+        (void)save_active_profile_state(
+            continuation,
+            continuation
+                ? "UR_TOUR_RESUME CAPTURED"
+                : "UR_PROFILE_AUTOSAVE RESULT");
+    } else if (track_select && updated &&
+               ur::title::valid_unfinished_tour_progress(*updated)) {
+        const auto continuation = product_continuation(*updated);
+        if (!g_profile_state->tour_continuation ||
+            *g_profile_state->tour_continuation != continuation) {
+            (void)save_active_profile_state(
+                continuation,
+                "UR_TOUR_RESUME CAPTURED");
+        }
+    }
+}
+
 bool restart_surface() {
     return g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE ||
            g_surface == UR_UNIRACERS_RESTART_RESULTS;
@@ -1303,6 +1492,18 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     report_display_capabilities_once();
     if (!ensure_session()) return;
 
+    if (!g_profile_sram_reported &&
+        std::getenv("UR_PROFILE_SRAM_DIAGNOSTICS")) {
+        g_profile_sram_reported = true;
+        std::fprintf(
+            stderr,
+            "UR_PROFILE_SRAM LOADED root=%s digest=%08X size=%d\n",
+            RtlSaveRoot(),
+            static_cast<unsigned>(current_sram_digest()),
+            g_sram_size);
+        std::fflush(stderr);
+    }
+
     const UrUniracersRestartDecision decision =
         ur_uniracers_restart_policy_observe(
             &g_title_policy,
@@ -1333,6 +1534,8 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         g_run_capture.abort_attempt();
     }
     g_run_capture_previous_active = run_active;
+
+    reconcile_tour_resume();
 
     if (g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE) {
         ur_modern_session_observe_race_active(g_session, 1);

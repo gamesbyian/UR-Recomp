@@ -13,6 +13,7 @@ typedef struct UrSwitchS1Report {
     int storage_writable;
     int input_seen;
     int operation_mode;
+    unsigned operation_modes_seen;
     int display_width;
     int display_height;
     unsigned controller_styles_seen;
@@ -76,6 +77,7 @@ static void write_report(const UrSwitchS1Report* report) {
     fprintf(file, "lifecycle_started=%d\n", report->lifecycle_started);
     fprintf(file, "clean_exit=%d\n", report->clean_exit);
     fprintf(file, "operation_mode=%d\n", report->operation_mode);
+    fprintf(file, "operation_modes_seen=0x%X\n", report->operation_modes_seen);
     fprintf(file, "display_ready=%d\n", report->display_ready);
     fprintf(file, "display_size=%dx%d\n", report->display_width, report->display_height);
     fprintf(file, "audio_ready=%d\n", report->audio_ready);
@@ -117,6 +119,7 @@ int main(int argc, char** argv) {
     UrSwitchS1Report report = {0};
     report.lifecycle_started = 1;
     report.operation_mode = (int)appletGetOperationMode();
+    report.operation_modes_seen |= report.operation_mode == (int)AppletOperationMode_Console ? 2u : 1u;
     select_output_size(report.operation_mode, &report.display_width, &report.display_height);
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS) < 0) {
@@ -186,6 +189,7 @@ int main(int argc, char** argv) {
         const int operation_mode = (int)appletGetOperationMode();
         if (operation_mode != report.operation_mode) {
             report.operation_mode = operation_mode;
+            report.operation_modes_seen |= operation_mode == (int)AppletOperationMode_Console ? 2u : 1u;
             select_output_size(
                 report.operation_mode,
                 &report.display_width,

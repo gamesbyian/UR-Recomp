@@ -2301,3 +2301,30 @@ The VS result shows the same signature during its result build (`SNESRECOMP_TRAP
 - **Fix:** upstream snesrecomp `5ae0541` ("Propagate nested deadline unwinds to the scheduler owner") keeps the deadline sentinel live through every non-scheduler frame. Only the scheduler frame (`yield_pc != 0`) publishes the resume PC. It is a descendant of the pin `cd5875c`. The fix and its upstream regression test are carried as `tools/patches/snesrecomp-nested-deadline-unwind.patch`, applied after the existing patch stack.
 - **Unit test:** the framework's `tests/interp816/run.sh` passes 138/138 with the patch. Upstream's new case `S8g nested deadline preserves inner PC and guest stack` fails against the unpatched bridge with `resume=008006` and `outer continuation ran after deadline`. That is the same skipped-call signature seen in the game.
 - **Game check:** both generated targets were built locally the same way and run through `tools/compare_engine_screen_text.py` against a dual-controller snesref. Unpatched, both finish times (`0:28.56`, `0:28.76`) are missing. Patched, there are zero mismatches across all six checkpoints. `analysis/generated/native-screen-text-parity.json` is regenerated from the patched run.
+
+### R-2026-10-04-UI-26 — Scripted console reset crashed, then wedged, the native target; fixed
+
+**Status:** fixed (framework/scaffold patches; validated locally)  
+**Date:** 2026-10-04  
+**Area:** native harness | UI evidence | reset
+
+**Observation:** every native UI script that uses `reset` stopped at its first reset. This affected `ui-records-explore`, `ui-options-submenus`, `ui-records-submenus`, `ui-main-branches`, `ui-rename-editor-explore` and `ui-league-probe`. The host logged `console reset` and then `*** CRASH (signal 11)`. Main's `native-ui-evidence` logs show the same failure, for example run `37177475536` with `UI_RECORDS_EXPLORE_STATUS=139`. Those steps are `continue-on-error` and their captures are `required: false`, so the lost evidence was silent: 1–3 of 6–12 dumps per script.
+
+**Two faults:**
+1. **Crash.** `RtlReset` called `g_spc_player->initialize()` unconditionally. This title registers no SPC player (it uses the LLE APU path), so `g_spc_player` is NULL (gdb: `RtlReset+326 call *0x10(%rax)`, `rax=0`). Upstream snesrecomp `ae921ee` guards it. Its runtime hunk is carried as `tools/patches/snesrecomp-reset-null-spc-player.patch`.
+2. **Wedge.** With the crash removed, the guest showed a black screen after reset. `$9F` stayed at `0x42` and low WRAM held a repeating `00 27 12 42` pattern. The scaffold-generated `game_rtl.c` keeps a host boot latch, `g_resume_pc`, and registers no `hardware_reset` hook. After `RtlReset` the frame driver therefore resumed the pre-reset main-loop PC on reset hardware. The framework header documents exactly this failure for titles without the hook. The scaffold template had no hook at the pin, and upstream HEAD still has none. `tools/patches/snesrecomp-template-hardware-reset.patch` adds `GameHardwareReset`, which clears `g_resume_pc` and the bridge's last LLE resume PC, and wires it as `.hardware_reset`. The modern product host patcher still adds `.session_reset` alongside it.
+
+**Validation (local, CI-equivalent modern-product build):**
+- All six reset-using scripts complete with every dump: 12/12, 12/12, 12/12, 6/6, 11/11 and 9/9.
+- In `ui-records-explore`, the five post-reset `*-before` frames are byte-identical, and the power-on frame differs. snesref (Snes9x) shows the same pattern: one power-on hash and five identical warm-reset hashes. Native reset now has the reference structure.
+- `tools/compare_engine_screen_text.py` now also covers `ui-records-explore`, `ui-records-submenus`, `ui-league-table` and `ui-name-league-route`. Together with the race-result and VS cases, all 36 checkpoints match snesref (`analysis/generated/native-screen-text-parity.json`).
+
+**Not covered:** `ui-stunt-result-route` and `ui-circuit-result-route` are native-calibrated (`turbo`, timed finishes) and time out on snesref, so they are not cross-engine text cases.
+
+**Addendum (full-state sweep, same 36 checkpoints):** a bounded follow-up compared raw VRAM, CGRAM, OAM and the framebuffer at every parity checkpoint. Snes9x dumps RGB565, so pixels were compared in 5-bit space with ±1 tolerance.
+- **VRAM:** byte-identical at all frontend checkpoints except one (`ui-record-group-back`, 16 bytes). The VS route has two diff regions, both outside the displayed BG data. Words `0x0DAC–0x0EB2` lie in an area no BG map or character base uses in Mode 3 with `BGxSC=02/13` and `NBA=23`. Words `0x7000+` are the second OBJ name table (`OBSEL=0x63`).
+- **Pixels:** every remaining difference is a phase of an animated element:
+  - the rotating arrow cursor (a constant 7 OAM bytes; about 400–700 pixels);
+  - the checkerboard palette cycle (8 CGRAM bytes; about 10–16k pixels);
+  - the background scroll (`ui-record-high-back`).
+- **Conclusion:** checkpoint frames differ by a small animation phase between the engines, consistent with the known host-frame anchoring offset. No content or state divergence was found. This stops here: further frame-alignment work would not change a fidelity verdict, unless a future check needs exact frontend frame identity.

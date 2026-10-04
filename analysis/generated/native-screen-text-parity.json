@@ -43,6 +43,728 @@
     }
    }
   },
+  "ui-league-table": {
+   "script": "tests/input/ui-league-table.script",
+   "input": null,
+   "snesref": {
+    "ui-league-select-entry": [
+     "ONE",
+     ":DEFINE ME",
+     "TWO",
+     ":DEFINE ME",
+     "THREE",
+     ":DEFINE ME",
+     "FOUR",
+     ":DEFINE ME",
+     "FIVE",
+     ":DEFINE ME",
+     "SIX",
+     ":DEFINE ME"
+    ],
+    "ui-league-table-entry": [
+     "ONE",
+     ":DEFINE ME",
+     "TWO",
+     ":DEFINE ME",
+     "THREE",
+     ":DEFINE ME",
+     "FOUR",
+     ":DEFINE ME",
+     "FIVE",
+     ":DEFINE ME",
+     "SIX",
+     ":DEFINE ME"
+    ],
+    "ui-league-table-back": [
+     "1P",
+     "2P",
+     "VS",
+     "LEAGUE",
+     "OPTIONS"
+    ]
+   },
+   "native": {
+    "ui-league-select-entry": [
+     "ONE",
+     ":DEFINE ME",
+     "TWO",
+     ":DEFINE ME",
+     "THREE",
+     ":DEFINE ME",
+     "FOUR",
+     ":DEFINE ME",
+     "FIVE",
+     ":DEFINE ME",
+     "SIX",
+     ":DEFINE ME"
+    ],
+    "ui-league-table-entry": [
+     "ONE",
+     ":DEFINE ME",
+     "TWO",
+     ":DEFINE ME",
+     "THREE",
+     ":DEFINE ME",
+     "FOUR",
+     ":DEFINE ME",
+     "FIVE",
+     ":DEFINE ME",
+     "SIX",
+     ":DEFINE ME"
+    ],
+    "ui-league-table-back": [
+     "1P",
+     "2P",
+     "VS",
+     "LEAGUE",
+     "OPTIONS"
+    ]
+   },
+   "comparison": {
+    "ui-league-select-entry": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-league-table-entry": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-league-table-back": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    }
+   }
+  },
+  "ui-name-league-route": {
+   "script": "tests/input/ui-name-league-route.script",
+   "input": null,
+   "snesref": {
+    "ui-define-league-selected": [
+     "RECORDS",
+     "DEFINE PLAYER",
+     "RENAME PLAYER",
+     "DEFINE LEAGUE",
+     "MAIN MENU"
+    ],
+    "ui-define-league-entry": [
+     "ONE",
+     ":DEFINE ME",
+     "TWO",
+     ":DEFINE ME",
+     "THREE",
+     ":DEFINE ME",
+     "FOUR",
+     ":DEFINE ME",
+     "FIVE",
+     ":DEFINE ME",
+     "SIX",
+     ":DEFINE ME"
+    ],
+    "ui-name-league-entry": [
+     "-",
+     "WARNING",
+     "-",
+     "THIS OPTION WILL REMOVE",
+     "DEFINE ME",
+     "SELECT+Y+A TO REMOVE"
+    ]
+   },
+   "native": {
+    "ui-define-league-selected": [
+     "RECORDS",
+     "DEFINE PLAYER",
+     "RENAME PLAYER",
+     "DEFINE LEAGUE",
+     "MAIN MENU"
+    ],
+    "ui-define-league-entry": [
+     "ONE",
+     ":DEFINE ME",
+     "TWO",
+     ":DEFINE ME",
+     "THREE",
+     ":DEFINE ME",
+     "FOUR",
+     ":DEFINE ME",
+     "FIVE",
+     ":DEFINE ME",
+     "SIX",
+     ":DEFINE ME"
+    ],
+    "ui-name-league-entry": [
+     "-",
+     "WARNING",
+     "-",
+     "THIS OPTION WILL REMOVE",
+     "DEFINE ME",
+     "SELECT+Y+A TO REMOVE"
+    ]
+   },
+   "comparison": {
+    "ui-define-league-selected": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-define-league-entry": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-name-league-entry": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    }
+   }
+  },
+  "ui-records-explore": {
+   "script": "tests/input/ui-records-explore.script",
+   "input": null,
+   "snesref": {
+    "ui-records-probe-down-before": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-down-after": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-up-before": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-up-after": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-left-before": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-left-after": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-right-before": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-right-after": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-a-before": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-a-after": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-b-before": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-b-after": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ]
+   },
+   "native": {
+    "ui-records-probe-down-before": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-down-after": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-up-before": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-up-after": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-left-before": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-left-after": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-right-before": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-right-after": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-a-before": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-a-after": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-b-before": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-probe-b-after": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ]
+   },
+   "comparison": {
+    "ui-records-probe-down-before": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-records-probe-down-after": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-records-probe-up-before": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-records-probe-up-after": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-records-probe-left-before": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-records-probe-left-after": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-records-probe-right-before": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-records-probe-right-after": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-records-probe-a-before": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-records-probe-a-after": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-records-probe-b-before": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-records-probe-b-after": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    }
+   }
+  },
+  "ui-records-submenus": {
+   "script": "tests/input/ui-records-submenus.script",
+   "input": null,
+   "snesref": {
+    "ui-records-track-selected": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-record-track-entry": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-record-track-back": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-high-selected": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-record-high-entry": [
+     "HIGH SCORES",
+     "CATEGORY:  NUM   BY",
+     "MOST WINS:    0   SOMEONE",
+     "MOST LOSSES:    0   SOMEONE",
+     "MOST RACES:    0   SOMEONE",
+     "BEST WIN AVG:    0%  SOMEONE",
+     "WORST WIN AVG:    0%  SOMEONE",
+     "TOTAL SCORE:    0   SOMEONE",
+     "BEST AVG SC:    0   SOMEONE",
+     "WORST AVG SC:    0   SOMEONE"
+    ],
+    "ui-record-high-back": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-player-selected": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-record-player-entry": [
+     "PLAYER SCORES",
+     "PLAYER:  MIKE",
+     "PLAYED:",
+     ":    0",
+     "WON:",
+     ":    0%",
+     "LOST:",
+     ":    0%",
+     "FAILED:",
+     ":    0%",
+     "SCORE:",
+     ":    0"
+    ],
+    "ui-record-player-back": [
+     "PLAYER SCORES",
+     "PLAYER:  MIKE",
+     "PLAYED:",
+     ":    0",
+     "WON:",
+     ":    0%",
+     "LOST:",
+     ":    0%",
+     "FAILED:",
+     ":    0%",
+     "SCORE:",
+     ":    0"
+    ],
+    "ui-records-group-selected": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-record-group-entry": [
+     "GROUP SCORES",
+     "DEFINE ME",
+     "PLAYER     0",
+     "0",
+     "-",
+     ":",
+     "-",
+     ":",
+     "-",
+     ":",
+     "-",
+     ":",
+     "-",
+     ":",
+     "-",
+     ":",
+     "-",
+     ":",
+     "-",
+     ":"
+    ],
+    "ui-record-group-back": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ]
+   },
+   "native": {
+    "ui-records-track-selected": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-record-track-entry": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-record-track-back": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-high-selected": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-record-high-entry": [
+     "HIGH SCORES",
+     "CATEGORY:  NUM   BY",
+     "MOST WINS:    0   SOMEONE",
+     "MOST LOSSES:    0   SOMEONE",
+     "MOST RACES:    0   SOMEONE",
+     "BEST WIN AVG:    0%  SOMEONE",
+     "WORST WIN AVG:    0%  SOMEONE",
+     "TOTAL SCORE:    0   SOMEONE",
+     "BEST AVG SC:    0   SOMEONE",
+     "WORST AVG SC:    0   SOMEONE"
+    ],
+    "ui-record-high-back": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-records-player-selected": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-record-player-entry": [
+     "PLAYER SCORES",
+     "PLAYER:  MIKE",
+     "PLAYED:",
+     ":    0",
+     "WON:",
+     ":    0%",
+     "LOST:",
+     ":    0%",
+     "FAILED:",
+     ":    0%",
+     "SCORE:",
+     ":    0"
+    ],
+    "ui-record-player-back": [
+     "PLAYER SCORES",
+     "PLAYER:  MIKE",
+     "PLAYED:",
+     ":    0",
+     "WON:",
+     ":    0%",
+     "LOST:",
+     ":    0%",
+     "FAILED:",
+     ":    0%",
+     "SCORE:",
+     ":    0"
+    ],
+    "ui-records-group-selected": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ],
+    "ui-record-group-entry": [
+     "GROUP SCORES",
+     "DEFINE ME",
+     "PLAYER     0",
+     "0",
+     "-",
+     ":",
+     "-",
+     ":",
+     "-",
+     ":",
+     "-",
+     ":",
+     "-",
+     ":",
+     "-",
+     ":",
+     "-",
+     ":",
+     "-",
+     ":"
+    ],
+    "ui-record-group-back": [
+     "TRACK RECORDS",
+     "HIGH SCORES",
+     "PLAYER SCORES",
+     "GROUP TABLES",
+     "MAIN MENU"
+    ]
+   },
+   "comparison": {
+    "ui-records-track-selected": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-record-track-entry": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-record-track-back": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-records-high-selected": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-record-high-entry": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-record-high-back": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-records-player-selected": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-record-player-entry": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-record-player-back": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-records-group-selected": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-record-group-entry": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "ui-record-group-back": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    }
+   }
+  },
   "vs-challenger": {
    "script": "tests/input/vs-challenger-route-observe.script",
    "input": "tests/input/vs-challenger-route.input",

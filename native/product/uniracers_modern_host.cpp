@@ -469,8 +469,9 @@ void diagnose_pause_state() {
     if (!std::getenv("UR_PRODUCT_DIAGNOSTICS") || !g_session) return;
     std::fprintf(
         stderr,
-        "UR_PAUSE_STATE paused=%d\n",
-        ur_modern_session_is_paused(g_session));
+        "UR_PAUSE_STATE paused=%d surface=%d\n",
+        ur_modern_session_is_paused(g_session),
+        static_cast<int>(g_surface));
     std::fflush(stderr);
 }
 

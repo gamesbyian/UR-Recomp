@@ -98,6 +98,20 @@ The first pass exposed only an evidence-packaging defect: scaffold headers were 
 
 This establishes that the generated authoritative guest/title code itself is architecture-portable to Switch. It does **not** yet link the SNES hardware/runtime model, run on hardware, prove deterministic parity, or close S2. The next S2 task is therefore the runtime-model link boundary, not rewriting generated guest code.
 
+### Gate S1.75 — authoritative runtime-floor portability
+
+**Closed.** Run `37240684525` cross-compiled the pinned non-desktop SNES runtime floor with devkitA64 and `__SWITCH__` defined. The accepted contract covers 32 framework translation units: common CPU/RTL infrastructure, CPU state/dispatch, the SNES CPU/DMA/PPU/APU/DSP hardware model, cartridge/joypad/coprocessor support, interpreter fallback and the AOT/LLE bridge.
+
+All 32 emitted AArch64 objects successfully, totaling 892,704 bytes in the retained run. Desktop host, launcher, save-state/rewind UI, debug server/oracle, mod UI/runtime, network/co-simulation and SDL/OpenGL presentation sources remain explicitly outside this floor.
+
+The first runtime pass exposed two boundary-header dependencies rather than implementation blockers:
+- `variables.h` is a scaffold-required title header and is empty until a title names WRAM variables;
+- `common_rtl.c` includes `config.h` but references no desktop `Config` fields.
+
+The probe therefore supplies only those narrow compile contracts rather than importing `runner/src/desktop` into the Switch runtime. It also stages the patched framework on a normal Ubuntu job before entering the devkitPro container, avoiding the older Python `TarFile.extractall(filter=...)` incompatibility in that image.
+
+Together with S1.5, this establishes source-level Switch portability for both the generated Uniracers guest/title code and the authoritative non-desktop runtime floor. The next S2 boundary is an actual guest + runtime link with explicit Switch host contracts, followed by hardware execution and deterministic parity.
+
 ### Gate S2 — authoritative simulation
 
 Link the same generated/recompiled simulation used by desktop.

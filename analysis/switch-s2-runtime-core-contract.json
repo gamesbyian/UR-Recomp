@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "gate": "S2-runtime-core-portability",
+  "purpose": "Cross-compile the authoritative non-desktop SNES runtime floor required around the generated Uniracers guest before attempting a full Switch link.",
+  "framework_revision": "cd5875cbdaf19f5e324272b1f8051d671fce9215",
+  "toolchain": {
+    "container": "devkitpro/devkita64:20260219",
+    "c_standard": "gnu11"
+  },
+  "compile_definitions": [
+    "__SWITCH__",
+    "SNESRECOMP_TRACE=0",
+    "SNESRECOMP_ENABLE_MODS=0",
+    "SNESRECOMP_FRAME_FINGERPRINTS=0",
+    "SNESRECOMP_PPU_DMA_HISTORY=0",
+    "SNESRECOMP_DISPATCH_HISTORY=0",
+    "SNESRECOMP_FUNC_SNAPSHOT=0",
+    "SNESRECOMP_STACK_BALANCE_DIAGNOSTICS=0",
+    "SNESRECOMP_BOOT_WATCHDOG_DIAGNOSTICS=0",
+    "SNESRECOMP_CPU_HW_DIAGNOSTICS=0",
+    "SNESRECOMP_SPC_DIAGNOSTICS=0",
+    "SNESRECOMP_EXECUTION_DEFAULT_MODE=SNESRECOMP_EXECUTION_MODE_OFF"
+  ],
+  "runtime_sources": [
+    "runner/src/common_cpu_infra.c",
+    "runner/src/common_rtl.c",
+    "runner/src/recomp_hw.c",
+    "runner/src/cpu_state.c",
+    "runner/src/program_module.c",
+    "runner/src/execution_mode.c",
+    "runner/src/util.c",
+    "runner/src/snes/apu.c",
+    "runner/src/snes/cart.c",
+    "runner/src/snes/cpu.c",
+    "runner/src/snes/dma.c",
+    "runner/src/snes/dsp.c",
+    "runner/src/snes/dsp1.c",
+    "runner/src/snes/dsp1_hle.c",
+    "runner/src/snes/joypad.c",
+    "runner/src/snes/audio_shadow.c",
+    "runner/src/snes/dsp_shadow.c",
+    "runner/src/snes/msu1.c",
+    "runner/src/snes/color_lut.c",
+    "runner/src/snes/ppu.c",
+    "runner/src/snes/ppu_legacy.c",
+    "runner/src/snes/sa1.c",
+    "runner/src/snes/sdd1.c",
+    "runner/src/snes/ws_shadow.c",
+    "runner/src/snes/snes.c",
+    "runner/src/snes/snes_other.c",
+    "runner/src/snes/spc.c",
+    "runner/src/snes/superfx.c",
+    "runner/src/snes/interp816.c",
+    "runner/src/snes/tier2_capture.c",
+    "runner/src/snes/interp_bridge.c",
+    "runner/src/snes/cx4.c"
+  ],
+  "include_dirs": [
+    "runner/src",
+    "runner/src/snes"
+  ],
+  "excluded_categories": [
+    "runner/src/desktop/**",
+    "launcher/front-end and picker code",
+    "save-state/rewind UI",
+    "debug server and emulator oracle",
+    "mod UI/runtime",
+    "network/co-simulation",
+    "host presentation and SDL/OpenGL adapters"
+  ],
+  "acceptance": [
+    "every declared runtime-floor source exists in the pinned framework",
+    "none of the declared sources is under runner/src/desktop",
+    "every declared source compiles with devkitA64 and __SWITCH__ defined",
+    "no Switch-specific simulation source fork is introduced",
+    "runtime-floor compilation does not require runner/src/desktop merely to satisfy config.h"
+  ],
+  "non_claims": [
+    "This is a compile gate, not a successful runtime link",
+    "This does not supply host contracts such as audio locks, draw callbacks, directories, or failure reporting",
+    "This does not run the guest on Switch hardware",
+    "This does not prove deterministic parity",
+    "This does not close Gate S2"
+  ],
+  "boundary_headers": {
+    "variables.h": "Scaffold-required title header; empty until named WRAM declarations are added.",
+    "config.h": "common_rtl.c includes the desktop config contract but references no Config fields; the probe supplies an empty header instead of importing desktop SDL configuration."
+  }
+}

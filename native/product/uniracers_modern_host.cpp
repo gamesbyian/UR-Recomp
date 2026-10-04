@@ -42,6 +42,7 @@ bool g_controls_visible;
 bool g_run_data_visible;
 bool g_quit_confirm_visible;
 bool g_display_caps_reported;
+bool g_profile_sram_reported;
 bool g_exit_frontend_waiting_for_main;
 bool g_exit_frontend_waiting_for_usable;
 bool g_exit_frontend_acceptance_fired;
@@ -1130,6 +1131,18 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     const SnesDesktopHostFrameStats*) {
     report_display_capabilities_once();
     if (!ensure_session()) return;
+
+    if (!g_profile_sram_reported &&
+        std::getenv("UR_PROFILE_SRAM_DIAGNOSTICS")) {
+        g_profile_sram_reported = true;
+        std::fprintf(
+            stderr,
+            "UR_PROFILE_SRAM LOADED root=%s digest=%08X size=%d\n",
+            RtlSaveRoot(),
+            static_cast<unsigned>(current_sram_digest()),
+            g_sram_size);
+        std::fflush(stderr);
+    }
 
     const UrUniracersRestartDecision decision =
         ur_uniracers_restart_policy_observe(

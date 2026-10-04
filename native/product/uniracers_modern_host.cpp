@@ -1112,6 +1112,8 @@ std::string default_run_record_directory() {
 bool begin_run_record_capture(uint64_t host_frame) {
     if (!run_record_capture_enabled()) return false;
 
+    snesrecomp_desktop_arm_relative_input(host_frame);
+
     const UrUniracersCourseIdentity course =
         ur_uniracers_identify_course(g_ram + 0x10000u, 0x10000u);
     if (!course.valid) {
@@ -1194,8 +1196,7 @@ void complete_run_record_capture() {
         std::ofstream replay(
             stored_path + ".input", std::ios::binary | std::ios::trunc);
         const std::string replay_text =
-            ur::product::encode_completed_run_input_file(
-                *record, g_run_capture_origin_frame);
+            ur::product::encode_completed_run_input_file(*record);
         replay.write(
             replay_text.data(),
             static_cast<std::streamsize>(replay_text.size()));

@@ -8,7 +8,7 @@
      if(POLICY CMP0135)
          cmake_policy(SET CMP0135 NEW)
      endif()
-@@ -20,4 +21,6 @@ if(SNESRECOMP_ENABLE_LUA)
+@@ -20,5 +21,7 @@ if(SNESRECOMP_ENABLE_LUA)
      else()
          target_link_libraries(snesrecomp_lua PRIVATE m)
      endif()

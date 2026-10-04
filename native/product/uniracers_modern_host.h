@@ -18,6 +18,8 @@ void ur_uniracers_modern_system_overlay(
     size_t pitch,
     int width,
     int height);
+/* 0 keeps presentation locked to authoritative guest cadence; positive
+ * values request only host-side re-presentation of captured frames. */
 double ur_uniracers_modern_presentation_hz(double display_refresh);
 
 #ifdef __cplusplus

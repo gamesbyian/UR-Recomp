@@ -8,6 +8,8 @@ on:
       - "analysis/switch-s1-runtime-shell-contract.json"
       - "tools/check_switch_s1_runtime_shell.py"
       - "tests/unit/test_switch_s1_runtime_shell.py"
+      - "tools/evaluate_switch_s1_report.py"
+      - "tests/unit/test_evaluate_switch_s1_report.py"
       - ".github/workflows/switch-s1-runtime-shell.yml"
 
 permissions:
@@ -32,7 +34,7 @@ jobs:
         run: |
           set -eu
           python3 tools/check_switch_s1_runtime_shell.py
-          python3 -m unittest tests.unit.test_switch_s1_runtime_shell
+          python3 -m unittest tests.unit.test_switch_s1_runtime_shell tests.unit.test_evaluate_switch_s1_report
 
       - name: Build hardware capability shell
         run: |

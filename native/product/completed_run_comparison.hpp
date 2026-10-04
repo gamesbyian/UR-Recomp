@@ -21,6 +21,13 @@ struct CompletedRunTimingComparison {
     std::vector<RunTimingDelta> splits;
 };
 
+/* Exact signed difference in authoritative 60 Hz ticks. Returns nullopt if the
+ * mathematical result cannot be represented by int64_t. Presentation consumers
+ * should reuse this rather than reimplementing signed PB/split arithmetic. */
+std::optional<std::int64_t> exact_run_timing_delta_ticks60(
+    std::uint64_t current,
+    std::uint64_t target);
+
 /* Compare timing metadata only when both records describe the same replay
  * domain and expose the same ordered split identities. No simulation state is
  * read or mutated. Returns nullopt rather than inventing a comparison. */

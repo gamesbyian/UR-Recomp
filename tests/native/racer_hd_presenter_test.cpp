@@ -20,6 +20,46 @@ int main() {
     assert(authored_tire != 0);
     assert(authored_tire != generic_tire);
 
+
+    // The authored source remains 4x, but the compositor may present it at
+    // any integer density from 1x through 4x. Centre sampling is identity at
+    // 4x and matches the established logical-centre sample at 1x.
+    static_assert(valid_racer_hd_internal_render_scale(1));
+    static_assert(valid_racer_hd_internal_render_scale(4));
+    static_assert(!valid_racer_hd_internal_render_scale(0));
+    static_assert(!valid_racer_hd_internal_render_scale(5));
+    for (int x = 0; x < kRacerHdAssetSize; x += 17) {
+        assert(racer_hd_scaled_sample_coordinate(x, 4) == x);
+        assert(
+            sample_racer_hd_scaled_asset(
+                *registration, x, 0, 4, false, false
+            ) ==
+            sample_racer_hd_asset(*registration, x, 0, false, false)
+        );
+    }
+    for (int logical = 0; logical < kRacerHdLogicalSize; logical += 7) {
+        assert(
+            racer_hd_scaled_sample_coordinate(logical, 1) ==
+            logical * kRacerHdDensityScale + kRacerHdDensityScale / 2
+        );
+    }
+    for (int scale = 1; scale <= kRacerHdDensityScale; ++scale) {
+        const int last = kRacerHdLogicalSize * scale - 1;
+        const int sample = racer_hd_scaled_sample_coordinate(last, scale);
+        assert(sample >= 0);
+        assert(sample < kRacerHdAssetSize);
+    }
+    assert(racer_hd_set_internal_render_scale(1));
+    assert(racer_hd_internal_render_scale() == 1);
+    assert(racer_hd_set_internal_render_scale(3));
+    assert(racer_hd_internal_render_scale() == 3);
+    assert(!racer_hd_set_internal_render_scale(0));
+    assert(racer_hd_internal_render_scale() == 3);
+    assert(!racer_hd_set_internal_render_scale(5));
+    assert(racer_hd_internal_render_scale() == 3);
+    assert(racer_hd_set_internal_render_scale(kRacerHdDensityScale));
+    assert(racer_hd_internal_render_scale() == kRacerHdDensityScale);
+
     // The immediately preceding exact 0541/0D2D composition has its own
     // authored temporal-neighbor candidate rather than falling through to the
     // generic contract placeholder.

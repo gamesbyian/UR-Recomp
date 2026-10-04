@@ -73,17 +73,26 @@ std::uint64_t guest_state_digest() noexcept {
     return h;
 }
 
-void copy_field(
+void copy_field_scaled(
     std::uint8_t* dst,
     std::size_t pitch,
-    const std::uint8_t* field
+    const std::uint8_t* field,
+    int scale
 ) noexcept {
     for (int y = 0; y < kBaseHeight; ++y) {
-        std::memcpy(
-            dst + static_cast<std::size_t>(y) * pitch,
-            field + static_cast<std::size_t>(y) * kBaseWidth * 4,
-            kBaseWidth * 4
+        const auto* src = reinterpret_cast<const std::uint32_t*>(
+            field + static_cast<std::size_t>(y) * kBaseWidth * 4
         );
+        for (int sy = 0; sy < scale; ++sy) {
+            auto* row = reinterpret_cast<std::uint32_t*>(
+                dst + static_cast<std::size_t>(y * scale + sy) * pitch
+            );
+            for (int x = 0; x < kBaseWidth; ++x) {
+                for (int sx = 0; sx < scale; ++sx) {
+                    row[x * scale + sx] = src[x];
+                }
+            }
+        }
     }
 }
 
@@ -91,22 +100,42 @@ void draw_asset(
     std::uint8_t* dst,
     std::size_t pitch,
     const RacerRegistration& registration,
-    const RacerOamPlacement& placement
+    const RacerOamPlacement& placement,
+    int scale
 ) noexcept {
-    const int origin_x = static_cast<int>(placement.x_signed);
-    const int origin_y = static_cast<int>(placement.y_raw_8bit);
-    const int out_w = kBaseWidth;
-    const int out_h = kBaseHeight;
+    const int origin_x = static_cast<int>(placement.x_signed) * scale;
+    const int origin_y = static_cast<int>(placement.y_raw_8bit) * scale;
+    const int out_w = kBaseWidth * scale;
+    const int out_h = kBaseHeight * scale;
+
+    if (scale == kRacerHdDensityScale) {
+        for (int sy = 0; sy < kRacerHdAssetSize; ++sy) {
+            const int dy = origin_y + sy;
+            if (dy < 0 || dy >= out_h) continue;
+            auto* row = reinterpret_cast<std::uint32_t*>(
+                dst + static_cast<std::size_t>(dy) * pitch
+            );
+            for (int sx = 0; sx < kRacerHdAssetSize; ++sx) {
+                const int dx = origin_x + sx;
+                if (dx < 0 || dx >= out_w) continue;
+                const std::uint32_t px = sample_racer_hd_asset(
+                    registration, sx, sy, placement.hflip, placement.vflip
+                );
+                if ((px >> 24) != 0) row[dx] = px;
+            }
+        }
+        return;
+    }
 
     for (int ly = 0; ly < kRacerHdLogicalSize; ++ly) {
-        const int dy = origin_y + ly;
-        if (dy < 0 || dy >= out_h) continue;
+        const int dy = static_cast<int>(placement.y_raw_8bit) + ly;
+        if (dy < 0 || dy >= kBaseHeight) continue;
         auto* row = reinterpret_cast<std::uint32_t*>(
             dst + static_cast<std::size_t>(dy) * pitch
         );
         for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
-            const int dx = origin_x + lx;
-            if (dx < 0 || dx >= out_w) continue;
+            const int dx = static_cast<int>(placement.x_signed) + lx;
+            if (dx < 0 || dx >= kBaseWidth) continue;
             const std::uint32_t px =
                 sample_racer_hd_presented_pixel(registration, placement, dx, dy);
             if ((px >> 24) != 0) row[dx] = px;
@@ -122,12 +151,15 @@ void racer_hd_prepare_frame(
     int* frame_w,
     int* frame_h
 ) noexcept {
-    // Keep the guest's authentic logical 4:3 surface. The registered asset is
-    // four times denser; this first draw-frame seam samples it into the stock
-    // 64x64 presentation footprint. A later high-density presenter can consume
-    // the same semantic asset without changing guest state or registration.
+    // Logical guest geometry remains authentic. High-density output is owned
+    // separately by racer_hd_presentation_scale(), so Widescreen/output-size
+    // policy and guest PPU geometry are not conflated with asset density.
     (void)frame_w;
     (void)frame_h;
+}
+
+int racer_hd_presentation_scale() noexcept {
+    return env_enabled() && g_frame_active ? kRacerHdDensityScale : 1;
 }
 
 void racer_hd_begin_sim_frame(unsigned number) noexcept {
@@ -242,19 +274,22 @@ int racer_hd_draw_frame(
     if (!env_enabled() || !g_frame_active || dst == nullptr || field == nullptr) {
         return 0;
     }
+    const int scale = racer_hd_presentation_scale();
     if (frame_w != kBaseWidth ||
         frame_h != kBaseHeight ||
-        pitch < static_cast<std::size_t>(frame_w) * 4) {
+        scale != kRacerHdDensityScale ||
+        pitch < static_cast<std::size_t>(frame_w * scale) * 4) {
         return 0;
     }
 
-    copy_field(dst, pitch, field);
+    copy_field_scaled(dst, pitch, field, scale);
     for (std::size_t i = 0; i < g_instance_count; ++i) {
         draw_asset(
             dst,
             pitch,
             *g_instances[i].registration,
-            g_instances[i].placement
+            g_instances[i].placement,
+            scale
         );
     }
 
@@ -271,7 +306,7 @@ int racer_hd_draw_frame(
             std::fprintf(
                 stderr,
                 "UR_RACER_HD_DRAW PASS frame=%u semantic=%04X viewport=%s slot=%u "
-                "x=%d y=%u hflip=%d vflip=%d density=4 guest_state_unchanged=1\n",
+                "x=%d y=%u hflip=%d vflip=%d density=4 output_scale=%d guest_state_unchanged=1\n",
                 g_sim_frame,
                 static_cast<unsigned>(instance.semantic_frame_id),
                 instance.viewport == RacerViewport::Top ? "top" : "bottom",
@@ -279,7 +314,8 @@ int racer_hd_draw_frame(
                 static_cast<int>(instance.placement.x_signed),
                 static_cast<unsigned>(instance.placement.y_raw_8bit),
                 instance.placement.hflip ? 1 : 0,
-                instance.placement.vflip ? 1 : 0
+                instance.placement.vflip ? 1 : 0,
+                scale
             );
         }
         g_last_logged_p1_registration = p1_registration;

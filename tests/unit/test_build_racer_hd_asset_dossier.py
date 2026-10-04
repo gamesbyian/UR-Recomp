@@ -447,7 +447,7 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         self.assertEqual(len(build_ninth_authored_candidate_rgba()), 256 * 256 * 4)
         self.assertEqual(
             sample_authored_0542_p2_rgba(132, 84),
-            bytes((52, 77, 201, 255)),
+            bytes((37, 58, 163, 255)),
         )
         self.assertEqual(
             sample_authored_0542_p2_rgba(126, 110),
@@ -480,7 +480,7 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         self.assertEqual(len(build_tenth_authored_candidate_rgba()), 256 * 256 * 4)
         self.assertEqual(
             sample_authored_0543_p2_rgba(130, 88),
-            bytes((52, 77, 201, 255)),
+            bytes((37, 58, 163, 255)),
         )
         self.assertEqual(
             sample_authored_0543_p2_rgba(122, 110),

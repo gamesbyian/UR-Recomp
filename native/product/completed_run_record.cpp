@@ -173,12 +173,12 @@ std::string encode_completed_run_record(const CompletedRunRecord& record) {
     return body + "checksum " + checksum_hex(body) + "\n";
 }
 
-std::string encode_completed_run_input_file(const CompletedRunRecord& record) {
+std::string encode_completed_run_input_file(\n    const CompletedRunRecord& record,\n    std::uint64_t frame_offset) {
     std::string detail;
     if (!validate_completed_run_record(record, &detail)) return {};
     std::ostringstream out;
     for (const auto& input : record.inputs) {
-        out << input.start_frame << ":" << input.duration << ":"
+        out << (input.start_frame + frame_offset) << ":" << input.duration << ":"
             << std::hex << std::uppercase << input.p1_mask << ":"
             << input.p2_mask << std::dec << "\n";
     }

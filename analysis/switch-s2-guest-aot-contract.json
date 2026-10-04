@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "gate": "S2-guest-aot-portability",
+  "purpose": "Prove the generated authoritative Uniracers guest/title C can compile for Switch AArch64 independently of the desktop runner.",
+  "framework_revision": "cd5875cbdaf19f5e324272b1f8051d671fce9215",
+  "toolchain": {
+    "container": "devkitpro/devkita64:20260219",
+    "c_standard": "gnu11"
+  },
+  "project_sources": [
+    "src/game_rtl.c",
+    "src/host_contract.c",
+    "src/gen_stubs.c",
+    "src/gen/*.c"
+  ],
+  "include_roots": [
+    "framework/runner/src",
+    "framework/runner/src/snes",
+    "project/src",
+    "project/recomp"
+  ],
+  "excluded_sources": [
+    "src/main.c",
+    "framework/runner/src/desktop/**"
+  ],
+  "acceptance": [
+    "the canonical USA ROM is verified before generation",
+    "the repository-owned patched SNESRecomp framework is staged offline",
+    "AOT C is generated from the canonical ROM and scaffold CFG",
+    "game_rtl.c, host_contract.c, gen_stubs.c and every generated src/gen/*.c file compile with devkitA64 and __SWITCH__ defined",
+    "the probe compiles no desktop host translation unit"
+  ],
+  "non_claims": [
+    "This does not link the SNES hardware/runtime model yet",
+    "This does not run the guest on Switch hardware",
+    "This does not prove event-relative deterministic parity on Switch",
+    "This does not close Gate S2",
+    "This does not modify generated simulation semantics"
+  ]
+}

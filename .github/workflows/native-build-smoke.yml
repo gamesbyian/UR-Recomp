@@ -30,6 +30,9 @@ on:
       - "tests/unit/test_uniracers_ws_margins_c.py"
       - "tests/input/vs-first-race.input"
       - "tests/input/vs-first-race-observe.script"
+      - "tests/input/two-player-first-race.input"
+      - "tests/input/two-player-first-race-observe.script"
+      - "tools/patches/snesrecomp-ws-shadow-split-band.patch"
       - "tests/input/reach-first-race.script"
       - "tests/input/modern-focus-pause.script"
       - "tests/input/modern-exit-frontend-results.script"
@@ -654,24 +657,38 @@ jobs:
             exit 1
           fi
 
-          # VS stays centred, and the product never writes the guest lane, so
-          # the persisted 16:9 setting must leave VS frames and WRAM stock.
-          VS_INPUT="$GITHUB_WORKSPACE/tests/input/vs-first-race.input"
-          VS_SCRIPT="$GITHUB_WORKSPACE/tests/input/vs-first-race-observe.script"
-          for view in original 16x9; do
-            OUT="$RUNNER_TEMP/widescreen-product-vs-$view"
-            mkdir -p "$OUT/dumps"
-            sed "s/^widescreen=.*/widescreen=$view/" "$ROOT/host-state-v6.txt" >"$OUT/state.txt"
-            reset_saves
-            UR_PRODUCT_DIAGNOSTICS=1 \
-            UR_HOST_STATE_PATH="$OUT/state.txt" \
-            URRECOMP_WS_NATIVE_TRACE=1 \
-            SNESRECOMP_INPUT_FILE="$VS_INPUT" \
-            SNESRECOMP_DUMP_DIR="$OUT/dumps" \
-            SDL_AUDIODRIVER=dummy \
-            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$VS_SCRIPT" \
-              >"$OUT/run.log" 2>&1
-          done
+          # Split-screen races (VS and ordinary 2P) widen too: each viewport is
+          # its own calibrated margin band, and the authored picture and guest
+          # WRAM must still match the Original view exactly.
+          split_route() {
+            local name="$1" input="$2" script="$3"
+            for view in original 16x9; do
+              OUT="$RUNNER_TEMP/widescreen-product-$name-$view"
+              mkdir -p "$OUT/dumps"
+              sed "s/^widescreen=.*/widescreen=$view/" "$ROOT/host-state-v6.txt" >"$OUT/state.txt"
+              reset_saves
+              UR_PRODUCT_DIAGNOSTICS=1 \
+              UR_HOST_STATE_PATH="$OUT/state.txt" \
+              URRECOMP_WS_NATIVE_TRACE=1 \
+              SNESRECOMP_INPUT_FILE="$input" \
+              SNESRECOMP_DUMP_DIR="$OUT/dumps" \
+              SDL_AUDIODRIVER=dummy \
+              timeout 150s xvfb-run -a "$EXE" "$ROM" --script "$script" \
+                >"$OUT/run.log" 2>&1
+            done
+            local log="$RUNNER_TEMP/widescreen-product-$name-16x9/run.log"
+            grep -q "URWS_MARGINS CALIBRATED band=0" "$log"
+            grep -q "URWS_MARGINS CALIBRATED band=1" "$log"
+            if grep -q "URWS_MARGINS LOST" "$log"; then
+              grep "URWS_MARGINS" "$log"
+              echo "::error::$name margin presenter lost its course calibration"
+              exit 1
+            fi
+          }
+
+          split_route vs \
+            "$GITHUB_WORKSPACE/tests/input/vs-first-race.input" \
+            "$GITHUB_WORKSPACE/tests/input/vs-first-race-observe.script"
           grep -q "URWS_VS_MATERIALIZER margin=48 player=1 calibrated=1" \
             "$RUNNER_TEMP/widescreen-product-vs-16x9/run.log"
           python3 tools/check_widescreen_product_parity.py \
@@ -681,6 +698,35 @@ jobs:
             --checkpoint vs-race-1340 \
             --checkpoint vs-race-1620 \
             --out "$RUNNER_TEMP/widescreen-product-vs-parity.json"
+
+          split_route two-player \
+            "$GITHUB_WORKSPACE/tests/input/two-player-first-race.input" \
+            "$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"
+          python3 tools/check_widescreen_product_parity.py \
+            --stock-dumps "$RUNNER_TEMP/widescreen-product-two-player-original/dumps" \
+            --wide-dumps "$RUNNER_TEMP/widescreen-product-two-player-16x9/dumps" \
+            --checkpoint two-player-race-1220 \
+            --checkpoint two-player-race-1420 \
+            --checkpoint two-player-both-post-1620 \
+            --out "$RUNNER_TEMP/widescreen-product-two-player-parity.json"
+
+          python3 - "$RUNNER_TEMP" <<'PY'
+          import pathlib, struct, sys
+          root = pathlib.Path(sys.argv[1])
+          def dims(path):
+              raw = path.read_bytes()
+              return struct.unpack_from("<i", raw, 18)[0], abs(struct.unpack_from("<i", raw, 22)[0])
+          checks = {
+              "vs": ("vs-race-1240", "vs-race-1340", "vs-race-1620"),
+              "two-player": ("two-player-race-1220", "two-player-race-1420", "two-player-both-post-1620"),
+          }
+          for name, tags in checks.items():
+              for tag in tags:
+                  d = dims(root / f"widescreen-product-{name}-16x9/dumps/{tag}.fb.bmp")
+                  if d != (342, 224):
+                      raise SystemExit(f"{name}/{tag} did not widen to 342x224: {d}")
+          print("WIDESCREEN_PRODUCT_SPLIT widened=342x224")
+          PY
 
           rm -rf "$SAVES"
           if [ -d "$RUNNER_TEMP/ws-saves-post" ]; then cp -a "$RUNNER_TEMP/ws-saves-post" "$SAVES"; fi

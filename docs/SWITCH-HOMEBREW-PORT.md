@@ -66,15 +66,37 @@ Current result: profile/state persistence, pause/options/session policy, restart
 
 ### Gate S1 — runtime shell
 
-On hardware, prove:
-- app lifecycle enters/exits cleanly;
-- 720p handheld and 1080p docked presentation surfaces;
-- Pro Controller/Joy-Con/handheld input;
+**Software shell implemented and cross-build accepted; hardware acceptance still open.** Run `37239380410` validates the repository-owned S1 shell in the pinned devkitA64 environment: the scope validator and hardware-report evaluator pass, and the SDL2/libnx application compiles, links, packages as an NRO and retains build metadata. The first link attempt exposed a real Switch static-link requirement for libm through SDL2/Mesa/EGL; the Makefile now retains that dependency explicitly.
+
+The hardware shell under `platform/switch/s1_runtime_shell/` is deliberately guest-free and records observations to `ur-recomp-s1-capability-report.txt`. It probes:
+- clean applet-loop lifecycle and explicit exit;
+- 1280×720 handheld and 1920×1080 console targets using live operation mode;
+- standard libnx controller styles, retaining the styles actually observed;
+- SDL2 audio-device initialization;
+- a write/read/delete round trip in the SD-backed application working directory;
+- SDL background/foreground lifecycle events as suspend/resume evidence.
+
+`tools/evaluate_switch_s1_report.py` provides the retained hardware gate. Multiple sessions may be combined so handheld, docked, Pro Controller and Joy-Con coverage need not occur simultaneously, but each session must still initialize display/audio/storage and exit cleanly. CI explicitly records `hardware_acceptance=not_run_in_ci`; it cannot close S1.
+
+On hardware, still prove:
+- both handheld and console operation modes;
+- Pro Controller, Joy-Con and handheld input;
 - audio initialization;
 - writable application storage;
-- suspend/resume behavior.
+- background then foreground lifecycle events across suspend/resume;
+- clean exit.
 
-Exit: host capability report with no guest simulation dependency.
+Exit: evaluator passes retained on-device capability report(s) with no guest simulation dependency.
+
+### Gate S1.5 — generated guest AOT portability
+
+**Closed.** Run `37239842625` verifies the canonical USA ROM, stages the repository-owned patched SNESRecomp framework, generates fresh Uniracers AOT C, transfers that exact source bundle into the pinned devkitA64 container, and cross-compiles the title driver plus all generated guest translation units for Switch AArch64.
+
+The accepted bundle contains 11 C translation units: `game_rtl.c`, `host_contract.c`, `gen_stubs.c`, and 8 generated `src/gen/*.c` banks. All 11 emitted AArch64 objects successfully (391,848 bytes total in the retained run). The desktop `main.c` and desktop runner sources are explicitly excluded.
+
+The first pass exposed only an evidence-packaging defect: scaffold headers were omitted from the cross-job bundle. After carrying the actual project headers, the same compile gate passed without simulation-source modifications.
+
+This establishes that the generated authoritative guest/title code itself is architecture-portable to Switch. It does **not** yet link the SNES hardware/runtime model, run on hardware, prove deterministic parity, or close S2. The next S2 task is therefore the runtime-model link boundary, not rewriting generated guest code.
 
 ### Gate S2 — authoritative simulation
 

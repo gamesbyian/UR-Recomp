@@ -1,0 +1,132 @@
+name: Switch S2 guest AOT portability
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "analysis/switch-s2-guest-aot-contract.json"
+      - "tools/build_switch_s2_guest_probe.py"
+      - "tests/unit/test_switch_s2_guest_aot.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "rom_identity.txt"
+      - ".github/workflows/switch-s2-guest-aot.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: switch-s2-guest-aot-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generate-guest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Stage patched SNESRecomp framework
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+
+      - name: Scaffold and generate authoritative guest C
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/switch-s2-generate"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          mkdir -p "$TMP"
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$ROM" \
+              --dir "$TMP" \
+              --name "Uniracers" \
+              --players 2 \
+              --yes \
+              --no-ci \
+              --no-fetch-boxart \
+              --no-recomp-ui \
+              --no-netplay \
+              --no-github \
+              --no-submodules \
+              --no-generate \
+              --no-build
+          PROJECT="$TMP/UniracersSNESRecomp"
+          python3 "$FRAMEWORK/snesrecomp_cli.py" generate \
+            --rom "$ROM" \
+            --project-root "$PROJECT" \
+            --cfg-dir recomp \
+            --out-dir src/gen \
+            --funcs-h recomp/funcs.h \
+            --cfg-roots
+          test -s "$PROJECT/recomp/funcs.h"
+          test "$(find "$PROJECT/src/gen" -name '*.c' -type f | wc -l)" -gt 0
+
+          BUNDLE="$RUNNER_TEMP/switch-s2-bundle"
+          mkdir -p "$BUNDLE/project/src" "$BUNDLE/project/recomp" "$BUNDLE/framework/runner"
+          cp "$PROJECT/src/game_rtl.c" "$BUNDLE/project/src/"
+          cp "$PROJECT/src/host_contract.c" "$BUNDLE/project/src/"
+          cp "$PROJECT/src/gen_stubs.c" "$BUNDLE/project/src/"
+          cp "$PROJECT/src/"*.h "$BUNDLE/project/src/"
+          cp -R "$PROJECT/src/gen" "$BUNDLE/project/src/"
+          cp "$PROJECT/recomp/"*.h "$BUNDLE/project/recomp/"
+          cp -R "$FRAMEWORK/runner/src" "$BUNDLE/framework/runner/"
+          python3 tools/build_switch_s2_guest_probe.py \
+            --bundle "$BUNDLE" \
+            --out-dir "$RUNNER_TEMP/unused" \
+            --check-only
+
+      - name: Upload generated guest bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: switch-s2-guest-bundle
+          path: ${{ runner.temp }}/switch-s2-bundle/
+          retention-days: 1
+
+  cross-compile:
+    needs: generate-guest
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container:
+      image: devkitpro/devkita64:20260219
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Download generated guest bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: switch-s2-guest-bundle
+          path: /tmp/switch-s2-bundle
+
+      - name: Validate contract tests
+        run: |
+          set -eu
+          python3 -m unittest tests.unit.test_switch_s2_guest_aot
+
+      - name: Cross-compile generated guest and title driver
+        run: |
+          set -eu
+          . "$DEVKITPRO/switchvars.sh"
+          python3 tools/build_switch_s2_guest_probe.py \
+            --bundle /tmp/switch-s2-bundle \
+            --out-dir /tmp/switch-s2-objects \
+            --jobs 2 \
+            --json-out /tmp/switch-s2-result.json
+          test "$(find /tmp/switch-s2-objects -name '*.o' -type f | wc -l)" -gt 3
+          cat /tmp/switch-s2-result.json
+
+      - name: Upload S2 compile evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: switch-s2-guest-aot-result
+          path: /tmp/switch-s2-result.json
+          retention-days: 14

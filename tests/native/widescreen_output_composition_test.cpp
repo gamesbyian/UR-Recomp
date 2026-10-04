@@ -94,6 +94,9 @@ int main() {
     assert(observe_widescreen_scene(&scene, 0x00, 0x3E) ==
            HostSceneComposition::FixedCenter);
     assert(observe_widescreen_scene(&scene, 0x01, 0x00) ==
+           HostSceneComposition::WorldExpand);
+    // VS results remain centered.
+    assert(observe_widescreen_scene(&scene, 0x00, 0xF9) ==
            HostSceneComposition::FixedCenter);
 
     reset_widescreen_scene_state(&scene);

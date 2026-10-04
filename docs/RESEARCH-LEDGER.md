@@ -2416,3 +2416,34 @@ Native smoke gates all of this.
 **Still open:**
 - **Split-screen.** Ordinary 2P and VS carry two BG1 scroll origins per frame (top and bottom viewports), which one world-keyed `ws_shadow` layer cannot hold. Ordinary 2P margins therefore remain unpresented (stale ring content beyond the stock view), and VS stays centred. A per-viewport presenter is the next Widescreen step.
 - **Run-variant byte.** `$0069` (82:8082 accumulator) is classified as run-variant per R-SEED-018 and excluded from the leak count.
+
+### R-2026-10-04-UI-30 — Split-screen Widescreen margins: per-viewport course-model bands; VS widens
+
+**Status:** confirmed (local product build; native smoke gates VS and ordinary 2P)  
+**Date:** 2026-10-04  
+**Area:** Widescreen | presentation
+
+**Observation:** in split-screen races, BG1 carries one HDMA band per viewport. The channel 4 table at `$7E:2046` gives the top 112 lines one H/V scroll and the bottom lines another. Channel 2 (`$7E:207F`) switches BG1SC between `$0C` and `$1C`, so each viewport has its own tilemap ring. Under UI-29's single-origin presenter, ordinary-2P margins were raw ring content; an offline audit found 5–6 of 42 top-viewport margin tiles disagreeing with the course model. VS was still centred.
+
+**Interpretation:**
+- Both viewports show the same course. A world-keyed store can therefore be shared, and only the origin depends on the scanline.
+- The lower viewport's V scroll is pre-reduced by its 112-line start, so the camera aligns with BG row `(V + first_line) >> 4`, not `V >> 4`. The first calibration attempt missed this and failed closed, so the presenter stayed off.
+
+**Change:**
+- **Framework.** `tools/patches/snesrecomp-ws-shadow-split-band.patch` adds `WsShadowSetSplit` (a second world/scroll origin for lines ≥ a split) and `WsShadowSetLine`. The PPU announces each line from `PpuDrawBackgrounds`, and margin lookups plus the pixel-phase accessors select the band that owns it.
+- **Title module.** `native/title/uniracers_ws_margins.c` parses both HDMA tables into ≤2 bands, failing closed on repeat mode, misalignment or >2 origins. It calibrates each band against its own tilemap and camera (P1 `$0419/$041D`, P2 `$041B/$041F`). It then forces every margin cell from course data, so stale captures never win.
+- **Product.** VS joins 1P and ordinary 2P as world-expand.
+
+**Evidence (local):**
+- **2P:** both bands calibrate to cell offset (52, 34) and never lose lock. The 2P checkpoints 1220/1420/1620 are centre-pixel-identical to Original with zero leaked WRAM.
+- **VS:** checkpoints 1240/1340/1620 are 342×224, centre-identical and WRAM-confined.
+- **1P:** race start and after-scroll remain accepted.
+- **Visual:** both viewports show continuous course art in both margins, with no seam at the split.
+
+**Margin layers and sprites (same day):**
+- **BG2.** The backdrop needs no host presentation. Its 64×64 8×8 tilemap (BG2SC `$73`) is static across the race: 0 of 4096 words change between race start and after-scroll. Its VRAM wrap is therefore its world wrap.
+- **Left-margin sprites.** Racers need no work. The 1P opponent spends 191 of 916 race frames 1–43 px left of the view and is drawn there through 9-bit negative OAM X.
+- **Right-margin sprites.** Presence there is rare and transient: 3 consecutive frames (1350–1352, the race-start camera transition) in frames 1000–6000 of `two-player-p1-win`.
+
+**Decision:** accept stock right-edge culling. Reopen criteria are recorded in `analysis/widescreen-policy.yml`.
+

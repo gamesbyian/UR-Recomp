@@ -20,7 +20,7 @@
 +}
  
  /* The last field actually presented, kept so an overlay can freeze the guest
-@@ -4011,4 +4025,34 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **a
+@@ -4011,4 +4025,35 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **a
      }
      if (!running)
        break;

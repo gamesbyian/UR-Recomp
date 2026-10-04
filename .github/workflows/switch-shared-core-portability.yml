@@ -1,0 +1,44 @@
+name: Switch shared-core portability
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "native/product/**"
+      - "native/title/**"
+      - "analysis/switch-shared-core-contract.json"
+      - "tools/build_switch_shared_core_probe.py"
+      - "tests/unit/test_switch_shared_core_portability.py"
+      - ".github/workflows/switch-shared-core-portability.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: switch-shared-core-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cross-compile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    container:
+      image: devkitpro/devkita64:20260219
+
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Validate portability manifest
+        run: |
+          set -eu
+          python3 tools/build_switch_shared_core_probe.py --check-only
+          python3 -m unittest tests.unit.test_switch_shared_core_portability
+
+      - name: Cross-compile shared modern core
+        run: |
+          set -eu
+          . "$DEVKITPRO/switchvars.sh"
+          python3 tools/build_switch_shared_core_probe.py --out-dir "$RUNNER_TEMP/switch-shared-core"
+          test "$(find "$RUNNER_TEMP/switch-shared-core" -name '*.o' -type f | wc -l)" -eq 21
+          du -ch "$RUNNER_TEMP/switch-shared-core"/*.o | tail -n1

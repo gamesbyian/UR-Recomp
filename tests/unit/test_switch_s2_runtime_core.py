@@ -11,6 +11,8 @@ class SwitchS2RuntimeCoreContractTest(unittest.TestCase):
         self.assertFalse(
             any("/desktop/" in source for source in contract["runtime_sources"])
         )
+        self.assertIn("variables.h", contract["boundary_headers"])
+        self.assertIn("config.h", contract["boundary_headers"])
 
     def test_contract_keeps_switch_compile_separate_from_s2_acceptance(self):
         contract = load_contract()

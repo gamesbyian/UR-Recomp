@@ -37,8 +37,54 @@ bool g_options_visible;
 bool g_controls_visible;
 bool g_run_data_visible;
 bool g_quit_confirm_visible;
+bool g_display_caps_reported;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
+
+// Acceptance-only capability probe. Ordinary product code must consume the
+// normalized host contract rather than SDL display identifiers or mode lists.
+// The probe also verifies exact-mode and index validation fail closed before
+// output resolution is allowed to become a persisted product setting.
+void report_display_capabilities_once() {
+    if (g_display_caps_reported ||
+        !std::getenv("UR_DISPLAY_CAPS_DIAGNOSTICS")) {
+        return;
+    }
+    g_display_caps_reported = true;
+
+    const int count = snesrecomp_desktop_output_mode_count();
+    SnesDesktopOutputMode native{};
+    SnesDesktopOutputMode first{};
+    const int native_ok =
+        snesrecomp_desktop_get_native_output_mode(&native);
+    const int first_ok =
+        count > 0 ? snesrecomp_desktop_get_output_mode(0, &first) : 0;
+    const int apply_ok =
+        first_ok ? snesrecomp_desktop_set_output_mode(&first) : 0;
+    const SnesDesktopOutputMode impossible{1, 1, 12345};
+    const int reject_ok =
+        !snesrecomp_desktop_set_output_mode(&impossible);
+    SnesDesktopOutputMode out_of_range{};
+    const int range_reject_ok =
+        !snesrecomp_desktop_get_output_mode(count, &out_of_range);
+
+    std::fprintf(
+        stderr,
+        "UR_DISPLAY_CAPS modes=%d native_ok=%d native=%dx%d@%d first_ok=%d first=%dx%d@%d apply_ok=%d reject_ok=%d range_reject_ok=%d\n",
+        count,
+        native_ok,
+        native.width,
+        native.height,
+        native.refresh_millihz,
+        first_ok,
+        first.width,
+        first.height,
+        first.refresh_millihz,
+        apply_ok,
+        reject_ok,
+        range_reject_ok);
+    std::fflush(stderr);
+}
 
 bool modern_mode() {
     const char* mode = std::getenv("UR_EXECUTION_MODE");
@@ -598,6 +644,7 @@ extern "C" double ur_uniracers_modern_presentation_hz(
 
 extern "C" void ur_uniracers_modern_after_run_frame(
     const SnesDesktopHostFrameStats*) {
+    report_display_capabilities_once();
     if (!ensure_session()) return;
 
     const UrUniracersRestartDecision decision =

@@ -60,9 +60,13 @@
     {
       "path": "tools/patches/snesrecomp-live-display-mode.patch",
       "sha256": "62b2f945738e7a595d6f4551d7c41c232c74ed5a7dfa62a7c346a24e309b52be"
+    },
+    {
+      "path": "tools/patches/snesrecomp-display-mode-capability.patch",
+      "sha256": "0081034fde16304cbe5c0e2c5032b45d55d6521deba313cb9a47270607166388"
     }
   ],
-  "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive. UR-Recomp's permanent native build uses host SDL2, disables SDL3 source fetching, carries narrow project patches for exact neutral controller-stream replay and modern host integration, exposes the existing host-owned pause gate and live renderer VSync and desktop display-mode policy for modern product settings, and exposes the framework's guest-frame APU timing lock needed by deterministic host-owned race restart.",
+  "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive. UR-Recomp's permanent native build uses host SDL2, disables SDL3 source fetching, carries narrow project patches for exact neutral controller-stream replay and modern host integration, exposes the existing host-owned pause gate and live renderer VSync and desktop display-mode policy plus normalized active-monitor mode enumeration/application for modern product settings, and exposes the framework's guest-frame APU timing lock needed by deterministic host-owned race restart.",
   "revision": "cd5875cbdaf19f5e324272b1f8051d671fce9215",
   "url": "https://github.com/RetroPortingToolKit/snesrecomp.git"
 }

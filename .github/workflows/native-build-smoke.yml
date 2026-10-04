@@ -107,6 +107,7 @@ jobs:
           grep -q "ur_uniracers_modern_system_key_down" "$ROOT/src/main.c"
           grep -q "ur_uniracers_modern_system_gamepad_button" "$ROOT/src/main.c"
           grep -q "ur_uniracers_modern_system_overlay" "$ROOT/src/main.c"
+          grep -q "ur_uniracers_modern_native_widescreen_enabled" "$ROOT/src/main.c"
           grep -q "uniracers_modern_host.cpp" "$ROOT/CMakeLists.txt"
           grep -q "\.session_reset = &GameSessionReset" "$ROOT/src/game_rtl.c"
 

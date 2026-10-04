@@ -2055,7 +2055,7 @@
     }
   ],
   "motion_review_sequence": {
-    "status": "candidate sequence-level gate; authored native acceptance pending",
+    "status": "accepted authored sequence-level motion gate; not approved shipping art",
     "window_start": 1205,
     "window_end": 1220,
     "sampling": "authored 4x logical pixel centres (x*4+2, y*4+2)",
@@ -2150,6 +2150,22 @@
         "p1_representation_id": "ordinary-racer-0x0541-p1-sync-reference",
         "p2_representation_id": "ordinary-racer-0x0540-p2-sync-reference"
       }
-    ]
+    ],
+    "acceptance_run": 37174986502,
+    "acceptance_artifact_id": 11292529288,
+    "measured": {
+      "p1": {
+        "static_edges": 9,
+        "dynamic_edges": 6,
+        "dynamic_ratio_min": 1.1333333333333333,
+        "dynamic_ratio_max": 2.142857142857143
+      },
+      "p2": {
+        "static_edges": 12,
+        "dynamic_edges": 3,
+        "dynamic_ratio_min": 0.9607843137254902,
+        "dynamic_ratio_max": 1.4943820224719102
+      }
+    }
   }
 }

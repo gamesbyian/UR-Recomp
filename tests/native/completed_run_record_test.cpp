@@ -35,7 +35,7 @@ CompletedRunRecord representative_dragster_run() {
 }
 
 std::uint64_t fnv1a64(const std::string& text) {
-    std::uint64_t hash = 1469598103934665603ull;
+    std::uint64_t hash = 14695981039346656037ull;
     for (unsigned char c : text) {
         hash ^= c;
         hash *= 1099511628211ull;

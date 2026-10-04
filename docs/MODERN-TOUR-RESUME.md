@@ -18,7 +18,7 @@ The runtime rider/tour values are used only after the frontend has reached a sem
 
 ## Profile representation
 
-Host profile schema v2 adds one optional unfinished-tour continuation:
+Profile-local cartridge saves use the flat framework-creatable namespace `saves/profile-<profile-id>`. The pinned framework only creates `saves` plus one leaf, so a deeper `saves/profiles/<id>` path is deliberately avoided on first run.\n\nHost profile schema v2 adds one optional unfinished-tour continuation:
 
 - rider index;
 - tour row;

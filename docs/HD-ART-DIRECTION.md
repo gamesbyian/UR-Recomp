@@ -98,6 +98,8 @@ The next actual visual change, repeated frames 1215–1216 exact P1 `057F/0542 +
 
 The immediately preceding repeated P1 state `057E/0543 + 0D49/0000` at frames 1213–1214 (also 1205–1206) is now motion-reviewed as the next distinct stock pose. Its authored asset inherits the accepted 057F material/lighting treatment and expands only the evidence-backed geometry to stock envelope `[21,2]..[42,38]` with contact `[67,76]`. Gameplay-scale review measures 251 overlapping logical pixels over a 405-pixel union (IoU `0.6197530864`), with 331 candidate opaque pixels versus 325 stock. Native run `37163141373` is green through live split-screen presentation and guest-state invariants; artifact `11288098806` retains the dossier. This remains review art, not shipping-art approval.
 
+The six-frame P1 state immediately before that, `057D/0543 + 0D48/0000` at frames 1207–1212, is the next distinct retained pose. Its candidate continues the same reviewed material and object-local lighting language while fitting stock envelope `[21,3]..[43,38]` and contact `[69,76]`. Native/dossier acceptance is the remaining gate; no new visual-language decision is introduced.
+
 Secondary appearance references include the official North American/European packaging scans and the 2010 developer feature. They agree with the stock dossier on dark wheel/saddle masses, colored glossy body/frame forms, and brighter neutral hardware. Do not copy marketing-only sparkle/star effects into ordinary gameplay frames merely because they appear in packaging art.
 
 Reference provenance:

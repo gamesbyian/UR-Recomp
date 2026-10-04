@@ -958,6 +958,12 @@ bool activate_pause_selection() {
 
 }  // namespace
 
+extern "C" int ur_uniracers_modern_native_widescreen_enabled(void) {
+    return authentic_16x9_view_enabled() &&
+           g_widescreen_scene == ur::product::HostSceneComposition::WorldExpand
+        ? 1 : 0;
+}
+
 extern "C" void ur_uniracers_modern_prepare_frame(
     int,
     int,

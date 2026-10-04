@@ -1,0 +1,33 @@
+# Product-path Widescreen acceptance.
+# One route proves fixed frontend composition, live 1P race widening, and the
+# accepted +48 preparation provider after sustained camera movement.
+
+until 009F == D7 3600
+wait 60
+dump ws-product-main-menu
+press a 2
+
+until 009F == 3C 1200
+wait 60
+press a 2
+
+until 009F == 6D 1200
+wait 60
+press a 2
+
+until 009F == F6 1200
+wait 60
+press a 2
+
+until 009F != F6 1200
+wait 60
+until 009F == 16 1200
+wait 60
+press a 2
+
+until 0313 == 01 1800
+wait 60
+dump ws-product-race
+press right 900
+dump ws-product-after-scroll
+quit

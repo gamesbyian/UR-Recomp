@@ -63,6 +63,8 @@ This intentionally avoids automatic scheduling. The profiler should not become b
 
 ### Automatic-trigger and sharding policy
 
+Pure validation runs should execute on `pull_request`, not repeat on the merge commit. A `push` trigger for `main` is reserved for work that is meaningfully post-merge, such as persisting canonical evidence. `tests/unit/test_ci_trigger_policy.py` enforces that rule and keeps the explicit evidence-writing exceptions small.
+
 Automatic `push`/merge workflows must remain path-scoped to inputs that can change their result. A change to the canonical `snesrecomp` toolchain entry or one of its registered framework patches is intentionally treated as execution-affecting by the bootstrap gate plus the small native/reference canary set; that fan-out is not accidental merge tax. Do not add broad `push` triggers to manual research probes merely for visibility.
 
 Use `concurrency` on every automatic workflow. Superseded branch/PR runs should cancel. Evidence-writing workflows may serialize `main`, but should still cancel stale non-main runs with `cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}`.

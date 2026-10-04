@@ -568,7 +568,7 @@
         },
         {
           "path": "tools/patches/snesrecomp-dynamic-native-widescreen.patch",
-          "sha256": "9c9dbacb8d396358304ba91648d149e87841cfb61ea4bcf62eefad62c2847042"
+          "sha256": "d6dd4132e823963a758e91f4d1cb089b501152b4630a4bb288ec68d60b7796c4"
         },
         {
           "path": "tools/patches/snesrecomp-desktop-lua-bridge.patch",

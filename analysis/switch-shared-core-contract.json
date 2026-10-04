@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "gate": "S0-shared-core",
+  "purpose": "Cross-compile platform-neutral modern product/title translation units with devkitA64 before linking guest simulation or a Switch host adapter.",
+  "toolchain": {
+    "container": "devkitpro/devkita64:20260219",
+    "cpp_standard": "gnu++17"
+  },
+  "include_dirs": [
+    "native/product",
+    "native/title"
+  ],
+  "portable_translation_units": [
+    "native/product/host_product_state.cpp",
+    "native/product/host_product_store.cpp",
+    "native/product/host_profile_runtime.cpp",
+    "native/product/host_profile_state.cpp",
+    "native/product/host_profile_store.cpp",
+    "native/product/modern_options_menu.cpp",
+    "native/product/modern_pause_input.cpp",
+    "native/product/modern_pause_menu.cpp",
+    "native/product/modern_session_c_api.cpp",
+    "native/product/modern_session_runtime.cpp",
+    "native/product/output_resolution_policy.cpp",
+    "native/product/output_resolution_runtime_policy.cpp",
+    "native/product/race_restart_anchor.cpp",
+    "native/product/race_restart_lifecycle.cpp",
+    "native/product/session_control.cpp",
+    "native/product/session_runtime_adapter.cpp",
+    "native/product/widescreen_output_composition.cpp",
+    "native/title/uniracers_restart_policy.cpp",
+    "native/title/uniracers_run_data.cpp",
+    "native/title/uniracers_tour_resume.cpp"
+  ],
+  "excluded_adapters": [
+    {
+      "path": "native/product/uniracers_modern_host.cpp",
+      "reason": "Desktop SNESRecomp host adapter: owns SDL focus/quit/pref-path and SnesDesktop display/output API binding."
+    },
+    {
+      "path": "native/title/uniracers_ws_margins.c",
+      "reason": "Mixed title/runtime adapter: reusable course-materialization helpers share one translation unit with direct common_rtl.h/generated-runtime binding."
+    }
+  ],
+  "forbidden_portable_tokens": [
+    "desktop/",
+    "SDL_",
+    "SnesDesktop",
+    "common_rtl.h"
+  ],
+  "acceptance": [
+    "every manifest translation unit exists and remains outside excluded host adapters",
+    "portable translation units do not directly include desktop/ or call SDL_/SnesDesktop APIs",
+    "every manifest portable translation unit compiles to a Switch AArch64 object with __SWITCH__ defined",
+    "no guest ROM, generated SNESRecomp code, or Switch-specific simulation fork is required"
+  ]
+}

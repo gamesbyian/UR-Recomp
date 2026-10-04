@@ -56,6 +56,14 @@ The workflow is `.github/workflows/switch-s0-compile-probe.yml`. It runs automat
 
 Exit: deterministic CI/local cross-build recipe and retained compiler/link metadata.
 
+### Gate S0.5 — shared modern-core portability
+
+**Closed.** Run `37238705878` cross-compiled 20 platform-neutral modern product/title translation units into Switch AArch64 objects with devkitA64 and `__SWITCH__` defined. The retained contract is `analysis/switch-shared-core-contract.json`; `tools/build_switch_shared_core_probe.py` validates the boundary and performs the cross-build.
+
+The first pass exposed one useful boundary defect: `native/title/uniracers_ws_margins.c` contains reusable course/materialization logic but also binds directly to generated runtime state through `common_rtl.h`. It is therefore classified with the runtime adapters rather than falsely counted as shared core. `native/product/uniracers_modern_host.cpp` remains explicitly desktop-owned because it binds SDL lifecycle/pref-path/focus/quit behavior and SNESRecomp desktop display APIs.
+
+Current result: profile/state persistence, pause/options/session policy, restart lifecycle, output-resolution policy, Widescreen composition policy, run-data decoding and tour-resume logic all compile for the Switch target without a platform-specific simulation fork. Reopen this gate only if a shared-core file gains a direct desktop/runtime dependency or the devkitA64 cross-build regresses.
+
 ### Gate S1 — runtime shell
 
 On hardware, prove:

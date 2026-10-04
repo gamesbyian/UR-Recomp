@@ -134,7 +134,7 @@ Frame 1218 P2 `0541` is the next actual P2 visual change. Its authored blue-play
 
 Frame 1217 P2 `0542` is the next distinct stock pose, with envelope `[21,4]..[40,38]` and contact `[59,76]`. The retained dossier proves its stock raster is byte-identical to the frames-1215–1216 P2 `0542` state under the distinct `057F/0D4A` context, so one authored asset covers all three occurrences under separate exact guards. Native run `37173872885` is green; artifact `11291829520` records 254/384 alpha intersection/union (IoU `0.6614583333`) and locks stock/authored hash parity across the reuse.
 
-The next retained P2 visual change is `0543`. The two in-window exact contexts reconstruct to byte-identical stock pixels, so the pipeline keeps both registrations but uses one authored blue-player asset. The candidate targets stock envelope `[20,4]..[40,38]` and contact `[57,76]`; native/dossier acceptance remains pending.
+The next retained P2 visual change is `0543`. The two in-window exact contexts reconstruct to byte-identical stock pixels, so the pipeline keeps both registrations but uses one authored blue-player asset. It matches stock envelope `[20,4]..[40,38]` and contact `[57,76]`; native run `37174353366` is green and artifact `11292358727` records 242/388 alpha intersection/union (IoU `0.6237113402`) with stock/authored hash parity locked across the reuse.
 
 ## Reconstruction decision policy
 

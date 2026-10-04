@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "purpose": "Retain a native Linux reference for the exact S2 Switch hardware-probe sequence so Switch partitioned simulation digests can be compared mechanically.",
+  "framework_revision": "cd5875cbdaf19f5e324272b1f8051d671fce9215",
+  "rom": "reference/roms/retail/Uniracers_USA.sfc",
+  "frames": 120,
+  "inputs": 0,
+  "checkpoints": [
+    0,
+    1,
+    60,
+    120
+  ],
+  "digest_contract": "runner/src/netplay/snes_state_digest.c",
+  "host_source": "native/reference/s2_desktop_digest_reference.c",
+  "acceptance": [
+    "fresh canonical guest generation from the verified USA ROM",
+    "native build uses the same authoritative runtime floor and support modules as the Switch S2 probes",
+    "SnesInit succeeds",
+    "120 calls to RtlRunFrame(0) complete",
+    "checkpoint report contains frames 0, 1, 60 and 120",
+    "two consecutive executions produce byte-identical checkpoint reports"
+  ],
+  "non_claims": [
+    "Desktop equality does not itself prove Switch parity",
+    "The reference host opens no audio thread, so its no-op APU lock is only valid for this deterministic headless fixture",
+    "Presentation is intentionally excluded from the digest domain"
+  ]
+}

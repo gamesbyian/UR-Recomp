@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/widescreen-vs-preparation-trace.yml"
       - "tools/trace_native_wram_writers.py"
+      - "tools/instrument_snesref_vs_preparation_writes.py"
       - "tests/input/vs-first-race.input"
       - "tests/input/vs-first-race-observe.script"
 
@@ -125,6 +126,63 @@ jobs:
           print(json.dumps(summary,indent=2))
           PY
 
+      - name: Build exact Snes9x VS writer probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C snesrecomp apply --check "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
+          git -C snesrecomp apply "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 tools/instrument_snesref_vs_preparation_writes.py "$CORE/cpuexec.cpp"
+          make -C "$CORE/libretro" -j2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+
+      - name: Capture exact VS writer PCs
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/vs-exact-writers"
+          mkdir -p "$ROOT" analysis/generated
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/vs-first-race.input" \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/vs-first-race-observe.script" \
+            "$RUNNER_TEMP/snesref-build/snesref" \
+            "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            >"$ROOT/run.log" 2>&1
+          grep 'VSPREPWRITE' "$ROOT/run.log" >"$ROOT/writes.log"
+          test -s "$ROOT/writes.log"
+          python3 - "$ROOT/writes.log" <<'PY'
+          import json, pathlib, re, sys
+          rx=re.compile(r"VSPREPWRITE frame=(\d+) pc=([0-9A-F]+) addr=([0-9A-F]+) old=([0-9A-F]+) new=([0-9A-F]+)")
+          rows=[]
+          for line in pathlib.Path(sys.argv[1]).read_text().splitlines():
+              m=rx.search(line)
+              if m:
+                  rows.append({
+                      "frame":int(m.group(1)),
+                      "pc":int(m.group(2),16),
+                      "addr":int(m.group(3),16),
+                      "old":int(m.group(4),16),
+                      "new":int(m.group(5),16),
+                  })
+          if not rows:
+              raise SystemExit("no exact VS preparation writer rows")
+          by_addr={}
+          for r in rows:
+              a=f"0x{r['addr']:04X}"
+              by_addr.setdefault(a,{})
+              p=f"0x{r['pc']:06X}"
+              by_addr[a][p]=by_addr[a].get(p,0)+1
+          out={"schema_version":1,"rows":rows,"writer_counts_by_address":by_addr}
+          pathlib.Path("analysis/generated/vs-preparation-exact-writers.json").write_text(
+              json.dumps(out,indent=2)+"\n"
+          )
+          print(json.dumps(by_addr,indent=2))
+          PY
+
       - name: Upload VS preparation trace
         if: always()
         uses: actions/upload-artifact@v4
@@ -134,5 +192,8 @@ jobs:
             ${{ runner.temp }}/vs-preparation-trace-host.log
             ${{ runner.temp }}/vs-preparation-writers.json
             analysis/generated/vs-preparation-writer-scopes.json
+            analysis/generated/vs-preparation-exact-writers.json
+            ${{ runner.temp }}/vs-exact-writers/run.log
+            ${{ runner.temp }}/vs-exact-writers/writes.log
           if-no-files-found: warn
           retention-days: 7

@@ -85,10 +85,14 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "completed_run_comparison.cpp",
             "completed_run_store.cpp",
             "completed_run_ghost.cpp",
+            "completed_run_ghost_policy.cpp",
             "completed_run_ghost_world_sample.cpp",
             "completed_run_ghost_projection.cpp",
             "completed_run_ghost_frame.cpp",
             "completed_run_ghost_trace.cpp",
+            "racer_replacement_selector.cpp",
+            "completed_run_ghost_racer_selector.cpp",
+            "completed_run_ghost_raster.cpp",
             "modern_session_c_api.cpp",
             "modern_pause_menu.cpp",
             "modern_pause_input.cpp",
@@ -101,6 +105,7 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "uniracers_tour_resume.cpp",
         ):
             self.assertIn(name, patched)
+        self.assertIn('native/presentation', patched)
         self.assertIn("# UR_MODERN_PRODUCT_HOST", patched)
         self.assertEqual(patch_cmake_text(patched, ROOT), patched)
 

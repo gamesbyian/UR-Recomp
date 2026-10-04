@@ -66,18 +66,18 @@ int main() {
     assert(ghosts.record(CompletedRunGhostKind::Previous)->elapsed_ticks60 == 1150);
     assert(ghosts.record(CompletedRunGhostKind::PersonalBest)->elapsed_ticks60 == 1100);
 
-    assert(
-        ghosts.input_at(CompletedRunGhostKind::Previous, 0) ==
-        std::make_pair<std::uint16_t, std::uint16_t>(0x30, 0));
-    assert(
-        ghosts.input_at(CompletedRunGhostKind::Previous, 3) ==
-        std::make_pair<std::uint16_t, std::uint16_t>(0x31, 0));
-    assert(
-        ghosts.input_at(CompletedRunGhostKind::PersonalBest, 1) ==
-        std::make_pair<std::uint16_t, std::uint16_t>(0x20, 0));
-    assert(
-        ghosts.input_at(CompletedRunGhostKind::PersonalBest, 999) ==
-        std::make_pair<std::uint16_t, std::uint16_t>(0, 0));
+    const auto previous_start =
+        ghosts.input_at(CompletedRunGhostKind::Previous, 0);
+    const auto previous_tail =
+        ghosts.input_at(CompletedRunGhostKind::Previous, 3);
+    const auto pb_start =
+        ghosts.input_at(CompletedRunGhostKind::PersonalBest, 1);
+    const auto pb_after =
+        ghosts.input_at(CompletedRunGhostKind::PersonalBest, 999);
+    assert(previous_start.first == 0x30 && previous_start.second == 0);
+    assert(previous_tail.first == 0x31 && previous_tail.second == 0);
+    assert(pb_start.first == 0x20 && pb_start.second == 0);
+    assert(pb_after.first == 0 && pb_after.second == 0);
 
     ghosts.clear();
     assert(ghosts.compatible_count() == 0);

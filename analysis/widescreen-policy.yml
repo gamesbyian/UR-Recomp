@@ -72,6 +72,10 @@ display_binding:
     host_logical_height_pixels: 224
     host_display_aspect_at_candidate_par: "57:32"
     host_display_aspect_error_percent_vs_16x9: 0.1953125
+    output_horizontal_fit_correction: "512/513"
+    fixed_center_active_width_fraction_of_16x9_output: "3/4"
+    scene_selector: URRECOMP_WS_SCENE
+    scene_selector_binding_status: diagnostic-host-only
     title_final_logical_view: true
     status: evidence-backed
     rationale: "Derived mechanically from the accepted full-224 7:6 Authentic transform. The host exposes +43 source pixels per side / 342x224 while the strip-granular provider prepares +48 per side. No new guest descriptor lane is implied."
@@ -94,44 +98,64 @@ aspect_policies:
 scenes:
   - id: title-frontend
     class: fixed-center
+    host_composition: centered-256x224
+    host_widen: false
     evidence_status: provisional
-    fixture: unresolved
-    rationale: "Treat the original frontend as centered fixed presentation until a deterministic probe demonstrates intentional world expansion or edge anchoring."
+    fixture: ui-startup-timeline
+    rationale: "Keep the original frontend centered at Authentic 256x224 inside widescreen output unless a deterministic probe demonstrates intentional world expansion or edge anchoring."
+  - id: pre-race
+    class: fixed-center
+    host_composition: centered-256x224
+    host_widen: false
+    evidence_status: provisional
+    fixture: ui-pre-race-timing
+    rationale: "Pre-race presentation remains conservatively centered; widening world backing is not sufficient evidence to expand scripted setup composition."
   - id: representative-one-player-race
     class: mixed
+    host_composition: widened-342x224
+    host_widen: true
     evidence_status: evidence-backed
     fixture: dragster-representative-race
     rationale: "Authoritative simulation/activation remains stock while camera-facing preparation and presentation may widen; the retained +8 admission test proves adjacent future-column preparation without moving gameplay/camera state."
   - id: results
     class: fixed-center
+    host_composition: centered-256x224
+    host_widen: false
     evidence_status: provisional
-    fixture: unresolved
+    fixture: result-screens-probe
     rationale: "Preserve the recognizable original results presentation centered by default; no retained evidence yet requires expanded world presentation."
   - id: two-player-race
     class: mixed
+    host_composition: widened-342x224
+    host_widen: true
     evidence_status: evidence-backed
     fixture: ordinary-two-player-first-race
     rationale: "Retained 2P evidence establishes independent authoritative player state plus split-screen camera/OAM presentation boundaries, so widening must preserve stock activation while composing presentation per viewport."
   - id: vs-mode
     class: mixed
-    evidence_status: provisional
-    fixture: unresolved
-    rationale: "Principal VS simulation fidelity is closed, but a dedicated event-relative Widescreen fixture has not yet proved that its presentation policy matches ordinary 2P."
+    host_composition: centered-256x224-until-vs-provider
+    host_widen: false
+    evidence_status: evidence-backed
+    fixture: vs-first-race
+    evidence: analysis/widescreen-vs-policy-evidence.json
+    rationale: "Matched stock/+8 native VS runs preserve both racer slots, race progress and all tracked camera/view state at checkpoints 1240/1340/1440/1620, and the host viewport widens from 256x224 to 272x224. However, neither the ordinary race primary trace nor accepted +8 preparation hook executes on the VS path. VS therefore requires a distinct presentation-preparation seam before host widening can be enabled."
 
 next_discriminator:
-  id: vs-widescreen-policy
-  goal: "Determine whether VS satisfies the ordinary-2P mixed policy or requires a distinct scene exception."
+  id: vs-preparation-path
+  goal: "Recover the VS-specific presentation preparation seam that can supply widened split-screen backing without altering authoritative state."
   method:
-    - "Retain one deterministic VS fixture with semantic/event-relative anchors."
-    - "Compare stock 4:3 against the smallest accepted widened presentation margin without changing authoritative simulation/activation."
-    - "Classify camera/view composition, preparation/streaming and UI behavior independently."
+    - "Reuse the retained vs-first-race stock/+8 fixture and the negative provider evidence from run 37165123984."
+    - "Trace the VS race-frame presentation/preparation call path and compare it with the ordinary 1P/2P A59A/A59E seam."
+    - "Identify the smallest VS-only host/presentation hook that can prepare one adjacent strip per viewport while preserving the already-proven protected-state equality."
   success:
-    - "Authoritative VS state remains event-relative equal while widened presentation follows the ordinary-2P ownership boundaries."
-    - "Promote vs-mode from provisional to evidence-backed mixed."
+    - "A deterministic VS +8 run observes the recovered preparation provider and retains exact racer/progress/camera-view equality against stock."
+    - "Only then may vs-mode host_widen become true and share the ordinary 2P mixed composition policy."
   stop_or_split:
-    - "If VS differs, record the smallest concrete presentation exception instead of broadening the policy class speculatively."
+    - "If VS uses a fundamentally different split-screen backing model, record a dedicated VS provider instead of forcing the ordinary race materializer onto it."
 
 notes:
   - "Evidence-backed scene policies may guide implementation; provisional policies remain explicit hypotheses."
   - "Do not widen gameplay activation semantics merely because presentation width increases."
   - "The +8 preparation/runtime-hook lane may proceed independently of this scene-policy classification."
+  - "Host output composition is explicit: widened Authentic race scenes expose 342x224 at 7:6 PAR and use a final horizontal fit correction of 512/513 to land on exact 16:9 output; fixed-center scenes retain 256x224 at 7:6 PAR, occupying 3/4 of a 16:9 output width when fit to full height."
+  - "URRECOMP_WS_SCENE is currently a diagnostic host-only selector. Runtime scene classification must be bound from an evidence-backed host presentation seam before this becomes shipping behavior."

@@ -1,0 +1,200 @@
+name: VS Widescreen scene policy
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/widescreen-vs-policy.yml"
+      - "tools/analyze_widescreen_vs_policy.py"
+      - "tests/unit/test_analyze_widescreen_vs_policy.py"
+      - "tools/seed_native_widescreen_aot.py"
+      - "tools/apply_native_widescreen_hook.py"
+      - "tools/patch_widescreen_probe_host.py"
+      - "tools/summarize_paired_player_slots.py"
+      - "tests/input/vs-first-race.input"
+      - "tests/input/vs-first-race-observe.script"
+      - "analysis/widescreen-policy.yml"
+      - "analysis/widescreen-vs-policy-evidence.json"
+      - "docs/WIDESCREEN-RECONNAISSANCE.md"
+      - "docs/WORK-QUEUE.md"
+
+concurrency:
+  group: widescreen-vs-policy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Run focused analyzer tests
+        run: python3 -m unittest tests.unit.test_analyze_widescreen_vs_policy
+
+      - name: Generate hooked native target
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          ROOT="$RUNNER_TEMP/native"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          mkdir -p "$ROOT"
+          SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+            --rom "$ROM" --dir "$ROOT" --name "Uniracers" --players 2 --yes \
+            --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay --no-github \
+            --no-submodules --generate --no-build
+          PROJECT="$ROOT/UniracersSNESRecomp"
+          python3 tools/seed_native_widescreen_aot.py "$PROJECT/recomp"
+          python3 "$FRAMEWORK/snesrecomp_cli.py" generate \
+            --rom "$ROM" --project-root "$PROJECT" --cfg-dir recomp \
+            --out-dir src/gen --funcs-h recomp/funcs.h --cfg-roots
+          python3 tools/patch_widescreen_probe_host.py "$PROJECT/src/main.c"
+          python3 tools/apply_native_widescreen_hook.py "$PROJECT/src/gen"
+          cmake -S "$PROJECT" -B "$PROJECT/build" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL2 -DSNESRECOMP_SDL3_FETCH=OFF
+          cmake --build "$PROJECT/build" -j2
+          test -x "$PROJECT/build/UniracersSNESRecomp"
+
+      - name: Run matched stock and +8 VS fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT="$RUNNER_TEMP/native/UniracersSNESRecomp"
+          EXE="$PROJECT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          INPUT="$GITHUB_WORKSPACE/tests/input/vs-first-race.input"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/vs-first-race-observe.script"
+          ROOT="$RUNNER_TEMP/widescreen-vs-policy"
+          mkdir -p "$ROOT"
+          for margin in 0 8; do
+            OUT="$ROOT/$margin"
+            mkdir -p "$OUT/dumps" "$OUT/frames"
+            rm -rf "$PROJECT/build/saves"
+            SNESRECOMP_INPUT_FILE="$INPUT" \
+            SNESRECOMP_DUMP_DIR="$OUT/dumps" \
+            SNESRECOMP_FRAMEDUMP_PIXELS=1 \
+            SNESRECOMP_FRAMEDUMP_START=1340 \
+            SNESRECOMP_FRAMEDUMP_END=1340 \
+            URRECOMP_WS_MARGIN="$margin" \
+            URRECOMP_WS_NATIVE_TRACE=1 \
+            SDL_AUDIODRIVER=dummy \
+              timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+              --framedump "$OUT/frames" >"$OUT/run.log" 2>&1
+            test -s "$OUT/dumps/vs-race-1240.wram.bin"
+            test -s "$OUT/dumps/vs-race-1620.wram.bin"
+            test -s "$OUT/frames/frame_001340.bmp"
+          done
+          python3 - "$ROOT/0/run.log" "$ROOT/8/run.log" analysis/generated/widescreen-vs-provider-activity.json <<'PY'
+          import json, pathlib, sys
+          control=pathlib.Path(sys.argv[1]).read_text(errors="replace")
+          widened=pathlib.Path(sys.argv[2]).read_text(errors="replace")
+          out={
+              "schema_version":1,
+              "control_preparation_hook_observed":"URWS_PREP margin=8" in control,
+              "plus8_preparation_hook_observed":"URWS_PREP margin=8" in widened,
+              "plus8_primary_trace_observed":"URWS_PRIMARY margin=8" in widened,
+          }
+          pathlib.Path(sys.argv[3]).parent.mkdir(parents=True,exist_ok=True)
+          pathlib.Path(sys.argv[3]).write_text(json.dumps(out,indent=2)+"\n")
+          print(json.dumps(out,indent=2))
+          PY
+
+      - name: Compare VS protected state and viewport
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/widescreen-vs-policy"
+          mkdir -p analysis/generated
+          CHECKPOINTS=(
+            --checkpoint vs-race-1240
+            --checkpoint vs-race-1340
+            --checkpoint vs-race-1440
+            --checkpoint vs-race-1620
+          )
+          for margin in 0 8; do
+            python3 tools/summarize_paired_player_slots.py \
+              "$ROOT/$margin/dumps" "${CHECKPOINTS[@]}" \
+              --json-out "$ROOT/$margin/state.json" \
+              >"$ROOT/$margin/state.txt"
+          done
+          python3 tools/analyze_widescreen_vs_policy.py \
+            "$ROOT/0/state.json" "$ROOT/8/state.json" \
+            --provider-activity-json analysis/generated/widescreen-vs-provider-activity.json \
+            --json-out analysis/generated/widescreen-vs-policy.json
+
+          python3 - "$ROOT/0/frames/frame_001340.bmp" \
+            "$ROOT/8/frames/frame_001340.bmp" \
+            analysis/generated/widescreen-vs-policy-frame.json <<'PY'
+          import json, pathlib, struct, sys
+          def dimensions(path):
+              data=pathlib.Path(path).read_bytes()
+              if data[:2] != b"BM":
+                  raise SystemExit(f"{path}: not a BMP")
+              return (
+                  struct.unpack_from("<i", data, 18)[0],
+                  abs(struct.unpack_from("<i", data, 22)[0]),
+              )
+          control=dimensions(sys.argv[1])
+          widened=dimensions(sys.argv[2])
+          out={
+              "schema_version":1,
+              "control":control,
+              "plus8":widened,
+              "accepted":control==(256,224) and widened==(272,224),
+          }
+          pathlib.Path(sys.argv[3]).write_text(json.dumps(out,indent=2)+"\n")
+          print(json.dumps(out,indent=2))
+          if not out["accepted"]:
+              raise SystemExit("VS +8 host viewport dimensions diverged")
+          PY
+
+      - name: Verify retained VS classification
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          retained=json.loads(Path("analysis/widescreen-vs-policy-evidence.json").read_text())
+          policy=json.loads(Path("analysis/generated/widescreen-vs-policy.json").read_text())
+          frame=json.loads(Path("analysis/generated/widescreen-vs-policy-frame.json").read_text())
+          provider=json.loads(Path("analysis/generated/widescreen-vs-provider-activity.json").read_text())
+          assert policy["semantic_activation_preserved"] is retained["protected_state_equal_at_all_checkpoints"]
+          assert policy["classification"] == retained["classification"]
+          assert frame["control"] == retained["control_frame_geometry"]
+          assert frame["plus8"] == retained["plus8_frame_geometry"]
+          assert provider["plus8_primary_trace_observed"] is retained["ordinary_race_primary_trace_observed_in_plus8_vs"]
+          assert provider["plus8_preparation_hook_observed"] is retained["ordinary_race_preparation_hook_observed_in_plus8_vs"]
+          print("VS_WIDESCREEN_RETAINED_EVIDENCE_MATCH")
+          PY
+
+      - name: Upload compact VS Widescreen evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: widescreen-vs-policy-evidence
+          path: |
+            analysis/generated/widescreen-vs-policy.json
+            analysis/generated/widescreen-vs-policy-frame.json
+            analysis/generated/widescreen-vs-provider-activity.json
+            ${{ runner.temp }}/widescreen-vs-policy/0/state.json
+            ${{ runner.temp }}/widescreen-vs-policy/8/state.json
+            ${{ runner.temp }}/widescreen-vs-policy/0/state.txt
+            ${{ runner.temp }}/widescreen-vs-policy/8/state.txt
+            ${{ runner.temp }}/widescreen-vs-policy/0/run.log
+            ${{ runner.temp }}/widescreen-vs-policy/8/run.log
+            ${{ runner.temp }}/widescreen-vs-policy/0/frames/frame_001340.bmp
+            ${{ runner.temp }}/widescreen-vs-policy/8/frames/frame_001340.bmp
+          if-no-files-found: warn
+          retention-days: 7

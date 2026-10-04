@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "authority": "analysis/widescreen-policy.yml",
+  "fixture": "vs-first-race",
+  "workflow_run_id": 37165123984,
+  "workflow_artifact_id": 11289077614,
+  "control_margin_pixels_per_side": 0,
+  "candidate_margin_pixels_per_side": 8,
+  "checkpoints": [
+    "vs-race-1240",
+    "vs-race-1340",
+    "vs-race-1440",
+    "vs-race-1620"
+  ],
+  "protected_sections": [
+    "slot1",
+    "slot2",
+    "race_progress",
+    "camera_and_viewport"
+  ],
+  "protected_state_equal_at_all_checkpoints": true,
+  "control_frame_geometry": [256, 224],
+  "plus8_frame_geometry": [272, 224],
+  "ordinary_race_primary_trace_observed_in_plus8_vs": false,
+  "ordinary_race_preparation_hook_observed_in_plus8_vs": false,
+  "classification": "distinct-vs-preparation-path-required",
+  "policy_consequence": "Keep VS host widening disabled by default. The ordinary 1P/2P preparation provider is not active on the VS race path; recover the VS-specific presentation preparation seam before widening VS."
+}

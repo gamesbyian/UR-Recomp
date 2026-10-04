@@ -35,3 +35,14 @@ tests/native/completed_run_record_test.cpp and tests/unit/test_completed_run_rec
 The next step is deliberately narrow: observe the already-resolved guest controller words at the desktop host input boundary, start/retire the recorder at the same title-owned race lifecycle edge used by Restart Race, and finalize/persist only after an authoritative completed-run surface supplies valid time/course metadata. That wiring should not add a second input parser or write guest state.
 
 After live capture/replay is proven, PB and previous-run selection can simply choose compatible records. A ghost renderer should consume a deterministic replay/state stream derived from those records and remain presentation-only.
+
+
+## Resolved-input observation seam
+
+The pinned desktop framework now exposes the exact final controller word in `SnesDesktopHostFrameStats::controller_word`. That value is computed once from scripted input, live mapped controllers and debug input immediately before the existing run-ahead/`RtlRunFrame` dispatch, then reported after the completed guest frame. P1 occupies the low 12 bits and P2 the next 12 bits.
+
+This matters because completed-run capture must record what the guest actually received after host-owned menu/input interception, not reconstruct intent from SDL events later.
+
+`CompletedRunCapture` is the host-independent lifecycle owner above that observation. The caller starts it after the authoritative race-entry frame, feeds each subsequent resolved guest word, supplies authoritative split/timer observations, and finalizes a typed `CompletedRunRecord`. Abort/reset clears the attempt completely. A small `select_fastest_compatible_run()` query is the first PB/ghost-selection seam and remains read-only/presentation-side.
+
+Fresh-process acceptance now writes a record in one process, reloads and verifies it in another, reconstructs the canonical deterministic input stream, and rejects a checksum-damaged artifact. Native race re-drive from a production-captured artifact remains the next integration proof once the currently active profile/autosave host changes are reconciled.

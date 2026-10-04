@@ -241,10 +241,12 @@ void ensure_product_state() {
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             std::fprintf(
                 stderr,
-                "UR_HOST_STATE LOADED pause_on_focus_loss=%d display_mode=%s vsync=%s\n",
+                "UR_HOST_STATE LOADED pause_on_focus_loss=%d display_mode=%s vsync=%s presentation_fps=%s\n",
                 g_product_state.settings.pause_on_focus_loss ? 1 : 0,
                 display_mode_name(g_product_state.settings.display_mode),
-                vsync_mode_name(g_product_state.settings.vsync_mode));
+                vsync_mode_name(g_product_state.settings.vsync_mode),
+                presentation_fps_mode_name(
+                    g_product_state.settings.presentation_fps_mode));
             std::fflush(stderr);
         }
     } else if (loaded.status == ur::product::HostProductLoadStatus::Missing) {
@@ -254,6 +256,9 @@ void ensure_product_state() {
     } else {
         product_diagnostic("UR_HOST_STATE IO_ERROR_DEFAULTS");
     }
+
+    g_live_presentation_fps_mode =
+        g_product_state.settings.presentation_fps_mode;
 }
 
 bool persist_product_state(const ur::product::HostProductState& candidate) {
@@ -341,6 +346,49 @@ bool cycle_vsync_setting() {
     return true;
 }
 
+bool cycle_presentation_fps_setting() {
+    if (!modern_mode()) return false;
+
+    ur::product::HostProductState candidate = g_product_state;
+    switch (candidate.settings.presentation_fps_mode) {
+    case ur::product::HostPresentationFpsMode::Game:
+        candidate.settings.presentation_fps_mode =
+            ur::product::HostPresentationFpsMode::Fps60;
+        break;
+    case ur::product::HostPresentationFpsMode::Fps60:
+        candidate.settings.presentation_fps_mode =
+            ur::product::HostPresentationFpsMode::Fps90;
+        break;
+    case ur::product::HostPresentationFpsMode::Fps90:
+        candidate.settings.presentation_fps_mode =
+            ur::product::HostPresentationFpsMode::Fps120;
+        break;
+    case ur::product::HostPresentationFpsMode::Fps120:
+        candidate.settings.presentation_fps_mode =
+            ur::product::HostPresentationFpsMode::Fps144;
+        break;
+    case ur::product::HostPresentationFpsMode::Fps144:
+        candidate.settings.presentation_fps_mode =
+            ur::product::HostPresentationFpsMode::Native;
+        break;
+    case ur::product::HostPresentationFpsMode::Native:
+        candidate.settings.presentation_fps_mode =
+            ur::product::HostPresentationFpsMode::Game;
+        break;
+    }
+
+    if (!apply_presentation_fps_setting(candidate.settings)) {
+        return false;
+    }
+    if (!persist_product_state(candidate)) {
+        (void)apply_presentation_fps_setting(g_product_state.settings);
+        return false;
+    }
+
+    g_product_state = candidate;
+    return true;
+}
+
 bool activate_options_selection() {
     switch (ur_modern_options_menu_selected(&g_options_menu)) {
     case UR_MODERN_OPTIONS_FOCUS_PAUSE:
@@ -349,6 +397,8 @@ bool activate_options_selection() {
         return toggle_display_mode_setting();
     case UR_MODERN_OPTIONS_VSYNC:
         return cycle_vsync_setting();
+    case UR_MODERN_OPTIONS_PRESENTATION_FPS:
+        return cycle_presentation_fps_setting();
     }
     return false;
 }
@@ -395,6 +445,7 @@ bool ensure_session() {
     ur_uniracers_restart_policy_reset(&g_title_policy);
     if (g_session && modern_mode()) {
         (void)apply_display_mode_setting(g_product_state.settings);
+        (void)apply_presentation_fps_setting(g_product_state.settings);
         (void)apply_vsync_setting(g_product_state.settings);
     }
     return g_session != nullptr;

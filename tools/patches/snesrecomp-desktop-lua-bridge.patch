@@ -1,3 +1,22 @@
+--- a/runner/lua.cmake
++++ b/runner/lua.cmake
+@@ -1,6 +1,7 @@
+ # Opt-in, independently of the trace debugger. No Lua download in normal builds.
+ option(SNESRECOMP_ENABLE_LUA "Build opt-in local TCP Lua scripting" OFF)
+ if(SNESRECOMP_ENABLE_LUA)
++    add_compile_definitions(SNESRECOMP_ENABLE_LUA=1)
+     if(POLICY CMP0135)
+         cmake_policy(SET CMP0135 NEW)
+     endif()
+@@ -20,4 +21,6 @@ if(SNESRECOMP_ENABLE_LUA)
+     else()
+         target_link_libraries(snesrecomp_lua PRIVATE m)
+     endif()
+     list(APPEND SNESRECOMP_RUNNER_LIBRARIES snesrecomp_lua)
++else()
++    add_compile_definitions(SNESRECOMP_ENABLE_LUA=0)
+ endif()
++
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
 @@ -40,6 +40,7 @@

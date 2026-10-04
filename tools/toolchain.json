@@ -580,7 +580,7 @@
         },
         {
           "path": "tools/patches/snesrecomp-relative-input-origin.patch",
-          "sha256": "61ea41f81e8b883afa9682605aa71dce56b99f18e0332b01af5953b226b0163f"
+          "sha256": "fe15a985a4822b9b1cb2f85b2288251428e72b9451067ce194a1a79ca4cf7b56"
         },
         {
           "path": "tools/patches/snesrecomp-native-widescreen-state-dump.patch",

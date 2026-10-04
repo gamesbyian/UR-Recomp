@@ -1,6 +1,6 @@
 {
-  "schema_version": 1,
-  "retrieved": "2026-10-02",
+  "schema_version": 2,
+  "retrieved": "2026-10-04",
   "purpose": "Pinned public source references for the UR-Recomp Nintendo Switch homebrew feasibility lane.",
   "components": [
     {
@@ -30,5 +30,12 @@
     "switch-dev / devkitA64",
     "Switch portlibs as required, initially SDL2"
   ],
-  "policy": "Pins are reproducibility/provenance references. Toolchain packages are installed through devkitPro; do not vendor an arbitrary SDK installation into Git."
+  "policy": "Pins are reproducibility/provenance references. Source revisions remain architectural references; Gate S0 cross-builds use the dated devkitPro container and retain installed package/compiler metadata. Do not vendor an arbitrary SDK installation into Git.",
+  "ci_toolchain": {
+    "provider": "devkitPro Docker",
+    "image": "devkitpro/devkita64:20260219",
+    "purpose": "Pinned public cross-build environment for Gate S0; contains devkitA64, libnx, switch-tools and Switch portlibs including SDL2.",
+    "upstream": "https://github.com/devkitPro/docker",
+    "policy": "Use the dated image tag for S0 CI. Record installed package/compiler versions on every run; do not silently substitute latest."
+  }
 }

@@ -332,7 +332,7 @@ jobs:
           ]
           p2_0542_candidate = p2_0542["art_review"]["authored_candidate"]
           assert p2_0542_candidate["approval_status"] == (
-              "gameplay-scale P2 0542 candidate; native acceptance pending"
+              "motion-reviewed shared P2 0542 pose; not approved shipping art"
           )
           p2_0542_review = p2_0542_candidate["gameplay_scale_review"]
           assert p2_0542["observed_frames_in_window"] == [1217]
@@ -350,7 +350,7 @@ jobs:
           ]
           p2_0542_reuse_candidate = p2_0542_reuse["art_review"]["authored_candidate"]
           assert p2_0542_reuse_candidate["approval_status"] == (
-              "gameplay-scale P2 0542 reuse candidate; native acceptance pending"
+              "accepted context-safe reuse of motion-reviewed P2 0542 pose; not approved shipping art"
           )
           assert p2_0542_reuse_candidate["reuse_source_representation_id"] == (
               "ordinary-racer-0x0542-p2-with-p1-companion-0D2C-reference"

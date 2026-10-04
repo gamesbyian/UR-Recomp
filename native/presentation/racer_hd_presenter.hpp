@@ -1167,7 +1167,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0542_p2(
         return authored_saddle_color(x, y, 130, 26);
     }
     if (crown) {
-        return authored_frame_junction_color(x, y, 132, 60, true);
+        return authored_frame_junction_color(x, y, 126, 60, true);
     }
     if (fork || frame_brace || neck) {
         return authored_blue_frame_color(x, y);
@@ -1233,7 +1233,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0543_p2(
         return authored_saddle_color(x, y, 130, 30);
     }
     if (crown) {
-        return authored_frame_junction_color(x, y, 128, 60, true);
+        return authored_frame_junction_color(x, y, 124, 60, true);
     }
     if (fork || frame_brace || neck) {
         return authored_blue_frame_color(x, y);

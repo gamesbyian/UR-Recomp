@@ -151,7 +151,8 @@ class RacerHdAssetDossierTests(unittest.TestCase):
             FIRST_AUTHORED_REPRESENTATION_ID,
             "ordinary-racer-0x0541-p1-sync-reference",
         )
-        self.assertEqual(sample_authored_0541_p1_rgba(112, 116), bytes((224, 221, 216, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(112, 116), bytes((249, 248, 247, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(123, 122), bytes((224, 221, 216, 255)))
         self.assertEqual(sample_authored_0541_p1_rgba(123, 90), bytes((42, 39, 32, 255)))
         self.assertEqual(sample_authored_0541_p1_rgba(128, 22), bytes((49, 45, 38, 255)))
         self.assertEqual(sample_authored_0541_p1_rgba(132, 50), bytes((232, 83, 83, 255)))

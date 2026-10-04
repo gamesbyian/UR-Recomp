@@ -34,7 +34,8 @@
         "coarse-saddle-form",
         "coarse-wheel-hardware",
         "insufficient-internal-structure"
-      ]
+      ],
+      "reviewed_authored_rgba_sha256": "6ab041e25637b023fbb7ad2ead17431388be90735670230ee6b9a2dc95e85c01"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x057D-p1-adjacent-reference",
@@ -44,7 +45,8 @@
         "coarse-saddle-form",
         "coarse-wheel-hardware",
         "insufficient-internal-structure"
-      ]
+      ],
+      "reviewed_authored_rgba_sha256": "031560e31654bffb4d64bd9126fd411b42f914b0ea8c3b1818a65698150f6c67"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0540-p1-companion-0D2C-with-p2-0542-reference",
@@ -54,7 +56,8 @@
         "coarse-saddle-form",
         "coarse-wheel-hardware",
         "insufficient-internal-structure"
-      ]
+      ],
+      "reviewed_authored_rgba_sha256": "e363f666f9c0cb69831ac71717736360b5048ce5c038fd703cb2e59487579701"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x057E-p1-with-p2-0543-reference",
@@ -64,7 +67,8 @@
         "coarse-saddle-form",
         "coarse-wheel-hardware",
         "insufficient-internal-structure"
-      ]
+      ],
+      "reviewed_authored_rgba_sha256": "8a5fd53460271e6a808daf473fbaf319cd8fcfbed79e5ba79c8271a1e614d2ff"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0541-p1-companion-0D2D-reference",
@@ -74,7 +78,8 @@
         "coarse-saddle-form",
         "coarse-wheel-hardware",
         "insufficient-internal-structure"
-      ]
+      ],
+      "reviewed_authored_rgba_sha256": "fa05a4a3d43d1e71b1b002212f2721b777b0ad810c6a4c23889d27794215c4aa"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0541-p1-sync-reference",
@@ -84,7 +89,8 @@
         "coarse-saddle-form",
         "coarse-wheel-hardware",
         "insufficient-internal-structure"
-      ]
+      ],
+      "reviewed_authored_rgba_sha256": "17a45f45e58a9aaa750d3ac98e1a113379345bb70fa795e37b7740a20710d65d"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0540-p2-sync-reference",
@@ -94,7 +100,8 @@
         "coarse-saddle-form",
         "coarse-wheel-hardware",
         "insufficient-internal-structure"
-      ]
+      ],
+      "reviewed_authored_rgba_sha256": "a239cf0546e3531ab10c0bcda20ef2fd1778b12d8633723235cafd8eadf3e9bb"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0541-p2-predecessor-reference",
@@ -104,7 +111,8 @@
         "coarse-saddle-form",
         "coarse-wheel-hardware",
         "insufficient-internal-structure"
-      ]
+      ],
+      "reviewed_authored_rgba_sha256": "af67a6375e81e6cab8bced963925a5a7a0a65a6628216d3c5b6af0f04446da2a"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference",
@@ -114,7 +122,8 @@
         "coarse-saddle-form",
         "coarse-wheel-hardware",
         "insufficient-internal-structure"
-      ]
+      ],
+      "reviewed_authored_rgba_sha256": "e7169f814d6301a5101f728a94806c14bb2f2c8c98b8ee6796a7e4e2617e70ed"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
@@ -124,7 +133,8 @@
         "coarse-saddle-form",
         "coarse-wheel-hardware",
         "insufficient-internal-structure"
-      ]
+      ],
+      "reviewed_authored_rgba_sha256": "d62f9d43dacfa89fa9870f766e3ebabf6626c4f84bd80022ca6a17b71cef715e"
     }
   ]
 }

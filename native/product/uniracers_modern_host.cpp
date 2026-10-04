@@ -8,6 +8,9 @@ extern "C" {
 #include "desktop/config.h"
 #include "desktop/host_main.h"
 #include "desktop/sdl_compat.h"
+#include "completed_run_capture.hpp"
+#include "completed_run_record.hpp"
+#include "completed_run_store.hpp"
 #include "focus_pause_policy.hpp"
 #include "host_product_state.hpp"
 #include "host_product_store.hpp"
@@ -19,6 +22,7 @@ extern "C" {
 #include "modern_options_menu.h"
 #include "modern_session_c_api.h"
 #include "output_resolution_runtime_policy.hpp"
+#include "uniracers_course_identity.h"
 #include "uniracers_restart_policy.h"
 #include "uniracers_run_data.h"
 #include "uniracers_ws_margins.h"
@@ -26,11 +30,14 @@ extern "C" {
 #include "widescreen_output_composition.hpp"
 
 #include <cstdlib>
+#include <fstream>
 #include <cstring>
 #include <cstdio>
 #include <optional>
 #include <string>
 #include <vector>
+
+extern "C" void snesrecomp_desktop_arm_relative_input(uint64_t post_frame_origin);
 
 namespace {
 
@@ -55,6 +62,10 @@ bool g_exit_frontend_waiting_for_main;
 bool g_exit_frontend_waiting_for_usable;
 bool g_exit_frontend_acceptance_fired;
 unsigned g_exit_frontend_acceptance_surface_frames;
+ur::product::CompletedRunCapture g_run_capture;
+bool g_run_capture_previous_active;
+uint64_t g_run_capture_origin_frame;
+uint16_t g_run_capture_checkpoint;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
 ur::product::HostWidescreenSceneState g_widescreen_scene_state;
@@ -180,14 +191,6 @@ const char* widescreen_mode_name(ur::product::HostWidescreenMode mode) {
 }
 
 void synchronize_widescreen_provider_selector() {
-    // Product margins are presented host-side (uniracers_ws_margins.c); the
-    // generated hook must not write its hypothetical-camera column into the
-    // guest VRAM ring. An explicit setting is kept as a diagnostic override.
-#if defined(_WIN32)
-    if (!std::getenv("URRECOMP_WS_GUEST_LANE")) _putenv_s("URRECOMP_WS_GUEST_LANE", "0");
-#else
-    setenv("URRECOMP_WS_GUEST_LANE", "0", 0);
-#endif
     if (std::getenv("URRECOMP_WS_MARGIN")) return;
     const char* explicit_view = std::getenv("URRECOMP_WS_VIEW");
     if (explicit_view && *explicit_view) return;
@@ -1078,6 +1081,165 @@ UrUniracersRunData current_run_data() {
     return ur_uniracers_read_run_data(g_ram, 0x20000u);
 }
 
+uint16_t read_run_word(size_t offset) {
+    return static_cast<uint16_t>(
+        static_cast<uint16_t>(g_ram[offset]) |
+        (static_cast<uint16_t>(g_ram[offset + 1]) << 8));
+}
+
+const char* run_record_capture_override_path() {
+    if (!modern_mode()) return nullptr;
+    const char* path = std::getenv("UR_RUN_RECORD_CAPTURE_PATH");
+    return path && *path ? path : nullptr;
+}
+
+bool run_record_capture_enabled() {
+    return modern_mode() &&
+           g_widescreen_scene_state.race_mode ==
+               ur::product::HostRacePresentationMode::OnePlayer;
+}
+
+std::string default_run_record_directory() {
+    if (!run_record_capture_enabled()) return {};
+    ensure_product_state();
+
+    char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
+    if (!pref_path) return {};
+    std::string path(pref_path);
+    SDL_free(pref_path);
+    path += "runs/";
+    path += g_product_state.active_profile_id.value_or("default");
+    return path;
+}
+
+bool begin_run_record_capture(uint64_t host_frame) {
+    if (!run_record_capture_enabled()) return false;
+
+    snesrecomp_desktop_arm_relative_input(host_frame);
+
+    const UrUniracersCourseIdentity course =
+        ur_uniracers_identify_course(g_ram + 0x10000u, 0x10000u);
+    if (!course.valid) {
+        product_diagnostic("UR_RUN_RECORD COURSE_IDENTITY_REJECTED");
+        return false;
+    }
+    const int tour_slot = ((course.course_index - 1) % 5) + 1;
+    if (tour_slot != 1 && tour_slot != 4) {
+        product_diagnostic("UR_RUN_RECORD NON_RACE_TRACK_INERT");
+        return false;
+    }
+
+    char course_id[32];
+    std::snprintf(course_id, sizeof(course_id), "course:%02d", course.course_index);
+    ur::product::RunRecordProvenance provenance{
+        "uniracers-usa",
+        "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+        "snesrecomp-cd5875cbdaf19f5e324272b1f8051d671fce9215-ur-sim-v1",
+        course_id,
+        "race-1p",
+    };
+    if (!g_run_capture.begin_attempt(provenance)) {
+        product_diagnostic("UR_RUN_RECORD BEGIN_REJECTED");
+        return false;
+    }
+    g_run_capture_origin_frame = host_frame;
+    g_run_capture_checkpoint = read_run_word(0x1199u);
+    return true;
+}
+
+void observe_run_record_split() {
+    if (!g_run_capture.capturing()) return;
+    const uint16_t checkpoint = read_run_word(0x1199u);
+    if (checkpoint == g_run_capture_checkpoint) return;
+
+    const int64_t ticks60 = ur_uniracers_run_data_ticks60(current_run_data());
+    if (ticks60 >= 0) {
+        const std::string id = "checkpoint-" + std::to_string(checkpoint);
+        (void)g_run_capture.observe_split(
+            id, static_cast<uint64_t>(ticks60));
+    }
+    g_run_capture_checkpoint = checkpoint;
+}
+
+void complete_run_record_capture() {
+    if (!g_run_capture.capturing()) return;
+
+    const int64_t ticks60 = ur_uniracers_run_data_ticks60(current_run_data());
+    if (ticks60 < 0) {
+        product_diagnostic("UR_RUN_RECORD FINISH_TIMER_REJECTED");
+        g_run_capture.abort_attempt();
+        return;
+    }
+
+    (void)g_run_capture.observe_split(
+        "finish", static_cast<uint64_t>(ticks60));
+    const auto record =
+        g_run_capture.complete(static_cast<uint64_t>(ticks60));
+    if (!record) {
+        product_diagnostic("UR_RUN_RECORD FINALIZE_REJECTED");
+        return;
+    }
+
+    std::string detail;
+    std::string stored_path;
+    bool replay_written = false;
+    if (const char* override_path = run_record_capture_override_path()) {
+        stored_path = override_path;
+        if (!ur::product::save_completed_run_record_file(
+                stored_path, *record, &detail)) {
+            if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                std::fprintf(
+                    stderr, "UR_RUN_RECORD SAVE_FAILED detail=%s\n",
+                    detail.c_str());
+                std::fflush(stderr);
+            }
+            return;
+        }
+
+        std::ofstream replay(
+            stored_path + ".input", std::ios::binary | std::ios::trunc);
+        const std::string replay_text =
+            ur::product::encode_completed_run_input_file(*record);
+        replay.write(
+            replay_text.data(),
+            static_cast<std::streamsize>(replay_text.size()));
+        replay.close();
+        replay_written = static_cast<bool>(replay);
+    } else {
+        const std::string directory = default_run_record_directory();
+        if (directory.empty() ||
+            !ur::product::append_completed_run_record(
+                directory, *record, &stored_path, &detail)) {
+            if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                std::fprintf(
+                    stderr, "UR_RUN_RECORD STORE_FAILED detail=%s\n",
+                    detail.c_str());
+                std::fflush(stderr);
+            }
+            return;
+        }
+    }
+
+    std::fprintf(
+        stderr,
+        "UR_RUN_RECORD CAPTURED path=%s course=%s elapsed_ticks60=%llu origin_frame=%llu inputs=%zu splits=%zu replay_input=%d\n",
+        stored_path.c_str(),
+        record->provenance.course_id.c_str(),
+        static_cast<unsigned long long>(record->elapsed_ticks60),
+        static_cast<unsigned long long>(g_run_capture_origin_frame),
+        record->inputs.size(),
+        record->splits.size(),
+        replay_written ? 1 : 0);
+    std::fflush(stderr);
+}
+
+void rearm_run_capture_after_retry() {
+    if (!g_run_capture.capturing()) return;
+    g_run_capture.abort_attempt();
+    g_run_capture_previous_active = false;
+    product_diagnostic("UR_RUN_RECORD RETRY_REARMED");
+}
+
 void close_host_subview() {
     if (g_options_visible) {
         g_options_visible = false;
@@ -1259,6 +1421,11 @@ bool activate_pause_selection() {
         product_diagnostic("UR_PAUSE_QUIT CONFIRM_OPENED");
         return true;
     }
+    if (selected == UR_MODERN_PAUSE_RESTART) {
+        const bool handled = dispatch(UR_MODERN_PAUSE_ACTIVATE);
+        if (handled) rearm_run_capture_after_retry();
+        return handled;
+    }
     return dispatch(UR_MODERN_PAUSE_ACTIVATE);
 }
 
@@ -1331,7 +1498,7 @@ extern "C" double ur_uniracers_modern_presentation_hz(
 }
 
 extern "C" void ur_uniracers_modern_after_run_frame(
-    const SnesDesktopHostFrameStats*) {
+    const SnesDesktopHostFrameStats* stats) {
     report_display_capabilities_once();
     if (!ensure_session()) return;
 
@@ -1357,6 +1524,26 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         &g_widescreen_scene_state,
         g_ram[0x0313],
         g_ram[0x009F]);
+
+    const bool run_active =
+        g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE;
+    if (stats && g_run_capture_previous_active && g_run_capture.capturing()) {
+        (void)g_run_capture.observe_guest_frame(stats->controller_word);
+    }
+    if (stats && !g_run_capture_previous_active && run_active) {
+        (void)begin_run_record_capture(stats->frame);
+    }
+    if (run_active && g_run_capture.capturing()) {
+        observe_run_record_split();
+    }
+    if (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
+        g_run_capture.capturing()) {
+        complete_run_record_capture();
+    }
+    if (decision.retire_attempt && g_run_capture.capturing()) {
+        g_run_capture.abort_attempt();
+    }
+    g_run_capture_previous_active = run_active;
 
     reconcile_tour_resume();
 
@@ -1460,7 +1647,9 @@ extern "C" int ur_uniracers_modern_system_key_down(
     if (key == SDLK_r && (mod & KMOD_CTRL) &&
         restart_surface() &&
         ur_modern_session_restart_available(g_session)) {
-        return dispatch(UR_MODERN_PAUSE_RESTART_HOTKEY) ? 1 : 0;
+        const bool handled = dispatch(UR_MODERN_PAUSE_RESTART_HOTKEY);
+        if (handled) rearm_run_capture_after_retry();
+        return handled ? 1 : 0;
     }
     return 0;
 }

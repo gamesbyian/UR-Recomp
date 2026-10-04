@@ -1,0 +1,129 @@
+name: Completed run replay acceptance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "native/product/completed_run_record.*"
+      - "native/product/completed_run_capture.*"
+      - "native/product/completed_run_comparison.*"
+      - "native/product/uniracers_modern_host.*"
+      - "native/title/uniracers_course_identity.*"
+      - "native/title/uniracers_run_data.*"
+      - "tools/patch_modern_product_host.py"
+      - "tools/patches/snesrecomp-frame-input-observation.patch"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain.json"
+      - "tests/input/race-finish-dragster.script"
+      - "tests/input/completed-run-replay-dragster.script"
+      - "tests/native/completed_run_replay_compare.cpp"
+      - ".github/workflows/completed-run-replay-acceptance.yml"
+
+concurrency:
+  group: completed-run-replay-acceptance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  replay-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install focused desktop build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y             cmake ninja-build pkg-config xvfb             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM and unit contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python3 -m unittest tests.unit.test_completed_run_record_cpp tests.unit.test_completed_run_record_process tests.unit.test_completed_run_capture_cpp tests.unit.test_completed_run_comparison_cpp tests.unit.test_completed_run_store_cpp tests.unit.test_uniracers_course_identity_cpp tests.unit.test_uniracers_course_identity_corpus tests.unit.test_uniracers_run_data_cpp
+
+      - name: Stage framework and SDL3
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+
+      - name: Scaffold and build modern native host
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/ur-run-replay"
+          mkdir -p "$TMP"
+
+          SNESRECOMP_ROOT="$FRAMEWORK"             sh "$FRAMEWORK/tools/new_project/setup_project.sh"               --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"               --dir "$TMP"               --name "Uniracers"               --players 2               --yes               --no-ci               --no-fetch-boxart               --no-recomp-ui               --no-netplay               --no-github               --no-submodules               --no-generate               --no-build
+
+          ROOT="$TMP/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python3 "$GITHUB_WORKSPACE/tools/prepare_native_widescreen_product.py"             --framework "$FRAMEWORK"             --project "$ROOT"             --rom "$ROM"             --json-out "$RUNNER_TEMP/widescreen-product-prepare.json"
+          python3 "$GITHUB_WORKSPACE/tools/patch_modern_product_host.py"             "$ROOT/src/main.c"             --game-rtl "$ROOT/src/game_rtl.c"             --cmake "$ROOT/CMakeLists.txt"
+
+          grep -q "completed_run_record.cpp" "$ROOT/CMakeLists.txt"
+          grep -q "uniracers_course_identity.cpp" "$ROOT/CMakeLists.txt"
+
+          cmake -S "$ROOT" -B "$ROOT/build"             -DCMAKE_BUILD_TYPE=Release             -DSNESRECOMP_ROOT="$FRAMEWORK"             -DSNESRECOMP_SDL_BACKEND=SDL3             -DSNESRECOMP_SDL3_FETCH=ON             -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
+          cmake --build "$ROOT/build" -j2
+          test -x "$ROOT/build/UniracersSNESRecomp"
+
+      - name: Capture completed Dragster run
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-run-replay/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          RECORD="$RUNNER_TEMP/original.urrun"
+          LOG="$RUNNER_TEMP/original.log"
+
+          SDL_AUDIODRIVER=dummy           UR_RUN_RECORD_CAPTURE_PATH="$RECORD"           UR_PRODUCT_DIAGNOSTICS=1             timeout 180s xvfb-run -a "$EXE" "$ROM"               --script "$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script"               >"$LOG" 2>&1
+
+          cat "$LOG"
+          test -s "$RECORD"
+          test -s "$RECORD.input"
+          grep -q "UR_RUN_RECORD CAPTURED" "$LOG"
+          grep -q "course=course:01" "$LOG"
+
+      - name: Re-drive captured run in a fresh process
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-run-replay/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ORIGINAL="$RUNNER_TEMP/original.urrun"
+          REPLAYED="$RUNNER_TEMP/replayed.urrun"
+          LOG="$RUNNER_TEMP/replayed.log"
+
+          SDL_AUDIODRIVER=dummy           SNESRECOMP_INPUT_FILE="$ORIGINAL.input"           SNESRECOMP_INPUT_RELATIVE=1           UR_RUN_RECORD_CAPTURE_PATH="$REPLAYED"           UR_PRODUCT_DIAGNOSTICS=1             timeout 180s xvfb-run -a "$EXE" "$ROM"               --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script"               >"$LOG" 2>&1
+
+          cat "$LOG"
+          test -s "$REPLAYED"
+          grep -q "UR_RUN_RECORD CAPTURED" "$LOG"
+          grep -q "script .* dump replay-race-results ok" "$LOG"
+
+          g++ -std=c++17 -Wall -Wextra -Werror -pedantic             -I "$GITHUB_WORKSPACE/native/product"             "$GITHUB_WORKSPACE/native/product/completed_run_record.cpp"             "$GITHUB_WORKSPACE/tests/native/completed_run_replay_compare.cpp"             -o "$RUNNER_TEMP/compare-runs"
+          "$RUNNER_TEMP/compare-runs" "$ORIGINAL" "$REPLAYED" | tee "$RUNNER_TEMP/compare.log"
+          grep -q "UR_RUN_REPLAY_COMPARE PASS course=course:01" "$RUNNER_TEMP/compare.log"
+
+      - name: Upload replay evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: completed-run-replay-acceptance
+          path: |
+            ${{ runner.temp }}/original.urrun
+            ${{ runner.temp }}/original.urrun.input
+            ${{ runner.temp }}/replayed.urrun
+            ${{ runner.temp }}/original.log
+            ${{ runner.temp }}/replayed.log
+            ${{ runner.temp }}/compare.log
+          if-no-files-found: warn
+          retention-days: 7

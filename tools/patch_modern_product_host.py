@@ -117,6 +117,10 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         "host_profile_state.cpp",
         "host_profile_store.cpp",
         "host_profile_runtime.cpp",
+        "completed_run_record.cpp",
+        "completed_run_capture.cpp",
+        "completed_run_comparison.cpp",
+        "completed_run_store.cpp",
         "session_control.cpp",
         "session_runtime_adapter.cpp",
         "race_restart_anchor.cpp",
@@ -142,6 +146,7 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         + source_lines
         + "\n"
         + f'    "{title_dir}/uniracers_restart_policy.cpp"\n'
+        + f'    "{title_dir}/uniracers_course_identity.cpp"\n'
         + f'    "{title_dir}/uniracers_run_data.cpp"\n'
         + f'    "{title_dir}/uniracers_ws_margins.c"\n'
         + f'    "{title_dir}/uniracers_tour_resume.cpp"\n'

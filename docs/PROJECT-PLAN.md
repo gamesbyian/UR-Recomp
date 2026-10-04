@@ -1283,3 +1283,7 @@ Promote useful evidence into one or more durable forms:
 - explicit negative result that prevents repeated work.
 
 Do not preserve old task ordering merely because it once reflected active branches. The current critical path above outranks historical workstream momentum.
+
+### Completed-run record foundation (2026-10-04)
+
+The records/ghost substrate now includes strict versioned host artifacts, exact resolved guest-input capture, authoritative 60 Hz timing/splits, live course identity from the decoded-course header, append-only per-profile local persistence, previous-run/PB selection seams, and direct export to the existing deterministic INPUT_FILE grammar. Modern 1P completion capture is wired to the production desktop host; Authentic, ordinary 2P, VS, unknown course identity and invalid timing fail closed. A dedicated fresh-process native acceptance re-drives the captured Dragster input stream through the existing simulation and compares the replayed artifact. Ghost rendering and polished records/replay UI remain follow-ons; see COMPLETED-RUN-RECORDS.md.

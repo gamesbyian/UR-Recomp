@@ -1,0 +1,38 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -612,5 +612,8 @@ static int g_input_event_cap;
+ static int g_input_event_cursor;
+ static uint16 g_input_p1_mask, g_input_p2_mask;
+ static uint64 g_input_p1_end, g_input_p2_end;
++static int g_input_relative_enabled;
++static int g_input_relative_armed;
++static uint64 g_input_relative_origin;
+ 
+ static int LoadInputFile(const char *path) {
+@@ -691,6 +694,16 @@ static int LoadInputFile(const char *path) {
+   return 1;
+ }
+ 
++void snesrecomp_desktop_arm_relative_input(uint64_t post_frame_origin) {
++  if (!g_input_relative_enabled) return;
++  g_input_relative_origin = post_frame_origin;
++  g_input_relative_armed = 1;
++}
++
+ static uint32 InputFileMask(uint64 frame) {
++  if (g_input_relative_enabled) {
++    if (!g_input_relative_armed || frame < g_input_relative_origin) return 0;
++    frame -= g_input_relative_origin;
++  }
+   if (frame >= g_input_p1_end) g_input_p1_mask = 0;
+   if (frame >= g_input_p2_end) g_input_p2_mask = 0;
+@@ -3530,7 +3543,9 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
+   {
+     const char *input_file = HostGetenv("INPUT_FILE");
+     if (input_file && !LoadInputFile(input_file))
+       return 6;
++    g_input_relative_enabled =
++        input_file && HostGetenv("INPUT_RELATIVE") != NULL;
+   }
+ 
+   if (framedump_dir)

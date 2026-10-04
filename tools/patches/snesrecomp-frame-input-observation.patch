@@ -1,0 +1,37 @@
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -64,4 +64,6 @@ typedef struct SnesDesktopHostFrameStats {
+   double run_seconds;        /* since the main loop started */
+   double guest_seconds;      /* wall time RtlRunFrame took for this frame */
+   int audio_output_rate;     /* device rate, 0 when audio is disabled */
++  uint32_t controller_word;  /* exact word passed to the guest this frame:
++                              * P1 low 12 bits, P2 next 12 bits */
+ } SnesDesktopHostFrameStats;
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -3869,10 +3869,10 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
+     bool runahead_captured = false;
+-    {
+-      const uint32 word = inputs | GetActiveControllers() | debug_server_get_controller_active_mask();
++    const uint32 resolved_controller_word = inputs | GetActiveControllers() | debug_server_get_controller_active_mask();
++    {
+       if (lua_bridge_active)
+-        RtlRunFrame(word);
+-      else if (g_turbo || !snes_runahead_run_frame(word))
+-        RtlRunFrame(word);
++        RtlRunFrame(resolved_controller_word);
++      else if (g_turbo || !snes_runahead_run_frame(resolved_controller_word))
++        RtlRunFrame(resolved_controller_word);
+       else
+         runahead_captured = true;   /* it rasterised the speculated frame */
+     }
+@@ -3890,8 +3890,9 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
+       SnesDesktopHostFrameStats st = {
+         .frame = frameCtr,
+         .run_seconds = now - run_start,
+         .guest_seconds = now - guest_start,
+         .audio_output_rate = audio_output_rate,
++        .controller_word = resolved_controller_word,
+       };
+       game->after_run_frame(&st);
+       ProfileEnd(kProfileGameHook, profile_start);

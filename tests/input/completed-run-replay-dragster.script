@@ -1,0 +1,43 @@
+# Fresh-process replay route for a captured Dragster run.
+# The frontend preamble intentionally mirrors race-finish-dragster.script
+# command-for-command through race entry so the framework's existing
+# absolute-frame INPUT_FILE grammar sees the same semantic origin.
+
+until 009F == D7 3600
+wait 60
+dump main-menu-ready
+press a 2
+
+until 009F == 3C 1200
+wait 60
+dump rider-select-ready
+press a 2
+
+until 009F == 6D 1200
+wait 60
+dump tours-ready
+press a 2
+
+until 009F == F6 1200
+wait 60
+dump tracks-ready
+press a 2
+
+until 009F != F6 1200
+wait 60
+dump after-track-confirm
+until 009F == 16 1200
+wait 60
+dump now-playing-ready
+press a 2
+
+until 0313 == 01 1800
+wait 60
+dump race-entered
+
+# No race input is scripted here. The captured run's canonical INPUT_FILE
+# stream owns the race attempt from this point.
+until 009F == 99 12000
+wait 30
+dump replay-race-results
+quit

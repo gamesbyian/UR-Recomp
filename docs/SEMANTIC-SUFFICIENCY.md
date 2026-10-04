@@ -61,3 +61,7 @@ The course model is presentation-sufficient for current Widescreen work: Dragste
 Graphics/animation identity becomes sufficient for Phase E expansion when one animated family has deterministic extraction, unchanged reconstruction, semantic state/frame identity, and a compact regression.
 
 Update this scoreboard only when evidence changes what the project can safely decide or do. Do not upgrade a capability because census bytes, screenshots, or homolog counts increased without changing product leverage.
+
+## Records/replay sufficiency checkpoint (2026-10-04)
+
+The completed-run persistence/replay foundation is now semantically sufficient for a representative Modern 1P race: exact post-policy guest controller words are observed at the framework boundary, course identity is derived from a 45-way unique immutable decoded-header signature, timing/splits stay in authoritative 60 Hz guest units, Retry explicitly re-arms the capture lifecycle, and completed artifacts persist append-only under the active host profile. The same artifact exports to the established INPUT_FILE grammar and is exercised by a fresh-process native Dragster replay workflow that must reach results and reproduce course/time/split/input metadata. Corruption, unsupported schema, incompatible provenance, unknown course identity, non-1P modes and Authentic execution all fail closed. Ghost rendering remains a presentation follow-on rather than an authority-bearing subsystem.

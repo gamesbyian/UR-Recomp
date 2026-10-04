@@ -29,9 +29,11 @@ int main() {
     assert(valid.seconds == 7);
     assert(valid.tenths == 3);
     assert(valid.sub_tick == 5);
+    assert(ur_uniracers_run_data_ticks60(valid) == 10043);
 
     assert(!ur_uniracers_read_run_data(nullptr, wram.size()).valid);
     assert(!ur_uniracers_read_run_data(wram.data(), 0x0E20).valid);
+    assert(ur_uniracers_run_data_ticks60(UrUniracersRunData{}) == -1);
 
     write16(wram, 0x0E13, 6);
     assert(!ur_uniracers_read_run_data(wram.data(), wram.size()).valid);

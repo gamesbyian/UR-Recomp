@@ -575,6 +575,14 @@
           "sha256": "36be266eec5affb05d0acd14d78431ec56ac4db4b795576c9872b30a0050d623"
         },
         {
+          "path": "tools/patches/snesrecomp-frame-input-observation.patch",
+          "sha256": "320d678684a7b4ba7923d6f6626f17efd068f09d50804a67ab8c4fa9e13e321d"
+        },
+        {
+          "path": "tools/patches/snesrecomp-relative-input-origin.patch",
+          "sha256": "a88cb1a342db93865fb814e101e331a0e2adca23709dfad17fa0e264814d7972"
+        },
+        {
           "path": "tools/patches/snesrecomp-native-widescreen-state-dump.patch",
           "sha256": "7d7c270b273eaccba102965e90164a042eef69b96560aeade871a7a7726c18f6"
         },

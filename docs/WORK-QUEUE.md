@@ -389,3 +389,9 @@ Audit policy: `docs/THIRD-PARTY-CODE-AUDIT.md`. Remaining closeout scope and exp
 
 
 - **Modern pause UI follow-through:** keyboard pause/retry and the first post-compose overlay are merged. The current controller slice adds a deterministic two-row pause-menu model and a normalized title gamepad hook: Start toggles pause, D-pad navigates Resume/Restart, A activates, B cancels. Native acceptance must prove the Restart row is selectable only after the accepted anchor is armed and that the controller path remains presentation/host control rather than guest input.
+
+## Completed-run records foundation (2026-10-04)
+
+Implemented: typed/versioned/checksummed host run artifacts; strong replay provenance; exact guest-timer tick conversion; exact resolved controller-word observation at the RtlRunFrame boundary; immutable-header course identity for all 45 USA courses; live Modern 1P attempt capture with Retry re-arming; append-only per-profile local storage; previous-run and fastest-compatible PB selection seams; exact finish/split delta comparison; direct export to canonical deterministic controller-input grammar; fresh-process record reload; and a dedicated two-process native Dragster capture/replay acceptance.
+
+Next: consume the compatible previous/PB records as presentation-only ghost state, then add the records/replay browser and richer split presentation. Do not add a second simulation model or grant ghost/replay data gameplay authority. See COMPLETED-RUN-RECORDS.md.

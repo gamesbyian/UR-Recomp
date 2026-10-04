@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +23,10 @@ typedef struct UrUniracersRunData {
 UrUniracersRunData ur_uniracers_read_run_data(
     const unsigned char* wram,
     size_t wram_size);
+
+/* Convert a validated timer sample to exact guest ticks at the established
+ * 60 Hz timer granularity. Returns -1 for an invalid sample. */
+int64_t ur_uniracers_run_data_ticks60(UrUniracersRunData data);
 
 #ifdef __cplusplus
 }

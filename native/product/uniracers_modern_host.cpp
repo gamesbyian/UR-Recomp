@@ -21,6 +21,7 @@ extern "C" {
 #include "output_resolution_runtime_policy.hpp"
 #include "uniracers_restart_policy.h"
 #include "uniracers_run_data.h"
+#include "uniracers_ws_margins.h"
 #include "uniracers_tour_resume.hpp"
 #include "widescreen_output_composition.hpp"
 
@@ -179,6 +180,14 @@ const char* widescreen_mode_name(ur::product::HostWidescreenMode mode) {
 }
 
 void synchronize_widescreen_provider_selector() {
+    // Product margins are presented host-side (uniracers_ws_margins.c); the
+    // generated hook must not write its hypothetical-camera column into the
+    // guest VRAM ring. An explicit setting is kept as a diagnostic override.
+#if defined(_WIN32)
+    if (!std::getenv("URRECOMP_WS_GUEST_LANE")) _putenv_s("URRECOMP_WS_GUEST_LANE", "0");
+#else
+    setenv("URRECOMP_WS_GUEST_LANE", "0", 0);
+#endif
     if (std::getenv("URRECOMP_WS_MARGIN")) return;
     const char* explicit_view = std::getenv("URRECOMP_WS_VIEW");
     if (explicit_view && *explicit_view) return;
@@ -1279,6 +1288,16 @@ extern "C" void ur_uniracers_modern_prepare_frame(
         g_widescreen_scene);
     *frame_width = plan.logical_view_width;
     *frame_height = plan.logical_view_height;
+
+    // Margin presentation is single-viewport only: split-screen BG1 carries
+    // two scroll origins per frame, which one world-keyed layer cannot hold.
+    const bool one_player_world =
+        plan.expose_added_world &&
+        g_widescreen_scene_state.race_mode ==
+            ur::product::HostRacePresentationMode::OnePlayer;
+    ur_ws_margins_prepare_frame(
+        one_player_world ? 1 : 0,
+        (plan.logical_view_width - 256) / 2);
 }
 
 extern "C" void ur_uniracers_modern_compute_viewport(

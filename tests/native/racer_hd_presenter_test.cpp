@@ -19,6 +19,11 @@ int main() {
         sample_racer_hd_contract_candidate(123, 90, false, false);
     assert(authored_tire != 0);
     assert(authored_tire != generic_tire);
+    // True-density refinement pass 1 restores internal structure that was
+    // visibly absent in the first shipping review while staying inside the
+    // accepted logical envelope/contact.
+    assert(sample_racer_hd_asset(*registration, 116, 88, false, false) != 0);
+    assert(sample_racer_hd_asset(*registration, 110, 122, false, false) != 0);
 
     // The immediately preceding exact 0541/0D2D composition has its own
     // authored temporal-neighbor candidate rather than falling through to the

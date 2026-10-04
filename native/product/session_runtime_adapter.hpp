@@ -21,6 +21,7 @@ struct SessionRuntimeHooks {
     bool (*restart_race)(void) = nullptr;
     void (*set_rewind_audio_timing_lock)(int active) = nullptr;
     void (*reconcile_after_restart)(void) = nullptr;
+    bool (*exit_to_frontend)(void) = nullptr;
 };
 
 RuntimeDispatchStatus dispatch_runtime_action(

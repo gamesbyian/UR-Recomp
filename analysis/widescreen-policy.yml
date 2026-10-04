@@ -138,20 +138,22 @@ scenes:
     evidence_status: evidence-backed
     fixture: vs-first-race
     evidence: analysis/widescreen-vs-policy-evidence.json
-    rationale: "Matched stock/+8 native VS runs preserve both racer slots, race progress and all tracked camera/view state at checkpoints 1240/1340/1440/1620, and the host viewport widens from 256x224 to 272x224. However, neither the ordinary race primary trace nor accepted +8 preparation hook executes on the VS path. VS therefore requires a distinct presentation-preparation seam before host widening can be enabled."
+    rationale: "Matched stock/+8 native VS runs preserve both racer slots, race progress and all tracked camera/view state at checkpoints 1240/1340/1440/1620, and the host viewport widens from 256x224 to 272x224. Follow-up writer tracing recovers the distinct mirrored VS horizontal scheduler at 81:B0FA..B27E: each viewport owns an 8-word strip schedule, then rejoins the shared 81:AB88/ACB1 descriptor builder and 82:D19B..D2D3 NMI consumer. Host widening remains disabled until one adjacent 8-word strip per viewport is supplied from live course presentation state."
 
 next_discriminator:
-  id: vs-preparation-path
-  goal: "Recover the VS-specific presentation preparation seam that can supply widened split-screen backing without altering authoritative state."
+  id: vs-adjacent-strip-provider
+  goal: "Prove one additional 8-word horizontal presentation strip per VS viewport using the recovered split-screen preparation seam."
   method:
-    - "Reuse the retained vs-first-race stock/+8 fixture and the negative provider evidence from run 37165123984."
-    - "Trace the VS race-frame presentation/preparation call path and compare it with the ordinary 1P/2P A59A/A59E seam."
-    - "Identify the smallest VS-only host/presentation hook that can prepare one adjacent strip per viewport while preserving the already-proven protected-state equality."
+    - "Use analysis/widescreen-vs-preparation-seam.json as the structural authority: P1 schedules at 81:B0FA..B179, P2 at 81:B1FF..B27E, both feeding shared 81:AB88/ACB1 descriptor construction."
+    - "Materialize only presentation payload needed for one adjacent strip per viewport from live course state; do not alter $0505/$0507 camera edges, $04F5/$04F7 velocities, racer state, activation, or progression."
+    - "Preserve the stock 8-word per-viewport strip contract and the existing shared NMI descriptor consumer."
+    - "Compare matched stock/+8 VS checkpoints with the retained protected-state gate from analysis/widescreen-vs-policy-evidence.json."
   success:
-    - "A deterministic VS +8 run observes the recovered preparation provider and retains exact racer/progress/camera-view equality against stock."
-    - "Only then may vs-mode host_widen become true and share the ordinary 2P mixed composition policy."
+    - "Both widened viewports receive a deterministic adjacent strip through the shared descriptor path."
+    - "Protected racer/progress/camera-view state remains exact against stock."
+    - "No future-stock oracle or new guest-owned descriptor lane is introduced."
   stop_or_split:
-    - "If VS uses a fundamentally different split-screen backing model, record a dedicated VS provider instead of forcing the ordinary race materializer onto it."
+    - "If live course state cannot reproduce the adjacent 8-word payload independently for each viewport, retain centered VS and document the missing presentation input instead of widening authoritative state."
 
 notes:
   - "Evidence-backed scene policies may guide implementation; provisional policies remain explicit hypotheses."

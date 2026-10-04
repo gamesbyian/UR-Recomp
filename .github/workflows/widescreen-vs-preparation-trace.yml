@@ -1,0 +1,234 @@
+name: VS preparation writer trace
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/widescreen-vs-preparation-trace.yml"
+      - "tools/trace_native_wram_writers.py"
+      - "tools/instrument_snesref_vs_preparation_writes.py"
+      - "tests/input/vs-first-race.input"
+      - "tests/input/vs-first-race-observe.script"
+      - "analysis/widescreen-vs-preparation-seam.json"
+      - "analysis/widescreen-policy.yml"
+      - "docs/WIDESCREEN-RECONNAISSANCE.md"
+      - "docs/WORK-QUEUE.md"
+
+concurrency:
+  group: widescreen-vs-preparation-trace-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  trace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install native trace dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Generate and build trace target
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          ROOT="$RUNNER_TEMP/vs-trace-project"
+          mkdir -p "$ROOT"
+          sh snesrecomp/tools/new_project/setup_project.sh \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --dir "$ROOT" --name "Uniracers" --players 2 --yes --no-ci \
+            --no-fetch-boxart --no-recomp-ui --no-netplay --no-github \
+            --generate --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
+          PROJECT="$ROOT/UniracersSNESRecomp"
+          python3 - "$PROJECT/src/host_contract.c" <<'PY'
+          from pathlib import Path
+          import sys
+          p=Path(sys.argv[1])
+          s=p.read_text()
+          marker="#include <stdint.h>\n"
+          if marker not in s:
+              raise SystemExit("host_contract.c include marker not found")
+          s=s.replace(marker, marker+"\n#if !defined(SNESRECOMP_TRACE) || !SNESRECOMP_TRACE\n", 1)
+          s+="\n#endif /* production debug-hook stubs */\n"
+          p.write_text(s)
+          PY
+          cmake -S "$PROJECT" -B "$PROJECT/build-trace" \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ENABLE_TRACE=ON
+          cmake --build "$PROJECT/build-trace" -j2
+          test -x "$PROJECT/build-trace/UniracersSNESRecomp"
+
+      - name: Attribute VS camera and preparation writers
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT="$RUNNER_TEMP/vs-trace-project/UniracersSNESRecomp"
+          EXE="$PROJECT/build-trace/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          INPUT="$GITHUB_WORKSPACE/tests/input/vs-first-race.input"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/vs-first-race-observe.script"
+          LOG="$RUNNER_TEMP/vs-preparation-trace-host.log"
+          OUT="$RUNNER_TEMP/vs-preparation-writers.json"
+
+          SNESRECOMP_DEBUG_PORT=4377 \
+          SNESRECOMP_INPUT_FILE="$INPUT" \
+          SDL_AUDIODRIVER=dummy \
+            timeout 240s xvfb-run -a "$EXE" "$ROM" --paused --script "$SCRIPT" \
+            >"$LOG" 2>&1 &
+          HOST_PID=$!
+          trap 'kill "$HOST_PID" 2>/dev/null || true' EXIT
+
+          python3 tools/trace_native_wram_writers.py \
+            --port 4377 --command-timeout 45 \
+            --coarse-until 1050 --coarse-step 25 \
+            --max-frames 1700 --continue-until 1620 \
+            --address 0x0505 --address 0x0507 \
+            --address 0x0509 --address 0x050B \
+            --address 0x052B --address 0x052D \
+            --address 0x052F --address 0x0531 \
+            --address 0x03B9 --address 0x03BB \
+            --address 0x03BD --address 0x03BF \
+            --address 0x03C1 --address 0x03C3 \
+            --address 0x03C5 --address 0x03C7 \
+            --address 0x0DDB \
+            --json-out "$OUT"
+
+          kill "$HOST_PID" 2>/dev/null || true
+          wait "$HOST_PID" 2>/dev/null || true
+          trap - EXIT
+          test -s "$OUT"
+          tail -n 120 "$LOG"
+
+      - name: Summarize attribution scopes
+        shell: bash
+        run: |
+          python3 - "$RUNNER_TEMP/vs-preparation-writers.json" <<'PY'
+          import json, pathlib, sys
+          d=json.loads(pathlib.Path(sys.argv[1]).read_text())
+          summary={}
+          for addr,item in d["addresses"].items():
+              scopes={}
+              for w in item["writes"]:
+                  key=(w.get("func"), w.get("parent"))
+                  scopes[key]=scopes.get(key,0)+1
+              summary[addr]=[
+                  {"func":k[0],"parent":k[1],"writes":n}
+                  for k,n in sorted(scopes.items(), key=lambda kv:(-kv[1],str(kv[0])))
+              ]
+          pathlib.Path("analysis/generated").mkdir(parents=True,exist_ok=True)
+          pathlib.Path("analysis/generated/vs-preparation-writer-scopes.json").write_text(
+              json.dumps({"schema_version":1,"addresses":summary},indent=2)+"\n"
+          )
+          print(json.dumps(summary,indent=2))
+          PY
+
+      - name: Build exact Snes9x VS writer probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C snesrecomp apply --check "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
+          git -C snesrecomp apply "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 tools/instrument_snesref_vs_preparation_writes.py "$CORE/cpuexec.cpp"
+          make -C "$CORE/libretro" -j2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+
+      - name: Capture exact VS writer PCs
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/vs-exact-writers"
+          mkdir -p "$ROOT" analysis/generated
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/vs-first-race.input" \
+          SNESREF_SCRIPT="$GITHUB_WORKSPACE/tests/input/vs-first-race-observe.script" \
+            "$RUNNER_TEMP/snesref-build/snesref" \
+            "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            >"$ROOT/run.log" 2>&1
+          grep 'VSPREPWRITE' "$ROOT/run.log" >"$ROOT/writes.log"
+          test -s "$ROOT/writes.log"
+          python3 - "$ROOT/writes.log" <<'PY'
+          import json, pathlib, re, sys
+          rx=re.compile(r"VSPREPWRITE frame=(\d+) pc=([0-9A-F]+) addr=([0-9A-F]+) old=([0-9A-F]+) new=([0-9A-F]+)")
+          rows=[]
+          for line in pathlib.Path(sys.argv[1]).read_text().splitlines():
+              m=rx.search(line)
+              if m:
+                  rows.append({
+                      "frame":int(m.group(1)),
+                      "pc":int(m.group(2),16),
+                      "addr":int(m.group(3),16),
+                      "old":int(m.group(4),16),
+                      "new":int(m.group(5),16),
+                  })
+          if not rows:
+              raise SystemExit("no exact VS preparation writer rows")
+          by_addr={}
+          for r in rows:
+              a=f"0x{r['addr']:04X}"
+              by_addr.setdefault(a,{})
+              p=f"0x{r['pc']:06X}"
+              by_addr[a][p]=by_addr[a].get(p,0)+1
+          out={"schema_version":1,"rows":rows,"writer_counts_by_address":by_addr}
+          pathlib.Path("analysis/generated/vs-preparation-exact-writers.json").write_text(
+              json.dumps(out,indent=2)+"\n"
+          )
+          print(json.dumps(by_addr,indent=2))
+          PY
+
+      - name: Verify retained VS preparation seam
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          retained=json.loads(Path("analysis/widescreen-vs-preparation-seam.json").read_text())
+          exact=json.loads(Path("analysis/generated/vs-preparation-exact-writers.json").read_text())
+          observed=exact["writer_counts_by_address"]
+
+          expected={
+              "7E:0505": {"81:B128":123, "81:B16A":26},
+              "7E:0507": {"81:B22D":55, "81:B26F":28},
+              "7E:052B": {"81:B156":27, "81:B173":26},
+              "7E:052D": {"81:B25B":29, "81:B278":28},
+          }
+          for retained_addr, pcs in expected.items():
+              raw_addr="0x"+retained_addr.split(":")[1]
+              got={k.replace("0x","").upper():v for k,v in observed[raw_addr].items()}
+              for pc,count in pcs.items():
+                  key=pc.replace(":","").upper()
+                  assert got.get(key)==count, (retained_addr,pc,count,got.get(key))
+              assert retained["exact_writer_counts"][retained_addr] == pcs
+
+          assert retained["vs_horizontal_scheduler"]["player1"]["full_primary_count_words"] == 8
+          assert retained["vs_horizontal_scheduler"]["player2"]["full_primary_count_words"] == 8
+          assert retained["shared_descriptor_builder"]["ready_flag_store"] == "81:ACF7"
+          print("VS_PREPARATION_SEAM_RETAINED_EVIDENCE_MATCH")
+          PY
+
+      - name: Upload VS preparation trace
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: widescreen-vs-preparation-trace
+          path: |
+            ${{ runner.temp }}/vs-preparation-trace-host.log
+            ${{ runner.temp }}/vs-preparation-writers.json
+            analysis/generated/vs-preparation-writer-scopes.json
+            analysis/generated/vs-preparation-exact-writers.json
+            ${{ runner.temp }}/vs-exact-writers/run.log
+            ${{ runner.temp }}/vs-exact-writers/writes.log
+          if-no-files-found: warn
+          retention-days: 7

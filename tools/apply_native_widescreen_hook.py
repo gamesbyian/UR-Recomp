@@ -764,6 +764,7 @@ def apply(gen_dir: Path) -> dict:
         "margin0_control": True,
         "margin8_hook": True,
         "vs_margin8_supported": True,
+        "vs_margin16_capacity_probe": True,
         "margin16_supported": True,
         "margin24_supported": True,
             "margin64_supported": True,

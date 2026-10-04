@@ -124,7 +124,9 @@ Native run `37159887643` closes that repeated-pose step through live top/bottom 
 
 The next retained visual change is already registered rather than newly searched: P1 `057E/0543 + 0D49/0000` occurs at frames `1205–1206` and `1213–1214`. A single authored asset now covers all four occurrences, matching stock envelope `[21,2]..[42,38]` and contact `[67,76]`. Native run `37163141373` is green and artifact `11288098806` records 251/405 alpha intersection/union (IoU `0.6197530864`).
 
-The next actual retained visual change is P1 `057D/0543 + 0D48/0000`, repeated across frames `1207–1212`. One authored asset covers the six-frame run, matching stock envelope `[21,3]..[43,38]` and contact `[69,76]`. Native run `37164968261` is green and artifact `11289251993` records 246/397 alpha intersection/union (IoU `0.6196473552`). Recovered gameplay-scale envelope/contact and temporal continuity remain acceptance constraints, while smooth geometry/material interpretation stays free inside those constraints.
+The next actual retained visual change is P1 `057D/0543 + 0D48/0000`, repeated across frames `1207–1212`. One authored asset covers the six-frame run, matching stock envelope `[21,3]..[43,38]` and contact `[69,76]`. Native run `37164968261` is green and artifact `11289251993` records 246/397 alpha intersection/union (IoU `0.6196473552`).
+
+The P1 review strip is now saturated across the retained 1205–1220 window. The next smallest product-facing art step is the canonical frame-1220 P2 `0540` representation, which still used the generic contract candidate in live Remastered presentation. A first authored blue-player candidate now targets its stock envelope `[23,3]..[40,38]` and contact `[63,76]`; native/dossier acceptance remains pending. Recovered gameplay-scale envelope/contact and temporal continuity remain acceptance constraints, while smooth geometry/material interpretation stays free inside those constraints.
 
 ## Reconstruction decision policy
 

@@ -37,3 +37,21 @@ extern "C" UrUniracersRunData ur_uniracers_read_run_data(
     out.valid = 1;
     return out;
 }
+
+extern "C" int64_t ur_uniracers_run_data_ticks60(UrUniracersRunData data) {
+    if (!data.valid ||
+        data.minutes < 0 || data.minutes > 9 ||
+        data.tens_seconds < 0 || data.tens_seconds > 5 ||
+        data.seconds < 0 || data.seconds > 9 ||
+        data.tenths < 0 || data.tenths > 9 ||
+        data.sub_tick < 0 || data.sub_tick > 5) {
+        return -1;
+    }
+    const int64_t whole_seconds =
+        static_cast<int64_t>(data.minutes) * 60 +
+        static_cast<int64_t>(data.tens_seconds) * 10 +
+        static_cast<int64_t>(data.seconds);
+    return whole_seconds * 60 +
+           static_cast<int64_t>(data.tenths) * 6 +
+           static_cast<int64_t>(data.sub_tick);
+}

@@ -23,6 +23,7 @@ class HostProfileStoreCppTests(unittest.TestCase):
                     "-I",
                     str(ROOT / "native" / "product"),
                     str(ROOT / "native" / "product" / "host_product_state.cpp"),
+                    str(ROOT / "native" / "product" / "output_resolution_policy.cpp"),
                     str(ROOT / "native" / "product" / "host_profile_state.cpp"),
                     str(ROOT / "native" / "product" / "host_profile_store.cpp"),
                     str(ROOT / "tests" / "native" / "host_profile_store_acceptance.cpp"),

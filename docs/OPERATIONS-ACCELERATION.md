@@ -34,7 +34,7 @@ Use this worklist for future authored batches. Do not create duplicate art merel
 
 `analysis/modern-product-settings.json` is the machine-readable inventory of host-owned settings and their persistence/UI/runtime status. `tools/check_modern_product_settings_catalog.py` keeps it aligned with the current C++ codec and Options symbols.
 
-The existing v1-v6 codec remains valid. Before another optional setting creates a routine schema bump, prefer a forward-extensible known-key format in which missing additive keys receive defaults and schema changes are reserved for actual grammar/compatibility changes. Runtime-specific adapters remain explicit.
+The v1-v5 codecs retain their strict historical field sets. Version 6 is now the stable additive envelope: its administrative core remains required, known additive keys may be absent and receive typed defaults, and unknown keys still fail closed. Add future optional settings by extending that known-key/defaulting set; reserve a new schema version for an actual grammar or compatibility change. Runtime-specific adapters remain explicit.
 
 ## Agent context
 

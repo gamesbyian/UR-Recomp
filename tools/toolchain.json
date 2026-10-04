@@ -515,6 +515,10 @@
           "sha256": "74083a719b2be1f8dbd2794b92724b0b4dc3ce6eb2369f3c47b783c847be4c39"
         },
         {
+          "path": "tools/patches/snesrecomp-frame-input-observation.patch",
+          "sha256": "9111a30da272b106a5cfe4b62735738a9e3fa9b4ebde607b65b2b313704b8539"
+        },
+        {
           "path": "tools/patches/snesrecomp-session-pause.patch",
           "sha256": "12b3c6b3936a27c7f006380cfa40df9be5087fa809db99a2354b6cccd6f9b923"
         },

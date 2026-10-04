@@ -34,10 +34,6 @@
       "sha256": "74083a719b2be1f8dbd2794b92724b0b4dc3ce6eb2369f3c47b783c847be4c39"
     },
     {
-      "path": "tools/patches/snesrecomp-frame-input-observation.patch",
-      "sha256": "b938093dc6e50756e63b73c918607e878e758e10756c390ab7377abd0979cbe5"
-    },
-    {
       "path": "tools/patches/snesrecomp-session-pause.patch",
       "sha256": "12b3c6b3936a27c7f006380cfa40df9be5087fa809db99a2354b6cccd6f9b923"
     },
@@ -96,6 +92,10 @@
     {
       "path": "tools/patches/snesrecomp-desktop-lua-bridge.patch",
       "sha256": "36be266eec5affb05d0acd14d78431ec56ac4db4b795576c9872b30a0050d623"
+    },
+    {
+      "path": "tools/patches/snesrecomp-frame-input-observation.patch",
+      "sha256": "320d678684a7b4ba7923d6f6626f17efd068f09d50804a67ab8c4fa9e13e321d"
     },
     {
       "path": "tools/patches/snesrecomp-native-widescreen-state-dump.patch",

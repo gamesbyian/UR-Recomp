@@ -231,3 +231,8 @@ Modern Options now owns a persisted `VIEW` setting with `Original` and `16:9` ch
 The setting changes presentation only. Active evidence-backed 1P and ordinary-2P race scenes may request the accepted 342×224 logical view over +48 backing; frontend, transitions, results, unknown races and VS remain fixed-center. A title-owned dynamic native-wide callback keeps those fixed scenes on the stock PPU raster path. Output Resolution, Display Mode, VSync and Presentation FPS remain independent settings.
 
 Host-state codec v6 now follows the catalog's additive-key rule: its seven historical core keys remain required, `widescreen` is a known optional v6 key whose absence defaults to `original`, and unknown keys still fail closed. This keeps already-written v6 files readable without inventing a schema bump for one optional setting.
+
+
+### Completed-run records / replay foundation
+
+native/product/completed_run_record.{hpp,cpp} now owns the first host-only records substrate. It captures resolved controller words into the same run semantics used by deterministic fixture replay, persists strong game/ROM/build/course/mode provenance, exact 60 Hz timing/splits and an optional terminal simulation digest, and exports its controller payload directly to the existing INPUT_FILE grammar. The codec is strict/versioned/checksummed and rejects incompatible playback targets. No guest snapshot is the primary replay format, and Authentic policy gains no new gameplay authority. Production live capture and ghost presentation are explicitly separate next steps; see COMPLETED-RUN-RECORDS.md.

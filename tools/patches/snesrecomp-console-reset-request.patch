@@ -1,0 +1,84 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -398,5 +398,29 @@ static int g_rewind_hotkey;
+ static int g_rewind_hotkey;
+ static int g_open_launcher_hotkey;   /* in_game_launcher only */
+ static uint64_t g_state_generation;
++static int g_session_reboot_requested;
++static uint32_t g_session_reboot_sram_digest;
++
++static uint32_t session_reboot_sram_digest(void) {
++  uint32_t hash = 2166136261u;
++  for (int i = 0; i < g_sram_size; ++i) {
++    hash ^= g_sram[i];
++    hash *= 16777619u;
++  }
++  return hash;
++}
++
++int snesrecomp_desktop_request_session_reboot(void) {
++#if defined(SNES_HAS_LOBBY_CLIENT)
++  if (snes_netplay_active())
++    return 0;
++#endif
++  if (!g_snes || !g_sram || g_sram_size <= 0)
++    return 0;
++  if (!RtlTryWriteSram())
++    return 0;
++  g_session_reboot_sram_digest = session_reboot_sram_digest();
++  g_session_reboot_requested = 1;
++  return 1;
++}
+ 
+ /* The last field actually presented, kept so an overlay can freeze the guest
+@@ -4011,4 +4035,38 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **a
+     }
+     if (!running)
+       break;
++    if (g_session_reboot_requested) {
++      g_session_reboot_requested = 0;
++      host_report_breadcrumb("session reboot");
++
++      /* Mirror the framework's existing soft-return/rematch lifecycle:
++       * persist authoritative SRAM, clear title-owned process-lifetime
++       * session state, discard the old machine, initialize a fresh machine
++       * from the launched ROM, then restore SRAM. No guest PC or WRAM menu
++       * state is manufactured. */
++      snes_runahead_shutdown();
++      snes_rewind_shutdown();
++      if (g_rtl_game_info && g_rtl_game_info->session_reset)
++        g_rtl_game_info->session_reset();
++      snes_free(snes);
++      snes = SnesInit(kRom, kRom_SIZE);
++      if (!snes)
++        Die("session reboot failed to initialize the guest");
++      debug_server_set_ram(snes->ram, 0x20000);
++      RtlReadSram();
++      if (session_reboot_sram_digest() != g_session_reboot_sram_digest)
++        Die("session reboot failed to preserve cartridge SRAM");
++      fprintf(stderr, "UR_SESSION_REBOOT_SRAM_RESTORED digest=%08X\n",
++              (unsigned)g_session_reboot_sram_digest);
++      fflush(stderr);
++      g_input_state = 0;
++      g_gamepad[0].axis_buttons = 0;
++      g_gamepad[1].axis_buttons = 0;
++      ResetAudioTimeline();
++      snes_runahead_set_frames(g_config.run_ahead);
++      snes_runahead_configure();
++      snes_rewind_configure();
++      g_state_generation = RtlStateGeneration();
++      GameReset();
++    }
+     OverlaySelftestPadMainTick(frameCtr);
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -226,3 +226,9 @@ int snesrecomp_desktop_set_display_mode(int mode);
+ int snesrecomp_desktop_get_display_mode(void);
+ 
++/* Queue a full in-process guest session rebuild at the next safe host-loop
++ * boundary. The request first durably publishes current battery SRAM and
++ * fails closed if that write cannot complete. The rebuild uses the existing
++ * title session-reset + SnesInit + RtlReadSram rematch lifecycle. */
++int snesrecomp_desktop_request_session_reboot(void);
++
+ /* Ask the host to reset its pacing clock at the next opportunity (a title

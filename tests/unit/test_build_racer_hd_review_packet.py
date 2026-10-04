@@ -91,6 +91,69 @@ class RacerHdReviewPacketTest(unittest.TestCase):
         self.assertEqual(pose["authored_png"], "authored-candidate/a.png")
         self.assertEqual(pose["gameplay_scale_review"]["alpha_iou"], 0.75)
 
+    def test_packet_copies_baseline_assets_for_before_after_review(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            current_root = root / "current"
+            baseline_root = root / "baseline-source"
+            current_root.mkdir()
+            baseline_root.mkdir()
+
+            dossier = current_root / "manifest.json"
+            equivalence = current_root / "equivalence.json"
+            baseline_dossier = baseline_root / "manifest.json"
+            baseline_equivalence = baseline_root / "equivalence.json"
+
+            current = self.dossier()
+            before = self.dossier()
+            current["representations"][0]["art_review"]["authored_candidate"]["png"] = (
+                "authored-candidate/a.png"
+            )
+            before["representations"][0]["art_review"]["authored_candidate"]["png"] = (
+                "authored-candidate/a.png"
+            )
+            current["representations"][0]["art_review"]["authored_candidate"][
+                "rgba_sha256"
+            ] = "current"
+            before["representations"][0]["art_review"]["authored_candidate"][
+                "rgba_sha256"
+            ] = "before"
+
+            current_eq = self.equivalence()
+            baseline_eq = self.equivalence()
+            current_eq["pose_groups"][0]["authored_asset_rgba_sha256"] = "current"
+            baseline_eq["pose_groups"][0]["authored_asset_rgba_sha256"] = "before"
+
+            dossier.write_text(json.dumps(current))
+            equivalence.write_text(json.dumps(current_eq))
+            baseline_dossier.write_text(json.dumps(before))
+            baseline_equivalence.write_text(json.dumps(baseline_eq))
+            source_png = baseline_root / "authored-candidate" / "a.png"
+            source_png.parent.mkdir()
+            source_png.write_bytes(b"baseline-png")
+
+            out = root / "review"
+            manifest = build_review_packet(
+                dossier,
+                equivalence,
+                out,
+                baseline_dossier_path=baseline_dossier,
+                baseline_equivalence_path=baseline_equivalence,
+            )
+
+            self.assertEqual(
+                manifest["baseline_comparison"]["changed_authored_pose_count"], 1
+            )
+            self.assertEqual(
+                manifest["baseline_comparison"]["copied_authored_png_count"], 1
+            )
+            self.assertTrue(
+                (out / "baseline" / "p1-pose-001.png").is_file()
+            )
+            html = (out / "index.html").read_text()
+            self.assertIn("Before · authored 4× inspection", html)
+            self.assertIn("After · gameplay footprint", html)
+
     def test_packet_renders_live_frames_at_known_native_dimensions(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -123,7 +186,7 @@ class RacerHdReviewPacketTest(unittest.TestCase):
             self.assertTrue((out / "live-hd.png").is_file())
             html = (out / "index.html").read_text()
             self.assertIn("2 exact guards → 1 unique poses", html)
-            self.assertIn("Authored at gameplay footprint", html)
+            self.assertIn("After · gameplay footprint", html)
             self.assertIn("Live split-screen reference", html)
             self.assertIn("Alpha mismatch", html)
             self.assertIn('x="2" y="3"', html)

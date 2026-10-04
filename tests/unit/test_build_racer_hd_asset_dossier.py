@@ -151,14 +151,19 @@ class RacerHdAssetDossierTests(unittest.TestCase):
             FIRST_AUTHORED_REPRESENTATION_ID,
             "ordinary-racer-0x0541-p1-sync-reference",
         )
-        self.assertEqual(sample_authored_0541_p1_rgba(112, 116), bytes((217, 213, 208, 255)))
-        self.assertEqual(sample_authored_0541_p1_rgba(123, 90), bytes((32, 29, 23, 255)))
-        self.assertEqual(sample_authored_0541_p1_rgba(128, 22), bytes((75, 71, 65, 255)))
-        self.assertEqual(sample_authored_0541_p1_rgba(132, 50), bytes((201, 52, 52, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(112, 116), bytes((0, 0, 0, 0)))
+        self.assertEqual(sample_authored_0541_p1_rgba(143, 116), bytes((249, 248, 247, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(123, 122), bytes((224, 221, 216, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(123, 90), bytes((42, 39, 32, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(128, 22), bytes((49, 45, 38, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(118, 28), bytes((41, 37, 29, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(118, 31), bytes((25, 23, 17, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(132, 50), bytes((232, 83, 83, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(132, 30), bytes((159, 153, 142, 255)))
         # Refinement pass 1 restores stock-supported internal structure with
         # a second fork brace and restrained six-spoke wheel detail.
         self.assertEqual(sample_authored_0541_p1_rgba(116, 88), bytes((201, 52, 52, 255)))
-        self.assertEqual(sample_authored_0541_p1_rgba(110, 122), bytes((217, 213, 208, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(110, 122), bytes((224, 221, 216, 255)))
         self.assertEqual(sample_authored_0541_p1_rgba(0, 0), bytes((0, 0, 0, 0)))
 
         rgba = build_first_authored_candidate_rgba()
@@ -316,7 +321,7 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         )
         bottom = [x for x, y in occupied if y == 38]
         self.assertEqual([min(bottom), max(bottom)], [31, 34])
-        self.assertEqual(len(occupied), 315)
+        self.assertEqual(len(occupied), 321)
 
     def test_sixth_registration_authors_repeated_057e_pose(self):
         self.assertEqual(
@@ -467,7 +472,7 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         )
         self.assertEqual(
             sample_authored_0542_p2_rgba(126, 110),
-            bytes((159, 153, 142, 255)),
+            bytes((224, 221, 216, 255)),
         )
         occupied = []
         for ly in range(64):
@@ -500,7 +505,7 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         )
         self.assertEqual(
             sample_authored_0543_p2_rgba(122, 110),
-            bytes((217, 213, 208, 255)),
+            bytes((224, 221, 216, 255)),
         )
         occupied = []
         for ly in range(64):

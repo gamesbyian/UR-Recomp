@@ -171,6 +171,40 @@ def authored_segment_contains(
     cross = dx * py - dy * px
     return cross * cross <= half_width * half_width * length2
 
+def authored_saddle_contains(
+    x: int,
+    y: int,
+    seat_cx: int,
+    seat_cy: int,
+    radius_x: int,
+    radius_y: int,
+    min_y: int,
+    max_y: int,
+) -> bool:
+    if y < min_y or y > max_y:
+        return False
+    dx = x - seat_cx
+    dy = y - seat_cy
+    lhs = (
+        dx * dx * radius_y * radius_y
+        + dy * dy * radius_x * radius_x
+    )
+    rhs = radius_x * radius_x * radius_y * radius_y
+    if lhs > rhs:
+        return False
+    nose_start = radius_x // 3
+    if dx > nose_start:
+        run = radius_x - nose_start
+        remaining = radius_x - dx
+        nose_half_height = (
+            radius_y // 4
+            + (remaining * radius_y * 3) // (4 * run)
+        )
+        if dy < -nose_half_height or dy > nose_half_height:
+            return False
+    return True
+
+
 def authored_rim_hardware_rgba(
     x: int,
     y: int,
@@ -197,12 +231,11 @@ def authored_rubber_rgba(
     dx = x - wheel_cx
     dy = y - wheel_cy
     directional = -(dx + dy)
-    tread = ((x * 3 + y * 5) >> 3) & 0x03
-    if directional > 34 and tread != 0:
-        return _rgba32(78, 73, 64)
-    if tread == 1 and dy > 8:
-        return _rgba32(44, 40, 32)
-    return _rgba32(30, 27, 21)
+    if directional > 34:
+        return _rgba32(64, 60, 52)
+    if directional < -36:
+        return _rgba32(29, 26, 21)
+    return _rgba32(42, 39, 32)
 
 
 def authored_saddle_rgba(
@@ -214,10 +247,7 @@ def authored_saddle_rgba(
     dx = x - seat_cx
     dy = y - seat_cy
     directional = -(dx + dy)
-    center_seam = dx >= -2 and dx <= 1 and dy >= -7 and dy <= 8
     underside = dy >= 6
-    if center_seam:
-        return _rgba32(103, 97, 89)
     if directional > 28 and not underside:
         return _rgba32(82, 77, 69)
     if underside:
@@ -233,15 +263,15 @@ def authored_wheel_spokes(
 ) -> bool:
     return (
         authored_segment_contains(
-            x, y, wheel_cx - 22, wheel_cy, wheel_cx + 22, wheel_cy, 2
+            x, y, wheel_cx - 22, wheel_cy, wheel_cx + 22, wheel_cy, 1
         )
         or authored_segment_contains(
             x, y, wheel_cx - 11, wheel_cy - 19,
-            wheel_cx + 11, wheel_cy + 19, 2
+            wheel_cx + 11, wheel_cy + 19, 1
         )
         or authored_segment_contains(
             x, y, wheel_cx + 11, wheel_cy - 19,
-            wheel_cx - 11, wheel_cy + 19, 2
+            wheel_cx - 11, wheel_cy + 19, 1
         )
     )
 
@@ -313,10 +343,7 @@ def sample_authored_0541_p1_rgba(x: int, y: int) -> bytes:
 
     seat_dx = x - 128
     seat_dy = y - 22
-    seat = (
-        (seat_dx * seat_dx) * 11 + (seat_dy * seat_dy) * 30 <= 30 * 30 * 11
-        and y >= 12 and y <= 32
-    )
+    seat = authored_saddle_contains(x, y, 128, 22, 30, 18, 12, 32)
 
     neck = y >= 30 and y <= 60 and x >= 128 and x <= 136
     crown_dx = x - 132
@@ -364,12 +391,7 @@ def sample_authored_0541_p1_companion_0d2d_rgba(x: int, y: int) -> bytes:
 
     seat_dx = x - 130
     seat_dy = y - 23
-    seat = (
-        (seat_dx * seat_dx) * 13 * 13
-        + (seat_dy * seat_dy) * 32 * 32
-        <= 32 * 32 * 13 * 13
-        and y >= 8 and y <= 34
-    )
+    seat = authored_saddle_contains(x, y, 130, 23, 32, 13, 8, 34)
 
     neck = y >= 30 and y <= 60 and x >= 128 and x <= 136
     crown_dx = x - 132
@@ -417,12 +439,7 @@ def sample_authored_0540_p1_predecessor_rgba(x: int, y: int) -> bytes:
 
     seat_dx = x - 130
     seat_dy = y - 22
-    seat = (
-        (seat_dx * seat_dx) * 12 * 12
-        + (seat_dy * seat_dy) * 35 * 35
-        <= 35 * 35 * 12 * 12
-        and y >= 8 and y <= 36
-    )
+    seat = authored_saddle_contains(x, y, 130, 22, 35, 12, 8, 36)
 
     neck = y >= 30 and y <= 60 and x >= 124 and x <= 132
     crown_dx = x - 134
@@ -474,12 +491,7 @@ def sample_authored_057f_p1_companion_0d4a_rgba(x: int, y: int) -> bytes:
     # outer envelope or wheel contact.
     seat_dx = x - 120
     seat_dy = y - 22
-    seat = (
-        (seat_dx * seat_dx) * 14 * 14
-        + (seat_dy * seat_dy) * 32 * 32
-        <= 32 * 32 * 14 * 14
-        and y >= 8 and y <= 36
-    )
+    seat = authored_saddle_contains(x, y, 120, 22, 32, 14, 8, 36)
 
     neck = y >= 30 and y <= 60 and x >= 128 and x <= 136
     crown_dx = x - 136
@@ -531,12 +543,7 @@ def sample_authored_057e_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     # while preserving the recovered whole-pose envelope and contact.
     seat_dx = x - 116
     seat_dy = y - 22
-    seat = (
-        (seat_dx * seat_dx) * 14 * 14
-        + (seat_dy * seat_dy) * 32 * 32
-        <= 32 * 32 * 14 * 14
-        and y >= 8 and y <= 36
-    )
+    seat = authored_saddle_contains(x, y, 116, 22, 32, 14, 8, 36)
 
     neck = y >= 30 and y <= 60 and x >= 132 and x <= 140
     crown_dx = x - 140
@@ -588,12 +595,7 @@ def sample_authored_057d_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     # the wheel-supplied contact anchor.
     seat_dx = x - 112
     seat_dy = y - 26
-    seat = (
-        (seat_dx * seat_dx) * 14 * 14
-        + (seat_dy * seat_dy) * 28 * 28
-        <= 28 * 28 * 14 * 14
-        and y >= 12 and y <= 40
-    )
+    seat = authored_saddle_contains(x, y, 112, 26, 28, 14, 12, 40)
 
     neck = y >= 30 and y <= 60 and x >= 136 and x <= 144
     crown_dx = x - 144
@@ -642,12 +644,7 @@ def sample_authored_0540_p2_baseline_rgba(x: int, y: int) -> bytes:
 
     seat_dx = x - 130
     seat_dy = y - 22
-    seat = (
-        (seat_dx * seat_dx) * 12 * 12
-        + (seat_dy * seat_dy) * 35 * 35
-        <= 35 * 35 * 12 * 12
-        and y >= 12 and y <= 36
-    )
+    seat = authored_saddle_contains(x, y, 130, 22, 35, 12, 12, 36)
 
     neck = y >= 30 and y <= 60 and x >= 124 and x <= 132
     crown_dx = x - 134
@@ -692,12 +689,7 @@ def sample_authored_0541_p2_predecessor_rgba(x: int, y: int) -> bytes:
     # density. Shift the same smooth saddle right/down and narrow it while the
     # wheel/fork continue to lock envelope and contact.
     seat_dx, seat_dy = x - 130, y - 26
-    seat = (
-        (seat_dx * seat_dx) * 12 * 12
-        + (seat_dy * seat_dy) * 30 * 30
-        <= 30 * 30 * 12 * 12
-        and y >= 12 and y <= 40
-    )
+    seat = authored_saddle_contains(x, y, 130, 26, 30, 12, 12, 40)
     neck = y >= 30 and y <= 60 and x >= 120 and x <= 128
     crown_dx, crown_dy = x - 130, y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
@@ -740,12 +732,7 @@ def sample_authored_0542_p2_rgba(x: int, y: int) -> bytes:
     pedal = y >= 113 and y <= 118 and x >= 133 and x <= 137
 
     seat_dx, seat_dy = x - 130, y - 26
-    seat = (
-        (seat_dx * seat_dx) * 14 * 14
-        + (seat_dy * seat_dy) * 35 * 35
-        <= 35 * 35 * 14 * 14
-        and y >= 16 and y <= 40
-    )
+    seat = authored_saddle_contains(x, y, 130, 26, 35, 14, 16, 40)
 
     neck = y >= 30 and y <= 60 and x >= 116 and x <= 124
     crown_dx, crown_dy = x - 126, y - 60
@@ -791,12 +778,7 @@ def sample_authored_0543_p2_rgba(x: int, y: int) -> bytes:
     pedal = y >= 113 and y <= 118 and x >= 131 and x <= 135
 
     seat_dx, seat_dy = x - 130, y - 30
-    seat = (
-        (seat_dx * seat_dx) * 12 * 12
-        + (seat_dy * seat_dy) * 35 * 35
-        <= 35 * 35 * 12 * 12
-        and y >= 16 and y <= 40
-    )
+    seat = authored_saddle_contains(x, y, 130, 30, 35, 12, 16, 40)
 
     neck = y >= 30 and y <= 60 and x >= 114 and x <= 122
     crown_dx, crown_dy = x - 124, y - 60

@@ -1,0 +1,88 @@
+name: Switch S0 compile probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "platform/switch/s0_probe/**"
+      - "analysis/switch-s0-contract.json"
+      - "third_party/platform/switch/pins.json"
+      - "tools/check_switch_s0_probe.py"
+      - "tests/unit/test_switch_s0_probe.py"
+      - ".github/workflows/switch-s0-compile-probe.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: switch-s0-compile-probe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cross-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    container:
+      image: devkitpro/devkita64:20260219
+
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Validate repository contract
+        run: |
+          set -euo pipefail
+          python3 tools/check_switch_s0_probe.py
+          python3 -m unittest tests.unit.test_switch_s0_probe
+
+      - name: Record toolchain inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${DEVKITPRO:-}"
+          test -n "${DEVKITA64:-}"
+          test -n "${PORTLIBS:-}"
+          command -v aarch64-none-elf-gcc
+          command -v elf2nro
+          command -v sdl2-config
+          dkp-pacman -Q devkitA64
+          dkp-pacman -Q libnx
+          dkp-pacman -Q switch-sdl2
+
+      - name: Build minimal libnx SDL2 NRO
+        shell: bash
+        run: |
+          set -euo pipefail
+          make -C platform/switch/s0_probe -j2
+          test -s platform/switch/s0_probe/ur-recomp-switch-s0.elf
+          test -s platform/switch/s0_probe/ur-recomp-switch-s0.nacp
+          test -s platform/switch/s0_probe/ur-recomp-switch-s0.nro
+          sha256sum platform/switch/s0_probe/ur-recomp-switch-s0.nro
+
+      - name: Emit retained compiler and link metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p switch-s0-evidence
+          {
+            echo "container=devkitpro/devkita64:20260219"
+            echo "devkitpro=${DEVKITPRO}"
+            echo "devkita64=${DEVKITA64}"
+            echo "portlibs=${PORTLIBS}"
+            echo "gcc_version=$(aarch64-none-elf-gcc -dumpfullversion -dumpversion)"
+            echo "sdl2_version=$(sdl2-config --version)"
+            echo "devkitA64_package=$(dkp-pacman -Q devkitA64)"
+            echo "libnx_package=$(dkp-pacman -Q libnx)"
+            echo "switch_sdl2_package=$(dkp-pacman -Q switch-sdl2)"
+            echo "nro_sha256=$(sha256sum platform/switch/s0_probe/ur-recomp-switch-s0.nro | awk '{print $1}')"
+            echo "nro_size=$(wc -c < platform/switch/s0_probe/ur-recomp-switch-s0.nro)"
+          } > switch-s0-evidence/build-metadata.txt
+          cp platform/switch/s0_probe/ur-recomp-switch-s0.map switch-s0-evidence/ 2>/dev/null || true
+          cat switch-s0-evidence/build-metadata.txt
+
+      - name: Upload S0 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: switch-s0-cross-build
+          path: switch-s0-evidence/
+          retention-days: 14

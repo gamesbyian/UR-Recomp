@@ -101,12 +101,28 @@ bool modern_mode() {
     return !(mode && std::strcmp(mode, "authentic") == 0);
 }
 
+void ensure_product_state();
+
+const char* widescreen_mode_name(ur::product::HostWidescreenMode mode) {
+    return mode == ur::product::HostWidescreenMode::Authentic16x9
+        ? "16x9" : "original";
+}
+
 bool authentic_16x9_view_enabled() {
     if (!modern_mode()) return false;
+
+    // Retain the environment selector as a deterministic diagnostic override.
+    // Any non-empty unknown spelling fails closed instead of falling through
+    // to persisted state.
     const char* view = std::getenv("URRECOMP_WS_VIEW");
-    return view &&
-           (std::strcmp(view, "authentic-16x9") == 0 ||
-            std::strcmp(view, "authentic-16x9-candidate") == 0);
+    if (view && *view) {
+        return std::strcmp(view, "authentic-16x9") == 0 ||
+               std::strcmp(view, "authentic-16x9-candidate") == 0;
+    }
+
+    ensure_product_state();
+    return g_product_state.settings.widescreen_mode ==
+           ur::product::HostWidescreenMode::Authentic16x9;
 }
 
 void product_diagnostic(const char* message) {
@@ -421,14 +437,16 @@ void ensure_product_state() {
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             std::fprintf(
                 stderr,
-                "UR_HOST_STATE LOADED pause_on_focus_loss=%d display_mode=%s vsync=%s presentation_fps=%s output_resolution=%s\n",
+                "UR_HOST_STATE LOADED pause_on_focus_loss=%d display_mode=%s vsync=%s presentation_fps=%s output_resolution=%s widescreen=%s\n",
                 g_product_state.settings.pause_on_focus_loss ? 1 : 0,
                 display_mode_name(g_product_state.settings.display_mode),
                 vsync_mode_name(g_product_state.settings.vsync_mode),
                 presentation_fps_mode_name(
                     g_product_state.settings.presentation_fps_mode),
                 output_resolution_name(
-                    g_product_state.settings.output_resolution).c_str());
+                    g_product_state.settings.output_resolution).c_str(),
+                widescreen_mode_name(
+                    g_product_state.settings.widescreen_mode));
             std::fflush(stderr);
         }
     } else if (loaded.status == ur::product::HostProductLoadStatus::Missing) {
@@ -629,6 +647,32 @@ bool cycle_output_resolution_setting() {
     return true;
 }
 
+bool cycle_widescreen_setting() {
+    if (!modern_mode()) return false;
+
+    ur::product::HostProductState candidate = g_product_state;
+    candidate.settings.widescreen_mode =
+        candidate.settings.widescreen_mode ==
+                ur::product::HostWidescreenMode::Authentic16x9
+            ? ur::product::HostWidescreenMode::Original
+            : ur::product::HostWidescreenMode::Authentic16x9;
+
+    if (!persist_product_state(candidate)) {
+        return false;
+    }
+
+    g_product_state = candidate;
+    snesrecomp_desktop_request_clock_reset();
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_WIDESCREEN SELECTED mode=%s\n",
+            widescreen_mode_name(g_product_state.settings.widescreen_mode));
+        std::fflush(stderr);
+    }
+    return true;
+}
+
 bool activate_options_selection() {
     switch (ur_modern_options_menu_selected(&g_options_menu)) {
     case UR_MODERN_OPTIONS_FOCUS_PAUSE:
@@ -641,6 +685,8 @@ bool activate_options_selection() {
         return cycle_presentation_fps_setting();
     case UR_MODERN_OPTIONS_OUTPUT_RESOLUTION:
         return cycle_output_resolution_setting();
+    case UR_MODERN_OPTIONS_WIDESCREEN:
+        return cycle_widescreen_setting();
     }
     return false;
 }
@@ -1224,7 +1270,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
 
     if (is_paused) {
         if (g_options_visible) {
-            const int options_h = 144;
+            const int options_h = 159;
             const int options_y = (height - options_h) / 2;
             const UrModernOptionsItem selected =
                 ur_modern_options_menu_selected(&g_options_menu);
@@ -1278,6 +1324,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
             char vsync_row[32];
             char presentation_row[32];
             char resolution_row[40];
+            char widescreen_row[32];
             std::snprintf(
                 focus_row, sizeof(focus_row), "%c %s",
                 selected == UR_MODERN_OPTIONS_FOCUS_PAUSE ? '>' : ' ',
@@ -1298,6 +1345,12 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 resolution_row, sizeof(resolution_row), "%c OUTPUT  %s",
                 selected == UR_MODERN_OPTIONS_OUTPUT_RESOLUTION ? '>' : ' ',
                 resolution_value.c_str());
+            std::snprintf(
+                widescreen_row, sizeof(widescreen_row), "%c VIEW     %s",
+                selected == UR_MODERN_OPTIONS_WIDESCREEN ? '>' : ' ',
+                g_product_state.settings.widescreen_mode ==
+                        ur::product::HostWidescreenMode::Authentic16x9
+                    ? "16:9" : "ORIGINAL");
             snes_ovl_fill_rect(
                 pixels, stride, height, x, options_y, panel_w, options_h,
                 0xE0202020u);
@@ -1323,10 +1376,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 pixels, stride, height, x + 8, options_y + 87,
                 resolution_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 107,
+                pixels, stride, height, x + 8, options_y + 102,
+                widescreen_row, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, options_y + 122,
                 "A / ENTER  CHANGE", 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 127,
+                pixels, stride, height, x + 8, options_y + 142,
                 "B / ESC    BACK", 0xFFFFFFFFu, 1);
             return;
         }

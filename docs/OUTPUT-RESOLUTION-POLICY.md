@@ -137,6 +137,14 @@ The Modern-mode row follows this integration contract:
 7. Authentic mode must not enumerate/apply Modern resolution policy as a
    product setting and must not load Modern host state.
 
+Native product smoke run `37179257856` closes the user-facing integration:
+the generated Modern host selected an explicit resolution from the live Xvfb
+monitor catalog, persisted schema v6, reloaded and reapplied it in a fresh
+process, preserved Authentic inertness, and passed the forced persistence-failure
+case in which the live candidate mode was rolled back and the state file remained
+byte-identical. Presentation-FPS cadence, Restart/SRAM, Exit-to-Frontend and the
+other native product acceptance steps remained green in the same run.
+
 The native acceptance should prove at minimum:
 
 - the row is derived from the actual active-monitor catalog rather than a

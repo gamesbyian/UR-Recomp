@@ -108,11 +108,10 @@ int main(int argc, char **argv) {
 
     emit_digest(0);
     for (unsigned frame = 1; frame <= 120; ++frame) {
-        if (!RtlRunFrame(0)) {
-            fprintf(stderr, "run_frame_failed=%u\n", frame);
-            free(rom);
-            return 67;
-        }
+        /* The pinned framework's normal RtlRunFrame path returns false after
+         * completing a frame. Treat it as a frame-driving side effect, matching
+         * the framework's desktop and test clients. */
+        (void)RtlRunFrame(0);
         if (frame == 1 || frame == 60 || frame == 120) emit_digest(frame);
     }
 

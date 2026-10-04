@@ -1,8 +1,9 @@
 # Output Resolution Product Contract
 
 This document records the accepted ownership and behavior for Modern-mode output
-resolution. It exists so the user-facing Options integration can be completed
-without re-opening platform, refresh-rate or monitor-change policy.
+resolution, including the completed user-facing Options/runtime integration.
+It keeps platform, refresh-rate and monitor-change policy explicit so later video
+settings do not reopen this decision.
 
 It does **not** redefine logical SNES geometry, Widescreen scene composition,
 HD asset resolution, internal render scale or authoritative guest timing.
@@ -114,10 +115,9 @@ The current-monitor catalog therefore owns the **effective** selection:
 
 This separates a durable preference from a temporary monitor capability.
 
-## Required user-facing integration
+## User-facing integration
 
-Once the active pause/Options ownership lane is clear, the real Modern-mode row
-should be integrated in this order:
+The Modern-mode row follows this integration contract:
 
 1. Enumerate the active monitor through the normalized SNESRecomp capability
    API.
@@ -136,6 +136,14 @@ should be integrated in this order:
    resolution as part of that candidate transition.
 7. Authentic mode must not enumerate/apply Modern resolution policy as a
    product setting and must not load Modern host state.
+
+Native product smoke run `37179257856` closes the user-facing integration:
+the generated Modern host selected an explicit resolution from the live Xvfb
+monitor catalog, persisted schema v6, reloaded and reapplied it in a fresh
+process, preserved Authentic inertness, and passed the forced persistence-failure
+case in which the live candidate mode was rolled back and the state file remained
+byte-identical. Presentation-FPS cadence, Restart/SRAM, Exit-to-Frontend and the
+other native product acceptance steps remained green in the same run.
 
 The native acceptance should prove at minimum:
 

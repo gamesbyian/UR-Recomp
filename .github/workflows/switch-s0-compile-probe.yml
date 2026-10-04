@@ -40,8 +40,6 @@ jobs:
         run: |
           set -euo pipefail
           test -n "${DEVKITPRO:-}"
-          test -n "${DEVKITA64:-}"
-          test -n "${PORTLIBS:-}"
           command -v aarch64-none-elf-gcc
           command -v elf2nro
           command -v sdl2-config
@@ -67,8 +65,9 @@ jobs:
           {
             echo "container=devkitpro/devkita64:20260219"
             echo "devkitpro=${DEVKITPRO}"
-            echo "devkita64=${DEVKITA64}"
-            echo "portlibs=${PORTLIBS}"
+            echo "devkita64=${DEVKITPRO}/devkitA64"
+            echo "portlibs=${DEVKITPRO}/portlibs/switch"
+            echo "libnx_root=${DEVKITPRO}/libnx"
             echo "gcc_version=$(aarch64-none-elf-gcc -dumpfullversion -dumpversion)"
             echo "sdl2_version=$(sdl2-config --version)"
             echo "devkitA64_package=$(dkp-pacman -Q devkitA64)"

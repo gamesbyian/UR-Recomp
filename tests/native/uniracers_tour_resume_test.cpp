@@ -17,9 +17,9 @@ void seed_context(
     std::uint8_t rider,
     std::uint8_t tour,
     std::uint8_t medal) {
-    wram[0x017D] = rider;
+    sram[0x0748] = rider;
     wram[0x00D0] = tour;
-    wram[0x10AD] = 1;
+    sram[0x10AD] = 1;
     sram[0x069C + 16 * tour + rider] = medal;
 }
 
@@ -62,14 +62,14 @@ int main() {
                sram.size()) == TourResumeApplyStatus::AlreadyPresent);
 
     // A different rider or tour cannot consume the continuation.
-    wram[0x017D] = 2;
+    sram[0x0748] = 2;
     assert(apply_tour_resume(
                continuation,
                wram.data(),
                wram.size(),
                sram.data(),
                sram.size()) == TourResumeApplyStatus::ContextMismatch);
-    wram[0x017D] = 3;
+    sram[0x0748] = 3;
 
     // A medal generation change makes the continuation stale.
     sram[0x069C + 16 * 4 + 3] = 2;
@@ -92,7 +92,7 @@ int main() {
                sram.size()) == TourResumeApplyStatus::ExistingProgress);
 
     // VS is outside this Modern tour-resume contract.
-    wram[0x10AD] = 2;
+    sram[0x10AD] = 2;
     assert(!observe_tour_progress(
         wram.data(), wram.size(), sram.data(), sram.size()));
 

@@ -13,6 +13,10 @@ on:
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/toolchain-entries/_global.json"
       - "tools/patch_modern_product_host.py"
+      - "tools/prepare_native_widescreen_product.py"
+      - "tools/seed_native_widescreen_aot.py"
+      - "tools/apply_native_widescreen_hook.py"
+      - "tools/patches/snesrecomp-dynamic-native-widescreen.patch"
       - "tools/build_display_geometry_review.py"
       - "tools/check_result_screen_time.py"
       - "analysis/display-geometry-candidates.json"
@@ -104,10 +108,17 @@ jobs:
               --no-netplay \
               --no-github \
               --no-submodules \
-              --generate \
+              --no-generate \
               --no-build
 
           ROOT="$TMP/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python3 "$GITHUB_WORKSPACE/tools/prepare_native_widescreen_product.py" \
+            --framework "$FRAMEWORK" \
+            --project "$ROOT" \
+            --rom "$ROM" \
+            --json-out "$RUNNER_TEMP/widescreen-product-prepare.json"
+          grep -q '"product_ready": true' "$RUNNER_TEMP/widescreen-product-prepare.json"
 
           python3 "$GITHUB_WORKSPACE/tools/patch_modern_product_host.py" \
             "$ROOT/src/main.c" \

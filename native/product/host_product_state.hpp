@@ -47,6 +47,23 @@ enum class HostPresentationFpsMode : std::uint8_t {
     Native = 5,
 };
 
+enum class HostWidescreenMode : std::uint8_t {
+    Original = 0,
+    Authentic16x9 = 1,
+};
+
+enum class HostInternalRenderScale : std::uint8_t {
+    X1 = 1,
+    X2 = 2,
+    X3 = 3,
+    X4 = 4,
+};
+
+constexpr int internal_render_scale_value(
+    HostInternalRenderScale scale) noexcept {
+    return static_cast<int>(scale);
+}
+
 struct HostSettings {
     bool vibration_enabled = true;
     bool pause_on_focus_loss = true;
@@ -57,6 +74,11 @@ struct HostSettings {
     // Semantic output size only; monitor refresh remains a separate concern.
     HostOutputResolution output_resolution =
         HostOutputResolution::native();
+    HostWidescreenMode widescreen_mode = HostWidescreenMode::Original;
+    // Host presentation density for the HD compositor. This is independent
+    // of output resolution and never changes guest logical geometry.
+    HostInternalRenderScale internal_render_scale =
+        HostInternalRenderScale::X4;
 
     bool operator==(const HostSettings& other) const noexcept {
         return vibration_enabled == other.vibration_enabled &&
@@ -64,7 +86,9 @@ struct HostSettings {
                display_mode == other.display_mode &&
                vsync_mode == other.vsync_mode &&
                presentation_fps_mode == other.presentation_fps_mode &&
-               output_resolution == other.output_resolution;
+               output_resolution == other.output_resolution &&
+               widescreen_mode == other.widescreen_mode &&
+               internal_render_scale == other.internal_render_scale;
     }
 };
 

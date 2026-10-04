@@ -278,7 +278,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_057d_p1_with_p2_0543",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_sixth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "motion-reviewed repeated temporal pose; not approved shipping art",
+        "approval_status": "true-density refinement pass 1: shifted/narrowed saddle mass; still needs shipping-art refinement",
         "shipping_art_approved": false,
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "intent": "Represent frames 1207-1212 as one repeated P1 pose, preserving the reviewed first-family material, lighting and edge language while fitting stock envelope [21,3]..[43,38] and contact [69,76].",
@@ -303,11 +303,12 @@
             76
           ],
           "stock_opaque_pixels": 321,
-          "candidate_opaque_pixels": 322,
+          "candidate_opaque_pixels": 310,
           "alpha_intersection_pixels": 246,
-          "alpha_union_pixels": 397,
-          "alpha_iou": 0.6196473551637279
-        }
+          "alpha_union_pixels": 385,
+          "alpha_iou": 0.638961038961039
+        },
+        "refinement_basis": "post-#375 mismatch-map saddle reshaping; remove authored-only upper mass while preserving stock-derived envelope/contact"
       }
     },
     {
@@ -607,7 +608,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_057e_p1_with_p2_0543",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_fifth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "motion-reviewed repeated temporal pose; not approved shipping art",
+        "approval_status": "true-density refinement pass 1: shifted/narrowed saddle mass; still needs shipping-art refinement",
         "shipping_art_approved": false,
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "intent": "Represent the repeated frame-1213/1214 and 1205/1206 P1 pose once, preserving the reviewed first-family material, lighting and edge language while fitting stock envelope [21,2]..[42,38] and contact [67,76].",
@@ -632,11 +633,12 @@
             76
           ],
           "stock_opaque_pixels": 325,
-          "candidate_opaque_pixels": 331,
-          "alpha_intersection_pixels": 251,
-          "alpha_union_pixels": 405,
-          "alpha_iou": 0.6197530864197531
-        }
+          "candidate_opaque_pixels": 317,
+          "alpha_intersection_pixels": 252,
+          "alpha_union_pixels": 390,
+          "alpha_iou": 0.6461538461538462
+        },
+        "refinement_basis": "post-#375 mismatch-map saddle reshaping; remove authored-only upper mass while preserving stock-derived envelope/contact"
       }
     },
     {
@@ -1495,7 +1497,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0541_p2_predecessor",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_eighth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "motion-reviewed P2 temporal neighbor; not approved shipping art",
+        "approval_status": "true-density refinement pass 1: shifted/narrowed bridge saddle; still needs shipping-art refinement",
         "shipping_art_approved": false,
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "intent": "Represent frame-1218 P2 0541 as the reviewed P2 baseline geometry translated one logical pixel left, preserving stock envelope [22,3]..[39,38], contact [61,76], and the established blue-player material/lighting language.",
@@ -1520,11 +1522,12 @@
             76
           ],
           "stock_opaque_pixels": 318,
-          "candidate_opaque_pixels": 304,
-          "alpha_intersection_pixels": 250,
-          "alpha_union_pixels": 372,
-          "alpha_iou": 0.6720430107526881
-        }
+          "candidate_opaque_pixels": 294,
+          "alpha_intersection_pixels": 252,
+          "alpha_union_pixels": 360,
+          "alpha_iou": 0.7
+        },
+        "refinement_basis": "post-#375 mismatch-map bridge-pose saddle reshaping; remove unsupported upper mass while preserving exact envelope/contact"
       }
     },
     {
@@ -1925,7 +1928,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_057f_p1_companion_0d4a",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_fourth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "motion-reviewed repeated temporal pose; not approved shipping art",
+        "approval_status": "true-density refinement pass 1: shifted/narrowed bridge saddle; still needs shipping-art refinement",
         "shipping_art_approved": false,
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "intent": "Represent the repeated frame-1215/1216 P1 pose once, preserving the reviewed first-family materials, object-local lighting and edge treatment while fitting the recovered stock envelope [22,2]..[41,38] and contact [65,76].",
@@ -1950,11 +1953,12 @@
             76
           ],
           "stock_opaque_pixels": 327,
-          "candidate_opaque_pixels": 321,
-          "alpha_intersection_pixels": 264,
-          "alpha_union_pixels": 384,
-          "alpha_iou": 0.6875
-        }
+          "candidate_opaque_pixels": 315,
+          "alpha_intersection_pixels": 263,
+          "alpha_union_pixels": 379,
+          "alpha_iou": 0.6939313984168866
+        },
+        "refinement_basis": "post-#375 mismatch-map bridge-pose saddle reshaping; remove unsupported upper mass while preserving exact envelope/contact"
       }
     },
     {

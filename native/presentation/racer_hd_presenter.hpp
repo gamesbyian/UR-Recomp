@@ -12,6 +12,22 @@ inline constexpr int kRacerHdDensityScale = 4;
 inline constexpr int kRacerHdLogicalSize = 64;
 inline constexpr int kRacerHdAssetSize = kRacerHdLogicalSize * kRacerHdDensityScale;
 
+constexpr bool valid_racer_hd_internal_render_scale(int scale) noexcept {
+    return scale >= 1 && scale <= kRacerHdDensityScale;
+}
+
+constexpr int racer_hd_scaled_sample_coordinate(
+    int output_coordinate,
+    int scale
+) noexcept {
+    if (output_coordinate < 0 ||
+        !valid_racer_hd_internal_render_scale(scale)) {
+        return -1;
+    }
+    return ((output_coordinate * 2 + 1) * kRacerHdDensityScale) /
+           (scale * 2);
+}
+
 constexpr bool racer_hd_asset_available(std::uint16_t semantic_frame_id) noexcept {
     return semantic_frame_id == 0x0541 || semantic_frame_id == 0x0540 ||
            semantic_frame_id == 0x057D || semantic_frame_id == 0x0542 ||
@@ -636,12 +652,14 @@ constexpr std::uint32_t sample_racer_hd_authored_057f_p1_companion_0d4a(
     // The repeated pose leans farther across the object-local canvas than the
     // 1217/1218 pose. Its saddle supplies the stock left envelope while the
     // wheel supplies the recovered right envelope/contact.
-    const int seat_dx = x - 124;
+    // True-density mismatch review showed a small right-heavy saddle block
+    // in this bridge pose. Shift/narrow it without touching envelope/contact.
+    const int seat_dx = x - 120;
     const int seat_dy = y - 22;
     const bool seat =
         (seat_dx * seat_dx) * 14 * 14 +
-            (seat_dy * seat_dy) * 35 * 35 <=
-            35 * 35 * 14 * 14 &&
+            (seat_dy * seat_dy) * 32 * 32 <=
+            32 * 32 * 14 * 14 &&
         y >= 8 && y <= 36;
 
     const bool neck =
@@ -707,12 +725,15 @@ constexpr std::uint32_t sample_racer_hd_authored_057e_p1_with_p2_0543(
 
     // Widen only the upper silhouette enough to recover the stock x=21 edge.
     // The wheel supplies x=42 and the recovered [67,76] contact anchor.
-    const int seat_dx = x - 124;
+    // True-density review showed the old saddle carrying excess mass on
+    // the right. Preserve the pose envelope/contact while shifting/narrowing
+    // the same smooth object-local form.
+    const int seat_dx = x - 116;
     const int seat_dy = y - 22;
     const bool seat =
         (seat_dx * seat_dx) * 14 * 14 +
-            (seat_dy * seat_dy) * 39 * 39 <=
-            39 * 39 * 14 * 14 &&
+            (seat_dy * seat_dy) * 32 * 32 <=
+            32 * 32 * 14 * 14 &&
         y >= 8 && y <= 36;
 
     const bool neck =
@@ -776,12 +797,15 @@ constexpr std::uint32_t sample_racer_hd_authored_057d_p1_with_p2_0543(
         y >= 113 && y <= 118 &&
         x >= 153 && x <= 157;
 
-    const int seat_dx = x - 120;
+    // The 057D mismatch map shows the same right-heavy saddle mass as
+    // 057E. Shift left and narrow it while the wheel continues to own the
+    // exact recovered contact anchor.
+    const int seat_dx = x - 112;
     const int seat_dy = y - 26;
     const bool seat =
         (seat_dx * seat_dx) * 14 * 14 +
-            (seat_dy * seat_dy) * 35 * 35 <=
-            35 * 35 * 14 * 14 &&
+            (seat_dy * seat_dy) * 28 * 28 <=
+            28 * 28 * 14 * 14 &&
         y >= 12 && y <= 40;
 
     const bool neck =
@@ -895,13 +919,16 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p2_predecessor(
         y >= 113 && y <= 118 &&
         x >= 137 && x <= 141;
 
-    const int seat_dx = x - 126;
-    const int seat_dy = y - 22;
+    // The P2 0541 transition pose is over-broad on the left/top at true
+    // density. Shift right/down and narrow the saddle while preserving the
+    // stock-derived envelope/contact through the wheel/fork structure.
+    const int seat_dx = x - 130;
+    const int seat_dy = y - 26;
     const bool seat =
         (seat_dx * seat_dx) * 12 * 12 +
-            (seat_dy * seat_dy) * 35 * 35 <=
-            35 * 35 * 12 * 12 &&
-        y >= 12 && y <= 36;
+            (seat_dy * seat_dy) * 30 * 30 <=
+            30 * 30 * 12 * 12 &&
+        y >= 12 && y <= 40;
 
     const bool neck =
         y >= 30 && y <= 60 &&
@@ -1134,6 +1161,25 @@ constexpr std::uint32_t sample_racer_hd_asset(
     return sample_racer_hd_contract_candidate(x, y, hflip, vflip);
 }
 
+constexpr std::uint32_t sample_racer_hd_scaled_asset(
+    const RacerRegistration& registration,
+    int output_x,
+    int output_y,
+    int scale,
+    bool hflip,
+    bool vflip
+) noexcept {
+    if (!valid_racer_hd_internal_render_scale(scale) ||
+        output_x < 0 || output_y < 0 ||
+        output_x >= kRacerHdLogicalSize * scale ||
+        output_y >= kRacerHdLogicalSize * scale) {
+        return 0;
+    }
+    const int sx = racer_hd_scaled_sample_coordinate(output_x, scale);
+    const int sy = racer_hd_scaled_sample_coordinate(output_y, scale);
+    return sample_racer_hd_asset(registration, sx, sy, hflip, vflip);
+}
+
 constexpr std::uint32_t sample_racer_hd_presented_pixel(
     const RacerRegistration& registration,
     const RacerOamPlacement& placement,
@@ -1159,6 +1205,8 @@ void racer_hd_prepare_frame(
     int* frame_h
 ) noexcept;
 
+bool racer_hd_set_internal_render_scale(int scale) noexcept;
+int racer_hd_internal_render_scale() noexcept;
 int racer_hd_presentation_scale() noexcept;
 
 void racer_hd_begin_sim_frame(unsigned number) noexcept;

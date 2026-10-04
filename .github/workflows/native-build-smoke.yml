@@ -153,6 +153,36 @@ jobs:
           echo "exe=$EXE" >> "$GITHUB_OUTPUT"
           echo "Selected game target: $EXE"
 
+      - name: Modern profile persistence acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/host-profile-store-acceptance"
+          STATE="$RUNNER_TEMP/profile-alpha.state"
+          LOG="$RUNNER_TEMP/profile-persistence.log"
+          rm -f "$STATE" "$STATE.tmp" "$LOG"
+
+          g++ -std=c++17 -Wall -Wextra -Werror -pedantic \
+            -I "$GITHUB_WORKSPACE/native/product" \
+            "$GITHUB_WORKSPACE/native/product/host_product_state.cpp" \
+            "$GITHUB_WORKSPACE/native/product/host_profile_state.cpp" \
+            "$GITHUB_WORKSPACE/native/product/host_profile_store.cpp" \
+            "$GITHUB_WORKSPACE/tests/native/host_profile_store_acceptance.cpp" \
+            -o "$EXE"
+
+          "$EXE" save "$STATE" | tee -a "$LOG"
+          "$EXE" load "$STATE" | tee -a "$LOG"
+          "$EXE" old "$STATE" | tee -a "$LOG"
+          "$EXE" malformed "$STATE" | tee -a "$LOG"
+          "$EXE" authentic "$STATE" | tee -a "$LOG"
+
+          grep -q "PROFILE_ACCEPTANCE saved generation=1" "$LOG"
+          grep -q "PROFILE_ACCEPTANCE fresh_process_load_ok" "$LOG"
+          grep -q "PROFILE_ACCEPTANCE old_state_migrated" "$LOG"
+          grep -q "PROFILE_ACCEPTANCE malformed_rejected" "$LOG"
+          grep -q "PROFILE_ACCEPTANCE authentic_inert" "$LOG"
+          echo "UR_PROFILE_PERSISTENCE_RESULT=restart_migration_recovery_authentic_inert"
+
       - name: Native boot smoke
         shell: bash
         run: |

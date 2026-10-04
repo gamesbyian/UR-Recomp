@@ -51,8 +51,10 @@ A changed medal makes the continuation stale and clears it. A different rider/to
 
 ## Acceptance
 
-The native acceptance uses the real deterministic first-race route rather than synthesizing a completed result. Process one starts from clean profile-local SRAM, reaches the stock race result, waits until the host reports `UR_TOUR_RESUME CAPTURED`, and verifies a typed continuation was persisted.
+The native resume acceptance uses the already-promoted R-2026-10-04-UI-20 state contract rather than pretending that the simple hand-driven first-race script is a qualifying win. It starts from the canonical clean SRAM, seeds the historically proven unfinished Crawler row `11000`, and writes matching schema-v2 profile metadata. No checksum rewrite is needed because the five tour flags are outside the medal checksum domain.
 
-Process two starts fresh from the same profile, follows ordinary rider/tour selection, lets stock rider confirmation wipe the in-tour row, and requires `UR_TOUR_RESUME APPLIED` at TRACK_SELECT. The persisted `save.srm` must then contain exactly the five flags recorded in `host-profile.txt`, with between one and four flags set, before the script proceeds into the race.
+A fresh native process then follows the ordinary rider/tour route. Stock rider confirmation performs its historical 50-byte wipe unchanged. At TRACK_SELECT the host must report `UR_TOUR_RESUME APPLIED`; that status is emitted only when the current five-byte row is empty immediately before restoration, so it directly proves the stock wipe occurred before the host repair. The route then proceeds into the race and the persisted profile-local `save.srm` must contain exactly the five flags recorded in `host-profile.txt`.
+
+Separate native result-boundary behavior is exercised by the ordinary product host: every settled stock result durably autosaves full profile-local SRAM. The hand-driven first-race fixture is intentionally not used as a continuation-capture proof because it reaches results without earning a qualifying tour flag.
 
 This is intentionally the smallest resumable-progression feature. It does not auto-navigate the frontend, change medal thresholds, skip races, create a second campaign model, or generalize to VS/League.

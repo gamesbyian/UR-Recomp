@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "gate": "S0",
+  "purpose": "Compile-only Nintendo Switch homebrew host feasibility probe with no Uniracers guest code.",
+  "toolchain": {
+    "provider": "devkitPro",
+    "container": "devkitpro/devkita64:20260219",
+    "container_policy": "Use a dated devkitPro image tag in CI; do not use latest.",
+    "required_environment": [
+      "DEVKITPRO",
+      "DEVKITA64",
+      "PORTLIBS"
+    ]
+  },
+  "link_contract": {
+    "required_headers": [
+      "switch.h",
+      "SDL2/SDL.h"
+    ],
+    "required_symbols": [
+      "appletGetOperationMode",
+      "SDL_GetVersion"
+    ],
+    "required_output": "platform/switch/s0_probe/ur-recomp-switch-s0.nro"
+  },
+  "scope": {
+    "guest_code": false,
+    "runtime_hardware_acceptance": false,
+    "simulation_claim": false,
+    "product_feature_claim": false
+  },
+  "acceptance": [
+    "source compiles for aarch64-none-elf through devkitA64",
+    "link resolves libnx and Switch SDL2 portlib symbols",
+    "elf2nro emits a non-empty NRO",
+    "compiler, SDL2, libnx/package and output digest metadata are retained as a CI artifact"
+  ]
+}

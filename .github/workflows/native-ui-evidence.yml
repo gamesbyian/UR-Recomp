@@ -757,6 +757,30 @@ jobs:
             --dump-dir "$RUNNER_TEMP/ui-race-result-dumps" \
             --checkpoint race-results
 
+      - name: Assert reset-separated routes captured every dump
+        shell: bash
+        run: |
+          set -euo pipefail
+          # R-2026-10-04-UI-26: scripted console reset once crashed or wedged the
+          # native target, silently dropping every capture after the first reset.
+          missing=0
+          for pair in \
+            ui-records-explore:ui-records-explore-dumps \
+            ui-options-submenus:ui-options-submenu-dumps \
+            ui-records-submenus:ui-records-submenu-dumps \
+            ui-main-branches:ui-branch-dumps \
+            ui-rename-editor-explore:ui-rename-editor-dumps; do
+            script="tests/input/${pair%%:*}.script"
+            dir="$RUNNER_TEMP/${pair##*:}"
+            for tag in $(awk '$1 == "dump" {print $2}' "$script"); do
+              if [ ! -f "$dir/$tag.wram.bin" ]; then
+                echo "missing native capture: ${pair%%:*}/$tag"
+                missing=1
+              fi
+            done
+          done
+          exit "$missing"
+
       - name: Build visual UI contact sheet
         shell: bash
         run: |

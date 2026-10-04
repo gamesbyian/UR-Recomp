@@ -12,6 +12,22 @@ inline constexpr int kRacerHdDensityScale = 4;
 inline constexpr int kRacerHdLogicalSize = 64;
 inline constexpr int kRacerHdAssetSize = kRacerHdLogicalSize * kRacerHdDensityScale;
 
+constexpr bool valid_racer_hd_internal_render_scale(int scale) noexcept {
+    return scale >= 1 && scale <= kRacerHdDensityScale;
+}
+
+constexpr int racer_hd_scaled_sample_coordinate(
+    int output_coordinate,
+    int scale
+) noexcept {
+    if (output_coordinate < 0 ||
+        !valid_racer_hd_internal_render_scale(scale)) {
+        return -1;
+    }
+    return ((output_coordinate * 2 + 1) * kRacerHdDensityScale) /
+           (scale * 2);
+}
+
 constexpr bool racer_hd_asset_available(std::uint16_t semantic_frame_id) noexcept {
     return semantic_frame_id == 0x0541 || semantic_frame_id == 0x0540 ||
            semantic_frame_id == 0x057D || semantic_frame_id == 0x0542 ||
@@ -1140,6 +1156,25 @@ constexpr std::uint32_t sample_racer_hd_asset(
     return sample_racer_hd_contract_candidate(x, y, hflip, vflip);
 }
 
+constexpr std::uint32_t sample_racer_hd_scaled_asset(
+    const RacerRegistration& registration,
+    int output_x,
+    int output_y,
+    int scale,
+    bool hflip,
+    bool vflip
+) noexcept {
+    if (!valid_racer_hd_internal_render_scale(scale) ||
+        output_x < 0 || output_y < 0 ||
+        output_x >= kRacerHdLogicalSize * scale ||
+        output_y >= kRacerHdLogicalSize * scale) {
+        return 0;
+    }
+    const int sx = racer_hd_scaled_sample_coordinate(output_x, scale);
+    const int sy = racer_hd_scaled_sample_coordinate(output_y, scale);
+    return sample_racer_hd_asset(registration, sx, sy, hflip, vflip);
+}
+
 constexpr std::uint32_t sample_racer_hd_presented_pixel(
     const RacerRegistration& registration,
     const RacerOamPlacement& placement,
@@ -1165,6 +1200,8 @@ void racer_hd_prepare_frame(
     int* frame_h
 ) noexcept;
 
+bool racer_hd_set_internal_render_scale(int scale) noexcept;
+int racer_hd_internal_render_scale() noexcept;
 int racer_hd_presentation_scale() noexcept;
 
 void racer_hd_begin_sim_frame(unsigned number) noexcept;

@@ -1,14 +1,3 @@
---- a/runner/src/desktop/host_main.h
-+++ b/runner/src/desktop/host_main.h
-@@ -94,3 +94,8 @@ int snesrecomp_desktop_get_output_mode(int index, SnesDesktopOutputMode *out);
- int snesrecomp_desktop_set_output_mode(int index);
- 
-+/* Acceptance/replay helper. No-op unless SNESRECOMP_INPUT_RELATIVE is set.
-+ * The next guest frame after this post-frame origin consumes input-file
-+ * relative frame 0. Absolute INPUT_FILE behavior remains the default. */
-+void snesrecomp_desktop_arm_relative_input(uint64_t post_frame_origin);
-+
- int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv);
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
 @@ -612,5 +612,8 @@ static int g_input_event_cap;

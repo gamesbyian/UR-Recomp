@@ -46,6 +46,9 @@ extern "C" UrModernSessionResult ur_modern_pause_handle_action(
             return ur_modern_session_handle_key(
                 session, UR_MODERN_SESSION_KEY_RESTART);
         }
+        if (selected == UR_MODERN_PAUSE_EXIT_FRONTEND) {
+            return ur_modern_session_exit_to_frontend(session);
+        }
         if (selected == UR_MODERN_PAUSE_FOCUS_PAUSE ||
             selected == UR_MODERN_PAUSE_CONTROLS ||
             selected == UR_MODERN_PAUSE_RUN_DATA ||

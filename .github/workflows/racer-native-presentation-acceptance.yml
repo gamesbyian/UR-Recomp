@@ -253,10 +253,10 @@ jobs:
           assert readiness["shipping_ready"] is False
           assert readiness["counts"] == {
               "approved": 0,
-              "needs_refinement": 0,
+              "needs_refinement": 10,
               "rejected": 0,
               "unreviewed": 0,
-              "changed_since_review": 10,
+              "changed_since_review": 0,
               "unauthored": 0,
               "authored_conflicts": 0,
           }

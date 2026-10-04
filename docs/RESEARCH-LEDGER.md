@@ -2186,3 +2186,17 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 **Consequences:** the `unfinished-tour-session-loss` policy feature is updated with this evidence. The decision stays a product call, but the premise in PROJECT-PLAN is now confirmed. A modern resume feature can reuse the stock table: skip the `80:BBC1` wipe when the same rider resumes, rather than adding a parallel store.
 
 **Next discriminator (optional):** replay a five-win tour to observe the `83:881B` award directly, and confirm at runtime that leaving to TOUR_SELECT keeps the row.
+
+### R-2026-10-04-UI-21 — Rider stats layout, FAILED field, VS tally and play mode
+
+**Status:** static decode pinned to ROM bytes, plus one runtime run  
+**Date:** 2026-10-04  
+**Area:** SRAM | records | VS
+
+**Observation (static):** the result bookkeeping routine `80:C775` sets the stat offsets `0x073E = 8*rider(0x0748)` and `0x0740 = 8*rider(0x0749)`, then dispatches on the mode bits of `0x074B`. Race and circuit modes increment PLAYED (`+0`) for both racers and WON (`+2`) for the faster one (both on a tie). For the slower racer they either submit a track-record candidate or, if the time or best lap is ≥ 60000, increment `+4`. Stunt mode compares scores, has no `+4` path and adds the score to `+6`. P2 updates are skipped when `0x0749 ≥ 16` (CPU). WON also increments `0x10A9` (P1) or `0x10AB` (P2). VS entry (`80:BD05`) zeroes both counters and sets `0x10AD = 2`; 1P tour entry sets `0x10AD = 1`. Player Scores (`83:97DA`) walks 16 records with stride 8 and computes LOST as PLAYED − WON.
+
+**Observation (runtime):** after the clean-save VS route `tests/input/two-player-p1-win.input` (dual-controller snesref, dump after the result screen), MIKE has `[1,1,0,0]` and the idle P2 ANDREW has `[1,0,1,0]` at `0x0238`. The opponent result is 60000, and `0x10A9`/`0x10AB`/`0x10AD` = 1/0/2.
+
+**Interpretation:** `+4` is FAILED (did not finish), LOST is derived, and `0x10A9`/`0x10AB` are the VS head-to-head tally. This explains R-2026-10-03-UI-19's observation that `0x10A9` counts 1P wins without gating the tour.
+
+**Consequences:** `tools/extract_progression_sram_semantics.py` pins 11 decoded routines to ROM bytes and optionally checks the VS dump (`--vs-sram`), producing `analysis/generated/progression-sram-semantics.json`. SYMBOLS and the knowledge page are updated. Modern Player Scores and VS-tally UI can read these fields directly.

@@ -84,7 +84,7 @@ jobs:
           for s in audio_trace.c ppu_dma_trace.c sha256.c mod_audio.c framedump.c snes_runahead.c; do
             aarch64-none-elf-gcc $CFLAGS -c "/tmp/bundle/framework/runner/src/$s" -o "/tmp/support/${s%.c}.o"
           done
-          aarch64-none-elf-gcc $CFLAGS -Iplatform/switch/s2_link_probe/source -c platform/switch/s2_link_probe/source/main.c -o /tmp/support/switch_host.o
+          aarch64-none-elf-gcc $CFLAGS -I"$DEVKITPRO/libnx/include" -Iplatform/switch/s2_link_probe/source -c platform/switch/s2_link_probe/source/main.c -o /tmp/support/switch_host.o
       - name: Link complete S2 skeleton
         run: |
           set -eu

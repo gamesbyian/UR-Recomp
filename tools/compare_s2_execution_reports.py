@@ -22,6 +22,13 @@ PARTITIONS = ("master", "cpu", "wram", "apu", "ppu", "dma", "cart")
 EXPECTED_FRAMES = (0, 1, 60, 120)
 
 
+def _validate_checkpoint_set(path: Path, checkpoints: dict[int, dict[str, str]]) -> None:
+    missing = [f for f in EXPECTED_FRAMES if f not in checkpoints]
+    extra = sorted(set(checkpoints) - set(EXPECTED_FRAMES))
+    if missing or extra:
+        raise ValueError(f"{path}: checkpoint set mismatch missing={missing} extra={extra}")
+
+
 def parse_report(path: Path) -> dict:
     checkpoints: dict[int, dict[str, str]] = {}
     flags: dict[str, str] = {}
@@ -39,11 +46,37 @@ def parse_report(path: Path) -> dict:
         if "=" in line and not line.startswith("checkpoint "):
             key, value = line.split("=", 1)
             flags[key] = value
-    missing = [f for f in EXPECTED_FRAMES if f not in checkpoints]
-    extra = sorted(set(checkpoints) - set(EXPECTED_FRAMES))
-    if missing or extra:
-        raise ValueError(f"{path}: checkpoint set mismatch missing={missing} extra={extra}")
+    _validate_checkpoint_set(path, checkpoints)
     return {"flags": flags, "checkpoints": checkpoints}
+
+
+def parse_retained_reference(path: Path) -> dict:
+    data = json.loads(path.read_text())
+    raw = data.get("checkpoints", {})
+    checkpoints: dict[int, dict[str, str]] = {}
+    for frame_text, values in raw.items():
+        frame = int(frame_text)
+        checkpoints[frame] = {}
+        for partition in PARTITIONS:
+            value = values.get(partition)
+            if not isinstance(value, str) or not re.fullmatch(r"[0-9a-fA-F]{8}", value):
+                raise ValueError(
+                    f"{path}: frame {frame} missing/invalid {partition} digest"
+                )
+            checkpoints[frame][partition] = value.lower()
+    _validate_checkpoint_set(path, checkpoints)
+    status = data.get("status", {})
+    flags = {
+        "snes_init": str(status.get("snes_init", "")),
+        "execution_complete": str(status.get("execution_complete", "")),
+    }
+    return {"flags": flags, "checkpoints": checkpoints}
+
+
+def parse_reference(path: Path) -> dict:
+    if path.suffix.lower() == ".json":
+        return parse_retained_reference(path)
+    return parse_report(path)
 
 
 def compare(reference: dict, observed: dict) -> dict:
@@ -95,7 +128,7 @@ def main() -> int:
     parser.add_argument("--json-out", type=Path)
     args = parser.parse_args()
     try:
-        result = compare(parse_report(args.reference), parse_report(args.observed))
+        result = compare(parse_reference(args.reference), parse_report(args.observed))
     except ValueError as exc:
         result = {
             "match": False,

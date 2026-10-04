@@ -2202,3 +2202,23 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 **Consequences:** `tools/extract_progression_sram_semantics.py` pins 11 decoded routines to ROM bytes and optionally checks the VS dump (`--vs-sram`), producing `analysis/generated/progression-sram-semantics.json`. SYMBOLS and the knowledge page are updated. Modern Player Scores and VS-tally UI can read these fields directly.
 
 **Addendum (track-records group 9, static, bounded):** no decoded writer of `$CE` reaches indices 45–49. Tour confirm clamps `$D0` to ≤ 8 (`80:E69D`), the VS next-track cursor `0x067E,X` wraps at 44 (`80:AFF1`), and the attract demo track counter `0x10C8` (battery-backed) wraps at 40 (`80:949C`). Group 9 of `Save_TrackRecords` is therefore probably unused padding. The record insert at `80:C9C6` shifts ranks down through `+0x64` / `+0xC8`, confirming 50 words per rank.
+
+### R-2026-10-04-UI-22 — ENDING reached; tour award paths; the splash cheat (Up, Left, Up, R, A)
+
+**Status:** reproduced locally (snesref, input plus labelled diagnostic pokes); closes the last Tier 1 UI gap and supersedes the open part of R-2026-10-03-UI-12  
+**Date:** 2026-10-04  
+**Area:** UI | progression | secrets
+
+**Observation (static):** after `83:8805` finds five set tour flags, `83:881B` increments the medal cell. Bronze and silver call `83:AEF6`. Reaching gold, or completing a tour already at gold, dispatches through the per-tour table `83:88FD` (Crawler `83:C49C` … Sprinter `83:BED0`, Hunter `83:AB9A`). `83:AB9A` is the ending: full-screen mode-1 pages (assets `0x68/0x6E/0x6B` then `0x69/0x6F/0x6C`, or `0x67/0x6D/0x6A` when SRAM `0x10D0` ≠ 0), each held 1200 frames or until a button (`83:AC1F`), then credits. Separately, `80:F549` (the UNIRACERS title splash, 110 frames, called on every pass through `80:885B`) compares the held pad with the table `80:F602` = Up, Left, Up, R, A without resetting on mismatch. A full match copies the tiers `0x10D3` to `0x10E3`, sets all 16 tiers to 3 and sets `0x10D0` = 1. On entry, if `0x10D0` is set, the routine copies the backup back and clears it.
+
+**Observation (runtime, `tools/probe_tour_award_and_ending.py`, 17 checks):**
+- The cheat on a formatted save gives tiers `[3]*16` and `0x10D0` = 1 at the main menu. A no-input control stays at tier 0, and rebooting the cheat save restores the tiers. On an unformatted save the post-splash format wipes the unlock.
+- With four Crawler flags seeded mid-race, the movie's Dragster win clears the row and raises the medal: 0→1 plays the short medal scene, 2→3 plays a longer two-unicycle gold scene. Neither reaches `0x5B`.
+- Booking the same win as Hunter track 4 with the Hunter medal at 2 (pinned `$CE`/`$D0` and stored track bytes) plays DAILY NEWS "AMAZING — New Uni wins despite dirty tactics", then NATIONAL GOSSIP "SPEEDKING — Fastest unicycle steals victory in style". The WHODUNNIT developer credits follow with `$9F` = 0x5B (stale 0x99 during the pages), then the title (`0x84`).
+- With `0x10D0` = 1 the single page is DAILY NEWS "CHEAT! — New champion banned after shock win".
+
+**Interpretation:** ENDING = 0x5B is confirmed and is reached by winning Hunter gold. The public "title-screen ending shortcut" is most likely a garbled report of the real splash cheat, which unlocks every tour (Hunter included) for one power-on and marks the run, so a cheated finish gets the CHEAT! front page. The per-tour gold routines are distinct reward scenes, not yet catalogued.
+
+**Consequences:** the UI map, transition contract (`splash-cheat-main`, `hunter-gold-ending`, `ending-splash`), menu index (0x5B verified), fixtures (`tour-award-ending`), coverage (no Tier 1 gaps) and the policy feature `ending-sequence-and-shortcut` are updated. `tools/patches/snesrecomp-sram-poke.patch` adds the `spoke OFFSET HEX` script command; apply it after the dual-controller patch.
+
+**Limits:** the award and ending runs rely on pokes, because no committed input wins five tracks or Hunter. The per-tour gold scenes for tours other than Crawler, and page timings without input, are not catalogued. Native and Mesen runs are pending.

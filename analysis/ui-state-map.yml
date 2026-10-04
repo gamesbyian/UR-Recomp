@@ -64,7 +64,11 @@ states:
       - input: "hold Down + L + R, press B"
         to: ENDING
         confidence: low
-        note: "Public cheat references describe a title-screen ending shortcut; locally unverified."
+        note: "Public cheat references describe a title-screen ending shortcut; not reproduced (R-2026-10-03-UI-12). Probably a garbled report of the Up, Left, Up, R, A unlock below, which opens Hunter and leads to the CHEAT! ending."
+      - input: "Up, Left, Up, R, A during the UNIRACERS title splash (80:F549, 110 frames)"
+        to: MAIN_MENU
+        confidence: high
+        note: "Splash cheat: every rider tier 3 (all tours, Hunter) for this power-on, 0x10D0 = 1; tiers restored on the next pass through the splash (tools/probe_tour_award_and_ending.py, R-2026-10-04-UI-22)."
 
   - id: DEMO
     family: startup
@@ -656,15 +660,15 @@ states:
   - id: ENDING
     family: ending
     kind: sequence
-    confidence: medium
-    evidence: []
+    confidence: high
+    evidence: [observed_screenshot, reproduced_runtime]
     recovered_menu_labels:
       currentMenu_7E009F: "0x5B"
-    description: "Ending sequence/state. Recovered 2014 bot labels 0x5B as ending and advances it with A; public cheat references expose a shortcut from the title/splash. 2026-10-03 negative result: on snesref the Down+L+R(+B) chord did not reach 0x5B in five timing variants (instant at 0x84 appearance, held 30/60 frames after the boot title fades in, double-tap, and at the attract title). A static search finds no immediate store of 0x5B to DP $9F (only LDA #$84 / STA $9F at 80:A18E), so menu values may be derived rather than literal. Retry only with a natural completion route or a traced writer of $9F."
+    description: "Ending, run by 83:AB9A when the Hunter medal reaches gold (per-tour gold dispatch 83:88FD entry 8). Normal: DAILY NEWS 'AMAZING' and NATIONAL GOSSIP 'SPEEDKING' front pages; with the splash cheat active (0x10D0 = 1) a single DAILY NEWS 'CHEAT!' page instead. Each page holds up to 1200 frames or until a button. Then WHODUNNIT developer credits with $9F = 0x5B until a button, then the title. Reached on snesref with diagnostic SRAM/track-index pokes over a real movie win (tools/probe_tour_award_and_ending.py, R-2026-10-04-UI-22). $9F stays stale (0x99) during the newspaper pages."
     transitions:
-      - input: "A / sequence completion"
-        to: MAIN_MENU
-        confidence: inferred
+      - input: "A / timeout on each page, then a button on WHODUNNIT"
+        to: SPLASH
+        confidence: high
 
   - id: ERASE_ALL_CONFIRM
     family: destructive

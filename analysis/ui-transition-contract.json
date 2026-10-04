@@ -273,9 +273,17 @@
       "id": "splash-ending",
       "from": "SPLASH",
       "to": "ENDING",
-      "trigger": "Down+L+R+B shortcut lead",
+      "trigger": "Down+L+R+B shortcut lead (not reproduced; probably a garbled report of the Up-Left-Up-R-A unlock)",
       "status": "hypothesis",
       "probe": "ui-ending-shortcut"
+    },
+    {
+      "id": "splash-cheat-main",
+      "from": "SPLASH",
+      "to": "MAIN_MENU",
+      "trigger": "Up, Left, Up, R, A during the title splash: every tier 3 for this power-on",
+      "status": "verified",
+      "probe": "tour-award-ending"
     },
     {
       "id": "main-erase",
@@ -302,6 +310,14 @@
       "status": "verified",
       "fixture": "ui-race-result-route",
       "source_note": "Harvested native frame after A is the Crawler PICK TRACK screen at currentMenu 0xF6; prior POST_RESULT_DECISION label was disproven for this route."
+    },
+    {
+      "id": "hunter-gold-ending",
+      "from": "RESULT_RACE",
+      "to": "ENDING",
+      "trigger": "result completes the Hunter tour and its medal reaches gold (83:88FD -> 83:AB9A)",
+      "status": "verified",
+      "probe": "tour-award-ending"
     },
     {
       "id": "circuit-result-post",
@@ -348,11 +364,12 @@
       "status": "documented"
     },
     {
-      "id": "ending-main",
+      "id": "ending-splash",
       "from": "ENDING",
-      "to": "MAIN_MENU",
-      "trigger": "sequence completion/advance",
-      "status": "hypothesis"
+      "to": "SPLASH",
+      "trigger": "each newspaper page times out (1200 frames) or a button; a button on WHODUNNIT returns to the title",
+      "status": "verified",
+      "probe": "tour-award-ending"
     },
     {
       "id": "erase-cancel-main",

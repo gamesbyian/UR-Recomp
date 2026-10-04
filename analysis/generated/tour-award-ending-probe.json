@@ -1,0 +1,270 @@
+{
+ "schema_version": 1,
+ "question": "What do tour completion, gold, Hunter gold and the splash cheat do in stock?",
+ "harness": "snesref (dual-controller + sram-poke patches) + pinned snes9x-libretro",
+ "diagnostic_pokes": "award runs seed tour flags/medal in SRAM mid-race; Hunter runs pin $CE=44/$D0=8 and the stored track bytes (see docstring)",
+ "cheat": {
+  "sequence": [
+   "up",
+   "left",
+   "up",
+   "r",
+   "a"
+  ],
+  "window": "UNIRACERS title splash (80:F549, 110 frames)",
+  "effect": "every rider tier 3 for this power-on; tiers restored and 0x10D0 cleared on the next pass through the splash",
+  "observed": {
+   "cheat": {
+    "menu": 215,
+    "tiers": [
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3
+    ],
+    "tier_backup": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "cheat_flag": 1,
+    "crawler": 0,
+    "hunter": 2,
+    "crawler_flags": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "hunter_flags": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "fb_sha1": "683997fdc4e2"
+   },
+   "cheat_control": {
+    "menu": 215,
+    "tiers": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "tier_backup": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "cheat_flag": 0,
+    "crawler": 0,
+    "hunter": 2,
+    "crawler_flags": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "hunter_flags": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "fb_sha1": "683997fdc4e2"
+   },
+   "cheat_reboot": {
+    "menu": 215,
+    "tiers": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "tier_backup": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "cheat_flag": 0,
+    "crawler": 0,
+    "hunter": 2,
+    "crawler_flags": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "hunter_flags": [
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "fb_sha1": "683997fdc4e2"
+   }
+  }
+ },
+ "ending": {
+  "trigger": "Hunter medal reaching gold (83:88FD entry 8 -> 83:AB9A)",
+  "pages": {
+   "normal": "DAILY NEWS 'AMAZING' then NATIONAL GOSSIP 'SPEEDKING'",
+   "cheat": "DAILY NEWS 'CHEAT!'"
+  },
+  "credits": "WHODUNNIT developer portraits, $9F = 0x5B, then title 0x84",
+  "observed_menu_changes": {
+   "bronze": [
+    {
+     "frame": 2950,
+     "menu": "0x99",
+     "cheat_flag": 0,
+     "medal": 1
+    }
+   ],
+   "gold": [
+    {
+     "frame": 2950,
+     "menu": "0x99",
+     "cheat_flag": 0,
+     "medal": 3
+    },
+    {
+     "frame": 3402,
+     "menu": "0x6d",
+     "cheat_flag": 0,
+     "medal": 3
+    }
+   ],
+   "ending": [
+    {
+     "frame": 2950,
+     "menu": "0x99",
+     "cheat_flag": 0,
+     "medal": 3
+    },
+    {
+     "frame": 4502,
+     "menu": "0x5b",
+     "cheat_flag": 0,
+     "medal": 3
+    }
+   ],
+   "ending_cheat": [
+    {
+     "frame": 2950,
+     "menu": "0x99",
+     "cheat_flag": 1,
+     "medal": 3
+    },
+    {
+     "frame": 3202,
+     "menu": "0x5b",
+     "cheat_flag": 1,
+     "medal": 3
+    }
+   ]
+  }
+ },
+ "checks": {
+  "cheat_sets_every_tier_to_3": true,
+  "cheat_backs_up_previous_tiers": true,
+  "no_sequence_no_unlock": true,
+  "next_boot_restores_tiers": true,
+  "bronze_medal_incremented": true,
+  "bronze_tour_flags_cleared": true,
+  "bronze_no_ending": true,
+  "gold_medal_incremented": true,
+  "gold_tour_flags_cleared": true,
+  "gold_no_ending": true,
+  "ending_medal_incremented": true,
+  "ending_tour_flags_cleared": true,
+  "ending_reaches_ending_menu": true,
+  "ending_cheat_medal_incremented": true,
+  "ending_cheat_tour_flags_cleared": true,
+  "ending_cheat_reaches_ending_menu": true,
+  "cheat_flag_changes_ending_page": true
+ },
+ "all_checks_pass": true
+}

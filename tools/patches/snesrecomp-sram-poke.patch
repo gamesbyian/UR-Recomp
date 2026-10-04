@@ -1,0 +1,34 @@
+--- a/tools/snesref/frontend.cpp
++++ b/tools/snesref/frontend.cpp
+@@ -920,7 +920,7 @@
+ // their hold frames and are followed by ONE idle frame. until (when true),
+ // dump and quit take zero frames; a false until costs one idle frame per
+ // re-check. Timeout (default 36000 frames) -> error, exit code 3.
+-enum ScriptOp { SC_PRESS, SC_POKE, SC_FORCEPOKE, SC_LOADSTATE, SC_RESET, SC_UNTIL, SC_DUMP, SC_QUIT };
++enum ScriptOp { SC_PRESS, SC_POKE, SC_SPOKE, SC_FORCEPOKE, SC_LOADSTATE, SC_RESET, SC_UNTIL, SC_DUMP, SC_QUIT };
+ struct ScriptCmd {
+     ScriptOp op;
+     int line;
+@@ -1027,6 +1027,9 @@
+                 if (nt < 4) bad = true; else e.hold = atoi(tok[3]);
+                 if (e.hold < 1) e.hold = 1;
+             }
++        } else if (!strcmp(cmd, "spoke")) {
++            e.op = SC_SPOKE;  // battery SRAM poke: spoke OFFSET HEXBYTES
++            if (nt < 3 || !parse_hex_u32(tok[1], &e.addr) || !parse_hex_bytes(e.addr, tok[2], &e.bytes)) bad = true;
+         } else if (!strcmp(cmd, "loadstate")) {
+             e.op = SC_LOADSTATE;
+         } else if (!strcmp(cmd, "reset")) {
+@@ -1140,6 +1143,12 @@
+                 case SC_POKE:
+                     if (ram && c.addr + c.bytes.size() <= ram_n) memcpy(ram + c.addr, c.bytes.data(), c.bytes.size());
+                     return 0;
++                case SC_SPOKE: {
++                    uint8_t* sram = (uint8_t*)p_retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
++                    size_t sram_sz = p_retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
++                    if (sram && c.addr + c.bytes.size() <= sram_sz) memcpy(sram + c.addr, c.bytes.data(), c.bytes.size());
++                    return 0;
++                }
+                 case SC_FORCEPOKE:
+                     g_force_pokes.push_back({ c.addr, c.bytes });
+                     return 0;

@@ -303,6 +303,26 @@
       }
     },
     {
+      "tag": "ending-whodunnit",
+      "state_id": "ENDING",
+      "variant": "credits",
+      "source_fixture": "tour-award-ending",
+      "required": false,
+      "expect": {
+        "current_menu": "0x5B"
+      }
+    },
+    {
+      "tag": "splash-cheat-main",
+      "state_id": "MAIN_MENU",
+      "variant": "splash-cheat-active",
+      "source_fixture": "tour-award-ending",
+      "required": false,
+      "expect": {
+        "current_menu": "0xD7"
+      }
+    },
+    {
       "tag": "ui-attract-main-start",
       "state_id": "MAIN_MENU",
       "variant": "attract-idle-start",

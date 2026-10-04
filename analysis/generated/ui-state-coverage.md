@@ -3,9 +3,9 @@
 | State | Tier | Menu byte(s) | Required captures | Optional captures | Public visual leads | Blockers | In | Out | Strongest edge evidence |
 |---|---:|---|---:|---:|---:|---|---:|---:|---|
 | BOOT_STARTUP | 2 |  | 0 | 10 | 0 |  | 0 | 1 | hypothesis |
-| SPLASH | 2 | 0x84 | 0 | 1 | 0 |  | 1 | 2 | documented |
+| SPLASH | 2 | 0x84 | 0 | 1 | 0 |  | 2 | 3 | verified |
 | DEMO | 3 | 0x00? | 0 | 1 | 0 |  | 1 | 1 | verified |
-| MAIN_MENU | 1 | 0xD7 | 1 | 13 | 2 |  | 8 | 7 | verified |
+| MAIN_MENU | 1 | 0xD7 | 1 | 14 | 2 |  | 8 | 7 | verified |
 | PLAYER_SELECT_P1 | 1 | 0x3C | 1 | 0 | 3 |  | 1 | 1 | verified |
 | TWO_PLAYER_SELECT | 1 | 0x3D | 0 | 1 | 1 |  | 1 | 2 | verified |
 | VS_SELECT | 1 | 0x3E | 0 | 3 | 1 |  | 2 | 2 | verified |
@@ -17,7 +17,7 @@
 | GAMEPLAY | 1 |  | 7 | 4 | 2 |  | 2 | 4 | verified |
 | PAUSE | 1 |  | 0 | 1 | 0 |  | 1 | 1 | verified |
 | RESULT_BY_TRACK_TYPE | 1 |  | 0 | 0 | 0 |  | 0 | 0 |  |
-| RESULT_RACE | 1 | 0x99, 0xF9 | 0 | 1 | 2 |  | 1 | 4 | verified |
+| RESULT_RACE | 1 | 0x99, 0xF9 | 0 | 1 | 2 |  | 1 | 5 | verified |
 | RESULT_CIRCUIT | 1 | 0xBC | 0 | 1 | 1 |  | 1 | 2 | verified |
 | RESULT_STUNT | 1 | 0x18, 0x2F, 0xAD?, 0xAF?, 0xB3?, 0xD3?, 0xD8?, 0xED?, 0xF3? | 0 | 1 | 1 |  | 1 | 2 | verified |
 | POST_RESULT_DECISION | 1 | 0xD3, 0xB7, 0x5A | 0 | 2 | 0 |  | 3 | 3 | verified |
@@ -35,29 +35,28 @@
 | FORBIDDEN_NAME_REJECTION | 3 |  | 0 | 0 | 2 |  | 2 | 2 | verified |
 | DEFINE_LEAGUE | 2 | 0x9A | 0 | 1 | 1 |  | 1 | 1 | verified |
 | NAME_LEAGUE | 2 |  | 0 | 1 | 1 |  | 2 | 2 | documented |
-| ENDING | 1 | 0x5B? | 0 | 1 | 1 |  | 1 | 1 | hypothesis |
+| ENDING | 1 | 0x5B | 0 | 2 | 1 |  | 2 | 1 | verified |
 | ERASE_ALL_CONFIRM | 2 | 0x58 | 0 | 1 | 0 |  | 2 | 2 | verified |
 
 ## Tier 1 gaps
 
-- ENDING: menu id remains historical/unverified
+- none
 
 ## All evidence gaps
 
 - DEMO: menu id remains historical/unverified
 - FORBIDDEN_NAME_REJECTION: no capture contract
-- ENDING: menu id remains historical/unverified
 
 ## Summary
 
 - conceptual states: 35
-- executable transitions: 74
-- capture contracts: 115
+- executable transitions: 76
+- capture contracts: 117
 - menu-index entries: 36
-- locally verified menu-index entries: 26
+- locally verified menu-index entries: 27
 - states with at least one capture contract: 33
 - states with at least one public visual lead: 24
 - Tier 1 states: 23
-- Tier 1 gap observations: 1
+- Tier 1 gap observations: 0
 - incomplete capability dependencies: 1
-- raw gap observations: 3
+- raw gap observations: 2

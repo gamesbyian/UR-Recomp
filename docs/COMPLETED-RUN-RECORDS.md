@@ -50,8 +50,11 @@ Fresh-process acceptance now writes a record in one process, reloads and verifie
 
 ## Production local persistence
 
-Ordinary Modern one-player races now use the already-proven rider-selection mode latch (0x3C = 1P, 0x3D = ordinary 2P, 0x3E = VS) to decide eligibility. A completed 1P run is appended beneath the app preference root as `runs/<active-profile>/run-<time>-<suffix>.urrun`. The active profile ID is host namespace only; record compatibility still depends on game/ROM/build/course/mode provenance inside the artifact.
+Ordinary Modern one-player timed Race slots now use the already-proven rider-selection mode latch (0x3C = 1P, 0x3D = ordinary 2P, 0x3E = VS) to decide eligibility. A completed 1P run is appended beneath the app preference root as `runs/<active-profile>/run-<time>-<suffix>.urrun`. The active profile ID is host namespace only; record compatibility still depends on game/ROM/build/course/mode provenance inside the artifact.
 
 The local store loads only compatible, valid records in filename order. That directly supplies a previous-run selector, while the fastest-compatible selector supplies the PB candidate. Corrupt and incompatible files are skipped rather than poisoning the catalog. No record or ghost data can write guest state.
 
 For deterministic native acceptance, `UR_RUN_RECORD_CAPTURE_PATH` overrides the ordinary append-only destination with one exact path and writes a sibling `.input` file whose frame numbers are offset to the observed race-entry host frame. This sidecar is acceptance plumbing only; the portable record keeps race-relative input frames.
+
+
+Current production eligibility is deliberately narrower than the file format: Crawler-style timed Race slots (tour slots 1 and 4) are recorded now; Circuit and Stunt completion remain inert until their distinct best-lap and score semantics are attached to the record/comparison model. This prevents a generic lowest-elapsed-time PB rule from being applied to incompatible event types.

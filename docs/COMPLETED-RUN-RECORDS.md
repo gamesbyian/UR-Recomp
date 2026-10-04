@@ -54,7 +54,7 @@ Ordinary Modern one-player timed Race slots now use the already-proven rider-sel
 
 The local store loads only compatible, valid records in filename order. That directly supplies a previous-run selector, while the fastest-compatible selector supplies the PB candidate. Corrupt and incompatible files are skipped rather than poisoning the catalog. No record or ghost data can write guest state.
 
-For deterministic native acceptance, `UR_RUN_RECORD_CAPTURE_PATH` overrides the ordinary append-only destination with one exact path and writes a sibling `.input` file whose frame numbers are offset to the observed race-entry host frame. This sidecar is acceptance plumbing only; the portable record keeps race-relative input frames.
+For deterministic native acceptance, `UR_RUN_RECORD_CAPTURE_PATH` overrides the ordinary append-only destination with one exact path and writes a sibling `.input` file whose zero-based framework frame numbers are offset to the post-frame race-entry count, so race-relative frame 0 lands on the immediately following simulation frame. This sidecar is acceptance plumbing only; the portable record keeps race-relative input frames.
 
 
 Current production eligibility is deliberately narrower than the file format: Crawler-style timed Race slots (tour slots 1 and 4) are recorded now; Circuit and Stunt completion remain inert until their distinct best-lap and score semantics are attached to the record/comparison model. This prevents a generic lowest-elapsed-time PB rule from being applied to incompatible event types.

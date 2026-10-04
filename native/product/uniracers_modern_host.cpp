@@ -17,7 +17,6 @@ extern "C" {
 #include "modern_session_c_api.h"
 #include "uniracers_restart_policy.h"
 #include "uniracers_run_data.h"
-#include "widescreen_output_composition.hpp"
 
 #include <cstdlib>
 #include <cstring>
@@ -45,9 +44,6 @@ bool g_exit_frontend_acceptance_fired;
 unsigned g_exit_frontend_acceptance_surface_frames;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
-ur::product::HostWidescreenSceneState g_widescreen_scene_state;
-ur::product::HostSceneComposition g_widescreen_scene =
-    ur::product::HostSceneComposition::FixedCenter;
 
 // Acceptance-only capability probe. Ordinary product code must consume the
 // normalized host contract rather than SDL display identifiers or mode lists.
@@ -510,8 +506,6 @@ bool ensure_session() {
     ur_modern_pause_menu_reset(&g_pause_menu);
     ur_modern_options_menu_reset(&g_options_menu);
     ur_uniracers_restart_policy_reset(&g_title_policy);
-    ur::product::reset_widescreen_scene_state(&g_widescreen_scene_state);
-    g_widescreen_scene = ur::product::HostSceneComposition::FixedCenter;
     if (g_session && modern_mode()) {
         (void)apply_display_mode_setting(g_product_state.settings);
         (void)apply_presentation_fps_setting(g_product_state.settings);
@@ -551,8 +545,6 @@ bool exit_to_frontend() {
     ur_modern_pause_menu_reset(&g_pause_menu);
     ur_modern_options_menu_reset(&g_options_menu);
     ur_uniracers_restart_policy_reset(&g_title_policy);
-    ur::product::reset_widescreen_scene_state(&g_widescreen_scene_state);
-    g_widescreen_scene = ur::product::HostSceneComposition::FixedCenter;
     g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
     g_exit_frontend_waiting_for_main = true;
     g_exit_frontend_waiting_for_usable = false;
@@ -778,12 +770,6 @@ extern "C" double ur_uniracers_modern_presentation_hz(
         display_refresh);
 }
 
-extern "C" int ur_uniracers_modern_widescreen_world_expand(void) {
-    return g_widescreen_scene ==
-            ur::product::HostSceneComposition::WorldExpand
-        ? 1 : 0;
-}
-
 extern "C" void ur_uniracers_modern_after_run_frame(
     const SnesDesktopHostFrameStats*) {
     report_display_capabilities_once();
@@ -795,10 +781,6 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             g_ram[0x0313],
             g_ram[0x009F]);
     g_surface = decision.surface;
-    g_widescreen_scene = ur::product::observe_widescreen_scene(
-        &g_widescreen_scene_state,
-        g_ram[0x0313],
-        g_ram[0x009F]);
 
     if (g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE) {
         ur_modern_session_observe_race_active(g_session, 1);

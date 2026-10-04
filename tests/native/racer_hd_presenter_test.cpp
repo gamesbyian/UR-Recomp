@@ -19,6 +19,11 @@ int main() {
         sample_racer_hd_contract_candidate(123, 90, false, false);
     assert(authored_tire != 0);
     assert(authored_tire != generic_tire);
+    // True-density refinement pass 1 restores internal structure that was
+    // visibly absent in the first shipping review while staying inside the
+    // accepted logical envelope/contact.
+    assert(sample_racer_hd_asset(*registration, 116, 88, false, false) != 0);
+    assert(sample_racer_hd_asset(*registration, 110, 122, false, false) != 0);
 
     // The immediately preceding exact 0541/0D2D composition has its own
     // authored temporal-neighbor candidate rather than falling through to the
@@ -375,6 +380,8 @@ int main() {
         find_racer_registration_for_state(0x0542, p2_0542_context);
     assert(p2_0542 != nullptr);
     assert(is_authored_0542_p2_companion_0d2c_registration(*p2_0542));
+    assert(sample_racer_hd_asset(*p2_0542, 132, 84, false, false) != 0);
+    assert(sample_racer_hd_asset(*p2_0542, 126, 110, false, false) != 0);
 
     RacerCompositionState p2_0542_reuse_context{
         0x057F, 0x0542, 0x0D4A, 0x0000, 0, 0, 0x0001, 0x0000
@@ -425,6 +432,8 @@ int main() {
         find_racer_registration_for_state(0x0543, p2_0543_context);
     assert(p2_0543 != nullptr);
     assert(is_authored_0543_p2_057d_registration(*p2_0543));
+    assert(sample_racer_hd_asset(*p2_0543, 130, 88, false, false) != 0);
+    assert(sample_racer_hd_asset(*p2_0543, 122, 110, false, false) != 0);
 
     RacerCompositionState p2_0543_reuse_context{
         0x057E, 0x0543, 0x0D49, 0x0000, 0, 0, 0x0001, 0x0000

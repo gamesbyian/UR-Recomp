@@ -76,7 +76,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0541_p1",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_first_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "motion-reviewed after gameplay-scale geometry tuning; not approved shipping art",
+        "approval_status": "true-density refinement pass 1: structural fork/spoke detail; still needs shipping-art refinement",
         "shipping_art_approved": false,
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "initial_native_acceptance_run": 37142692369,
@@ -102,11 +102,12 @@
             76
           ],
           "stock_opaque_pixels": 324,
-          "candidate_opaque_pixels": 243,
-          "alpha_intersection_pixels": 220,
-          "alpha_union_pixels": 347,
-          "alpha_iou": 0.6340057636887608
-        }
+          "candidate_opaque_pixels": 283,
+          "alpha_intersection_pixels": 248,
+          "alpha_union_pixels": 359,
+          "alpha_iou": 0.6908077994428969
+        },
+        "refinement_basis": "shipping review run 37180202506 / artifact 11295241964; adds evidence-guided fork bracing and restrained wheel spokes without changing stock envelope/contact"
       }
     },
     {
@@ -377,7 +378,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0543_p2",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_tenth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "motion-reviewed shared P2 0543 pose; not approved shipping art",
+        "approval_status": "true-density refinement pass 1: lower-right brace/spoke detail; still needs shipping-art refinement",
         "native_acceptance_run": 37174353366,
         "native_acceptance_artifact_id": 11292358727,
         "shipping_art_approved": false,
@@ -402,11 +403,12 @@
             76
           ],
           "stock_opaque_pixels": 319,
-          "candidate_opaque_pixels": 311,
-          "alpha_intersection_pixels": 242,
-          "alpha_union_pixels": 388,
-          "alpha_iou": 0.6237113402061856
-        }
+          "candidate_opaque_pixels": 340,
+          "alpha_intersection_pixels": 263,
+          "alpha_union_pixels": 396,
+          "alpha_iou": 0.6641414141414141
+        },
+        "refinement_basis": "post-#375 mismatch-map batch; restores stock-supported lower-right frame structure and restrained hub-centered wheel spokes while preserving exact envelope/contact"
       }
     },
     {
@@ -705,7 +707,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0543_p2",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_tenth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "accepted context-safe reuse of motion-reviewed P2 0543 pose; not approved shipping art",
+        "approval_status": "context-safe reuse of refined P2 0543 asset; still needs shipping-art refinement",
         "native_acceptance_run": 37174353366,
         "native_acceptance_artifact_id": 11292358727,
         "shipping_art_approved": false,
@@ -731,11 +733,12 @@
             76
           ],
           "stock_opaque_pixels": 319,
-          "candidate_opaque_pixels": 311,
-          "alpha_intersection_pixels": 242,
-          "alpha_union_pixels": 388,
-          "alpha_iou": 0.6237113402061856
-        }
+          "candidate_opaque_pixels": 340,
+          "alpha_intersection_pixels": 263,
+          "alpha_union_pixels": 396,
+          "alpha_iou": 0.6641414141414141
+        },
+        "refinement_basis": "post-#375 mismatch-map batch; restores stock-supported lower-right frame structure and restrained hub-centered wheel spokes while preserving exact envelope/contact"
       }
     },
     {
@@ -1190,7 +1193,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0541_p1_companion_0d2d",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_second_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "motion-reviewed temporal neighbor; not approved shipping art",
+        "approval_status": "true-density refinement pass 1: shared structural fork/spoke detail; still needs shipping-art refinement",
         "shipping_art_approved": false,
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "intent": "Extend the first motion-reviewed authored language to the exact frame-1219 predecessor with only the smallest evidence-backed upper-silhouette change; preserve the accepted lower geometry, contact, materials and object-local lighting.",
@@ -1215,11 +1218,12 @@
             76
           ],
           "stock_opaque_pixels": 327,
-          "candidate_opaque_pixels": 248,
-          "alpha_intersection_pixels": 226,
-          "alpha_union_pixels": 349,
-          "alpha_iou": 0.6475644699140402
-        }
+          "candidate_opaque_pixels": 288,
+          "alpha_intersection_pixels": 254,
+          "alpha_union_pixels": 361,
+          "alpha_iou": 0.703601108033241
+        },
+        "refinement_basis": "shipping review run 37180202506 / artifact 11295241964; shares the refined lower structure with frame 1220 while preserving the distinct evidence-backed saddle profile"
       }
     },
     {
@@ -1692,7 +1696,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0542_p2",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_ninth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "motion-reviewed shared P2 0542 pose; not approved shipping art",
+        "approval_status": "true-density refinement pass 1: lower-right brace/spoke detail; still needs shipping-art refinement",
         "native_acceptance_run": 37173872885,
         "native_acceptance_artifact_id": 11291829520,
         "shipping_art_approved": false,
@@ -1717,11 +1721,12 @@
             76
           ],
           "stock_opaque_pixels": 325,
-          "candidate_opaque_pixels": 313,
-          "alpha_intersection_pixels": 254,
-          "alpha_union_pixels": 384,
-          "alpha_iou": 0.6614583333333334
-        }
+          "candidate_opaque_pixels": 343,
+          "alpha_intersection_pixels": 276,
+          "alpha_union_pixels": 392,
+          "alpha_iou": 0.7040816326530612
+        },
+        "refinement_basis": "post-#375 mismatch-map batch; restores stock-supported lower-right frame structure and restrained hub-centered wheel spokes while preserving exact envelope/contact"
       }
     },
     {
@@ -2020,7 +2025,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0542_p2",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_ninth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "accepted context-safe reuse of motion-reviewed P2 0542 pose; not approved shipping art",
+        "approval_status": "context-safe reuse of refined P2 0542 asset; still needs shipping-art refinement",
         "native_acceptance_run": 37173872885,
         "native_acceptance_artifact_id": 11291829520,
         "shipping_art_approved": false,
@@ -2046,11 +2051,12 @@
             76
           ],
           "stock_opaque_pixels": 325,
-          "candidate_opaque_pixels": 313,
-          "alpha_intersection_pixels": 254,
-          "alpha_union_pixels": 384,
-          "alpha_iou": 0.6614583333333334
-        }
+          "candidate_opaque_pixels": 343,
+          "alpha_intersection_pixels": 276,
+          "alpha_union_pixels": 392,
+          "alpha_iou": 0.7040816326530612
+        },
+        "refinement_basis": "post-#375 mismatch-map batch; restores stock-supported lower-right frame structure and restrained hub-centered wheel spokes while preserving exact envelope/contact"
       }
     }
   ],

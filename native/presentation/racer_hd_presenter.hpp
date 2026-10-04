@@ -312,6 +312,64 @@ constexpr std::uint32_t authored_metal_color(
     return 0xFF8E999Fu;
 }
 
+constexpr bool authored_segment_contains(
+    int x,
+    int y,
+    int x1,
+    int y1,
+    int x2,
+    int y2,
+    int half_width
+) noexcept {
+    const int dx = x2 - x1;
+    const int dy = y2 - y1;
+    const int px = x - x1;
+    const int py = y - y1;
+    const int length2 = dx * dx + dy * dy;
+    const int dot = px * dx + py * dy;
+    if (dot < 0 || dot > length2) return false;
+    const int cross = dx * py - dy * px;
+    return cross * cross <= half_width * half_width * length2;
+}
+
+constexpr bool authored_0541_p1_frame_brace(int x, int y) noexcept {
+    return authored_segment_contains(x, y, 132, 60, 100, 116, 3) ||
+           authored_segment_contains(x, y, 132, 60, 150, 116, 3);
+}
+
+constexpr bool authored_0541_p1_wheel_spokes(int x, int y) noexcept {
+    return authored_segment_contains(x, y, 101, 122, 145, 122, 2) ||
+           authored_segment_contains(x, y, 112, 103, 134, 141, 2) ||
+           authored_segment_contains(x, y, 134, 103, 112, 141, 2);
+}
+
+constexpr bool authored_p2_frame_brace(
+    int x,
+    int y,
+    int wheel_cx,
+    int crown_x
+) noexcept {
+    return authored_segment_contains(
+        x, y, crown_x, 60, wheel_cx + 20, 116, 3
+    );
+}
+
+constexpr bool authored_p2_wheel_spokes(
+    int x,
+    int y,
+    int wheel_cx
+) noexcept {
+    return authored_segment_contains(
+               x, y, wheel_cx - 22, 120, wheel_cx + 22, 120, 2
+           ) ||
+           authored_segment_contains(
+               x, y, wheel_cx - 11, 101, wheel_cx + 11, 139, 2
+           ) ||
+           authored_segment_contains(
+               x, y, wheel_cx + 11, 101, wheel_cx - 11, 139, 2
+           );
+}
+
 // First real authored Remastered candidate.
 //
 // This is intentionally representation-specific and still review-only. It
@@ -380,15 +438,17 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1(
     const int crown_dy = y - 60;
     const bool crown =
         crown_dx * crown_dx + crown_dy * crown_dy <= 10 * 10;
+    const bool frame_brace = authored_0541_p1_frame_brace(x, y);
+    const bool wheel_spokes = authored_0541_p1_wheel_spokes(x, y);
 
-    if (hub || rim || crank || pedal) {
+    if (hub || rim || crank || pedal || wheel_spokes) {
         return authored_metal_color(x, y);
     }
     if (seat) {
         const int seat_light = (255 - x) + (255 - y);
         return seat_light > 350 ? 0xFF41474Bu : 0xFF20272Bu;
     }
-    if (fork || neck || crown) {
+    if (fork || frame_brace || neck || crown) {
         return authored_red_frame_color(x, y);
     }
     if (tire) {
@@ -448,15 +508,17 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1_companion_0d2d(
     const int crown_dy = y - 60;
     const bool crown =
         crown_dx * crown_dx + crown_dy * crown_dy <= 10 * 10;
+    const bool frame_brace = authored_0541_p1_frame_brace(x, y);
+    const bool wheel_spokes = authored_0541_p1_wheel_spokes(x, y);
 
-    if (hub || rim || crank || pedal) {
+    if (hub || rim || crank || pedal || wheel_spokes) {
         return authored_metal_color(x, y);
     }
     if (seat) {
         const int seat_light = (255 - x) + (255 - y);
         return seat_light > 350 ? 0xFF41474Bu : 0xFF20272Bu;
     }
-    if (fork || neck || crown) {
+    if (fork || frame_brace || neck || crown) {
         return authored_red_frame_color(x, y);
     }
     if (tire) {
@@ -916,15 +978,17 @@ constexpr std::uint32_t sample_racer_hd_authored_0542_p2(
     const int crown_dy = y - 60;
     const bool crown =
         crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8;
+    const bool frame_brace = authored_p2_frame_brace(x, y, 120, 126);
+    const bool wheel_spokes = authored_p2_wheel_spokes(x, y, 120);
 
-    if (hub || rim || crank || pedal) {
+    if (hub || rim || crank || pedal || wheel_spokes) {
         return authored_metal_color(x, y);
     }
     if (seat) {
         const int seat_light = (255 - x) + (255 - y);
         return seat_light > 350 ? 0xFF41474Bu : 0xFF20272Bu;
     }
-    if (fork || neck || crown) {
+    if (fork || frame_brace || neck || crown) {
         return authored_blue_frame_color(x, y);
     }
     if (tire) {
@@ -981,13 +1045,19 @@ constexpr std::uint32_t sample_racer_hd_authored_0543_p2(
     const int crown_dy = y - 60;
     const bool crown =
         crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8;
+    const bool frame_brace = authored_p2_frame_brace(x, y, 116, 124);
+    const bool wheel_spokes = authored_p2_wheel_spokes(x, y, 116);
 
-    if (hub || rim || crank || pedal) return authored_metal_color(x, y);
+    if (hub || rim || crank || pedal || wheel_spokes) {
+        return authored_metal_color(x, y);
+    }
     if (seat) {
         const int seat_light = (255 - x) + (255 - y);
         return seat_light > 350 ? 0xFF41474Bu : 0xFF20272Bu;
     }
-    if (fork || neck || crown) return authored_blue_frame_color(x, y);
+    if (fork || frame_brace || neck || crown) {
+        return authored_blue_frame_color(x, y);
+    }
     if (tire) {
         const int tire_light = (255 - x) + (255 - y);
         return tire_light > 310 ? 0xFF353C40u : 0xFF171D20u;

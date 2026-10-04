@@ -31,9 +31,9 @@
 +      /* Re-enter through the framework's full-machine initialization path:
 +       * persist authoritative SRAM, discard the old machine, clear
 +       * title-owned session stickies, build a fresh machine, reload SRAM,
-+       * then invoke the normal hardware-reset contract on that fresh machine.
-+       * RtlReset(1) preserves cartridge SRAM while resetting the guest CPU,
-+       * PPU/APU/pacing state and invoking the title's hardware_reset hook. */
++       * then invoke only the title-owned hardware-reset hook. SnesInit has
++       * already reset the fresh machine and host pacing, so resetting the
++       * runtime again here would double-reset freshly initialized state. */
 +      snes_runahead_shutdown();
 +      snes_rewind_shutdown();
 +      if (g_rtl_game_info && g_rtl_game_info->session_reset)
@@ -44,7 +44,8 @@
 +        Die("session reboot failed to initialize the guest");
 +      debug_server_set_ram(snes->ram, 0x20000);
 +      RtlReadSram();
-+      RtlReset(1);
++      if (g_rtl_game_info && g_rtl_game_info->hardware_reset)
++        g_rtl_game_info->hardware_reset();
 +      g_input_state = 0;
 +      g_gamepad[0].axis_buttons = 0;
 +      g_gamepad[1].axis_buttons = 0;

@@ -1,0 +1,48 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -814,14 +814,18 @@ static void PreparePpuFrame(void) {
+   int fw = g_game->frame_width > 0 ? g_game->frame_width : 256;
+   int fh = g_game->frame_height > 0 ? g_game->frame_height : 224;
+   if (g_game->prepare_frame)
+     g_game->prepare_frame(drawable_width, drawable_height, &fw, &fh);
+-  int max_width = g_game->native_widescreen ? kPpuBufWidth : kSnesDesktopMaxFrameWidth;
++  int native_widescreen = g_game->native_widescreen;
++  if (g_game->native_widescreen_enabled)
++    native_widescreen = g_game->native_widescreen_enabled() != 0;
++  int max_width = native_widescreen ? kPpuBufWidth : kSnesDesktopMaxFrameWidth;
+   if (fw <= 0 || fw > max_width) fw = 256;
+   if (fh <= 0 || fh > 240) fh = 224;
+   g_snes_width = fw;
+   g_snes_height = fh;
+   /* Native widescreen ports rasterize directly into the widened field. */
+-  g_ws_extra = g_game->native_widescreen ? (fw - 256) / 2 : 0;
++  g_ws_extra = native_widescreen ? (fw - 256) / 2 : 0;
+   g_ws_active = g_ws_extra != 0;
+   g_new_ppu = (g_ppu_render_flags & kPpuRenderFlags_NewRenderer) != 0;
+   if (g_config.no_sprite_limits)
+@@ -829,10 +833,10 @@ static void PreparePpuFrame(void) {
+     g_ppu_render_flags |= kPpuRenderFlags_NoSpriteLimits;
+   else
+     g_ppu_render_flags &= ~kPpuRenderFlags_NoSpriteLimits;
+-  uint32 flags = g_game->native_widescreen ? g_ppu_render_flags : 0;
++  uint32 flags = native_widescreen ? g_ppu_render_flags : 0;
+   if (g_ws_active) flags |= kPpuRenderFlags_NewRenderer;
+   PpuBeginDrawing(g_ppu, g_my_pixels,
+-                  (g_game->native_widescreen ? fw : 256) * 4, flags);
++                  (native_widescreen ? fw : 256) * 4, flags);
+   PpuSetExtraSpace(g_ppu, (uint8)g_ws_extra);
+ }
+ 
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -142,6 +142,12 @@ typedef struct SnesDesktopHostGame {
+    * fail closed to 1. */
+   int (*presentation_scale)(void);
++  /* Optional dynamic native-wide raster gate. Leave NULL to preserve the
++   * static native_widescreen field exactly. A title that needs scene-specific
++   * widening can return nonzero only for frames that require a widened PPU
++   * field, keeping fixed/4:3 scenes on the stock raster path. */
++  int (*native_widescreen_enabled)(void);
+   /* Presentation rate. Return 0 to present every simulated frame at the
+    * simulation rate (the default). Return a rate to decouple presentation:
+    * the host then re-presents the captured frame between simulated ones,

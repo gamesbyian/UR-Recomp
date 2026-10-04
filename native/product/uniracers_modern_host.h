@@ -22,6 +22,10 @@ void ur_uniracers_modern_system_overlay(
  * values request only host-side re-presentation of captured frames. */
 double ur_uniracers_modern_presentation_hz(double display_refresh);
 
+/* Current evidence-backed Widescreen scene decision. This reports host
+ * presentation policy only; it never mutates guest camera/simulation state. */
+int ur_uniracers_modern_widescreen_world_expand(void);
+
 #ifdef __cplusplus
 }
 #endif

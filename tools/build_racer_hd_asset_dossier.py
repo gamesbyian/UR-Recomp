@@ -255,6 +255,32 @@ def authored_saddle_rgba(
     return _rgba32(49, 45, 38)
 
 
+def authored_frame_junction_rgba(
+    x: int,
+    y: int,
+    crown_x: int,
+    crown_y: int,
+    blue_frame: bool,
+) -> bytes:
+    """Mirror the native forged crown/junction material exactly."""
+    dx = x - crown_x
+    dy = y - crown_y
+    radial2 = dx * dx + dy * dy
+    highlight = dx <= 1 and dy <= 1 and radial2 >= 18
+    shadow = dx >= 2 or dy >= 4
+    if blue_frame:
+        if highlight:
+            return _rgba32(83, 115, 232)
+        if shadow:
+            return _rgba32(24, 40, 120)
+        return _rgba32(52, 77, 201)
+    if highlight:
+        return _rgba32(232, 83, 83)
+    if shadow:
+        return _rgba32(120, 24, 24)
+    return _rgba32(201, 52, 52)
+
+
 def authored_wheel_spokes(
     x: int,
     y: int,
@@ -355,7 +381,9 @@ def sample_authored_0541_p1_rgba(x: int, y: int) -> bytes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
         return authored_saddle_rgba(x, y, 128, 22)
-    if fork or frame_brace or neck or crown:
+    if crown:
+        return authored_frame_junction_rgba(x, y, 132, 60, False)
+    if fork or frame_brace or neck:
         return authored_red_frame_rgba(x, y)
     if tire:
         return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
@@ -403,7 +431,9 @@ def sample_authored_0541_p1_companion_0d2d_rgba(x: int, y: int) -> bytes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
         return authored_saddle_rgba(x, y, 130, 23)
-    if fork or frame_brace or neck or crown:
+    if crown:
+        return authored_frame_junction_rgba(x, y, 132, 60, False)
+    if fork or frame_brace or neck:
         return authored_red_frame_rgba(x, y)
     if tire:
         return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
@@ -452,7 +482,9 @@ def sample_authored_0540_p1_predecessor_rgba(x: int, y: int) -> bytes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
         return authored_saddle_rgba(x, y, 130, 22)
-    if fork or frame_brace or neck or crown:
+    if crown:
+        return authored_frame_junction_rgba(x, y, 134, 60, False)
+    if fork or frame_brace or neck:
         return authored_red_frame_rgba(x, y)
     if tire:
         return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
@@ -504,7 +536,9 @@ def sample_authored_057f_p1_companion_0d4a_rgba(x: int, y: int) -> bytes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
         return authored_saddle_rgba(x, y, 120, 22)
-    if fork or frame_brace or neck or crown:
+    if crown:
+        return authored_frame_junction_rgba(x, y, 136, 60, False)
+    if fork or frame_brace or neck:
         return authored_red_frame_rgba(x, y)
     if tire:
         return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
@@ -556,7 +590,9 @@ def sample_authored_057e_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
         return authored_saddle_rgba(x, y, 116, 22)
-    if fork or frame_brace or neck or crown:
+    if crown:
+        return authored_frame_junction_rgba(x, y, 140, 60, False)
+    if fork or frame_brace or neck:
         return authored_red_frame_rgba(x, y)
     if tire:
         return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
@@ -608,7 +644,9 @@ def sample_authored_057d_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
         return authored_saddle_rgba(x, y, 112, 26)
-    if fork or frame_brace or neck or crown:
+    if crown:
+        return authored_frame_junction_rgba(x, y, 144, 60, False)
+    if fork or frame_brace or neck:
         return authored_red_frame_rgba(x, y)
     if tire:
         return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
@@ -657,7 +695,9 @@ def sample_authored_0540_p2_baseline_rgba(x: int, y: int) -> bytes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
         return authored_saddle_rgba(x, y, 130, 22)
-    if fork or frame_brace or neck or crown:
+    if crown:
+        return authored_frame_junction_rgba(x, y, 134, 60, True)
+    if fork or frame_brace or neck:
         return authored_blue_frame_rgba(x, y)
     if tire:
         return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
@@ -699,7 +739,9 @@ def sample_authored_0541_p2_predecessor_rgba(x: int, y: int) -> bytes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
         return authored_saddle_rgba(x, y, 130, 26)
-    if fork or frame_brace or neck or crown:
+    if crown:
+        return authored_frame_junction_rgba(x, y, 130, 60, True)
+    if fork or frame_brace or neck:
         return authored_blue_frame_rgba(x, y)
     if tire:
         return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
@@ -745,7 +787,9 @@ def sample_authored_0542_p2_rgba(x: int, y: int) -> bytes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
         return authored_saddle_rgba(x, y, 130, 26)
-    if fork or frame_brace or neck or crown:
+    if crown:
+        return authored_frame_junction_rgba(x, y, 132, 60, True)
+    if fork or frame_brace or neck:
         return authored_blue_frame_rgba(x, y)
     if tire:
         return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
@@ -791,7 +835,9 @@ def sample_authored_0543_p2_rgba(x: int, y: int) -> bytes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
         return authored_saddle_rgba(x, y, 130, 30)
-    if fork or frame_brace or neck or crown:
+    if crown:
+        return authored_frame_junction_rgba(x, y, 128, 60, True)
+    if fork or frame_brace or neck:
         return authored_blue_frame_rgba(x, y)
     if tire:
         return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)

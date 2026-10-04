@@ -112,6 +112,14 @@ The probe therefore supplies only those narrow compile contracts rather than imp
 
 Together with S1.5, this establishes source-level Switch portability for both the generated Uniracers guest/title code and the authoritative non-desktop runtime floor. The next S2 boundary is an actual guest + runtime link with explicit Switch host contracts, followed by hardware execution and deterministic parity.
 
+### Gate S1.9 — combined guest/runtime link surface
+
+**Closed as a first-pass inventory.** Run `37240878730` regenerated the canonical guest, cross-compiled the accepted 11 guest/title and 32 runtime-floor translation units, and collapsed all 43 AArch64 objects with a relocatable link. The combined object is 1,212,472 bytes.
+
+After internal guest/runtime references were resolved, 101 external symbols remained. That count is intentionally conservative: it contains ordinary libc/POSIX/libm/toolchain symbols plus framework support modules that were outside the first runtime-floor set. Examples of the latter include `audio_trace_*`, `ppudma_*`, `sha256_compute`, `snes_mod_audio_*`, `snes_runahead_active`, `host_report_breadcrumb`, and `g_framedump_callback`.
+
+The next reduction step is therefore to add the required non-desktop framework support translation units to the collapse before designing a Switch host adapter. Do not treat the raw 101-symbol list as 101 Switch APIs.
+
 ### Gate S2 — authoritative simulation
 
 Link the same generated/recompiled simulation used by desktop.

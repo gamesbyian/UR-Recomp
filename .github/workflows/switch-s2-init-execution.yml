@@ -87,8 +87,8 @@ jobs:
             aarch64-none-elf-gcc $CFLAGS -c "/tmp/bundle/framework/runner/src/$s" -o "$out"
           done
           aarch64-none-elf-gcc $CFLAGS -I"$DEVKITPRO/libnx/include" -c platform/switch/s2_execution_probe/source/main.c -o /tmp/support/switch_exec_host.o
-          cd /tmp/romobj
-          aarch64-none-elf-objcopy -I binary -O elf64-littleaarch64 -B aarch64 /tmp/bundle/rom/rom.sfc rom.o
+          cd /tmp/bundle/rom
+          aarch64-none-elf-objcopy -I binary -O elf64-littleaarch64 -B aarch64 rom.sfc /tmp/romobj/rom.o
       - name: Link and package execution probe
         run: |
           set -eu

@@ -16,6 +16,7 @@ extern "C"
 void UrRacerPresentationProbeAfterRunFrame(const SnesDesktopHostFrameStats *stats);
 void UrRacerHdPrepareFrame(int drawable_w, int drawable_h, int *frame_w, int *frame_h);
 void UrRacerHdBeginSimFrame(unsigned number);
+int UrRacerHdPresentationScale(void);
 int UrRacerHdDrawFrame(
     uint8_t *dst, size_t pitch, const uint8_t *field,
     int frame_w, int frame_h, double alpha
@@ -43,6 +44,10 @@ extern "C" void UrRacerHdPrepareFrame(
 
 extern "C" void UrRacerHdBeginSimFrame(unsigned number) {
     ur::presentation::racer_hd_begin_sim_frame(number);
+}
+
+extern "C" int UrRacerHdPresentationScale(void) {
+    return ur::presentation::racer_hd_presentation_scale();
 }
 
 extern "C" int UrRacerHdDrawFrame(
@@ -173,7 +178,8 @@ def patch_main(source: str) -> str:
         + "    .after_run_frame     = &UrRacerPresentationProbeAfterRunFrame,\n"
         + "    .prepare_frame       = &UrRacerHdPrepareFrame,\n"
         + "    .begin_sim_frame     = &UrRacerHdBeginSimFrame,\n"
-        + "    .draw_frame          = &UrRacerHdDrawFrame,\n",
+        + "    .draw_frame          = &UrRacerHdDrawFrame,\n"
+        + "    .presentation_scale  = &UrRacerHdPresentationScale,\n",
         1,
     )
 

@@ -180,7 +180,7 @@ jobs:
               rep for rep in dossier["representations"]
               if rep["art_review"]["authored_candidate"] is not None
           ]
-          assert len(authored) == 10
+          assert len(authored) == 12
           authored_by_id = {rep["representation_id"]: rep for rep in authored}
 
           baseline = authored_by_id["ordinary-racer-0x0541-p1-sync-reference"]
@@ -327,6 +327,40 @@ jobs:
           assert p2_predecessor_review["alpha_union_pixels"] == 372
           assert abs(p2_predecessor_review["alpha_iou"] - 0.6720430107526881) < 1e-12
 
+          p2_0542 = authored_by_id[
+              "ordinary-racer-0x0542-p2-with-p1-companion-0D2C-reference"
+          ]
+          p2_0542_candidate = p2_0542["art_review"]["authored_candidate"]
+          assert p2_0542_candidate["approval_status"] == (
+              "motion-reviewed shared P2 0542 pose; not approved shipping art"
+          )
+          p2_0542_review = p2_0542_candidate["gameplay_scale_review"]
+          assert p2_0542["observed_frames_in_window"] == [1217]
+          assert p2_0542_review["stock_alpha_bounds"] == [21, 4, 40, 38]
+          assert p2_0542_review["candidate_alpha_bounds"] == [21, 4, 40, 38]
+          assert p2_0542_review["candidate_contact_x2_y2"] == [59, 76]
+          assert p2_0542_review["stock_opaque_pixels"] == 325
+          assert p2_0542_review["candidate_opaque_pixels"] == 313
+          assert p2_0542_review["alpha_intersection_pixels"] == 254
+          assert p2_0542_review["alpha_union_pixels"] == 384
+          assert abs(p2_0542_review["alpha_iou"] - 0.6614583333333334) < 1e-12
+
+          p2_0542_reuse = authored_by_id[
+              "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference"
+          ]
+          p2_0542_reuse_candidate = p2_0542_reuse["art_review"]["authored_candidate"]
+          assert p2_0542_reuse_candidate["approval_status"] == (
+              "accepted context-safe reuse of motion-reviewed P2 0542 pose; not approved shipping art"
+          )
+          assert p2_0542_reuse_candidate["reuse_source_representation_id"] == (
+              "ordinary-racer-0x0542-p2-with-p1-companion-0D2C-reference"
+          )
+          assert p2_0542_reuse["stock_evidence"]["rgba_sha256"] == p2_0542["stock_evidence"]["rgba_sha256"]
+          assert p2_0542_reuse["stock_evidence"]["png_sha256"] == p2_0542["stock_evidence"]["png_sha256"]
+          assert p2_0542_reuse_candidate["rgba_sha256"] == p2_0542_candidate["rgba_sha256"]
+          assert p2_0542_reuse_candidate["png_sha256"] == p2_0542_candidate["png_sha256"]
+          assert p2_0542_reuse_candidate["gameplay_scale_review"] == p2_0542_review
+
           repeated_057d = authored_by_id[
               "ordinary-racer-0x057D-p1-adjacent-reference"
           ]
@@ -345,7 +379,7 @@ jobs:
           assert repeated_057d_review["alpha_union_pixels"] == 397
           assert abs(repeated_057d_review["alpha_iou"] - 0.6196473551637279) < 1e-12
 
-          for rep in (baseline, p2_baseline, p2_reused, p2_predecessor, predecessor, reversed, reused, repeated, repeated_057e, repeated_057d):
+          for rep in (baseline, p2_baseline, p2_reused, p2_predecessor, p2_0542, p2_0542_reuse, predecessor, reversed, reused, repeated, repeated_057e, repeated_057d):
               candidate_path = (
                   pathlib.Path(sys.argv[1]).parent
                   / rep["art_review"]["authored_candidate"]["png"]

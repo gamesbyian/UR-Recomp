@@ -35,7 +35,7 @@ Profile schema v1 remains readable. A v1 profile deterministically migrates in m
 
 `uniracers_modern_host.cpp` loads `host-profile.txt` beside the active Modern profile's isolated `save.srm`. Missing profile metadata begins from typed defaults. A malformed profile metadata file remains read-only for that process so recovery never silently destroys it.
 
-At a settled results or TRACK_SELECT surface, a real unfinished stock flag row is autosaved into the profile metadata together with an exact 8 KiB SRAM mirror. The framework's ordinary `RtlTryWriteSram()` durably publishes the authoritative profile-local cartridge save before the metadata replace is committed.
+Every settled stock results surface is a Modern autosave boundary. The framework's ordinary `RtlTryWriteSram()` first durably publishes the authoritative profile-local cartridge save, including records, stats and any medal update; the profile metadata is then atomically replaced with an exact 8 KiB SRAM mirror. When one through four qualification flags remain, that same commit carries the unfinished-tour continuation. A completed five-track row carries no continuation because stock has already awarded the medal and cleared the row.
 
 On a later process, stock rider confirmation is allowed to perform its historical flag wipe unchanged. At TRACK_SELECT, and only there, the host may restore the saved five-byte row when all of the following still match:
 

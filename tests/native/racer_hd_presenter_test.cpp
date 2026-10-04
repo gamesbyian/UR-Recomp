@@ -226,6 +226,47 @@ int main() {
     assert(repeated_057e_bottom_max_lx == 35);
     assert(repeated_057e_bottom_min_lx + repeated_057e_bottom_max_lx == 67);
 
+    // Frames 1207-1212 share the exact 057D/0543 state and one authored pose.
+    // Lock the recovered gameplay envelope/contact before enlarged-art review.
+    RacerCompositionState repeated_057d_context{
+        0x057D, 0x0543, 0x0D48, 0x0000, 0, 0, 0x0001, 0x0000
+    };
+    const auto* repeated_057d =
+        find_racer_registration_for_state(0x057D, repeated_057d_context);
+    assert(repeated_057d != nullptr);
+    assert(is_authored_057d_p1_with_p2_0543_registration(*repeated_057d));
+
+    int repeated_057d_min_lx = kRacerHdLogicalSize;
+    int repeated_057d_min_ly = kRacerHdLogicalSize;
+    int repeated_057d_max_lx = -1;
+    int repeated_057d_max_ly = -1;
+    int repeated_057d_bottom_min_lx = kRacerHdLogicalSize;
+    int repeated_057d_bottom_max_lx = -1;
+    for (int ly = 0; ly < kRacerHdLogicalSize; ++ly) {
+        for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+            const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            const int sy = ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            if (sample_racer_hd_asset(*repeated_057d, sx, sy, false, false) == 0) {
+                continue;
+            }
+            if (lx < repeated_057d_min_lx) repeated_057d_min_lx = lx;
+            if (ly < repeated_057d_min_ly) repeated_057d_min_ly = ly;
+            if (lx > repeated_057d_max_lx) repeated_057d_max_lx = lx;
+            if (ly > repeated_057d_max_ly) repeated_057d_max_ly = ly;
+            if (ly == 38) {
+                if (lx < repeated_057d_bottom_min_lx) repeated_057d_bottom_min_lx = lx;
+                if (lx > repeated_057d_bottom_max_lx) repeated_057d_bottom_max_lx = lx;
+            }
+        }
+    }
+    assert(repeated_057d_min_lx == 21);
+    assert(repeated_057d_min_ly == 3);
+    assert(repeated_057d_max_lx == 43);
+    assert(repeated_057d_max_ly == 38);
+    assert(repeated_057d_bottom_min_lx == 33);
+    assert(repeated_057d_bottom_max_lx == 36);
+    assert(repeated_057d_bottom_min_lx + repeated_057d_bottom_max_lx == 69);
+
     // Object-local H/V reflection remains a post-selection presentation
     // transform for authored art.
     const std::uint32_t pedal =

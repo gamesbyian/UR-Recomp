@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "gate": "S2-link-surface",
+  "purpose": "Collapse internal guest/runtime references after Switch cross-compilation and retain the exact unresolved external symbol surface that a Switch host adapter or system libraries must satisfy.",
+  "inputs": {
+    "guest_contract": "analysis/switch-s2-guest-aot-contract.json",
+    "runtime_contract": "analysis/switch-s2-runtime-core-contract.json"
+  },
+  "toolchain": {
+    "container": "devkitpro/devkita64:20260219"
+  },
+  "classification": {
+    "standard_prefixes": [
+      "__",
+      "_"
+    ],
+    "standard_symbols": [
+      "abort",
+      "atoi",
+      "calloc",
+      "clock",
+      "close",
+      "cos",
+      "cosf",
+      "exit",
+      "fclose",
+      "fflush",
+      "fopen",
+      "fprintf",
+      "fputc",
+      "free",
+      "fread",
+      "fseek",
+      "ftell",
+      "fwrite",
+      "getenv",
+      "log",
+      "log2",
+      "log2f",
+      "malloc",
+      "memcmp",
+      "memcpy",
+      "memmove",
+      "memset",
+      "mkdir",
+      "open",
+      "pow",
+      "powf",
+      "printf",
+      "puts",
+      "read",
+      "remove",
+      "rename",
+      "sin",
+      "sinf",
+      "snprintf",
+      "sprintf",
+      "sqrt",
+      "sqrtf",
+      "stat",
+      "strchr",
+      "strcmp",
+      "strcpy",
+      "strerror",
+      "strlen",
+      "strncmp",
+      "strncpy",
+      "strrchr",
+      "strtol",
+      "strtoul",
+      "time",
+      "unlink",
+      "write"
+    ]
+  },
+  "acceptance": [
+    "canonical guest/title and authoritative runtime-floor objects are both produced for Switch",
+    "a relocatable link succeeds across the combined object set",
+    "internal guest/runtime references are resolved before symbol inventory",
+    "the remaining unresolved symbols are retained as machine-readable evidence"
+  ],
+  "non_claims": [
+    "A relocatable link is not a runnable NRO",
+    "System C/libm symbols may remain unresolved until final executable link",
+    "Host callbacks may remain unresolved by design",
+    "This does not run the guest or prove deterministic parity",
+    "This does not close Gate S2"
+  ]
+}

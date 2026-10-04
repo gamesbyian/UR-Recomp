@@ -1,0 +1,125 @@
+name: Switch S2 combined link surface
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "analysis/switch-s2-link-surface-contract.json"
+      - "tools/analyze_switch_s2_link_surface.py"
+      - "tests/unit/test_switch_s2_link_surface.py"
+      - "analysis/switch-s2-guest-aot-contract.json"
+      - "analysis/switch-s2-runtime-core-contract.json"
+      - "tools/build_switch_s2_guest_probe.py"
+      - "tools/build_switch_s2_runtime_probe.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - ".github/workflows/switch-s2-link-surface.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: switch-s2-link-surface-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Verify ROM and stage framework
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+
+      - name: Scaffold and generate canonical guest bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/switch-s2-link-prepare"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          mkdir -p "$TMP"
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$ROM" --dir "$TMP" --name "Uniracers" --players 2 --yes \
+              --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay --no-github \
+              --no-submodules --no-generate --no-build
+          PROJECT="$TMP/UniracersSNESRecomp"
+          python3 "$FRAMEWORK/snesrecomp_cli.py" generate \
+            --rom "$ROM" --project-root "$PROJECT" --cfg-dir recomp \
+            --out-dir src/gen --funcs-h recomp/funcs.h --cfg-roots
+
+          BUNDLE="$RUNNER_TEMP/switch-s2-link-bundle"
+          mkdir -p "$BUNDLE/project/src" "$BUNDLE/project/recomp" "$BUNDLE/framework/runner"
+          cp "$PROJECT/src/game_rtl.c" "$BUNDLE/project/src/"
+          cp "$PROJECT/src/host_contract.c" "$BUNDLE/project/src/"
+          cp "$PROJECT/src/gen_stubs.c" "$BUNDLE/project/src/"
+          cp "$PROJECT/src/"*.h "$BUNDLE/project/src/"
+          cp -R "$PROJECT/src/gen" "$BUNDLE/project/src/"
+          cp "$PROJECT/recomp/"*.h "$BUNDLE/project/recomp/"
+          cp -R "$FRAMEWORK/runner/src" "$BUNDLE/framework/runner/"
+
+      - name: Upload link-input bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: switch-s2-link-inputs
+          path: ${{ runner.temp }}/switch-s2-link-bundle/
+          retention-days: 1
+
+  analyze:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    container:
+      image: devkitpro/devkita64:20260219
+
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Download link inputs
+        uses: actions/download-artifact@v4
+        with:
+          name: switch-s2-link-inputs
+          path: /tmp/switch-s2-link-bundle
+
+      - name: Validate link-surface tooling
+        run: |
+          set -eu
+          python3 -m unittest tests.unit.test_switch_s2_link_surface
+
+      - name: Cross-compile guest and runtime
+        run: |
+          set -eu
+          . "$DEVKITPRO/switchvars.sh"
+          python3 tools/build_switch_s2_guest_probe.py \
+            --bundle /tmp/switch-s2-link-bundle \
+            --out-dir /tmp/switch-s2-guest-objects --jobs 2
+          python3 tools/build_switch_s2_runtime_probe.py \
+            --framework /tmp/switch-s2-link-bundle/framework \
+            --out-dir /tmp/switch-s2-runtime-objects --jobs 2
+
+      - name: Collapse internal references and inventory unresolved surface
+        run: |
+          set -eu
+          . "$DEVKITPRO/switchvars.sh"
+          python3 tools/analyze_switch_s2_link_surface.py \
+            --guest-objects /tmp/switch-s2-guest-objects \
+            --runtime-objects /tmp/switch-s2-runtime-objects \
+            --linked-out /tmp/switch-s2-combined.o \
+            --json-out /tmp/switch-s2-link-surface.json
+          test -s /tmp/switch-s2-combined.o
+          cat /tmp/switch-s2-link-surface.json
+
+      - name: Upload S2 link-surface evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: switch-s2-link-surface
+          path: /tmp/switch-s2-link-surface.json
+          retention-days: 14

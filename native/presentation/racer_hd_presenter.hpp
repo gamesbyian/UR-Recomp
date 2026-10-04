@@ -343,6 +343,31 @@ constexpr std::uint32_t authored_rim_hardware_color(
     return 0xFF8A969Cu;
 }
 
+constexpr std::uint32_t authored_hub_hardware_color(
+    int x,
+    int y,
+    int wheel_cx,
+    int wheel_cy
+) noexcept {
+    // Compact radial depth cue for the hub. This changes material only, never
+    // occupancy, so wheel contact and the recovered pose envelope stay fixed.
+    const int directional = (wheel_cx - x) + (wheel_cy - y);
+    if (directional > 2) return 0xFFF7F8F9u;
+    if (directional < -2) return 0xFF8A969Cu;
+    return 0xFFD8DDE0u;
+}
+
+constexpr std::uint32_t authored_drivetrain_hardware_color(
+    int y,
+    int wheel_cy
+) noexcept {
+    // A stable upper highlight and lower occlusion give the crank/pedal stack
+    // depth without introducing tiny alternating detail that would shimmer.
+    if (y <= wheel_cy - 3) return 0xFFF7F8F9u;
+    if (y >= wheel_cy + 1) return 0xFF8A969Cu;
+    return 0xFFD8DDE0u;
+}
+
 constexpr std::uint32_t authored_rubber_color(
     int x,
     int y,
@@ -617,7 +642,13 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1(
     const bool frame_brace = authored_0541_p1_frame_brace(x, y);
     const bool wheel_spokes = authored_0541_p1_wheel_spokes(x, y);
 
-    if (hub || rim || crank || pedal || wheel_spokes) {
+    if (hub) {
+        return authored_hub_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (crank || pedal) {
+        return authored_drivetrain_hardware_color(y, wheel_cy);
+    }
+    if (rim || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
@@ -694,7 +725,13 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1_companion_0d2d(
     const bool frame_brace = authored_0541_p1_frame_brace(x, y);
     const bool wheel_spokes = authored_0541_p1_wheel_spokes(x, y);
 
-    if (hub || rim || crank || pedal || wheel_spokes) {
+    if (hub) {
+        return authored_hub_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (crank || pedal) {
+        return authored_drivetrain_hardware_color(y, wheel_cy);
+    }
+    if (rim || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
@@ -776,7 +813,13 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p1_predecessor(
         x, y, wheel_cx, wheel_cy
     );
 
-    if (hub || rim || crank || pedal || wheel_spokes) {
+    if (hub) {
+        return authored_hub_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (crank || pedal) {
+        return authored_drivetrain_hardware_color(y, wheel_cy);
+    }
+    if (rim || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
@@ -863,7 +906,13 @@ constexpr std::uint32_t sample_racer_hd_authored_057f_p1_companion_0d4a(
         x, y, wheel_cx, wheel_cy
     );
 
-    if (hub || rim || crank || pedal || wheel_spokes) {
+    if (hub) {
+        return authored_hub_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (crank || pedal) {
+        return authored_drivetrain_hardware_color(y, wheel_cy);
+    }
+    if (rim || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
@@ -950,7 +999,13 @@ constexpr std::uint32_t sample_racer_hd_authored_057e_p1_with_p2_0543(
         x, y, wheel_cx, wheel_cy
     );
 
-    if (hub || rim || crank || pedal || wheel_spokes) {
+    if (hub) {
+        return authored_hub_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (crank || pedal) {
+        return authored_drivetrain_hardware_color(y, wheel_cy);
+    }
+    if (rim || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
@@ -1035,7 +1090,13 @@ constexpr std::uint32_t sample_racer_hd_authored_057d_p1_with_p2_0543(
         x, y, wheel_cx, wheel_cy
     );
 
-    if (hub || rim || crank || pedal || wheel_spokes) {
+    if (hub) {
+        return authored_hub_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (crank || pedal) {
+        return authored_drivetrain_hardware_color(y, wheel_cy);
+    }
+    if (rim || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
@@ -1102,7 +1163,9 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p2_baseline(
         x, y, wheel_cx, wheel_cy
     );
 
-    if (hub || rim || crank || pedal || wheel_spokes) return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
+    if (hub) return authored_hub_hardware_color(x, y, wheel_cx, wheel_cy);
+    if (crank || pedal) return authored_drivetrain_hardware_color(y, wheel_cy);
+    if (rim || wheel_spokes) return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     if (saddle_mount) {
         return authored_saddle_mount_color(y, 29);
     }
@@ -1181,7 +1244,13 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p2_predecessor(
         x, y, wheel_cx, wheel_cy
     );
 
-    if (hub || rim || crank || pedal || wheel_spokes) {
+    if (hub) {
+        return authored_hub_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (crank || pedal) {
+        return authored_drivetrain_hardware_color(y, wheel_cy);
+    }
+    if (rim || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
@@ -1258,7 +1327,13 @@ constexpr std::uint32_t sample_racer_hd_authored_0542_p2(
     const bool frame_brace = authored_p2_frame_brace(x, y, 120, 126);
     const bool wheel_spokes = authored_p2_wheel_spokes(x, y, 120);
 
-    if (hub || rim || crank || pedal || wheel_spokes) {
+    if (hub) {
+        return authored_hub_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (crank || pedal) {
+        return authored_drivetrain_hardware_color(y, wheel_cy);
+    }
+    if (rim || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {
@@ -1332,7 +1407,13 @@ constexpr std::uint32_t sample_racer_hd_authored_0543_p2(
     const bool frame_brace = authored_p2_frame_brace(x, y, 116, 124);
     const bool wheel_spokes = authored_p2_wheel_spokes(x, y, 116);
 
-    if (hub || rim || crank || pedal || wheel_spokes) {
+    if (hub) {
+        return authored_hub_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (crank || pedal) {
+        return authored_drivetrain_hardware_color(y, wheel_cy);
+    }
+    if (rim || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
     }
     if (saddle_mount) {

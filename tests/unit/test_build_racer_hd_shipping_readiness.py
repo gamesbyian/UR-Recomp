@@ -13,6 +13,7 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
                     "pose_id": "p1-pose-001",
                     "player": "p1",
                     "authored_source_representation_id": "a",
+                    "authored_asset_rgba_sha256": "a" * 64,
                     "representation_ids": ["a", "b"],
                     "observed_frames": [1, 2],
                     "needs_authored_asset": False,
@@ -22,6 +23,7 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
                     "pose_id": "p2-pose-002",
                     "player": "p2",
                     "authored_source_representation_id": "c",
+                    "authored_asset_rgba_sha256": "c" * 64,
                     "representation_ids": ["c"],
                     "observed_frames": [2],
                     "needs_authored_asset": False,
@@ -34,6 +36,7 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
         def row(source, status):
             return {
                 "authored_source_representation_id": source,
+                "reviewed_authored_rgba_sha256": source * 64,
                 "status": status,
                 "shipping_art_approved": status == "approved",
                 "blocker_codes": ["coarse"] if status == "needs-refinement" else [],
@@ -72,6 +75,14 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
         self.assertEqual(result["counts"]["unreviewed"], 1)
         self.assertFalse(result["shipping_ready"])
 
+    def test_authored_change_invalidates_previous_review(self):
+        equivalence = self.equivalence()
+        equivalence["pose_groups"][0]["authored_asset_rgba_sha256"] = "d" * 64
+        result = build_shipping_readiness(equivalence, self.decisions())
+        self.assertEqual(result["poses"][0]["review_status"], "changed-since-review")
+        self.assertEqual(result["counts"]["changed_since_review"], 1)
+        self.assertFalse(result["shipping_ready"])
+
     def test_conflicting_approval_boolean_is_rejected(self):
         decisions = self.decisions(a="approved")
         decisions["decisions"][0]["shipping_art_approved"] = False
@@ -82,6 +93,7 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
         decisions = self.decisions()
         decisions["decisions"].append({
             "authored_source_representation_id": "stale",
+            "reviewed_authored_rgba_sha256": "f" * 64,
             "status": "needs-refinement",
             "shipping_art_approved": False,
             "blocker_codes": [],

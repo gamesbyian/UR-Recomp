@@ -37,6 +37,7 @@ bool g_run_data_visible;
 bool g_quit_confirm_visible;
 bool g_exit_frontend_waiting_for_main;
 bool g_exit_frontend_waiting_for_usable;
+bool g_exit_frontend_acceptance_fired;
 uint32_t g_exit_frontend_expected_sram;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
@@ -438,6 +439,34 @@ bool request_desktop_quit() {
     return true;
 }
 
+void maybe_run_exit_frontend_acceptance() {
+    if (g_exit_frontend_acceptance_fired || !modern_mode() || !g_session) return;
+    const char* mode = std::getenv("UR_EXIT_FRONTEND_ACCEPTANCE");
+    if (!mode || !*mode) return;
+
+    const bool wants_active =
+        std::strcmp(mode, "active") == 0 &&
+        g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE;
+    const bool wants_results =
+        std::strcmp(mode, "results") == 0 &&
+        g_surface == UR_UNIRACERS_RESTART_RESULTS;
+    if (!wants_active && !wants_results) return;
+
+    g_exit_frontend_acceptance_fired = true;
+    const UrModernSessionResult pause_result = ur_modern_session_pause(g_session);
+    const UrModernSessionResult exit_result =
+        ur_modern_session_exit_to_frontend(g_session);
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_EXIT_FRONTEND ACCEPTANCE_TRIGGER surface=%d pause=%d exit=%d\n",
+            static_cast<int>(g_surface),
+            static_cast<int>(pause_result),
+            static_cast<int>(exit_result));
+        std::fflush(stderr);
+    }
+}
+
 void apply_focus_pause_policy() {
     if (!g_session || !restart_surface()) return;
     const bool focused = SDL_GetKeyboardFocus() != nullptr;
@@ -576,6 +605,8 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             ur_modern_session_retire_race_attempt(g_session);
         }
     }
+
+    maybe_run_exit_frontend_acceptance();
 
     if (g_exit_frontend_waiting_for_main &&
         g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7) {

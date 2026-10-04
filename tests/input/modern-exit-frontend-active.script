@@ -1,0 +1,57 @@
+# Deterministic first-race route derived from Dessyreqt's 2014 state-driven bot.
+# Addresses are WRAM offsets (7E:xxxx -> xxxx).
+#
+# Native observation: a menu-state byte can become visible before that menu
+# accepts a confirm edge. Give each newly reached menu 60 guest frames to settle
+# before its first A pulse. Do not poke guest state.
+
+# Main menu: Dessyreqt menu.mainMenu = 215 = 0xD7.
+until 009F == D7 3600
+wait 60
+dump main-menu-ready
+press a 2
+
+# One-player rider select: 60 = 0x3C.
+until 009F == 3C 1200
+wait 60
+dump rider-select-ready
+press a 2
+
+# Clean native route enters onePlayerTours1 = 0x6D.
+until 009F == 6D 1200
+wait 60
+dump tours-ready
+press a 2
+
+# Verified one-player track select: 0xF6.
+until 009F == F6 1200
+wait 60
+dump tracks-ready
+press a 2
+
+# Prospectively test the recovered bot's onePlayerNowPlaying = 0x16 label.
+# Preserve the first settled post-track state before requiring the prediction.
+until 009F != F6 1200
+wait 60
+dump after-track-confirm
+until 009F == 16 1200
+wait 60
+dump now-playing-ready
+press a 2
+
+# Recovered bot labels 7E:0313 as inRace, with 1 meaning active race.
+until 0313 == 01 1800
+wait 60
+dump race-entered
+
+# The env-gated native acceptance trigger requests Exit to Frontend from the
+# observed active-race surface. Follow the real guest lifecycle back to the
+# stock frontend, then prove it accepts ordinary guest input.
+until 009F == D7 1800
+wait 60
+dump exit-frontend-ready
+press a 2
+until 009F == 3C 1200
+wait 60
+dump exit-frontend-usable
+quit

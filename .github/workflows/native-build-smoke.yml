@@ -24,6 +24,7 @@ on:
       - "tests/input/reach-first-race.script"
       - "tests/input/modern-focus-pause.script"
       - "tests/input/modern-exit-frontend-results.script"
+      - "tests/input/modern-exit-frontend-active.script"
 
 concurrency:
   group: native-build-smoke-${{ github.ref }}
@@ -612,140 +613,58 @@ jobs:
 
           run_exit_case() {
             local NAME="$1"
-            local SCRIPT="$2"
-            local READY_DUMP="$3"
+            local MODE="$2"
+            local SCRIPT="$3"
             local LOG="$RUNNER_TEMP/exit-frontend-${NAME}.log"
             local DUMPS="$RUNNER_TEMP/exit-frontend-${NAME}-dumps"
             rm -rf "$DUMPS"
             mkdir -p "$DUMPS"
 
-            timeout 180s xvfb-run -a bash -c '
-              set -euo pipefail
-              EXE="$1"
-              ROM="$2"
-              SCRIPT="$3"
-              LOG="$4"
-              DUMPS="$5"
-              READY_DUMP="$6"
-              NAME="$7"
-
-              export SDL_AUDIODRIVER=dummy
-              export UR_PRODUCT_DIAGNOSTICS=1
-              export SNESRECOMP_DUMP_DIR="$DUMPS"
-
-              "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1 &
-              PID=$!
-              trap '\''kill "$PID" 2>/dev/null || true'\'' EXIT
-
-              for _ in $(seq 1 900); do
-                [ -s "$DUMPS/$READY_DUMP" ] && break
-                kill -0 "$PID" 2>/dev/null || {
-                  cat "$LOG"
-                  exit 1
-                }
-                sleep 0.1
-              done
-              [ -s "$DUMPS/$READY_DUMP" ]
-
-              WIN=""
-              for _ in $(seq 1 100); do
-                WIN=$(xdotool search --pid "$PID" 2>/dev/null | head -n1 || true)
-                [ -n "$WIN" ] && break
-                sleep 0.1
-              done
-              [ -n "$WIN" ]
-
-              xdotool windowfocus "$WIN"
-              xdotool key --window "$WIN" Escape
-              for _ in $(seq 1 100); do
-                grep -q "UR_PAUSE_STATE paused=" "$LOG" && break
-                sleep 0.05
-              done
-              grep -q "UR_PAUSE_STATE paused=" "$LOG"
-              PAUSED=$(grep "UR_PAUSE_STATE paused=" "$LOG" | tail -n1 | sed -E "s/.*paused=([01]).*/\1/")
-              if [ "$PAUSED" != "1" ]; then
-                xdotool key --window "$WIN" Escape
-                for _ in $(seq 1 100); do
-                  [ "$(grep "UR_PAUSE_STATE paused=" "$LOG" | tail -n1 | sed -E "s/.*paused=([01]).*/\1/")" = "1" ] && break
-                  sleep 0.05
-                done
-              fi
-              test "$(grep "UR_PAUSE_STATE paused=" "$LOG" | tail -n1 | sed -E "s/.*paused=([01]).*/\1/")" = "1"
-
-              # Reverse tail-row navigation is invariant to Restart visibility:
-              # Resume <- Quit Desktop <- Exit Frontend. Wait for the host to
-              # observe each semantic row before sending the next edge.
-              xdotool key --window "$WIN" Up
-              for _ in $(seq 1 100); do
-                grep -q "UR_PAUSE_SELECTION selected=5" "$LOG" && break
-                sleep 0.05
-              done
-              grep -q "UR_PAUSE_SELECTION selected=5" "$LOG"
-
-              xdotool key --window "$WIN" Up
-              for _ in $(seq 1 100); do
-                grep -q "UR_PAUSE_SELECTION selected=7" "$LOG" && break
-                sleep 0.05
-              done
-              grep -q "UR_PAUSE_SELECTION selected=7" "$LOG"
-              xdotool key --window "$WIN" Return
-
-              for _ in $(seq 1 300); do
-                grep -q "UR_EXIT_FRONTEND FRONTEND_READY menu=D7" "$LOG" && break
-                kill -0 "$PID" 2>/dev/null || {
-                  cat "$LOG"
-                  exit 1
-                }
-                sleep 0.1
-              done
-              grep -q "UR_EXIT_FRONTEND REQUESTED" "$LOG"
-              grep -q "UR_EXIT_FRONTEND FRONTEND_READY menu=D7" "$LOG"
-              kill -0 "$PID"
-
-              BEFORE=$(grep "UR_EXIT_FRONTEND REQUESTED" "$LOG" | tail -n1 | sed -E "s/.*sram=([0-9A-F]+).*/\\1/")
-              READY=$(grep "UR_EXIT_FRONTEND FRONTEND_READY" "$LOG" | tail -n1 | sed -E "s/.*sram=([0-9A-F]+).*/\\1/")
-              test -n "$BEFORE"
-              test "$BEFORE" = "$READY"
-
-              # P1 A is keyboard X in the framework defaults. Prove the reset
-              # frontend accepts real guest input and reaches rider select.
-              sleep 1.2
-              xdotool key --window "$WIN" x
-              for _ in $(seq 1 200); do
-                grep -q "UR_EXIT_FRONTEND FRONTEND_USABLE menu=3C" "$LOG" && break
-                kill -0 "$PID" 2>/dev/null || {
-                  cat "$LOG"
-                  exit 1
-                }
-                sleep 0.1
-              done
-              grep -q "UR_EXIT_FRONTEND FRONTEND_USABLE menu=3C" "$LOG"
-              USABLE=$(grep "UR_EXIT_FRONTEND FRONTEND_USABLE" "$LOG" | tail -n1 | sed -E "s/.*sram=([0-9A-F]+).*/\\1/")
-              test "$BEFORE" = "$USABLE"
-
-              if grep -q "UR_PAUSE_QUIT REQUESTED" "$LOG"; then
-                echo "::error::Exit to Frontend crossed into Quit Desktop"
-                cat "$LOG"
-                exit 1
-              fi
-
-              kill "$PID" 2>/dev/null || true
-              wait "$PID" 2>/dev/null || true
-              trap - EXIT
-              echo "UR_EXIT_FRONTEND_CASE=${NAME} preserved_sram=${BEFORE}"
-            ' _ "$EXE" "$ROM" "$SCRIPT" "$LOG" "$DUMPS" "$READY_DUMP" "$NAME"
+            set +e
+            SDL_AUDIODRIVER=dummy \
+            UR_PRODUCT_DIAGNOSTICS=1 \
+            UR_EXIT_FRONTEND_ACCEPTANCE="$MODE" \
+            SNESRECOMP_DUMP_DIR="$DUMPS" \
+            timeout 140s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+              >"$LOG" 2>&1
+            local STATUS=$?
+            set -e
 
             cat "$LOG"
+            test "$STATUS" -eq 0
+            grep -q "UR_EXIT_FRONTEND ACCEPTANCE_TRIGGER" "$LOG"
+            grep -q "UR_EXIT_FRONTEND REQUESTED" "$LOG"
+            grep -q "UR_EXIT_FRONTEND FRONTEND_READY menu=D7" "$LOG"
+            grep -q "UR_EXIT_FRONTEND FRONTEND_USABLE menu=3C" "$LOG"
+            test -s "$DUMPS/exit-frontend-ready.wram.bin"
+            test -s "$DUMPS/exit-frontend-usable.wram.bin"
+
+            local BEFORE
+            local READY
+            local USABLE
+            BEFORE=$(grep "UR_EXIT_FRONTEND REQUESTED" "$LOG" | tail -n1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')
+            READY=$(grep "UR_EXIT_FRONTEND FRONTEND_READY" "$LOG" | tail -n1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')
+            USABLE=$(grep "UR_EXIT_FRONTEND FRONTEND_USABLE" "$LOG" | tail -n1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')
+            test -n "$BEFORE"
+            test "$BEFORE" = "$READY"
+            test "$BEFORE" = "$USABLE"
+
+            if grep -q "UR_PAUSE_QUIT REQUESTED" "$LOG"; then
+              echo "::error::Exit to Frontend crossed into Quit Desktop"
+              exit 1
+            fi
+
+            echo "UR_EXIT_FRONTEND_CASE=${NAME} preserved_sram=${BEFORE}"
           }
 
           run_exit_case \
             active-race \
-            "$GITHUB_WORKSPACE/tests/input/modern-focus-pause.script" \
-            race-entered.wram.bin
+            active \
+            "$GITHUB_WORKSPACE/tests/input/modern-exit-frontend-active.script"
           run_exit_case \
             results-pause \
-            "$GITHUB_WORKSPACE/tests/input/modern-exit-frontend-results.script" \
-            race-results.wram.bin
+            results \
+            "$GITHUB_WORKSPACE/tests/input/modern-exit-frontend-results.script"
 
           echo "UR_EXIT_FRONTEND_RESULT=active_and_results_returned_to_usable_frontend_with_sram_preserved"
 

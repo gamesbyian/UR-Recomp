@@ -16,6 +16,7 @@
  static uint16 g_input_p1_mask, g_input_p2_mask;
  static uint64 g_input_p1_end, g_input_p2_end;
 +static int g_input_relative_enabled;
++static int g_input_relative_armed;
 +static uint64 g_input_relative_origin;
  
  static int LoadInputFile(const char *path) {
@@ -26,11 +27,12 @@
 +void snesrecomp_desktop_arm_relative_input(uint64_t post_frame_origin) {
 +  if (!g_input_relative_enabled) return;
 +  g_input_relative_origin = post_frame_origin;
++  g_input_relative_armed = 1;
 +}
 +
  static uint32 InputFileMask(uint64 frame) {
 +  if (g_input_relative_enabled) {
-+    if (frame < g_input_relative_origin) return 0;
++    if (!g_input_relative_armed || frame < g_input_relative_origin) return 0;
 +    frame -= g_input_relative_origin;
 +  }
    if (frame >= g_input_p1_end) g_input_p1_mask = 0;

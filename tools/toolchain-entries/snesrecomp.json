@@ -67,7 +67,7 @@
     },
     {
       "path": "tools/patches/snesrecomp-presentation-scale.patch",
-      "sha256": "97ce63da2ce5e4093410a3051762ad5803effc6698c7d2f7f9a425ff2e4858b5"
+      "sha256": "5607b09883ae8f0ccf3e3dd8d5c064bc5c7434de7c43ef1285b1477283848646"
     }
   ],
   "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive. UR-Recomp's permanent native build uses host SDL2, disables SDL3 source fetching, carries narrow project patches for exact neutral controller-stream replay and modern host integration, exposes the existing host-owned pause gate and live renderer VSync and desktop display-mode policy plus normalized active-monitor mode enumeration/application for modern product settings, adds an optional title-owned presentation-density callback for host-only HD composition, and exposes the framework's guest-frame APU timing lock needed by deterministic host-owned race restart.",

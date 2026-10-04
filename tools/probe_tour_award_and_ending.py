@@ -12,16 +12,16 @@ drives the stock paths decoded in R-2026-10-04-UI-22:
   restores the tiers and clears the flag.
 - ``83:8805`` awards the tour when its five ``0x1075`` flags are set. Bronze and
   silver go to ``83:AEF6``; reaching gold (or completing an already-gold tour)
-  dispatches per tour through ``83:88FD``. Hunter's entry ``83:AB9A`` is the
+  dispatches per tour through ``83:88FD`` (eight short vignettes, then TOUR_SELECT). Hunter's entry ``83:AB9A`` is the
   ending: newspaper pages chosen by ``0x10D0`` (normal: two pages; cheat: one
   CHEAT! page), then WHODUNNIT credits with ``$9F`` = 0x5B, then the title.
 
 Diagnostic pokes (labelled in the report): the award runs replay the Dessyreqt movie
 up to its first Dragster win and seed the other four tour flags (and, for gold, the
 medal cell) in battery SRAM mid-race, because no committed input wins five tracks.
-The Hunter runs also pin the track index ``$CE`` = 44 and ``$D0`` = 8 over the
-result window and set the stored track bytes ``0x074A``/``0x067E``, which is how the
-Dragster win is booked as Hunter track 4. The cheat runs use input only.
+Runs for other tours also pin the track index ``$CE`` = 5*row + 4 and ``$D0`` = row
+over the result window and set the stored track bytes ``0x074A``/``0x067E``, which is
+how the Dragster win is booked as the last track of that tour. The cheat runs use input only.
 
 Needs snesref built with tools/patches/snesrecomp-dual-controller-input.patch and
 then tools/patches/snesrecomp-sram-poke.patch (adds the ``spoke`` script command).
@@ -46,32 +46,42 @@ CHEAT_AT = 300          # frame inside the 110-frame title splash
 WIN_CUT = 2950          # movie input is dropped after its first Dragster win
 SEED_AT = 2000          # mid-race, after rider select wiped the flags
 TIERS, TIER_BACKUP, CHEAT_FLAG = 0x10D3, 0x10E3, 0x10D0
-CRAWLER_CELL, HUNTER_CELL = 0x069C, 0x071C   # rider 0 (MIKE)
+CRAWLER_CELL = 0x069C   # rider 0 (MIKE); tour row r is +16*r
 FLAGS = 0x1075
 ENDING_MENU = 0x5B
 
+TOURS = ("crawler", "jumper", "shuffler", "bounder", "walker", "runner", "hopper", "sprinter", "hunter")
+TOUR_SELECT_MENU = 0x6D
+SCENE_FRAME = WIN_CUT + 252     # first dump after the result is dismissed
+
+
+def scenario(row: int, medal_seed: int, cheat_flag: bool = False) -> dict:
+    return {"row": row, "medal_seed": medal_seed, "cell": CRAWLER_CELL + 16 * row, "cheat_flag": cheat_flag}
+
+
 AWARD_SCENARIOS = {
-    "bronze": {"medal_seed": 0, "cell": CRAWLER_CELL, "hunter": False, "cheat_flag": False},
-    "gold": {"medal_seed": 2, "cell": CRAWLER_CELL, "hunter": False, "cheat_flag": False},
-    "ending": {"medal_seed": 2, "cell": HUNTER_CELL, "hunter": True, "cheat_flag": False},
-    "ending_cheat": {"medal_seed": 2, "cell": HUNTER_CELL, "hunter": True, "cheat_flag": True},
+    "bronze": scenario(0, 0),
+    **{f"gold_{name}": scenario(row, 2) for row, name in enumerate(TOURS[:8])},
+    "ending": scenario(8, 2),
+    "ending_cheat": scenario(8, 2, cheat_flag=True),
 }
 
 
 def award_script(cfg: dict) -> str:
-    row = 40 if cfg["hunter"] else 0
+    row = cfg["row"]
+    track = 5 * row + 4
+    # Row 0: the movie's real Dragster win sets track 0, so seed tracks 1-4.
+    # Other rows: seed tracks 0-3 and book the win as track 4 of that tour.
     lines = [f"wait {SEED_AT}",
-             f"spoke {FLAGS + row + 1:04X} 01010101" if not cfg["hunter"] else f"spoke {FLAGS + row:04X} 01010101",
+             f"spoke {FLAGS + 5 * row + (1 if row == 0 else 0):04X} 01010101",
              f"spoke {cfg['cell']:04X} {cfg['medal_seed']:02X}"]
-    if cfg["hunter"]:
-        lines += ["spoke 074A 2C", "spoke 067E 2C"]
+    if row:
+        lines += [f"spoke 074A {track:02X}", f"spoke 067E {track:02X}"]
     if cfg["cheat_flag"]:
         lines.append(f"spoke {CHEAT_FLAG:04X} 01")
     lines.append(f"wait {WIN_CUT - 200 - SEED_AT}")
-    if cfg["hunter"]:
-        lines.append("pokefor CE 2C0008 200")   # $CE = 44, $CF = 0, $D0 = 8 over the result window
-    else:
-        lines.append("wait 200")
+    # $CE = track, $CF = 0, $D0 = tour row over the result window.
+    lines.append(f"pokefor CE {track:02X}00{row:02X} 200" if row else "wait 200")
     lines += [f"dump w-{WIN_CUT:05d}", "wait 150", "press a 2"]
     frame = WIN_CUT + 152
     while frame < WIN_CUT + 3000:
@@ -93,8 +103,8 @@ def sample(work: Path, tag: str) -> dict:
     w = (work / f"{tag}.wram.bin").read_bytes()
     fb = work / f"{tag}.fb.bmp"
     return {"menu": w[0x9F], "tiers": list(s[TIERS:TIERS + 16]), "tier_backup": list(s[TIER_BACKUP:TIER_BACKUP + 16]),
-            "cheat_flag": s[CHEAT_FLAG], "crawler": s[CRAWLER_CELL], "hunter": s[HUNTER_CELL],
-            "crawler_flags": list(s[FLAGS:FLAGS + 5]), "hunter_flags": list(s[FLAGS + 40:FLAGS + 45]),
+            "cheat_flag": s[CHEAT_FLAG], "medals": [s[CRAWLER_CELL + 16 * r] for r in range(9)],
+            "tour_flags": [list(s[FLAGS + 5 * r:FLAGS + 5 * r + 5]) for r in range(9)],
             "fb_sha1": hashlib.sha1(fb.read_bytes()).hexdigest()[:12] if fb.exists() else None}
 
 
@@ -109,17 +119,20 @@ def evaluate(obs: dict) -> dict:
     for name, cfg in AWARD_SCENARIOS.items():
         timeline = obs[name]
         last = timeline[max(timeline)]
-        key = "hunter" if cfg["hunter"] else "crawler"
-        flags = "hunter_flags" if cfg["hunter"] else "crawler_flags"
-        checks[f"{name}_medal_incremented"] = last[key] == cfg["medal_seed"] + 1
-        checks[f"{name}_tour_flags_cleared"] = last[flags] == [0] * 5
+        row = cfg["row"]
+        checks[f"{name}_medal_incremented"] = last["medals"][row] == cfg["medal_seed"] + 1
+        checks[f"{name}_tour_flags_cleared"] = last["tour_flags"][row] == [0] * 5
         menus = [timeline[f]["menu"] for f in sorted(timeline)]
-        if cfg["hunter"]:
+        if row == 8:
             checks[f"{name}_reaches_ending_menu"] = ENDING_MENU in menus
         else:
             checks[f"{name}_no_ending"] = ENDING_MENU not in menus
-    first = lambda name: obs[name][min(f for f in obs[name] if f > WIN_CUT)]["fb_sha1"]
-    checks["cheat_flag_changes_ending_page"] = first("ending") != first("ending_cheat")
+        if name.startswith("gold_"):
+            checks[f"{name}_returns_to_tour_select"] = TOUR_SELECT_MENU in menus
+    scene = lambda name: obs[name][SCENE_FRAME]["fb_sha1"]
+    golds = [scene(f"gold_{n}") for n in TOURS[:8]]
+    checks["gold_scenes_differ_per_tour"] = len(set(golds)) == len(golds)
+    checks["cheat_flag_changes_ending_page"] = scene("ending") != scene("ending_cheat")
     return checks
 
 
@@ -187,7 +200,7 @@ def main() -> int:
             obs[name] = {int(p.name[2:7]): sample(work, p.name[:-9]) for p in work.glob("w-*.sram.bin")}
     checks = evaluate(obs)
     summary = {name: [{"frame": f, "menu": hex(v["menu"]), "cheat_flag": v["cheat_flag"],
-                       "medal": v["hunter"] if AWARD_SCENARIOS[name]["hunter"] else v["crawler"]}
+                       "medal": v["medals"][AWARD_SCENARIOS[name]["row"]]}
                       for f, v in sorted(obs[name].items())
                       if f == min(obs[name]) or v["menu"] != obs[name][max(k for k in obs[name] if k < f)]["menu"]]
                for name in AWARD_SCENARIOS}
@@ -199,6 +212,7 @@ def main() -> int:
         "cheat": {"sequence": list(CHEAT), "window": "UNIRACERS title splash (80:F549, 110 frames)",
                   "effect": "every rider tier 3 for this power-on; tiers restored and 0x10D0 cleared on the next pass through the splash",
                   "observed": {k: obs[k] for k in ("cheat", "cheat_control", "cheat_reboot")}},
+        "gold_scenes": "reaching gold dispatches 83:88FD by tour row: Crawler 83:C49C, Jumper 83:BB80, Shuffler 83:B1EB, Bounder 83:B7D2, Walker 83:B506, Runner 83:C715, Hopper 83:C11E, Sprinter 83:BED0 (short side-on vignette with a tour-specific prop, then TOUR_SELECT), Hunter 83:AB9A (ending)",
         "ending": {"trigger": "Hunter medal reaching gold (83:88FD entry 8 -> 83:AB9A)",
                    "pages": {"normal": "DAILY NEWS 'AMAZING' then NATIONAL GOSSIP 'SPEEDKING'", "cheat": "DAILY NEWS 'CHEAT!'"},
                    "credits": "WHODUNNIT developer portraits, $9F = 0x5B, then title 0x84",

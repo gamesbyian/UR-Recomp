@@ -55,7 +55,7 @@ record the exact mapping rather than assuming they all share one enumeration.
 
 ## Tour awards, ending and the splash cheat
 
-**Confirmed (R-2026-10-04-UI-22).** When the fifth tour flag lands, the medal cell is incremented. Bronze and silver play the generic medal scene (`83:AEF6`). Reaching gold dispatches a per-tour reward scene (`83:88FD`). Hunter's scene is the ending: two newspaper front pages, WHODUNNIT developer credits (`$9F` = 0x5B), then the title. The title-splash cheat **Up, Left, Up, R, A** (`80:F549`) sets every rider to tier 3 for the current power-on. It backs the real tiers up to `0x10E3`, sets `0x10D0` = 1 (which swaps the ending's front page for "CHEAT!"), and is undone on the next boot. (`analysis/generated/tour-award-ending-probe.json`.)
+**Confirmed (R-2026-10-04-UI-22).** When the fifth tour flag lands, the medal cell is incremented. Bronze and silver play the generic medal scene (`83:AEF6`). Reaching gold dispatches one of eight short per-tour vignettes (`83:88FD`), each a side-on track scene with a tour-specific prop that returns to TOUR_SELECT. Hunter's scene is the ending: two newspaper front pages, WHODUNNIT developer credits (`$9F` = 0x5B), then the title. The title-splash cheat **Up, Left, Up, R, A** (`80:F549`) sets every rider to tier 3 for the current power-on. It backs the real tiers up to `0x10E3`, sets `0x10D0` = 1 (which swaps the ending's front page for "CHEAT!"), and is undone on the next boot. (`analysis/generated/tour-award-ending-probe.json`.)
 
 ## Track records
 

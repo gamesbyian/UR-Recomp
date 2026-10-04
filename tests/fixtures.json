@@ -1099,7 +1099,7 @@
         "77:1075 tour flags"
       ],
       "status": "validated",
-      "validation": "analysis/generated/tour-award-ending-probe.json (17 checks). Needs snesref with tools/patches/snesrecomp-dual-controller-input.patch then tools/patches/snesrecomp-sram-poke.patch."
+      "validation": "analysis/generated/tour-award-ending-probe.json (47 checks). Needs snesref with tools/patches/snesrecomp-dual-controller-input.patch then tools/patches/snesrecomp-sram-poke.patch."
     }
   ]
 }

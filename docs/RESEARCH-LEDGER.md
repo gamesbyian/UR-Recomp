@@ -2168,3 +2168,5 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 **Consequences:** the policy feature reverts to the `unfinished-tour-session-loss` redesign candidate. PROJECT-PLAN, UI-STATE-MAP, WORK-QUEUE, the knowledge page and SYMBOLS are corrected. `tools/probe_tour_progress_persistence.py` remains a valid regression for stat persistence only.
 
 **Next discriminator:** find the in-session tour state (which tracks are complete) in WRAM. Win one Crawler track, reload, win a second, and check whether the tour medal is awarded after five wins spanning a power cycle.
+
+**Follow-up (bounded):** `0x10A9` is the other per-race SRAM counter. It stays 0 across the two losses and gains 1 per movie win (1/2/3/4). Seeding it to 4 in a formatted save and replaying the movie's first winning Dragster race takes it to 5, but awards no Crawler medal (`0x069C` stays 0, tier 0). The game proceeds to NOW PLAYING for the next track. `0x10A9` is therefore a persisted wins counter, not the tour-completion gate. Tour completion depends on other, plausibly in-session, state, so whether an unfinished tour survives power-off remains open.

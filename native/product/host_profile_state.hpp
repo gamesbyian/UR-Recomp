@@ -29,7 +29,6 @@ struct HostProfileState {
 
 struct HostProfileDecodeResult {
     std::optional<HostProfileState> state;
-    bool migrated = false;
     std::string error;
 
     explicit operator bool() const noexcept { return state.has_value(); }
@@ -42,6 +41,8 @@ enum class HostProfileTransferStatus : std::uint8_t {
     MissingSnapshot = 3,
 };
 
+std::optional<HostProfileState> make_default_host_profile_state(
+    std::string_view profile_id);
 std::string encode_host_profile_state(const HostProfileState& state);
 HostProfileDecodeResult decode_host_profile_state(std::string_view encoded);
 

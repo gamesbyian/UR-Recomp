@@ -1,6 +1,6 @@
 # UR-Recomp Production Diary
 
-**Period:** 2026-09-28 through 2026-10-02  
+**Period:** 2026-09-28 through 2026-10-04  
 **Project:** UR-Recomp  
 **Repository:** `gamesbyian/UR-Recomp`
 
@@ -570,3 +570,245 @@ The harder remaining problem is deciding where exact reproduction ends and inten
 That is a much better problem to have.
 
 Late-session work strengthened that conclusion. The project now has working examples of the intended layered architecture: authoritative guest simulation underneath host-owned Widescreen materialization, semantic HD substitution, modern session controls and display policy. The remaining difficulty is increasingly one of coverage, composition and productization rather than proving that the separation itself is possible.
+
+---
+
+## 2026-10-03 — The architecture starts behaving like a product
+
+October 3 was the day several long-running research lanes stopped being separate demonstrations and began fitting together as parts of one modern game.
+
+The previous day had already proved the central ownership model: authoritative SNES-derived simulation underneath host-owned presentation and convenience systems. October 3 tested whether that model could survive ordinary product concerns: graphics settings, output geometry, menu structure, real authored art, additional platforms, and CI that had grown large enough to become an engineering problem of its own.
+
+### Widescreen capacity stops being the hard part
+
+The Widescreen lane began the day with host materialization already accepted beyond the original +8 guest lane. PR #283 generalized that materializer through +64 while keeping the same architectural split: +8 remained the single guest-owned secondary descriptor path, while every deeper presentation column lived in host-owned state and came from the recovered live course/resource model.
+
+That changed the question from whether the game could prepare enough scenery to what the widened picture should actually be.
+
+PRs #300–#302 made the display decision mechanical rather than aesthetic. The project gained exact-rational derivation for target margins, then built a review surface over canonical 256×224 captures. Official-manual screenshots were measured as title-specific historical evidence rather than relying only on emulator convention.
+
+Two conclusions followed. Raw 8:7 pixels were not a good model of the intended historical display shape; the evidence supported the 4:3 family and therefore 7:6 horizontal correction for a 256-wide SNES image. Separately, the tempting centered 216-line crop was rejected as logical geometry because canonical menu, transition and race frames contained real authored information in the eight lines it would remove.
+
+The resulting Authentic logical transform became full-height 256×224 at 7:6 PAR. A true 16:9 field therefore requires 42⅔ source pixels of extra width on each side. The practical symmetric integer viewport became 342×224, +43 pixels per side, backed by +48 pixels of strip capacity.
+
+PR #309 then pushed the provider to +72, proving that ordinary-race preparation capacity had ceased to be the blocker. Subsequent work bound the accepted policy into the live host: the provider and viewport could now turn recovered extra world data into an actual wider output while fixed scenes remained conservative.
+
+By PR #336, scene-aware output composition was explicit. Ordinary 1P and ordinary 2P race scenes could request the widened 342×224 view; title, frontend, pre-race and results surfaces failed closed to centered 256×224 unless independently justified.
+
+The architecture was no longer stretch-the-SNES-image. It was a scene-classified, host-owned composition system with a defined display transform, a separate logical-view axis, and stock 4:3 preserved as a regression mode.
+
+### VS proves that split screen is genuinely different
+
+The remaining multiplayer case refused to be hand-waved into the ordinary path.
+
+PR #340 showed that widening the host canvas in VS did not invoke the ordinary-race preparation hook. Importantly, racer state, race progress and tracked camera/view state still matched stock. The failure was in presentation preparation, not gameplay semantics.
+
+PR #342 then found the separate split-screen schedulers. P1 and P2 each used their own horizontal preparation regions, each scheduling an 8-word strip, before rejoining the shared descriptor builder and NMI transport.
+
+That meant VS did not need a second rendering system. It needed a separate producer feeding the already-understood transport.
+
+PR #345 proved the first +8 adjacent strip independently for both viewports. PRs #349, #354 and #359 then walked the same live-course model through +16, +24 and +32 without inventing new guest descriptor lanes. The proof kept the same discipline used elsewhere: exact calibration against accepted +8 events, protected state equality, and no earlier gameplay activation.
+
+The split-screen lane was still incomplete at the end of the day, but it had moved from unknown special case to the same host-owned materialization idea with a different stock preparation seam.
+
+### Racer HD stops being a technical demo and starts becoming art direction
+
+The Racer HD lane crossed a similarly important threshold.
+
+PR #293 closed a continuous fully registered temporal window from frames 1205–1220. That gave the project a stopping rule: no more generic adjacency archaeology just because another neighboring state could be found.
+
+PR #297 converted that closed semantic window into an approval dossier. Each observed representation could now be reviewed with canonical ROM-derived pixels, exact composition guards, verified pivot/contact anchors and real temporal neighbors. This turned the pipeline from a reverse-engineering instrument into an art-production instrument.
+
+PRs #298, #299 and #303 then answered the first visual-language questions. Developer history indicated that the tiny original sprites had been rendered down from much more detailed 3D source artwork. The faithful Remastered target therefore reconstructs coherent high-resolution geometry rather than preserving SNES pixel stair-stepping as if it were intended shape language.
+
+The accepted first-family baseline became smooth source-model-like geometry, object-local baked lighting, preserved dark silhouette/value hierarchy, dark rubber tire, dark saddle material, glossy colored frame metal, bright neutral hardware, no invented cast shadow, restrained highlights, and micro-detail only when it survives gameplay motion and split-screen scale.
+
+The key discipline was that none of those art decisions could alter semantic pose, stock envelope, pivot, contact point or guest-authored cadence.
+
+The first actual authored Remastered candidate failed its initial motion review for exactly the right reason: although plausible in isolation, its mass drifted too far from the stock silhouette in motion. The next tuning pass restored the stock envelope and contact anchor while keeping the higher-resolution material language.
+
+From there the lane became a sequence rather than a specimen. Adjacent P1 poses were authored or safely reused, and the workflow learned an important distinction: exact semantic registrations do not imply unique art assets. When two guarded states produced byte-identical stock rasters, they retained separate semantic guards but shared one authored asset.
+
+P2 followed through PRs #343, #346, #348, #352 and #353. PR #355 finally promoted the whole 1205–1220 P1/P2 strip into a temporal-coherence gate. Static stock edges had to stay static in the authored sequence; dynamic edges had to remain dynamic; stock contact deltas had to be preserved; and the magnitude of changed pixels had to remain within a measured band.
+
+At that point the first family was no longer just replaceable. It was reviewable as motion.
+
+### True high-density presentation becomes real
+
+The next renderer step separated guest geometry from host presentation density. Guest state still described the same 256×224 world and the same 64×64 racer object. Remastered presentation could operate on a host-owned 1024×896 surface, retaining actual sub-logical-pixel detail rather than using high-resolution art as an expensive nearest-neighbor source.
+
+This produced a clean three-layer model: guest simulation and semantic animation selection; logical presentation geometry and placement; and host presentation density.
+
+The first shipping-art review was deliberately unsparing. All ten unique visual poses in the closed strip were technically valid, but their saddles, wheel/hardware treatment and internal structure still looked too schematic at true density. The project had reached the point where remaining problems were recognizable art problems rather than reverse-engineering ambiguity.
+
+### The modern pause menu becomes a small frontend of its own
+
+The modern-product lane expanded quickly. Focus Pause became a selectable menu item, a Controls panel was added, Run Data became a read-only host view, and confirmed Exit/Quit actions were separated from guest state.
+
+Display configuration then arrived one axis at a time: desktop display mode, VSync, presentation FPS, output resolution, and later internal render scale.
+
+Presentation FPS was especially important because it made a long-standing timing policy executable. A 120 Hz presentation setting produced multiple host presents across the same authoritative guest timeline. Native acceptance proved that higher presentation cadence was re-presentation, not faster physics, AI, RNG or timers.
+
+Output Resolution received the same layered treatment. Monitor capabilities, user-facing resolution choices, persistence, application policy and stale-monitor recovery were developed as separate contracts before being exposed together. Windowed and Borderless modes remained resolution-inert; explicit mode application belonged only to true exclusive Fullscreen.
+
+The host-state schema reached v6, but the project deliberately stopped treating every new setting as a reason to churn the schema version. Later reconciliation made v6 additive: a small required administrative core plus known optional fields with typed defaults, while unknown, malformed or duplicated fields still fail closed.
+
+### Frontend modernization gets policy before redesign
+
+The original UI was classified feature by feature into presentation artifacts, gameplay mechanics and administrative/hardware-era systems. The resulting policy preserves recognizable presentation and mechanics by default while allowing save-slot bureaucracy, destructive controller chords, repeated administration and other cartridge-era constraints to be redesigned deliberately.
+
+This was a useful brake on a common remake failure mode: replacing a distinctive old frontend with a generic settings shell simply because modern UI code is easier to write.
+
+### Platform targets become engineering constraints, not wish lists
+
+Windows x64 remained the primary consumer/reference package. Modern macOS, WebAssembly/browser, Switch homebrew, a best-effort High Sierra path and a personal-use PS5 host were all framed as host implementations around the same authoritative game core.
+
+Switch reconnaissance stayed within public devkitPro/libnx/SDL2 tooling. The Web plan centered on Emscripten/WebAssembly with browser-specific persistence, audio, input and fullscreen behavior kept outside simulation. Console targets remained explicitly non-commercial and prohibited proprietary SDK material from entering the repository.
+
+The immediate benefit was not that five ports suddenly existed. It was architectural pressure: new product seams now had to avoid gratuitous desktop-only assumptions when a similarly small portable interface was available.
+
+### CI becomes a performance problem
+
+By late October 3, the test laboratory itself had become expensive. Native build/boot smoke and UI evidence were taking long enough that they were explicitly called out as a bottleneck.
+
+The response was not to weaken tests. The workflow was split into a fast build/boot gate and a separate heavier UI-evidence lane. Independent capture cases were sharded while expensive shared compilation stayed shared.
+
+This distinction became the template for later optimization: parallelize independent runtime cases, not the expensive build that every case needs.
+
+---
+
+## 2026-10-04 — Reconciliation day: finish the seams, rescue the branches, tame the CI
+
+October 4 began with many of the right things existing in the repository, but not all of them existing together on current main.
+
+This was the predictable cost of parallel agent velocity. Widescreen graduation, additive host-state work, Internal Render Scale, Racer HD refinements, platform experiments and CI fixes had advanced on partially overlapping branches. The work of the day was both technical and operational: reconcile accepted ideas without regressing one another, repair the workflows exposed by those merges, and keep pushing the remaining product seams while the repository was already open.
+
+### SDL3 becomes the canonical desktop backend
+
+One early architectural cleanup settled a question that had surfaced in agent commentary: the project was still using host SDL2 in places even though the pinned framework’s modern path was SDL3.
+
+PR #380 made SDL3 the canonical desktop backend for Windows x64, modern macOS and Linux CI. SDL2 remained only where it served a genuine compatibility/platform purpose, such as the reference emulator, Switch homebrew or the legacy High Sierra lane.
+
+The project vendored the exact SDL3 source release matching the framework pin so native builds remained offline and reproducible. Workflows that had silently relied on network fetches were converted to explicit repository-owned staging.
+
+A new Windows x64 smoke build then proved the intended consumer target could compile and boot through the same modernized framework. ClangCL was used because the framework’s alignment attributes were not accepted cleanly by the default MSVC path.
+
+### The historical replay workflow finally gets its missing runtime
+
+The SDL3 sweep exposed an embarrassing but useful fact: one historical native replay workflow had effectively never succeeded. Across roughly 115 runs, its Lua client kept trying to connect to a bridge that the generated desktop host never started.
+
+PR #402 wired the existing Lua bridge into the host lifecycle. The first reconciliation still patched the wrong framework checkout: the project generator materialized its own pinned SNESRecomp tree, so changing an outer checkout did not affect the code actually compiled.
+
+PR #407 corrected that final ownership mistake by applying and verifying the Lua bridge patch against the generated project’s framework checkout.
+
+The lesson was broader than Lua. In a generated-code project, the repository containing a patch is not enough. The build must prove that the exact materialized dependency being compiled actually received it.
+
+### Widescreen reaches product graduation
+
+The ordinary-race Widescreen lane had already solved capacity, geometry and scene policy separately. October 4 was about making them one real user-facing path.
+
+The accepted +48 ordinary-race materializer, scene-aware presenter and persisted Modern Options VIEW setting were reconciled into the ordinary product-generation path. Original remained the conservative default. Authentic mode remained inert. A diagnostic environment selector was retained for deterministic tests, but user-facing behavior no longer depended on it.
+
+The result is the first end-to-end Widescreen product path: persisted user choice, scene classification, live course-backed extra strips, dynamic native-wide presentation where supported, fixed scenes remaining stock-centered, output composition using the accepted 342×224 full-height 7:6 geometry, and unchanged authoritative simulation.
+
+VS continued independently. The accepted capacity advanced through +40 and then the final +48 probe. This was the last important backing-width question for universal race coverage, not a reopening of display geometry or ordinary-race architecture.
+
+### Internal Render Scale joins the stable settings envelope
+
+Host-state reconciliation produced another architectural improvement.
+
+Instead of creating schema v7 merely because Widescreen and Internal Render Scale arrived after Output Resolution, v6 was made explicitly additive. Old versions retained strict historical codecs. Current v6 required its small administrative core and allowed recognized optional settings to appear together in any combination, with typed defaults for missing known fields.
+
+Internal Render Scale then entered that same envelope as 1×/2×/3×/4×, defaulting to 4× for the modern HD path.
+
+On the Racer HD side, presentation density became runtime-variable while the authored 4× source remained authoritative. Lower densities center-sampled from the same source; 4× mapped bit-for-bit to the authored pixels. Guest geometry, semantic selection and OAM placement did not change.
+
+This joined two earlier principles cleanly: host settings should evolve without guest-state pollution, and presentation resolution should remain independent of simulation and logical geometry.
+
+### Racer HD enters real refinement rather than coverage expansion
+
+By October 4 the first motion strip was semantically saturated, temporally gated and presented at true density. The next work was therefore exactly what the plan had been trying to reach: improve the art rather than excavate more state.
+
+Mismatch maps showed that different poses failed for different reasons. For P2 0542/0543, the weak area was missing internal structure, so refinement added restrained frame bracing and hub-centered spoke detail while preserving stock outer bounds and contact anchors.
+
+For P1 057D/057E, extra structure made things worse. Their dominant error was excessive authored saddle mass, so the successful refinement was subtractive: shift and narrow the saddle rather than add detail. The 057F and P2 0541 transition poses received the same evidence-driven saddle reshaping.
+
+This is the desired production loop. The toolchain can now ask where an authored high-resolution pose disagrees with the mechanically recovered stock pose and support a local visual decision without reopening semantic identity, animation timing or renderer ownership.
+
+Technical acceptance and artistic approval remained separate. The refined bytes still required review before any shipping-art claim.
+
+### Modern product settings become coherent rather than additive clutter
+
+Display Mode, VSync, Presentation FPS and Output Resolution all became durably persisted, with Output Resolution tied to the real active-monitor catalog and applied only in exclusive Fullscreen. Unsupported or stale saved modes fail safely back to effective Native behavior rather than leaving the host in a broken state.
+
+Internal Render Scale was persisted before the UI bridge was considered ready. This policy/persistence-first, UI-when-ownership-is-concrete pattern had now been used often enough to become a project habit.
+
+Exit to Frontend also matured through its own lifecycle acceptance, separate from Quit Desktop. Controller navigation was rescued from an orphaned branch in PR #411 and reconciled against the semantic host-navigation vocabulary so keyboard and controller did not become two menu systems.
+
+### CI reconciliation reveals the cost of fast parallel work
+
+The repository then hit a wall of red runs.
+
+Some failures were real regressions from stacked reconciliation. Others were stale assumptions in workflows, bad paths, missing reference-only SDL2 dependencies, or patch-registration mistakes.
+
+One especially destructive issue was a malformed dynamic-Widescreen framework patch plus a stale registered SHA-256. Because so many native workflows stage the same framework patch set, one corrupt diff could make the entire CI surface look catastrophically broken. PRs #399–#401 repaired the hunk metadata and canonical digest.
+
+The response broadened into a systematic workflow audit.
+
+PR #406 removed redundant push-to-main triggers from pure validation workflows. PR #408 added automatic guardrails requiring path-scoped main pushes and concurrency. PR #410 extended that rule to pull-request workflows too.
+
+The resulting policy became: validate changes on PR; do not automatically run the same expensive validation again merely because that PR merged to main; retain PR+main behavior only for workflows that genuinely write or preserve historical evidence on main; path-scope every automatic workflow; and define concurrency so stale runs cancel.
+
+Runtime-heavy workflows were then attacked with the same shared-build/sharded-run idea used on October 3. PR #409 parallelized Widescreen depth and liveness probes against one compiled executable. PR #410 did the same for independent Exit-to-Frontend and rotation cases.
+
+The goal was no longer merely green CI. It was fast enough CI that agents could keep using it as a laboratory without spending most of their time waiting for the laboratory to reboot.
+
+### Branch rescue becomes part of ordinary operations
+
+The user repeatedly asked for abandoned or un-PR’d work to be checked rather than assuming the PR list represented the real state of the project.
+
+That instinct was justified. Several useful lanes existed only on recent branches after sessions stalled. The day included explicit rescue/rebase/reconciliation work for Widescreen product graduation, Racer HD refinement, Internal Render Scale and controller navigation.
+
+By the end of the reconciliation sweep, open PRs were back to zero.
+
+This operational pattern is now mature enough to state plainly: in an AI-agent repository, branch archaeology is part of source-control hygiene. No open PR does not necessarily mean no unfinished work, and an old branch does not necessarily mean merge it. The useful question is whether a recent branch contains unique accepted work that main still lacks.
+
+### The project diary itself becomes part of the evidence system
+
+The conversation archive was also brought current.
+
+Earlier project chats had already been captured as transcript-style notes rather than falsely reconstructed verbatim logs. October 2–4 had outpaced that archive, so twenty-five additional conversation summaries were added to prod_diary, covering Widescreen, Racer HD, modern-product settings, platform/display policy, CI reconciliation and the latest agent-planning work.
+
+This matters because PR descriptions answer what changed, while conversations often preserve why that became the next thing to try. The production diary exists to connect those two scales.
+
+---
+
+## Production status at 2026-10-04
+
+The project is now in an unusual middle state: the difficult architectural questions are much closer to solved than the visible game is to finished.
+
+A rough whole-project estimate at this point is about 52% complete, but that single number hides a very uneven distribution.
+
+The reverse-engineering and architecture foundation is on the order of 80% mature for the needs of the planned product. Stock-native execution, deterministic fixtures, semantic fidelity tooling, progression persistence, course presentation data, camera/streaming boundaries and the first presentation family all have working decision-quality evidence.
+
+Widescreen is roughly 85% complete as an architecture and first product feature. Ordinary 1P/2P now have an end-to-end user-selectable path with accepted geometry and host-owned course materialization. VS is the remaining major race-coverage seam, with its separate preparation path recovered and capacity progressively validated toward the same +48 backing target.
+
+HD Presentation is perhaps 30% complete as a finished visual product, despite the underlying presentation architecture being much further along. The first racer family has exact semantic selection, true-density host rendering, reusable pose equivalence, temporal gating and a real refinement pipeline. What remains is large in content terms: final shipping-quality racer art, broader racer animation families when needed, track/background presentation, UI/fonts/effects, and eventually coherent Remastered/Reimagined treatment across a full route.
+
+The modern product layer is also around 30–35% complete. Pause/Resume/Retry, Controls, Run Data, Exit/Quit actions and a meaningful stack of persisted display settings are real. Still open are the larger product systems: independent profiles, autosave/resumable progression, racer identity/customization, local run records and replay, personal-best/previous-run ghosts, timing/splits/deltas, practice/free play, fast navigation, accessibility, local multiplayer flow, localization readiness and deliberate frontend/progression redesign.
+
+Platform work is deliberately asymmetric. Windows x64 has a real native smoke path and is the reference consumer target. macOS, Web, Switch homebrew and PS5 remain host-feasibility and productization work rather than separate game implementations.
+
+Custom courses/editor work remains downstream. The course model is already strong enough to support Widescreen presentation and future neutral modeling, but editor-complete semantics and authoring UX are not launch-ready work yet.
+
+The biggest shift since September 28 is therefore not percentage complete. It is risk composition.
+
+At the start, the central risk was epistemic: perhaps the compiled SNES game would not yield enough structure to preserve its behavior faithfully.
+
+By October 4, that risk has fallen dramatically.
+
+The dominant remaining risks are production risks: make enough high-quality art; finish enough modern UX; extend proven architecture across all meaningful game states; package it across desired hosts; and keep the evidence and CI machinery fast enough that parallel development remains an advantage rather than becoming its own bottleneck.
+
+Those are large jobs, but they are ordinary engineering and content-production jobs.
+
+UR-Recomp has crossed from can this game be recovered into how much of the recovered machine can be turned into a polished modern product without losing the thing that was worth recovering?

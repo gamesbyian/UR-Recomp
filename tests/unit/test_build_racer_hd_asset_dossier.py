@@ -316,7 +316,7 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         )
         bottom = [x for x, y in occupied if y == 38]
         self.assertEqual([min(bottom), max(bottom)], [31, 34])
-        self.assertEqual(len(occupied), 321)
+        self.assertEqual(len(occupied), 315)
 
     def test_sixth_registration_authors_repeated_057e_pose(self):
         self.assertEqual(

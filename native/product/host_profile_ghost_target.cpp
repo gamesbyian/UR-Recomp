@@ -2,6 +2,8 @@
 
 #include "host_profile_store.hpp"
 
+#include <utility>
+
 namespace ur::product {
 
 HostProfileGhostTargetUpdateStatus update_host_profile_ghost_target(

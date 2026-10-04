@@ -37,6 +37,8 @@ extern "C" {
 #include <string>
 #include <vector>
 
+extern "C" void snesrecomp_desktop_arm_relative_input(uint64_t post_frame_origin);
+
 namespace {
 
 UrModernSession* g_session;

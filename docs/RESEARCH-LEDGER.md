@@ -2328,3 +2328,31 @@ The VS result shows the same signature during its result build (`SNESRECOMP_TRAP
   - the checkerboard palette cycle (8 CGRAM bytes; about 10–16k pixels);
   - the background scroll (`ui-record-high-back`).
 - **Conclusion:** checkpoint frames differ by a small animation phase between the engines, consistent with the known host-frame anchoring offset. No content or state divergence was found. This stops here: further frame-alignment work would not change a fidelity verdict, unless a future check needs exact frontend frame identity.
+
+### R-2026-10-04-UI-27 — 2014-movie boot drift is cumulative CPU-time modeling during masked-interrupt asset loads
+
+**Status:** characterized; bounded and stopped (framework cycle-accuracy, not game logic)  
+**Date:** 2026-10-04  
+**Area:** native fidelity | timing | historical replay
+
+**Question:** why does exact Dessyreqt-movie input desync natively? This blocks using the movie as a native oracle for circuit and stunt results; the reference reaches `0xBC` at frame 8353 and `0x2F/0x18` at frames 11915/11985.
+
+**Method:** per-frame low-WRAM traces of both engines over the movie prefix, from native `SNESRECOMP_WRAM_TRACE_FILE` and snesref `SNESREF_TRACE_FILE`, aligned frame by frame with stack bytes excluded.
+
+**Observation:**
+- **Splash and menu timing:** both engines enter splash `0x84` at frame 248. The main menu `0xD7` arrives at frame 440 on the reference and 445 natively.
+- **Effect on the movie:** the movie's first menu press (~455) lands only 10 frames into native's menu, is ignored, and everything after cascades.
+- **How the lag grows:** best-fit alignment shows the native lag growing from 0 to 5 frames in steps (frames 248, 276, ~304, ~408, ~436). Per-frame counters (`$C6`, `$C8`) advance at identical rates, so steady-state per-frame logic matches.
+- **First step:** the first steps are a frozen-WRAM busy period, 26 frames on the reference (250–275) and 27 natively (251–277). The stack places it in `PPU_LoadAssetToVRAM` (`82:B1D8`), called from `80:F595`/`80:F59E` with assets `0x4E` and `0x48`. That routine streams to `$2118/$2119` under `SEI`, so its frame span is pure CPU time.
+- **FastROM:** the game sets `$420D=1` (`80:91EA`), and the runtime already charges MEMSEL 6/8 clocks, so missing FastROM is ruled out.
+
+**Discriminator:** forcing `82:B1D8` and `82:B293` onto the interpreter (`SNESRECOMP_LLE_INTERP_TARGET_FILE`) makes that freeze exactly 26 frames, matching the reference. However, `0xD7` still arrives at frame 444, so only one of the five frames comes from that loader's compiled-block cycle charge. The rest is distributed over other CPU-bound title-phase work.
+
+**Interpretation:** native's guest-time model runs about 1 frame per 30–40 slow during heavy masked-interrupt work. Part of it is AOT block cycle charging; the rest is unattributed. This is not a semantic divergence: gameplay fixtures already match event-relatively. It affects load duration by fractions of a second, and frame-exact TAS sync.
+
+**Stop condition / reopen when:** any of these:
+- a product decision needs frame-exact input replay, for example netplay or TAS compatibility;
+- an in-race lag-frame difference appears (a race frame exceeding budget);
+- the framework gains a per-opcode cycle-exact AOT charge mode that can be A/B'd cheaply.
+
+Until then, use historical movies event-relatively, as WORK-QUEUE P0 item 1 already directs. The circuit and stunt result screens should be text-compared natively through a native-driven route, not through the movie.

@@ -6,14 +6,14 @@ Compact router for coding and research agents. Load the smallest current authori
 
 | Task | Read first |
 |---|---|
-| Current priority / continue work | `docs/WORK-QUEUE.md`, then the owning specialist doc |
+| Current priority / continue work | `docs/WORK-QUEUE.md`, then the owning specialist doc; for active standard lanes, `python3 tools/build_agent_context.py <lane>` may generate a bounded orientation packet |
 | Understand how the game currently appears to work / orient to a subsystem | `docs/knowledge/README.md`, then the relevant concept page |
 | Overall project architecture / product plan | `docs/PROJECT-PLAN.md` |
 | Widescreen feature implementation | `docs/WIDESCREEN.md`, then `docs/PROJECT-PLAN.md` |
 | Bonus emulator-assisted widescreen ROM hack | `docs/bonus/WIDESCREEN-ROM-HACK.md`; keep isolated from the shipping/native path |
 | Research strategy / external-resource work | `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md` |
 | Native build / boot / runtime failure | `docs/BRINGUP.md`, `docs/VALIDATION.md`, then the changed workflow/runtime files |
-| GitHub Actions / CI workflow design or optimization | `docs/CI-WORKFLOW-BEST-PRACTICES.md`, then the affected workflow files |
+| GitHub Actions / CI workflow design or optimization | `docs/CI-WORKFLOW-BEST-PRACTICES.md`, `docs/OPERATIONS-ACCELERATION.md`, then the affected workflow files |
 | ROM identity / preserved build comparison | `analysis/generated/reference-rom-inventory.md`, `analysis/generated/reference-rom-comparison.md` |
 | RNC / course-format work | `docs/COURSE-FORMAT.md`, then relevant generated analyses/tools |
 | Frontend / menu / screen-flow / UI-state work | `docs/UI-STATE-MAP.md`, `analysis/ui-state-map.yml`, then `analysis/ui-capture-manifest.json`; for 2P/VS input coverage also read `docs/TWO-PLAYER-FIXTURE-PLAN.md` |
@@ -75,6 +75,10 @@ At present the critical path is: first native/reference divergence → semantic 
 29. Prefer the narrow debugger primitive that answers the question: writer watch → execution breakpoint → code/data coverage → bounded trace → full trace only if needed.
 30. The mechanical oracle decides. Model confidence, documentation completeness, decompiler output, or agreement between agents never substitutes for deterministic bytes/state/execution evidence when a falsifiable check exists.
 31. When a bounded approach repeatedly fails to reduce uncertainty, record why and what new evidence would justify retrying before another agent repeats it. Use an existing owning ledger/doc unless repetition becomes common enough to justify a dedicated dead-end artifact.
+32. When successive experiments differ only by a parameter, extend a shared harness and structured evidence contract instead of cloning a sibling workflow. Probe the product-relevant endpoint when monotonicity makes that informative, then localize failures with the same harness.
+33. Treat exact semantic identity and production identity separately. If deterministic evidence proves multiple semantic states have byte-identical presentation, preserve their semantic guards but reuse the visual asset/work product.
+34. Keep `WORK-QUEUE.md` current-state oriented. Move long run histories and repeated measurements to the owning evidence/subsystem surface; `tools/check_work_queue_density.py` is an advisory entropy detector.
+35. Prefer a lane context packet from `tools/build_agent_context.py` over repeatedly pasting large authority lists into agent prompts. The generated packet is derived orientation, never a competing authority.
 
 ## Research before reinvention
 

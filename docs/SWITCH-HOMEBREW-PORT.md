@@ -1,6 +1,6 @@
 # Nintendo Switch Homebrew Port Plan
 
-Last updated: 2026-10-02
+Last updated: 2026-10-04
 
 ## Goal
 
@@ -25,7 +25,7 @@ Current pins:
 - switch-examples: `669786898205b7beb25ff1731e72982e6d0397d3`
 - switch-tools: `22756068dd0ed6ff9734c59cb4f99ebd3f62555b`
 
-The devkitPro compiler/package installation remains package-manager supplied. Do not vendor an arbitrary local devkitPro installation into Git.
+The devkitPro compiler/package installation remains package-manager supplied. Gate S0 CI uses the dated public `devkitpro/devkita64:20260219` container recorded in `third_party/platform/switch/pins.json`; each run records the actual compiler, libnx and SDL2 package versions alongside the NRO digest. Do not vendor an arbitrary local devkitPro installation into Git.
 
 ## Why SDL2 first
 
@@ -43,11 +43,16 @@ Escalate to a Switch-specific renderer only if measured performance or unsupport
 
 ### Gate S0 — compile-only host probe
 
-Create a minimal Switch target that:
-- compiles with the pinned/current devkitPro Switch toolchain;
-- links libnx and SDL2;
-- emits a valid NRO;
-- does not include Uniracers guest code yet.
+**Implemented; awaiting/maintaining cross-build acceptance.** The repository-owned probe lives under `platform/switch/s0_probe/`, with its machine-readable scope in `analysis/switch-s0-contract.json` and validator in `tools/check_switch_s0_probe.py`.
+
+The probe:
+- compiles with the dated devkitPro Switch toolchain container;
+- includes and links both libnx and SDL2 through actual symbols (`appletGetOperationMode` and `SDL_GetVersion`);
+- emits an ELF, NACP and NRO through the public `libnx/switch_rules` path;
+- contains no Uniracers ROM, generated guest code, SNESRecomp runtime or modern-product implementation;
+- retains compiler/package versions, NRO size/digest and linker map metadata as bounded CI evidence.
+
+The workflow is `.github/workflows/switch-s0-compile-probe.yml`. It runs automatically only when the S0 contract itself changes and remains manually dispatchable. A green cross-build closes S0's compile/link/package requirement only; it makes no hardware-runtime claim.
 
 Exit: deterministic CI/local cross-build recipe and retained compiler/link metadata.
 
@@ -156,8 +161,8 @@ The project only needs the ordinary public homebrew application toolchain.
 
 This platform lane should remain low-disruption while core product work continues:
 
-1. keep exact upstream pins current but deliberate;
-2. add a compile-only NRO probe when a devkitPro-enabled runner/local machine is available;
-3. inventory current SNESRecomp host dependencies for desktop-only assumptions;
-4. add portable host interfaces where a real blocker is found;
+1. keep exact upstream/toolchain pins current but deliberate and keep the S0 NRO cross-build green;
+2. inventory current SNESRecomp host dependencies for desktop-only assumptions before attempting to link guest code;
+3. design S1 as a hardware-only capability report for lifecycle, display, input, audio, storage and suspend/resume, without promoting those checks to CI claims;
+4. add portable host interfaces only where the inventory or S1 finds a real blocker;
 5. do not fork simulation or presentation policy preemptively.

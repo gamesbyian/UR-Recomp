@@ -2,27 +2,27 @@
   "schema_version": 1,
   "family": "ordinary-racer",
   "review_basis": {
-    "workflow_run": 37180202506,
-    "artifact_id": 11295241964,
+    "workflow_run": 37232075417,
+    "artifact_id": 11313998358,
     "temporal_window": [
       1205,
       1220
     ],
     "review_surface": "racer-hd-asset-dossier/review/index.html",
-    "disposition": "The retained strip is mechanically accepted but visually prototype-grade at true 4x/live split-screen scale; refine before any shipping-art approval."
+    "disposition": "Sequence-level refinement materially improves wheel readability, material separation and detail consistency, but none of the ten unique poses is shipping-ready. Remaining blockers are shared saddle volume/attachment, frame-and-fork junction modeling, and hardware depth/integration."
   },
   "family_blockers": [
     {
-      "code": "coarse-saddle-form",
-      "description": "Saddle silhouettes are dominated by broad primitive masses rather than a faithful high-resolution reconstruction of the stock form."
+      "code": "saddle-volume-attachment",
+      "description": "Saddles still read as broad primitive caps with weak post/underside attachment; refine profile, thickness and connection while preserving the stock envelope."
     },
     {
-      "code": "coarse-wheel-hardware",
-      "description": "Wheel, hub, crank and pedal treatment remains schematic and under-resolved relative to the Remastered target."
+      "code": "frame-junction-modeling",
+      "description": "Fork, crown and frame intersections remain visibly rod-like or bulbous at true density; replace abrupt primitive overlaps with coherent high-resolution mechanical junctions without changing contacts or silhouette."
     },
     {
-      "code": "insufficient-internal-structure",
-      "description": "The authored 4x forms remove too much of the stock racer's readable internal structure at live gameplay scale."
+      "code": "hardware-depth-integration",
+      "description": "Rim, spokes, hub, crank and pedal are now readable and consistent, but remain schematic and too uniformly graphic; add restrained depth/material articulation while preserving gameplay-scale clarity and temporal stability."
     }
   ],
   "decisions": [
@@ -31,110 +31,110 @@
       "status": "needs-refinement",
       "shipping_art_approved": false,
       "blocker_codes": [
-        "coarse-saddle-form",
-        "coarse-wheel-hardware",
-        "insufficient-internal-structure"
+        "saddle-volume-attachment",
+        "frame-junction-modeling",
+        "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "6ab041e25637b023fbb7ad2ead17431388be90735670230ee6b9a2dc95e85c01"
+      "reviewed_authored_rgba_sha256": "ead32e4681b88d93449a6fc1df1939e93b6cec0dd4ebab8235c95f433cca9078"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x057D-p1-adjacent-reference",
       "status": "needs-refinement",
       "shipping_art_approved": false,
       "blocker_codes": [
-        "coarse-saddle-form",
-        "coarse-wheel-hardware",
-        "insufficient-internal-structure"
+        "saddle-volume-attachment",
+        "frame-junction-modeling",
+        "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "031560e31654bffb4d64bd9126fd411b42f914b0ea8c3b1818a65698150f6c67"
+      "reviewed_authored_rgba_sha256": "8057cb98cfe08f49a2334c9d747e4edc5638c37efe40e617dd39a7fd82bdca40"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0540-p1-companion-0D2C-with-p2-0542-reference",
       "status": "needs-refinement",
       "shipping_art_approved": false,
       "blocker_codes": [
-        "coarse-saddle-form",
-        "coarse-wheel-hardware",
-        "insufficient-internal-structure"
+        "saddle-volume-attachment",
+        "frame-junction-modeling",
+        "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "e363f666f9c0cb69831ac71717736360b5048ce5c038fd703cb2e59487579701"
+      "reviewed_authored_rgba_sha256": "b5baafda3aab8c19a0226dc50580d6f67ce57020716b957ce75401b218d9f2c8"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x057E-p1-with-p2-0543-reference",
       "status": "needs-refinement",
       "shipping_art_approved": false,
       "blocker_codes": [
-        "coarse-saddle-form",
-        "coarse-wheel-hardware",
-        "insufficient-internal-structure"
+        "saddle-volume-attachment",
+        "frame-junction-modeling",
+        "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "8a5fd53460271e6a808daf473fbaf319cd8fcfbed79e5ba79c8271a1e614d2ff"
+      "reviewed_authored_rgba_sha256": "81ae34a9db1c8cf23bab87b358316be8ac10a550edbc1780eff101a15beb1f74"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0541-p1-companion-0D2D-reference",
       "status": "needs-refinement",
       "shipping_art_approved": false,
       "blocker_codes": [
-        "coarse-saddle-form",
-        "coarse-wheel-hardware",
-        "insufficient-internal-structure"
+        "saddle-volume-attachment",
+        "frame-junction-modeling",
+        "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "fa05a4a3d43d1e71b1b002212f2721b777b0ad810c6a4c23889d27794215c4aa"
+      "reviewed_authored_rgba_sha256": "a1b8ae9764f7240654049b8cd2463f9ceb23e09989ea96de6f76771e21da2518"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0541-p1-sync-reference",
       "status": "needs-refinement",
       "shipping_art_approved": false,
       "blocker_codes": [
-        "coarse-saddle-form",
-        "coarse-wheel-hardware",
-        "insufficient-internal-structure"
+        "saddle-volume-attachment",
+        "frame-junction-modeling",
+        "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "17a45f45e58a9aaa750d3ac98e1a113379345bb70fa795e37b7740a20710d65d"
+      "reviewed_authored_rgba_sha256": "7087374ad1cdf6db64f14c65fe81ffe0a89efd01d03a29976a31a2143bb595c7"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0540-p2-sync-reference",
       "status": "needs-refinement",
       "shipping_art_approved": false,
       "blocker_codes": [
-        "coarse-saddle-form",
-        "coarse-wheel-hardware",
-        "insufficient-internal-structure"
+        "saddle-volume-attachment",
+        "frame-junction-modeling",
+        "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "a239cf0546e3531ab10c0bcda20ef2fd1778b12d8633723235cafd8eadf3e9bb"
+      "reviewed_authored_rgba_sha256": "7d5d96d98cf853f0ee08f219df79f826b6977539c41b0e7537b207b6df21640d"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0541-p2-predecessor-reference",
       "status": "needs-refinement",
       "shipping_art_approved": false,
       "blocker_codes": [
-        "coarse-saddle-form",
-        "coarse-wheel-hardware",
-        "insufficient-internal-structure"
+        "saddle-volume-attachment",
+        "frame-junction-modeling",
+        "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "af67a6375e81e6cab8bced963925a5a7a0a65a6628216d3c5b6af0f04446da2a"
+      "reviewed_authored_rgba_sha256": "ff5e1f1e6ae2fab15fee877106e25619fc5bf1a76906496d4731831583fac270"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference",
       "status": "needs-refinement",
       "shipping_art_approved": false,
       "blocker_codes": [
-        "coarse-saddle-form",
-        "coarse-wheel-hardware",
-        "insufficient-internal-structure"
+        "saddle-volume-attachment",
+        "frame-junction-modeling",
+        "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "e7169f814d6301a5101f728a94806c14bb2f2c8c98b8ee6796a7e4e2617e70ed"
+      "reviewed_authored_rgba_sha256": "5594c8539ed6fdd905734cf113f3a52e34c24dfdb5784ec9f29d97cee360559c"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
       "status": "needs-refinement",
       "shipping_art_approved": false,
       "blocker_codes": [
-        "coarse-saddle-form",
-        "coarse-wheel-hardware",
-        "insufficient-internal-structure"
+        "saddle-volume-attachment",
+        "frame-junction-modeling",
+        "hardware-depth-integration"
       ],
-      "reviewed_authored_rgba_sha256": "d62f9d43dacfa89fa9870f766e3ebabf6626c4f84bd80022ca6a17b71cef715e"
+      "reviewed_authored_rgba_sha256": "3a7718b5d01c6b2ee9e0215570dc9667cd80904e2020fb018ac44a19269a3496"
     }
   ]
 }

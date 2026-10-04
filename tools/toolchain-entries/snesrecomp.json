@@ -35,7 +35,7 @@
     },
     {
       "path": "tools/patches/snesrecomp-frame-input-observation.patch",
-      "sha256": "87804d70c50dad670aeb5516e911bdccf6f209258553d3ce7986eb3f00ca8e54"
+      "sha256": "b938093dc6e50756e63b73c918607e878e758e10756c390ab7377abd0979cbe5"
     },
     {
       "path": "tools/patches/snesrecomp-session-pause.patch",

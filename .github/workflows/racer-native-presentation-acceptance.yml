@@ -366,7 +366,7 @@ jobs:
           ]
           p2_0543_candidate = p2_0543["art_review"]["authored_candidate"]
           assert p2_0543_candidate["approval_status"] == (
-              "gameplay-scale P2 0543 candidate; native acceptance pending"
+              "motion-reviewed shared P2 0543 pose; not approved shipping art"
           )
           p2_0543_review = p2_0543_candidate["gameplay_scale_review"]
           assert p2_0543["observed_frames_in_window"] == [1207, 1208, 1209, 1210, 1211, 1212]
@@ -384,7 +384,7 @@ jobs:
           ]
           p2_0543_reuse_candidate = p2_0543_reuse["art_review"]["authored_candidate"]
           assert p2_0543_reuse_candidate["approval_status"] == (
-              "gameplay-scale P2 0543 reuse candidate; native acceptance pending"
+              "accepted context-safe reuse of motion-reviewed P2 0543 pose; not approved shipping art"
           )
           assert p2_0543_reuse_candidate["reuse_source_representation_id"] == (
               "ordinary-racer-0x0543-p2-adjacent-reference"

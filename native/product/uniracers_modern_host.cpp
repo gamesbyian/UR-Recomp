@@ -27,6 +27,8 @@ namespace {
 
 UrModernSession* g_session;
 ur::product::HostProductState g_product_state;
+ur::product::HostPresentationFpsMode g_live_presentation_fps_mode =
+    ur::product::HostPresentationFpsMode::Game;
 bool g_product_state_initialized;
 std::string g_product_state_path;
 UrModernPauseMenu g_pause_menu;
@@ -97,6 +99,45 @@ int vsync_mode_value(ur::product::HostVSyncMode mode) {
     }
 }
 
+const char* presentation_fps_mode_name(
+    ur::product::HostPresentationFpsMode mode) {
+    switch (mode) {
+    case ur::product::HostPresentationFpsMode::Fps60:
+        return "60";
+    case ur::product::HostPresentationFpsMode::Fps90:
+        return "90";
+    case ur::product::HostPresentationFpsMode::Fps120:
+        return "120";
+    case ur::product::HostPresentationFpsMode::Fps144:
+        return "144";
+    case ur::product::HostPresentationFpsMode::Native:
+        return "native";
+    case ur::product::HostPresentationFpsMode::Game:
+    default:
+        return "game";
+    }
+}
+
+double presentation_fps_target(
+    ur::product::HostPresentationFpsMode mode,
+    double display_refresh) {
+    switch (mode) {
+    case ur::product::HostPresentationFpsMode::Fps60:
+        return 60.0;
+    case ur::product::HostPresentationFpsMode::Fps90:
+        return 90.0;
+    case ur::product::HostPresentationFpsMode::Fps120:
+        return 120.0;
+    case ur::product::HostPresentationFpsMode::Fps144:
+        return 144.0;
+    case ur::product::HostPresentationFpsMode::Native:
+        return display_refresh > 0.0 ? display_refresh : 60.0;
+    case ur::product::HostPresentationFpsMode::Game:
+    default:
+        return 0.0;
+    }
+}
+
 bool apply_vsync_setting(const ur::product::HostSettings& settings) {
     if (!modern_mode()) return false;
     if (!snesrecomp_desktop_set_vsync(vsync_mode_value(settings.vsync_mode))) {
@@ -109,6 +150,35 @@ bool apply_vsync_setting(const ur::product::HostSettings& settings) {
             "UR_VSYNC APPLIED mode=%s host=%d\n",
             vsync_mode_name(settings.vsync_mode),
             snesrecomp_desktop_get_vsync());
+        std::fflush(stderr);
+    }
+    return true;
+}
+
+bool apply_presentation_fps_setting(
+    const ur::product::HostSettings& settings) {
+    if (!modern_mode()) return false;
+
+    g_live_presentation_fps_mode = settings.presentation_fps_mode;
+    snesrecomp_desktop_request_clock_reset();
+
+    // A decoupled presentation clock must own pacing rather than blocking in
+    // the driver. Re-applying the semantic VSync setting lets SNESRecomp's
+    // VSyncInterval() select the correct live swap interval for this mode.
+    if (!snesrecomp_desktop_set_vsync(vsync_mode_value(settings.vsync_mode))) {
+        product_diagnostic("UR_PRESENTATION_FPS APPLY_FAILED");
+        return false;
+    }
+
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_PRESENTATION_FPS APPLIED mode=%s target=%.0f decoupled=%d\n",
+            presentation_fps_mode_name(settings.presentation_fps_mode),
+            presentation_fps_target(settings.presentation_fps_mode, 0.0),
+            settings.presentation_fps_mode ==
+                    ur::product::HostPresentationFpsMode::Game
+                ? 0 : 1);
         std::fflush(stderr);
     }
     return true;
@@ -171,10 +241,12 @@ void ensure_product_state() {
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             std::fprintf(
                 stderr,
-                "UR_HOST_STATE LOADED pause_on_focus_loss=%d display_mode=%s vsync=%s\n",
+                "UR_HOST_STATE LOADED pause_on_focus_loss=%d display_mode=%s vsync=%s presentation_fps=%s\n",
                 g_product_state.settings.pause_on_focus_loss ? 1 : 0,
                 display_mode_name(g_product_state.settings.display_mode),
-                vsync_mode_name(g_product_state.settings.vsync_mode));
+                vsync_mode_name(g_product_state.settings.vsync_mode),
+                presentation_fps_mode_name(
+                    g_product_state.settings.presentation_fps_mode));
             std::fflush(stderr);
         }
     } else if (loaded.status == ur::product::HostProductLoadStatus::Missing) {
@@ -184,6 +256,9 @@ void ensure_product_state() {
     } else {
         product_diagnostic("UR_HOST_STATE IO_ERROR_DEFAULTS");
     }
+
+    g_live_presentation_fps_mode =
+        g_product_state.settings.presentation_fps_mode;
 }
 
 bool persist_product_state(const ur::product::HostProductState& candidate) {
@@ -271,6 +346,49 @@ bool cycle_vsync_setting() {
     return true;
 }
 
+bool cycle_presentation_fps_setting() {
+    if (!modern_mode()) return false;
+
+    ur::product::HostProductState candidate = g_product_state;
+    switch (candidate.settings.presentation_fps_mode) {
+    case ur::product::HostPresentationFpsMode::Game:
+        candidate.settings.presentation_fps_mode =
+            ur::product::HostPresentationFpsMode::Fps60;
+        break;
+    case ur::product::HostPresentationFpsMode::Fps60:
+        candidate.settings.presentation_fps_mode =
+            ur::product::HostPresentationFpsMode::Fps90;
+        break;
+    case ur::product::HostPresentationFpsMode::Fps90:
+        candidate.settings.presentation_fps_mode =
+            ur::product::HostPresentationFpsMode::Fps120;
+        break;
+    case ur::product::HostPresentationFpsMode::Fps120:
+        candidate.settings.presentation_fps_mode =
+            ur::product::HostPresentationFpsMode::Fps144;
+        break;
+    case ur::product::HostPresentationFpsMode::Fps144:
+        candidate.settings.presentation_fps_mode =
+            ur::product::HostPresentationFpsMode::Native;
+        break;
+    case ur::product::HostPresentationFpsMode::Native:
+        candidate.settings.presentation_fps_mode =
+            ur::product::HostPresentationFpsMode::Game;
+        break;
+    }
+
+    if (!apply_presentation_fps_setting(candidate.settings)) {
+        return false;
+    }
+    if (!persist_product_state(candidate)) {
+        (void)apply_presentation_fps_setting(g_product_state.settings);
+        return false;
+    }
+
+    g_product_state = candidate;
+    return true;
+}
+
 bool activate_options_selection() {
     switch (ur_modern_options_menu_selected(&g_options_menu)) {
     case UR_MODERN_OPTIONS_FOCUS_PAUSE:
@@ -279,6 +397,8 @@ bool activate_options_selection() {
         return toggle_display_mode_setting();
     case UR_MODERN_OPTIONS_VSYNC:
         return cycle_vsync_setting();
+    case UR_MODERN_OPTIONS_PRESENTATION_FPS:
+        return cycle_presentation_fps_setting();
     }
     return false;
 }
@@ -325,6 +445,7 @@ bool ensure_session() {
     ur_uniracers_restart_policy_reset(&g_title_policy);
     if (g_session && modern_mode()) {
         (void)apply_display_mode_setting(g_product_state.settings);
+        (void)apply_presentation_fps_setting(g_product_state.settings);
         (void)apply_vsync_setting(g_product_state.settings);
     }
     return g_session != nullptr;
@@ -465,6 +586,15 @@ bool activate_pause_selection() {
 }
 
 }  // namespace
+
+extern "C" double ur_uniracers_modern_presentation_hz(
+    double display_refresh) {
+    if (!modern_mode()) return 0.0;
+    ensure_product_state();
+    return presentation_fps_target(
+        g_live_presentation_fps_mode,
+        display_refresh);
+}
 
 extern "C" void ur_uniracers_modern_after_run_frame(
     const SnesDesktopHostFrameStats*) {
@@ -632,7 +762,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
 
     if (is_paused) {
         if (g_options_visible) {
-            const int options_h = 114;
+            const int options_h = 129;
             const int options_y = (height - options_h) / 2;
             const UrModernOptionsItem selected =
                 ur_modern_options_menu_selected(&g_options_menu);
@@ -655,9 +785,27 @@ extern "C" void ur_uniracers_modern_system_overlay(
                                ur::product::HostVSyncMode::Off
                            ? "VSYNC    OFF"
                            : "VSYNC    ON");
+            const char* presentation_text =
+                g_product_state.settings.presentation_fps_mode ==
+                        ur::product::HostPresentationFpsMode::Native
+                    ? "PRESENT FPS  NATIVE"
+                    : (g_product_state.settings.presentation_fps_mode ==
+                               ur::product::HostPresentationFpsMode::Game
+                           ? "PRESENT FPS  GAME"
+                           : nullptr);
+            char presentation_value[32];
+            if (!presentation_text) {
+                std::snprintf(
+                    presentation_value, sizeof(presentation_value),
+                    "PRESENT FPS  %s",
+                    presentation_fps_mode_name(
+                        g_product_state.settings.presentation_fps_mode));
+                presentation_text = presentation_value;
+            }
             char focus_row[32];
             char display_row[32];
             char vsync_row[32];
+            char presentation_row[32];
             std::snprintf(
                 focus_row, sizeof(focus_row), "%c %s",
                 selected == UR_MODERN_OPTIONS_FOCUS_PAUSE ? '>' : ' ',
@@ -670,6 +818,10 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 vsync_row, sizeof(vsync_row), "%c %s",
                 selected == UR_MODERN_OPTIONS_VSYNC ? '>' : ' ',
                 vsync_text);
+            std::snprintf(
+                presentation_row, sizeof(presentation_row), "%c %s",
+                selected == UR_MODERN_OPTIONS_PRESENTATION_FPS ? '>' : ' ',
+                presentation_text);
             snes_ovl_fill_rect(
                 pixels, stride, height, x, options_y, panel_w, options_h,
                 0xE0202020u);
@@ -689,10 +841,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 pixels, stride, height, x + 8, options_y + 57,
                 vsync_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 77,
+                pixels, stride, height, x + 8, options_y + 72,
+                presentation_row, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, options_y + 92,
                 "A / ENTER  CHANGE", 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 97,
+                pixels, stride, height, x + 8, options_y + 112,
                 "B / ESC    BACK", 0xFFFFFFFFu, 1);
             return;
         }

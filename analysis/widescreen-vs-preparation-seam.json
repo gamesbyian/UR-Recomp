@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "authority": "analysis/widescreen-policy.yml",
+  "fixture": "vs-first-race",
+  "workflow_run_id": 37167084352,
+  "workflow_artifact_id": 11290075753,
+  "classification": "vs-split-screen-preparation-seam-recovered",
+  "ordinary_single_view_contrast": {
+    "horizontal_scheduler_family": "81:AE59..81:AFC2",
+    "active_edge_store": "81:AF68",
+    "horizontal_threshold": "0x0220",
+    "primary_count_words": 16
+  },
+  "vs_horizontal_scheduler": {
+    "player1": {
+      "family": "81:B0FA..81:B179",
+      "active_edge_store": "81:B128",
+      "primary_count_store": "81:B156",
+      "inactive_edge_store": "81:B16A",
+      "inactive_count_store": "81:B173",
+      "edge": "7E:0505",
+      "secondary_edge": "7E:0509",
+      "primary_count": "7E:052B",
+      "secondary_count": "7E:052F",
+      "horizontal_threshold": "0x0320",
+      "full_primary_count_words": 8
+    },
+    "player2": {
+      "family": "81:B1FF..81:B27E",
+      "active_edge_store": "81:B22D",
+      "primary_count_store": "81:B25B",
+      "inactive_edge_store": "81:B26F",
+      "inactive_count_store": "81:B278",
+      "edge": "7E:0507",
+      "secondary_edge": "7E:050B",
+      "primary_count": "7E:052D",
+      "secondary_count": "7E:0531",
+      "horizontal_threshold": "0x0320",
+      "full_primary_count_words": 8
+    }
+  },
+  "shared_descriptor_builder": {
+    "family": "81:AB88..81:ACB0",
+    "queue_helper": "81:ACB1..81:ACFA",
+    "ready_flag_store": "81:ACF7",
+    "player1_primary_slot": 2,
+    "player1_secondary_slot": 3,
+    "player1_vram_base": "0x0C00",
+    "player1_payload_base": "7E:0433",
+    "player2_primary_slot": 6,
+    "player2_secondary_slot": 7,
+    "player2_vram_base": "0x1C00",
+    "player2_payload_base": "7E:0475"
+  },
+  "shared_nmi_consumer": {
+    "family": "82:D19B..82:D2D3",
+    "observed_ready_clears": [
+      "82:D1E1",
+      "82:D227",
+      "82:D26D",
+      "82:D2B3"
+    ]
+  },
+  "exact_writer_counts": {
+    "7E:0505": {"81:B128": 123, "81:B16A": 26},
+    "7E:0507": {"81:B22D": 55, "81:B26F": 28},
+    "7E:052B": {"81:B156": 27, "81:B173": 26},
+    "7E:052D": {"81:B25B": 29, "81:B278": 28}
+  },
+  "conclusion": "VS does not need a wholly separate DMA transport. It has distinct mirrored 8-word per-viewport horizontal scheduling, then rejoins the shared AB88/ACB1 descriptor builder and D19B..D2D3 NMI consumer. The next Widescreen step is to prove one adjacent 8-word presentation strip per viewport without modifying authoritative camera/simulation state or inventing a future-state oracle."
+}

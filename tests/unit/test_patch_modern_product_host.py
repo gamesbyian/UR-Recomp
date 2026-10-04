@@ -23,7 +23,22 @@ class ModernProductHostPatchTests(unittest.TestCase):
         self.assertIn("ur_uniracers_modern_system_key_down", patched)
         self.assertIn("ur_uniracers_modern_system_gamepad_button", patched)
         self.assertIn("ur_uniracers_modern_system_overlay", patched)
+        self.assertIn("ur_uniracers_modern_presentation_hz", patched)
         self.assertNotIn("UR_RESTART_PROBE", patched)
+        self.assertEqual(patch_main_text(patched), patched)
+
+    def test_existing_modern_host_is_upgraded_with_presentation_hook(self):
+        source = (
+            'static const SnesDesktopHostGame kGameHost = {\n'
+            '    .game_info           = &kGameInfo,\n'
+            '    .after_run_frame       = &ur_uniracers_modern_after_run_frame,\n'
+            '    .system_key_down       = &ur_uniracers_modern_system_key_down,\n'
+            '    .system_gamepad_button = &ur_uniracers_modern_system_gamepad_button,\n'
+            '    .system_overlay         = &ur_uniracers_modern_system_overlay,\n'
+            '};\n'
+        )
+        patched = patch_main_text(source)
+        self.assertIn("ur_uniracers_modern_presentation_hz", patched)
         self.assertEqual(patch_main_text(patched), patched)
 
     def test_generated_cmake_links_project_owned_product_sources(self):

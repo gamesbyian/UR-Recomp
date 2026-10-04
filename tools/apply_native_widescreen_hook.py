@@ -11,7 +11,8 @@ Runtime contract:
                              -> accepted Authentic policy binding, resolved to +48
   URRECOMP_WS_VIEW=authentic-16x9-candidate
                              -> compatibility alias for authentic-16x9
-  URRECOMP_WS_MARGIN=8       -> accepted one adjacent future horizontal strip
+  URRECOMP_WS_MARGIN=8       -> accepted one adjacent future horizontal strip;
+                               in split-screen, one 8-word strip per viewport
   URRECOMP_WS_MARGIN=16      -> same accepted guest strip plus one host-owned
                                strip materialized from live course tables
   URRECOMP_WS_MARGIN=24..72  -> same accepted guest strip plus N host-owned
@@ -60,6 +61,13 @@ static unsigned ur_ws_native_shadow_live_count = 0;
 static CpuState ur_ws_native_cpu_snapshot;
 static uint8 ur_ws_native_low_wram_snapshot[0x2000];
 static uint8 ur_ws_native_future_payload[32];
+static uint8 ur_ws_native_vs_p1_future_payload[16];
+static uint8 ur_ws_native_vs_p2_future_payload[16];
+static uint16 ur_ws_native_vs_p1_payload_addr = 0;
+static uint16 ur_ws_native_vs_p2_payload_addr = 0;
+static unsigned ur_ws_native_vs_p1_payload_len = 0;
+static unsigned ur_ws_native_vs_p2_payload_len = 0;
+static int ur_ws_native_vs_payload_live = 0;
 #define UR_WS_NATIVE_MAX_HOST_COLUMNS 8u
 static uint8 ur_ws_native_shadow_payload[UR_WS_NATIVE_MAX_HOST_COLUMNS][32];
 static uint16 ur_ws_native_shadow_edge[UR_WS_NATIVE_MAX_HOST_COLUMNS];
@@ -95,6 +103,11 @@ static uint16 ur_ws_native_read16(CpuState *cpu, uint16 addr) {
 static void ur_ws_native_write16(CpuState *cpu, uint16 addr, uint16 value) {
   cpu->ram[addr] = (uint8)(value & 0xff);
   cpu->ram[(uint16)(addr + 1)] = (uint8)(value >> 8);
+}
+
+static uint16 ur_ws_native_snapshot_read16(uint16 addr) {
+  return (uint16)(ur_ws_native_low_wram_snapshot[addr] |
+                  ((uint16)ur_ws_native_low_wram_snapshot[(uint16)(addr + 1)] << 8));
 }
 
 static void ur_ws_native_trace_primary(CpuState *cpu) {
@@ -201,6 +214,19 @@ static int ur_ws_native_should_prepare(CpuState *cpu) {
   if (margin < 8 || margin > 72 || (margin & 7) != 0 ||
       ur_ws_native_payload_live)
     return 0;
+
+  if (cpu->ram[0x0ddb] != 0) {
+    const int p1 =
+        ur_ws_native_read16(cpu, 0x0505) != 0xffff &&
+        ur_ws_native_read16(cpu, 0x052b) == 8;
+    const int p2 =
+        ur_ws_native_read16(cpu, 0x0507) != 0xffff &&
+        ur_ws_native_read16(cpu, 0x052d) == 8;
+    /* The recovered VS seam is proven only for one adjacent strip. Deeper
+     * split-screen materialization remains a separate discriminator. */
+    return margin == 8 && (p1 || p2);
+  }
+
   return ur_ws_native_read16(cpu, 0x0505) != 0xffff &&
          ur_ws_native_read16(cpu, 0x052b) == 16;
 }
@@ -213,6 +239,96 @@ static void ur_ws_native_begin_second_pass(CpuState *cpu) {
 }
 
 static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) {
+  const int split = ur_ws_native_cpu_snapshot.ram[0x0ddb] != 0;
+
+  if (split) {
+    const uint16 p1_second_edge = ur_ws_native_read16(cpu, 0x0505);
+    const uint16 p1_second_count = ur_ws_native_read16(cpu, 0x052b);
+    const uint16 p2_second_edge = ur_ws_native_read16(cpu, 0x0507);
+    const uint16 p2_second_count = ur_ws_native_read16(cpu, 0x052d);
+    const uint16 p1_second_vertical =
+        (uint16)(ur_ws_native_read16(cpu, 0x0533) +
+                 ur_ws_native_read16(cpu, 0x0537));
+    const uint16 p2_second_vertical =
+        (uint16)(ur_ws_native_read16(cpu, 0x0535) +
+                 ur_ws_native_read16(cpu, 0x0539));
+    const uint16 p1_stock_count = ur_ws_native_snapshot_read16(0x052b);
+    const uint16 p2_stock_count = ur_ws_native_snapshot_read16(0x052d);
+    const uint16 p1_stock_vertical =
+        (uint16)(ur_ws_native_snapshot_read16(0x0533) +
+                 ur_ws_native_snapshot_read16(0x0537));
+    const uint16 p2_stock_vertical =
+        (uint16)(ur_ws_native_snapshot_read16(0x0535) +
+                 ur_ws_native_snapshot_read16(0x0539));
+    const uint16 p1_src =
+        (uint16)(0x0453 + p1_second_vertical * 2u);
+    const uint16 p2_src =
+        (uint16)(0x0475 + p2_second_vertical * 2u);
+    const uint16 p1_dst =
+        (uint16)(0x0433 + (p1_stock_vertical + p1_stock_count) * 2u);
+    const uint16 p2_dst =
+        (uint16)(0x0475 + (p2_stock_vertical + p2_stock_count) * 2u);
+    const int p1_valid =
+        result == RECOMP_RETURN_NORMAL &&
+        ur_ws_native_snapshot_read16(0x0505) != 0xffff &&
+        p1_stock_count == 8 &&
+        p1_second_edge != 0xffff && p1_second_count == 8 &&
+        p1_src >= 0x0453 && p1_src + 16u <= 0x0475 &&
+        p1_dst >= 0x0433 && p1_dst + 16u <= 0x0475;
+    const int p2_valid =
+        result == RECOMP_RETURN_NORMAL &&
+        ur_ws_native_snapshot_read16(0x0507) != 0xffff &&
+        p2_stock_count == 8 &&
+        p2_second_edge != 0xffff && p2_second_count == 8 &&
+        p2_src >= 0x0475 && p2_src + 16u <= 0x04b7 &&
+        p2_dst >= 0x0475 && p2_dst + 16u <= 0x04b7;
+
+    if (p1_valid)
+      memcpy(ur_ws_native_vs_p1_future_payload, cpu->ram + p1_src, 16);
+    if (p2_valid)
+      memcpy(ur_ws_native_vs_p2_future_payload, cpu->ram + p2_src, 16);
+
+    ur_ws_native_second_pass = 0;
+    *cpu = ur_ws_native_cpu_snapshot;
+    memcpy(cpu->ram, ur_ws_native_low_wram_snapshot,
+           sizeof(ur_ws_native_low_wram_snapshot));
+
+    ur_ws_native_vs_p1_payload_len = 0;
+    ur_ws_native_vs_p2_payload_len = 0;
+    ur_ws_native_vs_payload_live = 0;
+
+    if (p1_valid) {
+      ur_ws_native_write16(cpu, 0x0509, p1_second_edge);
+      ur_ws_native_write16(cpu, 0x052f, p1_second_count);
+      memcpy(cpu->ram + p1_dst, ur_ws_native_vs_p1_future_payload, 16);
+      ur_ws_native_vs_p1_payload_addr = p1_dst;
+      ur_ws_native_vs_p1_payload_len = 16;
+      ur_ws_native_vs_payload_live = 1;
+      if (ur_ws_native_trace())
+        fprintf(stderr,
+                "URWS_VS_PREP margin=8 player=1 camx=%u edge=%04X count=%u payload_addr=%04X\n",
+                (unsigned)ur_ws_native_read16(cpu, 0x0419),
+                (unsigned)p1_second_edge, (unsigned)p1_second_count,
+                (unsigned)p1_dst);
+    }
+    if (p2_valid) {
+      ur_ws_native_write16(cpu, 0x050b, p2_second_edge);
+      ur_ws_native_write16(cpu, 0x0531, p2_second_count);
+      memcpy(cpu->ram + p2_dst, ur_ws_native_vs_p2_future_payload, 16);
+      ur_ws_native_vs_p2_payload_addr = p2_dst;
+      ur_ws_native_vs_p2_payload_len = 16;
+      ur_ws_native_vs_payload_live = 1;
+      if (ur_ws_native_trace())
+        fprintf(stderr,
+                "URWS_VS_PREP margin=8 player=2 camx=%u edge=%04X count=%u payload_addr=%04X\n",
+                (unsigned)ur_ws_native_read16(cpu, 0x041b),
+                (unsigned)p2_second_edge, (unsigned)p2_second_count,
+                (unsigned)p2_dst);
+    }
+    ur_ws_native_payload_live = ur_ws_native_vs_payload_live;
+    return;
+  }
+
   const uint16 second_edge = ur_ws_native_read16(cpu, 0x0505);
   const uint16 second_count = ur_ws_native_read16(cpu, 0x052b);
   memcpy(ur_ws_native_future_payload, cpu->ram + 0x0453,
@@ -312,24 +428,36 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
 static void ur_ws_native_after_builder(CpuState *cpu) {
   if (!ur_ws_native_payload_live)
     return;
-  ur_ws_native_write16(
-      cpu, 0x0509,
-      (uint16)(ur_ws_native_low_wram_snapshot[0x0509] |
-               ((uint16)ur_ws_native_low_wram_snapshot[0x050a] << 8)));
-  ur_ws_native_write16(
-      cpu, 0x052f,
-      (uint16)(ur_ws_native_low_wram_snapshot[0x052f] |
-               ((uint16)ur_ws_native_low_wram_snapshot[0x0530] << 8)));
+  ur_ws_native_write16(cpu, 0x0509, ur_ws_native_snapshot_read16(0x0509));
+  ur_ws_native_write16(cpu, 0x052f, ur_ws_native_snapshot_read16(0x052f));
+  if (ur_ws_native_vs_payload_live) {
+    ur_ws_native_write16(cpu, 0x050b, ur_ws_native_snapshot_read16(0x050b));
+    ur_ws_native_write16(cpu, 0x0531, ur_ws_native_snapshot_read16(0x0531));
+  }
 }
 
 static void ur_ws_native_cleanup_previous_payload(CpuState *cpu) {
   if (!ur_ws_native_payload_live)
     return;
-  memcpy(cpu->ram + 0x0453,
-         ur_ws_native_low_wram_snapshot + 0x0453, 32);
+  if (ur_ws_native_vs_payload_live) {
+    if (ur_ws_native_vs_p1_payload_len)
+      memcpy(cpu->ram + ur_ws_native_vs_p1_payload_addr,
+             ur_ws_native_low_wram_snapshot + ur_ws_native_vs_p1_payload_addr,
+             ur_ws_native_vs_p1_payload_len);
+    if (ur_ws_native_vs_p2_payload_len)
+      memcpy(cpu->ram + ur_ws_native_vs_p2_payload_addr,
+             ur_ws_native_low_wram_snapshot + ur_ws_native_vs_p2_payload_addr,
+             ur_ws_native_vs_p2_payload_len);
+  } else {
+    memcpy(cpu->ram + 0x0453,
+           ur_ws_native_low_wram_snapshot + 0x0453, 32);
+  }
   ur_ws_native_payload_live = 0;
   if (ur_ws_native_trace()) {
-    if (ur_ws_native_margin() == 8)
+    if (ur_ws_native_vs_payload_live)
+      fprintf(stderr, "URWS_VS_CLEANUP margin=8 p1=%u p2=%u\n",
+              ur_ws_native_vs_p1_payload_len, ur_ws_native_vs_p2_payload_len);
+    else if (ur_ws_native_margin() == 8)
       fprintf(stderr, "URWS_CLEANUP margin=8\n");
     else if (ur_ws_native_margin() == 16)
       fprintf(stderr, "URWS_CLEANUP16 shadows=%u\n", ur_ws_native_shadow_live_count);
@@ -339,6 +467,9 @@ static void ur_ws_native_cleanup_previous_payload(CpuState *cpu) {
       fprintf(stderr, "URWS_CLEANUP_EXT margin=%d shadows=%u\n",
               ur_ws_native_margin(), ur_ws_native_shadow_live_count);
   }
+  ur_ws_native_vs_payload_live = 0;
+  ur_ws_native_vs_p1_payload_len = 0;
+  ur_ws_native_vs_p2_payload_len = 0;
   ur_ws_native_shadow_live_count = 0;
 }
 '''.strip()
@@ -461,6 +592,7 @@ def apply(gen_dir: Path) -> dict:
             "wrapper_file": wrapper.name,
             "margin0_control": True,
             "margin8_hook": True,
+            "vs_margin8_supported": True,
             "margin16_supported": True,
             "margin24_supported": True,
         "margin64_supported": True,
@@ -513,6 +645,7 @@ def apply(gen_dir: Path) -> dict:
         "wrapper_file": wrapper.name,
         "margin0_control": True,
         "margin8_hook": True,
+        "vs_margin8_supported": True,
         "margin16_supported": True,
         "margin24_supported": True,
             "margin64_supported": True,

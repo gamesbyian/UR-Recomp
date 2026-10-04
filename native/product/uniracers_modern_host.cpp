@@ -10,6 +10,7 @@ extern "C" {
 #include "desktop/sdl_compat.h"
 #include "completed_run_capture.hpp"
 #include "completed_run_record.hpp"
+#include "completed_run_store.hpp"
 #include "focus_pause_policy.hpp"
 #include "host_product_state.hpp"
 #include "host_product_store.hpp"
@@ -853,14 +854,33 @@ uint16_t read_run_word(size_t offset) {
         (static_cast<uint16_t>(g_ram[offset + 1]) << 8));
 }
 
-const char* run_record_capture_path() {
+const char* run_record_capture_override_path() {
     if (!modern_mode()) return nullptr;
     const char* path = std::getenv("UR_RUN_RECORD_CAPTURE_PATH");
     return path && *path ? path : nullptr;
 }
 
+bool run_record_capture_enabled() {
+    return modern_mode() &&
+           g_widescreen_scene_state.race_mode ==
+               ur::product::HostRacePresentationMode::OnePlayer;
+}
+
+std::string default_run_record_directory() {
+    if (!run_record_capture_enabled()) return {};
+    ensure_product_state();
+
+    char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
+    if (!pref_path) return {};
+    std::string path(pref_path);
+    SDL_free(pref_path);
+    path += "runs/";
+    path += g_product_state.active_profile_id.value_or("default");
+    return path;
+}
+
 bool begin_run_record_capture(uint64_t host_frame) {
-    if (!run_record_capture_path()) return false;
+    if (!run_record_capture_enabled()) return false;
 
     const UrUniracersCourseIdentity course =
         ur_uniracers_identify_course(g_ram + 0x10000u, 0x10000u);
@@ -902,8 +922,7 @@ void observe_run_record_split() {
 }
 
 void complete_run_record_capture() {
-    const char* path = run_record_capture_path();
-    if (!path || !g_run_capture.capturing()) return;
+    if (!g_run_capture.capturing()) return;
 
     const int64_t ticks60 = ur_uniracers_run_data_ticks60(current_run_data());
     if (ticks60 < 0) {
@@ -922,33 +941,56 @@ void complete_run_record_capture() {
     }
 
     std::string detail;
-    if (!ur::product::save_completed_run_record_file(path, *record, &detail)) {
-        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
-            std::fprintf(stderr, "UR_RUN_RECORD SAVE_FAILED detail=%s\n", detail.c_str());
-            std::fflush(stderr);
+    std::string stored_path;
+    bool replay_written = false;
+    if (const char* override_path = run_record_capture_override_path()) {
+        stored_path = override_path;
+        if (!ur::product::save_completed_run_record_file(
+                stored_path, *record, &detail)) {
+            if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                std::fprintf(
+                    stderr, "UR_RUN_RECORD SAVE_FAILED detail=%s\n",
+                    detail.c_str());
+                std::fflush(stderr);
+            }
+            return;
         }
-        return;
-    }
 
-    std::ofstream replay(std::string(path) + ".input",
-                         std::ios::binary | std::ios::trunc);
-    const std::string replay_text =
-        ur::product::encode_completed_run_input_file(
-            *record, g_run_capture_origin_frame + 1u);
-    replay.write(replay_text.data(),
-                 static_cast<std::streamsize>(replay_text.size()));
-    replay.close();
+        std::ofstream replay(
+            stored_path + ".input", std::ios::binary | std::ios::trunc);
+        const std::string replay_text =
+            ur::product::encode_completed_run_input_file(
+                *record, g_run_capture_origin_frame + 1u);
+        replay.write(
+            replay_text.data(),
+            static_cast<std::streamsize>(replay_text.size()));
+        replay.close();
+        replay_written = static_cast<bool>(replay);
+    } else {
+        const std::string directory = default_run_record_directory();
+        if (directory.empty() ||
+            !ur::product::append_completed_run_record(
+                directory, *record, &stored_path, &detail)) {
+            if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                std::fprintf(
+                    stderr, "UR_RUN_RECORD STORE_FAILED detail=%s\n",
+                    detail.c_str());
+                std::fflush(stderr);
+            }
+            return;
+        }
+    }
 
     std::fprintf(
         stderr,
         "UR_RUN_RECORD CAPTURED path=%s course=%s elapsed_ticks60=%llu origin_frame=%llu inputs=%zu splits=%zu replay_input=%d\n",
-        path,
+        stored_path.c_str(),
         record->provenance.course_id.c_str(),
         static_cast<unsigned long long>(record->elapsed_ticks60),
         static_cast<unsigned long long>(g_run_capture_origin_frame),
         record->inputs.size(),
         record->splits.size(),
-        replay ? 1 : 0);
+        replay_written ? 1 : 0);
     std::fflush(stderr);
 }
 

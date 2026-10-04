@@ -56,9 +56,13 @@ int main(int argc, char **argv) {
     printf("hardware_parity_claim=0\n");
     consoleUpdate(NULL);
 
+    padConfigureInput(1, HidNpadStyleSet_NpadStandard);
+    PadState pad;
+    padInitializeDefault(&pad);
+
     while (appletMainLoop()) {
-        hidScanInput();
-        if (hidKeysDown(CONTROLLER_P1_AUTO) & KEY_PLUS) break;
+        padUpdate(&pad);
+        if (padGetButtonsDown(&pad) & HidNpadButton_Plus) break;
     }
 
     consoleExit(NULL);

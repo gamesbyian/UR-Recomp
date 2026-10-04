@@ -30,11 +30,9 @@ The explicit schema version and separate build compatibility id allow future cod
 
 tests/native/completed_run_record_test.cpp and tests/unit/test_completed_run_record_cpp.py prove a representative 1P Dragster-style input stream can be captured as authoritative per-frame controller words, compressed into canonical runs, serialized to a typed/versioned artifact, reloaded across a filesystem boundary, reproduced frame-for-frame, exported verbatim to the existing deterministic INPUT_FILE grammar, and rejected on corruption, future schema mismatch and course incompatibility. The run-data contract also tests exact timer conversion.
 
-## Next production seam
+## Next presentation seam
 
-The next step is deliberately narrow: observe the already-resolved guest controller words at the desktop host input boundary, start/retire the recorder at the same title-owned race lifecycle edge used by Restart Race, and finalize/persist only after an authoritative completed-run surface supplies valid time/course metadata. That wiring should not add a second input parser or write guest state.
-
-After live capture/replay is proven, PB and previous-run selection can simply choose compatible records. A ghost renderer should consume a deterministic replay/state stream derived from those records and remain presentation-only.
+Live capture, deterministic replay, durable selection, and profile-scoped previous/PB binding are now established. The next narrow step is to derive enough presentation state from a selected record to draw a non-authoritative ghost through an existing host presentation seam. That work must remain downstream of the authoritative guest simulation and must not add a second gameplay model, write guest state, or route ghost input into the live racer.
 
 
 ## Resolved-input observation seam

@@ -59,3 +59,7 @@ The course model is presentation-sufficient for current Widescreen work: Dragste
 Graphics/animation identity becomes sufficient for Phase E expansion when one animated family has deterministic extraction, unchanged reconstruction, semantic state/frame identity, and a compact regression.
 
 Update this scoreboard only when evidence changes what the project can safely decide or do. Do not upgrade a capability because census bytes, screenshots, or homolog counts increased without changing product leverage.
+
+## Records/replay sufficiency checkpoint (2026-10-04)
+
+A durable primary run-record representation is now established without granting host data simulation authority: versioned provenance + exact 60 Hz timing/splits + deterministic 12-bit controller runs + optional terminal authoritative digest. The record can round-trip through disk, reproduce its input stream frame-for-frame, export directly to the existing native INPUT_FILE grammar, and fail closed on corruption, unsupported schema or incompatible playback provenance. This closes the representation/persistence foundation only. Live production capture and fresh-process native simulation replay remain required before local replay/PB/ghost capability is considered product-complete.

@@ -929,14 +929,23 @@ jobs:
             echo "UR_EXIT_FRONTEND_CASE=${NAME} preserved_sram=${BEFORE}"
           }
 
+          pids=()
           run_exit_case \
             active-race \
             active \
-            "$GITHUB_WORKSPACE/tests/input/modern-exit-frontend-active.script"
+            "$GITHUB_WORKSPACE/tests/input/modern-exit-frontend-active.script" &
+          pids+=("$!")
           run_exit_case \
             results-pause \
             results \
-            "$GITHUB_WORKSPACE/tests/input/modern-exit-frontend-results.script"
+            "$GITHUB_WORKSPACE/tests/input/modern-exit-frontend-results.script" &
+          pids+=("$!")
+
+          failed=0
+          for pid in "${pids[@]}"; do
+            if ! wait "$pid"; then failed=1; fi
+          done
+          test "$failed" -eq 0
 
           echo "UR_EXIT_FRONTEND_RESULT=active_and_results_returned_to_usable_frontend_with_sram_preserved"
 

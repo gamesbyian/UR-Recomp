@@ -289,9 +289,10 @@ jobs:
           ROOT="$RUNNER_TEMP/tour-resume-profile"
           CAPTURE_LOG="$RUNNER_TEMP/tour-resume-capture.log"
           RESUME_LOG="$RUNNER_TEMP/tour-resume-restore.log"
-          DUMPS="$RUNNER_TEMP/tour-resume-dumps"
-          rm -rf "$ROOT" "$DUMPS"
-          mkdir -p "$ROOT" "$DUMPS"
+          CAPTURE_DUMPS="$RUNNER_TEMP/tour-resume-capture-dumps"
+          RESUME_DUMPS="$RUNNER_TEMP/tour-resume-restore-dumps"
+          rm -rf "$ROOT" "$CAPTURE_DUMPS" "$RESUME_DUMPS"
+          mkdir -p "$ROOT" "$CAPTURE_DUMPS" "$RESUME_DUMPS"
           cp "$GITHUB_WORKSPACE/reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm" \
             "$ROOT/save.srm"
 
@@ -308,7 +309,7 @@ jobs:
             export UR_PRODUCT_DIAGNOSTICS=1
             export UR_HOST_STATE_PATH="'"$STATE"'"
             export UR_PROFILE_SAVE_ROOT="'"$ROOT"'"
-            export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
+            export SNESRECOMP_DUMP_DIR="'"$CAPTURE_DUMPS"'"
             "'"$EXE"'" "'"$ROM"'" --script "'"$CAPTURE_SCRIPT"'" >"'"$CAPTURE_LOG"'" 2>&1 &
             PID=$!
 
@@ -336,19 +337,20 @@ jobs:
           UR_PRODUCT_DIAGNOSTICS=1 \
           UR_HOST_STATE_PATH="$STATE" \
           UR_PROFILE_SAVE_ROOT="$ROOT" \
-          SNESRECOMP_DUMP_DIR="$DUMPS" \
+          SNESRECOMP_DUMP_DIR="$RESUME_DUMPS" \
           timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$RESUME_SCRIPT" \
             >"$RESUME_LOG" 2>&1
           RESUME_STATUS=$?
           set -e
-          if [ "$RESUME_STATUS" -ne 0 ] && [ "$RESUME_STATUS" -ne 124 ]; then
+          if [ "$RESUME_STATUS" -ne 0 ]; then
             cat "$RESUME_LOG"
-            exit "$RESUME_STATUS"
+            echo "::error::Fresh-process tour-resume route did not finish cleanly (status $RESUME_STATUS)"
+            exit 1
           fi
 
           grep -q "UR_TOUR_RESUME APPLIED" "$RESUME_LOG"
-          test -s "$DUMPS/tracks-ready.wram.bin"
-          test -s "$DUMPS/race-entered.wram.bin"
+          test -s "$RESUME_DUMPS/tracks-ready.wram.bin"
+          test -s "$RESUME_DUMPS/race-entered.wram.bin"
 
           python3 - "$ROOT/host-profile.txt" "$ROOT/save.srm" <<'PY'
           import pathlib

@@ -3,8 +3,8 @@
   "host_state_codec_version": 6,
   "purpose": "Machine-readable catalog for host-owned modern settings. Runtime/source remains authoritative until each descriptor is generated from this catalog.",
   "versioning_policy": {
-    "current": "The v1-v6 codec is strict by version and exact field set.",
-    "target": "Before the next additive setting forces another one-off migration, move to a forward-extensible known-key codec with explicit required/core keys and defaults for absent additive keys.",
+    "current": "Versions 1-5 remain strict by version and exact field set. Version 6 has a required administrative core plus known additive keys whose absence receives typed defaults; unknown keys remain rejected.",
+    "target": "Keep Version 6 as the stable additive envelope: extend the known-key set and typed defaults when optional settings are added, and reserve schema changes for grammar or compatibility changes.",
     "rule": "Do not bump the host-state version solely because a new optional setting exists unless the encoded grammar or compatibility contract actually changes."
   },
   "settings": [

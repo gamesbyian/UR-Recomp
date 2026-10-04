@@ -18,6 +18,7 @@ extern "C" {
 #include "output_resolution_runtime_policy.hpp"
 #include "uniracers_restart_policy.h"
 #include "uniracers_run_data.h"
+#include "widescreen_output_composition.hpp"
 
 #include <cstdlib>
 #include <cstring>
@@ -46,6 +47,9 @@ bool g_exit_frontend_acceptance_fired;
 unsigned g_exit_frontend_acceptance_surface_frames;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
+ur::product::HostWidescreenSceneState g_widescreen_scene_state;
+ur::product::HostSceneComposition g_widescreen_scene =
+    ur::product::HostSceneComposition::FixedCenter;
 
 // Acceptance-only capability probe. Ordinary product code must consume the
 // normalized host contract rather than SDL display identifiers or mode lists.
@@ -95,6 +99,14 @@ void report_display_capabilities_once() {
 bool modern_mode() {
     const char* mode = std::getenv("UR_EXECUTION_MODE");
     return !(mode && std::strcmp(mode, "authentic") == 0);
+}
+
+bool authentic_16x9_view_enabled() {
+    if (!modern_mode()) return false;
+    const char* view = std::getenv("URRECOMP_WS_VIEW");
+    return view &&
+           (std::strcmp(view, "authentic-16x9") == 0 ||
+            std::strcmp(view, "authentic-16x9-candidate") == 0);
 }
 
 void product_diagnostic(const char* message) {
@@ -686,6 +698,8 @@ bool ensure_session() {
     ur_modern_pause_menu_reset(&g_pause_menu);
     ur_modern_options_menu_reset(&g_options_menu);
     ur_uniracers_restart_policy_reset(&g_title_policy);
+    ur::product::reset_widescreen_scene_state(&g_widescreen_scene_state);
+    g_widescreen_scene = ur::product::HostSceneComposition::FixedCenter;
     if (g_session && modern_mode()) {
         (void)apply_display_mode_setting(g_product_state.settings);
         (void)apply_output_resolution_setting(g_product_state.settings);
@@ -726,6 +740,8 @@ bool exit_to_frontend() {
     ur_modern_pause_menu_reset(&g_pause_menu);
     ur_modern_options_menu_reset(&g_options_menu);
     ur_uniracers_restart_policy_reset(&g_title_policy);
+    ur::product::reset_widescreen_scene_state(&g_widescreen_scene_state);
+    g_widescreen_scene = ur::product::HostSceneComposition::FixedCenter;
     g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
     g_exit_frontend_waiting_for_main = true;
     g_exit_frontend_waiting_for_usable = false;
@@ -942,6 +958,47 @@ bool activate_pause_selection() {
 
 }  // namespace
 
+extern "C" void ur_uniracers_modern_prepare_frame(
+    int,
+    int,
+    int* frame_width,
+    int* frame_height) {
+    if (!frame_width || !frame_height || !authentic_16x9_view_enabled()) {
+        return;
+    }
+
+    const auto plan = ur::product::resolve_16x9_output_composition(
+        ur::product::HostGraphicsRepresentation::Original,
+        g_widescreen_scene);
+    *frame_width = plan.logical_view_width;
+    *frame_height = plan.logical_view_height;
+}
+
+extern "C" void ur_uniracers_modern_compute_viewport(
+    int,
+    int,
+    int drawable_width,
+    int drawable_height,
+    SnesDisplayViewport* viewport) {
+    if (!viewport || !authentic_16x9_view_enabled()) {
+        return;
+    }
+
+    const auto plan = ur::product::resolve_16x9_output_composition(
+        ur::product::HostGraphicsRepresentation::Original,
+        g_widescreen_scene);
+    const auto resolved = ur::product::resolve_output_viewport(
+        plan, drawable_width, drawable_height);
+    if (resolved.width <= 0 || resolved.height <= 0) {
+        return;
+    }
+
+    viewport->x = resolved.x;
+    viewport->y = resolved.y;
+    viewport->width = resolved.width;
+    viewport->height = resolved.height;
+}
+
 extern "C" double ur_uniracers_modern_presentation_hz(
     double display_refresh) {
     if (!modern_mode()) return 0.0;
@@ -962,6 +1019,10 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             g_ram[0x0313],
             g_ram[0x009F]);
     g_surface = decision.surface;
+    g_widescreen_scene = ur::product::observe_widescreen_scene(
+        &g_widescreen_scene_state,
+        g_ram[0x0313],
+        g_ram[0x009F]);
 
     if (g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE) {
         ur_modern_session_observe_race_active(g_session, 1);

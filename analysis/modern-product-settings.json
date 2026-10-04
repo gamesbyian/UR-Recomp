@@ -8,106 +8,12 @@
     "rule": "Do not bump the host-state version solely because a new optional setting exists unless the encoded grammar or compatibility contract actually changes."
   },
   "settings": [
-    {
-      "id": "focus_pause",
-      "persisted_key": "pause_on_focus_loss",
-      "storage_type": "bool",
-      "default": true,
-      "introduced_codec_version": 1,
-      "menu_symbol": "UR_MODERN_OPTIONS_FOCUS_PAUSE",
-      "menu_visible": true,
-      "runtime_status": "integrated",
-      "authentic_inert": true
-    },
-    {
-      "id": "vibration",
-      "persisted_key": "vibration_enabled",
-      "storage_type": "bool",
-      "default": true,
-      "introduced_codec_version": 1,
-      "menu_symbol": null,
-      "menu_visible": false,
-      "runtime_status": "persisted-reserved",
-      "authentic_inert": true
-    },
-    {
-      "id": "display_mode",
-      "persisted_key": "display_mode",
-      "storage_type": "enum",
-      "default": "windowed",
-      "choices": [
-        "windowed",
-        "borderless",
-        "fullscreen"
-      ],
-      "introduced_codec_version": 2,
-      "menu_symbol": "UR_MODERN_OPTIONS_DISPLAY_MODE",
-      "menu_visible": true,
-      "runtime_status": "integrated",
-      "authentic_inert": true
-    },
-    {
-      "id": "vsync",
-      "persisted_key": "vsync",
-      "storage_type": "enum",
-      "default": "on",
-      "choices": [
-        "off",
-        "on",
-        "adaptive"
-      ],
-      "introduced_codec_version": 3,
-      "menu_symbol": "UR_MODERN_OPTIONS_VSYNC",
-      "menu_visible": true,
-      "runtime_status": "integrated",
-      "authentic_inert": true
-    },
-    {
-      "id": "presentation_fps",
-      "persisted_key": "presentation_fps",
-      "storage_type": "enum",
-      "default": "game",
-      "choices": [
-        "game",
-        "60",
-        "90",
-        "120",
-        "144",
-        "native"
-      ],
-      "introduced_codec_version": 5,
-      "menu_symbol": "UR_MODERN_OPTIONS_PRESENTATION_FPS",
-      "menu_visible": true,
-      "runtime_status": "integrated",
-      "authentic_inert": true
-    },
-    {
-      "id": "output_resolution",
-      "persisted_key": "output_resolution",
-      "storage_type": "semantic-resolution",
-      "default": "native",
-      "introduced_codec_version": 6,
-      "menu_symbol": "UR_MODERN_OPTIONS_OUTPUT_RESOLUTION",
-      "menu_visible": true,
-      "runtime_status": "integrated",
-      "authentic_inert": true
-    },
-    {
-      "id": "internal_render_scale",
-      "persisted_key": "internal_render_scale",
-      "storage_type": "enum",
-      "default": "4x",
-      "choices": [
-        "1x",
-        "2x",
-        "3x",
-        "4x"
-      ],
-      "introduced_codec_version": 6,
-      "menu_symbol": null,
-      "menu_visible": false,
-      "runtime_status": "policy-and-persistence-ready",
-      "authentic_inert": true
-    }
+    {"id":"focus_pause","persisted_key":"pause_on_focus_loss","storage_type":"bool","default":true,"introduced_codec_version":1,"menu_symbol":"UR_MODERN_OPTIONS_FOCUS_PAUSE","menu_visible":true,"runtime_status":"integrated","authentic_inert":true},
+    {"id":"vibration","persisted_key":"vibration_enabled","storage_type":"bool","default":true,"introduced_codec_version":1,"menu_symbol":null,"menu_visible":false,"runtime_status":"persisted-reserved","authentic_inert":true},
+    {"id":"display_mode","persisted_key":"display_mode","storage_type":"enum","default":"windowed","choices":["windowed","borderless","fullscreen"],"introduced_codec_version":2,"menu_symbol":"UR_MODERN_OPTIONS_DISPLAY_MODE","menu_visible":true,"runtime_status":"integrated","authentic_inert":true},
+    {"id":"vsync","persisted_key":"vsync","storage_type":"enum","default":"on","choices":["off","on","adaptive"],"introduced_codec_version":3,"menu_symbol":"UR_MODERN_OPTIONS_VSYNC","menu_visible":true,"runtime_status":"integrated","authentic_inert":true},
+    {"id":"presentation_fps","persisted_key":"presentation_fps","storage_type":"enum","default":"game","choices":["game","60","90","120","144","native"],"introduced_codec_version":5,"menu_symbol":"UR_MODERN_OPTIONS_PRESENTATION_FPS","menu_visible":true,"runtime_status":"integrated","authentic_inert":true},
+    {"id":"output_resolution","persisted_key":"output_resolution","storage_type":"semantic-resolution","default":"native","introduced_codec_version":6,"menu_symbol":"UR_MODERN_OPTIONS_OUTPUT_RESOLUTION","menu_visible":true,"runtime_status":"integrated","authentic_inert":true},
+    {"id":"internal_render_scale","persisted_key":"internal_render_scale","storage_type":"enum","default":"4x","choices":["1x","2x","3x","4x"],"introduced_codec_version":6,"menu_symbol":null,"menu_visible":false,"runtime_status":"policy-and-persistence-ready","authentic_inert":true}
   ]
 }

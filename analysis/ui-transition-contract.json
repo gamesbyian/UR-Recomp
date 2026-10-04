@@ -312,6 +312,22 @@
       "source_note": "Harvested native frame after A is the Crawler PICK TRACK screen at currentMenu 0xF6; prior POST_RESULT_DECISION label was disproven for this route."
     },
     {
+      "id": "race-result-tour-reward",
+      "from": "RESULT_RACE",
+      "to": "TOUR_REWARD_SCENE",
+      "trigger": "result sets the fifth tour flag: medal +1 (bronze/silver medal scene, or per-tour gold vignette)",
+      "status": "verified",
+      "probe": "tour-award-ending"
+    },
+    {
+      "id": "tour-reward-tour-select",
+      "from": "TOUR_REWARD_SCENE",
+      "to": "TOUR_SELECT",
+      "trigger": "scene completes",
+      "status": "verified",
+      "probe": "tour-award-ending"
+    },
+    {
       "id": "hunter-gold-ending",
       "from": "RESULT_RACE",
       "to": "ENDING",
@@ -718,7 +734,8 @@
         "PLAYER_NAME_EDITOR",
         "DEFINE_LEAGUE",
         "NAME_LEAGUE",
-        "ERASE_ALL_CONFIRM"
+        "ERASE_ALL_CONFIRM",
+        "TOUR_REWARD_SCENE"
       ]
     },
     "3": {

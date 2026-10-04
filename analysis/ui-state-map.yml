@@ -393,6 +393,20 @@ states:
         to: POST_RESULT_DECISION
         confidence: medium
 
+  - id: TOUR_REWARD_SCENE
+    family: results
+    kind: sequence
+    confidence: high
+    evidence: [observed_screenshot, reproduced_runtime]
+    description: "Tour-completion presentation after the result of the fifth qualifying track. Bronze/silver: generic medal scene (83:AEF6, a unicycle and a medal box). Gold: one of eight per-tour side-on vignettes with a tour-specific prop, dispatched by tour row through 83:88FD (Crawler 83:C49C ... Sprinter 83:BED0); Hunter gold goes to ENDING instead. $9F stays stale (0x99) during the scene."
+    runtime_signatures:
+      currentMenu_7E009F: "stale 0x99; TOUR_SELECT 0x6D follows"
+      local_fixture: "tools/probe_tour_award_and_ending.py (diagnostic SRAM pokes over a real movie win)"
+    transitions:
+      - input: "scene completes"
+        to: TOUR_SELECT
+        confidence: high
+
   - id: POST_RESULT_DECISION
     family: results
     kind: menu_or_prompt

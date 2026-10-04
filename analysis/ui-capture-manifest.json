@@ -303,6 +303,14 @@
       }
     },
     {
+      "tag": "tour-gold-scene",
+      "state_id": "TOUR_REWARD_SCENE",
+      "variant": "gold-per-tour",
+      "source_fixture": "tour-award-ending",
+      "required": false,
+      "expect": {}
+    },
+    {
       "tag": "ending-whodunnit",
       "state_id": "ENDING",
       "variant": "credits",

@@ -580,7 +580,7 @@ constexpr std::uint32_t sample_racer_hd_authored_057d_p1_with_p2_0543(
     const bool rim = wr2 < 25 * 25 && wr2 >= 22 * 22;
     const bool hub = wr2 <= 5 * 5;
 
-    const int fork_center = 138 - (y - 60) / 11;
+    const int fork_center = 134 - (y - 60) / 11;
     const bool fork =
         y >= 60 && y <= 117 &&
         x >= fork_center - 5 && x <= fork_center + 5;
@@ -591,12 +591,12 @@ constexpr std::uint32_t sample_racer_hd_authored_057d_p1_with_p2_0543(
         y >= 113 && y <= 118 &&
         x >= 153 && x <= 157;
 
-    const int seat_dx = x - 124;
+    const int seat_dx = x - 120;
     const int seat_dy = y - 26;
     const bool seat =
         (seat_dx * seat_dx) * 14 * 14 +
-            (seat_dy * seat_dy) * 39 * 39 <=
-            39 * 39 * 14 * 14 &&
+            (seat_dy * seat_dy) * 35 * 35 <=
+            35 * 35 * 14 * 14 &&
         y >= 12 && y <= 40;
 
     const bool neck =

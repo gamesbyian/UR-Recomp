@@ -316,7 +316,7 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
             (void)value;
             bool known = false;
             for (const auto allowed : allowed_v6) {
-                if (key == allowed) {
+                if (std::string_view{key} == allowed) {
                     known = true;
                     break;
                 }

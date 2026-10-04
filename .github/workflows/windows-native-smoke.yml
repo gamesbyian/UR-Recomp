@@ -120,7 +120,7 @@ jobs:
             -DSNESRECOMP_SDL_BACKEND=SDL2 \
             -DSNESRECOMP_SDL3_FETCH=OFF \
             -DSDL2_DIR="$RUNNER_TEMP/sdl2/SDL2-${SDL2_VERSION}/cmake"
-          cmake --build "$ROOT/build" --config Release --parallel 4 -- /p:CL_MPCount=4
+          cmake --build "$ROOT/build" --config Release --parallel 4
           EXE="$(find "$ROOT/build" -name 'UniracersSNESRecomp.exe' -path '*Release*' | head -n1)"
           test -n "$EXE"
           echo "EXE=$EXE" >> "$GITHUB_ENV"

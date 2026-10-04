@@ -148,8 +148,6 @@ jobs:
           set -euo pipefail
           ROOT="$RUNNER_TEMP/native"
           LUA_PATCH="$GITHUB_WORKSPACE/tools/patches/snesrecomp-desktop-lua-bridge.patch"
-          git -C snesrecomp apply --check "$LUA_PATCH"
-          git -C snesrecomp apply "$LUA_PATCH"
           sh snesrecomp/tools/new_project/setup_project.sh \
             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
             --dir "$ROOT" \
@@ -165,6 +163,12 @@ jobs:
             --no-build \
             --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
           PROJ="$ROOT/UniracersSNESRecomp"
+          # setup_project.sh materializes its own pinned framework checkout.
+          # Patch and verify the exact checkout this generated project builds.
+          git -C "$PROJ/snesrecomp" apply --check "$LUA_PATCH"
+          git -C "$PROJ/snesrecomp" apply "$LUA_PATCH"
+          grep -q 'HostGetenv("LUA_PORT")' "$PROJ/snesrecomp/runner/src/desktop/host_main.c"
+          grep -q 'add_compile_definitions(SNESRECOMP_ENABLE_LUA=1)' "$PROJ/snesrecomp/runner/lua.cmake"
           python3 "$GITHUB_WORKSPACE/tools/bootstrap_toolchain.py" --offline --tool sdl3 --clone-only
           cmake -S "$PROJ" -B "$PROJ/build" -DSNESRECOMP_SDL_BACKEND=SDL3 -DSNESRECOMP_SDL3_FETCH=ON -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10" \
             -DCMAKE_BUILD_TYPE=Release \

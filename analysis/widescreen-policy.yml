@@ -140,26 +140,26 @@ scenes:
     evidence: analysis/widescreen-vs-policy-evidence.json
     accepted_probe_margin_pixels_per_side: 8
     accepted_probe_geometry: 272x224
-    validated_host_capacity_margin_pixels_per_side: 24
-    validated_host_capacity_geometry: 304x224
-    capacity_evidence: analysis/widescreen-vs-plus24-capacity-evidence.json
+    validated_host_capacity_margin_pixels_per_side: 32
+    validated_host_capacity_geometry: 320x224
+    capacity_evidence: analysis/widescreen-vs-plus32-capacity-evidence.json
     full_authentic_16x9_ready: false
-    rationale: "Matched stock/+8 native VS runs preserve both racer slots, race progress and all tracked camera/view state at checkpoints 1240/1340/1440/1620. The recovered mirrored 8-word schedulers feed the shared descriptor/NMI transport, and the dedicated second-pass provider now supplies one adjacent 8-word strip independently for both viewports: run 37169184941 observes both providers only in the +8 run while the host widens from 256x224 to 272x224. This admits +8 as presentation-only evidence. Follow-up live-course calibration first proves one additional host-owned column at +16, then extends the same direction-aware model to two deeper host-owned columns at +24 for every observed P1/P2 preparation event with exact protected state. Final Authentic 16:9 remains centered because +48 per-viewport backing is not yet proven."
+    rationale: "Matched stock/+8 native VS runs preserve both racer slots, race progress and all tracked camera/view state at checkpoints 1240/1340/1440/1620. The recovered mirrored 8-word schedulers feed the shared descriptor/NMI transport, and the dedicated second-pass provider now supplies one adjacent 8-word strip independently for both viewports: run 37169184941 observes both providers only in the +8 run while the host widens from 256x224 to 272x224. This admits +8 as presentation-only evidence. Follow-up live-course calibration first proves one additional host-owned column at +16, extends the same direction-aware model to two deeper host-owned columns at +24, and now three deeper host-owned columns at +32 for every observed P1/P2 preparation event with exact protected state. Final Authentic 16:9 remains centered because +48 per-viewport backing is not yet proven."
 
 next_discriminator:
-  id: vs-plus32-capacity
-  goal: "Extend the calibrated VS live-course capacity model from +24 to +32 without changing authoritative state."
+  id: vs-plus40-capacity
+  goal: "Extend the calibrated VS live-course capacity model from +32 to +40 without changing authoritative state."
   method:
-    - "Treat analysis/widescreen-vs-plus24-capacity-evidence.json and run 37175014114 as the +24 capacity baseline."
-    - "Keep the accepted +8 second-pass descriptor lane unchanged. Generate three host-owned deeper course columns from the exact direction-aware source coordinate recovered from A59E."
+    - "Treat analysis/widescreen-vs-plus32-capacity-evidence.json and run 37175550131 as the +32 capacity baseline."
+    - "Keep the accepted +8 second-pass descriptor lane unchanged. Generate four host-owned deeper course columns from the exact direction-aware source coordinate recovered from A59E."
     - "Require the live-course materializer to reproduce every accepted +8 P1/P2 payload event before admitting deeper capacity."
-    - "Advance one additional course column per viewport and compare matched stock/+32 protected checkpoints before any final +48 promotion."
+    - "Advance one additional course column per viewport and compare matched stock/+40 protected checkpoints before any final +48 promotion."
   success:
     - "Every observed P1/P2 accepted payload event remains materializer-calibrated with zero misses."
-    - "The +32 candidate yields deterministic depth-1/depth-2/depth-3 host-owned payloads for both viewports."
+    - "The +40 candidate yields deterministic depth-1 through depth-4 host-owned payloads for both viewports."
     - "Protected racer/progress/camera-view state remains exact against stock."
   stop_or_split:
-    - "If calibration or +32 protected-state parity fails, retain +24 as the evidence-backed VS capacity ceiling and do not extrapolate to +48."
+    - "If calibration or +40 protected-state parity fails, retain +32 as the evidence-backed VS capacity ceiling and do not extrapolate to +48."
 
 notes:
   - "Evidence-backed scene policies may guide implementation; provisional policies remain explicit hypotheses."

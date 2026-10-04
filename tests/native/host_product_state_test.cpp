@@ -51,6 +51,41 @@ int main() {
     assert(*decoded.state == customized);
     assert(encode_host_product_state(*decoded.state) == encoded);
 
+
+    // Version 6 is forward-extensible for known additive settings. Core
+    // administrative fields remain required; absent additive fields use
+    // HostSettings defaults and the next save emits the full canonical form.
+    const auto sparse_v6 = decode_host_product_state(
+        "UR-HOST-STATE/6\n"
+        "profile=sparse\n"
+        "pause_on_focus_loss=0\n"
+        "vibration_enabled=1\n");
+    assert(sparse_v6);
+    assert(sparse_v6.state->settings.pause_on_focus_loss == false);
+    assert(sparse_v6.state->settings.display_mode == HostDisplayMode::Windowed);
+    assert(sparse_v6.state->settings.vsync_mode == HostVSyncMode::On);
+    assert(sparse_v6.state->settings.presentation_fps_mode ==
+           HostPresentationFpsMode::Game);
+    assert(sparse_v6.state->settings.output_resolution ==
+           HostOutputResolution::native());
+    assert(encode_host_product_state(*sparse_v6.state).find(
+        "output_resolution=native\n") != std::string::npos);
+
+    const auto partial_v6 = decode_host_product_state(
+        "UR-HOST-STATE/6\n"
+        "profile=partial\n"
+        "pause_on_focus_loss=1\n"
+        "vibration_enabled=0\n"
+        "display_mode=fullscreen\n"
+        "output_resolution=1280x720\n");
+    assert(partial_v6);
+    assert(partial_v6.state->settings.display_mode == HostDisplayMode::Fullscreen);
+    assert(partial_v6.state->settings.vsync_mode == HostVSyncMode::On);
+    assert(partial_v6.state->settings.presentation_fps_mode ==
+           HostPresentationFpsMode::Game);
+    assert(partial_v6.state->settings.output_resolution ==
+           HostOutputResolution::explicit_size(1280, 720));
+
     const auto legacy_v1 = decode_host_product_state(
         "UR-HOST-STATE/1\n"
         "profile=legacy.profile\n"
@@ -133,6 +168,8 @@ int main() {
     assert(!decode_host_product_state("UR-HOST-STATE/5\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ndisplay_mode=windowed\nvsync=magic\npresentation_fps=game\n"));
     assert(!decode_host_product_state("UR-HOST-STATE/5\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ndisplay_mode=windowed\nvsync=on\npresentation_fps=magic\n"));
     assert(!decode_host_product_state("UR-HOST-STATE/5\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ndisplay_mode=windowed\nvsync=on\npresentation_fps=game\nextra=1\n"));
+    assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\nfuture_typo=1\n"));
+    assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\n"));
     assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ndisplay_mode=windowed\nvsync=on\npresentation_fps=game\noutput_resolution=1920\n"));
     assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ndisplay_mode=windowed\nvsync=on\npresentation_fps=game\noutput_resolution=0x1080\n"));
     assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ndisplay_mode=windowed\nvsync=on\npresentation_fps=game\noutput_resolution=1920x0\n"));

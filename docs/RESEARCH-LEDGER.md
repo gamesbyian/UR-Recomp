@@ -2259,3 +2259,20 @@ Bank 80 frontend wrappers: `B13F` 1, `B12A` 2, `B0EB`/`B169` 3, `B115` 4, `B100`
 **Observation:** a dump 1500 frames after MAIN_MENU with no input lands mid first demo race. There `$9F` = 0x00, in-race (`0x0313`) = 1 and the split-screen camera enable (`0x0DDB`) = 1. The historical 2014 bot label DEMO = 0x00 therefore holds, with the caveat that 0x00 is the generic in-race value. The attract script now dumps `attract-demo-race`, and `analysis/generated/attract-cycle.json` is unchanged. The name-entry probe now also dumps `name-forbidden-rejected` for names it expects to be rejected.
 
 **Consequences:** the menu index marks 0x00/DEMO verified, and FORBIDDEN_NAME_REJECTION has a capture contract. `analysis/generated/ui-state-coverage.md` reports no Tier 1 gaps and no remaining evidence gaps.
+
+### R-2026-10-04-UI-25 — Native target omits the finish time on result screens; native VS challenger route otherwise matches
+
+**Status:** reproduced locally (snesref vs generated native target, same scripts and inputs)  
+**Date:** 2026-10-04  
+**Area:** native fidelity | UI | VS
+
+**Method:** build the generated `UniracersSNESRecomp` target exactly as `.github/workflows/two-player-reference.yml` does, then run `tools/compare_engine_screen_text.py`. It replays `tests/input/ui-race-result-route.script` and the VS challenger route on both engines and compares the BG2 text decoded at each checkpoint. A small adapter in `extract_menu_visual_language.py` reads the native `regs.json` schema.
+
+**Observation:**
+- **Race result:** on the 1P race result (`0x99`) and the VS result (`0xF9`), native leaves the player's finish time blank; snesref shows `0:28.56` / `0:28.76`. The SRAM result word is identical (2856 / 2876). The rest of the decoded text matches at all six checkpoints.
+- **Where it fails:** dense dumps show the time formatter `83:8C7B` building the same `_0:28.56` string at `$00FF-$0107` on native (frame 272 after the race end). The 8×2 BG2 tilemap cells for the time field (`0x1171-0x1178`, `0x1191-0x1198`) end as `0x004C` natively instead of `0x3CCE 0x3CA9 0x3CCC …` (palette-7 small-font glyphs).
+- **VS route:** native also passes all seven VS challenger checks (result, champions, PICK CHALLENGER driven by the loser, track choice, NOW PLAYING).
+
+**Interpretation:** the native fault lies between the formatter and the tilemap. The candidates are the print of the `$00FF`-based string by `80:C6BA` (`LDX #$00FF; JSR $C3AB`), whose first byte sits at the direct-page/page-1 boundary, or a later fill of those cells. It is not a race or result-state divergence. The earlier `p1_finished_p2_no_time` check in `probe_vs_challenger.py` passed on native only because it accepted any text after MIKE; it now requires an `m:ss.cc` time.
+
+**Consequences:** a concrete P0 lead is added to WORK-QUEUE item 3. The native part of `multiplayer_behavioral_verification` is recorded, but the dependency stays open for Mesen.

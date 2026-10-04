@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -84,7 +85,7 @@ def evaluate(obs: dict[str, dict]) -> dict:
 
     return {
         "result_is_vs_race_result_0xF9": r["menu"] == 0xF9 and "COMPLETE" in r["texts"],
-        "p1_finished_p2_no_time": after(texts["vsc-result"], "MIKE") not in (None, "NO TIME")
+        "p1_finished_p2_no_time": bool(re.fullmatch(r"\d+:\d\d\.\d\d", after(texts["vsc-result"], "MIKE") or ""))
                                    and after(texts["vsc-result"], "ANDREW") == "NO TIME",
         "champions_table_0xD3": ch["menu"] == 0xD3 and "VS CHAMPIONS" in ch["texts"],
         "pick_challenger_0x3F": pc["menu"] == 0x3F and "PICK CHALLENGER" in pc["texts"],

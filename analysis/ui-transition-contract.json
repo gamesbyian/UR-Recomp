@@ -687,7 +687,7 @@
       "provider_pr": 31,
       "transport_format": "start:duration:p1-mask[:p2-mask]",
       "transport_status": "complete",
-      "integration_note": "PR #31 already provides the shared P1/P2 transport across native, snesref, and Mesen. This dependency now tracks only behavioral proof: P2-only causality, P1->P2 rider-selection handoff, stable multiplayer checkpoints, and deeper VS navigation.",
+      "integration_note": "PR #31 already provides the shared P1/P2 transport across native, snesref, and Mesen. This dependency now tracks only behavioral proof: P2-only causality, P1->P2 rider-selection handoff, stable multiplayer checkpoints, and deeper VS navigation. Native (2026-10-04, local generated target): the VS challenger route passes all seven probe_vs_challenger checks and decoded text matches snesref at every checkpoint except the missing result finish time (R-2026-10-04-UI-25). Mesen remains unrun.",
       "note": "2P entry/back and VS_SELECT plus the visual P1->P2 VS handoff are locally reproduced. Remaining acceptance work is P2-only causality/confirmation, 2P handoff through TOUR_SELECT, deeper VS challenger/track checkpoints, and multiplayer gameplay/split-screen evidence. 2026-10-03: VS_CHALLENGER (0x3F) and VS_CHALLENGE_TRACK (0x5A) are now reproduced on snesref (dual-controller patch) after a decided VS race (tools/probe_vs_challenger.py, analysis/generated/vs-challenger-probe.json); native-recomp and Mesen confirmation of that route remain."
     }
   },

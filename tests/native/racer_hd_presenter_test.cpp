@@ -416,6 +416,56 @@ int main() {
     assert(p2_0542_bottom_max_lx == 31);
     assert(p2_0542_bottom_min_lx + p2_0542_bottom_max_lx == 59);
 
+    // The retained 0543 P2 contexts share byte-identical stock art, so one
+    // authored pose must serve both exact synchronized guards.
+    RacerCompositionState p2_0543_context{
+        0x057D, 0x0543, 0x0D48, 0x0000, 0, 0, 0x0001, 0x0000
+    };
+    const auto* p2_0543 =
+        find_racer_registration_for_state(0x0543, p2_0543_context);
+    assert(p2_0543 != nullptr);
+    assert(is_authored_0543_p2_057d_registration(*p2_0543));
+
+    RacerCompositionState p2_0543_reuse_context{
+        0x057E, 0x0543, 0x0D49, 0x0000, 0, 0, 0x0001, 0x0000
+    };
+    const auto* p2_0543_reuse =
+        find_racer_registration_for_state(0x0543, p2_0543_reuse_context);
+    assert(p2_0543_reuse != nullptr);
+    assert(is_authored_0543_p2_057e_registration(*p2_0543_reuse));
+
+    int p2_0543_min_lx = kRacerHdLogicalSize;
+    int p2_0543_min_ly = kRacerHdLogicalSize;
+    int p2_0543_max_lx = -1;
+    int p2_0543_max_ly = -1;
+    int p2_0543_bottom_min_lx = kRacerHdLogicalSize;
+    int p2_0543_bottom_max_lx = -1;
+    for (int ly = 0; ly < kRacerHdLogicalSize; ++ly) {
+        for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+            const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            const int sy = ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            const auto primary = sample_racer_hd_asset(*p2_0543, sx, sy, false, false);
+            const auto reused = sample_racer_hd_asset(*p2_0543_reuse, sx, sy, false, false);
+            assert(primary == reused);
+            if (primary == 0) continue;
+            if (lx < p2_0543_min_lx) p2_0543_min_lx = lx;
+            if (ly < p2_0543_min_ly) p2_0543_min_ly = ly;
+            if (lx > p2_0543_max_lx) p2_0543_max_lx = lx;
+            if (ly > p2_0543_max_ly) p2_0543_max_ly = ly;
+            if (ly == 38) {
+                if (lx < p2_0543_bottom_min_lx) p2_0543_bottom_min_lx = lx;
+                if (lx > p2_0543_bottom_max_lx) p2_0543_bottom_max_lx = lx;
+            }
+        }
+    }
+    assert(p2_0543_min_lx == 20);
+    assert(p2_0543_min_ly == 4);
+    assert(p2_0543_max_lx == 40);
+    assert(p2_0543_max_ly == 38);
+    assert(p2_0543_bottom_min_lx == 26);
+    assert(p2_0543_bottom_max_lx == 31);
+    assert(p2_0543_bottom_min_lx + p2_0543_bottom_max_lx == 57);
+
     // Object-local H/V reflection remains a post-selection presentation
     // transform for authored art.
     const std::uint32_t pedal =

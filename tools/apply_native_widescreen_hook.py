@@ -68,8 +68,9 @@ static uint16 ur_ws_native_vs_p2_payload_addr = 0;
 static unsigned ur_ws_native_vs_p1_payload_len = 0;
 static unsigned ur_ws_native_vs_p2_payload_len = 0;
 static int ur_ws_native_vs_payload_live = 0;
-static uint8 ur_ws_native_vs_shadow_payload[2][16];
-static uint16 ur_ws_native_vs_shadow_edge[2];
+#define UR_WS_NATIVE_MAX_VS_HOST_COLUMNS 2u
+static uint8 ur_ws_native_vs_shadow_payload[2][UR_WS_NATIVE_MAX_VS_HOST_COLUMNS][16];
+static uint16 ur_ws_native_vs_shadow_edge[2][UR_WS_NATIVE_MAX_VS_HOST_COLUMNS];
 static int ur_ws_native_vs_materializer_match[2];
 #define UR_WS_NATIVE_MAX_HOST_COLUMNS 8u
 static uint8 ur_ws_native_shadow_payload[UR_WS_NATIVE_MAX_HOST_COLUMNS][32];
@@ -309,9 +310,9 @@ static int ur_ws_native_should_prepare(CpuState *cpu) {
     const int p2 =
         ur_ws_native_read16(cpu, 0x0507) != 0xffff &&
         ur_ws_native_read16(cpu, 0x052d) == 8;
-    /* The recovered VS seam is proven only for one adjacent strip. Deeper
-     * split-screen materialization remains a separate discriminator. */
-    return (margin == 8 || margin == 16) && (p1 || p2);
+    /* The accepted guest lane remains one adjacent strip. +16/+24 add only
+     * host-owned live-course capacity behind that same split-screen seam. */
+    return (margin == 8 || margin == 16 || margin == 24) && (p1 || p2);
   }
 
   return ur_ws_native_read16(cpu, 0x0505) != 0xffff &&
@@ -474,27 +475,35 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
     }
 
     if (ur_ws_native_margin() >= 16) {
+      const unsigned wanted_vs_host_columns =
+          (unsigned)(ur_ws_native_margin() / 8 - 1);
       for (unsigned player = 0; player < 2; player++) {
         const int valid = player ? p2_valid : p1_valid;
         const uint16 first_edge = player ? p2_second_edge : p1_second_edge;
         if (!valid || !ur_ws_native_vs_materializer_match[player])
           continue;
-        if (!ur_ws_native_vs_column_from_course(
-                cpu, player, 1, ur_ws_native_vs_shadow_payload[player]))
-          continue;
-        ur_ws_native_vs_shadow_edge[player] =
-            (uint16)((first_edge & 0xffe0u) |
-                     ((first_edge + 1u) & 0x001fu));
-        if (ur_ws_native_trace()) {
-          fprintf(stderr,
-                  "URWS_VS_SHADOW16 provider=course-runtime player=%u camx=%u edge=%04X count=8 payload=",
-                  player + 1u,
-                  (unsigned)ur_ws_native_read16(cpu, player ? 0x041b : 0x0419),
-                  (unsigned)ur_ws_native_vs_shadow_edge[player]);
-          for (unsigned j = 0; j < 16; j++)
-            fprintf(stderr, "%02X",
-                    (unsigned)ur_ws_native_vs_shadow_payload[player][j]);
-          fprintf(stderr, "\n");
+        for (unsigned i = 0;
+             i < wanted_vs_host_columns &&
+             i < UR_WS_NATIVE_MAX_VS_HOST_COLUMNS;
+             i++) {
+          if (!ur_ws_native_vs_column_from_course(
+                  cpu, player, (int)i + 1,
+                  ur_ws_native_vs_shadow_payload[player][i]))
+            break;
+          ur_ws_native_vs_shadow_edge[player][i] =
+              (uint16)((first_edge & 0xffe0u) |
+                       ((first_edge + 1u + i) & 0x001fu));
+          if (ur_ws_native_trace()) {
+            fprintf(stderr,
+                    "URWS_VS_SHADOW_EXT provider=course-runtime margin=%d player=%u depth=%u camx=%u edge=%04X count=8 payload=",
+                    ur_ws_native_margin(), player + 1u, i + 1u,
+                    (unsigned)ur_ws_native_read16(cpu, player ? 0x041b : 0x0419),
+                    (unsigned)ur_ws_native_vs_shadow_edge[player][i]);
+            for (unsigned j = 0; j < 16; j++)
+              fprintf(stderr, "%02X",
+                      (unsigned)ur_ws_native_vs_shadow_payload[player][i][j]);
+            fprintf(stderr, "\n");
+          }
         }
       }
     }
@@ -769,6 +778,8 @@ def apply(gen_dir: Path) -> dict:
             "margin8_hook": True,
             "vs_margin8_supported": True,
             "vs_margin16_capacity_probe": True,
+            "vs_margin24_capacity_probe": True,
+            "vs_margin24_capacity_probe": True,
             "margin16_supported": True,
             "margin24_supported": True,
         "margin64_supported": True,

@@ -51,6 +51,15 @@ ModernSessionDispatchResult ModernSessionRuntime::request(
         *action,
         hooks_,
         &restart_lifecycle_);
+
+    if (*action == RuntimeAction::ExitToFrontend &&
+        result.dispatch_status == RuntimeDispatchStatus::Applied) {
+        control_.reconcile_frontend_return();
+        (void)restart_lifecycle_.retire_attempt();
+        if (hooks_.set_rewind_audio_timing_lock) {
+            hooks_.set_rewind_audio_timing_lock(0);
+        }
+    }
     return result;
 }
 

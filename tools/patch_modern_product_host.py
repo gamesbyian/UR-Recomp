@@ -31,7 +31,8 @@ def patch_main_text(source: str) -> str:
         + "    .after_run_frame       = &ur_uniracers_modern_after_run_frame,\n"
         + "    .system_key_down       = &ur_uniracers_modern_system_key_down,\n"
         + "    .system_gamepad_button = &ur_uniracers_modern_system_gamepad_button,\n"
-        + "    .system_overlay         = &ur_uniracers_modern_system_overlay,\n",
+        + "    .system_overlay         = &ur_uniracers_modern_system_overlay,\n"
+        + "    .presentation_hz        = &ur_uniracers_modern_presentation_hz,\n",
         1,
     )
 

@@ -11,6 +11,7 @@ extern "C" {
 #include "focus_pause_policy.hpp"
 #include "host_product_state.hpp"
 #include "host_product_store.hpp"
+#include "host_profile_runtime.hpp"
 #include "modern_pause_input.h"
 #include "modern_pause_menu.h"
 #include "modern_options_menu.h"
@@ -102,6 +103,45 @@ bool modern_mode() {
 }
 
 void ensure_product_state();
+void apply_profile_save_root() {
+    ensure_product_state();
+
+    const char* override_root = std::getenv("UR_PROFILE_SAVE_ROOT");
+    const auto decision = ur::product::resolve_host_profile_save_root(
+        modern_mode() ? ur::product::ExecutionMode::Modern
+                      : ur::product::ExecutionMode::Authentic,
+        g_product_state.active_profile_id,
+        override_root ? std::string_view(override_root) : std::string_view{});
+
+    if (decision.status == ur::product::HostProfileSaveRootStatus::Rejected) {
+        RtlSetSaveRoot(nullptr);
+        product_diagnostic("UR_PROFILE_SAVE_ROOT REJECTED_DEFAULT");
+        return;
+    }
+
+    if (!decision.isolated()) {
+        RtlSetSaveRoot(nullptr);
+        if (modern_mode()) {
+            product_diagnostic("UR_PROFILE_SAVE_ROOT NO_PROFILE_DEFAULT root=saves");
+        } else {
+            product_diagnostic("UR_PROFILE_SAVE_ROOT AUTHENTIC_DEFAULT root=saves");
+        }
+        return;
+    }
+
+    RtlSetSaveRoot(decision.save_root.c_str());
+    RtlEnsureSaveDir();
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_PROFILE_SAVE_ROOT APPLIED profile=%s root=%s\n",
+            g_product_state.active_profile_id
+                ? g_product_state.active_profile_id->c_str() : "",
+            RtlSaveRoot());
+        std::fflush(stderr);
+    }
+}
+
 
 const char* widescreen_mode_name(ur::product::HostWidescreenMode mode) {
     return mode == ur::product::HostWidescreenMode::Authentic16x9
@@ -1024,6 +1064,10 @@ bool activate_pause_selection() {
 }
 
 }  // namespace
+
+extern "C" void ur_uniracers_modern_after_config(void) {
+    apply_profile_save_root();
+}
 
 extern "C" int ur_uniracers_modern_native_widescreen_enabled(void) {
     return authentic_16x9_view_enabled() &&

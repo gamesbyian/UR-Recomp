@@ -2292,3 +2292,5 @@ Evidence, in order:
 So when the LLE master deadline lands on the prologue of a bounced compiled callee at bridge depth 2, the unwind is recorded with resume `80:C3AB`, but execution resumes at the caller's return address and the call is skipped. The bug is timing-dependent (it hits whichever print happens to straddle the deadline), so other one-off missing UI updates may share this cause.
 
 **Owner:** pinned snesrecomp runner (`runner/src/snes/interp_bridge.c` deadline-unwind path for paired bounces), not the game code. Reproduce with `tools/compare_engine_screen_text.py` plus the trap-yield variable above.
+
+The VS result shows the same signature during its result build (`SNESRECOMP_TRAP_YIELD` on the VS challenger route: `f3798 resume=$80C3AB S=$01EF deadline=1 depth=2`).

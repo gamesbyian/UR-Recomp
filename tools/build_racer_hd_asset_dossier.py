@@ -101,6 +101,12 @@ NINTH_AUTHORED_REPRESENTATION_ID = (
 TENTH_AUTHORED_REPRESENTATION_ID = (
     "ordinary-racer-0x0541-p2-predecessor-reference"
 )
+ELEVENTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0542-p2-with-p1-companion-0D2C-reference"
+)
+TWELFTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference"
+)
 
 
 def _rgba32(r: int, g: int, b: int, a: int = 255) -> bytes:
@@ -554,6 +560,56 @@ def build_eighth_authored_candidate_rgba() -> bytes:
     )
 
 
+def sample_authored_0542_p2_rgba(x: int, y: int) -> bytes:
+    """Mirror the shared authored P2 0542 pose exactly."""
+    if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
+        return b"\x00\x00\x00\x00"
+
+    wheel_cx, wheel_cy = 120, 120
+    wx, wy = x - wheel_cx, y - wheel_cy
+    wr2 = wx * wx + wy * wy
+    tire = wr2 <= 35 * 35 and wr2 >= 25 * 25
+    rim = wr2 < 25 * 25 and wr2 >= 22 * 22
+    hub = wr2 <= 5 * 5
+
+    fork_center = 118 - (y - 60) // 11
+    fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
+    crank = y >= 116 and y <= 123 and x >= 103 and x <= 132
+    pedal = y >= 113 and y <= 118 and x >= 133 and x <= 137
+
+    seat_dx, seat_dy = x - 130, y - 26
+    seat = (
+        (seat_dx * seat_dx) * 14 * 14
+        + (seat_dy * seat_dy) * 35 * 35
+        <= 35 * 35 * 14 * 14
+        and y >= 16 and y <= 40
+    )
+
+    neck = y >= 30 and y <= 60 and x >= 116 and x <= 124
+    crown_dx, crown_dy = x - 126, y - 60
+    crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+
+    if hub or rim or crank or pedal:
+        return authored_metal_rgba(x, y)
+    if seat:
+        seat_light = (255 - x) + (255 - y)
+        return _rgba32(75, 71, 65) if seat_light > 350 else _rgba32(43, 39, 32)
+    if fork or neck or crown:
+        return authored_blue_frame_rgba(x, y)
+    if tire:
+        tire_light = (255 - x) + (255 - y)
+        return _rgba32(64, 60, 53) if tire_light > 310 else _rgba32(32, 29, 23)
+    return b"\x00\x00\x00\x00"
+
+
+def build_ninth_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0542_p2_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
 def gameplay_sampled_alpha_review(authored_rgba: bytes, stock_rgba: bytes) -> dict:
     candidate = set()
     stock = set()
@@ -802,6 +858,16 @@ def build_dossier(
                 )
                 authored_rgba = build_eighth_authored_candidate_rgba()
                 native_sampler = "sample_racer_hd_authored_0541_p2_predecessor"
+            elif rid in (
+                ELEVENTH_AUTHORED_REPRESENTATION_ID,
+                TWELFTH_AUTHORED_REPRESENTATION_ID,
+            ):
+                expected_generator = (
+                    "tools/build_racer_hd_asset_dossier.py::"
+                    "build_ninth_authored_candidate_rgba"
+                )
+                authored_rgba = build_ninth_authored_candidate_rgba()
+                native_sampler = "sample_racer_hd_authored_0542_p2"
             else:
                 raise ValueError(f"unsupported authored candidate registration: {rid}")
             if authored_meta.get("artifact_generator") != expected_generator:

@@ -4,25 +4,42 @@
 
 #include <optional>
 #include <string>
+#include <string_view>
 
 namespace ur::product {
 
 enum class HostProfileLoadStatus {
     Loaded,
     Missing,
-    Rejected,
+    Malformed,
+    RejectedByPolicy,
     IoError,
 };
 
 struct HostProfileLoadResult {
     HostProfileLoadStatus status = HostProfileLoadStatus::IoError;
     std::optional<HostProfileState> state;
-    bool migrated = false;
     std::string error;
 
     bool loaded() const noexcept {
         return status == HostProfileLoadStatus::Loaded && state.has_value();
     }
+};
+
+enum class HostProfileResolveStatus {
+    Loaded,
+    DefaultedMissing,
+    DefaultedMalformed,
+    RejectedByPolicy,
+    IoError,
+};
+
+struct HostProfileResolveResult {
+    HostProfileResolveStatus status = HostProfileResolveStatus::IoError;
+    std::optional<HostProfileState> state;
+    std::string error;
+
+    explicit operator bool() const noexcept { return state.has_value(); }
 };
 
 enum class HostProfileSaveStatus {
@@ -32,6 +49,11 @@ enum class HostProfileSaveStatus {
 };
 
 HostProfileLoadResult load_host_profile_state_file(
+    ExecutionMode mode,
+    const std::string& path,
+    std::string_view expected_profile_id);
+
+HostProfileResolveResult resolve_host_profile_state_file(
     ExecutionMode mode,
     const std::string& path,
     std::string_view expected_profile_id);

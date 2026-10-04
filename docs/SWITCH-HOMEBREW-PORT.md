@@ -88,6 +88,16 @@ On hardware, still prove:
 
 Exit: evaluator passes retained on-device capability report(s) with no guest simulation dependency.
 
+### Gate S1.5 — generated guest AOT portability
+
+**Closed.** Run `37239842625` verifies the canonical USA ROM, stages the repository-owned patched SNESRecomp framework, generates fresh Uniracers AOT C, transfers that exact source bundle into the pinned devkitA64 container, and cross-compiles the title driver plus all generated guest translation units for Switch AArch64.
+
+The accepted bundle contains 11 C translation units: `game_rtl.c`, `host_contract.c`, `gen_stubs.c`, and 8 generated `src/gen/*.c` banks. All 11 emitted AArch64 objects successfully (391,848 bytes total in the retained run). The desktop `main.c` and desktop runner sources are explicitly excluded.
+
+The first pass exposed only an evidence-packaging defect: scaffold headers were omitted from the cross-job bundle. After carrying the actual project headers, the same compile gate passed without simulation-source modifications.
+
+This establishes that the generated authoritative guest/title code itself is architecture-portable to Switch. It does **not** yet link the SNES hardware/runtime model, run on hardware, prove deterministic parity, or close S2. The next S2 task is therefore the runtime-model link boundary, not rewriting generated guest code.
+
 ### Gate S2 — authoritative simulation
 
 Link the same generated/recompiled simulation used by desktop.

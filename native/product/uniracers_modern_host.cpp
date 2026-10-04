@@ -13,6 +13,7 @@ extern "C" {
 #include "completed_run_ghost_frame.hpp"
 #include "completed_run_ghost_policy.hpp"
 #include "completed_run_ghost_trace.hpp"
+#include "completed_run_presentation.hpp"
 #include "completed_run_ghost_world_sample.hpp"
 #include "completed_run_record.hpp"
 #include "completed_run_store.hpp"
@@ -2209,30 +2210,87 @@ extern "C" void ur_uniracers_modern_system_overlay(
 
         if (g_run_data_visible) {
             const UrUniracersRunData data = current_run_data();
-            const int run_h = 84;
+            const int run_h = 144;
             const int run_y = (height - run_h) / 2;
-            char time_text[32];
-            if (data.valid) {
+            char current_text[40];
+            char previous_text[40];
+            char pb_text[40];
+            char ghost_text[40];
+            char delta_text[40];
+
+            const int64_t current_ticks =
+                ur_uniracers_run_data_ticks60(data);
+            if (current_ticks >= 0) {
+                const std::string formatted =
+                    ur::product::format_run_ticks60(
+                        static_cast<std::uint64_t>(current_ticks));
                 std::snprintf(
-                    time_text,
-                    sizeof(time_text),
-                    "TIME   %d:%d%d.%d",
-                    data.minutes,
-                    data.tens_seconds,
-                    data.seconds,
-                    data.tenths);
+                    current_text, sizeof(current_text),
+                    "CURRENT  %s", formatted.c_str());
             } else {
-                std::snprintf(time_text, sizeof(time_text), "TIME   --:--.-");
+                std::snprintf(
+                    current_text, sizeof(current_text),
+                    "CURRENT  --:--.--/60");
             }
+
+            const auto* previous = g_run_ghosts.record(
+                ur::product::CompletedRunGhostKind::Previous);
+            const auto* personal_best = g_run_ghosts.record(
+                ur::product::CompletedRunGhostKind::PersonalBest);
+            const auto previous_presented = previous
+                ? ur::product::present_run_target(
+                    *previous, ur::product::RunDataTargetKind::Previous)
+                : std::nullopt;
+            const auto pb_presented = personal_best
+                ? ur::product::present_run_target(
+                    *personal_best,
+                    ur::product::RunDataTargetKind::PersonalBest)
+                : std::nullopt;
+            std::snprintf(
+                previous_text, sizeof(previous_text),
+                "PREVIOUS %s",
+                previous_presented
+                    ? previous_presented->time_text.c_str() : "--");
+            std::snprintf(
+                pb_text, sizeof(pb_text),
+                "PB       %s",
+                pb_presented ? pb_presented->time_text.c_str() : "--");
+
+            const auto ghost_target = active_run_ghost_target();
+            std::snprintf(
+                ghost_text, sizeof(ghost_text),
+                "GHOST    %s",
+                ur::product::completed_run_ghost_target_name(ghost_target));
+
+            std::snprintf(delta_text, sizeof(delta_text), "DELTA    --");
+            if (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
+                current_ticks >= 0) {
+                const auto selection =
+                    ur::product::select_completed_run_ghost_target(
+                        g_run_ghosts, ghost_target);
+                if (selection.active() && selection.record) {
+                    const auto delta =
+                        ur::product::present_run_finish_delta(
+                            *selection.record,
+                            static_cast<std::uint64_t>(current_ticks));
+                    if (delta) {
+                        std::snprintf(
+                            delta_text, sizeof(delta_text),
+                            "DELTA    %s",
+                            delta->delta_text.c_str());
+                    }
+                }
+            }
+
             const char* surface_text =
                 g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE
-                    ? "SURFACE RACE"
+                    ? "SURFACE  RACE"
                     : (g_surface == UR_UNIRACERS_RESTART_RESULTS
-                        ? "SURFACE RESULTS"
-                        : "SURFACE OTHER");
+                        ? "SURFACE  RESULTS"
+                        : "SURFACE  OTHER");
             const char* retry_text =
                 ur_modern_session_restart_available(g_session)
-                    ? "RETRY  READY" : "RETRY  UNAVAILABLE";
+                    ? "RETRY    READY" : "RETRY    UNAVAILABLE";
 
             snes_ovl_fill_rect(
                 pixels, stride, height, x, run_y, panel_w, run_h,
@@ -2245,16 +2303,28 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 "RUN DATA", 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, run_y + 22,
-                time_text, 0xFFFFFFFFu, 1);
+                current_text, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, run_y + 37,
-                surface_text, 0xFFFFFFFFu, 1);
+                previous_text, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, run_y + 52,
-                retry_text, 0xFFFFFFFFu, 1);
+                pb_text, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, run_y + 67,
-                "BACK   B / ESC", 0xFFFFFFFFu, 1);
+                ghost_text, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, run_y + 82,
+                delta_text, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, run_y + 97,
+                surface_text, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, run_y + 112,
+                retry_text, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, run_y + 127,
+                "BACK     B / ESC", 0xFFFFFFFFu, 1);
             return;
         }
 

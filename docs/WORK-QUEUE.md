@@ -278,8 +278,8 @@ Do this from the verified original UI state map, not from memory or generic mode
 - [ ] Evaluate performance-based medal awarding or selectable challenge tiers as alternatives to mandatory Bronze → Silver → Gold replay.
 - [ ] Add modern per-event/tour persistence unless evidence shows the original session constraint is mechanically meaningful. Stock keeps the in-progress tour in battery SRAM `0x1075` flags but wipes them at rider select, so it is lost on power-off (R-2026-10-04-UI-20). A resume can reuse that table.
 - [ ] Replace destructive controller-chord administration with explicit confirmed actions in modern mode while preserving the original behavior for reference.
-- [ ] Design a unified records/statistics surface that can embed or reproduce the original score/result presentations rather than erasing them.
-- [ ] Make basic controls/status self-explanatory in-game without exposing secrets or advanced discoveries that are intentionally hidden.
+- [ ] Design a unified records/statistics surface that can embed or reproduce the original score/result presentations rather than erasing them. Stock rider stats (16 × PLAYED/WON/FAILED/SCORE at `0x0230`, LOST derived) and the VS tally (`0x10A9`/`0x10AB`) are decoded in `analysis/generated/progression-sram-semantics.json` (R-2026-10-04-UI-21).
+- [ ] Make basic controls/status self-explanatory in-game without exposing secrets or advanced discoveries that are intentionally hidden. Known stock secrets to keep hidden: the Up-Left-Up-R-A splash cheat (all tours for one power-on, CHEAT! ending page) and the per-tour gold vignettes and Hunter ending (R-2026-10-04-UI-22).
 - [ ] Record each intentional modern behavior change as product policy and keep it distinct from fidelity fixes/regressions.
 
 ### Baseline modern product requirements

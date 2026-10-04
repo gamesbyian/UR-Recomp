@@ -25,7 +25,7 @@ int main() {
         const auto d = resolve_host_profile_save_root(
             ExecutionMode::Modern, std::string("alpha"));
         assert(d.status == HostProfileSaveRootStatus::IsolatedProfileRoot);
-        assert(d.save_root == "saves/profiles/alpha");
+        assert(d.save_root == "saves/profile-alpha");
         assert(d.isolated());
     }
     {

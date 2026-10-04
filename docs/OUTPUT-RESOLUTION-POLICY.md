@@ -1,8 +1,9 @@
 # Output Resolution Product Contract
 
 This document records the accepted ownership and behavior for Modern-mode output
-resolution. It exists so the user-facing Options integration can be completed
-without re-opening platform, refresh-rate or monitor-change policy.
+resolution, including the completed user-facing Options/runtime integration.
+It keeps platform, refresh-rate and monitor-change policy explicit so later video
+settings do not reopen this decision.
 
 It does **not** redefine logical SNES geometry, Widescreen scene composition,
 HD asset resolution, internal render scale or authoritative guest timing.
@@ -114,10 +115,9 @@ The current-monitor catalog therefore owns the **effective** selection:
 
 This separates a durable preference from a temporary monitor capability.
 
-## Required user-facing integration
+## User-facing integration
 
-Once the active pause/Options ownership lane is clear, the real Modern-mode row
-should be integrated in this order:
+The Modern-mode row follows this integration contract:
 
 1. Enumerate the active monitor through the normalized SNESRecomp capability
    API.

@@ -72,7 +72,7 @@
      OverlaySelftestPadMainTick(frameCtr);
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -244,5 +244,11 @@ int snesrecomp_desktop_get_native_output_mode(
+@@ -244,4 +244,10 @@ int snesrecomp_desktop_get_native_output_mode(
  int snesrecomp_desktop_set_output_mode(
      const SnesDesktopOutputMode *mode);
  

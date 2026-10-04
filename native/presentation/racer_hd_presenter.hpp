@@ -441,6 +441,29 @@ constexpr bool authored_segment_contains(
     return cross * cross <= half_width * half_width * length2;
 }
 
+constexpr bool authored_crank_contains(
+    int x,
+    int y,
+    int wheel_cx,
+    int wheel_cy,
+    int pedal_root_x
+) noexcept {
+    return authored_segment_contains(
+        x, y, wheel_cx, wheel_cy, pedal_root_x, 116, 2
+    );
+}
+
+constexpr bool authored_pedal_contains(
+    int x,
+    int y,
+    int pedal_min_x,
+    int pedal_max_x
+) noexcept {
+    return authored_segment_contains(
+        x, y, pedal_min_x, 116, pedal_max_x, 116, 2
+    );
+}
+
 constexpr bool authored_saddle_contains(
     int x,
     int y,
@@ -610,12 +633,12 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1(
         x >= fork_center - 4 && x <= fork_center + 4;
 
     // Short crank and pedal. Neutral hardware may carry the brightest values.
-    const bool crank =
-        y >= 116 && y <= 123 &&
-        x >= 112 && x <= 138;
-    const bool pedal =
-        y >= 113 && y <= 118 &&
-        x >= 138 && x <= 150;
+    const bool crank = authored_crank_contains(
+        x, y, wheel_cx, wheel_cy, 138
+    );
+    const bool pedal = authored_pedal_contains(
+        x, y, 138, 150
+    );
 
     // The saddle is restored to the stock top-of-silhouette band. The original
     // pilot started five logical pixels too low when sampled for gameplay.
@@ -697,12 +720,12 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1_companion_0d2d(
     const bool fork =
         y >= 60 && y <= 117 &&
         x >= fork_center - 4 && x <= fork_center + 4;
-    const bool crank =
-        y >= 116 && y <= 123 &&
-        x >= 112 && x <= 138;
-    const bool pedal =
-        y >= 113 && y <= 118 &&
-        x >= 138 && x <= 150;
+    const bool crank = authored_crank_contains(
+        x, y, wheel_cx, wheel_cy, 138
+    );
+    const bool pedal = authored_pedal_contains(
+        x, y, 138, 150
+    );
 
     const int seat_dx = x - 130;
     const int seat_dy = y - 23;
@@ -781,12 +804,12 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p1_predecessor(
     const bool fork =
         y >= 60 && y <= 117 &&
         x >= fork_center - 5 && x <= fork_center + 5;
-    const bool crank =
-        y >= 116 && y <= 123 &&
-        x >= 111 && x <= 140;
-    const bool pedal =
-        y >= 113 && y <= 118 &&
-        x >= 141 && x <= 145;
+    const bool crank = authored_crank_contains(
+        x, y, wheel_cx, wheel_cy, 141
+    );
+    const bool pedal = authored_pedal_contains(
+        x, y, 141, 145
+    );
 
     const int seat_dx = x - 130;
     const int seat_dy = y - 22;
@@ -869,12 +892,12 @@ constexpr std::uint32_t sample_racer_hd_authored_057f_p1_companion_0d4a(
     const bool fork =
         y >= 60 && y <= 117 &&
         x >= fork_center - 5 && x <= fork_center + 5;
-    const bool crank =
-        y >= 116 && y <= 123 &&
-        x >= 115 && x <= 144;
-    const bool pedal =
-        y >= 113 && y <= 118 &&
-        x >= 145 && x <= 149;
+    const bool crank = authored_crank_contains(
+        x, y, wheel_cx, wheel_cy, 145
+    );
+    const bool pedal = authored_pedal_contains(
+        x, y, 145, 149
+    );
 
     // The repeated pose leans farther across the object-local canvas than the
     // 1217/1218 pose. Its saddle supplies the stock left envelope while the
@@ -962,12 +985,12 @@ constexpr std::uint32_t sample_racer_hd_authored_057e_p1_with_p2_0543(
     const bool fork =
         y >= 60 && y <= 117 &&
         x >= fork_center - 5 && x <= fork_center + 5;
-    const bool crank =
-        y >= 116 && y <= 123 &&
-        x >= 119 && x <= 148;
-    const bool pedal =
-        y >= 113 && y <= 118 &&
-        x >= 149 && x <= 153;
+    const bool crank = authored_crank_contains(
+        x, y, wheel_cx, wheel_cy, 149
+    );
+    const bool pedal = authored_pedal_contains(
+        x, y, 149, 153
+    );
 
     // Widen only the upper silhouette enough to recover the stock x=21 edge.
     // The wheel supplies x=42 and the recovered [67,76] contact anchor.
@@ -1055,12 +1078,12 @@ constexpr std::uint32_t sample_racer_hd_authored_057d_p1_with_p2_0543(
     const bool fork =
         y >= 60 && y <= 117 &&
         x >= fork_center - 5 && x <= fork_center + 5;
-    const bool crank =
-        y >= 116 && y <= 123 &&
-        x >= 123 && x <= 152;
-    const bool pedal =
-        y >= 113 && y <= 118 &&
-        x >= 153 && x <= 157;
+    const bool crank = authored_crank_contains(
+        x, y, wheel_cx, wheel_cy, 153
+    );
+    const bool pedal = authored_pedal_contains(
+        x, y, 153, 157
+    );
 
     // The 057D mismatch map shows the same right-heavy saddle mass as
     // 057E. Shift left and narrow it while the wheel continues to own the
@@ -1138,8 +1161,12 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p2_baseline(
 
     const int fork_center = 126 - (y - 60) / 11;
     const bool fork = y >= 60 && y <= 117 && x >= fork_center - 5 && x <= fork_center + 5;
-    const bool crank = y >= 116 && y <= 123 && x >= 111 && x <= 140;
-    const bool pedal = y >= 113 && y <= 118 && x >= 141 && x <= 145;
+    const bool crank = authored_crank_contains(
+        x, y, wheel_cx, wheel_cy, 141
+    );
+    const bool pedal = authored_pedal_contains(
+        x, y, 141, 145
+    );
 
     const int seat_dx = x - 130;
     const int seat_dy = y - 22;
@@ -1209,12 +1236,12 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p2_predecessor(
     const bool fork =
         y >= 60 && y <= 117 &&
         x >= fork_center - 5 && x <= fork_center + 5;
-    const bool crank =
-        y >= 116 && y <= 123 &&
-        x >= 107 && x <= 136;
-    const bool pedal =
-        y >= 113 && y <= 118 &&
-        x >= 137 && x <= 141;
+    const bool crank = authored_crank_contains(
+        x, y, wheel_cx, wheel_cy, 137
+    );
+    const bool pedal = authored_pedal_contains(
+        x, y, 137, 141
+    );
 
     // The P2 0541 transition pose is over-broad on the left/top at true
     // density. Shift right/down and narrow the saddle while preserving the
@@ -1299,12 +1326,12 @@ constexpr std::uint32_t sample_racer_hd_authored_0542_p2(
     const bool fork =
         y >= 60 && y <= 117 &&
         x >= fork_center - 5 && x <= fork_center + 5;
-    const bool crank =
-        y >= 116 && y <= 123 &&
-        x >= 103 && x <= 132;
-    const bool pedal =
-        y >= 113 && y <= 118 &&
-        x >= 133 && x <= 137;
+    const bool crank = authored_crank_contains(
+        x, y, wheel_cx, wheel_cy, 133
+    );
+    const bool pedal = authored_pedal_contains(
+        x, y, 133, 137
+    );
 
     const int seat_dx = x - 130;
     const int seat_dy = y - 26;
@@ -1379,12 +1406,12 @@ constexpr std::uint32_t sample_racer_hd_authored_0543_p2(
     const bool fork =
         y >= 60 && y <= 117 &&
         x >= fork_center - 5 && x <= fork_center + 5;
-    const bool crank =
-        y >= 116 && y <= 123 &&
-        x >= 101 && x <= 130;
-    const bool pedal =
-        y >= 113 && y <= 118 &&
-        x >= 131 && x <= 135;
+    const bool crank = authored_crank_contains(
+        x, y, wheel_cx, wheel_cy, 131
+    );
+    const bool pedal = authored_pedal_contains(
+        x, y, 131, 135
+    );
 
     const int seat_dx = x - 130;
     const int seat_dy = y - 30;

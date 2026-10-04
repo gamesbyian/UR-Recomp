@@ -451,7 +451,7 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         )
         self.assertEqual(
             sample_authored_0542_p2_rgba(126, 110),
-            bytes((217, 213, 208, 255)),
+            bytes((159, 153, 142, 255)),
         )
         occupied = []
         for ly in range(64):

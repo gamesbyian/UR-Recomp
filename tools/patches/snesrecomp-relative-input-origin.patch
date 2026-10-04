@@ -1,6 +1,6 @@
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -94,4 +94,9 @@ int snesrecomp_desktop_get_output_mode(int index, SnesDesktopOutputMode *out);
+@@ -94,3 +94,8 @@ int snesrecomp_desktop_get_output_mode(int index, SnesDesktopOutputMode *out);
  int snesrecomp_desktop_set_output_mode(int index);
  
 +/* Acceptance/replay helper. No-op unless SNESRECOMP_INPUT_RELATIVE is set.
@@ -11,7 +11,7 @@
  int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv);
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -612,6 +612,9 @@ static int g_input_event_cap;
+@@ -612,5 +612,8 @@ static int g_input_event_cap;
  static int g_input_event_cursor;
  static uint16 g_input_p1_mask, g_input_p2_mask;
  static uint64 g_input_p1_end, g_input_p2_end;

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import html
 import json
+import shutil
 from pathlib import Path
 
 try:
@@ -131,11 +132,20 @@ def render_html(manifest: dict, live: dict | None, readiness: dict | None = None
         nearest_href = f"../{pose['nearest_4x_png']}"
         authored_panels = (
             f'<figure><img class="asset large" src="{html.escape(authored_href)}">'
-            f'<figcaption>Authored 4×</figcaption></figure>'
+            f'<figcaption>After · authored 4× inspection</figcaption></figure>'
             f'<figure><img class="asset gameplay" src="{html.escape(authored_href)}">'
-            f'<figcaption>Authored at gameplay footprint</figcaption></figure>'
+            f'<figcaption>After · gameplay footprint</figcaption></figure>'
             if authored else
             '<figure class="missing">No authored asset</figure>'
+        )
+        baseline_authored = pose.get("baseline_authored_png")
+        baseline_href = baseline_authored if baseline_authored else None
+        baseline_panels = (
+            f'<figure><img class="asset large" src="{html.escape(baseline_href)}">'
+            f'<figcaption>Before · authored 4× inspection</figcaption></figure>'
+            f'<figure><img class="asset gameplay" src="{html.escape(baseline_href)}">'
+            f'<figcaption>Before · gameplay footprint</figcaption></figure>'
+            if baseline_href else ""
         )
         shipping_status = shipping.get("review_status", "unreviewed")
         blockers = ", ".join(shipping.get("blocker_codes", [])) or "none"
@@ -153,6 +163,7 @@ def render_html(manifest: dict, live: dict | None, readiness: dict | None = None
   <div class="panels">
     <figure><img class="asset stock" src="{html.escape(stock_href)}"><figcaption>Stock 1×</figcaption></figure>
     <figure><img class="asset large" src="{html.escape(nearest_href)}"><figcaption>Stock nearest 4×</figcaption></figure>
+    {baseline_panels}
     {authored_panels}
     <figure>{diff_svg}<figcaption>Alpha mismatch · stock-only {stock_only_count} · authored-only {candidate_only_count}</figcaption></figure>
   </div>
@@ -179,6 +190,13 @@ def render_html(manifest: dict, live: dict | None, readiness: dict | None = None
             f' · needs refinement {counts["needs_refinement"]}'
             f' · changed since review {counts.get("changed_since_review", 0)}'
         )
+    baseline_summary = ""
+    if "baseline_comparison" in manifest:
+        baseline = manifest["baseline_comparison"]
+        baseline_summary = (
+            f' · before/after changed {baseline["changed_authored_pose_count"]}'
+            f'/{baseline["matched_pose_count"]} poses'
+        )
     summary = (
         f'{manifest["semantic_representation_count"]} exact guards → '
         f'{manifest["unique_pose_count"]} unique poses · '
@@ -186,6 +204,7 @@ def render_html(manifest: dict, live: dict | None, readiness: dict | None = None
         f'{manifest["unauthored_pose_count"]} unauthored · '
         f'{manifest["authored_conflict_count"]} authored conflicts'
         + shipping_summary
+        + baseline_summary
     )
     return f"""<!doctype html>
 <html lang="en">
@@ -230,6 +249,8 @@ def build_review_packet(
     original_frame: Path | None = None,
     hd_frame: Path | None = None,
     readiness_path: Path | None = None,
+    baseline_dossier_path: Path | None = None,
+    baseline_equivalence_path: Path | None = None,
 ) -> dict:
     dossier = json.loads(dossier_path.read_text(encoding="utf-8"))
     equivalence = json.loads(equivalence_path.read_text(encoding="utf-8"))
@@ -240,6 +261,56 @@ def build_review_packet(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     manifest = build_review_manifest(dossier, equivalence)
+
+    if (baseline_dossier_path is None) != (baseline_equivalence_path is None):
+        raise ValueError("baseline dossier and equivalence must be supplied together")
+    if baseline_dossier_path is not None and baseline_equivalence_path is not None:
+        baseline_dossier = json.loads(
+            baseline_dossier_path.read_text(encoding="utf-8")
+        )
+        baseline_equivalence = json.loads(
+            baseline_equivalence_path.read_text(encoding="utf-8")
+        )
+        baseline_manifest = build_review_manifest(
+            baseline_dossier, baseline_equivalence
+        )
+        baseline_by_pose = {
+            pose["pose_id"]: pose for pose in baseline_manifest["poses"]
+        }
+        baseline_root = baseline_dossier_path.parent
+        copied = 0
+        changed = 0
+        for pose in manifest["poses"]:
+            before = baseline_by_pose.get(pose["pose_id"])
+            if before is None:
+                continue
+            before_png = before.get("authored_png")
+            if before_png:
+                source = baseline_root / before_png
+                target_name = f'{pose["pose_id"]}.png'
+                target = output_dir / "baseline" / target_name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, target)
+                pose["baseline_authored_png"] = f"baseline/{target_name}"
+                copied += 1
+            pose["baseline_authored_asset_rgba_sha256"] = before.get(
+                "authored_asset_rgba_sha256"
+            )
+            pose["authored_asset_changed"] = (
+                before.get("authored_asset_rgba_sha256")
+                != pose.get("authored_asset_rgba_sha256")
+            )
+            if pose["authored_asset_changed"]:
+                changed += 1
+        manifest["baseline_comparison"] = {
+            "pose_count": len(baseline_manifest["poses"]),
+            "matched_pose_count": sum(
+                pose["pose_id"] in baseline_by_pose for pose in manifest["poses"]
+            ),
+            "copied_authored_png_count": copied,
+            "changed_authored_pose_count": changed,
+        }
+
     if readiness is not None:
         manifest["shipping_readiness"] = {
             "shipping_ready": readiness["shipping_ready"],
@@ -284,6 +355,8 @@ def main() -> int:
     parser.add_argument("--original-frame", type=Path)
     parser.add_argument("--hd-frame", type=Path)
     parser.add_argument("--readiness", type=Path)
+    parser.add_argument("--baseline-dossier", type=Path)
+    parser.add_argument("--baseline-equivalence", type=Path)
     args = parser.parse_args()
     manifest = build_review_packet(
         args.dossier,
@@ -292,6 +365,8 @@ def main() -> int:
         args.original_frame,
         args.hd_frame,
         args.readiness,
+        args.baseline_dossier,
+        args.baseline_equivalence,
     )
     print(json.dumps(manifest, indent=2, sort_keys=True))
     return 0

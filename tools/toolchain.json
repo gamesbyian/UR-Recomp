@@ -547,7 +547,7 @@
         },
         {
           "path": "tools/patches/snesrecomp-display-mode-capability.patch",
-          "sha256": "5944741d69e0d79f0d16848644bcf842e350c9c5cd9b438328368574cbe22cf5"
+          "sha256": "0081034fde16304cbe5c0e2c5032b45d55d6521deba313cb9a47270607166388"
         }
       ]
     }

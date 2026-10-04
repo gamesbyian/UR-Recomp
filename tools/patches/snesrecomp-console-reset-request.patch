@@ -20,7 +20,7 @@
 +}
  
  /* The last field actually presented, kept so an overlay can freeze the guest
-@@ -4011,4 +4025,33 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **a
+@@ -4011,4 +4025,34 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **a
      }
      if (!running)
        break;
@@ -28,11 +28,12 @@
 +      g_session_reboot_requested = 0;
 +      host_report_breadcrumb("session reboot");
 +
-+      /* Re-enter through the same full-machine initialization path as a
-+       * process boot. This is the framework's documented in-process session
-+       * lifecycle used by content variants/rematches: persist authoritative
-+       * SRAM, discard the old machine, clear title-owned session stickies,
-+       * initialize a fresh machine from the launched ROM, then reload SRAM. */
++      /* Re-enter through the framework's full-machine initialization path:
++       * persist authoritative SRAM, discard the old machine, clear
++       * title-owned session stickies, build a fresh machine, reload SRAM,
++       * then invoke the normal hardware-reset contract on that fresh machine.
++       * RtlReset(1) preserves cartridge SRAM while resetting the guest CPU,
++       * PPU/APU/pacing state and invoking the title's hardware_reset hook. */
 +      snes_runahead_shutdown();
 +      snes_rewind_shutdown();
 +      if (g_rtl_game_info && g_rtl_game_info->session_reset)
@@ -43,6 +44,7 @@
 +        Die("session reboot failed to initialize the guest");
 +      debug_server_set_ram(snes->ram, 0x20000);
 +      RtlReadSram();
++      RtlReset(1);
 +      g_input_state = 0;
 +      g_gamepad[0].axis_buttons = 0;
 +      g_gamepad[1].axis_buttons = 0;
@@ -61,8 +63,8 @@
  
 +/* Queue a full in-process guest session rebuild at the next safe host-loop
 + * boundary. The request first durably publishes current battery SRAM and
-+ * fails closed if that write cannot complete. The rebuild uses the same
-+ * SnesInit + RtlReadSram lifecycle as a normal cold boot. */
++ * fails closed if that write cannot complete. The rebuild uses SnesInit,
++ * RtlReadSram and the title-owned hardware-reset lifecycle. */
 +int snesrecomp_desktop_request_session_reboot(void);
 +
  /* Ask the host to reset its pacing clock at the next opportunity (a title

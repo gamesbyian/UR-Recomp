@@ -308,6 +308,24 @@ int main() {
     assert(p2_baseline_bottom_max_lx == 33);
     assert(p2_baseline_bottom_min_lx + p2_baseline_bottom_max_lx == 63);
 
+    // Frame 1219 P2 has a distinct synchronized guard but byte-identical
+    // stock art to frame 1220, so it must reuse the exact same authored asset.
+    RacerCompositionState p2_reuse_context{
+        0x0541, 0x0540, 0x0D2D, 0x0000, 0, 0, 0x0001, 0x0000
+    };
+    const auto* p2_reuse =
+        find_racer_registration_for_state(0x0540, p2_reuse_context);
+    assert(p2_reuse != nullptr);
+    assert(is_authored_0540_p2_companion_0d2d_registration(*p2_reuse));
+    for (int y = 0; y < kRacerHdAssetSize; y += 7) {
+        for (int x = 0; x < kRacerHdAssetSize; x += 7) {
+            assert(
+                sample_racer_hd_asset(*p2_reuse, x, y, false, false) ==
+                sample_racer_hd_asset(*p2_baseline, x, y, false, false)
+            );
+        }
+    }
+
     // Object-local H/V reflection remains a post-selection presentation
     // transform for authored art.
     const std::uint32_t pedal =

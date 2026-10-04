@@ -108,6 +108,25 @@ const char* widescreen_mode_name(ur::product::HostWidescreenMode mode) {
         ? "16x9" : "original";
 }
 
+void synchronize_widescreen_provider_selector() {
+    if (std::getenv("URRECOMP_WS_MARGIN")) return;
+    const char* explicit_view = std::getenv("URRECOMP_WS_VIEW");
+    if (explicit_view && *explicit_view) return;
+
+    const bool enabled =
+        g_product_state.settings.widescreen_mode ==
+        ur::product::HostWidescreenMode::Authentic16x9;
+#if defined(_WIN32)
+    _putenv_s("URRECOMP_WS_VIEW", enabled ? "authentic-16x9" : "");
+#else
+    if (enabled) {
+        setenv("URRECOMP_WS_VIEW", "authentic-16x9", 1);
+    } else {
+        unsetenv("URRECOMP_WS_VIEW");
+    }
+#endif
+}
+
 bool authentic_16x9_view_enabled() {
     if (!modern_mode()) return false;
 
@@ -457,6 +476,7 @@ void ensure_product_state() {
         product_diagnostic("UR_HOST_STATE IO_ERROR_DEFAULTS");
     }
 
+    synchronize_widescreen_provider_selector();
     g_live_presentation_fps_mode =
         g_product_state.settings.presentation_fps_mode;
 }
@@ -662,6 +682,7 @@ bool cycle_widescreen_setting() {
     }
 
     g_product_state = candidate;
+    synchronize_widescreen_provider_selector();
     snesrecomp_desktop_request_clock_reset();
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(

@@ -24,6 +24,9 @@ def build_shipping_readiness(
         status = row["status"]
         if status not in ALLOWED_STATUSES:
             raise ValueError(f"unsupported art decision status {status!r} for {source}")
+        reviewed_hash = row.get("reviewed_authored_rgba_sha256")
+        if not isinstance(reviewed_hash, str) or len(reviewed_hash) != 64:
+            raise ValueError(f"{source} lacks a reviewed authored RGBA SHA-256")
         approved = bool(row.get("shipping_art_approved", False))
         if approved != (status == "approved"):
             raise ValueError(

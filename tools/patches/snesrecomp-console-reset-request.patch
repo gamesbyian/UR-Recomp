@@ -72,8 +72,9 @@
      OverlaySelftestPadMainTick(frameCtr);
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -226,3 +226,9 @@ int snesrecomp_desktop_set_display_mode(int mode);
- int snesrecomp_desktop_get_display_mode(void);
+@@ -244,5 +244,11 @@ int snesrecomp_desktop_get_native_output_mode(
+ int snesrecomp_desktop_set_output_mode(
+     const SnesDesktopOutputMode *mode);
  
 +/* Queue a full in-process guest session rebuild at the next safe host-loop
 + * boundary. The request first durably publishes current battery SRAM and

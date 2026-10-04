@@ -36,6 +36,7 @@ struct CompletedRunRecord {
     std::uint32_t schema_version = kCompletedRunRecordSchemaVersion;
     RunRecordProvenance provenance;
     std::uint64_t elapsed_ticks60 = 0;
+    std::uint64_t frame_count = 0;
     std::string terminal_simulation_digest;
     std::vector<RunRecordSplit> splits;
     std::vector<RunRecordInputRun> inputs;

@@ -392,6 +392,6 @@ Audit policy: `docs/THIRD-PARTY-CODE-AUDIT.md`. Remaining closeout scope and exp
 
 ## Completed-run records foundation (2026-10-04)
 
-Implemented: typed/versioned host run-record codec; checksum/corruption handling; playback compatibility rejection; exact guest-timer tick conversion; representative 1P record persistence/reload; direct export to canonical deterministic controller-input grammar.
+Implemented: typed/versioned/checksummed host run artifacts; strong replay provenance; exact guest-timer tick conversion; exact resolved controller-word observation at the RtlRunFrame boundary; immutable-header course identity for all 45 USA courses; live Modern 1P attempt capture with Retry re-arming; append-only per-profile local storage; previous-run and fastest-compatible PB selection seams; exact finish/split delta comparison; direct export to canonical deterministic controller-input grammar; fresh-process record reload; and a dedicated two-process native Dragster capture/replay acceptance.
 
-Next: wire live input observation and authoritative race-completion finalization into the production desktop host, then prove a captured record re-drives the native race in a fresh process before adding PB/previous-run selection or ghost rendering. See COMPLETED-RUN-RECORDS.md.
+Next: consume the compatible previous/PB records as presentation-only ghost state, then add the records/replay browser and richer split presentation. Do not add a second simulation model or grant ghost/replay data gameplay authority. See COMPLETED-RUN-RECORDS.md.

@@ -48,6 +48,7 @@ std::optional<CompletedRunRecord> CompletedRunCapture::complete(
     CompletedRunRecord record;
     record.provenance = provenance_;
     record.elapsed_ticks60 = elapsed_ticks60;
+    record.frame_count = captured_frames_;
     record.terminal_simulation_digest = terminal_simulation_digest;
     record.splits = splits_;
     record.inputs = recorder_.inputs();

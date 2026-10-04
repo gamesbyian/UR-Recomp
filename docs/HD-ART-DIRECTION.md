@@ -100,6 +100,8 @@ The immediately preceding repeated P1 state `057E/0543 + 0D49/0000` at frames 12
 
 The six-frame P1 state immediately before that, `057D/0543 + 0D48/0000` at frames 1207–1212, is now motion-reviewed as the next distinct retained pose. Its authored asset continues the same reviewed material and object-local lighting language while fitting stock envelope `[21,3]..[43,38]` and contact `[69,76]`. Gameplay-scale review measures 246 overlapping logical pixels over a 397-pixel union (IoU `0.6196473552`), with 322 candidate opaque pixels versus 321 stock. Native run `37164968261` is green through live split-screen presentation and guest-state invariants; artifact `11289251993` retains the dossier. This remains review art, not shipping-art approval.
 
+With the P1 1205–1220 strip now saturated, the next product-facing gap is the other live racer rather than more adjacency search. The canonical frame-1220 P2 representation `ordinary-racer-0x0540-p2-sync-reference` now has the first authored blue-player candidate. It inherits the same dark rubber/saddle, bright neutral hardware, smooth source-model geometry and object-local baked-light hierarchy, while using the P2 blue palette relationship and preserving stock envelope `[23,3]..[40,38]` and contact `[63,76]`. Native/dossier acceptance is the remaining gate; this does not broaden semantic coverage.
+
 Secondary appearance references include the official North American/European packaging scans and the 2010 developer feature. They agree with the stock dossier on dark wheel/saddle masses, colored glossy body/frame forms, and brighter neutral hardware. Do not copy marketing-only sparkle/star effects into ordinary gameplay frames merely because they appear in packaging art.
 
 Reference provenance:

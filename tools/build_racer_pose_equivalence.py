@@ -25,6 +25,11 @@ def build_equivalence(dossier: dict[str, Any]) -> dict[str, Any]:
             row for row in reps
             if row.get("art_review", {}).get("authored_candidate") is not None
         ]
+        authored_hashes = sorted({
+            row["art_review"]["authored_candidate"].get("rgba_sha256")
+            for row in authored
+            if row["art_review"]["authored_candidate"].get("rgba_sha256")
+        })
         source = authored[0]["representation_id"] if authored else None
         row = {
             "pose_id": f"{player}-pose-{index:03d}",
@@ -38,21 +43,32 @@ def build_equivalence(dossier: dict[str, Any]) -> dict[str, Any]:
                 for frame in rep.get("observed_frames_in_window", [])
             }),
             "authored_source_representation_id": source,
+            "authored_representation_ids": [
+                rep["representation_id"] for rep in authored
+            ],
+            "authored_asset_rgba_sha256": (
+                authored_hashes[0] if len(authored_hashes) == 1 else None
+            ),
             "reuse_candidates": [
                 rep["representation_id"] for rep in reps
                 if source is not None and rep["representation_id"] != source
             ],
             "needs_authored_asset": source is None,
+            "authored_asset_conflict": len(authored_hashes) > 1,
         }
         pose_groups.append(row)
         if source is None:
             unauthored.append(row["pose_id"])
-        if len(authored) > 1:
+        if len(authored_hashes) > 1:
             duplicate_authored.append({
                 "pose_id": row["pose_id"],
                 "authored_representation_ids": [
                     rep["representation_id"] for rep in authored
                 ],
+                "authored_asset_rgba_sha256": authored_hashes,
+                "reason": (
+                    "byte-identical stock pose has more than one authored RGBA asset"
+                ),
             })
 
     count = len(dossier.get("representations", []))
@@ -67,12 +83,20 @@ def build_equivalence(dossier: dict[str, Any]) -> dict[str, Any]:
         "worklist": {
             "unauthored_pose_ids": unauthored,
             "unauthored_pose_count": len(unauthored),
+            "authored_pose_count": sum(
+                1 for pose in pose_groups
+                if pose["authored_source_representation_id"] is not None
+            ),
             "duplicate_authored_groups": duplicate_authored,
+            "conflicting_authored_pose_count": len(duplicate_authored),
         },
         "rule": (
             "Exact semantic/composition guards remain distinct runtime identities. "
             "Only byte-identical stock RGBA poses for the same player are eligible "
-            "to share authored visual assets."
+            "to share authored visual assets. Multiple semantic registrations with "
+            "the same authored RGBA hash are one authored production asset, not "
+            "duplicate work; differing authored hashes for one stock pose are a "
+            "review conflict."
         ),
     }
 

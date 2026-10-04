@@ -31,6 +31,7 @@ The eventual user-facing video settings should support, where the platform permi
 - independent display-geometry/pixel-aspect selection and logical-view selection, following `DISPLAY-PRESENTATION-POLICY.md`;
 - initial display roles of Authentic 4:3, Raw Pixels, and modern square-pixel presentation where appropriate;
 - logical view choices including Original and true 16:9 Widescreen, with Adaptive/ultrawide admitted only when scene and renderer evidence supports them;
+  The first two choices are now implemented as the persisted Modern-mode `VIEW` setting; Original is the default and 16:9 consumes the title-owned scene/materializer contract rather than stretching the source.
 - graphics-pack selection and optional post-processing where available.
 
 The **guest simulation cadence is not a user setting**. Physics, collision, timers, AI, RNG, stunt timing, animation-state selection, records and deterministic replay remain driven by the original authoritative simulation cadence on every platform.
@@ -221,3 +222,12 @@ The distinction is explicit:
 - a product-policy feature is acceptable only while the Authentic path stays reproducible and authoritative race behavior remains unchanged.
 
 PR #213 closed the stock gameplay-authored progression/save-load acceptance gap. That evidence is the reason this layer can now treat SRAM as a proven guest-owned substrate rather than commandeering it as a modern profile store.
+
+
+## Widescreen product binding
+
+Modern Options now owns a persisted `VIEW` setting with `Original` and `16:9` choices. It stays inside host product state, defaults to Original, and is inert in Authentic execution mode. The existing `URRECOMP_WS_VIEW` environment selector remains only as a deterministic diagnostic override.
+
+The setting changes presentation only. Active evidence-backed 1P and ordinary-2P race scenes may request the accepted 342×224 logical view over +48 backing; frontend, transitions, results, unknown races and VS remain fixed-center. A title-owned dynamic native-wide callback keeps those fixed scenes on the stock PPU raster path. Output Resolution, Display Mode, VSync and Presentation FPS remain independent settings.
+
+Host-state codec v6 now follows the catalog's additive-key rule: its seven historical core keys remain required, `widescreen` is a known optional v6 key whose absence defaults to `original`, and unknown keys still fail closed. This keeps already-written v6 files readable without inventing a schema bump for one optional setting.

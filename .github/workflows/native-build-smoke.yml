@@ -442,6 +442,12 @@ jobs:
           widescreen=16x9
           STATEEOF
 
+          # The launcher anchors saves next to the executable. Snapshot the
+          # SRAM this run starts from so the stock-parity runs below can start
+          # from the identical state, and the state it leaves for later steps.
+          SAVES="$(dirname "$EXE")/saves"
+          rm -rf "$RUNNER_TEMP/ws-saves-pre" "$RUNNER_TEMP/ws-saves-post"
+          if [ -d "$SAVES" ]; then cp -a "$SAVES" "$RUNNER_TEMP/ws-saves-pre"; fi
           UR_PRODUCT_DIAGNOSTICS=1 \
           UR_HOST_STATE_PATH="$STATE" \
           URRECOMP_WS_NATIVE_TRACE=1 \
@@ -449,6 +455,7 @@ jobs:
           SDL_AUDIODRIVER=dummy \
           timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
             >"$LOG" 2>&1
+          if [ -d "$SAVES" ]; then cp -a "$SAVES" "$RUNNER_TEMP/ws-saves-post"; fi
 
           cat "$LOG"
           grep -q "UR_HOST_STATE LOADED .*widescreen=16x9" "$LOG"
@@ -502,6 +509,14 @@ jobs:
           widescreen=original
           STATEEOF
 
+          # Every matched run starts from the SRAM the 16:9 acceptance run
+          # started from; later steps get back the state that run left.
+          SAVES="$(dirname "$EXE")/saves"
+          reset_saves() {
+            rm -rf "$SAVES"
+            if [ -d "$RUNNER_TEMP/ws-saves-pre" ]; then cp -a "$RUNNER_TEMP/ws-saves-pre" "$SAVES"; fi
+          }
+          reset_saves
           UR_PRODUCT_DIAGNOSTICS=1 \
           UR_HOST_STATE_PATH="$ROOT/host-state-v6.txt" \
           SNESRECOMP_DUMP_DIR="$ROOT/dumps" \
@@ -534,6 +549,7 @@ jobs:
             OUT="$RUNNER_TEMP/widescreen-product-vs-$view"
             mkdir -p "$OUT/dumps"
             sed "s/^widescreen=.*/widescreen=$view/" "$ROOT/host-state-v6.txt" >"$OUT/state.txt"
+            reset_saves
             UR_PRODUCT_DIAGNOSTICS=1 \
             UR_HOST_STATE_PATH="$OUT/state.txt" \
             URRECOMP_WS_NATIVE_TRACE=1 \
@@ -552,6 +568,9 @@ jobs:
             --checkpoint vs-race-1340 \
             --checkpoint vs-race-1620 \
             --out "$RUNNER_TEMP/widescreen-product-vs-parity.json"
+
+          rm -rf "$SAVES"
+          if [ -d "$RUNNER_TEMP/ws-saves-post" ]; then cp -a "$RUNNER_TEMP/ws-saves-post" "$SAVES"; fi
 
       - name: Build display-geometry review
         shell: bash

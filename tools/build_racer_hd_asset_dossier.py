@@ -171,6 +171,30 @@ def authored_segment_contains(
     cross = dx * py - dy * px
     return cross * cross <= half_width * half_width * length2
 
+
+def authored_crank_contains(
+    x: int,
+    y: int,
+    wheel_cx: int,
+    wheel_cy: int,
+    pedal_root_x: int,
+) -> bool:
+    return authored_segment_contains(
+        x, y, wheel_cx, wheel_cy, pedal_root_x, 116, 2
+    )
+
+
+def authored_pedal_contains(
+    x: int,
+    y: int,
+    pedal_min_x: int,
+    pedal_max_x: int,
+) -> bool:
+    return authored_segment_contains(
+        x, y, pedal_min_x, 116, pedal_max_x, 116, 2
+    )
+
+
 def authored_saddle_contains(
     x: int,
     y: int,
@@ -416,8 +440,8 @@ def sample_authored_0541_p1_rgba(x: int, y: int) -> bytes:
     fork_center = 131 - (y - 60) // 14
     fork = y >= 60 and y <= 117 and x >= fork_center - 4 and x <= fork_center + 4
 
-    crank = y >= 116 and y <= 123 and x >= 112 and x <= 138
-    pedal = y >= 113 and y <= 118 and x >= 138 and x <= 150
+    crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 138)
+    pedal = authored_pedal_contains(x, y, 138, 150)
 
     seat_dx = x - 128
     seat_dy = y - 22
@@ -476,8 +500,8 @@ def sample_authored_0541_p1_companion_0d2d_rgba(x: int, y: int) -> bytes:
 
     fork_center = 131 - (y - 60) // 14
     fork = y >= 60 and y <= 117 and x >= fork_center - 4 and x <= fork_center + 4
-    crank = y >= 116 and y <= 123 and x >= 112 and x <= 138
-    pedal = y >= 113 and y <= 118 and x >= 138 and x <= 150
+    crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 138)
+    pedal = authored_pedal_contains(x, y, 138, 150)
 
     seat_dx = x - 130
     seat_dy = y - 23
@@ -536,8 +560,8 @@ def sample_authored_0540_p1_predecessor_rgba(x: int, y: int) -> bytes:
 
     fork_center = 126 - (y - 60) // 11
     fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
-    crank = y >= 116 and y <= 123 and x >= 111 and x <= 140
-    pedal = y >= 113 and y <= 118 and x >= 141 and x <= 145
+    crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 141)
+    pedal = authored_pedal_contains(x, y, 141, 145)
 
     seat_dx = x - 130
     seat_dy = y - 22
@@ -597,8 +621,8 @@ def sample_authored_057f_p1_companion_0d4a_rgba(x: int, y: int) -> bytes:
 
     fork_center = 130 - (y - 60) // 11
     fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
-    crank = y >= 116 and y <= 123 and x >= 115 and x <= 144
-    pedal = y >= 113 and y <= 118 and x >= 145 and x <= 149
+    crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 145)
+    pedal = authored_pedal_contains(x, y, 145, 149)
 
     # The bridge pose still carried a small right-heavy saddle block in the
     # true-density mismatch map. Shift/narrow without touching its recovered
@@ -661,8 +685,8 @@ def sample_authored_057e_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
 
     fork_center = 134 - (y - 60) // 11
     fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
-    crank = y >= 116 and y <= 123 and x >= 119 and x <= 148
-    pedal = y >= 113 and y <= 118 and x >= 149 and x <= 153
+    crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 149)
+    pedal = authored_pedal_contains(x, y, 149, 153)
 
     # True-density review showed the old saddle carried a broad block of
     # authored-only mass to the right. Shift/narrow the same smooth ellipse
@@ -725,8 +749,8 @@ def sample_authored_057d_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
 
     fork_center = 134 - (y - 60) // 11
     fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
-    crank = y >= 116 and y <= 123 and x >= 123 and x <= 152
-    pedal = y >= 113 and y <= 118 and x >= 153 and x <= 157
+    crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 153)
+    pedal = authored_pedal_contains(x, y, 153, 157)
 
     # The 057D mismatch map shows the same right-heavy saddle mass as 057E.
     # Shift left and narrow it without changing the stock-derived envelope or
@@ -789,8 +813,8 @@ def sample_authored_0540_p2_baseline_rgba(x: int, y: int) -> bytes:
 
     fork_center = 126 - (y - 60) // 11
     fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
-    crank = y >= 116 and y <= 123 and x >= 111 and x <= 140
-    pedal = y >= 113 and y <= 118 and x >= 141 and x <= 145
+    crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 141)
+    pedal = authored_pedal_contains(x, y, 141, 145)
 
     seat_dx = x - 130
     seat_dy = y - 22
@@ -845,8 +869,8 @@ def sample_authored_0541_p2_predecessor_rgba(x: int, y: int) -> bytes:
     hub = wr2 <= 5 * 5
     fork_center = 122 - (y - 60) // 11
     fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
-    crank = y >= 116 and y <= 123 and x >= 107 and x <= 136
-    pedal = y >= 113 and y <= 118 and x >= 137 and x <= 141
+    crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 137)
+    pedal = authored_pedal_contains(x, y, 137, 141)
     # The 0541 P2 transition pose is over-broad on the left/top at true
     # density. Shift the same smooth saddle right/down and narrow it while the
     # wheel/fork continue to lock envelope and contact.
@@ -902,8 +926,8 @@ def sample_authored_0542_p2_rgba(x: int, y: int) -> bytes:
 
     fork_center = 118 - (y - 60) // 11
     fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
-    crank = y >= 116 and y <= 123 and x >= 103 and x <= 132
-    pedal = y >= 113 and y <= 118 and x >= 133 and x <= 137
+    crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 133)
+    pedal = authored_pedal_contains(x, y, 133, 137)
 
     seat_dx, seat_dy = x - 130, y - 26
     seat = authored_saddle_contains(x, y, 130, 26, 35, 14, 16, 40)
@@ -960,8 +984,8 @@ def sample_authored_0543_p2_rgba(x: int, y: int) -> bytes:
 
     fork_center = 116 - (y - 60) // 11
     fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
-    crank = y >= 116 and y <= 123 and x >= 101 and x <= 130
-    pedal = y >= 113 and y <= 118 and x >= 131 and x <= 135
+    crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 131)
+    pedal = authored_pedal_contains(x, y, 131, 135)
 
     seat_dx, seat_dy = x - 130, y - 30
     seat = authored_saddle_contains(x, y, 130, 30, 35, 12, 16, 40)

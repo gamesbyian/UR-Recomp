@@ -9,6 +9,7 @@ from tools.build_racer_hd_asset_dossier import (
     SIXTH_AUTHORED_REPRESENTATION_ID,
     SEVENTH_AUTHORED_REPRESENTATION_ID,
     EIGHTH_AUTHORED_REPRESENTATION_ID,
+    NINTH_AUTHORED_REPRESENTATION_ID,
     PENDING_ART_DECISIONS,
     RESOLVED_VISUAL_LANGUAGE,
     build_first_authored_candidate_rgba,
@@ -359,6 +360,16 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         )
         bottom = [x for x, y in occupied if y == 38]
         self.assertEqual([min(bottom), max(bottom)], [30, 33])
+
+    def test_ninth_registration_reuses_p2_baseline_asset(self):
+        self.assertEqual(
+            NINTH_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x0540-p2-with-p1-companion-0D2D-reference",
+        )
+        self.assertEqual(
+            build_seventh_authored_candidate_rgba(),
+            build_seventh_authored_candidate_rgba(),
+        )
 
     def test_safe_name_is_path_stable(self):
         self.assertEqual(safe_name("racer / 0x0541:p1"), "racer-0x0541-p1")

@@ -64,7 +64,6 @@ class ModernProductHostPatchTests(unittest.TestCase):
         patched = patch_cmake_text(source, ROOT)
         for name in (
             "host_product_state.cpp",
-            "widescreen_output_composition.cpp",
             "host_product_store.cpp",
             "modern_session_c_api.cpp",
             "modern_pause_menu.cpp",

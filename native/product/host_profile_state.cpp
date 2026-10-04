@@ -11,6 +11,7 @@ namespace {
 
 constexpr std::string_view kHeaderV1 = "UR-HOST-PROFILE/1";
 constexpr std::string_view kHeaderV2 = "UR-HOST-PROFILE/2";
+constexpr std::string_view kHeaderV3 = "UR-HOST-PROFILE/3";
 
 int hex_value(char ch) noexcept {
     if (ch >= '0' && ch <= '9') return ch - '0';
@@ -120,6 +121,27 @@ bool decode_tour_continuation(
     return true;
 }
 
+std::optional<CompletedRunGhostTarget> decode_ghost_target(
+    std::string_view value) noexcept {
+    if (value == "off") return CompletedRunGhostTarget::Off;
+    if (value == "previous") return CompletedRunGhostTarget::Previous;
+    if (value == "personal-best") return CompletedRunGhostTarget::PersonalBest;
+    return std::nullopt;
+}
+
+std::string_view encode_ghost_target(
+    CompletedRunGhostTarget target) noexcept {
+    switch (target) {
+    case CompletedRunGhostTarget::Off:
+        return "off";
+    case CompletedRunGhostTarget::Previous:
+        return "previous";
+    case CompletedRunGhostTarget::PersonalBest:
+        return "personal-best";
+    }
+    return {};
+}
+
 }  // namespace
 
 bool valid_tour_continuation(const HostTourContinuation& value) noexcept {
@@ -152,7 +174,10 @@ std::string encode_host_profile_state(const HostProfileState& state) {
     }
 
     std::ostringstream out;
-    out << kHeaderV2 << '\n';
+    const auto ghost_target = encode_ghost_target(state.ghost_target);
+    if (ghost_target.empty()) return {};
+
+    out << kHeaderV3 << '\n';
     out << "profile=" << state.profile_id << '\n';
     out << "generation=" << state.autosave_generation << '\n';
     out << "stock_sram=";
@@ -160,6 +185,7 @@ std::string encode_host_profile_state(const HostProfileState& state) {
     out << '\n';
     out << "tour_resume=" << encode_tour_continuation(state.tour_continuation)
         << '\n';
+    out << "ghost_target=" << ghost_target << '\n';
     return out.str();
 }
 
@@ -170,7 +196,9 @@ HostProfileDecodeResult decode_host_profile_state(std::string_view encoded) {
         return {std::nullopt, false, "unsupported or missing profile-state header"};
     }
     const bool legacy_v1 = line == kHeaderV1;
-    if (!legacy_v1 && line != kHeaderV2) {
+    const bool legacy_v2 = line == kHeaderV2;
+    const bool current_v3 = line == kHeaderV3;
+    if (!legacy_v1 && !legacy_v2 && !current_v3) {
         return {std::nullopt, false, "unsupported or missing profile-state header"};
     }
 
@@ -188,12 +216,14 @@ HostProfileDecodeResult decode_host_profile_state(std::string_view encoded) {
         }
     }
 
-    const std::size_t expected = legacy_v1 ? 3u : 4u;
+    const std::size_t expected =
+        legacy_v1 ? 3u : (legacy_v2 ? 4u : 5u);
     if (fields.size() != expected ||
         fields.find("profile") == fields.end() ||
         fields.find("generation") == fields.end() ||
         fields.find("stock_sram") == fields.end() ||
-        (!legacy_v1 && fields.find("tour_resume") == fields.end())) {
+        (!legacy_v1 && fields.find("tour_resume") == fields.end()) ||
+        (current_v3 && fields.find("ghost_target") == fields.end())) {
         return {std::nullopt, false, "unexpected profile-state field set"};
     }
 
@@ -213,8 +243,15 @@ HostProfileDecodeResult decode_host_profile_state(std::string_view encoded) {
             fields["tour_resume"], state->tour_continuation)) {
         return {std::nullopt, false, "invalid tour continuation"};
     }
+    if (current_v3) {
+        const auto ghost_target = decode_ghost_target(fields["ghost_target"]);
+        if (!ghost_target) {
+            return {std::nullopt, false, "invalid ghost target"};
+        }
+        state->ghost_target = *ghost_target;
+    }
 
-    return {state, legacy_v1, {}};
+    return {state, legacy_v1 || legacy_v2, {}};
 }
 
 HostProfileTransferStatus capture_stock_sram_for_profile(
